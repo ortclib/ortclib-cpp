@@ -6,12 +6,19 @@
 	objectVersion = 46;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		008F562A18213D70009863AA /* ortc_ortc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 008F562818213D70009863AA /* ortc_ortc.cpp */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		008F56041821367E009863AA /* libortclib.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libortclib.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		008F5623182137B7009863AA /* license-agpl.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "license-agpl.txt"; sourceTree = "<group>"; };
 		008F5624182137B7009863AA /* license.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = license.txt; sourceTree = "<group>"; };
 		008F5625182137DE009863AA /* types.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = types.h; sourceTree = "<group>"; };
 		008F562618213862009863AA /* ortc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ortc.h; sourceTree = "<group>"; };
+		008F562718213D27009863AA /* types.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = types.h; sourceTree = "<group>"; };
+		008F562818213D70009863AA /* ortc_ortc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_ortc.cpp; sourceTree = "<group>"; };
+		008F562C18213DB3009863AA /* ortc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ortc.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -58,6 +65,7 @@
 		008F562118213754009863AA /* cpp */ = {
 			isa = PBXGroup;
 			children = (
+				008F562818213D70009863AA /* ortc_ortc.cpp */,
 			);
 			path = cpp;
 			sourceTree = "<group>";
@@ -65,6 +73,8 @@
 		008F56221821375E009863AA /* internal */ = {
 			isa = PBXGroup;
 			children = (
+				008F562718213D27009863AA /* types.h */,
+				008F562C18213DB3009863AA /* ortc.h */,
 			);
 			path = internal;
 			sourceTree = "<group>";
@@ -130,6 +140,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				008F562A18213D70009863AA /* ortc_ortc.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
