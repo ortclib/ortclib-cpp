@@ -16,6 +16,8 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+#pragma once
+
 #include <openpeer/services/types.h>
 
 namespace ortc
@@ -32,4 +34,129 @@ namespace ortc
 
   using openpeer::services::SecureByteBlock;
   using openpeer::services::SecureByteBlockPtr;
+  
+  
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark RTCConnectionSide
+  #pragma mark
+  
+  struct RTCConnectionSide
+  {
+    
+  };
+  
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark RTCIceCandidateDescription
+  #pragma mark
+  
+  struct RTCIceCandidateDescription
+  {
+    
+  };
+  
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark RTCTrackFilter
+  #pragma mark
+  
+  struct RTCTrackFilter
+  {
+    
+  };
+  
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark RTCTrackDescription
+  #pragma mark
+  
+  struct RTCTrackDescription
+  {
+    
+  };
+  
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark RTCCodec
+  #pragma mark
+  
+  struct RTCCodec
+  {
+    
+  };
+  
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark RTCMediaAttributes
+  #pragma mark
+  
+  struct RTCMediaAttributes
+  {
+    
+  };
+  
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark (other)
+  #pragma mark
+  
+  interaction IRTCConnection;
+  typedef boost::shared_ptr<IRTCConnection> IRTCConnectionPtr;
+  typedef boost::weak_ptr<IRTCConnection> IRTCConnectionWeakPtr;
+  
+  interaction IRTCConnectionDelegate;
+  typedef boost::shared_ptr<IRTCConnectionDelegate> IRTCConnectionDelegatePtr;
+  typedef boost::weak_ptr<IRTCConnectionDelegate> IRTCConnectionDelegateWeakPtr;
+  typedef zsLib::Proxy<IRTCConnectionDelegate> IRTCConnectionDelegateProxy;
+
+  interaction IRTCTrack;
+  typedef boost::shared_ptr<IRTCTrack> IRTCTrackPtr;
+  typedef boost::weak_ptr<IRTCTrack> IRTCTrackWeakPtr;
+  
+  typedef std::list<IRTCTrackPtr> RTCTrackList;
+  typedef boost::shared_ptr<RTCTrackList> RTCTrackListPtr;
+  typedef boost::weak_ptr<RTCTrackList> RTCTrackListWeakPtr;
+
+  interaction IRTCSocket;
+  typedef boost::shared_ptr<IRTCSocket> IRTCSocketPtr;
+  typedef boost::weak_ptr<IRTCSocket> IRTCSocketWeakPtr;
+
+  interaction IMediaStream;
+  typedef boost::shared_ptr<IMediaStream> IMediaStreamPtr;
+  typedef boost::weak_ptr<IMediaStream> IMediaStreamWeakPtr;
+  
+  typedef std::list<IMediaStreamPtr> MediaStreamList;
+  typedef boost::shared_ptr<MediaStreamList> MediaStreamListPtr;
+  typedef boost::weak_ptr<MediaStreamList> MediaStreamListWeakPtr;
+
+  interaction IMediaStreamTrack;
+  typedef boost::shared_ptr<IMediaStreamTrack> IMediaStreamTrackPtr;
+  typedef boost::weak_ptr<IMediaStreamTrack> IMediaStreamTrackWeakPtr;
+  
+  interaction IRTCDTMFHandler;
+  typedef boost::shared_ptr<IRTCDTMFHandler> IRTCDTMFHandlerPtr;
+  typedef boost::weak_ptr<IRTCDTMFHandler> IRTCDTMFHandlerWeakPtr;
+  
 }

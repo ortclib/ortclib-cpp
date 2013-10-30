@@ -8,6 +8,12 @@
 
 /* Begin PBXBuildFile section */
 		008F562A18213D70009863AA /* ortc_ortc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 008F562818213D70009863AA /* ortc_ortc.cpp */; };
+		E2260E5818215A020084E4A4 /* ortc_RTCConnection.h in Headers */ = {isa = PBXBuildFile; fileRef = E2260E5618215A020084E4A4 /* ortc_RTCConnection.h */; };
+		E2260E5C18215A190084E4A4 /* ortc_RTCTrack.h in Headers */ = {isa = PBXBuildFile; fileRef = E2260E5A18215A190084E4A4 /* ortc_RTCTrack.h */; };
+		E2260E5F18215A910084E4A4 /* IRTCConnection.h in Headers */ = {isa = PBXBuildFile; fileRef = E2260E5D18215A910084E4A4 /* IRTCConnection.h */; };
+		E2260E6018215A910084E4A4 /* IRTCTrack.h in Headers */ = {isa = PBXBuildFile; fileRef = E2260E5E18215A910084E4A4 /* IRTCTrack.h */; };
+		E2260E6318215AAF0084E4A4 /* ortc_RTCConnection.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E2260E6118215AAF0084E4A4 /* ortc_RTCConnection.cpp */; };
+		E2260E6418215AAF0084E4A4 /* ortc_RTCTrack.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E2260E6218215AAF0084E4A4 /* ortc_RTCTrack.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -19,6 +25,12 @@
 		008F562718213D27009863AA /* types.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = types.h; sourceTree = "<group>"; };
 		008F562818213D70009863AA /* ortc_ortc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_ortc.cpp; sourceTree = "<group>"; };
 		008F562C18213DB3009863AA /* ortc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ortc.h; sourceTree = "<group>"; };
+		E2260E5618215A020084E4A4 /* ortc_RTCConnection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ortc_RTCConnection.h; sourceTree = "<group>"; };
+		E2260E5A18215A190084E4A4 /* ortc_RTCTrack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ortc_RTCTrack.h; sourceTree = "<group>"; };
+		E2260E5D18215A910084E4A4 /* IRTCConnection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IRTCConnection.h; sourceTree = "<group>"; };
+		E2260E5E18215A910084E4A4 /* IRTCTrack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IRTCTrack.h; sourceTree = "<group>"; };
+		E2260E6118215AAF0084E4A4 /* ortc_RTCConnection.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_RTCConnection.cpp; sourceTree = "<group>"; };
+		E2260E6218215AAF0084E4A4 /* ortc_RTCTrack.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_RTCTrack.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -57,6 +69,8 @@
 				008F5624182137B7009863AA /* license.txt */,
 				008F5625182137DE009863AA /* types.h */,
 				008F562618213862009863AA /* ortc.h */,
+				E2260E5D18215A910084E4A4 /* IRTCConnection.h */,
+				E2260E5E18215A910084E4A4 /* IRTCTrack.h */,
 			);
 			name = ortc;
 			path = ../../../ortc;
@@ -66,6 +80,8 @@
 			isa = PBXGroup;
 			children = (
 				008F562818213D70009863AA /* ortc_ortc.cpp */,
+				E2260E6118215AAF0084E4A4 /* ortc_RTCConnection.cpp */,
+				E2260E6218215AAF0084E4A4 /* ortc_RTCTrack.cpp */,
 			);
 			path = cpp;
 			sourceTree = "<group>";
@@ -75,6 +91,8 @@
 			children = (
 				008F562718213D27009863AA /* types.h */,
 				008F562C18213DB3009863AA /* ortc.h */,
+				E2260E5618215A020084E4A4 /* ortc_RTCConnection.h */,
+				E2260E5A18215A190084E4A4 /* ortc_RTCTrack.h */,
 			);
 			path = internal;
 			sourceTree = "<group>";
@@ -86,6 +104,10 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E2260E6018215A910084E4A4 /* IRTCTrack.h in Headers */,
+				E2260E5F18215A910084E4A4 /* IRTCConnection.h in Headers */,
+				E2260E5C18215A190084E4A4 /* ortc_RTCTrack.h in Headers */,
+				E2260E5818215A020084E4A4 /* ortc_RTCConnection.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -141,6 +163,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				008F562A18213D70009863AA /* ortc_ortc.cpp in Sources */,
+				E2260E6318215AAF0084E4A4 /* ortc_RTCConnection.cpp in Sources */,
+				E2260E6418215AAF0084E4A4 /* ortc_RTCTrack.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

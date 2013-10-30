@@ -1,0 +1,295 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		E2260EAA182163D50084E4A4 /* ortc_ortc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E2260E9C182163D50084E4A4 /* ortc_ortc.cpp */; };
+		E2260EAB182163D50084E4A4 /* ortc_RTCConnection.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E2260E9D182163D50084E4A4 /* ortc_RTCConnection.cpp */; };
+		E2260EAC182163D50084E4A4 /* ortc_RTCTrack.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E2260E9E182163D50084E4A4 /* ortc_RTCTrack.cpp */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		E2260E711821628E0084E4A4 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "include/$(PRODUCT_NAME)";
+			dstSubfolderSpec = 16;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		E2260E731821628E0084E4A4 /* libortclib_ios.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libortclib_ios.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		E2260E9C182163D50084E4A4 /* ortc_ortc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_ortc.cpp; sourceTree = "<group>"; };
+		E2260E9D182163D50084E4A4 /* ortc_RTCConnection.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_RTCConnection.cpp; sourceTree = "<group>"; };
+		E2260E9E182163D50084E4A4 /* ortc_RTCTrack.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_RTCTrack.cpp; sourceTree = "<group>"; };
+		E2260EA0182163D50084E4A4 /* ortc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ortc.h; sourceTree = "<group>"; };
+		E2260EA1182163D50084E4A4 /* ortc_RTCConnection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ortc_RTCConnection.h; sourceTree = "<group>"; };
+		E2260EA2182163D50084E4A4 /* ortc_RTCTrack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ortc_RTCTrack.h; sourceTree = "<group>"; };
+		E2260EA3182163D50084E4A4 /* types.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = types.h; sourceTree = "<group>"; };
+		E2260EA4182163D50084E4A4 /* IRTCConnection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IRTCConnection.h; sourceTree = "<group>"; };
+		E2260EA5182163D50084E4A4 /* IRTCTrack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IRTCTrack.h; sourceTree = "<group>"; };
+		E2260EA6182163D50084E4A4 /* license-agpl.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "license-agpl.txt"; sourceTree = "<group>"; };
+		E2260EA7182163D50084E4A4 /* license.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = license.txt; sourceTree = "<group>"; };
+		E2260EA8182163D50084E4A4 /* ortc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ortc.h; sourceTree = "<group>"; };
+		E2260EA9182163D50084E4A4 /* types.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = types.h; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		E2260E701821628E0084E4A4 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		E2260E65182161700084E4A4 = {
+			isa = PBXGroup;
+			children = (
+				E2260E9A182163D50084E4A4 /* ortc */,
+				E2260E741821628E0084E4A4 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		E2260E741821628E0084E4A4 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				E2260E731821628E0084E4A4 /* libortclib_ios.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		E2260E9A182163D50084E4A4 /* ortc */ = {
+			isa = PBXGroup;
+			children = (
+				E2260E9B182163D50084E4A4 /* cpp */,
+				E2260E9F182163D50084E4A4 /* internal */,
+				E2260EA6182163D50084E4A4 /* license-agpl.txt */,
+				E2260EA7182163D50084E4A4 /* license.txt */,
+				E2260EA9182163D50084E4A4 /* types.h */,
+				E2260EA8182163D50084E4A4 /* ortc.h */,
+				E2260EA4182163D50084E4A4 /* IRTCConnection.h */,
+				E2260EA5182163D50084E4A4 /* IRTCTrack.h */,
+			);
+			name = ortc;
+			path = ../../../ortc;
+			sourceTree = SOURCE_ROOT;
+		};
+		E2260E9B182163D50084E4A4 /* cpp */ = {
+			isa = PBXGroup;
+			children = (
+				E2260E9C182163D50084E4A4 /* ortc_ortc.cpp */,
+				E2260E9D182163D50084E4A4 /* ortc_RTCConnection.cpp */,
+				E2260E9E182163D50084E4A4 /* ortc_RTCTrack.cpp */,
+			);
+			path = cpp;
+			sourceTree = "<group>";
+		};
+		E2260E9F182163D50084E4A4 /* internal */ = {
+			isa = PBXGroup;
+			children = (
+				E2260EA3182163D50084E4A4 /* types.h */,
+				E2260EA0182163D50084E4A4 /* ortc.h */,
+				E2260EA1182163D50084E4A4 /* ortc_RTCConnection.h */,
+				E2260EA2182163D50084E4A4 /* ortc_RTCTrack.h */,
+			);
+			path = internal;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		E2260E721821628E0084E4A4 /* ortclib_ios */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E2260E941821628E0084E4A4 /* Build configuration list for PBXNativeTarget "ortclib_ios" */;
+			buildPhases = (
+				E2260E6F1821628E0084E4A4 /* Sources */,
+				E2260E701821628E0084E4A4 /* Frameworks */,
+				E2260E711821628E0084E4A4 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = ortclib_ios;
+			productName = ortclib_ios;
+			productReference = E2260E731821628E0084E4A4 /* libortclib_ios.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		E2260E66182161700084E4A4 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0500;
+			};
+			buildConfigurationList = E2260E69182161700084E4A4 /* Build configuration list for PBXProject "ortclib_ios" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = E2260E65182161700084E4A4;
+			productRefGroup = E2260E741821628E0084E4A4 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				E2260E721821628E0084E4A4 /* ortclib_ios */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		E2260E6F1821628E0084E4A4 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E2260EAC182163D50084E4A4 /* ortc_RTCTrack.cpp in Sources */,
+				E2260EAA182163D50084E4A4 /* ortc_ortc.cpp in Sources */,
+				E2260EAB182163D50084E4A4 /* ortc_RTCConnection.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		E2260E6A182161700084E4A4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					../../..,
+					../../../../op,
+					../../../../op/libs/zsLib,
+					../../../../op/libs/boost/boost,
+					../../../../op/libs,
+				);
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos";
+			};
+			name = Debug;
+		};
+		E2260E6B182161700084E4A4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					../../..,
+					../../../../op,
+					../../../../op/libs/zsLib,
+					../../../../op/libs/boost/boost,
+					../../../../op/libs,
+				);
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos";
+			};
+			name = Release;
+		};
+		E2260E951821628E0084E4A4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DSTROOT = /tmp/ortclib_ios.dst;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PRECOMPILE_PREFIX_HEADER = NO;
+				GCC_PREFIX_HEADER = "";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
+				ONLY_ACTIVE_ARCH = YES;
+				OTHER_LDFLAGS = "-ObjC";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+			};
+			name = Debug;
+		};
+		E2260E961821628E0084E4A4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = YES;
+				DSTROOT = /tmp/ortclib_ios.dst;
+				ENABLE_NS_ASSERTIONS = NO;
+				GCC_PRECOMPILE_PREFIX_HEADER = NO;
+				GCC_PREFIX_HEADER = "";
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
+				OTHER_LDFLAGS = "-ObjC";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		E2260E69182161700084E4A4 /* Build configuration list for PBXProject "ortclib_ios" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E2260E6A182161700084E4A4 /* Debug */,
+				E2260E6B182161700084E4A4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		E2260E941821628E0084E4A4 /* Build configuration list for PBXNativeTarget "ortclib_ios" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E2260E951821628E0084E4A4 /* Debug */,
+				E2260E961821628E0084E4A4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = E2260E66182161700084E4A4 /* Project object */;
+}
