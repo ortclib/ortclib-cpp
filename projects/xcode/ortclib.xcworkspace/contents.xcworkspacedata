@@ -4,4 +4,28 @@
    <FileRef
       location = "group:ortclib/ortclib.xcodeproj">
    </FileRef>
+   <FileRef
+      location = "group:../../../op/projects/xcode/hfservices_ios/hfservices_ios.xcodeproj">
+   </FileRef>
+   <FileRef
+      location = "group:../../../op/projects/xcode/hfservices/hfservices.xcodeproj">
+   </FileRef>
+   <FileRef
+      location = "group:../../../op/libs/cryptopp/projects/xcode/cryptopp_ios/cryptopp_ios.xcodeproj">
+   </FileRef>
+   <FileRef
+      location = "group:../../../op/libs/cryptopp/projects/xcode/cryptopp/cryptopp.xcodeproj">
+   </FileRef>
+   <FileRef
+      location = "group:../../../op/libs/udns/projects/xcode/udns_ios/udns_ios.xcodeproj">
+   </FileRef>
+   <FileRef
+      location = "group:../../../op/libs/udns/projects/xcode/udns/udns.xcodeproj">
+   </FileRef>
+   <FileRef
+      location = "group:../../../op/libs/zsLib/projects/xcode/zsLib_ios/zsLib_ios.xcodeproj">
+   </FileRef>
+   <FileRef
+      location = "group:../../../op/libs/zsLib/projects/xcode/zsLib/zsLib.xcodeproj">
+   </FileRef>
 </Workspace>
