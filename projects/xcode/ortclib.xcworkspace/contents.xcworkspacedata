@@ -31,4 +31,10 @@
    <FileRef
       location = "group:../../../op/libs/zsLib/projects/xcode/zsLib/zsLib.xcodeproj">
    </FileRef>
+   <FileRef
+      location = "group:../../../op/libs/webrtc/webrtc_ios.xcodeproj">
+   </FileRef>
+   <FileRef
+      location = "group:../../../op/libs/webrtc/webrtc_osx.xcodeproj">
+   </FileRef>
 </Workspace>
