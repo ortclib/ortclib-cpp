@@ -32,12 +32,69 @@ namespace ortc
   
   interaction IRTCTrack
   {
+    struct RTCCodec;
+    struct RTCCodecParam;
+    struct RTCMediaAttributes;
+    
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTCTrackKinds
+    #pragma mark
+    
     enum RTCTrackKinds
     {
       RTCTrackKind_Audio,
       RTCTrackKind_Video
     };
     
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTCCodec
+    #pragma mark
+    
+    struct RTCCodec
+    {
+      BYTE payloadId();
+      String name();
+      int clockRate;
+      int numChannels;
+      RTCCodecParam* params();
+    };
+    
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTCCodecParam
+    #pragma mark
+    
+    struct RTCCodecParam
+    {
+      String name();
+      String value();
+    };
+    
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTCMediaAttributes
+    #pragma mark
+    
+    struct RTCMediaAttributes
+    {
+      int videoMaxWidth();
+      int videoMaxHeight();
+    };
+
     typedef std::list<String> MsidList;
     typedef boost::shared_ptr<MsidList> MsidListPtr;
     typedef boost::weak_ptr<MsidList> MsidListWeakPtr;
@@ -55,14 +112,13 @@ namespace ortc
     typedef boost::weak_ptr<RtpExtHeadersMap> RtpExtHeadersMapWeakPtr;
     
     virtual IMediaStreamTrack source() = 0;
+    virtual String id() = 0;
     virtual RTCTrackKinds kind() = 0;
     virtual ULONG ssrc() = 0;
-    virtual MsidListPtr msid() = 0;
     virtual RTCCodecListPtr codecs() = 0;
     virtual RTCMediaAttributesListPtr mediaAttributes() = 0;
     virtual RtpExtHeadersMapPtr rtpExtHeaders() = 0;
     
-    virtual RTCTrackDescription getDescription() = 0;
     virtual void start() = 0;
     virtual void stop() = 0;
     virtual void remove() = 0;

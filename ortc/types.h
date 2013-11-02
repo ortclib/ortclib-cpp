@@ -35,85 +35,6 @@ namespace ortc
   using openpeer::services::SecureByteBlock;
   using openpeer::services::SecureByteBlockPtr;
   
-  
-  //-------------------------------------------------------------------------
-  //-------------------------------------------------------------------------
-  //-------------------------------------------------------------------------
-  //-------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark RTCConnectionSide
-  #pragma mark
-  
-  struct RTCConnectionSide
-  {
-    
-  };
-  
-  //-------------------------------------------------------------------------
-  //-------------------------------------------------------------------------
-  //-------------------------------------------------------------------------
-  //-------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark RTCIceCandidateDescription
-  #pragma mark
-  
-  struct RTCIceCandidateDescription
-  {
-    
-  };
-  
-  //-------------------------------------------------------------------------
-  //-------------------------------------------------------------------------
-  //-------------------------------------------------------------------------
-  //-------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark RTCTrackFilter
-  #pragma mark
-  
-  struct RTCTrackFilter
-  {
-    
-  };
-  
-  //-------------------------------------------------------------------------
-  //-------------------------------------------------------------------------
-  //-------------------------------------------------------------------------
-  //-------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark RTCTrackDescription
-  #pragma mark
-  
-  struct RTCTrackDescription
-  {
-    
-  };
-  
-  //-------------------------------------------------------------------------
-  //-------------------------------------------------------------------------
-  //-------------------------------------------------------------------------
-  //-------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark RTCCodec
-  #pragma mark
-  
-  struct RTCCodec
-  {
-    
-  };
-  
-  //-------------------------------------------------------------------------
-  //-------------------------------------------------------------------------
-  //-------------------------------------------------------------------------
-  //-------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark RTCMediaAttributes
-  #pragma mark
-  
-  struct RTCMediaAttributes
-  {
-    
-  };
-  
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
@@ -130,33 +51,51 @@ namespace ortc
   typedef boost::shared_ptr<IRTCConnectionDelegate> IRTCConnectionDelegatePtr;
   typedef boost::weak_ptr<IRTCConnectionDelegate> IRTCConnectionDelegateWeakPtr;
   typedef zsLib::Proxy<IRTCConnectionDelegate> IRTCConnectionDelegateProxy;
+  
+  interaction IRTCSocket;
+  typedef boost::shared_ptr<IRTCSocket> IRTCSocketPtr;
+  typedef boost::weak_ptr<IRTCSocket> IRTCSocketWeakPtr;
+  
+  interaction IRTCStream;
+  typedef boost::shared_ptr<IRTCStream> IRTCStreamPtr;
+  typedef boost::weak_ptr<IRTCStream> IRTCStreamWeakPtr;
+  
+  typedef std::list<IRTCStream> RTCStreamList;
+  typedef boost::shared_ptr<RTCStreamList> RTCStreamListPtr;
+  typedef boost::weak_ptr<RTCStreamList> RTCStreamListWeakPtr;
 
   interaction IRTCTrack;
   typedef boost::shared_ptr<IRTCTrack> IRTCTrackPtr;
   typedef boost::weak_ptr<IRTCTrack> IRTCTrackWeakPtr;
   
-  typedef std::list<IRTCTrackPtr> RTCTrackList;
+  typedef std::list<IRTCTrack> RTCTrackList;
   typedef boost::shared_ptr<RTCTrackList> RTCTrackListPtr;
   typedef boost::weak_ptr<RTCTrackList> RTCTrackListWeakPtr;
 
-  interaction IRTCSocket;
-  typedef boost::shared_ptr<IRTCSocket> IRTCSocketPtr;
-  typedef boost::weak_ptr<IRTCSocket> IRTCSocketWeakPtr;
+  interaction IRTCDTMFTrack;
+  typedef boost::shared_ptr<IRTCDTMFTrack> IRTCDTMFTrackPtr;
+  typedef boost::weak_ptr<IRTCDTMFTrack> IRTCDTMFTrackWeakPtr;
+  
+  interaction IRTCDTMFTrackDelegate;
+  typedef boost::shared_ptr<IRTCDTMFTrackDelegate> IRTCDTMFTrackDelegatePtr;
+  typedef boost::weak_ptr<IRTCDTMFTrackDelegate> IRTCDTMFTrackDelegateWeakPtr;
+  typedef zsLib::Proxy<IRTCDTMFTrackDelegate> IRTCDTMFTrackDelegateProxy;
+
+  interaction IRTCDataChannel;
+  typedef boost::shared_ptr<IRTCDataChannel> IRTCDataChannelPtr;
+  typedef boost::weak_ptr<IRTCDataChannel> IRTCDataChannelWeakPtr;
+  
+  interaction IRTCDataChannelDelegate;
+  typedef boost::shared_ptr<IRTCDataChannelDelegate> IRTCDataChannelDelegatePtr;
+  typedef boost::weak_ptr<IRTCDataChannelDelegate> IRTCDataChannelDelegateWeakPtr;
+  typedef zsLib::Proxy<IRTCDataChannelDelegate> IRTCDataChannelDelegateProxy;
 
   interaction IMediaStream;
   typedef boost::shared_ptr<IMediaStream> IMediaStreamPtr;
   typedef boost::weak_ptr<IMediaStream> IMediaStreamWeakPtr;
-  
-  typedef std::list<IMediaStreamPtr> MediaStreamList;
-  typedef boost::shared_ptr<MediaStreamList> MediaStreamListPtr;
-  typedef boost::weak_ptr<MediaStreamList> MediaStreamListWeakPtr;
 
   interaction IMediaStreamTrack;
   typedef boost::shared_ptr<IMediaStreamTrack> IMediaStreamTrackPtr;
   typedef boost::weak_ptr<IMediaStreamTrack> IMediaStreamTrackWeakPtr;
-  
-  interaction IRTCDTMFHandler;
-  typedef boost::shared_ptr<IRTCDTMFHandler> IRTCDTMFHandlerPtr;
-  typedef boost::weak_ptr<IRTCDTMFHandler> IRTCDTMFHandlerWeakPtr;
   
 }

@@ -33,56 +33,188 @@ namespace ortc
   
   interaction IRTCConnection
   {
+    struct RTCConnectionOptions;
+    struct RTCIceServer;
+    struct RTCConnectionInfo;
+    struct RTCIceConnectionInfo;
+    struct RTCDtlsConnectionInfo;
+    struct RTCIceCandidateInfo;
+    
+    typedef std::list<RTCIceServer> RTCIceServerList;
+    typedef boost::shared_ptr<RTCIceServerList> RTCIceServerListPtr;
+    typedef boost::weak_ptr<RTCIceServerList> RTCIceServerListWeakPtr;
+    
+    typedef std::list<String> URLList;
+    typedef boost::shared_ptr<URLList> URLListPtr;
+    typedef boost::weak_ptr<URLList> URLListWeakPtr;
+    
     typedef std::map<String, String> RtpExtHeadersMap;
     typedef boost::shared_ptr<RtpExtHeadersMap> RtpExtHeadersMapPtr;
     typedef boost::weak_ptr<RtpExtHeadersMap> RtpExtHeadersMapWeakPtr;
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTCConnectionStates
+    #pragma mark
     
-    virtual RTCConnectionSide local() = 0;
-    virtual RTCConnectionSide remote() = 0;
+    enum RTCConnectionStates
+    {
+      RTCConnectionState_New,
+      RTCConnectionState_Searching,
+      RTCConnectionState_Halted,
+      RTCConnectionState_Connected,
+      RTCConnectionState_Closed
+    };
     
-    virtual IRTCSocket getLocalSocket() = 0;
-    virtual void setLocalCandidate(RTCIceCandidateDescription candidate) = 0;
-    virtual void setRemoteCandidate(RTCIceCandidateDescription candidate) = 0;
-    virtual void connect();
-    virtual void update();
-    virtual void addStream(IMediaStreamPtr stream, bool autostart = true) = 0;
-    virtual void removeStream(IMediaStreamPtr stream) = 0;
-    virtual IRTCTrackPtr track(IMediaStreamTrackPtr track) = 0;
-    virtual RTCTrackListPtr tracks() = 0;
-    virtual RTCTrackListPtr tracks(RTCTrackFilter filter) = 0;
-    virtual void receiveTrack(RTCTrackDescription trackDescription) = 0;
-    virtual IRTCDTMFHandlerPtr addDtmfHandler() = 0;
-    virtual IRTCDTMFHandlerPtr addDtmfHandler(IMediaStreamPtr container) = 0;
-    virtual IRTCDTMFHandlerPtr addDtmfHandler(IMediaStreamTrackPtr container) = 0;
-    virtual MediaStreamListPtr getSendingStreams() = 0;
-    virtual MediaStreamListPtr getReceivingStreams() = 0;
-    virtual void close();
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTCConnectionRoles
+    #pragma mark
+    
+    enum RTCConnectionRoles
+    {
+      RTCConnectionRole_Controlling,
+      RTCConnectionRole_Controlled
+    };
+    
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTCConnectionOptions
+    #pragma mark
+    
+    struct RTCConnectionOptions
+    {
+      RTCIceServerListPtr iceServers();
+      IRTCSocketPtr socket();
+    };
+    
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTCIceServer
+    #pragma mark
+    
+    struct RTCIceServer
+    {
+      URLListPtr url();
+      String credential();
+    };
+    
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTCConnectionInfo
+    #pragma mark
+    
+    struct RTCConnectionInfo
+    {
+      RTCIceConnectionInfo ice();
+      RTCDtlsConnectionInfo dtls();
+    };
+    
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTCIceConnectionInfo
+    #pragma mark
+    
+    struct RTCIceConnectionInfo
+    {
+      String usernameFrag();
+      String password();
+    };
+    
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTCDtlsConnectionInfo
+    #pragma mark
+    
+    struct RTCDtlsConnectionInfo
+    {
+      BYTE* fingerprint(String hashFunction);
+    };
+    
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTCIceCandidateInfo
+    #pragma mark
+    
+    struct RTCIceCandidateInfo
+    {
+      String foundation();
+      int component();
+      String transport();
+      int priority();
+      String connectionAddress();
+      int connectionPort();
+      String type();
+      String relAddress();
+      int relPort();
+    };
+    
+    virtual IRTCSocketPtr socket() = 0;
+    virtual RTCConnectionStates state() = 0;
+    virtual RTCConnectionRoles role() = 0;
+    virtual RTCConnectionInfo local() = 0;
+    virtual RTCConnectionInfo remote() = 0;
+    
+    virtual void addRemoteCandidate(RTCIceCandidateInfo candidate) = 0;
+    virtual void connect() = 0;
+    virtual void gather() = 0;
+    virtual IRTCStreamPtr send(IMediaStreamPtr stream) = 0;
+    virtual IRTCTrackPtr send(IMediaStreamTrackPtr track) = 0;
+    virtual IRTCStreamPtr send(IRTCStreamPtr stream) = 0;
+    virtual IRTCTrackPtr send(IRTCTrackPtr track) = 0;
+    virtual IRTCStreamPtr receive(IRTCStreamPtr stream) = 0;
+    virtual IRTCTrackPtr receive(IRTCTrackPtr track) = 0;
+    virtual RTCStreamListPtr sendStreams() = 0;
+    virtual RTCTrackListPtr sendTracks() = 0;
+    virtual RTCStreamListPtr receiveStreams() = 0;
+    virtual RTCTrackListPtr receiveTracks() = 0;
+    virtual void close() = 0;
   };
   
   interaction IRTCConnectionDelegate
   {
-    virtual void onRTCConnectionCandidate(RTCIceCandidateDescription candidate) = 0;
+    virtual void onRTCConnectionCandidate(IRTCConnection::RTCIceCandidateInfo candidate) = 0;
     virtual void onRTCConnectionEndOfCandidates() = 0;
-    virtual void onRTCConnectionActiveCandidate(RTCIceCandidateDescription localCandidate, RTCIceCandidateDescription remoteCandidate) = 0;
-    virtual void onRTCConnectionConnected() = 0;
-    virtual void onRTCConnectionDisconnected() = 0;
-    virtual void onRTCConnectionAddStream(IMediaStreamPtr stream) = 0;
+    virtual void onRTCConnectionActiveCandidate(IRTCConnection::RTCIceCandidateInfo localCandidate,
+                                                IRTCConnection::RTCIceCandidateInfo remoteCandidate) = 0;
+    virtual void onRTCConnectionStateChanged(IRTCConnection::RTCConnectionStates state) = 0;
+    virtual void onRTCConnectionNetworkChange() = 0;
     virtual void onRTCConnectionUnknownTrack(IRTCConnection::RtpExtHeadersMapPtr rtpExtHeaders) = 0;
-    virtual void onRTCConnectionAddDtmfHandler(IRTCDTMFHandlerPtr handler) = 0;
   };
 }
 
 ZS_DECLARE_PROXY_BEGIN(ortc::IRTCConnectionDelegate)
-ZS_DECLARE_PROXY_TYPEDEF(ortc::RTCIceCandidateDescription, RTCIceCandidateDescription)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::IRTCConnection::RTCIceCandidateInfo, RTCIceCandidateInfo)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::IRTCConnection::RTCConnectionStates, RTCConnectionStates)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IRTCConnection::RtpExtHeadersMapPtr, RtpExtHeadersMapPtr)
-ZS_DECLARE_PROXY_TYPEDEF(ortc::IMediaStreamPtr, IMediaStreamPtr)
-ZS_DECLARE_PROXY_TYPEDEF(ortc::IRTCDTMFHandlerPtr, IRTCDTMFHandlerPtr)
-ZS_DECLARE_PROXY_METHOD_1(onRTCConnectionCandidate, RTCIceCandidateDescription)
+ZS_DECLARE_PROXY_METHOD_1(onRTCConnectionCandidate, RTCIceCandidateInfo)
 ZS_DECLARE_PROXY_METHOD_0(onRTCConnectionEndOfCandidates)
-ZS_DECLARE_PROXY_METHOD_2(onRTCConnectionActiveCandidate, RTCIceCandidateDescription, RTCIceCandidateDescription)
-ZS_DECLARE_PROXY_METHOD_0(onRTCConnectionConnected)
-ZS_DECLARE_PROXY_METHOD_0(onRTCConnectionDisconnected)
-ZS_DECLARE_PROXY_METHOD_1(onRTCConnectionAddStream, IMediaStreamPtr)
+ZS_DECLARE_PROXY_METHOD_2(onRTCConnectionActiveCandidate, RTCIceCandidateInfo, RTCIceCandidateInfo)
+ZS_DECLARE_PROXY_METHOD_1(onRTCConnectionStateChanged, RTCConnectionStates)
+ZS_DECLARE_PROXY_METHOD_0(onRTCConnectionNetworkChange)
 ZS_DECLARE_PROXY_METHOD_1(onRTCConnectionUnknownTrack, RtpExtHeadersMapPtr)
-ZS_DECLARE_PROXY_METHOD_1(onRTCConnectionAddDtmfHandler, IRTCDTMFHandlerPtr)
 ZS_DECLARE_PROXY_END()
