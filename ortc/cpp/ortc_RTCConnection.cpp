@@ -25,5 +25,145 @@ namespace ortc
 {
   namespace internal
   {
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTCConnection
+    #pragma mark
+    
+    //-----------------------------------------------------------------------
+    RTCConnection::RTCConnection(IMessageQueuePtr queue, IRTCConnectionDelegatePtr delegate) :
+      MessageQueueAssociator(queue)
+    {
+    }
+    
+    //-----------------------------------------------------------------------
+    RTCConnection::~RTCConnection()
+    {
+    }
+    
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTCConnection => IRTCConnection
+    #pragma mark
+    
+    //-----------------------------------------------------------------------
+    IRTCSocketPtr RTCConnection::socket()
+    {
+      return IRTCSocketPtr();
+    }
+    
+    //-----------------------------------------------------------------------
+    RTCConnection::RTCConnectionStates RTCConnection::state()
+    {
+      return RTCConnectionState_New;
+    }
+    
+    //-----------------------------------------------------------------------
+    RTCConnection::RTCConnectionRoles RTCConnection::role()
+    {
+      return RTCConnectionRole_Controlling;
+    }
+    
+    //-----------------------------------------------------------------------
+    RTCConnection::RTCConnectionInfo RTCConnection::local()
+    {
+      return RTCConnectionInfo();
+    }
+    
+    //-----------------------------------------------------------------------
+    RTCConnection::RTCConnectionInfo RTCConnection::remote()
+    {
+      return RTCConnectionInfo();
+    }
+    
+    //-----------------------------------------------------------------------
+    void RTCConnection::addRemoteCandidate(RTCIceCandidateInfo candidate)
+    {
+      
+    }
+    
+    //-----------------------------------------------------------------------
+    void RTCConnection::connect()
+    {
+      
+    }
+    
+    //-----------------------------------------------------------------------
+    void RTCConnection::gather()
+    {
+      
+    }
+    
+    //-----------------------------------------------------------------------
+    IRTCStreamPtr RTCConnection::send(IMediaStreamPtr stream)
+    {
+      return IRTCStreamPtr();
+    }
+    
+    //-----------------------------------------------------------------------
+    IRTCTrackPtr RTCConnection::send(IMediaStreamTrackPtr track)
+    {
+      return IRTCTrackPtr();
+    }
+    
+    //-----------------------------------------------------------------------
+    IRTCStreamPtr RTCConnection::send(IRTCStreamPtr stream)
+    {
+      return IRTCStreamPtr();
+    }
+    
+    //-----------------------------------------------------------------------
+    IRTCTrackPtr RTCConnection::send(IRTCTrackPtr track)
+    {
+      return IRTCTrackPtr();
+    }
+    
+    //-----------------------------------------------------------------------
+    IRTCStreamPtr RTCConnection::receive(IRTCStreamPtr stream)
+    {
+      return IRTCStreamPtr();
+    }
+    
+    //-----------------------------------------------------------------------
+    IRTCTrackPtr RTCConnection::receive(IRTCTrackPtr track)
+    {
+      return IRTCTrackPtr();
+    }
+    
+    //-----------------------------------------------------------------------
+    RTCStreamListPtr RTCConnection::sendStreams()
+    {
+      return RTCStreamListPtr();
+    }
+    
+    //-----------------------------------------------------------------------
+    RTCTrackListPtr RTCConnection::sendTracks()
+    {
+      return RTCTrackListPtr();
+    }
+    
+    //-----------------------------------------------------------------------
+    RTCStreamListPtr RTCConnection::receiveStreams()
+    {
+      return RTCStreamListPtr();
+    }
+    
+    //-----------------------------------------------------------------------
+    RTCTrackListPtr RTCConnection::receiveTracks()
+    {
+      return RTCTrackListPtr();
+    }
+    
+    //-----------------------------------------------------------------------
+    void RTCConnection::close()
+    {
+      
+    }
   }
 }

@@ -21,6 +21,8 @@
 #include <ortc/internal/types.h>
 #include <ortc/IRTCConnection.h>
 
+#include <zsLib/MessageQueueAssociator.h>
+
 namespace ortc
 {
   namespace internal
@@ -33,8 +35,58 @@ namespace ortc
     #pragma mark RTCConnection
     #pragma mark
     
-    class RTCConnection : public IRTCConnection
+    class RTCConnection : public Noop,
+                          public MessageQueueAssociator,
+                          public IRTCConnection
     {
+    public:
+      friend interaction IRTCConnection;
+      
+    protected:
+      RTCConnection(
+                   IMessageQueuePtr queue,
+                   IRTCConnectionDelegatePtr delegate
+                   );
+      
+    public:
+      virtual ~RTCConnection();
+      
+    protected:
+      //---------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTCConnection => IRTCConnection
+      #pragma mark
+      
+      virtual IRTCSocketPtr socket();
+      virtual RTCConnectionStates state();
+      virtual RTCConnectionRoles role();
+      virtual RTCConnectionInfo local();
+      virtual RTCConnectionInfo remote();
+      
+      virtual void addRemoteCandidate(RTCIceCandidateInfo candidate);
+      virtual void connect();
+      virtual void gather();
+      virtual IRTCStreamPtr send(IMediaStreamPtr stream);
+      virtual IRTCTrackPtr send(IMediaStreamTrackPtr track);
+      virtual IRTCStreamPtr send(IRTCStreamPtr stream);
+      virtual IRTCTrackPtr send(IRTCTrackPtr track);
+      virtual IRTCStreamPtr receive(IRTCStreamPtr stream);
+      virtual IRTCTrackPtr receive(IRTCTrackPtr track);
+      virtual RTCStreamListPtr sendStreams();
+      virtual RTCTrackListPtr sendTracks();
+      virtual RTCStreamListPtr receiveStreams();
+      virtual RTCTrackListPtr receiveTracks();
+      virtual void close();
+      
+      //---------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTCConnection => (internal)
+      #pragma mark
+      
+      //---------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTCConnection => (data)
+      #pragma mark
       
     };
   }

@@ -24,5 +24,40 @@ namespace ortc
 {
   namespace internal
   {
+    using zsLib::Noop;
+    using zsLib::MessageQueue;
+    using zsLib::IMessageQueuePtr;
+    using zsLib::MessageQueuePtr;
+    using zsLib::MessageQueueAssociator;
+    using zsLib::IMessageQueueNotify;
+    using zsLib::IMessageQueueMessagePtr;
+    using zsLib::IMessageQueueThread;
+    using zsLib::MessageQueueThread;
+    using zsLib::IMessageQueueThreadPtr;
+    using zsLib::MessageQueueThreadPtr;
+    
+    class RTCConnection;
+    typedef boost::shared_ptr<RTCConnection> RTCConnectionPtr;
+    typedef boost::weak_ptr<RTCConnection> RTCConnectionWeakPtr;
+    
+    class RTCSocket;
+    typedef boost::shared_ptr<RTCSocket> RTCSocketPtr;
+    typedef boost::weak_ptr<RTCSocket> RTCSocketWeakPtr;
+    
+    class RTCStream;
+    typedef boost::shared_ptr<RTCStream> RTCStreamPtr;
+    typedef boost::weak_ptr<RTCStream> RTCStreamWeakPtr;
+    
+    class RTCTrack;
+    typedef boost::shared_ptr<RTCTrack> RTCTrackPtr;
+    typedef boost::weak_ptr<RTCTrack> RTCTrackWeakPtr;
+    
+    class RTCDTMFTrack;
+    typedef boost::shared_ptr<RTCDTMFTrack> RTCDTMFTrackPtr;
+    typedef boost::weak_ptr<RTCDTMFTrack> RTCDTMFTrackWeakPtr;
+    
+    class RTCDataChannel;
+    typedef boost::shared_ptr<RTCDataChannel> RTCDataChannelPtr;
+    typedef boost::weak_ptr<RTCDataChannel> RTCDataChannelWeakPtr;
   }
 }

@@ -30,11 +30,65 @@ namespace ortc
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     #pragma mark
+    #pragma mark IRTCCSocketForRTCConnection
+    #pragma mark
+    
+    interaction IRTCSocketForRTCConnection
+    {
+      IRTCSocketForRTCConnection &forRTCConnection() {return *this;}
+      const IRTCSocketForRTCConnection &forRTCConnection() const {return *this;}
+      
+      static RTCSocketPtr create(
+                                 IMessageQueuePtr queue
+                                 );
+      
+    };
+    
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    #pragma mark
     #pragma mark RTCSocket
     #pragma mark
     
-    class RTCSocket : public IRTCSocket
+    class RTCSocket : public Noop,
+                      public MessageQueueAssociator,
+                      public IRTCSocket,
+                      public IRTCSocketForRTCConnection
     {
+    public:
+      friend interaction IRTCSocket;
+      friend interaction IRTCSocketForRTCConnection;
+      
+    protected:
+      RTCSocket(
+                IMessageQueuePtr queue
+                );
+      
+    public:
+      virtual ~RTCSocket();
+      
+    protected:
+      //---------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTCSocket => IRTCSocket
+      #pragma mark
+      
+      //---------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTCSocket => IRTCSocketForRTCConnection
+      #pragma mark
+      
+      //---------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTCSocket => (internal)
+      #pragma mark
+      
+      //---------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTCSocket => (data)
+      #pragma mark
       
     };
   }

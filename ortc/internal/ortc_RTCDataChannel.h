@@ -30,11 +30,71 @@ namespace ortc
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     #pragma mark
+    #pragma mark IRTCDataChannelForRTCConnection
+    #pragma mark
+    
+    interaction IRTCDataChannelForRTCConnection
+    {
+      IRTCDataChannelForRTCConnection &forRTCConnection() {return *this;}
+      const IRTCDataChannelForRTCConnection &forRTCConnection() const {return *this;}
+      
+      static RTCDataChannelPtr create(
+                                      IMessageQueuePtr queue,
+                                      IRTCDataChannelDelegatePtr delegate
+                                      );
+      
+    };
+    
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    #pragma mark
     #pragma mark RTCDataChannel
     #pragma mark
     
-    class RTCDataChannel : public IRTCDataChannel
+    class RTCDataChannel : public Noop,
+                           public MessageQueueAssociator,
+                           public IRTCDataChannel,
+                           public IRTCDataChannelForRTCConnection
     {
+    public:
+      friend interaction IRTCDataChannel;
+      friend interaction IRTCDataChannelForRTCConnection;
+      
+    protected:
+      RTCDataChannel(
+                     IMessageQueuePtr queue,
+                     IRTCDataChannelDelegatePtr delegate
+                     );
+      
+    public:
+      virtual ~RTCDataChannel();
+      
+    protected:
+      //---------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTCDataChannel => IRTCDataChannel
+      #pragma mark
+      
+      virtual void send(BYTE* data);
+      
+      //---------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTCDataChannel => IRTCDataChannelForRTCConnection
+      #pragma mark
+      
+      //---------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTCDataChannel => (internal)
+      #pragma mark
+      
+      //---------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTCDataChannel => (data)
+      #pragma mark
+      
+      
       
     };
   }

@@ -36,10 +36,10 @@ namespace ortc
     typedef boost::shared_ptr<MsidList> MsidListPtr;
     typedef boost::weak_ptr<MsidList> MsidListWeakPtr;
     
-    virtual IMediaStreamTrack source() = 0;
+    virtual IMediaStreamTrackPtr source() = 0;
     virtual MsidListPtr msid() = 0;
     
-    virtual RTCTrackList tracks() = 0;
+    virtual RTCTrackListPtr tracks() = 0;
     
     virtual void start() = 0;
     virtual void stop() = 0;

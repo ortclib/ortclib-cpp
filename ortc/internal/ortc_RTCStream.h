@@ -30,11 +30,74 @@ namespace ortc
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     #pragma mark
+    #pragma mark IRTCStreamForRTCConnection
+    #pragma mark
+    
+    interaction IRTCStreamForRTCConnection
+    {
+      IRTCStreamForRTCConnection &forRTCConnection() {return *this;}
+      const IRTCStreamForRTCConnection &forRTCConnection() const {return *this;}
+      
+      static RTCStreamPtr create(
+                                 IMessageQueuePtr queue
+                                 );
+      
+    };
+    
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    #pragma mark
     #pragma mark RTCStream
     #pragma mark
     
-    class RTCStream : public IRTCStream
+    class RTCStream : public Noop,
+                      public MessageQueueAssociator,
+                      public IRTCStream,
+                      public IRTCStreamForRTCConnection
     {
+    public:
+      friend interaction IRTCStream;
+      friend interaction IRTCStreamForRTCConnection;
+      
+    protected:
+      RTCStream(
+                IMessageQueuePtr queue
+                );
+      
+    public:
+      virtual ~RTCStream();
+      
+    protected:
+      //---------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTCStream => IRTCStream
+      #pragma mark
+      
+      virtual IMediaStreamTrackPtr source();
+      virtual MsidListPtr msid();
+      
+      virtual RTCTrackListPtr tracks();
+      
+      virtual void start();
+      virtual void stop();
+      virtual void remove();
+
+      //---------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTCStream => IRTCStreamForRTCConnection
+      #pragma mark
+      
+      //---------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTCStream => (internal)
+      #pragma mark
+      
+      //---------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTCStream => (data)
+      #pragma mark
       
     };
   }

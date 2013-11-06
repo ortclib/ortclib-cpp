@@ -31,9 +31,9 @@ namespace ortc
   #pragma mark IRTCDTMFTrack
   #pragma mark
   
-  interaction IRTCDTMFTrack : public IRTCTrack
+  interaction IRTCDTMFTrack
   {
-    void playTones(String tones, ULONG duration = 100, ULONG interToneGap = 70);
+    virtual void playTones(String tones, ULONG duration = 100, ULONG interToneGap = 70) = 0;
   };
   
   interaction IRTCDTMFTrackDelegate

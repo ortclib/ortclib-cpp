@@ -111,7 +111,7 @@ namespace ortc
     typedef boost::shared_ptr<RtpExtHeadersMap> RtpExtHeadersMapPtr;
     typedef boost::weak_ptr<RtpExtHeadersMap> RtpExtHeadersMapWeakPtr;
     
-    virtual IMediaStreamTrack source() = 0;
+    virtual IMediaStreamTrackPtr source() = 0;
     virtual String id() = 0;
     virtual RTCTrackKinds kind() = 0;
     virtual ULONG ssrc() = 0;

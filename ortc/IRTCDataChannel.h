@@ -19,7 +19,6 @@
 #pragma once
 
 #include <ortc/types.h>
-#include <ortc/IRTCTrack.h>
 
 namespace ortc
 {

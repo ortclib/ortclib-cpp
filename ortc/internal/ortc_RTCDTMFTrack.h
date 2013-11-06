@@ -20,6 +20,7 @@
 
 #include <ortc/internal/types.h>
 #include <ortc/IRTCDTMFTrack.h>
+#include <ortc/internal/ortc_RTCTrack.h>
 
 namespace ortc
 {
@@ -30,11 +31,69 @@ namespace ortc
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     #pragma mark
+    #pragma mark IRTCDTMFTrackForRTCConnection
+    #pragma mark
+    
+    interaction IRTCDTMFTrackForRTCConnection
+    {
+      IRTCDTMFTrackForRTCConnection &forRTCConnection() {return *this;}
+      const IRTCDTMFTrackForRTCConnection &forRTCConnection() const {return *this;}
+      
+      static RTCDTMFTrackPtr create(
+                                    IMessageQueuePtr queue,
+                                    IRTCDTMFTrackDelegatePtr delegate
+                                    );
+      
+    };
+    
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    #pragma mark
     #pragma mark RTCDTMFTrack
     #pragma mark
     
-    class RTCDTMFTrack : public IRTCDTMFTrack
+    class RTCDTMFTrack : public RTCTrack,
+                         public IRTCDTMFTrack,
+                         public IRTCDTMFTrackForRTCConnection
     {
+    public:
+      friend interaction IRTCDTMFTrack;
+      friend interaction IRTCDTMFTrackForRTCConnection;
+      
+    protected:
+      RTCDTMFTrack(
+                   IMessageQueuePtr queue,
+                   IRTCDTMFTrackDelegatePtr delegate
+                   );
+      
+    public:
+      virtual ~RTCDTMFTrack();
+      
+      
+    protected:
+      //---------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTCDTMFTrack => IRTCDTMFTrack
+      #pragma mark
+      
+      virtual void playTones(String tones, ULONG duration = 100, ULONG interToneGap = 70);
+      
+      //---------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTCDTMFTrack => IRTCDTMFTrackForRTCConnection
+      #pragma mark
+      
+      //---------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTCDTMFTrack => (internal)
+      #pragma mark
+      
+      //---------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTCDTMFTrack => (data)
+      #pragma mark
       
     };
   }
