@@ -1,45 +1,27 @@
-ORTCLib
 
-   ORTC Library software ("ORTCLib") consists of:
-   * ortclib repository - a cross platform C++ (iOS/Java wrapper) library implementation of the ORCA Community Group defined ORTC API for WebRTC compatible endpoints.
-   * any related scripts, wrappers, examples, documentation, tools included as part of the "ORTC Lib" repository
+Copyright (c) 2013, SMB Phone Inc. / Hookflash Inc.
+All rights reserved.
 
-   The SOFTWARE contains links and dependencies on third party libraries (collectively called "Third Party Software") to implement various functions and features required by the ORTCLib and may be included in delivery with the ORTCLib as a convenience. The Third Party Software does not comprise any part of the ORTCLib.
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
 
+1. Redistributions of source code must retain the above copyright notice, this
+list of conditions and the following disclaimer.
+2. Redistributions in binary form must reproduce the above copyright notice,
+this list of conditions and the following disclaimer in the documentation
+and/or other materials provided with the distribution.
 
-Dual License Model
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-   ORTCLib is licensed under a dual license model. The allows ORTCLib to meet the requirements of various distribution models and flexibly to use ORTCLib within various licensing models. ORTCLib is released under a GNU Affero General Public License (AGPL) License as defined by GNU website (http://www.gnu.org/licenses/agpl-3.0.txt) and a copy of the license is included as part of ORTCLib.
-
-   If you develop and distribute open source software under the GNU Affero General Public License or GNU General Public License (http://www.gnu.org/licenses/licenses.html) then you are free to use the ORTCLib under the GNU AGPL. Any software using ORTCLib under the GNU AGPL license subjects itself to the same GNU AGPL license.
-
-   The GNU AGPL is a modified version of the ordinary GNU GPL version 3. It has one added requirement: if you run the program on a server and let other users communicate with it there, your server must also allow them to download the source code corresponding to the program that it's running. If what's running there is your modified version of the program, the server's users must get the source code as you modified it.
-
-
-
-Alternative Commercial, OEM, IVR, ISV, Open Peer SDK License
-
-   ORTCLib is available without the GNU AGPL terms and conditions and restrictions for those who obtain a commercial license of the ORTCLib software from the developers and copyright holder of ORTCLib SMB Phone Inc. or Hookflash Inc.
-
-   If ORTCLib is developed and distributed as a dependency library within the context of the Open Peer SDK (and not independently from the Open Peer SDK), the ORTCLib is considered compatible with the FreeBSD license (http://www.freebsd.org/copyright/freebsd-license.html) of the Open Peer SDK. This allows the ORTCLib to be distributed in the same manners allowed by the Open Peer SDK so long as the ORTCLib is exclusively utilized with the Open Peer SDK to develop Open Peer compatible clients and services. The ORTCLib may not be extracted for use as a non dependency of the Open Peer SDK and maintain the FreeBSD license compatibility.
- 
-   If you include or distribute ORTCLib within an application or hosted service that is not also licensed under GNU AGPL or GPL-compatible license or within the context of the Open Peer SDK as described above, you must obtain a commercial license.
-
-   Commercial license holders of ORTCLib are subject exclusively to the terms and conditions contained within the commercial license obtained and are not subject to the GNU AGPL terms and conditions.
-
-
-Notes
-
-   ORTCLib has no direct relationship with GNU or the GNU AGPL license or the copyright holder SMB Phone Inc. or Hookflash Inc.
-
-
-Exceptions
-
-    Third Party software delivered, referenced or linked with ORTCLib are not subject to the ORTCLib license terms and conditions when used as a dependency of ORTCLib.
- 
-    The list of exceptions Third Party software is as follows:
-    * Crypto++® Library (http://www.cryptopp.com/)
-    * OpenSSL (http://www.openssl.org/)
-    * UDNS (http://www.corpit.ru/mjt/udns.html)
-    * zsLib (https://github.com/robin-raymond/zsLib)
-    * WebRTC library (http://www.webrtc.org/)
+The views and conclusions contained in the software and documentation are those
+of the authors and should not be interpreted as representing official policies,
+either expressed or implied, of the FreeBSD Project.

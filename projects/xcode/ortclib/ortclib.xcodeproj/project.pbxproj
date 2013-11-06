@@ -18,7 +18,6 @@
 
 /* Begin PBXFileReference section */
 		008F56041821367E009863AA /* libortclib.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libortclib.a; sourceTree = BUILT_PRODUCTS_DIR; };
-		008F5623182137B7009863AA /* license-agpl.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "license-agpl.txt"; sourceTree = "<group>"; };
 		008F5624182137B7009863AA /* license.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = license.txt; sourceTree = "<group>"; };
 		008F5625182137DE009863AA /* types.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = types.h; sourceTree = "<group>"; };
 		008F562618213862009863AA /* ortc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ortc.h; sourceTree = "<group>"; };
@@ -65,7 +64,6 @@
 			children = (
 				008F562118213754009863AA /* cpp */,
 				008F56221821375E009863AA /* internal */,
-				008F5623182137B7009863AA /* license-agpl.txt */,
 				008F5624182137B7009863AA /* license.txt */,
 				008F5625182137DE009863AA /* types.h */,
 				008F562618213862009863AA /* ortc.h */,
