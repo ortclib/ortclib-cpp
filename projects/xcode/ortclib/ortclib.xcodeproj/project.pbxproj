@@ -14,6 +14,18 @@
 		E2260E6018215A910084E4A4 /* IRTCTrack.h in Headers */ = {isa = PBXBuildFile; fileRef = E2260E5E18215A910084E4A4 /* IRTCTrack.h */; };
 		E2260E6318215AAF0084E4A4 /* ortc_RTCConnection.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E2260E6118215AAF0084E4A4 /* ortc_RTCConnection.cpp */; };
 		E2260E6418215AAF0084E4A4 /* ortc_RTCTrack.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E2260E6218215AAF0084E4A4 /* ortc_RTCTrack.cpp */; };
+		E2D04943182C377B00343A95 /* ortc_RTCDataChannel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E2D0493F182C377B00343A95 /* ortc_RTCDataChannel.cpp */; };
+		E2D04944182C377B00343A95 /* ortc_RTCDTMFTrack.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E2D04940182C377B00343A95 /* ortc_RTCDTMFTrack.cpp */; };
+		E2D04945182C377B00343A95 /* ortc_RTCSocket.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E2D04941182C377B00343A95 /* ortc_RTCSocket.cpp */; };
+		E2D04946182C377B00343A95 /* ortc_RTCStream.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E2D04942182C377B00343A95 /* ortc_RTCStream.cpp */; };
+		E2D0494B182C37A600343A95 /* ortc_RTCDataChannel.h in Headers */ = {isa = PBXBuildFile; fileRef = E2D04947182C37A600343A95 /* ortc_RTCDataChannel.h */; };
+		E2D0494C182C37A600343A95 /* ortc_RTCDTMFTrack.h in Headers */ = {isa = PBXBuildFile; fileRef = E2D04948182C37A600343A95 /* ortc_RTCDTMFTrack.h */; };
+		E2D0494D182C37A600343A95 /* ortc_RTCSocket.h in Headers */ = {isa = PBXBuildFile; fileRef = E2D04949182C37A600343A95 /* ortc_RTCSocket.h */; };
+		E2D0494E182C37A600343A95 /* ortc_RTCStream.h in Headers */ = {isa = PBXBuildFile; fileRef = E2D0494A182C37A600343A95 /* ortc_RTCStream.h */; };
+		E2D04953182C37DD00343A95 /* IRTCDataChannel.h in Headers */ = {isa = PBXBuildFile; fileRef = E2D0494F182C37DD00343A95 /* IRTCDataChannel.h */; };
+		E2D04954182C37DD00343A95 /* IRTCDTMFTrack.h in Headers */ = {isa = PBXBuildFile; fileRef = E2D04950182C37DD00343A95 /* IRTCDTMFTrack.h */; };
+		E2D04955182C37DD00343A95 /* IRTCSocket.h in Headers */ = {isa = PBXBuildFile; fileRef = E2D04951182C37DD00343A95 /* IRTCSocket.h */; };
+		E2D04956182C37DD00343A95 /* IRTCStream.h in Headers */ = {isa = PBXBuildFile; fileRef = E2D04952182C37DD00343A95 /* IRTCStream.h */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -30,6 +42,18 @@
 		E2260E5E18215A910084E4A4 /* IRTCTrack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IRTCTrack.h; sourceTree = "<group>"; };
 		E2260E6118215AAF0084E4A4 /* ortc_RTCConnection.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_RTCConnection.cpp; sourceTree = "<group>"; };
 		E2260E6218215AAF0084E4A4 /* ortc_RTCTrack.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_RTCTrack.cpp; sourceTree = "<group>"; };
+		E2D0493F182C377B00343A95 /* ortc_RTCDataChannel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_RTCDataChannel.cpp; sourceTree = "<group>"; };
+		E2D04940182C377B00343A95 /* ortc_RTCDTMFTrack.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_RTCDTMFTrack.cpp; sourceTree = "<group>"; };
+		E2D04941182C377B00343A95 /* ortc_RTCSocket.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_RTCSocket.cpp; sourceTree = "<group>"; };
+		E2D04942182C377B00343A95 /* ortc_RTCStream.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_RTCStream.cpp; sourceTree = "<group>"; };
+		E2D04947182C37A600343A95 /* ortc_RTCDataChannel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ortc_RTCDataChannel.h; sourceTree = "<group>"; };
+		E2D04948182C37A600343A95 /* ortc_RTCDTMFTrack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ortc_RTCDTMFTrack.h; sourceTree = "<group>"; };
+		E2D04949182C37A600343A95 /* ortc_RTCSocket.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ortc_RTCSocket.h; sourceTree = "<group>"; };
+		E2D0494A182C37A600343A95 /* ortc_RTCStream.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ortc_RTCStream.h; sourceTree = "<group>"; };
+		E2D0494F182C37DD00343A95 /* IRTCDataChannel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IRTCDataChannel.h; sourceTree = "<group>"; };
+		E2D04950182C37DD00343A95 /* IRTCDTMFTrack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IRTCDTMFTrack.h; sourceTree = "<group>"; };
+		E2D04951182C37DD00343A95 /* IRTCSocket.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IRTCSocket.h; sourceTree = "<group>"; };
+		E2D04952182C37DD00343A95 /* IRTCStream.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IRTCStream.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -68,7 +92,11 @@
 				008F5625182137DE009863AA /* types.h */,
 				008F562618213862009863AA /* ortc.h */,
 				E2260E5D18215A910084E4A4 /* IRTCConnection.h */,
+				E2D04951182C37DD00343A95 /* IRTCSocket.h */,
+				E2D04952182C37DD00343A95 /* IRTCStream.h */,
 				E2260E5E18215A910084E4A4 /* IRTCTrack.h */,
+				E2D04950182C37DD00343A95 /* IRTCDTMFTrack.h */,
+				E2D0494F182C37DD00343A95 /* IRTCDataChannel.h */,
 			);
 			name = ortc;
 			path = ../../../ortc;
@@ -79,7 +107,11 @@
 			children = (
 				008F562818213D70009863AA /* ortc_ortc.cpp */,
 				E2260E6118215AAF0084E4A4 /* ortc_RTCConnection.cpp */,
+				E2D04941182C377B00343A95 /* ortc_RTCSocket.cpp */,
+				E2D04942182C377B00343A95 /* ortc_RTCStream.cpp */,
 				E2260E6218215AAF0084E4A4 /* ortc_RTCTrack.cpp */,
+				E2D04940182C377B00343A95 /* ortc_RTCDTMFTrack.cpp */,
+				E2D0493F182C377B00343A95 /* ortc_RTCDataChannel.cpp */,
 			);
 			path = cpp;
 			sourceTree = "<group>";
@@ -90,7 +122,11 @@
 				008F562718213D27009863AA /* types.h */,
 				008F562C18213DB3009863AA /* ortc.h */,
 				E2260E5618215A020084E4A4 /* ortc_RTCConnection.h */,
+				E2D04949182C37A600343A95 /* ortc_RTCSocket.h */,
+				E2D0494A182C37A600343A95 /* ortc_RTCStream.h */,
 				E2260E5A18215A190084E4A4 /* ortc_RTCTrack.h */,
+				E2D04948182C37A600343A95 /* ortc_RTCDTMFTrack.h */,
+				E2D04947182C37A600343A95 /* ortc_RTCDataChannel.h */,
 			);
 			path = internal;
 			sourceTree = "<group>";
@@ -103,9 +139,17 @@
 			buildActionMask = 2147483647;
 			files = (
 				E2260E6018215A910084E4A4 /* IRTCTrack.h in Headers */,
+				E2D04955182C37DD00343A95 /* IRTCSocket.h in Headers */,
+				E2D04954182C37DD00343A95 /* IRTCDTMFTrack.h in Headers */,
+				E2D0494D182C37A600343A95 /* ortc_RTCSocket.h in Headers */,
+				E2D04956182C37DD00343A95 /* IRTCStream.h in Headers */,
+				E2D0494E182C37A600343A95 /* ortc_RTCStream.h in Headers */,
 				E2260E5F18215A910084E4A4 /* IRTCConnection.h in Headers */,
 				E2260E5C18215A190084E4A4 /* ortc_RTCTrack.h in Headers */,
 				E2260E5818215A020084E4A4 /* ortc_RTCConnection.h in Headers */,
+				E2D0494B182C37A600343A95 /* ortc_RTCDataChannel.h in Headers */,
+				E2D04953182C37DD00343A95 /* IRTCDataChannel.h in Headers */,
+				E2D0494C182C37A600343A95 /* ortc_RTCDTMFTrack.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -160,9 +204,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E2D04945182C377B00343A95 /* ortc_RTCSocket.cpp in Sources */,
 				008F562A18213D70009863AA /* ortc_ortc.cpp in Sources */,
+				E2D04946182C377B00343A95 /* ortc_RTCStream.cpp in Sources */,
 				E2260E6318215AAF0084E4A4 /* ortc_RTCConnection.cpp in Sources */,
 				E2260E6418215AAF0084E4A4 /* ortc_RTCTrack.cpp in Sources */,
+				E2D04943182C377B00343A95 /* ortc_RTCDataChannel.cpp in Sources */,
+				E2D04944182C377B00343A95 /* ortc_RTCDTMFTrack.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

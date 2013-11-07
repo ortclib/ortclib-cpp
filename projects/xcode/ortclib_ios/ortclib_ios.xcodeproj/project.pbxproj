@@ -39,8 +39,6 @@
 		E2260EA3182163D50084E4A4 /* types.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = types.h; sourceTree = "<group>"; };
 		E2260EA4182163D50084E4A4 /* IRTCConnection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IRTCConnection.h; sourceTree = "<group>"; };
 		E2260EA5182163D50084E4A4 /* IRTCTrack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IRTCTrack.h; sourceTree = "<group>"; };
-		E2260EA6182163D50084E4A4 /* license-agpl.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "license-agpl.txt"; sourceTree = "<group>"; };
-		E2260EA7182163D50084E4A4 /* license.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = license.txt; sourceTree = "<group>"; };
 		E2260EA8182163D50084E4A4 /* ortc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ortc.h; sourceTree = "<group>"; };
 		E2260EA9182163D50084E4A4 /* types.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = types.h; sourceTree = "<group>"; };
 		E29D8F08182482E000829A25 /* IRTCStream.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IRTCStream.h; sourceTree = "<group>"; };
@@ -55,6 +53,7 @@
 		E29D8F141824845E00829A25 /* IRTCSocket.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IRTCSocket.h; sourceTree = "<group>"; };
 		E29D8F151824848F00829A25 /* ortc_RTCSocket.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ortc_RTCSocket.h; sourceTree = "<group>"; };
 		E29D8F16182484AE00829A25 /* ortc_RTCSocket.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_RTCSocket.cpp; sourceTree = "<group>"; };
+		E2D0493E182C376700343A95 /* license.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = license.txt; path = ../../../license.txt; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -73,6 +72,7 @@
 			children = (
 				E2260E9A182163D50084E4A4 /* ortc */,
 				E2260E741821628E0084E4A4 /* Products */,
+				E2D0493E182C376700343A95 /* license.txt */,
 			);
 			sourceTree = "<group>";
 		};
@@ -89,8 +89,6 @@
 			children = (
 				E2260E9B182163D50084E4A4 /* cpp */,
 				E2260E9F182163D50084E4A4 /* internal */,
-				E2260EA6182163D50084E4A4 /* license-agpl.txt */,
-				E2260EA7182163D50084E4A4 /* license.txt */,
 				E2260EA9182163D50084E4A4 /* types.h */,
 				E2260EA8182163D50084E4A4 /* ortc.h */,
 				E2260EA4182163D50084E4A4 /* IRTCConnection.h */,
