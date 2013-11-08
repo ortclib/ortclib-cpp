@@ -101,6 +101,24 @@ namespace ortc
       #pragma mark RTCConnection => (data)
       #pragma mark
       
+    protected:
+      PUID mID;
+      mutable RecursiveLock mLock;
+      RTCConnectionWeakPtr mThisWeak;
+      IRTCConnectionDelegatePtr mDelegate;
+      
+      int mError;
+      
+      RTCSocketPtr mSocket;
+      RTCConnectionStates mState;
+      RTCConnectionRoles mRole;
+      RTCConnectionInfo mLocalConnectionInfo;
+      RTCConnectionInfo mRemoteConnectionInfo;
+  
+      RTCStreamListPtr mSendStreams;
+      RTCTrackListPtr mSendTracks;
+      RTCStreamListPtr mReceiveStreams;
+      RTCTrackListPtr mReceiveTracks;
     };
   }
 }

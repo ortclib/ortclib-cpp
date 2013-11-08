@@ -44,6 +44,7 @@ namespace ortc
   using zsLib::Time;
   using zsLib::Duration;
   using zsLib::String;
+  using zsLib::RecursiveLock;
 
   using openpeer::services::SecureByteBlock;
   using openpeer::services::SecureByteBlockPtr;

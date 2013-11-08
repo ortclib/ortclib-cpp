@@ -90,6 +90,9 @@ namespace ortc
       #pragma mark RTCDataChannel => IRTCDataChannel
       #pragma mark
       
+      virtual IRTCConnectionPtr connection();
+      virtual String id();
+      virtual String kind();
       virtual void send(BYTE* data);
       
       //---------------------------------------------------------------------
@@ -107,7 +110,10 @@ namespace ortc
       #pragma mark RTCDataChannel => (data)
       #pragma mark
       
-      
+    protected:
+      IRTCConnectionPtr mConnection;
+      String mID;
+      String mKind;
       
     };
   }

@@ -137,7 +137,14 @@ namespace ortc
       #pragma mark RTCTrack => (data)
       #pragma mark
       
-      
+    protected:
+      IMediaStreamTrackPtr mSource;
+      String mID;
+      RTCTrackKinds mKind;
+      ULONG mSsrc;
+      RTCCodecListPtr mCodecs;
+      RTCMediaAttributesListPtr mMediaAttributes;
+      RtpExtHeadersMapPtr mRtpExtHeaders;
     };
   }
 }

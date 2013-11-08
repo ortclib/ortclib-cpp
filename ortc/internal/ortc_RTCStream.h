@@ -112,6 +112,17 @@ namespace ortc
       #pragma mark RTCStream => (data)
       #pragma mark
       
+    protected:
+      PUID mID;
+      mutable RecursiveLock mLock;
+      RTCStreamWeakPtr mThisWeak;
+      
+      int mError;
+      
+      IMediaStreamTrackPtr mSource;
+      MsidListPtr mMsid;
+      
+      RTCTrackListPtr mTracks;
     };
   }
 }
