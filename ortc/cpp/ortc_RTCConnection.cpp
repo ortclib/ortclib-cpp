@@ -48,7 +48,12 @@ namespace ortc
     
     //-----------------------------------------------------------------------
     RTCConnection::RTCConnection(IMessageQueuePtr queue, IRTCConnectionDelegatePtr delegate) :
-      MessageQueueAssociator(queue)
+      MessageQueueAssociator(queue),
+      mID(zsLib::createPUID()),
+      mDelegate(delegate),
+      mError(0),
+      mState(RTCConnectionState_New),
+      mRole(RTCConnectionRole_Controlling)
     {
     }
     

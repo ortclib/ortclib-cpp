@@ -111,8 +111,14 @@ namespace ortc
       #pragma mark
       
     protected:
+      PUID mID;
+      mutable RecursiveLock mLock;
+      RTCDataChannelWeakPtr mThisWeak;
+      
+      int mError;
+      
       IRTCConnectionPtr mConnection;
-      String mID;
+      String mDataChannelID;
       String mKind;
       
     };

@@ -49,7 +49,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     RTCSocketPtr IRTCSocketForRTCConnection::create(IMessageQueuePtr queue)
     {
-      return RTCSocketPtr();
+      RTCSocketPtr pThis(new RTCSocket(queue));
+      pThis->mThisWeak = pThis;
+      return pThis;
     }
     
     //-----------------------------------------------------------------------
@@ -62,7 +64,9 @@ namespace ortc
     
     //-----------------------------------------------------------------------
     RTCSocket::RTCSocket(IMessageQueuePtr queue) :
-      MessageQueueAssociator(queue)
+      MessageQueueAssociator(queue),
+      mID(zsLib::createPUID()),
+      mError(0)
     {
     }
     

@@ -49,7 +49,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     RTCDataChannelPtr IRTCDataChannelForRTCConnection::create(IMessageQueuePtr queue, IRTCDataChannelDelegatePtr delegate)
     {
-      return RTCDataChannelPtr();
+      RTCDataChannelPtr pThis(new RTCDataChannel(queue, delegate));
+      pThis->mThisWeak = pThis;
+      return pThis;
     }
     
     //-----------------------------------------------------------------------
@@ -62,7 +64,9 @@ namespace ortc
     
     //-----------------------------------------------------------------------
     RTCDataChannel::RTCDataChannel(IMessageQueuePtr queue, IRTCDataChannelDelegatePtr delegate) :
-      MessageQueueAssociator(queue)
+      MessageQueueAssociator(queue),
+      mID(zsLib::createPUID()),
+      mError(0)
     {
     }
     

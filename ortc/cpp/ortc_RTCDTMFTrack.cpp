@@ -49,7 +49,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     RTCDTMFTrackPtr IRTCDTMFTrackForRTCConnection::create(IMessageQueuePtr queue, IRTCDTMFTrackDelegatePtr delegate)
     {
-      return RTCDTMFTrackPtr();
+      RTCDTMFTrackPtr pThis(new RTCDTMFTrack(queue, delegate));
+      pThis->mThisWeak = pThis;
+      return pThis;
     }
     
     //-----------------------------------------------------------------------

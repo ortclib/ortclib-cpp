@@ -82,7 +82,6 @@ namespace ortc
     public:
       virtual ~RTCSocket();
       
-    protected:
       //---------------------------------------------------------------------
       #pragma mark
       #pragma mark RTCSocket => IRTCSocket
@@ -103,6 +102,13 @@ namespace ortc
       #pragma mark RTCSocket => (data)
       #pragma mark
       
+    protected:
+      PUID mID;
+      mutable RecursiveLock mLock;
+      RTCSocketWeakPtr mThisWeak;
+      
+      int mError;
+
     };
   }
 }

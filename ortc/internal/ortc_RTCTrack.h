@@ -138,8 +138,14 @@ namespace ortc
       #pragma mark
       
     protected:
+      PUID mID;
+      mutable RecursiveLock mLock;
+      RTCTrackWeakPtr mThisWeak;
+      
+      int mError;
+      
       IMediaStreamTrackPtr mSource;
-      String mID;
+      String mTrackID;
       RTCTrackKinds mKind;
       ULONG mSsrc;
       RTCCodecListPtr mCodecs;

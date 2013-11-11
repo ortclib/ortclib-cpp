@@ -68,16 +68,13 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark RTCCodec
+    #pragma mark RTCCodecParam
     #pragma mark
     
-    struct RTCCodec
+    struct RTCCodecParam
     {
-      BYTE payloadId();
-      String name();
-      int clockRate;
-      int numChannels;
-      RTCCodecParam* params();
+      String mName;
+      String mValue;
     };
     
     //-------------------------------------------------------------------------
@@ -85,13 +82,20 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark RTCCodecParam
+    #pragma mark RTCCodec
     #pragma mark
     
-    struct RTCCodecParam
+    struct RTCCodec
     {
-      String name();
-      String value();
+      typedef std::list<RTCCodecParam> RTCCodecParamList;
+      
+      BYTE mPayloadId;
+      String mName;
+      int mClockRate;
+      int mNumChannels;
+      RTCCodecParamList mParams;
+      
+      RTCCodec() : mPayloadId(0), mClockRate(0), mNumChannels(0) { }
     };
     
     //-------------------------------------------------------------------------
@@ -104,8 +108,10 @@ namespace ortc
     
     struct RTCMediaAttributes
     {
-      int videoMaxWidth();
-      int videoMaxHeight();
+      int mVideoMaxWidth;
+      int mVideoMaxHeight;
+      
+      RTCMediaAttributes() : mVideoMaxWidth(0), mVideoMaxHeight(0) { }
     };
 
     typedef std::list<String> MsidList;
