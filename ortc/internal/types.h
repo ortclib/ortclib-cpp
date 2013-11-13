@@ -72,5 +72,17 @@ namespace ortc
     class RTCDataChannel;
     typedef boost::shared_ptr<RTCDataChannel> RTCDataChannelPtr;
     typedef boost::weak_ptr<RTCDataChannel> RTCDataChannelWeakPtr;
+    
+    class MediaManager;
+    typedef boost::shared_ptr<MediaManager> MediaManagerPtr;
+    typedef boost::weak_ptr<MediaManager> MediaManagerWeakPtr;
+    
+    class MediaStream;
+    typedef boost::shared_ptr<MediaStream> MediaStreamPtr;
+    typedef boost::weak_ptr<MediaStream> MediaStreamWeakPtr;
+    
+    class MediaStreamTrack;
+    typedef boost::shared_ptr<MediaStreamTrack> MediaStreamTrackPtr;
+    typedef boost::weak_ptr<MediaStreamTrack> MediaStreamTrackWeakPtr;
   }
 }

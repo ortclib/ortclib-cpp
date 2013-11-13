@@ -84,12 +84,12 @@ namespace ortc
     public:
       virtual ~RTCDataChannel();
       
-    protected:
       //---------------------------------------------------------------------
       #pragma mark
       #pragma mark RTCDataChannel => IRTCDataChannel
       #pragma mark
       
+    protected:
       virtual IRTCConnectionPtr connection();
       virtual String id();
       virtual String kind();

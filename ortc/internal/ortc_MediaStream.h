@@ -1,17 +1,17 @@
 /*
-
+ 
  Copyright (c) 2013, SMB Phone Inc. / Hookflash Inc.
  All rights reserved.
-
+ 
  Redistribution and use in source and binary forms, with or without
  modification, are permitted provided that the following conditions are met:
-
+ 
  1. Redistributions of source code must retain the above copyright notice, this
  list of conditions and the following disclaimer.
  2. Redistributions in binary form must reproduce the above copyright notice,
  this list of conditions and the following disclaimer in the documentation
  and/or other materials provided with the distribution.
-
+ 
  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -22,7 +22,7 @@
  ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
+ 
  The views and conclusions contained in the software and documentation are those
  of the authors and should not be interpreted as representing official policies,
  either expressed or implied, of the FreeBSD Project.
@@ -32,7 +32,7 @@
 #pragma once
 
 #include <ortc/internal/types.h>
-#include <ortc/IRTCTrack.h>
+#include <ortc/IMediaStream.h>
 
 namespace ortc
 {
@@ -43,17 +43,18 @@ namespace ortc
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     #pragma mark
-    #pragma mark IRTCTrackForRTCConnection
+    #pragma mark IMediaStreamForMediaManager
     #pragma mark
     
-    interaction IRTCTrackForRTCConnection
+    interaction IMediaStreamForMediaManager
     {
-      IRTCTrackForRTCConnection &forRTCConnection() {return *this;}
-      const IRTCTrackForRTCConnection &forRTCConnection() const {return *this;}
+      IMediaStreamForMediaManager &forMediaManager() {return *this;}
+      const IMediaStreamForMediaManager &forMediaManager() const {return *this;}
       
-      static RTCTrackPtr create(
-                                IMessageQueuePtr queue
-                                );
+      static MediaStreamPtr create(
+                                   IMessageQueuePtr queue,
+                                   IMediaStreamDelegatePtr delegate
+                                   );
       
     };
     
@@ -62,14 +63,13 @@ namespace ortc
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     #pragma mark
-    #pragma mark IRTCTrackForRTCStream
+    #pragma mark IMediaStreamForRTCConnection
     #pragma mark
     
-    interaction IRTCTrackForRTCStream
+    interaction IMediaStreamForRTCConnection
     {
-      IRTCTrackForRTCStream &forRTCStream() {return *this;}
-      const IRTCTrackForRTCStream &forRTCStream() const {return *this;}
-      
+      IMediaStreamForRTCConnection &forRTCConnection() {return *this;}
+      const IMediaStreamForRTCConnection &forRTCConnection() const {return *this;}
     };
     
     //-----------------------------------------------------------------------
@@ -77,80 +77,76 @@ namespace ortc
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     #pragma mark
-    #pragma mark RTCTrack
+    #pragma mark MediaStream
     #pragma mark
     
-    class RTCTrack : public Noop,
-                     public MessageQueueAssociator,
-                     public IRTCTrack,
-                     public IRTCTrackForRTCConnection,
-                     public IRTCTrackForRTCStream
+    class MediaStream : public Noop,
+      public MessageQueueAssociator,
+      public IMediaStream,
+      public IMediaStreamForMediaManager,
+      public IMediaStreamForRTCConnection
     {
     public:
-      friend interaction IRTCTrack;
-      friend interaction IRTCTrackForRTCConnection;
-      friend interaction IRTCTrackForRTCConnection;
+      friend interaction IMediaStream;
+      friend interaction IMediaStreamForMediaManager;
+      friend interaction IMediaStreamForRTCConnection;
       
     protected:
-      RTCTrack(
-               IMessageQueuePtr queue
-               );
+      MediaStream(
+                  IMessageQueuePtr queue,
+                  IMediaStreamDelegatePtr delegate
+                  );
       
     public:
-      virtual ~RTCTrack();
+      virtual ~MediaStream();
       
       //---------------------------------------------------------------------
       #pragma mark
-      #pragma mark RTCTrack => IRTCTrack
+      #pragma mark MediaStream => IMediaStream
       #pragma mark
       
     protected:
-      virtual IMediaStreamTrackPtr source();
       virtual String id();
-      virtual RTCTrackKinds kind();
-      virtual ULONG ssrc();
-      virtual RTCCodecListPtr codecs();
-      virtual RTCMediaAttributesListPtr mediaAttributes();
-      virtual RtpExtHeadersMapPtr rtpExtHeaders();
+      virtual MediaStreamTrackListPtr getAudioTracks();
+      virtual MediaStreamTrackListPtr getVideoTracks();
+      virtual IMediaStreamTrackPtr getTrackById(String trackId);
+      virtual void addTrack(IMediaStreamTrackPtr track);
+      virtual void removeTrack(IMediaStreamTrackPtr track);
+      virtual IMediaStreamPtr clone();
+      virtual bool inactive();
       
-      virtual void start();
-      virtual void stop();
-      virtual void remove();
-
       //---------------------------------------------------------------------
       #pragma mark
-      #pragma mark RTCTrack => IRTCTrackForRTCConnection
+      #pragma mark MediaStream => IMediaStreamForMediaManager
       #pragma mark
       
       //---------------------------------------------------------------------
       #pragma mark
-      #pragma mark RTCTrack => IRTCTrackForRTCStream
+      #pragma mark MediaStream => IMediaStreamForRTCConnection
       #pragma mark
       
       //---------------------------------------------------------------------
       #pragma mark
-      #pragma mark RTCTrack => (internal)
+      #pragma mark MediaStream => (internal)
       #pragma mark
       
       //---------------------------------------------------------------------
       #pragma mark
-      #pragma mark RTCTrack => (data)
+      #pragma mark MediaStream => (data)
       #pragma mark
       
     protected:
       PUID mID;
       mutable RecursiveLock mLock;
-      RTCTrackWeakPtr mThisWeak;
+      MediaStreamWeakPtr mThisWeak;
+      IMediaStreamDelegatePtr mDelegate;
       
       int mError;
       
-      IMediaStreamTrackPtr mSource;
-      String mTrackID;
-      RTCTrackKinds mKind;
-      ULONG mSsrc;
-      RTCCodecListPtr mCodecs;
-      RTCMediaAttributesListPtr mMediaAttributes;
-      RtpExtHeadersMapPtr mRtpExtHeaders;
+      String mStreamID;
+      MediaStreamTrackListPtr mAudioTracks;
+      MediaStreamTrackListPtr mVideoTracks;
+      bool mInactive;
     };
   }
 }

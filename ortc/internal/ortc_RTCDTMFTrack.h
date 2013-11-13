@@ -85,12 +85,12 @@ namespace ortc
       virtual ~RTCDTMFTrack();
       
       
-    protected:
       //---------------------------------------------------------------------
       #pragma mark
       #pragma mark RTCDTMFTrack => IRTCDTMFTrack
       #pragma mark
       
+    protected:
       virtual void playTones(String tones, ULONG duration = 100, ULONG interToneGap = 70);
       
       //---------------------------------------------------------------------
@@ -108,6 +108,8 @@ namespace ortc
       #pragma mark RTCDTMFTrack => (data)
       #pragma mark
       
+    protected:
+      IRTCDTMFTrackDelegatePtr mDelegate;
     };
   }
 }

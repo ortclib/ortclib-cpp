@@ -82,12 +82,12 @@ namespace ortc
     public:
       virtual ~RTCStream();
       
-    protected:
       //---------------------------------------------------------------------
       #pragma mark
       #pragma mark RTCStream => IRTCStream
       #pragma mark
       
+    protected:
       virtual IMediaStreamTrackPtr source();
       virtual MsidListPtr msid();
       

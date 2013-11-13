@@ -29,7 +29,7 @@
  
  */
 
-#include <ortc/internal/ortc_RTCDTMFTrack.h>
+#include <ortc/internal/ortc_MediaManager.h>
 #include <zsLib/Log.h>
 
 namespace ortc { ZS_IMPLEMENT_SUBSYSTEM(ortclib) }
@@ -43,34 +43,28 @@ namespace ortc
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     #pragma mark
-    #pragma mark IRTCDTMFTrackForRTCConnection
+    #pragma mark MediaManager
     #pragma mark
     
-    //-------------------------------------------------------------------------
-    RTCDTMFTrackPtr IRTCDTMFTrackForRTCConnection::create(IMessageQueuePtr queue, IRTCDTMFTrackDelegatePtr delegate)
+    //-----------------------------------------------------------------------
+    MediaManager::MediaManager(IMessageQueuePtr queue, IMediaManagerDelegatePtr delegate) :
+      MessageQueueAssociator(queue),
+      mID(zsLib::createPUID()),
+      mDelegate(delegate),
+      mError(0)
     {
-      RTCDTMFTrackPtr pThis(new RTCDTMFTrack(queue, delegate));
+    }
+    
+    //-------------------------------------------------------------------------
+    MediaManagerPtr MediaManager::create(IMessageQueuePtr queue, IMediaManagerDelegatePtr delegate)
+    {
+      MediaManagerPtr pThis(new MediaManager(queue, delegate));
       pThis->mThisWeak = pThis;
       return pThis;
     }
     
     //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTCDTMFTrack
-    #pragma mark
-    
-    //-----------------------------------------------------------------------
-    RTCDTMFTrack::RTCDTMFTrack(IMessageQueuePtr queue, IRTCDTMFTrackDelegatePtr delegate) :
-      RTCTrack(queue),
-      mDelegate(delegate)
-    {
-    }
-    
-    //-----------------------------------------------------------------------
-    RTCDTMFTrack::~RTCDTMFTrack()
+    MediaManager::~MediaManager()
     {
     }
     
@@ -79,13 +73,12 @@ namespace ortc
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     #pragma mark
-    #pragma mark RTCDTMFTrack => IRTCDTMFTrack
+    #pragma mark MediaManager => IMediaManager
     #pragma mark
     
     //-----------------------------------------------------------------------
-    void RTCDTMFTrack::playTones(String tones, ULONG duration, ULONG interToneGap)
+    void MediaManager::getUserMedia(MediaStreamConstraints constraints)
     {
-      
     }
   }
 }

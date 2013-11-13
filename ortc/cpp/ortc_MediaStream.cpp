@@ -29,7 +29,7 @@
  
  */
 
-#include <ortc/internal/ortc_RTCDTMFTrack.h>
+#include <ortc/internal/ortc_MediaStream.h>
 #include <zsLib/Log.h>
 
 namespace ortc { ZS_IMPLEMENT_SUBSYSTEM(ortclib) }
@@ -43,13 +43,13 @@ namespace ortc
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     #pragma mark
-    #pragma mark IRTCDTMFTrackForRTCConnection
+    #pragma mark IMediaStreamForMediaManager
     #pragma mark
     
     //-------------------------------------------------------------------------
-    RTCDTMFTrackPtr IRTCDTMFTrackForRTCConnection::create(IMessageQueuePtr queue, IRTCDTMFTrackDelegatePtr delegate)
+    MediaStreamPtr IMediaStreamForMediaManager::create(IMessageQueuePtr queue, IMediaStreamDelegatePtr delegate)
     {
-      RTCDTMFTrackPtr pThis(new RTCDTMFTrack(queue, delegate));
+      MediaStreamPtr pThis(new MediaStream(queue, delegate));
       pThis->mThisWeak = pThis;
       return pThis;
     }
@@ -59,18 +59,21 @@ namespace ortc
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     #pragma mark
-    #pragma mark RTCDTMFTrack
+    #pragma mark MediaStream
     #pragma mark
     
     //-----------------------------------------------------------------------
-    RTCDTMFTrack::RTCDTMFTrack(IMessageQueuePtr queue, IRTCDTMFTrackDelegatePtr delegate) :
-      RTCTrack(queue),
-      mDelegate(delegate)
+    MediaStream::MediaStream(IMessageQueuePtr queue, IMediaStreamDelegatePtr delegate) :
+      MessageQueueAssociator(queue),
+      mID(zsLib::createPUID()),
+      mDelegate(delegate),
+      mError(0),
+      mInactive(true)
     {
     }
     
     //-----------------------------------------------------------------------
-    RTCDTMFTrack::~RTCDTMFTrack()
+    MediaStream::~MediaStream()
     {
     }
     
@@ -79,13 +82,55 @@ namespace ortc
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     #pragma mark
-    #pragma mark RTCDTMFTrack => IRTCDTMFTrack
+    #pragma mark MediaStream => IMediaStream
     #pragma mark
     
     //-----------------------------------------------------------------------
-    void RTCDTMFTrack::playTones(String tones, ULONG duration, ULONG interToneGap)
+    String MediaStream::id()
+    {
+      return String();
+    }
+    
+    //-----------------------------------------------------------------------
+    MediaStreamTrackListPtr MediaStream::getAudioTracks()
+    {
+      return MediaStreamTrackListPtr();
+    }
+    
+    //-----------------------------------------------------------------------
+    MediaStreamTrackListPtr MediaStream::getVideoTracks()
+    {
+      return MediaStreamTrackListPtr();
+    }
+
+    //-----------------------------------------------------------------------
+    IMediaStreamTrackPtr MediaStream::getTrackById(String trackId)
+    {
+      return IMediaStreamTrackPtr();
+    }
+    
+    //-----------------------------------------------------------------------
+    void MediaStream::addTrack(IMediaStreamTrackPtr track)
     {
       
+    }
+    
+    //-----------------------------------------------------------------------
+    void MediaStream::removeTrack(IMediaStreamTrackPtr track)
+    {
+      
+    }
+    
+    //-----------------------------------------------------------------------
+    IMediaStreamPtr MediaStream::clone()
+    {
+      return IMediaStreamPtr();
+    }
+    
+    //-----------------------------------------------------------------------
+    bool MediaStream::inactive()
+    {
+      return false;
     }
   }
 }

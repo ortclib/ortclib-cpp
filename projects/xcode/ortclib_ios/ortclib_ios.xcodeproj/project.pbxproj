@@ -10,6 +10,9 @@
 		E2260EAA182163D50084E4A4 /* ortc_ortc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E2260E9C182163D50084E4A4 /* ortc_ortc.cpp */; };
 		E2260EAB182163D50084E4A4 /* ortc_RTCConnection.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E2260E9D182163D50084E4A4 /* ortc_RTCConnection.cpp */; };
 		E2260EAC182163D50084E4A4 /* ortc_RTCTrack.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E2260E9E182163D50084E4A4 /* ortc_RTCTrack.cpp */; };
+		E23EBC4F1833EF0800C7332E /* ortc_MediaManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E23EBC4E1833EF0800C7332E /* ortc_MediaManager.cpp */; };
+		E23EBC561833FEC000C7332E /* ortc_MediaStream.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E23EBC551833FEC000C7332E /* ortc_MediaStream.cpp */; };
+		E23EBC581833FED300C7332E /* ortc_MediaStreamTrack.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E23EBC571833FED300C7332E /* ortc_MediaStreamTrack.cpp */; };
 		E29D8F0B1824831B00829A25 /* ortc_RTCStream.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E29D8F0A1824831B00829A25 /* ortc_RTCStream.cpp */; };
 		E29D8F0F1824837800829A25 /* ortc_RTCDTMFTrack.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E29D8F0E1824837800829A25 /* ortc_RTCDTMFTrack.cpp */; };
 		E29D8F13182483E300829A25 /* ortc_RTCDataChannel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E29D8F12182483E300829A25 /* ortc_RTCDataChannel.cpp */; };
@@ -41,6 +44,15 @@
 		E2260EA5182163D50084E4A4 /* IRTCTrack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IRTCTrack.h; sourceTree = "<group>"; };
 		E2260EA8182163D50084E4A4 /* ortc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ortc.h; sourceTree = "<group>"; };
 		E2260EA9182163D50084E4A4 /* types.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = types.h; sourceTree = "<group>"; };
+		E23EBC4D1833EEC800C7332E /* IMediaManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IMediaManager.h; sourceTree = "<group>"; };
+		E23EBC4E1833EF0800C7332E /* ortc_MediaManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_MediaManager.cpp; sourceTree = "<group>"; };
+		E23EBC501833EF2700C7332E /* ortc_MediaManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ortc_MediaManager.h; sourceTree = "<group>"; };
+		E23EBC511833FE6600C7332E /* IMediaStream.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IMediaStream.h; sourceTree = "<group>"; };
+		E23EBC521833FE7800C7332E /* IMediaStreamTrack.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IMediaStreamTrack.h; sourceTree = "<group>"; };
+		E23EBC531833FE9100C7332E /* ortc_MediaStream.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ortc_MediaStream.h; sourceTree = "<group>"; };
+		E23EBC541833FEA900C7332E /* ortc_MediaStreamTrack.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ortc_MediaStreamTrack.h; sourceTree = "<group>"; };
+		E23EBC551833FEC000C7332E /* ortc_MediaStream.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_MediaStream.cpp; sourceTree = "<group>"; };
+		E23EBC571833FED300C7332E /* ortc_MediaStreamTrack.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_MediaStreamTrack.cpp; sourceTree = "<group>"; };
 		E29D8F08182482E000829A25 /* IRTCStream.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IRTCStream.h; sourceTree = "<group>"; };
 		E29D8F091824830200829A25 /* ortc_RTCStream.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ortc_RTCStream.h; sourceTree = "<group>"; };
 		E29D8F0A1824831B00829A25 /* ortc_RTCStream.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_RTCStream.cpp; sourceTree = "<group>"; };
@@ -97,6 +109,9 @@
 				E2260EA5182163D50084E4A4 /* IRTCTrack.h */,
 				E29D8F0C1824834B00829A25 /* IRTCDTMFTrack.h */,
 				E29D8F10182483AB00829A25 /* IRTCDataChannel.h */,
+				E23EBC4D1833EEC800C7332E /* IMediaManager.h */,
+				E23EBC511833FE6600C7332E /* IMediaStream.h */,
+				E23EBC521833FE7800C7332E /* IMediaStreamTrack.h */,
 			);
 			name = ortc;
 			path = ../../../ortc;
@@ -112,6 +127,9 @@
 				E2260E9E182163D50084E4A4 /* ortc_RTCTrack.cpp */,
 				E29D8F0E1824837800829A25 /* ortc_RTCDTMFTrack.cpp */,
 				E29D8F12182483E300829A25 /* ortc_RTCDataChannel.cpp */,
+				E23EBC4E1833EF0800C7332E /* ortc_MediaManager.cpp */,
+				E23EBC551833FEC000C7332E /* ortc_MediaStream.cpp */,
+				E23EBC571833FED300C7332E /* ortc_MediaStreamTrack.cpp */,
 			);
 			path = cpp;
 			sourceTree = "<group>";
@@ -127,6 +145,9 @@
 				E2260EA2182163D50084E4A4 /* ortc_RTCTrack.h */,
 				E29D8F0D1824836400829A25 /* ortc_RTCDTMFTrack.h */,
 				E29D8F11182483CD00829A25 /* ortc_RTCDataChannel.h */,
+				E23EBC501833EF2700C7332E /* ortc_MediaManager.h */,
+				E23EBC531833FE9100C7332E /* ortc_MediaStream.h */,
+				E23EBC541833FEA900C7332E /* ortc_MediaStreamTrack.h */,
 			);
 			path = internal;
 			sourceTree = "<group>";
@@ -181,13 +202,16 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E29D8F17182484AE00829A25 /* ortc_RTCSocket.cpp in Sources */,
-				E2260EAC182163D50084E4A4 /* ortc_RTCTrack.cpp in Sources */,
-				E29D8F0B1824831B00829A25 /* ortc_RTCStream.cpp in Sources */,
 				E2260EAA182163D50084E4A4 /* ortc_ortc.cpp in Sources */,
 				E2260EAB182163D50084E4A4 /* ortc_RTCConnection.cpp in Sources */,
+				E29D8F17182484AE00829A25 /* ortc_RTCSocket.cpp in Sources */,
+				E29D8F0B1824831B00829A25 /* ortc_RTCStream.cpp in Sources */,
+				E2260EAC182163D50084E4A4 /* ortc_RTCTrack.cpp in Sources */,
 				E29D8F0F1824837800829A25 /* ortc_RTCDTMFTrack.cpp in Sources */,
 				E29D8F13182483E300829A25 /* ortc_RTCDataChannel.cpp in Sources */,
+				E23EBC4F1833EF0800C7332E /* ortc_MediaManager.cpp in Sources */,
+				E23EBC561833FEC000C7332E /* ortc_MediaStream.cpp in Sources */,
+				E23EBC581833FED300C7332E /* ortc_MediaStreamTrack.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
