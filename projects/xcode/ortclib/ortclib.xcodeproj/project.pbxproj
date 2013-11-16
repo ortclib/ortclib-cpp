@@ -23,6 +23,7 @@
 		E23EBC681834183500C7332E /* ortc_MediaManager.h in Headers */ = {isa = PBXBuildFile; fileRef = E23EBC651834183500C7332E /* ortc_MediaManager.h */; };
 		E23EBC691834183500C7332E /* ortc_MediaStream.h in Headers */ = {isa = PBXBuildFile; fileRef = E23EBC661834183500C7332E /* ortc_MediaStream.h */; };
 		E23EBC6A1834183500C7332E /* ortc_MediaStreamTrack.h in Headers */ = {isa = PBXBuildFile; fileRef = E23EBC671834183500C7332E /* ortc_MediaStreamTrack.h */; };
+		E277059E18370255008AC118 /* ortc_MediaEngine.h in Headers */ = {isa = PBXBuildFile; fileRef = E277059D18370255008AC118 /* ortc_MediaEngine.h */; };
 		E2D04943182C377B00343A95 /* ortc_RTCDataChannel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E2D0493F182C377B00343A95 /* ortc_RTCDataChannel.cpp */; };
 		E2D04944182C377B00343A95 /* ortc_RTCDTMFTrack.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E2D04940182C377B00343A95 /* ortc_RTCDTMFTrack.cpp */; };
 		E2D04945182C377B00343A95 /* ortc_RTCSocket.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E2D04941182C377B00343A95 /* ortc_RTCSocket.cpp */; };
@@ -60,6 +61,8 @@
 		E23EBC651834183500C7332E /* ortc_MediaManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ortc_MediaManager.h; sourceTree = "<group>"; };
 		E23EBC661834183500C7332E /* ortc_MediaStream.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ortc_MediaStream.h; sourceTree = "<group>"; };
 		E23EBC671834183500C7332E /* ortc_MediaStreamTrack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ortc_MediaStreamTrack.h; sourceTree = "<group>"; };
+		E277059D18370255008AC118 /* ortc_MediaEngine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ortc_MediaEngine.h; sourceTree = "<group>"; };
+		E277059F18370265008AC118 /* ortc_MediaEngine.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_MediaEngine.cpp; sourceTree = "<group>"; };
 		E2D0493F182C377B00343A95 /* ortc_RTCDataChannel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_RTCDataChannel.cpp; sourceTree = "<group>"; };
 		E2D04940182C377B00343A95 /* ortc_RTCDTMFTrack.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_RTCDTMFTrack.cpp; sourceTree = "<group>"; };
 		E2D04941182C377B00343A95 /* ortc_RTCSocket.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_RTCSocket.cpp; sourceTree = "<group>"; };
@@ -136,6 +139,7 @@
 				E23EBC5F1834181C00C7332E /* ortc_MediaManager.cpp */,
 				E23EBC601834181C00C7332E /* ortc_MediaStream.cpp */,
 				E23EBC611834181C00C7332E /* ortc_MediaStreamTrack.cpp */,
+				E277059F18370265008AC118 /* ortc_MediaEngine.cpp */,
 			);
 			path = cpp;
 			sourceTree = "<group>";
@@ -154,6 +158,7 @@
 				E23EBC651834183500C7332E /* ortc_MediaManager.h */,
 				E23EBC661834183500C7332E /* ortc_MediaStream.h */,
 				E23EBC671834183500C7332E /* ortc_MediaStreamTrack.h */,
+				E277059D18370255008AC118 /* ortc_MediaEngine.h */,
 			);
 			path = internal;
 			sourceTree = "<group>";
@@ -167,6 +172,7 @@
 			files = (
 				E2260E6018215A910084E4A4 /* IRTCTrack.h in Headers */,
 				E2D04955182C37DD00343A95 /* IRTCSocket.h in Headers */,
+				E277059E18370255008AC118 /* ortc_MediaEngine.h in Headers */,
 				E2D04954182C37DD00343A95 /* IRTCDTMFTrack.h in Headers */,
 				E2D0494D182C37A600343A95 /* ortc_RTCSocket.h in Headers */,
 				E2D04956182C37DD00343A95 /* IRTCStream.h in Headers */,

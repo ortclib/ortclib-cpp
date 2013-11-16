@@ -53,6 +53,8 @@
 		E23EBC541833FEA900C7332E /* ortc_MediaStreamTrack.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ortc_MediaStreamTrack.h; sourceTree = "<group>"; };
 		E23EBC551833FEC000C7332E /* ortc_MediaStream.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_MediaStream.cpp; sourceTree = "<group>"; };
 		E23EBC571833FED300C7332E /* ortc_MediaStreamTrack.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_MediaStreamTrack.cpp; sourceTree = "<group>"; };
+		E27705781836F641008AC118 /* ortc_MediaEngine.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_MediaEngine.cpp; sourceTree = "<group>"; };
+		E277057A1836F650008AC118 /* ortc_MediaEngine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ortc_MediaEngine.h; sourceTree = "<group>"; };
 		E29D8F08182482E000829A25 /* IRTCStream.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IRTCStream.h; sourceTree = "<group>"; };
 		E29D8F091824830200829A25 /* ortc_RTCStream.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ortc_RTCStream.h; sourceTree = "<group>"; };
 		E29D8F0A1824831B00829A25 /* ortc_RTCStream.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_RTCStream.cpp; sourceTree = "<group>"; };
@@ -130,6 +132,7 @@
 				E23EBC4E1833EF0800C7332E /* ortc_MediaManager.cpp */,
 				E23EBC551833FEC000C7332E /* ortc_MediaStream.cpp */,
 				E23EBC571833FED300C7332E /* ortc_MediaStreamTrack.cpp */,
+				E27705781836F641008AC118 /* ortc_MediaEngine.cpp */,
 			);
 			path = cpp;
 			sourceTree = "<group>";
@@ -148,6 +151,7 @@
 				E23EBC501833EF2700C7332E /* ortc_MediaManager.h */,
 				E23EBC531833FE9100C7332E /* ortc_MediaStream.h */,
 				E23EBC541833FEA900C7332E /* ortc_MediaStreamTrack.h */,
+				E277057A1836F650008AC118 /* ortc_MediaEngine.h */,
 			);
 			path = internal;
 			sourceTree = "<group>";
@@ -228,6 +232,11 @@
 					../../../../op/libs/zsLib,
 					../../../../op/libs/boost/boost,
 					../../../../op/libs,
+					../../../../op/libs/webrtc,
+					../../../../op/libs/webrtc/webrtc,
+					../../../../op/libs/webrtc/webrtc/voice_engine/include,
+					../../../../op/libs/webrtc/webrtc/video_engine/include,
+					../../../../op/libs/webrtc/webrtc/modules/video_capture/include,
 				);
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos";
@@ -244,6 +253,11 @@
 					../../../../op/libs/zsLib,
 					../../../../op/libs/boost/boost,
 					../../../../op/libs,
+					../../../../op/libs/webrtc,
+					../../../../op/libs/webrtc/webrtc,
+					../../../../op/libs/webrtc/webrtc/voice_engine/include,
+					../../../../op/libs/webrtc/webrtc/video_engine/include,
+					../../../../op/libs/webrtc/webrtc/modules/video_capture/include,
 				);
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos";

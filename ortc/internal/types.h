@@ -48,6 +48,10 @@ namespace ortc
     using zsLib::MessageQueueThread;
     using zsLib::IMessageQueueThreadPtr;
     using zsLib::MessageQueueThreadPtr;
+    using zsLib::RecursiveLock;
+    using zsLib::AutoRecursiveLock;
+    using zsLib::Log;
+    using zsLib::Stringize;
     
     class RTCConnection;
     typedef boost::shared_ptr<RTCConnection> RTCConnectionPtr;
@@ -84,5 +88,18 @@ namespace ortc
     class MediaStreamTrack;
     typedef boost::shared_ptr<MediaStreamTrack> MediaStreamTrackPtr;
     typedef boost::weak_ptr<MediaStreamTrack> MediaStreamTrackWeakPtr;
+
+    interaction IMediaEngine;
+    typedef boost::shared_ptr<IMediaEngine> IMediaEnginePtr;
+    typedef boost::weak_ptr<IMediaEngine> IMediaEngineWeakPtr;
+    
+    class MediaEngine;
+    typedef boost::shared_ptr<MediaEngine> MediaEnginePtr;
+    typedef boost::weak_ptr<MediaEngine> MediaEngineWeakPtr;
+    
+    interaction IMediaEngineDelegate;
+    typedef boost::shared_ptr<IMediaEngineDelegate> IMediaEngineDelegatePtr;
+    typedef boost::weak_ptr<IMediaEngineDelegate> IMediaEngineDelegateWeakPtr;
+    typedef zsLib::Proxy<IMediaEngineDelegate> IMediaEngineDelegateProxy;
   }
 }
