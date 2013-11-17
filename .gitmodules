@@ -1,0 +1,21 @@
+[submodule "libs/zsLib"]
+	path = libs/zsLib
+	url = https://github.com/openpeer/zsLib.git
+[submodule "libs/boost"]
+	path = libs/boost
+	url = https://github.com/openpeer/boost.git
+[submodule "libs/cryptopp"]
+	path = libs/cryptopp
+	url = https://github.com/openpeer/cryptopp.git
+[submodule "libs/curl"]
+	path = libs/curl
+	url = https://github.com/openpeer/curl.git
+[submodule "libs/udns"]
+	path = libs/udns
+	url = https://github.com/openpeer/udns.git
+[submodule "libs/webrtc"]
+	path = libs/webrtc
+	url = https://github.com/openpeer/webrtc.git
+[submodule "libs/op-services-cpp"]
+	path = libs/op-services-cpp
+	url = https://github.com/openpeer/op-services-cpp.git
