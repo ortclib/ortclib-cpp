@@ -19,3 +19,6 @@
 [submodule "libs/op-services-cpp"]
 	path = libs/op-services-cpp
 	url = https://github.com/openpeer/op-services-cpp.git
+[submodule "libs/openssl"]
+	path = libs/openssl
+	url = https://github.com/openpeer/openssl.git
