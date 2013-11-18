@@ -200,10 +200,10 @@
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					../../..,
-					../../../../op,
-					../../../../op/libs/zsLib,
-					../../../../op/libs/boost/boost,
-					../../../../op/libs,
+					../../../libs,
+					"../../../libs/op-services-cpp",
+					../../../libs/zsLib,
+					../../../libs/boost/ios/framework/boost.framework/Headers,
 				);
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos";
@@ -216,10 +216,10 @@
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					../../..,
-					../../../../op,
-					../../../../op/libs/zsLib,
-					../../../../op/libs/boost/boost,
-					../../../../op/libs,
+					../../../libs,
+					"../../../libs/op-services-cpp",
+					../../../libs/zsLib,
+					../../../libs/boost/ios/framework/boost.framework/Headers,
 				);
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos";
@@ -262,6 +262,7 @@
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = iphoneos;
 			};
 			name = Debug;
 		};
@@ -294,6 +295,7 @@
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = iphoneos;
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
