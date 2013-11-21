@@ -56,6 +56,10 @@ namespace ortc
                                    IMediaStreamDelegatePtr delegate
                                    );
       
+      virtual String getCNAME() = 0;
+      
+      virtual void setVoiceRecordFile(String fileName) = 0;
+      virtual String getVoiceRecordFile() const = 0;
     };
     
     //-----------------------------------------------------------------------
@@ -90,7 +94,7 @@ namespace ortc
       friend interaction IMediaStream;
       friend interaction IMediaStreamForMediaManager;
       friend interaction IMediaStreamForRTCConnection;
-      
+
     protected:
       MediaStream(
                   IMessageQueuePtr queue,
@@ -120,6 +124,12 @@ namespace ortc
       #pragma mark MediaStream => IMediaStreamForMediaManager
       #pragma mark
       
+    protected:
+      virtual String getCNAME();
+      
+      virtual void setVoiceRecordFile(String fileName);
+      virtual String getVoiceRecordFile() const;
+
       //---------------------------------------------------------------------
       #pragma mark
       #pragma mark MediaStream => IMediaStreamForRTCConnection
@@ -130,6 +140,9 @@ namespace ortc
       #pragma mark MediaStream => (internal)
       #pragma mark
       
+    private:
+      String log(const char *message) const;
+
       //---------------------------------------------------------------------
       #pragma mark
       #pragma mark MediaStream => (data)
@@ -147,6 +160,10 @@ namespace ortc
       MediaStreamTrackListPtr mAudioTracks;
       MediaStreamTrackListPtr mVideoTracks;
       bool mInactive;
+      
+      String mCNAME;
+      
+      String mVoiceRecordFile;
     };
   }
 }

@@ -43,18 +43,207 @@ namespace ortc
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     #pragma mark
-    #pragma mark IMediaStreamTrackForMediaManager
+    #pragma mark IMediaTransport
     #pragma mark
     
-    interaction IMediaStreamTrackForMediaManager
+    interaction IMediaTransport
     {
-      IMediaStreamTrackForMediaManager &forMediaManager() {return *this;}
-      const IMediaStreamTrackForMediaManager &forMediaManager() const {return *this;}
+      struct RtpRtcpStatistics
+      {
+        unsigned short fractionLost;
+        unsigned int cumulativeLost;
+        unsigned int extendedMax;
+        unsigned int jitter;
+        int rttMs;
+        int bytesSent;
+        int packetsSent;
+        int bytesReceived;
+        int packetsReceived;
+      };
       
-      static MediaStreamTrackPtr create(
-                                        IMessageQueuePtr queue,
-                                        IMediaStreamTrackDelegatePtr delegate
-                                        );
+      virtual int getTransportStatistics(RtpRtcpStatistics &stat) = 0;
+    };
+    
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IReceiveMediaTransportForMediaManager
+    #pragma mark
+    
+    interaction IReceiveMediaTransportForMediaManager
+    {
+      IReceiveMediaTransportForMediaManager &forMediaManager() {return *this;}
+      const IReceiveMediaTransportForMediaManager &forMediaManager() const {return *this;}
+      
+      static ReceiveMediaTransportPtr create();
+      
+      virtual int receivedRTPPacket(const void *data, unsigned int length) = 0;
+      virtual int receivedRTCPPacket(const void *data, unsigned int length) = 0;
+    };
+    
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    #pragma mark
+    #pragma mark ISendMediaTransportForMediaManager
+    #pragma mark
+    
+    interaction ISendMediaTransportForMediaManager
+    {
+      typedef webrtc::Transport Transport;
+      
+      ISendMediaTransportForMediaManager &forMediaManager() {return *this;}
+      const ISendMediaTransportForMediaManager &forMediaManager() const {return *this;}
+      
+      static SendMediaTransportPtr create();
+      
+      virtual int registerExternalTransport(Transport &transport) = 0;
+      virtual int deregisterExternalTransport() = 0;
+    };
+    
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    #pragma mark
+    #pragma mark MediaTransport
+    #pragma mark
+    
+    class MediaTransport
+    {
+    public:
+      friend interaction IMediaTransport;
+      
+    protected:
+      MediaTransport();
+      
+    public:
+      virtual ~MediaTransport();
+      
+    protected:
+      //---------------------------------------------------------------------
+      #pragma mark
+      #pragma mark MediaTransport => IMediaTransport
+      #pragma mark
+      
+      virtual int getTransportStatistics(IMediaTransport::RtpRtcpStatistics &stat);
+      
+      //---------------------------------------------------------------------
+      #pragma mark
+      #pragma mark MediaTransport => (internal)
+      #pragma mark
+      
+      //---------------------------------------------------------------------
+      #pragma mark
+      #pragma mark MediaTransport => (data)
+      #pragma mark
+      
+    protected:
+      mutable RecursiveLock mLock;
+      MediaTransportWeakPtr mThisWeak;
+    };
+    
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    #pragma mark
+    #pragma mark ReceiveMediaTransport
+    #pragma mark
+    
+    class ReceiveMediaTransport : public MediaTransport,
+      public IMediaTransport,
+      public IReceiveMediaTransportForMediaManager
+    {
+      
+    public:
+      friend interaction IReceiveMediaTransportForMediaManager;
+      
+    protected:
+      ReceiveMediaTransport();
+      
+    public:
+      virtual ~ReceiveMediaTransport();
+      
+    protected:
+      //---------------------------------------------------------------------
+      #pragma mark
+      #pragma mark ReceiveMediaTransport => IMediaTransport
+      #pragma mark
+      
+      virtual int getTransportStatistics(IMediaTransport::RtpRtcpStatistics &stat);
+      
+      //---------------------------------------------------------------------
+      #pragma mark
+      #pragma mark ReceiveMediaTransport => IReceiveMediaTransportForMediaManager
+      #pragma mark
+      
+      virtual int receivedRTPPacket(const void *data, unsigned int length);
+      virtual int receivedRTCPPacket(const void *data, unsigned int length);
+      
+      //---------------------------------------------------------------------
+      #pragma mark
+      #pragma mark ReceiveMediaTransport => (internal)
+      #pragma mark
+      
+      //---------------------------------------------------------------------
+      #pragma mark
+      #pragma mark ReceiveMediaTransport => (data)
+      #pragma mark
+    };
+    
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    #pragma mark
+    #pragma mark SendMediaTransport
+    #pragma mark
+    
+    class SendMediaTransport : public MediaTransport,
+      public IMediaTransport,
+      public ISendMediaTransportForMediaManager
+    {
+      
+    public:
+      friend interaction ISendMediaTransportForMediaManager;
+      
+    protected:
+      SendMediaTransport();
+      
+    public:
+      virtual ~SendMediaTransport();
+      
+    protected:
+      //---------------------------------------------------------------------
+      #pragma mark
+      #pragma mark SendMediaTransport => IMediaTransport
+      #pragma mark
+      
+      virtual int getTransportStatistics(IMediaTransport::RtpRtcpStatistics &stat);
+      
+      //---------------------------------------------------------------------
+      #pragma mark
+      #pragma mark SendMediaTransport => ISendMediaTransportForCallTransport
+      #pragma mark
+      
+      virtual int registerExternalTransport(Transport &transport);
+      virtual int deregisterExternalTransport();
+      
+      //---------------------------------------------------------------------
+      #pragma mark
+      #pragma mark SendMediaTransport => (internal)
+      #pragma mark
+      
+      //---------------------------------------------------------------------
+      #pragma mark
+      #pragma mark SendMediaTransport => (data)
+      #pragma mark
+      
+    protected:
       
     };
     
@@ -63,13 +252,270 @@ namespace ortc
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     #pragma mark
-    #pragma mark IMediaStreamTrackForRTCConnection
+    #pragma mark ILocalAudioStreamTrackForMediaManager
     #pragma mark
     
-    interaction IMediaStreamTrackForRTCConnection
+    interaction ILocalAudioStreamTrackForMediaManager
     {
-      IMediaStreamTrackForRTCConnection &forRTCConnection() {return *this;}
-      const IMediaStreamTrackForRTCConnection &forRTCConnection() const {return *this;}
+    public:
+      ILocalAudioStreamTrackForMediaManager &forMediaManager() {return *this;}
+      const ILocalAudioStreamTrackForMediaManager &forMediaManager() const {return *this;}
+      
+      static LocalAudioStreamTrackPtr create(
+                                             IMessageQueuePtr queue,
+                                             IMediaStreamTrackDelegatePtr delegate
+                                             );
+      
+      virtual ULONG getSSRC() = 0;
+
+      virtual void start() = 0;
+      virtual void stop() = 0;
+      
+      virtual SendMediaTransportPtr getTransport() = 0;
+    };
+    
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    #pragma mark
+    #pragma mark ILocalAudioStreamTrackForRTCConnection
+    #pragma mark
+    
+    interaction ILocaAudioStreamTrackForRTCConnection
+    {
+    public:
+      ILocalAudioStreamTrackForRTCConnection &forRTCConnection() {return *this;}
+      const ILocalAudioStreamTrackForRTCConnection &forRTCConnection() const {return *this;}
+    };
+    
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IRemoteReceiveAudioStreamTrackForMediaManager
+    #pragma mark
+    
+    interaction IRemoteReceiveAudioStreamTrackForMediaManager
+    {
+    public:
+      IRemoteReceiveAudioStreamTrackForMediaManager &forMediaManager() {return *this;}
+      const IRemoteReceiveAudioStreamTrackForMediaManager &forMediaManager() const {return *this;}
+      
+      static RemoteReceiveAudioStreamTrackPtr create(
+                                                     IMessageQueuePtr queue,
+                                                     IMediaStreamTrackDelegatePtr delegate
+                                                     );
+      
+      virtual ULONG getSSRC() = 0;
+
+      virtual void setEcEnabled(bool enabled) = 0;
+      virtual void setAgcEnabled(bool enabled) = 0;
+      virtual void setNsEnabled(bool enabled) = 0;
+      
+      virtual ReceiveMediaTransportPtr getTransport() = 0;
+    };
+    
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IRemoteReceiveAudioStreamTrackForRTCConnection
+    #pragma mark
+    
+    interaction IRemoteReceiveAudioStreamTrackForRTCConnection
+    {
+    public:
+      IRemoteReceiveAudioStreamTrackForRTCConnection &forRTCConnection() {return *this;}
+      const IRemoteReceiveAudioStreamTrackForRTCConnection &forRTCConnection() const {return *this;}
+    };
+    
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IRemoteSendAudioStreamTrackForMediaManager
+    #pragma mark
+    
+    interaction IRemoteSendAudioStreamTrackForMediaManager
+    {
+    public:
+      IRemoteSendAudioStreamTrackForMediaManager &forMediaManager() {return *this;}
+      const IRemoteSendAudioStreamTrackForMediaManager &forMediaManager() const {return *this;}
+      
+      static RemoteSendAudioStreamTrackPtr create(
+                                                  IMessageQueuePtr queue,
+                                                  IMediaStreamTrackDelegatePtr delegate
+                                                  );
+      
+      virtual ULONG getSSRC() = 0;
+
+      virtual SendMediaTransportPtr getTransport() = 0;
+    };
+    
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IRemoteSendAudioStreamTrackForRTCConnection
+    #pragma mark
+    
+    interaction IRemoteSendAudioStreamTrackForRTCConnection
+    {
+    public:
+      IRemoteSendAudioStreamTrackForRTCConnection &forRTCConnection() {return *this;}
+      const IRemoteSendAudioStreamTrackForRTCConnection &forRTCConnection() const {return *this;}
+    };
+    
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    #pragma mark
+    #pragma mark ILocalVideoStreamTrackForMediaManager
+    #pragma mark
+    
+    interaction ILocalVideoStreamTrackForMediaManager
+    {
+    public:
+      enum CameraTypes
+      {
+        CameraType_None,
+        CameraType_Front,
+        CameraType_Back
+      };
+      
+      static const char *toString(CameraTypes type);
+      
+      ILocalVideoStreamTrackForMediaManager &forMediaManager() {return *this;}
+      const ILocalVideoStreamTrackForMediaManager &forMediaManager() const {return *this;}
+      
+      static LocalVideoStreamTrackPtr create(
+                                             IMessageQueuePtr queue,
+                                             IMediaStreamTrackDelegatePtr delegate
+                                             );
+      
+      virtual ULONG getSSRC() = 0;
+
+      virtual void start() = 0;
+      virtual void stop() = 0;
+
+      virtual void setContinuousVideoCapture(bool continuousVideoCapture) = 0;
+      virtual bool getContinuousVideoCapture() = 0;
+      
+      virtual void setFaceDetection(bool faceDetection) = 0;
+      virtual bool getFaceDetection() = 0;
+      
+      virtual CameraTypes getCameraType() const = 0;
+      virtual void setCameraType(CameraTypes type) = 0;
+      
+      virtual void setRenderView(void *renderView) = 0;
+      
+      virtual void startRecord(String fileName, bool saveToLibrary = false) = 0;
+      virtual void stopRecord() = 0;
+      
+      virtual SendMediaTransportPtr getTransport() = 0;
+    };
+    
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    #pragma mark
+    #pragma mark ILocalVideoStreamTrackForRTCConnection
+    #pragma mark
+    
+    interaction ILocalVideoStreamTrackForRTCConnection
+    {
+    public:
+      ILocalVideoStreamTrackForCallTransport &forCallTransport() {return *this;}
+      const ILocalVideoStreamTrackForCallTransport &forCallTransport() const {return *this;}
+    };
+    
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IRemoteReceiveVideoStreamTrackForMediaManager
+    #pragma mark
+    
+    interaction IRemoteReceiveVideoStreamTrackForMediaManager
+    {
+    public:
+      IRemoteReceiveVideoStreamTrackForMediaManager &forMediaManager() {return *this;}
+      const IRemoteReceiveVideoStreamTrackForMediaManager &forMediaManager() const {return *this;}
+      
+      static RemoteReceiveVideoStreamTrackPtr create(
+                                                     IMessageQueuePtr queue,
+                                                     IMediaStreamDelegatePtr delegate
+                                                     );
+      
+      virtual ULONG getSSRC() = 0;
+
+      virtual void setRenderView(void *renderView) = 0;
+      
+      virtual ReceiveMediaTransportPtr getTransport() = 0;
+    };
+    
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IRemoteReceiveVideoStreamTrackForRTCConnection
+    #pragma mark
+    
+    interaction IRemoteReceiveVideoStreamTrackForRTCConnection
+    {
+    public:
+      IRemoteReceiveVideoStreamTrackForRTCConnection &forRTCConnection() {return *this;}
+      const IRemoteReceiveVideoStreamTrackForRTCConnection &forRTCConnection() const {return *this;}
+    };
+    
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IRemoteSendVideoStreamTrackForMediaManager
+    #pragma mark
+    
+    interaction IRemoteSendVideoStreamTrackForMediaManager
+    {
+    public:
+      IRemoteSendVideoStreamTrackForMediaManager &forMediaManager() {return *this;}
+      const IRemoteSendVideoStreamTrackForMediaManager &forMediaManager() const {return *this;}
+      
+      static RemoteSendVideoStreamTrackPtr create(
+                                                  IMessageQueuePtr queue,
+                                                  IMediaStreamDelegatePtr delegate
+                                                  );
+      
+      virtual ULONG getSSRC() = 0;
+
+      virtual void setRenderView(void *renderView) = 0;
+      
+      virtual SendMediaTransportPtr getTransport() = 0;
+    };
+    
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IRemoteSendVideoStreamTrackForRTCConnection
+    #pragma mark
+    
+    interaction IRemoteSendVideoStreamTrackForRTCConnection
+    {
+    public:
+      IRemoteSendVideoStreamTrackForRTCConnection &forRTCConnection() {return *this;}
+      const IRemoteSendVideoStreamTrackForRTCConnection &forRTCConnection() const {return *this;}
     };
     
     //-----------------------------------------------------------------------
@@ -119,19 +565,23 @@ namespace ortc
 
       //---------------------------------------------------------------------
       #pragma mark
-      #pragma mark MediaStreamTrack => IMediaStreamTrackForMediaManager
+      #pragma mark MediaStreamTrack => ILocalAudioStreamTrackForMediaManager, IRemoteReceiveAudioStreamTrackForMediaManager,
+      #pragma mark                     IRemoteSendAudioStreamTrackForMediaManager, ILocalVideoStreamTrackForMediaManager.
+      #pragma mark                     IRemoteReceiveVideoStreamTrackForMediaManager, IRemoteSendVideoStreamTrackForMediaManager
       #pragma mark
       
-      //---------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaStreamTrack => IMediaStreamTrackForRTCConnection
-      #pragma mark
+    protected:
+      
+      virtual ULONG getSSRC() = 0;
       
       //---------------------------------------------------------------------
       #pragma mark
       #pragma mark MediaStreamTrack => (internal)
       #pragma mark
       
+    private:
+      String log(const char *message) const;
+
       //---------------------------------------------------------------------
       #pragma mark
       #pragma mark MediaStreamTrack => (data)
@@ -153,6 +603,471 @@ namespace ortc
       bool mReadonly;
       bool mRemote;
       MediaStreamTrackStates mReadyState;
+      
+      ULONG mSSRC;
+      int mChannel;
+      IMediaTransportPtr mTransport;
+    };
+    
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    #pragma mark
+    #pragma mark AudioStreamTrack
+    #pragma mark
+    
+    class AudioStreamTrack : public MediaStreamTrack
+    {
+    public:
+      friend interaction IMediaStreamTrack;
+      
+    protected:
+      AudioStreamTrack(
+                       IMessageQueuePtr queue,
+                       IMediaStreamTrackDelegatePtr delegate
+                       );
+      
+    public:
+      virtual ~AudioStreamTrack();
+      
+      //---------------------------------------------------------------------
+      #pragma mark
+      #pragma mark AudioStreamTrack => (internal)
+      #pragma mark
+      
+      //---------------------------------------------------------------------
+      #pragma mark
+      #pragma mark AudioStreamTrack => (data)
+      #pragma mark
+      
+    protected:
+      
+    };
+    
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    #pragma mark
+    #pragma mark VideoStreamTrack
+    #pragma mark
+    
+    class VideoStreamTrack : public MediaStreamTrack
+    {
+    public:
+      friend interaction IMediaStreamTrack;
+      friend interaction ILocalVideoStreamTrackForMediaManager;
+      friend interaction IRemoteReceiveVideoStreamTrackForMediaManager;
+      friend interaction IRemoteSendVideoStreamTrackForMediaManager;
+      
+    protected:
+      VideoStreamTrack(
+                       IMessageQueuePtr queue,
+                       IMediaStreamTrackDelegatePtr delegate
+                       );
+      
+    public:
+      virtual ~VideoStreamTrack();
+      
+    protected:
+      //---------------------------------------------------------------------
+      #pragma mark
+      #pragma mark VideoStreamTrack => ILocalVideoStreamTrackForMediaManager, IRemoteReceiveVideoStreamTrackForMediaManager,
+      #pragma mark                IRemoteSendVideoStreamTrackForMediaManager
+      #pragma mark
+      
+      virtual void setRenderView(void *renderView);
+      
+      //---------------------------------------------------------------------
+      #pragma mark
+      #pragma mark VideoStreamTrack => (internal)
+      #pragma mark
+      
+      //---------------------------------------------------------------------
+      #pragma mark
+      #pragma mark VideoStreamTrack => (data)
+      #pragma mark
+      
+    protected:
+      
+    };
+    
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    #pragma mark
+    #pragma mark LocalAudioStreamTrack
+    #pragma mark
+    
+    class LocalAudioStreamTrack : public AudioStreamTrack,
+      public IMediaStreamTrack,
+      public ILocalAudioStreamTrackForMediaManager,
+      public ILocalAudioStreamTrackForRTCConnection
+    {
+    public:
+      friend interaction ILocalAudioStreamTrackForMediaManager;
+      friend interaction ILocalAudioStreamTrackForRTCConnection;
+      
+    protected:
+      LocalAudioStreamTrack(
+                            IMessageQueuePtr queue,
+                            IMediaStreamTrackDelegatePtr delegate
+                            );
+      
+    public:
+      virtual ~LocaludioStreamTrack();
+      
+    protected:
+      //---------------------------------------------------------------------
+      #pragma mark
+      #pragma mark LocalAudioStreamTrack => IMediaStreamTrack
+      #pragma mark
+      
+      //---------------------------------------------------------------------
+      #pragma mark
+      #pragma mark LocalAudioStreamTrack => ILocalAudioStreamTrackForMediaManager
+      #pragma mark
+      
+      virtual ULONG getSSRC();
+      virtual void start();
+      virtual void stop();
+      virtual SendMediaTransportPtr getTransport();
+      
+      //---------------------------------------------------------------------
+      #pragma mark
+      #pragma mark LocalAudioStreamTrack => ILocalAudioStreamTrackForRTCConnection
+      #pragma mark
+      
+      //---------------------------------------------------------------------
+      #pragma mark
+      #pragma mark LocalAudioStreamTrack => (internal)
+      #pragma mark
+      
+      //---------------------------------------------------------------------
+      #pragma mark
+      #pragma mark LocalAudioStreamTrack => (data)
+      #pragma mark
+      
+    };
+    
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RemoteReceiveAudioStreamTrack
+    #pragma mark
+    
+    class RemoteReceiveAudioStreamTrack : public AudioStreamTrack,
+      public IMediaStreamTrack,
+      public IRemoteReceiveAudioStreamTrackForMediaManager,
+      public IRemoteReceiveAudioStreamTrackForRTCConnection
+    {
+    public:
+      friend interaction IRemoteReceiveAudioStreamTrackForMediaManager;
+      friend interaction IRemoteReceiveAudioStreamTrackForRTCConnection;
+      
+    protected:
+      RemoteReceiveAudioStreamTrack(
+                                    IMessageQueuePtr queue,
+                                    IMediaStreamTrackDelegatePtr delegate
+                                    );
+      
+    public:
+      virtual ~RemoteReceiveAudioStreamTrack();
+      
+    protected:
+      //---------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RemoteReceiveAudioStreamTrack => IMediaStreamTrack
+      #pragma mark
+      
+      //---------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RemoteReceiveAudioStreamTrack => IRemoteReceiveAudioStreamTrackForMediaManager
+      #pragma mark
+      
+      virtual ULONG getSSRC();
+      virtual void setEcEnabled(bool enabled);
+      virtual void setAgcEnabled(bool enabled);
+      virtual void setNsEnabled(bool enabled);
+      virtual ReceiveMediaTransportPtr getTransport();
+      
+      //---------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RemoteReceiveAudioStreamTrack => IRemoteReceiveAudioStreamTrackForRTCConnection
+      #pragma mark
+      
+      
+      //---------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RemoteReceiveAudioStreamTrack => (internal)
+      #pragma mark
+      
+      //---------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RemoteReceiveAudioStreamTrack => (data)
+      #pragma mark
+      
+    protected:
+      
+    };
+    
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RemoteSendAudioStreamTrack
+    #pragma mark
+    
+    class RemoteSendAudioStreamTrack : public AudioStreamTrack,
+      public IMediaStreamTrack,
+      public IRemoteSendAudioStreamTrackForMediaManager,
+      public IRemoteSendAudioStreamTrackForRTCConnection
+    {
+    public:
+      friend interaction IRemoteSendAudioStreamTrackForMediaManager;
+      friend interaction IRemoteSendAudioStreamTrackForRTCConnection;
+      
+    protected:
+      RemoteSendAudioStreamTrack(
+                                 IMessageQueuePtr queue,
+                                 IMediaStreamTrackDelegatePtr delegate
+                                 );
+      
+    public:
+      virtual ~RemoteSendAudioStreamTrack();
+      
+    protected:
+      //---------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RemoteSendAudioStreamTrack => IMediaStreamTrack
+      #pragma mark
+      
+      //---------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RemoteSendAudioStreamTrack => IRemoteSendAudioStreamTrackForMediaManager
+      #pragma mark
+
+      virtual ULONG getSSRC();
+      virtual SendMediaTransportPtr getTransport();
+      
+      //---------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RemoteSendAudioStreamTrack => IRemoteSendAudioStreamTrackForRTCConnection
+      #pragma mark
+      
+      
+      //---------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RemoteSendAudioStreamTrack => (internal)
+      #pragma mark
+      
+      //---------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RemoteSendAudioStreamTrack => (data)
+      #pragma mark
+      
+      
+    };
+    
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    #pragma mark
+    #pragma mark LocalSendVideoStreamTrack
+    #pragma mark
+    
+    class LocalSendVideoStreamTrack : public VideoStreamTrack,
+    public IMediaStreamTrack,
+    public ILocalSendVideoStreamTrackForMediaManager,
+    public ILocalSendVideoStreamTrackForRTCConnection
+    {
+    public:
+      friend interaction ILocalSendVideoStreamTrackForMediaManager;
+      friend interaction ILocalSendVideoStreamTrackForRTCConnection;
+      
+    protected:
+      LocalSendVideoStreamTrack(
+                                IMessageQueuePtr queue,
+                                IMediaStreamTrackDelegatePtr delegate
+                                );
+      
+    public:
+      virtual ~LocalSendVideoStreamTrack();
+      
+    protected:
+      //---------------------------------------------------------------------
+      #pragma mark
+      #pragma mark LocalSendVideoStreamTrack => IMediaStreamTrack
+      #pragma mark
+      
+      //---------------------------------------------------------------------
+      #pragma mark
+      #pragma mark LocalSendVideoStreamTrack => ILocalSendVideoStreamTrackForMediaManager
+      #pragma mark
+
+      virtual ULONG getSSRC();
+      
+      virtual void start();
+      virtual void stop();
+
+      virtual void setContinuousVideoCapture(bool continuousVideoCapture);
+      virtual bool getContinuousVideoCapture();
+      
+      virtual void setFaceDetection(bool faceDetection);
+      virtual bool getFaceDetection();
+      
+      virtual CameraTypes getCameraType() const;
+      virtual void setCameraType(CameraTypes type);
+      
+      virtual void setRenderView(void *renderView);
+      
+      virtual void startRecord(String fileName, bool saveToLibrary = false);
+      virtual void stopRecord();
+      
+      virtual SendMediaTransportPtr getTransport();
+      
+      //---------------------------------------------------------------------
+      #pragma mark
+      #pragma mark LocalSendVideoStreamTrack => ILocalSendVideoStreamTrackForRTCConnection
+      #pragma mark
+      
+      //---------------------------------------------------------------------
+      #pragma mark
+      #pragma mark LocalSendVideoStreamTrack => (internal)
+      #pragma mark
+      
+      //---------------------------------------------------------------------
+      #pragma mark
+      #pragma mark LocalSendVideoStreamTrack => (data)
+      #pragma mark
+      
+    protected:
+      
+    };
+    
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+#pragma mark
+#pragma mark RemoteReceiveVideoStreamTrack
+#pragma mark
+    
+    class RemoteReceiveVideoStreamTrack : public VideoStreamTrack,
+      public IMediaStreamTrack,
+      public IRemoteReceiveVideoStreamTrackForMediaManager,
+      public IRemoteReceiveVideoStreamTrackForRTCConnection
+    {
+    public:
+      friend interaction IRemoteReceiveVideoStreamTrackForMediaManager;
+      friend interaction IRemoteReceiveVideoStreamTrackForRTCConnection;
+      
+    protected:
+      RemoteReceiveVideoStreamTrack(
+                               IMessageQueuePtr queue,
+                               IMediaStreamTrackDelegatePtr delegate
+                               );
+      
+    public:
+      virtual ~RemoteReceiveVideoStreamTrack();
+      
+    protected:
+      //---------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RemoteReceiveVideoStreamTrack => IMediaStreamTrack
+      #pragma mark
+      
+      //---------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RemoteReceiveVideoStreamTrack => IRemoteReceiveVideoStreamTrackForMediaManager
+      #pragma mark
+      
+      virtual ULONG getSSRC();
+      virtual void setRenderView(void *renderView);
+      virtual ReceiveMediaTransportPtr getTransport();
+      
+      //---------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RemoteReceiveVideoStreamTrack => IRemoteReceiveVideoStreamTrackForRTCConnection
+      #pragma mark
+      
+      //---------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RemoteReceiveVideoStreamTrack => (internal)
+      #pragma mark
+      
+      //---------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RemoteReceiveVideoStreamTrack => (data)
+      #pragma mark
+      
+      
+    };
+    
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+#pragma mark
+#pragma mark RemoteSendVideoStreamTrack
+#pragma mark
+    
+    class RemoteSendVideoStreamTrack : public VideoStreamTrack,
+      public IMediaStreamTrack,
+      public IRemoteSendVideoStreamTrackForMediaManager,
+      public IRemoteSendVideoStreamTrackForRTCConnection
+    {
+    public:
+      friend interaction IRemoteSendVideoStreamTrackForMediaManager;
+      friend interaction IRemoteSendVideoStreamTrackForRTCConnection;
+      
+    protected:
+      RemoteSendVideoStreamTrack(
+                                 IMessageQueuePtr queue,
+                                 IMediaStreamTrackDelegatePtr delegate
+                                 );
+      
+    public:
+      virtual ~RemoteSendVideoStreamTrack();
+      
+    protected:
+      //---------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RemoteSendVideoStreamTrack => IMediaStreamTrack
+      #pragma mark
+      virtual IMediaStreamPtr clone();
+      
+      //---------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RemoteSendVideoStreamTrack => IRemoteSendVideoStreamTrackForMediaManager
+      #pragma mark
+      
+      virtual ULONG getSSRC();
+      virtual void setRenderView(void *renderView);
+      virtual SendMediaTransportPtr getTransport();
+      
+      //---------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RemoteSendVideoStreamTrack => IRemoteSendVideoStreamTrackForRTCConnection
+      #pragma mark
+      
+      //---------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RemoteSendVideoStreamTrack => (internal)
+      #pragma mark
+      
+      //---------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RemoteSendVideoStreamTrack => (data)
+      #pragma mark
+      
+      
     };
   }
 }

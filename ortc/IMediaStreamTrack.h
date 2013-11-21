@@ -50,7 +50,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark RTCConnectionStates
+    #pragma mark MediaStreamTrackStates
     #pragma mark
     
     enum MediaStreamTrackStates
@@ -78,6 +78,9 @@ namespace ortc
     virtual void onMediaStreamTrackUnmute() = 0;
     virtual void onMediaStreamTrackStarted() = 0;
     virtual void onMediaStreamTrackEnded() = 0;
+    
+    virtual void onMediaStreamFaceDetected() = 0;
+    virtual void onMediaStreamVideoCaptureRecordStopped() = 0;
   };
 }
 
@@ -86,4 +89,6 @@ ZS_DECLARE_PROXY_METHOD_0(onMediaStreamTrackMute)
 ZS_DECLARE_PROXY_METHOD_0(onMediaStreamTrackUnmute)
 ZS_DECLARE_PROXY_METHOD_0(onMediaStreamTrackStarted)
 ZS_DECLARE_PROXY_METHOD_0(onMediaStreamTrackEnded)
+ZS_DECLARE_PROXY_METHOD_0(onMediaStreamFaceDetected)
+ZS_DECLARE_PROXY_METHOD_0(onMediaStreamVideoCaptureRecordStopped)
 ZS_DECLARE_PROXY_END()

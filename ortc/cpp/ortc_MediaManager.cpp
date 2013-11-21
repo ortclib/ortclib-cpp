@@ -75,10 +75,172 @@ namespace ortc
     #pragma mark
     #pragma mark MediaManager => IMediaManager
     #pragma mark
-    
+
     //-----------------------------------------------------------------------
     void MediaManager::getUserMedia(MediaStreamConstraints constraints)
     {
     }
+    
+    //-------------------------------------------------------------------------
+    void MediaManager::setDefaultVideoOrientation(VideoOrientations orientation)
+    {
+      AutoRecursiveLock lock(mLock);
+      
+      ZS_LOG_DEBUG(log("set default video orientation - ") + IMediaManager::toString(orientation))
+      
+      //        mDefaultVideoOrientation = orientation;
+    }
+    
+    //-------------------------------------------------------------------------
+    MediaManager::VideoOrientations MediaManager::getDefaultVideoOrientation()
+    {
+      AutoRecursiveLock lock(mLock);
+      
+      ZS_LOG_DEBUG(log("get default video orientation"))
+      
+      //        return mDefaultVideoOrientation;
+    }
+    
+    //-------------------------------------------------------------------------
+    void MediaManager::setRecordVideoOrientation(VideoOrientations orientation)
+    {
+      AutoRecursiveLock lock(mLock);
+      
+      ZS_LOG_DEBUG(log("set record video orientation - ") + IMediaManager::toString(orientation))
+      
+      //        mRecordVideoOrientation = orientation;
+    }
+    
+    //-------------------------------------------------------------------------
+    MediaManager::VideoOrientations MediaManager::getRecordVideoOrientation()
+    {
+      AutoRecursiveLock lock(mLock);
+      
+      ZS_LOG_DEBUG(log("get record video orientation"))
+      
+      //        return mRecordVideoOrientation;
+    }
+    
+    //-----------------------------------------------------------------------
+    void MediaManager::setVideoOrientation()
+    {
+      AutoRecursiveLock lock(mLock);
+      
+      ZS_LOG_DEBUG(log("set video orientation and codec parameters"))
+      /*
+       if (mVideoChannel == OPENPEER_MEDIA_ENGINE_INVALID_CHANNEL) {
+       mError = setVideoCaptureRotation();
+       } else {
+       mError = setVideoCodecParameters();
+       }
+       */
+    }
+    
+    //-----------------------------------------------------------------------
+    void MediaManager::setMuteEnabled(bool enabled)
+    {
+      AutoRecursiveLock lock(mLock);
+      
+      ZS_LOG_DEBUG(log("set microphone mute enabled - value: ") + (enabled ? "true" : "false"))
+      /*
+       mError = mVoiceVolumeControl->SetInputMute(-1, enabled);
+       if (mError != 0) {
+       ZS_LOG_ERROR(Detail, log("failed to set microphone mute (error: ") + Stringize<INT>(mVoiceBase->LastError()).string() + ")")
+       return;
+       }
+       */
+    }
+    
+    //-----------------------------------------------------------------------
+    bool MediaManager::getMuteEnabled()
+    {
+      AutoRecursiveLock lock(mLock);
+      
+      ZS_LOG_DEBUG(log("get microphone mute enabled"))
+      
+      bool enabled;
+      /*
+       mError = mVoiceVolumeControl->GetInputMute(-1, enabled);
+       if (mError != 0) {
+       ZS_LOG_ERROR(Detail, log("failed to set microphone mute (error: ") + Stringize<INT>(mVoiceBase->LastError()).string() + ")")
+       return false;
+       }
+       */
+      return enabled;
+    }
+    
+    //-----------------------------------------------------------------------
+    void MediaManager::setLoudspeakerEnabled(bool enabled)
+    {
+      AutoRecursiveLock lock(mLock);
+      
+      ZS_LOG_DEBUG(log("set loudspeaker enabled - value: ") + (enabled ? "true" : "false"))
+      /*
+       mError = mVoiceHardware->SetLoudspeakerStatus(enabled);
+       if (mError != 0) {
+       ZS_LOG_ERROR(Detail, log("failed to set loudspeaker (error: ") + Stringize<INT>(mVoiceBase->LastError()).string() + ")")
+       return;
+       }
+       */
+    }
+    
+    //-----------------------------------------------------------------------
+    bool MediaManager::getLoudspeakerEnabled()
+    {
+      AutoRecursiveLock lock(mLock);
+      
+      ZS_LOG_DEBUG(log("get loudspeaker enabled"))
+      
+      bool enabled;
+      /*
+       mError = mVoiceHardware->GetLoudspeakerStatus(enabled);
+       if (mError != 0) {
+       ZS_LOG_ERROR(Detail, log("failed to get loudspeaker (error: ") + Stringize<INT>(mVoiceBase->LastError()).string() + ")")
+       return false;
+       }
+       */
+      return enabled;
+    }
+    
+    //-----------------------------------------------------------------------
+    IMediaManager::OutputAudioRoutes MediaManager::getOutputAudioRoute()
+    {
+      AutoRecursiveLock lock(mLock);
+      
+      ZS_LOG_DEBUG(log("get output audio route"))
+      /*
+       OutputAudioRoute route;
+       mError = mVoiceHardware->GetOutputAudioRoute(route);
+       if (mError != 0) {
+       ZS_LOG_ERROR(Detail, log("failed to get output audio route (error: ") + Stringize<INT>(mVoiceBase->LastError()).string() + ")")
+       return OutputAudioRoute_BuiltInSpeaker;
+       }
+       
+       switch (route) {
+       case webrtc::kOutputAudioRouteHeadphone:
+       return OutputAudioRoute_Headphone;
+       case webrtc::kOutputAudioRouteBuiltInReceiver:
+       return OutputAudioRoute_BuiltInReceiver;
+       case webrtc::kOutputAudioRouteBuiltInSpeaker:
+       return OutputAudioRoute_BuiltInSpeaker;
+       default:
+       return OutputAudioRoute_BuiltInSpeaker;
+       }
+       */
+    }
+  }
+  
+  //-----------------------------------------------------------------------
+  //-----------------------------------------------------------------------
+  //-----------------------------------------------------------------------
+  //-----------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IMediaManager
+  #pragma mark
+  
+  //-----------------------------------------------------------------------
+  IMediaManagerPtr IMediaManager::singleton()
+  {
+    return internal::MediaManager::singleton();
   }
 }

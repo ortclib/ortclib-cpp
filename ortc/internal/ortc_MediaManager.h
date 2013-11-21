@@ -69,6 +69,18 @@ namespace ortc
     protected:
       virtual void getUserMedia(MediaStreamConstraints constraints);
       
+      virtual void setDefaultVideoOrientation(VideoOrientations orientation);
+      virtual VideoOrientations getDefaultVideoOrientation();
+      virtual void setRecordVideoOrientation(VideoOrientations orientation);
+      virtual VideoOrientations getRecordVideoOrientation();
+      virtual void setVideoOrientation();
+      
+      virtual void setMuteEnabled(bool enabled);
+      virtual bool getMuteEnabled();
+      virtual void setLoudspeakerEnabled(bool enabled);
+      virtual bool getLoudspeakerEnabled();
+      virtual OutputAudioRoutes getOutputAudioRoute();
+
       //---------------------------------------------------------------------
       #pragma mark
       #pragma mark MediaManager => (internal)

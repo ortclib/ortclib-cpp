@@ -51,6 +51,37 @@ namespace ortc
     typedef std::map<String, String> MediaStreamConstraintsMap;
     typedef boost::shared_ptr<MediaStreamConstraintsMap> MediaStreamConstraintsMapPtr;
     typedef boost::weak_ptr<MediaStreamConstraintsMap> MediaStreamConstraintsMapWeakPtr;
+    
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark VideoOrientations
+    #pragma mark
+    
+    enum VideoOrientations
+    {
+      VideoOrientation_LandscapeLeft,
+      VideoOrientation_PortraitUpsideDown,
+      VideoOrientation_LandscapeRight,
+      VideoOrientation_Portrait
+    };
+    
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark OutputAudioRoutes
+    #pragma mark
+    
+    enum OutputAudioRoutes
+    {
+      OutputAudioRoute_Headphone,
+      OutputAudioRoute_BuiltInReceiver,
+      OutputAudioRoute_BuiltInSpeaker
+    };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -81,20 +112,36 @@ namespace ortc
     static IMediaManagerPtr singleton();
     
     virtual void getUserMedia(MediaStreamConstraints constraints) = 0;
+    
+    virtual void setDefaultVideoOrientation(VideoOrientations orientation) = 0;
+    virtual VideoOrientations getDefaultVideoOrientation() = 0;
+    virtual void setRecordVideoOrientation(VideoOrientations orientation) = 0;
+    virtual VideoOrientations getRecordVideoOrientation() = 0;
+    virtual void setVideoOrientation() = 0;
+    
+    virtual void setMuteEnabled(bool enabled) = 0;
+    virtual bool getMuteEnabled() = 0;
+    virtual void setLoudspeakerEnabled(bool enabled) = 0;
+    virtual bool getLoudspeakerEnabled() = 0;
+    virtual OutputAudioRoutes getOutputAudioRoute() = 0;
   };
   
   interaction IMediaManagerDelegate
   {
     typedef IMediaManager::UserMediaError UserMediaError;
+    typedef IMediaManager::OutputAudioRoutes OutputAudioRoutes;
     
     virtual void onMediaManagerSuccessCallback(IMediaStreamPtr stream) = 0;
     virtual void onMediaManagerErrorCallback(UserMediaError error) = 0;
+    virtual void onMediaManagerAudioRouteChanged(OutputAudioRoutes audioRoute) = 0;
   };
 }
 
 ZS_DECLARE_PROXY_BEGIN(ortc::IMediaManagerDelegate)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IMediaStreamPtr, IMediaStreamPtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IMediaManager::UserMediaError, UserMediaError)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::IMediaManager::OutputAudioRoutes, OutputAudioRoutes)
 ZS_DECLARE_PROXY_METHOD_1(onMediaManagerSuccessCallback, IMediaStreamPtr)
 ZS_DECLARE_PROXY_METHOD_1(onMediaManagerErrorCallback, UserMediaError)
+ZS_DECLARE_PROXY_METHOD_1(onMediaManagerAudioRouteChanged, OutputAudioRoutes)
 ZS_DECLARE_PROXY_END()
