@@ -13,7 +13,7 @@ The code is under heavy development and written mostly in C++. Mobile wrappers f
 From your terminal, please clone the "opios" git repository:
 git clone --recursive https://github.com/openpeer/ortc-lib.git
 
-This repository will yield the ORTC Lib and dependency libraries like the C++ open peer core, stack, media and libraries needed to support the underlying SDK.
+This repository will yield the ORTC Lib and dependency libraries.
 
 Directory structure:
 
