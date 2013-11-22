@@ -49,7 +49,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     RTCTrackPtr IRTCTrackForRTCConnection::create(IMessageQueuePtr queue)
     {
-      return RTCTrackPtr();
+      RTCTrackPtr pThis(new RTCTrack(queue));
+      pThis->mThisWeak = pThis;
+      return pThis;
     }
     
     //-----------------------------------------------------------------------
@@ -62,7 +64,11 @@ namespace ortc
     
     //-----------------------------------------------------------------------
     RTCTrack::RTCTrack(IMessageQueuePtr queue) :
-      MessageQueueAssociator(queue)
+      MessageQueueAssociator(queue),
+      mID(zsLib::createPUID()),
+      mError(0),
+      mKind(RTCTrackKind_Audio),
+      mSsrc(0)
     {
     }
     

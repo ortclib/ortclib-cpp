@@ -49,7 +49,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     RTCStreamPtr IRTCStreamForRTCConnection::create(IMessageQueuePtr queue)
     {
-      return RTCStreamPtr();
+      RTCStreamPtr pThis(new RTCStream(queue));
+      pThis->mThisWeak = pThis;
+      return pThis;
     }
     
     //-----------------------------------------------------------------------
@@ -62,7 +64,9 @@ namespace ortc
     
     //-----------------------------------------------------------------------
     RTCStream::RTCStream(IMessageQueuePtr queue) :
-      MessageQueueAssociator(queue)
+      MessageQueueAssociator(queue),
+      mID(zsLib::createPUID()),
+      mError(0)
     {
     }
     

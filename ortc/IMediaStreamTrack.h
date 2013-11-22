@@ -40,23 +40,55 @@ namespace ortc
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
   #pragma mark
-  #pragma mark IRTCDataChannel
+  #pragma mark IMediaStreamTrack
   #pragma mark
   
-  interaction IRTCDataChannel
+  interaction IMediaStreamTrack
   {
-    virtual IRTCConnectionPtr connection() = 0;
-    virtual String id() = 0;
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark MediaStreamTrackStates
+    #pragma mark
+    
+    enum MediaStreamTrackStates
+    {
+      MediaStreamTrackState_New,
+      MediaStreamTrackState_Live,
+      MediaStreamTrackState_Ended
+    };
+    
     virtual String kind() = 0;
-    virtual void send(BYTE* data) = 0;
+    virtual String id() = 0;
+    virtual String label() = 0;
+    virtual bool enabled() = 0;
+    virtual bool muted() = 0;
+    virtual bool readonly() = 0;
+    virtual bool remote() = 0;
+    virtual MediaStreamTrackStates readyState() = 0;
+    virtual IMediaStreamTrackPtr clone() = 0;
+    virtual void stop() = 0;
   };
   
-  interaction IRTCDataChannelDelegate
+  interaction IMediaStreamTrackDelegate
   {
-    virtual void onRTCDataChannelData(BYTE* data) = 0;
+    virtual void onMediaStreamTrackMute() = 0;
+    virtual void onMediaStreamTrackUnmute() = 0;
+    virtual void onMediaStreamTrackStarted() = 0;
+    virtual void onMediaStreamTrackEnded() = 0;
+    
+    virtual void onMediaStreamFaceDetected() = 0;
+    virtual void onMediaStreamVideoCaptureRecordStopped() = 0;
   };
 }
 
-ZS_DECLARE_PROXY_BEGIN(ortc::IRTCDataChannelDelegate)
-ZS_DECLARE_PROXY_METHOD_1(onRTCDataChannelData, BYTE*)
+ZS_DECLARE_PROXY_BEGIN(ortc::IMediaStreamTrackDelegate)
+ZS_DECLARE_PROXY_METHOD_0(onMediaStreamTrackMute)
+ZS_DECLARE_PROXY_METHOD_0(onMediaStreamTrackUnmute)
+ZS_DECLARE_PROXY_METHOD_0(onMediaStreamTrackStarted)
+ZS_DECLARE_PROXY_METHOD_0(onMediaStreamTrackEnded)
+ZS_DECLARE_PROXY_METHOD_0(onMediaStreamFaceDetected)
+ZS_DECLARE_PROXY_METHOD_0(onMediaStreamVideoCaptureRecordStopped)
 ZS_DECLARE_PROXY_END()

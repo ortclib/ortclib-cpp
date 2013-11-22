@@ -40,23 +40,34 @@ namespace ortc
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
   #pragma mark
-  #pragma mark IRTCDataChannel
+  #pragma mark IMediaStream
   #pragma mark
   
-  interaction IRTCDataChannel
+  interaction IMediaStream
   {
-    virtual IRTCConnectionPtr connection() = 0;
     virtual String id() = 0;
-    virtual String kind() = 0;
-    virtual void send(BYTE* data) = 0;
+    virtual MediaStreamTrackListPtr getAudioTracks() = 0;
+    virtual MediaStreamTrackListPtr getVideoTracks() = 0;
+    virtual IMediaStreamTrackPtr getTrackById(String trackId) = 0;
+    virtual void addTrack(IMediaStreamTrackPtr track) = 0;
+    virtual void removeTrack(IMediaStreamTrackPtr track) = 0;
+    virtual IMediaStreamPtr clone() = 0;
+    virtual bool inactive() = 0;
   };
   
-  interaction IRTCDataChannelDelegate
+  interaction IMediaStreamDelegate
   {
-    virtual void onRTCDataChannelData(BYTE* data) = 0;
+    virtual void onMediaStreamActive() = 0;
+    virtual void onMediaStreamInactive() = 0;
+    virtual void onMediaStreamAddTrack(IMediaStreamTrackPtr track) = 0;
+    virtual void onMediaStreamRemoveTrack(IMediaStreamTrackPtr track) = 0;
   };
 }
 
-ZS_DECLARE_PROXY_BEGIN(ortc::IRTCDataChannelDelegate)
-ZS_DECLARE_PROXY_METHOD_1(onRTCDataChannelData, BYTE*)
+ZS_DECLARE_PROXY_BEGIN(ortc::IMediaStreamDelegate)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::IMediaStreamTrackPtr, IMediaStreamTrackPtr)
+ZS_DECLARE_PROXY_METHOD_0(onMediaStreamActive)
+ZS_DECLARE_PROXY_METHOD_0(onMediaStreamInactive)
+ZS_DECLARE_PROXY_METHOD_1(onMediaStreamAddTrack, IMediaStreamTrackPtr)
+ZS_DECLARE_PROXY_METHOD_1(onMediaStreamRemoveTrack, IMediaStreamTrackPtr)
 ZS_DECLARE_PROXY_END()
