@@ -16,10 +16,11 @@ git clone --recursive https://github.com/openpeer/ortc-lib.git
 This repository will yield the ORTC Lib and dependency libraries like the C++ open peer core, stack, media and libraries needed to support the underlying SDK.
 
 Directory structure:
-ortc-lib/                        		- contains the project files for building the ORTC Lib framework
-ortc-lib/ortc/          				- contains the ORTC Lib header files
-ortc-lib/ortc/cpp/    					- contains the C++ files
-ortc-lib/ortc/internal/  				- contains the wrapper interface elements
+
+- ortc-lib/                        		contains the project files for building the ORTC Lib framework
+- ortc-lib/ortc/          				contains the ORTC Lib header files
+- ortc-lib/ortc/cpp/    				contains the C++ files
+- ortc-lib/ortc/internal/  				contains the wrapper interface elements
 
 How to Build:
 
