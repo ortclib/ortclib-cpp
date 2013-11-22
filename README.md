@@ -20,7 +20,7 @@ Directory structure:
 - ortc-lib/                        		contains the project files for building the ORTC Lib framework
 - ortc-lib/ortc/          				contains the ORTC Lib header files
 - ortc-lib/ortc/cpp/    				contains the C++ files
-- ortc-lib/ortc/internal/  				contains the wrapper interface elements
+- ortc-lib/ortc/internal/  				contains the internal interface implementation
 
 How to Build:
 
@@ -46,8 +46,9 @@ popd
 <br />
 3) From X-code, load:
 
-- orct-lib/projects/xcode/ortclib/ortclib.xcodeproj (project/workspace)
-- orct-lib/projects/xcode/ortclib_ios/ortclib_ios.xcodeproj (project/workspace)
+- ortc-lib/projects/xcode/ortclib.xcworkspace (workspace)
+- orct-lib/projects/xcode/ortclib/ortclib.xcodeproj (project)
+- orct-lib/projects/xcode/ortclib_ios/ortclib_ios.xcodeproj (project)
 
 
 For more information on ORTC, please visit:
