@@ -25,18 +25,25 @@ Directory structure:
 How to Build:
 
 1) Build boost, from your terminal:
-
+<br />
+<pre>
+<code>
 pushd ortc-lib/libs/boost/
 ./boost.sh
 popd
-
-
+</code>
+</pre>
+<br />
 2) Build curl, from your terminal:
-
+<br />
+<pre>
+	<code>
 pushd ortc-lib/libs/curl/
 ./build_ios.sh
 popd
-
+</pre>
+</code>
+<br />
 3) From X-code, load:
 
 - orct-lib/projects/xcode/ortclib/ortclib.xcodeproj (project/workspace)
