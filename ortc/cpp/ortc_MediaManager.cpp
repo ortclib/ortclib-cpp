@@ -86,7 +86,7 @@ namespace ortc
     {
       AutoRecursiveLock lock(mLock);
       
-      ZS_LOG_DEBUG(log("set default video orientation - ") + IMediaManager::toString(orientation))
+      //ZS_LOG_DEBUG(log("set default video orientation - ") + IMediaManager::toString(orientation))
       
       //        mDefaultVideoOrientation = orientation;
     }
@@ -96,9 +96,9 @@ namespace ortc
     {
       AutoRecursiveLock lock(mLock);
       
-      ZS_LOG_DEBUG(log("get default video orientation"))
+      //ZS_LOG_DEBUG(log("get default video orientation"))
       
-      //        return mDefaultVideoOrientation;
+      return VideoOrientation_LandscapeLeft;
     }
     
     //-------------------------------------------------------------------------
@@ -106,7 +106,7 @@ namespace ortc
     {
       AutoRecursiveLock lock(mLock);
       
-      ZS_LOG_DEBUG(log("set record video orientation - ") + IMediaManager::toString(orientation))
+      //ZS_LOG_DEBUG(log("set record video orientation - ") + IMediaManager::toString(orientation))
       
       //        mRecordVideoOrientation = orientation;
     }
@@ -116,9 +116,9 @@ namespace ortc
     {
       AutoRecursiveLock lock(mLock);
       
-      ZS_LOG_DEBUG(log("get record video orientation"))
+      //ZS_LOG_DEBUG(log("get record video orientation"))
       
-      //        return mRecordVideoOrientation;
+      return VideoOrientation_LandscapeLeft;
     }
     
     //-----------------------------------------------------------------------
@@ -126,7 +126,7 @@ namespace ortc
     {
       AutoRecursiveLock lock(mLock);
       
-      ZS_LOG_DEBUG(log("set video orientation and codec parameters"))
+      //ZS_LOG_DEBUG(log("set video orientation and codec parameters"))
       /*
        if (mVideoChannel == OPENPEER_MEDIA_ENGINE_INVALID_CHANNEL) {
        mError = setVideoCaptureRotation();
@@ -141,7 +141,7 @@ namespace ortc
     {
       AutoRecursiveLock lock(mLock);
       
-      ZS_LOG_DEBUG(log("set microphone mute enabled - value: ") + (enabled ? "true" : "false"))
+      //ZS_LOG_DEBUG(log("set microphone mute enabled - value: ") + (enabled ? "true" : "false"))
       /*
        mError = mVoiceVolumeControl->SetInputMute(-1, enabled);
        if (mError != 0) {
@@ -156,7 +156,7 @@ namespace ortc
     {
       AutoRecursiveLock lock(mLock);
       
-      ZS_LOG_DEBUG(log("get microphone mute enabled"))
+      //ZS_LOG_DEBUG(log("get microphone mute enabled"))
       
       bool enabled;
       /*
@@ -174,7 +174,7 @@ namespace ortc
     {
       AutoRecursiveLock lock(mLock);
       
-      ZS_LOG_DEBUG(log("set loudspeaker enabled - value: ") + (enabled ? "true" : "false"))
+      //ZS_LOG_DEBUG(log("set loudspeaker enabled - value: ") + (enabled ? "true" : "false"))
       /*
        mError = mVoiceHardware->SetLoudspeakerStatus(enabled);
        if (mError != 0) {
@@ -189,7 +189,7 @@ namespace ortc
     {
       AutoRecursiveLock lock(mLock);
       
-      ZS_LOG_DEBUG(log("get loudspeaker enabled"))
+      //ZS_LOG_DEBUG(log("get loudspeaker enabled"))
       
       bool enabled;
       /*
@@ -207,7 +207,7 @@ namespace ortc
     {
       AutoRecursiveLock lock(mLock);
       
-      ZS_LOG_DEBUG(log("get output audio route"))
+      //ZS_LOG_DEBUG(log("get output audio route"))
       /*
        OutputAudioRoute route;
        mError = mVoiceHardware->GetOutputAudioRoute(route);
@@ -227,6 +227,8 @@ namespace ortc
        return OutputAudioRoute_BuiltInSpeaker;
        }
        */
+      
+      return OutputAudioRoute_Headphone;
     }
   }
   

@@ -142,21 +142,21 @@ namespace ortc
     #pragma mark
     
     //-------------------------------------------------------------------------
-    void MediaSession::setVoiceRecordFile(String fileName)
+    void MediaStream::setVoiceRecordFile(String fileName)
     {
       AutoRecursiveLock lock(mLock);
       
-      ZS_LOG_DEBUG(log("set voice record file - value: ") + fileName)
+      //ZS_LOG_DEBUG(log("set voice record file - value: ") + fileName)
       
       mVoiceRecordFile = fileName;
     }
     
     //-------------------------------------------------------------------------
-    String MediaSession::getVoiceRecordFile() const
+    String MediaStream::getVoiceRecordFile() const
     {
       AutoRecursiveLock lock(mLock);
       
-      ZS_LOG_DEBUG(log("get voice record file - value: ") + mVoiceRecordFile)
+      //ZS_LOG_DEBUG(log("get voice record file - value: ") + mVoiceRecordFile)
       
       return mVoiceRecordFile;
     }
@@ -172,7 +172,7 @@ namespace ortc
     //-----------------------------------------------------------------------
     String MediaStream::log(const char *message) const
     {
-      return String("MediaSession [") + Stringize<typeof(mID)>(mID).string() + "] " + message;
+      return String("MediaStream [") + Stringize<typeof(mID)>(mID).string() + "] " + message;
     }
 
   }

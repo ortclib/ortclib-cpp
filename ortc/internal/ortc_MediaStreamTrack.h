@@ -34,6 +34,8 @@
 #include <ortc/internal/types.h>
 #include <ortc/IMediaStreamTrack.h>
 
+#include <common_types.h>
+
 namespace ortc
 {
   namespace internal
@@ -282,7 +284,7 @@ namespace ortc
     #pragma mark ILocalAudioStreamTrackForRTCConnection
     #pragma mark
     
-    interaction ILocaAudioStreamTrackForRTCConnection
+    interaction ILocalAudioStreamTrackForRTCConnection
     {
     public:
       ILocalAudioStreamTrackForRTCConnection &forRTCConnection() {return *this;}
@@ -432,8 +434,8 @@ namespace ortc
     interaction ILocalVideoStreamTrackForRTCConnection
     {
     public:
-      ILocalVideoStreamTrackForCallTransport &forCallTransport() {return *this;}
-      const ILocalVideoStreamTrackForCallTransport &forCallTransport() const {return *this;}
+      ILocalVideoStreamTrackForRTCConnection &forRTCConnection() {return *this;}
+      const ILocalVideoStreamTrackForRTCConnection &forRTCConnection() const {return *this;}
     };
     
     //-----------------------------------------------------------------------
@@ -452,7 +454,7 @@ namespace ortc
       
       static RemoteReceiveVideoStreamTrackPtr create(
                                                      IMessageQueuePtr queue,
-                                                     IMediaStreamDelegatePtr delegate
+                                                     IMediaStreamTrackDelegatePtr delegate
                                                      );
       
       virtual ULONG getSSRC() = 0;
@@ -493,7 +495,7 @@ namespace ortc
       
       static RemoteSendVideoStreamTrackPtr create(
                                                   IMessageQueuePtr queue,
-                                                  IMediaStreamDelegatePtr delegate
+                                                  IMediaStreamTrackDelegatePtr delegate
                                                   );
       
       virtual ULONG getSSRC() = 0;
@@ -527,21 +529,22 @@ namespace ortc
     #pragma mark
     
     class MediaStreamTrack : public Noop,
-      public MessageQueueAssociator,
-      public IMediaStreamTrack,
-      public IMediaStreamTrackForMediaManager,
-      public IMediaStreamTrackForRTCConnection
+      public MessageQueueAssociator
     {
     public:
       friend interaction IMediaStreamTrack;
-      friend interaction IMediaStreamTrackForMediaManager;
-      friend interaction IMediaStreamTrackForRTCConnection;
+      friend interaction ILocalAudioStreamTrackForMediaManager;
+      friend interaction IRemoteReceiveAudioStreamTrackForMediaManager;
+      friend interaction IRemoteSendAudioStreamTrackForMediaManager;
+      friend interaction ILocalVideoStreamTrackForMediaManager;
+      friend interaction IRemoteReceiveVideoStreamTrackForMediaManager;
+      friend interaction IRemoteSendVideoStreamTrackForMediaManager;
       
     protected:
       MediaStreamTrack(
-                  IMessageQueuePtr queue,
-                  IMediaStreamTrackDelegatePtr delegate
-                  );
+                       IMessageQueuePtr queue,
+                       IMediaStreamTrackDelegatePtr delegate
+                       );
       
     public:
       virtual ~MediaStreamTrack();
@@ -559,7 +562,7 @@ namespace ortc
       virtual bool muted();
       virtual bool readonly();
       virtual bool remote();
-      virtual MediaStreamTrackStates readyState();
+      virtual IMediaStreamTrack::MediaStreamTrackStates readyState();
       virtual IMediaStreamTrackPtr clone();
       virtual void stop();
 
@@ -602,7 +605,7 @@ namespace ortc
       bool mMuted;
       bool mReadonly;
       bool mRemote;
-      MediaStreamTrackStates mReadyState;
+      IMediaStreamTrack::MediaStreamTrackStates mReadyState;
       
       ULONG mSSRC;
       int mChannel;
@@ -717,7 +720,7 @@ namespace ortc
                             );
       
     public:
-      virtual ~LocaludioStreamTrack();
+      virtual ~LocalAudioStreamTrack();
       
     protected:
       //---------------------------------------------------------------------
@@ -725,6 +728,17 @@ namespace ortc
       #pragma mark LocalAudioStreamTrack => IMediaStreamTrack
       #pragma mark
       
+      virtual String kind();
+      virtual String id();
+      virtual String label();
+      virtual bool enabled();
+      virtual bool muted();
+      virtual bool readonly();
+      virtual bool remote();
+      virtual IMediaStreamTrack::MediaStreamTrackStates readyState();
+      virtual IMediaStreamTrackPtr clone();
+      virtual void stop();
+
       //---------------------------------------------------------------------
       #pragma mark
       #pragma mark LocalAudioStreamTrack => ILocalAudioStreamTrackForMediaManager
@@ -732,7 +746,7 @@ namespace ortc
       
       virtual ULONG getSSRC();
       virtual void start();
-      virtual void stop();
+      //virtual void stop();
       virtual SendMediaTransportPtr getTransport();
       
       //---------------------------------------------------------------------
@@ -783,6 +797,17 @@ namespace ortc
       #pragma mark
       #pragma mark RemoteReceiveAudioStreamTrack => IMediaStreamTrack
       #pragma mark
+      
+      virtual String kind();
+      virtual String id();
+      virtual String label();
+      virtual bool enabled();
+      virtual bool muted();
+      virtual bool readonly();
+      virtual bool remote();
+      virtual IMediaStreamTrack::MediaStreamTrackStates readyState();
+      virtual IMediaStreamTrackPtr clone();
+      virtual void stop();
       
       //---------------------------------------------------------------------
       #pragma mark
@@ -847,6 +872,17 @@ namespace ortc
       #pragma mark RemoteSendAudioStreamTrack => IMediaStreamTrack
       #pragma mark
       
+      virtual String kind();
+      virtual String id();
+      virtual String label();
+      virtual bool enabled();
+      virtual bool muted();
+      virtual bool readonly();
+      virtual bool remote();
+      virtual IMediaStreamTrack::MediaStreamTrackStates readyState();
+      virtual IMediaStreamTrackPtr clone();
+      virtual void stop();
+
       //---------------------------------------------------------------------
       #pragma mark
       #pragma mark RemoteSendAudioStreamTrack => IRemoteSendAudioStreamTrackForMediaManager
@@ -879,42 +915,54 @@ namespace ortc
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     #pragma mark
-    #pragma mark LocalSendVideoStreamTrack
+    #pragma mark LocalVideoStreamTrack
     #pragma mark
     
-    class LocalSendVideoStreamTrack : public VideoStreamTrack,
-    public IMediaStreamTrack,
-    public ILocalSendVideoStreamTrackForMediaManager,
-    public ILocalSendVideoStreamTrackForRTCConnection
+    class LocalVideoStreamTrack : public VideoStreamTrack,
+      public IMediaStreamTrack,
+      public ILocalVideoStreamTrackForMediaManager,
+      public ILocalVideoStreamTrackForRTCConnection
     {
     public:
-      friend interaction ILocalSendVideoStreamTrackForMediaManager;
-      friend interaction ILocalSendVideoStreamTrackForRTCConnection;
+      friend interaction IMediaStreamTrack;
+      friend interaction ILocalVideoStreamTrackForMediaManager;
+      friend interaction ILocalVideoStreamTrackForRTCConnection;
       
     protected:
-      LocalSendVideoStreamTrack(
-                                IMessageQueuePtr queue,
-                                IMediaStreamTrackDelegatePtr delegate
-                                );
+      LocalVideoStreamTrack(
+                            IMessageQueuePtr queue,
+                            IMediaStreamTrackDelegatePtr delegate
+                            );
       
     public:
-      virtual ~LocalSendVideoStreamTrack();
+      virtual ~LocalVideoStreamTrack();
       
     protected:
       //---------------------------------------------------------------------
       #pragma mark
-      #pragma mark LocalSendVideoStreamTrack => IMediaStreamTrack
+      #pragma mark LocalVideoStreamTrack => IMediaStreamTrack
       #pragma mark
       
+      virtual String kind();
+      virtual String id();
+      virtual String label();
+      virtual bool enabled();
+      virtual bool muted();
+      virtual bool readonly();
+      virtual bool remote();
+      virtual IMediaStreamTrack::MediaStreamTrackStates readyState();
+      virtual IMediaStreamTrackPtr clone();
+      virtual void stop();
+
       //---------------------------------------------------------------------
       #pragma mark
-      #pragma mark LocalSendVideoStreamTrack => ILocalSendVideoStreamTrackForMediaManager
+      #pragma mark LocalVideoStreamTrack => ILocalVideoStreamTrackForMediaManager
       #pragma mark
 
       virtual ULONG getSSRC();
       
       virtual void start();
-      virtual void stop();
+      //virtual void stop();
 
       virtual void setContinuousVideoCapture(bool continuousVideoCapture);
       virtual bool getContinuousVideoCapture();
@@ -934,17 +982,17 @@ namespace ortc
       
       //---------------------------------------------------------------------
       #pragma mark
-      #pragma mark LocalSendVideoStreamTrack => ILocalSendVideoStreamTrackForRTCConnection
+      #pragma mark LocalVideoStreamTrack => ILocalVideoStreamTrackForRTCConnection
       #pragma mark
       
       //---------------------------------------------------------------------
       #pragma mark
-      #pragma mark LocalSendVideoStreamTrack => (internal)
+      #pragma mark LocalVideoStreamTrack => (internal)
       #pragma mark
       
       //---------------------------------------------------------------------
       #pragma mark
-      #pragma mark LocalSendVideoStreamTrack => (data)
+      #pragma mark LocalVideoStreamTrack => (data)
       #pragma mark
       
     protected:
@@ -955,9 +1003,9 @@ namespace ortc
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
-#pragma mark
-#pragma mark RemoteReceiveVideoStreamTrack
-#pragma mark
+    #pragma mark
+    #pragma mark RemoteReceiveVideoStreamTrack
+    #pragma mark
     
     class RemoteReceiveVideoStreamTrack : public VideoStreamTrack,
       public IMediaStreamTrack,
@@ -970,9 +1018,9 @@ namespace ortc
       
     protected:
       RemoteReceiveVideoStreamTrack(
-                               IMessageQueuePtr queue,
-                               IMediaStreamTrackDelegatePtr delegate
-                               );
+                                    IMessageQueuePtr queue,
+                                    IMediaStreamTrackDelegatePtr delegate
+                                    );
       
     public:
       virtual ~RemoteReceiveVideoStreamTrack();
@@ -982,6 +1030,17 @@ namespace ortc
       #pragma mark
       #pragma mark RemoteReceiveVideoStreamTrack => IMediaStreamTrack
       #pragma mark
+      
+      virtual String kind();
+      virtual String id();
+      virtual String label();
+      virtual bool enabled();
+      virtual bool muted();
+      virtual bool readonly();
+      virtual bool remote();
+      virtual IMediaStreamTrack::MediaStreamTrackStates readyState();
+      virtual IMediaStreamTrackPtr clone();
+      virtual void stop();
       
       //---------------------------------------------------------------------
       #pragma mark
@@ -1014,9 +1073,9 @@ namespace ortc
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
-#pragma mark
-#pragma mark RemoteSendVideoStreamTrack
-#pragma mark
+    #pragma mark
+    #pragma mark RemoteSendVideoStreamTrack
+    #pragma mark
     
     class RemoteSendVideoStreamTrack : public VideoStreamTrack,
       public IMediaStreamTrack,
@@ -1041,8 +1100,18 @@ namespace ortc
       #pragma mark
       #pragma mark RemoteSendVideoStreamTrack => IMediaStreamTrack
       #pragma mark
-      virtual IMediaStreamPtr clone();
-      
+
+      virtual String kind();
+      virtual String id();
+      virtual String label();
+      virtual bool enabled();
+      virtual bool muted();
+      virtual bool readonly();
+      virtual bool remote();
+      virtual IMediaStreamTrack::MediaStreamTrackStates readyState();
+      virtual IMediaStreamTrackPtr clone();
+      virtual void stop();
+
       //---------------------------------------------------------------------
       #pragma mark
       #pragma mark RemoteSendVideoStreamTrack => IRemoteSendVideoStreamTrackForMediaManager

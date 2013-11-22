@@ -109,7 +109,7 @@ namespace ortc
     typedef boost::shared_ptr<AudioStreamTrack> AudioStreamTrackPtr;
     typedef boost::weak_ptr<AudioStreamTrack> AudioStreamTrackWeakPtr;
     
-    class LocalSendAudioStreamTrack;
+    class LocalAudioStreamTrack;
     typedef boost::shared_ptr<LocalAudioStreamTrack> LocalAudioStreamTrackPtr;
     typedef boost::weak_ptr<LocalAudioStreamTrack> LocalAudioStreamTrackWeakPtr;
     
@@ -122,8 +122,8 @@ namespace ortc
     typedef boost::weak_ptr<RemoteSendAudioStreamTrack> RemoteSendAudioStreamTrackWeakPtr;
     
     class LocalVideoStreamTrack;
-    typedef boost::shared_ptr<LocalVideoStreamTrack> LocalSendVideoStreamTrackPtr;
-    typedef boost::weak_ptr<LocalVideoStreamTrack> LocalSendVideoStreamTrackWeakPtr;
+    typedef boost::shared_ptr<LocalVideoStreamTrack> LocalVideoStreamTrackPtr;
+    typedef boost::weak_ptr<LocalVideoStreamTrack> LocalVideoStreamTrackWeakPtr;
     
     class RemoteReceiveVideoStreamTrack;
     typedef boost::shared_ptr<RemoteReceiveVideoStreamTrack> RemoteReceiveVideoStreamTrackPtr;

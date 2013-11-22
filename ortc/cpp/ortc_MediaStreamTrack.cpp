@@ -101,7 +101,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     int MediaTransport::getTransportStatistics(IMediaTransport::RtpRtcpStatistics &stat)
     {
-      
+      return 0;
     }
     
     //-----------------------------------------------------------------------
@@ -135,7 +135,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     int ReceiveMediaTransport::getTransportStatistics(IMediaTransport::RtpRtcpStatistics &stat)
     {
-      
+      return 0;
     }
     
     //-----------------------------------------------------------------------
@@ -149,13 +149,13 @@ namespace ortc
     //-------------------------------------------------------------------------
     int ReceiveMediaTransport::receivedRTPPacket(const void *data, unsigned int length)
     {
-      
+      return 0;
     }
     
     //-------------------------------------------------------------------------
     int ReceiveMediaTransport::receivedRTCPPacket(const void *data, unsigned int length)
     {
-      
+      return 0;
     }
     
     //-----------------------------------------------------------------------
@@ -189,7 +189,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     int SendMediaTransport::getTransportStatistics(IMediaTransport::RtpRtcpStatistics &stat)
     {
-      
+      return 0;
     }
     
     //-----------------------------------------------------------------------
@@ -203,12 +203,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     int SendMediaTransport::registerExternalTransport(Transport &transport)
     {
-      
+      return 0;
     }
     
     int SendMediaTransport::deregisterExternalTransport()
     {
-      
+      return 0;
     }
     
     //-----------------------------------------------------------------------
@@ -220,9 +220,9 @@ namespace ortc
     #pragma mark
     
     //-------------------------------------------------------------------------
-    LocalAudioStreamPtr ILocalAudioStreamTrackForMediaManager::create(IMessageQueuePtr queue, IMediaStreamDelegatePtr delegate)
+    LocalAudioStreamTrackPtr ILocalAudioStreamTrackForMediaManager::create(IMessageQueuePtr queue, IMediaStreamTrackDelegatePtr delegate)
     {
-      LocalAudioStreamPtr pThis(new LocalAudioStream(queue, delegate));
+      LocalAudioStreamTrackPtr pThis(new LocalAudioStreamTrack(queue, delegate));
       pThis->mThisWeak = pThis;
       return pThis;
     }
@@ -236,9 +236,9 @@ namespace ortc
     #pragma mark
     
     //-------------------------------------------------------------------------
-    RemoteReceiveAudioStreamPtr IRemoteReceiveAudioStreamTrackForMediaManager::create(IMessageQueuePtr queue, IMediaStreamDelegatePtr delegate)
+    RemoteReceiveAudioStreamTrackPtr IRemoteReceiveAudioStreamTrackForMediaManager::create(IMessageQueuePtr queue, IMediaStreamTrackDelegatePtr delegate)
     {
-      RemoteReceiveAudioStreamPtr pThis(new RemoteReceiveAudioStream(queue, delegate));
+      RemoteReceiveAudioStreamTrackPtr pThis(new RemoteReceiveAudioStreamTrack(queue, delegate));
       pThis->mThisWeak = pThis;
       return pThis;
     }
@@ -252,9 +252,9 @@ namespace ortc
     #pragma mark
     
     //-------------------------------------------------------------------------
-    RemoteSendAudioStreamPtr IRemoteSendAudioStreamTrackForMediaManager::create(IMessageQueuePtr queue, IMediaStreamDelegatePtr delegate)
+    RemoteSendAudioStreamTrackPtr IRemoteSendAudioStreamTrackForMediaManager::create(IMessageQueuePtr queue, IMediaStreamTrackDelegatePtr delegate)
     {
-      RemoteSendAudioStreamPtr pThis(new RemoteSendAudioStream(queue, delegate));
+      RemoteSendAudioStreamTrackPtr pThis(new RemoteSendAudioStreamTrack(queue, delegate));
       pThis->mThisWeak = pThis;
       return pThis;
     }
@@ -268,9 +268,9 @@ namespace ortc
     #pragma mark
     
     //-------------------------------------------------------------------------
-    LocalVideoStreamPtr ILocalVideoStreamTrackForMediaManager::create(IMessageQueuePtr queue, IMediaStreamDelegatePtr delegate)
+    LocalVideoStreamTrackPtr ILocalVideoStreamTrackForMediaManager::create(IMessageQueuePtr queue, IMediaStreamTrackDelegatePtr delegate)
     {
-      LocalVideoStreamPtr pThis(new LocalSendVideoStream(queue, delegate));
+      LocalVideoStreamTrackPtr pThis(new LocalVideoStreamTrack(queue, delegate));
       pThis->mThisWeak = pThis;
       return pThis;
     }
@@ -284,9 +284,9 @@ namespace ortc
     #pragma mark
     
     //-------------------------------------------------------------------------
-    RemoteReceiveVideoStreamPtr IRemoteReceiveVideoStreamTrackForMediaManager::create(IMessageQueuePtr queue, IMediaStreamDelegatePtr delegate)
+    RemoteReceiveVideoStreamTrackPtr IRemoteReceiveVideoStreamTrackForMediaManager::create(IMessageQueuePtr queue, IMediaStreamTrackDelegatePtr delegate)
     {
-      RemoteReceiveVideoStreamPtr pThis(new RemoteReceiveVideoStream(queue, delegate));
+      RemoteReceiveVideoStreamTrackPtr pThis(new RemoteReceiveVideoStreamTrack(queue, delegate));
       pThis->mThisWeak = pThis;
       return pThis;
     }
@@ -300,9 +300,9 @@ namespace ortc
     #pragma mark
     
     //-------------------------------------------------------------------------
-    RemoteSendVideoStreamPtr IRemoteSendVideoStreamTrackForMediaManager::create(IMessageQueuePtr queue, IMediaStreamDelegatePtr delegate)
+    RemoteSendVideoStreamTrackPtr IRemoteSendVideoStreamTrackForMediaManager::create(IMessageQueuePtr queue, IMediaStreamTrackDelegatePtr delegate)
     {
-      RemoteSendVideoStreamPtr pThis(new RemoteSendVideoStream(queue, delegate));
+      RemoteSendVideoStreamTrackPtr pThis(new RemoteSendVideoStreamTrack(queue, delegate));
       pThis->mThisWeak = pThis;
       return pThis;
     }
@@ -325,7 +325,7 @@ namespace ortc
       mMuted(false),
       mReadonly(false),
       mRemote(false),
-      mReadyState(MediaStreamTrackState_New),
+      mReadyState(IMediaStreamTrack::MediaStreamTrackState_New),
       mSSRC(0),
       mChannel(-1)
     {
@@ -344,51 +344,61 @@ namespace ortc
     #pragma mark MediaStreamTrack => IMediaStreamTrack
     #pragma mark
     
+    //-------------------------------------------------------------------------
     String MediaStreamTrack::kind()
     {
       return String();
     }
     
+    //-------------------------------------------------------------------------
     String MediaStreamTrack::id()
     {
       return String();
     }
     
+    //-------------------------------------------------------------------------
     String MediaStreamTrack::label()
     {
       return String();
     }
     
+    //-------------------------------------------------------------------------
     bool MediaStreamTrack::enabled()
     {
       return false;
     }
     
+    //-------------------------------------------------------------------------
     bool MediaStreamTrack::muted()
     {
       return false;
     }
     
+    //-------------------------------------------------------------------------
     bool MediaStreamTrack::readonly()
     {
       return false;
     }
     
+    //-------------------------------------------------------------------------
     bool MediaStreamTrack::remote()
     {
       return false;
     }
     
-    MediaStreamTrack::MediaStreamTrackStates MediaStreamTrack::readyState()
+    //-------------------------------------------------------------------------
+    IMediaStreamTrack::MediaStreamTrackStates MediaStreamTrack::readyState()
     {
-      return MediaStreamTrackState_New;
+      return IMediaStreamTrack::MediaStreamTrackState_New;
     }
     
+    //-------------------------------------------------------------------------
     IMediaStreamTrackPtr MediaStreamTrack::clone()
     {
       return IMediaStreamTrackPtr();
     }
     
+    //-------------------------------------------------------------------------
     void MediaStreamTrack::stop()
     {
       
@@ -405,7 +415,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     String MediaStreamTrack::log(const char *message) const
     {
-      
+      return String();
     }
     
     //-----------------------------------------------------------------------
@@ -477,7 +487,7 @@ namespace ortc
     LocalAudioStreamTrack::LocalAudioStreamTrack(IMessageQueuePtr queue, IMediaStreamTrackDelegatePtr delegate) :
       AudioStreamTrack(queue, delegate)
     {
-      mTransport = ISendMediaTransportForCallTransport::create();
+      mTransport = ISendMediaTransportForMediaManager::create();
     }
     
     //-------------------------------------------------------------------------
@@ -494,6 +504,66 @@ namespace ortc
     #pragma mark LocalAudioStreamTrack => IMediaStreamTrack
     #pragma mark
     
+    //-------------------------------------------------------------------------
+    String LocalAudioStreamTrack::kind()
+    {
+      return String();
+    }
+    
+    //-------------------------------------------------------------------------
+    String LocalAudioStreamTrack::id()
+    {
+      return String();
+    }
+    
+    //-------------------------------------------------------------------------
+    String LocalAudioStreamTrack::label()
+    {
+      return String();
+    }
+    
+    //-------------------------------------------------------------------------
+    bool LocalAudioStreamTrack::enabled()
+    {
+      return false;
+    }
+    
+    //-------------------------------------------------------------------------
+    bool LocalAudioStreamTrack::muted()
+    {
+      return false;
+    }
+    
+    //-------------------------------------------------------------------------
+    bool LocalAudioStreamTrack::readonly()
+    {
+      return false;
+    }
+    
+    //-------------------------------------------------------------------------
+    bool LocalAudioStreamTrack::remote()
+    {
+      return false;
+    }
+    
+    //-------------------------------------------------------------------------
+    IMediaStreamTrack::MediaStreamTrackStates LocalAudioStreamTrack::readyState()
+    {
+      return IMediaStreamTrack::MediaStreamTrackState_New;
+    }
+    
+    //-------------------------------------------------------------------------
+    IMediaStreamTrackPtr LocalAudioStreamTrack::clone()
+    {
+      return IMediaStreamTrackPtr();
+    }
+    
+    //-------------------------------------------------------------------------
+    void LocalAudioStreamTrack::stop()
+    {
+      
+    }
+
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
@@ -505,7 +575,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     ULONG LocalAudioStreamTrack::getSSRC()
     {
-      
+      return 0;
     }
     
     //-------------------------------------------------------------------------
@@ -515,15 +585,15 @@ namespace ortc
     }
     
     //-------------------------------------------------------------------------
-    void LocalAudioStreamTrack::stop()
-    {
-      
-    }
+//    void LocalAudioStreamTrack::stop()
+//    {
+//      
+//    }
     
     //-------------------------------------------------------------------------
     SendMediaTransportPtr LocalAudioStreamTrack::getTransport()
     {
-      
+      return SendMediaTransportPtr();
     }
     
     //-----------------------------------------------------------------------
@@ -563,6 +633,66 @@ namespace ortc
     #pragma mark RemoteReceiveAudioStreamTrack => IMediaStreamTrack
     #pragma mark
     
+    //-------------------------------------------------------------------------
+    String RemoteReceiveAudioStreamTrack::kind()
+    {
+      return String();
+    }
+    
+    //-------------------------------------------------------------------------
+    String RemoteReceiveAudioStreamTrack::id()
+    {
+      return String();
+    }
+    
+    //-------------------------------------------------------------------------
+    String RemoteReceiveAudioStreamTrack::label()
+    {
+      return String();
+    }
+    
+    //-------------------------------------------------------------------------
+    bool RemoteReceiveAudioStreamTrack::enabled()
+    {
+      return false;
+    }
+    
+    //-------------------------------------------------------------------------
+    bool RemoteReceiveAudioStreamTrack::muted()
+    {
+      return false;
+    }
+    
+    //-------------------------------------------------------------------------
+    bool RemoteReceiveAudioStreamTrack::readonly()
+    {
+      return false;
+    }
+    
+    //-------------------------------------------------------------------------
+    bool RemoteReceiveAudioStreamTrack::remote()
+    {
+      return false;
+    }
+    
+    //-------------------------------------------------------------------------
+    IMediaStreamTrack::MediaStreamTrackStates RemoteReceiveAudioStreamTrack::readyState()
+    {
+      return IMediaStreamTrack::MediaStreamTrackState_New;
+    }
+    
+    //-------------------------------------------------------------------------
+    IMediaStreamTrackPtr RemoteReceiveAudioStreamTrack::clone()
+    {
+      return IMediaStreamTrackPtr();
+    }
+    
+    //-------------------------------------------------------------------------
+    void RemoteReceiveAudioStreamTrack::stop()
+    {
+      
+    }
+
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
@@ -572,33 +702,33 @@ namespace ortc
     #pragma mark
     
     //-------------------------------------------------------------------------
-    ULONG RemoteReceiveAudioStream::getSSRC()
+    ULONG RemoteReceiveAudioStreamTrack::getSSRC()
+    {
+      return 0;
+    }
+    
+    //-------------------------------------------------------------------------
+    void RemoteReceiveAudioStreamTrack::setEcEnabled(bool enabled)
     {
       
     }
     
     //-------------------------------------------------------------------------
-    void RemoteReceiveAudioStream::setEcEnabled(bool enabled)
+    void RemoteReceiveAudioStreamTrack::setAgcEnabled(bool enabled)
     {
       
     }
     
     //-------------------------------------------------------------------------
-    void RemoteReceiveAudioStream::setAgcEnabled(bool enabled)
+    void RemoteReceiveAudioStreamTrack::setNsEnabled(bool enabled)
     {
       
     }
     
     //-------------------------------------------------------------------------
-    void RemoteReceiveAudioStream::setNsEnabled(bool enabled)
+    ReceiveMediaTransportPtr RemoteReceiveAudioStreamTrack::getTransport()
     {
-      
-    }
-    
-    //-------------------------------------------------------------------------
-    ReceiveMediaTransportPtr RemoteReceiveAudioStream::getTransport()
-    {
-      
+      return ReceiveMediaTransportPtr();
     }
     
     //-----------------------------------------------------------------------
@@ -635,13 +765,81 @@ namespace ortc
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     #pragma mark
+    #pragma mark RemoteSendAudioStreamTrack => IMediaStreamTrack
+    #pragma mark
+    
+    //-------------------------------------------------------------------------
+    String RemoteSendAudioStreamTrack::kind()
+    {
+      return String();
+    }
+    
+    //-------------------------------------------------------------------------
+    String RemoteSendAudioStreamTrack::id()
+    {
+      return String();
+    }
+    
+    //-------------------------------------------------------------------------
+    String RemoteSendAudioStreamTrack::label()
+    {
+      return String();
+    }
+    
+    //-------------------------------------------------------------------------
+    bool RemoteSendAudioStreamTrack::enabled()
+    {
+      return false;
+    }
+    
+    //-------------------------------------------------------------------------
+    bool RemoteSendAudioStreamTrack::muted()
+    {
+      return false;
+    }
+    
+    //-------------------------------------------------------------------------
+    bool RemoteSendAudioStreamTrack::readonly()
+    {
+      return false;
+    }
+    
+    //-------------------------------------------------------------------------
+    bool RemoteSendAudioStreamTrack::remote()
+    {
+      return false;
+    }
+    
+    //-------------------------------------------------------------------------
+    IMediaStreamTrack::MediaStreamTrackStates RemoteSendAudioStreamTrack::readyState()
+    {
+      return IMediaStreamTrack::MediaStreamTrackState_New;
+    }
+    
+    //-------------------------------------------------------------------------
+    IMediaStreamTrackPtr RemoteSendAudioStreamTrack::clone()
+    {
+      return IMediaStreamTrackPtr();
+    }
+    
+    //-------------------------------------------------------------------------
+    void RemoteSendAudioStreamTrack::stop()
+    {
+      
+    }
+
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    #pragma mark
     #pragma mark RemoteSendAudioStreamTrack => IRemoteSendAudioStreamTrackForMediaManager
     #pragma mark
     
     //-------------------------------------------------------------------------
-    ULONG RemoteSendAudioStream::getSSRC()
+    ULONG RemoteSendAudioStreamTrack::getSSRC()
     {
-      
+      return 0;
     }
 
     //-----------------------------------------------------------------------
@@ -673,6 +871,66 @@ namespace ortc
     #pragma mark LocalVideoStreamTrack => IMediaStreamTrack
     #pragma mark
     
+    //-------------------------------------------------------------------------
+    String LocalVideoStreamTrack::kind()
+    {
+      return String();
+    }
+    
+    //-------------------------------------------------------------------------
+    String LocalVideoStreamTrack::id()
+    {
+      return String();
+    }
+    
+    //-------------------------------------------------------------------------
+    String LocalVideoStreamTrack::label()
+    {
+      return String();
+    }
+    
+    //-------------------------------------------------------------------------
+    bool LocalVideoStreamTrack::enabled()
+    {
+      return false;
+    }
+    
+    //-------------------------------------------------------------------------
+    bool LocalVideoStreamTrack::muted()
+    {
+      return false;
+    }
+    
+    //-------------------------------------------------------------------------
+    bool LocalVideoStreamTrack::readonly()
+    {
+      return false;
+    }
+    
+    //-------------------------------------------------------------------------
+    bool LocalVideoStreamTrack::remote()
+    {
+      return false;
+    }
+    
+    //-------------------------------------------------------------------------
+    IMediaStreamTrack::MediaStreamTrackStates LocalVideoStreamTrack::readyState()
+    {
+      return IMediaStreamTrack::MediaStreamTrackState_New;
+    }
+    
+    //-------------------------------------------------------------------------
+    IMediaStreamTrackPtr LocalVideoStreamTrack::clone()
+    {
+      return IMediaStreamTrackPtr();
+    }
+    
+    //-------------------------------------------------------------------------
+    void LocalVideoStreamTrack::stop()
+    {
+      
+    }
+
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
@@ -684,20 +942,20 @@ namespace ortc
     //-------------------------------------------------------------------------
     ULONG LocalVideoStreamTrack::getSSRC()
     {
-      
+      return 0;
     }
     
     //-------------------------------------------------------------------------
     void LocalVideoStreamTrack::start()
     {
-      
+
     }
     
     //-------------------------------------------------------------------------
-    void LocalVideoStreamTrack::stop()
-    {
-      
-    }
+//    void LocalVideoStreamTrack::stop()
+//    {
+//      
+//    }
 
     //-------------------------------------------------------------------------
     void LocalVideoStreamTrack::setContinuousVideoCapture(bool continuousVideoCapture)
@@ -708,7 +966,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool LocalVideoStreamTrack::getContinuousVideoCapture()
     {
-      
+      return false;
     }
     
     //-------------------------------------------------------------------------
@@ -720,13 +978,13 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool LocalVideoStreamTrack::getFaceDetection()
     {
-      
+      return false;
     }
     
     //-------------------------------------------------------------------------
     ILocalVideoStreamTrackForMediaManager::CameraTypes LocalVideoStreamTrack::getCameraType() const
     {
-      
+      return CameraType_None;
     }
     
     //-------------------------------------------------------------------------
@@ -756,7 +1014,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     SendMediaTransportPtr LocalVideoStreamTrack::getTransport()
     {
-      
+      return SendMediaTransportPtr();
     }
 
     //-----------------------------------------------------------------------
@@ -788,12 +1046,6 @@ namespace ortc
       
     }
     
-    //-------------------------------------------------------------------------
-    void RemoteReceiveVideoStreamTrack::setRenderView(void *renderView)
-    {
-      
-    }
-    
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
@@ -802,6 +1054,66 @@ namespace ortc
     #pragma mark RemoteReceiveVideoStreamTrack => IMediaStreamTrack
     #pragma mark
     
+    //-------------------------------------------------------------------------
+    String RemoteReceiveVideoStreamTrack::kind()
+    {
+      return String();
+    }
+    
+    //-------------------------------------------------------------------------
+    String RemoteReceiveVideoStreamTrack::id()
+    {
+      return String();
+    }
+    
+    //-------------------------------------------------------------------------
+    String RemoteReceiveVideoStreamTrack::label()
+    {
+      return String();
+    }
+    
+    //-------------------------------------------------------------------------
+    bool RemoteReceiveVideoStreamTrack::enabled()
+    {
+      return false;
+    }
+    
+    //-------------------------------------------------------------------------
+    bool RemoteReceiveVideoStreamTrack::muted()
+    {
+      return false;
+    }
+    
+    //-------------------------------------------------------------------------
+    bool RemoteReceiveVideoStreamTrack::readonly()
+    {
+      return false;
+    }
+    
+    //-------------------------------------------------------------------------
+    bool RemoteReceiveVideoStreamTrack::remote()
+    {
+      return false;
+    }
+    
+    //-------------------------------------------------------------------------
+    IMediaStreamTrack::MediaStreamTrackStates RemoteReceiveVideoStreamTrack::readyState()
+    {
+      return IMediaStreamTrack::MediaStreamTrackState_New;
+    }
+    
+    //-------------------------------------------------------------------------
+    IMediaStreamTrackPtr RemoteReceiveVideoStreamTrack::clone()
+    {
+      return IMediaStreamTrackPtr();
+    }
+    
+    //-------------------------------------------------------------------------
+    void RemoteReceiveVideoStreamTrack::stop()
+    {
+      
+    }
+
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
@@ -813,13 +1125,19 @@ namespace ortc
     //-------------------------------------------------------------------------
     ULONG RemoteReceiveVideoStreamTrack::getSSRC()
     {
+      return 0;
+    }
+    
+    //-------------------------------------------------------------------------
+    void RemoteReceiveVideoStreamTrack::setRenderView(void *renderView)
+    {
       
     }
     
     //-------------------------------------------------------------------------
     ReceiveMediaTransportPtr RemoteReceiveVideoStreamTrack::getTransport()
     {
-      
+      return ReceiveMediaTransportPtr();
     }
     
     //-----------------------------------------------------------------------
@@ -843,12 +1161,6 @@ namespace ortc
       
     }
     
-    //-------------------------------------------------------------------------
-    void RemoteSendVideoStreamTrack::setRenderView(void *renderView)
-    {
-      
-    }
-    
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
@@ -857,6 +1169,66 @@ namespace ortc
     #pragma mark RemoteSendVideoStreamTrack => IMediaStreamTrack
     #pragma mark
     
+    //-------------------------------------------------------------------------
+    String RemoteSendVideoStreamTrack::kind()
+    {
+      return String();
+    }
+    
+    //-------------------------------------------------------------------------
+    String RemoteSendVideoStreamTrack::id()
+    {
+      return String();
+    }
+    
+    //-------------------------------------------------------------------------
+    String RemoteSendVideoStreamTrack::label()
+    {
+      return String();
+    }
+    
+    //-------------------------------------------------------------------------
+    bool RemoteSendVideoStreamTrack::enabled()
+    {
+      return false;
+    }
+    
+    //-------------------------------------------------------------------------
+    bool RemoteSendVideoStreamTrack::muted()
+    {
+      return false;
+    }
+    
+    //-------------------------------------------------------------------------
+    bool RemoteSendVideoStreamTrack::readonly()
+    {
+      return false;
+    }
+    
+    //-------------------------------------------------------------------------
+    bool RemoteSendVideoStreamTrack::remote()
+    {
+      return false;
+    }
+    
+    //-------------------------------------------------------------------------
+    IMediaStreamTrack::MediaStreamTrackStates RemoteSendVideoStreamTrack::readyState()
+    {
+      return IMediaStreamTrack::MediaStreamTrackState_New;
+    }
+    
+    //-------------------------------------------------------------------------
+    IMediaStreamTrackPtr RemoteSendVideoStreamTrack::clone()
+    {
+      return IMediaStreamTrackPtr();
+    }
+    
+    //-------------------------------------------------------------------------
+    void RemoteSendVideoStreamTrack::stop()
+    {
+      
+    }
+
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
@@ -868,13 +1240,19 @@ namespace ortc
     //-------------------------------------------------------------------------
     ULONG RemoteSendVideoStreamTrack::getSSRC()
     {
+      return 0;
+    }
+    
+    //-------------------------------------------------------------------------
+    void RemoteSendVideoStreamTrack::setRenderView(void *renderView)
+    {
       
     }
 
     //-------------------------------------------------------------------------
     SendMediaTransportPtr RemoteSendVideoStreamTrack::getTransport()
     {
-      
+      return SendMediaTransportPtr();
     }
 
   }

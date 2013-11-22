@@ -14,6 +14,7 @@
 		E2260E6018215A910084E4A4 /* IRTCTrack.h in Headers */ = {isa = PBXBuildFile; fileRef = E2260E5E18215A910084E4A4 /* IRTCTrack.h */; };
 		E2260E6318215AAF0084E4A4 /* ortc_RTCConnection.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E2260E6118215AAF0084E4A4 /* ortc_RTCConnection.cpp */; };
 		E2260E6418215AAF0084E4A4 /* ortc_RTCTrack.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E2260E6218215AAF0084E4A4 /* ortc_RTCTrack.cpp */; };
+		E22F74F218401BF1008F502E /* ortc_MediaEngine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E277059F18370265008AC118 /* ortc_MediaEngine.cpp */; };
 		E23EBC5C1834180700C7332E /* IMediaManager.h in Headers */ = {isa = PBXBuildFile; fileRef = E23EBC591834180700C7332E /* IMediaManager.h */; };
 		E23EBC5D1834180700C7332E /* IMediaStream.h in Headers */ = {isa = PBXBuildFile; fileRef = E23EBC5A1834180700C7332E /* IMediaStream.h */; };
 		E23EBC5E1834180700C7332E /* IMediaStreamTrack.h in Headers */ = {isa = PBXBuildFile; fileRef = E23EBC5B1834180700C7332E /* IMediaStreamTrack.h */; };
@@ -253,6 +254,7 @@
 				E23EBC621834181C00C7332E /* ortc_MediaManager.cpp in Sources */,
 				E23EBC631834181C00C7332E /* ortc_MediaStream.cpp in Sources */,
 				E23EBC641834181C00C7332E /* ortc_MediaStreamTrack.cpp in Sources */,
+				E22F74F218401BF1008F502E /* ortc_MediaEngine.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -293,10 +295,15 @@
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					../../..,
-					../../../../op,
-					../../../../op/libs/zsLib,
-					../../../../op/libs/boost/boost,
-					../../../../op/libs,
+					../../../libs,
+					"../../../libs/op-services-cpp",
+					../../../libs/zsLib,
+					../../../libs/boost/osx/framework/boost.framework/Headers,
+					../../../libs/webrtc,
+					../../../libs/webrtc/webrtc,
+					../../../libs/webrtc/webrtc/voice_engine/include,
+					../../../libs/webrtc/webrtc/video_engine/include,
+					../../../libs/webrtc/webrtc/modules/video_capture/include,
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				ONLY_ACTIVE_ARCH = YES;
@@ -337,10 +344,15 @@
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					../../..,
-					../../../../op,
-					../../../../op/libs/zsLib,
-					../../../../op/libs/boost/boost,
-					../../../../op/libs,
+					../../../libs,
+					"../../../libs/op-services-cpp",
+					../../../libs/zsLib,
+					../../../libs/boost/osx/framework/boost.framework/Headers,
+					../../../libs/webrtc,
+					../../../libs/webrtc/webrtc,
+					../../../libs/webrtc/webrtc/voice_engine/include,
+					../../../libs/webrtc/webrtc/video_engine/include,
+					../../../libs/webrtc/webrtc/modules/video_capture/include,
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				SDKROOT = macosx;
