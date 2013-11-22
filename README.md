@@ -37,12 +37,12 @@ popd
 2) Build curl, from your terminal:
 <br />
 <pre>
-	<code>
+<code>
 pushd ortc-lib/libs/curl/
 ./build_ios.sh
 popd
-</pre>
 </code>
+</pre>
 <br />
 3) From X-code, load:
 
