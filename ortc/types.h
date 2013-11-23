@@ -44,6 +44,7 @@ namespace ortc
   using zsLib::Time;
   using zsLib::Duration;
   using zsLib::String;
+  using zsLib::RecursiveLock;
 
   using openpeer::services::SecureByteBlock;
   using openpeer::services::SecureByteBlockPtr;
@@ -102,13 +103,36 @@ namespace ortc
   typedef boost::shared_ptr<IRTCDataChannelDelegate> IRTCDataChannelDelegatePtr;
   typedef boost::weak_ptr<IRTCDataChannelDelegate> IRTCDataChannelDelegateWeakPtr;
   typedef zsLib::Proxy<IRTCDataChannelDelegate> IRTCDataChannelDelegateProxy;
+  
+  interaction IMediaManager;
+  typedef boost::shared_ptr<IMediaManager> IMediaManagerPtr;
+  typedef boost::weak_ptr<IMediaManager> IMediaManagerWeakPtr;
+  
+  interaction IMediaManagerDelegate;
+  typedef boost::shared_ptr<IMediaManagerDelegate> IMediaManagerDelegatePtr;
+  typedef boost::weak_ptr<IMediaManagerDelegate> IMediaManagerDelegateWeakPtr;
+  typedef zsLib::Proxy<IMediaManagerDelegate> IMediaManagerDelegateProxy;
 
   interaction IMediaStream;
   typedef boost::shared_ptr<IMediaStream> IMediaStreamPtr;
   typedef boost::weak_ptr<IMediaStream> IMediaStreamWeakPtr;
+  
+  interaction IMediaStreamDelegate;
+  typedef boost::shared_ptr<IMediaStreamDelegate> IMediaStreamDelegatePtr;
+  typedef boost::weak_ptr<IMediaStreamDelegate> IMediaStreamDelegateWeakPtr;
+  typedef zsLib::Proxy<IMediaStreamDelegate> IMediaStreamDelegateProxy;
 
   interaction IMediaStreamTrack;
   typedef boost::shared_ptr<IMediaStreamTrack> IMediaStreamTrackPtr;
   typedef boost::weak_ptr<IMediaStreamTrack> IMediaStreamTrackWeakPtr;
   
+  typedef std::list<IMediaStreamTrack> MediaStreamTrackList;
+  typedef boost::shared_ptr<MediaStreamTrackList> MediaStreamTrackListPtr;
+  typedef boost::weak_ptr<MediaStreamTrackList> MediaStreamTrackListWeakPtr;
+
+  interaction IMediaStreamTrackDelegate;
+  typedef boost::shared_ptr<IMediaStreamTrackDelegate> IMediaStreamTrackDelegatePtr;
+  typedef boost::weak_ptr<IMediaStreamTrackDelegate> IMediaStreamTrackDelegateWeakPtr;
+  typedef zsLib::Proxy<IMediaStreamTrackDelegate> IMediaStreamTrackDelegateProxy;
+ 
 }

@@ -1,17 +1,17 @@
 /*
-
+ 
  Copyright (c) 2013, SMB Phone Inc. / Hookflash Inc.
  All rights reserved.
-
+ 
  Redistribution and use in source and binary forms, with or without
  modification, are permitted provided that the following conditions are met:
-
+ 
  1. Redistributions of source code must retain the above copyright notice, this
  list of conditions and the following disclaimer.
  2. Redistributions in binary form must reproduce the above copyright notice,
  this list of conditions and the following disclaimer in the documentation
  and/or other materials provided with the distribution.
-
+ 
  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -22,7 +22,7 @@
  ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
+ 
  The views and conclusions contained in the software and documentation are those
  of the authors and should not be interpreted as representing official policies,
  either expressed or implied, of the FreeBSD Project.
@@ -40,27 +40,32 @@ namespace ortc
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
   #pragma mark
-  #pragma mark IRTCTrack
+  #pragma mark IMediaManager
   #pragma mark
   
-  interaction IRTCTrack
+  interaction IMediaManager
   {
-    struct RTCCodec;
-    struct RTCCodecParam;
-    struct RTCMediaAttributes;
+    struct MediaStreamConstraints;
+    struct UserMediaError;
+    
+    typedef std::map<String, String> MediaStreamConstraintsMap;
+    typedef boost::shared_ptr<MediaStreamConstraintsMap> MediaStreamConstraintsMapPtr;
+    typedef boost::weak_ptr<MediaStreamConstraintsMap> MediaStreamConstraintsMapWeakPtr;
     
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark RTCTrackKinds
+    #pragma mark VideoOrientations
     #pragma mark
     
-    enum RTCTrackKinds
+    enum VideoOrientations
     {
-      RTCTrackKind_Audio,
-      RTCTrackKind_Video
+      VideoOrientation_LandscapeLeft,
+      VideoOrientation_PortraitUpsideDown,
+      VideoOrientation_LandscapeRight,
+      VideoOrientation_Portrait
     };
     
     //-------------------------------------------------------------------------
@@ -68,78 +73,75 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark RTCCodecParam
+    #pragma mark OutputAudioRoutes
     #pragma mark
     
-    struct RTCCodecParam
+    enum OutputAudioRoutes
     {
-      String mName;
-      String mValue;
-    };
-    
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTCCodec
-    #pragma mark
-    
-    struct RTCCodec
-    {
-      typedef std::list<RTCCodecParam> RTCCodecParamList;
-      
-      BYTE mPayloadId;
-      String mName;
-      int mClockRate;
-      int mNumChannels;
-      RTCCodecParamList mParams;
-      
-      RTCCodec() : mPayloadId(0), mClockRate(0), mNumChannels(0) { }
-    };
-    
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTCMediaAttributes
-    #pragma mark
-    
-    struct RTCMediaAttributes
-    {
-      int mVideoMaxWidth;
-      int mVideoMaxHeight;
-      
-      RTCMediaAttributes() : mVideoMaxWidth(0), mVideoMaxHeight(0) { }
+      OutputAudioRoute_Headphone,
+      OutputAudioRoute_BuiltInReceiver,
+      OutputAudioRoute_BuiltInSpeaker
     };
 
-    typedef std::list<String> MsidList;
-    typedef boost::shared_ptr<MsidList> MsidListPtr;
-    typedef boost::weak_ptr<MsidList> MsidListWeakPtr;
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark MediaStreamConstraints
+    #pragma mark
     
-    typedef std::list<RTCCodec> RTCCodecList;
-    typedef boost::shared_ptr<RTCCodecList> RTCCodecListPtr;
-    typedef boost::weak_ptr<RTCCodecList> RTCCodecListWeakPtr;
+    struct MediaStreamConstraints
+    {
+      MediaStreamConstraintsMap mConstraints;
+    };
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark UserMediaError
+    #pragma mark
     
-    typedef std::list<RTCMediaAttributes> RTCMediaAttributesList;
-    typedef boost::shared_ptr<RTCMediaAttributesList> RTCMediaAttributesListPtr;
-    typedef boost::weak_ptr<RTCMediaAttributesList> RTCMediaAttributesListWeakPtr;
+    struct UserMediaError
+    {
+      String mConstraintName;
+    };
     
-    typedef std::map<String, String> RtpExtHeadersMap;
-    typedef boost::shared_ptr<RtpExtHeadersMap> RtpExtHeadersMapPtr;
-    typedef boost::weak_ptr<RtpExtHeadersMap> RtpExtHeadersMapWeakPtr;
+    static IMediaManagerPtr singleton();
     
-    virtual IMediaStreamTrackPtr source() = 0;
-    virtual String id() = 0;
-    virtual RTCTrackKinds kind() = 0;
-    virtual ULONG ssrc() = 0;
-    virtual RTCCodecListPtr codecs() = 0;
-    virtual RTCMediaAttributesListPtr mediaAttributes() = 0;
-    virtual RtpExtHeadersMapPtr rtpExtHeaders() = 0;
+    virtual void getUserMedia(MediaStreamConstraints constraints) = 0;
     
-    virtual void start() = 0;
-    virtual void stop() = 0;
-    virtual void remove() = 0;
+    virtual void setDefaultVideoOrientation(VideoOrientations orientation) = 0;
+    virtual VideoOrientations getDefaultVideoOrientation() = 0;
+    virtual void setRecordVideoOrientation(VideoOrientations orientation) = 0;
+    virtual VideoOrientations getRecordVideoOrientation() = 0;
+    virtual void setVideoOrientation() = 0;
+    
+    virtual void setMuteEnabled(bool enabled) = 0;
+    virtual bool getMuteEnabled() = 0;
+    virtual void setLoudspeakerEnabled(bool enabled) = 0;
+    virtual bool getLoudspeakerEnabled() = 0;
+    virtual OutputAudioRoutes getOutputAudioRoute() = 0;
+  };
+  
+  interaction IMediaManagerDelegate
+  {
+    typedef IMediaManager::UserMediaError UserMediaError;
+    typedef IMediaManager::OutputAudioRoutes OutputAudioRoutes;
+    
+    virtual void onMediaManagerSuccessCallback(IMediaStreamPtr stream) = 0;
+    virtual void onMediaManagerErrorCallback(UserMediaError error) = 0;
+    virtual void onMediaManagerAudioRouteChanged(OutputAudioRoutes audioRoute) = 0;
   };
 }
+
+ZS_DECLARE_PROXY_BEGIN(ortc::IMediaManagerDelegate)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::IMediaStreamPtr, IMediaStreamPtr)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::IMediaManager::UserMediaError, UserMediaError)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::IMediaManager::OutputAudioRoutes, OutputAudioRoutes)
+ZS_DECLARE_PROXY_METHOD_1(onMediaManagerSuccessCallback, IMediaStreamPtr)
+ZS_DECLARE_PROXY_METHOD_1(onMediaManagerErrorCallback, UserMediaError)
+ZS_DECLARE_PROXY_METHOD_1(onMediaManagerAudioRouteChanged, OutputAudioRoutes)
+ZS_DECLARE_PROXY_END()

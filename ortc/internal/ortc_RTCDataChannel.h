@@ -84,12 +84,15 @@ namespace ortc
     public:
       virtual ~RTCDataChannel();
       
-    protected:
       //---------------------------------------------------------------------
       #pragma mark
       #pragma mark RTCDataChannel => IRTCDataChannel
       #pragma mark
       
+    protected:
+      virtual IRTCConnectionPtr connection();
+      virtual String id();
+      virtual String kind();
       virtual void send(BYTE* data);
       
       //---------------------------------------------------------------------
@@ -107,7 +110,16 @@ namespace ortc
       #pragma mark RTCDataChannel => (data)
       #pragma mark
       
+    protected:
+      PUID mID;
+      mutable RecursiveLock mLock;
+      RTCDataChannelWeakPtr mThisWeak;
       
+      int mError;
+      
+      IRTCConnectionPtr mConnection;
+      String mDataChannelID;
+      String mKind;
       
     };
   }

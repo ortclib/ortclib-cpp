@@ -101,27 +101,13 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark RTCConnectionOptions
-    #pragma mark
-    
-    struct RTCConnectionOptions
-    {
-      RTCIceServerListPtr iceServers();
-      IRTCSocketPtr socket();
-    };
-    
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
     #pragma mark RTCIceServer
     #pragma mark
     
     struct RTCIceServer
     {
-      URLListPtr url();
-      String credential();
+      URLListPtr mURL;
+      String mCredential;
     };
     
     //-------------------------------------------------------------------------
@@ -129,13 +115,13 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark RTCConnectionInfo
+    #pragma mark RTCConnectionOptions
     #pragma mark
     
-    struct RTCConnectionInfo
+    struct RTCConnectionOptions
     {
-      RTCIceConnectionInfo ice();
-      RTCDtlsConnectionInfo dtls();
+      RTCIceServerListPtr mIceServers;
+      IRTCSocketPtr mSocket;
     };
     
     //-------------------------------------------------------------------------
@@ -148,8 +134,8 @@ namespace ortc
     
     struct RTCIceConnectionInfo
     {
-      String usernameFrag();
-      String password();
+      String mUsernameFrag;
+      String mPassword;
     };
     
     //-------------------------------------------------------------------------
@@ -162,9 +148,27 @@ namespace ortc
     
     struct RTCDtlsConnectionInfo
     {
-      BYTE* fingerprint(String hashFunction);
+      typedef std::map<String, BYTE*> CertificateFingerprintMap;
+      
+      CertificateFingerprintMap mFingerprintMap;
+      
+      BYTE* fingerprint(String hashFunction) { return mFingerprintMap[hashFunction]; }
     };
     
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTCConnectionInfo
+    #pragma mark
+    
+    struct RTCConnectionInfo
+    {
+      RTCIceConnectionInfo mIce;
+      RTCDtlsConnectionInfo mDtlsConnectionInfo;
+    };
+
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -175,15 +179,22 @@ namespace ortc
     
     struct RTCIceCandidateInfo
     {
-      String foundation();
-      int component();
-      String transport();
-      int priority();
-      String connectionAddress();
-      int connectionPort();
-      String type();
-      String relAddress();
-      int relPort();
+      String mFoundation;
+      int mComponent;
+      String mTransport;
+      int mPriority;
+      String mConnectionAddress;
+      int mConnectionPort;
+      String mType;
+      String mRelAddress;
+      int mRelPort;
+      
+      RTCIceCandidateInfo() :
+        mComponent(0),
+        mPriority(0),
+        mConnectionPort(0),
+        mRelPort(0)
+      { }
     };
     
     virtual IRTCSocketPtr socket() = 0;

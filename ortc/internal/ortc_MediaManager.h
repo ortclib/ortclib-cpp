@@ -1,17 +1,17 @@
 /*
-
+ 
  Copyright (c) 2013, SMB Phone Inc. / Hookflash Inc.
  All rights reserved.
-
+ 
  Redistribution and use in source and binary forms, with or without
  modification, are permitted provided that the following conditions are met:
-
+ 
  1. Redistributions of source code must retain the above copyright notice, this
  list of conditions and the following disclaimer.
  2. Redistributions in binary form must reproduce the above copyright notice,
  this list of conditions and the following disclaimer in the documentation
  and/or other materials provided with the distribution.
-
+ 
  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -22,7 +22,7 @@
  ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
+ 
  The views and conclusions contained in the software and documentation are those
  of the authors and should not be interpreted as representing official policies,
  either expressed or implied, of the FreeBSD Project.
@@ -32,9 +32,7 @@
 #pragma once
 
 #include <ortc/internal/types.h>
-#include <ortc/IRTCConnection.h>
-
-#include <zsLib/MessageQueueAssociator.h>
+#include <ortc/IMediaManager.h>
 
 namespace ortc
 {
@@ -45,80 +43,62 @@ namespace ortc
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     #pragma mark
-    #pragma mark RTCConnection
+    #pragma mark MediaManager
     #pragma mark
     
-    class RTCConnection : public Noop,
-                          public MessageQueueAssociator,
-                          public IRTCConnection
+    class MediaManager : public Noop,
+      public MessageQueueAssociator,
+      public IMediaManager
     {
-    public:
-      friend interaction IRTCConnection;
-      
     protected:
-      RTCConnection(
+      MediaManager(
                    IMessageQueuePtr queue,
-                   IRTCConnectionDelegatePtr delegate
+                   IMediaManagerDelegatePtr delegate
                    );
       
+      static MediaManagerPtr create(IMessageQueuePtr queue, IMediaManagerDelegatePtr delegate);
+      
     public:
-      virtual ~RTCConnection();
+      virtual ~MediaManager();
       
       //---------------------------------------------------------------------
       #pragma mark
-      #pragma mark RTCConnection => IRTCConnection
+      #pragma mark MediaManager => IMediaManager
       #pragma mark
       
     protected:
-      virtual IRTCSocketPtr socket();
-      virtual RTCConnectionStates state();
-      virtual RTCConnectionRoles role();
-      virtual RTCConnectionInfo local();
-      virtual RTCConnectionInfo remote();
+      virtual void getUserMedia(MediaStreamConstraints constraints);
       
-      virtual void addRemoteCandidate(RTCIceCandidateInfo candidate);
-      virtual void connect();
-      virtual void gather();
-      virtual IRTCStreamPtr send(IMediaStreamPtr stream);
-      virtual IRTCTrackPtr send(IMediaStreamTrackPtr track);
-      virtual IRTCStreamPtr send(IRTCStreamPtr stream);
-      virtual IRTCTrackPtr send(IRTCTrackPtr track);
-      virtual IRTCStreamPtr receive(IRTCStreamPtr stream);
-      virtual IRTCTrackPtr receive(IRTCTrackPtr track);
-      virtual RTCStreamListPtr sendStreams();
-      virtual RTCTrackListPtr sendTracks();
-      virtual RTCStreamListPtr receiveStreams();
-      virtual RTCTrackListPtr receiveTracks();
-      virtual void close();
+      virtual void setDefaultVideoOrientation(VideoOrientations orientation);
+      virtual VideoOrientations getDefaultVideoOrientation();
+      virtual void setRecordVideoOrientation(VideoOrientations orientation);
+      virtual VideoOrientations getRecordVideoOrientation();
+      virtual void setVideoOrientation();
       
+      virtual void setMuteEnabled(bool enabled);
+      virtual bool getMuteEnabled();
+      virtual void setLoudspeakerEnabled(bool enabled);
+      virtual bool getLoudspeakerEnabled();
+      virtual OutputAudioRoutes getOutputAudioRoute();
+
       //---------------------------------------------------------------------
       #pragma mark
-      #pragma mark RTCConnection => (internal)
+      #pragma mark MediaManager => (internal)
       #pragma mark
       
       //---------------------------------------------------------------------
       #pragma mark
-      #pragma mark RTCConnection => (data)
+      #pragma mark MediaManager => (data)
       #pragma mark
       
     protected:
       PUID mID;
       mutable RecursiveLock mLock;
-      RTCConnectionWeakPtr mThisWeak;
-      IRTCConnectionDelegatePtr mDelegate;
+      MediaManagerWeakPtr mThisWeak;
+      IMediaManagerDelegatePtr mDelegate;
       
       int mError;
       
-      RTCSocketPtr mSocket;
-      RTCConnectionStates mState;
-      RTCConnectionRoles mRole;
-      RTCConnectionInfo mLocalConnectionInfo;
-      RTCConnectionInfo mRemoteConnectionInfo;
-  
-      RTCStreamListPtr mSendStreams;
-      RTCTrackListPtr mSendTracks;
-      RTCStreamListPtr mReceiveStreams;
-      RTCTrackListPtr mReceiveTracks;
     };
   }
 }
