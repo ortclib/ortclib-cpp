@@ -53,6 +53,10 @@ namespace ortc
     using zsLib::Log;
     using zsLib::Stringize;
     
+    interaction Factory;
+    typedef boost::shared_ptr<Factory> FactoryPtr;
+    typedef boost::weak_ptr<Factory> FactoryWeakPtr;
+
     class RTCConnection;
     typedef boost::shared_ptr<RTCConnection> RTCConnectionPtr;
     typedef boost::weak_ptr<RTCConnection> RTCConnectionWeakPtr;
