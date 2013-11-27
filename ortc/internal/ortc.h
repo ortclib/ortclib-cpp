@@ -33,4 +33,6 @@
 
 #include <ortc/internal/types.h>
 
+#include <ortc/ortc.h>
+
 #include <ortc/internal/ortc_MediaEngine.h>

@@ -747,6 +747,7 @@
 					../../../libs/webrtc/webrtc/modules/video_capture/include,
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
+				LIBRARY_SEARCH_PATHS = ../../../libs/curl/staging;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -795,6 +796,7 @@
 					../../../libs/webrtc/webrtc/modules/video_capture/include,
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
+				LIBRARY_SEARCH_PATHS = ../../../libs/curl/staging;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = YES;
@@ -810,10 +812,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "ortclibTest_ios/ortclibTest_ios-Prefix.pch";
 				INFOPLIST_FILE = "ortclibTest_ios/ortclibTest_ios-Info.plist";
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"/Volumes/Hookflash/Repos/ios/opios/libs/op/libs/ortc-lib/libs/curl/staging",
-				);
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				VALID_ARCHS = "armv7 armv7s";
 				WRAPPER_EXTENSION = app;
@@ -829,10 +828,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "ortclibTest_ios/ortclibTest_ios-Prefix.pch";
 				INFOPLIST_FILE = "ortclibTest_ios/ortclibTest_ios-Info.plist";
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"/Volumes/Hookflash/Repos/ios/opios/libs/op/libs/ortc-lib/libs/curl/staging",
-				);
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				VALID_ARCHS = "armv7 armv7s";
 				WRAPPER_EXTENSION = app;

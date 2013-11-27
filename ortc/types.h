@@ -31,6 +31,8 @@
 
 #pragma once
 
+#include <zsLib/Proxy.h>
+#include <zsLib/IPAddress.h>
 #include <openpeer/services/types.h>
 
 namespace ortc
@@ -45,6 +47,7 @@ namespace ortc
   using zsLib::Duration;
   using zsLib::String;
   using zsLib::RecursiveLock;
+  using zsLib::IPAddress;
 
   using openpeer::services::SecureByteBlock;
   using openpeer::services::SecureByteBlockPtr;
@@ -56,7 +59,21 @@ namespace ortc
   #pragma mark
   #pragma mark (other)
   #pragma mark
-  
+
+  interaction IICETransport;
+  typedef boost::shared_ptr<IICETransport> IICETransportPtr;
+  typedef boost::weak_ptr<IICETransport> IICETransportWeakPtr;
+
+  interaction IICETransportDelegate;
+  typedef boost::shared_ptr<IICETransportDelegate> IICETransportDelegatePtr;
+  typedef boost::weak_ptr<IICETransportDelegate> IICETransportDelegateWeakPtr;
+  typedef zsLib::Proxy<IICETransportDelegate> IICETransportDelegateProxy;
+
+  interaction IICETransportSubscription;
+  typedef boost::shared_ptr<IICETransportSubscription> IICETransportSubscriptionPtr;
+  typedef boost::weak_ptr<IICETransportSubscription> IICETransportSubscriptionWeakPtr;
+  typedef zsLib::ProxySubscriptions<IICETransportDelegate, IICETransportSubscription> IICETransportDelegateSubscriptions;
+
   interaction IRTCConnection;
   typedef boost::shared_ptr<IRTCConnection> IRTCConnectionPtr;
   typedef boost::weak_ptr<IRTCConnection> IRTCConnectionWeakPtr;
