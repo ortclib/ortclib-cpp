@@ -7,6 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0063EB7B1846665E00A877C3 /* libcurl.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 0063EB7A1846665E00A877C3 /* libcurl.a */; };
+		0071536E18466EE700110658 /* libhfservices_ios.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E2234C9518454DF400F9E2C8 /* libhfservices_ios.a */; };
+		0097860D1846673E00743235 /* libzsLib_ios.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E2234C9F18454E2C00F9E2C8 /* libzsLib_ios.a */; };
+		00D8BF9D18466FD80001A335 /* libcryptopp_ios.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 0063EB3E184664FB00A877C3 /* libcryptopp_ios.a */; };
+		00D8BF9E18466FD80001A335 /* libortclib_ios.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E2234C8F18454DDA00F9E2C8 /* libortclib_ios.a */; };
+		00D8BF9F18466FD80001A335 /* libudns_ios.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E2234CA518454E5800F9E2C8 /* libudns_ios.a */; };
 		E2234C4E18454BEF00F9E2C8 /* libaudio_coding_module.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E2234C1F18454BEF00F9E2C8 /* libaudio_coding_module.a */; };
 		E2234C4F18454BEF00F9E2C8 /* libaudio_conference_mixer.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E2234C2018454BEF00F9E2C8 /* libaudio_conference_mixer.a */; };
 		E2234C5018454BEF00F9E2C8 /* libaudio_device.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E2234C2118454BEF00F9E2C8 /* libaudio_device.a */; };
@@ -18,10 +24,8 @@
 		E2234C5618454BEF00F9E2C8 /* libcommon_audio_neon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E2234C2718454BEF00F9E2C8 /* libcommon_audio_neon.a */; };
 		E2234C5718454BEF00F9E2C8 /* libcommon_audio.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E2234C2818454BEF00F9E2C8 /* libcommon_audio.a */; };
 		E2234C5818454BEF00F9E2C8 /* libcommon_video.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E2234C2918454BEF00F9E2C8 /* libcommon_video.a */; };
-		E2234C5918454BEF00F9E2C8 /* libcryptopp_ios.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E2234C2A18454BEF00F9E2C8 /* libcryptopp_ios.a */; };
 		E2234C5A18454BEF00F9E2C8 /* libG711.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E2234C2B18454BEF00F9E2C8 /* libG711.a */; };
 		E2234C5B18454BEF00F9E2C8 /* libG722.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E2234C2C18454BEF00F9E2C8 /* libG722.a */; };
-		E2234C5C18454BEF00F9E2C8 /* libhfservices_ios.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E2234C2D18454BEF00F9E2C8 /* libhfservices_ios.a */; };
 		E2234C5D18454BEF00F9E2C8 /* libiLBC.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E2234C2E18454BEF00F9E2C8 /* libiLBC.a */; };
 		E2234C5E18454BEF00F9E2C8 /* libisac_neon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E2234C2F18454BEF00F9E2C8 /* libisac_neon.a */; };
 		E2234C5F18454BEF00F9E2C8 /* libiSAC.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E2234C3018454BEF00F9E2C8 /* libiSAC.a */; };
@@ -31,13 +35,11 @@
 		E2234C6318454BEF00F9E2C8 /* libNetEq.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E2234C3418454BEF00F9E2C8 /* libNetEq.a */; };
 		E2234C6418454BEF00F9E2C8 /* libNetEq4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E2234C3518454BEF00F9E2C8 /* libNetEq4.a */; };
 		E2234C6518454BEF00F9E2C8 /* libopus.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E2234C3618454BEF00F9E2C8 /* libopus.a */; };
-		E2234C6618454BEF00F9E2C8 /* libortclib_ios.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E2234C3718454BEF00F9E2C8 /* libortclib_ios.a */; };
 		E2234C6718454BEF00F9E2C8 /* libpaced_sender.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E2234C3818454BEF00F9E2C8 /* libpaced_sender.a */; };
 		E2234C6818454BEF00F9E2C8 /* libPCM16B.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E2234C3918454BEF00F9E2C8 /* libPCM16B.a */; };
 		E2234C6918454BEF00F9E2C8 /* libremote_bitrate_estimator.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E2234C3A18454BEF00F9E2C8 /* libremote_bitrate_estimator.a */; };
 		E2234C6A18454BEF00F9E2C8 /* librtp_rtcp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E2234C3B18454BEF00F9E2C8 /* librtp_rtcp.a */; };
 		E2234C6B18454BEF00F9E2C8 /* libsystem_wrappers.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E2234C3C18454BEF00F9E2C8 /* libsystem_wrappers.a */; };
-		E2234C6C18454BEF00F9E2C8 /* libudns_ios.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E2234C3D18454BEF00F9E2C8 /* libudns_ios.a */; };
 		E2234C6D18454BEF00F9E2C8 /* libvideo_capture_module.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E2234C3E18454BEF00F9E2C8 /* libvideo_capture_module.a */; };
 		E2234C6E18454BEF00F9E2C8 /* libvideo_coding_utility.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E2234C3F18454BEF00F9E2C8 /* libvideo_coding_utility.a */; };
 		E2234C6F18454BEF00F9E2C8 /* libvideo_engine_core.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E2234C4018454BEF00F9E2C8 /* libvideo_engine_core.a */; };
@@ -51,7 +53,6 @@
 		E2234C7918454BEF00F9E2C8 /* libwebrtc_video_coding.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E2234C4A18454BEF00F9E2C8 /* libwebrtc_video_coding.a */; };
 		E2234C7A18454BEF00F9E2C8 /* libwebrtc_vp8.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E2234C4B18454BEF00F9E2C8 /* libwebrtc_vp8.a */; };
 		E2234C7B18454BEF00F9E2C8 /* libyuv.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E2234C4C18454BEF00F9E2C8 /* libyuv.a */; };
-		E2234C7C18454BEF00F9E2C8 /* libzsLib_ios.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E2234C4D18454BEF00F9E2C8 /* libzsLib_ios.a */; };
 		E2234CDD1845500E00F9E2C8 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E2234CDC1845500E00F9E2C8 /* AVFoundation.framework */; };
 		E2234CDF1845510000F9E2C8 /* CoreMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E2234CDE1845510000F9E2C8 /* CoreMedia.framework */; };
 		E2234CE11845513600F9E2C8 /* MobileCoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E2234CE01845513600F9E2C8 /* MobileCoreServices.framework */; };
@@ -72,6 +73,41 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		0063EB3D184664FB00A877C3 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E2234CA618454E6F00F9E2C8 /* cryptopp_ios.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 0066863A16C9F58000259F81;
+			remoteInfo = cryptopp_ios;
+		};
+		0097860E1846676600743235 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E2234C8A18454DDA00F9E2C8 /* ortclib_ios.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = E2260E721821628E0084E4A4;
+			remoteInfo = ortclib_ios;
+		};
+		009786101846676600743235 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E2234C9018454DF400F9E2C8 /* hfservices_ios.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 0095DC1416CA8802005F53D3;
+			remoteInfo = hfservices_ios;
+		};
+		009786121846676600743235 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E2234CA618454E6F00F9E2C8 /* cryptopp_ios.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 0066863916C9F58000259F81;
+			remoteInfo = cryptopp_ios;
+		};
+		009786141846676600743235 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E2234CA018454E5800F9E2C8 /* udns_ios.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 0066824E16C9DA9200259F81;
+			remoteInfo = udns_ios;
+		};
 		E2234C8E18454DDA00F9E2C8 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = E2234C8A18454DDA00F9E2C8 /* ortclib_ios.xcodeproj */;
@@ -100,27 +136,6 @@
 			remoteGlobalIDString = 0066824F16C9DA9200259F81;
 			remoteInfo = udns_ios;
 		};
-		E2234CAA18454E7000F9E2C8 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = E2234CA618454E6F00F9E2C8 /* cryptopp_ios.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 0066863A16C9F58000259F81;
-			remoteInfo = cryptopp_ios;
-		};
-		E2234CAC18454E9600F9E2C8 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = E2234CA618454E6F00F9E2C8 /* cryptopp_ios.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = 0066863916C9F58000259F81;
-			remoteInfo = cryptopp_ios;
-		};
-		E2234CAE18454E9600F9E2C8 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = E2234CA018454E5800F9E2C8 /* udns_ios.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = 0066824E16C9DA9200259F81;
-			remoteInfo = udns_ios;
-		};
 		E2234CB018454E9600F9E2C8 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = E2234C9A18454E2C00F9E2C8 /* zsLib_ios.xcodeproj */;
@@ -135,76 +150,62 @@
 			remoteGlobalIDString = 307C243DFDDBFD9EF8440480;
 			remoteInfo = All;
 		};
-		E2234CB418454E9600F9E2C8 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = E2234C9018454DF400F9E2C8 /* hfservices_ios.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = 0095DC1416CA8802005F53D3;
-			remoteInfo = hfservices_ios;
-		};
-		E2234CB618454E9600F9E2C8 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = E2234C8A18454DDA00F9E2C8 /* ortclib_ios.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = E2260E721821628E0084E4A4;
-			remoteInfo = ortclib_ios;
-		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		E2234C1F18454BEF00F9E2C8 /* libaudio_coding_module.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libaudio_coding_module.a; path = "../../../libs/webrtc/xcodebuild/Debug-iphoneos/libaudio_coding_module.a"; sourceTree = SOURCE_ROOT; };
-		E2234C2018454BEF00F9E2C8 /* libaudio_conference_mixer.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libaudio_conference_mixer.a; path = "../../../libs/webrtc/xcodebuild/Debug-iphoneos/libaudio_conference_mixer.a"; sourceTree = SOURCE_ROOT; };
-		E2234C2118454BEF00F9E2C8 /* libaudio_device.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libaudio_device.a; path = "../../../libs/webrtc/xcodebuild/Debug-iphoneos/libaudio_device.a"; sourceTree = SOURCE_ROOT; };
-		E2234C2218454BEF00F9E2C8 /* libaudio_processing_neon.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libaudio_processing_neon.a; path = "../../../libs/webrtc/xcodebuild/Debug-iphoneos/libaudio_processing_neon.a"; sourceTree = SOURCE_ROOT; };
-		E2234C2318454BEF00F9E2C8 /* libaudio_processing.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libaudio_processing.a; path = "../../../libs/webrtc/xcodebuild/Debug-iphoneos/libaudio_processing.a"; sourceTree = SOURCE_ROOT; };
-		E2234C2418454BEF00F9E2C8 /* libbitrate_controller.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbitrate_controller.a; path = "../../../libs/webrtc/xcodebuild/Debug-iphoneos/libbitrate_controller.a"; sourceTree = SOURCE_ROOT; };
-		E2234C2518454BEF00F9E2C8 /* libchannel_transport.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libchannel_transport.a; path = "../../../libs/webrtc/xcodebuild/Debug-iphoneos/libchannel_transport.a"; sourceTree = SOURCE_ROOT; };
-		E2234C2618454BEF00F9E2C8 /* libCNG.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libCNG.a; path = "../../../libs/webrtc/xcodebuild/Debug-iphoneos/libCNG.a"; sourceTree = SOURCE_ROOT; };
-		E2234C2718454BEF00F9E2C8 /* libcommon_audio_neon.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcommon_audio_neon.a; path = "../../../libs/webrtc/xcodebuild/Debug-iphoneos/libcommon_audio_neon.a"; sourceTree = SOURCE_ROOT; };
-		E2234C2818454BEF00F9E2C8 /* libcommon_audio.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcommon_audio.a; path = "../../../libs/webrtc/xcodebuild/Debug-iphoneos/libcommon_audio.a"; sourceTree = SOURCE_ROOT; };
-		E2234C2918454BEF00F9E2C8 /* libcommon_video.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcommon_video.a; path = "../../../libs/webrtc/xcodebuild/Debug-iphoneos/libcommon_video.a"; sourceTree = SOURCE_ROOT; };
-		E2234C2A18454BEF00F9E2C8 /* libcryptopp_ios.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcryptopp_ios.a; path = "../../../libs/cryptopp/projects/xcode/cryptopp_ios/build/Debug-iphoneos/libcryptopp_ios.a"; sourceTree = SOURCE_ROOT; };
-		E2234C2B18454BEF00F9E2C8 /* libG711.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libG711.a; path = "../../../libs/webrtc/xcodebuild/Debug-iphoneos/libG711.a"; sourceTree = SOURCE_ROOT; };
-		E2234C2C18454BEF00F9E2C8 /* libG722.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libG722.a; path = "../../../libs/webrtc/xcodebuild/Debug-iphoneos/libG722.a"; sourceTree = SOURCE_ROOT; };
-		E2234C2D18454BEF00F9E2C8 /* libhfservices_ios.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libhfservices_ios.a; path = "../../../libs/op-services-cpp/projects/xcode/hfservices_ios/build/Debug-iphoneos/libhfservices_ios.a"; sourceTree = SOURCE_ROOT; };
-		E2234C2E18454BEF00F9E2C8 /* libiLBC.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libiLBC.a; path = "../../../libs/webrtc/xcodebuild/Debug-iphoneos/libiLBC.a"; sourceTree = SOURCE_ROOT; };
-		E2234C2F18454BEF00F9E2C8 /* libisac_neon.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libisac_neon.a; path = "../../../libs/webrtc/xcodebuild/Debug-iphoneos/libisac_neon.a"; sourceTree = SOURCE_ROOT; };
-		E2234C3018454BEF00F9E2C8 /* libiSAC.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libiSAC.a; path = "../../../libs/webrtc/xcodebuild/Debug-iphoneos/libiSAC.a"; sourceTree = SOURCE_ROOT; };
-		E2234C3118454BEF00F9E2C8 /* libiSACFix.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libiSACFix.a; path = "../../../libs/webrtc/xcodebuild/Debug-iphoneos/libiSACFix.a"; sourceTree = SOURCE_ROOT; };
-		E2234C3218454BEF00F9E2C8 /* libjpeg.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libjpeg.a; path = "../../../libs/webrtc/xcodebuild/Debug-iphoneos/libjpeg.a"; sourceTree = SOURCE_ROOT; };
-		E2234C3318454BEF00F9E2C8 /* libmedia_file.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libmedia_file.a; path = "../../../libs/webrtc/xcodebuild/Debug-iphoneos/libmedia_file.a"; sourceTree = SOURCE_ROOT; };
-		E2234C3418454BEF00F9E2C8 /* libNetEq.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libNetEq.a; path = "../../../libs/webrtc/xcodebuild/Debug-iphoneos/libNetEq.a"; sourceTree = SOURCE_ROOT; };
-		E2234C3518454BEF00F9E2C8 /* libNetEq4.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libNetEq4.a; path = "../../../libs/webrtc/xcodebuild/Debug-iphoneos/libNetEq4.a"; sourceTree = SOURCE_ROOT; };
-		E2234C3618454BEF00F9E2C8 /* libopus.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libopus.a; path = "../../../libs/webrtc/xcodebuild/Debug-iphoneos/libopus.a"; sourceTree = SOURCE_ROOT; };
-		E2234C3718454BEF00F9E2C8 /* libortclib_ios.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libortclib_ios.a; path = "../../../../../../../../../Library/Developer/Xcode/DerivedData/ortclib-deeleiwezlkqxhfzdhmfrcmtwzbi/Build/Products/Debug-iphoneos/libortclib_ios.a"; sourceTree = SOURCE_ROOT; };
-		E2234C3818454BEF00F9E2C8 /* libpaced_sender.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libpaced_sender.a; path = "../../../libs/webrtc/xcodebuild/Debug-iphoneos/libpaced_sender.a"; sourceTree = SOURCE_ROOT; };
-		E2234C3918454BEF00F9E2C8 /* libPCM16B.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libPCM16B.a; path = "../../../libs/webrtc/xcodebuild/Debug-iphoneos/libPCM16B.a"; sourceTree = SOURCE_ROOT; };
-		E2234C3A18454BEF00F9E2C8 /* libremote_bitrate_estimator.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libremote_bitrate_estimator.a; path = "../../../libs/webrtc/xcodebuild/Debug-iphoneos/libremote_bitrate_estimator.a"; sourceTree = SOURCE_ROOT; };
-		E2234C3B18454BEF00F9E2C8 /* librtp_rtcp.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = librtp_rtcp.a; path = "../../../libs/webrtc/xcodebuild/Debug-iphoneos/librtp_rtcp.a"; sourceTree = SOURCE_ROOT; };
-		E2234C3C18454BEF00F9E2C8 /* libsystem_wrappers.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libsystem_wrappers.a; path = "../../../libs/webrtc/xcodebuild/Debug-iphoneos/libsystem_wrappers.a"; sourceTree = SOURCE_ROOT; };
-		E2234C3D18454BEF00F9E2C8 /* libudns_ios.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libudns_ios.a; path = "../../../libs/udns/projects/xcode/udns_ios/build/Debug-iphoneos/libudns_ios.a"; sourceTree = SOURCE_ROOT; };
-		E2234C3E18454BEF00F9E2C8 /* libvideo_capture_module.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libvideo_capture_module.a; path = "../../../libs/webrtc/xcodebuild/Debug-iphoneos/libvideo_capture_module.a"; sourceTree = SOURCE_ROOT; };
-		E2234C3F18454BEF00F9E2C8 /* libvideo_coding_utility.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libvideo_coding_utility.a; path = "../../../libs/webrtc/xcodebuild/Debug-iphoneos/libvideo_coding_utility.a"; sourceTree = SOURCE_ROOT; };
-		E2234C4018454BEF00F9E2C8 /* libvideo_engine_core.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libvideo_engine_core.a; path = "../../../libs/webrtc/xcodebuild/Debug-iphoneos/libvideo_engine_core.a"; sourceTree = SOURCE_ROOT; };
-		E2234C4118454BEF00F9E2C8 /* libvideo_processing.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libvideo_processing.a; path = "../../../libs/webrtc/xcodebuild/Debug-iphoneos/libvideo_processing.a"; sourceTree = SOURCE_ROOT; };
-		E2234C4218454BEF00F9E2C8 /* libvideo_render_module.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libvideo_render_module.a; path = "../../../libs/webrtc/xcodebuild/Debug-iphoneos/libvideo_render_module.a"; sourceTree = SOURCE_ROOT; };
-		E2234C4318454BEF00F9E2C8 /* libvoice_engine.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libvoice_engine.a; path = "../../../libs/webrtc/xcodebuild/Debug-iphoneos/libvoice_engine.a"; sourceTree = SOURCE_ROOT; };
-		E2234C4418454BEF00F9E2C8 /* libvpx_asm_offsets_vp8.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libvpx_asm_offsets_vp8.a; path = "../../../libs/webrtc/xcodebuild/Debug-iphoneos/libvpx_asm_offsets_vp8.a"; sourceTree = SOURCE_ROOT; };
-		E2234C4518454BEF00F9E2C8 /* libvpx_asm_offsets_vpx_scale.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libvpx_asm_offsets_vpx_scale.a; path = "../../../libs/webrtc/xcodebuild/Debug-iphoneos/libvpx_asm_offsets_vpx_scale.a"; sourceTree = SOURCE_ROOT; };
-		E2234C4618454BEF00F9E2C8 /* libvpx.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libvpx.a; path = "../../../libs/webrtc/xcodebuild/Debug-iphoneos/libvpx.a"; sourceTree = SOURCE_ROOT; };
-		E2234C4718454BEF00F9E2C8 /* libwebrtc_i420.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libwebrtc_i420.a; path = "../../../libs/webrtc/xcodebuild/Debug-iphoneos/libwebrtc_i420.a"; sourceTree = SOURCE_ROOT; };
-		E2234C4818454BEF00F9E2C8 /* libwebrtc_opus.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libwebrtc_opus.a; path = "../../../libs/webrtc/xcodebuild/Debug-iphoneos/libwebrtc_opus.a"; sourceTree = SOURCE_ROOT; };
-		E2234C4918454BEF00F9E2C8 /* libwebrtc_utility.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libwebrtc_utility.a; path = "../../../libs/webrtc/xcodebuild/Debug-iphoneos/libwebrtc_utility.a"; sourceTree = SOURCE_ROOT; };
-		E2234C4A18454BEF00F9E2C8 /* libwebrtc_video_coding.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libwebrtc_video_coding.a; path = "../../../libs/webrtc/xcodebuild/Debug-iphoneos/libwebrtc_video_coding.a"; sourceTree = SOURCE_ROOT; };
-		E2234C4B18454BEF00F9E2C8 /* libwebrtc_vp8.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libwebrtc_vp8.a; path = "../../../libs/webrtc/xcodebuild/Debug-iphoneos/libwebrtc_vp8.a"; sourceTree = SOURCE_ROOT; };
-		E2234C4C18454BEF00F9E2C8 /* libyuv.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libyuv.a; path = "../../../libs/webrtc/xcodebuild/Debug-iphoneos/libyuv.a"; sourceTree = SOURCE_ROOT; };
-		E2234C4D18454BEF00F9E2C8 /* libzsLib_ios.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libzsLib_ios.a; path = "../../../libs/zsLib/projects/xcode/zsLib_ios/build/Debug-iphoneos/libzsLib_ios.a"; sourceTree = SOURCE_ROOT; };
+		0063EB7A1846665E00A877C3 /* libcurl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcurl.a; path = ../../../libs/curl/staging/libcurl.a; sourceTree = "<group>"; };
+		E2234C1F18454BEF00F9E2C8 /* libaudio_coding_module.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libaudio_coding_module.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		E2234C2018454BEF00F9E2C8 /* libaudio_conference_mixer.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libaudio_conference_mixer.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		E2234C2118454BEF00F9E2C8 /* libaudio_device.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libaudio_device.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		E2234C2218454BEF00F9E2C8 /* libaudio_processing_neon.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libaudio_processing_neon.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		E2234C2318454BEF00F9E2C8 /* libaudio_processing.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libaudio_processing.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		E2234C2418454BEF00F9E2C8 /* libbitrate_controller.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libbitrate_controller.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		E2234C2518454BEF00F9E2C8 /* libchannel_transport.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libchannel_transport.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		E2234C2618454BEF00F9E2C8 /* libCNG.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libCNG.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		E2234C2718454BEF00F9E2C8 /* libcommon_audio_neon.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libcommon_audio_neon.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		E2234C2818454BEF00F9E2C8 /* libcommon_audio.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libcommon_audio.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		E2234C2918454BEF00F9E2C8 /* libcommon_video.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libcommon_video.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		E2234C2A18454BEF00F9E2C8 /* libcryptopp_ios.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libcryptopp_ios.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		E2234C2B18454BEF00F9E2C8 /* libG711.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libG711.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		E2234C2C18454BEF00F9E2C8 /* libG722.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libG722.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		E2234C2D18454BEF00F9E2C8 /* libhfservices_ios.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libhfservices_ios.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		E2234C2E18454BEF00F9E2C8 /* libiLBC.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libiLBC.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		E2234C2F18454BEF00F9E2C8 /* libisac_neon.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libisac_neon.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		E2234C3018454BEF00F9E2C8 /* libiSAC.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libiSAC.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		E2234C3118454BEF00F9E2C8 /* libiSACFix.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libiSACFix.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		E2234C3218454BEF00F9E2C8 /* libjpeg.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libjpeg.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		E2234C3318454BEF00F9E2C8 /* libmedia_file.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libmedia_file.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		E2234C3418454BEF00F9E2C8 /* libNetEq.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libNetEq.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		E2234C3518454BEF00F9E2C8 /* libNetEq4.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libNetEq4.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		E2234C3618454BEF00F9E2C8 /* libopus.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libopus.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		E2234C3718454BEF00F9E2C8 /* libortclib_ios.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libortclib_ios.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		E2234C3818454BEF00F9E2C8 /* libpaced_sender.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libpaced_sender.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		E2234C3918454BEF00F9E2C8 /* libPCM16B.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libPCM16B.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		E2234C3A18454BEF00F9E2C8 /* libremote_bitrate_estimator.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libremote_bitrate_estimator.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		E2234C3B18454BEF00F9E2C8 /* librtp_rtcp.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = librtp_rtcp.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		E2234C3C18454BEF00F9E2C8 /* libsystem_wrappers.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libsystem_wrappers.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		E2234C3D18454BEF00F9E2C8 /* libudns_ios.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libudns_ios.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		E2234C3E18454BEF00F9E2C8 /* libvideo_capture_module.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libvideo_capture_module.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		E2234C3F18454BEF00F9E2C8 /* libvideo_coding_utility.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libvideo_coding_utility.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		E2234C4018454BEF00F9E2C8 /* libvideo_engine_core.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libvideo_engine_core.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		E2234C4118454BEF00F9E2C8 /* libvideo_processing.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libvideo_processing.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		E2234C4218454BEF00F9E2C8 /* libvideo_render_module.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libvideo_render_module.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		E2234C4318454BEF00F9E2C8 /* libvoice_engine.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libvoice_engine.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		E2234C4418454BEF00F9E2C8 /* libvpx_asm_offsets_vp8.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libvpx_asm_offsets_vp8.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		E2234C4518454BEF00F9E2C8 /* libvpx_asm_offsets_vpx_scale.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libvpx_asm_offsets_vpx_scale.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		E2234C4618454BEF00F9E2C8 /* libvpx.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libvpx.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		E2234C4718454BEF00F9E2C8 /* libwebrtc_i420.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libwebrtc_i420.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		E2234C4818454BEF00F9E2C8 /* libwebrtc_opus.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libwebrtc_opus.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		E2234C4918454BEF00F9E2C8 /* libwebrtc_utility.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libwebrtc_utility.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		E2234C4A18454BEF00F9E2C8 /* libwebrtc_video_coding.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libwebrtc_video_coding.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		E2234C4B18454BEF00F9E2C8 /* libwebrtc_vp8.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libwebrtc_vp8.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		E2234C4C18454BEF00F9E2C8 /* libyuv.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libyuv.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		E2234C8A18454DDA00F9E2C8 /* ortclib_ios.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = ortclib_ios.xcodeproj; path = ../ortclib_ios/ortclib_ios.xcodeproj; sourceTree = "<group>"; };
 		E2234C9018454DF400F9E2C8 /* hfservices_ios.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = hfservices_ios.xcodeproj; path = "../../../libs/op-services-cpp/projects/xcode/hfservices_ios/hfservices_ios.xcodeproj"; sourceTree = "<group>"; };
 		E2234C9618454E1700F9E2C8 /* webrtc_ios.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = webrtc_ios.xcodeproj; path = ../../../libs/webrtc/webrtc_ios.xcodeproj; sourceTree = "<group>"; };
 		E2234C9A18454E2C00F9E2C8 /* zsLib_ios.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = zsLib_ios.xcodeproj; path = ../../../libs/zsLib/projects/xcode/zsLib_ios/zsLib_ios.xcodeproj; sourceTree = "<group>"; };
 		E2234CA018454E5800F9E2C8 /* udns_ios.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = udns_ios.xcodeproj; path = ../../../libs/udns/projects/xcode/udns_ios/udns_ios.xcodeproj; sourceTree = "<group>"; };
-		E2234CA618454E6F00F9E2C8 /* cryptopp_ios.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = cryptopp_ios.xcodeproj; path = ../../../../cryptopp/projects/xcode/cryptopp_ios/cryptopp_ios.xcodeproj; sourceTree = "<group>"; };
+		E2234CA618454E6F00F9E2C8 /* cryptopp_ios.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = cryptopp_ios.xcodeproj; path = ../../../libs/cryptopp/projects/xcode/cryptopp_ios/cryptopp_ios.xcodeproj; sourceTree = "<group>"; };
 		E2234CDC1845500E00F9E2C8 /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
 		E2234CDE1845510000F9E2C8 /* CoreMedia.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMedia.framework; path = System/Library/Frameworks/CoreMedia.framework; sourceTree = SDKROOT; };
 		E2234CE01845513600F9E2C8 /* MobileCoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MobileCoreServices.framework; path = System/Library/Frameworks/MobileCoreServices.framework; sourceTree = SDKROOT; };
@@ -237,6 +238,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0063EB7B1846665E00A877C3 /* libcurl.a in Frameworks */,
 				E2234C4E18454BEF00F9E2C8 /* libaudio_coding_module.a in Frameworks */,
 				E2234C4F18454BEF00F9E2C8 /* libaudio_conference_mixer.a in Frameworks */,
 				E2234C5018454BEF00F9E2C8 /* libaudio_device.a in Frameworks */,
@@ -248,10 +250,8 @@
 				E2234C5618454BEF00F9E2C8 /* libcommon_audio_neon.a in Frameworks */,
 				E2234C5718454BEF00F9E2C8 /* libcommon_audio.a in Frameworks */,
 				E2234C5818454BEF00F9E2C8 /* libcommon_video.a in Frameworks */,
-				E2234C5918454BEF00F9E2C8 /* libcryptopp_ios.a in Frameworks */,
 				E2234C5A18454BEF00F9E2C8 /* libG711.a in Frameworks */,
 				E2234C5B18454BEF00F9E2C8 /* libG722.a in Frameworks */,
-				E2234C5C18454BEF00F9E2C8 /* libhfservices_ios.a in Frameworks */,
 				E2234C5D18454BEF00F9E2C8 /* libiLBC.a in Frameworks */,
 				E2234C5E18454BEF00F9E2C8 /* libisac_neon.a in Frameworks */,
 				E2234C5F18454BEF00F9E2C8 /* libiSAC.a in Frameworks */,
@@ -261,13 +261,11 @@
 				E2234C6318454BEF00F9E2C8 /* libNetEq.a in Frameworks */,
 				E2234C6418454BEF00F9E2C8 /* libNetEq4.a in Frameworks */,
 				E2234C6518454BEF00F9E2C8 /* libopus.a in Frameworks */,
-				E2234C6618454BEF00F9E2C8 /* libortclib_ios.a in Frameworks */,
 				E2234C6718454BEF00F9E2C8 /* libpaced_sender.a in Frameworks */,
 				E2234C6818454BEF00F9E2C8 /* libPCM16B.a in Frameworks */,
 				E2234C6918454BEF00F9E2C8 /* libremote_bitrate_estimator.a in Frameworks */,
 				E2234C6A18454BEF00F9E2C8 /* librtp_rtcp.a in Frameworks */,
 				E2234C6B18454BEF00F9E2C8 /* libsystem_wrappers.a in Frameworks */,
-				E2234C6C18454BEF00F9E2C8 /* libudns_ios.a in Frameworks */,
 				E2234C6D18454BEF00F9E2C8 /* libvideo_capture_module.a in Frameworks */,
 				E2234C6E18454BEF00F9E2C8 /* libvideo_coding_utility.a in Frameworks */,
 				E2234C6F18454BEF00F9E2C8 /* libvideo_engine_core.a in Frameworks */,
@@ -281,7 +279,11 @@
 				E2234C7918454BEF00F9E2C8 /* libwebrtc_video_coding.a in Frameworks */,
 				E2234C7A18454BEF00F9E2C8 /* libwebrtc_vp8.a in Frameworks */,
 				E2234C7B18454BEF00F9E2C8 /* libyuv.a in Frameworks */,
-				E2234C7C18454BEF00F9E2C8 /* libzsLib_ios.a in Frameworks */,
+				00D8BF9E18466FD80001A335 /* libortclib_ios.a in Frameworks */,
+				0071536E18466EE700110658 /* libhfservices_ios.a in Frameworks */,
+				00D8BF9D18466FD80001A335 /* libcryptopp_ios.a in Frameworks */,
+				00D8BF9F18466FD80001A335 /* libudns_ios.a in Frameworks */,
+				0097860D1846673E00743235 /* libzsLib_ios.a in Frameworks */,
 				E2234CED184553C400F9E2C8 /* AssetsLibrary.framework in Frameworks */,
 				E2234CEB1845533A00F9E2C8 /* boost.framework in Frameworks */,
 				E2234CE9184552E400F9E2C8 /* AudioToolbox.framework in Frameworks */,
@@ -297,86 +299,23 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		E2234C7D18454CDA00F9E2C8 /* Projects */ = {
+		0063EB3A184664FB00A877C3 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				E2234CA618454E6F00F9E2C8 /* cryptopp_ios.xcodeproj */,
-				E2234CA018454E5800F9E2C8 /* udns_ios.xcodeproj */,
-				E2234C9A18454E2C00F9E2C8 /* zsLib_ios.xcodeproj */,
-				E2234C9618454E1700F9E2C8 /* webrtc_ios.xcodeproj */,
-				E2234C9018454DF400F9E2C8 /* hfservices_ios.xcodeproj */,
-				E2234C8A18454DDA00F9E2C8 /* ortclib_ios.xcodeproj */,
-			);
-			name = Projects;
-			sourceTree = "<group>";
-		};
-		E2234C8B18454DDA00F9E2C8 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				E2234C8F18454DDA00F9E2C8 /* libortclib_ios.a */,
+				0063EB3E184664FB00A877C3 /* libcryptopp_ios.a */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		E2234C9118454DF400F9E2C8 /* Products */ = {
+		0063EB411846659500A877C3 /* Libraries */ = {
 			isa = PBXGroup;
 			children = (
-				E2234C9518454DF400F9E2C8 /* libhfservices_ios.a */,
+				0063EB7A1846665E00A877C3 /* libcurl.a */,
 			);
-			name = Products;
+			name = Libraries;
 			sourceTree = "<group>";
 		};
-		E2234C9718454E1700F9E2C8 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
-		E2234C9B18454E2C00F9E2C8 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				E2234C9F18454E2C00F9E2C8 /* libzsLib_ios.a */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
-		E2234CA118454E5800F9E2C8 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				E2234CA518454E5800F9E2C8 /* libudns_ios.a */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
-		E2234CA718454E6F00F9E2C8 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				E2234CAB18454E7000F9E2C8 /* libcryptopp_ios.a */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
-		E2F20053184413B3005234CC = {
-			isa = PBXGroup;
-			children = (
-				E2F200C618441BBF005234CC /* ortc */,
-				E2F20065184413B3005234CC /* ortclibTest_ios */,
-				E2F2005E184413B3005234CC /* Frameworks */,
-				E2F2005D184413B3005234CC /* Products */,
-				E2234C7D18454CDA00F9E2C8 /* Projects */,
-			);
-			sourceTree = "<group>";
-		};
-		E2F2005D184413B3005234CC /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				E2F2005C184413B3005234CC /* ortclibTest_ios.app */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
-		E2F2005E184413B3005234CC /* Frameworks */ = {
+		0063EB79184665F900A877C3 /* WebRTC libs */ = {
 			isa = PBXGroup;
 			children = (
 				E2234C1F18454BEF00F9E2C8 /* libaudio_coding_module.a */,
@@ -425,15 +364,94 @@
 				E2234C4A18454BEF00F9E2C8 /* libwebrtc_video_coding.a */,
 				E2234C4B18454BEF00F9E2C8 /* libwebrtc_vp8.a */,
 				E2234C4C18454BEF00F9E2C8 /* libyuv.a */,
-				E2234C4D18454BEF00F9E2C8 /* libzsLib_ios.a */,
+			);
+			name = "WebRTC libs";
+			sourceTree = "<group>";
+		};
+		E2234C7D18454CDA00F9E2C8 /* Projects */ = {
+			isa = PBXGroup;
+			children = (
+				E2234C8A18454DDA00F9E2C8 /* ortclib_ios.xcodeproj */,
+				E2234C9618454E1700F9E2C8 /* webrtc_ios.xcodeproj */,
+				E2234C9018454DF400F9E2C8 /* hfservices_ios.xcodeproj */,
+				E2234CA618454E6F00F9E2C8 /* cryptopp_ios.xcodeproj */,
+				E2234CA018454E5800F9E2C8 /* udns_ios.xcodeproj */,
+				E2234C9A18454E2C00F9E2C8 /* zsLib_ios.xcodeproj */,
+			);
+			name = Projects;
+			sourceTree = "<group>";
+		};
+		E2234C8B18454DDA00F9E2C8 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				E2234C8F18454DDA00F9E2C8 /* libortclib_ios.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		E2234C9118454DF400F9E2C8 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				E2234C9518454DF400F9E2C8 /* libhfservices_ios.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		E2234C9718454E1700F9E2C8 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		E2234C9B18454E2C00F9E2C8 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				E2234C9F18454E2C00F9E2C8 /* libzsLib_ios.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		E2234CA118454E5800F9E2C8 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				E2234CA518454E5800F9E2C8 /* libudns_ios.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		E2F20053184413B3005234CC = {
+			isa = PBXGroup;
+			children = (
+				E2F200C618441BBF005234CC /* ortc */,
+				E2F20065184413B3005234CC /* ortclibTest_ios */,
+				E2F2005E184413B3005234CC /* Frameworks */,
+				0063EB79184665F900A877C3 /* WebRTC libs */,
+				0063EB411846659500A877C3 /* Libraries */,
+				E2F2005D184413B3005234CC /* Products */,
+				E2234C7D18454CDA00F9E2C8 /* Projects */,
+			);
+			sourceTree = "<group>";
+		};
+		E2F2005D184413B3005234CC /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				E2F2005C184413B3005234CC /* ortclibTest_ios.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		E2F2005E184413B3005234CC /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
 				E2234CEC184553C300F9E2C8 /* AssetsLibrary.framework */,
-				E2234CEA1845533A00F9E2C8 /* boost.framework */,
 				E2234CE8184552E400F9E2C8 /* AudioToolbox.framework */,
-				E2234CE01845513600F9E2C8 /* MobileCoreServices.framework */,
-				E2234CDE1845510000F9E2C8 /* CoreMedia.framework */,
 				E2234CDC1845500E00F9E2C8 /* AVFoundation.framework */,
-				E2F2005F184413B3005234CC /* Foundation.framework */,
+				E2234CEA1845533A00F9E2C8 /* boost.framework */,
 				E2F20061184413B3005234CC /* CoreGraphics.framework */,
+				E2234CDE1845510000F9E2C8 /* CoreMedia.framework */,
+				E2F2005F184413B3005234CC /* Foundation.framework */,
+				E2234CE01845513600F9E2C8 /* MobileCoreServices.framework */,
 				E2F20063184413B3005234CC /* UIKit.framework */,
 				E2F20078184413B3005234CC /* XCTest.framework */,
 			);
@@ -499,12 +517,12 @@
 			buildRules = (
 			);
 			dependencies = (
-				E2234CAD18454E9600F9E2C8 /* PBXTargetDependency */,
-				E2234CAF18454E9600F9E2C8 /* PBXTargetDependency */,
-				E2234CB118454E9600F9E2C8 /* PBXTargetDependency */,
+				0097860F1846676600743235 /* PBXTargetDependency */,
 				E2234CB318454E9600F9E2C8 /* PBXTargetDependency */,
-				E2234CB518454E9600F9E2C8 /* PBXTargetDependency */,
-				E2234CB718454E9600F9E2C8 /* PBXTargetDependency */,
+				009786111846676600743235 /* PBXTargetDependency */,
+				009786131846676600743235 /* PBXTargetDependency */,
+				009786151846676600743235 /* PBXTargetDependency */,
+				E2234CB118454E9600F9E2C8 /* PBXTargetDependency */,
 			);
 			name = ortclibTest_ios;
 			productName = ortclibTest_ios;
@@ -532,7 +550,7 @@
 			projectDirPath = "";
 			projectReferences = (
 				{
-					ProductGroup = E2234CA718454E6F00F9E2C8 /* Products */;
+					ProductGroup = 0063EB3A184664FB00A877C3 /* Products */;
 					ProjectRef = E2234CA618454E6F00F9E2C8 /* cryptopp_ios.xcodeproj */;
 				},
 				{
@@ -564,6 +582,13 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
+		0063EB3E184664FB00A877C3 /* libcryptopp_ios.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libcryptopp_ios.a;
+			remoteRef = 0063EB3D184664FB00A877C3 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
 		E2234C8F18454DDA00F9E2C8 /* libortclib_ios.a */ = {
 			isa = PBXReferenceProxy;
 			fileType = archive.ar;
@@ -590,13 +615,6 @@
 			fileType = archive.ar;
 			path = libudns_ios.a;
 			remoteRef = E2234CA418454E5800F9E2C8 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		E2234CAB18454E7000F9E2C8 /* libcryptopp_ios.a */ = {
-			isa = PBXReferenceProxy;
-			fileType = archive.ar;
-			path = libcryptopp_ios.a;
-			remoteRef = E2234CAA18454E7000F9E2C8 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 /* End PBXReferenceProxy section */
@@ -630,15 +648,25 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		E2234CAD18454E9600F9E2C8 /* PBXTargetDependency */ = {
+		0097860F1846676600743235 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = ortclib_ios;
+			targetProxy = 0097860E1846676600743235 /* PBXContainerItemProxy */;
+		};
+		009786111846676600743235 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = hfservices_ios;
+			targetProxy = 009786101846676600743235 /* PBXContainerItemProxy */;
+		};
+		009786131846676600743235 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = cryptopp_ios;
-			targetProxy = E2234CAC18454E9600F9E2C8 /* PBXContainerItemProxy */;
+			targetProxy = 009786121846676600743235 /* PBXContainerItemProxy */;
 		};
-		E2234CAF18454E9600F9E2C8 /* PBXTargetDependency */ = {
+		009786151846676600743235 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = udns_ios;
-			targetProxy = E2234CAE18454E9600F9E2C8 /* PBXContainerItemProxy */;
+			targetProxy = 009786141846676600743235 /* PBXContainerItemProxy */;
 		};
 		E2234CB118454E9600F9E2C8 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -649,16 +677,6 @@
 			isa = PBXTargetDependency;
 			name = All;
 			targetProxy = E2234CB218454E9600F9E2C8 /* PBXContainerItemProxy */;
-		};
-		E2234CB518454E9600F9E2C8 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = hfservices_ios;
-			targetProxy = E2234CB418454E9600F9E2C8 /* PBXContainerItemProxy */;
-		};
-		E2234CB718454E9600F9E2C8 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = ortclib_ios;
-			targetProxy = E2234CB618454E9600F9E2C8 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -701,6 +719,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
+				FRAMEWORK_SEARCH_PATHS = ../../../libs/boost/ios/framework;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
@@ -708,7 +727,6 @@
 					"DEBUG=1",
 					"$(inherited)",
 				);
-				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
@@ -717,7 +735,6 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
-					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
 					../../..,
 					../../../libs,
 					"../../../libs/op-services-cpp",
@@ -756,6 +773,7 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				COPY_PHASE_STRIP = YES;
 				ENABLE_NS_ASSERTIONS = NO;
+				FRAMEWORK_SEARCH_PATHS = ../../../libs/boost/ios/framework;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
@@ -765,7 +783,6 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
-					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
 					../../..,
 					../../../libs,
 					"../../../libs/op-services-cpp",
@@ -789,14 +806,14 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(inherited)",
-					"/Users/morosev/Repos/opios/libs/op/libs/ortc-lib/libs/boost/ios/framework",
-				);
+				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "ortclibTest_ios/ortclibTest_ios-Prefix.pch";
 				INFOPLIST_FILE = "ortclibTest_ios/ortclibTest_ios-Info.plist";
-				LIBRARY_SEARCH_PATHS = "$(inherited)";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"/Volumes/Hookflash/Repos/ios/opios/libs/op/libs/ortc-lib/libs/curl/staging",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				VALID_ARCHS = "armv7 armv7s";
 				WRAPPER_EXTENSION = app;
@@ -808,14 +825,14 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(inherited)",
-					"/Users/morosev/Repos/opios/libs/op/libs/ortc-lib/libs/boost/ios/framework",
-				);
+				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "ortclibTest_ios/ortclibTest_ios-Prefix.pch";
 				INFOPLIST_FILE = "ortclibTest_ios/ortclibTest_ios-Info.plist";
-				LIBRARY_SEARCH_PATHS = "$(inherited)";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"/Volumes/Hookflash/Repos/ios/opios/libs/op/libs/ortc-lib/libs/curl/staging",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				VALID_ARCHS = "armv7 armv7s";
 				WRAPPER_EXTENSION = app;
