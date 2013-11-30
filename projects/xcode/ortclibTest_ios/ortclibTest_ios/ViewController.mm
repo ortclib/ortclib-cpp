@@ -1,16 +1,32 @@
 #import "ViewController.h"
 #import "MediaManagerDelegateWrapper.h"
 #include <ortc/internal/ortc_MediaManager.h>
+#include <ortc/internal/ortc_MediaStream.h>
+#include <ortc/internal/ortc_MediaStreamTrack.h>
 #include <ortc/test/TestMediaEngine.h>
 
 @implementation ViewController
 
 -(IBAction)test1
 {
+    IMediaManager::setup(mediaManagerDelegatePtr);
+  
+    IMediaManagerPtr mediaManager = IMediaManager::singleton();
+  
+    mediaManager->getUserMedia(IMediaManager::MediaStreamConstraints());
 }
 
 -(IBAction)test2
 {
+    ortc::MediaStreamTrackListPtr audioTracks = mediaStreamPtr->getAudioTracks();
+    ortc::MediaStreamTrackListPtr videoTracks = mediaStreamPtr->getVideoTracks();
+  
+    ortc::internal::LocalAudioStreamTrackPtr localAudioStreamTrack =
+        boost::dynamic_pointer_cast<ortc::internal::LocalAudioStreamTrack>(audioTracks->front());
+    ortc::internal::LocalVideoStreamTrackPtr localVideoStreamTrack =
+        boost::dynamic_pointer_cast<ortc::internal::LocalVideoStreamTrack>(videoTracks->front());
+  
+    localVideoStreamTrack->forMediaManager().setRenderView((__bridge void*)_imgView1);
 }
 
 -(IBAction)test3
@@ -29,6 +45,11 @@
 {
 }
 
+-(void)setMediaStream:(ortc::IMediaStreamPtr)stream
+{
+    mediaStreamPtr = stream;
+}
+
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
 {
     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
@@ -45,7 +66,6 @@
     ortc::test::TestMediaEngineFactoryPtr overrideFactory(new ortc::test::TestMediaEngineFactory);
   
     ortc::internal::Factory::override(overrideFactory);
-  
   
 //    IClient::setLogLevel(IClient::Log::Trace);
 //    IClient::setLogLevel("ortclib", IClient::Log::Debug);         // recommend Debug

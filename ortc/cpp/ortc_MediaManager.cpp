@@ -55,6 +55,19 @@ namespace ortc
     {
     }
     
+    //-----------------------------------------------------------------------
+    MediaManagerPtr MediaManager::singleton(IMediaManagerDelegatePtr delegate)
+    {
+      static MediaManagerPtr engine = MediaManager::create(IMessageQueuePtr(), delegate);
+      return engine;
+    }
+    
+    //-----------------------------------------------------------------------
+    void MediaManager::setup(IMediaManagerDelegatePtr delegate)
+    {
+      singleton(delegate);
+    }
+
     //-------------------------------------------------------------------------
     MediaManagerPtr MediaManager::create(IMessageQueuePtr queue, IMediaManagerDelegatePtr delegate)
     {
@@ -245,4 +258,11 @@ namespace ortc
   {
     return internal::MediaManager::singleton();
   }
+  
+  //-----------------------------------------------------------------------
+  void IMediaManager::setup(IMediaManagerDelegatePtr delegate)
+  {
+    internal::MediaManager::setup(delegate);
+  }
+  
 }

@@ -111,6 +111,8 @@ namespace ortc
     
     static IMediaManagerPtr singleton();
     
+    static void setup(IMediaManagerDelegatePtr delegate);
+
     virtual void getUserMedia(MediaStreamConstraints constraints) = 0;
     
     virtual void setDefaultVideoOrientation(VideoOrientations orientation) = 0;

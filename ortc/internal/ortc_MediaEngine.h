@@ -190,6 +190,10 @@ namespace ortc
       
       void init();
       
+      static MediaEnginePtr singleton(IMediaEngineDelegatePtr delegate = IMediaEngineDelegatePtr());
+      
+      static void setup(IMediaEngineDelegatePtr delegate);
+
       static MediaEnginePtr create(IMediaEngineDelegatePtr delegate);
 
       void destroyMediaEngine();
@@ -202,10 +206,6 @@ namespace ortc
       #pragma mark
       #pragma mark MediaEngine => IMediaEngine
       #pragma mark
-      
-      static MediaEnginePtr singleton(IMediaEngineDelegatePtr delegate = IMediaEngineDelegatePtr());
-      
-      static void setup(IMediaEngineDelegatePtr delegate);
 
       virtual void setDefaultVideoOrientation(CapturedFrameOrientation orientation);
       virtual CapturedFrameOrientation getDefaultVideoOrientation();

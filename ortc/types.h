@@ -91,7 +91,7 @@ namespace ortc
   typedef boost::shared_ptr<IRTCStream> IRTCStreamPtr;
   typedef boost::weak_ptr<IRTCStream> IRTCStreamWeakPtr;
   
-  typedef std::list<IRTCStream> RTCStreamList;
+  typedef std::list<IRTCStreamPtr> RTCStreamList;
   typedef boost::shared_ptr<RTCStreamList> RTCStreamListPtr;
   typedef boost::weak_ptr<RTCStreamList> RTCStreamListWeakPtr;
 
@@ -99,7 +99,7 @@ namespace ortc
   typedef boost::shared_ptr<IRTCTrack> IRTCTrackPtr;
   typedef boost::weak_ptr<IRTCTrack> IRTCTrackWeakPtr;
   
-  typedef std::list<IRTCTrack> RTCTrackList;
+  typedef std::list<IRTCTrackPtr> RTCTrackList;
   typedef boost::shared_ptr<RTCTrackList> RTCTrackListPtr;
   typedef boost::weak_ptr<RTCTrackList> RTCTrackListWeakPtr;
 
@@ -143,7 +143,7 @@ namespace ortc
   typedef boost::shared_ptr<IMediaStreamTrack> IMediaStreamTrackPtr;
   typedef boost::weak_ptr<IMediaStreamTrack> IMediaStreamTrackWeakPtr;
   
-  typedef std::list<IMediaStreamTrack> MediaStreamTrackList;
+  typedef std::list<IMediaStreamTrackPtr> MediaStreamTrackList;
   typedef boost::shared_ptr<MediaStreamTrackList> MediaStreamTrackListPtr;
   typedef boost::weak_ptr<MediaStreamTrackList> MediaStreamTrackListWeakPtr;
 

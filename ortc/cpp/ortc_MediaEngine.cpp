@@ -63,6 +63,26 @@ namespace ortc
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     #pragma mark
+    #pragma mark IMediaEngine
+    #pragma mark
+    
+    //-------------------------------------------------------------------------
+    IMediaEnginePtr IMediaEngine::singleton()
+    {
+      return MediaEngine::singleton();
+    }
+    
+    //-----------------------------------------------------------------------
+    void IMediaEngine::setup(IMediaEngineDelegatePtr delegate)
+    {
+      MediaEngine::setup(delegate);
+    }
+    
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    #pragma mark
     #pragma mark MediaEngine
     #pragma mark
     
@@ -383,21 +403,27 @@ namespace ortc
         }
       }
     }
-    
-    //-----------------------------------------------------------------------
-    MediaEnginePtr MediaEngine::create(IMediaEngineDelegatePtr delegate)
-    {
-      MediaEnginePtr pThis;//(new MediaEngine(IStackForInternal::queueCore(), delegate));
-      pThis->mThisWeak = pThis;
-      pThis->init();
-      return pThis;
-    }
 
     //-----------------------------------------------------------------------
     MediaEnginePtr MediaEngine::singleton(IMediaEngineDelegatePtr delegate)
     {
       static MediaEnginePtr engine = IMediaEngineFactory::singleton().createMediaEngine(delegate);
       return engine;
+    }
+    
+    //-----------------------------------------------------------------------
+    void MediaEngine::setup(IMediaEngineDelegatePtr delegate)
+    {
+      singleton(delegate);
+    }
+    
+    //-----------------------------------------------------------------------
+    MediaEnginePtr MediaEngine::create(IMediaEngineDelegatePtr delegate)
+    {
+      MediaEnginePtr pThis = MediaEnginePtr(new MediaEngine(IMessageQueuePtr(), delegate));
+      pThis->mThisWeak = pThis;
+      pThis->init();
+      return pThis;
     }
 
     //-----------------------------------------------------------------------
@@ -552,18 +578,6 @@ namespace ortc
     #pragma mark
     #pragma mark MediaEngine => IMediaEngine
     #pragma mark
-    
-    //-------------------------------------------------------------------------
-    IMediaEnginePtr IMediaEngine::singleton()
-    {
-      return internal::MediaEngine::singleton();
-    }
-    
-    //-----------------------------------------------------------------------
-    void IMediaEngine::setup(IMediaEngineDelegatePtr delegate)
-    {
-      MediaEngine::setup(delegate);
-    }
 
     //-------------------------------------------------------------------------
     void MediaEngine::setDefaultVideoOrientation(CapturedFrameOrientation orientation)

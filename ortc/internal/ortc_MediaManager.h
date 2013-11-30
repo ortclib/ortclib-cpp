@@ -50,12 +50,19 @@ namespace ortc
       public MessageQueueAssociator,
       public IMediaManager
     {
+    public:
+      friend interaction IMediaManager;
+
     protected:
       MediaManager(
                    IMessageQueuePtr queue,
                    IMediaManagerDelegatePtr delegate
                    );
       
+      static MediaManagerPtr singleton(IMediaManagerDelegatePtr delegate = IMediaManagerDelegatePtr());
+      
+      static void setup(IMediaManagerDelegatePtr delegate);
+
       static MediaManagerPtr create(IMessageQueuePtr queue, IMediaManagerDelegatePtr delegate);
       
     public:
