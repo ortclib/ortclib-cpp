@@ -489,6 +489,10 @@ namespace ortc
     //-------------------------------------------------------------------------
     void ICETransport::onICESocketCandidatesChanged(IICESocketPtr socket)
     {
+      ZS_LOG_DEBUG(log("ice socket candidates"))
+
+      AutoRecursiveLock lock(getLock());
+      step();
     }
 
 
