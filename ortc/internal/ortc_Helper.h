@@ -32,8 +32,23 @@
 #pragma once
 
 #include <ortc/internal/types.h>
+#include <ortc/IHelper.h>
 
-#include <ortc/ortc.h>
+namespace ortc
+{
+  namespace internal
+  {
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark Helper
+    #pragma mark
 
-#include <ortc/internal/ortc_ICETransport.h>
-#include <ortc/internal/ortc_MediaEngine.h>
+    class Helper : public IHelper
+    {
+    public:
+    };
+  }
+}

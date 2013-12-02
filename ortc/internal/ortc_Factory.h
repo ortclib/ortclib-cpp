@@ -1,6 +1,6 @@
 /*
 
- Copyright (c) 2013, SMB Phone Inc. / Hookflash Inc.
+ Copyright (c) 2013, SMB Phone Inc.
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -26,14 +26,48 @@
  The views and conclusions contained in the software and documentation are those
  of the authors and should not be interpreted as representing official policies,
  either expressed or implied, of the FreeBSD Project.
- 
+
  */
 
 #pragma once
 
-#include <ortc/internal/types.h>
+#include <ortc/internal/ortc.h>
 
-#include <ortc/ortc.h>
+namespace ortc
+{
+  namespace internal
+  {
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark Factory
+    #pragma mark
 
-#include <ortc/internal/ortc_ICETransport.h>
-#include <ortc/internal/ortc_MediaEngine.h>
+    class Factory : public IMediaEngineFactory,
+                    public IICETransportFactory
+    {
+    public:
+      static void override(FactoryPtr override);
+
+      static FactoryPtr &singleton();
+
+    protected:
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark Factory => (internal)
+      #pragma mark
+
+      static FactoryPtr create();
+
+    protected:
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark Factory => (data)
+      #pragma mark
+
+      FactoryPtr mOverride;
+    };
+  }
+}

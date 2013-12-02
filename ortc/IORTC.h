@@ -31,9 +31,27 @@
 
 #pragma once
 
-#include <ortc/internal/types.h>
+#include <ortc/types.h>
 
-#include <ortc/ortc.h>
+namespace ortc
+{
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IORTC
+  #pragma mark
 
-#include <ortc/internal/ortc_ICETransport.h>
-#include <ortc/internal/ortc_MediaEngine.h>
+  interaction IORTC
+  {
+    static IORTCPtr singleton();
+
+    static void setup(
+                      IMessageQueuePtr defaultDelegateMessageQueue,
+                      IMessageQueuePtr ortcMessageQueue
+                      );
+
+    virtual PUID getID() const = 0;
+  };
+}
