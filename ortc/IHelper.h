@@ -31,9 +31,21 @@
 
 #pragma once
 
-#include <ortc/internal/types.h>
+#include <ortc/types.h>
 
-#include <ortc/ortc.h>
+namespace ortc
+{
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IHelper
+  #pragma mark
 
-#include <ortc/internal/ortc_ICETransport.h>
-#include <ortc/internal/ortc_MediaEngine.h>
+  interaction IHelper
+  {
+    static String toString(ElementPtr el);
+    static ElementPtr toJSON(const char *str);
+  };
+}

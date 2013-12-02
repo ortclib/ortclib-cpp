@@ -32,4 +32,5 @@
 #pragma once
 
 #include <ortc/types.h>
+#include <ortc/IORTC.h>
 #include <ortc/IICETransport.h>

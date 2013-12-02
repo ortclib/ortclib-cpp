@@ -1,6 +1,6 @@
 /*
 
- Copyright (c) 2013, SMB Phone Inc.
+ Copyright (c) 2013, SMB Phone Inc. / Hookflash Inc.
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -26,12 +26,16 @@
  The views and conclusions contained in the software and documentation are those
  of the authors and should not be interpreted as representing official policies,
  either expressed or implied, of the FreeBSD Project.
-
+ 
  */
 
-#pragma once
+#include <ortc/internal/ortc_Helper.h>
+#include <openpeer/services/IHelper.h>
 
-#include <ortc/internal/ortc.h>
+#include <zsLib/Log.h>
+#include <zsLib/XML.h>
+
+namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib) }
 
 namespace ortc
 {
@@ -42,32 +46,36 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark Factory
+    #pragma mark (helpers)
     #pragma mark
 
-    class Factory : public IMediaEngineFactory,
-                    public IICETransportFactory
-    {
-    public:
-      static void override(FactoryPtr override);
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark Helper
+    #pragma mark
 
-      static FactoryPtr &singleton();
+  }
 
-    protected:
-      //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark Factory => (internal)
-      #pragma mark
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IHelper
+  #pragma mark
 
-      static FactoryPtr create();
+  //---------------------------------------------------------------------------
+  String IHelper::toString(ElementPtr el)
+  {
+    return openpeer::services::IHelper::toString(el);
+  }
 
-    protected:
-      //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark Factory => (data)
-      #pragma mark
-
-      FactoryPtr mOverride;
-    };
+  //---------------------------------------------------------------------------
+  ElementPtr IHelper::toJSON(const char *str)
+  {
+    return openpeer::services::IHelper::toJSON(str);
   }
 }
