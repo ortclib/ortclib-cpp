@@ -1,17 +1,17 @@
 /*
- 
+
  Copyright (c) 2013, SMB Phone Inc. / Hookflash Inc.
  All rights reserved.
- 
+
  Redistribution and use in source and binary forms, with or without
  modification, are permitted provided that the following conditions are met:
- 
+
  1. Redistributions of source code must retain the above copyright notice, this
  list of conditions and the following disclaimer.
  2. Redistributions in binary form must reproduce the above copyright notice,
  this list of conditions and the following disclaimer in the documentation
  and/or other materials provided with the distribution.
- 
+
  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -22,16 +22,19 @@
  ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- 
+
  The views and conclusions contained in the software and documentation are those
  of the authors and should not be interpreted as representing official policies,
  either expressed or implied, of the FreeBSD Project.
  
  */
 
-#include <ortc/internal/ortc_Factory.h>
+#include <ortc/internal/ortc_ORTC.h>
+
+#include <openpeer/services/IHelper.h>
 
 #include <zsLib/Log.h>
+#include <zsLib/XML.h>
 
 namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib) }
 
@@ -39,34 +42,26 @@ namespace ortc
 {
   namespace internal
   {
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark (helper)
-    #pragma mark
+    using openpeer::services::IHelper;
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark Factory
+    #pragma mark IORTCForInternal
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void Factory::override(FactoryPtr override)
+    IMessageQueuePtr IORTCForInternal::queueDelegate()
     {
-      singleton()->mOverride = override;
+      return (ORTC::singleton())->queueDelegate();
     }
 
     //-------------------------------------------------------------------------
-    FactoryPtr &Factory::singleton()
+    IMessageQueuePtr IORTCForInternal::queueORTC()
     {
-      static FactoryPtr global = Factory::create();
-      if (global->mOverride) return global->mOverride;
-      return global;
+      return (ORTC::singleton())->queueORTC();
     }
 
     //-------------------------------------------------------------------------
@@ -74,13 +69,34 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark Factory => (internal)
+    #pragma mark ORTC
     #pragma mark
 
     //-------------------------------------------------------------------------
-    FactoryPtr Factory::create()
+    ORTC::ORTC()
     {
-      return FactoryPtr(new Factory);
+      ZS_LOG_DEBUG(log("created"))
+    }
+
+    //-------------------------------------------------------------------------
+    ORTC::~ORTC()
+    {
+      mThisWeak.reset();
+      ZS_LOG_DEBUG(log("destroyed"))
+    }
+
+    //-------------------------------------------------------------------------
+    ORTCPtr ORTC::convert(IORTCPtr object)
+    {
+      return boost::dynamic_pointer_cast<ORTC>(object);
+    }
+
+    //-------------------------------------------------------------------------
+    ORTCPtr ORTC::create()
+    {
+      ORTCPtr pThis(new ORTC());
+      pThis->mThisWeak = pThis;
+      return pThis;
     }
 
     //-------------------------------------------------------------------------
@@ -88,19 +104,34 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IMediaEngineFactory
+    #pragma mark ORTC => IORTC
     #pragma mark
 
     //-------------------------------------------------------------------------
-    IMediaEngineFactory &IMediaEngineFactory::singleton()
+    ORTCPtr ORTC::singleton()
     {
-      return *(Factory::singleton().get());
+      static ORTCPtr singleton = ORTC::create();
+      return singleton;
     }
 
     //-------------------------------------------------------------------------
-    MediaEnginePtr IMediaEngineFactory::createMediaEngine(IMediaEngineDelegatePtr delegate)
+    void ORTC::setup(
+                     IMessageQueuePtr defaultDelegateMessageQueue,
+                     IMessageQueuePtr ortcMessageQueue
+                     )
     {
-      return MediaEngine::create(delegate);
+      AutoRecursiveLock lock(mLock);
+
+      if (defaultDelegateMessageQueue) {
+        mDelegateQueue = defaultDelegateMessageQueue;
+      }
+
+      if (ortcMessageQueue) {
+        mORTCQueue = ortcMessageQueue;
+      }
+
+      ZS_THROW_INVALID_ARGUMENT_IF(!mDelegateQueue)
+      ZS_THROW_INVALID_ARGUMENT_IF(!mORTCQueue)
     }
 
     //-------------------------------------------------------------------------
@@ -108,23 +139,58 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IICESocketFactory
+    #pragma mark Stack => IORTCForInternal
     #pragma mark
 
     //-------------------------------------------------------------------------
-    IICETransportFactory &IICETransportFactory::singleton()
+    IMessageQueuePtr ORTC::queueDelegate() const
     {
-      return *(Factory::singleton().get());
+      return mDelegateQueue;
     }
 
     //-------------------------------------------------------------------------
-    ICETransportPtr IICETransportFactory::create(
-                                                 IICETransportDelegatePtr delegate,
-                                                 IICETransport::ServerListPtr servers
-                                                 )
+    IMessageQueuePtr ORTC::queueORTC() const
     {
-      return internal::ICETransport::create(delegate, servers);
+      return mORTCQueue;
     }
 
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark Stack => (internal)
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    Log::Params ORTC::log(const char *message) const
+    {
+      ElementPtr objectEl = Element::create("ortc::ORTC");
+      IHelper::debugAppend(objectEl, "id", mID);
+      return Log::Params(message, objectEl);
+    }
+  }
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IORTC
+  #pragma mark
+
+  //---------------------------------------------------------------------------
+  IORTCPtr IORTC::singleton()
+  {
+    return internal::ORTC::singleton();
+  }
+
+  //---------------------------------------------------------------------------
+  void IORTC::setup(
+                    IMessageQueuePtr defaultDelegateMessageQueue,
+                    IMessageQueuePtr ortcMessageQueue
+                    )
+  {
+    return internal::ORTC::singleton()->setup(defaultDelegateMessageQueue, ortcMessageQueue);
   }
 }

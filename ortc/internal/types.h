@@ -32,11 +32,13 @@
 #pragma once
 
 #include <ortc/types.h>
+#include <openpeer/services/types.h>
 
 namespace ortc
 {
   namespace internal
   {
+    using zsLib::string;
     using zsLib::Noop;
     using zsLib::MessageQueue;
     using zsLib::IMessageQueuePtr;
@@ -52,10 +54,41 @@ namespace ortc
     using zsLib::AutoRecursiveLock;
     using zsLib::Log;
     using zsLib::Stringize;
-    
+    using zsLib::AutoBool;
+    using zsLib::AutoPUID;
+    using zsLib::AutoWORD;
+
+    using openpeer::services::IHTTP;
+
+    using openpeer::services::IICESocket;
+    using openpeer::services::IICESocketPtr;
+    using openpeer::services::IICESocketSubscription;
+    using openpeer::services::IICESocketSubscriptionPtr;
+    using openpeer::services::IICESocketDelegate;
+    using openpeer::services::IICESocketDelegatePtr;
+
+    using openpeer::services::IICESocketSession;
+    using openpeer::services::IICESocketSessionPtr;
+    using openpeer::services::IICESocketSessionSubscription;
+    using openpeer::services::IICESocketSessionSubscriptionPtr;
+    using openpeer::services::IICESocketSessionDelegate;
+    using openpeer::services::IICESocketDelegate;
+    using openpeer::services::IICESocketDelegatePtr;
+
+    using openpeer::services::IWakeDelegate;
+    using openpeer::services::IWakeDelegateProxy;
+
     interaction Factory;
     typedef boost::shared_ptr<Factory> FactoryPtr;
     typedef boost::weak_ptr<Factory> FactoryWeakPtr;
+
+    class ORTC;
+    typedef boost::shared_ptr<ORTC> ORTCPtr;
+    typedef boost::weak_ptr<ORTC> ORTCWeakPtr;
+
+    class ICETransport;
+    typedef boost::shared_ptr<ICETransport> ICETransportPtr;
+    typedef boost::weak_ptr<ICETransport> ICETransportWeakPtr;
 
     class RTCConnection;
     typedef boost::shared_ptr<RTCConnection> RTCConnectionPtr;

@@ -37,6 +37,7 @@
 
 namespace ortc
 {
+  using zsLib::string;
   using zsLib::PUID;
   using zsLib::BYTE;
   using zsLib::WORD;
@@ -48,6 +49,10 @@ namespace ortc
   using zsLib::String;
   using zsLib::RecursiveLock;
   using zsLib::IPAddress;
+  using zsLib::IMessageQueue;
+  using zsLib::IMessageQueuePtr;
+  using zsLib::XML::Element;
+  using zsLib::XML::ElementPtr;
 
   using openpeer::services::SecureByteBlock;
   using openpeer::services::SecureByteBlockPtr;
@@ -59,6 +64,12 @@ namespace ortc
   #pragma mark
   #pragma mark (other)
   #pragma mark
+
+  interaction IORTC;
+  typedef boost::shared_ptr<IORTC> IORTCPtr;
+  typedef boost::weak_ptr<IORTC> IORTCWeakPtr;
+
+  interaction IHelper;
 
   interaction IICETransport;
   typedef boost::shared_ptr<IICETransport> IICETransportPtr;
