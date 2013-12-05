@@ -56,6 +56,13 @@ namespace ortc
                                    IMediaStreamDelegatePtr delegate
                                    );
       
+      virtual String id() = 0;
+      virtual MediaStreamTrackListPtr getAudioTracks() = 0;
+      virtual MediaStreamTrackListPtr getVideoTracks() = 0;
+      virtual IMediaStreamTrackPtr getTrackById(String trackId) = 0;
+      virtual void addTrack(IMediaStreamTrackPtr track) = 0;
+      virtual void removeTrack(IMediaStreamTrackPtr track) = 0;
+
       virtual String getCNAME() = 0;
       
       virtual void setVoiceRecordFile(String fileName) = 0;

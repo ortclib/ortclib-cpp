@@ -384,13 +384,6 @@ namespace ortc
     interaction ILocalVideoStreamTrackForMediaManager
     {
     public:
-      enum CameraTypes
-      {
-        CameraType_None,
-        CameraType_Front,
-        CameraType_Back
-      };
-      
       static const char *toString(CameraTypes type);
       
       ILocalVideoStreamTrackForMediaManager &forMediaManager() {return *this;}
@@ -694,6 +687,7 @@ namespace ortc
       
     protected:
       
+      void* mRenderView;
     };
     
     //-----------------------------------------------------------------------

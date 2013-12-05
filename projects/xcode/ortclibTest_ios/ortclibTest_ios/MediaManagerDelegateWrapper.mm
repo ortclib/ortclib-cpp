@@ -2,9 +2,14 @@
 
 #import "ViewController.h"
 
-MediaManagerDelegateWrapperPtr MediaManagerDelegateWrapper::create()
+MediaManagerDelegateWrapper::MediaManagerDelegateWrapper(ViewController* viewController) :
+  viewController(viewController)
 {
-  return MediaManagerDelegateWrapperPtr (new MediaManagerDelegateWrapper());
+}
+
+MediaManagerDelegateWrapperPtr MediaManagerDelegateWrapper::create(ViewController* viewController)
+{
+  return MediaManagerDelegateWrapperPtr (new MediaManagerDelegateWrapper(viewController));
 }
 
 void MediaManagerDelegateWrapper::onMediaManagerSuccessCallback(IMediaStreamPtr stream)

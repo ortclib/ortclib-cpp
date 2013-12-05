@@ -77,6 +77,13 @@ namespace ortc
 
     using openpeer::services::IWakeDelegate;
     using openpeer::services::IWakeDelegateProxy;
+    
+    enum CameraTypes
+    {
+      CameraType_None,
+      CameraType_Front,
+      CameraType_Back
+    };
 
     interaction Factory;
     typedef boost::shared_ptr<Factory> FactoryPtr;

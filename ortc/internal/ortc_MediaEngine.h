@@ -102,8 +102,8 @@ namespace ortc
       virtual void setFaceDetection(int captureId, bool faceDetection) = 0;
       virtual bool getFaceDetection(int captureId) = 0;
       
-      virtual uint32_t getCameraType(int captureId) const = 0;
-      virtual void setCameraType(int captureId, uint32_t captureIdx) = 0;
+      virtual CameraTypes getCameraType(int captureId) const = 0;
+      virtual void setCameraType(int captureId, CameraTypes type) = 0;
       
       virtual void startVideoCapture(int captureId) = 0;
       virtual void stopVideoCapture(int captureId) = 0;
@@ -233,8 +233,8 @@ namespace ortc
       virtual void setFaceDetection(int captureId, bool faceDetection);
       virtual bool getFaceDetection(int captureId);
       
-      virtual uint32_t getCameraType(int captureId) const;
-      virtual void setCameraType(int captureId, uint32_t captureIdx);
+      virtual CameraTypes getCameraType(int captureId) const;
+      virtual void setCameraType(int captureId, CameraTypes type);
       
       virtual void startVideoCapture(int captureId);
       virtual void stopVideoCapture(int captureId);
@@ -414,7 +414,7 @@ namespace ortc
       Transport *mVideoTransport;
       int mCaptureId;
       char mDeviceUniqueId[512];
-      uint32_t mCaptureIdx;
+      CameraTypes mCameraType;
       VideoCaptureModule *mVcpm;
       VideoEngine *mVideoEngine;
       VideoBase *mVideoBase;
@@ -445,7 +445,7 @@ namespace ortc
       bool mLifetimeHasRecordVideoCapture;
       
       bool mLifetimeInProgress;
-      uint32_t mLifetimeWantCaptureIdx;
+      CameraTypes mLifetimeWantCameraType;
       bool mLifetimeContinuousVideoCapture;
       
       String mLifetimeVideoRecordFile;

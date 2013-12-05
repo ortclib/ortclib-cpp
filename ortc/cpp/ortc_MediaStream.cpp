@@ -30,6 +30,7 @@
  */
 
 #include <ortc/internal/ortc_MediaStream.h>
+#include <ortc/internal/ortc_MediaStreamTrack.h>
 #include <zsLib/Log.h>
 
 namespace ortc { ZS_IMPLEMENT_SUBSYSTEM(ortclib) }
@@ -70,6 +71,8 @@ namespace ortc
       mError(0),
       mInactive(true)
     {
+      mAudioTracks = MediaStreamTrackListPtr(new MediaStreamTrackList());
+      mVideoTracks = MediaStreamTrackListPtr(new MediaStreamTrackList());
     }
     
     //-----------------------------------------------------------------------
@@ -94,13 +97,13 @@ namespace ortc
     //-----------------------------------------------------------------------
     MediaStreamTrackListPtr MediaStream::getAudioTracks()
     {
-      return MediaStreamTrackListPtr();
+      return mAudioTracks;
     }
     
     //-----------------------------------------------------------------------
     MediaStreamTrackListPtr MediaStream::getVideoTracks()
     {
-      return MediaStreamTrackListPtr();
+      return mVideoTracks;
     }
 
     //-----------------------------------------------------------------------
@@ -112,13 +115,31 @@ namespace ortc
     //-----------------------------------------------------------------------
     void MediaStream::addTrack(IMediaStreamTrackPtr track)
     {
-      
+      if (typeid(*track) == typeid(LocalAudioStreamTrack) || typeid(*track) == typeid(RemoteReceiveAudioStreamTrack) ||
+          typeid(*track) == typeid(RemoteSendAudioStreamTrack))
+      {
+        mAudioTracks->push_back(track);
+      }
+      else if (typeid(*track) == typeid(LocalVideoStreamTrack) || typeid(*track) == typeid(RemoteReceiveVideoStreamTrack) ||
+               typeid(*track) == typeid(RemoteSendVideoStreamTrack))
+      {
+        mVideoTracks->push_back(track);
+      }
     }
     
     //-----------------------------------------------------------------------
     void MediaStream::removeTrack(IMediaStreamTrackPtr track)
     {
-      
+      if (typeid(*track) == typeid(LocalAudioStreamTrack) || typeid(*track) == typeid(RemoteReceiveAudioStreamTrack) ||
+          typeid(*track) == typeid(RemoteSendAudioStreamTrack))
+      {
+        mAudioTracks->remove(track);
+      }
+      else if (typeid(*track) == typeid(LocalVideoStreamTrack) || typeid(*track) == typeid(RemoteReceiveVideoStreamTrack) ||
+               typeid(*track) == typeid(RemoteSendVideoStreamTrack))
+      {
+        mVideoTracks->remove(track);
+      }
     }
     
     //-----------------------------------------------------------------------
@@ -140,6 +161,12 @@ namespace ortc
     #pragma mark
     #pragma mark MediaStream => IMediaStreamForMediaManager
     #pragma mark
+    
+    //-------------------------------------------------------------------------
+    String MediaStream::getCNAME()
+    {
+      return String();
+    }
     
     //-------------------------------------------------------------------------
     void MediaStream::setVoiceRecordFile(String fileName)

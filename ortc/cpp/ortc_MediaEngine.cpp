@@ -107,7 +107,7 @@ namespace ortc
       mVideoChannel(ORTC_MEDIA_ENGINE_INVALID_CHANNEL),
       mVideoTransport(&mRedirectVideoTransport),
       mCaptureId(0),
-      mCaptureIdx(0),
+      mCameraType(CameraType_Front),
       mVoiceEngine(NULL),
       mVoiceBase(NULL),
       mVoiceCodec(NULL),
@@ -142,7 +142,7 @@ namespace ortc
       mLifetimeHasVideoChannel(false),
       mLifetimeHasRecordVideoCapture(false),
       mLifetimeInProgress(false),
-      mLifetimeWantCaptureIdx(0),
+      mLifetimeWantCameraType(CameraType_Front),
       mLifetimeContinuousVideoCapture(false),
       mLifetimeVideoRecordFile(""),
       mLifetimeSaveVideoToLibrary(false)
@@ -175,7 +175,7 @@ namespace ortc
       mVideoChannel(ORTC_MEDIA_ENGINE_INVALID_CHANNEL),
       mVideoTransport(&mRedirectVideoTransport),
       mCaptureId(0),
-      mCaptureIdx(0),
+      mCameraType(CameraType_Front),
       mVoiceEngine(NULL),
       mVoiceBase(NULL),
       mVoiceCodec(NULL),
@@ -210,7 +210,7 @@ namespace ortc
       mLifetimeHasVideoChannel(false),
       mLifetimeHasRecordVideoCapture(false),
       mLifetimeInProgress(false),
-      mLifetimeWantCaptureIdx(0),
+      mLifetimeWantCameraType(CameraType_Front),
       mLifetimeContinuousVideoCapture(false),
       mLifetimeVideoRecordFile(""),
       mLifetimeSaveVideoToLibrary(false)
@@ -840,18 +840,18 @@ namespace ortc
     }
     
     //-----------------------------------------------------------------------
-    uint32_t MediaEngine::getCameraType(int captureId) const
+    CameraTypes MediaEngine::getCameraType(int captureId) const
     {
       AutoRecursiveLock lock(mLifetimeLock);  // WARNING: THIS IS THE LIFETIME LOCK AND NOT THE MAIN OBJECT LOCK
-      return mLifetimeWantCaptureIdx;
+      return mLifetimeWantCameraType;
     }
     
     //-----------------------------------------------------------------------
-    void MediaEngine::setCameraType(int captureId, uint32_t captureIdx)
+    void MediaEngine::setCameraType(int captureId, CameraTypes type)
     {
       {
         AutoRecursiveLock lock(mLifetimeLock);
-        mLifetimeWantCaptureIdx = captureIdx;
+        mLifetimeWantCameraType = type;
       }
       
       ThreadPtr(new boost::thread(boost::ref(*((mThisWeak.lock()).get()))));
@@ -1273,7 +1273,7 @@ namespace ortc
       bool hasVideoCapture = false;
       bool hasVideoChannel = false;
       bool hasRecordVideoCapture = false;
-      uint32_t wantCaptureIdx = 0;
+      CameraTypes wantCameraType = CameraType_None;
       String videoRecordFile;
       bool saveVideoToLibrary;
       
@@ -1307,7 +1307,7 @@ namespace ortc
         hasVideoCapture = mLifetimeHasVideoCapture;
         hasVideoChannel = mLifetimeHasVideoChannel;
         hasRecordVideoCapture = mLifetimeHasRecordVideoCapture;
-        wantCaptureIdx = mLifetimeWantCaptureIdx;
+        wantCameraType = mLifetimeWantCameraType;
         videoRecordFile = mLifetimeVideoRecordFile;
         saveVideoToLibrary = mLifetimeSaveVideoToLibrary;
         break;
@@ -1317,9 +1317,9 @@ namespace ortc
         AutoRecursiveLock lock(mLock);
         
         if (wantVideoCapture) {
-          if (wantCaptureIdx != mCaptureIdx) {
-            //ZS_LOG_DEBUG(log("camera type needs to change") + ", was=" + Stringize<INT>(mCaptureIdx).string() + ", desired=" + Stringize<INT>(wantCaptureIdx).string())
-            mCaptureIdx = wantCaptureIdx;
+          if (wantCameraType != mCameraType) {
+            //ZS_LOG_DEBUG(log("camera type needs to change") + ZS_PARAM("was", IMediaEngine::toString(mCameraType)) + ZS_PARAM("desired", IMediaEngine::toString(wantCameraType)))
+            mCameraType = wantCameraType;
             if (hasVideoCapture) {
               //ZS_LOG_DEBUG(log("video capture must be stopped first before camera type can be swapped (will try again)"))
               wantVideoCapture = false;  // pretend that we don't want video so it will be stopped
@@ -1656,7 +1656,7 @@ namespace ortc
       {
         AutoRecursiveLock lock(mLock);
         
-        //ZS_LOG_DEBUG(log("start video capture - camera type: ") + (mCaptureIdx == 0 ? "back" : "front"))
+        //ZS_LOG_DEBUG(log("start video capture") + ZS_PARAM("camera type", mCameraType == CameraType_Back ? "back" : "front"))
         
         const unsigned int KMaxDeviceNameLength = 128;
         const unsigned int KMaxUniqueIdLength = 256;
@@ -1664,6 +1664,21 @@ namespace ortc
         memset(deviceName, 0, KMaxDeviceNameLength);
         char uniqueId[KMaxUniqueIdLength];
         memset(uniqueId, 0, KMaxUniqueIdLength);
+        uint32_t captureIdx;
+        
+        if (mCameraType == CameraType_Back)
+        {
+          captureIdx = 0;
+        }
+        else if (mCameraType == CameraType_Front)
+        {
+          captureIdx = 1;
+        }
+        else
+        {
+          //ZS_LOG_ERROR(Detail, log("camera type is not set"))
+          return;
+        }
         
 #if defined(TARGET_OS_IPHONE) || defined(__QNX__)
         void *captureView = mCaptureRenderView;
@@ -1683,7 +1698,7 @@ namespace ortc
           return;
         }
         
-        mError = devInfo->GetDeviceName(mCaptureIdx, deviceName,
+        mError = devInfo->GetDeviceName(captureIdx, deviceName,
                                         KMaxDeviceNameLength, uniqueId,
                                         KMaxUniqueIdLength);
         if (mError != 0) {
@@ -2222,185 +2237,206 @@ namespace ortc
       String iPhone5String("iPhone5");
       String iPodString("iPod");
       String iPod4String("iPod4,1");
-      if (mCaptureIdx == 0) {
+      String iPod5String("iPod5,1");
+      if (mCameraType == CameraType_Back) {
         if (orientation == webrtc::RotateCapturedFrame_0 || orientation == webrtc::RotateCapturedFrame_180) {
-          if (mMachineName.compare(0, iPod4String.size(), iPod4String) >= 0) {
-            width = 320;
-            height = 180;
+          if (mMachineName.compare(0, iPod5String.size(), iPod5String) >= 0) {
+            width = 960;
+            height = 540;
             maxFramerate = 15;
-            maxBitrate = 250;
+            maxBitrate = 500;
+          } else if (mMachineName.compare(0, iPod4String.size(), iPod4String) >= 0) {
+            width = 640;
+            height = 360;
+            maxFramerate = 15;
+            maxBitrate = 400;
           } else if (mMachineName.compare(0, iPodString.size(), iPodString) >= 0) {
             width = 160;
             height = 90;
             maxFramerate = 5;
             maxBitrate = 100;
           } else if (mMachineName.compare(0, iPhone5String.size(), iPhone5String) >= 0) {
-            width = 480;
-            height = 270;
+            width = 960;
+            height = 540;
             maxFramerate = 15;
-            maxBitrate = 300;
+            maxBitrate = 500;
           } else if (mMachineName.compare(0, iPhone4SString.size(), iPhone4SString) >= 0) {
-            width = 320;
-            height = 180;
+            width = 640;
+            height = 360;
             maxFramerate = 15;
-            maxBitrate = 250;
+            maxBitrate = 400;
           } else if (mMachineName.compare(0, iPhoneString.size(), iPhoneString) >= 0) {
             width = 160;
             height = 90;
             maxFramerate = 5;
             maxBitrate = 100;
           } else if (mMachineName.compare(0, iPadMiniString.size(), iPadMiniString) >= 0) {
-            width = 480;
-            height = 270;
+            width = 960;
+            height = 540;
             maxFramerate = 15;
-            maxBitrate = 250;
+            maxBitrate = 500;
           } else if (mMachineName.compare(0, iPad2String.size(), iPad2String) >= 0) {
-            width = 320;
-            height = 180;
+            width = 640;
+            height = 360;
             maxFramerate = 15;
-            maxBitrate = 250;
+            maxBitrate = 400;
           } else {
             //ZS_LOG_ERROR(Detail, log("machine name is not supported"))
             return -1;
           }
         } else if (orientation == webrtc::RotateCapturedFrame_90 || orientation == webrtc::RotateCapturedFrame_270) {
-          if (mMachineName.compare(0, iPod4String.size(), iPod4String) >= 0) {
-            width = 180;
-            height = 320;
+          if (mMachineName.compare(0, iPod5String.size(), iPod5String) >= 0) {
+            width = 540;
+            height = 960;
             maxFramerate = 15;
-            maxBitrate = 250;
+            maxBitrate = 500;
+          } else if (mMachineName.compare(0, iPod4String.size(), iPod4String) >= 0) {
+            width = 360;
+            height = 640;
+            maxFramerate = 15;
+            maxBitrate = 400;
           } else if (mMachineName.compare(0, iPodString.size(), iPodString) >= 0) {
             width = 90;
             height = 160;
             maxFramerate = 5;
             maxBitrate = 100;
           } else if (mMachineName.compare(0, iPhone5String.size(), iPhone5String) >= 0) {
-            width = 270;
-            height = 480;
+            width = 540;
+            height = 960;
             maxFramerate = 15;
-            maxBitrate = 300;
+            maxBitrate = 500;
           } else if (mMachineName.compare(0, iPhone4SString.size(), iPhone4SString) >= 0) {
-            width = 180;
-            height = 320;
+            width = 360;
+            height = 640;
             maxFramerate = 15;
-            maxBitrate = 250;
+            maxBitrate = 400;
           } else if (mMachineName.compare(0, iPhoneString.size(), iPhoneString) >= 0) {
             width = 90;
             height = 160;
             maxFramerate = 5;
             maxBitrate = 100;
           } else if (mMachineName.compare(0, iPadMiniString.size(), iPadMiniString) >= 0) {
-            width = 270;
-            height = 480;
+            width = 540;
+            height = 960;
             maxFramerate = 15;
-            maxBitrate = 250;
+            maxBitrate = 500;
           } else if (mMachineName.compare(0, iPad2String.size(), iPad2String) >= 0) {
-            width = 180;
-            height = 320;
+            width = 360;
+            height = 640;
             maxFramerate = 15;
-            maxBitrate = 250;
+            maxBitrate = 400;
           } else {
             //ZS_LOG_ERROR(Detail, log("machine name is not supported"))
             return -1;
           }
         }
-      } else if (mCaptureIdx == 1) {
+      } else if (mCameraType == CameraType_Front) {
         if (orientation == webrtc::RotateCapturedFrame_0 || orientation == webrtc::RotateCapturedFrame_180) {
-          if (mMachineName.compare(0, iPod4String.size(), iPod4String) >= 0) {
-            width = 320;
-            height = 240;
+          if (mMachineName.compare(0, iPod5String.size(), iPod5String) >= 0) {
+            width = 640;
+            height = 360;
             maxFramerate = 15;
-            maxBitrate = 250;
+            maxBitrate = 400;
+          } else if (mMachineName.compare(0, iPod4String.size(), iPod4String) >= 0) {
+            width = 640;
+            height = 480;
+            maxFramerate = 15;
+            maxBitrate = 400;
           } else if (mMachineName.compare(0, iPodString.size(), iPodString) >= 0) {
             width = 160;
             height = 120;
             maxFramerate = 5;
             maxBitrate = 100;
           } else if (mMachineName.compare(0, iPhone5String.size(), iPhone5String) >= 0) {
-            width = 320;
-            height = 180;
+            width = 640;
+            height = 360;
             maxFramerate = 15;
-            maxBitrate = 250;
+            maxBitrate = 400;
           } else if (mMachineName.compare(0, iPhone4SString.size(), iPhone4SString) >= 0) {
-            width = 320;
-            height = 240;
+            width = 640;
+            height = 480;
             maxFramerate = 15;
-            maxBitrate = 250;
+            maxBitrate = 400;
           } else if (mMachineName.compare(0, iPhoneString.size(), iPhoneString) >= 0) {
             width = 160;
             height = 120;
             maxFramerate = 5;
             maxBitrate = 100;
           } else if (mMachineName.compare(0, iPad4String.size(), iPad4String) >= 0) {
-            width = 320;
-            height = 180;
+            width = 640;
+            height = 360;
             maxFramerate = 15;
-            maxBitrate = 250;
+            maxBitrate = 400;
           } else if (mMachineName.compare(0, iPad3String.size(), iPad3String) >= 0) {
-            width = 320;
-            height = 240;
+            width = 640;
+            height = 480;
             maxFramerate = 15;
-            maxBitrate = 250;
+            maxBitrate = 400;
           } else if (mMachineName.compare(0, iPadMiniString.size(), iPadMiniString) >= 0) {
-            width = 320;
-            height = 180;
+            width = 640;
+            height = 360;
             maxFramerate = 15;
-            maxBitrate = 250;
+            maxBitrate = 400;
           } else if (mMachineName.compare(0, iPadString.size(), iPadString) >= 0) {
-            width = 320;
-            height = 240;
+            width = 640;
+            height = 480;
             maxFramerate = 15;
-            maxBitrate = 250;
+            maxBitrate = 400;
           } else {
             //ZS_LOG_ERROR(Detail, log("machine name is not supported"))
             return -1;
           }
         } else if (orientation == webrtc::RotateCapturedFrame_90 || orientation == webrtc::RotateCapturedFrame_270) {
-          if (mMachineName.compare(0, iPod4String.size(), iPod4String) >= 0) {
-            width = 240;
-            height = 320;
+          if (mMachineName.compare(0, iPod5String.size(), iPod5String) >= 0) {
+            width = 360;
+            height = 640;
             maxFramerate = 15;
-            maxBitrate = 250;
+            maxBitrate = 400;
+          } else if (mMachineName.compare(0, iPod4String.size(), iPod4String) >= 0) {
+            width = 480;
+            height = 640;
+            maxFramerate = 15;
+            maxBitrate = 400;
           } else if (mMachineName.compare(0, iPodString.size(), iPodString) >= 0) {
             width = 120;
             height = 160;
             maxFramerate = 5;
             maxBitrate = 100;
           } else if (mMachineName.compare(0, iPhone5String.size(), iPhone5String) >= 0) {
-            width = 180;
-            height = 320;
+            width = 360;
+            height = 640;
             maxFramerate = 15;
-            maxBitrate = 250;
+            maxBitrate = 400;
           } else if (mMachineName.compare(0, iPhone4SString.size(), iPhone4SString) >= 0) {
-            width = 240;
-            height = 320;
+            width = 480;
+            height = 640;
             maxFramerate = 15;
-            maxBitrate = 250;
+            maxBitrate = 400;
           } else if (mMachineName.compare(0, iPhoneString.size(), iPhoneString) >= 0) {
             width = 120;
             height = 160;
             maxFramerate = 5;
             maxBitrate = 100;
           } else if (mMachineName.compare(0, iPad4String.size(), iPad4String) >= 0) {
-            width = 180;
-            height = 320;
+            width = 360;
+            height = 640;
             maxFramerate = 15;
-            maxBitrate = 250;
+            maxBitrate = 400;
           } else if (mMachineName.compare(0, iPad3String.size(), iPad3String) >= 0) {
-            width = 240;
-            height = 320;
+            width = 480;
+            height = 640;
             maxFramerate = 15;
-            maxBitrate = 250;
+            maxBitrate = 400;
           } else if (mMachineName.compare(0, iPadMiniString.size(), iPadMiniString) >= 0) {
-            width = 180;
-            height = 320;
+            width = 360;
+            height = 640;
             maxFramerate = 15;
-            maxBitrate = 250;
+            maxBitrate = 400;
           } else if (mMachineName.compare(0, iPadString.size(), iPadString) >= 0) {
-            width = 240;
-            height = 320;
+            width = 480;
+            height = 640;
             maxFramerate = 15;
-            maxBitrate = 250;
+            maxBitrate = 400;
           } else {
             //ZS_LOG_ERROR(Detail, log("machine name is not supported"))
             return -1;

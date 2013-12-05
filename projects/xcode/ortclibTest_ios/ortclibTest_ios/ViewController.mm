@@ -27,10 +27,25 @@
         boost::dynamic_pointer_cast<ortc::internal::LocalVideoStreamTrack>(videoTracks->front());
   
     localVideoStreamTrack->forMediaManager().setRenderView((__bridge void*)_imgView1);
+  
+    localAudioStreamTrack->forMediaManager().start();
+    localVideoStreamTrack->forMediaManager().start();
+  
+//    testMediaEngineInternal->setReceiverAddress("127.0.0.1");
 }
 
 -(IBAction)test3
 {
+    ortc::MediaStreamTrackListPtr audioTracks = mediaStreamPtr->getAudioTracks();
+    ortc::MediaStreamTrackListPtr videoTracks = mediaStreamPtr->getVideoTracks();
+  
+    ortc::internal::LocalAudioStreamTrackPtr localAudioStreamTrack =
+    boost::dynamic_pointer_cast<ortc::internal::LocalAudioStreamTrack>(audioTracks->front());
+    ortc::internal::LocalVideoStreamTrackPtr localVideoStreamTrack =
+    boost::dynamic_pointer_cast<ortc::internal::LocalVideoStreamTrack>(videoTracks->front());
+  
+    localAudioStreamTrack->forMediaManager().stop();
+    localVideoStreamTrack->forMediaManager().stop();
 }
 
 -(IBAction)test4
@@ -61,7 +76,7 @@
 //    const char* receiverIPAddress = [receiverIPAddressTextField.text UTF8String];
 //    const char* receiverIPAddress = "127.0.0.1";
   
-    mediaManagerDelegatePtr = MediaManagerDelegateWrapper::create();
+    mediaManagerDelegatePtr = MediaManagerDelegateWrapper::create(self);
   
     ortc::test::TestMediaEngineFactoryPtr overrideFactory(new ortc::test::TestMediaEngineFactory);
   

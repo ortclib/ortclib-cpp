@@ -30,6 +30,7 @@
  */
 
 #include <ortc/internal/ortc_MediaStreamTrack.h>
+#include <ortc/internal/ortc_MediaEngine.h>
 #include <zsLib/Log.h>
 
 namespace ortc { ZS_IMPLEMENT_SUBSYSTEM(ortclib) }
@@ -449,7 +450,8 @@ namespace ortc
     
     //-------------------------------------------------------------------------
     VideoStreamTrack::VideoStreamTrack(IMessageQueuePtr queue, IMediaStreamTrackDelegatePtr delegate) :
-      MediaStreamTrack(queue, delegate)
+      MediaStreamTrack(queue, delegate),
+      mRenderView(NULL)
     {
       
     }
@@ -472,7 +474,11 @@ namespace ortc
     //-------------------------------------------------------------------------
     void VideoStreamTrack::setRenderView(void *renderView)
     {
+      mRenderView = renderView;
       
+      IMediaEnginePtr mediaEngine = IMediaEngine::singleton();
+      
+      mediaEngine->setRenderView(0, renderView);
     }
     
     //-----------------------------------------------------------------------
@@ -948,6 +954,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     void LocalVideoStreamTrack::start()
     {
+      IMediaEnginePtr mediaEngine = IMediaEngine::singleton();
+      
+      mediaEngine->startVideoCapture(0);
 
     }
     
@@ -982,7 +991,7 @@ namespace ortc
     }
     
     //-------------------------------------------------------------------------
-    ILocalVideoStreamTrackForMediaManager::CameraTypes LocalVideoStreamTrack::getCameraType() const
+    CameraTypes LocalVideoStreamTrack::getCameraType() const
     {
       return CameraType_None;
     }
@@ -996,7 +1005,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     void LocalVideoStreamTrack::setRenderView(void *renderView)
     {
-      
+      VideoStreamTrack::setRenderView(renderView);
     }
     
     //-------------------------------------------------------------------------
@@ -1131,7 +1140,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RemoteReceiveVideoStreamTrack::setRenderView(void *renderView)
     {
-      
+      VideoStreamTrack::setRenderView(renderView);
     }
     
     //-------------------------------------------------------------------------
@@ -1246,7 +1255,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RemoteSendVideoStreamTrack::setRenderView(void *renderView)
     {
-      
+      VideoStreamTrack::setRenderView(renderView);
     }
 
     //-------------------------------------------------------------------------

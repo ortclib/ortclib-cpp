@@ -30,6 +30,8 @@
  */
 
 #include <ortc/internal/ortc_MediaManager.h>
+#include <ortc/internal/ortc_MediaStream.h>
+#include <ortc/internal/ortc_MediaStreamTrack.h>
 #include <zsLib/Log.h>
 
 namespace ortc { ZS_IMPLEMENT_SUBSYSTEM(ortclib) }
@@ -58,8 +60,8 @@ namespace ortc
     //-----------------------------------------------------------------------
     MediaManagerPtr MediaManager::singleton(IMediaManagerDelegatePtr delegate)
     {
-      static MediaManagerPtr engine = MediaManager::create(IMessageQueuePtr(), delegate);
-      return engine;
+      static MediaManagerPtr manager = MediaManager::create(IMessageQueuePtr(), delegate);
+      return manager;
     }
     
     //-----------------------------------------------------------------------
@@ -92,6 +94,19 @@ namespace ortc
     //-----------------------------------------------------------------------
     void MediaManager::getUserMedia(MediaStreamConstraints constraints)
     {
+      MediaStreamPtr mediaStream = IMediaStreamForMediaManager::create(getAssociatedMessageQueue(), IMediaStreamDelegatePtr());
+      LocalAudioStreamTrackPtr localAudioStreamTrack = ILocalAudioStreamTrackForMediaManager::create(getAssociatedMessageQueue(), IMediaStreamTrackDelegatePtr());
+      LocalVideoStreamTrackPtr localVideoStreamTrack = ILocalVideoStreamTrackForMediaManager::create(getAssociatedMessageQueue(), IMediaStreamTrackDelegatePtr());
+
+      mediaStream->forMediaManager().addTrack(localAudioStreamTrack);
+      mediaStream->forMediaManager().addTrack(localVideoStreamTrack);
+      
+      try {
+        if (mDelegate)
+          mDelegate->onMediaManagerSuccessCallback(mediaStream);
+      } catch (IMediaStreamDelegateProxy::Exceptions::DelegateGone &) {
+        //ZS_LOG_WARNING(Detail, log("delegate gone"))
+      }
     }
     
     //-------------------------------------------------------------------------
