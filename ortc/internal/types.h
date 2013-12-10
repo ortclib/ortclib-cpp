@@ -93,9 +93,24 @@ namespace ortc
     typedef boost::shared_ptr<ORTC> ORTCPtr;
     typedef boost::weak_ptr<ORTC> ORTCWeakPtr;
 
+    class DTLSTransport;
+    typedef boost::shared_ptr<DTLSTransport> DTLSTransportPtr;
+    typedef boost::weak_ptr<DTLSTransport> DTLSTransportWeakPtr;
+
     class ICETransport;
     typedef boost::shared_ptr<ICETransport> ICETransportPtr;
     typedef boost::weak_ptr<ICETransport> ICETransportWeakPtr;
+
+    class RTPSender;
+    typedef boost::shared_ptr<RTPSender> RTPSenderPtr;
+    typedef boost::weak_ptr<RTPSender> RTPSenderWeakPtr;
+
+    class RTPReceiver;
+    typedef boost::shared_ptr<RTPReceiver> RTPReceiverPtr;
+    typedef boost::weak_ptr<RTPReceiver> RTPReceiverWeakPtr;
+
+
+
 
     class RTCConnection;
     typedef boost::shared_ptr<RTCConnection> RTCConnectionPtr;

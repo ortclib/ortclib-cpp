@@ -35,5 +35,7 @@
 
 #include <ortc/ortc.h>
 
+#include <ortc/internal/ortc_DTLSTransport.h>
 #include <ortc/internal/ortc_ICETransport.h>
+#include <ortc/internal/ortc_RTPSender.h>
 #include <ortc/internal/ortc_MediaEngine.h>

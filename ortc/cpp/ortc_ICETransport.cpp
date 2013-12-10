@@ -30,6 +30,7 @@
  */
 
 #include <ortc/internal/ortc_ICETransport.h>
+#include <ortc/internal/ortc_DTLSTransport.h>
 #include <ortc/internal/ortc_ORTC.h>
 
 #include <openpeer/services/IHelper.h>
@@ -170,6 +171,20 @@ namespace ortc
       result->mRelatedIP = source.mRelatedAddress;
 
       return result;
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IICETransportForDTLS
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    ElementPtr IICETransportForDTLS::toDebug(ForDTLSPtr transport)
+    {
+      return ICETransport::toDebug(boost::dynamic_pointer_cast<ICETransport>(transport));
     }
 
     //-------------------------------------------------------------------------
@@ -454,6 +469,84 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
+    #pragma mark ICETransport => IICETransportForDTLS
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    void ICETransport::attach(DTLSTransportPtr inDtlsTransport)
+    {
+      RelatedDTLSTransportPtr dtlsTransport = inDtlsTransport;
+
+      AutoRecursiveLock lock(getLock());
+
+      if ((isShuttingDown()) ||
+          (isShutdown())) {
+        ZS_LOG_WARNING(Detail, log("attempting to attach DTLS to a closed ice transport"))
+        return;
+      }
+
+      mAttachedDTLSTransportID = (dtlsTransport ? dtlsTransport->getID() : 0);
+      mDTLSTransport = dtlsTransport;
+
+      // kick start step just in case
+      IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
+    }
+
+    //-------------------------------------------------------------------------
+    void ICETransport::detach(DTLSTransport &inDtlsTransport)
+    {
+      RelatedDTLSTransport &dtlsTransport = inDtlsTransport;
+
+      AutoRecursiveLock lock(getLock());
+
+      if ((isShuttingDown()) ||
+          (isShutdown())) {
+        ZS_LOG_TRACE(log("attempting to detach DTLS from a closed ice transport (probably okay)"))
+        return;
+      }
+
+      PUID id = dtlsTransport.getID();
+
+      if (id != mAttachedDTLSTransportID) {
+        ZS_LOG_WARNING(Detail, log("detaching transport was not attached") + ZS_PARAM("attached", mAttachedDTLSTransportID) + ZS_PARAM("detaching", id))
+        return;
+      }
+
+      mAttachedDTLSTransportID = 0;
+      mDTLSTransport.reset();
+
+      // kick start step just in case
+      IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
+    }
+
+    //-------------------------------------------------------------------------
+    bool ICETransport::sendPacket(
+                                  const BYTE *buffer,
+                                  size_t bufferLengthInBytes
+                                  ) const
+    {
+      ZS_LOG_TRACE(log("sending packet over ICE socket session") + ZS_PARAM("legnth", bufferLengthInBytes))
+
+      IICESocketSessionPtr session;
+
+      {
+        AutoRecursiveLock lock(getLock());
+        if (!mSession) {
+          ZS_LOG_WARNING(Debug, log("ice socket session is gone"))
+          return false;
+        }
+
+        session = mSession;
+      }
+
+      return session->sendPacket(buffer, bufferLengthInBytes);
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
     #pragma mark ICETransport => IWakeDelegate
     #pragma mark
 
@@ -533,8 +626,26 @@ namespace ortc
                                                             size_t bufferLengthInBytes
                                                             )
     {
-#define WIRE_TO_WEBRTC_RTP_LATER 1
-#define WIRE_TO_WEBRTC_RTP_LATER 2
+      ZS_THROW_INVALID_ARGUMENT_IF(!buffer)
+      ZS_THROW_INVALID_ARGUMENT_IF(bufferLengthInBytes < 1) // why is an empty packet being sent?
+
+      ZS_LOG_TRACE(log("packet received from network") + ZS_PARAM("internal ice session", session->getID()) + ZS_PARAM("length", bufferLengthInBytes))
+
+      RelatedDTLSTransportPtr dltsTransport;
+
+      {
+        AutoRecursiveLock lock(getLock());
+        dltsTransport = mDTLSTransport.lock();
+      }
+
+      if (!dltsTransport) {
+        ZS_LOG_WARNING(Debug, log("no dtls transport is attached (dropping packet)"))
+        return;
+      }
+
+      // WARNING: perform forwarding of packet outside lock
+
+      dltsTransport->handleReceivedPacket(mThisWeak.lock(), buffer, bufferLengthInBytes);
     }
 
     //-------------------------------------------------------------------------
@@ -616,6 +727,9 @@ namespace ortc
       OPIHelper::debugAppend(resultEl, "pending remote candidates", mPendingRemoteCandidates.size());
       OPIHelper::debugAppend(resultEl, "added remote candidates", mAddedRemoteCandidates.size());
 
+      OPIHelper::debugAppend(resultEl, "dtls transport id", mAttachedDTLSTransportID);
+      OPIHelper::debugAppend(resultEl, "dtls transport", (bool)mDTLSTransport.lock());
+
       return resultEl;
     }
 
@@ -645,6 +759,8 @@ namespace ortc
       }
 
       if (!stepSocketCreate()) return;
+      if (!stepSocket()) return;
+      if (!stepSession()) return;
     }
 
     //-------------------------------------------------------------------------
@@ -991,7 +1107,10 @@ namespace ortc
       mSocket.reset();
       mSession.reset();
 
-      mCurrentState = ConnectionState_Closed;
+      mDTLSTransport.reset();
+
+      mAttachedDTLSTransportID = 0;
+      setState(ConnectionState_Closed);
 
       // make sure to cleanup any final reference to self
       mGracefulShutdownReference.reset();
@@ -1246,7 +1365,7 @@ namespace ortc
   //---------------------------------------------------------------------------
   ElementPtr IICETransport::TransportInfo::toDebug() const
   {
-    ElementPtr resultEl = Element::create("ortc::IICETransport::ServerInfo");
+    ElementPtr resultEl = Element::create("ortc::IICETransport::TransportInfo");
     OPIHelper::debugAppend(resultEl, "usernameFrag", mUsernameFrag);
     OPIHelper::debugAppend(resultEl, "password", mPassword);
 
