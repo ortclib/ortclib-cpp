@@ -1000,13 +1000,14 @@ namespace ortc
       mPendingRemoteCandidates.clear();
 
       if (!mSession) {
-        mSession = mSocket->createSessionFromRemoteCandidates(
-                                                              mThisWeak.lock(),
-                                                              mRemote->mUsernameFrag,
-                                                              mRemote->mPassword,
-                                                              mAddedRemoteCandidates,
-                                                              internal::convert(mDefaultRole)
-                                                              );
+        mSession = IICESocketSession::create(
+                                             mThisWeak.lock(),
+                                             mSocket,
+                                             mRemote->mUsernameFrag,
+                                             mRemote->mPassword,
+                                             mAddedRemoteCandidates,
+                                             internal::convert(mDefaultRole)
+                                             );
 
         if (!mSession) {
           ZS_LOG_ERROR(Basic, log("unable to create ice session"))
