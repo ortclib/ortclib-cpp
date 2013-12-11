@@ -18,34 +18,47 @@
 
 -(IBAction)test2
 {
-    ortc::MediaStreamTrackListPtr audioTracks = mediaStreamPtr->getAudioTracks();
-    ortc::MediaStreamTrackListPtr videoTracks = mediaStreamPtr->getVideoTracks();
+    ortc::MediaStreamTrackListPtr localAudioTracks = sendMediaStreamPtr->getAudioTracks();
+    ortc::MediaStreamTrackListPtr localVideoTracks = sendMediaStreamPtr->getVideoTracks();
   
     ortc::internal::LocalAudioStreamTrackPtr localAudioStreamTrack =
-        boost::dynamic_pointer_cast<ortc::internal::LocalAudioStreamTrack>(audioTracks->front());
+        boost::dynamic_pointer_cast<ortc::internal::LocalAudioStreamTrack>(localAudioTracks->front());
     ortc::internal::LocalVideoStreamTrackPtr localVideoStreamTrack =
-        boost::dynamic_pointer_cast<ortc::internal::LocalVideoStreamTrack>(videoTracks->front());
+        boost::dynamic_pointer_cast<ortc::internal::LocalVideoStreamTrack>(localVideoTracks->front());
   
     localVideoStreamTrack->forMediaManager().setRenderView((__bridge void*)_imgView1);
   
     localAudioStreamTrack->forMediaManager().start();
     localVideoStreamTrack->forMediaManager().start();
-  
-//    testMediaEngineInternal->setReceiverAddress("127.0.0.1");
 }
 
 -(IBAction)test3
 {
-    ortc::MediaStreamTrackListPtr audioTracks = mediaStreamPtr->getAudioTracks();
-    ortc::MediaStreamTrackListPtr videoTracks = mediaStreamPtr->getVideoTracks();
+    receiveMediaStreamPtr = ortc::internal::IMediaStreamForMediaManager::create(IMessageQueuePtr(), IMediaStreamDelegatePtr());
+    ortc::internal::RemoteReceiveAudioStreamTrackPtr remoteAudioStreamTrack =
+        ortc::internal::IRemoteReceiveAudioStreamTrackForMediaManager::create(IMessageQueuePtr(), IMediaStreamTrackDelegatePtr());
+    ortc::internal::RemoteReceiveVideoStreamTrackPtr remoteVideoStreamTrack =
+        ortc::internal::IRemoteReceiveVideoStreamTrackForMediaManager::create(IMessageQueuePtr(), IMediaStreamTrackDelegatePtr());
+  
+    ortc::internal::MediaStreamPtr mediaStream = boost::dynamic_pointer_cast<ortc::internal::MediaStream>(receiveMediaStreamPtr);
+  
+    mediaStream->forMediaManager().addTrack(remoteAudioStreamTrack);
+    mediaStream->forMediaManager().addTrack(remoteVideoStreamTrack);
+  
+    remoteVideoStreamTrack->forMediaManager().setRenderView((__bridge void*)_imgView2);
+  
+    ortc::MediaStreamTrackListPtr localAudioTracks = sendMediaStreamPtr->getAudioTracks();
+    ortc::MediaStreamTrackListPtr localVideoTracks = sendMediaStreamPtr->getVideoTracks();
   
     ortc::internal::LocalAudioStreamTrackPtr localAudioStreamTrack =
-    boost::dynamic_pointer_cast<ortc::internal::LocalAudioStreamTrack>(audioTracks->front());
+        boost::dynamic_pointer_cast<ortc::internal::LocalAudioStreamTrack>(localAudioTracks->front());
     ortc::internal::LocalVideoStreamTrackPtr localVideoStreamTrack =
-    boost::dynamic_pointer_cast<ortc::internal::LocalVideoStreamTrack>(videoTracks->front());
+        boost::dynamic_pointer_cast<ortc::internal::LocalVideoStreamTrack>(localVideoTracks->front());
   
-    localAudioStreamTrack->forMediaManager().stop();
-    localVideoStreamTrack->forMediaManager().stop();
+    ortc::internal::SendMediaTransportPtr audioSendTransport = localAudioStreamTrack->forMediaManager().getTransport();
+    ortc::internal::SendMediaTransportPtr videoSendTransport = localVideoStreamTrack->forMediaManager().getTransport();
+    ortc::internal::ReceiveMediaTransportPtr audioReceiveTransport = remoteAudioStreamTrack->forMediaManager().getTransport();
+    ortc::internal::ReceiveMediaTransportPtr videoReceiveTransport = remoteVideoStreamTrack->forMediaManager().getTransport();
 }
 
 -(IBAction)test4
@@ -58,11 +71,21 @@
 
 -(IBAction)test6
 {
+    ortc::MediaStreamTrackListPtr audioTracks = sendMediaStreamPtr->getAudioTracks();
+    ortc::MediaStreamTrackListPtr videoTracks = sendMediaStreamPtr->getVideoTracks();
+  
+    ortc::internal::LocalAudioStreamTrackPtr localAudioStreamTrack =
+        boost::dynamic_pointer_cast<ortc::internal::LocalAudioStreamTrack>(audioTracks->front());
+    ortc::internal::LocalVideoStreamTrackPtr localVideoStreamTrack =
+        boost::dynamic_pointer_cast<ortc::internal::LocalVideoStreamTrack>(videoTracks->front());
+  
+    localAudioStreamTrack->forMediaManager().stop();
+    localVideoStreamTrack->forMediaManager().stop();
 }
 
--(void)setMediaStream:(ortc::IMediaStreamPtr)stream
+-(void)setSendMediaStream:(ortc::IMediaStreamPtr)stream
 {
-    mediaStreamPtr = stream;
+    sendMediaStreamPtr = stream;
 }
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil

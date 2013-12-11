@@ -133,13 +133,17 @@ namespace ortc
       mChannelRenderView(NULL),
       mRedirectVoiceTransport("voice"),
       mRedirectVideoTransport("video"),
-      mLifetimeWantAudio(false),
+      mLifetimeWantSendAudio(false),
+      mLifetimeWantReceiveAudio(false),
       mLifetimeWantVideoCapture(false),
-      mLifetimeWantVideoChannel(false),
+      mLifetimeWantSendVideoChannel(false),
+      mLifetimeWantReceiveVideoChannel(false),
       mLifetimeWantRecordVideoCapture(false),
-      mLifetimeHasAudio(false),
+      mLifetimeHasSendAudio(false),
+      mLifetimeHasReceiveAudio(false),
       mLifetimeHasVideoCapture(false),
-      mLifetimeHasVideoChannel(false),
+      mLifetimeHasSendVideoChannel(false),
+      mLifetimeHasReceiveVideoChannel(false),
       mLifetimeHasRecordVideoCapture(false),
       mLifetimeInProgress(false),
       mLifetimeWantCameraType(CameraType_Front),
@@ -201,13 +205,17 @@ namespace ortc
       mChannelRenderView(NULL),
       mRedirectVoiceTransport("voice"),
       mRedirectVideoTransport("video"),
-      mLifetimeWantAudio(false),
+      mLifetimeWantSendAudio(false),
+      mLifetimeWantReceiveAudio(false),
       mLifetimeWantVideoCapture(false),
-      mLifetimeWantVideoChannel(false),
+      mLifetimeWantSendVideoChannel(false),
+      mLifetimeWantReceiveVideoChannel(false),
       mLifetimeWantRecordVideoCapture(false),
-      mLifetimeHasAudio(false),
+      mLifetimeHasSendAudio(false),
+      mLifetimeHasReceiveAudio(false),
       mLifetimeHasVideoCapture(false),
-      mLifetimeHasVideoChannel(false),
+      mLifetimeHasSendVideoChannel(false),
+      mLifetimeHasReceiveVideoChannel(false),
       mLifetimeHasRecordVideoCapture(false),
       mLifetimeInProgress(false),
       mLifetimeWantCameraType(CameraType_Front),
@@ -640,7 +648,10 @@ namespace ortc
       
       ////ZS_LOG_DEBUG(log("set capture render view"))
       
-      mCaptureRenderView = renderView;
+      if (sourceId == 0)
+        mCaptureRenderView = renderView;
+      else
+        mChannelRenderView = renderView;
     }
     
     //-----------------------------------------------------------------------
@@ -884,7 +895,7 @@ namespace ortc
     {
       {
         AutoRecursiveLock lock(mLifetimeLock);
-        mLifetimeWantVideoChannel = true;
+        mLifetimeWantSendVideoChannel = true;
       }
       
       ThreadPtr(new boost::thread(boost::ref(*((mThisWeak.lock()).get()))));
@@ -895,7 +906,7 @@ namespace ortc
     {
       {
         AutoRecursiveLock lock(mLifetimeLock);
-        mLifetimeWantVideoChannel = true;
+        mLifetimeWantReceiveVideoChannel = true;
       }
       
       ThreadPtr(new boost::thread(boost::ref(*((mThisWeak.lock()).get()))));
@@ -906,7 +917,7 @@ namespace ortc
     {
       {
         AutoRecursiveLock lock(mLifetimeLock);
-        mLifetimeWantVideoChannel = false;
+        mLifetimeWantSendVideoChannel = false;
       }
       
       ThreadPtr(new boost::thread(boost::ref(*((mThisWeak.lock()).get()))));
@@ -917,7 +928,7 @@ namespace ortc
     {
       {
         AutoRecursiveLock lock(mLifetimeLock);
-        mLifetimeWantVideoChannel = false;
+        mLifetimeWantReceiveVideoChannel = false;
       }
       
       ThreadPtr(new boost::thread(boost::ref(*((mThisWeak.lock()).get()))));
@@ -928,7 +939,7 @@ namespace ortc
     {
       {
         AutoRecursiveLock lock(mLifetimeLock);
-        mLifetimeWantAudio = true;
+        mLifetimeWantSendAudio = true;
       }
       
       ThreadPtr(new boost::thread(boost::ref(*((mThisWeak.lock()).get()))));
@@ -939,7 +950,7 @@ namespace ortc
     {
       {
         AutoRecursiveLock lock(mLifetimeLock);
-        mLifetimeWantAudio = true;
+        mLifetimeWantReceiveAudio = true;
       }
       
       ThreadPtr(new boost::thread(boost::ref(*((mThisWeak.lock()).get()))));
@@ -950,7 +961,7 @@ namespace ortc
     {
       {
         AutoRecursiveLock lock(mLifetimeLock);
-        mLifetimeWantAudio = false;
+        mLifetimeWantSendAudio = false;
       }
       
       ThreadPtr(new boost::thread(boost::ref(*((mThisWeak.lock()).get()))));
@@ -961,7 +972,7 @@ namespace ortc
     {
       {
         AutoRecursiveLock lock(mLifetimeLock);
-        mLifetimeWantAudio = false;
+        mLifetimeWantReceiveAudio = false;
       }
       
       ThreadPtr(new boost::thread(boost::ref(*((mThisWeak.lock()).get()))));
@@ -1265,13 +1276,17 @@ namespace ortc
       
       bool firstAttempt = true;
       
-      bool wantAudio = false;
+      bool wantSendAudio = false;
+      bool wantReceiveAudio = false;
       bool wantVideoCapture = false;
-      bool wantVideoChannel = false;
+      bool wantSendVideoChannel = false;
+      bool wantReceiveVideoChannel = false;
       bool wantRecordVideoCapture = false;
-      bool hasAudio = false;
+      bool hasSendAudio = false;
+      bool hasReceiveAudio = false;
       bool hasVideoCapture = false;
-      bool hasVideoChannel = false;
+      bool hasSendVideoChannel = false;
+      bool hasReceiveVideoChannel = false;
       bool hasRecordVideoCapture = false;
       CameraTypes wantCameraType = CameraType_None;
       String videoRecordFile;
@@ -1293,19 +1308,23 @@ namespace ortc
         
         mLifetimeInProgress = true;
         
-        if (mLifetimeWantVideoChannel)
+        if (mLifetimeWantSendVideoChannel)
           mLifetimeWantVideoCapture = true;
-        else if (mLifetimeHasVideoChannel && !mLifetimeContinuousVideoCapture)
+        else if (mLifetimeHasSendVideoChannel && !mLifetimeContinuousVideoCapture)
           mLifetimeWantVideoCapture = false;
         if (!mLifetimeWantVideoCapture)
           mLifetimeWantRecordVideoCapture = false;
-        wantAudio = mLifetimeWantAudio;
+        wantSendAudio = mLifetimeWantSendAudio;
+        wantReceiveAudio = mLifetimeWantReceiveAudio;
         wantVideoCapture = mLifetimeWantVideoCapture;
-        wantVideoChannel = mLifetimeWantVideoChannel;
+        wantSendVideoChannel = mLifetimeWantSendVideoChannel;
+        wantReceiveVideoChannel = mLifetimeWantReceiveVideoChannel;
         wantRecordVideoCapture = mLifetimeWantRecordVideoCapture;
-        hasAudio = mLifetimeHasAudio;
+        hasSendAudio = mLifetimeHasSendAudio;
+        hasReceiveAudio = mLifetimeHasReceiveAudio;
         hasVideoCapture = mLifetimeHasVideoCapture;
-        hasVideoChannel = mLifetimeHasVideoChannel;
+        hasSendVideoChannel = mLifetimeHasSendVideoChannel;
+        hasReceiveVideoChannel = mLifetimeHasReceiveVideoChannel;
         hasRecordVideoCapture = mLifetimeHasRecordVideoCapture;
         wantCameraType = mLifetimeWantCameraType;
         videoRecordFile = mLifetimeVideoRecordFile;
@@ -1324,9 +1343,9 @@ namespace ortc
               //ZS_LOG_DEBUG(log("video capture must be stopped first before camera type can be swapped (will try again)"))
               wantVideoCapture = false;  // pretend that we don't want video so it will be stopped
               repeat = true;      // repeat this thread operation again to start video back up again after
-              if (hasVideoChannel) {
+              if (hasSendVideoChannel) {
                 //ZS_LOG_DEBUG(log("video channel must be stopped first before camera type can be swapped (will try again)"))
-                wantVideoChannel = false;  // pretend that we don't want video so it will be stopped
+                wantSendVideoChannel = false;  // pretend that we don't want video so it will be stopped
               }
             }
           }
@@ -1348,23 +1367,43 @@ namespace ortc
           }
         }
         
-        if (wantAudio) {
-          if (!hasAudio) {
+        if (wantSendAudio) {
+          if (!hasSendAudio) {
             internalStartSendVoice();
           }
         } else {
-          if (hasAudio) {
+          if (hasSendAudio) {
             internalStopSendVoice();
           }
         }
         
-        if (wantVideoChannel) {
-          if (!hasVideoChannel) {
+        if (wantReceiveAudio) {
+          if (!hasReceiveAudio) {
+            internalStartReceiveVoice();
+          }
+        } else {
+          if (hasReceiveAudio) {
+            internalStopReceiveVoice();
+          }
+        }
+        
+        if (wantSendVideoChannel) {
+          if (!hasSendVideoChannel) {
             internalStartSendVideoChannel();
           }
         } else {
-          if (hasVideoChannel) {
+          if (hasSendVideoChannel) {
             internalStopSendVideoChannel();
+          }
+        }
+        
+        if (wantReceiveVideoChannel) {
+          if (!hasReceiveVideoChannel) {
+            internalStartReceiveVideoChannel();
+          }
+        } else {
+          if (hasReceiveVideoChannel) {
+            internalStopReceiveVideoChannel();
           }
         }
         
@@ -1378,9 +1417,11 @@ namespace ortc
       {
         AutoRecursiveLock lock(mLifetimeLock);
         
-        mLifetimeHasAudio = wantAudio;
+        mLifetimeHasSendAudio = wantSendAudio;
+        mLifetimeHasReceiveAudio = wantReceiveAudio;
         mLifetimeHasVideoCapture = wantVideoCapture;
-        mLifetimeHasVideoChannel = wantVideoChannel;
+        mLifetimeHasSendVideoChannel = wantSendVideoChannel;
+        mLifetimeHasReceiveVideoChannel = wantReceiveVideoChannel;
         mLifetimeHasRecordVideoCapture = wantRecordVideoCapture;
         
         mLifetimeInProgress = false;

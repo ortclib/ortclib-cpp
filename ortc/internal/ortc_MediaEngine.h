@@ -434,14 +434,18 @@ namespace ortc
       // lifetime start / stop state
       mutable RecursiveLock mLifetimeLock;
       
-      bool mLifetimeWantAudio;
+      bool mLifetimeWantSendAudio;
+      bool mLifetimeWantReceiveAudio;
       bool mLifetimeWantVideoCapture;
-      bool mLifetimeWantVideoChannel;
+      bool mLifetimeWantSendVideoChannel;
+      bool mLifetimeWantReceiveVideoChannel;
       bool mLifetimeWantRecordVideoCapture;
       
-      bool mLifetimeHasAudio;
+      bool mLifetimeHasSendAudio;
+      bool mLifetimeHasReceiveAudio;
       bool mLifetimeHasVideoCapture;
-      bool mLifetimeHasVideoChannel;
+      bool mLifetimeHasSendVideoChannel;
+      bool mLifetimeHasReceiveVideoChannel;
       bool mLifetimeHasRecordVideoCapture;
       
       bool mLifetimeInProgress;

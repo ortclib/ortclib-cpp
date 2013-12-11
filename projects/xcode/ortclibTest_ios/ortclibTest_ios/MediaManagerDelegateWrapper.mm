@@ -14,7 +14,7 @@ MediaManagerDelegateWrapperPtr MediaManagerDelegateWrapper::create(ViewControlle
 
 void MediaManagerDelegateWrapper::onMediaManagerSuccessCallback(IMediaStreamPtr stream)
 {
-  [viewController setMediaStream:stream];
+  [viewController setSendMediaStream:stream];
 }
 
 void MediaManagerDelegateWrapper::onMediaManagerErrorCallback(IMediaManager::UserMediaError error)
