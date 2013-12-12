@@ -60,7 +60,7 @@ namespace ortc
   //-----------------------------------------------------------------------
   TestMediaEngine::TestMediaEngine() :
       MediaEngine(zsLib::Noop()),
-      mReceiverAddress("")
+      mReceiverAddress("127.0.0.1")
   {
 #ifdef __QNX__
     slog2_buffer_set_config_t buffer_config;
@@ -258,7 +258,7 @@ namespace ortc
     }
 
     //-----------------------------------------------------------------------
-    int TestMediaEngine::registerVoiceTransport()
+    int TestMediaEngine::registerVoiceSendTransport()
     {
       voice_channel_transports_[mVoiceChannel].reset( new VoiceChannelTransport(mVoiceNetwork, mVoiceChannel));
 
@@ -266,7 +266,15 @@ namespace ortc
     }
     
     //-----------------------------------------------------------------------
-    int TestMediaEngine::setVoiceTransportParameters()
+    int TestMediaEngine::deregisterVoiceSendTransport()
+    {
+      voice_channel_transports_[mVideoChannel].reset( NULL );
+      
+      return 0;
+    }
+
+    //-----------------------------------------------------------------------
+    int TestMediaEngine::setVoiceSendTransportParameters()
     {
       mError = voice_channel_transports_[mVoiceChannel]->SetSendDestination(mReceiverAddress.c_str(), 20010);
       mError = voice_channel_transports_[mVoiceChannel]->SetLocalReceiver(20010);
@@ -298,7 +306,7 @@ namespace ortc
     }
 
     //-----------------------------------------------------------------------
-    int TestMediaEngine::registerVideoTransport()
+    int TestMediaEngine::registerVideoSendTransport()
     {
       video_channel_transports_[mVideoChannel].reset( new VideoChannelTransport(mVideoNetwork, mVideoChannel));
 
@@ -306,14 +314,15 @@ namespace ortc
     }
     
     //-----------------------------------------------------------------------
-    int TestMediaEngine::deregisterVideoTransport()
+    int TestMediaEngine::deregisterVideoSendTransport()
     {
         video_channel_transports_[mVideoChannel].reset( NULL );
+      
         return 0;
     }
     
     //-----------------------------------------------------------------------
-    int TestMediaEngine::setVideoTransportParameters()
+    int TestMediaEngine::setVideoSendTransportParameters()
     {
       mError = video_channel_transports_[mVideoChannel]->SetSendDestination(mReceiverAddress.c_str(), 20000);
       mError = video_channel_transports_[mVideoChannel]->SetLocalReceiver(20000);

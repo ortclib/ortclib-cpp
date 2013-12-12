@@ -134,17 +134,18 @@ namespace ortc
       virtual void internalStartVoice();
       virtual void internalStopVoice();
       
-      virtual int registerVoiceTransport();
-      virtual int setVoiceTransportParameters();
+      virtual int registerVoiceSendTransport();
+      virtual int deregisterVoiceSendTransport();
+      virtual int setVoiceSendTransportParameters();
       
       virtual void internalStartVideoCapture();
       virtual void internalStopVideoCapture();
       virtual void internalStartVideoChannel();
       virtual void internalStopVideoChannel();
 
-      virtual int registerVideoTransport();
-      virtual int deregisterVideoTransport();
-      virtual int setVideoTransportParameters();
+      virtual int registerVideoSendTransport();
+      virtual int deregisterVideoSendTransport();
+      virtual int setVideoSendTransportParameters();
       
     private:
       webrtc::scoped_ptr<VoiceChannelTransport> voice_channel_transports_[32];

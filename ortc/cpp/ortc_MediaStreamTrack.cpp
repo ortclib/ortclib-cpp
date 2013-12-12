@@ -475,10 +475,6 @@ namespace ortc
     void VideoStreamTrack::setRenderView(void *renderView)
     {
       mRenderView = renderView;
-      
-      IMediaEnginePtr mediaEngine = IMediaEngine::singleton();
-      
-      mediaEngine->setRenderView(0, renderView);
     }
     
     //-----------------------------------------------------------------------
@@ -587,7 +583,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     void LocalAudioStreamTrack::start()
     {
+      IMediaEnginePtr mediaEngine = IMediaEngine::singleton();
       
+      mediaEngine->startSendVoice(0);
     }
     
     //-------------------------------------------------------------------------
@@ -757,7 +755,9 @@ namespace ortc
     RemoteSendAudioStreamTrack::RemoteSendAudioStreamTrack(IMessageQueuePtr queue, IMediaStreamTrackDelegatePtr delegate) :
       AudioStreamTrack(queue, delegate)
     {
+      IMediaEnginePtr mediaEngine = IMediaEngine::singleton();
       
+      mediaEngine->startReceiveVoice(0);
     }
     
     //-------------------------------------------------------------------------
@@ -934,6 +934,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     void LocalVideoStreamTrack::stop()
     {
+      IMediaEnginePtr mediaEngine = IMediaEngine::singleton();
+      
+      mediaEngine->stopVideoCapture(0);
       
     }
 
@@ -957,7 +960,7 @@ namespace ortc
       IMediaEnginePtr mediaEngine = IMediaEngine::singleton();
       
       mediaEngine->startVideoCapture(0);
-
+      mediaEngine->startSendVideoChannel(0);
     }
     
     //-------------------------------------------------------------------------
@@ -1005,6 +1008,10 @@ namespace ortc
     //-------------------------------------------------------------------------
     void LocalVideoStreamTrack::setRenderView(void *renderView)
     {
+      IMediaEnginePtr mediaEngine = IMediaEngine::singleton();
+      
+      mediaEngine->setRenderView(0, renderView);
+      
       VideoStreamTrack::setRenderView(renderView);
     }
     
@@ -1046,7 +1053,9 @@ namespace ortc
     RemoteReceiveVideoStreamTrack::RemoteReceiveVideoStreamTrack(IMessageQueuePtr queue, IMediaStreamTrackDelegatePtr delegate) :
       VideoStreamTrack(queue, delegate)
     {
+      IMediaEnginePtr mediaEngine = IMediaEngine::singleton();
       
+//      mediaEngine->startReceiveVideoChannel(0);
     }
     
     //-------------------------------------------------------------------------
@@ -1140,6 +1149,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RemoteReceiveVideoStreamTrack::setRenderView(void *renderView)
     {
+      IMediaEnginePtr mediaEngine = IMediaEngine::singleton();
+      
+      mediaEngine->setRenderView(1, renderView);
+      
+      mediaEngine->startReceiveVideoChannel(0);
+      
       VideoStreamTrack::setRenderView(renderView);
     }
     
