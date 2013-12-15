@@ -45,8 +45,8 @@ namespace ortc
 {
   namespace internal
   {
-    interaction IICETransportForDTLS;
-    interaction IRTPReceiverForDTLS;
+    interaction IICETransportForDTLSTransport;
+    interaction IRTPReceiverForDTLSTransport;
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -58,9 +58,7 @@ namespace ortc
 
     interaction IDTLSTransportForRTPSender
     {
-      typedef IDTLSTransportForRTPSender ForRTPSender;
-      typedef boost::shared_ptr<ForRTPSender> ForRTPSenderPtr;
-      typedef boost::weak_ptr<ForRTPSender> ForRTPSenderWeakPtr;
+      ZS_DECLARE_TYPEDEF_PTR(IDTLSTransportForRTPSender, ForRTPSender)
 
       static ElementPtr toDebug(ForRTPSenderPtr transport);
 
@@ -82,9 +80,7 @@ namespace ortc
 
     interaction IDTLSTransportForRTPReceiver
     {
-      typedef IDTLSTransportForRTPReceiver ForRTPReceiver;
-      typedef boost::shared_ptr<ForRTPReceiver> ForRTPReceiverPtr;
-      typedef boost::weak_ptr<ForRTPReceiver> ForRTPReceiverWeakPtr;
+      ZS_DECLARE_TYPEDEF_PTR(IDTLSTransportForRTPReceiver, ForRTPReceiver)
 
       typedef RTPFlowParams::SSRC SSRC;
 
@@ -108,11 +104,13 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IDTLSTransportForICE
+    #pragma mark IDTLSTransportForICETransport
     #pragma mark
 
-    interaction IDTLSTransportForICE
+    interaction IDTLSTransportForICETransport
     {
+      ZS_DECLARE_TYPEDEF_PTR(IDTLSTransportForICETransport, ForICETransport)
+
       virtual PUID getID() const = 0;
 
       virtual void handleReceivedPacket(
@@ -132,6 +130,8 @@ namespace ortc
 
     interaction IDTLSTransportForDTLSContext
     {
+      ZS_DECLARE_TYPEDEF_PTR(IDTLSTransportForDTLSContext, ForDTLSContext)
+
       virtual PUID getID() const = 0;
 
       virtual RecursiveLock &getLock() const = 0;
@@ -158,7 +158,7 @@ namespace ortc
                           public IDTLSTransport,
                           public IDTLSTransportForRTPSender,
                           public IDTLSTransportForRTPReceiver,
-                          public IDTLSTransportForICE,
+                          public IDTLSTransportForICETransport,
                           public IDTLSTransportForDTLSContext,
                           public IWakeDelegate,
                           public IICETransportDelegate
@@ -166,19 +166,12 @@ namespace ortc
     public:
       friend interaction IDTLSTransport;
       friend interaction IDTLSTransportFactory;
-      friend interaction IDTLSTransportForICE;
+      friend interaction IDTLSTransportForICETransport;
 
-      typedef IICETransportForDTLS UseICETransport;
-      typedef boost::shared_ptr<UseICETransport> UseICETransportPtr;
-      typedef boost::weak_ptr<UseICETransport> UseICETransportWeakPtr;
+      ZS_DECLARE_TYPEDEF_PTR(IICETransportForDTLSTransport, UseICETransport)
+      ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverForDTLSTransport, UseRTPReceiver)
 
-      typedef IRTPReceiverForDTLS UseRTPReceiver;
-      typedef boost::shared_ptr<UseRTPReceiver> UseRTPReceiverPtr;
-      typedef boost::weak_ptr<UseRTPReceiver> UseRTPReceiverWeakPtr;
-
-      typedef std::list<SecureByteBlockPtr> PendingDTLSBufferList;
-      typedef boost::shared_ptr<PendingDTLSBufferList> PendingDTLSBufferListPtr;
-      typedef boost::weak_ptr<PendingDTLSBufferList> PendingDTLSBufferListWeakPtr;
+      ZS_DECLARE_TYPEDEF_PTR(std::list<SecureByteBlockPtr>, PendingDTLSBufferList)
 
       typedef std::map<SSRC, UseRTPReceiverWeakPtr> RTPRoutes;
 
@@ -204,7 +197,11 @@ namespace ortc
       virtual ~DTLSTransport();
 
       static DTLSTransportPtr convert(IDTLSTransportPtr object);
-      
+      static DTLSTransportPtr convert(ForRTPSenderPtr object);
+      static DTLSTransportPtr convert(ForRTPReceiverPtr object);
+      static DTLSTransportPtr convert(ForICETransportPtr object);
+      static DTLSTransportPtr convert(ForDTLSContextPtr object);
+
     protected:
       //-----------------------------------------------------------------------
       #pragma mark
@@ -278,7 +275,7 @@ namespace ortc
 
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark DTLSTransport => IDTLSTransportForICE
+      #pragma mark DTLSTransport => IDTLSTransportForICETransport
       #pragma mark
 
       // (duplicated) virtual PUID getID() const;

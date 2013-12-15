@@ -103,6 +103,30 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    DTLSTransportPtr DTLSTransport::convert(ForRTPSenderPtr object)
+    {
+      return boost::dynamic_pointer_cast<DTLSTransport>(object);
+    }
+
+    //-------------------------------------------------------------------------
+    DTLSTransportPtr DTLSTransport::convert(ForRTPReceiverPtr object)
+    {
+      return boost::dynamic_pointer_cast<DTLSTransport>(object);
+    }
+
+    //-------------------------------------------------------------------------
+    DTLSTransportPtr DTLSTransport::convert(ForICETransportPtr object)
+    {
+      return boost::dynamic_pointer_cast<DTLSTransport>(object);
+    }
+
+    //-------------------------------------------------------------------------
+    DTLSTransportPtr DTLSTransport::convert(ForDTLSContextPtr object)
+    {
+      return boost::dynamic_pointer_cast<DTLSTransport>(object);
+    }
+
+    //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -373,7 +397,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark DTLSTransport => IDTLSTransportForICE
+    #pragma mark DTLSTransport => IDTLSTransportForICETransport
     #pragma mark
 
     //-------------------------------------------------------------------------

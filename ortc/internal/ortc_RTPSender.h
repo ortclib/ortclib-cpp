@@ -66,9 +66,7 @@ namespace ortc
       friend interaction IRTPSenderFactory;
       friend interaction IRTPSenderForICE;
 
-      typedef IDTLSTransportForRTPSender UseDTLSTransport;
-      typedef boost::shared_ptr<UseDTLSTransport> UseDTLSTransportPtr;
-      typedef boost::weak_ptr<UseDTLSTransport> UseDTLSTransportWeakPtr;
+      ZS_DECLARE_TYPEDEF_PTR(IDTLSTransportForRTPSender, UseDTLSTransport)
 
     protected:
       RTPSender(

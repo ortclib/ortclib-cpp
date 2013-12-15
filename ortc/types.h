@@ -54,78 +54,35 @@ namespace ortc
   using zsLib::XML::Element;
   using zsLib::XML::ElementPtr;
 
-  using openpeer::services::SecureByteBlock;
-  using openpeer::services::SecureByteBlockPtr;
-  
+  ZS_DECLARE_USING_PTR(openpeer::services, SecureByteBlock)
+
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
   #pragma mark
-  #pragma mark (other)
+  #pragma mark (forwards)
   #pragma mark
 
-  interaction IORTC;
-  typedef boost::shared_ptr<IORTC> IORTCPtr;
-  typedef boost::weak_ptr<IORTC> IORTCWeakPtr;
+  ZS_DECLARE_STRUCT_PTR(TrackDescription)
+  ZS_DECLARE_STRUCT_PTR(RTPFlowParams)
+  ZS_DECLARE_STRUCT_PTR(RTPRTXFlowParams)
+  ZS_DECLARE_STRUCT_PTR(RTPFECFlowParams)
+  ZS_DECLARE_STRUCT_PTR(RTPLayeredFlowParams)
 
-  interaction IHelper;
+  ZS_DECLARE_INTERACTION_PTR(IORTC)
+  ZS_DECLARE_INTERACTION_PTR(IHelper)
+  ZS_DECLARE_INTERACTION_PTR(IDTLSTransport)
+  ZS_DECLARE_INTERACTION_PTR(IICETransport)
+  ZS_DECLARE_INTERACTION_PTR(IRTPSender)
+  ZS_DECLARE_INTERACTION_PTR(IRTPReceiver)
 
-  interaction IDTLSTransport;
-  typedef boost::shared_ptr<IDTLSTransport> IDTLSTransportPtr;
-  typedef boost::weak_ptr<IDTLSTransport> IDTLSTransportWeakPtr;
+  ZS_DECLARE_INTERACTION_PROXY(IDTLSTransportDelegate)
+  ZS_DECLARE_INTERACTION_PROXY(IICETransportDelegate)
 
-  interaction IDTLSTransportDelegate;
-  typedef boost::shared_ptr<IDTLSTransportDelegate> IDTLSTransportDelegatePtr;
-  typedef boost::weak_ptr<IDTLSTransportDelegate> IDTLSTransportDelegateWeakPtr;
-  typedef zsLib::Proxy<IDTLSTransportDelegate> IDTLSTransportDelegateProxy;
+  ZS_DECLARE_INTERACTION_PROXY_SUBSCRIPTION(IDTLSTransportSubscription, IDTLSTransportDelegate)
+  ZS_DECLARE_INTERACTION_PROXY_SUBSCRIPTION(IICETransportSubscription, IICETransportDelegate)
 
-  interaction IDTLSTransportSubscription;
-  typedef boost::shared_ptr<IDTLSTransportSubscription> IDTLSTransportSubscriptionPtr;
-  typedef boost::weak_ptr<IDTLSTransportSubscription> IDTLSTransportSubscriptionWeakPtr;
-  typedef zsLib::ProxySubscriptions<IDTLSTransportDelegate, IDTLSTransportSubscription> IDTLSTransportDelegateSubscriptions;
-
-  interaction IICETransport;
-  typedef boost::shared_ptr<IICETransport> IICETransportPtr;
-  typedef boost::weak_ptr<IICETransport> IICETransportWeakPtr;
-
-  interaction IICETransportDelegate;
-  typedef boost::shared_ptr<IICETransportDelegate> IICETransportDelegatePtr;
-  typedef boost::weak_ptr<IICETransportDelegate> IICETransportDelegateWeakPtr;
-  typedef zsLib::Proxy<IICETransportDelegate> IICETransportDelegateProxy;
-
-  interaction IICETransportSubscription;
-  typedef boost::shared_ptr<IICETransportSubscription> IICETransportSubscriptionPtr;
-  typedef boost::weak_ptr<IICETransportSubscription> IICETransportSubscriptionWeakPtr;
-  typedef zsLib::ProxySubscriptions<IICETransportDelegate, IICETransportSubscription> IICETransportDelegateSubscriptions;
-
-  interaction IRTPSender;
-  typedef boost::shared_ptr<IRTPSender> IRTPSenderPtr;
-  typedef boost::weak_ptr<IRTPSender> IRTPSenderWeakPtr;
-
-  interaction IRTPReceiver;
-  typedef boost::shared_ptr<IRTPReceiver> IRTPReceiverPtr;
-  typedef boost::weak_ptr<IRTPReceiver> IRTPReceiverWeakPtr;
-
-  struct TrackDescription;
-  typedef boost::shared_ptr<TrackDescription> TrackDescriptionPtr;
-  typedef boost::weak_ptr<TrackDescription> TrackDescriptionWeakPtr;
-
-  struct RTPFlowParams;
-  typedef boost::shared_ptr<RTPFlowParams> RTPFlowParamsPtr;
-  typedef boost::weak_ptr<RTPFlowParams> RTPFlowParamsWeakPtr;
-
-  struct RTPRTXFlowParams;
-  typedef boost::shared_ptr<RTPRTXFlowParams> RTPRTXFlowParamsPtr;
-  typedef boost::weak_ptr<RTPRTXFlowParams> RTPRTXFlowParamsWeakPtr;
-
-  struct RTPFECFlowParams;
-  typedef boost::shared_ptr<RTPFECFlowParams> RTPFECFlowParamsPtr;
-  typedef boost::weak_ptr<RTPFECFlowParams> RTPFECFlowParamsWeakPtr;
-
-  struct RTPLayeredFlowParams;
-  typedef boost::shared_ptr<RTPLayeredFlowParams> RTPLayeredFlowParamsPtr;
-  typedef boost::weak_ptr<RTPLayeredFlowParams> RTPLayeredFlowParamsWeakPtr;
 
 
 

@@ -52,14 +52,14 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IRTPReceiverForDTLS
+    #pragma mark IRTPReceiverForDTLSTransport
     #pragma mark
 
-    interaction IRTPReceiverForDTLS
+    interaction IRTPReceiverForDTLSTransport
     {
-      typedef IRTPReceiverForDTLS ForDTLS;
-      typedef boost::shared_ptr<ForDTLS> ForDTLSPtr;
-      typedef boost::weak_ptr<ForDTLS> ForDTLSWeakPtr;
+      ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverForDTLSTransport, ForDTLSTransport)
+
+      virtual ~IRTPReceiverForDTLSTransport() {}  // needed until a virtual method is present for polymorphism
     };
 
 
@@ -74,18 +74,16 @@ namespace ortc
     class RTPReceiver : public Noop,
                         public MessageQueueAssociator,
                         public IRTPReceiver,
-                        public IRTPReceiverForDTLS,
+                        public IRTPReceiverForDTLSTransport,
                         public IWakeDelegate,
                         public IDTLSTransportDelegate
     {
     public:
       friend interaction IRTPReceiver;
       friend interaction IRTPReceiverFactory;
-      friend interaction IRTPReceiverForICE;
+      friend interaction IRTPReceiverForDTLSTransport;
 
-      typedef IDTLSTransportForRTPReceiver UseDTLSTransport;
-      typedef boost::shared_ptr<UseDTLSTransport> UseDTLSTransportPtr;
-      typedef boost::weak_ptr<UseDTLSTransport> UseDTLSTransportWeakPtr;
+      ZS_DECLARE_TYPEDEF_PTR(IDTLSTransportForRTPReceiver, UseDTLSTransport)
 
     protected:
       RTPReceiver(

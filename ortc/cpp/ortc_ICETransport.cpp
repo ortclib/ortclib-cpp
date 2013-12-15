@@ -178,11 +178,11 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IICETransportForDTLS
+    #pragma mark IICETransportForDTLSTransport
     #pragma mark
 
     //-------------------------------------------------------------------------
-    ElementPtr IICETransportForDTLS::toDebug(ForDTLSPtr transport)
+    ElementPtr IICETransportForDTLSTransport::toDebug(ForDTLSTransportPtr transport)
     {
       return ICETransport::toDebug(boost::dynamic_pointer_cast<ICETransport>(transport));
     }
@@ -230,6 +230,12 @@ namespace ortc
 
     //-------------------------------------------------------------------------
     ICETransportPtr ICETransport::convert(IICETransportPtr object)
+    {
+      return boost::dynamic_pointer_cast<ICETransport>(object);
+    }
+
+    //-------------------------------------------------------------------------
+    ICETransportPtr ICETransport::convert(ForDTLSTransportPtr object)
     {
       return boost::dynamic_pointer_cast<ICETransport>(object);
     }
@@ -475,7 +481,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     void ICETransport::attach(DTLSTransportPtr inDtlsTransport)
     {
-      RelatedDTLSTransportPtr dtlsTransport = inDtlsTransport;
+      UseDTLSTransportPtr dtlsTransport = inDtlsTransport;
 
       AutoRecursiveLock lock(getLock());
 
@@ -495,7 +501,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     void ICETransport::detach(DTLSTransport &inDtlsTransport)
     {
-      RelatedDTLSTransport &dtlsTransport = inDtlsTransport;
+      UseDTLSTransport &dtlsTransport = inDtlsTransport;
 
       AutoRecursiveLock lock(getLock());
 
@@ -631,7 +637,7 @@ namespace ortc
 
       ZS_LOG_TRACE(log("packet received from network") + ZS_PARAM("internal ice session", session->getID()) + ZS_PARAM("length", bufferLengthInBytes))
 
-      RelatedDTLSTransportPtr dltsTransport;
+      UseDTLSTransportPtr dltsTransport;
 
       {
         AutoRecursiveLock lock(getLock());

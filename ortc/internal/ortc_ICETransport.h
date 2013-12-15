@@ -44,7 +44,7 @@ namespace ortc
 {
   namespace internal
   {
-    interaction IDTLSTransportForICE;
+    interaction IDTLSTransportForICETransport;
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -54,16 +54,14 @@ namespace ortc
     #pragma mark IICETransportForDTLS
     #pragma mark
 
-    interaction IICETransportForDTLS
+    interaction IICETransportForDTLSTransport
     {
+      ZS_DECLARE_TYPEDEF_PTR(IICETransportForDTLSTransport, ForDTLSTransport)
+
       typedef IICETransport::ConnectionStates ConnectionStates;
       typedef IICETransport::Roles Roles;
 
-      typedef IICETransportForDTLS ForDTLS;
-      typedef boost::shared_ptr<ForDTLS> ForDTLSPtr;
-      typedef boost::weak_ptr<ForDTLS> ForDTLSWeakPtr;
-
-      static ElementPtr toDebug(ForDTLSPtr transport);
+      static ElementPtr toDebug(ForDTLSTransportPtr transport);
 
       virtual PUID getID() const = 0;
 
@@ -94,7 +92,7 @@ namespace ortc
     class ICETransport : public Noop,
                          public MessageQueueAssociator,
                          public IICETransport,
-                         public IICETransportForDTLS,
+                         public IICETransportForDTLSTransport,
                          public IWakeDelegate,
                          public IICESocketDelegate,
                          public IICESocketSessionDelegate
@@ -102,7 +100,9 @@ namespace ortc
     public:
       friend interaction IICETransport;
       friend interaction IICETransportFactory;
-      friend interaction IICETransportForDTLS;
+      friend interaction IICETransportForDTLSTransport;
+
+      ZS_DECLARE_TYPEDEF_PTR(IDTLSTransportForICETransport, UseDTLSTransport)
 
       typedef IICETransport::ConnectionStates ConnectionStates;
       typedef IICETransport::Roles Roles;
@@ -110,10 +110,6 @@ namespace ortc
       typedef std::list<CandidateInfoPtr> CandidateInfoList;
       typedef IICESocket::CandidateList CandidateListInner;
       typedef CandidateInfoList CandidateListOuter;
-
-      typedef IDTLSTransportForICE RelatedDTLSTransport;
-      typedef boost::shared_ptr<RelatedDTLSTransport> RelatedDTLSTransportPtr;
-      typedef boost::weak_ptr<RelatedDTLSTransport> RelatedDTLSTransportWeakPtr;
 
     protected:
       ICETransport(
@@ -130,6 +126,7 @@ namespace ortc
       virtual ~ICETransport();
 
       static ICETransportPtr convert(IICETransportPtr object);
+      static ICETransportPtr convert(ForDTLSTransportPtr object);
 
     protected:
       //-----------------------------------------------------------------------
@@ -317,7 +314,7 @@ namespace ortc
       CandidateListInner mAddedRemoteCandidates;
 
       PUID mAttachedDTLSTransportID;
-      RelatedDTLSTransportWeakPtr mDTLSTransport;
+      UseDTLSTransportWeakPtr mDTLSTransport;
     };
 
     //-------------------------------------------------------------------------
