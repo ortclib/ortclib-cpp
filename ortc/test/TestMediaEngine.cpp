@@ -30,6 +30,9 @@
  */
 
 #include "TestMediaEngine.h"
+#include <zsLib/helpers.h>
+#include <zsLib/XML.h>
+#include <openpeer/services/IHelper.h>
 
 #ifdef __QNX__
 extern char *__progname;
@@ -45,6 +48,8 @@ using namespace std;
 
 namespace ortc
 {
+  typedef openpeer::services::IHelper OPIHelper;
+  
   namespace test
   {
     using zsLib::string;
@@ -84,9 +89,11 @@ namespace ortc
     }
     
     //-----------------------------------------------------------------------
-    String TestMediaEngine::log(const char *message) const
+    internal::Log::Params TestMediaEngine::log(const char *message) const
     {
-      return String("TestMediaEngine [") + zsLib::string(mID) + "] " + message;
+      ElementPtr objectEl = Element::create("ortc::TestMediaEngine");
+      OPIHelper::debugAppend(objectEl, "id", mID);
+      return internal::Log::Params(message, objectEl);
     }
 
     //-----------------------------------------------------------------------
@@ -97,18 +104,13 @@ namespace ortc
       pThis->init();
       return pThis;
     }
-
-    //-----------------------------------------------------------------------
-    void TestMediaEngine::setLogLevel()
-    {
-    }
     
     //-----------------------------------------------------------------------
     void TestMediaEngine::setReceiverAddress(String receiverAddress)
     {
       internal::AutoRecursiveLock lock(mLock);
       
-      ZS_LOG_DEBUG(log("set receiver address - value: ") + receiverAddress)
+      ZS_LOG_DEBUG(log("set receiver address") + ZS_PARAM("value", receiverAddress))
       
       mReceiverAddress = receiverAddress;
     }
@@ -118,7 +120,7 @@ namespace ortc
     {
       internal::AutoRecursiveLock lock(mLock);
       
-      ZS_LOG_DEBUG(log("get receiver address - value: ") + mReceiverAddress)
+      ZS_LOG_DEBUG(log("get receiver address") + ZS_PARAM("value", mReceiverAddress))
       
       return mReceiverAddress;
     }
@@ -200,7 +202,7 @@ namespace ortc
         
         mError = mVoiceRtpRtcp->GetRTPStatistics(mVoiceChannel, averageJitterMs, maxJitterMs, discardedPackets);
         if (0 != mError) {
-          ZS_LOG_ERROR(Detail, log("failed to get RTP statistics for voice (error: ") + string(mVoiceBase->LastError()) + ")")
+          ZS_LOG_ERROR(Detail, log("failed to get RTP statistics for voice") + ZS_PARAM("error", mVoiceBase->LastError()))
           return;
         }
         
@@ -218,10 +220,8 @@ namespace ortc
     //-----------------------------------------------------------------------
     void TestMediaEngine::Print(const webrtc::TraceLevel level, const char *traceString, const int length)
     {
-#ifndef __QNX__
-      printf("%s\n", traceString);
-#else
-  slog2f(mBufferHandle, 0, SLOG2_INFO, "%s", traceString);
+#ifdef __QNX__
+      slog2f(mBufferHandle, 0, SLOG2_INFO, "%s", traceString);
 #endif
 
       MediaEngine::Print(level, traceString, length);

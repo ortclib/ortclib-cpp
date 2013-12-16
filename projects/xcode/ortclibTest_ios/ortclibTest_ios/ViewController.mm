@@ -1,5 +1,6 @@
 #import "ViewController.h"
 #import "MediaManagerDelegateWrapper.h"
+#include <openpeer/services/ILogger.h>
 #include <ortc/internal/ortc_MediaManager.h>
 #include <ortc/internal/ortc_MediaStream.h>
 #include <ortc/internal/ortc_MediaStreamTrack.h>
@@ -105,10 +106,11 @@
   
     ortc::internal::Factory::override(overrideFactory);
   
-//    IClient::setLogLevel(IClient::Log::Trace);
-//    IClient::setLogLevel("ortclib", IClient::Log::Debug);         // recommend Debug
-//    IClient::installTelnetLogger(59999, 60, true);
-  
+    openpeer::services::ILogger::setLogLevel("ortclib", zsLib::Log::Trace);
+    openpeer::services::ILogger::setLogLevel("ortclib_webrtc", zsLib::Log::Trace);
+    openpeer::services::ILogger::installStdOutLogger(false);
+//    openpeer::services::ILogger::installTelnetLogger(59999, 60, true);
+
     ortc::internal::IMediaEnginePtr mediaEngine = ortc::internal::IMediaEngine::singleton();
 
     return self;

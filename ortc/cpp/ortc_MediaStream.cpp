@@ -33,7 +33,7 @@
 #include <ortc/internal/ortc_MediaStreamTrack.h>
 #include <zsLib/Log.h>
 
-namespace ortc { ZS_IMPLEMENT_SUBSYSTEM(ortclib) }
+namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib) }
 
 namespace ortc
 {

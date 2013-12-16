@@ -4,12 +4,13 @@
 using namespace ortc;
 
 @class ViewController;
+class MediaManagerDelegateWrapper;
+
+typedef boost::shared_ptr<MediaManagerDelegateWrapper> MediaManagerDelegateWrapperPtr;
 
 class MediaManagerDelegateWrapper : public IMediaManagerDelegate
 {
 public:
-  typedef boost::shared_ptr<MediaManagerDelegateWrapper> MediaManagerDelegateWrapperPtr;
-  
   MediaManagerDelegateWrapper(ViewController* viewController);
   
   static MediaManagerDelegateWrapperPtr create(ViewController* viewController);
@@ -21,5 +22,3 @@ public:
 private:
   ViewController* viewController;
 };
-
-typedef boost::shared_ptr<MediaManagerDelegateWrapper> MediaManagerDelegateWrapperPtr;
