@@ -75,7 +75,7 @@ namespace ortc
       mRTPTransport(DTLSTransport::convert(rtpTransport)),
       mRTCPTransport(DTLSTransport::convert(rtcpTransport))
     {
-      ZS_LOG_BASIC(debug("created"))
+      ZS_LOG_DETAIL(debug("created"))
 
     }
 
@@ -90,7 +90,7 @@ namespace ortc
     {
       if (isNoop()) return;
 
-      ZS_LOG_BASIC(log("destroyed"))
+      ZS_LOG_DETAIL(log("destroyed"))
       mThisWeak.reset();
       cancel();
     }

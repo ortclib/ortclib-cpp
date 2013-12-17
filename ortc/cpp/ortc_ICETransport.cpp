@@ -1128,7 +1128,7 @@ namespace ortc
     {
       if (state == mCurrentState) return;
 
-      ZS_LOG_DEBUG(debug("state changed") + ZS_PARAM("old state", IICETransport::toString(mCurrentState)) + ZS_PARAM("new state", state))
+      ZS_LOG_DETAIL(debug("state changed") + ZS_PARAM("old state", IICETransport::toString(mCurrentState)) + ZS_PARAM("new state", state))
 
       mCurrentState = state;
 

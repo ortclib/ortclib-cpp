@@ -75,7 +75,7 @@ namespace ortc
       mCurrentState(ConnectionState_New),
       mICETransport(ICETransport::convert(iceTransport))
     {
-      ZS_LOG_BASIC(debug("created"))
+      ZS_LOG_DETAIL(debug("created"))
 
       mDefaultSubscription = mSubscriptions.subscribe(IDTLSTransportDelegateProxy::create(IORTCForInternal::queueDelegate(), originalDelegate), queue);
     }
@@ -91,7 +91,7 @@ namespace ortc
     {
       if (isNoop()) return;
 
-      ZS_LOG_BASIC(log("destroyed"))
+      ZS_LOG_DETAIL(log("destroyed"))
       mThisWeak.reset();
       cancel();
     }
@@ -837,7 +837,7 @@ namespace ortc
     {
       if (state == mCurrentState) return;
 
-      ZS_LOG_DEBUG(debug("state changed") + ZS_PARAM("old state", IDTLSTransport::toString(mCurrentState)) + ZS_PARAM("new state", state))
+      ZS_LOG_DETAIL(debug("state changed") + ZS_PARAM("old state", IDTLSTransport::toString(mCurrentState)) + ZS_PARAM("new state", state))
 
       mCurrentState = state;
 

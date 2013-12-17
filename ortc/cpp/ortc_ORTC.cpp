@@ -75,14 +75,14 @@ namespace ortc
     //-------------------------------------------------------------------------
     ORTC::ORTC()
     {
-      ZS_LOG_DEBUG(log("created"))
+      ZS_LOG_DETAIL(log("created"))
     }
 
     //-------------------------------------------------------------------------
     ORTC::~ORTC()
     {
       mThisWeak.reset();
-      ZS_LOG_DEBUG(log("destroyed"))
+      ZS_LOG_DETAIL(log("destroyed"))
     }
 
     //-------------------------------------------------------------------------
