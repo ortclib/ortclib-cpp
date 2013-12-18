@@ -54,36 +54,48 @@ namespace ortc
   using zsLib::XML::Element;
   using zsLib::XML::ElementPtr;
 
-  using openpeer::services::SecureByteBlock;
-  using openpeer::services::SecureByteBlockPtr;
-  
+  ZS_DECLARE_USING_PTR(openpeer::services, SecureByteBlock)
+
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
   #pragma mark
-  #pragma mark (other)
+  #pragma mark (forwards)
   #pragma mark
 
-  interaction IORTC;
-  typedef boost::shared_ptr<IORTC> IORTCPtr;
-  typedef boost::weak_ptr<IORTC> IORTCWeakPtr;
+  ZS_DECLARE_STRUCT_PTR(TrackDescription)
+  ZS_DECLARE_STRUCT_PTR(RTPFlowParams)
+  ZS_DECLARE_STRUCT_PTR(RTPRTXFlowParams)
+  ZS_DECLARE_STRUCT_PTR(RTPFECFlowParams)
+  ZS_DECLARE_STRUCT_PTR(RTPLayeredFlowParams)
 
-  interaction IHelper;
+  ZS_DECLARE_INTERACTION_PTR(IORTC)
+  ZS_DECLARE_INTERACTION_PTR(IHelper)
+  ZS_DECLARE_INTERACTION_PTR(IDTLSTransport)
+  ZS_DECLARE_INTERACTION_PTR(IICETransport)
+  ZS_DECLARE_INTERACTION_PTR(IRTPSender)
+  ZS_DECLARE_INTERACTION_PTR(IRTPReceiver)
 
-  interaction IICETransport;
-  typedef boost::shared_ptr<IICETransport> IICETransportPtr;
-  typedef boost::weak_ptr<IICETransport> IICETransportWeakPtr;
+  ZS_DECLARE_INTERACTION_PROXY(IDTLSTransportDelegate)
+  ZS_DECLARE_INTERACTION_PROXY(IICETransportDelegate)
 
-  interaction IICETransportDelegate;
-  typedef boost::shared_ptr<IICETransportDelegate> IICETransportDelegatePtr;
-  typedef boost::weak_ptr<IICETransportDelegate> IICETransportDelegateWeakPtr;
-  typedef zsLib::Proxy<IICETransportDelegate> IICETransportDelegateProxy;
+  ZS_DECLARE_INTERACTION_PROXY_SUBSCRIPTION(IDTLSTransportSubscription, IDTLSTransportDelegate)
+  ZS_DECLARE_INTERACTION_PROXY_SUBSCRIPTION(IICETransportSubscription, IICETransportDelegate)
 
-  interaction IICETransportSubscription;
-  typedef boost::shared_ptr<IICETransportSubscription> IICETransportSubscriptionPtr;
-  typedef boost::weak_ptr<IICETransportSubscription> IICETransportSubscriptionWeakPtr;
-  typedef zsLib::ProxySubscriptions<IICETransportDelegate, IICETransportSubscription> IICETransportDelegateSubscriptions;
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   interaction IRTCConnection;
   typedef boost::shared_ptr<IRTCConnection> IRTCConnectionPtr;

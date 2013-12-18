@@ -128,6 +128,10 @@ namespace ortc
 
       static CapabilitiesPtr create();
       ElementPtr toDebug() const;
+
+    protected:
+      Capabilities() {}
+      Capabilities(const Capabilities &) {}
     };
 
     //-------------------------------------------------------------------------
@@ -142,6 +146,10 @@ namespace ortc
 
       static ServerInfoPtr create();
       ElementPtr toDebug() const;
+
+    protected:
+      ServerInfo() {}
+      ServerInfo(const ServerInfo &) {}
     };
     
     //-------------------------------------------------------------------------
@@ -153,6 +161,10 @@ namespace ortc
     {
       static ServerListPtr create();
       ElementPtr toDebug() const;
+
+    protected:
+      ServerList() {}
+      ServerList(const ServerList &) {}
     };
 
     //-------------------------------------------------------------------------
@@ -167,6 +179,10 @@ namespace ortc
 
       static TransportInfoPtr create();
       ElementPtr toDebug() const;
+
+    protected:
+      TransportInfo() {}
+      TransportInfo(const TransportInfo &) {}
     };
 
     //-------------------------------------------------------------------------
@@ -185,14 +201,16 @@ namespace ortc
       CandidateTypes mType;
       IPAddress      mRelatedAddress;
 
+      static CandidateInfoPtr create();
+      ElementPtr toDebug() const;
+
+    protected:
       CandidateInfo() :
         mComponent(0),
         mPriority(0),
         mType(CandidateType_Unknown)
       {}
-
-      static CandidateInfoPtr create();
-      ElementPtr toDebug() const;
+      CandidateInfo(const CandidateInfo &) {}
     };
 
 

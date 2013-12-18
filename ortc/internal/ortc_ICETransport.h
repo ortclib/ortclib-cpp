@@ -44,6 +44,43 @@ namespace ortc
 {
   namespace internal
   {
+    interaction IDTLSTransportForICETransport;
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IICETransportForDTLS
+    #pragma mark
+
+    interaction IICETransportForDTLSTransport
+    {
+      ZS_DECLARE_TYPEDEF_PTR(IICETransportForDTLSTransport, ForDTLSTransport)
+
+      typedef IICETransport::ConnectionStates ConnectionStates;
+      typedef IICETransport::Roles Roles;
+
+      static ElementPtr toDebug(ForDTLSTransportPtr transport);
+
+      virtual PUID getID() const = 0;
+
+      virtual void attach(DTLSTransportPtr dtlsTransport) = 0;
+      virtual void detach(DTLSTransport &dtlsTransport) = 0;
+
+      virtual ConnectionStates getState(
+                                        WORD *outError = NULL,
+                                        String *outReason = NULL
+                                        ) = 0;
+
+      virtual Roles getRole() = 0;
+
+      virtual bool sendPacket(
+                              const BYTE *buffer,
+                              size_t bufferLengthInBytes
+                              ) const = 0;
+    };
+
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -51,10 +88,11 @@ namespace ortc
     #pragma mark
     #pragma mark ICETransport
     #pragma mark
-    
+
     class ICETransport : public Noop,
                          public MessageQueueAssociator,
                          public IICETransport,
+                         public IICETransportForDTLSTransport,
                          public IWakeDelegate,
                          public IICESocketDelegate,
                          public IICESocketSessionDelegate
@@ -62,6 +100,12 @@ namespace ortc
     public:
       friend interaction IICETransport;
       friend interaction IICETransportFactory;
+      friend interaction IICETransportForDTLSTransport;
+
+      ZS_DECLARE_TYPEDEF_PTR(IDTLSTransportForICETransport, UseDTLSTransport)
+
+      typedef IICETransport::ConnectionStates ConnectionStates;
+      typedef IICETransport::Roles Roles;
 
       typedef std::list<CandidateInfoPtr> CandidateInfoList;
       typedef IICESocket::CandidateList CandidateListInner;
@@ -82,7 +126,8 @@ namespace ortc
       virtual ~ICETransport();
 
       static ICETransportPtr convert(IICETransportPtr object);
-      
+      static ICETransportPtr convert(ForDTLSTransportPtr object);
+
     protected:
       //-----------------------------------------------------------------------
       #pragma mark
@@ -128,6 +173,28 @@ namespace ortc
       virtual Roles getRole();
 
       virtual void addRemoteCandidate(CandidateInfoPtr candidate);
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark ICETransport => IICETransportForDTLS
+      #pragma mark
+
+      // (duplicate) virtual PUID getID() const;
+
+      virtual void attach(DTLSTransportPtr dtlsTransport);
+      virtual void detach(DTLSTransport &dtlsTransport);
+
+      // (duplicate) virtual ConnectionStates getState(
+      //                                               WORD *outError = NULL,
+      //                                               String *outReason = NULL
+      //                                               );
+
+      // (duplicate) virtual Roles getRole();
+
+      virtual bool sendPacket(
+                              const BYTE *buffer,
+                              size_t bufferLengthInBytes
+                              ) const;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -245,6 +312,9 @@ namespace ortc
 
       CandidateListOuter mPendingRemoteCandidates;
       CandidateListInner mAddedRemoteCandidates;
+
+      PUID mAttachedDTLSTransportID;
+      UseDTLSTransportWeakPtr mDTLSTransport;
     };
 
     //-------------------------------------------------------------------------

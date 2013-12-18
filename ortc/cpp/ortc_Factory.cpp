@@ -100,6 +100,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     MediaEnginePtr IMediaEngineFactory::createMediaEngine(IMediaEngineDelegatePtr delegate)
     {
+      if (this) {}
       return MediaEngine::create(delegate);
     }
 
@@ -108,7 +109,31 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IICESocketFactory
+    #pragma mark IDTLSTransportFactory
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    IDTLSTransportFactory &IDTLSTransportFactory::singleton()
+    {
+      return *(Factory::singleton().get());
+    }
+
+    //-------------------------------------------------------------------------
+    DTLSTransportPtr IDTLSTransportFactory::create(
+                                                   IDTLSTransportDelegatePtr delegate,
+                                                   IICETransportPtr iceTransport
+                                                   )
+    {
+      if (this) {}
+      return internal::DTLSTransport::create(delegate, iceTransport);
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IICETransportFactory
     #pragma mark
 
     //-------------------------------------------------------------------------
@@ -123,8 +148,33 @@ namespace ortc
                                                  IICETransport::ServerListPtr servers
                                                  )
     {
+      if (this) {}
       return internal::ICETransport::create(delegate, servers);
     }
 
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IRTPSenderFactor
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    IRTPSenderFactory &IRTPSenderFactory::singleton()
+    {
+      return *(Factory::singleton().get());
+    }
+
+    //-------------------------------------------------------------------------
+    RTPSenderPtr IRTPSenderFactory::create(
+                                          IDTLSTransportPtr rtpTransport,
+                                          IDTLSTransportPtr rtcpTransport
+                                          )
+    {
+      if (this) {}
+      return internal::RTPSender::create(rtpTransport, rtcpTransport);
+    }
   }
 }

@@ -40,44 +40,34 @@ namespace ortc
   {
     using zsLib::string;
     using zsLib::Noop;
-    using zsLib::MessageQueue;
-    using zsLib::IMessageQueuePtr;
-    using zsLib::MessageQueuePtr;
     using zsLib::MessageQueueAssociator;
-    using zsLib::IMessageQueueNotify;
-    using zsLib::IMessageQueueMessagePtr;
-    using zsLib::IMessageQueueThread;
-    using zsLib::MessageQueueThread;
-    using zsLib::IMessageQueueThreadPtr;
-    using zsLib::MessageQueueThreadPtr;
     using zsLib::RecursiveLock;
-    using zsLib::AutoRecursiveLock;
     using zsLib::Log;
     using zsLib::Stringize;
     using zsLib::AutoBool;
     using zsLib::AutoPUID;
     using zsLib::AutoWORD;
 
-    using openpeer::services::IHTTP;
+    ZS_DECLARE_USING_PTR(zsLib, IMessageQueue)
+    ZS_DECLARE_USING_PTR(zsLib, IMessageQueueNotify)
+    ZS_DECLARE_USING_PTR(zsLib, IMessageQueueThread)
+    ZS_DECLARE_USING_PTR(zsLib, IMessageQueueMessage)
 
-    using openpeer::services::IICESocket;
-    using openpeer::services::IICESocketPtr;
-    using openpeer::services::IICESocketSubscription;
-    using openpeer::services::IICESocketSubscriptionPtr;
-    using openpeer::services::IICESocketDelegate;
-    using openpeer::services::IICESocketDelegatePtr;
+    ZS_DECLARE_USING_PTR(zsLib, MessageQueue)
+    ZS_DECLARE_USING_PTR(zsLib, MessageQueueThread)
 
-    using openpeer::services::IICESocketSession;
-    using openpeer::services::IICESocketSessionPtr;
-    using openpeer::services::IICESocketSessionSubscription;
-    using openpeer::services::IICESocketSessionSubscriptionPtr;
-    using openpeer::services::IICESocketSessionDelegate;
-    using openpeer::services::IICESocketDelegate;
-    using openpeer::services::IICESocketDelegatePtr;
+    ZS_DECLARE_TYPEDEF_PTR(zsLib::AutoRecursiveLock, AutoRecursiveLock)
 
-    using openpeer::services::IWakeDelegate;
-    using openpeer::services::IWakeDelegateProxy;
-    
+    ZS_DECLARE_USING_PTR(openpeer::services, IHTTP)
+    ZS_DECLARE_USING_PTR(openpeer::services, IICESocket)
+    ZS_DECLARE_USING_PTR(openpeer::services, IICESocketDelegate)
+    ZS_DECLARE_USING_PTR(openpeer::services, IICESocketSubscription)
+    ZS_DECLARE_USING_PTR(openpeer::services, IICESocketSession)
+    ZS_DECLARE_USING_PTR(openpeer::services, IICESocketSessionDelegate)
+    ZS_DECLARE_USING_PTR(openpeer::services, IICESocketSessionSubscription)
+
+    ZS_DECLARE_USING_PROXY(openpeer::services, IWakeDelegate)
+
     enum CameraTypes
     {
       CameraType_None,
@@ -85,17 +75,23 @@ namespace ortc
       CameraType_Back
     };
 
-    interaction Factory;
-    typedef boost::shared_ptr<Factory> FactoryPtr;
-    typedef boost::weak_ptr<Factory> FactoryWeakPtr;
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark (forwards)
+    #pragma mark
 
-    class ORTC;
-    typedef boost::shared_ptr<ORTC> ORTCPtr;
-    typedef boost::weak_ptr<ORTC> ORTCWeakPtr;
+    ZS_DECLARE_CLASS_PTR(Factory)
+    ZS_DECLARE_CLASS_PTR(ORTC)
+    ZS_DECLARE_CLASS_PTR(DTLSTransport)
+    ZS_DECLARE_CLASS_PTR(ICETransport)
+    ZS_DECLARE_CLASS_PTR(RTPSender)
+    ZS_DECLARE_CLASS_PTR(RTPReceiver)
 
-    class ICETransport;
-    typedef boost::shared_ptr<ICETransport> ICETransportPtr;
-    typedef boost::weak_ptr<ICETransport> ICETransportWeakPtr;
+
+
 
     class RTCConnection;
     typedef boost::shared_ptr<RTCConnection> RTCConnectionPtr;
