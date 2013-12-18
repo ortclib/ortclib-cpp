@@ -620,7 +620,9 @@ namespace ortc
     RemoteReceiveAudioStreamTrack::RemoteReceiveAudioStreamTrack(IMessageQueuePtr queue, IMediaStreamTrackDelegatePtr delegate) :
       AudioStreamTrack(queue, delegate)
     {
+      IMediaEnginePtr mediaEngine = IMediaEngine::singleton();
       
+      mediaEngine->startReceiveVoice(0);
     }
     
     //-------------------------------------------------------------------------
@@ -755,9 +757,6 @@ namespace ortc
     RemoteSendAudioStreamTrack::RemoteSendAudioStreamTrack(IMessageQueuePtr queue, IMediaStreamTrackDelegatePtr delegate) :
       AudioStreamTrack(queue, delegate)
     {
-      IMediaEnginePtr mediaEngine = IMediaEngine::singleton();
-      
-      mediaEngine->startReceiveVoice(0);
     }
     
     //-------------------------------------------------------------------------
