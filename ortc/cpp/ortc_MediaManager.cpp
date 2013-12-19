@@ -30,14 +30,21 @@
  */
 
 #include <ortc/internal/ortc_MediaManager.h>
+#include <ortc/internal/ortc_ORTC.h>
 #include <ortc/internal/ortc_MediaStream.h>
 #include <ortc/internal/ortc_MediaStreamTrack.h>
+
+#include <openpeer/services/IHelper.h>
+
 #include <zsLib/Log.h>
+#include <zsLib/XML.h>
 
 namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib) }
 
 namespace ortc
 {
+  typedef openpeer::services::IHelper OPIHelper;
+  
   namespace internal
   {
     //-----------------------------------------------------------------------
@@ -49,18 +56,19 @@ namespace ortc
     #pragma mark
     
     //-----------------------------------------------------------------------
-    MediaManager::MediaManager(IMessageQueuePtr queue, IMediaManagerDelegatePtr delegate) :
-      MessageQueueAssociator(queue),
-      mID(zsLib::createPUID()),
-      mDelegate(delegate),
-      mError(0)
+    MediaManager::MediaManager(
+                               IMessageQueuePtr queue,
+                               IMediaManagerDelegatePtr originalDelegate
+                               ) :
+      MessageQueueAssociator(queue)
     {
+      mDefaultSubscription = mSubscriptions.subscribe(IMediaManagerDelegateProxy::create(IORTCForInternal::queueDelegate(), originalDelegate), queue);
     }
     
     //-----------------------------------------------------------------------
     MediaManagerPtr MediaManager::singleton(IMediaManagerDelegatePtr delegate)
     {
-      static MediaManagerPtr manager = MediaManager::create(IMessageQueuePtr(), delegate);
+      static MediaManagerPtr manager = MediaManager::create(IORTCForInternal::queueORTC(), delegate);
       return manager;
     }
     
@@ -81,6 +89,9 @@ namespace ortc
     //-----------------------------------------------------------------------
     MediaManager::~MediaManager()
     {
+      if (isNoop()) return;
+      
+      mThisWeak.reset();
     }
     
     //-----------------------------------------------------------------------
@@ -90,6 +101,31 @@ namespace ortc
     #pragma mark
     #pragma mark MediaManager => IMediaManager
     #pragma mark
+    
+    //-------------------------------------------------------------------------
+    PUID MediaManager::getID() const
+    {
+      return mID;
+    }
+    
+    //-------------------------------------------------------------------------
+    IMediaManagerSubscriptionPtr MediaManager::subscribe(IMediaManagerDelegatePtr originalDelegate)
+    {
+      ZS_LOG_DETAIL(log("subscribing to media manager events"))
+      
+      AutoRecursiveLock lock(getLock());
+      if (!originalDelegate) return mDefaultSubscription;
+      
+      IMediaManagerSubscriptionPtr subscription = mSubscriptions.subscribe(IMediaManagerDelegateProxy::create(IORTCForInternal::queueDelegate(), originalDelegate));
+      
+      IMediaManagerDelegatePtr delegate = mSubscriptions.delegate(subscription);
+      
+      if (delegate) {
+        MediaManagerPtr pThis = mThisWeak.lock();
+      }
+      
+      return subscription;
+    }
 
     //-----------------------------------------------------------------------
     void MediaManager::getUserMedia(MediaStreamConstraints constraints)
@@ -102,10 +138,8 @@ namespace ortc
       mediaStream->forMediaManager().addTrack(localVideoStreamTrack);
       
       try {
-        if (mDelegate)
-          mDelegate->onMediaManagerSuccessCallback(mediaStream);
+        mSubscriptions.delegate()->onMediaManagerSuccessCallback(mediaStream);
       } catch (IMediaStreamDelegateProxy::Exceptions::DelegateGone &) {
-        //ZS_LOG_WARNING(Detail, log("delegate gone"))
       }
     }
     
@@ -113,18 +147,13 @@ namespace ortc
     void MediaManager::setDefaultVideoOrientation(VideoOrientations orientation)
     {
       AutoRecursiveLock lock(mLock);
-      
-      //ZS_LOG_DEBUG(log("set default video orientation - ") + IMediaManager::toString(orientation))
-      
-      //        mDefaultVideoOrientation = orientation;
+
     }
     
     //-------------------------------------------------------------------------
     MediaManager::VideoOrientations MediaManager::getDefaultVideoOrientation()
     {
       AutoRecursiveLock lock(mLock);
-      
-      //ZS_LOG_DEBUG(log("get default video orientation"))
       
       return VideoOrientation_LandscapeLeft;
     }
@@ -133,18 +162,12 @@ namespace ortc
     void MediaManager::setRecordVideoOrientation(VideoOrientations orientation)
     {
       AutoRecursiveLock lock(mLock);
-      
-      //ZS_LOG_DEBUG(log("set record video orientation - ") + IMediaManager::toString(orientation))
-      
-      //        mRecordVideoOrientation = orientation;
     }
     
     //-------------------------------------------------------------------------
     MediaManager::VideoOrientations MediaManager::getRecordVideoOrientation()
     {
       AutoRecursiveLock lock(mLock);
-      
-      //ZS_LOG_DEBUG(log("get record video orientation"))
       
       return VideoOrientation_LandscapeLeft;
     }
@@ -153,30 +176,12 @@ namespace ortc
     void MediaManager::setVideoOrientation()
     {
       AutoRecursiveLock lock(mLock);
-      
-      //ZS_LOG_DEBUG(log("set video orientation and codec parameters"))
-      /*
-       if (mVideoChannel == OPENPEER_MEDIA_ENGINE_INVALID_CHANNEL) {
-       mError = setVideoCaptureRotation();
-       } else {
-       mError = setVideoCodecParameters();
-       }
-       */
     }
     
     //-----------------------------------------------------------------------
     void MediaManager::setMuteEnabled(bool enabled)
     {
       AutoRecursiveLock lock(mLock);
-      
-      //ZS_LOG_DEBUG(log("set microphone mute enabled - value: ") + (enabled ? "true" : "false"))
-      /*
-       mError = mVoiceVolumeControl->SetInputMute(-1, enabled);
-       if (mError != 0) {
-       ZS_LOG_ERROR(Detail, log("failed to set microphone mute (error: ") + Stringize<INT>(mVoiceBase->LastError()).string() + ")")
-       return;
-       }
-       */
     }
     
     //-----------------------------------------------------------------------
@@ -184,16 +189,8 @@ namespace ortc
     {
       AutoRecursiveLock lock(mLock);
       
-      //ZS_LOG_DEBUG(log("get microphone mute enabled"))
-      
-      bool enabled;
-      /*
-       mError = mVoiceVolumeControl->GetInputMute(-1, enabled);
-       if (mError != 0) {
-       ZS_LOG_ERROR(Detail, log("failed to set microphone mute (error: ") + Stringize<INT>(mVoiceBase->LastError()).string() + ")")
-       return false;
-       }
-       */
+      bool enabled = false;
+
       return enabled;
     }
     
@@ -201,15 +198,6 @@ namespace ortc
     void MediaManager::setLoudspeakerEnabled(bool enabled)
     {
       AutoRecursiveLock lock(mLock);
-      
-      //ZS_LOG_DEBUG(log("set loudspeaker enabled - value: ") + (enabled ? "true" : "false"))
-      /*
-       mError = mVoiceHardware->SetLoudspeakerStatus(enabled);
-       if (mError != 0) {
-       ZS_LOG_ERROR(Detail, log("failed to set loudspeaker (error: ") + Stringize<INT>(mVoiceBase->LastError()).string() + ")")
-       return;
-       }
-       */
     }
     
     //-----------------------------------------------------------------------
@@ -217,16 +205,8 @@ namespace ortc
     {
       AutoRecursiveLock lock(mLock);
       
-      //ZS_LOG_DEBUG(log("get loudspeaker enabled"))
-      
-      bool enabled;
-      /*
-       mError = mVoiceHardware->GetLoudspeakerStatus(enabled);
-       if (mError != 0) {
-       ZS_LOG_ERROR(Detail, log("failed to get loudspeaker (error: ") + Stringize<INT>(mVoiceBase->LastError()).string() + ")")
-       return false;
-       }
-       */
+      bool enabled = false;
+
       return enabled;
     }
     
@@ -235,28 +215,55 @@ namespace ortc
     {
       AutoRecursiveLock lock(mLock);
       
-      //ZS_LOG_DEBUG(log("get output audio route"))
-      /*
-       OutputAudioRoute route;
-       mError = mVoiceHardware->GetOutputAudioRoute(route);
-       if (mError != 0) {
-       ZS_LOG_ERROR(Detail, log("failed to get output audio route (error: ") + Stringize<INT>(mVoiceBase->LastError()).string() + ")")
-       return OutputAudioRoute_BuiltInSpeaker;
-       }
-       
-       switch (route) {
-       case webrtc::kOutputAudioRouteHeadphone:
-       return OutputAudioRoute_Headphone;
-       case webrtc::kOutputAudioRouteBuiltInReceiver:
-       return OutputAudioRoute_BuiltInReceiver;
-       case webrtc::kOutputAudioRouteBuiltInSpeaker:
-       return OutputAudioRoute_BuiltInSpeaker;
-       default:
-       return OutputAudioRoute_BuiltInSpeaker;
-       }
-       */
-      
       return OutputAudioRoute_Headphone;
+    }
+    
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    #pragma mark
+    #pragma mark MediaManager => (internal)
+    #pragma mark
+    
+    //-------------------------------------------------------------------------
+    Log::Params MediaManager::log(const char *message) const
+    {
+      ElementPtr objectEl = Element::create("ortc::MediaManager");
+      OPIHelper::debugAppend(objectEl, "id", mID);
+      return Log::Params(message, objectEl);
+    }
+    
+    //-------------------------------------------------------------------------
+    Log::Params MediaManager::debug(const char *message) const
+    {
+      return Log::Params(message, toDebug());
+    }
+    
+    //-------------------------------------------------------------------------
+    ElementPtr MediaManager::toDebug() const
+    {
+      ElementPtr resultEl = Element::create("MediaManager");
+      
+      OPIHelper::debugAppend(resultEl, "id", mID);
+      
+      return resultEl;
+    }
+    
+    //-----------------------------------------------------------------------
+    void MediaManager::setError(WORD errorCode, const char *inReason)
+    {
+      String reason(inReason);
+
+      if (0 != mLastError) {
+        ZS_LOG_WARNING(Detail, debug("error already set thus ignoring new error") + ZS_PARAM("new error", errorCode) + ZS_PARAM("new reason", reason))
+        return;
+      }
+      
+      get(mLastError) = errorCode;
+      mLastErrorReason = reason;
+      
+      ZS_LOG_WARNING(Detail, debug("error set") + ZS_PARAM("error", mLastError) + ZS_PARAM("reason", mLastErrorReason))
     }
   }
   

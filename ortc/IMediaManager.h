@@ -112,6 +112,10 @@ namespace ortc
     static IMediaManagerPtr singleton();
     
     static void setup(IMediaManagerDelegatePtr delegate);
+    
+    virtual PUID getID() const = 0;
+    
+    virtual IMediaManagerSubscriptionPtr subscribe(IMediaManagerDelegatePtr delegate) = 0;
 
     virtual void getUserMedia(MediaStreamConstraints constraints) = 0;
     
@@ -137,6 +141,23 @@ namespace ortc
     virtual void onMediaManagerErrorCallback(UserMediaError error) = 0;
     virtual void onMediaManagerAudioRouteChanged(OutputAudioRoutes audioRoute) = 0;
   };
+  
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IMediaManagerSubscription
+  #pragma mark
+  
+  interaction IMediaManagerSubscription
+  {
+    virtual PUID getID() const = 0;
+    
+    virtual void cancel() = 0;
+    
+    virtual void background() = 0;
+  };
 }
 
 ZS_DECLARE_PROXY_BEGIN(ortc::IMediaManagerDelegate)
@@ -147,3 +168,12 @@ ZS_DECLARE_PROXY_METHOD_1(onMediaManagerSuccessCallback, IMediaStreamPtr)
 ZS_DECLARE_PROXY_METHOD_1(onMediaManagerErrorCallback, UserMediaError)
 ZS_DECLARE_PROXY_METHOD_1(onMediaManagerAudioRouteChanged, OutputAudioRoutes)
 ZS_DECLARE_PROXY_END()
+
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_BEGIN(ortc::IMediaManagerDelegate, ortc::IMediaManagerSubscription)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IMediaStreamPtr, IMediaStreamPtr)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IMediaManager::UserMediaError, UserMediaError)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IMediaManager::OutputAudioRoutes, OutputAudioRoutes)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_1(onMediaManagerSuccessCallback, IMediaStreamPtr)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_1(onMediaManagerErrorCallback, UserMediaError)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_1(onMediaManagerAudioRouteChanged, OutputAudioRoutes)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_END()

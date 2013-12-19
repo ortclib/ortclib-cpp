@@ -5,6 +5,7 @@
 #include <ortc/internal/ortc_MediaStream.h>
 #include <ortc/internal/ortc_MediaStreamTrack.h>
 #include <ortc/test/TestMediaEngine.h>
+#include <zsLib/MessageQueueThread.h>
 
 @implementation ViewController
 
@@ -101,6 +102,9 @@
 //    const char* receiverIPAddress = "127.0.0.1";
   
     mediaManagerDelegatePtr = MediaManagerDelegateWrapper::create(self);
+  
+    IORTC::setup(zsLib::MessageQueueThread::createBasic("ortc.delegateThread"),
+                 zsLib::MessageQueueThread::singletonUsingCurrentGUIThreadsMessageQueue());
   
     ortc::test::TestMediaEngineFactoryPtr overrideFactory(new ortc::test::TestMediaEngineFactory);
   

@@ -140,6 +140,11 @@ namespace ortc
   typedef boost::shared_ptr<IMediaManagerDelegate> IMediaManagerDelegatePtr;
   typedef boost::weak_ptr<IMediaManagerDelegate> IMediaManagerDelegateWeakPtr;
   typedef zsLib::Proxy<IMediaManagerDelegate> IMediaManagerDelegateProxy;
+  
+  interaction IMediaManagerSubscription;
+  typedef boost::shared_ptr<IMediaManagerSubscription> IMediaManagerSubscriptionPtr;
+  typedef boost::weak_ptr<IMediaManagerSubscription> IMediaManagerSubscriptionWeakPtr;
+  typedef zsLib::ProxySubscriptions<IMediaManagerDelegate, IMediaManagerSubscription> IMediaManagerDelegateSubscriptions;
 
   interaction IMediaStream;
   typedef boost::shared_ptr<IMediaStream> IMediaStreamPtr;
@@ -149,6 +154,11 @@ namespace ortc
   typedef boost::shared_ptr<IMediaStreamDelegate> IMediaStreamDelegatePtr;
   typedef boost::weak_ptr<IMediaStreamDelegate> IMediaStreamDelegateWeakPtr;
   typedef zsLib::Proxy<IMediaStreamDelegate> IMediaStreamDelegateProxy;
+  
+  interaction IMediaStreamSubscription;
+  typedef boost::shared_ptr<IMediaStreamSubscription> IMediaStreamSubscriptionPtr;
+  typedef boost::weak_ptr<IMediaStreamSubscription> IMediaStreamSubscriptionWeakPtr;
+  typedef zsLib::ProxySubscriptions<IMediaStreamDelegate, IMediaStreamSubscription> IMediaStreamDelegateSubscriptions;
 
   interaction IMediaStreamTrack;
   typedef boost::shared_ptr<IMediaStreamTrack> IMediaStreamTrackPtr;
@@ -162,5 +172,10 @@ namespace ortc
   typedef boost::shared_ptr<IMediaStreamTrackDelegate> IMediaStreamTrackDelegatePtr;
   typedef boost::weak_ptr<IMediaStreamTrackDelegate> IMediaStreamTrackDelegateWeakPtr;
   typedef zsLib::Proxy<IMediaStreamTrackDelegate> IMediaStreamTrackDelegateProxy;
- 
+  
+  interaction IMediaStreamTrackSubscription;
+  typedef boost::shared_ptr<IMediaStreamTrackSubscription> IMediaStreamTrackSubscriptionPtr;
+  typedef boost::weak_ptr<IMediaStreamTrackSubscription> IMediaStreamTrackSubscriptionWeakPtr;
+  typedef zsLib::ProxySubscriptions<IMediaStreamTrackDelegate, IMediaStreamTrackSubscription> IMediaStreamTrackDelegateSubscriptions;
+
 }
