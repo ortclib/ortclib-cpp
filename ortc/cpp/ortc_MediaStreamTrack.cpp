@@ -33,7 +33,7 @@
 #include <ortc/internal/ortc_MediaEngine.h>
 #include <zsLib/Log.h>
 
-namespace ortc { ZS_IMPLEMENT_SUBSYSTEM(ortclib) }
+namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib) }
 
 namespace ortc
 {
@@ -620,7 +620,9 @@ namespace ortc
     RemoteReceiveAudioStreamTrack::RemoteReceiveAudioStreamTrack(IMessageQueuePtr queue, IMediaStreamTrackDelegatePtr delegate) :
       AudioStreamTrack(queue, delegate)
     {
+      IMediaEnginePtr mediaEngine = IMediaEngine::singleton();
       
+      mediaEngine->startReceiveVoice(0);
     }
     
     //-------------------------------------------------------------------------
@@ -755,9 +757,6 @@ namespace ortc
     RemoteSendAudioStreamTrack::RemoteSendAudioStreamTrack(IMessageQueuePtr queue, IMediaStreamTrackDelegatePtr delegate) :
       AudioStreamTrack(queue, delegate)
     {
-      IMediaEnginePtr mediaEngine = IMediaEngine::singleton();
-      
-      mediaEngine->startReceiveVoice(0);
     }
     
     //-------------------------------------------------------------------------

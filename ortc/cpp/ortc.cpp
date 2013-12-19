@@ -34,6 +34,7 @@
 #include <zsLib/Log.h>
 
 namespace ortc { ZS_IMPLEMENT_SUBSYSTEM(ortclib) }
+namespace ortc { ZS_IMPLEMENT_SUBSYSTEM(ortclib_webrtc) }
 
 namespace ortc
 {
