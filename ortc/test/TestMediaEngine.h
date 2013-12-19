@@ -84,12 +84,10 @@ namespace ortc
       ~TestMediaEngine();
 
     private:
-      String log(const char *message) const;
+      internal::Log::Params log(const char *message) const;
 
     protected:
       static internal::MediaEnginePtr create(internal::IMediaEngineDelegatePtr delegate);
-      
-      virtual void setLogLevel();
       
     public:
       virtual void setReceiverAddress(String receiverAddress);

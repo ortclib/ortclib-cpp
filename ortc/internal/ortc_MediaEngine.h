@@ -325,7 +325,7 @@ namespace ortc
       EcModes getEcMode();
 
     private:
-      String log(const char *message) const;
+      Log::Params log(const char *message) const;
       
     protected:
       //---------------------------------------------------------------------
@@ -362,7 +362,7 @@ namespace ortc
         #pragma mark MediaEngine::RedirectTransport => (internal)
         #pragma mark
         
-        String log(const char *message);
+        Log::Params log(const char *message);
         
       private:
         PUID mID;

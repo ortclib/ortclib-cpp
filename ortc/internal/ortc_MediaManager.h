@@ -47,8 +47,8 @@ namespace ortc
     #pragma mark
     
     class MediaManager : public Noop,
-      public MessageQueueAssociator,
-      public IMediaManager
+                         public MessageQueueAssociator,
+                         public IMediaManager
     {
     public:
       friend interaction IMediaManager;
@@ -68,12 +68,16 @@ namespace ortc
     public:
       virtual ~MediaManager();
       
+    protected:
       //---------------------------------------------------------------------
       #pragma mark
       #pragma mark MediaManager => IMediaManager
       #pragma mark
       
-    protected:
+      virtual PUID getID() const;
+
+      virtual IMediaManagerSubscriptionPtr subscribe(IMediaManagerDelegatePtr delegate);
+
       virtual void getUserMedia(MediaStreamConstraints constraints);
       
       virtual void setDefaultVideoOrientation(VideoOrientations orientation);
@@ -93,18 +97,29 @@ namespace ortc
       #pragma mark MediaManager => (internal)
       #pragma mark
       
+      Log::Params log(const char *message) const;
+      Log::Params debug(const char *message) const;
+      ElementPtr toDebug() const;
+      
+      RecursiveLock &getLock() const {return mLock;}
+
+      void setError(WORD error, const char *reason = NULL);
+      
       //---------------------------------------------------------------------
       #pragma mark
       #pragma mark MediaManager => (data)
       #pragma mark
       
     protected:
-      PUID mID;
       mutable RecursiveLock mLock;
       MediaManagerWeakPtr mThisWeak;
-      IMediaManagerDelegatePtr mDelegate;
+      AutoPUID mID;
       
-      int mError;
+      IMediaManagerDelegateSubscriptions mSubscriptions;
+      IMediaManagerSubscriptionPtr mDefaultSubscription;
+
+      AutoWORD mLastError;
+      String mLastErrorReason;
       
     };
   }

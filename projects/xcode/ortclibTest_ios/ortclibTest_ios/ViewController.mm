@@ -1,9 +1,11 @@
 #import "ViewController.h"
 #import "MediaManagerDelegateWrapper.h"
+#include <openpeer/services/ILogger.h>
 #include <ortc/internal/ortc_MediaManager.h>
 #include <ortc/internal/ortc_MediaStream.h>
 #include <ortc/internal/ortc_MediaStreamTrack.h>
 #include <ortc/test/TestMediaEngine.h>
+#include <zsLib/MessageQueueThread.h>
 
 @implementation ViewController
 
@@ -101,14 +103,18 @@
   
     mediaManagerDelegatePtr = MediaManagerDelegateWrapper::create(self);
   
+    IORTC::setup(zsLib::MessageQueueThread::createBasic("ortc.delegateThread"),
+                 zsLib::MessageQueueThread::singletonUsingCurrentGUIThreadsMessageQueue());
+  
     ortc::test::TestMediaEngineFactoryPtr overrideFactory(new ortc::test::TestMediaEngineFactory);
   
     ortc::internal::Factory::override(overrideFactory);
   
-//    IClient::setLogLevel(IClient::Log::Trace);
-//    IClient::setLogLevel("ortclib", IClient::Log::Debug);         // recommend Debug
-//    IClient::installTelnetLogger(59999, 60, true);
-  
+    openpeer::services::ILogger::setLogLevel("ortclib", zsLib::Log::Trace);
+    openpeer::services::ILogger::setLogLevel("ortclib_webrtc", zsLib::Log::Trace);
+    openpeer::services::ILogger::installStdOutLogger(false);
+//    openpeer::services::ILogger::installTelnetLogger(59999, 60, true);
+
     ortc::internal::IMediaEnginePtr mediaEngine = ortc::internal::IMediaEngine::singleton();
 
     return self;
