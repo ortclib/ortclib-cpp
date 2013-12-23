@@ -1238,11 +1238,13 @@ namespace ortc
     //-----------------------------------------------------------------------
     void MediaEngine::operator()()
     {
+#ifndef _ANDROID
 #ifndef _LINUX
 #ifdef __QNX__
       pthread_setname_np(pthread_self(), "ortc.mediaEngine");
 #else
       pthread_setname_np("ortc.mediaEngine");
+#endif
 #endif
 #endif
       //ZS_LOG_DEBUG(log("media engine lifetime thread spawned"))
