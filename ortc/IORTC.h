@@ -47,11 +47,12 @@ namespace ortc
   {
     static IORTCPtr singleton();
 
-    static void setup(
-                      IMessageQueuePtr defaultDelegateMessageQueue,
-                      IMessageQueuePtr ortcMessageQueue
-                      );
-
     virtual PUID getID() const = 0;
+
+    virtual void setup(
+                       IMessageQueuePtr defaultDelegateMessageQueue,
+                       IMessageQueuePtr ortcMessageQueue,
+                       IMessageQueuePtr blockingMediaStartStopThread
+                       );
   };
 }

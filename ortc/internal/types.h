@@ -93,14 +93,6 @@ namespace ortc
 
 
 
-    class RTCConnection;
-    typedef boost::shared_ptr<RTCConnection> RTCConnectionPtr;
-    typedef boost::weak_ptr<RTCConnection> RTCConnectionWeakPtr;
-    
-    class RTCSocket;
-    typedef boost::shared_ptr<RTCSocket> RTCSocketPtr;
-    typedef boost::weak_ptr<RTCSocket> RTCSocketWeakPtr;
-    
     class RTCStream;
     typedef boost::shared_ptr<RTCStream> RTCStreamPtr;
     typedef boost::weak_ptr<RTCStream> RTCStreamWeakPtr;

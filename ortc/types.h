@@ -92,24 +92,6 @@ namespace ortc
 
 
 
-
-
-
-
-
-  interaction IRTCConnection;
-  typedef boost::shared_ptr<IRTCConnection> IRTCConnectionPtr;
-  typedef boost::weak_ptr<IRTCConnection> IRTCConnectionWeakPtr;
-  
-  interaction IRTCConnectionDelegate;
-  typedef boost::shared_ptr<IRTCConnectionDelegate> IRTCConnectionDelegatePtr;
-  typedef boost::weak_ptr<IRTCConnectionDelegate> IRTCConnectionDelegateWeakPtr;
-  typedef zsLib::Proxy<IRTCConnectionDelegate> IRTCConnectionDelegateProxy;
-  
-  interaction IRTCSocket;
-  typedef boost::shared_ptr<IRTCSocket> IRTCSocketPtr;
-  typedef boost::weak_ptr<IRTCSocket> IRTCSocketWeakPtr;
-  
   interaction IRTCStream;
   typedef boost::shared_ptr<IRTCStream> IRTCStreamPtr;
   typedef boost::weak_ptr<IRTCStream> IRTCStreamWeakPtr;

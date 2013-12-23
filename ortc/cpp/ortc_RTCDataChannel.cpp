@@ -84,12 +84,6 @@ namespace ortc
     #pragma mark
     
     //-----------------------------------------------------------------------
-    IRTCConnectionPtr RTCDataChannel::connection()
-    {
-      return IRTCConnectionPtr();
-    }
-    
-    //-----------------------------------------------------------------------
     String RTCDataChannel::id()
     {
       return String();
