@@ -401,11 +401,11 @@ $(LOCAL_PATH)/.. \
 $(LOCAL_PATH)/../ortc/ \
 $(LOCAL_PATH)/../ortc/test \
 $(LOCAL_PATH)/../libs/op-services-cpp \
-$(LOCAL_PATH)/../libs/curl/projects/android/curl/include \
+$(LOCAL_PATH)/../libs/build/android/curl/include \
 $(LOCAL_PATH)/../libs/build/android/boost/include/boost-1_53 \
 $(LOCAL_PATH)/../libs/zsLib \
 $(LOCAL_PATH)/../libs \
-$(LOCAL_PATH)/../libs/cryptopp/projects/android \
+$(LOCAL_PATH)/../libs/build/android/cryptopp/include \
 $(LOCAL_PATH)/../libs/webrtc/webrtc/voice_engine/include \
 $(LOCAL_PATH)/../libs/webrtc \
 $(LOCAL_PATH)/../libs/webrtc/webrtc \

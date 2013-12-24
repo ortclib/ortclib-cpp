@@ -23,7 +23,7 @@ $(LOCAL_PATH)/libs/op-services-cpp \
 $(LOCAL_PATH)/libs/build/android/boost/include/boost-1_53 \
 $(LOCAL_PATH)/libs/zsLib \
 $(LOCAL_PATH)/libs \
-$(LOCAL_PATH)/libs/cryptopp/projects/android \
+$(LOCAL_PATH)/libs/build/android/cryptopp/include \
 $(LOCAL_PATH)/libs/webrtc/webrtc/voice_engine/include \
 $(LOCAL_PATH)/libs/webrtc \
 $(LOCAL_PATH)/libs/webrtc/webrtc \
@@ -31,7 +31,7 @@ $(LOCAL_PATH)/libs/webrtc/webrtc/video_engine/include \
 $(LOCAL_PATH)/libs/webrtc/webrtc/modules/video_capture/include \
 $(ANDROIDNDK_PATH)/sources/cxx-stl/gnu-libstdc++/4.4.3/include \
 $(ANDROIDNDK_PATH)/sources/cxx-stl/gnu-libstdc++/4.4.3/libs/armeabi/include \
-$(ANDROIDNDK_PATH)/platforms/android-8/arch-arm/usr/include \
+$(ANDROIDNDK_PATH)/platforms/android-9/arch-arm/usr/include \
 
 LOCAL_SRC_FILES := ortc/cpp/ortc.cpp \
 ortc/cpp/ortc_Factory.cpp \
