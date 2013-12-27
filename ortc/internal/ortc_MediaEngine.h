@@ -35,6 +35,8 @@
 
 #include <zsLib/MessageQueueAssociator.h>
 
+#include <openpeer/services/IWakeDelegate.h>
+
 #include <voe_base.h>
 #include <voe_codec.h>
 #include <voe_network.h>
@@ -138,7 +140,44 @@ namespace ortc
       virtual void onMediaEngineFaceDetected(int captureId) = 0;
       virtual void onMediaEngineVideoCaptureRecordStopped(int captureId) = 0;
     };
+    
+    //---------------------------------------------------------------------------
+    //---------------------------------------------------------------------------
+    //---------------------------------------------------------------------------
+    //---------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IMediaEngineSubscription
+    #pragma mark
+    
+    interaction IMediaEngineSubscription
+    {
+      virtual PUID getID() const = 0;
+      
+      virtual void cancel() = 0;
+      
+      virtual void background() = 0;
+    };
+  }
+}
 
+ZS_DECLARE_PROXY_BEGIN(ortc::internal::IMediaEngineDelegate)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::IMediaEngine::OutputAudioRoute, OutputAudioRoute)
+ZS_DECLARE_PROXY_METHOD_1(onMediaEngineAudioRouteChanged, OutputAudioRoute)
+ZS_DECLARE_PROXY_METHOD_1(onMediaEngineFaceDetected, int)
+ZS_DECLARE_PROXY_METHOD_1(onMediaEngineVideoCaptureRecordStopped, int)
+ZS_DECLARE_PROXY_END()
+
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_BEGIN(ortc::internal::IMediaEngineDelegate, ortc::internal::IMediaEngineSubscription)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::internal::IMediaEngine::OutputAudioRoute, OutputAudioRoute)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_1(onMediaEngineAudioRouteChanged, OutputAudioRoute)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_1(onMediaEngineFaceDetected, int)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_1(onMediaEngineVideoCaptureRecordStopped, int)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_END()
+
+namespace ortc
+{
+  namespace internal
+  {
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
@@ -150,6 +189,7 @@ namespace ortc
     class MediaEngine : public Noop,
                         public MessageQueueAssociator,
                         public IMediaEngine,
+                        public IWakeDelegate,
                         public webrtc::TraceCallback,
                         public webrtc::VoiceEngineObserver,
                         public webrtc::ViECaptureObserver
@@ -285,15 +325,32 @@ namespace ortc
       void NoPictureAlarm(const int capture_id, const webrtc::CaptureAlarm alarm);
       void FaceDetected(const int capture_id);
       
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark MediaEngine => IWakeDelegate
+      #pragma mark
+      
+      virtual void onWake();
+      
       //---------------------------------------------------------------------
       #pragma mark
       #pragma mark MediaEngine => (internal)
       #pragma mark
       
-    public:
-      void operator()();
+      Log::Params log(const char *message) const;
+      Log::Params debug(const char *message) const;
+      ElementPtr toDebug() const;
       
-    protected:
+      RecursiveLock &getLock() const {return mLock;}
+      
+      bool isShuttingDown() const;
+      bool isShutdown() const;
+      
+      void step();
+      
+      void cancel();
+      
+      void setError(WORD error, const char *reason = NULL);
       virtual void internalStartSendVoice();
       virtual void internalStartReceiveVoice();
       virtual void internalStopSendVoice();
@@ -323,9 +380,6 @@ namespace ortc
       int setVideoCodecParameters();
       int setVideoCaptureRotation();
       EcModes getEcMode();
-
-    private:
-      Log::Params log(const char *message) const;
       
     protected:
       //---------------------------------------------------------------------
@@ -383,9 +437,15 @@ namespace ortc
       PUID mID;
       mutable RecursiveLock mLock;
       MediaEngineWeakPtr mThisWeak;
-      IMediaEngineDelegatePtr mDelegate;
+      MediaEnginePtr mGracefulShutdownReference;
+      AutoBool mShutdown;
       
-      int mError;
+      IMediaEngineDelegateSubscriptions mSubscriptions;
+      IMediaEngineSubscriptionPtr mDefaultSubscription;
+      
+      AutoWORD mLastError;
+      String mLastErrorReason;
+      
       unsigned int mMtu;
       String mMachineName;
       
@@ -470,14 +530,7 @@ namespace ortc
     {
       static IMediaEngineFactory &singleton();
       
-      virtual MediaEnginePtr createMediaEngine(IMediaEngineDelegatePtr delegate);
+      virtual MediaEnginePtr create(IMediaEngineDelegatePtr delegate);
     };
   }
 }
-
-ZS_DECLARE_PROXY_BEGIN(ortc::internal::IMediaEngineDelegate)
-ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::IMediaEngine::OutputAudioRoute, OutputAudioRoute)
-ZS_DECLARE_PROXY_METHOD_1(onMediaEngineAudioRouteChanged, OutputAudioRoute)
-ZS_DECLARE_PROXY_METHOD_1(onMediaEngineFaceDetected, int)
-ZS_DECLARE_PROXY_METHOD_1(onMediaEngineVideoCaptureRecordStopped, int)
-ZS_DECLARE_PROXY_END()

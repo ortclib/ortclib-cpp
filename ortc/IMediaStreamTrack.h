@@ -82,6 +82,23 @@ namespace ortc
     virtual void onMediaStreamFaceDetected() = 0;
     virtual void onMediaStreamVideoCaptureRecordStopped() = 0;
   };
+  
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IMediaStreamTrackSubscription
+  #pragma mark
+  
+  interaction IMediaStreamTrackSubscription
+  {
+    virtual PUID getID() const = 0;
+    
+    virtual void cancel() = 0;
+    
+    virtual void background() = 0;
+  };
 }
 
 ZS_DECLARE_PROXY_BEGIN(ortc::IMediaStreamTrackDelegate)
@@ -92,3 +109,12 @@ ZS_DECLARE_PROXY_METHOD_0(onMediaStreamTrackEnded)
 ZS_DECLARE_PROXY_METHOD_0(onMediaStreamFaceDetected)
 ZS_DECLARE_PROXY_METHOD_0(onMediaStreamVideoCaptureRecordStopped)
 ZS_DECLARE_PROXY_END()
+
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_BEGIN(ortc::IMediaStreamTrackDelegate, ortc::IMediaStreamTrackSubscription)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_0(onMediaStreamTrackMute)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_0(onMediaStreamTrackUnmute)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_0(onMediaStreamTrackStarted)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_0(onMediaStreamTrackEnded)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_0(onMediaStreamFaceDetected)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_0(onMediaStreamVideoCaptureRecordStopped)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_END()

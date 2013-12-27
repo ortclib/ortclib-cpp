@@ -31,12 +31,18 @@
 
 #include <ortc/internal/ortc_MediaStreamTrack.h>
 #include <ortc/internal/ortc_MediaEngine.h>
+
+#include <openpeer/services/IHelper.h>
+
 #include <zsLib/Log.h>
+#include <zsLib/XML.h>
 
 namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib) }
 
 namespace ortc
 {
+  typedef openpeer::services::IHelper OPIHelper;
+  
   namespace internal
   {
     //-----------------------------------------------------------------------
@@ -320,8 +326,6 @@ namespace ortc
     MediaStreamTrack::MediaStreamTrack(IMessageQueuePtr queue, IMediaStreamTrackDelegatePtr delegate) :
       MessageQueueAssociator(queue),
       mID(zsLib::createPUID()),
-      mDelegate(delegate),
-      mError(0),
       mEnabled(false),
       mMuted(false),
       mReadonly(false),
@@ -405,6 +409,23 @@ namespace ortc
       
     }
     
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark MediaStreamTrack => IWakeDelegate
+    #pragma mark
+    
+    //-------------------------------------------------------------------------
+    void MediaStreamTrack::onWake()
+    {
+      ZS_LOG_DEBUG(log("wake"))
+      
+      AutoRecursiveLock lock(getLock());
+      step();
+    }
+    
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
@@ -414,11 +435,103 @@ namespace ortc
     #pragma mark
     
     //-------------------------------------------------------------------------
-    String MediaStreamTrack::log(const char *message) const
+    Log::Params MediaStreamTrack::log(const char *message) const
     {
-      return String();
+      ElementPtr objectEl = Element::create("ortc::MediaStreamTrack");
+      OPIHelper::debugAppend(objectEl, "id", mID);
+      return Log::Params(message, objectEl);
     }
     
+    //-------------------------------------------------------------------------
+    Log::Params MediaStreamTrack::debug(const char *message) const
+    {
+      return Log::Params(message, toDebug());
+    }
+    
+    //-------------------------------------------------------------------------
+    ElementPtr MediaStreamTrack::toDebug() const
+    {
+      ElementPtr resultEl = Element::create("MediaStreamTrack");
+      
+      OPIHelper::debugAppend(resultEl, "id", mID);
+      
+      OPIHelper::debugAppend(resultEl, "graceful shutdown", (bool)mGracefulShutdownReference);
+      OPIHelper::debugAppend(resultEl, "graceful shutdown", mShutdown);
+      
+      OPIHelper::debugAppend(resultEl, "error", mLastError);
+      OPIHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
+      
+      return resultEl;
+    }
+    
+    //-------------------------------------------------------------------------
+    bool MediaStreamTrack::isShuttingDown() const
+    {
+      return (bool)mGracefulShutdownReference;
+    }
+    
+    //-------------------------------------------------------------------------
+    bool MediaStreamTrack::isShutdown() const
+    {
+      if (mGracefulShutdownReference) return false;
+      return mShutdown;
+    }
+    
+    //-------------------------------------------------------------------------
+    void MediaStreamTrack::step()
+    {
+      ZS_LOG_DEBUG(debug("step"))
+      
+      AutoRecursiveLock lock(getLock());
+      
+      if ((isShuttingDown()) ||
+          (isShutdown())) {
+        ZS_LOG_DEBUG(debug("step forwarding to cancel"))
+        cancel();
+        return;
+      }
+      
+    }
+    
+    //-------------------------------------------------------------------------
+    void MediaStreamTrack::cancel()
+    {
+      //.......................................................................
+      // start the shutdown process
+      
+      //.......................................................................
+      // try to gracefully shutdown
+      
+      if (!mGracefulShutdownReference) mGracefulShutdownReference = mThisWeak.lock();
+      
+      if (mGracefulShutdownReference) {
+      }
+      
+      //.......................................................................
+      // final cleanup
+      
+      get(mShutdown) = true;
+      
+      // make sure to cleanup any final reference to self
+      mGracefulShutdownReference.reset();
+    }
+    
+    //-----------------------------------------------------------------------
+    void MediaStreamTrack::setError(WORD errorCode, const char *inReason)
+    {
+      String reason(inReason);
+      
+      if (0 != mLastError) {
+        ZS_LOG_WARNING(Detail, debug("error already set thus ignoring new error") + ZS_PARAM("new error", errorCode) + ZS_PARAM("new reason", reason))
+        return;
+      }
+      
+      get(mLastError) = errorCode;
+      mLastErrorReason = reason;
+      
+      ZS_LOG_WARNING(Detail, debug("error set") + ZS_PARAM("error", mLastError) + ZS_PARAM("reason", mLastErrorReason))
+    }
+
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------

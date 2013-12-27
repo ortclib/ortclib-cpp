@@ -38,3 +38,6 @@
 #include <ortc/IRTPSender.h>
 #include <ortc/IRTPReceiver.h>
 #include <ortc/TrackDescription.h>
+#include <ortc/IMediaManager.h>
+#include <ortc/IMediaStream.h>
+#include <ortc/IMediaStreamTrack.h>

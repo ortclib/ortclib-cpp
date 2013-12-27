@@ -88,27 +88,6 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IMediaEngineFactory
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    IMediaEngineFactory &IMediaEngineFactory::singleton()
-    {
-      return *(Factory::singleton().get());
-    }
-
-    //-------------------------------------------------------------------------
-    MediaEnginePtr IMediaEngineFactory::createMediaEngine(IMediaEngineDelegatePtr delegate)
-    {
-      if (this) {}
-      return MediaEngine::create(delegate);
-    }
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
     #pragma mark IDTLSTransportFactory
     #pragma mark
 
@@ -175,6 +154,125 @@ namespace ortc
     {
       if (this) {}
       return internal::RTPSender::create(rtpTransport, rtcpTransport);
+    }
+    
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IMediaManagerFactory
+    #pragma mark
+    
+    //-------------------------------------------------------------------------
+    IMediaManagerFactory &IMediaManagerFactory::singleton()
+    {
+      return *(Factory::singleton().get());
+    }
+    
+    //-------------------------------------------------------------------------
+    MediaManagerPtr IMediaManagerFactory::create(IMediaManagerDelegatePtr delegate)
+    {
+      if (this) {}
+      return MediaManager::create(IMessageQueuePtr(), delegate);
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IMediaStreamFactory
+    #pragma mark
+    
+    //-------------------------------------------------------------------------
+    IMediaStreamFactory &IMediaStreamFactory::singleton()
+    {
+      return *(Factory::singleton().get());
+    }
+    
+    //-------------------------------------------------------------------------
+    MediaStreamPtr IMediaStreamFactory::create(IMediaStreamDelegatePtr delegate)
+    {
+      if (this) {}
+      return MediaStream::create(IMessageQueuePtr(), delegate);
+    }
+    
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IMediaStreamTrackFactory
+    #pragma mark
+    
+    //-------------------------------------------------------------------------
+    IMediaStreamTrackFactory &IMediaStreamTrackFactory::singleton()
+    {
+      return *(Factory::singleton().get());
+    }
+    
+    //-------------------------------------------------------------------------
+    LocalAudioStreamTrackPtr IMediaStreamTrackFactory::createLocalAudioStreamTrack(IMediaStreamTrackDelegatePtr delegate)
+    {
+      if (this) {}
+      return LocalAudioStreamTrackPtr();
+    }
+    
+    //-------------------------------------------------------------------------
+    RemoteReceiveAudioStreamTrackPtr IMediaStreamTrackFactory::createRemoteReceiveAudioStreamTrack(IMediaStreamTrackDelegatePtr delegate)
+    {
+      if (this) {}
+      return RemoteReceiveAudioStreamTrackPtr();
+    }
+    
+    //-------------------------------------------------------------------------
+    RemoteSendAudioStreamTrackPtr IMediaStreamTrackFactory::createRemoteSendAudioStreamTrack(IMediaStreamTrackDelegatePtr delegate)
+    {
+      if (this) {}
+      return RemoteSendAudioStreamTrackPtr();
+    }
+    
+    //-------------------------------------------------------------------------
+    LocalVideoStreamTrackPtr IMediaStreamTrackFactory::createLocalVideoStreamTrack(IMediaStreamTrackDelegatePtr delegate)
+    {
+      if (this) {}
+      return LocalVideoStreamTrackPtr();
+    }
+    
+    //-------------------------------------------------------------------------
+    RemoteReceiveVideoStreamTrackPtr IMediaStreamTrackFactory::createRemoteReceiveVideoStreamTrack(IMediaStreamTrackDelegatePtr delegate)
+    {
+      if (this) {}
+      return RemoteReceiveVideoStreamTrackPtr();
+    }
+    
+    //-------------------------------------------------------------------------
+    RemoteSendVideoStreamTrackPtr IMediaStreamTrackFactory::createRemoteSendVideoStreamTrack(IMediaStreamTrackDelegatePtr delegate)
+    {
+      if (this) {}
+      return RemoteSendVideoStreamTrackPtr();
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IMediaEngineFactory
+    #pragma mark
+    
+    //-------------------------------------------------------------------------
+    IMediaEngineFactory &IMediaEngineFactory::singleton()
+    {
+      return *(Factory::singleton().get());
+    }
+    
+    //-------------------------------------------------------------------------
+    MediaEnginePtr IMediaEngineFactory::create(IMediaEngineDelegatePtr delegate)
+    {
+      if (this) {}
+      return MediaEngine::create(delegate);
     }
   }
 }
