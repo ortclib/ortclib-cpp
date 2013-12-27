@@ -76,21 +76,23 @@ namespace ortc
   ZS_DECLARE_INTERACTION_PTR(IICETransport)
   ZS_DECLARE_INTERACTION_PTR(IRTPSender)
   ZS_DECLARE_INTERACTION_PTR(IRTPReceiver)
+  ZS_DECLARE_INTERACTION_PTR(IMediaManager)
+  ZS_DECLARE_INTERACTION_PTR(IMediaStream)
+  ZS_DECLARE_INTERACTION_PTR(IMediaStreamTrack)
+  
+  ZS_DECLARE_TYPEDEF_PTR(std::list<IMediaStreamTrackPtr>, MediaStreamTrackList)
 
   ZS_DECLARE_INTERACTION_PROXY(IDTLSTransportDelegate)
   ZS_DECLARE_INTERACTION_PROXY(IICETransportDelegate)
+  ZS_DECLARE_INTERACTION_PROXY(IMediaManagerDelegate)
+  ZS_DECLARE_INTERACTION_PROXY(IMediaStreamDelegate)
+  ZS_DECLARE_INTERACTION_PROXY(IMediaStreamTrackDelegate)
 
   ZS_DECLARE_INTERACTION_PROXY_SUBSCRIPTION(IDTLSTransportSubscription, IDTLSTransportDelegate)
   ZS_DECLARE_INTERACTION_PROXY_SUBSCRIPTION(IICETransportSubscription, IICETransportDelegate)
-
-
-
-
-
-
-
-
-
+  ZS_DECLARE_INTERACTION_PROXY_SUBSCRIPTION(IMediaManagerSubscription, IMediaManagerDelegate)
+  ZS_DECLARE_INTERACTION_PROXY_SUBSCRIPTION(IMediaStreamSubscription, IMediaStreamDelegate)
+  ZS_DECLARE_INTERACTION_PROXY_SUBSCRIPTION(IMediaStreamTrackSubscription, IMediaStreamTrackDelegate)
 
   interaction IRTCStream;
   typedef boost::shared_ptr<IRTCStream> IRTCStreamPtr;
@@ -125,51 +127,4 @@ namespace ortc
   typedef boost::shared_ptr<IRTCDataChannelDelegate> IRTCDataChannelDelegatePtr;
   typedef boost::weak_ptr<IRTCDataChannelDelegate> IRTCDataChannelDelegateWeakPtr;
   typedef zsLib::Proxy<IRTCDataChannelDelegate> IRTCDataChannelDelegateProxy;
-  
-  interaction IMediaManager;
-  typedef boost::shared_ptr<IMediaManager> IMediaManagerPtr;
-  typedef boost::weak_ptr<IMediaManager> IMediaManagerWeakPtr;
-  
-  interaction IMediaManagerDelegate;
-  typedef boost::shared_ptr<IMediaManagerDelegate> IMediaManagerDelegatePtr;
-  typedef boost::weak_ptr<IMediaManagerDelegate> IMediaManagerDelegateWeakPtr;
-  typedef zsLib::Proxy<IMediaManagerDelegate> IMediaManagerDelegateProxy;
-  
-  interaction IMediaManagerSubscription;
-  typedef boost::shared_ptr<IMediaManagerSubscription> IMediaManagerSubscriptionPtr;
-  typedef boost::weak_ptr<IMediaManagerSubscription> IMediaManagerSubscriptionWeakPtr;
-  typedef zsLib::ProxySubscriptions<IMediaManagerDelegate, IMediaManagerSubscription> IMediaManagerDelegateSubscriptions;
-
-  interaction IMediaStream;
-  typedef boost::shared_ptr<IMediaStream> IMediaStreamPtr;
-  typedef boost::weak_ptr<IMediaStream> IMediaStreamWeakPtr;
-  
-  interaction IMediaStreamDelegate;
-  typedef boost::shared_ptr<IMediaStreamDelegate> IMediaStreamDelegatePtr;
-  typedef boost::weak_ptr<IMediaStreamDelegate> IMediaStreamDelegateWeakPtr;
-  typedef zsLib::Proxy<IMediaStreamDelegate> IMediaStreamDelegateProxy;
-  
-  interaction IMediaStreamSubscription;
-  typedef boost::shared_ptr<IMediaStreamSubscription> IMediaStreamSubscriptionPtr;
-  typedef boost::weak_ptr<IMediaStreamSubscription> IMediaStreamSubscriptionWeakPtr;
-  typedef zsLib::ProxySubscriptions<IMediaStreamDelegate, IMediaStreamSubscription> IMediaStreamDelegateSubscriptions;
-
-  interaction IMediaStreamTrack;
-  typedef boost::shared_ptr<IMediaStreamTrack> IMediaStreamTrackPtr;
-  typedef boost::weak_ptr<IMediaStreamTrack> IMediaStreamTrackWeakPtr;
-  
-  typedef std::list<IMediaStreamTrackPtr> MediaStreamTrackList;
-  typedef boost::shared_ptr<MediaStreamTrackList> MediaStreamTrackListPtr;
-  typedef boost::weak_ptr<MediaStreamTrackList> MediaStreamTrackListWeakPtr;
-
-  interaction IMediaStreamTrackDelegate;
-  typedef boost::shared_ptr<IMediaStreamTrackDelegate> IMediaStreamTrackDelegatePtr;
-  typedef boost::weak_ptr<IMediaStreamTrackDelegate> IMediaStreamTrackDelegateWeakPtr;
-  typedef zsLib::Proxy<IMediaStreamTrackDelegate> IMediaStreamTrackDelegateProxy;
-  
-  interaction IMediaStreamTrackSubscription;
-  typedef boost::shared_ptr<IMediaStreamTrackSubscription> IMediaStreamTrackSubscriptionPtr;
-  typedef boost::weak_ptr<IMediaStreamTrackSubscription> IMediaStreamTrackSubscriptionWeakPtr;
-  typedef zsLib::ProxySubscriptions<IMediaStreamTrackDelegate, IMediaStreamTrackSubscription> IMediaStreamTrackDelegateSubscriptions;
-
 }

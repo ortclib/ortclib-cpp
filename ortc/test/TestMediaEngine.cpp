@@ -200,8 +200,8 @@ namespace ortc
         unsigned int maxJitterMs;
         unsigned int discardedPackets;
         
-        mError = mVoiceRtpRtcp->GetRTPStatistics(mVoiceChannel, averageJitterMs, maxJitterMs, discardedPackets);
-        if (0 != mError) {
+        get(mLastError) = mVoiceRtpRtcp->GetRTPStatistics(mVoiceChannel, averageJitterMs, maxJitterMs, discardedPackets);
+        if (0 != mLastError) {
           ZS_LOG_ERROR(Detail, log("failed to get RTP statistics for voice") + ZS_PARAM("error", mVoiceBase->LastError()))
           return;
         }
@@ -276,9 +276,9 @@ namespace ortc
     //-----------------------------------------------------------------------
     int TestMediaEngine::setVoiceSendTransportParameters()
     {
-      mError = voice_channel_transports_[mVoiceChannel]->SetSendDestination(mReceiverAddress.c_str(), 20010);
-      mError = voice_channel_transports_[mVoiceChannel]->SetLocalReceiver(20010);
-      return mError;
+      get(mLastError) = voice_channel_transports_[mVoiceChannel]->SetSendDestination(mReceiverAddress.c_str(), 20010);
+      get(mLastError) = voice_channel_transports_[mVoiceChannel]->SetLocalReceiver(20010);
+      return mLastError;
     }
     
     //-----------------------------------------------------------------------
@@ -324,9 +324,9 @@ namespace ortc
     //-----------------------------------------------------------------------
     int TestMediaEngine::setVideoSendTransportParameters()
     {
-      mError = video_channel_transports_[mVideoChannel]->SetSendDestination(mReceiverAddress.c_str(), 20000);
-      mError = video_channel_transports_[mVideoChannel]->SetLocalReceiver(20000);
-      return mError;
+      get(mLastError) = video_channel_transports_[mVideoChannel]->SetSendDestination(mReceiverAddress.c_str(), 20000);
+      get(mLastError) = video_channel_transports_[mVideoChannel]->SetLocalReceiver(20000);
+      return mLastError;
     }
     
     //-----------------------------------------------------------------------

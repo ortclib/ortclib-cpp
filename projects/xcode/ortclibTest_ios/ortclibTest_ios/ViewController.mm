@@ -103,8 +103,9 @@
   
     mediaManagerDelegatePtr = MediaManagerDelegateWrapper::create(self);
   
-    IORTC::setup(zsLib::MessageQueueThread::createBasic("ortc.delegateThread"),
-                 zsLib::MessageQueueThread::singletonUsingCurrentGUIThreadsMessageQueue());
+    IORTC::singleton()->setup(zsLib::MessageQueueThread::createBasic("ortc.delegateThread"),
+                              zsLib::MessageQueueThread::singletonUsingCurrentGUIThreadsMessageQueue(),
+                              IMessageQueuePtr());
   
     ortc::test::TestMediaEngineFactoryPtr overrideFactory(new ortc::test::TestMediaEngineFactory);
   

@@ -34,6 +34,8 @@
 #include <ortc/internal/types.h>
 #include <ortc/IMediaStreamTrack.h>
 
+#include <openpeer/services/IWakeDelegate.h>
+
 #include <common_types.h>
 
 namespace ortc
@@ -522,7 +524,8 @@ namespace ortc
     #pragma mark
     
     class MediaStreamTrack : public Noop,
-      public MessageQueueAssociator
+                             public MessageQueueAssociator,
+                             public IWakeDelegate
     {
     public:
       friend interaction IMediaStreamTrack;
@@ -542,12 +545,12 @@ namespace ortc
     public:
       virtual ~MediaStreamTrack();
       
+    protected:
       //---------------------------------------------------------------------
       #pragma mark
       #pragma mark MediaStreamTrack => IMediaStreamTrack
       #pragma mark
       
-    protected:
       virtual String kind();
       virtual String id();
       virtual String label();
@@ -562,21 +565,38 @@ namespace ortc
       //---------------------------------------------------------------------
       #pragma mark
       #pragma mark MediaStreamTrack => ILocalAudioStreamTrackForMediaManager, IRemoteReceiveAudioStreamTrackForMediaManager,
-      #pragma mark                     IRemoteSendAudioStreamTrackForMediaManager, ILocalVideoStreamTrackForMediaManager.
+      #pragma mark                     IRemoteSendAudioStreamTrackForMediaManager, ILocalVideoStreamTrackForMediaManager,
       #pragma mark                     IRemoteReceiveVideoStreamTrackForMediaManager, IRemoteSendVideoStreamTrackForMediaManager
       #pragma mark
       
-    protected:
-      
       virtual ULONG getSSRC() = 0;
+      
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark MediaStreamTrack => IWakeDelegate
+      #pragma mark
+      
+      virtual void onWake();
       
       //---------------------------------------------------------------------
       #pragma mark
       #pragma mark MediaStreamTrack => (internal)
       #pragma mark
       
-    private:
-      String log(const char *message) const;
+      Log::Params log(const char *message) const;
+      Log::Params debug(const char *message) const;
+      ElementPtr toDebug() const;
+      
+      RecursiveLock &getLock() const {return mLock;}
+      
+      bool isShuttingDown() const;
+      bool isShutdown() const;
+      
+      void step();
+      
+      void cancel();
+      
+      void setError(WORD error, const char *reason = NULL);
 
       //---------------------------------------------------------------------
       #pragma mark
@@ -587,9 +607,14 @@ namespace ortc
       PUID mID;
       mutable RecursiveLock mLock;
       MediaStreamTrackWeakPtr mThisWeak;
-      IMediaStreamTrackDelegatePtr mDelegate;
+      MediaStreamTrackPtr mGracefulShutdownReference;
+      AutoBool mShutdown;
       
-      int mError;
+      IMediaStreamTrackDelegateSubscriptions mSubscriptions;
+      IMediaStreamTrackSubscriptionPtr mDefaultSubscription;
+      
+      AutoWORD mLastError;
+      String mLastErrorReason;
       
       String mKind;
       String mTrackID;
@@ -1131,6 +1156,26 @@ namespace ortc
       #pragma mark
       
       
+    };
+    
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IMediaStreamTrackFactory
+    #pragma mark
+    
+    interaction IMediaStreamTrackFactory
+    {
+      static IMediaStreamTrackFactory &singleton();
+      
+      virtual LocalAudioStreamTrackPtr createLocalAudioStreamTrack(IMediaStreamTrackDelegatePtr delegate);
+      virtual RemoteReceiveAudioStreamTrackPtr createRemoteReceiveAudioStreamTrack(IMediaStreamTrackDelegatePtr delegate);
+      virtual RemoteSendAudioStreamTrackPtr createRemoteSendAudioStreamTrack(IMediaStreamTrackDelegatePtr delegate);
+      virtual LocalVideoStreamTrackPtr createLocalVideoStreamTrack(IMediaStreamTrackDelegatePtr delegate);
+      virtual RemoteReceiveVideoStreamTrackPtr createRemoteReceiveVideoStreamTrack(IMediaStreamTrackDelegatePtr delegate);
+      virtual RemoteSendVideoStreamTrackPtr createRemoteSendVideoStreamTrack(IMediaStreamTrackDelegatePtr delegate);
     };
   }
 }

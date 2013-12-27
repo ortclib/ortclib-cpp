@@ -218,6 +218,23 @@ namespace ortc
       return OutputAudioRoute_Headphone;
     }
     
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark MediaManager => IWakeDelegate
+    #pragma mark
+    
+    //-------------------------------------------------------------------------
+    void MediaManager::onWake()
+    {
+      ZS_LOG_DEBUG(log("wake"))
+      
+      AutoRecursiveLock lock(getLock());
+      step();
+    }
+
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
@@ -247,9 +264,67 @@ namespace ortc
       
       OPIHelper::debugAppend(resultEl, "id", mID);
       
+      OPIHelper::debugAppend(resultEl, "graceful shutdown", (bool)mGracefulShutdownReference);
+      OPIHelper::debugAppend(resultEl, "graceful shutdown", mShutdown);
+      
+      OPIHelper::debugAppend(resultEl, "error", mLastError);
+      OPIHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
+
       return resultEl;
     }
     
+    //-------------------------------------------------------------------------
+    bool MediaManager::isShuttingDown() const
+    {
+      return (bool)mGracefulShutdownReference;
+    }
+    
+    //-------------------------------------------------------------------------
+    bool MediaManager::isShutdown() const
+    {
+      if (mGracefulShutdownReference) return false;
+      return mShutdown;
+    }
+    
+    //-------------------------------------------------------------------------
+    void MediaManager::step()
+    {
+      ZS_LOG_DEBUG(debug("step"))
+      
+      AutoRecursiveLock lock(getLock());
+      
+      if ((isShuttingDown()) ||
+          (isShutdown())) {
+        ZS_LOG_DEBUG(debug("step forwarding to cancel"))
+        cancel();
+        return;
+      }
+      
+    }
+    
+    //-------------------------------------------------------------------------
+    void MediaManager::cancel()
+    {
+      //.......................................................................
+      // start the shutdown process
+      
+      //.......................................................................
+      // try to gracefully shutdown
+      
+      if (!mGracefulShutdownReference) mGracefulShutdownReference = mThisWeak.lock();
+      
+      if (mGracefulShutdownReference) {
+      }
+      
+      //.......................................................................
+      // final cleanup
+      
+      get(mShutdown) = true;
+      
+      // make sure to cleanup any final reference to self
+      mGracefulShutdownReference.reset();
+    }
+
     //-----------------------------------------------------------------------
     void MediaManager::setError(WORD errorCode, const char *inReason)
     {
@@ -286,5 +361,4 @@ namespace ortc
   {
     internal::MediaManager::setup(delegate);
   }
-  
 }
