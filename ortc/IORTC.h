@@ -53,6 +53,6 @@ namespace ortc
                        IMessageQueuePtr defaultDelegateMessageQueue,
                        IMessageQueuePtr ortcMessageQueue,
                        IMessageQueuePtr blockingMediaStartStopThread
-                       );
+                       ) = 0;
   };
 }

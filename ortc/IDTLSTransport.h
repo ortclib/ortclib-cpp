@@ -140,7 +140,7 @@ namespace ortc
     virtual void setLocal(TransportInfoPtr info) = 0;
     virtual void setRemote(TransportInfoPtr info) = 0;
 
-    virtual void attach(IICETransportPtr iceTransport);
+    virtual void attach(IICETransportPtr iceTransport) = 0;
 
     virtual void start(TransportInfoPtr localTransportInfo) = 0;
 

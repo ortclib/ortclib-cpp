@@ -105,7 +105,7 @@ namespace ortc
     virtual void attach(
                         IDTLSTransportPtr rtpTransport,
                         IDTLSTransportPtr rtcpTransport = IDTLSTransportPtr()
-                        );
+                        ) = 0;
 
     virtual void start(TrackDescriptionPtr trackDescription) = 0;
     virtual void stop() = 0;

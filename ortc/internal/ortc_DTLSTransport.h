@@ -166,7 +166,10 @@ namespace ortc
     public:
       friend interaction IDTLSTransport;
       friend interaction IDTLSTransportFactory;
+      friend interaction IDTLSTransportForRTPSender;
+      friend interaction IDTLSTransportForRTPReceiver;
       friend interaction IDTLSTransportForICETransport;
+      friend interaction IDTLSTransportForDTLSContext;
 
       ZS_DECLARE_TYPEDEF_PTR(IICETransportForDTLSTransport, UseICETransport)
       ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverForDTLSTransport, UseRTPReceiver)
