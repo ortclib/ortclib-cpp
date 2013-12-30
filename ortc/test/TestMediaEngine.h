@@ -78,7 +78,7 @@ namespace ortc
       #pragma mark
       
     protected:
-      TestMediaEngine();
+      TestMediaEngine(IMessageQueuePtr queue, internal::IMediaEngineDelegatePtr delegate);
       
     public:
       ~TestMediaEngine();
@@ -170,7 +170,7 @@ namespace ortc
     public:
       TestMediaEngineFactory() {}
       
-      virtual internal::MediaEnginePtr createMediaEngine(internal::IMediaEngineDelegatePtr delegate);
+      virtual internal::MediaEnginePtr create(internal::IMediaEngineDelegatePtr delegate);
     };
   }
 }

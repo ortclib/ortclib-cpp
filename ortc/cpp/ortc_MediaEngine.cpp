@@ -30,6 +30,7 @@
  */
 
 #include <ortc/internal/ortc_MediaEngine.h>
+#include <ortc/internal/ortc_ORTC.h>
 
 #include <zsLib/helpers.h>
 #include <zsLib/XML.h>
@@ -165,9 +166,13 @@ namespace ortc
 #endif
     }
     
-    MediaEngine::MediaEngine(Noop) :
+    MediaEngine::MediaEngine(
+                             Noop,
+                             IMessageQueuePtr queue,
+                             internal::IMediaEngineDelegatePtr delegate
+                             ) :
       Noop(true),
-      MessageQueueAssociator(IMessageQueuePtr()),
+      MessageQueueAssociator(queue),
       mMtu(ORTC_MEDIA_ENGINE_MTU),
       mID(zsLib::createPUID()),
       mEcEnabled(false),
@@ -430,7 +435,7 @@ namespace ortc
     //-----------------------------------------------------------------------
     MediaEnginePtr MediaEngine::create(IMediaEngineDelegatePtr delegate)
     {
-      MediaEnginePtr pThis = MediaEnginePtr(new MediaEngine(IMessageQueuePtr(), delegate));
+      MediaEnginePtr pThis = MediaEnginePtr(new MediaEngine(IORTCForInternal::queueBlockingMediaStartStopThread(), delegate));
       pThis->mThisWeak = pThis;
       pThis->init();
       return pThis;

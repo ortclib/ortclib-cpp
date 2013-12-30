@@ -226,7 +226,11 @@ namespace ortc
                   IMediaEngineDelegatePtr delegate
                   );
       
-      MediaEngine(Noop);
+      MediaEngine(
+                  Noop,
+                  IMessageQueuePtr queue,
+                  internal::IMediaEngineDelegatePtr delegate
+                  );
       
       void init();
       

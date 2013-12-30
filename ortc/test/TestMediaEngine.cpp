@@ -30,6 +30,7 @@
  */
 
 #include "TestMediaEngine.h"
+#include <ortc/internal/ortc_ORTC.h>
 #include <zsLib/helpers.h>
 #include <zsLib/XML.h>
 #include <openpeer/services/IHelper.h>
@@ -63,8 +64,8 @@ namespace ortc
     #pragma mark
 
   //-----------------------------------------------------------------------
-  TestMediaEngine::TestMediaEngine() :
-      MediaEngine(zsLib::Noop()),
+  TestMediaEngine::TestMediaEngine(IMessageQueuePtr queue, internal::IMediaEngineDelegatePtr delegate) :
+      MediaEngine(zsLib::Noop(), queue, delegate),
       mReceiverAddress("127.0.0.1")
   {
 #ifdef __QNX__
@@ -99,7 +100,7 @@ namespace ortc
     //-----------------------------------------------------------------------
     internal::MediaEnginePtr TestMediaEngine::create(internal::IMediaEngineDelegatePtr delegate)
     {
-      TestMediaEnginePtr pThis(new TestMediaEngine());
+      TestMediaEnginePtr pThis = TestMediaEnginePtr(new TestMediaEngine(internal::IORTCForInternal::queueBlockingMediaStartStopThread(), delegate));
       pThis->mThisWeak = pThis;
       pThis->init();
       return pThis;
@@ -338,7 +339,7 @@ namespace ortc
     #pragma mark
     
     //-----------------------------------------------------------------------
-    internal::MediaEnginePtr TestMediaEngineFactory::createMediaEngine(internal::IMediaEngineDelegatePtr delegate)
+    internal::MediaEnginePtr TestMediaEngineFactory::create(internal::IMediaEngineDelegatePtr delegate)
     {
       return TestMediaEngine::create(delegate);
     }

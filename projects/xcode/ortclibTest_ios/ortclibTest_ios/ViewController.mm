@@ -103,16 +103,16 @@
   
     mediaManagerDelegatePtr = MediaManagerDelegateWrapper::create(self);
   
-    IORTC::singleton()->setup(zsLib::MessageQueueThread::createBasic("ortc.delegateThread"),
-                              zsLib::MessageQueueThread::singletonUsingCurrentGUIThreadsMessageQueue(),
-                              IMessageQueuePtr());
+    IORTC::singleton()->setup(zsLib::MessageQueueThread::createBasic("ortc.defaultDelegateMessageQueue"),
+                              zsLib::MessageQueueThread::createBasic("ortc.ortcMessageQueue"),
+                              zsLib::MessageQueueThread::createBasic("ortc.blockingMediaStartStopThread"));
   
     ortc::test::TestMediaEngineFactoryPtr overrideFactory(new ortc::test::TestMediaEngineFactory);
   
     ortc::internal::Factory::override(overrideFactory);
   
-    openpeer::services::ILogger::setLogLevel("ortclib", zsLib::Log::Trace);
-    openpeer::services::ILogger::setLogLevel("ortclib_webrtc", zsLib::Log::Trace);
+    openpeer::services::ILogger::setLogLevel("ortclib", zsLib::Log::Debug);
+    openpeer::services::ILogger::setLogLevel("ortclib_webrtc", zsLib::Log::Debug);
     openpeer::services::ILogger::installStdOutLogger(false);
 //    openpeer::services::ILogger::installTelnetLogger(59999, 60, true);
 
