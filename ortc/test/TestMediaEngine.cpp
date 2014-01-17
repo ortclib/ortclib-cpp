@@ -135,49 +135,49 @@ namespace ortc
     #pragma mark
     
     //-----------------------------------------------------------------------
-    int TestMediaEngine::registerVoiceExternalTransport(Transport &transport)
+    int TestMediaEngine::registerVoiceExternalTransport(int channelId, Transport &transport)
     {
       ZS_THROW_INVALID_USAGE("external transport is disabled - cannot be registered")
     }
     
     //-----------------------------------------------------------------------
-    int TestMediaEngine::deregisterVoiceExternalTransport()
+    int TestMediaEngine::deregisterVoiceExternalTransport(int channelId)
     {
       ZS_THROW_INVALID_USAGE("external transport is disabled - cannot be deregistered")
     }
     
     //-----------------------------------------------------------------------
-    int TestMediaEngine::receivedVoiceRTPPacket(const void *data, size_t length)
+    int TestMediaEngine::receivedVoiceRTPPacket(int channelId, const void *data, size_t length)
     {
       ZS_THROW_INVALID_USAGE("external transport is disabled - cannot receive data")
     }
     
     //-----------------------------------------------------------------------
-    int TestMediaEngine::receivedVoiceRTCPPacket(const void* data, size_t length)
+    int TestMediaEngine::receivedVoiceRTCPPacket(int channelId, const void* data, size_t length)
     {
       ZS_THROW_INVALID_USAGE("external transport is disabled - cannot receive data")
     }
     
     //-----------------------------------------------------------------------
-    int TestMediaEngine::registerVideoExternalTransport(Transport &transport)
+    int TestMediaEngine::registerVideoExternalTransport(int channelId, Transport &transport)
     {
       ZS_THROW_INVALID_USAGE("external transport is disabled - cannot be registered")
     }
     
     //-----------------------------------------------------------------------
-    int TestMediaEngine::deregisterVideoExternalTransport()
+    int TestMediaEngine::deregisterVideoExternalTransport(int channelId)
     {
       ZS_THROW_INVALID_USAGE("external transport is disabled - cannot be deregistered")
     }
     
     //-----------------------------------------------------------------------
-    int TestMediaEngine::receivedVideoRTPPacket(const void *data, size_t length)
+    int TestMediaEngine::receivedVideoRTPPacket(int channelId, const void *data, size_t length)
     {
       ZS_THROW_INVALID_USAGE("external transport is disabled - cannot receive data")
     }
     
     //-----------------------------------------------------------------------
-    int TestMediaEngine::receivedVideoRTCPPacket(const void *data, size_t length)
+    int TestMediaEngine::receivedVideoRTCPPacket(int channelId, const void *data, size_t length)
     {
       ZS_THROW_INVALID_USAGE("external transport is disabled - cannot receive data")
     }
@@ -201,13 +201,13 @@ namespace ortc
         unsigned int maxJitterMs;
         unsigned int discardedPackets;
         
-        get(mLastError) = mVoiceRtpRtcp->GetRTPStatistics(mVoiceChannel, averageJitterMs, maxJitterMs, discardedPackets);
-        if (0 != mLastError) {
-          ZS_LOG_ERROR(Detail, log("failed to get RTP statistics for voice") + ZS_PARAM("error", mVoiceBase->LastError()))
-          return;
-        }
+//        get(mLastError) = mVoiceRtpRtcp->GetRTPStatistics(mVoiceChannel, averageJitterMs, maxJitterMs, discardedPackets);
+//        if (0 != mLastError) {
+//          ZS_LOG_ERROR(Detail, log("failed to get RTP statistics for voice") + ZS_PARAM("error", mVoiceBase->LastError()))
+//          return;
+//        }
         
-        //printf("=== Jitter buffer - Average jitter: %d, Max jitter: %d, Discarded pacets: %d\n", averageJitterMs, maxJitterMs, discardedPackets);
+//        printf("=== Jitter buffer - Average jitter: %d, Max jitter: %d, Discarded pacets: %d\n", averageJitterMs, maxJitterMs, discardedPackets);
       }
     }
     
@@ -237,9 +237,9 @@ namespace ortc
     #pragma mark
     
     //-----------------------------------------------------------------------
-    void TestMediaEngine::internalStartVoice()
+    void TestMediaEngine::internalStartSendVoice(int channelId)
     {
-      internal::MediaEngine::internalStartSendVoice();
+      internal::MediaEngine::internalStartSendVoice(channelId);
       
 #ifdef ORTC_MEDIA_ENGINE_ENABLE_TIMER
       mVoiceStatisticsTimer = zsLib::Timer::create(mThisWeak.lock(), zsLib::Seconds(1));
@@ -247,7 +247,13 @@ namespace ortc
     }
     
     //-----------------------------------------------------------------------
-    void TestMediaEngine::internalStopVoice()
+    void TestMediaEngine::internalStartReceiveVoice(int channelId)
+    {
+      internal::MediaEngine::internalStartReceiveVoice(channelId);
+    }
+    
+    //-----------------------------------------------------------------------
+    void TestMediaEngine::internalStopSendVoice(int channelId)
     {
 #ifdef ORTC_MEDIA_ENGINE_ENABLE_TIMER
       if (mVoiceStatisticsTimer) {
@@ -255,81 +261,121 @@ namespace ortc
         mVoiceStatisticsTimer.reset();
       }
 #endif
-      internal::MediaEngine::internalStopSendVoice();
-    }
-
-    //-----------------------------------------------------------------------
-    int TestMediaEngine::registerVoiceSendTransport()
-    {
-      voice_channel_transports_[mVoiceChannel].reset( new VoiceChannelTransport(mVoiceNetwork, mVoiceChannel));
-
-      return 0;
+      internal::MediaEngine::internalStopSendVoice(channelId);
     }
     
     //-----------------------------------------------------------------------
-    int TestMediaEngine::deregisterVoiceSendTransport()
+    void TestMediaEngine::internalStopReceiveVoice(int channelId)
     {
-      voice_channel_transports_[mVideoChannel].reset( NULL );
+      internal::MediaEngine::internalStopReceiveVoice(channelId);
+    }
+
+    //-----------------------------------------------------------------------
+    void TestMediaEngine::internalStartVideoCapture(int captureId)
+    {
+      MediaEngine::internalStartVideoCapture(captureId);
+    }
+    
+    //-----------------------------------------------------------------------
+    void TestMediaEngine::internalStopVideoCapture(int captureId)
+    {
+      MediaEngine::internalStopVideoCapture(captureId);
+    }
+    
+    //-----------------------------------------------------------------------
+    void TestMediaEngine::internalStartSendVideoChannel(int channelId, int captureId)
+    {
+      MediaEngine::internalStartSendVideoChannel(channelId, captureId);
+    }
+    
+    //-----------------------------------------------------------------------
+    void TestMediaEngine::internalStartReceiveVideoChannel(int channelId)
+    {
+      MediaEngine::internalStartReceiveVideoChannel(channelId);
+    }
+    
+    //-----------------------------------------------------------------------
+    void TestMediaEngine::internalStopSendVideoChannel(int channelId)
+    {
+      MediaEngine::internalStopSendVideoChannel(channelId);
+    }
+    
+    //-----------------------------------------------------------------------
+    void TestMediaEngine::internalStopReceiveVideoChannel(int channelId)
+    {
+      MediaEngine::internalStopReceiveVideoChannel(channelId);
+    }
+    
+    //-----------------------------------------------------------------------
+    void TestMediaEngine::internalStartRecordVideoCapture(int captureId, String videoRecordFile, bool saveVideoToLibrary)
+    {
+      MediaEngine::internalStartRecordVideoCapture(captureId, videoRecordFile, saveVideoToLibrary);
+    }
+    
+    //-----------------------------------------------------------------------
+    void TestMediaEngine::internalStopRecordVideoCapture(int captureId)
+    {
+      MediaEngine::internalStopRecordVideoCapture(captureId);
+    }
+
+    //-----------------------------------------------------------------------
+    int TestMediaEngine::internalRegisterVoiceSendTransport(int channelId)
+    {
+      voice_channel_transports_[channelId].reset(new VoiceChannelTransport(mVoiceNetwork, channelId));
       
       return 0;
     }
-
+    
     //-----------------------------------------------------------------------
-    int TestMediaEngine::setVoiceSendTransportParameters()
+    int TestMediaEngine::internalDeregisterVoiceSendTransport(int channelId)
     {
-      get(mLastError) = voice_channel_transports_[mVoiceChannel]->SetSendDestination(mReceiverAddress.c_str(), 20010);
-      get(mLastError) = voice_channel_transports_[mVoiceChannel]->SetLocalReceiver(20010);
+      voice_channel_transports_[channelId].reset( NULL );
+      
+      return 0;
+    }
+    
+    //-----------------------------------------------------------------------
+    int TestMediaEngine::internalSetVoiceSendTransportParameters(int channelId)
+    {
+      get(mLastError) = voice_channel_transports_[channelId]->SetSendDestination(mReceiverAddress.c_str(), 20010);
+      get(mLastError) = voice_channel_transports_[channelId]->SetLocalReceiver(20010);
       return mLastError;
     }
     
-    //-----------------------------------------------------------------------
-    void TestMediaEngine::internalStartVideoCapture()
+    int TestMediaEngine::internalSetVoiceReceiveTransportParameters(int channelId)
     {
-      MediaEngine::internalStartVideoCapture();
-    }
-    
-    //-----------------------------------------------------------------------
-    void TestMediaEngine::internalStopVideoCapture()
-    {
-      MediaEngine::internalStopVideoCapture();
-    }
-    
-    //-----------------------------------------------------------------------
-    void TestMediaEngine::internalStartVideoChannel()
-    {
-      MediaEngine::internalStartSendVideoChannel();
-    }
-    
-    //-----------------------------------------------------------------------
-    void TestMediaEngine::internalStopVideoChannel()
-    {
-      MediaEngine::internalStopSendVideoChannel();
+      return 0;
     }
 
     //-----------------------------------------------------------------------
-    int TestMediaEngine::registerVideoSendTransport()
+    int TestMediaEngine::internalRegisterVideoSendTransport(int channelId)
     {
-      video_channel_transports_[mVideoChannel].reset( new VideoChannelTransport(mVideoNetwork, mVideoChannel));
+      video_channel_transports_[channelId].reset(new VideoChannelTransport(mVideoNetwork, channelId));
 
       return 0;
     }
     
     //-----------------------------------------------------------------------
-    int TestMediaEngine::deregisterVideoSendTransport()
+    int TestMediaEngine::internalDeregisterVideoSendTransport(int channelId)
     {
-        video_channel_transports_[mVideoChannel].reset( NULL );
+        video_channel_transports_[channelId].reset( NULL );
       
         return 0;
     }
     
     //-----------------------------------------------------------------------
-    int TestMediaEngine::setVideoSendTransportParameters()
+    int TestMediaEngine::internalSetVideoSendTransportParameters(int channelId)
     {
-      get(mLastError) = video_channel_transports_[mVideoChannel]->SetSendDestination(mReceiverAddress.c_str(), 20000);
-      get(mLastError) = video_channel_transports_[mVideoChannel]->SetLocalReceiver(20000);
+      get(mLastError) = video_channel_transports_[channelId]->SetSendDestination(mReceiverAddress.c_str(), 20000);
+      get(mLastError) = video_channel_transports_[channelId]->SetLocalReceiver(20000);
       return mLastError;
     }
     
+    int TestMediaEngine::internalSetVideoReceiveTransportParameters(int channelId)
+    {
+      return 0;
+    }
+
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------

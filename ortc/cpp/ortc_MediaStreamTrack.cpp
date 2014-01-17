@@ -332,6 +332,7 @@ namespace ortc
       mRemote(false),
       mReadyState(IMediaStreamTrack::MediaStreamTrackState_New),
       mSSRC(0),
+      mSource(-1),
       mChannel(-1)
     {
     }
@@ -603,6 +604,10 @@ namespace ortc
       AudioStreamTrack(queue, delegate)
     {
       mTransport = ISendMediaTransportForMediaManager::create();
+      
+      IMediaEnginePtr mediaEngine = IMediaEngine::singleton();
+      
+      mChannel = mediaEngine->createVoiceChannel();
     }
     
     //-------------------------------------------------------------------------
@@ -698,7 +703,7 @@ namespace ortc
     {
       IMediaEnginePtr mediaEngine = IMediaEngine::singleton();
       
-      mediaEngine->startSendVoice(0);
+      mediaEngine->startSendVoice(mChannel);
     }
     
     //-------------------------------------------------------------------------
@@ -735,7 +740,9 @@ namespace ortc
     {
       IMediaEnginePtr mediaEngine = IMediaEngine::singleton();
       
-      mediaEngine->startReceiveVoice(0);
+      mChannel = mediaEngine->createVoiceChannel();
+      
+      mediaEngine->startReceiveVoice(mChannel);
     }
     
     //-------------------------------------------------------------------------
@@ -972,7 +979,10 @@ namespace ortc
     LocalVideoStreamTrack::LocalVideoStreamTrack(IMessageQueuePtr queue, IMediaStreamTrackDelegatePtr delegate) :
       VideoStreamTrack(queue, delegate)
     {
+      IMediaEnginePtr mediaEngine = IMediaEngine::singleton();
       
+      mSource = mediaEngine->createVideoSource();
+      mChannel = mediaEngine->createVideoChannel();
     }
     
     //-------------------------------------------------------------------------
@@ -1048,7 +1058,7 @@ namespace ortc
     {
       IMediaEnginePtr mediaEngine = IMediaEngine::singleton();
       
-      mediaEngine->stopVideoCapture(0);
+      mediaEngine->stopVideoCapture(mChannel);
       
     }
 
@@ -1071,8 +1081,8 @@ namespace ortc
     {
       IMediaEnginePtr mediaEngine = IMediaEngine::singleton();
       
-      mediaEngine->startVideoCapture(0);
-      mediaEngine->startSendVideoChannel(0);
+      mediaEngine->startVideoCapture(mSource);
+      mediaEngine->startSendVideoChannel(mChannel, mSource);
     }
     
     //-------------------------------------------------------------------------
@@ -1122,7 +1132,7 @@ namespace ortc
     {
       IMediaEnginePtr mediaEngine = IMediaEngine::singleton();
       
-      mediaEngine->setRenderView(0, renderView);
+      mediaEngine->setRenderView(mSource, renderView);
       
       VideoStreamTrack::setRenderView(renderView);
     }
@@ -1167,7 +1177,9 @@ namespace ortc
     {
       IMediaEnginePtr mediaEngine = IMediaEngine::singleton();
       
-//      mediaEngine->startReceiveVideoChannel(0);
+      mChannel = mediaEngine->createVideoChannel();
+      
+//      mediaEngine->startReceiveVideoChannel(mChannel);
     }
     
     //-------------------------------------------------------------------------
@@ -1263,9 +1275,9 @@ namespace ortc
     {
       IMediaEnginePtr mediaEngine = IMediaEngine::singleton();
       
-      mediaEngine->setRenderView(1, renderView);
+      mediaEngine->setRenderView(mChannel, renderView);
       
-      mediaEngine->startReceiveVideoChannel(0);
+      mediaEngine->startReceiveVideoChannel(mChannel);
       
       VideoStreamTrack::setRenderView(renderView);
     }

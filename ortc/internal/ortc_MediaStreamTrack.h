@@ -626,6 +626,7 @@ namespace ortc
       IMediaStreamTrack::MediaStreamTrackStates mReadyState;
       
       ULONG mSSRC;
+      int mSource;
       int mChannel;
       IMediaTransportPtr mTransport;
     };
