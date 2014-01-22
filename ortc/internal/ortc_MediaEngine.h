@@ -98,22 +98,30 @@ namespace ortc
       virtual bool getLoudspeakerEnabled() = 0;
       virtual OutputAudioRoute getOutputAudioRoute() = 0;
       
-      virtual void setContinuousVideoCapture(bool continuousVideoCapture) = 0;
-      virtual bool getContinuousVideoCapture() = 0;
+      virtual void setContinuousVideoCapture(int captureId, bool continuousVideoCapture) = 0;
+      virtual bool getContinuousVideoCapture(int captureId) = 0;
       
       virtual void setFaceDetection(int captureId, bool faceDetection) = 0;
       virtual bool getFaceDetection(int captureId) = 0;
       
-      virtual CameraTypes getCameraType(int captureId) const = 0;
       virtual void setCameraType(int captureId, CameraTypes type) = 0;
+      virtual CameraTypes getCameraType(int captureId) = 0;
+      
+      virtual int createVideoSource() = 0;
+      virtual std::list<int> getVideoSources() = 0;
+      virtual int createVideoChannel() = 0;
+      virtual std::list<int> getVideoChannels() = 0;
       
       virtual void startVideoCapture(int captureId) = 0;
       virtual void stopVideoCapture(int captureId) = 0;
       
-      virtual void startSendVideoChannel(int captureId) = 0;
-      virtual void startReceiveVideoChannel(int captureId) = 0;
-      virtual void stopSendVideoChannel(int captureId) = 0;
-      virtual void stopReceiveVideoChannel(int captureId) = 0;
+      virtual void startSendVideoChannel(int channelId, int captureId) = 0;
+      virtual void startReceiveVideoChannel(int channelId) = 0;
+      virtual void stopSendVideoChannel(int channelId) = 0;
+      virtual void stopReceiveVideoChannel(int channelId) = 0;
+      
+      virtual int createVoiceChannel() = 0;
+      virtual std::list<int> getVoiceChannels() = 0;
 
       virtual void startSendVoice(int channelId) = 0;
       virtual void startReceiveVoice(int channelId) = 0;
@@ -126,10 +134,15 @@ namespace ortc
       virtual int getVideoTransportStatistics(int channelId, CallStatistics &stat) = 0;
       virtual int getVoiceTransportStatistics(int channelId, CallStatistics &stat) = 0;
       
-      virtual int registerExternalTransport(int channelId, Transport &transport) = 0;
-      virtual int deregisterExternalTransport(int channelId) = 0;
-      virtual int receivedRTPPacket(int channelId, const void *data, unsigned int length) = 0;
-      virtual int receivedRTCPPacket(int channelId, const void *data, unsigned int length) = 0;
+      virtual int registerVoiceExternalTransport(int channelId, Transport &transport) = 0;
+      virtual int deregisterVoiceExternalTransport(int channelId) = 0;
+      virtual int receivedVoiceRTPPacket(int channelId, const void *data, unsigned int length) = 0;
+      virtual int receivedVoiceRTCPPacket(int channelId, const void *data, unsigned int length) = 0;
+      
+      virtual int registerVideoExternalTransport(int channelId, Transport &transport) = 0;
+      virtual int deregisterVideoExternalTransport(int channelId) = 0;
+      virtual int receivedVideoRTPPacket(int channelId, const void *data, unsigned int length) = 0;
+      virtual int receivedVideoRTCPPacket(int channelId, const void *data, unsigned int length) = 0;
     };
     
     interaction IMediaEngineDelegate
@@ -221,6 +234,128 @@ namespace ortc
       typedef webrtc::ViEFile VideoFile;
       
     protected:
+      class RedirectTransport;
+      struct VoiceSourceInfo;
+      struct VoiceChannelInfo;
+      struct VideoSourceInfo;
+      struct VideoChannelInfo;
+      struct VoiceSourceLifetimeState;
+      struct VoiceChannelLifetimeState;
+      struct VideoSourceLifetimeState;
+      struct VideoChannelLifetimeState;
+      
+      typedef std::map<int, VoiceSourceInfo> VoiceSourceInfoMap;
+      typedef std::map<int, VoiceChannelInfo> VoiceChannelInfoMap;
+      typedef std::map<int, VideoSourceInfo> VideoSourceInfoMap;
+      typedef std::map<int, VideoChannelInfo> VideoChannelInfoMap;
+      typedef std::map<int, VoiceSourceLifetimeState> VoiceSourceLifetimeStateMap;
+      typedef std::map<int, VoiceChannelLifetimeState> VoiceChannelLifetimeStateMap;
+      typedef std::map<int, VideoSourceLifetimeState> VideoSourceLifetimeStateMap;
+      typedef std::map<int, VideoChannelLifetimeState> VideoChannelLifetimeStateMap;
+      
+      struct VoiceSourceInfo
+      {
+        int mSourceId;
+        
+        VoiceSourceInfo() {}
+        VoiceSourceInfo(int sourceId);
+      };
+      
+      struct VoiceChannelInfo
+      {
+        int mChannelId;
+        
+        bool mEcEnabled;
+        bool mAgcEnabled;
+        bool mNsEnabled;
+        
+        RedirectTransport *mRedirectTransport;
+        Transport *mTransport;
+        
+        VoiceChannelInfo() {}
+        VoiceChannelInfo(int channelId);
+      };
+
+      struct VideoSourceInfo
+      {
+        int mSourceId;
+        
+        char mDeviceUniqueId[512];
+        CameraTypes mCameraType;
+        void *mRenderView;
+        bool mFaceDetection;
+        
+        VideoSourceInfo() {}
+        VideoSourceInfo(int sourceId);
+      };
+      
+      struct VideoChannelInfo
+      {
+        int mChannelId;
+        
+        void *mRenderView;
+        RedirectTransport *mRedirectTransport;
+        Transport *mTransport;
+        
+        VideoChannelInfo() {}
+        VideoChannelInfo(int channelId);
+      };
+      
+      struct VoiceSourceLifetimeState
+      {
+        int mSourceId;
+        
+        VoiceSourceLifetimeState() {}
+        VoiceSourceLifetimeState(int sourceId);
+      };
+      
+      struct VoiceChannelLifetimeState
+      {
+        int mChannelId;
+        
+        bool mLifetimeWantSendAudio;
+        bool mLifetimeWantReceiveAudio;
+        
+        bool mLifetimeHasSendAudio;
+        bool mLifetimeHasReceiveAudio;
+        
+        VoiceChannelLifetimeState() {}
+        VoiceChannelLifetimeState(int channelId);
+      };
+      
+      struct VideoSourceLifetimeState
+      {
+        int mSourceId;
+        
+        bool mLifetimeWantVideoCapture;
+        bool mLifetimeWantRecordVideoCapture;
+        CameraTypes mLifetimeWantCameraType;
+        bool mLifetimeContinuousVideoCapture;
+        String mLifetimeVideoRecordFile;
+        bool mLifetimeSaveVideoToLibrary;
+        
+        bool mLifetimeHasVideoCapture;
+        bool mLifetimeHasRecordVideoCapture;
+        
+        VideoSourceLifetimeState() {}
+        VideoSourceLifetimeState(int sourceId);
+      };
+      
+      struct VideoChannelLifetimeState
+      {
+        int mChannelId;
+        
+        bool mLifetimeWantSendVideoChannel;
+        bool mLifetimeWantReceiveVideoChannel;
+        
+        bool mLifetimeHasSendVideoChannel;
+        bool mLifetimeHasReceiveVideoChannel;
+        
+        VideoChannelLifetimeState() {}
+        VideoChannelLifetimeState(int channelId);
+      };
+      
+    protected:
       MediaEngine(
                   IMessageQueuePtr queue,
                   IMediaEngineDelegatePtr delegate
@@ -271,23 +406,31 @@ namespace ortc
       virtual bool getLoudspeakerEnabled();
       virtual OutputAudioRoute getOutputAudioRoute();
       
-      virtual void setContinuousVideoCapture(bool continuousVideoCapture);
-      virtual bool getContinuousVideoCapture();
+      virtual void setContinuousVideoCapture(int captureId, bool continuousVideoCapture);
+      virtual bool getContinuousVideoCapture(int captureId);
       
       virtual void setFaceDetection(int captureId, bool faceDetection);
       virtual bool getFaceDetection(int captureId);
       
-      virtual CameraTypes getCameraType(int captureId) const;
       virtual void setCameraType(int captureId, CameraTypes type);
+      virtual CameraTypes getCameraType(int captureId);
       
+      virtual int createVideoSource();
+      virtual std::list<int> getVideoSources();
+      virtual int createVideoChannel();
+      virtual std::list<int> getVideoChannels();
+
       virtual void startVideoCapture(int captureId);
       virtual void stopVideoCapture(int captureId);
       
-      virtual void startSendVideoChannel(int channelId);
+      virtual void startSendVideoChannel(int channelId, int captureId);
       virtual void startReceiveVideoChannel(int channelId);
       virtual void stopSendVideoChannel(int channelId);
       virtual void stopReceiveVideoChannel(int channelId);
       
+      virtual int createVoiceChannel();
+      virtual std::list<int> getVoiceChannels();
+
       virtual void startSendVoice(int channelId);
       virtual void startReceiveVoice(int channelId);
       virtual void stopSendVoice(int channelId);
@@ -299,10 +442,15 @@ namespace ortc
       virtual int getVideoTransportStatistics(int channelId, CallStatistics &stat);
       virtual int getVoiceTransportStatistics(int channelId, CallStatistics &stat);
       
-      virtual int registerExternalTransport(int channelId, Transport &transport);
-      virtual int deregisterExternalTransport(int channelId);
-      virtual int receivedRTPPacket(int channelId, const void *data, unsigned int length);
-      virtual int receivedRTCPPacket(int channelId, const void *data, unsigned int length);
+      virtual int registerVoiceExternalTransport(int channelId, Transport &transport);
+      virtual int deregisterVoiceExternalTransport(int channelId);
+      virtual int receivedVoiceRTPPacket(int channelId, const void *data, unsigned int length);
+      virtual int receivedVoiceRTCPPacket(int channelId, const void *data, unsigned int length);
+      
+      virtual int registerVideoExternalTransport(int channelId, Transport &transport);
+      virtual int deregisterVideoExternalTransport(int channelId);
+      virtual int receivedVideoRTPPacket(int channelId, const void *data, unsigned int length);
+      virtual int receivedVideoRTCPPacket(int channelId, const void *data, unsigned int length);
 
       //---------------------------------------------------------------------
       #pragma mark
@@ -355,34 +503,38 @@ namespace ortc
       void cancel();
       
       void setError(WORD error, const char *reason = NULL);
-      virtual void internalStartSendVoice();
-      virtual void internalStartReceiveVoice();
-      virtual void internalStopSendVoice();
-      virtual void internalStopReceiveVoice();
       
-      virtual void internalStartVideoCapture();
-      virtual void internalStopVideoCapture();
-      virtual void internalStartSendVideoChannel();
-      virtual void internalStartReceiveVideoChannel();
-      virtual void internalStopSendVideoChannel();
-      virtual void internalStopReceiveVideoChannel();
-      virtual void internalStartRecordVideoCapture(String videoRecordFile, bool saveVideoToLibrary);
-      virtual void internalStopRecordVideoCapture();
+      virtual int internalCreateVoiceChannel();
+      virtual void internalStartSendVoice(int channelId);
+      virtual void internalStartReceiveVoice(int channelId);
+      virtual void internalStopSendVoice(int channelId);
+      virtual void internalStopReceiveVoice(int channelId);
       
-      virtual int registerVoiceSendTransport();
-      virtual int deregisterVoiceSendTransport();
-      virtual int setVoiceSendTransportParameters();
-      virtual int setVoiceReceiveTransportParameters();
-      virtual int registerVideoSendTransport();
-      virtual int deregisterVideoSendTransport();
-      virtual int setVideoSendTransportParameters();
-      virtual int setVideoReceiveTransportParameters();
+      virtual int internalCreateVideoSource();
+      virtual int internalCreateVideoChannel();
+      virtual void internalStartVideoCapture(int captureId);
+      virtual void internalStopVideoCapture(int captureId);
+      virtual void internalStartSendVideoChannel(int channelId, int captureId);
+      virtual void internalStartReceiveVideoChannel(int channelId);
+      virtual void internalStopSendVideoChannel(int channelId);
+      virtual void internalStopReceiveVideoChannel(int channelId);
+      virtual void internalStartRecordVideoCapture(int captureId, String videoRecordFile, bool saveVideoToLibrary);
+      virtual void internalStopRecordVideoCapture(int captureId);
+      
+      virtual int internalRegisterVoiceSendTransport(int channelId);
+      virtual int internalDeregisterVoiceSendTransport(int channelId);
+      virtual int internalSetVoiceSendTransportParameters(int channelId);
+      virtual int internalSetVoiceReceiveTransportParameters(int channelId);
+      virtual int internalRegisterVideoSendTransport(int channelId);
+      virtual int internalDeregisterVideoSendTransport(int channelId);
+      virtual int internalSetVideoSendTransportParameters(int channelId);
+      virtual int internalSetVideoReceiveTransportParameters(int channelId);
       
     protected:
-      int getVideoCaptureParameters(webrtc::RotateCapturedFrame orientation, int& width, int& height,
+      int getVideoCaptureParameters(CameraTypes cameraType, webrtc::RotateCapturedFrame orientation, int& width, int& height,
                                     int& maxFramerate, int& maxBitrate);
-      int setVideoCodecParameters();
-      int setVideoCaptureRotation();
+      int setVideoCodecParameters(int channelId, int captureId);
+      int setVideoCaptureRotation(int captureId);
       EcModes getEcMode();
       
     protected:
@@ -453,15 +605,15 @@ namespace ortc
       unsigned int mMtu;
       String mMachineName;
       
-      bool mEcEnabled;
-      bool mAgcEnabled;
-      bool mNsEnabled;
       String mVoiceRecordFile;
       CapturedFrameOrientation mDefaultVideoOrientation;
       CapturedFrameOrientation mRecordVideoOrientation;
       
-      int mVoiceChannel;
-      Transport *mVoiceTransport;
+      VoiceSourceInfoMap mVoiceSourceInfos;
+      VoiceChannelInfoMap mVoiceChannelInfos;
+      VideoSourceInfoMap mVideoSourceInfos;
+      VideoChannelInfoMap mVideoChannelInfos;
+      
       VoiceEngine *mVoiceEngine;
       VoiceBase *mVoiceBase;
       VoiceCodec *mVoiceCodec;
@@ -472,13 +624,7 @@ namespace ortc
       VoiceHardware *mVoiceHardware;
       VoiceFile *mVoiceFile;
       bool mVoiceEngineReady;
-      bool mFaceDetection;
       
-      int mVideoChannel;
-      Transport *mVideoTransport;
-      int mCaptureId;
-      char mDeviceUniqueId[512];
-      CameraTypes mCameraType;
       VideoCaptureModule *mVcpm;
       VideoEngine *mVideoEngine;
       VideoBase *mVideoBase;
@@ -488,37 +634,18 @@ namespace ortc
       VideoRtpRtcp *mVideoRtpRtcp;
       VideoCodec *mVideoCodec;
       VideoFile *mVideoFile;
-      void *mCaptureRenderView;
-      void *mChannelRenderView;
       bool mVideoEngineReady;
-      
-      RedirectTransport mRedirectVoiceTransport;
-      RedirectTransport mRedirectVideoTransport;
       
       // lifetime start / stop state
       mutable RecursiveLock mLifetimeLock;
       
-      bool mLifetimeWantSendAudio;
-      bool mLifetimeWantReceiveAudio;
-      bool mLifetimeWantVideoCapture;
-      bool mLifetimeWantSendVideoChannel;
-      bool mLifetimeWantReceiveVideoChannel;
-      bool mLifetimeWantRecordVideoCapture;
-      
-      bool mLifetimeHasSendAudio;
-      bool mLifetimeHasReceiveAudio;
-      bool mLifetimeHasVideoCapture;
-      bool mLifetimeHasSendVideoChannel;
-      bool mLifetimeHasReceiveVideoChannel;
-      bool mLifetimeHasRecordVideoCapture;
-      
-      bool mLifetimeInProgress;
-      CameraTypes mLifetimeWantCameraType;
-      bool mLifetimeContinuousVideoCapture;
-      
-      String mLifetimeVideoRecordFile;
-      bool mLifetimeSaveVideoToLibrary;
+      VoiceSourceLifetimeStateMap mVoiceSourceLifetimeStates;
+      VoiceChannelLifetimeStateMap mVoiceChannelLifetimeStates;
+      VideoSourceLifetimeStateMap mVideoSourceLifetimeStates;
+      VideoChannelLifetimeStateMap mVideoChannelLifetimeStates;
 
+      bool mLifetimeInProgress;
+      
       mutable RecursiveLock mMediaEngineReadyLock;
     };
     

@@ -73,7 +73,9 @@ namespace ortc
     MediaStream::MediaStream(IMessageQueuePtr queue, IMediaStreamDelegatePtr delegate) :
       MessageQueueAssociator(queue),
       mID(zsLib::createPUID()),
-      mInactive(true)
+      mInactive(true),
+      mAudioChannel(-1),
+      mVideoChannel(-1)
     {
       mAudioTracks = MediaStreamTrackListPtr(new MediaStreamTrackList());
       mVideoTracks = MediaStreamTrackListPtr(new MediaStreamTrackList());
@@ -119,14 +121,40 @@ namespace ortc
     //-----------------------------------------------------------------------
     void MediaStream::addTrack(IMediaStreamTrackPtr track)
     {
-      if (typeid(*track) == typeid(LocalAudioStreamTrack) || typeid(*track) == typeid(RemoteReceiveAudioStreamTrack) ||
-          typeid(*track) == typeid(RemoteSendAudioStreamTrack))
+      if (typeid(*track) == typeid(LocalAudioStreamTrack))
       {
+        if (mAudioChannel != -1)
+        {
+          LocalAudioStreamTrackPtr localTrack = boost::dynamic_pointer_cast<LocalAudioStreamTrack>(track);
+          localTrack->forMediaManager().setChannel(mAudioChannel);
+        }
         mAudioTracks->push_back(track);
       }
-      else if (typeid(*track) == typeid(LocalVideoStreamTrack) || typeid(*track) == typeid(RemoteReceiveVideoStreamTrack) ||
-               typeid(*track) == typeid(RemoteSendVideoStreamTrack))
+      else if (typeid(*track) == typeid(RemoteReceiveAudioStreamTrack))
       {
+        if (mAudioChannel != -1)
+        {
+          RemoteReceiveAudioStreamTrackPtr remoteTrack = boost::dynamic_pointer_cast<RemoteReceiveAudioStreamTrack>(track);
+          remoteTrack->forMediaManager().setChannel(mAudioChannel);
+        }
+        mAudioTracks->push_back(track);
+      }
+      else if (typeid(*track) == typeid(LocalVideoStreamTrack))
+      {
+        if (mVideoChannel != -1)
+        {
+          LocalVideoStreamTrackPtr localTrack = boost::dynamic_pointer_cast<LocalVideoStreamTrack>(track);
+          localTrack->forMediaManager().setChannel(mVideoChannel);
+        }
+        mVideoTracks->push_back(track);
+      }
+      else if (typeid(*track) == typeid(RemoteReceiveVideoStreamTrack))
+      {
+        if (mVideoChannel != -1)
+        {
+          RemoteReceiveVideoStreamTrackPtr remoteTrack = boost::dynamic_pointer_cast<RemoteReceiveVideoStreamTrack>(track);
+          remoteTrack->forMediaManager().setChannel(mVideoChannel);
+        }
         mVideoTracks->push_back(track);
       }
     }
@@ -172,6 +200,58 @@ namespace ortc
       return String();
     }
     
+    //-------------------------------------------------------------------------
+    int MediaStream::getAudioChannel()
+    {
+      return mAudioChannel;
+    }
+    
+    //-------------------------------------------------------------------------
+    void MediaStream::setAudioChannel(int channel)
+    {
+      mAudioChannel = channel;
+      
+      for (MediaStreamTrackList::iterator iter = mAudioTracks->begin(); iter != mAudioTracks->end(); iter++)
+      {
+        if (typeid(**iter) == typeid(LocalAudioStreamTrack))
+        {
+          LocalAudioStreamTrackPtr localTrack = boost::dynamic_pointer_cast<LocalAudioStreamTrack>(*iter);
+          localTrack->forMediaManager().setChannel(channel);
+        }
+        else if (typeid(**iter) == typeid(RemoteReceiveAudioStreamTrack))
+        {
+          RemoteReceiveAudioStreamTrackPtr remoteTrack = boost::dynamic_pointer_cast<RemoteReceiveAudioStreamTrack>(*iter);
+          remoteTrack->forMediaManager().setChannel(channel);
+        }
+      }
+    }
+    
+    //-------------------------------------------------------------------------
+    int MediaStream::getVideoChannel()
+    {
+      return mVideoChannel;
+    }
+    
+    //-------------------------------------------------------------------------
+    void MediaStream::setVideoChannel(int channel)
+    {
+      mVideoChannel = channel;
+      
+      for (MediaStreamTrackList::iterator iter = mVideoTracks->begin(); iter != mVideoTracks->end(); iter++)
+      {
+        if (typeid(**iter) == typeid(LocalVideoStreamTrack))
+        {
+          LocalVideoStreamTrackPtr localTrack = boost::dynamic_pointer_cast<LocalVideoStreamTrack>(*iter);
+          localTrack->forMediaManager().setChannel(channel);
+        }
+        else if (typeid(**iter) == typeid(RemoteReceiveVideoStreamTrack))
+        {
+          RemoteReceiveVideoStreamTrackPtr remoteTrack = boost::dynamic_pointer_cast<RemoteReceiveVideoStreamTrack>(*iter);
+          remoteTrack->forMediaManager().setChannel(channel);
+        }
+      }
+    }
+
     //-------------------------------------------------------------------------
     void MediaStream::setVoiceRecordFile(String fileName)
     {

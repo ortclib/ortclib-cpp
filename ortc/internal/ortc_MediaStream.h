@@ -66,7 +66,11 @@ namespace ortc
       virtual void removeTrack(IMediaStreamTrackPtr track) = 0;
 
       virtual String getCNAME() = 0;
-      
+      virtual int getAudioChannel() = 0;
+      virtual void setAudioChannel(int channel) = 0;
+      virtual int getVideoChannel() = 0;
+      virtual void setVideoChannel(int channel) = 0;
+
       virtual void setVoiceRecordFile(String fileName) = 0;
       virtual String getVoiceRecordFile() const = 0;
     };
@@ -137,7 +141,11 @@ namespace ortc
       
     protected:
       virtual String getCNAME();
-      
+      virtual int getAudioChannel();
+      virtual void setAudioChannel(int channel);
+      virtual int getVideoChannel();
+      virtual void setVideoChannel(int channel);
+
       virtual void setVoiceRecordFile(String fileName);
       virtual String getVoiceRecordFile() const;
 
@@ -198,6 +206,8 @@ namespace ortc
       
       String mCNAME;
       
+      int mAudioChannel;
+      int mVideoChannel;
       String mVoiceRecordFile;
     };
     

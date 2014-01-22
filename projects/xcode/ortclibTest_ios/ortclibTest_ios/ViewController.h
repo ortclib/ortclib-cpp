@@ -17,6 +17,8 @@
     ortc::IMediaManagerDelegatePtr mediaManagerDelegatePtr;
     ortc::IMediaStreamPtr sendMediaStreamPtr;
     ortc::IMediaStreamPtr receiveMediaStreamPtr;
+    int audioChannel;
+    int videoChannel;
 }
 
 -(IBAction)test1;
