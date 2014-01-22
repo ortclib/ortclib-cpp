@@ -2124,6 +2124,8 @@ namespace ortc
         mVideoSourceInfos[captureId] = info;
         mVideoSourceLifetimeStates[captureId] = lifetimeState;
         
+        mVideoSourceInfos[captureId].mCameraType = CameraType_Front;
+        
         return captureId;
       }
     }

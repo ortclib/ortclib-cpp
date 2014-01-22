@@ -4,6 +4,7 @@
 #include <ortc/internal/ortc_MediaManager.h>
 #include <ortc/internal/ortc_MediaStream.h>
 #include <ortc/internal/ortc_MediaStreamTrack.h>
+#include <ortc/internal/ortc_MediaEngine.h>
 #include <ortc/test/TestMediaEngine.h>
 #include <zsLib/MessageQueueThread.h>
 
@@ -32,6 +33,16 @@
   
     localAudioStreamTrack->forMediaManager().start();
     localVideoStreamTrack->forMediaManager().start();
+  
+    ortc::internal::IMediaEnginePtr mediaEngine = ortc::internal::IMediaEngine::singleton();
+  
+    audioChannel = mediaEngine->createVoiceChannel();
+    videoChannel = mediaEngine->createVideoChannel();
+    ortc::internal::MediaStreamPtr mediaStream =
+        boost::dynamic_pointer_cast<ortc::internal::MediaStream>(sendMediaStreamPtr);
+  
+    mediaStream->forMediaManager().setAudioChannel(audioChannel);
+    mediaStream->forMediaManager().setVideoChannel(videoChannel);
 }
 
 -(IBAction)test3
@@ -44,10 +55,13 @@
   
     ortc::internal::MediaStreamPtr mediaStream = boost::dynamic_pointer_cast<ortc::internal::MediaStream>(receiveMediaStreamPtr);
   
+    mediaStream->forMediaManager().setAudioChannel(audioChannel);
+    mediaStream->forMediaManager().setVideoChannel(videoChannel);
+
+    remoteVideoStreamTrack->forMediaManager().setRenderView((__bridge void*)_imgView2);
+  
     mediaStream->forMediaManager().addTrack(remoteAudioStreamTrack);
     mediaStream->forMediaManager().addTrack(remoteVideoStreamTrack);
-  
-    remoteVideoStreamTrack->forMediaManager().setRenderView((__bridge void*)_imgView2);
   
     ortc::MediaStreamTrackListPtr localAudioTracks = sendMediaStreamPtr->getAudioTracks();
     ortc::MediaStreamTrackListPtr localVideoTracks = sendMediaStreamPtr->getVideoTracks();

@@ -411,6 +411,24 @@ namespace ortc
     }
     
     //-------------------------------------------------------------------------
+    ULONG MediaStreamTrack::getSSRC()
+    {
+      return mSSRC;
+    }
+    
+    //-------------------------------------------------------------------------
+    int MediaStreamTrack::getChannel()
+    {
+      return mChannel;
+    }
+    
+    //-------------------------------------------------------------------------
+    void MediaStreamTrack::setChannel(int channel)
+    {
+      mChannel = channel;
+    }
+
+    //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -604,10 +622,6 @@ namespace ortc
       AudioStreamTrack(queue, delegate)
     {
       mTransport = ISendMediaTransportForMediaManager::create();
-      
-      IMediaEnginePtr mediaEngine = IMediaEngine::singleton();
-      
-      mChannel = mediaEngine->createVoiceChannel();
     }
     
     //-------------------------------------------------------------------------
@@ -695,15 +709,27 @@ namespace ortc
     //-------------------------------------------------------------------------
     ULONG LocalAudioStreamTrack::getSSRC()
     {
-      return 0;
+      return MediaStreamTrack::getSSRC();
+    }
+    
+    //-------------------------------------------------------------------------
+    int LocalAudioStreamTrack::getChannel()
+    {
+      return MediaStreamTrack::getChannel();
+    }
+    
+    //-------------------------------------------------------------------------
+    void LocalAudioStreamTrack::setChannel(int channel)
+    {
+      MediaStreamTrack::setChannel(channel);
+      
+      IMediaEnginePtr mediaEngine = IMediaEngine::singleton();
+      mediaEngine->startSendVoice(channel);
     }
     
     //-------------------------------------------------------------------------
     void LocalAudioStreamTrack::start()
     {
-      IMediaEnginePtr mediaEngine = IMediaEngine::singleton();
-      
-      mediaEngine->startSendVoice(mChannel);
     }
     
     //-------------------------------------------------------------------------
@@ -738,11 +764,6 @@ namespace ortc
     RemoteReceiveAudioStreamTrack::RemoteReceiveAudioStreamTrack(IMessageQueuePtr queue, IMediaStreamTrackDelegatePtr delegate) :
       AudioStreamTrack(queue, delegate)
     {
-      IMediaEnginePtr mediaEngine = IMediaEngine::singleton();
-      
-      mChannel = mediaEngine->createVoiceChannel();
-      
-      mediaEngine->startReceiveVoice(mChannel);
     }
     
     //-------------------------------------------------------------------------
@@ -830,9 +851,24 @@ namespace ortc
     //-------------------------------------------------------------------------
     ULONG RemoteReceiveAudioStreamTrack::getSSRC()
     {
-      return 0;
+      return MediaStreamTrack::getSSRC();
     }
     
+    //-------------------------------------------------------------------------
+    int RemoteReceiveAudioStreamTrack::getChannel()
+    {
+      return MediaStreamTrack::getChannel();
+    }
+    
+    //-------------------------------------------------------------------------
+    void RemoteReceiveAudioStreamTrack::setChannel(int channel)
+    {
+      MediaStreamTrack::setChannel(channel);
+      
+      IMediaEnginePtr mediaEngine = IMediaEngine::singleton();
+      mediaEngine->startReceiveVoice(channel);
+    }
+
     //-------------------------------------------------------------------------
     void RemoteReceiveAudioStreamTrack::setEcEnabled(bool enabled)
     {
@@ -964,7 +1000,19 @@ namespace ortc
     //-------------------------------------------------------------------------
     ULONG RemoteSendAudioStreamTrack::getSSRC()
     {
-      return 0;
+      return MediaStreamTrack::getSSRC();
+    }
+    
+    //-------------------------------------------------------------------------
+    int RemoteSendAudioStreamTrack::getChannel()
+    {
+      return MediaStreamTrack::getChannel();
+    }
+    
+    //-------------------------------------------------------------------------
+    void RemoteSendAudioStreamTrack::setChannel(int channel)
+    {
+      MediaStreamTrack::setChannel(channel);
     }
 
     //-----------------------------------------------------------------------
@@ -982,7 +1030,6 @@ namespace ortc
       IMediaEnginePtr mediaEngine = IMediaEngine::singleton();
       
       mSource = mediaEngine->createVideoSource();
-      mChannel = mediaEngine->createVideoChannel();
     }
     
     //-------------------------------------------------------------------------
@@ -1073,16 +1120,29 @@ namespace ortc
     //-------------------------------------------------------------------------
     ULONG LocalVideoStreamTrack::getSSRC()
     {
-      return 0;
+      return MediaStreamTrack::getSSRC();
     }
     
+    //-------------------------------------------------------------------------
+    int LocalVideoStreamTrack::getChannel()
+    {
+      return MediaStreamTrack::getChannel();
+    }
+    
+    //-------------------------------------------------------------------------
+    void LocalVideoStreamTrack::setChannel(int channel)
+    {
+      MediaStreamTrack::setChannel(channel);
+      
+      IMediaEnginePtr mediaEngine = IMediaEngine::singleton();
+      mediaEngine->startSendVideoChannel(channel, mSource);
+    }
+
     //-------------------------------------------------------------------------
     void LocalVideoStreamTrack::start()
     {
       IMediaEnginePtr mediaEngine = IMediaEngine::singleton();
-      
       mediaEngine->startVideoCapture(mSource);
-      mediaEngine->startSendVideoChannel(mChannel, mSource);
     }
     
     //-------------------------------------------------------------------------
@@ -1130,11 +1190,10 @@ namespace ortc
     //-------------------------------------------------------------------------
     void LocalVideoStreamTrack::setRenderView(void *renderView)
     {
-      IMediaEnginePtr mediaEngine = IMediaEngine::singleton();
-      
-      mediaEngine->setRenderView(mSource, renderView);
-      
       VideoStreamTrack::setRenderView(renderView);
+      
+      IMediaEnginePtr mediaEngine = IMediaEngine::singleton();
+      mediaEngine->setRenderView(mSource, renderView);
     }
     
     //-------------------------------------------------------------------------
@@ -1175,11 +1234,6 @@ namespace ortc
     RemoteReceiveVideoStreamTrack::RemoteReceiveVideoStreamTrack(IMessageQueuePtr queue, IMediaStreamTrackDelegatePtr delegate) :
       VideoStreamTrack(queue, delegate)
     {
-      IMediaEnginePtr mediaEngine = IMediaEngine::singleton();
-      
-      mChannel = mediaEngine->createVideoChannel();
-      
-//      mediaEngine->startReceiveVideoChannel(mChannel);
     }
     
     //-------------------------------------------------------------------------
@@ -1267,18 +1321,28 @@ namespace ortc
     //-------------------------------------------------------------------------
     ULONG RemoteReceiveVideoStreamTrack::getSSRC()
     {
-      return 0;
+      return MediaStreamTrack::getSSRC();
     }
     
     //-------------------------------------------------------------------------
+    int RemoteReceiveVideoStreamTrack::getChannel()
+    {
+      return MediaStreamTrack::getChannel();
+    }
+    
+    //-------------------------------------------------------------------------
+    void RemoteReceiveVideoStreamTrack::setChannel(int channel)
+    {
+      MediaStreamTrack::setChannel(channel);
+
+      IMediaEnginePtr mediaEngine = IMediaEngine::singleton();
+      mediaEngine->setRenderView(channel, mRenderView);
+      mediaEngine->startReceiveVideoChannel(channel);
+    }
+
+    //-------------------------------------------------------------------------
     void RemoteReceiveVideoStreamTrack::setRenderView(void *renderView)
     {
-      IMediaEnginePtr mediaEngine = IMediaEngine::singleton();
-      
-      mediaEngine->setRenderView(mChannel, renderView);
-      
-      mediaEngine->startReceiveVideoChannel(mChannel);
-      
       VideoStreamTrack::setRenderView(renderView);
     }
     
@@ -1388,9 +1452,21 @@ namespace ortc
     //-------------------------------------------------------------------------
     ULONG RemoteSendVideoStreamTrack::getSSRC()
     {
-      return 0;
+      return MediaStreamTrack::getSSRC();
     }
     
+    //-------------------------------------------------------------------------
+    int RemoteSendVideoStreamTrack::getChannel()
+    {
+      return MediaStreamTrack::getChannel();
+    }
+    
+    //-------------------------------------------------------------------------
+    void RemoteSendVideoStreamTrack::setChannel(int channel)
+    {
+      MediaStreamTrack::setChannel(channel);
+    }
+
     //-------------------------------------------------------------------------
     void RemoteSendVideoStreamTrack::setRenderView(void *renderView)
     {

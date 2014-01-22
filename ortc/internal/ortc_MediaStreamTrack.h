@@ -271,6 +271,8 @@ namespace ortc
                                              );
       
       virtual ULONG getSSRC() = 0;
+      virtual int getChannel() = 0;
+      virtual void setChannel(int channel) = 0;
 
       virtual void start() = 0;
       virtual void stop() = 0;
@@ -313,6 +315,8 @@ namespace ortc
                                                      );
       
       virtual ULONG getSSRC() = 0;
+      virtual int getChannel() = 0;
+      virtual void setChannel(int channel) = 0;
 
       virtual void setEcEnabled(bool enabled) = 0;
       virtual void setAgcEnabled(bool enabled) = 0;
@@ -356,6 +360,8 @@ namespace ortc
                                                   );
       
       virtual ULONG getSSRC() = 0;
+      virtual int getChannel() = 0;
+      virtual void setChannel(int channel) = 0;
 
       virtual SendMediaTransportPtr getTransport() = 0;
     };
@@ -397,6 +403,8 @@ namespace ortc
                                              );
       
       virtual ULONG getSSRC() = 0;
+      virtual int getChannel() = 0;
+      virtual void setChannel(int channel) = 0;
 
       virtual void start() = 0;
       virtual void stop() = 0;
@@ -453,6 +461,8 @@ namespace ortc
                                                      );
       
       virtual ULONG getSSRC() = 0;
+      virtual int getChannel() = 0;
+      virtual void setChannel(int channel) = 0;
 
       virtual void setRenderView(void *renderView) = 0;
       
@@ -494,6 +504,8 @@ namespace ortc
                                                   );
       
       virtual ULONG getSSRC() = 0;
+      virtual int getChannel() = 0;
+      virtual void setChannel(int channel) = 0;
 
       virtual void setRenderView(void *renderView) = 0;
       
@@ -561,7 +573,7 @@ namespace ortc
       virtual IMediaStreamTrack::MediaStreamTrackStates readyState();
       virtual IMediaStreamTrackPtr clone();
       virtual void stop();
-
+      
       //---------------------------------------------------------------------
       #pragma mark
       #pragma mark MediaStreamTrack => ILocalAudioStreamTrackForMediaManager, IRemoteReceiveAudioStreamTrackForMediaManager,
@@ -569,7 +581,9 @@ namespace ortc
       #pragma mark                     IRemoteReceiveVideoStreamTrackForMediaManager, IRemoteSendVideoStreamTrackForMediaManager
       #pragma mark
       
-      virtual ULONG getSSRC() = 0;
+      virtual ULONG getSSRC();
+      virtual int getChannel();
+      virtual void setChannel(int channel);
       
       //-----------------------------------------------------------------------
       #pragma mark
@@ -765,6 +779,8 @@ namespace ortc
       #pragma mark
       
       virtual ULONG getSSRC();
+      virtual int getChannel();
+      virtual void setChannel(int channel);
       virtual void start();
       //virtual void stop();
       virtual SendMediaTransportPtr getTransport();
@@ -835,6 +851,8 @@ namespace ortc
       #pragma mark
       
       virtual ULONG getSSRC();
+      virtual int getChannel();
+      virtual void setChannel(int channel);
       virtual void setEcEnabled(bool enabled);
       virtual void setAgcEnabled(bool enabled);
       virtual void setNsEnabled(bool enabled);
@@ -909,6 +927,8 @@ namespace ortc
       #pragma mark
 
       virtual ULONG getSSRC();
+      virtual int getChannel();
+      virtual void setChannel(int channel);
       virtual SendMediaTransportPtr getTransport();
       
       //---------------------------------------------------------------------
@@ -980,7 +1000,8 @@ namespace ortc
       #pragma mark
 
       virtual ULONG getSSRC();
-      
+      virtual int getChannel();
+      virtual void setChannel(int channel);
       virtual void start();
       //virtual void stop();
 
@@ -1068,6 +1089,8 @@ namespace ortc
       #pragma mark
       
       virtual ULONG getSSRC();
+      virtual int getChannel();
+      virtual void setChannel(int channel);
       virtual void setRenderView(void *renderView);
       virtual ReceiveMediaTransportPtr getTransport();
       
@@ -1138,6 +1161,8 @@ namespace ortc
       #pragma mark
       
       virtual ULONG getSSRC();
+      virtual int getChannel();
+      virtual void setChannel(int channel);
       virtual void setRenderView(void *renderView);
       virtual SendMediaTransportPtr getTransport();
       
