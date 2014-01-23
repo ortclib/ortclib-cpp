@@ -222,9 +222,9 @@ LOCAL_SRC_FILES := \
 include $(PREBUILT_STATIC_LIBRARY)
 
 include $(CLEAR_VARS)
-LOCAL_MODULE := libvoice_engine_core
+LOCAL_MODULE := libvoice_engine
 LOCAL_SRC_FILES := \
-    $(WEBRTC_LIBS_PATH)/libvoice_engine_core.a
+    $(WEBRTC_LIBS_PATH)/libvoice_engine.a
 include $(PREBUILT_STATIC_LIBRARY)
 
 include $(CLEAR_VARS)
@@ -454,7 +454,7 @@ libvideo_coding_utility \
 libvideo_engine_core \
 libvideo_processing \
 libvideo_render_module \
-libvoice_engine_core \
+libvoice_engine \
 libvpx \
 libwebrtc_i420 \
 libwebrtc_opus \
