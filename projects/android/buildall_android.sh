@@ -34,16 +34,11 @@ else
 	echo "For example:/home/astro/android-ndk-r8e"
 	read Input
 	echo "You entered:$Input"
-
-	echo "----------------- Exporting the android-ndk path ----------------"
 fi
 
 #Set path
-if [ "$ARCHTYPE" = "x86" ] ; then
-	export PATH=$PATH:$Input:$Input/toolchains/arm-linux-androideabi-4.4.3/prebuilt/$HOST_OS-x86/bin
-else
-        export PATH=$PATH:$Input:$Input/toolchains/arm-linux-androideabi-4.4.3/prebuilt/$HOST_OS-x86_64/bin
-fi
+echo "----------------- Exporting the android-ndk path ----------------"
+export PATH=$PATH:$Input:$Input/toolchains/arm-linux-androideabi-4.4.3/prebuilt/$HOST_OS-$ARCHTYPE/bin
 
 #build all modules
 echo "******************BUILD STARTED FOR ALL ORTC LIBS*******************"
