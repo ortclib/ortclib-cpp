@@ -1490,12 +1490,30 @@ namespace ortc
       
       OPIHelper::debugAppend(resultEl, "graceful shutdown", (bool)mGracefulShutdownReference);
       OPIHelper::debugAppend(resultEl, "graceful shutdown", mShutdown);
-      
+
       OPIHelper::debugAppend(resultEl, "error", mLastError);
       OPIHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
       
       return resultEl;
     }
+
+#define WARNING_FIX_ME_MERGE_CONFLICT_MOSA 1
+#define WARNING_FIX_ME_MERGE_CONFLICT_MOSA 2
+
+#if 0
+
+#ifndef _ANDROID
+#ifndef _LINUX
+#ifdef __QNX__
+      pthread_setname_np(pthread_self(), "ortc.mediaEngine");
+#else
+      pthread_setname_np("ortc.mediaEngine");
+#endif
+#endif
+#endif
+      //ZS_LOG_DEBUG(log("media engine lifetime thread spawned"))
+
+#endif //0
     
     //-------------------------------------------------------------------------
     bool MediaEngine::isShuttingDown() const
