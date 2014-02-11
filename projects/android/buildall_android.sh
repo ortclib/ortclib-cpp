@@ -38,7 +38,7 @@ fi
 
 #Set path
 echo "----------------- Exporting the android-ndk path ----------------"
-export PATH=$PATH:$Input:$Input/toolchains/arm-linux-androideabi-4.4.3/prebuilt/$HOST_OS-$ARCHTYPE/bin
+export PATH=$PATH:$Input:$Input/toolchains/arm-linux-androideabi-4.7/prebuilt/$HOST_OS-$ARCHTYPE/bin
 
 #build all modules
 echo "******************BUILD STARTED FOR ALL ORTC LIBS*******************"
