@@ -42,10 +42,8 @@ ortc/cpp/ortc_MediaManager.cpp \
 ortc/cpp/ortc_MediaStream.cpp \
 ortc/cpp/ortc_MediaStreamTrack.cpp \
 ortc/cpp/ortc_ORTC.cpp \
-ortc/cpp/ortc_RTCConnection.cpp \
 ortc/cpp/ortc_RTCDataChannel.cpp \
 ortc/cpp/ortc_RTCDTMFTrack.cpp \
-ortc/cpp/ortc_RTCSocket.cpp \
 ortc/cpp/ortc_RTCStream.cpp \
 ortc/cpp/ortc_RTCTrack.cpp \
 

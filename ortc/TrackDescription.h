@@ -97,7 +97,9 @@ namespace ortc
 
   struct RTPRTXFlowParams : public RTPFlowParams
   {
+#ifndef _ANDROID	  
     static RTPRTXFlowParamsPtr convert(RTPFlowParams object);
+#endif	  
 
     static RTPRTXFlowParamsPtr create();
     virtual ElementPtr toDebug() const;
@@ -120,9 +122,9 @@ namespace ortc
   struct RTPFECFlowParams : public RTPFlowParams
   {
     String mMechanismg;
-
+#ifndef _ANDROID
     static RTPRTXFlowParamsPtr convert(RTPFlowParams object);
-
+#endif
     static RTPFECFlowParamsPtr create();
     virtual ElementPtr toDebug() const;
 
@@ -148,9 +150,9 @@ namespace ortc
     typedef std::list<BaseFlowID> BaseFlowIDList;
 
     BaseFlowIDList mBaseFlowIDs;
-
+#ifndef _ANDROID
     static RTPRTXFlowParamsPtr convert(RTPFlowParams object);
-
+#endif
     static RTPLayeredFlowParamsPtr create();
     virtual ElementPtr toDebug() const;
 
