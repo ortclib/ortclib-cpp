@@ -1410,6 +1410,22 @@ namespace ortc
     }
     
     //-----------------------------------------------------------------------
+    void MediaEngine::CallbackOnAudioSessionInterruptionBegin()
+    {
+      mSubscriptions.delegate()->onMediaEngineAudioSessionInterruptionBegan();
+      
+      ZS_LOG_DEBUG(log("Audio session interruption began"))
+    }
+
+    //-----------------------------------------------------------------------
+    void MediaEngine::CallbackOnAudioSessionInterruptionEnd()
+    {
+      mSubscriptions.delegate()->onMediaEngineAudioSessionInterruptionEnded();
+      
+      ZS_LOG_DEBUG(log("Audio session interruption ended"))
+    }
+
+    //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------

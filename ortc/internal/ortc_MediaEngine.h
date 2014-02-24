@@ -150,6 +150,8 @@ namespace ortc
       typedef IMediaEngine::OutputAudioRoute OutputAudioRoute;
       
       virtual void onMediaEngineAudioRouteChanged(OutputAudioRoute audioRoute) = 0;
+      virtual void onMediaEngineAudioSessionInterruptionBegan() = 0;
+      virtual void onMediaEngineAudioSessionInterruptionEnded() = 0;
       virtual void onMediaEngineFaceDetected(int captureId) = 0;
       virtual void onMediaEngineVideoCaptureRecordStopped(int captureId) = 0;
     };
@@ -176,6 +178,8 @@ namespace ortc
 ZS_DECLARE_PROXY_BEGIN(ortc::internal::IMediaEngineDelegate)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::IMediaEngine::OutputAudioRoute, OutputAudioRoute)
 ZS_DECLARE_PROXY_METHOD_1(onMediaEngineAudioRouteChanged, OutputAudioRoute)
+ZS_DECLARE_PROXY_METHOD_0(onMediaEngineAudioSessionInterruptionBegan)
+ZS_DECLARE_PROXY_METHOD_0(onMediaEngineAudioSessionInterruptionEnded)
 ZS_DECLARE_PROXY_METHOD_1(onMediaEngineFaceDetected, int)
 ZS_DECLARE_PROXY_METHOD_1(onMediaEngineVideoCaptureRecordStopped, int)
 ZS_DECLARE_PROXY_END()
@@ -183,6 +187,8 @@ ZS_DECLARE_PROXY_END()
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_BEGIN(ortc::internal::IMediaEngineDelegate, ortc::internal::IMediaEngineSubscription)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::internal::IMediaEngine::OutputAudioRoute, OutputAudioRoute)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_1(onMediaEngineAudioRouteChanged, OutputAudioRoute)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_0(onMediaEngineAudioSessionInterruptionBegan)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_0(onMediaEngineAudioSessionInterruptionEnded)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_1(onMediaEngineFaceDetected, int)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_1(onMediaEngineVideoCaptureRecordStopped, int)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_END()
@@ -466,7 +472,9 @@ namespace ortc
       
       void CallbackOnError(const int errCode, const int channel);
       void CallbackOnOutputAudioRouteChange(const OutputAudioRoute route);
-      
+      void CallbackOnAudioSessionInterruptionBegin();
+      void CallbackOnAudioSessionInterruptionEnd();
+
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark MediaEngine => ViECaptureObserver
