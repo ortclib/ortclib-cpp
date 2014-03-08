@@ -34,6 +34,8 @@
 #include <ortc/internal/types.h>
 #include <ortc/IMediaStreamTrack.h>
 
+#include <openpeer/services/IWakeDelegate.h>
+
 #include <common_types.h>
 
 namespace ortc
@@ -269,6 +271,8 @@ namespace ortc
                                              );
       
       virtual ULONG getSSRC() = 0;
+      virtual int getChannel() = 0;
+      virtual void setChannel(int channel) = 0;
 
       virtual void start() = 0;
       virtual void stop() = 0;
@@ -311,6 +315,8 @@ namespace ortc
                                                      );
       
       virtual ULONG getSSRC() = 0;
+      virtual int getChannel() = 0;
+      virtual void setChannel(int channel) = 0;
 
       virtual void setEcEnabled(bool enabled) = 0;
       virtual void setAgcEnabled(bool enabled) = 0;
@@ -354,6 +360,8 @@ namespace ortc
                                                   );
       
       virtual ULONG getSSRC() = 0;
+      virtual int getChannel() = 0;
+      virtual void setChannel(int channel) = 0;
 
       virtual SendMediaTransportPtr getTransport() = 0;
     };
@@ -384,13 +392,6 @@ namespace ortc
     interaction ILocalVideoStreamTrackForMediaManager
     {
     public:
-      enum CameraTypes
-      {
-        CameraType_None,
-        CameraType_Front,
-        CameraType_Back
-      };
-      
       static const char *toString(CameraTypes type);
       
       ILocalVideoStreamTrackForMediaManager &forMediaManager() {return *this;}
@@ -402,6 +403,8 @@ namespace ortc
                                              );
       
       virtual ULONG getSSRC() = 0;
+      virtual int getChannel() = 0;
+      virtual void setChannel(int channel) = 0;
 
       virtual void start() = 0;
       virtual void stop() = 0;
@@ -458,6 +461,8 @@ namespace ortc
                                                      );
       
       virtual ULONG getSSRC() = 0;
+      virtual int getChannel() = 0;
+      virtual void setChannel(int channel) = 0;
 
       virtual void setRenderView(void *renderView) = 0;
       
@@ -499,6 +504,8 @@ namespace ortc
                                                   );
       
       virtual ULONG getSSRC() = 0;
+      virtual int getChannel() = 0;
+      virtual void setChannel(int channel) = 0;
 
       virtual void setRenderView(void *renderView) = 0;
       
@@ -529,7 +536,8 @@ namespace ortc
     #pragma mark
     
     class MediaStreamTrack : public Noop,
-      public MessageQueueAssociator
+                             public MessageQueueAssociator,
+                             public IWakeDelegate
     {
     public:
       friend interaction IMediaStreamTrack;
@@ -549,12 +557,12 @@ namespace ortc
     public:
       virtual ~MediaStreamTrack();
       
+    protected:
       //---------------------------------------------------------------------
       #pragma mark
       #pragma mark MediaStreamTrack => IMediaStreamTrack
       #pragma mark
       
-    protected:
       virtual String kind();
       virtual String id();
       virtual String label();
@@ -565,25 +573,44 @@ namespace ortc
       virtual IMediaStreamTrack::MediaStreamTrackStates readyState();
       virtual IMediaStreamTrackPtr clone();
       virtual void stop();
-
+      
       //---------------------------------------------------------------------
       #pragma mark
       #pragma mark MediaStreamTrack => ILocalAudioStreamTrackForMediaManager, IRemoteReceiveAudioStreamTrackForMediaManager,
-      #pragma mark                     IRemoteSendAudioStreamTrackForMediaManager, ILocalVideoStreamTrackForMediaManager.
+      #pragma mark                     IRemoteSendAudioStreamTrackForMediaManager, ILocalVideoStreamTrackForMediaManager,
       #pragma mark                     IRemoteReceiveVideoStreamTrackForMediaManager, IRemoteSendVideoStreamTrackForMediaManager
       #pragma mark
       
-    protected:
+      virtual ULONG getSSRC();
+      virtual int getChannel();
+      virtual void setChannel(int channel);
       
-      virtual ULONG getSSRC() = 0;
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark MediaStreamTrack => IWakeDelegate
+      #pragma mark
+      
+      virtual void onWake();
       
       //---------------------------------------------------------------------
       #pragma mark
       #pragma mark MediaStreamTrack => (internal)
       #pragma mark
       
-    private:
-      String log(const char *message) const;
+      Log::Params log(const char *message) const;
+      Log::Params debug(const char *message) const;
+      ElementPtr toDebug() const;
+      
+      RecursiveLock &getLock() const {return mLock;}
+      
+      bool isShuttingDown() const;
+      bool isShutdown() const;
+      
+      void step();
+      
+      void cancel();
+      
+      void setError(WORD error, const char *reason = NULL);
 
       //---------------------------------------------------------------------
       #pragma mark
@@ -594,9 +621,14 @@ namespace ortc
       PUID mID;
       mutable RecursiveLock mLock;
       MediaStreamTrackWeakPtr mThisWeak;
-      IMediaStreamTrackDelegatePtr mDelegate;
+      MediaStreamTrackPtr mGracefulShutdownReference;
+      AutoBool mShutdown;
       
-      int mError;
+      IMediaStreamTrackDelegateSubscriptions mSubscriptions;
+      IMediaStreamTrackSubscriptionPtr mDefaultSubscription;
+      
+      AutoWORD mLastError;
+      String mLastErrorReason;
       
       String mKind;
       String mTrackID;
@@ -608,6 +640,7 @@ namespace ortc
       IMediaStreamTrack::MediaStreamTrackStates mReadyState;
       
       ULONG mSSRC;
+      int mSource;
       int mChannel;
       IMediaTransportPtr mTransport;
     };
@@ -694,6 +727,7 @@ namespace ortc
       
     protected:
       
+      void* mRenderView;
     };
     
     //-----------------------------------------------------------------------
@@ -745,6 +779,8 @@ namespace ortc
       #pragma mark
       
       virtual ULONG getSSRC();
+      virtual int getChannel();
+      virtual void setChannel(int channel);
       virtual void start();
       //virtual void stop();
       virtual SendMediaTransportPtr getTransport();
@@ -815,6 +851,8 @@ namespace ortc
       #pragma mark
       
       virtual ULONG getSSRC();
+      virtual int getChannel();
+      virtual void setChannel(int channel);
       virtual void setEcEnabled(bool enabled);
       virtual void setAgcEnabled(bool enabled);
       virtual void setNsEnabled(bool enabled);
@@ -889,6 +927,8 @@ namespace ortc
       #pragma mark
 
       virtual ULONG getSSRC();
+      virtual int getChannel();
+      virtual void setChannel(int channel);
       virtual SendMediaTransportPtr getTransport();
       
       //---------------------------------------------------------------------
@@ -960,7 +1000,8 @@ namespace ortc
       #pragma mark
 
       virtual ULONG getSSRC();
-      
+      virtual int getChannel();
+      virtual void setChannel(int channel);
       virtual void start();
       //virtual void stop();
 
@@ -1048,6 +1089,8 @@ namespace ortc
       #pragma mark
       
       virtual ULONG getSSRC();
+      virtual int getChannel();
+      virtual void setChannel(int channel);
       virtual void setRenderView(void *renderView);
       virtual ReceiveMediaTransportPtr getTransport();
       
@@ -1118,6 +1161,8 @@ namespace ortc
       #pragma mark
       
       virtual ULONG getSSRC();
+      virtual int getChannel();
+      virtual void setChannel(int channel);
       virtual void setRenderView(void *renderView);
       virtual SendMediaTransportPtr getTransport();
       
@@ -1137,6 +1182,26 @@ namespace ortc
       #pragma mark
       
       
+    };
+    
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IMediaStreamTrackFactory
+    #pragma mark
+    
+    interaction IMediaStreamTrackFactory
+    {
+      static IMediaStreamTrackFactory &singleton();
+      
+      virtual LocalAudioStreamTrackPtr createLocalAudioStreamTrack(IMediaStreamTrackDelegatePtr delegate);
+      virtual RemoteReceiveAudioStreamTrackPtr createRemoteReceiveAudioStreamTrack(IMediaStreamTrackDelegatePtr delegate);
+      virtual RemoteSendAudioStreamTrackPtr createRemoteSendAudioStreamTrack(IMediaStreamTrackDelegatePtr delegate);
+      virtual LocalVideoStreamTrackPtr createLocalVideoStreamTrack(IMediaStreamTrackDelegatePtr delegate);
+      virtual RemoteReceiveVideoStreamTrackPtr createRemoteReceiveVideoStreamTrack(IMediaStreamTrackDelegatePtr delegate);
+      virtual RemoteSendVideoStreamTrackPtr createRemoteSendVideoStreamTrack(IMediaStreamTrackDelegatePtr delegate);
     };
   }
 }

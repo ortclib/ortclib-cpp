@@ -40,64 +40,77 @@ namespace ortc
   {
     using zsLib::string;
     using zsLib::Noop;
-    using zsLib::MessageQueue;
-    using zsLib::IMessageQueuePtr;
-    using zsLib::MessageQueuePtr;
     using zsLib::MessageQueueAssociator;
-    using zsLib::IMessageQueueNotify;
-    using zsLib::IMessageQueueMessagePtr;
-    using zsLib::IMessageQueueThread;
-    using zsLib::MessageQueueThread;
-    using zsLib::IMessageQueueThreadPtr;
-    using zsLib::MessageQueueThreadPtr;
     using zsLib::RecursiveLock;
-    using zsLib::AutoRecursiveLock;
     using zsLib::Log;
     using zsLib::Stringize;
     using zsLib::AutoBool;
     using zsLib::AutoPUID;
     using zsLib::AutoWORD;
 
-    using openpeer::services::IHTTP;
+    ZS_DECLARE_USING_PTR(zsLib, IMessageQueue)
+    ZS_DECLARE_USING_PTR(zsLib, IMessageQueueNotify)
+    ZS_DECLARE_USING_PTR(zsLib, IMessageQueueThread)
+    ZS_DECLARE_USING_PTR(zsLib, IMessageQueueMessage)
 
-    using openpeer::services::IICESocket;
-    using openpeer::services::IICESocketPtr;
-    using openpeer::services::IICESocketSubscription;
-    using openpeer::services::IICESocketSubscriptionPtr;
-    using openpeer::services::IICESocketDelegate;
-    using openpeer::services::IICESocketDelegatePtr;
+    ZS_DECLARE_USING_PTR(zsLib, MessageQueue)
+    ZS_DECLARE_USING_PTR(zsLib, MessageQueueThread)
 
-    using openpeer::services::IICESocketSession;
-    using openpeer::services::IICESocketSessionPtr;
-    using openpeer::services::IICESocketSessionSubscription;
-    using openpeer::services::IICESocketSessionSubscriptionPtr;
-    using openpeer::services::IICESocketSessionDelegate;
-    using openpeer::services::IICESocketDelegate;
-    using openpeer::services::IICESocketDelegatePtr;
+    ZS_DECLARE_TYPEDEF_PTR(zsLib::AutoRecursiveLock, AutoRecursiveLock)
 
-    using openpeer::services::IWakeDelegate;
-    using openpeer::services::IWakeDelegateProxy;
+    ZS_DECLARE_USING_PTR(openpeer::services, IHTTP)
+    ZS_DECLARE_USING_PTR(openpeer::services, IICESocket)
+    ZS_DECLARE_USING_PTR(openpeer::services, IICESocketDelegate)
+    ZS_DECLARE_USING_PTR(openpeer::services, IICESocketSubscription)
+    ZS_DECLARE_USING_PTR(openpeer::services, IICESocketSession)
+    ZS_DECLARE_USING_PTR(openpeer::services, IICESocketSessionDelegate)
+    ZS_DECLARE_USING_PTR(openpeer::services, IICESocketSessionSubscription)
 
-    interaction Factory;
-    typedef boost::shared_ptr<Factory> FactoryPtr;
-    typedef boost::weak_ptr<Factory> FactoryWeakPtr;
+    ZS_DECLARE_USING_PROXY(openpeer::services, IWakeDelegate)
 
-    class ORTC;
-    typedef boost::shared_ptr<ORTC> ORTCPtr;
-    typedef boost::weak_ptr<ORTC> ORTCWeakPtr;
+    enum CameraTypes
+    {
+      CameraType_None,
+      CameraType_Front,
+      CameraType_Back
+    };
 
-    class ICETransport;
-    typedef boost::shared_ptr<ICETransport> ICETransportPtr;
-    typedef boost::weak_ptr<ICETransport> ICETransportWeakPtr;
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark (forwards)
+    #pragma mark
 
-    class RTCConnection;
-    typedef boost::shared_ptr<RTCConnection> RTCConnectionPtr;
-    typedef boost::weak_ptr<RTCConnection> RTCConnectionWeakPtr;
+    ZS_DECLARE_CLASS_PTR(Factory)
+    ZS_DECLARE_CLASS_PTR(ORTC)
+    ZS_DECLARE_CLASS_PTR(DTLSTransport)
+    ZS_DECLARE_CLASS_PTR(ICETransport)
+    ZS_DECLARE_CLASS_PTR(RTPSender)
+    ZS_DECLARE_CLASS_PTR(RTPReceiver)
+    ZS_DECLARE_CLASS_PTR(MediaManager)
+    ZS_DECLARE_CLASS_PTR(MediaStream)
+    ZS_DECLARE_CLASS_PTR(MediaTransport)
+    ZS_DECLARE_CLASS_PTR(SendMediaTransport)
+    ZS_DECLARE_CLASS_PTR(ReceiveMediaTransport)
+    ZS_DECLARE_CLASS_PTR(MediaStreamTrack)
+    ZS_DECLARE_CLASS_PTR(AudioStreamTrack)
+    ZS_DECLARE_CLASS_PTR(LocalAudioStreamTrack)
+    ZS_DECLARE_CLASS_PTR(RemoteReceiveAudioStreamTrack)
+    ZS_DECLARE_CLASS_PTR(RemoteSendAudioStreamTrack)
+    ZS_DECLARE_CLASS_PTR(LocalVideoStreamTrack)
+    ZS_DECLARE_CLASS_PTR(RemoteReceiveVideoStreamTrack)
+    ZS_DECLARE_CLASS_PTR(RemoteSendVideoStreamTrack)
+    ZS_DECLARE_CLASS_PTR(MediaEngine)
     
-    class RTCSocket;
-    typedef boost::shared_ptr<RTCSocket> RTCSocketPtr;
-    typedef boost::weak_ptr<RTCSocket> RTCSocketWeakPtr;
+    ZS_DECLARE_INTERACTION_PTR(IMediaTransport)
+    ZS_DECLARE_INTERACTION_PTR(IMediaEngine)
     
+    ZS_DECLARE_INTERACTION_PROXY(IMediaEngineDelegate)
+
+    ZS_DECLARE_INTERACTION_PROXY_SUBSCRIPTION(IMediaEngineSubscription, IMediaEngineDelegate)
+
     class RTCStream;
     typedef boost::shared_ptr<RTCStream> RTCStreamPtr;
     typedef boost::weak_ptr<RTCStream> RTCStreamWeakPtr;
@@ -113,74 +126,5 @@ namespace ortc
     class RTCDataChannel;
     typedef boost::shared_ptr<RTCDataChannel> RTCDataChannelPtr;
     typedef boost::weak_ptr<RTCDataChannel> RTCDataChannelWeakPtr;
-    
-    class MediaManager;
-    typedef boost::shared_ptr<MediaManager> MediaManagerPtr;
-    typedef boost::weak_ptr<MediaManager> MediaManagerWeakPtr;
-    
-    class MediaStream;
-    typedef boost::shared_ptr<MediaStream> MediaStreamPtr;
-    typedef boost::weak_ptr<MediaStream> MediaStreamWeakPtr;
-    
-    interaction IMediaTransport;
-    typedef boost::shared_ptr<IMediaTransport> IMediaTransportPtr;
-    typedef boost::weak_ptr<IMediaTransport> IMediaTransportWeakPtr;
-    
-    class MediaTransport;
-    typedef boost::shared_ptr<MediaTransport> MediaTransportPtr;
-    typedef boost::weak_ptr<MediaTransport> MediaTransportWeakPtr;
-    
-    class SendMediaTransport;
-    typedef boost::shared_ptr<SendMediaTransport> SendMediaTransportPtr;
-    typedef boost::weak_ptr<SendMediaTransport> SendMediaTransportWeakPtr;
-    
-    class ReceiveMediaTransport;
-    typedef boost::shared_ptr<ReceiveMediaTransport> ReceiveMediaTransportPtr;
-    typedef boost::weak_ptr<ReceiveMediaTransport> ReceiveMediaTransportWeakPtr;
-
-    class MediaStreamTrack;
-    typedef boost::shared_ptr<MediaStreamTrack> MediaStreamTrackPtr;
-    typedef boost::weak_ptr<MediaStreamTrack> MediaStreamTrackWeakPtr;
-    
-    class AudioStreamTrack;
-    typedef boost::shared_ptr<AudioStreamTrack> AudioStreamTrackPtr;
-    typedef boost::weak_ptr<AudioStreamTrack> AudioStreamTrackWeakPtr;
-    
-    class LocalAudioStreamTrack;
-    typedef boost::shared_ptr<LocalAudioStreamTrack> LocalAudioStreamTrackPtr;
-    typedef boost::weak_ptr<LocalAudioStreamTrack> LocalAudioStreamTrackWeakPtr;
-    
-    class RemoteReceiveAudioStreamTrack;
-    typedef boost::shared_ptr<RemoteReceiveAudioStreamTrack> RemoteReceiveAudioStreamTrackPtr;
-    typedef boost::weak_ptr<RemoteReceiveAudioStreamTrack> RemoteReceiveAudioStreamTrackWeakPtr;
-    
-    class RemoteSendAudioStreamTrack;
-    typedef boost::shared_ptr<RemoteSendAudioStreamTrack> RemoteSendAudioStreamTrackPtr;
-    typedef boost::weak_ptr<RemoteSendAudioStreamTrack> RemoteSendAudioStreamTrackWeakPtr;
-    
-    class LocalVideoStreamTrack;
-    typedef boost::shared_ptr<LocalVideoStreamTrack> LocalVideoStreamTrackPtr;
-    typedef boost::weak_ptr<LocalVideoStreamTrack> LocalVideoStreamTrackWeakPtr;
-    
-    class RemoteReceiveVideoStreamTrack;
-    typedef boost::shared_ptr<RemoteReceiveVideoStreamTrack> RemoteReceiveVideoStreamTrackPtr;
-    typedef boost::weak_ptr<RemoteReceiveVideoStreamTrack> RemoteReceiveVideoStreamTrackWeakPtr;
-    
-    class RemoteSendVideoStreamTrack;
-    typedef boost::shared_ptr<RemoteSendVideoStreamTrack> RemoteSendVideoStreamTrackPtr;
-    typedef boost::weak_ptr<RemoteSendVideoStreamTrack> RemoteSendVideoStreamTrackWeakPtr;
-
-    interaction IMediaEngine;
-    typedef boost::shared_ptr<IMediaEngine> IMediaEnginePtr;
-    typedef boost::weak_ptr<IMediaEngine> IMediaEngineWeakPtr;
-    
-    class MediaEngine;
-    typedef boost::shared_ptr<MediaEngine> MediaEnginePtr;
-    typedef boost::weak_ptr<MediaEngine> MediaEngineWeakPtr;
-    
-    interaction IMediaEngineDelegate;
-    typedef boost::shared_ptr<IMediaEngineDelegate> IMediaEngineDelegatePtr;
-    typedef boost::weak_ptr<IMediaEngineDelegate> IMediaEngineDelegateWeakPtr;
-    typedef zsLib::Proxy<IMediaEngineDelegate> IMediaEngineDelegateProxy;
   }
 }

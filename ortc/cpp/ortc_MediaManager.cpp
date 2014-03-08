@@ -30,12 +30,21 @@
  */
 
 #include <ortc/internal/ortc_MediaManager.h>
-#include <zsLib/Log.h>
+#include <ortc/internal/ortc_ORTC.h>
+#include <ortc/internal/ortc_MediaStream.h>
+#include <ortc/internal/ortc_MediaStreamTrack.h>
 
-namespace ortc { ZS_IMPLEMENT_SUBSYSTEM(ortclib) }
+#include <openpeer/services/IHelper.h>
+
+#include <zsLib/Log.h>
+#include <zsLib/XML.h>
+
+namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib) }
 
 namespace ortc
 {
+  typedef openpeer::services::IHelper OPIHelper;
+  
   namespace internal
   {
     //-----------------------------------------------------------------------
@@ -47,14 +56,28 @@ namespace ortc
     #pragma mark
     
     //-----------------------------------------------------------------------
-    MediaManager::MediaManager(IMessageQueuePtr queue, IMediaManagerDelegatePtr delegate) :
-      MessageQueueAssociator(queue),
-      mID(zsLib::createPUID()),
-      mDelegate(delegate),
-      mError(0)
+    MediaManager::MediaManager(
+                               IMessageQueuePtr queue,
+                               IMediaManagerDelegatePtr originalDelegate
+                               ) :
+      MessageQueueAssociator(queue)
     {
+      mDefaultSubscription = mSubscriptions.subscribe(IMediaManagerDelegateProxy::create(IORTCForInternal::queueDelegate(), originalDelegate), queue);
     }
     
+    //-----------------------------------------------------------------------
+    MediaManagerPtr MediaManager::singleton(IMediaManagerDelegatePtr delegate)
+    {
+      static MediaManagerPtr manager = MediaManager::create(IORTCForInternal::queueORTC(), delegate);
+      return manager;
+    }
+    
+    //-----------------------------------------------------------------------
+    void MediaManager::setup(IMediaManagerDelegatePtr delegate)
+    {
+      singleton(delegate);
+    }
+
     //-------------------------------------------------------------------------
     MediaManagerPtr MediaManager::create(IMessageQueuePtr queue, IMediaManagerDelegatePtr delegate)
     {
@@ -66,6 +89,9 @@ namespace ortc
     //-----------------------------------------------------------------------
     MediaManager::~MediaManager()
     {
+      if (isNoop()) return;
+      
+      mThisWeak.reset();
     }
     
     //-----------------------------------------------------------------------
@@ -75,28 +101,59 @@ namespace ortc
     #pragma mark
     #pragma mark MediaManager => IMediaManager
     #pragma mark
+    
+    //-------------------------------------------------------------------------
+    PUID MediaManager::getID() const
+    {
+      return mID;
+    }
+    
+    //-------------------------------------------------------------------------
+    IMediaManagerSubscriptionPtr MediaManager::subscribe(IMediaManagerDelegatePtr originalDelegate)
+    {
+      ZS_LOG_DETAIL(log("subscribing to media manager events"))
+      
+      AutoRecursiveLock lock(getLock());
+      if (!originalDelegate) return mDefaultSubscription;
+      
+      IMediaManagerSubscriptionPtr subscription = mSubscriptions.subscribe(IMediaManagerDelegateProxy::create(IORTCForInternal::queueDelegate(), originalDelegate));
+      
+      IMediaManagerDelegatePtr delegate = mSubscriptions.delegate(subscription);
+      
+      if (delegate) {
+        MediaManagerPtr pThis = mThisWeak.lock();
+      }
+      
+      return subscription;
+    }
 
     //-----------------------------------------------------------------------
     void MediaManager::getUserMedia(MediaStreamConstraints constraints)
     {
+      MediaStreamPtr mediaStream = IMediaStreamForMediaManager::create(getAssociatedMessageQueue(), IMediaStreamDelegatePtr());
+      LocalAudioStreamTrackPtr localAudioStreamTrack = ILocalAudioStreamTrackForMediaManager::create(getAssociatedMessageQueue(), IMediaStreamTrackDelegatePtr());
+      LocalVideoStreamTrackPtr localVideoStreamTrack = ILocalVideoStreamTrackForMediaManager::create(getAssociatedMessageQueue(), IMediaStreamTrackDelegatePtr());
+
+      mediaStream->forMediaManager().addTrack(localAudioStreamTrack);
+      mediaStream->forMediaManager().addTrack(localVideoStreamTrack);
+      
+      try {
+        mSubscriptions.delegate()->onMediaManagerSuccessCallback(mediaStream);
+      } catch (IMediaStreamDelegateProxy::Exceptions::DelegateGone &) {
+      }
     }
     
     //-------------------------------------------------------------------------
     void MediaManager::setDefaultVideoOrientation(VideoOrientations orientation)
     {
       AutoRecursiveLock lock(mLock);
-      
-      //ZS_LOG_DEBUG(log("set default video orientation - ") + IMediaManager::toString(orientation))
-      
-      //        mDefaultVideoOrientation = orientation;
+
     }
     
     //-------------------------------------------------------------------------
     MediaManager::VideoOrientations MediaManager::getDefaultVideoOrientation()
     {
       AutoRecursiveLock lock(mLock);
-      
-      //ZS_LOG_DEBUG(log("get default video orientation"))
       
       return VideoOrientation_LandscapeLeft;
     }
@@ -105,18 +162,12 @@ namespace ortc
     void MediaManager::setRecordVideoOrientation(VideoOrientations orientation)
     {
       AutoRecursiveLock lock(mLock);
-      
-      //ZS_LOG_DEBUG(log("set record video orientation - ") + IMediaManager::toString(orientation))
-      
-      //        mRecordVideoOrientation = orientation;
     }
     
     //-------------------------------------------------------------------------
     MediaManager::VideoOrientations MediaManager::getRecordVideoOrientation()
     {
       AutoRecursiveLock lock(mLock);
-      
-      //ZS_LOG_DEBUG(log("get record video orientation"))
       
       return VideoOrientation_LandscapeLeft;
     }
@@ -125,30 +176,12 @@ namespace ortc
     void MediaManager::setVideoOrientation()
     {
       AutoRecursiveLock lock(mLock);
-      
-      //ZS_LOG_DEBUG(log("set video orientation and codec parameters"))
-      /*
-       if (mVideoChannel == OPENPEER_MEDIA_ENGINE_INVALID_CHANNEL) {
-       mError = setVideoCaptureRotation();
-       } else {
-       mError = setVideoCodecParameters();
-       }
-       */
     }
     
     //-----------------------------------------------------------------------
     void MediaManager::setMuteEnabled(bool enabled)
     {
       AutoRecursiveLock lock(mLock);
-      
-      //ZS_LOG_DEBUG(log("set microphone mute enabled - value: ") + (enabled ? "true" : "false"))
-      /*
-       mError = mVoiceVolumeControl->SetInputMute(-1, enabled);
-       if (mError != 0) {
-       ZS_LOG_ERROR(Detail, log("failed to set microphone mute (error: ") + Stringize<INT>(mVoiceBase->LastError()).string() + ")")
-       return;
-       }
-       */
     }
     
     //-----------------------------------------------------------------------
@@ -156,16 +189,8 @@ namespace ortc
     {
       AutoRecursiveLock lock(mLock);
       
-      //ZS_LOG_DEBUG(log("get microphone mute enabled"))
-      
-      bool enabled;
-      /*
-       mError = mVoiceVolumeControl->GetInputMute(-1, enabled);
-       if (mError != 0) {
-       ZS_LOG_ERROR(Detail, log("failed to set microphone mute (error: ") + Stringize<INT>(mVoiceBase->LastError()).string() + ")")
-       return false;
-       }
-       */
+      bool enabled = false;
+
       return enabled;
     }
     
@@ -173,15 +198,6 @@ namespace ortc
     void MediaManager::setLoudspeakerEnabled(bool enabled)
     {
       AutoRecursiveLock lock(mLock);
-      
-      //ZS_LOG_DEBUG(log("set loudspeaker enabled - value: ") + (enabled ? "true" : "false"))
-      /*
-       mError = mVoiceHardware->SetLoudspeakerStatus(enabled);
-       if (mError != 0) {
-       ZS_LOG_ERROR(Detail, log("failed to set loudspeaker (error: ") + Stringize<INT>(mVoiceBase->LastError()).string() + ")")
-       return;
-       }
-       */
     }
     
     //-----------------------------------------------------------------------
@@ -189,16 +205,8 @@ namespace ortc
     {
       AutoRecursiveLock lock(mLock);
       
-      //ZS_LOG_DEBUG(log("get loudspeaker enabled"))
-      
-      bool enabled;
-      /*
-       mError = mVoiceHardware->GetLoudspeakerStatus(enabled);
-       if (mError != 0) {
-       ZS_LOG_ERROR(Detail, log("failed to get loudspeaker (error: ") + Stringize<INT>(mVoiceBase->LastError()).string() + ")")
-       return false;
-       }
-       */
+      bool enabled = false;
+
       return enabled;
     }
     
@@ -207,28 +215,130 @@ namespace ortc
     {
       AutoRecursiveLock lock(mLock);
       
-      //ZS_LOG_DEBUG(log("get output audio route"))
-      /*
-       OutputAudioRoute route;
-       mError = mVoiceHardware->GetOutputAudioRoute(route);
-       if (mError != 0) {
-       ZS_LOG_ERROR(Detail, log("failed to get output audio route (error: ") + Stringize<INT>(mVoiceBase->LastError()).string() + ")")
-       return OutputAudioRoute_BuiltInSpeaker;
-       }
-       
-       switch (route) {
-       case webrtc::kOutputAudioRouteHeadphone:
-       return OutputAudioRoute_Headphone;
-       case webrtc::kOutputAudioRouteBuiltInReceiver:
-       return OutputAudioRoute_BuiltInReceiver;
-       case webrtc::kOutputAudioRouteBuiltInSpeaker:
-       return OutputAudioRoute_BuiltInSpeaker;
-       default:
-       return OutputAudioRoute_BuiltInSpeaker;
-       }
-       */
-      
       return OutputAudioRoute_Headphone;
+    }
+    
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark MediaManager => IWakeDelegate
+    #pragma mark
+    
+    //-------------------------------------------------------------------------
+    void MediaManager::onWake()
+    {
+      ZS_LOG_DEBUG(log("wake"))
+      
+      AutoRecursiveLock lock(getLock());
+      step();
+    }
+
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    #pragma mark
+    #pragma mark MediaManager => (internal)
+    #pragma mark
+    
+    //-------------------------------------------------------------------------
+    Log::Params MediaManager::log(const char *message) const
+    {
+      ElementPtr objectEl = Element::create("ortc::MediaManager");
+      OPIHelper::debugAppend(objectEl, "id", mID);
+      return Log::Params(message, objectEl);
+    }
+    
+    //-------------------------------------------------------------------------
+    Log::Params MediaManager::debug(const char *message) const
+    {
+      return Log::Params(message, toDebug());
+    }
+    
+    //-------------------------------------------------------------------------
+    ElementPtr MediaManager::toDebug() const
+    {
+      ElementPtr resultEl = Element::create("MediaManager");
+      
+      OPIHelper::debugAppend(resultEl, "id", mID);
+      
+      OPIHelper::debugAppend(resultEl, "graceful shutdown", (bool)mGracefulShutdownReference);
+      OPIHelper::debugAppend(resultEl, "graceful shutdown", mShutdown);
+      
+      OPIHelper::debugAppend(resultEl, "error", mLastError);
+      OPIHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
+
+      return resultEl;
+    }
+    
+    //-------------------------------------------------------------------------
+    bool MediaManager::isShuttingDown() const
+    {
+      return (bool)mGracefulShutdownReference;
+    }
+    
+    //-------------------------------------------------------------------------
+    bool MediaManager::isShutdown() const
+    {
+      if (mGracefulShutdownReference) return false;
+      return mShutdown;
+    }
+    
+    //-------------------------------------------------------------------------
+    void MediaManager::step()
+    {
+      ZS_LOG_DEBUG(debug("step"))
+      
+      AutoRecursiveLock lock(getLock());
+      
+      if ((isShuttingDown()) ||
+          (isShutdown())) {
+        ZS_LOG_DEBUG(debug("step forwarding to cancel"))
+        cancel();
+        return;
+      }
+      
+    }
+    
+    //-------------------------------------------------------------------------
+    void MediaManager::cancel()
+    {
+      //.......................................................................
+      // start the shutdown process
+      
+      //.......................................................................
+      // try to gracefully shutdown
+      
+      if (!mGracefulShutdownReference) mGracefulShutdownReference = mThisWeak.lock();
+      
+      if (mGracefulShutdownReference) {
+      }
+      
+      //.......................................................................
+      // final cleanup
+      
+      get(mShutdown) = true;
+      
+      // make sure to cleanup any final reference to self
+      mGracefulShutdownReference.reset();
+    }
+
+    //-----------------------------------------------------------------------
+    void MediaManager::setError(WORD errorCode, const char *inReason)
+    {
+      String reason(inReason);
+
+      if (0 != mLastError) {
+        ZS_LOG_WARNING(Detail, debug("error already set thus ignoring new error") + ZS_PARAM("new error", errorCode) + ZS_PARAM("new reason", reason))
+        return;
+      }
+      
+      get(mLastError) = errorCode;
+      mLastErrorReason = reason;
+      
+      ZS_LOG_WARNING(Detail, debug("error set") + ZS_PARAM("error", mLastError) + ZS_PARAM("reason", mLastErrorReason))
     }
   }
   
@@ -244,5 +354,11 @@ namespace ortc
   IMediaManagerPtr IMediaManager::singleton()
   {
     return internal::MediaManager::singleton();
+  }
+  
+  //-----------------------------------------------------------------------
+  void IMediaManager::setup(IMediaManagerDelegatePtr delegate)
+  {
+    internal::MediaManager::setup(delegate);
   }
 }

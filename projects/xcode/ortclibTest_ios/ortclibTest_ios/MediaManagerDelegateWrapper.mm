@@ -1,13 +1,20 @@
 #include "MediaManagerDelegateWrapper.h"
 
-MediaManagerDelegateWrapperPtr MediaManagerDelegateWrapper::create()
+#import "ViewController.h"
+
+MediaManagerDelegateWrapper::MediaManagerDelegateWrapper(ViewController* viewController) :
+  viewController(viewController)
 {
-  return MediaManagerDelegateWrapperPtr (new MediaManagerDelegateWrapper());
+}
+
+MediaManagerDelegateWrapperPtr MediaManagerDelegateWrapper::create(ViewController* viewController)
+{
+  return MediaManagerDelegateWrapperPtr (new MediaManagerDelegateWrapper(viewController));
 }
 
 void MediaManagerDelegateWrapper::onMediaManagerSuccessCallback(IMediaStreamPtr stream)
 {
-  printf("******************* MEDIA MANAGER SUCCESS CALLBACK *******************\n");
+  [viewController setSendMediaStream:stream];
 }
 
 void MediaManagerDelegateWrapper::onMediaManagerErrorCallback(IMediaManager::UserMediaError error)

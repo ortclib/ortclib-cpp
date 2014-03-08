@@ -30,8 +30,12 @@
  */
 
 #include <ortc/internal/ortc_MediaEngine.h>
+#include <ortc/internal/ortc_ORTC.h>
 
 #include <zsLib/helpers.h>
+#include <zsLib/XML.h>
+
+#include <openpeer/services/IHelper.h>
 
 #include <boost/thread.hpp>
 
@@ -50,14 +54,36 @@
 #define ORTC_MEDIA_ENGINE_INVALID_CHANNEL (-1)
 #define ORTC_MEDIA_ENGINE_MTU (576)
 
-namespace ortc { namespace core { ZS_DECLARE_SUBSYSTEM(ortclib_webrtc) } }
+namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib_webrtc) }
 
 namespace ortc
 {
+  typedef openpeer::services::IHelper OPIHelper;
+  
   namespace internal
   {
     typedef zsLib::ThreadPtr ThreadPtr;
 
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IMediaEngine
+    #pragma mark
+    
+    //-------------------------------------------------------------------------
+    IMediaEnginePtr IMediaEngine::singleton()
+    {
+      return MediaEngine::singleton();
+    }
+    
+    //-----------------------------------------------------------------------
+    void IMediaEngine::setup(IMediaEngineDelegatePtr delegate)
+    {
+      MediaEngine::setup(delegate);
+    }
+    
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
@@ -72,22 +98,11 @@ namespace ortc
                              IMediaEngineDelegatePtr delegate
                              ) :
       MessageQueueAssociator(queue),
-      mError(0),
       mMtu(ORTC_MEDIA_ENGINE_MTU),
       mID(zsLib::createPUID()),
-      mDelegate(IMediaEngineDelegateProxy::createWeak(delegate)),
-      mEcEnabled(false),
-      mAgcEnabled(false),
-      mNsEnabled(false),
       mVoiceRecordFile(""),
       mDefaultVideoOrientation(webrtc::CapturedFrameOrientation_LandscapeLeft),
       mRecordVideoOrientation(webrtc::CapturedFrameOrientation_LandscapeLeft),
-      mVoiceChannel(ORTC_MEDIA_ENGINE_INVALID_CHANNEL),
-      mVoiceTransport(&mRedirectVoiceTransport),
-      mVideoChannel(ORTC_MEDIA_ENGINE_INVALID_CHANNEL),
-      mVideoTransport(&mRedirectVideoTransport),
-      mCaptureId(0),
-      mCaptureIdx(0),
       mVoiceEngine(NULL),
       mVoiceBase(NULL),
       mVoiceCodec(NULL),
@@ -108,24 +123,7 @@ namespace ortc
       mVideoCodec(NULL),
       mVideoFile(NULL),
       mVideoEngineReady(false),
-      mFaceDetection(false),
-      mCaptureRenderView(NULL),
-      mChannelRenderView(NULL),
-      mRedirectVoiceTransport("voice"),
-      mRedirectVideoTransport("video"),
-      mLifetimeWantAudio(false),
-      mLifetimeWantVideoCapture(false),
-      mLifetimeWantVideoChannel(false),
-      mLifetimeWantRecordVideoCapture(false),
-      mLifetimeHasAudio(false),
-      mLifetimeHasVideoCapture(false),
-      mLifetimeHasVideoChannel(false),
-      mLifetimeHasRecordVideoCapture(false),
-      mLifetimeInProgress(false),
-      mLifetimeWantCaptureIdx(0),
-      mLifetimeContinuousVideoCapture(false),
-      mLifetimeVideoRecordFile(""),
-      mLifetimeSaveVideoToLibrary(false)
+      mLifetimeInProgress(false)
     {
 #ifdef TARGET_OS_IPHONE
       int name[] = {CTL_HW, HW_MACHINE};
@@ -138,24 +136,18 @@ namespace ortc
 #endif
     }
     
-    MediaEngine::MediaEngine(Noop) :
+    MediaEngine::MediaEngine(
+                             Noop,
+                             IMessageQueuePtr queue,
+                             internal::IMediaEngineDelegatePtr delegate
+                             ) :
       Noop(true),
-      MessageQueueAssociator(IMessageQueuePtr()),
-      mError(0),
+      MessageQueueAssociator(queue),
       mMtu(ORTC_MEDIA_ENGINE_MTU),
       mID(zsLib::createPUID()),
-      mEcEnabled(false),
-      mAgcEnabled(false),
-      mNsEnabled(false),
       mVoiceRecordFile(""),
       mDefaultVideoOrientation(webrtc::CapturedFrameOrientation_LandscapeLeft),
       mRecordVideoOrientation(webrtc::CapturedFrameOrientation_LandscapeLeft),
-      mVoiceChannel(ORTC_MEDIA_ENGINE_INVALID_CHANNEL),
-      mVoiceTransport(&mRedirectVoiceTransport),
-      mVideoChannel(ORTC_MEDIA_ENGINE_INVALID_CHANNEL),
-      mVideoTransport(&mRedirectVideoTransport),
-      mCaptureId(0),
-      mCaptureIdx(0),
       mVoiceEngine(NULL),
       mVoiceBase(NULL),
       mVoiceCodec(NULL),
@@ -176,24 +168,7 @@ namespace ortc
       mVideoCodec(NULL),
       mVideoFile(NULL),
       mVideoEngineReady(false),
-      mFaceDetection(false),
-      mCaptureRenderView(NULL),
-      mChannelRenderView(NULL),
-      mRedirectVoiceTransport("voice"),
-      mRedirectVideoTransport("video"),
-      mLifetimeWantAudio(false),
-      mLifetimeWantVideoCapture(false),
-      mLifetimeWantVideoChannel(false),
-      mLifetimeWantRecordVideoCapture(false),
-      mLifetimeHasAudio(false),
-      mLifetimeHasVideoCapture(false),
-      mLifetimeHasVideoChannel(false),
-      mLifetimeHasRecordVideoCapture(false),
-      mLifetimeInProgress(false),
-      mLifetimeWantCaptureIdx(0),
-      mLifetimeContinuousVideoCapture(false),
-      mLifetimeVideoRecordFile(""),
-      mLifetimeSaveVideoToLibrary(false)
+      mLifetimeInProgress(false)
     {
 #ifdef TARGET_OS_IPHONE
       int name[] = {CTL_HW, HW_MACHINE};
@@ -219,124 +194,124 @@ namespace ortc
     {
       AutoRecursiveLock lock(mLock);
       
-      //ZS_LOG_DEBUG(log("init media engine"))
+      ZS_LOG_BASIC(log("init media engine"))
       
       mVoiceEngine = webrtc::VoiceEngine::Create();
       if (mVoiceEngine == NULL) {
-        //ZS_LOG_ERROR(Detail, log("failed to create voice engine"))
+        ZS_LOG_ERROR(Detail, log("failed to create voice engine"))
         return;
       }
       mVoiceBase = webrtc::VoEBase::GetInterface(mVoiceEngine);
       if (mVoiceBase == NULL) {
-        //ZS_LOG_ERROR(Detail, log("failed to get interface for voice base"))
+        ZS_LOG_ERROR(Detail, log("failed to get interface for voice base"))
         return;
       }
       mVoiceCodec = webrtc::VoECodec::GetInterface(mVoiceEngine);
       if (mVoiceCodec == NULL) {
-        //ZS_LOG_ERROR(Detail, log("failed to get interface for voice codec"))
+        ZS_LOG_ERROR(Detail, log("failed to get interface for voice codec"))
         return;
       }
       mVoiceNetwork = webrtc::VoENetwork::GetInterface(mVoiceEngine);
       if (mVoiceNetwork == NULL) {
-        //ZS_LOG_ERROR(Detail, log("failed to get interface for voice network"))
+        ZS_LOG_ERROR(Detail, log("failed to get interface for voice network"))
         return;
       }
       mVoiceRtpRtcp = webrtc::VoERTP_RTCP::GetInterface(mVoiceEngine);
       if (mVoiceRtpRtcp == NULL) {
-        //ZS_LOG_ERROR(Detail, log("failed to get interface for voice RTP/RTCP"))
+        ZS_LOG_ERROR(Detail, log("failed to get interface for voice RTP/RTCP"))
         return;
       }
       mVoiceAudioProcessing = webrtc::VoEAudioProcessing::GetInterface(mVoiceEngine);
       if (mVoiceAudioProcessing == NULL) {
-        //ZS_LOG_ERROR(Detail, log("failed to get interface for audio processing"))
+        ZS_LOG_ERROR(Detail, log("failed to get interface for audio processing"))
         return;
       }
       mVoiceVolumeControl = webrtc::VoEVolumeControl::GetInterface(mVoiceEngine);
       if (mVoiceVolumeControl == NULL) {
-        //ZS_LOG_ERROR(Detail, log("failed to get interface for volume control"))
+        ZS_LOG_ERROR(Detail, log("failed to get interface for volume control"))
         return;
       }
       mVoiceHardware = webrtc::VoEHardware::GetInterface(mVoiceEngine);
       if (mVoiceHardware == NULL) {
-        //ZS_LOG_ERROR(Detail, log("failed to get interface for audio hardware"))
+        ZS_LOG_ERROR(Detail, log("failed to get interface for audio hardware"))
         return;
       }
       mVoiceFile = webrtc::VoEFile::GetInterface(mVoiceEngine);
       if (mVoiceFile == NULL) {
-        //ZS_LOG_ERROR(Detail, log("failed to get interface for voice file"))
+        ZS_LOG_ERROR(Detail, log("failed to get interface for voice file"))
         return;
       }
       
-      mError = mVoiceBase->Init();
-      if (mError < 0) {
-        //ZS_LOG_ERROR(Detail, log("failed to initialize voice base (error: ") + Stringize<INT>(mVideoBase->LastError()).string() + ")")
+      get(mLastError) = mVoiceBase->Init();
+      if (mLastError < 0) {
+        ZS_LOG_ERROR(Detail, log("failed to initialize voice base") + ZS_PARAM("error", mVoiceBase->LastError()))
         return;
       } else if (mVoiceBase->LastError() > 0) {
-        //ZS_LOG_WARNING(Detail, log("an error has occured during voice base init (error: ") + Stringize<INT>(mVoiceBase->LastError()).string() + ")")
+        ZS_LOG_WARNING(Detail, log("an error has occured during voice base init") + ZS_PARAM("error", mVoiceBase->LastError()))
       }
-      mError = mVoiceBase->RegisterVoiceEngineObserver(*this);
-      if (mError < 0) {
-        //ZS_LOG_ERROR(Detail, log("failed to register voice engine observer (error: ") + Stringize<INT>(mVoiceBase->LastError()).string() + ")")
+      get(mLastError) = mVoiceBase->RegisterVoiceEngineObserver(*this);
+      if (mLastError < 0) {
+        ZS_LOG_ERROR(Detail, log("failed to register voice engine observer") + ZS_PARAM("error", mVoiceBase->LastError()))
         return;
       }
       
       mVideoEngine = webrtc::VideoEngine::Create();
       if (mVideoEngine == NULL) {
-        //ZS_LOG_ERROR(Detail, log("failed to create video engine"))
+        ZS_LOG_ERROR(Detail, log("failed to create video engine"))
         return;
       }
       
       mVideoBase = webrtc::ViEBase::GetInterface(mVideoEngine);
       if (mVideoBase == NULL) {
-        //ZS_LOG_ERROR(Detail, log("failed to get interface for video base"))
+        ZS_LOG_ERROR(Detail, log("failed to get interface for video base"))
         return;
       }
       mVideoCapture = webrtc::ViECapture::GetInterface(mVideoEngine);
       if (mVideoCapture == NULL) {
-        //ZS_LOG_ERROR(Detail, log("failed get interface for video capture"))
+        ZS_LOG_ERROR(Detail, log("failed get interface for video capture"))
         return;
       }
       mVideoRtpRtcp = webrtc::ViERTP_RTCP::GetInterface(mVideoEngine);
       if (mVideoRtpRtcp == NULL) {
-        //ZS_LOG_ERROR(Detail, log("failed to get interface for video RTP/RTCP"))
+        ZS_LOG_ERROR(Detail, log("failed to get interface for video RTP/RTCP"))
         return;
       }
       mVideoNetwork = webrtc::ViENetwork::GetInterface(mVideoEngine);
       if (mVideoNetwork == NULL) {
-        //ZS_LOG_ERROR(Detail, log("failed to get interface for video network"))
+        ZS_LOG_ERROR(Detail, log("failed to get interface for video network"))
         return;
       }
       mVideoRender = webrtc::ViERender::GetInterface(mVideoEngine);
       if (mVideoRender == NULL) {
-        //ZS_LOG_ERROR(Detail, log("failed to get interface for video render"))
+        ZS_LOG_ERROR(Detail, log("failed to get interface for video render"))
         return;
       }
       mVideoCodec = webrtc::ViECodec::GetInterface(mVideoEngine);
       if (mVideoCodec == NULL) {
-        //ZS_LOG_ERROR(Detail, log("failed to get interface for video codec"))
+        ZS_LOG_ERROR(Detail, log("failed to get interface for video codec"))
         return;
       }
       mVideoFile = webrtc::ViEFile::GetInterface(mVideoEngine);
       if (mVideoFile == NULL) {
-        //ZS_LOG_ERROR(Detail, log("failed to get interface for video file"))
+        ZS_LOG_ERROR(Detail, log("failed to get interface for video file"))
         return;
       }
       
-      mError = mVideoBase->Init();
-      if (mError < 0) {
-        //ZS_LOG_ERROR(Detail, log("failed to initialize video base (error: ") + Stringize<INT>(mVideoBase->LastError()).string() + ")")
+      get(mLastError) = mVideoBase->Init();
+      if (mLastError < 0) {
+        ZS_LOG_ERROR(Detail, log("failed to initialize video base") + ZS_PARAM("error", mVideoBase->LastError()))
         return;
       } else if (mVideoBase->LastError() > 0) {
-        //ZS_LOG_WARNING(Detail, log("an error has occured during video base init (error: ") + Stringize<INT>(mVideoBase->LastError()).string() + ")")
+        ZS_LOG_WARNING(Detail, log("an error has occured during video base init") + ZS_PARAM("error", mVideoBase->LastError()))
       }
       
-      mError = mVideoBase->SetVoiceEngine(mVoiceEngine);
-      if (mError < 0) {
-        //ZS_LOG_ERROR(Detail, log("failed to set voice engine for video base (error: ") + Stringize<INT>(mVideoBase->LastError()).string() + ")")
+      get(mLastError) = mVideoBase->SetVoiceEngine(mVoiceEngine);
+      if (mLastError < 0) {
+        ZS_LOG_ERROR(Detail, log("failed to set voice engine for video base") + ZS_PARAM("error", mVideoBase->LastError()))
         return;
       }
       
-      Log::Level logLevel = Log::None;// = ZS_GET_LOG_LEVEL();
+      Log::Level logLevel = ZS_GET_LOG_LEVEL();
       
       unsigned int traceFilter;
       switch (logLevel) {
@@ -361,43 +336,49 @@ namespace ortc
       }
       
       if (logLevel != Log::None) {
-        mError = mVoiceEngine->SetTraceFilter(traceFilter);
-        if (mError < 0) {
-          //ZS_LOG_ERROR(Detail, log("failed to set trace filter for voice (error: ") + Stringize<INT>(mVoiceBase->LastError()).string() + ")")
+        get(mLastError) = mVoiceEngine->SetTraceFilter(traceFilter);
+        if (mLastError < 0) {
+          ZS_LOG_ERROR(Detail, log("failed to set trace filter for voice") + ZS_PARAM("error", mVoiceBase->LastError()))
           return;
         }
-        mError = mVoiceEngine->SetTraceCallback(this);
-        if (mError < 0) {
-          //ZS_LOG_ERROR(Detail, log("failed to set trace callback for voice (error: ") + Stringize<INT>(mVoiceBase->LastError()).string() + ")")
+        get(mLastError) = mVoiceEngine->SetTraceCallback(this);
+        if (mLastError < 0) {
+          ZS_LOG_ERROR(Detail, log("failed to set trace callback for voice") + ZS_PARAM("error", mVoiceBase->LastError()))
           return;
         }
-        mError = mVideoEngine->SetTraceFilter(traceFilter);
-        if (mError < 0) {
-          //ZS_LOG_ERROR(Detail, log("failed to set trace filter for video (error: ") + Stringize<INT>(mVideoBase->LastError()).string() + ")")
+        get(mLastError) = mVideoEngine->SetTraceFilter(traceFilter);
+        if (mLastError < 0) {
+          ZS_LOG_ERROR(Detail, log("failed to set trace filter for video") + ZS_PARAM("error", mVideoBase->LastError()))
           return;
         }
-        mError = mVideoEngine->SetTraceCallback(this);
-        if (mError < 0) {
-          //ZS_LOG_ERROR(Detail, log("failed to set trace callback for video (error: ") + Stringize<INT>(mVideoBase->LastError()).string() + ")")
+        get(mLastError) = mVideoEngine->SetTraceCallback(this);
+        if (mLastError < 0) {
+          ZS_LOG_ERROR(Detail, log("failed to set trace callback for video") + ZS_PARAM("error", mVideoBase->LastError()))
           return;
         }
       }
-    }
-    
-    //-----------------------------------------------------------------------
-    MediaEnginePtr MediaEngine::create(IMediaEngineDelegatePtr delegate)
-    {
-      MediaEnginePtr pThis;//(new MediaEngine(IStackForInternal::queueCore(), delegate));
-      pThis->mThisWeak = pThis;
-      pThis->init();
-      return pThis;
     }
 
     //-----------------------------------------------------------------------
     MediaEnginePtr MediaEngine::singleton(IMediaEngineDelegatePtr delegate)
     {
-      static MediaEnginePtr engine = IMediaEngineFactory::singleton().createMediaEngine(delegate);
+      static MediaEnginePtr engine = IMediaEngineFactory::singleton().create(delegate);
       return engine;
+    }
+    
+    //-----------------------------------------------------------------------
+    void MediaEngine::setup(IMediaEngineDelegatePtr delegate)
+    {
+      singleton(delegate);
+    }
+    
+    //-----------------------------------------------------------------------
+    MediaEnginePtr MediaEngine::create(IMediaEngineDelegatePtr delegate)
+    {
+      MediaEnginePtr pThis = MediaEnginePtr(new MediaEngine(IORTCForInternal::queueBlockingMediaStartStopThread(), delegate));
+      pThis->mThisWeak = pThis;
+      pThis->init();
+      return pThis;
     }
 
     //-----------------------------------------------------------------------
@@ -406,76 +387,76 @@ namespace ortc
       // scope: delete voice engine
       {
         if (mVoiceBase) {
-          mError = mVoiceBase->DeRegisterVoiceEngineObserver();
-          if (mError < 0) {
-            //ZS_LOG_ERROR(Detail, log("failed to deregister voice engine observer (error: ") + Stringize<INT>(mVoiceBase->LastError()).string() + ")")
+          get(mLastError) = mVoiceBase->DeRegisterVoiceEngineObserver();
+          if (mLastError < 0) {
+            ZS_LOG_ERROR(Detail, log("failed to deregister voice engine observer") + ZS_PARAM("error", mVoiceBase->LastError()))
             return;
           }
-          mError = mVoiceBase->Release();
-          if (mError < 0) {
-            //ZS_LOG_ERROR(Detail, log("failed to release voice base (error: ") + Stringize<INT>(mVoiceBase->LastError()).string() + ")")
+          get(mLastError) = mVoiceBase->Release();
+          if (mLastError < 0) {
+            ZS_LOG_ERROR(Detail, log("failed to release voice base") + ZS_PARAM("error", mVoiceBase->LastError()))
             return;
           }
         }
         
         if (mVoiceCodec) {
-          mError = mVoiceCodec->Release();
-          if (mError < 0) {
-            //ZS_LOG_ERROR(Detail, log("failed to release voice codec (error: ") + Stringize<INT>(mVoiceBase->LastError()).string() + ")")
+          get(mLastError) = mVoiceCodec->Release();
+          if (mLastError < 0) {
+            ZS_LOG_ERROR(Detail, log("failed to release voice codec") + ZS_PARAM("error", mVoiceBase->LastError()))
             return;
           }
         }
         
         if (mVoiceNetwork) {
-          mError = mVoiceNetwork->Release();
-          if (mError < 0) {
-            //ZS_LOG_ERROR(Detail, log("failed to release voice network (error: ") + Stringize<INT>(mVoiceBase->LastError()).string() + ")")
+          get(mLastError) = mVoiceNetwork->Release();
+          if (mLastError < 0) {
+            ZS_LOG_ERROR(Detail, log("failed to release voice network") + ZS_PARAM("error", mVoiceBase->LastError()))
             return;
           }
         }
         
         if (mVoiceRtpRtcp) {
-          mError = mVoiceRtpRtcp->Release();
-          if (mError < 0) {
-            //ZS_LOG_ERROR(Detail, log("failed to release voice RTP/RTCP (error: ") + Stringize<INT>(mVoiceBase->LastError()).string() + ")")
+          get(mLastError) = mVoiceRtpRtcp->Release();
+          if (mLastError < 0) {
+            ZS_LOG_ERROR(Detail, log("failed to release voice RTP/RTCP") + ZS_PARAM("error", mVoiceBase->LastError()))
             return;
           }
         }
         
         if (mVoiceAudioProcessing) {
-          mError = mVoiceAudioProcessing->Release();
-          if (mError < 0) {
-            //ZS_LOG_ERROR(Detail, log("failed to release audio processing (error: ") + Stringize<INT>(mVoiceBase->LastError()).string() + ")")
+          get(mLastError) = mVoiceAudioProcessing->Release();
+          if (mLastError < 0) {
+            ZS_LOG_ERROR(Detail, log("failed to release audio processing") + ZS_PARAM("error", mVoiceBase->LastError()))
             return;
           }
         }
         
         if (mVoiceVolumeControl) {
-          mError = mVoiceVolumeControl->Release();
-          if (mError < 0) {
-            //ZS_LOG_ERROR(Detail, log("failed to release volume control (error: ") + Stringize<INT>(mVoiceBase->LastError()).string() + ")")
+          get(mLastError) = mVoiceVolumeControl->Release();
+          if (mLastError < 0) {
+            ZS_LOG_ERROR(Detail, log("failed to release volume control") + ZS_PARAM("error", mVoiceBase->LastError()))
             return;
           }
         }
         
         if (mVoiceHardware) {
-          mError = mVoiceHardware->Release();
-          if (mError < 0) {
-            //ZS_LOG_ERROR(Detail, log("failed to release audio hardware (error: ") + Stringize<INT>(mVoiceBase->LastError()).string() + ")")
+          get(mLastError) = mVoiceHardware->Release();
+          if (mLastError < 0) {
+            ZS_LOG_ERROR(Detail, log("failed to release audio hardware") + ZS_PARAM("error", mVoiceBase->LastError()))
             return;
           }
         }
         
         if (mVoiceFile) {
-          mError = mVoiceFile->Release();
-          if (mError < 0) {
-            //ZS_LOG_ERROR(Detail, log("failed to release voice file (error: ") + Stringize<INT>(mVoiceBase->LastError()).string() + ")")
+          get(mLastError) = mVoiceFile->Release();
+          if (mLastError < 0) {
+            ZS_LOG_ERROR(Detail, log("failed to release voice file") + ZS_PARAM("error", mVoiceBase->LastError()))
             return;
           }
         }
         
         if (!VoiceEngine::Delete(mVoiceEngine)) {
-          //ZS_LOG_ERROR(Detail, log("failed to delete voice engine"))
+          ZS_LOG_ERROR(Detail, log("failed to delete voice engine"))
           return;
         }
       }
@@ -483,63 +464,63 @@ namespace ortc
       // scope; delete video engine
       {
         if (mVideoBase) {
-          mError = mVideoBase->Release();
-          if (mError < 0) {
-            //ZS_LOG_ERROR(Detail, log("failed to release video base (error: ") + Stringize<INT>(mVideoBase->LastError()).string() + ")")
+          get(mLastError) = mVideoBase->Release();
+          if (mLastError < 0) {
+            ZS_LOG_ERROR(Detail, log("failed to release video base") + ZS_PARAM("error", mVideoBase->LastError()))
             return;
           }
         }
         
         if (mVideoNetwork) {
-          mError = mVideoNetwork->Release();
-          if (mError < 0) {
-            //ZS_LOG_ERROR(Detail, log("failed to release video network (error: ") + Stringize<INT>(mVideoBase->LastError()).string() + ")")
+          get(mLastError) = mVideoNetwork->Release();
+          if (mLastError < 0) {
+            ZS_LOG_ERROR(Detail, log("failed to release video network") + ZS_PARAM("error", mVideoBase->LastError()))
             return;
           }
         }
         
         if (mVideoRender) {
-          mError = mVideoRender->Release();
-          if (mError < 0) {
-            //ZS_LOG_ERROR(Detail, log("failed to release video render (error: ") + Stringize<INT>(mVideoBase->LastError()).string() + ")")
+          get(mLastError) = mVideoRender->Release();
+          if (mLastError < 0) {
+            ZS_LOG_ERROR(Detail, log("failed to release video render") + ZS_PARAM("error", mVideoBase->LastError()))
             return;
           }
         }
         
         if (mVideoCapture) {
-          mError = mVideoCapture->Release();
-          if (mError < 0) {
-            //ZS_LOG_ERROR(Detail, log("failed to release video capture (error: ") + Stringize<INT>(mVideoBase->LastError()).string() + ")")
+          get(mLastError) = mVideoCapture->Release();
+          if (mLastError < 0) {
+            ZS_LOG_ERROR(Detail, log("failed to release video capture") + ZS_PARAM("error", mVideoBase->LastError()))
             return;
           }
         }
         
         if (mVideoRtpRtcp) {
-          mError = mVideoRtpRtcp->Release();
-          if (mError < 0) {
-            //ZS_LOG_ERROR(Detail, log("failed to release video RTP/RTCP (error: ") + Stringize<INT>(mVideoBase->LastError()).string() + ")")
+          get(mLastError) = mVideoRtpRtcp->Release();
+          if (mLastError < 0) {
+            ZS_LOG_ERROR(Detail, log("failed to release video RTP/RTCP") + ZS_PARAM("error", mVideoBase->LastError()))
             return;
           }
         }
         
         if (mVideoCodec) {
-          mError = mVideoCodec->Release();
-          if (mError < 0) {
-            //ZS_LOG_ERROR(Detail, log("failed to release video codec (error: ") + Stringize<INT>(mVideoBase->LastError()).string() + ")")
+          get(mLastError) = mVideoCodec->Release();
+          if (mLastError < 0) {
+            ZS_LOG_ERROR(Detail, log("failed to release video codec") + ZS_PARAM("error", mVideoBase->LastError()))
             return;
           }
         }
         
         if (mVideoFile) {
-          mError = mVideoFile->Release();
-          if (mError < 0) {
-            //ZS_LOG_ERROR(Detail, log("failed to release video file (error: ") + Stringize<INT>(mVideoBase->LastError()).string() + ")")
+          get(mLastError) = mVideoFile->Release();
+          if (mLastError < 0) {
+            ZS_LOG_ERROR(Detail, log("failed to release video file") + ZS_PARAM("error", mVideoBase->LastError()))
             return;
           }
         }
         
         if (!VideoEngine::Delete(mVideoEngine)) {
-          //ZS_LOG_ERROR(Detail, log("failed to delete video engine"))
+          ZS_LOG_ERROR(Detail, log("failed to delete video engine"))
           return;
         }
       }
@@ -552,25 +533,13 @@ namespace ortc
     #pragma mark
     #pragma mark MediaEngine => IMediaEngine
     #pragma mark
-    
-    //-------------------------------------------------------------------------
-    IMediaEnginePtr IMediaEngine::singleton()
-    {
-      return internal::MediaEngine::singleton();
-    }
-    
-    //-----------------------------------------------------------------------
-    void IMediaEngine::setup(IMediaEngineDelegatePtr delegate)
-    {
-      MediaEngine::setup(delegate);
-    }
 
     //-------------------------------------------------------------------------
     void MediaEngine::setDefaultVideoOrientation(CapturedFrameOrientation orientation)
     {
       AutoRecursiveLock lock(mLock);
       
-      //ZS_LOG_DEBUG(log("set default video orientation - ") + Stringize<INT>(orientation).string())
+      ZS_LOG_DEBUG(log("set default video orientation") + ZS_PARAM("orientation", orientation))
       
       mDefaultVideoOrientation = orientation;
     }
@@ -580,7 +549,7 @@ namespace ortc
     {
       AutoRecursiveLock lock(mLock);
     
-      //ZS_LOG_DEBUG(log("get default video orientation"))
+      ZS_LOG_DEBUG(log("get default video orientation"))
       
       return mDefaultVideoOrientation;
     }
@@ -590,7 +559,7 @@ namespace ortc
     {
       AutoRecursiveLock lock(mLock);
       
-      //ZS_LOG_DEBUG(log("set record video orientation - ") + Stringize<INT>(orientation).string())
+      ZS_LOG_DEBUG(log("set record video orientation") + ZS_PARAM("orientation", orientation))
       
       mRecordVideoOrientation = orientation;
     }
@@ -600,7 +569,7 @@ namespace ortc
     {
       AutoRecursiveLock lock(mLock);
 
-      //ZS_LOG_DEBUG(log("get record video orientation"))
+      ZS_LOG_DEBUG(log("get record video orientation"))
       
       return mRecordVideoOrientation;
     }
@@ -610,13 +579,10 @@ namespace ortc
     {
       AutoRecursiveLock lock(mLock);
       
-      //ZS_LOG_DEBUG(log("set video orientation and codec parameters"))
+      ZS_LOG_DEBUG(log("set video orientation and codec parameters"))
 
-      if (mVideoChannel == ORTC_MEDIA_ENGINE_INVALID_CHANNEL) {
-        mError = setVideoCaptureRotation();
-      } else {
-        mError = setVideoCodecParameters();
-      }
+      //get(mLastError) = setVideoCaptureRotation(captureId);
+      //get(mLastError) = setVideoCodecParameters(channelId, captureId);
     }
     
     //-----------------------------------------------------------------------
@@ -624,9 +590,23 @@ namespace ortc
     {
       AutoRecursiveLock lock(mLock);
       
-      ////ZS_LOG_DEBUG(log("set capture render view"))
+      ZS_LOG_DEBUG(log("set render view"))
       
-      mCaptureRenderView = renderView;
+      VideoSourceInfoMap::iterator sourceInfoIter = mVideoSourceInfos.find(sourceId);
+      
+      if (sourceInfoIter != mVideoSourceInfos.end()) {
+        sourceInfoIter->second.mRenderView = renderView;
+        return;
+      }
+
+      VideoChannelInfoMap::iterator channelInfoIter = mVideoChannelInfos.find(sourceId);
+      
+      if (channelInfoIter != mVideoChannelInfos.end()) {
+        channelInfoIter->second.mRenderView = renderView;
+        return;
+      }
+      
+      ZS_LOG_ERROR(Detail, log("video source not found") + ZS_PARAM("sourceId", sourceId))
     }
     
     //-----------------------------------------------------------------------
@@ -634,26 +614,32 @@ namespace ortc
     {
       AutoRecursiveLock lock(mLock);
       
-      ////ZS_LOG_DEBUG(log("set EC enabled - value: ") + (enabled ? "true" : "false"))
+      ZS_LOG_DEBUG(log("set EC enabled") + ZS_PARAM("value", (enabled ? "true" : "false")))
+      
+      VoiceChannelInfoMap::iterator iter = mVoiceChannelInfos.find(channelId);
+      if (iter == mVoiceChannelInfos.end()) {
+        ZS_LOG_ERROR(Detail, log("voice channel not found") + ZS_PARAM("channelId", channelId))
+        return;
+      }
       
       webrtc::EcModes ecMode = getEcMode();
       if (ecMode == webrtc::kEcUnchanged) {
         return;
       }
-      mError = mVoiceAudioProcessing->SetEcStatus(enabled, ecMode);
-      if (mError != 0) {
-        ////ZS_LOG_ERROR(Detail, log("failed to set acoustic echo canceller status (error: ") + Stringize<INT>(mVoiceBase->LastError()).string() + ")")
+      get(mLastError) = mVoiceAudioProcessing->SetEcStatus(enabled, ecMode);
+      if (mLastError != 0) {
+        ZS_LOG_ERROR(Detail, log("failed to set acoustic echo canceller status") + ZS_PARAM("error", mVoiceBase->LastError()))
         return;
       }
       if (ecMode == webrtc::kEcAecm && enabled) {
-        mError = mVoiceAudioProcessing->SetAecmMode(webrtc::kAecmSpeakerphone);
-        if (mError != 0) {
-          ////ZS_LOG_ERROR(Detail, log("failed to set acoustic echo canceller mobile mode (error: ") + Stringize<INT>(mVoiceBase->LastError()).string() + ")")
+        get(mLastError) = mVoiceAudioProcessing->SetAecmMode(webrtc::kAecmSpeakerphone);
+        if (mLastError != 0) {
+          ZS_LOG_ERROR(Detail, log("failed to set acoustic echo canceller mobile mode") + ZS_PARAM("error", mVoiceBase->LastError()))
           return;
         }
       }
       
-      mEcEnabled = enabled;
+      iter->second.mEcEnabled = enabled;
     }
     
     //-----------------------------------------------------------------------
@@ -661,14 +647,21 @@ namespace ortc
     {
       AutoRecursiveLock lock(mLock);
       
-      //ZS_LOG_DEBUG(log("set AGC enabled - value: ") + (enabled ? "true" : "false"))
+      ZS_LOG_DEBUG(log("set AGC enabled") + ZS_PARAM("value", enabled ? "true" : "false"))
       
-      mError = mVoiceAudioProcessing->SetAgcStatus(enabled, webrtc::kAgcAdaptiveDigital);
-      if (mError != 0) {
-        //ZS_LOG_ERROR(Detail, log("failed to set automatic gain control status (error: ") + Stringize<INT>(mVoiceBase->LastError()).string() + ")")
+      VoiceChannelInfoMap::iterator iter = mVoiceChannelInfos.find(channelId);
+      if (iter == mVoiceChannelInfos.end()) {
+        ZS_LOG_ERROR(Detail, log("voice channel not found") + ZS_PARAM("channelId", channelId))
         return;
       }
-      mAgcEnabled = enabled;
+      
+      get(mLastError) = mVoiceAudioProcessing->SetAgcStatus(enabled, webrtc::kAgcAdaptiveDigital);
+      if (mLastError != 0) {
+        ZS_LOG_ERROR(Detail, log("failed to set automatic gain control status") + ZS_PARAM("error", mVoiceBase->LastError()))
+        return;
+      }
+      
+      iter->second.mAgcEnabled = enabled;
     }
     
     //-----------------------------------------------------------------------
@@ -676,14 +669,21 @@ namespace ortc
     {
       AutoRecursiveLock lock(mLock);
       
-      //ZS_LOG_DEBUG(log("set NS enabled - value: ") + (enabled ? "true" : "false"))
+      ZS_LOG_DEBUG(log("set NS enabled") + ZS_PARAM("value", enabled ? "true" : "false"))
       
-      mError = mVoiceAudioProcessing->SetNsStatus(enabled, webrtc::kNsLowSuppression);
-      if (mError != 0) {
-        //ZS_LOG_ERROR(Detail, log("failed to set noise suppression status (error: ") + Stringize<INT>(mVoiceBase->LastError()).string() + ")")
+      VoiceChannelInfoMap::iterator iter = mVoiceChannelInfos.find(channelId);
+      if (iter == mVoiceChannelInfos.end()) {
+        ZS_LOG_ERROR(Detail, log("voice channel not found") + ZS_PARAM("channelId", channelId))
         return;
       }
-      mNsEnabled = enabled;
+
+      get(mLastError) = mVoiceAudioProcessing->SetNsStatus(enabled, webrtc::kNsLowSuppression);
+      if (mLastError != 0) {
+        ZS_LOG_ERROR(Detail, log("failed to set noise suppression status") + ZS_PARAM("error", mVoiceBase->LastError()))
+        return;
+      }
+      
+      iter->second.mNsEnabled = enabled;
     }
     
     //-------------------------------------------------------------------------
@@ -691,7 +691,7 @@ namespace ortc
     {
       AutoRecursiveLock lock(mLock);
       
-      //ZS_LOG_DEBUG(log("set voice record file - value: ") + fileName)
+      ZS_LOG_DEBUG(log("set voice record file") + ZS_PARAM("value", fileName))
       
       mVoiceRecordFile = fileName;
     }
@@ -701,7 +701,7 @@ namespace ortc
     {
       AutoRecursiveLock lock(mLock);
       
-      //ZS_LOG_DEBUG(log("get voice record file - value: ") + mVoiceRecordFile)
+      ZS_LOG_DEBUG(log("get voice record file") + ZS_PARAM("value", mVoiceRecordFile))
       
       return mVoiceRecordFile;
     }
@@ -711,11 +711,11 @@ namespace ortc
     {
       AutoRecursiveLock lock(mLock);
       
-      //ZS_LOG_DEBUG(log("set microphone mute enabled - value: ") + (enabled ? "true" : "false"))
+      ZS_LOG_DEBUG(log("set microphone mute enabled") + ZS_PARAM("value", enabled ? "true" : "false"))
       
-      mError = mVoiceVolumeControl->SetInputMute(-1, enabled);
-      if (mError != 0) {
-        //ZS_LOG_ERROR(Detail, log("failed to set microphone mute (error: ") + Stringize<INT>(mVoiceBase->LastError()).string() + ")")
+      get(mLastError) = mVoiceVolumeControl->SetInputMute(-1, enabled);
+      if (mLastError != 0) {
+        ZS_LOG_ERROR(Detail, log("failed to set microphone mute") + ZS_PARAM("error", mVoiceBase->LastError()))
         return;
       }
     }
@@ -725,12 +725,12 @@ namespace ortc
     {
       AutoRecursiveLock lock(mLock);
       
-      //ZS_LOG_DEBUG(log("get microphone mute enabled"))
+      ZS_LOG_DEBUG(log("get microphone mute enabled"))
       
       bool enabled;
-      mError = mVoiceVolumeControl->GetInputMute(-1, enabled);
-      if (mError != 0) {
-        //ZS_LOG_ERROR(Detail, log("failed to set microphone mute (error: ") + Stringize<INT>(mVoiceBase->LastError()).string() + ")")
+      get(mLastError) = mVoiceVolumeControl->GetInputMute(-1, enabled);
+      if (mLastError != 0) {
+        ZS_LOG_ERROR(Detail, log("failed to set microphone mute") + ZS_PARAM("error", mVoiceBase->LastError()))
         return false;
       }
       
@@ -742,11 +742,11 @@ namespace ortc
     {
       AutoRecursiveLock lock(mLock);
       
-      //ZS_LOG_DEBUG(log("set loudspeaker enabled - value: ") + (enabled ? "true" : "false"))
+      ZS_LOG_DEBUG(log("set loudspeaker enabled") + ZS_PARAM("value", enabled ? "true" : "false"))
       
-      mError = mVoiceHardware->SetLoudspeakerStatus(enabled);
-      if (mError != 0) {
-        //ZS_LOG_ERROR(Detail, log("failed to set loudspeaker (error: ") + Stringize<INT>(mVoiceBase->LastError()).string() + ")")
+      get(mLastError) = mVoiceHardware->SetLoudspeakerStatus(enabled);
+      if (mLastError != 0) {
+        ZS_LOG_ERROR(Detail, log("failed to set loudspeaker") + ZS_PARAM("error", mVoiceBase->LastError()))
         return;
       }
     }
@@ -756,12 +756,12 @@ namespace ortc
     {
       AutoRecursiveLock lock(mLock);
       
-      //ZS_LOG_DEBUG(log("get loudspeaker enabled"))
+      ZS_LOG_DEBUG(log("get loudspeaker enabled"))
       
       bool enabled;
-      mError = mVoiceHardware->GetLoudspeakerStatus(enabled);
-      if (mError != 0) {
-        //ZS_LOG_ERROR(Detail, log("failed to get loudspeaker (error: ") + Stringize<INT>(mVoiceBase->LastError()).string() + ")")
+      get(mLastError) = mVoiceHardware->GetLoudspeakerStatus(enabled);
+      if (mLastError != 0) {
+        ZS_LOG_ERROR(Detail, log("failed to get loudspeaker") + ZS_PARAM("error", mVoiceBase->LastError()))
         return false;
       }
       
@@ -773,12 +773,12 @@ namespace ortc
     {
       AutoRecursiveLock lock(mLock);
       
-      //ZS_LOG_DEBUG(log("get output audio route"))
+      ZS_LOG_DEBUG(log("get output audio route"))
       
       OutputAudioRoute route;
-      mError = mVoiceHardware->GetOutputAudioRoute(route);
-      if (mError != 0) {
-        //ZS_LOG_ERROR(Detail, log("failed to get output audio route (error: ") + Stringize<INT>(mVoiceBase->LastError()).string() + ")")
+      get(mLastError) = mVoiceHardware->GetOutputAudioRoute(route);
+      if (mLastError != 0) {
+        ZS_LOG_ERROR(Detail, log("failed to get output audio route") + ZS_PARAM("error", mVoiceBase->LastError()))
         return webrtc::kOutputAudioRouteBuiltInSpeaker;
       }
       
@@ -786,23 +786,35 @@ namespace ortc
     }
     
     //-----------------------------------------------------------------------
-    void MediaEngine::setContinuousVideoCapture(bool continuousVideoCapture)
+    void MediaEngine::setContinuousVideoCapture(int captureId, bool continuousVideoCapture)
     {
       AutoRecursiveLock lock(mLifetimeLock);
       
-      //ZS_LOG_DEBUG(log("set continuous video capture - value: ") + (continuousVideoCapture ? "true" : "false"))
+      ZS_LOG_DEBUG(log("set continuous video capture") + ZS_PARAM("value", continuousVideoCapture ? "true" : "false"))
       
-      mLifetimeContinuousVideoCapture = continuousVideoCapture;
+      VideoSourceLifetimeStateMap::iterator iter = mVideoSourceLifetimeStates.find(captureId);
+      if (iter == mVideoSourceLifetimeStates.end()) {
+        ZS_LOG_ERROR(Detail, log("video source not found") + ZS_PARAM("captureId", captureId))
+        return;
+      }
+
+      iter->second.mLifetimeContinuousVideoCapture = continuousVideoCapture;
     }
     
     //-----------------------------------------------------------------------
-    bool MediaEngine::getContinuousVideoCapture()
+    bool MediaEngine::getContinuousVideoCapture(int captureId)
     {
       AutoRecursiveLock lock(mLifetimeLock);
       
-      //ZS_LOG_DEBUG(log("get continuous video capture"))
+      ZS_LOG_DEBUG(log("get continuous video capture"))
       
-      return mLifetimeContinuousVideoCapture;
+      VideoSourceLifetimeStateMap::iterator iter = mVideoSourceLifetimeStates.find(captureId);
+      if (iter == mVideoSourceLifetimeStates.end()) {
+        ZS_LOG_ERROR(Detail, log("video source not found") + ZS_PARAM("captureId", captureId))
+        return false;
+      }
+      
+      return iter->second.mLifetimeContinuousVideoCapture;
     }
     
     //-----------------------------------------------------------------------
@@ -810,9 +822,15 @@ namespace ortc
     {
       AutoRecursiveLock lock(mLock);
       
-      //ZS_LOG_DEBUG(log("set face detection - value: ") + (faceDetection ? "true" : "false"))
+      ZS_LOG_DEBUG(log("set face detection ") + ZS_PARAM("value", faceDetection ? "true" : "false"))
       
-      mFaceDetection = faceDetection;
+      VideoSourceInfoMap::iterator iter = mVideoSourceInfos.find(captureId);
+      if (iter == mVideoSourceInfos.end()) {
+        ZS_LOG_ERROR(Detail, log("video source not found") + ZS_PARAM("captureId", captureId))
+        return;
+      }
+
+      iter->second.mFaceDetection = faceDetection;
     }
     
     //-----------------------------------------------------------------------
@@ -820,38 +838,89 @@ namespace ortc
     {
       AutoRecursiveLock lock(mLock);
       
-      //ZS_LOG_DEBUG(log("get face detection"))
+      ZS_LOG_DEBUG(log("get face detection"))
       
-      return mFaceDetection;
+      VideoSourceInfoMap::iterator iter = mVideoSourceInfos.find(captureId);
+      if (iter == mVideoSourceInfos.end()) {
+        ZS_LOG_ERROR(Detail, log("video source not found") + ZS_PARAM("captureId", captureId))
+        return false;
+      }
+      
+      return iter->second.mFaceDetection;
     }
     
     //-----------------------------------------------------------------------
-    uint32_t MediaEngine::getCameraType(int captureId) const
-    {
-      AutoRecursiveLock lock(mLifetimeLock);  // WARNING: THIS IS THE LIFETIME LOCK AND NOT THE MAIN OBJECT LOCK
-      return mLifetimeWantCaptureIdx;
-    }
-    
-    //-----------------------------------------------------------------------
-    void MediaEngine::setCameraType(int captureId, uint32_t captureIdx)
+    void MediaEngine::setCameraType(int captureId, CameraTypes type)
     {
       {
         AutoRecursiveLock lock(mLifetimeLock);
-        mLifetimeWantCaptureIdx = captureIdx;
+        
+        VideoSourceLifetimeStateMap::iterator iter = mVideoSourceLifetimeStates.find(captureId);
+        if (iter == mVideoSourceLifetimeStates.end()) {
+          ZS_LOG_ERROR(Detail, log("video source not found") + ZS_PARAM("captureId", captureId))
+          return;
+        }
+        
+        iter->second.mLifetimeWantCameraType = type;
       }
       
-      ThreadPtr(new boost::thread(boost::ref(*((mThisWeak.lock()).get()))));
+      IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
     }
     
+    //-----------------------------------------------------------------------
+    CameraTypes MediaEngine::getCameraType(int captureId)
+    {
+      AutoRecursiveLock lock(mLifetimeLock);  // WARNING: THIS IS THE LIFETIME LOCK AND NOT THE MAIN OBJECT LOCK
+      
+      VideoSourceLifetimeStateMap::iterator iter = mVideoSourceLifetimeStates.find(captureId);
+      if (iter == mVideoSourceLifetimeStates.end()) {
+        ZS_LOG_ERROR(Detail, log("video source not found") + ZS_PARAM("captureId", captureId))
+        return CameraType_None;
+      }
+      
+      return iter->second.mLifetimeWantCameraType;
+    }
+    
+    //-----------------------------------------------------------------------
+    int MediaEngine::createVideoSource()
+    {
+      return internalCreateVideoSource();
+    }
+    
+    //-----------------------------------------------------------------------
+    std::list<int> MediaEngine::getVideoSources()
+    {
+      return std::list<int>();
+    }
+    
+    //-----------------------------------------------------------------------
+    int MediaEngine::createVideoChannel()
+    {
+      return internalCreateVideoChannel();
+    }
+
+    //-----------------------------------------------------------------------
+    std::list<int> MediaEngine::getVideoChannels()
+    {
+      return std::list<int>();
+    }
+
     //-----------------------------------------------------------------------
     void MediaEngine::startVideoCapture(int captureId)
     {
       {
         AutoRecursiveLock lock(mLifetimeLock);
-        mLifetimeWantVideoCapture = true;
+        
+        VideoSourceLifetimeStateMap::iterator iter = mVideoSourceLifetimeStates.find(captureId);
+        if (iter == mVideoSourceLifetimeStates.end()) {
+          ZS_LOG_ERROR(Detail, log("video source not found") + ZS_PARAM("captureId", captureId))
+          return;
+        }
+        
+        iter->second.mLifetimeWantVideoCapture = true;
       }
       
-      ThreadPtr(new boost::thread(boost::ref(*((mThisWeak.lock()).get()))));
+      IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
     }
     
     //-----------------------------------------------------------------------
@@ -859,21 +928,35 @@ namespace ortc
     {
       {
         AutoRecursiveLock lock(mLifetimeLock);
-        mLifetimeWantVideoCapture = false;
+        
+        VideoSourceLifetimeStateMap::iterator iter = mVideoSourceLifetimeStates.find(captureId);
+        if (iter == mVideoSourceLifetimeStates.end()) {
+          ZS_LOG_ERROR(Detail, log("video source not found") + ZS_PARAM("captureId", captureId))
+          return;
+        }
+        
+        iter->second.mLifetimeWantVideoCapture = false;
       }
       
-      ThreadPtr(new boost::thread(boost::ref(*((mThisWeak.lock()).get()))));
+      IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
     }
     
     //-----------------------------------------------------------------------
-    void MediaEngine::startSendVideoChannel(int channelId)
+    void MediaEngine::startSendVideoChannel(int channelId, int captureId)
     {
       {
         AutoRecursiveLock lock(mLifetimeLock);
-        mLifetimeWantVideoChannel = true;
+        
+        VideoChannelLifetimeStateMap::iterator iter = mVideoChannelLifetimeStates.find(channelId);
+        if (iter == mVideoChannelLifetimeStates.end()) {
+          ZS_LOG_ERROR(Detail, log("video channel not found") + ZS_PARAM("channelId", channelId))
+          return;
+        }
+        
+        iter->second.mLifetimeWantSendVideoChannel = true;
       }
       
-      ThreadPtr(new boost::thread(boost::ref(*((mThisWeak.lock()).get()))));
+      IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
     }
     
     //-----------------------------------------------------------------------
@@ -881,10 +964,17 @@ namespace ortc
     {
       {
         AutoRecursiveLock lock(mLifetimeLock);
-        mLifetimeWantVideoChannel = true;
+        
+        VideoChannelLifetimeStateMap::iterator iter = mVideoChannelLifetimeStates.find(channelId);
+        if (iter == mVideoChannelLifetimeStates.end()) {
+          ZS_LOG_ERROR(Detail, log("video channel not found") + ZS_PARAM("channelId", channelId))
+          return;
+        }
+        
+        iter->second.mLifetimeWantReceiveVideoChannel = true;
       }
       
-      ThreadPtr(new boost::thread(boost::ref(*((mThisWeak.lock()).get()))));
+      IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
     }
     
     //-----------------------------------------------------------------------
@@ -892,10 +982,17 @@ namespace ortc
     {
       {
         AutoRecursiveLock lock(mLifetimeLock);
-        mLifetimeWantVideoChannel = false;
+        
+        VideoChannelLifetimeStateMap::iterator iter = mVideoChannelLifetimeStates.find(channelId);
+        if (iter == mVideoChannelLifetimeStates.end()) {
+          ZS_LOG_ERROR(Detail, log("video channel not found") + ZS_PARAM("channelId", channelId))
+          return;
+        }
+        
+        iter->second.mLifetimeWantSendVideoChannel = false;
       }
       
-      ThreadPtr(new boost::thread(boost::ref(*((mThisWeak.lock()).get()))));
+      IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
     }
     
     //-----------------------------------------------------------------------
@@ -903,10 +1000,29 @@ namespace ortc
     {
       {
         AutoRecursiveLock lock(mLifetimeLock);
-        mLifetimeWantVideoChannel = false;
+        
+        VideoChannelLifetimeStateMap::iterator iter = mVideoChannelLifetimeStates.find(channelId);
+        if (iter == mVideoChannelLifetimeStates.end()) {
+          ZS_LOG_ERROR(Detail, log("video channel not found") + ZS_PARAM("channelId", channelId))
+          return;
+        }
+        
+        iter->second.mLifetimeWantReceiveVideoChannel = false;
       }
       
-      ThreadPtr(new boost::thread(boost::ref(*((mThisWeak.lock()).get()))));
+      IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
+    }
+    
+    //-----------------------------------------------------------------------
+    int MediaEngine::createVoiceChannel()
+    {
+      return internalCreateVoiceChannel();
+    }
+    
+    //-----------------------------------------------------------------------
+    std::list<int> MediaEngine::getVoiceChannels()
+    {
+      return std::list<int>();
     }
 
     //-----------------------------------------------------------------------
@@ -914,10 +1030,17 @@ namespace ortc
     {
       {
         AutoRecursiveLock lock(mLifetimeLock);
-        mLifetimeWantAudio = true;
+        
+        VoiceChannelLifetimeStateMap::iterator iter = mVoiceChannelLifetimeStates.find(channelId);
+        if (iter == mVoiceChannelLifetimeStates.end()) {
+          ZS_LOG_ERROR(Detail, log("voice channel not found") + ZS_PARAM("channelId", channelId))
+          return;
+        }
+        
+        iter->second.mLifetimeWantSendAudio = true;
       }
       
-      ThreadPtr(new boost::thread(boost::ref(*((mThisWeak.lock()).get()))));
+      IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
     }
     
     //-----------------------------------------------------------------------
@@ -925,10 +1048,17 @@ namespace ortc
     {
       {
         AutoRecursiveLock lock(mLifetimeLock);
-        mLifetimeWantAudio = true;
+        
+        VoiceChannelLifetimeStateMap::iterator iter = mVoiceChannelLifetimeStates.find(channelId);
+        if (iter == mVoiceChannelLifetimeStates.end()) {
+          ZS_LOG_ERROR(Detail, log("voice channel not found") + ZS_PARAM("channelId", channelId))
+          return;
+        }
+        
+        iter->second.mLifetimeWantReceiveAudio = true;
       }
       
-      ThreadPtr(new boost::thread(boost::ref(*((mThisWeak.lock()).get()))));
+      IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
     }
     
     //-----------------------------------------------------------------------
@@ -936,10 +1066,17 @@ namespace ortc
     {
       {
         AutoRecursiveLock lock(mLifetimeLock);
-        mLifetimeWantAudio = false;
+        
+        VoiceChannelLifetimeStateMap::iterator iter = mVoiceChannelLifetimeStates.find(channelId);
+        if (iter == mVoiceChannelLifetimeStates.end()) {
+          ZS_LOG_ERROR(Detail, log("voice channel not found") + ZS_PARAM("channelId", channelId))
+          return;
+        }
+        
+        iter->second.mLifetimeWantSendAudio = false;
       }
       
-      ThreadPtr(new boost::thread(boost::ref(*((mThisWeak.lock()).get()))));
+      IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
     }
     
     //-----------------------------------------------------------------------
@@ -947,10 +1084,17 @@ namespace ortc
     {
       {
         AutoRecursiveLock lock(mLifetimeLock);
-        mLifetimeWantAudio = false;
+        
+        VoiceChannelLifetimeStateMap::iterator iter = mVoiceChannelLifetimeStates.find(channelId);
+        if (iter == mVoiceChannelLifetimeStates.end()) {
+          ZS_LOG_ERROR(Detail, log("voice channel not found") + ZS_PARAM("channelId", channelId))
+          return;
+        }
+        
+        iter->second.mLifetimeWantReceiveAudio = false;
       }
       
-      ThreadPtr(new boost::thread(boost::ref(*((mThisWeak.lock()).get()))));
+      IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
     }
     
     //-------------------------------------------------------------------------
@@ -958,12 +1102,19 @@ namespace ortc
     {
       {
         AutoRecursiveLock lock(mLifetimeLock);
-        mLifetimeWantRecordVideoCapture = true;
-        mLifetimeVideoRecordFile = fileName;
-        mLifetimeSaveVideoToLibrary = saveToLibrary;
+        
+        VideoSourceLifetimeStateMap::iterator iter = mVideoSourceLifetimeStates.find(captureId);
+        if (iter == mVideoSourceLifetimeStates.end()) {
+          ZS_LOG_ERROR(Detail, log("video source not found") + ZS_PARAM("captureId", captureId))
+          return;
+        }
+        
+        iter->second.mLifetimeWantRecordVideoCapture = true;
+        iter->second.mLifetimeVideoRecordFile = fileName;
+        iter->second.mLifetimeSaveVideoToLibrary = saveToLibrary;
       }
       
-      ThreadPtr(new boost::thread(boost::ref(*((mThisWeak.lock()).get()))));
+      IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
     }
     
     //-------------------------------------------------------------------------
@@ -971,10 +1122,17 @@ namespace ortc
     {
       {
         AutoRecursiveLock lock(mLifetimeLock);
-        mLifetimeWantRecordVideoCapture = false;
+        
+        VideoSourceLifetimeStateMap::iterator iter = mVideoSourceLifetimeStates.find(captureId);
+        if (iter == mVideoSourceLifetimeStates.end()) {
+          ZS_LOG_ERROR(Detail, log("video source not found") + ZS_PARAM("captureId", captureId))
+          return;
+        }
+        
+        iter->second.mLifetimeWantRecordVideoCapture = false;
       }
       
-      ThreadPtr(new boost::thread(boost::ref(*((mThisWeak.lock()).get()))));
+      IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
     }
     
     //-----------------------------------------------------------------------
@@ -988,10 +1146,10 @@ namespace ortc
       unsigned int jitter;
       int rttMs;
 
-      mError = mVideoRtpRtcp->GetReceivedRTCPStatistics(mVideoChannel, fractionLost, cumulativeLost, extendedMax, jitter, rttMs);
-      if (0 != mError) {
-      //ZS_LOG_ERROR(Detail, log("failed to get received RTCP statistics for video (error: ") + Stringize<INT>(mVideoBase->LastError()).string() + ")")
-      return mError;
+      get(mLastError) = mVideoRtpRtcp->GetReceivedRTCPStatistics(channelId, fractionLost, cumulativeLost, extendedMax, jitter, rttMs);
+      if (0 != mLastError) {
+        ZS_LOG_ERROR(Detail, log("failed to get received RTCP statistics for video") + ZS_PARAM("error", mVideoBase->LastError()))
+        return mLastError;
       }
 
       unsigned int bytesSent;
@@ -999,16 +1157,16 @@ namespace ortc
       unsigned int bytesReceived;
       unsigned int packetsReceived;
 
-      mError = mVideoRtpRtcp->GetRTPStatistics(mVideoChannel, bytesSent, packetsSent, bytesReceived, packetsReceived);
-      if (0 != mError) {
-      //ZS_LOG_ERROR(Detail, log("failed to get RTP statistics for video (error: ") + Stringize<INT>(mVideoBase->LastError()).string() + ")")
-      return mError;
+      get(mLastError) = mVideoRtpRtcp->GetRTPStatistics(channelId, bytesSent, packetsSent, bytesReceived, packetsReceived);
+      if (0 != mLastError) {
+        ZS_LOG_ERROR(Detail, log("failed to get RTP statistics for video") + ZS_PARAM("error", mVideoBase->LastError()))
+        return mLastError;
       }
 
       stat.fractionLost = fractionLost;
       stat.cumulativeLost = cumulativeLost;
       stat.extendedMax = extendedMax;
-//        stat.jitter = jitter;
+      //stat.jitter = jitter;
       stat.rttMs = rttMs;
       stat.bytesSent = bytesSent;
       stat.packetsSent = packetsSent;
@@ -1025,10 +1183,10 @@ namespace ortc
 
       webrtc::CallStatistics callStat;
 
-      mError = mVoiceRtpRtcp->GetRTCPStatistics(mVoiceChannel, callStat);
-      if (0 != mError) {
-      //ZS_LOG_ERROR(Detail, log("failed to get RTCP statistics for voice (error: ") + Stringize<INT>(mVoiceBase->LastError()).string() + ")")
-      return mError;
+      get(mLastError) = mVoiceRtpRtcp->GetRTCPStatistics(channelId, callStat);
+      if (0 != mLastError) {
+        ZS_LOG_ERROR(Detail, log("failed to get RTCP statistics for voice") + ZS_PARAM("error", mVoiceBase->LastError()))
+        return mLastError;
       }
 
       stat.fractionLost = callStat.fractionLost;
@@ -1045,74 +1203,146 @@ namespace ortc
     }
     
     //-----------------------------------------------------------------------
-    int MediaEngine::registerExternalTransport(int channelId, Transport &transport)
+    int MediaEngine::registerVoiceExternalTransport(int channelId, Transport &transport)
     {
       AutoRecursiveLock lock(mLock);
+
+      ZS_LOG_DEBUG(log("register voice external transport"))
       
-      //ZS_LOG_DEBUG(log("register voice external transport"))
-      
-      mRedirectVoiceTransport.redirect(&transport);
-      
+      mVoiceChannelInfos[channelId].mRedirectTransport->redirect(&transport);
+
       return 0;
     }
     
     //-----------------------------------------------------------------------
-    int MediaEngine::deregisterExternalTransport(int channelId)
+    int MediaEngine::deregisterVoiceExternalTransport(int channelId)
     {
       AutoRecursiveLock lock(mLock);
+
+      ZS_LOG_DEBUG(log("deregister voice external transport"))
       
-      //ZS_LOG_DEBUG(log("deregister voice external transport"))
-      
-      mRedirectVoiceTransport.redirect(NULL);
-      
+      mVoiceChannelInfos[channelId].mRedirectTransport->redirect(NULL);
+
       return 0;
     }
     
     //-----------------------------------------------------------------------
-    int MediaEngine::receivedRTPPacket(int channelId, const void *data, unsigned int length)
+    int MediaEngine::receivedVoiceRTPPacket(int channelId, const void *data, unsigned int length)
     {
       int channel = ORTC_MEDIA_ENGINE_INVALID_CHANNEL;
       {
         AutoRecursiveLock lock(mMediaEngineReadyLock);
         if (mVoiceEngineReady)
-          channel = mVoiceChannel;
+          channel = channelId;
       }
       
       if (ORTC_MEDIA_ENGINE_INVALID_CHANNEL == channel) {
-        //ZS_LOG_WARNING(Debug, log("voice channel is not ready yet"))
+        ZS_LOG_WARNING(Debug, log("voice channel is not ready yet"))
         return -1;
       }
       
-      mError = mVoiceNetwork->ReceivedRTPPacket(channel, data, length);
-      if (0 != mError) {
-        //ZS_LOG_ERROR(Detail, log("received voice RTP packet failed (error: ") + Stringize<INT>(mVoiceBase->LastError()).string() + ")")
-        return mError;
+      get(mLastError) = mVoiceNetwork->ReceivedRTPPacket(channel, data, length);
+      if (0 != mLastError) {
+        ZS_LOG_ERROR(Detail, log("received voice RTP packet failed") + ZS_PARAM("error", mVoiceBase->LastError()))
+        return mLastError;
       }
-      
+
       return 0;
     }
     
     //-----------------------------------------------------------------------
-    int MediaEngine::receivedRTCPPacket(int channelId, const void* data, unsigned int length)
+    int MediaEngine::receivedVoiceRTCPPacket(int channelId, const void* data, unsigned int length)
     {
       int channel = ORTC_MEDIA_ENGINE_INVALID_CHANNEL;
       {
         AutoRecursiveLock lock(mMediaEngineReadyLock);
         if (mVoiceEngineReady)
-          channel = mVoiceChannel;
+          channel = channelId;
       }
       
       if (ORTC_MEDIA_ENGINE_INVALID_CHANNEL == channel) {
-        //ZS_LOG_WARNING(Debug, log("voice channel is not ready yet"))
+        ZS_LOG_WARNING(Debug, log("voice channel is not ready yet"))
         return -1;
       }
       
-      mError = mVoiceNetwork->ReceivedRTCPPacket(channel, data, length);
-      if (0 != mError) {
-        //ZS_LOG_ERROR(Detail, log("received voice RTCP packet failed (error: ") + Stringize<INT>(mVoiceBase->LastError()).string() + ")")
-        return mError;
+      get(mLastError) = mVoiceNetwork->ReceivedRTCPPacket(channel, data, length);
+      if (0 != mLastError) {
+        ZS_LOG_ERROR(Detail, log("received voice RTCP packet failed") + ZS_PARAM("error", mVoiceBase->LastError()))
+        return mLastError;
       }
-      
+
+      return 0;
+    }
+    
+    //-----------------------------------------------------------------------
+    int MediaEngine::registerVideoExternalTransport(int channelId, Transport &transport)
+    {
+      AutoRecursiveLock lock(mLock);
+
+      ZS_LOG_DEBUG(log("register voice external transport"))
+       
+      mVideoChannelInfos[channelId].mRedirectTransport->redirect(&transport);
+
+      return 0;
+    }
+    
+    //-----------------------------------------------------------------------
+    int MediaEngine::deregisterVideoExternalTransport(int channelId)
+    {
+      AutoRecursiveLock lock(mLock);
+
+      ZS_LOG_DEBUG(log("deregister voice external transport"))
+       
+      mVideoChannelInfos[channelId].mRedirectTransport->redirect(NULL);
+
+      return 0;
+    }
+    
+    //-----------------------------------------------------------------------
+    int MediaEngine::receivedVideoRTPPacket(int channelId, const void *data, unsigned int length)
+    {
+      int channel = ORTC_MEDIA_ENGINE_INVALID_CHANNEL;
+      {
+        AutoRecursiveLock lock(mMediaEngineReadyLock);
+        if (mVoiceEngineReady)
+          channel = channelId;
+      }
+
+      if (ORTC_MEDIA_ENGINE_INVALID_CHANNEL == channel) {
+        ZS_LOG_WARNING(Debug, log("voice channel is not ready yet"))
+        return -1;
+      }
+
+      get(mLastError) = mVoiceNetwork->ReceivedRTPPacket(channel, data, length);
+      if (0 != mLastError) {
+        ZS_LOG_ERROR(Detail, log("received voice RTP packet failed") + ZS_PARAM("error", mVoiceBase->LastError()))
+        return mLastError;
+      }
+
+      return 0;
+    }
+    
+    //-----------------------------------------------------------------------
+    int MediaEngine::receivedVideoRTCPPacket(int channelId, const void* data, unsigned int length)
+    {
+      int channel = ORTC_MEDIA_ENGINE_INVALID_CHANNEL;
+      {
+        AutoRecursiveLock lock(mMediaEngineReadyLock);
+        if (mVoiceEngineReady)
+          channel = channelId;
+      }
+       
+      if (ORTC_MEDIA_ENGINE_INVALID_CHANNEL == channel) {
+        ZS_LOG_WARNING(Debug, log("voice channel is not ready yet"))
+        return -1;
+      }
+       
+      get(mLastError) = mVoiceNetwork->ReceivedRTCPPacket(channel, data, length);
+      if (0 != mLastError) {
+        ZS_LOG_ERROR(Detail, log("received voice RTCP packet failed") + ZS_PARAM("error", mVoiceBase->LastError()))
+        return mLastError;
+      }
+
       return 0;
     }
 
@@ -1130,29 +1360,29 @@ namespace ortc
       switch (level) {
         case webrtc::kTraceApiCall:
         case webrtc::kTraceStateInfo:
-          //ZS_LOG_DETAIL(log(traceString))
+          ZS_LOG_DETAIL(log(traceString))
           break;
         case webrtc::kTraceDebug:
         case webrtc::kTraceInfo:
-          //ZS_LOG_DEBUG(log(traceString))
+          ZS_LOG_DEBUG(log(traceString))
           break;
         case webrtc::kTraceWarning:
-          //ZS_LOG_WARNING(Detail, log(traceString))
+          ZS_LOG_WARNING(Detail, log(traceString))
           break;
         case webrtc::kTraceError:
-          //ZS_LOG_ERROR(Detail, log(traceString))
+          ZS_LOG_ERROR(Detail, log(traceString))
           break;
         case webrtc::kTraceCritical:
-          //ZS_LOG_FATAL(Detail, log(traceString))
+          ZS_LOG_FATAL(Detail, log(traceString))
           break;
         case webrtc::kTraceModuleCall:
         case webrtc::kTraceMemory:
         case webrtc::kTraceTimer:
         case webrtc::kTraceStream:
-          //ZS_LOG_TRACE(log(traceString))
+          ZS_LOG_TRACE(log(traceString))
           break;
         default:
-          //ZS_LOG_TRACE(log(traceString))
+          ZS_LOG_TRACE(log(traceString))
           break;
       }
     }
@@ -1168,27 +1398,33 @@ namespace ortc
     //-----------------------------------------------------------------------
     void MediaEngine::CallbackOnError(const int errCode, const int channel)
     {
-      //ZS_LOG_ERROR(Detail, log("Voice engine error: ") + Stringize<INT>(errCode).string() + ")")
+      ZS_LOG_ERROR(Detail, log("Voice engine error") + ZS_PARAM("error", errCode))
     }
     
     //-----------------------------------------------------------------------
     void MediaEngine::CallbackOnOutputAudioRouteChange(const webrtc::OutputAudioRoute inRoute)
     {
-      if (!mDelegate) {
-        //ZS_LOG_WARNING(Detail, log("audio route change callback igored as delegate was not specified"))
-        return;
-      }
+      mSubscriptions.delegate()->onMediaEngineAudioRouteChanged(inRoute);
       
-      try {
-        if (mDelegate)
-          mDelegate->onMediaEngineAudioRouteChanged(inRoute);
-      } catch (IMediaEngineDelegateProxy::Exceptions::DelegateGone &) {
-        //ZS_LOG_WARNING(Detail, log("delegate gone"))
-      }
-      
-      //ZS_LOG_DEBUG(log("Audio output route changed") + ", route=" + Stringize<INT>(inRoute).string())
+      ZS_LOG_DEBUG(log("Audio output route changed") + ZS_PARAM("route", inRoute))
     }
     
+    //-----------------------------------------------------------------------
+    void MediaEngine::CallbackOnAudioSessionInterruptionBegin()
+    {
+      mSubscriptions.delegate()->onMediaEngineAudioSessionInterruptionBegan();
+      
+      ZS_LOG_DEBUG(log("Audio session interruption began"))
+    }
+
+    //-----------------------------------------------------------------------
+    void MediaEngine::CallbackOnAudioSessionInterruptionEnd()
+    {
+      mSubscriptions.delegate()->onMediaEngineAudioSessionInterruptionEnded();
+      
+      ZS_LOG_DEBUG(log("Audio session interruption ended"))
+    }
+
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
@@ -1219,12 +1455,24 @@ namespace ortc
     //-------------------------------------------------------------------------
     void MediaEngine::FaceDetected(const int capture_id)
     {
-      try {
-        if (mDelegate)
-          mDelegate->onMediaEngineFaceDetected(capture_id);
-      } catch (IMediaEngineDelegateProxy::Exceptions::DelegateGone &) {
-        //ZS_LOG_WARNING(Detail, log("delegate gone"))
-      }
+      mSubscriptions.delegate()->onMediaEngineFaceDetected(capture_id);
+    }
+    
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark MediaEngine => IWakeDelegate
+    #pragma mark
+    
+    //-------------------------------------------------------------------------
+    void MediaEngine::onWake()
+    {
+      ZS_LOG_DEBUG(log("wake"))
+      
+      AutoRecursiveLock lock(getLock());
+      step();
     }
     
     //-----------------------------------------------------------------------
@@ -1235,179 +1483,369 @@ namespace ortc
     #pragma mark MediaEngine => (internal)
     #pragma mark
     
-    //-----------------------------------------------------------------------
-    void MediaEngine::operator()()
+    //-------------------------------------------------------------------------
+    Log::Params MediaEngine::log(const char *message) const
     {
-#ifndef _LINUX
-#ifdef __QNX__
-      pthread_setname_np(pthread_self(), "ortc.mediaEngine");
-#else
-      pthread_setname_np("ortc.mediaEngine");
-#endif
-#endif
-      //ZS_LOG_DEBUG(log("media engine lifetime thread spawned"))
+      ElementPtr objectEl = Element::create("ortc::MediaEngine");
+      OPIHelper::debugAppend(objectEl, "id", mID);
+      return Log::Params(message, objectEl);
+    }
+    
+    //-------------------------------------------------------------------------
+    Log::Params MediaEngine::debug(const char *message) const
+    {
+      return Log::Params(message, toDebug());
+    }
+    
+    //-------------------------------------------------------------------------
+    ElementPtr MediaEngine::toDebug() const
+    {
+      ElementPtr resultEl = Element::create("MediaStreamTrack");
       
-      bool repeat = false;
+      OPIHelper::debugAppend(resultEl, "id", mID);
       
-      bool firstAttempt = true;
+      OPIHelper::debugAppend(resultEl, "graceful shutdown", (bool)mGracefulShutdownReference);
+      OPIHelper::debugAppend(resultEl, "graceful shutdown", mShutdown);
       
-      bool wantAudio = false;
-      bool wantVideoCapture = false;
-      bool wantVideoChannel = false;
-      bool wantRecordVideoCapture = false;
-      bool hasAudio = false;
-      bool hasVideoCapture = false;
-      bool hasVideoChannel = false;
-      bool hasRecordVideoCapture = false;
-      uint32_t wantCaptureIdx = 0;
-      String videoRecordFile;
-      bool saveVideoToLibrary;
+      OPIHelper::debugAppend(resultEl, "error", mLastError);
+      OPIHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
+      
+      return resultEl;
+    }
+    
+    //-------------------------------------------------------------------------
+    bool MediaEngine::isShuttingDown() const
+    {
+      return (bool)mGracefulShutdownReference;
+    }
+    
+    //-------------------------------------------------------------------------
+    bool MediaEngine::isShutdown() const
+    {
+      if (mGracefulShutdownReference) return false;
+      return mShutdown;
+    }
+
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    #pragma mark
+    #pragma mark MediaEngine => (internal)
+    #pragma mark
+    
+    //-----------------------------------------------------------------------
+    void MediaEngine::step()
+    {
+      ZS_LOG_DEBUG(debug("step"))
+      
+      if ((isShuttingDown()) ||
+          (isShutdown())) {
+        ZS_LOG_DEBUG(debug("step forwarding to cancel"))
+        cancel();
+        return;
+      }
+
+      ZS_LOG_DEBUG(log("media engine lifetime message"))
       
       // attempt to get the lifetime lock
-      while (true)
       {
-        if (!firstAttempt) {
-          boost::thread::yield();       // do not hammer CPU
-        }
-        firstAttempt = false;
-        
         AutoRecursiveLock lock(mLifetimeLock);
         if (mLifetimeInProgress) {
-          //ZS_LOG_WARNING(Debug, log("could not obtain media lifetime lock"))
-          continue;
+          ZS_LOG_ERROR(Detail, log("could not obtain media lifetime lock"))
+          return;
         }
         
         mLifetimeInProgress = true;
-        
-        if (mLifetimeWantVideoChannel)
-          mLifetimeWantVideoCapture = true;
-        else if (mLifetimeHasVideoChannel && !mLifetimeContinuousVideoCapture)
-          mLifetimeWantVideoCapture = false;
-        if (!mLifetimeWantVideoCapture)
-          mLifetimeWantRecordVideoCapture = false;
-        wantAudio = mLifetimeWantAudio;
-        wantVideoCapture = mLifetimeWantVideoCapture;
-        wantVideoChannel = mLifetimeWantVideoChannel;
-        wantRecordVideoCapture = mLifetimeWantRecordVideoCapture;
-        hasAudio = mLifetimeHasAudio;
-        hasVideoCapture = mLifetimeHasVideoCapture;
-        hasVideoChannel = mLifetimeHasVideoChannel;
-        hasRecordVideoCapture = mLifetimeHasRecordVideoCapture;
-        wantCaptureIdx = mLifetimeWantCaptureIdx;
-        videoRecordFile = mLifetimeVideoRecordFile;
-        saveVideoToLibrary = mLifetimeSaveVideoToLibrary;
-        break;
       }
       
-      {
-        AutoRecursiveLock lock(mLock);
+      for (VoiceSourceLifetimeStateMap::iterator iter = mVoiceSourceLifetimeStates.begin(); iter != mVoiceSourceLifetimeStates.end(); iter++) {
         
-        if (wantVideoCapture) {
-          if (wantCaptureIdx != mCaptureIdx) {
-            //ZS_LOG_DEBUG(log("camera type needs to change") + ", was=" + Stringize<INT>(mCaptureIdx).string() + ", desired=" + Stringize<INT>(wantCaptureIdx).string())
-            mCaptureIdx = wantCaptureIdx;
-            if (hasVideoCapture) {
-              //ZS_LOG_DEBUG(log("video capture must be stopped first before camera type can be swapped (will try again)"))
-              wantVideoCapture = false;  // pretend that we don't want video so it will be stopped
-              repeat = true;      // repeat this thread operation again to start video back up again after
-              if (hasVideoChannel) {
-                //ZS_LOG_DEBUG(log("video channel must be stopped first before camera type can be swapped (will try again)"))
-                wantVideoChannel = false;  // pretend that we don't want video so it will be stopped
-              }
+        VoiceSourceLifetimeState state = iter->second;
+        int sourceId = state.mSourceId;
+      }
+      
+      for (VoiceChannelLifetimeStateMap::iterator iter = mVoiceChannelLifetimeStates.begin(); iter != mVoiceChannelLifetimeStates.end(); iter++) {
+        
+        VoiceChannelLifetimeState state = iter->second;
+        int channelId = state.mChannelId;
+        
+        bool wantSendAudio = false;
+        bool wantReceiveAudio = false;
+        bool hasSendAudio = false;
+        bool hasReceiveAudio = false;
+        
+        {
+          AutoRecursiveLock lock(mLifetimeLock);
+          
+          wantSendAudio = state.mLifetimeWantSendAudio;
+          wantReceiveAudio = state.mLifetimeWantReceiveAudio;
+          hasSendAudio = state.mLifetimeHasSendAudio;
+          hasReceiveAudio = state.mLifetimeHasReceiveAudio;
+        }
+        
+        {
+          AutoRecursiveLock lock(mLock);
+          
+          if (wantSendAudio) {
+            if (!hasSendAudio) {
+              internalStartSendVoice(channelId);
+            }
+          } else {
+            if (hasSendAudio) {
+              internalStopSendVoice(channelId);
+            }
+          }
+          
+          if (wantReceiveAudio) {
+            if (!hasReceiveAudio) {
+              internalStartReceiveVoice(channelId);
+            }
+          } else {
+            if (hasReceiveAudio) {
+              internalStopReceiveVoice(channelId);
             }
           }
         }
         
-        if (wantVideoCapture) {
-          if (!hasVideoCapture) {
-            internalStartVideoCapture();
+        {
+          AutoRecursiveLock lock(mLifetimeLock);
+          
+          mVoiceChannelLifetimeStates[channelId].mLifetimeHasSendAudio = wantSendAudio;
+          mVoiceChannelLifetimeStates[channelId].mLifetimeHasReceiveAudio = wantReceiveAudio;
+        }
+      }
+      
+      for (VideoSourceLifetimeStateMap::iterator iter = mVideoSourceLifetimeStates.begin(); iter != mVideoSourceLifetimeStates.end(); iter++) {
+        
+        VideoSourceLifetimeState state = iter->second;
+        int sourceId = state.mSourceId;
+        
+        bool wantVideoCapture = false;
+        bool wantRecordVideoCapture = false;
+        bool hasVideoCapture = false;
+        bool hasRecordVideoCapture = false;
+        CameraTypes wantCameraType = CameraType_None;
+        String videoRecordFile;
+        bool saveVideoToLibrary = false;
+        
+        {
+          AutoRecursiveLock lock(mLifetimeLock);
+          
+          wantVideoCapture = state.mLifetimeWantVideoCapture;
+          wantRecordVideoCapture = state.mLifetimeWantRecordVideoCapture;
+          hasVideoCapture = state.mLifetimeHasVideoCapture;
+          hasRecordVideoCapture = state.mLifetimeHasRecordVideoCapture;
+          wantCameraType = state.mLifetimeWantCameraType;
+          videoRecordFile = state.mLifetimeVideoRecordFile;
+          saveVideoToLibrary = state.mLifetimeSaveVideoToLibrary;
+        }
+        
+        {
+          AutoRecursiveLock lock(mLock);
+          
+          if (wantVideoCapture) {
+            if (!hasVideoCapture) {
+              internalStartVideoCapture(sourceId);
+            }
+          }
+          
+          if (wantRecordVideoCapture) {
+            if (!hasRecordVideoCapture) {
+              internalStartRecordVideoCapture(sourceId, videoRecordFile, saveVideoToLibrary);
+            }
+          } else {
+            if (hasRecordVideoCapture) {
+              internalStopRecordVideoCapture(sourceId);
+            }
           }
         }
         
-        if (wantRecordVideoCapture) {
-          if (!hasRecordVideoCapture) {
-            internalStartRecordVideoCapture(videoRecordFile, saveVideoToLibrary);
+        {
+          AutoRecursiveLock lock(mLifetimeLock);
+          
+          mVideoSourceLifetimeStates[sourceId].mLifetimeHasVideoCapture = wantVideoCapture;
+          mVideoSourceLifetimeStates[sourceId].mLifetimeHasRecordVideoCapture = wantRecordVideoCapture;
+        }
+      }
+      
+      for (VideoChannelLifetimeStateMap::iterator iter = mVideoChannelLifetimeStates.begin(); iter != mVideoChannelLifetimeStates.end(); iter++) {
+        
+        VideoChannelLifetimeState state = iter->second;
+        int channelId = state.mChannelId;
+        
+        bool wantSendVideoChannel = false;
+        bool wantReceiveVideoChannel = false;
+        bool hasSendVideoChannel = false;
+        bool hasReceiveVideoChannel = false;
+        
+        {
+          AutoRecursiveLock lock(mLifetimeLock);
+          
+          wantSendVideoChannel = state.mLifetimeWantSendVideoChannel;
+          wantReceiveVideoChannel = state.mLifetimeWantReceiveVideoChannel;
+          hasSendVideoChannel = state.mLifetimeHasSendVideoChannel;
+          hasReceiveVideoChannel = state.mLifetimeHasReceiveVideoChannel;
+        }
+        
+        {
+          AutoRecursiveLock lock(mLock);
+          
+          if (wantSendVideoChannel) {
+            if (!hasSendVideoChannel) {
+              internalStartSendVideoChannel(channelId, mVideoSourceLifetimeStates.begin()->second.mSourceId);
+            }
+          } else {
+            if (hasSendVideoChannel) {
+              internalStopSendVideoChannel(channelId);
+            }
           }
-        } else {
-          if (hasRecordVideoCapture) {
-            internalStopRecordVideoCapture();
+          
+          if (wantReceiveVideoChannel) {
+            if (!hasReceiveVideoChannel) {
+              internalStartReceiveVideoChannel(channelId);
+            }
+          } else {
+            if (hasReceiveVideoChannel) {
+              internalStopReceiveVideoChannel(channelId);
+            }
           }
         }
         
-        if (wantAudio) {
-          if (!hasAudio) {
-            internalStartSendVoice();
-          }
-        } else {
-          if (hasAudio) {
-            internalStopSendVoice();
+        {
+          AutoRecursiveLock lock(mLifetimeLock);
+          
+          mVideoChannelLifetimeStates[channelId].mLifetimeHasSendVideoChannel = wantSendVideoChannel;
+          mVideoChannelLifetimeStates[channelId].mLifetimeHasReceiveVideoChannel = wantReceiveVideoChannel;
+        }
+      }
+      
+      for (VideoSourceLifetimeStateMap::iterator iter = mVideoSourceLifetimeStates.begin(); iter != mVideoSourceLifetimeStates.end(); iter++) {
+        
+        VideoSourceLifetimeState state = iter->second;
+        int sourceId = state.mSourceId;
+        
+        bool wantVideoCapture = false;
+        bool hasVideoCapture = false;
+        
+        {
+          AutoRecursiveLock lock(mLifetimeLock);
+          
+          wantVideoCapture = state.mLifetimeWantVideoCapture;
+          hasVideoCapture = state.mLifetimeHasVideoCapture;
+        }
+        
+        {
+          AutoRecursiveLock lock(mLock);
+          
+          if (!wantVideoCapture) {
+            if (hasVideoCapture) {
+              internalStopVideoCapture(sourceId);
+            }
           }
         }
         
-        if (wantVideoChannel) {
-          if (!hasVideoChannel) {
-            internalStartSendVideoChannel();
-          }
-        } else {
-          if (hasVideoChannel) {
-            internalStopSendVideoChannel();
-          }
-        }
-        
-        if (!wantVideoCapture) {
-          if (hasVideoCapture) {
-            internalStopVideoCapture();
-          }
+        {
+          AutoRecursiveLock lock(mLifetimeLock);
+          
+          mVideoSourceLifetimeStates[sourceId].mLifetimeHasVideoCapture = wantVideoCapture;
         }
       }
       
       {
         AutoRecursiveLock lock(mLifetimeLock);
-        
-        mLifetimeHasAudio = wantAudio;
-        mLifetimeHasVideoCapture = wantVideoCapture;
-        mLifetimeHasVideoChannel = wantVideoChannel;
-        mLifetimeHasRecordVideoCapture = wantRecordVideoCapture;
-        
+
         mLifetimeInProgress = false;
       }
       
-      if (repeat) {
-        //ZS_LOG_DEBUG(log("repeating media thread operation again"))
-        (*this)();
-        return;
+      ZS_LOG_DEBUG(log("media engine lifetime thread completed"))
+    }
+    
+    //-------------------------------------------------------------------------
+    void MediaEngine::cancel()
+    {
+      //.......................................................................
+      // start the shutdown process
+      
+      //.......................................................................
+      // try to gracefully shutdown
+      
+      if (!mGracefulShutdownReference) mGracefulShutdownReference = mThisWeak.lock();
+      
+      if (mGracefulShutdownReference) {
       }
       
-      //ZS_LOG_DEBUG(log("media engine lifetime thread completed"))
+      //.......................................................................
+      // final cleanup
+      
+      get(mShutdown) = true;
+      
+      // make sure to cleanup any final reference to self
+      mGracefulShutdownReference.reset();
     }
     
     //-----------------------------------------------------------------------
-    void MediaEngine::internalStartSendVoice()
+    void MediaEngine::setError(WORD errorCode, const char *inReason)
+    {
+      String reason(inReason);
+      
+      if (0 != mLastError) {
+        ZS_LOG_WARNING(Detail, debug("error already set thus ignoring new error") + ZS_PARAM("new error", errorCode) + ZS_PARAM("new reason", reason))
+        return;
+      }
+      
+      get(mLastError) = errorCode;
+      mLastErrorReason = reason;
+      
+      ZS_LOG_WARNING(Detail, debug("error set") + ZS_PARAM("error", mLastError) + ZS_PARAM("reason", mLastErrorReason))
+    }
+    
+    //-----------------------------------------------------------------------
+    int MediaEngine::internalCreateVoiceChannel()
     {
       {
         AutoRecursiveLock lock(mLock);
         
-        //ZS_LOG_DEBUG(log("start send voice"))
-        
-        if (mVoiceChannel == ORTC_MEDIA_ENGINE_INVALID_CHANNEL) {
-          mVoiceChannel = mVoiceBase->CreateChannel();
-          if (mVoiceChannel < 0) {
-            //ZS_LOG_ERROR(Detail, log("could not create voice channel (error: ") + Stringize<INT>(mVoiceBase->LastError()).string() + ")")
-            mVoiceChannel = ORTC_MEDIA_ENGINE_INVALID_CHANNEL;
-            return;
-          }
+        int channelId = mVoiceBase->CreateChannel();
+        if (channelId < 0) {
+          ZS_LOG_ERROR(Detail, log("could not create voice channel") + ZS_PARAM("error", mVoiceBase->LastError()))
+          return ORTC_MEDIA_ENGINE_INVALID_CHANNEL;
         }
         
-        mError = registerVoiceSendTransport();
-        if (mError != 0)
+        VoiceChannelInfo info(channelId);
+        VoiceChannelLifetimeState lifetimeState(channelId);
+        
+        mVoiceChannelInfos[channelId] = info;
+        mVoiceChannelLifetimeStates[channelId] = lifetimeState;
+        
+        return channelId;
+      }
+    }
+
+    //-----------------------------------------------------------------------
+    void MediaEngine::internalStartSendVoice(int channelId)
+    {
+      {
+        AutoRecursiveLock lock(mLock);
+        
+        ZS_LOG_DEBUG(log("start send voice"))
+        
+        VoiceChannelInfoMap::iterator iter = mVoiceChannelInfos.find(channelId);
+        if (iter == mVoiceChannelInfos.end()) {
+          ZS_LOG_ERROR(Detail, log("voice channel not found") + ZS_PARAM("channelId", channelId))
+          return;
+        }
+        
+        get(mLastError) = internalRegisterVoiceSendTransport(channelId);
+        if (mLastError != 0)
           return;
         
         webrtc::CodecInst cinst;
         memset(&cinst, 0, sizeof(webrtc::CodecInst));
         for (int idx = 0; idx < mVoiceCodec->NumOfCodecs(); idx++) {
-          mError = mVoiceCodec->GetCodec(idx, cinst);
-          if (mError != 0) {
-            //ZS_LOG_ERROR(Detail, log("failed to get voice codec (error: ") + Stringize<INT>(mVoiceBase->LastError()).string() + ")")
+          get(mLastError) = mVoiceCodec->GetCodec(idx, cinst);
+          if (mLastError != 0) {
+            ZS_LOG_ERROR(Detail, log("failed to get voice codec") + ZS_PARAM("error", mVoiceBase->LastError()))
             return;
           }
 #ifdef ORTC_MEDIA_ENGINE_VOICE_CODEC_ISAC
@@ -1418,9 +1856,9 @@ namespace ortc
             cinst.pacsize = 480; // 30ms
             cinst.plfreq = 16000;
             cinst.channels = 1;
-            mError = mVoiceCodec->SetSendCodec(mVoiceChannel, cinst);
-            if (mError != 0) {
-              //ZS_LOG_ERROR(Detail, log("failed to set send voice codec (error: ") + Stringize<INT>(mVoiceBase->LastError()).string() + ")")
+            get(mLastError) = mVoiceCodec->SetSendCodec(channelId, cinst);
+            if (mLastError != 0) {
+              ZS_LOG_ERROR(Detail, log("failed to set send voice codec") + ZS_PARAM("error", mVoiceBase->LastError()))
               return;
             }
             break;
@@ -1433,9 +1871,9 @@ namespace ortc
             cinst.pacsize = 320; // 20ms
             cinst.plfreq = 16000;
             cinst.channels = 1;
-            mError = mVoiceCodec->SetSendCodec(mVoiceChannel, cinst);
-            if (mError != 0) {
-              //ZS_LOG_ERROR(Detail, log("failed to set send voice codec (error: ") + Stringize<INT>(mVoiceBase->LastError()).string() + ")")
+            get(mLastError) = mVoiceCodec->SetSendCodec(mVoiceChannel, cinst);
+            if (mLastError != 0) {
+              ZS_LOG_ERROR(Detail, log("failed to set send voice codec") + ZS_PARAM("error", mVoiceBase->LastError()))
               return;
             }
             break;
@@ -1443,13 +1881,13 @@ namespace ortc
 #endif
         }
         
-        mError = setVoiceSendTransportParameters();
-        if (mError != 0)
+        get(mLastError) = internalSetVoiceSendTransportParameters(channelId);
+        if (mLastError != 0)
           return;
         
-        mError = mVoiceBase->StartSend(mVoiceChannel);
-        if (mError != 0) {
-          //ZS_LOG_ERROR(Detail, log("failed to start sending voice (error: ") + Stringize<INT>(mVoiceBase->LastError()).string() + ")")
+        get(mLastError) = mVoiceBase->StartSend(channelId);
+        if (mLastError != 0) {
+          ZS_LOG_ERROR(Detail, log("failed to start sending voice") + ZS_PARAM("error", mVoiceBase->LastError()))
           return;
         }
       }
@@ -1461,83 +1899,80 @@ namespace ortc
     }
 
     //-----------------------------------------------------------------------
-    void MediaEngine::internalStartReceiveVoice()
+    void MediaEngine::internalStartReceiveVoice(int channelId)
     {
       {
         AutoRecursiveLock lock(mLock);
         
-        //ZS_LOG_DEBUG(log("start receive voice"))
+        ZS_LOG_DEBUG(log("start receive voice"))
         
-        if (mVoiceChannel == ORTC_MEDIA_ENGINE_INVALID_CHANNEL) {
-          mVoiceChannel = mVoiceBase->CreateChannel();
-          if (mVoiceChannel < 0) {
-            //ZS_LOG_ERROR(Detail, log("could not create voice channel (error: ") + Stringize<INT>(mVoiceBase->LastError()).string() + ")")
-            mVoiceChannel = ORTC_MEDIA_ENGINE_INVALID_CHANNEL;
-            return;
-          }
+        VoiceChannelInfoMap::iterator iter = mVoiceChannelInfos.find(channelId);
+        if (iter == mVoiceChannelInfos.end()) {
+          ZS_LOG_ERROR(Detail, log("voice channel not found") + ZS_PARAM("channelId", channelId))
+          return;
         }
         
         webrtc::EcModes ecMode = getEcMode();
         if (ecMode == webrtc::kEcUnchanged) {
           return;
         }
-        mError = mVoiceAudioProcessing->SetEcStatus(mEcEnabled, ecMode);
-        if (mError != 0) {
-          //ZS_LOG_ERROR(Detail, log("failed to set acoustic echo canceller status (error: ") + Stringize<INT>(mVoiceBase->LastError()).string() + ")")
+        get(mLastError) = mVoiceAudioProcessing->SetEcStatus(mVoiceChannelInfos[channelId].mEcEnabled, ecMode);
+        if (mLastError != 0) {
+          ZS_LOG_ERROR(Detail, log("failed to set acoustic echo canceller status") + ZS_PARAM("error", mVoiceBase->LastError()))
           return;
         }
-        if (ecMode == webrtc::kEcAecm && mEcEnabled) {
-          mError = mVoiceAudioProcessing->SetAecmMode(webrtc::kAecmSpeakerphone);
-          if (mError != 0) {
-            //ZS_LOG_ERROR(Detail, log("failed to set acoustic echo canceller mobile mode (error: ") + Stringize<INT>(mVoiceBase->LastError()).string() + ")")
+        if (ecMode == webrtc::kEcAecm && mVoiceChannelInfos[channelId].mEcEnabled) {
+          get(mLastError) = mVoiceAudioProcessing->SetAecmMode(webrtc::kAecmSpeakerphone);
+          if (mLastError != 0) {
+            ZS_LOG_ERROR(Detail, log("failed to set acoustic echo canceller mobile mode") + ZS_PARAM("error", mVoiceBase->LastError()))
             return;
           }
         }
-        mError = mVoiceAudioProcessing->SetAgcStatus(mAgcEnabled, webrtc::kAgcAdaptiveDigital);
-        if (mError != 0) {
-          //ZS_LOG_ERROR(Detail, log("failed to set automatic gain control status (error: ") + Stringize<INT>(mVoiceBase->LastError()).string() + ")")
+        get(mLastError) = mVoiceAudioProcessing->SetAgcStatus(mVoiceChannelInfos[channelId].mAgcEnabled, webrtc::kAgcAdaptiveDigital);
+        if (mLastError != 0) {
+          ZS_LOG_ERROR(Detail, log("failed to set automatic gain control status") + ZS_PARAM("error", mVoiceBase->LastError()))
           return;
         }
-        mError = mVoiceAudioProcessing->SetNsStatus(mNsEnabled, webrtc::kNsLowSuppression);
-        if (mError != 0) {
-          //ZS_LOG_ERROR(Detail, log("failed to set noise suppression status (error: ") + Stringize<INT>(mVoiceBase->LastError()).string() + ")")
+        get(mLastError) = mVoiceAudioProcessing->SetNsStatus(mVoiceChannelInfos[channelId].mNsEnabled, webrtc::kNsLowSuppression);
+        if (mLastError != 0) {
+          ZS_LOG_ERROR(Detail, log("failed to set noise suppression status") + ZS_PARAM("error", mVoiceBase->LastError()))
           return;
         }
         
-        mError = mVoiceVolumeControl->SetInputMute(-1, false);
-        if (mError != 0) {
-          //ZS_LOG_ERROR(Detail, log("failed to set microphone mute (error: ") + Stringize<INT>(mVoiceBase->LastError()).string() + ")")
+        get(mLastError) = mVoiceVolumeControl->SetInputMute(-1, false);
+        if (mLastError != 0) {
+          ZS_LOG_ERROR(Detail, log("failed to set microphone mute") + ZS_PARAM("error", mVoiceBase->LastError()))
           return;
         }
 #ifdef TARGET_OS_IPHONE
-        mError = mVoiceHardware->SetLoudspeakerStatus(false);
-        if (mError != 0) {
-          //ZS_LOG_ERROR(Detail, log("failed to set loudspeaker (error: ") + Stringize<INT>(mVoiceBase->LastError()).string() + ")")
+        get(mLastError) = mVoiceHardware->SetLoudspeakerStatus(false);
+        if (mLastError != 0) {
+          ZS_LOG_ERROR(Detail, log("failed to set loudspeaker") + ZS_PARAM("error", mVoiceBase->LastError()))
           return;
         }
 #endif
         
-        mError = setVoiceReceiveTransportParameters();
-        if (mError != 0)
+        get(mLastError) = internalSetVoiceReceiveTransportParameters(channelId);
+        if (mLastError != 0)
           return;
         
-        mError = mVoiceBase->StartReceive(mVoiceChannel);
-        if (mError != 0) {
-          //ZS_LOG_ERROR(Detail, log("failed to start receiving voice (error: ") + Stringize<INT>(mVoiceBase->LastError()).string() + ")")
+        get(mLastError) = mVoiceBase->StartReceive(channelId);
+        if (mLastError != 0) {
+          ZS_LOG_ERROR(Detail, log("failed to start receiving voice") + ZS_PARAM("error", mVoiceBase->LastError()))
           return;
         }
-        mError = mVoiceBase->StartPlayout(mVoiceChannel);
-        if (mError != 0) {
-          //ZS_LOG_ERROR(Detail, log("failed to start playout (error: ") + Stringize<INT>(mVoiceBase->LastError()).string() + ")")
+        get(mLastError) = mVoiceBase->StartPlayout(channelId);
+        if (mLastError != 0) {
+          ZS_LOG_ERROR(Detail, log("failed to start playout") + ZS_PARAM("error", mVoiceBase->LastError()))
           return;
         }
         
         webrtc::CodecInst cfinst;
         memset(&cfinst, 0, sizeof(webrtc::CodecInst));
         for (int idx = 0; idx < mVoiceCodec->NumOfCodecs(); idx++) {
-          mError = mVoiceCodec->GetCodec(idx, cfinst);
-          if (mError != 0) {
-            //ZS_LOG_ERROR(Detail, log("failed to get voice codec (error: ") + Stringize<INT>(mVoiceBase->LastError()).string() + ")")
+          get(mLastError) = mVoiceCodec->GetCodec(idx, cfinst);
+          if (mLastError != 0) {
+            ZS_LOG_ERROR(Detail, log("failed to get voice codec") + ZS_PARAM("error", mVoiceBase->LastError()))
             return;
           }
           if (strcmp(cfinst.plname, "VORBIS") == 0) {
@@ -1552,9 +1987,9 @@ namespace ortc
         }
 
         if (!mVoiceRecordFile.empty()) {
-          mError = mVoiceFile->StartRecordingCall(mVoiceRecordFile, &cfinst);
-          if (mError != 0) {
-            //ZS_LOG_ERROR(Detail, log("failed to start call recording (error: ") + Stringize<INT>(mVoiceBase->LastError()).string() + ")")
+          get(mLastError) = mVoiceFile->StartRecordingCall(mVoiceRecordFile, &cfinst);
+          if (mLastError != 0) {
+            ZS_LOG_ERROR(Detail, log("failed to start call recording") + ZS_PARAM("error", mVoiceBase->LastError()))
           }
         }
       }
@@ -1566,7 +2001,7 @@ namespace ortc
     }
     
     //-----------------------------------------------------------------------
-    void MediaEngine::internalStopSendVoice()
+    void MediaEngine::internalStopSendVoice(int channelId)
     {
       {
         AutoRecursiveLock lock(mMediaEngineReadyLock);
@@ -1576,27 +2011,27 @@ namespace ortc
       {
         AutoRecursiveLock lock(mLock);
         
-        //ZS_LOG_DEBUG(log("stop send voice"))
+        ZS_LOG_DEBUG(log("stop send voice"))
         
-        mError = mVoiceBase->StopSend(mVoiceChannel);
-        if (mError != 0) {
-          //ZS_LOG_ERROR(Detail, log("failed to stop sending voice (error: ") + Stringize<INT>(mVoiceBase->LastError()).string() + ")")
+        get(mLastError) = mVoiceBase->StopSend(channelId);
+        if (mLastError != 0) {
+          ZS_LOG_ERROR(Detail, log("failed to stop sending voice") + ZS_PARAM("error", mVoiceBase->LastError()))
           return;
         }
-        mError = deregisterVoiceSendTransport();
-        if (0 != mError)
+        get(mLastError) = internalDeregisterVoiceSendTransport(channelId);
+        if (0 != mLastError)
           return;
-        mError = mVoiceBase->DeleteChannel(mVoiceChannel);
-        if (mError != 0) {
-          //ZS_LOG_ERROR(Detail, log("failed to delete voice channel (error: ") + Stringize<INT>(mVoiceBase->LastError()).string() + ")")
+        get(mLastError) = mVoiceBase->DeleteChannel(channelId);
+        if (mLastError != 0) {
+          ZS_LOG_ERROR(Detail, log("failed to delete voice channel") + ZS_PARAM("error", mVoiceBase->LastError()))
           return;
         }
-        mVoiceChannel = ORTC_MEDIA_ENGINE_INVALID_CHANNEL;
+        channelId = ORTC_MEDIA_ENGINE_INVALID_CHANNEL;
       }
     }
     
     //-----------------------------------------------------------------------
-    void MediaEngine::internalStopReceiveVoice()
+    void MediaEngine::internalStopReceiveVoice(int channelId)
     {
       {
         AutoRecursiveLock lock(mMediaEngineReadyLock);
@@ -1606,112 +2041,179 @@ namespace ortc
       {
         AutoRecursiveLock lock(mLock);
         
-        //ZS_LOG_DEBUG(log("stop receive voice"))
+        ZS_LOG_DEBUG(log("stop receive voice"))
 
-        mError = mVoiceBase->StopPlayout(mVoiceChannel);
-        if (mError != 0) {
-          //ZS_LOG_ERROR(Detail, log("failed to stop playout (error: ") + Stringize<INT>(mVoiceBase->LastError()).string() + ")")
+        get(mLastError) = mVoiceBase->StopPlayout(channelId);
+        if (mLastError != 0) {
+          ZS_LOG_ERROR(Detail, log("failed to stop playout") + ZS_PARAM("error", mVoiceBase->LastError()))
           return;
         }
-        mError = mVoiceBase->StopReceive(mVoiceChannel);
-        if (mError != 0) {
-          //ZS_LOG_ERROR(Detail, log("failed to stop receiving voice (error: ") + Stringize<INT>(mVoiceBase->LastError()).string() + ")")
+        get(mLastError) = mVoiceBase->StopReceive(channelId);
+        if (mLastError != 0) {
+          ZS_LOG_ERROR(Detail, log("failed to stop receiving voice") + ZS_PARAM("error", mVoiceBase->LastError()))
           return;
         }
         if (!mVoiceRecordFile.empty()) {
-          mError = mVoiceFile->StopRecordingCall();
-          if (mError != 0) {
-            //ZS_LOG_ERROR(Detail, log("failed to stop call recording (error: ") + Stringize<INT>(mVoiceBase->LastError()).string() + ")")
+          get(mLastError) = mVoiceFile->StopRecordingCall();
+          if (mLastError != 0) {
+            ZS_LOG_ERROR(Detail, log("failed to stop call recording") + ZS_PARAM("error", mVoiceBase->LastError()))
           }
           mVoiceRecordFile.erase();
         }
-        if (0 != mError)
+        if (0 != mLastError)
           return;
-        mError = mVoiceBase->DeleteChannel(mVoiceChannel);
-        if (mError != 0) {
-          //ZS_LOG_ERROR(Detail, log("failed to delete voice channel (error: ") + Stringize<INT>(mVoiceBase->LastError()).string() + ")")
+        get(mLastError) = mVoiceBase->DeleteChannel(channelId);
+        if (mLastError != 0) {
+          ZS_LOG_ERROR(Detail, log("failed to delete voice channel") + ZS_PARAM("error", mVoiceBase->LastError()))
           return;
         }
-        mVoiceChannel = ORTC_MEDIA_ENGINE_INVALID_CHANNEL;
+        channelId = ORTC_MEDIA_ENGINE_INVALID_CHANNEL;
       }
     }
-
+    
     //-----------------------------------------------------------------------
-    void MediaEngine::internalStartVideoCapture()
+    int MediaEngine::internalCreateVideoSource()
     {
       {
         AutoRecursiveLock lock(mLock);
         
-        //ZS_LOG_DEBUG(log("start video capture - camera type: ") + (mCaptureIdx == 0 ? "back" : "front"))
+//        ZS_LOG_DEBUG(log("create video source") + ZS_PARAM("camera type", mVideoSourceInfos[captureId].mCameraType == CameraType_Back ? "back" : "front"))
         
+        int captureId;
         const unsigned int KMaxDeviceNameLength = 128;
         const unsigned int KMaxUniqueIdLength = 256;
         char deviceName[KMaxDeviceNameLength];
         memset(deviceName, 0, KMaxDeviceNameLength);
         char uniqueId[KMaxUniqueIdLength];
         memset(uniqueId, 0, KMaxUniqueIdLength);
+        uint32_t captureIdx;
+        /*
+        if (mVideoSourceInfos[captureId].mCameraType == CameraType_Back)
+        {
+          captureIdx = 0;
+        }
+        else if (mVideoSourceInfos[captureId].mCameraType == CameraType_Front)
+        {
+          captureIdx = 1;
+        }
+        else
+        {
+          ZS_LOG_ERROR(Detail, log("camera type is not set"))
+          return;
+        }
+        */
+        captureIdx = 1;
         
+        webrtc::VideoCaptureModule::DeviceInfo *devInfo = webrtc::VideoCaptureFactory::CreateDeviceInfo(0);
+        if (devInfo == NULL) {
+          ZS_LOG_ERROR(Detail, log("failed to create video capture device info"))
+          return ORTC_MEDIA_ENGINE_INVALID_CHANNEL;
+        }
+        
+        get(mLastError) = devInfo->GetDeviceName(captureIdx, deviceName,
+                                                 KMaxDeviceNameLength, uniqueId,
+                                                 KMaxUniqueIdLength);
+        if (mLastError != 0) {
+          ZS_LOG_ERROR(Detail, log("failed to get video device name"))
+          return ORTC_MEDIA_ENGINE_INVALID_CHANNEL;
+        }
+        
+        strcpy(mVideoSourceInfos[captureId].mDeviceUniqueId, uniqueId);
+        
+        mVcpm = webrtc::VideoCaptureFactory::Create(1, uniqueId);
+        if (mVcpm == NULL) {
+          ZS_LOG_ERROR(Detail, log("failed to create video capture module"))
+          return ORTC_MEDIA_ENGINE_INVALID_CHANNEL;
+        }
+        
+        get(mLastError) = mVideoCapture->AllocateCaptureDevice(*mVcpm, captureId);
+        if (mLastError != 0) {
+          ZS_LOG_ERROR(Detail, log("failed to allocate video capture device") + ZS_PARAM("error", mVideoBase->LastError()))
+          return ORTC_MEDIA_ENGINE_INVALID_CHANNEL;
+        }
+        mVcpm->AddRef();
+        delete devInfo;
+        
+        VideoSourceInfo info(captureId);
+        VideoSourceLifetimeState lifetimeState(captureId);
+        
+        mVideoSourceInfos[captureId] = info;
+        mVideoSourceLifetimeStates[captureId] = lifetimeState;
+        
+        mVideoSourceInfos[captureId].mCameraType = CameraType_Front;
+        
+        return captureId;
+      }
+    }
+   
+    //-----------------------------------------------------------------------
+    int MediaEngine::internalCreateVideoChannel()
+    {
+      {
+        AutoRecursiveLock lock(mLock);
+        
+        int channelId;
+        get(mLastError) = mVideoBase->CreateChannel(channelId);
+        if (mLastError != 0) {
+          ZS_LOG_ERROR(Detail, log("could not create video channel") + ZS_PARAM("error", mVoiceBase->LastError()))
+          return ORTC_MEDIA_ENGINE_INVALID_CHANNEL;
+        }
+        
+        VideoChannelInfo info(channelId);
+        VideoChannelLifetimeState lifetimeState(channelId);
+        
+        mVideoChannelInfos[channelId] = info;
+        mVideoChannelLifetimeStates[channelId] = lifetimeState;
+        
+        return channelId;
+      }
+    }
+
+    //-----------------------------------------------------------------------
+    void MediaEngine::internalStartVideoCapture(int captureId)
+    {
+      {
+        AutoRecursiveLock lock(mLock);
+        
+        ZS_LOG_DEBUG(log("start video capture") + ZS_PARAM("camera type", mVideoSourceInfos[captureId].mCameraType == CameraType_Back ? "back" : "front"))
+        
+        VideoSourceInfoMap::iterator source_iter = mVideoSourceInfos.find(captureId);
+        if (source_iter == mVideoSourceInfos.end()) {
+          ZS_LOG_ERROR(Detail, log("video source not found") + ZS_PARAM("captureId", captureId))
+          return;
+        }
+
 #if defined(TARGET_OS_IPHONE) || defined(__QNX__)
-        void *captureView = mCaptureRenderView;
+        void *captureView = mVideoSourceInfos[captureId].mRenderView;
 #else
         void *captureView = NULL;
 #endif
 #ifndef __QNX__
         if (captureView == NULL) {
-          //ZS_LOG_ERROR(Detail, log("capture view is not set"))
+          ZS_LOG_ERROR(Detail, log("capture view is not set"))
           return;
         }
 #endif
         
-        webrtc::VideoCaptureModule::DeviceInfo *devInfo = webrtc::VideoCaptureFactory::CreateDeviceInfo(0);
-        if (devInfo == NULL) {
-          //ZS_LOG_ERROR(Detail, log("failed to create video capture device info"))
-          return;
-        }
-        
-        mError = devInfo->GetDeviceName(mCaptureIdx, deviceName,
-                                        KMaxDeviceNameLength, uniqueId,
-                                        KMaxUniqueIdLength);
-        if (mError != 0) {
-          //ZS_LOG_ERROR(Detail, log("failed to get video device name"))
-          return;
-        }
-        
-        strcpy(mDeviceUniqueId, uniqueId);
-        
-        mVcpm = webrtc::VideoCaptureFactory::Create(1, uniqueId);
-        if (mVcpm == NULL) {
-          //ZS_LOG_ERROR(Detail, log("failed to create video capture module"))
-          return;
-        }
-        
-        mError = mVideoCapture->AllocateCaptureDevice(*mVcpm, mCaptureId);
-        if (mError != 0) {
-          //ZS_LOG_ERROR(Detail, log("failed to allocate video capture device (error: ") + Stringize<INT>(mVideoBase->LastError()).string() + ")")
-          return;
-        }
-        mVcpm->AddRef();
-        delete devInfo;
-        
-        mError = mVideoCapture->RegisterObserver(mCaptureId, *this);
-        if (mError < 0) {
-          //ZS_LOG_ERROR(Detail, log("failed to register video capture observer (error: ") + Stringize<INT>(mVideoBase->LastError()).string() + ")")
+        get(mLastError) = mVideoCapture->RegisterObserver(captureId, *this);
+        if (mLastError < 0) {
+          ZS_LOG_ERROR(Detail, log("failed to register video capture observer") + ZS_PARAM("error", mVideoBase->LastError()))
           return;
         }
         
 #ifdef TARGET_OS_IPHONE
-        mError = mVideoCapture->SetDefaultCapturedFrameOrientation(mCaptureId, mDefaultVideoOrientation);
-        if (mError != 0) {
-          //ZS_LOG_ERROR(Detail, log("failed to set default orientation on video capture device (error: ") + Stringize<INT>(mVideoBase->LastError()).string() + ")")
+        get(mLastError) = mVideoCapture->SetDefaultCapturedFrameOrientation(captureId, mDefaultVideoOrientation);
+        if (mLastError != 0) {
+          ZS_LOG_ERROR(Detail, log("failed to set default orientation on video capture device") + ZS_PARAM("error", mVideoBase->LastError()))
           return;
         }
         
-        setVideoCaptureRotation();
+        setVideoCaptureRotation(captureId);
         
         webrtc::RotateCapturedFrame orientation;
-        mError = mVideoCapture->GetOrientation(mDeviceUniqueId, orientation);
-        if (mError != 0) {
-          //ZS_LOG_ERROR(Detail, log("failed to get orientation from video capture device (error: ") + Stringize<INT>(mVideoBase->LastError()).string() + ")")
+        get(mLastError) = mVideoCapture->GetOrientation(mVideoSourceInfos[captureId].mDeviceUniqueId, orientation);
+        if (mLastError != 0) {
+          ZS_LOG_ERROR(Detail, log("failed to get orientation from video capture device") + ZS_PARAM("error", mVideoBase->LastError()))
           return;
         }
 #else
@@ -1719,8 +2221,9 @@ namespace ortc
 #endif
         
         int width = 0, height = 0, maxFramerate = 0, maxBitrate = 0;
-        mError = getVideoCaptureParameters(orientation, width, height, maxFramerate, maxBitrate);
-        if (mError != 0)
+        get(mLastError) = getVideoCaptureParameters(mVideoSourceInfos[captureId].mCameraType,
+                                                    orientation, width, height, maxFramerate, maxBitrate);
+        if (mLastError != 0)
           return;
         
         webrtc::CaptureCapability capability;
@@ -1728,24 +2231,24 @@ namespace ortc
         capability.height = height;
         capability.maxFPS = maxFramerate;
         capability.rawType = webrtc::kVideoI420;
-        capability.faceDetection = mFaceDetection;
-        mError = mVideoCapture->StartCapture(mCaptureId, capability);
-        if (mError != 0) {
-          //ZS_LOG_ERROR(Detail, log("failed to start capturing (error: ") + Stringize<INT>(mVideoBase->LastError()).string() + ")")
+        capability.faceDetection = mVideoSourceInfos[captureId].mFaceDetection;
+        get(mLastError) = mVideoCapture->StartCapture(captureId, capability);
+        if (mLastError != 0) {
+          ZS_LOG_ERROR(Detail, log("failed to start capturing") + ZS_PARAM("error", mVideoBase->LastError()))
           return;
         }
         
 #ifndef __QNX__
-        mError = mVideoRender->AddRenderer(mCaptureId, captureView, 0, 0.0F, 0.0F, 1.0F,
+        get(mLastError) = mVideoRender->AddRenderer(captureId, captureView, 0, 0.0F, 0.0F, 1.0F,
                                            1.0F);
-        if (0 != mError) {
-          //ZS_LOG_ERROR(Detail, log("failed to add renderer for video capture (error: ") + Stringize<INT>(mVideoBase->LastError()).string() + ")")
+        if (0 != mLastError) {
+          ZS_LOG_ERROR(Detail, log("failed to add renderer for video capture") + ZS_PARAM("error", mVideoBase->LastError()))
           return;
         }
         
-        mError = mVideoRender->StartRender(mCaptureId);
-        if (mError != 0) {
-          //ZS_LOG_ERROR(Detail, log("failed to start rendering video capture (error: ") + Stringize<INT>(mVideoBase->LastError()).string() + ")")
+        get(mLastError) = mVideoRender->StartRender(captureId);
+        if (mLastError != 0) {
+          ZS_LOG_ERROR(Detail, log("failed to start rendering video capture") + ZS_PARAM("error", mVideoBase->LastError()))
           return;
         }
 #endif
@@ -1753,33 +2256,33 @@ namespace ortc
     }
     
     //-----------------------------------------------------------------------
-    void MediaEngine::internalStopVideoCapture()
+    void MediaEngine::internalStopVideoCapture(int captureId)
     {
       {
         AutoRecursiveLock lock(mLock);
         
-        //ZS_LOG_DEBUG(log("stop video capture"))
+        ZS_LOG_DEBUG(log("stop video capture"))
         
 #ifndef __QNX__
-        mError = mVideoRender->StopRender(mCaptureId);
-        if (mError != 0) {
-          //ZS_LOG_ERROR(Detail, log("failed to stop rendering video capture (error: ") + Stringize<INT>(mVideoBase->LastError()).string() + ")")
+        get(mLastError) = mVideoRender->StopRender(captureId);
+        if (mLastError != 0) {
+          ZS_LOG_ERROR(Detail, log("failed to stop rendering video capture") + ZS_PARAM("error", mVideoBase->LastError()))
           return;
         }
-        mError = mVideoRender->RemoveRenderer(mCaptureId);
-        if (mError != 0) {
-          //ZS_LOG_ERROR(Detail, log("failed to remove renderer for video capture (error: ") + Stringize<INT>(mVideoBase->LastError()).string() + ")")
+        get(mLastError) = mVideoRender->RemoveRenderer(captureId);
+        if (mLastError != 0) {
+          ZS_LOG_ERROR(Detail, log("failed to remove renderer for video capture") + ZS_PARAM("error", mVideoBase->LastError()))
           return;
         }
 #endif
-        mError = mVideoCapture->StopCapture(mCaptureId);
-        if (mError != 0) {
-          //ZS_LOG_ERROR(Detail, log("failed to stop video capturing (error: ") + Stringize<INT>(mVideoBase->LastError()).string() + ")")
+        get(mLastError) = mVideoCapture->StopCapture(captureId);
+        if (mLastError != 0) {
+          ZS_LOG_ERROR(Detail, log("failed to stop video capturing") + ZS_PARAM("error", mVideoBase->LastError()))
           return;
         }
-        mError = mVideoCapture->ReleaseCaptureDevice(mCaptureId);
-        if (mError != 0) {
-          //ZS_LOG_ERROR(Detail, log("failed to release video capture device (error: ") + Stringize<INT>(mVideoBase->LastError()).string() + ")")
+        get(mLastError) = mVideoCapture->ReleaseCaptureDevice(captureId);
+        if (mLastError != 0) {
+          ZS_LOG_ERROR(Detail, log("failed to release video capture device") + ZS_PARAM("error", mVideoBase->LastError()))
           return;
         }
         
@@ -1791,86 +2294,90 @@ namespace ortc
     }
     
     //-----------------------------------------------------------------------
-    void MediaEngine::internalStartSendVideoChannel()
+    void MediaEngine::internalStartSendVideoChannel(int channelId, int captureId)
     {
       {
         AutoRecursiveLock lock(mLock);
         
-        //ZS_LOG_DEBUG(log("start send video channel"))
-
-        if (mVideoChannel == ORTC_MEDIA_ENGINE_INVALID_CHANNEL) {
-          mError = mVideoBase->CreateChannel(mVideoChannel);
-          if (mError != 0) {
-            //ZS_LOG_ERROR(Detail, log("could not create video channel (error: ") + Stringize<INT>(mVideoBase->LastError()).string() + ")")
-            return;
-          }
-        }
+        ZS_LOG_DEBUG(log("start send video channel"))
         
-        mError = registerVideoSendTransport();
-        if (0 != mError)
-          return;
-        
-        mError = mVideoNetwork->SetMTU(mVideoChannel, mMtu);
-        if (0 != mError) {
-          //ZS_LOG_ERROR(Detail, log("failed to set MTU for video channel (error: ") + Stringize<INT>(mVideoBase->LastError()).string() + ")")
+        VideoChannelInfoMap::iterator channel_iter = mVideoChannelInfos.find(channelId);
+        if (channel_iter == mVideoChannelInfos.end()) {
+          ZS_LOG_ERROR(Detail, log("video channel not found") + ZS_PARAM("channelId", channelId))
           return;
         }
         
-        mError = mVideoCapture->ConnectCaptureDevice(mCaptureId, mVideoChannel);
-        if (0 != mError) {
-          //ZS_LOG_ERROR(Detail, log("failed to connect capture device to video channel (error: ") + Stringize<INT>(mVideoBase->LastError()).string() + ")")
+        VideoSourceInfoMap::iterator source_iter = mVideoSourceInfos.find(captureId);
+        if (source_iter == mVideoSourceInfos.end()) {
+          ZS_LOG_ERROR(Detail, log("video source not found") + ZS_PARAM("captureId", captureId))
           return;
         }
         
-        mError = mVideoRtpRtcp->SetRTCPStatus(mVideoChannel, webrtc::kRtcpCompound_RFC4585);
-        if (0 != mError) {
-          //ZS_LOG_ERROR(Detail, log("failed to set video RTCP status (error: ") + Stringize<INT>(mVideoBase->LastError()).string() + ")")
+        get(mLastError) = internalRegisterVideoSendTransport(channelId);
+        if (0 != mLastError)
+          return;
+        
+        get(mLastError) = mVideoNetwork->SetMTU(channelId, mMtu);
+        if (0 != mLastError) {
+          ZS_LOG_ERROR(Detail, log("failed to set MTU for video channel") + ZS_PARAM("error", mVideoBase->LastError()))
           return;
         }
         
-        mError = mVideoRtpRtcp->SetKeyFrameRequestMethod(mVideoChannel,
+        get(mLastError) = mVideoCapture->ConnectCaptureDevice(captureId, channelId);
+        if (0 != mLastError) {
+          ZS_LOG_ERROR(Detail, log("failed to connect capture device to video channel") + ZS_PARAM("error", mVideoBase->LastError()))
+          return;
+        }
+        
+        get(mLastError) = mVideoRtpRtcp->SetRTCPStatus(channelId, webrtc::kRtcpCompound_RFC4585);
+        if (0 != mLastError) {
+          ZS_LOG_ERROR(Detail, log("failed to set video RTCP status") + ZS_PARAM("error", mVideoBase->LastError()))
+          return;
+        }
+        
+        get(mLastError) = mVideoRtpRtcp->SetKeyFrameRequestMethod(channelId,
                                                          webrtc::kViEKeyFrameRequestPliRtcp);
-        if (0 != mError) {
-          //ZS_LOG_ERROR(Detail, log("failed to set key frame request method (error: ") + Stringize<INT>(mVideoBase->LastError()).string() + ")")
+        if (0 != mLastError) {
+          ZS_LOG_ERROR(Detail, log("failed to set key frame request method") + ZS_PARAM("error", mVideoBase->LastError()))
           return;
         }
         
-        mError = mVideoRtpRtcp->SetTMMBRStatus(mVideoChannel, true);
-        if (0 != mError) {
-          //ZS_LOG_ERROR(Detail, log("failed to set temporary max media bit rate status (error: ") + Stringize<INT>(mVideoBase->LastError()).string() + ")")
+        get(mLastError) = mVideoRtpRtcp->SetTMMBRStatus(channelId, true);
+        if (0 != mLastError) {
+          ZS_LOG_ERROR(Detail, log("failed to set temporary max media bit rate status") + ZS_PARAM("error", mVideoBase->LastError()))
           return;
         }
         
         webrtc::VideoCodec videoCodec;
         memset(&videoCodec, 0, sizeof(VideoCodec));
         for (int idx = 0; idx < mVideoCodec->NumberOfCodecs(); idx++) {
-          mError = mVideoCodec->GetCodec(idx, videoCodec);
-          if (mError != 0) {
-            //ZS_LOG_ERROR(Detail, log("failed to get video codec (error: ") + Stringize<INT>(mVideoBase->LastError()).string() + ")")
+          get(mLastError) = mVideoCodec->GetCodec(idx, videoCodec);
+          if (mLastError != 0) {
+            ZS_LOG_ERROR(Detail, log("failed to get video codec") + ZS_PARAM("error", mVideoBase->LastError()))
             return;
           }
           if (videoCodec.codecType == webrtc::kVideoCodecVP8) {
-            mError = mVideoCodec->SetSendCodec(mVideoChannel, videoCodec);
-            if (mError != 0) {
-              //ZS_LOG_ERROR(Detail, log("failed to set send video codec (error: ") + Stringize<INT>(mVideoBase->LastError()).string() + ")")
+            get(mLastError) = mVideoCodec->SetSendCodec(channelId, videoCodec);
+            if (mLastError != 0) {
+              ZS_LOG_ERROR(Detail, log("failed to set send video codec") + ZS_PARAM("error", mVideoBase->LastError()))
               return;
             }
             break;
           }
         }
         
-        mError = setVideoCodecParameters();
-        if (mError != 0) {
+        get(mLastError) = setVideoCodecParameters(channelId, captureId);
+        if (mLastError != 0) {
           return;
         }
         
-        mError = setVideoSendTransportParameters();
-        if (mError != 0)
+        get(mLastError) = internalSetVideoSendTransportParameters(channelId);
+        if (mLastError != 0)
           return;
         
-        mError = mVideoBase->StartSend(mVideoChannel);
-        if (mError != 0) {
-          //ZS_LOG_ERROR(Detail, log("failed to start sending video (error: ") + Stringize<INT>(mVideoBase->LastError()).string() + ")")
+        get(mLastError) = mVideoBase->StartSend(channelId);
+        if (mLastError != 0) {
+          ZS_LOG_ERROR(Detail, log("failed to start sending video") + ZS_PARAM("error", mVideoBase->LastError()))
           return;
         }
       }
@@ -1882,67 +2389,65 @@ namespace ortc
     }
     
     //-----------------------------------------------------------------------
-    void MediaEngine::internalStartReceiveVideoChannel()
+    void MediaEngine::internalStartReceiveVideoChannel(int channelId)
     {
       {
         AutoRecursiveLock lock(mLock);
         
-        //ZS_LOG_DEBUG(log("start receive video channel"))
+        ZS_LOG_DEBUG(log("start receive video channel"))
         
+        VideoChannelInfoMap::iterator iter = mVideoChannelInfos.find(channelId);
+        if (iter == mVideoChannelInfos.end()) {
+          ZS_LOG_ERROR(Detail, log("video channel not found") + ZS_PARAM("channelId", channelId))
+          return;
+        }
+
 #if defined(TARGET_OS_IPHONE) || defined(__QNX__)
-        void *channelView = mChannelRenderView;
+        void *channelView = mVideoChannelInfos[channelId].mRenderView;
 #else
         void *channelView = NULL;
 #endif
         if (channelView == NULL) {
-          //ZS_LOG_ERROR(Detail, log("channel view is not set"))
+          ZS_LOG_ERROR(Detail, log("channel view is not set"))
           return;
-        }
-        
-        if (mVideoChannel == ORTC_MEDIA_ENGINE_INVALID_CHANNEL) {
-          mError = mVideoBase->CreateChannel(mVideoChannel);
-          if (mError != 0) {
-            //ZS_LOG_ERROR(Detail, log("could not create video channel (error: ") + Stringize<INT>(mVideoBase->LastError()).string() + ")")
-            return;
-          }
         }
         
 #ifdef TARGET_OS_IPHONE
         OutputAudioRoute route;
-        mError = mVoiceHardware->GetOutputAudioRoute(route);
-        if (mError != 0) {
-          //ZS_LOG_ERROR(Detail, log("failed to get output audio route (error: ") + Stringize<INT>(mVoiceBase->LastError()).string() + ")")
+        get(mLastError) = mVoiceHardware->GetOutputAudioRoute(route);
+        if (mLastError != 0) {
+          ZS_LOG_ERROR(Detail, log("failed to get output audio route") + ZS_PARAM("error", mVoiceBase->LastError()))
           return;
         }
         if (route != webrtc::kOutputAudioRouteHeadphone)
         {
-          mError = mVoiceHardware->SetLoudspeakerStatus(true);
-          if (mError != 0) {
-            //ZS_LOG_ERROR(Detail, log("failed to set loudspeaker (error: ") + Stringize<INT>(mVoiceBase->LastError()).string() + ")")
+          get(mLastError) = mVoiceHardware->SetLoudspeakerStatus(true);
+          if (mLastError != 0) {
+            ZS_LOG_ERROR(Detail, log("failed to set loudspeaker") + ZS_PARAM("error", mVoiceBase->LastError()))
             return;
           }
         }
 #endif
         
-        mError = mVideoRender->AddRenderer(mVideoChannel, channelView, 0, 0.0F, 0.0F, 1.0F,
+        get(mLastError) = mVideoRender->AddRenderer(channelId, channelView, 0, 0.0F, 0.0F, 1.0F,
                                            1.0F);
-        if (0 != mError) {
-          //ZS_LOG_ERROR(Detail, log("failed to add renderer for video channel (error: ") + Stringize<INT>(mVideoBase->LastError()).string() + ")")
+        if (0 != mLastError) {
+          ZS_LOG_ERROR(Detail, log("failed to add renderer for video channel") + ZS_PARAM("error", mVideoBase->LastError()))
           return;
         }
         
-        mError = setVideoReceiveTransportParameters();
-        if (mError != 0)
+        get(mLastError) = internalSetVideoReceiveTransportParameters(channelId);
+        if (mLastError != 0)
           return;
         
-        mError = mVideoBase->StartReceive(mVideoChannel);
-        if (mError != 0) {
-          //ZS_LOG_ERROR(Detail, log("failed to start receiving video (error: ") + Stringize<INT>(mVideoBase->LastError()).string() + ")")
+        get(mLastError) = mVideoBase->StartReceive(channelId);
+        if (mLastError != 0) {
+          ZS_LOG_ERROR(Detail, log("failed to start receiving video") + ZS_PARAM("error", mVideoBase->LastError()))
           return;
         }
-        mError = mVideoRender->StartRender(mVideoChannel);
-        if (mError != 0) {
-          //ZS_LOG_ERROR(Detail, log("failed to start rendering video channel (error: ") + Stringize<INT>(mVideoBase->LastError()).string() + ")")
+        get(mLastError) = mVideoRender->StartRender(channelId);
+        if (mLastError != 0) {
+          ZS_LOG_ERROR(Detail, log("failed to start rendering video channel") + ZS_PARAM("error", mVideoBase->LastError()))
           return;
         }
       }
@@ -1954,7 +2459,7 @@ namespace ortc
     }
     
     //-----------------------------------------------------------------------
-    void MediaEngine::internalStopSendVideoChannel()
+    void MediaEngine::internalStopSendVideoChannel(int channelId)
     {
       {
         AutoRecursiveLock lock(mMediaEngineReadyLock);
@@ -1964,33 +2469,33 @@ namespace ortc
       {
         AutoRecursiveLock lock(mLock);
         
-        //ZS_LOG_DEBUG(log("stop send video channel"))
+        ZS_LOG_DEBUG(log("stop send video channel"))
 
-        mError = mVideoBase->StopSend(mVideoChannel);
-        if (mError != 0) {
-          //ZS_LOG_ERROR(Detail, log("failed to stop sending video (error: ") + Stringize<INT>(mVideoBase->LastError()).string() + ")")
+        get(mLastError) = mVideoBase->StopSend(channelId);
+        if (mLastError != 0) {
+          ZS_LOG_ERROR(Detail, log("failed to stop sending video") + ZS_PARAM("error", mVideoBase->LastError()))
           return;
         }
-        mError = mVideoCapture->DisconnectCaptureDevice(mVideoChannel);
-        if (mError != 0) {
-          //ZS_LOG_ERROR(Detail, log("failed to disconnect capture device from video channel (error: ") + Stringize<INT>(mVideoBase->LastError()).string() + ")")
+        get(mLastError) = mVideoCapture->DisconnectCaptureDevice(channelId);
+        if (mLastError != 0) {
+          ZS_LOG_ERROR(Detail, log("failed to disconnect capture device from video channel") + ZS_PARAM("error", mVideoBase->LastError()))
           return;
         }
-        mError = deregisterVideoSendTransport();
-        if (0 != mError)
+        get(mLastError) = internalDeregisterVideoSendTransport(channelId);
+        if (0 != mLastError)
           return;
-        mError = mVideoBase->DeleteChannel(mVideoChannel);
-        if (mError != 0) {
-          //ZS_LOG_ERROR(Detail, log("failed to delete video channel (error: ") + Stringize<INT>(mVideoBase->LastError()).string() + ")")
+        get(mLastError) = mVideoBase->DeleteChannel(channelId);
+        if (mLastError != 0) {
+          ZS_LOG_ERROR(Detail, log("failed to delete video channel") + ZS_PARAM("error", mVideoBase->LastError()))
           return;
         }
         
-        mVideoChannel = ORTC_MEDIA_ENGINE_INVALID_CHANNEL;
+        channelId = ORTC_MEDIA_ENGINE_INVALID_CHANNEL;
       }
     }
     
     //-----------------------------------------------------------------------
-    void MediaEngine::internalStopReceiveVideoChannel()
+    void MediaEngine::internalStopReceiveVideoChannel(int channelId)
     {
       {
         AutoRecursiveLock lock(mMediaEngineReadyLock);
@@ -2000,66 +2505,66 @@ namespace ortc
       {
         AutoRecursiveLock lock(mLock);
         
-        //ZS_LOG_DEBUG(log("stop receive video channel"))
+        ZS_LOG_DEBUG(log("stop receive video channel"))
         
-        mError = mVideoRender->StopRender(mVideoChannel);
-        if (mError != 0) {
-          //ZS_LOG_ERROR(Detail, log("failed to stop rendering video channel (error: ") + Stringize<INT>(mVideoBase->LastError()).string() + ")")
+        get(mLastError) = mVideoRender->StopRender(channelId);
+        if (mLastError != 0) {
+          ZS_LOG_ERROR(Detail, log("failed to stop rendering video channel") + ZS_PARAM("error", mVideoBase->LastError()))
           return;
         }
-        mError = mVideoRender->RemoveRenderer(mVideoChannel);
-        if (mError != 0) {
-          //ZS_LOG_ERROR(Detail, log("failed to remove renderer for video channel (error: ") + Stringize<INT>(mVideoBase->LastError()).string() + ")")
+        get(mLastError) = mVideoRender->RemoveRenderer(channelId);
+        if (mLastError != 0) {
+          ZS_LOG_ERROR(Detail, log("failed to remove renderer for video channel") + ZS_PARAM("error", mVideoBase->LastError()))
           return;
         }
-        mError = mVideoBase->StopReceive(mVideoChannel);
-        if (mError != 0) {
-          //ZS_LOG_ERROR(Detail, log("failed to stop receiving video (error: ") + Stringize<INT>(mVideoBase->LastError()).string() + ")")
+        get(mLastError) = mVideoBase->StopReceive(channelId);
+        if (mLastError != 0) {
+          ZS_LOG_ERROR(Detail, log("failed to stop receiving video") + ZS_PARAM("error", mVideoBase->LastError()))
           return;
         }
-        mError = mVideoBase->DeleteChannel(mVideoChannel);
-        if (mError != 0) {
-          //ZS_LOG_ERROR(Detail, log("failed to delete video channel (error: ") + Stringize<INT>(mVideoBase->LastError()).string() + ")")
+        get(mLastError) = mVideoBase->DeleteChannel(channelId);
+        if (mLastError != 0) {
+          ZS_LOG_ERROR(Detail, log("failed to delete video channel") + ZS_PARAM("error", mVideoBase->LastError()))
           return;
         }
         
-        mVideoChannel = ORTC_MEDIA_ENGINE_INVALID_CHANNEL;
+        channelId = ORTC_MEDIA_ENGINE_INVALID_CHANNEL;
       }
     }
     
     //-----------------------------------------------------------------------
-    void MediaEngine::internalStartRecordVideoCapture(String videoRecordFile, bool saveVideoToLibrary)
+    void MediaEngine::internalStartRecordVideoCapture(int captureId, String videoRecordFile, bool saveVideoToLibrary)
     {
       AutoRecursiveLock lock(mLock);
       
-      //ZS_LOG_DEBUG(log("start video capture recording"))
+      ZS_LOG_DEBUG(log("start video capture recording"))
       
-      mError = mVideoCapture->SetCapturedFrameLockedOrientation(mCaptureId, mRecordVideoOrientation);
-      if (mError != 0) {
-        //ZS_LOG_ERROR(Detail, log("failed to set record orientation on video capture device (error: ") + Stringize<INT>(mVideoBase->LastError()).string() + ")")
+      get(mLastError) = mVideoCapture->SetCapturedFrameLockedOrientation(captureId, mRecordVideoOrientation);
+      if (mLastError != 0) {
+        ZS_LOG_ERROR(Detail, log("failed to set record orientation on video capture device") + ZS_PARAM("error", mVideoBase->LastError()))
         return;
       }
-      mError = mVideoCapture->EnableCapturedFrameOrientationLock(mCaptureId, true);
-      if (mError != 0) {
-        //ZS_LOG_ERROR(Detail, log("failed to enable orientation lock on video capture device (error: ") + Stringize<INT>(mVideoBase->LastError()).string() + ")")
+      get(mLastError) = mVideoCapture->EnableCapturedFrameOrientationLock(captureId, true);
+      if (mLastError != 0) {
+        ZS_LOG_ERROR(Detail, log("failed to enable orientation lock on video capture device") + ZS_PARAM("error", mVideoBase->LastError()))
         return;
       }
       
       webrtc::RotateCapturedFrame orientation;
-      mError = mVideoCapture->GetOrientation(mDeviceUniqueId, orientation);
-      if (mError != 0) {
-        //ZS_LOG_ERROR(Detail, log("failed to get orientation from video capture device (error: ") + Stringize<INT>(mVideoBase->LastError()).string() + ")")
+      get(mLastError) = mVideoCapture->GetOrientation(mVideoSourceInfos[captureId].mDeviceUniqueId, orientation);
+      if (mLastError != 0) {
+        ZS_LOG_ERROR(Detail, log("failed to get orientation from video capture device") + ZS_PARAM("error", mVideoBase->LastError()))
         return;
       }
       
-      if (mVideoChannel == ORTC_MEDIA_ENGINE_INVALID_CHANNEL)
-        setVideoCaptureRotation();
-      else
-        setVideoCodecParameters();
+      setVideoCaptureRotation(captureId);
+      //if (channelId != ORTC_MEDIA_ENGINE_INVALID_CHANNEL)
+      //  setVideoCodecParameters(channelId, captureId);
       
       int width = 0, height = 0, maxFramerate = 0, maxBitrate = 0;
-      mError = getVideoCaptureParameters(orientation, width, height, maxFramerate, maxBitrate);
-      if (mError != 0)
+      get(mLastError) = getVideoCaptureParameters(mVideoSourceInfos[captureId].mCameraType,
+                                                  orientation, width, height, maxFramerate, maxBitrate);
+      if (mLastError != 0)
         return;
       
       webrtc::CodecInst audioCodec;
@@ -2077,125 +2582,124 @@ namespace ortc
       videoCodec.maxFramerate = maxFramerate;
       videoCodec.maxBitrate = maxBitrate;
       
-      mError = mVideoFile->StartRecordCaptureVideo(mCaptureId, videoRecordFile, webrtc::MICROPHONE, audioCodec, videoCodec, webrtc::kFileFormatMP4File, saveVideoToLibrary);
-      if (mError != 0) {
-        //ZS_LOG_ERROR(Detail, log("failed to start video capture recording (error: ") + Stringize<INT>(mVoiceBase->LastError()).string() + ")")
+      get(mLastError) = mVideoFile->StartRecordCaptureVideo(captureId, videoRecordFile, webrtc::MICROPHONE, audioCodec, videoCodec, webrtc::kFileFormatMP4File, saveVideoToLibrary);
+      if (mLastError != 0) {
+        ZS_LOG_ERROR(Detail, log("failed to start video capture recording") + ZS_PARAM("error", mVideoBase->LastError()))
         return;
       }
     }
     
     //-----------------------------------------------------------------------
-    void MediaEngine::internalStopRecordVideoCapture()
+    void MediaEngine::internalStopRecordVideoCapture(int captureId)
     {
       AutoRecursiveLock lock(mLock);
       
-      //ZS_LOG_DEBUG(log("stop video capture recording"))
+      ZS_LOG_DEBUG(log("stop video capture recording"))
       
-      mError = mVideoFile->StopRecordCaptureVideo(mCaptureId);
-      if (mError != 0) {
-        //ZS_LOG_ERROR(Detail, log("failed to stop video capture recording (error: ") + Stringize<INT>(mVoiceBase->LastError()).string() + ")")
+      get(mLastError) = mVideoFile->StopRecordCaptureVideo(captureId);
+      if (mLastError != 0) {
+        ZS_LOG_ERROR(Detail, log("failed to stop video capture recording") + ZS_PARAM("error", mVideoBase->LastError()))
         return;
       }
       
-      mError = mVideoCapture->EnableCapturedFrameOrientationLock(mCaptureId, false);
-      if (mError != 0) {
-        //ZS_LOG_ERROR(Detail, log("failed to disable orientation lock on video capture device (error: ") + Stringize<INT>(mVideoBase->LastError()).string() + ")")
+      get(mLastError) = mVideoCapture->EnableCapturedFrameOrientationLock(captureId, false);
+      if (mLastError != 0) {
+        ZS_LOG_ERROR(Detail, log("failed to disable orientation lock on video capture device") + ZS_PARAM("error", mVideoBase->LastError()))
         return;
       }
       
-      try {
-        if (mDelegate)
-          mDelegate->onMediaEngineVideoCaptureRecordStopped(0);
-      } catch (IMediaEngineDelegateProxy::Exceptions::DelegateGone &) {
-        //ZS_LOG_WARNING(Detail, log("delegate gone"))
-      }
+      mSubscriptions.delegate()->onMediaEngineVideoCaptureRecordStopped(0);
     }
     
     //-----------------------------------------------------------------------
-    int MediaEngine::registerVoiceSendTransport()
+    int MediaEngine::internalRegisterVoiceSendTransport(int channelId)
     {
-      if (NULL != mVoiceTransport) {
-        mError = mVoiceNetwork->RegisterExternalTransport(mVoiceChannel, *mVoiceTransport);
-        if (0 != mError) {
-          //ZS_LOG_ERROR(Detail, log("failed to register voice external transport (error: ") + Stringize<INT>(mVoiceBase->LastError()).string() + ")")
-          return mError;
+      if (NULL != mVoiceChannelInfos[channelId].mTransport) {
+        get(mLastError) = mVoiceNetwork->RegisterExternalTransport(channelId, *mVoiceChannelInfos[channelId].mTransport);
+        if (0 != mLastError) {
+          ZS_LOG_ERROR(Detail, log("failed to register voice external transport") + ZS_PARAM("error", mVoiceBase->LastError()))
+          return mLastError;
         }
       } else {
-        //ZS_LOG_ERROR(Detail, log("external voice transport is not set"))
+        ZS_LOG_ERROR(Detail, log("external voice transport is not set"))
         return -1;
       }
-      
+
       return 0;
     }
     
     //-----------------------------------------------------------------------
-    int MediaEngine::deregisterVoiceSendTransport()
+    int MediaEngine::internalDeregisterVoiceSendTransport(int channelId)
     {
-      mError = mVoiceNetwork->DeRegisterExternalTransport(mVoiceChannel);
-      if (mError != 0) {
-        //ZS_LOG_ERROR(Detail, log("failed to deregister voice external transport (error: ") + Stringize<INT>(mVoiceBase->LastError()).string() + ")")
-        return mError;
+      get(mLastError) = mVoiceNetwork->DeRegisterExternalTransport(channelId);
+      if (mLastError != 0) {
+        ZS_LOG_ERROR(Detail, log("failed to deregister voice external transport") + ZS_PARAM("error", mVoiceBase->LastError()))
+        return mLastError;
       }
+
       return 0;
     }
 
     //-----------------------------------------------------------------------
-    int MediaEngine::setVoiceSendTransportParameters()
+    int MediaEngine::internalSetVoiceSendTransportParameters(int channelId)
     {
       // No transport parameters for external transport.
       return 0;
     }
     
     //-----------------------------------------------------------------------
-    int MediaEngine::setVoiceReceiveTransportParameters()
+    int MediaEngine::internalSetVoiceReceiveTransportParameters(int channelId)
     {
       // No transport parameters for external transport.
       return 0;
     }
     
     //-----------------------------------------------------------------------
-    int MediaEngine::registerVideoSendTransport()
+    int MediaEngine::internalRegisterVideoSendTransport(int channelId)
     {
-      if (NULL != mVideoTransport) {
-        mError = mVideoNetwork->RegisterSendTransport(mVideoChannel, *mVideoTransport);
-        if (0 != mError) {
-          //ZS_LOG_ERROR(Detail, log("failed to register video external transport (error: ") + Stringize<INT>(mVideoBase->LastError()).string() + ")")
-          return mError;
+      if (NULL != mVideoChannelInfos[channelId].mTransport) {
+        get(mLastError) = mVideoNetwork->RegisterSendTransport(channelId, *mVideoChannelInfos[channelId].mTransport);
+        if (0 != mLastError) {
+          ZS_LOG_ERROR(Detail, log("failed to register video external transport") + ZS_PARAM("error", mVideoBase->LastError()))
+          return mLastError;
         }
       } else {
-        //ZS_LOG_ERROR(Detail, log("external video transport is not set"))
+        ZS_LOG_ERROR(Detail, log("external video transport is not set"))
         return -1;
       }
+
       return 0;
     }
     
     //-----------------------------------------------------------------------
-    int MediaEngine::deregisterVideoSendTransport()
+    int MediaEngine::internalDeregisterVideoSendTransport(int channelId)
     {
-      mError = mVideoNetwork->DeregisterSendTransport(mVideoChannel);
-      if (mError != 0) {
-        //ZS_LOG_ERROR(Detail, log("failed to deregister video external transport (error: ") + Stringize<INT>(mVideoBase->LastError()).string() + ")")
-        return mError;
+      get(mLastError) = mVideoNetwork->DeregisterSendTransport(channelId);
+      if (mLastError != 0) {
+        ZS_LOG_ERROR(Detail, log("failed to deregister video external transport") + ZS_PARAM("error", mVideoBase->LastError()))
+        return mLastError;
       }
+
       return 0;
     }
     
     //-----------------------------------------------------------------------
-    int MediaEngine::setVideoSendTransportParameters()
+    int MediaEngine::internalSetVideoSendTransportParameters(int channelId)
     {
       // No transport parameters for external transport.
       return 0;
     }
     
     //-----------------------------------------------------------------------
-    int MediaEngine::setVideoReceiveTransportParameters()
+    int MediaEngine::internalSetVideoReceiveTransportParameters(int channelId)
     {
       // No transport parameters for external transport.
       return 0;
     }
     
     //-----------------------------------------------------------------------
-    int MediaEngine::getVideoCaptureParameters(webrtc::RotateCapturedFrame orientation, int& width, int& height, int& maxFramerate, int& maxBitrate)
+    int MediaEngine::getVideoCaptureParameters(CameraTypes cameraType, webrtc::RotateCapturedFrame orientation,
+                                               int& width, int& height, int& maxFramerate, int& maxBitrate)
     {
 #ifdef TARGET_OS_IPHONE
       String iPadString("iPad");
@@ -2208,192 +2712,213 @@ namespace ortc
       String iPhone5String("iPhone5");
       String iPodString("iPod");
       String iPod4String("iPod4,1");
-      if (mCaptureIdx == 0) {
+      String iPod5String("iPod5,1");
+      if (cameraType == CameraType_Back) {
         if (orientation == webrtc::RotateCapturedFrame_0 || orientation == webrtc::RotateCapturedFrame_180) {
-          if (mMachineName.compare(0, iPod4String.size(), iPod4String) >= 0) {
-            width = 320;
-            height = 180;
+          if (mMachineName.compare(0, iPod5String.size(), iPod5String) >= 0) {
+            width = 960;
+            height = 540;
             maxFramerate = 15;
-            maxBitrate = 250;
+            maxBitrate = 500;
+          } else if (mMachineName.compare(0, iPod4String.size(), iPod4String) >= 0) {
+            width = 640;
+            height = 360;
+            maxFramerate = 15;
+            maxBitrate = 400;
           } else if (mMachineName.compare(0, iPodString.size(), iPodString) >= 0) {
             width = 160;
             height = 90;
             maxFramerate = 5;
             maxBitrate = 100;
           } else if (mMachineName.compare(0, iPhone5String.size(), iPhone5String) >= 0) {
-            width = 480;
-            height = 270;
+            width = 960;
+            height = 540;
             maxFramerate = 15;
-            maxBitrate = 300;
+            maxBitrate = 500;
           } else if (mMachineName.compare(0, iPhone4SString.size(), iPhone4SString) >= 0) {
-            width = 320;
-            height = 180;
+            width = 640;
+            height = 360;
             maxFramerate = 15;
-            maxBitrate = 250;
+            maxBitrate = 400;
           } else if (mMachineName.compare(0, iPhoneString.size(), iPhoneString) >= 0) {
             width = 160;
             height = 90;
             maxFramerate = 5;
             maxBitrate = 100;
           } else if (mMachineName.compare(0, iPadMiniString.size(), iPadMiniString) >= 0) {
-            width = 480;
-            height = 270;
+            width = 960;
+            height = 540;
             maxFramerate = 15;
-            maxBitrate = 250;
+            maxBitrate = 500;
           } else if (mMachineName.compare(0, iPad2String.size(), iPad2String) >= 0) {
-            width = 320;
-            height = 180;
+            width = 640;
+            height = 360;
             maxFramerate = 15;
-            maxBitrate = 250;
+            maxBitrate = 400;
           } else {
-            //ZS_LOG_ERROR(Detail, log("machine name is not supported"))
+            ZS_LOG_ERROR(Detail, log("machine name is not supported"))
             return -1;
           }
         } else if (orientation == webrtc::RotateCapturedFrame_90 || orientation == webrtc::RotateCapturedFrame_270) {
-          if (mMachineName.compare(0, iPod4String.size(), iPod4String) >= 0) {
-            width = 180;
-            height = 320;
+          if (mMachineName.compare(0, iPod5String.size(), iPod5String) >= 0) {
+            width = 540;
+            height = 960;
             maxFramerate = 15;
-            maxBitrate = 250;
+            maxBitrate = 500;
+          } else if (mMachineName.compare(0, iPod4String.size(), iPod4String) >= 0) {
+            width = 360;
+            height = 640;
+            maxFramerate = 15;
+            maxBitrate = 400;
           } else if (mMachineName.compare(0, iPodString.size(), iPodString) >= 0) {
             width = 90;
             height = 160;
             maxFramerate = 5;
             maxBitrate = 100;
           } else if (mMachineName.compare(0, iPhone5String.size(), iPhone5String) >= 0) {
-            width = 270;
-            height = 480;
+            width = 540;
+            height = 960;
             maxFramerate = 15;
-            maxBitrate = 300;
+            maxBitrate = 500;
           } else if (mMachineName.compare(0, iPhone4SString.size(), iPhone4SString) >= 0) {
-            width = 180;
-            height = 320;
+            width = 360;
+            height = 640;
             maxFramerate = 15;
-            maxBitrate = 250;
+            maxBitrate = 400;
           } else if (mMachineName.compare(0, iPhoneString.size(), iPhoneString) >= 0) {
             width = 90;
             height = 160;
             maxFramerate = 5;
             maxBitrate = 100;
           } else if (mMachineName.compare(0, iPadMiniString.size(), iPadMiniString) >= 0) {
-            width = 270;
-            height = 480;
+            width = 540;
+            height = 960;
             maxFramerate = 15;
-            maxBitrate = 250;
+            maxBitrate = 500;
           } else if (mMachineName.compare(0, iPad2String.size(), iPad2String) >= 0) {
-            width = 180;
-            height = 320;
+            width = 360;
+            height = 640;
             maxFramerate = 15;
-            maxBitrate = 250;
+            maxBitrate = 400;
           } else {
-            //ZS_LOG_ERROR(Detail, log("machine name is not supported"))
+            ZS_LOG_ERROR(Detail, log("machine name is not supported"))
             return -1;
           }
         }
-      } else if (mCaptureIdx == 1) {
+      } else if (cameraType == CameraType_Front) {
         if (orientation == webrtc::RotateCapturedFrame_0 || orientation == webrtc::RotateCapturedFrame_180) {
-          if (mMachineName.compare(0, iPod4String.size(), iPod4String) >= 0) {
-            width = 320;
-            height = 240;
+          if (mMachineName.compare(0, iPod5String.size(), iPod5String) >= 0) {
+            width = 640;
+            height = 360;
             maxFramerate = 15;
-            maxBitrate = 250;
+            maxBitrate = 400;
+          } else if (mMachineName.compare(0, iPod4String.size(), iPod4String) >= 0) {
+            width = 640;
+            height = 480;
+            maxFramerate = 15;
+            maxBitrate = 400;
           } else if (mMachineName.compare(0, iPodString.size(), iPodString) >= 0) {
             width = 160;
             height = 120;
             maxFramerate = 5;
             maxBitrate = 100;
           } else if (mMachineName.compare(0, iPhone5String.size(), iPhone5String) >= 0) {
-            width = 320;
-            height = 180;
+            width = 640;
+            height = 360;
             maxFramerate = 15;
-            maxBitrate = 250;
+            maxBitrate = 400;
           } else if (mMachineName.compare(0, iPhone4SString.size(), iPhone4SString) >= 0) {
-            width = 320;
-            height = 240;
+            width = 640;
+            height = 480;
             maxFramerate = 15;
-            maxBitrate = 250;
+            maxBitrate = 400;
           } else if (mMachineName.compare(0, iPhoneString.size(), iPhoneString) >= 0) {
             width = 160;
             height = 120;
             maxFramerate = 5;
             maxBitrate = 100;
           } else if (mMachineName.compare(0, iPad4String.size(), iPad4String) >= 0) {
-            width = 320;
-            height = 180;
+            width = 640;
+            height = 360;
             maxFramerate = 15;
-            maxBitrate = 250;
+            maxBitrate = 400;
           } else if (mMachineName.compare(0, iPad3String.size(), iPad3String) >= 0) {
-            width = 320;
-            height = 240;
+            width = 640;
+            height = 480;
             maxFramerate = 15;
-            maxBitrate = 250;
+            maxBitrate = 400;
           } else if (mMachineName.compare(0, iPadMiniString.size(), iPadMiniString) >= 0) {
-            width = 320;
-            height = 180;
+            width = 640;
+            height = 360;
             maxFramerate = 15;
-            maxBitrate = 250;
+            maxBitrate = 400;
           } else if (mMachineName.compare(0, iPadString.size(), iPadString) >= 0) {
-            width = 320;
-            height = 240;
+            width = 640;
+            height = 480;
             maxFramerate = 15;
-            maxBitrate = 250;
+            maxBitrate = 400;
           } else {
-            //ZS_LOG_ERROR(Detail, log("machine name is not supported"))
+            ZS_LOG_ERROR(Detail, log("machine name is not supported"))
             return -1;
           }
         } else if (orientation == webrtc::RotateCapturedFrame_90 || orientation == webrtc::RotateCapturedFrame_270) {
-          if (mMachineName.compare(0, iPod4String.size(), iPod4String) >= 0) {
-            width = 240;
-            height = 320;
+          if (mMachineName.compare(0, iPod5String.size(), iPod5String) >= 0) {
+            width = 360;
+            height = 640;
             maxFramerate = 15;
-            maxBitrate = 250;
+            maxBitrate = 400;
+          } else if (mMachineName.compare(0, iPod4String.size(), iPod4String) >= 0) {
+            width = 480;
+            height = 640;
+            maxFramerate = 15;
+            maxBitrate = 400;
           } else if (mMachineName.compare(0, iPodString.size(), iPodString) >= 0) {
             width = 120;
             height = 160;
             maxFramerate = 5;
             maxBitrate = 100;
           } else if (mMachineName.compare(0, iPhone5String.size(), iPhone5String) >= 0) {
-            width = 180;
-            height = 320;
+            width = 360;
+            height = 640;
             maxFramerate = 15;
-            maxBitrate = 250;
+            maxBitrate = 400;
           } else if (mMachineName.compare(0, iPhone4SString.size(), iPhone4SString) >= 0) {
-            width = 240;
-            height = 320;
+            width = 480;
+            height = 640;
             maxFramerate = 15;
-            maxBitrate = 250;
+            maxBitrate = 400;
           } else if (mMachineName.compare(0, iPhoneString.size(), iPhoneString) >= 0) {
             width = 120;
             height = 160;
             maxFramerate = 5;
             maxBitrate = 100;
           } else if (mMachineName.compare(0, iPad4String.size(), iPad4String) >= 0) {
-            width = 180;
-            height = 320;
+            width = 360;
+            height = 640;
             maxFramerate = 15;
-            maxBitrate = 250;
+            maxBitrate = 400;
           } else if (mMachineName.compare(0, iPad3String.size(), iPad3String) >= 0) {
-            width = 240;
-            height = 320;
+            width = 480;
+            height = 640;
             maxFramerate = 15;
-            maxBitrate = 250;
+            maxBitrate = 400;
           } else if (mMachineName.compare(0, iPadMiniString.size(), iPadMiniString) >= 0) {
-            width = 180;
-            height = 320;
+            width = 360;
+            height = 640;
             maxFramerate = 15;
-            maxBitrate = 250;
+            maxBitrate = 400;
           } else if (mMachineName.compare(0, iPadString.size(), iPadString) >= 0) {
-            width = 240;
-            height = 320;
+            width = 480;
+            height = 640;
             maxFramerate = 15;
-            maxBitrate = 250;
+            maxBitrate = 400;
           } else {
-            //ZS_LOG_ERROR(Detail, log("machine name is not supported"))
+            ZS_LOG_ERROR(Detail, log("machine name is not supported"))
             return -1;
           }
         }
       } else {
-        //ZS_LOG_ERROR(Detail, log("camera type is not set"))
+        ZS_LOG_ERROR(Detail, log("camera type is not set"))
         return -1;
       }
 #else
@@ -2406,59 +2931,60 @@ namespace ortc
     }
     
     //-----------------------------------------------------------------------
-    int MediaEngine::setVideoCodecParameters()
+    int MediaEngine::setVideoCodecParameters(int channelId, int captureId)
     {
 #ifdef TARGET_OS_IPHONE
       webrtc::RotateCapturedFrame orientation;
-      mError = mVideoCapture->GetOrientation(mDeviceUniqueId, orientation);
-      if (mError != 0) {
-        //ZS_LOG_ERROR(Detail, log("failed to get orientation from video capture device (error: ") + Stringize<INT>(mVideoBase->LastError()).string() + ")")
-        return mError;
+      get(mLastError) = mVideoCapture->GetOrientation(mVideoSourceInfos[captureId].mDeviceUniqueId, orientation);
+      if (mLastError != 0) {
+        ZS_LOG_ERROR(Detail, log("failed to get orientation from video capture device") + ZS_PARAM("error", mVideoBase->LastError()))
+        return mLastError;
       }
 #else
       webrtc::RotateCapturedFrame orientation = webrtc::RotateCapturedFrame_0;
 #endif
       
       int width = 0, height = 0, maxFramerate = 0, maxBitrate = 0;
-      mError = getVideoCaptureParameters(orientation, width, height, maxFramerate, maxBitrate);
-      if (mError != 0)
-        return mError;
+      get(mLastError) = getVideoCaptureParameters(mVideoSourceInfos[captureId].mCameraType, orientation,
+                                                  width, height, maxFramerate, maxBitrate);
+      if (mLastError != 0)
+        return mLastError;
       
       webrtc::VideoCodec videoCodec;
       memset(&videoCodec, 0, sizeof(VideoCodec));
-      mError = mVideoCodec->GetSendCodec(mVideoChannel, videoCodec);
-      if (mError != 0) {
-        //ZS_LOG_ERROR(Detail, log("failed to get video codec (error: ") + Stringize<INT>(mVideoBase->LastError()).string() + ")")
-        return mError;
+      get(mLastError) = mVideoCodec->GetSendCodec(channelId, videoCodec);
+      if (mLastError != 0) {
+        ZS_LOG_ERROR(Detail, log("failed to get video codec") + ZS_PARAM("error", mVideoBase->LastError()))
+        return mLastError;
       }
       videoCodec.width = width;
       videoCodec.height = height;
       videoCodec.maxFramerate = maxFramerate;
       videoCodec.maxBitrate = maxBitrate;
-      mError = mVideoCodec->SetSendCodec(mVideoChannel, videoCodec);
-      if (mError != 0) {
-        //ZS_LOG_ERROR(Detail, log("failed to set send video codec (error: ") + Stringize<INT>(mVideoBase->LastError()).string() + ")")
-        return mError;
+      get(mLastError) = mVideoCodec->SetSendCodec(channelId, videoCodec);
+      if (mLastError != 0) {
+        ZS_LOG_ERROR(Detail, log("failed to set send video codec") + ZS_PARAM("error", mVideoBase->LastError()))
+        return mLastError;
       }
       
-      //ZS_LOG_DEBUG(log("video codec size - width: ") + Stringize<INT>(width).string() + ", height: " + Stringize<INT>(height).string())
+      ZS_LOG_DEBUG(log("video codec size ") + ZS_PARAM("width", width) + ZS_PARAM("height", height))
       
       return 0;
     }
 
     //-----------------------------------------------------------------------
-    int MediaEngine::setVideoCaptureRotation()
+    int MediaEngine::setVideoCaptureRotation(int captureId)
     {
       webrtc::RotateCapturedFrame orientation;
-      mError = mVideoCapture->GetOrientation(mDeviceUniqueId, orientation);
-      if (mError != 0) {
-        //ZS_LOG_ERROR(Detail, log("failed to get orientation from video capture device (error: ") + Stringize<INT>(mVideoBase->LastError()).string() + ")")
-        return mError;
+      get(mLastError) = mVideoCapture->GetOrientation(mVideoSourceInfos[captureId].mDeviceUniqueId, orientation);
+      if (mLastError != 0) {
+        ZS_LOG_ERROR(Detail, log("failed to get orientation from video capture device") + ZS_PARAM("error", mVideoBase->LastError()))
+        return mLastError;
       }
-      mError = mVideoCapture->SetRotateCapturedFrames(mCaptureId, orientation);
-      if (mError != 0) {
-        //ZS_LOG_ERROR(Detail, log("failed to set rotation for video capture device (error: ") + Stringize<INT>(mVideoBase->LastError()).string() + ")")
-        return mError;
+      get(mLastError) = mVideoCapture->SetRotateCapturedFrames(captureId, orientation);
+      if (mLastError != 0) {
+        ZS_LOG_ERROR(Detail, log("failed to set rotation for video capture device") + ZS_PARAM("error", mVideoBase->LastError()))
+        return mLastError;
       }
       
       const char *rotationString = NULL;
@@ -2480,7 +3006,7 @@ namespace ortc
       }
       
       if (rotationString) {
-        //ZS_LOG_DEBUG(log("video capture rotation set - rotation: ") + rotationString)
+        ZS_LOG_DEBUG(log("video capture rotation set") + ZS_PARAM("rotation", rotationString))
       }
       
       return 0;
@@ -2516,7 +3042,7 @@ namespace ortc
       } else if (mMachineName.compare(0, iPadString.size(), iPadString) >= 0) {
         return webrtc::kEcAecm;
       } else {
-        //ZS_LOG_ERROR(Detail, log("machine name is not supported"))
+        ZS_LOG_ERROR(Detail, log("machine name is not supported"))
         return webrtc::kEcUnchanged;
       }
 #elif defined(__QNX__)
@@ -2527,11 +3053,136 @@ namespace ortc
     }
     
     //-----------------------------------------------------------------------
-    String MediaEngine::log(const char *message) const
-    {
-      return String("MediaEngine [") + Stringize<typeof(mID)>(mID).string() + "] " + message;
-    }
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    #pragma mark
+    #pragma mark MediaEngine::VoiceSourceInfo
+    #pragma mark
     
+    //-----------------------------------------------------------------------
+    MediaEngine::VoiceSourceInfo::VoiceSourceInfo(int sourceId) :
+      mSourceId(sourceId)
+    { }
+    
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    #pragma mark
+    #pragma mark MediaEngine::VoiceChannelInfo
+    #pragma mark
+    
+    //-----------------------------------------------------------------------
+    MediaEngine::VoiceChannelInfo::VoiceChannelInfo(int channelId) :
+      mChannelId(channelId),
+      mEcEnabled(false),
+      mAgcEnabled(false),
+      mNsEnabled(false),
+      mRedirectTransport(new RedirectTransport("voice")),
+      mTransport(mRedirectTransport)
+    { }
+    
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    #pragma mark
+    #pragma mark MediaEngine::VideoSourceInfo
+    #pragma mark
+    
+    //-----------------------------------------------------------------------
+    MediaEngine::VideoSourceInfo::VideoSourceInfo(int sourceId) :
+      mSourceId(sourceId),
+      mCameraType(CameraType_None),
+      mRenderView(NULL),
+      mFaceDetection(false)
+    { }
+    
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    #pragma mark
+    #pragma mark MediaEngine::VideoChannelInfo
+    #pragma mark
+    
+    //-----------------------------------------------------------------------
+    MediaEngine::VideoChannelInfo::VideoChannelInfo(int channelId) :
+      mChannelId(channelId),
+      mRenderView(NULL),
+      mRedirectTransport(new RedirectTransport("video")),
+      mTransport(mRedirectTransport)
+    { }
+    
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    #pragma mark
+    #pragma mark MediaEngine::VoiceSourceLifetimeState
+    #pragma mark
+    
+    //-----------------------------------------------------------------------
+    MediaEngine::VoiceSourceLifetimeState::VoiceSourceLifetimeState(int sourceId) :
+      mSourceId(sourceId)
+    { }
+    
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    #pragma mark
+    #pragma mark MediaEngine::VoiceChannelLifetimeState
+    #pragma mark
+    
+    //-----------------------------------------------------------------------
+    MediaEngine::VoiceChannelLifetimeState::VoiceChannelLifetimeState(int channelId) :
+      mChannelId(channelId),
+      mLifetimeWantSendAudio(false),
+      mLifetimeWantReceiveAudio(false),
+      mLifetimeHasSendAudio(false),
+      mLifetimeHasReceiveAudio(false)
+    { }
+    
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    #pragma mark
+    #pragma mark MediaEngine::VideoSourceLifetimeState
+    #pragma mark
+    
+    //-----------------------------------------------------------------------
+    MediaEngine::VideoSourceLifetimeState::VideoSourceLifetimeState(int sourceId) :
+      mSourceId(sourceId),
+      mLifetimeWantVideoCapture(false),
+      mLifetimeWantRecordVideoCapture(false),
+      mLifetimeWantCameraType(CameraType_None),
+      mLifetimeContinuousVideoCapture(false),
+      mLifetimeVideoRecordFile(""),
+      mLifetimeSaveVideoToLibrary(false),
+      mLifetimeHasVideoCapture(false),
+      mLifetimeHasRecordVideoCapture(false)
+    { }
+    
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    #pragma mark
+    #pragma mark MediaEngine::VideoChannelLifetimeState
+    #pragma mark
+    
+    //-----------------------------------------------------------------------
+    MediaEngine::VideoChannelLifetimeState::VideoChannelLifetimeState(int channelId) :
+      mChannelId(channelId),
+      mLifetimeWantSendVideoChannel(false),
+      mLifetimeWantReceiveVideoChannel(false),
+      mLifetimeHasSendVideoChannel(false),
+      mLifetimeHasReceiveVideoChannel(false)
+    { }
+
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
@@ -2542,11 +3193,10 @@ namespace ortc
     
     //-----------------------------------------------------------------------
     MediaEngine::RedirectTransport::RedirectTransport(const char *transportType) :
-    mID(zsLib::createPUID()),
-    mTransportType(transportType),
-    mTransport(0)
-    {
-    }
+      mID(zsLib::createPUID()),
+      mTransportType(transportType),
+      mTransport(0)
+    { }
     
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
@@ -2565,7 +3215,7 @@ namespace ortc
         transport = mTransport;
       }
       if (!transport) {
-        //ZS_LOG_WARNING(Debug, log("RTP packet cannot be sent as no transport is not registered") + ", channel=" + Stringize<typeof(channel)>(channel).string() + ", length=" + Stringize<typeof(len)>(len).string())
+        ZS_LOG_WARNING(Debug, log("RTP packet cannot be sent as no transport is not registered") + ZS_PARAM("channel", channel) + ZS_PARAM("length", len))
         return 0;
       }
       
@@ -2581,7 +3231,7 @@ namespace ortc
         transport = mTransport;
       }
       if (!transport) {
-        //ZS_LOG_WARNING(Debug, log("RTCP packet cannot be sent as no transport is not registered") + ", channel=" + Stringize<typeof(channel)>(channel).string() + ", length=" + Stringize<typeof(len)>(len).string())
+        ZS_LOG_WARNING(Debug, log("RTCP packet cannot be sent as no transport is not registered") + ZS_PARAM("channel", channel) + ZS_PARAM("length", len))
         return 0;
       }
       
@@ -2612,9 +3262,12 @@ namespace ortc
     #pragma mark
     
     //-----------------------------------------------------------------------
-    String MediaEngine::RedirectTransport::log(const char *message)
+    Log::Params MediaEngine::RedirectTransport::log(const char *message)
     {
-      return String("MediaEngine::RedirectTransport (") + mTransportType + ") [" + Stringize<typeof(mID)>(mID).string() + "] " + message;
+      ElementPtr objectEl = Element::create("ortc::MediaEngine::RedirectTransport");
+      OPIHelper::debugAppend(objectEl, "id", mID);
+      OPIHelper::debugAppend(objectEl, "transport type", mTransportType);
+      return Log::Params(message, objectEl);
     }
   }
 }

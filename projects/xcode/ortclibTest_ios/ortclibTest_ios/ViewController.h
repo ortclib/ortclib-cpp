@@ -15,6 +15,10 @@
     IBOutlet UITextField* receiverIPAddressTextField;
   
     ortc::IMediaManagerDelegatePtr mediaManagerDelegatePtr;
+    ortc::IMediaStreamPtr sendMediaStreamPtr;
+    ortc::IMediaStreamPtr receiveMediaStreamPtr;
+    int audioChannel;
+    int videoChannel;
 }
 
 -(IBAction)test1;
@@ -23,5 +27,7 @@
 -(IBAction)test4;
 -(IBAction)test5;
 -(IBAction)test6;
+
+-(void)setSendMediaStream:(ortc::IMediaStreamPtr)stream;
 
 @end

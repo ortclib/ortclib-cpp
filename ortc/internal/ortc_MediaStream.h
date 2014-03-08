@@ -34,6 +34,8 @@
 #include <ortc/internal/types.h>
 #include <ortc/IMediaStream.h>
 
+#include <openpeer/services/IWakeDelegate.h>
+
 namespace ortc
 {
   namespace internal
@@ -56,8 +58,19 @@ namespace ortc
                                    IMediaStreamDelegatePtr delegate
                                    );
       
+      virtual String id() = 0;
+      virtual MediaStreamTrackListPtr getAudioTracks() = 0;
+      virtual MediaStreamTrackListPtr getVideoTracks() = 0;
+      virtual IMediaStreamTrackPtr getTrackById(String trackId) = 0;
+      virtual void addTrack(IMediaStreamTrackPtr track) = 0;
+      virtual void removeTrack(IMediaStreamTrackPtr track) = 0;
+
       virtual String getCNAME() = 0;
-      
+      virtual int getAudioChannel() = 0;
+      virtual void setAudioChannel(int channel) = 0;
+      virtual int getVideoChannel() = 0;
+      virtual void setVideoChannel(int channel) = 0;
+
       virtual void setVoiceRecordFile(String fileName) = 0;
       virtual String getVoiceRecordFile() const = 0;
     };
@@ -85,13 +98,15 @@ namespace ortc
     #pragma mark
     
     class MediaStream : public Noop,
-      public MessageQueueAssociator,
-      public IMediaStream,
-      public IMediaStreamForMediaManager,
-      public IMediaStreamForRTCConnection
+                        public MessageQueueAssociator,
+                        public IMediaStream,
+                        public IMediaStreamForMediaManager,
+                        public IMediaStreamForRTCConnection,
+                        public IWakeDelegate
     {
     public:
       friend interaction IMediaStream;
+      friend interaction IMediaStreamFactory;
       friend interaction IMediaStreamForMediaManager;
       friend interaction IMediaStreamForRTCConnection;
 
@@ -126,7 +141,11 @@ namespace ortc
       
     protected:
       virtual String getCNAME();
-      
+      virtual int getAudioChannel();
+      virtual void setAudioChannel(int channel);
+      virtual int getVideoChannel();
+      virtual void setVideoChannel(int channel);
+
       virtual void setVoiceRecordFile(String fileName);
       virtual String getVoiceRecordFile() const;
 
@@ -135,13 +154,32 @@ namespace ortc
       #pragma mark MediaStream => IMediaStreamForRTCConnection
       #pragma mark
       
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark MediaStream => IWakeDelegate
+      #pragma mark
+      
+      virtual void onWake();
+      
       //---------------------------------------------------------------------
       #pragma mark
       #pragma mark MediaStream => (internal)
       #pragma mark
       
-    private:
-      String log(const char *message) const;
+      Log::Params log(const char *message) const;
+      Log::Params debug(const char *message) const;
+      ElementPtr toDebug() const;
+      
+      RecursiveLock &getLock() const {return mLock;}
+      
+      bool isShuttingDown() const;
+      bool isShutdown() const;
+      
+      void step();
+      
+      void cancel();
+      
+      void setError(WORD error, const char *reason = NULL);
 
       //---------------------------------------------------------------------
       #pragma mark
@@ -152,9 +190,14 @@ namespace ortc
       PUID mID;
       mutable RecursiveLock mLock;
       MediaStreamWeakPtr mThisWeak;
-      IMediaStreamDelegatePtr mDelegate;
+      MediaStreamPtr mGracefulShutdownReference;
+      AutoBool mShutdown;
       
-      int mError;
+      IMediaStreamDelegateSubscriptions mSubscriptions;
+      IMediaStreamSubscriptionPtr mDefaultSubscription;
+      
+      AutoWORD mLastError;
+      String mLastErrorReason;
       
       String mStreamID;
       MediaStreamTrackListPtr mAudioTracks;
@@ -163,7 +206,24 @@ namespace ortc
       
       String mCNAME;
       
+      int mAudioChannel;
+      int mVideoChannel;
       String mVoiceRecordFile;
+    };
+    
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IMediaStreamFactory
+    #pragma mark
+    
+    interaction IMediaStreamFactory
+    {
+      static IMediaStreamFactory &singleton();
+      
+      virtual MediaStreamPtr create(IMediaStreamDelegatePtr delegate);
     };
   }
 }

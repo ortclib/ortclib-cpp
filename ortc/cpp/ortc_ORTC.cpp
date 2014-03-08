@@ -65,6 +65,12 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    IMessageQueuePtr IORTCForInternal::queueBlockingMediaStartStopThread()
+    {
+      return (ORTC::singleton())->queueBlockingMediaStartStopThread();
+    }
+
+    //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -75,14 +81,14 @@ namespace ortc
     //-------------------------------------------------------------------------
     ORTC::ORTC()
     {
-      ZS_LOG_DEBUG(log("created"))
+      ZS_LOG_DETAIL(log("created"))
     }
 
     //-------------------------------------------------------------------------
     ORTC::~ORTC()
     {
       mThisWeak.reset();
-      ZS_LOG_DEBUG(log("destroyed"))
+      ZS_LOG_DETAIL(log("destroyed"))
     }
 
     //-------------------------------------------------------------------------
@@ -117,7 +123,8 @@ namespace ortc
     //-------------------------------------------------------------------------
     void ORTC::setup(
                      IMessageQueuePtr defaultDelegateMessageQueue,
-                     IMessageQueuePtr ortcMessageQueue
+                     IMessageQueuePtr ortcMessageQueue,
+                     IMessageQueuePtr blockingMediaStartStopThread
                      )
     {
       AutoRecursiveLock lock(mLock);
@@ -130,8 +137,13 @@ namespace ortc
         mORTCQueue = ortcMessageQueue;
       }
 
+      if (blockingMediaStartStopThread) {
+        mBlockingMediaStartStopThread = blockingMediaStartStopThread;
+      }
+
       ZS_THROW_INVALID_ARGUMENT_IF(!mDelegateQueue)
       ZS_THROW_INVALID_ARGUMENT_IF(!mORTCQueue)
+      ZS_THROW_INVALID_ARGUMENT_IF(!mBlockingMediaStartStopThread)
     }
 
     //-------------------------------------------------------------------------
@@ -152,6 +164,12 @@ namespace ortc
     IMessageQueuePtr ORTC::queueORTC() const
     {
       return mORTCQueue;
+    }
+
+    //-------------------------------------------------------------------------
+    IMessageQueuePtr ORTC::queueBlockingMediaStartStopThread() const
+    {
+      return mBlockingMediaStartStopThread;
     }
 
     //-------------------------------------------------------------------------
@@ -183,14 +201,5 @@ namespace ortc
   IORTCPtr IORTC::singleton()
   {
     return internal::ORTC::singleton();
-  }
-
-  //---------------------------------------------------------------------------
-  void IORTC::setup(
-                    IMessageQueuePtr defaultDelegateMessageQueue,
-                    IMessageQueuePtr ortcMessageQueue
-                    )
-  {
-    return internal::ORTC::singleton()->setup(defaultDelegateMessageQueue, ortcMessageQueue);
   }
 }

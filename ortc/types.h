@@ -54,55 +54,51 @@ namespace ortc
   using zsLib::XML::Element;
   using zsLib::XML::ElementPtr;
 
-  using openpeer::services::SecureByteBlock;
-  using openpeer::services::SecureByteBlockPtr;
-  
+  ZS_DECLARE_USING_PTR(openpeer::services, SecureByteBlock)
+
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
   #pragma mark
-  #pragma mark (other)
+  #pragma mark (forwards)
   #pragma mark
 
-  interaction IORTC;
-  typedef boost::shared_ptr<IORTC> IORTCPtr;
-  typedef boost::weak_ptr<IORTC> IORTCWeakPtr;
+  ZS_DECLARE_STRUCT_PTR(TrackDescription)
+  ZS_DECLARE_STRUCT_PTR(RTPFlowParams)
+  ZS_DECLARE_STRUCT_PTR(RTPRTXFlowParams)
+  ZS_DECLARE_STRUCT_PTR(RTPFECFlowParams)
+  ZS_DECLARE_STRUCT_PTR(RTPLayeredFlowParams)
 
-  interaction IHelper;
-
-  interaction IICETransport;
-  typedef boost::shared_ptr<IICETransport> IICETransportPtr;
-  typedef boost::weak_ptr<IICETransport> IICETransportWeakPtr;
-
-  interaction IICETransportDelegate;
-  typedef boost::shared_ptr<IICETransportDelegate> IICETransportDelegatePtr;
-  typedef boost::weak_ptr<IICETransportDelegate> IICETransportDelegateWeakPtr;
-  typedef zsLib::Proxy<IICETransportDelegate> IICETransportDelegateProxy;
-
-  interaction IICETransportSubscription;
-  typedef boost::shared_ptr<IICETransportSubscription> IICETransportSubscriptionPtr;
-  typedef boost::weak_ptr<IICETransportSubscription> IICETransportSubscriptionWeakPtr;
-  typedef zsLib::ProxySubscriptions<IICETransportDelegate, IICETransportSubscription> IICETransportDelegateSubscriptions;
-
-  interaction IRTCConnection;
-  typedef boost::shared_ptr<IRTCConnection> IRTCConnectionPtr;
-  typedef boost::weak_ptr<IRTCConnection> IRTCConnectionWeakPtr;
+  ZS_DECLARE_INTERACTION_PTR(IORTC)
+  ZS_DECLARE_INTERACTION_PTR(IHelper)
+  ZS_DECLARE_INTERACTION_PTR(IDTLSTransport)
+  ZS_DECLARE_INTERACTION_PTR(IICETransport)
+  ZS_DECLARE_INTERACTION_PTR(IRTPSender)
+  ZS_DECLARE_INTERACTION_PTR(IRTPReceiver)
+  ZS_DECLARE_INTERACTION_PTR(IMediaManager)
+  ZS_DECLARE_INTERACTION_PTR(IMediaStream)
+  ZS_DECLARE_INTERACTION_PTR(IMediaStreamTrack)
   
-  interaction IRTCConnectionDelegate;
-  typedef boost::shared_ptr<IRTCConnectionDelegate> IRTCConnectionDelegatePtr;
-  typedef boost::weak_ptr<IRTCConnectionDelegate> IRTCConnectionDelegateWeakPtr;
-  typedef zsLib::Proxy<IRTCConnectionDelegate> IRTCConnectionDelegateProxy;
-  
-  interaction IRTCSocket;
-  typedef boost::shared_ptr<IRTCSocket> IRTCSocketPtr;
-  typedef boost::weak_ptr<IRTCSocket> IRTCSocketWeakPtr;
-  
+  ZS_DECLARE_TYPEDEF_PTR(std::list<IMediaStreamTrackPtr>, MediaStreamTrackList)
+
+  ZS_DECLARE_INTERACTION_PROXY(IDTLSTransportDelegate)
+  ZS_DECLARE_INTERACTION_PROXY(IICETransportDelegate)
+  ZS_DECLARE_INTERACTION_PROXY(IMediaManagerDelegate)
+  ZS_DECLARE_INTERACTION_PROXY(IMediaStreamDelegate)
+  ZS_DECLARE_INTERACTION_PROXY(IMediaStreamTrackDelegate)
+
+  ZS_DECLARE_INTERACTION_PROXY_SUBSCRIPTION(IDTLSTransportSubscription, IDTLSTransportDelegate)
+  ZS_DECLARE_INTERACTION_PROXY_SUBSCRIPTION(IICETransportSubscription, IICETransportDelegate)
+  ZS_DECLARE_INTERACTION_PROXY_SUBSCRIPTION(IMediaManagerSubscription, IMediaManagerDelegate)
+  ZS_DECLARE_INTERACTION_PROXY_SUBSCRIPTION(IMediaStreamSubscription, IMediaStreamDelegate)
+  ZS_DECLARE_INTERACTION_PROXY_SUBSCRIPTION(IMediaStreamTrackSubscription, IMediaStreamTrackDelegate)
+
   interaction IRTCStream;
   typedef boost::shared_ptr<IRTCStream> IRTCStreamPtr;
   typedef boost::weak_ptr<IRTCStream> IRTCStreamWeakPtr;
   
-  typedef std::list<IRTCStream> RTCStreamList;
+  typedef std::list<IRTCStreamPtr> RTCStreamList;
   typedef boost::shared_ptr<RTCStreamList> RTCStreamListPtr;
   typedef boost::weak_ptr<RTCStreamList> RTCStreamListWeakPtr;
 
@@ -110,7 +106,7 @@ namespace ortc
   typedef boost::shared_ptr<IRTCTrack> IRTCTrackPtr;
   typedef boost::weak_ptr<IRTCTrack> IRTCTrackWeakPtr;
   
-  typedef std::list<IRTCTrack> RTCTrackList;
+  typedef std::list<IRTCTrackPtr> RTCTrackList;
   typedef boost::shared_ptr<RTCTrackList> RTCTrackListPtr;
   typedef boost::weak_ptr<RTCTrackList> RTCTrackListWeakPtr;
 
@@ -131,36 +127,4 @@ namespace ortc
   typedef boost::shared_ptr<IRTCDataChannelDelegate> IRTCDataChannelDelegatePtr;
   typedef boost::weak_ptr<IRTCDataChannelDelegate> IRTCDataChannelDelegateWeakPtr;
   typedef zsLib::Proxy<IRTCDataChannelDelegate> IRTCDataChannelDelegateProxy;
-  
-  interaction IMediaManager;
-  typedef boost::shared_ptr<IMediaManager> IMediaManagerPtr;
-  typedef boost::weak_ptr<IMediaManager> IMediaManagerWeakPtr;
-  
-  interaction IMediaManagerDelegate;
-  typedef boost::shared_ptr<IMediaManagerDelegate> IMediaManagerDelegatePtr;
-  typedef boost::weak_ptr<IMediaManagerDelegate> IMediaManagerDelegateWeakPtr;
-  typedef zsLib::Proxy<IMediaManagerDelegate> IMediaManagerDelegateProxy;
-
-  interaction IMediaStream;
-  typedef boost::shared_ptr<IMediaStream> IMediaStreamPtr;
-  typedef boost::weak_ptr<IMediaStream> IMediaStreamWeakPtr;
-  
-  interaction IMediaStreamDelegate;
-  typedef boost::shared_ptr<IMediaStreamDelegate> IMediaStreamDelegatePtr;
-  typedef boost::weak_ptr<IMediaStreamDelegate> IMediaStreamDelegateWeakPtr;
-  typedef zsLib::Proxy<IMediaStreamDelegate> IMediaStreamDelegateProxy;
-
-  interaction IMediaStreamTrack;
-  typedef boost::shared_ptr<IMediaStreamTrack> IMediaStreamTrackPtr;
-  typedef boost::weak_ptr<IMediaStreamTrack> IMediaStreamTrackWeakPtr;
-  
-  typedef std::list<IMediaStreamTrack> MediaStreamTrackList;
-  typedef boost::shared_ptr<MediaStreamTrackList> MediaStreamTrackListPtr;
-  typedef boost::weak_ptr<MediaStreamTrackList> MediaStreamTrackListWeakPtr;
-
-  interaction IMediaStreamTrackDelegate;
-  typedef boost::shared_ptr<IMediaStreamTrackDelegate> IMediaStreamTrackDelegatePtr;
-  typedef boost::weak_ptr<IMediaStreamTrackDelegate> IMediaStreamTrackDelegateWeakPtr;
-  typedef zsLib::Proxy<IMediaStreamTrackDelegate> IMediaStreamTrackDelegateProxy;
- 
 }

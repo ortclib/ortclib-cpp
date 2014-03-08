@@ -78,18 +78,16 @@ namespace ortc
       #pragma mark
       
     protected:
-      TestMediaEngine();
+      TestMediaEngine(IMessageQueuePtr queue, internal::IMediaEngineDelegatePtr delegate);
       
     public:
       ~TestMediaEngine();
 
     private:
-      String log(const char *message) const;
+      internal::Log::Params log(const char *message) const;
 
     protected:
       static internal::MediaEnginePtr create(internal::IMediaEngineDelegatePtr delegate);
-      
-      virtual void setLogLevel();
       
     public:
       virtual void setReceiverAddress(String receiverAddress);
@@ -101,15 +99,15 @@ namespace ortc
       #pragma mark
       
     protected:
-      virtual int registerVoiceExternalTransport(Transport &transport);
-      virtual int deregisterVoiceExternalTransport();
-      virtual int receivedVoiceRTPPacket(const void *data, size_t length);
-      virtual int receivedVoiceRTCPPacket(const void *data, size_t length);
+      virtual int registerVoiceExternalTransport(int channelId, Transport &transport);
+      virtual int deregisterVoiceExternalTransport(int channelId);
+      virtual int receivedVoiceRTPPacket(int channelId, const void *data, size_t length);
+      virtual int receivedVoiceRTCPPacket(int channelId, const void *data, size_t length);
       
-      virtual int registerVideoExternalTransport(Transport &transport);
-      virtual int deregisterVideoExternalTransport();
-      virtual int receivedVideoRTPPacket(const void *data, size_t length);
-      virtual int receivedVideoRTCPPacket(const void *data, size_t length);
+      virtual int registerVideoExternalTransport(int channelId, Transport &transport);
+      virtual int deregisterVideoExternalTransport(int channelId);
+      virtual int receivedVideoRTPPacket(int channelId, const void *data, size_t length);
+      virtual int receivedVideoRTCPPacket(int channelId, const void *data, size_t length);
       
       //---------------------------------------------------------------------
       #pragma mark
@@ -131,20 +129,28 @@ namespace ortc
       #pragma mark
       
     protected:
-      virtual void internalStartVoice();
-      virtual void internalStopVoice();
+      virtual void internalStartSendVoice(int channelId);
+      virtual void internalStartReceiveVoice(int channelId);
+      virtual void internalStopSendVoice(int channelId);
+      virtual void internalStopReceiveVoice(int channelId);
       
-      virtual int registerVoiceTransport();
-      virtual int setVoiceTransportParameters();
+      virtual void internalStartVideoCapture(int captureId);
+      virtual void internalStopVideoCapture(int captureId);
+      virtual void internalStartSendVideoChannel(int channelId, int captureId);
+      virtual void internalStartReceiveVideoChannel(int channelId);
+      virtual void internalStopSendVideoChannel(int channelId);
+      virtual void internalStopReceiveVideoChannel(int channelId);
+      virtual void internalStartRecordVideoCapture(int captureId, String videoRecordFile, bool saveVideoToLibrary);
+      virtual void internalStopRecordVideoCapture(int captureId);
       
-      virtual void internalStartVideoCapture();
-      virtual void internalStopVideoCapture();
-      virtual void internalStartVideoChannel();
-      virtual void internalStopVideoChannel();
-
-      virtual int registerVideoTransport();
-      virtual int deregisterVideoTransport();
-      virtual int setVideoTransportParameters();
+      virtual int internalRegisterVoiceSendTransport(int channelId);
+      virtual int internalDeregisterVoiceSendTransport(int channelId);
+      virtual int internalSetVoiceSendTransportParameters(int channelId);
+      virtual int internalSetVoiceReceiveTransportParameters(int channelId);
+      virtual int internalRegisterVideoSendTransport(int channelId);
+      virtual int internalDeregisterVideoSendTransport(int channelId);
+      virtual int internalSetVideoSendTransportParameters(int channelId);
+      virtual int internalSetVideoReceiveTransportParameters(int channelId);
       
     private:
       webrtc::scoped_ptr<VoiceChannelTransport> voice_channel_transports_[32];
@@ -171,7 +177,7 @@ namespace ortc
     public:
       TestMediaEngineFactory() {}
       
-      virtual internal::MediaEnginePtr createMediaEngine(internal::IMediaEngineDelegatePtr delegate);
+      virtual internal::MediaEnginePtr create(internal::IMediaEngineDelegatePtr delegate);
     };
   }
 }

@@ -34,6 +34,8 @@
 #include <ortc/internal/types.h>
 #include <ortc/IMediaManager.h>
 
+#include <openpeer/services/IWakeDelegate.h>
+
 namespace ortc
 {
   namespace internal
@@ -47,26 +49,39 @@ namespace ortc
     #pragma mark
     
     class MediaManager : public Noop,
-      public MessageQueueAssociator,
-      public IMediaManager
+                         public MessageQueueAssociator,
+                         public IMediaManager,
+                         public IWakeDelegate
     {
+    public:
+      friend interaction IMediaManager;
+      friend interaction IMediaManagerFactory;
+
     protected:
       MediaManager(
                    IMessageQueuePtr queue,
                    IMediaManagerDelegatePtr delegate
                    );
       
+      static MediaManagerPtr singleton(IMediaManagerDelegatePtr delegate = IMediaManagerDelegatePtr());
+      
+      static void setup(IMediaManagerDelegatePtr delegate);
+
       static MediaManagerPtr create(IMessageQueuePtr queue, IMediaManagerDelegatePtr delegate);
       
     public:
       virtual ~MediaManager();
       
+    protected:
       //---------------------------------------------------------------------
       #pragma mark
       #pragma mark MediaManager => IMediaManager
       #pragma mark
       
-    protected:
+      virtual PUID getID() const;
+
+      virtual IMediaManagerSubscriptionPtr subscribe(IMediaManagerDelegatePtr delegate);
+
       virtual void getUserMedia(MediaStreamConstraints constraints);
       
       virtual void setDefaultVideoOrientation(VideoOrientations orientation);
@@ -80,25 +95,67 @@ namespace ortc
       virtual void setLoudspeakerEnabled(bool enabled);
       virtual bool getLoudspeakerEnabled();
       virtual OutputAudioRoutes getOutputAudioRoute();
+      
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark MediaManager => IWakeDelegate
+      #pragma mark
+      
+      virtual void onWake();
 
       //---------------------------------------------------------------------
       #pragma mark
       #pragma mark MediaManager => (internal)
       #pragma mark
       
+      Log::Params log(const char *message) const;
+      Log::Params debug(const char *message) const;
+      ElementPtr toDebug() const;
+      
+      RecursiveLock &getLock() const {return mLock;}
+      
+      bool isShuttingDown() const;
+      bool isShutdown() const;
+      
+      void step();
+      
+      void cancel();
+
+      void setError(WORD error, const char *reason = NULL);
+
       //---------------------------------------------------------------------
       #pragma mark
       #pragma mark MediaManager => (data)
       #pragma mark
       
     protected:
-      PUID mID;
+      AutoPUID mID;
       mutable RecursiveLock mLock;
       MediaManagerWeakPtr mThisWeak;
-      IMediaManagerDelegatePtr mDelegate;
+      MediaManagerPtr mGracefulShutdownReference;
+      AutoBool mShutdown;
+
+      IMediaManagerDelegateSubscriptions mSubscriptions;
+      IMediaManagerSubscriptionPtr mDefaultSubscription;
+
+      AutoWORD mLastError;
+      String mLastErrorReason;
       
-      int mError;
+    };
+    
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IMediaManagerFactory
+    #pragma mark
+    
+    interaction IMediaManagerFactory
+    {
+      static IMediaManagerFactory &singleton();
       
+      virtual MediaManagerPtr create(IMediaManagerDelegatePtr delegate);
     };
   }
 }

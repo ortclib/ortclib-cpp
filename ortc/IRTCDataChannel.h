@@ -45,7 +45,6 @@ namespace ortc
   
   interaction IRTCDataChannel
   {
-    virtual IRTCConnectionPtr connection() = 0;
     virtual String id() = 0;
     virtual String kind() = 0;
     virtual void send(BYTE* data) = 0;

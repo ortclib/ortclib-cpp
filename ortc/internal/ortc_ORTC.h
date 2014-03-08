@@ -48,11 +48,11 @@ namespace ortc
 
     interaction IORTCForInternal
     {
-      IORTCForInternal &forInternal() {return *this;}
-      const IORTCForInternal &forInternal() const {return *this;}
+      ZS_DECLARE_TYPEDEF_PTR(IORTCForInternal, ForInternal)
 
       static IMessageQueuePtr queueDelegate();
       static IMessageQueuePtr queueORTC();
+      static IMessageQueuePtr queueBlockingMediaStartStopThread();
     };
 
     //-----------------------------------------------------------------------
@@ -87,12 +87,13 @@ namespace ortc
 
       static ORTCPtr singleton();
 
+      virtual PUID getID() const {return mID;}
+
       virtual void setup(
                          IMessageQueuePtr defaultDelegateMessageQueue,
-                         IMessageQueuePtr ortcMessageQueue
+                         IMessageQueuePtr ortcMessageQueue,
+                         IMessageQueuePtr blockingMediaStartStopThread
                          );
-
-      virtual PUID getID() const {return mID;}
 
       //---------------------------------------------------------------------
       #pragma mark
@@ -101,6 +102,7 @@ namespace ortc
 
       virtual IMessageQueuePtr queueDelegate() const;
       virtual IMessageQueuePtr queueORTC() const;
+      virtual IMessageQueuePtr queueBlockingMediaStartStopThread() const;
 
       //---------------------------------------------------------------------
       #pragma mark
@@ -121,6 +123,7 @@ namespace ortc
 
       IMessageQueuePtr mORTCQueue;
       IMessageQueuePtr mDelegateQueue;
+      IMessageQueuePtr mBlockingMediaStartStopThread;
     };
   }
 }

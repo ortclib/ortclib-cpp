@@ -32,7 +32,7 @@
 #include <ortc/internal/ortc_RTCDataChannel.h>
 #include <zsLib/Log.h>
 
-namespace ortc { ZS_IMPLEMENT_SUBSYSTEM(ortclib) }
+namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib) }
 
 namespace ortc
 {
@@ -82,12 +82,6 @@ namespace ortc
     #pragma mark
     #pragma mark RTCDataChannel => IRTCDataChannel
     #pragma mark
-    
-    //-----------------------------------------------------------------------
-    IRTCConnectionPtr RTCDataChannel::connection()
-    {
-      return IRTCConnectionPtr();
-    }
     
     //-----------------------------------------------------------------------
     String RTCDataChannel::id()

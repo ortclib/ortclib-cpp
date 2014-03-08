@@ -30,12 +30,19 @@
  */
 
 #include <ortc/internal/ortc_MediaStreamTrack.h>
-#include <zsLib/Log.h>
+#include <ortc/internal/ortc_MediaEngine.h>
 
-namespace ortc { ZS_IMPLEMENT_SUBSYSTEM(ortclib) }
+#include <openpeer/services/IHelper.h>
+
+#include <zsLib/Log.h>
+#include <zsLib/XML.h>
+
+namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib) }
 
 namespace ortc
 {
+  typedef openpeer::services::IHelper OPIHelper;
+  
   namespace internal
   {
     //-----------------------------------------------------------------------
@@ -319,14 +326,13 @@ namespace ortc
     MediaStreamTrack::MediaStreamTrack(IMessageQueuePtr queue, IMediaStreamTrackDelegatePtr delegate) :
       MessageQueueAssociator(queue),
       mID(zsLib::createPUID()),
-      mDelegate(delegate),
-      mError(0),
       mEnabled(false),
       mMuted(false),
       mReadonly(false),
       mRemote(false),
       mReadyState(IMediaStreamTrack::MediaStreamTrackState_New),
       mSSRC(0),
+      mSource(-1),
       mChannel(-1)
     {
     }
@@ -404,6 +410,41 @@ namespace ortc
       
     }
     
+    //-------------------------------------------------------------------------
+    ULONG MediaStreamTrack::getSSRC()
+    {
+      return mSSRC;
+    }
+    
+    //-------------------------------------------------------------------------
+    int MediaStreamTrack::getChannel()
+    {
+      return mChannel;
+    }
+    
+    //-------------------------------------------------------------------------
+    void MediaStreamTrack::setChannel(int channel)
+    {
+      mChannel = channel;
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark MediaStreamTrack => IWakeDelegate
+    #pragma mark
+    
+    //-------------------------------------------------------------------------
+    void MediaStreamTrack::onWake()
+    {
+      ZS_LOG_DEBUG(log("wake"))
+      
+      AutoRecursiveLock lock(getLock());
+      step();
+    }
+    
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
@@ -413,11 +454,103 @@ namespace ortc
     #pragma mark
     
     //-------------------------------------------------------------------------
-    String MediaStreamTrack::log(const char *message) const
+    Log::Params MediaStreamTrack::log(const char *message) const
     {
-      return String();
+      ElementPtr objectEl = Element::create("ortc::MediaStreamTrack");
+      OPIHelper::debugAppend(objectEl, "id", mID);
+      return Log::Params(message, objectEl);
     }
     
+    //-------------------------------------------------------------------------
+    Log::Params MediaStreamTrack::debug(const char *message) const
+    {
+      return Log::Params(message, toDebug());
+    }
+    
+    //-------------------------------------------------------------------------
+    ElementPtr MediaStreamTrack::toDebug() const
+    {
+      ElementPtr resultEl = Element::create("MediaStreamTrack");
+      
+      OPIHelper::debugAppend(resultEl, "id", mID);
+      
+      OPIHelper::debugAppend(resultEl, "graceful shutdown", (bool)mGracefulShutdownReference);
+      OPIHelper::debugAppend(resultEl, "graceful shutdown", mShutdown);
+      
+      OPIHelper::debugAppend(resultEl, "error", mLastError);
+      OPIHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
+      
+      return resultEl;
+    }
+    
+    //-------------------------------------------------------------------------
+    bool MediaStreamTrack::isShuttingDown() const
+    {
+      return (bool)mGracefulShutdownReference;
+    }
+    
+    //-------------------------------------------------------------------------
+    bool MediaStreamTrack::isShutdown() const
+    {
+      if (mGracefulShutdownReference) return false;
+      return mShutdown;
+    }
+    
+    //-------------------------------------------------------------------------
+    void MediaStreamTrack::step()
+    {
+      ZS_LOG_DEBUG(debug("step"))
+      
+      AutoRecursiveLock lock(getLock());
+      
+      if ((isShuttingDown()) ||
+          (isShutdown())) {
+        ZS_LOG_DEBUG(debug("step forwarding to cancel"))
+        cancel();
+        return;
+      }
+      
+    }
+    
+    //-------------------------------------------------------------------------
+    void MediaStreamTrack::cancel()
+    {
+      //.......................................................................
+      // start the shutdown process
+      
+      //.......................................................................
+      // try to gracefully shutdown
+      
+      if (!mGracefulShutdownReference) mGracefulShutdownReference = mThisWeak.lock();
+      
+      if (mGracefulShutdownReference) {
+      }
+      
+      //.......................................................................
+      // final cleanup
+      
+      get(mShutdown) = true;
+      
+      // make sure to cleanup any final reference to self
+      mGracefulShutdownReference.reset();
+    }
+    
+    //-----------------------------------------------------------------------
+    void MediaStreamTrack::setError(WORD errorCode, const char *inReason)
+    {
+      String reason(inReason);
+      
+      if (0 != mLastError) {
+        ZS_LOG_WARNING(Detail, debug("error already set thus ignoring new error") + ZS_PARAM("new error", errorCode) + ZS_PARAM("new reason", reason))
+        return;
+      }
+      
+      get(mLastError) = errorCode;
+      mLastErrorReason = reason;
+      
+      ZS_LOG_WARNING(Detail, debug("error set") + ZS_PARAM("error", mLastError) + ZS_PARAM("reason", mLastErrorReason))
+    }
+
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
@@ -449,7 +582,8 @@ namespace ortc
     
     //-------------------------------------------------------------------------
     VideoStreamTrack::VideoStreamTrack(IMessageQueuePtr queue, IMediaStreamTrackDelegatePtr delegate) :
-      MediaStreamTrack(queue, delegate)
+      MediaStreamTrack(queue, delegate),
+      mRenderView(NULL)
     {
       
     }
@@ -472,7 +606,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     void VideoStreamTrack::setRenderView(void *renderView)
     {
-      
+      mRenderView = renderView;
     }
     
     //-----------------------------------------------------------------------
@@ -575,13 +709,27 @@ namespace ortc
     //-------------------------------------------------------------------------
     ULONG LocalAudioStreamTrack::getSSRC()
     {
-      return 0;
+      return MediaStreamTrack::getSSRC();
+    }
+    
+    //-------------------------------------------------------------------------
+    int LocalAudioStreamTrack::getChannel()
+    {
+      return MediaStreamTrack::getChannel();
+    }
+    
+    //-------------------------------------------------------------------------
+    void LocalAudioStreamTrack::setChannel(int channel)
+    {
+      MediaStreamTrack::setChannel(channel);
+      
+      IMediaEnginePtr mediaEngine = IMediaEngine::singleton();
+      mediaEngine->startSendVoice(channel);
     }
     
     //-------------------------------------------------------------------------
     void LocalAudioStreamTrack::start()
     {
-      
     }
     
     //-------------------------------------------------------------------------
@@ -616,7 +764,6 @@ namespace ortc
     RemoteReceiveAudioStreamTrack::RemoteReceiveAudioStreamTrack(IMessageQueuePtr queue, IMediaStreamTrackDelegatePtr delegate) :
       AudioStreamTrack(queue, delegate)
     {
-      
     }
     
     //-------------------------------------------------------------------------
@@ -704,9 +851,24 @@ namespace ortc
     //-------------------------------------------------------------------------
     ULONG RemoteReceiveAudioStreamTrack::getSSRC()
     {
-      return 0;
+      return MediaStreamTrack::getSSRC();
     }
     
+    //-------------------------------------------------------------------------
+    int RemoteReceiveAudioStreamTrack::getChannel()
+    {
+      return MediaStreamTrack::getChannel();
+    }
+    
+    //-------------------------------------------------------------------------
+    void RemoteReceiveAudioStreamTrack::setChannel(int channel)
+    {
+      MediaStreamTrack::setChannel(channel);
+      
+      IMediaEnginePtr mediaEngine = IMediaEngine::singleton();
+      mediaEngine->startReceiveVoice(channel);
+    }
+
     //-------------------------------------------------------------------------
     void RemoteReceiveAudioStreamTrack::setEcEnabled(bool enabled)
     {
@@ -751,7 +913,6 @@ namespace ortc
     RemoteSendAudioStreamTrack::RemoteSendAudioStreamTrack(IMessageQueuePtr queue, IMediaStreamTrackDelegatePtr delegate) :
       AudioStreamTrack(queue, delegate)
     {
-      
     }
     
     //-------------------------------------------------------------------------
@@ -839,7 +1000,19 @@ namespace ortc
     //-------------------------------------------------------------------------
     ULONG RemoteSendAudioStreamTrack::getSSRC()
     {
-      return 0;
+      return MediaStreamTrack::getSSRC();
+    }
+    
+    //-------------------------------------------------------------------------
+    int RemoteSendAudioStreamTrack::getChannel()
+    {
+      return MediaStreamTrack::getChannel();
+    }
+    
+    //-------------------------------------------------------------------------
+    void RemoteSendAudioStreamTrack::setChannel(int channel)
+    {
+      MediaStreamTrack::setChannel(channel);
     }
 
     //-----------------------------------------------------------------------
@@ -854,7 +1027,9 @@ namespace ortc
     LocalVideoStreamTrack::LocalVideoStreamTrack(IMessageQueuePtr queue, IMediaStreamTrackDelegatePtr delegate) :
       VideoStreamTrack(queue, delegate)
     {
+      IMediaEnginePtr mediaEngine = IMediaEngine::singleton();
       
+      mSource = mediaEngine->createVideoSource();
     }
     
     //-------------------------------------------------------------------------
@@ -928,6 +1103,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     void LocalVideoStreamTrack::stop()
     {
+      IMediaEnginePtr mediaEngine = IMediaEngine::singleton();
+      
+      mediaEngine->stopVideoCapture(mChannel);
       
     }
 
@@ -942,13 +1120,29 @@ namespace ortc
     //-------------------------------------------------------------------------
     ULONG LocalVideoStreamTrack::getSSRC()
     {
-      return 0;
+      return MediaStreamTrack::getSSRC();
     }
     
     //-------------------------------------------------------------------------
+    int LocalVideoStreamTrack::getChannel()
+    {
+      return MediaStreamTrack::getChannel();
+    }
+    
+    //-------------------------------------------------------------------------
+    void LocalVideoStreamTrack::setChannel(int channel)
+    {
+      MediaStreamTrack::setChannel(channel);
+      
+      IMediaEnginePtr mediaEngine = IMediaEngine::singleton();
+      mediaEngine->startSendVideoChannel(channel, mSource);
+    }
+
+    //-------------------------------------------------------------------------
     void LocalVideoStreamTrack::start()
     {
-
+      IMediaEnginePtr mediaEngine = IMediaEngine::singleton();
+      mediaEngine->startVideoCapture(mSource);
     }
     
     //-------------------------------------------------------------------------
@@ -982,7 +1176,7 @@ namespace ortc
     }
     
     //-------------------------------------------------------------------------
-    ILocalVideoStreamTrackForMediaManager::CameraTypes LocalVideoStreamTrack::getCameraType() const
+    CameraTypes LocalVideoStreamTrack::getCameraType() const
     {
       return CameraType_None;
     }
@@ -996,7 +1190,10 @@ namespace ortc
     //-------------------------------------------------------------------------
     void LocalVideoStreamTrack::setRenderView(void *renderView)
     {
+      VideoStreamTrack::setRenderView(renderView);
       
+      IMediaEnginePtr mediaEngine = IMediaEngine::singleton();
+      mediaEngine->setRenderView(mSource, renderView);
     }
     
     //-------------------------------------------------------------------------
@@ -1037,7 +1234,6 @@ namespace ortc
     RemoteReceiveVideoStreamTrack::RemoteReceiveVideoStreamTrack(IMessageQueuePtr queue, IMediaStreamTrackDelegatePtr delegate) :
       VideoStreamTrack(queue, delegate)
     {
-      
     }
     
     //-------------------------------------------------------------------------
@@ -1125,13 +1321,29 @@ namespace ortc
     //-------------------------------------------------------------------------
     ULONG RemoteReceiveVideoStreamTrack::getSSRC()
     {
-      return 0;
+      return MediaStreamTrack::getSSRC();
     }
     
     //-------------------------------------------------------------------------
+    int RemoteReceiveVideoStreamTrack::getChannel()
+    {
+      return MediaStreamTrack::getChannel();
+    }
+    
+    //-------------------------------------------------------------------------
+    void RemoteReceiveVideoStreamTrack::setChannel(int channel)
+    {
+      MediaStreamTrack::setChannel(channel);
+
+      IMediaEnginePtr mediaEngine = IMediaEngine::singleton();
+      mediaEngine->setRenderView(channel, mRenderView);
+      mediaEngine->startReceiveVideoChannel(channel);
+    }
+
+    //-------------------------------------------------------------------------
     void RemoteReceiveVideoStreamTrack::setRenderView(void *renderView)
     {
-      
+      VideoStreamTrack::setRenderView(renderView);
     }
     
     //-------------------------------------------------------------------------
@@ -1240,13 +1452,25 @@ namespace ortc
     //-------------------------------------------------------------------------
     ULONG RemoteSendVideoStreamTrack::getSSRC()
     {
-      return 0;
+      return MediaStreamTrack::getSSRC();
     }
     
     //-------------------------------------------------------------------------
+    int RemoteSendVideoStreamTrack::getChannel()
+    {
+      return MediaStreamTrack::getChannel();
+    }
+    
+    //-------------------------------------------------------------------------
+    void RemoteSendVideoStreamTrack::setChannel(int channel)
+    {
+      MediaStreamTrack::setChannel(channel);
+    }
+
+    //-------------------------------------------------------------------------
     void RemoteSendVideoStreamTrack::setRenderView(void *renderView)
     {
-      
+      VideoStreamTrack::setRenderView(renderView);
     }
 
     //-------------------------------------------------------------------------

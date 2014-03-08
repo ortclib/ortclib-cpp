@@ -88,19 +88,23 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IMediaEngineFactory
+    #pragma mark IDTLSTransportFactory
     #pragma mark
 
     //-------------------------------------------------------------------------
-    IMediaEngineFactory &IMediaEngineFactory::singleton()
+    IDTLSTransportFactory &IDTLSTransportFactory::singleton()
     {
       return *(Factory::singleton().get());
     }
 
     //-------------------------------------------------------------------------
-    MediaEnginePtr IMediaEngineFactory::createMediaEngine(IMediaEngineDelegatePtr delegate)
+    DTLSTransportPtr IDTLSTransportFactory::create(
+                                                   IDTLSTransportDelegatePtr delegate,
+                                                   IICETransportPtr iceTransport
+                                                   )
     {
-      return MediaEngine::create(delegate);
+      if (this) {}
+      return internal::DTLSTransport::create(delegate, iceTransport);
     }
 
     //-------------------------------------------------------------------------
@@ -108,7 +112,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IICESocketFactory
+    #pragma mark IICETransportFactory
     #pragma mark
 
     //-------------------------------------------------------------------------
@@ -123,8 +127,152 @@ namespace ortc
                                                  IICETransport::ServerListPtr servers
                                                  )
     {
+      if (this) {}
       return internal::ICETransport::create(delegate, servers);
     }
 
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IRTPSenderFactory
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    IRTPSenderFactory &IRTPSenderFactory::singleton()
+    {
+      return *(Factory::singleton().get());
+    }
+
+    //-------------------------------------------------------------------------
+    RTPSenderPtr IRTPSenderFactory::create(
+                                          IDTLSTransportPtr rtpTransport,
+                                          IDTLSTransportPtr rtcpTransport
+                                          )
+    {
+      if (this) {}
+      return internal::RTPSender::create(rtpTransport, rtcpTransport);
+    }
+    
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IMediaManagerFactory
+    #pragma mark
+    
+    //-------------------------------------------------------------------------
+    IMediaManagerFactory &IMediaManagerFactory::singleton()
+    {
+      return *(Factory::singleton().get());
+    }
+    
+    //-------------------------------------------------------------------------
+    MediaManagerPtr IMediaManagerFactory::create(IMediaManagerDelegatePtr delegate)
+    {
+      if (this) {}
+      return MediaManager::create(IMessageQueuePtr(), delegate);
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IMediaStreamFactory
+    #pragma mark
+    
+    //-------------------------------------------------------------------------
+    IMediaStreamFactory &IMediaStreamFactory::singleton()
+    {
+      return *(Factory::singleton().get());
+    }
+    
+    //-------------------------------------------------------------------------
+    MediaStreamPtr IMediaStreamFactory::create(IMediaStreamDelegatePtr delegate)
+    {
+      if (this) {}
+      return MediaStream::create(IMessageQueuePtr(), delegate);
+    }
+    
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IMediaStreamTrackFactory
+    #pragma mark
+    
+    //-------------------------------------------------------------------------
+    IMediaStreamTrackFactory &IMediaStreamTrackFactory::singleton()
+    {
+      return *(Factory::singleton().get());
+    }
+    
+    //-------------------------------------------------------------------------
+    LocalAudioStreamTrackPtr IMediaStreamTrackFactory::createLocalAudioStreamTrack(IMediaStreamTrackDelegatePtr delegate)
+    {
+      if (this) {}
+      return LocalAudioStreamTrackPtr();
+    }
+    
+    //-------------------------------------------------------------------------
+    RemoteReceiveAudioStreamTrackPtr IMediaStreamTrackFactory::createRemoteReceiveAudioStreamTrack(IMediaStreamTrackDelegatePtr delegate)
+    {
+      if (this) {}
+      return RemoteReceiveAudioStreamTrackPtr();
+    }
+    
+    //-------------------------------------------------------------------------
+    RemoteSendAudioStreamTrackPtr IMediaStreamTrackFactory::createRemoteSendAudioStreamTrack(IMediaStreamTrackDelegatePtr delegate)
+    {
+      if (this) {}
+      return RemoteSendAudioStreamTrackPtr();
+    }
+    
+    //-------------------------------------------------------------------------
+    LocalVideoStreamTrackPtr IMediaStreamTrackFactory::createLocalVideoStreamTrack(IMediaStreamTrackDelegatePtr delegate)
+    {
+      if (this) {}
+      return LocalVideoStreamTrackPtr();
+    }
+    
+    //-------------------------------------------------------------------------
+    RemoteReceiveVideoStreamTrackPtr IMediaStreamTrackFactory::createRemoteReceiveVideoStreamTrack(IMediaStreamTrackDelegatePtr delegate)
+    {
+      if (this) {}
+      return RemoteReceiveVideoStreamTrackPtr();
+    }
+    
+    //-------------------------------------------------------------------------
+    RemoteSendVideoStreamTrackPtr IMediaStreamTrackFactory::createRemoteSendVideoStreamTrack(IMediaStreamTrackDelegatePtr delegate)
+    {
+      if (this) {}
+      return RemoteSendVideoStreamTrackPtr();
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IMediaEngineFactory
+    #pragma mark
+    
+    //-------------------------------------------------------------------------
+    IMediaEngineFactory &IMediaEngineFactory::singleton()
+    {
+      return *(Factory::singleton().get());
+    }
+    
+    //-------------------------------------------------------------------------
+    MediaEnginePtr IMediaEngineFactory::create(IMediaEngineDelegatePtr delegate)
+    {
+      if (this) {}
+      return MediaEngine::create(delegate);
+    }
   }
 }

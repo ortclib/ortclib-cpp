@@ -45,8 +45,13 @@ namespace ortc
     #pragma mark Factory
     #pragma mark
 
-    class Factory : public IMediaEngineFactory,
-                    public IICETransportFactory
+    class Factory : public IDTLSTransportFactory,
+                    public IICETransportFactory,
+                    public IRTPSenderFactory,
+                    public IMediaManagerFactory,
+                    public IMediaStreamFactory,
+                    public IMediaStreamTrackFactory,
+                    public IMediaEngineFactory
     {
     public:
       static void override(FactoryPtr override);

@@ -90,7 +90,6 @@ namespace ortc
       #pragma mark
       
     protected:
-      virtual IRTCConnectionPtr connection();
       virtual String id();
       virtual String kind();
       virtual void send(BYTE* data);
@@ -117,7 +116,6 @@ namespace ortc
       
       int mError;
       
-      IRTCConnectionPtr mConnection;
       String mDataChannelID;
       String mKind;
       

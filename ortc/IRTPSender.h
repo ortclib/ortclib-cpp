@@ -32,6 +32,7 @@
 #pragma once
 
 #include <ortc/types.h>
+#include <ortc/TrackDescription.h>
 
 namespace ortc
 {
@@ -40,19 +41,73 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   #pragma mark
-  #pragma mark IORTC
+  #pragma mark IRTPSender
   #pragma mark
-
-  interaction IORTC
+  
+  interaction IRTPSender
   {
-    static IORTCPtr singleton();
+    struct Capabilities;
+
+    typedef boost::shared_ptr<Capabilities> CapabilitiesPtr;
+
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark Options
+    #pragma mark
+
+    enum Options
+    {
+      Option_Unknown,
+    };
+
+    static const char *toString(Options option);
+
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark Capabilities
+    #pragma mark
+
+    struct Capabilities
+    {
+      typedef std::list<Options> OptionsList;
+
+      OptionsList mOptions;
+
+      static CapabilitiesPtr create();
+      ElementPtr toDebug() const;
+
+    protected:
+      Capabilities() {}
+      Capabilities(const Capabilities &) {}
+    };
+
+    static ElementPtr toDebug(IRTPSenderPtr transport);
+
+    static IRTPSenderPtr create(
+                                IDTLSTransportPtr rtpTransport,
+                                IDTLSTransportPtr rtcpTransport = IDTLSTransportPtr()
+                                );
 
     virtual PUID getID() const = 0;
 
-    virtual void setup(
-                       IMessageQueuePtr defaultDelegateMessageQueue,
-                       IMessageQueuePtr ortcMessageQueue,
-                       IMessageQueuePtr blockingMediaStartStopThread
-                       ) = 0;
+    static CapabilitiesPtr getCapabilities();
+
+    virtual TrackDescriptionPtr createParams(CapabilitiesPtr capabilities = CapabilitiesPtr()) = 0;
+
+    static TrackDescriptionPtr filterParams(
+                                            TrackDescriptionPtr params,
+                                            CapabilitiesPtr capabilities
+                                            );
+
+    virtual TrackDescriptionPtr getDescription() = 0;
+    virtual void setDescription(TrackDescriptionPtr) = 0;
+
+    virtual void attach(
+                        IDTLSTransportPtr rtpTransport,
+                        IDTLSTransportPtr rtcpTransport = IDTLSTransportPtr()
+                        ) = 0;
+
+    virtual void start(TrackDescriptionPtr trackDescription) = 0;
+    virtual void stop() = 0;
   };
 }
