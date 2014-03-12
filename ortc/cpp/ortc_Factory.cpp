@@ -58,29 +58,15 @@ namespace ortc
     //-------------------------------------------------------------------------
     void Factory::override(FactoryPtr override)
     {
-      singleton()->mOverride = override;
+      singleton().mOverride = override;
     }
 
     //-------------------------------------------------------------------------
-    FactoryPtr &Factory::singleton()
+    Factory &Factory::singleton()
     {
-      static FactoryPtr global = Factory::create();
-      if (global->mOverride) return global->mOverride;
-      return global;
-    }
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark Factory => (internal)
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    FactoryPtr Factory::create()
-    {
-      return FactoryPtr(new Factory);
+      Factory &singleton = Singleton<Factory, false>::ref();
+      if (singleton.mOverride) return (*singleton.mOverride);
+      return singleton;
     }
 
     //-------------------------------------------------------------------------
@@ -94,7 +80,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     IDTLSTransportFactory &IDTLSTransportFactory::singleton()
     {
-      return *(Factory::singleton().get());
+      return Factory::singleton();
     }
 
     //-------------------------------------------------------------------------
@@ -118,7 +104,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     IICETransportFactory &IICETransportFactory::singleton()
     {
-      return *(Factory::singleton().get());
+      return Factory::singleton();
     }
 
     //-------------------------------------------------------------------------
@@ -143,7 +129,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     IRTPSenderFactory &IRTPSenderFactory::singleton()
     {
-      return *(Factory::singleton().get());
+      return Factory::singleton();
     }
 
     //-------------------------------------------------------------------------
@@ -167,7 +153,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     IMediaManagerFactory &IMediaManagerFactory::singleton()
     {
-      return *(Factory::singleton().get());
+      return Factory::singleton();
     }
     
     //-------------------------------------------------------------------------
@@ -188,7 +174,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     IMediaStreamFactory &IMediaStreamFactory::singleton()
     {
-      return *(Factory::singleton().get());
+      return Factory::singleton();
     }
     
     //-------------------------------------------------------------------------
@@ -209,7 +195,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     IMediaStreamTrackFactory &IMediaStreamTrackFactory::singleton()
     {
-      return *(Factory::singleton().get());
+      return Factory::singleton();
     }
     
     //-------------------------------------------------------------------------
@@ -265,7 +251,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     IMediaEngineFactory &IMediaEngineFactory::singleton()
     {
-      return *(Factory::singleton().get());
+      return Factory::singleton();
     }
     
     //-------------------------------------------------------------------------

@@ -362,10 +362,10 @@ namespace ortc
     //-----------------------------------------------------------------------
     MediaEnginePtr MediaEngine::singleton(IMediaEngineDelegatePtr delegate)
     {
-      static MediaEnginePtr engine = IMediaEngineFactory::singleton().create(delegate);
-      return engine;
+      static SingletonLazySharedPtr<MediaEngine> singleton(IMediaEngineFactory::singleton().create(delegate));
+      return singleton.singleton();
     }
-    
+
     //-----------------------------------------------------------------------
     void MediaEngine::setup(IMediaEngineDelegatePtr delegate)
     {
