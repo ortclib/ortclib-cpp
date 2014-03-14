@@ -64,7 +64,8 @@ namespace ortc
     //-------------------------------------------------------------------------
     Factory &Factory::singleton()
     {
-      Factory &singleton = Singleton<Factory, false>::ref();
+      static Singleton<Factory, false> factory;
+      Factory &singleton = factory.singleton();
       if (singleton.mOverride) return (*singleton.mOverride);
       return singleton;
     }
