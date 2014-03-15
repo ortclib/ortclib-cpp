@@ -54,6 +54,9 @@ namespace ortc
   using zsLib::XML::Element;
   using zsLib::XML::ElementPtr;
 
+  using openpeer::services::SharedRecursiveLock;
+  using openpeer::services::LockedValue;
+
   ZS_DECLARE_USING_PTR(openpeer::services, SecureByteBlock)
 
   //-------------------------------------------------------------------------
