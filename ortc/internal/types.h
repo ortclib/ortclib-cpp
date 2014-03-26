@@ -47,6 +47,8 @@ namespace ortc
     using zsLib::AutoBool;
     using zsLib::AutoPUID;
     using zsLib::AutoWORD;
+    using zsLib::Singleton;
+    using zsLib::SingletonLazySharedPtr;
 
     ZS_DECLARE_USING_PTR(zsLib, IMessageQueue)
     ZS_DECLARE_USING_PTR(zsLib, IMessageQueueNotify)
