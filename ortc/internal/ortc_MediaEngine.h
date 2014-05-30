@@ -52,7 +52,6 @@
 #include <vie_capture.h>
 #include <vie_codec.h>
 #include <vie_rtp_rtcp.h>
-#include <vie_file.h>
 
 namespace ortc
 {
@@ -127,9 +126,6 @@ namespace ortc
       virtual void startReceiveVoice(int channelId) = 0;
       virtual void stopSendVoice(int channelId) = 0;
       virtual void stopReceiveVoice(int channelId) = 0;
-
-      virtual void startRecordVideoCapture(int captureId, String fileName, bool saveToLibrary = false) = 0;
-      virtual void stopRecordVideoCapture(int captureId) = 0;
       
       virtual int getVideoTransportStatistics(int channelId, CallStatistics &stat) = 0;
       virtual int getVoiceTransportStatistics(int channelId, CallStatistics &stat) = 0;
@@ -237,7 +233,6 @@ namespace ortc
       typedef webrtc::ViECapture VideoCapture;
       typedef webrtc::ViERTP_RTCP VideoRtpRtcp;
       typedef webrtc::ViECodec VideoCodec;
-      typedef webrtc::ViEFile VideoFile;
       
     protected:
       class RedirectTransport;
@@ -341,7 +336,6 @@ namespace ortc
         bool mLifetimeSaveVideoToLibrary;
         
         bool mLifetimeHasVideoCapture;
-        bool mLifetimeHasRecordVideoCapture;
         
         VideoSourceLifetimeState() {}
         VideoSourceLifetimeState(int sourceId);
@@ -441,9 +435,6 @@ namespace ortc
       virtual void startReceiveVoice(int channelId);
       virtual void stopSendVoice(int channelId);
       virtual void stopReceiveVoice(int channelId);
-
-      virtual void startRecordVideoCapture(int captureId, String fileName, bool saveToLibrary = false);
-      virtual void stopRecordVideoCapture(int captureId);
       
       virtual int getVideoTransportStatistics(int channelId, CallStatistics &stat);
       virtual int getVoiceTransportStatistics(int channelId, CallStatistics &stat);
@@ -526,8 +517,6 @@ namespace ortc
       virtual void internalStartReceiveVideoChannel(int channelId);
       virtual void internalStopSendVideoChannel(int channelId);
       virtual void internalStopReceiveVideoChannel(int channelId);
-      virtual void internalStartRecordVideoCapture(int captureId, String videoRecordFile, bool saveVideoToLibrary);
-      virtual void internalStopRecordVideoCapture(int captureId);
       
       virtual int internalRegisterVoiceSendTransport(int channelId);
       virtual int internalDeregisterVoiceSendTransport(int channelId);
@@ -641,7 +630,6 @@ namespace ortc
       VideoCapture *mVideoCapture;
       VideoRtpRtcp *mVideoRtpRtcp;
       VideoCodec *mVideoCodec;
-      VideoFile *mVideoFile;
       bool mVideoEngineReady;
       
       // lifetime start / stop state

@@ -121,7 +121,6 @@ namespace ortc
       mVideoCapture(NULL),
       mVideoRtpRtcp(NULL),
       mVideoCodec(NULL),
-      mVideoFile(NULL),
       mVideoEngineReady(false),
       mLifetimeInProgress(false)
     {
@@ -166,7 +165,6 @@ namespace ortc
       mVideoCapture(NULL),
       mVideoRtpRtcp(NULL),
       mVideoCodec(NULL),
-      mVideoFile(NULL),
       mVideoEngineReady(false),
       mLifetimeInProgress(false)
     {
@@ -289,11 +287,6 @@ namespace ortc
       mVideoCodec = webrtc::ViECodec::GetInterface(mVideoEngine);
       if (mVideoCodec == NULL) {
         ZS_LOG_ERROR(Detail, log("failed to get interface for video codec"))
-        return;
-      }
-      mVideoFile = webrtc::ViEFile::GetInterface(mVideoEngine);
-      if (mVideoFile == NULL) {
-        ZS_LOG_ERROR(Detail, log("failed to get interface for video file"))
         return;
       }
       
@@ -507,14 +500,6 @@ namespace ortc
           get(mLastError) = mVideoCodec->Release();
           if (mLastError < 0) {
             ZS_LOG_ERROR(Detail, log("failed to release video codec") + ZS_PARAM("error", mVideoBase->LastError()))
-            return;
-          }
-        }
-        
-        if (mVideoFile) {
-          get(mLastError) = mVideoFile->Release();
-          if (mLastError < 0) {
-            ZS_LOG_ERROR(Detail, log("failed to release video file") + ZS_PARAM("error", mVideoBase->LastError()))
             return;
           }
         }
@@ -1097,44 +1082,6 @@ namespace ortc
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
     }
     
-    //-------------------------------------------------------------------------
-    void MediaEngine::startRecordVideoCapture(int captureId, String fileName, bool saveToLibrary)
-    {
-      {
-        AutoRecursiveLock lock(mLifetimeLock);
-        
-        VideoSourceLifetimeStateMap::iterator iter = mVideoSourceLifetimeStates.find(captureId);
-        if (iter == mVideoSourceLifetimeStates.end()) {
-          ZS_LOG_ERROR(Detail, log("video source not found") + ZS_PARAM("captureId", captureId))
-          return;
-        }
-        
-        iter->second.mLifetimeWantRecordVideoCapture = true;
-        iter->second.mLifetimeVideoRecordFile = fileName;
-        iter->second.mLifetimeSaveVideoToLibrary = saveToLibrary;
-      }
-      
-      IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
-    }
-    
-    //-------------------------------------------------------------------------
-    void MediaEngine::stopRecordVideoCapture(int captureId)
-    {
-      {
-        AutoRecursiveLock lock(mLifetimeLock);
-        
-        VideoSourceLifetimeStateMap::iterator iter = mVideoSourceLifetimeStates.find(captureId);
-        if (iter == mVideoSourceLifetimeStates.end()) {
-          ZS_LOG_ERROR(Detail, log("video source not found") + ZS_PARAM("captureId", captureId))
-          return;
-        }
-        
-        iter->second.mLifetimeWantRecordVideoCapture = false;
-      }
-      
-      IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
-    }
-    
     //-----------------------------------------------------------------------
     int MediaEngine::getVideoTransportStatistics(int channelId, CallStatistics &stat)
     {
@@ -1622,23 +1569,15 @@ namespace ortc
         int sourceId = state.mSourceId;
         
         bool wantVideoCapture = false;
-        bool wantRecordVideoCapture = false;
         bool hasVideoCapture = false;
-        bool hasRecordVideoCapture = false;
         CameraTypes wantCameraType = CameraType_None;
-        String videoRecordFile;
-        bool saveVideoToLibrary = false;
         
         {
           AutoRecursiveLock lock(mLifetimeLock);
           
           wantVideoCapture = state.mLifetimeWantVideoCapture;
-          wantRecordVideoCapture = state.mLifetimeWantRecordVideoCapture;
           hasVideoCapture = state.mLifetimeHasVideoCapture;
-          hasRecordVideoCapture = state.mLifetimeHasRecordVideoCapture;
           wantCameraType = state.mLifetimeWantCameraType;
-          videoRecordFile = state.mLifetimeVideoRecordFile;
-          saveVideoToLibrary = state.mLifetimeSaveVideoToLibrary;
         }
         
         {
@@ -1649,23 +1588,12 @@ namespace ortc
               internalStartVideoCapture(sourceId);
             }
           }
-          
-          if (wantRecordVideoCapture) {
-            if (!hasRecordVideoCapture) {
-              internalStartRecordVideoCapture(sourceId, videoRecordFile, saveVideoToLibrary);
-            }
-          } else {
-            if (hasRecordVideoCapture) {
-              internalStopRecordVideoCapture(sourceId);
-            }
-          }
         }
         
         {
           AutoRecursiveLock lock(mLifetimeLock);
           
           mVideoSourceLifetimeStates[sourceId].mLifetimeHasVideoCapture = wantVideoCapture;
-          mVideoSourceLifetimeStates[sourceId].mLifetimeHasRecordVideoCapture = wantRecordVideoCapture;
         }
       }
       
@@ -2533,85 +2461,6 @@ namespace ortc
     }
     
     //-----------------------------------------------------------------------
-    void MediaEngine::internalStartRecordVideoCapture(int captureId, String videoRecordFile, bool saveVideoToLibrary)
-    {
-      AutoRecursiveLock lock(mLock);
-      
-      ZS_LOG_DEBUG(log("start video capture recording"))
-      
-      get(mLastError) = mVideoCapture->SetCapturedFrameLockedOrientation(captureId, mRecordVideoOrientation);
-      if (mLastError != 0) {
-        ZS_LOG_ERROR(Detail, log("failed to set record orientation on video capture device") + ZS_PARAM("error", mVideoBase->LastError()))
-        return;
-      }
-      get(mLastError) = mVideoCapture->EnableCapturedFrameOrientationLock(captureId, true);
-      if (mLastError != 0) {
-        ZS_LOG_ERROR(Detail, log("failed to enable orientation lock on video capture device") + ZS_PARAM("error", mVideoBase->LastError()))
-        return;
-      }
-      
-      webrtc::RotateCapturedFrame orientation;
-      get(mLastError) = mVideoCapture->GetOrientation(mVideoSourceInfos[captureId].mDeviceUniqueId, orientation);
-      if (mLastError != 0) {
-        ZS_LOG_ERROR(Detail, log("failed to get orientation from video capture device") + ZS_PARAM("error", mVideoBase->LastError()))
-        return;
-      }
-      
-      setVideoCaptureRotation(captureId);
-      //if (channelId != ORTC_MEDIA_ENGINE_INVALID_CHANNEL)
-      //  setVideoCodecParameters(channelId, captureId);
-      
-      int width = 0, height = 0, maxFramerate = 0, maxBitrate = 0;
-      get(mLastError) = getVideoCaptureParameters(mVideoSourceInfos[captureId].mCameraType,
-                                                  orientation, width, height, maxFramerate, maxBitrate);
-      if (mLastError != 0)
-        return;
-      
-      webrtc::CodecInst audioCodec;
-      memset(&audioCodec, 0, sizeof(webrtc::CodecInst));
-      strcpy(audioCodec.plname, "AAC");
-      audioCodec.rate = 32000;
-      audioCodec.plfreq = 16000;
-      audioCodec.channels = 1;
-      
-      webrtc::VideoCodec videoCodec;
-      memset(&videoCodec, 0, sizeof(VideoCodec));
-      videoCodec.codecType = webrtc::kVideoCodecH264;
-      videoCodec.width = width;
-      videoCodec.height = height;
-      videoCodec.maxFramerate = maxFramerate;
-      videoCodec.maxBitrate = maxBitrate;
-      
-      get(mLastError) = mVideoFile->StartRecordCaptureVideo(captureId, videoRecordFile, webrtc::MICROPHONE, audioCodec, videoCodec, webrtc::kFileFormatMP4File, saveVideoToLibrary);
-      if (mLastError != 0) {
-        ZS_LOG_ERROR(Detail, log("failed to start video capture recording") + ZS_PARAM("error", mVideoBase->LastError()))
-        return;
-      }
-    }
-    
-    //-----------------------------------------------------------------------
-    void MediaEngine::internalStopRecordVideoCapture(int captureId)
-    {
-      AutoRecursiveLock lock(mLock);
-      
-      ZS_LOG_DEBUG(log("stop video capture recording"))
-      
-      get(mLastError) = mVideoFile->StopRecordCaptureVideo(captureId);
-      if (mLastError != 0) {
-        ZS_LOG_ERROR(Detail, log("failed to stop video capture recording") + ZS_PARAM("error", mVideoBase->LastError()))
-        return;
-      }
-      
-      get(mLastError) = mVideoCapture->EnableCapturedFrameOrientationLock(captureId, false);
-      if (mLastError != 0) {
-        ZS_LOG_ERROR(Detail, log("failed to disable orientation lock on video capture device") + ZS_PARAM("error", mVideoBase->LastError()))
-        return;
-      }
-      
-      mSubscriptions.delegate()->onMediaEngineVideoCaptureRecordStopped(0);
-    }
-    
-    //-----------------------------------------------------------------------
     int MediaEngine::internalRegisterVoiceSendTransport(int channelId)
     {
       if (NULL != mVoiceChannelInfos[channelId].mTransport) {
@@ -3160,10 +3009,8 @@ namespace ortc
       mLifetimeWantRecordVideoCapture(false),
       mLifetimeWantCameraType(CameraType_None),
       mLifetimeContinuousVideoCapture(false),
-      mLifetimeVideoRecordFile(""),
       mLifetimeSaveVideoToLibrary(false),
-      mLifetimeHasVideoCapture(false),
-      mLifetimeHasRecordVideoCapture(false)
+      mLifetimeHasVideoCapture(false)
     { }
     
     //-----------------------------------------------------------------------
