@@ -197,7 +197,7 @@ namespace ortc
 
       IDTLSTransportSubscriptionPtr subscription = mSubscriptions.subscribe(IDTLSTransportDelegateProxy::create(IORTCForInternal::queueDelegate(), originalDelegate));
 
-      IDTLSTransportDelegatePtr delegate = mSubscriptions.delegate(subscription);
+      IDTLSTransportDelegatePtr delegate = mSubscriptions.delegate(subscription, true);
 
       if (delegate) {
         DTLSTransportPtr pThis = mThisWeak.lock();

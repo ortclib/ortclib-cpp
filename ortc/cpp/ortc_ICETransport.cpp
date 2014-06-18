@@ -284,7 +284,7 @@ namespace ortc
 
       IICETransportSubscriptionPtr subscription = mSubscriptions.subscribe(IICETransportDelegateProxy::create(IORTCForInternal::queueDelegate(), originalDelegate));
 
-      IICETransportDelegatePtr delegate = mSubscriptions.delegate(subscription);
+      IICETransportDelegatePtr delegate = mSubscriptions.delegate(subscription, true);
 
       if (delegate) {
         ICETransportPtr pThis = mThisWeak.lock();

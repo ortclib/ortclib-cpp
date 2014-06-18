@@ -118,7 +118,7 @@ namespace ortc
       
       IMediaManagerSubscriptionPtr subscription = mSubscriptions.subscribe(IMediaManagerDelegateProxy::create(IORTCForInternal::queueDelegate(), originalDelegate));
       
-      IMediaManagerDelegatePtr delegate = mSubscriptions.delegate(subscription);
+      IMediaManagerDelegatePtr delegate = mSubscriptions.delegate(subscription, true);
       
       if (delegate) {
         MediaManagerPtr pThis = mThisWeak.lock();
