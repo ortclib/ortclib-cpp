@@ -41,8 +41,8 @@ namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib) }
 
 namespace ortc
 {
-  typedef openpeer::services::IHelper OPIHelper;
-  
+  ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHelper, UseServicesHelper)
+
   namespace internal
   {
     //-----------------------------------------------------------------------
@@ -301,7 +301,7 @@ namespace ortc
     Log::Params MediaStream::log(const char *message) const
     {
       ElementPtr objectEl = Element::create("ortc::MediaStream");
-      OPIHelper::debugAppend(objectEl, "id", mID);
+      UseServicesHelper::debugAppend(objectEl, "id", mID);
       return Log::Params(message, objectEl);
     }
     
@@ -316,13 +316,13 @@ namespace ortc
     {
       ElementPtr resultEl = Element::create("MediaStream");
       
-      OPIHelper::debugAppend(resultEl, "id", mID);
+      UseServicesHelper::debugAppend(resultEl, "id", mID);
       
-      OPIHelper::debugAppend(resultEl, "graceful shutdown", (bool)mGracefulShutdownReference);
-      OPIHelper::debugAppend(resultEl, "graceful shutdown", mShutdown);
+      UseServicesHelper::debugAppend(resultEl, "graceful shutdown", (bool)mGracefulShutdownReference);
+      UseServicesHelper::debugAppend(resultEl, "graceful shutdown", mShutdown);
       
-      OPIHelper::debugAppend(resultEl, "error", mLastError);
-      OPIHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
+      UseServicesHelper::debugAppend(resultEl, "error", mLastError);
+      UseServicesHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
       
       return resultEl;
     }
