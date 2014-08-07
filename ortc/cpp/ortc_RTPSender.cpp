@@ -44,7 +44,7 @@ namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib) }
 
 namespace ortc
 {
-  typedef openpeer::services::IHelper OPIHelper;
+  ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHelper, UseServicesHelper)
 
   namespace internal
   {
@@ -306,7 +306,7 @@ namespace ortc
     Log::Params RTPSender::log(const char *message) const
     {
       ElementPtr objectEl = Element::create("ortc::RTPSender");
-      OPIHelper::debugAppend(objectEl, "id", mID);
+      UseServicesHelper::debugAppend(objectEl, "id", mID);
       return Log::Params(message, objectEl);
     }
 
@@ -321,23 +321,23 @@ namespace ortc
     {
       ElementPtr resultEl = Element::create("ortc::RTPSender");
 
-      OPIHelper::debugAppend(resultEl, "id", mID);
+      UseServicesHelper::debugAppend(resultEl, "id", mID);
 
-      OPIHelper::debugAppend(resultEl, "graceful shutdown", (bool)mGracefulShutdownReference);
-      OPIHelper::debugAppend(resultEl, "graceful shutdown", mShutdown);
+      UseServicesHelper::debugAppend(resultEl, "graceful shutdown", (bool)mGracefulShutdownReference);
+      UseServicesHelper::debugAppend(resultEl, "graceful shutdown", mShutdown);
 
-      OPIHelper::debugAppend(resultEl, "start called", mStartCalled);
+      UseServicesHelper::debugAppend(resultEl, "start called", mStartCalled);
 
-      OPIHelper::debugAppend(resultEl, "error", mLastError);
-      OPIHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
+      UseServicesHelper::debugAppend(resultEl, "error", mLastError);
+      UseServicesHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
 
-      OPIHelper::debugAppend(resultEl, "description", mDescription ? mDescription->toDebug() : ElementPtr());
+      UseServicesHelper::debugAppend(resultEl, "description", mDescription ? mDescription->toDebug() : ElementPtr());
 
-      OPIHelper::debugAppend(resultEl, "dtls rtp transport", UseDTLSTransport::toDebug(mRTPTransport));
-      OPIHelper::debugAppend(resultEl, "dtls rtcp transport", UseDTLSTransport::toDebug(mRTCPTransport));
+      UseServicesHelper::debugAppend(resultEl, "dtls rtp transport", UseDTLSTransport::toDebug(mRTPTransport));
+      UseServicesHelper::debugAppend(resultEl, "dtls rtcp transport", UseDTLSTransport::toDebug(mRTCPTransport));
 
-      OPIHelper::debugAppend(resultEl, "dtls rtp transport subscription", (bool)mRTPTransportSubscription);
-      OPIHelper::debugAppend(resultEl, "dtls rtcp transport subscription", (bool)mRTCPTransportSubscription);
+      UseServicesHelper::debugAppend(resultEl, "dtls rtp transport subscription", (bool)mRTPTransportSubscription);
+      UseServicesHelper::debugAppend(resultEl, "dtls rtcp transport subscription", (bool)mRTCPTransportSubscription);
 
       return resultEl;
     }
@@ -498,7 +498,7 @@ namespace ortc
     for (OptionsList::const_iterator iter = mOptions.begin(); iter != mOptions.end(); ++iter)
     {
       const Options &option = (*iter);
-      OPIHelper::debugAppend(resultEl, "option", IRTPSender::toString(option));
+      UseServicesHelper::debugAppend(resultEl, "option", IRTPSender::toString(option));
     }
 
     return resultEl;

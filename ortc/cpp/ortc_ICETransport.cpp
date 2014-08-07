@@ -44,7 +44,7 @@ namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib) }
 
 namespace ortc
 {
-  typedef openpeer::services::IHelper OPIHelper;
+  ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHelper, UseServicesHelper)
 
   namespace internal
   {
@@ -685,7 +685,7 @@ namespace ortc
     Log::Params ICETransport::log(const char *message) const
     {
       ElementPtr objectEl = Element::create("ortc::ICETransport");
-      OPIHelper::debugAppend(objectEl, "id", mID);
+      UseServicesHelper::debugAppend(objectEl, "id", mID);
       return Log::Params(message, objectEl);
     }
 
@@ -700,41 +700,41 @@ namespace ortc
     {
       ElementPtr resultEl = Element::create("ICETransport");
 
-      OPIHelper::debugAppend(resultEl, "id", mID);
+      UseServicesHelper::debugAppend(resultEl, "id", mID);
 
-      OPIHelper::debugAppend(resultEl, "graceful shutdown", (bool)mGracefulShutdownReference);
+      UseServicesHelper::debugAppend(resultEl, "graceful shutdown", (bool)mGracefulShutdownReference);
 
-      OPIHelper::debugAppend(resultEl, "subscribers", mSubscriptions.size());
-      OPIHelper::debugAppend(resultEl, "default subscription", (bool)mDefaultSubscription);
+      UseServicesHelper::debugAppend(resultEl, "subscribers", mSubscriptions.size());
+      UseServicesHelper::debugAppend(resultEl, "default subscription", (bool)mDefaultSubscription);
 
-      OPIHelper::debugAppend(resultEl, "state", IICETransport::toString(mCurrentState));
-      OPIHelper::debugAppend(resultEl, "start called", mStartCalled);
+      UseServicesHelper::debugAppend(resultEl, "state", IICETransport::toString(mCurrentState));
+      UseServicesHelper::debugAppend(resultEl, "start called", mStartCalled);
 
-      OPIHelper::debugAppend(resultEl, "error", mLastError);
-      OPIHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
+      UseServicesHelper::debugAppend(resultEl, "error", mLastError);
+      UseServicesHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
 
-      OPIHelper::debugAppend(resultEl, "servers", mServers ? mServers->size() : 0);
+      UseServicesHelper::debugAppend(resultEl, "servers", mServers ? mServers->size() : 0);
 
-      OPIHelper::debugAppend(resultEl, "default role", IICETransport::toString(mDefaultRole));
+      UseServicesHelper::debugAppend(resultEl, "default role", IICETransport::toString(mDefaultRole));
 
-      OPIHelper::debugAppend(resultEl, "local", mLocal ? mLocal->toDebug() : ElementPtr());
-      OPIHelper::debugAppend(resultEl, "remote", mRemote ? mRemote->toDebug() : ElementPtr());
+      UseServicesHelper::debugAppend(resultEl, "local", mLocal ? mLocal->toDebug() : ElementPtr());
+      UseServicesHelper::debugAppend(resultEl, "remote", mRemote ? mRemote->toDebug() : ElementPtr());
 
-      OPIHelper::debugAppend(resultEl, "ice socket", IICESocket::toDebug(mSocket));
-      OPIHelper::debugAppend(resultEl, "ice socket subscription", (bool)mSocketSubscription);
-      OPIHelper::debugAppend(resultEl, "notified candidates end", mNotifiedCandidatesEnd);
-      OPIHelper::debugAppend(resultEl, "notified candidates version", mCandidatesVersion);
-      OPIHelper::debugAppend(resultEl, "local candidates inner", mLocalCandidatesInner.size());
-      OPIHelper::debugAppend(resultEl, "local candidates outer", mLocalCandidatesOuter.size());
+      UseServicesHelper::debugAppend(resultEl, "ice socket", IICESocket::toDebug(mSocket));
+      UseServicesHelper::debugAppend(resultEl, "ice socket subscription", (bool)mSocketSubscription);
+      UseServicesHelper::debugAppend(resultEl, "notified candidates end", mNotifiedCandidatesEnd);
+      UseServicesHelper::debugAppend(resultEl, "notified candidates version", mCandidatesVersion);
+      UseServicesHelper::debugAppend(resultEl, "local candidates inner", mLocalCandidatesInner.size());
+      UseServicesHelper::debugAppend(resultEl, "local candidates outer", mLocalCandidatesOuter.size());
 
-      OPIHelper::debugAppend(resultEl, "ice session", IICESocketSession::toDebug(mSession));
-      OPIHelper::debugAppend(resultEl, "ice session subscription", (bool)mSessionSubscription);
+      UseServicesHelper::debugAppend(resultEl, "ice session", IICESocketSession::toDebug(mSession));
+      UseServicesHelper::debugAppend(resultEl, "ice session subscription", (bool)mSessionSubscription);
 
-      OPIHelper::debugAppend(resultEl, "pending remote candidates", mPendingRemoteCandidates.size());
-      OPIHelper::debugAppend(resultEl, "added remote candidates", mAddedRemoteCandidates.size());
+      UseServicesHelper::debugAppend(resultEl, "pending remote candidates", mPendingRemoteCandidates.size());
+      UseServicesHelper::debugAppend(resultEl, "added remote candidates", mAddedRemoteCandidates.size());
 
-      OPIHelper::debugAppend(resultEl, "dtls transport id", mAttachedDTLSTransportID);
-      OPIHelper::debugAppend(resultEl, "dtls transport", (bool)mDTLSTransport.lock());
+      UseServicesHelper::debugAppend(resultEl, "dtls transport id", mAttachedDTLSTransportID);
+      UseServicesHelper::debugAppend(resultEl, "dtls transport", (bool)mDTLSTransport.lock());
 
       return resultEl;
     }
@@ -779,7 +779,7 @@ namespace ortc
       typedef IICESocket::STUNServerInfoList STUNServerInfoList;
       typedef IICESocket::TURNServerInfoList TURNServerInfoList;
       typedef IICESocket::STUNServerInfoList STUNServerInfoList;
-      typedef OPIHelper::SplitMap SplitMap;
+      typedef UseServicesHelper::SplitMap SplitMap;
 
       if (mSocket) {
         ZS_LOG_TRACE(log("socket already created"))
@@ -802,7 +802,7 @@ namespace ortc
           // scope: parse out stun / turn server information
           {
             SplitMap split;
-            OPIHelper::split(info->mURL, split, ':');
+            UseServicesHelper::split(info->mURL, split, ':');
 
             if (split.size() < 2) goto invalid_url;
 
@@ -813,7 +813,7 @@ namespace ortc
             String domain;
 
             SplitMap userDomainSplit;
-            OPIHelper::split(uri, userDomainSplit, '@');
+            UseServicesHelper::split(uri, userDomainSplit, '@');
 
             if (userDomainSplit.size() < 1) goto invalid_url;
 
@@ -828,7 +828,7 @@ namespace ortc
             if (domain.isEmpty()) goto invalid_url;
 
             if (!IPAddress::isConvertable(domain)) {
-              if (!OPIHelper::isValidDomain(domain)) goto invalid_url;
+              if (!UseServicesHelper::isValidDomain(domain)) goto invalid_url;
             }
 
             if ("turn" == type) {
@@ -1295,7 +1295,7 @@ namespace ortc
     for (OptionsList::const_iterator iter = mOptions.begin(); iter != mOptions.end(); ++iter)
     {
       const Options &option = (*iter);
-      OPIHelper::debugAppend(resultEl, "option", IICETransport::toString(option));
+      UseServicesHelper::debugAppend(resultEl, "option", IICETransport::toString(option));
     }
 
     return resultEl;
@@ -1319,8 +1319,8 @@ namespace ortc
   ElementPtr IICETransport::ServerInfo::toDebug() const
   {
     ElementPtr resultEl = Element::create("ortc::IICETransport::ServerInfo");
-    OPIHelper::debugAppend(resultEl, "url", mURL);
-    OPIHelper::debugAppend(resultEl, "credential", mCredential);
+    UseServicesHelper::debugAppend(resultEl, "url", mURL);
+    UseServicesHelper::debugAppend(resultEl, "credential", mCredential);
 
     return resultEl->hasChildren() ? resultEl : ElementPtr();
   }
@@ -1349,7 +1349,7 @@ namespace ortc
     for (ServerList::const_iterator iter = (*this).begin(); iter != (*this).end(); ++iter)
     {
       const ServerInfoPtr &info = (*iter);
-      OPIHelper::debugAppend(resultEl, info->toDebug());
+      UseServicesHelper::debugAppend(resultEl, info->toDebug());
     }
 
     return resultEl->hasChildren() ? resultEl : ElementPtr();
@@ -1373,8 +1373,8 @@ namespace ortc
   ElementPtr IICETransport::TransportInfo::toDebug() const
   {
     ElementPtr resultEl = Element::create("ortc::IICETransport::TransportInfo");
-    OPIHelper::debugAppend(resultEl, "usernameFrag", mUsernameFrag);
-    OPIHelper::debugAppend(resultEl, "password", mPassword);
+    UseServicesHelper::debugAppend(resultEl, "usernameFrag", mUsernameFrag);
+    UseServicesHelper::debugAppend(resultEl, "password", mPassword);
 
     return resultEl->hasChildren() ? resultEl : ElementPtr();
   }
@@ -1398,12 +1398,12 @@ namespace ortc
   {
     ElementPtr resultEl = Element::create("ortc::IICETransport::CandidateInfo");
 
-    OPIHelper::debugAppend(resultEl, "type", IICETransport::toString(mType));
-    OPIHelper::debugAppend(resultEl, "foundation", mFoundation);
-    OPIHelper::debugAppend(resultEl, "component", mComponent);
-    OPIHelper::debugAppend(resultEl, "connectionAddress", mConnectionAddress.isEmpty() ? String() : mConnectionAddress.string());
-    OPIHelper::debugAppend(resultEl, "priority", mPriority);
-    OPIHelper::debugAppend(resultEl, "relatedAddress", mRelatedAddress.isEmpty() ? String() : mRelatedAddress.string());
+    UseServicesHelper::debugAppend(resultEl, "type", IICETransport::toString(mType));
+    UseServicesHelper::debugAppend(resultEl, "foundation", mFoundation);
+    UseServicesHelper::debugAppend(resultEl, "component", mComponent);
+    UseServicesHelper::debugAppend(resultEl, "connectionAddress", mConnectionAddress.isEmpty() ? String() : mConnectionAddress.string());
+    UseServicesHelper::debugAppend(resultEl, "priority", mPriority);
+    UseServicesHelper::debugAppend(resultEl, "relatedAddress", mRelatedAddress.isEmpty() ? String() : mRelatedAddress.string());
 
     return resultEl->hasChildren() ? resultEl : ElementPtr();
   }

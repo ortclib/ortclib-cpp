@@ -40,7 +40,7 @@ namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib) }
 
 namespace ortc
 {
-  typedef openpeer::services::IHelper OPIHelper;
+  ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHelper, UseServicesHelper)
 
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
@@ -64,7 +64,7 @@ namespace ortc
     for (FlowList::const_iterator iter = mFlows.begin(); iter != mFlows.end(); ++iter)
     {
       RTPFlowParamsPtr flow = (*iter);
-      OPIHelper::debugAppend(resultEl, "flow", flow->toDebug());
+      UseServicesHelper::debugAppend(resultEl, "flow", flow->toDebug());
     }
     return resultEl;
   }
@@ -79,7 +79,7 @@ namespace ortc
 
   RTPFlowParams::RTPFlowParams() :
     mID(zsLib::createPUID()),
-    mSSRC(static_cast<DWORD>(OPIHelper::random(0, 0xFFFFFFFF)))
+    mSSRC(static_cast<DWORD>(UseServicesHelper::random(0, 0xFFFFFFFF)))
   {
   }
 
@@ -104,8 +104,8 @@ namespace ortc
   {
     ElementPtr resultEl = Element::create("ortc::RTPRTXFlowParams");
 
-    OPIHelper::debugAppend(resultEl, "id", mID);
-    OPIHelper::debugAppend(resultEl, "ssrc", mSSRC);
+    UseServicesHelper::debugAppend(resultEl, "id", mID);
+    UseServicesHelper::debugAppend(resultEl, "ssrc", mSSRC);
 
     return resultEl;
   }
@@ -131,9 +131,9 @@ namespace ortc
   {
     ElementPtr resultEl = Element::create("ortc::RTPFECFlowParams");
 
-    OPIHelper::debugAppend(resultEl, "id", mID);
-    OPIHelper::debugAppend(resultEl, "ssrc", mSSRC);
-    OPIHelper::debugAppend(resultEl, "mechanism", mMechanismg);
+    UseServicesHelper::debugAppend(resultEl, "id", mID);
+    UseServicesHelper::debugAppend(resultEl, "ssrc", mSSRC);
+    UseServicesHelper::debugAppend(resultEl, "mechanism", mMechanismg);
 
     return resultEl;
   }
@@ -159,15 +159,15 @@ namespace ortc
   {
     ElementPtr resultEl = Element::create("ortc::RTPLayeredFlowParams");
 
-    OPIHelper::debugAppend(resultEl, "id", mID);
-    OPIHelper::debugAppend(resultEl, "ssrc", mSSRC);
+    UseServicesHelper::debugAppend(resultEl, "id", mID);
+    UseServicesHelper::debugAppend(resultEl, "ssrc", mSSRC);
 
     ElementPtr baseFlowsEl = Element::create("base flow ids");
 
     for (BaseFlowIDList::const_iterator iter = mBaseFlowIDs.begin(); iter != mBaseFlowIDs.end(); ++iter)
     {
       const BaseFlowID &value = (*iter);
-      OPIHelper::debugAppend(baseFlowsEl, "id", value);
+      UseServicesHelper::debugAppend(baseFlowsEl, "id", value);
     }
 
     resultEl->adoptAsLastChild(baseFlowsEl);
