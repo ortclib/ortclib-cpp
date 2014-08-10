@@ -225,5 +225,7 @@ namespace ortc
       
       virtual MediaStreamPtr create(IMediaStreamDelegatePtr delegate);
     };
+
+    class MediaStreamFactory : public IFactory<IMediaStreamFactory> {};
   }
 }

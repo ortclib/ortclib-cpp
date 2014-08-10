@@ -1108,6 +1108,30 @@ namespace ortc
       outer->notifyDTLSContextShutdown();
     }
 
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IDTLSTransportFactory
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    IDTLSTransportFactory &IDTLSTransportFactory::singleton()
+    {
+      return DTLSTransportFactory::singleton();
+    }
+
+    //-------------------------------------------------------------------------
+    DTLSTransportPtr IDTLSTransportFactory::create(
+                                                   IDTLSTransportDelegatePtr delegate,
+                                                   IICETransportPtr iceTransport
+                                                   )
+    {
+      if (this) {}
+      return internal::DTLSTransport::create(delegate, iceTransport);
+    }
+
   }
 
   //---------------------------------------------------------------------------

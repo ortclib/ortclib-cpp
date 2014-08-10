@@ -1203,5 +1203,7 @@ namespace ortc
       virtual RemoteReceiveVideoStreamTrackPtr createRemoteReceiveVideoStreamTrack(IMediaStreamTrackDelegatePtr delegate);
       virtual RemoteSendVideoStreamTrackPtr createRemoteSendVideoStreamTrack(IMediaStreamTrackDelegatePtr delegate);
     };
+
+    class MediaStreamTrackFactory : public IFactory<IMediaStreamTrackFactory> {};
   }
 }

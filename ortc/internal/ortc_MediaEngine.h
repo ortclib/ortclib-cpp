@@ -659,5 +659,7 @@ namespace ortc
       
       virtual MediaEnginePtr create(IMediaEngineDelegatePtr delegate);
     };
+
+    class MediaEngineFactory : public IFactory<IMediaEngineFactory> {};
   }
 }

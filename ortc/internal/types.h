@@ -33,6 +33,7 @@
 
 #include <ortc/types.h>
 #include <openpeer/services/types.h>
+#include <openpeer/services/IFactory.h>
 
 namespace ortc
 {
@@ -69,6 +70,8 @@ namespace ortc
     ZS_DECLARE_USING_PTR(openpeer::services, IICESocketSessionSubscription)
 
     ZS_DECLARE_USING_PROXY(openpeer::services, IWakeDelegate)
+
+    using openpeer::services::IFactory;
 
     enum CameraTypes
     {

@@ -340,6 +340,28 @@ namespace ortc
       
       ZS_LOG_WARNING(Detail, debug("error set") + ZS_PARAM("error", mLastError) + ZS_PARAM("reason", mLastErrorReason))
     }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IMediaManagerFactory
+    #pragma mark
+    
+    //-------------------------------------------------------------------------
+    IMediaManagerFactory &IMediaManagerFactory::singleton()
+    {
+      return MediaManagerFactory::singleton();
+    }
+    
+    //-------------------------------------------------------------------------
+    MediaManagerPtr IMediaManagerFactory::create(IMediaManagerDelegatePtr delegate)
+    {
+      if (this) {}
+      return MediaManager::create(IMessageQueuePtr(), delegate);
+    }
+
   }
   
   //-----------------------------------------------------------------------

@@ -423,6 +423,30 @@ namespace ortc
       ZS_LOG_WARNING(Detail, debug("error set") + ZS_PARAM("error", mLastError) + ZS_PARAM("reason", mLastErrorReason))
     }
 
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IRTPSenderFactory
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    IRTPSenderFactory &IRTPSenderFactory::singleton()
+    {
+      return RTPSenderFactory::singleton();
+    }
+
+    //-------------------------------------------------------------------------
+    RTPSenderPtr IRTPSenderFactory::create(
+                                          IDTLSTransportPtr rtpTransport,
+                                          IDTLSTransportPtr rtcpTransport
+                                          )
+    {
+      if (this) {}
+      return internal::RTPSender::create(rtpTransport, rtcpTransport);
+    }
+    
   }
 
   //---------------------------------------------------------------------------

@@ -1185,6 +1185,31 @@ namespace ortc
 
       return result;
     }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IICETransportFactory
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    IICETransportFactory &IICETransportFactory::singleton()
+    {
+      return ICETransportFactory::singleton();
+    }
+
+    //-------------------------------------------------------------------------
+    ICETransportPtr IICETransportFactory::create(
+                                                 IICETransportDelegatePtr delegate,
+                                                 IICETransport::ServerListPtr servers
+                                                 )
+    {
+      if (this) {}
+      return internal::ICETransport::create(delegate, servers);
+    }
+
   }
 
   //---------------------------------------------------------------------------

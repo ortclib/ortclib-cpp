@@ -157,5 +157,7 @@ namespace ortc
       
       virtual MediaManagerPtr create(IMediaManagerDelegatePtr delegate);
     };
+
+    class MediaManagerFactory : public IFactory<IMediaManagerFactory> {};
   }
 }

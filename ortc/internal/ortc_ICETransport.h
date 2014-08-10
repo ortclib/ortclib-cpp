@@ -334,5 +334,7 @@ namespace ortc
                                      IICETransport::ServerListPtr servers
                                      );
     };
+
+    class ICETransportFactory : public IFactory<IICETransportFactory> {};
   }
 }

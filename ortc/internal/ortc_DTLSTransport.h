@@ -508,5 +508,7 @@ namespace ortc
                                       IICETransportPtr iceTransport
                                       );
     };
+
+    class DTLSTransportFactory : public IFactory<IDTLSTransportFactory> {};
   }
 }

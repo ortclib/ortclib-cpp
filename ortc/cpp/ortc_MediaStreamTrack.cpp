@@ -1479,5 +1479,61 @@ namespace ortc
       return SendMediaTransportPtr();
     }
 
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IMediaStreamTrackFactory
+    #pragma mark
+    
+    //-------------------------------------------------------------------------
+    IMediaStreamTrackFactory &IMediaStreamTrackFactory::singleton()
+    {
+      return MediaStreamTrackFactory::singleton();
+    }
+    
+    //-------------------------------------------------------------------------
+    LocalAudioStreamTrackPtr IMediaStreamTrackFactory::createLocalAudioStreamTrack(IMediaStreamTrackDelegatePtr delegate)
+    {
+      if (this) {}
+      return LocalAudioStreamTrackPtr();
+    }
+    
+    //-------------------------------------------------------------------------
+    RemoteReceiveAudioStreamTrackPtr IMediaStreamTrackFactory::createRemoteReceiveAudioStreamTrack(IMediaStreamTrackDelegatePtr delegate)
+    {
+      if (this) {}
+      return RemoteReceiveAudioStreamTrackPtr();
+    }
+    
+    //-------------------------------------------------------------------------
+    RemoteSendAudioStreamTrackPtr IMediaStreamTrackFactory::createRemoteSendAudioStreamTrack(IMediaStreamTrackDelegatePtr delegate)
+    {
+      if (this) {}
+      return RemoteSendAudioStreamTrackPtr();
+    }
+    
+    //-------------------------------------------------------------------------
+    LocalVideoStreamTrackPtr IMediaStreamTrackFactory::createLocalVideoStreamTrack(IMediaStreamTrackDelegatePtr delegate)
+    {
+      if (this) {}
+      return LocalVideoStreamTrackPtr();
+    }
+    
+    //-------------------------------------------------------------------------
+    RemoteReceiveVideoStreamTrackPtr IMediaStreamTrackFactory::createRemoteReceiveVideoStreamTrack(IMediaStreamTrackDelegatePtr delegate)
+    {
+      if (this) {}
+      return RemoteReceiveVideoStreamTrackPtr();
+    }
+    
+    //-------------------------------------------------------------------------
+    RemoteSendVideoStreamTrackPtr IMediaStreamTrackFactory::createRemoteSendVideoStreamTrack(IMediaStreamTrackDelegatePtr delegate)
+    {
+      if (this) {}
+      return RemoteSendVideoStreamTrackPtr();
+    }
+
   }
 }

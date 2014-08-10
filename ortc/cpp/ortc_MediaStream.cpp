@@ -394,5 +394,27 @@ namespace ortc
       
       ZS_LOG_WARNING(Detail, debug("error set") + ZS_PARAM("error", mLastError) + ZS_PARAM("reason", mLastErrorReason))
     }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IMediaStreamFactory
+    #pragma mark
+    
+    //-------------------------------------------------------------------------
+    IMediaStreamFactory &IMediaStreamFactory::singleton()
+    {
+      return MediaStreamFactory::singleton();
+    }
+    
+    //-------------------------------------------------------------------------
+    MediaStreamPtr IMediaStreamFactory::create(IMediaStreamDelegatePtr delegate)
+    {
+      if (this) {}
+      return MediaStream::create(IMessageQueuePtr(), delegate);
+    }
+    
   }
 }

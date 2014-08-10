@@ -200,5 +200,7 @@ namespace ortc
                                   IDTLSTransportPtr rtcpTransport = IDTLSTransportPtr()
                                   );
     };
+
+    class RTPSenderFactory : public IFactory<IRTPSenderFactory> {};
   }
 }
