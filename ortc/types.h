@@ -77,6 +77,10 @@ namespace ortc
   ZS_DECLARE_INTERACTION_PTR(IHelper)
   ZS_DECLARE_INTERACTION_PTR(IDTLSTransport)
   ZS_DECLARE_INTERACTION_PTR(IICETransport)
+  ZS_DECLARE_INTERACTION_PTR(IRTCDTMFTrack)
+  ZS_DECLARE_INTERACTION_PTR(IRTCDataChannel)
+  ZS_DECLARE_INTERACTION_PTR(IRTCStream)
+  ZS_DECLARE_INTERACTION_PTR(IRTCTrack)
   ZS_DECLARE_INTERACTION_PTR(IRTPSender)
   ZS_DECLARE_INTERACTION_PTR(IRTPReceiver)
   ZS_DECLARE_INTERACTION_PTR(IMediaManager)
@@ -90,6 +94,8 @@ namespace ortc
   ZS_DECLARE_INTERACTION_PROXY(IMediaManagerDelegate)
   ZS_DECLARE_INTERACTION_PROXY(IMediaStreamDelegate)
   ZS_DECLARE_INTERACTION_PROXY(IMediaStreamTrackDelegate)
+  ZS_DECLARE_INTERACTION_PROXY(IRTCDataChannelDelegate)
+  ZS_DECLARE_INTERACTION_PROXY(IRTCDTMFTrackDelegate)
 
   ZS_DECLARE_INTERACTION_PROXY_SUBSCRIPTION(IDTLSTransportSubscription, IDTLSTransportDelegate)
   ZS_DECLARE_INTERACTION_PROXY_SUBSCRIPTION(IICETransportSubscription, IICETransportDelegate)
@@ -97,37 +103,10 @@ namespace ortc
   ZS_DECLARE_INTERACTION_PROXY_SUBSCRIPTION(IMediaStreamSubscription, IMediaStreamDelegate)
   ZS_DECLARE_INTERACTION_PROXY_SUBSCRIPTION(IMediaStreamTrackSubscription, IMediaStreamTrackDelegate)
 
-  interaction IRTCStream;
-  typedef boost::shared_ptr<IRTCStream> IRTCStreamPtr;
-  typedef boost::weak_ptr<IRTCStream> IRTCStreamWeakPtr;
-  
+
   typedef std::list<IRTCStreamPtr> RTCStreamList;
-  typedef boost::shared_ptr<RTCStreamList> RTCStreamListPtr;
-  typedef boost::weak_ptr<RTCStreamList> RTCStreamListWeakPtr;
+  ZS_DECLARE_PTR(RTCStreamList)
 
-  interaction IRTCTrack;
-  typedef boost::shared_ptr<IRTCTrack> IRTCTrackPtr;
-  typedef boost::weak_ptr<IRTCTrack> IRTCTrackWeakPtr;
-  
   typedef std::list<IRTCTrackPtr> RTCTrackList;
-  typedef boost::shared_ptr<RTCTrackList> RTCTrackListPtr;
-  typedef boost::weak_ptr<RTCTrackList> RTCTrackListWeakPtr;
-
-  interaction IRTCDTMFTrack;
-  typedef boost::shared_ptr<IRTCDTMFTrack> IRTCDTMFTrackPtr;
-  typedef boost::weak_ptr<IRTCDTMFTrack> IRTCDTMFTrackWeakPtr;
-  
-  interaction IRTCDTMFTrackDelegate;
-  typedef boost::shared_ptr<IRTCDTMFTrackDelegate> IRTCDTMFTrackDelegatePtr;
-  typedef boost::weak_ptr<IRTCDTMFTrackDelegate> IRTCDTMFTrackDelegateWeakPtr;
-  typedef zsLib::Proxy<IRTCDTMFTrackDelegate> IRTCDTMFTrackDelegateProxy;
-
-  interaction IRTCDataChannel;
-  typedef boost::shared_ptr<IRTCDataChannel> IRTCDataChannelPtr;
-  typedef boost::weak_ptr<IRTCDataChannel> IRTCDataChannelWeakPtr;
-  
-  interaction IRTCDataChannelDelegate;
-  typedef boost::shared_ptr<IRTCDataChannelDelegate> IRTCDataChannelDelegatePtr;
-  typedef boost::weak_ptr<IRTCDataChannelDelegate> IRTCDataChannelDelegateWeakPtr;
-  typedef zsLib::Proxy<IRTCDataChannelDelegate> IRTCDataChannelDelegateProxy;
+  ZS_DECLARE_PTR(RTCTrackList)
 }

@@ -46,8 +46,7 @@ namespace ortc
   interaction IRTCStream
   {
     typedef std::list<String> MsidList;
-    typedef boost::shared_ptr<MsidList> MsidListPtr;
-    typedef boost::weak_ptr<MsidList> MsidListWeakPtr;
+    ZS_DECLARE_PTR(MsidList)
     
     virtual IMediaStreamTrackPtr source() = 0;
     virtual MsidListPtr msid() = 0;

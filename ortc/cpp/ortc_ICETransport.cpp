@@ -184,7 +184,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     ElementPtr IICETransportForDTLSTransport::toDebug(ForDTLSTransportPtr transport)
     {
-      return ICETransport::toDebug(boost::dynamic_pointer_cast<ICETransport>(transport));
+      return ICETransport::toDebug(ZS_DYNAMIC_PTR_CAST(ICETransport, transport));
     }
 
     //-------------------------------------------------------------------------
@@ -231,13 +231,13 @@ namespace ortc
     //-------------------------------------------------------------------------
     ICETransportPtr ICETransport::convert(IICETransportPtr object)
     {
-      return boost::dynamic_pointer_cast<ICETransport>(object);
+      return ZS_DYNAMIC_PTR_CAST(ICETransport, object);
     }
 
     //-------------------------------------------------------------------------
     ICETransportPtr ICETransport::convert(ForDTLSTransportPtr object)
     {
-      return boost::dynamic_pointer_cast<ICETransport>(object);
+      return ZS_DYNAMIC_PTR_CAST(ICETransport, object);
     }
 
     //-------------------------------------------------------------------------
@@ -396,7 +396,7 @@ namespace ortc
         return;
       }
 
-      get(mStartCalled) = true;
+      mStartCalled = true;
 
       if (mSocket) {
         mSocket->wakeup();
@@ -621,7 +621,7 @@ namespace ortc
       ZS_LOG_DEBUG(log("ice socket nomination changed") + ZS_PARAM("session", session->getID()))
 
       AutoRecursiveLock lock(getLock());
-      get(mNominationChanged) = true;
+      mNominationChanged = true;
       step();
     }
 
@@ -898,7 +898,7 @@ namespace ortc
       if (mNotifiedCandidatesEnd) {
         // must be a network change then...
         mSubscriptions.delegate()->onICETransportCandidatesChangeDetected(mThisWeak.lock());
-        get(mNotifiedCandidatesEnd) = false;
+        mNotifiedCandidatesEnd = false;
       }
 
       CandidateListInner candidates;
@@ -947,7 +947,7 @@ namespace ortc
           if (!mNotifiedCandidatesEnd) {
             ZS_LOG_DEBUG(log("notifying end of candidates"))
 
-            get(mNotifiedCandidatesEnd) = true;
+            mNotifiedCandidatesEnd = true;
             mSubscriptions.delegate()->onICETransportEndOfCandidates(mThisWeak.lock());
           }
           break;
@@ -1057,7 +1057,7 @@ namespace ortc
 
           if (result) {
             mSubscriptions.delegate()->onICETransportActiveCandidate(mThisWeak.lock(), createFrom(local), createFrom(remote));
-            get(mNominationChanged) = false;
+            mNominationChanged = false;
           }
         }
         default:  break;
@@ -1151,7 +1151,7 @@ namespace ortc
         return;
       }
 
-      get(mLastError) = errorCode;
+      mLastError = errorCode;
       mLastErrorReason = reason;
 
       ZS_LOG_WARNING(Detail, debug("error set") + ZS_PARAM("error", mLastError) + ZS_PARAM("reason", mLastErrorReason))

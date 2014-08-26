@@ -45,17 +45,11 @@ namespace ortc
   
   interaction IICETransport
   {
-    struct Capabilities;
-    struct ServerInfo;
-    struct ServerList;
-    struct TransportInfo;
-    struct CandidateInfo;
-
-    typedef boost::shared_ptr<Capabilities> CapabilitiesPtr;
-    typedef boost::shared_ptr<ServerInfo> ServerInfoPtr;
-    typedef boost::shared_ptr<ServerList> ServerListPtr;
-    typedef boost::shared_ptr<TransportInfo> TransportInfoPtr;
-    typedef boost::shared_ptr<CandidateInfo> CandidateInfoPtr;
+    ZS_DECLARE_STRUCT_PTR(Capabilities)
+    ZS_DECLARE_STRUCT_PTR(ServerInfo)
+    ZS_DECLARE_STRUCT_PTR(ServerList)
+    ZS_DECLARE_STRUCT_PTR(TransportInfo)
+    ZS_DECLARE_STRUCT_PTR(CandidateInfo)
 
     //-------------------------------------------------------------------------
     #pragma mark

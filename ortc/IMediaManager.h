@@ -49,8 +49,7 @@ namespace ortc
     struct UserMediaError;
     
     typedef std::map<String, String> MediaStreamConstraintsMap;
-    typedef boost::shared_ptr<MediaStreamConstraintsMap> MediaStreamConstraintsMapPtr;
-    typedef boost::weak_ptr<MediaStreamConstraintsMap> MediaStreamConstraintsMapWeakPtr;
+    ZS_DECLARE_PTR(MediaStreamConstraintsMap)
     
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------

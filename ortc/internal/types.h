@@ -45,9 +45,7 @@ namespace ortc
     using zsLib::RecursiveLock;
     using zsLib::Log;
     using zsLib::Stringize;
-    using zsLib::AutoBool;
     using zsLib::AutoPUID;
-    using zsLib::AutoWORD;
     using zsLib::Singleton;
     using zsLib::SingletonLazySharedPtr;
 
@@ -88,27 +86,30 @@ namespace ortc
     #pragma mark (forwards)
     #pragma mark
 
-    ZS_DECLARE_CLASS_PTR(Factory)
-    ZS_DECLARE_CLASS_PTR(ORTC)
+    ZS_DECLARE_CLASS_PTR(AudioStreamTrack)
     ZS_DECLARE_CLASS_PTR(DTLSTransport)
     ZS_DECLARE_CLASS_PTR(ICETransport)
-    ZS_DECLARE_CLASS_PTR(RTPSender)
-    ZS_DECLARE_CLASS_PTR(RTPReceiver)
+    ZS_DECLARE_CLASS_PTR(MediaEngine)
     ZS_DECLARE_CLASS_PTR(MediaManager)
     ZS_DECLARE_CLASS_PTR(MediaStream)
-    ZS_DECLARE_CLASS_PTR(MediaTransport)
-    ZS_DECLARE_CLASS_PTR(SendMediaTransport)
-    ZS_DECLARE_CLASS_PTR(ReceiveMediaTransport)
     ZS_DECLARE_CLASS_PTR(MediaStreamTrack)
-    ZS_DECLARE_CLASS_PTR(AudioStreamTrack)
+    ZS_DECLARE_CLASS_PTR(MediaTransport)
+    ZS_DECLARE_CLASS_PTR(ORTC)
     ZS_DECLARE_CLASS_PTR(LocalAudioStreamTrack)
+    ZS_DECLARE_CLASS_PTR(LocalVideoStreamTrack)
+    ZS_DECLARE_CLASS_PTR(ReceiveMediaTransport)
     ZS_DECLARE_CLASS_PTR(RemoteReceiveAudioStreamTrack)
     ZS_DECLARE_CLASS_PTR(RemoteSendAudioStreamTrack)
-    ZS_DECLARE_CLASS_PTR(LocalVideoStreamTrack)
     ZS_DECLARE_CLASS_PTR(RemoteReceiveVideoStreamTrack)
     ZS_DECLARE_CLASS_PTR(RemoteSendVideoStreamTrack)
-    ZS_DECLARE_CLASS_PTR(MediaEngine)
-    
+    ZS_DECLARE_CLASS_PTR(RTCStream)
+    ZS_DECLARE_CLASS_PTR(RTCTrack)
+    ZS_DECLARE_CLASS_PTR(RTCDTMFTrack)
+    ZS_DECLARE_CLASS_PTR(RTCDataChannel)
+    ZS_DECLARE_CLASS_PTR(RTPSender)
+    ZS_DECLARE_CLASS_PTR(RTPReceiver)
+    ZS_DECLARE_CLASS_PTR(SendMediaTransport)
+
     ZS_DECLARE_INTERACTION_PTR(IMediaTransport)
     ZS_DECLARE_INTERACTION_PTR(IMediaEngine)
     
@@ -116,20 +117,5 @@ namespace ortc
 
     ZS_DECLARE_INTERACTION_PROXY_SUBSCRIPTION(IMediaEngineSubscription, IMediaEngineDelegate)
 
-    class RTCStream;
-    typedef boost::shared_ptr<RTCStream> RTCStreamPtr;
-    typedef boost::weak_ptr<RTCStream> RTCStreamWeakPtr;
-    
-    class RTCTrack;
-    typedef boost::shared_ptr<RTCTrack> RTCTrackPtr;
-    typedef boost::weak_ptr<RTCTrack> RTCTrackWeakPtr;
-    
-    class RTCDTMFTrack;
-    typedef boost::shared_ptr<RTCDTMFTrack> RTCDTMFTrackPtr;
-    typedef boost::weak_ptr<RTCDTMFTrack> RTCDTMFTrackWeakPtr;
-    
-    class RTCDataChannel;
-    typedef boost::shared_ptr<RTCDataChannel> RTCDataChannelPtr;
-    typedef boost::weak_ptr<RTCDataChannel> RTCDataChannelWeakPtr;
   }
 }

@@ -115,21 +115,17 @@ namespace ortc
     };
 
     typedef std::list<String> MsidList;
-    typedef boost::shared_ptr<MsidList> MsidListPtr;
-    typedef boost::weak_ptr<MsidList> MsidListWeakPtr;
+    ZS_DECLARE_PTR(MsidList)
     
     typedef std::list<RTCCodec> RTCCodecList;
-    typedef boost::shared_ptr<RTCCodecList> RTCCodecListPtr;
-    typedef boost::weak_ptr<RTCCodecList> RTCCodecListWeakPtr;
-    
+    ZS_DECLARE_PTR(RTCCodecList)
+
     typedef std::list<RTCMediaAttributes> RTCMediaAttributesList;
-    typedef boost::shared_ptr<RTCMediaAttributesList> RTCMediaAttributesListPtr;
-    typedef boost::weak_ptr<RTCMediaAttributesList> RTCMediaAttributesListWeakPtr;
-    
+    ZS_DECLARE_PTR(RTCMediaAttributesList)
+
     typedef std::map<String, String> RtpExtHeadersMap;
-    typedef boost::shared_ptr<RtpExtHeadersMap> RtpExtHeadersMapPtr;
-    typedef boost::weak_ptr<RtpExtHeadersMap> RtpExtHeadersMapWeakPtr;
-    
+    ZS_DECLARE_PTR(RtpExtHeadersMap)
+
     virtual IMediaStreamTrackPtr source() = 0;
     virtual String id() = 0;
     virtual RTCTrackKinds kind() = 0;

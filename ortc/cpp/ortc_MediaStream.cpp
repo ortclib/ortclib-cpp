@@ -125,7 +125,7 @@ namespace ortc
       {
         if (mAudioChannel != -1)
         {
-          LocalAudioStreamTrackPtr localTrack = boost::dynamic_pointer_cast<LocalAudioStreamTrack>(track);
+          LocalAudioStreamTrackPtr localTrack = ZS_DYNAMIC_PTR_CAST(LocalAudioStreamTrack, track);
           localTrack->forMediaManager().setChannel(mAudioChannel);
         }
         mAudioTracks->push_back(track);
@@ -134,7 +134,7 @@ namespace ortc
       {
         if (mAudioChannel != -1)
         {
-          RemoteReceiveAudioStreamTrackPtr remoteTrack = boost::dynamic_pointer_cast<RemoteReceiveAudioStreamTrack>(track);
+          RemoteReceiveAudioStreamTrackPtr remoteTrack = ZS_DYNAMIC_PTR_CAST(RemoteReceiveAudioStreamTrack, track);
           remoteTrack->forMediaManager().setChannel(mAudioChannel);
         }
         mAudioTracks->push_back(track);
@@ -143,7 +143,7 @@ namespace ortc
       {
         if (mVideoChannel != -1)
         {
-          LocalVideoStreamTrackPtr localTrack = boost::dynamic_pointer_cast<LocalVideoStreamTrack>(track);
+          LocalVideoStreamTrackPtr localTrack = ZS_DYNAMIC_PTR_CAST(LocalVideoStreamTrack, track);
           localTrack->forMediaManager().setChannel(mVideoChannel);
         }
         mVideoTracks->push_back(track);
@@ -152,7 +152,7 @@ namespace ortc
       {
         if (mVideoChannel != -1)
         {
-          RemoteReceiveVideoStreamTrackPtr remoteTrack = boost::dynamic_pointer_cast<RemoteReceiveVideoStreamTrack>(track);
+          RemoteReceiveVideoStreamTrackPtr remoteTrack = ZS_DYNAMIC_PTR_CAST(RemoteReceiveVideoStreamTrack, track);
           remoteTrack->forMediaManager().setChannel(mVideoChannel);
         }
         mVideoTracks->push_back(track);
@@ -215,12 +215,12 @@ namespace ortc
       {
         if (typeid(**iter) == typeid(LocalAudioStreamTrack))
         {
-          LocalAudioStreamTrackPtr localTrack = boost::dynamic_pointer_cast<LocalAudioStreamTrack>(*iter);
+          LocalAudioStreamTrackPtr localTrack = ZS_DYNAMIC_PTR_CAST(LocalAudioStreamTrack, *iter);
           localTrack->forMediaManager().setChannel(channel);
         }
         else if (typeid(**iter) == typeid(RemoteReceiveAudioStreamTrack))
         {
-          RemoteReceiveAudioStreamTrackPtr remoteTrack = boost::dynamic_pointer_cast<RemoteReceiveAudioStreamTrack>(*iter);
+          RemoteReceiveAudioStreamTrackPtr remoteTrack = ZS_DYNAMIC_PTR_CAST(RemoteReceiveAudioStreamTrack, *iter);
           remoteTrack->forMediaManager().setChannel(channel);
         }
       }
@@ -241,12 +241,12 @@ namespace ortc
       {
         if (typeid(**iter) == typeid(LocalVideoStreamTrack))
         {
-          LocalVideoStreamTrackPtr localTrack = boost::dynamic_pointer_cast<LocalVideoStreamTrack>(*iter);
+          LocalVideoStreamTrackPtr localTrack = ZS_DYNAMIC_PTR_CAST(LocalVideoStreamTrack, *iter);
           localTrack->forMediaManager().setChannel(channel);
         }
         else if (typeid(**iter) == typeid(RemoteReceiveVideoStreamTrack))
         {
-          RemoteReceiveVideoStreamTrackPtr remoteTrack = boost::dynamic_pointer_cast<RemoteReceiveVideoStreamTrack>(*iter);
+          RemoteReceiveVideoStreamTrackPtr remoteTrack = ZS_DYNAMIC_PTR_CAST(RemoteReceiveVideoStreamTrack, *iter);
           remoteTrack->forMediaManager().setChannel(channel);
         }
       }
@@ -373,7 +373,7 @@ namespace ortc
       //.......................................................................
       // final cleanup
       
-      get(mShutdown) = true;
+      mShutdown = true;
       
       // make sure to cleanup any final reference to self
       mGracefulShutdownReference.reset();
@@ -389,7 +389,7 @@ namespace ortc
         return;
       }
       
-      get(mLastError) = errorCode;
+      mLastError = errorCode;
       mLastErrorReason = reason;
       
       ZS_LOG_WARNING(Detail, debug("error set") + ZS_PARAM("error", mLastError) + ZS_PARAM("reason", mLastErrorReason))

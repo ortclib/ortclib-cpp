@@ -191,12 +191,12 @@ namespace ortc
       mutable RecursiveLock mLock;
       MediaStreamWeakPtr mThisWeak;
       MediaStreamPtr mGracefulShutdownReference;
-      AutoBool mShutdown;
+      bool mShutdown {};
       
       IMediaStreamDelegateSubscriptions mSubscriptions;
       IMediaStreamSubscriptionPtr mDefaultSubscription;
       
-      AutoWORD mLastError;
+      WORD mLastError {};
       String mLastErrorReason;
       
       String mStreamID;

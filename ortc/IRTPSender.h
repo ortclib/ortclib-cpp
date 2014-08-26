@@ -46,9 +46,7 @@ namespace ortc
   
   interaction IRTPSender
   {
-    struct Capabilities;
-
-    typedef boost::shared_ptr<Capabilities> CapabilitiesPtr;
+    ZS_DECLARE_STRUCT_PTR(Capabilities)
 
     //-------------------------------------------------------------------------
     #pragma mark

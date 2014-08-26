@@ -45,11 +45,8 @@ namespace ortc
   
   interaction IDTLSTransport
   {
-    struct Capabilities;
-    struct TransportInfo;
-
-    typedef boost::shared_ptr<Capabilities> CapabilitiesPtr;
-    typedef boost::shared_ptr<TransportInfo> TransportInfoPtr;
+    ZS_DECLARE_STRUCT_PTR(Capabilities)
+    ZS_DECLARE_STRUCT_PTR(TransportInfo)
 
     //-------------------------------------------------------------------------
     #pragma mark

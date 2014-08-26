@@ -190,11 +190,11 @@ namespace ortc
       mutable RecursiveLock mLock;
       RTPReceiverWeakPtr mThisWeak;
       RTPReceiverPtr mGracefulShutdownReference;
-      AutoBool mShutdown;
+      bool mShutdown {};
 
-      AutoBool mStartCalled;
+      bool mStartCalled {};
 
-      AutoWORD mLastError;
+      WORD mLastError {};
       String mLastErrorReason;
 
       TrackDescriptionPtr mDescription;

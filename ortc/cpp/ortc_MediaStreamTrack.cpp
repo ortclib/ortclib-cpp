@@ -529,7 +529,7 @@ namespace ortc
       //.......................................................................
       // final cleanup
       
-      get(mShutdown) = true;
+      mShutdown = true;
       
       // make sure to cleanup any final reference to self
       mGracefulShutdownReference.reset();
@@ -545,7 +545,7 @@ namespace ortc
         return;
       }
       
-      get(mLastError) = errorCode;
+      mLastError = errorCode;
       mLastErrorReason = reason;
       
       ZS_LOG_WARNING(Detail, debug("error set") + ZS_PARAM("error", mLastError) + ZS_PARAM("reason", mLastErrorReason))

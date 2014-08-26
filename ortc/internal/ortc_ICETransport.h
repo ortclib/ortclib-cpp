@@ -287,9 +287,9 @@ namespace ortc
       IICETransportSubscriptionPtr mDefaultSubscription;
 
       ConnectionStates mCurrentState;
-      AutoBool mStartCalled;
+      bool mStartCalled {};
 
-      AutoWORD mLastError;
+      WORD mLastError {};
       String mLastErrorReason;
 
       ServerListPtr mServers;
@@ -301,14 +301,14 @@ namespace ortc
 
       IICESocketPtr mSocket;
       IICESocketSubscriptionPtr mSocketSubscription;
-      AutoBool mNotifiedCandidatesEnd;
+      bool mNotifiedCandidatesEnd {};
       String mCandidatesVersion;
       CandidateListInner mLocalCandidatesInner;
       CandidateListOuter mLocalCandidatesOuter;
 
       IICESocketSessionPtr mSession;
       IICESocketSessionSubscriptionPtr mSessionSubscription;
-      AutoBool mNominationChanged;
+      bool mNominationChanged {};
 
       CandidateListOuter mPendingRemoteCandidates;
       CandidateListInner mAddedRemoteCandidates;

@@ -240,14 +240,14 @@ namespace ortc
         return;
       }
       
-      get(mLastError) = mVoiceBase->Init();
+      mLastError = mVoiceBase->Init();
       if (mLastError < 0) {
         ZS_LOG_ERROR(Detail, log("failed to initialize voice base") + ZS_PARAM("error", mVoiceBase->LastError()))
         return;
       } else if (mVoiceBase->LastError() > 0) {
         ZS_LOG_WARNING(Detail, log("an error has occured during voice base init") + ZS_PARAM("error", mVoiceBase->LastError()))
       }
-      get(mLastError) = mVoiceBase->RegisterVoiceEngineObserver(*this);
+      mLastError = mVoiceBase->RegisterVoiceEngineObserver(*this);
       if (mLastError < 0) {
         ZS_LOG_ERROR(Detail, log("failed to register voice engine observer") + ZS_PARAM("error", mVoiceBase->LastError()))
         return;
@@ -290,7 +290,7 @@ namespace ortc
         return;
       }
       
-      get(mLastError) = mVideoBase->Init();
+      mLastError = mVideoBase->Init();
       if (mLastError < 0) {
         ZS_LOG_ERROR(Detail, log("failed to initialize video base") + ZS_PARAM("error", mVideoBase->LastError()))
         return;
@@ -298,7 +298,7 @@ namespace ortc
         ZS_LOG_WARNING(Detail, log("an error has occured during video base init") + ZS_PARAM("error", mVideoBase->LastError()))
       }
       
-      get(mLastError) = mVideoBase->SetVoiceEngine(mVoiceEngine);
+      mLastError = mVideoBase->SetVoiceEngine(mVoiceEngine);
       if (mLastError < 0) {
         ZS_LOG_ERROR(Detail, log("failed to set voice engine for video base") + ZS_PARAM("error", mVideoBase->LastError()))
         return;
@@ -329,22 +329,22 @@ namespace ortc
       }
       
       if (logLevel != Log::None) {
-        get(mLastError) = mVoiceEngine->SetTraceFilter(traceFilter);
+        mLastError = mVoiceEngine->SetTraceFilter(traceFilter);
         if (mLastError < 0) {
           ZS_LOG_ERROR(Detail, log("failed to set trace filter for voice") + ZS_PARAM("error", mVoiceBase->LastError()))
           return;
         }
-        get(mLastError) = mVoiceEngine->SetTraceCallback(this);
+        mLastError = mVoiceEngine->SetTraceCallback(this);
         if (mLastError < 0) {
           ZS_LOG_ERROR(Detail, log("failed to set trace callback for voice") + ZS_PARAM("error", mVoiceBase->LastError()))
           return;
         }
-        get(mLastError) = mVideoEngine->SetTraceFilter(traceFilter);
+        mLastError = mVideoEngine->SetTraceFilter(traceFilter);
         if (mLastError < 0) {
           ZS_LOG_ERROR(Detail, log("failed to set trace filter for video") + ZS_PARAM("error", mVideoBase->LastError()))
           return;
         }
-        get(mLastError) = mVideoEngine->SetTraceCallback(this);
+        mLastError = mVideoEngine->SetTraceCallback(this);
         if (mLastError < 0) {
           ZS_LOG_ERROR(Detail, log("failed to set trace callback for video") + ZS_PARAM("error", mVideoBase->LastError()))
           return;
@@ -380,12 +380,12 @@ namespace ortc
       // scope: delete voice engine
       {
         if (mVoiceBase) {
-          get(mLastError) = mVoiceBase->DeRegisterVoiceEngineObserver();
+          mLastError = mVoiceBase->DeRegisterVoiceEngineObserver();
           if (mLastError < 0) {
             ZS_LOG_ERROR(Detail, log("failed to deregister voice engine observer") + ZS_PARAM("error", mVoiceBase->LastError()))
             return;
           }
-          get(mLastError) = mVoiceBase->Release();
+          mLastError = mVoiceBase->Release();
           if (mLastError < 0) {
             ZS_LOG_ERROR(Detail, log("failed to release voice base") + ZS_PARAM("error", mVoiceBase->LastError()))
             return;
@@ -393,7 +393,7 @@ namespace ortc
         }
         
         if (mVoiceCodec) {
-          get(mLastError) = mVoiceCodec->Release();
+          mLastError = mVoiceCodec->Release();
           if (mLastError < 0) {
             ZS_LOG_ERROR(Detail, log("failed to release voice codec") + ZS_PARAM("error", mVoiceBase->LastError()))
             return;
@@ -401,7 +401,7 @@ namespace ortc
         }
         
         if (mVoiceNetwork) {
-          get(mLastError) = mVoiceNetwork->Release();
+          mLastError = mVoiceNetwork->Release();
           if (mLastError < 0) {
             ZS_LOG_ERROR(Detail, log("failed to release voice network") + ZS_PARAM("error", mVoiceBase->LastError()))
             return;
@@ -409,7 +409,7 @@ namespace ortc
         }
         
         if (mVoiceRtpRtcp) {
-          get(mLastError) = mVoiceRtpRtcp->Release();
+          mLastError = mVoiceRtpRtcp->Release();
           if (mLastError < 0) {
             ZS_LOG_ERROR(Detail, log("failed to release voice RTP/RTCP") + ZS_PARAM("error", mVoiceBase->LastError()))
             return;
@@ -417,7 +417,7 @@ namespace ortc
         }
         
         if (mVoiceAudioProcessing) {
-          get(mLastError) = mVoiceAudioProcessing->Release();
+          mLastError = mVoiceAudioProcessing->Release();
           if (mLastError < 0) {
             ZS_LOG_ERROR(Detail, log("failed to release audio processing") + ZS_PARAM("error", mVoiceBase->LastError()))
             return;
@@ -425,7 +425,7 @@ namespace ortc
         }
         
         if (mVoiceVolumeControl) {
-          get(mLastError) = mVoiceVolumeControl->Release();
+          mLastError = mVoiceVolumeControl->Release();
           if (mLastError < 0) {
             ZS_LOG_ERROR(Detail, log("failed to release volume control") + ZS_PARAM("error", mVoiceBase->LastError()))
             return;
@@ -433,7 +433,7 @@ namespace ortc
         }
         
         if (mVoiceHardware) {
-          get(mLastError) = mVoiceHardware->Release();
+          mLastError = mVoiceHardware->Release();
           if (mLastError < 0) {
             ZS_LOG_ERROR(Detail, log("failed to release audio hardware") + ZS_PARAM("error", mVoiceBase->LastError()))
             return;
@@ -441,7 +441,7 @@ namespace ortc
         }
         
         if (mVoiceFile) {
-          get(mLastError) = mVoiceFile->Release();
+          mLastError = mVoiceFile->Release();
           if (mLastError < 0) {
             ZS_LOG_ERROR(Detail, log("failed to release voice file") + ZS_PARAM("error", mVoiceBase->LastError()))
             return;
@@ -457,7 +457,7 @@ namespace ortc
       // scope; delete video engine
       {
         if (mVideoBase) {
-          get(mLastError) = mVideoBase->Release();
+          mLastError = mVideoBase->Release();
           if (mLastError < 0) {
             ZS_LOG_ERROR(Detail, log("failed to release video base") + ZS_PARAM("error", mVideoBase->LastError()))
             return;
@@ -465,7 +465,7 @@ namespace ortc
         }
         
         if (mVideoNetwork) {
-          get(mLastError) = mVideoNetwork->Release();
+          mLastError = mVideoNetwork->Release();
           if (mLastError < 0) {
             ZS_LOG_ERROR(Detail, log("failed to release video network") + ZS_PARAM("error", mVideoBase->LastError()))
             return;
@@ -473,7 +473,7 @@ namespace ortc
         }
         
         if (mVideoRender) {
-          get(mLastError) = mVideoRender->Release();
+          mLastError = mVideoRender->Release();
           if (mLastError < 0) {
             ZS_LOG_ERROR(Detail, log("failed to release video render") + ZS_PARAM("error", mVideoBase->LastError()))
             return;
@@ -481,7 +481,7 @@ namespace ortc
         }
         
         if (mVideoCapture) {
-          get(mLastError) = mVideoCapture->Release();
+          mLastError = mVideoCapture->Release();
           if (mLastError < 0) {
             ZS_LOG_ERROR(Detail, log("failed to release video capture") + ZS_PARAM("error", mVideoBase->LastError()))
             return;
@@ -489,7 +489,7 @@ namespace ortc
         }
         
         if (mVideoRtpRtcp) {
-          get(mLastError) = mVideoRtpRtcp->Release();
+          mLastError = mVideoRtpRtcp->Release();
           if (mLastError < 0) {
             ZS_LOG_ERROR(Detail, log("failed to release video RTP/RTCP") + ZS_PARAM("error", mVideoBase->LastError()))
             return;
@@ -497,7 +497,7 @@ namespace ortc
         }
         
         if (mVideoCodec) {
-          get(mLastError) = mVideoCodec->Release();
+          mLastError = mVideoCodec->Release();
           if (mLastError < 0) {
             ZS_LOG_ERROR(Detail, log("failed to release video codec") + ZS_PARAM("error", mVideoBase->LastError()))
             return;
@@ -611,13 +611,13 @@ namespace ortc
       if (ecMode == webrtc::kEcUnchanged) {
         return;
       }
-      get(mLastError) = mVoiceAudioProcessing->SetEcStatus(enabled, ecMode);
+      mLastError = mVoiceAudioProcessing->SetEcStatus(enabled, ecMode);
       if (mLastError != 0) {
         ZS_LOG_ERROR(Detail, log("failed to set acoustic echo canceller status") + ZS_PARAM("error", mVoiceBase->LastError()))
         return;
       }
       if (ecMode == webrtc::kEcAecm && enabled) {
-        get(mLastError) = mVoiceAudioProcessing->SetAecmMode(webrtc::kAecmSpeakerphone);
+        mLastError = mVoiceAudioProcessing->SetAecmMode(webrtc::kAecmSpeakerphone);
         if (mLastError != 0) {
           ZS_LOG_ERROR(Detail, log("failed to set acoustic echo canceller mobile mode") + ZS_PARAM("error", mVoiceBase->LastError()))
           return;
@@ -640,7 +640,7 @@ namespace ortc
         return;
       }
       
-      get(mLastError) = mVoiceAudioProcessing->SetAgcStatus(enabled, webrtc::kAgcAdaptiveDigital);
+      mLastError = mVoiceAudioProcessing->SetAgcStatus(enabled, webrtc::kAgcAdaptiveDigital);
       if (mLastError != 0) {
         ZS_LOG_ERROR(Detail, log("failed to set automatic gain control status") + ZS_PARAM("error", mVoiceBase->LastError()))
         return;
@@ -662,7 +662,7 @@ namespace ortc
         return;
       }
 
-      get(mLastError) = mVoiceAudioProcessing->SetNsStatus(enabled, webrtc::kNsLowSuppression);
+      mLastError = mVoiceAudioProcessing->SetNsStatus(enabled, webrtc::kNsLowSuppression);
       if (mLastError != 0) {
         ZS_LOG_ERROR(Detail, log("failed to set noise suppression status") + ZS_PARAM("error", mVoiceBase->LastError()))
         return;
@@ -698,7 +698,7 @@ namespace ortc
       
       ZS_LOG_DEBUG(log("set microphone mute enabled") + ZS_PARAM("value", enabled ? "true" : "false"))
       
-      get(mLastError) = mVoiceVolumeControl->SetInputMute(-1, enabled);
+      mLastError = mVoiceVolumeControl->SetInputMute(-1, enabled);
       if (mLastError != 0) {
         ZS_LOG_ERROR(Detail, log("failed to set microphone mute") + ZS_PARAM("error", mVoiceBase->LastError()))
         return;
@@ -713,7 +713,7 @@ namespace ortc
       ZS_LOG_DEBUG(log("get microphone mute enabled"))
       
       bool enabled;
-      get(mLastError) = mVoiceVolumeControl->GetInputMute(-1, enabled);
+      mLastError = mVoiceVolumeControl->GetInputMute(-1, enabled);
       if (mLastError != 0) {
         ZS_LOG_ERROR(Detail, log("failed to set microphone mute") + ZS_PARAM("error", mVoiceBase->LastError()))
         return false;
@@ -729,7 +729,7 @@ namespace ortc
       
       ZS_LOG_DEBUG(log("set loudspeaker enabled") + ZS_PARAM("value", enabled ? "true" : "false"))
       
-      get(mLastError) = mVoiceHardware->SetLoudspeakerStatus(enabled);
+      mLastError = mVoiceHardware->SetLoudspeakerStatus(enabled);
       if (mLastError != 0) {
         ZS_LOG_ERROR(Detail, log("failed to set loudspeaker") + ZS_PARAM("error", mVoiceBase->LastError()))
         return;
@@ -744,7 +744,7 @@ namespace ortc
       ZS_LOG_DEBUG(log("get loudspeaker enabled"))
       
       bool enabled;
-      get(mLastError) = mVoiceHardware->GetLoudspeakerStatus(enabled);
+      mLastError = mVoiceHardware->GetLoudspeakerStatus(enabled);
       if (mLastError != 0) {
         ZS_LOG_ERROR(Detail, log("failed to get loudspeaker") + ZS_PARAM("error", mVoiceBase->LastError()))
         return false;
@@ -761,7 +761,7 @@ namespace ortc
       ZS_LOG_DEBUG(log("get output audio route"))
       
       OutputAudioRoute route;
-      get(mLastError) = mVoiceHardware->GetOutputAudioRoute(route);
+      mLastError = mVoiceHardware->GetOutputAudioRoute(route);
       if (mLastError != 0) {
         ZS_LOG_ERROR(Detail, log("failed to get output audio route") + ZS_PARAM("error", mVoiceBase->LastError()))
         return webrtc::kOutputAudioRouteBuiltInSpeaker;
@@ -1093,7 +1093,7 @@ namespace ortc
       unsigned int jitter;
       int rttMs;
 
-      get(mLastError) = mVideoRtpRtcp->GetReceivedRTCPStatistics(channelId, fractionLost, cumulativeLost, extendedMax, jitter, rttMs);
+      mLastError = mVideoRtpRtcp->GetReceivedRTCPStatistics(channelId, fractionLost, cumulativeLost, extendedMax, jitter, rttMs);
       if (0 != mLastError) {
         ZS_LOG_ERROR(Detail, log("failed to get received RTCP statistics for video") + ZS_PARAM("error", mVideoBase->LastError()))
         return mLastError;
@@ -1104,7 +1104,7 @@ namespace ortc
       unsigned int bytesReceived;
       unsigned int packetsReceived;
 
-      get(mLastError) = mVideoRtpRtcp->GetRTPStatistics(channelId, bytesSent, packetsSent, bytesReceived, packetsReceived);
+      mLastError = mVideoRtpRtcp->GetRTPStatistics(channelId, bytesSent, packetsSent, bytesReceived, packetsReceived);
       if (0 != mLastError) {
         ZS_LOG_ERROR(Detail, log("failed to get RTP statistics for video") + ZS_PARAM("error", mVideoBase->LastError()))
         return mLastError;
@@ -1130,7 +1130,7 @@ namespace ortc
 
       webrtc::CallStatistics callStat;
 
-      get(mLastError) = mVoiceRtpRtcp->GetRTCPStatistics(channelId, callStat);
+      mLastError = mVoiceRtpRtcp->GetRTCPStatistics(channelId, callStat);
       if (0 != mLastError) {
         ZS_LOG_ERROR(Detail, log("failed to get RTCP statistics for voice") + ZS_PARAM("error", mVoiceBase->LastError()))
         return mLastError;
@@ -1188,7 +1188,7 @@ namespace ortc
         return -1;
       }
       
-      get(mLastError) = mVoiceNetwork->ReceivedRTPPacket(channel, data, length);
+      mLastError = mVoiceNetwork->ReceivedRTPPacket(channel, data, length);
       if (0 != mLastError) {
         ZS_LOG_ERROR(Detail, log("received voice RTP packet failed") + ZS_PARAM("error", mVoiceBase->LastError()))
         return mLastError;
@@ -1212,7 +1212,7 @@ namespace ortc
         return -1;
       }
       
-      get(mLastError) = mVoiceNetwork->ReceivedRTCPPacket(channel, data, length);
+      mLastError = mVoiceNetwork->ReceivedRTCPPacket(channel, data, length);
       if (0 != mLastError) {
         ZS_LOG_ERROR(Detail, log("received voice RTCP packet failed") + ZS_PARAM("error", mVoiceBase->LastError()))
         return mLastError;
@@ -1260,7 +1260,7 @@ namespace ortc
         return -1;
       }
 
-      get(mLastError) = mVoiceNetwork->ReceivedRTPPacket(channel, data, length);
+      mLastError = mVoiceNetwork->ReceivedRTPPacket(channel, data, length);
       if (0 != mLastError) {
         ZS_LOG_ERROR(Detail, log("received voice RTP packet failed") + ZS_PARAM("error", mVoiceBase->LastError()))
         return mLastError;
@@ -1284,7 +1284,7 @@ namespace ortc
         return -1;
       }
        
-      get(mLastError) = mVoiceNetwork->ReceivedRTCPPacket(channel, data, length);
+      mLastError = mVoiceNetwork->ReceivedRTCPPacket(channel, data, length);
       if (0 != mLastError) {
         ZS_LOG_ERROR(Detail, log("received voice RTCP packet failed") + ZS_PARAM("error", mVoiceBase->LastError()))
         return mLastError;
@@ -1706,7 +1706,7 @@ namespace ortc
       //.......................................................................
       // final cleanup
       
-      get(mShutdown) = true;
+      mShutdown = true;
       
       // make sure to cleanup any final reference to self
       mGracefulShutdownReference.reset();
@@ -1722,7 +1722,7 @@ namespace ortc
         return;
       }
       
-      get(mLastError) = errorCode;
+      mLastError = errorCode;
       mLastErrorReason = reason;
       
       ZS_LOG_WARNING(Detail, debug("error set") + ZS_PARAM("error", mLastError) + ZS_PARAM("reason", mLastErrorReason))
@@ -1764,14 +1764,14 @@ namespace ortc
           return;
         }
         
-        get(mLastError) = internalRegisterVoiceSendTransport(channelId);
+        mLastError = internalRegisterVoiceSendTransport(channelId);
         if (mLastError != 0)
           return;
         
         webrtc::CodecInst cinst;
         memset(&cinst, 0, sizeof(webrtc::CodecInst));
         for (int idx = 0; idx < mVoiceCodec->NumOfCodecs(); idx++) {
-          get(mLastError) = mVoiceCodec->GetCodec(idx, cinst);
+          mLastError = mVoiceCodec->GetCodec(idx, cinst);
           if (mLastError != 0) {
             ZS_LOG_ERROR(Detail, log("failed to get voice codec") + ZS_PARAM("error", mVoiceBase->LastError()))
             return;
@@ -1784,7 +1784,7 @@ namespace ortc
             cinst.pacsize = 480; // 30ms
             cinst.plfreq = 16000;
             cinst.channels = 1;
-            get(mLastError) = mVoiceCodec->SetSendCodec(channelId, cinst);
+            mLastError = mVoiceCodec->SetSendCodec(channelId, cinst);
             if (mLastError != 0) {
               ZS_LOG_ERROR(Detail, log("failed to set send voice codec") + ZS_PARAM("error", mVoiceBase->LastError()))
               return;
@@ -1809,11 +1809,11 @@ namespace ortc
 #endif
         }
         
-        get(mLastError) = internalSetVoiceSendTransportParameters(channelId);
+        mLastError = internalSetVoiceSendTransportParameters(channelId);
         if (mLastError != 0)
           return;
         
-        get(mLastError) = mVoiceBase->StartSend(channelId);
+        mLastError = mVoiceBase->StartSend(channelId);
         if (mLastError != 0) {
           ZS_LOG_ERROR(Detail, log("failed to start sending voice") + ZS_PARAM("error", mVoiceBase->LastError()))
           return;
@@ -1844,52 +1844,52 @@ namespace ortc
         if (ecMode == webrtc::kEcUnchanged) {
           return;
         }
-        get(mLastError) = mVoiceAudioProcessing->SetEcStatus(mVoiceChannelInfos[channelId].mEcEnabled, ecMode);
+        mLastError = mVoiceAudioProcessing->SetEcStatus(mVoiceChannelInfos[channelId].mEcEnabled, ecMode);
         if (mLastError != 0) {
           ZS_LOG_ERROR(Detail, log("failed to set acoustic echo canceller status") + ZS_PARAM("error", mVoiceBase->LastError()))
           return;
         }
         if (ecMode == webrtc::kEcAecm && mVoiceChannelInfos[channelId].mEcEnabled) {
-          get(mLastError) = mVoiceAudioProcessing->SetAecmMode(webrtc::kAecmSpeakerphone);
+          mLastError = mVoiceAudioProcessing->SetAecmMode(webrtc::kAecmSpeakerphone);
           if (mLastError != 0) {
             ZS_LOG_ERROR(Detail, log("failed to set acoustic echo canceller mobile mode") + ZS_PARAM("error", mVoiceBase->LastError()))
             return;
           }
         }
-        get(mLastError) = mVoiceAudioProcessing->SetAgcStatus(mVoiceChannelInfos[channelId].mAgcEnabled, webrtc::kAgcAdaptiveDigital);
+        mLastError = mVoiceAudioProcessing->SetAgcStatus(mVoiceChannelInfos[channelId].mAgcEnabled, webrtc::kAgcAdaptiveDigital);
         if (mLastError != 0) {
           ZS_LOG_ERROR(Detail, log("failed to set automatic gain control status") + ZS_PARAM("error", mVoiceBase->LastError()))
           return;
         }
-        get(mLastError) = mVoiceAudioProcessing->SetNsStatus(mVoiceChannelInfos[channelId].mNsEnabled, webrtc::kNsLowSuppression);
+        mLastError = mVoiceAudioProcessing->SetNsStatus(mVoiceChannelInfos[channelId].mNsEnabled, webrtc::kNsLowSuppression);
         if (mLastError != 0) {
           ZS_LOG_ERROR(Detail, log("failed to set noise suppression status") + ZS_PARAM("error", mVoiceBase->LastError()))
           return;
         }
         
-        get(mLastError) = mVoiceVolumeControl->SetInputMute(-1, false);
+        mLastError = mVoiceVolumeControl->SetInputMute(-1, false);
         if (mLastError != 0) {
           ZS_LOG_ERROR(Detail, log("failed to set microphone mute") + ZS_PARAM("error", mVoiceBase->LastError()))
           return;
         }
 #ifdef TARGET_OS_IPHONE
-        get(mLastError) = mVoiceHardware->SetLoudspeakerStatus(false);
+        mLastError = mVoiceHardware->SetLoudspeakerStatus(false);
         if (mLastError != 0) {
           ZS_LOG_ERROR(Detail, log("failed to set loudspeaker") + ZS_PARAM("error", mVoiceBase->LastError()))
           return;
         }
 #endif
         
-        get(mLastError) = internalSetVoiceReceiveTransportParameters(channelId);
+        mLastError = internalSetVoiceReceiveTransportParameters(channelId);
         if (mLastError != 0)
           return;
         
-        get(mLastError) = mVoiceBase->StartReceive(channelId);
+        mLastError = mVoiceBase->StartReceive(channelId);
         if (mLastError != 0) {
           ZS_LOG_ERROR(Detail, log("failed to start receiving voice") + ZS_PARAM("error", mVoiceBase->LastError()))
           return;
         }
-        get(mLastError) = mVoiceBase->StartPlayout(channelId);
+        mLastError = mVoiceBase->StartPlayout(channelId);
         if (mLastError != 0) {
           ZS_LOG_ERROR(Detail, log("failed to start playout") + ZS_PARAM("error", mVoiceBase->LastError()))
           return;
@@ -1898,7 +1898,7 @@ namespace ortc
         webrtc::CodecInst cfinst;
         memset(&cfinst, 0, sizeof(webrtc::CodecInst));
         for (int idx = 0; idx < mVoiceCodec->NumOfCodecs(); idx++) {
-          get(mLastError) = mVoiceCodec->GetCodec(idx, cfinst);
+          mLastError = mVoiceCodec->GetCodec(idx, cfinst);
           if (mLastError != 0) {
             ZS_LOG_ERROR(Detail, log("failed to get voice codec") + ZS_PARAM("error", mVoiceBase->LastError()))
             return;
@@ -1915,7 +1915,7 @@ namespace ortc
         }
 
         if (!mVoiceRecordFile.empty()) {
-          get(mLastError) = mVoiceFile->StartRecordingCall(mVoiceRecordFile, &cfinst);
+          mLastError = mVoiceFile->StartRecordingCall(mVoiceRecordFile, &cfinst);
           if (mLastError != 0) {
             ZS_LOG_ERROR(Detail, log("failed to start call recording") + ZS_PARAM("error", mVoiceBase->LastError()))
           }
@@ -1941,15 +1941,15 @@ namespace ortc
         
         ZS_LOG_DEBUG(log("stop send voice"))
         
-        get(mLastError) = mVoiceBase->StopSend(channelId);
+        mLastError = mVoiceBase->StopSend(channelId);
         if (mLastError != 0) {
           ZS_LOG_ERROR(Detail, log("failed to stop sending voice") + ZS_PARAM("error", mVoiceBase->LastError()))
           return;
         }
-        get(mLastError) = internalDeregisterVoiceSendTransport(channelId);
+        mLastError = internalDeregisterVoiceSendTransport(channelId);
         if (0 != mLastError)
           return;
-        get(mLastError) = mVoiceBase->DeleteChannel(channelId);
+        mLastError = mVoiceBase->DeleteChannel(channelId);
         if (mLastError != 0) {
           ZS_LOG_ERROR(Detail, log("failed to delete voice channel") + ZS_PARAM("error", mVoiceBase->LastError()))
           return;
@@ -1971,18 +1971,18 @@ namespace ortc
         
         ZS_LOG_DEBUG(log("stop receive voice"))
 
-        get(mLastError) = mVoiceBase->StopPlayout(channelId);
+        mLastError = mVoiceBase->StopPlayout(channelId);
         if (mLastError != 0) {
           ZS_LOG_ERROR(Detail, log("failed to stop playout") + ZS_PARAM("error", mVoiceBase->LastError()))
           return;
         }
-        get(mLastError) = mVoiceBase->StopReceive(channelId);
+        mLastError = mVoiceBase->StopReceive(channelId);
         if (mLastError != 0) {
           ZS_LOG_ERROR(Detail, log("failed to stop receiving voice") + ZS_PARAM("error", mVoiceBase->LastError()))
           return;
         }
         if (!mVoiceRecordFile.empty()) {
-          get(mLastError) = mVoiceFile->StopRecordingCall();
+          mLastError = mVoiceFile->StopRecordingCall();
           if (mLastError != 0) {
             ZS_LOG_ERROR(Detail, log("failed to stop call recording") + ZS_PARAM("error", mVoiceBase->LastError()))
           }
@@ -1990,7 +1990,7 @@ namespace ortc
         }
         if (0 != mLastError)
           return;
-        get(mLastError) = mVoiceBase->DeleteChannel(channelId);
+        mLastError = mVoiceBase->DeleteChannel(channelId);
         if (mLastError != 0) {
           ZS_LOG_ERROR(Detail, log("failed to delete voice channel") + ZS_PARAM("error", mVoiceBase->LastError()))
           return;
@@ -2038,7 +2038,7 @@ namespace ortc
           return ORTC_MEDIA_ENGINE_INVALID_CHANNEL;
         }
         
-        get(mLastError) = devInfo->GetDeviceName(captureIdx, deviceName,
+        mLastError = devInfo->GetDeviceName(captureIdx, deviceName,
                                                  KMaxDeviceNameLength, uniqueId,
                                                  KMaxUniqueIdLength);
         if (mLastError != 0) {
@@ -2054,7 +2054,7 @@ namespace ortc
           return ORTC_MEDIA_ENGINE_INVALID_CHANNEL;
         }
         
-        get(mLastError) = mVideoCapture->AllocateCaptureDevice(*mVcpm, captureId);
+        mLastError = mVideoCapture->AllocateCaptureDevice(*mVcpm, captureId);
         if (mLastError != 0) {
           ZS_LOG_ERROR(Detail, log("failed to allocate video capture device") + ZS_PARAM("error", mVideoBase->LastError()))
           return ORTC_MEDIA_ENGINE_INVALID_CHANNEL;
@@ -2081,7 +2081,7 @@ namespace ortc
         AutoRecursiveLock lock(mLock);
         
         int channelId;
-        get(mLastError) = mVideoBase->CreateChannel(channelId);
+        mLastError = mVideoBase->CreateChannel(channelId);
         if (mLastError != 0) {
           ZS_LOG_ERROR(Detail, log("could not create video channel") + ZS_PARAM("error", mVoiceBase->LastError()))
           return ORTC_MEDIA_ENGINE_INVALID_CHANNEL;
@@ -2123,14 +2123,14 @@ namespace ortc
         }
 #endif
         
-        get(mLastError) = mVideoCapture->RegisterObserver(captureId, *this);
+        mLastError = mVideoCapture->RegisterObserver(captureId, *this);
         if (mLastError < 0) {
           ZS_LOG_ERROR(Detail, log("failed to register video capture observer") + ZS_PARAM("error", mVideoBase->LastError()))
           return;
         }
         
 #ifdef TARGET_OS_IPHONE
-        get(mLastError) = mVideoCapture->SetDefaultCapturedFrameOrientation(captureId, mDefaultVideoOrientation);
+        mLastError = mVideoCapture->SetDefaultCapturedFrameOrientation(captureId, mDefaultVideoOrientation);
         if (mLastError != 0) {
           ZS_LOG_ERROR(Detail, log("failed to set default orientation on video capture device") + ZS_PARAM("error", mVideoBase->LastError()))
           return;
@@ -2139,7 +2139,7 @@ namespace ortc
         setVideoCaptureRotation(captureId);
         
         webrtc::RotateCapturedFrame orientation;
-        get(mLastError) = mVideoCapture->GetOrientation(mVideoSourceInfos[captureId].mDeviceUniqueId, orientation);
+        mLastError = mVideoCapture->GetOrientation(mVideoSourceInfos[captureId].mDeviceUniqueId, orientation);
         if (mLastError != 0) {
           ZS_LOG_ERROR(Detail, log("failed to get orientation from video capture device") + ZS_PARAM("error", mVideoBase->LastError()))
           return;
@@ -2149,7 +2149,7 @@ namespace ortc
 #endif
         
         int width = 0, height = 0, maxFramerate = 0, maxBitrate = 0;
-        get(mLastError) = getVideoCaptureParameters(mVideoSourceInfos[captureId].mCameraType,
+        mLastError = getVideoCaptureParameters(mVideoSourceInfos[captureId].mCameraType,
                                                     orientation, width, height, maxFramerate, maxBitrate);
         if (mLastError != 0)
           return;
@@ -2160,21 +2160,21 @@ namespace ortc
         capability.maxFPS = maxFramerate;
         capability.rawType = webrtc::kVideoI420;
         capability.faceDetection = mVideoSourceInfos[captureId].mFaceDetection;
-        get(mLastError) = mVideoCapture->StartCapture(captureId, capability);
+        mLastError = mVideoCapture->StartCapture(captureId, capability);
         if (mLastError != 0) {
           ZS_LOG_ERROR(Detail, log("failed to start capturing") + ZS_PARAM("error", mVideoBase->LastError()))
           return;
         }
         
 #ifndef __QNX__
-        get(mLastError) = mVideoRender->AddRenderer(captureId, captureView, 0, 0.0F, 0.0F, 1.0F,
+        mLastError = mVideoRender->AddRenderer(captureId, captureView, 0, 0.0F, 0.0F, 1.0F,
                                            1.0F);
         if (0 != mLastError) {
           ZS_LOG_ERROR(Detail, log("failed to add renderer for video capture") + ZS_PARAM("error", mVideoBase->LastError()))
           return;
         }
         
-        get(mLastError) = mVideoRender->StartRender(captureId);
+        mLastError = mVideoRender->StartRender(captureId);
         if (mLastError != 0) {
           ZS_LOG_ERROR(Detail, log("failed to start rendering video capture") + ZS_PARAM("error", mVideoBase->LastError()))
           return;
@@ -2192,23 +2192,23 @@ namespace ortc
         ZS_LOG_DEBUG(log("stop video capture"))
         
 #ifndef __QNX__
-        get(mLastError) = mVideoRender->StopRender(captureId);
+        mLastError = mVideoRender->StopRender(captureId);
         if (mLastError != 0) {
           ZS_LOG_ERROR(Detail, log("failed to stop rendering video capture") + ZS_PARAM("error", mVideoBase->LastError()))
           return;
         }
-        get(mLastError) = mVideoRender->RemoveRenderer(captureId);
+        mLastError = mVideoRender->RemoveRenderer(captureId);
         if (mLastError != 0) {
           ZS_LOG_ERROR(Detail, log("failed to remove renderer for video capture") + ZS_PARAM("error", mVideoBase->LastError()))
           return;
         }
 #endif
-        get(mLastError) = mVideoCapture->StopCapture(captureId);
+        mLastError = mVideoCapture->StopCapture(captureId);
         if (mLastError != 0) {
           ZS_LOG_ERROR(Detail, log("failed to stop video capturing") + ZS_PARAM("error", mVideoBase->LastError()))
           return;
         }
-        get(mLastError) = mVideoCapture->ReleaseCaptureDevice(captureId);
+        mLastError = mVideoCapture->ReleaseCaptureDevice(captureId);
         if (mLastError != 0) {
           ZS_LOG_ERROR(Detail, log("failed to release video capture device") + ZS_PARAM("error", mVideoBase->LastError()))
           return;
@@ -2241,36 +2241,36 @@ namespace ortc
           return;
         }
         
-        get(mLastError) = internalRegisterVideoSendTransport(channelId);
+        mLastError = internalRegisterVideoSendTransport(channelId);
         if (0 != mLastError)
           return;
         
-        get(mLastError) = mVideoNetwork->SetMTU(channelId, mMtu);
+        mLastError = mVideoNetwork->SetMTU(channelId, mMtu);
         if (0 != mLastError) {
           ZS_LOG_ERROR(Detail, log("failed to set MTU for video channel") + ZS_PARAM("error", mVideoBase->LastError()))
           return;
         }
         
-        get(mLastError) = mVideoCapture->ConnectCaptureDevice(captureId, channelId);
+        mLastError = mVideoCapture->ConnectCaptureDevice(captureId, channelId);
         if (0 != mLastError) {
           ZS_LOG_ERROR(Detail, log("failed to connect capture device to video channel") + ZS_PARAM("error", mVideoBase->LastError()))
           return;
         }
         
-        get(mLastError) = mVideoRtpRtcp->SetRTCPStatus(channelId, webrtc::kRtcpCompound_RFC4585);
+        mLastError = mVideoRtpRtcp->SetRTCPStatus(channelId, webrtc::kRtcpCompound_RFC4585);
         if (0 != mLastError) {
           ZS_LOG_ERROR(Detail, log("failed to set video RTCP status") + ZS_PARAM("error", mVideoBase->LastError()))
           return;
         }
         
-        get(mLastError) = mVideoRtpRtcp->SetKeyFrameRequestMethod(channelId,
+        mLastError = mVideoRtpRtcp->SetKeyFrameRequestMethod(channelId,
                                                          webrtc::kViEKeyFrameRequestPliRtcp);
         if (0 != mLastError) {
           ZS_LOG_ERROR(Detail, log("failed to set key frame request method") + ZS_PARAM("error", mVideoBase->LastError()))
           return;
         }
         
-        get(mLastError) = mVideoRtpRtcp->SetTMMBRStatus(channelId, true);
+        mLastError = mVideoRtpRtcp->SetTMMBRStatus(channelId, true);
         if (0 != mLastError) {
           ZS_LOG_ERROR(Detail, log("failed to set temporary max media bit rate status") + ZS_PARAM("error", mVideoBase->LastError()))
           return;
@@ -2279,13 +2279,13 @@ namespace ortc
         webrtc::VideoCodec videoCodec;
         memset(&videoCodec, 0, sizeof(VideoCodec));
         for (int idx = 0; idx < mVideoCodec->NumberOfCodecs(); idx++) {
-          get(mLastError) = mVideoCodec->GetCodec(idx, videoCodec);
+          mLastError = mVideoCodec->GetCodec(idx, videoCodec);
           if (mLastError != 0) {
             ZS_LOG_ERROR(Detail, log("failed to get video codec") + ZS_PARAM("error", mVideoBase->LastError()))
             return;
           }
           if (videoCodec.codecType == webrtc::kVideoCodecVP8) {
-            get(mLastError) = mVideoCodec->SetSendCodec(channelId, videoCodec);
+            mLastError = mVideoCodec->SetSendCodec(channelId, videoCodec);
             if (mLastError != 0) {
               ZS_LOG_ERROR(Detail, log("failed to set send video codec") + ZS_PARAM("error", mVideoBase->LastError()))
               return;
@@ -2294,16 +2294,16 @@ namespace ortc
           }
         }
         
-        get(mLastError) = setVideoCodecParameters(channelId, captureId);
+        mLastError = setVideoCodecParameters(channelId, captureId);
         if (mLastError != 0) {
           return;
         }
         
-        get(mLastError) = internalSetVideoSendTransportParameters(channelId);
+        mLastError = internalSetVideoSendTransportParameters(channelId);
         if (mLastError != 0)
           return;
         
-        get(mLastError) = mVideoBase->StartSend(channelId);
+        mLastError = mVideoBase->StartSend(channelId);
         if (mLastError != 0) {
           ZS_LOG_ERROR(Detail, log("failed to start sending video") + ZS_PARAM("error", mVideoBase->LastError()))
           return;
@@ -2342,14 +2342,14 @@ namespace ortc
         
 #ifdef TARGET_OS_IPHONE
         OutputAudioRoute route;
-        get(mLastError) = mVoiceHardware->GetOutputAudioRoute(route);
+        mLastError = mVoiceHardware->GetOutputAudioRoute(route);
         if (mLastError != 0) {
           ZS_LOG_ERROR(Detail, log("failed to get output audio route") + ZS_PARAM("error", mVoiceBase->LastError()))
           return;
         }
         if (route != webrtc::kOutputAudioRouteHeadphone)
         {
-          get(mLastError) = mVoiceHardware->SetLoudspeakerStatus(true);
+          mLastError = mVoiceHardware->SetLoudspeakerStatus(true);
           if (mLastError != 0) {
             ZS_LOG_ERROR(Detail, log("failed to set loudspeaker") + ZS_PARAM("error", mVoiceBase->LastError()))
             return;
@@ -2357,23 +2357,23 @@ namespace ortc
         }
 #endif
         
-        get(mLastError) = mVideoRender->AddRenderer(channelId, channelView, 0, 0.0F, 0.0F, 1.0F,
+        mLastError = mVideoRender->AddRenderer(channelId, channelView, 0, 0.0F, 0.0F, 1.0F,
                                            1.0F);
         if (0 != mLastError) {
           ZS_LOG_ERROR(Detail, log("failed to add renderer for video channel") + ZS_PARAM("error", mVideoBase->LastError()))
           return;
         }
         
-        get(mLastError) = internalSetVideoReceiveTransportParameters(channelId);
+        mLastError = internalSetVideoReceiveTransportParameters(channelId);
         if (mLastError != 0)
           return;
         
-        get(mLastError) = mVideoBase->StartReceive(channelId);
+        mLastError = mVideoBase->StartReceive(channelId);
         if (mLastError != 0) {
           ZS_LOG_ERROR(Detail, log("failed to start receiving video") + ZS_PARAM("error", mVideoBase->LastError()))
           return;
         }
-        get(mLastError) = mVideoRender->StartRender(channelId);
+        mLastError = mVideoRender->StartRender(channelId);
         if (mLastError != 0) {
           ZS_LOG_ERROR(Detail, log("failed to start rendering video channel") + ZS_PARAM("error", mVideoBase->LastError()))
           return;
@@ -2399,20 +2399,20 @@ namespace ortc
         
         ZS_LOG_DEBUG(log("stop send video channel"))
 
-        get(mLastError) = mVideoBase->StopSend(channelId);
+        mLastError = mVideoBase->StopSend(channelId);
         if (mLastError != 0) {
           ZS_LOG_ERROR(Detail, log("failed to stop sending video") + ZS_PARAM("error", mVideoBase->LastError()))
           return;
         }
-        get(mLastError) = mVideoCapture->DisconnectCaptureDevice(channelId);
+        mLastError = mVideoCapture->DisconnectCaptureDevice(channelId);
         if (mLastError != 0) {
           ZS_LOG_ERROR(Detail, log("failed to disconnect capture device from video channel") + ZS_PARAM("error", mVideoBase->LastError()))
           return;
         }
-        get(mLastError) = internalDeregisterVideoSendTransport(channelId);
+        mLastError = internalDeregisterVideoSendTransport(channelId);
         if (0 != mLastError)
           return;
-        get(mLastError) = mVideoBase->DeleteChannel(channelId);
+        mLastError = mVideoBase->DeleteChannel(channelId);
         if (mLastError != 0) {
           ZS_LOG_ERROR(Detail, log("failed to delete video channel") + ZS_PARAM("error", mVideoBase->LastError()))
           return;
@@ -2435,22 +2435,22 @@ namespace ortc
         
         ZS_LOG_DEBUG(log("stop receive video channel"))
         
-        get(mLastError) = mVideoRender->StopRender(channelId);
+        mLastError = mVideoRender->StopRender(channelId);
         if (mLastError != 0) {
           ZS_LOG_ERROR(Detail, log("failed to stop rendering video channel") + ZS_PARAM("error", mVideoBase->LastError()))
           return;
         }
-        get(mLastError) = mVideoRender->RemoveRenderer(channelId);
+        mLastError = mVideoRender->RemoveRenderer(channelId);
         if (mLastError != 0) {
           ZS_LOG_ERROR(Detail, log("failed to remove renderer for video channel") + ZS_PARAM("error", mVideoBase->LastError()))
           return;
         }
-        get(mLastError) = mVideoBase->StopReceive(channelId);
+        mLastError = mVideoBase->StopReceive(channelId);
         if (mLastError != 0) {
           ZS_LOG_ERROR(Detail, log("failed to stop receiving video") + ZS_PARAM("error", mVideoBase->LastError()))
           return;
         }
-        get(mLastError) = mVideoBase->DeleteChannel(channelId);
+        mLastError = mVideoBase->DeleteChannel(channelId);
         if (mLastError != 0) {
           ZS_LOG_ERROR(Detail, log("failed to delete video channel") + ZS_PARAM("error", mVideoBase->LastError()))
           return;
@@ -2464,7 +2464,7 @@ namespace ortc
     int MediaEngine::internalRegisterVoiceSendTransport(int channelId)
     {
       if (NULL != mVoiceChannelInfos[channelId].mTransport) {
-        get(mLastError) = mVoiceNetwork->RegisterExternalTransport(channelId, *mVoiceChannelInfos[channelId].mTransport);
+        mLastError = mVoiceNetwork->RegisterExternalTransport(channelId, *mVoiceChannelInfos[channelId].mTransport);
         if (0 != mLastError) {
           ZS_LOG_ERROR(Detail, log("failed to register voice external transport") + ZS_PARAM("error", mVoiceBase->LastError()))
           return mLastError;
@@ -2480,7 +2480,7 @@ namespace ortc
     //-----------------------------------------------------------------------
     int MediaEngine::internalDeregisterVoiceSendTransport(int channelId)
     {
-      get(mLastError) = mVoiceNetwork->DeRegisterExternalTransport(channelId);
+      mLastError = mVoiceNetwork->DeRegisterExternalTransport(channelId);
       if (mLastError != 0) {
         ZS_LOG_ERROR(Detail, log("failed to deregister voice external transport") + ZS_PARAM("error", mVoiceBase->LastError()))
         return mLastError;
@@ -2507,7 +2507,7 @@ namespace ortc
     int MediaEngine::internalRegisterVideoSendTransport(int channelId)
     {
       if (NULL != mVideoChannelInfos[channelId].mTransport) {
-        get(mLastError) = mVideoNetwork->RegisterSendTransport(channelId, *mVideoChannelInfos[channelId].mTransport);
+        mLastError = mVideoNetwork->RegisterSendTransport(channelId, *mVideoChannelInfos[channelId].mTransport);
         if (0 != mLastError) {
           ZS_LOG_ERROR(Detail, log("failed to register video external transport") + ZS_PARAM("error", mVideoBase->LastError()))
           return mLastError;
@@ -2523,7 +2523,7 @@ namespace ortc
     //-----------------------------------------------------------------------
     int MediaEngine::internalDeregisterVideoSendTransport(int channelId)
     {
-      get(mLastError) = mVideoNetwork->DeregisterSendTransport(channelId);
+      mLastError = mVideoNetwork->DeregisterSendTransport(channelId);
       if (mLastError != 0) {
         ZS_LOG_ERROR(Detail, log("failed to deregister video external transport") + ZS_PARAM("error", mVideoBase->LastError()))
         return mLastError;
@@ -2784,7 +2784,7 @@ namespace ortc
     {
 #ifdef TARGET_OS_IPHONE
       webrtc::RotateCapturedFrame orientation;
-      get(mLastError) = mVideoCapture->GetOrientation(mVideoSourceInfos[captureId].mDeviceUniqueId, orientation);
+      mLastError = mVideoCapture->GetOrientation(mVideoSourceInfos[captureId].mDeviceUniqueId, orientation);
       if (mLastError != 0) {
         ZS_LOG_ERROR(Detail, log("failed to get orientation from video capture device") + ZS_PARAM("error", mVideoBase->LastError()))
         return mLastError;
@@ -2794,14 +2794,14 @@ namespace ortc
 #endif
       
       int width = 0, height = 0, maxFramerate = 0, maxBitrate = 0;
-      get(mLastError) = getVideoCaptureParameters(mVideoSourceInfos[captureId].mCameraType, orientation,
+      mLastError = getVideoCaptureParameters(mVideoSourceInfos[captureId].mCameraType, orientation,
                                                   width, height, maxFramerate, maxBitrate);
       if (mLastError != 0)
         return mLastError;
       
       webrtc::VideoCodec videoCodec;
       memset(&videoCodec, 0, sizeof(VideoCodec));
-      get(mLastError) = mVideoCodec->GetSendCodec(channelId, videoCodec);
+      mLastError = mVideoCodec->GetSendCodec(channelId, videoCodec);
       if (mLastError != 0) {
         ZS_LOG_ERROR(Detail, log("failed to get video codec") + ZS_PARAM("error", mVideoBase->LastError()))
         return mLastError;
@@ -2810,7 +2810,7 @@ namespace ortc
       videoCodec.height = height;
       videoCodec.maxFramerate = maxFramerate;
       videoCodec.maxBitrate = maxBitrate;
-      get(mLastError) = mVideoCodec->SetSendCodec(channelId, videoCodec);
+      mLastError = mVideoCodec->SetSendCodec(channelId, videoCodec);
       if (mLastError != 0) {
         ZS_LOG_ERROR(Detail, log("failed to set send video codec") + ZS_PARAM("error", mVideoBase->LastError()))
         return mLastError;
@@ -2825,12 +2825,12 @@ namespace ortc
     int MediaEngine::setVideoCaptureRotation(int captureId)
     {
       webrtc::RotateCapturedFrame orientation;
-      get(mLastError) = mVideoCapture->GetOrientation(mVideoSourceInfos[captureId].mDeviceUniqueId, orientation);
+      mLastError = mVideoCapture->GetOrientation(mVideoSourceInfos[captureId].mDeviceUniqueId, orientation);
       if (mLastError != 0) {
         ZS_LOG_ERROR(Detail, log("failed to get orientation from video capture device") + ZS_PARAM("error", mVideoBase->LastError()))
         return mLastError;
       }
-      get(mLastError) = mVideoCapture->SetRotateCapturedFrames(captureId, orientation);
+      mLastError = mVideoCapture->SetRotateCapturedFrames(captureId, orientation);
       if (mLastError != 0) {
         ZS_LOG_ERROR(Detail, log("failed to set rotation for video capture device") + ZS_PARAM("error", mVideoBase->LastError()))
         return mLastError;

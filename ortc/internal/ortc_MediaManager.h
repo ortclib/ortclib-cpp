@@ -133,12 +133,12 @@ namespace ortc
       mutable RecursiveLock mLock;
       MediaManagerWeakPtr mThisWeak;
       MediaManagerPtr mGracefulShutdownReference;
-      AutoBool mShutdown;
+      bool mShutdown {};
 
       IMediaManagerDelegateSubscriptions mSubscriptions;
       IMediaManagerSubscriptionPtr mDefaultSubscription;
 
-      AutoWORD mLastError;
+      WORD mLastError {};
       String mLastErrorReason;
       
     };

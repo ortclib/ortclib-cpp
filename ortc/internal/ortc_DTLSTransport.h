@@ -179,9 +179,7 @@ namespace ortc
       typedef std::map<SSRC, UseRTPReceiverWeakPtr> RTPRoutes;
 
     protected:
-      class DTLSContext;
-      typedef boost::shared_ptr<DTLSContext> DTLSContextPtr;
-      typedef boost::weak_ptr<DTLSContext> DTLSContextWeakPtr;
+      ZS_DECLARE_CLASS_PTR(DTLSContext)
 
       friend class DTLSContext;
 
@@ -346,9 +344,7 @@ namespace ortc
       class DTLSContext
       {
       public:
-        typedef IDTLSTransportForDTLSContext Transport;
-        typedef boost::shared_ptr<IDTLSTransportForDTLSContext> TransportPtr;
-        typedef boost::weak_ptr<IDTLSTransportForDTLSContext> TransportWeakPtr;
+        ZS_DECLARE_TYPEDEF_PTR(IDTLSTransportForDTLSContext, Transport)
 
       protected:
         DTLSContext(
@@ -468,9 +464,9 @@ namespace ortc
       IDTLSTransportSubscriptionPtr mDefaultSubscription;
 
       ConnectionStates mCurrentState;
-      AutoBool mStartCalled;
+      bool mStartCalled {};
 
-      AutoWORD mLastError;
+      WORD mLastError {};
       String mLastErrorReason;
 
       TransportInfoPtr mLocal;
@@ -481,10 +477,10 @@ namespace ortc
 
       DTLSContextPtr mDTLSContext;
 
-      AutoBool mContextToldToFreeze;
-      AutoBool mContextToldToShutdown;
+      bool mContextToldToFreeze {};
+      bool mContextToldToShutdown {};
 
-      AutoBool mContextIsConnected;
+      bool mContextIsConnected {};
 
       PendingDTLSBufferListPtr mPendingBuffers;
 

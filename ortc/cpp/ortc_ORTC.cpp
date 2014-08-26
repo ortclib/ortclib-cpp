@@ -94,7 +94,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     ORTCPtr ORTC::convert(IORTCPtr object)
     {
-      return boost::dynamic_pointer_cast<ORTC>(object);
+      return ZS_DYNAMIC_PTR_CAST(ORTC, object);
     }
 
     //-------------------------------------------------------------------------

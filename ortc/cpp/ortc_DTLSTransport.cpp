@@ -126,31 +126,31 @@ namespace ortc
     //-------------------------------------------------------------------------
     DTLSTransportPtr DTLSTransport::convert(IDTLSTransportPtr object)
     {
-      return boost::dynamic_pointer_cast<DTLSTransport>(object);
+      return ZS_DYNAMIC_PTR_CAST(DTLSTransport, object);
     }
 
     //-------------------------------------------------------------------------
     DTLSTransportPtr DTLSTransport::convert(ForRTPSenderPtr object)
     {
-      return boost::dynamic_pointer_cast<DTLSTransport>(object);
+      return ZS_DYNAMIC_PTR_CAST(DTLSTransport, object);
     }
 
     //-------------------------------------------------------------------------
     DTLSTransportPtr DTLSTransport::convert(ForRTPReceiverPtr object)
     {
-      return boost::dynamic_pointer_cast<DTLSTransport>(object);
+      return ZS_DYNAMIC_PTR_CAST(DTLSTransport, object);
     }
 
     //-------------------------------------------------------------------------
     DTLSTransportPtr DTLSTransport::convert(ForICETransportPtr object)
     {
-      return boost::dynamic_pointer_cast<DTLSTransport>(object);
+      return ZS_DYNAMIC_PTR_CAST(DTLSTransport, object);
     }
 
     //-------------------------------------------------------------------------
     DTLSTransportPtr DTLSTransport::convert(ForDTLSContextPtr object)
     {
-      return boost::dynamic_pointer_cast<DTLSTransport>(object);
+      return ZS_DYNAMIC_PTR_CAST(DTLSTransport, object);
     }
 
     //-------------------------------------------------------------------------
@@ -314,7 +314,7 @@ namespace ortc
         return;
       }
 
-      get(mStartCalled) = true;
+      mStartCalled = true;
 
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
     }
@@ -463,7 +463,7 @@ namespace ortc
       ZS_LOG_DEBUG(log("notify DTLS context connected"))
       AutoRecursiveLock lock(getLock());
 
-      get(mContextIsConnected) = true;
+      mContextIsConnected = true;
 
       // handle asynchronously
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
@@ -726,7 +726,7 @@ namespace ortc
         if (mDTLSContext) {
           if (!mContextToldToFreeze) {
             mDTLSContext->freeze();
-            get(mContextToldToFreeze) = true;
+            mContextToldToFreeze = true;
           }
         }
 
@@ -745,7 +745,7 @@ namespace ortc
 
         if (mContextToldToFreeze) {
           mDTLSContext->unfreeze();
-          get(mContextToldToFreeze) = false;
+          mContextToldToFreeze = false;
         }
       }
 
@@ -820,7 +820,7 @@ namespace ortc
       if (mDTLSContext) {
         if (!mContextToldToShutdown) {
           mDTLSContext->shutdown();
-          get(mContextToldToShutdown) = true;
+          mContextToldToShutdown = true;
         }
       }
 
@@ -887,7 +887,7 @@ namespace ortc
         return;
       }
 
-      get(mLastError) = errorCode;
+      mLastError = errorCode;
       mLastErrorReason = reason;
 
       ZS_LOG_WARNING(Detail, debug("error set") + ZS_PARAM("error", mLastError) + ZS_PARAM("reason", mLastErrorReason))

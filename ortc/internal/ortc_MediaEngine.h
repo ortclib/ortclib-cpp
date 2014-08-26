@@ -591,12 +591,12 @@ namespace ortc
       mutable RecursiveLock mLock;
       MediaEngineWeakPtr mThisWeak;
       MediaEnginePtr mGracefulShutdownReference;
-      AutoBool mShutdown;
+      bool mShutdown {};
       
       IMediaEngineDelegateSubscriptions mSubscriptions;
       IMediaEngineSubscriptionPtr mDefaultSubscription;
       
-      AutoWORD mLastError;
+      WORD mLastError {};
       String mLastErrorReason;
       
       unsigned int mMtu;

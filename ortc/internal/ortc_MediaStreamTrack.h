@@ -622,12 +622,12 @@ namespace ortc
       mutable RecursiveLock mLock;
       MediaStreamTrackWeakPtr mThisWeak;
       MediaStreamTrackPtr mGracefulShutdownReference;
-      AutoBool mShutdown;
+      bool mShutdown {};
       
       IMediaStreamTrackDelegateSubscriptions mSubscriptions;
       IMediaStreamTrackSubscriptionPtr mDefaultSubscription;
       
-      AutoWORD mLastError;
+      WORD mLastError {};
       String mLastErrorReason;
       
       String mKind;
