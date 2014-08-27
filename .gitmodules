@@ -22,3 +22,6 @@
 [submodule "libs/openssl"]
 	path = libs/openssl
 	url = https://github.com/openpeer/openssl.git
+[submodule "libs/punycode"]
+	path = libs/punycode
+	url = https://github.com/openpeer/punycode.git
