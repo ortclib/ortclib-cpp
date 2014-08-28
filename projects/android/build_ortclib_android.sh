@@ -47,16 +47,16 @@ mkdir -p ./../../ortc/build/android
 echo "------------------- Building ortc-lib for ANDROID platform ---------------"
 pushd `pwd`
 
-rm -rf ./obj
+#rm -rf ./obj
 export ANDROIDNDK_PATH=$Input
 export NDK_PROJECT_PATH=`pwd`
-ndk-build APP_PLATFORM=android-9
+ndk-build NDK_DEBUG=1 APP_PLATFORM=android-9
 popd
 
 echo "-------- Installing ortc-lib -----"
 cp -r ./obj/local/armeabi/lib* ./../../ortc/build/android/
 
 #clean
-rm -rf ./obj
+#rm -rf ./obj
 
 
