@@ -44,7 +44,7 @@ namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib) }
 
 namespace ortc
 {
-  typedef openpeer::services::IHelper OPIHelper;
+  ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHelper, UseServicesHelper)
 
   namespace internal
   {
@@ -510,7 +510,7 @@ namespace ortc
         mPendingBuffers = PendingDTLSBufferListPtr(new PendingDTLSBufferList);
       }
 
-      SecureByteBlockPtr secBuffer = OPIHelper::convertToBuffer(buffer, bufferLengthInBytes);
+      SecureByteBlockPtr secBuffer = UseServicesHelper::convertToBuffer(buffer, bufferLengthInBytes);
       mPendingBuffers->push_back(secBuffer);
 
       // send asynchronously
@@ -596,7 +596,7 @@ namespace ortc
     Log::Params DTLSTransport::log(const char *message) const
     {
       ElementPtr objectEl = Element::create("ortc::DTLSTransport");
-      OPIHelper::debugAppend(objectEl, "id", mID);
+      UseServicesHelper::debugAppend(objectEl, "id", mID);
       return Log::Params(message, objectEl);
     }
 
@@ -611,33 +611,33 @@ namespace ortc
     {
       ElementPtr resultEl = Element::create("ortc::DTLSTransport");
 
-      OPIHelper::debugAppend(resultEl, "id", mID);
+      UseServicesHelper::debugAppend(resultEl, "id", mID);
 
-      OPIHelper::debugAppend(resultEl, "graceful shutdown", (bool)mGracefulShutdownReference);
+      UseServicesHelper::debugAppend(resultEl, "graceful shutdown", (bool)mGracefulShutdownReference);
 
-      OPIHelper::debugAppend(resultEl, "subscribers", mSubscriptions.size());
-      OPIHelper::debugAppend(resultEl, "default subscription", (bool)mDefaultSubscription);
+      UseServicesHelper::debugAppend(resultEl, "subscribers", mSubscriptions.size());
+      UseServicesHelper::debugAppend(resultEl, "default subscription", (bool)mDefaultSubscription);
 
-      OPIHelper::debugAppend(resultEl, "state", IDTLSTransport::toString(mCurrentState));
-      OPIHelper::debugAppend(resultEl, "start called", mStartCalled);
+      UseServicesHelper::debugAppend(resultEl, "state", IDTLSTransport::toString(mCurrentState));
+      UseServicesHelper::debugAppend(resultEl, "start called", mStartCalled);
 
-      OPIHelper::debugAppend(resultEl, "error", mLastError);
-      OPIHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
+      UseServicesHelper::debugAppend(resultEl, "error", mLastError);
+      UseServicesHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
 
-      OPIHelper::debugAppend(resultEl, "local", mLocal ? mLocal->toDebug() : ElementPtr());
-      OPIHelper::debugAppend(resultEl, "remote", mRemote ? mRemote->toDebug() : ElementPtr());
+      UseServicesHelper::debugAppend(resultEl, "local", mLocal ? mLocal->toDebug() : ElementPtr());
+      UseServicesHelper::debugAppend(resultEl, "remote", mRemote ? mRemote->toDebug() : ElementPtr());
 
-      OPIHelper::debugAppend(resultEl, "ice transport", UseICETransport::toDebug(mICETransport));
-      OPIHelper::debugAppend(resultEl, "ice socket subscription", (bool)mICETransportSubscription);
+      UseServicesHelper::debugAppend(resultEl, "ice transport", UseICETransport::toDebug(mICETransport));
+      UseServicesHelper::debugAppend(resultEl, "ice socket subscription", (bool)mICETransportSubscription);
 
-      OPIHelper::debugAppend(resultEl, "dtls context", mDTLSContext ? mDTLSContext->getID() : 0);
+      UseServicesHelper::debugAppend(resultEl, "dtls context", mDTLSContext ? mDTLSContext->getID() : 0);
 
-      OPIHelper::debugAppend(resultEl, "dtls context told to freeze", mContextToldToFreeze);
-      OPIHelper::debugAppend(resultEl, "dtls context told to shutdown", mContextToldToShutdown);
+      UseServicesHelper::debugAppend(resultEl, "dtls context told to freeze", mContextToldToFreeze);
+      UseServicesHelper::debugAppend(resultEl, "dtls context told to shutdown", mContextToldToShutdown);
 
-      OPIHelper::debugAppend(resultEl, "dtls context did connect", mContextIsConnected);
+      UseServicesHelper::debugAppend(resultEl, "dtls context did connect", mContextIsConnected);
 
-      OPIHelper::debugAppend(resultEl, "dtls pending buffers", mPendingBuffers ? mPendingBuffers->size() : 0);
+      UseServicesHelper::debugAppend(resultEl, "dtls pending buffers", mPendingBuffers ? mPendingBuffers->size() : 0);
 
       return resultEl;
     }
@@ -1016,7 +1016,7 @@ namespace ortc
     Log::Params DTLSTransport::DTLSContext::log(const char *message) const
     {
       ElementPtr objectEl = Element::create("ortc::DTLSTransport::DTLSContext");
-      OPIHelper::debugAppend(objectEl, "id", mID);
+      UseServicesHelper::debugAppend(objectEl, "id", mID);
       return Log::Params(message, objectEl);
     }
 
@@ -1031,11 +1031,11 @@ namespace ortc
     {
       ElementPtr resultEl = Element::create("ortc::DTLSTransport::DTLSContext");
 
-      OPIHelper::debugAppend(resultEl, "id", mID);
+      UseServicesHelper::debugAppend(resultEl, "id", mID);
 
-      OPIHelper::debugAppend(resultEl, "role is client", mInClientRole);
-      OPIHelper::debugAppend(resultEl, "role is server", !mInClientRole);
-      OPIHelper::debugAppend(resultEl, "dtls transport", (bool)mTransport.lock());
+      UseServicesHelper::debugAppend(resultEl, "role is client", mInClientRole);
+      UseServicesHelper::debugAppend(resultEl, "role is server", !mInClientRole);
+      UseServicesHelper::debugAppend(resultEl, "dtls transport", (bool)mTransport.lock());
 
 #define TODO 1
 #define TODO 2
@@ -1195,7 +1195,7 @@ namespace ortc
     for (OptionsList::const_iterator iter = mOptions.begin(); iter != mOptions.end(); ++iter)
     {
       const Options &option = (*iter);
-      OPIHelper::debugAppend(resultEl, "option", IDTLSTransport::toString(option));
+      UseServicesHelper::debugAppend(resultEl, "option", IDTLSTransport::toString(option));
     }
 
     return resultEl;
