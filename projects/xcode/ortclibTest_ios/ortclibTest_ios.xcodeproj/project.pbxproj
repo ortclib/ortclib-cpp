@@ -30,7 +30,6 @@
 		E2234C5E18454BEF00F9E2C8 /* libisac_neon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E2234C2F18454BEF00F9E2C8 /* libisac_neon.a */; };
 		E2234C5F18454BEF00F9E2C8 /* libiSAC.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E2234C3018454BEF00F9E2C8 /* libiSAC.a */; };
 		E2234C6018454BEF00F9E2C8 /* libiSACFix.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E2234C3118454BEF00F9E2C8 /* libiSACFix.a */; };
-		E2234C6118454BEF00F9E2C8 /* libjpeg.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E2234C3218454BEF00F9E2C8 /* libjpeg.a */; };
 		E2234C6218454BEF00F9E2C8 /* libmedia_file.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E2234C3318454BEF00F9E2C8 /* libmedia_file.a */; };
 		E2234C6318454BEF00F9E2C8 /* libNetEq.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E2234C3418454BEF00F9E2C8 /* libNetEq.a */; };
 		E2234C6418454BEF00F9E2C8 /* libNetEq4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E2234C3518454BEF00F9E2C8 /* libNetEq4.a */; };
@@ -59,6 +58,10 @@
 		E2234CE9184552E400F9E2C8 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E2234CE8184552E400F9E2C8 /* AudioToolbox.framework */; };
 		E2234CEB1845533A00F9E2C8 /* boost.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E2234CEA1845533A00F9E2C8 /* boost.framework */; };
 		E2234CED184553C400F9E2C8 /* AssetsLibrary.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E2234CEC184553C300F9E2C8 /* AssetsLibrary.framework */; };
+		E2A1170C19BDD0610097204E /* libacm2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E2A1170819BDD0610097204E /* libacm2.a */; };
+		E2A1170D19BDD0610097204E /* librbe_components.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E2A1170919BDD0610097204E /* librbe_components.a */; };
+		E2A1170E19BDD0610097204E /* libwebrtc.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E2A1170A19BDD0610097204E /* libwebrtc.a */; };
+		E2A1170F19BDD0610097204E /* libyuv_neon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E2A1170B19BDD0610097204E /* libyuv_neon.a */; };
 		E2F20060184413B3005234CC /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E2F2005F184413B3005234CC /* Foundation.framework */; };
 		E2F20062184413B3005234CC /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E2F20061184413B3005234CC /* CoreGraphics.framework */; };
 		E2F20064184413B3005234CC /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E2F20063184413B3005234CC /* UIKit.framework */; };
@@ -173,7 +176,6 @@
 		E2234C2F18454BEF00F9E2C8 /* libisac_neon.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libisac_neon.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		E2234C3018454BEF00F9E2C8 /* libiSAC.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libiSAC.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		E2234C3118454BEF00F9E2C8 /* libiSACFix.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libiSACFix.a; sourceTree = BUILT_PRODUCTS_DIR; };
-		E2234C3218454BEF00F9E2C8 /* libjpeg.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libjpeg.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		E2234C3318454BEF00F9E2C8 /* libmedia_file.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libmedia_file.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		E2234C3418454BEF00F9E2C8 /* libNetEq.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libNetEq.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		E2234C3518454BEF00F9E2C8 /* libNetEq4.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libNetEq4.a; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -212,6 +214,10 @@
 		E2234CE8184552E400F9E2C8 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 		E2234CEA1845533A00F9E2C8 /* boost.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = boost.framework; path = ../../../libs/boost/ios/framework/boost.framework; sourceTree = "<group>"; };
 		E2234CEC184553C300F9E2C8 /* AssetsLibrary.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AssetsLibrary.framework; path = System/Library/Frameworks/AssetsLibrary.framework; sourceTree = SDKROOT; };
+		E2A1170819BDD0610097204E /* libacm2.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libacm2.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		E2A1170919BDD0610097204E /* librbe_components.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = librbe_components.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		E2A1170A19BDD0610097204E /* libwebrtc.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libwebrtc.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		E2A1170B19BDD0610097204E /* libyuv_neon.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libyuv_neon.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		E2F2005C184413B3005234CC /* ortclibTest_ios.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ortclibTest_ios.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E2F2005F184413B3005234CC /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		E2F20061184413B3005234CC /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
@@ -242,6 +248,7 @@
 				E2234C4E18454BEF00F9E2C8 /* libaudio_coding_module.a in Frameworks */,
 				E2234C4F18454BEF00F9E2C8 /* libaudio_conference_mixer.a in Frameworks */,
 				E2234C5018454BEF00F9E2C8 /* libaudio_device.a in Frameworks */,
+				E2A1170F19BDD0610097204E /* libyuv_neon.a in Frameworks */,
 				E2234C5118454BEF00F9E2C8 /* libaudio_processing_neon.a in Frameworks */,
 				E2234C5218454BEF00F9E2C8 /* libaudio_processing.a in Frameworks */,
 				E2234C5318454BEF00F9E2C8 /* libbitrate_controller.a in Frameworks */,
@@ -253,10 +260,10 @@
 				E2234C5A18454BEF00F9E2C8 /* libG711.a in Frameworks */,
 				E2234C5B18454BEF00F9E2C8 /* libG722.a in Frameworks */,
 				E2234C5D18454BEF00F9E2C8 /* libiLBC.a in Frameworks */,
+				E2A1170E19BDD0610097204E /* libwebrtc.a in Frameworks */,
 				E2234C5E18454BEF00F9E2C8 /* libisac_neon.a in Frameworks */,
 				E2234C5F18454BEF00F9E2C8 /* libiSAC.a in Frameworks */,
 				E2234C6018454BEF00F9E2C8 /* libiSACFix.a in Frameworks */,
-				E2234C6118454BEF00F9E2C8 /* libjpeg.a in Frameworks */,
 				E2234C6218454BEF00F9E2C8 /* libmedia_file.a in Frameworks */,
 				E2234C6318454BEF00F9E2C8 /* libNetEq.a in Frameworks */,
 				E2234C6418454BEF00F9E2C8 /* libNetEq4.a in Frameworks */,
@@ -267,6 +274,7 @@
 				E2234C6A18454BEF00F9E2C8 /* librtp_rtcp.a in Frameworks */,
 				E2234C6B18454BEF00F9E2C8 /* libsystem_wrappers.a in Frameworks */,
 				E2234C6D18454BEF00F9E2C8 /* libvideo_capture_module.a in Frameworks */,
+				E2A1170C19BDD0610097204E /* libacm2.a in Frameworks */,
 				E2234C6E18454BEF00F9E2C8 /* libvideo_coding_utility.a in Frameworks */,
 				E2234C6F18454BEF00F9E2C8 /* libvideo_engine_core.a in Frameworks */,
 				E2234C7018454BEF00F9E2C8 /* libvideo_processing.a in Frameworks */,
@@ -277,6 +285,7 @@
 				E2234C7718454BEF00F9E2C8 /* libwebrtc_opus.a in Frameworks */,
 				E2234C7818454BEF00F9E2C8 /* libwebrtc_utility.a in Frameworks */,
 				E2234C7918454BEF00F9E2C8 /* libwebrtc_video_coding.a in Frameworks */,
+				E2A1170D19BDD0610097204E /* librbe_components.a in Frameworks */,
 				E2234C7A18454BEF00F9E2C8 /* libwebrtc_vp8.a in Frameworks */,
 				E2234C7B18454BEF00F9E2C8 /* libyuv.a in Frameworks */,
 				00D8BF9E18466FD80001A335 /* libortclib_ios.a in Frameworks */,
@@ -318,6 +327,10 @@
 		0063EB79184665F900A877C3 /* WebRTC libs */ = {
 			isa = PBXGroup;
 			children = (
+				E2A1170819BDD0610097204E /* libacm2.a */,
+				E2A1170919BDD0610097204E /* librbe_components.a */,
+				E2A1170A19BDD0610097204E /* libwebrtc.a */,
+				E2A1170B19BDD0610097204E /* libyuv_neon.a */,
 				E2234C1F18454BEF00F9E2C8 /* libaudio_coding_module.a */,
 				E2234C2018454BEF00F9E2C8 /* libaudio_conference_mixer.a */,
 				E2234C2118454BEF00F9E2C8 /* libaudio_device.a */,
@@ -337,7 +350,6 @@
 				E2234C2F18454BEF00F9E2C8 /* libisac_neon.a */,
 				E2234C3018454BEF00F9E2C8 /* libiSAC.a */,
 				E2234C3118454BEF00F9E2C8 /* libiSACFix.a */,
-				E2234C3218454BEF00F9E2C8 /* libjpeg.a */,
 				E2234C3318454BEF00F9E2C8 /* libmedia_file.a */,
 				E2234C3418454BEF00F9E2C8 /* libNetEq.a */,
 				E2234C3518454BEF00F9E2C8 /* libNetEq4.a */,
@@ -819,7 +831,10 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "ortclibTest_ios/ortclibTest_ios-Prefix.pch";
 				INFOPLIST_FILE = "ortclibTest_ios/ortclibTest_ios-Info.plist";
-				LIBRARY_SEARCH_PATHS = "$(inherited)";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/ortclib-deeleiwezlkqxhfzdhmfrcmtwzbi/Build/Products/Debug-iphoneos",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 				VALID_ARCHS = "armv7 armv7s";
@@ -838,7 +853,10 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "ortclibTest_ios/ortclibTest_ios-Prefix.pch";
 				INFOPLIST_FILE = "ortclibTest_ios/ortclibTest_ios-Info.plist";
-				LIBRARY_SEARCH_PATHS = "$(inherited)";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/ortclib-deeleiwezlkqxhfzdhmfrcmtwzbi/Build/Products/Debug-iphoneos",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 				VALID_ARCHS = "armv7 armv7s";

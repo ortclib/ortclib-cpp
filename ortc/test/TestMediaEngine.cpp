@@ -305,18 +305,6 @@ namespace ortc
     {
       MediaEngine::internalStopReceiveVideoChannel(channelId);
     }
-    
-    //-----------------------------------------------------------------------
-    void TestMediaEngine::internalStartRecordVideoCapture(int captureId, String videoRecordFile, bool saveVideoToLibrary)
-    {
-      MediaEngine::internalStartRecordVideoCapture(captureId, videoRecordFile, saveVideoToLibrary);
-    }
-    
-    //-----------------------------------------------------------------------
-    void TestMediaEngine::internalStopRecordVideoCapture(int captureId)
-    {
-      MediaEngine::internalStopRecordVideoCapture(captureId);
-    }
 
     //-----------------------------------------------------------------------
     int TestMediaEngine::internalRegisterVoiceSendTransport(int channelId)

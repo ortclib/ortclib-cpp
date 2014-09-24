@@ -140,8 +140,6 @@ namespace ortc
       virtual void internalStartReceiveVideoChannel(int channelId);
       virtual void internalStopSendVideoChannel(int channelId);
       virtual void internalStopReceiveVideoChannel(int channelId);
-      virtual void internalStartRecordVideoCapture(int captureId, String videoRecordFile, bool saveVideoToLibrary);
-      virtual void internalStopRecordVideoCapture(int captureId);
       
       virtual int internalRegisterVoiceSendTransport(int channelId);
       virtual int internalDeregisterVoiceSendTransport(int channelId);

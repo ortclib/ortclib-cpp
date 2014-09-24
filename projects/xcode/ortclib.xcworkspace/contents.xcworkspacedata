@@ -11,10 +11,10 @@
       location = "group:ortclib/ortclib.xcodeproj">
    </FileRef>
    <FileRef
-      location = "group:../../libs/webrtc/webrtc_ios.xcodeproj">
+      location = "group:../../libs/webrtc/webrtc/webrtc_ios.xcodeproj">
    </FileRef>
    <FileRef
-      location = "group:../../libs/webrtc/webrtc_osx.xcodeproj">
+      location = "group:../../libs/webrtc/webrtc/webrtc_osx.xcodeproj">
    </FileRef>
    <FileRef
       location = "group:../../libs/op-services-cpp/projects/xcode/hfservices_ios/hfservices_ios.xcodeproj">

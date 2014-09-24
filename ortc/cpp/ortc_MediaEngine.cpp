@@ -2030,7 +2030,7 @@ namespace ortc
           return;
         }
         */
-        captureIdx = 1;
+        captureIdx = 0;
         
         webrtc::VideoCaptureModule::DeviceInfo *devInfo = webrtc::VideoCaptureFactory::CreateDeviceInfo(0);
         if (devInfo == NULL) {
