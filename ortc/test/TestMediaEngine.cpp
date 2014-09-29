@@ -325,8 +325,8 @@ namespace ortc
     //-----------------------------------------------------------------------
     int TestMediaEngine::internalSetVoiceSendTransportParameters(int channelId)
     {
-      get(mLastError) = voice_channel_transports_[channelId]->SetSendDestination(mReceiverAddress.c_str(), 20010);
-      get(mLastError) = voice_channel_transports_[channelId]->SetLocalReceiver(20010);
+      mLastError = voice_channel_transports_[channelId]->SetSendDestination(mReceiverAddress.c_str(), 20010);
+      mLastError = voice_channel_transports_[channelId]->SetLocalReceiver(20010);
       return mLastError;
     }
     
@@ -354,8 +354,8 @@ namespace ortc
     //-----------------------------------------------------------------------
     int TestMediaEngine::internalSetVideoSendTransportParameters(int channelId)
     {
-      get(mLastError) = video_channel_transports_[channelId]->SetSendDestination(mReceiverAddress.c_str(), 20000);
-      get(mLastError) = video_channel_transports_[channelId]->SetLocalReceiver(20000);
+      mLastError = video_channel_transports_[channelId]->SetSendDestination(mReceiverAddress.c_str(), 20000);
+      mLastError = video_channel_transports_[channelId]->SetLocalReceiver(20000);
       return mLastError;
     }
     
@@ -363,18 +363,25 @@ namespace ortc
     {
       return 0;
     }
-
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
+    
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark TestMediaEngineFactory
+    #pragma mark ITestMediaEngineFactory
     #pragma mark
     
-    //-----------------------------------------------------------------------
-    internal::MediaEnginePtr TestMediaEngineFactory::create(internal::IMediaEngineDelegatePtr delegate)
+    //-------------------------------------------------------------------------
+    ITestMediaEngineFactory &ITestMediaEngineFactory::singleton()
     {
+      return TestMediaEngineFactory::singleton();
+    }
+    
+    //-------------------------------------------------------------------------
+    internal::MediaEnginePtr ITestMediaEngineFactory::create(internal::IMediaEngineDelegatePtr delegate)
+    {
+      if (this) {}
       return TestMediaEngine::create(delegate);
     }
   }
@@ -387,7 +394,7 @@ using ortc::test::TestMediaEnginePtr;
 
 void doMediaEngineTest()
 {
-  TestMediaEngineFactoryPtr overrideFactory(new TestMediaEngineFactory);
+  ortc::test::TestMediaEngineFactoryPtr overrideFactory(new ortc::test::TestMediaEngineFactory);
   
-  ortc::internal::Factory::override(overrideFactory);
+  openpeer::services::IFactory<ortc::test::ITestMediaEngineFactory>::override(overrideFactory);
 }

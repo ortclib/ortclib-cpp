@@ -39,7 +39,6 @@
 #include "webrtc/system_wrappers/interface/scoped_ptr.h"
 
 #include <ortc/internal/ortc_MediaEngine.h>
-#include <ortc/internal/ortc_Factory.h>
 
 #include <zsLib/Timer.h>
 
@@ -69,7 +68,7 @@ namespace ortc
     class TestMediaEngine : public internal::MediaEngine, public zsLib::ITimerDelegate
     {
     public:
-      friend interaction TestMediaEngineFactory;
+      friend interaction ITestMediaEngineFactory;
 
       
       //---------------------------------------------------------------------
@@ -167,15 +166,16 @@ namespace ortc
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     #pragma mark
-    #pragma mark TestMediaEngineFactory
+    #pragma mark ITestMediaEngineFactory
     #pragma mark
     
-    class TestMediaEngineFactory : public internal::Factory
+    interaction ITestMediaEngineFactory
     {
-    public:
-      TestMediaEngineFactory() {}
+      static ITestMediaEngineFactory &singleton();
       
       virtual internal::MediaEnginePtr create(internal::IMediaEngineDelegatePtr delegate);
     };
+    
+    class TestMediaEngineFactory : public internal::IFactory<ITestMediaEngineFactory> {};
   }
 }

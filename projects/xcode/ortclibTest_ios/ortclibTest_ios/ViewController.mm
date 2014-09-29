@@ -1,6 +1,7 @@
 #import "ViewController.h"
 #import "MediaManagerDelegateWrapper.h"
 #include <openpeer/services/ILogger.h>
+#include <ortc/IORTC.h>
 #include <ortc/internal/ortc_MediaManager.h>
 #include <ortc/internal/ortc_MediaStream.h>
 #include <ortc/internal/ortc_MediaStreamTrack.h>
@@ -123,7 +124,7 @@
   
     ortc::test::TestMediaEngineFactoryPtr overrideFactory(new ortc::test::TestMediaEngineFactory);
   
-    ortc::internal::Factory::override(overrideFactory);
+    openpeer::services::IFactory<ortc::test::ITestMediaEngineFactory>::override(overrideFactory);
   
     openpeer::services::ILogger::setLogLevel("ortclib", zsLib::Log::Debug);
     openpeer::services::ILogger::setLogLevel("ortclib_webrtc", zsLib::Log::Debug);

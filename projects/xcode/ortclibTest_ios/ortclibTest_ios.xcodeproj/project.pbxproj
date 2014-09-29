@@ -146,12 +146,12 @@
 			remoteGlobalIDString = 0066818116C9D64000259F81;
 			remoteInfo = zsLib_ios;
 		};
-		E2234CB218454E9600F9E2C8 /* PBXContainerItemProxy */ = {
+		E2B2396419D88A6A00B6631C /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = E2234C9618454E1700F9E2C8 /* webrtc_ios.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = 307C243DFDDBFD9EF8440480;
-			remoteInfo = All;
+			containerPortal = E2B2395E19D88A6A00B6631C /* webrtc_ios.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = D9F32959024A3DE38441E273;
+			remoteInfo = webrtc;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -204,7 +204,6 @@
 		E2234C4C18454BEF00F9E2C8 /* libyuv.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libyuv.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		E2234C8A18454DDA00F9E2C8 /* ortclib_ios.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = ortclib_ios.xcodeproj; path = ../ortclib_ios/ortclib_ios.xcodeproj; sourceTree = "<group>"; };
 		E2234C9018454DF400F9E2C8 /* hfservices_ios.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = hfservices_ios.xcodeproj; path = "../../../libs/op-services-cpp/projects/xcode/hfservices_ios/hfservices_ios.xcodeproj"; sourceTree = "<group>"; };
-		E2234C9618454E1700F9E2C8 /* webrtc_ios.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = webrtc_ios.xcodeproj; path = ../../../libs/webrtc/webrtc_ios.xcodeproj; sourceTree = "<group>"; };
 		E2234C9A18454E2C00F9E2C8 /* zsLib_ios.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = zsLib_ios.xcodeproj; path = ../../../libs/zsLib/projects/xcode/zsLib_ios/zsLib_ios.xcodeproj; sourceTree = "<group>"; };
 		E2234CA018454E5800F9E2C8 /* udns_ios.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = udns_ios.xcodeproj; path = ../../../libs/udns/projects/xcode/udns_ios/udns_ios.xcodeproj; sourceTree = "<group>"; };
 		E2234CA618454E6F00F9E2C8 /* cryptopp_ios.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = cryptopp_ios.xcodeproj; path = ../../../libs/cryptopp/projects/xcode/cryptopp_ios/cryptopp_ios.xcodeproj; sourceTree = "<group>"; };
@@ -218,6 +217,7 @@
 		E2A1170919BDD0610097204E /* librbe_components.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = librbe_components.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		E2A1170A19BDD0610097204E /* libwebrtc.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libwebrtc.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		E2A1170B19BDD0610097204E /* libyuv_neon.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libyuv_neon.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		E2B2395E19D88A6A00B6631C /* webrtc_ios.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = webrtc_ios.xcodeproj; path = ../../../libs/webrtc/webrtc/webrtc_ios.xcodeproj; sourceTree = "<group>"; };
 		E2F2005C184413B3005234CC /* ortclibTest_ios.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ortclibTest_ios.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E2F2005F184413B3005234CC /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		E2F20061184413B3005234CC /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
@@ -384,11 +384,11 @@
 			isa = PBXGroup;
 			children = (
 				E2234C8A18454DDA00F9E2C8 /* ortclib_ios.xcodeproj */,
-				E2234C9618454E1700F9E2C8 /* webrtc_ios.xcodeproj */,
 				E2234C9018454DF400F9E2C8 /* hfservices_ios.xcodeproj */,
 				E2234CA618454E6F00F9E2C8 /* cryptopp_ios.xcodeproj */,
 				E2234CA018454E5800F9E2C8 /* udns_ios.xcodeproj */,
 				E2234C9A18454E2C00F9E2C8 /* zsLib_ios.xcodeproj */,
+				E2B2395E19D88A6A00B6631C /* webrtc_ios.xcodeproj */,
 			);
 			name = Projects;
 			sourceTree = "<group>";
@@ -409,13 +409,6 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		E2234C9718454E1700F9E2C8 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
 		E2234C9B18454E2C00F9E2C8 /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -428,6 +421,14 @@
 			isa = PBXGroup;
 			children = (
 				E2234CA518454E5800F9E2C8 /* libudns_ios.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		E2B2395F19D88A6A00B6631C /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				E2B2396519D88A6A00B6631C /* libwebrtc.a */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -530,7 +531,6 @@
 			);
 			dependencies = (
 				0097860F1846676600743235 /* PBXTargetDependency */,
-				E2234CB318454E9600F9E2C8 /* PBXTargetDependency */,
 				009786111846676600743235 /* PBXTargetDependency */,
 				009786131846676600743235 /* PBXTargetDependency */,
 				009786151846676600743235 /* PBXTargetDependency */,
@@ -583,8 +583,8 @@
 					ProjectRef = E2234CA018454E5800F9E2C8 /* udns_ios.xcodeproj */;
 				},
 				{
-					ProductGroup = E2234C9718454E1700F9E2C8 /* Products */;
-					ProjectRef = E2234C9618454E1700F9E2C8 /* webrtc_ios.xcodeproj */;
+					ProductGroup = E2B2395F19D88A6A00B6631C /* Products */;
+					ProjectRef = E2B2395E19D88A6A00B6631C /* webrtc_ios.xcodeproj */;
 				},
 				{
 					ProductGroup = E2234C9B18454E2C00F9E2C8 /* Products */;
@@ -632,6 +632,13 @@
 			fileType = archive.ar;
 			path = libudns_ios.a;
 			remoteRef = E2234CA418454E5800F9E2C8 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		E2B2396519D88A6A00B6631C /* libwebrtc.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libwebrtc.a;
+			remoteRef = E2B2396419D88A6A00B6631C /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 /* End PBXReferenceProxy section */
@@ -689,11 +696,6 @@
 			isa = PBXTargetDependency;
 			name = zsLib_ios;
 			targetProxy = E2234CB018454E9600F9E2C8 /* PBXContainerItemProxy */;
-		};
-		E2234CB318454E9600F9E2C8 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = All;
-			targetProxy = E2234CB218454E9600F9E2C8 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
