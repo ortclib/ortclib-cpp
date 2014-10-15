@@ -7,9 +7,6 @@
 [submodule "libs/cryptopp"]
 	path = libs/cryptopp
 	url = https://github.com/openpeer/cryptopp.git
-[submodule "libs/curl"]
-	path = libs/curl
-	url = https://github.com/openpeer/curl.git
 [submodule "libs/udns"]
 	path = libs/udns
 	url = https://github.com/openpeer/udns.git
@@ -22,3 +19,6 @@
 [submodule "libs/openssl"]
 	path = libs/openssl
 	url = https://github.com/openpeer/openssl.git
+[submodule "libs/curl-ios-build-scripts"]
+	path = libs/curl-ios-build-scripts
+	url = https://github.com/openpeer/curl-ios-build-scripts.git
