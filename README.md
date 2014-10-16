@@ -3,6 +3,8 @@ ortclib
 
 ORTC (Object RTC) iOS / Android C++ Library for WebRTC
 
+Introduction: http://www.slideshare.net/ErikLagerway/ortc-lib-introduction
+
 This SDK library implementation of the ORTC specification that will enable mobile end points to talk to a WebRTC enabled browser.
 
 The source code is available under a FreeBSD style license:
