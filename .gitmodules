@@ -19,8 +19,6 @@
 [submodule "libs/openssl"]
 	path = libs/openssl
 	url = https://github.com/openpeer/openssl.git
-	url = https://github.com/openpeer/curl-ios-build-scripts.git
-path=(null)
 [submodule "libs/curl-build-scripts"]
 	path = libs/curl-build-scripts
 	url = https://github.com/openpeer/curl-build-scripts
