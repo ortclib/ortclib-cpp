@@ -40,11 +40,14 @@ popd
 <br />
 <pre>
 <code>
-pushd ortc-lib/libs/curl/
-./build_ios.sh
+pushd ortc-lib/libs/curl-build-scripts/
+./build_curl
 popd
 </code>
 </pre>
+Note :
+- If building curl on your system fails for some architectures, you may need to explicitly specify the correct versions of OS X SDK and iOS SDK, to match the actual SDK versions available with the installed version of XCode. Please, check the details on command-line parameters of build_curl (you can get them with "build_curl <span>-</span><span>-</span>help").
+
 <br />
 3) From X-code, load:
 
