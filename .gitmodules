@@ -19,9 +19,6 @@
 [submodule "libs/openssl"]
 	path = libs/openssl
 	url = https://github.com/openpeer/openssl.git
-[submodule "libs/punycode"]
-	path = libs/punycode
-	url = https://github.com/openpeer/punycode.git
 [submodule "libs/curl-build-scripts"]
 	path = libs/curl-build-scripts
 	url = https://github.com/openpeer/curl-build-scripts
