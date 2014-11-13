@@ -22,3 +22,6 @@
 [submodule "libs/curl-build-scripts"]
 	path = libs/curl-build-scripts
 	url = https://github.com/openpeer/curl-build-scripts
+[submodule "libs/idnkit"]
+	path = libs/idnkit
+	url = https://github.com/openpeer/idnkit.git
