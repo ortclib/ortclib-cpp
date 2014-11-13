@@ -25,3 +25,4 @@
 [submodule "libs/idnkit"]
 	path = libs/idnkit
 	url = https://github.com/openpeer/idnkit.git
+	branch = 20140401-master
