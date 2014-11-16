@@ -269,21 +269,19 @@
 			buildSettings = {
 				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
 				CLANG_CXX_LIBRARY = "libc++";
-				GCC_INLINES_ARE_PRIVATE_EXTERN = YES;
-				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
 				HEADER_SEARCH_PATHS = (
-					"$(inherited)",
 					../../..,
 					../../../libs,
 					"../../../libs/op-services-cpp",
 					../../../libs/zsLib,
-					../../../libs/boost/ios/framework/boost.framework/Headers,
 					../../../libs/webrtc,
 					../../../libs/webrtc/webrtc,
 					../../../libs/webrtc/webrtc/voice_engine/include,
 					../../../libs/webrtc/webrtc/video_engine/include,
 					../../../libs/webrtc/webrtc/modules/video_capture/include,
+					"$(inherited)",
 				);
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos";
 			};
@@ -294,21 +292,19 @@
 			buildSettings = {
 				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
 				CLANG_CXX_LIBRARY = "libc++";
-				GCC_INLINES_ARE_PRIVATE_EXTERN = YES;
-				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
 				HEADER_SEARCH_PATHS = (
-					"$(inherited)",
 					../../..,
 					../../../libs,
 					"../../../libs/op-services-cpp",
 					../../../libs/zsLib,
-					../../../libs/boost/ios/framework/boost.framework/Headers,
 					../../../libs/webrtc,
 					../../../libs/webrtc/webrtc,
 					../../../libs/webrtc/webrtc/voice_engine/include,
 					../../../libs/webrtc/webrtc/video_engine/include,
 					../../../libs/webrtc/webrtc/modules/video_capture/include,
+					"$(inherited)",
 				);
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos";
 			};
@@ -331,7 +327,6 @@
 				COPY_PHASE_STRIP = NO;
 				DSTROOT = /tmp/ortclib_ios.dst;
 				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = NO;
 				GCC_PREFIX_HEADER = "";
@@ -339,7 +334,6 @@
 					"DEBUG=1",
 					"$(inherited)",
 				);
-				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
@@ -374,10 +368,8 @@
 				COPY_PHASE_STRIP = NO;
 				DSTROOT = /tmp/ortclib_ios.dst;
 				ENABLE_NS_ASSERTIONS = NO;
-				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
 				GCC_PRECOMPILE_PREFIX_HEADER = NO;
 				GCC_PREFIX_HEADER = "";
-				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;

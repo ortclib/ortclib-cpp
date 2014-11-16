@@ -37,7 +37,7 @@
 
 #include <openpeer/services/IHelper.h>
 
-#include <boost/thread.hpp>
+#include <thread>
 
 #include <video_capture_factory.h>
 

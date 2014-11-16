@@ -289,7 +289,6 @@
 					CRYPTOPP_DISABLE_SSE2,
 					"$(inherited)",
 				);
-				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
@@ -297,18 +296,18 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = (
-					"$(inherited)",
 					../../..,
 					../../../libs,
 					"../../../libs/op-services-cpp",
 					../../../libs/zsLib,
-					../../../libs/boost/osx/framework/boost.framework/Headers,
 					../../../libs/webrtc,
 					../../../libs/webrtc/webrtc,
 					../../../libs/webrtc/webrtc/voice_engine/include,
 					../../../libs/webrtc/webrtc/video_engine/include,
 					../../../libs/webrtc/webrtc/modules/video_capture/include,
+					"$(inherited)",
 				);
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
@@ -348,18 +347,18 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = (
-					"$(inherited)",
 					../../..,
 					../../../libs,
 					"../../../libs/op-services-cpp",
 					../../../libs/zsLib,
-					../../../libs/boost/osx/framework/boost.framework/Headers,
 					../../../libs/webrtc,
 					../../../libs/webrtc/webrtc,
 					../../../libs/webrtc/webrtc/voice_engine/include,
 					../../../libs/webrtc/webrtc/video_engine/include,
 					../../../libs/webrtc/webrtc/modules/video_capture/include,
+					"$(inherited)",
 				);
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				SDKROOT = macosx;
 			};
