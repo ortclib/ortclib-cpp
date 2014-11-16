@@ -1,9 +1,6 @@
 [submodule "libs/zsLib"]
 	path = libs/zsLib
 	url = https://github.com/openpeer/zsLib.git
-[submodule "libs/boost"]
-	path = libs/boost
-	url = https://github.com/openpeer/boost.git
 [submodule "libs/cryptopp"]
 	path = libs/cryptopp
 	url = https://github.com/openpeer/cryptopp.git
