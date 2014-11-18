@@ -89,8 +89,16 @@ namespace ortc
       static internal::MediaEnginePtr create(internal::IMediaEngineDelegatePtr delegate);
       
     public:
-      virtual void setReceiverAddress(String receiverAddress);
-      virtual String getReceiverAddress() const;
+      virtual void setSendAddress(int channelId, String sendAddress);
+      virtual String getSendAddress(int channelId) const;
+      virtual void setVoiceSendPort(int channelId, int sendPort);
+      virtual int getVoiceSendPort(int channelId) const;
+      virtual void setVoiceReceivePort(int channelId, int receivePort);
+      virtual int getVoiceReceivePort(int channelId) const;
+      virtual void setVideoSendPort(int channelId, int sendPort);
+      virtual int getVideoSendPort(int channelId) const;
+      virtual void setVideoReceivePort(int channelId, int receivePort);
+      virtual int getVideoReceivePort(int channelId) const;
 
       //---------------------------------------------------------------------
       #pragma mark
@@ -142,18 +150,35 @@ namespace ortc
       
       virtual int internalRegisterVoiceSendTransport(int channelId);
       virtual int internalDeregisterVoiceSendTransport(int channelId);
+      virtual int internalRegisterVoiceReceiveTransport(int channelId);
+      virtual int internalDeregisterVoiceReceiveTransport(int channelId);
       virtual int internalSetVoiceSendTransportParameters(int channelId);
       virtual int internalSetVoiceReceiveTransportParameters(int channelId);
       virtual int internalRegisterVideoSendTransport(int channelId);
       virtual int internalDeregisterVideoSendTransport(int channelId);
+      virtual int internalRegisterVideoReceiveTransport(int channelId);
+      virtual int internalDeregisterVideoReceiveTransport(int channelId);
       virtual int internalSetVideoSendTransportParameters(int channelId);
       virtual int internalSetVideoReceiveTransportParameters(int channelId);
       
     private:
-      webrtc::scoped_ptr<VoiceChannelTransport> voice_channel_transports_[32];
-      webrtc::scoped_ptr<VideoChannelTransport> video_channel_transports_[32];
+      webrtc::scoped_ptr<VoiceChannelTransport> mVoiceChannelSendTransports[32];
+      webrtc::scoped_ptr<VoiceChannelTransport> mVoiceChannelReceiveTransports[32];
+      webrtc::scoped_ptr<VideoChannelTransport> mVideoChannelSendTransports[32];
+      webrtc::scoped_ptr<VideoChannelTransport> mVideoChannelReceiveTransports[32];
 
-      String mReceiverAddress;
+      const String mDefaultSendAddress;
+      const int mDefaultVoiceReceivePort;
+      const int mDefaultVoiceSendPort;
+      const int mDefaultVideoReceivePort;
+      const int mDefaultVideoSendPort;
+      
+      String mSendAddresses[32];
+      int mVoiceReceivePorts[32];
+      int mVoiceSendPorts[32];
+      int mVideoReceivePorts[32];
+      int mVideoSendPorts[32];
+      
       zsLib::TimerPtr mVoiceStatisticsTimer;
 #ifdef __QNX__
       slog2_buffer_t mBufferHandle;
@@ -169,7 +194,7 @@ namespace ortc
     #pragma mark ITestMediaEngineFactory
     #pragma mark
     
-    interaction ITestMediaEngineFactory
+    interaction ITestMediaEngineFactory : public internal::IMediaEngineFactory
     {
       static ITestMediaEngineFactory &singleton();
       

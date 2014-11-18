@@ -1013,6 +1013,15 @@ namespace ortc
     void RemoteSendAudioStreamTrack::setChannel(int channel)
     {
       MediaStreamTrack::setChannel(channel);
+      
+      IMediaEnginePtr mediaEngine = IMediaEngine::singleton();
+      mediaEngine->startSendVoice(channel);
+    }
+    
+    //-------------------------------------------------------------------------
+    SendMediaTransportPtr RemoteSendAudioStreamTrack::getTransport()
+    {
+      return SendMediaTransportPtr();
     }
 
     //-----------------------------------------------------------------------

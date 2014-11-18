@@ -18,6 +18,7 @@
     ortc::IMediaStreamPtr sendMediaStreamPtr;
     ortc::IMediaStreamPtr receiveMediaStreamPtr;
     int audioChannel;
+    int forwardingAudioChannel;
     int videoChannel;
 }
 

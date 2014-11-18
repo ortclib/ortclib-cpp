@@ -139,6 +139,15 @@ namespace ortc
         }
         mAudioTracks->push_back(track);
       }
+      else if (typeid(*track) == typeid(RemoteSendAudioStreamTrack))
+      {
+        if (mAudioChannel != -1)
+        {
+          RemoteSendAudioStreamTrackPtr remoteTrack = ZS_DYNAMIC_PTR_CAST(RemoteSendAudioStreamTrack, track);
+          remoteTrack->forMediaManager().setChannel(mAudioChannel);
+        }
+        mAudioTracks->push_back(track);
+      }
       else if (typeid(*track) == typeid(LocalVideoStreamTrack))
       {
         if (mVideoChannel != -1)
@@ -153,6 +162,15 @@ namespace ortc
         if (mVideoChannel != -1)
         {
           RemoteReceiveVideoStreamTrackPtr remoteTrack = ZS_DYNAMIC_PTR_CAST(RemoteReceiveVideoStreamTrack, track);
+          remoteTrack->forMediaManager().setChannel(mVideoChannel);
+        }
+        mVideoTracks->push_back(track);
+      }
+      else if (typeid(*track) == typeid(RemoteSendVideoStreamTrack))
+      {
+        if (mVideoChannel != -1)
+        {
+          RemoteSendVideoStreamTrackPtr remoteTrack = ZS_DYNAMIC_PTR_CAST(RemoteSendVideoStreamTrack, track);
           remoteTrack->forMediaManager().setChannel(mVideoChannel);
         }
         mVideoTracks->push_back(track);
@@ -223,6 +241,11 @@ namespace ortc
           RemoteReceiveAudioStreamTrackPtr remoteTrack = ZS_DYNAMIC_PTR_CAST(RemoteReceiveAudioStreamTrack, *iter);
           remoteTrack->forMediaManager().setChannel(channel);
         }
+        else if (typeid(**iter) == typeid(RemoteSendAudioStreamTrack))
+        {
+          RemoteSendAudioStreamTrackPtr remoteTrack = ZS_DYNAMIC_PTR_CAST(RemoteSendAudioStreamTrack, *iter);
+          remoteTrack->forMediaManager().setChannel(channel);
+        }
       }
     }
     
@@ -247,6 +270,11 @@ namespace ortc
         else if (typeid(**iter) == typeid(RemoteReceiveVideoStreamTrack))
         {
           RemoteReceiveVideoStreamTrackPtr remoteTrack = ZS_DYNAMIC_PTR_CAST(RemoteReceiveVideoStreamTrack, *iter);
+          remoteTrack->forMediaManager().setChannel(channel);
+        }
+        else if (typeid(**iter) == typeid(RemoteSendVideoStreamTrack))
+        {
+          RemoteSendVideoStreamTrackPtr remoteTrack = ZS_DYNAMIC_PTR_CAST(RemoteSendVideoStreamTrack, *iter);
           remoteTrack->forMediaManager().setChannel(channel);
         }
       }

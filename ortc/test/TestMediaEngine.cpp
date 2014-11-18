@@ -66,8 +66,20 @@ namespace ortc
   //-----------------------------------------------------------------------
   TestMediaEngine::TestMediaEngine(IMessageQueuePtr queue, internal::IMediaEngineDelegatePtr delegate) :
       MediaEngine(zsLib::Noop(), queue, delegate),
-      mReceiverAddress("127.0.0.1")
+      mDefaultSendAddress("127.0.0.1"),
+      mDefaultVoiceReceivePort(20010),
+      mDefaultVoiceSendPort(20010),
+      mDefaultVideoReceivePort(20000),
+      mDefaultVideoSendPort(20000)
   {
+    for (int i = 0; i < 32; i++)
+    {
+      mVoiceReceivePorts[i] = 0;
+      mVoiceSendPorts[i] = 0;
+      mVideoReceivePorts[i] = 0;
+      mVideoSendPorts[i] = 0;
+    }
+    
 #ifdef __QNX__
     slog2_buffer_set_config_t buffer_config;
     slog2_buffer_t buffer_handle;
@@ -107,23 +119,103 @@ namespace ortc
     }
     
     //-----------------------------------------------------------------------
-    void TestMediaEngine::setReceiverAddress(String receiverAddress)
+    void TestMediaEngine::setSendAddress(int channelId, String sendAddress)
     {
       internal::AutoRecursiveLock lock(mLock);
       
-      ZS_LOG_DEBUG(log("set receiver address") + ZS_PARAM("value", receiverAddress))
+      ZS_LOG_DEBUG(log("set send address") + ZS_PARAM("channel", channelId) + ZS_PARAM("value", sendAddress))
       
-      mReceiverAddress = receiverAddress;
+      mSendAddresses[channelId] = sendAddress;
     }
     
     //-----------------------------------------------------------------------
-    String TestMediaEngine::getReceiverAddress() const
+    String TestMediaEngine::getSendAddress(int channelId) const
     {
       internal::AutoRecursiveLock lock(mLock);
       
-      ZS_LOG_DEBUG(log("get receiver address") + ZS_PARAM("value", mReceiverAddress))
+      ZS_LOG_DEBUG(log("get send address") + ZS_PARAM("channel", channelId) + ZS_PARAM("value", mSendAddresses[channelId]))
       
-      return mReceiverAddress;
+      return mSendAddresses[channelId];
+    }
+    
+    //-----------------------------------------------------------------------
+    void TestMediaEngine::setVoiceSendPort(int channelId, int sendPort)
+    {
+      internal::AutoRecursiveLock lock(mLock);
+      
+      ZS_LOG_DEBUG(log("set voice send port") + ZS_PARAM("channel", channelId) + ZS_PARAM("value", sendPort))
+      
+      mVoiceSendPorts[channelId] = sendPort;
+    }
+    
+    //-----------------------------------------------------------------------
+    int TestMediaEngine::getVoiceSendPort(int channelId) const
+    {
+      internal::AutoRecursiveLock lock(mLock);
+      
+      ZS_LOG_DEBUG(log("get voice send port") + ZS_PARAM("channel", channelId) + ZS_PARAM("value", mVoiceSendPorts[channelId]))
+      
+      return mVoiceSendPorts[channelId];
+    }
+
+    //-----------------------------------------------------------------------
+    void TestMediaEngine::setVoiceReceivePort(int channelId, int receivePort)
+    {
+      internal::AutoRecursiveLock lock(mLock);
+      
+      ZS_LOG_DEBUG(log("set voice receive port") + ZS_PARAM("channel", channelId) + ZS_PARAM("value", receivePort))
+      
+      mVoiceReceivePorts[channelId] = receivePort;
+    }
+    
+    //-----------------------------------------------------------------------
+    int TestMediaEngine::getVoiceReceivePort(int channelId) const
+    {
+      internal::AutoRecursiveLock lock(mLock);
+      
+      ZS_LOG_DEBUG(log("get voice receive port") + ZS_PARAM("channel", channelId) + ZS_PARAM("value", mVoiceReceivePorts[channelId]))
+      
+      return mVoiceReceivePorts[channelId];
+    }
+    
+    //-----------------------------------------------------------------------
+    void TestMediaEngine::setVideoSendPort(int channelId, int sendPort)
+    {
+      internal::AutoRecursiveLock lock(mLock);
+      
+      ZS_LOG_DEBUG(log("set video send port") + ZS_PARAM("channel", channelId) + ZS_PARAM("value", sendPort))
+      
+      mVideoSendPorts[channelId] = sendPort;
+    }
+    
+    //-----------------------------------------------------------------------
+    int TestMediaEngine::getVideoSendPort(int channelId) const
+    {
+      internal::AutoRecursiveLock lock(mLock);
+      
+      ZS_LOG_DEBUG(log("get video send port") + ZS_PARAM("channel", channelId) + ZS_PARAM("value", mVideoSendPorts[channelId]))
+      
+      return mVideoSendPorts[channelId];
+    }
+
+    //-----------------------------------------------------------------------
+    void TestMediaEngine::setVideoReceivePort(int channelId, int receivePort)
+    {
+      internal::AutoRecursiveLock lock(mLock);
+      
+      ZS_LOG_DEBUG(log("set video receive port") + ZS_PARAM("channel", channelId) + ZS_PARAM("value", receivePort))
+      
+      mVideoReceivePorts[channelId] = receivePort;
+    }
+    
+    //-----------------------------------------------------------------------
+    int TestMediaEngine::getVideoReceivePort(int channelId) const
+    {
+      internal::AutoRecursiveLock lock(mLock);
+      
+      ZS_LOG_DEBUG(log("get video receive port") + ZS_PARAM("channel", channelId) + ZS_PARAM("value", mVideoReceivePorts[channelId]))
+      
+      return mVideoReceivePorts[channelId];
     }
 
     //-----------------------------------------------------------------------
@@ -309,7 +401,10 @@ namespace ortc
     //-----------------------------------------------------------------------
     int TestMediaEngine::internalRegisterVoiceSendTransport(int channelId)
     {
-      voice_channel_transports_[channelId].reset(new VoiceChannelTransport(mVoiceNetwork, channelId));
+      if (mVoiceChannelReceiveTransports[channelId] == NULL)
+        mVoiceChannelSendTransports[channelId].reset(new VoiceChannelTransport(mVoiceNetwork, channelId));
+      else
+        mVoiceChannelSendTransports[channelId].reset(mVoiceChannelReceiveTransports[channelId].get());
       
       return 0;
     }
@@ -317,28 +412,78 @@ namespace ortc
     //-----------------------------------------------------------------------
     int TestMediaEngine::internalDeregisterVoiceSendTransport(int channelId)
     {
-      voice_channel_transports_[channelId].reset( NULL );
+      if (mVoiceChannelReceiveTransports[channelId] == NULL) {
+        mVoiceChannelSendTransports[channelId].reset(NULL);
+      } else {
+        VoiceChannelTransport* ptr = mVoiceChannelSendTransports[channelId].release();
+        ptr = NULL;
+      }
       
+      return 0;
+    }
+    
+    //-----------------------------------------------------------------------
+    int TestMediaEngine::internalRegisterVoiceReceiveTransport(int channelId)
+    {
+      if (mVoiceChannelSendTransports[channelId] == NULL)
+        mVoiceChannelReceiveTransports[channelId].reset(new VoiceChannelTransport(mVoiceNetwork, channelId));
+      else
+        mVoiceChannelReceiveTransports[channelId].reset(mVoiceChannelSendTransports[channelId].get());
+
+      return 0;
+    }
+    
+    //-----------------------------------------------------------------------
+    int TestMediaEngine::internalDeregisterVoiceReceiveTransport(int channelId)
+    {
+      if (mVoiceChannelSendTransports[channelId] == NULL) {
+        mVoiceChannelReceiveTransports[channelId].reset(NULL);
+      } else {
+        VoiceChannelTransport* ptr = mVoiceChannelReceiveTransports[channelId].release();
+        ptr = NULL;
+      }
+
       return 0;
     }
     
     //-----------------------------------------------------------------------
     int TestMediaEngine::internalSetVoiceSendTransportParameters(int channelId)
     {
-      mLastError = voice_channel_transports_[channelId]->SetSendDestination(mReceiverAddress.c_str(), 20010);
-      mLastError = voice_channel_transports_[channelId]->SetLocalReceiver(20010);
+      String sendAddress;
+      int sendPort;
+      if (mSendAddresses[channelId].size() != 0)
+        sendAddress = mSendAddresses[channelId];
+      else
+        sendAddress = mDefaultSendAddress;
+      if (mVoiceSendPorts[channelId] != 0)
+        sendPort = mVoiceSendPorts[channelId];
+      else
+        sendPort = mDefaultVoiceSendPort;
+      
+      mLastError = mVoiceChannelSendTransports[channelId]->SetSendDestination(sendAddress.c_str(), sendPort);
       return mLastError;
     }
     
+    //-----------------------------------------------------------------------
     int TestMediaEngine::internalSetVoiceReceiveTransportParameters(int channelId)
     {
-      return 0;
+      int receivePort;
+      if (mVoiceReceivePorts[channelId] != 0)
+        receivePort = mVoiceReceivePorts[channelId];
+      else
+        receivePort = mDefaultVoiceReceivePort;
+      
+      mLastError = mVoiceChannelReceiveTransports[channelId]->SetLocalReceiver(receivePort);
+      return mLastError;
     }
 
     //-----------------------------------------------------------------------
     int TestMediaEngine::internalRegisterVideoSendTransport(int channelId)
     {
-      video_channel_transports_[channelId].reset(new VideoChannelTransport(mVideoNetwork, channelId));
+      if (mVideoChannelReceiveTransports[channelId] == NULL)
+        mVideoChannelSendTransports[channelId].reset(new VideoChannelTransport(mVideoNetwork, channelId));
+      else
+        mVideoChannelSendTransports[channelId].reset(mVideoChannelReceiveTransports[channelId].get());
 
       return 0;
     }
@@ -346,22 +491,69 @@ namespace ortc
     //-----------------------------------------------------------------------
     int TestMediaEngine::internalDeregisterVideoSendTransport(int channelId)
     {
-        video_channel_transports_[channelId].reset( NULL );
+      if (mVideoChannelReceiveTransports[channelId] == NULL) {
+        mVideoChannelSendTransports[channelId].reset(NULL);
+      } else {
+        VideoChannelTransport* ptr = mVideoChannelSendTransports[channelId].release();
+        ptr = NULL;
+      }
       
-        return 0;
+      return 0;
+    }
+    
+    //-----------------------------------------------------------------------
+    int TestMediaEngine::internalRegisterVideoReceiveTransport(int channelId)
+    {
+      if (mVideoChannelSendTransports[channelId] == NULL)
+        mVideoChannelReceiveTransports[channelId].reset(new VideoChannelTransport(mVideoNetwork, channelId));
+      else
+        mVideoChannelReceiveTransports[channelId].reset(mVideoChannelSendTransports[channelId].get());
+      
+      return 0;
+    }
+    
+    //-----------------------------------------------------------------------
+    int TestMediaEngine::internalDeregisterVideoReceiveTransport(int channelId)
+    {
+      if (mVideoChannelSendTransports[channelId] == NULL) {
+        mVideoChannelReceiveTransports[channelId].reset(NULL);
+      } else {
+        VideoChannelTransport* ptr = mVideoChannelReceiveTransports[channelId].release();
+        ptr = NULL;
+      }
+      
+      return 0;
     }
     
     //-----------------------------------------------------------------------
     int TestMediaEngine::internalSetVideoSendTransportParameters(int channelId)
     {
-      mLastError = video_channel_transports_[channelId]->SetSendDestination(mReceiverAddress.c_str(), 20000);
-      mLastError = video_channel_transports_[channelId]->SetLocalReceiver(20000);
+      String sendAddress;
+      int sendPort;
+      if (mSendAddresses[channelId].size() != 0)
+        sendAddress = mSendAddresses[channelId];
+      else
+        sendAddress = mDefaultSendAddress;
+      if (mVideoSendPorts[channelId] != 0)
+        sendPort = mVideoSendPorts[channelId];
+      else
+        sendPort = mDefaultVideoSendPort;
+      
+      mLastError = mVideoChannelSendTransports[channelId]->SetSendDestination(sendAddress.c_str(), sendPort);
       return mLastError;
     }
     
+    //-----------------------------------------------------------------------
     int TestMediaEngine::internalSetVideoReceiveTransportParameters(int channelId)
     {
-      return 0;
+      int receivePort;
+      if (mVideoSendPorts[channelId] != 0)
+        receivePort = mVideoReceivePorts[channelId];
+      else
+        receivePort = mDefaultVideoReceivePort;
+      
+      mLastError = mVideoChannelSendTransports[channelId]->SetLocalReceiver(receivePort);
+      return mLastError;
     }
     
     //-------------------------------------------------------------------------

@@ -1005,6 +1005,12 @@ namespace ortc
     }
     
     //-----------------------------------------------------------------------
+    int MediaEngine::createForwardingVoiceChannel(int sourceChannelId)
+    {
+      return internalCreateForwardingVoiceChannel(sourceChannelId);
+    }
+
+    //-----------------------------------------------------------------------
     std::list<int> MediaEngine::getVoiceChannels()
     {
       return std::list<int>();
@@ -1405,6 +1411,27 @@ namespace ortc
       mSubscriptions.delegate()->onMediaEngineFaceDetected(capture_id);
     }
     
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    #pragma mark
+    #pragma mark MediaEngine => RTPPacketChannelObserver
+    #pragma mark
+    
+    //-------------------------------------------------------------------------
+    void MediaEngine::onIncomingPacket(int channelId, webrtc::FrameType frameType, int8_t payloadType,
+                                       uint32_t timeStamp, const uint8_t* payloadData, uint16_t payloadSize)
+    {
+      for (VoiceChannelInfoMap::iterator iter = mVoiceChannelInfos.begin(); iter != mVoiceChannelInfos.end(); iter++) {
+        VoiceChannelInfo info = iter->second;
+        if (info.mSourceChannelId == channelId) {
+          mVoiceRtpRtcp->SendRTPPacket(iter->first, frameType, payloadType, timeStamp, payloadData, payloadSize);
+        }
+      }
+    }
+
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -1740,7 +1767,35 @@ namespace ortc
           return ORTC_MEDIA_ENGINE_INVALID_CHANNEL;
         }
         
+        RTPPacketObserver observer(channelId);
+        observer.registerChannelObserver(*this);
         VoiceChannelInfo info(channelId);
+        VoiceChannelLifetimeState lifetimeState(channelId);
+        
+        mRTPPacketObservers[channelId] = observer;
+        mVoiceChannelInfos[channelId] = info;
+        mVoiceChannelLifetimeStates[channelId] = lifetimeState;
+        
+        mVoiceRtpRtcp->RegisterRTPPacketObserver(channelId, mRTPPacketObservers[channelId]);
+        
+        return channelId;
+      }
+    }
+
+    //-----------------------------------------------------------------------
+    int MediaEngine::internalCreateForwardingVoiceChannel(int sourceChannelId)
+    {
+      {
+        AutoRecursiveLock lock(mLock);
+        
+        int channelId = mVoiceBase->CreateChannel(true);
+        if (channelId < 0) {
+          ZS_LOG_ERROR(Detail, log("could not create forwarding voice channel") + ZS_PARAM("error", mVoiceBase->LastError()))
+          return ORTC_MEDIA_ENGINE_INVALID_CHANNEL;
+        }
+        
+        VoiceChannelInfo info(channelId);
+        info.mSourceChannelId = sourceChannelId;
         VoiceChannelLifetimeState lifetimeState(channelId);
         
         mVoiceChannelInfos[channelId] = info;
@@ -1840,6 +1895,10 @@ namespace ortc
           return;
         }
         
+        mLastError = internalRegisterVoiceReceiveTransport(channelId);
+        if (mLastError != 0)
+          return;
+
         webrtc::EcModes ecMode = getEcMode();
         if (ecMode == webrtc::kEcUnchanged) {
           return;
@@ -1988,6 +2047,7 @@ namespace ortc
           }
           mVoiceRecordFile.erase();
         }
+        mLastError = internalDeregisterVoiceReceiveTransport(channelId);
         if (0 != mLastError)
           return;
         mLastError = mVoiceBase->DeleteChannel(channelId);
@@ -2329,6 +2389,10 @@ namespace ortc
           ZS_LOG_ERROR(Detail, log("video channel not found") + ZS_PARAM("channelId", channelId))
           return;
         }
+        
+        mLastError = internalRegisterVideoReceiveTransport(channelId);
+        if (0 != mLastError)
+          return;
 
 #if defined(TARGET_OS_IPHONE) || defined(__QNX__)
         void *channelView = mVideoChannelInfos[channelId].mRenderView;
@@ -2450,6 +2514,9 @@ namespace ortc
           ZS_LOG_ERROR(Detail, log("failed to stop receiving video") + ZS_PARAM("error", mVideoBase->LastError()))
           return;
         }
+        mLastError = internalDeregisterVideoReceiveTransport(channelId);
+        if (0 != mLastError)
+          return;
         mLastError = mVideoBase->DeleteChannel(channelId);
         if (mLastError != 0) {
           ZS_LOG_ERROR(Detail, log("failed to delete video channel") + ZS_PARAM("error", mVideoBase->LastError()))
@@ -2486,6 +2553,20 @@ namespace ortc
         return mLastError;
       }
 
+      return 0;
+    }
+    
+    //-----------------------------------------------------------------------
+    int MediaEngine::internalRegisterVoiceReceiveTransport(int channelId)
+    {
+      // No need to register receiving component for external transport.
+      return 0;
+    }
+    
+    //-----------------------------------------------------------------------
+    int MediaEngine::internalDeregisterVoiceReceiveTransport(int channelId)
+    {
+      // No need to deregister receiving component for external transport.
       return 0;
     }
 
@@ -2532,6 +2613,20 @@ namespace ortc
       return 0;
     }
     
+    //-----------------------------------------------------------------------
+    int MediaEngine::internalRegisterVideoReceiveTransport(int channelId)
+    {
+      // No need to register receiving component for external transport.
+      return 0;
+    }
+    
+    //-----------------------------------------------------------------------
+    int MediaEngine::internalDeregisterVideoReceiveTransport(int channelId)
+    {
+      // No need to deregister receiving component for external transport.
+      return 0;
+    }
+
     //-----------------------------------------------------------------------
     int MediaEngine::internalSetVideoSendTransportParameters(int channelId)
     {
@@ -2906,6 +3001,54 @@ namespace ortc
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     #pragma mark
+    #pragma mark MediaEngine::RTPPacketObserver
+    #pragma mark
+    
+    //-----------------------------------------------------------------------
+    MediaEngine::RTPPacketObserver::RTPPacketObserver() :
+        mChannelId(-1),
+        mChannelObserver(NULL)
+    {
+      
+    }
+    
+    //-----------------------------------------------------------------------
+    MediaEngine::RTPPacketObserver::RTPPacketObserver(int channelId) :
+        mChannelId(channelId),
+        mChannelObserver(NULL)
+    {
+      
+    }
+    
+    //-----------------------------------------------------------------------
+    void MediaEngine::RTPPacketObserver::OnIncomingPacket(webrtc::FrameType frameType, int8_t payloadType,
+                                                          uint32_t timeStamp, const uint8_t* payloadData, uint16_t payloadSize)
+    {
+      if (mChannelObserver)
+        mChannelObserver->onIncomingPacket(mChannelId, frameType, payloadType, timeStamp, payloadData, payloadSize);
+    }
+
+    //-----------------------------------------------------------------------
+    int MediaEngine::RTPPacketObserver::registerChannelObserver(RTPPacketChannelObserver &observer)
+    {
+      mChannelObserver = &observer;
+      
+      return 0;
+    }
+    
+    //-----------------------------------------------------------------------
+    int MediaEngine::RTPPacketObserver::deregisterChannelObserver()
+    {
+      mChannelObserver = NULL;
+      
+      return 0;
+    }
+
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    #pragma mark
     #pragma mark MediaEngine::VoiceSourceInfo
     #pragma mark
     
@@ -2928,6 +3071,7 @@ namespace ortc
       mEcEnabled(false),
       mAgcEnabled(false),
       mNsEnabled(false),
+      mSourceChannelId(-1),
       mRedirectTransport(new RedirectTransport("voice")),
       mTransport(mRedirectTransport)
     { }

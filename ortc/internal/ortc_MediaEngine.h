@@ -120,6 +120,7 @@ namespace ortc
       virtual void stopReceiveVideoChannel(int channelId) = 0;
       
       virtual int createVoiceChannel() = 0;
+      virtual int createForwardingVoiceChannel(int sourceChannelId) = 0;
       virtual std::list<int> getVoiceChannels() = 0;
 
       virtual void startSendVoice(int channelId) = 0;
@@ -198,6 +199,25 @@ namespace ortc
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     #pragma mark
+    #pragma mark RTPPacketChannelObserver
+    #pragma mark
+    
+    class RTPPacketChannelObserver
+    {
+    public:
+      virtual void onIncomingPacket(int channelId, webrtc::FrameType frameType, int8_t payloadType,
+                                    uint32_t timeStamp, const uint8_t* payloadData, uint16_t payloadSize) = 0;
+      
+    protected:
+      virtual ~RTPPacketChannelObserver() {}
+      
+    };
+
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    #pragma mark
     #pragma mark MediaEngine
     #pragma mark
     
@@ -207,7 +227,8 @@ namespace ortc
                         public IWakeDelegate,
                         public webrtc::TraceCallback,
                         public webrtc::VoiceEngineObserver,
-                        public webrtc::ViECaptureObserver
+                        public webrtc::ViECaptureObserver,
+                        public RTPPacketChannelObserver
     {
     public:
       friend interaction IMediaEngineFactory;
@@ -236,6 +257,7 @@ namespace ortc
       
     protected:
       class RedirectTransport;
+      class RTPPacketObserver;
       struct VoiceSourceInfo;
       struct VoiceChannelInfo;
       struct VideoSourceInfo;
@@ -245,6 +267,7 @@ namespace ortc
       struct VideoSourceLifetimeState;
       struct VideoChannelLifetimeState;
       
+      typedef std::map<int, RTPPacketObserver> RTPPacketObserverMap;
       typedef std::map<int, VoiceSourceInfo> VoiceSourceInfoMap;
       typedef std::map<int, VoiceChannelInfo> VoiceChannelInfoMap;
       typedef std::map<int, VideoSourceInfo> VideoSourceInfoMap;
@@ -253,6 +276,23 @@ namespace ortc
       typedef std::map<int, VoiceChannelLifetimeState> VoiceChannelLifetimeStateMap;
       typedef std::map<int, VideoSourceLifetimeState> VideoSourceLifetimeStateMap;
       typedef std::map<int, VideoChannelLifetimeState> VideoChannelLifetimeStateMap;
+      
+      class RTPPacketObserver : public webrtc::VoERTPPacketObserver
+      {
+      public:
+        RTPPacketObserver();
+        RTPPacketObserver(int channelId);
+        
+        virtual void OnIncomingPacket(webrtc::FrameType frameType, int8_t payloadType,
+                                      uint32_t timeStamp, const uint8_t* payloadData, uint16_t payloadSize);
+        
+        virtual int registerChannelObserver(RTPPacketChannelObserver &observer);
+        virtual int deregisterChannelObserver();
+        
+      private:
+        int mChannelId;
+        RTPPacketChannelObserver *mChannelObserver;
+      };
       
       struct VoiceSourceInfo
       {
@@ -269,6 +309,8 @@ namespace ortc
         bool mEcEnabled;
         bool mAgcEnabled;
         bool mNsEnabled;
+        
+        int mSourceChannelId;
         
         RedirectTransport *mRedirectTransport;
         Transport *mTransport;
@@ -429,6 +471,7 @@ namespace ortc
       virtual void stopReceiveVideoChannel(int channelId);
       
       virtual int createVoiceChannel();
+      virtual int createForwardingVoiceChannel(int sourceChannelId);
       virtual std::list<int> getVoiceChannels();
 
       virtual void startSendVoice(int channelId);
@@ -478,6 +521,14 @@ namespace ortc
       
       //-----------------------------------------------------------------------
       #pragma mark
+      #pragma mark MediaEngine => RTPPacketChannelObserver
+      #pragma mark
+      
+      void onIncomingPacket(int channelId, webrtc::FrameType frameType, int8_t payloadType,
+                            uint32_t timeStamp, const uint8_t* payloadData, uint16_t payloadSize);
+
+      //-----------------------------------------------------------------------
+      #pragma mark
       #pragma mark MediaEngine => IWakeDelegate
       #pragma mark
       
@@ -504,6 +555,7 @@ namespace ortc
       void setError(WORD error, const char *reason = NULL);
       
       virtual int internalCreateVoiceChannel();
+      virtual int internalCreateForwardingVoiceChannel(int sourceChannelId);
       virtual void internalStartSendVoice(int channelId);
       virtual void internalStartReceiveVoice(int channelId);
       virtual void internalStopSendVoice(int channelId);
@@ -520,10 +572,14 @@ namespace ortc
       
       virtual int internalRegisterVoiceSendTransport(int channelId);
       virtual int internalDeregisterVoiceSendTransport(int channelId);
+      virtual int internalRegisterVoiceReceiveTransport(int channelId);
+      virtual int internalDeregisterVoiceReceiveTransport(int channelId);
       virtual int internalSetVoiceSendTransportParameters(int channelId);
       virtual int internalSetVoiceReceiveTransportParameters(int channelId);
       virtual int internalRegisterVideoSendTransport(int channelId);
       virtual int internalDeregisterVideoSendTransport(int channelId);
+      virtual int internalRegisterVideoReceiveTransport(int channelId);
+      virtual int internalDeregisterVideoReceiveTransport(int channelId);
       virtual int internalSetVideoSendTransportParameters(int channelId);
       virtual int internalSetVideoReceiveTransportParameters(int channelId);
       
@@ -606,6 +662,7 @@ namespace ortc
       CapturedFrameOrientation mDefaultVideoOrientation;
       CapturedFrameOrientation mRecordVideoOrientation;
       
+      RTPPacketObserverMap mRTPPacketObservers;
       VoiceSourceInfoMap mVoiceSourceInfos;
       VoiceChannelInfoMap mVoiceChannelInfos;
       VideoSourceInfoMap mVideoSourceInfos;
