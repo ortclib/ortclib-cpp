@@ -45,7 +45,12 @@ namespace ortc
   using zsLib::QWORD;
   using zsLib::ULONG;
   using zsLib::Time;
-  using zsLib::Duration;
+  using zsLib::Hours;
+  using zsLib::Minutes;
+  using zsLib::Seconds;
+  using zsLib::Milliseconds;
+  using zsLib::Microseconds;
+  using zsLib::Nanoseconds;
   using zsLib::String;
   using zsLib::RecursiveLock;
   using zsLib::IPAddress;
