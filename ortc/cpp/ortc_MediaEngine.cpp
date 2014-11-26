@@ -1427,7 +1427,7 @@ namespace ortc
       for (VoiceChannelInfoMap::iterator iter = mVoiceChannelInfos.begin(); iter != mVoiceChannelInfos.end(); iter++) {
         VoiceChannelInfo info = iter->second;
         if (info.mSourceChannelId == channelId) {
-          mVoiceRtpRtcp->SendRTPPacket(iter->first, frameType, payloadType, timeStamp, payloadData, payloadSize);
+          mVoiceRtpRtcp->SendData(iter->first, frameType, payloadType, timeStamp, payloadData, payloadSize);
         }
       }
     }
