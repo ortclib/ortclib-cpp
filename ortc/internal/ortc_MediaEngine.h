@@ -199,20 +199,44 @@ namespace ortc
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     #pragma mark
-    #pragma mark RTPPacketChannelObserver
+    #pragma mark RTPChannelObserver
     #pragma mark
     
-    class RTPPacketChannelObserver
+    class RTPChannelObserver
     {
     public:
-      virtual void onIncomingPacket(int channelId, webrtc::FrameType frameType, int8_t payloadType,
-                                    uint32_t timeStamp, const uint8_t* payloadData, uint16_t payloadSize) = 0;
+      virtual void onIncomingCSRCChanged(int channel, unsigned int CSRC, bool added) = 0;
+      
+      virtual void onIncomingSSRCChanged(int channel, unsigned int SSRC) = 0;
+      
+      virtual void onIncomingRTPPacket(int channel, webrtc::FrameType frameType, int8_t payloadType,
+                                       uint32_t timeStamp, const uint8_t* payloadData, uint16_t payloadSize) = 0;
       
     protected:
-      virtual ~RTPPacketChannelObserver() {}
+      virtual ~RTPChannelObserver() {}
       
     };
 
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTCPChannelObserver
+    #pragma mark
+    
+    class RTCPChannelObserver
+    {
+    public:
+      virtual void onApplicationDataReceived(int channel, unsigned char subType,
+                                             unsigned int name, const unsigned char* data,
+                                             unsigned short dataLengthInBytes) = 0;
+      
+    protected:
+      virtual ~RTCPChannelObserver() {}
+      
+    };
+    
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
@@ -228,7 +252,8 @@ namespace ortc
                         public webrtc::TraceCallback,
                         public webrtc::VoiceEngineObserver,
                         public webrtc::ViECaptureObserver,
-                        public RTPPacketChannelObserver
+                        public RTPChannelObserver,
+                        public RTCPChannelObserver
     {
     public:
       friend interaction IMediaEngineFactory;
@@ -257,7 +282,8 @@ namespace ortc
       
     protected:
       class RedirectTransport;
-      class RTPPacketObserver;
+      class RTPObserver;
+      class RTCPObserver;
       struct VoiceSourceInfo;
       struct VoiceChannelInfo;
       struct VideoSourceInfo;
@@ -267,7 +293,8 @@ namespace ortc
       struct VideoSourceLifetimeState;
       struct VideoChannelLifetimeState;
       
-      typedef std::map<int, RTPPacketObserver> RTPPacketObserverMap;
+      typedef std::map<int, RTPObserver> RTPObserverMap;
+      typedef std::map<int, RTCPObserver> RTCPObserverMap;
       typedef std::map<int, VoiceSourceInfo> VoiceSourceInfoMap;
       typedef std::map<int, VoiceChannelInfo> VoiceChannelInfoMap;
       typedef std::map<int, VideoSourceInfo> VideoSourceInfoMap;
@@ -277,21 +304,43 @@ namespace ortc
       typedef std::map<int, VideoSourceLifetimeState> VideoSourceLifetimeStateMap;
       typedef std::map<int, VideoChannelLifetimeState> VideoChannelLifetimeStateMap;
       
-      class RTPPacketObserver : public webrtc::VoERTPPacketObserver
+      class RTPObserver : public webrtc::VoERTPObserver
       {
       public:
-        RTPPacketObserver();
-        RTPPacketObserver(int channelId);
+        RTPObserver();
+        RTPObserver(int channelId);
         
-        virtual void OnIncomingPacket(webrtc::FrameType frameType, int8_t payloadType,
-                                      uint32_t timeStamp, const uint8_t* payloadData, uint16_t payloadSize);
+        virtual void OnIncomingCSRCChanged(int channel, unsigned int CSRC, bool added);
         
-        virtual int registerChannelObserver(RTPPacketChannelObserver &observer);
+        virtual void OnIncomingSSRCChanged(int channel, unsigned int SSRC);
+
+        virtual void OnIncomingRTPPacket(webrtc::FrameType frameType, int8_t payloadType,
+                                         uint32_t timeStamp, const uint8_t* payloadData, uint16_t payloadSize);
+        
+        virtual int registerChannelObserver(RTPChannelObserver &observer);
         virtual int deregisterChannelObserver();
         
       private:
         int mChannelId;
-        RTPPacketChannelObserver *mChannelObserver;
+        RTPChannelObserver *mChannelObserver;
+      };
+      
+      class RTCPObserver : public webrtc::VoERTCPObserver
+      {
+      public:
+        RTCPObserver();
+        RTCPObserver(int channelId);
+        
+        virtual void OnApplicationDataReceived(int channel, unsigned char subType,
+                                               unsigned int name, const unsigned char* data,
+                                               unsigned short dataLengthInBytes);
+        
+        virtual int registerChannelObserver(RTCPChannelObserver &observer);
+        virtual int deregisterChannelObserver();
+        
+      private:
+        int mChannelId;
+        RTCPChannelObserver *mChannelObserver;
       };
       
       struct VoiceSourceInfo
@@ -521,11 +570,22 @@ namespace ortc
       
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark MediaEngine => RTPPacketChannelObserver
+      #pragma mark MediaEngine => RTPChannelObserver
       #pragma mark
       
-      void onIncomingPacket(int channelId, webrtc::FrameType frameType, int8_t payloadType,
-                            uint32_t timeStamp, const uint8_t* payloadData, uint16_t payloadSize);
+      void onIncomingCSRCChanged(int channel, unsigned int CSRC, bool added);
+      void onIncomingSSRCChanged(int channel, unsigned int SSRC);
+      void onIncomingRTPPacket(int channel, webrtc::FrameType frameType, int8_t payloadType,
+                               uint32_t timeStamp, const uint8_t* payloadData, uint16_t payloadSize);
+      
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark MediaEngine => RTPChannelObserver
+      #pragma mark
+      
+      void onApplicationDataReceived(int channel, unsigned char subType,
+                                     unsigned int name, const unsigned char* data,
+                                     unsigned short dataLengthInBytes);
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -662,7 +722,8 @@ namespace ortc
       CapturedFrameOrientation mDefaultVideoOrientation;
       CapturedFrameOrientation mRecordVideoOrientation;
       
-      RTPPacketObserverMap mRTPPacketObservers;
+      RTPObserverMap mRtpObservers;
+      RTCPObserverMap mRtcpObservers;
       VoiceSourceInfoMap mVoiceSourceInfos;
       VoiceChannelInfoMap mVoiceChannelInfos;
       VideoSourceInfoMap mVideoSourceInfos;

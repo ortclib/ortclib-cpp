@@ -1417,19 +1417,46 @@ namespace ortc
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     #pragma mark
-    #pragma mark MediaEngine => RTPPacketChannelObserver
+    #pragma mark MediaEngine => RTPChannelObserver
     #pragma mark
+
+    //-------------------------------------------------------------------------
+    void MediaEngine::onIncomingCSRCChanged(int channel, unsigned int CSRC, bool added)
+    {
+    }
     
     //-------------------------------------------------------------------------
-    void MediaEngine::onIncomingPacket(int channelId, webrtc::FrameType frameType, int8_t payloadType,
-                                       uint32_t timeStamp, const uint8_t* payloadData, uint16_t payloadSize)
+    void MediaEngine::onIncomingSSRCChanged(int channel, unsigned int SSRC)
+    {
+    }
+
+    //-------------------------------------------------------------------------
+    void MediaEngine::onIncomingRTPPacket(int channel, webrtc::FrameType frameType, int8_t payloadType,
+                                          uint32_t timeStamp, const uint8_t* payloadData, uint16_t payloadSize)
     {
       for (VoiceChannelInfoMap::iterator iter = mVoiceChannelInfos.begin(); iter != mVoiceChannelInfos.end(); iter++) {
         VoiceChannelInfo info = iter->second;
-        if (info.mSourceChannelId == channelId) {
+        if (info.mSourceChannelId == channel) {
           mVoiceRtpRtcp->SendData(iter->first, frameType, payloadType, timeStamp, payloadData, payloadSize);
         }
       }
+    }
+    
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    #pragma mark
+    #pragma mark MediaEngine => RTCPChannelObserver
+    #pragma mark
+    
+    //-------------------------------------------------------------------------
+    void MediaEngine::onApplicationDataReceived(int channel, unsigned char subType,
+                                                unsigned int name, const unsigned char* data,
+                                                unsigned short dataLengthInBytes)
+    {
+      
     }
 
     //-------------------------------------------------------------------------
@@ -1767,16 +1794,20 @@ namespace ortc
           return ORTC_MEDIA_ENGINE_INVALID_CHANNEL;
         }
         
-        RTPPacketObserver observer(channelId);
-        observer.registerChannelObserver(*this);
+        RTPObserver rtpObserver(channelId);
+        rtpObserver.registerChannelObserver(*this);
+        RTCPObserver rtcpObserver(channelId);
+        rtcpObserver.registerChannelObserver(*this);
         VoiceChannelInfo info(channelId);
         VoiceChannelLifetimeState lifetimeState(channelId);
         
-        mRTPPacketObservers[channelId] = observer;
+        mRtpObservers[channelId] = rtpObserver;
+        mRtcpObservers[channelId] = rtcpObserver;
         mVoiceChannelInfos[channelId] = info;
         mVoiceChannelLifetimeStates[channelId] = lifetimeState;
         
-        mVoiceRtpRtcp->RegisterRTPPacketObserver(channelId, mRTPPacketObservers[channelId]);
+        mVoiceRtpRtcp->RegisterRTPObserver(channelId, mRtpObservers[channelId]);
+        mVoiceRtpRtcp->RegisterRTCPObserver(channelId, mRtcpObservers[channelId]);
         
         return channelId;
       }
@@ -1823,6 +1854,12 @@ namespace ortc
         if (mLastError != 0)
           return;
         
+        mLastError = mVoiceRtpRtcp->SetRTCPStatus(channelId, true);
+        if (0 != mLastError) {
+          ZS_LOG_ERROR(Detail, log("failed to set voice RTCP status") + ZS_PARAM("error", mVoiceBase->LastError()))
+          return;
+        }
+
         webrtc::CodecInst cinst;
         memset(&cinst, 0, sizeof(webrtc::CodecInst));
         for (int idx = 0; idx < mVoiceCodec->NumOfCodecs(); idx++) {
@@ -3001,11 +3038,11 @@ namespace ortc
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     #pragma mark
-    #pragma mark MediaEngine::RTPPacketObserver
+    #pragma mark MediaEngine::RTPObserver
     #pragma mark
     
     //-----------------------------------------------------------------------
-    MediaEngine::RTPPacketObserver::RTPPacketObserver() :
+    MediaEngine::RTPObserver::RTPObserver() :
         mChannelId(-1),
         mChannelObserver(NULL)
     {
@@ -3013,7 +3050,7 @@ namespace ortc
     }
     
     //-----------------------------------------------------------------------
-    MediaEngine::RTPPacketObserver::RTPPacketObserver(int channelId) :
+    MediaEngine::RTPObserver::RTPObserver(int channelId) :
         mChannelId(channelId),
         mChannelObserver(NULL)
     {
@@ -3021,15 +3058,27 @@ namespace ortc
     }
     
     //-----------------------------------------------------------------------
-    void MediaEngine::RTPPacketObserver::OnIncomingPacket(webrtc::FrameType frameType, int8_t payloadType,
-                                                          uint32_t timeStamp, const uint8_t* payloadData, uint16_t payloadSize)
+    void MediaEngine::RTPObserver::OnIncomingCSRCChanged(int channel, unsigned int CSRC, bool added)
     {
-      if (mChannelObserver)
-        mChannelObserver->onIncomingPacket(mChannelId, frameType, payloadType, timeStamp, payloadData, payloadSize);
+      
+    }
+    
+    //-----------------------------------------------------------------------
+    void MediaEngine::RTPObserver::OnIncomingSSRCChanged(int channel, unsigned int SSRC)
+    {
+      
     }
 
     //-----------------------------------------------------------------------
-    int MediaEngine::RTPPacketObserver::registerChannelObserver(RTPPacketChannelObserver &observer)
+    void MediaEngine::RTPObserver::OnIncomingRTPPacket(webrtc::FrameType frameType, int8_t payloadType,
+                                                       uint32_t timeStamp, const uint8_t* payloadData, uint16_t payloadSize)
+    {
+      if (mChannelObserver)
+        mChannelObserver->onIncomingRTPPacket(mChannelId, frameType, payloadType, timeStamp, payloadData, payloadSize);
+    }
+
+    //-----------------------------------------------------------------------
+    int MediaEngine::RTPObserver::registerChannelObserver(RTPChannelObserver &observer)
     {
       mChannelObserver = &observer;
       
@@ -3037,7 +3086,55 @@ namespace ortc
     }
     
     //-----------------------------------------------------------------------
-    int MediaEngine::RTPPacketObserver::deregisterChannelObserver()
+    int MediaEngine::RTPObserver::deregisterChannelObserver()
+    {
+      mChannelObserver = NULL;
+      
+      return 0;
+    }
+    
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    #pragma mark
+    #pragma mark MediaEngine::RTCPObserver
+    #pragma mark
+    
+    //-----------------------------------------------------------------------
+    MediaEngine::RTCPObserver::RTCPObserver() :
+        mChannelId(-1),
+        mChannelObserver(NULL)
+    {
+      
+    }
+    
+    //-----------------------------------------------------------------------
+    MediaEngine::RTCPObserver::RTCPObserver(int channelId) :
+        mChannelId(channelId),
+        mChannelObserver(NULL)
+    {
+      
+    }
+
+    //-----------------------------------------------------------------------
+    void MediaEngine::RTCPObserver::OnApplicationDataReceived(int channel, unsigned char subType,
+                                                              unsigned int name, const unsigned char* data,
+                                                              unsigned short dataLengthInBytes)
+    {
+      
+    }
+    
+    //-----------------------------------------------------------------------
+    int MediaEngine::RTCPObserver::registerChannelObserver(RTCPChannelObserver &observer)
+    {
+      mChannelObserver = &observer;
+      
+      return 0;
+    }
+
+    //-----------------------------------------------------------------------
+    int MediaEngine::RTCPObserver::deregisterChannelObserver()
     {
       mChannelObserver = NULL;
       
