@@ -620,6 +620,7 @@ namespace ortc
       virtual void internalStartReceiveVoice(int channelId);
       virtual void internalStopSendVoice(int channelId);
       virtual void internalStopReceiveVoice(int channelId);
+      virtual void internalDeleteVoiceChannel(int channelId);
       
       virtual int internalCreateVideoSource();
       virtual int internalCreateVideoChannel();
@@ -629,6 +630,7 @@ namespace ortc
       virtual void internalStartReceiveVideoChannel(int channelId);
       virtual void internalStopSendVideoChannel(int channelId);
       virtual void internalStopReceiveVideoChannel(int channelId);
+      virtual void internalDeleteVideoChannel(int channelId);
       
       virtual int internalRegisterVoiceSendTransport(int channelId);
       virtual int internalDeregisterVoiceSendTransport(int channelId);
@@ -722,8 +724,8 @@ namespace ortc
       CapturedFrameOrientation mDefaultVideoOrientation;
       CapturedFrameOrientation mRecordVideoOrientation;
       
-      RTPObserverMap mRtpObservers;
-      RTCPObserverMap mRtcpObservers;
+      RTPObserverMap mVoiceRtpObservers;
+      RTCPObserverMap mVoiceRtcpObservers;
       VoiceSourceInfoMap mVoiceSourceInfos;
       VoiceChannelInfoMap mVoiceChannelInfos;
       VideoSourceInfoMap mVideoSourceInfos;

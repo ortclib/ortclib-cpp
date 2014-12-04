@@ -1560,11 +1560,9 @@ namespace ortc
         mLifetimeInProgress = true;
       }
       
-      for (VoiceSourceLifetimeStateMap::iterator iter = mVoiceSourceLifetimeStates.begin(); iter != mVoiceSourceLifetimeStates.end(); iter++) {
-        
-        VoiceSourceLifetimeState state = iter->second;
-        int sourceId = state.mSourceId;
-      }
+      std::vector<int> deletedVoiceChannels;
+      std::vector<int> deletedVideoChannels;
+
       
       for (VoiceChannelLifetimeStateMap::iterator iter = mVoiceChannelLifetimeStates.begin(); iter != mVoiceChannelLifetimeStates.end(); iter++) {
         
@@ -1607,6 +1605,11 @@ namespace ortc
               internalStopReceiveVoice(channelId);
             }
           }
+          
+          if (!wantSendAudio && !wantReceiveAudio && (hasSendAudio || hasReceiveAudio)) {
+            internalDeleteVoiceChannel(channelId);
+            deletedVoiceChannels.push_back(channelId);
+          }
         }
         
         {
@@ -1616,6 +1619,9 @@ namespace ortc
           mVoiceChannelLifetimeStates[channelId].mLifetimeHasReceiveAudio = wantReceiveAudio;
         }
       }
+      
+      for (std::vector<int>::iterator iter = deletedVoiceChannels.begin(); iter != deletedVoiceChannels.end(); iter++)
+        mVoiceChannelLifetimeStates.erase(*iter);
       
       for (VideoSourceLifetimeStateMap::iterator iter = mVideoSourceLifetimeStates.begin(); iter != mVideoSourceLifetimeStates.end(); iter++) {
         
@@ -1692,6 +1698,12 @@ namespace ortc
               internalStopReceiveVideoChannel(channelId);
             }
           }
+          
+          
+          if (!wantSendVideoChannel && !wantReceiveVideoChannel && (hasSendVideoChannel || hasReceiveVideoChannel)) {
+            internalDeleteVideoChannel(channelId);
+            deletedVideoChannels.push_back(channelId);
+          }
         }
         
         {
@@ -1702,6 +1714,9 @@ namespace ortc
         }
       }
       
+      for (std::vector<int>::iterator iter = deletedVideoChannels.begin(); iter != deletedVideoChannels.end(); iter++)
+        mVideoChannelLifetimeStates.erase(*iter);
+
       for (VideoSourceLifetimeStateMap::iterator iter = mVideoSourceLifetimeStates.begin(); iter != mVideoSourceLifetimeStates.end(); iter++) {
         
         VideoSourceLifetimeState state = iter->second;
@@ -1801,13 +1816,13 @@ namespace ortc
         VoiceChannelInfo info(channelId);
         VoiceChannelLifetimeState lifetimeState(channelId);
         
-        mRtpObservers[channelId] = rtpObserver;
-        mRtcpObservers[channelId] = rtcpObserver;
+        mVoiceRtpObservers[channelId] = rtpObserver;
+        mVoiceRtcpObservers[channelId] = rtcpObserver;
         mVoiceChannelInfos[channelId] = info;
         mVoiceChannelLifetimeStates[channelId] = lifetimeState;
         
-        mVoiceRtpRtcp->RegisterRTPObserver(channelId, mRtpObservers[channelId]);
-        mVoiceRtpRtcp->RegisterRTCPObserver(channelId, mRtcpObservers[channelId]);
+        mVoiceRtpRtcp->RegisterRTPObserver(channelId, mVoiceRtpObservers[channelId]);
+        mVoiceRtpRtcp->RegisterRTCPObserver(channelId, mVoiceRtcpObservers[channelId]);
         
         return channelId;
       }
@@ -2028,11 +2043,6 @@ namespace ortc
     void MediaEngine::internalStopSendVoice(int channelId)
     {
       {
-        AutoRecursiveLock lock(mMediaEngineReadyLock);
-        mVoiceEngineReady = false;
-      }
-      
-      {
         AutoRecursiveLock lock(mLock);
         
         ZS_LOG_DEBUG(log("stop send voice"))
@@ -2045,23 +2055,12 @@ namespace ortc
         mLastError = internalDeregisterVoiceSendTransport(channelId);
         if (0 != mLastError)
           return;
-        mLastError = mVoiceBase->DeleteChannel(channelId);
-        if (mLastError != 0) {
-          ZS_LOG_ERROR(Detail, log("failed to delete voice channel") + ZS_PARAM("error", mVoiceBase->LastError()))
-          return;
-        }
-        channelId = ORTC_MEDIA_ENGINE_INVALID_CHANNEL;
       }
     }
     
     //-----------------------------------------------------------------------
     void MediaEngine::internalStopReceiveVoice(int channelId)
     {
-      {
-        AutoRecursiveLock lock(mMediaEngineReadyLock);
-        mVoiceEngineReady = false;
-      }
-      
       {
         AutoRecursiveLock lock(mLock);
         
@@ -2087,15 +2086,39 @@ namespace ortc
         mLastError = internalDeregisterVoiceReceiveTransport(channelId);
         if (0 != mLastError)
           return;
+      }
+    }
+
+    void MediaEngine::internalDeleteVoiceChannel(int channelId)
+    {
+      {
+        AutoRecursiveLock lock(mMediaEngineReadyLock);
+        mVoiceEngineReady = false;
+      }
+      
+      {
+        AutoRecursiveLock lock(mLock);
+        
+        ZS_LOG_DEBUG(log("delete voice channel"))
+        
+        mVoiceRtpRtcp->DeRegisterRTPObserver(channelId);
+        mVoiceRtpRtcp->DeRegisterRTCPObserver(channelId);
+
         mLastError = mVoiceBase->DeleteChannel(channelId);
         if (mLastError != 0) {
           ZS_LOG_ERROR(Detail, log("failed to delete voice channel") + ZS_PARAM("error", mVoiceBase->LastError()))
           return;
         }
-        channelId = ORTC_MEDIA_ENGINE_INVALID_CHANNEL;
+        
+        VoiceChannelInfo info = mVoiceChannelInfos[channelId];
+        mVoiceChannelInfos.erase(channelId);
+        if (info.mSourceChannelId == ORTC_MEDIA_ENGINE_INVALID_CHANNEL) {
+          mVoiceRtpObservers.erase(channelId);
+          mVoiceRtcpObservers.erase(channelId);
+        }
       }
     }
-    
+
     //-----------------------------------------------------------------------
     int MediaEngine::internalCreateVideoSource()
     {
@@ -2491,11 +2514,6 @@ namespace ortc
     void MediaEngine::internalStopSendVideoChannel(int channelId)
     {
       {
-        AutoRecursiveLock lock(mMediaEngineReadyLock);
-        mVideoEngineReady = false;
-      }
-      
-      {
         AutoRecursiveLock lock(mLock);
         
         ZS_LOG_DEBUG(log("stop send video channel"))
@@ -2513,11 +2531,6 @@ namespace ortc
         mLastError = internalDeregisterVideoSendTransport(channelId);
         if (0 != mLastError)
           return;
-        mLastError = mVideoBase->DeleteChannel(channelId);
-        if (mLastError != 0) {
-          ZS_LOG_ERROR(Detail, log("failed to delete video channel") + ZS_PARAM("error", mVideoBase->LastError()))
-          return;
-        }
         
         channelId = ORTC_MEDIA_ENGINE_INVALID_CHANNEL;
       }
@@ -2526,11 +2539,6 @@ namespace ortc
     //-----------------------------------------------------------------------
     void MediaEngine::internalStopReceiveVideoChannel(int channelId)
     {
-      {
-        AutoRecursiveLock lock(mMediaEngineReadyLock);
-        mVideoEngineReady = false;
-      }
-      
       {
         AutoRecursiveLock lock(mLock);
         
@@ -2554,13 +2562,31 @@ namespace ortc
         mLastError = internalDeregisterVideoReceiveTransport(channelId);
         if (0 != mLastError)
           return;
+        
+        channelId = ORTC_MEDIA_ENGINE_INVALID_CHANNEL;
+      }
+    }
+    
+    //-----------------------------------------------------------------------
+    void MediaEngine::internalDeleteVideoChannel(int channelId)
+    {
+      {
+        AutoRecursiveLock lock(mMediaEngineReadyLock);
+        mVideoEngineReady = false;
+      }
+      
+      {
+        AutoRecursiveLock lock(mLock);
+        
+        ZS_LOG_DEBUG(log("delete video channel"))
+
         mLastError = mVideoBase->DeleteChannel(channelId);
         if (mLastError != 0) {
           ZS_LOG_ERROR(Detail, log("failed to delete video channel") + ZS_PARAM("error", mVideoBase->LastError()))
           return;
         }
         
-        channelId = ORTC_MEDIA_ENGINE_INVALID_CHANNEL;
+        mVideoChannelInfos.erase(channelId);
       }
     }
     
@@ -3168,7 +3194,7 @@ namespace ortc
       mEcEnabled(false),
       mAgcEnabled(false),
       mNsEnabled(false),
-      mSourceChannelId(-1),
+      mSourceChannelId(ORTC_MEDIA_ENGINE_INVALID_CHANNEL),
       mRedirectTransport(new RedirectTransport("voice")),
       mTransport(mRedirectTransport)
     { }
