@@ -120,7 +120,8 @@ namespace ortc
       virtual void stopReceiveVideoChannel(int channelId) = 0;
       
       virtual int createVoiceChannel() = 0;
-      virtual int createForwardingVoiceChannel(int sourceChannelId) = 0;
+      virtual int createReceiveForwardingVoiceChannel() = 0;
+      virtual int createSendForwardingVoiceChannel(int sourceChannelId) = 0;
       virtual std::list<int> getVoiceChannels() = 0;
 
       virtual void startSendVoice(int channelId) = 0;
@@ -359,6 +360,7 @@ namespace ortc
         bool mAgcEnabled;
         bool mNsEnabled;
         
+        bool isForwarding;
         int mSourceChannelId;
         
         RedirectTransport *mRedirectTransport;
@@ -520,7 +522,8 @@ namespace ortc
       virtual void stopReceiveVideoChannel(int channelId);
       
       virtual int createVoiceChannel();
-      virtual int createForwardingVoiceChannel(int sourceChannelId);
+      virtual int createReceiveForwardingVoiceChannel();
+      virtual int createSendForwardingVoiceChannel(int sourceChannelId);
       virtual std::list<int> getVoiceChannels();
 
       virtual void startSendVoice(int channelId);
@@ -615,7 +618,8 @@ namespace ortc
       void setError(WORD error, const char *reason = NULL);
       
       virtual int internalCreateVoiceChannel();
-      virtual int internalCreateForwardingVoiceChannel(int sourceChannelId);
+      virtual int internalCreateReceiveForwardingVoiceChannel();
+      virtual int internalCreateSendForwardingVoiceChannel(int sourceChannelId);
       virtual void internalStartSendVoice(int channelId);
       virtual void internalStartReceiveVoice(int channelId);
       virtual void internalStopSendVoice(int channelId);

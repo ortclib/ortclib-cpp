@@ -1005,9 +1005,15 @@ namespace ortc
     }
     
     //-----------------------------------------------------------------------
-    int MediaEngine::createForwardingVoiceChannel(int sourceChannelId)
+    int MediaEngine::createReceiveForwardingVoiceChannel()
     {
-      return internalCreateForwardingVoiceChannel(sourceChannelId);
+      return internalCreateReceiveForwardingVoiceChannel();
+    }
+    
+    //-----------------------------------------------------------------------
+    int MediaEngine::createSendForwardingVoiceChannel(int sourceChannelId)
+    {
+      return internalCreateSendForwardingVoiceChannel(sourceChannelId);
     }
 
     //-----------------------------------------------------------------------
@@ -1814,6 +1820,39 @@ namespace ortc
         RTCPObserver rtcpObserver(channelId);
         rtcpObserver.registerChannelObserver(*this);
         VoiceChannelInfo info(channelId);
+        info.isForwarding = false;
+        VoiceChannelLifetimeState lifetimeState(channelId);
+        
+        mVoiceRtpObservers[channelId] = rtpObserver;
+        mVoiceRtcpObservers[channelId] = rtcpObserver;
+        mVoiceChannelInfos[channelId] = info;
+        mVoiceChannelLifetimeStates[channelId] = lifetimeState;
+        
+        mVoiceRtpRtcp->RegisterRTPObserver(channelId, mVoiceRtpObservers[channelId]);
+        mVoiceRtpRtcp->RegisterRTCPObserver(channelId, mVoiceRtcpObservers[channelId]);
+        
+        return channelId;
+      }
+    }
+    
+    //-----------------------------------------------------------------------
+    int MediaEngine::internalCreateReceiveForwardingVoiceChannel()
+    {
+      {
+        AutoRecursiveLock lock(mLock);
+        
+        int channelId = mVoiceBase->CreateChannel(webrtc::kReceiveForwardingChannel);
+        if (channelId < 0) {
+          ZS_LOG_ERROR(Detail, log("could not create receive forwarding voice channel") + ZS_PARAM("error", mVoiceBase->LastError()))
+          return ORTC_MEDIA_ENGINE_INVALID_CHANNEL;
+        }
+        
+        RTPObserver rtpObserver(channelId);
+        rtpObserver.registerChannelObserver(*this);
+        RTCPObserver rtcpObserver(channelId);
+        rtcpObserver.registerChannelObserver(*this);
+        VoiceChannelInfo info(channelId);
+        info.isForwarding = true;
         VoiceChannelLifetimeState lifetimeState(channelId);
         
         mVoiceRtpObservers[channelId] = rtpObserver;
@@ -1829,18 +1868,19 @@ namespace ortc
     }
 
     //-----------------------------------------------------------------------
-    int MediaEngine::internalCreateForwardingVoiceChannel(int sourceChannelId)
+    int MediaEngine::internalCreateSendForwardingVoiceChannel(int sourceChannelId)
     {
       {
         AutoRecursiveLock lock(mLock);
         
-        int channelId = mVoiceBase->CreateChannel(true);
+        int channelId = mVoiceBase->CreateChannel(webrtc::kSendForwardingChannel);
         if (channelId < 0) {
-          ZS_LOG_ERROR(Detail, log("could not create forwarding voice channel") + ZS_PARAM("error", mVoiceBase->LastError()))
+          ZS_LOG_ERROR(Detail, log("could not create send forwarding voice channel") + ZS_PARAM("error", mVoiceBase->LastError()))
           return ORTC_MEDIA_ENGINE_INVALID_CHANNEL;
         }
         
         VoiceChannelInfo info(channelId);
+        info.isForwarding = true;
         info.mSourceChannelId = sourceChannelId;
         VoiceChannelLifetimeState lifetimeState(channelId);
         
@@ -2000,10 +2040,12 @@ namespace ortc
           ZS_LOG_ERROR(Detail, log("failed to start receiving voice") + ZS_PARAM("error", mVoiceBase->LastError()))
           return;
         }
-        mLastError = mVoiceBase->StartPlayout(channelId);
-        if (mLastError != 0) {
-          ZS_LOG_ERROR(Detail, log("failed to start playout") + ZS_PARAM("error", mVoiceBase->LastError()))
-          return;
+        if (!mVoiceChannelInfos[channelId].isForwarding) {
+          mLastError = mVoiceBase->StartPlayout(channelId);
+          if (mLastError != 0) {
+            ZS_LOG_ERROR(Detail, log("failed to start playout") + ZS_PARAM("error", mVoiceBase->LastError()))
+            return;
+          }
         }
         
         webrtc::CodecInst cfinst;
@@ -2065,11 +2107,15 @@ namespace ortc
         AutoRecursiveLock lock(mLock);
         
         ZS_LOG_DEBUG(log("stop receive voice"))
+        
+        VoiceChannelInfo info = mVoiceChannelInfos[channelId];
 
-        mLastError = mVoiceBase->StopPlayout(channelId);
-        if (mLastError != 0) {
-          ZS_LOG_ERROR(Detail, log("failed to stop playout") + ZS_PARAM("error", mVoiceBase->LastError()))
-          return;
+        if (!info.isForwarding) {
+          mLastError = mVoiceBase->StopPlayout(channelId);
+          if (mLastError != 0) {
+            ZS_LOG_ERROR(Detail, log("failed to stop playout") + ZS_PARAM("error", mVoiceBase->LastError()))
+            return;
+          }
         }
         mLastError = mVoiceBase->StopReceive(channelId);
         if (mLastError != 0) {
@@ -3194,6 +3240,7 @@ namespace ortc
       mEcEnabled(false),
       mAgcEnabled(false),
       mNsEnabled(false),
+      isForwarding(false),
       mSourceChannelId(ORTC_MEDIA_ENGINE_INVALID_CHANNEL),
       mRedirectTransport(new RedirectTransport("voice")),
       mTransport(mRedirectTransport)

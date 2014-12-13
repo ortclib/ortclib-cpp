@@ -97,7 +97,7 @@
   
     ortc::internal::IMediaEnginePtr mediaEngine = ortc::internal::IMediaEngine::singleton();
   
-    audioChannel = mediaEngine->createVoiceChannel();
+    audioChannel = mediaEngine->createReceiveForwardingVoiceChannel();
   
     ortc::test::TestMediaEnginePtr testMediaEngine = boost::dynamic_pointer_cast<ortc::test::TestMediaEngine>(mediaEngine);
     testMediaEngine->setVoiceReceivePort(audioChannel, 20010);
@@ -119,7 +119,7 @@
 
     ortc::internal::IMediaEnginePtr mediaEngine = ortc::internal::IMediaEngine::singleton();
   
-    forwardingAudioChannel = mediaEngine->createForwardingVoiceChannel(audioChannel);
+    forwardingAudioChannel = mediaEngine->createSendForwardingVoiceChannel(audioChannel);
   
     ortc::test::TestMediaEnginePtr testMediaEngine = boost::dynamic_pointer_cast<ortc::test::TestMediaEngine>(mediaEngine);
     testMediaEngine->setSendAddress(forwardingAudioChannel, receiverIPAddress);
