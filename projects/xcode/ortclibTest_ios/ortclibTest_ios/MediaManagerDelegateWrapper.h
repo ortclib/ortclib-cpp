@@ -6,7 +6,7 @@ using namespace ortc;
 @class ViewController;
 class MediaManagerDelegateWrapper;
 
-typedef boost::shared_ptr<MediaManagerDelegateWrapper> MediaManagerDelegateWrapperPtr;
+typedef std::shared_ptr<MediaManagerDelegateWrapper> MediaManagerDelegateWrapperPtr;
 
 class MediaManagerDelegateWrapper : public IMediaManagerDelegate
 {

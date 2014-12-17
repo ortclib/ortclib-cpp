@@ -39,7 +39,6 @@
 #include "webrtc/system_wrappers/interface/scoped_ptr.h"
 
 #include <ortc/internal/ortc_MediaEngine.h>
-#include <ortc/internal/ortc_Factory.h>
 
 #include <zsLib/Timer.h>
 
@@ -48,12 +47,12 @@ namespace ortc
   namespace test
   {
     class TestMediaEngine;
-    typedef boost::shared_ptr<TestMediaEngine> TestMediaEnginePtr;
-    typedef boost::weak_ptr<TestMediaEngine> TestMediaEngineWeakPtr;
+    typedef std::shared_ptr<TestMediaEngine> TestMediaEnginePtr;
+    typedef std::weak_ptr<TestMediaEngine> TestMediaEngineWeakPtr;
     
     class TestMediaEngineFactory;
-    typedef boost::shared_ptr<TestMediaEngineFactory> TestMediaEngineFactoryPtr;
-    typedef boost::weak_ptr<TestMediaEngineFactory> TestMediaEngineFactoryWeakPtr;
+    typedef std::shared_ptr<TestMediaEngineFactory> TestMediaEngineFactoryPtr;
+    typedef std::weak_ptr<TestMediaEngineFactory> TestMediaEngineFactoryWeakPtr;
 
     typedef webrtc::test::VoiceChannelTransport VoiceChannelTransport;
     typedef webrtc::test::VideoChannelTransport VideoChannelTransport;
@@ -69,7 +68,7 @@ namespace ortc
     class TestMediaEngine : public internal::MediaEngine, public zsLib::ITimerDelegate
     {
     public:
-      friend interaction TestMediaEngineFactory;
+      friend interaction ITestMediaEngineFactory;
 
       
       //---------------------------------------------------------------------
@@ -140,8 +139,6 @@ namespace ortc
       virtual void internalStartReceiveVideoChannel(int channelId);
       virtual void internalStopSendVideoChannel(int channelId);
       virtual void internalStopReceiveVideoChannel(int channelId);
-      virtual void internalStartRecordVideoCapture(int captureId, String videoRecordFile, bool saveVideoToLibrary);
-      virtual void internalStopRecordVideoCapture(int captureId);
       
       virtual int internalRegisterVoiceSendTransport(int channelId);
       virtual int internalDeregisterVoiceSendTransport(int channelId);
@@ -169,15 +166,16 @@ namespace ortc
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     #pragma mark
-    #pragma mark TestMediaEngineFactory
+    #pragma mark ITestMediaEngineFactory
     #pragma mark
     
-    class TestMediaEngineFactory : public internal::Factory
+    interaction ITestMediaEngineFactory : public internal::IMediaEngineFactory
     {
-    public:
-      TestMediaEngineFactory() {}
+      static ITestMediaEngineFactory &singleton();
       
       virtual internal::MediaEnginePtr create(internal::IMediaEngineDelegatePtr delegate);
     };
+    
+    class TestMediaEngineFactory : public internal::IFactory<ITestMediaEngineFactory> {};
   }
 }

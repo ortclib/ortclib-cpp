@@ -1,6 +1,7 @@
 #import "ViewController.h"
 #import "MediaManagerDelegateWrapper.h"
 #include <openpeer/services/ILogger.h>
+#include <ortc/IORTC.h>
 #include <ortc/internal/ortc_MediaManager.h>
 #include <ortc/internal/ortc_MediaStream.h>
 #include <ortc/internal/ortc_MediaStreamTrack.h>
@@ -25,9 +26,9 @@
     ortc::MediaStreamTrackListPtr localVideoTracks = sendMediaStreamPtr->getVideoTracks();
   
     ortc::internal::LocalAudioStreamTrackPtr localAudioStreamTrack =
-        boost::dynamic_pointer_cast<ortc::internal::LocalAudioStreamTrack>(localAudioTracks->front());
+        std::dynamic_pointer_cast<ortc::internal::LocalAudioStreamTrack>(localAudioTracks->front());
     ortc::internal::LocalVideoStreamTrackPtr localVideoStreamTrack =
-        boost::dynamic_pointer_cast<ortc::internal::LocalVideoStreamTrack>(localVideoTracks->front());
+        std::dynamic_pointer_cast<ortc::internal::LocalVideoStreamTrack>(localVideoTracks->front());
   
     localVideoStreamTrack->forMediaManager().setRenderView((__bridge void*)_imgView1);
   
@@ -39,7 +40,7 @@
     audioChannel = mediaEngine->createVoiceChannel();
     videoChannel = mediaEngine->createVideoChannel();
     ortc::internal::MediaStreamPtr mediaStream =
-        boost::dynamic_pointer_cast<ortc::internal::MediaStream>(sendMediaStreamPtr);
+        std::dynamic_pointer_cast<ortc::internal::MediaStream>(sendMediaStreamPtr);
   
     mediaStream->forMediaManager().setAudioChannel(audioChannel);
     mediaStream->forMediaManager().setVideoChannel(videoChannel);
@@ -53,7 +54,7 @@
     ortc::internal::RemoteReceiveVideoStreamTrackPtr remoteVideoStreamTrack =
         ortc::internal::IRemoteReceiveVideoStreamTrackForMediaManager::create(IMessageQueuePtr(), IMediaStreamTrackDelegatePtr());
   
-    ortc::internal::MediaStreamPtr mediaStream = boost::dynamic_pointer_cast<ortc::internal::MediaStream>(receiveMediaStreamPtr);
+    ortc::internal::MediaStreamPtr mediaStream = std::dynamic_pointer_cast<ortc::internal::MediaStream>(receiveMediaStreamPtr);
   
     mediaStream->forMediaManager().setAudioChannel(audioChannel);
     mediaStream->forMediaManager().setVideoChannel(videoChannel);
@@ -67,9 +68,9 @@
     ortc::MediaStreamTrackListPtr localVideoTracks = sendMediaStreamPtr->getVideoTracks();
   
     ortc::internal::LocalAudioStreamTrackPtr localAudioStreamTrack =
-        boost::dynamic_pointer_cast<ortc::internal::LocalAudioStreamTrack>(localAudioTracks->front());
+        std::dynamic_pointer_cast<ortc::internal::LocalAudioStreamTrack>(localAudioTracks->front());
     ortc::internal::LocalVideoStreamTrackPtr localVideoStreamTrack =
-        boost::dynamic_pointer_cast<ortc::internal::LocalVideoStreamTrack>(localVideoTracks->front());
+        std::dynamic_pointer_cast<ortc::internal::LocalVideoStreamTrack>(localVideoTracks->front());
   
     ortc::internal::SendMediaTransportPtr audioSendTransport = localAudioStreamTrack->forMediaManager().getTransport();
     ortc::internal::SendMediaTransportPtr videoSendTransport = localVideoStreamTrack->forMediaManager().getTransport();
@@ -91,9 +92,9 @@
     ortc::MediaStreamTrackListPtr videoTracks = sendMediaStreamPtr->getVideoTracks();
   
     ortc::internal::LocalAudioStreamTrackPtr localAudioStreamTrack =
-        boost::dynamic_pointer_cast<ortc::internal::LocalAudioStreamTrack>(audioTracks->front());
+        std::dynamic_pointer_cast<ortc::internal::LocalAudioStreamTrack>(audioTracks->front());
     ortc::internal::LocalVideoStreamTrackPtr localVideoStreamTrack =
-        boost::dynamic_pointer_cast<ortc::internal::LocalVideoStreamTrack>(videoTracks->front());
+        std::dynamic_pointer_cast<ortc::internal::LocalVideoStreamTrack>(videoTracks->front());
   
     localAudioStreamTrack->forMediaManager().stop();
     localVideoStreamTrack->forMediaManager().stop();
@@ -117,13 +118,13 @@
   
     mediaManagerDelegatePtr = MediaManagerDelegateWrapper::create(self);
   
-    IORTC::singleton()->setup(zsLib::MessageQueueThread::createBasic("ortc.defaultDelegateMessageQueue"),
-                              zsLib::MessageQueueThread::createBasic("ortc.ortcMessageQueue"),
-                              zsLib::MessageQueueThread::createBasic("ortc.blockingMediaStartStopThread"));
+    ortc::IORTC::singleton()->setup(zsLib::MessageQueueThread::createBasic("ortc.defaultDelegateMessageQueue"),
+                                    zsLib::MessageQueueThread::createBasic("ortc.ortcMessageQueue"),
+                                    zsLib::MessageQueueThread::createBasic("ortc.blockingMediaStartStopThread"));
   
     ortc::test::TestMediaEngineFactoryPtr overrideFactory(new ortc::test::TestMediaEngineFactory);
   
-    ortc::internal::Factory::override(overrideFactory);
+    openpeer::services::IFactory<ortc::internal::IMediaEngineFactory>::override(overrideFactory);
   
     openpeer::services::ILogger::setLogLevel("ortclib", zsLib::Log::Debug);
     openpeer::services::ILogger::setLogLevel("ortclib_webrtc", zsLib::Log::Debug);
