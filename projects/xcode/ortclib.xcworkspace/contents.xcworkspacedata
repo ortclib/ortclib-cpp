@@ -2,6 +2,9 @@
 <Workspace
    version = "1.0">
    <FileRef
+      location = "group:ortclibTest/ortclibTest.xcodeproj">
+   </FileRef>
+   <FileRef
       location = "group:ortclibTest_ios/ortclibTest_ios.xcodeproj">
    </FileRef>
    <FileRef

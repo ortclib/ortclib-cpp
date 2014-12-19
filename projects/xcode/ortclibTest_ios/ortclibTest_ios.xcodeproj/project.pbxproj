@@ -146,6 +146,13 @@
 			remoteGlobalIDString = 0066818116C9D64000259F81;
 			remoteInfo = zsLib_ios;
 		};
+		E295A13D1A3F87A000FA0C73 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E2B2395E19D88A6A00B6631C /* webrtc_ios.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 307C243DFDDBFD9EF8440480;
+			remoteInfo = All;
+		};
 		E2B2396419D88A6A00B6631C /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = E2B2395E19D88A6A00B6631C /* webrtc_ios.xcodeproj */;
@@ -530,6 +537,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				E295A13E1A3F87A000FA0C73 /* PBXTargetDependency */,
 				0097860F1846676600743235 /* PBXTargetDependency */,
 				009786111846676600743235 /* PBXTargetDependency */,
 				009786131846676600743235 /* PBXTargetDependency */,
@@ -697,6 +705,11 @@
 			name = zsLib_ios;
 			targetProxy = E2234CB018454E9600F9E2C8 /* PBXContainerItemProxy */;
 		};
+		E295A13E1A3F87A000FA0C73 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = All;
+			targetProxy = E295A13D1A3F87A000FA0C73 /* PBXContainerItemProxy */;
+		};
 /* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
@@ -832,11 +845,9 @@
 				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "ortclibTest_ios/ortclibTest_ios-Prefix.pch";
+				HEADER_SEARCH_PATHS = "$(inherited)";
 				INFOPLIST_FILE = "ortclibTest_ios/ortclibTest_ios-Info.plist";
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/ortclib-deeleiwezlkqxhfzdhmfrcmtwzbi/Build/Products/Debug-iphoneos",
-				);
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
@@ -855,11 +866,9 @@
 				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "ortclibTest_ios/ortclibTest_ios-Prefix.pch";
+				HEADER_SEARCH_PATHS = "$(inherited)";
 				INFOPLIST_FILE = "ortclibTest_ios/ortclibTest_ios-Info.plist";
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/ortclib-deeleiwezlkqxhfzdhmfrcmtwzbi/Build/Products/Debug-iphoneos",
-				);
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 				VALID_ARCHS = "armv7 armv7s";

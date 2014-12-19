@@ -1,11 +1,3 @@
-//
-//  AppDelegate.m
-//  hfmediatest_ios
-//
-//  Created by Vladimir Morosev on 9/12/12.
-//
-//
-
 #import "AppDelegate.h"
 
 #import "ViewController.h"
