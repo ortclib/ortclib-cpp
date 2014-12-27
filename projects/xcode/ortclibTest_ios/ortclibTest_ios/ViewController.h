@@ -9,16 +9,20 @@
     IBOutlet UIButton* _btnTest4;
     IBOutlet UIButton* _btnTest5;
     IBOutlet UIButton* _btnTest6;
+    IBOutlet UITextField* _sendIPAddressTextField;
+    IBOutlet UITextField* _sendPortTextField;
+    IBOutlet UITextField* _receivePortTextField1;
+    IBOutlet UITextField* _receivePortTextField2;
     IBOutlet UIImageView* _imgView1;
     IBOutlet UIImageView* _imgView2;
   
-    IBOutlet UITextField* receiverIPAddressTextField;
-  
     ortc::IMediaManagerDelegatePtr mediaManagerDelegatePtr;
     ortc::IMediaStreamPtr sendMediaStreamPtr;
-    ortc::IMediaStreamPtr receiveMediaStreamPtr;
-    int audioChannel;
-    int forwardingAudioChannel;
+    ortc::IMediaStreamPtr receiveMediaStream1Ptr;
+    ortc::IMediaStreamPtr receiveMediaStream2Ptr;
+    int sendAudioChannel;
+    int receiveAudioChannel1;
+    int receiveAudioChannel2;
     int videoChannel;
 }
 

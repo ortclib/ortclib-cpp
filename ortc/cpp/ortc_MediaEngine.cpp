@@ -45,7 +45,7 @@
 #include <TargetConditionals.h>
 #endif
 
-#ifdef TARGET_OS_IPHONE
+#if TARGET_OS_IPHONE
 #include <sys/sysctl.h>
 #endif
 
@@ -124,7 +124,7 @@ namespace ortc
       mVideoEngineReady(false),
       mLifetimeInProgress(false)
     {
-#ifdef TARGET_OS_IPHONE
+#if TARGET_OS_IPHONE
       int name[] = {CTL_HW, HW_MACHINE};
       size_t size;
       sysctl(name, 2, NULL, &size, NULL, 0);
@@ -168,7 +168,7 @@ namespace ortc
       mVideoEngineReady(false),
       mLifetimeInProgress(false)
     {
-#ifdef TARGET_OS_IPHONE
+#if TARGET_OS_IPHONE
       int name[] = {CTL_HW, HW_MACHINE};
       size_t size;
       sysctl(name, 2, NULL, &size, NULL, 0);
@@ -2023,7 +2023,7 @@ namespace ortc
           ZS_LOG_ERROR(Detail, log("failed to set microphone mute") + ZS_PARAM("error", mVoiceBase->LastError()))
           return;
         }
-#ifdef TARGET_OS_IPHONE
+#if TARGET_OS_IPHONE
         mLastError = mVoiceHardware->SetLoudspeakerStatus(false);
         if (mLastError != 0) {
           ZS_LOG_ERROR(Detail, log("failed to set loudspeaker") + ZS_PARAM("error", mVoiceBase->LastError()))
@@ -2277,7 +2277,7 @@ namespace ortc
           return;
         }
 
-#if defined(TARGET_OS_IPHONE) || defined(__QNX__)
+#if (TARGET_OS_IPHONE) || defined(__QNX__)
         void *captureView = mVideoSourceInfos[captureId].mRenderView;
 #else
         void *captureView = NULL;
@@ -2295,7 +2295,7 @@ namespace ortc
           return;
         }
         
-#ifdef TARGET_OS_IPHONE
+#if TARGET_OS_IPHONE
         mLastError = mVideoCapture->SetDefaultCapturedFrameOrientation(captureId, mDefaultVideoOrientation);
         if (mLastError != 0) {
           ZS_LOG_ERROR(Detail, log("failed to set default orientation on video capture device") + ZS_PARAM("error", mVideoBase->LastError()))
@@ -2500,7 +2500,7 @@ namespace ortc
         if (0 != mLastError)
           return;
 
-#if defined(TARGET_OS_IPHONE) || defined(__QNX__)
+#if (TARGET_OS_IPHONE) || defined(__QNX__)
         void *channelView = mVideoChannelInfos[channelId].mRenderView;
 #else
         void *channelView = NULL;
@@ -2510,7 +2510,7 @@ namespace ortc
           return;
         }
         
-#ifdef TARGET_OS_IPHONE
+#if TARGET_OS_IPHONE
         OutputAudioRoute route;
         mLastError = mVoiceHardware->GetOutputAudioRoute(route);
         if (mLastError != 0) {
@@ -2754,7 +2754,7 @@ namespace ortc
     int MediaEngine::getVideoCaptureParameters(CameraTypes cameraType, webrtc::RotateCapturedFrame orientation,
                                                int& width, int& height, int& maxFramerate, int& maxBitrate)
     {
-#ifdef TARGET_OS_IPHONE
+#if TARGET_OS_IPHONE
       String iPadString("iPad");
       String iPad2String("iPad2");
       String iPadMiniString("iPad2,5");
@@ -2986,7 +2986,7 @@ namespace ortc
     //-----------------------------------------------------------------------
     int MediaEngine::setVideoCodecParameters(int channelId, int captureId)
     {
-#ifdef TARGET_OS_IPHONE
+#if TARGET_OS_IPHONE
       webrtc::RotateCapturedFrame orientation;
       mLastError = mVideoCapture->GetOrientation(mVideoSourceInfos[captureId].mDeviceUniqueId, orientation);
       if (mLastError != 0) {
@@ -3068,7 +3068,7 @@ namespace ortc
     //-----------------------------------------------------------------------
     webrtc::EcModes MediaEngine::getEcMode()
     {
-#ifdef TARGET_OS_IPHONE
+#if TARGET_OS_IPHONE
       String iPadString("iPad");
       String iPad2String("iPad2");
       String iPad3String("iPad3");
@@ -3098,6 +3098,8 @@ namespace ortc
         ZS_LOG_ERROR(Detail, log("machine name is not supported"))
         return webrtc::kEcUnchanged;
       }
+#elif TARGET_OS_MAC
+      return webrtc::kEcAec;
 #elif defined(__QNX__)
       return webrtc::kEcAec;
 #else

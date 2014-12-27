@@ -24,8 +24,8 @@
       
         openpeer::services::IFactory<ortc::internal::IMediaEngineFactory>::override(overrideFactory);
       
-        openpeer::services::ILogger::setLogLevel("ortclib", zsLib::Log::Debug);
-        openpeer::services::ILogger::setLogLevel("ortclib_webrtc", zsLib::Log::Debug);
+        openpeer::services::ILogger::setLogLevel("ortclib", zsLib::Log::None);
+        openpeer::services::ILogger::setLogLevel("ortclib_webrtc", zsLib::Log::None);
         openpeer::services::ILogger::installStdOutLogger(false);
 //        openpeer::services::ILogger::installTelnetLogger(59999, 60, true);
       
@@ -43,54 +43,70 @@
     mediaManager->getUserMedia(IMediaManager::MediaStreamConstraints());
 }
 
--(void)createReceiveForwardingVoiceChannel
+-(void)createReceiveForwardingAudioTrackWithPortNumber:(NSInteger)portNumber
 {
-    receiveMediaStreamPtr = ortc::internal::IMediaStreamForMediaManager::create(IMessageQueuePtr(), IMediaStreamDelegatePtr());
+    ortc::IMediaStreamPtr receiveMediaStreamPtr =
+        ortc::internal::IMediaStreamForMediaManager::create(IMessageQueuePtr(), IMediaStreamDelegatePtr());
     ortc::internal::RemoteReceiveAudioStreamTrackPtr remoteAudioStreamTrack =
         ortc::internal::IRemoteReceiveAudioStreamTrackForMediaManager::create(IMessageQueuePtr(), IMediaStreamTrackDelegatePtr());
   
     ortc::internal::IMediaEnginePtr mediaEngine = ortc::internal::IMediaEngine::singleton();
   
-    audioChannel = mediaEngine->createReceiveForwardingVoiceChannel();
+    int audioChannel = mediaEngine->createReceiveForwardingVoiceChannel();
   
     ortc::test::TestMediaEnginePtr testMediaEngine = boost::dynamic_pointer_cast<ortc::test::TestMediaEngine>(mediaEngine);
-    testMediaEngine->setVoiceReceivePort(audioChannel, 20010);
+    testMediaEngine->setVoiceReceivePort(audioChannel, (int)portNumber);
 
     ortc::internal::MediaStreamPtr mediaStream = boost::dynamic_pointer_cast<ortc::internal::MediaStream>(receiveMediaStreamPtr);
   
     mediaStream->forMediaManager().addTrack(remoteAudioStreamTrack);
 
     mediaStream->forMediaManager().setAudioChannel(audioChannel);
+  
+    char trackKey[30];
+    std::sprintf(trackKey, "%d", (int)portNumber);
+  
+    receiveMediaStreams[trackKey] = receiveMediaStreamPtr;
+    receiveAudioChannels[trackKey] = audioChannel;
 }
 
--(void)createSendForwardingVoiceChannel
+-(void)createSendForwardingAudioTrackWithReceiverIPAddress:(NSString*)receiverIPAddress
+                                     andReceiverPortNumber:(NSInteger)receiverPortNumber
+                             andSourceAudioTrackPortNumber:(NSInteger)sourceTrackPortNumber
 {
-    NSString* receiverIPAddressString = @"192.168.1.10";
+    const char* receiverIPAddressString = [receiverIPAddress UTF8String];
   
-    const char* receiverIPAddress = [receiverIPAddressString UTF8String];
-  
-    sendMediaStreamPtr = ortc::internal::IMediaStreamForMediaManager::create(IMessageQueuePtr(), IMediaStreamDelegatePtr());
+    char trackKey[30];
+    std::sprintf(trackKey, "%s_%d", receiverIPAddressString, (int)receiverPortNumber);
+
+    ortc::IMediaStreamPtr sendMediaStreamPtr =
+        ortc::internal::IMediaStreamForMediaManager::create(IMessageQueuePtr(), IMediaStreamDelegatePtr());
     ortc::internal::RemoteSendAudioStreamTrackPtr remoteAudioStreamTrack =
         ortc::internal::IRemoteSendAudioStreamTrackForMediaManager::create(IMessageQueuePtr(), IMediaStreamTrackDelegatePtr());
 
     ortc::internal::IMediaEnginePtr mediaEngine = ortc::internal::IMediaEngine::singleton();
   
-    forwardingAudioChannel = mediaEngine->createSendForwardingVoiceChannel(audioChannel);
+    char sourceTrackKey[30];
+    std::sprintf(sourceTrackKey, "%d", (int)sourceTrackPortNumber);
+
+    int audioChannel = mediaEngine->createSendForwardingVoiceChannel(receiveAudioChannels[sourceTrackKey]);
   
     ortc::test::TestMediaEnginePtr testMediaEngine = boost::dynamic_pointer_cast<ortc::test::TestMediaEngine>(mediaEngine);
-    testMediaEngine->setSendAddress(forwardingAudioChannel, receiverIPAddress);
-    testMediaEngine->setVoiceSendPort(forwardingAudioChannel, 20012);
+    testMediaEngine->setSendAddress(audioChannel, receiverIPAddressString);
+    testMediaEngine->setVoiceSendPort(audioChannel, (int)receiverPortNumber);
   
     ortc::internal::MediaStreamPtr mediaStream = boost::dynamic_pointer_cast<ortc::internal::MediaStream>(sendMediaStreamPtr);
   
     mediaStream->forMediaManager().addTrack(remoteAudioStreamTrack);
   
-    mediaStream->forMediaManager().setAudioChannel(forwardingAudioChannel);
+    mediaStream->forMediaManager().setAudioChannel(audioChannel);
+  
+    sendMediaStreams[trackKey] = sendMediaStreamPtr;
+    sendAudioChannels[trackKey] = audioChannel;
 }
 
 -(void)setSendMediaStream:(ortc::IMediaStreamPtr)stream
 {
-    sendMediaStreamPtr = stream;
 }
 
 @end
