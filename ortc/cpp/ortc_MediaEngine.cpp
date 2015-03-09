@@ -1099,9 +1099,9 @@ namespace ortc
         return mLastError;
       }
 
-      unsigned int bytesSent;
+      size_t bytesSent;
       unsigned int packetsSent;
-      unsigned int bytesReceived;
+      size_t bytesReceived;
       unsigned int packetsReceived;
 
       mLastError = mVideoRtpRtcp->GetRTPStatistics(channelId, bytesSent, packetsSent, bytesReceived, packetsReceived);
@@ -3054,7 +3054,7 @@ namespace ortc
     #pragma mark
     
     //-----------------------------------------------------------------------
-    int MediaEngine::RedirectTransport::SendPacket(int channel, const void *data, int len)
+    int MediaEngine::RedirectTransport::SendPacket(int channel, const void *data, size_t len)
     {
       Transport *transport = NULL;
       {
@@ -3070,7 +3070,7 @@ namespace ortc
     }
     
     //-----------------------------------------------------------------------
-    int MediaEngine::RedirectTransport::SendRTCPPacket(int channel, const void *data, int len)
+    int MediaEngine::RedirectTransport::SendRTCPPacket(int channel, const void *data, size_t len)
     {
       Transport *transport = NULL;
       {
