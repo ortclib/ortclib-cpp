@@ -219,6 +219,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastUpgradeCheck = 0610;
+				ORGANIZATIONNAME = "Hookflash Inc.";
 			};
 			buildConfigurationList = E2260E69182161700084E4A4 /* Build configuration list for PBXProject "ortclib_ios" */;
 			compatibilityVersion = "Xcode 3.2";
