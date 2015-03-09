@@ -297,14 +297,14 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = (
 					../../..,
-					../../../libs,
-					"../../../libs/op-services-cpp",
-					../../../libs/zsLib,
-					../../../libs/webrtc,
-					../../../libs/webrtc/webrtc,
-					../../../libs/webrtc/webrtc/voice_engine/include,
-					../../../libs/webrtc/webrtc/video_engine/include,
-					../../../libs/webrtc/webrtc/modules/video_capture/include,
+					../../../..,
+					"../../../../op-services-cpp",
+					../../../../zsLib,
+					../../../../webrtc,
+					../../../../webrtc/webrtc,
+					../../../../webrtc/webrtc/voice_engine/include,
+					../../../../webrtc/webrtc/video_engine/include,
+					../../../../webrtc/webrtc/modules/video_capture/include,
 					"$(inherited)",
 				);
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
@@ -348,14 +348,14 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = (
 					../../..,
-					../../../libs,
-					"../../../libs/op-services-cpp",
-					../../../libs/zsLib,
-					../../../libs/webrtc,
-					../../../libs/webrtc/webrtc,
-					../../../libs/webrtc/webrtc/voice_engine/include,
-					../../../libs/webrtc/webrtc/video_engine/include,
-					../../../libs/webrtc/webrtc/modules/video_capture/include,
+					../../../..,
+					"../../../../op-services-cpp",
+					../../../../zsLib,
+					../../../../webrtc,
+					../../../../webrtc/webrtc,
+					../../../../webrtc/webrtc/voice_engine/include,
+					../../../../webrtc/webrtc/video_engine/include,
+					../../../../webrtc/webrtc/modules/video_capture/include,
 					"$(inherited)",
 				);
 				LIBRARY_SEARCH_PATHS = "$(inherited)";

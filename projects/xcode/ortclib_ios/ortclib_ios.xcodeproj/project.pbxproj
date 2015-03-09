@@ -218,7 +218,7 @@
 		E2260E66182161700084E4A4 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0500;
+				LastUpgradeCheck = 0610;
 			};
 			buildConfigurationList = E2260E69182161700084E4A4 /* Build configuration list for PBXProject "ortclib_ios" */;
 			compatibilityVersion = "Xcode 3.2";
@@ -271,17 +271,18 @@
 				CLANG_CXX_LIBRARY = "libc++";
 				HEADER_SEARCH_PATHS = (
 					../../..,
-					../../../libs,
-					"../../../libs/op-services-cpp",
-					../../../libs/zsLib,
-					../../../libs/webrtc,
-					../../../libs/webrtc/webrtc,
-					../../../libs/webrtc/webrtc/voice_engine/include,
-					../../../libs/webrtc/webrtc/video_engine/include,
-					../../../libs/webrtc/webrtc/modules/video_capture/include,
+					../../../..,
+					"../../../../op-services-cpp",
+					../../../../zsLib,
+					../../../../webrtc,
+					../../../../webrtc/webrtc,
+					../../../../webrtc/webrtc/voice_engine/include,
+					../../../../webrtc/webrtc/video_engine/include,
+					../../../../webrtc/webrtc/modules/video_capture/include,
 					"$(inherited)",
 				);
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
+				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos";
 			};
@@ -294,14 +295,14 @@
 				CLANG_CXX_LIBRARY = "libc++";
 				HEADER_SEARCH_PATHS = (
 					../../..,
-					../../../libs,
-					"../../../libs/op-services-cpp",
-					../../../libs/zsLib,
-					../../../libs/webrtc,
-					../../../libs/webrtc/webrtc,
-					../../../libs/webrtc/webrtc/voice_engine/include,
-					../../../libs/webrtc/webrtc/video_engine/include,
-					../../../libs/webrtc/webrtc/modules/video_capture/include,
+					../../../..,
+					"../../../../op-services-cpp",
+					../../../../zsLib,
+					../../../../webrtc,
+					../../../../webrtc/webrtc,
+					../../../../webrtc/webrtc/voice_engine/include,
+					../../../../webrtc/webrtc/video_engine/include,
+					../../../../webrtc/webrtc/modules/video_capture/include,
 					"$(inherited)",
 				);
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
