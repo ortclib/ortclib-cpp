@@ -129,6 +129,7 @@ namespace ortc
     #pragma mark
 
     struct Candidate {
+      String            mInterfaceType;
       String            mFoundation;
       DWORD             mPriority {};
       Protocols         mProtocol {Protocol_UDP};

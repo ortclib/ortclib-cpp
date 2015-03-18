@@ -47,16 +47,88 @@ namespace ortc
   
   interaction IICEGathererTypes : public IICETypes
   {
+    ZS_DECLARE_STRUCT_PTR(Options)
+    ZS_DECLARE_STRUCT_PTR(Server)
+    ZS_DECLARE_STRUCT_PTR(InterfacePolicy)
+
+    ZS_DECLARE_TYPEDEF_PTR(std::list<String>, StringList)
+    ZS_DECLARE_TYPEDEF_PTR(std::list<Server>, ServerList)
+    ZS_DECLARE_TYPEDEF_PTR(std::list<InterfacePolicy>, InterfacePolicyList)
+
     //-------------------------------------------------------------------------
     #pragma mark
     #pragma mark IICEGathererTypes::States
     #pragma mark
 
-    enum States
-    {
+    enum States {
       State_New,
       State_Gathering,
       State_Complete,
+    };
+
+    static const char *toString(States state);
+    static States toState(const char *state);
+
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IICEGathererTypes::FilterPolicies
+    #pragma mark
+
+    enum FilterPolicies {
+      FilterPolicy_None                = 0,
+      FilterPolicy_NoIPv4Host          = 0x00000001,
+      FilterPolicy_NoIPv4Srflx         = 0x00000002,
+      FilterPolicy_NoIPv4Prflx         = 0x00000004,
+      FilterPolicy_NoIPv4Relay         = 0x00000008,
+      FilterPolicy_NoIPv4              = 0x000000FF,
+      FilterPolicy_NoIPv6Host          = 0x00000100,
+      FilterPolicy_NoIPv6Srflx         = 0x00000200,
+      FilterPolicy_NoIPv6Prflx         = 0x00000400,
+      FilterPolicy_NoIPv6Relay         = 0x00000800,
+      FilterPolicy_NoIPv6Tunnel        = 0x00001000,
+      FilterPolicy_NoIPv6Permanent     = 0x00002000,
+      FilterPolicy_NoIPv6              = 0x000FF000,
+      FilterPolicy_NoHost              = (FilterPolicy_NoIPv4Host | FilterPolicy_NoIPv6Host),
+      FilterPolicy_NoSrflx             = (FilterPolicy_NoIPv4Srflx | FilterPolicy_NoIPv4Srflx),
+      FilterPolicy_NoPrflx             = (FilterPolicy_NoIPv4Prflx | FilterPolicy_NoIPv6Prflx),
+      FilterPolicy_NoRelay             = (FilterPolicy_NoIPv4Relay | FilterPolicy_NoIPv6Relay),
+      FilterPolicy_RelayOnly           = (FilterPolicy_NoIPv4Host | FilterPolicy_NoSrflx | FilterPolicy_NoPrflx),
+    };
+
+    static String toString(FilterPolicies policies);
+    static FilterPolicies toPolicy(const char *filters);
+
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IICEGathererTypes::Options
+    #pragma mark
+
+    struct Options {
+      bool                mContinuousGathering {true};
+      FilterPolicies      mGatherPolicy {FilterPolicy_None};
+      InterfacePolicyList mInterfacePolicy;
+      ServerList          mICEServers;
+    };
+
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IICEGathererTypes::Server
+    #pragma mark
+
+    struct Server {
+      StringList mURLs;
+      String     mUserName;
+      String     mCredential;
+    };
+
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IICEGathererTypes::InterfacePolicy
+    #pragma mark
+
+    struct InterfacePolicy {
+      String          mInterfaceType;
+      FilterPolicies  mGatherPolicy {FilterPolicy_None};
     };
   };
 
@@ -73,7 +145,10 @@ namespace ortc
   {
     static ElementPtr toDebug(IICETransportPtr gatherer);
 
-    static IICETransportPtr create(IICETransportDelegatePtr delegate);
+    static IICEGathererPtr create(
+                                  IICEGathererDelegatePtr delegate,
+                                  Options options
+                                  );
 
     virtual PUID getID() const = 0;
 

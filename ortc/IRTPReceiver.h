@@ -35,6 +35,8 @@
 #include <ortc/IRTPTypes.h>
 #include <ortc/IStatsProvider.h>
 
+#include <list>
+
 namespace ortc
 {
   //---------------------------------------------------------------------------
@@ -47,6 +49,20 @@ namespace ortc
 
   interaction IRTPReceiverTypes : public IRTPTypes
   {
+    ZS_DECLARE_STRUCT_PTR(ContributingSource)
+
+    ZS_DECLARE_TYPEDEF_PTR(std::list<ContributingSource>, ContributingSourceList)
+
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IRTPReceiverTypes::ContributingSource
+    #pragma mark
+
+    struct ContributingSource {
+      Time      mTimestamp;
+      SSRCType  mCSRC {};
+      BYTE      mAudioLevel {};
+    };
   };
 
   //---------------------------------------------------------------------------
@@ -85,6 +101,10 @@ namespace ortc
 
     virtual void receive(const Parameters &parameters) throw (InvalidParameters);
     virtual void stop() = 0;
+
+    virtual ContributingSourceList getContributingSources() const = 0;
+
+    virtual void requestSendCSRC(SSRCType csrc) = 0;
   };
 
   //---------------------------------------------------------------------------
