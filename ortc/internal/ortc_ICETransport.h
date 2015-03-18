@@ -31,6 +31,8 @@
 
 #pragma once
 
+#if 0
+
 #include <ortc/internal/types.h>
 #include <ortc/IICETransport.h>
 
@@ -338,3 +340,5 @@ namespace ortc
     class ICETransportFactory : public IFactory<IICETransportFactory> {};
   }
 }
+
+#endif //0

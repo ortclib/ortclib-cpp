@@ -1,17 +1,17 @@
 /*
- 
+
  Copyright (c) 2014, Hookflash Inc. / Hookflash Inc.
  All rights reserved.
- 
+
  Redistribution and use in source and binary forms, with or without
  modification, are permitted provided that the following conditions are met:
- 
+
  1. Redistributions of source code must retain the above copyright notice, this
  list of conditions and the following disclaimer.
  2. Redistributions in binary form must reproduce the above copyright notice,
  this list of conditions and the following disclaimer in the documentation
  and/or other materials provided with the distribution.
- 
+
  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -22,7 +22,7 @@
  ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- 
+
  The views and conclusions contained in the software and documentation are those
  of the authors and should not be interpreted as representing official policies,
  either expressed or implied, of the FreeBSD Project.
@@ -32,30 +32,46 @@
 #pragma once
 
 #include <ortc/types.h>
+#include <ortc/IICETypes.h>
 
 namespace ortc
 {
-  //-------------------------------------------------------------------------
-  //-------------------------------------------------------------------------
-  //-------------------------------------------------------------------------
-  //-------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
   #pragma mark
-  #pragma mark IRTCDataChannel
+  #pragma mark IICETransportControllerTypes
   #pragma mark
   
-  interaction IRTCDataChannel
+  interaction IICETransportControllerTypes : public IICETypes
   {
-    virtual String id() = 0;
-    virtual String kind() = 0;
-    virtual void send(BYTE* data) = 0;
+    ZS_DECLARE_TYPEDEF_PTR(std::list<IICETransportPtr>, ICETransportList)
   };
-  
-  interaction IRTCDataChannelDelegate
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IICETransportController
+  #pragma mark
+
+  interaction IICETransportController : public IICETransportControllerTypes
   {
-    virtual void onRTCDataChannelData(BYTE* data) = 0;
+    static ElementPtr toDebug(IICETransportControllerPtr controller);
+
+    static IICETransportControllerPtr create();
+
+    virtual PUID getID() const = 0;
+
+    virtual ICETransportList getTransports() const = 0;
+    virtual void addTransport(
+                              IICETransportPtr transport,
+                              Optional<size_t> index = Optional<size_t>()
+                              ) throw(
+                                      InvalidParameters,
+                                      InvalidStateError
+                                      ) = 0;
   };
 }
-
-ZS_DECLARE_PROXY_BEGIN(ortc::IRTCDataChannelDelegate)
-ZS_DECLARE_PROXY_METHOD_1(onRTCDataChannelData, BYTE*)
-ZS_DECLARE_PROXY_END()

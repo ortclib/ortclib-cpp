@@ -40,14 +40,64 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   #pragma mark
-  #pragma mark IHelper
+  #pragma mark IStatsReportTypes
   #pragma mark
 
-  interaction IHelper
+  interaction IStatsReportTypes : public Any
   {
-    static String toString(ElementPtr el);
-    static ElementPtr toJSON(const char *str);
+    ZS_DECLARE_STRUCT_PTR(Stats);
 
-    static ElementPtr toJSON(AnyPtr any);
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IStatsReportTypes::StatsType
+    #pragma mark
+
+    enum StatsType
+    {
+      StatsType_inboundrtp,
+      StatsType_outboundrtp,
+      StatsType_session,
+      StatsType_datachannel,
+      StatsType_track,
+      StatsType_transport,
+      StatsType_candidatepair,
+      StatsType_localcandidate,
+      StatsType_remotecandidate,
+    };
+
+    static StatsType toStatsType(const char *statsType);
+    static const char *toString(StatsType);
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IStatsReportTypes::Stats
+    #pragma mark
+
+    struct Stats
+    {
+      Time mTimeStamp;
+      String mStatsType;
+      String mID;
+    };
   };
+  
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IStatsReport
+  #pragma mark
+
+  interaction IStatsReport : public IStatsReportTypes
+  {
+    virtual StatsPtr getStats(const char *id);
+  };
+
 }

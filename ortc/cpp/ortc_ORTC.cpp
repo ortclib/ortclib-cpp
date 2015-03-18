@@ -29,6 +29,8 @@
  
  */
 
+#if 0
+
 #include <ortc/internal/ortc_ORTC.h>
 
 #include <openpeer/services/IHelper.h>
@@ -203,3 +205,5 @@ namespace ortc
     return internal::ORTC::singleton();
   }
 }
+
+#endif //0

@@ -26,14 +26,13 @@
  The views and conclusions contained in the software and documentation are those
  of the authors and should not be interpreted as representing official policies,
  either expressed or implied, of the FreeBSD Project.
-
+ 
  */
 
 #pragma once
 
 #include <ortc/types.h>
 #include <ortc/IRTPTypes.h>
-#include <ortc/IStatsProvider.h>
 
 namespace ortc
 {
@@ -42,10 +41,10 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   #pragma mark
-  #pragma mark IRTPReceiverTypes
+  #pragma mark IRTPListenerTypes
   #pragma mark
-
-  interaction IRTPReceiverTypes : public IRTPTypes
+  
+  interaction IRTPListenerTypes : public IRTPTypes
   {
   };
 
@@ -54,37 +53,23 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   #pragma mark
-  #pragma mark IRTPReceiver
+  #pragma mark IRTPListener
   #pragma mark
-
-  interaction IRTPReceiver : public IRTPReceiverTypes,
-                             public IStatsProvider
+  
+  interaction IRTPListener : public IRTPListenerTypes
   {
-    static ElementPtr toDebug(IRTPReceiverPtr receiver);
+    static ElementPtr toDebug(IRTPListenerPtr listener);
 
-    static IRTPReceiverPtr create(
-                                  IRTPReceiverDelegatePtr delegate,
-                                  IDTLSTransportPtr transport,
-                                  IDTLSTransportPtr rtcpTransport = IDTLSTransportPtr()
+    static IRTPListenerPtr create(
+                                  IRTPListenerDelegatePtr delegate,
+                                  IDTLSTransportPtr transport
                                   );
 
     virtual PUID getID() const = 0;
 
-    virtual IRTPReceiverSubscriptionPtr subscribe(IRTPReceiverDelegatePtr delegate) = 0;
+    virtual IRTPListenerSubscriptionPtr subscribe(IRTPListenerDelegatePtr delegate) = 0;
 
-    virtual IMediaStreamTrackPtr getTrack() const = 0;
     virtual IDTLSTransportPtr getTransport() const = 0;
-    virtual IDTLSTransportPtr getRTCPTransport() const = 0;
-
-    virtual void setTransport(
-                              IDTLSTransportPtr transport,
-                              IDTLSTransportPtr rtcpTransport = IDTLSTransportPtr()
-                              ) = 0;
-
-    virtual CapabilitiesPtr getCapabilities(const char *kind = NULL);
-
-    virtual void receive(const Parameters &parameters) throw (InvalidParameters);
-    virtual void stop() = 0;
   };
 
   //---------------------------------------------------------------------------
@@ -92,18 +77,20 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   #pragma mark
-  #pragma mark IRTPReceiverDelegate
+  #pragma mark IRTPListenerDelegate
   #pragma mark
 
-  interaction IRTPReceiverDelegate
+  interaction IRTPListenerDelegate
   {
-    typedef WORD ErrorCode;
+    typedef IRTPTypes::SSRCType SSRCType;
+    typedef IRTPTypes::PayloadType PayloadType;
 
-    virtual void onRTPReceiverError(
-                                    IRTPReceiverPtr sender,
-                                    ErrorCode errorCode,
-                                    String errorReason
-                                    ) = 0;
+    virtual void onRTPListenerUnhandledRTP(
+                                           IRTPListenerPtr listener,
+                                           SSRCType ssrc,
+                                           PayloadType payloadType,
+                                           String mid
+                                           ) = 0;
   };
 
   //---------------------------------------------------------------------------
@@ -111,10 +98,10 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   #pragma mark
-  #pragma mark IRTPReceiverSubscription
+  #pragma mark IRTPListenerSubscription
   #pragma mark
 
-  interaction IRTPReceiverSubscription
+  interaction IRTPListenerSubscription
   {
     virtual PUID getID() const = 0;
 
@@ -124,15 +111,16 @@ namespace ortc
   };
 }
 
-
-ZS_DECLARE_PROXY_BEGIN(ortc::IRTPReceiverDelegate)
-ZS_DECLARE_PROXY_TYPEDEF(ortc::IRTPReceiverPtr, IRTPReceiverPtr)
-ZS_DECLARE_PROXY_TYPEDEF(ortc::IRTPSenderDelegate::ErrorCode, ErrorCode)
-ZS_DECLARE_PROXY_METHOD_3(onRTPReceiverError, IRTPReceiverPtr, ErrorCode, String)
+ZS_DECLARE_PROXY_BEGIN(ortc::IRTPListenerDelegate)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::IRTPListenerPtr, IRTPListenerPtr)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::IRTPListenerDelegate::SSRCType, SSRCType)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::IRTPListenerDelegate::PayloadType, PayloadType)
+ZS_DECLARE_PROXY_METHOD_4(onRTPListenerUnhandledRTP, IRTPListenerPtr, SSRCType, PayloadType, String)
 ZS_DECLARE_PROXY_END()
 
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_BEGIN(ortc::IRTPReceiverDelegate, ortc::IRTPReceiverSubscription)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IRTPReceiverPtr, IRTPReceiverPtr)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IRTPReceiverDelegate::ErrorCode, ErrorCode)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_3(onRTPReceiverError, IRTPReceiverPtr, ErrorCode, String)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_BEGIN(ortc::IRTPListenerDelegate, ortc::IRTPListenerSubscription)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IRTPListenerPtr, IRTPListenerPtr)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IRTPListenerDelegate::SSRCType, SSRCType)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IRTPListenerDelegate::PayloadType, PayloadType)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_4(onRTPListenerUnhandledRTP, IRTPListenerPtr, SSRCType, PayloadType, String)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_END()

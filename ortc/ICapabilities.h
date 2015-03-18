@@ -32,7 +32,8 @@
 #pragma once
 
 #include <ortc/types.h>
-#include <ortc/IRTCTrack.h>
+
+#include <list>
 
 namespace ortc
 {
@@ -41,20 +42,42 @@ namespace ortc
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
   #pragma mark
-  #pragma mark IRTCDTMFTrack
+  #pragma mark ICapabilities
   #pragma mark
   
-  interaction IRTCDTMFTrack
+  interaction ICapabilities
   {
-    virtual void playTones(String tones, ULONG duration = 100, ULONG interToneGap = 70) = 0;
-  };
-  
-  interaction IRTCDTMFTrackDelegate
-  {
-    virtual void onRTCDTMFTrackTone(String tone, ULONG duration) = 0;
+    typedef bool CapabilityBool;
+    ZS_DECLARE_STRUCT_PTR(CapabilityLong)
+    ZS_DECLARE_STRUCT_PTR(CapabilityDouble)
+    ZS_DECLARE_STRUCT_PTR(CapabilityString)
+
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark ICapabilities::CapabilityLong
+    #pragma mark
+
+    struct CapabilityLong {
+      LONG mMin {};
+      LONG mMax {};
+    };
+
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark ICapabilities::CapabilityDouble
+    #pragma mark
+
+    struct CapabilityDouble {
+      double mMin {};
+      double mMax {};
+    };
+
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark ICapabilities::CapabilityString
+    #pragma mark
+
+    struct CapabilityString : public std::list<String> {
+    };
   };
 }
-
-ZS_DECLARE_PROXY_BEGIN(ortc::IRTCDTMFTrackDelegate)
-ZS_DECLARE_PROXY_METHOD_2(onRTCDTMFTrackTone, String, ULONG)
-ZS_DECLARE_PROXY_END()

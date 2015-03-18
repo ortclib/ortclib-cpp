@@ -45,14 +45,10 @@ namespace ortc
 
   interaction IORTC
   {
-    static IORTCPtr singleton();
-
-    virtual PUID getID() const = 0;
-
-    virtual void setup(
-                       IMessageQueuePtr defaultDelegateMessageQueue,
-                       IMessageQueuePtr ortcMessageQueue,
-                       IMessageQueuePtr blockingMediaStartStopThread
-                       ) = 0;
+    static void setup(
+                      IMessageQueuePtr defaultDelegateMessageQueue,
+                      IMessageQueuePtr ortcMessageQueue,
+                      IMessageQueuePtr blockingMediaStartStopThread
+                      );
   };
 }

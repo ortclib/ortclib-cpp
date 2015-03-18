@@ -31,6 +31,8 @@
 
 #pragma once
 
+#if 0
+
 #include <ortc/internal/types.h>
 #include <ortc/IMediaManager.h>
 
@@ -161,3 +163,5 @@ namespace ortc
     class MediaManagerFactory : public IFactory<IMediaManagerFactory> {};
   }
 }
+
+#endif //0

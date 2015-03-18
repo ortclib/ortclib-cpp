@@ -59,24 +59,10 @@ namespace ortc
 
     ZS_DECLARE_TYPEDEF_PTR(zsLib::AutoRecursiveLock, AutoRecursiveLock)
 
-    ZS_DECLARE_USING_PTR(openpeer::services, IHTTP)
-    ZS_DECLARE_USING_PTR(openpeer::services, IICESocket)
-    ZS_DECLARE_USING_PTR(openpeer::services, IICESocketDelegate)
-    ZS_DECLARE_USING_PTR(openpeer::services, IICESocketSubscription)
-    ZS_DECLARE_USING_PTR(openpeer::services, IICESocketSession)
-    ZS_DECLARE_USING_PTR(openpeer::services, IICESocketSessionDelegate)
-    ZS_DECLARE_USING_PTR(openpeer::services, IICESocketSessionSubscription)
-
     ZS_DECLARE_USING_PROXY(openpeer::services, IWakeDelegate)
 
     using openpeer::services::IFactory;
 
-    enum CameraTypes
-    {
-      CameraType_None,
-      CameraType_Front,
-      CameraType_Back
-    };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -86,36 +72,6 @@ namespace ortc
     #pragma mark (forwards)
     #pragma mark
 
-    ZS_DECLARE_CLASS_PTR(AudioStreamTrack)
-    ZS_DECLARE_CLASS_PTR(DTLSTransport)
-    ZS_DECLARE_CLASS_PTR(ICETransport)
-    ZS_DECLARE_CLASS_PTR(MediaEngine)
-    ZS_DECLARE_CLASS_PTR(MediaManager)
-    ZS_DECLARE_CLASS_PTR(MediaStream)
-    ZS_DECLARE_CLASS_PTR(MediaStreamTrack)
-    ZS_DECLARE_CLASS_PTR(MediaTransport)
-    ZS_DECLARE_CLASS_PTR(ORTC)
-    ZS_DECLARE_CLASS_PTR(LocalAudioStreamTrack)
-    ZS_DECLARE_CLASS_PTR(LocalVideoStreamTrack)
-    ZS_DECLARE_CLASS_PTR(ReceiveMediaTransport)
-    ZS_DECLARE_CLASS_PTR(RemoteReceiveAudioStreamTrack)
-    ZS_DECLARE_CLASS_PTR(RemoteSendAudioStreamTrack)
-    ZS_DECLARE_CLASS_PTR(RemoteReceiveVideoStreamTrack)
-    ZS_DECLARE_CLASS_PTR(RemoteSendVideoStreamTrack)
-    ZS_DECLARE_CLASS_PTR(RTCStream)
-    ZS_DECLARE_CLASS_PTR(RTCTrack)
-    ZS_DECLARE_CLASS_PTR(RTCDTMFTrack)
-    ZS_DECLARE_CLASS_PTR(RTCDataChannel)
-    ZS_DECLARE_CLASS_PTR(RTPSender)
-    ZS_DECLARE_CLASS_PTR(RTPReceiver)
-    ZS_DECLARE_CLASS_PTR(SendMediaTransport)
-
-    ZS_DECLARE_INTERACTION_PTR(IMediaTransport)
-    ZS_DECLARE_INTERACTION_PTR(IMediaEngine)
-    
-    ZS_DECLARE_INTERACTION_PROXY(IMediaEngineDelegate)
-
-    ZS_DECLARE_INTERACTION_PROXY_SUBSCRIPTION(IMediaEngineSubscription, IMediaEngineDelegate)
 
   }
 }

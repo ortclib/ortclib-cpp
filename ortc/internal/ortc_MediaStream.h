@@ -31,6 +31,8 @@
 
 #pragma once
 
+#if 0
+
 #include <ortc/internal/types.h>
 #include <ortc/IMediaStream.h>
 
@@ -229,3 +231,5 @@ namespace ortc
     class MediaStreamFactory : public IFactory<IMediaStreamFactory> {};
   }
 }
+
+#endif //0

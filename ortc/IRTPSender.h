@@ -32,7 +32,8 @@
 #pragma once
 
 #include <ortc/types.h>
-#include <ortc/TrackDescription.h>
+#include <ortc/IRTPTypes.h>
+#include <ortc/IStatsProvider.h>
 
 namespace ortc
 {
@@ -41,71 +42,110 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   #pragma mark
+  #pragma mark IRTPSenderTypes
+  #pragma mark
+  
+  interaction IRTPSenderTypes : public IRTPTypes
+  {
+  };
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
   #pragma mark IRTPSender
   #pragma mark
   
-  interaction IRTPSender
+  interaction IRTPSender : public IRTPSenderTypes,
+                           public IStatsProvider
   {
-    ZS_DECLARE_STRUCT_PTR(Capabilities)
-
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark Options
-    #pragma mark
-
-    enum Options
-    {
-      Option_Unknown,
-    };
-
-    static const char *toString(Options option);
-
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark Capabilities
-    #pragma mark
-
-    struct Capabilities
-    {
-      typedef std::list<Options> OptionsList;
-
-      OptionsList mOptions;
-
-      static CapabilitiesPtr create();
-      ElementPtr toDebug() const;
-
-    protected:
-      Capabilities() {}
-      Capabilities(const Capabilities &) {}
-    };
-
-    static ElementPtr toDebug(IRTPSenderPtr transport);
+    static ElementPtr toDebug(IRTPSenderPtr sender);
 
     static IRTPSenderPtr create(
-                                IDTLSTransportPtr rtpTransport,
+                                IRTPSenderDelegatePtr delegate,
+                                IMediaStreamTrackPtr track,
+                                IDTLSTransportPtr transport,
                                 IDTLSTransportPtr rtcpTransport = IDTLSTransportPtr()
                                 );
 
     virtual PUID getID() const = 0;
 
-    static CapabilitiesPtr getCapabilities();
+    virtual IRTPSenderSubscriptionPtr subscribe(IRTPSenderDelegatePtr delegate) = 0;
 
-    virtual TrackDescriptionPtr createParams(CapabilitiesPtr capabilities = CapabilitiesPtr()) = 0;
+    virtual IMediaStreamTrackPtr getTrack() const = 0;
+    virtual IDTLSTransportPtr getTransport() const = 0;
+    virtual IDTLSTransportPtr getRTCPTransport() const = 0;
 
-    static TrackDescriptionPtr filterParams(
-                                            TrackDescriptionPtr params,
-                                            CapabilitiesPtr capabilities
-                                            );
+    virtual void setTransport(
+                              IDTLSTransportPtr transport,
+                              IDTLSTransportPtr rtcpTransport = IDTLSTransportPtr()
+                              ) = 0;
 
-    virtual TrackDescriptionPtr getDescription() = 0;
-    virtual void setDescription(TrackDescriptionPtr) = 0;
+    virtual void setTrack(IMediaStreamTrackPtr track) throw(InvalidParameters) = 0;
 
-    virtual void attach(
-                        IDTLSTransportPtr rtpTransport,
-                        IDTLSTransportPtr rtcpTransport = IDTLSTransportPtr()
-                        ) = 0;
+    virtual CapabilitiesPtr getCapabilities(const char *kind = NULL);
 
-    virtual void start(TrackDescriptionPtr trackDescription) = 0;
+    virtual void send(const Parameters &parameters) throw(InvalidParameters) = 0;
     virtual void stop() = 0;
   };
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IRTPSenderDelegate
+  #pragma mark
+
+  interaction IRTPSenderDelegate
+  {
+    ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::SSRCType, SSRCType)
+    typedef WORD ErrorCode;
+
+    virtual void onRTPSenderError(
+                                  IRTPSenderPtr sender,
+                                  ErrorCode errorCode,
+                                  String errorReason
+                                  ) = 0;
+
+    virtual void onRTPSenderSSRCConflict(
+                                         IRTPSenderPtr sender,
+                                         SSRCType ssrc
+                                         ) = 0;
+  };
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IRTPSenderSubscription
+  #pragma mark
+
+  interaction IRTPSenderSubscription
+  {
+    virtual PUID getID() const = 0;
+
+    virtual void cancel() = 0;
+
+    virtual void background() = 0;
+  };
 }
+
+
+ZS_DECLARE_PROXY_BEGIN(ortc::IRTPSenderDelegate)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::IRTPSenderPtr, IRTPSenderPtr)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::IRTPSenderDelegate::ErrorCode, ErrorCode)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::IRTPSenderDelegate::SSRCType, SSRCType)
+ZS_DECLARE_PROXY_METHOD_3(onRTPSenderError, IRTPSenderPtr, ErrorCode, String)
+ZS_DECLARE_PROXY_METHOD_2(onRTPSenderSSRCConflict, IRTPSenderPtr, SSRCType)
+ZS_DECLARE_PROXY_END()
+
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_BEGIN(ortc::IRTPSenderDelegate, ortc::IRTPSenderSubscription)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IRTPSenderPtr, IRTPSenderPtr)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IRTPSenderDelegate::ErrorCode, ErrorCode)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IRTPSenderDelegate::SSRCType, SSRCType)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_3(onRTPSenderError, IRTPSenderPtr, ErrorCode, String)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onRTPSenderSSRCConflict, IRTPSenderPtr, SSRCType)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_END()

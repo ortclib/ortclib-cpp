@@ -31,6 +31,8 @@
 
 #pragma once
 
+#if 0
+
 #include <ortc/internal/types.h>
 #include <ortc/IORTC.h>
 
@@ -127,3 +129,5 @@ namespace ortc
     };
   }
 }
+
+#endif //0

@@ -32,6 +32,11 @@
 #pragma once
 
 #include <ortc/types.h>
+#include <ortc/IStatsProvider.h>
+
+#include <zsLib/Exception.h>
+
+#include <list>
 
 namespace ortc
 {
@@ -40,113 +45,109 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   #pragma mark
-  #pragma mark IDTLSTransport
+  #pragma mark IDTLSTransportTypes
   #pragma mark
   
-  interaction IDTLSTransport
+  interaction IDTLSTransportTypes
   {
-    ZS_DECLARE_STRUCT_PTR(Capabilities)
-    ZS_DECLARE_STRUCT_PTR(TransportInfo)
+    ZS_DECLARE_STRUCT_PTR(Parameters)
+    ZS_DECLARE_STRUCT_PTR(Fingerprint)
+    ZS_DECLARE_TYPEDEF_PTR(std::list<Fingerprint>, FingerprintList)
+    ZS_DECLARE_TYPEDEF_PTR(std::list<SecureByteBlock>, SecureByteBlockList)
 
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark ConnectionStates
+    #pragma mark TransportStates
     #pragma mark
     
-    enum ConnectionStates
+    enum States
     {
-      ConnectionState_New,
-      ConnectionState_Connecting,
-      ConnectionState_Connected,
-      ConnectionState_ConnectedButTransportDetached,  // either no ICE transport is attached or the ICE transport is haulted
-      ConnectionState_Closed,
+      State_New,
+      State_Connecting,
+      State_Connected,
+      State_Closed,
     };
 
-    static const char *toString(ConnectionStates state);
+    static const char *toString(States state);
+    static States toState(const char *state);
 
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark Options
+    #pragma mark Roles
     #pragma mark
 
-    enum Options
+    enum Roles
     {
-      Option_Unknown,
+      Role_Auto,
+      Role_Client,
+      Role_Server,
     };
 
-    static const char *toString(Options option);
+    static const char *toString(Roles role);
+    static Roles toRole(const char *role);
 
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark Capabilities
+    #pragma mark Roles
     #pragma mark
 
-    struct Capabilities
+    struct Parameters
     {
-      typedef std::list<Options> OptionsList;
-
-      OptionsList mOptions;
-
-      static CapabilitiesPtr create();
-      ElementPtr toDebug() const;
-
-    protected:
-      Capabilities() {}
-      Capabilities(const Capabilities &) {}
+      Roles mRole {Role_Auto};
+      FingerprintList mFingerprints;
     };
 
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark TransportInfo
+    #pragma mark Fingerprint
     #pragma mark
-    
-    struct TransportInfo
+
+    struct Fingerprint
     {
-      static TransportInfoPtr create();
-      ElementPtr toDebug() const;
-
-    protected:
-      TransportInfo() {}
-      TransportInfo(const TransportInfo &) {}
+      String mAlgorithm;
+      String mValue;
     };
+  };
 
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IDTLSTransport
+  #pragma mark
 
+  interaction IDTLSTransport : public IDTLSTransportTypes,
+                               public IStatsProvider
+  {
     static ElementPtr toDebug(IDTLSTransportPtr transport);
 
     static IDTLSTransportPtr create(
                                     IDTLSTransportDelegatePtr delegate,
-                                    IICETransportPtr iceTransport  // = IICETransport() - can be NULL to start disconnected
+                                    IICETransportPtr iceTransport
                                     );
 
     virtual PUID getID() const = 0;
 
     virtual IDTLSTransportSubscriptionPtr subscribe(IDTLSTransportDelegatePtr delegate) = 0;
 
-    static CapabilitiesPtr getCapabilities();
+    virtual IICETransportPtr getTransport() const = 0;
 
-    virtual TransportInfoPtr createParams(CapabilitiesPtr capabilities = CapabilitiesPtr()) = 0;
+    virtual States getState() const = 0;
 
-    static TransportInfoPtr filterParams(
-                                         TransportInfoPtr params,
-                                         CapabilitiesPtr capabilities
-                                         );
+    virtual ParametersPtr getLocalParameters() const = 0;
+    virtual ParametersPtr getRemoteParameters() const = 0;
 
-    virtual TransportInfoPtr getLocal() = 0;
-    virtual TransportInfoPtr getRemote() = 0;
+    virtual SecureByteBlockListPtr getRemoteCertificates() const = 0;
 
-    virtual void setLocal(TransportInfoPtr info) = 0;
-    virtual void setRemote(TransportInfoPtr info) = 0;
-
-    virtual void attach(IICETransportPtr iceTransport) = 0;
-
-    virtual void start(TransportInfoPtr localTransportInfo) = 0;
+    virtual void start(const Parameters &remoteParameters) throw (
+                                                                  InvalidStateError,
+                                                                  InvalidParameters
+                                                                  ) = 0;
 
     virtual void stop() = 0;
 
-    virtual ConnectionStates getState(
-                                      WORD *outError = NULL,
-                                      String *outReason = NULL
-                                      ) = 0;
+
   };
 
   //---------------------------------------------------------------------------
@@ -159,10 +160,18 @@ namespace ortc
 
   interaction IDTLSTransportDelegate
   {
+    typedef WORD ErrorCode;
+
     virtual void onDTLSTransportStateChanged(
-                                            IDTLSTransportPtr transport,
-                                            IDTLSTransport::ConnectionStates state
-                                            ) = 0;
+                                             IDTLSTransportPtr transport,
+                                             IDTLSTransport::States state
+                                             ) = 0;
+
+    virtual void onDTLSTransportError(
+                                      IDTLSTransportPtr transport,
+                                      ErrorCode errorCode,
+                                      String errorReason
+                                      ) = 0;
   };
 
   //---------------------------------------------------------------------------
@@ -185,12 +194,16 @@ namespace ortc
 
 ZS_DECLARE_PROXY_BEGIN(ortc::IDTLSTransportDelegate)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IDTLSTransportPtr, IDTLSTransportPtr)
-ZS_DECLARE_PROXY_TYPEDEF(ortc::IDTLSTransport::ConnectionStates, ConnectionStates)
-ZS_DECLARE_PROXY_METHOD_2(onDTLSTransportStateChanged, IDTLSTransportPtr, ConnectionStates)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::IDTLSTransport::States, States)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::IDTLSTransportDelegate::ErrorCode, ErrorCode)
+ZS_DECLARE_PROXY_METHOD_2(onDTLSTransportStateChanged, IDTLSTransportPtr, States)
+ZS_DECLARE_PROXY_METHOD_3(onDTLSTransportError, IDTLSTransportPtr, ErrorCode, String)
 ZS_DECLARE_PROXY_END()
 
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_BEGIN(ortc::IDTLSTransportDelegate, ortc::IDTLSTransportSubscription)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IDTLSTransportPtr, IDTLSTransportPtr)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IDTLSTransport::ConnectionStates, ConnectionStates)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onDTLSTransportStateChanged, IDTLSTransportPtr, ConnectionStates)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IDTLSTransport::States, States)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IDTLSTransportDelegate::ErrorCode, ErrorCode)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onDTLSTransportStateChanged, IDTLSTransportPtr, States)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_3(onDTLSTransportError, IDTLSTransportPtr, ErrorCode, String)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_END()

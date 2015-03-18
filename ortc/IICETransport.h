@@ -32,6 +32,8 @@
 #pragma once
 
 #include <ortc/types.h>
+#include <ortc/IICETypes.h>
+#include <ortc/IStatsProvider.h>
 
 namespace ortc
 {
@@ -40,214 +42,89 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   #pragma mark
+  #pragma mark IICETransportTypes
+  #pragma mark
+  
+  interaction IICETransportTypes : public IICETypes
+  {
+    ZS_DECLARE_STRUCT_PTR(CandidatePair)
+
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IICETransportTypes::States
+    #pragma mark
+
+    enum States
+    {
+      State_New,
+      State_Checking,
+      State_Connected,
+      State_Completed,
+      State_Disconnected,
+      State_Closed,
+    };
+
+    static const char *toString(States state);
+    static States toState(const char *state);
+
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IICETransportTypes::States
+    #pragma mark
+
+    struct CandidatePair
+    {
+      Candidate mLocal;
+      Candidate mRemote;
+    };
+  };
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
   #pragma mark IICETransport
   #pragma mark
   
-  interaction IICETransport
+  interaction IICETransport : public IICETransportTypes,
+                              public IStatsProvider
   {
-    ZS_DECLARE_STRUCT_PTR(Capabilities)
-    ZS_DECLARE_STRUCT_PTR(ServerInfo)
-    ZS_DECLARE_STRUCT_PTR(ServerList)
-    ZS_DECLARE_STRUCT_PTR(TransportInfo)
-    ZS_DECLARE_STRUCT_PTR(CandidateInfo)
-
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ConnectionStates
-    #pragma mark
-    
-    enum ConnectionStates
-    {
-      ConnectionState_New,
-      ConnectionState_Searching,
-      ConnectionState_Haulted,
-      ConnectionState_Connected,
-      ConnectionState_Completed,
-      ConnectionState_Closed,
-    };
-    
-    static const char *toString(ConnectionStates state);
-
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark Roles
-    #pragma mark
-    
-    enum Roles
-    {
-      Role_Controlling,
-      Role_Controlled,
-    };
-    
-    static const char *toString(Roles role);
-
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark Options
-    #pragma mark
-
-    enum Options
-    {
-      Option_Unknown,
-    };
-
-    static const char *toString(Options option);
-
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark CandidateTypes
-    #pragma mark
-
-    enum CandidateTypes
-    {
-      CandidateType_Unknown,
-      CandidateType_Local,
-      CandidateType_ServerReflexive,
-      CandidateType_PeerReflexive,
-      CandidateType_Relayed,
-    };
-
-    static const char *toString(CandidateTypes type) ;
-
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark Capabilities
-    #pragma mark
-
-    struct Capabilities
-    {
-      typedef std::list<Options> OptionsList;
-
-      OptionsList mOptions;
-
-      static CapabilitiesPtr create();
-      ElementPtr toDebug() const;
-
-    protected:
-      Capabilities() {}
-      Capabilities(const Capabilities &) {}
-    };
-
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ServerInfo
-    #pragma mark
-
-    struct ServerInfo
-    {
-      String mURL;
-      String mCredential;
-
-      static ServerInfoPtr create();
-      ElementPtr toDebug() const;
-
-    protected:
-      ServerInfo() {}
-      ServerInfo(const ServerInfo &) {}
-    };
-    
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ServerList
-    #pragma mark
-
-    struct ServerList : public std::list<ServerInfoPtr>
-    {
-      static ServerListPtr create();
-      ElementPtr toDebug() const;
-
-    protected:
-      ServerList() {}
-      ServerList(const ServerList &) {}
-    };
-
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark TransportInfo
-    #pragma mark
-    
-    struct TransportInfo
-    {
-      String mUsernameFrag;
-      String mPassword;
-
-      static TransportInfoPtr create();
-      ElementPtr toDebug() const;
-
-    protected:
-      TransportInfo() {}
-      TransportInfo(const TransportInfo &) {}
-    };
-
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark CandidateInfo
-    #pragma mark
-
-    struct CandidateInfo
-    {
-      String         mFoundation;
-      WORD           mComponent;
-      String         mTransport;
-      DWORD          mPriority;
-      IPAddress      mConnectionAddress;
-
-      CandidateTypes mType;
-      IPAddress      mRelatedAddress;
-
-      static CandidateInfoPtr create();
-      ElementPtr toDebug() const;
-
-    protected:
-      CandidateInfo() :
-        mComponent(0),
-        mPriority(0),
-        mType(CandidateType_Unknown)
-      {}
-      CandidateInfo(const CandidateInfo &) {}
-    };
-
-
     static ElementPtr toDebug(IICETransportPtr transport);
 
-    static IICETransportPtr create(
-                                   IICETransportDelegatePtr delegate,
-                                   ServerListPtr servers
-                                   );
+    static IICETransportPtr create(IICETransportDelegatePtr delegate);
 
     virtual PUID getID() const = 0;
 
     virtual IICETransportSubscriptionPtr subscribe(IICETransportDelegatePtr delegate) = 0;
 
-    static CapabilitiesPtr getCapabilities();
+    virtual IICEGathererPtr getICEGatherer() const = 0;
 
-    virtual TransportInfoPtr createParams(CapabilitiesPtr capabilities = CapabilitiesPtr()) = 0;
+    virtual Roles getRole() const = 0;
+    virtual Components getComponent() const = 0;
+    virtual States getState() const = 0;
 
-    static TransportInfoPtr filterParams(
-                                         TransportInfoPtr params,
-                                         CapabilitiesPtr capabilities
-                                         );
+    virtual CandidateListPtr getRemoteCandidates() const = 0;
 
-    virtual TransportInfoPtr getLocal() = 0;
-    virtual TransportInfoPtr getRemote() = 0;
-
-    virtual void setLocal(TransportInfoPtr info) = 0;
-    virtual void setRemote(TransportInfoPtr info) = 0;
+    virtual CandidatePairPtr getNominatedCandidatePair() const = 0;
 
     virtual void start(
-                       TransportInfoPtr localTransportInfo,
-                       Roles role
-                       ) = 0;
+                       IICEGathererPtr gatherer,
+                       Parameters remoteParameters,
+                       Optional<Roles> role = Optional<Roles>()
+                       ) throw (InvalidParameters) = 0;
+
     virtual void stop() = 0;
 
-    virtual ConnectionStates getState(
-                                      WORD *outError = NULL,
-                                      String *outReason = NULL
-                                      ) = 0;
+    virtual ParametersPtr getRemoteParameters() const = 0;
 
-    virtual Roles getRole() = 0;
+    virtual IICETransportPtr createAssociatedTransport() throw (
+                                                                InvalidStateError,
+                                                                SyntaxError
+                                                                ) = 0;
 
-    virtual void addRemoteCandidate(CandidateInfoPtr candidate) = 0;
+    virtual void addRemoteCandidate(const Candidate &remoteCandidate) = 0;
+    virtual void setRemoteCandidates(const CandidateList &remoteCandidates) = 0;
   };
 
   //---------------------------------------------------------------------------
@@ -260,25 +137,17 @@ namespace ortc
 
   interaction IICETransportDelegate
   {
-    virtual void onICETransportCandidatesChangeDetected(IICETransportPtr transport) = 0;
-
-    virtual void onICETransportCandidate(
-                                         IICETransportPtr transport,
-                                         IICETransport::CandidateInfoPtr candidate
-                                         ) = 0;
-
-    virtual void onICETransportEndOfCandidates(IICETransportPtr trannsport) = 0;
-
-    virtual void onICETransportActiveCandidate(
-                                               IICETransportPtr transport,
-                                               IICETransport::CandidateInfoPtr localCandidate,
-                                               IICETransport::CandidateInfoPtr remoteCandidate
-                                               ) = 0;
+    ZS_DECLARE_TYPEDEF_PTR(IICETransportTypes::CandidatePair, CandidatePair)
 
     virtual void onICETransportStateChanged(
                                             IICETransportPtr transport,
-                                            IICETransport::ConnectionStates state
+                                            IICETransport::States state
                                             ) = 0;
+
+    virtual void onICETransportCandidatePairChanged(
+                                                    IICETransportPtr transport,
+                                                    CandidatePairPtr candidatePair
+                                                    ) = 0;
   };
 
   //---------------------------------------------------------------------------
@@ -301,22 +170,16 @@ namespace ortc
 
 ZS_DECLARE_PROXY_BEGIN(ortc::IICETransportDelegate)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IICETransportPtr, IICETransportPtr)
-ZS_DECLARE_PROXY_TYPEDEF(ortc::IICETransport::CandidateInfoPtr, CandidateInfoPtr)
-ZS_DECLARE_PROXY_TYPEDEF(ortc::IICETransport::ConnectionStates, ConnectionStates)
-ZS_DECLARE_PROXY_METHOD_1(onICETransportCandidatesChangeDetected, IICETransportPtr)
-ZS_DECLARE_PROXY_METHOD_2(onICETransportCandidate, IICETransportPtr, CandidateInfoPtr)
-ZS_DECLARE_PROXY_METHOD_1(onICETransportEndOfCandidates, IICETransportPtr)
-ZS_DECLARE_PROXY_METHOD_3(onICETransportActiveCandidate, IICETransportPtr, CandidateInfoPtr, CandidateInfoPtr)
-ZS_DECLARE_PROXY_METHOD_2(onICETransportStateChanged, IICETransportPtr, ConnectionStates)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::IICETransport::States, States)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::IICETransport::CandidatePairPtr, CandidatePairPtr)
+ZS_DECLARE_PROXY_METHOD_2(onICETransportStateChanged, IICETransportPtr, States)
+ZS_DECLARE_PROXY_METHOD_2(onICETransportCandidatePairChanged, IICETransportPtr, CandidatePairPtr)
 ZS_DECLARE_PROXY_END()
 
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_BEGIN(ortc::IICETransportDelegate, ortc::IICETransportSubscription)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IICETransportPtr, IICETransportPtr)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IICETransport::CandidateInfoPtr, CandidateInfoPtr)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IICETransport::ConnectionStates, ConnectionStates)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_1(onICETransportCandidatesChangeDetected, IICETransportPtr)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onICETransportCandidate, IICETransportPtr, CandidateInfoPtr)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_1(onICETransportEndOfCandidates, IICETransportPtr)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_3(onICETransportActiveCandidate, IICETransportPtr, CandidateInfoPtr, CandidateInfoPtr)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onICETransportStateChanged, IICETransportPtr, ConnectionStates)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IICETransport::States, States)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IICETransport::CandidatePairPtr, CandidatePairPtr)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onICETransportStateChanged, IICETransportPtr, States)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onICETransportCandidatePairChanged, IICETransportPtr, CandidatePairPtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_END()

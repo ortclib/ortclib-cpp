@@ -29,57 +29,88 @@
  
  */
 
-#if 0
+#pragma once
 
-#include <ortc/internal/ortc_Helper.h>
-#include <openpeer/services/IHelper.h>
-
-#include <zsLib/Log.h>
-#include <zsLib/XML.h>
-
-namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib) }
+#include <ortc/types.h>
 
 namespace ortc
 {
-  namespace internal
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IIdentityTypes
+  #pragma mark
+  
+  interaction IIdentityTypes
   {
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark (helpers)
-    #pragma mark
+    ZS_DECLARE_STRUCT_PTR(Assertion)
+    ZS_DECLARE_STRUCT_PTR(Result)
+    ZS_DECLARE_STRUCT_PTR(Error)
+
+    typedef PromiseWith<Result, Error> PromiseWithResult;
+    ZS_DECLARE_PTR(PromiseWithResult)
+
+    ZS_DECLARE_TYPEDEF_PTR(PromiseWith<Assertion>, PromiseWithAssertion)
 
     //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark Helper
+    #pragma mark IIdentityTypes::Assertion
     #pragma mark
 
-  }
+    struct Assertion {
+      String        mIDP;
+      String        mName;
+    };
+
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IIdentityTypes::Result
+    #pragma mark
+
+    struct Result : public Any {
+      String        mAssertion;
+    };
+
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IIdentityTypes::Error
+    #pragma mark
+
+    struct Error : public Any {
+      String        mIDP;
+      String        mProtocol;
+      String        mLoginURL;
+    };
+  };
 
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   #pragma mark
-  #pragma mark IHelper
+  #pragma mark IIdentity
   #pragma mark
-
-  //---------------------------------------------------------------------------
-  String IHelper::toString(ElementPtr el)
+  
+  interaction IIdentity : public IIdentityTypes
   {
-    return openpeer::services::IHelper::toString(el);
-  }
+    static ElementPtr toDebug(IDataChannelPtr channel);
 
-  //---------------------------------------------------------------------------
-  ElementPtr IHelper::toJSON(const char *str)
-  {
-    return openpeer::services::IHelper::toJSON(str);
-  }
+    static IIdentityPtr create(IDTLSTransportPtr transport);
+
+    virtual PUID getID() const = 0;
+
+    virtual AssertionPtr getPeerIdentity() const = 0;
+
+    virtual IDTLSTransportPtr getTransport() const = 0;
+
+    virtual PromiseWithResultPtr getIdentityAssertion(
+                                                      const char *provider,
+                                                      const char *protoocl = "default",
+                                                      const char *username = NULL
+                                                      ) throw (InvalidStateError) = 0;
+
+    virtual PromiseWithAssertionPtr setIdentityAssertion(const String &assertion) = 0;
+  };
 }
-
-#endif //0

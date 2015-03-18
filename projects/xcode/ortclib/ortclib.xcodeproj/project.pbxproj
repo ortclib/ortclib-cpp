@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0020ED5D1AB86EAF00B66C74 /* IStatsReport.h in Headers */ = {isa = PBXBuildFile; fileRef = 0020ED5C1AB86EAF00B66C74 /* IStatsReport.h */; };
 		00724A6E184CF42B0049B9EF /* ortc_ORTC.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00724A6D184CF42B0049B9EF /* ortc_ORTC.cpp */; };
 		007B98F81855D61C004AC6C0 /* ortc_DTLSTransport.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 007B98F71855D61C004AC6C0 /* ortc_DTLSTransport.cpp */; };
 		007B99021856398F004AC6C0 /* ortc_RTPSender.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 007B99011856398F004AC6C0 /* ortc_RTPSender.cpp */; };
@@ -21,18 +22,30 @@
 		E23EBC631834181C00C7332E /* ortc_MediaStream.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E23EBC601834181C00C7332E /* ortc_MediaStream.cpp */; };
 		E23EBC641834181C00C7332E /* ortc_MediaStreamTrack.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E23EBC611834181C00C7332E /* ortc_MediaStreamTrack.cpp */; };
 		E2D04943182C377B00343A95 /* ortc_RTCDataChannel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E2D0493F182C377B00343A95 /* ortc_RTCDataChannel.cpp */; };
-		E2D04944182C377B00343A95 /* ortc_RTCDTMFTrack.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E2D04940182C377B00343A95 /* ortc_RTCDTMFTrack.cpp */; };
-		E2D04946182C377B00343A95 /* ortc_RTCStream.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E2D04942182C377B00343A95 /* ortc_RTCStream.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		0020ED5B1AB86E1100B66C74 /* IStatsProvider.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IStatsProvider.h; sourceTree = "<group>"; };
+		0020ED5C1AB86EAF00B66C74 /* IStatsReport.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IStatsReport.h; sourceTree = "<group>"; };
+		0020ED5F1AB8988A00B66C74 /* IDTLSTransport.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IDTLSTransport.h; sourceTree = "<group>"; };
+		0020ED601AB8A99800B66C74 /* IICETypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IICETypes.h; sourceTree = "<group>"; };
+		0020ED611AB8BF4D00B66C74 /* IICETransportController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IICETransportController.h; sourceTree = "<group>"; };
+		0020ED621AB8C12F00B66C74 /* IICEGatherer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IICEGatherer.h; sourceTree = "<group>"; };
+		0020ED631AB8C7E700B66C74 /* IRTPTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IRTPTypes.h; sourceTree = "<group>"; };
+		0020ED641AB8E4E300B66C74 /* IRTPListener.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IRTPListener.h; sourceTree = "<group>"; };
+		0020ED651AB8EA5800B66C74 /* IDTMFSender.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IDTMFSender.h; sourceTree = "<group>"; };
+		0020ED661AB8ED3200B66C74 /* IDataChannel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IDataChannel.h; sourceTree = "<group>"; };
+		0020ED671AB8F26000B66C74 /* IDataTransport.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IDataTransport.h; sourceTree = "<group>"; };
+		0020ED681AB8F33000B66C74 /* ISCTPTransport.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ISCTPTransport.h; sourceTree = "<group>"; };
+		0020ED691AB8F5C600B66C74 /* IIdentity.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IIdentity.h; sourceTree = "<group>"; };
+		0020ED6A1AB906A400B66C74 /* IMediaDevices.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IMediaDevices.h; sourceTree = "<group>"; };
+		0020ED6B1AB906DF00B66C74 /* IConstraints.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IConstraints.h; sourceTree = "<group>"; };
+		0020ED6C1AB90EFB00B66C74 /* ICapabilities.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ICapabilities.h; sourceTree = "<group>"; };
 		00724A6D184CF42B0049B9EF /* ortc_ORTC.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_ORTC.cpp; sourceTree = "<group>"; };
-		007B98F51855D214004AC6C0 /* IDTLSTransport.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IDTLSTransport.h; sourceTree = "<group>"; };
 		007B98F71855D61C004AC6C0 /* ortc_DTLSTransport.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_DTLSTransport.cpp; sourceTree = "<group>"; };
 		007B98F91855D633004AC6C0 /* ortc_DTLSTransport.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ortc_DTLSTransport.h; sourceTree = "<group>"; };
 		007B98FA1855D633004AC6C0 /* ortc_Helper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ortc_Helper.h; sourceTree = "<group>"; };
 		007B98FE18562C5F004AC6C0 /* IRTPSender.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IRTPSender.h; sourceTree = "<group>"; };
-		007B98FF18562EA6004AC6C0 /* TrackDescription.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TrackDescription.h; sourceTree = "<group>"; };
 		007B990018563223004AC6C0 /* IRTPReceiver.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IRTPReceiver.h; sourceTree = "<group>"; };
 		007B99011856398F004AC6C0 /* ortc_RTPSender.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_RTPSender.cpp; sourceTree = "<group>"; };
 		007B9903185639B0004AC6C0 /* ortc_RTPSender.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ortc_RTPSender.h; sourceTree = "<group>"; };
@@ -54,10 +67,7 @@
 		00D8BFEE1848DF100001A335 /* ortc_Helper.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_Helper.cpp; sourceTree = "<group>"; };
 		00EAF8D9182B054C00B8E2CE /* license.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = license.txt; path = ../../../license.txt; sourceTree = "<group>"; };
 		E2260E5A18215A190084E4A4 /* ortc_RTCTrack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ortc_RTCTrack.h; sourceTree = "<group>"; };
-		E2260E5E18215A910084E4A4 /* IRTCTrack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IRTCTrack.h; sourceTree = "<group>"; };
 		E2260E6218215AAF0084E4A4 /* ortc_RTCTrack.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_RTCTrack.cpp; sourceTree = "<group>"; };
-		E23EBC591834180700C7332E /* IMediaManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IMediaManager.h; sourceTree = "<group>"; };
-		E23EBC5A1834180700C7332E /* IMediaStream.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IMediaStream.h; sourceTree = "<group>"; };
 		E23EBC5B1834180700C7332E /* IMediaStreamTrack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IMediaStreamTrack.h; sourceTree = "<group>"; };
 		E23EBC5F1834181C00C7332E /* ortc_MediaManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_MediaManager.cpp; sourceTree = "<group>"; };
 		E23EBC601834181C00C7332E /* ortc_MediaStream.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_MediaStream.cpp; sourceTree = "<group>"; };
@@ -68,15 +78,7 @@
 		E277059D18370255008AC118 /* ortc_MediaEngine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ortc_MediaEngine.h; sourceTree = "<group>"; };
 		E277059F18370265008AC118 /* ortc_MediaEngine.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_MediaEngine.cpp; sourceTree = "<group>"; };
 		E2D0493F182C377B00343A95 /* ortc_RTCDataChannel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_RTCDataChannel.cpp; sourceTree = "<group>"; };
-		E2D04940182C377B00343A95 /* ortc_RTCDTMFTrack.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_RTCDTMFTrack.cpp; sourceTree = "<group>"; };
-		E2D04942182C377B00343A95 /* ortc_RTCStream.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_RTCStream.cpp; sourceTree = "<group>"; };
 		E2D04947182C37A600343A95 /* ortc_RTCDataChannel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ortc_RTCDataChannel.h; sourceTree = "<group>"; };
-		E2D04948182C37A600343A95 /* ortc_RTCDTMFTrack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ortc_RTCDTMFTrack.h; sourceTree = "<group>"; };
-		E2D0494A182C37A600343A95 /* ortc_RTCStream.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ortc_RTCStream.h; sourceTree = "<group>"; };
-		E2D0494F182C37DD00343A95 /* IRTCDataChannel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IRTCDataChannel.h; sourceTree = "<group>"; };
-		E2D04950182C37DD00343A95 /* IRTCDTMFTrack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IRTCDTMFTrack.h; sourceTree = "<group>"; };
-		E2D04951182C37DD00343A95 /* IRTCSocket.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IRTCSocket.h; sourceTree = "<group>"; };
-		E2D04952182C37DD00343A95 /* IRTCStream.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IRTCStream.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -116,19 +118,26 @@
 				008F562618213862009863AA /* ortc.h */,
 				00D8BFEA1848DC5B0001A335 /* IORTC.h */,
 				00D8BFE91848DC410001A335 /* IHelper.h */,
-				007B98F51855D214004AC6C0 /* IDTLSTransport.h */,
+				0020ED6C1AB90EFB00B66C74 /* ICapabilities.h */,
+				0020ED6B1AB906DF00B66C74 /* IConstraints.h */,
+				0020ED661AB8ED3200B66C74 /* IDataChannel.h */,
+				0020ED671AB8F26000B66C74 /* IDataTransport.h */,
+				0020ED5F1AB8988A00B66C74 /* IDTLSTransport.h */,
+				0020ED651AB8EA5800B66C74 /* IDTMFSender.h */,
+				0020ED691AB8F5C600B66C74 /* IIdentity.h */,
+				0020ED601AB8A99800B66C74 /* IICETypes.h */,
+				0020ED621AB8C12F00B66C74 /* IICEGatherer.h */,
 				00D8BFA31846B8ED0001A335 /* IICETransport.h */,
+				0020ED611AB8BF4D00B66C74 /* IICETransportController.h */,
+				0020ED6A1AB906A400B66C74 /* IMediaDevices.h */,
+				E23EBC5B1834180700C7332E /* IMediaStreamTrack.h */,
+				0020ED631AB8C7E700B66C74 /* IRTPTypes.h */,
+				0020ED641AB8E4E300B66C74 /* IRTPListener.h */,
 				007B98FE18562C5F004AC6C0 /* IRTPSender.h */,
 				007B990018563223004AC6C0 /* IRTPReceiver.h */,
-				007B98FF18562EA6004AC6C0 /* TrackDescription.h */,
-				E2D04951182C37DD00343A95 /* IRTCSocket.h */,
-				E2D04952182C37DD00343A95 /* IRTCStream.h */,
-				E2260E5E18215A910084E4A4 /* IRTCTrack.h */,
-				E2D04950182C37DD00343A95 /* IRTCDTMFTrack.h */,
-				E2D0494F182C37DD00343A95 /* IRTCDataChannel.h */,
-				E23EBC591834180700C7332E /* IMediaManager.h */,
-				E23EBC5A1834180700C7332E /* IMediaStream.h */,
-				E23EBC5B1834180700C7332E /* IMediaStreamTrack.h */,
+				0020ED681AB8F33000B66C74 /* ISCTPTransport.h */,
+				0020ED5B1AB86E1100B66C74 /* IStatsProvider.h */,
+				0020ED5C1AB86EAF00B66C74 /* IStatsReport.h */,
 			);
 			name = ortc;
 			path = ../../../ortc;
@@ -145,9 +154,7 @@
 				007B9905185661B1004AC6C0 /* ortc_RTPReceiver.cpp */,
 				007B99011856398F004AC6C0 /* ortc_RTPSender.cpp */,
 				007B9907185665BC004AC6C0 /* ortc_TrackDescription.cpp */,
-				E2D04942182C377B00343A95 /* ortc_RTCStream.cpp */,
 				E2260E6218215AAF0084E4A4 /* ortc_RTCTrack.cpp */,
-				E2D04940182C377B00343A95 /* ortc_RTCDTMFTrack.cpp */,
 				E2D0493F182C377B00343A95 /* ortc_RTCDataChannel.cpp */,
 				E23EBC5F1834181C00C7332E /* ortc_MediaManager.cpp */,
 				E23EBC601834181C00C7332E /* ortc_MediaStream.cpp */,
@@ -168,9 +175,7 @@
 				00D8BFAC18479C040001A335 /* ortc_ICETransport.h */,
 				007B99041856617F004AC6C0 /* ortc_RTPReceiver.h */,
 				007B9903185639B0004AC6C0 /* ortc_RTPSender.h */,
-				E2D0494A182C37A600343A95 /* ortc_RTCStream.h */,
 				E2260E5A18215A190084E4A4 /* ortc_RTCTrack.h */,
-				E2D04948182C37A600343A95 /* ortc_RTCDTMFTrack.h */,
 				E2D04947182C37A600343A95 /* ortc_RTCDataChannel.h */,
 				E23EBC651834183500C7332E /* ortc_MediaManager.h */,
 				E23EBC661834183500C7332E /* ortc_MediaStream.h */,
@@ -187,6 +192,7 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0020ED5D1AB86EAF00B66C74 /* IStatsReport.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -243,10 +249,8 @@
 			files = (
 				008F562A18213D70009863AA /* ortc.cpp in Sources */,
 				007B98F81855D61C004AC6C0 /* ortc_DTLSTransport.cpp in Sources */,
-				E2D04946182C377B00343A95 /* ortc_RTCStream.cpp in Sources */,
 				E2260E6418215AAF0084E4A4 /* ortc_RTCTrack.cpp in Sources */,
 				00724A6E184CF42B0049B9EF /* ortc_ORTC.cpp in Sources */,
-				E2D04944182C377B00343A95 /* ortc_RTCDTMFTrack.cpp in Sources */,
 				00D8BFAA18479BF80001A335 /* ortc_ICETransport.cpp in Sources */,
 				007B9906185661B1004AC6C0 /* ortc_RTPReceiver.cpp in Sources */,
 				E2D04943182C377B00343A95 /* ortc_RTCDataChannel.cpp in Sources */,

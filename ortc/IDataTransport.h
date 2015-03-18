@@ -1,17 +1,17 @@
 /*
- 
+
  Copyright (c) 2014, Hookflash Inc. / Hookflash Inc.
  All rights reserved.
- 
+
  Redistribution and use in source and binary forms, with or without
  modification, are permitted provided that the following conditions are met:
- 
+
  1. Redistributions of source code must retain the above copyright notice, this
  list of conditions and the following disclaimer.
  2. Redistributions in binary form must reproduce the above copyright notice,
  this list of conditions and the following disclaimer in the documentation
  and/or other materials provided with the distribution.
- 
+
  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -22,7 +22,7 @@
  ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- 
+
  The views and conclusions contained in the software and documentation are those
  of the authors and should not be interpreted as representing official policies,
  either expressed or implied, of the FreeBSD Project.
@@ -32,29 +32,32 @@
 #pragma once
 
 #include <ortc/types.h>
+#include <ortc/IStatsProvider.h>
 
 namespace ortc
 {
-  //-------------------------------------------------------------------------
-  //-------------------------------------------------------------------------
-  //-------------------------------------------------------------------------
-  //-------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
   #pragma mark
-  #pragma mark IRTCStream
+  #pragma mark IDataTransportTypes
   #pragma mark
   
-  interaction IRTCStream
+  interaction IDataTransportTypes
   {
-    typedef std::list<String> MsidList;
-    ZS_DECLARE_PTR(MsidList)
-    
-    virtual IMediaStreamTrackPtr source() = 0;
-    virtual MsidListPtr msid() = 0;
-    
-    virtual RTCTrackListPtr tracks() = 0;
-    
-    virtual void start() = 0;
-    virtual void stop() = 0;
-    virtual void remove() = 0;
+  };
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IDTMFSender
+  #pragma mark
+  
+  interaction IDataTransport : public IDataTransportTypes,
+                               public IStatsProvider
+  {
   };
 }

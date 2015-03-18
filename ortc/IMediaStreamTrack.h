@@ -32,55 +32,163 @@
 #pragma once
 
 #include <ortc/types.h>
+#include <ortc/IConstraints.h>
 
 namespace ortc
 {
-  //-------------------------------------------------------------------------
-  //-------------------------------------------------------------------------
-  //-------------------------------------------------------------------------
-  //-------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IMediaStreamTrackTypes
+  #pragma mark
+  
+  interaction IMediaStreamTrackTypes : public ICapabilities,
+                                       public IConstraints
+  {
+    ZS_DECLARE_STRUCT_PTR(Capabilities)
+    ZS_DECLARE_STRUCT_PTR(Settings)
+    ZS_DECLARE_STRUCT_PTR(Constraints)
+    ZS_DECLARE_STRUCT_PTR(ConstraintSet)
+
+    ZS_DECLARE_TYPEDEF_PTR(std::list<ConstraintSetPtr>, ConstraintSetList)
+
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IMediaStreamTrackTypes::States
+    #pragma mark
+    
+    enum States
+    {
+      State_Live,
+      State_Ended,
+    };
+
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IMediaStreamTrackTypes::Capabilities
+    #pragma mark
+
+    struct Capabilities : Any {
+      CapabilityLongPtr     mWidth;
+      CapabilityLongPtr     mHeight;
+      CapabilityDoublePtr   mAspectRatio;
+      CapabilityDoublePtr   mFrameRate;
+      CapabilityStringPtr   mFacingMode;
+      CapabilityStringPtr   mOrientation;
+      CapabilityDoublePtr   mVolume;
+      CapabilityLongPtr     mSampleRate;
+      CapabilityLongPtr     mSampleSize;
+      CapabilityBool        mEchoCancellation;
+      CapabilityStringPtr   mDeviceID;
+      CapabilityStringPtr   mGroupID;
+    };
+    
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IMediaStreamTrackTypes::Settings
+    #pragma mark
+
+    struct Settings : Any {
+      LongPtr     mWidth;
+      LongPtr     mHeight;
+      DoublePtr   mAspectRatio;
+      DoublePtr   mFrameRate;
+      StringPtr   mFacingMode;
+      StringPtr   mOrientation;
+      DoublePtr   mVolume;
+      LongPtr     mSampleRate;
+      LongPtr     mSampleSize;
+      BoolPtr     mEchoCancellation;
+      StringPtr   mDeviceID;
+      StringPtr   mGroupID;
+    };
+
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IMediaStreamTrackTypes::Constraints
+    #pragma mark
+
+    struct Constraints {
+      ConstraintSetList mAdvanced;
+    };
+
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IMediaStreamTrackTypes::ConstraintSet
+    #pragma mark
+
+    struct ConstraintSet {
+      ConstraintLongPtr     mWidth;
+      ConstraintLongPtr     mHeight;
+      ConstraintDoublePtr   mAspectRatio;
+      ConstraintDoublePtr   mFrameRate;
+      ConstraintStringPtr   mFacingMode;
+      ConstraintStringPtr   mOrientation;
+      ConstraintDoublePtr   mVolume;
+      ConstraintLongPtr     mSampleRate;
+      ConstraintLongPtr     mSampleSize;
+      ConstraintBoolPtr     mEchoCancellation;
+      ConstraintStringPtr   mDeviceID;
+      ConstraintStringPtr   mGroupID;
+    };
+
+  };
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
   #pragma mark
   #pragma mark IMediaStreamTrack
   #pragma mark
   
-  interaction IMediaStreamTrack
+  interaction IMediaStreamTrack : public Any,
+                                  public IMediaStreamTrackTypes,
+                                  public IStatsProvider
   {
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaStreamTrackStates
-    #pragma mark
-    
-    enum MediaStreamTrackStates
-    {
-      MediaStreamTrackState_New,
-      MediaStreamTrackState_Live,
-      MediaStreamTrackState_Ended
-    };
-    
-    virtual String kind() = 0;
-    virtual String id() = 0;
-    virtual String label() = 0;
-    virtual bool enabled() = 0;
-    virtual bool muted() = 0;
-    virtual bool readonly() = 0;
-    virtual bool remote() = 0;
-    virtual MediaStreamTrackStates readyState() = 0;
-    virtual IMediaStreamTrackPtr clone() = 0;
+    virtual PUID getID() const = 0;
+
+    virtual String getKind() const = 0;
+    virtual String getUniqueID() const = 0;
+    virtual String getLabel() const = 0;
+    virtual bool isEnabled() const = 0;
+    virtual void setEnabeld(bool enabled) = 0;
+    virtual bool isMuted() const = 0;
+    virtual bool isReadOnly() const = 0;
+    virtual bool isRemote() const = 0;
+    virtual bool getReadyState() const = 0;
+
+    virtual IMediaStreamTrackPtr clone() const = 0;
+
     virtual void stop() = 0;
+
+    virtual CapabilitiesPtr getCapabilities() const = 0;
+    virtual SettingsPtr getSettings() const = 0;
+
+    virtual ConstraintsPtr getConstraints() const = 0;
+
+    virtual PromisePtr applyConstraints(const Constraints &constraints);
   };
   
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IMediaStreamTrackDelegate
+  #pragma mark
+
   interaction IMediaStreamTrackDelegate
   {
-    virtual void onMediaStreamTrackMute() = 0;
-    virtual void onMediaStreamTrackUnmute() = 0;
-    virtual void onMediaStreamTrackStarted() = 0;
-    virtual void onMediaStreamTrackEnded() = 0;
-    
-    virtual void onMediaStreamFaceDetected() = 0;
-    virtual void onMediaStreamVideoCaptureRecordStopped() = 0;
+    virtual void onMediaStreamTrackMute(
+                                        IMediaStreamTrackPtr track,
+                                        bool isMuted
+                                        ) = 0;
+
+    virtual void onMediaStreamTrackEnded(IMediaStreamTrackPtr track) = 0;
+    virtual void onMediaStreamTrackOverConstrained(IMediaStreamTrackPtr track) = 0;
   };
   
   //---------------------------------------------------------------------------
@@ -96,25 +204,21 @@ namespace ortc
     virtual PUID getID() const = 0;
     
     virtual void cancel() = 0;
-    
+
     virtual void background() = 0;
   };
 }
 
 ZS_DECLARE_PROXY_BEGIN(ortc::IMediaStreamTrackDelegate)
-ZS_DECLARE_PROXY_METHOD_0(onMediaStreamTrackMute)
-ZS_DECLARE_PROXY_METHOD_0(onMediaStreamTrackUnmute)
-ZS_DECLARE_PROXY_METHOD_0(onMediaStreamTrackStarted)
-ZS_DECLARE_PROXY_METHOD_0(onMediaStreamTrackEnded)
-ZS_DECLARE_PROXY_METHOD_0(onMediaStreamFaceDetected)
-ZS_DECLARE_PROXY_METHOD_0(onMediaStreamVideoCaptureRecordStopped)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::IMediaStreamTrackPtr, IMediaStreamTrackPtr)
+ZS_DECLARE_PROXY_METHOD_2(onMediaStreamTrackMute, IMediaStreamTrackPtr, bool)
+ZS_DECLARE_PROXY_METHOD_1(onMediaStreamTrackEnded, IMediaStreamTrackPtr)
+ZS_DECLARE_PROXY_METHOD_1(onMediaStreamTrackOverConstrained, IMediaStreamTrackPtr)
 ZS_DECLARE_PROXY_END()
 
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_BEGIN(ortc::IMediaStreamTrackDelegate, ortc::IMediaStreamTrackSubscription)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_0(onMediaStreamTrackMute)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_0(onMediaStreamTrackUnmute)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_0(onMediaStreamTrackStarted)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_0(onMediaStreamTrackEnded)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_0(onMediaStreamFaceDetected)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_0(onMediaStreamVideoCaptureRecordStopped)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IMediaStreamTrackPtr, IMediaStreamTrackPtr)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onMediaStreamTrackMute, IMediaStreamTrackPtr, bool)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_1(onMediaStreamTrackEnded, IMediaStreamTrackPtr)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_1(onMediaStreamTrackOverConstrained, IMediaStreamTrackPtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_END()

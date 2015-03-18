@@ -40,21 +40,11 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   #pragma mark
-  #pragma mark TrackDescription
+  #pragma mark IDTMFSenderTypes
   #pragma mark
-
-  struct TrackDescription
+  
+  interaction IDTMFSenderTypes
   {
-    typedef std::list<RTPFlowParamsPtr> FlowList;
-
-    FlowList mFlows;
-
-    static TrackDescriptionPtr create();
-    ElementPtr toDebug() const;
-
-  protected:
-    TrackDescription() {}
-    TrackDescription(const TrackDescription &) {}
   };
 
   //---------------------------------------------------------------------------
@@ -62,29 +52,35 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   #pragma mark
-  #pragma mark RTPFlowParams
+  #pragma mark IDTMFSender
   #pragma mark
-
-  struct RTPFlowParams
+  
+  interaction IDTMFSender : public IDTMFSenderTypes
   {
-    typedef DWORD SSRC;
+    static ElementPtr toDebug(IDTMFSenderPtr sender);
 
-    enum Types
-    {
-      Type_RTX,
-      Type_FEC,
-      Type_Layerd,
-    };
+    static IDTMFSenderPtr create(
+                                 IDTMFSenderDelegatePtr delegate,
+                                 IRTPSenderPtr sender
+                                 );
 
-    PUID mID;
-    SSRC mSSRC;
+    virtual PUID getID() const = 0;
 
-    virtual ElementPtr toDebug() const = 0;
-    virtual Types getType() const = 0;
+    virtual IDTMFSenderSubscriptionPtr subscribe(IDTMFSenderDelegatePtr delegate) = 0;
 
-  protected:
-    RTPFlowParams();
-    RTPFlowParams(const RTPFlowParams &) {}
+    virtual bool canInsertDDTMF() const = 0;
+
+    virtual void insertDTMF(
+                            const char *tones,
+                            Milliseconds duration = Milliseconds(70),
+                            Milliseconds interToneGap = Milliseconds(70)
+                            ) throw (InvalidStateError) = 0;
+
+    virtual IRTPSenderPtr getSender() const = 0;
+
+    virtual String getToneBuffer() const = 0;
+    virtual Milliseconds getDuration() const = 0;
+    virtual Milliseconds getInterToneGap() const = 0;
   };
 
   //---------------------------------------------------------------------------
@@ -92,23 +88,15 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   #pragma mark
-  #pragma mark RTPRTXFlowParams
+  #pragma mark IDTMFSenderDelegate
   #pragma mark
 
-  struct RTPRTXFlowParams : public RTPFlowParams
+  interaction IDTMFSenderDelegate
   {
-#ifndef _ANDROID	  
-    static RTPRTXFlowParamsPtr convert(RTPFlowParams object);
-#endif	  
-
-    static RTPRTXFlowParamsPtr create();
-    virtual ElementPtr toDebug() const;
-
-    virtual Types getType() const {return RTPFlowParams::Type_RTX;}
-
-  protected:
-    RTPRTXFlowParams() {}
-    RTPRTXFlowParams(const RTPRTXFlowParams &) {}
+    virtual void onDTMFSenderToneChanged(
+                                         IDTMFSenderPtr sender,
+                                         String tone
+                                         ) = 0;
   };
 
   //---------------------------------------------------------------------------
@@ -116,51 +104,26 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   #pragma mark
-  #pragma mark RTPFECFlowParams
+  #pragma mark IDTMFSenderSubscription
   #pragma mark
 
-  struct RTPFECFlowParams : public RTPFlowParams
+  interaction IDTMFSenderSubscription
   {
-    String mMechanismg;
-#ifndef _ANDROID
-    static RTPRTXFlowParamsPtr convert(RTPFlowParams object);
-#endif
-    static RTPFECFlowParamsPtr create();
-    virtual ElementPtr toDebug() const;
+    virtual PUID getID() const = 0;
 
-    virtual Types getType() const {return RTPFlowParams::Type_FEC;}
+    virtual void cancel() = 0;
 
-  protected:
-    RTPFECFlowParams() {}
-    RTPFECFlowParams(const RTPFECFlowParams &) {}
+    virtual void background() = 0;
   };
-
-  //---------------------------------------------------------------------------
-  //---------------------------------------------------------------------------
-  //---------------------------------------------------------------------------
-  //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark RTPLayeredFlowParams
-  #pragma mark
-
-  struct RTPLayeredFlowParams : public RTPFlowParams
-  {
-    typedef PUID BaseFlowID;
-
-    typedef std::list<BaseFlowID> BaseFlowIDList;
-
-    BaseFlowIDList mBaseFlowIDs;
-#ifndef _ANDROID
-    static RTPRTXFlowParamsPtr convert(RTPFlowParams object);
-#endif
-    static RTPLayeredFlowParamsPtr create();
-    virtual ElementPtr toDebug() const;
-
-    virtual Types getType() const {return RTPFlowParams::Type_Layerd;}
-
-  protected:
-    RTPLayeredFlowParams() {}
-    RTPLayeredFlowParams(const RTPLayeredFlowParams &) {}
-  };
-
 }
+
+
+ZS_DECLARE_PROXY_BEGIN(ortc::IDTMFSenderDelegate)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::IDTMFSenderPtr, IDTMFSenderPtr)
+ZS_DECLARE_PROXY_METHOD_2(onDTMFSenderToneChanged, IDTMFSenderPtr, String)
+ZS_DECLARE_PROXY_END()
+
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_BEGIN(ortc::IDTMFSenderDelegate, ortc::IDTMFSenderSubscription)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IDTMFSenderPtr, IDTMFSenderPtr)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onDTMFSenderToneChanged, IDTMFSenderPtr, String)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_END()

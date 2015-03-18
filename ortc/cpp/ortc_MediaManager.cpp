@@ -29,6 +29,8 @@
  
  */
 
+#if 0
+
 #include <ortc/internal/ortc_MediaManager.h>
 #include <ortc/internal/ortc_ORTC.h>
 #include <ortc/internal/ortc_MediaStream.h>
@@ -384,3 +386,5 @@ namespace ortc
     internal::MediaManager::setup(delegate);
   }
 }
+
+#endif //0

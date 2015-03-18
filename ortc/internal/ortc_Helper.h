@@ -31,6 +31,8 @@
 
 #pragma once
 
+#if 0
+
 #include <ortc/internal/types.h>
 #include <ortc/IHelper.h>
 
@@ -52,3 +54,5 @@ namespace ortc
     };
   }
 }
+
+#endif //0

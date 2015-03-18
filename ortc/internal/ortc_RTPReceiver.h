@@ -31,6 +31,8 @@
 
 #pragma once
 
+#if 0
+
 #include <ortc/internal/types.h>
 #include <ortc/internal/ortc_ICETransport.h>
 
@@ -225,3 +227,5 @@ namespace ortc
     };
   }
 }
+
+#endif //0

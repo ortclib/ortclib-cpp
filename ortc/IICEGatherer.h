@@ -26,13 +26,13 @@
  The views and conclusions contained in the software and documentation are those
  of the authors and should not be interpreted as representing official policies,
  either expressed or implied, of the FreeBSD Project.
-
+ 
  */
 
 #pragma once
 
 #include <ortc/types.h>
-#include <ortc/IRTPTypes.h>
+#include <ortc/IICETypes.h>
 #include <ortc/IStatsProvider.h>
 
 namespace ortc
@@ -42,11 +42,22 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   #pragma mark
-  #pragma mark IRTPReceiverTypes
+  #pragma mark IICEGathererTypes
   #pragma mark
-
-  interaction IRTPReceiverTypes : public IRTPTypes
+  
+  interaction IICEGathererTypes : public IICETypes
   {
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IICEGathererTypes::States
+    #pragma mark
+
+    enum States
+    {
+      State_New,
+      State_Gathering,
+      State_Complete,
+    };
   };
 
   //---------------------------------------------------------------------------
@@ -54,37 +65,24 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   #pragma mark
-  #pragma mark IRTPReceiver
+  #pragma mark IICEGatherer
   #pragma mark
-
-  interaction IRTPReceiver : public IRTPReceiverTypes,
+  
+  interaction IICEGatherer : public IICEGathererTypes,
                              public IStatsProvider
   {
-    static ElementPtr toDebug(IRTPReceiverPtr receiver);
+    static ElementPtr toDebug(IICETransportPtr gatherer);
 
-    static IRTPReceiverPtr create(
-                                  IRTPReceiverDelegatePtr delegate,
-                                  IDTLSTransportPtr transport,
-                                  IDTLSTransportPtr rtcpTransport = IDTLSTransportPtr()
-                                  );
+    static IICETransportPtr create(IICETransportDelegatePtr delegate);
 
     virtual PUID getID() const = 0;
 
-    virtual IRTPReceiverSubscriptionPtr subscribe(IRTPReceiverDelegatePtr delegate) = 0;
+    virtual IICEGathererSubscriptionPtr subscribe(IICEGathererDelegatePtr delegate) = 0;
 
-    virtual IMediaStreamTrackPtr getTrack() const = 0;
-    virtual IDTLSTransportPtr getTransport() const = 0;
-    virtual IDTLSTransportPtr getRTCPTransport() const = 0;
+    virtual States getState() const = 0;
 
-    virtual void setTransport(
-                              IDTLSTransportPtr transport,
-                              IDTLSTransportPtr rtcpTransport = IDTLSTransportPtr()
-                              ) = 0;
-
-    virtual CapabilitiesPtr getCapabilities(const char *kind = NULL);
-
-    virtual void receive(const Parameters &parameters) throw (InvalidParameters);
-    virtual void stop() = 0;
+    virtual ParametersPtr getLocalParameters() const = 0;
+    virtual ParametersPtr getRemoteParameters() const = 0;
   };
 
   //---------------------------------------------------------------------------
@@ -92,18 +90,28 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   #pragma mark
-  #pragma mark IRTPReceiverDelegate
+  #pragma mark IICEGathererDelegate
   #pragma mark
 
-  interaction IRTPReceiverDelegate
+  interaction IICEGathererDelegate
   {
+    ZS_DECLARE_TYPEDEF_PTR(IICETypes::Candidate, Candidate)
     typedef WORD ErrorCode;
 
-    virtual void onRTPReceiverError(
-                                    IRTPReceiverPtr sender,
-                                    ErrorCode errorCode,
-                                    String errorReason
-                                    ) = 0;
+    virtual void onICEGathererStateChanged(
+                                           IICEGathererPtr gatherer,
+                                           IICEGatherer::States state
+                                           ) = 0;
+
+    virtual void onICEGathererLocalCandidate(
+                                             IICEGathererPtr gatherer,
+                                             CandidatePtr candidate
+                                             ) = 0;
+    virtual void onICEGathererError(
+                                     IICEGathererPtr gatherer,
+                                     ErrorCode errorCode,
+                                     String errorReason
+                                     ) = 0;
   };
 
   //---------------------------------------------------------------------------
@@ -111,10 +119,10 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   #pragma mark
-  #pragma mark IRTPReceiverSubscription
+  #pragma mark IICEGathererSubscription
   #pragma mark
 
-  interaction IRTPReceiverSubscription
+  interaction IICEGathererSubscription
   {
     virtual PUID getID() const = 0;
 
@@ -124,15 +132,22 @@ namespace ortc
   };
 }
 
-
-ZS_DECLARE_PROXY_BEGIN(ortc::IRTPReceiverDelegate)
-ZS_DECLARE_PROXY_TYPEDEF(ortc::IRTPReceiverPtr, IRTPReceiverPtr)
-ZS_DECLARE_PROXY_TYPEDEF(ortc::IRTPSenderDelegate::ErrorCode, ErrorCode)
-ZS_DECLARE_PROXY_METHOD_3(onRTPReceiverError, IRTPReceiverPtr, ErrorCode, String)
+ZS_DECLARE_PROXY_BEGIN(ortc::IICEGathererDelegate)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::IICEGathererPtr, IICEGathererPtr)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::IICEGatherer::States, States)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::IICEGathererDelegate::CandidatePtr, CandidatePtr)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::IICEGathererDelegate::ErrorCode, ErrorCode)
+ZS_DECLARE_PROXY_METHOD_2(onICEGathererStateChanged, IICEGathererPtr, States)
+ZS_DECLARE_PROXY_METHOD_2(onICEGathererLocalCandidate, IICEGathererPtr, CandidatePtr)
+ZS_DECLARE_PROXY_METHOD_3(onICEGathererError, IICEGathererPtr, ErrorCode, String)
 ZS_DECLARE_PROXY_END()
 
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_BEGIN(ortc::IRTPReceiverDelegate, ortc::IRTPReceiverSubscription)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IRTPReceiverPtr, IRTPReceiverPtr)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IRTPReceiverDelegate::ErrorCode, ErrorCode)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_3(onRTPReceiverError, IRTPReceiverPtr, ErrorCode, String)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_BEGIN(ortc::IICEGathererDelegate, ortc::IICEGathererSubscription)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IICEGathererPtr, IICEGathererPtr)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IICEGatherer::States, States)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IICEGathererDelegate::CandidatePtr, CandidatePtr)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IICEGathererDelegate::ErrorCode, ErrorCode)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onICEGathererStateChanged, IICEGathererPtr, States)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onICEGathererLocalCandidate, IICEGathererPtr, CandidatePtr)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_3(onICEGathererError, IICEGathererPtr, ErrorCode, String)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_END()

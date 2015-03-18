@@ -33,6 +33,7 @@
 
 #include <zsLib/Proxy.h>
 #include <zsLib/IPAddress.h>
+#include <zsLib/Promise.h>
 #include <openpeer/services/types.h>
 
 namespace ortc
@@ -43,7 +44,10 @@ namespace ortc
   using zsLib::WORD;
   using zsLib::DWORD;
   using zsLib::QWORD;
+  using zsLib::USHORT;
+  using zsLib::LONG;
   using zsLib::ULONG;
+  using zsLib::ULONGLONG;
   using zsLib::Time;
   using zsLib::Hours;
   using zsLib::Minutes;
@@ -53,16 +57,27 @@ namespace ortc
   using zsLib::Nanoseconds;
   using zsLib::String;
   using zsLib::RecursiveLock;
-  using zsLib::IPAddress;
   using zsLib::IMessageQueue;
   using zsLib::IMessageQueuePtr;
-  using zsLib::XML::Element;
-  using zsLib::XML::ElementPtr;
+
+  using zsLib::Optional;
+  using zsLib::PromiseWith;
+
+  ZS_DECLARE_USING_PTR(zsLib, Any)
+  ZS_DECLARE_USING_PTR(zsLib, Promise)
 
   using openpeer::services::SharedRecursiveLock;
   using openpeer::services::LockedValue;
 
   ZS_DECLARE_USING_PTR(openpeer::services, SecureByteBlock)
+
+  namespace JSON = zsLib::JSON;
+  using JSON::Element;
+  using JSON::ElementPtr;
+
+  typedef zsLib::Exceptions::InvalidUsage InvalidStateError;
+  typedef zsLib::Exceptions::InvalidArgument InvalidParameters;
+  typedef zsLib::Exceptions::SyntaxError SyntaxError;
 
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
@@ -72,46 +87,44 @@ namespace ortc
   #pragma mark (forwards)
   #pragma mark
 
-  ZS_DECLARE_STRUCT_PTR(TrackDescription)
-  ZS_DECLARE_STRUCT_PTR(RTPFlowParams)
-  ZS_DECLARE_STRUCT_PTR(RTPRTXFlowParams)
-  ZS_DECLARE_STRUCT_PTR(RTPFECFlowParams)
-  ZS_DECLARE_STRUCT_PTR(RTPLayeredFlowParams)
-
+  ZS_DECLARE_INTERACTION_PTR(IDataChannel)
+  ZS_DECLARE_INTERACTION_PTR(IDataTransport)
+  ZS_DECLARE_INTERACTION_PTR(IDTLSTransport)
+  ZS_DECLARE_INTERACTION_PTR(IDTMFSender)
   ZS_DECLARE_INTERACTION_PTR(IORTC)
   ZS_DECLARE_INTERACTION_PTR(IHelper)
-  ZS_DECLARE_INTERACTION_PTR(IDTLSTransport)
+  ZS_DECLARE_INTERACTION_PTR(IIdentity)
+  ZS_DECLARE_INTERACTION_PTR(IICEGatherer)
   ZS_DECLARE_INTERACTION_PTR(IICETransport)
-  ZS_DECLARE_INTERACTION_PTR(IRTCDTMFTrack)
-  ZS_DECLARE_INTERACTION_PTR(IRTCDataChannel)
-  ZS_DECLARE_INTERACTION_PTR(IRTCStream)
-  ZS_DECLARE_INTERACTION_PTR(IRTCTrack)
+  ZS_DECLARE_INTERACTION_PTR(IICETransportController)
+  ZS_DECLARE_INTERACTION_PTR(IMediaDevices)
+  ZS_DECLARE_INTERACTION_PTR(IMediaStreamTrack)
+  ZS_DECLARE_INTERACTION_PTR(IRTPListener)
   ZS_DECLARE_INTERACTION_PTR(IRTPSender)
   ZS_DECLARE_INTERACTION_PTR(IRTPReceiver)
-  ZS_DECLARE_INTERACTION_PTR(IMediaManager)
-  ZS_DECLARE_INTERACTION_PTR(IMediaStream)
-  ZS_DECLARE_INTERACTION_PTR(IMediaStreamTrack)
-  
-  ZS_DECLARE_TYPEDEF_PTR(std::list<IMediaStreamTrackPtr>, MediaStreamTrackList)
+  ZS_DECLARE_INTERACTION_PTR(ISCTPTransport)
+  ZS_DECLARE_INTERACTION_PTR(IStatsProvider)
+  ZS_DECLARE_INTERACTION_PTR(IStatsReport)
 
+  ZS_DECLARE_INTERACTION_PROXY(IDataChannelDelegate)
   ZS_DECLARE_INTERACTION_PROXY(IDTLSTransportDelegate)
+  ZS_DECLARE_INTERACTION_PROXY(IDTMFSenderDelegate)
+  ZS_DECLARE_INTERACTION_PROXY(IICEGathererDelegate)
   ZS_DECLARE_INTERACTION_PROXY(IICETransportDelegate)
-  ZS_DECLARE_INTERACTION_PROXY(IMediaManagerDelegate)
-  ZS_DECLARE_INTERACTION_PROXY(IMediaStreamDelegate)
+  ZS_DECLARE_INTERACTION_PROXY(IRTPListenerDelegate)
   ZS_DECLARE_INTERACTION_PROXY(IMediaStreamTrackDelegate)
-  ZS_DECLARE_INTERACTION_PROXY(IRTCDataChannelDelegate)
-  ZS_DECLARE_INTERACTION_PROXY(IRTCDTMFTrackDelegate)
+  ZS_DECLARE_INTERACTION_PROXY(IRTPSenderDelegate)
+  ZS_DECLARE_INTERACTION_PROXY(IRTPReceiverDelegate)
+  ZS_DECLARE_INTERACTION_PROXY(ISCTPTransportDelegate)
 
+  ZS_DECLARE_INTERACTION_PROXY_SUBSCRIPTION(IDataChannelSubscription, IDataChannelDelegate)
   ZS_DECLARE_INTERACTION_PROXY_SUBSCRIPTION(IDTLSTransportSubscription, IDTLSTransportDelegate)
+  ZS_DECLARE_INTERACTION_PROXY_SUBSCRIPTION(IDTMFSenderSubscription, IDTMFSenderDelegate)
+  ZS_DECLARE_INTERACTION_PROXY_SUBSCRIPTION(IICEGathererSubscription, IICEGathererDelegate)
   ZS_DECLARE_INTERACTION_PROXY_SUBSCRIPTION(IICETransportSubscription, IICETransportDelegate)
-  ZS_DECLARE_INTERACTION_PROXY_SUBSCRIPTION(IMediaManagerSubscription, IMediaManagerDelegate)
-  ZS_DECLARE_INTERACTION_PROXY_SUBSCRIPTION(IMediaStreamSubscription, IMediaStreamDelegate)
   ZS_DECLARE_INTERACTION_PROXY_SUBSCRIPTION(IMediaStreamTrackSubscription, IMediaStreamTrackDelegate)
-
-
-  typedef std::list<IRTCStreamPtr> RTCStreamList;
-  ZS_DECLARE_PTR(RTCStreamList)
-
-  typedef std::list<IRTCTrackPtr> RTCTrackList;
-  ZS_DECLARE_PTR(RTCTrackList)
+  ZS_DECLARE_INTERACTION_PROXY_SUBSCRIPTION(IRTPListenerSubscription, IRTPListenerDelegate)
+  ZS_DECLARE_INTERACTION_PROXY_SUBSCRIPTION(IRTPSenderSubscription, IRTPSenderDelegate)
+  ZS_DECLARE_INTERACTION_PROXY_SUBSCRIPTION(IRTPReceiverSubscription, IRTPReceiverDelegate)
+  ZS_DECLARE_INTERACTION_PROXY_SUBSCRIPTION(ISCTPTransportSubscription, ISCTPTransportDelegate)
 }

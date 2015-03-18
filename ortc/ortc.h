@@ -33,11 +33,24 @@
 
 #include <ortc/types.h>
 #include <ortc/IORTC.h>
+
+#include <ortc/ICapabilities.h>
+#include <ortc/IConstraints.h>
+#include <ortc/IDataChannel.h>
+#include <ortc/IDataTransport.h>
 #include <ortc/IDTLSTransport.h>
+#include <ortc/IDTMFSender.h>
+#include <ortc/IIdentity.h>
+#include <ortc/IICEGatherer.h>
+#include <ortc/IICETypes.h>
 #include <ortc/IICETransport.h>
+#include <ortc/IICETransportController.h>
+#include <ortc/IMediaDevices.h>
+#include <ortc/IMediaStreamTrack.h>
+#include <ortc/IRTPTypes.h>
+#include <ortc/IRTPListener.h>
 #include <ortc/IRTPSender.h>
 #include <ortc/IRTPReceiver.h>
-#include <ortc/TrackDescription.h>
-#include <ortc/IMediaManager.h>
-#include <ortc/IMediaStream.h>
-#include <ortc/IMediaStreamTrack.h>
+#include <ortc/ISCTPTransport.h>
+#include <ortc/IStatsProvider.h>
+#include <ortc/IStatsReport.h>
