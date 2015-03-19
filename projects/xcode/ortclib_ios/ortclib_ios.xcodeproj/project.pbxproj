@@ -51,6 +51,7 @@
 		0020ED791AB9138200B66C74 /* ISCTPTransport.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ISCTPTransport.h; sourceTree = "<group>"; };
 		0020ED7A1AB9138200B66C74 /* IStatsProvider.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IStatsProvider.h; sourceTree = "<group>"; };
 		0020ED7B1AB9138200B66C74 /* IStatsReport.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IStatsReport.h; sourceTree = "<group>"; };
+		0020ED7D1ABB04E900B66C74 /* ISRTPSDESTransport.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ISRTPSDESTransport.h; sourceTree = "<group>"; };
 		00724A6F184CF4430049B9EF /* ortc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc.cpp; sourceTree = "<group>"; };
 		00724A71184CF4530049B9EF /* ortc_ORTC.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_ORTC.cpp; sourceTree = "<group>"; };
 		007B98F61855D60A004AC6C0 /* IDTLSTransport.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IDTLSTransport.h; sourceTree = "<group>"; };
@@ -145,6 +146,7 @@
 				0020ED771AB9138200B66C74 /* IRTPListener.h */,
 				0020ED781AB9138200B66C74 /* IRTPTypes.h */,
 				0020ED791AB9138200B66C74 /* ISCTPTransport.h */,
+				0020ED7D1ABB04E900B66C74 /* ISRTPSDESTransport.h */,
 				0020ED7A1AB9138200B66C74 /* IStatsProvider.h */,
 				0020ED7B1AB9138200B66C74 /* IStatsReport.h */,
 				007B99111856A1FF004AC6C0 /* IRTPReceiver.h */,
@@ -272,6 +274,11 @@
 			buildSettings = {
 				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
 				CLANG_CXX_LIBRARY = "libc++";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					ORTCLIB_INTERNAL,
+					"$(inherited)",
+				);
 				HEADER_SEARCH_PATHS = (
 					../../..,
 					../../../..,
@@ -296,6 +303,11 @@
 			buildSettings = {
 				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
 				CLANG_CXX_LIBRARY = "libc++";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"NDEBUG=1",
+					ORTCLIB_INTERNAL,
+					"$(inherited)",
+				);
 				HEADER_SEARCH_PATHS = (
 					../../..,
 					../../../..,
@@ -334,10 +346,6 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = NO;
 				GCC_PREFIX_HEADER = "";
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"DEBUG=1",
-					"$(inherited)",
-				);
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;

@@ -76,11 +76,11 @@ namespace ortc
                             Milliseconds interToneGap = Milliseconds(70)
                             ) throw (InvalidStateError) = 0;
 
-    virtual IRTPSenderPtr getSender() const = 0;
+    virtual IRTPSenderPtr sender() const = 0;
 
-    virtual String getToneBuffer() const = 0;
-    virtual Milliseconds getDuration() const = 0;
-    virtual Milliseconds getInterToneGap() const = 0;
+    virtual String toneBuffer() const = 0;
+    virtual Milliseconds duration() const = 0;
+    virtual Milliseconds interToneGap() const = 0;
   };
 
   //---------------------------------------------------------------------------

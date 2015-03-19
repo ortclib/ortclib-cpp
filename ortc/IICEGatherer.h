@@ -87,12 +87,13 @@ namespace ortc
       FilterPolicy_NoIPv6Relay         = 0x00000800,
       FilterPolicy_NoIPv6Tunnel        = 0x00001000,
       FilterPolicy_NoIPv6Permanent     = 0x00002000,
-      FilterPolicy_NoIPv6              = 0x000FF000,
+      FilterPolicy_NoIPv6              = 0x0000FF00,
       FilterPolicy_NoHost              = (FilterPolicy_NoIPv4Host | FilterPolicy_NoIPv6Host),
       FilterPolicy_NoSrflx             = (FilterPolicy_NoIPv4Srflx | FilterPolicy_NoIPv4Srflx),
       FilterPolicy_NoPrflx             = (FilterPolicy_NoIPv4Prflx | FilterPolicy_NoIPv6Prflx),
       FilterPolicy_NoRelay             = (FilterPolicy_NoIPv4Relay | FilterPolicy_NoIPv6Relay),
       FilterPolicy_RelayOnly           = (FilterPolicy_NoIPv4Host | FilterPolicy_NoSrflx | FilterPolicy_NoPrflx),
+      FilterPolicy_NoCandidates        = (0xFFFFFFFF)
     };
 
     static String toString(FilterPolicies policies);
@@ -154,7 +155,7 @@ namespace ortc
 
     virtual IICEGathererSubscriptionPtr subscribe(IICEGathererDelegatePtr delegate) = 0;
 
-    virtual States getState() const = 0;
+    virtual States state() const = 0;
 
     virtual ParametersPtr getLocalParameters() const = 0;
     virtual ParametersPtr getRemoteParameters() const = 0;

@@ -69,17 +69,34 @@ namespace ortc
                                 IDTLSTransportPtr rtcpTransport = IDTLSTransportPtr()
                                 );
 
+    static IRTPSenderPtr create(
+                                IRTPSenderDelegatePtr delegate,
+                                IMediaStreamTrackPtr track,
+                                ISRTPSDESTransportPtr transport,
+                                IICETransportPtr rtcpTransport = IICETransportPtr()
+                                );
+
     virtual PUID getID() const = 0;
 
     virtual IRTPSenderSubscriptionPtr subscribe(IRTPSenderDelegatePtr delegate) = 0;
 
-    virtual IMediaStreamTrackPtr getTrack() const = 0;
-    virtual IDTLSTransportPtr getTransport() const = 0;
-    virtual IDTLSTransportPtr getRTCPTransport() const = 0;
+    virtual IMediaStreamTrackPtr track() const = 0;
+    virtual IRTPTransportPtr transport() const = 0;
+    virtual IRTCPTransportPtr rtcpTransport() const = 0;
+
+    template <typename data_type>
+    std::shared_ptr<data_type> transport() const {return ZS_DYNAMIC_PTR_CAST(data_type, transport());}
+
+    template <typename data_type>
+    std::shared_ptr<data_type> rtcpTransport() const {return ZS_DYNAMIC_PTR_CAST(data_type, rtcpTransport());}
 
     virtual void setTransport(
                               IDTLSTransportPtr transport,
                               IDTLSTransportPtr rtcpTransport = IDTLSTransportPtr()
+                              ) = 0;
+    virtual void setTransport(
+                              ISRTPSDESTransportPtr transport,
+                              IICETransportPtr rtcpTransport = IICETransportPtr()
                               ) = 0;
 
     virtual void setTrack(IMediaStreamTrackPtr track) throw(InvalidParameters) = 0;

@@ -41,6 +41,7 @@
 		0020ED6A1AB906A400B66C74 /* IMediaDevices.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IMediaDevices.h; sourceTree = "<group>"; };
 		0020ED6B1AB906DF00B66C74 /* IConstraints.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IConstraints.h; sourceTree = "<group>"; };
 		0020ED6C1AB90EFB00B66C74 /* ICapabilities.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ICapabilities.h; sourceTree = "<group>"; };
+		0020ED7C1ABB04CB00B66C74 /* ISRTPSDESTransport.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ISRTPSDESTransport.h; sourceTree = "<group>"; };
 		00724A6D184CF42B0049B9EF /* ortc_ORTC.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_ORTC.cpp; sourceTree = "<group>"; };
 		007B98F71855D61C004AC6C0 /* ortc_DTLSTransport.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_DTLSTransport.cpp; sourceTree = "<group>"; };
 		007B98F91855D633004AC6C0 /* ortc_DTLSTransport.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ortc_DTLSTransport.h; sourceTree = "<group>"; };
@@ -136,6 +137,7 @@
 				007B98FE18562C5F004AC6C0 /* IRTPSender.h */,
 				007B990018563223004AC6C0 /* IRTPReceiver.h */,
 				0020ED681AB8F33000B66C74 /* ISCTPTransport.h */,
+				0020ED7C1ABB04CB00B66C74 /* ISRTPSDESTransport.h */,
 				0020ED5B1AB86E1100B66C74 /* IStatsProvider.h */,
 				0020ED5C1AB86EAF00B66C74 /* IStatsReport.h */,
 			);
@@ -290,6 +292,7 @@
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
 					CRYPTOPP_DISABLE_SSE2,
+					ORTCLIB_INTERNAL,
 					"$(inherited)",
 				);
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -340,6 +343,7 @@
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"NDEBUG=1",
 					CRYPTOPP_DISABLE_SSE2,
+					ORTCLIB_INTERNAL,
 					"$(inherited)",
 				);
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;

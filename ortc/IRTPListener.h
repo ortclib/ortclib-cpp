@@ -69,7 +69,7 @@ namespace ortc
 
     virtual IRTPListenerSubscriptionPtr subscribe(IRTPListenerDelegatePtr delegate) = 0;
 
-    virtual IDTLSTransportPtr getTransport() const = 0;
+    virtual IDTLSTransportPtr transport() const = 0;
   };
 
   //---------------------------------------------------------------------------

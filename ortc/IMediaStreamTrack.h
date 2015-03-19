@@ -150,15 +150,15 @@ namespace ortc
   {
     virtual PUID getID() const = 0;
 
-    virtual String getKind() const = 0;
-    virtual String getUniqueID() const = 0;
-    virtual String getLabel() const = 0;
-    virtual bool isEnabled() const = 0;
-    virtual void setEnabeld(bool enabled) = 0;
-    virtual bool isMuted() const = 0;
-    virtual bool isReadOnly() const = 0;
-    virtual bool isRemote() const = 0;
-    virtual bool getReadyState() const = 0;
+    virtual String kind() const = 0;
+    virtual String id() const = 0;
+    virtual String label() const = 0;
+    virtual bool enabled() const = 0;
+    virtual void enabeld(bool enabled) = 0;
+    virtual bool muted() const = 0;
+    virtual bool readOnly() const = 0;
+    virtual bool remote() const = 0;
+    virtual bool readyState() const = 0;
 
     virtual IMediaStreamTrackPtr clone() const = 0;
 

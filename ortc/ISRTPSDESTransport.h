@@ -26,14 +26,15 @@
  The views and conclusions contained in the software and documentation are those
  of the authors and should not be interpreted as representing official policies,
  either expressed or implied, of the FreeBSD Project.
-
+ 
  */
 
 #pragma once
 
 #include <ortc/types.h>
-#include <ortc/IRTPTypes.h>
 #include <ortc/IStatsProvider.h>
+
+#include <zsLib/Exception.h>
 
 #include <list>
 
@@ -44,24 +45,43 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   #pragma mark
-  #pragma mark IRTPReceiverTypes
+  #pragma mark ISRTPSDESTransportTypes
   #pragma mark
-
-  interaction IRTPReceiverTypes : public IRTPTypes
+  
+  interaction ISRTPSDESTransportTypes
   {
-    ZS_DECLARE_STRUCT_PTR(ContributingSource)
+    typedef String SessionParam;
 
-    ZS_DECLARE_TYPEDEF_PTR(std::list<ContributingSource>, ContributingSourceList)
+    ZS_DECLARE_STRUCT_PTR(Parameters)
+    ZS_DECLARE_STRUCT_PTR(KeyParameters)
+
+    ZS_DECLARE_TYPEDEF_PTR(std::list<Parameters>, ParametersList)
+    ZS_DECLARE_TYPEDEF_PTR(std::list<KeyParameters>, KeyParametersList)
+    ZS_DECLARE_TYPEDEF_PTR(std::list<SessionParam>, SessionParamList)
 
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IRTPReceiverTypes::ContributingSource
+    #pragma mark ISRTPSDESTransportTypes
     #pragma mark
 
-    struct ContributingSource {
-      Time      mTimestamp;
-      SSRCType  mCSRC {};
-      BYTE      mAudioLevel {};
+    struct Parameters {
+      WORD              mTag {};
+      String            mCryptoSuite;
+      KeyParametersList mKeyParams;
+      SessionParamList  mSessionParam;
+    };
+
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark ISRTPSDESTransportTypes
+    #pragma mark
+
+    struct KeyParameters {
+      String  mKeyMethod;
+      String  mKeySalt;
+      String  mLifetime;
+      WORD    mMKIValue {};
+      WORD    mMKILength {};
     };
   };
 
@@ -70,41 +90,31 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   #pragma mark
-  #pragma mark IRTPReceiver
+  #pragma mark ISRTPSDESTransport
   #pragma mark
 
-  interaction IRTPReceiver : public IRTPReceiverTypes,
-                             public IStatsProvider
+  interaction ISRTPSDESTransport : public ISRTPSDESTransportTypes,
+                                   public IRTPTransport,
+                                   public IStatsProvider
   {
-    static ElementPtr toDebug(IRTPReceiverPtr receiver);
+    static ElementPtr toDebug(ISRTPSDESTransportPtr transport);
 
-    static IRTPReceiverPtr create(
-                                  IRTPReceiverDelegatePtr delegate,
-                                  IDTLSTransportPtr transport,
-                                  IDTLSTransportPtr rtcpTransport = IDTLSTransportPtr()
-                                  );
+    static ISRTPSDESTransportPtr create(
+                                        ISRTPSDESTransportDelegatePtr delegate,
+                                        IICETransportPtr iceTransport,
+                                        const Parameters &encryptParameters,
+                                        const Parameters &decryptParameters
+                                        );
 
     virtual PUID getID() const = 0;
 
-    virtual IRTPReceiverSubscriptionPtr subscribe(IRTPReceiverDelegatePtr delegate) = 0;
+    virtual ISRTPSDESTransportPtr subscribe(ISRTPSDESTransportDelegatePtr delegate) = 0;
 
-    virtual IMediaStreamTrackPtr track() const = 0;
-    virtual IDTLSTransportPtr transport() const = 0;
-    virtual IDTLSTransportPtr rtcpTransport() const = 0;
+    virtual IICETransportPtr transport() const = 0;
 
-    virtual void setTransport(
-                              IDTLSTransportPtr transport,
-                              IDTLSTransportPtr rtcpTransport = IDTLSTransportPtr()
-                              ) = 0;
+    static ParametersListPtr getLocalParameters();
 
-    virtual CapabilitiesPtr getCapabilities(const char *kind = NULL);
-
-    virtual void receive(const Parameters &parameters) throw (InvalidParameters);
     virtual void stop() = 0;
-
-    virtual ContributingSourceList getContributingSources() const = 0;
-
-    virtual void requestSendCSRC(SSRCType csrc) = 0;
   };
 
   //---------------------------------------------------------------------------
@@ -112,18 +122,18 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   #pragma mark
-  #pragma mark IRTPReceiverDelegate
+  #pragma mark ISRTPSDESTransportDelegate
   #pragma mark
 
-  interaction IRTPReceiverDelegate
+  interaction ISRTPSDESTransportDelegate
   {
     typedef WORD ErrorCode;
 
-    virtual void onRTPReceiverError(
-                                    IRTPReceiverPtr sender,
-                                    ErrorCode errorCode,
-                                    String errorReason
-                                    ) = 0;
+    virtual void onSRTPSDESTransportError(
+                                          ISRTPSDESTransportPtr transport,
+                                          ErrorCode errorCode,
+                                          String errorReason
+                                          ) = 0;
   };
 
   //---------------------------------------------------------------------------
@@ -131,10 +141,10 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   #pragma mark
-  #pragma mark IRTPReceiverSubscription
+  #pragma mark ISRTPSDESTransportSubscription
   #pragma mark
 
-  interaction IRTPReceiverSubscription
+  interaction ISRTPSDESTransportSubscription
   {
     virtual PUID getID() const = 0;
 
@@ -144,15 +154,14 @@ namespace ortc
   };
 }
 
-
-ZS_DECLARE_PROXY_BEGIN(ortc::IRTPReceiverDelegate)
-ZS_DECLARE_PROXY_TYPEDEF(ortc::IRTPReceiverPtr, IRTPReceiverPtr)
-ZS_DECLARE_PROXY_TYPEDEF(ortc::IRTPSenderDelegate::ErrorCode, ErrorCode)
-ZS_DECLARE_PROXY_METHOD_3(onRTPReceiverError, IRTPReceiverPtr, ErrorCode, String)
+ZS_DECLARE_PROXY_BEGIN(ortc::ISRTPSDESTransportDelegate)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::ISRTPSDESTransportPtr, ISRTPSDESTransportPtr)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::ISRTPSDESTransportDelegate::ErrorCode, ErrorCode)
+ZS_DECLARE_PROXY_METHOD_3(onSRTPSDESTransportError, ISRTPSDESTransportPtr, ErrorCode, String)
 ZS_DECLARE_PROXY_END()
 
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_BEGIN(ortc::IRTPReceiverDelegate, ortc::IRTPReceiverSubscription)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IRTPReceiverPtr, IRTPReceiverPtr)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IRTPReceiverDelegate::ErrorCode, ErrorCode)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_3(onRTPReceiverError, IRTPReceiverPtr, ErrorCode, String)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_BEGIN(ortc::ISRTPSDESTransportDelegate, ortc::ISRTPSDESTransportSubscription)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::ISRTPSDESTransportPtr, ISRTPSDESTransportPtr)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::ISRTPSDESTransportDelegate::ErrorCode, ErrorCode)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_3(onSRTPSDESTransportError, ISRTPSDESTransportPtr, ErrorCode, String)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_END()

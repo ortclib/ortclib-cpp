@@ -52,5 +52,6 @@
 #include <ortc/IRTPSender.h>
 #include <ortc/IRTPReceiver.h>
 #include <ortc/ISCTPTransport.h>
+#include <ortc/ISRTPSDESTransport.h>
 #include <ortc/IStatsProvider.h>
 #include <ortc/IStatsReport.h>

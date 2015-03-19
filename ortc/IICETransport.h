@@ -88,6 +88,7 @@ namespace ortc
   #pragma mark
   
   interaction IICETransport : public IICETransportTypes,
+                              public IRTCPTransport,
                               public IStatsProvider
   {
     static ElementPtr toDebug(IICETransportPtr transport);
@@ -98,11 +99,11 @@ namespace ortc
 
     virtual IICETransportSubscriptionPtr subscribe(IICETransportDelegatePtr delegate) = 0;
 
-    virtual IICEGathererPtr getICEGatherer() const = 0;
+    virtual IICEGathererPtr iceGatherer() const = 0;
 
-    virtual Roles getRole() const = 0;
-    virtual Components getComponent() const = 0;
-    virtual States getState() const = 0;
+    virtual Roles role() const = 0;
+    virtual Components component() const = 0;
+    virtual States state() const = 0;
 
     virtual CandidateListPtr getRemoteCandidates() const = 0;
 
@@ -118,10 +119,7 @@ namespace ortc
 
     virtual ParametersPtr getRemoteParameters() const = 0;
 
-    virtual IICETransportPtr createAssociatedTransport() throw (
-                                                                InvalidStateError,
-                                                                SyntaxError
-                                                                ) = 0;
+    virtual IICETransportPtr createAssociatedTransport() throw (InvalidStateError) = 0;
 
     virtual void addRemoteCandidate(const Candidate &remoteCandidate) = 0;
     virtual void setRemoteCandidates(const CandidateList &remoteCandidates) = 0;

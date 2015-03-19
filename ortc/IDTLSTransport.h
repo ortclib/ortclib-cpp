@@ -118,6 +118,8 @@ namespace ortc
   #pragma mark
 
   interaction IDTLSTransport : public IDTLSTransportTypes,
+                               public IRTPTransport,
+                               public IRTCPTransport,
                                public IStatsProvider
   {
     static ElementPtr toDebug(IDTLSTransportPtr transport);
@@ -131,7 +133,7 @@ namespace ortc
 
     virtual IDTLSTransportSubscriptionPtr subscribe(IDTLSTransportDelegatePtr delegate) = 0;
 
-    virtual IICETransportPtr getTransport() const = 0;
+    virtual IICETransportPtr transport() const = 0;
 
     virtual States getState() const = 0;
 

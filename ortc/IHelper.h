@@ -48,6 +48,6 @@ namespace ortc
     static String toString(ElementPtr el);
     static ElementPtr toJSON(const char *str);
 
-    static ElementPtr toJSON(AnyPtr any);
+    static ElementPtr toJSON(const Any &any);
   };
 }

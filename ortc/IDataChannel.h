@@ -99,15 +99,15 @@ namespace ortc
 
     virtual IDataChannelSubscriptionPtr subscribe(IDataChannelDelegatePtr delegate) = 0;
 
-    virtual IDataTransportPtr  getTransport() const = 0;
+    virtual IDataTransportPtr  transport() const = 0;
 
-    virtual ParametersPtr getParameters() const = 0;
+    virtual ParametersPtr parameters() const = 0;
 
-    virtual States getReadyState() const = 0;
+    virtual States readyState() const = 0;
 
-    virtual ULONG getBufferedAmount() const = 0;
+    virtual ULONG bufferedAmount() const = 0;
 
-    virtual String getBinaryType() const = 0;
+    virtual String binaryType() const = 0;
 
     virtual void close() = 0;
 

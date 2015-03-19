@@ -101,9 +101,9 @@ namespace ortc
 
     virtual PUID getID() const = 0;
 
-    virtual AssertionPtr getPeerIdentity() const = 0;
+    virtual AssertionPtr peerIdentity() const = 0;
 
-    virtual IDTLSTransportPtr getTransport() const = 0;
+    virtual IDTLSTransportPtr transport() const = 0;
 
     virtual PromiseWithResultPtr getIdentityAssertion(
                                                       const char *provider,
