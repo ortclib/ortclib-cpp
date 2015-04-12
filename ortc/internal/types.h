@@ -39,6 +39,7 @@ namespace ortc
 {
   namespace internal
   {
+    using zsLib::UINT;
     using zsLib::string;
     using zsLib::Noop;
     using zsLib::MessageQueueAssociator;
@@ -48,6 +49,7 @@ namespace ortc
     using zsLib::AutoPUID;
     using zsLib::Singleton;
     using zsLib::SingletonLazySharedPtr;
+    using zsLib::IPAddress;
 
     ZS_DECLARE_USING_PTR(zsLib, IMessageQueue)
     ZS_DECLARE_USING_PTR(zsLib, IMessageQueueNotify)
@@ -56,10 +58,21 @@ namespace ortc
 
     ZS_DECLARE_USING_PTR(zsLib, MessageQueue)
     ZS_DECLARE_USING_PTR(zsLib, MessageQueueThread)
+    ZS_DECLARE_USING_PTR(zsLib, Timer)
+    ZS_DECLARE_USING_PTR(zsLib, Socket)
 
     ZS_DECLARE_TYPEDEF_PTR(zsLib::AutoRecursiveLock, AutoRecursiveLock)
 
+    using openpeer::services::SharedRecursiveLock;
+
+    ZS_DECLARE_USING_PTR(openpeer::services, IDNS)
+    ZS_DECLARE_USING_PTR(openpeer::services, IDNSQuery)
+    ZS_DECLARE_USING_PTR(openpeer::services, IBackOffTimer)
+
+    ZS_DECLARE_USING_PROXY(openpeer::services, IBackOffTimerDelegate)
+    ZS_DECLARE_USING_PROXY(openpeer::services, IDNSDelegate)
     ZS_DECLARE_USING_PROXY(openpeer::services, IWakeDelegate)
+    ZS_DECLARE_USING_PROXY(openpeer::services, ISTUNDiscoveryDelegate)
 
     using openpeer::services::IFactory;
 
@@ -72,6 +85,6 @@ namespace ortc
     #pragma mark (forwards)
     #pragma mark
 
-
+    ZS_DECLARE_CLASS_PTR(ICEGatherer)
   }
 }

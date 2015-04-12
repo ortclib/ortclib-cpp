@@ -71,8 +71,12 @@ namespace ortc
 
     enum Components
     {
-      Component_RTP,
+      Component_First,
+
+      Component_RTP = Component_First,
       Component_RTCP,
+
+      Component_Last = Component_RTCP
     };
 
     static const char *toString(Components component);
@@ -85,8 +89,12 @@ namespace ortc
 
     enum Protocols
     {
-      Protocol_UDP,
+      Protocol_First,
+
+      Protocol_UDP = Protocol_First,
       Protocol_TCP,
+
+      Protocol_Last = Protocol_TCP
     };
 
     static const char *toString(Protocols protocol);
@@ -99,10 +107,14 @@ namespace ortc
 
     enum CandidateTypes
     {
-      CandidateType_Host,
+      CandidateType_First,
+
+      CandidateType_Host = CandidateType_First,
       CandidateType_Srflex,
       CandidateType_Prflx,
       CandidateType_Relay,
+
+      CandidateType_Last = CandidateType_Relay
     };
 
     static const char *toString(CandidateTypes type);
@@ -115,9 +127,13 @@ namespace ortc
 
     enum TCPCandidateTypes
     {
-      TCPCandidateType_Active,
+      TCPCandidateType_First,
+
+      TCPCandidateType_Active = TCPCandidateType_First,
       TCPCandidateType_Passive,
       TCPCandidateType_SO,
+
+      TCPCandidateType_Last = TCPCandidateType_SO
     };
 
     static const char *toString(TCPCandidateTypes type);
@@ -132,6 +148,7 @@ namespace ortc
       String            mInterfaceType;
       String            mFoundation;
       DWORD             mPriority {};
+      DWORD             mUnfreezePriority {};
       Protocols         mProtocol {Protocol_UDP};
       String            mIP;
       WORD              mPort {};
@@ -139,6 +156,9 @@ namespace ortc
       TCPCandidateTypes mTCPType {TCPCandidateType_SO};
       String            mRelatedAddress;
       WORD              mRelatedPort {};
+
+      ElementPtr toDebug() const;
+      String hash() const;
     };
 
     //-------------------------------------------------------------------------
@@ -147,8 +167,12 @@ namespace ortc
     #pragma mark
 
     struct Parameters {
+      bool mUseCandidateFreezePolicy {false};
       String mUsernameFragment;
       String mPassword;
+
+      ElementPtr toDebug() const;
+      String hash() const;
     };
   };
 }

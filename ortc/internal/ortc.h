@@ -34,6 +34,7 @@
 #include <ortc/internal/types.h>
 
 #include <ortc/ortc.h>
+#include <ortc/internal/ortc_ICEGatherer.h>
 
 #include <ortc/internal/ortc_DTLSTransport.h>
 #include <ortc/internal/ortc_ICETransport.h>

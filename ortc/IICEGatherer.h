@@ -67,7 +67,7 @@ namespace ortc
     };
 
     static const char *toString(States state);
-    static States toState(const char *state);
+    static States toState(const char *state) throw (InvalidParameters);
 
     //-------------------------------------------------------------------------
     #pragma mark
@@ -106,9 +106,12 @@ namespace ortc
 
     struct Options {
       bool                mContinuousGathering {true};
-      FilterPolicies      mGatherPolicy {FilterPolicy_None};
       InterfacePolicyList mInterfacePolicy;
       ServerList          mICEServers;
+      Time                mKeepCandidatesWarmUntil;
+
+      ElementPtr toDebug() const;
+      String hash() const;
     };
 
     //-------------------------------------------------------------------------
@@ -120,6 +123,9 @@ namespace ortc
       StringList mURLs;
       String     mUserName;
       String     mCredential;
+
+      ElementPtr toDebug() const;
+      String hash() const;
     };
 
     //-------------------------------------------------------------------------
@@ -130,6 +136,9 @@ namespace ortc
     struct InterfacePolicy {
       String          mInterfaceType;
       FilterPolicies  mGatherPolicy {FilterPolicy_None};
+
+      ElementPtr toDebug() const;
+      String hash() const;
     };
   };
 
@@ -148,7 +157,7 @@ namespace ortc
 
     static IICEGathererPtr create(
                                   IICEGathererDelegatePtr delegate,
-                                  Options options
+                                  const Options &options
                                   );
 
     virtual PUID getID() const = 0;
@@ -158,7 +167,9 @@ namespace ortc
     virtual States state() const = 0;
 
     virtual ParametersPtr getLocalParameters() const = 0;
-    virtual ParametersPtr getRemoteParameters() const = 0;
+    virtual CandidateListPtr getLocalCandidates() const = 0;
+
+    virtual void gather(const Options &options) = 0;
   };
 
   //---------------------------------------------------------------------------
@@ -183,6 +194,12 @@ namespace ortc
                                              IICEGathererPtr gatherer,
                                              CandidatePtr candidate
                                              ) = 0;
+
+    virtual void onICEGathererLocalCandidateGone(
+                                                 IICEGathererPtr gatherer,
+                                                 CandidatePtr candidate
+                                                 ) = 0;
+
     virtual void onICEGathererError(
                                      IICEGathererPtr gatherer,
                                      ErrorCode errorCode,
@@ -215,6 +232,7 @@ ZS_DECLARE_PROXY_TYPEDEF(ortc::IICEGathererDelegate::CandidatePtr, CandidatePtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IICEGathererDelegate::ErrorCode, ErrorCode)
 ZS_DECLARE_PROXY_METHOD_2(onICEGathererStateChanged, IICEGathererPtr, States)
 ZS_DECLARE_PROXY_METHOD_2(onICEGathererLocalCandidate, IICEGathererPtr, CandidatePtr)
+ZS_DECLARE_PROXY_METHOD_2(onICEGathererLocalCandidateGone, IICEGathererPtr, CandidatePtr)
 ZS_DECLARE_PROXY_METHOD_3(onICEGathererError, IICEGathererPtr, ErrorCode, String)
 ZS_DECLARE_PROXY_END()
 
@@ -225,5 +243,6 @@ ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IICEGathererDelegate::CandidatePtr,
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IICEGathererDelegate::ErrorCode, ErrorCode)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onICEGathererStateChanged, IICEGathererPtr, States)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onICEGathererLocalCandidate, IICEGathererPtr, CandidatePtr)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onICEGathererLocalCandidateGone, IICEGathererPtr, CandidatePtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_3(onICEGathererError, IICEGathererPtr, ErrorCode, String)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_END()
