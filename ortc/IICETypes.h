@@ -158,7 +158,7 @@ namespace ortc
       WORD              mRelatedPort {};
 
       ElementPtr toDebug() const;
-      String hash() const;
+      String hash(bool includePriorities = true) const;
     };
 
     //-------------------------------------------------------------------------
@@ -167,7 +167,7 @@ namespace ortc
     #pragma mark
 
     struct Parameters {
-      bool mUseCandidateFreezePolicy {false};
+      bool mUseCandidateFreezePriority {false};
       String mUsernameFragment;
       String mPassword;
 

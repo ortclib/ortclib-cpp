@@ -29,6 +29,14 @@
  
  */
 
+#include <ortc/internal/ortc_ICETransport.h>
+#include <ortc/internal/ortc_ICEGatherer.h>
+#include <ortc/internal/platform.h>
+
+#include <openpeer/services/IHelper.h>
+
+#include <zsLib/XML.h>
+
 #if 0
 
 #include <ortc/internal/ortc_ICETransport.h>
@@ -40,7 +48,6 @@
 
 #include <zsLib/Stringize.h>
 #include <zsLib/Log.h>
-#include <zsLib/XML.h>
 
 namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib) }
 

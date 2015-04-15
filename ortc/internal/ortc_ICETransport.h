@@ -31,6 +31,143 @@
 
 #pragma once
 
+#include <ortc/internal/types.h>
+
+#include <ortc/IICETransport.h>
+
+namespace ortc
+{
+  namespace internal
+  {
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IICETransportForICEGatherer
+    #pragma mark
+
+    interaction IICETransportForICEGatherer
+    {
+      ZS_DECLARE_TYPEDEF_PTR(IICETransportForICEGatherer, ForICEGatherer)
+
+      virtual PUID getID() const = 0;
+
+      virtual void notifyRouteAdded(
+                                    PUID routeID,
+                                    IICETypes::CandidatePtr localCandidate,
+                                    const IPAddress &fromIP
+                                    ) = 0;
+      virtual void notifyRouteRemoved(PUID routeID) = 0;
+
+      virtual void notifyPacket(
+                                PUID routeID,
+                                STUNPacketPtr packet
+                                ) = 0;
+      virtual void notifyPacket(
+                                PUID routeID,
+                                const BYTE *buffer,
+                                size_t bufferSizeInBytes
+                                ) = 0;
+    };
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark ICETransport
+    #pragma mark
+
+    class ICETransport : public Noop,
+                         public MessageQueueAssociator,
+                         public SharedRecursiveLock,
+                         public IICETransport,
+                         public IICETransportForICEGatherer
+    {
+    public:
+      friend interaction IICETransport;
+      friend interaction IICETransportFactory;
+      friend interaction IICETransportForICEGatherer;
+
+    protected:
+      ICETransport(
+                   IMessageQueuePtr queue,
+                   IICETransportDelegatePtr delegate
+                   );
+
+      ICETransport(Noop) :
+        Noop(true),
+        MessageQueueAssociator(IMessageQueuePtr()),
+        SharedRecursiveLock(SharedRecursiveLock::create()) {}
+
+      void init();
+
+    public:
+      virtual ~ICETransport();
+
+      static ICEGathererPtr convert(IICEGathererPtr object);
+      static ICEGathererPtr convert(ForICEGathererPtr object);
+
+    protected:
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark ICEGatherer => IICETransport
+      #pragma mark
+
+      static ElementPtr toDebug(IICETransportPtr transport);
+
+      static ICETransportPtr create(IICETransportDelegatePtr delegate);
+
+      virtual PUID getID() const;
+
+      virtual IICETransportSubscriptionPtr subscribe(IICETransportDelegatePtr delegate);
+
+      virtual IICEGathererPtr iceGatherer() const;
+
+      virtual Roles role() const;
+      virtual Components component() const;
+      virtual States state() const;
+
+      virtual CandidateListPtr getRemoteCandidates() const;
+
+      virtual CandidatePairPtr getNominatedCandidatePair() const;
+
+      virtual void start(
+                         IICEGathererPtr gatherer,
+                         Parameters remoteParameters,
+                         Optional<Roles> role = Optional<Roles>()
+                         ) throw (InvalidParameters);
+
+      virtual void stop();
+
+      virtual ParametersPtr getRemoteParameters() const;
+
+      virtual IICETransportPtr createAssociatedTransport() throw (InvalidStateError);
+
+      virtual void addRemoteCandidate(const Candidate &remoteCandidate);
+      virtual void setRemoteCandidates(const CandidateList &remoteCandidates);
+    };
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IICETransportFactory
+    #pragma mark
+
+    interaction IICETransportFactory
+    {
+      static IICETransportFactory &singleton();
+
+      virtual ICETransportPtr create(IICETransportDelegatePtr delegate);
+    };
+
+    class ICETransportFactory : public IFactory<IICETransportFactory> {};
+  }
+}
+
 #if 0
 
 #include <ortc/internal/types.h>
@@ -319,25 +456,6 @@ namespace ortc
       UseDTLSTransportWeakPtr mDTLSTransport;
     };
 
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IICETransportFactory
-    #pragma mark
-
-    interaction IICETransportFactory
-    {
-      static IICETransportFactory &singleton();
-
-      virtual ICETransportPtr create(
-                                     IICETransportDelegatePtr delegate,
-                                     IICETransport::ServerListPtr servers
-                                     );
-    };
-
-    class ICETransportFactory : public IFactory<IICETransportFactory> {};
   }
 }
 

@@ -40,6 +40,7 @@ namespace ortc
   namespace internal
   {
     using zsLib::UINT;
+    using zsLib::PTRNUMBER;
     using zsLib::string;
     using zsLib::Noop;
     using zsLib::MessageQueueAssociator;
@@ -68,11 +69,14 @@ namespace ortc
     ZS_DECLARE_USING_PTR(openpeer::services, IDNS)
     ZS_DECLARE_USING_PTR(openpeer::services, IDNSQuery)
     ZS_DECLARE_USING_PTR(openpeer::services, IBackOffTimer)
+    ZS_DECLARE_USING_PTR(openpeer::services, STUNPacket)
+    ZS_DECLARE_USING_PTR(openpeer::services, ISTUNRequester)
 
     ZS_DECLARE_USING_PROXY(openpeer::services, IBackOffTimerDelegate)
     ZS_DECLARE_USING_PROXY(openpeer::services, IDNSDelegate)
     ZS_DECLARE_USING_PROXY(openpeer::services, IWakeDelegate)
     ZS_DECLARE_USING_PROXY(openpeer::services, ISTUNDiscoveryDelegate)
+    ZS_DECLARE_USING_PROXY(openpeer::services, ITURNSocketDelegate)
 
     using openpeer::services::IFactory;
 
@@ -86,5 +90,6 @@ namespace ortc
     #pragma mark
 
     ZS_DECLARE_CLASS_PTR(ICEGatherer)
+    ZS_DECLARE_CLASS_PTR(ICETransport)
   }
 }

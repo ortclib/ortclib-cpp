@@ -227,7 +227,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  String IICETypes::Candidate::hash() const
+  String IICETypes::Candidate::hash(bool includePriorities) const
   {
     SHA1Hasher hasher;
 
@@ -235,10 +235,12 @@ namespace ortc
     hasher.update(":");
     hasher.update(mFoundation);
     hasher.update(":");
-    hasher.update(string(mPriority));
-    hasher.update(":");
-    hasher.update(string(mUnfreezePriority));
-    hasher.update(":");
+    if (includePriorities) {
+      hasher.update(string(mPriority));
+      hasher.update(":");
+      hasher.update(string(mUnfreezePriority));
+      hasher.update(":");
+    }
     hasher.update(toString(mProtocol));
     hasher.update(":");
     hasher.update(mIP);
@@ -261,7 +263,7 @@ namespace ortc
   {
     ElementPtr resultEl = Element::create("ortc::IICETypes::Parameters");
 
-    UseServicesHelper::debugAppend(resultEl, "use candidate freeze policy", mUseCandidateFreezePolicy);
+    UseServicesHelper::debugAppend(resultEl, "use candidate freeze priority", mUseCandidateFreezePriority);
     UseServicesHelper::debugAppend(resultEl, "username fragment", mUsernameFragment);
     UseServicesHelper::debugAppend(resultEl, "password", mPassword);
 
@@ -273,7 +275,7 @@ namespace ortc
   {
     SHA1Hasher hasher;
 
-    hasher.update(mUseCandidateFreezePolicy ? "Parameters:true:" : "Parameters:false:");
+    hasher.update(mUseCandidateFreezePriority ? "Parameters:true:" : "Parameters:false:");
     hasher.update(mUsernameFragment);
     hasher.update(":");
     hasher.update(mPassword);

@@ -30,12 +30,14 @@
  */
 
 #include <ortc/internal/ortc_ICEGatherer.h>
+#include <ortc/internal/ortc_ICETransport.h>
 #include <ortc/internal/platform.h>
 
 #include <openpeer/services/IHelper.h>
 #include <openpeer/services/IHTTP.h>
 #include <openpeer/services/ISettings.h>
 #include <openpeer/services/ISTUNDiscovery.h>
+#include <openpeer/services/ISTUNRequester.h>
 #include <openpeer/services/ITURNSocket.h>
 
 #include <zsLib/Numeric.h>
@@ -306,7 +308,7 @@ namespace ortc
       UseSettings::setUInt(ORTC_SETTING_GATHERER_PASSWORD_LENGTH, (128*8)/5);     // must be at least 128 bits
 
       UseSettings::setBool(ORTC_SETTING_GATHERER_CREATE_TCP_CANDIDATES, true);
-      UseSettings::setString(ORTC_SETTING_GATHERER_BIND_BACK_OFF_TIMER, "/1,*2:120///");
+      UseSettings::setString(ORTC_SETTING_GATHERER_BIND_BACK_OFF_TIMER, "/1,1,*2:120///");
 
       {
         ICEGatherer::Preference pref(ICEGatherer::PreferenceType_Priority);
@@ -319,6 +321,9 @@ namespace ortc
 
       UseSettings::setUInt(ORTC_SETTING_GATHERER_DEFAULT_CANDIDATES_WARM_UNTIL_IN_SECONDS, 60);
       UseSettings::setUInt(ORTC_SETTING_GATHERER_DEFAULT_STUN_KEEP_ALIVE_IN_SECONDS, 30);
+
+      UseSettings::setUInt(ORTC_SETTING_GATHERER_RELAY_INACTIVITY_TIMEOUT_IN_SECONDS, 120);
+      UseSettings::setUInt(ORTC_SETTING_GATHERER_MAX_INCOMING_PACKET_BUFFERING_TIME_IN_SECONDS, 30);
     }
 
     //-------------------------------------------------------------------------
@@ -462,7 +467,9 @@ namespace ortc
       mUsernameFrag(UseServicesHelper::randomString(UseSettings::getUInt(ORTC_SETTING_GATHERER_USERNAME_FRAG_LENGTH))),
       mPassword(UseServicesHelper::randomString(UseSettings::getUInt(ORTC_SETTING_GATHERER_PASSWORD_LENGTH))),
       mCreateTCPCandidates(UseSettings::getBool(ORTC_SETTING_GATHERER_CREATE_TCP_CANDIDATES)),
-      mOptions(options)
+      mOptions(options),
+      mRelayInactivityTime(Seconds(UseSettings::getUInt(ORTC_SETTING_GATHERER_RELAY_INACTIVITY_TIMEOUT_IN_SECONDS))),
+      mMaxBufferingTime(Seconds(UseSettings::getUInt(ORTC_SETTING_GATHERER_MAX_INCOMING_PACKET_BUFFERING_TIME_IN_SECONDS)))
     {
       mPreferences[PreferenceType_Priority].load();
       mPreferences[PreferenceType_Unfreeze].load();
@@ -557,7 +564,7 @@ namespace ortc
     IICEGatherer::ParametersPtr ICEGatherer::getLocalParameters() const
     {
       ParametersPtr result(new Parameters);
-      result->mUseCandidateFreezePolicy = true;
+      result->mUseCandidateFreezePriority = true;
       result->mUsernameFragment = mUsernameFrag;
       result->mPassword = mPassword;
       return result;
@@ -583,6 +590,327 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
+    void ICEGatherer::installTransport(
+                                       ICETransportPtr inTransport,
+                                       const String &remoteUFrag
+                                       )
+    {
+      UseTransportPtr transport = inTransport;
+      ZS_THROW_INVALID_ARGUMENT_IF(!transport)
+
+      BufferedPacketList installRouteForBufferedPackets;
+
+      // install a transport
+      {
+        AutoRecursiveLock lock(*this);
+
+        if ((isShuttingDown()) ||
+            (isShutdown())) {
+          ZS_LOG_WARNING(Detail, log("cannot install transport when shutting down / shutdown"))
+          return;
+        }
+
+        // scope: check to see if a transport already existed with this remote ufrag (and if it does, remove it)
+        {
+          auto found = mInstalledTransports.find(remoteUFrag);
+          if (found != mInstalledTransports.end()) {
+            auto previousInstalledTransport = (*found).second;
+            auto previousTransport = previousInstalledTransport->mTransport.lock();
+
+            if (transport == previousTransport) {
+              ZS_LOG_WARNING(Detail, log("already installed transport") + ZS_PARAM("transport", previousInstalledTransport->mTransportID))
+              return;
+            }
+
+            removeAllRelatedRoutes(previousInstalledTransport->mTransportID, previousTransport);
+          }
+        }
+
+        InstalledTransportPtr installedTransport(new InstalledTransport);
+        installedTransport->mTransportID = transport->getID();
+        installedTransport->mTransport = transport;
+
+        mInstalledTransports[remoteUFrag] = installedTransport;
+
+        // scope: check to see if this remote ufrag will now cause route mappings to occur
+        {
+          for (auto iter = mBufferedPackets.begin(); iter != mBufferedPackets.end(); ++iter) {
+            auto packet = (*iter);
+            if (packet->mRFrag != remoteUFrag) continue;
+
+            ZS_LOG_DEBUG(log("found buffered packet matching installed transport") + ZS_PARAM("remoteUFrag", remoteUFrag) + packet->toDebug())
+            installRouteForBufferedPackets.push_back(packet);
+          }
+        }
+      }
+
+      // scope: attempt to install routes for these buffered packets
+      {
+        for (auto iter = installRouteForBufferedPackets.begin(); iter != installRouteForBufferedPackets.end(); ++iter) {
+          auto packet = (*iter);
+          ZS_LOG_DEBUG(log("will attempt to install route for buffered packet") + ZS_PARAM("transport", transport->getID()) + packet->toDebug())
+          bool installed = (installRoute(packet->mLocalCandidate, packet->mFrom, transport) ? true : false);
+          if (!installed) {
+            ZS_LOG_WARNING(Debug, log("failed to install route for buffered packet") + ZS_PARAM("transport", transport->getID()) + packet->toDebug())
+          }
+        }
+      }
+    }
+
+    //-------------------------------------------------------------------------
+    void ICEGatherer::removeTransport(ICETransport &inTransport)
+    {
+      UseTransport &transport = inTransport;
+
+      ZS_LOG_TRACE(log("removing transport") + ZS_PARAM("transport id", transport.getID()))
+
+      AutoRecursiveLock lock(*this);
+      removeAllRelatedRoutes(transport.getID(), UseTransportPtr());
+
+      for (auto iter_doNotUse = mInstalledTransports.begin(); iter_doNotUse != mInstalledTransports.end(); ) {
+        auto current = iter_doNotUse;
+        ++iter_doNotUse;
+
+        auto installedTransport = (*current).second;
+        if (installedTransport->mTransportID == transport.getID()) {
+          ZS_LOG_DEBUG(log("found installed transport to remove") + installedTransport->toDebug())
+
+          mInstalledTransports.erase(current);
+          return;
+        }
+      }
+
+      ZS_LOG_WARNING(Detail, log("did not find installed transport") + ZS_PARAM("transport id", transport.getID()))
+    }
+
+    //-------------------------------------------------------------------------
+    PUID ICEGatherer::createRoute(
+                                  ICETransportPtr inTransport,
+                                  IICETypes::CandidatePtr sentFromLocalCanddiate,
+                                  const IPAddress &remoteIP
+                                  )
+    {
+      UseTransportPtr transport = inTransport;
+
+      ZS_THROW_INVALID_ARGUMENT_IF(!transport)
+      ZS_THROW_INVALID_ARGUMENT_IF(!sentFromLocalCanddiate)
+      ZS_THROW_INVALID_ARGUMENT_IF(remoteIP.isAddressEmpty())
+
+      CandidatePtr localCandidate;
+
+      String candidateHash = sentFromLocalCanddiate->hash();
+
+      {
+        AutoRecursiveLock lock(*this);
+
+        // NOTE: With the exception of tcp candidates, the candidates pointers
+        //       from the transport might not be the same candidate pointer
+        //       used by the ice gatherer. As such, we need to compare by hash
+        //       and not by candidate pointer match.
+
+        if (IICETypes::Protocol_TCP == sentFromLocalCanddiate->mProtocol) {
+          auto found = mTCPCandidateToTCPPorts.find(sentFromLocalCanddiate);
+          if (found != mTCPCandidateToTCPPorts.end()) {
+            localCandidate = sentFromLocalCanddiate;
+            goto install_route;
+          }
+        }
+
+        {
+          for (auto iter = mHostPorts.begin(); iter != mHostPorts.end(); ++iter) {
+            auto hostPort = (*iter).second;
+            if (IICETypes::Protocol_UDP == sentFromLocalCanddiate->mProtocol) {
+              if (hostPort->mCandidateUDP) {
+                if (hostPort->mCandidateUDP->hash() == candidateHash) {
+                  localCandidate = hostPort->mCandidateUDP;
+                  goto install_route;
+                }
+              }
+
+              for (auto iterRelay = hostPort->mRelayPorts.begin(); iterRelay != hostPort->mRelayPorts.end(); ++iterRelay) {
+                auto relayPort = (*iterRelay);
+                if (relayPort->mReflexiveCandidate) {
+                  if (relayPort->mReflexiveCandidate->hash() == candidateHash) {
+                    localCandidate = hostPort->mCandidateUDP;
+                    goto install_route;
+                  }
+                }
+                if (relayPort->mRelayCandidate) {
+                  if (relayPort->mRelayCandidate->hash() == candidateHash) {
+                    localCandidate = relayPort->mRelayCandidate;
+                    goto install_route;
+                  }
+                }
+              }
+              for (auto iterRelay = hostPort->mReflexivePorts.begin(); iterRelay != hostPort->mReflexivePorts.end(); ++iterRelay) {
+                auto reflexivePort = (*iterRelay);
+                if (reflexivePort->mCandidate) {
+                  if (reflexivePort->mCandidate->hash() == candidateHash) {
+                    localCandidate = hostPort->mCandidateUDP;
+                    goto install_route;
+                  }
+                }
+              }
+            }
+
+            if (IICETypes::Protocol_TCP == sentFromLocalCanddiate->mProtocol) {
+              if (hostPort->mCandidateTCP) {
+                if (hostPort->mCandidateTCP->hash() == candidateHash) {
+                  localCandidate = hostPort->mCandidateTCP;
+                  goto install_route;
+                }
+              }
+            }
+          }
+        }
+
+        goto no_install_route;
+      }
+
+    install_route:
+      {
+        auto route = installRoute(sentFromLocalCanddiate, remoteIP, transport, false);
+        if (!route) goto no_install_route;
+
+        ZS_LOG_DEBUG(log("route created for local transport") + ZS_PARAM("transport", transport->getID()) + route->toDebug())
+        return route->mID;
+      }
+
+    no_install_route:
+      {
+        ZS_LOG_WARNING(Detail, log("failed to install route") + ZS_PARAM("transport", transport->getID()) + sentFromLocalCanddiate->toDebug() + ZS_PARAM("remote ip", remoteIP.string()))
+      }
+
+      return 0;
+    }
+
+    //-------------------------------------------------------------------------
+    void ICEGatherer::removeRoute(PUID routeID)
+    {
+      AutoRecursiveLock lock(*this);
+
+      // scope: remote from route table
+      {
+        auto found = mRoutes.find(routeID);
+        if (found == mRoutes.end()) {
+          ZS_LOG_WARNING(Detail, log("route is not found") + ZS_PARAM("route id", routeID))
+          return;
+        }
+
+        if (found != mRoutes.end()) {
+          auto route = (*found).second;
+          ZS_LOG_DEBUG(log("removing route") + route->toDebug())
+          mRoutes.erase(found);
+        }
+      }
+
+      // scope: remove from candidate search table
+      {
+        for (auto iter_doNotUse = mRouteCandidateAndIPMappings.begin(); iter_doNotUse != mRouteCandidateAndIPMappings.end(); ) {
+          auto current = iter_doNotUse;
+          ++iter_doNotUse;
+
+          auto route = (*current).second;
+          if (route->mID != routeID) continue;
+
+          auto candidate = (*current).first.first;
+          auto remoteIP = (*current).first.second;
+
+          ZS_LOG_DEBUG(log("removing candidate / remote IP search route") + route->toDebug() + candidate->toDebug() + ZS_PARAM("remote ip", remoteIP.string()))
+
+          mRouteCandidateAndIPMappings.erase(current);
+          break;
+        }
+      }
+    }
+
+    //-------------------------------------------------------------------------
+    bool ICEGatherer::sendPacket(
+                                 PUID routeID,
+                                 const BYTE *buffer,
+                                 size_t bufferSizeInBytes
+                                 )
+    {
+      return false;
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark ICEGatherer => IGathererAsyncDelegate
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    void ICEGatherer::onNotifyDeliverRouteBufferedPackets(
+                                                          UseTransportPtr transport,
+                                                          PUID routeID
+                                                          )
+    {
+      BufferedPacketList deliverPackets;
+      RoutePtr route;
+
+      // check though buffer to see if there are any other packets fitting this criteria that can now be delivered
+      {
+        AutoRecursiveLock lock(*this);
+
+        auto found = mRoutes.find(routeID);
+        if (found == mRoutes.end()) {
+          ZS_LOG_WARNING(Detail, log("route was not found"))
+          return;
+        }
+
+        route = (*found).second;
+
+        for (auto iter_doNotUse = mBufferedPackets.begin(); iter_doNotUse != mBufferedPackets.end(); ) {
+          auto current = iter_doNotUse;
+          ++iter_doNotUse;
+
+          auto bufferedPacket = (*current);
+
+          if (bufferedPacket->mLocalCandidate != route->mLocalCandidate) continue;
+          if (bufferedPacket->mFrom != route->mFrom) continue;
+
+          deliverPackets.push_back(bufferedPacket);
+
+          mBufferedPackets.erase(current);
+        }
+      }
+
+      // scope: deliver buffered packets now
+      {
+        for (auto iter = deliverPackets.begin(); iter != deliverPackets.end(); ++iter) {
+          auto bufferedPacket = (*iter);
+
+          if (bufferedPacket->mSTUNPacket) {
+            ZS_LOG_TRACE(log("delivering buffered stun packet") + ZS_PARAM("transport", transport->getID()) + bufferedPacket->mSTUNPacket->toDebug())
+            transport->notifyPacket(route->mID, bufferedPacket->mSTUNPacket);
+            continue;
+          }
+
+          ZS_THROW_INVALID_ASSUMPTION_IF(!bufferedPacket->mBuffer)
+
+          ZS_LOG_TRACE(log("delivering buffered packet") + ZS_PARAM("transport", transport->getID()) + ZS_PARAM("buffer size", bufferedPacket->mBuffer->SizeInBytes()))
+          transport->notifyPacket(route->mID, *(bufferedPacket->mBuffer), bufferedPacket->mBuffer->SizeInBytes());
+          continue;
+        }
+      }
+    }
+
+    //-------------------------------------------------------------------------
+    void ICEGatherer::onNotifyAboutRemoveRoute(
+                                               UseTransportPtr transport,
+                                               PUID routeID
+                                               )
+    {
+      ZS_THROW_BAD_STATE_IF(!transport)
+
+      ZS_LOG_TRACE(log("notify transport about route removal") + ZS_PARAM("transport id", transport->getID()) + ZS_PARAM("route id", routeID))
+      transport->notifyRouteRemoved(routeID);
+    }
+
+    //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -597,6 +925,263 @@ namespace ortc
       AutoRecursiveLock lock(*this);
       step();
     }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark ICEGatherer => IDNSDelegate
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    void ICEGatherer::onLookupCompleted(IDNSQueryPtr query)
+    {
+      ZS_LOG_TRACE(log("on lookup complete") + ZS_PARAM("query", query->getID()))
+      AutoRecursiveLock lock(*this);
+      step();
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark ICEGatherer => ITimerDelegate
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    void ICEGatherer::onTimer(TimerPtr timer)
+    {
+      ZS_LOG_TRACE(log("on timer fired") + ZS_PARAM("timer", timer->getID()))
+      AutoRecursiveLock lock(*this);
+
+      if (mWarmUntilTimer == timer) {
+        ZS_LOG_TRACE(log("warm until timer fired"))
+
+        step();
+        return;
+      }
+
+      if (mCleanUpBufferingTimer == timer) {
+        ZS_LOG_TRACE(log("cleaning packet buffering"))
+
+        Time now = zsLib::now();
+
+        while (true) {
+          auto buffer = mBufferedPackets.front();
+          if (buffer->mTimestamp + mMaxBufferingTime > now) {
+            ZS_LOG_TRACE(log("buffering still needed") + buffer->toDebug())
+            return;
+          }
+
+          ZS_LOG_TRACE(log("buffering for too long") + buffer->toDebug())
+          mBufferedPackets.pop_front();
+        }
+
+        if (mBufferedPackets.empty()) {
+          ZS_LOG_TRACE(log("no longer need buffer cleanup timer as all buffers are gone"))
+          mCleanUpBufferingTimer->cancel();
+          mCleanUpBufferingTimer.reset();
+        }
+        return;
+      }
+
+      // scope: check to see if it is an activity timer
+      {
+        auto found = mRelayInactivityTimers.find(timer);
+        if (found != mRelayInactivityTimers.end()) {
+          ZS_LOG_TRACE(log("relay inactivity timer fired"))
+
+          auto relayPort = (*found).second;
+
+          if (relayPort->mInactivityTimer) {
+            relayPort->mInactivityTimer->cancel();
+            relayPort->mInactivityTimer.reset();
+          }
+
+          mRelayInactivityTimers.erase(found);
+        }
+      }
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark ICEGatherer => ISocketDelegate
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    void ICEGatherer::onReadReady(SocketPtr socket)
+    {
+      ZS_LOG_INSANE(log("socket read ready") + ZS_PARAM("socket", (PTRNUMBER)socket->getSocket()))
+
+      HostPortPtr hostPort;
+      TCPPortPtr tcpPort;
+
+      // scope: figure out which host port fired the event
+      {
+        AutoRecursiveLock lock(*this);
+
+        // first check host ports
+        {
+          auto found = mHostPortSockets.find(socket);
+          if (found != mHostPortSockets.end()) {
+            hostPort = (*found).second;
+            ZS_LOG_INSANE(log("read found host port") + hostPort->toDebug())
+            goto found_host_port;
+          }
+        }
+
+        // next check tcp ports
+        {
+          auto found = mTCPPorts.find(socket);
+          if (found != mTCPPorts.end()) {
+            tcpPort = (*found).second;
+            ZS_LOG_INSANE(log("read found tcp port") + tcpPort->toDebug())
+            goto found_tcp_socket;
+          }
+        }
+      }
+
+      goto not_found;
+
+    found_host_port:
+      {
+        // warning: do NOT call from within a lock
+        read(hostPort, socket);
+        return;
+      }
+
+    found_tcp_socket:
+      {
+        read(*tcpPort);
+        return;
+      }
+
+    not_found:
+      {
+        ZS_LOG_WARNING(Debug, log("socket read ready failed to find associated port") + ZS_PARAM("socket", (PTRNUMBER)socket->getSocket()))
+      }
+    }
+
+    //-------------------------------------------------------------------------
+    void ICEGatherer::onWriteReady(SocketPtr socket)
+    {
+      ZS_LOG_INSANE(log("socket write ready") + ZS_PARAM("socket", (PTRNUMBER)socket->getSocket()))
+
+      HostPortPtr hostPort;
+      TCPPortPtr tcpPort;
+
+      // scope: figure out which host port fired the event
+      {
+        AutoRecursiveLock lock(*this);
+
+        // first check host ports
+        {
+          auto found = mHostPortSockets.find(socket);
+          if (found != mHostPortSockets.end()) {
+            hostPort = (*found).second;
+            ZS_LOG_INSANE(log("write found host port") + hostPort->toDebug())
+            goto found_host_port;
+          }
+        }
+
+        // next check tcp ports
+        {
+          auto found = mTCPPorts.find(socket);
+          if (found != mTCPPorts.end()) {
+            tcpPort = (*found).second;
+            ZS_LOG_INSANE(log("write found tcp port") + tcpPort->toDebug())
+            goto found_tcp_socket;
+          }
+        }
+      }
+
+      goto not_found;
+
+    found_host_port:
+      {
+        // warning: do NOT call from within a lock
+        write(*hostPort, socket);
+        return;
+      }
+
+    found_tcp_socket:
+      {
+        write(*tcpPort);
+        return;
+      }
+
+    not_found:
+      {
+        ZS_LOG_WARNING(Debug, log("socket write ready failed to find associated port") + ZS_PARAM("socket", (PTRNUMBER)socket->getSocket()))
+      }
+    }
+
+    //-------------------------------------------------------------------------
+    void ICEGatherer::onException(SocketPtr socket)
+    {
+      ZS_LOG_WARNING(Debug, log("socket exception") + ZS_PARAM("socket", (PTRNUMBER)socket->getSocket()))
+
+      HostPortPtr hostPort;
+      TCPPortPtr tcpPort;
+
+      // scope: figure out which host port fired the event
+      {
+        AutoRecursiveLock lock(*this);
+
+        // first check host ports
+        {
+          auto found = mHostPortSockets.find(socket);
+          if (found != mHostPortSockets.end()) {
+            hostPort = (*found).second;
+            ZS_LOG_INSANE(log("exception found host port") + hostPort->toDebug())
+            goto found_host_port;
+          }
+        }
+
+        // next check tcp ports
+        {
+          auto found = mTCPPorts.find(socket);
+          if (found != mTCPPorts.end()) {
+            tcpPort = (*found).second;
+            ZS_LOG_INSANE(log("exception found tcp port") + tcpPort->toDebug())
+            goto found_tcp_socket;
+          }
+        }
+      }
+
+      goto not_found;
+
+    found_host_port:
+      {
+        // warning: do NOT call from within a lock
+        close(*hostPort, socket);
+        return;
+      }
+
+    found_tcp_socket:
+      {
+        close(*tcpPort);
+        return;
+      }
+
+    not_found:
+      {
+        ZS_LOG_WARNING(Debug, log("socket exception failed to find associated port") + ZS_PARAM("socket", (PTRNUMBER)socket->getSocket()))
+      }
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark ICEGatherer => (internal)
+    #pragma mark
 
     //-------------------------------------------------------------------------
     Log::Params ICEGatherer::log(const char *message) const
@@ -676,6 +1261,9 @@ namespace ortc
       if (!stepBindHostPorts()) goto not_complete;
       if (!stepWarmth()) goto not_complete;
       if (!stepSetupReflexive()) goto not_complete;
+      if (!stepTearDownReflexive()) goto not_complete;
+      if (!stepSetupRelay()) goto not_complete;
+      if (!stepTearDownRelay()) goto not_complete;
 
     not_complete:
       setState(InternalState_Gathering);
@@ -1257,6 +1845,8 @@ namespace ortc
 
         ZS_LOG_TRACE(log("host IP needs to be shutdown since host IP is no longer in used") + hostPort->toDebug())
         shutdown(*hostPort);
+
+        mHostPorts.erase(current);
       }
 
       ZS_LOG_DEBUG(log("host ports remaining active (after shutting down unused hosts)") + ZS_PARAM("total", mHostPorts.size()))
@@ -1289,6 +1879,14 @@ namespace ortc
       if (mHostsHash == mLastBoundHostPortsHostHash) {
         ZS_LOG_TRACE(log("host ports have not changed (thus no need to bind ports)"))
         return true;
+      }
+
+      if (mBindBackOffTimer) {
+        Time retryAfter = mBindBackOffTimer->getNextRetryAfterTime();
+        if (zsLib::now() < retryAfter) {
+          ZS_LOG_WARNING(Trace, log("not ready to retry binding just yet"))
+          return true;
+        }
       }
 
       bool allBound = true;
@@ -1366,11 +1964,13 @@ namespace ortc
         return true;
       }
 
+      ZS_LOG_WARNING(Debug, log("not all sockets bound"))
+
       if (!mBindBackOffTimer) {
         mBindBackOffTimer = IBackOffTimer::create<Seconds>(UseSettings::getString(ORTC_SETTING_GATHERER_BIND_BACK_OFF_TIMER), mThisWeak.lock());
+      } else {
+        mBindBackOffTimer->notifyFailure();
       }
-
-      ZS_LOG_WARNING(Debug, log("not all sockets bound"))
 
       // allow creation of reflexive and relay candidates (even though not everything was bound)
       return true;
@@ -1384,6 +1984,9 @@ namespace ortc
         if (mWarmUntil <= now) {
           ZS_LOG_DEBUG(log("no longer need to keep candidates warm"))
           mWarmUntil = Time();
+
+          mLastReflexiveHostsHash.clear();
+          mLastRelayHostsHash.clear();
 
           if (mWarmUntilTimer) {
             mWarmUntilTimer->cancel();
@@ -1429,6 +2032,11 @@ namespace ortc
         ZS_LOG_DEBUG(log("created timer to keep candidates warm") + ZS_PARAM("timer", mWarmUntilTimer->getID()))
       }
 
+      mLastCandidatesWarmUntilOptionsHash = mOptionsHash;
+
+      mLastReflexiveHostsHash.clear();
+      mLastRelayHostsHash.clear();
+
       return true;
     }
 
@@ -1443,7 +2051,7 @@ namespace ortc
       }
 
       if (mHostsHash == mLastReflexiveHostsHash) {
-        ZS_LOG_TRACE(log("reflexive server options have not changed (thus no need to setup reflexive ports)"))
+        ZS_LOG_TRACE(log("hosts have not changed (thus no need to setup reflexive ports)"))
         return true;
       }
 
@@ -1455,6 +2063,31 @@ namespace ortc
         if (!hostPort->mBoundUDPSocket) {
           ZS_LOG_WARNING(Trace, log("cannot setup reflexive until local socket is bound"))
           allSetup = false;
+          continue;
+        }
+
+        bool filterOut = false;
+
+        if (hostPort->mHostData->mIP.isIPv4()) {
+          if (0 != (hostPort->mHostData->mFilterPolicy & FilterPolicy_NoIPv4Srflx)) {
+            ZS_LOG_TRACE(log("filtering out IPv4 server reflexive (thus do not setup)"))
+            filterOut = true;
+          }
+        } else {
+          if (0 != (hostPort->mHostData->mFilterPolicy & FilterPolicy_NoIPv6Srflx)) {
+            ZS_LOG_TRACE(log("filtering out IPv6 server reflexive (thus do not setup)"))
+            filterOut = true;
+          }
+        }
+
+        if (filterOut) {
+          for (auto iterReflex = hostPort->mReflexivePorts.begin(); iterReflex != hostPort->mReflexivePorts.end(); ++iterReflex) {
+            auto reflexivePort = (*iterReflex);
+
+            ZS_LOG_TRACE(log("shutting down reflexive port (since being filtered)") + reflexivePort->toDebug())
+            shutdown(*reflexivePort);
+          }
+          hostPort->mReflexivePorts.clear();
           continue;
         }
 
@@ -1575,6 +2208,807 @@ namespace ortc
       return true;
     }
 
+    //-------------------------------------------------------------------------
+    bool ICEGatherer::stepTearDownReflexive()
+    {
+      if (Time() != mWarmUntil) {
+        ZS_LOG_TRACE(log("no reflexive candidates should be torn down at this time (being kept warm)"))
+        return true;
+      }
+
+      if (mHostsHash == mLastReflexiveHostsHash) {
+        ZS_LOG_TRACE(log("hosts have not changed (thus no need to tear down reflexive ports)"))
+        return true;
+      }
+
+      for (auto iter = mHostPorts.begin(); iter != mHostPorts.end(); ++iter) {
+        auto hostPort = (*iter).second;
+
+        for (auto iterReflex = hostPort->mReflexivePorts.begin(); iterReflex != hostPort->mReflexivePorts.end(); ++iterReflex) {
+          auto reflexivePort = (*iterReflex);
+
+          ZS_LOG_DEBUG(log("reflexive port no longer being kept warm") + reflexivePort->toDebug())
+          shutdown(*reflexivePort);
+        }
+
+        hostPort->mReflexivePorts.clear();
+      }
+
+      ZS_LOG_DEBUG(log("all reflexive candidates are torn down (no longer being kept warm)"))
+      mLastReflexiveHostsHash = mHostsHash;
+
+      return true;
+    }
+
+    //-------------------------------------------------------------------------
+    bool ICEGatherer::stepSetupRelay()
+    {
+      typedef std::map<String, bool> HashMap;
+
+      if (Time() == mWarmUntil) {
+        ZS_LOG_TRACE(log("no relay candidates should be setup at this time (not being kept warm)"))
+        return true;
+      }
+
+      if (mHostsHash == mLastRelayHostsHash) {
+        ZS_LOG_TRACE(log("hosts have not changed (thus no need to setup relay ports)"))
+        return true;
+      }
+
+      Time now = zsLib::now();
+
+      bool allSetup = true;
+
+      for (auto iter = mHostPorts.begin(); iter != mHostPorts.end(); ++iter) {
+        auto hostPort = (*iter).second;
+
+        if (!hostPort->mBoundUDPSocket) {
+          ZS_LOG_WARNING(Trace, log("cannot setup relay until local socket is bound"))
+          allSetup = false;
+          continue;
+        }
+
+        bool filterOut = false;
+
+        if (hostPort->mHostData->mIP.isIPv4()) {
+          if (0 != (hostPort->mHostData->mFilterPolicy & FilterPolicy_NoIPv4Relay)) {
+            ZS_LOG_TRACE(log("filtering out IPv4 relay (thus do not setup)"))
+            filterOut = true;
+          }
+        } else {
+          if (0 != (hostPort->mHostData->mFilterPolicy & FilterPolicy_NoIPv6Relay)) {
+            ZS_LOG_TRACE(log("filtering out IPv6 relay (thus do not setup)"))
+            filterOut = true;
+          }
+        }
+
+        if (filterOut) {
+          for (auto iterRelay = hostPort->mRelayPorts.begin(); iterRelay != hostPort->mRelayPorts.end(); ++iterRelay) {
+            auto relayPort = (*iterRelay);
+
+            ZS_LOG_TRACE(log("shutting down relay port (since being filtered)") + relayPort->toDebug())
+            shutdown(*relayPort, *hostPort);
+          }
+          hostPort->mRelayPorts.clear();
+          continue;
+        }
+
+        bool hostPortSetup = true;
+
+        if (hostPort->mRelayOptionsHash == mOptionsHash) {
+          ZS_LOG_TRACE(log("already setup relay candidates"))
+          continue;
+        }
+
+        HashMap foundServers;
+
+        for (auto iterOptions = mOptions.mICEServers.begin(); iterOptions != mOptions.mICEServers.end(); ++iterOptions) {
+          auto server = (*iterOptions);
+          if (!isServerType(server, "turn:")) continue;
+
+          String serverHash = server.hash();
+
+          foundServers[serverHash] = true;
+
+          RelayPortPtr relayPort;
+
+          for (auto iterRelay = hostPort->mRelayPorts.begin(); iterRelay != hostPort->mRelayPorts.end(); ++iterRelay) {
+            relayPort = (*iterRelay);
+
+            if (relayPort->mServer.hash() != serverHash) continue;
+
+            if (mOptionsHash != relayPort->mOptionsHash) {
+              shutdown(*relayPort, *hostPort);
+              relayPort->mOptionsHash.clear();
+            }
+
+            goto found_server;
+          }
+
+          goto not_found_server;
+
+        not_found_server:
+          {
+            relayPort = RelayPortPtr(new RelayPort);
+            relayPort->mServer = server;
+
+            hostPort->mRelayPorts.push_back(relayPort);
+          }
+
+        found_server:
+          {
+            relayPort->mOptionsHash = mOptionsHash;
+
+            if (!relayPort->mTURNSocket) {
+              ZS_LOG_DEBUG(log("setting up turn socket") + server.toDebug())
+
+              Seconds keepAliveTime;
+
+              auto keepAliveInSeconds = UseSettings::getUInt(ORTC_SETTING_GATHERER_DEFAULT_STUN_KEEP_ALIVE_IN_SECONDS);
+              if (0 != keepAliveInSeconds) {
+                keepAliveTime = Seconds(keepAliveInSeconds);
+              }
+
+              relayPort->mTURNSocket = UseTURNSocket::create(
+                                                             UseServicesHelper::getServiceQueue(),
+                                                             mThisWeak.lock(),
+                                                             createDNSLookupString(server, "turn:"),
+                                                             relayPort->mServer.mUserName,
+                                                             relayPort->mServer.mCredential,
+                                                             true
+                                                             );
+              ZS_THROW_UNEXPECTED_ERROR_IF(!relayPort->mTURNSocket)
+
+              mTURNSockets[relayPort->mTURNSocket] = HostAndRelayPortPair(hostPort, relayPort);
+            }
+
+            bool notReady = false;
+
+            switch (relayPort->mTURNSocket->getState()) {
+              case UseTURNSocket::TURNSocketState_Pending: {
+                ZS_LOG_TRACE(log("still waiting for TURN socket to be ready") + relayPort->toDebug())
+                notReady = hostPortSetup = allSetup = false;
+                break;
+              }
+              case UseTURNSocket::TURNSocketState_Ready: {
+                ZS_LOG_TRACE(log("TURN socket is ready") + relayPort->toDebug())
+                if (Time() == relayPort->mLastSentData) {
+                  relayPort->mLastSentData = now;
+                }
+                if (relayPort->mServerResponseIP.isAddressEmpty()) {
+                  relayPort->mServerResponseIP = relayPort->mTURNSocket->getServerResponseIP();
+                  hostPort->mIPToRelayPortMapping[relayPort->mServerResponseIP] = relayPort;
+                }
+                break;
+              }
+              case UseTURNSocket::TURNSocketState_ShuttingDown:
+              case UseTURNSocket::TURNSocketState_Shutdown: {
+                ZS_LOG_WARNING(Trace, log("TURN socket is shutdown") + relayPort->toDebug())
+                notReady = true;
+                if (!relayPort->mServerResponseIP.isAddressEmpty()) {
+                  auto found = hostPort->mIPToRelayPortMapping.find(relayPort->mServerResponseIP);
+                  if (found != hostPort->mIPToRelayPortMapping.end()) {
+                    hostPort->mIPToRelayPortMapping.erase(found);
+                  }
+                }
+                if (relayPort->mRelayCandidate) {
+                  removeCandidate(relayPort->mRelayCandidate);
+                  relayPort->mRelayCandidate.reset();
+                }
+                if (relayPort->mReflexiveCandidate) {
+                  removeCandidate(relayPort->mReflexiveCandidate);
+                  relayPort->mReflexiveCandidate.reset();
+                }
+                // NOTE: not going to do a shutdown because we want to leave TURN server in failed state to prevent reattempted connections
+                break;
+              }
+            }
+
+            if (notReady) continue;
+
+            if (relayPort->mRelayCandidate) {
+              ZS_LOG_TRACE(log("already have candidate"))
+              continue;
+            }
+
+            IPAddress relayIP = relayPort->mTURNSocket->getRelayedIP();
+            if (relayIP.isAddressEmpty()) {
+              ZS_LOG_WARNING(Debug, log("failed to obtain server relay address") + hostPort->toDebug() + server.toDebug())
+              continue;
+            }
+
+            relayPort->mRelayCandidate = createCandidate(hostPort->mHostData, IICETypes::CandidateType_Relay, hostPort->mBoundUDPIP, relayIP, server);
+
+            ZS_LOG_DEBUG(log("found relay candidate") + relayPort->mRelayCandidate->toDebug())
+
+            IPAddress mappedIP = relayPort->mTURNSocket->getReflectedIP();
+            if (mappedIP.isAddressEmpty()) {
+              ZS_LOG_WARNING(Debug, log("failed to obtain server relay mapped address") + hostPort->toDebug() + server.toDebug())
+              continue;
+            }
+
+            relayPort->mReflexiveCandidate = createCandidate(hostPort->mHostData, IICETypes::CandidateType_Srflex, hostPort->mBoundUDPIP, mappedIP, server);
+            continue;
+          }
+        }
+
+        ZS_LOG_TRACE(log("scan through relay ports for servers no longer in use"))
+
+        for (auto iterRelay_doNotUse = hostPort->mRelayPorts.begin(); iterRelay_doNotUse != hostPort->mRelayPorts.end(); ) {
+          auto currentRelay = iterRelay_doNotUse;
+          ++iterRelay_doNotUse;
+
+          auto relayPort = (*currentRelay);
+          String hash = relayPort->mServer.hash();
+
+          auto found = foundServers.find(hash);
+          if (found != foundServers.end()) continue;
+
+          ZS_LOG_DEBUG(log("relay server no longer required (thus shutting down)") + relayPort->mServer.toDebug())
+
+          shutdown(*relayPort, *hostPort);
+          hostPort->mRelayPorts.erase(currentRelay);
+        }
+        
+        if (hostPortSetup) {
+          hostPort->mRelayOptionsHash = mOptionsHash;
+        }
+      }
+
+      if (allSetup) {
+        ZS_LOG_DEBUG(log("all relay candidates are prepared (or failed)"))
+        mLastRelayHostsHash = mHostsHash;
+      }
+      
+      return true;
+    }
+
+    //-------------------------------------------------------------------------
+    bool ICEGatherer::stepTearDownRelay()
+    {
+      if (Time() != mWarmUntil) {
+        ZS_LOG_TRACE(log("no relay candidates should be torn down at this time (being kept warm)"))
+        return true;
+      }
+
+      if (mHostsHash == mLastRelayHostsHash) {
+        ZS_LOG_TRACE(log("hosts have not changed (thus no need to tear down relay ports)"))
+        return true;
+      }
+
+      bool allDone = true;
+
+      Time now = zsLib::now();
+
+      for (auto iter = mHostPorts.begin(); iter != mHostPorts.end(); ++iter) {
+        auto hostPort = (*iter).second;
+
+        for (auto iterRelay_doNotUse = hostPort->mRelayPorts.begin(); iterRelay_doNotUse != hostPort->mRelayPorts.end(); ) {
+          auto currentRelay = iterRelay_doNotUse;
+          ++iterRelay_doNotUse;
+
+          auto relayPort = (*currentRelay);
+          if (Time() == relayPort->mLastSentData) goto shutdown_relay;
+          if (relayPort->mLastSentData + mRelayInactivityTime <= now) goto shutdown_relay;
+
+          if (!relayPort->mInactivityTimer) {
+            Time fireAt = relayPort->mLastSentData + mRelayInactivityTime;
+            relayPort->mInactivityTimer = Timer::create(mThisWeak.lock(), fireAt);
+            mRelayInactivityTimers[relayPort->mInactivityTimer] = relayPort;
+            ZS_LOG_TRACE(log("setup relay inactivity timeout") + ZS_PARAMIZE(fireAt) + relayPort->toDebug())
+          }
+          goto wait_until_inactive;
+
+        wait_until_inactive:
+          {
+            ZS_LOG_TRACE(log("relay port still active thus cannot shutdown") + relayPort->toDebug())
+            allDone = false;
+            continue;
+          }
+
+        shutdown_relay:
+          {
+            ZS_LOG_DEBUG(log("relay port no longer being kept warm (and is currently inactive)") + relayPort->toDebug())
+            shutdown(*relayPort, *hostPort);
+            hostPort->mRelayPorts.erase(currentRelay);
+          }
+        }
+
+        hostPort->mRelayPorts.clear();
+      }
+
+      if (allDone) {
+        ZS_LOG_DEBUG(log("all reflexive candidates are torn down (no longer being kept warm)"))
+        mLastRelayHostsHash = mHostsHash;
+      }
+
+      return true;
+    }
+
+    //-------------------------------------------------------------------------
+    void ICEGatherer::cancel()
+    {
+      if (isShutdown()) {
+        ZS_LOG_TRACE(log("already shutdown"))
+        return;
+      }
+
+      ZS_LOG_DEBUG(log("cancel"))
+
+      setState(InternalState_ShuttingDown);
+
+      if (!mGracefulShutdownReference) mGracefulShutdownReference = mThisWeak.lock();
+
+
+
+      ZS_LOG_TRACE(log("cancel complete"))
+
+      setState(InternalState_Shutdown);
+
+      mGracefulShutdownReference.reset();
+    }
+
+    //-------------------------------------------------------------------------
+    void ICEGatherer::setState(InternalStates state)
+    {
+      if (state == mCurrentState) return;
+
+      ZS_LOG_DEBUG(log("state changed") + ZS_PARAM("new state", toString(state)) + ZS_PARAM("old state", toString(mCurrentState)))
+
+      auto oldState = toState(mCurrentState);
+      auto newState = toState(state);
+
+      mCurrentState = state;
+
+      auto pThis = mThisWeak.lock();
+      if ((pThis) &&
+          (oldState != newState)) {
+        ZS_LOG_TRACE(log("reporting state change to delegates") + ZS_PARAM("new state", IICEGathererTypes::toString(newState)) + ZS_PARAM("old state", IICEGathererTypes::toString(oldState)))
+        mSubscriptions.delegate()->onICEGathererStateChanged(pThis, newState);
+      }
+    }
+
+    //-------------------------------------------------------------------------
+    void ICEGatherer::setError(WORD error, const char *reason)
+    {
+      if (0 == error) return;
+      if (0 != mLastError) return;
+
+      mLastError = error;
+      mLastErrorReason = String(reason);
+      if (mLastErrorReason.isEmpty()) mLastErrorReason = UseHTTP::toString(UseHTTP::toStatusCode(mLastError));
+
+      ZS_LOG_WARNING(Detail, log("error set") + ZS_PARAMIZE(mLastError) + ZS_PARAMIZE(mLastErrorReason))
+    }
+    
+    //-------------------------------------------------------------------------
+    bool ICEGatherer::hasSTUNServers()
+    {
+      if (mOptionsHash == mHasSTUNServersHash) {
+        return mHasSTUNServers;
+      }
+
+      mHasSTUNServersHash = mOptionsHash;
+      mHasSTUNServers = false;
+
+      for (auto iter = mOptions.mICEServers.begin(); iter != mOptions.mICEServers.end(); ++iter) {
+        auto server = (*iter);
+        if (isServerType(server, "stun:")) {
+          ZS_LOG_TRACE(log("found stun server") + server.toDebug())
+          mHasSTUNServers = true;
+          return mHasSTUNServers;
+        }
+      }
+      return mHasSTUNServers;
+    }
+
+    //-------------------------------------------------------------------------
+    bool ICEGatherer::hasTURNServers()
+    {
+      if (mOptionsHash == mHasTURNServersHash) {
+        return mHasTURNServers;
+      }
+
+      mHasTURNServersHash = mOptionsHash;
+      mHasTURNServers = false;
+
+      for (auto iter = mOptions.mICEServers.begin(); iter != mOptions.mICEServers.end(); ++iter) {
+        auto server = (*iter);
+        if (isServerType(server, "turn:")) {
+          ZS_LOG_TRACE(log("found turn server") + server.toDebug())
+          mHasTURNServers = true;
+          return mHasTURNServers;
+        }
+      }
+      return mHasTURNServers;
+    }
+
+    //-------------------------------------------------------------------------
+    bool ICEGatherer::isServerType(
+                                   const Server &server,
+                                   const char *urlPrefix
+                                   ) const
+    {
+      size_t length = strlen(urlPrefix);
+
+      if (server.mURLs.size() < 1) {
+        ZS_LOG_INSANE(log("server is not of url search type (no URLs found)") + server.toDebug() + ZS_PARAMIZE(urlPrefix))
+        return false;
+      }
+
+      for (auto iterURLs = server.mURLs.begin(); iterURLs != server.mURLs.end(); ++iterURLs) {
+        const String &url = (*iterURLs);
+        if (0 != url.compare(0, length, urlPrefix)) {
+          ZS_LOG_INSANE(log("server is not of url search type") + server.toDebug() + ZS_PARAMIZE(url) + ZS_PARAMIZE(urlPrefix))
+          return false;
+        }
+
+        ZS_LOG_INSANE(log("found server of url search type") + server.toDebug() + ZS_PARAMIZE(url) + ZS_PARAMIZE(urlPrefix))
+      }
+
+      return true;
+    }
+
+    //-------------------------------------------------------------------------
+    String ICEGatherer::createDNSLookupString(
+                                              const Server &server,
+                                              const char *urlPrefix
+                                              ) const
+    {
+      size_t length = strlen(urlPrefix);
+
+      String result;
+
+      if (server.mURLs.size() < 1) {
+        ZS_LOG_INSANE(log("server is not of url search type (no URLs found)") + server.toDebug() + ZS_PARAMIZE(urlPrefix))
+        return result;
+      }
+
+      for (auto iterURLs = server.mURLs.begin(); iterURLs != server.mURLs.end(); ++iterURLs) {
+        const String &url = (*iterURLs);
+        if (0 != url.compare(0, length, urlPrefix)) {
+          ZS_LOG_INSANE(log("server is not of url search type") + server.toDebug() + ZS_PARAMIZE(url) + ZS_PARAMIZE(urlPrefix))
+          continue;
+        }
+
+        ZS_LOG_INSANE(log("found server of url search type") + server.toDebug() + ZS_PARAMIZE(url) + ZS_PARAMIZE(urlPrefix))
+
+        String dnsStr = url.substr(length);
+
+        if (result.hasData()) {
+          result += "," + dnsStr;
+        } else {
+          result = dnsStr;
+        }
+      }
+
+      return result;
+    }
+
+    //-------------------------------------------------------------------------
+    bool ICEGatherer::needsHostPort(HostIPSorter::DataPtr hostData)
+    {
+      auto policy = hostData->mFilterPolicy;
+      if (hostData->mIP.isIPv4()) {
+        if (0 == (FilterPolicy_NoIPv4Host & policy)) {
+          ZS_LOG_TRACE(log("host port needed because peer host ports are not filtered"))
+          return true;
+        }
+        if (0 == (FilterPolicy_NoIPv4Prflx & policy)) {
+          ZS_LOG_TRACE(log("host port needed because peer reflexive ports are not filtered"))
+          return true;
+        }
+        if (0 == (FilterPolicy_NoIPv4Srflx & policy)) {
+          if (hasSTUNServers()) {
+            ZS_LOG_TRACE(log("host port needed because server reflexive ports are not filtered"))
+            return true;
+          }
+        }
+        if (0 == (FilterPolicy_NoIPv4Srflx & policy)) {
+          if (hasTURNServers()) {
+            ZS_LOG_TRACE(log("host port needed because relay ports are not filtered"))
+            return true;
+          }
+        }
+        ZS_LOG_TRACE(log("IPv4 host is being filtered") + hostData->toDebug())
+        return false;
+      }
+      if (hostData->mIP.isIPv6())  {
+        if ((hostData->mIP.isIPv4Mapped()) ||
+            (hostData->mIP.isIPv4Compatible()) ||
+            (hostData->mIP.isIPv46to4()) ||
+            (hostData->mIP.isTeredoTunnel()) ||
+            (hostData->mInterfaceType == InterfaceType_Tunnel)) {
+          if (0 != (FilterPolicy_NoIPv6Tunnel & policy)) {
+            ZS_LOG_TRACE(log("host port is not needed because peer host does not allow IPv6 tunnel address"))
+            return false;
+          }
+        }
+        if (!hostData->mIsTemporaryIP) {
+          if (0 != (FilterPolicy_NoIPv6Permanent & policy)) {
+            ZS_LOG_TRACE(log("host port is not needed because permanent IP addresses are not allowed"))
+            return false;
+          }
+        }
+        if (0 == (FilterPolicy_NoIPv6Host & policy)) {
+          ZS_LOG_TRACE(log("host port needed because peer host ports are not filtered"))
+          return true;
+        }
+        if (0 == (FilterPolicy_NoIPv6Prflx & policy)) {
+          ZS_LOG_TRACE(log("host port needed because peer reflexive ports are not filtered"))
+          return true;
+        }
+        if (0 == (FilterPolicy_NoIPv6Srflx & policy)) {
+          if (hasSTUNServers()) {
+            ZS_LOG_TRACE(log("host port needed because server reflexive ports are not filtered"))
+            return true;
+          }
+        }
+        if (0 == (FilterPolicy_NoIPv6Srflx & policy)) {
+          if (hasTURNServers()) {
+            ZS_LOG_TRACE(log("host port needed because relay ports are not filtered"))
+            return true;
+          }
+        }
+        ZS_LOG_TRACE(log("IPv4 host is being filtered") + hostData->toDebug())
+        return false;
+      }
+      
+      return false;
+    }
+    
+    //-------------------------------------------------------------------------
+    void ICEGatherer::shutdown(HostPort &hostPort)
+    {
+      ZS_LOG_TRACE(log("shutting down host port") + hostPort.toDebug())
+
+      // scope: shutdown reflexive ports
+      {
+        for (auto iter = hostPort.mReflexivePorts.begin(); iter != hostPort.mReflexivePorts.end(); ++iter)
+        {
+          auto reflexivePort = (*iter);
+          shutdown(*reflexivePort);
+        }
+        hostPort.mReflexivePorts.clear();
+      }
+
+      // scope: shutdown relay ports
+      {
+        for (auto iter = hostPort.mRelayPorts.begin(); iter != hostPort.mRelayPorts.end(); ++iter)
+        {
+          auto relayPort = (*iter);
+          shutdown(*relayPort, hostPort);
+        }
+        hostPort.mRelayPorts.clear();
+      }
+
+      // scope: shutdown TCP ports
+      {
+        for (auto iter_doNotuse = hostPort.mTCPPorts.begin(); iter_doNotuse != hostPort.mTCPPorts.end(); )
+        {
+          auto current = iter_doNotuse;
+          ++iter_doNotuse;
+
+          auto tcpPort = (*current).second;
+
+          shutdown(*tcpPort); // WARNING: shutdown of the tcp port will remove from hostPort's entry
+        }
+
+        hostPort.mTCPPorts.clear();
+      }
+
+      removeCandidate(hostPort.mCandidateUDP);
+      removeCandidate(hostPort.mCandidateTCP);
+
+      hostPort.mCandidateUDP.reset();
+      hostPort.mCandidateTCP.reset();
+
+      if (hostPort.mBoundUDPSocket) {
+        auto found = mHostPortSockets.find(hostPort.mBoundUDPSocket);
+        if (found != mHostPortSockets.end()) {
+          mHostPortSockets.erase(found);
+        }
+        try {
+          hostPort.mBoundUDPSocket->close();
+        } catch(Socket::Exceptions::Unspecified &error) {
+          ZS_LOG_ERROR(Detail, log("failed to close udp socket") + ZS_PARAM("error", error.errorCode()))
+        }
+        hostPort.mBoundUDPSocket.reset();
+      }
+
+      if (hostPort.mBoundTCPSocket) {
+        auto found = mHostPortSockets.find(hostPort.mBoundTCPSocket);
+        if (found != mHostPortSockets.end()) {
+          mHostPortSockets.erase(found);
+        }
+        try {
+          hostPort.mBoundTCPSocket->close();
+        } catch(Socket::Exceptions::Unspecified &error) {
+          ZS_LOG_ERROR(Detail, log("failed to close tcp socket") + ZS_PARAM("error", error.errorCode()))
+        }
+        hostPort.mBoundTCPSocket.reset();
+      }
+    }
+
+    //-------------------------------------------------------------------------
+    void ICEGatherer::shutdown(ReflexivePort &reflexivePort)
+    {
+      ZS_LOG_TRACE(log("shutting down reflexive port") + reflexivePort.toDebug())
+
+      if (reflexivePort.mSTUNDiscovery) {
+        auto found = mSTUNDiscoveries.find(reflexivePort.mSTUNDiscovery);
+        if (found != mSTUNDiscoveries.end()) {
+          mSTUNDiscoveries.erase(found);
+        }
+        reflexivePort.mSTUNDiscovery->cancel();
+        reflexivePort.mSTUNDiscovery.reset();
+      }
+
+      removeCandidate(reflexivePort.mCandidate);
+
+      reflexivePort.mCandidate.reset();
+    }
+
+    //-------------------------------------------------------------------------
+    void ICEGatherer::shutdown(
+                               RelayPort &relayPort,
+                               HostPort &ownerHostPort
+                               )
+    {
+      ZS_LOG_TRACE(log("shutting down relay port") + relayPort.toDebug())
+
+      if (relayPort.mTURNSocket) {
+        auto found = mTURNSockets.find(relayPort.mTURNSocket);
+        if (found != mTURNSockets.end()) {
+          mTURNSockets.erase(found);
+        }
+        relayPort.mTURNSocket->shutdown();
+        relayPort.mTURNSocket.reset();
+      }
+      if (relayPort.mInactivityTimer) {
+        auto found = mRelayInactivityTimers.find(relayPort.mInactivityTimer);
+        if (found != mRelayInactivityTimers.end()) {
+          mRelayInactivityTimers.erase(found);
+        }
+        relayPort.mInactivityTimer->cancel();
+        relayPort.mInactivityTimer.reset();
+      }
+
+      removeCandidate(relayPort.mRelayCandidate);
+      removeCandidate(relayPort.mRelayCandidate);
+
+      relayPort.mRelayCandidate.reset();
+      relayPort.mReflexiveCandidate.reset();
+
+      if (!relayPort.mServerResponseIP.isAddressEmpty()) {
+        auto found = ownerHostPort.mIPToRelayPortMapping.find(relayPort.mServerResponseIP);
+        if (found != ownerHostPort.mIPToRelayPortMapping.end()) {
+          ownerHostPort.mIPToRelayPortMapping.erase(found);
+        }
+      }
+    }
+
+    //-------------------------------------------------------------------------
+    void ICEGatherer::shutdown(TCPPort &tcpPort)
+    {
+      ZS_LOG_TRACE(log("shutting down tcp port") + tcpPort.toDebug())
+
+      if (tcpPort.mCandidate) {
+        auto found = mTCPCandidateToTCPPorts.find(tcpPort.mCandidate);
+        if (found != mTCPCandidateToTCPPorts.end()) {
+          mTCPCandidateToTCPPorts.erase(found);
+        }
+      }
+
+      if (tcpPort.mSocket) {
+        // remove from host port mapping
+        {
+          auto found = tcpPort.mHostPort->mTCPPorts.find(tcpPort.mSocket);
+          if (found != tcpPort.mHostPort->mTCPPorts.end()) {
+            tcpPort.mHostPort->mTCPPorts.erase(found);
+          }
+        }
+
+        // remove from tcp port mapping
+        {
+          auto found = mTCPPorts.find(tcpPort.mSocket);
+          if (found != mTCPPorts.end()) {
+            mTCPPorts.erase(found);
+          }
+        }
+
+        try {
+          tcpPort.mSocket->close();
+        } catch (Socket::Exceptions::Unspecified &error) {
+          ZS_LOG_ERROR(Detail, log("failed to close tcp port socket") + ZS_PARAM("error", error.errorCode()))
+        }
+
+        tcpPort.mSocket.reset();
+      }
+
+      tcpPort.mIncomingBuffer.Clear();
+      tcpPort.mOutgoingBuffer.Clear();
+    }
+
+    //-------------------------------------------------------------------------
+    SocketPtr ICEGatherer::bind(
+                                IPAddress &ioBindIP,
+                                IICETypes::Protocols protocol
+                                )
+    {
+      ZS_LOG_DEBUG(log("attempting to bind to IP") + ZS_PARAM("ip", ioBindIP.string()))
+
+      SocketPtr socket;
+
+      try {
+        switch (protocol) {
+          case IICETypes::Protocol_UDP: socket = Socket::createUDP();
+          case IICETypes::Protocol_TCP: socket = Socket::createTCP();
+        }
+
+        if (0 != mDefaultPort) {
+          if (!mBindBackOffTimer) {
+            // only bind using the default port while there is no backoff timer
+            ioBindIP.setPort(mDefaultPort);
+          }
+        }
+
+        socket->bind(ioBindIP);
+        socket->setBlocking(false);
+
+        try {
+#ifndef __QNX__
+          socket->setOptionFlag(Socket::SetOptionFlag::IgnoreSigPipe, true);
+#endif //ndef __QNX__
+        } catch(Socket::Exceptions::UnsupportedSocketOption &) {
+        }
+
+        IPAddress local = socket->getLocalAddress();
+
+        socket->setDelegate(mThisWeak.lock());
+
+        WORD bindPort = local.getPort();
+        ioBindIP.setPort(bindPort);
+        if (0 == mDefaultPort) {
+          mDefaultPort = bindPort;
+          ZS_LOG_TRACE(log("selected default bind port") + ZS_PARAMIZE(mDefaultPort))
+        }
+        ZS_THROW_CUSTOM_PROPERTIES_1_IF(Socket::Exceptions::Unspecified, 0 == bindPort, 0)
+      } catch(Socket::Exceptions::Unspecified &error) {
+        ZS_LOG_ERROR(Detail, log("bind error") + ZS_PARAM("error", error.errorCode()))
+        socket.reset();
+        goto bind_failure;
+      }
+
+      switch (protocol) {
+        case IICETypes::Protocol_UDP: break;
+        case IICETypes::Protocol_TCP: {
+          try {
+            ZS_LOG_DEBUG(log("attemping to listen for incoming socket connections"))
+            socket->listen();
+          } catch(Socket::Exceptions::Unspecified &error) {
+            ZS_LOG_ERROR(Detail, log("listen error") + ZS_PARAM("error", error.errorCode()))
+            socket.reset();
+            goto bind_failure;
+          }
+        }
+      }
+
+      goto bind_success;
+
+    bind_success:
+      {
+        ZS_LOG_DEBUG(log("bind successful") + ZS_PARAM("bind ip", ioBindIP.string()))
+        return socket;
+      }
+
+    bind_failure:
+      {
+        ZS_LOG_WARNING(Debug, log("bind failure") + ZS_PARAM("bind ip", ioBindIP.string()))
+      }
+      return SocketPtr();
+    }
+    
     //-------------------------------------------------------------------------
     IICETypes::CandidatePtr ICEGatherer::createCandidate(
                                                          HostIPSorter::DataPtr hostData,
@@ -1716,20 +3150,40 @@ namespace ortc
     {
       if (!candidate) return;
 
+      if (candidate->mCandidateType == IICETypes::CandidateType_Prflx) {
+        ZS_LOG_TRACE(log("must filter out peer reflexive candidates as they do not get notified"))
+        return;
+      }
+
       if (isFiltered(hostData.mFilterPolicy, ip, *candidate)) {
         ZS_LOG_TRACE(log("this candidate is filtered") + candidate->toDebug())
         return;
       }
 
       String hash = candidate->hash();
+      String uniqueHash = candidate->hash(false);
 
-      auto found = mLocalCandidates.find(hash);
-      if (found != mLocalCandidates.end()) {
+      if (mLocalCandidates.find(hash) != mLocalCandidates.end()) {
         ZS_LOG_TRACE(log("canadidate already added") + candidate->toDebug())
         return;
       }
 
-      mLocalCandidates[hash] = candidate;
+      bool isUnique = false;
+      if (mUniqueCandidates.find(uniqueHash) == mUniqueCandidates.end()) {
+        isUnique = true;
+      }
+
+      mLocalCandidates[hash] = CandidatePair(candidate, uniqueHash);
+      if (!isUnique) {
+        ZS_LOG_TRACE(log("similar candidate already notified (thus do not notify of this candidate)") + candidate->toDebug())
+        return;
+      }
+
+      mUniqueCandidates[uniqueHash] = CandidatePair(candidate, hash);
+
+      if (InternalState_Ready == mCurrentState) {
+        setState(InternalState_Gathering);
+      }
 
       CandidatePtr sentCandidate(new Candidate);
       *sentCandidate = *candidate;
@@ -1744,19 +3198,62 @@ namespace ortc
       if (!candidate) return;
 
       String hash = candidate->hash();
-      auto found = mLocalCandidates.find(hash);
-      if (found == mLocalCandidates.end()) {
-        ZS_LOG_TRACE(log("candidate was never notified as local") + candidate->toDebug())
+      String uniqueHash = candidate->hash(false);
+
+      auto foundLocal = mLocalCandidates.find(hash);
+      if (foundLocal == mLocalCandidates.end()) {
+        ZS_LOG_WARNING(Debug, log("local candidate is not found (might have been filtered)") + candidate->toDebug())
         return;
       }
 
-      CandidatePtr sentCandidate(new Candidate);
-      *sentCandidate = *candidate;
+      mLocalCandidates.erase(foundLocal);
 
-      ZS_LOG_DEBUG(log("notify candidate gone") + candidate->toDebug())
+      auto foundUnique = mUniqueCandidates.find(uniqueHash);
+      if (foundUnique == mUniqueCandidates.end()) {
+        ZS_LOG_WARNING(Debug, log("unique candidate is not found") + candidate->toDebug())
+        return;
+      }
+
+      const String &previousLocalHash = (*foundUnique).second.second;
+
+      if (previousLocalHash != hash) {
+        ZS_LOG_TRACE(log("candidate being removed was not notified candidate") + candidate->toDebug())
+        return;
+      }
+
+      CandidatePtr previousCandidate = (*foundUnique).second.first;
+
+      ZS_LOG_DEBUG(log("notify candidate gone") + previousCandidate->toDebug())
+
+      mUniqueCandidates.erase(foundUnique);
+
+      CandidatePtr sentCandidate(new Candidate);
+      *sentCandidate = *previousCandidate;
+
       mSubscriptions.delegate()->onICEGathererLocalCandidateGone(mThisWeak.lock(), sentCandidate);
 
-      mLocalCandidates.erase(found);
+      for (auto iter = mLocalCandidates.begin(); iter != mLocalCandidates.end(); ++iter) {
+        const String &otherUniqueHash = (*iter).second.second;
+        if (otherUniqueHash == uniqueHash) {
+          const String &otherLocalHash = (*iter).first;
+          auto otherCandidate = (*iter).second.first;
+
+          mUniqueCandidates[uniqueHash] = CandidatePair(otherCandidate, otherLocalHash);
+
+          if (InternalState_Ready == mCurrentState) {
+            setState(InternalState_Gathering);
+          }
+
+          CandidatePtr sentCandidate(new Candidate);
+          *sentCandidate = *otherCandidate;
+
+          ZS_LOG_DEBUG(log("notify replacement local candidate") + otherCandidate->toDebug())
+          mSubscriptions.delegate()->onICEGathererLocalCandidate(mThisWeak.lock(), sentCandidate);
+          return;
+        }
+      }
+
+      ZS_LOG_TRACE(log("no replacement local candidate found"))
     }
 
     //-------------------------------------------------------------------------
@@ -1805,322 +3302,759 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    SocketPtr ICEGatherer::bind(
-                                IPAddress &ioBindIP,
-                                IICETypes::Protocols protocol
-                                )
+    void ICEGatherer::read(
+                           HostPortPtr hostPort,
+                           SocketPtr socket
+                           )
     {
-      ZS_LOG_DEBUG(log("attempting to bind to IP") + ZS_PARAM("ip", ioBindIP.string()))
+      UseTURNSocketPtr turnSocket;
+      STUNPacketPtr stunPacket;
 
-      SocketPtr socket;
+      size_t totalRead = 0;
+      IPAddress fromIP;
+      SecureByteBlock readBuffer(0xFFFF);
 
-      try {
-        switch (protocol) {
-          case IICETypes::Protocol_UDP: socket = Socket::createUDP();
-          case IICETypes::Protocol_TCP: socket = Socket::createTCP();
-        }
+      PUID routeID = 0;
+      CandidatePtr localCandidate;
+      UseTransportPtr transport;
 
-        if (0 != mDefaultPort) {
-          if (!mBindBackOffTimer) {
-            // only bind using the default port while there is no backoff timer
-            ioBindIP.setPort(mDefaultPort);
-          }
-        }
+      {
+        AutoRecursiveLock lock(*this);
 
-        socket->bind(ioBindIP);
-        socket->setBlocking(false);
-
-        try {
-#ifndef __QNX__
-          socket->setOptionFlag(Socket::SetOptionFlag::IgnoreSigPipe, true);
-#endif //ndef __QNX__
-        } catch(Socket::Exceptions::UnsupportedSocketOption &) {
-        }
-
-        IPAddress local = socket->getLocalAddress();
-
-        socket->setDelegate(mThisWeak.lock());
-
-        WORD bindPort = local.getPort();
-        ioBindIP.setPort(bindPort);
-        if (0 == mDefaultPort) {
-          mDefaultPort = bindPort;
-          ZS_LOG_TRACE(log("selected default bind port") + ZS_PARAMIZE(mDefaultPort))
-        }
-        ZS_THROW_CUSTOM_PROPERTIES_1_IF(Socket::Exceptions::Unspecified, 0 == bindPort, 0)
-      } catch(Socket::Exceptions::Unspecified &error) {
-        ZS_LOG_ERROR(Detail, log("bind error") + ZS_PARAM("error", error.errorCode()))
-        socket.reset();
-        goto bind_failure;
-      }
-
-      switch (protocol) {
-        case IICETypes::Protocol_UDP: break;
-        case IICETypes::Protocol_TCP: {
+        if (hostPort->mBoundUDPSocket == socket) {
           try {
-            ZS_LOG_DEBUG(log("attemping to listen for incoming socket connections"))
-            socket->listen();
+            totalRead = socket->receiveFrom(fromIP, readBuffer, readBuffer.SizeInBytes());
           } catch(Socket::Exceptions::Unspecified &error) {
-            ZS_LOG_ERROR(Detail, log("listen error") + ZS_PARAM("error", error.errorCode()))
-            socket.reset();
-            goto bind_failure;
+            ZS_LOG_WARNING(Debug, log("socket read error") + ZS_PARAM("socket", (PTRNUMBER)socket->getSocket()) + ZS_PARAM("error", error.errorCode()))
+            return;
           }
+
+          if (0 == totalRead) {
+            ZS_LOG_WARNING(Debug, log("failed to read any data from socket") + ZS_PARAM("socket", (PTRNUMBER)socket->getSocket()))
+            return;
+          }
+
+          stunPacket = STUNPacket::parseIfSTUN(readBuffer, totalRead, STUNPacket::RFC_AllowAll, false, "ortc::ICEGatherer", mID);
+          if (stunPacket) {
+            if (ISTUNRequester::handleSTUNPacket(fromIP, stunPacket)) {
+              ZS_LOG_TRACE(log("handled by stun requester") + ZS_PARAM("from ip", fromIP.string()) + stunPacket->toDebug())
+              return;
+            }
+          }
+
+          // scope: check if for relay socket
+          {
+            auto found = hostPort->mIPToRelayPortMapping.find(fromIP);
+            if (found != hostPort->mIPToRelayPortMapping.end()) {
+              auto relayPort = (*found).second;
+              turnSocket = relayPort->mTURNSocket;
+              if (!turnSocket) {
+                ZS_LOG_WARNING(Detail, log("TURN socket was not found despite mapping being found") + relayPort->toDebug())
+                return;
+              }
+              goto found_relay_port;
+            }
+          }
+
+          // this is not a relay socket, see if there is a route
+          localCandidate = hostPort->mCandidateUDP;
+          if (!localCandidate) {
+            ZS_LOG_WARNING(Trace, log("did not find local candidate"))
+            return;
+          }
+        }
+
+        if (hostPort->mBoundTCPSocket == socket) {
+          ZS_THROW_INVALID_ASSUMPTION_IF(!hostPort->mCandidateTCP)
+          ZS_LOG_DEBUG(log("notified of incoming TCP connection") + hostPort->toDebug())
+
+          TCPPortPtr tcpPort(new TCPPort);
+          tcpPort->mConnected = true;
+          tcpPort->mHostPort = hostPort;
+
+          IPAddress localAddress;
+
+          try {
+            tcpPort->mSocket = socket->accept(tcpPort->mRemoteIP);
+            localAddress = socket->getLocalAddress();
+          } catch(Socket::Exceptions::Unspecified &error) {
+            ZS_LOG_WARNING(Detail, log("failed to accept incoming TCP connection") + ZS_PARAM("error", error.errorCode()))
+            return;
+          }
+
+          // create mappings for this socket
+          mTCPPorts[tcpPort->mSocket] = tcpPort;
+          hostPort->mTCPPorts[tcpPort->mSocket] = tcpPort;
+
+          tcpPort->mSocket->setDelegate(mThisWeak.lock());
+
+          tcpPort->mCandidate = createCandidate(hostPort->mHostData, IICETypes::CandidateType_Prflx, localAddress, IICETypes::Protocol_TCP);
+          tcpPort->mCandidate->mPriority = hostPort->mCandidateTCP->mPriority;
+          tcpPort->mCandidate->mUnfreezePriority = hostPort->mCandidateTCP->mUnfreezePriority;
+
+          mTCPCandidateToTCPPorts[tcpPort->mCandidate] = tcpPort;
+          return;
         }
       }
 
-      goto bind_success;
+      return;
 
-    bind_success:
+    found_relay_port:
       {
-        ZS_LOG_DEBUG(log("bind successful") + ZS_PARAM("bind ip", ioBindIP.string()))
-        return socket;
-      }
-
-    bind_failure:
-      {
-        ZS_LOG_WARNING(Debug, log("bind failure") + ZS_PARAM("bind ip", ioBindIP.string()))
-      }
-      return SocketPtr();
-    }
-
-    //-------------------------------------------------------------------------
-    void ICEGatherer::shutdown(HostPort &hostPort)
-    {
-      // delete from maps too
-    }
-
-    //-------------------------------------------------------------------------
-    bool ICEGatherer::hasSTUNServers()
-    {
-      if (mOptionsHash == mHasSTUNServersHash) {
-        return mHasSTUNServers;
-      }
-
-      mHasSTUNServersHash = mOptionsHash;
-      mHasSTUNServers = false;
-
-      for (auto iter = mOptions.mICEServers.begin(); iter != mOptions.mICEServers.end(); ++iter) {
-        auto server = (*iter);
-        if (isServerType(server, "stun:")) {
-          ZS_LOG_TRACE(log("found stun server") + server.toDebug())
-          mHasSTUNServers = true;
-          return mHasSTUNServers;
-        }
-      }
-      return mHasSTUNServers;
-    }
-
-    //-------------------------------------------------------------------------
-    bool ICEGatherer::hasTURNServers()
-    {
-      if (mOptionsHash == mHasTURNServersHash) {
-        return mHasTURNServers;
-      }
-
-      mHasTURNServersHash = mOptionsHash;
-      mHasTURNServers = false;
-
-      for (auto iter = mOptions.mICEServers.begin(); iter != mOptions.mICEServers.end(); ++iter) {
-        auto server = (*iter);
-        if (isServerType(server, "turn:")) {
-          ZS_LOG_TRACE(log("found turn server") + server.toDebug())
-          mHasTURNServers = true;
-          return mHasTURNServers;
-        }
-      }
-      return mHasTURNServers;
-    }
-
-    //-------------------------------------------------------------------------
-    bool ICEGatherer::isServerType(
-                                   const Server &server,
-                                   const char *urlPrefix
-                                   ) const
-    {
-      size_t length = strlen(urlPrefix);
-
-      if (server.mURLs.size() < 1) {
-        ZS_LOG_INSANE(log("server is not of url search type (no URLs found)") + server.toDebug() + ZS_PARAMIZE(urlPrefix))
-        return false;
-      }
-
-      for (auto iterURLs = server.mURLs.begin(); iterURLs != server.mURLs.end(); ++iterURLs) {
-        const String &url = (*iterURLs);
-        if (0 != url.compare(0, length, urlPrefix)) {
-          ZS_LOG_INSANE(log("server is not of url search type") + server.toDebug() + ZS_PARAMIZE(url) + ZS_PARAMIZE(urlPrefix))
-          return false;
+        if (stunPacket) {
+          ZS_LOG_INSANE(log("forwarding stun packet to turn socket") + ZS_PARAM("from ip", fromIP.string()) + stunPacket->toDebug())
+          turnSocket->handleSTUNPacket(fromIP, stunPacket);
+          return;
         }
 
-        ZS_LOG_INSANE(log("found server of url search type") + server.toDebug() + ZS_PARAMIZE(url) + ZS_PARAMIZE(urlPrefix))
-      }
-
-      return true;
-    }
-    
-    //-------------------------------------------------------------------------
-    String ICEGatherer::createDNSLookupString(
-                                              const Server &server,
-                                              const char *urlPrefix
-                                              ) const
-    {
-      size_t length = strlen(urlPrefix);
-
-      String result;
-
-      if (server.mURLs.size() < 1) {
-        ZS_LOG_INSANE(log("server is not of url search type (no URLs found)") + server.toDebug() + ZS_PARAMIZE(urlPrefix))
-        return result;
-      }
-
-      for (auto iterURLs = server.mURLs.begin(); iterURLs != server.mURLs.end(); ++iterURLs) {
-        const String &url = (*iterURLs);
-        if (0 != url.compare(0, length, urlPrefix)) {
-          ZS_LOG_INSANE(log("server is not of url search type") + server.toDebug() + ZS_PARAMIZE(url) + ZS_PARAMIZE(urlPrefix))
-          continue;
-        }
-
-        ZS_LOG_INSANE(log("found server of url search type") + server.toDebug() + ZS_PARAMIZE(url) + ZS_PARAMIZE(urlPrefix))
-
-        String dnsStr = url.substr(length);
-
-        if (result.hasData()) {
-          result += "," + dnsStr;
-        } else {
-          result = dnsStr;
-        }
-      }
-
-      return result;
-    }
-    
-    //-------------------------------------------------------------------------
-    bool ICEGatherer::needsHostPort(HostIPSorter::DataPtr hostData)
-    {
-      auto policy = hostData->mFilterPolicy;
-      if (hostData->mIP.isIPv4()) {
-        if (0 == (FilterPolicy_NoIPv4Host & policy)) {
-          ZS_LOG_TRACE(log("host port needed because peer host ports are not filtered"))
-          return true;
-        }
-        if (0 == (FilterPolicy_NoIPv4Prflx & policy)) {
-          ZS_LOG_TRACE(log("host port needed because peer reflexive ports are not filtered"))
-          return true;
-        }
-        if (0 == (FilterPolicy_NoIPv4Srflx & policy)) {
-          if (hasSTUNServers()) {
-            ZS_LOG_TRACE(log("host port needed because server reflexive ports are not filtered"))
-            return true;
-          }
-        }
-        if (0 == (FilterPolicy_NoIPv4Srflx & policy)) {
-          if (hasTURNServers()) {
-            ZS_LOG_TRACE(log("host port needed because relay ports are not filtered"))
-            return true;
-          }
-        }
-        ZS_LOG_TRACE(log("IPv4 host is being filtered") + hostData->toDebug())
-        return false;
-      }
-      if (hostData->mIP.isIPv6())  {
-        if ((hostData->mIP.isIPv4Mapped()) ||
-            (hostData->mIP.isIPv4Compatible()) ||
-            (hostData->mIP.isIPv46to4()) ||
-            (hostData->mIP.isTeredoTunnel()) ||
-            (hostData->mInterfaceType == InterfaceType_Tunnel)) {
-          if (0 != (FilterPolicy_NoIPv6Tunnel & policy)) {
-            ZS_LOG_TRACE(log("host port is not needed because peer host does not allow IPv6 tunnel address"))
-            return false;
-          }
-        }
-        if (!hostData->mIsTemporaryIP) {
-          if (0 != (FilterPolicy_NoIPv6Permanent & policy)) {
-            ZS_LOG_TRACE(log("host port is not needed because permanent IP addresses are not allowed"))
-            return false;
-          }
-        }
-        if (0 == (FilterPolicy_NoIPv6Host & policy)) {
-          ZS_LOG_TRACE(log("host port needed because peer host ports are not filtered"))
-          return true;
-        }
-        if (0 == (FilterPolicy_NoIPv6Prflx & policy)) {
-          ZS_LOG_TRACE(log("host port needed because peer reflexive ports are not filtered"))
-          return true;
-        }
-        if (0 == (FilterPolicy_NoIPv6Srflx & policy)) {
-          if (hasSTUNServers()) {
-            ZS_LOG_TRACE(log("host port needed because server reflexive ports are not filtered"))
-            return true;
-          }
-        }
-        if (0 == (FilterPolicy_NoIPv6Srflx & policy)) {
-          if (hasTURNServers()) {
-            ZS_LOG_TRACE(log("host port needed because relay ports are not filtered"))
-            return true;
-          }
-        }
-        ZS_LOG_TRACE(log("IPv4 host is being filtered") + hostData->toDebug())
-        return false;
-      }
-
-      return false;
-    }
-
-    //-------------------------------------------------------------------------
-    void ICEGatherer::cancel()
-    {
-      if (isShutdown()) {
-        ZS_LOG_TRACE(log("already shutdown"))
+        ZS_LOG_INSANE(log("forwarding turn channel data to turn socket") + ZS_PARAM("from ip", fromIP.string()) + ZS_PARAM("total", totalRead))
+        turnSocket->handleChannelData(fromIP, readBuffer, totalRead);
         return;
       }
 
-      ZS_LOG_DEBUG(log("cancel"))
-
-      setState(InternalState_ShuttingDown);
-
-      if (!mGracefulShutdownReference) mGracefulShutdownReference = mThisWeak.lock();
-
-
-
-      ZS_LOG_TRACE(log("cancel complete"))
-
-      setState(InternalState_Shutdown);
-
-      mGracefulShutdownReference.reset();
-    }
-
-    //-------------------------------------------------------------------------
-    void ICEGatherer::setState(InternalStates state)
-    {
-      if (state == mCurrentState) return;
-
-      ZS_LOG_DEBUG(log("state changed") + ZS_PARAM("new state", toString(state)) + ZS_PARAM("old state", toString(mCurrentState)))
-
-      auto oldState = toState(mCurrentState);
-      auto newState = toState(state);
-
-      mCurrentState = state;
-
-      auto pThis = mThisWeak.lock();
-      if ((pThis) &&
-          (oldState != newState)) {
-        ZS_LOG_TRACE(log("reporting state change to delegates") + ZS_PARAM("new state", IICEGathererTypes::toString(newState)) + ZS_PARAM("old state", IICEGathererTypes::toString(oldState)))
-        mSubscriptions.delegate()->onICEGathererStateChanged(pThis, newState);
+    handle_incoming:
+      {
+        if (stunPacket) {
+          ZS_LOG_INSANE(log("handling incoming stun packet") + localCandidate->toDebug() + ZS_PARAM("from ip", fromIP.string()) + stunPacket->toDebug())
+          handleIncomingPacket(localCandidate, fromIP, stunPacket);
+          return;
+        }
+        ZS_LOG_INSANE(log("handling incoming packet") + localCandidate->toDebug() + ZS_PARAM("from ip", fromIP.string()) + ZS_PARAM("total", totalRead))
+        transport->notifyPacket(routeID, readBuffer, totalRead);
+        return;
       }
     }
 
     //-------------------------------------------------------------------------
-    void ICEGatherer::setError(WORD error, const char *reason)
+    void ICEGatherer::read(TCPPort &tcpPort)
     {
-      if (0 == error) return;
-      if (0 != mLastError) return;
+      BufferedPacketList packets;
 
-      mLastError = error;
-      mLastErrorReason = String(reason);
-      if (mLastErrorReason.isEmpty()) mLastErrorReason = UseHTTP::toString(UseHTTP::toStatusCode(mLastError));
+      {
+        AutoRecursiveLock lock(*this);
 
-      ZS_LOG_WARNING(Detail, log("error set") + ZS_PARAMIZE(mLastError) + ZS_PARAMIZE(mLastErrorReason))
+        while (true)
+        {
+          if (!tcpPort.mSocket) {
+            ZS_LOG_WARNING(Detail, log("cannot read closed socket") + tcpPort.toDebug())
+            return;
+          }
+
+          BYTE buffer[4096] {};
+
+          try {
+            bool wouldBlock = false;
+            size_t read = tcpPort.mSocket->receive(&(buffer[0]), sizeof(buffer), &wouldBlock);
+            if (0 == read) goto process_packets;
+
+            tcpPort.mIncomingBuffer.Put(&(buffer[0]), read);
+          } catch(Socket::Exceptions::Unspecified &error) {
+            ZS_LOG_ERROR(Detail, log("unable to receive from socket") + ZS_PARAM("error", error.errorCode()) + tcpPort.toDebug())
+            goto process_packets;
+          }
+
+          auto currentSize = tcpPort.mIncomingBuffer.CurrentSize();
+
+          CryptoPP::word16 packeSize {};
+
+          if (currentSize < sizeof(packeSize)) continue;
+
+          // peak ahead to see if the entire packet has arrived
+          tcpPort.mIncomingBuffer.PeekWord16(packeSize);
+
+          if (currentSize < sizeof(packeSize) + packeSize) continue;
+
+          // entire packet has arrived, get the packet size again to consume that data
+          tcpPort.mIncomingBuffer.Get((BYTE *)(&packeSize), sizeof(packeSize));
+
+          // now have enough to extract out of buffer
+
+          BufferedPacketPtr packet(new BufferedPacket);
+          packet->mBuffer = SecureByteBlockPtr(new SecureByteBlock(packeSize));
+          packet->mLocalCandidate = tcpPort.mCandidate;
+          packet->mFrom = tcpPort.mRemoteIP;
+
+          // fill packet with incoming data
+          tcpPort.mIncomingBuffer.Get(*(packet->mBuffer), packeSize);
+
+          packet->mSTUNPacket = STUNPacket::parseIfSTUN(*(packet->mBuffer), packet->mBuffer->SizeInBytes(), STUNPacket::RFC_AllowAll, false, "ortc::ICEGatherer", mID);
+
+          packets.push_back(packet);
+        }
+      }
+
+    process_packets:
+      {
+        for (auto iter = packets.begin(); iter != packets.end(); ++iter) {
+          auto packet = (*iter);
+
+          if (packet->mSTUNPacket) {
+            if (ISTUNRequester::handleSTUNPacket(packet->mFrom, packet->mSTUNPacket)) {
+              ZS_LOG_TRACE(log("handled by stun requester") + ZS_PARAM("from ip", packet->mFrom.string()) + packet->mSTUNPacket->toDebug())
+              continue;
+            }
+
+            ZS_LOG_TRACE(log("handling incoming TCP stun packet") + packet->toDebug() + packet->mSTUNPacket->toDebug())
+
+            handleIncomingPacket(packet->mLocalCandidate, packet->mFrom, packet->mSTUNPacket);
+            continue;
+          }
+
+          ZS_LOG_INSANE(log("handling incoming TCP packet") + packet->toDebug())
+          handleIncomingPacket(packet->mLocalCandidate, packet->mFrom, *(packet->mBuffer), packet->mBuffer->SizeInBytes());
+        }
+      }
     }
 
+    //-------------------------------------------------------------------------
+    void ICEGatherer::write(
+                            HostPort &hostPort,
+                            SocketPtr socket
+                            )
+    {
+      AutoRecursiveLock lock(*this);
+
+      if (hostPort.mBoundUDPSocket == socket) {
+        for (auto iter = hostPort.mRelayPorts.begin(); iter != hostPort.mRelayPorts.end(); ++iter) {
+          auto relayPort = (*iter);
+          if (!relayPort->mTURNSocket) continue;
+
+          ZS_LOG_INSANE(log("notifying relay port of host port write ready") + relayPort->toDebug())
+          relayPort->mTURNSocket->notifyWriteReady();
+        }
+      }
+
+      if (hostPort.mBoundTCPSocket == socket) {
+        ZS_LOG_TRACE(log("ignoring wrote ready on listen socket") + hostPort.toDebug())
+        return;
+      }
+    }
+
+    //-------------------------------------------------------------------------
+    void ICEGatherer::write(TCPPort &tcpPort)
+    {
+      AutoRecursiveLock lock(*this);
+
+      if (!tcpPort.mSocket) {
+        ZS_LOG_WARNING(Detail, log("tcp port was closed during write notification") + tcpPort.toDebug())
+        return;
+      }
+
+      if (!tcpPort.mConnected) {
+        ZS_LOG_TRACE(log("outgoing tcp port is now connected") + tcpPort.toDebug())
+        tcpPort.mConnected = true;
+      }
+
+      while (true) {
+        auto currentSize = tcpPort.mOutgoingBuffer.CurrentSize();
+        if (0 == currentSize) {
+          ZS_LOG_INSANE(log("nothing more to send") + tcpPort.toDebug())
+          break;
+        }
+
+        try {
+          if (currentSize > 0xFFFF + sizeof(CryptoPP::word16)) currentSize = 0xFFFF + sizeof(CryptoPP::word16);
+
+          SecureByteBlock buffer(currentSize);
+          tcpPort.mOutgoingBuffer.Peek(buffer, currentSize);
+
+          bool wouldBlock = false;
+          auto sent = tcpPort.mSocket->send(buffer, currentSize, &wouldBlock);
+
+          if (0 == sent) {
+            ZS_LOG_INSANE(log("no more room to send data") + tcpPort.toDebug())
+            return;
+          }
+
+          ZS_LOG_INSANE(log("sent TCP data to remote party") + tcpPort.toDebug() + ZS_PARAM("sent", sent))
+
+          // consume the amount sent from the pending queue (and try sending more)
+          tcpPort.mOutgoingBuffer.Skip(sent);
+        } catch(Socket::Exceptions::Unspecified &error) {
+          ZS_LOG_ERROR(Detail, log("unable to send to socket") + ZS_PARAM("error", error.errorCode()) + tcpPort.toDebug())
+          return;
+        }
+      }
+    }
+
+    //-------------------------------------------------------------------------
+    void ICEGatherer::close(
+                            HostPort &hostPort,
+                            SocketPtr socket
+                            )
+    {
+      AutoRecursiveLock lock(*this);
+
+      if ((hostPort.mBoundUDPSocket != socket) &&
+          (hostPort.mBoundTCPSocket != socket)) {
+        ZS_LOG_WARNING(Detail, log("socket was not found on host port") + hostPort.toDebug() + ZS_PARAM("socket", (PTRNUMBER)socket->getSocket()))
+        return;
+      }
+
+      SocketPtr &hostSocket = (hostPort.mBoundUDPSocket == socket ? hostPort.mBoundUDPSocket : hostPort.mBoundTCPSocket);
+      CandidatePtr &candidate = (hostPort.mBoundUDPSocket == socket ? hostPort.mCandidateUDP : hostPort.mCandidateTCP);
+
+      ZS_LOG_WARNING(Detail, log("bound UDP or TCP socket unexpectedly closed") + hostPort.toDebug() + ZS_PARAM("socket", (PTRNUMBER)socket->getSocket()))
+
+      auto found = mHostPortSockets.find(socket);
+      if (found != mHostPortSockets.end()) {
+        mHostPortSockets.erase(found);
+      }
+
+      try {
+        socket->close();
+      } catch(Socket::Exceptions::Unspecified &error) {
+        ZS_LOG_ERROR(Detail, log("unable to close socket") + ZS_PARAM("error", error.errorCode()) + hostPort.toDebug())
+      }
+
+      removeCandidate(candidate);
+
+      hostSocket.reset();
+      candidate.reset();
+
+      if (!mBindBackOffTimer) {
+        mBindBackOffTimer = IBackOffTimer::create<Seconds>(UseSettings::getString(ORTC_SETTING_GATHERER_BIND_BACK_OFF_TIMER), mThisWeak.lock());
+      }
+
+      // cause rebinding to occur on port
+      mLastBoundHostPortsHostHash.clear();
+      mLastReflexiveHostsHash.clear();
+      mLastRelayHostsHash.clear();
+    }
+
+    //-------------------------------------------------------------------------
+    void ICEGatherer::close(TCPPort &tcpPort)
+    {
+      ZS_LOG_DEBUG(log("tcp port is closing") + tcpPort.toDebug())
+      shutdown(tcpPort);
+    }
+
+    //-------------------------------------------------------------------------
+    void ICEGatherer::handleIncomingPacket(
+                                           CandidatePtr localCandidate,
+                                           const IPAddress &remoteIP,
+                                           STUNPacketPtr stunPacket
+                                           )
+    {
+      PUID routeID = 0;
+      UseTransportPtr transport;
+      String rFrag;
+
+      {
+        AutoRecursiveLock lock(*this);
+
+        // search for a quick route mapping
+        {
+          LocalCandidateRemoteIPPair search(localCandidate, remoteIP);
+          auto found = mRouteCandidateAndIPMappings.find(search);
+          if (found != mRouteCandidateAndIPMappings.end()) {
+            // found a route mapping
+            auto route = (*found).second;
+            route->mLastUsed = zsLib::now();
+
+            routeID = route->mID;
+            transport = route->mTransport.lock();
+            if (!transport) {
+              ZS_LOG_WARNING(Debug, log("transport is now gone") + route->toDebug() + localCandidate->toDebug())
+              mRouteCandidateAndIPMappings.erase(found);
+              return;
+            }
+            goto found_transport;
+          }
+        }
+
+        // try and setup a quick route
+        if ((STUNPacket::Class_Request == stunPacket->mClass) &&
+            (STUNPacket::Method_Binding == stunPacket->mMethod)) {
+          String username = stunPacket->mUsername;
+
+          auto pos = username.find(':');
+          if (pos == String::npos) goto stun_failed_validation;
+
+          String lFrag = username.substr(0, pos);
+          rFrag = username.substr(pos+1);
+
+          if (lFrag != mUsernameFrag) goto stun_failed_validation;
+
+          if (stunPacket->isValidMessageIntegrity(mPassword)) goto stun_failed_validation;
+
+          auto found = mInstalledTransports.find(rFrag);
+          if (found == mInstalledTransports.end()) goto buffer_data_now;
+
+          auto installedTransport = (*found).second;
+          auto transport = installedTransport->mTransport.lock();
+          if (!transport) {
+            ZS_LOG_WARNING(Debug, log("transport is now gone") + ZS_PARAM("transport id", installedTransport->mTransportID) + stunPacket->toDebug())
+            mInstalledTransports.erase(found);
+            goto buffer_data_now;
+          }
+
+          ZS_LOG_DEBUG(log("install new route") + ZS_PARAM("transport", transport->getID()) + localCandidate->toDebug() + ZS_PARAM("remote ip", remoteIP.string()))
+          goto notify_installed_route;
+        }
+      }
+
+      goto buffer_data_now;
+
+    notify_installed_route:
+      {
+        bool installed = (installRoute(localCandidate, remoteIP, transport) ? true : false);
+        if (!installed) {
+          ZS_LOG_WARNING(Debug, log("failed to install route thus must buffer data") + ZS_PARAM("transport", transport->getID()))
+          goto buffer_data_now;
+        }
+        goto found_transport;
+      }
+
+    found_transport:
+      {
+        ZS_LOG_DEBUG(log("forwarding stun packet to ice transport") + ZS_PARAM("transport", transport->getID()) + ZS_PARAM("from ip", remoteIP.string()) + stunPacket->toDebug())
+        transport->notifyPacket(routeID, stunPacket);
+        return;
+      }
+
+    stun_failed_validation:
+      {
+        stunPacket->mErrorCode = STUNPacket::ErrorCode_Unauthorized;
+
+        STUNPacketPtr response = stunPacket->createErrorResponse(stunPacket);
+        response->mPassword = mPassword;
+        response->mCredentialMechanism = STUNPacket::CredentialMechanisms_ShortTerm;
+        fix(response);
+
+        ZS_LOG_ERROR(Debug, log("candidate password integrity failed") + ZS_PARAM("request", stunPacket->toDebug()) + ZS_PARAM("reply", response->toDebug()))
+
+        sendSTUNPacket(localCandidate, remoteIP, response);
+        return;
+      }
+
+    buffer_data_now:
+      {
+        AutoRecursiveLock lock(*this);
+
+        BufferedPacketPtr packet(new BufferedPacket);
+        packet->mTimestamp = zsLib::now();
+        packet->mLocalCandidate = localCandidate;
+        packet->mFrom = remoteIP;
+        packet->mSTUNPacket = stunPacket;
+        packet->mRFrag = rFrag;
+
+        ZS_LOG_TRACE(log("buffering stun packet until ice transport installed to handle packet") + packet->toDebug())
+        mBufferedPackets.push_back(packet);
+
+        if (!mCleanUpBufferingTimer) {
+          mCleanUpBufferingTimer = Timer::create(mThisWeak.lock(), Seconds(1));
+        }
+      }
+    }
+
+    //-------------------------------------------------------------------------
+    void ICEGatherer::handleIncomingPacket(
+                                           CandidatePtr localCandidate,
+                                           const IPAddress &remoteIP,
+                                           const BYTE *buffer,
+                                           size_t bufferSizeInBytes
+                                           )
+    {
+      STUNPacketPtr stunPacket;
+
+      PUID routeID = 0;
+      UseTransportPtr transport;
+
+      {
+        AutoRecursiveLock lock(*this);
+
+        // search for a quick route mapping
+        {
+          LocalCandidateRemoteIPPair search(localCandidate, remoteIP);
+          auto found = mRouteCandidateAndIPMappings.find(search);
+          if (found != mRouteCandidateAndIPMappings.end()) {
+            // found a route mapping
+            auto route = (*found).second;
+            route->mLastUsed = zsLib::now();
+
+            routeID = route->mID;
+            transport = route->mTransport.lock();
+            if (!transport) {
+              ZS_LOG_WARNING(Debug, log("transport is now gone") + route->toDebug() + localCandidate->toDebug())
+              mRouteCandidateAndIPMappings.erase(found);
+              return;
+            }
+            goto found_transport;
+          }
+        }
+      }
+
+      goto buffer_data_now;
+
+    found_transport:
+      {
+        ZS_LOG_DEBUG(log("forwarding data packet to ice transport") + ZS_PARAM("transport", transport->getID()) +  ZS_PARAM("from ip", remoteIP.string()) + ZS_PARAM("size", bufferSizeInBytes))
+        transport->notifyPacket(routeID, buffer, bufferSizeInBytes);
+      }
+
+    buffer_data_now:
+      {
+        AutoRecursiveLock lock(*this);
+
+        BufferedPacketPtr packet(new BufferedPacket);
+        packet->mTimestamp = zsLib::now();
+        packet->mLocalCandidate = localCandidate;
+        packet->mFrom = remoteIP;
+        packet->mBuffer = UseServicesHelper::convertToBuffer(buffer, bufferSizeInBytes);
+
+        ZS_LOG_TRACE(log("buffering packet until ice transport installed to handle packet") + packet->toDebug())
+        mBufferedPackets.push_back(packet);
+        
+        if (!mCleanUpBufferingTimer) {
+          mCleanUpBufferingTimer = Timer::create(mThisWeak.lock(), Seconds(1));
+        }
+      }
+    }
+
+    //-----------------------------------------------------------------------
+    ICEGatherer::RoutePtr ICEGatherer::installRoute(
+                                                    CandidatePtr localCandidate,
+                                                    const IPAddress &remoteIP,
+                                                    UseTransportPtr transport,
+                                                    bool notifyTransport
+                                                    )
+    {
+      // install a route
+      RoutePtr route(new Route);
+      route->mLastUsed = zsLib::now();
+      route->mLocalCandidate = localCandidate;
+      route->mFrom = remoteIP;
+      route->mTransportID = transport->getID();
+      route->mTransport = transport;
+
+      ZS_LOG_DEBUG(log("installed new route") + route->toDebug())
+
+      {
+        AutoRecursiveLock lock(*this);
+
+        // scope: figure out how to route outgoing packets
+        {
+          if (IICETypes::Protocol_TCP == localCandidate->mProtocol) {
+            auto found = mTCPCandidateToTCPPorts.find(localCandidate);
+            if (found != mTCPCandidateToTCPPorts.end()) {
+              route->mTCPPort = (*found).second;
+              goto resolved_local_candidate;
+            }
+          }
+
+          for (auto iter = mHostPorts.begin(); iter != mHostPorts.end(); ++iter) {
+            auto hostPort = (*iter).second;
+            if (IICETypes::Protocol_UDP == localCandidate->mProtocol) {
+              if (hostPort->mCandidateUDP == localCandidate) {
+                route->mHostPort = hostPort;
+                goto resolved_local_candidate;
+              }
+            }
+
+            if (hostPort->mCandidateTCP == localCandidate) {
+              for (auto iter = hostPort->mTCPPorts.begin(); iter != hostPort->mTCPPorts.end(); ++iter) {
+                auto tcpPort = (*iter).second;
+                auto tcpPortTransport = tcpPort->mTransport.lock();
+                if (tcpPortTransport != transport) continue;
+                if (tcpPort->mHostPort != hostPort) continue;
+                if (tcpPort->mRemoteIP != remoteIP) continue;
+
+                // this is an exact match
+                route->mTCPPort = tcpPort;
+                goto resolved_local_candidate;
+              }
+
+              ZS_LOG_DEBUG(log("no existing TCP ports found that can satisfy this route") + localCandidate->toDebug() + ZS_PARAM("remote ip", remoteIP.string()) + ZS_PARAM("transport", transport->getID()))
+
+              TCPPortPtr tcpPort(new TCPPort);
+
+              tcpPort->mConnected = false;
+              tcpPort->mHostPort = hostPort;
+              tcpPort->mRemoteIP = remoteIP;
+              tcpPort->mTransport = transport;
+
+              try {
+                tcpPort->mSocket = Socket::createTCP();
+                tcpPort->mSocket->bind(hostPort->mHostData->mIP);
+                IPAddress localIP = tcpPort->mSocket->getLocalAddress();
+
+                tcpPort->mCandidate = createCandidate(hostPort->mHostData, IICETypes::CandidateType_Prflx, localIP, IICETypes::Protocol_TCP);
+
+                // adopt priority of host socket
+                tcpPort->mCandidate->mPriority = localCandidate->mPriority;
+                tcpPort->mCandidate->mUnfreezePriority = localCandidate->mUnfreezePriority;
+
+                tcpPort->mSocket->setBlocking(false);
+                tcpPort->mSocket->setDelegate(mThisWeak.lock());
+                tcpPort->mSocket->connect(remoteIP);
+              } catch(Socket::Exceptions::Unspecified &error) {
+                ZS_LOG_WARNING(Detail, log("failed to create an outgoing TCP connection") + ZS_PARAM("error", error.errorCode()))
+                tcpPort->mSocket.reset();
+                goto failed_resolve_local_candidate;
+              }
+
+              route->mTCPPort = tcpPort;
+
+              hostPort->mTCPPorts[tcpPort->mSocket] = tcpPort;
+              mTCPPorts[tcpPort->mSocket] = tcpPort;
+              mTCPCandidateToTCPPorts[tcpPort->mCandidate] = tcpPort;
+
+              ZS_LOG_DEBUG(log("created outgoing TCP connection for use in route") + tcpPort->toDebug() + route->toDebug())
+
+              goto resolved_local_candidate;
+            }
+
+            if (IICETypes::Protocol_UDP == localCandidate->mProtocol) {
+              for (auto iterRelay = hostPort->mRelayPorts.begin(); iterRelay != hostPort->mRelayPorts.end(); ++iterRelay) {
+                auto relayPort = (*iterRelay);
+                if (relayPort->mReflexiveCandidate == localCandidate) {
+                  route->mHostPort = hostPort;
+                  goto resolved_local_candidate;
+                }
+                if (relayPort->mRelayCandidate == localCandidate) {
+                  route->mRelayPort = relayPort;
+                  goto resolved_local_candidate;
+                }
+              }
+
+              for (auto iterReflexive = hostPort->mReflexivePorts.begin(); iterReflexive != hostPort->mReflexivePorts.end(); ++iterReflexive) {
+                auto reflexivePort = (*iterReflexive);
+
+                if (reflexivePort->mCandidate == localCandidate) {
+                  route->mHostPort = hostPort;
+                  goto resolved_local_candidate;
+                }
+              }
+            }
+          }
+
+          goto failed_resolve_local_candidate;
+        }
+
+      failed_resolve_local_candidate:
+        {
+          ZS_LOG_WARNING(Detail, log("failed to find any local candidate to route packets") + localCandidate->toDebug() + ZS_PARAM("remote ip", remoteIP.string()) + ZS_PARAM("transport", transport->getID()))
+          return RoutePtr();
+        }
+
+      resolved_local_candidate:
+
+        // scope: check to see if this route has already been installed
+        {
+          LocalCandidateRemoteIPPair search(localCandidate, remoteIP);
+          auto found = mRouteCandidateAndIPMappings.find(search);
+          if (found != mRouteCandidateAndIPMappings.end()) {
+            auto previousRoute = (*found).second;
+            if (previousRoute->mTransportID == route->mTransportID) {
+              ZS_LOG_DEBUG(log("already have installed a route (no need to create a new route") + previousRoute->toDebug())
+              route = previousRoute;
+              goto deliver_backlog_packets;
+            }
+
+            ZS_LOG_WARNING(Debug, log("already have installed a route but pointing to a different transport") + previousRoute->toDebug())
+
+            auto previousTransport = previousRoute->mTransport.lock();
+
+            // scope: remove this specific previous route
+            {
+              auto foundRoute = mRoutes.find(previousRoute->mID);
+              if (foundRoute != mRoutes.end()) {
+                if (previousTransport) {
+                  ZS_LOG_DEBUG(log("will notify about route removal to transport") + ZS_PARAM("transport id", previousTransport->getID()) + previousRoute->toDebug())
+                  IGathererAsyncDelegateProxy::create(mThisWeak.lock())->onNotifyAboutRemoveRoute(previousTransport, previousRoute->mID);
+                }
+                mRoutes.erase(foundRoute);
+              }
+            }
+          }
+
+          mRouteCandidateAndIPMappings.erase(found);
+        }
+
+        // double check this transport is indeed installed (race condition)
+        for (auto iter = mInstalledTransports.begin(); iter != mInstalledTransports.end(); ++iter) {
+          auto installedTransport = (*iter).second;
+          if (installedTransport->mTransportID == route->mTransportID) {
+            LocalCandidateRemoteIPPair search(localCandidate, remoteIP);
+            mRouteCandidateAndIPMappings[search] = route;
+            mRoutes[route->mID] = route;
+            goto transport_installed;
+          }
+        }
+
+        return RoutePtr();
+      }
+
+    transport_installed:
+      {
+        ZS_LOG_TRACE(log("installed route") + route->toDebug())
+        if (notifyTransport) {
+          transport->notifyRouteAdded(route->mTransportID, localCandidate, remoteIP);
+        }
+        goto deliver_backlog_packets;
+      }
+
+    deliver_backlog_packets:
+      {
+        // check though buffer to see if there are any other packets fitting this criteria that can now be delivered
+        {
+          AutoRecursiveLock lock(*this);
+
+          if (0 != mBufferedPackets.size()) {
+            ZS_LOG_DEBUG(log("will attempt to deliver any backlogged packets to new route") + route->toDebug())
+            IGathererAsyncDelegateProxy::create(mThisWeak.lock())->onNotifyDeliverRouteBufferedPackets(transport, route->mID);
+          }
+        }
+      }
+      return route;
+    }
+
+    //-----------------------------------------------------------------------
+    void ICEGatherer::fix(STUNPacketPtr stun) const
+    {
+      stun->mLogObject = "ortc::ICEGatherer";
+      stun->mLogObjectID = mID;
+    }
+
+    //-------------------------------------------------------------------------
+    void ICEGatherer::removeAllRelatedRoutes(
+                                             TransportID transportID,
+                                             UseTransportPtr transportIfAvailable
+                                             )
+    {
+      for (auto iter_doNotUse = mRouteCandidateAndIPMappings.begin(); iter_doNotUse != mRouteCandidateAndIPMappings.end();)
+      {
+        auto current = iter_doNotUse;
+        ++iter_doNotUse;
+
+        auto route = (*current).second;
+        if (route->mTransportID != transportID) continue;
+
+        ZS_LOG_WARNING(Detail, log("need to remove route because of unbinding previous transport") + route->toDebug())
+
+        mRouteCandidateAndIPMappings.erase(current);
+      }
+
+      for (auto iter_doNotUse = mRoutes.begin(); iter_doNotUse != mRoutes.end();)
+      {
+        auto current = iter_doNotUse;
+        ++iter_doNotUse;
+
+        auto route = (*current).second;
+        if (route->mTransportID != transportID) continue;
+
+        ZS_LOG_WARNING(Detail, log("need to remove route because of unbinding previous transport") + route->toDebug())
+
+        mRoutes.erase(current);
+
+        if (transportIfAvailable) {
+          ZS_LOG_TRACE(log("will notify transport about route removal"))
+          IGathererAsyncDelegateProxy::create(mThisWeak.lock())->onNotifyAboutRemoveRoute(transportIfAvailable, route->mID);
+        }
+      }
+    }
+    
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -2172,6 +4106,8 @@ namespace ortc
     {
       DataPtr data(new Data);
       data->mIP = ip;
+      InterfaceMappingList empty;
+      fixMapping(*data, empty);
       fixPolicy(*data, options);
       return data;
     }
@@ -2186,6 +4122,8 @@ namespace ortc
       DataPtr data(new Data);
       data->mHostName = String(hostName);
       data->mIP = ip;
+      InterfaceMappingList empty;
+      fixMapping(*data, empty);
       fixPolicy(*data, options);
       return data;
     }
@@ -2250,8 +4188,6 @@ namespace ortc
                                                const InterfaceMappingList &prefs
                                                )
     {
-      if (prefs.size() < 1) return;
-
       for (int loop = 0; loop < 2; ++loop) {
         const String &useValue = (0 == loop ? ioData.mInterfaceName : ioData.mInterfaceDescription);
         if (useValue.isEmpty()) continue;
@@ -2272,46 +4208,61 @@ namespace ortc
         if (numStr.hasData()) {
           try {
             ioData.mIndex = Numeric<decltype(ioData.mIndex)>(numStr);
+            goto number_found;
           } catch(Numeric<decltype(ioData.mIndex)>::ValueOutOfRange &) {
             ZS_LOG_WARNING(Detail, slog("number failed to convert") + ZS_PARAM("number", numStr) + ioData.toDebug())
           }
         }
       }
 
-      for (auto iter = prefs.begin(); iter != prefs.end(); ++iter) {
-        const InterfaceNameMappingInfo &info = (*iter);
+    number_found:
+      {
+        for (auto iter = prefs.begin(); iter != prefs.end(); ++iter) {
+          const InterfaceNameMappingInfo &info = (*iter);
 
-        if (info.mInterfaceNameRegularExpression.isEmpty()) {
-          ZS_LOG_WARNING(Detail, slog("invalid regular expression") + info.toDebug())
-          continue;
-        }
-
-        if ((ioData.mInterfaceName.isEmpty()) &&
-            (ioData.mInterfaceDescription.isEmpty())) {
-          ZS_LOG_TRACE(slog("no interface information found") + ioData.toDebug())
-        }
-
-        std::regex e(info.mInterfaceNameRegularExpression);
-
-        if (ioData.mInterfaceName.hasData()) {
-          if (std::regex_match(ioData.mInterfaceName, e)) goto found_match;
-        }
-        if (ioData.mInterfaceDescription.hasData()) {
-          if (std::regex_match(ioData.mInterfaceName, e)) goto found_match;
-        }
-
-        continue;
-
-      found_match:
-        {
-          ZS_LOG_TRACE(slog("fixed mapping interface type to ip") + ioData.toDebug() + info.toDebug())
-
-          ioData.mOrderIndex = info.mOrderIndex;
-          if (InterfaceType_Unknown == ioData.mInterfaceType) {
-            ioData.mInterfaceType = info.mInterfaceType;
+          if (info.mInterfaceNameRegularExpression.isEmpty()) {
+            ZS_LOG_WARNING(Detail, slog("invalid regular expression") + info.toDebug())
+            continue;
           }
-          break;
+
+          if ((ioData.mInterfaceName.isEmpty()) &&
+              (ioData.mInterfaceDescription.isEmpty())) {
+            ZS_LOG_TRACE(slog("no interface information found") + ioData.toDebug())
+          }
+
+          std::regex e(info.mInterfaceNameRegularExpression);
+
+          if (ioData.mInterfaceName.hasData()) {
+            if (std::regex_match(ioData.mInterfaceName, e)) goto found_match;
+          }
+          if (ioData.mInterfaceDescription.hasData()) {
+            if (std::regex_match(ioData.mInterfaceName, e)) goto found_match;
+          }
+
+          continue;
+
+        found_match:
+          {
+            ZS_LOG_TRACE(slog("fixed mapping interface type to ip") + ioData.toDebug() + info.toDebug())
+
+            ioData.mOrderIndex = info.mOrderIndex;
+            if (InterfaceType_Unknown == ioData.mInterfaceType) {
+              ioData.mInterfaceType = info.mInterfaceType;
+            }
+            return;
+          }
         }
+      }
+
+      // did not find match, guess the network type based purely on the IP address
+
+      if (!ioData.mIP.isIPv6()) return;
+
+      if ((ioData.mIP.isIPv46to4()) ||
+          (ioData.mIP.isIPv4Compatible()) ||
+          (ioData.mIP.isIPv4Mapped()) ||
+          (ioData.mIP.isTeredoTunnel())) {
+        ioData.mInterfaceType = InterfaceType_Tunnel; // treat it like a tunnel interface
       }
     }
 
@@ -2480,7 +4431,8 @@ namespace ortc
       UseServicesHelper::debugAppend(resultEl, "turn socket", UseTURNSocket::toDebug(mTURNSocket));
 
       UseServicesHelper::debugAppend(resultEl, "options hash", mOptionsHash);
-      UseServicesHelper::debugAppend(resultEl, mCandidate ? mCandidate->toDebug() : ElementPtr());
+      UseServicesHelper::debugAppend(resultEl, "relay candidate", mRelayCandidate ? mRelayCandidate->toDebug() : ElementPtr());
+      UseServicesHelper::debugAppend(resultEl, "reflexive candidate", mRelayCandidate ? mRelayCandidate->toDebug() : ElementPtr());
 
       UseServicesHelper::debugAppend(resultEl, "last send data", mLastSentData);
       UseServicesHelper::debugAppend(resultEl, "inactivity timer", mInactivityTimer ? mInactivityTimer->getID() : 0);
@@ -2507,17 +4459,125 @@ namespace ortc
 
       UseServicesHelper::debugAppend(resultEl, "candidate udp", mCandidateUDP ? mCandidateUDP->toDebug() : ElementPtr());
       UseServicesHelper::debugAppend(resultEl, "bound udp ip", mBoundUDPIP.string());
-      UseServicesHelper::debugAppend(resultEl, "bound udp socket", (bool)mBoundUDPSocket);
+      UseServicesHelper::debugAppend(resultEl, "bound udp socket", mBoundUDPSocket ? ((PTRNUMBER)mBoundUDPSocket->getSocket()) : 0);
 
       UseServicesHelper::debugAppend(resultEl, "candidate tcp", mCandidateTCP ? mCandidateTCP->toDebug() : ElementPtr());
       UseServicesHelper::debugAppend(resultEl, "bound udp ip", mBoundTCPIP.string());
-      UseServicesHelper::debugAppend(resultEl, "bound tcp socket", (bool)mBoundTCPSocket);
+      UseServicesHelper::debugAppend(resultEl, "bound tcp socket", mBoundTCPSocket ? ((PTRNUMBER)mBoundTCPSocket->getSocket()) : 0);
 
       UseServicesHelper::debugAppend(resultEl, "reflexive options hash", mReflexiveOptionsHash);
       UseServicesHelper::debugAppend(resultEl, "reflexive ports", mReflexivePorts.size());
 
       UseServicesHelper::debugAppend(resultEl, "relay options hash", mRelayOptionsHash);
       UseServicesHelper::debugAppend(resultEl, "relay ports", mRelayPorts.size());
+      UseServicesHelper::debugAppend(resultEl, "ip to relay port mapping", mIPToRelayPortMapping.size());
+
+      return resultEl;
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark ICEGatherer::TCPPort
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    ElementPtr ICEGatherer::TCPPort::toDebug() const
+    {
+      ElementPtr resultEl = Element::create("ortc::ICEGatherer::TCPPort");
+
+      UseServicesHelper::debugAppend(resultEl, "connected", mConnected);
+
+      UseServicesHelper::debugAppend(resultEl, mHostPort->toDebug());
+
+      UseServicesHelper::debugAppend(resultEl, "candidate", mCandidate ? mCandidate->toDebug() : ElementPtr());
+
+      UseServicesHelper::debugAppend(resultEl, "remote ip", mRemoteIP.string());
+      UseServicesHelper::debugAppend(resultEl, "socket", mSocket ? ((PTRNUMBER)mSocket->getSocket()) : 0);
+      UseServicesHelper::debugAppend(resultEl, "incoming buffer", mIncomingBuffer.CurrentSize());
+      UseServicesHelper::debugAppend(resultEl, "outgoing buffer", mOutgoingBuffer.CurrentSize());
+
+      UseTransportPtr transport = mTransport.lock();
+      UseServicesHelper::debugAppend(resultEl, "ice transport", transport ? transport->getID() : 0);
+
+      return resultEl;
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark ICEGatherer::BufferedPacket
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    ElementPtr ICEGatherer::BufferedPacket::toDebug() const
+    {
+      ElementPtr resultEl = Element::create("ortc::ICEGatherer::BufferedPacket");
+
+      UseServicesHelper::debugAppend(resultEl, "timestamp", mTimestamp);
+
+      UseServicesHelper::debugAppend(resultEl, "local candidate", mLocalCandidate ? mLocalCandidate->toDebug() : ElementPtr());
+
+      UseServicesHelper::debugAppend(resultEl, "from", mFrom.string());
+
+      UseServicesHelper::debugAppend(resultEl, "stun packet", (bool)mSTUNPacket);
+      UseServicesHelper::debugAppend(resultEl, "rfrag", mRFrag);
+
+      UseServicesHelper::debugAppend(resultEl, "buffer", mBuffer ? mBuffer->SizeInBytes() : 0);
+
+      return resultEl;
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark ICEGatherer::Route
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    ElementPtr ICEGatherer::Route::toDebug() const
+    {
+      ElementPtr resultEl = Element::create("ortc::ICEGatherer::Route");
+
+      UseServicesHelper::debugAppend(resultEl, "id", mID);
+
+      UseServicesHelper::debugAppend(resultEl, "last used", mLastUsed);
+      UseServicesHelper::debugAppend(resultEl, "local candidate", mLocalCandidate ? mLocalCandidate->toDebug() : ElementPtr());
+      UseServicesHelper::debugAppend(resultEl, "from", mFrom.string());
+
+      UseTransportPtr transport = mTransport.lock();
+      UseServicesHelper::debugAppend(resultEl, "transport id", mTransportID);
+      UseServicesHelper::debugAppend(resultEl, "ice transport", transport ? transport->getID() : 0);
+
+      UseServicesHelper::debugAppend(resultEl, "host port", mHostPort ? mHostPort->toDebug() : ElementPtr());
+      UseServicesHelper::debugAppend(resultEl, "relay port", mRelayPort ? mRelayPort->toDebug() : ElementPtr());
+      UseServicesHelper::debugAppend(resultEl, "tcp port", mTCPPort ? mTCPPort->toDebug() : ElementPtr());
+
+      return resultEl;
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark ICEGatherer::Route
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    ElementPtr ICEGatherer::InstalledTransport::toDebug() const
+    {
+      ElementPtr resultEl = Element::create("ortc::ICEGatherer::InstalledTransport");
+
+      UseTransportPtr transport = mTransport.lock();
+      UseServicesHelper::debugAppend(resultEl, "transport id", mTransportID);
+      UseServicesHelper::debugAppend(resultEl, "ice transport", transport ? transport->getID() : 0);
 
       return resultEl;
     }

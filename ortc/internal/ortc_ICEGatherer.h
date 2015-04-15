@@ -45,21 +45,21 @@
 #include <zsLib/Socket.h>
 #include <zsLib/Timer.h>
 
+#include <cryptopp/queue.h>
+
 #define ORTC_SETTING_GATHERER_INTERFACE_NAME_MAPPING  "ortc/gatherer-interface-name-mapping"
 #define ORTC_SETTING_GATHERER_USERNAME_FRAG_LENGTH  "ortc/gatherer-username-frag-length"
 #define ORTC_SETTING_GATHERER_PASSWORD_LENGTH  "ortc/gatherer-password-length"
-#define ORTC_SETTING_GATHERER_REFLEXIVE_ALIVE_TIME_AFTER_GATHER_IN_SECONDS "ortc/gatherer-reflexive-alive-time--after-gather-in-seconds"
-#define ORTC_SETTING_GATHERER_RELAY_INACTIVITY_TIMEOUT_IN_SECONDS "ortc/gatherer-relay-inactivity-timeout-in-seconds"
 
-#define ORTC_SETTING_GATHERER_CANDIDATE_TYPE_PREFERENCE_PRIORITY_PREFIX "ortc/gatherer-canadidate-type-preference-"  // (0..126) << (24)
-#define ORTC_SETTING_GATHERER_PROTOCOL_TYPE_PREFERENCE_PRIORITY_PREFIX "ortc/gatherer-protocol-type-preference-"     // (0..0x3) << (24-2)
-#define ORTC_SETTING_GATHERER_INTERFACE_TYPE_PREFERENCE_PRIORITY_PREFIX "ortc/gatherer-interface-type-preference-"   // (0..0xF) << (24-6)
-#define ORTC_SETTING_GATHERER_ADDRESS_FAMILY_PREFERENCE_PRIORITY_PREFIX "ortc/gatherer-address-family-preference-"   // (0..0x3) << (24-8)
+#define ORTC_SETTING_GATHERER_CANDIDATE_TYPE_PREFERENCE_PRIORITY_PREFIX "ortc/gatherer-canadidate-type-priority-"  // (0..126) << (24)
+#define ORTC_SETTING_GATHERER_PROTOCOL_TYPE_PREFERENCE_PRIORITY_PREFIX "ortc/gatherer-protocol-type-priority-"     // (0..0x3) << (24-2)
+#define ORTC_SETTING_GATHERER_INTERFACE_TYPE_PREFERENCE_PRIORITY_PREFIX "ortc/gatherer-interface-type-priority-"   // (0..0xF) << (24-6)
+#define ORTC_SETTING_GATHERER_ADDRESS_FAMILY_PREFERENCE_PRIORITY_PREFIX "ortc/gatherer-address-family-priority-"   // (0..0x3) << (24-8)
 
-#define ORTC_SETTING_GATHERER_CANDIDATE_TYPE_PREFERENCE_UNFREEZE_PREFIX "ortc/gatherer-canadidate-type-preference-unfreeze-"  // (0..126) << (24+6)
-#define ORTC_SETTING_GATHERER_PROTOCOL_TYPE_PREFERENCE_UNFREEZE_PREFIX "ortc/gatherer-protocol-type-preference-unfreeze-"     // (0..0x3) << (24+4)
-#define ORTC_SETTING_GATHERER_INTERFACE_TYPE_PREFERENCE_UNFREEZE_PREFIX "ortc/gatherer-interface-type-preference-unfreeze-"   // (0..0xF) << (24-4)
-#define ORTC_SETTING_GATHERER_ADDRESS_FAMILY_PREFERENCE_UNFREEZE_PREFIX "ortc/gatherer-address-family-preference-unfreeze-"   // (0..0x3) << (24-8)
+#define ORTC_SETTING_GATHERER_CANDIDATE_TYPE_PREFERENCE_UNFREEZE_PREFIX "ortc/gatherer-canadidate-type-unfreeze-priority-"  // (0..126) << (24+6)
+#define ORTC_SETTING_GATHERER_PROTOCOL_TYPE_PREFERENCE_UNFREEZE_PREFIX "ortc/gatherer-protocol-type-unfreeze-priority-"     // (0..0x3) << (24+4)
+#define ORTC_SETTING_GATHERER_INTERFACE_TYPE_PREFERENCE_UNFREEZE_PREFIX "ortc/gatherer-interface-type-unfreeze-priority-"   // (0..0xF) << (24-4)
+#define ORTC_SETTING_GATHERER_ADDRESS_FAMILY_PREFERENCE_UNFREEZE_PREFIX "ortc/gatherer-address-family-unfreeze-priority-"   // (0..0x3) << (24-8)
 
 #define ORTC_SETTING_GATHERER_CREATE_TCP_CANDIDATES  "ortc/gatherer-create-tcp-candidates"
 #define ORTC_SETTING_GATHERER_BIND_BACK_OFF_TIMER  "ortc/gatherer-bind-back-off-timer"
@@ -67,10 +67,17 @@
 #define ORTC_SETTING_GATHERER_DEFAULT_CANDIDATES_WARM_UNTIL_IN_SECONDS "ortc/gatherer-default-candidates-warm-until-in-seconds"
 #define ORTC_SETTING_GATHERER_DEFAULT_STUN_KEEP_ALIVE_IN_SECONDS "ortc/gatherer-default-stun-keep-alive-in-seconds"
 
+#define ORTC_SETTING_GATHERER_RELAY_INACTIVITY_TIMEOUT_IN_SECONDS "ortc/gatherer-relay-inactivity-timeout-in-seconds"
+
+#define ORTC_SETTING_GATHERER_MAX_INCOMING_PACKET_BUFFERING_TIME_IN_SECONDS "ortc/gatherer-max-incoming-packet-buffering-time-in-seconds"
+
 namespace ortc
 {
   namespace internal
   {
+    ZS_DECLARE_INTERACTION_PTR(IICETransportForICEGatherer)
+    ZS_DECLARE_INTERACTION_PROXY(IGathererAsyncDelegate)
+
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -100,7 +107,49 @@ namespace ortc
     {
       ZS_DECLARE_TYPEDEF_PTR(IICEGathererForICETransport, ForICETransport)
 
-      virtual ~IICEGathererForICETransport() {}
+      virtual PUID getID() const = 0;
+
+      virtual void installTransport(
+                                    ICETransportPtr transport,
+                                    const String &remoteUFrag
+                                    ) = 0;
+      virtual void removeTransport(ICETransport &transport) = 0;
+
+      virtual PUID createRoute(
+                               ICETransportPtr transport,
+                               IICETypes::CandidatePtr sentFromLocalCanddiate,
+                               const IPAddress &remoteIP
+                               ) = 0;
+
+      virtual void removeRoute(PUID routeID) = 0;
+
+      virtual bool sendPacket(
+                              PUID routeID,
+                              const BYTE *buffer,
+                              size_t bufferSizeInBytes
+                              ) = 0;
+    };
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IGathererAsyncDelegate
+    #pragma mark
+
+    interaction IGathererAsyncDelegate
+    {
+      ZS_DECLARE_TYPEDEF_PTR(IICETransportForICEGatherer, UseTransport)
+
+      virtual void onNotifyDeliverRouteBufferedPackets(
+                                                       UseTransportPtr transport,
+                                                       PUID routeID
+                                                       )  = 0;
+      virtual void onNotifyAboutRemoveRoute(
+                                            UseTransportPtr transport,
+                                            PUID routeID
+                                            )  = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -117,12 +166,14 @@ namespace ortc
                         public IICEGatherer,
                         public IICEGathererForSettings,
                         public IICEGathererForICETransport,
+                        public IGathererAsyncDelegate,
                         public IWakeDelegate,
                         public IDNSDelegate,
                         public zsLib::ITimerDelegate,
                         public zsLib::ISocketDelegate,
                         public IBackOffTimerDelegate,
-                        public ISTUNDiscoveryDelegate
+                        public ISTUNDiscoveryDelegate,
+                        public ITURNSocketDelegate
     {
     public:
       friend interaction IICEGatherer;
@@ -183,6 +234,7 @@ namespace ortc
       static const char *toString(PreferenceTypes family);
       static PreferenceTypes toPreferenceType(const char *family);
 
+      ZS_DECLARE_TYPEDEF_PTR(IICETransportForICEGatherer, UseTransport)
       ZS_DECLARE_TYPEDEF_PTR(IICEGathererForICETransport, UseICETransport)
       ZS_DECLARE_TYPEDEF_PTR(openpeer::services::ISTUNDiscovery, UseSTUNDiscovery)
       ZS_DECLARE_TYPEDEF_PTR(openpeer::services::ITURNSocket, UseTURNSocket)
@@ -195,6 +247,10 @@ namespace ortc
       ZS_DECLARE_STRUCT_PTR(HostPort)
       ZS_DECLARE_STRUCT_PTR(ReflexivePort)
       ZS_DECLARE_STRUCT_PTR(RelayPort)
+      ZS_DECLARE_STRUCT_PTR(TCPPort)
+      ZS_DECLARE_STRUCT_PTR(BufferedPacket)
+      ZS_DECLARE_STRUCT_PTR(Route)
+      ZS_DECLARE_STRUCT_PTR(InstalledTransport)
       ZS_DECLARE_STRUCT_PTR(Preference)
 
       typedef std::pair<HostPortPtr, ReflexivePortPtr> HostAndReflexivePortPair;
@@ -210,10 +266,30 @@ namespace ortc
       typedef std::map<Foundation, LocalPreference> FoundationToLocalPreferenceMap;
 
       typedef String CandidateHash;
-      typedef std::map<CandidateHash, CandidatePtr> CandidateMap;
+      typedef std::pair<CandidatePtr, CandidateHash> CandidatePair;
+      typedef std::map<CandidateHash, CandidatePair> CandidateMap;
 
       typedef std::list<ReflexivePortPtr> ReflexivePortList;
       typedef std::list<RelayPortPtr> RelayPortList;
+      typedef std::map<IPAddress, RelayPortPtr> IPToRelayPortMap;
+      typedef std::map<TimerPtr, RelayPortPtr> TimerToRelayPortMap;
+
+      typedef std::map<SocketPtr, TCPPortPtr> SocketToTCPPortMap;
+      typedef std::map<CandidatePtr, TCPPortPtr> CandidateToTCPPortMap;
+
+      typedef std::list<BufferedPacketPtr> BufferedPacketList;
+
+      typedef std::pair<CandidatePtr, IPAddress> LocalCandidateRemoteIPPair;
+      typedef std::map<LocalCandidateRemoteIPPair, RoutePtr> CandidateAndRemoteIPToRouteMap;
+
+      typedef String UsernameFragment;
+      typedef PUID TransportID;
+      typedef std::map<UsernameFragment, InstalledTransportPtr> TransportMap;
+
+      typedef PUID RouteID;
+      typedef std::map<RouteID, RoutePtr> RouteMap;
+
+      typedef CryptoPP::ByteQueue ByteQueue;
 
     protected:
       ICEGatherer(
@@ -264,6 +340,43 @@ namespace ortc
       #pragma mark
       #pragma mark ICEGatherer => IICEGathererForICETransport
       #pragma mark
+
+      // (duplicate) virtual PUID getID() const;
+
+      virtual void installTransport(
+                                    ICETransportPtr transport,
+                                    const String &remoteUFrag
+                                    );
+      virtual void removeTransport(ICETransport &transport);
+
+      virtual PUID createRoute(
+                               ICETransportPtr transport,
+                               IICETypes::CandidatePtr sentFromLocalCanddiate,
+                               const IPAddress &remoteIP
+                               );
+
+      virtual void removeRoute(PUID routeID);
+
+      virtual bool sendPacket(
+                              PUID routeID,
+                              const BYTE *buffer,
+                              size_t bufferSizeInBytes
+                              );
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark ICEGatherer => IGathererAsyncDelegate
+      #pragma mark
+
+      virtual void onNotifyDeliverRouteBufferedPackets(
+                                                       UseTransportPtr transport,
+                                                       PUID routeID
+                                                       );
+
+      virtual void onNotifyAboutRemoveRoute(
+                                            UseTransportPtr transport,
+                                            PUID routeID
+                                            );
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -316,6 +429,33 @@ namespace ortc
                                              );
 
       virtual void onSTUNDiscoveryCompleted(ISTUNDiscoveryPtr discovery);
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark ICEGatherer => ITURNSocketDelegate
+      #pragma mark
+
+      virtual void onTURNSocketStateChanged(
+                                            ITURNSocketPtr socket,
+                                            TURNSocketStates state
+                                            );
+
+      virtual void handleTURNSocketReceivedPacket(
+                                                  ITURNSocketPtr socket,
+                                                  IPAddress source,
+                                                  const BYTE *packet,
+                                                  size_t packetLengthInBytes
+                                                  );
+
+      virtual bool notifyTURNSocketSendPacket(
+                                              ITURNSocketPtr socket,
+                                              IPAddress destination,
+                                              const BYTE *packet,
+                                              size_t packetLengthInBytes
+                                              );
+
+      virtual void onTURNSocketWriteReady(ITURNSocketPtr socket) = 0;
+
 
     public:
       //-----------------------------------------------------------------------
@@ -462,9 +602,11 @@ namespace ortc
       {
         Server mServer;
         UseTURNSocketPtr mTURNSocket;
+        IPAddress mServerResponseIP;
 
         String mOptionsHash;
-        CandidatePtr mCandidate;
+        CandidatePtr mRelayCandidate;
+        CandidatePtr mReflexiveCandidate;
 
         Time mLastSentData;
         TimerPtr mInactivityTimer;
@@ -498,6 +640,98 @@ namespace ortc
 
         String mRelayOptionsHash;
         RelayPortList mRelayPorts;
+        IPToRelayPortMap mIPToRelayPortMapping;
+
+        SocketToTCPPortMap mTCPPorts;
+
+        ElementPtr toDebug() const;
+      };
+
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark ICEGatherer::TCPPort
+      #pragma mark
+
+      struct TCPPort
+      {
+        bool mConnected {false};
+        HostPortPtr mHostPort;
+
+        CandidatePtr mCandidate;
+
+        IPAddress mRemoteIP;
+        SocketPtr mSocket;
+        ByteQueue mIncomingBuffer;
+        ByteQueue mOutgoingBuffer;
+
+        UseTransportWeakPtr mTransport;
+
+        ElementPtr toDebug() const;
+      };
+
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark ICEGatherer::BufferedPacket
+      #pragma mark
+
+      struct BufferedPacket
+      {
+        Time mTimestamp;
+        CandidatePtr mLocalCandidate;
+        IPAddress mFrom;
+
+        STUNPacketPtr mSTUNPacket;
+        String mRFrag;
+
+        SecureByteBlockPtr mBuffer;
+
+        ElementPtr toDebug() const;
+      };
+      
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark ICEGatherer::Route
+      #pragma mark
+
+      struct Route
+      {
+        AutoPUID mID;
+
+        Time mLastUsed;
+        CandidatePtr mLocalCandidate;
+        IPAddress mFrom;
+
+        TransportID mTransportID {};
+        UseTransportWeakPtr mTransport;
+
+        HostPortPtr mHostPort;
+        RelayPortPtr mRelayPort;
+        TCPPortPtr mTCPPort;
+
+        ElementPtr toDebug() const;
+      };
+
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark ICEGatherer::InstalledTransport
+      #pragma mark
+
+      struct InstalledTransport
+      {
+        TransportID mTransportID {};
+        UseTransportWeakPtr mTransport;
 
         ElementPtr toDebug() const;
       };
@@ -556,6 +790,9 @@ namespace ortc
       bool stepBindHostPorts();
       bool stepWarmth();
       bool stepSetupReflexive();
+      bool stepTearDownReflexive();
+      bool stepSetupRelay();
+      bool stepTearDownRelay();
 
       void cancel();
 
@@ -577,6 +814,11 @@ namespace ortc
 
       void shutdown(HostPort &hostPort);
       void shutdown(ReflexivePort &reflexivePort);
+      void shutdown(
+                    RelayPort &relayPort,
+                    HostPort &ownerHostPort
+                    );
+      void shutdown(TCPPort &tcpPort);
 
       SocketPtr bind(
                      IPAddress &ioBindIP,
@@ -609,7 +851,57 @@ namespace ortc
                       const IPAddress &ip,
                       const Candidate &candidate
                       ) const;
-      
+
+      void read(
+                HostPortPtr hostPort,
+                SocketPtr socket
+                );
+      void read(TCPPort &tcpPort);
+
+      void write(
+                 HostPort &hostPort,
+                 SocketPtr socket
+                 );
+      void write(TCPPort &tcpPort);
+
+      void close(
+                 HostPort &hostPort,
+                 SocketPtr socket
+                 );
+      void close(TCPPort &tcpPort);
+
+      void handleIncomingPacket(
+                                CandidatePtr localCandidate,
+                                const IPAddress &remoteIP,
+                                STUNPacketPtr stunPacket
+                                );
+      void handleIncomingPacket(
+                                CandidatePtr localCandidate,
+                                const IPAddress &remoteIP,
+                                const BYTE *buffer,
+                                size_t bufferSizeInBytes
+                                );
+
+      // WARNING: DO NOT CALL FROM WITHIN A LOCK
+      RoutePtr installRoute(
+                            CandidatePtr localCandidate,
+                            const IPAddress &remoteIP,
+                            UseTransportPtr transport,
+                            bool notifyTransport = true
+                            );
+
+      void sendSTUNPacket(
+                          CandidatePtr localCandidate,
+                          const IPAddress &remoteIP,
+                          STUNPacketPtr stunPacket
+                          );
+
+      void fix(STUNPacketPtr stunPacket) const;
+
+      void removeAllRelatedRoutes(
+                                  TransportID transportID,
+                                  UseTransportPtr transportIfAvailable
+                                  );
 
     protected:
       //-----------------------------------------------------------------------
@@ -640,9 +932,6 @@ namespace ortc
       HostIPSorter::InterfaceMappingList mInterfaceMappings;
       bool mCreateTCPCandidates {true};
 
-      Seconds mReflexiveAliveTimeAfterGather;
-      Seconds mRelayInactivityTimeout;
-
       bool mGetLocalIPsNow {true};
       HostIPSorter::DataList mPendingHostIPs;
       HostIPSorter::DataList mResolvedHostIPs;
@@ -656,6 +945,7 @@ namespace ortc
       String mLastFixedHostPortsHostsHash;
       String mLastBoundHostPortsHostHash;
       String mLastReflexiveHostsHash;
+      String mLastRelayHostsHash;
       String mLastCandidatesWarmUntilOptionsHash;
 
       IPToHostPortMap mHostPorts;
@@ -674,10 +964,26 @@ namespace ortc
 
       UseBackOffTimerPtr mBindBackOffTimer;
 
+      CandidateMap mUniqueCandidates;
       CandidateMap mLocalCandidates;
 
       Time mWarmUntil;  // keep candidates warm until this time
       TimerPtr mWarmUntilTimer;
+
+      Seconds mRelayInactivityTime;
+      TimerToRelayPortMap mRelayInactivityTimers;
+
+      SocketToTCPPortMap mTCPPorts;
+      CandidateToTCPPortMap mTCPCandidateToTCPPorts;
+
+      TimerPtr mCleanUpBufferingTimer;
+      Seconds mMaxBufferingTime;
+      BufferedPacketList mBufferedPackets;
+
+      CandidateAndRemoteIPToRouteMap mRouteCandidateAndIPMappings;
+      RouteMap mRoutes;
+
+      TransportMap mInstalledTransports;
     };
 
     //-------------------------------------------------------------------------
@@ -701,3 +1007,9 @@ namespace ortc
     class ICEGathererFactory : public IFactory<IICEGathererFactory> {};
   }
 }
+
+ZS_DECLARE_PROXY_BEGIN(ortc::internal::IGathererAsyncDelegate)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::IGathererAsyncDelegate::UseTransportPtr, UseTransportPtr)
+ZS_DECLARE_PROXY_METHOD_2(onNotifyDeliverRouteBufferedPackets, UseTransportPtr, PUID)
+ZS_DECLARE_PROXY_METHOD_2(onNotifyAboutRemoveRoute, UseTransportPtr, PUID)
+ZS_DECLARE_PROXY_END()
