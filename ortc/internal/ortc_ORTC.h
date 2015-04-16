@@ -31,10 +31,11 @@
 
 #pragma once
 
-#if 0
-
 #include <ortc/internal/types.h>
 #include <ortc/IORTC.h>
+
+#define ORTC_QUEUE_MAIN_THREAD_NAME "org.ortc.ortcLibMainThread"
+#define ORTC_QUEUE_BLOCKING_MEDIA_STARTUP_THREAD_NAME "org.ortc.ortcLibBlockingMedia"
 
 namespace ortc
 {
@@ -66,7 +67,8 @@ namespace ortc
     #pragma mark
 
     class ORTC : public IORTC,
-                 public IORTCForInternal
+                 public IORTCForInternal,
+                 public SharedRecursiveLock
     {
     public:
       friend interaction IORTC;
@@ -93,8 +95,7 @@ namespace ortc
 
       virtual void setup(
                          IMessageQueuePtr defaultDelegateMessageQueue,
-                         IMessageQueuePtr ortcMessageQueue,
-                         IMessageQueuePtr blockingMediaStartStopThread
+                         IMessageQueuePtr ortcMessageQueue
                          );
 
       //---------------------------------------------------------------------
@@ -112,6 +113,7 @@ namespace ortc
       #pragma mark
 
       Log::Params log(const char *message) const;
+      static Log::Params slog(const char *message);
 
     protected:
       //---------------------------------------------------------------------
@@ -123,11 +125,9 @@ namespace ortc
       ORTCWeakPtr mThisWeak;
       RecursiveLock mLock;
 
-      IMessageQueuePtr mORTCQueue;
-      IMessageQueuePtr mDelegateQueue;
-      IMessageQueuePtr mBlockingMediaStartStopThread;
+      mutable IMessageQueuePtr mORTCQueue;
+      mutable IMessageQueuePtr mDelegateQueue;
+      mutable IMessageQueuePtr mBlockingMediaStartStopThread;
     };
   }
 }
-
-#endif //0

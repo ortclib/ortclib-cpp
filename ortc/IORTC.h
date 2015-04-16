@@ -47,8 +47,9 @@ namespace ortc
   {
     static void setup(
                       IMessageQueuePtr defaultDelegateMessageQueue,
-                      IMessageQueuePtr ortcMessageQueue,
-                      IMessageQueuePtr blockingMediaStartStopThread
+                      IMessageQueuePtr ortcMessageQueue
                       );
+
+    virtual ~IORTC() {} // make polymorphic
   };
 }

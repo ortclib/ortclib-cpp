@@ -29,11 +29,10 @@
  
  */
 
-#if 0
-
 #include <ortc/internal/ortc_ORTC.h>
 
 #include <openpeer/services/IHelper.h>
+#include <openpeer/services/IMessageQueueManager.h>
 
 #include <zsLib/Log.h>
 #include <zsLib/XML.h>
@@ -44,7 +43,8 @@ namespace ortc
 {
   namespace internal
   {
-    using openpeer::services::IHelper;
+    ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHelper, UseServicesHelper)
+    ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IMessageQueueManager, UseMessageQueueManager)
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -81,7 +81,8 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    ORTC::ORTC()
+    ORTC::ORTC() :
+      SharedRecursiveLock(SharedRecursiveLock::create())
     {
       ZS_LOG_DETAIL(log("created"))
     }
@@ -118,15 +119,18 @@ namespace ortc
     //-------------------------------------------------------------------------
     ORTCPtr ORTC::singleton()
     {
-      static ORTCPtr singleton = ORTC::create();
-      return singleton;
+      static SingletonLazySharedPtr<ORTC> singleton(ORTC::create());
+      ORTCPtr result = singleton.singleton();
+      if (!result) {
+        ZS_LOG_WARNING(Detail, slog("singleton gone"))
+      }
+      return result;
     }
 
     //-------------------------------------------------------------------------
     void ORTC::setup(
                      IMessageQueuePtr defaultDelegateMessageQueue,
-                     IMessageQueuePtr ortcMessageQueue,
-                     IMessageQueuePtr blockingMediaStartStopThread
+                     IMessageQueuePtr ortcMessageQueue
                      )
     {
       AutoRecursiveLock lock(mLock);
@@ -138,14 +142,6 @@ namespace ortc
       if (ortcMessageQueue) {
         mORTCQueue = ortcMessageQueue;
       }
-
-      if (blockingMediaStartStopThread) {
-        mBlockingMediaStartStopThread = blockingMediaStartStopThread;
-      }
-
-      ZS_THROW_INVALID_ARGUMENT_IF(!mDelegateQueue)
-      ZS_THROW_INVALID_ARGUMENT_IF(!mORTCQueue)
-      ZS_THROW_INVALID_ARGUMENT_IF(!mBlockingMediaStartStopThread)
     }
 
     //-------------------------------------------------------------------------
@@ -159,18 +155,30 @@ namespace ortc
     //-------------------------------------------------------------------------
     IMessageQueuePtr ORTC::queueDelegate() const
     {
+      AutoRecursiveLock lock(*this);
+      if (!mDelegateQueue) {
+        mDelegateQueue = UseMessageQueueManager::getMessageQueueForGUIThread();
+      }
       return mDelegateQueue;
     }
 
     //-------------------------------------------------------------------------
     IMessageQueuePtr ORTC::queueORTC() const
     {
+      AutoRecursiveLock lock(*this);
+      if (!mORTCQueue) {
+        mORTCQueue = UseMessageQueueManager::getMessageQueue(ORTC_QUEUE_MAIN_THREAD_NAME);
+      }
       return mORTCQueue;
     }
 
     //-------------------------------------------------------------------------
     IMessageQueuePtr ORTC::queueBlockingMediaStartStopThread() const
     {
+      AutoRecursiveLock lock(*this);
+      if (!mBlockingMediaStartStopThread) {
+        mBlockingMediaStartStopThread = UseMessageQueueManager::getMessageQueue(ORTC_QUEUE_BLOCKING_MEDIA_STARTUP_THREAD_NAME);
+      }
       return mBlockingMediaStartStopThread;
     }
 
@@ -186,7 +194,14 @@ namespace ortc
     Log::Params ORTC::log(const char *message) const
     {
       ElementPtr objectEl = Element::create("ortc::ORTC");
-      IHelper::debugAppend(objectEl, "id", mID);
+      UseServicesHelper::debugAppend(objectEl, "id", mID);
+      return Log::Params(message, objectEl);
+    }
+
+    //-------------------------------------------------------------------------
+    Log::Params ORTC::slog(const char *message)
+    {
+      ElementPtr objectEl = Element::create("ortc::ORTC");
       return Log::Params(message, objectEl);
     }
   }
@@ -200,10 +215,13 @@ namespace ortc
   #pragma mark
 
   //---------------------------------------------------------------------------
-  IORTCPtr IORTC::singleton()
+  void IORTC::setup(
+                    IMessageQueuePtr defaultDelegateMessageQueue,
+                    IMessageQueuePtr ortcMessageQueue
+                    )
   {
-    return internal::ORTC::singleton();
+    auto singleton = internal::ORTC::singleton();
+    if (!singleton) return;
+    singleton->setup(defaultDelegateMessageQueue, ortcMessageQueue);
   }
 }
-
-#endif //0

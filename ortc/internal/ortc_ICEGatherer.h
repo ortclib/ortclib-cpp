@@ -71,6 +71,9 @@
 
 #define ORTC_SETTING_GATHERER_MAX_INCOMING_PACKET_BUFFERING_TIME_IN_SECONDS "ortc/gatherer-max-incoming-packet-buffering-time-in-seconds"
 
+#define ORTC_SETTING_GATHERER_MAX_PENDING_OUTGOING_TCP_SOCKET_BUFFERING_IN_BYTES "ortc/gatherer-max-pending-outgoing-tcp-socket-buffering-in-bytes"
+#define ORTC_SETTING_GATHERER_MAX_CONNECTED_TCP_SOCKET_BUFFERING_IN_BYTES "ortc/gatherer-max-connected-tcp-socket-buffering-in-bytes"
+
 namespace ortc
 {
   namespace internal
@@ -315,6 +318,13 @@ namespace ortc
     protected:
       //-----------------------------------------------------------------------
       #pragma mark
+      #pragma mark ICEGatherer => IStatsProvider
+      #pragma mark
+
+      virtual PromiseWithStatsReportPtr getStats() const throw(InvalidStateError);
+
+      //-----------------------------------------------------------------------
+      #pragma mark
       #pragma mark ICEGatherer => IICETransport
       #pragma mark
 
@@ -454,7 +464,7 @@ namespace ortc
                                               size_t packetLengthInBytes
                                               );
 
-      virtual void onTURNSocketWriteReady(ITURNSocketPtr socket) = 0;
+      virtual void onTURNSocketWriteReady(ITURNSocketPtr socket);
 
 
     public:
@@ -667,6 +677,7 @@ namespace ortc
         ByteQueue mIncomingBuffer;
         ByteQueue mOutgoingBuffer;
 
+        TransportID mTransportID {0};
         UseTransportWeakPtr mTransport;
 
         ElementPtr toDebug() const;
@@ -713,9 +724,9 @@ namespace ortc
         TransportID mTransportID {};
         UseTransportWeakPtr mTransport;
 
-        HostPortPtr mHostPort;
-        RelayPortPtr mRelayPort;
-        TCPPortPtr mTCPPort;
+        HostPortPtr mHostPort;    // send via host UDP packet
+        RelayPortPtr mRelayPort;  // send via relay port
+        TCPPortPtr mTCPPort;      // send via TCP socket
 
         ElementPtr toDebug() const;
       };
@@ -862,7 +873,7 @@ namespace ortc
                  HostPort &hostPort,
                  SocketPtr socket
                  );
-      void write(TCPPort &tcpPort);
+      bool writeIfTCPPort(SocketPtr socket);
 
       void close(
                  HostPort &hostPort,
@@ -870,11 +881,11 @@ namespace ortc
                  );
       void close(TCPPort &tcpPort);
 
-      void handleIncomingPacket(
-                                CandidatePtr localCandidate,
-                                const IPAddress &remoteIP,
-                                STUNPacketPtr stunPacket
-                                );
+      SecureByteBlockPtr handleIncomingPacket(
+                                              CandidatePtr localCandidate,
+                                              const IPAddress &remoteIP,
+                                              STUNPacketPtr stunPacket
+                                              );
       void handleIncomingPacket(
                                 CandidatePtr localCandidate,
                                 const IPAddress &remoteIP,
@@ -902,6 +913,13 @@ namespace ortc
                                   TransportID transportID,
                                   UseTransportPtr transportIfAvailable
                                   );
+
+      bool sendUDPPacket(
+                         SocketPtr socket,
+                         const IPAddress &remoteIP,
+                         const BYTE *buffer,
+                         size_t bufferSizeInBytes
+                         );
 
     protected:
       //-----------------------------------------------------------------------
@@ -975,6 +993,8 @@ namespace ortc
 
       SocketToTCPPortMap mTCPPorts;
       CandidateToTCPPortMap mTCPCandidateToTCPPorts;
+      size_t mMaxTCPBufferingSizePendingConnection {};
+      size_t mMaxTCPBufferingSizeConnected {};
 
       TimerPtr mCleanUpBufferingTimer;
       Seconds mMaxBufferingTime;
