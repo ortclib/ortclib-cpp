@@ -542,7 +542,11 @@ namespace ortc
     //-------------------------------------------------------------------------
     ICEGatherer::PromiseWithStatsReportPtr ICEGatherer::getStats() const throw(InvalidStateError)
     {
-      return PromiseWithStatsReportPtr();
+      AutoRecursiveLock lock(*this);
+      ZS_THROW_INVALID_USAGE_IF(isShutdown() || isShuttingDown())
+
+      PromiseWithStatsReportPtr promise = PromiseWithStatsReport::create(IORTCForInternal::queueDelegate());
+      return promise;
     }
 
     //-------------------------------------------------------------------------
@@ -579,9 +583,37 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    IICEGathererSubscriptionPtr ICEGatherer::subscribe(IICEGathererDelegatePtr delegate)
+    IICEGathererSubscriptionPtr ICEGatherer::subscribe(IICEGathererDelegatePtr originalDelegate)
     {
-      return IICEGathererSubscriptionPtr();
+      AutoRecursiveLock lock(*this);
+      if (!originalDelegate) return mDefaultSubscription;
+
+      auto subscription = mSubscriptions.subscribe(originalDelegate);
+
+      auto delegate = mSubscriptions.delegate(subscription, true);
+
+      if (delegate) {
+        auto pThis = mThisWeak.lock();
+
+        if (InternalState_Pending != mCurrentState) {
+          delegate->onICEGathererStateChanged(pThis, toState(mCurrentState));
+        }
+
+        for (auto iter = mNotifiedCandidates.begin(); iter != mNotifiedCandidates.end(); ++iter) {
+          auto candidate = (*iter).second.first;
+
+          ZS_LOG_DEBUG(log("reporting existing candidate") + ZS_PARAM("subscription", subscription->getID()) + candidate->toDebug())
+
+          CandidatePtr sendCandidate(new Candidate(*candidate));
+          delegate->onICEGathererLocalCandidate(mThisWeak.lock(), sendCandidate);
+        }
+      }
+
+      if (isShutdown()) {
+        mSubscriptions.clear();
+      }
+
+      return subscription;
     }
 
     //-------------------------------------------------------------------------
@@ -606,12 +638,43 @@ namespace ortc
     //-------------------------------------------------------------------------
     IICEGathererTypes::CandidateListPtr ICEGatherer::getLocalCandidates() const
     {
-      return CandidateListPtr();
+      AutoRecursiveLock lock(*this);
+
+      CandidateListPtr candidates(new CandidateList);
+
+      for (auto iter = mNotifiedCandidates.begin(); iter != mNotifiedCandidates.end(); ++iter) {
+        auto candidate = (*iter).second.first;
+        candidates->push_back(*candidate);
+      }
+
+      return candidates;
     }
 
     //-------------------------------------------------------------------------
     void ICEGatherer::gather(const Options &options)
     {
+      AutoRecursiveLock lock(*this);
+
+      mOptions = options;
+      mOptionsHash = mOptions.hash();
+
+      mGetLocalIPsNow = true; // obtain local IPs again
+      mLastBoundHostPortsHostHash.clear();
+      mLastReflexiveHostsHash.clear();
+      mLastRelayHostsHash.clear();
+      mLastCandidatesWarmUntilOptionsHash.clear();
+
+      if (mBindBackOffTimer) {
+        mBindBackOffTimer->cancel();
+        mBindBackOffTimer.reset();
+      }
+
+      if (InternalState_Ready == mCurrentState) {
+        ZS_LOG_DETAIL(log("must initiate gathering again"))
+        setState(InternalState_Gathering);
+      }
+
+      IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
     }
 
     //-------------------------------------------------------------------------
@@ -880,6 +943,7 @@ namespace ortc
         }
 
         route = (*found).second;
+        route->mLastUsed = zsLib::now();
 
         if (route->mHostPort) {
           if (!route->mHostPort->mBoundUDPSocket) {
@@ -1017,6 +1081,21 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    void ICEGatherer::onResolveStatsPromise(IStatsProvider::PromiseWithStatsReportPtr promise)
+    {
+      AutoRecursiveLock lock(*this);
+
+      if (isShutdown()) {
+        ZS_LOG_WARNING(Detail, log("requesting stats after shutdown"))
+        promise->reject();
+        return;
+      }
+
+#define WARNING_TODO_RESOLVE_STATS_PROMISE 1
+#define WARNING_TODO_RESOLVE_STATS_PROMISE 2
+    }
+
+    //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -1109,6 +1188,9 @@ namespace ortc
           mRelayInactivityTimers.erase(found);
         }
       }
+
+#define TODO_CLEAN_UP_UNUSED_ROUTES 1
+#define TODO_CLEAN_UP_UNUSED_ROUTES 2
     }
 
     //-------------------------------------------------------------------------
@@ -1360,6 +1442,11 @@ namespace ortc
       if (!stepSetupRelay()) goto not_complete;
       if (!stepTearDownRelay()) goto not_complete;
 
+      if (!stepCheckIfReady()) goto not_complete;
+
+      setState(InternalState_Ready);
+      goto done;
+
     not_complete:
       setState(InternalState_Gathering);
 
@@ -1535,6 +1622,9 @@ namespace ortc
     bool ICEGatherer::stepGetHostIPs()
     {
       typedef HostIPSorter::DataList DataList;
+
+#define TODO_RECHECK_IPS_PERIODICALLY 1
+#define TODO_RECHECK_IPS_PERIODICALLY 2
 
       if (!mGetLocalIPsNow) {
         ZS_LOG_TRACE(log("no need to check host IPs at this moment"))
@@ -2226,6 +2316,7 @@ namespace ortc
             reflexivePort->mServer = server;
 
             hostPort->mReflexivePorts.push_back(reflexivePort);
+            goto found_server;
           }
 
         found_server:
@@ -2255,7 +2346,8 @@ namespace ortc
             }
 
             if (reflexivePort->mCandidate) {
-              ZS_LOG_TRACE(log("already have candidate"))
+              ZS_LOG_TRACE(log("already have candidate") + reflexivePort->mCandidate->toDebug())
+              addCandidate(*(hostPort->mHostData), hostPort->mBoundUDPIP, reflexivePort->mCandidate);
               continue;
             }
 
@@ -2501,8 +2593,14 @@ namespace ortc
 
             if (notReady) continue;
 
+            if (relayPort->mReflexiveCandidate) {
+              ZS_LOG_TRACE(log("already have reflexive candidate") + relayPort->mReflexiveCandidate->toDebug())
+              addCandidate(*(hostPort->mHostData), hostPort->mBoundUDPIP, relayPort->mReflexiveCandidate);
+            }
+
             if (relayPort->mRelayCandidate) {
-              ZS_LOG_TRACE(log("already have candidate"))
+              ZS_LOG_TRACE(log("already have candidate") + relayPort->mRelayCandidate->toDebug())
+              addCandidate(*(hostPort->mHostData), hostPort->mBoundUDPIP, relayPort->mRelayCandidate);
               continue;
             }
 
@@ -2621,6 +2719,38 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    bool ICEGatherer::stepCheckIfReady()
+    {
+      if (mHostsHash != mLastFixedHostPortsHostsHash) {
+        ZS_LOG_TRACE(log("still waiting to fix host ports"))
+        return false;
+      }
+
+      if (mHostsHash != mLastBoundHostPortsHostHash) {
+        ZS_LOG_TRACE(log("still waiting to bind host ports"))
+        return false;
+      }
+
+      if (mHostsHash != mLastReflexiveHostsHash) {
+        ZS_LOG_TRACE(log("still waiting for reflexive ports to gather"))
+        return false;
+      }
+
+      if (mHostsHash != mLastRelayHostsHash) {
+        ZS_LOG_TRACE(log("still waiting for relay ports to gather"))
+        return false;
+      }
+
+      if (mOptionsHash != mLastCandidatesWarmUntilOptionsHash) {
+        ZS_LOG_TRACE(log("still waiting for warmth options to be setup"))
+        return false;
+      }
+
+      ZS_LOG_TRACE(log("gathering appears to be complete"))
+      return true;
+    }
+
+    //-------------------------------------------------------------------------
     void ICEGatherer::cancel()
     {
       if (isShutdown()) {
@@ -2679,11 +2809,11 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool ICEGatherer::hasSTUNServers()
     {
-      if (mOptionsHash == mHasSTUNServersHash) {
+      if (mOptionsHash == mHasSTUNServersOptionsHash) {
         return mHasSTUNServers;
       }
 
-      mHasSTUNServersHash = mOptionsHash;
+      mHasSTUNServersOptionsHash = mOptionsHash;
       mHasSTUNServers = false;
 
       for (auto iter = mOptions.mICEServers.begin(); iter != mOptions.mICEServers.end(); ++iter) {
@@ -2700,11 +2830,11 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool ICEGatherer::hasTURNServers()
     {
-      if (mOptionsHash == mHasTURNServersHash) {
+      if (mOptionsHash == mHasTURNServersOptionsHash) {
         return mHasTURNServers;
       }
 
-      mHasTURNServersHash = mOptionsHash;
+      mHasTURNServersOptionsHash = mOptionsHash;
       mHasTURNServers = false;
 
       for (auto iter = mOptions.mICEServers.begin(); iter != mOptions.mICEServers.end(); ++iter) {
@@ -2940,7 +3070,6 @@ namespace ortc
       }
 
       removeCandidate(reflexivePort.mCandidate);
-
       reflexivePort.mCandidate.reset();
     }
 
@@ -3255,36 +3384,39 @@ namespace ortc
         return;
       }
 
-      String hash = candidate->hash();
-      String uniqueHash = candidate->hash(false);
+      String localHash = candidate->hash();
 
-      if (mLocalCandidates.find(hash) != mLocalCandidates.end()) {
+      // NOTE: The uniqueness of a candidate is based on all properites minus
+      // the priorities. Thus a candidate is not truly unique if the candidate
+      // has all the same values but with different priority values.
+      String notifyHash = candidate->hash(false);
+
+      if (mLocalCandidates.find(localHash) != mLocalCandidates.end()) {
         ZS_LOG_TRACE(log("canadidate already added") + candidate->toDebug())
         return;
       }
 
       bool isUnique = false;
-      if (mUniqueCandidates.find(uniqueHash) == mUniqueCandidates.end()) {
+      if (mNotifiedCandidates.find(notifyHash) == mNotifiedCandidates.end()) {
         isUnique = true;
       }
 
-      mLocalCandidates[hash] = CandidatePair(candidate, uniqueHash);
+      mLocalCandidates[localHash] = CandidatePair(candidate, notifyHash);
       if (!isUnique) {
         ZS_LOG_TRACE(log("similar candidate already notified (thus do not notify of this candidate)") + candidate->toDebug())
         return;
       }
 
-      mUniqueCandidates[uniqueHash] = CandidatePair(candidate, hash);
+      mNotifiedCandidates[notifyHash] = CandidatePair(candidate, localHash);
 
       if (InternalState_Ready == mCurrentState) {
         setState(InternalState_Gathering);
       }
 
-      CandidatePtr sentCandidate(new Candidate);
-      *sentCandidate = *candidate;
+      CandidatePtr sendCandidate(new Candidate(*candidate));
 
       ZS_LOG_DEBUG(log("notify local candidate") + candidate->toDebug())
-      mSubscriptions.delegate()->onICEGathererLocalCandidate(mThisWeak.lock(), sentCandidate);
+      mSubscriptions.delegate()->onICEGathererLocalCandidate(mThisWeak.lock(), sendCandidate);
     }
 
     //-------------------------------------------------------------------------
@@ -3292,10 +3424,10 @@ namespace ortc
     {
       if (!candidate) return;
 
-      String hash = candidate->hash();
-      String uniqueHash = candidate->hash(false);
+      String localHash = candidate->hash();
+      String notifyHash = candidate->hash(false);
 
-      auto foundLocal = mLocalCandidates.find(hash);
+      auto foundLocal = mLocalCandidates.find(localHash);
       if (foundLocal == mLocalCandidates.end()) {
         ZS_LOG_WARNING(Debug, log("local candidate is not found (might have been filtered)") + candidate->toDebug())
         return;
@@ -3303,15 +3435,15 @@ namespace ortc
 
       mLocalCandidates.erase(foundLocal);
 
-      auto foundUnique = mUniqueCandidates.find(uniqueHash);
-      if (foundUnique == mUniqueCandidates.end()) {
+      auto foundUnique = mNotifiedCandidates.find(notifyHash);
+      if (foundUnique == mNotifiedCandidates.end()) {
         ZS_LOG_WARNING(Debug, log("unique candidate is not found") + candidate->toDebug())
         return;
       }
 
       const String &previousLocalHash = (*foundUnique).second.second;
 
-      if (previousLocalHash != hash) {
+      if (previousLocalHash != localHash) {
         ZS_LOG_TRACE(log("candidate being removed was not notified candidate") + candidate->toDebug())
         return;
       }
@@ -3320,30 +3452,27 @@ namespace ortc
 
       ZS_LOG_DEBUG(log("notify candidate gone") + previousCandidate->toDebug())
 
-      mUniqueCandidates.erase(foundUnique);
+      CandidatePtr sendCandidate(new Candidate(*previousCandidate));
+      mSubscriptions.delegate()->onICEGathererLocalCandidateGone(mThisWeak.lock(), sendCandidate);
 
-      CandidatePtr sentCandidate(new Candidate);
-      *sentCandidate = *previousCandidate;
-
-      mSubscriptions.delegate()->onICEGathererLocalCandidateGone(mThisWeak.lock(), sentCandidate);
+      mNotifiedCandidates.erase(foundUnique);
 
       for (auto iter = mLocalCandidates.begin(); iter != mLocalCandidates.end(); ++iter) {
-        const String &otherUniqueHash = (*iter).second.second;
-        if (otherUniqueHash == uniqueHash) {
+        const String &otherNotifyHash = (*iter).second.second;
+        if (otherNotifyHash == notifyHash) {
           const String &otherLocalHash = (*iter).first;
           auto otherCandidate = (*iter).second.first;
 
-          mUniqueCandidates[uniqueHash] = CandidatePair(otherCandidate, otherLocalHash);
+          mNotifiedCandidates[notifyHash] = CandidatePair(otherCandidate, otherLocalHash);
 
           if (InternalState_Ready == mCurrentState) {
             setState(InternalState_Gathering);
           }
 
-          CandidatePtr sentCandidate(new Candidate);
-          *sentCandidate = *otherCandidate;
+          CandidatePtr sendCandidate(new Candidate(*otherCandidate));
 
           ZS_LOG_DEBUG(log("notify replacement local candidate") + otherCandidate->toDebug())
-          mSubscriptions.delegate()->onICEGathererLocalCandidate(mThisWeak.lock(), sentCandidate);
+          mSubscriptions.delegate()->onICEGathererLocalCandidate(mThisWeak.lock(), sendCandidate);
           return;
         }
       }

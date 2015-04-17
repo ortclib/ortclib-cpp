@@ -153,6 +153,8 @@ namespace ortc
                                             UseTransportPtr transport,
                                             PUID routeID
                                             )  = 0;
+
+      virtual void onResolveStatsPromise(IStatsProvider::PromiseWithStatsReportPtr promise) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -387,6 +389,8 @@ namespace ortc
                                             UseTransportPtr transport,
                                             PUID routeID
                                             );
+
+      virtual void onResolveStatsPromise(IStatsProvider::PromiseWithStatsReportPtr promise);
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -804,6 +808,7 @@ namespace ortc
       bool stepTearDownReflexive();
       bool stepSetupRelay();
       bool stepTearDownRelay();
+      bool stepCheckIfReady();
 
       void cancel();
 
@@ -972,17 +977,17 @@ namespace ortc
       STUNToReflexivePortMap mSTUNDiscoveries;
       TURNToRelayPortMap mTURNSockets;
 
-      String mHasSTUNServersHash;
+      String mHasSTUNServersOptionsHash;
       bool mHasSTUNServers {false};
 
-      String mHasTURNServersHash;
+      String mHasTURNServersOptionsHash;
       bool mHasTURNServers {false};
 
       FoundationToLocalPreferenceMap mLastLocalPreference;
 
       UseBackOffTimerPtr mBindBackOffTimer;
 
-      CandidateMap mUniqueCandidates;
+      CandidateMap mNotifiedCandidates;
       CandidateMap mLocalCandidates;
 
       Time mWarmUntil;  // keep candidates warm until this time
@@ -1030,6 +1035,8 @@ namespace ortc
 
 ZS_DECLARE_PROXY_BEGIN(ortc::internal::IGathererAsyncDelegate)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::IGathererAsyncDelegate::UseTransportPtr, UseTransportPtr)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::IStatsProvider::PromiseWithStatsReportPtr, PromiseWithStatsReportPtr)
 ZS_DECLARE_PROXY_METHOD_2(onNotifyDeliverRouteBufferedPackets, UseTransportPtr, PUID)
 ZS_DECLARE_PROXY_METHOD_2(onNotifyAboutRemoveRoute, UseTransportPtr, PUID)
+ZS_DECLARE_PROXY_METHOD_1(onResolveStatsPromise, PromiseWithStatsReportPtr)
 ZS_DECLARE_PROXY_END()
