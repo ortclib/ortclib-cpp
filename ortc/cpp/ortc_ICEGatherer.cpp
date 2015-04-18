@@ -311,7 +311,7 @@ namespace ortc
       UseSettings::setUInt(ORTC_SETTING_GATHERER_PASSWORD_LENGTH, (128*8)/5);     // must be at least 128 bits
 
       UseSettings::setBool(ORTC_SETTING_GATHERER_CREATE_TCP_CANDIDATES, true);
-      UseSettings::setString(ORTC_SETTING_GATHERER_BIND_BACK_OFF_TIMER, "/1,1,*2:120///");
+      UseSettings::setString(ORTC_SETTING_GATHERER_BIND_BACK_OFF_TIMER, "/1,1,*2:120//5/");
 
       {
         ICEGatherer::Preference pref(ICEGatherer::PreferenceType_Priority);
@@ -330,6 +330,8 @@ namespace ortc
 
       UseSettings::setUInt(ORTC_SETTING_GATHERER_MAX_PENDING_OUTGOING_TCP_SOCKET_BUFFERING_IN_BYTES, 100*1024); // max 100K
       UseSettings::setUInt(ORTC_SETTING_GATHERER_MAX_CONNECTED_TCP_SOCKET_BUFFERING_IN_BYTES, 10*1024);  // max 10K
+
+      UseSettings::setUInt(ORTC_SETTING_GATHERER_CLEAN_UNUSED_ROUTES_NOT_USED_IN_SECONDS, 90);
     }
 
     //-------------------------------------------------------------------------
@@ -482,6 +484,9 @@ namespace ortc
       mPreferences[PreferenceType_Priority].load();
       mPreferences[PreferenceType_Unfreeze].load();
 
+      ZS_LOG_DETAIL(log("use candidate priority") + mPreferences[PreferenceType_Priority].toDebug())
+      ZS_LOG_DETAIL(log("unfreeze candidate priority") + mPreferences[PreferenceType_Unfreeze].toDebug())
+
       String networkOrder = UseSettings::getString(ORTC_SETTING_GATHERER_INTERFACE_NAME_MAPPING);
       if (networkOrder.hasData()) {
 
@@ -503,6 +508,16 @@ namespace ortc
     void ICEGatherer::init()
     {
       ZS_LOG_DETAIL(log("created"))
+
+      AutoRecursiveLock lock(*this);
+
+      auto cleanInSeconds = UseSettings::getUInt(ORTC_SETTING_GATHERER_CLEAN_UNUSED_ROUTES_NOT_USED_IN_SECONDS);
+      if (0 != cleanInSeconds) {
+        mCleanUnusedRoutesDuration = Seconds(cleanInSeconds);
+        mCleanUnusedRoutesTimer = Timer::create(mThisWeak.lock(), mCleanUnusedRoutesDuration);
+
+        ZS_LOG_DETAIL(log("setting up timer to clean unsed routes") + ZS_PARAM("clean duration (s)", mCleanUnusedRoutesDuration) + ZS_PARAM("timer", mCleanUnusedRoutesTimer->getID()))
+      }
     }
 
     //-------------------------------------------------------------------------
@@ -850,9 +865,15 @@ namespace ortc
             }
 
             if (IICETypes::Protocol_TCP == sentFromLocalCanddiate->mProtocol) {
-              if (hostPort->mCandidateTCP) {
-                if (hostPort->mCandidateTCP->hash() == candidateHash) {
-                  localCandidate = hostPort->mCandidateTCP;
+              if (hostPort->mCandidateTCPPassive) {
+                if (hostPort->mCandidateTCPPassive->hash() == candidateHash) {
+                  localCandidate = hostPort->mCandidateTCPPassive;
+                  goto install_route;
+                }
+              }
+              if (hostPort->mCandidateTCPActive) {
+                if (hostPort->mCandidateTCPActive->hash() == candidateHash) {
+                  localCandidate = hostPort->mCandidateTCPActive;
                   goto install_route;
                 }
               }
@@ -1138,6 +1159,8 @@ namespace ortc
     //-------------------------------------------------------------------------
     void ICEGatherer::onTimer(TimerPtr timer)
     {
+      Time now = zsLib::now();
+
       ZS_LOG_TRACE(log("on timer fired") + ZS_PARAM("timer", timer->getID()))
       AutoRecursiveLock lock(*this);
 
@@ -1150,8 +1173,6 @@ namespace ortc
 
       if (mCleanUpBufferingTimer == timer) {
         ZS_LOG_TRACE(log("cleaning packet buffering"))
-
-        Time now = zsLib::now();
 
         while (true) {
           auto buffer = mBufferedPackets.front();
@@ -1172,6 +1193,22 @@ namespace ortc
         return;
       }
 
+      if (mCleanUnusedRoutesTimer == timer) {
+        ZS_LOG_DEBUG(log("cleaning unused routes"))
+        for (auto iter_doNotUse = mRoutes.begin(); iter_doNotUse != mRoutes.end();)
+        {
+          auto current = iter_doNotUse;
+          ++iter_doNotUse;
+
+          auto route = (*current).second;
+          if (route->mLastUsed + mCleanUnusedRoutesDuration < now) {
+            ZS_LOG_DEBUG(log("route is no longer in use") + route->toDebug())
+            removeRoute(route->mID);
+          }
+        }
+        return;
+      }
+
       // scope: check to see if it is an activity timer
       {
         auto found = mRelayInactivityTimers.find(timer);
@@ -1185,12 +1222,12 @@ namespace ortc
             relayPort->mInactivityTimer.reset();
           }
 
+#define TODO_CHECK_IF_THIS_IS_RIGHT 1
+#define TODO_CHECK_IF_THIS_IS_RIGHT 2
+
           mRelayInactivityTimers.erase(found);
         }
       }
-
-#define TODO_CLEAN_UP_UNUSED_ROUTES 1
-#define TODO_CLEAN_UP_UNUSED_ROUTES 2
     }
 
     //-------------------------------------------------------------------------
@@ -1398,6 +1435,9 @@ namespace ortc
 
       UseServicesHelper::debugAppend(resultEl, "error", mLastError);
       UseServicesHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
+
+#define TODO_OUTPUT_REMAINING_VALUES 1
+#define TODO_OUTPUT_REMAINING_VALUES 2
 
       return resultEl;
     }
@@ -2076,6 +2116,8 @@ namespace ortc
 
       bool allBound = true;
 
+      auto maxBindFailures = (mBindBackOffTimer ? mBindBackOffTimer->getMaxFailures(): 0);
+
       for (auto iter = mHostPorts.begin(); iter != mHostPorts.end(); ++iter) {
         auto hostPort = (*iter).second;
 
@@ -2093,7 +2135,8 @@ namespace ortc
             mHostPortSockets[hostPort->mBoundUDPSocket] = hostPort;
             hostPort->mCandidateUDP = createCandidate(hostPort->mHostData, IICETypes::CandidateType_Host, bindIP);
           } else {
-            ZS_LOG_WARNING(Debug, log("failed to bind UDP socket") + ZS_PARAM("bind ip", bindIP.string()))
+            ++(hostPort->mTotalBindFailuresUDP);
+            ZS_LOG_WARNING(Debug, log("failed to bind UDP socket") + hostPort->toDebug() + ZS_PARAM("bind ip", bindIP.string()))
           }
         } else {
           addCandidate(*(hostPort->mHostData), hostPort->mBoundUDPIP, hostPort->mCandidateUDP);
@@ -2108,27 +2151,46 @@ namespace ortc
               ZS_LOG_DEBUG(log("successfully bound TCP socket") + ZS_PARAM("bind ip", bindIP.string()))
               hostPort->mBoundTCPIP = bindIP;
               mHostPortSockets[hostPort->mBoundTCPSocket] = hostPort;
-              hostPort->mCandidateTCP = createCandidate(hostPort->mHostData, IICETypes::CandidateType_Host, bindIP, IICETypes::Protocol_TCP);
+              hostPort->mCandidateTCPPassive = createCandidate(hostPort->mHostData, IICETypes::CandidateType_Host, bindIP, IICETypes::Protocol_TCP, IICETypes::TCPCandidateType_Passive);
+              IPAddress bindActiveIP(bindIP);
+              bindActiveIP.setPort(9);
+              hostPort->mCandidateTCPActive = createCandidate(hostPort->mHostData, IICETypes::CandidateType_Host, bindActiveIP, IICETypes::Protocol_TCP, IICETypes::TCPCandidateType_Active);
             } else {
-              ZS_LOG_WARNING(Debug, log("failed to bind TCP socket") + ZS_PARAM("bind ip", bindIP.string()))
+              ++(hostPort->mTotalBindFailuresTCP);
+              ZS_LOG_WARNING(Debug, log("failed to bind TCP socket") + hostPort->toDebug() + ZS_PARAM("bind ip", bindIP.string()))
             }
           } else {
-            addCandidate(*(hostPort->mHostData), hostPort->mBoundTCPIP, hostPort->mCandidateTCP);
+            addCandidate(*(hostPort->mHostData), hostPort->mBoundTCPIP, hostPort->mCandidateTCPPassive);
+            addCandidate(*(hostPort->mHostData), hostPort->mBoundTCPIP, hostPort->mCandidateTCPActive);
           }
         }
 
-        if (!hostPort->mBoundUDPSocket) goto host_not_bound;
-        if (!mCreateTCPCandidates) goto host_bound;
-        if (!hostPort->mBoundTCPSocket) goto host_not_bound;
+        bool reachedMaxFailure = false;
 
-        goto host_bound;
-
-      host_bound:
-        {
-          ZS_LOG_TRACE(log("bound udp / tcp socket") + hostPort->toDebug())
-          hostPort->mBoundOptionsHash = mOptionsHash;
-          continue;
+        if (0 != maxBindFailures) {
+          if (hostPort->mTotalBindFailuresUDP < maxBindFailures) {
+            if (!hostPort->mBoundUDPSocket) goto host_not_bound;
+          } else {
+            reachedMaxFailure = true;
+          }
+        } else {
+          if (!hostPort->mBoundUDPSocket) goto host_not_bound;
         }
+
+        if (!mCreateTCPCandidates) goto host_bound;
+
+        if (0 != maxBindFailures) {
+          if (hostPort->mTotalBindFailuresTCP < maxBindFailures) {
+            if (!hostPort->mBoundTCPSocket) goto host_not_bound;
+          } else {
+            reachedMaxFailure = true;
+          }
+        } else {
+          if (!hostPort->mBoundTCPSocket) goto host_not_bound;
+        }
+
+        if (reachedMaxFailure) goto host_port_max_bind_failures_reached;
+        goto host_bound;
 
       host_not_bound:
         {
@@ -2136,12 +2198,24 @@ namespace ortc
           allBound = false;
           continue;
         }
+      host_port_max_bind_failures_reached:
+        {
+          ZS_LOG_TRACE(log("host port bind reach maximum failures") + hostPort->toDebug())
+          hostPort->mBoundOptionsHash = mOptionsHash;
+          continue;
+        }
+      host_bound:
+        {
+          ZS_LOG_TRACE(log("bound udp / tcp socket") + hostPort->toDebug())
+          hostPort->mBoundOptionsHash = mOptionsHash;
+          continue;
+        }
       }
 
       if (allBound) {
         mLastBoundHostPortsHostHash = mHostsHash;
 
-        ZS_LOG_DEBUG(log("all sockets have been bound"))
+        ZS_LOG_DEBUG(log("all sockets have been bound (or reached maximum attempt failures)"))
         if (mBindBackOffTimer) {
           mBindBackOffTimer->cancel();
           mBindBackOffTimer.reset();
@@ -2151,10 +2225,17 @@ namespace ortc
 
       ZS_LOG_WARNING(Debug, log("not all sockets bound"))
 
+      if (mBindBackOffTimer) {
+        mBindBackOffTimer->notifyFailure();
+        if (mBindBackOffTimer->hasFullyFailed()) {
+          ZS_LOG_WARNING(Debug, log("batch of failures have occured but not all have failed (thus restart backoff timer to fail those hosts too)"))
+          mBindBackOffTimer->cancel();
+          mBindBackOffTimer.reset();
+        }
+      }
+
       if (!mBindBackOffTimer) {
         mBindBackOffTimer = IBackOffTimer::create<Seconds>(UseSettings::getString(ORTC_SETTING_GATHERER_BIND_BACK_OFF_TIMER), mThisWeak.lock());
-      } else {
-        mBindBackOffTimer->notifyFailure();
       }
 
       // allow creation of reflexive and relay candidates (even though not everything was bound)
@@ -3023,10 +3104,12 @@ namespace ortc
       }
 
       removeCandidate(hostPort.mCandidateUDP);
-      removeCandidate(hostPort.mCandidateTCP);
+      removeCandidate(hostPort.mCandidateTCPPassive);
+      removeCandidate(hostPort.mCandidateTCPActive);
 
       hostPort.mCandidateUDP.reset();
-      hostPort.mCandidateTCP.reset();
+      hostPort.mCandidateTCPPassive.reset();
+      hostPort.mCandidateTCPActive.reset();
 
       if (hostPort.mBoundUDPSocket) {
         auto found = mHostPortSockets.find(hostPort.mBoundUDPSocket);
@@ -3238,7 +3321,8 @@ namespace ortc
                                                          HostIPSorter::DataPtr hostData,
                                                          IICETypes::CandidateTypes candidateType,
                                                          const IPAddress &boundIP,
-                                                         IICETypes::Protocols protocol
+                                                         IICETypes::Protocols protocol,
+                                                         IICETypes::TCPCandidateTypes tcpType
                                                          )
     {
       CandidatePtr candidate(new Candidate);
@@ -3284,6 +3368,7 @@ namespace ortc
                                      (256 - mComponent);
 
       candidate->mProtocol = protocol;
+      candidate->mTCPType = tcpType;
       candidate->mIP = boundIP.string(false);
       candidate->mPort = boundIP.getPort();
       candidate->mCandidateType = candidateType;
@@ -3589,7 +3674,7 @@ namespace ortc
         }
 
         if (hostPort->mBoundTCPSocket == socket) {
-          ZS_THROW_INVALID_ASSUMPTION_IF(!hostPort->mCandidateTCP)
+          ZS_THROW_INVALID_ASSUMPTION_IF(!hostPort->mCandidateTCPPassive)
           ZS_LOG_DEBUG(log("notified of incoming TCP connection") + hostPort->toDebug())
 
           TCPPortPtr tcpPort(new TCPPort);
@@ -3612,9 +3697,9 @@ namespace ortc
 
           tcpPort->mSocket->setDelegate(mThisWeak.lock());
 
-          tcpPort->mCandidate = createCandidate(hostPort->mHostData, IICETypes::CandidateType_Prflx, localAddress, IICETypes::Protocol_TCP);
-          tcpPort->mCandidate->mPriority = hostPort->mCandidateTCP->mPriority;
-          tcpPort->mCandidate->mUnfreezePriority = hostPort->mCandidateTCP->mUnfreezePriority;
+          tcpPort->mCandidate = createCandidate(hostPort->mHostData, IICETypes::CandidateType_Prflx, localAddress, IICETypes::Protocol_TCP, IICETypes::TCPCandidateType_Passive);
+          tcpPort->mCandidate->mPriority = hostPort->mCandidateTCPPassive->mPriority;
+          tcpPort->mCandidate->mUnfreezePriority = hostPort->mCandidateTCPPassive->mUnfreezePriority;
 
           mTCPCandidateToTCPPorts[tcpPort->mCandidate] = tcpPort;
           return;
@@ -3849,8 +3934,11 @@ namespace ortc
         return;
       }
 
+      CandidatePtr ingored;
+
       SocketPtr &hostSocket = (hostPort.mBoundUDPSocket == socket ? hostPort.mBoundUDPSocket : hostPort.mBoundTCPSocket);
-      CandidatePtr &candidate = (hostPort.mBoundUDPSocket == socket ? hostPort.mCandidateUDP : hostPort.mCandidateTCP);
+      CandidatePtr &candidate1 = (hostPort.mBoundUDPSocket == socket ? hostPort.mCandidateUDP : hostPort.mCandidateTCPPassive);
+      CandidatePtr &candidate2 = (hostPort.mBoundUDPSocket == socket ? ingored : hostPort.mCandidateTCPActive);
 
       ZS_LOG_WARNING(Detail, log("bound UDP or TCP socket unexpectedly closed") + hostPort.toDebug() + ZS_PARAM("socket", (PTRNUMBER)socket->getSocket()))
 
@@ -3865,10 +3953,14 @@ namespace ortc
         ZS_LOG_ERROR(Detail, log("unable to close socket") + ZS_PARAM("error", error.errorCode()) + hostPort.toDebug())
       }
 
-      removeCandidate(candidate);
+      socket.reset();
+
+      removeCandidate(candidate1);
+      removeCandidate(candidate2);
 
       hostSocket.reset();
-      candidate.reset();
+      candidate1.reset();
+      candidate2.reset();
 
       if (!mBindBackOffTimer) {
         mBindBackOffTimer = IBackOffTimer::create<Seconds>(UseSettings::getString(ORTC_SETTING_GATHERER_BIND_BACK_OFF_TIMER), mThisWeak.lock());
@@ -4111,7 +4203,8 @@ namespace ortc
 
             for (auto iter = mHostPorts.begin(); iter != mHostPorts.end(); ++iter) {
               auto hostPort = (*iter).second;
-              if (hostPort->mCandidateTCP == localCandidate) {
+              if ((hostPort->mCandidateTCPPassive == localCandidate) ||
+                  (hostPort->mCandidateTCPActive == localCandidate)) {
                 // search for an incoming or outgoing TCP connection that satisfies the requirement
                 for (auto iter = hostPort->mTCPPorts.begin(); iter != hostPort->mTCPPorts.end(); ++iter) {
                   auto tcpPort = (*iter).second;
@@ -4119,6 +4212,7 @@ namespace ortc
                   ZS_THROW_INVALID_ASSUMPTION_IF(tcpPort->mHostPort != hostPort)  // how can this now be true anyway?
                   if (tcpPort->mRemoteIP != remoteIP) continue; // must be connecting to/from same remote location
                   if (tcpPortTransport != transport) continue;  // do not pick unless confirmed that it belongs to this transport
+                  if (tcpPort->mCandidate->mTCPType != localCandidate->mTCPType) continue; // passive must match passive and active must match active
 
                   // this is an exact match
                   route->mTCPPort = tcpPort;
@@ -4142,7 +4236,7 @@ namespace ortc
                   tcpPort->mSocket->bind(hostPort->mHostData->mIP);
                   IPAddress localIP = tcpPort->mSocket->getLocalAddress();
 
-                  tcpPort->mCandidate = createCandidate(hostPort->mHostData, IICETypes::CandidateType_Prflx, localIP, IICETypes::Protocol_TCP);
+                  tcpPort->mCandidate = createCandidate(hostPort->mHostData, IICETypes::CandidateType_Prflx, localIP, IICETypes::Protocol_TCP , localCandidate->mTCPType);
 
                   // adopt priority of host socket
                   tcpPort->mCandidate->mPriority = localCandidate->mPriority;
@@ -4772,7 +4866,8 @@ namespace ortc
       UseServicesHelper::debugAppend(resultEl, "bound udp ip", mBoundUDPIP.string());
       UseServicesHelper::debugAppend(resultEl, "bound udp socket", mBoundUDPSocket ? ((PTRNUMBER)mBoundUDPSocket->getSocket()) : 0);
 
-      UseServicesHelper::debugAppend(resultEl, "candidate tcp", mCandidateTCP ? mCandidateTCP->toDebug() : ElementPtr());
+      UseServicesHelper::debugAppend(resultEl, "passive candidate tcp", mCandidateTCPPassive ? mCandidateTCPPassive->toDebug() : ElementPtr());
+      UseServicesHelper::debugAppend(resultEl, "active candidate tcp", mCandidateTCPActive ? mCandidateTCPActive->toDebug() : ElementPtr());
       UseServicesHelper::debugAppend(resultEl, "bound udp ip", mBoundTCPIP.string());
       UseServicesHelper::debugAppend(resultEl, "bound tcp socket", mBoundTCPSocket ? ((PTRNUMBER)mBoundTCPSocket->getSocket()) : 0);
 
@@ -4966,12 +5061,21 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    ICEGatherer::Preference::~Preference()
+    {
+      delete [] mCandidateTypePreferences;
+      delete [] mProtocolTypePreferences;
+      delete [] mInterfaceTypePreferences;
+      delete [] mAddressFamilyPreferences;
+    }
+
+    //-------------------------------------------------------------------------
     void ICEGatherer::Preference::getSettingsPrefixes(
                                                       const char * &outCandidateType,
                                                       const char * &outProtocolType,
                                                       const char * &outInterfaceType,
                                                       const char * &outAddressFamily
-                                                      )
+                                                      ) const
     {
       switch (mType) {
         case PreferenceType_Priority: {
@@ -5015,7 +5119,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void ICEGatherer::Preference::save()
+    void ICEGatherer::Preference::save() const
     {
       const char *candidateTypeStr = NULL;
       const char *protocolTypeStr = NULL;
@@ -5038,15 +5142,42 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    ICEGatherer::Preference::~Preference()
+    ElementPtr ICEGatherer::Preference::toDebug() const
     {
-      delete [] mCandidateTypePreferences;
-      delete [] mProtocolTypePreferences;
-      delete [] mInterfaceTypePreferences;
-      delete [] mAddressFamilyPreferences;
-    }
+      ElementPtr resultEl = Element::create("ortc::ICEGatherer::Preference");
 
-    ElementPtr toDebug();
+      const char *candidateTypeStr = NULL;
+      const char *protocolTypeStr = NULL;
+      const char *interfaceTypeStr = NULL;
+      const char *addressFamilyStr = NULL;
+      getSettingsPrefixes(candidateTypeStr, protocolTypeStr, interfaceTypeStr, addressFamilyStr);
+
+      ElementPtr candidatesEl = Element::create("candidates");
+      ElementPtr protocolsEl = Element::create("protocols");
+      ElementPtr interfacesEl = Element::create("interfaces");
+      ElementPtr addressFamiliesEl = Element::create("addressFamilies");
+
+      for (size_t loop = IICETypes::CandidateType_First; loop <= IICETypes::CandidateType_Last; ++loop) {
+        UseServicesHelper::debugAppend(candidatesEl, (String(candidateTypeStr) + IICETypes::toString(static_cast<IICETypes::CandidateTypes>(loop))).c_str(), mCandidateTypePreferences[loop]);
+      }
+      for (size_t loop = IICETypes::Protocol_First; loop <= IICETypes::Protocol_Last; ++loop) {
+        UseServicesHelper::debugAppend(protocolsEl, (String(protocolTypeStr) + IICETypes::toString(static_cast<IICETypes::Protocols>(loop))).c_str(), mProtocolTypePreferences[loop]);
+      }
+      for (size_t loop = ICEGatherer::InterfaceType_First; loop <= ICEGatherer::InterfaceType_Last; ++loop) {
+        UseServicesHelper::debugAppend(interfacesEl, (String(interfaceTypeStr) + ICEGatherer::toString(static_cast<ICEGatherer::InterfaceTypes>(loop))).c_str(), mInterfaceTypePreferences[loop]);
+      }
+      for (size_t loop = ICEGatherer::AddressFamily_First; loop <= ICEGatherer::AddressFamily_Last; ++loop) {
+        UseServicesHelper::debugAppend(addressFamiliesEl, (String(addressFamilyStr) + ICEGatherer::toString(static_cast<ICEGatherer::AddressFamilies>(loop))).c_str(), mAddressFamilyPreferences[loop]);
+      }
+
+      resultEl->adoptAsLastChild(candidatesEl);
+      resultEl->adoptAsLastChild(protocolsEl);
+      resultEl->adoptAsLastChild(interfacesEl);
+      resultEl->adoptAsLastChild(addressFamiliesEl);
+
+      return resultEl;
+    }
+    
   }
 
   //---------------------------------------------------------------------------

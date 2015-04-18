@@ -219,7 +219,9 @@ namespace ortc
     UseServicesHelper::debugAppend(resultEl, "ip", mIP);
     UseServicesHelper::debugAppend(resultEl, "port", mPort);
     UseServicesHelper::debugAppend(resultEl, "candidate type", toString(mCandidateType));
-    UseServicesHelper::debugAppend(resultEl, "tcp type", toString(mTCPType));
+    if (Protocol_TCP == mProtocol) {
+      UseServicesHelper::debugAppend(resultEl, "tcp type", toString(mTCPType));
+    }
     UseServicesHelper::debugAppend(resultEl, "related address", mRelatedAddress);
     UseServicesHelper::debugAppend(resultEl, "related port", mRelatedPort);
 
@@ -249,8 +251,10 @@ namespace ortc
     hasher.update(":");
     hasher.update(toString(mCandidateType));
     hasher.update(":");
-    hasher.update(toString(mTCPType));
-    hasher.update(":");
+    if (Protocol_TCP == mProtocol) {
+      hasher.update(toString(mTCPType));
+      hasher.update(":");
+    }
     hasher.update(mRelatedAddress);
     hasher.update(":");
     hasher.update(string(mRelatedPort));

@@ -153,7 +153,7 @@ namespace ortc
       String            mIP;
       WORD              mPort {};
       CandidateTypes    mCandidateType {CandidateType_Host};
-      TCPCandidateTypes mTCPType {TCPCandidateType_SO};
+      TCPCandidateTypes mTCPType {TCPCandidateType_Active};
       String            mRelatedAddress;
       WORD              mRelatedPort {};
 

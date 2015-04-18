@@ -47,32 +47,34 @@
 
 #include <cryptopp/queue.h>
 
-#define ORTC_SETTING_GATHERER_INTERFACE_NAME_MAPPING  "ortc/gatherer-interface-name-mapping"
-#define ORTC_SETTING_GATHERER_USERNAME_FRAG_LENGTH  "ortc/gatherer-username-frag-length"
-#define ORTC_SETTING_GATHERER_PASSWORD_LENGTH  "ortc/gatherer-password-length"
+#define ORTC_SETTING_GATHERER_INTERFACE_NAME_MAPPING  "ortc/gatherer/interface-name-mapping"
+#define ORTC_SETTING_GATHERER_USERNAME_FRAG_LENGTH  "ortc/gatherer/username-frag-length"
+#define ORTC_SETTING_GATHERER_PASSWORD_LENGTH  "ortc/gatherer/password-length"
 
-#define ORTC_SETTING_GATHERER_CANDIDATE_TYPE_PREFERENCE_PRIORITY_PREFIX "ortc/gatherer-canadidate-type-priority-"  // (0..126) << (24)
-#define ORTC_SETTING_GATHERER_PROTOCOL_TYPE_PREFERENCE_PRIORITY_PREFIX "ortc/gatherer-protocol-type-priority-"     // (0..0x3) << (24-2)
-#define ORTC_SETTING_GATHERER_INTERFACE_TYPE_PREFERENCE_PRIORITY_PREFIX "ortc/gatherer-interface-type-priority-"   // (0..0xF) << (24-6)
-#define ORTC_SETTING_GATHERER_ADDRESS_FAMILY_PREFERENCE_PRIORITY_PREFIX "ortc/gatherer-address-family-priority-"   // (0..0x3) << (24-8)
+#define ORTC_SETTING_GATHERER_CANDIDATE_TYPE_PREFERENCE_PRIORITY_PREFIX "ortc/gatherer/canadidate-type-priority-"  // (0..126) << (24)
+#define ORTC_SETTING_GATHERER_PROTOCOL_TYPE_PREFERENCE_PRIORITY_PREFIX "ortc/gatherer/protocol-type-priority-"     // (0..0x3) << (24-2)
+#define ORTC_SETTING_GATHERER_INTERFACE_TYPE_PREFERENCE_PRIORITY_PREFIX "ortc/gatherer/interface-type-priority-"   // (0..0xF) << (24-6)
+#define ORTC_SETTING_GATHERER_ADDRESS_FAMILY_PREFERENCE_PRIORITY_PREFIX "ortc/gatherer/address-family-priority-"   // (0..0x3) << (24-8)
 
-#define ORTC_SETTING_GATHERER_CANDIDATE_TYPE_PREFERENCE_UNFREEZE_PREFIX "ortc/gatherer-canadidate-type-unfreeze-priority-"  // (0..126) << (24+6)
-#define ORTC_SETTING_GATHERER_PROTOCOL_TYPE_PREFERENCE_UNFREEZE_PREFIX "ortc/gatherer-protocol-type-unfreeze-priority-"     // (0..0x3) << (24+4)
-#define ORTC_SETTING_GATHERER_INTERFACE_TYPE_PREFERENCE_UNFREEZE_PREFIX "ortc/gatherer-interface-type-unfreeze-priority-"   // (0..0xF) << (24-4)
-#define ORTC_SETTING_GATHERER_ADDRESS_FAMILY_PREFERENCE_UNFREEZE_PREFIX "ortc/gatherer-address-family-unfreeze-priority-"   // (0..0x3) << (24-8)
+#define ORTC_SETTING_GATHERER_CANDIDATE_TYPE_PREFERENCE_UNFREEZE_PREFIX "ortc/gatherer/canadidate-type-unfreeze-priority-"  // (0..126) << (24+6)
+#define ORTC_SETTING_GATHERER_PROTOCOL_TYPE_PREFERENCE_UNFREEZE_PREFIX "ortc/gatherer/protocol-type-unfreeze-priority-"     // (0..0x3) << (24+4)
+#define ORTC_SETTING_GATHERER_INTERFACE_TYPE_PREFERENCE_UNFREEZE_PREFIX "ortc/gatherer/interface-type-unfreeze-priority-"   // (0..0xF) << (24-4)
+#define ORTC_SETTING_GATHERER_ADDRESS_FAMILY_PREFERENCE_UNFREEZE_PREFIX "ortc/gatherer/address-family-unfreeze-priority-"   // (0..0x3) << (24-8)
 
-#define ORTC_SETTING_GATHERER_CREATE_TCP_CANDIDATES  "ortc/gatherer-create-tcp-candidates"
-#define ORTC_SETTING_GATHERER_BIND_BACK_OFF_TIMER  "ortc/gatherer-bind-back-off-timer"
+#define ORTC_SETTING_GATHERER_CREATE_TCP_CANDIDATES  "ortc/gatherer/create-tcp-candidates"
+#define ORTC_SETTING_GATHERER_BIND_BACK_OFF_TIMER  "ortc/gatherer/bind-back-off-timer"
 
-#define ORTC_SETTING_GATHERER_DEFAULT_CANDIDATES_WARM_UNTIL_IN_SECONDS "ortc/gatherer-default-candidates-warm-until-in-seconds"
-#define ORTC_SETTING_GATHERER_DEFAULT_STUN_KEEP_ALIVE_IN_SECONDS "ortc/gatherer-default-stun-keep-alive-in-seconds"
+#define ORTC_SETTING_GATHERER_DEFAULT_CANDIDATES_WARM_UNTIL_IN_SECONDS "ortc/gatherer/default-candidates-warm-until-in-seconds"
+#define ORTC_SETTING_GATHERER_DEFAULT_STUN_KEEP_ALIVE_IN_SECONDS "ortc/gatherer/default-stun-keep-alive-in-seconds"
 
-#define ORTC_SETTING_GATHERER_RELAY_INACTIVITY_TIMEOUT_IN_SECONDS "ortc/gatherer-relay-inactivity-timeout-in-seconds"
+#define ORTC_SETTING_GATHERER_RELAY_INACTIVITY_TIMEOUT_IN_SECONDS "ortc/gatherer/relay-inactivity-timeout-in-seconds"
 
-#define ORTC_SETTING_GATHERER_MAX_INCOMING_PACKET_BUFFERING_TIME_IN_SECONDS "ortc/gatherer-max-incoming-packet-buffering-time-in-seconds"
+#define ORTC_SETTING_GATHERER_MAX_INCOMING_PACKET_BUFFERING_TIME_IN_SECONDS "ortc/gatherer/max-incoming-packet-buffering-time-in-seconds"
 
-#define ORTC_SETTING_GATHERER_MAX_PENDING_OUTGOING_TCP_SOCKET_BUFFERING_IN_BYTES "ortc/gatherer-max-pending-outgoing-tcp-socket-buffering-in-bytes"
-#define ORTC_SETTING_GATHERER_MAX_CONNECTED_TCP_SOCKET_BUFFERING_IN_BYTES "ortc/gatherer-max-connected-tcp-socket-buffering-in-bytes"
+#define ORTC_SETTING_GATHERER_MAX_PENDING_OUTGOING_TCP_SOCKET_BUFFERING_IN_BYTES "ortc/gatherer/max-pending-outgoing-tcp-socket-buffering-in-bytes"
+#define ORTC_SETTING_GATHERER_MAX_CONNECTED_TCP_SOCKET_BUFFERING_IN_BYTES "ortc/gatherer/max-connected-tcp-socket-buffering-in-bytes"
+
+#define ORTC_SETTING_GATHERER_CLEAN_UNUSED_ROUTES_NOT_USED_IN_SECONDS "ortc/gatherer/clean-unused-routes-not-used-in-seconds"
 
 namespace ortc
 {
@@ -644,10 +646,14 @@ namespace ortc
         CandidatePtr mCandidateUDP;
         IPAddress mBoundUDPIP;
         SocketPtr mBoundUDPSocket;
+        size_t mTotalBindFailuresUDP {};
 
-        CandidatePtr mCandidateTCP;
+        CandidatePtr mCandidateTCPPassive;
+        CandidatePtr mCandidateTCPActive;
+
         IPAddress mBoundTCPIP;
         SocketPtr mBoundTCPSocket;
+        size_t mTotalBindFailuresTCP {};
 
         String mReflexiveOptionsHash;
         ReflexivePortList mReflexivePorts;
@@ -775,11 +781,11 @@ namespace ortc
                                  const char * &outProtocolType,
                                  const char * &outInterfaceType,
                                  const char * &outAddressFamily
-                                 );
+                                 ) const;
         void load();
-        void save();
+        void save() const;
 
-        ElementPtr toDebug();
+        ElementPtr toDebug() const;
       };
 
     protected:
@@ -845,7 +851,8 @@ namespace ortc
                                    HostIPSorter::DataPtr hostData,
                                    IICETypes::CandidateTypes candidateType,
                                    const IPAddress &boundIP,
-                                   IICETypes::Protocols protocol = IICETypes::Protocol_UDP
+                                   IICETypes::Protocols protocol = IICETypes::Protocol_UDP,
+                                   IICETypes::TCPCandidateTypes tcpType = IICETypes::TCPCandidateType_Active
                                    );
       CandidatePtr createCandidate(
                                    HostIPSorter::DataPtr hostData,
@@ -1007,6 +1014,8 @@ namespace ortc
 
       CandidateAndRemoteIPToRouteMap mRouteCandidateAndIPMappings;
       RouteMap mRoutes;
+      TimerPtr mCleanUnusedRoutesTimer;
+      Seconds mCleanUnusedRoutesDuration;
 
       TransportMap mInstalledTransports;
     };
