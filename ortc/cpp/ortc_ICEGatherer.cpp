@@ -978,6 +978,7 @@ namespace ortc
             ZS_LOG_WARNING(Debug, log("no turn socket available at this time") + route->toDebug() + ZS_PARAM("buffer size", bufferSizeInBytes))
             goto send_failed;
           }
+          route->mRelayPort->mLastSentData = route->mLastUsed;
           turn = route->mRelayPort->mTURNSocket;
           goto send_via_turn;
         }
@@ -1213,19 +1214,55 @@ namespace ortc
       {
         auto found = mRelayInactivityTimers.find(timer);
         if (found != mRelayInactivityTimers.end()) {
-          ZS_LOG_TRACE(log("relay inactivity timer fired"))
+          HostPortPtr hostPort = (*found).second.first;
+          RelayPortPtr relayPort = (*found).second.second;
 
-          auto relayPort = (*found).second;
+          {
+            ZS_LOG_TRACE(log("relay inactivity timer fired") + hostPort->toDebug() + relayPort->toDebug())
 
-          if (relayPort->mInactivityTimer) {
-            relayPort->mInactivityTimer->cancel();
-            relayPort->mInactivityTimer.reset();
+            if (relayPort->mInactivityTimer) {
+              relayPort->mInactivityTimer->cancel();
+              relayPort->mInactivityTimer.reset();
+            }
+
+            mRelayInactivityTimers.erase(found);
+
+            if (shouldKeepWarm()) {
+              ZS_LOG_WARNING(Trace, log("no need to shutdown TURN socket as paths need to be kept warm") + relayPort->toDebug())
+              return;
+            }
+            
+            if (Time() == relayPort->mLastSentData) goto inactivity_shutdown_relay;
+            if (relayPort->mLastSentData + mRelayInactivityTime <= now) goto inactivity_shutdown_relay;
+
+            ZS_LOG_TRACE(log("no need to shutdown relay port at this time (still active)") + relayPort->toDebug() + ZS_PARAM("now", now))
+
+            auto fireAt = relayPort->mLastSentData + mRelayInactivityTime;
+            relayPort->mInactivityTimer = Timer::create(mThisWeak.lock(), fireAt);
+            mRelayInactivityTimers[relayPort->mInactivityTimer] = HostAndRelayPortPair(hostPort, relayPort);
+            return;
           }
 
-#define TODO_CHECK_IF_THIS_IS_RIGHT 1
-#define TODO_CHECK_IF_THIS_IS_RIGHT 2
+        inactivity_shutdown_relay:
+          {
+            ZS_LOG_DEBUG(log("need to shutdown relay port as it is inactive") + relayPort->toDebug())
+            for (auto iter_doNotUse = hostPort->mRelayPorts.begin(); iter_doNotUse != hostPort->mRelayPorts.end(); )
+            {
+              auto current = iter_doNotUse;
+              ++iter_doNotUse;
 
-          mRelayInactivityTimers.erase(found);
+              auto compareRelayPort = (*current);
+              if (compareRelayPort != relayPort) continue;
+
+              ZS_LOG_TRACE(log("found relay port to remove from host port") + compareRelayPort->toDebug())
+              hostPort->mRelayPorts.erase(current);
+              break;
+            }
+
+            shutdown(*relayPort, *hostPort);
+            return;
+          }
+
         }
       }
     }
@@ -1436,8 +1473,72 @@ namespace ortc
       UseServicesHelper::debugAppend(resultEl, "error", mLastError);
       UseServicesHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
 
-#define TODO_OUTPUT_REMAINING_VALUES 1
-#define TODO_OUTPUT_REMAINING_VALUES 2
+      UseServicesHelper::debugAppend(resultEl, "component", mComponent);
+      UseServicesHelper::debugAppend(resultEl, "username frag", mUsernameFrag);
+      UseServicesHelper::debugAppend(resultEl, "password", mPassword);
+
+      UseServicesHelper::debugAppend(resultEl, "options", mOptions.toDebug());
+
+
+      UseServicesHelper::debugAppend(resultEl, "interface mappings", mInterfaceMappings.size());
+      UseServicesHelper::debugAppend(resultEl, "create tcp candidates", mCreateTCPCandidates);
+
+      UseServicesHelper::debugAppend(resultEl, "get local ips now", mGetLocalIPsNow);
+      UseServicesHelper::debugAppend(resultEl, "pending host ips", mPendingHostIPs.size());
+      UseServicesHelper::debugAppend(resultEl, "resolved host ips", mResolvedHostIPs.size());
+      UseServicesHelper::debugAppend(resultEl, "resolve host ip queries", mResolveHostIPQueries.size());
+
+      UseServicesHelper::debugAppend(resultEl, "hosts hash", mHostsHash);
+      UseServicesHelper::debugAppend(resultEl, "options hash", mOptionsHash);
+
+      UseServicesHelper::debugAppend(resultEl, "default port", mDefaultPort);
+
+      UseServicesHelper::debugAppend(resultEl, "last fixed host ports host hash", mLastFixedHostPortsHostsHash);
+      UseServicesHelper::debugAppend(resultEl, "last bound host ports host hash", mLastBoundHostPortsHostHash);
+      UseServicesHelper::debugAppend(resultEl, "last reflexive host hash", mLastReflexiveHostsHash);
+      UseServicesHelper::debugAppend(resultEl, "last relay host hash", mLastRelayHostsHash);
+      UseServicesHelper::debugAppend(resultEl, "last candidates warm until options hash", mLastCandidatesWarmUntilOptionsHash);
+
+      UseServicesHelper::debugAppend(resultEl, "host ports", mHostPorts.size());
+      UseServicesHelper::debugAppend(resultEl, "host port sockets", mHostPortSockets.size());
+
+      UseServicesHelper::debugAppend(resultEl, "stun discoveries", mSTUNDiscoveries.size());
+      UseServicesHelper::debugAppend(resultEl, "turn sockets", mTURNSockets.size());
+
+      UseServicesHelper::debugAppend(resultEl, "has stun servers options hash", mHasSTUNServersOptionsHash);
+      UseServicesHelper::debugAppend(resultEl, "has stun servers", mHasSTUNServers);
+
+      UseServicesHelper::debugAppend(resultEl, "has turn servers options hash", mHasTURNServersOptionsHash);
+      UseServicesHelper::debugAppend(resultEl, "has turn servers", mHasSTUNServers);
+
+      UseServicesHelper::debugAppend(resultEl, "last local preference", mLastLocalPreference.size());
+
+      UseServicesHelper::debugAppend(resultEl, "bind back off timer", mBindBackOffTimer ? mBindBackOffTimer->getID() : 0);
+
+      UseServicesHelper::debugAppend(resultEl, "notified candidates", mNotifiedCandidates.size());
+      UseServicesHelper::debugAppend(resultEl, "local candidates", mLocalCandidates.size());
+
+      UseServicesHelper::debugAppend(resultEl, "warm until", mWarmUntil);
+      UseServicesHelper::debugAppend(resultEl, "warm until timer", mWarmUntilTimer ? mWarmUntilTimer->getID() : 0);
+
+      UseServicesHelper::debugAppend(resultEl, "relay inactive time", mRelayInactivityTime);
+      UseServicesHelper::debugAppend(resultEl, "relay inactive timers", mRelayInactivityTimers.size());
+
+      UseServicesHelper::debugAppend(resultEl, "tcp ports", mTCPPorts.size());
+      UseServicesHelper::debugAppend(resultEl, "tcp candidate to tcp ports", mTCPCandidateToTCPPorts.size());
+      UseServicesHelper::debugAppend(resultEl, "max tcp buffering size pending connection", mMaxTCPBufferingSizePendingConnection);
+      UseServicesHelper::debugAppend(resultEl, "max tcp buffering size connected", mMaxTCPBufferingSizeConnected);
+
+      UseServicesHelper::debugAppend(resultEl, "clean up buffering timer", mCleanUpBufferingTimer ? mCleanUpBufferingTimer->getID() : 0);
+      UseServicesHelper::debugAppend(resultEl, "max buffering time", mMaxBufferingTime);
+      UseServicesHelper::debugAppend(resultEl, "buffered packets", mBufferedPackets.size());
+
+      UseServicesHelper::debugAppend(resultEl, "route candidate and ip mappings", mRouteCandidateAndIPMappings.size());
+      UseServicesHelper::debugAppend(resultEl, "routes", mRoutes.size());
+      UseServicesHelper::debugAppend(resultEl, "clean unused routes timer", mCleanUnusedRoutesTimer ? mCleanUnusedRoutesTimer->getID() : 0);
+      UseServicesHelper::debugAppend(resultEl, "clean unused routes duration", mCleanUnusedRoutesDuration);
+
+      UseServicesHelper::debugAppend(resultEl, "installed transports", mInstalledTransports.size());
 
       return resultEl;
     }
@@ -2311,7 +2412,7 @@ namespace ortc
     {
       typedef std::map<String, bool> HashMap;
 
-      if (Time() == mWarmUntil) {
+      if (!shouldKeepWarm()) {
         ZS_LOG_TRACE(log("no reflexive candidates should be setup at this time (not being kept warm)"))
         return true;
       }
@@ -2479,7 +2580,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool ICEGatherer::stepTearDownReflexive()
     {
-      if (Time() != mWarmUntil) {
+      if (shouldKeepWarm()) {
         ZS_LOG_TRACE(log("no reflexive candidates should be torn down at this time (being kept warm)"))
         return true;
       }
@@ -2513,7 +2614,7 @@ namespace ortc
     {
       typedef std::map<String, bool> HashMap;
 
-      if (Time() == mWarmUntil) {
+      if (!shouldKeepWarm()) {
         ZS_LOG_TRACE(log("no relay candidates should be setup at this time (not being kept warm)"))
         return true;
       }
@@ -2740,7 +2841,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool ICEGatherer::stepTearDownRelay()
     {
-      if (Time() != mWarmUntil) {
+      if (shouldKeepWarm()) {
         ZS_LOG_TRACE(log("no relay candidates should be torn down at this time (being kept warm)"))
         return true;
       }
@@ -2768,7 +2869,7 @@ namespace ortc
           if (!relayPort->mInactivityTimer) {
             Time fireAt = relayPort->mLastSentData + mRelayInactivityTime;
             relayPort->mInactivityTimer = Timer::create(mThisWeak.lock(), fireAt);
-            mRelayInactivityTimers[relayPort->mInactivityTimer] = relayPort;
+            mRelayInactivityTimers[relayPort->mInactivityTimer] = HostAndRelayPortPair(hostPort, relayPort);
             ZS_LOG_TRACE(log("setup relay inactivity timeout") + ZS_PARAMIZE(fireAt) + relayPort->toDebug())
           }
           goto wait_until_inactive;
@@ -4458,6 +4559,13 @@ namespace ortc
 
       ZS_LOG_WARNING(Trace, log("could not send packet at this time") + ZS_PARAM("socket", (PTRNUMBER)socket->getSocket()) + ZS_PARAM("remote ip", remoteIP.string()) + ZS_PARAM("size", bufferSizeInBytes))
       return false;
+    }
+
+    //-------------------------------------------------------------------------
+    bool ICEGatherer::shouldKeepWarm() const
+    {
+      if (Time() == mWarmUntil) return false;
+      return true;
     }
 
     //-------------------------------------------------------------------------

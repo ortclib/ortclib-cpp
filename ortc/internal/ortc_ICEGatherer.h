@@ -279,7 +279,7 @@ namespace ortc
       typedef std::list<ReflexivePortPtr> ReflexivePortList;
       typedef std::list<RelayPortPtr> RelayPortList;
       typedef std::map<IPAddress, RelayPortPtr> IPToRelayPortMap;
-      typedef std::map<TimerPtr, RelayPortPtr> TimerToRelayPortMap;
+      typedef std::map<TimerPtr, HostAndRelayPortPair> TimerToRelayPortMap;
 
       typedef std::map<SocketPtr, TCPPortPtr> SocketToTCPPortMap;
       typedef std::map<CandidatePtr, TCPPortPtr> CandidateToTCPPortMap;
@@ -933,6 +933,8 @@ namespace ortc
                          size_t bufferSizeInBytes
                          );
 
+      bool shouldKeepWarm() const;
+
     protected:
       //-----------------------------------------------------------------------
       #pragma mark
@@ -948,6 +950,7 @@ namespace ortc
       IICEGathererSubscriptionPtr mDefaultSubscription;
 
       InternalStates mCurrentState {InternalState_Pending};
+
 
       WORD mLastError {};
       String mLastErrorReason;
