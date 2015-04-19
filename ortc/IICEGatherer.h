@@ -170,6 +170,8 @@ namespace ortc
     virtual CandidateListPtr getLocalCandidates() const = 0;
 
     virtual void gather(const Options &options) = 0;
+
+    virtual void close() = 0;
   };
 
   //---------------------------------------------------------------------------

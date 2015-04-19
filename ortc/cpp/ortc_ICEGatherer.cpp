@@ -693,6 +693,15 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    void ICEGatherer::close()
+    {
+      ZS_LOG_DETAIL(log("close called"))
+
+      AutoRecursiveLock lock(*this);
+      cancel();
+    }
+
+    //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -1113,8 +1122,8 @@ namespace ortc
         return;
       }
 
-#define WARNING_TODO_RESOLVE_STATS_PROMISE 1
-#define WARNING_TODO_RESOLVE_STATS_PROMISE 2
+#define TODO_RESOLVE_STATS_PROMISE_WHEN_STATS_ARE_DEFINED 1
+#define TODO_RESOLVE_STATS_PROMISE_WHEN_STATS_ARE_DEFINED 2
     }
 
     //-------------------------------------------------------------------------
@@ -1246,20 +1255,8 @@ namespace ortc
         inactivity_shutdown_relay:
           {
             ZS_LOG_DEBUG(log("need to shutdown relay port as it is inactive") + relayPort->toDebug())
-            for (auto iter_doNotUse = hostPort->mRelayPorts.begin(); iter_doNotUse != hostPort->mRelayPorts.end(); )
-            {
-              auto current = iter_doNotUse;
-              ++iter_doNotUse;
 
-              auto compareRelayPort = (*current);
-              if (compareRelayPort != relayPort) continue;
-
-              ZS_LOG_TRACE(log("found relay port to remove from host port") + compareRelayPort->toDebug())
-              hostPort->mRelayPorts.erase(current);
-              break;
-            }
-
-            shutdown(*relayPort, *hostPort);
+            shutdown(relayPort, hostPort);
             return;
           }
 
@@ -1301,7 +1298,8 @@ namespace ortc
         {
           auto found = mTCPPorts.find(socket);
           if (found != mTCPPorts.end()) {
-            tcpPort = (*found).second;
+            hostPort = (*found).second.first;
+            tcpPort = (*found).second.second;
             ZS_LOG_INSANE(log("read found tcp port") + tcpPort->toDebug())
             goto found_tcp_socket;
           }
@@ -1398,7 +1396,8 @@ namespace ortc
         {
           auto found = mTCPPorts.find(socket);
           if (found != mTCPPorts.end()) {
-            tcpPort = (*found).second;
+            hostPort = (*found).second.first;
+            tcpPort = (*found).second.second;
             ZS_LOG_INSANE(log("exception found tcp port") + tcpPort->toDebug())
             goto found_tcp_socket;
           }
@@ -1410,13 +1409,13 @@ namespace ortc
     found_host_port:
       {
         // warning: do NOT call from within a lock
-        close(*hostPort, socket);
+        close(hostPort, socket);
         return;
       }
 
     found_tcp_socket:
       {
-        close(*tcpPort);
+        close(tcpPort, hostPort);
         return;
       }
 
@@ -1504,6 +1503,7 @@ namespace ortc
 
       UseServicesHelper::debugAppend(resultEl, "stun discoveries", mSTUNDiscoveries.size());
       UseServicesHelper::debugAppend(resultEl, "turn sockets", mTURNSockets.size());
+      UseServicesHelper::debugAppend(resultEl, "turn sockets shutting down", mShutdownTURNSockets.size());
 
       UseServicesHelper::debugAppend(resultEl, "has stun servers options hash", mHasSTUNServersOptionsHash);
       UseServicesHelper::debugAppend(resultEl, "has stun servers", mHasSTUNServers);
@@ -2170,9 +2170,7 @@ namespace ortc
         }
 
         ZS_LOG_TRACE(log("host IP needs to be shutdown since host IP is no longer in used") + hostPort->toDebug())
-        shutdown(*hostPort);
-
-        mHostPorts.erase(current);
+        shutdown(hostPort);
       }
 
       ZS_LOG_DEBUG(log("host ports remaining active (after shutting down unused hosts)") + ZS_PARAM("total", mHostPorts.size()))
@@ -2448,11 +2446,14 @@ namespace ortc
         }
 
         if (filterOut) {
-          for (auto iterReflex = hostPort->mReflexivePorts.begin(); iterReflex != hostPort->mReflexivePorts.end(); ++iterReflex) {
-            auto reflexivePort = (*iterReflex);
+          for (auto iterReflex_doNotUse = hostPort->mReflexivePorts.begin(); iterReflex_doNotUse != hostPort->mReflexivePorts.end(); ) {
+            auto currentReflex = iterReflex_doNotUse;
+            ++iterReflex_doNotUse;
+
+            auto reflexivePort = (*currentReflex);
 
             ZS_LOG_TRACE(log("shutting down reflexive port (since being filtered)") + reflexivePort->toDebug())
-            shutdown(*reflexivePort);
+            shutdown(reflexivePort, hostPort);
           }
           hostPort->mReflexivePorts.clear();
           continue;
@@ -2477,14 +2478,17 @@ namespace ortc
 
           ReflexivePortPtr reflexivePort;
 
-          for (auto iterReflex = hostPort->mReflexivePorts.begin(); iterReflex != hostPort->mReflexivePorts.end(); ++iterReflex) {
-            reflexivePort = (*iterReflex);
+          for (auto iterReflex_doNotUse = hostPort->mReflexivePorts.begin(); iterReflex_doNotUse != hostPort->mReflexivePorts.end(); ) {
+            auto currentReflex = iterReflex_doNotUse;
+            ++iterReflex_doNotUse;
+
+            reflexivePort = (*currentReflex);
 
             if (reflexivePort->mServer.hash() != serverHash) continue;
 
             if (mOptionsHash != reflexivePort->mOptionsHash) {
-              shutdown(*reflexivePort);
-              reflexivePort->mOptionsHash.clear();
+              shutdown(reflexivePort, hostPort);
+              goto not_found_server;
             }
 
             goto found_server;
@@ -2560,8 +2564,7 @@ namespace ortc
 
           ZS_LOG_DEBUG(log("reflexive server no longer required (thus shutting down)") + reflexivePort->mServer.toDebug())
 
-          shutdown(*reflexivePort);
-          hostPort->mReflexivePorts.erase(currentReflex);
+          shutdown(reflexivePort, hostPort);
         }
 
         if (hostPortSetup) {
@@ -2593,11 +2596,14 @@ namespace ortc
       for (auto iter = mHostPorts.begin(); iter != mHostPorts.end(); ++iter) {
         auto hostPort = (*iter).second;
 
-        for (auto iterReflex = hostPort->mReflexivePorts.begin(); iterReflex != hostPort->mReflexivePorts.end(); ++iterReflex) {
-          auto reflexivePort = (*iterReflex);
+        for (auto iterReflex_doNotUse = hostPort->mReflexivePorts.begin(); iterReflex_doNotUse != hostPort->mReflexivePorts.end(); ) {
+          auto currentReflex = iterReflex_doNotUse;
+          ++iterReflex_doNotUse;
+
+          auto reflexivePort = (*currentReflex);
 
           ZS_LOG_DEBUG(log("reflexive port no longer being kept warm") + reflexivePort->toDebug())
-          shutdown(*reflexivePort);
+          shutdown(reflexivePort, hostPort);
         }
 
         hostPort->mReflexivePorts.clear();
@@ -2652,11 +2658,14 @@ namespace ortc
         }
 
         if (filterOut) {
-          for (auto iterRelay = hostPort->mRelayPorts.begin(); iterRelay != hostPort->mRelayPorts.end(); ++iterRelay) {
-            auto relayPort = (*iterRelay);
+          for (auto iterRelay_doNotUse = hostPort->mRelayPorts.begin(); iterRelay_doNotUse != hostPort->mRelayPorts.end(); ) {
+            auto currentRelay = iterRelay_doNotUse;
+            ++iterRelay_doNotUse;
+
+            auto relayPort = (*currentRelay);
 
             ZS_LOG_TRACE(log("shutting down relay port (since being filtered)") + relayPort->toDebug())
-            shutdown(*relayPort, *hostPort);
+            shutdown(relayPort, hostPort);
           }
           hostPort->mRelayPorts.clear();
           continue;
@@ -2681,14 +2690,17 @@ namespace ortc
 
           RelayPortPtr relayPort;
 
-          for (auto iterRelay = hostPort->mRelayPorts.begin(); iterRelay != hostPort->mRelayPorts.end(); ++iterRelay) {
-            relayPort = (*iterRelay);
+          for (auto iterRelay_doNotUse = hostPort->mRelayPorts.begin(); iterRelay_doNotUse != hostPort->mRelayPorts.end(); ) {
+            auto currentRelay = iterRelay_doNotUse;
+            ++iterRelay_doNotUse;
+
+            relayPort = (*currentRelay);
 
             if (relayPort->mServer.hash() != serverHash) continue;
 
             if (mOptionsHash != relayPort->mOptionsHash) {
-              shutdown(*relayPort, *hostPort);
-              relayPort->mOptionsHash.clear();
+              shutdown(relayPort, hostPort);
+              goto not_found_server;
             }
 
             goto found_server;
@@ -2821,8 +2833,7 @@ namespace ortc
 
           ZS_LOG_DEBUG(log("relay server no longer required (thus shutting down)") + relayPort->mServer.toDebug())
 
-          shutdown(*relayPort, *hostPort);
-          hostPort->mRelayPorts.erase(currentRelay);
+          shutdown(relayPort, hostPort);
         }
         
         if (hostPortSetup) {
@@ -2884,8 +2895,7 @@ namespace ortc
         shutdown_relay:
           {
             ZS_LOG_DEBUG(log("relay port no longer being kept warm (and is currently inactive)") + relayPort->toDebug())
-            shutdown(*relayPort, *hostPort);
-            hostPort->mRelayPorts.erase(currentRelay);
+            shutdown(relayPort, hostPort);
           }
         }
 
@@ -2900,6 +2910,52 @@ namespace ortc
       return true;
     }
 
+    //-------------------------------------------------------------------------
+    bool ICEGatherer::stepCleanPendingShutdownTURNSockets()
+    {
+      if (mShutdownTURNSockets.size() < 1) {
+        ZS_LOG_TRACE(log("no turn sockets pending shutdown"))
+        return true;
+      }
+
+      for (auto iterShutdown_doNotUse = mShutdownTURNSockets.begin(); iterShutdown_doNotUse != mShutdownTURNSockets.end(); )
+      {
+        auto currentShutdown = iterShutdown_doNotUse;
+        ++iterShutdown_doNotUse;
+
+        auto turnSocket = (*currentShutdown).first;
+        auto hostPort = (*currentShutdown).second.first;
+
+        if (UseTURNSocket::TURNSocketState_Shutdown == turnSocket->getState()) goto remove_turn_socket;
+
+        // check to see if it's still possible for the turn socket ot shutdown
+        if (!hostPort->mBoundUDPSocket) {
+          ZS_LOG_WARNING(Debug, log("performing hard shutdown on turn socket") + ZS_PARAM("turn socket", turnSocket->getID()) + hostPort->toDebug())
+          goto remove_turn_socket;
+        }
+        goto still_pending;
+
+      remove_turn_socket:
+        {
+          ZS_LOG_TRACE(log("removing shutdown turn socket") + ZS_PARAM("turn socket", turnSocket->getID()) + hostPort->toDebug())
+          mShutdownTURNSockets.erase(currentShutdown);
+          continue;
+        }
+
+      still_pending:
+        {
+          ZS_LOG_DEBUG(log("waiting for turn socket to shutdown") + ZS_PARAM("turn socket", turnSocket->getID()) + hostPort->toDebug())
+          continue;
+        }
+      }
+
+      if (mShutdownTURNSockets.size() < 1) {
+        ZS_LOG_DEBUG(log("all turn sockets are not shutdown"))
+      }
+      
+      return true;
+    }
+    
     //-------------------------------------------------------------------------
     bool ICEGatherer::stepCheckIfReady()
     {
@@ -2940,19 +2996,123 @@ namespace ortc
         return;
       }
 
-      ZS_LOG_DEBUG(log("cancel"))
+      ZS_LOG_DEBUG(log("cancel called"))
 
       setState(InternalState_ShuttingDown);
 
       if (!mGracefulShutdownReference) mGracefulShutdownReference = mThisWeak.lock();
 
+      // scope: clear out pending queries
+      {
+        for (auto iter_doNotUse = mResolveHostIPQueries.begin(); iter_doNotUse != mResolveHostIPQueries.end(); )
+        {
+          auto current = iter_doNotUse;
+          ++iter_doNotUse;
 
+          auto query = (*current).second;
+
+          if (query.mQuery) {
+            query.mQuery->cancel();
+            query.mQuery.reset();
+          }
+        }
+
+        mResolveHostIPQueries.clear();
+      }
+
+      if (mGracefulShutdownReference) {
+        for (auto iterHost_doNotUse = mHostPorts.begin(); iterHost_doNotUse != mHostPorts.end(); ) {
+          auto currentHost = iterHost_doNotUse;
+          ++iterHost_doNotUse;
+
+          auto hostPort = (*currentHost).second;
+          for (auto iterRelay_doNotUse = hostPort->mRelayPorts.begin(); iterRelay_doNotUse != hostPort->mRelayPorts.end(); ) {
+            auto currentRelay = iterRelay_doNotUse;
+            ++iterRelay_doNotUse;
+
+            auto relayPort = (*currentRelay);
+            shutdown(relayPort, hostPort);
+          }
+        }
+
+        stepCleanPendingShutdownTURNSockets();
+
+        if (mShutdownTURNSockets.size() > 0) {
+          ZS_LOG_DEBUG(log("still waiting for some turn sockets to shutdown") + ZS_PARAM("total", mShutdownTURNSockets.size()))
+          return;
+        }
+      }
 
       ZS_LOG_TRACE(log("cancel complete"))
 
       setState(InternalState_Shutdown);
 
+      // scope: clear out host ports
+      {
+        for (auto iter_doNotUse = mHostPorts.begin(); iter_doNotUse != mHostPorts.end(); )
+        {
+          auto current = iter_doNotUse;
+          ++iter_doNotUse;
+
+          auto hostPort = (*current).second;
+          shutdown(hostPort);
+        }
+      }
+
+      if (mBindBackOffTimer) {
+        mBindBackOffTimer->cancel();
+        mBindBackOffTimer.reset();
+      }
+
+      if (mWarmUntilTimer) {
+        mWarmUntilTimer->cancel();
+        mWarmUntilTimer.reset();
+      }
+
+      if (mCleanUpBufferingTimer) {
+        mCleanUpBufferingTimer->cancel();
+        mCleanUpBufferingTimer.reset();
+      }
+
+      // scope: remote all routes
+      {
+        for (auto iter_doNotUse = mRoutes.begin(); iter_doNotUse != mRoutes.end();)
+        {
+          auto current = iter_doNotUse;
+          ++iter_doNotUse;
+
+          auto route = (*current).second;
+          removeRoute(route->mID);
+        }
+
+        mRoutes.clear();
+      }
+
+      if (mCleanUnusedRoutesTimer) {
+        mCleanUnusedRoutesTimer->cancel();
+        mCleanUnusedRoutesTimer.reset();
+      }
+
+      {
+        for (auto iter_doNotUse = mInstalledTransports.begin(); iter_doNotUse != mInstalledTransports.end(); )
+        {
+          auto current = iter_doNotUse;
+          ++iter_doNotUse;
+
+          auto installed = (*current).second;
+
+          auto transport = installed->mTransport.lock();
+          if (!transport) continue;
+
+          removeTransport(*ICETransport::convert(transport));
+        }
+
+        mInstalledTransports.clear();
+      }
+
       mGracefulShutdownReference.reset();
+
+      ZS_LOG_DETAIL(log("shutdown complete"))
     }
 
     //-------------------------------------------------------------------------
@@ -3165,177 +3325,265 @@ namespace ortc
     }
     
     //-------------------------------------------------------------------------
-    void ICEGatherer::shutdown(HostPort &hostPort)
+    void ICEGatherer::shutdown(HostPortPtr hostPort)
     {
-      ZS_LOG_TRACE(log("shutting down host port") + hostPort.toDebug())
+      if (!hostPort) return;
+
+      ZS_LOG_TRACE(log("shutting down host port") + hostPort->toDebug())
 
       // scope: shutdown reflexive ports
       {
-        for (auto iter = hostPort.mReflexivePorts.begin(); iter != hostPort.mReflexivePorts.end(); ++iter)
+        for (auto iter_doNotUse = hostPort->mReflexivePorts.begin(); iter_doNotUse != hostPort->mReflexivePorts.end(); )
         {
-          auto reflexivePort = (*iter);
-          shutdown(*reflexivePort);
+          auto current = iter_doNotUse;
+          ++iter_doNotUse;
+
+          auto reflexivePort = (*current);
+          shutdown(reflexivePort, hostPort);
         }
-        hostPort.mReflexivePorts.clear();
+        hostPort->mReflexivePorts.clear();
       }
 
       // scope: shutdown relay ports
       {
-        for (auto iter = hostPort.mRelayPorts.begin(); iter != hostPort.mRelayPorts.end(); ++iter)
+        for (auto iter_doNotUse = hostPort->mRelayPorts.begin(); iter_doNotUse != hostPort->mRelayPorts.end(); )
         {
-          auto relayPort = (*iter);
-          shutdown(*relayPort, hostPort);
+          auto current = iter_doNotUse;
+          ++iter_doNotUse;
+
+          auto relayPort = (*current);
+          shutdown(relayPort, hostPort);
         }
-        hostPort.mRelayPorts.clear();
+        hostPort->mRelayPorts.clear();
       }
 
       // scope: shutdown TCP ports
       {
-        for (auto iter_doNotuse = hostPort.mTCPPorts.begin(); iter_doNotuse != hostPort.mTCPPorts.end(); )
+        for (auto iter_doNotuse = hostPort->mTCPPorts.begin(); iter_doNotuse != hostPort->mTCPPorts.end(); )
         {
           auto current = iter_doNotuse;
           ++iter_doNotuse;
 
-          auto tcpPort = (*current).second;
+          auto tcpPort = (*current).second.second;
 
-          shutdown(*tcpPort); // WARNING: shutdown of the tcp port will remove from hostPort's entry
+          shutdown(tcpPort, hostPort);
         }
 
-        hostPort.mTCPPorts.clear();
+        hostPort->mTCPPorts.clear();
       }
 
-      removeCandidate(hostPort.mCandidateUDP);
-      removeCandidate(hostPort.mCandidateTCPPassive);
-      removeCandidate(hostPort.mCandidateTCPActive);
+      removeCandidate(hostPort->mCandidateUDP);
+      removeCandidate(hostPort->mCandidateTCPPassive);
+      removeCandidate(hostPort->mCandidateTCPActive);
 
-      hostPort.mCandidateUDP.reset();
-      hostPort.mCandidateTCPPassive.reset();
-      hostPort.mCandidateTCPActive.reset();
+      hostPort->mCandidateUDP.reset();
+      hostPort->mCandidateTCPPassive.reset();
+      hostPort->mCandidateTCPActive.reset();
 
-      if (hostPort.mBoundUDPSocket) {
-        auto found = mHostPortSockets.find(hostPort.mBoundUDPSocket);
+      if (hostPort->mBoundUDPSocket) {
+        auto found = mHostPortSockets.find(hostPort->mBoundUDPSocket);
         if (found != mHostPortSockets.end()) {
           mHostPortSockets.erase(found);
         }
         try {
-          hostPort.mBoundUDPSocket->close();
+          hostPort->mBoundUDPSocket->close();
         } catch(Socket::Exceptions::Unspecified &error) {
           ZS_LOG_ERROR(Detail, log("failed to close udp socket") + ZS_PARAM("error", error.errorCode()))
         }
-        hostPort.mBoundUDPSocket.reset();
+        hostPort->mBoundUDPSocket.reset();
       }
 
-      if (hostPort.mBoundTCPSocket) {
-        auto found = mHostPortSockets.find(hostPort.mBoundTCPSocket);
+      if (hostPort->mBoundTCPSocket) {
+        auto found = mHostPortSockets.find(hostPort->mBoundTCPSocket);
         if (found != mHostPortSockets.end()) {
           mHostPortSockets.erase(found);
         }
         try {
-          hostPort.mBoundTCPSocket->close();
+          hostPort->mBoundTCPSocket->close();
         } catch(Socket::Exceptions::Unspecified &error) {
           ZS_LOG_ERROR(Detail, log("failed to close tcp socket") + ZS_PARAM("error", error.errorCode()))
         }
-        hostPort.mBoundTCPSocket.reset();
+        hostPort->mBoundTCPSocket.reset();
       }
-    }
 
-    //-------------------------------------------------------------------------
-    void ICEGatherer::shutdown(ReflexivePort &reflexivePort)
-    {
-      ZS_LOG_TRACE(log("shutting down reflexive port") + reflexivePort.toDebug())
+      // scope: remove from host ports mapping
+      {
+        for (auto iter_doNotUse = mHostPorts.begin(); iter_doNotUse != mHostPorts.end();)
+        {
+          auto current = iter_doNotUse;
+          ++iter_doNotUse;
 
-      if (reflexivePort.mSTUNDiscovery) {
-        auto found = mSTUNDiscoveries.find(reflexivePort.mSTUNDiscovery);
-        if (found != mSTUNDiscoveries.end()) {
-          mSTUNDiscoveries.erase(found);
+          auto compareHostPort = (*current).second;
+          if (compareHostPort != hostPort) continue;
+
+          ZS_LOG_TRACE(log("found host port to remote") + compareHostPort->toDebug())
+          mHostPorts.erase(current);
+          break;
         }
-        reflexivePort.mSTUNDiscovery->cancel();
-        reflexivePort.mSTUNDiscovery.reset();
       }
-
-      removeCandidate(reflexivePort.mCandidate);
-      reflexivePort.mCandidate.reset();
     }
 
     //-------------------------------------------------------------------------
     void ICEGatherer::shutdown(
-                               RelayPort &relayPort,
-                               HostPort &ownerHostPort
+                               ReflexivePortPtr reflexivePort,
+                               HostPortPtr ownerHostPort
                                )
     {
-      ZS_LOG_TRACE(log("shutting down relay port") + relayPort.toDebug())
+      if (!reflexivePort) return;
 
-      if (relayPort.mTURNSocket) {
-        auto found = mTURNSockets.find(relayPort.mTURNSocket);
+      ZS_LOG_TRACE(log("shutting down reflexive port") + reflexivePort->toDebug())
+
+      // scope: remote from host port
+      {
+        for (auto iter_doNotUse = ownerHostPort->mReflexivePorts.begin(); iter_doNotUse != ownerHostPort->mReflexivePorts.end(); )
+        {
+          auto current = iter_doNotUse;
+          ++iter_doNotUse;
+
+          auto compareReflexivePort = (*current);
+          if (compareReflexivePort != reflexivePort) continue;
+
+          ZS_LOG_TRACE(log("found relay port to remove from host port") + compareReflexivePort->toDebug())
+          ownerHostPort->mReflexivePorts.erase(current);
+          break;
+        }
+      }
+      
+      if (reflexivePort->mSTUNDiscovery) {
+        auto found = mSTUNDiscoveries.find(reflexivePort->mSTUNDiscovery);
+        if (found != mSTUNDiscoveries.end()) {
+          mSTUNDiscoveries.erase(found);
+        }
+        reflexivePort->mSTUNDiscovery->cancel();
+        reflexivePort->mSTUNDiscovery.reset();
+      }
+
+      removeCandidate(reflexivePort->mCandidate);
+      reflexivePort->mCandidate.reset();
+    }
+
+    //-------------------------------------------------------------------------
+    void ICEGatherer::shutdown(
+                               RelayPortPtr relayPort,
+                               HostPortPtr ownerHostPort
+                               )
+    {
+      if (!relayPort) return;
+
+      ZS_THROW_INVALID_ARGUMENT_IF(!ownerHostPort)
+
+      ZS_LOG_TRACE(log("shutting down relay port") + relayPort->toDebug())
+
+      // scope: remote from host port
+      {
+        for (auto iter_doNotUse = ownerHostPort->mRelayPorts.begin(); iter_doNotUse != ownerHostPort->mRelayPorts.end(); )
+        {
+          auto current = iter_doNotUse;
+          ++iter_doNotUse;
+
+          auto compareRelayPort = (*current);
+          if (compareRelayPort != relayPort) continue;
+
+          ZS_LOG_TRACE(log("found relay port to remove from host port") + compareRelayPort->toDebug())
+          ownerHostPort->mRelayPorts.erase(current);
+          break;
+        }
+      }
+
+      if (relayPort->mTURNSocket) {
+        auto found = mTURNSockets.find(relayPort->mTURNSocket);
         if (found != mTURNSockets.end()) {
           mTURNSockets.erase(found);
         }
-        relayPort.mTURNSocket->shutdown();
-        relayPort.mTURNSocket.reset();
+        relayPort->mTURNSocket->shutdown();
+
+        mShutdownTURNSockets[relayPort->mTURNSocket] = HostAndRelayPortPair(ownerHostPort, relayPort);
+        relayPort->mTURNSocket.reset();
       }
-      if (relayPort.mInactivityTimer) {
-        auto found = mRelayInactivityTimers.find(relayPort.mInactivityTimer);
+      if (relayPort->mInactivityTimer) {
+        auto found = mRelayInactivityTimers.find(relayPort->mInactivityTimer);
         if (found != mRelayInactivityTimers.end()) {
           mRelayInactivityTimers.erase(found);
         }
-        relayPort.mInactivityTimer->cancel();
-        relayPort.mInactivityTimer.reset();
+        relayPort->mInactivityTimer->cancel();
+        relayPort->mInactivityTimer.reset();
       }
 
-      removeCandidate(relayPort.mRelayCandidate);
-      removeCandidate(relayPort.mRelayCandidate);
+      removeCandidate(relayPort->mRelayCandidate);
+      removeCandidate(relayPort->mRelayCandidate);
 
-      relayPort.mRelayCandidate.reset();
-      relayPort.mReflexiveCandidate.reset();
+      relayPort->mRelayCandidate.reset();
+      relayPort->mReflexiveCandidate.reset();
 
-      if (!relayPort.mServerResponseIP.isAddressEmpty()) {
-        auto found = ownerHostPort.mIPToRelayPortMapping.find(relayPort.mServerResponseIP);
-        if (found != ownerHostPort.mIPToRelayPortMapping.end()) {
-          ownerHostPort.mIPToRelayPortMapping.erase(found);
+      if (!relayPort->mServerResponseIP.isAddressEmpty()) {
+        auto found = ownerHostPort->mIPToRelayPortMapping.find(relayPort->mServerResponseIP);
+        if (found != ownerHostPort->mIPToRelayPortMapping.end()) {
+          ownerHostPort->mIPToRelayPortMapping.erase(found);
         }
       }
     }
 
     //-------------------------------------------------------------------------
-    void ICEGatherer::shutdown(TCPPort &tcpPort)
+    void ICEGatherer::shutdown(
+                               TCPPortPtr tcpPort,
+                               HostPortPtr ownerHostPort
+                               )
     {
-      ZS_LOG_TRACE(log("shutting down tcp port") + tcpPort.toDebug())
+      if (!tcpPort) return;
 
-      if (tcpPort.mCandidate) {
-        auto found = mTCPCandidateToTCPPorts.find(tcpPort.mCandidate);
+      ZS_LOG_TRACE(log("shutting down tcp port") + tcpPort->toDebug())
+
+      // scope: remote from host port
+      {
+        for (auto iter_doNotUse = ownerHostPort->mTCPPorts.begin(); iter_doNotUse != ownerHostPort->mTCPPorts.end(); )
+        {
+          auto current = iter_doNotUse;
+          ++iter_doNotUse;
+
+          auto compareTCPPort = (*current).second.second;
+          if (compareTCPPort != tcpPort) continue;
+
+          ZS_LOG_TRACE(log("found relay port to remove from host port") + compareTCPPort->toDebug())
+          ownerHostPort->mTCPPorts.erase(current);
+          break;
+        }
+      }
+
+      if (tcpPort->mCandidate) {
+        auto found = mTCPCandidateToTCPPorts.find(tcpPort->mCandidate);
         if (found != mTCPCandidateToTCPPorts.end()) {
           mTCPCandidateToTCPPorts.erase(found);
         }
       }
 
-      if (tcpPort.mSocket) {
+      if (tcpPort->mSocket) {
         // remove from host port mapping
         {
-          auto found = tcpPort.mHostPort->mTCPPorts.find(tcpPort.mSocket);
-          if (found != tcpPort.mHostPort->mTCPPorts.end()) {
-            tcpPort.mHostPort->mTCPPorts.erase(found);
+          auto found = ownerHostPort->mTCPPorts.find(tcpPort->mSocket);
+          if (found != ownerHostPort->mTCPPorts.end()) {
+            ownerHostPort->mTCPPorts.erase(found);
           }
         }
 
         // remove from tcp port mapping
         {
-          auto found = mTCPPorts.find(tcpPort.mSocket);
+          auto found = mTCPPorts.find(tcpPort->mSocket);
           if (found != mTCPPorts.end()) {
             mTCPPorts.erase(found);
           }
         }
 
         try {
-          tcpPort.mSocket->close();
+          tcpPort->mSocket->close();
         } catch (Socket::Exceptions::Unspecified &error) {
           ZS_LOG_ERROR(Detail, log("failed to close tcp port socket") + ZS_PARAM("error", error.errorCode()))
         }
 
-        tcpPort.mSocket.reset();
+        tcpPort->mSocket.reset();
       }
 
-      tcpPort.mIncomingBuffer.Clear();
-      tcpPort.mOutgoingBuffer.Clear();
+      tcpPort->mIncomingBuffer.Clear();
+      tcpPort->mOutgoingBuffer.Clear();
     }
 
     //-------------------------------------------------------------------------
@@ -3780,7 +4028,6 @@ namespace ortc
 
           TCPPortPtr tcpPort(new TCPPort);
           tcpPort->mConnected = true;
-          tcpPort->mHostPort = hostPort;
 
           IPAddress localAddress;
 
@@ -3793,8 +4040,8 @@ namespace ortc
           }
 
           // create mappings for this socket
-          mTCPPorts[tcpPort->mSocket] = tcpPort;
-          hostPort->mTCPPorts[tcpPort->mSocket] = tcpPort;
+          mTCPPorts[tcpPort->mSocket] = HostAndTCPPortPair(hostPort, tcpPort);
+          hostPort->mTCPPorts[tcpPort->mSocket] = HostAndTCPPortPair(hostPort, tcpPort);
 
           tcpPort->mSocket->setDelegate(mThisWeak.lock());
 
@@ -3974,7 +4221,7 @@ namespace ortc
       auto found = mTCPPorts.find(socket);
       if (found == mTCPPorts.end()) return false;
 
-      TCPPort &tcpPort = *((*found).second);
+      TCPPort &tcpPort = *((*found).second.second);
 
       if (!tcpPort.mSocket) {
         ZS_LOG_WARNING(Detail, log("tcp port was closed during write notification") + tcpPort.toDebug())
@@ -4023,25 +4270,26 @@ namespace ortc
 
     //-------------------------------------------------------------------------
     void ICEGatherer::close(
-                            HostPort &hostPort,
+                            HostPortPtr hostPort,
                             SocketPtr socket
                             )
     {
+      ZS_THROW_INVALID_ARGUMENT_IF(!hostPort)
       AutoRecursiveLock lock(*this);
 
-      if ((hostPort.mBoundUDPSocket != socket) &&
-          (hostPort.mBoundTCPSocket != socket)) {
-        ZS_LOG_WARNING(Detail, log("socket was not found on host port") + hostPort.toDebug() + ZS_PARAM("socket", (PTRNUMBER)socket->getSocket()))
+      if ((hostPort->mBoundUDPSocket != socket) &&
+          (hostPort->mBoundTCPSocket != socket)) {
+        ZS_LOG_WARNING(Detail, log("socket was not found on host port") + hostPort->toDebug() + ZS_PARAM("socket", (PTRNUMBER)socket->getSocket()))
         return;
       }
 
       CandidatePtr ingored;
 
-      SocketPtr &hostSocket = (hostPort.mBoundUDPSocket == socket ? hostPort.mBoundUDPSocket : hostPort.mBoundTCPSocket);
-      CandidatePtr &candidate1 = (hostPort.mBoundUDPSocket == socket ? hostPort.mCandidateUDP : hostPort.mCandidateTCPPassive);
-      CandidatePtr &candidate2 = (hostPort.mBoundUDPSocket == socket ? ingored : hostPort.mCandidateTCPActive);
+      SocketPtr &hostSocket = (hostPort->mBoundUDPSocket == socket ? hostPort->mBoundUDPSocket : hostPort->mBoundTCPSocket);
+      CandidatePtr &candidate1 = (hostPort->mBoundUDPSocket == socket ? hostPort->mCandidateUDP : hostPort->mCandidateTCPPassive);
+      CandidatePtr &candidate2 = (hostPort->mBoundUDPSocket == socket ? ingored : hostPort->mCandidateTCPActive);
 
-      ZS_LOG_WARNING(Detail, log("bound UDP or TCP socket unexpectedly closed") + hostPort.toDebug() + ZS_PARAM("socket", (PTRNUMBER)socket->getSocket()))
+      ZS_LOG_WARNING(Detail, log("bound UDP or TCP socket unexpectedly closed") + hostPort->toDebug() + ZS_PARAM("socket", (PTRNUMBER)socket->getSocket()))
 
       auto found = mHostPortSockets.find(socket);
       if (found != mHostPortSockets.end()) {
@@ -4051,7 +4299,7 @@ namespace ortc
       try {
         socket->close();
       } catch(Socket::Exceptions::Unspecified &error) {
-        ZS_LOG_ERROR(Detail, log("unable to close socket") + ZS_PARAM("error", error.errorCode()) + hostPort.toDebug())
+        ZS_LOG_ERROR(Detail, log("unable to close socket") + ZS_PARAM("error", error.errorCode()) + hostPort->toDebug())
       }
 
       socket.reset();
@@ -4074,10 +4322,15 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void ICEGatherer::close(TCPPort &tcpPort)
+    void ICEGatherer::close(
+                            TCPPortPtr tcpPort,
+                            HostPortPtr ownerHostPort
+                            )
     {
-      ZS_LOG_DEBUG(log("tcp port is closing") + tcpPort.toDebug())
-      shutdown(tcpPort);
+      ZS_THROW_INVALID_ARGUMENT_IF(!tcpPort)
+      ZS_THROW_INVALID_ARGUMENT_IF(!ownerHostPort)
+      ZS_LOG_DEBUG(log("tcp port is closing") + tcpPort->toDebug())
+      shutdown(tcpPort, ownerHostPort);
     }
 
     //-------------------------------------------------------------------------
@@ -4308,9 +4561,9 @@ namespace ortc
                   (hostPort->mCandidateTCPActive == localCandidate)) {
                 // search for an incoming or outgoing TCP connection that satisfies the requirement
                 for (auto iter = hostPort->mTCPPorts.begin(); iter != hostPort->mTCPPorts.end(); ++iter) {
-                  auto tcpPort = (*iter).second;
+                  auto tcpPort = (*iter).second.second;
                   auto tcpPortTransport = tcpPort->mTransport.lock();
-                  ZS_THROW_INVALID_ASSUMPTION_IF(tcpPort->mHostPort != hostPort)  // how can this now be true anyway?
+
                   if (tcpPort->mRemoteIP != remoteIP) continue; // must be connecting to/from same remote location
                   if (tcpPortTransport != transport) continue;  // do not pick unless confirmed that it belongs to this transport
                   if (tcpPort->mCandidate->mTCPType != localCandidate->mTCPType) continue; // passive must match passive and active must match active
@@ -4327,7 +4580,6 @@ namespace ortc
                 TCPPortPtr tcpPort(new TCPPort);
 
                 tcpPort->mConnected = false;
-                tcpPort->mHostPort = hostPort;
                 tcpPort->mRemoteIP = remoteIP;
                 tcpPort->mTransportID = transport->getID();
                 tcpPort->mTransport = transport;
@@ -4354,8 +4606,8 @@ namespace ortc
 
                 route->mTCPPort = tcpPort;
 
-                hostPort->mTCPPorts[tcpPort->mSocket] = tcpPort;
-                mTCPPorts[tcpPort->mSocket] = tcpPort;
+                hostPort->mTCPPorts[tcpPort->mSocket] = HostAndTCPPortPair(hostPort, tcpPort);
+                mTCPPorts[tcpPort->mSocket] = HostAndTCPPortPair(hostPort, tcpPort);
                 mTCPCandidateToTCPPorts[tcpPort->mCandidate] = tcpPort;
 
                 ZS_LOG_DEBUG(log("created outgoing TCP connection for use in route") + tcpPort->toDebug() + route->toDebug())
@@ -5005,8 +5257,6 @@ namespace ortc
       ElementPtr resultEl = Element::create("ortc::ICEGatherer::TCPPort");
 
       UseServicesHelper::debugAppend(resultEl, "connected", mConnected);
-
-      UseServicesHelper::debugAppend(resultEl, mHostPort->toDebug());
 
       UseServicesHelper::debugAppend(resultEl, "candidate", mCandidate ? mCandidate->toDebug() : ElementPtr());
 

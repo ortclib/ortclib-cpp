@@ -106,8 +106,8 @@ namespace ortc
     public:
       virtual ~ICETransport();
 
-      static ICEGathererPtr convert(IICEGathererPtr object);
-      static ICEGathererPtr convert(ForICEGathererPtr object);
+      static ICETransportPtr convert(ICETransportPtr object);
+      static ICETransportPtr convert(ForICEGathererPtr object);
 
     protected:
       //-----------------------------------------------------------------------

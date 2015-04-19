@@ -281,7 +281,8 @@ namespace ortc
       typedef std::map<IPAddress, RelayPortPtr> IPToRelayPortMap;
       typedef std::map<TimerPtr, HostAndRelayPortPair> TimerToRelayPortMap;
 
-      typedef std::map<SocketPtr, TCPPortPtr> SocketToTCPPortMap;
+      typedef std::pair<HostPortPtr, TCPPortPtr> HostAndTCPPortPair;
+      typedef std::map<SocketPtr, HostAndTCPPortPair> SocketToTCPPortMap;
       typedef std::map<CandidatePtr, TCPPortPtr> CandidateToTCPPortMap;
 
       typedef std::list<BufferedPacketPtr> BufferedPacketList;
@@ -349,6 +350,8 @@ namespace ortc
       virtual CandidateListPtr getLocalCandidates() const;
 
       virtual void gather(const Options &options);
+
+      virtual void close();
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -678,7 +681,6 @@ namespace ortc
       struct TCPPort
       {
         bool mConnected {false};
-        HostPortPtr mHostPort;
 
         CandidatePtr mCandidate;
 
@@ -814,6 +816,7 @@ namespace ortc
       bool stepTearDownReflexive();
       bool stepSetupRelay();
       bool stepTearDownRelay();
+      bool stepCleanPendingShutdownTURNSockets();
       bool stepCheckIfReady();
 
       void cancel();
@@ -834,13 +837,19 @@ namespace ortc
 
       bool needsHostPort(HostIPSorter::DataPtr hostData);
 
-      void shutdown(HostPort &hostPort);
-      void shutdown(ReflexivePort &reflexivePort);
+      void shutdown(HostPortPtr hostPort);
       void shutdown(
-                    RelayPort &relayPort,
-                    HostPort &ownerHostPort
+                    ReflexivePortPtr reflexivePort,
+                    HostPortPtr ownerHostPort
                     );
-      void shutdown(TCPPort &tcpPort);
+      void shutdown(
+                    RelayPortPtr relayPort,
+                    HostPortPtr ownerHostPort
+                    );
+      void shutdown(
+                    TCPPortPtr tcpPort,
+                    HostPortPtr ownerHostPort
+                    );
 
       SocketPtr bind(
                      IPAddress &ioBindIP,
@@ -888,10 +897,13 @@ namespace ortc
       bool writeIfTCPPort(SocketPtr socket);
 
       void close(
-                 HostPort &hostPort,
+                 HostPortPtr hostPort,
                  SocketPtr socket
                  );
-      void close(TCPPort &tcpPort);
+      void close(
+                 TCPPortPtr tcpPort,
+                 HostPortPtr hostPort
+                 );
 
       SecureByteBlockPtr handleIncomingPacket(
                                               CandidatePtr localCandidate,
@@ -986,6 +998,7 @@ namespace ortc
 
       STUNToReflexivePortMap mSTUNDiscoveries;
       TURNToRelayPortMap mTURNSockets;
+      TURNToRelayPortMap mShutdownTURNSockets;
 
       String mHasSTUNServersOptionsHash;
       bool mHasSTUNServers {false};
