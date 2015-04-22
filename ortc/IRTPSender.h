@@ -99,11 +99,11 @@ namespace ortc
                               IICETransportPtr rtcpTransport = IICETransportPtr()
                               ) = 0;
 
-    virtual void setTrack(IMediaStreamTrackPtr track) throw(InvalidParameters) = 0;
+    virtual PromisePtr setTrack(IMediaStreamTrackPtr track);
 
     virtual CapabilitiesPtr getCapabilities(const char *kind = NULL);
 
-    virtual void send(const Parameters &parameters) throw(InvalidParameters) = 0;
+    virtual PromisePtr send(const Parameters &parameters);
     virtual void stop() = 0;
   };
 

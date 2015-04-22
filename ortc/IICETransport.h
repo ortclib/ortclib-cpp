@@ -93,7 +93,10 @@ namespace ortc
   {
     static ElementPtr toDebug(IICETransportPtr transport);
 
-    static IICETransportPtr create(IICETransportDelegatePtr delegate);
+    static IICETransportPtr create(
+                                   IICETransportDelegatePtr delegate,
+                                   IICEGathererPtr gatherer = IICEGathererPtr() // option to specify a gatherer
+                                   );
 
     virtual PUID getID() const = 0;
 
@@ -121,7 +124,7 @@ namespace ortc
 
     virtual IICETransportPtr createAssociatedTransport() throw (InvalidStateError) = 0;
 
-    virtual void addRemoteCandidate(const Candidate &remoteCandidate) = 0;
+    virtual void addRemoteCandidate(const GatherCandidate &remoteCandidate) = 0;
     virtual void setRemoteCandidates(const CandidateList &remoteCandidates) = 0;
   };
 

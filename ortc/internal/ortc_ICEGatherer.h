@@ -76,6 +76,10 @@
 
 #define ORTC_SETTING_GATHERER_CLEAN_UNUSED_ROUTES_NOT_USED_IN_SECONDS "ortc/gatherer/clean-unused-routes-not-used-in-seconds"
 
+#define ORTC_SETTING_GATHERER_GATHER_PASSIVE_TCP_CANDIDATES "ortc/gatherer/gather-passive-tcp-candidates"
+
+#define ORTC_SETTING_GATHERER_RECHECK_IP_ADDRESSES_IN_SECONDS "ortc/gatherer/recheck-ip-addresses-in-seconds"
+
 namespace ortc
 {
   namespace internal
@@ -118,6 +122,7 @@ namespace ortc
                                     ICETransportPtr transport,
                                     const String &remoteUFrag
                                     ) = 0;
+      virtual void notifyTransportStateChange(ICETransportPtr transport) = 0;
       virtual void removeTransport(ICETransport &transport) = 0;
 
       virtual PUID createRoute(
@@ -294,6 +299,8 @@ namespace ortc
       typedef PUID TransportID;
       typedef std::map<UsernameFragment, InstalledTransportPtr> TransportMap;
 
+      typedef std::list<InstalledTransportPtr> TransportList;
+
       typedef PUID RouteID;
       typedef std::map<RouteID, RoutePtr> RouteMap;
 
@@ -364,6 +371,7 @@ namespace ortc
                                     ICETransportPtr transport,
                                     const String &remoteUFrag
                                     );
+      virtual void notifyTransportStateChange(ICETransportPtr transport);
       virtual void removeTransport(ICETransport &transport);
 
       virtual PUID createRoute(
@@ -658,6 +666,8 @@ namespace ortc
         SocketPtr mBoundTCPSocket;
         size_t mTotalBindFailuresTCP {};
 
+        bool mWarmUpAfterBinding {true};
+
         String mReflexiveOptionsHash;
         ReflexivePortList mReflexivePorts;
 
@@ -801,16 +811,20 @@ namespace ortc
       Log::Params debug(const char *message) const;
       ElementPtr toDebug() const;
 
+      bool isComplete() const;
       bool isShuttingDown() const;
       bool isShutdown() const;
 
       void step();
+      bool stepRecheckIPTimer();
       bool stepCalculateOptionsHash();
       bool stepResolveHostIPs();
       bool stepGetHostIPs();
       bool stepCalculateHostsHash();
       bool stepFixHostPorts();
       bool stepBindHostPorts();
+      bool stepCheckTransportsNeedWarmth();
+      bool stepWarmUpAfterInterfaceBinding();
       bool stepWarmth();
       bool stepSetupReflexive();
       bool stepTearDownReflexive();
@@ -925,12 +939,6 @@ namespace ortc
                             bool notifyTransport = true
                             );
 
-      void sendSTUNPacket(
-                          CandidatePtr localCandidate,
-                          const IPAddress &remoteIP,
-                          STUNPacketPtr stunPacket
-                          );
-
       void fix(STUNPacketPtr stunPacket) const;
 
       void removeAllRelatedRoutes(
@@ -946,6 +954,7 @@ namespace ortc
                          );
 
       bool shouldKeepWarm() const;
+      bool shouldWarmUpAfterInterfaceBinding() const;
 
     protected:
       //-----------------------------------------------------------------------
@@ -978,6 +987,8 @@ namespace ortc
       bool mCreateTCPCandidates {true};
 
       bool mGetLocalIPsNow {true};
+      Seconds mRecheckIPsDuration;
+      TimerPtr mRecheckIPsTimer;
       HostIPSorter::DataList mPendingHostIPs;
       HostIPSorter::DataList mResolvedHostIPs;
       HostIPSorter::QueryMap mResolveHostIPQueries;
@@ -1016,9 +1027,14 @@ namespace ortc
       Time mWarmUntil;  // keep candidates warm until this time
       TimerPtr mWarmUntilTimer;
 
+      String mWarmUpAfterNewInterfaceBindingHostsHash;
+      Time mWarmUpAfterNewInterfaceBindingUntil;
+      TimerPtr mWarmUpAterNewInterfaceBindingTimer;
+
       Seconds mRelayInactivityTime;
       TimerToRelayPortMap mRelayInactivityTimers;
 
+      bool mGatherPassiveTCP {false};
       SocketToTCPPortMap mTCPPorts;
       CandidateToTCPPortMap mTCPCandidateToTCPPorts;
       size_t mMaxTCPBufferingSizePendingConnection {};
@@ -1033,7 +1049,10 @@ namespace ortc
       TimerPtr mCleanUnusedRoutesTimer;
       Seconds mCleanUnusedRoutesDuration;
 
+      bool mTransportsChanged {true};
+      bool mTransportsStillNeedsCandidates {true};
       TransportMap mInstalledTransports;
+      TransportList mPendingTransports;
     };
 
     //-------------------------------------------------------------------------

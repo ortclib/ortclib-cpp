@@ -99,7 +99,7 @@ namespace ortc
 
     virtual CapabilitiesPtr getCapabilities(const char *kind = NULL);
 
-    virtual void receive(const Parameters &parameters) throw (InvalidParameters);
+    virtual PromisePtr receive(const Parameters &parameters);
     virtual void stop() = 0;
 
     virtual ContributingSourceList getContributingSources() const = 0;

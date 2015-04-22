@@ -69,6 +69,8 @@ namespace ortc
                                 const BYTE *buffer,
                                 size_t bufferSizeInBytes
                                 ) = 0;
+
+      virtual bool needsMoreCandidates() const = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -145,7 +147,7 @@ namespace ortc
 
       virtual IICETransportPtr createAssociatedTransport() throw (InvalidStateError);
 
-      virtual void addRemoteCandidate(const Candidate &remoteCandidate);
+      virtual void addRemoteCandidate(const GatherCandidate &remoteCandidate);
       virtual void setRemoteCandidates(const CandidateList &remoteCandidates);
     };
 

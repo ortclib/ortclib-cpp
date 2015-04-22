@@ -64,6 +64,7 @@ namespace ortc
       State_New,
       State_Gathering,
       State_Complete,
+      State_Closed,
     };
 
     static const char *toString(States state);
@@ -185,6 +186,7 @@ namespace ortc
   interaction IICEGathererDelegate
   {
     ZS_DECLARE_TYPEDEF_PTR(IICETypes::Candidate, Candidate)
+    ZS_DECLARE_TYPEDEF_PTR(IICETypes::CandidateComplete, CandidateComplete)
     typedef WORD ErrorCode;
 
     virtual void onICEGathererStateChanged(
@@ -196,6 +198,11 @@ namespace ortc
                                              IICEGathererPtr gatherer,
                                              CandidatePtr candidate
                                              ) = 0;
+
+    virtual void onICEGathererLocalCandidateComplete(
+                                                     IICEGathererPtr gatherer,
+                                                     CandidateCompletePtr candidate
+                                                     ) = 0;
 
     virtual void onICEGathererLocalCandidateGone(
                                                  IICEGathererPtr gatherer,
@@ -231,9 +238,11 @@ ZS_DECLARE_PROXY_BEGIN(ortc::IICEGathererDelegate)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IICEGathererPtr, IICEGathererPtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IICEGatherer::States, States)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IICEGathererDelegate::CandidatePtr, CandidatePtr)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::IICEGathererDelegate::CandidateCompletePtr, CandidateCompletePtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IICEGathererDelegate::ErrorCode, ErrorCode)
 ZS_DECLARE_PROXY_METHOD_2(onICEGathererStateChanged, IICEGathererPtr, States)
 ZS_DECLARE_PROXY_METHOD_2(onICEGathererLocalCandidate, IICEGathererPtr, CandidatePtr)
+ZS_DECLARE_PROXY_METHOD_2(onICEGathererLocalCandidateComplete, IICEGathererPtr, CandidateCompletePtr)
 ZS_DECLARE_PROXY_METHOD_2(onICEGathererLocalCandidateGone, IICEGathererPtr, CandidatePtr)
 ZS_DECLARE_PROXY_METHOD_3(onICEGathererError, IICEGathererPtr, ErrorCode, String)
 ZS_DECLARE_PROXY_END()
@@ -242,9 +251,11 @@ ZS_DECLARE_PROXY_SUBSCRIPTIONS_BEGIN(ortc::IICEGathererDelegate, ortc::IICEGathe
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IICEGathererPtr, IICEGathererPtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IICEGatherer::States, States)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IICEGathererDelegate::CandidatePtr, CandidatePtr)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IICEGathererDelegate::CandidateCompletePtr, CandidateCompletePtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IICEGathererDelegate::ErrorCode, ErrorCode)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onICEGathererStateChanged, IICEGathererPtr, States)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onICEGathererLocalCandidate, IICEGathererPtr, CandidatePtr)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onICEGathererLocalCandidateComplete, IICEGathererPtr, CandidateCompletePtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onICEGathererLocalCandidateGone, IICEGathererPtr, CandidatePtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_3(onICEGathererError, IICEGathererPtr, ErrorCode, String)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_END()

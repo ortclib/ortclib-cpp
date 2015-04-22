@@ -142,10 +142,10 @@ namespace ortc
 
     virtual SecureByteBlockListPtr getRemoteCertificates() const = 0;
 
-    virtual void start(const Parameters &remoteParameters) throw (
-                                                                  InvalidStateError,
-                                                                  InvalidParameters
-                                                                  ) = 0;
+    virtual PromisePtr start(const Parameters &remoteParameters) throw (
+                                                                        InvalidStateError,
+                                                                        InvalidParameters
+                                                                        ) = 0;
 
     virtual void stop() = 0;
 

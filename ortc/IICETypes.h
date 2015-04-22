@@ -45,10 +45,11 @@ namespace ortc
   
   interaction IICETypes
   {
+    ZS_DECLARE_STRUCT_PTR(GatherCandidate)
     ZS_DECLARE_STRUCT_PTR(Candidate)
+    ZS_DECLARE_STRUCT_PTR(CandidateComplete)
     ZS_DECLARE_TYPEDEF_PTR(std::list<Candidate>, CandidateList)
     ZS_DECLARE_STRUCT_PTR(Parameters)
-    ZS_DECLARE_TYPEDEF_PTR(Candidate, GatherCandidate)
 
     //-------------------------------------------------------------------------
     #pragma mark
@@ -140,11 +141,17 @@ namespace ortc
     static TCPCandidateTypes toTCPCandidateType(const char *type);
 
     //-------------------------------------------------------------------------
+    struct GatherCandidate
+    {
+      virtual ~GatherCandidate() {} // make polymorphic
+    };
+
+    //-------------------------------------------------------------------------
     #pragma mark
     #pragma mark IICETypes::Components
     #pragma mark
 
-    struct Candidate {
+    struct Candidate : public GatherCandidate {
       String            mInterfaceType;
       String            mFoundation;
       DWORD             mPriority {};
@@ -159,6 +166,14 @@ namespace ortc
 
       ElementPtr toDebug() const;
       String hash(bool includePriorities = true) const;
+    };
+
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IICETypes::Components
+    #pragma mark
+
+    struct CandidateComplete : public GatherCandidate {
     };
 
     //-------------------------------------------------------------------------
