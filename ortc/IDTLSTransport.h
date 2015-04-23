@@ -96,6 +96,9 @@ namespace ortc
     {
       Roles mRole {Role_Auto};
       FingerprintList mFingerprints;
+
+      ElementPtr toDebug() const;
+      String hash() const;
     };
 
     //-------------------------------------------------------------------------
@@ -107,6 +110,9 @@ namespace ortc
     {
       String mAlgorithm;
       String mValue;
+
+      ElementPtr toDebug() const;
+      String hash() const;
     };
   };
 

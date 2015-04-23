@@ -41,12 +41,16 @@
 #include <zsLib/Log.h>
 #include <zsLib/XML.h>
 
+#include <cryptopp/sha.h>
+
 namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib) }
 
 namespace ortc
 {
   ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHelper, UseServicesHelper)
   ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHTTP, UseHTTP)
+
+  typedef openpeer::services::Hasher<CryptoPP::SHA1> SHA1Hasher;
 
   namespace internal
   {
@@ -562,6 +566,128 @@ namespace ortc
     return "UNDEFINED";
   }
 
+
+  //---------------------------------------------------------------------------
+  IDTLSTransportTypes::States IDTLSTransportTypes::toState(const char *state)
+  {
+    static States states[] = {
+      State_New,
+      State_Connecting,
+      State_Connected,
+      State_Validated,
+      State_Closed,
+    };
+
+    String compareStr(state);
+    for (size_t loop = 0; loop < (sizeof(states) / sizeof(states[0])); ++loop) {
+      if (compareStr == toString(states[loop])) return states[loop];
+    }
+
+    ZS_THROW_INVALID_ARGUMENT("Invalid parameter value: " + compareStr)
+    return State_Closed;
+  }
+
+  //---------------------------------------------------------------------------
+  const char *IDTLSTransportTypes::toString(Roles state)
+  {
+    switch (state) {
+      case Role_Auto:      return "auto";
+      case Role_Client:    return "client";
+      case Role_Server:    return "server";
+    }
+    return "UNDEFINED";
+  }
+
+
+  //---------------------------------------------------------------------------
+  IDTLSTransportTypes::Roles IDTLSTransportTypes::toRole(const char *role)
+  {
+    static Roles roles[] = {
+      Role_Auto,
+      Role_Client,
+      Role_Server,
+    };
+
+    String compareStr(role);
+    for (size_t loop = 0; loop < (sizeof(roles) / sizeof(roles[0])); ++loop) {
+      if (compareStr == toString(roles[loop])) return roles[loop];
+    }
+
+    ZS_THROW_INVALID_ARGUMENT("Invalid parameter value: " + compareStr)
+    return Role_Auto;
+  }
+  
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IDTLSTransportTypes::Parameters
+  #pragma mark
+
+  //---------------------------------------------------------------------------
+  ElementPtr IDTLSTransportTypes::Parameters::toDebug() const
+  {
+    ElementPtr resultEl = Element::create("ortc::IDTLSTransportTypes::Parameters");
+
+    UseServicesHelper::debugAppend(resultEl, "role", toString(mRole));
+    UseServicesHelper::debugAppend(resultEl, "fingerprints", mFingerprints.size());
+
+    return resultEl;
+  }
+
+  //---------------------------------------------------------------------------
+  String IDTLSTransportTypes::Parameters::hash() const
+  {
+    SHA1Hasher hasher;
+
+    hasher.update("IDTLSTransportTypes:Parameters:");
+    hasher.update(toString(mRole));
+
+    for (auto iter = mFingerprints.begin(); iter != mFingerprints.end(); ++iter) {
+      auto fingerprint = (*iter);
+
+      hasher.update(":");
+      hasher.update(fingerprint.mAlgorithm);
+      hasher.update(":");
+      hasher.update(fingerprint.mValue);
+    }
+
+    return hasher.final();
+  }
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IDTLSTransportTypes::Fingerprint
+  #pragma mark
+
+  //---------------------------------------------------------------------------
+  ElementPtr IDTLSTransportTypes::Fingerprint::toDebug() const
+  {
+    ElementPtr resultEl = Element::create("ortc::IDTLSTransportTypes::Fingerprint");
+
+    UseServicesHelper::debugAppend(resultEl, "algorithm", mAlgorithm);
+    UseServicesHelper::debugAppend(resultEl, "value", mValue);
+
+    return resultEl;
+  }
+
+  //---------------------------------------------------------------------------
+  String IDTLSTransportTypes::Fingerprint::hash() const
+  {
+    SHA1Hasher hasher;
+
+    hasher.update("IDTLSTransportTypes:Fingerprint:");
+    hasher.update(mAlgorithm);
+    hasher.update(":");
+    hasher.update(mValue);
+
+    return hasher.final();
+  }
+
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
@@ -584,5 +710,6 @@ namespace ortc
   {
     return internal::IDTLSTransportFactory::singleton().create(delegate, iceTransport);
   }
+
 
 }

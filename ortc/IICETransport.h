@@ -74,8 +74,11 @@ namespace ortc
 
     struct CandidatePair
     {
-      Candidate mLocal;
-      Candidate mRemote;
+      CandidatePtr mLocal;
+      CandidatePtr mRemote;
+
+      ElementPtr toDebug() const;
+      String hash(bool includePriorities = true) const;
     };
   };
 

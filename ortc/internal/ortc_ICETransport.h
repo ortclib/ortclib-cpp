@@ -123,7 +123,8 @@ namespace ortc
     protected:
       ICETransport(
                    IMessageQueuePtr queue,
-                   IICETransportDelegatePtr delegate
+                   IICETransportDelegatePtr delegate,
+                   IICEGathererPtr gatherer
                    );
 
       ICETransport(Noop) :
@@ -157,7 +158,10 @@ namespace ortc
 
       static ElementPtr toDebug(ICETransportPtr transport);
 
-      static ICETransportPtr create(IICETransportDelegatePtr delegate);
+      static ICETransportPtr create(
+                                    IICETransportDelegatePtr delegate,
+                                    IICEGathererPtr gatherer
+                                    );
 
       virtual PUID getID() const;
 
@@ -270,7 +274,7 @@ namespace ortc
       WORD mLastError {};
       String mLastErrorReason;
 
-      UseICEGathererPtr mICEGatherer;
+      UseICEGathererPtr mGatherer;
     };
 
     //-------------------------------------------------------------------------
@@ -285,7 +289,10 @@ namespace ortc
     {
       static IICETransportFactory &singleton();
 
-      virtual ICETransportPtr create(IICETransportDelegatePtr delegate);
+      virtual ICETransportPtr create(
+                                     IICETransportDelegatePtr delegate,
+                                     IICEGathererPtr gatherer
+                                     );
     };
 
     class ICETransportFactory : public IFactory<IICETransportFactory> {};

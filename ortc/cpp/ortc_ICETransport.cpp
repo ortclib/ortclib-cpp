@@ -43,12 +43,16 @@
 #include <zsLib/Stringize.h>
 #include <zsLib/Log.h>
 
+#include <cryptopp/sha.h>
+
 namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib) }
 
 namespace ortc
 {
   ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHelper, UseServicesHelper)
   ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHTTP, UseHTTP)
+
+  typedef openpeer::services::Hasher<CryptoPP::SHA1> SHA1Hasher;
 
   namespace internal
   {
@@ -90,10 +94,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     ICETransport::ICETransport(
                                IMessageQueuePtr queue,
-                               IICETransportDelegatePtr originalDelegate
+                               IICETransportDelegatePtr originalDelegate,
+                               IICEGathererPtr gatherer
                                ) :
       MessageQueueAssociator(queue),
-      SharedRecursiveLock(SharedRecursiveLock::create())
+      SharedRecursiveLock(SharedRecursiveLock::create()),
+      mGatherer(ICEGatherer::convert(gatherer))
     {
       ZS_LOG_BASIC(debug("created"))
 
@@ -166,9 +172,12 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    ICETransportPtr ICETransport::create(IICETransportDelegatePtr delegate)
+    ICETransportPtr ICETransport::create(
+                                         IICETransportDelegatePtr delegate,
+                                         IICEGathererPtr gatherer
+                                         )
     {
-      ICETransportPtr pThis(new ICETransport(IORTCForInternal::queueORTC(), delegate));
+      ICETransportPtr pThis(new ICETransport(IORTCForInternal::queueORTC(), delegate, gatherer));
       pThis->mThisWeak.lock();
       pThis->init();
       return pThis;
@@ -318,11 +327,15 @@ namespace ortc
                                         const IPAddress &fromIP
                                         )
     {
+#define TODO_COMPLETE 1
+#define TODO_COMPLETE 2
     }
 
     //-------------------------------------------------------------------------
     void ICETransport::notifyRouteRemoved(PUID routeID)
     {
+#define TODO_COMPLETE 1
+#define TODO_COMPLETE 2
     }
 
     //-------------------------------------------------------------------------
@@ -331,6 +344,8 @@ namespace ortc
                                     STUNPacketPtr packet
                                     )
     {
+#define TODO_COMPLETE 1
+#define TODO_COMPLETE 2
     }
 
     //-------------------------------------------------------------------------
@@ -340,11 +355,15 @@ namespace ortc
                                     size_t bufferSizeInBytes
                                     )
     {
+#define TODO_COMPLETE 1
+#define TODO_COMPLETE 2
     }
     
     //-------------------------------------------------------------------------
     bool ICETransport::needsMoreCandidates() const
     {
+#define TODO_COMPLETE 1
+#define TODO_COMPLETE 2
       return false;
     }
 
@@ -356,11 +375,15 @@ namespace ortc
     #pragma mark ICETransport => IICETransportForRTPTransport
     #pragma mark
 
+    //-------------------------------------------------------------------------
     bool ICETransport::sendPacket(
                                   const BYTE *buffer,
                                   size_t bufferSizeInBytes
                                   )
     {
+#define TODO_COMPLETE 1
+#define TODO_COMPLETE 2
+      return false;
     }
 
     //-------------------------------------------------------------------------
@@ -525,10 +548,13 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    ICETransportPtr IICETransportFactory::create(IICETransportDelegatePtr delegate)
+    ICETransportPtr IICETransportFactory::create(
+                                                 IICETransportDelegatePtr delegate,
+                                                 IICEGathererPtr gatherer
+                                                 )
     {
       if (this) {}
-      return internal::ICETransport::create(delegate);
+      return internal::ICETransport::create(delegate, gatherer);
     }
 
   }
@@ -538,7 +564,100 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   #pragma mark
+  #pragma mark IICETransportTypes
+  #pragma mark
+
+  //---------------------------------------------------------------------------
+  const char *IICETransportTypes::toString(States state)
+  {
+    switch (state) {
+      case State_New:           return "new";
+      case State_Checking:      return "checking";
+      case State_Connected:     return "connected";
+      case State_Completed:     return "completed";
+      case State_Disconnected:  return "disconnected";
+      case State_Closed:        return "closed";
+    }
+  }
+
+  //---------------------------------------------------------------------------
+  IICETransportTypes::States IICETransportTypes::toState(const char *state)
+  {
+    static States states[] = {
+      State_New,
+      State_Checking,
+      State_Connected,
+      State_Completed,
+      State_Disconnected,
+      State_Closed,
+    };
+
+    String stateStr(state);
+    for (size_t loop = 0; loop < (sizeof(states) / sizeof(states[0])); ++loop) {
+      if (stateStr == toString(states[loop])) return states[loop];
+    }
+
+    ZS_THROW_INVALID_ARGUMENT("Invalid parameter value: " + stateStr)
+    return State_Closed;
+  }
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IICETransport::CandidatePair
+  #pragma mark
+
+  //---------------------------------------------------------------------------
+  ElementPtr IICETransport::CandidatePair::toDebug() const
+  {
+    ElementPtr resultEl = Element::create("ortc::IICETransport::CandidatePair");
+
+    UseServicesHelper::debugAppend(resultEl, "local", mLocal ? mLocal->toDebug() : ElementPtr());
+    UseServicesHelper::debugAppend(resultEl, "remote", mRemote ? mRemote->toDebug() : ElementPtr());
+
+    return resultEl;
+  }
+
+  //---------------------------------------------------------------------------
+  String IICETransport::CandidatePair::hash(bool includePriorities) const
+  {
+    SHA1Hasher hasher;
+
+    String localHash = mLocal ? mLocal->hash(includePriorities) : String();
+    String remoteHash = mRemote ? mRemote->hash(includePriorities) : String();
+
+    hasher.update("candidate-pair:");
+    hasher.update(localHash);
+    hasher.update(":");
+    hasher.update(remoteHash);
+
+    return hasher.final();
+  }
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
   #pragma mark IICETransport
   #pragma mark
+
+  //---------------------------------------------------------------------------
+  ElementPtr IICETransport::toDebug(IICETransportPtr transport)
+  {
+    return internal::ICETransport::toDebug(internal::ICETransport::convert(transport));
+  }
+
+  //---------------------------------------------------------------------------
+  IICETransportPtr IICETransport::create(
+                                         IICETransportDelegatePtr delegate,
+                                         IICEGathererPtr gatherer
+                                         )
+  {
+    return internal::IICETransportFactory::singleton().create(delegate, gatherer);
+  }
+
 
 }
