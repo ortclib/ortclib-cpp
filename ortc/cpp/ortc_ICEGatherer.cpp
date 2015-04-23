@@ -2142,9 +2142,6 @@ namespace ortc
     {
       typedef HostIPSorter::DataList DataList;
 
-#define TODO_RECHECK_IPS_PERIODICALLY 1
-#define TODO_RECHECK_IPS_PERIODICALLY 2
-
       if (!mGetLocalIPsNow) {
         ZS_LOG_TRACE(log("no need to check host IPs at this moment"))
         return true;
