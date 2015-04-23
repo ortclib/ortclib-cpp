@@ -1,3 +1,5 @@
 xcuserdata
 xcshareddata
 libs/build
+Debug/
+Release/

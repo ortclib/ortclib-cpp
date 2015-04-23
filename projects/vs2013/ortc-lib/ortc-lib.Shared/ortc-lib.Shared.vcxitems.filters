@@ -1,0 +1,195 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="ortc">
+      <UniqueIdentifier>{2fb9f586-2ed8-4210-8f66-e6530a51d5a1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ortc\cpp">
+      <UniqueIdentifier>{a4f3167c-b9a4-45fa-887f-bda7171d8d59}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ortc\internal">
+      <UniqueIdentifier>{6d3836d3-0f32-4630-af9f-84ba4956d11d}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\ICapabilities.h">
+      <Filter>ortc</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\IConstraints.h">
+      <Filter>ortc</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\IDataChannel.h">
+      <Filter>ortc</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\IDataTransport.h">
+      <Filter>ortc</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\IDTLSTransport.h">
+      <Filter>ortc</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\IDTMFSender.h">
+      <Filter>ortc</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\IHelper.h">
+      <Filter>ortc</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\IICEGatherer.h">
+      <Filter>ortc</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\IICETransport.h">
+      <Filter>ortc</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\IICETransportController.h">
+      <Filter>ortc</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\IICETypes.h">
+      <Filter>ortc</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\IIdentity.h">
+      <Filter>ortc</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\IMediaDevices.h">
+      <Filter>ortc</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\IMediaStreamTrack.h">
+      <Filter>ortc</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\IORTC.h">
+      <Filter>ortc</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\IRTPListener.h">
+      <Filter>ortc</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\IRTPReceiver.h">
+      <Filter>ortc</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\IRTPSender.h">
+      <Filter>ortc</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\IRTPTypes.h">
+      <Filter>ortc</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\ISCTPTransport.h">
+      <Filter>ortc</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\ISRTPSDESTransport.h">
+      <Filter>ortc</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\IStatsProvider.h">
+      <Filter>ortc</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\IStatsReport.h">
+      <Filter>ortc</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\ortc.h">
+      <Filter>ortc</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\types.h">
+      <Filter>ortc</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ifaddrs-android.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_DTLSTransport.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_Helper.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_ICEGatherer.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_ICETransport.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_MediaEngine.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_MediaManager.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_MediaStream.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_MediaStreamTrack.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_ORTC.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_RTCDataChannel.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_RTCTrack.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_RTPReceiver.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_RTPSender.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\platform.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\types.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ifaddrs-android.cc">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ortc.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ortc_DTLSTransport.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ortc_Helper.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ortc_ICEGatherer.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ortc_ICETransport.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ortc_ICETypes.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ortc_MediaEngine.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ortc_MediaManager.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ortc_MediaStream.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ortc_MediaStreamTrack.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ortc_ORTC.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ortc_RTCDataChannel.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ortc_RTCTrack.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ortc_RTPReceiver.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ortc_RTPSender.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ortc_TrackDescription.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

@@ -578,6 +578,7 @@ namespace ortc
       case State_Disconnected:  return "disconnected";
       case State_Closed:        return "closed";
     }
+    return "UNDEFINED";
   }
 
   //---------------------------------------------------------------------------

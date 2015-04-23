@@ -1,0 +1,84 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Label="Globals">
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <ItemsProjectGuid>{c9ce65f1-df3e-47d2-95b8-6cddc789849c}</ItemsProjectGuid>
+    <ItemsRootNamespace>ortc_lib</ItemsRootNamespace>
+    <ItemsProjectName>ortc-lib.Shared</ItemsProjectName>
+    <CodeSharingProject>248F659F-DAC5-46E8-AC09-60EC9FC95053</CodeSharingProject>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ProjectCapability Include="SourceItemsFromImports" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\ICapabilities.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\IConstraints.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\IDataChannel.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\IDataTransport.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\IDTLSTransport.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\IDTMFSender.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\IHelper.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\IICEGatherer.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\IICETransport.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\IICETransportController.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\IICETypes.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\IIdentity.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\IMediaDevices.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\IMediaStreamTrack.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ifaddrs-android.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_DTLSTransport.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_Helper.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_ICEGatherer.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_ICETransport.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_MediaEngine.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_MediaManager.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_MediaStream.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_MediaStreamTrack.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_ORTC.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_RTCDataChannel.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_RTCTrack.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_RTPReceiver.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_RTPSender.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\platform.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\types.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\IORTC.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\IRTPListener.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\IRTPReceiver.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\IRTPSender.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\IRTPTypes.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\ISCTPTransport.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\ISRTPSDESTransport.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\IStatsProvider.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\IStatsReport.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\ortc.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\types.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ifaddrs-android.cc">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ortc.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ortc_DTLSTransport.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ortc_Helper.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ortc_ICEGatherer.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ortc_ICETransport.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ortc_ICETypes.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ortc_MediaEngine.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ortc_MediaManager.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ortc_MediaStream.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ortc_MediaStreamTrack.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ortc_ORTC.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ortc_RTCDataChannel.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ortc_RTCTrack.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ortc_RTPReceiver.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ortc_RTPSender.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ortc_TrackDescription.cpp" />
+  </ItemGroup>
+</Project>

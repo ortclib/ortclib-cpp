@@ -486,6 +486,8 @@ namespace ortc
       mMaxTCPBufferingSizeConnected(UseSettings::getUInt(ORTC_SETTING_GATHERER_MAX_CONNECTED_TCP_SOCKET_BUFFERING_IN_BYTES)),
       mGatherPassiveTCP(UseSettings::getBool(ORTC_SETTING_GATHERER_GATHER_PASSIVE_TCP_CANDIDATES))
     {
+      mPreferences[PreferenceType_Priority].mType = PreferenceType_Priority;
+      mPreferences[PreferenceType_Unfreeze].mType = PreferenceType_Unfreeze;
       mPreferences[PreferenceType_Priority].load();
       mPreferences[PreferenceType_Unfreeze].load();
 
@@ -2359,8 +2361,6 @@ namespace ortc
                   if (ip.isAddressEmpty()) goto next_unicast;
                   if (ip.isLoopback()) goto next_unicast;
                   if (ip.isAddrAny()) goto next_unicast;
-
-                  ip.setPort(mBindPort);
 
                   String friendlyName(pCurrAddresses->FriendlyName);
                   String description(pCurrAddresses->Description);
@@ -4558,6 +4558,7 @@ namespace ortc
             ZS_LOG_WARNING(Trace, log("did not find local candidate"))
             return;
           }
+          goto handle_incoming;
         }
 
         if (hostPort->mBoundTCPSocket == socket) {
@@ -4774,7 +4775,7 @@ namespace ortc
       }
 
       while (true) {
-        auto currentSize = tcpPort.mOutgoingBuffer.CurrentSize();
+        size_t currentSize = static_cast<size_t>(tcpPort.mOutgoingBuffer.CurrentSize());
         if (0 == currentSize) {
           ZS_LOG_INSANE(log("nothing more to send") + tcpPort.toDebug())
           goto finished_write;
@@ -5896,6 +5897,12 @@ namespace ortc
     #pragma mark ICEGatherer::Preference
     #pragma mark
 
+    //-------------------------------------------------------------------------
+    ICEGatherer::Preference::Preference() :
+      Preference(PreferenceType_Priority)
+    {
+    }
+    
     //-------------------------------------------------------------------------
     ICEGatherer::Preference::Preference(PreferenceTypes type) :
       mType(type)

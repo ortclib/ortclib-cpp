@@ -779,12 +779,13 @@ namespace ortc
 
       struct Preference
       {
-        PreferenceTypes mType;
+        PreferenceTypes mType {PreferenceType_Priority};
         DWORD *mCandidateTypePreferences {NULL};
         DWORD *mProtocolTypePreferences {NULL};
         DWORD *mInterfaceTypePreferences {NULL};
         DWORD *mAddressFamilyPreferences {NULL};
 
+        Preference();
         Preference(PreferenceTypes type);
         ~Preference();
 
@@ -982,7 +983,7 @@ namespace ortc
 
       Options mOptions;
 
-      Preference mPreferences[PreferenceType_Last+1] {PreferenceType_Priority, PreferenceType_Unfreeze};
+      Preference mPreferences[PreferenceType_Last+1];
       HostIPSorter::InterfaceMappingList mInterfaceMappings;
       bool mCreateTCPCandidates {true};
 
