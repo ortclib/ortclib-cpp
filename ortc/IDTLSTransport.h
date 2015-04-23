@@ -65,6 +65,7 @@ namespace ortc
       State_New,
       State_Connecting,
       State_Connected,
+      State_Validated,
       State_Closed,
     };
 
@@ -142,14 +143,12 @@ namespace ortc
 
     virtual SecureByteBlockListPtr getRemoteCertificates() const = 0;
 
-    virtual PromisePtr start(const Parameters &remoteParameters) throw (
-                                                                        InvalidStateError,
-                                                                        InvalidParameters
-                                                                        ) = 0;
+    virtual void start(const Parameters &remoteParameters) throw (
+                                                                  InvalidStateError,
+                                                                  InvalidParameters
+                                                                  ) = 0;
 
     virtual void stop() = 0;
-
-
   };
 
   //---------------------------------------------------------------------------

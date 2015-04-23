@@ -6075,6 +6075,30 @@ namespace ortc
       return resultEl;
     }
     
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IICEGathererFactory
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    IICEGathererFactory &IICEGathererFactory::singleton()
+    {
+      return ICEGathererFactory::singleton();
+    }
+
+    //-------------------------------------------------------------------------
+    ICEGathererPtr IICEGathererFactory::create(
+                                               IICEGathererDelegatePtr delegate,
+                                               const IICEGathererTypes::Options &options
+                                               )
+    {
+      if (this) {}
+      return internal::ICEGatherer::create(delegate, options);
+    }
+
   }
 
   //---------------------------------------------------------------------------
@@ -6337,4 +6361,26 @@ namespace ortc
     return hasher.final();
   }
   
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IICEGatherer
+  #pragma mark
+
+  //---------------------------------------------------------------------------
+  ElementPtr IICEGatherer::toDebug(IICEGathererPtr gatherer)
+  {
+    return internal::ICEGatherer::toDebug(internal::ICEGatherer::convert(gatherer));
+  }
+
+  //---------------------------------------------------------------------------
+  IICEGathererPtr IICEGatherer::create(
+                                       IICEGathererDelegatePtr delegate,
+                                       const Options &options
+                                       )
+  {
+    return internal::IICEGathererFactory::singleton().create(delegate, options);
+  }
 }

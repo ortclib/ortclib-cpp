@@ -8,16 +8,16 @@
 
 /* Begin PBXBuildFile section */
 		0020ED5D1AB86EAF00B66C74 /* IStatsReport.h in Headers */ = {isa = PBXBuildFile; fileRef = 0020ED5C1AB86EAF00B66C74 /* IStatsReport.h */; };
-		003199081AD0496D000511CC /* ortc_ICEGatherer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 003199071AD0496D000511CC /* ortc_ICEGatherer.cpp */; };
+		003199081AD0496D000511CC /* ortc_ICEGatherer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 003199071AD0496D000511CC /* ortc_ICEGatherer.cpp */; settings = {COMPILER_FLAGS = "-Wno-undefined-bool-conversion"; }; };
 		0031990C1AD36B11000511CC /* ifaddrs-android.cc in Sources */ = {isa = PBXBuildFile; fileRef = 0031990B1AD36B11000511CC /* ifaddrs-android.cc */; };
 		003199D41AD73F20000511CC /* ortc_ICETypes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 003199D31AD73F20000511CC /* ortc_ICETypes.cpp */; };
 		00724A6E184CF42B0049B9EF /* ortc_ORTC.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00724A6D184CF42B0049B9EF /* ortc_ORTC.cpp */; };
-		007B98F81855D61C004AC6C0 /* ortc_DTLSTransport.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 007B98F71855D61C004AC6C0 /* ortc_DTLSTransport.cpp */; };
+		007B98F81855D61C004AC6C0 /* ortc_DTLSTransport.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 007B98F71855D61C004AC6C0 /* ortc_DTLSTransport.cpp */; settings = {COMPILER_FLAGS = "-Wno-undefined-bool-conversion"; }; };
 		007B99021856398F004AC6C0 /* ortc_RTPSender.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 007B99011856398F004AC6C0 /* ortc_RTPSender.cpp */; };
 		007B9906185661B1004AC6C0 /* ortc_RTPReceiver.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 007B9905185661B1004AC6C0 /* ortc_RTPReceiver.cpp */; };
 		007B9908185665BC004AC6C0 /* ortc_TrackDescription.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 007B9907185665BC004AC6C0 /* ortc_TrackDescription.cpp */; };
 		008F562A18213D70009863AA /* ortc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 008F562818213D70009863AA /* ortc.cpp */; };
-		00D8BFAA18479BF80001A335 /* ortc_ICETransport.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00D8BFA818479BF80001A335 /* ortc_ICETransport.cpp */; };
+		00D8BFAA18479BF80001A335 /* ortc_ICETransport.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00D8BFA818479BF80001A335 /* ortc_ICETransport.cpp */; settings = {COMPILER_FLAGS = "-Wno-undefined-bool-conversion"; }; };
 		00D8BFEF1848DF100001A335 /* ortc_Helper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00D8BFEE1848DF100001A335 /* ortc_Helper.cpp */; };
 		E2260E6418215AAF0084E4A4 /* ortc_RTCTrack.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E2260E6218215AAF0084E4A4 /* ortc_RTCTrack.cpp */; };
 		E22F74F218401BF1008F502E /* ortc_MediaEngine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E277059F18370265008AC118 /* ortc_MediaEngine.cpp */; };

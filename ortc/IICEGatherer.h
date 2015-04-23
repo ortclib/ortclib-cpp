@@ -154,7 +154,7 @@ namespace ortc
   interaction IICEGatherer : public IICEGathererTypes,
                              public IStatsProvider
   {
-    static ElementPtr toDebug(IICETransportPtr gatherer);
+    static ElementPtr toDebug(IICEGathererPtr gatherer);
 
     static IICEGathererPtr create(
                                   IICEGathererDelegatePtr delegate,

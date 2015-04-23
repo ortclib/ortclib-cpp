@@ -92,5 +92,7 @@ namespace ortc
     ZS_DECLARE_CLASS_PTR(ORTC)
     ZS_DECLARE_CLASS_PTR(ICEGatherer)
     ZS_DECLARE_CLASS_PTR(ICETransport)
+    ZS_DECLARE_CLASS_PTR(DTLSTransport)
+
   }
 }

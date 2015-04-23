@@ -31,24 +31,22 @@
 
 #pragma once
 
-#if 0
-
 #include <ortc/internal/types.h>
-#include <ortc/internal/ortc_ICETransport.h>
 
-#include <ortc/TrackDescription.h>
 #include <ortc/IDTLSTransport.h>
+#include <ortc/IICETransport.h>
 
 #include <openpeer/services/IWakeDelegate.h>
-
 #include <zsLib/MessageQueueAssociator.h>
 
 namespace ortc
 {
   namespace internal
   {
-    interaction IICETransportForDTLSTransport;
-    interaction IRTPReceiverForDTLSTransport;
+    ZS_DECLARE_INTERACTION_PTR(IDTLSTransportForRTPSender)
+    ZS_DECLARE_INTERACTION_PTR(IDTLSTransportForICETransport)
+
+    ZS_DECLARE_INTERACTION_PTR(IICETransportForRTPTransport)
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -69,36 +67,7 @@ namespace ortc
       virtual bool sendPacket(
                               const BYTE *buffer,
                               size_t bufferLengthInBytes
-                              ) const = 0;
-    };
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IDTLSTransportForRTPReceiver
-    #pragma mark
-
-    interaction IDTLSTransportForRTPReceiver
-    {
-      ZS_DECLARE_TYPEDEF_PTR(IDTLSTransportForRTPReceiver, ForRTPReceiver)
-
-      typedef RTPFlowParams::SSRC SSRC;
-
-      static ElementPtr toDebug(ForRTPReceiverPtr transport);
-
-      virtual PUID getID() const = 0;
-
-      virtual void attachRouting(
-                                 RTPReceiverPtr receiver,
-                                 SSRC route
-                                 ) = 0;
-
-      virtual void detachRouting(
-                                 RTPReceiver &receiver,
-                                 SSRC route
-                                 ) = 0;
+                              ) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -113,38 +82,14 @@ namespace ortc
     {
       ZS_DECLARE_TYPEDEF_PTR(IDTLSTransportForICETransport, ForICETransport)
 
+      static ElementPtr toDebug(ForICETransportPtr transport);
+
       virtual PUID getID() const = 0;
 
       virtual void handleReceivedPacket(
-                                        ICETransportPtr iceTransport,
                                         const BYTE *buffer,
                                         size_t bufferLengthInBytes
                                         ) = 0;
-    };
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IDTLSTransportForDTLSContext
-    #pragma mark
-
-    interaction IDTLSTransportForDTLSContext
-    {
-      ZS_DECLARE_TYPEDEF_PTR(IDTLSTransportForDTLSContext, ForDTLSContext)
-
-      virtual PUID getID() const = 0;
-
-      virtual RecursiveLock &getLock() const = 0;
-
-      virtual bool sendDTLSContextPacket(
-                                         const BYTE *buffer,
-                                         size_t bufferLengthInBytes
-                                         ) = 0;
-
-      virtual void notifyDTLSContextConnected() = 0;
-      virtual void notifyDTLSContextShutdown() = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -157,11 +102,10 @@ namespace ortc
     
     class DTLSTransport : public Noop,
                           public MessageQueueAssociator,
+                          public SharedRecursiveLock,
                           public IDTLSTransport,
                           public IDTLSTransportForRTPSender,
-                          public IDTLSTransportForRTPReceiver,
                           public IDTLSTransportForICETransport,
-                          public IDTLSTransportForDTLSContext,
                           public IWakeDelegate,
                           public IICETransportDelegate
     {
@@ -169,21 +113,9 @@ namespace ortc
       friend interaction IDTLSTransport;
       friend interaction IDTLSTransportFactory;
       friend interaction IDTLSTransportForRTPSender;
-      friend interaction IDTLSTransportForRTPReceiver;
       friend interaction IDTLSTransportForICETransport;
-      friend interaction IDTLSTransportForDTLSContext;
 
-      ZS_DECLARE_TYPEDEF_PTR(IICETransportForDTLSTransport, UseICETransport)
-      ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverForDTLSTransport, UseRTPReceiver)
-
-      ZS_DECLARE_TYPEDEF_PTR(std::list<SecureByteBlockPtr>, PendingDTLSBufferList)
-
-      typedef std::map<SSRC, UseRTPReceiverWeakPtr> RTPRoutes;
-
-    protected:
-      ZS_DECLARE_CLASS_PTR(DTLSContext)
-
-      friend class DTLSContext;
+      ZS_DECLARE_TYPEDEF_PTR(IICETransportForRTPTransport, UseICETransport)
 
     protected:
       DTLSTransport(
@@ -192,7 +124,11 @@ namespace ortc
                     IICETransportPtr iceTransport
                     );
 
-      DTLSTransport(Noop) : Noop(true), MessageQueueAssociator(IMessageQueuePtr()) {}
+      DTLSTransport(Noop) :
+        Noop(true),
+        MessageQueueAssociator(IMessageQueuePtr()),
+        SharedRecursiveLock(SharedRecursiveLock::create())
+      {}
 
       void init();
 
@@ -201,51 +137,47 @@ namespace ortc
 
       static DTLSTransportPtr convert(IDTLSTransportPtr object);
       static DTLSTransportPtr convert(ForRTPSenderPtr object);
-      static DTLSTransportPtr convert(ForRTPReceiverPtr object);
       static DTLSTransportPtr convert(ForICETransportPtr object);
-      static DTLSTransportPtr convert(ForDTLSContextPtr object);
 
     protected:
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark DTLSTransport => IStatsProvider
+      #pragma mark
+
+      virtual PromiseWithStatsReportPtr getStats() const throw(InvalidStateError);
+
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark DTLSTransport => IDTLSTransport
       #pragma mark
 
-      static ElementPtr toDebug(IDTLSTransportPtr transport);
+      static ElementPtr toDebug(DTLSTransportPtr transport);
 
       static DTLSTransportPtr create(
-                                     IDTLSTransportDelegatePtr delegate,
-                                     IICETransportPtr iceTransport
-                                     );
+                                      IDTLSTransportDelegatePtr delegate,
+                                      IICETransportPtr iceTransport
+                                      );
 
       virtual PUID getID() const;
 
       virtual IDTLSTransportSubscriptionPtr subscribe(IDTLSTransportDelegatePtr delegate);
 
-      static CapabilitiesPtr getCapabilities();
+      virtual IICETransportPtr transport() const;
 
-      virtual TransportInfoPtr createParams(CapabilitiesPtr capabilities = CapabilitiesPtr());
+      virtual States getState() const;
 
-      static TransportInfoPtr filterParams(
-                                           TransportInfoPtr params,
-                                           CapabilitiesPtr capabilities
-                                           );
+      virtual ParametersPtr getLocalParameters() const;
+      virtual ParametersPtr getRemoteParameters() const;
 
-      virtual TransportInfoPtr getLocal();
-      virtual TransportInfoPtr getRemote();
+      virtual SecureByteBlockListPtr getRemoteCertificates() const;
 
-      virtual void setLocal(TransportInfoPtr info);
-      virtual void setRemote(TransportInfoPtr info);
+      virtual void start(const Parameters &remoteParameters) throw (
+                                                                    InvalidStateError,
+                                                                    InvalidParameters
+                                                                    );
 
-      virtual void attach(IICETransportPtr iceTransport);
-
-      virtual void start(TransportInfoPtr localTransportInfo);
       virtual void stop();
-
-      virtual ConnectionStates getState(
-                                        WORD *outError = NULL,
-                                        String *outReason = NULL
-                                        );
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -257,54 +189,19 @@ namespace ortc
       virtual bool sendPacket(
                               const BYTE *buffer,
                               size_t bufferLengthInBytes
-                              ) const;
-
-      //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark DTLSTransport => IDTLSTransportForRTPReceiver
-      #pragma mark
-
-      // (duplicate) virtual PUID getID() const;
-
-      virtual void attachRouting(
-                                 RTPReceiverPtr receiver,
-                                 SSRC route
-                                 );
-
-      virtual void detachRouting(
-                                 RTPReceiver &receiver,
-                                 SSRC route
-                                 );
+                              );
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark DTLSTransport => IDTLSTransportForICETransport
       #pragma mark
 
-      // (duplicated) virtual PUID getID() const;
+      // (duplicate) virtual PUID getID() const;
 
       virtual void handleReceivedPacket(
-                                        ICETransportPtr iceTransport,
                                         const BYTE *buffer,
                                         size_t bufferLengthInBytes
                                         );
-
-      //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark DTLSTransport => IDTLSTransportForDTLSContext
-      #pragma mark
-
-      // (duplicate) virtual PUID getID() const;
-
-      // (duplicate) virtual RecursiveLock &getLock() const;
-
-      virtual bool sendDTLSContextPacket(
-                                         const BYTE *buffer,
-                                         size_t bufferLengthInBytes
-                                         );
-
-      virtual void notifyDTLSContextConnected();
-      virtual void notifyDTLSContextShutdown();
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -318,113 +215,15 @@ namespace ortc
       #pragma mark DTLSTransport => IICETransportDelegate
       #pragma mark
 
-      virtual void onICETransportCandidatesChangeDetected(IICETransportPtr transport);
-
-      virtual void onICETransportCandidate(
-                                           IICETransportPtr transport,
-                                           IICETransport::CandidateInfoPtr candidate
-                                           );
-
-      virtual void onICETransportEndOfCandidates(IICETransportPtr trannsport);
-
-      virtual void onICETransportActiveCandidate(
-                                                 IICETransportPtr transport,
-                                                 IICETransport::CandidateInfoPtr localCandidate,
-                                                 IICETransport::CandidateInfoPtr remoteCandidate
-                                                 );
-
       virtual void onICETransportStateChanged(
                                               IICETransportPtr transport,
-                                              IICETransport::ConnectionStates state
+                                              IICETransport::States state
                                               );
 
-      //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark DTLSTransport::DTLSContext
-      #pragma mark
-
-      class DTLSContext
-      {
-      public:
-        ZS_DECLARE_TYPEDEF_PTR(IDTLSTransportForDTLSContext, Transport)
-
-      protected:
-        DTLSContext(
-                    DTLSTransportPtr transport,
-                    bool inClientRole
-                    );
-
-        void init();
-
-      public:
-        ~DTLSContext();
-
-        //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark DTLSTransport::DTLSContext => friend DTLSTransport
-        #pragma mark
-
-        static ElementPtr toDebug(DTLSContextPtr context);
-
-        static DTLSContextPtr create(
-                                     DTLSTransportPtr transport,
-                                     IICETransport::Roles role
-                                     );
-
-        PUID getID() const {return mID;}
-
-        void detach();
-
-        void freeze();    // tell the DTLS context that the transport is temporarily unavailable
-        void unfreeze();  // tell the DTLS context that the transport is now available again
-
-        void shutdown();
-
-        // returns true if handled, otherwise false
-        bool handleIfDTLSContextPacket(
-                                       const BYTE *buffer,
-                                       size_t bufferLengthInBytes
-                                       );
-
-      protected:
-        //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark DTLSTransport::DTLSContext => (internal)
-        #pragma mark
-
-        Log::Params log(const char *message) const;
-        Log::Params debug(const char *message) const;
-        ElementPtr toDebug() const;
-
-        RecursiveLock &getLock() const;
-
-        bool isClient() const {return mInClientRole;}
-        bool isServer() const {return !mInClientRole;}
-
-        void cancel();
-
-        bool sendPacket(
-                        const BYTE *buffer,
-                        size_t bufferLengthInBytes
-                        ) const;
-
-        void notifyConnected();
-        void notifyShutdown();
-
-      protected:
-        //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark DTLSTransport::DTLSContext => (data)
-        #pragma mark
-
-        AutoPUID mID;
-        mutable RecursiveLock mBogusLock;
-        DTLSContextWeakPtr mThisWeak;
-
-        bool mInClientRole;
-
-        TransportWeakPtr mTransport;
-      };
+      virtual void onICETransportCandidatePairChanged(
+                                                      IICETransportPtr transport,
+                                                      CandidatePairPtr candidatePair
+                                                      );
 
     protected:
       //-----------------------------------------------------------------------
@@ -436,19 +235,14 @@ namespace ortc
       Log::Params debug(const char *message) const;
       ElementPtr toDebug() const;
 
-      virtual RecursiveLock &getLock() const {return mLock;}
-
       bool isShuttingDown() const;
       bool isShutdown() const;
 
-      void step();            // WARNING: DO NOT CALL WITHIN CONTEXT OF LOCK
-      bool stepICESession();
-      bool stepFixState();
-      bool stepSendPending();
+      void step();
 
       void cancel();
 
-      void setState(ConnectionStates state);
+      void setState(IDTLSTransportTypes::States state);
       void setError(WORD error, const char *reason = NULL);
 
     protected:
@@ -458,35 +252,18 @@ namespace ortc
       #pragma mark
 
       AutoPUID mID;
-      mutable RecursiveLock mLock;
       DTLSTransportWeakPtr mThisWeak;
       DTLSTransportPtr mGracefulShutdownReference;
 
       IDTLSTransportDelegateSubscriptions mSubscriptions;
       IDTLSTransportSubscriptionPtr mDefaultSubscription;
 
-      ConnectionStates mCurrentState;
-      bool mStartCalled {};
+      IDTLSTransportTypes::States mCurrentState {IDTLSTransportTypes::State_New};
 
       WORD mLastError {};
       String mLastErrorReason;
 
-      TransportInfoPtr mLocal;
-      TransportInfoPtr mRemote;
-
       UseICETransportPtr mICETransport;
-      IICETransportSubscriptionPtr mICETransportSubscription;
-
-      DTLSContextPtr mDTLSContext;
-
-      bool mContextToldToFreeze {};
-      bool mContextToldToShutdown {};
-
-      bool mContextIsConnected {};
-
-      PendingDTLSBufferListPtr mPendingBuffers;
-
-      RTPRoutes mRTPRoutes;
     };
 
     //-------------------------------------------------------------------------
@@ -510,5 +287,3 @@ namespace ortc
     class DTLSTransportFactory : public IFactory<IDTLSTransportFactory> {};
   }
 }
-
-#endif //0
