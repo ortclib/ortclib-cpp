@@ -174,6 +174,7 @@ namespace ortc
     #pragma mark
 
     struct CandidateComplete : public GatherCandidate {
+      ElementPtr toDebug() const;
     };
 
     //-------------------------------------------------------------------------

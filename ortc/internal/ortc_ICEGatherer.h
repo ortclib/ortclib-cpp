@@ -116,7 +116,13 @@ namespace ortc
     {
       ZS_DECLARE_TYPEDEF_PTR(IICEGathererForICETransport, ForICETransport)
 
+      ZS_DECLARE_TYPEDEF_PTR(IICETypes::CandidateList, CandidateList)
+      typedef IICEGatherer::States States;
+
       virtual PUID getID() const = 0;
+
+      virtual IICETypes::Components component() const = 0;
+      virtual States state() const = 0;
 
       virtual void installTransport(
                                     ICETransportPtr transport,
@@ -124,6 +130,11 @@ namespace ortc
                                     ) = 0;
       virtual void notifyTransportStateChange(ICETransportPtr transport) = 0;
       virtual void removeTransport(ICETransport &transport) = 0;
+
+      virtual IICEGathererSubscriptionPtr subscribe(IICEGathererDelegatePtr delegate) = 0;
+
+      virtual bool isContinousGathering() const = 0;
+      virtual CandidateListPtr getLocalCandidates() const = 0;
 
       virtual PUID createRoute(
                                ICETransportPtr transport,
@@ -193,6 +204,8 @@ namespace ortc
       friend interaction IICEGathererForSettings;
       friend interaction IICEGathererForICETransport;
 
+      typedef IICEGatherer::States States;
+
       enum InternalStates
       {
         InternalState_Pending,
@@ -252,6 +265,8 @@ namespace ortc
       ZS_DECLARE_TYPEDEF_PTR(openpeer::services::ITURNSocket, UseTURNSocket)
       ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IBackOffTimer, UseBackOffTimer)
       ZS_DECLARE_TYPEDEF_PTR(zsLib::Socket, Socket)
+      ZS_DECLARE_TYPEDEF_PTR(IICETypes::Candidate, Candidate)
+      ZS_DECLARE_TYPEDEF_PTR(IICETypes::CandidateList, CandidateList)
 
       typedef std::list<IPAddress> IPAddressList;
 
@@ -351,10 +366,13 @@ namespace ortc
 
       virtual IICEGathererSubscriptionPtr subscribe(IICEGathererDelegatePtr delegate);
 
+      virtual Components component() const;
       virtual States state() const;
 
       virtual ParametersPtr getLocalParameters() const;
       virtual CandidateListPtr getLocalCandidates() const;
+
+      virtual IICEGathererPtr createAssociatedGatherer(IICEGathererDelegatePtr delegate) throw(InvalidStateError);
 
       virtual void gather(const Options &options);
 
@@ -367,12 +385,20 @@ namespace ortc
 
       // (duplicate) virtual PUID getID() const;
 
+      // (duplicate) virtual Components component() const = 0;
+      // (duplicate) virtual States state() const = 0;
+
       virtual void installTransport(
                                     ICETransportPtr transport,
                                     const String &remoteUFrag
                                     );
       virtual void notifyTransportStateChange(ICETransportPtr transport);
       virtual void removeTransport(ICETransport &transport);
+
+      // (duplicate) virtual IICEGathererSubscriptionPtr subscribe(IICEGathererDelegatePtr delegate) = 0;
+      // (duplicate) virtual CandidateListPtr getLocalCandidates() const = 0;
+
+      virtual bool isContinousGathering() const;
 
       virtual PUID createRoute(
                                ICETransportPtr transport,
@@ -980,6 +1006,9 @@ namespace ortc
       Components mComponent {Component_RTP};
       String mUsernameFrag;
       String mPassword;
+
+      ICEGathererWeakPtr mRTPGatherer;
+      ICEGathererPtr mRTCPGatherer;
 
       Options mOptions;
 

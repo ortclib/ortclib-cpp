@@ -74,6 +74,20 @@ namespace ortc
     #pragma mark IICETransportForICEGatherer
     #pragma mark
 
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IICETransportForICETransportContoller
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    ElementPtr IICETransportForICETransportContoller::toDebug(ForTransportContollerPtr transport)
+    {
+      if (!transport) return ElementPtr();
+      return ICETransport::convert(transport)->toDebug();
+    }
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -95,7 +109,7 @@ namespace ortc
     ICETransport::ICETransport(
                                IMessageQueuePtr queue,
                                IICETransportDelegatePtr originalDelegate,
-                               IICEGathererPtr gatherer
+                               UseICEGathererPtr gatherer
                                ) :
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
@@ -109,6 +123,21 @@ namespace ortc
     //-------------------------------------------------------------------------
     void ICETransport::init()
     {
+      AutoRecursiveLock lock(*this);
+
+      if (mGatherer) {
+        mGatherer->installTransport(mThisWeak.lock(), String());
+        mGathererSubscription = mGatherer->subscribe(mThisWeak.lock());
+
+        auto localCandidates = mGatherer->getLocalCandidates();
+        for (auto iter = localCandidates->begin(); iter != localCandidates->end(); ++iter) {
+          auto localCandidate = (*iter);
+
+          CandidatePtr candidate(new Candidate(localCandidate));
+          mLocalCandidates[candidate->hash()] = candidate;
+        }
+      }
+
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
     }
 
@@ -135,6 +164,12 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    ICETransportPtr ICETransport::convert(ForTransportContollerPtr object)
+    {
+      return ZS_DYNAMIC_PTR_CAST(ICETransport, object);
+    }
+
+    //-------------------------------------------------------------------------
     ICETransportPtr ICETransport::convert(ForRTPTransportPtr object)
     {
       return ZS_DYNAMIC_PTR_CAST(ICETransport, object);
@@ -151,9 +186,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     IStatsProvider::PromiseWithStatsReportPtr ICETransport::getStats() const throw(InvalidStateError)
     {
-#define TODO_COMPLETE 1
-#define TODO_COMPLETE 2
-      return PromiseWithStatsReportPtr();
+      AutoRecursiveLock lock(*this);
+      ORTC_THROW_INVALID_STATE_IF(isShutdown() || isShuttingDown())
+
+      PromiseWithStatsReportPtr promise = PromiseWithStatsReport::create(IORTCForInternal::queueDelegate());
+      ITransportAsyncDelegateProxy::create(mThisWeak.lock())->onResolveStatsPromise(promise);
+      return promise;
     }
 
     //-------------------------------------------------------------------------
@@ -174,9 +212,15 @@ namespace ortc
     //-------------------------------------------------------------------------
     ICETransportPtr ICETransport::create(
                                          IICETransportDelegatePtr delegate,
-                                         IICEGathererPtr gatherer
+                                         IICEGathererPtr inGatherer
                                          )
     {
+      UseICEGathererPtr gatherer = ICEGatherer::convert(inGatherer);
+      if (gatherer) {
+        ORTC_THROW_INVALID_PARAMETERS_IF(Component_RTCP == gatherer->component())
+        ORTC_THROW_INVALID_PARAMETERS_IF(IICEGatherer::State_Complete == gatherer->state())
+      }
+
       ICETransportPtr pThis(new ICETransport(IORTCForInternal::queueORTC(), delegate, gatherer));
       pThis->mThisWeak.lock();
       pThis->init();
@@ -222,22 +266,23 @@ namespace ortc
     //-------------------------------------------------------------------------
     IICEGathererPtr ICETransport::iceGatherer() const
     {
-#define TODO_COMPLETE 1
-#define TODO_COMPLETE 2
-      return IICEGathererPtr();
+      AutoRecursiveLock lock(*this);
+      ZS_LOG_TRACE(log("get gatherer") + ZS_PARAM("gatherer", mGatherer ? mGatherer->getID() : 0))
+      return ICEGatherer::convert(mGatherer);
     }
 
     //-------------------------------------------------------------------------
     IICETransportTypes::Roles ICETransport::role() const
     {
-#define TODO_COMPLETE 1
-#define TODO_COMPLETE 2
-      return IICETransportTypes::Role_Controlled;
+      AutoRecursiveLock lock(*this);
+      ZS_LOG_TRACE(log("get role") + ZS_PARAM("role", IICETypes::toString(mOptions.mRole)))
+      return mOptions.mRole;
     }
 
     //-------------------------------------------------------------------------
     IICETypes::Components ICETransport::component() const
     {
+      ZS_LOG_TRACE(log("get component") + ZS_PARAM("component", IICETypes::toString(mComponent)))
       return mComponent;
     }
 
@@ -245,32 +290,139 @@ namespace ortc
     IICETransportTypes::States ICETransport::state() const
     {
       AutoRecursiveLock lock(*this);
+      ZS_LOG_TRACE(log("get state") + ZS_PARAM("state", IICETransport::toString(mCurrentState)))
       return mCurrentState;
     }
 
     //-------------------------------------------------------------------------
     IICETypes::CandidateListPtr ICETransport::getRemoteCandidates() const
     {
-#define TODO_COMPLETE 1
-#define TODO_COMPLETE 2
-      return CandidateListPtr();
+      AutoRecursiveLock lock(*this);
+
+      CandidateListPtr result(new CandidateList);
+      for (auto iter = mRemoteCandidates.begin(); iter != mRemoteCandidates.end(); ++iter) {
+        auto tempCandidate = (*iter).second;
+        result->push_back(*tempCandidate);
+      }
+
+      return result;
     }
 
     //-------------------------------------------------------------------------
     IICETransportTypes::CandidatePairPtr ICETransport::getNominatedCandidatePair() const
     {
-#define TODO_COMPLETE 1
-#define TODO_COMPLETE 2
-      return CandidatePairPtr();
+      AutoRecursiveLock lock(*this);
+
+      auto found = mWarmRoutes.begin();
+      if (found == mWarmRoutes.end()) return CandidatePairPtr();
+
+      auto pairing = (*found).second;
+
+      CandidatePairPtr result(new CandidatePair);
+
+      result->mLocal = CandidatePtr(new Candidate(*(pairing->mCandidatePair->mLocal)));
+      result->mRemote = CandidatePtr(new Candidate(*(pairing->mCandidatePair->mRemote)));
+
+      return result;
     }
 
     //-------------------------------------------------------------------------
     void ICETransport::start(
-                             IICEGathererPtr gatherer,
+                             IICEGathererPtr inGatherer,
                              Parameters remoteParameters,
-                             Optional<Roles> role
+                             Optional<Options> options
                              ) throw (InvalidParameters)
     {
+      UseICEGathererPtr gatherer = ICEGatherer::convert(inGatherer);
+      ORTC_THROW_INVALID_PARAMETERS_IF(!gatherer)
+      ORTC_THROW_INVALID_STATE_IF(IICEGatherer::State_Closed == gatherer->state())
+
+      ORTC_THROW_INVALID_PARAMETERS_IF(remoteParameters.mUsernameFragment.isEmpty())
+      ORTC_THROW_INVALID_PARAMETERS_IF(remoteParameters.mPassword.isEmpty())
+
+      AutoRecursiveLock lock(*this);
+
+      ORTC_THROW_INVALID_STATE_IF(IICETransport::State_Closed == mCurrentState)
+
+      if (options.hasValue()) {
+        mOptionsHash = options.mType.hash();
+        mOptions = options.mType;
+      }
+
+      auto oldParamHash = mRemoteParametersHash;
+
+      mRemoteParametersHash = remoteParameters.hash();
+      mRemoteParameters = remoteParameters;
+
+      if (oldParamHash.hasData()) {
+        ZS_LOG_DETAIL(log("remote ufrag has changed thus must flush out all remote candidates"))
+        mRemoteCandidatesHash.clear();
+        mRemoteCandidates.clear();
+      }
+
+      bool removedOldGatherer = false;
+
+      if (gatherer != mGatherer) {
+        ZS_LOG_DETAIL(log("local gatherer has changed thus must flush out all local candidates"))
+        if (mGathererSubscription) {
+          mGathererSubscription->cancel();
+          mGathererSubscription.reset();
+        }
+        if (mGatherer) {
+          mGatherer->removeTransport(*this);
+          removedOldGatherer = true;
+        }
+
+        mGatherer = gatherer;
+
+        mGatherer->installTransport(mThisWeak.lock(), String());
+        mGathererSubscription = mGatherer->subscribe(mThisWeak.lock());
+
+        auto localCandidates = mGatherer->getLocalCandidates();
+        for (auto iter = localCandidates->begin(); iter != localCandidates->end(); ++iter) {
+          auto localCandidate = (*iter);
+
+          CandidatePtr candidate(new Candidate(localCandidate));
+          mLocalCandidates[candidate->hash()] = candidate;
+        }
+        mEndOfLocalCandidates = false;
+        mLocalCandidatesHash.clear();
+
+        // all routes had to be destroyed
+        if (removedOldGatherer) {
+          mRoutes.clear();
+        }
+      }
+
+      mComputedPairsHash.clear();
+
+      RoutePtr currentRoute;
+
+      for (auto iter_doNotUse = mLegalRoutes.begin(); iter_doNotUse != mLegalRoutes.end(); )
+      {
+        auto current = iter_doNotUse;
+        ++iter_doNotUse;
+
+        auto route = (*current).second;
+        if (mActiveRoute == route) {
+          currentRoute = route;
+          ZS_LOG_DEBUG(log("remembering previous route") + route->toDebug())
+        }
+
+        if (removedOldGatherer) {
+          route->mGathererRouteID = 0;  // reset the route since it's already gone
+        }
+
+        ZS_LOG_DEBUG(log("shutting down route due to ice restart") + route->toDebug())
+        shutdown(route);
+      }
+
+      mActiveRoute = 0;
+
+      if (currentRoute) {
+        // reactivate this route
+      }
+
 #define TODO_COMPLETE 1
 #define TODO_COMPLETE 2
     }
@@ -285,9 +437,18 @@ namespace ortc
     //-------------------------------------------------------------------------
     IICETransportTypes::ParametersPtr ICETransport::getRemoteParameters() const
     {
-#define TODO_COMPLETE 1
-#define TODO_COMPLETE 2
-      return ParametersPtr();
+      AutoRecursiveLock lock(*this);
+
+      if (mRemoteParameters.mUsernameFragment.isEmpty()) {
+        ZS_LOG_WARNING(Debug, log("remote parameters have not been set"))
+        return ParametersPtr();
+      }
+
+      ParametersPtr parameters(new Parameters);
+      (*parameters) = mRemoteParameters;
+
+      ZS_LOG_TRACE(log("obtained remote parameters") + parameters->toDebug())
+      return parameters;
     }
 
     //-------------------------------------------------------------------------
@@ -307,6 +468,20 @@ namespace ortc
 
     //-------------------------------------------------------------------------
     void ICETransport::setRemoteCandidates(const CandidateList &remoteCandidates)
+    {
+#define TODO_COMPLETE 1
+#define TODO_COMPLETE 2
+    }
+
+    //-------------------------------------------------------------------------
+    void ICETransport::removeRemoteCandidate(const GatherCandidate &remoteCandidate)
+    {
+#define TODO_COMPLETE 1
+#define TODO_COMPLETE 2
+    }
+
+    //-------------------------------------------------------------------------
+    void ICETransport::keepWarm(const CandidatePair &candidatePair)
     {
 #define TODO_COMPLETE 1
 #define TODO_COMPLETE 2
@@ -372,6 +547,40 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
+    #pragma mark ICETransport => IICETransportForICETransportContoller
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    void ICETransport::notifyControllerAttached(ICETransportControllerPtr controller)
+    {
+#define TODO_COMPLETE 1
+#define TODO_COMPLETE 2
+    }
+
+    //-------------------------------------------------------------------------
+    void ICETransport::notifyControllerDetached()
+    {
+#define TODO_COMPLETE 1
+#define TODO_COMPLETE 2
+    }
+
+    //-------------------------------------------------------------------------
+    bool ICETransport::hasCandidatePairFoundation(
+                                                  const String &localFoundation,
+                                                  const String &remoteFoundation,
+                                                  PromisePtr promise
+                                                  )
+    {
+#define TODO_COMPLETE 1
+#define TODO_COMPLETE 2
+      return false;
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
     #pragma mark ICETransport => IICETransportForRTPTransport
     #pragma mark
 
@@ -391,6 +600,21 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
+    #pragma mark ICETransport => ITransportAsyncDelegate
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    void ICETransport::onResolveStatsPromise(IStatsProvider::PromiseWithStatsReportPtr promise)
+    {
+#define TODO_COMPLETE 1
+#define TODO_COMPLETE 2
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
     #pragma mark ICETransport => IWakeDelegate
     #pragma mark
 
@@ -403,6 +627,151 @@ namespace ortc
       step();
     }
 
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark ICETransport => IICEGathererDelegate
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    void ICETransport::onICEGathererStateChanged(
+                                                 IICEGathererPtr gatherer,
+                                                 IICEGatherer::States state
+                                                 )
+    {
+#define TODO_COMPLETE 1
+#define TODO_COMPLETE 2
+    }
+
+    //-------------------------------------------------------------------------
+    void ICETransport::onICEGathererLocalCandidate(
+                                                   IICEGathererPtr inGatherer,
+                                                   CandidatePtr inCandidate
+                                                   )
+    {
+      CandidatePtr candidate(new Candidate(*inCandidate));
+      UseICEGathererPtr gatherer = ICEGatherer::convert(inGatherer);
+
+      AutoRecursiveLock lock(*this);
+
+      if (gatherer != mGatherer) {
+        ZS_LOG_WARNING(Debug, log("notified about candidate on non-associated gatherer") + ZS_PARAM("gatherer", gatherer->getID()) + candidate->toDebug())
+        return;
+      }
+
+      bool shouldRecalculate = false;
+
+      if (mEndOfLocalCandidates) {
+        mEndOfLocalCandidates = false;
+        mLocalCandidatesHash.clear();
+        shouldRecalculate = true;
+      }
+
+      auto hash = candidate->hash();
+
+      auto found = mLocalCandidates.find(hash);
+      if (found != mLocalCandidates.end()) {
+        ZS_LOG_DEBUG(log("local candidate is already known (thus ignoring)") + candidate->toDebug())
+        goto check_recalculate;
+      }
+
+      mLocalCandidates[hash] = candidate;
+      shouldRecalculate = true;
+
+      ZS_LOG_DEBUG(log("found new local candidate") + candidate->toDebug())
+
+      goto check_recalculate;
+
+    check_recalculate:
+      {
+        if (!shouldRecalculate) return;
+
+        mLocalCandidatesHash.clear();
+        IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
+      }
+    }
+
+    //-------------------------------------------------------------------------
+    void ICETransport::onICEGathererLocalCandidateComplete(
+                                                           IICEGathererPtr inGatherer,
+                                                           CandidateCompletePtr candidate
+                                                           )
+    {
+      UseICEGathererPtr gatherer = ICEGatherer::convert(inGatherer);
+
+      AutoRecursiveLock lock(*this);
+
+      if (gatherer != mGatherer) {
+        ZS_LOG_WARNING(Debug, log("notified about candidate on non-associated gatherer") + ZS_PARAM("gatherer", gatherer->getID()) + candidate->toDebug())
+        return;
+      }
+
+      if (mEndOfLocalCandidates) {
+        ZS_LOG_TRACE(log("already notified end of local candidates"))
+        return;
+      }
+
+      ZS_LOG_DEBUG(log("end of local candidates found") + candidate->toDebug())
+
+      mEndOfLocalCandidates = true;
+      
+      mLocalCandidatesHash.clear();
+      IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
+    }
+
+    //-------------------------------------------------------------------------
+    void ICETransport::onICEGathererLocalCandidateGone(
+                                                       IICEGathererPtr inGatherer,
+                                                       CandidatePtr inCandidate
+                                                       )
+    {
+      CandidatePtr candidate(new Candidate(*inCandidate));
+
+      UseICEGathererPtr gatherer = ICEGatherer::convert(inGatherer);
+
+      AutoRecursiveLock lock(*this);
+
+      if (gatherer != mGatherer) {
+        ZS_LOG_WARNING(Debug, log("notified about candidate on non-associated gatherer") + ZS_PARAM("gatherer", gatherer->getID()) + candidate->toDebug())
+        return;
+      }
+      
+      auto hash = candidate->hash();
+
+      auto found = mLocalCandidates.find(hash);
+      if (found == mLocalCandidates.end()) {
+        ZS_LOG_WARNING(Debug, log("notified local candidate gone that was never known") + candidate->toDebug())
+        return;
+      }
+
+      ZS_LOG_DEBUG(log("local candidate is now gone") + candidate->toDebug())
+
+      mLocalCandidates.erase(found);
+      
+      mLocalCandidatesHash.clear();
+      IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
+    }
+
+    //-------------------------------------------------------------------------
+    void ICETransport::onICEGathererError(
+                                          IICEGathererPtr inGatherer,
+                                          ErrorCode errorCode,
+                                          String errorReason
+                                          )
+    {
+      UseICEGathererPtr gatherer = ICEGatherer::convert(inGatherer);
+
+      AutoRecursiveLock lock(*this);
+
+      if (gatherer != mGatherer) {
+        ZS_LOG_WARNING(Debug, log("notified about error on non-associated gatherer") + ZS_PARAM("gatherer", gatherer->getID()) + ZS_PARAMIZE(errorCode) + ZS_PARAMIZE(errorReason))
+        return;
+      }
+
+      ZS_LOG_WARNING(Detail, log("notified gatherer has encountered an error") + ZS_PARAMIZE(errorCode) + ZS_PARAMIZE(errorReason))
+    }
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -443,6 +812,9 @@ namespace ortc
       UseServicesHelper::debugAppend(resultEl, "error", mLastError);
       UseServicesHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
 
+      UseServicesHelper::debugAppend(resultEl, "gatherer", mGatherer ? mGatherer->getID() : 0);
+      UseServicesHelper::debugAppend(resultEl, "gatherer subscription", mGathererSubscription ? mGathererSubscription->getID() : 0);
+
       return resultEl;
     }
 
@@ -457,6 +829,13 @@ namespace ortc
     {
       if (mGracefulShutdownReference) return false;
       return IICETransportTypes::State_Closed == mCurrentState;
+    }
+
+    //-------------------------------------------------------------------------
+    bool ICETransport::isContinousGathering() const
+    {
+      if (mGatherer) return mGatherer->isContinousGathering();
+      return false;
     }
 
     //-------------------------------------------------------------------------
@@ -496,6 +875,12 @@ namespace ortc
       // make sure to cleanup any final reference to self
       mGracefulShutdownReference.reset();
 
+      if (mGatherer) {
+        // detacht the installed transport
+        mGatherer->removeTransport(*this);
+        mGatherer.reset();
+      }
+
       setState(IICETransportTypes::State_Closed);
     }
 
@@ -518,9 +903,7 @@ namespace ortc
     void ICETransport::setError(WORD errorCode, const char *inReason)
     {
       String reason(inReason);
-      if (reason.isEmpty()) {
-        reason = UseHTTP::toString(UseHTTP::toStatusCode(errorCode));
-      }
+      if (reason.isEmpty()) reason = UseHTTP::toString(UseHTTP::toStatusCode(errorCode));
 
       if (0 != mLastError) {
         ZS_LOG_WARNING(Detail, debug("error already set thus ignoring new error") + ZS_PARAM("new error", errorCode) + ZS_PARAM("new reason", reason))
@@ -598,7 +981,7 @@ namespace ortc
       if (stateStr == toString(states[loop])) return states[loop];
     }
 
-    ZS_THROW_INVALID_ARGUMENT("Invalid parameter value: " + stateStr)
+    ORTC_THROW_INVALID_PARAMETERS("Invalid parameter value: " + stateStr)
     return State_Closed;
   }
 
@@ -607,7 +990,7 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   #pragma mark
-  #pragma mark IICETransport::CandidatePair
+  #pragma mark IICETransportTypes::CandidatePair
   #pragma mark
 
   //---------------------------------------------------------------------------
@@ -633,6 +1016,38 @@ namespace ortc
     hasher.update(localHash);
     hasher.update(":");
     hasher.update(remoteHash);
+
+    return hasher.final();
+  }
+
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IICETransportTypes::Options
+  #pragma mark
+
+  //---------------------------------------------------------------------------
+  ElementPtr IICETransport::Options::toDebug() const
+  {
+    ElementPtr resultEl = Element::create("ortc::IICETransport::Options");
+
+    UseServicesHelper::debugAppend(resultEl, "aggressive ice", mAggressiveICE);
+    UseServicesHelper::debugAppend(resultEl, "role", IICETypes::toString(mRole));
+
+    return resultEl;
+  }
+
+  //---------------------------------------------------------------------------
+  String IICETransport::Options::hash() const
+  {
+    SHA1Hasher hasher;
+
+    hasher.update("ortc::IICETransport::Options:");
+    hasher.update(mAggressiveICE ? "true:" : "false:");
+    hasher.update(IICETypes::toString(mRole));
 
     return hasher.final();
   }

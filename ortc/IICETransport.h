@@ -80,6 +80,20 @@ namespace ortc
       ElementPtr toDebug() const;
       String hash(bool includePriorities = true) const;
     };
+
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IICETransportTypes::Options
+    #pragma mark
+
+    struct Options
+    {
+      bool mAggressiveICE {false};
+      IICETypes::Roles mRole {IICETypes::Role_Controlled};
+
+      ElementPtr toDebug() const;
+      String hash() const;
+    };
   };
 
   //---------------------------------------------------------------------------
@@ -118,7 +132,7 @@ namespace ortc
     virtual void start(
                        IICEGathererPtr gatherer,
                        Parameters remoteParameters,
-                       Optional<Roles> role = Optional<Roles>()
+                       Optional<Options> options = Optional<Options>()
                        ) throw (InvalidParameters) = 0;
 
     virtual void stop() = 0;
@@ -129,6 +143,9 @@ namespace ortc
 
     virtual void addRemoteCandidate(const GatherCandidate &remoteCandidate) = 0;
     virtual void setRemoteCandidates(const CandidateList &remoteCandidates) = 0;
+    virtual void removeRemoteCandidate(const GatherCandidate &remoteCandidate) = 0;
+
+    virtual void keepWarm(const CandidatePair &candidatePair) = 0;
   };
 
   //---------------------------------------------------------------------------
@@ -147,6 +164,15 @@ namespace ortc
                                             IICETransportPtr transport,
                                             IICETransport::States state
                                             ) = 0;
+
+    virtual void onICETransportCandidatePairAvailable(
+                                                      IICETransportPtr transport,
+                                                      CandidatePairPtr candidatePair
+                                                      ) = 0;
+    virtual void onICETransportCandidatePairGone(
+                                                 IICETransportPtr transport,
+                                                 CandidatePairPtr candidatePair
+                                                 ) = 0;
 
     virtual void onICETransportCandidatePairChanged(
                                                     IICETransportPtr transport,
@@ -177,6 +203,8 @@ ZS_DECLARE_PROXY_TYPEDEF(ortc::IICETransportPtr, IICETransportPtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IICETransport::States, States)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IICETransport::CandidatePairPtr, CandidatePairPtr)
 ZS_DECLARE_PROXY_METHOD_2(onICETransportStateChanged, IICETransportPtr, States)
+ZS_DECLARE_PROXY_METHOD_2(onICETransportCandidatePairAvailable, IICETransportPtr, CandidatePairPtr)
+ZS_DECLARE_PROXY_METHOD_2(onICETransportCandidatePairGone, IICETransportPtr, CandidatePairPtr)
 ZS_DECLARE_PROXY_METHOD_2(onICETransportCandidatePairChanged, IICETransportPtr, CandidatePairPtr)
 ZS_DECLARE_PROXY_END()
 
@@ -185,5 +213,7 @@ ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IICETransportPtr, IICETransportPtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IICETransport::States, States)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IICETransport::CandidatePairPtr, CandidatePairPtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onICETransportStateChanged, IICETransportPtr, States)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onICETransportCandidatePairAvailable, IICETransportPtr, CandidatePairPtr)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onICETransportCandidatePairGone, IICETransportPtr, CandidatePairPtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onICETransportCandidatePairChanged, IICETransportPtr, CandidatePairPtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_END()

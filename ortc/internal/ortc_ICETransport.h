@@ -34,6 +34,9 @@
 #include <ortc/internal/types.h>
 
 #include <ortc/IICETransport.h>
+#include <ortc/IICEGatherer.h>
+
+#include <openpeer/services/ISTUNRequester.h>
 #include <openpeer/services/IWakeDelegate.h>
 
 namespace ortc
@@ -41,9 +44,14 @@ namespace ortc
   namespace internal
   {
     ZS_DECLARE_INTERACTION_PTR(IICETransportForICEGatherer)
+    ZS_DECLARE_INTERACTION_PTR(IICETransportForICETransportContoller)
     ZS_DECLARE_INTERACTION_PTR(IICETransportForRTPTransport)
 
+    ZS_DECLARE_INTERACTION_PROXY(ITransportAsyncDelegate)
+
     ZS_DECLARE_INTERACTION_PTR(IICEGathererForICETransport)
+    ZS_DECLARE_INTERACTION_PTR(IICETransportControllerForICETransport)
+
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -84,6 +92,35 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
+    #pragma mark IICETransportForICETransportContoller
+    #pragma mark
+
+    interaction IICETransportForICETransportContoller
+    {
+      ZS_DECLARE_TYPEDEF_PTR(IICETransportForICETransportContoller, ForTransportContoller)
+
+      static ElementPtr toDebug(ForTransportContollerPtr transport);
+
+      virtual PUID getID() const = 0;
+
+      virtual void notifyControllerAttached(ICETransportControllerPtr controller) = 0;
+      virtual void notifyControllerDetached() = 0;
+
+      virtual bool hasCandidatePairFoundation(
+                                              const String &localFoundation,
+                                              const String &remoteFoundation,
+                                              PromisePtr promise
+                                              ) = 0;
+
+      virtual IICETypes::Components component() const = 0;
+      virtual IICETransport::States state() const = 0;
+    };
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
     #pragma mark IICETransportForRTPTransport
     #pragma mark
 
@@ -104,6 +141,19 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
+    #pragma mark ITransportAsyncDelegate
+    #pragma mark
+
+    interaction ITransportAsyncDelegate
+    {
+      virtual void onResolveStatsPromise(IStatsProvider::PromiseWithStatsReportPtr promise) = 0;
+    };
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
     #pragma mark ICETransport
     #pragma mark
 
@@ -112,19 +162,49 @@ namespace ortc
                          public SharedRecursiveLock,
                          public IICETransport,
                          public IICETransportForICEGatherer,
+                         public IICETransportForICETransportContoller,
                          public IICETransportForRTPTransport,
-                         public IWakeDelegate
+                         public ITransportAsyncDelegate,
+                         public IWakeDelegate,
+                         public IICEGathererDelegate
     {
     public:
       friend interaction IICETransport;
       friend interaction IICETransportFactory;
       friend interaction IICETransportForICEGatherer;
+      friend interaction IICETransportForICETransportContoller;
+      friend interaction IICETransportForRTPTransport;
+
+      ZS_DECLARE_STRUCT_PTR(Route)
+
+      ZS_DECLARE_TYPEDEF_PTR(openpeer::services::ISTUNRequester, ISTUNRequester)
+      ZS_DECLARE_TYPEDEF_PTR(IICEGathererForICETransport, UseICEGatherer)
+      ZS_DECLARE_TYPEDEF_PTR(IICETransportControllerForICETransport, UseICETransportController)
+      ZS_DECLARE_TYPEDEF_PTR(IICETypes::Candidate, Candidate)
+      ZS_DECLARE_TYPEDEF_PTR(IICETypes::CandidateComplete, CandidateComplete)
+      ZS_DECLARE_TYPEDEF_PTR(IICETypes::CandidateList, CandidateList)
+
+      typedef String Hash;
+      typedef std::map<Hash, CandidatePtr> CandidateMap;
+
+      typedef std::map<Hash, RoutePtr> RouteMap;
+
+      typedef PUID RouteID;
+      typedef QWORD SortPriority;
+      typedef std::map<SortPriority, RoutePtr> SortedRouteMap;
+
+      typedef std::map<RouteID, RoutePtr> RouteIDMap;
+      typedef std::map<ISTUNRequesterPtr, RoutePtr> STUNCheckMap;
+      typedef std::map<TimerPtr, RoutePtr> TimerRouteMap;
+
+      typedef String FoundationID;
+      typedef std::map<FoundationID, PromisePtr> FoundationPromiseMap;
 
     protected:
       ICETransport(
                    IMessageQueuePtr queue,
                    IICETransportDelegatePtr delegate,
-                   IICEGathererPtr gatherer
+                   UseICEGathererPtr gatherer
                    );
 
       ICETransport(Noop) :
@@ -139,9 +219,8 @@ namespace ortc
 
       static ICETransportPtr convert(IICETransportPtr object);
       static ICETransportPtr convert(ForICEGathererPtr object);
+      static ICETransportPtr convert(ForTransportContollerPtr object);
       static ICETransportPtr convert(ForRTPTransportPtr object);
-
-      ZS_DECLARE_TYPEDEF_PTR(IICEGathererForICETransport, UseICEGatherer)
 
     protected:
       //-----------------------------------------------------------------------
@@ -180,7 +259,7 @@ namespace ortc
       virtual void start(
                          IICEGathererPtr gatherer,
                          Parameters remoteParameters,
-                         Optional<Roles> role = Optional<Roles>()
+                         Optional<Options> options = Optional<Options>()
                          ) throw (InvalidParameters);
 
       virtual void stop();
@@ -191,6 +270,9 @@ namespace ortc
 
       virtual void addRemoteCandidate(const GatherCandidate &remoteCandidate);
       virtual void setRemoteCandidates(const CandidateList &remoteCandidates);
+      virtual void removeRemoteCandidate(const GatherCandidate &remoteCandidate);
+
+      virtual void keepWarm(const CandidatePair &candidatePair);
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -218,6 +300,25 @@ namespace ortc
 
       //-----------------------------------------------------------------------
       #pragma mark
+      #pragma mark ICETransport => IICETransportForICETransportContoller
+      #pragma mark
+
+      // (duplicate) virtual PUID getID() const = 0;
+
+      virtual void notifyControllerAttached(ICETransportControllerPtr controller);
+      virtual void notifyControllerDetached();
+
+      virtual bool hasCandidatePairFoundation(
+                                              const String &localFoundation,
+                                              const String &remoteFoundation,
+                                              PromisePtr promise
+                                              );
+
+      // (duplicate) virtual IICETypes::Components component() const = 0;
+      // (duplicate) virtual IICETransport::States state() const = 0;
+
+      //-----------------------------------------------------------------------
+      #pragma mark
       #pragma mark ICETransport => IICETransportForRTPTransport
       #pragma mark
 
@@ -228,10 +329,68 @@ namespace ortc
 
       //-----------------------------------------------------------------------
       #pragma mark
+      #pragma mark ICETransport => ITransportAsyncDelegate
+      #pragma mark
+
+      virtual void onResolveStatsPromise(IStatsProvider::PromiseWithStatsReportPtr promise);
+
+      //-----------------------------------------------------------------------
+      #pragma mark
       #pragma mark ICETransport => IWakeDelegate
       #pragma mark
 
       virtual void onWake();
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark ICETransport => IICEGathererDelegate
+      #pragma mark
+
+      virtual void onICEGathererStateChanged(
+                                             IICEGathererPtr gatherer,
+                                             IICEGatherer::States state
+                                             );
+
+      virtual void onICEGathererLocalCandidate(
+                                               IICEGathererPtr gatherer,
+                                               CandidatePtr candidate
+                                               );
+
+      virtual void onICEGathererLocalCandidateComplete(
+                                                       IICEGathererPtr gatherer,
+                                                       CandidateCompletePtr candidate
+                                                       );
+
+      virtual void onICEGathererLocalCandidateGone(
+                                                   IICEGathererPtr gatherer,
+                                                   CandidatePtr candidate
+                                                   );
+
+      virtual void onICEGathererError(
+                                      IICEGathererPtr gatherer,
+                                      ErrorCode errorCode,
+                                      String errorReason
+                                      );
+
+    public:
+
+      struct Route
+      {
+        PUID mGathererRouteID {0};
+        CandidatePairPtr mCandidatePair;
+
+        Time mLastReceived;
+        Time mLastSent;
+
+        bool mPrune {false};
+        bool mKeepWarm {false};
+        ISTUNRequesterPtr mOutgoingCheck;
+        TimerPtr mNextKeepWarm;
+
+        PromisePtr mFrozenPromise;
+
+        ElementPtr toDebug() const;
+      };
 
     protected:
       //-----------------------------------------------------------------------
@@ -245,6 +404,7 @@ namespace ortc
 
       bool isShuttingDown() const;
       bool isShutdown() const;
+      bool isContinousGathering() const;
 
       void step();
 
@@ -252,6 +412,8 @@ namespace ortc
 
       void setState(IICETransportTypes::States state);
       void setError(WORD error, const char *reason = NULL);
+
+      void shutdown(RoutePtr route);
 
     private:
       //-----------------------------------------------------------------------
@@ -275,6 +437,41 @@ namespace ortc
       String mLastErrorReason;
 
       UseICEGathererPtr mGatherer;
+      IICEGathererSubscriptionPtr mGathererSubscription;
+
+      UseICETransportControllerWeakPtr mTransportController;
+
+      String mOptionsHash;
+      Options mOptions;
+
+      String mRemoteParametersHash;
+      Parameters mRemoteParameters;
+
+      String mLocalCandidatesHash;
+      CandidateMap mLocalCandidates;
+      bool mEndOfLocalCandidates {false};
+
+      String mRemoteCandidatesHash;
+      CandidateMap mRemoteCandidates;
+      bool mEndOfRemoteCandidates {false};
+
+      String mComputedPairsHash;
+      RouteMap mLegalRoutes;
+      SortedRouteMap mPendingActivation;
+      RouteMap mSearching;
+      STUNCheckMap mOutgoingChecks;
+      RouteMap mFailed;
+      RouteMap mSucceeded;
+
+      FoundationPromiseMap mFrozenFoundations;
+
+      RouteIDMap mRoutes;
+
+      RoutePtr mActiveRoute;
+      SortedRouteMap mWarmRoutes;
+      STUNCheckMap mKeepWarmChecks;
+      TimerRouteMap mNextKeepWarmTimers;
+      RouteMap mBlacklisted;
     };
 
     //-------------------------------------------------------------------------
@@ -298,3 +495,8 @@ namespace ortc
     class ICETransportFactory : public IFactory<IICETransportFactory> {};
   }
 }
+
+ZS_DECLARE_PROXY_BEGIN(ortc::internal::ITransportAsyncDelegate)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::IStatsProvider::PromiseWithStatsReportPtr, PromiseWithStatsReportPtr)
+ZS_DECLARE_PROXY_METHOD_1(onResolveStatsPromise, PromiseWithStatsReportPtr)
+ZS_DECLARE_PROXY_END()

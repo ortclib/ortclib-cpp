@@ -571,9 +571,10 @@ namespace ortc
     ICEGatherer::PromiseWithStatsReportPtr ICEGatherer::getStats() const throw(InvalidStateError)
     {
       AutoRecursiveLock lock(*this);
-      ZS_THROW_INVALID_USAGE_IF(isShutdown() || isShuttingDown())
+      ORTC_THROW_INVALID_STATE_IF(isShutdown() || isShuttingDown())
 
       PromiseWithStatsReportPtr promise = PromiseWithStatsReport::create(IORTCForInternal::queueDelegate());
+      IGathererAsyncDelegateProxy::create(mThisWeak.lock())->onResolveStatsPromise(promise);
       return promise;
     }
 
@@ -659,6 +660,12 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    IICETypes::Components ICEGatherer::component() const
+    {
+      return mComponent;
+    }
+
+    //-------------------------------------------------------------------------
     IICEGatherer::States ICEGatherer::state() const
     {
       AutoRecursiveLock lock(*this);
@@ -690,6 +697,25 @@ namespace ortc
       }
 
       return candidates;
+    }
+
+    //-------------------------------------------------------------------------
+    IICEGathererPtr ICEGatherer::createAssociatedGatherer(IICEGathererDelegatePtr delegate) throw(InvalidStateError)
+    {
+      ORTC_THROW_INVALID_STATE_IF(Component_RTCP == mComponent)
+
+      AutoRecursiveLock lock(*this);
+
+      ORTC_THROW_INVALID_STATE_IF(mRTCPGatherer)
+
+      ICEGathererPtr pThis(new ICEGatherer(IORTCForInternal::queueORTC(), delegate, mOptions));
+      pThis->mThisWeak = pThis;
+      pThis->mComponent = Component_RTCP;
+      pThis->mRTPGatherer = mThisWeak.lock();
+      mRTCPGatherer = pThis;
+
+      pThis->init();
+      return pThis;
     }
 
     //-------------------------------------------------------------------------
@@ -743,7 +769,7 @@ namespace ortc
                                        )
     {
       UseTransportPtr transport = inTransport;
-      ZS_THROW_INVALID_ARGUMENT_IF(!transport)
+      ORTC_THROW_INVALID_PARAMETERS_IF(!transport)
 
       BufferedPacketList installRouteForBufferedPackets;
 
@@ -823,7 +849,7 @@ namespace ortc
     void ICEGatherer::notifyTransportStateChange(ICETransportPtr inTransport)
     {
       UseTransportPtr transport = inTransport;
-      ZS_THROW_INVALID_ARGUMENT_IF(!transport)
+      ORTC_THROW_INVALID_PARAMETERS_IF(!transport)
 
       ZS_LOG_TRACE(log("notified transport state changed") + ZS_PARAM("transport id", transport->getID()))
       AutoRecursiveLock lock(*this);
@@ -884,6 +910,13 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    bool ICEGatherer::isContinousGathering() const
+    {
+      AutoRecursiveLock lock(*this);
+      return mOptions.mContinuousGathering;
+    }
+
+    //-------------------------------------------------------------------------
     PUID ICEGatherer::createRoute(
                                   ICETransportPtr inTransport,
                                   IICETypes::CandidatePtr sentFromLocalCanddiate,
@@ -892,9 +925,9 @@ namespace ortc
     {
       UseTransportPtr transport = inTransport;
 
-      ZS_THROW_INVALID_ARGUMENT_IF(!transport)
-      ZS_THROW_INVALID_ARGUMENT_IF(!sentFromLocalCanddiate)
-      ZS_THROW_INVALID_ARGUMENT_IF(remoteIP.isAddressEmpty())
+      ORTC_THROW_INVALID_PARAMETERS_IF(!transport)
+      ORTC_THROW_INVALID_PARAMETERS_IF(!sentFromLocalCanddiate)
+      ORTC_THROW_INVALID_PARAMETERS_IF(remoteIP.isAddressEmpty())
 
       CandidatePtr localCandidate;
 
@@ -3682,6 +3715,11 @@ namespace ortc
       if (mLastErrorReason.isEmpty()) mLastErrorReason = UseHTTP::toString(UseHTTP::toStatusCode(mLastError));
 
       ZS_LOG_WARNING(Detail, log("error set") + ZS_PARAMIZE(mLastError) + ZS_PARAMIZE(mLastErrorReason))
+
+      auto pThis = mThisWeak.lock();
+      if (pThis) {
+        mSubscriptions.delegate()->onICEGathererError(mThisWeak.lock(), mLastError, mLastErrorReason);
+      }
     }
     
     //-------------------------------------------------------------------------
@@ -6147,7 +6185,7 @@ namespace ortc
       }
     }
 
-    ZS_THROW_INVALID_ARGUMENT("Invalid parameter value: " + stateStr)
+    ORTC_THROW_INVALID_PARAMETERS("Invalid parameter value: " + stateStr)
     return State_New;
   }
 

@@ -583,7 +583,7 @@ namespace ortc
       if (compareStr == toString(states[loop])) return states[loop];
     }
 
-    ZS_THROW_INVALID_ARGUMENT("Invalid parameter value: " + compareStr)
+    ORTC_THROW_INVALID_PARAMETERS("Invalid parameter value: " + compareStr)
     return State_Closed;
   }
 
@@ -613,7 +613,7 @@ namespace ortc
       if (compareStr == toString(roles[loop])) return roles[loop];
     }
 
-    ZS_THROW_INVALID_ARGUMENT("Invalid parameter value: " + compareStr)
+    ORTC_THROW_INVALID_PARAMETERS("Invalid parameter value: " + compareStr)
     return Role_Auto;
   }
   

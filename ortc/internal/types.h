@@ -61,6 +61,7 @@ namespace ortc
     ZS_DECLARE_USING_PTR(zsLib, MessageQueueThread)
     ZS_DECLARE_USING_PTR(zsLib, Timer)
     ZS_DECLARE_USING_PTR(zsLib, Socket)
+    ZS_DECLARE_USING_PTR(zsLib, Promise)
 
     ZS_DECLARE_TYPEDEF_PTR(zsLib::AutoRecursiveLock, AutoRecursiveLock)
 
@@ -79,7 +80,13 @@ namespace ortc
     ZS_DECLARE_USING_PROXY(openpeer::services, ITURNSocketDelegate)
 
     using openpeer::services::IFactory;
+#define ORTC_THROW_INVALID_STATE(xMessage) ZS_THROW_INVALID_USAGE(xMessage)
+#define ORTC_THROW_INVALID_PARAMETERS(xMessage) ZS_THROW_INVALID_ARGUMENT(xMessage)
+#define ORTC_THROW_SYNTAX_ERROR(xMessage) ZS_THROW_CUSTOM(SyntaxError, xMessage)
 
+#define ORTC_THROW_INVALID_STATE_IF(xExpression) ZS_THROW_INVALID_USAGE_IF(xExpression)
+#define ORTC_THROW_INVALID_PARAMETERS_IF(xExpression) ZS_THROW_INVALID_ARGUMENT_IF(xExpression)
+#define ORTC_THROW_SYNTAX_ERROR_IF(xExpression) ZS_THROW_CUSTOM_IF(SyntaxError, xExpression)
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -90,9 +97,10 @@ namespace ortc
     #pragma mark
 
     ZS_DECLARE_CLASS_PTR(ORTC)
+    ZS_DECLARE_CLASS_PTR(DTLSTransport)
     ZS_DECLARE_CLASS_PTR(ICEGatherer)
     ZS_DECLARE_CLASS_PTR(ICETransport)
-    ZS_DECLARE_CLASS_PTR(DTLSTransport)
+    ZS_DECLARE_CLASS_PTR(ICETransportController)
 
   }
 }

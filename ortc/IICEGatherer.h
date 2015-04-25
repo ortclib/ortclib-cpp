@@ -165,10 +165,13 @@ namespace ortc
 
     virtual IICEGathererSubscriptionPtr subscribe(IICEGathererDelegatePtr delegate) = 0;
 
+    virtual Components component() const = 0;
     virtual States state() const = 0;
 
     virtual ParametersPtr getLocalParameters() const = 0;
     virtual CandidateListPtr getLocalCandidates() const = 0;
+
+    virtual IICEGathererPtr createAssociatedGatherer(IICEGathererDelegatePtr delegate) throw(InvalidStateError) = 0;
 
     virtual void gather(const Options &options) = 0;
 

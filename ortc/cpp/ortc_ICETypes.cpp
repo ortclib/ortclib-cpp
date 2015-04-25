@@ -88,7 +88,7 @@ namespace ortc
       if (rolesStr == toString(roles[loop])) return roles[loop];
     }
 
-    ZS_THROW_INVALID_ARGUMENT("Invalid parameter value: " + rolesStr)
+    ORTC_THROW_INVALID_PARAMETERS("Invalid parameter value: " + rolesStr)
     return Role_Controlling;
   }
 
@@ -115,7 +115,7 @@ namespace ortc
       if (componentStr == toString(components[loop])) return components[loop];
     }
 
-    ZS_THROW_INVALID_ARGUMENT("Invalid parameter value: " + componentStr)
+    ORTC_THROW_INVALID_PARAMETERS("Invalid parameter value: " + componentStr)
     return Component_RTP;
   }
 
@@ -142,7 +142,7 @@ namespace ortc
       if (protocolStr == toString(protocols[loop])) return protocols[loop];
     }
 
-    ZS_THROW_INVALID_ARGUMENT("Invalid parameter value: " + protocolStr)
+    ORTC_THROW_INVALID_PARAMETERS("Invalid parameter value: " + protocolStr)
     return Protocol_UDP;
   }
 
@@ -173,7 +173,7 @@ namespace ortc
       if (candidateTypeStr == toString(candidateTypes[loop])) return candidateTypes[loop];
     }
 
-    ZS_THROW_INVALID_ARGUMENT("Invalid parameter value: " + candidateTypeStr)
+    ORTC_THROW_INVALID_PARAMETERS("Invalid parameter value: " + candidateTypeStr)
     return CandidateType_Host;
   }
 
@@ -202,9 +202,17 @@ namespace ortc
       if (tcpCandidateTypeStr == toString(tcpCandidateTypes[loop])) return tcpCandidateTypes[loop];
     }
 
-    ZS_THROW_INVALID_ARGUMENT("Invalid parameter value: " + tcpCandidateTypeStr)
+    ORTC_THROW_INVALID_PARAMETERS("Invalid parameter value: " + tcpCandidateTypeStr)
     return TCPCandidateType_SO;
   }
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IICETypes::Candidate
+  #pragma mark
 
   //---------------------------------------------------------------------------
   ElementPtr IICETypes::Candidate::toDebug() const
@@ -261,6 +269,29 @@ namespace ortc
 
     return hasher.final();
   }
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IICETypes::Candidate
+  #pragma mark
+
+  //---------------------------------------------------------------------------
+  ElementPtr IICETypes::CandidateComplete::toDebug() const
+  {
+    ElementPtr resultEl = Element::create("ortc::IICETypes::CandidateComplete");
+    return resultEl;
+  }
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IICETypes::Parameters
+  #pragma mark
 
   //---------------------------------------------------------------------------
   ElementPtr IICETypes::Parameters::toDebug() const
