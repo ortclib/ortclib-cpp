@@ -119,6 +119,8 @@ namespace ortc
       ZS_DECLARE_TYPEDEF_PTR(IICETypes::CandidateList, CandidateList)
       typedef IICEGatherer::States States;
 
+      static ElementPtr toDebug(ForICETransportPtr gatherer);
+
       virtual PUID getID() const = 0;
 
       virtual IICETypes::Components component() const = 0;
@@ -131,9 +133,14 @@ namespace ortc
       virtual void notifyTransportStateChange(ICETransportPtr transport) = 0;
       virtual void removeTransport(ICETransport &transport) = 0;
 
+      virtual ForICETransportPtr getRTCPGatherer() const = 0;
+
       virtual IICEGathererSubscriptionPtr subscribe(IICEGathererDelegatePtr delegate) = 0;
 
       virtual bool isContinousGathering() const = 0;
+      virtual String getUsernameFrag() const = 0;
+      virtual String getPassword() const = 0;
+
       virtual CandidateListPtr getLocalCandidates() const = 0;
 
       virtual PUID createRoute(
@@ -143,6 +150,7 @@ namespace ortc
                                ) = 0;
 
       virtual void removeRoute(PUID routeID) = 0;
+      virtual void remoteAllRelatedRoutes(ICETransport &transport) = 0;
 
       virtual bool sendPacket(
                               PUID routeID,
@@ -161,14 +169,14 @@ namespace ortc
 
     interaction IGathererAsyncDelegate
     {
-      ZS_DECLARE_TYPEDEF_PTR(IICETransportForICEGatherer, UseTransport)
+      ZS_DECLARE_TYPEDEF_PTR(IICETransportForICEGatherer, UseICETransport)
 
       virtual void onNotifyDeliverRouteBufferedPackets(
-                                                       UseTransportPtr transport,
+                                                       UseICETransportPtr transport,
                                                        PUID routeID
                                                        )  = 0;
       virtual void onNotifyAboutRemoveRoute(
-                                            UseTransportPtr transport,
+                                            UseICETransportPtr transport,
                                             PUID routeID
                                             )  = 0;
 
@@ -259,8 +267,7 @@ namespace ortc
       static const char *toString(PreferenceTypes family);
       static PreferenceTypes toPreferenceType(const char *family);
 
-      ZS_DECLARE_TYPEDEF_PTR(IICETransportForICEGatherer, UseTransport)
-      ZS_DECLARE_TYPEDEF_PTR(IICEGathererForICETransport, UseICETransport)
+      ZS_DECLARE_TYPEDEF_PTR(IICETransportForICEGatherer, UseICETransport)
       ZS_DECLARE_TYPEDEF_PTR(openpeer::services::ISTUNDiscovery, UseSTUNDiscovery)
       ZS_DECLARE_TYPEDEF_PTR(openpeer::services::ITURNSocket, UseTURNSocket)
       ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IBackOffTimer, UseBackOffTimer)
@@ -348,7 +355,7 @@ namespace ortc
       #pragma mark ICEGatherer => IStatsProvider
       #pragma mark
 
-      virtual PromiseWithStatsReportPtr getStats() const throw(InvalidStateError);
+      virtual PromiseWithStatsReportPtr getStats() const throw(InvalidStateError) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -362,21 +369,21 @@ namespace ortc
                                    const Options &options
                                    );
 
-      virtual PUID getID() const;
+      virtual PUID getID() const override {return mID;}
 
-      virtual IICEGathererSubscriptionPtr subscribe(IICEGathererDelegatePtr delegate);
+      virtual IICEGathererSubscriptionPtr subscribe(IICEGathererDelegatePtr delegate) override;
 
-      virtual Components component() const;
-      virtual States state() const;
+      virtual Components component() const override;
+      virtual States state() const override;
 
-      virtual ParametersPtr getLocalParameters() const;
-      virtual CandidateListPtr getLocalCandidates() const;
+      virtual ParametersPtr getLocalParameters() const override;
+      virtual CandidateListPtr getLocalCandidates() const override;
 
-      virtual IICEGathererPtr createAssociatedGatherer(IICEGathererDelegatePtr delegate) throw(InvalidStateError);
+      virtual IICEGathererPtr createAssociatedGatherer(IICEGathererDelegatePtr delegate) throw(InvalidStateError) override;
 
-      virtual void gather(const Options &options);
+      virtual void gather(const Options &options) override;
 
-      virtual void close();
+      virtual void close() override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -391,28 +398,33 @@ namespace ortc
       virtual void installTransport(
                                     ICETransportPtr transport,
                                     const String &remoteUFrag
-                                    );
-      virtual void notifyTransportStateChange(ICETransportPtr transport);
-      virtual void removeTransport(ICETransport &transport);
+                                    ) override;
+      virtual void notifyTransportStateChange(ICETransportPtr transport) override;
+      virtual void removeTransport(ICETransport &transport) override;
+
+      virtual ForICETransportPtr getRTCPGatherer() const override;
 
       // (duplicate) virtual IICEGathererSubscriptionPtr subscribe(IICEGathererDelegatePtr delegate) = 0;
       // (duplicate) virtual CandidateListPtr getLocalCandidates() const = 0;
 
-      virtual bool isContinousGathering() const;
+      virtual bool isContinousGathering() const override;
+      virtual String getUsernameFrag() const override {return mUsernameFrag;}
+      virtual String getPassword() const override {return mPassword;}
 
       virtual PUID createRoute(
                                ICETransportPtr transport,
                                IICETypes::CandidatePtr sentFromLocalCanddiate,
                                const IPAddress &remoteIP
-                               );
+                               ) override;
 
-      virtual void removeRoute(PUID routeID);
+      virtual void removeRoute(PUID routeID) override;
+      virtual void remoteAllRelatedRoutes(ICETransport &transport) override;
 
       virtual bool sendPacket(
                               PUID routeID,
                               const BYTE *buffer,
                               size_t bufferSizeInBytes
-                              );
+                              ) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -420,55 +432,55 @@ namespace ortc
       #pragma mark
 
       virtual void onNotifyDeliverRouteBufferedPackets(
-                                                       UseTransportPtr transport,
+                                                       UseICETransportPtr transport,
                                                        PUID routeID
-                                                       );
+                                                       ) override;
 
       virtual void onNotifyAboutRemoveRoute(
-                                            UseTransportPtr transport,
+                                            UseICETransportPtr transport,
                                             PUID routeID
-                                            );
+                                            ) override;
 
-      virtual void onResolveStatsPromise(IStatsProvider::PromiseWithStatsReportPtr promise);
+      virtual void onResolveStatsPromise(IStatsProvider::PromiseWithStatsReportPtr promise) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark ICEGatherer => IWakeDelegate
       #pragma mark
 
-      virtual void onWake();
+      virtual void onWake() override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark ICEGatherer => IDNSDelegate
       #pragma mark
 
-      virtual void onLookupCompleted(IDNSQueryPtr query);
+      virtual void onLookupCompleted(IDNSQueryPtr query) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark ICEGatherer => ITimerDelegate
       #pragma mark
 
-      virtual void onTimer(TimerPtr timer);
+      virtual void onTimer(TimerPtr timer) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark ICEGatherer => ISocketDelegate
       #pragma mark
 
-      virtual void onReadReady(SocketPtr socket);
-      virtual void onWriteReady(SocketPtr socket);
-      virtual void onException(SocketPtr socket);
+      virtual void onReadReady(SocketPtr socket) override;
+      virtual void onWriteReady(SocketPtr socket) override;
+      virtual void onException(SocketPtr socket) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark ICEGatherer => IBackOffDelegate
       #pragma mark
 
-      virtual void onBackOffTimerAttemptAgainNow(IBackOffTimerPtr timer);
-      virtual void onBackOffTimerAttemptTimeout(IBackOffTimerPtr timer);
-      virtual void onBackOffTimerAllAttemptsFailed(IBackOffTimerPtr timer);
+      virtual void onBackOffTimerAttemptAgainNow(IBackOffTimerPtr timer) override;
+      virtual void onBackOffTimerAttemptTimeout(IBackOffTimerPtr timer) override;
+      virtual void onBackOffTimerAllAttemptsFailed(IBackOffTimerPtr timer) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -479,9 +491,9 @@ namespace ortc
                                              ISTUNDiscoveryPtr discovery,
                                              IPAddress destination,
                                              SecureByteBlockPtr packet
-                                             );
+                                             ) override;
 
-      virtual void onSTUNDiscoveryCompleted(ISTUNDiscoveryPtr discovery);
+      virtual void onSTUNDiscoveryCompleted(ISTUNDiscoveryPtr discovery) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -491,23 +503,23 @@ namespace ortc
       virtual void onTURNSocketStateChanged(
                                             ITURNSocketPtr socket,
                                             TURNSocketStates state
-                                            );
+                                            ) override;
 
       virtual void handleTURNSocketReceivedPacket(
                                                   ITURNSocketPtr socket,
                                                   IPAddress source,
                                                   const BYTE *packet,
                                                   size_t packetLengthInBytes
-                                                  );
+                                                  ) override;
 
       virtual bool notifyTURNSocketSendPacket(
                                               ITURNSocketPtr socket,
                                               IPAddress destination,
                                               const BYTE *packet,
                                               size_t packetLengthInBytes
-                                              );
+                                              ) override;
 
-      virtual void onTURNSocketWriteReady(ITURNSocketPtr socket);
+      virtual void onTURNSocketWriteReady(ITURNSocketPtr socket) override;
 
 
     public:
@@ -726,7 +738,7 @@ namespace ortc
         ByteQueue mOutgoingBuffer;
 
         TransportID mTransportID {0};
-        UseTransportWeakPtr mTransport;
+        UseICETransportWeakPtr mTransport;
 
         ElementPtr toDebug() const;
       };
@@ -770,7 +782,7 @@ namespace ortc
         IPAddress mFrom;
 
         TransportID mTransportID {};
-        UseTransportWeakPtr mTransport;
+        UseICETransportWeakPtr mTransport;
 
         HostPortPtr mHostPort;    // send via host UDP packet
         RelayPortPtr mRelayPort;  // send via relay port
@@ -790,7 +802,7 @@ namespace ortc
       struct InstalledTransport
       {
         TransportID mTransportID {};
-        UseTransportWeakPtr mTransport;
+        UseICETransportWeakPtr mTransport;
 
         ElementPtr toDebug() const;
       };
@@ -962,7 +974,7 @@ namespace ortc
       RoutePtr installRoute(
                             CandidatePtr localCandidate,
                             const IPAddress &remoteIP,
-                            UseTransportPtr transport,
+                            UseICETransportPtr transport,
                             bool notifyTransport = true
                             );
 
@@ -970,7 +982,7 @@ namespace ortc
 
       void removeAllRelatedRoutes(
                                   TransportID transportID,
-                                  UseTransportPtr transportIfAvailable
+                                  UseICETransportPtr transportIfAvailable
                                   );
 
       bool sendUDPPacket(
@@ -1007,8 +1019,8 @@ namespace ortc
       String mUsernameFrag;
       String mPassword;
 
-      ICEGathererWeakPtr mRTPGatherer;
-      ICEGathererPtr mRTCPGatherer;
+      ICEGathererPtr mRTPGatherer;
+      ICEGathererWeakPtr mRTCPGatherer;
 
       Options mOptions;
 
@@ -1108,9 +1120,9 @@ namespace ortc
 }
 
 ZS_DECLARE_PROXY_BEGIN(ortc::internal::IGathererAsyncDelegate)
-ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::IGathererAsyncDelegate::UseTransportPtr, UseTransportPtr)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::IGathererAsyncDelegate::UseICETransportPtr, UseICETransportPtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IStatsProvider::PromiseWithStatsReportPtr, PromiseWithStatsReportPtr)
-ZS_DECLARE_PROXY_METHOD_2(onNotifyDeliverRouteBufferedPackets, UseTransportPtr, PUID)
-ZS_DECLARE_PROXY_METHOD_2(onNotifyAboutRemoveRoute, UseTransportPtr, PUID)
+ZS_DECLARE_PROXY_METHOD_2(onNotifyDeliverRouteBufferedPackets, UseICETransportPtr, PUID)
+ZS_DECLARE_PROXY_METHOD_2(onNotifyAboutRemoveRoute, UseICETransportPtr, PUID)
 ZS_DECLARE_PROXY_METHOD_1(onResolveStatsPromise, PromiseWithStatsReportPtr)
 ZS_DECLARE_PROXY_END()

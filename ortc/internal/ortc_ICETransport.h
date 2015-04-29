@@ -39,10 +39,26 @@
 #include <openpeer/services/ISTUNRequester.h>
 #include <openpeer/services/IWakeDelegate.h>
 
+#include <zsLib/Timer.h>
+
+#define ORTC_SETTING_ICE_TRANSPORT_MAX_CANDIDATE_PAIRS_TO_TEST  "ortc/ice-transport/max-candidate-pairs-to-test"
+
+#define ORTC_SETTING_ICE_TRANSPORT_ACTIVATION_TIMER_IN_MILLISECONDS  "ortc/ice-transport/activation-timer-in-milliseconds"
+
+#define ORTC_SETTING_ICE_TRANSPORT_NO_PACKETS_RECEVIED_RECHECK_CANDIDATES_IN_SECONDS  "ortc/ice-transport/no-packets-received-recheck-candidates-in-seconds"
+
+#define ORTC_SETTING_ICE_TRANSPORT_EXPIRE_ROUTE_IN_SECONDS "ortc/ice-transport/expire-route-not-active-in-seconds"
+
+#define ORTC_SETTING_ICE_TRANSPORT_BLACKLIST_AFTER_CONSENT_REMOVAL "ortc/ice-transport/blacklist-after-consent-removal"
+
+#define ORTC_SETTING_ICE_TRANSPORT_KEEP_WARM_TIME_BASE_IN_MILLISECONDS "ortc/ice-transport/keep-warm-time-base-in-milliseconds"
+#define ORTC_SETTING_ICE_TRANSPORT_KEEP_WARM_TIME_RANDOMIZED_ADD_TIME_IN_MILLISECONDS "ortc/ice-transport/keep-warm-time-randomized-add-time-in-milliseconds"
+
 namespace ortc
 {
   namespace internal
   {
+    ZS_DECLARE_INTERACTION_PTR(IICETransportForSettings)
     ZS_DECLARE_INTERACTION_PTR(IICETransportForICEGatherer)
     ZS_DECLARE_INTERACTION_PTR(IICETransportForICETransportContoller)
     ZS_DECLARE_INTERACTION_PTR(IICETransportForRTPTransport)
@@ -51,6 +67,23 @@ namespace ortc
 
     ZS_DECLARE_INTERACTION_PTR(IICEGathererForICETransport)
     ZS_DECLARE_INTERACTION_PTR(IICETransportControllerForICETransport)
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IICETransportForSettings
+    #pragma mark
+
+    interaction IICETransportForSettings
+    {
+      ZS_DECLARE_TYPEDEF_PTR(IICETransportForSettings, ForSettings)
+
+      static void applyDefaults();
+
+      virtual ~IICETransportForSettings() {}
+    };
 
 
     //-------------------------------------------------------------------------
@@ -161,16 +194,20 @@ namespace ortc
                          public MessageQueueAssociator,
                          public SharedRecursiveLock,
                          public IICETransport,
+                         public IICETransportForSettings,
                          public IICETransportForICEGatherer,
                          public IICETransportForICETransportContoller,
                          public IICETransportForRTPTransport,
                          public ITransportAsyncDelegate,
                          public IWakeDelegate,
-                         public IICEGathererDelegate
+                         public zsLib::ITimerDelegate,
+                         public IICEGathererDelegate,
+                         public openpeer::services::ISTUNRequesterDelegate
     {
     public:
       friend interaction IICETransport;
       friend interaction IICETransportFactory;
+      friend interaction IICETransportForSettings;
       friend interaction IICETransportForICEGatherer;
       friend interaction IICETransportForICETransportContoller;
       friend interaction IICETransportForRTPTransport;
@@ -196,9 +233,9 @@ namespace ortc
       typedef std::map<RouteID, RoutePtr> RouteIDMap;
       typedef std::map<ISTUNRequesterPtr, RoutePtr> STUNCheckMap;
       typedef std::map<TimerPtr, RoutePtr> TimerRouteMap;
+      typedef std::map<PromisePtr, RoutePtr> PromiseRouteMap;
 
-      typedef String FoundationID;
-      typedef std::map<FoundationID, PromisePtr> FoundationPromiseMap;
+      typedef std::list<PromisePtr> PromiseList;
 
     protected:
       ICETransport(
@@ -218,6 +255,7 @@ namespace ortc
       virtual ~ICETransport();
 
       static ICETransportPtr convert(IICETransportPtr object);
+      static ICETransportPtr convert(ForSettingsPtr object);
       static ICETransportPtr convert(ForICEGathererPtr object);
       static ICETransportPtr convert(ForTransportContollerPtr object);
       static ICETransportPtr convert(ForRTPTransportPtr object);
@@ -228,7 +266,7 @@ namespace ortc
       #pragma mark ICETransport => IStatsProvider
       #pragma mark
 
-      virtual PromiseWithStatsReportPtr getStats() const throw(InvalidStateError);
+      virtual PromiseWithStatsReportPtr getStats() const throw(InvalidStateError) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -242,37 +280,40 @@ namespace ortc
                                     IICEGathererPtr gatherer
                                     );
 
-      virtual PUID getID() const;
+      virtual PUID getID() const override {return mID;}
 
-      virtual IICETransportSubscriptionPtr subscribe(IICETransportDelegatePtr delegate);
+      virtual IICETransportSubscriptionPtr subscribe(IICETransportDelegatePtr delegate) override;
 
-      virtual IICEGathererPtr iceGatherer() const;
+      virtual IICEGathererPtr iceGatherer() const override;
 
-      virtual Roles role() const;
-      virtual Components component() const;
-      virtual States state() const;
+      virtual Roles role() const override;
+      virtual Components component() const override;
+      virtual States state() const override;
 
-      virtual CandidateListPtr getRemoteCandidates() const;
+      virtual CandidateListPtr getRemoteCandidates() const override;
 
-      virtual CandidatePairPtr getNominatedCandidatePair() const;
+      virtual CandidatePairPtr getNominatedCandidatePair() const override;
 
       virtual void start(
                          IICEGathererPtr gatherer,
                          Parameters remoteParameters,
                          Optional<Options> options = Optional<Options>()
-                         ) throw (InvalidParameters);
+                         ) throw (InvalidParameters) override;
 
-      virtual void stop();
+      virtual void stop() override;
 
-      virtual ParametersPtr getRemoteParameters() const;
+      virtual ParametersPtr getRemoteParameters() const override;
 
-      virtual IICETransportPtr createAssociatedTransport() throw (InvalidStateError);
+      virtual IICETransportPtr createAssociatedTransport() throw (InvalidStateError) override;
 
-      virtual void addRemoteCandidate(const GatherCandidate &remoteCandidate);
-      virtual void setRemoteCandidates(const CandidateList &remoteCandidates);
-      virtual void removeRemoteCandidate(const GatherCandidate &remoteCandidate);
+      virtual void addRemoteCandidate(const GatherCandidate &remoteCandidate) override;
+      virtual void setRemoteCandidates(const CandidateList &remoteCandidates) override;
+      virtual void removeRemoteCandidate(const GatherCandidate &remoteCandidate) override;
 
-      virtual void keepWarm(const CandidatePair &candidatePair);
+      virtual void keepWarm(
+                            const CandidatePair &candidatePair,
+                            bool keepWarm = true
+                            ) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -283,20 +324,20 @@ namespace ortc
                                     PUID routeID,
                                     IICETypes::CandidatePtr localCandidate,
                                     const IPAddress &fromIP
-                                    );
-      virtual void notifyRouteRemoved(PUID routeID);
+                                    ) override;
+      virtual void notifyRouteRemoved(PUID routeID) override;
 
       virtual void notifyPacket(
                                 PUID routeID,
                                 STUNPacketPtr packet
-                                );
+                                ) override;
       virtual void notifyPacket(
                                 PUID routeID,
                                 const BYTE *buffer,
                                 size_t bufferSizeInBytes
-                                );
+                                ) override;
 
-      virtual bool needsMoreCandidates() const;
+      virtual bool needsMoreCandidates() const override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -305,14 +346,14 @@ namespace ortc
 
       // (duplicate) virtual PUID getID() const = 0;
 
-      virtual void notifyControllerAttached(ICETransportControllerPtr controller);
-      virtual void notifyControllerDetached();
+      virtual void notifyControllerAttached(ICETransportControllerPtr controller) override;
+      virtual void notifyControllerDetached() override;
 
       virtual bool hasCandidatePairFoundation(
                                               const String &localFoundation,
                                               const String &remoteFoundation,
                                               PromisePtr promise
-                                              );
+                                              ) override;
 
       // (duplicate) virtual IICETypes::Components component() const = 0;
       // (duplicate) virtual IICETransport::States state() const = 0;
@@ -325,21 +366,28 @@ namespace ortc
       virtual bool sendPacket(
                               const BYTE *buffer,
                               size_t bufferSizeInBytes
-                              );
+                              ) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark ICETransport => ITransportAsyncDelegate
       #pragma mark
 
-      virtual void onResolveStatsPromise(IStatsProvider::PromiseWithStatsReportPtr promise);
+      virtual void onResolveStatsPromise(IStatsProvider::PromiseWithStatsReportPtr promise) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark ICETransport => IWakeDelegate
       #pragma mark
 
-      virtual void onWake();
+      virtual void onWake() override;
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark ICETransport => ITimerDelegate
+      #pragma mark
+
+      virtual void onTimer(TimerPtr timer) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -349,38 +397,81 @@ namespace ortc
       virtual void onICEGathererStateChanged(
                                              IICEGathererPtr gatherer,
                                              IICEGatherer::States state
-                                             );
+                                             ) override;
 
       virtual void onICEGathererLocalCandidate(
                                                IICEGathererPtr gatherer,
                                                CandidatePtr candidate
-                                               );
+                                               ) override;
 
       virtual void onICEGathererLocalCandidateComplete(
                                                        IICEGathererPtr gatherer,
                                                        CandidateCompletePtr candidate
-                                                       );
+                                                       ) override;
 
       virtual void onICEGathererLocalCandidateGone(
                                                    IICEGathererPtr gatherer,
                                                    CandidatePtr candidate
-                                                   );
+                                                   ) override;
 
       virtual void onICEGathererError(
                                       IICEGathererPtr gatherer,
                                       ErrorCode errorCode,
                                       String errorReason
-                                      );
+                                      ) override;
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark ICETransport => ISTUNRequesterDelegate
+      #pragma mark
+
+      virtual void onSTUNRequesterSendPacket(
+                                             ISTUNRequesterPtr requester,
+                                             IPAddress destination,
+                                             SecureByteBlockPtr packet
+                                             ) override;
+
+      virtual bool handleSTUNRequesterResponse(
+                                               ISTUNRequesterPtr requester,
+                                               IPAddress fromIPAddress,
+                                               STUNPacketPtr response
+                                               ) override;
+
+      virtual void onSTUNRequesterTimedOut(ISTUNRequesterPtr requester) override;
 
     public:
 
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark ICETransport::Route
+      #pragma mark
+
       struct Route
       {
-        PUID mGathererRouteID {0};
-        CandidatePairPtr mCandidatePair;
+        enum States
+        {
+          State_Pending,
+          State_Frozen,
+          State_InProgress,
+          State_Succeeded,
+          State_Failed,
+          State_Blacklisted,
+        };
+        static const char *toString(States state);
 
-        Time mLastReceived;
-        Time mLastSent;
+        CandidatePairPtr mCandidatePair;
+        String mCandidatePairHash;
+
+        States mState {State_Pending};
+
+        PUID mGathererRouteID {0};
+        QWORD mPendingPriority {};
+
+        Time mLastReceivedCheck;
+        Time mLastSentCheck;
+
+        Time mLastReceivedMedia;
+        Time mLastReceivedResponse;
 
         bool mPrune {false};
         bool mKeepWarm {false};
@@ -388,8 +479,22 @@ namespace ortc
         TimerPtr mNextKeepWarm;
 
         PromisePtr mFrozenPromise;
+        PromiseList mDependentPromises;
 
         ElementPtr toDebug() const;
+
+        QWORD getPreference(bool localIsControlling) const;
+        QWORD getActivationPriority(
+                                    bool localIsControlling,
+                                    bool useUnfreezePreference
+                                    ) const;
+
+        bool isPending() const {return State_Pending == mState;}
+        bool isFrozen() const {return State_Frozen == mState;}
+        bool isInProgress() const {return State_InProgress == mState;}
+        bool isSucceeded() const {return State_Succeeded == mState;}
+        bool isFailed() const {return State_Failed == mState;}
+        bool isBlacklisted() const {return State_Blacklisted == mState;}
       };
 
     protected:
@@ -402,18 +507,65 @@ namespace ortc
       Log::Params debug(const char *message) const;
       ElementPtr toDebug() const;
 
+      bool isConnected() const;
+      bool isComplete() const;
+      bool isDisconnected() const;
       bool isShuttingDown() const;
       bool isShutdown() const;
       bool isContinousGathering() const;
 
       void step();
+      bool stepCalculateLegalPairs();
+      bool stepPendingActivation();
+      bool stepActivationTimer();
+      bool stepLastReceivedPacketTimer();
+      bool stepExpireRouteTimer();
+      bool stepPickRoute();
+      bool stepUseCandidate();
+      bool stepDewarmRoutes();
+      bool stepKeepWarmRoutes();
 
+      void wakeUp();
       void cancel();
 
       void setState(IICETransportTypes::States state);
       void setError(WORD error, const char *reason = NULL);
 
       void shutdown(RoutePtr route);
+
+      void pruneAllCandidatePairs(bool keepActiveAlive);
+      CandidatePairPtr cloneCandidatePair(RoutePtr route);
+
+      void setPending(RoutePtr route);
+      void setFrozen(
+                     RoutePtr route,
+                     PromisePtr promise
+                     );
+      void setInProgress(RoutePtr route);
+      void setSucceeded(RoutePtr route);
+      void setFailed(RoutePtr route);
+      void setBlacklisted(RoutePtr route);
+
+      void updateAfterPacket(RoutePtr route);
+
+      void removeLegal(RoutePtr route);
+      void removeFrozen(RoutePtr route);
+      void removeFrozenDependencies(
+                                    RoutePtr route,
+                                    bool succeeded
+                                    );
+      void removeActive(RoutePtr route);
+      void removePendingActivation(RoutePtr route);
+      void removeOutgoingCheck(RoutePtr route);
+      void removeGathererRoute(RoutePtr route);
+      void removeKeepWarmTimer(RoutePtr route);
+      void removeWarm(RoutePtr route);
+
+      ISTUNRequesterPtr createBindRequest(
+                                          RoutePtr route,
+                                          bool useCandidate = false
+                                          ) const;
+      void fix(STUNPacketPtr stun) const;
 
     private:
       //-----------------------------------------------------------------------
@@ -441,8 +593,14 @@ namespace ortc
 
       UseICETransportControllerWeakPtr mTransportController;
 
+      ICETransportPtr mRTPTransport;
+      ICETransportWeakPtr mRTCPTransport;
+
+      std::atomic<bool> mWakeUp {false};
+
       String mOptionsHash;
       Options mOptions;
+      QWORD mConflictResolver {};
 
       String mRemoteParametersHash;
       Parameters mRemoteParameters;
@@ -457,21 +615,38 @@ namespace ortc
 
       String mComputedPairsHash;
       RouteMap mLegalRoutes;
+
+      TimerPtr mActivationTimer;
+
+      String mPendingActivationPairsHash;
       SortedRouteMap mPendingActivation;
-      RouteMap mSearching;
-      STUNCheckMap mOutgoingChecks;
-      RouteMap mFailed;
-      RouteMap mSucceeded;
 
-      FoundationPromiseMap mFrozenFoundations;
-
-      RouteIDMap mRoutes;
+      PromiseRouteMap mFrozen;
 
       RoutePtr mActiveRoute;
-      SortedRouteMap mWarmRoutes;
-      STUNCheckMap mKeepWarmChecks;
+
+      bool mWarmRoutesChanged {false};
+      RouteMap mWarmRoutes;   // these are reported as available (and gone when removed)
+
+      RouteIDMap mGathererRoutes;
+
+      STUNCheckMap mOutgoingChecks;
       TimerRouteMap mNextKeepWarmTimers;
-      RouteMap mBlacklisted;
+
+      RoutePtr mUseCandidateRoute;
+      ISTUNRequesterPtr mUseCandidateRequest;
+      Time mLastReceivedUseCandidate;
+
+      Time mLastReceivedPacket;
+      TimerPtr mLastReceivedPacketTimer;
+      Seconds mNoPacketsReceivedRecheckTime;
+
+      Seconds mExpireRouteTime;
+      TimerPtr mExpireRouteTimer;
+      bool mBlacklistConsent {false};
+
+      Milliseconds mKeepWarmTimeBase;
+      Milliseconds mKeepWarmTimeRandomizedAddTime;
     };
 
     //-------------------------------------------------------------------------

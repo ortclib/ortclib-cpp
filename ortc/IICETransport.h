@@ -145,7 +145,10 @@ namespace ortc
     virtual void setRemoteCandidates(const CandidateList &remoteCandidates) = 0;
     virtual void removeRemoteCandidate(const GatherCandidate &remoteCandidate) = 0;
 
-    virtual void keepWarm(const CandidatePair &candidatePair) = 0;
+    virtual void keepWarm(
+                          const CandidatePair &candidatePair,
+                          bool keepWarm = true
+                          ) = 0;
   };
 
   //---------------------------------------------------------------------------

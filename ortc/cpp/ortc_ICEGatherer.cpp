@@ -343,6 +343,21 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
+    #pragma mark IICEGathererForICETransport
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    ElementPtr IICEGathererForICETransport::toDebug(ForICETransportPtr gatherer)
+    {
+      if (!gatherer) return ElementPtr();
+      return ICEGatherer::convert(gatherer)->toDebug();
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
     #pragma mark ICEGatherer
     #pragma mark
 
@@ -606,12 +621,6 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    PUID ICEGatherer::getID() const
-    {
-      return mID;
-    }
-
-    //-------------------------------------------------------------------------
     IICEGathererSubscriptionPtr ICEGatherer::subscribe(IICEGathererDelegatePtr originalDelegate)
     {
       AutoRecursiveLock lock(*this);
@@ -704,15 +713,19 @@ namespace ortc
     {
       ORTC_THROW_INVALID_STATE_IF(Component_RTCP == mComponent)
 
-      AutoRecursiveLock lock(*this);
+      ICEGathererPtr pThis;
 
-      ORTC_THROW_INVALID_STATE_IF(mRTCPGatherer)
+      {
+        AutoRecursiveLock lock(*this);
 
-      ICEGathererPtr pThis(new ICEGatherer(IORTCForInternal::queueORTC(), delegate, mOptions));
-      pThis->mThisWeak = pThis;
-      pThis->mComponent = Component_RTCP;
-      pThis->mRTPGatherer = mThisWeak.lock();
-      mRTCPGatherer = pThis;
+        ORTC_THROW_INVALID_STATE_IF(mRTCPGatherer.lock())
+
+        pThis = ICEGathererPtr(new ICEGatherer(IORTCForInternal::queueORTC(), delegate, mOptions));
+        pThis->mThisWeak = pThis;
+        pThis->mComponent = Component_RTCP;
+        pThis->mRTPGatherer = mThisWeak.lock();
+        mRTCPGatherer = pThis;
+      }
 
       pThis->init();
       return pThis;
@@ -768,7 +781,7 @@ namespace ortc
                                        const String &remoteUFrag
                                        )
     {
-      UseTransportPtr transport = inTransport;
+      UseICETransportPtr transport = inTransport;
       ORTC_THROW_INVALID_PARAMETERS_IF(!transport)
 
       BufferedPacketList installRouteForBufferedPackets;
@@ -848,7 +861,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     void ICEGatherer::notifyTransportStateChange(ICETransportPtr inTransport)
     {
-      UseTransportPtr transport = inTransport;
+      UseICETransportPtr transport = inTransport;
       ORTC_THROW_INVALID_PARAMETERS_IF(!transport)
 
       ZS_LOG_TRACE(log("notified transport state changed") + ZS_PARAM("transport id", transport->getID()))
@@ -861,12 +874,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     void ICEGatherer::removeTransport(ICETransport &inTransport)
     {
-      UseTransport &transport = inTransport;
+      UseICETransport &transport = inTransport;
 
       ZS_LOG_TRACE(log("removing transport") + ZS_PARAM("transport id", transport.getID()))
 
       AutoRecursiveLock lock(*this);
-      removeAllRelatedRoutes(transport.getID(), UseTransportPtr());
+      removeAllRelatedRoutes(transport.getID(), UseICETransportPtr());
 
       for (auto iter_doNotUse = mInstalledTransports.begin(); iter_doNotUse != mInstalledTransports.end(); ) {
         auto current = iter_doNotUse;
@@ -910,6 +923,13 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    ICEGatherer::ForICETransportPtr ICEGatherer::getRTCPGatherer() const
+    {
+      AutoRecursiveLock lock(*this);
+      return mRTCPGatherer.lock();
+    }
+
+    //-------------------------------------------------------------------------
     bool ICEGatherer::isContinousGathering() const
     {
       AutoRecursiveLock lock(*this);
@@ -923,7 +943,7 @@ namespace ortc
                                   const IPAddress &remoteIP
                                   )
     {
-      UseTransportPtr transport = inTransport;
+      UseICETransportPtr transport = inTransport;
 
       ORTC_THROW_INVALID_PARAMETERS_IF(!transport)
       ORTC_THROW_INVALID_PARAMETERS_IF(!sentFromLocalCanddiate)
@@ -1064,6 +1084,19 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    void ICEGatherer::remoteAllRelatedRoutes(ICETransport &inTransport)
+    {
+      UseICETransport &transport = inTransport;
+
+      auto transportID = transport.getID();
+
+      ZS_LOG_DEBUG(log("removing all related routes") + ZS_PARAMIZE(transportID))
+
+      AutoRecursiveLock lock(*this);
+      removeAllRelatedRoutes(transportID, UseICETransportPtr());
+    }
+
+    //-------------------------------------------------------------------------
     bool ICEGatherer::sendPacket(
                                  PUID routeID,
                                  const BYTE *buffer,
@@ -1158,7 +1191,7 @@ namespace ortc
 
     //-------------------------------------------------------------------------
     void ICEGatherer::onNotifyDeliverRouteBufferedPackets(
-                                                          UseTransportPtr transport,
+                                                          UseICETransportPtr transport,
                                                           PUID routeID
                                                           )
     {
@@ -1214,7 +1247,7 @@ namespace ortc
 
     //-------------------------------------------------------------------------
     void ICEGatherer::onNotifyAboutRemoveRoute(
-                                               UseTransportPtr transport,
+                                               UseICETransportPtr transport,
                                                PUID routeID
                                                )
     {
@@ -2778,7 +2811,7 @@ namespace ortc
 
         auto transport = installedTransport->mTransport.lock();
         if (!transport) {
-          removeAllRelatedRoutes(installedTransport->mTransportID, UseTransportPtr());
+          removeAllRelatedRoutes(installedTransport->mTransportID, UseICETransportPtr());
           mInstalledTransports.erase(current);
           continue;
         }
@@ -2798,7 +2831,7 @@ namespace ortc
 
         auto transport = installedTransport->mTransport.lock();
         if (!transport) {
-          removeAllRelatedRoutes(installedTransport->mTransportID, UseTransportPtr());
+          removeAllRelatedRoutes(installedTransport->mTransportID, UseICETransportPtr());
           mPendingTransports.erase(current);
           continue;
         }
@@ -4550,7 +4583,7 @@ namespace ortc
 
       PUID routeID = 0;
       CandidatePtr localCandidate;
-      UseTransportPtr transport;
+      UseICETransportPtr transport;
 
       {
         AutoRecursiveLock lock(*this);
@@ -4920,7 +4953,7 @@ namespace ortc
                                                          )
     {
       PUID routeID = 0;
-      UseTransportPtr transport;
+      UseICETransportPtr transport;
       String rFrag;
 
       {
@@ -5045,7 +5078,7 @@ namespace ortc
       STUNPacketPtr stunPacket;
 
       PUID routeID = 0;
-      UseTransportPtr transport;
+      UseICETransportPtr transport;
 
       {
         AutoRecursiveLock lock(*this);
@@ -5102,7 +5135,7 @@ namespace ortc
     ICEGatherer::RoutePtr ICEGatherer::installRoute(
                                                     CandidatePtr localCandidate,
                                                     const IPAddress &remoteIP,
-                                                    UseTransportPtr transport,
+                                                    UseICETransportPtr transport,
                                                     bool notifyTransport
                                                     )
     {
@@ -5318,7 +5351,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     void ICEGatherer::removeAllRelatedRoutes(
                                              TransportID transportID,
-                                             UseTransportPtr transportIfAvailable
+                                             UseICETransportPtr transportIfAvailable
                                              )
     {
       for (auto iter_doNotUse = mRouteCandidateAndIPMappings.begin(); iter_doNotUse != mRouteCandidateAndIPMappings.end();)
@@ -5844,7 +5877,7 @@ namespace ortc
       UseServicesHelper::debugAppend(resultEl, "outgoing buffer", mOutgoingBuffer.CurrentSize());
 
       UseServicesHelper::debugAppend(resultEl, "transport id", mTransportID);
-      UseTransportPtr transport = mTransport.lock();
+      UseICETransportPtr transport = mTransport.lock();
       UseServicesHelper::debugAppend(resultEl, "ice transport", transport ? transport->getID() : 0);
 
       return resultEl;
@@ -5896,7 +5929,7 @@ namespace ortc
       UseServicesHelper::debugAppend(resultEl, "local candidate", mLocalCandidate ? mLocalCandidate->toDebug() : ElementPtr());
       UseServicesHelper::debugAppend(resultEl, "from", mFrom.string());
 
-      UseTransportPtr transport = mTransport.lock();
+      UseICETransportPtr transport = mTransport.lock();
       UseServicesHelper::debugAppend(resultEl, "transport id", mTransportID);
       UseServicesHelper::debugAppend(resultEl, "ice transport", transport ? transport->getID() : 0);
 
@@ -5920,7 +5953,7 @@ namespace ortc
     {
       ElementPtr resultEl = Element::create("ortc::ICEGatherer::InstalledTransport");
 
-      UseTransportPtr transport = mTransport.lock();
+      UseICETransportPtr transport = mTransport.lock();
       UseServicesHelper::debugAppend(resultEl, "transport id", mTransportID);
       UseServicesHelper::debugAppend(resultEl, "ice transport", transport ? transport->getID() : 0);
 
