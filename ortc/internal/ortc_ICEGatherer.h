@@ -859,6 +859,9 @@ namespace ortc
       bool stepCalculateOptionsHash();
       bool stepResolveHostIPs();
       bool stepGetHostIPs();
+      void stepGetHostIPs_WinRT();
+      void stepGetHostIPs_Win32();
+      void stepGetHostIPs_ifaddr();
       bool stepCalculateHostsHash();
       bool stepFixHostPorts();
       bool stepBindHostPorts();

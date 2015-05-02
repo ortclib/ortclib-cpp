@@ -2218,6 +2218,23 @@ namespace ortc
       mGetLocalIPsNow = false;
       mHostsHash.clear();
 
+      stepGetHostIPs_WinRT();
+      stepGetHostIPs_Win32();
+      stepGetHostIPs_ifaddr();
+
+      if (mPendingHostIPs.size() > 0) {
+        ZS_LOG_TRACE(log("not all host IPs resolved") + ZS_PARAM("pending size", mPendingHostIPs.size()))
+        IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
+        return false;
+      }
+
+      ZS_LOG_TRACE(log("all host IPs resolved") + ZS_PARAM("size", mResolvedHostIPs.size()))
+      return true;
+    }
+
+    //-------------------------------------------------------------------------
+    void ICEGatherer::stepGetHostIPs_WinRT()
+    {
 #if defined(WINRT) && !defined(HAVE_GETADAPTERADDRESSES)
       // http://stackoverflow.com/questions/10336521/query-local-ip-address
 
@@ -2333,9 +2350,12 @@ namespace ortc
           }
         }
       }
-
 #endif //defined(WINRT) && !defined(HAVE_GETADAPTERADDRESSES)
-
+    }
+    
+    //-------------------------------------------------------------------------
+    void ICEGatherer::stepGetHostIPs_Win32()
+    {
 #ifdef HAVE_GETADAPTERADDRESSES
       // https://msdn.microsoft.com/en-us/library/windows/desktop/aa365915(v=vs.85).aspx
 
@@ -2480,9 +2500,9 @@ namespace ortc
               if (ip.isAddressEmpty()) continue;
               if (ip.isLoopback()) continue;
               if (ip.isAddrAny()) continue;
-
+              
               ZS_LOG_TRACE(log("found host IP") + ZS_PARAM("ip", ip.string()))
-
+              
               mResolvedHostIPs.push_back(HostIPSorter::prepare(ip, mOptions));
             }
           }
@@ -2490,7 +2510,11 @@ namespace ortc
       }
 #endif //0
 #endif //HAVE_GETADAPTERADDRESSES
+    }
 
+    //-------------------------------------------------------------------------
+    void ICEGatherer::stepGetHostIPs_ifaddr()
+    {
 #ifdef HAVE_GETIFADDRS
       // scope: use getifaddrs
       {
@@ -2532,15 +2556,6 @@ namespace ortc
         }
       }
 #endif //HAVE_GETIFADDRS
-
-      if (mPendingHostIPs.size() > 0) {
-        ZS_LOG_TRACE(log("not all host IPs resolved") + ZS_PARAM("pending size", mPendingHostIPs.size()))
-        IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
-        return false;
-      }
-
-      ZS_LOG_TRACE(log("all host IPs resolved") + ZS_PARAM("size", mResolvedHostIPs.size()))
-      return true;
     }
 
     //-------------------------------------------------------------------------
