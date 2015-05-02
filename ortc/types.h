@@ -59,6 +59,7 @@ namespace ortc
   using zsLib::RecursiveLock;
   using zsLib::IMessageQueue;
   using zsLib::IMessageQueuePtr;
+  using zsLib::IPAddress;
 
   using zsLib::Optional;
   using zsLib::PromiseWith;

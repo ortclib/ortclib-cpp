@@ -180,6 +180,12 @@ namespace ortc
     interaction ITransportAsyncDelegate
     {
       virtual void onResolveStatsPromise(IStatsProvider::PromiseWithStatsReportPtr promise) = 0;
+      virtual void onNotifyPacketRetried(
+                                         IICETypes::CandidatePtr localCandidate,
+                                         IPAddress remoteIP,
+                                         STUNPacketPtr stunPacket
+                                         ) = 0;
+      virtual void onWarmRoutesChanged() = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -201,6 +207,7 @@ namespace ortc
                          public ITransportAsyncDelegate,
                          public IWakeDelegate,
                          public zsLib::ITimerDelegate,
+                         public zsLib::IPromiseSettledDelegate,
                          public IICEGathererDelegate,
                          public openpeer::services::ISTUNRequesterDelegate
     {
@@ -213,6 +220,7 @@ namespace ortc
       friend interaction IICETransportForRTPTransport;
 
       ZS_DECLARE_STRUCT_PTR(Route)
+      ZS_DECLARE_STRUCT_PTR(ReasonNoMoreRelationship)
 
       ZS_DECLARE_TYPEDEF_PTR(openpeer::services::ISTUNRequester, ISTUNRequester)
       ZS_DECLARE_TYPEDEF_PTR(IICEGathererForICETransport, UseICEGatherer)
@@ -236,6 +244,17 @@ namespace ortc
       typedef std::map<PromisePtr, RoutePtr> PromiseRouteMap;
 
       typedef std::list<PromisePtr> PromiseList;
+
+      typedef String LocalFoundation;
+      typedef String RemoteFoundation;
+      typedef std::pair<LocalFoundation, RemoteFoundation> LocalRemoteFoundationPair;
+      typedef std::map<LocalRemoteFoundationPair, RouteMap> FoundationRouteMap;
+
+      typedef CandidatePtr LocalCandidatePtr;
+      typedef IPAddress FromIP;
+      typedef std::pair<LocalCandidatePtr, FromIP> LocalCandidateFromIPPair;
+
+      typedef std::map<RouteID, LocalCandidateFromIPPair> RouteIDLocalCandidateFromIPMap;
 
     protected:
       ICETransport(
@@ -374,6 +393,12 @@ namespace ortc
       #pragma mark
 
       virtual void onResolveStatsPromise(IStatsProvider::PromiseWithStatsReportPtr promise) override;
+      virtual void onNotifyPacketRetried(
+                                         IICETypes::CandidatePtr localCandidate,
+                                         IPAddress remoteIP,
+                                         STUNPacketPtr stunPacket
+                                         );
+      virtual void onWarmRoutesChanged();
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -388,6 +413,13 @@ namespace ortc
       #pragma mark
 
       virtual void onTimer(TimerPtr timer) override;
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark ICETransport => IPromiseSettledDelegate
+      #pragma mark
+
+      virtual void onPromiseSettled(PromisePtr promise) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -481,6 +513,9 @@ namespace ortc
         PromisePtr mFrozenPromise;
         PromiseList mDependentPromises;
 
+        Time mLastRoundTripCheck;
+        Microseconds mLastRouteTripMeasurement;
+
         ElementPtr toDebug() const;
 
         QWORD getPreference(bool localIsControlling) const;
@@ -495,6 +530,10 @@ namespace ortc
         bool isSucceeded() const {return State_Succeeded == mState;}
         bool isFailed() const {return State_Failed == mState;}
         bool isBlacklisted() const {return State_Blacklisted == mState;}
+      };
+
+      struct ReasonNoMoreRelationship : public Any
+      {
       };
 
     protected:
@@ -518,23 +557,32 @@ namespace ortc
       bool stepCalculateLegalPairs();
       bool stepPendingActivation();
       bool stepActivationTimer();
-      bool stepLastReceivedPacketTimer();
-      bool stepExpireRouteTimer();
       bool stepPickRoute();
       bool stepUseCandidate();
       bool stepDewarmRoutes();
       bool stepKeepWarmRoutes();
+      bool stepExpireRouteTimer();
+      bool stepLastReceivedPacketTimer();
+      bool stepSetCurrentState();
 
       void wakeUp();
+      void warmRoutesChanged();
+      bool hasWarmRoutesChanged();
       void cancel();
 
       void setState(IICETransportTypes::States state);
       void setError(WORD error, const char *reason = NULL);
 
+      void handleExpireRouteTimer();
+      void handleLastReceivedPacket();
+      void handleActivationTimer();
+      void handleNextKeepWarmTimer(RoutePtr route);
+
+      void forceActive(RoutePtr route);
       void shutdown(RoutePtr route);
 
       void pruneAllCandidatePairs(bool keepActiveAlive);
-      CandidatePairPtr cloneCandidatePair(RoutePtr route);
+      CandidatePairPtr cloneCandidatePair(RoutePtr route) const;
 
       void setPending(RoutePtr route);
       void setFrozen(
@@ -548,11 +596,17 @@ namespace ortc
 
       void updateAfterPacket(RoutePtr route);
 
+      bool installGathererRoute(RoutePtr route);
+
+      void installFoundation(RoutePtr route);
+
       void removeLegal(RoutePtr route);
+      void removeFoundation(RoutePtr route);
       void removeFrozen(RoutePtr route);
       void removeFrozenDependencies(
                                     RoutePtr route,
-                                    bool succeeded
+                                    bool succeeded,
+                                    AnyPtr reason = AnyPtr()
                                     );
       void removeActive(RoutePtr route);
       void removePendingActivation(RoutePtr route);
@@ -561,11 +615,51 @@ namespace ortc
       void removeKeepWarmTimer(RoutePtr route);
       void removeWarm(RoutePtr route);
 
+      RoutePtr findRoute(
+                         IICETypes::CandidatePtr localCandidate,
+                         const IPAddress &remoteIP
+                         );
+      RoutePtr findClosestRoute(
+                                IICETypes::CandidatePtr localCandidate,
+                                const IPAddress &remoteIP,
+                                DWORD remotePriority
+                                );
+      Time getLastRemoteActivity(RoutePtr route) const;
+
       ISTUNRequesterPtr createBindRequest(
                                           RoutePtr route,
                                           bool useCandidate = false
                                           ) const;
+      STUNPacketPtr createBindResponse(
+                                       STUNPacketPtr request,
+                                       RoutePtr route
+                                       ) const;
+      STUNPacketPtr createErrorResponse(
+                                        STUNPacketPtr request,
+                                        STUNPacket::ErrorCodes error
+                                        );
+      void setRole(STUNPacketPtr packet) const;
       void fix(STUNPacketPtr stun) const;
+
+      void sendPacket(
+                      RouteID routeID,
+                      STUNPacketPtr packet
+                      );
+
+      bool handleSwitchRolesAndConflict(
+                                        RouteID route,
+                                        STUNPacketPtr packet
+                                        );
+
+      RoutePtr findOrCreateMissingRoute(
+                                        RouteID routeID,
+                                        STUNPacketPtr packet
+                                        );
+
+      void handlePassThroughSTUNPacket(                       // do not call within a lock
+                                       RouteID routeID,
+                                       STUNPacketPtr packet
+                                       );
 
     private:
       //-----------------------------------------------------------------------
@@ -597,6 +691,8 @@ namespace ortc
       ICETransportWeakPtr mRTCPTransport;
 
       std::atomic<bool> mWakeUp {false};
+      int mWarmRoutesChanged {0};
+      bool mForcePickRouteAgain {false};
 
       String mOptionsHash;
       Options mOptions;
@@ -607,14 +703,15 @@ namespace ortc
 
       String mLocalCandidatesHash;
       CandidateMap mLocalCandidates;
-      bool mEndOfLocalCandidates {false};
+      bool mEndOfLocalCandidates {false}; // HERE
 
       String mRemoteCandidatesHash;
       CandidateMap mRemoteCandidates;
-      bool mEndOfRemoteCandidates {false};
+      bool mEndOfRemoteCandidates {false};  // HERE
 
       String mComputedPairsHash;
       RouteMap mLegalRoutes;
+      FoundationRouteMap mFoundationRoutes;
 
       TimerPtr mActivationTimer;
 
@@ -625,10 +722,10 @@ namespace ortc
 
       RoutePtr mActiveRoute;
 
-      bool mWarmRoutesChanged {false};
       RouteMap mWarmRoutes;   // these are reported as available (and gone when removed)
 
       RouteIDMap mGathererRoutes;
+      RouteIDLocalCandidateFromIPMap mPendingGathererRoutes;
 
       STUNCheckMap mOutgoingChecks;
       TimerRouteMap mNextKeepWarmTimers;
@@ -673,5 +770,10 @@ namespace ortc
 
 ZS_DECLARE_PROXY_BEGIN(ortc::internal::ITransportAsyncDelegate)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IStatsProvider::PromiseWithStatsReportPtr, PromiseWithStatsReportPtr)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::IICETypes::CandidatePtr, CandidatePtr)
+ZS_DECLARE_PROXY_TYPEDEF(zsLib::IPAddress, IPAddress)
+ZS_DECLARE_PROXY_TYPEDEF(openpeer::services::STUNPacketPtr, STUNPacketPtr)
 ZS_DECLARE_PROXY_METHOD_1(onResolveStatsPromise, PromiseWithStatsReportPtr)
+ZS_DECLARE_PROXY_METHOD_3(onNotifyPacketRetried, CandidatePtr, IPAddress, STUNPacketPtr)
+ZS_DECLARE_PROXY_METHOD_0(onWarmRoutesChanged)
 ZS_DECLARE_PROXY_END()

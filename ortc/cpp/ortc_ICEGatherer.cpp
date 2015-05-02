@@ -4285,32 +4285,28 @@ namespace ortc
     {
       CandidatePtr candidate(new Candidate);
 
-      SHA1Hasher hasher;
+      AddressFamilies family = (boundIP.isIPv4() ? AddressFamily_IPv4 : AddressFamily_IPv6);
 
-      hasher.update("foundation:");
-      hasher.update(IICETypes::toString(candidateType));
-      hasher.update(":");
-      hasher.update(boundIP.string(false));
-      hasher.update(":");
-      hasher.update(IICETypes::toString(protocol));
+      candidate->mInterfaceType = toString(hostData->mInterfaceType);
 
-      String foundation = hasher.final();
+      candidate->mProtocol = protocol;
+      candidate->mTCPType = tcpType;
+      candidate->mIP = boundIP.string(false);
+      candidate->mPort = boundIP.getPort();
+      candidate->mCandidateType = candidateType;
+      candidate->mFoundation = candidate->foundation();
 
       WORD localPreference = 0;
 
-      auto found = mLastLocalPreference.find(foundation);
+      auto found = mLastLocalPreference.find(candidate->mFoundation);
       if (found != mLastLocalPreference.end()) {
         WORD &preference = (*found).second;
         ++preference;
         localPreference = preference;
       } else {
-        mLastLocalPreference[foundation] = localPreference;
+        mLastLocalPreference[candidate->mFoundation] = localPreference;
       }
 
-      AddressFamilies family = (boundIP.isIPv4() ? AddressFamily_IPv4 : AddressFamily_IPv6);
-
-      candidate->mInterfaceType = toString(hostData->mInterfaceType);
-      candidate->mFoundation = foundation;
       candidate->mPriority = (mPreferences[PreferenceType_Priority].mCandidateTypePreferences[candidateType]) |
                              (mPreferences[PreferenceType_Priority].mProtocolTypePreferences[protocol]) |
                              (mPreferences[PreferenceType_Priority].mInterfaceTypePreferences[hostData->mInterfaceType]) |
@@ -4324,12 +4320,6 @@ namespace ortc
                                      (mPreferences[PreferenceType_Unfreeze].mAddressFamilyPreferences[family]) |
                                      ((localPreference % 0xFF) << 8) |
                                      (256 - mComponent);
-
-      candidate->mProtocol = protocol;
-      candidate->mTCPType = tcpType;
-      candidate->mIP = boundIP.string(false);
-      candidate->mPort = boundIP.getPort();
-      candidate->mCandidateType = candidateType;
 
       addCandidate(*hostData, boundIP, candidate);
 
@@ -4354,34 +4344,28 @@ namespace ortc
         serverURL = server.mURLs.front();
       }
 
-      SHA1Hasher hasher;
+      AddressFamilies family = (boundIP.isIPv4() ? AddressFamily_IPv4 : AddressFamily_IPv6);
 
-      hasher.update("foundation:");
-      hasher.update(IICETypes::toString(candidateType));
-      hasher.update(":");
-      hasher.update(baseIP.string(false));
-      hasher.update(":");
-      hasher.update(IICETypes::toString(protocol));
-      hasher.update(":");
-      hasher.update(serverURL);
-
-      String foundation = hasher.final();
+      candidate->mInterfaceType = toString(hostData->mInterfaceType);
+      candidate->mProtocol = protocol;
+      candidate->mIP = boundIP.string(false);
+      candidate->mPort = boundIP.getPort();
+      candidate->mCandidateType = candidateType;
+      candidate->mRelatedAddress = baseIP.string(false);
+      candidate->mRelatedPort = baseIP.getPort();
+      candidate->mFoundation = candidate->foundation(serverURL);
 
       WORD localPreference = 0;
 
-      auto found = mLastLocalPreference.find(foundation);
+      auto found = mLastLocalPreference.find(candidate->mFoundation);
       if (found != mLastLocalPreference.end()) {
         WORD &preference = (*found).second;
         ++preference;
         localPreference = preference;
       } else {
-        mLastLocalPreference[foundation] = localPreference;
+        mLastLocalPreference[candidate->mFoundation] = localPreference;
       }
 
-      AddressFamilies family = (boundIP.isIPv4() ? AddressFamily_IPv4 : AddressFamily_IPv6);
-
-      candidate->mInterfaceType = toString(hostData->mInterfaceType);
-      candidate->mFoundation = foundation;
       candidate->mPriority = (mPreferences[PreferenceType_Priority].mCandidateTypePreferences[candidateType]) |
                              (mPreferences[PreferenceType_Priority].mProtocolTypePreferences[protocol]) |
                              (mPreferences[PreferenceType_Priority].mInterfaceTypePreferences[hostData->mInterfaceType]) |
@@ -4395,13 +4379,6 @@ namespace ortc
                                      (mPreferences[PreferenceType_Unfreeze].mAddressFamilyPreferences[family]) |
                                      ((localPreference % 0xFF) << 8) |
                                      (256 - mComponent);
-
-      candidate->mProtocol = protocol;
-      candidate->mIP = boundIP.string(false);
-      candidate->mPort = boundIP.getPort();
-      candidate->mCandidateType = candidateType;
-      candidate->mRelatedAddress = baseIP.string(false);
-      candidate->mRelatedPort = baseIP.getPort();
 
       addCandidate(*hostData, boundIP, candidate);
 

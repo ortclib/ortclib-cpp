@@ -166,6 +166,10 @@ namespace ortc
 
       ElementPtr toDebug() const;
       String hash(bool includePriorities = true) const;
+
+      IPAddress ip() const;
+      IPAddress relatedIP() const;
+      String foundation(const char *relatedServerURL = NULL) const;
     };
 
     //-------------------------------------------------------------------------

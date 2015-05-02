@@ -271,6 +271,50 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
+  IPAddress IICETypes::Candidate::ip() const
+  {
+    if (mIP.isEmpty()) return IPAddress();
+    IPAddress ip(mIP, mPort);
+    return ip;
+  }
+
+  //---------------------------------------------------------------------------
+  IPAddress IICETypes::Candidate::relatedIP() const
+  {
+    if (mRelatedAddress.isEmpty()) return IPAddress();
+    IPAddress ip(mRelatedAddress, mRelatedPort);
+    return ip;
+  }
+
+  //---------------------------------------------------------------------------
+  String IICETypes::Candidate::foundation(const char *relatedServerURL) const
+  {
+    if (mFoundation.hasData()) return mFoundation;
+
+    SHA1Hasher hasher;
+
+    hasher.update("foundation:");
+    hasher.update(IICETypes::toString(mCandidateType));
+    hasher.update(":");
+    switch (mCandidateType) {
+      case CandidateType_Host:    hasher.update(mIP); break;
+      case CandidateType_Prflx:   hasher.update(mIP); break;
+      case CandidateType_Relay:   hasher.update(mRelatedAddress); break;
+      case CandidateType_Srflex:  hasher.update(mRelatedAddress); break;
+    }
+    hasher.update(":");
+    hasher.update(IICETypes::toString(mProtocol));
+    if (relatedServerURL) {
+      if (0 != (*relatedServerURL)) {
+        hasher.update(":");
+        hasher.update(relatedServerURL);
+      }
+    }
+
+    return hasher.final();
+  }
+
+  //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
