@@ -218,12 +218,20 @@ namespace ortc
       virtual void onICETransportStateChanged(
                                               IICETransportPtr transport,
                                               IICETransport::States state
-                                              );
+                                              ) override;
 
+      virtual void onICETransportCandidatePairAvailable(
+                                                        IICETransportPtr transport,
+                                                        CandidatePairPtr candidatePair
+                                                        ) override;
+      virtual void onICETransportCandidatePairGone(
+                                                   IICETransportPtr transport,
+                                                   CandidatePairPtr candidatePair
+                                                   ) override;
       virtual void onICETransportCandidatePairChanged(
                                                       IICETransportPtr transport,
                                                       CandidatePairPtr candidatePair
-                                                      );
+                                                      ) override;
 
     protected:
       //-----------------------------------------------------------------------

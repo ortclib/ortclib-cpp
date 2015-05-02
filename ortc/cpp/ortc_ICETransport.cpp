@@ -1601,7 +1601,7 @@ namespace ortc
             if (Time() != route->mLastRoundTripCheck) {
               auto previousValue = route->mLastRouteTripMeasurement;
 
-              route->mLastRouteTripMeasurement = getLatest(mLastReceivedPacket, route->mLastRoundTripCheck) - route->mLastRoundTripCheck;
+              route->mLastRouteTripMeasurement = zsLib::toMicroseconds(getLatest(mLastReceivedPacket, route->mLastRoundTripCheck) - route->mLastRoundTripCheck);
               ZS_LOG_TRACE(log("updated route round trip time") + route->toDebug())
 
               if (IICETypes::Role_Controlling == mOptions.mRole) {  // no need to pick if not in controlling role
@@ -1643,7 +1643,7 @@ namespace ortc
 
       if ((keptWarm) &&
           (!route->mNextKeepWarm)) {
-        route->mNextKeepWarm = Timer::create(mThisWeak.lock(), zsLib::now() + mKeepWarmTimeBase + Milliseconds(UseServicesHelper::random(0, mKeepWarmTimeRandomizedAddTime.count())));
+        route->mNextKeepWarm = Timer::create(mThisWeak.lock(), zsLib::now() + mKeepWarmTimeBase + Milliseconds(UseServicesHelper::random(0, static_cast<size_t>(mKeepWarmTimeRandomizedAddTime.count()))));
         mNextKeepWarmTimers[route->mNextKeepWarm] = route;
 
         ZS_LOG_TRACE(log("installed keep warm timer") + route->toDebug())
@@ -2216,7 +2216,7 @@ namespace ortc
           }
 
           ZS_LOG_DEBUG(log("installing keep warm timer") + route->toDebug())
-          route->mNextKeepWarm = Timer::create(mThisWeak.lock(), zsLib::now() + mKeepWarmTimeBase + Milliseconds(UseServicesHelper::random(0, mKeepWarmTimeRandomizedAddTime.count())));
+          route->mNextKeepWarm = Timer::create(mThisWeak.lock(), zsLib::now() + mKeepWarmTimeBase + Milliseconds(UseServicesHelper::random(0, static_cast<size_t>(mKeepWarmTimeRandomizedAddTime.count()))));
           mNextKeepWarmTimers[route->mNextKeepWarm] = route;
           continue;
         }
@@ -2730,7 +2730,7 @@ namespace ortc
       if (route->mNextKeepWarm) return;
 
       // install a temporary keep warm timer (to force route activate sooner)
-      route->mNextKeepWarm = Timer::create(mThisWeak.lock(), zsLib::now() + Milliseconds(UseServicesHelper::random(0, mKeepWarmTimeRandomizedAddTime.count())));
+      route->mNextKeepWarm = Timer::create(mThisWeak.lock(), zsLib::now() + Milliseconds(UseServicesHelper::random(0, static_cast<size_t>(mKeepWarmTimeRandomizedAddTime.count()))));
       mNextKeepWarmTimers[route->mNextKeepWarm] = route;
 
       ZS_LOG_TRACE(log("forcing route to generate activity") + route->toDebug())

@@ -381,6 +381,26 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    void DTLSTransport::onICETransportCandidatePairAvailable(
+                                                             IICETransportPtr transport,
+                                                             CandidatePairPtr candidatePair
+                                                             )
+    {
+#define TODO_IMPLEMENT 1
+#define TODO_IMPLEMENT 2
+    }
+
+    //-------------------------------------------------------------------------
+    void DTLSTransport::onICETransportCandidatePairGone(
+                                                        IICETransportPtr transport,
+                                                        CandidatePairPtr candidatePair
+                                                        )
+    {
+#define TODO_IMPLEMENT 1
+#define TODO_IMPLEMENT 2
+    }
+
+    //-------------------------------------------------------------------------
     void DTLSTransport::onICETransportCandidatePairChanged(
                                                            IICETransportPtr transport,
                                                            CandidatePairPtr candidatePair
