@@ -96,11 +96,22 @@ namespace ortc
     #pragma mark (forwards)
     #pragma mark
 
+    ZS_DECLARE_INTERACTION_PTR(IRTPRouter)
+
+    ZS_DECLARE_INTERACTION_PTR(ISecureTransportForRTPSender)
+    ZS_DECLARE_INTERACTION_PTR(ISecureTransportForICETransport)
+
     ZS_DECLARE_CLASS_PTR(ORTC)
     ZS_DECLARE_CLASS_PTR(DTLSTransport)
     ZS_DECLARE_CLASS_PTR(ICEGatherer)
     ZS_DECLARE_CLASS_PTR(ICETransport)
     ZS_DECLARE_CLASS_PTR(ICETransportController)
+    ZS_DECLARE_CLASS_PTR(SRTPSDESTransport)
 
+    ZS_DECLARE_CLASS_PTR(RTPRouter)
+
+    ZS_DECLARE_INTERACTION_PROXY(IRTPRouterDelegate)
+
+    ZS_DECLARE_INTERACTION_PROXY_SUBSCRIPTION(IRTPRouterSubscription, IRTPRouterDelegate)
   }
 }

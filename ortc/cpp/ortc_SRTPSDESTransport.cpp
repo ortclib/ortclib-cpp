@@ -29,7 +29,7 @@
  
  */
 
-#include <ortc/internal/ortc_DTLSTransport.h>
+#include <ortc/internal/ortc_SRTPSDESTransport.h>
 #include <ortc/internal/ortc_ICETransport.h>
 #include <ortc/internal/ortc_ORTC.h>
 #include <ortc/internal/platform.h>
@@ -67,11 +67,11 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark DTLSTransport => IStatsProvider
+    #pragma mark SRTPSDESTransport => IStatsProvider
     #pragma mark
 
     //-------------------------------------------------------------------------
-    IStatsProvider::PromiseWithStatsReportPtr DTLSTransport::getStats() const throw(InvalidStateError)
+    IStatsProvider::PromiseWithStatsReportPtr SRTPSDESTransport::getStats() const throw(InvalidStateError)
     {
 #define TODO_COMPLETE 1
 #define TODO_COMPLETE 2
@@ -83,32 +83,34 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark DTLSTransport
+    #pragma mark SRTPSDESTransport
     #pragma mark
     
     //-------------------------------------------------------------------------
-    DTLSTransport::DTLSTransport(
-                                 IMessageQueuePtr queue,
-                                 IDTLSTransportDelegatePtr originalDelegate,
-                                 IICETransportPtr iceTransport
-                                 ) :
+    SRTPSDESTransport::SRTPSDESTransport(
+                                         IMessageQueuePtr queue,
+                                         ISRTPSDESTransportDelegatePtr originalDelegate,
+                                         IICETransportPtr iceTransport,
+                                         const CryptoParameters &encryptParameters,
+                                         const CryptoParameters &decryptParameters
+                                         ) :
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
       mICETransport(ICETransport::convert(iceTransport))
     {
       ZS_LOG_DETAIL(debug("created"))
 
-      mDefaultSubscription = mSubscriptions.subscribe(IDTLSTransportDelegateProxy::create(IORTCForInternal::queueDelegate(), originalDelegate), queue);
+      mDefaultSubscription = mSubscriptions.subscribe(ISRTPSDESTransportDelegateProxy::create(IORTCForInternal::queueDelegate(), originalDelegate), queue);
     }
 
     //-------------------------------------------------------------------------
-    void DTLSTransport::init()
+    void SRTPSDESTransport::init()
     {
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
     }
 
     //-------------------------------------------------------------------------
-    DTLSTransport::~DTLSTransport()
+    SRTPSDESTransport::~SRTPSDESTransport()
     {
       if (isNoop()) return;
 
@@ -118,21 +120,21 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    DTLSTransportPtr DTLSTransport::convert(IDTLSTransportPtr object)
+    SRTPSDESTransportPtr SRTPSDESTransport::convert(ISRTPSDESTransportPtr object)
     {
-      return ZS_DYNAMIC_PTR_CAST(DTLSTransport, object);
+      return ZS_DYNAMIC_PTR_CAST(SRTPSDESTransport, object);
     }
 
     //-------------------------------------------------------------------------
-    DTLSTransportPtr DTLSTransport::convert(ForRTPSenderPtr object)
+    SRTPSDESTransportPtr SRTPSDESTransport::convert(ForRTPSenderPtr object)
     {
-      return ZS_DYNAMIC_PTR_CAST(DTLSTransport, object);
+      return ZS_DYNAMIC_PTR_CAST(SRTPSDESTransport, object);
     }
 
     //-------------------------------------------------------------------------
-    DTLSTransportPtr DTLSTransport::convert(ForICETransportPtr object)
+    SRTPSDESTransportPtr SRTPSDESTransport::convert(ForICETransportPtr object)
     {
-      return ZS_DYNAMIC_PTR_CAST(DTLSTransport, object);
+      return ZS_DYNAMIC_PTR_CAST(SRTPSDESTransport, object);
     }
 
     //-------------------------------------------------------------------------
@@ -140,52 +142,51 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark DTLSTransport => IDTLSTransport
+    #pragma mark SRTPSDESTransport => ISRTPSDESTransport
     #pragma mark
     
     //-------------------------------------------------------------------------
-    ElementPtr DTLSTransport::toDebug(DTLSTransportPtr transport)
+    ElementPtr SRTPSDESTransport::toDebug(SRTPSDESTransportPtr transport)
     {
       if (!transport) return ElementPtr();
       return transport->toDebug();
     }
 
     //-------------------------------------------------------------------------
-    DTLSTransportPtr DTLSTransport::create(
-                                           IDTLSTransportDelegatePtr delegate,
-                                           IICETransportPtr iceTransport
-                                           )
+    SRTPSDESTransportPtr SRTPSDESTransport::create(
+                                                   ISRTPSDESTransportDelegatePtr delegate,
+                                                   IICETransportPtr iceTransport,
+                                                   const CryptoParameters &encryptParameters,
+                                                   const CryptoParameters &decryptParameters
+                                                   )
     {
-      DTLSTransportPtr pThis(new DTLSTransport(IORTCForInternal::queueORTC(), delegate, iceTransport));
+      SRTPSDESTransportPtr pThis(new SRTPSDESTransport(IORTCForInternal::queueORTC(), delegate, iceTransport, encryptParameters, decryptParameters));
       pThis->mThisWeak.lock();
       pThis->init();
       return pThis;
     }
 
     //-------------------------------------------------------------------------
-    PUID DTLSTransport::getID() const
+    PUID SRTPSDESTransport::getID() const
     {
       return mID;
     }
 
     //-------------------------------------------------------------------------
-    IDTLSTransportSubscriptionPtr DTLSTransport::subscribe(IDTLSTransportDelegatePtr originalDelegate)
+    ISRTPSDESTransportSubscriptionPtr SRTPSDESTransport::subscribe(ISRTPSDESTransportDelegatePtr originalDelegate)
     {
       ZS_LOG_DETAIL(log("subscribing to transport state"))
 
       AutoRecursiveLock lock(*this);
       if (!originalDelegate) return mDefaultSubscription;
 
-      IDTLSTransportSubscriptionPtr subscription = mSubscriptions.subscribe(IDTLSTransportDelegateProxy::create(IORTCForInternal::queueDelegate(), originalDelegate));
+      ISRTPSDESTransportSubscriptionPtr subscription = mSubscriptions.subscribe(ISRTPSDESTransportDelegateProxy::create(IORTCForInternal::queueDelegate(), originalDelegate));
 
-      IDTLSTransportDelegatePtr delegate = mSubscriptions.delegate(subscription, true);
+      ISRTPSDESTransportDelegatePtr delegate = mSubscriptions.delegate(subscription, true);
 
       if (delegate) {
-        DTLSTransportPtr pThis = mThisWeak.lock();
+        SRTPSDESTransportPtr pThis = mThisWeak.lock();
 
-        if (IDTLSTransportTypes::State_New != mCurrentState) {
-          delegate->onDTLSTransportStateChanged(pThis, mCurrentState);
-        }
       }
 
       if (isShutdown()) {
@@ -196,59 +197,22 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    IICETransportPtr DTLSTransport::transport() const
+    IICETransportPtr SRTPSDESTransport::transport() const
     {
       AutoRecursiveLock lock(*this);
       return ICETransport::convert(mICETransport);
     }
 
     //-------------------------------------------------------------------------
-    IDTLSTransportTypes::States DTLSTransport::getState() const
+    ISRTPSDESTransportTypes::ParametersPtr SRTPSDESTransport::getLocalParameters()
     {
-      AutoRecursiveLock lock(*this);
-      return mCurrentState;
-    }
-
-    //-------------------------------------------------------------------------
-    IDTLSTransportTypes::ParametersPtr DTLSTransport::getLocalParameters() const
-    {
-      AutoRecursiveLock lock(*this);
 #define TODO_COMPLETE 1
 #define TODO_COMPLETE 2
       return ParametersPtr();
     }
 
     //-------------------------------------------------------------------------
-    IDTLSTransportTypes::ParametersPtr DTLSTransport::getRemoteParameters() const
-    {
-      AutoRecursiveLock lock(*this);
-#define TODO_COMPLETE 1
-#define TODO_COMPLETE 2
-      return ParametersPtr();
-    }
-
-    //-------------------------------------------------------------------------
-    IDTLSTransportTypes::SecureByteBlockListPtr DTLSTransport::getRemoteCertificates() const
-    {
-      AutoRecursiveLock lock(*this);
-#define TODO_COMPLETE 1
-#define TODO_COMPLETE 2
-      return SecureByteBlockListPtr();
-    }
-
-    //-------------------------------------------------------------------------
-    void DTLSTransport::start(const Parameters &remoteParameters) throw (
-                                                                         InvalidStateError,
-                                                                         InvalidParameters
-                                                                         )
-    {
-      AutoRecursiveLock lock(*this);
-#define TODO_COMPLETE 1
-#define TODO_COMPLETE 2
-    }
-
-    //-------------------------------------------------------------------------
-    void DTLSTransport::stop()
+    void SRTPSDESTransport::stop()
     {
       AutoRecursiveLock lock(*this);
 #define TODO_COMPLETE 1
@@ -260,11 +224,11 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark DTLSTransport => IDTLSTransportForRTPSender
+    #pragma mark SRTPSDESTransport => ISRTPSDESTransportForRTPSender
     #pragma mark
 
     //-------------------------------------------------------------------------
-    bool DTLSTransport::sendPacket(
+    bool SRTPSDESTransport::sendPacket(
                                    const BYTE *buffer,
                                    size_t bufferLengthInBytes
                                    )
@@ -296,15 +260,15 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark DTLSTransport => IDTLSTransportForICETransport
+    #pragma mark SRTPSDESTransport => ISRTPSDESTransportForICETransport
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void DTLSTransport::handleReceivedPacket(
-                                             IICETypes::Components viaComponent,
-                                             const BYTE *buffer,
-                                             size_t bufferLengthInBytes
-                                             )
+    void SRTPSDESTransport::handleReceivedPacket(
+                                                 IICETypes::Components viaComponent,
+                                                 const BYTE *buffer,
+                                                 size_t bufferLengthInBytes
+                                                 )
     {
       ZS_LOG_TRACE(log("handle receive packet") + ZS_PARAM("length", bufferLengthInBytes))
 
@@ -323,11 +287,11 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark DTLSTransport => IWakeDelegate
+    #pragma mark SRTPSDESTransport => IWakeDelegate
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void DTLSTransport::onWake()
+    void SRTPSDESTransport::onWake()
     {
       ZS_LOG_DEBUG(log("wake"))
 
@@ -340,11 +304,11 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark DTLSTransport => IICETransportDelegate
+    #pragma mark SRTPSDESTransport => IICETransportDelegate
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void DTLSTransport::onICETransportStateChanged(
+    void SRTPSDESTransport::onICETransportStateChanged(
                                                    IICETransportPtr transport,
                                                    IICETransport::States state
                                                    )
@@ -354,7 +318,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void DTLSTransport::onICETransportCandidatePairAvailable(
+    void SRTPSDESTransport::onICETransportCandidatePairAvailable(
                                                              IICETransportPtr transport,
                                                              CandidatePairPtr candidatePair
                                                              )
@@ -364,7 +328,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void DTLSTransport::onICETransportCandidatePairGone(
+    void SRTPSDESTransport::onICETransportCandidatePairGone(
                                                         IICETransportPtr transport,
                                                         CandidatePairPtr candidatePair
                                                         )
@@ -374,7 +338,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void DTLSTransport::onICETransportCandidatePairChanged(
+    void SRTPSDESTransport::onICETransportCandidatePairChanged(
                                                            IICETransportPtr transport,
                                                            CandidatePairPtr candidatePair
                                                            )
@@ -388,27 +352,27 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark DTLSTransport => (internal)
+    #pragma mark SRTPSDESTransport => (internal)
     #pragma mark
 
     //-------------------------------------------------------------------------
-    Log::Params DTLSTransport::log(const char *message) const
+    Log::Params SRTPSDESTransport::log(const char *message) const
     {
-      ElementPtr objectEl = Element::create("ortc::DTLSTransport");
+      ElementPtr objectEl = Element::create("ortc::SRTPSDESTransport");
       UseServicesHelper::debugAppend(objectEl, "id", mID);
       return Log::Params(message, objectEl);
     }
 
     //-------------------------------------------------------------------------
-    Log::Params DTLSTransport::debug(const char *message) const
+    Log::Params SRTPSDESTransport::debug(const char *message) const
     {
       return Log::Params(message, toDebug());
     }
 
     //-------------------------------------------------------------------------
-    ElementPtr DTLSTransport::toDebug() const
+    ElementPtr SRTPSDESTransport::toDebug() const
     {
-      ElementPtr resultEl = Element::create("ortc::DTLSTransport");
+      ElementPtr resultEl = Element::create("ortc::SRTPSDESTransport");
 
       UseServicesHelper::debugAppend(resultEl, "id", mID);
 
@@ -416,8 +380,6 @@ namespace ortc
 
       UseServicesHelper::debugAppend(resultEl, "subscribers", mSubscriptions.size());
       UseServicesHelper::debugAppend(resultEl, "default subscription", (bool)mDefaultSubscription);
-
-      UseServicesHelper::debugAppend(resultEl, "state", IDTLSTransport::toString(mCurrentState));
 
       UseServicesHelper::debugAppend(resultEl, "error", mLastError);
       UseServicesHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
@@ -428,20 +390,23 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool DTLSTransport::isShuttingDown() const
+    bool SRTPSDESTransport::isShuttingDown() const
     {
       return (bool)mGracefulShutdownReference;
     }
 
     //-------------------------------------------------------------------------
-    bool DTLSTransport::isShutdown() const
+    bool SRTPSDESTransport::isShutdown() const
     {
       if (mGracefulShutdownReference) return false;
-      return State_Closed == mCurrentState;
+//      return State_Closed == mCurrentState;
+#define TODO 1
+#define TODO 2
+      return true;
     }
 
     //-------------------------------------------------------------------------
-    void DTLSTransport::step()
+    void SRTPSDESTransport::step()
     {
       ZS_LOG_DEBUG(debug("step"))
 
@@ -457,7 +422,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void DTLSTransport::cancel()
+    void SRTPSDESTransport::cancel()
     {
       //.......................................................................
       // try to gracefully shutdown
@@ -472,29 +437,15 @@ namespace ortc
       //.......................................................................
       // final cleanup
 
-      setState(State_Closed);
+#define TODO 1
+#define TODO 2
 
       // make sure to cleanup any final reference to self
       mGracefulShutdownReference.reset();
     }
 
     //-------------------------------------------------------------------------
-    void DTLSTransport::setState(IDTLSTransportTypes::States state)
-    {
-      if (state == mCurrentState) return;
-
-      ZS_LOG_DETAIL(debug("state changed") + ZS_PARAM("old state", IDTLSTransport::toString(mCurrentState)) + ZS_PARAM("new state", state))
-
-      mCurrentState = state;
-
-      DTLSTransportPtr pThis = mThisWeak.lock();
-      if (pThis) {
-        mSubscriptions.delegate()->onDTLSTransportStateChanged(pThis, mCurrentState);
-      }
-    }
-
-    //-------------------------------------------------------------------------
-    void DTLSTransport::setError(WORD errorCode, const char *inReason)
+    void SRTPSDESTransport::setError(WORD errorCode, const char *inReason)
     {
       String reason(inReason);
       if (reason.isEmpty()) {
@@ -517,23 +468,25 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IDTLSTransportFactory
+    #pragma mark ISRTPSDESTransportFactory
     #pragma mark
 
     //-------------------------------------------------------------------------
-    IDTLSTransportFactory &IDTLSTransportFactory::singleton()
+    ISRTPSDESTransportFactory &ISRTPSDESTransportFactory::singleton()
     {
-      return DTLSTransportFactory::singleton();
+      return SRTPSDESTransportFactory::singleton();
     }
 
     //-------------------------------------------------------------------------
-    DTLSTransportPtr IDTLSTransportFactory::create(
-                                                   IDTLSTransportDelegatePtr delegate,
-                                                   IICETransportPtr iceTransport
-                                                   )
+    SRTPSDESTransportPtr ISRTPSDESTransportFactory::create(
+                                                           ISRTPSDESTransportDelegatePtr delegate,
+                                                           IICETransportPtr iceTransport,
+                                                           const CryptoParameters &encryptParameters,
+                                                           const CryptoParameters &decryptParameters
+                                                           )
     {
       if (this) {}
-      return internal::DTLSTransport::create(delegate, iceTransport);
+      return internal::SRTPSDESTransport::create(delegate, iceTransport, encryptParameters, decryptParameters);
     }
 
   }
@@ -543,140 +496,82 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   #pragma mark
-  #pragma mark IDTLSTransportTypes
+  #pragma mark ISRTPSDESTransportTypes
   #pragma mark
 
-  //---------------------------------------------------------------------------
-  const char *IDTLSTransportTypes::toString(States state)
-  {
-    switch (state) {
-      case State_New:           return "new";
-      case State_Connecting:    return "connecting";
-      case State_Connected:     return "connected";
-      case State_Validated:     return "validated";
-      case State_Closed:        return "closed";
-    }
-    return "UNDEFINED";
-  }
-
-
-  //---------------------------------------------------------------------------
-  IDTLSTransportTypes::States IDTLSTransportTypes::toState(const char *state)
-  {
-    static States states[] = {
-      State_New,
-      State_Connecting,
-      State_Connected,
-      State_Validated,
-      State_Closed,
-    };
-
-    String compareStr(state);
-    for (size_t loop = 0; loop < (sizeof(states) / sizeof(states[0])); ++loop) {
-      if (compareStr == toString(states[loop])) return states[loop];
-    }
-
-    ORTC_THROW_INVALID_PARAMETERS("Invalid parameter value: " + compareStr)
-    return State_Closed;
-  }
-
-  //---------------------------------------------------------------------------
-  const char *IDTLSTransportTypes::toString(Roles state)
-  {
-    switch (state) {
-      case Role_Auto:      return "auto";
-      case Role_Client:    return "client";
-      case Role_Server:    return "server";
-    }
-    return "UNDEFINED";
-  }
-
-
-  //---------------------------------------------------------------------------
-  IDTLSTransportTypes::Roles IDTLSTransportTypes::toRole(const char *role)
-  {
-    static Roles roles[] = {
-      Role_Auto,
-      Role_Client,
-      Role_Server,
-    };
-
-    String compareStr(role);
-    for (size_t loop = 0; loop < (sizeof(roles) / sizeof(roles[0])); ++loop) {
-      if (compareStr == toString(roles[loop])) return roles[loop];
-    }
-
-    ORTC_THROW_INVALID_PARAMETERS("Invalid parameter value: " + compareStr)
-    return Role_Auto;
-  }
-  
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   #pragma mark
-  #pragma mark IDTLSTransportTypes::Parameters
+  #pragma mark ISRTPSDESTransportTypes::CryptoParameters
   #pragma mark
 
   //---------------------------------------------------------------------------
-  ElementPtr IDTLSTransportTypes::Parameters::toDebug() const
+  ElementPtr ISRTPSDESTransportTypes::CryptoParameters::toDebug() const
   {
-    ElementPtr resultEl = Element::create("ortc::IDTLSTransportTypes::Parameters");
+    ElementPtr resultEl = Element::create("ortc::ISRTPSDESTransportTypes::CryptoParameters");
 
-    UseServicesHelper::debugAppend(resultEl, "role", toString(mRole));
-    UseServicesHelper::debugAppend(resultEl, "fingerprints", mFingerprints.size());
+    UseServicesHelper::debugAppend(resultEl, "tag", mTag);
+    UseServicesHelper::debugAppend(resultEl, "crypto suite", mCryptoSuite);
+
+    {
+      ElementPtr listEl = Element::create("keyParams");
+
+      for (auto iter = mKeyParams.begin(); iter != mKeyParams.end(); ++iter) {
+        auto keyParam = (*iter);
+        ElementPtr keyParamEl = keyParam.toDebug();
+        UseServicesHelper::debugAppend(listEl, keyParamEl);
+      }
+      UseServicesHelper::debugAppend(resultEl, listEl);
+    }
+
+    {
+      ElementPtr listEl = Element::create("sessionParams");
+
+      for (auto iter = mSessionParams.begin(); iter != mSessionParams.end(); ++iter) {
+        auto sessionParam = (*iter);
+        UseServicesHelper::debugAppend(listEl, "param", sessionParam);
+      }
+      UseServicesHelper::debugAppend(resultEl, listEl);
+    }
 
     return resultEl;
   }
 
   //---------------------------------------------------------------------------
-  String IDTLSTransportTypes::Parameters::hash() const
+  String ISRTPSDESTransportTypes::CryptoParameters::hash() const
   {
     SHA1Hasher hasher;
 
-    hasher.update("IDTLSTransportTypes:Parameters:");
-    hasher.update(toString(mRole));
+    hasher.update("ISRTPSDESTransportTypes:CryptoParameters:");
 
-    for (auto iter = mFingerprints.begin(); iter != mFingerprints.end(); ++iter) {
-      auto fingerprint = (*iter);
-
-      hasher.update(":");
-      hasher.update(fingerprint.mAlgorithm);
-      hasher.update(":");
-      hasher.update(fingerprint.mValue);
-    }
-
-    return hasher.final();
-  }
-
-  //---------------------------------------------------------------------------
-  //---------------------------------------------------------------------------
-  //---------------------------------------------------------------------------
-  //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IDTLSTransportTypes::Fingerprint
-  #pragma mark
-
-  //---------------------------------------------------------------------------
-  ElementPtr IDTLSTransportTypes::Fingerprint::toDebug() const
-  {
-    ElementPtr resultEl = Element::create("ortc::IDTLSTransportTypes::Fingerprint");
-
-    UseServicesHelper::debugAppend(resultEl, "algorithm", mAlgorithm);
-    UseServicesHelper::debugAppend(resultEl, "value", mValue);
-
-    return resultEl;
-  }
-
-  //---------------------------------------------------------------------------
-  String IDTLSTransportTypes::Fingerprint::hash() const
-  {
-    SHA1Hasher hasher;
-
-    hasher.update("IDTLSTransportTypes:Fingerprint:");
-    hasher.update(mAlgorithm);
+    hasher.update(string(mTag));
     hasher.update(":");
-    hasher.update(mValue);
+    hasher.update(mCryptoSuite);
+
+    hasher.update(":keyParams");
+
+    {
+      for (auto iter = mKeyParams.begin(); iter != mKeyParams.end(); ++iter) {
+        auto keyParam = (*iter);
+        auto hash = keyParam.hash();
+        hasher.update(":");
+        hasher.update(hash);
+      }
+    }
+
+    hasher.update(":sessionParams");
+
+    {
+      ElementPtr listEl = Element::create("sessionParams");
+
+      for (auto iter = mSessionParams.begin(); iter != mSessionParams.end(); ++iter) {
+        auto sessionParam = (*iter);
+        hasher.update(":");
+        hasher.update(sessionParam);
+      }
+    }
 
     return hasher.final();
   }
@@ -686,22 +581,67 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   #pragma mark
-  #pragma mark IDTLSTransport
+  #pragma mark ISRTPSDESTransportTypes::Parameters
   #pragma mark
 
   //---------------------------------------------------------------------------
-  ElementPtr IDTLSTransport::toDebug(IDTLSTransportPtr transport)
+  ElementPtr ISRTPSDESTransportTypes::Parameters::toDebug() const
   {
-    return internal::DTLSTransport::toDebug(internal::DTLSTransport::convert(transport));
+    ElementPtr resultEl = Element::create("ortc::ISRTPSDESTransportTypes::Parameters");
+
+    {
+      for (auto iter = mCryptoParams.begin(); iter != mCryptoParams.end(); ++iter) {
+        auto cryptoParam = (*iter);
+        ElementPtr cryptoParamEl = cryptoParam.toDebug();
+        UseServicesHelper::debugAppend(resultEl, cryptoParamEl);
+      }
+    }
+
+    return resultEl;
   }
 
   //---------------------------------------------------------------------------
-  IDTLSTransportPtr IDTLSTransport::create(
-                                           IDTLSTransportDelegatePtr delegate,
-                                           IICETransportPtr iceTransport
-                                           )
+  String ISRTPSDESTransportTypes::Parameters::hash() const
   {
-    return internal::IDTLSTransportFactory::singleton().create(delegate, iceTransport);
+    SHA1Hasher hasher;
+
+    hasher.update("ISRTPSDESTransportTypes:Parameters:");
+
+    {
+      for (auto iter = mCryptoParams.begin(); iter != mCryptoParams.end(); ++iter) {
+        auto cryptoParam = (*iter);
+        auto hash = cryptoParam.hash();
+        hasher.update(":");
+        hasher.update(hash);
+      }
+    }
+
+    return hasher.final();
+  }
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark ISRTPSDESTransport
+  #pragma mark
+
+  //---------------------------------------------------------------------------
+  ElementPtr ISRTPSDESTransport::toDebug(ISRTPSDESTransportPtr transport)
+  {
+    return internal::SRTPSDESTransport::toDebug(internal::SRTPSDESTransport::convert(transport));
+  }
+
+  //---------------------------------------------------------------------------
+  ISRTPSDESTransportPtr ISRTPSDESTransport::create(
+                                                   ISRTPSDESTransportDelegatePtr delegate,
+                                                   IICETransportPtr iceTransport,
+                                                   const CryptoParameters &encryptParameters,
+                                                   const CryptoParameters &decryptParameters
+                                                   )
+  {
+    return internal::ISRTPSDESTransportFactory::singleton().create(delegate, iceTransport, encryptParameters, decryptParameters);
   }
 
 

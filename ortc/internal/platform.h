@@ -90,12 +90,18 @@
 
 #ifdef __APPLE__
 
+#include <TargetConditionals.h>
+
 // Mac / iOS support these features
 #define HAVE_SYS_TYPES_H 1
 #define HAVE_IFADDRS_H 1
 #define HAVE_GETIFADDRS 1
 #define HAVE_NET_IF_H 1
+#if TARGET_OS_IPHONE
+// iphone OS
+#else
 #define HAVE_NETINIT6_IN6_VAR_H 1
+#endif //defined(TARGET_OS_IPHONE) || defined(TARGET_IPHONE_SIMULATOR)
 
 #endif //__APPPLE__
 

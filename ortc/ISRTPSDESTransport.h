@@ -53,27 +53,43 @@ namespace ortc
     typedef String SessionParam;
 
     ZS_DECLARE_STRUCT_PTR(Parameters)
+    ZS_DECLARE_STRUCT_PTR(CryptoParameters)
     ZS_DECLARE_STRUCT_PTR(KeyParameters)
 
-    ZS_DECLARE_TYPEDEF_PTR(std::list<Parameters>, ParametersList)
+    ZS_DECLARE_TYPEDEF_PTR(std::list<CryptoParameters>, CryptoParametersList)
     ZS_DECLARE_TYPEDEF_PTR(std::list<KeyParameters>, KeyParametersList)
     ZS_DECLARE_TYPEDEF_PTR(std::list<SessionParam>, SessionParamList)
 
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark ISRTPSDESTransportTypes
+    #pragma mark CryptoParameters
     #pragma mark
 
-    struct Parameters {
+    struct CryptoParameters {
       WORD              mTag {};
       String            mCryptoSuite;
       KeyParametersList mKeyParams;
-      SessionParamList  mSessionParam;
+      SessionParamList  mSessionParams;
+
+      ElementPtr toDebug() const;
+      String hash() const;
     };
 
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark ISRTPSDESTransportTypes
+    #pragma mark Parameters
+    #pragma mark
+
+    struct Parameters {
+      CryptoParametersList mCryptoParams;
+
+      ElementPtr toDebug() const;
+      String hash() const;
+    };
+
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark KeyParameters
     #pragma mark
 
     struct KeyParameters {
@@ -82,6 +98,9 @@ namespace ortc
       String  mLifetime;
       WORD    mMKIValue {};
       WORD    mMKILength {};
+
+      ElementPtr toDebug() const;
+      String hash() const;
     };
   };
 
@@ -102,17 +121,17 @@ namespace ortc
     static ISRTPSDESTransportPtr create(
                                         ISRTPSDESTransportDelegatePtr delegate,
                                         IICETransportPtr iceTransport,
-                                        const Parameters &encryptParameters,
-                                        const Parameters &decryptParameters
+                                        const CryptoParameters &encryptParameters,
+                                        const CryptoParameters &decryptParameters
                                         );
 
     virtual PUID getID() const = 0;
 
-    virtual ISRTPSDESTransportPtr subscribe(ISRTPSDESTransportDelegatePtr delegate) = 0;
+    virtual ISRTPSDESTransportSubscriptionPtr subscribe(ISRTPSDESTransportDelegatePtr delegate) = 0;
 
     virtual IICETransportPtr transport() const = 0;
 
-    static ParametersListPtr getLocalParameters();
+    static ParametersPtr getLocalParameters();
 
     virtual void stop() = 0;
   };

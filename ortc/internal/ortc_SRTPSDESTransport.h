@@ -33,8 +33,9 @@
 
 #include <ortc/internal/types.h>
 
-#include <ortc/IDTLSTransport.h>
+#include <ortc/ISRTPSDESTransport.h>
 #include <ortc/IICETransport.h>
+
 #include <ortc/internal/ortc_ISecureTransport.h>
 
 #include <openpeer/services/IWakeDelegate.h>
@@ -51,34 +52,40 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark DTLSTransport
+    #pragma mark SRTPSDESTransport
     #pragma mark
     
-    class DTLSTransport : public Noop,
+    class SRTPSDESTransport : public Noop,
                           public MessageQueueAssociator,
                           public SharedRecursiveLock,
-                          public IDTLSTransport,
+                          public ISRTPSDESTransport,
                           public ISecureTransportForRTPSender,
                           public ISecureTransportForICETransport,
                           public IWakeDelegate,
                           public IICETransportDelegate
     {
     public:
-      friend interaction IDTLSTransport;
-      friend interaction IDTLSTransportFactory;
+      friend interaction ISRTPSDESTransport;
+      friend interaction ISRTPSDESTransportFactory;
       friend interaction ISecureTransportForRTPSender;
       friend interaction ISecureTransportForICETransport;
 
       ZS_DECLARE_TYPEDEF_PTR(IICETransportForRTPTransport, UseICETransport)
 
-    protected:
-      DTLSTransport(
-                    IMessageQueuePtr queue,
-                    IDTLSTransportDelegatePtr delegate,
-                    IICETransportPtr iceTransport
-                    );
+      enum State
+      {
+      };
 
-      DTLSTransport(Noop) :
+    protected:
+      SRTPSDESTransport(
+                        IMessageQueuePtr queue,
+                        ISRTPSDESTransportDelegatePtr delegate,
+                        IICETransportPtr iceTransport,
+                        const CryptoParameters &encryptParameters,
+                        const CryptoParameters &decryptParameters
+                        );
+
+      SRTPSDESTransport(Noop) :
         Noop(true),
         MessageQueueAssociator(IMessageQueuePtr()),
         SharedRecursiveLock(SharedRecursiveLock::create())
@@ -87,55 +94,47 @@ namespace ortc
       void init();
 
     public:
-      virtual ~DTLSTransport();
+      virtual ~SRTPSDESTransport();
 
-      static DTLSTransportPtr convert(IDTLSTransportPtr object);
-      static DTLSTransportPtr convert(ForRTPSenderPtr object);
-      static DTLSTransportPtr convert(ForICETransportPtr object);
+      static SRTPSDESTransportPtr convert(ISRTPSDESTransportPtr object);
+      static SRTPSDESTransportPtr convert(ForRTPSenderPtr object);
+      static SRTPSDESTransportPtr convert(ForICETransportPtr object);
 
     protected:
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark DTLSTransport => IStatsProvider
+      #pragma mark SRTPSDESTransport => IStatsProvider
       #pragma mark
 
       virtual PromiseWithStatsReportPtr getStats() const throw(InvalidStateError);
 
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark DTLSTransport => IDTLSTransport
+      #pragma mark SRTPSDESTransport => ISRTPSDESTransport
       #pragma mark
 
-      static ElementPtr toDebug(DTLSTransportPtr transport);
+      static ElementPtr toDebug(SRTPSDESTransportPtr transport);
 
-      static DTLSTransportPtr create(
-                                      IDTLSTransportDelegatePtr delegate,
-                                      IICETransportPtr iceTransport
-                                      );
+      static SRTPSDESTransportPtr create(
+                                         ISRTPSDESTransportDelegatePtr delegate,
+                                         IICETransportPtr iceTransport,
+                                         const CryptoParameters &encryptParameters,
+                                         const CryptoParameters &decryptParameters
+                                         );
 
-      virtual PUID getID() const override;
+      virtual PUID getID() const;
 
-      virtual IDTLSTransportSubscriptionPtr subscribe(IDTLSTransportDelegatePtr delegate) override;
+      virtual ISRTPSDESTransportSubscriptionPtr subscribe(ISRTPSDESTransportDelegatePtr delegate);
 
-      virtual IICETransportPtr transport() const override;
+      virtual IICETransportPtr transport() const;
 
-      virtual States getState() const override;
+      static ParametersPtr getLocalParameters();
 
-      virtual ParametersPtr getLocalParameters() const override;
-      virtual ParametersPtr getRemoteParameters() const override;
-
-      virtual SecureByteBlockListPtr getRemoteCertificates() const override;
-
-      virtual void start(const Parameters &remoteParameters) throw (
-                                                                    InvalidStateError,
-                                                                    InvalidParameters
-                                                                    ) override;
-
-      virtual void stop() override;
+      virtual void stop();
 
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark DTLSTransport => IDTLSTransportForRTPSender
+      #pragma mark SRTPSDESTransport => ISRTPSDESTransportForRTPSender
       #pragma mark
 
       // (duplicate) virtual PUID getID() const;
@@ -147,7 +146,7 @@ namespace ortc
 
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark DTLSTransport => IDTLSTransportForICETransport
+      #pragma mark SRTPSDESTransport => ISRTPSDESTransportForICETransport
       #pragma mark
 
       // (duplicate) virtual PUID getID() const;
@@ -160,14 +159,14 @@ namespace ortc
 
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark DTLSTransport => IWakeDelegate
+      #pragma mark SRTPSDESTransport => IWakeDelegate
       #pragma mark
 
       virtual void onWake() override;
 
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark DTLSTransport => IICETransportDelegate
+      #pragma mark SRTPSDESTransport => IICETransportDelegate
       #pragma mark
 
       virtual void onICETransportStateChanged(
@@ -191,7 +190,7 @@ namespace ortc
     protected:
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark DTLSTransport => (internal)
+      #pragma mark SRTPSDESTransport => (internal)
       #pragma mark
 
       Log::Params log(const char *message) const;
@@ -205,23 +204,20 @@ namespace ortc
 
       void cancel();
 
-      void setState(IDTLSTransportTypes::States state);
       void setError(WORD error, const char *reason = NULL);
 
     protected:
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark DTLSTransport => (data)
+      #pragma mark SRTPSDESTransport => (data)
       #pragma mark
 
       AutoPUID mID;
-      DTLSTransportWeakPtr mThisWeak;
-      DTLSTransportPtr mGracefulShutdownReference;
+      SRTPSDESTransportWeakPtr mThisWeak;
+      SRTPSDESTransportPtr mGracefulShutdownReference;
 
-      IDTLSTransportDelegateSubscriptions mSubscriptions;
-      IDTLSTransportSubscriptionPtr mDefaultSubscription;
-
-      IDTLSTransportTypes::States mCurrentState {IDTLSTransportTypes::State_New};
+      ISRTPSDESTransportDelegateSubscriptions mSubscriptions;
+      ISRTPSDESTransportSubscriptionPtr mDefaultSubscription;
 
       WORD mLastError {};
       String mLastErrorReason;
@@ -234,19 +230,23 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IDTLSTransportFactory
+    #pragma mark ISRTPSDESTransportFactory
     #pragma mark
 
-    interaction IDTLSTransportFactory
+    interaction ISRTPSDESTransportFactory
     {
-      static IDTLSTransportFactory &singleton();
+      typedef ISRTPSDESTransportTypes::CryptoParameters CryptoParameters;
 
-      virtual DTLSTransportPtr create(
-                                      IDTLSTransportDelegatePtr delegate,
-                                      IICETransportPtr iceTransport
-                                      );
+      static ISRTPSDESTransportFactory &singleton();
+
+      virtual SRTPSDESTransportPtr create(
+                                          ISRTPSDESTransportDelegatePtr delegate,
+                                          IICETransportPtr iceTransport,
+                                          const CryptoParameters &encryptParameters,
+                                          const CryptoParameters &decryptParameters
+                                          );
     };
 
-    class DTLSTransportFactory : public IFactory<IDTLSTransportFactory> {};
+    class SRTPSDESTransportFactory : public IFactory<ISRTPSDESTransportFactory> {};
   }
 }
