@@ -64,7 +64,8 @@
 #define ORTC_SETTING_GATHERER_CREATE_TCP_CANDIDATES  "ortc/gatherer/create-tcp-candidates"
 #define ORTC_SETTING_GATHERER_BIND_BACK_OFF_TIMER  "ortc/gatherer/bind-back-off-timer"
 
-#define ORTC_SETTING_GATHERER_DEFAULT_CANDIDATES_WARM_UNTIL_IN_SECONDS "ortc/gatherer/default-candidates-warm-until-in-seconds"
+#define ORTC_SETTING_GATHERER_WARM_UP_TIME_AFTER_NEW_INTERFACE_IN_SECONDS "ortc/gatherer/warm-up-time-after-new-interface-in-seconds"
+
 #define ORTC_SETTING_GATHERER_DEFAULT_STUN_KEEP_ALIVE_IN_SECONDS "ortc/gatherer/default-stun-keep-alive-in-seconds"
 
 #define ORTC_SETTING_GATHERER_RELAY_INACTIVITY_TIMEOUT_IN_SECONDS "ortc/gatherer/relay-inactivity-timeout-in-seconds"
@@ -867,7 +868,6 @@ namespace ortc
       bool stepBindHostPorts();
       bool stepCheckTransportsNeedWarmth();
       bool stepWarmUpAfterInterfaceBinding();
-      bool stepWarmth();
       bool stepSetupReflexive();
       bool stepTearDownReflexive();
       bool stepSetupRelay();
@@ -923,6 +923,7 @@ namespace ortc
                                    HostIPSorter::DataPtr hostData,
                                    IICETypes::CandidateTypes candidateType,
                                    const IPAddress &baseIP,
+                                   const IPAddress &relatedIP,
                                    const IPAddress &boundIP,
                                    const Server &server
                                    );
@@ -1047,7 +1048,6 @@ namespace ortc
       String mLastBoundHostPortsHostHash;
       String mLastReflexiveHostsHash;
       String mLastRelayHostsHash;
-      String mLastCandidatesWarmUntilOptionsHash;
 
       IPToHostPortMap mHostPorts;
       SocketToHostPortMap mHostPortSockets;
@@ -1069,8 +1069,7 @@ namespace ortc
       CandidateMap mNotifiedCandidates;
       CandidateMap mLocalCandidates;
 
-      Time mWarmUntil;  // keep candidates warm until this time
-      TimerPtr mWarmUntilTimer;
+      bool mKeepWarmSinceJustCreated {true};
 
       String mWarmUpAfterNewInterfaceBindingHostsHash;
       Time mWarmUpAfterNewInterfaceBindingUntil;

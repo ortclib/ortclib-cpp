@@ -313,6 +313,8 @@ namespace ortc
       UseSettings::setBool(ORTC_SETTING_GATHERER_CREATE_TCP_CANDIDATES, true);
       UseSettings::setString(ORTC_SETTING_GATHERER_BIND_BACK_OFF_TIMER, "/1,1,*2:120//5/");
 
+      UseSettings::setUInt(ORTC_SETTING_GATHERER_WARM_UP_TIME_AFTER_NEW_INTERFACE_IN_SECONDS, 30);
+
       {
         ICEGatherer::Preference pref(ICEGatherer::PreferenceType_Priority);
         pref.save();
@@ -322,7 +324,6 @@ namespace ortc
         pref.save();
       }
 
-      UseSettings::setUInt(ORTC_SETTING_GATHERER_DEFAULT_CANDIDATES_WARM_UNTIL_IN_SECONDS, 60);
       UseSettings::setUInt(ORTC_SETTING_GATHERER_DEFAULT_STUN_KEEP_ALIVE_IN_SECONDS, 30);
 
       UseSettings::setUInt(ORTC_SETTING_GATHERER_RELAY_INACTIVITY_TIMEOUT_IN_SECONDS, 120);
@@ -396,7 +397,7 @@ namespace ortc
         case InterfaceType_LAN:       return "lan";
         case InterfaceType_Tunnel:    return "tunnel";
         case InterfaceType_WLAN:      return "wlan";
-        case InterfaceType_WWAN:      return "wlan";
+        case InterfaceType_WWAN:      return "wwan";
         case InterfaceType_VPN:       return "vpn";
       }
       return "unknown";
@@ -486,7 +487,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     ICEGatherer::ICEGatherer(
                              IMessageQueuePtr queue,
-                             IICEGathererDelegatePtr delegate,
+                             IICEGathererDelegatePtr originalDelegate,
                              const Options &options
                              ) :
       SharedRecursiveLock(SharedRecursiveLock::create()),
@@ -530,6 +531,10 @@ namespace ortc
       if (0 != recheckIPsInSeconds) {
         mRecheckIPsDuration = Seconds(recheckIPsInSeconds);
       }
+
+      if (originalDelegate) {
+        mDefaultSubscription = mSubscriptions.subscribe(IICEGathererDelegateProxy::create(IORTCForInternal::queueDelegate(), originalDelegate), queue);
+      }
     }
 
     //-------------------------------------------------------------------------
@@ -546,6 +551,9 @@ namespace ortc
 
         ZS_LOG_DETAIL(log("setting up timer to clean unsed routes") + ZS_PARAM("clean duration (s)", mCleanUnusedRoutesDuration) + ZS_PARAM("timer", mCleanUnusedRoutesTimer->getID()))
       }
+
+      // kick start the process
+      IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
     }
 
     //-------------------------------------------------------------------------
@@ -743,7 +751,6 @@ namespace ortc
       mLastBoundHostPortsHostHash.clear();
       mLastReflexiveHostsHash.clear();
       mLastRelayHostsHash.clear();
-      mLastCandidatesWarmUntilOptionsHash.clear();
 
       if (mBindBackOffTimer) {
         mBindBackOffTimer->cancel();
@@ -796,8 +803,15 @@ namespace ortc
           return;
         }
 
+        if (mKeepWarmSinceJustCreated) {
+          // no longer kept warm after creation since now a transport is being installed
+          mKeepWarmSinceJustCreated = false;
+          mLastReflexiveHostsHash.clear();
+          mLastRelayHostsHash.clear();
+        }
+
         // scope: check to see if a transport already existed with this remote ufrag (and if it does, remove it)
-        if (String() != remoteUFrag) {
+        if (remoteUFrag.hasData()) {
           auto found = mInstalledTransports.find(remoteUFrag);
           if (found != mInstalledTransports.end()) {
             auto previousInstalledTransport = (*found).second;
@@ -816,7 +830,7 @@ namespace ortc
         installedTransport->mTransportID = transport->getID();
         installedTransport->mTransport = transport;
 
-        if (String() == remoteUFrag) {
+        if (remoteUFrag.isEmpty()) {
           ZS_LOG_DEBUG(log("transport is added in a pending state") + installedTransport->toDebug())
           mPendingTransports.push_back(installedTransport);
           goto transport_installed;
@@ -1319,13 +1333,6 @@ namespace ortc
 
       ZS_LOG_TRACE(log("on timer fired") + ZS_PARAM("timer", timer->getID()))
       AutoRecursiveLock lock(*this);
-
-      if (mWarmUntilTimer == timer) {
-        ZS_LOG_DEBUG(log("warm until timer fired"))
-
-        step();
-        return;
-      }
 
       if (mWarmUpAterNewInterfaceBindingTimer == timer) {
         ZS_LOG_DEBUG(log("no longer need to keep warm after interface binding"))
@@ -1899,7 +1906,6 @@ namespace ortc
       UseServicesHelper::debugAppend(resultEl, "last bound host ports host hash", mLastBoundHostPortsHostHash);
       UseServicesHelper::debugAppend(resultEl, "last reflexive host hash", mLastReflexiveHostsHash);
       UseServicesHelper::debugAppend(resultEl, "last relay host hash", mLastRelayHostsHash);
-      UseServicesHelper::debugAppend(resultEl, "last candidates warm until options hash", mLastCandidatesWarmUntilOptionsHash);
 
       UseServicesHelper::debugAppend(resultEl, "host ports", mHostPorts.size());
       UseServicesHelper::debugAppend(resultEl, "host port sockets", mHostPortSockets.size());
@@ -1921,8 +1927,7 @@ namespace ortc
       UseServicesHelper::debugAppend(resultEl, "notified candidates", mNotifiedCandidates.size());
       UseServicesHelper::debugAppend(resultEl, "local candidates", mLocalCandidates.size());
 
-      UseServicesHelper::debugAppend(resultEl, "warm until", mWarmUntil);
-      UseServicesHelper::debugAppend(resultEl, "warm until timer", mWarmUntilTimer ? mWarmUntilTimer->getID() : 0);
+      UseServicesHelper::debugAppend(resultEl, "keep warm since just created", mKeepWarmSinceJustCreated);
 
       UseServicesHelper::debugAppend(resultEl, "warm up after new interface binding hosts hash", mWarmUpAfterNewInterfaceBindingHostsHash);
       UseServicesHelper::debugAppend(resultEl, "warm up after new interface binding until", mWarmUpAfterNewInterfaceBindingUntil);
@@ -1994,7 +1999,6 @@ namespace ortc
       if (!stepBindHostPorts()) goto not_complete;
       if (!stepCheckTransportsNeedWarmth()) goto not_complete;
       if (!stepWarmUpAfterInterfaceBinding()) goto not_complete;
-      if (!stepWarmth()) goto not_complete;
       if (!stepSetupReflexive()) goto not_complete;
       if (!stepTearDownReflexive()) goto not_complete;
       if (!stepSetupRelay()) goto not_complete;
@@ -2896,75 +2900,11 @@ namespace ortc
 
       mWarmUpAfterNewInterfaceBindingHostsHash = mHostsHash;
 
-      mWarmUpAfterNewInterfaceBindingUntil = zsLib::now() + Seconds(UseSettings::getUInt(ORTC_SETTING_GATHERER_DEFAULT_CANDIDATES_WARM_UNTIL_IN_SECONDS));
+      mWarmUpAfterNewInterfaceBindingUntil = zsLib::now() + Seconds(UseSettings::getUInt(ORTC_SETTING_GATHERER_WARM_UP_TIME_AFTER_NEW_INTERFACE_IN_SECONDS));
 
       mWarmUpAterNewInterfaceBindingTimer = Timer::create(mThisWeak.lock(), mWarmUpAfterNewInterfaceBindingUntil);
 
       // force the reflexive / relay to be setup again (if needed)
-      mLastReflexiveHostsHash.clear();
-      mLastRelayHostsHash.clear();
-
-      return true;
-    }
-
-    //-------------------------------------------------------------------------
-    bool ICEGatherer::stepWarmth()
-    {
-      Time now = zsLib::now();
-      if (Time() != mWarmUntil) {
-        if (mWarmUntil <= now) {
-          ZS_LOG_DEBUG(log("no longer need to keep candidates warm"))
-          mWarmUntil = Time();
-
-          mLastReflexiveHostsHash.clear();
-          mLastRelayHostsHash.clear();
-
-          if (mWarmUntilTimer) {
-            mWarmUntilTimer->cancel();
-            mWarmUntilTimer.reset();
-          }
-        }
-      }
-
-      if (mLastCandidatesWarmUntilOptionsHash == mOptionsHash) {
-        ZS_LOG_TRACE(log("candidates warmth has not change"))
-        return true;
-      }
-
-      Time previousWarmUntil = mWarmUntil;
-
-      mWarmUntil = mOptions.mKeepCandidatesWarmUntil;
-
-      if (Time() == mWarmUntil) {
-        mWarmUntil = now + Seconds(UseSettings::getUInt(ORTC_SETTING_GATHERER_DEFAULT_CANDIDATES_WARM_UNTIL_IN_SECONDS));
-      }
-
-      if (previousWarmUntil == mWarmUntil) {
-        ZS_LOG_DEBUG(log("no change in candidate warmth") + ZS_PARAMIZE(mWarmUntil))
-        return true;
-      }
-
-      if (Time() != mWarmUntil) {
-        if (mWarmUntil <= now) {
-          mWarmUntil = Time();
-        }
-      }
-
-      ZS_LOG_DEBUG(log("candidates are to be kept warm until") + ZS_PARAMIZE(mWarmUntil))
-
-      if (mWarmUntilTimer) {
-        mWarmUntilTimer->cancel();
-        mWarmUntilTimer.reset();
-      }
-
-      if (Time() != mWarmUntil) {
-        mWarmUntilTimer = Timer::create(mThisWeak.lock(), mWarmUntil);
-        ZS_THROW_UNEXPECTED_ERROR_IF(!mWarmUntilTimer)
-        ZS_LOG_DEBUG(log("created timer to keep candidates warm") + ZS_PARAM("timer", mWarmUntilTimer->getID()))
-      }
-
-      mLastCandidatesWarmUntilOptionsHash = mOptionsHash;
-
       mLastReflexiveHostsHash.clear();
       mLastRelayHostsHash.clear();
 
@@ -3125,7 +3065,7 @@ namespace ortc
               continue;
             }
 
-            reflexivePort->mCandidate = createCandidate(hostPort->mHostData, IICETypes::CandidateType_Srflex, hostPort->mBoundUDPIP, ip, server);
+            reflexivePort->mCandidate = createCandidate(hostPort->mHostData, IICETypes::CandidateType_Srflex, hostPort->mBoundUDPIP, hostPort->mBoundUDPIP, ip, server);
 
             ZS_LOG_DEBUG(log("found reflexive candidate") + reflexivePort->mCandidate->toDebug())
             continue;
@@ -3403,17 +3343,15 @@ namespace ortc
               continue;
             }
 
-            relayPort->mRelayCandidate = createCandidate(hostPort->mHostData, IICETypes::CandidateType_Relay, hostPort->mBoundUDPIP, relayIP, server);
-
-            ZS_LOG_DEBUG(log("found relay candidate") + relayPort->mRelayCandidate->toDebug())
-
             IPAddress mappedIP = relayPort->mTURNSocket->getReflectedIP();
             if (mappedIP.isAddressEmpty()) {
               ZS_LOG_WARNING(Debug, log("failed to obtain server relay mapped address") + hostPort->toDebug() + server.toDebug())
               continue;
             }
 
-            relayPort->mReflexiveCandidate = createCandidate(hostPort->mHostData, IICETypes::CandidateType_Srflex, hostPort->mBoundUDPIP, mappedIP, server);
+            relayPort->mRelayCandidate = createCandidate(hostPort->mHostData, IICETypes::CandidateType_Relay, hostPort->mBoundUDPIP, mappedIP, relayIP, server);
+            relayPort->mReflexiveCandidate = createCandidate(hostPort->mHostData, IICETypes::CandidateType_Srflex, hostPort->mBoundUDPIP, hostPort->mBoundUDPIP, mappedIP, server);
+            ZS_LOG_DEBUG(log("found relay candidate") + ZS_PARAM("relay", relayPort->mRelayCandidate->toDebug()) + ZS_PARAM("reflexive", relayPort->mReflexiveCandidate->toDebug()))
             continue;
           }
         }
@@ -3585,11 +3523,6 @@ namespace ortc
         return false;
       }
 
-      if (mOptionsHash != mLastCandidatesWarmUntilOptionsHash) {
-        ZS_LOG_TRACE(log("still waiting for warmth options to be setup"))
-        return false;
-      }
-
       ZS_LOG_TRACE(log("gathering appears to be complete"))
       return true;
     }
@@ -3668,11 +3601,6 @@ namespace ortc
       if (mBindBackOffTimer) {
         mBindBackOffTimer->cancel();
         mBindBackOffTimer.reset();
-      }
-
-      if (mWarmUntilTimer) {
-        mWarmUntilTimer->cancel();
-        mWarmUntilTimer.reset();
       }
 
       if (mWarmUpAterNewInterfaceBindingTimer) {
@@ -4216,12 +4144,14 @@ namespace ortc
     {
       ZS_LOG_DEBUG(log("attempting to bind to IP") + ZS_PARAM("ip", ioBindIP.string()))
 
+      auto createFamily = (ioBindIP.isIPv6() ? Socket::Create::IPv6 : Socket::Create::IPv4);
+
       SocketPtr socket;
 
       try {
         switch (protocol) {
-          case IICETypes::Protocol_UDP: socket = Socket::createUDP();
-          case IICETypes::Protocol_TCP: socket = Socket::createTCP();
+          case IICETypes::Protocol_UDP: socket = Socket::createUDP(createFamily); break;
+          case IICETypes::Protocol_TCP: socket = Socket::createTCP(createFamily); break;
         }
 
         if (0 != mDefaultPort) {
@@ -4271,6 +4201,7 @@ namespace ortc
               goto bind_failure;
             }
           }
+          break;
         }
       }
 
@@ -4346,6 +4277,7 @@ namespace ortc
                                                          HostIPSorter::DataPtr hostData,
                                                          IICETypes::CandidateTypes candidateType,
                                                          const IPAddress &baseIP,
+                                                         const IPAddress &relatedIP,
                                                          const IPAddress &boundIP,
                                                          const Server &server
                                                          )
@@ -4366,9 +4298,9 @@ namespace ortc
       candidate->mIP = boundIP.string(false);
       candidate->mPort = boundIP.getPort();
       candidate->mCandidateType = candidateType;
-      candidate->mRelatedAddress = baseIP.string(false);
-      candidate->mRelatedPort = baseIP.getPort();
-      candidate->mFoundation = candidate->foundation(serverURL);
+      candidate->mRelatedAddress = relatedIP.string(false);
+      candidate->mRelatedPort = relatedIP.getPort();
+      candidate->mFoundation = candidate->foundation(serverURL, baseIP.string(false));
 
       WORD localPreference = 0;
 
@@ -5189,7 +5121,8 @@ namespace ortc
                 tcpPort->mTransport = transport;
 
                 try {
-                  tcpPort->mSocket = Socket::createTCP();
+                  auto createFamily = (hostPort->mHostData->mIP.isIPv6() ? Socket::Create::IPv6 : Socket::Create::IPv4);
+                  tcpPort->mSocket = Socket::createTCP(createFamily);
                   tcpPort->mSocket->bind(hostPort->mHostData->mIP);
                   IPAddress localIP = tcpPort->mSocket->getLocalAddress();
 
@@ -5407,8 +5340,8 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool ICEGatherer::shouldKeepWarm() const
     {
+      if (mKeepWarmSinceJustCreated) return true;
       if (mTransportsStillNeedsCandidates) return true;
-      if (Time() != mWarmUntil) return true;
       return false;
     }
 
@@ -6216,10 +6149,10 @@ namespace ortc
 
   namespace internal
   {
-    //---------------------------------------------------------------------------
-    //---------------------------------------------------------------------------
-    //---------------------------------------------------------------------------
-    //---------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
     #pragma mark
     #pragma mark PolicyBitInfo
     #pragma mark
@@ -6229,6 +6162,7 @@ namespace ortc
       IICEGathererTypes::FilterPolicies mPolicyBits;
       const char *mPolicyStr;
 
+      //-----------------------------------------------------------------------
       static PolicyBitInfo *getInfos() {
         static PolicyBitInfo filterInfos[] {
           {IICEGathererTypes::FilterPolicy_NoIPv4Host,       "NoIPv4Host"},
@@ -6340,8 +6274,6 @@ namespace ortc
       UseServicesHelper::debugAppend(resultEl, serversEl);
     }
 
-    UseServicesHelper::debugAppend(resultEl, "candidates warm until", mKeepCandidatesWarmUntil);
-
     return resultEl;
   }
 
@@ -6362,8 +6294,6 @@ namespace ortc
       hasher.update(server.hash());
       hasher.update(":");
     }
-
-    hasher.update(string(mKeepCandidatesWarmUntil));
 
     return hasher.final();
   }

@@ -169,7 +169,10 @@ namespace ortc
 
       IPAddress ip() const;
       IPAddress relatedIP() const;
-      String foundation(const char *relatedServerURL = NULL) const;
+      String foundation(
+                        const char *relatedServerURL = NULL,
+                        const char *baseIP = NULL
+                        ) const;
     };
 
     //-------------------------------------------------------------------------

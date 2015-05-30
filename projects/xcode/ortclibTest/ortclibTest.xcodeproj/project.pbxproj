@@ -1,0 +1,590 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0056EE9C1B13B1BA0035B351 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0056EE991B13B1BA0035B351 /* main.cpp */; };
+		0056EE9D1B13B1BA0035B351 /* testing.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0056EE9A1B13B1BA0035B351 /* testing.cpp */; settings = {COMPILER_FLAGS = "-Wno-unreachable-code"; }; };
+		0056EECF1B13B75D0035B351 /* libcryptopp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 0056EEB01B13B22F0035B351 /* libcryptopp.a */; };
+		0056EED01B13B75D0035B351 /* libhfservices.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 0056EEAA1B13B2230035B351 /* libhfservices.a */; };
+		0056EED11B13B75D0035B351 /* libidnkit.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 0056EEB61B13B2370035B351 /* libidnkit.a */; };
+		0056EED21B13B75D0035B351 /* libortclib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 0056EEA41B13B2120035B351 /* libortclib.a */; };
+		0056EED31B13B75D0035B351 /* libudns.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 0056EEBC1B13B2400035B351 /* libudns.a */; };
+		0056EED41B13B75D0035B351 /* libzsLib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 0056EEC21B13B24C0035B351 /* libzsLib.a */; };
+		0056EED61B13B7720035B351 /* libresolv.9.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 0056EED51B13B7720035B351 /* libresolv.9.dylib */; };
+		0056EED91B13C1370035B351 /* TestICEGatherer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0056EED81B13C1370035B351 /* TestICEGatherer.cpp */; };
+		0056EEDB1B13C2A80035B351 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0056EEDA1B13C2A80035B351 /* CoreFoundation.framework */; };
+		0056EF001B13E5850035B351 /* libcurl.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 0056EEFF1B13E5850035B351 /* libcurl.dylib */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		0056EEA31B13B2120035B351 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0056EE9F1B13B2120035B351 /* ortclib.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 008F56041821367E009863AA;
+			remoteInfo = ortclib;
+		};
+		0056EEA91B13B2230035B351 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0056EEA51B13B2230035B351 /* hfservices.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 0095D8B116CA83CB005F53D3;
+			remoteInfo = hfservices;
+		};
+		0056EEAF1B13B22F0035B351 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0056EEAB1B13B22F0035B351 /* cryptopp.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 006682A016C9DC3D00259F81;
+			remoteInfo = cryptopp;
+		};
+		0056EEB51B13B2370035B351 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0056EEB11B13B2370035B351 /* idnkit.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 00CF44301A15505B00573A34;
+			remoteInfo = idnkit;
+		};
+		0056EEBB1B13B2400035B351 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0056EEB71B13B2400035B351 /* udns.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 0066820516C9D91300259F81;
+			remoteInfo = udns;
+		};
+		0056EEC11B13B24C0035B351 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0056EEBD1B13B24C0035B351 /* zsLib.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 006680AE16C9CE4300259F81;
+			remoteInfo = zsLib;
+		};
+		0056EEC31B13B3BC0035B351 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0056EE9F1B13B2120035B351 /* ortclib.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 008F56031821367E009863AA;
+			remoteInfo = ortclib;
+		};
+		0056EEC51B13B3BC0035B351 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0056EEA51B13B2230035B351 /* hfservices.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 0095D8B016CA83CB005F53D3;
+			remoteInfo = hfservices;
+		};
+		0056EEC71B13B3BC0035B351 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0056EEAB1B13B22F0035B351 /* cryptopp.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 0066829F16C9DC3D00259F81;
+			remoteInfo = cryptopp;
+		};
+		0056EEC91B13B3BC0035B351 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0056EEB11B13B2370035B351 /* idnkit.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 00CF442F1A15505B00573A34;
+			remoteInfo = idnkit;
+		};
+		0056EECB1B13B3BC0035B351 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0056EEB71B13B2400035B351 /* udns.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 0066820416C9D91300259F81;
+			remoteInfo = udns;
+		};
+		0056EECD1B13B3BC0035B351 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0056EEBD1B13B24C0035B351 /* zsLib.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 006680AD16C9CE4300259F81;
+			remoteInfo = zsLib;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		0056EE881B13B0910035B351 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		0056EE8A1B13B0910035B351 /* ortclibTest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = ortclibTest; sourceTree = BUILT_PRODUCTS_DIR; };
+		0056EE8D1B13B0910035B351 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		0056EE961B13B1680035B351 /* TestMediaEngine.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TestMediaEngine.cpp; sourceTree = "<group>"; };
+		0056EE971B13B1680035B351 /* TestMediaEngine.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TestMediaEngine.h; sourceTree = "<group>"; };
+		0056EE981B13B1BA0035B351 /* config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = config.h; sourceTree = "<group>"; };
+		0056EE991B13B1BA0035B351 /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
+		0056EE9A1B13B1BA0035B351 /* testing.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = testing.cpp; sourceTree = "<group>"; };
+		0056EE9B1B13B1BA0035B351 /* testing.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = testing.h; sourceTree = "<group>"; };
+		0056EE9F1B13B2120035B351 /* ortclib.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = ortclib.xcodeproj; path = "/Users/robin/Documents/Hookflash/Repos/ortc/github/ortc-lib-sdk/ios/projects/xcode/../../../libs/ortc-lib/projects/xcode/ortclib/ortclib.xcodeproj"; sourceTree = "<absolute>"; };
+		0056EEA51B13B2230035B351 /* hfservices.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = hfservices.xcodeproj; path = "/Users/robin/Documents/Hookflash/Repos/ortc/github/ortc-lib-sdk/ios/projects/xcode/../../../libs/op-services-cpp/projects/xcode/hfservices/hfservices.xcodeproj"; sourceTree = "<absolute>"; };
+		0056EEAB1B13B22F0035B351 /* cryptopp.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = cryptopp.xcodeproj; path = "/Users/robin/Documents/Hookflash/Repos/ortc/github/ortc-lib-sdk/ios/projects/xcode/../../../libs/cryptopp/projects/xcode/cryptopp/cryptopp.xcodeproj"; sourceTree = "<absolute>"; };
+		0056EEB11B13B2370035B351 /* idnkit.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = idnkit.xcodeproj; path = "/Users/robin/Documents/Hookflash/Repos/ortc/github/ortc-lib-sdk/ios/projects/xcode/../../../libs/idnkit/projects/xcode/idnkit.xcodeproj"; sourceTree = "<absolute>"; };
+		0056EEB71B13B2400035B351 /* udns.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = udns.xcodeproj; path = "/Users/robin/Documents/Hookflash/Repos/ortc/github/ortc-lib-sdk/ios/projects/xcode/../../../libs/udns/projects/xcode/udns/udns.xcodeproj"; sourceTree = "<absolute>"; };
+		0056EEBD1B13B24C0035B351 /* zsLib.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = zsLib.xcodeproj; path = "/Users/robin/Documents/Hookflash/Repos/ortc/github/ortc-lib-sdk/ios/projects/xcode/../../../libs/zsLib/projects/xcode/zsLib/zsLib.xcodeproj"; sourceTree = "<absolute>"; };
+		0056EED51B13B7720035B351 /* libresolv.9.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libresolv.9.dylib; path = usr/lib/libresolv.9.dylib; sourceTree = SDKROOT; };
+		0056EED81B13C1370035B351 /* TestICEGatherer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TestICEGatherer.cpp; sourceTree = "<group>"; };
+		0056EEDA1B13C2A80035B351 /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
+		0056EEFF1B13E5850035B351 /* libcurl.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcurl.dylib; path = usr/lib/libcurl.dylib; sourceTree = SDKROOT; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		0056EE871B13B0910035B351 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0056EF001B13E5850035B351 /* libcurl.dylib in Frameworks */,
+				0056EEDB1B13C2A80035B351 /* CoreFoundation.framework in Frameworks */,
+				0056EED61B13B7720035B351 /* libresolv.9.dylib in Frameworks */,
+				0056EECF1B13B75D0035B351 /* libcryptopp.a in Frameworks */,
+				0056EED01B13B75D0035B351 /* libhfservices.a in Frameworks */,
+				0056EED11B13B75D0035B351 /* libidnkit.a in Frameworks */,
+				0056EED21B13B75D0035B351 /* libortclib.a in Frameworks */,
+				0056EED31B13B75D0035B351 /* libudns.a in Frameworks */,
+				0056EED41B13B75D0035B351 /* libzsLib.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		0056EE811B13B0910035B351 = {
+			isa = PBXGroup;
+			children = (
+				0056EE9E1B13B1F30035B351 /* Projects */,
+				0056EE941B13B0CC0035B351 /* ortc */,
+				0056EE8C1B13B0910035B351 /* ortclibTest */,
+				0056EE8B1B13B0910035B351 /* Products */,
+				0056EED71B13B7990035B351 /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		0056EE8B1B13B0910035B351 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				0056EE8A1B13B0910035B351 /* ortclibTest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		0056EE8C1B13B0910035B351 /* ortclibTest */ = {
+			isa = PBXGroup;
+			children = (
+				0056EE8D1B13B0910035B351 /* main.m */,
+			);
+			path = ortclibTest;
+			sourceTree = "<group>";
+		};
+		0056EE941B13B0CC0035B351 /* ortc */ = {
+			isa = PBXGroup;
+			children = (
+				0056EE951B13B0DC0035B351 /* test */,
+			);
+			name = ortc;
+			path = ../../../ortc;
+			sourceTree = "<group>";
+		};
+		0056EE951B13B0DC0035B351 /* test */ = {
+			isa = PBXGroup;
+			children = (
+				0056EE981B13B1BA0035B351 /* config.h */,
+				0056EE991B13B1BA0035B351 /* main.cpp */,
+				0056EE9A1B13B1BA0035B351 /* testing.cpp */,
+				0056EE9B1B13B1BA0035B351 /* testing.h */,
+				0056EED81B13C1370035B351 /* TestICEGatherer.cpp */,
+				0056EE961B13B1680035B351 /* TestMediaEngine.cpp */,
+				0056EE971B13B1680035B351 /* TestMediaEngine.h */,
+			);
+			path = test;
+			sourceTree = "<group>";
+		};
+		0056EE9E1B13B1F30035B351 /* Projects */ = {
+			isa = PBXGroup;
+			children = (
+				0056EE9F1B13B2120035B351 /* ortclib.xcodeproj */,
+				0056EEA51B13B2230035B351 /* hfservices.xcodeproj */,
+				0056EEAB1B13B22F0035B351 /* cryptopp.xcodeproj */,
+				0056EEB11B13B2370035B351 /* idnkit.xcodeproj */,
+				0056EEB71B13B2400035B351 /* udns.xcodeproj */,
+				0056EEBD1B13B24C0035B351 /* zsLib.xcodeproj */,
+			);
+			name = Projects;
+			sourceTree = "<group>";
+		};
+		0056EEA01B13B2120035B351 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				0056EEA41B13B2120035B351 /* libortclib.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		0056EEA61B13B2230035B351 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				0056EEAA1B13B2230035B351 /* libhfservices.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		0056EEAC1B13B22F0035B351 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				0056EEB01B13B22F0035B351 /* libcryptopp.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		0056EEB21B13B2370035B351 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				0056EEB61B13B2370035B351 /* libidnkit.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		0056EEB81B13B2400035B351 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				0056EEBC1B13B2400035B351 /* libudns.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		0056EEBE1B13B24C0035B351 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				0056EEC21B13B24C0035B351 /* libzsLib.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		0056EED71B13B7990035B351 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				0056EEFF1B13E5850035B351 /* libcurl.dylib */,
+				0056EEDA1B13C2A80035B351 /* CoreFoundation.framework */,
+				0056EED51B13B7720035B351 /* libresolv.9.dylib */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		0056EE891B13B0910035B351 /* ortclibTest */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 0056EE911B13B0910035B351 /* Build configuration list for PBXNativeTarget "ortclibTest" */;
+			buildPhases = (
+				0056EE861B13B0910035B351 /* Sources */,
+				0056EE871B13B0910035B351 /* Frameworks */,
+				0056EE881B13B0910035B351 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				0056EEC41B13B3BC0035B351 /* PBXTargetDependency */,
+				0056EEC61B13B3BC0035B351 /* PBXTargetDependency */,
+				0056EEC81B13B3BC0035B351 /* PBXTargetDependency */,
+				0056EECA1B13B3BC0035B351 /* PBXTargetDependency */,
+				0056EECC1B13B3BC0035B351 /* PBXTargetDependency */,
+				0056EECE1B13B3BC0035B351 /* PBXTargetDependency */,
+			);
+			name = ortclibTest;
+			productName = ortclibTest;
+			productReference = 0056EE8A1B13B0910035B351 /* ortclibTest */;
+			productType = "com.apple.product-type.tool";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		0056EE821B13B0910035B351 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0630;
+				ORGANIZATIONNAME = "Hookflash Inc.";
+				TargetAttributes = {
+					0056EE891B13B0910035B351 = {
+						CreatedOnToolsVersion = 6.3.2;
+					};
+				};
+			};
+			buildConfigurationList = 0056EE851B13B0910035B351 /* Build configuration list for PBXProject "ortclibTest" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = 0056EE811B13B0910035B351;
+			productRefGroup = 0056EE8B1B13B0910035B351 /* Products */;
+			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = 0056EEAC1B13B22F0035B351 /* Products */;
+					ProjectRef = 0056EEAB1B13B22F0035B351 /* cryptopp.xcodeproj */;
+				},
+				{
+					ProductGroup = 0056EEA61B13B2230035B351 /* Products */;
+					ProjectRef = 0056EEA51B13B2230035B351 /* hfservices.xcodeproj */;
+				},
+				{
+					ProductGroup = 0056EEB21B13B2370035B351 /* Products */;
+					ProjectRef = 0056EEB11B13B2370035B351 /* idnkit.xcodeproj */;
+				},
+				{
+					ProductGroup = 0056EEA01B13B2120035B351 /* Products */;
+					ProjectRef = 0056EE9F1B13B2120035B351 /* ortclib.xcodeproj */;
+				},
+				{
+					ProductGroup = 0056EEB81B13B2400035B351 /* Products */;
+					ProjectRef = 0056EEB71B13B2400035B351 /* udns.xcodeproj */;
+				},
+				{
+					ProductGroup = 0056EEBE1B13B24C0035B351 /* Products */;
+					ProjectRef = 0056EEBD1B13B24C0035B351 /* zsLib.xcodeproj */;
+				},
+			);
+			projectRoot = "";
+			targets = (
+				0056EE891B13B0910035B351 /* ortclibTest */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXReferenceProxy section */
+		0056EEA41B13B2120035B351 /* libortclib.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libortclib.a;
+			remoteRef = 0056EEA31B13B2120035B351 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		0056EEAA1B13B2230035B351 /* libhfservices.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libhfservices.a;
+			remoteRef = 0056EEA91B13B2230035B351 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		0056EEB01B13B22F0035B351 /* libcryptopp.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libcryptopp.a;
+			remoteRef = 0056EEAF1B13B22F0035B351 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		0056EEB61B13B2370035B351 /* libidnkit.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libidnkit.a;
+			remoteRef = 0056EEB51B13B2370035B351 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		0056EEBC1B13B2400035B351 /* libudns.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libudns.a;
+			remoteRef = 0056EEBB1B13B2400035B351 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		0056EEC21B13B24C0035B351 /* libzsLib.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libzsLib.a;
+			remoteRef = 0056EEC11B13B24C0035B351 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
+
+/* Begin PBXSourcesBuildPhase section */
+		0056EE861B13B0910035B351 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0056EE9C1B13B1BA0035B351 /* main.cpp in Sources */,
+				0056EE9D1B13B1BA0035B351 /* testing.cpp in Sources */,
+				0056EED91B13C1370035B351 /* TestICEGatherer.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		0056EEC41B13B3BC0035B351 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = ortclib;
+			targetProxy = 0056EEC31B13B3BC0035B351 /* PBXContainerItemProxy */;
+		};
+		0056EEC61B13B3BC0035B351 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = hfservices;
+			targetProxy = 0056EEC51B13B3BC0035B351 /* PBXContainerItemProxy */;
+		};
+		0056EEC81B13B3BC0035B351 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = cryptopp;
+			targetProxy = 0056EEC71B13B3BC0035B351 /* PBXContainerItemProxy */;
+		};
+		0056EECA1B13B3BC0035B351 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = idnkit;
+			targetProxy = 0056EEC91B13B3BC0035B351 /* PBXContainerItemProxy */;
+		};
+		0056EECC1B13B3BC0035B351 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = udns;
+			targetProxy = 0056EECB1B13B3BC0035B351 /* PBXContainerItemProxy */;
+		};
+		0056EECE1B13B3BC0035B351 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = zsLib;
+			targetProxy = 0056EECD1B13B3BC0035B351 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		0056EE8F1B13B0910035B351 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					../../..,
+					../../../..,
+					"../../../../op-services-cpp",
+					../../../../zsLib,
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.10;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		0056EE901B13B0910035B351 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = "NDEBUG=1";
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					../../..,
+					../../../..,
+					"../../../../op-services-cpp",
+					../../../../zsLib,
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.10;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		0056EE921B13B0910035B351 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		0056EE931B13B0910035B351 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		0056EE851B13B0910035B351 /* Build configuration list for PBXProject "ortclibTest" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0056EE8F1B13B0910035B351 /* Debug */,
+				0056EE901B13B0910035B351 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		0056EE911B13B0910035B351 /* Build configuration list for PBXNativeTarget "ortclibTest" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0056EE921B13B0910035B351 /* Debug */,
+				0056EE931B13B0910035B351 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 0056EE821B13B0910035B351 /* Project object */;
+}

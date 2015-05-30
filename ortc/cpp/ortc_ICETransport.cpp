@@ -198,7 +198,9 @@ namespace ortc
     {
       ZS_LOG_BASIC(debug("created"))
 
-      mDefaultSubscription = mSubscriptions.subscribe(IICETransportDelegateProxy::create(IORTCForInternal::queueDelegate(), originalDelegate), queue);
+      if (originalDelegate) {
+        mDefaultSubscription = mSubscriptions.subscribe(IICETransportDelegateProxy::create(IORTCForInternal::queueDelegate(), originalDelegate), queue);
+      }
 
       auto resolverBuffer = UseServicesHelper::random(sizeof(mConflictResolver));
       memcpy(&mConflictResolver, resolverBuffer->BytePtr(), resolverBuffer->SizeInBytes());

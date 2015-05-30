@@ -109,7 +109,6 @@ namespace ortc
       bool                mContinuousGathering {true};
       InterfacePolicyList mInterfacePolicy;
       ServerList          mICEServers;
-      Time                mKeepCandidatesWarmUntil;
 
       ElementPtr toDebug() const;
       String hash() const;

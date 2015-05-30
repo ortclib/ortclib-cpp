@@ -287,7 +287,10 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  String IICETypes::Candidate::foundation(const char *relatedServerURL) const
+  String IICETypes::Candidate::foundation(
+                                          const char *relatedServerURL,
+                                          const char *baseIP
+                                          ) const
   {
     if (mFoundation.hasData()) return mFoundation;
 
@@ -299,7 +302,16 @@ namespace ortc
     switch (mCandidateType) {
       case CandidateType_Host:    hasher.update(mIP); break;
       case CandidateType_Prflx:   hasher.update(mIP); break;
-      case CandidateType_Relay:   hasher.update(mRelatedAddress); break;
+      case CandidateType_Relay:   {
+        if (baseIP) {
+          if (0 != (*baseIP)) {
+            hasher.update(baseIP);
+            break;
+          }
+        }
+        hasher.update(mRelatedAddress);
+        break;
+      }
       case CandidateType_Srflex:  hasher.update(mRelatedAddress); break;
     }
     hasher.update(":");

@@ -102,6 +102,7 @@ namespace ortc
     ZS_DECLARE_INTERACTION_PTR(ISecureTransportForICETransport)
 
     ZS_DECLARE_CLASS_PTR(ORTC)
+    ZS_DECLARE_CLASS_PTR(Settings)
     ZS_DECLARE_CLASS_PTR(DTLSTransport)
     ZS_DECLARE_CLASS_PTR(ICEGatherer)
     ZS_DECLARE_CLASS_PTR(ICETransport)
