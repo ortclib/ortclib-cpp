@@ -1706,16 +1706,32 @@ namespace ortc
       AutoRecursiveLock lock(*this);
       ZS_LOG_DEBUG(log("turn state changed notification") + UseTURNSocket::toDebug(socket) + ZS_PARAM("state", UseTURNSocket::toString(state)))
 
-      auto found = mTURNSockets.find(socket);
-      if (found == mTURNSockets.end()) {
-        ZS_LOG_WARNING(Debug, log("notified about obsolute turn socket") + UseTURNSocket::toDebug(socket))
-        return;
+      HostPortPtr hostPort;
+
+      bool closedSocket = false;
+
+      // scope: first check active turn sockets
+      {
+        auto found = mTURNSockets.find(socket);
+        if (found != mTURNSockets.end()) {
+          hostPort = (*found).second.first;
+        }
       }
 
-      auto hostPort = (*found).second.first;
+      if (!hostPort) {  // check closing turn sockets
+        auto found = mShutdownTURNSockets.find(socket);
+        if (found == mShutdownTURNSockets.end()) {
+          ZS_LOG_WARNING(Debug, log("notified about obsolute turn socket") + UseTURNSocket::toDebug(socket))
+          return;
+        }
+        hostPort = (*found).second.first;
+        closedSocket = true;
+      }
 
-      hostPort->mRelayOptionsHash.clear();  // force the relay ports to recalculate their state
-      mLastRelayHostsHash.clear();          // force the relay ports to be processed again
+      if (!closedSocket) {
+        hostPort->mRelayOptionsHash.clear();  // force the relay ports to recalculate their state
+        mLastRelayHostsHash.clear();          // force the relay ports to be processed again
+      }
       
       step();
     }
@@ -1738,14 +1754,30 @@ namespace ortc
         AutoRecursiveLock lock(*this);
         ZS_LOG_DEBUG(log("turn received incoming packet") + UseTURNSocket::toDebug(socket) + ZS_PARAM("packet length", packetLengthInBytes))
 
-        auto found = mTURNSockets.find(socket);
-        if (found == mTURNSockets.end()) {
-          ZS_LOG_WARNING(Debug, log("notified about obsolute turn socket") + UseTURNSocket::toDebug(socket))
-          return;
+        HostPortPtr hostPort;
+        RelayPortPtr relayPort;
+
+        bool closingSocket = false;
+
+        // scope: first check active turn sockets
+        {
+          auto found = mTURNSockets.find(socket);
+          if (found != mTURNSockets.end()) {
+            hostPort = (*found).second.first;
+            relayPort = (*found).second.second;
+          }
         }
 
-        auto hostPort = (*found).second.first;
-        auto relayPort = (*found).second.second;
+        if (!hostPort) {  // check closing turn sockets
+          auto found = mShutdownTURNSockets.find(socket);
+          if (found == mShutdownTURNSockets.end()) {
+            ZS_LOG_WARNING(Debug, log("notified about obsolute turn socket") + UseTURNSocket::toDebug(socket))
+            return;
+          }
+          hostPort = (*found).second.first;
+          relayPort = (*found).second.second;
+          closingSocket = true;
+        }
 
         localCandidate = relayPort->mRelayCandidate;
 
@@ -1755,6 +1787,11 @@ namespace ortc
             ZS_LOG_TRACE(log("handled by stun requester") + ZS_PARAM("from ip", source.string()) + stunPacket->toDebug())
             return;
           }
+        }
+
+        if (closingSocket) {
+          ZS_LOG_WARNING(Detail, log("turn socket is closing (thus cannot handle incoming packet)") + hostPort->toDebug() + relayPort->toDebug())
+          return;
         }
 
         if (!localCandidate) {
@@ -1798,13 +1835,25 @@ namespace ortc
 
       AutoRecursiveLock lock(*this);
 
-      auto found = mTURNSockets.find(socket);
-      if (found == mTURNSockets.end()) {
-        ZS_LOG_WARNING(Debug, log("notified about obsolute stun discovery") + UseTURNSocket::toDebug(socket))
-        return false;
+      HostPortPtr hostPort;
+
+      // scope: first check active turn sockets
+      {
+        auto found = mTURNSockets.find(socket);
+        if (found != mTURNSockets.end()) {
+          hostPort = (*found).second.first;
+        }
       }
 
-      auto hostPort = (*found).second.first;
+      if (!hostPort) {  // check closing turn sockets
+        auto found = mShutdownTURNSockets.find(socket);
+        if (found == mShutdownTURNSockets.end()) {
+          ZS_LOG_WARNING(Debug, log("notified about obsolute turn socket") + UseTURNSocket::toDebug(socket))
+          return false;
+        }
+        hostPort = (*found).second.first;
+      }
+
       if (!hostPort->mBoundUDPSocket) {
         ZS_LOG_WARNING(Debug, log("failed to send stun packet as bound udp socket is gone") + hostPort->toDebug())
         return false;
@@ -2687,7 +2736,7 @@ namespace ortc
             IPAddress bindIP(hostPort->mHostData->mIP);
             hostPort->mBoundUDPSocket = bind(firstAttempt, bindIP, IICETypes::Protocol_UDP);
             if (hostPort->mBoundUDPSocket) {
-              ZS_LOG_DEBUG(log("successfully bound UDP socket") + ZS_PARAM("bind ip", bindIP.string()))
+              ZS_LOG_DEBUG(log("successfully bound UDP socket") + hostPort->toDebug())
 
               hostPort->mBindUDPBackOffTimer->cancel();
               hostPort->mBindUDPBackOffTimer.reset();
@@ -2697,7 +2746,7 @@ namespace ortc
               hostPort->mCandidateUDP = createCandidate(hostPort->mHostData, IICETypes::CandidateType_Host, bindIP);
             } else {
               hostPort->mBindUDPBackOffTimer->notifyAttemptFailed();
-              ZS_LOG_WARNING(Debug, log("failed to bind UDP socket") + hostPort->toDebug() + ZS_PARAM("bind ip", bindIP.string()))
+              ZS_LOG_WARNING(Debug, log("failed to bind UDP socket") + hostPort->toDebug())
             }
           } else {
             ZS_LOG_WARNING(Trace, log("not ready to retry binding UDP just yet") + hostPort->toDebug())
@@ -2735,7 +2784,7 @@ namespace ortc
                 bindActiveIP.setPort(9);
                 hostPort->mCandidateTCPActive = createCandidate(hostPort->mHostData, IICETypes::CandidateType_Host, bindActiveIP, IICETypes::Protocol_TCP, IICETypes::TCPCandidateType_Active);
               } else {
-                hostPort->mBindUDPBackOffTimer->notifyAttemptFailed();
+                hostPort->mBindTCPBackOffTimer->notifyAttemptFailed();
                 ZS_LOG_WARNING(Debug, log("failed to bind TCP socket") + hostPort->toDebug() + ZS_PARAM("bind ip", bindIP.string()))
               }
             } else {
@@ -3262,12 +3311,18 @@ namespace ortc
                 keepAliveTime = Seconds(keepAliveInSeconds);
               }
 
+              UseDNS::SRVLookupTypes lookup = (UseDNS::SRVLookupTypes)(UseDNS::SRVLookupType_AutoLookupA | UseDNS::SRVLookupType_FallbackToALookup);
+              if (hostPort->mBoundUDPIP.isIPv6()) {
+                lookup = (UseDNS::SRVLookupTypes)(UseDNS::SRVLookupType_AutoLookupAAAA | UseDNS::SRVLookupType_FallbackToAAAALookup);
+              }
+
               relayPort->mTURNSocket = UseTURNSocket::create(
                                                              UseServicesHelper::getServiceQueue(),
                                                              mThisWeak.lock(),
                                                              createDNSLookupString(server, "turn:"),
                                                              relayPort->mServer.mUserName,
                                                              relayPort->mServer.mCredential,
+                                                             lookup,
                                                              true
                                                              );
               ZS_THROW_UNEXPECTED_ERROR_IF(!relayPort->mTURNSocket)
@@ -3275,12 +3330,12 @@ namespace ortc
               mTURNSockets[relayPort->mTURNSocket] = HostAndRelayPortPair(hostPort, relayPort);
             }
 
-            bool notReady = false;
+            bool ready = true;
 
             switch (relayPort->mTURNSocket->getState()) {
               case UseTURNSocket::TURNSocketState_Pending: {
                 ZS_LOG_TRACE(log("still waiting for TURN socket to be ready") + relayPort->toDebug())
-                notReady = hostPortSetup = allSetup = false;
+                ready = hostPortSetup = allSetup = false;
                 break;
               }
               case UseTURNSocket::TURNSocketState_Ready: {
@@ -3297,7 +3352,7 @@ namespace ortc
               case UseTURNSocket::TURNSocketState_ShuttingDown:
               case UseTURNSocket::TURNSocketState_Shutdown: {
                 ZS_LOG_WARNING(Trace, log("TURN socket is shutdown") + relayPort->toDebug())
-                notReady = true;
+                ready = false;
                 if (!relayPort->mServerResponseIP.isAddressEmpty()) {
                   auto found = hostPort->mIPToRelayPortMapping.find(relayPort->mServerResponseIP);
                   if (found != hostPort->mIPToRelayPortMapping.end()) {
@@ -3317,7 +3372,7 @@ namespace ortc
               }
             }
 
-            if (notReady) continue;
+            if (!ready) continue;
 
             if (relayPort->mReflexiveCandidate) {
               ZS_LOG_TRACE(log("already have reflexive candidate") + relayPort->mReflexiveCandidate->toDebug())
@@ -4047,7 +4102,7 @@ namespace ortc
         relayPort->mInactivityTimer.reset();
       }
 
-      removeCandidate(relayPort->mRelayCandidate);
+      removeCandidate(relayPort->mReflexiveCandidate);
       removeCandidate(relayPort->mRelayCandidate);
 
       relayPort->mRelayCandidate.reset();
@@ -5699,6 +5754,8 @@ namespace ortc
     {
       ElementPtr resultEl = Element::create("ortc::ICEGatherer::ReflexivePort");
 
+      UseServicesHelper::debugAppend(resultEl, "id", mID);
+
       UseServicesHelper::debugAppend(resultEl, mServer.toDebug());
       UseServicesHelper::debugAppend(resultEl, "stun discovery", UseSTUNDiscovery::toDebug(mSTUNDiscovery));
 
@@ -5720,6 +5777,8 @@ namespace ortc
     ElementPtr ICEGatherer::RelayPort::toDebug() const
     {
       ElementPtr resultEl = Element::create("ortc::ICEGatherer::RelayPort");
+
+      UseServicesHelper::debugAppend(resultEl, "id", mID);
 
       UseServicesHelper::debugAppend(resultEl, mServer.toDebug());
       UseServicesHelper::debugAppend(resultEl, "turn socket", UseTURNSocket::toDebug(mTURNSocket));
@@ -5746,6 +5805,8 @@ namespace ortc
     ElementPtr ICEGatherer::HostPort::toDebug() const
     {
       ElementPtr resultEl = Element::create("ortc::ICEGatherer::HostPort");
+
+      UseServicesHelper::debugAppend(resultEl, "id", mID);
 
       UseServicesHelper::debugAppend(resultEl, mHostData->toDebug());
 
@@ -5788,6 +5849,8 @@ namespace ortc
     ElementPtr ICEGatherer::TCPPort::toDebug() const
     {
       ElementPtr resultEl = Element::create("ortc::ICEGatherer::TCPPort");
+
+      UseServicesHelper::debugAppend(resultEl, "id", mID);
 
       UseServicesHelper::debugAppend(resultEl, "connected", mConnected);
 

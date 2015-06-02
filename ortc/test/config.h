@@ -54,6 +54,15 @@
 
 #define ORTC_TEST_REFLEXIVE_UDP_IPS       1
 
+#define ORTC_TEST_RELAY_UDP_IPS           1
+
+#define OPENPEER_SERVICE_TEST_TURN_USERNAME        "robin@hookflash.com"
+#define OPENPEER_SERVICE_TEST_TURN_PASSWORD        "DxuitmVR3cNX"
+
+#define OPENPEER_SERVICE_TEST_TURN_SERVER_DOMAIN_VIA_A_RECORD_1   "numb.viagenie.ca"
+#define OPENPEER_SERVICE_TEST_TURN_SERVER_DOMAIN_VIA_A_RECORD_2   "ec2-174-129-95-12.compute-1.amazonaws.com"
+
+
 //#define ORTC_TEST_DNS_ZONE "dnstest.hookflash.me"
 //
 //// true = running as a client, false = running as a server

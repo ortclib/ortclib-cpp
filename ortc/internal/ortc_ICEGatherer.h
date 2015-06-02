@@ -648,6 +648,8 @@ namespace ortc
 
       struct ReflexivePort
       {
+        AutoPUID mID;
+
         Server mServer;
         UseSTUNDiscoveryPtr mSTUNDiscovery;
 
@@ -667,6 +669,8 @@ namespace ortc
 
       struct RelayPort
       {
+        AutoPUID mID;
+
         Server mServer;
         UseTURNSocketPtr mTURNSocket;
         IPAddress mServerResponseIP;
@@ -691,6 +695,8 @@ namespace ortc
 
       struct HostPort
       {
+        AutoPUID mID;
+
         HostIPSorter::DataPtr mHostData;
 
         String mBoundOptionsHash;
@@ -730,6 +736,8 @@ namespace ortc
 
       struct TCPPort
       {
+        AutoPUID mID;
+
         bool mConnected {false};
 
         CandidatePtr mCandidate;

@@ -420,12 +420,30 @@ void doTestICEGatherer()
         }
         case 4: {
           expectations1.mCandidatesSrflex = ORTC_TEST_REFLEXIVE_UDP_IPS;
-          expectations1.mCandidateGone += expectations1.mCandidatesSrflex;
+          expectations1.mCandidateGone += expectations1.mCandidatesSrflex + expectations1.mCandidatesRelay;
 
           String url = String("stun:") + ORTC_TEST_STUN_SERVER;
 
           ortc::IICEGatherer::Server server;
           server.mURLs.push_back(url);
+          ortc::IICEGatherer::Options options;
+          options.mICEServers.push_back(server);
+
+          testObject1 = ICEGathererTester::create(thread, options);
+          break;
+        }
+        case 5: {
+          expectations1.mCandidatesSrflex = ORTC_TEST_REFLEXIVE_UDP_IPS;
+          expectations1.mCandidatesRelay = ORTC_TEST_RELAY_UDP_IPS;
+          expectations1.mCandidateGone += expectations1.mCandidatesSrflex + expectations1.mCandidatesRelay;
+
+          String url = String("turn:") + OPENPEER_SERVICE_TEST_TURN_SERVER_DOMAIN_VIA_A_RECORD_1;
+
+          ortc::IICEGatherer::Server server;
+          server.mURLs.push_back(url);
+          server.mUserName = OPENPEER_SERVICE_TEST_TURN_USERNAME;
+          server.mCredential = OPENPEER_SERVICE_TEST_TURN_PASSWORD;
+
           ortc::IICEGatherer::Options options;
           options.mICEServers.push_back(server);
 
@@ -490,6 +508,12 @@ void doTestICEGatherer()
             }
             break;
           }
+          case 5: {
+            if (65 == totalWait) {
+              testObject1->close();
+            }
+            break;
+          }
         }
 
         if (0 == found) {
@@ -520,6 +544,10 @@ void doTestICEGatherer()
           break;
         }
         case 4: {
+          TESTING_CHECK(testObject1->matches(expectations1))
+          break;
+        }
+        case 5: {
           TESTING_CHECK(testObject1->matches(expectations1))
           break;
         }
