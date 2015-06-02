@@ -46,6 +46,14 @@
 
 #define ORTC_TEST_DO_ICE_GATHERER_TEST                    (true)
 
+
+#define ORTC_TEST_HOST_UDP_IPS            3
+#define ORTC_TEST_HOST_TCP_IPS            3
+
+#define ORTC_TEST_STUN_SERVER             "stun.vline.com"
+
+#define ORTC_TEST_REFLEXIVE_UDP_IPS       1
+
 //#define ORTC_TEST_DNS_ZONE "dnstest.hookflash.me"
 //
 //// true = running as a client, false = running as a server

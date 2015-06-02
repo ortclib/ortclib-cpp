@@ -53,6 +53,7 @@
 
 namespace ortc { namespace test { ZS_DECLARE_SUBSYSTEM(ortc_test) } }
 
+using zsLib::String;
 using zsLib::ULONG;
 using zsLib::IMessageQueue;
 using zsLib::Log;
@@ -67,7 +68,6 @@ ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHelper, UseServicesHelper)
 //using zsLib::Socket;
 //using zsLib::SocketPtr;
 //using zsLib::IPAddress;
-//using zsLib::String;
 //using openpeer::services::IDNS;
 //using openpeer::services::IDNSQuery;
 //using openpeer::services::ITURNSocket;
@@ -88,12 +88,69 @@ namespace ortc
                               public IICEGathererDelegate
     {
     public:
+      typedef String Hash;
+      typedef std::map<Hash, CandidatePtr> CandidateMap;
+
+      struct Expectations {
+        ULONG mStateNew {0};
+        ULONG mStateGathering {0};
+        ULONG mStateComplete {0};
+        ULONG mStateClosed {0};
+
+        ULONG mCandidatesUDPHost {0};
+        ULONG mCandidatesTCPHostPassive {0};
+        ULONG mCandidatesTCPHostActive {0};
+        ULONG mCandidatesTCPHostSO {0};
+
+        ULONG mCandidatesPrflx {0};
+        ULONG mCandidatesSrflex {0};
+        ULONG mCandidatesRelay {0};
+
+        ULONG mCandidateComplete {0};
+        ULONG mCandidateGone {0};
+
+        ULONG mError {0};
+
+        //---------------------------------------------------------------------
+        bool operator==(const Expectations &op2) const
+        {
+          return (mStateNew == op2.mStateNew) &&
+                 (mStateGathering == op2.mStateGathering) &&
+                 (mStateComplete == op2.mStateComplete) &&
+                 (mStateClosed == op2.mStateClosed) &&
+
+                 (mCandidatesUDPHost == op2.mCandidatesUDPHost) &&
+                 (mCandidatesTCPHostPassive == op2.mCandidatesTCPHostPassive) &&
+                 (mCandidatesTCPHostActive == op2.mCandidatesTCPHostActive) &&
+
+                 (mCandidatesPrflx == op2.mCandidatesPrflx) &&
+                 (mCandidatesSrflex == op2.mCandidatesSrflex) &&
+                 (mCandidatesRelay == op2.mCandidatesRelay) &&
+
+                 (mCandidateComplete == op2.mCandidateComplete) &&
+                 (mCandidateGone == op2.mCandidateGone);
+        }
+      };
+
+    public:
       //-----------------------------------------------------------------------
       static ICEGathererTesterPtr create(IMessageQueuePtr queue)
       {
         ICEGathererTesterPtr pThis(new ICEGathererTester(queue));
         pThis->mThisWeak = pThis;
         pThis->init();
+        return pThis;
+      }
+
+      //-----------------------------------------------------------------------
+      static ICEGathererTesterPtr create(
+                                         IMessageQueuePtr queue,
+                                         const IICEGathererTypes::Options &options
+                                         )
+      {
+        ICEGathererTesterPtr pThis(new ICEGathererTester(queue));
+        pThis->mThisWeak = pThis;
+        pThis->init(options);
         return pThis;
       }
 
@@ -120,6 +177,34 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
+      void init(const IICEGathererTypes::Options &options)
+      {
+        AutoRecursiveLock lock(*this);
+        mGatherer = IICEGatherer::create(mThisWeak.lock(), options);
+      }
+
+      //-----------------------------------------------------------------------
+      bool matches(const Expectations &op2)
+      {
+        AutoRecursiveLock lock(*this);
+        return mExpectations == op2;
+      }
+
+      //-----------------------------------------------------------------------
+      void close()
+      {
+        AutoRecursiveLock lock(*this);
+        mGatherer->close();
+      }
+
+      //-----------------------------------------------------------------------
+      void closeByReset()
+      {
+        AutoRecursiveLock lock(*this);
+        mGatherer.reset();
+      }
+
+      //-----------------------------------------------------------------------
       Log::Params log(const char *message) const
       {
         ElementPtr objectEl = Element::create("ortc::test::ICEGathererTester");
@@ -128,12 +213,24 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
+      Expectations getExpectations() const {return mExpectations;}
+
+      //-----------------------------------------------------------------------
       virtual void onICEGathererStateChanged(
                                              IICEGathererPtr gatherer,
                                              IICEGatherer::States state
                                              ) override
       {
         ZS_LOG_BASIC(log("gatherer state changed") + IICEGatherer::toDebug(gatherer) + ZS_PARAM("state", IICEGatherer::toString(state)))
+
+        AutoRecursiveLock lock(*this);
+
+        switch (state) {
+          case IICEGatherer::State_New:       ++mExpectations.mStateNew;        break;
+          case IICEGatherer::State_Gathering: ++mExpectations.mStateGathering;  break;
+          case IICEGatherer::State_Complete:  ++mExpectations.mStateComplete;   break;
+          case IICEGatherer::State_Closed:    ++mExpectations.mStateClosed;     break;
+        }
       }
 
       //-----------------------------------------------------------------------
@@ -143,6 +240,37 @@ namespace ortc
                                                ) override
       {
         ZS_LOG_BASIC(log("gatherer local candidate") + IICEGatherer::toDebug(gatherer) + (candidate ? candidate->toDebug() : ElementPtr()))
+
+        TESTING_CHECK(candidate)
+
+        AutoRecursiveLock lock(*this);
+
+        auto hash = candidate->hash();
+
+        TESTING_CHECK(mCandidates.end() == mCandidates.find(hash))
+
+        mCandidates[hash] = candidate;
+
+        switch (candidate->mCandidateType) {
+          case IICETypes::CandidateType_Host:
+          {
+            switch (candidate->mProtocol) {
+              case IICETypes::Protocol_UDP: ++mExpectations.mCandidatesUDPHost; break;
+              case IICETypes::Protocol_TCP: {
+                switch (candidate->mTCPType) {
+                  case IICETypes::TCPCandidateType_Active:    ++mExpectations.mCandidatesTCPHostActive; break;
+                  case IICETypes::TCPCandidateType_Passive:   ++mExpectations.mCandidatesTCPHostPassive; break;
+                  case IICETypes::TCPCandidateType_SO:        ++mExpectations.mCandidatesTCPHostSO; break;
+                }
+                break;
+              }
+            }
+            break;
+          }
+          case IICETypes::CandidateType_Prflx:  ++mExpectations.mCandidatesPrflx; break;
+          case IICETypes::CandidateType_Srflex: ++mExpectations.mCandidatesSrflex; break;
+          case IICETypes::CandidateType_Relay:  ++mExpectations.mCandidatesRelay; break;
+        }
       }
 
       //-----------------------------------------------------------------------
@@ -152,6 +280,12 @@ namespace ortc
                                                        ) override
       {
         ZS_LOG_BASIC(log("gatherer candidate complete") + IICEGatherer::toDebug(gatherer) + (candidate ? candidate->toDebug() : ElementPtr()))
+
+        TESTING_CHECK(candidate)
+
+        AutoRecursiveLock lock(*this);
+
+        ++mExpectations.mCandidateComplete;
       }
 
       //-----------------------------------------------------------------------
@@ -161,6 +295,19 @@ namespace ortc
                                                    ) override
       {
         ZS_LOG_BASIC(log("gatherer candidate gone") + IICEGatherer::toDebug(gatherer) + (candidate ? candidate->toDebug() : ElementPtr()))
+
+        TESTING_CHECK(candidate)
+
+        auto hash = candidate->hash();
+
+        AutoRecursiveLock lock(*this);
+
+        auto found = mCandidates.find(hash);
+        TESTING_CHECK(found != mCandidates.end())
+
+        mCandidates.erase(found);
+
+        ++mExpectations.mCandidateGone;
       }
 
       //-----------------------------------------------------------------------
@@ -170,7 +317,11 @@ namespace ortc
                                       String errorReason
                                       ) override
       {
-        ZS_LOG_BASIC(log("gatherer error") + IICEGatherer::toDebug(gatherer) + ZS_PARAM("error", errorCode) + ZS_PARAM("reason", errorReason))
+        ZS_LOG_ERROR(Basic, log("gatherer error") + IICEGatherer::toDebug(gatherer) + ZS_PARAM("error", errorCode) + ZS_PARAM("reason", errorReason))
+
+        AutoRecursiveLock lock(*this);
+
+        ++mExpectations.mError;
       }
 
     public:
@@ -178,6 +329,10 @@ namespace ortc
       ICEGathererTesterWeakPtr mThisWeak;
 
       IICEGathererPtr mGatherer;
+
+      Expectations mExpectations;
+
+      CandidateMap mCandidates;
     };
 
   }
@@ -210,6 +365,7 @@ void doTestICEGatherer()
   // check to see if all DNS routines have resolved
   {
     ULONG step = 0;
+    ULONG maxWait = 80;
 
     do
     {
@@ -217,23 +373,63 @@ void doTestICEGatherer()
 
       bool quit = false;
       ULONG expecting = 0;
-      ULONG maxWait = 60;
+
+      ICEGathererTester::Expectations doNotExpect1;
+
+      ICEGathererTester::Expectations expectations1;
+
+      expectations1.mStateNew = 0;
+      expectations1.mStateGathering = 1;
+      expectations1.mStateComplete = 1;
+      expectations1.mStateClosed = 1;
+      expectations1.mCandidatesUDPHost = ORTC_TEST_HOST_UDP_IPS;
+      expectations1.mCandidatesTCPHostActive = ORTC_TEST_HOST_TCP_IPS;
+      expectations1.mCandidatesTCPHostPassive = ORTC_TEST_HOST_TCP_IPS;
+      expectations1.mCandidateGone = expectations1.mCandidatesUDPHost + expectations1.mCandidatesTCPHostActive + expectations1.mCandidatesTCPHostPassive;
+      expectations1.mCandidateComplete = 1;
+
       switch (step) {
         case 0: {
           testObject1 = ICEGathererTester::create(thread);
-//          testObject1 = TestICESocketCallback::create(thread, 5000 + (rand() % (65525 - 5000)), ORTC_TEST_TURN_SERVER_DOMAIN, ORTC_TEST_STUN_SERVER);
-//          testObject2 = TestICESocketCallback::create(thread, 5000 + (rand() % (65525 - 5000)), ORTC_TEST_TURN_SERVER_DOMAIN, ORTC_TEST_STUN_SERVER);
-//
-//          testObject1->setRemote(testObject2);
-//          testObject2->setRemote(testObject1);
           break;
         }
         case 1: {
-//          testObject1 = TestICESocketCallback::create(thread, 5000 + (rand() % (65525 - 5000)), ORTC_TEST_TURN_SERVER_DOMAIN, ORTC_TEST_STUN_SERVER, true, false, false, true, false);
-//          testObject2 = TestICESocketCallback::create(thread, 5000 + (rand() % (65525 - 5000)), ORTC_TEST_TURN_SERVER_DOMAIN, ORTC_TEST_STUN_SERVER, true, false, false, true, false);
-//
-//          testObject1->setRemote(testObject2);
-//          testObject2->setRemote(testObject1);
+          ortc::ISettings::setBool("ortc/gatherer/gather-passive-tcp-candidates", false);
+
+          expectations1.mCandidatesTCPHostPassive = 0;
+          expectations1.mCandidateGone = expectations1.mCandidatesUDPHost + expectations1.mCandidatesTCPHostActive + expectations1.mCandidatesTCPHostPassive;
+
+          testObject1 = ICEGathererTester::create(thread);
+          break;
+        }
+        case 2: {
+          ortc::ISettings::setBool("ortc/gatherer/gather-passive-tcp-candidates", true);
+
+          expectations1.mCandidateGone = 0;
+          expectations1.mStateClosed = 0;
+
+          testObject1 = ICEGathererTester::create(thread);
+          break;
+        }
+        case 3: {
+          expectations1.mCandidateGone = 0;
+          expectations1.mStateClosed = 0;
+
+          testObject1 = ICEGathererTester::create(thread);
+          break;
+        }
+        case 4: {
+          expectations1.mCandidatesSrflex = ORTC_TEST_REFLEXIVE_UDP_IPS;
+          expectations1.mCandidateGone += expectations1.mCandidatesSrflex;
+
+          String url = String("stun:") + ORTC_TEST_STUN_SERVER;
+
+          ortc::IICEGatherer::Server server;
+          server.mURLs.push_back(url);
+          ortc::IICEGatherer::Options options;
+          options.mICEServers.push_back(server);
+
+          testObject1 = ICEGathererTester::create(thread, options);
           break;
         }
         default:  quit = true; break;
@@ -261,38 +457,43 @@ void doTestICEGatherer()
 
         switch (step) {
           case 0: {
-            if (1 == totalWait) {
-//              testObject1->createSessionFromRemoteCandidates(IICESocket::ICEControl_Controlling);
-//              testObject2->createSessionFromRemoteCandidates(IICESocket::ICEControl_Controlled);
-            }
-
-            if (20 == totalWait) {
-//              testObject1->shutdown();
-//              testObject2->shutdown();
+            if (7 == totalWait) {
+              testObject1->close();
             }
             break;
           }
           case 1: {
-            if (10 == totalWait) {
-//              testObject1->createSessionFromRemoteCandidates(IICESocket::ICEControl_Controlling);
-//              testObject2->createSessionFromRemoteCandidates(IICESocket::ICEControl_Controlling);
+            if (7 == totalWait) {
+              testObject1->close();
             }
 
-            if (39 == totalWait) {
-              found = 2;
-//              testObject1->shutdown();
-//              testObject2->shutdown();
+            break;
+          }
+          case 2: {
+            if (7 == totalWait) {
+              TESTING_CHECK(testObject1->matches(expectations1))
+              testObject1.reset();
             }
 
+            break;
+          }
+          case 3: {
+            if (7 == totalWait) {
+              testObject1->closeByReset();
+            }
+
+            break;
+          }
+          case 4: {
+            if (65 == totalWait) {
+              testObject1->close();
+            }
             break;
           }
         }
 
         if (0 == found) {
-//          found += (testObject1 ? (testObject1->isComplete() ? 1 : 0) : 0);
-//          found += (testObject2 ? (testObject2->isComplete() ? 1 : 0) : 0);
-//          found += (testObject3 ? (testObject3->isComplete() ? 1 : 0) : 0);
-//          found += (testObject4 ? (testObject4->isComplete() ? 1 : 0) : 0);
+          found += (testObject1 ? (testObject1->matches(expectations1) ? 1 : 0) : 0);
         }
 
         if (lastFound != found) {
@@ -304,14 +505,22 @@ void doTestICEGatherer()
 
       switch (step) {
         case 0: {
-//          if (testObject1) testObject1->expectationsOkay();
-//          if (testObject2) testObject2->expectationsOkay();
-
+          TESTING_CHECK(testObject1->matches(expectations1))
           break;
         }
         case 1: {
-//          if (testObject1) testObject1->expectationsOkay();
-//          if (testObject2) testObject2->expectationsOkay();
+          TESTING_CHECK(testObject1->matches(expectations1))
+          break;
+        }
+        case 2: {
+          break;
+        }
+        case 3: {
+          TESTING_CHECK(testObject1->matches(expectations1))
+          break;
+        }
+        case 4: {
+          TESTING_CHECK(testObject1->matches(expectations1))
           break;
         }
       }
@@ -325,7 +534,7 @@ void doTestICEGatherer()
   }
 
   TESTING_STDOUT() << "WAITING:      All ICE gethers have finished. Waiting for 'bogus' events to process (10 second wait).\n";
-  TESTING_SLEEP(50*10000)
+  TESTING_SLEEP(10000)
 
   // wait for shutdown
   {

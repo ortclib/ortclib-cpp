@@ -34,6 +34,7 @@
 #include <ortc/internal/ortc_ORTC.h>
 #include <ortc/internal/platform.h>
 
+#include <openpeer/services/IDNS.h>
 #include <openpeer/services/IHelper.h>
 #include <openpeer/services/IHTTP.h>
 #include <openpeer/services/ISettings.h>
@@ -89,9 +90,11 @@ namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib) }
 
 namespace ortc
 {
+  ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IDNS, UseDNS)
   ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHelper, UseServicesHelper)
   ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHTTP, UseHTTP)
   ZS_DECLARE_TYPEDEF_PTR(openpeer::services::ISettings, UseSettings)
+  ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IBackOffTimerPattern, UseBackOffTimerPattern)
 
   using zsLib::Numeric;
   typedef openpeer::services::Hasher<CryptoPP::SHA1> SHA1Hasher;
@@ -311,7 +314,17 @@ namespace ortc
       UseSettings::setUInt(ORTC_SETTING_GATHERER_PASSWORD_LENGTH, (128*8)/5);     // must be at least 128 bits
 
       UseSettings::setBool(ORTC_SETTING_GATHERER_CREATE_TCP_CANDIDATES, true);
-      UseSettings::setString(ORTC_SETTING_GATHERER_BIND_BACK_OFF_TIMER, "/1,1,*2:120//5/");
+
+      {
+        UseBackOffTimerPatternPtr pattern = UseBackOffTimerPattern::create();
+        pattern->addNextRetryAfterFailureDuration(Seconds(1));
+        pattern->addNextRetryAfterFailureDuration(Seconds(1));
+        pattern->setMultiplierForLastRetryAfterFailureDuration(2.0);
+        pattern->setMaxRetryAfterFailureDuration(Seconds(120));
+        pattern->setMaxAttempts(6);
+
+        UseSettings::setString(ORTC_SETTING_GATHERER_BIND_BACK_OFF_TIMER, pattern->save());
+      }
 
       UseSettings::setUInt(ORTC_SETTING_GATHERER_WARM_UP_TIME_AFTER_NEW_INTERFACE_IN_SECONDS, 30);
 
@@ -752,11 +765,6 @@ namespace ortc
       mLastReflexiveHostsHash.clear();
       mLastRelayHostsHash.clear();
 
-      if (mBindBackOffTimer) {
-        mBindBackOffTimer->cancel();
-        mBindBackOffTimer.reset();
-      }
-
       if (InternalState_Ready == mCurrentState) {
         ZS_LOG_DETAIL(log("must initiate gathering again"))
         setState(InternalState_Gathering);
@@ -1140,7 +1148,7 @@ namespace ortc
             ZS_LOG_WARNING(Debug, log("no UDP socket found at this time") + route->toDebug() + ZS_PARAM("buffer size", bufferSizeInBytes))
             goto send_failed;
           }
-          return sendUDPPacket(route->mHostPort->mBoundUDPSocket, route->mFrom, buffer, bufferSizeInBytes);
+          return sendUDPPacket(route->mHostPort->mBoundUDPSocket, route->mHostPort->mBoundUDPIP, route->mFrom, buffer, bufferSizeInBytes);
         }
         if (route->mRelayPort) {
           if (!route->mRelayPort->mTURNSocket) {
@@ -1611,26 +1619,13 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void ICEGatherer::onBackOffTimerAttemptAgainNow(IBackOffTimerPtr timer)
+    void ICEGatherer::onBackOffTimerStateChanged(
+                                                 IBackOffTimerPtr timer,
+                                                 IBackOffTimer::States state
+                                                 )
     {
       AutoRecursiveLock lock(*this);
       ZS_LOG_TRACE(log("back off timer attempt again now fired") + UseBackOffTimer::toDebug(timer))
-      step();
-    }
-
-    //-------------------------------------------------------------------------
-    void ICEGatherer::onBackOffTimerAttemptTimeout(IBackOffTimerPtr timer)
-    {
-      AutoRecursiveLock lock(*this);
-      ZS_LOG_TRACE(log("back off timer attempt timeout fired") + UseBackOffTimer::toDebug(timer))
-      step();
-    }
-
-    //-------------------------------------------------------------------------
-    void ICEGatherer::onBackOffTimerAllAttemptsFailed(IBackOffTimerPtr timer)
-    {
-      AutoRecursiveLock lock(*this);
-      ZS_LOG_TRACE(log("back off timer all attempts failed fired") + UseBackOffTimer::toDebug(timer))
       step();
     }
 
@@ -1667,7 +1662,7 @@ namespace ortc
         return;
       }
 
-      auto result = sendUDPPacket(hostPort->mBoundUDPSocket, destination, packet->BytePtr(), packet->SizeInBytes());
+      auto result = sendUDPPacket(hostPort->mBoundUDPSocket, hostPort->mBoundUDPIP, destination, packet->BytePtr(), packet->SizeInBytes());
       if (!result) {
         ZS_LOG_WARNING(Debug, log("failed to send stun packet on bound socket") + hostPort->toDebug())
         return;
@@ -1815,7 +1810,7 @@ namespace ortc
         return false;
       }
 
-      auto result = sendUDPPacket(hostPort->mBoundUDPSocket, destination, packet, packetLengthInBytes);
+      auto result = sendUDPPacket(hostPort->mBoundUDPSocket, hostPort->mBoundUDPIP, destination, packet, packetLengthInBytes);
       if (!result) {
         ZS_LOG_WARNING(Debug, log("failed to send stun packet on bound socket") + hostPort->toDebug())
         return false;
@@ -1921,8 +1916,6 @@ namespace ortc
       UseServicesHelper::debugAppend(resultEl, "has turn servers", mHasSTUNServers);
 
       UseServicesHelper::debugAppend(resultEl, "last local preference", mLastLocalPreference.size());
-
-      UseServicesHelper::debugAppend(resultEl, "bind back off timer", mBindBackOffTimer ? mBindBackOffTimer->getID() : 0);
 
       UseServicesHelper::debugAppend(resultEl, "notified candidates", mNotifiedCandidates.size());
       UseServicesHelper::debugAppend(resultEl, "local candidates", mLocalCandidates.size());
@@ -2671,17 +2664,7 @@ namespace ortc
         return true;
       }
 
-      if (mBindBackOffTimer) {
-        Time retryAfter = mBindBackOffTimer->getNextRetryAfterTime();
-        if (zsLib::now() < retryAfter) {
-          ZS_LOG_WARNING(Trace, log("not ready to retry binding just yet"))
-          return true;
-        }
-      }
-
       bool allBound = true;
-
-      auto maxBindFailures = (mBindBackOffTimer ? mBindBackOffTimer->getMaxFailures(): 0);
 
       for (auto iter = mHostPorts.begin(); iter != mHostPorts.end(); ++iter) {
         auto hostPort = (*iter).second;
@@ -2692,16 +2675,32 @@ namespace ortc
         }
 
         if (!hostPort->mBoundUDPSocket) {
-          IPAddress bindIP(hostPort->mHostData->mIP);
-          hostPort->mBoundUDPSocket = bind(bindIP, IICETypes::Protocol_UDP);
-          if (hostPort->mBoundUDPSocket) {
-            ZS_LOG_DEBUG(log("successfully bound UDP socket") + ZS_PARAM("bind ip", bindIP.string()))
-            hostPort->mBoundUDPIP = bindIP;
-            mHostPortSockets[hostPort->mBoundUDPSocket] = hostPort;
-            hostPort->mCandidateUDP = createCandidate(hostPort->mHostData, IICETypes::CandidateType_Host, bindIP);
+          bool firstAttempt = false;
+          if (!hostPort->mBindUDPBackOffTimer) {
+            hostPort->mBindUDPBackOffTimer = UseBackOffTimer::create(UseSettings::getString(ORTC_SETTING_GATHERER_BIND_BACK_OFF_TIMER), mThisWeak.lock());
+            firstAttempt = true;
+          }
+
+          if (hostPort->mBindUDPBackOffTimer->shouldAttemptNow()) {
+            hostPort->mBindUDPBackOffTimer->notifyAttempting();
+
+            IPAddress bindIP(hostPort->mHostData->mIP);
+            hostPort->mBoundUDPSocket = bind(firstAttempt, bindIP, IICETypes::Protocol_UDP);
+            if (hostPort->mBoundUDPSocket) {
+              ZS_LOG_DEBUG(log("successfully bound UDP socket") + ZS_PARAM("bind ip", bindIP.string()))
+
+              hostPort->mBindUDPBackOffTimer->cancel();
+              hostPort->mBindUDPBackOffTimer.reset();
+
+              hostPort->mBoundUDPIP = bindIP;
+              mHostPortSockets[hostPort->mBoundUDPSocket] = hostPort;
+              hostPort->mCandidateUDP = createCandidate(hostPort->mHostData, IICETypes::CandidateType_Host, bindIP);
+            } else {
+              hostPort->mBindUDPBackOffTimer->notifyAttemptFailed();
+              ZS_LOG_WARNING(Debug, log("failed to bind UDP socket") + hostPort->toDebug() + ZS_PARAM("bind ip", bindIP.string()))
+            }
           } else {
-            ++(hostPort->mTotalBindFailuresUDP);
-            ZS_LOG_WARNING(Debug, log("failed to bind UDP socket") + hostPort->toDebug() + ZS_PARAM("bind ip", bindIP.string()))
+            ZS_LOG_WARNING(Trace, log("not ready to retry binding UDP just yet") + hostPort->toDebug())
           }
         } else {
           addCandidate(*(hostPort->mHostData), hostPort->mBoundUDPIP, hostPort->mCandidateUDP);
@@ -2710,21 +2709,37 @@ namespace ortc
         // scope: create TCP socket
         if (mCreateTCPCandidates) {
           if (!hostPort->mBoundTCPSocket) {
-            IPAddress bindIP(hostPort->mHostData->mIP);
-            hostPort->mBoundTCPSocket = bind(bindIP, IICETypes::Protocol_TCP);
-            if (hostPort->mBoundTCPSocket) {
-              ZS_LOG_DEBUG(log("successfully bound TCP socket") + ZS_PARAM("bind ip", bindIP.string()))
-              hostPort->mBoundTCPIP = bindIP;
-              mHostPortSockets[hostPort->mBoundTCPSocket] = hostPort;
-              if (mGatherPassiveTCP) {
-                hostPort->mCandidateTCPPassive = createCandidate(hostPort->mHostData, IICETypes::CandidateType_Host, bindIP, IICETypes::Protocol_TCP, IICETypes::TCPCandidateType_Passive);
+            bool firstAttempt = false;
+            if (!hostPort->mBindTCPBackOffTimer) {
+              hostPort->mBindTCPBackOffTimer = UseBackOffTimer::create(UseSettings::getString(ORTC_SETTING_GATHERER_BIND_BACK_OFF_TIMER), mThisWeak.lock());
+              firstAttempt = true;
+            }
+
+            if (hostPort->mBindTCPBackOffTimer->shouldAttemptNow()) {
+              hostPort->mBindTCPBackOffTimer->notifyAttempting();
+
+              IPAddress bindIP(hostPort->mHostData->mIP);
+              hostPort->mBoundTCPSocket = bind(firstAttempt, bindIP, IICETypes::Protocol_TCP);
+              if (hostPort->mBoundTCPSocket) {
+                ZS_LOG_DEBUG(log("successfully bound TCP socket") + ZS_PARAM("bind ip", bindIP.string()))
+
+                hostPort->mBindTCPBackOffTimer->cancel();
+                hostPort->mBindTCPBackOffTimer.reset();
+
+                hostPort->mBoundTCPIP = bindIP;
+                mHostPortSockets[hostPort->mBoundTCPSocket] = hostPort;
+                if (mGatherPassiveTCP) {
+                  hostPort->mCandidateTCPPassive = createCandidate(hostPort->mHostData, IICETypes::CandidateType_Host, bindIP, IICETypes::Protocol_TCP, IICETypes::TCPCandidateType_Passive);
+                }
+                IPAddress bindActiveIP(bindIP);
+                bindActiveIP.setPort(9);
+                hostPort->mCandidateTCPActive = createCandidate(hostPort->mHostData, IICETypes::CandidateType_Host, bindActiveIP, IICETypes::Protocol_TCP, IICETypes::TCPCandidateType_Active);
+              } else {
+                hostPort->mBindUDPBackOffTimer->notifyAttemptFailed();
+                ZS_LOG_WARNING(Debug, log("failed to bind TCP socket") + hostPort->toDebug() + ZS_PARAM("bind ip", bindIP.string()))
               }
-              IPAddress bindActiveIP(bindIP);
-              bindActiveIP.setPort(9);
-              hostPort->mCandidateTCPActive = createCandidate(hostPort->mHostData, IICETypes::CandidateType_Host, bindActiveIP, IICETypes::Protocol_TCP, IICETypes::TCPCandidateType_Active);
             } else {
-              ++(hostPort->mTotalBindFailuresTCP);
-              ZS_LOG_WARNING(Debug, log("failed to bind TCP socket") + hostPort->toDebug() + ZS_PARAM("bind ip", bindIP.string()))
+              ZS_LOG_WARNING(Trace, log("not ready to retry binding TCP just yet") + hostPort->toDebug())
             }
           } else {
             addCandidate(*(hostPort->mHostData), hostPort->mBoundTCPIP, hostPort->mCandidateTCPPassive);
@@ -2732,32 +2747,22 @@ namespace ortc
           }
         }
 
-        bool reachedMaxFailure = false;
+        bool udpComplete = (hostPort->mBoundUDPSocket) || (hostPort->mBindUDPBackOffTimer ? hostPort->mBindUDPBackOffTimer->isComplete() : true);
+        bool tcpComplete = (!mCreateTCPCandidates) || (hostPort->mBoundTCPSocket) || (hostPort->mBindTCPBackOffTimer ? hostPort->mBindTCPBackOffTimer->isComplete() : true);
 
-        if (0 != maxBindFailures) {
-          if (hostPort->mTotalBindFailuresUDP < maxBindFailures) {
-            if (!hostPort->mBoundUDPSocket) goto host_not_bound;
-          } else {
-            reachedMaxFailure = true;
+        if ((udpComplete) &&
+            (tcpComplete)) {
+
+          if ((hostPort->mBindUDPBackOffTimer ? hostPort->mBindUDPBackOffTimer->haveAllAttemptsFailed() : false) ||
+              (hostPort->mBindTCPBackOffTimer ? hostPort->mBindTCPBackOffTimer->haveAllAttemptsFailed() : false)) {
+            goto host_port_max_bind_failures_reached;
           }
-        } else {
-          if (!hostPort->mBoundUDPSocket) goto host_not_bound;
+
+          goto host_bound;
+
         }
 
-        if (!mCreateTCPCandidates) goto host_bound;
-
-        if (0 != maxBindFailures) {
-          if (hostPort->mTotalBindFailuresTCP < maxBindFailures) {
-            if (!hostPort->mBoundTCPSocket) goto host_not_bound;
-          } else {
-            reachedMaxFailure = true;
-          }
-        } else {
-          if (!hostPort->mBoundTCPSocket) goto host_not_bound;
-        }
-
-        if (reachedMaxFailure) goto host_port_max_bind_failures_reached;
-        goto host_bound;
+        goto host_not_bound;
 
       host_not_bound:
         {
@@ -2783,27 +2788,10 @@ namespace ortc
         mLastBoundHostPortsHostHash = mHostsHash;
 
         ZS_LOG_DEBUG(log("all sockets have been bound (or reached maximum attempt failures)"))
-        if (mBindBackOffTimer) {
-          mBindBackOffTimer->cancel();
-          mBindBackOffTimer.reset();
-        }
         return true;
       }
 
       ZS_LOG_WARNING(Debug, log("not all sockets bound"))
-
-      if (mBindBackOffTimer) {
-        mBindBackOffTimer->notifyFailure();
-        if (mBindBackOffTimer->hasFullyFailed()) {
-          ZS_LOG_WARNING(Debug, log("batch of failures have occured but not all have failed (thus restart backoff timer to fail those hosts too)"))
-          mBindBackOffTimer->cancel();
-          mBindBackOffTimer.reset();
-        }
-      }
-
-      if (!mBindBackOffTimer) {
-        mBindBackOffTimer = IBackOffTimer::create<Seconds>(UseSettings::getString(ORTC_SETTING_GATHERER_BIND_BACK_OFF_TIMER), mThisWeak.lock());
-      }
 
       // allow creation of reflexive and relay candidates (even though not everything was bound)
       return true;
@@ -3041,7 +3029,12 @@ namespace ortc
                 keepAliveTime = Seconds(keepAliveInSeconds);
               }
 
-              reflexivePort->mSTUNDiscovery = UseSTUNDiscovery::create(UseServicesHelper::getServiceQueue(), mThisWeak.lock(), createDNSLookupString(server, "stun:"), keepAliveTime);
+              UseDNS::SRVLookupTypes lookup = (UseDNS::SRVLookupTypes)(UseDNS::SRVLookupType_AutoLookupA | UseDNS::SRVLookupType_FallbackToALookup);
+              if (hostPort->mBoundUDPIP.isIPv6()) {
+                lookup = (UseDNS::SRVLookupTypes)(UseDNS::SRVLookupType_AutoLookupAAAA | UseDNS::SRVLookupType_FallbackToAAAALookup);
+              }
+
+              reflexivePort->mSTUNDiscovery = UseSTUNDiscovery::create(UseServicesHelper::getServiceQueue(), mThisWeak.lock(), createDNSLookupString(server, "stun:"), lookup, keepAliveTime);
               ZS_THROW_UNEXPECTED_ERROR_IF(!reflexivePort->mSTUNDiscovery)
 
               mSTUNDiscoveries[reflexivePort->mSTUNDiscovery] = HostAndReflexivePortPair(hostPort, reflexivePort);
@@ -3598,11 +3591,6 @@ namespace ortc
         }
       }
 
-      if (mBindBackOffTimer) {
-        mBindBackOffTimer->cancel();
-        mBindBackOffTimer.reset();
-      }
-
       if (mWarmUpAterNewInterfaceBindingTimer) {
         mWarmUpAterNewInterfaceBindingTimer->cancel();
         mWarmUpAterNewInterfaceBindingTimer.reset();
@@ -4138,6 +4126,7 @@ namespace ortc
 
     //-------------------------------------------------------------------------
     SocketPtr ICEGatherer::bind(
+                                bool firstAttempt,
                                 IPAddress &ioBindIP,
                                 IICETypes::Protocols protocol
                                 )
@@ -4155,8 +4144,8 @@ namespace ortc
         }
 
         if (0 != mDefaultPort) {
-          if (!mBindBackOffTimer) {
-            // only bind using the default port while there is no backoff timer
+          if (firstAttempt) {
+            // only bind using the default port in the first attempt
             ioBindIP.setPort(mDefaultPort);
           }
         }
@@ -4420,7 +4409,10 @@ namespace ortc
       ZS_LOG_DEBUG(log("notify candidate gone") + previousCandidate->toDebug())
 
       CandidatePtr sendCandidate(new Candidate(*previousCandidate));
-      mSubscriptions.delegate()->onICEGathererLocalCandidateGone(mThisWeak.lock(), sendCandidate);
+      auto pThis = mThisWeak.lock();
+      if (pThis) {
+        mSubscriptions.delegate()->onICEGathererLocalCandidateGone(mThisWeak.lock(), sendCandidate);
+      }
 
       mNotifiedCandidates.erase(foundUnique);
 
@@ -4439,7 +4431,9 @@ namespace ortc
           CandidatePtr sendCandidate(new Candidate(*otherCandidate));
 
           ZS_LOG_DEBUG(log("notify replacement local candidate") + otherCandidate->toDebug())
-          mSubscriptions.delegate()->onICEGathererLocalCandidate(mThisWeak.lock(), sendCandidate);
+          if (pThis) {
+            mSubscriptions.delegate()->onICEGathererLocalCandidate(mThisWeak.lock(), sendCandidate);
+          }
           return;
         }
       }
@@ -4614,7 +4608,7 @@ namespace ortc
             AutoRecursiveLock lock(*this);
 
             if (hostPort->mBoundUDPSocket) {
-              auto result = sendUDPPacket(socket, fromIP, *response, response->SizeInBytes());
+              auto result = sendUDPPacket(socket, hostPort->mBoundUDPIP, fromIP, *response, response->SizeInBytes());
               if (!result) {
                 ZS_LOG_WARNING(Debug, log("failed to send response packet to stun request") + localCandidate->toDebug() + ZS_PARAM("from ip", fromIP.string()) + stunPacket->toDebug())
               }
@@ -4847,14 +4841,15 @@ namespace ortc
       candidate1.reset();
       candidate2.reset();
 
-      if (!mBindBackOffTimer) {
-        mBindBackOffTimer = IBackOffTimer::create<Seconds>(UseSettings::getString(ORTC_SETTING_GATHERER_BIND_BACK_OFF_TIMER), mThisWeak.lock());
-      }
+      hostPort->mBoundOptionsHash.clear();
 
       // cause rebinding to occur on port
       mLastBoundHostPortsHostHash.clear();
       mLastReflexiveHostsHash.clear();
       mLastRelayHostsHash.clear();
+
+      // kick start to cause another binding attempt
+      IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
     }
 
     //-------------------------------------------------------------------------
@@ -5314,6 +5309,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool ICEGatherer::sendUDPPacket(
                                     SocketPtr socket,
+                                    const IPAddress &boundIP,
                                     const IPAddress &remoteIP,
                                     const BYTE *buffer,
                                     size_t bufferSizeInBytes
@@ -5325,15 +5321,16 @@ namespace ortc
 
       try {
         bool wouldBlock = false;
+
         auto sent = socket->sendTo(remoteIP, buffer, bufferSizeInBytes, &wouldBlock);
 
         if (sent == bufferSizeInBytes) return true;
       } catch(Socket::Exceptions::Unspecified &error) {
-        ZS_LOG_ERROR(Debug, log("unable to send packet") + ZS_PARAM("error", error.errorCode()))
+        ZS_LOG_ERROR(Debug, log("unable to send packet") + ZS_PARAM("error", error.errorCode()) + ZS_PARAM("to", remoteIP.string()) + ZS_PARAM("from", boundIP.string()))
         return false;
       }
 
-      ZS_LOG_WARNING(Trace, log("could not send packet at this time") + ZS_PARAM("socket", (PTRNUMBER)socket->getSocket()) + ZS_PARAM("remote ip", remoteIP.string()) + ZS_PARAM("size", bufferSizeInBytes))
+      ZS_LOG_WARNING(Trace, log("could not send packet at this time") + ZS_PARAM("socket", (PTRNUMBER)socket->getSocket()) + ZS_PARAM("to", remoteIP.string()) + ZS_PARAM("from", boundIP.string()) + ZS_PARAM("size", bufferSizeInBytes))
       return false;
     }
 
@@ -5757,13 +5754,13 @@ namespace ortc
       UseServicesHelper::debugAppend(resultEl, "candidate udp", mCandidateUDP ? mCandidateUDP->toDebug() : ElementPtr());
       UseServicesHelper::debugAppend(resultEl, "bound udp ip", mBoundUDPIP.string());
       UseServicesHelper::debugAppend(resultEl, "bound udp socket", mBoundUDPSocket ? ((PTRNUMBER)mBoundUDPSocket->getSocket()) : 0);
-      UseServicesHelper::debugAppend(resultEl, "total bind udp failures", mTotalBindFailuresUDP);
+      UseServicesHelper::debugAppend(resultEl, "udp back off timer", UseBackOffTimer::toDebug(mBindUDPBackOffTimer));
 
       UseServicesHelper::debugAppend(resultEl, "passive candidate tcp", mCandidateTCPPassive ? mCandidateTCPPassive->toDebug() : ElementPtr());
       UseServicesHelper::debugAppend(resultEl, "active candidate tcp", mCandidateTCPActive ? mCandidateTCPActive->toDebug() : ElementPtr());
       UseServicesHelper::debugAppend(resultEl, "bound udp ip", mBoundTCPIP.string());
       UseServicesHelper::debugAppend(resultEl, "bound tcp socket", mBoundTCPSocket ? ((PTRNUMBER)mBoundTCPSocket->getSocket()) : 0);
-      UseServicesHelper::debugAppend(resultEl, "total bind tcp failures", mTotalBindFailuresTCP);
+      UseServicesHelper::debugAppend(resultEl, "tcp back off timer", UseBackOffTimer::toDebug(mBindTCPBackOffTimer));
 
       UseServicesHelper::debugAppend(resultEl, "warm up after binding", mWarmUpAfterBinding);
 

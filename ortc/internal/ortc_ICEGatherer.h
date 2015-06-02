@@ -479,9 +479,10 @@ namespace ortc
       #pragma mark ICEGatherer => IBackOffDelegate
       #pragma mark
 
-      virtual void onBackOffTimerAttemptAgainNow(IBackOffTimerPtr timer) override;
-      virtual void onBackOffTimerAttemptTimeout(IBackOffTimerPtr timer) override;
-      virtual void onBackOffTimerAllAttemptsFailed(IBackOffTimerPtr timer) override;
+      virtual void onBackOffTimerStateChanged(
+                                              IBackOffTimerPtr timer,
+                                              IBackOffTimer::States state
+                                              ) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -696,14 +697,14 @@ namespace ortc
         CandidatePtr mCandidateUDP;
         IPAddress mBoundUDPIP;
         SocketPtr mBoundUDPSocket;
-        size_t mTotalBindFailuresUDP {};
-
+        UseBackOffTimerPtr mBindUDPBackOffTimer;
+        
         CandidatePtr mCandidateTCPPassive;
         CandidatePtr mCandidateTCPActive;
 
         IPAddress mBoundTCPIP;
         SocketPtr mBoundTCPSocket;
-        size_t mTotalBindFailuresTCP {};
+        UseBackOffTimerPtr mBindTCPBackOffTimer;
 
         bool mWarmUpAfterBinding {true};
 
@@ -908,6 +909,7 @@ namespace ortc
                     );
 
       SocketPtr bind(
+                     bool firstAttempt,
                      IPAddress &ioBindIP,
                      IICETypes::Protocols protocol
                      );
@@ -991,6 +993,7 @@ namespace ortc
 
       bool sendUDPPacket(
                          SocketPtr socket,
+                         const IPAddress &boundIP,
                          const IPAddress &remoteIP,
                          const BYTE *buffer,
                          size_t bufferSizeInBytes
@@ -1063,8 +1066,6 @@ namespace ortc
       bool mHasTURNServers {false};
 
       FoundationToLocalPreferenceMap mLastLocalPreference;
-
-      UseBackOffTimerPtr mBindBackOffTimer;
 
       CandidateMap mNotifiedCandidates;
       CandidateMap mLocalCandidates;
