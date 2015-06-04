@@ -45,7 +45,7 @@ namespace ortc
 {
   namespace internal
   {
-    ZS_DECLARE_INTERACTION_PTR(IICETransportForRTPTransport)
+    ZS_DECLARE_INTERACTION_PTR(IICETransportForSecureTransport)
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -70,7 +70,7 @@ namespace ortc
       friend interaction ISecureTransportForRTPSender;
       friend interaction ISecureTransportForICETransport;
 
-      ZS_DECLARE_TYPEDEF_PTR(IICETransportForRTPTransport, UseICETransport)
+      ZS_DECLARE_TYPEDEF_PTR(IICETransportForSecureTransport, UseICETransport)
 
       enum State
       {
@@ -122,15 +122,15 @@ namespace ortc
                                          const CryptoParameters &decryptParameters
                                          );
 
-      virtual PUID getID() const;
+      virtual PUID getID() const override;
 
-      virtual ISRTPSDESTransportSubscriptionPtr subscribe(ISRTPSDESTransportDelegatePtr delegate);
+      virtual ISRTPSDESTransportSubscriptionPtr subscribe(ISRTPSDESTransportDelegatePtr delegate) override;
 
-      virtual IICETransportPtr transport() const;
+      virtual IICETransportPtr transport() const override;
 
       static ParametersPtr getLocalParameters();
 
-      virtual void stop();
+      virtual void stop() override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -150,6 +150,8 @@ namespace ortc
       #pragma mark
 
       // (duplicate) virtual PUID getID() const;
+
+      virtual DTLSCertficateGeneratorPtr getCertificateGenerator() const override {return DTLSCertficateGeneratorPtr();}
 
       virtual void handleReceivedPacket(
                                         IICETypes::Components viaComponent,

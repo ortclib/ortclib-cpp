@@ -55,6 +55,9 @@ namespace ortc
     ZS_DECLARE_TYPEDEF_PTR(std::list<Fingerprint>, FingerprintList)
     ZS_DECLARE_TYPEDEF_PTR(std::list<SecureByteBlock>, SecureByteBlockList)
 
+    typedef PromiseWith<Parameters> PromiseWithParameters;
+    ZS_DECLARE_PTR(PromiseWithParameters)
+
     //-------------------------------------------------------------------------
     #pragma mark
     #pragma mark TransportStates
@@ -92,7 +95,7 @@ namespace ortc
     #pragma mark Roles
     #pragma mark
 
-    struct Parameters
+    struct Parameters : public Any
     {
       Roles mRole {Role_Auto};
       FingerprintList mFingerprints;
@@ -144,7 +147,7 @@ namespace ortc
 
     virtual States getState() const = 0;
 
-    virtual ParametersPtr getLocalParameters() const = 0;
+    virtual PromiseWithParametersPtr getLocalParameters() const = 0;
     virtual ParametersPtr getRemoteParameters() const = 0;
 
     virtual SecureByteBlockListPtr getRemoteCertificates() const = 0;

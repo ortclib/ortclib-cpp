@@ -104,6 +104,24 @@ namespace ortc
     //-------------------------------------------------------------------------
     void DTLSTransport::init()
     {
+      UseICETransportPtr transport;
+
+      // scope: setup generator
+      {
+        AutoRecursiveLock lock(*this);
+        transport = mICETransport;
+
+        mCertificateGenerator = transport->getAssociatedGenerator();
+        if (!mCertificateGenerator) mCertificateGenerator = DTLSCertficateGenerator::create();
+
+        mCertificateGeneratorPromise = mCertificateGenerator->getCertificate();
+        mCertificateGeneratorPromise->then(mThisWeak.lock());
+
+        mICETransportSubscription = transport->subscribe(mThisWeak.lock());
+      }
+
+      transport->notifyAttached(mID, mThisWeak.lock());
+
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
     }
 
@@ -114,6 +132,7 @@ namespace ortc
 
       ZS_LOG_DETAIL(log("destroyed"))
       mThisWeak.reset();
+
       cancel();
     }
 
@@ -163,12 +182,6 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    PUID DTLSTransport::getID() const
-    {
-      return mID;
-    }
-
-    //-------------------------------------------------------------------------
     IDTLSTransportSubscriptionPtr DTLSTransport::subscribe(IDTLSTransportDelegatePtr originalDelegate)
     {
       ZS_LOG_DETAIL(log("subscribing to transport state"))
@@ -210,12 +223,25 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    IDTLSTransportTypes::ParametersPtr DTLSTransport::getLocalParameters() const
+    IDTLSTransportTypes::PromiseWithParametersPtr DTLSTransport::getLocalParameters() const
     {
       AutoRecursiveLock lock(*this);
-#define TODO_COMPLETE 1
-#define TODO_COMPLETE 2
-      return ParametersPtr();
+
+      if ((isShutdown()) ||
+          (isShuttingDown())) {
+        ZS_LOG_WARNING(Detail, log("cannot get local parameters while shutdown (or shutting down)"))
+        return PromiseWithParameters::createRejected(IORTCForInternal::queueDelegate());
+      }
+
+      auto pendingPromise = PromiseWithParameters::create(IORTCForInternal::queueDelegate());
+
+      mPendingLocalParameters.push_back(pendingPromise);
+
+      ZS_LOG_TRACE(log("will resolve get local paramters later"))
+
+      IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
+
+      return pendingPromise;
     }
 
     //-------------------------------------------------------------------------
@@ -298,6 +324,14 @@ namespace ortc
     #pragma mark
     #pragma mark DTLSTransport => IDTLSTransportForICETransport
     #pragma mark
+
+    //-------------------------------------------------------------------------
+    DTLSCertficateGeneratorPtr DTLSTransport::getCertificateGenerator() const
+    {
+      ZS_LOG_TRACE(log("get certificate generator"))
+      AutoRecursiveLock lock(*this);
+      return mCertificateGenerator;
+    }
 
     //-------------------------------------------------------------------------
     void DTLSTransport::handleReceivedPacket(
@@ -424,6 +458,9 @@ namespace ortc
 
       UseServicesHelper::debugAppend(resultEl, "ice transport", mICETransport ? mICETransport->getID() : 0);
 
+      UseServicesHelper::debugAppend(resultEl, "certificate generator", (bool)mCertificateGenerator);
+      UseServicesHelper::debugAppend(resultEl, "certificate generator promise", (bool)mCertificateGeneratorPromise);
+
       return resultEl;
     }
 
@@ -443,7 +480,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     void DTLSTransport::step()
     {
-      ZS_LOG_DEBUG(debug("step"))
+      ZS_LOG_DEBUG(debug("step") + toDebug())
 
       if ((isShuttingDown()) ||
           (isShutdown())) {
@@ -454,6 +491,67 @@ namespace ortc
 
 #define TODO_GET_INTO_VALIDATED_STATE 1
 #define TODO_GET_INTO_VALIDATED_STATE 2
+
+      // ... other steps here ...
+      if (!stepGetCertificate()) goto not_ready;
+      if (!stepResolveLocalParameters()) goto not_ready;
+      // ... other steps here ...
+
+    not_ready:
+      {
+        ZS_LOG_TRACE(log("dtls is not ready") + toDebug())
+        return;
+      }
+
+    ready:
+      {
+        ZS_LOG_TRACE(log("ready"))
+        setState(State_Validated);
+      }
+    }
+
+    //-------------------------------------------------------------------------
+    bool DTLSTransport::stepGetCertificate()
+    {
+      if (mCertificate) {
+        ZS_LOG_TRACE(log("already have certificate"))
+        return true;
+      }
+
+      if (!mCertificateGeneratorPromise->isResolved()) {
+        ZS_LOG_DEBUG(log("waiting for generator promise to resolve"))
+        return false;
+      }
+
+      mCertificate = mCertificateGeneratorPromise->zsLib::Promise::value<CertificateHolder>();
+
+      ZS_LOG_DEBUG(log("certicate generated"))
+      return true;
+    }
+
+    bool DTLSTransport::stepResolveLocalParameters()
+    {
+      if (mPendingLocalParameters.size() < 1) {
+        ZS_LOG_TRACE(log("no pending get local parameter promises to resolve"))
+        return true;
+      }
+
+      for (auto iter = mPendingLocalParameters.begin(); iter != mPendingLocalParameters.end(); ++iter) {
+        auto pendingPromise = (*iter);
+
+        ParametersPtr param(new Parameters);
+
+#define TODO_FILL_IN_LOCAL_PARAM_VALUES 1
+#define TODO_FILL_IN_LOCAL_PARAM_VALUES 2
+
+        pendingPromise->resolve(param);
+      }
+
+      ZS_LOG_DEBUG(log("all pending promises are now resolve") + ZS_PARAM("total", mPendingLocalParameters.size()))
+
+      mPendingLocalParameters.clear();
+
+      return true;
     }
 
     //-------------------------------------------------------------------------
@@ -473,6 +571,26 @@ namespace ortc
       // final cleanup
 
       setState(State_Closed);
+
+      if (mPendingLocalParameters.size() > 0) {
+        for (auto iter = mPendingLocalParameters.begin(); iter != mPendingLocalParameters.end(); ++iter) {
+          auto pendingPromise = (*iter);
+
+          pendingPromise->reject();
+        }
+        ZS_LOG_WARNING(Detail, log("failed get local parameter promise") + ZS_PARAM("total", mPendingLocalParameters.size()))
+        mPendingLocalParameters.clear();
+      }
+
+      if (mICETransport) {
+        mICETransport->notifyDetached(mID);
+        mICETransport.reset();
+      }
+
+      if (mICETransportSubscription) {
+        mICETransportSubscription->cancel();
+        mICETransportSubscription.reset();
+      }
 
       // make sure to cleanup any final reference to self
       mGracefulShutdownReference.reset();

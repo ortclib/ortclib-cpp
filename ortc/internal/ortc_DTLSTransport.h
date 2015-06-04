@@ -36,6 +36,7 @@
 #include <ortc/IDTLSTransport.h>
 #include <ortc/IICETransport.h>
 #include <ortc/internal/ortc_ISecureTransport.h>
+#include <ortc/internal/ortc_DTLSCertificateGenerator.h>
 
 #include <openpeer/services/IWakeDelegate.h>
 #include <zsLib/MessageQueueAssociator.h>
@@ -44,7 +45,7 @@ namespace ortc
 {
   namespace internal
   {
-    ZS_DECLARE_INTERACTION_PTR(IICETransportForRTPTransport)
+    ZS_DECLARE_INTERACTION_PTR(IICETransportForSecureTransport)
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -61,7 +62,8 @@ namespace ortc
                           public ISecureTransportForRTPSender,
                           public ISecureTransportForICETransport,
                           public IWakeDelegate,
-                          public IICETransportDelegate
+                          public IICETransportDelegate,
+                          public IPromiseSettledDelegate
     {
     public:
       friend interaction IDTLSTransport;
@@ -69,7 +71,12 @@ namespace ortc
       friend interaction ISecureTransportForRTPSender;
       friend interaction ISecureTransportForICETransport;
 
-      ZS_DECLARE_TYPEDEF_PTR(IICETransportForRTPTransport, UseICETransport)
+      ZS_DECLARE_TYPEDEF_PTR(IICETransportForSecureTransport, UseICETransport)
+
+      ZS_DECLARE_TYPEDEF_PTR(DTLSCertficateGenerator::PromiseWithCertificate, PromiseWithCertificate)
+      ZS_DECLARE_TYPEDEF_PTR(DTLSCertficateGenerator::CertificateHolder, CertificateHolder)
+
+      typedef std::list<PromiseWithParametersPtr> PromiseWithParametersList;
 
     protected:
       DTLSTransport(
@@ -113,7 +120,7 @@ namespace ortc
                                       IICETransportPtr iceTransport
                                       );
 
-      virtual PUID getID() const override;
+      virtual PUID getID() const override {return mID;}
 
       virtual IDTLSTransportSubscriptionPtr subscribe(IDTLSTransportDelegatePtr delegate) override;
 
@@ -121,7 +128,7 @@ namespace ortc
 
       virtual States getState() const override;
 
-      virtual ParametersPtr getLocalParameters() const override;
+      virtual PromiseWithParametersPtr getLocalParameters() const override;
       virtual ParametersPtr getRemoteParameters() const override;
 
       virtual SecureByteBlockListPtr getRemoteCertificates() const override;
@@ -151,6 +158,8 @@ namespace ortc
       #pragma mark
 
       // (duplicate) virtual PUID getID() const;
+
+      virtual DTLSCertficateGeneratorPtr getCertificateGenerator() const override;
 
       virtual void handleReceivedPacket(
                                         IICETypes::Components viaComponent,
@@ -188,6 +197,14 @@ namespace ortc
                                                       CandidatePairPtr candidatePair
                                                       ) override;
 
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark DTLSTransport => IPromiseSettledDelegate
+      #pragma mark
+
+      virtual void onPromiseSettled(PromisePtr promise) override;
+
+
     protected:
       //-----------------------------------------------------------------------
       #pragma mark
@@ -202,6 +219,8 @@ namespace ortc
       bool isShutdown() const;
 
       void step();
+      bool stepGetCertificate();
+      bool stepResolveLocalParameters();
 
       void cancel();
 
@@ -227,6 +246,13 @@ namespace ortc
       String mLastErrorReason;
 
       UseICETransportPtr mICETransport;
+      IICETransportSubscriptionPtr mICETransportSubscription;
+
+      DTLSCertficateGeneratorPtr mCertificateGenerator;
+      PromiseWithCertificatePtr mCertificateGeneratorPromise;
+      CertificateHolderPtr mCertificate;
+
+      mutable PromiseWithParametersList mPendingLocalParameters;
     };
 
     //-------------------------------------------------------------------------

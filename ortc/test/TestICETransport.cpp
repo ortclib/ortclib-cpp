@@ -33,6 +33,7 @@
 #include <zsLib/MessageQueueThread.h>
 
 #include <ortc/IICEGatherer.h>
+#include <ortc/IICETransport.h>
 #include <ortc/ISettings.h>
 
 #include <openpeer/services/IHelper.h>
@@ -58,11 +59,12 @@ namespace ortc
 {
   namespace test
   {
-    ZS_DECLARE_CLASS_PTR(ICEGathererTester)
+    ZS_DECLARE_CLASS_PTR(ICETransportTester)
 
-    class ICEGathererTester : public SharedRecursiveLock,
-                              public zsLib::MessageQueueAssociator,
-                              public IICEGathererDelegate
+    class ICETransportTester : public SharedRecursiveLock,
+                               public zsLib::MessageQueueAssociator,
+                               public IICEGathererDelegate,
+                               public IICETransportDelegate
     {
     public:
       typedef String Hash;
@@ -111,28 +113,28 @@ namespace ortc
 
     public:
       //-----------------------------------------------------------------------
-      static ICEGathererTesterPtr create(IMessageQueuePtr queue)
+      static ICETransportTesterPtr create(IMessageQueuePtr queue)
       {
-        ICEGathererTesterPtr pThis(new ICEGathererTester(queue));
+        ICETransportTesterPtr pThis(new ICETransportTester(queue));
         pThis->mThisWeak = pThis;
         pThis->init();
         return pThis;
       }
 
       //-----------------------------------------------------------------------
-      static ICEGathererTesterPtr create(
+      static ICETransportTesterPtr create(
                                          IMessageQueuePtr queue,
                                          const IICEGathererTypes::Options &options
                                          )
       {
-        ICEGathererTesterPtr pThis(new ICEGathererTester(queue));
+        ICETransportTesterPtr pThis(new ICETransportTester(queue));
         pThis->mThisWeak = pThis;
         pThis->init(options);
         return pThis;
       }
 
       //-----------------------------------------------------------------------
-      ICEGathererTester(IMessageQueuePtr queue) :
+      ICETransportTester(IMessageQueuePtr queue) :
         SharedRecursiveLock(SharedRecursiveLock::create()),
         MessageQueueAssociator(queue)
       {
@@ -140,7 +142,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      ~ICEGathererTester()
+      ~ICETransportTester()
       {
         ZS_LOG_BASIC(log("ice tester"))
       }
@@ -184,7 +186,7 @@ namespace ortc
       //-----------------------------------------------------------------------
       Log::Params log(const char *message) const
       {
-        ElementPtr objectEl = Element::create("ortc::test::ICEGathererTester");
+        ElementPtr objectEl = Element::create("ortc::test::ICETransportTester");
         UseServicesHelper::debugAppend(objectEl, "id", mID);
         return Log::Params(message, objectEl);
       }
@@ -301,9 +303,41 @@ namespace ortc
         ++mExpectations.mError;
       }
 
+      //-----------------------------------------------------------------------
+      virtual void onICETransportStateChanged(
+                                              IICETransportPtr transport,
+                                              IICETransport::States state
+                                              ) override
+      {
+      }
+
+      //-----------------------------------------------------------------------
+      virtual void onICETransportCandidatePairAvailable(
+                                                        IICETransportPtr transport,
+                                                        CandidatePairPtr candidatePair
+                                                        ) override
+      {
+      }
+
+      //-----------------------------------------------------------------------
+      virtual void onICETransportCandidatePairGone(
+                                                   IICETransportPtr transport,
+                                                   CandidatePairPtr candidatePair
+                                                   ) override
+      {
+      }
+
+      //-----------------------------------------------------------------------
+      virtual void onICETransportCandidatePairChanged(
+                                                      IICETransportPtr transport,
+                                                      CandidatePairPtr candidatePair
+                                                      ) override
+      {
+      }
+
     public:
       AutoPUID mID;
-      ICEGathererTesterWeakPtr mThisWeak;
+      ICETransportTesterWeakPtr mThisWeak;
 
       IICEGathererPtr mGatherer;
 
@@ -315,12 +349,12 @@ namespace ortc
   }
 }
 
-ZS_DECLARE_USING_PTR(ortc::test, ICEGathererTester)
+ZS_DECLARE_USING_PTR(ortc::test, ICETransportTester)
 
 
-void doTestICEGatherer()
+void doTestICETransport()
 {
-  if (!ORTC_TEST_DO_ICE_GATHERER_TEST) return;
+  if (!ORTC_TEST_DO_ICE_TRANSPORT_TEST) return;
 
   TESTING_INSTALL_LOGGER();
 
@@ -330,7 +364,7 @@ void doTestICEGatherer()
 
   zsLib::MessageQueueThreadPtr thread(zsLib::MessageQueueThread::createBasic());
 
-  ICEGathererTesterPtr testObject1;
+  ICETransportTesterPtr testObject1;
 
   TESTING_STDOUT() << "WAITING:      Waiting for ICE testing to complete (max wait is 180 seconds).\n";
 
@@ -346,9 +380,9 @@ void doTestICEGatherer()
       bool quit = false;
       ULONG expecting = 0;
 
-      ICEGathererTester::Expectations doNotExpect1;
+      ICETransportTester::Expectations doNotExpect1;
 
-      ICEGathererTester::Expectations expectations1;
+      ICETransportTester::Expectations expectations1;
 
       expectations1.mStateNew = 0;
       expectations1.mStateGathering = 1;
@@ -362,7 +396,7 @@ void doTestICEGatherer()
 
       switch (step) {
         case 0: {
-          testObject1 = ICEGathererTester::create(thread);
+          testObject1 = ICETransportTester::create(thread);
           break;
         }
         case 1: {
@@ -371,7 +405,7 @@ void doTestICEGatherer()
           expectations1.mCandidatesTCPHostPassive = 0;
           expectations1.mCandidateGone = expectations1.mCandidatesUDPHost + expectations1.mCandidatesTCPHostActive + expectations1.mCandidatesTCPHostPassive;
 
-          testObject1 = ICEGathererTester::create(thread);
+          testObject1 = ICETransportTester::create(thread);
           break;
         }
         case 2: {
@@ -380,14 +414,14 @@ void doTestICEGatherer()
           expectations1.mCandidateGone = 0;
           expectations1.mStateClosed = 0;
 
-          testObject1 = ICEGathererTester::create(thread);
+          testObject1 = ICETransportTester::create(thread);
           break;
         }
         case 3: {
           expectations1.mCandidateGone = 0;
           expectations1.mStateClosed = 0;
 
-          testObject1 = ICEGathererTester::create(thread);
+          testObject1 = ICETransportTester::create(thread);
           break;
         }
         case 4: {
@@ -401,7 +435,7 @@ void doTestICEGatherer()
           ortc::IICEGatherer::Options options;
           options.mICEServers.push_back(server);
 
-          testObject1 = ICEGathererTester::create(thread, options);
+          testObject1 = ICETransportTester::create(thread, options);
           break;
         }
         case 5: {
@@ -419,7 +453,7 @@ void doTestICEGatherer()
           ortc::IICEGatherer::Options options;
           options.mICEServers.push_back(server);
 
-          testObject1 = ICEGathererTester::create(thread, options);
+          testObject1 = ICETransportTester::create(thread, options);
           break;
         }
         default:  quit = true; break;

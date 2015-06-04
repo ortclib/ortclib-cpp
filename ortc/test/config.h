@@ -44,7 +44,8 @@
 #define ORTC_TEST_TELNET_LOGGING_PORT         (59999)
 #define ORTC_TEST_TELNET_SERVER_LOGGING_PORT  (51999)
 
-#define ORTC_TEST_DO_ICE_GATHERER_TEST                    (true)
+#define ORTC_TEST_DO_ICE_GATHERER_TEST                    (false)
+#define ORTC_TEST_DO_ICE_TRANSPORT_TEST                   (true)
 
 
 #define ORTC_TEST_HOST_UDP_IPS            3
@@ -60,7 +61,6 @@
 #define OPENPEER_SERVICE_TEST_TURN_PASSWORD        "DxuitmVR3cNX"
 
 #define OPENPEER_SERVICE_TEST_TURN_SERVER_DOMAIN_VIA_A_RECORD_1   "numb.viagenie.ca"
-#define OPENPEER_SERVICE_TEST_TURN_SERVER_DOMAIN_VIA_A_RECORD_2   "ec2-174-129-95-12.compute-1.amazonaws.com"
 
 
 //#define ORTC_TEST_DNS_ZONE "dnstest.hookflash.me"

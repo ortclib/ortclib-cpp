@@ -170,7 +170,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IICETransportForRTPTransport
+    #pragma mark IICETransportForSecureTransport
     #pragma mark
 
     //-------------------------------------------------------------------------
@@ -1103,8 +1103,34 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark ICETransport => IICETransportForRTPTransport
+    #pragma mark ICETransport => IICETransportForSecureTransport
     #pragma mark
+
+    //-------------------------------------------------------------------------
+    void ICETransport::notifyAttached(
+                                      PUID secureTransportID,
+                                      UseSecureTransportPtr transport
+                                      )
+    {
+      ZS_LOG_DETAIL(log("notify attached") + ZS_PARAM("secure transport id", secureTransportID))
+      AutoRecursiveLock lock(*this);
+
+      if (isShutdown()) {
+        ZS_LOG_WARNING(Detail, log("cannot attach secure transport while shutdown"))
+        return;
+      }
+
+      mSecureTransportID = secureTransportID;
+      mSecureTransport = mSecureTransport;
+
+      ITransportAsyncDelegateProxy::create(mThisWeak.lock())->onNotifyAttached(secureTransportID);
+    }
+
+    //-------------------------------------------------------------------------
+    void ICETransport::notifyDetached(PUID secureTransportID)
+    {
+      ITransportAsyncDelegateProxy::create(mThisWeak.lock())->onNotifyDetached(secureTransportID);
+    }
 
     //-------------------------------------------------------------------------
     bool ICETransport::sendPacket(
@@ -1185,6 +1211,28 @@ namespace ortc
       mWarmRoutesChanged = -1;  // by setting negative this route will be considered handled (unless set positive again)
 
       step();
+    }
+
+    //-------------------------------------------------------------------------
+    void ICETransport::onNotifyAttached(PUID secureTransportID)
+    {
+      ZS_LOG_DETAIL(log("on notify attached") + ZS_PARAM("secure transport id", secureTransportID))
+    }
+
+    //-------------------------------------------------------------------------
+    void ICETransport::onNotifyDetached(PUID secureTransportID)
+    {
+      ZS_LOG_DETAIL(log("notify detached") + ZS_PARAM("secure transport id", secureTransportID))
+
+      AutoRecursiveLock lock(*this);
+
+      if (secureTransportID != mSecureTransportID) {
+        ZS_LOG_WARNING(Detail, log("secure transport is not attached") + ZS_PARAM("secure transport id", secureTransportID))
+        return;
+      }
+
+      mSecureTransportID = 0;
+      mSecureTransport.reset();
     }
 
     //-------------------------------------------------------------------------
@@ -2411,6 +2459,9 @@ namespace ortc
       pruneAllCandidatePairs(false);
 
       setState(IICETransportTypes::State_Closed);
+
+      mSecureTransportID = 0;
+      mSecureTransport.reset();
     }
 
     //-------------------------------------------------------------------------
@@ -3515,6 +3566,33 @@ namespace ortc
 
       SecureByteBlockPtr packetized = packet->packetize(STUNPacket::RFC_5245_ICE);
       mGatherer->sendPacket(routeID, packetized->BytePtr(), packetized->SizeInBytes());
+    }
+
+    //-------------------------------------------------------------------------
+    DTLSCertficateGeneratorPtr ICETransport::getAssociatedGenerator() const
+    {
+      UseSecureTransportPtr secureTransport;
+
+      {
+        AutoRecursiveLock lock(*this);
+
+        ICETransportPtr associated;
+
+        associated = mRTPTransport;
+        if (!associated) associated = mRTCPTransport.lock();
+
+        if (!associated) return DTLSCertficateGeneratorPtr();
+
+        secureTransport = associated->mSecureTransport.lock();
+
+      }
+
+      if (!secureTransport) {
+        ZS_LOG_TRACE(log("no associated secure transport found"))
+        return DTLSCertficateGeneratorPtr();
+      }
+
+      return secureTransport->getCertificateGenerator();
     }
 
     //-------------------------------------------------------------------------

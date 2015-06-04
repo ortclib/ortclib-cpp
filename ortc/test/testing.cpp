@@ -54,6 +54,7 @@ debugostream &getDebugCout()
 typedef openpeer::services::ILogger ILogger;
 
 void doTestICEGatherer();
+void doTestICETransport();
 
 namespace Testing
 {
@@ -150,6 +151,7 @@ namespace Testing
     TESTING_INSTALL_LOGGER()
 
     TESTING_RUN_TEST_FUNC(doTestICEGatherer)
+    TESTING_RUN_TEST_FUNC(doTestICETransport)
 
     TESTING_UNINSTALL_LOGGER()
   }

@@ -77,6 +77,8 @@ namespace ortc
 
       virtual PUID getID() const = 0;
 
+      virtual DTLSCertficateGeneratorPtr getCertificateGenerator() const = 0;
+
       virtual void handleReceivedPacket(
                                         IICETypes::Components viaComponent,
                                         const BYTE *buffer,

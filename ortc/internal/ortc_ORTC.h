@@ -36,6 +36,7 @@
 
 #define ORTC_QUEUE_MAIN_THREAD_NAME "org.ortc.ortcLibMainThread"
 #define ORTC_QUEUE_BLOCKING_MEDIA_STARTUP_THREAD_NAME "org.ortc.ortcLibBlockingMedia"
+#define ORTC_QUEUE_CERTIFICATE_GENERATION_NAME "org.ortc.ortcLibCertificateGeneration"
 
 namespace ortc
 {
@@ -56,6 +57,7 @@ namespace ortc
       static IMessageQueuePtr queueDelegate();
       static IMessageQueuePtr queueORTC();
       static IMessageQueuePtr queueBlockingMediaStartStopThread();
+      static IMessageQueuePtr queueCertificateGeneration();
     };
 
     //-----------------------------------------------------------------------
@@ -106,6 +108,7 @@ namespace ortc
       virtual IMessageQueuePtr queueDelegate() const;
       virtual IMessageQueuePtr queueORTC() const;
       virtual IMessageQueuePtr queueBlockingMediaStartStopThread() const;
+      virtual IMessageQueuePtr queueCertificateGeneration() const;
 
       //---------------------------------------------------------------------
       #pragma mark
@@ -128,6 +131,7 @@ namespace ortc
       mutable IMessageQueuePtr mORTCQueue;
       mutable IMessageQueuePtr mDelegateQueue;
       mutable IMessageQueuePtr mBlockingMediaStartStopThread;
+      mutable IMessageQueuePtr mCertificateGeneration;
     };
   }
 }

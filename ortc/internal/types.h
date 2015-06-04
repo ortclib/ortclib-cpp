@@ -72,12 +72,14 @@ namespace ortc
     ZS_DECLARE_USING_PTR(openpeer::services, IBackOffTimer)
     ZS_DECLARE_USING_PTR(openpeer::services, STUNPacket)
     ZS_DECLARE_USING_PTR(openpeer::services, ISTUNRequester)
+    ZS_DECLARE_USING_PTR(zsLib, IPromiseSettledDelegate)
 
     ZS_DECLARE_USING_PROXY(openpeer::services, IBackOffTimerDelegate)
     ZS_DECLARE_USING_PROXY(openpeer::services, IDNSDelegate)
     ZS_DECLARE_USING_PROXY(openpeer::services, IWakeDelegate)
     ZS_DECLARE_USING_PROXY(openpeer::services, ISTUNDiscoveryDelegate)
     ZS_DECLARE_USING_PROXY(openpeer::services, ITURNSocketDelegate)
+    ZS_DECLARE_USING_PROXY(zsLib, IPromiseDelegate)
 
     using openpeer::services::IFactory;
 #define ORTC_THROW_INVALID_STATE(xMessage) ZS_THROW_INVALID_USAGE(xMessage)
@@ -103,6 +105,7 @@ namespace ortc
 
     ZS_DECLARE_CLASS_PTR(ORTC)
     ZS_DECLARE_CLASS_PTR(Settings)
+    ZS_DECLARE_CLASS_PTR(DTLSCertficateGenerator)
     ZS_DECLARE_CLASS_PTR(DTLSTransport)
     ZS_DECLARE_CLASS_PTR(ICEGatherer)
     ZS_DECLARE_CLASS_PTR(ICETransport)

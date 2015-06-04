@@ -61,7 +61,7 @@ namespace ortc
     ZS_DECLARE_INTERACTION_PTR(IICETransportForSettings)
     ZS_DECLARE_INTERACTION_PTR(IICETransportForICEGatherer)
     ZS_DECLARE_INTERACTION_PTR(IICETransportForICETransportContoller)
-    ZS_DECLARE_INTERACTION_PTR(IICETransportForRTPTransport)
+    ZS_DECLARE_INTERACTION_PTR(IICETransportForSecureTransport)
 
     ZS_DECLARE_INTERACTION_PROXY(ITransportAsyncDelegate)
 
@@ -154,19 +154,33 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IICETransportForRTPTransport
+    #pragma mark IICETransportForSecureTransport
     #pragma mark
 
-    interaction IICETransportForRTPTransport
+    interaction IICETransportForSecureTransport
     {
-      ZS_DECLARE_TYPEDEF_PTR(IICETransportForRTPTransport, ForRTPTransport)
+      ZS_DECLARE_TYPEDEF_PTR(IICETransportForSecureTransport, ForRTPTransport)
+
+      ZS_DECLARE_TYPEDEF_PTR(ISecureTransportForICETransport, UseSecureTransport)
 
       virtual PUID getID() const = 0;
+
+      virtual void notifyAttached(
+                                  PUID secureTransportID,
+                                  UseSecureTransportPtr transport
+                                  ) = 0;
+      virtual void notifyDetached(PUID secureTransportID) = 0;
+
+      virtual IICETypes::Components component() const = 0;
+
+      virtual IICETransportSubscriptionPtr subscribe(IICETransportDelegatePtr delegate) = 0;
 
       virtual bool sendPacket(
                               const BYTE *buffer,
                               size_t bufferSizeInBytes
                               ) = 0;
+
+      virtual DTLSCertficateGeneratorPtr getAssociatedGenerator() const = 0;
     };
     
     //-------------------------------------------------------------------------
@@ -186,6 +200,9 @@ namespace ortc
                                          STUNPacketPtr stunPacket
                                          ) = 0;
       virtual void onWarmRoutesChanged() = 0;
+
+      virtual void onNotifyAttached(PUID secureTransportID) = 0;
+      virtual void onNotifyDetached(PUID secureTransportID) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -203,7 +220,7 @@ namespace ortc
                          public IICETransportForSettings,
                          public IICETransportForICEGatherer,
                          public IICETransportForICETransportContoller,
-                         public IICETransportForRTPTransport,
+                         public IICETransportForSecureTransport,
                          public ITransportAsyncDelegate,
                          public IWakeDelegate,
                          public zsLib::ITimerDelegate,
@@ -217,7 +234,7 @@ namespace ortc
       friend interaction IICETransportForSettings;
       friend interaction IICETransportForICEGatherer;
       friend interaction IICETransportForICETransportContoller;
-      friend interaction IICETransportForRTPTransport;
+      friend interaction IICETransportForSecureTransport;
 
       ZS_DECLARE_STRUCT_PTR(Route)
       ZS_DECLARE_STRUCT_PTR(ReasonNoMoreRelationship)
@@ -228,6 +245,7 @@ namespace ortc
       ZS_DECLARE_TYPEDEF_PTR(IICETypes::Candidate, Candidate)
       ZS_DECLARE_TYPEDEF_PTR(IICETypes::CandidateComplete, CandidateComplete)
       ZS_DECLARE_TYPEDEF_PTR(IICETypes::CandidateList, CandidateList)
+      ZS_DECLARE_TYPEDEF_PTR(ISecureTransportForICETransport, UseSecureTransport)
 
       typedef String Hash;
       typedef std::map<Hash, CandidatePtr> CandidateMap;
@@ -379,13 +397,25 @@ namespace ortc
 
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark ICETransport => IICETransportForRTPTransport
+      #pragma mark ICETransport => IICETransportForSecureTransport
       #pragma mark
+
+      // (duplicate) virtual PUID getID() const override;
+
+      virtual void notifyAttached(
+                                  PUID secureTransportID,
+                                  UseSecureTransportPtr transport
+                                  ) override;
+      virtual void notifyDetached(PUID secureTransportID) override;
+
+      // (duplicate) virtual IICETransportSubscriptionPtr subscribe(IICETransportDelegatePtr delegate);
 
       virtual bool sendPacket(
                               const BYTE *buffer,
                               size_t bufferSizeInBytes
                               ) override;
+
+      virtual DTLSCertficateGeneratorPtr getAssociatedGenerator() const override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -397,8 +427,11 @@ namespace ortc
                                          IICETypes::CandidatePtr localCandidate,
                                          IPAddress remoteIP,
                                          STUNPacketPtr stunPacket
-                                         );
-      virtual void onWarmRoutesChanged();
+                                         ) override;
+      virtual void onWarmRoutesChanged() override;
+
+      virtual void onNotifyAttached(PUID secureTransportID) override;
+      virtual void onNotifyDetached(PUID secureTransportID) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -744,6 +777,9 @@ namespace ortc
 
       Milliseconds mKeepWarmTimeBase;
       Milliseconds mKeepWarmTimeRandomizedAddTime;
+
+      PUID mSecureTransportID {0};
+      UseSecureTransportWeakPtr mSecureTransport;
     };
 
     //-------------------------------------------------------------------------
@@ -776,4 +812,6 @@ ZS_DECLARE_PROXY_TYPEDEF(openpeer::services::STUNPacketPtr, STUNPacketPtr)
 ZS_DECLARE_PROXY_METHOD_1(onResolveStatsPromise, PromiseWithStatsReportPtr)
 ZS_DECLARE_PROXY_METHOD_3(onNotifyPacketRetried, CandidatePtr, IPAddress, STUNPacketPtr)
 ZS_DECLARE_PROXY_METHOD_0(onWarmRoutesChanged)
+ZS_DECLARE_PROXY_METHOD_1(onNotifyAttached, PUID)
+ZS_DECLARE_PROXY_METHOD_1(onNotifyDetached, PUID)
 ZS_DECLARE_PROXY_END()

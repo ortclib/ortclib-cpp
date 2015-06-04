@@ -29,125 +29,133 @@
  
  */
 
+#include <ortc/internal/ortc_DTLSCertificateGenerator.h>
+#include <ortc/internal/ortc_ICETransport.h>
 #include <ortc/internal/ortc_ORTC.h>
+#include <ortc/internal/platform.h>
 
 #include <openpeer/services/IHelper.h>
-#include <openpeer/services/IMessageQueueManager.h>
+#include <openpeer/services/IHTTP.h>
 
+#include <zsLib/Stringize.h>
 #include <zsLib/Log.h>
 #include <zsLib/XML.h>
+
+#include <cryptopp/sha.h>
 
 namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib) }
 
 namespace ortc
 {
+  ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHelper, UseServicesHelper)
+  ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHTTP, UseHTTP)
+
+  typedef openpeer::services::Hasher<CryptoPP::SHA1> SHA1Hasher;
+
   namespace internal
   {
-    ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHelper, UseServicesHelper)
-    ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IMessageQueueManager, UseMessageQueueManager)
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark (helpers)
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    DTLSCertficateGenerator::CertificateHolder::CertificateHolder()
+    {
+    }
+
+    //-------------------------------------------------------------------------
+    DTLSCertficateGenerator::CertificateHolder::~CertificateHolder()
+    {
+      if (mCertificate) {
+#define TODO_FREE_CERTIFICATE_HERE 1
+#define TODO_FREE_CERTIFICATE_HERE 2
+      }
+    }
+
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IORTCForInternal
+    #pragma mark DTLSCertficateGenerator
     #pragma mark
-
+    
     //-------------------------------------------------------------------------
-    IMessageQueuePtr IORTCForInternal::queueDelegate()
-    {
-      return (ORTC::singleton())->queueDelegate();
-    }
-
-    //-------------------------------------------------------------------------
-    IMessageQueuePtr IORTCForInternal::queueORTC()
-    {
-      return (ORTC::singleton())->queueORTC();
-    }
-
-    //-------------------------------------------------------------------------
-    IMessageQueuePtr IORTCForInternal::queueBlockingMediaStartStopThread()
-    {
-      return (ORTC::singleton())->queueBlockingMediaStartStopThread();
-    }
-
-    //-------------------------------------------------------------------------
-    IMessageQueuePtr IORTCForInternal::queueCertificateGeneration()
-    {
-      return (ORTC::singleton())->queueCertificateGeneration();
-    }
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ORTC
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    ORTC::ORTC() :
+    DTLSCertficateGenerator::DTLSCertficateGenerator(IMessageQueuePtr queue) :
+      MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create())
     {
-      ZS_LOG_DETAIL(log("created"))
+      ZS_LOG_DETAIL(debug("created"))
     }
 
     //-------------------------------------------------------------------------
-    ORTC::~ORTC()
+    void DTLSCertficateGenerator::init()
     {
-      mThisWeak.reset();
+      IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
+    }
+
+    //-------------------------------------------------------------------------
+    DTLSCertficateGenerator::~DTLSCertficateGenerator()
+    {
+      if (isNoop()) return;
+
       ZS_LOG_DETAIL(log("destroyed"))
+      mThisWeak.reset();
     }
 
     //-------------------------------------------------------------------------
-    ORTCPtr ORTC::convert(IORTCPtr object)
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark DTLSCertficateGenerator => IDTLSCertficateGenerator
+    #pragma mark
+    
+    //-------------------------------------------------------------------------
+    ElementPtr DTLSCertficateGenerator::toDebug(DTLSCertficateGeneratorPtr transport)
     {
-      return ZS_DYNAMIC_PTR_CAST(ORTC, object);
+      if (!transport) return ElementPtr();
+      return transport->toDebug();
     }
 
     //-------------------------------------------------------------------------
-    ORTCPtr ORTC::create()
+    DTLSCertficateGeneratorPtr DTLSCertficateGenerator::create()
     {
-      ORTCPtr pThis(new ORTC());
-      pThis->mThisWeak = pThis;
+      DTLSCertficateGeneratorPtr pThis(new DTLSCertficateGenerator(IORTCForInternal::queueCertificateGeneration()));
+      pThis->mThisWeak.lock();
+      pThis->init();
       return pThis;
     }
 
     //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ORTC => IORTC
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    ORTCPtr ORTC::singleton()
+    DTLSCertficateGenerator::PromiseWithCertificatePtr DTLSCertficateGenerator::getCertificate()
     {
-      static SingletonLazySharedPtr<ORTC> singleton(ORTC::create());
-      ORTCPtr result = singleton.singleton();
-      if (!result) {
-        ZS_LOG_WARNING(Detail, slog("singleton gone"))
-      }
-      return result;
-    }
+      PromiseWithCertificatePtr promise;
+      CertificateHolderPtr holder;
 
-    //-------------------------------------------------------------------------
-    void ORTC::setup(
-                     IMessageQueuePtr defaultDelegateMessageQueue,
-                     IMessageQueuePtr ortcMessageQueue
-                     )
-    {
-      AutoRecursiveLock lock(mLock);
+      {
+        AutoRecursiveLock lock(*this);
 
-      if (defaultDelegateMessageQueue) {
-        mDelegateQueue = defaultDelegateMessageQueue;
+        promise = PromiseWithCertificate::create(IORTCForInternal::queueORTC());
+        holder = mCertificate;
+
+        if (!holder) {
+          // this will resolve later
+          mPendingPromises.push_back(promise);
+        }
       }
 
-      if (ortcMessageQueue) {
-        mORTCQueue = ortcMessageQueue;
+      // resolve immediately
+      if (holder) {
+        promise->resolve(holder);
       }
+
+      return promise;
     }
 
     //-------------------------------------------------------------------------
@@ -155,47 +163,40 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark Stack => IORTCForInternal
+    #pragma mark DTLSCertficateGenerator => IWakeDelegate
     #pragma mark
 
     //-------------------------------------------------------------------------
-    IMessageQueuePtr ORTC::queueDelegate() const
+    void DTLSCertficateGenerator::onWake()
     {
-      AutoRecursiveLock lock(*this);
-      if (!mDelegateQueue) {
-        mDelegateQueue = UseMessageQueueManager::getMessageQueueForGUIThread();
-      }
-      return mDelegateQueue;
-    }
+      ZS_LOG_DEBUG(log("wake"))
 
-    //-------------------------------------------------------------------------
-    IMessageQueuePtr ORTC::queueORTC() const
-    {
-      AutoRecursiveLock lock(*this);
-      if (!mORTCQueue) {
-        mORTCQueue = UseMessageQueueManager::getMessageQueue(ORTC_QUEUE_MAIN_THREAD_NAME);
-      }
-      return mORTCQueue;
-    }
+      CertificateHolderPtr holder(new CertificateHolder);
 
-    //-------------------------------------------------------------------------
-    IMessageQueuePtr ORTC::queueBlockingMediaStartStopThread() const
-    {
-      AutoRecursiveLock lock(*this);
-      if (!mBlockingMediaStartStopThread) {
-        mBlockingMediaStartStopThread = UseMessageQueueManager::getMessageQueue(ORTC_QUEUE_BLOCKING_MEDIA_STARTUP_THREAD_NAME);
-      }
-      return mBlockingMediaStartStopThread;
-    }
+#define TODO_GENERATE_CERTIFICATE_HERE 1
+#define TODO_GENERATE_CERTIFICATE_HERE 2
 
-    //-------------------------------------------------------------------------
-    IMessageQueuePtr ORTC::queueCertificateGeneration() const
-    {
-      AutoRecursiveLock lock(*this);
-      if (!mCertificateGeneration) {
-        mCertificateGeneration = UseMessageQueueManager::getMessageQueue(ORTC_QUEUE_CERTIFICATE_GENERATION_NAME);
+
+      // holder->mCertificate = <generated certificate pointer>
+
+      PromiseList pendingPromises;
+
+      // scope: resolve promises
+      {
+        AutoRecursiveLock lock(*this);
+
+        mCertificate = holder;
+        pendingPromises = mPendingPromises;
+
+        mPendingPromises.clear();
       }
-      return mCertificateGeneration;
+
+      for (auto iter = pendingPromises.begin(); iter != pendingPromises.end(); ++iter) {
+        auto promise = (*iter);
+
+        // promise is now resolved
+        promise->resolve(holder);
+      }
     }
 
     //-------------------------------------------------------------------------
@@ -203,41 +204,37 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark Stack => (internal)
+    #pragma mark DTLSCertficateGenerator => (internal)
     #pragma mark
 
     //-------------------------------------------------------------------------
-    Log::Params ORTC::log(const char *message) const
+    Log::Params DTLSCertficateGenerator::log(const char *message) const
     {
-      ElementPtr objectEl = Element::create("ortc::ORTC");
+      ElementPtr objectEl = Element::create("ortc::DTLSCertficateGenerator");
       UseServicesHelper::debugAppend(objectEl, "id", mID);
       return Log::Params(message, objectEl);
     }
 
     //-------------------------------------------------------------------------
-    Log::Params ORTC::slog(const char *message)
+    Log::Params DTLSCertficateGenerator::debug(const char *message) const
     {
-      ElementPtr objectEl = Element::create("ortc::ORTC");
-      return Log::Params(message, objectEl);
+      return Log::Params(message, toDebug());
     }
+
+    //-------------------------------------------------------------------------
+    ElementPtr DTLSCertficateGenerator::toDebug() const
+    {
+      ElementPtr resultEl = Element::create("ortc::DTLSCertficateGenerator");
+
+      UseServicesHelper::debugAppend(resultEl, "id", mID);
+
+      UseServicesHelper::debugAppend(resultEl, "pending promises", mPendingPromises.size());
+      UseServicesHelper::debugAppend(resultEl, "certificate", (bool)mCertificate);
+
+      return resultEl;
+    }
+
   }
 
-  //---------------------------------------------------------------------------
-  //---------------------------------------------------------------------------
-  //---------------------------------------------------------------------------
-  //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IORTC
-  #pragma mark
 
-  //---------------------------------------------------------------------------
-  void IORTC::setup(
-                    IMessageQueuePtr defaultDelegateMessageQueue,
-                    IMessageQueuePtr ortcMessageQueue
-                    )
-  {
-    auto singleton = internal::ORTC::singleton();
-    if (!singleton) return;
-    singleton->setup(defaultDelegateMessageQueue, ortcMessageQueue);
-  }
 }
