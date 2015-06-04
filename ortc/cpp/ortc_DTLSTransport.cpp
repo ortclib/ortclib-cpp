@@ -497,6 +497,8 @@ namespace ortc
       if (!stepResolveLocalParameters()) goto not_ready;
       // ... other steps here ...
 
+      goto ready;
+
     not_ready:
       {
         ZS_LOG_TRACE(log("dtls is not ready") + toDebug())
