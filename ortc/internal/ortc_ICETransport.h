@@ -33,6 +33,8 @@
 
 #include <ortc/internal/types.h>
 
+#include <ortc/internal/ortc_ICEGathererRouter.h>
+
 #include <ortc/IICETransport.h>
 #include <ortc/IICEGatherer.h>
 
@@ -98,21 +100,18 @@ namespace ortc
     {
       ZS_DECLARE_TYPEDEF_PTR(IICETransportForICEGatherer, ForICEGatherer)
 
+      ZS_DECLARE_TYPEDEF_PTR(ICEGathererRouter::Route, RouterRoute)
+
       virtual PUID getID() const = 0;
 
-      virtual void notifyRouteAdded(
-                                    PUID routeID,
-                                    IICETypes::CandidatePtr localCandidate,
-                                    const IPAddress &fromIP
-                                    ) = 0;
-      virtual void notifyRouteRemoved(PUID routeID) = 0;
+      virtual ForICEGathererPtr getForGatherer() const = 0;
 
       virtual void notifyPacket(
-                                PUID routeID,
+                                RouterRoutePtr routerRoute,
                                 STUNPacketPtr packet
                                 ) = 0;
       virtual void notifyPacket(
-                                PUID routeID,
+                                RouterRoutePtr routerRoute,
                                 const BYTE *buffer,
                                 size_t bufferSizeInBytes
                                 ) = 0;
@@ -228,6 +227,9 @@ namespace ortc
                          public IICEGathererDelegate,
                          public openpeer::services::ISTUNRequesterDelegate
     {
+    protected:
+      struct make_private {};
+
     public:
       friend interaction IICETransport;
       friend interaction IICETransportFactory;
@@ -246,6 +248,7 @@ namespace ortc
       ZS_DECLARE_TYPEDEF_PTR(IICETypes::CandidateComplete, CandidateComplete)
       ZS_DECLARE_TYPEDEF_PTR(IICETypes::CandidateList, CandidateList)
       ZS_DECLARE_TYPEDEF_PTR(ISecureTransportForICETransport, UseSecureTransport)
+      ZS_DECLARE_TYPEDEF_PTR(ICEGathererRouter::Route, RouterRoute)
 
       typedef String Hash;
       typedef std::map<Hash, CandidatePtr> CandidateMap;
@@ -274,13 +277,15 @@ namespace ortc
 
       typedef std::map<RouteID, LocalCandidateFromIPPair> RouteIDLocalCandidateFromIPMap;
 
-    protected:
+    public:
       ICETransport(
+                   const make_private &,
                    IMessageQueuePtr queue,
                    IICETransportDelegatePtr delegate,
                    UseICEGathererPtr gatherer
                    );
 
+    protected:
       ICETransport(Noop) :
         Noop(true),
         MessageQueueAssociator(IMessageQueuePtr()),
@@ -343,33 +348,28 @@ namespace ortc
 
       virtual IICETransportPtr createAssociatedTransport() throw (InvalidStateError) override;
 
-      virtual void addRemoteCandidate(const GatherCandidate &remoteCandidate) override;
-      virtual void setRemoteCandidates(const CandidateList &remoteCandidates) override;
-      virtual void removeRemoteCandidate(const GatherCandidate &remoteCandidate) override;
+      virtual void addRemoteCandidate(const GatherCandidate &remoteCandidate) throw (InvalidStateError) override;
+      virtual void setRemoteCandidates(const CandidateList &remoteCandidates) throw (InvalidStateError) override;
+      virtual void removeRemoteCandidate(const GatherCandidate &remoteCandidate) throw (InvalidStateError) override;
 
       virtual void keepWarm(
                             const CandidatePair &candidatePair,
                             bool keepWarm = true
-                            ) override;
+                            ) throw (InvalidStateError) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark ICETransport => IICETransportForICEGatherer
       #pragma mark
 
-      virtual void notifyRouteAdded(
-                                    PUID routeID,
-                                    IICETypes::CandidatePtr localCandidate,
-                                    const IPAddress &fromIP
-                                    ) override;
-      virtual void notifyRouteRemoved(PUID routeID) override;
+      virtual ForICEGathererPtr getForGatherer() const override;
 
       virtual void notifyPacket(
-                                PUID routeID,
+                                RouterRoutePtr routerRoute,
                                 STUNPacketPtr packet
                                 ) override;
       virtual void notifyPacket(
-                                PUID routeID,
+                                RouterRoutePtr routerRoute,
                                 const BYTE *buffer,
                                 size_t bufferSizeInBytes
                                 ) override;
@@ -515,6 +515,7 @@ namespace ortc
       {
         enum States
         {
+          State_New,
           State_Pending,
           State_Frozen,
           State_InProgress,
@@ -524,12 +525,15 @@ namespace ortc
         };
         static const char *toString(States state);
 
+        AutoPUID mID;
+
         CandidatePairPtr mCandidatePair;
         String mCandidatePairHash;
 
-        States mState {State_Pending};
+        States mState {State_New};
 
-        PUID mGathererRouteID {0};
+        RouterRoutePtr mGathererRoute;
+
         QWORD mPendingPriority {};
 
         Time mLastReceivedCheck;
@@ -547,7 +551,7 @@ namespace ortc
         PromiseList mDependentPromises;
 
         Time mLastRoundTripCheck;
-        Microseconds mLastRouteTripMeasurement;
+        Microseconds mLastRouteTripMeasurement {};
 
         ElementPtr toDebug() const;
 
@@ -582,6 +586,7 @@ namespace ortc
       bool isConnected() const;
       bool isComplete() const;
       bool isDisconnected() const;
+      bool isFailed() const;
       bool isShuttingDown() const;
       bool isShutdown() const;
       bool isContinousGathering() const;
@@ -597,6 +602,7 @@ namespace ortc
       bool stepExpireRouteTimer();
       bool stepLastReceivedPacketTimer();
       bool stepSetCurrentState();
+      bool stepSetNeedsMoreCandidates();
 
       void wakeUp();
       void warmRoutesChanged();
@@ -675,24 +681,26 @@ namespace ortc
       void fix(STUNPacketPtr stun) const;
 
       void sendPacket(
-                      RouteID routeID,
+                      RouterRoutePtr routerRoute,
                       STUNPacketPtr packet
                       );
 
       bool handleSwitchRolesAndConflict(
-                                        RouteID route,
+                                        RouterRoutePtr routerRoute,
                                         STUNPacketPtr packet
                                         );
 
       RoutePtr findOrCreateMissingRoute(
-                                        RouteID routeID,
+                                        RouterRoutePtr routerRoute,
                                         STUNPacketPtr packet
                                         );
 
       void handlePassThroughSTUNPacket(                       // do not call within a lock
-                                       RouteID routeID,
+                                       RouterRoutePtr routerRoute,
                                        STUNPacketPtr packet
                                        );
+
+      bool getNeedsMoreCandidates() const;
 
     private:
       //-----------------------------------------------------------------------
@@ -715,8 +723,11 @@ namespace ortc
       WORD mLastError {};
       String mLastErrorReason;
 
+      std::atomic<bool> mNeedsMoreCandidates {true};
+
       UseICEGathererPtr mGatherer;
       IICEGathererSubscriptionPtr mGathererSubscription;
+      ICEGathererRouterPtr mGathererRouter;
 
       UseICETransportControllerWeakPtr mTransportController;
 
@@ -736,11 +747,11 @@ namespace ortc
 
       String mLocalCandidatesHash;
       CandidateMap mLocalCandidates;
-      bool mEndOfLocalCandidates {false}; // HERE
+      bool mLocalCandidatesComplete {false};
 
       String mRemoteCandidatesHash;
       CandidateMap mRemoteCandidates;
-      bool mEndOfRemoteCandidates {false};  // HERE
+      bool mRemoteCandidatesComplete {false};
 
       String mComputedPairsHash;
       RouteMap mLegalRoutes;
@@ -758,7 +769,6 @@ namespace ortc
       RouteMap mWarmRoutes;   // these are reported as available (and gone when removed)
 
       RouteIDMap mGathererRoutes;
-      RouteIDLocalCandidateFromIPMap mPendingGathererRoutes;
 
       STUNCheckMap mOutgoingChecks;
       TimerRouteMap mNextKeepWarmTimers;

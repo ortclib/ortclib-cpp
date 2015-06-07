@@ -59,297 +59,567 @@ namespace ortc
 {
   namespace test
   {
-    ZS_DECLARE_CLASS_PTR(ICETransportTester)
-
-    class ICETransportTester : public SharedRecursiveLock,
-                               public zsLib::MessageQueueAssociator,
-                               public IICEGathererDelegate,
-                               public IICETransportDelegate
+    namespace transport
     {
-    public:
-      typedef String Hash;
-      typedef std::map<Hash, CandidatePtr> CandidateMap;
+      ZS_DECLARE_CLASS_PTR(ICEGathererTester)
+      ZS_DECLARE_CLASS_PTR(ICETransportTester)
 
-      struct Expectations {
-        ULONG mStateNew {0};
-        ULONG mStateGathering {0};
-        ULONG mStateComplete {0};
-        ULONG mStateClosed {0};
+      class ICEGathererTester : public SharedRecursiveLock,
+                                public zsLib::MessageQueueAssociator,
+                                public IICEGathererDelegate
+      {
+      public:
+        typedef String Hash;
+        typedef std::map<Hash, CandidatePtr> CandidateMap;
 
-        ULONG mCandidatesUDPHost {0};
-        ULONG mCandidatesTCPHostPassive {0};
-        ULONG mCandidatesTCPHostActive {0};
-        ULONG mCandidatesTCPHostSO {0};
+        struct Expectations {
+          ULONG mStateNew {0};
+          ULONG mStateGathering {0};
+          ULONG mStateComplete {0};
+          ULONG mStateClosed {0};
 
-        ULONG mCandidatesPrflx {0};
-        ULONG mCandidatesSrflex {0};
-        ULONG mCandidatesRelay {0};
+          ULONG mCandidatesUDPHost {0};
+          ULONG mCandidatesTCPHostPassive {0};
+          ULONG mCandidatesTCPHostActive {0};
+          ULONG mCandidatesTCPHostSO {0};
 
-        ULONG mCandidateComplete {0};
-        ULONG mCandidateGone {0};
+          ULONG mCandidatesPrflx {0};
+          ULONG mCandidatesSrflex {0};
+          ULONG mCandidatesRelay {0};
 
-        ULONG mError {0};
+          ULONG mCandidateComplete {0};
+          ULONG mCandidateGone {0};
+
+          ULONG mError {0};
+
+          //-------------------------------------------------------------------
+          bool operator==(const Expectations &op2) const
+          {
+            return (mStateNew == op2.mStateNew) &&
+                   (mStateGathering == op2.mStateGathering) &&
+                   (mStateComplete == op2.mStateComplete) &&
+                   (mStateClosed == op2.mStateClosed) &&
+
+                   (mCandidatesUDPHost == op2.mCandidatesUDPHost) &&
+                   (mCandidatesTCPHostPassive == op2.mCandidatesTCPHostPassive) &&
+                   (mCandidatesTCPHostActive == op2.mCandidatesTCPHostActive) &&
+
+                   (mCandidatesPrflx == op2.mCandidatesPrflx) &&
+                   (mCandidatesSrflex == op2.mCandidatesSrflex) &&
+                   (mCandidatesRelay == op2.mCandidatesRelay) &&
+
+                   (mCandidateComplete == op2.mCandidateComplete) &&
+                   (mCandidateGone == op2.mCandidateGone);
+          }
+        };
+
+      public:
+        //---------------------------------------------------------------------
+        static ICEGathererTesterPtr create(IMessageQueuePtr queue)
+        {
+          ICEGathererTesterPtr pThis(new ICEGathererTester(queue));
+          pThis->mThisWeak = pThis;
+          pThis->init();
+          return pThis;
+        }
 
         //---------------------------------------------------------------------
-        bool operator==(const Expectations &op2) const
+        static ICEGathererTesterPtr create(
+                                           IMessageQueuePtr queue,
+                                           const IICEGathererTypes::Options &options
+                                           )
         {
-          return (mStateNew == op2.mStateNew) &&
-                 (mStateGathering == op2.mStateGathering) &&
-                 (mStateComplete == op2.mStateComplete) &&
-                 (mStateClosed == op2.mStateClosed) &&
-
-                 (mCandidatesUDPHost == op2.mCandidatesUDPHost) &&
-                 (mCandidatesTCPHostPassive == op2.mCandidatesTCPHostPassive) &&
-                 (mCandidatesTCPHostActive == op2.mCandidatesTCPHostActive) &&
-
-                 (mCandidatesPrflx == op2.mCandidatesPrflx) &&
-                 (mCandidatesSrflex == op2.mCandidatesSrflex) &&
-                 (mCandidatesRelay == op2.mCandidatesRelay) &&
-
-                 (mCandidateComplete == op2.mCandidateComplete) &&
-                 (mCandidateGone == op2.mCandidateGone);
+          ICEGathererTesterPtr pThis(new ICEGathererTester(queue));
+          pThis->mThisWeak = pThis;
+          pThis->init(options);
+          return pThis;
         }
+
+        //---------------------------------------------------------------------
+        ICEGathererTester(IMessageQueuePtr queue) :
+          SharedRecursiveLock(SharedRecursiveLock::create()),
+          MessageQueueAssociator(queue)
+        {
+          ZS_LOG_BASIC(log("ice gather tester"))
+        }
+
+        //---------------------------------------------------------------------
+        ~ICEGathererTester()
+        {
+          ZS_LOG_BASIC(log("ice gather tester"))
+        }
+
+        //---------------------------------------------------------------------
+        void init()
+        {
+          AutoRecursiveLock lock(*this);
+          IICEGathererTypes::Options options;
+          mGatherer = IICEGatherer::create(mThisWeak.lock(), options);
+        }
+
+        //---------------------------------------------------------------------
+        void init(const IICEGathererTypes::Options &options)
+        {
+          AutoRecursiveLock lock(*this);
+          mGatherer = IICEGatherer::create(mThisWeak.lock(), options);
+        }
+
+        //---------------------------------------------------------------------
+        bool matches(const Expectations &op2)
+        {
+          AutoRecursiveLock lock(*this);
+          return mExpectations == op2;
+        }
+
+        //---------------------------------------------------------------------
+        void close()
+        {
+          AutoRecursiveLock lock(*this);
+          mGatherer->close();
+        }
+
+        //---------------------------------------------------------------------
+        void closeByReset()
+        {
+          AutoRecursiveLock lock(*this);
+          mGatherer.reset();
+        }
+
+        //---------------------------------------------------------------------
+        Log::Params log(const char *message) const
+        {
+          ElementPtr objectEl = Element::create("ortc::test::ICEGathererTester");
+          UseServicesHelper::debugAppend(objectEl, "id", mID);
+          return Log::Params(message, objectEl);
+        }
+
+        //---------------------------------------------------------------------
+        Expectations getExpectations() const {return mExpectations;}
+
+        //---------------------------------------------------------------------
+        IICEGathererPtr getGatherer() const
+        {
+          AutoRecursiveLock lock(*this);
+          return mGatherer;
+        }
+
+        //---------------------------------------------------------------------
+        virtual void onICEGathererStateChanged(
+                                               IICEGathererPtr gatherer,
+                                               IICEGatherer::States state
+                                               ) override
+        {
+          ZS_LOG_BASIC(log("gatherer state changed") + IICEGatherer::toDebug(gatherer) + ZS_PARAM("state", IICEGatherer::toString(state)))
+
+          AutoRecursiveLock lock(*this);
+
+          switch (state) {
+            case IICEGatherer::State_New:       ++mExpectations.mStateNew;        break;
+            case IICEGatherer::State_Gathering: ++mExpectations.mStateGathering;  break;
+            case IICEGatherer::State_Complete:  ++mExpectations.mStateComplete;   break;
+            case IICEGatherer::State_Closed:    ++mExpectations.mStateClosed;     break;
+          }
+        }
+
+        //---------------------------------------------------------------------
+        virtual void onICEGathererLocalCandidate(
+                                                 IICEGathererPtr gatherer,
+                                                 CandidatePtr candidate
+                                                 ) override
+        {
+          ZS_LOG_BASIC(log("gatherer local candidate") + IICEGatherer::toDebug(gatherer) + (candidate ? candidate->toDebug() : ElementPtr()))
+
+          TESTING_CHECK(candidate)
+
+          AutoRecursiveLock lock(*this);
+
+          auto hash = candidate->hash();
+
+          TESTING_CHECK(mCandidates.end() == mCandidates.find(hash))
+
+          mCandidates[hash] = candidate;
+
+          switch (candidate->mCandidateType) {
+            case IICETypes::CandidateType_Host:
+            {
+              switch (candidate->mProtocol) {
+                case IICETypes::Protocol_UDP: ++mExpectations.mCandidatesUDPHost; break;
+                case IICETypes::Protocol_TCP: {
+                  switch (candidate->mTCPType) {
+                    case IICETypes::TCPCandidateType_Active:    ++mExpectations.mCandidatesTCPHostActive; break;
+                    case IICETypes::TCPCandidateType_Passive:   ++mExpectations.mCandidatesTCPHostPassive; break;
+                    case IICETypes::TCPCandidateType_SO:        ++mExpectations.mCandidatesTCPHostSO; break;
+                  }
+                  break;
+                }
+              }
+              break;
+            }
+            case IICETypes::CandidateType_Prflx:  ++mExpectations.mCandidatesPrflx; break;
+            case IICETypes::CandidateType_Srflex: ++mExpectations.mCandidatesSrflex; break;
+            case IICETypes::CandidateType_Relay:  ++mExpectations.mCandidatesRelay; break;
+          }
+        }
+
+        //---------------------------------------------------------------------
+        virtual void onICEGathererLocalCandidateComplete(
+                                                         IICEGathererPtr gatherer,
+                                                         CandidateCompletePtr candidate
+                                                         ) override
+        {
+          ZS_LOG_BASIC(log("gatherer candidate complete") + IICEGatherer::toDebug(gatherer) + (candidate ? candidate->toDebug() : ElementPtr()))
+
+          TESTING_CHECK(candidate)
+
+          AutoRecursiveLock lock(*this);
+
+          ++mExpectations.mCandidateComplete;
+        }
+
+        //---------------------------------------------------------------------
+        virtual void onICEGathererLocalCandidateGone(
+                                                     IICEGathererPtr gatherer,
+                                                     CandidatePtr candidate
+                                                     ) override
+        {
+          ZS_LOG_BASIC(log("gatherer candidate gone") + IICEGatherer::toDebug(gatherer) + (candidate ? candidate->toDebug() : ElementPtr()))
+
+          TESTING_CHECK(candidate)
+
+          auto hash = candidate->hash();
+
+          AutoRecursiveLock lock(*this);
+
+          auto found = mCandidates.find(hash);
+          TESTING_CHECK(found != mCandidates.end())
+
+          mCandidates.erase(found);
+
+          ++mExpectations.mCandidateGone;
+        }
+
+        //---------------------------------------------------------------------
+        virtual void onICEGathererError(
+                                        IICEGathererPtr gatherer,
+                                        ErrorCode errorCode,
+                                        String errorReason
+                                        ) override
+        {
+          ZS_LOG_ERROR(Basic, log("gatherer error") + IICEGatherer::toDebug(gatherer) + ZS_PARAM("error", errorCode) + ZS_PARAM("reason", errorReason))
+
+          AutoRecursiveLock lock(*this);
+
+          ++mExpectations.mError;
+        }
+
+      public:
+        AutoPUID mID;
+        ICEGathererTesterWeakPtr mThisWeak;
+
+        IICEGathererPtr mGatherer;
+
+        Expectations mExpectations;
+
+        CandidateMap mCandidates;
       };
 
-    public:
       //-----------------------------------------------------------------------
-      static ICETransportTesterPtr create(IMessageQueuePtr queue)
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark ICETransportTester
+      #pragma mark
+
+      class ICETransportTester : public SharedRecursiveLock,
+                                 public zsLib::MessageQueueAssociator,
+                                 public IICETransportDelegate,
+                                 public IICEGathererDelegate
       {
-        ICETransportTesterPtr pThis(new ICETransportTester(queue));
-        pThis->mThisWeak = pThis;
-        pThis->init();
-        return pThis;
-      }
+      public:
+        typedef String Hash;
+        typedef std::map<Hash, CandidatePairPtr> CandidateMap;
 
-      //-----------------------------------------------------------------------
-      static ICETransportTesterPtr create(
-                                         IMessageQueuePtr queue,
-                                         const IICEGathererTypes::Options &options
-                                         )
-      {
-        ICETransportTesterPtr pThis(new ICETransportTester(queue));
-        pThis->mThisWeak = pThis;
-        pThis->init(options);
-        return pThis;
-      }
+        struct Expectations {
+          ULONG mStateNew {0};
+          ULONG mStateChecking {0};
+          ULONG mStateConnected {0};
+          ULONG mStateCompleted {0};
+          ULONG mStateDisconnected {0};
+          ULONG mStateFailed {0};
+          ULONG mStateClosed {0};
 
-      //-----------------------------------------------------------------------
-      ICETransportTester(IMessageQueuePtr queue) :
-        SharedRecursiveLock(SharedRecursiveLock::create()),
-        MessageQueueAssociator(queue)
-      {
-        ZS_LOG_BASIC(log("ice tester"))
-      }
-
-      //-----------------------------------------------------------------------
-      ~ICETransportTester()
-      {
-        ZS_LOG_BASIC(log("ice tester"))
-      }
-
-      //-----------------------------------------------------------------------
-      void init()
-      {
-        AutoRecursiveLock lock(*this);
-        IICEGathererTypes::Options options;
-        mGatherer = IICEGatherer::create(mThisWeak.lock(), options);
-      }
-
-      //-----------------------------------------------------------------------
-      void init(const IICEGathererTypes::Options &options)
-      {
-        AutoRecursiveLock lock(*this);
-        mGatherer = IICEGatherer::create(mThisWeak.lock(), options);
-      }
-
-      //-----------------------------------------------------------------------
-      bool matches(const Expectations &op2)
-      {
-        AutoRecursiveLock lock(*this);
-        return mExpectations == op2;
-      }
-
-      //-----------------------------------------------------------------------
-      void close()
-      {
-        AutoRecursiveLock lock(*this);
-        mGatherer->close();
-      }
-
-      //-----------------------------------------------------------------------
-      void closeByReset()
-      {
-        AutoRecursiveLock lock(*this);
-        mGatherer.reset();
-      }
-
-      //-----------------------------------------------------------------------
-      Log::Params log(const char *message) const
-      {
-        ElementPtr objectEl = Element::create("ortc::test::ICETransportTester");
-        UseServicesHelper::debugAppend(objectEl, "id", mID);
-        return Log::Params(message, objectEl);
-      }
-
-      //-----------------------------------------------------------------------
-      Expectations getExpectations() const {return mExpectations;}
-
-      //-----------------------------------------------------------------------
-      virtual void onICEGathererStateChanged(
-                                             IICEGathererPtr gatherer,
-                                             IICEGatherer::States state
-                                             ) override
-      {
-        ZS_LOG_BASIC(log("gatherer state changed") + IICEGatherer::toDebug(gatherer) + ZS_PARAM("state", IICEGatherer::toString(state)))
-
-        AutoRecursiveLock lock(*this);
-
-        switch (state) {
-          case IICEGatherer::State_New:       ++mExpectations.mStateNew;        break;
-          case IICEGatherer::State_Gathering: ++mExpectations.mStateGathering;  break;
-          case IICEGatherer::State_Complete:  ++mExpectations.mStateComplete;   break;
-          case IICEGatherer::State_Closed:    ++mExpectations.mStateClosed;     break;
-        }
-      }
-
-      //-----------------------------------------------------------------------
-      virtual void onICEGathererLocalCandidate(
-                                               IICEGathererPtr gatherer,
-                                               CandidatePtr candidate
-                                               ) override
-      {
-        ZS_LOG_BASIC(log("gatherer local candidate") + IICEGatherer::toDebug(gatherer) + (candidate ? candidate->toDebug() : ElementPtr()))
-
-        TESTING_CHECK(candidate)
-
-        AutoRecursiveLock lock(*this);
-
-        auto hash = candidate->hash();
-
-        TESTING_CHECK(mCandidates.end() == mCandidates.find(hash))
-
-        mCandidates[hash] = candidate;
-
-        switch (candidate->mCandidateType) {
-          case IICETypes::CandidateType_Host:
+          //-------------------------------------------------------------------
+          bool operator==(const Expectations &op2) const
           {
-            switch (candidate->mProtocol) {
-              case IICETypes::Protocol_UDP: ++mExpectations.mCandidatesUDPHost; break;
-              case IICETypes::Protocol_TCP: {
-                switch (candidate->mTCPType) {
-                  case IICETypes::TCPCandidateType_Active:    ++mExpectations.mCandidatesTCPHostActive; break;
-                  case IICETypes::TCPCandidateType_Passive:   ++mExpectations.mCandidatesTCPHostPassive; break;
-                  case IICETypes::TCPCandidateType_SO:        ++mExpectations.mCandidatesTCPHostSO; break;
-                }
-                break;
-              }
-            }
-            break;
+            return (mStateNew == op2.mStateNew) &&
+                   (mStateChecking == op2.mStateChecking) &&
+                   (mStateConnected == op2.mStateConnected) &&
+                   (mStateCompleted == op2.mStateCompleted) &&
+                   (mStateDisconnected == op2.mStateDisconnected) &&
+                   (mStateFailed == op2.mStateFailed) &&
+                   (mStateClosed == op2.mStateClosed);
           }
-          case IICETypes::CandidateType_Prflx:  ++mExpectations.mCandidatesPrflx; break;
-          case IICETypes::CandidateType_Srflex: ++mExpectations.mCandidatesSrflex; break;
-          case IICETypes::CandidateType_Relay:  ++mExpectations.mCandidatesRelay; break;
+        };
+
+      public:
+
+        //-----------------------------------------------------------------------
+        static ICETransportTesterPtr create(IMessageQueuePtr queue)
+        {
+          ICETransportTesterPtr pThis(new ICETransportTester(queue));
+          pThis->mThisWeak = pThis;
+          pThis->init();
+          return pThis;
         }
-      }
 
-      //-----------------------------------------------------------------------
-      virtual void onICEGathererLocalCandidateComplete(
-                                                       IICEGathererPtr gatherer,
-                                                       CandidateCompletePtr candidate
-                                                       ) override
-      {
-        ZS_LOG_BASIC(log("gatherer candidate complete") + IICEGatherer::toDebug(gatherer) + (candidate ? candidate->toDebug() : ElementPtr()))
+        //-----------------------------------------------------------------------
+        static ICETransportTesterPtr create(
+                                            IMessageQueuePtr queue,
+                                            ICEGathererTesterPtr gathererTester
+                                            )
+        {
+          ICETransportTesterPtr pThis(new ICETransportTester(queue));
+          pThis->mThisWeak = pThis;
+          pThis->mGathererTester = gathererTester;
+          pThis->init();
+          return pThis;
+        }
 
-        TESTING_CHECK(candidate)
+        //-----------------------------------------------------------------------
+        ICETransportTester(IMessageQueuePtr queue) :
+          SharedRecursiveLock(SharedRecursiveLock::create()),
+          MessageQueueAssociator(queue)
+        {
+          ZS_LOG_BASIC(log("ice tester"))
+        }
 
-        AutoRecursiveLock lock(*this);
+        //-----------------------------------------------------------------------
+        ~ICETransportTester()
+        {
+          ZS_LOG_BASIC(log("ice tester"))
+        }
 
-        ++mExpectations.mCandidateComplete;
-      }
+        //-----------------------------------------------------------------------
+        void init()
+        {
+          AutoRecursiveLock lock(*this);
+          mTransport = IICETransport::create(mThisWeak.lock(), mGathererTester ? mGathererTester->getGatherer() : IICEGathererPtr());
+        }
 
-      //-----------------------------------------------------------------------
-      virtual void onICEGathererLocalCandidateGone(
-                                                   IICEGathererPtr gatherer,
-                                                   CandidatePtr candidate
-                                                   ) override
-      {
-        ZS_LOG_BASIC(log("gatherer candidate gone") + IICEGatherer::toDebug(gatherer) + (candidate ? candidate->toDebug() : ElementPtr()))
+        //-----------------------------------------------------------------------
+        bool matches(const Expectations &op2)
+        {
+          AutoRecursiveLock lock(*this);
+          return mExpectations == op2;
+        }
 
-        TESTING_CHECK(candidate)
+        //-----------------------------------------------------------------------
+        void close()
+        {
+          AutoRecursiveLock lock(*this);
+          mTransport->stop();
+          mStopCalled = true;
 
-        auto hash = candidate->hash();
+          mRemoteGathererSubscription->cancel();
+          mRemoteGathererSubscription.reset();
+        }
 
-        AutoRecursiveLock lock(*this);
+        //-----------------------------------------------------------------------
+        void closeByReset()
+        {
+          AutoRecursiveLock lock(*this);
+          mTransport.reset();
 
-        auto found = mCandidates.find(hash);
-        TESTING_CHECK(found != mCandidates.end())
+          mRemoteGathererSubscription.reset();
+        }
 
-        mCandidates.erase(found);
+        //-----------------------------------------------------------------------
+        Log::Params log(const char *message) const
+        {
+          ElementPtr objectEl = Element::create("ortc::test::ICETransportTester");
+          UseServicesHelper::debugAppend(objectEl, "id", mID);
+          return Log::Params(message, objectEl);
+        }
 
-        ++mExpectations.mCandidateGone;
-      }
+        //-----------------------------------------------------------------------
+        Expectations getExpectations() const {return mExpectations;}
 
-      //-----------------------------------------------------------------------
-      virtual void onICEGathererError(
-                                      IICEGathererPtr gatherer,
-                                      ErrorCode errorCode,
-                                      String errorReason
-                                      ) override
-      {
-        ZS_LOG_ERROR(Basic, log("gatherer error") + IICEGatherer::toDebug(gatherer) + ZS_PARAM("error", errorCode) + ZS_PARAM("reason", errorReason))
+        //-----------------------------------------------------------------------
+        void setRemote(
+                       ICEGathererTesterPtr remoteGathererTester,
+                       const IICETransport::Options &options
+                       )
+        {
+          AutoRecursiveLock lock(*this);
+          mRemoteGathererTester = remoteGathererTester;
 
-        AutoRecursiveLock lock(*this);
+          TESTING_CHECK(mGathererTester)
+          TESTING_CHECK(remoteGathererTester)
 
-        ++mExpectations.mError;
-      }
+          auto localGatherer = mGathererTester->getGatherer();
+          auto remoteGatherer = remoteGathererTester->getGatherer();
 
-      //-----------------------------------------------------------------------
-      virtual void onICETransportStateChanged(
-                                              IICETransportPtr transport,
-                                              IICETransport::States state
-                                              ) override
-      {
-      }
+          TESTING_CHECK(localGatherer)
+          TESTING_CHECK(remoteGatherer)
 
-      //-----------------------------------------------------------------------
-      virtual void onICETransportCandidatePairAvailable(
+          if ((mTransport) &&
+              (localGatherer) &&
+              (remoteGatherer)) {
+            IICEGathererTypes::ParametersPtr params = remoteGatherer->getLocalParameters();
+            TESTING_CHECK(params)
+            mTransport->start(localGatherer, *params, options);
+          }
+
+          mRemoteGathererSubscription = remoteGatherer->subscribe(mThisWeak.lock());
+
+          TESTING_CHECK(mRemoteGathererSubscription)
+        }
+
+      protected:
+
+        //-----------------------------------------------------------------------
+        virtual void onICETransportStateChanged(
+                                                IICETransportPtr transport,
+                                                IICETransport::States state
+                                                ) override
+        {
+          ZS_LOG_BASIC(log("transport state changed") + IICETransport::toDebug(transport) + ZS_PARAM("state", IICETransport::toString(state)))
+
+          AutoRecursiveLock lock(*this);
+
+          switch (state) {
+            case IICETransport::State_New:          ++mExpectations.mStateNew; break;
+            case IICETransport::State_Checking:     ++mExpectations.mStateChecking;  break;
+            case IICETransport::State_Connected:    ++mExpectations.mStateConnected; break;
+            case IICETransport::State_Completed:    ++mExpectations.mStateCompleted; break;
+            case IICETransport::State_Disconnected: ++mExpectations.mStateDisconnected; break;
+            case IICETransport::State_Failed:       ++mExpectations.mStateFailed; break;
+            case IICETransport::State_Closed:       ++mExpectations.mStateClosed; break;
+          }
+        }
+
+        //-----------------------------------------------------------------------
+        virtual void onICETransportCandidatePairAvailable(
+                                                          IICETransportPtr transport,
+                                                          CandidatePairPtr candidatePair
+                                                          ) override
+        {
+          ZS_LOG_BASIC(log("transport pair available") + IICETransport::toDebug(transport) + (candidatePair ? candidatePair->toDebug() : ElementPtr()))
+        }
+
+        //-----------------------------------------------------------------------
+        virtual void onICETransportCandidatePairGone(
+                                                     IICETransportPtr transport,
+                                                     CandidatePairPtr candidatePair
+                                                     ) override
+        {
+          ZS_LOG_BASIC(log("transport pair gone") + IICETransport::toDebug(transport) + (candidatePair ? candidatePair->toDebug() : ElementPtr()))
+        }
+
+        //-----------------------------------------------------------------------
+        virtual void onICETransportCandidatePairChanged(
                                                         IICETransportPtr transport,
                                                         CandidatePairPtr candidatePair
                                                         ) override
-      {
-      }
+        {
+          ZS_LOG_BASIC(log("transport pair changed") + IICETransport::toDebug(transport) + (candidatePair ? candidatePair->toDebug() : ElementPtr()))
+        }
 
-      //-----------------------------------------------------------------------
-      virtual void onICETransportCandidatePairGone(
-                                                   IICETransportPtr transport,
-                                                   CandidatePairPtr candidatePair
-                                                   ) override
-      {
-      }
+      protected:
+        //---------------------------------------------------------------------
+        virtual void onICEGathererStateChanged(
+                                               IICEGathererPtr gatherer,
+                                               IICEGatherer::States state
+                                               ) override
+        {
+          ZS_LOG_BASIC(log("remote gatherer state changed") + IICEGatherer::toDebug(gatherer) + ZS_PARAM("state", IICEGatherer::toString(state)))
+        }
 
-      //-----------------------------------------------------------------------
-      virtual void onICETransportCandidatePairChanged(
-                                                      IICETransportPtr transport,
-                                                      CandidatePairPtr candidatePair
-                                                      ) override
-      {
-      }
+        //---------------------------------------------------------------------
+        virtual void onICEGathererLocalCandidate(
+                                                 IICEGathererPtr gatherer,
+                                                 CandidatePtr candidate
+                                                 ) override
+        {
+          ZS_LOG_BASIC(log("remote gatherer local candidate") + IICEGatherer::toDebug(gatherer) + (candidate ? candidate->toDebug() : ElementPtr()))
 
-    public:
-      AutoPUID mID;
-      ICETransportTesterWeakPtr mThisWeak;
+          AutoRecursiveLock lock(*this);
 
-      IICEGathererPtr mGatherer;
+          if (!mTransport) return;
+          if (mStopCalled) return;
 
-      Expectations mExpectations;
+          mTransport->addRemoteCandidate(*candidate);
+        }
 
-      CandidateMap mCandidates;
-    };
+        //---------------------------------------------------------------------
+        virtual void onICEGathererLocalCandidateComplete(
+                                                         IICEGathererPtr gatherer,
+                                                         CandidateCompletePtr candidate
+                                                         ) override
+        {
+          ZS_LOG_BASIC(log("remote gatherer candidate complete") + IICEGatherer::toDebug(gatherer) + (candidate ? candidate->toDebug() : ElementPtr()))
 
+          TESTING_CHECK(candidate)
+
+          AutoRecursiveLock lock(*this);
+
+          if (!mTransport) return;
+          if (mStopCalled) return;
+
+          mTransport->addRemoteCandidate(*candidate);
+        }
+
+        //---------------------------------------------------------------------
+        virtual void onICEGathererLocalCandidateGone(
+                                                     IICEGathererPtr gatherer,
+                                                     CandidatePtr candidate
+                                                     ) override
+        {
+          ZS_LOG_BASIC(log("remote gatherer candidate gone") + IICEGatherer::toDebug(gatherer) + (candidate ? candidate->toDebug() : ElementPtr()))
+
+          TESTING_CHECK(candidate)
+
+          AutoRecursiveLock lock(*this);
+
+          if (!mTransport) return;
+          if (mStopCalled) return;
+
+          mTransport->removeRemoteCandidate(*candidate);
+        }
+
+        //---------------------------------------------------------------------
+        virtual void onICEGathererError(
+                                        IICEGathererPtr gatherer,
+                                        ErrorCode errorCode,
+                                        String errorReason
+                                        ) override
+        {
+          ZS_LOG_ERROR(Basic, log("remote gatherer error") + IICEGatherer::toDebug(gatherer) + ZS_PARAM("error", errorCode) + ZS_PARAM("reason", errorReason))
+        }
+
+      public:
+        AutoPUID mID;
+        ICETransportTesterWeakPtr mThisWeak;
+
+        ICEGathererTesterPtr mGathererTester;
+        IICETransportPtr mTransport;
+        bool mStopCalled {false};
+        
+        Expectations mExpectations;
+        
+        CandidateMap mCandidates;
+
+        ICEGathererTesterPtr mRemoteGathererTester;
+
+        IICEGathererSubscriptionPtr mRemoteGathererSubscription;
+      };
+    }
   }
 }
 
-ZS_DECLARE_USING_PTR(ortc::test, ICETransportTester)
+ZS_DECLARE_USING_PTR(ortc::test::transport, ICEGathererTester)
+ZS_DECLARE_USING_PTR(ortc::test::transport, ICETransportTester)
 
 
 void doTestICETransport()
@@ -364,7 +634,11 @@ void doTestICETransport()
 
   zsLib::MessageQueueThreadPtr thread(zsLib::MessageQueueThread::createBasic());
 
-  ICETransportTesterPtr testObject1;
+  ICEGathererTesterPtr testGathererObject1;
+  ICETransportTesterPtr testTransportObject1;
+
+  ICEGathererTesterPtr testGathererObject2;
+  ICETransportTesterPtr testTransportObject2;
 
   TESTING_STDOUT() << "WAITING:      Waiting for ICE testing to complete (max wait is 180 seconds).\n";
 
@@ -380,48 +654,96 @@ void doTestICETransport()
       bool quit = false;
       ULONG expecting = 0;
 
-      ICETransportTester::Expectations doNotExpect1;
+      ICEGathererTester::Expectations expectationsGatherer1;
+      ICEGathererTester::Expectations expectationsGatherer2;
 
-      ICETransportTester::Expectations expectations1;
+      expectationsGatherer1.mStateNew = 0;
+      expectationsGatherer1.mStateGathering = 1;
+      expectationsGatherer1.mStateComplete = 1;
+      expectationsGatherer1.mStateClosed = 1;
+      expectationsGatherer1.mCandidatesUDPHost = ORTC_TEST_HOST_UDP_IPS;
+      expectationsGatherer1.mCandidatesTCPHostActive = ORTC_TEST_HOST_TCP_IPS;
+      expectationsGatherer1.mCandidatesTCPHostPassive = ORTC_TEST_HOST_TCP_IPS;
+      expectationsGatherer1.mCandidateGone = expectationsGatherer1.mCandidatesUDPHost + expectationsGatherer1.mCandidatesTCPHostActive + expectationsGatherer1.mCandidatesTCPHostPassive;
+      expectationsGatherer1.mCandidateComplete = 1;
 
-      expectations1.mStateNew = 0;
-      expectations1.mStateGathering = 1;
-      expectations1.mStateComplete = 1;
-      expectations1.mStateClosed = 1;
-      expectations1.mCandidatesUDPHost = ORTC_TEST_HOST_UDP_IPS;
-      expectations1.mCandidatesTCPHostActive = ORTC_TEST_HOST_TCP_IPS;
-      expectations1.mCandidatesTCPHostPassive = ORTC_TEST_HOST_TCP_IPS;
-      expectations1.mCandidateGone = expectations1.mCandidatesUDPHost + expectations1.mCandidatesTCPHostActive + expectations1.mCandidatesTCPHostPassive;
-      expectations1.mCandidateComplete = 1;
+      expectationsGatherer2 = expectationsGatherer1;
+
+      ICETransportTester::Expectations expectationsTransport1;
+      ICETransportTester::Expectations expectationsTransport2;
+
+      expectationsTransport1.mStateClosed = 1;
+
+      expectationsTransport2 = expectationsTransport1;
 
       switch (step) {
-        case 0: {
-          testObject1 = ICETransportTester::create(thread);
+/*        case 0: {
+          testTransportObject1 = ICETransportTester::create(thread);
           break;
         }
         case 1: {
-          ortc::ISettings::setBool("ortc/gatherer/gather-passive-tcp-candidates", false);
+          testGathererObject1 = ICEGathererTester::create(thread);
+          testTransportObject1 = ICETransportTester::create(thread, testGathererObject1);
+          break;
+        }*/
+        case 0: {
+          {
+            expectationsGatherer1.mCandidatesSrflex = ORTC_TEST_REFLEXIVE_UDP_IPS;
+            expectationsGatherer1.mCandidatesRelay = ORTC_TEST_RELAY_UDP_IPS;
+            expectationsGatherer1.mCandidateGone += expectationsGatherer1.mCandidatesSrflex + expectationsGatherer1.mCandidatesRelay;
 
-          expectations1.mCandidatesTCPHostPassive = 0;
-          expectations1.mCandidateGone = expectations1.mCandidatesUDPHost + expectations1.mCandidatesTCPHostActive + expectations1.mCandidatesTCPHostPassive;
+            String url = String("turn:") + OPENPEER_SERVICE_TEST_TURN_SERVER_DOMAIN_VIA_A_RECORD_1;
 
-          testObject1 = ICETransportTester::create(thread);
+            ortc::IICEGatherer::Server server;
+            server.mURLs.push_back(url);
+            server.mUserName = OPENPEER_SERVICE_TEST_TURN_USERNAME;
+            server.mCredential = OPENPEER_SERVICE_TEST_TURN_PASSWORD;
+
+            ortc::IICEGatherer::Options options;
+            options.mICEServers.push_back(server);
+
+            testGathererObject1 = ICEGathererTester::create(thread, options);
+            testTransportObject1 = ICETransportTester::create(thread, testGathererObject1);
+          }
+          {
+            expectationsGatherer2.mCandidatesSrflex = ORTC_TEST_REFLEXIVE_UDP_IPS;
+            expectationsGatherer2.mCandidateGone += expectationsGatherer2.mCandidatesSrflex + expectationsGatherer2.mCandidatesRelay;
+
+            String url = String("stun:") + ORTC_TEST_STUN_SERVER;
+
+            ortc::IICEGatherer::Server server;
+            server.mURLs.push_back(url);
+            ortc::IICEGatherer::Options options;
+            options.mICEServers.push_back(server);
+
+            testGathererObject2 = ICEGathererTester::create(thread, options);
+            testTransportObject2 = ICETransportTester::create(thread, testGathererObject2);
+          }
+
+          ortc::IICETransportTypes::Options options1;
+          ortc::IICETransportTypes::Options options2;
+
+          options1.mRole = ortc::IICETypes::Role_Controlling;
+          options2.mRole = ortc::IICETypes::Role_Controlled;
+
+          testTransportObject1->setRemote(testGathererObject2, options1);
+          testTransportObject2->setRemote(testGathererObject1, options2);
           break;
         }
-        case 2: {
+/*        case 2: {
           ortc::ISettings::setBool("ortc/gatherer/gather-passive-tcp-candidates", true);
 
           expectations1.mCandidateGone = 0;
           expectations1.mStateClosed = 0;
 
-          testObject1 = ICETransportTester::create(thread);
+          testGathererObject1 = ICEGathererTester::create(thread);
           break;
         }
         case 3: {
           expectations1.mCandidateGone = 0;
           expectations1.mStateClosed = 0;
 
-          testObject1 = ICETransportTester::create(thread);
+          testGathererObject1 = ICEGathererTester::create(thread);
           break;
         }
         case 4: {
@@ -435,7 +757,7 @@ void doTestICETransport()
           ortc::IICEGatherer::Options options;
           options.mICEServers.push_back(server);
 
-          testObject1 = ICETransportTester::create(thread, options);
+          testGathererObject1 = ICEGathererTester::create(thread, options);
           break;
         }
         case 5: {
@@ -453,15 +775,19 @@ void doTestICETransport()
           ortc::IICEGatherer::Options options;
           options.mICEServers.push_back(server);
 
-          testObject1 = ICETransportTester::create(thread, options);
+          testGathererObject1 = ICEGathererTester::create(thread, options);
           break;
         }
+*/
         default:  quit = true; break;
       }
       if (quit) break;
 
       expecting = 0;
-      expecting += (testObject1 ? 1 : 0);
+      expecting += (testGathererObject1 ? 1 : 0);
+      expecting += (testGathererObject2 ? 1 : 0);
+      expecting += (testTransportObject1 ? 1 : 0);
+      expecting += (testTransportObject2 ? 1 : 0);
 
       ULONG found = 0;
       ULONG lastFound = 0;
@@ -478,49 +804,58 @@ void doTestICETransport()
 
         switch (step) {
           case 0: {
-            if (7 == totalWait) {
-              testObject1->close();
+            if (50 == totalWait) {
+              if (testGathererObject1) testGathererObject1->close();
+              if (testGathererObject2) testGathererObject2->close();
+              if (testTransportObject1) testTransportObject1->close();
+              if (testTransportObject2) testTransportObject2->close();
             }
             break;
           }
           case 1: {
             if (7 == totalWait) {
-              testObject1->close();
+              if (testGathererObject1) testGathererObject1->close();
+              if (testGathererObject2) testGathererObject2->close();
+              if (testTransportObject1) testTransportObject1->close();
+              if (testTransportObject2) testTransportObject2->close();
             }
 
             break;
           }
           case 2: {
             if (7 == totalWait) {
-              TESTING_CHECK(testObject1->matches(expectations1))
-              testObject1.reset();
+              TESTING_CHECK(testGathererObject1->matches(expectationsGatherer1))
+              testGathererObject1.reset();
             }
 
             break;
           }
           case 3: {
             if (7 == totalWait) {
-              testObject1->closeByReset();
+              testGathererObject1->closeByReset();
             }
 
             break;
           }
           case 4: {
             if (65 == totalWait) {
-              testObject1->close();
+              testGathererObject1->close();
             }
             break;
           }
           case 5: {
             if (65 == totalWait) {
-              testObject1->close();
+              testGathererObject1->close();
             }
             break;
           }
         }
 
         if (0 == found) {
-          found += (testObject1 ? (testObject1->matches(expectations1) ? 1 : 0) : 0);
+          found += (testGathererObject1 ? (testGathererObject1->matches(expectationsGatherer1) ? 1 : 0) : 0);
+          found += (testGathererObject2 ? (testGathererObject2->matches(expectationsGatherer2) ? 1 : 0) : 0);
+          found += (testTransportObject1 ? (testTransportObject1->matches(expectationsTransport1) ? 1 : 0) : 0);
+          found += (testTransportObject2 ? (testTransportObject2->matches(expectationsTransport2) ? 1 : 0) : 0);
         }
 
         if (lastFound != found) {
@@ -528,34 +863,25 @@ void doTestICETransport()
           TESTING_STDOUT() << "FOUND:        [" << found << "].\n";
         }
       }
-      TESTING_EQUAL(found, expecting);
+
+      TESTING_EQUAL(found, expecting)
+
+      TESTING_SLEEP(2000)
 
       switch (step) {
-        case 0: {
-          TESTING_CHECK(testObject1->matches(expectations1))
-          break;
-        }
-        case 1: {
-          TESTING_CHECK(testObject1->matches(expectations1))
-          break;
-        }
-        case 2: {
-          break;
-        }
-        case 3: {
-          TESTING_CHECK(testObject1->matches(expectations1))
-          break;
-        }
-        case 4: {
-          TESTING_CHECK(testObject1->matches(expectations1))
-          break;
-        }
-        case 5: {
-          TESTING_CHECK(testObject1->matches(expectations1))
+        default:
+        {
+          if (testGathererObject1) {TESTING_CHECK(testGathererObject1->matches(expectationsGatherer1))}
+          if (testGathererObject2) {TESTING_CHECK(testGathererObject2->matches(expectationsGatherer2))}
+          if (testTransportObject1) {TESTING_CHECK(testTransportObject1->matches(expectationsTransport1))}
+          if (testTransportObject2) {TESTING_CHECK(testTransportObject2->matches(expectationsTransport2))}
           break;
         }
       }
-      testObject1.reset();
+      testGathererObject1.reset();
+      testGathererObject2.reset();
+      testTransportObject1.reset();
+      testTransportObject2.reset();
 
       ++step;
     } while (true);

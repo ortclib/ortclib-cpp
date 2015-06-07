@@ -33,9 +33,11 @@
 
 #include <ortc/internal/types.h>
 
-#include <openpeer/services/IWakeDelegate.h>
+#include <ortc/IICEGatherer.h>
 
-#include <zsLib/MessageQueueAssociator.h>
+#include <zsLib/Timer.h>
+
+#include <tuple>
 
 namespace ortc
 {
@@ -46,98 +48,103 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark DTLSCertficateGenerator
+    #pragma mark ICEGathererRouter
     #pragma mark
-    
-    class DTLSCertficateGenerator : public Noop,
-                                    public MessageQueueAssociator,
-                                    public SharedRecursiveLock,
-                                    public IWakeDelegate
+
+    class ICEGathererRouter : public SharedRecursiveLock,
+                              public MessageQueueAssociator,
+                              public zsLib::ITimerDelegate
     {
     protected:
       struct make_private {};
 
     public:
-      ZS_DECLARE_STRUCT_PTR(CertificateHolder)
+      ZS_DECLARE_STRUCT_PTR(Route)
 
-      typedef void * CertificateObjectType; // not sure of type to use
+      ZS_DECLARE_TYPEDEF_PTR(IICETypes::Candidate, Candidate)
 
-      struct CertificateHolder : public Any
-      {
-        CertificateHolder();
-        ~CertificateHolder();
-
-        CertificateObjectType mCertificate {};
-      };
-
-      typedef PromiseWith<CertificateHolder> PromiseWithCertificate;
-      ZS_DECLARE_PTR(PromiseWithCertificate)
-
-      typedef std::list<PromiseWithCertificatePtr> PromiseList;
+      typedef String LocalCandidateHash;
+      typedef std::pair<LocalCandidateHash, IPAddress> CandidateRemoteIPPair;
+      typedef std::map<CandidateRemoteIPPair, RouteWeakPtr> CandidateRemoteIPToRouteMap;
 
     public:
-      DTLSCertficateGenerator(
-                              const make_private &,
-                              IMessageQueuePtr queue
-                              );
+      ICEGathererRouter(
+                        const make_private &,
+                        IMessageQueuePtr queue
+                        );
 
     protected:
-      DTLSCertficateGenerator(Noop) :
-        Noop(true),
-        MessageQueueAssociator(IMessageQueuePtr()),
-        SharedRecursiveLock(SharedRecursiveLock::create())
-      {}
-
       void init();
 
     public:
-      virtual ~DTLSCertficateGenerator();
-
-    public:
+      ~ICEGathererRouter();
 
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark DTLSCertficateGenerator
+      #pragma mark ICEGathererRouter => (friends)
       #pragma mark
 
-      static ElementPtr toDebug(DTLSCertficateGeneratorPtr generator);
+      static ElementPtr toDebug(ICEGathererRouterPtr router);
 
-      static DTLSCertficateGeneratorPtr create();
+      static ICEGathererRouterPtr create();
 
       virtual PUID getID() const {return mID;}
 
-      virtual PromiseWithCertificatePtr getCertificate();
-
-      //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark DTLSCertficateGenerator => IWakeDelegate
-      #pragma mark
-
-      virtual void onWake() override;
+      virtual RoutePtr findRoute(
+                                 CandidatePtr localCandidate,
+                                 const IPAddress &remoteIP,
+                                 bool createRouteIfNeeded
+                                 );
 
     protected:
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark DTLSCertficateGenerator => (internal)
+      #pragma mark ICEGathererRouter => ITimerDelegate
+      #pragma mark
+
+      void onTimer(TimerPtr timer);
+
+    protected:
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark ICEGathererRouter => (internal)
       #pragma mark
 
       Log::Params log(const char *message) const;
+      static Log::Params slog(const char *message);
       Log::Params debug(const char *message) const;
       ElementPtr toDebug() const;
+
+      void cancel();
+
+    public:
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark ICEGathererRouter::Route
+      #pragma mark
+
+      struct Route
+      {
+        AutoPUID mID;
+
+        CandidatePtr mLocalCandidate;
+        IPAddress mRemoteIP;
+
+        ElementPtr toDebug() const;
+      };
 
     protected:
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark DTLSCertficateGenerator => (data)
+      #pragma mark ICEGathererRouter (data)
       #pragma mark
 
       AutoPUID mID;
-      DTLSCertficateGeneratorWeakPtr mThisWeak;
+      ICEGathererRouterWeakPtr mThisWeak;
 
-      PromiseList mPendingPromises;
+      CandidateRemoteIPToRouteMap mRoutes;
 
-      CertificateHolderPtr mCertificate;
+      TimerPtr mTimer;
     };
-
   }
 }

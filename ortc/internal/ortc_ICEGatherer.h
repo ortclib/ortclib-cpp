@@ -35,6 +35,8 @@
 
 #include <ortc/IICEGatherer.h>
 
+#include <ortc/internal/ortc_ICEGathererRouter.h>
+
 #include <openpeer/services/IBackOffTimer.h>
 #include <openpeer/services/IDNS.h>
 #include <openpeer/services/IWakeDelegate.h>
@@ -71,6 +73,7 @@
 #define ORTC_SETTING_GATHERER_RELAY_INACTIVITY_TIMEOUT_IN_SECONDS "ortc/gatherer/relay-inactivity-timeout-in-seconds"
 
 #define ORTC_SETTING_GATHERER_MAX_INCOMING_PACKET_BUFFERING_TIME_IN_SECONDS "ortc/gatherer/max-incoming-packet-buffering-time-in-seconds"
+#define ORTC_SETTING_GATHERER_MAX_TOTAL_INCOMING_PACKET_BUFFERING "ortc/gatherer/max-total-packet-buffering"
 
 #define ORTC_SETTING_GATHERER_MAX_PENDING_OUTGOING_TCP_SOCKET_BUFFERING_IN_BYTES "ortc/gatherer/max-pending-outgoing-tcp-socket-buffering-in-bytes"
 #define ORTC_SETTING_GATHERER_MAX_CONNECTED_TCP_SOCKET_BUFFERING_IN_BYTES "ortc/gatherer/max-connected-tcp-socket-buffering-in-bytes"
@@ -117,8 +120,12 @@ namespace ortc
     {
       ZS_DECLARE_TYPEDEF_PTR(IICEGathererForICETransport, ForICETransport)
 
+      ZS_DECLARE_TYPEDEF_PTR(IICETransportForICEGatherer, UseICETransport)
+
       ZS_DECLARE_TYPEDEF_PTR(IICETypes::CandidateList, CandidateList)
       typedef IICEGatherer::States States;
+
+      ZS_DECLARE_TYPEDEF_PTR(ICEGathererRouter::Route, RouterRoute)
 
       static ElementPtr toDebug(ForICETransportPtr gatherer);
 
@@ -144,17 +151,14 @@ namespace ortc
 
       virtual CandidateListPtr getLocalCandidates() const = 0;
 
-      virtual PUID createRoute(
-                               ICETransportPtr transport,
-                               IICETypes::CandidatePtr sentFromLocalCanddiate,
-                               const IPAddress &remoteIP
-                               ) = 0;
+      virtual ICEGathererRouterPtr getGathererRouter() const = 0;
 
-      virtual void removeRoute(PUID routeID) = 0;
+      virtual void removeRoute(RouterRoutePtr routerRoute) = 0;
       virtual void remoteAllRelatedRoutes(ICETransport &transport) = 0;
 
       virtual bool sendPacket(
-                              PUID routeID,
+                              UseICETransport &transport,
+                              RouterRoutePtr routerRoute,
                               const BYTE *buffer,
                               size_t bufferSizeInBytes
                               ) = 0;
@@ -174,13 +178,8 @@ namespace ortc
 
       virtual void onNotifyDeliverRouteBufferedPackets(
                                                        UseICETransportPtr transport,
-                                                       PUID routeID
+                                                       PUID routerRouteID
                                                        )  = 0;
-      virtual void onNotifyAboutRemoveRoute(
-                                            UseICETransportPtr transport,
-                                            PUID routeID
-                                            )  = 0;
-
       virtual void onResolveStatsPromise(IStatsProvider::PromiseWithStatsReportPtr promise) = 0;
     };
 
@@ -207,7 +206,12 @@ namespace ortc
                         public ISTUNDiscoveryDelegate,
                         public ITURNSocketDelegate
     {
+    protected:
+      struct make_private {};
+
     public:
+      friend class make_shared;
+
       friend interaction IICEGatherer;
       friend interaction IICEGathererFactory;
       friend interaction IICEGathererForSettings;
@@ -275,6 +279,7 @@ namespace ortc
       ZS_DECLARE_TYPEDEF_PTR(zsLib::Socket, Socket)
       ZS_DECLARE_TYPEDEF_PTR(IICETypes::Candidate, Candidate)
       ZS_DECLARE_TYPEDEF_PTR(IICETypes::CandidateList, CandidateList)
+      ZS_DECLARE_TYPEDEF_PTR(ICEGathererRouter::Route, RouterRoute)
 
       typedef std::list<IPAddress> IPAddressList;
 
@@ -315,9 +320,6 @@ namespace ortc
 
       typedef std::list<BufferedPacketPtr> BufferedPacketList;
 
-      typedef std::pair<CandidatePtr, IPAddress> LocalCandidateRemoteIPPair;
-      typedef std::map<LocalCandidateRemoteIPPair, RoutePtr> CandidateAndRemoteIPToRouteMap;
-
       typedef String UsernameFragment;
       typedef PUID TransportID;
       typedef std::map<UsernameFragment, InstalledTransportPtr> TransportMap;
@@ -327,15 +329,20 @@ namespace ortc
       typedef PUID RouteID;
       typedef std::map<RouteID, RoutePtr> RouteMap;
 
+      typedef std::pair<CandidatePtr, IPAddress> LocalCandidateRemoteIPPair;
+      typedef std::map<LocalCandidateRemoteIPPair, RoutePtr> LocalCandidateRemoteIPRouteMap;
+
       typedef CryptoPP::ByteQueue ByteQueue;
 
-    protected:
+    public:
       ICEGatherer(
+                  const make_private &,
                   IMessageQueuePtr queue,
                   IICEGathererDelegatePtr delegate,
                   const Options &options
                   );
 
+    protected:
       ICEGatherer(Noop) :
         Noop(true),
         MessageQueueAssociator(IMessageQueuePtr()),
@@ -412,17 +419,14 @@ namespace ortc
       virtual String getUsernameFrag() const override {return mUsernameFrag;}
       virtual String getPassword() const override {return mPassword;}
 
-      virtual PUID createRoute(
-                               ICETransportPtr transport,
-                               IICETypes::CandidatePtr sentFromLocalCanddiate,
-                               const IPAddress &remoteIP
-                               ) override;
+      virtual ICEGathererRouterPtr getGathererRouter() const override;
 
-      virtual void removeRoute(PUID routeID) override;
+      virtual void removeRoute(RouterRoutePtr routerRoute) override;
       virtual void remoteAllRelatedRoutes(ICETransport &transport) override;
 
       virtual bool sendPacket(
-                              PUID routeID,
+                              UseICETransport &transport,
+                              RouterRoutePtr routerRoute,
                               const BYTE *buffer,
                               size_t bufferSizeInBytes
                               ) override;
@@ -434,13 +438,8 @@ namespace ortc
 
       virtual void onNotifyDeliverRouteBufferedPackets(
                                                        UseICETransportPtr transport,
-                                                       PUID routeID
+                                                       PUID routerRouteID
                                                        ) override;
-
-      virtual void onNotifyAboutRemoveRoute(
-                                            UseICETransportPtr transport,
-                                            PUID routeID
-                                            ) override;
 
       virtual void onResolveStatsPromise(IStatsProvider::PromiseWithStatsReportPtr promise) override;
 
@@ -764,8 +763,7 @@ namespace ortc
       struct BufferedPacket
       {
         Time mTimestamp;
-        CandidatePtr mLocalCandidate;
-        IPAddress mFrom;
+        RouterRoutePtr mRouterRoute;
 
         STUNPacketPtr mSTUNPacket;
         String mRFrag;
@@ -787,9 +785,10 @@ namespace ortc
       {
         AutoPUID mID;
 
+        RouterRoutePtr mRouterRoute;
+
         Time mLastUsed;
         CandidatePtr mLocalCandidate;
-        IPAddress mFrom;
 
         TransportID mTransportID {};
         UseICETransportWeakPtr mTransport;
@@ -984,12 +983,16 @@ namespace ortc
                                 size_t bufferSizeInBytes
                                 );
 
-      // WARNING: DO NOT CALL FROM WITHIN A LOCK
+      CandidatePtr findSentFromLocalCandidate(RouterRoutePtr routerRoute);
+
       RoutePtr installRoute(
-                            CandidatePtr localCandidate,
+                            RouterRoutePtr routerRoute,
+                            UseICETransportPtr transport
+                            );
+      RoutePtr installRoute(
+                            CandidatePtr sentFromLocalCandidate,
                             const IPAddress &remoteIP,
-                            UseICETransportPtr transport,
-                            bool notifyTransport = true
+                            UseICETransportPtr transport
                             );
 
       void fix(STUNPacketPtr stunPacket) const;
@@ -1018,6 +1021,8 @@ namespace ortc
 
       ICEGathererWeakPtr mThisWeak;
       AutoPUID mID;
+
+      ICEGathererRouterPtr mGathererRouter;
 
       ICEGathererPtr mGracefulShutdownReference;
 
@@ -1095,9 +1100,10 @@ namespace ortc
 
       TimerPtr mCleanUpBufferingTimer;
       Seconds mMaxBufferingTime;
+      size_t mMaxTotalBuffers;
       BufferedPacketList mBufferedPackets;
 
-      CandidateAndRemoteIPToRouteMap mRouteCandidateAndIPMappings;
+      LocalCandidateRemoteIPRouteMap mQuickSearchRoutes;
       RouteMap mRoutes;
       TimerPtr mCleanUnusedRoutesTimer;
       Seconds mCleanUnusedRoutesDuration;
@@ -1134,6 +1140,5 @@ ZS_DECLARE_PROXY_BEGIN(ortc::internal::IGathererAsyncDelegate)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::IGathererAsyncDelegate::UseICETransportPtr, UseICETransportPtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IStatsProvider::PromiseWithStatsReportPtr, PromiseWithStatsReportPtr)
 ZS_DECLARE_PROXY_METHOD_2(onNotifyDeliverRouteBufferedPackets, UseICETransportPtr, PUID)
-ZS_DECLARE_PROXY_METHOD_2(onNotifyAboutRemoveRoute, UseICETransportPtr, PUID)
 ZS_DECLARE_PROXY_METHOD_1(onResolveStatsPromise, PromiseWithStatsReportPtr)
 ZS_DECLARE_PROXY_END()

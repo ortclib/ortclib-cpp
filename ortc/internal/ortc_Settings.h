@@ -65,12 +65,15 @@ namespace ortc
                      public openpeer::services::ISettingsDelegate,
                      public ISettingsForORTC
     {
+    protected:
+      struct make_private {};
+
     public:
       friend interaction ISettings;
       friend interaction ISettingsForORTC;
 
-    protected:
-      Settings();
+    public:
+      Settings(const make_private &);
 
     public:
       ~Settings();

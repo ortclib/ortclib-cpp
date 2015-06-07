@@ -61,6 +61,7 @@ namespace ortc
       State_Connected,
       State_Completed,
       State_Disconnected,
+      State_Failed,
       State_Closed,
     };
 
@@ -141,14 +142,14 @@ namespace ortc
 
     virtual IICETransportPtr createAssociatedTransport() throw (InvalidStateError) = 0;
 
-    virtual void addRemoteCandidate(const GatherCandidate &remoteCandidate) = 0;
-    virtual void setRemoteCandidates(const CandidateList &remoteCandidates) = 0;
-    virtual void removeRemoteCandidate(const GatherCandidate &remoteCandidate) = 0;
+    virtual void addRemoteCandidate(const GatherCandidate &remoteCandidate) throw (InvalidStateError) = 0;
+    virtual void setRemoteCandidates(const CandidateList &remoteCandidates) throw (InvalidStateError) = 0;
+    virtual void removeRemoteCandidate(const GatherCandidate &remoteCandidate) throw (InvalidStateError) = 0;
 
     virtual void keepWarm(
                           const CandidatePair &candidatePair,
                           bool keepWarm = true
-                          ) = 0;
+                          ) throw (InvalidStateError) = 0;
   };
 
   //---------------------------------------------------------------------------

@@ -65,6 +65,9 @@ namespace ortc
                           public IICETransportDelegate,
                           public IPromiseSettledDelegate
     {
+    protected:
+      struct make_private {};
+
     public:
       friend interaction IDTLSTransport;
       friend interaction IDTLSTransportFactory;
@@ -78,13 +81,15 @@ namespace ortc
 
       typedef std::list<PromiseWithParametersPtr> PromiseWithParametersList;
 
-    protected:
+    public:
       DTLSTransport(
+                    const make_private &,
                     IMessageQueuePtr queue,
                     IDTLSTransportDelegatePtr delegate,
                     IICETransportPtr iceTransport
                     );
 
+    protected:
       DTLSTransport(Noop) :
         Noop(true),
         MessageQueueAssociator(IMessageQueuePtr()),
@@ -166,6 +171,10 @@ namespace ortc
                                         const BYTE *buffer,
                                         size_t bufferLengthInBytes
                                         ) override;
+      virtual void handleReceivedSTUNPacket(
+                                            IICETypes::Components viaComponent,
+                                            STUNPacketPtr packet
+                                            ) override;
 
       //-----------------------------------------------------------------------
       #pragma mark

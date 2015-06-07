@@ -28,7 +28,6 @@
  either expressed or implied, of the FreeBSD Project.
  
  */
-
 #include <ortc/internal/ortc_ICEGatherer.h>
 #include <ortc/internal/ortc_ICETransport.h>
 #include <ortc/internal/ortc_ORTC.h>
@@ -341,6 +340,7 @@ namespace ortc
 
       UseSettings::setUInt(ORTC_SETTING_GATHERER_RELAY_INACTIVITY_TIMEOUT_IN_SECONDS, 120);
       UseSettings::setUInt(ORTC_SETTING_GATHERER_MAX_INCOMING_PACKET_BUFFERING_TIME_IN_SECONDS, 30);
+      UseSettings::setUInt(ORTC_SETTING_GATHERER_MAX_TOTAL_INCOMING_PACKET_BUFFERING, 50);
 
       UseSettings::setUInt(ORTC_SETTING_GATHERER_MAX_PENDING_OUTGOING_TCP_SOCKET_BUFFERING_IN_BYTES, 100*1024); // max 100K
       UseSettings::setUInt(ORTC_SETTING_GATHERER_MAX_CONNECTED_TCP_SOCKET_BUFFERING_IN_BYTES, 10*1024);  // max 10K
@@ -496,21 +496,24 @@ namespace ortc
       }
       return PreferenceType_Priority;
     }
-
+    
     //-------------------------------------------------------------------------
     ICEGatherer::ICEGatherer(
+                             const make_private &,
                              IMessageQueuePtr queue,
                              IICEGathererDelegatePtr originalDelegate,
                              const Options &options
                              ) :
       SharedRecursiveLock(SharedRecursiveLock::create()),
       MessageQueueAssociator(queue),
+      mGathererRouter(ICEGathererRouter::create()),
       mUsernameFrag(UseServicesHelper::randomString(UseSettings::getUInt(ORTC_SETTING_GATHERER_USERNAME_FRAG_LENGTH))),
       mPassword(UseServicesHelper::randomString(UseSettings::getUInt(ORTC_SETTING_GATHERER_PASSWORD_LENGTH))),
       mCreateTCPCandidates(UseSettings::getBool(ORTC_SETTING_GATHERER_CREATE_TCP_CANDIDATES)),
       mOptions(options),
       mRelayInactivityTime(Seconds(UseSettings::getUInt(ORTC_SETTING_GATHERER_RELAY_INACTIVITY_TIMEOUT_IN_SECONDS))),
       mMaxBufferingTime(Seconds(UseSettings::getUInt(ORTC_SETTING_GATHERER_MAX_INCOMING_PACKET_BUFFERING_TIME_IN_SECONDS))),
+      mMaxTotalBuffers(UseSettings::getUInt(ORTC_SETTING_GATHERER_MAX_TOTAL_INCOMING_PACKET_BUFFERING)),
       mMaxTCPBufferingSizePendingConnection(UseSettings::getUInt(ORTC_SETTING_GATHERER_MAX_PENDING_OUTGOING_TCP_SOCKET_BUFFERING_IN_BYTES)),
       mMaxTCPBufferingSizeConnected(UseSettings::getUInt(ORTC_SETTING_GATHERER_MAX_CONNECTED_TCP_SOCKET_BUFFERING_IN_BYTES)),
       mGatherPassiveTCP(UseSettings::getBool(ORTC_SETTING_GATHERER_GATHER_PASSIVE_TCP_CANDIDATES))
@@ -635,7 +638,7 @@ namespace ortc
                                        const Options &options
                                        )
     {
-      ICEGathererPtr pThis(new ICEGatherer(IORTCForInternal::queueORTC(), delegate, options));
+      ICEGathererPtr pThis(make_shared<ICEGatherer>(make_private {}, IORTCForInternal::queueORTC(), delegate, options));
       pThis->mThisWeak = pThis;
       pThis->init();
       return pThis;
@@ -665,13 +668,13 @@ namespace ortc
 
             ZS_LOG_DEBUG(log("reporting existing candidate") + ZS_PARAM("subscription", subscription->getID()) + candidate->toDebug())
 
-            CandidatePtr sendCandidate(new Candidate(*candidate));
+            CandidatePtr sendCandidate(make_shared<Candidate>(*candidate));
             delegate->onICEGathererLocalCandidate(mThisWeak.lock(), sendCandidate);
           }
         }
 
         if (State_Complete == currentState) {
-          CandidateCompletePtr complete(new CandidateComplete);
+          CandidateCompletePtr complete(make_shared<CandidateComplete>());
           delegate->onICEGathererLocalCandidateComplete(pThis, complete);
         }
 
@@ -707,7 +710,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     IICEGatherer::ParametersPtr ICEGatherer::getLocalParameters() const
     {
-      ParametersPtr result(new Parameters);
+      ParametersPtr result(make_shared<Parameters>());
       result->mUseCandidateFreezePriority = true;
       result->mUsernameFragment = mUsernameFrag;
       result->mPassword = mPassword;
@@ -719,7 +722,7 @@ namespace ortc
     {
       AutoRecursiveLock lock(*this);
 
-      CandidateListPtr candidates(new CandidateList);
+      CandidateListPtr candidates(make_shared<CandidateList>());
 
       for (auto iter = mNotifiedCandidates.begin(); iter != mNotifiedCandidates.end(); ++iter) {
         auto candidate = (*iter).second.first;
@@ -741,7 +744,7 @@ namespace ortc
 
         ORTC_THROW_INVALID_STATE_IF(mRTCPGatherer.lock())
 
-        pThis = ICEGathererPtr(new ICEGatherer(IORTCForInternal::queueORTC(), delegate, mOptions));
+        pThis = ICEGathererPtr(make_shared<ICEGatherer>(make_private {}, IORTCForInternal::queueORTC(), delegate, mOptions));
         pThis->mThisWeak = pThis;
         pThis->mComponent = Component_RTCP;
         pThis->mRTPGatherer = mThisWeak.lock();
@@ -799,73 +802,73 @@ namespace ortc
       UseICETransportPtr transport = inTransport;
       ORTC_THROW_INVALID_PARAMETERS_IF(!transport)
 
-      BufferedPacketList installRouteForBufferedPackets;
+      AutoRecursiveLock lock(*this);
 
-      // install a transport
-      {
-        AutoRecursiveLock lock(*this);
+      if ((isShuttingDown()) ||
+          (isShutdown())) {
+        ZS_LOG_WARNING(Detail, log("cannot install transport when shutting down / shutdown"))
+        return;
+      }
 
-        if ((isShuttingDown()) ||
-            (isShutdown())) {
-          ZS_LOG_WARNING(Detail, log("cannot install transport when shutting down / shutdown"))
-          return;
-        }
+      if (mKeepWarmSinceJustCreated) {
+        // no longer kept warm after creation since now a transport is being installed
+        mKeepWarmSinceJustCreated = false;
+        mLastReflexiveHostsHash.clear();
+        mLastRelayHostsHash.clear();
+      }
 
-        if (mKeepWarmSinceJustCreated) {
-          // no longer kept warm after creation since now a transport is being installed
-          mKeepWarmSinceJustCreated = false;
-          mLastReflexiveHostsHash.clear();
-          mLastRelayHostsHash.clear();
-        }
+      // scope: check to see if a transport already existed with this remote ufrag (and if it does, remove it)
+      if (remoteUFrag.hasData()) {
+        auto found = mInstalledTransports.find(remoteUFrag);
+        if (found != mInstalledTransports.end()) {
+          auto previousInstalledTransport = (*found).second;
+          auto previousTransport = previousInstalledTransport->mTransport.lock();
 
-        // scope: check to see if a transport already existed with this remote ufrag (and if it does, remove it)
-        if (remoteUFrag.hasData()) {
-          auto found = mInstalledTransports.find(remoteUFrag);
-          if (found != mInstalledTransports.end()) {
-            auto previousInstalledTransport = (*found).second;
-            auto previousTransport = previousInstalledTransport->mTransport.lock();
-
-            if (transport == previousTransport) {
-              ZS_LOG_WARNING(Detail, log("already installed transport") + ZS_PARAM("transport", previousInstalledTransport->mTransportID))
-              return;
-            }
-
-            removeAllRelatedRoutes(previousInstalledTransport->mTransportID, previousTransport);
+          if (transport == previousTransport) {
+            ZS_LOG_WARNING(Detail, log("already installed transport") + ZS_PARAM("transport", previousInstalledTransport->mTransportID))
+            return;
           }
+
+          removeAllRelatedRoutes(previousInstalledTransport->mTransportID, previousTransport);
         }
 
-        InstalledTransportPtr installedTransport(new InstalledTransport);
-        installedTransport->mTransportID = transport->getID();
-        installedTransport->mTransport = transport;
+        for (auto iter_doNotUse = mPendingTransports.begin(); iter_doNotUse != mPendingTransports.end();) {
+          auto current = iter_doNotUse;
+          ++iter_doNotUse;
 
-        if (remoteUFrag.isEmpty()) {
-          ZS_LOG_DEBUG(log("transport is added in a pending state") + installedTransport->toDebug())
-          mPendingTransports.push_back(installedTransport);
-          goto transport_installed;
-        }
+          auto installedTransport = (*current);
+          if (installedTransport->mTransportID != transport->getID()) continue;
 
-        mInstalledTransports[remoteUFrag] = installedTransport;
+          ZS_LOG_DEBUG(log("removing pending transport (since now fully installed)") + installedTransport->toDebug())
 
-        // scope: check to see if this remote ufrag will now cause route mappings to occur
-        {
-          for (auto iter = mBufferedPackets.begin(); iter != mBufferedPackets.end(); ++iter) {
-            auto packet = (*iter);
-            if (packet->mRFrag != remoteUFrag) continue;
-
-            ZS_LOG_DEBUG(log("found buffered packet matching installed transport") + ZS_PARAM("remoteUFrag", remoteUFrag) + packet->toDebug())
-            installRouteForBufferedPackets.push_back(packet);
-          }
+          mPendingTransports.erase(current);
+          break;
         }
       }
 
-      // scope: attempt to install routes for these buffered packets
+      InstalledTransportPtr installedTransport(make_shared<InstalledTransport>());
+      installedTransport->mTransportID = transport->getID();
+      installedTransport->mTransport = transport;
+
+      if (remoteUFrag.isEmpty()) {
+        ZS_LOG_DEBUG(log("transport is added in a pending state") + installedTransport->toDebug())
+        mPendingTransports.push_back(installedTransport);
+        goto transport_installed;
+      }
+
+      mInstalledTransports[remoteUFrag] = installedTransport;
+
+      // scope: check to see if this remote ufrag will now cause route mappings to occur
       {
-        for (auto iter = installRouteForBufferedPackets.begin(); iter != installRouteForBufferedPackets.end(); ++iter) {
+        for (auto iter = mBufferedPackets.begin(); iter != mBufferedPackets.end(); ++iter) {
           auto packet = (*iter);
-          ZS_LOG_DEBUG(log("will attempt to install route for buffered packet") + ZS_PARAM("transport", transport->getID()) + packet->toDebug())
-          bool installed = (installRoute(packet->mLocalCandidate, packet->mFrom, transport) ? true : false);
+          if (packet->mRFrag != remoteUFrag) continue;
+
+          ZS_LOG_DEBUG(log("found buffered packet matching installed transport (will attempt to install route for buffered packet)") + ZS_PARAM("remoteUFrag", remoteUFrag) + packet->toDebug() + ZS_PARAM("transport", transport->getID()))
+
+          auto installed = installRoute(packet->mRouterRoute, transport);
           if (!installed) {
-            ZS_LOG_WARNING(Debug, log("failed to install route for buffered packet") + ZS_PARAM("transport", transport->getID()) + packet->toDebug())
+            ZS_LOG_WARNING(Debug, log("failed to install route for buffered packet") + packet->toDebug() + ZS_PARAM("transport", transport->getID()) + packet->toDebug())
           }
         }
       }
@@ -874,7 +877,6 @@ namespace ortc
 
     transport_installed:
       {
-        AutoRecursiveLock lock(*this);
         mTransportsChanged = true;
         IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
       }
@@ -959,150 +961,33 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    PUID ICEGatherer::createRoute(
-                                  ICETransportPtr inTransport,
-                                  IICETypes::CandidatePtr sentFromLocalCanddiate,
-                                  const IPAddress &remoteIP
-                                  )
+    ICEGathererRouterPtr ICEGatherer::getGathererRouter() const
     {
-      UseICETransportPtr transport = inTransport;
-
-      ORTC_THROW_INVALID_PARAMETERS_IF(!transport)
-      ORTC_THROW_INVALID_PARAMETERS_IF(!sentFromLocalCanddiate)
-      ORTC_THROW_INVALID_PARAMETERS_IF(remoteIP.isAddressEmpty())
-
-      CandidatePtr localCandidate;
-
-      String candidateHash = sentFromLocalCanddiate->hash();
-
-      {
-        AutoRecursiveLock lock(*this);
-
-        // NOTE: With the exception of tcp candidates, the candidates pointers
-        //       from the transport might not be the same candidate pointer
-        //       used by the ice gatherer. As such, we need to compare by hash
-        //       and not by candidate pointer match.
-
-        if (IICETypes::Protocol_TCP == sentFromLocalCanddiate->mProtocol) {
-          auto found = mTCPCandidateToTCPPorts.find(sentFromLocalCanddiate);
-          if (found != mTCPCandidateToTCPPorts.end()) {
-            localCandidate = sentFromLocalCanddiate;
-            goto install_route;
-          }
-        }
-
-        {
-          for (auto iter = mHostPorts.begin(); iter != mHostPorts.end(); ++iter) {
-            auto hostPort = (*iter).second;
-            if (IICETypes::Protocol_UDP == sentFromLocalCanddiate->mProtocol) {
-              if (hostPort->mCandidateUDP) {
-                if (hostPort->mCandidateUDP->hash() == candidateHash) {
-                  localCandidate = hostPort->mCandidateUDP;
-                  goto install_route;
-                }
-              }
-
-              for (auto iterRelay = hostPort->mRelayPorts.begin(); iterRelay != hostPort->mRelayPorts.end(); ++iterRelay) {
-                auto relayPort = (*iterRelay);
-                if (relayPort->mReflexiveCandidate) {
-                  if (relayPort->mReflexiveCandidate->hash() == candidateHash) {
-                    localCandidate = hostPort->mCandidateUDP;
-                    goto install_route;
-                  }
-                }
-                if (relayPort->mRelayCandidate) {
-                  if (relayPort->mRelayCandidate->hash() == candidateHash) {
-                    localCandidate = relayPort->mRelayCandidate;
-                    goto install_route;
-                  }
-                }
-              }
-              for (auto iterRelay = hostPort->mReflexivePorts.begin(); iterRelay != hostPort->mReflexivePorts.end(); ++iterRelay) {
-                auto reflexivePort = (*iterRelay);
-                if (reflexivePort->mCandidate) {
-                  if (reflexivePort->mCandidate->hash() == candidateHash) {
-                    localCandidate = hostPort->mCandidateUDP;
-                    goto install_route;
-                  }
-                }
-              }
-            }
-
-            if (IICETypes::Protocol_TCP == sentFromLocalCanddiate->mProtocol) {
-              if (hostPort->mCandidateTCPPassive) {
-                if (hostPort->mCandidateTCPPassive->hash() == candidateHash) {
-                  localCandidate = hostPort->mCandidateTCPPassive;
-                  goto install_route;
-                }
-              }
-              if (hostPort->mCandidateTCPActive) {
-                if (hostPort->mCandidateTCPActive->hash() == candidateHash) {
-                  localCandidate = hostPort->mCandidateTCPActive;
-                  goto install_route;
-                }
-              }
-            }
-          }
-        }
-
-        goto no_install_route;
-      }
-
-    install_route:
-      {
-        auto route = installRoute(sentFromLocalCanddiate, remoteIP, transport, false);
-        if (!route) goto no_install_route;
-
-        ZS_LOG_DEBUG(log("route created for local transport") + ZS_PARAM("transport", transport->getID()) + route->toDebug())
-        return route->mID;
-      }
-
-    no_install_route:
-      {
-        ZS_LOG_WARNING(Detail, log("failed to install route") + ZS_PARAM("transport", transport->getID()) + sentFromLocalCanddiate->toDebug() + ZS_PARAM("remote ip", remoteIP.string()))
-      }
-
-      return 0;
+      return mGathererRouter;
     }
 
     //-------------------------------------------------------------------------
-    void ICEGatherer::removeRoute(PUID routeID)
+    void ICEGatherer::removeRoute(RouterRoutePtr routerRoute)
     {
       AutoRecursiveLock lock(*this);
 
-      // scope: remote from route table
-      {
-        auto found = mRoutes.find(routeID);
-        if (found == mRoutes.end()) {
-          ZS_LOG_WARNING(Detail, log("route is not found") + ZS_PARAM("route id", routeID))
-          return;
-        }
-
-        if (found != mRoutes.end()) {
-          auto route = (*found).second;
-          ZS_LOG_DEBUG(log("removing route") + route->toDebug())
-          mRoutes.erase(found);
-        }
+      auto found = mRoutes.find(routerRoute->mID);
+      if (found == mRoutes.end()) {
+        ZS_LOG_WARNING(Detail, log("route is not found") + routerRoute->toDebug())
+        return;
       }
 
-      // scope: remove from candidate search table
-      {
-        for (auto iter_doNotUse = mRouteCandidateAndIPMappings.begin(); iter_doNotUse != mRouteCandidateAndIPMappings.end(); ) {
-          auto current = iter_doNotUse;
-          ++iter_doNotUse;
+      auto route = (*found).second;
+      ZS_LOG_DEBUG(log("removing route") + route->toDebug())
+      mRoutes.erase(found);
 
-          auto route = (*current).second;
-          if (route->mID != routeID) continue;
-
-          auto candidate = (*current).first.first;
-          auto remoteIP = (*current).first.second;
-
-          ZS_LOG_DEBUG(log("removing candidate / remote IP search route") + route->toDebug() + candidate->toDebug() + ZS_PARAM("remote ip", remoteIP.string()))
-
-          mRouteCandidateAndIPMappings.erase(current);
-          break;
-        }
+      auto foundQuick = mQuickSearchRoutes.find(LocalCandidateRemoteIPPair(route->mLocalCandidate, routerRoute->mRemoteIP));
+      if (foundQuick == mQuickSearchRoutes.end()) {
+        ZS_LOG_WARNING(Detail, log("quick route is not found") + route->toDebug())
+        return;
       }
+
+      mQuickSearchRoutes.erase(foundQuick);
     }
 
     //-------------------------------------------------------------------------
@@ -1120,7 +1005,8 @@ namespace ortc
 
     //-------------------------------------------------------------------------
     bool ICEGatherer::sendPacket(
-                                 PUID routeID,
+                                 UseICETransport &transport,
+                                 RouterRoutePtr routerRoute,
                                  const BYTE *buffer,
                                  size_t bufferSizeInBytes
                                  )
@@ -1134,13 +1020,23 @@ namespace ortc
       {
         AutoRecursiveLock lock(*this);
 
-        auto found = mRoutes.find(routeID);
-        if (found == mRoutes.end()) {
-          ZS_LOG_WARNING(Debug, log("no route found at this time") + ZS_PARAM("route id", routeID) + ZS_PARAM("buffer size", bufferSizeInBytes))
+        {
+          auto found = mRoutes.find(routerRoute->mID);
+          if (found == mRoutes.end()) {
+            ZS_LOG_DEBUG(log("no route found at this time (attempt to install a route)") + routerRoute->toDebug() + ZS_PARAM("buffer size", bufferSizeInBytes))
+
+            route = installRoute(routerRoute, transport.getForGatherer());
+          } else {
+            route = (*found).second;
+            route->mLastUsed = zsLib::now();
+          }
+        }
+
+        if (!route) {
+          ZS_LOG_WARNING(Debug, log("no route found at this time") + routerRoute->toDebug() + ZS_PARAM("buffer size", bufferSizeInBytes))
           goto send_failed;
         }
 
-        route = (*found).second;
         route->mLastUsed = zsLib::now();
 
         if (route->mHostPort) {
@@ -1148,7 +1044,7 @@ namespace ortc
             ZS_LOG_WARNING(Debug, log("no UDP socket found at this time") + route->toDebug() + ZS_PARAM("buffer size", bufferSizeInBytes))
             goto send_failed;
           }
-          return sendUDPPacket(route->mHostPort->mBoundUDPSocket, route->mHostPort->mBoundUDPIP, route->mFrom, buffer, bufferSizeInBytes);
+          return sendUDPPacket(route->mHostPort->mBoundUDPSocket, route->mHostPort->mBoundUDPIP, route->mRouterRoute->mRemoteIP, buffer, bufferSizeInBytes);
         }
         if (route->mRelayPort) {
           if (!route->mRelayPort->mTURNSocket) {
@@ -1191,7 +1087,7 @@ namespace ortc
 
       ZS_LOG_INSANE(log("sent packet over TURN"))
 
-      if (!turn->sendPacket(route->mFrom, buffer, bufferSizeInBytes)) {
+      if (!turn->sendPacket(route->mRouterRoute->mRemoteIP, buffer, bufferSizeInBytes)) {
         AutoRecursiveLock lock(*this);
         ZS_LOG_WARNING(Debug, log("turn socket not able to send packet at this time") + route->toDebug() + ZS_PARAM("buffer size", bufferSizeInBytes))
         goto send_failed;
@@ -1214,7 +1110,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     void ICEGatherer::onNotifyDeliverRouteBufferedPackets(
                                                           UseICETransportPtr transport,
-                                                          PUID routeID
+                                                          PUID routerRouteID
                                                           )
     {
       BufferedPacketList deliverPackets;
@@ -1224,7 +1120,7 @@ namespace ortc
       {
         AutoRecursiveLock lock(*this);
 
-        auto found = mRoutes.find(routeID);
+        auto found = mRoutes.find(routerRouteID);
         if (found == mRoutes.end()) {
           ZS_LOG_WARNING(Detail, log("route was not found"))
           return;
@@ -1238,8 +1134,7 @@ namespace ortc
 
           auto bufferedPacket = (*current);
 
-          if (bufferedPacket->mLocalCandidate != route->mLocalCandidate) continue;
-          if (bufferedPacket->mFrom != route->mFrom) continue;
+          if (bufferedPacket->mRouterRoute->mID != routerRouteID) continue;
 
           deliverPackets.push_back(bufferedPacket);
 
@@ -1254,30 +1149,19 @@ namespace ortc
 
           if (bufferedPacket->mSTUNPacket) {
             ZS_LOG_TRACE(log("delivering buffered stun packet") + ZS_PARAM("transport", transport->getID()) + bufferedPacket->mSTUNPacket->toDebug())
-            transport->notifyPacket(route->mID, bufferedPacket->mSTUNPacket);
+            transport->notifyPacket(route->mRouterRoute, bufferedPacket->mSTUNPacket);
             continue;
           }
 
           ZS_THROW_INVALID_ASSUMPTION_IF(!bufferedPacket->mBuffer)
 
           ZS_LOG_TRACE(log("delivering buffered packet") + ZS_PARAM("transport", transport->getID()) + ZS_PARAM("buffer size", bufferedPacket->mBuffer->SizeInBytes()))
-          transport->notifyPacket(route->mID, *(bufferedPacket->mBuffer), bufferedPacket->mBuffer->SizeInBytes());
+          transport->notifyPacket(route->mRouterRoute, *(bufferedPacket->mBuffer), bufferedPacket->mBuffer->SizeInBytes());
           continue;
         }
       }
     }
 
-    //-------------------------------------------------------------------------
-    void ICEGatherer::onNotifyAboutRemoveRoute(
-                                               UseICETransportPtr transport,
-                                               PUID routeID
-                                               )
-    {
-      ZS_THROW_BAD_STATE_IF(!transport)
-
-      ZS_LOG_TRACE(log("notify transport about route removal") + ZS_PARAM("transport id", transport->getID()) + ZS_PARAM("route id", routeID))
-      transport->notifyRouteRemoved(routeID);
-    }
 
     //-------------------------------------------------------------------------
     void ICEGatherer::onResolveStatsPromise(IStatsProvider::PromiseWithStatsReportPtr promise)
@@ -1369,14 +1253,15 @@ namespace ortc
       if (mCleanUpBufferingTimer == timer) {
         ZS_LOG_TRACE(log("cleaning packet buffering"))
 
-        while (true) {
+        while (mBufferedPackets.size() > 0) {
           auto buffer = mBufferedPackets.front();
-          if (buffer->mTimestamp + mMaxBufferingTime > now) {
+          if ((buffer->mTimestamp + mMaxBufferingTime > now) &&
+              (mBufferedPackets.size() < mMaxTotalBuffers)) {
             ZS_LOG_TRACE(log("buffering still needed") + buffer->toDebug())
             return;
           }
 
-          ZS_LOG_TRACE(log("buffering for too long") + buffer->toDebug())
+          ZS_LOG_TRACE(log("buffering for too long (or too many buffered packets)") + ZS_PARAM("buffer time", (now - buffer->mTimestamp)) + buffer->toDebug())
           mBufferedPackets.pop_front();
         }
 
@@ -1398,7 +1283,7 @@ namespace ortc
           auto route = (*current).second;
           if (route->mLastUsed + mCleanUnusedRoutesDuration < now) {
             ZS_LOG_DEBUG(log("route is no longer in use") + route->toDebug())
-            removeRoute(route->mID);
+            removeRoute(route->mRouterRoute);
           }
         }
         return;
@@ -1913,6 +1798,8 @@ namespace ortc
 
       UseServicesHelper::debugAppend(resultEl, "id", mID);
 
+      UseServicesHelper::debugAppend(resultEl, "gatherer router", ICEGathererRouter::toDebug(mGathererRouter));
+
       UseServicesHelper::debugAppend(resultEl, "graceful shutdown", (bool)mGracefulShutdownReference);
 
       UseServicesHelper::debugAppend(resultEl, "subscribers", mSubscriptions.size());
@@ -1985,9 +1872,10 @@ namespace ortc
 
       UseServicesHelper::debugAppend(resultEl, "clean up buffering timer", mCleanUpBufferingTimer ? mCleanUpBufferingTimer->getID() : 0);
       UseServicesHelper::debugAppend(resultEl, "max buffering time", mMaxBufferingTime);
+      UseServicesHelper::debugAppend(resultEl, "max total buffers", mMaxTotalBuffers);
       UseServicesHelper::debugAppend(resultEl, "buffered packets", mBufferedPackets.size());
 
-      UseServicesHelper::debugAppend(resultEl, "route candidate and ip mappings", mRouteCandidateAndIPMappings.size());
+      UseServicesHelper::debugAppend(resultEl, "quick search routes", mQuickSearchRoutes.size());
       UseServicesHelper::debugAppend(resultEl, "routes", mRoutes.size());
       UseServicesHelper::debugAppend(resultEl, "clean unused routes timer", mCleanUnusedRoutesTimer ? mCleanUnusedRoutesTimer->getID() : 0);
       UseServicesHelper::debugAppend(resultEl, "clean unused routes duration", mCleanUnusedRoutesDuration);
@@ -2234,9 +2122,9 @@ namespace ortc
 
         add_newly_resolved:
           {
-            ZS_LOG_TRACE(log("found host ip") + ZS_PARAM("ip", ip.string()) + ZS_PARAM("interface", query.mOriginalData->mInterfaceName) + ZS_PARAM("host", query.mOriginalData->mHostName))
+            ZS_LOG_TRACE(log("found new host ip") + ZS_PARAM("ip", ip.string()) + ZS_PARAM("interface", query.mOriginalData->mInterfaceName) + ZS_PARAM("host", query.mOriginalData->mHostName))
 
-            HostIPSorter::DataPtr data(new HostIPSorter::Data);
+            HostIPSorter::DataPtr data(make_shared<HostIPSorter::Data>());
             (*data) = (*query.mOriginalData);
             data->mIP = ip;
             mResolvedHostIPs.push_back(data);
@@ -2263,6 +2151,8 @@ namespace ortc
 
       mGetLocalIPsNow = false;
       mHostsHash.clear();
+
+      mResolvedHostIPs.clear();
 
       stepGetHostIPs_WinRT();
       stepGetHostIPs_Win32();
@@ -2686,7 +2576,7 @@ namespace ortc
           continue;
         }
 
-        HostPortPtr hostPort(new HostPort);
+        HostPortPtr hostPort(make_shared<HostPort>());
 
         hostPort->mHostData = hostData;
 
@@ -2857,7 +2747,7 @@ namespace ortc
       bool wasNeedingMoreCandidates = mTransportsStillNeedsCandidates;
 
       mTransportsChanged = false;
-      mTransportsStillNeedsCandidates = false;
+      mTransportsStillNeedsCandidates = mKeepWarmSinceJustCreated;
 
       for (auto iter_doNotUse = mInstalledTransports.begin(); iter_doNotUse != mInstalledTransports.end(); ) {
         auto current = iter_doNotUse;
@@ -3057,7 +2947,7 @@ namespace ortc
               }
             }
 
-            reflexivePort = ReflexivePortPtr(new ReflexivePort);
+            reflexivePort = ReflexivePortPtr(make_shared<ReflexivePort>());
             reflexivePort->mServer = server;
 
             hostPort->mReflexivePorts.push_back(reflexivePort);
@@ -3291,7 +3181,7 @@ namespace ortc
               }
             }
 
-            relayPort = RelayPortPtr(new RelayPort);
+            relayPort = RelayPortPtr(make_shared<RelayPort>());
             relayPort->mServer = server;
 
             hostPort->mRelayPorts.push_back(relayPort);
@@ -3664,7 +3554,7 @@ namespace ortc
           ++iter_doNotUse;
 
           auto route = (*current).second;
-          removeRoute(route->mID);
+          removeRoute(route->mRouterRoute);
         }
 
         mRoutes.clear();
@@ -3714,7 +3604,7 @@ namespace ortc
           (oldState != newState)) {
 
         if (IICEGatherer::State_Complete == newState) {
-          CandidateCompletePtr complete(new CandidateComplete);
+          CandidateCompletePtr complete(make_shared<CandidateComplete>());
           mSubscriptions.delegate()->onICEGathererLocalCandidateComplete(pThis, complete);
         }
 
@@ -4273,7 +4163,7 @@ namespace ortc
                                                          IICETypes::TCPCandidateTypes tcpType
                                                          )
     {
-      CandidatePtr candidate(new Candidate);
+      CandidatePtr candidate(make_shared<Candidate>());
 
       AddressFamilies family = (boundIP.isIPv4() ? AddressFamily_IPv4 : AddressFamily_IPv6);
 
@@ -4328,7 +4218,7 @@ namespace ortc
     {
       IICETypes::Protocols protocol = IICETypes::Protocol_UDP;
 
-      CandidatePtr candidate(new Candidate);
+      CandidatePtr candidate(make_shared<Candidate>());
 
       String serverURL;
       if (server.mURLs.size() > 0) {
@@ -4424,7 +4314,7 @@ namespace ortc
         setState(InternalState_Gathering);
       }
 
-      CandidatePtr sendCandidate(new Candidate(*candidate));
+      CandidatePtr sendCandidate(make_shared<Candidate>(*candidate));
 
       ZS_LOG_DEBUG(log("notify local candidate") + candidate->toDebug())
       mSubscriptions.delegate()->onICEGathererLocalCandidate(mThisWeak.lock(), sendCandidate);
@@ -4463,7 +4353,7 @@ namespace ortc
 
       ZS_LOG_DEBUG(log("notify candidate gone") + previousCandidate->toDebug())
 
-      CandidatePtr sendCandidate(new Candidate(*previousCandidate));
+      CandidatePtr sendCandidate(make_shared<Candidate>(*previousCandidate));
       auto pThis = mThisWeak.lock();
       if (pThis) {
         mSubscriptions.delegate()->onICEGathererLocalCandidateGone(mThisWeak.lock(), sendCandidate);
@@ -4483,7 +4373,7 @@ namespace ortc
             setState(InternalState_Gathering);
           }
 
-          CandidatePtr sendCandidate(new Candidate(*otherCandidate));
+          CandidatePtr sendCandidate(make_shared<Candidate>(*otherCandidate));
 
           ZS_LOG_DEBUG(log("notify replacement local candidate") + otherCandidate->toDebug())
           if (pThis) {
@@ -4554,9 +4444,7 @@ namespace ortc
       IPAddress fromIP;
       SecureByteBlock readBuffer(0xFFFF);
 
-      PUID routeID = 0;
       CandidatePtr localCandidate;
-      UseICETransportPtr transport;
 
       {
         AutoRecursiveLock lock(*this);
@@ -4573,6 +4461,8 @@ namespace ortc
             ZS_LOG_WARNING(Debug, log("failed to read any data from socket") + ZS_PARAM("socket", (PTRNUMBER)socket->getSocket()))
             return;
           }
+
+          ZS_LOG_TRACE(log("receiving incoming packet") + ZS_PARAM("from ip", fromIP.string()) + ZS_PARAM("read", totalRead))
 
           stunPacket = STUNPacket::parseIfSTUN(readBuffer, totalRead, STUNPacket::RFC_AllowAll, false, "ortc::ICEGatherer", mID);
           if (stunPacket) {
@@ -4610,7 +4500,7 @@ namespace ortc
             ZS_THROW_INVALID_ASSUMPTION_IF(!hostPort->mCandidateTCPPassive)
             ZS_LOG_DEBUG(log("notified of incoming TCP connection") + hostPort->toDebug())
 
-            TCPPortPtr tcpPort(new TCPPort);
+            TCPPortPtr tcpPort(make_shared<TCPPort>());
             tcpPort->mConnected = true;
 
             IPAddress localAddress;
@@ -4674,7 +4564,7 @@ namespace ortc
           return;
         }
         ZS_LOG_INSANE(log("handling incoming packet") + localCandidate->toDebug() + ZS_PARAM("from ip", fromIP.string()) + ZS_PARAM("total", totalRead))
-        transport->notifyPacket(routeID, readBuffer, totalRead);
+        handleIncomingPacket(localCandidate, fromIP, readBuffer, totalRead);
         return;
       }
     }
@@ -4683,6 +4573,9 @@ namespace ortc
     void ICEGatherer::read(TCPPort &tcpPort)
     {
       BufferedPacketList packets;
+
+      CandidatePtr localCandidate;
+      IPAddress fromIP;
 
       {
         AutoRecursiveLock lock(*this);
@@ -4723,10 +4616,12 @@ namespace ortc
 
           // now have enough to extract out of buffer
 
-          BufferedPacketPtr packet(new BufferedPacket);
-          packet->mBuffer = SecureByteBlockPtr(new SecureByteBlock(packeSize));
-          packet->mLocalCandidate = tcpPort.mCandidate;
-          packet->mFrom = tcpPort.mRemoteIP;
+          BufferedPacketPtr packet(make_shared<BufferedPacket>());
+          packet->mBuffer = SecureByteBlockPtr(make_shared<SecureByteBlock>(packeSize));
+          if (!localCandidate) {
+            localCandidate = tcpPort.mCandidate;
+            fromIP = tcpPort.mRemoteIP;
+          }
 
           // fill packet with incoming data
           tcpPort.mIncomingBuffer.Get(*(packet->mBuffer), packeSize);
@@ -4743,14 +4638,14 @@ namespace ortc
           auto packet = (*iter);
 
           if (packet->mSTUNPacket) {
-            if (ISTUNRequester::handleSTUNPacket(packet->mFrom, packet->mSTUNPacket)) {
-              ZS_LOG_TRACE(log("handled by stun requester") + ZS_PARAM("from ip", packet->mFrom.string()) + packet->mSTUNPacket->toDebug())
+            if (ISTUNRequester::handleSTUNPacket(fromIP, packet->mSTUNPacket)) {
+              ZS_LOG_TRACE(log("handled by stun requester") + ZS_PARAM("from ip", fromIP.string()) + packet->mSTUNPacket->toDebug())
               continue;
             }
 
             ZS_LOG_TRACE(log("handling incoming TCP stun packet") + packet->toDebug() + packet->mSTUNPacket->toDebug())
 
-            auto response = handleIncomingPacket(packet->mLocalCandidate, packet->mFrom, packet->mSTUNPacket);
+            auto response = handleIncomingPacket(localCandidate, fromIP, packet->mSTUNPacket);
             if (response) {
               AutoRecursiveLock lock(*this);
               if (tcpPort.mSocket) {
@@ -4762,14 +4657,14 @@ namespace ortc
                   ISocketDelegateProxy::create(mThisWeak.lock())->onWriteReady(tcpPort.mSocket);
                 }
               } else {
-                ZS_LOG_WARNING(Debug, log("socket is now gone thus response cannot be sent") + tcpPort.toDebug() + ZS_PARAM("from ip", packet->mFrom.string()) + packet->mSTUNPacket->toDebug())
+                ZS_LOG_WARNING(Debug, log("socket is now gone thus response cannot be sent") + tcpPort.toDebug() + ZS_PARAM("from ip", fromIP.string()) + packet->mSTUNPacket->toDebug())
               }
             }
             continue;
           }
 
           ZS_LOG_INSANE(log("handling incoming TCP packet") + packet->toDebug())
-          handleIncomingPacket(packet->mLocalCandidate, packet->mFrom, *(packet->mBuffer), packet->mBuffer->SizeInBytes());
+          handleIncomingPacket(localCandidate, fromIP, *(packet->mBuffer), packet->mBuffer->SizeInBytes());
         }
       }
     }
@@ -4926,83 +4821,83 @@ namespace ortc
                                                          STUNPacketPtr stunPacket
                                                          )
     {
-      PUID routeID = 0;
+      RouterRoutePtr routerRoute;
       UseICETransportPtr transport;
       String rFrag;
 
       {
         AutoRecursiveLock lock(*this);
 
-        // search for a quick route mapping
-        {
-          LocalCandidateRemoteIPPair search(localCandidate, remoteIP);
-          auto found = mRouteCandidateAndIPMappings.find(search);
-          if (found != mRouteCandidateAndIPMappings.end()) {
-            // found a route mapping
-            auto route = (*found).second;
-            route->mLastUsed = zsLib::now();
-
-            routeID = route->mID;
-            transport = route->mTransport.lock();
-            if (!transport) {
-              ZS_LOG_WARNING(Debug, log("transport is now gone") + route->toDebug() + localCandidate->toDebug())
-              mRouteCandidateAndIPMappings.erase(found);
-              goto check_binding_request;
-            }
-            goto found_transport;
-          }
-        }
-
-      check_binding_request:
+        // scope: check binding request
         {
           // try and setup a quick route
-          if ((STUNPacket::Class_Request == stunPacket->mClass) &&
-              (STUNPacket::Method_Binding == stunPacket->mMethod)) {
-            String username = stunPacket->mUsername;
+          if ((STUNPacket::Class_Request != stunPacket->mClass) ||
+              (STUNPacket::Method_Binding != stunPacket->mMethod)) {
 
-            auto pos = username.find(':');
-            if (pos == String::npos) goto stun_failed_validation;
+            // scope: search for existing route
+            {
+              auto route = installRoute(localCandidate, remoteIP, UseICETransportPtr());
+              if (route) {
+                routerRoute = route->mRouterRoute;
+                transport = route->mTransport.lock();
 
-            String lFrag = username.substr(0, pos);
-            rFrag = username.substr(pos+1);
-
-            if (lFrag != mUsernameFrag) goto stun_failed_validation;
-
-            if (stunPacket->isValidMessageIntegrity(mPassword)) goto stun_failed_validation;
-
-            auto found = mInstalledTransports.find(rFrag);
-            if (found == mInstalledTransports.end()) goto buffer_data_now;
-
-            auto installedTransport = (*found).second;
-            auto transport = installedTransport->mTransport.lock();
-            if (!transport) {
-              ZS_LOG_WARNING(Debug, log("transport is now gone") + ZS_PARAM("transport id", installedTransport->mTransportID) + stunPacket->toDebug())
-              mInstalledTransports.erase(found);
-              goto buffer_data_now;
+                if (transport) goto found_transport;
+              }
             }
-
-            ZS_LOG_DEBUG(log("install new route") + ZS_PARAM("transport", transport->getID()) + localCandidate->toDebug() + ZS_PARAM("remote ip", remoteIP.string()))
-            goto notify_installed_route;
+            
+            goto buffer_data_now;
           }
+
+          String username = stunPacket->mUsername;
+
+          auto pos = username.find(':');
+          if (pos == String::npos) {
+            ZS_LOG_WARNING(Debug, log("stun packet does not contain a proper username") + stunPacket->toDebug())
+            goto stun_failed_validation;
+          }
+
+          String lFrag = username.substr(0, pos);
+          rFrag = username.substr(pos+1);
+
+          if (lFrag != mUsernameFrag) {
+            ZS_LOG_WARNING(Debug, log("stun packet does not contain expected username") + ZS_PARAM("expecting", mUsernameFrag) + stunPacket->toDebug())
+            goto stun_failed_validation;
+          }
+
+          if (!stunPacket->isValidMessageIntegrity(mPassword)) {
+            ZS_LOG_WARNING(Debug, log("stun packet does pass message integrity") + ZS_PARAM("password", mPassword) + stunPacket->toDebug())
+            goto stun_failed_validation;
+          }
+
+          auto found = mInstalledTransports.find(rFrag);
+          if (found == mInstalledTransports.end()) goto buffer_data_now;
+
+          auto installedTransport = (*found).second;
+          transport = installedTransport->mTransport.lock();
+          if (!transport) {
+            ZS_LOG_WARNING(Debug, log("transport is now gone") + ZS_PARAM("transport id", installedTransport->mTransportID) + stunPacket->toDebug())
+            mInstalledTransports.erase(found);
+            goto buffer_data_now;
+          }
+
+          auto route = installRoute(localCandidate, remoteIP, transport);
+          if (!route) {
+            ZS_LOG_WARNING(Debug, log("failed to install route thus must buffer data") + localCandidate->toDebug() + ZS_PARAM("remote ip", remoteIP.string()) + ZS_PARAM("transport", transport->getID()))
+            goto buffer_data_now;
+          }
+
+          ZS_LOG_DEBUG(log("install new route") + route->toDebug())
+          routerRoute = route->mRouterRoute;
+          goto found_transport;
         }
       }
 
       goto buffer_data_now;
 
-    notify_installed_route:
-      {
-        bool installed = (installRoute(localCandidate, remoteIP, transport) ? true : false);
-        if (!installed) {
-          ZS_LOG_WARNING(Debug, log("failed to install route thus must buffer data") + ZS_PARAM("transport", transport->getID()))
-          goto buffer_data_now;
-        }
-        goto found_transport;
-      }
-
     found_transport:
       {
         ZS_LOG_DEBUG(log("forwarding stun packet to ice transport") + ZS_PARAM("transport", transport->getID()) + ZS_PARAM("from ip", remoteIP.string()) + stunPacket->toDebug())
-        transport->notifyPacket(routeID, stunPacket);
+        transport->notifyPacket(routerRoute, stunPacket);
         return SecureByteBlockPtr();
       }
 
@@ -5022,12 +4917,19 @@ namespace ortc
 
     buffer_data_now:
       {
+        if (!routerRoute) {
+          routerRoute = mGathererRouter->findRoute(localCandidate, remoteIP, true);
+        }
+        if (!routerRoute) {
+          ZS_LOG_WARNING(Detail, log("unable to create router route (thus must ignore incoming packet)") + localCandidate->toDebug() + ZS_PARAM("remote ip", remoteIP.string()) + stunPacket->toDebug())
+          return SecureByteBlockPtr();
+        }
+
         AutoRecursiveLock lock(*this);
 
-        BufferedPacketPtr packet(new BufferedPacket);
+        BufferedPacketPtr packet(make_shared<BufferedPacket>());
         packet->mTimestamp = zsLib::now();
-        packet->mLocalCandidate = localCandidate;
-        packet->mFrom = remoteIP;
+        packet->mRouterRoute = routerRoute;
         packet->mSTUNPacket = stunPacket;
         packet->mRFrag = rFrag;
 
@@ -5049,31 +4951,20 @@ namespace ortc
                                            size_t bufferSizeInBytes
                                            )
     {
-      STUNPacketPtr stunPacket;
-
-      PUID routeID = 0;
+      RouterRoutePtr routerRoute;
       UseICETransportPtr transport;
 
       {
         AutoRecursiveLock lock(*this);
 
-        // search for a quick route mapping
+        // scope: search for existing route
         {
-          LocalCandidateRemoteIPPair search(localCandidate, remoteIP);
-          auto found = mRouteCandidateAndIPMappings.find(search);
-          if (found != mRouteCandidateAndIPMappings.end()) {
-            // found a route mapping
-            auto route = (*found).second;
-            route->mLastUsed = zsLib::now();
-
-            routeID = route->mID;
+          auto route = installRoute(localCandidate, remoteIP, UseICETransportPtr());
+          if (route) {
+            routerRoute = route->mRouterRoute;
             transport = route->mTransport.lock();
-            if (!transport) {
-              ZS_LOG_WARNING(Debug, log("transport is now gone") + route->toDebug() + localCandidate->toDebug())
-              mRouteCandidateAndIPMappings.erase(found);
-              return;
-            }
-            goto found_transport;
+
+            if (transport) goto found_transport;
           }
         }
       }
@@ -5083,17 +4974,24 @@ namespace ortc
     found_transport:
       {
         ZS_LOG_DEBUG(log("forwarding data packet to ice transport") + ZS_PARAM("transport", transport->getID()) +  ZS_PARAM("from ip", remoteIP.string()) + ZS_PARAM("size", bufferSizeInBytes))
-        transport->notifyPacket(routeID, buffer, bufferSizeInBytes);
+        transport->notifyPacket(routerRoute, buffer, bufferSizeInBytes);
       }
 
     buffer_data_now:
       {
+        if (!routerRoute) {
+          routerRoute = mGathererRouter->findRoute(localCandidate, remoteIP, true);
+        }
+        if (!routerRoute) {
+          ZS_LOG_WARNING(Detail, log("unable to create router route (thus must ignore incoming packet)") + localCandidate->toDebug() + ZS_PARAM("remote ip", remoteIP.string()) + ZS_PARAM("size", bufferSizeInBytes))
+          return;
+        }
+
         AutoRecursiveLock lock(*this);
 
-        BufferedPacketPtr packet(new BufferedPacket);
+        BufferedPacketPtr packet(make_shared<BufferedPacket>());
         packet->mTimestamp = zsLib::now();
-        packet->mLocalCandidate = localCandidate;
-        packet->mFrom = remoteIP;
+        packet->mRouterRoute = routerRoute;
         packet->mBuffer = UseServicesHelper::convertToBuffer(buffer, bufferSizeInBytes);
 
         ZS_LOG_TRACE(log("buffering packet until ice transport installed to handle packet") + packet->toDebug())
@@ -5105,37 +5003,203 @@ namespace ortc
       }
     }
 
-    //-----------------------------------------------------------------------
-    ICEGatherer::RoutePtr ICEGatherer::installRoute(
-                                                    CandidatePtr localCandidate,
-                                                    const IPAddress &remoteIP,
-                                                    UseICETransportPtr transport,
-                                                    bool notifyTransport
-                                                    )
+    //-------------------------------------------------------------------------
+    ICEGatherer::CandidatePtr ICEGatherer::findSentFromLocalCandidate(RouterRoutePtr routerRoute)
     {
-      // install a route
-      RoutePtr route(new Route);
-      route->mLastUsed = zsLib::now();
-      route->mLocalCandidate = localCandidate;
-      route->mFrom = remoteIP;
-      route->mTransportID = transport->getID();
-      route->mTransport = transport;
+      CandidatePtr foundCandidate;
 
-      ZS_LOG_DEBUG(log("installed new route") + route->toDebug())
+      auto routerCandidate = routerRoute->mLocalCandidate;
+      String routerCandidateHash = routerRoute->mLocalCandidate->hash();
+
+      AutoRecursiveLock lock(*this);
+
+      // NOTE: The candidates pointers from the routerer are not the same as
+      //       candidate pointer used by the ice gatherer. As such, we need
+      //       to compare by hash and not by candidate pointer match.
 
       {
-        AutoRecursiveLock lock(*this);
+        for (auto iter = mHostPorts.begin(); iter != mHostPorts.end(); ++iter) {
+          auto hostPort = (*iter).second;
+          if (IICETypes::Protocol_UDP == routerCandidate->mProtocol) {
+            if (hostPort->mCandidateUDP) {
+              if (hostPort->mCandidateUDP->hash() == routerCandidateHash) {
+                foundCandidate = hostPort->mCandidateUDP;
+                goto done;
+              }
+            }
+
+            for (auto iterRelay = hostPort->mRelayPorts.begin(); iterRelay != hostPort->mRelayPorts.end(); ++iterRelay) {
+              auto relayPort = (*iterRelay);
+              if (relayPort->mReflexiveCandidate) {
+                if (relayPort->mReflexiveCandidate->hash() == routerCandidateHash) {
+                  foundCandidate = hostPort->mCandidateUDP;
+                  goto done;
+                }
+              }
+              if (relayPort->mRelayCandidate) {
+                if (relayPort->mRelayCandidate->hash() == routerCandidateHash) {
+                  foundCandidate = relayPort->mRelayCandidate;
+                  goto done;
+                }
+              }
+            }
+
+            for (auto iterRelay = hostPort->mReflexivePorts.begin(); iterRelay != hostPort->mReflexivePorts.end(); ++iterRelay) {
+              auto reflexivePort = (*iterRelay);
+              if (reflexivePort->mCandidate) {
+                if (reflexivePort->mCandidate->hash() == routerCandidateHash) {
+                  foundCandidate = hostPort->mCandidateUDP;
+                  goto done;
+                }
+              }
+            }
+          }
+
+          if (IICETypes::Protocol_TCP == routerCandidate->mProtocol) {
+            if (hostPort->mCandidateTCPPassive) {
+              if (hostPort->mCandidateTCPPassive->hash() == routerCandidateHash) {
+                foundCandidate = hostPort->mCandidateTCPPassive;
+                goto done;
+              }
+            }
+            if (hostPort->mCandidateTCPActive) {
+              if (hostPort->mCandidateTCPActive->hash() == routerCandidateHash) {
+                foundCandidate = hostPort->mCandidateTCPActive;
+                goto done;
+              }
+            }
+          }
+        }
+
+        goto done;
+      }
+
+    done:
+      {
+        if (foundCandidate) {
+          ZS_LOG_TRACE(log("sent from local candidate found") + foundCandidate->toDebug() + routerRoute->toDebug())
+        } else {
+          ZS_LOG_WARNING(Detail, log("no sent from local candidate found for router route") + routerRoute->toDebug())
+        }
+      }
+
+      return foundCandidate;
+    }
+    
+    //-----------------------------------------------------------------------
+    ICEGatherer::RoutePtr ICEGatherer::installRoute(
+                                                    RouterRoutePtr routerRoute,
+                                                    UseICETransportPtr transport
+                                                    )
+    {
+      RoutePtr route;
+
+      // scope: see if route already exists
+      {
+        auto found = mRoutes.find(routerRoute->mID);
+        if (found == mRoutes.end()) goto install_new_route;
+
+        route = (*found).second;
+        auto foundTransport = route->mTransport.lock();
+
+        if (!foundTransport) goto remove_existing_route;
+        if (transport) {
+          if (foundTransport->getID() != transport->getID()) goto remove_existing_route;
+        }
+
+        route->mLastUsed = zsLib::now();
+        return route;
+      }
+
+    remove_existing_route:
+      {
+        ZS_LOG_WARNING(Debug, log("previous route must be removed") + route->toDebug() + routerRoute->toDebug() + ZS_PARAM("transport id", transport ? transport->getID() : 0))
+        removeRoute(route->mRouterRoute);
+        goto install_new_route;
+      }
+
+   install_new_route:
+      {
+        auto sentFromLocalCandidate = findSentFromLocalCandidate(routerRoute);
+        if (!sentFromLocalCandidate) {
+          ZS_LOG_WARNING(Detail, log("unable to find local candidate for router route") + routerRoute->toDebug())
+          return RoutePtr();
+        }
+        return installRoute(sentFromLocalCandidate, routerRoute->mRemoteIP, transport);
+      }
+    }
+
+    //-----------------------------------------------------------------------
+    ICEGatherer::RoutePtr ICEGatherer::installRoute(
+                                                    CandidatePtr sentFromLocalCandidate,
+                                                    const IPAddress &remoteIP,
+                                                    UseICETransportPtr transport
+                                                    )
+    {
+      LocalCandidateRemoteIPPair search(sentFromLocalCandidate, remoteIP);
+
+      RoutePtr route;
+
+      // see if route already exists
+      {
+        auto found = mQuickSearchRoutes.find(search);
+        if (found == mQuickSearchRoutes.end()) goto create_new_route;
+
+        // found a route mapping
+        route = (*found).second;
+        auto foundTransport = route->mTransport.lock();
+
+        if (!foundTransport) goto remove_existing_route;
+        if (transport) {
+          if (foundTransport->getID() != transport->getID()) goto remove_existing_route;
+        }
+
+        route->mLastUsed = zsLib::now();
+        return route;
+      }
+
+    remove_existing_route:
+      {
+        ZS_LOG_WARNING(Debug, log("previous route must be removed") + route->toDebug() + ZS_PARAM("transport id", transport ? transport->getID() : 0))
+        removeRoute(route->mRouterRoute);
+        goto create_new_route;
+      }
+
+    create_new_route:
+      {
+        if (!transport) {
+          ZS_LOG_WARNING(Trace, log("transport to install was not found"))
+          return RoutePtr();
+        }
+
+        // install a route
+        route = RoutePtr(make_shared<Route>());
+        route->mRouterRoute = mGathererRouter->findRoute(sentFromLocalCandidate, remoteIP, true);
+        route->mLastUsed = zsLib::now();
+        route->mLocalCandidate = sentFromLocalCandidate;
+        route->mTransportID = transport->getID();
+        route->mTransport = transport;
+
+        if (!route->mRouterRoute) {
+          ZS_LOG_WARNING(Detail, log("failed to create router route") + route->toDebug())
+          return RoutePtr();
+        }
+
+        ZS_LOG_DEBUG(log("installing new route") + route->toDebug())
 
         // scope: figure out how to route outgoing packets
         {
-          if (IICETypes::Protocol_TCP == localCandidate->mProtocol) {
-            auto found = mTCPCandidateToTCPPorts.find(localCandidate);
+          if (IICETypes::Protocol_TCP == sentFromLocalCandidate->mProtocol) {
+            auto found = mTCPCandidateToTCPPorts.find(sentFromLocalCandidate);
             if (found != mTCPCandidateToTCPPorts.end()) {
               route->mTCPPort = (*found).second;
 
               if (0 == route->mTCPPort->mTransportID) {
+                auto foundTransport = route->mTransport.lock();
+                route->mTransport = foundTransport;
+                if (foundTransport) transport = foundTransport;
+
                 route->mTransportID = transport->getID();
-                route->mTransport = route->mTransport.lock();
               }
 
               goto resolved_local_candidate;
@@ -5143,8 +5207,8 @@ namespace ortc
 
             for (auto iter = mHostPorts.begin(); iter != mHostPorts.end(); ++iter) {
               auto hostPort = (*iter).second;
-              if ((hostPort->mCandidateTCPPassive == localCandidate) ||
-                  (hostPort->mCandidateTCPActive == localCandidate)) {
+              if ((hostPort->mCandidateTCPPassive == sentFromLocalCandidate) ||
+                  (hostPort->mCandidateTCPActive == sentFromLocalCandidate)) {
                 // search for an incoming or outgoing TCP connection that satisfies the requirement
                 for (auto iter = hostPort->mTCPPorts.begin(); iter != hostPort->mTCPPorts.end(); ++iter) {
                   auto tcpPort = (*iter).second.second;
@@ -5152,7 +5216,7 @@ namespace ortc
 
                   if (tcpPort->mRemoteIP != remoteIP) continue; // must be connecting to/from same remote location
                   if (tcpPortTransport != transport) continue;  // do not pick unless confirmed that it belongs to this transport
-                  if (tcpPort->mCandidate->mTCPType != localCandidate->mTCPType) continue; // passive must match passive and active must match active
+                  if (tcpPort->mCandidate->mTCPType != sentFromLocalCandidate->mTCPType) continue; // passive must match passive and active must match active
 
                   // this is an exact match
                   route->mTCPPort = tcpPort;
@@ -5161,9 +5225,9 @@ namespace ortc
 
                 if (route->mTCPPort) goto resolved_local_candidate;
 
-                ZS_LOG_DEBUG(log("no existing TCP ports found that can satisfy this route") + localCandidate->toDebug() + ZS_PARAM("remote ip", remoteIP.string()) + ZS_PARAM("transport", transport->getID()))
+                ZS_LOG_DEBUG(log("no existing TCP ports found that can satisfy this route") + sentFromLocalCandidate->toDebug() + ZS_PARAM("remote ip", remoteIP.string()) + ZS_PARAM("transport", transport->getID()))
 
-                TCPPortPtr tcpPort(new TCPPort);
+                TCPPortPtr tcpPort(make_shared<TCPPort>());
 
                 tcpPort->mConnected = false;
                 tcpPort->mRemoteIP = remoteIP;
@@ -5176,11 +5240,11 @@ namespace ortc
                   tcpPort->mSocket->bind(hostPort->mHostData->mIP);
                   IPAddress localIP = tcpPort->mSocket->getLocalAddress();
 
-                  tcpPort->mCandidate = createCandidate(hostPort->mHostData, IICETypes::CandidateType_Prflx, localIP, IICETypes::Protocol_TCP , localCandidate->mTCPType);
+                  tcpPort->mCandidate = createCandidate(hostPort->mHostData, IICETypes::CandidateType_Prflx, localIP, IICETypes::Protocol_TCP , sentFromLocalCandidate->mTCPType);
 
                   // adopt priority of host socket
-                  tcpPort->mCandidate->mPriority = localCandidate->mPriority;
-                  tcpPort->mCandidate->mUnfreezePriority = localCandidate->mUnfreezePriority;
+                  tcpPort->mCandidate->mPriority = sentFromLocalCandidate->mPriority;
+                  tcpPort->mCandidate->mUnfreezePriority = sentFromLocalCandidate->mUnfreezePriority;
 
                   tcpPort->mSocket->setBlocking(false);
                   tcpPort->mSocket->setDelegate(mThisWeak.lock());
@@ -5205,20 +5269,20 @@ namespace ortc
             goto failed_resolve_local_candidate;
           }
 
-          if (IICETypes::Protocol_UDP == localCandidate->mProtocol) {
+          if (IICETypes::Protocol_UDP == sentFromLocalCandidate->mProtocol) {
             for (auto iter = mHostPorts.begin(); iter != mHostPorts.end(); ++iter) {
               auto hostPort = (*iter).second;
-              if (hostPort->mCandidateUDP == localCandidate) {
+              if (hostPort->mCandidateUDP == sentFromLocalCandidate) {
                 route->mHostPort = hostPort;
                 goto resolved_local_candidate;
               }
               for (auto iterRelay = hostPort->mRelayPorts.begin(); iterRelay != hostPort->mRelayPorts.end(); ++iterRelay) {
                 auto relayPort = (*iterRelay);
-                if (relayPort->mReflexiveCandidate == localCandidate) {
+                if (relayPort->mReflexiveCandidate == sentFromLocalCandidate) {
                   route->mHostPort = hostPort;
                   goto resolved_local_candidate;
                 }
-                if (relayPort->mRelayCandidate == localCandidate) {
+                if (relayPort->mRelayCandidate == sentFromLocalCandidate) {
                   route->mRelayPort = relayPort;
                   goto resolved_local_candidate;
                 }
@@ -5227,7 +5291,7 @@ namespace ortc
               for (auto iterReflexive = hostPort->mReflexivePorts.begin(); iterReflexive != hostPort->mReflexivePorts.end(); ++iterReflexive) {
                 auto reflexivePort = (*iterReflexive);
 
-                if (reflexivePort->mCandidate == localCandidate) {
+                if (reflexivePort->mCandidate == sentFromLocalCandidate) {
                   route->mHostPort = hostPort;
                   goto resolved_local_candidate;
                 }
@@ -5238,81 +5302,29 @@ namespace ortc
           goto failed_resolve_local_candidate;
         }
 
+      resolved_local_candidate:
+        {
+          removeRoute(route->mRouterRoute);
+
+          if (!transport) {
+            ZS_LOG_WARNING(Detail, log("transport to install route was not found"))
+            goto failed_resolve_local_candidate;
+          }
+
+          mRoutes[route->mRouterRoute->mID] = route;
+          mQuickSearchRoutes[search] = route;
+
+          IGathererAsyncDelegateProxy::create(mThisWeak.lock())->onNotifyDeliverRouteBufferedPackets(transport, route->mRouterRoute->mID);
+          return route;
+        }
+
       failed_resolve_local_candidate:
         {
-          ZS_LOG_WARNING(Detail, log("failed to find any local candidate to route packets") + localCandidate->toDebug() + ZS_PARAM("remote ip", remoteIP.string()) + ZS_PARAM("transport", transport->getID()))
+          ZS_LOG_WARNING(Detail, log("failed to find any local candidate to route packets") + sentFromLocalCandidate->toDebug() + ZS_PARAM("remote ip", remoteIP.string()) + ZS_PARAM("transport", transport->getID()))
           return RoutePtr();
         }
-
-      resolved_local_candidate:
-
-        // scope: check to see if this route has already been installed
-        {
-          LocalCandidateRemoteIPPair search(localCandidate, remoteIP);
-          auto found = mRouteCandidateAndIPMappings.find(search);
-          if (found != mRouteCandidateAndIPMappings.end()) {
-            auto previousRoute = (*found).second;
-            if (previousRoute->mTransportID == route->mTransportID) {
-              ZS_LOG_DEBUG(log("already have installed a route (no need to create a new route") + previousRoute->toDebug())
-              route = previousRoute;
-              goto deliver_backlog_packets;
-            }
-
-            ZS_LOG_WARNING(Debug, log("already have installed a route but pointing to a different transport") + previousRoute->toDebug())
-
-            auto previousTransport = previousRoute->mTransport.lock();
-
-            // scope: remove this specific previous route
-            {
-              auto foundRoute = mRoutes.find(previousRoute->mID);
-              if (foundRoute != mRoutes.end()) {
-                if (previousTransport) {
-                  ZS_LOG_DEBUG(log("will notify about route removal to transport") + ZS_PARAM("transport id", previousTransport->getID()) + previousRoute->toDebug())
-                  IGathererAsyncDelegateProxy::create(mThisWeak.lock())->onNotifyAboutRemoveRoute(previousTransport, previousRoute->mID);
-                }
-                mRoutes.erase(foundRoute);
-              }
-            }
-          }
-
-          mRouteCandidateAndIPMappings.erase(found);
-        }
-
-        // double check this transport is indeed installed (race condition)
-        for (auto iter = mInstalledTransports.begin(); iter != mInstalledTransports.end(); ++iter) {
-          auto installedTransport = (*iter).second;
-          if (installedTransport->mTransportID == route->mTransportID) {
-            LocalCandidateRemoteIPPair search(localCandidate, remoteIP);
-            mRouteCandidateAndIPMappings[search] = route;
-            mRoutes[route->mID] = route;
-            goto transport_installed;
-          }
-        }
-
-        return RoutePtr();
       }
 
-    transport_installed:
-      {
-        ZS_LOG_TRACE(log("installed route") + route->toDebug())
-        if (notifyTransport) {
-          transport->notifyRouteAdded(route->mTransportID, localCandidate, remoteIP);
-        }
-        goto deliver_backlog_packets;
-      }
-
-    deliver_backlog_packets:
-      {
-        // check though buffer to see if there are any other packets fitting this criteria that can now be delivered
-        {
-          AutoRecursiveLock lock(*this);
-
-          if (0 != mBufferedPackets.size()) {
-            ZS_LOG_DEBUG(log("will attempt to deliver any backlogged packets to new route") + route->toDebug())
-            IGathererAsyncDelegateProxy::create(mThisWeak.lock())->onNotifyDeliverRouteBufferedPackets(transport, route->mID);
-          }
-        }
-      }
       return route;
     }
 
@@ -5329,7 +5341,7 @@ namespace ortc
                                              UseICETransportPtr transportIfAvailable
                                              )
     {
-      for (auto iter_doNotUse = mRouteCandidateAndIPMappings.begin(); iter_doNotUse != mRouteCandidateAndIPMappings.end();)
+      for (auto iter_doNotUse = mQuickSearchRoutes.begin(); iter_doNotUse != mQuickSearchRoutes.end();)
       {
         auto current = iter_doNotUse;
         ++iter_doNotUse;
@@ -5339,7 +5351,7 @@ namespace ortc
 
         ZS_LOG_WARNING(Detail, log("need to remove route because of unbinding previous transport") + route->toDebug())
 
-        mRouteCandidateAndIPMappings.erase(current);
+        mQuickSearchRoutes.erase(current);
       }
 
       for (auto iter_doNotUse = mRoutes.begin(); iter_doNotUse != mRoutes.end();)
@@ -5353,11 +5365,6 @@ namespace ortc
         ZS_LOG_WARNING(Detail, log("need to remove route because of unbinding previous transport") + route->toDebug())
 
         mRoutes.erase(current);
-
-        if (transportIfAvailable) {
-          ZS_LOG_TRACE(log("will notify transport about route removal"))
-          IGathererAsyncDelegateProxy::create(mThisWeak.lock())->onNotifyAboutRemoveRoute(transportIfAvailable, route->mID);
-        }
       }
     }
     
@@ -5453,7 +5460,7 @@ namespace ortc
                                                                           const Options &options
                                                                           )
     {
-      DataPtr data(new Data);
+      DataPtr data(make_shared<Data>());
       data->mIP = ip;
       InterfaceMappingList empty;
       fixMapping(*data, empty);
@@ -5468,7 +5475,7 @@ namespace ortc
                                                                           const Options &options
                                                                           )
     {
-      DataPtr data(new Data);
+      DataPtr data(make_shared<Data>());
       data->mHostName = String(hostName);
       data->mIP = ip;
       InterfaceMappingList empty;
@@ -5486,7 +5493,7 @@ namespace ortc
                                                                           const Options &options
                                                                           )
     {
-      DataPtr data(new Data);
+      DataPtr data(make_shared<Data>());
       data->mInterfaceName = String(interfaceName);
       data->mHostName = String(hostName);
       data->mIP = ip;
@@ -5505,7 +5512,7 @@ namespace ortc
                                                                           const Options &options
                                                                           )
     {
-      DataPtr data(new Data);
+      DataPtr data(make_shared<Data>());
       data->mInterfaceName = String(interfaceName);
       data->mInterfaceDescription = String(interfaceDescription);
       data->mIP = ip;
@@ -5523,7 +5530,7 @@ namespace ortc
                                                                           const Options &options
                                                                           )
     {
-      DataPtr data(new Data);
+      DataPtr data(make_shared<Data>());
       data->mInterfaceName = String(interfaceName);
       data->mIP = ip;
       fixMapping(*data, prefs);
@@ -5883,9 +5890,7 @@ namespace ortc
 
       UseServicesHelper::debugAppend(resultEl, "timestamp", mTimestamp);
 
-      UseServicesHelper::debugAppend(resultEl, "local candidate", mLocalCandidate ? mLocalCandidate->toDebug() : ElementPtr());
-
-      UseServicesHelper::debugAppend(resultEl, "from", mFrom.string());
+      UseServicesHelper::debugAppend(resultEl, "router route", mRouterRoute->toDebug());
 
       UseServicesHelper::debugAppend(resultEl, "stun packet", (bool)mSTUNPacket);
       UseServicesHelper::debugAppend(resultEl, "rfrag", mRFrag);
@@ -5910,9 +5915,10 @@ namespace ortc
 
       UseServicesHelper::debugAppend(resultEl, "id", mID);
 
+      UseServicesHelper::debugAppend(resultEl, "router route", mRouterRoute ? mRouterRoute->toDebug() : ElementPtr());
+
       UseServicesHelper::debugAppend(resultEl, "last used", mLastUsed);
       UseServicesHelper::debugAppend(resultEl, "local candidate", mLocalCandidate ? mLocalCandidate->toDebug() : ElementPtr());
-      UseServicesHelper::debugAppend(resultEl, "from", mFrom.string());
 
       UseICETransportPtr transport = mTransport.lock();
       UseServicesHelper::debugAppend(resultEl, "transport id", mTransportID);

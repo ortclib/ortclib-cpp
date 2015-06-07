@@ -86,7 +86,10 @@ namespace ortc
     #pragma mark
     
     //-------------------------------------------------------------------------
-    DTLSCertficateGenerator::DTLSCertficateGenerator(IMessageQueuePtr queue) :
+    DTLSCertficateGenerator::DTLSCertficateGenerator(
+                                                     const make_private &,
+                                                     IMessageQueuePtr queue
+                                                     ) :
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create())
     {
@@ -126,7 +129,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     DTLSCertficateGeneratorPtr DTLSCertficateGenerator::create()
     {
-      DTLSCertficateGeneratorPtr pThis(new DTLSCertficateGenerator(IORTCForInternal::queueCertificateGeneration()));
+      DTLSCertficateGeneratorPtr pThis(make_shared<DTLSCertficateGenerator>(make_private {}, IORTCForInternal::queueCertificateGeneration()));
       pThis->mThisWeak.lock();
       pThis->init();
       return pThis;
@@ -171,7 +174,7 @@ namespace ortc
     {
       ZS_LOG_DEBUG(log("wake"))
 
-      CertificateHolderPtr holder(new CertificateHolder);
+      CertificateHolderPtr holder(make_shared<CertificateHolder>());
 
 #define TODO_GENERATE_CERTIFICATE_HERE 1
 #define TODO_GENERATE_CERTIFICATE_HERE 2

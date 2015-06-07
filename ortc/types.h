@@ -38,6 +38,8 @@
 
 namespace ortc
 {
+  using std::make_shared;
+
   using zsLib::string;
   using zsLib::PUID;
   using zsLib::BYTE;

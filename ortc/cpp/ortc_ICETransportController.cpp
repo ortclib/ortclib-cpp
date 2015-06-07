@@ -85,7 +85,10 @@ namespace ortc
     #pragma mark
     
     //-------------------------------------------------------------------------
-    ICETransportController::ICETransportController(IMessageQueuePtr queue) :
+    ICETransportController::ICETransportController(
+                                                   const make_private &,
+                                                   IMessageQueuePtr queue
+                                                   ) :
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create())
     {
@@ -137,7 +140,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     ICETransportControllerPtr ICETransportController::create()
     {
-      ICETransportControllerPtr pThis(new ICETransportController(IORTCForInternal::queueORTC()));
+      ICETransportControllerPtr pThis(make_shared<ICETransportController>(make_private{}, IORTCForInternal::queueORTC()));
       pThis->mThisWeak.lock();
       pThis->init();
       return pThis;

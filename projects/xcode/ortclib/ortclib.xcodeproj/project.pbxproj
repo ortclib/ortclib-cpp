@@ -13,6 +13,7 @@
 		0031990C1AD36B11000511CC /* ifaddrs-android.cc in Sources */ = {isa = PBXBuildFile; fileRef = 0031990B1AD36B11000511CC /* ifaddrs-android.cc */; };
 		003199D41AD73F20000511CC /* ortc_ICETypes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 003199D31AD73F20000511CC /* ortc_ICETypes.cpp */; };
 		003BB1C01AEBCB6B00748EA9 /* ortc_ICETransportController.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 003BB1BF1AEBCB6B00748EA9 /* ortc_ICETransportController.cpp */; settings = {COMPILER_FLAGS = "-Wno-undefined-bool-conversion"; }; };
+		004B60A11B227E2C00568C22 /* ortc_ICEGathererRouter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 004B60A01B227E2C00568C22 /* ortc_ICEGathererRouter.cpp */; };
 		0056EEFE1B13DB2C0035B351 /* ortc_Settings.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0056EEFD1B13DB2C0035B351 /* ortc_Settings.cpp */; };
 		0064C6A51AFBF13B0089571E /* ortc_SRTPSDESTransport.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0064C6A41AFBF13B0089571E /* ortc_SRTPSDESTransport.cpp */; };
 		0064C6BC1AFE75C40089571E /* ortc_ISecureTransport.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0064C6BB1AFE75C40089571E /* ortc_ISecureTransport.cpp */; };
@@ -61,6 +62,8 @@
 		003199D31AD73F20000511CC /* ortc_ICETypes.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_ICETypes.cpp; sourceTree = "<group>"; };
 		003BB1BF1AEBCB6B00748EA9 /* ortc_ICETransportController.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_ICETransportController.cpp; sourceTree = "<group>"; };
 		003BB1C11AEBCB8500748EA9 /* ortc_ICETransportController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ortc_ICETransportController.h; sourceTree = "<group>"; };
+		004B60A01B227E2C00568C22 /* ortc_ICEGathererRouter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_ICEGathererRouter.cpp; sourceTree = "<group>"; };
+		004B60A21B227E3C00568C22 /* ortc_ICEGathererRouter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ortc_ICEGathererRouter.h; sourceTree = "<group>"; };
 		0056EEFB1B13DAF20035B351 /* ISettings.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ISettings.h; sourceTree = "<group>"; };
 		0056EEFC1B13DB090035B351 /* ortc_Settings.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ortc_Settings.h; sourceTree = "<group>"; };
 		0056EEFD1B13DB2C0035B351 /* ortc_Settings.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_Settings.cpp; sourceTree = "<group>"; };
@@ -187,6 +190,7 @@
 				007B98F71855D61C004AC6C0 /* ortc_DTLSTransport.cpp */,
 				003199D31AD73F20000511CC /* ortc_ICETypes.cpp */,
 				003199071AD0496D000511CC /* ortc_ICEGatherer.cpp */,
+				004B60A01B227E2C00568C22 /* ortc_ICEGathererRouter.cpp */,
 				00D8BFA818479BF80001A335 /* ortc_ICETransport.cpp */,
 				003BB1BF1AEBCB6B00748EA9 /* ortc_ICETransportController.cpp */,
 				007B9905185661B1004AC6C0 /* ortc_RTPReceiver.cpp */,
@@ -218,6 +222,7 @@
 				0030F69A1B1FC22000E8649B /* ortc_DTLSCertificateGenerator.h */,
 				007B98F91855D633004AC6C0 /* ortc_DTLSTransport.h */,
 				003199061AD0495C000511CC /* ortc_ICEGatherer.h */,
+				004B60A21B227E3C00568C22 /* ortc_ICEGathererRouter.h */,
 				00D8BFAC18479C040001A335 /* ortc_ICETransport.h */,
 				003BB1C11AEBCB8500748EA9 /* ortc_ICETransportController.h */,
 				007B99041856617F004AC6C0 /* ortc_RTPReceiver.h */,
@@ -312,6 +317,7 @@
 				E2D04943182C377B00343A95 /* ortc_RTCDataChannel.cpp in Sources */,
 				00D8BFEF1848DF100001A335 /* ortc_Helper.cpp in Sources */,
 				007B9908185665BC004AC6C0 /* ortc_TrackDescription.cpp in Sources */,
+				004B60A11B227E2C00568C22 /* ortc_ICEGathererRouter.cpp in Sources */,
 				E23EBC621834181C00C7332E /* ortc_MediaManager.cpp in Sources */,
 				0056EEFE1B13DB2C0035B351 /* ortc_Settings.cpp in Sources */,
 				E23EBC631834181C00C7332E /* ortc_MediaStream.cpp in Sources */,
