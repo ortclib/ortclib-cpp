@@ -484,7 +484,7 @@ namespace ortc
                                                 IICETransport::States state
                                                 ) override
         {
-          ZS_LOG_BASIC(log("transport state changed") + IICETransport::toDebug(transport) + ZS_PARAM("state", IICETransport::toString(state)))
+          ZS_LOG_BASIC(log("transport state changed") + ZS_PARAM("state", IICETransport::toString(state)) + IICETransport::toDebug(transport))
 
           AutoRecursiveLock lock(*this);
 
@@ -542,7 +542,7 @@ namespace ortc
                                                  CandidatePtr candidate
                                                  ) override
         {
-          ZS_LOG_BASIC(log("remote gatherer local candidate") + IICEGatherer::toDebug(gatherer) + (candidate ? candidate->toDebug() : ElementPtr()))
+          ZS_LOG_BASIC(log("remote gatherer notified candidate") + IICEGatherer::toDebug(gatherer) + (candidate ? candidate->toDebug() : ElementPtr()))
 
           AutoRecursiveLock lock(*this);
 
@@ -558,7 +558,7 @@ namespace ortc
                                                          CandidateCompletePtr candidate
                                                          ) override
         {
-          ZS_LOG_BASIC(log("remote gatherer candidate complete") + IICEGatherer::toDebug(gatherer) + (candidate ? candidate->toDebug() : ElementPtr()))
+          ZS_LOG_BASIC(log("remote gatherer notified candidate complete") + IICEGatherer::toDebug(gatherer) + (candidate ? candidate->toDebug() : ElementPtr()))
 
           TESTING_CHECK(candidate)
 
@@ -576,7 +576,7 @@ namespace ortc
                                                      CandidatePtr candidate
                                                      ) override
         {
-          ZS_LOG_BASIC(log("remote gatherer candidate gone") + IICEGatherer::toDebug(gatherer) + (candidate ? candidate->toDebug() : ElementPtr()))
+          ZS_LOG_BASIC(log("remote gatherer notified candidate gone") + IICEGatherer::toDebug(gatherer) + (candidate ? candidate->toDebug() : ElementPtr()))
 
           TESTING_CHECK(candidate)
 
@@ -672,6 +672,9 @@ void doTestICETransport()
       ICETransportTester::Expectations expectationsTransport1;
       ICETransportTester::Expectations expectationsTransport2;
 
+      expectationsTransport1.mStateChecking = 1;
+      expectationsTransport1.mStateConnected = 1;
+      expectationsTransport1.mStateCompleted = 1;
       expectationsTransport1.mStateClosed = 1;
 
       expectationsTransport2 = expectationsTransport1;

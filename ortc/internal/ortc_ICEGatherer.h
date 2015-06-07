@@ -70,6 +70,7 @@
 
 #define ORTC_SETTING_GATHERER_DEFAULT_STUN_KEEP_ALIVE_IN_SECONDS "ortc/gatherer/default-stun-keep-alive-in-seconds"
 
+#define ORTC_SETTING_GATHERER_REFLEXIVE_INACTIVITY_TIMEOUT_IN_SECONDS "ortc/gatherer/reflexive-inactivity-timeout-in-seconds"
 #define ORTC_SETTING_GATHERER_RELAY_INACTIVITY_TIMEOUT_IN_SECONDS "ortc/gatherer/relay-inactivity-timeout-in-seconds"
 
 #define ORTC_SETTING_GATHERER_MAX_INCOMING_PACKET_BUFFERING_TIME_IN_SECONDS "ortc/gatherer/max-incoming-packet-buffering-time-in-seconds"
@@ -162,6 +163,8 @@ namespace ortc
                               const BYTE *buffer,
                               size_t bufferSizeInBytes
                               ) = 0;
+
+      virtual void notifyLikelyReflexiveActivity(RouterRoutePtr routerRoute) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -310,6 +313,8 @@ namespace ortc
       typedef std::map<CandidateHash, CandidatePair> CandidateMap;
 
       typedef std::list<ReflexivePortPtr> ReflexivePortList;
+      typedef std::map<TimerPtr, HostAndReflexivePortPair> TimerToReflexivePortMap;
+
       typedef std::list<RelayPortPtr> RelayPortList;
       typedef std::map<IPAddress, RelayPortPtr> IPToRelayPortMap;
       typedef std::map<TimerPtr, HostAndRelayPortPair> TimerToRelayPortMap;
@@ -430,6 +435,8 @@ namespace ortc
                               const BYTE *buffer,
                               size_t bufferSizeInBytes
                               ) override;
+
+      virtual void notifyLikelyReflexiveActivity(RouterRoutePtr routerRoute) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -655,6 +662,9 @@ namespace ortc
         String mOptionsHash;
         CandidatePtr mCandidate;
 
+        Time mLastActivity;
+        TimerPtr mInactivityTimer;
+
         ElementPtr toDebug() const;
       };
 
@@ -678,7 +688,7 @@ namespace ortc
         CandidatePtr mRelayCandidate;
         CandidatePtr mReflexiveCandidate;
 
-        Time mLastSentData;
+        Time mLastActivity;
         TimerPtr mInactivityTimer;
 
         ElementPtr toDebug() const;
@@ -1088,6 +1098,9 @@ namespace ortc
       String mWarmUpAfterNewInterfaceBindingHostsHash;
       Time mWarmUpAfterNewInterfaceBindingUntil;
       TimerPtr mWarmUpAterNewInterfaceBindingTimer;
+
+      Seconds mReflexiveInactivityTime;
+      TimerToReflexivePortMap mReflexiveInactivityTimers;
 
       Seconds mRelayInactivityTime;
       TimerToRelayPortMap mRelayInactivityTimers;

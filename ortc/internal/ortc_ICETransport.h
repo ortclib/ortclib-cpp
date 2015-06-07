@@ -238,6 +238,7 @@ namespace ortc
       friend interaction IICETransportForICETransportContoller;
       friend interaction IICETransportForSecureTransport;
 
+      ZS_DECLARE_STRUCT_PTR(RouteStateTracker)
       ZS_DECLARE_STRUCT_PTR(Route)
       ZS_DECLARE_STRUCT_PTR(ReasonNoMoreRelationship)
 
@@ -515,13 +516,17 @@ namespace ortc
       {
         enum States
         {
-          State_New,
+          State_First,
+
+          State_New = State_First,
           State_Pending,
           State_Frozen,
           State_InProgress,
           State_Succeeded,
           State_Failed,
           State_Blacklisted,
+
+          State_Last = State_Blacklisted,
         };
         static const char *toString(States state);
 
@@ -530,7 +535,7 @@ namespace ortc
         CandidatePairPtr mCandidatePair;
         String mCandidatePairHash;
 
-        States mState {State_New};
+        RouteStateTrackerPtr mTracker;
 
         RouterRoutePtr mGathererRoute;
 
@@ -553,6 +558,9 @@ namespace ortc
         Time mLastRoundTripCheck;
         Microseconds mLastRouteTripMeasurement {};
 
+        Route(RouteStateTrackerPtr tracker);
+        ~Route();
+
         ElementPtr toDebug() const;
 
         QWORD getPreference(bool localIsControlling) const;
@@ -561,12 +569,34 @@ namespace ortc
                                     bool useUnfreezePreference
                                     ) const;
 
+        States state() const;
+        void state(States state);
+
         bool isPending() const {return State_Pending == mState;}
         bool isFrozen() const {return State_Frozen == mState;}
         bool isInProgress() const {return State_InProgress == mState;}
         bool isSucceeded() const {return State_Succeeded == mState;}
         bool isFailed() const {return State_Failed == mState;}
         bool isBlacklisted() const {return State_Blacklisted == mState;}
+
+      protected:
+        States mState {State_New};
+      };
+
+      struct RouteStateTracker
+      {
+        typedef Route::States States;
+
+        size_t mStates[Route::State_Last+1];
+
+        RouteStateTracker();
+
+        ElementPtr toDebug() const;
+
+        void inState(States state);
+        void outState(States state);
+
+        size_t count(States state);
       };
 
       struct ReasonNoMoreRelationship : public Any
@@ -756,10 +786,10 @@ namespace ortc
       String mComputedPairsHash;
       RouteMap mLegalRoutes;
       FoundationRouteMap mFoundationRoutes;
+      RouteStateTrackerPtr mRouteStateTracker;
 
       TimerPtr mActivationTimer;
 
-      String mPendingActivationPairsHash;
       SortedRouteMap mPendingActivation;
 
       PromiseRouteMap mFrozen;

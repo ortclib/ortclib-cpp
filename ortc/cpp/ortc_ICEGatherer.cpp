@@ -338,7 +338,8 @@ namespace ortc
 
       UseSettings::setUInt(ORTC_SETTING_GATHERER_DEFAULT_STUN_KEEP_ALIVE_IN_SECONDS, 30);
 
-      UseSettings::setUInt(ORTC_SETTING_GATHERER_RELAY_INACTIVITY_TIMEOUT_IN_SECONDS, 120);
+      UseSettings::setUInt(ORTC_SETTING_GATHERER_REFLEXIVE_INACTIVITY_TIMEOUT_IN_SECONDS, 60*2);
+      UseSettings::setUInt(ORTC_SETTING_GATHERER_RELAY_INACTIVITY_TIMEOUT_IN_SECONDS, 60*2);
       UseSettings::setUInt(ORTC_SETTING_GATHERER_MAX_INCOMING_PACKET_BUFFERING_TIME_IN_SECONDS, 30);
       UseSettings::setUInt(ORTC_SETTING_GATHERER_MAX_TOTAL_INCOMING_PACKET_BUFFERING, 50);
 
@@ -511,6 +512,7 @@ namespace ortc
       mPassword(UseServicesHelper::randomString(UseSettings::getUInt(ORTC_SETTING_GATHERER_PASSWORD_LENGTH))),
       mCreateTCPCandidates(UseSettings::getBool(ORTC_SETTING_GATHERER_CREATE_TCP_CANDIDATES)),
       mOptions(options),
+      mReflexiveInactivityTime(Seconds(UseSettings::getUInt(ORTC_SETTING_GATHERER_REFLEXIVE_INACTIVITY_TIMEOUT_IN_SECONDS))),
       mRelayInactivityTime(Seconds(UseSettings::getUInt(ORTC_SETTING_GATHERER_RELAY_INACTIVITY_TIMEOUT_IN_SECONDS))),
       mMaxBufferingTime(Seconds(UseSettings::getUInt(ORTC_SETTING_GATHERER_MAX_INCOMING_PACKET_BUFFERING_TIME_IN_SECONDS))),
       mMaxTotalBuffers(UseSettings::getUInt(ORTC_SETTING_GATHERER_MAX_TOTAL_INCOMING_PACKET_BUFFERING)),
@@ -935,7 +937,7 @@ namespace ortc
 
     did_not_remove:
       {
-        ZS_LOG_WARNING(Detail, log("did not find installed transport") + ZS_PARAM("transport id", transport.getID()))
+        ZS_LOG_WARNING(Detail, log("did not find installed transport (okay if shutdown)") + ZS_PARAM("transport id", transport.getID()))
         return;
       }
 
@@ -1051,7 +1053,7 @@ namespace ortc
             ZS_LOG_WARNING(Debug, log("no turn socket available at this time") + route->toDebug() + ZS_PARAM("buffer size", bufferSizeInBytes))
             goto send_failed;
           }
-          route->mRelayPort->mLastSentData = route->mLastUsed;
+          route->mRelayPort->mLastActivity = route->mLastUsed;
           turn = route->mRelayPort->mTURNSocket;
           goto send_via_turn;
         }
@@ -1097,6 +1099,48 @@ namespace ortc
 
     send_failed: {}
       return false;
+    }
+
+    //-------------------------------------------------------------------------
+    void ICEGatherer::notifyLikelyReflexiveActivity(RouterRoutePtr routerRoute)
+    {
+      AutoRecursiveLock lock(*this);
+
+      auto found = mRoutes.find(routerRoute->mID);
+      if (found == mRoutes.end()) {
+        ZS_LOG_WARNING(Debug, log("no route found at this time (will not attempt to install a route since one should have been present due to recent previous activity)") + routerRoute->toDebug())
+        return;
+      }
+
+      auto route = (*found).second;
+      auto hostPort = route->mHostPort;
+
+      if (!hostPort) {
+        ZS_LOG_ERROR(Debug, log("there must be a host port on this route") + route->toDebug())
+        return;
+      }
+
+      bool foundReflexive = false;
+
+      auto now = zsLib::now();
+
+      for (auto iter = hostPort->mReflexivePorts.begin(); iter != hostPort->mReflexivePorts.end(); ++iter) {
+        auto reflexivePort = (*iter);
+
+        reflexivePort->mLastActivity = now;
+        foundReflexive = true;
+
+        ZS_LOG_INSANE(log("activity found on reflexive port") + reflexivePort->toDebug() + hostPort->toDebug())
+      }
+
+      if (foundReflexive) return;
+
+      for (auto iter = hostPort->mRelayPorts.begin(); iter != hostPort->mRelayPorts.end(); ++iter) {
+        auto relayPort = (*iter);
+
+        relayPort->mLastActivity = now;
+        ZS_LOG_INSANE(log("activity found on relay port") + relayPort->toDebug() + hostPort->toDebug())
+      }
     }
 
     //-------------------------------------------------------------------------
@@ -1291,6 +1335,50 @@ namespace ortc
 
       // scope: check to see if it is an activity timer
       {
+        auto found = mReflexiveInactivityTimers.find(timer);
+        if (found != mReflexiveInactivityTimers.end()) {
+          HostPortPtr hostPort = (*found).second.first;
+          ReflexivePortPtr reflexivePort = (*found).second.second;
+
+          {
+            ZS_LOG_TRACE(log("reflexive inactivity timer fired") + hostPort->toDebug() + reflexivePort->toDebug())
+
+            if (reflexivePort->mInactivityTimer) {
+              reflexivePort->mInactivityTimer->cancel();
+              reflexivePort->mInactivityTimer.reset();
+            }
+
+            mReflexiveInactivityTimers.erase(found);
+
+            if (shouldKeepWarm()) {
+              ZS_LOG_WARNING(Trace, log("no need to shutdown TURN socket as paths need to be kept warm") + reflexivePort->toDebug())
+              return;
+            }
+
+            if (Time() == reflexivePort->mLastActivity) goto inactivity_shutdown_reflexive;
+            if (reflexivePort->mLastActivity + mReflexiveInactivityTime <= now) goto inactivity_shutdown_reflexive;
+
+            ZS_LOG_TRACE(log("no need to shutdown reflexive port at this time (still active)") + reflexivePort->toDebug() + ZS_PARAM("now", now))
+
+            auto fireAt = reflexivePort->mLastActivity + mReflexiveInactivityTime;
+            reflexivePort->mInactivityTimer = Timer::create(mThisWeak.lock(), fireAt);
+            mReflexiveInactivityTimers[reflexivePort->mInactivityTimer] = HostAndReflexivePortPair(hostPort, reflexivePort);
+            return;
+          }
+
+        inactivity_shutdown_reflexive:
+          {
+            ZS_LOG_DEBUG(log("need to shutdown reflexive port as it is inactive") + reflexivePort->toDebug())
+
+            shutdown(reflexivePort, hostPort);
+            return;
+          }
+          
+        }
+      }
+
+      // scope: check to see if it is an activity timer
+      {
         auto found = mRelayInactivityTimers.find(timer);
         if (found != mRelayInactivityTimers.end()) {
           HostPortPtr hostPort = (*found).second.first;
@@ -1310,13 +1398,13 @@ namespace ortc
               ZS_LOG_WARNING(Trace, log("no need to shutdown TURN socket as paths need to be kept warm") + relayPort->toDebug())
               return;
             }
-            
-            if (Time() == relayPort->mLastSentData) goto inactivity_shutdown_relay;
-            if (relayPort->mLastSentData + mRelayInactivityTime <= now) goto inactivity_shutdown_relay;
+
+            if (Time() == relayPort->mLastActivity) goto inactivity_shutdown_relay;
+            if (relayPort->mLastActivity + mRelayInactivityTime <= now) goto inactivity_shutdown_relay;
 
             ZS_LOG_TRACE(log("no need to shutdown relay port at this time (still active)") + relayPort->toDebug() + ZS_PARAM("now", now))
 
-            auto fireAt = relayPort->mLastSentData + mRelayInactivityTime;
+            auto fireAt = relayPort->mLastActivity + mRelayInactivityTime;
             relayPort->mInactivityTimer = Timer::create(mThisWeak.lock(), fireAt);
             mRelayInactivityTimers[relayPort->mInactivityTimer] = HostAndRelayPortPair(hostPort, relayPort);
             return;
@@ -1665,6 +1753,7 @@ namespace ortc
         }
 
         localCandidate = relayPort->mRelayCandidate;
+        relayPort->mLastActivity = zsLib::now();
 
         stunPacket = STUNPacket::parseIfSTUN(packet, packetLengthInBytes, STUNPacket::RFC_AllowAll, false, "ortc::ICEGatherer", mID);
         if (stunPacket) {
@@ -1862,6 +1951,9 @@ namespace ortc
       UseServicesHelper::debugAppend(resultEl, "warm up after new interface binding until", mWarmUpAfterNewInterfaceBindingUntil);
       UseServicesHelper::debugAppend(resultEl, "warm up after new interface binding timre", mWarmUpAterNewInterfaceBindingTimer ? mWarmUpAterNewInterfaceBindingTimer->getID() : 0);
 
+      UseServicesHelper::debugAppend(resultEl, "reflexive inactive time", mReflexiveInactivityTime);
+      UseServicesHelper::debugAppend(resultEl, "reflexive inactive timers", mReflexiveInactivityTimers.size());
+
       UseServicesHelper::debugAppend(resultEl, "relay inactive time", mRelayInactivityTime);
       UseServicesHelper::debugAppend(resultEl, "relay inactive timers", mRelayInactivityTimers.size());
 
@@ -1940,7 +2032,9 @@ namespace ortc
       goto done;
 
     not_complete:
-      setState(InternalState_Gathering);
+      if (InternalState_Ready != mCurrentState) {
+        setState(InternalState_Gathering);
+      }
 
     done:
       ZS_LOG_TRACE(debug("step complete"))
@@ -3048,8 +3142,14 @@ namespace ortc
         return true;
       }
 
+      bool allDone = true;
+
+      Time now = zsLib::now();
+
       for (auto iter = mHostPorts.begin(); iter != mHostPorts.end(); ++iter) {
         auto hostPort = (*iter).second;
+
+        bool allHostDone = true;
 
         for (auto iterReflex_doNotUse = hostPort->mReflexivePorts.begin(); iterReflex_doNotUse != hostPort->mReflexivePorts.end(); ) {
           auto currentReflex = iterReflex_doNotUse;
@@ -3057,15 +3157,41 @@ namespace ortc
 
           auto reflexivePort = (*currentReflex);
 
-          ZS_LOG_DEBUG(log("reflexive port no longer being kept warm") + reflexivePort->toDebug())
-          shutdown(reflexivePort, hostPort);
+          if (Time() == reflexivePort->mLastActivity) goto shutdown_reflexive;
+          if (reflexivePort->mLastActivity + mReflexiveInactivityTime <= now) goto shutdown_reflexive;
+
+          if (!reflexivePort->mInactivityTimer) {
+            Time fireAt = reflexivePort->mLastActivity + mReflexiveInactivityTime;
+            reflexivePort->mInactivityTimer = Timer::create(mThisWeak.lock(), fireAt);
+            mReflexiveInactivityTimers[reflexivePort->mInactivityTimer] = HostAndReflexivePortPair(hostPort, reflexivePort);
+            ZS_LOG_TRACE(log("setup reflexive inactivity timeout") + ZS_PARAMIZE(fireAt) + reflexivePort->toDebug())
+          }
+          goto wait_until_inactive;
+
+        wait_until_inactive:
+          {
+            ZS_LOG_TRACE(log("reflexive port still active thus cannot shutdown") + reflexivePort->toDebug())
+            allHostDone = allDone = false;
+            continue;
+          }
+
+        shutdown_reflexive:
+          {
+            ZS_LOG_DEBUG(log("reflexive port no longer being kept warm (and is currently inactive)") + reflexivePort->toDebug())
+            shutdown(reflexivePort, hostPort);
+          }
+
         }
 
-        hostPort->mReflexivePorts.clear();
+        if (allHostDone) {
+          hostPort->mReflexivePorts.clear();
+        }
       }
 
-      ZS_LOG_DEBUG(log("all reflexive candidates are torn down (no longer being kept warm)"))
-      mLastReflexiveHostsHash = mHostsHash;
+      if (allDone) {
+        ZS_LOG_DEBUG(log("all reflexive candidates are torn down (no longer being kept warm)"))
+        mLastReflexiveHostsHash = mHostsHash;
+      }
 
       return true;
     }
@@ -3230,8 +3356,8 @@ namespace ortc
               }
               case UseTURNSocket::TURNSocketState_Ready: {
                 ZS_LOG_TRACE(log("TURN socket is ready") + relayPort->toDebug())
-                if (Time() == relayPort->mLastSentData) {
-                  relayPort->mLastSentData = now;
+                if (Time() == relayPort->mLastActivity) {
+                  relayPort->mLastActivity = now;
                 }
                 if (relayPort->mServerResponseIP.isAddressEmpty()) {
                   relayPort->mServerResponseIP = relayPort->mTURNSocket->getServerResponseIP();
@@ -3345,16 +3471,18 @@ namespace ortc
       for (auto iter = mHostPorts.begin(); iter != mHostPorts.end(); ++iter) {
         auto hostPort = (*iter).second;
 
+        bool allHostDone = true;
+
         for (auto iterRelay_doNotUse = hostPort->mRelayPorts.begin(); iterRelay_doNotUse != hostPort->mRelayPorts.end(); ) {
           auto currentRelay = iterRelay_doNotUse;
           ++iterRelay_doNotUse;
 
           auto relayPort = (*currentRelay);
-          if (Time() == relayPort->mLastSentData) goto shutdown_relay;
-          if (relayPort->mLastSentData + mRelayInactivityTime <= now) goto shutdown_relay;
+          if (Time() == relayPort->mLastActivity) goto shutdown_relay;
+          if (relayPort->mLastActivity + mRelayInactivityTime <= now) goto shutdown_relay;
 
           if (!relayPort->mInactivityTimer) {
-            Time fireAt = relayPort->mLastSentData + mRelayInactivityTime;
+            Time fireAt = relayPort->mLastActivity + mRelayInactivityTime;
             relayPort->mInactivityTimer = Timer::create(mThisWeak.lock(), fireAt);
             mRelayInactivityTimers[relayPort->mInactivityTimer] = HostAndRelayPortPair(hostPort, relayPort);
             ZS_LOG_TRACE(log("setup relay inactivity timeout") + ZS_PARAMIZE(fireAt) + relayPort->toDebug())
@@ -3364,7 +3492,7 @@ namespace ortc
         wait_until_inactive:
           {
             ZS_LOG_TRACE(log("relay port still active thus cannot shutdown") + relayPort->toDebug())
-            allDone = false;
+            allHostDone = allDone = false;
             continue;
           }
 
@@ -3375,7 +3503,9 @@ namespace ortc
           }
         }
 
-        hostPort->mRelayPorts.clear();
+        if (allHostDone) {
+          hostPort->mRelayPorts.clear();
+        }
       }
 
       if (allDone) {
@@ -3536,16 +3666,6 @@ namespace ortc
         }
       }
 
-      if (mWarmUpAterNewInterfaceBindingTimer) {
-        mWarmUpAterNewInterfaceBindingTimer->cancel();
-        mWarmUpAterNewInterfaceBindingTimer.reset();
-      }
-
-      if (mCleanUpBufferingTimer) {
-        mCleanUpBufferingTimer->cancel();
-        mCleanUpBufferingTimer.reset();
-      }
-
       // scope: remote all routes
       {
         for (auto iter_doNotUse = mRoutes.begin(); iter_doNotUse != mRoutes.end();)
@@ -3558,11 +3678,6 @@ namespace ortc
         }
 
         mRoutes.clear();
-      }
-
-      if (mCleanUnusedRoutesTimer) {
-        mCleanUnusedRoutesTimer->cancel();
-        mCleanUnusedRoutesTimer.reset();
       }
 
       {
@@ -3581,6 +3696,56 @@ namespace ortc
 
         mInstalledTransports.clear();
       }
+
+      mInterfaceMappings.clear();
+
+      if (mRecheckIPsTimer) {
+        mRecheckIPsTimer->cancel();
+        mRecheckIPsTimer.reset();
+      }
+
+      mPendingHostIPs.clear();
+      mResolvedHostIPs.clear();
+      mResolveHostIPQueries.clear();
+
+      mHostPortSockets.clear();
+      mSTUNDiscoveries.clear();
+      mTURNSockets.clear();
+      mShutdownTURNSockets.clear();
+
+      mLastLocalPreference.clear();
+
+      mNotifiedCandidates.clear();
+      mLocalCandidates.clear();
+
+      if (mWarmUpAterNewInterfaceBindingTimer) {
+        mWarmUpAterNewInterfaceBindingTimer->cancel();
+        mWarmUpAterNewInterfaceBindingTimer.reset();
+      }
+
+      mReflexiveInactivityTimers.clear();
+      mRelayInactivityTimers.clear();
+
+      mTCPPorts.clear();
+      mTCPCandidateToTCPPorts.clear();
+
+      if (mCleanUpBufferingTimer) {
+        mCleanUpBufferingTimer->cancel();
+        mCleanUpBufferingTimer.reset();
+      }
+      mBufferedPackets.clear();
+
+      mQuickSearchRoutes.clear();
+      mRoutes.clear();
+      if (mCleanUnusedRoutesTimer) {
+        mCleanUnusedRoutesTimer->cancel();
+        mCleanUnusedRoutesTimer.reset();
+      }
+
+      mInstalledTransports.clear();
+      mPendingTransports.clear();
+
+      mSubscriptions.clear();
 
       mGracefulShutdownReference.reset();
 
@@ -3931,7 +4096,16 @@ namespace ortc
           break;
         }
       }
-      
+
+      if (reflexivePort->mInactivityTimer) {
+        auto found = mReflexiveInactivityTimers.find(reflexivePort->mInactivityTimer);
+        if (found != mReflexiveInactivityTimers.end()) {
+          mReflexiveInactivityTimers.erase(found);
+        }
+        reflexivePort->mInactivityTimer->cancel();
+        reflexivePort->mInactivityTimer.reset();
+      }
+
       if (reflexivePort->mSTUNDiscovery) {
         auto found = mSTUNDiscoveries.find(reflexivePort->mSTUNDiscovery);
         if (found != mSTUNDiscoveries.end()) {
@@ -4092,6 +4266,9 @@ namespace ortc
           if (firstAttempt) {
             // only bind using the default port in the first attempt
             ioBindIP.setPort(mDefaultPort);
+            ZS_LOG_DEBUG(log("will attempt to bind to default port") + ZS_PARAM("ip address", ioBindIP.string()))
+          } else {
+            ZS_LOG_WARNING(Debug, log("will not attempt to rebind to default port") + ZS_PARAM("ip address", ioBindIP.string()))
           }
         }
 
@@ -5769,6 +5946,9 @@ namespace ortc
       UseServicesHelper::debugAppend(resultEl, "options hash", mOptionsHash);
       UseServicesHelper::debugAppend(resultEl, mCandidate ? mCandidate->toDebug() : ElementPtr());
 
+      UseServicesHelper::debugAppend(resultEl, "last activity", mLastActivity);
+      UseServicesHelper::debugAppend(resultEl, "inactivity timer", mInactivityTimer ? mInactivityTimer->getID() : 0);
+
       return resultEl;
     }
 
@@ -5794,7 +5974,7 @@ namespace ortc
       UseServicesHelper::debugAppend(resultEl, "relay candidate", mRelayCandidate ? mRelayCandidate->toDebug() : ElementPtr());
       UseServicesHelper::debugAppend(resultEl, "reflexive candidate", mRelayCandidate ? mRelayCandidate->toDebug() : ElementPtr());
 
-      UseServicesHelper::debugAppend(resultEl, "last send data", mLastSentData);
+      UseServicesHelper::debugAppend(resultEl, "last activity", mLastActivity);
       UseServicesHelper::debugAppend(resultEl, "inactivity timer", mInactivityTimer ? mInactivityTimer->getID() : 0);
 
       return resultEl;

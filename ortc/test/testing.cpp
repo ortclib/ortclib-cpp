@@ -86,7 +86,7 @@ namespace Testing
     ILogger::setLogLevel("zsLib", zsLib::Log::Trace);
     ILogger::setLogLevel("openpeer_services", zsLib::Log::Trace);
     ILogger::setLogLevel("openpeer_services_http", zsLib::Log::Trace);
-    ILogger::setLogLevel("ortclib", zsLib::Log::Trace);
+    ILogger::setLogLevel("ortclib", zsLib::Log::Insane);
 
     if (ORTC_TEST_USE_DEBUGGER_LOGGING) {
       ILogger::installDebuggerLogger();

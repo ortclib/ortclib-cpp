@@ -99,7 +99,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     ICEGathererRouterPtr ICEGathererRouter::create()
     {
-      ICEGathererRouterPtr pThis(make_shared<ICEGathererRouter>(make_private {}, IORTCForInternal::queueDelegate()));
+      ICEGathererRouterPtr pThis(make_shared<ICEGathererRouter>(make_private {}, IORTCForInternal::queueORTC()));
       pThis->mThisWeak = pThis;
       pThis->init();
       return pThis;
