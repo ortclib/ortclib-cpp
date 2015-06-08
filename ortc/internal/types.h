@@ -39,6 +39,8 @@ namespace ortc
 {
   namespace internal
   {
+    using std::make_shared;
+
     using zsLib::UINT;
     using zsLib::PTRNUMBER;
     using zsLib::string;
