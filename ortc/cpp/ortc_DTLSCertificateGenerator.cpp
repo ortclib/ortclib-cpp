@@ -43,10 +43,30 @@
 
 #include <cryptopp/sha.h>
 
+#include <openssl/bio.h>
+#include <openssl/err.h>
+#include <openssl/pem.h>
+#include <openssl/bn.h>
+#include <openssl/rsa.h>
+#include <openssl/crypto.h>
+
 namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib) }
 
 namespace ortc
 {
+
+  // Strength of generated keys. Those are RSA.
+  static const int KEY_LENGTH = 1024;
+
+  // Random bits for certificate serial number
+  static const int SERIAL_RAND_BITS = 64;
+
+  // Certificate validity lifetime
+  static const int CERTIFICATE_LIFETIME = 60 * 60 * 24 * 30;  // 30 days, arbitrarily
+  // Certificate validity window.
+  // This is to compensate for slightly incorrect system clocks.
+  static const int CERTIFICATE_WINDOW = -60 * 60 * 24;
+
   ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHelper, UseServicesHelper)
   ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHTTP, UseHTTP)
 
@@ -233,6 +253,93 @@ namespace ortc
 
       return resultEl;
     }
+
+    //-------------------------------------------------------------------------
+    evp_pkey_st* DTLSCertficateGenerator::MakeKey()
+    {
+      ZS_LOG_DEBUG(log("Making key pair"))
+      evp_pkey_st* pkey = EVP_PKEY_new();
+      // RSA_generate_key is deprecated. Use _ex version.
+      BIGNUM* exponent = BN_new();
+      RSA* rsa = RSA_new();
+      if (!pkey || !exponent || !rsa ||
+        !BN_set_word(exponent, 0x10001) ||  // 65537 RSA exponent
+        !RSA_generate_key_ex(rsa, KEY_LENGTH, exponent, NULL) ||
+        !EVP_PKEY_assign_RSA(pkey, rsa)) {
+        EVP_PKEY_free(pkey);
+        BN_free(exponent);
+        RSA_free(rsa);
+        return NULL;
+      }
+      // ownership of rsa struct was assigned, don't free it.
+      BN_free(exponent);
+      ZS_LOG_DEBUG(log("Returning key pair"))
+      return pkey;
+    }
+
+    //-------------------------------------------------------------------------
+    // Generate a self-signed certificate, with the public key from the
+    // given key pair. Caller is responsible for freeing the returned object.
+    X509* DTLSCertficateGenerator::MakeCertificate(EVP_PKEY* pkey) {
+      ZS_LOG_DEBUG(log("Making certificate"))
+      X509* x509 = NULL;
+      BIGNUM* serial_number = NULL;
+      X509_NAME* name = NULL;
+
+      if ((x509 = X509_new()) == NULL)
+        goto error;
+
+      if (!X509_set_pubkey(x509, pkey))
+        goto error;
+
+      // serial number
+      // temporary reference to serial number inside x509 struct
+      ASN1_INTEGER* asn1_serial_number;
+      if ((serial_number = BN_new()) == NULL ||
+        !BN_pseudo_rand(serial_number, SERIAL_RAND_BITS, 0, 0) ||
+        (asn1_serial_number = X509_get_serialNumber(x509)) == NULL ||
+        !BN_to_ASN1_INTEGER(serial_number, asn1_serial_number))
+        goto error;
+
+      if (!X509_set_version(x509, 0L))  // version 1
+        goto error;
+
+
+      zsLib::String commonName = UseServicesHelper::randomString(8);
+      // There are a lot of possible components for the name entries. In
+      // our P2P SSL mode however, the certificates are pre-exchanged
+      // (through the secure XMPP channel), and so the certificate
+      // identification is arbitrary. It can't be empty, so we set some
+      // arbitrary common_name. Note that this certificate goes out in
+      // clear during SSL negotiation, so there may be a privacy issue in
+      // putting anything recognizable here.
+      if ((name = X509_NAME_new()) == NULL ||
+        !X509_NAME_add_entry_by_NID(
+        name, NID_commonName, MBSTRING_UTF8,
+        (unsigned char*)commonName.c_str(), -1, -1, 0) ||
+        !X509_set_subject_name(x509, name) ||
+        !X509_set_issuer_name(x509, name))
+        goto error;
+
+      if (!X509_gmtime_adj(X509_get_notBefore(x509), CERTIFICATE_WINDOW) ||
+        !X509_gmtime_adj(X509_get_notAfter(x509), CERTIFICATE_LIFETIME))
+        goto error;
+
+      if (!X509_sign(x509, pkey, EVP_sha1()))
+        goto error;
+
+      BN_free(serial_number);
+      X509_NAME_free(name);
+      ZS_LOG_DEBUG(log("Returning certificate"))
+      return x509;
+
+    error:
+      BN_free(serial_number);
+      X509_NAME_free(name);
+      X509_free(x509);
+      return NULL;
+    }
+
 
   }
 

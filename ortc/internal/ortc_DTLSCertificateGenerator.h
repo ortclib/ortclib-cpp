@@ -37,6 +37,8 @@
 
 #include <zsLib/MessageQueueAssociator.h>
 
+#include <openssl/ssl.h>
+
 namespace ortc
 {
   namespace internal
@@ -57,7 +59,7 @@ namespace ortc
     public:
       ZS_DECLARE_STRUCT_PTR(CertificateHolder)
 
-      typedef void * CertificateObjectType; // not sure of type to use
+      typedef x509_st * CertificateObjectType; // not sure of type to use
 
       struct CertificateHolder : public Any
       {
@@ -117,6 +119,8 @@ namespace ortc
       Log::Params log(const char *message) const;
       Log::Params debug(const char *message) const;
       ElementPtr toDebug() const;
+      evp_pkey_st* MakeKey();
+      X509* MakeCertificate(EVP_PKEY* pkey);
 
     protected:
       //-----------------------------------------------------------------------
