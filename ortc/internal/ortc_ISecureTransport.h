@@ -84,6 +84,11 @@ namespace ortc
                                         const BYTE *buffer,
                                         size_t bufferLengthInBytes
                                         ) = 0;
+
+      virtual void handleReceivedSTUNPacket(
+                                            IICETypes::Components viaComponent,
+                                            STUNPacketPtr packet
+                                            ) = 0;
     };
 
   }

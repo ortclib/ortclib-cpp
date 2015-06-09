@@ -49,6 +49,7 @@
 #include <openssl/bn.h>
 #include <openssl/rsa.h>
 #include <openssl/crypto.h>
+#include <openssl/x509.h>
 
 namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib) }
 
@@ -71,6 +72,21 @@ namespace ortc
   ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHTTP, UseHTTP)
 
   typedef openpeer::services::Hasher<CryptoPP::SHA1> SHA1Hasher;
+
+  // Print a certificate to the log, for debugging.
+  static void PrintCert(X509* x509) {
+    BIO* temp_memory_bio = BIO_new(BIO_s_mem());
+    if (!temp_memory_bio) {
+      //LOG_F(LS_ERROR) << "Failed to allocate temporary memory bio";
+      return;
+    }
+    X509_print_ex(temp_memory_bio, x509, XN_FLAG_SEP_CPLUS_SPC, 0);
+    BIO_write(temp_memory_bio, "\0", 1);
+    char* buffer;
+    BIO_get_mem_data(temp_memory_bio, &buffer);
+    //LOG(LS_VERBOSE) << buffer;
+    BIO_free(temp_memory_bio);
+  }
 
   namespace internal
   {
@@ -106,7 +122,10 @@ namespace ortc
     #pragma mark
     
     //-------------------------------------------------------------------------
-    DTLSCertficateGenerator::DTLSCertficateGenerator(IMessageQueuePtr queue) :
+    DTLSCertficateGenerator::DTLSCertficateGenerator(
+                                                     const make_private &,
+                                                     IMessageQueuePtr queue
+                                                     ) :
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create())
     {
@@ -146,7 +165,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     DTLSCertficateGeneratorPtr DTLSCertficateGenerator::create()
     {
-      DTLSCertficateGeneratorPtr pThis(new DTLSCertficateGenerator(IORTCForInternal::queueCertificateGeneration()));
+      DTLSCertficateGeneratorPtr pThis(make_shared<DTLSCertficateGenerator>(make_private {}, IORTCForInternal::queueCertificateGeneration()));
       pThis->mThisWeak.lock();
       pThis->init();
       return pThis;
@@ -191,7 +210,7 @@ namespace ortc
     {
       ZS_LOG_DEBUG(log("wake"))
 
-      CertificateHolderPtr holder(new CertificateHolder);
+      CertificateHolderPtr holder(make_shared<CertificateHolder>());
 
 #define TODO_GENERATE_CERTIFICATE_HERE 1
 #define TODO_GENERATE_CERTIFICATE_HERE 2
@@ -280,11 +299,14 @@ namespace ortc
     //-------------------------------------------------------------------------
     // Generate a self-signed certificate, with the public key from the
     // given key pair. Caller is responsible for freeing the returned object.
-    X509* DTLSCertficateGenerator::MakeCertificate(EVP_PKEY* pkey) {
+    X509* DTLSCertficateGenerator::MakeCertificate(EVP_PKEY* pkey) 
+    {
       ZS_LOG_DEBUG(log("Making certificate"))
       X509* x509 = NULL;
       BIGNUM* serial_number = NULL;
       X509_NAME* name = NULL;
+
+      zsLib::String commonName = UseServicesHelper::randomString(8);
 
       if ((x509 = X509_new()) == NULL)
         goto error;
@@ -304,8 +326,6 @@ namespace ortc
       if (!X509_set_version(x509, 0L))  // version 1
         goto error;
 
-
-      zsLib::String commonName = UseServicesHelper::randomString(8);
       // There are a lot of possible components for the name entries. In
       // our P2P SSL mode however, the certificates are pre-exchanged
       // (through the secure XMPP channel), and so the certificate

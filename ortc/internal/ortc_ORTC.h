@@ -72,12 +72,18 @@ namespace ortc
                  public IORTCForInternal,
                  public SharedRecursiveLock
     {
+    protected:
+      struct make_private {};
+
     public:
       friend interaction IORTC;
       friend interaction IORTCForInternal;
 
+    public:
+      ORTC(const make_private &);
+
     protected:
-      ORTC();
+      void init();
 
     public:
       virtual ~ORTC();

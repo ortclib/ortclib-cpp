@@ -117,6 +117,9 @@ namespace ortc
                                    public ITransportControllerAsyncDelegate,
                                    public IWakeDelegate
     {
+    protected:
+      struct make_private {};
+
     public:
       friend interaction IICETransportController;
       friend interaction IICETransportControllerFactory;
@@ -128,9 +131,13 @@ namespace ortc
       typedef std::pair<AttachedOrderID, UseICETransportPtr> AttachedTransportPair;
       typedef std::list<AttachedTransportPair> TransportList;
 
-    protected:
-      ICETransportController(IMessageQueuePtr queue);
+    public:
+      ICETransportController(
+                             const make_private &,
+                             IMessageQueuePtr queue
+                             );
 
+    protected:
       ICETransportController(Noop) :
         Noop(true),
         MessageQueueAssociator(IMessageQueuePtr()),

@@ -183,6 +183,7 @@ namespace ortc
     
     //-------------------------------------------------------------------------
     ICETransport::ICETransport(
+                               const make_private &,
                                IMessageQueuePtr queue,
                                IICETransportDelegatePtr originalDelegate,
                                UseICEGathererPtr gatherer
@@ -190,6 +191,7 @@ namespace ortc
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
       mGatherer(ICEGatherer::convert(gatherer)),
+      mRouteStateTracker(make_shared<RouteStateTracker>()),
       mNoPacketsReceivedRecheckTime(UseSettings::getUInt(ORTC_SETTING_ICE_TRANSPORT_NO_PACKETS_RECEVIED_RECHECK_CANDIDATES_IN_SECONDS)),
       mExpireRouteTime(UseSettings::getUInt(ORTC_SETTING_ICE_TRANSPORT_EXPIRE_ROUTE_IN_SECONDS)),
       mBlacklistConsent(UseSettings::getBool(ORTC_SETTING_ICE_TRANSPORT_BLACKLIST_AFTER_CONSENT_REMOVAL)),
@@ -197,6 +199,11 @@ namespace ortc
       mKeepWarmTimeRandomizedAddTime(UseSettings::getUInt(ORTC_SETTING_ICE_TRANSPORT_KEEP_WARM_TIME_RANDOMIZED_ADD_TIME_IN_MILLISECONDS))
     {
       ZS_LOG_BASIC(debug("created"))
+
+      if (mGatherer) {
+        mGathererRouter = mGatherer->getGathererRouter();
+        ZS_THROW_INVALID_ASSUMPTION_IF(!mGathererRouter)
+      }
 
       if (originalDelegate) {
         mDefaultSubscription = mSubscriptions.subscribe(IICETransportDelegateProxy::create(IORTCForInternal::queueDelegate(), originalDelegate), queue);
@@ -219,7 +226,7 @@ namespace ortc
         for (auto iter = localCandidates->begin(); iter != localCandidates->end(); ++iter) {
           auto localCandidate = (*iter);
 
-          CandidatePtr candidate(new Candidate(localCandidate));
+          CandidatePtr candidate(make_shared<Candidate>(localCandidate));
           mLocalCandidates[candidate->hash()] = candidate;
         }
       }
@@ -310,11 +317,11 @@ namespace ortc
       UseICEGathererPtr gatherer = ICEGatherer::convert(inGatherer);
       if (gatherer) {
         ORTC_THROW_INVALID_PARAMETERS_IF(Component_RTCP == gatherer->component())
-        ORTC_THROW_INVALID_PARAMETERS_IF(IICEGatherer::State_Complete == gatherer->state())
+        ORTC_THROW_INVALID_PARAMETERS_IF(IICEGatherer::State_Closed == gatherer->state())
       }
 
-      ICETransportPtr pThis(new ICETransport(IORTCForInternal::queueORTC(), delegate, gatherer));
-      pThis->mThisWeak.lock();
+      ICETransportPtr pThis(make_shared<ICETransport>(make_private {}, IORTCForInternal::queueORTC(), delegate, gatherer));
+      pThis->mThisWeak = pThis;
       pThis->init();
       return pThis;
     }
@@ -396,7 +403,7 @@ namespace ortc
     {
       AutoRecursiveLock lock(*this);
 
-      CandidateListPtr result(new CandidateList);
+      CandidateListPtr result(make_shared<CandidateList>());
       for (auto iter = mRemoteCandidates.begin(); iter != mRemoteCandidates.end(); ++iter) {
         auto tempCandidate = (*iter).second;
         result->push_back(*tempCandidate);
@@ -412,10 +419,10 @@ namespace ortc
 
       if (!mActiveRoute) return CandidatePairPtr();
 
-      CandidatePairPtr result(new CandidatePair);
+      CandidatePairPtr result(make_shared<CandidatePair>());
 
-      result->mLocal = CandidatePtr(new Candidate(*(mActiveRoute->mCandidatePair->mLocal)));
-      result->mRemote = CandidatePtr(new Candidate(*(mActiveRoute->mCandidatePair->mRemote)));
+      result->mLocal = CandidatePtr(make_shared<Candidate>(*(mActiveRoute->mCandidatePair->mLocal)));
+      result->mRemote = CandidatePtr(make_shared<Candidate>(*(mActiveRoute->mCandidatePair->mRemote)));
 
       return result;
     }
@@ -447,6 +454,8 @@ namespace ortc
 
       auto oldParamHash = mRemoteParametersHash;
 
+      bool hadRemoteUsernameFragment = mRemoteParameters.mUsernameFragment.hasData();
+
       mRemoteParametersHash = remoteParameters.hash();
       mRemoteParameters = remoteParameters;
 
@@ -467,6 +476,8 @@ namespace ortc
         }
 
         mGatherer = gatherer;
+        mGathererRouter = gatherer->getGathererRouter();
+        ZS_THROW_INVALID_ASSUMPTION_IF(!mGathererRouter)
 
         mGatherer->installTransport(mThisWeak.lock(), String());
         mGathererSubscription = mGatherer->subscribe(mThisWeak.lock());
@@ -475,11 +486,15 @@ namespace ortc
         for (auto iter = localCandidates->begin(); iter != localCandidates->end(); ++iter) {
           auto localCandidate = (*iter);
 
-          CandidatePtr candidate(new Candidate(localCandidate));
+          CandidatePtr candidate(make_shared<Candidate>(localCandidate));
           mLocalCandidates[candidate->hash()] = candidate;
         }
-        mEndOfLocalCandidates = false;
+        mLocalCandidatesComplete = false;
         mLocalCandidatesHash.clear();
+      } else {
+        if (!hadRemoteUsernameFragment) {
+          mGatherer->installTransport(mThisWeak.lock(), mRemoteParameters.mUsernameFragment);
+        }
       }
 
       pruneAllCandidatePairs(true);
@@ -506,7 +521,7 @@ namespace ortc
         return ParametersPtr();
       }
 
-      ParametersPtr parameters(new Parameters);
+      ParametersPtr parameters(make_shared<Parameters>());
       (*parameters) = mRemoteParameters;
 
       ZS_LOG_TRACE(log("obtained remote parameters") + parameters->toDebug())
@@ -532,7 +547,7 @@ namespace ortc
           ORTC_THROW_INVALID_PARAMETERS_IF(IICEGatherer::State_Complete == rtcpGatherer->state())
         }
 
-        pThis = ICETransportPtr(new ICETransport(IORTCForInternal::queueORTC(), IICETransportDelegatePtr(), rtcpGatherer));
+        pThis = ICETransportPtr(make_shared<ICETransport>(make_private {}, IORTCForInternal::queueORTC(), IICETransportDelegatePtr(), rtcpGatherer));
         pThis->mThisWeak.lock();
         pThis->mRTPTransport = mThisWeak.lock();
         mRTCPTransport = pThis;
@@ -543,9 +558,11 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void ICETransport::addRemoteCandidate(const GatherCandidate &remoteCandidate)
+    void ICETransport::addRemoteCandidate(const GatherCandidate &remoteCandidate) throw (InvalidStateError)
     {
       AutoRecursiveLock lock(*this);
+
+      ORTC_THROW_INVALID_STATE_IF(isShuttingDown() || isShutdown())
 
       {
         const Candidate *tempCandidate = dynamic_cast<const IICETypes::Candidate *>(&remoteCandidate);
@@ -553,9 +570,9 @@ namespace ortc
           auto hash = tempCandidate->hash();
           auto found = mRemoteCandidates.find(hash);
           if (found != mRemoteCandidates.end()) {
-            if (mEndOfRemoteCandidates) {
+            if (mRemoteCandidatesComplete) {
               ZS_LOG_WARNING(Detail, log("told to add candidate that is already added (but no longer at end of remote candidates)") + tempCandidate->toDebug())
-              mEndOfRemoteCandidates = false;
+              mRemoteCandidatesComplete = false;
               goto changed;
             }
             ZS_LOG_WARNING(Detail, log("told to add candidate that is already added") + tempCandidate->toDebug())
@@ -564,16 +581,16 @@ namespace ortc
 
           ZS_LOG_DEBUG(log("adding remote candidate") + tempCandidate->toDebug())
 
-          CandidatePtr candidate(new Candidate(*tempCandidate));
+          CandidatePtr candidate(make_shared<Candidate>(*tempCandidate));
           mRemoteCandidates[hash] = candidate;
           goto changed;
         }
 
         const CandidateComplete *tempCandidateComplete = dynamic_cast<const IICETypes::CandidateComplete *>(&remoteCandidate);
         if (tempCandidateComplete) {
-          if (!mEndOfRemoteCandidates) {
+          if (!mRemoteCandidatesComplete) {
             ZS_LOG_DEBUG(log("end of remote candidates indicated"))
-            mEndOfRemoteCandidates = true;
+            mRemoteCandidatesComplete = true;
             goto changed;
           }
 
@@ -595,20 +612,22 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void ICETransport::setRemoteCandidates(const CandidateList &remoteCandidates)
+    void ICETransport::setRemoteCandidates(const CandidateList &remoteCandidates) throw (InvalidStateError)
     {
       AutoRecursiveLock lock(*this);
 
-      bool changed = mEndOfRemoteCandidates;  // if was at end of remote candidates then it must have changed
+      ORTC_THROW_INVALID_STATE_IF(isShuttingDown() || isShutdown())
 
-      mEndOfRemoteCandidates = false;
+      bool changed = mRemoteCandidatesComplete;  // if was at end of remote candidates then it must have changed
+
+      mRemoteCandidatesComplete = false;
 
       CandidateMap foundCandidates;
 
       for (auto iter = remoteCandidates.begin(); iter != remoteCandidates.end(); ++iter) {
         auto tempCandidate = (*iter);
 
-        CandidatePtr candidate(new Candidate(tempCandidate));
+        CandidatePtr candidate(make_shared<Candidate>(tempCandidate));
         auto hash = candidate->hash();
 
         foundCandidates[hash] = candidate;
@@ -658,9 +677,11 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void ICETransport::removeRemoteCandidate(const GatherCandidate &remoteCandidate)
+    void ICETransport::removeRemoteCandidate(const GatherCandidate &remoteCandidate) throw (InvalidStateError)
     {
       AutoRecursiveLock lock(*this);
+
+      ORTC_THROW_INVALID_STATE_IF(isShuttingDown() || isShutdown())
 
       {
         const Candidate *tempCandidate = dynamic_cast<const IICETypes::Candidate *>(&remoteCandidate);
@@ -680,9 +701,9 @@ namespace ortc
 
         const CandidateComplete *tempCandidateComplete = dynamic_cast<const IICETypes::CandidateComplete *>(&remoteCandidate);
         if (tempCandidateComplete) {
-          if (mEndOfRemoteCandidates) {
+          if (mRemoteCandidatesComplete) {
             ZS_LOG_DEBUG(log("end of remote candidates no longer indicated"))
-            mEndOfRemoteCandidates = false;
+            mRemoteCandidatesComplete = false;
             goto changed;
           }
 
@@ -707,9 +728,11 @@ namespace ortc
     void ICETransport::keepWarm(
                                 const CandidatePair &candidatePair,
                                 bool keepWarm
-                                )
+                                ) throw (InvalidStateError)
     {
       AutoRecursiveLock lock(*this);
+
+      ORTC_THROW_INVALID_STATE_IF(isShuttingDown() || isShutdown())
 
       auto hash = candidatePair.hash();
 
@@ -742,65 +765,14 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void ICETransport::notifyRouteAdded(
-                                        PUID routeID,
-                                        IICETypes::CandidatePtr localCandidate,
-                                        const IPAddress &fromIP
-                                        )
+    ICETransport::ForICEGathererPtr ICETransport::getForGatherer() const
     {
-      AutoRecursiveLock lock(*this);
-
-      if ((isShuttingDown()) || (isShutdown())) {
-        ZS_LOG_WARNING(Detail, log("cannot install gatherer route when shutting down/shutdown"))
-        return;
-      }
-
-      auto route = findRoute(localCandidate, fromIP);
-      if (route) {
-        removeGathererRoute(route); // remove old route
-        route->mGathererRouteID = routeID;
-
-        ZS_LOG_DEBUG(log("installed gatherer route") + route->toDebug() + localCandidate->toDebug() + ZS_PARAM("from ip", fromIP.string()))
-        return;
-      }
-
-      mPendingGathererRoutes[routeID] = LocalCandidateFromIPPair(localCandidate, fromIP);
-    }
-
-    //-------------------------------------------------------------------------
-    void ICETransport::notifyRouteRemoved(PUID routeID)
-    {
-      AutoRecursiveLock lock(*this);
-
-      // scope: remove from pending gatherer routes
-      {
-        auto found = mPendingGathererRoutes.find(routeID);
-        if (found != mPendingGathererRoutes.end()) {
-          ZS_LOG_DEBUG(log("removing gatherer route") + ZS_PARAMIZE(routeID))
-          mPendingGathererRoutes.erase(found);
-          return;
-        }
-      }
-
-      // scope: remove from installed gatherer routes
-      {
-        auto found = mGathererRoutes.find(routeID);
-
-        if (found == mGathererRoutes.end()) {
-          ZS_LOG_WARNING(Debug, log("did not find any route installed with this routet id") + ZS_PARAMIZE(routeID))
-          return;
-        }
-
-        auto route = (*found).second;
-
-        ZS_LOG_DEBUG(log("removing gatherer route") + route->toDebug())
-        removeGathererRoute(route);
-      }
+      return mThisWeak.lock();
     }
 
     //-------------------------------------------------------------------------
     void ICETransport::notifyPacket(
-                                    PUID routeID,
+                                    RouterRoutePtr routerRoute,
                                     STUNPacketPtr packet
                                     )
     {
@@ -810,12 +782,12 @@ namespace ortc
         if (STUNPacket::Method_Binding != packet->mMethod) goto not_related_stun_packet;
         if (STUNPacket::Class_Request != packet->mClass) goto not_related_stun_packet;
 
-        if (handleSwitchRolesAndConflict(routeID, packet)) {
+        if (handleSwitchRolesAndConflict(routerRoute, packet)) {
           ZS_LOG_DEBUG(log("role conflict handled") + packet->toDebug())
           return;
         }
 
-        auto route = findOrCreateMissingRoute(routeID, packet);
+        auto route = findOrCreateMissingRoute(routerRoute, packet);
 
         if (!route) {
           ZS_LOG_WARNING(Detail, log("route is not found that can handle this packet (thus ignoring packet)") + packet->toDebug())
@@ -831,8 +803,8 @@ namespace ortc
 
               auto response = createErrorResponse(packet, STUNPacket::ErrorCode_Unauthorized);
 
-              ZS_LOG_WARNING(Detail, log("returning conflict error to remote party") + ZS_PARAMIZE(routeID) + response->toDebug())
-              sendPacket(routeID, response);
+              ZS_LOG_WARNING(Detail, log("returning conflict error to remote party") + routerRoute->toDebug() + response->toDebug())
+              sendPacket(routerRoute, response);
 
               setBlacklisted(route);
               return;
@@ -845,8 +817,8 @@ namespace ortc
 
           auto response = createErrorResponse(packet, STUNPacket::ErrorCode_Unauthorized);
 
-          ZS_LOG_WARNING(Debug, log("returning conflict error to remote party") + ZS_PARAMIZE(routeID) + response->toDebug())
-          sendPacket(routeID, response);
+          ZS_LOG_WARNING(Debug, log("returning conflict error to remote party") + routerRoute->toDebug() + response->toDebug())
+          sendPacket(routerRoute, response);
           return;
         }
 
@@ -867,8 +839,8 @@ namespace ortc
 
         auto response = createBindResponse(packet, route);
 
-        ZS_LOG_TRACE(log("sending binding response to remote party") + ZS_PARAMIZE(routeID) + route->toDebug() + response->toDebug())
-        sendPacket(routeID, response);
+        ZS_LOG_TRACE(log("sending binding response to remote party") + route->toDebug() + response->toDebug())
+        sendPacket(routerRoute, response);
 
         if (IICETypes::Role_Controlled == mOptions.mRole) {
           if (packet->mUseCandidateIncluded) {
@@ -909,23 +881,25 @@ namespace ortc
 
     not_related_stun_packet:
       {
-        handlePassThroughSTUNPacket(routeID, packet);
+        handlePassThroughSTUNPacket(routerRoute, packet);
       }
     }
 
     //-------------------------------------------------------------------------
     void ICETransport::notifyPacket(
-                                    PUID routeID,
+                                    RouterRoutePtr routerRoute,
                                     const BYTE *buffer,
                                     size_t bufferSizeInBytes
                                     )
     {
+      UseSecureTransportPtr transport;
+
       {
         AutoRecursiveLock lock(*this);
 
-        auto found = mGathererRoutes.find(routeID);
+        auto found = mGathererRoutes.find(routerRoute->mID);
         if (found == mGathererRoutes.end()) {
-          ZS_LOG_WARNING(Detail, log("route was not found") + ZS_PARAMIZE(routeID) + ZS_PARAMIZE(bufferSizeInBytes))
+          ZS_LOG_WARNING(Detail, log("route was not found") + routerRoute->toDebug() + ZS_PARAMIZE(bufferSizeInBytes))
           return;
         }
 
@@ -945,50 +919,26 @@ namespace ortc
           return;
         }
 
+        transport = mSecureTransport.lock();
         goto forward_attached_listener;
       }
 
     forward_attached_listener:
       {
-#define TODO_FORWARD_PACKET_TO_ATTACHED_LISTENER 1
-#define TODO_FORWARD_PACKET_TO_ATTACHED_LISTENER 2
+        if (!transport) {
+          ZS_LOG_WARNING(Debug, log("no secure transport attached (packet is being discarded)"))
+          return;
+        }
+        transport->handleReceivedPacket(mComponent, buffer, bufferSizeInBytes);
       }
     }
     
     //-------------------------------------------------------------------------
     bool ICETransport::needsMoreCandidates() const
     {
-      AutoRecursiveLock lock(*this);
-
-      if ((isShuttingDown()) ||
-          (isShutdown())) {
-        ZS_LOG_WARNING(Debug, log("do not need more candidate if shutting down"))
-        return false;
-      }
-
-      if (isComplete()) {
-        ZS_LOG_TRACE(log("no need for more candidates as transport is complete"))
-        return false;
-      }
-
-      if (isContinousGathering()) {
-        ZS_LOG_TRACE(log("need more candidates because not completed yet (and in continuous gathering mode)"))
-        return true;
-      }
-
-      if (isDisconnected()) {
-        if ((mEndOfLocalCandidates) &&
-            (mEndOfRemoteCandidates)) {
-          ZS_LOG_WARNING(Debug, log("no need to get more candidates as transport is disconnected"))
-          return false;
-        }
-
-        ZS_LOG_TRACE(log("disconnected but end of candidates has not been received yet"))
-        return true;
-      }
-
-      ZS_LOG_TRACE(log("more candidates are required as transport is not completed or disconnected"))
-      return true;
+      bool needMoreCandidates = mNeedsMoreCandidates;
+      ZS_LOG_TRACE(log("needs more candidates") + ZS_PARAM("need", needMoreCandidates))
+      return needMoreCandidates;
     }
 
     //-------------------------------------------------------------------------
@@ -1030,7 +980,7 @@ namespace ortc
 
         auto route = (*current).second;
 
-        removeFrozenDependencies(route, false, ReasonNoMoreRelationshipPtr(new ReasonNoMoreRelationship));
+        removeFrozenDependencies(route, false, ReasonNoMoreRelationshipPtr(make_shared<ReasonNoMoreRelationship>()));
 
         if (!route->isFrozen()) continue;
 
@@ -1139,7 +1089,7 @@ namespace ortc
                                   )
     {
       UseICEGathererPtr gatherer;
-      RouteID route = 0;
+      RouterRoutePtr routerRoute;
 
       {
         AutoRecursiveLock lock(*this);
@@ -1150,10 +1100,10 @@ namespace ortc
         }
 
         gatherer = mGatherer;
-        route = mActiveRoute->mGathererRouteID;
+        routerRoute = mActiveRoute->mGathererRoute;
       }
 
-      return gatherer->sendPacket(route, buffer, bufferSizeInBytes);
+      return gatherer->sendPacket(*this, routerRoute, buffer, bufferSizeInBytes);
     }
 
     //-------------------------------------------------------------------------
@@ -1178,28 +1128,27 @@ namespace ortc
                                              STUNPacketPtr stunPacket
                                              )
     {
-      RouteID newRoute {};
+      RouterRoutePtr routerRoute;
 
       {
         AutoRecursiveLock lock(*this);
 
-        if (!mGatherer) {
+        if (!mGathererRouter) {
           ZS_LOG_WARNING(Detail, log("cannot handle packet as no gather is attached") + localCandidate->toDebug() + ZS_PARAM("remote ip", remoteIP.string()) + stunPacket->toDebug())
           return;
         }
 
-        newRoute = mGatherer->createRoute(mThisWeak.lock(), localCandidate, remoteIP);
-        if (0 == newRoute) {
+        routerRoute = mGathererRouter->findRoute(localCandidate, remoteIP, true);
+        if (!routerRoute) {
           ZS_LOG_WARNING(Detail, log("cannot handle packet as no route could be created") + localCandidate->toDebug() + ZS_PARAM("remote ip", remoteIP.string()) + stunPacket->toDebug())
           return;
         }
-
-        ZS_LOG_TRACE(log("retry handling of incoming packet via newly created pending route") + ZS_PARAM("new route id", newRoute) + localCandidate->toDebug() + ZS_PARAM("remote ip", remoteIP.string()) + stunPacket->toDebug())
-        mPendingGathererRoutes[newRoute] = LocalCandidateFromIPPair(localCandidate, remoteIP);
       }
 
+      ZS_LOG_TRACE(log("retrying to handle packet again") + routerRoute->toDebug() + stunPacket->toDebug())
+
       // forward packet to be handled on newly established route
-      notifyPacket(newRoute, stunPacket);
+      notifyPacket(routerRoute, stunPacket);
     }
 
     //-------------------------------------------------------------------------
@@ -1369,7 +1318,7 @@ namespace ortc
                                                    CandidatePtr inCandidate
                                                    )
     {
-      CandidatePtr candidate(new Candidate(*inCandidate));
+      CandidatePtr candidate(make_shared<Candidate>(*inCandidate));
       UseICEGathererPtr gatherer = ICEGatherer::convert(inGatherer);
 
       AutoRecursiveLock lock(*this);
@@ -1381,18 +1330,18 @@ namespace ortc
 
       bool shouldRecalculate = false;
 
-      if (mEndOfLocalCandidates) {
-        mEndOfLocalCandidates = false;
-        mLocalCandidatesHash.clear();
-        shouldRecalculate = true;
-      }
-
       auto hash = candidate->hash();
 
       auto found = mLocalCandidates.find(hash);
       if (found != mLocalCandidates.end()) {
         ZS_LOG_DEBUG(log("local candidate is already known (thus ignoring)") + candidate->toDebug())
         goto check_recalculate;
+      }
+
+      if (mLocalCandidatesComplete) {
+        mLocalCandidatesComplete = false;
+        mLocalCandidatesHash.clear();
+        shouldRecalculate = true;
       }
 
       mLocalCandidates[hash] = candidate;
@@ -1427,14 +1376,14 @@ namespace ortc
         return;
       }
 
-      if (mEndOfLocalCandidates) {
+      if (mLocalCandidatesComplete) {
         ZS_LOG_TRACE(log("already notified end of local candidates"))
         return;
       }
 
       ZS_LOG_DEBUG(log("end of local candidates found") + candidate->toDebug())
 
-      mEndOfLocalCandidates = true;
+      mLocalCandidatesComplete = true;
 
       mLocalCandidatesHash.clear();
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
@@ -1446,7 +1395,7 @@ namespace ortc
                                                        CandidatePtr inCandidate
                                                        )
     {
-      CandidatePtr candidate(new Candidate(*inCandidate));
+      CandidatePtr candidate(make_shared<Candidate>(*inCandidate));
 
       UseICEGathererPtr gatherer = ICEGatherer::convert(inGatherer);
 
@@ -1509,7 +1458,7 @@ namespace ortc
     {
       ZS_THROW_INVALID_ARGUMENT_IF(!packet)
 
-      PUID routeID = 0;
+      RouterRoutePtr routerRoute;
       UseICEGathererPtr gatherer;
 
       {
@@ -1546,24 +1495,20 @@ namespace ortc
 
       setup_route:
         {
-          if (0 == route->mGathererRouteID) {
-            route->mGathererRouteID = mGatherer->createRoute(mThisWeak.lock(), route->mCandidatePair->mLocal, destination);
-            if (0 != route->mGathererRouteID) mGathererRoutes[route->mGathererRouteID] = route;
-            ZS_LOG_TRACE(log("installed new gatherer route (hopefully)") + route->toDebug())
-          }
+          installGathererRoute(route);
 
-          routeID = route->mGathererRouteID;
+          routerRoute = route->mGathererRoute;
           route->mLastSentCheck = zsLib::now();
         }
       }
 
-      if (0 == routeID) {
+      if (!routerRoute) {
         ZS_LOG_WARNING(Trace, log("cannot send packet as no route set") + ZS_PARAM("stun requester", requester->getID()) + ZS_PARAM("destination ip", destination.string()) + ZS_PARAM("packet size", packet->SizeInBytes()))
         return;
       }
 
       ZS_LOG_TRACE(log("sending stun packet") + ZS_PARAM("stun requester", requester->getID()) + ZS_PARAM("destination ip", destination.string()) + ZS_PARAM("packet size", packet->SizeInBytes()))
-      gatherer->sendPacket(routeID, packet->BytePtr(), packet->SizeInBytes());
+      gatherer->sendPacket(*this, routerRoute, packet->BytePtr(), packet->SizeInBytes());
     }
 
     //-------------------------------------------------------------------------
@@ -1782,6 +1727,7 @@ namespace ortc
 
       UseServicesHelper::debugAppend(resultEl, "gatherer", mGatherer ? mGatherer->getID() : 0);
       UseServicesHelper::debugAppend(resultEl, "gatherer subscription", mGathererSubscription ? mGathererSubscription->getID() : 0);
+      UseServicesHelper::debugAppend(resultEl, "gatherer router", mGathererRouter ? mGathererRouter->getID() : 0);
 
       UseServicesHelper::debugAppend(resultEl, "transport controller", transportController ? transportController->getID() : 0);
 
@@ -1801,19 +1747,19 @@ namespace ortc
 
       UseServicesHelper::debugAppend(resultEl, "local candidates hash", mLocalCandidatesHash);
       UseServicesHelper::debugAppend(resultEl, "local candidates", mLocalCandidates.size());
-      UseServicesHelper::debugAppend(resultEl, "end of local candidates", mEndOfLocalCandidates);
+      UseServicesHelper::debugAppend(resultEl, "end of local candidates", mLocalCandidatesComplete);
 
       UseServicesHelper::debugAppend(resultEl, "remote candidates hash", mRemoteCandidatesHash);
       UseServicesHelper::debugAppend(resultEl, "remote candidates", mRemoteCandidates.size());
-      UseServicesHelper::debugAppend(resultEl, "end of remote candidates", mEndOfRemoteCandidates);
+      UseServicesHelper::debugAppend(resultEl, "end of remote candidates", mRemoteCandidatesComplete);
 
       UseServicesHelper::debugAppend(resultEl, "computed pairs hash", mComputedPairsHash);
       UseServicesHelper::debugAppend(resultEl, "legal routes", mLegalRoutes.size());
       UseServicesHelper::debugAppend(resultEl, "foundation routes", mFoundationRoutes.size());
+      UseServicesHelper::debugAppend(resultEl, mRouteStateTracker->toDebug());
 
       UseServicesHelper::debugAppend(resultEl, "activation timer", mActivationTimer ? mActivationTimer->getID() : 0);
 
-      UseServicesHelper::debugAppend(resultEl, "pending pairs hash", mPendingActivationPairsHash);
       UseServicesHelper::debugAppend(resultEl, "pending activation", mPendingActivation.size());
 
       UseServicesHelper::debugAppend(resultEl, "frozen", mFrozen.size());
@@ -1823,7 +1769,6 @@ namespace ortc
       UseServicesHelper::debugAppend(resultEl, "warm routes", mWarmRoutes.size());
 
       UseServicesHelper::debugAppend(resultEl, "gatherer routes", mGathererRoutes.size());
-      UseServicesHelper::debugAppend(resultEl, "pending gatherer routes", mPendingGathererRoutes.size());
 
       UseServicesHelper::debugAppend(resultEl, "outgoing checks", mOutgoingChecks.size());
       UseServicesHelper::debugAppend(resultEl, "next keep warm timers", mNextKeepWarmTimers.size());
@@ -1842,6 +1787,9 @@ namespace ortc
 
       UseServicesHelper::debugAppend(resultEl, "keep warm time base", mKeepWarmTimeBase);
       UseServicesHelper::debugAppend(resultEl, "keep warm randomized add time", mKeepWarmTimeRandomizedAddTime);
+
+      UseServicesHelper::debugAppend(resultEl, "secure transport id", mSecureTransportID);
+      UseServicesHelper::debugAppend(resultEl, "secure transport", (bool)(mSecureTransport.lock()));
 
       return resultEl;
     }
@@ -1890,6 +1838,7 @@ namespace ortc
     done:
       {
         if (!stepSetCurrentState()) return;
+        if (!stepSetNeedsMoreCandidates()) return;
       }
     }
 
@@ -1907,6 +1856,8 @@ namespace ortc
 
       for (auto iterLocal = mLocalCandidates.begin(); iterLocal != mLocalCandidates.end(); ++iterLocal) {
         auto localCandidate = (*iterLocal).second;
+
+        bool isLocalIPv4 = (String::npos != localCandidate->mIP.find('.'));
 
         if (IICETypes::CandidateType_Srflex == localCandidate->mCandidateType) {
           ZS_LOG_TRACE(log("eliminating server reflexive as a local candidate") + localCandidate->toDebug())
@@ -1926,7 +1877,11 @@ namespace ortc
             }
           }
 
-          CandidatePairPtr candidatePair(new CandidatePair);
+          bool isRemoteIPv4 = (String::npos != remoteCandidate->mIP.find('.'));
+
+          if (isLocalIPv4 != isRemoteIPv4) continue;  // cannot match unless they both are either IPv4 or IPv6
+
+          CandidatePairPtr candidatePair(make_shared<CandidatePair>());
           candidatePair->mLocal = localCandidate;
           candidatePair->mRemote = remoteCandidate;
 
@@ -1960,7 +1915,7 @@ namespace ortc
         auto hash = (*iter).first;
         auto candidatePair = (*iter).second;
 
-        RoutePtr route(new Route);
+        RoutePtr route(make_shared<Route>(mRouteStateTracker));
         route->mCandidatePair = candidatePair;
         route->mCandidatePairHash = hash;
 
@@ -1986,8 +1941,8 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool ICETransport::stepPendingActivation()
     {
-      if (mPendingActivationPairsHash == mComputedPairsHash) {
-        ZS_LOG_TRACE(log("already calculated pending activation"))
+      if (0 == mRouteStateTracker->count(Route::State_New)) {
+        ZS_LOG_TRACE(log("no routes pending activation"))
         return true;
       }
 
@@ -1997,6 +1952,8 @@ namespace ortc
       {
         auto hash = (*iter).first;
         auto route = (*iter).second;
+
+        if (route->state() != Route::State_New) continue;
 
         auto found = mPendingActivation.find(route->mPendingPriority);
         if (found != mPendingActivation.end()) {
@@ -2011,9 +1968,7 @@ namespace ortc
         setPending(route);
       }
 
-      mPendingActivationPairsHash = mComputedPairsHash;
-
-      ZS_LOG_DEBUG(log("pending activation is now calculated") + ZS_PARAM("total pending", mPendingActivation.size()) + ZS_PARAM("hash", mPendingActivationPairsHash))
+      ZS_LOG_DEBUG(log("pending activation is now calculated") + ZS_PARAM("total pending", mRouteStateTracker->count(Route::State_Pending)))
       return true;
     }
 
@@ -2031,7 +1986,8 @@ namespace ortc
         }
       } else {
         if ((isComplete()) ||
-            (isDisconnected())) {
+            (isDisconnected()) ||
+            (isFailed())) {
           ZS_LOG_TRACE(log("no activation timer needed (nothing more to test)"))
           goto no_activation_timer;
         }
@@ -2088,7 +2044,7 @@ namespace ortc
       QWORD chosenPreference = 0;
       RoutePtr chosenRoute;
 
-      Microseconds fastestRoutePicked;
+      Microseconds fastestRoutePicked {};
 
       for (auto iter = mWarmRoutes.begin(); iter != mWarmRoutes.end(); ++iter) {
         auto route = (*iter).second;
@@ -2109,7 +2065,7 @@ namespace ortc
 
           // if after double the no packets arrival window activity hasn't happened then do not consider this route as active anymore
           if (lastRemoteActivity + mNoPacketsReceivedRecheckTime + mNoPacketsReceivedRecheckTime < now) {
-            ZS_LOG_WARNING(Trace, log("will not consider this route because of recent inactivity") + route->toDebug())
+            ZS_LOG_WARNING(Trace, log("will not consider this route because of recent inactivity") + ZS_PARAM("difference", (now - lastRemoteActivity)) + route->toDebug())
             continue;
           }
         }
@@ -2218,7 +2174,7 @@ namespace ortc
           continue;
         }
 
-        ZS_LOG_DEBUG(log("route cannot be kept warm any longer (expired)") + route->toDebug() + ZS_PARAM("expires (s)", mExpireRouteTime))
+        ZS_LOG_DEBUG(log("route cannot be kept warm any longer (expired)") + ZS_PARAM("difference", (now - route->mLastReceivedResponse)) + route->toDebug() + ZS_PARAM("expires (s)", mExpireRouteTime))
 
         if (mBlacklistConsent) {
           setBlacklisted(route);
@@ -2362,37 +2318,68 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool ICETransport::stepSetCurrentState()
     {
-      if (mPendingGathererRoutes.size() > 0) {
-        // pending routes but do we have active route
-        if (mActiveRoute) {
-          // connected at this moment
-          setState(IICETransport::State_Connected);
+      if ((mRemoteCandidates.size() < 1) &&
+          (!mRemoteCandidatesComplete)) {
+        ZS_LOG_INSANE(log("state is new (no remote candidates found)") + ZS_PARAM("total remote candidates", mRemoteCandidates.size()))
+        setState(IICETransport::State_New);
+        return true;
+      }
+
+      bool pendingChecks = ((0 != mRouteStateTracker->count(Route::State_New)) ||
+                            (0 != mRouteStateTracker->count(Route::State_Pending)) ||
+                            (0 != mRouteStateTracker->count(Route::State_Frozen)) ||
+                            (0 != mRouteStateTracker->count(Route::State_InProgress)));
+      bool localAndRemoteComplete = mLocalCandidatesComplete && mRemoteCandidatesComplete;
+
+      if (localAndRemoteComplete) {
+        if (pendingChecks) {
+          if (mActiveRoute) {
+            ZS_LOG_INSANE(debug("state is connected (local and remote complete, pending checks, and active route found)"))
+            setState(IICETransport::State_Connected);
+            return true;
+          }
+          ZS_LOG_INSANE(debug("state is disconnected (local and remote complete, pending checks, no active route found)"))
+          setState(IICETransport::State_Disconnected);
           return true;
         }
+
+        if (mActiveRoute) {
+          ZS_LOG_INSANE(debug("state is complete (local and remote complete, no pending checks, active route found)"))
+          setState(IICETransport::State_Completed);
+        } else {
+          ZS_LOG_INSANE(debug("state is failed (local and remote complete, no pending checks, no active route found)"))
+          setState(IICETransport::State_Failed);
+        }
+        return true;
+      }
+
+      if (mActiveRoute) {
+        ZS_LOG_INSANE(debug("state is connected (not complete, may have pending checks, active route found)"))
+        setState(IICETransport::State_Connected);
+        return true;
+      }
+
+      if (pendingChecks) {
+        ZS_LOG_INSANE(debug("state is checking (not complete, has pending checks, no active route found)"))
         setState(IICETransport::State_Checking);
         return true;
       }
 
-      if ((!mEndOfLocalCandidates) ||
-          (!mEndOfRemoteCandidates)) {
-
-        if (mActiveRoute) {
-          setState(IICETransport::State_Connected);
-          return true;
-        }
-
-        ZS_LOG_TRACE(log("end of local/remote candidates not present"))
-        setState(IICETransport::State_Disconnected);
+      if (mLocalCandidates.size() < 1) {
+        ZS_LOG_INSANE(debug("state is checking (not complete, has pending checks, no active route found)"))
+        setState(IICETransport::State_Checking);
         return true;
       }
 
-      // no more pending routes
-      if (mActiveRoute) {
-        setState(IICETransport::State_Completed);
-        return true;
-      }
-
+      ZS_LOG_INSANE(debug("state is disconnected (not complete, no pending checks, no active route found)"))
       setState(IICETransport::State_Disconnected);
+      return true;
+    }
+
+    //-------------------------------------------------------------------------
+    bool ICETransport::stepSetNeedsMoreCandidates()
+    {
+      mNeedsMoreCandidates = getNeedsMoreCandidates();
       return true;
     }
 
@@ -2417,7 +2404,10 @@ namespace ortc
       }
 
       mWarmRoutesChanged = 1; // by setting to 1 warm routes will be checked again
-      ITransportAsyncDelegateProxy::create(mThisWeak.lock())->onWarmRoutesChanged();
+      auto pThis = mThisWeak.lock();
+      if (pThis) {
+        ITransportAsyncDelegateProxy::create(mThisWeak.lock())->onWarmRoutesChanged();
+      }
     }
     
     //-------------------------------------------------------------------------
@@ -2437,11 +2427,13 @@ namespace ortc
       }
 
       // try to gracefully shutdown
-      setState(IICETransport::State_Disconnected);
-
       if (!mGracefulShutdownReference) mGracefulShutdownReference = mThisWeak.lock();
 
+      stepSetCurrentState();
+      stepSetNeedsMoreCandidates();
+
       if (mGracefulShutdownReference) {
+        // no async shutdown required (at this time)
       }
 
       //.......................................................................
@@ -2456,11 +2448,73 @@ namespace ortc
         mGatherer.reset();
       }
 
+      if (mGathererSubscription) {
+        mGathererSubscription->cancel();
+        mGathererSubscription.reset();
+      }
+
+      mTransportController.reset();
+
+      mGathererRouter.reset();
+
       pruneAllCandidatePairs(false);
 
       setState(IICETransportTypes::State_Closed);
 
       mSecureTransportID = 0;
+      mSecureTransport.reset();
+
+      mSubscriptions.clear();
+
+      mLocalCandidates.clear();
+      mLocalCandidatesComplete = true;
+
+      mRemoteCandidates.clear();
+      mRemoteCandidatesComplete = true;
+
+      mLegalRoutes.clear();
+      mFoundationRoutes.clear();
+
+      if (mActivationTimer) {
+        mActivationTimer->cancel();
+        mActivationTimer.reset();
+      }
+
+      mPendingActivation.clear();
+
+      for (auto iter_doNotUse = mFrozen.begin(); iter_doNotUse != mFrozen.end(); ) {
+        auto current = iter_doNotUse;
+        ++iter_doNotUse;
+
+        auto promise = (*current).first;
+        promise->reject(ReasonNoMoreRelationshipPtr(make_shared<ReasonNoMoreRelationship>()));
+      }
+
+      mActiveRoute.reset();
+
+      mWarmRoutes.clear();
+
+      mGathererRoutes.clear();
+
+      mOutgoingChecks.clear();
+      mNextKeepWarmTimers.clear();
+
+      mUseCandidateRoute.reset();
+      if (mUseCandidateRequest) {
+        mUseCandidateRequest->cancel();
+        mUseCandidateRequest.reset();
+      }
+
+      if (mLastReceivedPacketTimer) {
+        mLastReceivedPacketTimer->cancel();
+        mLastReceivedPacketTimer.reset();
+      }
+
+      if (mExpireRouteTimer) {
+        mExpireRouteTimer->cancel();
+        mExpireRouteTimer.reset();
+      }
+
       mSecureTransport.reset();
     }
 
@@ -2469,7 +2523,7 @@ namespace ortc
     {
       if (state == mCurrentState) return;
 
-      ZS_LOG_DETAIL(debug("state changed") + ZS_PARAM("old state", IICETransport::toString(mCurrentState)) + ZS_PARAM("new state", state))
+      ZS_LOG_DETAIL(debug("state changed") + ZS_PARAM("new state", IICETransport::toString(state)) + ZS_PARAM("old state", IICETransport::toString(mCurrentState)))
 
       mCurrentState = state;
 
@@ -2517,6 +2571,12 @@ namespace ortc
       return IICETransport::State_Disconnected == mCurrentState;
     }
 
+    //-----------------------------------------------------------------------
+    bool ICETransport::isFailed() const
+    {
+      return IICETransport::State_Failed == mCurrentState;
+    }
+
     //-------------------------------------------------------------------------
     void ICETransport::handleExpireRouteTimer()
     {
@@ -2532,10 +2592,10 @@ namespace ortc
         if (Time() != latest) {
           if (latest + mExpireRouteTime < now) {
             if (mBlacklistConsent) {
-              ZS_LOG_WARNING(Detail, log("blacklisting consent on active route") + mActiveRoute->toDebug())
+              ZS_LOG_WARNING(Detail, log("blacklisting consent on active route") + ZS_PARAM("difference", (now - latest)) + mActiveRoute->toDebug())
               setBlacklisted(mActiveRoute);
             } else {
-              ZS_LOG_WARNING(Detail, log("active route has now failed") + mActiveRoute->toDebug())
+              ZS_LOG_WARNING(Detail, log("active route has now failed") + ZS_PARAM("difference", (now - latest)) + mActiveRoute->toDebug())
               setFailed(mActiveRoute);
             }
 
@@ -2566,7 +2626,7 @@ namespace ortc
           mWarmRoutes.erase(current);
           warmRoutesChanged();
 
-          ZS_LOG_WARNING(Debug, log("warm route no longer is warm") + route->toDebug())
+          ZS_LOG_WARNING(Debug, log("warm route no longer is warm") + ZS_PARAM("difference", (now - latest)) + route->toDebug())
 
           if (mBlacklistConsent) {
             ZS_LOG_WARNING(Detail, log("warm route is blacklisted due to consent removal") + route->toDebug())
@@ -2601,7 +2661,7 @@ namespace ortc
 
       forceActive(mActiveRoute);
 
-      for (auto iter = mWarmRoutes.begin(); iter != mWarmRoutes.end();)
+      for (auto iter = mWarmRoutes.begin(); iter != mWarmRoutes.end(); ++iter)
       {
         auto route = (*iter).second;
         forceActive(route);
@@ -2704,9 +2764,11 @@ namespace ortc
       }
 
       if (mLastReceivedPacket + mNoPacketsReceivedRecheckTime > now) {
-        ZS_LOG_TRACE(log("packet received recently thus no need to re-activate anything"))
+        ZS_LOG_TRACE(log("packet received recently (thus no need to re-activate anything)") + ZS_PARAM("difference", (now - mLastReceivedPacket)))
         goto check_activation_timer;
       }
+
+      ZS_LOG_WARNING(Debug, log("packet was not received recently (thus need to re-activate something)") + ZS_PARAM("difference", (now - mLastReceivedPacket)))
 
       // scope: try to activate an old route just in case something can be resolved
       {
@@ -2800,7 +2862,7 @@ namespace ortc
       removeFoundation(route);
       removePendingActivation(route);
       removeFrozen(route);
-      removeFrozenDependencies(route, false, ReasonNoMoreRelationshipPtr(new ReasonNoMoreRelationship));
+      removeFrozenDependencies(route, false, ReasonNoMoreRelationshipPtr(make_shared<ReasonNoMoreRelationship>()));
       removeActive(route);
       removeWarm(route);
       removeGathererRoute(route);
@@ -2819,8 +2881,6 @@ namespace ortc
       if (mGatherer) {
         mGatherer->remoteAllRelatedRoutes(*this);
       }
-
-      mPendingGathererRoutes.clear();
 
       mComputedPairsHash.clear();
 
@@ -2849,7 +2909,7 @@ namespace ortc
           }
         }
 
-        route->mGathererRouteID = 0;  // reset the route since it's gone
+        route->mGathererRoute.reset();  // reset the route since it's gone
 
         ZS_LOG_DEBUG(log("shutting down route due to complete route pruning") + route->toDebug())
         shutdown(route);
@@ -2869,16 +2929,20 @@ namespace ortc
     {
       if (!route) return CandidatePairPtr();
 
-      CandidatePairPtr tempPair(new CandidatePair);
-      tempPair->mLocal = CandidatePtr(new Candidate(*(route->mCandidatePair->mLocal)));
-      tempPair->mRemote = CandidatePtr(new Candidate(*(route->mCandidatePair->mRemote)));
+      CandidatePairPtr tempPair(make_shared<CandidatePair>());
+      tempPair->mLocal = CandidatePtr(make_shared<Candidate>(*(route->mCandidatePair->mLocal)));
+      tempPair->mRemote = CandidatePtr(make_shared<Candidate>(*(route->mCandidatePair->mRemote)));
       return tempPair;
     }
     
     //-------------------------------------------------------------------------
     void ICETransport::setPending(RoutePtr route)
     {
-      switch (route->mState) {
+      switch (route->state()) {
+        case Route::State_New: {
+          ZS_LOG_DEBUG(log("route can go into pending state") + route->toDebug())
+          goto insert_pending;
+        }
         case Route::State_Pending:    {
           auto found = mPendingActivation.find(route->mPendingPriority);
           if (found == mPendingActivation.end()) goto insert_pending;
@@ -2931,7 +2995,7 @@ namespace ortc
         route->mPendingPriority = priority;
         mPendingActivation[priority] = route;
 
-        route->mState = Route::State_Pending;
+        route->state(Route::State_Pending);
       }
     }
 
@@ -2941,8 +3005,13 @@ namespace ortc
                                  PromisePtr promise
                                  )
     {
-      switch (route->mState) {
+      switch (route->state()) {
+        case Route::State_New:        {
+          ZS_LOG_DEBUG(log("route is going from new to frozen") + route->toDebug())
+          goto freeze;
+        }
         case Route::State_Pending:    {
+          ZS_LOG_DEBUG(log("route is going from pending to frozen") + route->toDebug())
           goto freeze;
         }
         case Route::State_Frozen:     {
@@ -2974,7 +3043,7 @@ namespace ortc
         removePendingActivation(route);
         removeFrozen(route);
 
-        route->mState = Route::State_Frozen;
+        route->state(Route::State_Frozen);
         route->mFrozenPromise = promise;
         mFrozen[promise] = route;
 
@@ -2985,7 +3054,8 @@ namespace ortc
     //-------------------------------------------------------------------------
     void ICETransport::setInProgress(RoutePtr route)
     {
-      switch (route->mState) {
+      switch (route->state()) {
+        case Route::State_New:        goto in_progress;
         case Route::State_Pending:    goto in_progress;
         case Route::State_Frozen:     goto in_progress;
         case Route::State_InProgress: {
@@ -3016,7 +3086,7 @@ namespace ortc
         removeKeepWarmTimer(route);
         removeWarm(route);
 
-        route->mState = Route::State_InProgress;
+        route->state(Route::State_InProgress);
         route->mLastReceivedResponse = Time();
 
         if (Time() != route->mLastReceivedResponse) {
@@ -3027,13 +3097,16 @@ namespace ortc
 
         route->mOutgoingCheck = createBindRequest(route);
         mOutgoingChecks[route->mOutgoingCheck] = route;
+
+        ZS_LOG_TRACE(log("route set in progess") + route->toDebug())
       }
     }
 
     //-------------------------------------------------------------------------
     void ICETransport::setSucceeded(RoutePtr route)
     {
-      switch (route->mState) {
+      switch (route->state()) {
+        case Route::State_New:        goto succeeded;
         case Route::State_Pending:    goto succeeded;
         case Route::State_Frozen:     goto succeeded;
         case Route::State_InProgress: goto succeeded;
@@ -3054,7 +3127,7 @@ namespace ortc
         removeFrozenDependencies(route, true);
         removeOutgoingCheck(route);
 
-        route->mState = Route::State_Succeeded;
+        route->state(Route::State_Succeeded);
 
         // add to warm routes
         auto found = mWarmRoutes.find(route->mCandidatePairHash);
@@ -3070,7 +3143,8 @@ namespace ortc
     //-------------------------------------------------------------------------
     void ICETransport::setFailed(RoutePtr route)
     {
-      switch (route->mState) {
+      switch (route->state()) {
+        case Route::State_New:        goto failed;
         case Route::State_Pending:    goto failed;
         case Route::State_Frozen:     goto failed;
         case Route::State_InProgress: goto failed;
@@ -3094,7 +3168,7 @@ namespace ortc
         removeKeepWarmTimer(route);
         removeWarm(route);
 
-        route->mState = Route::State_Failed;
+        route->state(Route::State_Failed);
         wakeUp();
       }
     }
@@ -3102,7 +3176,8 @@ namespace ortc
     //-------------------------------------------------------------------------
     void ICETransport::setBlacklisted(RoutePtr route)
     {
-      switch (route->mState) {
+      switch (route->state()) {
+        case Route::State_New:        goto blacklist;
         case Route::State_Pending:    goto blacklist;
         case Route::State_Frozen:     goto blacklist;
         case Route::State_InProgress: goto blacklist;
@@ -3128,7 +3203,7 @@ namespace ortc
 
         route->mKeepWarm = false;
 
-        route->mState = Route::State_Blacklisted;
+        route->state(Route::State_Blacklisted);
         wakeUp();
       }
     }
@@ -3145,6 +3220,32 @@ namespace ortc
         if (route->isFailed()) {
           ZS_LOG_WARNING(Trace, log("route cannot be made sucessful because it has already failed"))
           return;
+        }
+      }
+
+      if (IICETypes::Protocol_UDP == route->mCandidatePair->mLocal->mProtocol) {
+        if (IICETypes::CandidateType_Host == route->mCandidatePair->mLocal->mCandidateType) {
+          switch (route->mCandidatePair->mRemote->mCandidateType) {
+            case IICETypes::CandidateType_Host:   break;
+            case IICETypes::CandidateType_Prflx:
+            case IICETypes::CandidateType_Srflex:
+            case IICETypes::CandidateType_Relay:  {
+              // NOTE: If the remote candidate is seen as non-host related
+              // then likely the remote party is sending to the local party's
+              // reflexive candidate if the local candidate sees the packet
+              // arrive on the local host. Thus we must inform the gatherer
+              // that activity is likely occuring on its reflexive candidates
+              // associated with the local candidate in order that the gather
+              // does not prune a potential candidate where activity is
+              // occuring (where the gatherer would not likely know otherwise).
+              if ((mGatherer) &&
+                  (route->mGathererRoute)) {
+                ZS_LOG_INSANE(log("notify gatherer of likely reflexive activity") + route->toDebug())
+                mGatherer->notifyLikelyReflexiveActivity(route->mGathererRoute);
+              }
+              break;
+            }
+          }
         }
       }
 
@@ -3172,8 +3273,11 @@ namespace ortc
                 setSucceeded(route);
               }
             } else {
-              ZS_LOG_DEBUG(log("route is now a success") + route->toDebug())
-              setSucceeded(route);
+              if ((Time() != route->mLastReceivedCheck) &&
+                  (Time() != route->mLastReceivedResponse)) {
+                ZS_LOG_DEBUG(log("route is now a success") + route->toDebug())
+                setSucceeded(route);
+              }
             }
           } else {
             ZS_LOG_WARNING(Trace, log("consent cannot be granted because route is blacklisted") + route->toDebug())
@@ -3207,21 +3311,22 @@ namespace ortc
         ZS_LOG_WARNING(Trace, log("not possible to install route as route is null"))
         return false;
       }
-      if (!mGatherer) {
-        ZS_LOG_WARNING(Trace, log("cannot install gatherer route as gatherer is not present") + route->toDebug())
+      if (!mGathererRouter) {
+        ZS_LOG_WARNING(Trace, log("cannot install gatherer route as gatherer router is not present") + route->toDebug())
         return false;
       }
-      if (0 != route->mGathererRouteID) {
+      if (route->mGathererRoute) {
         ZS_LOG_INSANE(log("gatherer route already installed") + route->toDebug())
         return true;
       }
+
       auto ip = route->mCandidatePair->mRemote->ip();
-      route->mGathererRouteID = mGatherer->createRoute(mThisWeak.lock(), route->mCandidatePair->mLocal, ip);
-      if (0 == route->mGathererRouteID) {
+      route->mGathererRoute = mGathererRouter->findRoute(route->mCandidatePair->mLocal, ip, true);
+      if (!route->mGathererRoute) {
         ZS_LOG_WARNING(Debug, log("failed to install gatherer route") + route->toDebug())
         return false;
       }
-      mGathererRoutes[route->mGathererRouteID] = route;
+      mGathererRoutes[route->mGathererRoute->mID] = route;
       return true;
     }
 
@@ -3362,17 +3467,17 @@ namespace ortc
     //-------------------------------------------------------------------------
     void ICETransport::removeGathererRoute(RoutePtr route)
     {
-      if (0 == route->mGathererRouteID) return;
+      if (!route->mGathererRoute) return;
 
-      auto found = mGathererRoutes.find(route->mGathererRouteID);
+      auto found = mGathererRoutes.find(route->mGathererRoute->mID);
       if (found != mGathererRoutes.end()) {
         mGathererRoutes.erase(found);
       }
       if (mGatherer) {
-        mGatherer->removeRoute(route->mGathererRouteID);
+        mGatherer->removeRoute(route->mGathererRoute);
       }
 
-      route->mGathererRouteID = 0;
+      route->mGathererRoute.reset();
     }
     
     //-------------------------------------------------------------------------
@@ -3555,7 +3660,7 @@ namespace ortc
 
     //-------------------------------------------------------------------------
     void ICETransport::sendPacket(
-                                  RouteID routeID,
+                                  RouterRoutePtr routerRoute,
                                   STUNPacketPtr packet
                                   )
     {
@@ -3565,7 +3670,7 @@ namespace ortc
       }
 
       SecureByteBlockPtr packetized = packet->packetize(STUNPacket::RFC_5245_ICE);
-      mGatherer->sendPacket(routeID, packetized->BytePtr(), packetized->SizeInBytes());
+      mGatherer->sendPacket(*this, routerRoute, packetized->BytePtr(), packetized->SizeInBytes());
     }
 
     //-------------------------------------------------------------------------
@@ -3597,7 +3702,7 @@ namespace ortc
 
     //-------------------------------------------------------------------------
     bool ICETransport::handleSwitchRolesAndConflict(
-                                                    RouteID routeID,
+                                                    RouterRoutePtr routerRoute,
                                                     STUNPacketPtr packet
                                                     )
     {
@@ -3623,40 +3728,17 @@ namespace ortc
 
     respond_with_conflict:
       {
-        auto foundPending = mPendingGathererRoutes.find(routeID);
-        auto foundRoute = mGathererRoutes.find(routeID);
-
         auto response = createErrorResponse(packet, STUNPacket::ErrorCode_RoleConflict);
+        response->mMappedAddress = routerRoute->mRemoteIP;
         setRole(response);
-        if (foundPending != mPendingGathererRoutes.end()) {
-          response->mMappedAddress = (*foundPending).second.second;
-        } else if (foundRoute != mGathererRoutes.end()) {
-          auto route = (*foundRoute).second;
-          response->mMappedAddress = route->mCandidatePair->mRemote->ip();
-        }
 
-        ZS_LOG_WARNING(Detail, log("returning conflict error to remote party") + ZS_PARAMIZE(routeID) + response->toDebug())
-        sendPacket(routeID, response);
+        ZS_LOG_WARNING(Detail, log("returning conflict error to remote party") + routerRoute->toDebug() + response->toDebug())
+        sendPacket(routerRoute, response);
         return true;
       }
 
     switch_roles:
       {
-        auto foundPending = mPendingGathererRoutes.find(routeID);
-        auto foundRoute = mGathererRoutes.find(routeID);
-
-        CandidatePtr localCandidate;
-        IPAddress remoteIP;
-
-        if (foundPending != mPendingGathererRoutes.end()) {
-          localCandidate = (*foundPending).second.first;
-          remoteIP = (*foundPending).second.second;
-        } else if (foundRoute != mGathererRoutes.end()) {
-          auto route = (*foundRoute).second;
-          localCandidate = route->mCandidatePair->mLocal;
-          remoteIP = route->mCandidatePair->mRemote->ip();
-        }
-
         ZS_LOG_WARNING(Detail, log("ice role conflict detected (switching roles)") + mOptions.toDebug() + packet->toDebug() + ZS_PARAM("conflict resolver", mConflictResolver))
 
         mOptions.mRole = (IICETypes::Role_Controlling == mOptions.mRole ? IICETypes::Role_Controlled : IICETypes::Role_Controlling);
@@ -3664,17 +3746,15 @@ namespace ortc
         pruneAllCandidatePairs(true);
         wakeUp();
 
-        if (localCandidate) {
-          ZS_LOG_WARNING(Debug, log("will retry conflicting packet again after recomputing candidate pairings") + localCandidate->toDebug() + ZS_PARAM("remote ip", remoteIP.string()) + packet->toDebug())
-          ITransportAsyncDelegateProxy::create(mThisWeak.lock())->onNotifyPacketRetried(localCandidate, remoteIP, packet);
-        }
+        ZS_LOG_WARNING(Debug, log("will retry conflicting packet again after recomputing candidate pairings") + routerRoute->toDebug() + packet->toDebug())
+        ITransportAsyncDelegateProxy::create(mThisWeak.lock())->onNotifyPacketRetried(routerRoute->mLocalCandidate, routerRoute->mRemoteIP, packet);
       }
       return true;
     }
 
     //-------------------------------------------------------------------------
     ICETransport::RoutePtr ICETransport::findOrCreateMissingRoute(
-                                                                  RouteID routeID,
+                                                                  RouterRoutePtr routerRoute,
                                                                   STUNPacketPtr packet
                                                                   )
     {
@@ -3682,7 +3762,7 @@ namespace ortc
 
       // scope: first check if route already exists
       {
-        auto found = mGathererRoutes.find(routeID);
+        auto found = mGathererRoutes.find(routerRoute->mID);
 
         if (found == mGathererRoutes.end()) goto existing_route_not_found;
 
@@ -3693,46 +3773,25 @@ namespace ortc
 
     existing_route_not_found:
       {
-        auto found = mPendingGathererRoutes.find(routeID);
-
-        if (found == mPendingGathererRoutes.end()) {
-          ZS_LOG_WARNING(Debug, log("route does not exist") + ZS_PARAMIZE(routeID))
-          if (mGatherer) {
-            mGatherer->removeRoute(routeID);
-          }
-          return RoutePtr();
-        }
-
         // this route probably does not exist
-        CandidatePtr localCandidate = (*found).second.first;
-        IPAddress remoteIP((*found).second.second);
-        mPendingGathererRoutes.erase(found);
+        route = findRoute(routerRoute->mLocalCandidate, routerRoute->mRemoteIP);
+        if (route) return route;
 
-        route = findRoute(localCandidate, remoteIP);
-
-        if (route) {
-          removeGathererRoute(route);         // remove the old route ID
-          route->mGathererRouteID = routeID;  // now using the new route ID
-          mGathererRoutes[routeID] = route;
-
-          return route;
-        }
-
-        CandidatePtr remoteCandidate(new Candidate);
+        CandidatePtr remoteCandidate(make_shared<Candidate>());
         remoteCandidate->mCandidateType = IICETypes::CandidateType_Prflx;
         remoteCandidate->mPriority = packet->mPriority;
-        remoteCandidate->mIP = remoteIP.string(false);
-        remoteCandidate->mPort = remoteIP.getPort();
-        remoteCandidate->mProtocol = localCandidate->mProtocol;
-        if (IICETypes::Protocol_TCP == localCandidate->mProtocol) {
-          switch (localCandidate->mTCPType) {
+        remoteCandidate->mIP = routerRoute->mRemoteIP.string(false);
+        remoteCandidate->mPort = routerRoute->mRemoteIP.getPort();
+        remoteCandidate->mProtocol = routerRoute->mLocalCandidate->mProtocol;
+        if (IICETypes::Protocol_TCP == routerRoute->mLocalCandidate->mProtocol) {
+          switch (routerRoute->mLocalCandidate->mTCPType) {
             case IICETypes::TCPCandidateType_Active:  remoteCandidate->mTCPType = IICETypes::TCPCandidateType_Passive; break;
             case IICETypes::TCPCandidateType_Passive: remoteCandidate->mTCPType = IICETypes::TCPCandidateType_Active; break;
             case IICETypes::TCPCandidateType_SO:      remoteCandidate->mTCPType = IICETypes::TCPCandidateType_SO; break;
           }
         }
 
-        RoutePtr closestRoute = findClosestRoute(localCandidate, remoteIP, packet->mPriority);
+        RoutePtr closestRoute = findClosestRoute(routerRoute->mLocalCandidate, routerRoute->mRemoteIP, packet->mPriority);
         if (closestRoute) {
           ZS_LOG_TRACE(log("found candidate close enough to borrow remote properties") + ZS_PARAM("new candidate", remoteCandidate->toDebug()) + ZS_PARAM("close candidate", closestRoute->mCandidatePair->mRemote->toDebug()))
           remoteCandidate->mUnfreezePriority = closestRoute->mCandidatePair->mRemote->mUnfreezePriority;
@@ -3747,9 +3806,9 @@ namespace ortc
         }
 
         // now have everything needed to create a brand new legal route
-        route = RoutePtr(new Route);
-        route->mCandidatePair = CandidatePairPtr(new CandidatePair);
-        route->mCandidatePair->mLocal = localCandidate;
+        route = RoutePtr(make_shared<Route>(mRouteStateTracker));
+        route->mCandidatePair = CandidatePairPtr(make_shared<CandidatePair>());
+        route->mCandidatePair->mLocal = CandidatePtr(make_shared<Candidate>(*(routerRoute->mLocalCandidate)));
         route->mCandidatePair->mRemote = remoteCandidate;
         route->mCandidatePairHash = route->mCandidatePair->hash();
 
@@ -3757,26 +3816,28 @@ namespace ortc
         mLegalRoutes[route->mCandidatePairHash] = route;
 
         // add to gathering routes
-        route->mGathererRouteID = routeID;
-        mGathererRoutes[route->mGathererRouteID] = route;
+        route->mGathererRoute = routerRoute;
+        mGathererRoutes[route->mGathererRoute->mID] = route;
         
         setPending(route);  // this is now a pending candidate
       }
       
       return route;
     }
-    
+
     //-------------------------------------------------------------------------
     void ICETransport::handlePassThroughSTUNPacket(
-                                                   RouteID routeID,
+                                                   RouterRoutePtr routerRoute,
                                                    STUNPacketPtr packet
                                                    )
     {
+      UseSecureTransportPtr transport;
+
       {
         AutoRecursiveLock lock(*this);
-        auto found = mGathererRoutes.find(routeID);
+        auto found = mGathererRoutes.find(routerRoute->mID);
         if (found == mGathererRoutes.end()) {
-          ZS_LOG_WARNING(Detail, log("route was not found") + ZS_PARAMIZE(routeID) + packet->toDebug())
+          ZS_LOG_WARNING(Detail, log("route was not found") + routerRoute->toDebug() + packet->toDebug())
           return;
         }
 
@@ -3796,16 +3857,44 @@ namespace ortc
           return;
         }
 
+        transport = mSecureTransport.lock();
         goto forward_attached_listener;
       }
 
     forward_attached_listener:
       {
-#define TODO_FORWARD_PACKET_TO_ATTACHED_LISTENER 1
-#define TODO_FORWARD_PACKET_TO_ATTACHED_LISTENER 2
+        if (!transport) {
+          ZS_LOG_WARNING(Debug, log("no secure transport attached (thus stun packet is being discarded)"))
+          return;
+        }
+
+        transport->handleReceivedSTUNPacket(mComponent, packet);
       }
     }
 
+    //-------------------------------------------------------------------------
+    bool ICETransport::getNeedsMoreCandidates() const
+    {
+      if ((isShuttingDown()) ||
+          (isShutdown())) {
+        ZS_LOG_WARNING(Debug, log("do not need more candidate if shutting down"))
+        return false;
+      }
+
+      if (isComplete()) {
+        ZS_LOG_TRACE(log("no need for more candidates as transport is complete"))
+        return false;
+      }
+
+      if (isFailed()) {
+        ZS_LOG_TRACE(log("no need for more candidates as transport is failed"))
+        return false;
+      }
+
+      ZS_LOG_TRACE(log("more candidates are required as transport is not completed or failed"))
+      return true;
+    }
+    
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -3815,9 +3904,24 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
+    ICETransport::Route::Route(RouteStateTrackerPtr tracker) :
+      mTracker(tracker)
+    {
+      ZS_THROW_INVALID_ARGUMENT_IF(!tracker)
+      tracker->inState(mState);
+    }
+
+    //-------------------------------------------------------------------------
+    ICETransport::Route::~Route()
+    {
+      mTracker->outState(mState);
+    }
+
+    //-------------------------------------------------------------------------
     const char *ICETransport::Route::toString(States state)
     {
       switch (state) {
+        case State_New:         return "New";
         case State_Pending:     return "Pending";
         case State_Frozen:      return "Frozen";
         case State_InProgress:  return "In progress";
@@ -3833,12 +3937,14 @@ namespace ortc
     {
       ElementPtr resultEl = Element::create("ortc::ICETransport::Route");
 
+      UseServicesHelper::debugAppend(resultEl, "id", mID);
+
       UseServicesHelper::debugAppend(resultEl, mCandidatePair ? mCandidatePair->toDebug() : ElementPtr());
       UseServicesHelper::debugAppend(resultEl, "candidate pair hash", mCandidatePairHash);
 
       UseServicesHelper::debugAppend(resultEl, "state", toString(mState));
 
-      UseServicesHelper::debugAppend(resultEl, "gatherer route id", mGathererRouteID);
+      UseServicesHelper::debugAppend(resultEl, "gatherer route", mGathererRoute ? mGathererRoute->toDebug() : ElementPtr());
 
       UseServicesHelper::debugAppend(resultEl, "last received check", mLastReceivedCheck);
       UseServicesHelper::debugAppend(resultEl, "last sent check", mLastSentCheck);
@@ -3890,6 +3996,75 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    ICETransport::Route::States ICETransport::Route::state() const
+    {
+      return mState;
+    }
+
+    //-------------------------------------------------------------------------
+    void ICETransport::Route::state(States state)
+    {
+      if (state == mState) return;
+      mTracker->outState(mState);
+      mState = state;
+      mTracker->inState(mState);
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark ICETransport::RouteStateTracker
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    ICETransport::RouteStateTracker::RouteStateTracker()
+    {
+      mStates[Route::State_New] = 0;
+      mStates[Route::State_Pending] = 0;
+      mStates[Route::State_Frozen] = 0;
+      mStates[Route::State_InProgress] = 0;
+      mStates[Route::State_Succeeded] = 0;
+      mStates[Route::State_Failed] = 0;
+      mStates[Route::State_Blacklisted] = 0;
+    }
+
+    //-------------------------------------------------------------------------
+    ElementPtr ICETransport::RouteStateTracker::toDebug() const
+    {
+      ElementPtr resultEl = Element::create("ortc::ICETransport::RouteStateTracker");
+
+      UseServicesHelper::debugAppend(resultEl, "new", mStates[Route::State_New]);
+      UseServicesHelper::debugAppend(resultEl, "pending", mStates[Route::State_Pending]);
+      UseServicesHelper::debugAppend(resultEl, "frozen", mStates[Route::State_Frozen]);
+      UseServicesHelper::debugAppend(resultEl, "in progress", mStates[Route::State_InProgress]);
+      UseServicesHelper::debugAppend(resultEl, "succeeded", mStates[Route::State_Succeeded]);
+      UseServicesHelper::debugAppend(resultEl, "failed", mStates[Route::State_Failed]);
+      UseServicesHelper::debugAppend(resultEl, "blacklisted", mStates[Route::State_Blacklisted]);
+
+      return resultEl;
+    }
+
+    //-------------------------------------------------------------------------
+    void ICETransport::RouteStateTracker::inState(States state)
+    {
+      ++(mStates[state]);
+    }
+
+    //-------------------------------------------------------------------------
+    void ICETransport::RouteStateTracker::outState(States state)
+    {
+      --(mStates[state]);
+    }
+
+    //-------------------------------------------------------------------------
+    size_t ICETransport::RouteStateTracker::count(States state)
+    {
+      return (mStates[state]);
+    }
+
+    //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -3932,6 +4107,7 @@ namespace ortc
       case State_Connected:     return "connected";
       case State_Completed:     return "completed";
       case State_Disconnected:  return "disconnected";
+      case State_Failed:        return "failed";
       case State_Closed:        return "closed";
     }
     return "UNDEFINED";
@@ -3946,6 +4122,7 @@ namespace ortc
       State_Connected,
       State_Completed,
       State_Disconnected,
+      State_Failed,
       State_Closed,
     };
 

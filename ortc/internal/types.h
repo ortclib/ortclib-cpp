@@ -39,6 +39,8 @@ namespace ortc
 {
   namespace internal
   {
+    using std::make_shared;
+
     using zsLib::UINT;
     using zsLib::PTRNUMBER;
     using zsLib::string;
@@ -108,6 +110,7 @@ namespace ortc
     ZS_DECLARE_CLASS_PTR(DTLSCertficateGenerator)
     ZS_DECLARE_CLASS_PTR(DTLSTransport)
     ZS_DECLARE_CLASS_PTR(ICEGatherer)
+    ZS_DECLARE_CLASS_PTR(ICEGathererRouter)
     ZS_DECLARE_CLASS_PTR(ICETransport)
     ZS_DECLARE_CLASS_PTR(ICETransportController)
     ZS_DECLARE_CLASS_PTR(SRTPSDESTransport)

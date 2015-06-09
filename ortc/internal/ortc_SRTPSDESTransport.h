@@ -64,6 +64,9 @@ namespace ortc
                           public IWakeDelegate,
                           public IICETransportDelegate
     {
+    protected:
+      struct make_private {};
+
     public:
       friend interaction ISRTPSDESTransport;
       friend interaction ISRTPSDESTransportFactory;
@@ -76,8 +79,9 @@ namespace ortc
       {
       };
 
-    protected:
+    public:
       SRTPSDESTransport(
+                        const make_private &,
                         IMessageQueuePtr queue,
                         ISRTPSDESTransportDelegatePtr delegate,
                         IICETransportPtr iceTransport,
@@ -85,6 +89,7 @@ namespace ortc
                         const CryptoParameters &decryptParameters
                         );
 
+    protected:
       SRTPSDESTransport(Noop) :
         Noop(true),
         MessageQueueAssociator(IMessageQueuePtr()),
@@ -158,6 +163,10 @@ namespace ortc
                                         const BYTE *buffer,
                                         size_t bufferLengthInBytes
                                         ) override;
+      virtual void handleReceivedSTUNPacket(
+                                            IICETypes::Components viaComponent,
+                                            STUNPacketPtr packet
+                                            ) override;
 
       //-----------------------------------------------------------------------
       #pragma mark

@@ -88,6 +88,7 @@ namespace ortc
     
     //-------------------------------------------------------------------------
     DTLSTransport::DTLSTransport(
+                                 const make_private &,
                                  IMessageQueuePtr queue,
                                  IDTLSTransportDelegatePtr originalDelegate,
                                  IICETransportPtr iceTransport
@@ -115,7 +116,7 @@ namespace ortc
         if (!mCertificateGenerator) mCertificateGenerator = DTLSCertficateGenerator::create();
 
         mCertificateGeneratorPromise = mCertificateGenerator->getCertificate();
-        mCertificateGeneratorPromise->then(mThisWeak.lock());
+        mCertificateGeneratorPromise->thenWeak(mThisWeak.lock());
 
         mICETransportSubscription = transport->subscribe(mThisWeak.lock());
       }
@@ -175,7 +176,7 @@ namespace ortc
                                            IICETransportPtr iceTransport
                                            )
     {
-      DTLSTransportPtr pThis(new DTLSTransport(IORTCForInternal::queueORTC(), delegate, iceTransport));
+      DTLSTransportPtr pThis(make_shared<DTLSTransport>(make_private {}, IORTCForInternal::queueORTC(), delegate, iceTransport));
       pThis->mThisWeak.lock();
       pThis->init();
       return pThis;
@@ -349,6 +350,22 @@ namespace ortc
 #define TODO_DETERMINE_IF_DTLS_PACKET_VS_SRTP_PACKET_AND_HANDLE 2
       }
 
+      // WARNING: Forward packet to data channel or RTP listener outside of object lock
+    }
+
+    //-------------------------------------------------------------------------
+    void DTLSTransport::handleReceivedSTUNPacket(
+                                                 IICETypes::Components viaComponent,
+                                                 STUNPacketPtr packet
+                                                 )
+    {
+      ZS_LOG_TRACE(log("handle receive STUN packet") + packet->toDebug())
+
+      {
+        AutoRecursiveLock lock(*this);
+#define TODO_WHERE_TO_FORWARD 1
+#define TODO_WHERE_TO_FORWARD 2
+      }
       // WARNING: Forward packet to data channel or RTP listener outside of object lock
     }
 
@@ -541,7 +558,7 @@ namespace ortc
       for (auto iter = mPendingLocalParameters.begin(); iter != mPendingLocalParameters.end(); ++iter) {
         auto pendingPromise = (*iter);
 
-        ParametersPtr param(new Parameters);
+        ParametersPtr param(make_shared<Parameters>());
 
 #define TODO_FILL_IN_LOCAL_PARAM_VALUES 1
 #define TODO_FILL_IN_LOCAL_PARAM_VALUES 2
@@ -603,7 +620,7 @@ namespace ortc
     {
       if (state == mCurrentState) return;
 
-      ZS_LOG_DETAIL(debug("state changed") + ZS_PARAM("old state", IDTLSTransport::toString(mCurrentState)) + ZS_PARAM("new state", state))
+      ZS_LOG_DETAIL(debug("state changed") + ZS_PARAM("new state", IDTLSTransport::toString(state)) + ZS_PARAM("old state", IDTLSTransport::toString(mCurrentState)))
 
       mCurrentState = state;
 

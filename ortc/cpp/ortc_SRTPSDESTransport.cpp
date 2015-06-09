@@ -88,6 +88,7 @@ namespace ortc
     
     //-------------------------------------------------------------------------
     SRTPSDESTransport::SRTPSDESTransport(
+                                         const make_private &,
                                          IMessageQueuePtr queue,
                                          ISRTPSDESTransportDelegatePtr originalDelegate,
                                          IICETransportPtr iceTransport,
@@ -160,7 +161,7 @@ namespace ortc
                                                    const CryptoParameters &decryptParameters
                                                    )
     {
-      SRTPSDESTransportPtr pThis(new SRTPSDESTransport(IORTCForInternal::queueORTC(), delegate, iceTransport, encryptParameters, decryptParameters));
+      SRTPSDESTransportPtr pThis(make_shared<SRTPSDESTransport>(make_private{}, IORTCForInternal::queueORTC(), delegate, iceTransport, encryptParameters, decryptParameters));
       pThis->mThisWeak.lock();
       pThis->init();
       return pThis;
@@ -277,6 +278,24 @@ namespace ortc
         AutoRecursiveLock lock(*this);
 #define TODO_DETERMINE_IF_DTLS_PACKET_VS_SRTP_PACKET_AND_HANDLE 1
 #define TODO_DETERMINE_IF_DTLS_PACKET_VS_SRTP_PACKET_AND_HANDLE 2
+      }
+
+      // WARNING: Forward packet to data channel or RTP listener outside of object lock
+    }
+
+    //-------------------------------------------------------------------------
+    void SRTPSDESTransport::handleReceivedSTUNPacket(
+                                                     IICETypes::Components viaComponent,
+                                                     STUNPacketPtr packet
+                                                     )
+    {
+      ZS_LOG_TRACE(log("handle receive stun packet") + packet->toDebug())
+
+      // scope: pre-validation check
+      {
+        AutoRecursiveLock lock(*this);
+#define TODO_FIGURE_OUT_WHERE_TO_FORWARD_PACKET 1
+#define TODO_FIGURE_OUT_WHERE_TO_FORWARD_PACKET 2
       }
 
       // WARNING: Forward packet to data channel or RTP listener outside of object lock

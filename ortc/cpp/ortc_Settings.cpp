@@ -75,7 +75,7 @@ namespace ortc
     #pragma mark
 
     //-----------------------------------------------------------------------
-    Settings::Settings()
+    Settings::Settings(const make_private &)
     {
       ZS_LOG_DETAIL(log("created"))
     }
@@ -96,7 +96,7 @@ namespace ortc
     //-----------------------------------------------------------------------
     SettingsPtr Settings::create()
     {
-      SettingsPtr pThis(new Settings());
+      SettingsPtr pThis(make_shared<Settings>(make_private{}));
       pThis->mThisWeak = pThis;
       return pThis;
     }

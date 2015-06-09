@@ -87,7 +87,7 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    ORTC::ORTC() :
+    ORTC::ORTC(const make_private &) :
       SharedRecursiveLock(SharedRecursiveLock::create())
     {
       ZS_LOG_DETAIL(log("created"))
@@ -101,6 +101,11 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    void ORTC::init()
+    {
+    }
+
+    //-------------------------------------------------------------------------
     ORTCPtr ORTC::convert(IORTCPtr object)
     {
       return ZS_DYNAMIC_PTR_CAST(ORTC, object);
@@ -109,8 +114,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     ORTCPtr ORTC::create()
     {
-      ORTCPtr pThis(new ORTC());
+      ORTCPtr pThis(make_shared<ORTC>(make_private{}));
       pThis->mThisWeak = pThis;
+      pThis->init();
       return pThis;
     }
 
