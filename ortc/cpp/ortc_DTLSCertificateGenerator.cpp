@@ -49,7 +49,6 @@
 #include <openssl/bn.h>
 #include <openssl/rsa.h>
 #include <openssl/crypto.h>
-#include <openssl/x509.h>
 
 namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib) }
 

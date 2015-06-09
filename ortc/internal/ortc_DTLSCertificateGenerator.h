@@ -37,7 +37,8 @@
 
 #include <zsLib/MessageQueueAssociator.h>
 
-#include <openssl/ssl.h>
+#include <openssl/evp.h>
+#include <openssl/x509.h>
 
 namespace ortc
 {
