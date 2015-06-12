@@ -91,30 +91,10 @@ namespace ortc
 
       auto diff = fastestThusFar - newSpeed;
 
-      if (fastestThusFar < Microseconds(40*1000)) { // less than 40ms requires a 10ms difference
-        return diff > Microseconds(10*1000);
-      }
-      if (fastestThusFar < Microseconds(80*1000)) { // less than 80ms (but greater than 40) requires a 20ms difference
-        return diff > Microseconds(20*1000);
-      }
-      if (fastestThusFar < Microseconds(150*1000)) { // less than 150ms (but greater than 80ms) requires a 30ms difference
-        return diff > Microseconds(30*1000);
-      }
-      if (fastestThusFar < Microseconds(300*1000)) { // less than 300ms (but greater than 150ms) requires a 40ms difference
-        return diff > Microseconds(40*1000);
-      }
-      if (fastestThusFar < Microseconds(1000*1000)) { // less than 1 second (but greater than 300ms) requires a 50ms difference
-        return diff > Microseconds(50*1000);
-      }
-      if (fastestThusFar < Microseconds(2000*1000)) { // less than 2 seconds (but greater than 300) requires a 100ms difference
-        return diff > Microseconds(100*1000);
-      }
-      if (fastestThusFar < Microseconds(5000*1000)) { // less than 5 seconds (but greater than 2 seconds) requires a 400ms difference
-        return diff > Microseconds(400*1000);
-      }
+      auto fastestThusFarCount = fastestThusFar.count();
+      Microseconds comparison(fastestThusFarCount/4);
 
-      // greater than 5 seconds requires a 1 second difference
-      return diff > Microseconds(1000*1000);
+      return diff > comparison;
     }
 
     //-------------------------------------------------------------------------
@@ -140,6 +120,8 @@ namespace ortc
 
       UseSettings::setUInt(ORTC_SETTING_ICE_TRANSPORT_KEEP_WARM_TIME_BASE_IN_MILLISECONDS, 4000);
       UseSettings::setUInt(ORTC_SETTING_ICE_TRANSPORT_KEEP_WARM_TIME_RANDOMIZED_ADD_TIME_IN_MILLISECONDS, 2000);
+
+      UseSettings::setBool(ORTC_SETTING_ICE_TRANSPORT_TEST_CANDIDATE_PAIRS_OF_LOWER_PREFERENCE, false);
     }
 
     //-------------------------------------------------------------------------
@@ -194,6 +176,7 @@ namespace ortc
       mRouteStateTracker(make_shared<RouteStateTracker>()),
       mNoPacketsReceivedRecheckTime(UseSettings::getUInt(ORTC_SETTING_ICE_TRANSPORT_NO_PACKETS_RECEVIED_RECHECK_CANDIDATES_IN_SECONDS)),
       mExpireRouteTime(UseSettings::getUInt(ORTC_SETTING_ICE_TRANSPORT_EXPIRE_ROUTE_IN_SECONDS)),
+      mTestLowerPreferenceCandidatePairs(UseSettings::getUInt(ORTC_SETTING_ICE_TRANSPORT_TEST_CANDIDATE_PAIRS_OF_LOWER_PREFERENCE)),
       mBlacklistConsent(UseSettings::getBool(ORTC_SETTING_ICE_TRANSPORT_BLACKLIST_AFTER_CONSENT_REMOVAL)),
       mKeepWarmTimeBase(UseSettings::getUInt(ORTC_SETTING_ICE_TRANSPORT_KEEP_WARM_TIME_BASE_IN_MILLISECONDS)),
       mKeepWarmTimeRandomizedAddTime(UseSettings::getUInt(ORTC_SETTING_ICE_TRANSPORT_KEEP_WARM_TIME_RANDOMIZED_ADD_TIME_IN_MILLISECONDS))
@@ -491,13 +474,16 @@ namespace ortc
         }
         mLocalCandidatesComplete = false;
         mLocalCandidatesHash.clear();
+
+        pruneAllCandidatePairs(true);
       } else {
         if (!hadRemoteUsernameFragment) {
           mGatherer->installTransport(mThisWeak.lock(), mRemoteParameters.mUsernameFragment);
+          mNextActivationCausesAllRoutesThatReceivedChecksToActivate = true;
+        } else {
+          pruneAllCandidatePairs(true);
         }
       }
-
-      pruneAllCandidatePairs(true);
 
       wakeUp();
     }
@@ -830,11 +816,17 @@ namespace ortc
           }
         }
 
-        if ((route->isFrozen()) ||
+        if ((route->isNew()) ||
+            (route->isFrozen()) ||
             (route->isPending()) ||
-            (route->isFailed())) {
-          ZS_LOG_DETAIL(log("going to activate candidate pair because of incoming request") + route->toDebug())
-          setInProgress(route);
+            (route->isFailed()) ||
+            (route->isIgnored())) {
+          if (mRemoteParameters.mUsernameFragment.hasData()) {
+            ZS_LOG_DETAIL(log("going to activate candidate pair because of incoming request") + route->toDebug())
+            setInProgress(route);
+          } else {
+            mNextActivationCausesAllRoutesThatReceivedChecksToActivate = true;
+          }
         }
 
         auto response = createBindResponse(packet, route);
@@ -857,7 +849,7 @@ namespace ortc
                 ZS_LOG_DEBUG(log("enough time has passed from last receive candidate to this candidate to force it active (aggressive 3 second rule)") + ZS_PARAMIZE(mLastReceivedUseCandidate) + ZS_PARAMIZE(mLastReceivedPacket) + route->toDebug())
                 mActiveRoute = route;
               } else {
-                if (mActiveRoute->getPreference(false) > route->getPreference(false)) {
+                if (mActiveRoute->getPreference(false) < route->getPreference(false)) {
                   ZS_LOG_DEBUG(log("new route is preferred over active route (aggressive most preferred route rule)") + ZS_PARAM("new route", route->toDebug()) + ZS_PARAM("active route", mActiveRoute->toDebug()))
                   mActiveRoute = route;
                 }
@@ -1591,36 +1583,29 @@ namespace ortc
 
       if (route->mOutgoingCheck) {
         if (requester == route->mOutgoingCheck) {
-          size_t totalTries = requester->getTotalTries();
-          if (1 == totalTries) {
-            if (Time() != route->mLastRoundTripCheck) {
-              auto previousValue = route->mLastRouteTripMeasurement;
+          if (IICETypes::Role_Controlling == mOptions.mRole) {
+            auto previousValue = route->mLastRoundTripMeasurement;
 
-              route->mLastRouteTripMeasurement = zsLib::toMicroseconds(getLatest(mLastReceivedPacket, route->mLastRoundTripCheck) - route->mLastRoundTripCheck);
-              ZS_LOG_TRACE(log("updated route round trip time") + route->toDebug())
+            route->mLastRoundTripMeasurement = zsLib::toMicroseconds(getLatest(mLastReceivedPacket, route->mLastRoundTripCheck) - route->mLastRoundTripCheck);
+            ZS_LOG_TRACE(log("updated route round trip time") + route->toDebug())
 
-              if (IICETypes::Role_Controlling == mOptions.mRole) {  // no need to pick if not in controlling role
-                if (Microseconds() != previousValue) {
-                  auto largest = previousValue > route->mLastRouteTripMeasurement ? previousValue : route->mLastRouteTripMeasurement;
-                  auto smallest = previousValue < route->mLastRouteTripMeasurement ? previousValue : route->mLastRouteTripMeasurement;
-                  if (isMagnitudeFaster(largest, smallest)) {
-                    ZS_LOG_TRACE(log("magnitude difference in route measurement (pick route again)") + ZS_PARAM("previous", previousValue) + route->toDebug())
-                    mForcePickRouteAgain = true;
-                    wakeUp();
-                  }
-                } else {
-                  ZS_LOG_TRACE(log("first time a round trip measurement has happened (pick route again)") + route->toDebug())
-                  mForcePickRouteAgain = true;
-                  wakeUp();
-                }
+            if (Microseconds() != previousValue) {
+              auto largest = previousValue > route->mLastRoundTripMeasurement ? previousValue : route->mLastRoundTripMeasurement;
+              auto smallest = previousValue < route->mLastRoundTripMeasurement ? previousValue : route->mLastRoundTripMeasurement;
+              if (isMagnitudeFaster(largest, smallest)) {
+                ZS_LOG_TRACE(log("magnitude difference in route measurement (pick route again)") + ZS_PARAM("previous", previousValue) + route->toDebug())
+                mForcePickRouteAgain = true;
+                wakeUp();
               }
+            } else {
+              ZS_LOG_TRACE(log("first time a round trip measurement has happened (pick route again)") + route->toDebug())
+              mForcePickRouteAgain = true;
+              wakeUp();
             }
           }
-        }
 
-        route->mLastRoundTripCheck = Time();
-        route->mOutgoingCheck->cancel();
-        route->mOutgoingCheck.reset();
+          removeOutgoingCheck(route);
+        }
       }
 
       bool keptWarm = false;
@@ -1759,6 +1744,7 @@ namespace ortc
       UseServicesHelper::debugAppend(resultEl, mRouteStateTracker->toDebug());
 
       UseServicesHelper::debugAppend(resultEl, "activation timer", mActivationTimer ? mActivationTimer->getID() : 0);
+      UseServicesHelper::debugAppend(resultEl, "activate routes that received checks", mNextActivationCausesAllRoutesThatReceivedChecksToActivate);
 
       UseServicesHelper::debugAppend(resultEl, "pending activation", mPendingActivation.size());
 
@@ -1871,9 +1857,9 @@ namespace ortc
           if (localCandidate->mProtocol != remoteCandidate->mProtocol) continue;
           if (IICETypes::Protocol_TCP == localCandidate->mProtocol) {
             switch (localCandidate->mTCPType) {
-              case IICETypes::TCPCandidateType_Active:  if (IICETypes::TCPCandidateType_Passive != remoteCandidate->mTCPType) continue;
-              case IICETypes::TCPCandidateType_Passive: if (IICETypes::TCPCandidateType_Active != remoteCandidate->mTCPType) continue;
-              case IICETypes::TCPCandidateType_SO:      if (IICETypes::TCPCandidateType_SO != remoteCandidate->mTCPType) continue;
+              case IICETypes::TCPCandidateType_Active:  if (IICETypes::TCPCandidateType_Passive != remoteCandidate->mTCPType) continue; break;
+              case IICETypes::TCPCandidateType_Passive: if (IICETypes::TCPCandidateType_Active != remoteCandidate->mTCPType) continue; break;
+              case IICETypes::TCPCandidateType_SO:      if (IICETypes::TCPCandidateType_SO != remoteCandidate->mTCPType) continue; break;
             }
           }
 
@@ -1906,8 +1892,52 @@ namespace ortc
           continue;
         }
 
-        ZS_LOG_WARNING(Debug, log("route no longer valid (no candidate pairing found)") + route->toDebug())
-        shutdown(route);
+        if (IICETypes::CandidateType_Prflx != route->mCandidatePair->mRemote->mCandidateType) goto shutdown_route;
+
+        goto check_remote_reflexive;
+
+      check_remote_reflexive:
+        {
+          // make sure local is still valid first
+          auto localCandidateHash = route->mCandidatePair->mLocal->hash();
+          auto foundLocal = mLocalCandidates.find(localCandidateHash);
+
+          if (foundLocal == mLocalCandidates.end()) {
+            ZS_LOG_WARNING(Debug, log("local candidate is gone (thus pairing must be trimmed)"))
+            goto shutdown_route;
+          }
+
+          goto check_route_state;
+        }
+
+      check_route_state:
+        {
+          // special situation where candidate is local
+          switch (route->state()) {
+            case Route::State_New:          goto keep_route;
+            case Route::State_Pending:      goto keep_route;
+            case Route::State_Frozen:       goto keep_route;
+            case Route::State_InProgress:   goto keep_route;
+            case Route::State_Succeeded:    goto keep_route;
+            case Route::State_Ignored:      goto shutdown_route;
+            case Route::State_Failed:       goto shutdown_route;
+            case Route::State_Blacklisted:  goto shutdown_route;
+          }
+          goto shutdown_route;
+        }
+
+      keep_route:
+        {
+          ZS_LOG_TRACE(log("peer reflexive route still in valid state (thus still legal)") + route->toDebug())
+          continue;
+        }
+
+      shutdown_route:
+        {
+          ZS_LOG_WARNING(Debug, log("route no longer valid (no candidate pairing found or peer reflexive no longer valid)") + route->toDebug())
+          shutdown(route);
+          continue;
+        }
       }
 
       for (auto iter = pairings.begin(); iter != pairings.end(); ++iter)
@@ -1946,6 +1976,11 @@ namespace ortc
         return true;
       }
 
+      if (mRemoteParameters.mUsernameFragment.isEmpty()) {
+        ZS_LOG_TRACE(log("cannot activate any pending candidates as remote username is not set"))
+        return true;
+      }
+
       ZS_LOG_DEBUG(log("calculating pending activation"))
 
       for (auto iter = mLegalRoutes.begin(); iter != mLegalRoutes.end(); ++iter)
@@ -1976,6 +2011,11 @@ namespace ortc
     bool ICETransport::stepActivationTimer()
     {
       auto now = zsLib::now();
+
+      if (mRemoteParameters.mUsernameFragment.isEmpty()) {
+        ZS_LOG_TRACE(log("cannot activate any candidates as remote username is not set"))
+        goto no_activation_timer;
+      }
 
       if (isContinousGathering()) {
         if (Time() != mLastReceivedPacket) {
@@ -2026,6 +2066,10 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool ICETransport::stepPickRoute()
     {
+      if (mRemoteParameters.mUsernameFragment.isEmpty()) {
+        ZS_LOG_TRACE(log("cannot pick a route as no remote username is set"))
+        return true;
+      }
       if ((!hasWarmRoutesChanged()) &&
           (!mForcePickRouteAgain)) {
         ZS_LOG_TRACE(log("warm routes have not changed (thus no need to pick another route)"))
@@ -2071,21 +2115,23 @@ namespace ortc
         }
 
         if (Microseconds() != fastestRoutePicked) {
-          if (Microseconds() != route->mLastRouteTripMeasurement) {
-            if (isMagnitudeFaster(fastestRoutePicked, route->mLastRouteTripMeasurement)) {
+          if (Microseconds() != route->mLastRoundTripMeasurement) {
+            if (isMagnitudeFaster(fastestRoutePicked, route->mLastRoundTripMeasurement)) {
               ZS_LOG_TRACE(log("route has faster round trip time (thus will pick)") + route->toDebug() + ZS_PARAM("previous speed", fastestRoutePicked))
               goto chose_this_route;
+            } else {
+              ZS_LOG_INSANE(log("route is not a magnitude faster round trip time (thus will pick)") + route->toDebug() + ZS_PARAM("previous speed", fastestRoutePicked))
             }
           }
         }
 
-        if (preference >= chosenPreference) continue; // pick by s
+        if (preference < chosenPreference) continue; // previous preference is preferred over current preference
 
       chose_this_route:
         {
           chosenRoute = route;
           chosenPreference = preference;
-          fastestRoutePicked = route->mLastRouteTripMeasurement;
+          fastestRoutePicked = route->mLastRoundTripMeasurement;
         }
       }
 
@@ -2108,6 +2154,11 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool ICETransport::stepUseCandidate()
     {
+      if (mRemoteParameters.mUsernameFragment.isEmpty()) {
+        ZS_LOG_TRACE(log("cannot use candidate as remote username is not set"))
+        return true;
+      }
+
       if (IICETypes::Role_Controlling != mOptions.mRole) {
         ZS_LOG_TRACE(log("not in controlling role that cannot force candidate selection") + mOptions.toDebug())
         return true;
@@ -2150,6 +2201,11 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool ICETransport::stepDewarmRoutes()
     {
+      if (mRemoteParameters.mUsernameFragment.isEmpty()) {
+        ZS_LOG_TRACE(log("cannot dewarm as remote username is not set"))
+        return true;
+      }
+
       auto now = zsLib::now();
 
       for (auto iter_doNotUse = mWarmRoutes.begin(); iter_doNotUse != mWarmRoutes.end();)
@@ -2189,6 +2245,11 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool ICETransport::stepKeepWarmRoutes()
     {
+      if (mRemoteParameters.mUsernameFragment.isEmpty()) {
+        ZS_LOG_TRACE(log("cannot warm routes as remote username is not set"))
+        return true;
+      }
+
       if (!mActiveRoute) {
         ZS_LOG_TRACE(log("cannot warm routes until an active route is picked"))
         return true;
@@ -2204,7 +2265,7 @@ namespace ortc
         if (route->mPrune) route->mKeepWarm = false;
         if (route->mKeepWarm) goto must_keep_warm;
         if (route == mActiveRoute) goto must_keep_warm;
-        if (Microseconds() == route->mLastRouteTripMeasurement) goto must_keep_warm;  // need a round trip time measurement to happen
+        if (Microseconds() == route->mLastRoundTripMeasurement) goto must_keep_warm;  // need a round trip time measurement to happen
 
         goto do_not_keep_warm;
 
@@ -2213,11 +2274,11 @@ namespace ortc
           ZS_LOG_INSANE(log("route must be kept warm") + route->toDebug())
 
           if (route->mOutgoingCheck) {
-            ZS_LOG_INSANE(log("already have outgoing check (thus do not need timer") + route->toDebug())
+            ZS_LOG_INSANE(log("already have outgoing check (thus do not need timer)") + route->toDebug())
             continue;
           }
           if (route->mNextKeepWarm) {
-            ZS_LOG_INSANE(log("already have next keep warm timer (thus do not need timer") + route->toDebug())
+            ZS_LOG_INSANE(log("already have next keep warm timer (thus do not need timer)") + route->toDebug())
             continue;
           }
 
@@ -2239,6 +2300,11 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool ICETransport::stepExpireRouteTimer()
     {
+      if (mRemoteParameters.mUsernameFragment.isEmpty()) {
+        ZS_LOG_TRACE(log("cannot expire routes as remote username is not set"))
+        return true;
+      }
+
       if (!hasWarmRoutesChanged()) {
         ZS_LOG_TRACE(log("warm routes have not changed thus nothing to do"))
         return true;
@@ -2270,6 +2336,11 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool ICETransport::stepLastReceivedPacketTimer()
     {
+      if (mRemoteParameters.mUsernameFragment.isEmpty()) {
+        ZS_LOG_TRACE(log("cannot have last packet received timer as remote username is not set"))
+        return true;
+      }
+
       if (!hasWarmRoutesChanged()) {
         ZS_LOG_TRACE(log("warm routes have not changed thus nothing to do"))
         return true;
@@ -2694,11 +2765,68 @@ namespace ortc
 
       auto now = zsLib::now();
 
+      if (mNextActivationCausesAllRoutesThatReceivedChecksToActivate) {
+        bool didActivate = false;
+
+        for (auto iter_doNotUse = mPendingActivation.begin(); iter_doNotUse != mPendingActivation.end(); ) {
+          auto current = iter_doNotUse;
+          ++iter_doNotUse;
+
+          auto route = (*current).second;
+
+          if (IICETypes::Protocol_TCP == route->mCandidatePair->mLocal->mProtocol) {
+            if (IICETypes::TCPCandidateType_Passive == route->mCandidatePair->mLocal->mTCPType) {
+              ZS_LOG_TRACE(log("never activate a TCP passive route (since only active connections can open outgoing TCP socket)") + route->toDebug())
+              continue;
+            }
+          }
+
+          if (Time() == route->mLastReceivedCheck) continue;
+
+          ZS_LOG_DEBUG(log("activating route") + route->toDebug())
+
+          didActivate = true;
+
+          setInProgress(route);
+          if (mPendingActivation.size() < 1) {
+            ZS_LOG_DEBUG(log("might not need activation timer anymore (thus waking up)"))
+            wakeUp();
+          }
+        }
+
+        mNextActivationCausesAllRoutesThatReceivedChecksToActivate = false;
+
+        if (didActivate) {
+          ZS_LOG_TRACE(log("did activate at least one route (thus going to check activation timer)"))
+          goto check_activation_timer;
+        }
+      }
+
       for (auto iter_doNotUse = mPendingActivation.begin(); iter_doNotUse != mPendingActivation.end(); ) {
         auto current = iter_doNotUse;
         ++iter_doNotUse;
 
         auto route = (*current).second;
+
+        if (!mTestLowerPreferenceCandidatePairs) {
+          if ((mActiveRoute) &&
+              (route != mActiveRoute)) {
+            auto activePreference = mActiveRoute->getPreference(Role_Controlling == mOptions.mRole);
+            auto preference = route->getPreference(Role_Controlling == mOptions.mRole);
+
+            if (activePreference > preference) {
+              ZS_LOG_TRACE(log("no need to activate this route (since it cannot be used due to lower preference)") + ZS_PARAM("active preference", activePreference) + ZS_PARAM("preference", preference) + ZS_PARAM("route", mActiveRoute->toDebug()) + ZS_PARAM("route", route->toDebug()))
+              goto set_route_ignored;
+            }
+          }
+        }
+
+        if (IICETypes::Protocol_TCP == route->mCandidatePair->mLocal->mProtocol) {
+          if (IICETypes::TCPCandidateType_Passive == route->mCandidatePair->mLocal->mTCPType) {
+            ZS_LOG_TRACE(log("never activate a TCP passive route (since only active connections can open outgoing TCP socket)") + route->toDebug())
+            goto set_route_ignored;
+          }
+        }
 
         if (IICETypes::Component_RTCP == mComponent) {
 
@@ -2740,6 +2868,12 @@ namespace ortc
           continue;
         }
 
+      set_route_ignored:
+        {
+          setIgnored(route);
+          continue;
+        }
+
       activate_now:
         {
           ZS_LOG_DEBUG(log("activating route") + route->toDebug())
@@ -2777,8 +2911,16 @@ namespace ortc
           for (auto iter = mLegalRoutes.begin(); iter != mLegalRoutes.end(); ++iter) {
             auto route = (*iter).second;
 
+            if (IICETypes::Protocol_TCP == route->mCandidatePair->mLocal->mProtocol) {
+              if (IICETypes::TCPCandidateType_Passive == route->mCandidatePair->mLocal->mTCPType) {
+                ZS_LOG_TRACE(log("never activate a TCP passive route (since only active connections can open outgoing TCP socket)") + route->toDebug())
+                continue;
+              }
+            }
+
             if (0 == loop) {
-              if (route->isSucceeded()) goto activate_previous_route;
+              if ((route->isSucceeded()) ||
+                  (route->isIgnored())) goto activate_previous_route;
             } else {
               if (route->isFailed()) goto activate_previous_route;
             }
@@ -2833,7 +2975,10 @@ namespace ortc
       }
 
       route->mOutgoingCheck = createBindRequest(route);
+      route->mLastRoundTripCheck = zsLib::now();
       mOutgoingChecks[route->mOutgoingCheck] = route;
+
+      ZS_LOG_INSANE(log("created keep alive timer") + route->toDebug())
     }
 
     //-----------------------------------------------------------------------
@@ -2963,6 +3108,10 @@ namespace ortc
           ZS_LOG_DEBUG(log("route was succeeded but is being rechecked again") + route->toDebug())
           goto insert_pending;
         }
+        case Route::State_Ignored:    {
+          ZS_LOG_DEBUG(log("route previously ignored but is being rechecked again") + route->toDebug())
+          goto insert_pending;
+        }
         case Route::State_Failed:    {
           ZS_LOG_DEBUG(log("route previously failed but is being rechecked again") + route->toDebug())
           goto insert_pending;
@@ -2983,13 +3132,15 @@ namespace ortc
         removeWarm(route);
         route->mLastReceivedResponse = Time();  // need to recheck thus no response receieved
 
-        auto priority = route->getActivationPriority(IICETypes::Role_Controlling == mOptions.mRole, mRemoteParameters.mUseCandidateFreezePriority);
+        // NOTE: reversing priority value so largest value becomes smallest value
+        auto priority = (getMaxQWORD() ^ route->getActivationPriority(IICETypes::Role_Controlling == mOptions.mRole, mRemoteParameters.mUseCandidateFreezePriority));
 
         auto found = mPendingActivation.find(priority);
         while (found != mPendingActivation.end()) {
           auto comparePriority = (*found).first;
           if (priority != comparePriority) break;
           ++priority;
+          ++found;
         }
 
         route->mPendingPriority = priority;
@@ -3024,6 +3175,10 @@ namespace ortc
         }
         case Route::State_Succeeded: {
           ZS_LOG_DEBUG(log("route was succeeded (no need to freeze)") + route->toDebug())
+          return;
+        }
+        case Route::State_Ignored:    {
+          ZS_LOG_DEBUG(log("route previously ignored (no need to freeze)") + route->toDebug())
           return;
         }
         case Route::State_Failed:    {
@@ -3064,11 +3219,15 @@ namespace ortc
         }
         case Route::State_Succeeded: {
           ZS_LOG_DEBUG(log("route was succeeded (but going to activate now again)") + route->toDebug())
-          return;
+          goto in_progress;
+        }
+        case Route::State_Ignored: {
+          ZS_LOG_DEBUG(log("route was ignored (but going to activate again)") + route->toDebug())
+          goto in_progress;
         }
         case Route::State_Failed:    {
           ZS_LOG_DEBUG(log("route previously failed (but going to activate again)") + route->toDebug())
-          return;
+          goto in_progress;
         }
         case Route::State_Blacklisted: {
           ZS_LOG_WARNING(Detail, log("route is blacklisted") + route->toDebug())
@@ -3078,7 +3237,7 @@ namespace ortc
 
     in_progress:
       {
-        ZS_LOG_DEBUG(log("route is now being set in progess") + route->toDebug())
+        ZS_LOG_DEBUG(log("route is now being set in progress") + route->toDebug())
 
         removePendingActivation(route);
         removeFrozen(route);
@@ -3089,28 +3248,26 @@ namespace ortc
         route->state(Route::State_InProgress);
         route->mLastReceivedResponse = Time();
 
-        if (Time() != route->mLastReceivedResponse) {
-          route->mLastRoundTripCheck = zsLib::now();
-        } else {
-          route->mLastRoundTripCheck = Time();
-        }
-
         route->mOutgoingCheck = createBindRequest(route);
+        route->mLastRoundTripCheck = zsLib::now();
         mOutgoingChecks[route->mOutgoingCheck] = route;
 
-        ZS_LOG_TRACE(log("route set in progess") + route->toDebug())
+        ZS_LOG_TRACE(log("route set in progress") + route->toDebug())
       }
     }
 
     //-------------------------------------------------------------------------
     void ICETransport::setSucceeded(RoutePtr route)
     {
+      bool wasSuccessful = route->isSucceeded();
+
       switch (route->state()) {
         case Route::State_New:        goto succeeded;
         case Route::State_Pending:    goto succeeded;
         case Route::State_Frozen:     goto succeeded;
         case Route::State_InProgress: goto succeeded;
         case Route::State_Succeeded:  goto succeeded;
+        case Route::State_Ignored:    goto succeeded;
         case Route::State_Failed:     goto succeeded;
         case Route::State_Blacklisted: {
           ZS_LOG_WARNING(Detail, log("route is blacklisted (and cannot succeed)") + route->toDebug())
@@ -3125,7 +3282,9 @@ namespace ortc
         removePendingActivation(route);
         removeFrozen(route);
         removeFrozenDependencies(route, true);
-        removeOutgoingCheck(route);
+        if (!wasSuccessful) {
+          removeOutgoingCheck(route);
+        }
 
         route->state(Route::State_Succeeded);
 
@@ -3149,6 +3308,7 @@ namespace ortc
         case Route::State_Frozen:     goto failed;
         case Route::State_InProgress: goto failed;
         case Route::State_Succeeded:  goto failed;
+        case Route::State_Ignored:    goto failed;
         case Route::State_Failed:     goto failed;
         case Route::State_Blacklisted: {
           ZS_LOG_WARNING(Detail, log("route is blacklisted (and cannot fail)") + route->toDebug())
@@ -3174,6 +3334,40 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    void ICETransport::setIgnored(RoutePtr route)
+    {
+      switch (route->state()) {
+        case Route::State_New:        goto ignored;
+        case Route::State_Pending:    goto ignored;
+        case Route::State_Frozen:     goto ignored;
+        case Route::State_InProgress: goto ignored;
+        case Route::State_Succeeded:  goto ignored;
+        case Route::State_Ignored:    goto ignored;
+        case Route::State_Failed:     goto ignored;
+        case Route::State_Blacklisted: {
+          ZS_LOG_WARNING(Detail, log("route is blacklisted (and cannot be ignored)") + route->toDebug())
+          return;
+        }
+      }
+
+    ignored:
+      {
+        ZS_LOG_DEBUG(log("route is now being ignored") + route->toDebug())
+
+        removePendingActivation(route);
+        removeFrozen(route);
+        removeFrozenDependencies(route, false);
+        removeOutgoingCheck(route);
+        removeGathererRoute(route);
+        removeKeepWarmTimer(route);
+        removeWarm(route);
+
+        route->state(Route::State_Ignored);
+        wakeUp();
+      }
+    }
+
+    //-------------------------------------------------------------------------
     void ICETransport::setBlacklisted(RoutePtr route)
     {
       switch (route->state()) {
@@ -3182,6 +3376,7 @@ namespace ortc
         case Route::State_Frozen:     goto blacklist;
         case Route::State_InProgress: goto blacklist;
         case Route::State_Succeeded:  goto blacklist;
+        case Route::State_Ignored:    goto blacklist;
         case Route::State_Failed:     goto blacklist;
         case Route::State_Blacklisted: {
           ZS_LOG_WARNING(Detail, log("route is blacklisted (and cannot blacklist again)") + route->toDebug())
@@ -3354,7 +3549,7 @@ namespace ortc
         routes[route->mCandidatePairHash] = route;
       }
     }
-    
+
     //-------------------------------------------------------------------------
     void ICETransport::removeLegal(RoutePtr route)
     {
@@ -3542,24 +3737,35 @@ namespace ortc
     {
       if (!localCandidate) return RoutePtr();
 
-      auto hash = localCandidate->hash();
+      String hash = localCandidate->hash();
 
       RoutePtr closeEnoughRoute;
 
       for (auto iter = mLegalRoutes.begin(); iter != mLegalRoutes.end(); ++iter) {
         auto route = (*iter).second;
 
-        auto localCandidateHash = route->mCandidatePair->mLocal->hash();
+        String localCandidateHash = route->mCandidatePair->mLocal->hash(false);
+
         if (localCandidateHash != hash) continue;
+
+        ZS_LOG_INSANE(log("found local candidate match (but not remote yet)") + route->toDebug())
 
         auto remoteIP = route->mCandidatePair->mRemote->ip();
 
         if (inRemoteIP.isAddressEqualIgnoringIPv4Format(remoteIP)) {
-          if (remotePriority == route->mCandidatePair->mRemote->mPriority) return route;
-          if (0 == remotePriority) return route;
+          if (remotePriority == route->mCandidatePair->mRemote->mPriority) {
+            ZS_LOG_INSANE(log("found local + remote candidate match") + route->toDebug())
+            return route;
+          }
+          if (0 == remotePriority) {
+            ZS_LOG_INSANE(log("found local + remote candidate match (since remote priority is 0)") + route->toDebug())
+            return route;
+          }
+          ZS_LOG_INSANE(log("found local + remote close match") + route->toDebug())
           closeEnoughRoute = route;
         }
       }
+
       return closeEnoughRoute;
     }
 
@@ -3575,7 +3781,8 @@ namespace ortc
     //-------------------------------------------------------------------------
     ISTUNRequesterPtr ICETransport::createBindRequest(
                                                       RoutePtr route,
-                                                      bool useCandidate
+                                                      bool useCandidate,
+                                                      IBackOffTimerPatternPtr pattern
                                                       ) const
     {
       ZS_THROW_BAD_STATE_IF(!mGatherer)
@@ -3599,7 +3806,7 @@ namespace ortc
       fix(stunPacket);
 
       auto remoteIP = route->mCandidatePair->mRemote->ip();
-      return ISTUNRequester::create(getAssociatedMessageQueue(), mThisWeak.lock(), remoteIP, stunPacket, STUNPacket::RFC_5245_ICE);
+      return ISTUNRequester::create(UseServicesHelper::getServicePoolQueue(), mThisWeak.lock(), remoteIP, stunPacket, STUNPacket::RFC_5245_ICE, pattern);
     }
 
     //-------------------------------------------------------------------------
@@ -3654,7 +3861,7 @@ namespace ortc
     //-----------------------------------------------------------------------
     void ICETransport::fix(STUNPacketPtr stun) const
     {
-      stun->mLogObject = "ortc::ICEGatherer";
+      stun->mLogObject = "ortc::ICETransport";
       stun->mLogObjectID = mID;
     }
 
@@ -3775,7 +3982,16 @@ namespace ortc
       {
         // this route probably does not exist
         route = findRoute(routerRoute->mLocalCandidate, routerRoute->mRemoteIP);
-        if (route) return route;
+        if (route) {
+          ZS_LOG_TRACE(log("adding gatherer route mapping") + route->toDebug() + routerRoute->toDebug())
+
+          removeGathererRoute(route);
+
+          // add to gathering routes
+          route->mGathererRoute = routerRoute;
+          mGathererRoutes[route->mGathererRoute->mID] = route;
+          return route;
+        }
 
         CandidatePtr remoteCandidate(make_shared<Candidate>());
         remoteCandidate->mCandidateType = IICETypes::CandidateType_Prflx;
@@ -3926,6 +4142,7 @@ namespace ortc
         case State_Frozen:      return "Frozen";
         case State_InProgress:  return "In progress";
         case State_Succeeded:   return "Succeeded";
+        case State_Ignored:     return "Ignored";
         case State_Failed:      return "Failed";
         case State_Blacklisted: return "Blacklisted";
       }
@@ -3958,7 +4175,7 @@ namespace ortc
       UseServicesHelper::debugAppend(resultEl, "keep warm timer", mNextKeepWarm ? mNextKeepWarm->getID() : 0);
 
       UseServicesHelper::debugAppend(resultEl, "last round trip check", mLastRoundTripCheck);
-      UseServicesHelper::debugAppend(resultEl, "last round trip measurement", mLastRouteTripMeasurement);
+      UseServicesHelper::debugAppend(resultEl, "last round trip measurement", mLastRoundTripMeasurement);
 
       UseServicesHelper::debugAppend(resultEl, "frozen promise", (bool)mFrozenPromise);
       UseServicesHelper::debugAppend(resultEl, "dependent promises", mDependentPromises.size());
@@ -3976,7 +4193,7 @@ namespace ortc
       QWORD d = (localIsControlling ? remotePreference : localPreference);
 
       QWORD priority = ((g < d ? g : d) << 32) + ((g > d ? g : d) << 1) + (g > d ? 1 : 0);
-      return priority ^ getMaxQWORD();
+      return priority;
     }
 
     //-------------------------------------------------------------------------
@@ -3992,7 +4209,7 @@ namespace ortc
       QWORD d = (localIsControlling ? remotePreference : localPreference);
 
       QWORD priority = ((g < d ? g : d) << 32) + ((g > d ? g : d) << 1) + (g > d ? 1 : 0);
-      return priority ^ getMaxQWORD();
+      return priority;
     }
 
     //-------------------------------------------------------------------------
@@ -4005,9 +4222,20 @@ namespace ortc
     void ICETransport::Route::state(States state)
     {
       if (state == mState) return;
+
+      ZS_LOG_INSANE(log("state changed") + ZS_PARAM("new state", toString(state)) + ZS_PARAM("old state", toString(mState)))
+
       mTracker->outState(mState);
       mState = state;
       mTracker->inState(mState);
+    }
+
+    //-------------------------------------------------------------------------
+    Log::Params ICETransport::Route::log(const char *message) const
+    {
+      ElementPtr objectEl = Element::create("ortc::ICETransport::Route");
+      UseServicesHelper::debugAppend(objectEl, "id", mID);
+      return Log::Params(message, objectEl);
     }
 
     //-------------------------------------------------------------------------
@@ -4040,6 +4268,7 @@ namespace ortc
       UseServicesHelper::debugAppend(resultEl, "frozen", mStates[Route::State_Frozen]);
       UseServicesHelper::debugAppend(resultEl, "in progress", mStates[Route::State_InProgress]);
       UseServicesHelper::debugAppend(resultEl, "succeeded", mStates[Route::State_Succeeded]);
+      UseServicesHelper::debugAppend(resultEl, "ignored", mStates[Route::State_Ignored]);
       UseServicesHelper::debugAppend(resultEl, "failed", mStates[Route::State_Failed]);
       UseServicesHelper::debugAppend(resultEl, "blacklisted", mStates[Route::State_Blacklisted]);
 

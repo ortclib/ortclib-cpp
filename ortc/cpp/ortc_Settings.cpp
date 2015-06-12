@@ -472,12 +472,48 @@ namespace ortc
   }
 
   //-------------------------------------------------------------------------
+  String ISettings::getString(const char *key)
+  {
+    return UseServicesSettings::getString(key);
+  }
+
+  //-------------------------------------------------------------------------
+  LONG ISettings::getInt(const char *key)
+  {
+    return UseServicesSettings::getInt(key);
+  }
+
+  //-------------------------------------------------------------------------
+  ULONG ISettings::getUInt(const char *key)
+  {
+    return UseServicesSettings::getUInt(key);
+  }
+
+  //-------------------------------------------------------------------------
+  bool ISettings::getBool(const char *key)
+  {
+    return UseServicesSettings::getBool(key);
+  }
+
+  //-------------------------------------------------------------------------
+  float ISettings::getFloat(const char *key)
+  {
+    return UseServicesSettings::getFloat(key);
+  }
+
+  //-------------------------------------------------------------------------
+  double ISettings::getDouble(const char *key)
+  {
+    return UseServicesSettings::getDouble(key);
+  }
+
+  //-------------------------------------------------------------------------
   void ISettings::setString(
                             const char *key,
                             const char *value
                             )
   {
-    return UseServicesSettings::setString(key, value);
+    UseServicesSettings::setString(key, value);
   }
 
   //-------------------------------------------------------------------------
@@ -486,7 +522,7 @@ namespace ortc
                          LONG value
                          )
   {
-    return UseServicesSettings::setInt(key, value);
+    UseServicesSettings::setInt(key, value);
   }
 
   //-------------------------------------------------------------------------
@@ -495,7 +531,7 @@ namespace ortc
                           ULONG value
                           )
   {
-    return UseServicesSettings::setUInt(key, value);
+    UseServicesSettings::setUInt(key, value);
   }
 
   //-------------------------------------------------------------------------
@@ -504,7 +540,7 @@ namespace ortc
                           bool value
                           )
   {
-    return UseServicesSettings::setBool(key, value);
+    UseServicesSettings::setBool(key, value);
   }
 
   //-------------------------------------------------------------------------
@@ -513,7 +549,7 @@ namespace ortc
                            float value
                            )
   {
-    return UseServicesSettings::setFloat(key, value);
+    UseServicesSettings::setFloat(key, value);
   }
 
   //-------------------------------------------------------------------------
@@ -522,13 +558,13 @@ namespace ortc
                             double value
                             )
   {
-    return UseServicesSettings::setDouble(key, value);
+    UseServicesSettings::setDouble(key, value);
   }
 
   //-------------------------------------------------------------------------
   void ISettings::clear(const char *key)
   {
-    return UseServicesSettings::clear(key);
+    UseServicesSettings::clear(key);
   }
   
   //-------------------------------------------------------------------------

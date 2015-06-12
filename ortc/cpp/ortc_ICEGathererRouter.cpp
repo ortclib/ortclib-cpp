@@ -242,10 +242,11 @@ namespace ortc
     #pragma mark
     #pragma mark IICEGathererRouter::Route
     #pragma mark
+
     //-------------------------------------------------------------------------
     ElementPtr ICEGathererRouter::Route::toDebug() const
     {
-      ElementPtr objectEl = Element::create("ortc::ICEGathererRouter::QuickRoute");
+      ElementPtr objectEl = Element::create("ortc::ICEGathererRouter::Route");
       UseServicesHelper::debugAppend(objectEl, "id", mID);
       UseServicesHelper::debugAppend(objectEl, "local candidate", mLocalCandidate ? mLocalCandidate->toDebug() : ElementPtr());
       UseServicesHelper::debugAppend(objectEl, "remote ip", mRemoteIP.string());

@@ -72,6 +72,7 @@ namespace ortc
     ZS_DECLARE_USING_PTR(openpeer::services, IDNS)
     ZS_DECLARE_USING_PTR(openpeer::services, IDNSQuery)
     ZS_DECLARE_USING_PTR(openpeer::services, IBackOffTimer)
+    ZS_DECLARE_USING_PTR(openpeer::services, IBackOffTimerPattern)
     ZS_DECLARE_USING_PTR(openpeer::services, STUNPacket)
     ZS_DECLARE_USING_PTR(openpeer::services, ISTUNRequester)
     ZS_DECLARE_USING_PTR(zsLib, IPromiseSettledDelegate)

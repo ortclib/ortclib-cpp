@@ -76,12 +76,12 @@ namespace ortc
 
     virtual PUID getID() const = 0;
 
-    virtual IDataChannelSubscriptionPtr subscribe(ISCTPTransportDelegatePtr delegate) = 0;
-
-    virtual CapabilitiesPtr getCapabilities() const = 0;
+    static CapabilitiesPtr getCapabilities();
 
     virtual void start(const Capabilities &remoteCapabilities) = 0;
     virtual void stop() = 0;
+
+    virtual IDataChannelSubscriptionPtr subscribe(ISCTPTransportDelegatePtr delegate) = 0;
   };
 
   //---------------------------------------------------------------------------

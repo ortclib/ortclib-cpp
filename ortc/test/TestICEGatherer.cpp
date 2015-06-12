@@ -52,6 +52,7 @@ using zsLib::AutoPUID;
 using zsLib::AutoRecursiveLock;
 using namespace zsLib::XML;
 
+ZS_DECLARE_TYPEDEF_PTR(ortc::ISettings, UseSettings)
 ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHelper, UseServicesHelper)
 
 namespace ortc
@@ -333,6 +334,8 @@ void doTestICEGatherer()
 
   zsLib::MessageQueueThreadPtr thread(zsLib::MessageQueueThread::createBasic());
 
+  size_t totalHostIPs = UseSettings::getUInt("tester/total-host-ips");
+
   ICEGathererTesterPtr testObject1;
 
   TESTING_STDOUT() << "WAITING:      Waiting for ICE testing to complete (max wait is 180 seconds).\n";
@@ -355,9 +358,9 @@ void doTestICEGatherer()
       expectations1.mStateGathering = 1;
       expectations1.mStateComplete = 1;
       expectations1.mStateClosed = 1;
-      expectations1.mCandidatesUDPHost = ORTC_TEST_HOST_UDP_IPS;
-      expectations1.mCandidatesTCPHostActive = ORTC_TEST_HOST_TCP_IPS;
-      expectations1.mCandidatesTCPHostPassive = ORTC_TEST_HOST_TCP_IPS;
+      expectations1.mCandidatesUDPHost = totalHostIPs;
+      expectations1.mCandidatesTCPHostActive = totalHostIPs;
+      expectations1.mCandidatesTCPHostPassive = totalHostIPs;
       expectations1.mCandidateGone = expectations1.mCandidatesUDPHost + expectations1.mCandidatesTCPHostActive + expectations1.mCandidatesTCPHostPassive;
       expectations1.mCandidateComplete = 1;
 
@@ -530,7 +533,7 @@ void doTestICEGatherer()
     } while (true);
   }
 
-  TESTING_STDOUT() << "WAITING:      All ICE gethers have finished. Waiting for 'bogus' events to process (10 second wait).\n";
+  TESTING_STDOUT() << "WAITING:      All ICE gatherers have finished. Waiting for 'bogus' events to process (10 second wait).\n";
   TESTING_SLEEP(10000)
 
   // wait for shutdown

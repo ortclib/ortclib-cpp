@@ -101,10 +101,7 @@ namespace ortc
 
       virtual PUID getID() const {return mID;}
 
-      virtual void setup(
-                         IMessageQueuePtr defaultDelegateMessageQueue,
-                         IMessageQueuePtr ortcMessageQueue
-                         );
+      virtual void setup(IMessageQueuePtr defaultDelegateMessageQueue);
 
       //---------------------------------------------------------------------
       #pragma mark
@@ -134,7 +131,6 @@ namespace ortc
       ORTCWeakPtr mThisWeak;
       RecursiveLock mLock;
 
-      mutable IMessageQueuePtr mORTCQueue;
       mutable IMessageQueuePtr mDelegateQueue;
       mutable IMessageQueuePtr mBlockingMediaStartStopThread;
       mutable IMessageQueuePtr mCertificateGeneration;

@@ -36,10 +36,10 @@
 
 #define ORTC_TEST_FIFO_LOGGING_FILE "/tmp/openpeer.fifo"
 
-#define ORTC_TEST_USE_STDOUT_LOGGING     (true)
+#define ORTC_TEST_USE_STDOUT_LOGGING     (false)
 #define ORTC_TEST_USE_FIFO_LOGGING       (false)
 #define ORTC_TEST_USE_TELNET_LOGGING     (true)
-#define ORTC_TEST_USE_DEBUGGER_LOGGING   (true)
+#define ORTC_TEST_USE_DEBUGGER_LOGGING   (false)
 
 #define ORTC_TEST_TELNET_LOGGING_PORT         (59999)
 #define ORTC_TEST_TELNET_SERVER_LOGGING_PORT  (51999)
@@ -47,9 +47,6 @@
 #define ORTC_TEST_DO_ICE_GATHERER_TEST                    (false)
 #define ORTC_TEST_DO_ICE_TRANSPORT_TEST                   (true)
 
-
-#define ORTC_TEST_HOST_UDP_IPS            3
-#define ORTC_TEST_HOST_TCP_IPS            3
 
 #define ORTC_TEST_STUN_SERVER             "stun.vline.com"
 

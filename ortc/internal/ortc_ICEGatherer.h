@@ -748,6 +748,7 @@ namespace ortc
         AutoPUID mID;
 
         bool mConnected {false};
+        bool mWriteReady {false};
 
         CandidatePtr mCandidate;
 
@@ -964,7 +965,10 @@ namespace ortc
                 HostPortPtr hostPort,
                 SocketPtr socket
                 );
-      void read(TCPPort &tcpPort);
+      void read(
+                HostPort &hostPort,
+                TCPPort &tcpPort
+                );
 
       void write(
                  HostPort &hostPort,

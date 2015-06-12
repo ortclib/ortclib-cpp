@@ -140,19 +140,12 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void ORTC::setup(
-                     IMessageQueuePtr defaultDelegateMessageQueue,
-                     IMessageQueuePtr ortcMessageQueue
-                     )
+    void ORTC::setup(IMessageQueuePtr defaultDelegateMessageQueue)
     {
       AutoRecursiveLock lock(mLock);
 
       if (defaultDelegateMessageQueue) {
         mDelegateQueue = defaultDelegateMessageQueue;
-      }
-
-      if (ortcMessageQueue) {
-        mORTCQueue = ortcMessageQueue;
       }
     }
 
@@ -177,11 +170,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     IMessageQueuePtr ORTC::queueORTC() const
     {
-      AutoRecursiveLock lock(*this);
-      if (!mORTCQueue) {
-        mORTCQueue = UseMessageQueueManager::getMessageQueue(ORTC_QUEUE_MAIN_THREAD_NAME);
-      }
-      return mORTCQueue;
+      return UseMessageQueueManager::getThreadPoolQueue(ORTC_QUEUE_MAIN_THREAD_NAME);
     }
 
     //-------------------------------------------------------------------------
@@ -237,13 +226,10 @@ namespace ortc
   #pragma mark
 
   //---------------------------------------------------------------------------
-  void IORTC::setup(
-                    IMessageQueuePtr defaultDelegateMessageQueue,
-                    IMessageQueuePtr ortcMessageQueue
-                    )
+  void IORTC::setup(IMessageQueuePtr defaultDelegateMessageQueue)
   {
     auto singleton = internal::ORTC::singleton();
     if (!singleton) return;
-    singleton->setup(defaultDelegateMessageQueue, ortcMessageQueue);
+    singleton->setup(defaultDelegateMessageQueue);
   }
 }

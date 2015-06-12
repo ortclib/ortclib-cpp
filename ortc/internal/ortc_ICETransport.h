@@ -56,6 +56,8 @@
 #define ORTC_SETTING_ICE_TRANSPORT_KEEP_WARM_TIME_BASE_IN_MILLISECONDS "ortc/ice-transport/keep-warm-time-base-in-milliseconds"
 #define ORTC_SETTING_ICE_TRANSPORT_KEEP_WARM_TIME_RANDOMIZED_ADD_TIME_IN_MILLISECONDS "ortc/ice-transport/keep-warm-time-randomized-add-time-in-milliseconds"
 
+#define ORTC_SETTING_ICE_TRANSPORT_TEST_CANDIDATE_PAIRS_OF_LOWER_PREFERENCE "ortc/ice-transport/test-candidate-pairs-of-lower-preference"
+
 namespace ortc
 {
   namespace internal
@@ -523,6 +525,7 @@ namespace ortc
           State_Frozen,
           State_InProgress,
           State_Succeeded,
+          State_Ignored,
           State_Failed,
           State_Blacklisted,
 
@@ -556,7 +559,7 @@ namespace ortc
         PromiseList mDependentPromises;
 
         Time mLastRoundTripCheck;
-        Microseconds mLastRouteTripMeasurement {};
+        Microseconds mLastRoundTripMeasurement {};
 
         Route(RouteStateTrackerPtr tracker);
         ~Route();
@@ -572,14 +575,18 @@ namespace ortc
         States state() const;
         void state(States state);
 
+        bool isNew() const {return State_New == mState;}
         bool isPending() const {return State_Pending == mState;}
         bool isFrozen() const {return State_Frozen == mState;}
         bool isInProgress() const {return State_InProgress == mState;}
         bool isSucceeded() const {return State_Succeeded == mState;}
+        bool isIgnored() const {return State_Ignored == mState;}
         bool isFailed() const {return State_Failed == mState;}
         bool isBlacklisted() const {return State_Blacklisted == mState;}
 
       protected:
+        Log::Params log(const char *message) const;
+
         States mState {State_New};
       };
 
@@ -660,6 +667,7 @@ namespace ortc
                      );
       void setInProgress(RoutePtr route);
       void setSucceeded(RoutePtr route);
+      void setIgnored(RoutePtr route);
       void setFailed(RoutePtr route);
       void setBlacklisted(RoutePtr route);
 
@@ -697,7 +705,8 @@ namespace ortc
 
       ISTUNRequesterPtr createBindRequest(
                                           RoutePtr route,
-                                          bool useCandidate = false
+                                          bool useCandidate = false,
+                                          IBackOffTimerPatternPtr pattern = IBackOffTimerPatternPtr()
                                           ) const;
       STUNPacketPtr createBindResponse(
                                        STUNPacketPtr request,
@@ -789,6 +798,7 @@ namespace ortc
       RouteStateTrackerPtr mRouteStateTracker;
 
       TimerPtr mActivationTimer;
+      bool mNextActivationCausesAllRoutesThatReceivedChecksToActivate {false};
 
       SortedRouteMap mPendingActivation;
 
@@ -813,6 +823,7 @@ namespace ortc
 
       Seconds mExpireRouteTime;
       TimerPtr mExpireRouteTimer;
+      bool mTestLowerPreferenceCandidatePairs {false};
       bool mBlacklistConsent {false};
 
       Milliseconds mKeepWarmTimeBase;

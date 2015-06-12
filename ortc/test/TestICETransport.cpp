@@ -53,6 +53,7 @@ using zsLib::AutoPUID;
 using zsLib::AutoRecursiveLock;
 using namespace zsLib::XML;
 
+ZS_DECLARE_TYPEDEF_PTR(ortc::ISettings, UseSettings)
 ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHelper, UseServicesHelper)
 
 namespace ortc
@@ -446,10 +447,7 @@ namespace ortc
         Expectations getExpectations() const {return mExpectations;}
 
         //-----------------------------------------------------------------------
-        void setRemote(
-                       ICEGathererTesterPtr remoteGathererTester,
-                       const IICETransport::Options &options
-                       )
+        void setRemote(ICEGathererTesterPtr remoteGathererTester)
         {
           AutoRecursiveLock lock(*this);
           mRemoteGathererTester = remoteGathererTester;
@@ -463,6 +461,25 @@ namespace ortc
           TESTING_CHECK(localGatherer)
           TESTING_CHECK(remoteGatherer)
 
+          mRemoteGathererSubscription = remoteGatherer->subscribe(mThisWeak.lock());
+
+          TESTING_CHECK(mRemoteGathererSubscription)
+        }
+
+        //-----------------------------------------------------------------------
+        void start(const IICETransport::Options &options)
+        {
+          AutoRecursiveLock lock(*this);
+
+          TESTING_CHECK(mGathererTester)
+          TESTING_CHECK(mRemoteGathererTester)
+
+          auto localGatherer = mGathererTester->getGatherer();
+          auto remoteGatherer = mRemoteGathererTester->getGatherer();
+
+          TESTING_CHECK(localGatherer)
+          TESTING_CHECK(remoteGatherer)
+
           if ((mTransport) &&
               (localGatherer) &&
               (remoteGatherer)) {
@@ -470,10 +487,6 @@ namespace ortc
             TESTING_CHECK(params)
             mTransport->start(localGatherer, *params, options);
           }
-
-          mRemoteGathererSubscription = remoteGatherer->subscribe(mThisWeak.lock());
-
-          TESTING_CHECK(mRemoteGathererSubscription)
         }
 
       protected:
@@ -634,6 +647,8 @@ void doTestICETransport()
 
   zsLib::MessageQueueThreadPtr thread(zsLib::MessageQueueThread::createBasic());
 
+  size_t totalHostIPs = UseSettings::getUInt("tester/total-host-ips");
+
   ICEGathererTesterPtr testGathererObject1;
   ICETransportTesterPtr testTransportObject1;
 
@@ -661,9 +676,9 @@ void doTestICETransport()
       expectationsGatherer1.mStateGathering = 1;
       expectationsGatherer1.mStateComplete = 1;
       expectationsGatherer1.mStateClosed = 1;
-      expectationsGatherer1.mCandidatesUDPHost = ORTC_TEST_HOST_UDP_IPS;
-      expectationsGatherer1.mCandidatesTCPHostActive = ORTC_TEST_HOST_TCP_IPS;
-      expectationsGatherer1.mCandidatesTCPHostPassive = ORTC_TEST_HOST_TCP_IPS;
+      expectationsGatherer1.mCandidatesUDPHost = totalHostIPs;
+      expectationsGatherer1.mCandidatesTCPHostActive = totalHostIPs;
+      expectationsGatherer1.mCandidatesTCPHostPassive = totalHostIPs;
       expectationsGatherer1.mCandidateGone = expectationsGatherer1.mCandidatesUDPHost + expectationsGatherer1.mCandidatesTCPHostActive + expectationsGatherer1.mCandidatesTCPHostPassive;
       expectationsGatherer1.mCandidateComplete = 1;
 
@@ -723,14 +738,8 @@ void doTestICETransport()
             testTransportObject2 = ICETransportTester::create(thread, testGathererObject2);
           }
 
-          ortc::IICETransportTypes::Options options1;
-          ortc::IICETransportTypes::Options options2;
-
-          options1.mRole = ortc::IICETypes::Role_Controlling;
-          options2.mRole = ortc::IICETypes::Role_Controlled;
-
-          testTransportObject1->setRemote(testGathererObject2, options1);
-          testTransportObject2->setRemote(testGathererObject1, options2);
+          testTransportObject1->setRemote(testGathererObject2);
+          testTransportObject2->setRemote(testGathererObject1);
           break;
         }
 /*        case 2: {
@@ -807,11 +816,21 @@ void doTestICETransport()
 
         switch (step) {
           case 0: {
-            if (50 == totalWait) {
-              if (testGathererObject1) testGathererObject1->close();
-              if (testGathererObject2) testGathererObject2->close();
+            if (5 == totalWait) {
+              ortc::IICETransportTypes::Options options1;
+              ortc::IICETransportTypes::Options options2;
+
+              options1.mRole = ortc::IICETypes::Role_Controlling;
+              options2.mRole = ortc::IICETypes::Role_Controlled;
+              
+              testTransportObject1->start(options1);
+              testTransportObject2->start(options2);
+            }
+            if (70 == totalWait) {
               if (testTransportObject1) testTransportObject1->close();
               if (testTransportObject2) testTransportObject2->close();
+              if (testGathererObject1) testGathererObject1->close();
+              if (testGathererObject2) testGathererObject2->close();
             }
             break;
           }
@@ -890,7 +909,7 @@ void doTestICETransport()
     } while (true);
   }
 
-  TESTING_STDOUT() << "WAITING:      All ICE gethers have finished. Waiting for 'bogus' events to process (10 second wait).\n";
+  TESTING_STDOUT() << "WAITING:      All ICE transports have finished. Waiting for 'bogus' events to process (10 second wait).\n";
   TESTING_SLEEP(10000)
 
   // wait for shutdown

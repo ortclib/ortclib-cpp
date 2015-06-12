@@ -47,6 +47,13 @@ namespace ortc
   {
     static void setup(ISettingsDelegatePtr delegate);
 
+    static String getString(const char *key);
+    static LONG getInt(const char *key);
+    static ULONG getUInt(const char *key);
+    static bool getBool(const char *key);
+    static float getFloat(const char *key);
+    static double getDouble(const char *key);
+
     static void setString(
                           const char *key,
                           const char *value

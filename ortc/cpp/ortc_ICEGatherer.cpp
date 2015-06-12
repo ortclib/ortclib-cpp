@@ -1073,9 +1073,14 @@ namespace ortc
             return false;
           }
 
+          CryptoPP::word16 packeSize {htons(bufferSizeInBytes)};
+
+          route->mTCPPort->mOutgoingBuffer.Put((const BYTE *)(&packeSize), sizeof(packeSize));
           route->mTCPPort->mOutgoingBuffer.Put(buffer, bufferSizeInBytes);
-          if (route->mTCPPort->mConnected) {
-            // simulate a write ready to trigger immediate sending
+          if ((route->mTCPPort->mConnected) &&
+              (0 == currentSize) &&
+              (route->mTCPPort->mWriteReady)) {
+            ZS_LOG_INSANE(log("simulate write ready for TCP socket (to ensure packet is sent out straight away)"))
             ISocketDelegateProxy::create(mThisWeak.lock())->onWriteReady(route->mTCPPort->mSocket);
           }
           return true;
@@ -1166,7 +1171,7 @@ namespace ortc
 
         auto found = mRoutes.find(routerRouteID);
         if (found == mRoutes.end()) {
-          ZS_LOG_WARNING(Detail, log("route was not found"))
+          ZS_LOG_WARNING(Detail, log("route was not found") + ZS_PARAM("router route id", routerRouteID))
           return;
         }
 
@@ -1433,7 +1438,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     void ICEGatherer::onReadReady(SocketPtr socket)
     {
-      ZS_LOG_INSANE(log("socket read ready") + ZS_PARAM("socket", (PTRNUMBER)socket->getSocket()))
+      ZS_LOG_INSANE(log("socket read ready") + ZS_PARAM("socket", string(socket)))
 
       HostPortPtr hostPort;
       TCPPortPtr tcpPort;
@@ -1475,20 +1480,20 @@ namespace ortc
 
     found_tcp_socket:
       {
-        read(*tcpPort);
+        read(*hostPort, *tcpPort);
         return;
       }
 
     not_found:
       {
-        ZS_LOG_WARNING(Debug, log("socket read ready failed to find associated port") + ZS_PARAM("socket", (PTRNUMBER)socket->getSocket()))
+        ZS_LOG_WARNING(Debug, log("socket read ready failed to find associated port") + ZS_PARAM("socket", string(socket)))
       }
     }
 
     //-------------------------------------------------------------------------
     void ICEGatherer::onWriteReady(SocketPtr socket)
     {
-      ZS_LOG_INSANE(log("socket write ready") + ZS_PARAM("socket", (PTRNUMBER)socket->getSocket()))
+      ZS_LOG_INSANE(log("socket write ready") + ZS_PARAM("socket", string(socket)))
 
       HostPortPtr hostPort;
       TCPPortPtr tcpPort;
@@ -1524,14 +1529,14 @@ namespace ortc
 
     not_found:
       {
-        ZS_LOG_WARNING(Debug, log("socket write ready failed to find associated port") + ZS_PARAM("socket", (PTRNUMBER)socket->getSocket()))
+        ZS_LOG_WARNING(Debug, log("socket write ready failed to find associated port") + ZS_PARAM("socket", string(socket)))
       }
     }
 
     //-------------------------------------------------------------------------
     void ICEGatherer::onException(SocketPtr socket)
     {
-      ZS_LOG_WARNING(Debug, log("socket exception") + ZS_PARAM("socket", (PTRNUMBER)socket->getSocket()))
+      ZS_LOG_WARNING(Debug, log("socket exception") + ZS_PARAM("socket", string(socket)))
 
       HostPortPtr hostPort;
       TCPPortPtr tcpPort;
@@ -1579,7 +1584,7 @@ namespace ortc
 
     not_found:
       {
-        ZS_LOG_WARNING(Debug, log("socket exception failed to find associated port") + ZS_PARAM("socket", (PTRNUMBER)socket->getSocket()))
+        ZS_LOG_WARNING(Debug, log("socket exception failed to find associated port") + ZS_PARAM("socket", string(socket)))
       }
     }
 
@@ -1756,21 +1761,15 @@ namespace ortc
         relayPort->mLastActivity = zsLib::now();
 
         stunPacket = STUNPacket::parseIfSTUN(packet, packetLengthInBytes, STUNPacket::RFC_AllowAll, false, "ortc::ICEGatherer", mID);
-        if (stunPacket) {
-          if (ISTUNRequester::handleSTUNPacket(source, stunPacket)) {
-            ZS_LOG_TRACE(log("handled by stun requester") + ZS_PARAM("from ip", source.string()) + stunPacket->toDebug())
-            return;
-          }
-        }
 
         if (closingSocket) {
           ZS_LOG_WARNING(Detail, log("turn socket is closing (thus cannot handle incoming packet)") + hostPort->toDebug() + relayPort->toDebug())
-          return;
+          goto unhandled_packet;
         }
 
         if (!localCandidate) {
           ZS_LOG_WARNING(Detail, log("local relay candidate is gone (thus cannot handle incoming packet)") + hostPort->toDebug() + relayPort->toDebug())
-          return;
+          goto unhandled_packet;
         }
 
         if (stunPacket) goto found_stun_packet;
@@ -1778,8 +1777,24 @@ namespace ortc
         goto found_packet;
       }
 
+    unhandled_packet:
+      {
+        if (stunPacket) {
+          if (ISTUNRequester::handleSTUNPacket(source, stunPacket)) {
+            ZS_LOG_TRACE(log("handled by stun requester") + ZS_PARAM("from ip", source.string()) + stunPacket->toDebug())
+            return;
+          }
+        }
+        return;
+      }
+
     found_stun_packet:
       {
+        if (ISTUNRequester::handleSTUNPacket(source, stunPacket)) {
+          ZS_LOG_TRACE(log("handled by stun requester") + ZS_PARAM("from ip", source.string()) + stunPacket->toDebug())
+          return;
+        }
+
         auto response = handleIncomingPacket(localCandidate, source, stunPacket);
         if (response) {
           ZS_LOG_TRACE(log("sending response packet") + localCandidate->toDebug() + ZS_PARAM("to", source.string()) + ZS_PARAM("packet length", response->SizeInBytes()))
@@ -3343,6 +3358,8 @@ namespace ortc
                                                              );
               ZS_THROW_UNEXPECTED_ERROR_IF(!relayPort->mTURNSocket)
 
+              ZS_LOG_DEBUG(log("turn socket created") + ZS_PARAM("turn socket", relayPort->mTURNSocket->getID()) + ZS_PARAM("source ip", hostPort->mBoundUDPIP.string()) + hostPort->toDebug())
+
               mTURNSockets[relayPort->mTURNSocket] = HostAndRelayPortPair(hostPort, relayPort);
             }
 
@@ -4069,6 +4086,17 @@ namespace ortc
           break;
         }
       }
+
+      for (auto iter_doNotUse = mRoutes.begin(); iter_doNotUse != mRoutes.end(); ) {
+        auto current = iter_doNotUse;
+        ++iter_doNotUse;
+
+        auto route = (*current).second;
+        if (route->mHostPort == hostPort) {
+          ZS_LOG_TRACE(log("route is mapped to closed host port (thus route must be closed)") + route->toDebug())
+          removeRoute(route->mRouterRoute);
+        }
+      }
     }
 
     //-------------------------------------------------------------------------
@@ -4178,6 +4206,17 @@ namespace ortc
           ownerHostPort->mIPToRelayPortMapping.erase(found);
         }
       }
+
+      for (auto iter_doNotUse = mRoutes.begin(); iter_doNotUse != mRoutes.end(); ) {
+        auto current = iter_doNotUse;
+        ++iter_doNotUse;
+
+        auto route = (*current).second;
+        if (route->mRelayPort == relayPort) {
+          ZS_LOG_TRACE(log("route is mapped to closed relay port (thus route must be closed)") + route->toDebug())
+          removeRoute(route->mRouterRoute);
+        }
+      }
     }
 
     //-------------------------------------------------------------------------
@@ -4189,22 +4228,6 @@ namespace ortc
       if (!tcpPort) return;
 
       ZS_LOG_TRACE(log("shutting down tcp port") + tcpPort->toDebug())
-
-      // scope: remote from host port
-      {
-        for (auto iter_doNotUse = ownerHostPort->mTCPPorts.begin(); iter_doNotUse != ownerHostPort->mTCPPorts.end(); )
-        {
-          auto current = iter_doNotUse;
-          ++iter_doNotUse;
-
-          auto compareTCPPort = (*current).second.second;
-          if (compareTCPPort != tcpPort) continue;
-
-          ZS_LOG_TRACE(log("found relay port to remove from host port") + compareTCPPort->toDebug())
-          ownerHostPort->mTCPPorts.erase(current);
-          break;
-        }
-      }
 
       if (tcpPort->mCandidate) {
         auto found = mTCPCandidateToTCPPorts.find(tcpPort->mCandidate);
@@ -4241,6 +4264,19 @@ namespace ortc
 
       tcpPort->mIncomingBuffer.Clear();
       tcpPort->mOutgoingBuffer.Clear();
+
+      removeCandidate(tcpPort->mCandidate);
+
+      for (auto iter_doNotUse = mRoutes.begin(); iter_doNotUse != mRoutes.end(); ) {
+        auto current = iter_doNotUse;
+        ++iter_doNotUse;
+
+        auto route = (*current).second;
+        if (route->mTCPPort == tcpPort) {
+          ZS_LOG_TRACE(log("route is mapped to closed tcp socket (thus route must be closed)") + route->toDebug())
+          removeRoute(route->mRouterRoute);
+        }
+      }
     }
 
     //-------------------------------------------------------------------------
@@ -4507,7 +4543,7 @@ namespace ortc
 
       auto foundLocal = mLocalCandidates.find(localHash);
       if (foundLocal == mLocalCandidates.end()) {
-        ZS_LOG_WARNING(Debug, log("local candidate is not found (might have been filtered)") + candidate->toDebug())
+        ZS_LOG_WARNING(Debug, log("local candidate is not found (might have been filtered or was peer reflexive)") + candidate->toDebug())
         return;
       }
 
@@ -4630,24 +4666,18 @@ namespace ortc
           try {
             totalRead = socket->receiveFrom(fromIP, readBuffer, readBuffer.SizeInBytes());
           } catch(Socket::Exceptions::Unspecified &error) {
-            ZS_LOG_WARNING(Debug, log("socket read error") + ZS_PARAM("socket", (PTRNUMBER)socket->getSocket()) + ZS_PARAM("error", error.errorCode()))
+            ZS_LOG_WARNING(Debug, log("socket read error") + ZS_PARAM("socket", string(socket)) + ZS_PARAM("error", error.errorCode()))
             return;
           }
 
           if (0 == totalRead) {
-            ZS_LOG_WARNING(Debug, log("failed to read any data from socket") + ZS_PARAM("socket", (PTRNUMBER)socket->getSocket()))
+            ZS_LOG_WARNING(Debug, log("failed to read any data from socket") + ZS_PARAM("socket", string(socket)))
             return;
           }
 
-          ZS_LOG_TRACE(log("receiving incoming packet") + ZS_PARAM("from ip", fromIP.string()) + ZS_PARAM("read", totalRead))
+          ZS_LOG_INSANE(log("receiving incoming packet") + ZS_PARAM("from ip", fromIP.string()) + ZS_PARAM("read", totalRead) + hostPort->toDebug())
 
           stunPacket = STUNPacket::parseIfSTUN(readBuffer, totalRead, STUNPacket::RFC_AllowAll, false, "ortc::ICEGatherer", mID);
-          if (stunPacket) {
-            if (ISTUNRequester::handleSTUNPacket(fromIP, stunPacket)) {
-              ZS_LOG_TRACE(log("handled by stun requester") + ZS_PARAM("from ip", fromIP.string()) + stunPacket->toDebug())
-              return;
-            }
-          }
 
           // scope: check if for relay socket
           {
@@ -4657,7 +4687,7 @@ namespace ortc
               turnSocket = relayPort->mTURNSocket;
               if (!turnSocket) {
                 ZS_LOG_WARNING(Detail, log("TURN socket was not found despite mapping being found") + relayPort->toDebug())
-                return;
+                goto unknown_handler;
               }
               goto found_relay_port;
             }
@@ -4667,7 +4697,7 @@ namespace ortc
           localCandidate = hostPort->mCandidateUDP;
           if (!localCandidate) {
             ZS_LOG_WARNING(Trace, log("did not find local candidate"))
-            return;
+            goto unknown_handler;
           }
           goto handle_incoming;
         }
@@ -4696,9 +4726,7 @@ namespace ortc
 
             tcpPort->mSocket->setDelegate(mThisWeak.lock());
 
-            tcpPort->mCandidate = createCandidate(hostPort->mHostData, IICETypes::CandidateType_Prflx, localAddress, IICETypes::Protocol_TCP, IICETypes::TCPCandidateType_Passive);
-            tcpPort->mCandidate->mPriority = hostPort->mCandidateTCPPassive->mPriority;
-            tcpPort->mCandidate->mUnfreezePriority = hostPort->mCandidateTCPPassive->mUnfreezePriority;
+            tcpPort->mCandidate = hostPort->mCandidateTCPPassive;
 
             mTCPCandidateToTCPPorts[tcpPort->mCandidate] = tcpPort;
             return;
@@ -4708,9 +4736,25 @@ namespace ortc
 
       return;
 
+    unknown_handler:
+      {
+        if (stunPacket) {
+          if (ISTUNRequester::handleSTUNPacket(fromIP, stunPacket)) {
+            ZS_LOG_TRACE(log("handled by stun requester") + ZS_PARAM("from ip", fromIP.string()) + stunPacket->toDebug())
+            return;
+          }
+        }
+        return;
+      }
+
     found_relay_port:
       {
         if (stunPacket) {
+          if (ISTUNRequester::handleSTUNPacket(fromIP, stunPacket)) {
+            ZS_LOG_TRACE(log("handled by stun requester") + ZS_PARAM("from ip", fromIP.string()) + stunPacket->toDebug())
+            return;
+          }
+
           ZS_LOG_INSANE(log("forwarding stun packet to turn socket") + ZS_PARAM("from ip", fromIP.string()) + stunPacket->toDebug())
           turnSocket->handleSTUNPacket(fromIP, stunPacket);
           return;
@@ -4724,6 +4768,11 @@ namespace ortc
     handle_incoming:
       {
         if (stunPacket) {
+          if (ISTUNRequester::handleSTUNPacket(fromIP, stunPacket)) {
+            ZS_LOG_TRACE(log("handled by stun requester") + ZS_PARAM("from ip", fromIP.string()) + stunPacket->toDebug())
+            return;
+          }
+
           ZS_LOG_INSANE(log("handling incoming stun packet") + localCandidate->toDebug() + ZS_PARAM("from ip", fromIP.string()) + stunPacket->toDebug())
           auto response = handleIncomingPacket(localCandidate, fromIP, stunPacket);
           if (response) {
@@ -4747,7 +4796,10 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void ICEGatherer::read(TCPPort &tcpPort)
+    void ICEGatherer::read(
+                           HostPort &hostPort,
+                           TCPPort &tcpPort
+                           )
     {
       BufferedPacketList packets;
 
@@ -4777,35 +4829,41 @@ namespace ortc
             goto process_packets;
           }
 
-          auto currentSize = tcpPort.mIncomingBuffer.CurrentSize();
+          while (true) {
+            auto currentSize = tcpPort.mIncomingBuffer.CurrentSize();
 
-          CryptoPP::word16 packeSize {};
+            CryptoPP::word16 packetSize {};
 
-          if (currentSize < sizeof(packeSize)) continue;
+            if (currentSize < sizeof(packetSize)) goto nothing_more_to_parse;
 
-          // peak ahead to see if the entire packet has arrived
-          tcpPort.mIncomingBuffer.PeekWord16(packeSize);
+            // peak ahead to see if the entire packet has arrived
+            tcpPort.mIncomingBuffer.PeekWord16(packetSize);
 
-          if (currentSize < sizeof(packeSize) + packeSize) continue;
+            if (currentSize < sizeof(packetSize) + packetSize) goto nothing_more_to_parse;
 
-          // entire packet has arrived, get the packet size again to consume that data
-          tcpPort.mIncomingBuffer.Get((BYTE *)(&packeSize), sizeof(packeSize));
+            tcpPort.mIncomingBuffer.Skip(sizeof(packetSize));
 
-          // now have enough to extract out of buffer
+            // now have enough to extract out of buffer
 
-          BufferedPacketPtr packet(make_shared<BufferedPacket>());
-          packet->mBuffer = SecureByteBlockPtr(make_shared<SecureByteBlock>(packeSize));
-          if (!localCandidate) {
-            localCandidate = tcpPort.mCandidate;
-            fromIP = tcpPort.mRemoteIP;
+            BufferedPacketPtr packet(make_shared<BufferedPacket>());
+            packet->mBuffer = SecureByteBlockPtr(make_shared<SecureByteBlock>(packetSize));
+            if (!localCandidate) {
+              localCandidate = tcpPort.mCandidate;
+              fromIP = tcpPort.mRemoteIP;
+            }
+
+            // fill packet with incoming data
+            tcpPort.mIncomingBuffer.Get(*(packet->mBuffer), packetSize);
+
+            packet->mSTUNPacket = STUNPacket::parseIfSTUN(*(packet->mBuffer), packet->mBuffer->SizeInBytes(), STUNPacket::RFC_AllowAll, false, "ortc::ICEGatherer", mID);
+
+            packets.push_back(packet);
           }
 
-          // fill packet with incoming data
-          tcpPort.mIncomingBuffer.Get(*(packet->mBuffer), packeSize);
-
-          packet->mSTUNPacket = STUNPacket::parseIfSTUN(*(packet->mBuffer), packet->mBuffer->SizeInBytes(), STUNPacket::RFC_AllowAll, false, "ortc::ICEGatherer", mID);
-
-          packets.push_back(packet);
+        nothing_more_to_parse:
+          {
+            ZS_LOG_INSANE(log("nothing more to parse at this time") + tcpPort.toDebug())
+          }
         }
       }
 
@@ -4828,9 +4886,14 @@ namespace ortc
               if (tcpPort.mSocket) {
                 ZS_LOG_TRACE(log("sending packet response by putting into TCP send queue") + tcpPort.toDebug())
                 // put the buffer at the end of the queue
+
+                CryptoPP::word16 packeSize = ((CryptoPP::word16)(response->SizeInBytes()));
+
+                tcpPort.mOutgoingBuffer.PutWord16(packeSize);
                 tcpPort.mOutgoingBuffer.Put(*response, response->SizeInBytes());
-                // simulate a write ready event to try and send via queue
-                if (tcpPort.mConnected) {
+                if ((tcpPort.mConnected) &&
+                    (tcpPort.mWriteReady)) {
+                  ZS_LOG_INSANE(log("simulate TCP write ready to force the packet to send immediately"))
                   ISocketDelegateProxy::create(mThisWeak.lock())->onWriteReady(tcpPort.mSocket);
                 }
               } else {
@@ -4873,8 +4936,6 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool ICEGatherer::writeIfTCPPort(SocketPtr socket)
     {
-      AutoRecursiveLock lock(*this);
-
       auto found = mTCPPorts.find(socket);
       if (found == mTCPPorts.end()) return false;
 
@@ -4884,6 +4945,8 @@ namespace ortc
         ZS_LOG_WARNING(Detail, log("tcp port was closed during write notification") + tcpPort.toDebug())
         return true;
       }
+
+      tcpPort.mWriteReady = true;
 
       if (!tcpPort.mConnected) {
         ZS_LOG_TRACE(log("outgoing tcp port is now connected") + tcpPort.toDebug())
@@ -4908,6 +4971,7 @@ namespace ortc
 
           if (0 == sent) {
             ZS_LOG_INSANE(log("no more room to send data") + tcpPort.toDebug())
+            tcpPort.mWriteReady = false;
             goto finished_write;
           }
 
@@ -4936,7 +5000,7 @@ namespace ortc
 
       if ((hostPort->mBoundUDPSocket != socket) &&
           (hostPort->mBoundTCPSocket != socket)) {
-        ZS_LOG_WARNING(Detail, log("socket was not found on host port") + hostPort->toDebug() + ZS_PARAM("socket", (PTRNUMBER)socket->getSocket()))
+        ZS_LOG_WARNING(Detail, log("socket was not found on host port") + hostPort->toDebug() + ZS_PARAM("socket", string(socket)))
         return;
       }
 
@@ -4946,7 +5010,7 @@ namespace ortc
       CandidatePtr &candidate1 = (hostPort->mBoundUDPSocket == socket ? hostPort->mCandidateUDP : hostPort->mCandidateTCPPassive);
       CandidatePtr &candidate2 = (hostPort->mBoundUDPSocket == socket ? ingored : hostPort->mCandidateTCPActive);
 
-      ZS_LOG_WARNING(Detail, log("bound UDP or TCP socket unexpectedly closed") + hostPort->toDebug() + ZS_PARAM("socket", (PTRNUMBER)socket->getSocket()))
+      ZS_LOG_WARNING(Detail, log("bound UDP or TCP socket unexpectedly closed") + hostPort->toDebug() + ZS_PARAM("socket", string(socket)))
 
       auto found = mHostPortSockets.find(socket);
       if (found != mHostPortSockets.end()) {
@@ -4987,6 +5051,8 @@ namespace ortc
     {
       ZS_THROW_INVALID_ARGUMENT_IF(!tcpPort)
       ZS_THROW_INVALID_ARGUMENT_IF(!ownerHostPort)
+
+      AutoRecursiveLock lock(*this);
       ZS_LOG_DEBUG(log("tcp port is closing") + tcpPort->toDebug())
       shutdown(tcpPort, ownerHostPort);
     }
@@ -5181,9 +5247,9 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    ICEGatherer::CandidatePtr ICEGatherer::findSentFromLocalCandidate(RouterRoutePtr routerRoute)
+    IICETypes::CandidatePtr ICEGatherer::findSentFromLocalCandidate(RouterRoutePtr routerRoute)
     {
-      CandidatePtr foundCandidate;
+      CandidatePtr result;
 
       auto routerCandidate = routerRoute->mLocalCandidate;
       String routerCandidateHash = routerRoute->mLocalCandidate->hash();
@@ -5200,7 +5266,7 @@ namespace ortc
           if (IICETypes::Protocol_UDP == routerCandidate->mProtocol) {
             if (hostPort->mCandidateUDP) {
               if (hostPort->mCandidateUDP->hash() == routerCandidateHash) {
-                foundCandidate = hostPort->mCandidateUDP;
+                result = hostPort->mCandidateUDP;
                 goto done;
               }
             }
@@ -5209,13 +5275,13 @@ namespace ortc
               auto relayPort = (*iterRelay);
               if (relayPort->mReflexiveCandidate) {
                 if (relayPort->mReflexiveCandidate->hash() == routerCandidateHash) {
-                  foundCandidate = hostPort->mCandidateUDP;
+                  result = hostPort->mCandidateUDP;
                   goto done;
                 }
               }
               if (relayPort->mRelayCandidate) {
                 if (relayPort->mRelayCandidate->hash() == routerCandidateHash) {
-                  foundCandidate = relayPort->mRelayCandidate;
+                  result = relayPort->mRelayCandidate;
                   goto done;
                 }
               }
@@ -5225,7 +5291,7 @@ namespace ortc
               auto reflexivePort = (*iterRelay);
               if (reflexivePort->mCandidate) {
                 if (reflexivePort->mCandidate->hash() == routerCandidateHash) {
-                  foundCandidate = hostPort->mCandidateUDP;
+                  result = hostPort->mCandidateUDP;
                   goto done;
                 }
               }
@@ -5235,17 +5301,18 @@ namespace ortc
           if (IICETypes::Protocol_TCP == routerCandidate->mProtocol) {
             if (hostPort->mCandidateTCPPassive) {
               if (hostPort->mCandidateTCPPassive->hash() == routerCandidateHash) {
-                foundCandidate = hostPort->mCandidateTCPPassive;
+                result = hostPort->mCandidateTCPPassive;
                 goto done;
               }
             }
             if (hostPort->mCandidateTCPActive) {
               if (hostPort->mCandidateTCPActive->hash() == routerCandidateHash) {
-                foundCandidate = hostPort->mCandidateTCPActive;
+                result = hostPort->mCandidateTCPActive;
                 goto done;
               }
             }
           }
+
         }
 
         goto done;
@@ -5253,14 +5320,14 @@ namespace ortc
 
     done:
       {
-        if (foundCandidate) {
-          ZS_LOG_TRACE(log("sent from local candidate found") + foundCandidate->toDebug() + routerRoute->toDebug())
+        if (result) {
+          ZS_LOG_TRACE(log("sent from local candidate found") + result->toDebug() + routerRoute->toDebug())
         } else {
           ZS_LOG_WARNING(Detail, log("no sent from local candidate found for router route") + routerRoute->toDebug())
         }
       }
 
-      return foundCandidate;
+      return result;
     }
     
     //-----------------------------------------------------------------------
@@ -5297,7 +5364,7 @@ namespace ortc
 
    install_new_route:
       {
-        auto sentFromLocalCandidate = findSentFromLocalCandidate(routerRoute);
+        CandidatePtr sentFromLocalCandidate = findSentFromLocalCandidate(routerRoute);
         if (!sentFromLocalCandidate) {
           ZS_LOG_WARNING(Detail, log("unable to find local candidate for router route") + routerRoute->toDebug())
           return RoutePtr();
@@ -5351,16 +5418,10 @@ namespace ortc
 
         // install a route
         route = RoutePtr(make_shared<Route>());
-        route->mRouterRoute = mGathererRouter->findRoute(sentFromLocalCandidate, remoteIP, true);
         route->mLastUsed = zsLib::now();
         route->mLocalCandidate = sentFromLocalCandidate;
         route->mTransportID = transport->getID();
         route->mTransport = transport;
-
-        if (!route->mRouterRoute) {
-          ZS_LOG_WARNING(Detail, log("failed to create router route") + route->toDebug())
-          return RoutePtr();
-        }
 
         ZS_LOG_DEBUG(log("installing new route") + route->toDebug())
 
@@ -5397,10 +5458,15 @@ namespace ortc
 
                   // this is an exact match
                   route->mTCPPort = tcpPort;
-                  if (tcpPort->mConnected) goto resolved_local_candidate; // prefer a connected TCP port (otherwise keep searching)
+                  if (tcpPort->mConnected) {
+                    break; // prefer a connected TCP port (otherwise keep searching)
+                  }
                 }
 
-                if (route->mTCPPort) goto resolved_local_candidate;
+                if (route->mTCPPort) {
+                  route->mLocalCandidate = route->mTCPPort->mCandidate;
+                  goto resolved_local_candidate;
+                }
 
                 ZS_LOG_DEBUG(log("no existing TCP ports found that can satisfy this route") + sentFromLocalCandidate->toDebug() + ZS_PARAM("remote ip", remoteIP.string()) + ZS_PARAM("transport", transport->getID()))
 
@@ -5411,23 +5477,23 @@ namespace ortc
                 tcpPort->mTransportID = transport->getID();
                 tcpPort->mTransport = transport;
 
+                IPAddress localIP;
+
                 try {
                   auto createFamily = (hostPort->mHostData->mIP.isIPv6() ? Socket::Create::IPv6 : Socket::Create::IPv4);
                   tcpPort->mSocket = Socket::createTCP(createFamily);
                   tcpPort->mSocket->bind(hostPort->mHostData->mIP);
-                  IPAddress localIP = tcpPort->mSocket->getLocalAddress();
+                  localIP = tcpPort->mSocket->getLocalAddress();
 
-                  tcpPort->mCandidate = createCandidate(hostPort->mHostData, IICETypes::CandidateType_Prflx, localIP, IICETypes::Protocol_TCP , sentFromLocalCandidate->mTCPType);
+                  tcpPort->mCandidate = hostPort->mCandidateTCPActive;
 
-                  // adopt priority of host socket
-                  tcpPort->mCandidate->mPriority = sentFromLocalCandidate->mPriority;
-                  tcpPort->mCandidate->mUnfreezePriority = sentFromLocalCandidate->mUnfreezePriority;
+                  bool woudlBlock = false;
 
                   tcpPort->mSocket->setBlocking(false);
                   tcpPort->mSocket->setDelegate(mThisWeak.lock());
-                  tcpPort->mSocket->connect(remoteIP);
+                  tcpPort->mSocket->connect(remoteIP, &woudlBlock);
                 } catch(Socket::Exceptions::Unspecified &error) {
-                  ZS_LOG_WARNING(Detail, log("failed to create an outgoing TCP connection") + ZS_PARAM("error", error.errorCode()))
+                  ZS_LOG_WARNING(Detail, log("failed to create an outgoing TCP connection") + ZS_PARAM("error", error.errorCode()) + ZS_PARAM("local ip", localIP.string()) + ZS_PARAM("remote ip", remoteIP.string()))
                   tcpPort->mSocket.reset();
                   goto failed_resolve_local_candidate;
                 }
@@ -5481,12 +5547,21 @@ namespace ortc
 
       resolved_local_candidate:
         {
+          route->mRouterRoute = mGathererRouter->findRoute(route->mLocalCandidate, remoteIP, true);
+
+          if (!route->mRouterRoute) {
+            ZS_LOG_WARNING(Detail, log("failed to create router route") + route->toDebug())
+            return RoutePtr();
+          }
+          
           removeRoute(route->mRouterRoute);
 
           if (!transport) {
             ZS_LOG_WARNING(Detail, log("transport to install route was not found"))
             goto failed_resolve_local_candidate;
           }
+
+          ZS_LOG_TRACE(log("installing route") + route->toDebug())
 
           mRoutes[route->mRouterRoute->mID] = route;
           mQuickSearchRoutes[search] = route;
@@ -5562,6 +5637,7 @@ namespace ortc
         bool wouldBlock = false;
 
         auto sent = socket->sendTo(remoteIP, buffer, bufferSizeInBytes, &wouldBlock);
+        ZS_LOG_INSANE(log("packet sent") + ZS_PARAM("socket", string(socket)) + ZS_PARAM("to", remoteIP.string()) + ZS_PARAM("from", boundIP.string()) + ZS_PARAM("size", bufferSizeInBytes))
 
         if (sent == bufferSizeInBytes) return true;
       } catch(Socket::Exceptions::Unspecified &error) {
@@ -5569,7 +5645,7 @@ namespace ortc
         return false;
       }
 
-      ZS_LOG_WARNING(Trace, log("could not send packet at this time") + ZS_PARAM("socket", (PTRNUMBER)socket->getSocket()) + ZS_PARAM("to", remoteIP.string()) + ZS_PARAM("from", boundIP.string()) + ZS_PARAM("size", bufferSizeInBytes))
+      ZS_LOG_WARNING(Trace, log("could not send packet at this time") + ZS_PARAM("socket", string(socket)) + ZS_PARAM("to", remoteIP.string()) + ZS_PARAM("from", boundIP.string()) + ZS_PARAM("size", bufferSizeInBytes))
       return false;
     }
 
@@ -6001,13 +6077,13 @@ namespace ortc
 
       UseServicesHelper::debugAppend(resultEl, "candidate udp", mCandidateUDP ? mCandidateUDP->toDebug() : ElementPtr());
       UseServicesHelper::debugAppend(resultEl, "bound udp ip", mBoundUDPIP.string());
-      UseServicesHelper::debugAppend(resultEl, "bound udp socket", mBoundUDPSocket ? ((PTRNUMBER)mBoundUDPSocket->getSocket()) : 0);
+      UseServicesHelper::debugAppend(resultEl, "bound udp socket", string(mBoundUDPSocket));
       UseServicesHelper::debugAppend(resultEl, "udp back off timer", UseBackOffTimer::toDebug(mBindUDPBackOffTimer));
 
       UseServicesHelper::debugAppend(resultEl, "passive candidate tcp", mCandidateTCPPassive ? mCandidateTCPPassive->toDebug() : ElementPtr());
       UseServicesHelper::debugAppend(resultEl, "active candidate tcp", mCandidateTCPActive ? mCandidateTCPActive->toDebug() : ElementPtr());
       UseServicesHelper::debugAppend(resultEl, "bound udp ip", mBoundTCPIP.string());
-      UseServicesHelper::debugAppend(resultEl, "bound tcp socket", mBoundTCPSocket ? ((PTRNUMBER)mBoundTCPSocket->getSocket()) : 0);
+      UseServicesHelper::debugAppend(resultEl, "bound tcp socket", string(mBoundTCPSocket));
       UseServicesHelper::debugAppend(resultEl, "tcp back off timer", UseBackOffTimer::toDebug(mBindTCPBackOffTimer));
 
       UseServicesHelper::debugAppend(resultEl, "warm up after binding", mWarmUpAfterBinding);
@@ -6044,7 +6120,7 @@ namespace ortc
       UseServicesHelper::debugAppend(resultEl, "candidate", mCandidate ? mCandidate->toDebug() : ElementPtr());
 
       UseServicesHelper::debugAppend(resultEl, "remote ip", mRemoteIP.string());
-      UseServicesHelper::debugAppend(resultEl, "socket", mSocket ? ((PTRNUMBER)mSocket->getSocket()) : 0);
+      UseServicesHelper::debugAppend(resultEl, "socket", string(mSocket));
       UseServicesHelper::debugAppend(resultEl, "incoming buffer", mIncomingBuffer.CurrentSize());
       UseServicesHelper::debugAppend(resultEl, "outgoing buffer", mOutgoingBuffer.CurrentSize());
 
@@ -6070,7 +6146,7 @@ namespace ortc
 
       UseServicesHelper::debugAppend(resultEl, "timestamp", mTimestamp);
 
-      UseServicesHelper::debugAppend(resultEl, "router route", mRouterRoute->toDebug());
+      UseServicesHelper::debugAppend(resultEl, "router route", mRouterRoute ? mRouterRoute->toDebug() : ElementPtr());
 
       UseServicesHelper::debugAppend(resultEl, "stun packet", (bool)mSTUNPacket);
       UseServicesHelper::debugAppend(resultEl, "rfrag", mRFrag);

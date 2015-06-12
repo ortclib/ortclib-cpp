@@ -45,10 +45,7 @@ namespace ortc
 
   interaction IORTC
   {
-    static void setup(
-                      IMessageQueuePtr defaultDelegateMessageQueue,
-                      IMessageQueuePtr ortcMessageQueue
-                      );
+    static void setup(IMessageQueuePtr defaultDelegateMessageQueue);
 
     virtual ~IORTC() {} // make polymorphic
   };
