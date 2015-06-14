@@ -1541,6 +1541,7 @@ namespace ortc
         auto ip = route->mCandidatePair->mRemote->ip();
         if (fromIPAddress != ip) {
           ZS_LOG_WARNING(Detail, log("response ip does not match sent ip") + ZS_PARAM("from ip", fromIPAddress.string()) + ZS_PARAM("sent ip", ip.string()))
+          mOutgoingChecks[requester] = route; // put it back since it's not valid
           return false;
         }
       }
@@ -1630,7 +1631,7 @@ namespace ortc
       }
 
       updateAfterPacket(route);
-      return false;
+      return true;
     }
 
     //-------------------------------------------------------------------------

@@ -5430,17 +5430,19 @@ namespace ortc
           if (IICETypes::Protocol_TCP == sentFromLocalCandidate->mProtocol) {
             auto found = mTCPCandidateToTCPPorts.find(sentFromLocalCandidate);
             if (found != mTCPCandidateToTCPPorts.end()) {
-              route->mTCPPort = (*found).second;
+              auto tcpPort = (*found).second;
 
-              if (0 == route->mTCPPort->mTransportID) {
-                auto foundTransport = route->mTransport.lock();
-                route->mTransport = foundTransport;
-                if (foundTransport) transport = foundTransport;
+              if (tcpPort->mRemoteIP == remoteIP) {
+                route->mTCPPort = tcpPort;
+                if (0 == route->mTCPPort->mTransportID) {
+                  auto foundTransport = route->mTransport.lock();
+                  route->mTransport = foundTransport;
+                  if (foundTransport) transport = foundTransport;
 
-                route->mTransportID = transport->getID();
+                  route->mTransportID = transport->getID();
+                }
+                goto resolved_local_candidate;
               }
-
-              goto resolved_local_candidate;
             }
 
             for (auto iter = mHostPorts.begin(); iter != mHostPorts.end(); ++iter) {
