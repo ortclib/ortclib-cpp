@@ -293,6 +293,13 @@ namespace ortc
       }
       {
         ICEGatherer::HostIPSorter::InterfaceNameMappingInfo info;
+        info.mInterfaceNameRegularExpression = "(?i)ethernet";   // treat like lan
+        info.mInterfaceType = ICEGatherer::InterfaceType_LAN;
+        info.mOrderIndex = ORTC_ICEGATHERER_TO_ORDER(info.mInterfaceType, 23);
+        rootEl->adoptAsLastChild(info.createElement());
+      }
+      {
+        ICEGatherer::HostIPSorter::InterfaceNameMappingInfo info;
         info.mInterfaceNameRegularExpression = "(?i)tunnel";   // tunneled network adapter
         info.mInterfaceType = ICEGatherer::InterfaceType_Tunnel;
         info.mOrderIndex = ORTC_ICEGATHERER_TO_ORDER(info.mInterfaceType, 15);
@@ -2415,7 +2422,7 @@ namespace ortc
 
       // scope: use GetAdaptersAddresses
       {
-        ULONG flags = GAA_FLAG_INCLUDE_PREFIX | GAA_FLAG_SKIP_UNICAST | GAA_FLAG_SKIP_ANYCAST | GAA_FLAG_SKIP_MULTICAST | GAA_FLAG_SKIP_MULTICAST | GAA_FLAG_SKIP_FRIENDLY_NAME;
+        ULONG flags = GAA_FLAG_INCLUDE_PREFIX | GAA_FLAG_SKIP_ANYCAST | GAA_FLAG_SKIP_MULTICAST | GAA_FLAG_SKIP_MULTICAST;
 
         DWORD dwSize = 0;
         DWORD dwRetVal = 0;
@@ -5839,7 +5846,15 @@ namespace ortc
             ZS_LOG_TRACE(slog("no interface information found") + ioData.toDebug())
           }
 
-          std::regex e(info.mInterfaceNameRegularExpression);
+          String exp = info.mInterfaceNameRegularExpression;
+
+          std::regex_constants::syntax_option_type syntaxOptions {};
+          if (0 == exp.compare(0, strlen("(?i)"), "(?i)")) {
+            exp = exp.substr(strlen("(?i)"));
+            syntaxOptions = std::regex_constants::icase;
+          }
+
+          std::regex e(exp, syntaxOptions);
 
           if (ioData.mInterfaceName.hasData()) {
             if (std::regex_match(ioData.mInterfaceName, e)) goto found_match;

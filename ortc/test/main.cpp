@@ -29,6 +29,7 @@
  
  */
 
+#ifndef __cplusplus_winrt
 
 #include "testing.h"
 
@@ -59,3 +60,5 @@ int main (int argc, char * const argv[]) {
 
   return 0;
 }
+
+#endif //__cplusplus_winrt

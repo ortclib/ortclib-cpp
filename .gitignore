@@ -1,5 +1,6 @@
 xcuserdata
 xcshareddata
 libs/build
-Debug/
-Release/
+[dD]ebug/
+[Rr]elease/
+Generated Files/
