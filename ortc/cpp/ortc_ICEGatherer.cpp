@@ -73,6 +73,7 @@
 
 #ifdef HAVE_IPHLPAPI_H
 #include <Iphlpapi.h>
+#pragma comment(lib, "Iphlpapi.lib")
 #endif //HAVE_IPHLPAPI_H
 
 #ifdef WINRT
