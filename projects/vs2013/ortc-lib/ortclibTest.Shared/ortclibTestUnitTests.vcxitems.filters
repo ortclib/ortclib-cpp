@@ -1,0 +1,42 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="ortc">
+      <UniqueIdentifier>{ce63af5c-c03d-455c-b9a9-a4477ff75f9a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ortc\test">
+      <UniqueIdentifier>{632e2826-82aa-4c9c-97d4-1d57ba198c60}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\test\config.h">
+      <Filter>ortc\test</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\test\testing.h">
+      <Filter>ortc\test</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\test\TestMediaEngine.h">
+      <Filter>ortc\test</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\test\main.cpp">
+      <Filter>ortc\test</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\test\TestICEGatherer.cpp">
+      <Filter>ortc\test</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\test\TestICETransport.cpp">
+      <Filter>ortc\test</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\test\testing.cpp">
+      <Filter>ortc\test</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\test\TestMediaEngine.cpp">
+      <Filter>ortc\test</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\test\TestSetup.cpp">
+      <Filter>ortc\test</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

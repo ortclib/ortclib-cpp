@@ -176,7 +176,7 @@ namespace ortc
       mRouteStateTracker(make_shared<RouteStateTracker>()),
       mNoPacketsReceivedRecheckTime(UseSettings::getUInt(ORTC_SETTING_ICE_TRANSPORT_NO_PACKETS_RECEVIED_RECHECK_CANDIDATES_IN_SECONDS)),
       mExpireRouteTime(UseSettings::getUInt(ORTC_SETTING_ICE_TRANSPORT_EXPIRE_ROUTE_IN_SECONDS)),
-      mTestLowerPreferenceCandidatePairs(UseSettings::getUInt(ORTC_SETTING_ICE_TRANSPORT_TEST_CANDIDATE_PAIRS_OF_LOWER_PREFERENCE)),
+      mTestLowerPreferenceCandidatePairs(UseSettings::getBool(ORTC_SETTING_ICE_TRANSPORT_TEST_CANDIDATE_PAIRS_OF_LOWER_PREFERENCE)),
       mBlacklistConsent(UseSettings::getBool(ORTC_SETTING_ICE_TRANSPORT_BLACKLIST_AFTER_CONSENT_REMOVAL)),
       mKeepWarmTimeBase(UseSettings::getUInt(ORTC_SETTING_ICE_TRANSPORT_KEEP_WARM_TIME_BASE_IN_MILLISECONDS)),
       mKeepWarmTimeRandomizedAddTime(UseSettings::getUInt(ORTC_SETTING_ICE_TRANSPORT_KEEP_WARM_TIME_RANDOMIZED_ADD_TIME_IN_MILLISECONDS))
@@ -764,6 +764,11 @@ namespace ortc
     {
       {
         AutoRecursiveLock lock(*this);
+
+        if (!mGatherer) {
+          ZS_LOG_WARNING(Debug, log("notify packet but no gatherer is attached") + routerRoute->toDebug() + packet->toDebug())
+          return;
+        }
 
         if (STUNPacket::Method_Binding != packet->mMethod) goto not_related_stun_packet;
         if (STUNPacket::Class_Request != packet->mClass) goto not_related_stun_packet;
