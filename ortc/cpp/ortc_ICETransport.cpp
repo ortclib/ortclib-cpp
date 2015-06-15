@@ -1504,7 +1504,7 @@ namespace ortc
         return;
       }
 
-      ZS_LOG_TRACE(log("sending stun packet") + ZS_PARAM("stun requester", requester->getID()) + ZS_PARAM("destination ip", destination.string()) + ZS_PARAM("packet size", packet->SizeInBytes()))
+      ZS_LOG_TRACE(log("sending stun packet") + ZS_PARAM("stun requester", requester->getID()) + ZS_PARAM("destination ip", destination.string()) + ZS_PARAM("packet size", packet->SizeInBytes()) + routerRoute->toDebug())
       gatherer->sendPacket(*this, routerRoute, packet->BytePtr(), packet->SizeInBytes());
     }
 
@@ -2126,7 +2126,7 @@ namespace ortc
               ZS_LOG_TRACE(log("route has faster round trip time (thus will pick)") + route->toDebug() + ZS_PARAM("previous speed", fastestRoutePicked))
               goto chose_this_route;
             } else {
-              ZS_LOG_INSANE(log("route is not a magnitude faster round trip time (thus will pick)") + route->toDebug() + ZS_PARAM("previous speed", fastestRoutePicked))
+              ZS_LOG_INSANE(log("route is not a magnitude faster round trip time (thus will not pick)") + route->toDebug() + ZS_PARAM("previous speed", fastestRoutePicked))
             }
           }
         }
@@ -3467,7 +3467,7 @@ namespace ortc
         auto now = zsLib::now();
         if (latest + mExpireRouteTime > now) {
           if (!route->isBlacklisted()) {
-            ZS_LOG_TRACE(log("consent is granted") + route->toDebug())
+            ZS_LOG_TRACE(log("consent was granted") + route->toDebug())
             if (route->isSucceeded()) {
               if (mWarmRoutes.end() == mWarmRoutes.find(route->mCandidatePairHash)) {
                 ZS_LOG_TRACE(log("need to keep candiate in the warm table since it's been woken up again"))

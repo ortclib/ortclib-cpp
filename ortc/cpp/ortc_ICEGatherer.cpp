@@ -4273,8 +4273,6 @@ namespace ortc
       tcpPort->mIncomingBuffer.Clear();
       tcpPort->mOutgoingBuffer.Clear();
 
-      removeCandidate(tcpPort->mCandidate);
-
       for (auto iter_doNotUse = mRoutes.begin(); iter_doNotUse != mRoutes.end(); ) {
         auto current = iter_doNotUse;
         ++iter_doNotUse;
@@ -4737,6 +4735,8 @@ namespace ortc
             tcpPort->mCandidate = hostPort->mCandidateTCPPassive;
 
             mTCPCandidateToTCPPorts[tcpPort->mCandidate] = tcpPort;
+
+            ZS_LOG_DEBUG(log("incoming connection ready") + hostPort->toDebug() + tcpPort->toDebug())
             return;
           }
         }
@@ -4870,7 +4870,7 @@ namespace ortc
 
         nothing_more_to_parse:
           {
-            ZS_LOG_INSANE(log("nothing more to parse at this time") + tcpPort.toDebug())
+            ZS_LOG_INSANE(log("nothing more to parse at this time") + ZS_PARAM("packets found", packets.size()) + tcpPort.toDebug())
           }
         }
       }
@@ -5137,7 +5137,7 @@ namespace ortc
             goto buffer_data_now;
           }
 
-          ZS_LOG_DEBUG(log("install new route") + route->toDebug())
+          ZS_LOG_DEBUG(log("installed new route") + route->toDebug())
           routerRoute = route->mRouterRoute;
           goto found_transport;
         }
@@ -6164,7 +6164,7 @@ namespace ortc
 
       UseServicesHelper::debugAppend(resultEl, "timestamp", mTimestamp);
 
-      UseServicesHelper::debugAppend(resultEl, "router route", mRouterRoute ? mRouterRoute->toDebug() : ElementPtr());
+      UseServicesHelper::debugAppend(resultEl, mRouterRoute ? mRouterRoute->toDebug() : ElementPtr());
 
       UseServicesHelper::debugAppend(resultEl, "stun packet", (bool)mSTUNPacket);
       UseServicesHelper::debugAppend(resultEl, "rfrag", mRFrag);
@@ -6189,7 +6189,7 @@ namespace ortc
 
       UseServicesHelper::debugAppend(resultEl, "id", mID);
 
-      UseServicesHelper::debugAppend(resultEl, "router route", mRouterRoute ? mRouterRoute->toDebug() : ElementPtr());
+      UseServicesHelper::debugAppend(resultEl, mRouterRoute ? mRouterRoute->toDebug() : ElementPtr());
 
       UseServicesHelper::debugAppend(resultEl, "last used", mLastUsed);
       UseServicesHelper::debugAppend(resultEl, "local candidate", mLocalCandidate ? mLocalCandidate->toDebug() : ElementPtr());
