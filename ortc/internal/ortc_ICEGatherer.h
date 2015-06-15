@@ -961,7 +961,7 @@ namespace ortc
                       const Candidate &candidate
                       ) const;
 
-      void read(
+      bool read(
                 HostPortPtr hostPort,
                 SocketPtr socket
                 );

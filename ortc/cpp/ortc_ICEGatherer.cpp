@@ -1482,7 +1482,7 @@ namespace ortc
     found_host_port:
       {
         // warning: do NOT call from within a lock
-        read(hostPort, socket);
+        while (read(hostPort, socket)) {}
         return;
       }
 
@@ -4651,7 +4651,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void ICEGatherer::read(
+    bool ICEGatherer::read(
                            HostPortPtr hostPort,
                            SocketPtr socket
                            )
@@ -4673,12 +4673,12 @@ namespace ortc
             totalRead = socket->receiveFrom(fromIP, readBuffer, readBuffer.SizeInBytes());
           } catch(Socket::Exceptions::Unspecified &error) {
             ZS_LOG_WARNING(Debug, log("socket read error") + ZS_PARAM("socket", string(socket)) + ZS_PARAM("error", error.errorCode()))
-            return;
+            return false;
           }
 
           if (0 == totalRead) {
             ZS_LOG_WARNING(Debug, log("failed to read any data from socket") + ZS_PARAM("socket", string(socket)))
-            return;
+            return false;
           }
 
           ZS_LOG_INSANE(log("receiving incoming packet") + ZS_PARAM("from ip", fromIP.string()) + ZS_PARAM("read", totalRead) + hostPort->toDebug())
@@ -4723,7 +4723,7 @@ namespace ortc
               localAddress = socket->getLocalAddress();
             } catch(Socket::Exceptions::Unspecified &error) {
               ZS_LOG_WARNING(Detail, log("failed to accept incoming TCP connection") + ZS_PARAM("error", error.errorCode()))
-              return;
+              return false;
             }
 
             // create mappings for this socket
@@ -4737,22 +4737,22 @@ namespace ortc
             mTCPCandidateToTCPPorts[tcpPort->mCandidate] = tcpPort;
 
             ZS_LOG_DEBUG(log("incoming connection ready") + hostPort->toDebug() + tcpPort->toDebug())
-            return;
+            return true;
           }
         }
       }
 
-      return;
+      return false;
 
     unknown_handler:
       {
         if (stunPacket) {
           if (ISTUNRequester::handleSTUNPacket(fromIP, stunPacket)) {
             ZS_LOG_TRACE(log("handled by stun requester") + ZS_PARAM("from ip", fromIP.string()) + stunPacket->toDebug())
-            return;
+            return true;
           }
         }
-        return;
+        return true;
       }
 
     found_relay_port:
@@ -4760,17 +4760,17 @@ namespace ortc
         if (stunPacket) {
           if (ISTUNRequester::handleSTUNPacket(fromIP, stunPacket)) {
             ZS_LOG_TRACE(log("handled by stun requester") + ZS_PARAM("from ip", fromIP.string()) + stunPacket->toDebug())
-            return;
+            return true;
           }
 
           ZS_LOG_INSANE(log("forwarding stun packet to turn socket") + ZS_PARAM("from ip", fromIP.string()) + stunPacket->toDebug())
           turnSocket->handleSTUNPacket(fromIP, stunPacket);
-          return;
+          return true;
         }
 
         ZS_LOG_INSANE(log("forwarding turn channel data to turn socket") + ZS_PARAM("from ip", fromIP.string()) + ZS_PARAM("total", totalRead))
         turnSocket->handleChannelData(fromIP, readBuffer, totalRead);
-        return;
+        return true;
       }
 
     handle_incoming:
@@ -4778,7 +4778,7 @@ namespace ortc
         if (stunPacket) {
           if (ISTUNRequester::handleSTUNPacket(fromIP, stunPacket)) {
             ZS_LOG_TRACE(log("handled by stun requester") + ZS_PARAM("from ip", fromIP.string()) + stunPacket->toDebug())
-            return;
+            return true;
           }
 
           ZS_LOG_INSANE(log("handling incoming stun packet") + localCandidate->toDebug() + ZS_PARAM("from ip", fromIP.string()) + stunPacket->toDebug())
@@ -4795,11 +4795,11 @@ namespace ortc
               ZS_LOG_WARNING(Debug, log("cannot send response as socket is gone") + localCandidate->toDebug() + ZS_PARAM("from ip", fromIP.string()) + stunPacket->toDebug())
             }
           }
-          return;
+          return true;
         }
         ZS_LOG_INSANE(log("handling incoming packet") + localCandidate->toDebug() + ZS_PARAM("from ip", fromIP.string()) + ZS_PARAM("total", totalRead))
         handleIncomingPacket(localCandidate, fromIP, readBuffer, totalRead);
-        return;
+        return true;
       }
     }
 
