@@ -6,6 +6,9 @@
 #include "pch.h"
 #include "MainPage.xaml.h"
 
+#include <zsLib\Singleton.h>
+#include <ortc\test\testing.h>
+
 using namespace ortclibTest;
 
 using namespace Platform;
@@ -24,4 +27,18 @@ using namespace Windows::UI::Xaml::Navigation;
 MainPage::MainPage()
 {
 	InitializeComponent();
+}
+
+
+void ortclibTest::MainPage::Button_Click(Platform::Object^ sender, Windows::UI::Xaml::RoutedEventArgs^ e)
+{
+  TESTING_STDOUT() << "TEST NOW STARTING...\n\n";
+
+  Testing::runAllTests();
+  Testing::output();
+
+  if (0 != Testing::getGlobalFailedVar()) {
+    TESTING_STDOUT() << "FAILED!\n\n";
+  }
+
 }

@@ -17,5 +17,7 @@ namespace ortclibTest
 	public:
 		MainPage();
 
-	};
+  private:
+    void Button_Click(Platform::Object^ sender, Windows::UI::Xaml::RoutedEventArgs^ e);
+  };
 }

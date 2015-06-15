@@ -8,6 +8,8 @@
     mc:Ignorable="d">
 
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <Button Content="Run Unit Test" HorizontalAlignment="Left" Margin="82,119,0,0" VerticalAlignment="Top" Click="Button_Click"/>
+        <TextBlock HorizontalAlignment="Left" Margin="85,73,0,0" TextWrapping="Wrap" Text="ORTC IceGatherer / IceTransport Tester" VerticalAlignment="Top" FontSize="24"/>
 
     </Grid>
 </Page>
