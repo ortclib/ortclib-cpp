@@ -114,7 +114,7 @@ namespace ortc
 
       UseSettings::setUInt(ORTC_SETTING_ICE_TRANSPORT_NO_PACKETS_RECEVIED_RECHECK_CANDIDATES_IN_SECONDS, 7);
 
-      UseSettings::setUInt(ORTC_SETTING_ICE_TRANSPORT_EXPIRE_ROUTE_IN_SECONDS, 30);
+      UseSettings::setUInt(ORTC_SETTING_ICE_TRANSPORT_EXPIRE_ROUTE_IN_SECONDS, 60);
 
       UseSettings::setBool(ORTC_SETTING_ICE_TRANSPORT_BLACKLIST_AFTER_CONSENT_REMOVAL, false);
 
@@ -2984,7 +2984,7 @@ namespace ortc
       route->mLastRoundTripCheck = zsLib::now();
       mOutgoingChecks[route->mOutgoingCheck] = route;
 
-      ZS_LOG_INSANE(log("created keep alive timer") + route->toDebug())
+      ZS_LOG_INSANE(log("installed outgoing stun binding keep alive") + route->toDebug())
     }
 
     //-----------------------------------------------------------------------
