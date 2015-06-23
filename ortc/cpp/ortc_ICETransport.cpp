@@ -1080,6 +1080,13 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    IICETypes::Roles ICETransport::getRole() const
+    {
+      AutoRecursiveLock lock(*this);
+      return mOptions.mRole;
+    }
+
+    //-------------------------------------------------------------------------
     bool ICETransport::sendPacket(
                                   const BYTE *buffer,
                                   size_t bufferSizeInBytes
@@ -1696,6 +1703,8 @@ namespace ortc
     //-------------------------------------------------------------------------
     ElementPtr ICETransport::toDebug() const
     {
+      AutoRecursiveLock lock(*this);
+
       ElementPtr resultEl = Element::create("ortc::ICETransport");
 
       auto transportController = mTransportController.lock();
@@ -3884,33 +3893,6 @@ namespace ortc
 
       SecureByteBlockPtr packetized = packet->packetize(STUNPacket::RFC_5245_ICE);
       mGatherer->sendPacket(*this, routerRoute, packetized->BytePtr(), packetized->SizeInBytes());
-    }
-
-    //-------------------------------------------------------------------------
-    DTLSCertficateGeneratorPtr ICETransport::getAssociatedGenerator() const
-    {
-      UseSecureTransportPtr secureTransport;
-
-      {
-        AutoRecursiveLock lock(*this);
-
-        ICETransportPtr associated;
-
-        associated = mRTPTransport;
-        if (!associated) associated = mRTCPTransport.lock();
-
-        if (!associated) return DTLSCertficateGeneratorPtr();
-
-        secureTransport = associated->mSecureTransport.lock();
-
-      }
-
-      if (!secureTransport) {
-        ZS_LOG_TRACE(log("no associated secure transport found"))
-        return DTLSCertficateGeneratorPtr();
-      }
-
-      return secureTransport->getCertificateGenerator();
     }
 
     //-------------------------------------------------------------------------

@@ -520,7 +520,7 @@ namespace ortc
 
         while (mExpecting != mDone)
         {
-          CoreWindow::GetForCurrentThread()->Dispatcher->ProcessEvents(CoreProcessEventsOption::ProcessAllIfPresent);
+          TESTING_SLEEP(0)
           break;
         }
 

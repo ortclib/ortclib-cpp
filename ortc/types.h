@@ -100,6 +100,7 @@ namespace ortc
     virtual ~IRTCPTransport() {};
   };
 
+  ZS_DECLARE_INTERACTION_PTR(ICertificate)
   ZS_DECLARE_INTERACTION_PTR(IDataChannel)
   ZS_DECLARE_INTERACTION_PTR(IDataTransport)
   ZS_DECLARE_INTERACTION_PTR(IDTLSTransport)

@@ -156,8 +156,6 @@ namespace ortc
 
       // (duplicate) virtual PUID getID() const;
 
-      virtual DTLSCertficateGeneratorPtr getCertificateGenerator() const override {return DTLSCertficateGeneratorPtr();}
-
       virtual void handleReceivedPacket(
                                         IICETypes::Components viaComponent,
                                         const BYTE *buffer,

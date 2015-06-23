@@ -33,6 +33,7 @@
 
 #include <ortc/types.h>
 #include <ortc/IStatsProvider.h>
+#include <ortc/ICertificate.h>
 
 #include <zsLib/Exception.h>
 
@@ -51,9 +52,8 @@ namespace ortc
   interaction IDTLSTransportTypes
   {
     ZS_DECLARE_STRUCT_PTR(Parameters)
-    ZS_DECLARE_STRUCT_PTR(Fingerprint)
-    ZS_DECLARE_TYPEDEF_PTR(std::list<Fingerprint>, FingerprintList)
     ZS_DECLARE_TYPEDEF_PTR(std::list<SecureByteBlock>, SecureByteBlockList)
+    ZS_DECLARE_TYPEDEF_PTR(ICertificateTypes::FingerprintList, FingerprintList)
 
     typedef PromiseWith<Parameters> PromiseWithParameters;
     ZS_DECLARE_PTR(PromiseWithParameters)
@@ -103,20 +103,6 @@ namespace ortc
       ElementPtr toDebug() const;
       String hash() const;
     };
-
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark Fingerprint
-    #pragma mark
-
-    struct Fingerprint
-    {
-      String mAlgorithm;
-      String mValue;
-
-      ElementPtr toDebug() const;
-      String hash() const;
-    };
   };
 
   //---------------------------------------------------------------------------
@@ -136,7 +122,8 @@ namespace ortc
 
     static IDTLSTransportPtr create(
                                     IDTLSTransportDelegatePtr delegate,
-                                    IICETransportPtr iceTransport
+                                    IICETransportPtr iceTransport,
+                                    ICertificatePtr certificate
                                     );
 
     virtual PUID getID() const = 0;
@@ -147,7 +134,7 @@ namespace ortc
 
     virtual States getState() const = 0;
 
-    virtual PromiseWithParametersPtr getLocalParameters() const = 0;
+    virtual ParametersPtr getLocalParameters() const = 0;
     virtual ParametersPtr getRemoteParameters() const = 0;
 
     virtual SecureByteBlockListPtr getRemoteCertificates() const = 0;

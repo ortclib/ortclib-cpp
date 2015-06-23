@@ -21,6 +21,7 @@
 		0056EED91B13C1370035B351 /* TestICEGatherer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0056EED81B13C1370035B351 /* TestICEGatherer.cpp */; };
 		0056EEDB1B13C2A80035B351 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0056EEDA1B13C2A80035B351 /* CoreFoundation.framework */; };
 		0056EF001B13E5850035B351 /* libcurl.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 0056EEFF1B13E5850035B351 /* libcurl.dylib */; };
+		00AA4CB81B3895840073E17B /* TestDTLS.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00AA4CB71B3895840073E17B /* TestDTLS.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -143,6 +144,7 @@
 		0056EED81B13C1370035B351 /* TestICEGatherer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TestICEGatherer.cpp; sourceTree = "<group>"; };
 		0056EEDA1B13C2A80035B351 /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
 		0056EEFF1B13E5850035B351 /* libcurl.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcurl.dylib; path = usr/lib/libcurl.dylib; sourceTree = SDKROOT; };
+		00AA4CB71B3895840073E17B /* TestDTLS.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TestDTLS.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -209,6 +211,7 @@
 				0056EE9A1B13B1BA0035B351 /* testing.cpp */,
 				0056EE9B1B13B1BA0035B351 /* testing.h */,
 				004B60A61B275AD900568C22 /* TestSetup.cpp */,
+				00AA4CB71B3895840073E17B /* TestDTLS.cpp */,
 				0056EED81B13C1370035B351 /* TestICEGatherer.cpp */,
 				0030F6961B1E88F800E8649B /* TestICETransport.cpp */,
 				0056EE961B13B1680035B351 /* TestMediaEngine.cpp */,
@@ -421,6 +424,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				00AA4CB81B3895840073E17B /* TestDTLS.cpp in Sources */,
 				0056EE9C1B13B1BA0035B351 /* main.cpp in Sources */,
 				0056EE9D1B13B1BA0035B351 /* testing.cpp in Sources */,
 				0056EED91B13C1370035B351 /* TestICEGatherer.cpp in Sources */,

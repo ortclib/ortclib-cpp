@@ -176,12 +176,12 @@ namespace ortc
 
       virtual IICETransportSubscriptionPtr subscribe(IICETransportDelegatePtr delegate) = 0;
 
+      virtual IICETypes::Roles getRole() const = 0;
+
       virtual bool sendPacket(
                               const BYTE *buffer,
                               size_t bufferSizeInBytes
                               ) = 0;
-
-      virtual DTLSCertficateGeneratorPtr getAssociatedGenerator() const = 0;
     };
     
     //-------------------------------------------------------------------------
@@ -289,10 +289,14 @@ namespace ortc
                    );
 
     protected:
-      ICETransport(Noop) :
+      ICETransport(
+                   Noop,
+                   IMessageQueuePtr queue = IMessageQueuePtr(),
+                   const SharedRecursiveLock &lock = SharedRecursiveLock::create()
+                   ) :
         Noop(true),
-        MessageQueueAssociator(IMessageQueuePtr()),
-        SharedRecursiveLock(SharedRecursiveLock::create()) {}
+        MessageQueueAssociator(queue),
+        SharedRecursiveLock(lock) {}
 
       void init();
 
@@ -413,12 +417,12 @@ namespace ortc
 
       // (duplicate) virtual IICETransportSubscriptionPtr subscribe(IICETransportDelegatePtr delegate);
 
+      virtual IICETypes::Roles getRole() const override;
+
       virtual bool sendPacket(
                               const BYTE *buffer,
                               size_t bufferSizeInBytes
                               ) override;
-
-      virtual DTLSCertficateGeneratorPtr getAssociatedGenerator() const override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -618,7 +622,7 @@ namespace ortc
 
       Log::Params log(const char *message) const;
       Log::Params debug(const char *message) const;
-      ElementPtr toDebug() const;
+      virtual ElementPtr toDebug() const;
 
       bool isConnected() const;
       bool isComplete() const;

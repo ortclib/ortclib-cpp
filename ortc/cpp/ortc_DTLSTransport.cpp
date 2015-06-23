@@ -31,6 +31,7 @@
 
 #include <ortc/internal/ortc_DTLSTransport.h>
 #include <ortc/internal/ortc_ICETransport.h>
+#include <ortc/internal/ortc_Certificate.h>
 #include <ortc/internal/ortc_ORTC.h>
 #include <ortc/internal/platform.h>
 
@@ -91,11 +92,13 @@ namespace ortc
                                  const make_private &,
                                  IMessageQueuePtr queue,
                                  IDTLSTransportDelegatePtr originalDelegate,
-                                 IICETransportPtr iceTransport
+                                 IICETransportPtr iceTransport,
+                                 ICertificatePtr certificate
                                  ) :
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
-      mICETransport(ICETransport::convert(iceTransport))
+      mICETransport(ICETransport::convert(iceTransport)),
+      mCertificate(Certificate::convert(certificate))
     {
       ZS_LOG_DETAIL(debug("created"))
 
@@ -111,12 +114,6 @@ namespace ortc
       {
         AutoRecursiveLock lock(*this);
         transport = mICETransport;
-
-        mCertificateGenerator = transport->getAssociatedGenerator();
-        if (!mCertificateGenerator) mCertificateGenerator = DTLSCertficateGenerator::create();
-
-        mCertificateGeneratorPromise = mCertificateGenerator->getCertificate();
-        mCertificateGeneratorPromise->thenWeak(mThisWeak.lock());
 
         mICETransportSubscription = transport->subscribe(mThisWeak.lock());
       }
@@ -173,10 +170,11 @@ namespace ortc
     //-------------------------------------------------------------------------
     DTLSTransportPtr DTLSTransport::create(
                                            IDTLSTransportDelegatePtr delegate,
-                                           IICETransportPtr iceTransport
+                                           IICETransportPtr iceTransport,
+                                           ICertificatePtr certificate
                                            )
     {
-      DTLSTransportPtr pThis(make_shared<DTLSTransport>(make_private {}, IORTCForInternal::queueORTC(), delegate, iceTransport));
+      DTLSTransportPtr pThis(make_shared<DTLSTransport>(make_private {}, IORTCForInternal::queueORTC(), delegate, iceTransport, certificate));
       pThis->mThisWeak.lock();
       pThis->init();
       return pThis;
@@ -224,25 +222,12 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    IDTLSTransportTypes::PromiseWithParametersPtr DTLSTransport::getLocalParameters() const
+    IDTLSTransportTypes::ParametersPtr DTLSTransport::getLocalParameters() const
     {
       AutoRecursiveLock lock(*this);
-
-      if ((isShutdown()) ||
-          (isShuttingDown())) {
-        ZS_LOG_WARNING(Detail, log("cannot get local parameters while shutdown (or shutting down)"))
-        return PromiseWithParameters::createRejected(IORTCForInternal::queueDelegate());
-      }
-
-      auto pendingPromise = PromiseWithParameters::create(IORTCForInternal::queueDelegate());
-
-      mPendingLocalParameters.push_back(pendingPromise);
-
-      ZS_LOG_TRACE(log("will resolve get local paramters later"))
-
-      IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
-
-      return pendingPromise;
+#define TODO_COMPLETE 1
+#define TODO_COMPLETE 2
+      return ParametersPtr();
     }
 
     //-------------------------------------------------------------------------
@@ -325,14 +310,6 @@ namespace ortc
     #pragma mark
     #pragma mark DTLSTransport => IDTLSTransportForICETransport
     #pragma mark
-
-    //-------------------------------------------------------------------------
-    DTLSCertficateGeneratorPtr DTLSTransport::getCertificateGenerator() const
-    {
-      ZS_LOG_TRACE(log("get certificate generator"))
-      AutoRecursiveLock lock(*this);
-      return mCertificateGenerator;
-    }
 
     //-------------------------------------------------------------------------
     void DTLSTransport::handleReceivedPacket(
@@ -475,8 +452,7 @@ namespace ortc
 
       UseServicesHelper::debugAppend(resultEl, "ice transport", mICETransport ? mICETransport->getID() : 0);
 
-      UseServicesHelper::debugAppend(resultEl, "certificate generator", (bool)mCertificateGenerator);
-      UseServicesHelper::debugAppend(resultEl, "certificate generator promise", (bool)mCertificateGeneratorPromise);
+      UseServicesHelper::debugAppend(resultEl, "certificate", UseCertificate::toDebug(mCertificate));
 
       return resultEl;
     }
@@ -510,8 +486,7 @@ namespace ortc
 #define TODO_GET_INTO_VALIDATED_STATE 2
 
       // ... other steps here ...
-      if (!stepGetCertificate()) goto not_ready;
-      if (!stepResolveLocalParameters()) goto not_ready;
+      if (!stepDoSomething()) goto not_ready;
       // ... other steps here ...
 
       goto ready;
@@ -530,47 +505,13 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool DTLSTransport::stepGetCertificate()
+    bool DTLSTransport::stepDoSomething()
     {
-      if (mCertificate) {
-        ZS_LOG_TRACE(log("already have certificate"))
-        return true;
-      }
+      IICETypes::Roles role = mICETransport->getRole();   // example of how to get the ice role
+      X509 *certificate = mCertificate->getCertificate(); // example of how to get generated certificate
+      EVP_PKEY *pkey = mCertificate->getKeyPair();        // example of how to get the generated keypair
 
-      if (!mCertificateGeneratorPromise->isResolved()) {
-        ZS_LOG_DEBUG(log("waiting for generator promise to resolve"))
-        return false;
-      }
-
-      mCertificate = mCertificateGeneratorPromise->zsLib::Promise::value<CertificateHolder>();
-
-      ZS_LOG_DEBUG(log("certicate generated"))
-      return true;
-    }
-
-    bool DTLSTransport::stepResolveLocalParameters()
-    {
-      if (mPendingLocalParameters.size() < 1) {
-        ZS_LOG_TRACE(log("no pending get local parameter promises to resolve"))
-        return true;
-      }
-
-      for (auto iter = mPendingLocalParameters.begin(); iter != mPendingLocalParameters.end(); ++iter) {
-        auto pendingPromise = (*iter);
-
-        ParametersPtr param(make_shared<Parameters>());
-
-#define TODO_FILL_IN_LOCAL_PARAM_VALUES 1
-#define TODO_FILL_IN_LOCAL_PARAM_VALUES 2
-
-        pendingPromise->resolve(param);
-      }
-
-      ZS_LOG_DEBUG(log("all pending promises are now resolve") + ZS_PARAM("total", mPendingLocalParameters.size()))
-
-      mPendingLocalParameters.clear();
-
-      return true;
+      return true;  // return true allows following steps to proceed, false stops the steps from continuing
     }
 
     //-------------------------------------------------------------------------
@@ -590,16 +531,6 @@ namespace ortc
       // final cleanup
 
       setState(State_Closed);
-
-      if (mPendingLocalParameters.size() > 0) {
-        for (auto iter = mPendingLocalParameters.begin(); iter != mPendingLocalParameters.end(); ++iter) {
-          auto pendingPromise = (*iter);
-
-          pendingPromise->reject();
-        }
-        ZS_LOG_WARNING(Detail, log("failed get local parameter promise") + ZS_PARAM("total", mPendingLocalParameters.size()))
-        mPendingLocalParameters.clear();
-      }
 
       if (mICETransport) {
         mICETransport->notifyDetached(mID);
@@ -666,11 +597,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     DTLSTransportPtr IDTLSTransportFactory::create(
                                                    IDTLSTransportDelegatePtr delegate,
-                                                   IICETransportPtr iceTransport
+                                                   IICETransportPtr iceTransport,
+                                                   ICertificatePtr certificate
                                                    )
     {
       if (this) {}
-      return internal::DTLSTransport::create(delegate, iceTransport);
+      return internal::DTLSTransport::create(delegate, iceTransport, certificate);
     }
 
   }
@@ -791,38 +723,6 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   #pragma mark
-  #pragma mark IDTLSTransportTypes::Fingerprint
-  #pragma mark
-
-  //---------------------------------------------------------------------------
-  ElementPtr IDTLSTransportTypes::Fingerprint::toDebug() const
-  {
-    ElementPtr resultEl = Element::create("ortc::IDTLSTransportTypes::Fingerprint");
-
-    UseServicesHelper::debugAppend(resultEl, "algorithm", mAlgorithm);
-    UseServicesHelper::debugAppend(resultEl, "value", mValue);
-
-    return resultEl;
-  }
-
-  //---------------------------------------------------------------------------
-  String IDTLSTransportTypes::Fingerprint::hash() const
-  {
-    SHA1Hasher hasher;
-
-    hasher.update("IDTLSTransportTypes:Fingerprint:");
-    hasher.update(mAlgorithm);
-    hasher.update(":");
-    hasher.update(mValue);
-
-    return hasher.final();
-  }
-
-  //---------------------------------------------------------------------------
-  //---------------------------------------------------------------------------
-  //---------------------------------------------------------------------------
-  //---------------------------------------------------------------------------
-  #pragma mark
   #pragma mark IDTLSTransport
   #pragma mark
 
@@ -835,10 +735,11 @@ namespace ortc
   //---------------------------------------------------------------------------
   IDTLSTransportPtr IDTLSTransport::create(
                                            IDTLSTransportDelegatePtr delegate,
-                                           IICETransportPtr iceTransport
+                                           IICETransportPtr iceTransport,
+                                           ICertificatePtr certificate
                                            )
   {
-    return internal::IDTLSTransportFactory::singleton().create(delegate, iceTransport);
+    return internal::IDTLSTransportFactory::singleton().create(delegate, iceTransport, certificate);
   }
 
 
