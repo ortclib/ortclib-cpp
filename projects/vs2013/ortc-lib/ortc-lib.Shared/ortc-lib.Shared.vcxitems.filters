@@ -141,9 +141,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\ISettings.h">
       <Filter>ortc</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_DTLSCertificateGenerator.h">
-      <Filter>ortc\internal</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_ICETransportController.h">
       <Filter>ortc\internal</Filter>
     </ClInclude>
@@ -163,6 +160,12 @@
       <Filter>ortc\internal</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_ICEGathererRouter.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\ICertificate.h">
+      <Filter>ortc</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_Certificate.h">
       <Filter>ortc\internal</Filter>
     </ClInclude>
   </ItemGroup>
@@ -221,9 +224,6 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ortc_ISecureTransport.cpp">
       <Filter>ortc\cpp</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ortc_DTLSCertificateGenerator.cpp">
-      <Filter>ortc\cpp</Filter>
-    </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ortc_ICETransportController.cpp">
       <Filter>ortc\cpp</Filter>
     </ClCompile>
@@ -237,6 +237,9 @@
       <Filter>ortc\cpp</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ortc_ICEGathererRouter.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ortc_Certificate.cpp">
       <Filter>ortc\cpp</Filter>
     </ClCompile>
   </ItemGroup>
