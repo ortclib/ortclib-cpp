@@ -637,7 +637,7 @@ using ortc::IICETypes;
 #define TEST_BASIC_CONNECTIVITY 0
 
 
-void doTestICETransport()
+void doTestDTLS()
 {
   if (!ORTC_TEST_DO_ICE_TRANSPORT_TEST) return;
 
