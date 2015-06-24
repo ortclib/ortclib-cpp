@@ -718,6 +718,7 @@ void doTestDTLS()
 
       expecting = 0;
       expecting += (testDTLSObject1 ? 1 : 0);
+      expecting += (testDTLSObject2 ? 1 : 0);
 
       ULONG found = 0;
       ULONG lastFound = 0;
@@ -768,17 +769,17 @@ void doTestDTLS()
                 if (fakeIceObject2) fakeIceObject2->state(IICETransport::State_Completed);
                 break;
               }
-              case 55: {
+              case 25: {
                 if (fakeIceObject1) fakeIceObject1->state(IICETransport::State_Disconnected);
                 if (fakeIceObject2) fakeIceObject2->state(IICETransport::State_Disconnected);
                 break;
               }
-              case 60: {
+              case 30: {
                 if (fakeIceObject1) fakeIceObject1->state(IICETransport::State_Closed);
                 if (fakeIceObject2) fakeIceObject2->state(IICETransport::State_Closed);
                 break;
               }
-              case 70: {
+              case 35: {
                 if (testDTLSObject1) testDTLSObject1->close();
                 if (testDTLSObject2) testDTLSObject2->close();
                 break;

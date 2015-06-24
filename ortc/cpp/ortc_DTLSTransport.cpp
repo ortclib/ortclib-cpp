@@ -2161,6 +2161,7 @@ namespace ortc
 
       // Record the peer's certificate.
       pThis->peer_certificate_ = cert;
+      X509_up_ref(pThis->peer_certificate_);
 
       return 1;
     }
