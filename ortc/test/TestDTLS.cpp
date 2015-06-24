@@ -798,6 +798,7 @@ void doTestDTLS()
 
         if (0 == found) {
           found += (testDTLSObject1 ? (testDTLSObject1->matches(expectationsDTLS1) ? 1 : 0) : 0);
+          found += (testDTLSObject2 ? (testDTLSObject2->matches(expectationsDTLS2) ? 1 : 0) : 0);
         }
 
         if (lastFound != found) {
