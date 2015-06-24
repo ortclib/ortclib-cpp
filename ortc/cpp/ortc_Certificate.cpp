@@ -62,6 +62,14 @@ namespace ortc
 
   namespace internal
   {
+    // From RFC 4572.
+    const char DIGEST_MD5[]     = "md5";
+    const char DIGEST_SHA_1[]   = "sha-1";
+    const char DIGEST_SHA_224[] = "sha-224";
+    const char DIGEST_SHA_256[] = "sha-256";
+    const char DIGEST_SHA_384[] = "sha-384";
+    const char DIGEST_SHA_512[] = "sha-512";
+
     // Strength of generated keys. Those are RSA.
 //    static const int KEY_LENGTH = 1024;
 
@@ -121,6 +129,23 @@ namespace ortc
     {
       if (!certificate) return ElementPtr();
       return (ZS_DYNAMIC_PTR_CAST(Certificate, certificate))->toDebug();
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark ICertificateForDTLSTransport
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    SecureByteBlockPtr ICertificateForDTLSTransport::getDigest(
+                                                               const String &algorithm,
+                                                               CertificateObjectType certificate
+                                                               )
+    {
+      return Certificate::getDigest(algorithm, certificate);
     }
 
     //-------------------------------------------------------------------------
@@ -221,8 +246,10 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    ICertificateTypes::FingerprintListPtr Certificate::fingerprints() const
+    ICertificateTypes::FingerprintListPtr Certificate::fingerprints(const char *inAlgorithm) const
     {
+      String algorithm(inAlgorithm);
+
       AutoRecursiveLock lock(*this);
 
       FingerprintListPtr result(make_shared<FingerprintList>());
@@ -232,15 +259,42 @@ namespace ortc
         return result;
       }
 
-      Fingerprint fingerprint;
+      const char *algorithms[] = {
+        DIGEST_MD5,
+        DIGEST_SHA_1,
+        DIGEST_SHA_224,
+        DIGEST_SHA_256,
+        DIGEST_SHA_384,
+        DIGEST_SHA_512,
+        NULL
+      };
 
-#define TODO_IMPLEMENT_THIS 1
-#define TODO_IMPLEMENT_THIS 2
+      for (auto loop = 0; NULL != algorithms[loop]; ++loop) {
 
-      //fingerprint.mAlgorithm = ;
-      //fingerprint.mValue = ;
+        if (algorithm.hasData()) {
+          // filter for a particular fingerprint algorithm only
+          if (0 != algorithm.compareNoCase(algorithms[loop])) {
+            ZS_LOG_INSANE(log("algorithm not a match") + ZS_PARAM("algorithm", algorithm) + ZS_PARAM("found", algorithms[loop]))
+            continue;
+          }
+        }
 
-      result->push_back(fingerprint);
+        SecureByteBlockPtr buffer = getDigest(algorithms[loop]);
+        if (!buffer) continue;
+
+        Fingerprint fingerprint;
+        fingerprint.mAlgorithm = algorithms[loop];
+
+        String output = UseServicesHelper::convertToHex(*buffer);
+
+        for (auto pos = 0; pos < output.size(); pos += 2) {
+          if (fingerprint.mValue.hasData()) {
+            fingerprint.mValue += ":";
+          }
+          fingerprint.mValue += output.substr(pos, 2);
+        }
+        result->push_back(fingerprint);
+      }
 
       return result;
     }
@@ -268,6 +322,40 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    SecureByteBlockPtr Certificate::getDigest(const String &algorithm) const
+    {
+      return getDigest(algorithm, mCertificate);
+    }
+
+    //-------------------------------------------------------------------------
+    SecureByteBlockPtr Certificate::getDigest(
+                                              const String &algorithm,
+                                              CertificateObjectType certificate
+                                              )
+    {
+      if (!certificate) return SecureByteBlockPtr();
+
+      BYTE digest[EVP_MAX_MD_SIZE] {};
+
+      const EVP_MD *md {};
+      unsigned int n {};
+
+      if (!Digest::GetDigestEVP(algorithm, &md)) return SecureByteBlockPtr();
+
+      if (sizeof(digest) < static_cast<size_t>(EVP_MD_size(md))) return SecureByteBlockPtr();
+
+      X509_digest(certificate, md, digest, &n);
+
+      ZS_THROW_INVALID_ASSUMPTION_IF(n > sizeof(digest))
+
+      SecureByteBlockPtr buffer(make_shared<SecureByteBlock>(n));
+
+      memcpy(buffer->BytePtr(), digest, n);
+
+      return buffer;
+    }
+
+    //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -283,18 +371,41 @@ namespace ortc
       PromiseCertificateHolderPtr promise;
       CertificatePtr pThis;
 
+      KeyPairType keyPair = NULL;
+      CertificateObjectType certificate = NULL;
+
+      // scope: generate keypair outside of a lock
+      {
+        ZS_LOG_DEBUG(log("generating certificate"))
+
+        keyPair = MakeKey();
+        if (!keyPair) {
+          ZS_LOG_ERROR(Basic, log("unable to generate key pair"))
+          goto generation_done;
+        }
+
+        certificate = MakeCertificate(keyPair);
+        if (!certificate) {
+          ZS_LOG_ERROR(Basic, log("unable to generate certificate"))
+          goto generation_done;
+        }
+      }
+
+    generation_done:
       {
         AutoRecursiveLock lock(*this);
 
-        ZS_LOG_DEBUG(debug("generating certificate") + toDebug())
-
-#define TODO_GENERATE_CERTIFICATE_HERE 1
-#define TODO_GENERATE_CERTIFICATE_HERE 2
-
-        ZS_LOG_DEBUG(debug("certificate generated") + toDebug())
+        mKeyPair = keyPair;
+        mCertificate = certificate;
 
         promise = mPromiseWeak.lock();
         pThis = mThisWeak.lock();
+
+        if (mCertificate) {
+          ZS_LOG_DEBUG(debug("certificate generated") + toDebug())
+        } else {
+          ZS_LOG_WARNING(Detail, debug("certificate not generated") + toDebug())
+        }
 
         if (!promise) {
           ZS_LOG_WARNING(Debug, log("promise is gone"))
@@ -302,16 +413,21 @@ namespace ortc
         }
 
         promise->mCertificate.reset();
+        goto resolve_promise;
       }
 
-      //.......................................................................
-      // WARNING: resolve the promise outside the lock
-      //.......................................................................
-      if (promise) {
-        if (pThis) {
-          promise->resolve(pThis);
-        } else {
-          promise->reject();
+    resolve_promise:
+      {
+        //.......................................................................
+        // WARNING: resolve the promise outside the lock
+        //.......................................................................
+        if (promise) {
+          if ((pThis) &&
+              (certificate)) {
+            promise->resolve(pThis);
+          } else {
+            promise->reject();
+          }
         }
       }
 
@@ -346,8 +462,6 @@ namespace ortc
 
       UseServicesHelper::debugAppend(resultEl, "id", mID);
 
-      UseServicesHelper::debugAppend(resultEl, "graceful shutdown", (bool)mGracefulShutdownReference);
-
       UseServicesHelper::debugAppend(resultEl, "algorithm", mAlgorithm);
 
       UseServicesHelper::debugAppend(resultEl, "promise", (bool)mPromise);
@@ -364,29 +478,14 @@ namespace ortc
     void Certificate::cancel()
     {
       //.......................................................................
-      // try to gracefully shutdown
-
-      if (!mGracefulShutdownReference) mGracefulShutdownReference = mThisWeak.lock();
-
-      if (mGracefulShutdownReference) {
-#define TODO_OBJECT_IS_BEING_KEPT_ALIVE_UNTIL_CERTIFICATE_IS_SHUTDOWN 1
-#define TODO_OBJECT_IS_BEING_KEPT_ALIVE_UNTIL_CERTIFICATE_IS_SHUTDOWN 2
-      }
-
-      //.......................................................................
       // final cleanup
 
       if (mCertificate) {
-#define TODO_CLEAN_UP_GENERATED_CERTIFICATE 1
-#define TODO_CLEAN_UP_GENERATED_CERTIFICATE 2
-
         X509_free(mCertificate);
         mCertificate = NULL;
       }
 
       if (mKeyPair) {
-#define TODO_CLEAN_UP_GENERATED_KEY_PAIR 1
-#define TODO_CLEAN_UP_GENERATED_KEY_PAIR 2
         EVP_PKEY_free(mKeyPair);
         mKeyPair = NULL;
       }
@@ -397,9 +496,6 @@ namespace ortc
 
       mPromise.reset();
       mPromiseWeak.reset();
-
-      // make sure to cleanup any final reference to self
-      mGracefulShutdownReference.reset();
     }
 
     //-------------------------------------------------------------------------
@@ -487,6 +583,128 @@ namespace ortc
       X509_NAME_free(name);
       X509_free(x509);
       return NULL;
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark Certificate::Digest
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    Certificate::Digest::Digest(const String &algorithm) {
+      EVP_MD_CTX_init(&ctx_);
+      if (GetDigestEVP(algorithm, &md_)) {
+        EVP_DigestInit_ex(&ctx_, md_, NULL);
+      } else {
+        md_ = NULL;
+      }
+    }
+
+    //-------------------------------------------------------------------------
+    Certificate::Digest::~Digest() {
+      EVP_MD_CTX_cleanup(&ctx_);
+    }
+
+    //-------------------------------------------------------------------------
+    size_t Certificate::Digest::Size() const {
+      if (!md_) {
+        return 0;
+      }
+      return EVP_MD_size(md_);
+    }
+
+    //-------------------------------------------------------------------------
+    void Certificate::Digest::Update(const void* buf, size_t len) {
+      if (!md_) {
+        return;
+      }
+      EVP_DigestUpdate(&ctx_, buf, len);
+    }
+
+    //-------------------------------------------------------------------------
+    size_t Certificate::Digest::Finish(void* buf, size_t len) {
+      if (!md_ || len < Size()) {
+        return 0;
+      }
+      unsigned int md_len;
+      EVP_DigestFinal_ex(&ctx_, static_cast<unsigned char*>(buf), &md_len);
+      EVP_DigestInit_ex(&ctx_, md_, NULL);  // prepare for future Update()s
+      ZS_THROW_INVALID_ASSUMPTION_IF(md_len != Size())
+      return md_len;
+    }
+
+    //-------------------------------------------------------------------------
+    bool Certificate::Digest::GetDigestEVP(
+                                           const String &algorithm,
+                                           const EVP_MD** mdp
+                                           ) {
+      const EVP_MD* md;
+      if (algorithm == DIGEST_MD5) {
+        md = EVP_md5();
+      } else if (algorithm == DIGEST_SHA_1) {
+        md = EVP_sha1();
+      } else if (algorithm == DIGEST_SHA_224) {
+        md = EVP_sha224();
+      } else if (algorithm == DIGEST_SHA_256) {
+        md = EVP_sha256();
+      } else if (algorithm == DIGEST_SHA_384) {
+        md = EVP_sha384();
+      } else if (algorithm == DIGEST_SHA_512) {
+        md = EVP_sha512();
+      } else {
+        return false;
+      }
+
+      // Can't happen
+      ZS_THROW_INVALID_ASSUMPTION_IF(EVP_MD_size(md) < 16)
+      *mdp = md;
+      return true;
+    }
+
+    //-------------------------------------------------------------------------
+    bool Certificate::Digest::GetDigestName(
+                                            const EVP_MD* md,
+                                            String* algorithm
+                                            ) {
+      ZS_THROW_INVALID_ARGUMENT_IF(NULL == md);
+      ZS_THROW_INVALID_ARGUMENT_IF(NULL == algorithm);
+
+      int md_type = EVP_MD_type(md);
+      if (md_type == NID_md5) {
+        *algorithm = DIGEST_MD5;
+      } else if (md_type == NID_sha1) {
+        *algorithm = DIGEST_SHA_1;
+      } else if (md_type == NID_sha224) {
+        *algorithm = DIGEST_SHA_224;
+      } else if (md_type == NID_sha256) {
+        *algorithm = DIGEST_SHA_256;
+      } else if (md_type == NID_sha384) {
+        *algorithm = DIGEST_SHA_384;
+      } else if (md_type == NID_sha512) {
+        *algorithm = DIGEST_SHA_512;
+      } else {
+        algorithm->clear();
+        return false;
+      }
+      
+      return true;
+    }
+    
+    //-------------------------------------------------------------------------
+    bool Certificate::Digest::GetDigestSize(
+                                            const String &algorithm,
+                                            size_t* length
+                                            )
+    {
+      const EVP_MD *md;
+      if (!GetDigestEVP(algorithm, &md))
+        return false;
+
+      *length = EVP_MD_size(md);
+      return true;
     }
 
     //-------------------------------------------------------------------------

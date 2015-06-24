@@ -280,6 +280,13 @@ namespace ortc
         }
 
         //---------------------------------------------------------------------
+        virtual IICETransport::States state() const override
+        {
+          AutoRecursiveLock lock(*this);
+          return mCurrentState;
+        }
+
+        //---------------------------------------------------------------------
         virtual IICETypes::Roles getRole() const override
         {
           AutoRecursiveLock lock(*this);

@@ -50,6 +50,13 @@ namespace ortc
 {
   namespace internal
   {
+    extern const char DIGEST_MD5[];
+    extern const char DIGEST_SHA_1[];
+    extern const char DIGEST_SHA_224[];
+    extern const char DIGEST_SHA_256[];
+    extern const char DIGEST_SHA_384[];
+    extern const char DIGEST_SHA_512[];
+
     ZS_DECLARE_INTERACTION_PTR(ICertificateForSettings)
     ZS_DECLARE_INTERACTION_PTR(ICertificateForDTLSTransport)
 
@@ -81,16 +88,26 @@ namespace ortc
     interaction ICertificateForDTLSTransport
     {
       ZS_DECLARE_TYPEDEF_PTR(ICertificateForDTLSTransport, ForDTLSTransport)
+      ZS_DECLARE_TYPEDEF_PTR(ICertificateTypes::FingerprintList, FingerprintList)
 
       static ElementPtr toDebug(ForDTLSTransportPtr certificate);
 
       typedef EVP_PKEY * KeyPairType;
-      typedef x509_st * CertificateObjectType; // not sure of type to use
+      typedef X509 * CertificateObjectType; // not sure of type to use
 
       virtual PUID getID() const = 0;
 
       virtual KeyPairType getKeyPair() const = 0;
       virtual CertificateObjectType getCertificate() const = 0;
+
+      virtual SecureByteBlockPtr getDigest(const String &algorithm) const = 0;
+
+      virtual FingerprintListPtr fingerprints(const char *algorithm = NULL) const = 0;
+
+      static SecureByteBlockPtr getDigest(
+                                          const String &algorithm,
+                                          CertificateObjectType certificate
+                                          );
     };
 
     //-------------------------------------------------------------------------
@@ -119,9 +136,12 @@ namespace ortc
       friend interaction ICertificateForDTLSTransport;
 
       ZS_DECLARE_STRUCT_PTR(PromiseCertificateHolder)
+      ZS_DECLARE_CLASS_PTR(Digest)
+
+      ZS_DECLARE_TYPEDEF_PTR(ICertificateTypes::FingerprintList, FingerprintList)
 
       typedef EVP_PKEY * KeyPairType;
-      typedef x509_st * CertificateObjectType; // not sure of type to use
+      typedef X509 * CertificateObjectType; // not sure of type to use
 
     public:
       Certificate(
@@ -160,7 +180,7 @@ namespace ortc
 
       virtual Time expires() const override;
 
-      virtual FingerprintListPtr fingerprints() const override;
+      virtual FingerprintListPtr fingerprints(const char *algorithm = NULL) const override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -172,6 +192,15 @@ namespace ortc
       virtual KeyPairType getKeyPair() const override;
       virtual CertificateObjectType getCertificate() const override;
 
+      virtual SecureByteBlockPtr getDigest(const String &algorithm) const override;
+
+      // (duplicate) virtual FingerprintListPtr fingerprints(const char *algorithm = NULL) const override;
+
+      static SecureByteBlockPtr getDigest(
+                                          const String &algorithm,
+                                          CertificateObjectType certificate
+                                          );
+
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark Certificate => IWakeDelegate
@@ -180,6 +209,11 @@ namespace ortc
       virtual void onWake() override;
 
     public:
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark Certificate::PromiseCertificateHolder
+      #pragma mark
+
       struct PromiseCertificateHolder : public PromiseWithCertificate
       {
         PromiseCertificateHolder(IMessageQueuePtr queue = IMessageQueuePtr()) :
@@ -189,6 +223,50 @@ namespace ortc
         ~PromiseCertificateHolder() {}
 
         CertificatePtr mCertificate;
+      };
+
+    public:
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark Certificate::Digest
+      #pragma mark
+
+      class Digest
+      {
+      public:
+        Digest(const String &algorithm);
+        ~Digest();
+
+        // Returns the digest output size (e.g. 16 bytes for MD5).
+        size_t Size() const;
+
+        // Updates the digest with |len| bytes from |buf|.
+        void Update(const void* buf, size_t len);
+
+        // Outputs the digest value to |buf| with length |len|.
+        size_t Finish(void* buf, size_t len);
+
+        // Helper function to look up a digest's EVP by name.
+        static bool GetDigestEVP(
+                                 const String &algorithm,
+                                 const EVP_MD** md
+                                 );
+
+        // Helper function to look up a digest's name by EVP.
+        static bool GetDigestName(
+                                  const EVP_MD* md,
+                                  String* algorithm
+                                  );
+
+        // Helper function to get the length of a digest.
+        static bool GetDigestSize(
+                                  const String &algorithm,
+                                  size_t* len
+                                  );
+
+      private:
+        EVP_MD_CTX ctx_;
+        const EVP_MD* md_;
       };
 
     protected:
@@ -214,7 +292,6 @@ namespace ortc
 
       AutoPUID mID;
       CertificateWeakPtr mThisWeak;
-      CertificatePtr mGracefulShutdownReference;
 
       AlgorithmIdentifier mAlgorithm;
 

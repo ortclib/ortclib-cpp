@@ -90,7 +90,7 @@ namespace ortc
 
     virtual Time expires() const = 0;
 
-    virtual FingerprintListPtr fingerprints() const = 0;
+    virtual FingerprintListPtr fingerprints(const char *algorithm = NULL) const = 0;
   };
 
 }

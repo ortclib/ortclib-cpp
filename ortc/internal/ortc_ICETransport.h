@@ -67,7 +67,7 @@ namespace ortc
     ZS_DECLARE_INTERACTION_PTR(IICETransportForICETransportContoller)
     ZS_DECLARE_INTERACTION_PTR(IICETransportForSecureTransport)
 
-    ZS_DECLARE_INTERACTION_PROXY(ITransportAsyncDelegate)
+    ZS_DECLARE_INTERACTION_PROXY(IICETransportAsyncDelegate)
 
     ZS_DECLARE_INTERACTION_PTR(IICEGathererForICETransport)
     ZS_DECLARE_INTERACTION_PTR(IICETransportControllerForICETransport)
@@ -176,6 +176,8 @@ namespace ortc
 
       virtual IICETransportSubscriptionPtr subscribe(IICETransportDelegatePtr delegate) = 0;
 
+      virtual IICETransport::States state() const = 0;
+
       virtual IICETypes::Roles getRole() const = 0;
 
       virtual bool sendPacket(
@@ -189,10 +191,10 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark ITransportAsyncDelegate
+    #pragma mark IICETransportAsyncDelegate
     #pragma mark
 
-    interaction ITransportAsyncDelegate
+    interaction IICETransportAsyncDelegate
     {
       virtual void onResolveStatsPromise(IStatsProvider::PromiseWithStatsReportPtr promise) = 0;
       virtual void onNotifyPacketRetried(
@@ -222,7 +224,7 @@ namespace ortc
                          public IICETransportForICEGatherer,
                          public IICETransportForICETransportContoller,
                          public IICETransportForSecureTransport,
-                         public ITransportAsyncDelegate,
+                         public IICETransportAsyncDelegate,
                          public IWakeDelegate,
                          public zsLib::ITimerDelegate,
                          public zsLib::IPromiseSettledDelegate,
@@ -417,6 +419,8 @@ namespace ortc
 
       // (duplicate) virtual IICETransportSubscriptionPtr subscribe(IICETransportDelegatePtr delegate);
 
+      // (duplicate) virtual IICETransport::States state() const override;
+
       virtual IICETypes::Roles getRole() const override;
 
       virtual bool sendPacket(
@@ -426,7 +430,7 @@ namespace ortc
 
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark ICETransport => ITransportAsyncDelegate
+      #pragma mark ICETransport => IICETransportAsyncDelegate
       #pragma mark
 
       virtual void onResolveStatsPromise(IStatsProvider::PromiseWithStatsReportPtr promise) override;
@@ -859,7 +863,7 @@ namespace ortc
   }
 }
 
-ZS_DECLARE_PROXY_BEGIN(ortc::internal::ITransportAsyncDelegate)
+ZS_DECLARE_PROXY_BEGIN(ortc::internal::IICETransportAsyncDelegate)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IStatsProvider::PromiseWithStatsReportPtr, PromiseWithStatsReportPtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IICETypes::CandidatePtr, CandidatePtr)
 ZS_DECLARE_PROXY_TYPEDEF(zsLib::IPAddress, IPAddress)

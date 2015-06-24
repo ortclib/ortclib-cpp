@@ -272,7 +272,7 @@ namespace ortc
       ORTC_THROW_INVALID_STATE_IF(isShutdown() || isShuttingDown())
 
       PromiseWithStatsReportPtr promise = PromiseWithStatsReport::create(IORTCForInternal::queueDelegate());
-      ITransportAsyncDelegateProxy::create(mThisWeak.lock())->onResolveStatsPromise(promise);
+      IICETransportAsyncDelegateProxy::create(mThisWeak.lock())->onResolveStatsPromise(promise);
       return promise;
     }
 
@@ -1070,13 +1070,13 @@ namespace ortc
       mSecureTransportID = secureTransportID;
       mSecureTransport = mSecureTransport;
 
-      ITransportAsyncDelegateProxy::create(mThisWeak.lock())->onNotifyAttached(secureTransportID);
+      IICETransportAsyncDelegateProxy::create(mThisWeak.lock())->onNotifyAttached(secureTransportID);
     }
 
     //-------------------------------------------------------------------------
     void ICETransport::notifyDetached(PUID secureTransportID)
     {
-      ITransportAsyncDelegateProxy::create(mThisWeak.lock())->onNotifyDetached(secureTransportID);
+      IICETransportAsyncDelegateProxy::create(mThisWeak.lock())->onNotifyDetached(secureTransportID);
     }
 
     //-------------------------------------------------------------------------
@@ -1115,7 +1115,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark ICETransport => ITransportAsyncDelegate
+    #pragma mark ICETransport => IICETransportAsyncDelegate
     #pragma mark
 
     //-------------------------------------------------------------------------
@@ -2492,7 +2492,7 @@ namespace ortc
       mWarmRoutesChanged = 1; // by setting to 1 warm routes will be checked again
       auto pThis = mThisWeak.lock();
       if (pThis) {
-        ITransportAsyncDelegateProxy::create(mThisWeak.lock())->onWarmRoutesChanged();
+        IICETransportAsyncDelegateProxy::create(mThisWeak.lock())->onWarmRoutesChanged();
       }
     }
     
@@ -3942,7 +3942,7 @@ namespace ortc
         wakeUp();
 
         ZS_LOG_WARNING(Debug, log("will retry conflicting packet again after recomputing candidate pairings") + routerRoute->toDebug() + packet->toDebug())
-        ITransportAsyncDelegateProxy::create(mThisWeak.lock())->onNotifyPacketRetried(routerRoute->mLocalCandidate, routerRoute->mRemoteIP, packet);
+        IICETransportAsyncDelegateProxy::create(mThisWeak.lock())->onNotifyPacketRetried(routerRoute->mLocalCandidate, routerRoute->mRemoteIP, packet);
       }
       return true;
     }
