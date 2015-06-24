@@ -84,7 +84,7 @@ namespace ortc
   {
     static ElementPtr toDebug(ICertificatePtr certificate);
 
-    static PromiseWithCertificatePtr generateCertificate(AlgorithmIdentifier algorithm);
+    static PromiseWithCertificatePtr generateCertificate(AlgorithmIdentifier algorithm = AlgorithmIdentifier());
 
     virtual PUID getID() const = 0;
 

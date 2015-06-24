@@ -109,7 +109,6 @@ namespace ortc
 
       //---------------------------------------------------------------------
       class FakeICETransport : public ortc::internal::ICETransport,
-                               public ortc::internal::IICETransportForSecureTransport,
                                public IFakeICETransportAsyncDelegate
       {
       protected:
@@ -501,8 +500,17 @@ namespace ortc
         Expectations getExpectations() const {return mExpectations;}
 
         //---------------------------------------------------------------------
+        void generateCertificate()
+        {
+          AutoRecursiveLock lock(*this);
+          mCertificatePromise = ICertificate::generateCertificate();
+          mCertificatePromise->then(mThisWeak.lock());
+        }
+
+        //---------------------------------------------------------------------
         void start(DTLSTesterPtr remote)
         {
+          AutoRecursiveLock lock(*this);
           TESTING_CHECK(remote)
 
           IDTLSTransportPtr localDTLS = getTransport();
@@ -577,9 +585,9 @@ namespace ortc
           AutoRecursiveLock lock(*this);
           TESTING_CHECK(promise->isResolved())
 
-          TESTING_CHECK(mCerficiatePromise)
+          TESTING_CHECK(mCertificatePromise)
 
-          auto certificate = mCerficiatePromise->value();
+          auto certificate = mCertificatePromise->value();
 
           TESTING_CHECK(certificate)
 
@@ -628,7 +636,7 @@ namespace ortc
         IICETransportPtr mICETransport;
         IDTLSTransportPtr mDTLS;
 
-        ICertificateTypes::PromiseWithCertificatePtr mCerficiatePromise;
+        ICertificateTypes::PromiseWithCertificatePtr mCertificatePromise;
 
         Expectations mExpectations;
       };
@@ -732,12 +740,17 @@ void doTestDTLS()
                 if (fakeIceObject2) fakeIceObject2->state(IICETransport::State_Checking);
                 break;
               }
-              case 4: {
-                if (fakeIceObject1) fakeIceObject1->state(IICETransport::State_Checking);
-                if (fakeIceObject2) fakeIceObject2->state(IICETransport::State_Checking);
+              case 3: {
+                if (testDTLSObject1) testDTLSObject1->generateCertificate();
+                if (testDTLSObject2) testDTLSObject2->generateCertificate();
                 break;
               }
-              case 5: {
+              case 6: {
+                if (fakeIceObject1) fakeIceObject1->role(IICETypes::Role_Controlling);
+                if (fakeIceObject2) fakeIceObject1->role(IICETypes::Role_Controlled);
+                break;
+              }
+              case 7: {
                 if (fakeIceObject1) fakeIceObject1->linkTransport(fakeIceObject2);
                 if (fakeIceObject2) fakeIceObject2->linkTransport(fakeIceObject1);
 
@@ -745,9 +758,9 @@ void doTestDTLS()
                 if (fakeIceObject2) fakeIceObject2->state(IICETransport::State_Connected);
                 break;
               }
-              case 8: {
+              case 10: {
                 if (testDTLSObject1) testDTLSObject1->start(testDTLSObject2);
-                if (testDTLSObject2) testDTLSObject1->start(testDTLSObject1);
+                if (testDTLSObject2) testDTLSObject2->start(testDTLSObject1);
                 break;
               }
               case 20: {

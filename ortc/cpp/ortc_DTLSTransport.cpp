@@ -53,8 +53,10 @@
 #include <openssl/tls1.h>
 #include <openssl/x509v3.h>
 
-#include <webrtc/base/safe_conversions.h>
-#include <webrtc/base/common.h>
+//#include <webrtc/base/safe_conversions.h>
+//#include <webrtc/base/common.h>
+
+#define ASSERT(x) ZS_THROW_BAD_STATE_IF(!(x))
 
 namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib) }
 
@@ -208,7 +210,7 @@ namespace ortc
 
       StreamResult result = transport->bioRead(out, outl, &read, &error);
       if (result == DTLSTransport::SR_SUCCESS) {
-        return rtc::checked_cast<int>(read);
+        return static_cast<int>(read);
       } else if (result == DTLSTransport::SR_EOS) {
         b->num = 1;
       } else if (result == DTLSTransport::SR_BLOCK) {
@@ -234,7 +236,7 @@ namespace ortc
       int error;
       StreamResult result = transport->bioWrite(in, inl, &written, &error);
       if (result == DTLSTransport::SR_SUCCESS) {
-        return rtc::checked_cast<int>(written);
+        return static_cast<int>(written);
       } else if (result == DTLSTransport::SR_BLOCK) {
         BIO_set_retry_write(b);
       }
@@ -243,13 +245,13 @@ namespace ortc
 
     //-------------------------------------------------------------------------
     static int stream_puts(BIO* b, const char* str) {
-      return stream_write(b, str, rtc::checked_cast<int>(strlen(str)));
+      return stream_write(b, str, static_cast<int>(strlen(str)));
     }
 
     //-------------------------------------------------------------------------
     static long stream_ctrl(BIO* b, int cmd, long num, void* ptr) {
-      RTC_UNUSED(num);
-      RTC_UNUSED(ptr);
+      //RTC_UNUSED(num);
+     // RTC_UNUSED(ptr);
 
       switch (cmd) {
         case BIO_CTRL_RESET:
@@ -433,7 +435,7 @@ namespace ortc
                                            )
     {
       DTLSTransportPtr pThis(make_shared<DTLSTransport>(make_private {}, IORTCForInternal::queueORTC(), delegate, iceTransport, certificate));
-      pThis->mThisWeak.lock();
+      pThis->mThisWeak = pThis;
       pThis->init();
       return pThis;
     }
@@ -893,6 +895,7 @@ namespace ortc
 
         packets = mPendingOutgoingDTLS;
         mPendingOutgoingDTLS = PacketQueue();
+        goto send_packets;
       }
 
     send_packets:
@@ -1059,6 +1062,8 @@ namespace ortc
     //-------------------------------------------------------------------------
     ElementPtr DTLSTransport::toDebug() const
     {
+      AutoRecursiveLock lock(*this);
+
       ElementPtr resultEl = Element::create("ortc::DTLSTransport");
 
       UseServicesHelper::debugAppend(resultEl, "id", mID);
@@ -1442,7 +1447,7 @@ namespace ortc
                                          result_len,
                                          label.c_str(),
                                          label.length(),
-                                         const_cast<uint8 *>(context),
+                                         const_cast<uint8_t *>(context),
                                          context_len,
                                          use_context
                                          );
@@ -1631,7 +1636,7 @@ namespace ortc
 
       ssl_write_needs_read_ = false;
 
-      int code = SSL_write(ssl_, data, rtc::checked_cast<int>(data_len));
+      int code = SSL_write(ssl_, data, static_cast<int>(data_len));
       int ssl_error = SSL_get_error(ssl_, code);
       switch (ssl_error) {
         case SSL_ERROR_NONE:
@@ -1699,7 +1704,7 @@ namespace ortc
 
       ssl_read_needs_write_ = false;
 
-      int code = SSL_read(ssl_, data, rtc::checked_cast<int>(data_len));
+      int code = SSL_read(ssl_, data, static_cast<int>(data_len));
       int ssl_error = SSL_get_error(ssl_, code);
       switch (ssl_error) {
         case SSL_ERROR_NONE:
@@ -1744,7 +1749,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     void DTLSTransport::Adapter::flushInput(unsigned int left)
     {
-      unsigned char buf[2048];
+      unsigned char buf[2048] {};
 
       while (left) {
         // This should always succeed

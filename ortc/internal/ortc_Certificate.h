@@ -222,6 +222,8 @@ namespace ortc
 
         ~PromiseCertificateHolder() {}
 
+        void setThisWeak(PromisePtr promise) {mThisWeak = promise;}
+
         CertificatePtr mCertificate;
       };
 

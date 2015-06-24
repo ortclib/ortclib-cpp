@@ -155,8 +155,8 @@ namespace Testing
     doSetup();
 
     TESTING_RUN_TEST_FUNC(doTestDTLS)
-    TESTING_RUN_TEST_FUNC(doTestICEGatherer)
-    TESTING_RUN_TEST_FUNC(doTestICETransport)
+    //TESTING_RUN_TEST_FUNC(doTestICEGatherer)
+    //TESTING_RUN_TEST_FUNC(doTestICETransport)
 
     TESTING_UNINSTALL_LOGGER()
   }

@@ -182,6 +182,7 @@ namespace ortc
       AutoRecursiveLock lock(*this);
 
       mPromise = PromiseCertificateHolderPtr(make_shared<PromiseCertificateHolder>(IORTCForInternal::queueDelegate()));
+      mPromise->setThisWeak(mPromise);
       mPromiseWeak = mPromise;
       mPromise->mCertificate = mThisWeak.lock();
 
@@ -230,7 +231,7 @@ namespace ortc
     ICertificateTypes::PromiseWithCertificatePtr Certificate::generateCertificate(AlgorithmIdentifier algorithm)
     {
       CertificatePtr pThis(make_shared<Certificate>(make_private {}, IORTCForInternal::queueCertificateGeneration(), algorithm));
-      pThis->mThisWeak.lock();
+      pThis->mThisWeak = pThis;
       pThis->init();
 
       AutoRecursiveLock lock(*pThis);
@@ -287,7 +288,7 @@ namespace ortc
 
         String output = UseServicesHelper::convertToHex(*buffer);
 
-        for (auto pos = 0; pos < output.size(); pos += 2) {
+        for (String::size_type pos = 0; pos < output.size(); pos += 2) {
           if (fingerprint.mValue.hasData()) {
             fingerprint.mValue += ":";
           }
@@ -458,6 +459,8 @@ namespace ortc
     //-------------------------------------------------------------------------
     ElementPtr Certificate::toDebug() const
     {
+      AutoRecursiveLock lock(*this);
+
       ElementPtr resultEl = Element::create("ortc::Certificate");
 
       UseServicesHelper::debugAppend(resultEl, "id", mID);
@@ -469,7 +472,7 @@ namespace ortc
 
       UseServicesHelper::debugAppend(resultEl, "expires", mExpires);
 
-      UseServicesHelper::debugAppend(resultEl, "certificate", (bool)mCertificate);
+      UseServicesHelper::debugAppend(resultEl, "certificate", (mCertificate ? true : false));
 
       return resultEl;
     }
