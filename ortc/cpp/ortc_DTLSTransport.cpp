@@ -1943,6 +1943,11 @@ namespace ortc
       ZS_LOG_TRACE(log("continue ssl"))
       ASSERT(state_ == SSL_CONNECTING);
 
+      if (mTimer) {
+        mTimer->cancel();
+        mTimer.reset();
+      }
+
       int code = (role_ == SSL_CLIENT) ? SSL_connect(ssl_) : SSL_accept(ssl_);
       int ssl_error;
       switch (ssl_error = SSL_get_error(ssl_, code)) {
