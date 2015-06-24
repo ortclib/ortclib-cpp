@@ -1395,7 +1395,7 @@ namespace ortc
                                                                                         const String &digest_value
                                                                                         )
     {
-      ASSERT(!peer_certificate_);
+      ASSERT(NULL != peer_certificate_);
       ASSERT(ssl_server_name_.empty());
 
       SecureByteBlockPtr digest = UseCertificate::getDigest(digest_alg, peer_certificate_);
