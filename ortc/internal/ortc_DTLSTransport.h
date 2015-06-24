@@ -41,9 +41,11 @@
 #include <zsLib/MessageQueueAssociator.h>
 #include <zsLib/Timer.h>
 
+#include <cryptopp/queue.h>
+
 #include <openssl/base.h>
 
-#define ORTC_SETTING_DTLS_TRANSPORT_MAX_PENDING_DTLS_PACKETS "ortc/dtls/max-pending-dtls-packets"
+#define ORTC_SETTING_DTLS_TRANSPORT_MAX_PENDING_DTLS_BUFFER "ortc/dtls/max-pending-dtls-buffer"
 #define ORTC_SETTING_DTLS_TRANSPORT_MAX_PENDING_RTP_PACKETS "ortc/dtls/max-pending-rtp-packets"
 
 namespace ortc
@@ -153,6 +155,7 @@ namespace ortc
 
       enum StreamResult { SR_ERROR, SR_SUCCESS, SR_BLOCK, SR_EOS };
 
+      typedef CryptoPP::ByteQueue ByteQueue;
       typedef std::queue<SecureByteBlockPtr> PacketQueue;
 
     public:
@@ -339,7 +342,7 @@ namespace ortc
                              size_t bufferLengthInBytes
                              );
 
-      SecureByteBlockPtr adapterReadPacket();
+      size_t adapterReadPacket(BYTE *buffer, size_t bufferLengthInBytes);
 
       TimerPtr adapterCreateTimeout(Milliseconds timeout);
 
@@ -603,11 +606,11 @@ namespace ortc
 
       AdapterPtr mAdaptor;
 
-      size_t mMaxPendingDTLSPackets {};
+      size_t mMaxPendingDTLSBuffer {};
       size_t mMaxPendingRTPPackets {};
 
       PacketQueue mPendingIncomingRTP;
-      PacketQueue mPendingIncomingDTLS;
+      ByteQueue mPendingIncomingDTLS;
 
       PacketQueue mPendingOutgoingDTLS;
 

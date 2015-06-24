@@ -286,7 +286,7 @@ namespace ortc
     void IDTLSTransportForSettings::applyDefaults()
     {
       // Strength of generated keys. Those are RSA.
-      UseSettings::setUInt(ORTC_SETTING_DTLS_TRANSPORT_MAX_PENDING_DTLS_PACKETS, 1);
+      UseSettings::setUInt(ORTC_SETTING_DTLS_TRANSPORT_MAX_PENDING_DTLS_BUFFER, kMaxDtlsPacketLen*4);
 
       UseSettings::setUInt(ORTC_SETTING_DTLS_TRANSPORT_MAX_PENDING_RTP_PACKETS, 50);
     }
@@ -342,7 +342,7 @@ namespace ortc
       SharedRecursiveLock(SharedRecursiveLock::create()),
       mICETransport(ICETransport::convert(iceTransport)),
       mCertificate(Certificate::convert(certificate)),
-      mMaxPendingDTLSPackets(UseSettings::getUInt(ORTC_SETTING_DTLS_TRANSPORT_MAX_PENDING_DTLS_PACKETS)),
+      mMaxPendingDTLSBuffer(UseSettings::getUInt(ORTC_SETTING_DTLS_TRANSPORT_MAX_PENDING_DTLS_BUFFER)),
       mMaxPendingRTPPackets(UseSettings::getUInt(ORTC_SETTING_DTLS_TRANSPORT_MAX_PENDING_RTP_PACKETS))
     {
       ZS_LOG_DETAIL(debug("created"))
@@ -740,10 +740,10 @@ namespace ortc
             tmp_size -= record_len + kDtlsRecordHeaderLen;
           }
 
-          mPendingIncomingDTLS.push(SecureByteBlockPtr(make_shared<SecureByteBlock>(buffer, bufferLengthInBytes)));
-          if (mPendingIncomingDTLS.size() > mMaxPendingDTLSPackets) {
-            ZS_LOG_WARNING(Debug, log("too many pending dtls packets (thus popping first packet)"))
-            mPendingIncomingDTLS.pop();
+          if (mPendingIncomingDTLS.CurrentSize() < mMaxPendingDTLSBuffer) {
+            mPendingIncomingDTLS.Put(buffer, bufferLengthInBytes);
+          } else {
+            ZS_LOG_WARNING(Debug, log("too many pending dtls packets (thus ignoring incoming dtls packet)"))
           }
 
           if (!mFixedRole) {
@@ -794,7 +794,7 @@ namespace ortc
           mPendingIncomingRTP.push(SecureByteBlockPtr(make_shared<SecureByteBlock>(buffer, bufferLengthInBytes)));
           if (mPendingIncomingRTP.size() > mMaxPendingRTPPackets) {
             ZS_LOG_WARNING(Debug, log("too many pending rtp packets (thus popping first packet)"))
-            mPendingIncomingDTLS.pop();
+              mPendingIncomingRTP.pop();
           }
           return;
         }
@@ -1022,13 +1022,16 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    SecureByteBlockPtr DTLSTransport::adapterReadPacket()
+    size_t DTLSTransport::adapterReadPacket(BYTE *buffer, size_t bufferLengthInBytes)
     {
-      if (mPendingIncomingDTLS.size() < 1) return SecureByteBlockPtr();
+      size_t currentSize = mPendingIncomingDTLS.CurrentSize();
+      if (currentSize < 1) return 0;
 
-      SecureByteBlockPtr result = mPendingIncomingDTLS.front();
-      mPendingIncomingDTLS.pop();
-      return result;
+      auto readSize = (currentSize < bufferLengthInBytes ? currentSize : bufferLengthInBytes);
+
+      mPendingIncomingDTLS.Get(buffer, readSize);
+
+      return readSize;
     }
 
     //-------------------------------------------------------------------------
@@ -1558,16 +1561,15 @@ namespace ortc
       if (!outer) return SR_ERROR;
 
       while (true) {
-        auto buffer = outer->adapterReadPacket();
-        if (!buffer) break;
+        auto bytesRead = outer->adapterReadPacket(static_cast<BYTE *>(data), data_len);
+        if (0 == bytesRead) break;
 
-        if (buffer->SizeInBytes() > data_len) {
-          ZS_LOG_WARNING(Debug, log("dropped dtls packet that is too large") + ZS_PARAM("buffer size", buffer->SizeInBytes()) + ZS_PARAM("read size", data_len))
+        if (bytesRead > data_len) {
+          ZS_LOG_ERROR(Detail, log("dropped dtls packet that is too large") + ZS_PARAM("output size", bytesRead) + ZS_PARAM("read size", data_len))
           continue;
         }
 
-        memcpy(data, buffer->BytePtr(), buffer->SizeInBytes());
-        if (read) *read = buffer->SizeInBytes();
+        if (read) *read = bytesRead;
         return SR_SUCCESS;
       }
 
@@ -1679,8 +1681,11 @@ namespace ortc
           return bioRead(data, data_len, read, error);
 
         case SSL_WAIT:
-        case SSL_CONNECTING:
+        case SSL_CONNECTING: {
+          int result = continueSSL();
+          if (result < 0) return SR_ERROR;
           return SR_BLOCK;
+        }
 
         case SSL_CONNECTED:
           break;
@@ -1967,7 +1972,12 @@ namespace ortc
               return -1;
             }
 
-            outer->adapterCreateTimeout(delay);
+            if (mTimer) {
+              mTimer->cancel();
+              mTimer.reset();
+            }
+
+            mTimer = outer->adapterCreateTimeout(delay);
           }
           break;
         }
