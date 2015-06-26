@@ -559,7 +559,7 @@ namespace ortc
       }
 
       if (originalDelegate) {
-        mDefaultSubscription = mSubscriptions.subscribe(IICEGathererDelegateProxy::create(IORTCForInternal::queueDelegate(), originalDelegate), queue);
+        mDefaultSubscription = mSubscriptions.subscribe(originalDelegate, IORTCForInternal::queueDelegate());
       }
     }
 
@@ -660,7 +660,7 @@ namespace ortc
       AutoRecursiveLock lock(*this);
       if (!originalDelegate) return mDefaultSubscription;
 
-      auto subscription = mSubscriptions.subscribe(originalDelegate);
+      auto subscription = mSubscriptions.subscribe(originalDelegate, IORTCForInternal::queueDelegate());
 
       auto delegate = mSubscriptions.delegate(subscription, true);
 

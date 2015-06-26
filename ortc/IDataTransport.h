@@ -59,5 +59,6 @@ namespace ortc
   interaction IDataTransport : public IDataTransportTypes,
                                public IStatsProvider
   {
+    virtual ~IDataTransport() {}
   };
 }

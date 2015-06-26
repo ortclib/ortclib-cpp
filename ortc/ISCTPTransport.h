@@ -32,6 +32,7 @@
 #pragma once
 
 #include <ortc/types.h>
+#include <ortc/IDataTransport.h>
 
 namespace ortc
 {
@@ -54,6 +55,9 @@ namespace ortc
 
     struct Capabilities {
       size_t mMaxMessageSize {};
+
+      ElementPtr toDebug() const;
+      String hash() const;
     };
   };
 
@@ -65,7 +69,8 @@ namespace ortc
   #pragma mark ISCTPTransport
   #pragma mark
   
-  interaction ISCTPTransport : public ISCTPTransportTypes
+  interaction ISCTPTransport : public ISCTPTransportTypes,
+                               public IDataTransport
   {
     static ElementPtr toDebug(ISCTPTransportPtr transport);
 
@@ -81,7 +86,7 @@ namespace ortc
     virtual void start(const Capabilities &remoteCapabilities) = 0;
     virtual void stop() = 0;
 
-    virtual IDataChannelSubscriptionPtr subscribe(ISCTPTransportDelegatePtr delegate) = 0;
+    virtual ISCTPTransportSubscriptionPtr subscribe(ISCTPTransportDelegatePtr delegate) = 0;
   };
 
   //---------------------------------------------------------------------------

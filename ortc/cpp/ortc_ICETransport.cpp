@@ -189,7 +189,7 @@ namespace ortc
       }
 
       if (originalDelegate) {
-        mDefaultSubscription = mSubscriptions.subscribe(IICETransportDelegateProxy::create(IORTCForInternal::queueDelegate(), originalDelegate), queue);
+        mDefaultSubscription = mSubscriptions.subscribe(originalDelegate, IORTCForInternal::queueDelegate());
       }
 
       auto resolverBuffer = UseServicesHelper::random(sizeof(mConflictResolver));
@@ -317,7 +317,7 @@ namespace ortc
       AutoRecursiveLock lock(*this);
       if (!originalDelegate) return mDefaultSubscription;
 
-      IICETransportSubscriptionPtr subscription = mSubscriptions.subscribe(IICETransportDelegateProxy::create(IORTCForInternal::queueDelegate(), originalDelegate));
+      IICETransportSubscriptionPtr subscription = mSubscriptions.subscribe(originalDelegate, IORTCForInternal::queueDelegate());
 
       IICETransportDelegatePtr delegate = mSubscriptions.delegate(subscription, true);
 

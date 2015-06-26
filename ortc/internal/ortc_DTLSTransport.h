@@ -101,6 +101,8 @@ namespace ortc
                                   const BYTE *buffer,
                                   size_t bufferLengthInBytes
                                   ) = 0;
+
+      virtual IDTLSTransportSubscriptionPtr subscribe(IDTLSTransportDelegatePtr delegate) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -250,6 +252,8 @@ namespace ortc
                               size_t bufferLengthInBytes
                               ) override;
 
+      // (duplicate) virtual IDTLSTransportSubscriptionPtr subscribe(IDTLSTransportDelegatePtr delegate) = 0;
+
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark DTLSTransport => ISecureTransportForICETransport
@@ -354,7 +358,7 @@ namespace ortc
 
       Log::Params log(const char *message) const;
       Log::Params debug(const char *message) const;
-      ElementPtr toDebug() const;
+      virtual ElementPtr toDebug() const;
 
       bool isValidated() const {return IDTLSTransportTypes::State_Validated == mCurrentState;}
 

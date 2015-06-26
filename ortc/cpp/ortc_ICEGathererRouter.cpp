@@ -213,6 +213,8 @@ namespace ortc
     //-------------------------------------------------------------------------
     ElementPtr ICEGathererRouter::toDebug() const
     {
+      AutoRecursiveLock lock(*this);
+
       ElementPtr resultEl = Element::create("ortc::ICEGathererRouter");
 
       UseServicesHelper::debugAppend(resultEl, "id", mID);

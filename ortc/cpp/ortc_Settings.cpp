@@ -35,6 +35,7 @@
 #include <ortc/internal/ortc_ICEGatherer.h>
 #include <ortc/internal/ortc_ICETransport.h>
 #include <ortc/internal/ortc_DTLSTransport.h>
+#include <ortc/internal/ortc_SCTPTransport.h>
 
 #include <openpeer/services/IHelper.h>
 #include <openpeer/services/ISettings.h>
@@ -144,6 +145,7 @@ namespace ortc
       IICETransportForSettings::applyDefaults();
       ICertificateForSettings::applyDefaults();
       IDTLSTransportForSettings::applyDefaults();
+      ISCTPTransportForSettings::applyDefaults();
 
       {
         AutoRecursiveLock lock(mLock);

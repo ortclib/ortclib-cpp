@@ -285,7 +285,6 @@ namespace ortc
     //-------------------------------------------------------------------------
     void IDTLSTransportForSettings::applyDefaults()
     {
-      // Strength of generated keys. Those are RSA.
       UseSettings::setUInt(ORTC_SETTING_DTLS_TRANSPORT_MAX_PENDING_DTLS_BUFFER, kMaxDtlsPacketLen*4);
 
       UseSettings::setUInt(ORTC_SETTING_DTLS_TRANSPORT_MAX_PENDING_RTP_PACKETS, 50);
@@ -317,6 +316,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     IStatsProvider::PromiseWithStatsReportPtr DTLSTransport::getStats() const throw(InvalidStateError)
     {
+      ZS_THROW_NOT_IMPLEMENTED("not implemented yet (sorry)")
 #define TODO_COMPLETE 1
 #define TODO_COMPLETE 2
       return PromiseWithStatsReportPtr();
@@ -1104,7 +1104,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     void DTLSTransport::step()
     {
-      ZS_LOG_DEBUG(debug("step") + toDebug())
+      ZS_LOG_DEBUG(debug("step"))
 
       if ((isShuttingDown()) ||
           (isShutdown())) {

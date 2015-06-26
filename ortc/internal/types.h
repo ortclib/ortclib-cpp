@@ -115,6 +115,7 @@ namespace ortc
     ZS_DECLARE_CLASS_PTR(ICETransport)
     ZS_DECLARE_CLASS_PTR(ICETransportController)
     ZS_DECLARE_CLASS_PTR(SRTPSDESTransport)
+    ZS_DECLARE_CLASS_PTR(SCTPTransport)
 
     ZS_DECLARE_CLASS_PTR(RTPRouter)
 
