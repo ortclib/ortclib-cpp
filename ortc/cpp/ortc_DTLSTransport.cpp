@@ -900,10 +900,36 @@ namespace ortc
 
     send_packets:
       {
+        BYTE fillBuffer[kMaxDtlsPacketLen] {};
+        size_t filled = 0;
+
+        // combine smaller packets into a single packet
         while (packets.size() > 0) {
           SecureByteBlockPtr packet = packets.front();
-          if (!transport->sendPacket(*packet, packet->SizeInBytes())) return;
           packets.pop();
+
+          if (filled + packet->SizeInBytes() > sizeof(fillBuffer)) {
+            // cannot fit next packet into fill buffer so data filled thus far
+            if (filled > 0) {
+              if (!transport->sendPacket(&(fillBuffer[0]), filled)) return;
+              filled = 0;
+            }
+
+            if (packet->SizeInBytes() > sizeof(fillBuffer)) {
+              // packet size exceed buffer capacity so send it immediately (anything previous put into fill buffer has been sent already)
+              if (!transport->sendPacket(*packet, packet->SizeInBytes())) return;
+              continue;
+            }
+          }
+
+          memcpy(&(fillBuffer[filled]), packet->BytePtr(), packet->SizeInBytes());
+          filled += packet->SizeInBytes();
+        }
+
+        if (0 != filled) {
+          // final push of filled buffer over the wire
+          if (!transport->sendPacket(&(fillBuffer[0]), filled)) return;
+          filled = 0;
         }
       }
     }
@@ -1236,11 +1262,13 @@ namespace ortc
           break;
         }
         case Adapter::SS_OPEN: {
+          // ensure all the previous states in the state machine have occured before immediately jumping into final state
+          if (IDTLSTransport::State_New == mCurrentState) setState(IDTLSTransport::State_Connecting);
+          if (IDTLSTransport::State_Connecting == mCurrentState) setState(IDTLSTransport::State_Connected);
           if (Adapter::VALIDATION_PASSED == mValidation) {
             setState(IDTLSTransport::State_Validated);
             return true;
           }
-          setState(IDTLSTransport::State_Connected);
           break;
         }
         default: {
