@@ -46,7 +46,11 @@
 #include <cryptopp/integer.h>
 #include <cryptopp/sha.h>
 
+#ifdef HAVE_TGMATH_H
 #include <tgmath.h>
+#else
+#include <math.h>
+#endif //HAVE_TGMATH_H
 
 #ifdef _DEBUG
 #define ASSERT(x) ZS_THROW_BAD_STATE_IF(!(x))
@@ -702,8 +706,17 @@ namespace ortc
       }
 
       try {
-        return pow(base, exponent);
-      } catch(...) {
+        return
+#ifndef HAVE_TGMATH_H
+          static_cast<size_t>(
+#endif //HAVE_TGMATH_H
+        pow(base, exponent)
+#ifndef HAVE_TGMATH_H
+        )
+#endif //HAVE_TGMATH_H
+        ;
+      }
+      catch (...) {
         ZS_LOG_ERROR(Detail, slog("unable to parse lifetime") + ZS_PARAM("lifetime", lifetime))
         ORTC_THROW_INVALID_PARAMETERS("unable to parse lifetime:" + lifetime)
       }

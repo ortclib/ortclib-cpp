@@ -42,6 +42,9 @@
 
 #define ORTC_SETTING_SRTP_TRANSPORT_WARN_OF_KEY_LIFETIME_EXHAUGSTION_WHEN_REACH_PERCENTAGE_USSED "ortc/srtp/warm-key-lifetime-exhaustion-when-reach-percentage-used"
 
+#pragma warning(push)
+#pragma warning(disable:4351)
+
 namespace ortc
 {
   namespace internal
@@ -364,3 +367,5 @@ namespace ortc
     class SRTPTransportFactory : public IFactory<ISRTPTransportFactory> {};
   }
 }
+
+#pragma warning(pop)

@@ -41,6 +41,7 @@
 
 #include <zsLib/Stringize.h>
 #include <zsLib/Log.h>
+#include <zsLib/SafeInt.h>
 #include <zsLib/XML.h>
 
 #include <cryptopp/sha.h>
@@ -1057,7 +1058,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     size_t DTLSTransport::adapterReadPacket(BYTE *buffer, size_t bufferLengthInBytes)
     {
-      size_t currentSize = mPendingIncomingDTLS.CurrentSize();
+      size_t currentSize = SafeInt<CryptoPP::lword>(mPendingIncomingDTLS.CurrentSize());
       if (currentSize < 1) return 0;
 
       auto readSize = (currentSize < bufferLengthInBytes ? currentSize : bufferLengthInBytes);

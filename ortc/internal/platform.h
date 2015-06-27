@@ -37,6 +37,7 @@
 #undef HAVE_IFADDRS_H
 #undef HAVE_NET_IF_H
 #undef HAVE_NETINIT6_IN6_VAR_H
+#undef HAVE_TGMATH_H
 #undef HAVE_GMTIME_S
 #undef HAVE_SPRINTF_S
 #undef HAVE_GETADAPTERADDRESSES
@@ -97,6 +98,7 @@
 #define HAVE_IFADDRS_H 1
 #define HAVE_GETIFADDRS 1
 #define HAVE_NET_IF_H 1
+#define HAVE_TGMATH_H
 #if TARGET_OS_IPHONE
 // iphone OS
 #else

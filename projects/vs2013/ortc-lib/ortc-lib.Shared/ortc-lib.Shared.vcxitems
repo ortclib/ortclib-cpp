@@ -43,6 +43,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_ICETransportController.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_IRTPRouter.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_ISecureTransport.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_ISRTPTransport.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_MediaEngine.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_MediaManager.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_MediaStream.h" />
@@ -56,6 +57,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_SCTPTransport.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_Settings.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_SRTPSDESTransport.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_SRTPTransport.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\platform.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\types.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\IORTC.h" />
@@ -98,6 +100,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ortc_SCTPTransport.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ortc_Settings.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ortc_SRTPSDESTransport.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ortc_SRTPTransport.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ortc_TrackDescription.cpp" />
   </ItemGroup>
 </Project>
