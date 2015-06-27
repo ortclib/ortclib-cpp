@@ -31,9 +31,14 @@
 
 #pragma once
 
+#include <ortc/types.h>
+#include <ortc/ISRTPSDESTransport.h>
+
 #include <ortc/internal/types.h>
 
-#include <ortc/IICETypes.h>
+#include <zsLib/Exception.h>
+
+#include <list>
 
 namespace ortc
 {
@@ -44,22 +49,11 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark ISecureTransportForRTPSender
+    #pragma mark ISRTPTransportTypes
     #pragma mark
-
-    interaction ISecureTransportForRTPSender
+    
+    interaction ISRTPTransportTypes
     {
-      ZS_DECLARE_TYPEDEF_PTR(ISecureTransportForRTPSender, ForRTPSender)
-
-      static ElementPtr toDebug(ForRTPSenderPtr transport);
-
-      virtual PUID getID() const = 0;
-
-      virtual bool sendPacket(
-                              IICETypes::Components packetType,
-                              const BYTE *buffer,
-                              size_t bufferLengthInBytes
-                              ) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -67,28 +61,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark ISecureTransportForSRTP
+    #pragma mark ISRTPTransport
     #pragma mark
 
-    interaction ISecureTransportForSRTP
+    interaction ISRTPTransport : public ISRTPTransportTypes
     {
-      ZS_DECLARE_TYPEDEF_PTR(ISecureTransportForSRTP, ForSRTP)
-
-      static ElementPtr toDebug(ForSRTPPtr transport);
-
-      virtual PUID getID() const = 0;
-
-      virtual bool sendPacket(
-                              IICETypes::Components packetType,
-                              const BYTE *buffer,
-                              size_t bufferLengthInBytes
-                              ) = 0;
-
-      virtual bool handleReceivedPacket(
-                                        IICETypes::Components packetType,
-                                        const BYTE *buffer,
-                                        size_t bufferLengthInBytes
-                                        ) = 0;
+      virtual ~ISRTPTransport() {}
     };
 
     //-------------------------------------------------------------------------
@@ -96,28 +74,42 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark ISecureTransportForICETransport
+    #pragma mark ISRTPTransportDelegate
     #pragma mark
 
-    interaction ISecureTransportForICETransport
+    interaction ISRTPTransportDelegate
     {
-      ZS_DECLARE_TYPEDEF_PTR(ISecureTransportForICETransport, ForICETransport)
-
-      static ElementPtr toDebug(ForICETransportPtr transport);
-
-      virtual PUID getID() const = 0;
-
-      virtual void handleReceivedPacket(
-                                        IICETypes::Components viaComponent,
-                                        const BYTE *buffer,
-                                        size_t bufferLengthInBytes
-                                        ) = 0;
-
-      virtual void handleReceivedSTUNPacket(
-                                            IICETypes::Components viaComponent,
-                                            STUNPacketPtr packet
-                                            ) = 0;
+      virtual void onSRTPTransportLifetimeRemaining(
+                                                    ISRTPTransportPtr transport,
+                                                    ULONG lifetimeRemaingPercentage
+                                                    ) = 0;
     };
 
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark ISRTPTransportSubscription
+    #pragma mark
+
+    interaction ISRTPTransportSubscription
+    {
+      virtual PUID getID() const = 0;
+
+      virtual void cancel() = 0;
+
+      virtual void background() = 0;
+    };
   }
 }
+
+ZS_DECLARE_PROXY_BEGIN(ortc::internal::ISRTPTransportDelegate)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::ISRTPTransportPtr, ISRTPTransportPtr)
+ZS_DECLARE_PROXY_METHOD_2(onSRTPTransportLifetimeRemaining, ISRTPTransportPtr, ULONG)
+ZS_DECLARE_PROXY_END()
+
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_BEGIN(ortc::internal::ISRTPTransportDelegate, ortc::internal::ISRTPTransportSubscription)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::internal::ISRTPTransportPtr, ISRTPTransportPtr)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onSRTPTransportLifetimeRemaining, ISRTPTransportPtr, ULONG)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_END()

@@ -96,7 +96,7 @@ namespace ortc
       String  mKeyMethod;
       String  mKeySalt;
       String  mLifetime;
-      WORD    mMKIValue {};
+      String  mMKIValue;
       WORD    mMKILength {};
 
       ElementPtr toDebug() const;

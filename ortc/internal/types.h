@@ -103,6 +103,8 @@ namespace ortc
 
     ZS_DECLARE_INTERACTION_PTR(IRTPRouter)
 
+    ZS_DECLARE_INTERACTION_PTR(ISRTPTransport)
+
     ZS_DECLARE_INTERACTION_PTR(ISecureTransportForRTPSender)
     ZS_DECLARE_INTERACTION_PTR(ISecureTransportForICETransport)
 
@@ -116,11 +118,16 @@ namespace ortc
     ZS_DECLARE_CLASS_PTR(ICETransportController)
     ZS_DECLARE_CLASS_PTR(SRTPSDESTransport)
     ZS_DECLARE_CLASS_PTR(SCTPTransport)
+    ZS_DECLARE_CLASS_PTR(SRTPTransport)
+
 
     ZS_DECLARE_CLASS_PTR(RTPRouter)
 
     ZS_DECLARE_INTERACTION_PROXY(IRTPRouterDelegate)
+    ZS_DECLARE_INTERACTION_PROXY(ISRTPTransportDelegate)
 
     ZS_DECLARE_INTERACTION_PROXY_SUBSCRIPTION(IRTPRouterSubscription, IRTPRouterDelegate)
+
+    ZS_DECLARE_INTERACTION_PROXY_SUBSCRIPTION(ISRTPTransportSubscription, ISRTPTransportDelegate)
   }
 }

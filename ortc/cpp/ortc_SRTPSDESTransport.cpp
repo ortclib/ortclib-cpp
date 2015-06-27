@@ -230,9 +230,10 @@ namespace ortc
 
     //-------------------------------------------------------------------------
     bool SRTPSDESTransport::sendPacket(
-                                   const BYTE *buffer,
-                                   size_t bufferLengthInBytes
-                                   )
+                                       IICETypes::Components packetType,
+                                       const BYTE *buffer,
+                                       size_t bufferLengthInBytes
+                                       )
     {
       ZS_LOG_TRACE(log("sending packet") + ZS_PARAM("length", bufferLengthInBytes))
 
@@ -634,6 +635,48 @@ namespace ortc
         hasher.update(hash);
       }
     }
+
+    return hasher.final();
+  }
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark ISRTPSDESTransportTypes::KeyParameters
+  #pragma mark
+
+  //---------------------------------------------------------------------------
+  ElementPtr ISRTPSDESTransportTypes::KeyParameters::toDebug() const
+  {
+    ElementPtr resultEl = Element::create("ortc::ISRTPSDESTransportTypes::KeyParameters");
+
+    UseServicesHelper::debugAppend(resultEl, "key method", mKeyMethod);
+    UseServicesHelper::debugAppend(resultEl, "key salt", mKeySalt);
+    UseServicesHelper::debugAppend(resultEl, "lifetime", mLifetime);
+    UseServicesHelper::debugAppend(resultEl, "mki value", mMKIValue);
+    UseServicesHelper::debugAppend(resultEl, "mki length", mMKILength);
+
+    return resultEl;
+  }
+
+  //---------------------------------------------------------------------------
+  String ISRTPSDESTransportTypes::KeyParameters::hash() const
+  {
+    SHA1Hasher hasher;
+
+    hasher.update("ISRTPSDESTransportTypes:Parameters:");
+
+    hasher.update(mKeyMethod);
+    hasher.update(":");
+    hasher.update(mKeySalt);
+    hasher.update(":");
+    hasher.update(mLifetime);
+    hasher.update(":");
+    hasher.update(mMKIValue);
+    hasher.update(":");
+    hasher.update(string(mMKILength));
 
     return hasher.final();
   }

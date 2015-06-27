@@ -45,7 +45,12 @@
 #include <cryptopp/sha.h>
 
 
+#ifdef _DEBUG
 #define ASSERT(x) ZS_THROW_BAD_STATE_IF(!(x))
+#else
+#define ASSERT(x)
+#endif //_DEBUG
+
 
 namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib) }
 
@@ -572,6 +577,7 @@ namespace ortc
       return internal::SCTPTransport::create(delegate, transport);
     }
 
+    //-------------------------------------------------------------------------
     ISCTPTransportFactory::CapabilitiesPtr ISCTPTransportFactory::getCapabilities()
     {
       if (this) {}

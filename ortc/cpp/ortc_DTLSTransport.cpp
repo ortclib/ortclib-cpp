@@ -56,7 +56,11 @@
 //#include <webrtc/base/safe_conversions.h>
 //#include <webrtc/base/common.h>
 
+#ifdef _DEBUG
 #define ASSERT(x) ZS_THROW_BAD_STATE_IF(!(x))
+#else
+#define ASSERT(x)
+#endif //_DEBUG
 
 namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib) }
 
@@ -347,7 +351,9 @@ namespace ortc
     {
       ZS_LOG_DETAIL(debug("created"))
 
-      mDefaultSubscription = mSubscriptions.subscribe(IDTLSTransportDelegateProxy::create(IORTCForInternal::queueDelegate(), originalDelegate), queue);
+      if (originalDelegate) {
+        mDefaultSubscription = mSubscriptions.subscribe(originalDelegate, IORTCForInternal::queueDelegate());
+      }
     }
 
     //-------------------------------------------------------------------------
@@ -649,6 +655,7 @@ namespace ortc
 
     //-------------------------------------------------------------------------
     bool DTLSTransport::sendPacket(
+                                   IICETypes::Components packetType,
                                    const BYTE *buffer,
                                    size_t bufferLengthInBytes
                                    )
@@ -1138,9 +1145,6 @@ namespace ortc
         cancel();
         return;
       }
-
-#define TODO_GET_INTO_VALIDATED_STATE 1
-#define TODO_GET_INTO_VALIDATED_STATE 2
 
       // ... other steps here ...
       if (!stepStartSSL()) goto not_ready;

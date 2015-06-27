@@ -248,6 +248,7 @@ namespace ortc
       // (duplicate) virtual PUID getID() const;
 
       virtual bool sendPacket(
+                              IICETypes::Components packetType,
                               const BYTE *buffer,
                               size_t bufferLengthInBytes
                               ) override;
