@@ -215,7 +215,7 @@ namespace ortc
 
       StreamResult result = transport->bioRead(out, outl, &read, &error);
       if (result == DTLSTransport::SR_SUCCESS) {
-        return static_cast<int>(read);
+        return SafeInt<decltype(read)>(read);
       } else if (result == DTLSTransport::SR_EOS) {
         b->num = 1;
       } else if (result == DTLSTransport::SR_BLOCK) {
@@ -241,7 +241,7 @@ namespace ortc
       int error;
       StreamResult result = transport->bioWrite(in, inl, &written, &error);
       if (result == DTLSTransport::SR_SUCCESS) {
-        return static_cast<int>(written);
+        return SafeInt<decltype(written)>(written);
       } else if (result == DTLSTransport::SR_BLOCK) {
         BIO_set_retry_write(b);
       }
@@ -250,7 +250,7 @@ namespace ortc
 
     //-------------------------------------------------------------------------
     static int stream_puts(BIO* b, const char* str) {
-      return stream_write(b, str, static_cast<int>(strlen(str)));
+      return stream_write(b, str, SafeInt<size_t>(strlen(str)));
     }
 
     //-------------------------------------------------------------------------
@@ -1671,7 +1671,7 @@ namespace ortc
 
       ssl_write_needs_read_ = false;
 
-      int code = SSL_write(ssl_, data, static_cast<int>(data_len));
+      int code = SSL_write(ssl_, data, SafeInt<decltype(data_len)>(data_len));
       int ssl_error = SSL_get_error(ssl_, code);
       switch (ssl_error) {
         case SSL_ERROR_NONE:
@@ -1742,7 +1742,7 @@ namespace ortc
 
       ssl_read_needs_write_ = false;
 
-      int code = SSL_read(ssl_, data, static_cast<int>(data_len));
+      int code = SSL_read(ssl_, data, SafeInt<decltype(data_len)>(data_len));
       int ssl_error = SSL_get_error(ssl_, code);
       switch (ssl_error) {
         case SSL_ERROR_NONE:
