@@ -105,6 +105,7 @@ namespace ortc
                                         ) = 0;
 
       virtual bool sendPacket(
+                              IICETypes::Components sendOverICETransport,
                               IICETypes::Components component,
                               const BYTE *buffer,
                               size_t bufferLengthInBytes
@@ -223,6 +224,7 @@ namespace ortc
                                         ) override;
 
       virtual bool sendPacket(
+                              IICETypes::Components sendOverICETransport,
                               IICETypes::Components component,
                               const BYTE *buffer,
                               size_t bufferLengthInBytes
@@ -287,13 +289,12 @@ namespace ortc
         size_t mLifetime {};
         size_t mTotalPackets[IICETypes::Component_Last+1] {};
 
+        SecureByteBlockPtr mKeySalt;  // key and salt
+
 #define TODO_NEED_MORE_STUFF_HERE 1
 #define TODO_NEED_MORE_STUFF_HERE 2
 
-        // E.g. (converted into proper useable format by crypto routines):
-        // crypto suite
-        // master key value
-        // salt value
+        // E.g. (converted into proper useable format by crypto routines)
 
         ElementPtr toDebug() const;
         String hash() const;

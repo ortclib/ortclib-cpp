@@ -92,13 +92,49 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
+    #pragma mark ISecureTransportForSRTP
+    #pragma mark
+    
+    //-------------------------------------------------------------------------
+    ElementPtr ISecureTransportForSRTP::toDebug(ForSRTPPtr transport)
+    {
+      if (!transport) return ElementPtr();
+
+      {
+        auto pThis = DTLSTransport::convert(transport);
+        if (pThis) return DTLSTransport::toDebug(pThis);
+      }
+
+      {
+        auto pThis = SRTPSDESTransport::convert(transport);
+        if (pThis) return SRTPSDESTransport::toDebug(pThis);
+      }
+      return ElementPtr();
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
     #pragma mark ISecureTransportForICETransport
     #pragma mark
     
     //-------------------------------------------------------------------------
     ElementPtr ISecureTransportForICETransport::toDebug(ForICETransportPtr transport)
     {
-      return DTLSTransport::toDebug(DTLSTransport::convert(transport));
+      if (!transport) return ElementPtr();
+
+      {
+        auto pThis = DTLSTransport::convert(transport);
+        if (pThis) return DTLSTransport::toDebug(pThis);
+      }
+
+      {
+        auto pThis = SRTPSDESTransport::convert(transport);
+        if (pThis) return SRTPSDESTransport::toDebug(pThis);
+      }
+      return ElementPtr();
     }
  
 

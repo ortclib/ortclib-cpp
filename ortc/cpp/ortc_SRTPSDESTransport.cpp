@@ -31,6 +31,7 @@
 
 #include <ortc/internal/ortc_SRTPSDESTransport.h>
 #include <ortc/internal/ortc_ICETransport.h>
+#include <ortc/internal/ortc_SRTPTransport.h>
 #include <ortc/internal/ortc_ORTC.h>
 #include <ortc/internal/platform.h>
 
@@ -91,22 +92,27 @@ namespace ortc
                                          const make_private &,
                                          IMessageQueuePtr queue,
                                          ISRTPSDESTransportDelegatePtr originalDelegate,
-                                         IICETransportPtr iceTransport,
-                                         const CryptoParameters &encryptParameters,
-                                         const CryptoParameters &decryptParameters
+                                         IICETransportPtr iceTransport
                                          ) :
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
-      mICETransport(ICETransport::convert(iceTransport))
+      mICETransportRTP(ICETransport::convert(iceTransport))
     {
       ZS_LOG_DETAIL(debug("created"))
 
-      mDefaultSubscription = mSubscriptions.subscribe(ISRTPSDESTransportDelegateProxy::create(IORTCForInternal::queueDelegate(), originalDelegate), queue);
+      if (originalDelegate) {
+        mDefaultSubscription = mSubscriptions.subscribe(originalDelegate, IORTCForInternal::queueDelegate());
+      }
     }
 
     //-------------------------------------------------------------------------
-    void SRTPSDESTransport::init()
+    void SRTPSDESTransport::init(
+                                 const CryptoParameters &encryptParameters,
+                                 const CryptoParameters &decryptParameters
+                                 )
     {
+      AutoRecursiveLock lock(*this);
+      mSRTPTransport = UseSRTPTransport::create(mThisWeak.lock(), mThisWeak.lock(), encryptParameters, decryptParameters);
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
     }
 
@@ -161,9 +167,9 @@ namespace ortc
                                                    const CryptoParameters &decryptParameters
                                                    )
     {
-      SRTPSDESTransportPtr pThis(make_shared<SRTPSDESTransport>(make_private{}, IORTCForInternal::queueORTC(), delegate, iceTransport, encryptParameters, decryptParameters));
+      SRTPSDESTransportPtr pThis(make_shared<SRTPSDESTransport>(make_private{}, IORTCForInternal::queueORTC(), delegate, iceTransport));
       pThis->mThisWeak.lock();
-      pThis->init();
+      pThis->init(encryptParameters, decryptParameters);
       return pThis;
     }
 
@@ -201,7 +207,14 @@ namespace ortc
     IICETransportPtr SRTPSDESTransport::transport() const
     {
       AutoRecursiveLock lock(*this);
-      return ICETransport::convert(mICETransport);
+      return ICETransport::convert(mICETransportRTP);
+    }
+
+    //-------------------------------------------------------------------------
+    IICETransportPtr SRTPSDESTransport::rtcpTransport() const
+    {
+      AutoRecursiveLock lock(*this);
+      return ICETransport::convert(fixRTCPTransport());
     }
 
     //-------------------------------------------------------------------------
@@ -230,31 +243,15 @@ namespace ortc
 
     //-------------------------------------------------------------------------
     bool SRTPSDESTransport::sendPacket(
+                                       IICETypes::Components sendOverICETransport,
                                        IICETypes::Components packetType,
                                        const BYTE *buffer,
                                        size_t bufferLengthInBytes
                                        )
     {
-      ZS_LOG_TRACE(log("sending packet") + ZS_PARAM("length", bufferLengthInBytes))
+      ZS_LOG_TRACE(log("sending packet") + ZS_PARAM("send over transport", IICETypes::toString(sendOverICETransport)) + ZS_PARAM("packet type", IICETypes::toString(packetType)) + ZS_PARAM("length", bufferLengthInBytes))
 
-      UseICETransportPtr transport;
-      SecureByteBlockPtr packet;
-
-      {
-        AutoRecursiveLock lock(*this);
-        if (!mICETransport) {
-          ZS_LOG_WARNING(Debug, log("no ice transport is attached"))
-          return false;
-        }
-        transport = mICETransport;
-
-#define TODO_ENCRYPT_PACKET 1
-#define TODO_ENCRYPT_PACKET 2
-        packet = UseServicesHelper::convertToBuffer(buffer, bufferLengthInBytes);
-      }
-
-      // WARNING: Best to not send packet to ice transport inside an object lock
-      return transport->sendPacket(*packet, packet->SizeInBytes());
+      return mSRTPTransport->sendPacket(sendOverICETransport, packetType, buffer, bufferLengthInBytes);
     }
 
     //-------------------------------------------------------------------------
@@ -272,16 +269,14 @@ namespace ortc
                                                  size_t bufferLengthInBytes
                                                  )
     {
-      ZS_LOG_TRACE(log("handle receive packet") + ZS_PARAM("length", bufferLengthInBytes))
+      ZS_LOG_TRACE(log("handle receive packet") + ZS_PARAM("via component", IICETypes::toString(viaComponent)) + ZS_PARAM("length", bufferLengthInBytes))
 
-      // scope: pre-validation check
-      {
-        AutoRecursiveLock lock(*this);
-#define TODO_DETERMINE_IF_DTLS_PACKET_VS_SRTP_PACKET_AND_HANDLE 1
-#define TODO_DETERMINE_IF_DTLS_PACKET_VS_SRTP_PACKET_AND_HANDLE 2
+      if (isShutdown()) {
+        ZS_LOG_WARNING(Debug, log("cannot receive packet on shutdown transport") + ZS_PARAM("via component", IICETypes::toString(viaComponent)) + ZS_PARAM("length", bufferLengthInBytes))
+        return;
       }
 
-      // WARNING: Forward packet to data channel or RTP listener outside of object lock
+      mSRTPTransport->handleReceivedPacket(buffer, bufferLengthInBytes);
     }
 
     //-------------------------------------------------------------------------
@@ -290,7 +285,12 @@ namespace ortc
                                                      STUNPacketPtr packet
                                                      )
     {
-      ZS_LOG_TRACE(log("handle receive stun packet") + packet->toDebug())
+      ZS_LOG_TRACE(log("handle receive stun packet") + ZS_PARAM("via component", IICETypes::toString(viaComponent))  + packet->toDebug())
+
+      if (isShutdown()) {
+        ZS_LOG_WARNING(Debug, log("cannot receive STUN packet on shutdown transport"))
+        return;
+      }
 
       // scope: pre-validation check
       {
@@ -300,6 +300,54 @@ namespace ortc
       }
 
       // WARNING: Forward packet to data channel or RTP listener outside of object lock
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark SRTPSDESTransport => ISRTPSDESTransportForICETransport
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    bool SRTPSDESTransport::sendEncryptedPacket(
+                                                IICETypes::Components sendOverICETransport,
+                                                IICETypes::Components packetType,
+                                                const BYTE *buffer,
+                                                size_t bufferLengthInBytes
+                                                )
+    {
+      if (isShutdown()) {
+        ZS_LOG_WARNING(Debug, log("cannot send packet on shutdown transport"))
+        return false;
+      }
+
+      UseICETransportPtr transport = (IICETypes::Component_RTP == sendOverICETransport ? mICETransportRTP : fixRTCPTransport());
+      if (!transport) {
+        ZS_LOG_WARNING(Debug, log("no ice transport is attached") + ZS_PARAM("send over transport", IICETypes::toString(sendOverICETransport)) + ZS_PARAM("packet type", IICETypes::toString(packetType)))
+        return false;
+      }
+
+      return transport->sendPacket(buffer, bufferLengthInBytes);
+    }
+
+    //-------------------------------------------------------------------------
+    bool SRTPSDESTransport::handleReceivedDecryptedPacket(
+                                                          IICETypes::Components packetType,
+                                                          const BYTE *buffer,
+                                                          size_t bufferLengthInBytes
+                                                          )
+    {
+      if (isShutdown()) {
+        ZS_LOG_WARNING(Debug, log("cannot receive packet on shutdown transport"))
+        return false;
+      }
+
+#define FORWARD_PACKET_TO_RTP_LISTENER 1
+#define FORWARD_PACKET_TO_RTP_LISTENER 1
+
+      return false;
     }
 
     //-------------------------------------------------------------------------
@@ -329,9 +377,9 @@ namespace ortc
 
     //-------------------------------------------------------------------------
     void SRTPSDESTransport::onICETransportStateChanged(
-                                                   IICETransportPtr transport,
-                                                   IICETransport::States state
-                                                   )
+                                                       IICETransportPtr transport,
+                                                       IICETransport::States state
+                                                       )
     {
 #define TODO_IMPLEMENT 1
 #define TODO_IMPLEMENT 2
@@ -339,9 +387,9 @@ namespace ortc
 
     //-------------------------------------------------------------------------
     void SRTPSDESTransport::onICETransportCandidatePairAvailable(
-                                                             IICETransportPtr transport,
-                                                             CandidatePairPtr candidatePair
-                                                             )
+                                                                 IICETransportPtr transport,
+                                                                 CandidatePairPtr candidatePair
+                                                                 )
     {
 #define TODO_IMPLEMENT 1
 #define TODO_IMPLEMENT 2
@@ -349,9 +397,9 @@ namespace ortc
 
     //-------------------------------------------------------------------------
     void SRTPSDESTransport::onICETransportCandidatePairGone(
-                                                        IICETransportPtr transport,
-                                                        CandidatePairPtr candidatePair
-                                                        )
+                                                            IICETransportPtr transport,
+                                                            CandidatePairPtr candidatePair
+                                                            )
     {
 #define TODO_IMPLEMENT 1
 #define TODO_IMPLEMENT 2
@@ -359,12 +407,32 @@ namespace ortc
 
     //-------------------------------------------------------------------------
     void SRTPSDESTransport::onICETransportCandidatePairChanged(
-                                                           IICETransportPtr transport,
-                                                           CandidatePairPtr candidatePair
-                                                           )
+                                                               IICETransportPtr transport,
+                                                               CandidatePairPtr candidatePair
+                                                               )
     {
 #define TODO_IMPLEMENT 1
 #define TODO_IMPLEMENT 2
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark SRTPSDESTransport => ISRTPTransportDelegate
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    void SRTPSDESTransport::onSRTPTransportLifetimeRemaining(
+                                                             ISRTPTransportPtr transport,
+                                                             ULONG lifetimeRemaingPercentage
+                                                             )
+    {
+      ZS_LOG_TRACE(log("lifetime remaining") + ZS_PARAM("percent", lifetimeRemaingPercentage))
+
+      AutoRecursiveLock lock(*this);
+      mSubscriptions.delegate()->onSRTPSDESTransportLifetimeRemaining(mThisWeak.lock(), lifetimeRemaingPercentage);
     }
 
     //-------------------------------------------------------------------------
@@ -392,6 +460,8 @@ namespace ortc
     //-------------------------------------------------------------------------
     ElementPtr SRTPSDESTransport::toDebug() const
     {
+      AutoRecursiveLock lock(*this);
+
       ElementPtr resultEl = Element::create("ortc::SRTPSDESTransport");
 
       UseServicesHelper::debugAppend(resultEl, "id", mID);
@@ -404,7 +474,8 @@ namespace ortc
       UseServicesHelper::debugAppend(resultEl, "error", mLastError);
       UseServicesHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
 
-      UseServicesHelper::debugAppend(resultEl, "ice transport", mICETransport ? mICETransport->getID() : 0);
+      UseServicesHelper::debugAppend(resultEl, "ice rtp transport", mICETransportRTP ? mICETransportRTP->getID() : 0);
+      UseServicesHelper::debugAppend(resultEl, "ice rtcp transport", mICETransportRTCP ? mICETransportRTCP->getID() : 0);
 
       return resultEl;
     }
@@ -418,11 +489,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool SRTPSDESTransport::isShutdown() const
     {
-      if (mGracefulShutdownReference) return false;
-//      return State_Closed == mCurrentState;
-#define TODO 1
-#define TODO 2
-      return true;
+      return mShutdown;
     }
 
     //-------------------------------------------------------------------------
@@ -444,6 +511,8 @@ namespace ortc
     //-------------------------------------------------------------------------
     void SRTPSDESTransport::cancel()
     {
+      if (mShutdown) return;
+
       //.......................................................................
       // try to gracefully shutdown
 
@@ -462,6 +531,7 @@ namespace ortc
 
       // make sure to cleanup any final reference to self
       mGracefulShutdownReference.reset();
+      mShutdown = true;
     }
 
     //-------------------------------------------------------------------------
@@ -481,6 +551,16 @@ namespace ortc
       mLastErrorReason = reason;
 
       ZS_LOG_WARNING(Detail, debug("error set") + ZS_PARAM("error", mLastError) + ZS_PARAM("reason", mLastErrorReason))
+    }
+
+    //-------------------------------------------------------------------------
+    SRTPSDESTransport::UseICETransportPtr SRTPSDESTransport::fixRTCPTransport() const
+    {
+      AutoRecursiveLock lock(*this);
+      if (!mICETransportRTCP) {
+        mICETransportRTCP = mICETransportRTP->getRTCPTransport();
+      }
+      return mICETransportRTCP;
     }
 
     //-------------------------------------------------------------------------

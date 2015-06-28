@@ -1087,6 +1087,12 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    ICETransportPtr ICETransport::getRTCPTransport() const
+    {
+      return mRTCPTransport.lock();
+    }
+
+    //-------------------------------------------------------------------------
     bool ICETransport::sendPacket(
                                   const BYTE *buffer,
                                   size_t bufferSizeInBytes

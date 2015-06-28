@@ -36,6 +36,7 @@
 #include <ortc/IDTLSTransport.h>
 #include <ortc/IICETransport.h>
 #include <ortc/internal/ortc_ISecureTransport.h>
+#include <ortc/internal/ortc_ISRTPTransport.h>
 
 #include <openpeer/services/IWakeDelegate.h>
 #include <zsLib/MessageQueueAssociator.h>
@@ -54,6 +55,7 @@ namespace ortc
   {
     ZS_DECLARE_INTERACTION_PTR(IICETransportForSecureTransport)
     ZS_DECLARE_INTERACTION_PTR(ICertificateForDTLSTransport)
+    ZS_DECLARE_INTERACTION_PTR(ISRTPTransportForSecureTransport)
 
     ZS_DECLARE_INTERACTION_PTR(IDTLSTransportForSettings)
     ZS_DECLARE_INTERACTION_PTR(IDTLSTransportForDataTransport)
@@ -133,11 +135,13 @@ namespace ortc
                           public IDTLSTransportForDataTransport,
                           public ISecureTransportForRTPSender,
                           public ISecureTransportForICETransport,
+                          public ISecureTransportForSRTP,
                           public IDTLSTransportForSettings,
                           public IWakeDelegate,
                           public zsLib::ITimerDelegate,
                           public IDTLSTransportAsyncDelegate,
-                          public IICETransportDelegate
+                          public IICETransportDelegate,
+                          public ISRTPTransportDelegate
     {
     protected:
       struct make_private {};
@@ -148,10 +152,12 @@ namespace ortc
       friend interaction IDTLSTransportForDataTransport;
       friend interaction ISecureTransportForRTPSender;
       friend interaction ISecureTransportForICETransport;
+      friend interaction ISecureTransportForSRTP;
       friend interaction IDTLSTransportForSettings;
 
       ZS_DECLARE_TYPEDEF_PTR(IICETransportForSecureTransport, UseICETransport)
       ZS_DECLARE_TYPEDEF_PTR(ICertificateForDTLSTransport, UseCertificate)
+      ZS_DECLARE_TYPEDEF_PTR(ISRTPTransportForSecureTransport, UseSRTPTransport)
 
       ZS_DECLARE_CLASS_PTR(Adapter)
 
@@ -185,6 +191,7 @@ namespace ortc
       static DTLSTransportPtr convert(ForDataTransportPtr object);
       static DTLSTransportPtr convert(ForRTPSenderPtr object);
       static DTLSTransportPtr convert(ForICETransportPtr object);
+      static DTLSTransportPtr convert(ForSRTPPtr object);
 
     protected:
       //-----------------------------------------------------------------------
@@ -248,6 +255,7 @@ namespace ortc
       // (duplicate) virtual PUID getID() const;
 
       virtual bool sendPacket(
+                              IICETypes::Components sendOverICETransport,
                               IICETypes::Components packetType,
                               const BYTE *buffer,
                               size_t bufferLengthInBytes
@@ -271,6 +279,28 @@ namespace ortc
                                             IICETypes::Components viaComponent,
                                             STUNPacketPtr packet
                                             ) override;
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark DTLSTransport => ISecureTransportForSRTP
+      #pragma mark
+
+      // (duplicate) static ElementPtr toDebug(ForSRTPPtr transport);
+
+      // (duplicate) virtual PUID getID() const = 0;
+
+      virtual bool sendEncryptedPacket(
+                                       IICETypes::Components sendOverICETransport,
+                                       IICETypes::Components packetType,
+                                       const BYTE *buffer,
+                                       size_t bufferLengthInBytes
+                                       ) override;
+
+      virtual bool handleReceivedDecryptedPacket(
+                                                 IICETypes::Components packetType,
+                                                 const BYTE *buffer,
+                                                 size_t bufferLengthInBytes
+                                                 ) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -315,6 +345,17 @@ namespace ortc
                                                       IICETransportPtr transport,
                                                       CandidatePairPtr candidatePair
                                                       ) override;
+
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark DTLSTransport => ISRTPTransportDelegate
+      #pragma mark
+
+      virtual void onSRTPTransportLifetimeRemaining(
+                                                    ISRTPTransportPtr transport,
+                                                    ULONG lifetimeRemaingPercentage
+                                                    ) override;
 
     public:
       //-----------------------------------------------------------------------
@@ -378,6 +419,8 @@ namespace ortc
 
       void wakeUpIfNeeded();
 
+      void setupSRTP();
+
     public:
       //-----------------------------------------------------------------------
       #pragma mark
@@ -408,6 +451,7 @@ namespace ortc
         void setIdentity(UseCertificatePtr identity);
 
         // Default argument is for compatibility
+        SSLRole role() const {return role_;}
         void setServerRole(SSLRole role = SSL_SERVER);
 
         bool getPeerCertificate(X509 **cert) const;
@@ -609,7 +653,7 @@ namespace ortc
       Parameters mLocalParams;
       Parameters mRemoteParams;
 
-      AdapterPtr mAdaptor;
+      AdapterPtr mAdapter;
 
       size_t mMaxPendingDTLSBuffer {};
       size_t mMaxPendingRTPPackets {};
@@ -622,6 +666,8 @@ namespace ortc
       bool mFixedRole {false};
 
       Adapter::Validation mValidation {Adapter::VALIDATION_NA};
+
+      UseSRTPTransportPtr mSRTPTransport;
     };
 
     //-------------------------------------------------------------------------

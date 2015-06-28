@@ -56,6 +56,7 @@ namespace ortc
       virtual PUID getID() const = 0;
 
       virtual bool sendPacket(
+                              IICETypes::Components sendOverICETransport,
                               IICETypes::Components packetType,
                               const BYTE *buffer,
                               size_t bufferLengthInBytes
@@ -78,17 +79,18 @@ namespace ortc
 
       virtual PUID getID() const = 0;
 
-      virtual bool sendPacket(
-                              IICETypes::Components packetType,
-                              const BYTE *buffer,
-                              size_t bufferLengthInBytes
-                              ) = 0;
+      virtual bool sendEncryptedPacket(
+                                       IICETypes::Components sendOverICETransport,
+                                       IICETypes::Components packetType,
+                                       const BYTE *buffer,
+                                       size_t bufferLengthInBytes
+                                       ) = 0;
 
-      virtual bool handleReceivedPacket(
-                                        IICETypes::Components packetType,
-                                        const BYTE *buffer,
-                                        size_t bufferLengthInBytes
-                                        ) = 0;
+      virtual bool handleReceivedDecryptedPacket(
+                                                 IICETypes::Components packetType,
+                                                 const BYTE *buffer,
+                                                 size_t bufferLengthInBytes
+                                                 ) = 0;
     };
 
     //-------------------------------------------------------------------------

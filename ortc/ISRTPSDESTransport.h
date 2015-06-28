@@ -130,6 +130,7 @@ namespace ortc
     virtual ISRTPSDESTransportSubscriptionPtr subscribe(ISRTPSDESTransportDelegatePtr delegate) = 0;
 
     virtual IICETransportPtr transport() const = 0;
+    virtual IICETransportPtr rtcpTransport() const = 0;
 
     static ParametersPtr getLocalParameters();
 
@@ -147,6 +148,11 @@ namespace ortc
   interaction ISRTPSDESTransportDelegate
   {
     typedef WORD ErrorCode;
+
+    virtual void onSRTPSDESTransportLifetimeRemaining(
+                                                      ISRTPSDESTransportPtr transport,
+                                                      ULONG lifetimeRemaingPercentage
+                                                      ) = 0;
 
     virtual void onSRTPSDESTransportError(
                                           ISRTPSDESTransportPtr transport,
@@ -176,11 +182,13 @@ namespace ortc
 ZS_DECLARE_PROXY_BEGIN(ortc::ISRTPSDESTransportDelegate)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::ISRTPSDESTransportPtr, ISRTPSDESTransportPtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::ISRTPSDESTransportDelegate::ErrorCode, ErrorCode)
+ZS_DECLARE_PROXY_METHOD_2(onSRTPSDESTransportLifetimeRemaining, ISRTPSDESTransportPtr, ULONG)
 ZS_DECLARE_PROXY_METHOD_3(onSRTPSDESTransportError, ISRTPSDESTransportPtr, ErrorCode, String)
 ZS_DECLARE_PROXY_END()
 
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_BEGIN(ortc::ISRTPSDESTransportDelegate, ortc::ISRTPSDESTransportSubscription)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::ISRTPSDESTransportPtr, ISRTPSDESTransportPtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::ISRTPSDESTransportDelegate::ErrorCode, ErrorCode)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onSRTPSDESTransportLifetimeRemaining, ISRTPSDESTransportPtr, ULONG)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_3(onSRTPSDESTransportError, ISRTPSDESTransportPtr, ErrorCode, String)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_END()

@@ -37,6 +37,7 @@
 #include <ortc/IICETransport.h>
 
 #include <ortc/internal/ortc_ISecureTransport.h>
+#include <ortc/internal/ortc_ISRTPTransport.h>
 
 #include <openpeer/services/IWakeDelegate.h>
 #include <zsLib/MessageQueueAssociator.h>
@@ -46,6 +47,7 @@ namespace ortc
   namespace internal
   {
     ZS_DECLARE_INTERACTION_PTR(IICETransportForSecureTransport)
+    ZS_DECLARE_INTERACTION_PTR(ISRTPTransportForSecureTransport)
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -56,13 +58,15 @@ namespace ortc
     #pragma mark
     
     class SRTPSDESTransport : public Noop,
-                          public MessageQueueAssociator,
-                          public SharedRecursiveLock,
-                          public ISRTPSDESTransport,
-                          public ISecureTransportForRTPSender,
-                          public ISecureTransportForICETransport,
-                          public IWakeDelegate,
-                          public IICETransportDelegate
+                              public MessageQueueAssociator,
+                              public SharedRecursiveLock,
+                              public ISRTPSDESTransport,
+                              public ISecureTransportForRTPSender,
+                              public ISecureTransportForICETransport,
+                              public ISecureTransportForSRTP,
+                              public IWakeDelegate,
+                              public IICETransportDelegate,
+                              public ISRTPTransportDelegate
     {
     protected:
       struct make_private {};
@@ -72,8 +76,10 @@ namespace ortc
       friend interaction ISRTPSDESTransportFactory;
       friend interaction ISecureTransportForRTPSender;
       friend interaction ISecureTransportForICETransport;
+      friend interaction ISecureTransportForSRTP;
 
       ZS_DECLARE_TYPEDEF_PTR(IICETransportForSecureTransport, UseICETransport)
+      ZS_DECLARE_TYPEDEF_PTR(ISRTPTransportForSecureTransport, UseSRTPTransport)
 
       enum State
       {
@@ -84,9 +90,7 @@ namespace ortc
                         const make_private &,
                         IMessageQueuePtr queue,
                         ISRTPSDESTransportDelegatePtr delegate,
-                        IICETransportPtr iceTransport,
-                        const CryptoParameters &encryptParameters,
-                        const CryptoParameters &decryptParameters
+                        IICETransportPtr iceTransport
                         );
 
     protected:
@@ -96,7 +100,10 @@ namespace ortc
         SharedRecursiveLock(SharedRecursiveLock::create())
       {}
 
-      void init();
+      void init(
+                const CryptoParameters &encryptParameters,
+                const CryptoParameters &decryptParameters
+                );
 
     public:
       virtual ~SRTPSDESTransport();
@@ -104,6 +111,7 @@ namespace ortc
       static SRTPSDESTransportPtr convert(ISRTPSDESTransportPtr object);
       static SRTPSDESTransportPtr convert(ForRTPSenderPtr object);
       static SRTPSDESTransportPtr convert(ForICETransportPtr object);
+      static SRTPSDESTransportPtr convert(ForSRTPPtr object);
 
     protected:
       //-----------------------------------------------------------------------
@@ -132,6 +140,7 @@ namespace ortc
       virtual ISRTPSDESTransportSubscriptionPtr subscribe(ISRTPSDESTransportDelegatePtr delegate) override;
 
       virtual IICETransportPtr transport() const override;
+      virtual IICETransportPtr rtcpTransport() const override;
 
       static ParametersPtr getLocalParameters();
 
@@ -139,12 +148,13 @@ namespace ortc
 
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark SRTPSDESTransport => ISRTPSDESTransportForRTPSender
+      #pragma mark SRTPSDESTransport => ISecureTransportForRTPSender
       #pragma mark
 
       // (duplicate) virtual PUID getID() const;
 
       virtual bool sendPacket(
+                              IICETypes::Components sendOverICETransport,
                               IICETypes::Components packetType,
                               const BYTE *buffer,
                               size_t bufferLengthInBytes
@@ -166,6 +176,26 @@ namespace ortc
                                             IICETypes::Components viaComponent,
                                             STUNPacketPtr packet
                                             ) override;
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark SRTPSDESTransport => ISecureTransportForSRTP
+      #pragma mark
+
+      // (duplicate) virtual PUID getID() const = 0;
+
+      virtual bool sendEncryptedPacket(
+                                       IICETypes::Components sendOverICETransport,
+                                       IICETypes::Components packetType,
+                                       const BYTE *buffer,
+                                       size_t bufferLengthInBytes
+                                       ) override;
+
+      virtual bool handleReceivedDecryptedPacket(
+                                                 IICETypes::Components packetType,
+                                                 const BYTE *buffer,
+                                                 size_t bufferLengthInBytes
+                                                 ) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -197,6 +227,16 @@ namespace ortc
                                                       CandidatePairPtr candidatePair
                                                       ) override;
 
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark SRTPSDESTransport => ISRTPTransportDelegate
+      #pragma mark
+
+      virtual void onSRTPTransportLifetimeRemaining(
+                                                    ISRTPTransportPtr transport,
+                                                    ULONG lifetimeRemaingPercentage
+                                                    ) override;
+
     protected:
       //-----------------------------------------------------------------------
       #pragma mark
@@ -216,6 +256,8 @@ namespace ortc
 
       void setError(WORD error, const char *reason = NULL);
 
+      UseICETransportPtr fixRTCPTransport() const;
+
     protected:
       //-----------------------------------------------------------------------
       #pragma mark
@@ -226,13 +268,18 @@ namespace ortc
       SRTPSDESTransportWeakPtr mThisWeak;
       SRTPSDESTransportPtr mGracefulShutdownReference;
 
+      std::atomic<bool> mShutdown {false}; // no lock needed to access
+
       ISRTPSDESTransportDelegateSubscriptions mSubscriptions;
       ISRTPSDESTransportSubscriptionPtr mDefaultSubscription;
 
       WORD mLastError {};
       String mLastErrorReason;
 
-      UseICETransportPtr mICETransport;
+      UseICETransportPtr mICETransportRTP;
+      mutable UseICETransportPtr mICETransportRTCP;
+
+      UseSRTPTransportPtr mSRTPTransport;
     };
 
     //-------------------------------------------------------------------------

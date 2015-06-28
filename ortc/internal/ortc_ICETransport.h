@@ -180,6 +180,8 @@ namespace ortc
 
       virtual IICETypes::Roles getRole() const = 0;
 
+      virtual ICETransportPtr getRTCPTransport() const = 0;
+
       virtual bool sendPacket(
                               const BYTE *buffer,
                               size_t bufferSizeInBytes
@@ -422,6 +424,8 @@ namespace ortc
       // (duplicate) virtual IICETransport::States state() const override;
 
       virtual IICETypes::Roles getRole() const override;
+
+      virtual ICETransportPtr getRTCPTransport() const override;
 
       virtual bool sendPacket(
                               const BYTE *buffer,

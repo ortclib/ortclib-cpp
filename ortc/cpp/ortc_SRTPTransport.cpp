@@ -85,6 +85,10 @@ namespace ortc
     #pragma mark (helpers)
     #pragma mark
 
+#define SRTP_MASTER_KEY_LEN 30
+
+    const char CS_AES_CM_128_HMAC_SHA1_80[] = "AES_CM_128_HMAC_SHA1_80";
+    const char CS_AES_CM_128_HMAC_SHA1_32[] = "AES_CM_128_HMAC_SHA1_32";
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -184,6 +188,7 @@ namespace ortc
 
         for (auto iter = mParams[loop].mKeyParams.begin(); iter != mParams[loop].mKeyParams.end(); ++iter) {
           auto keyParam = (*iter);
+
           if (ORTC_SRTPTRANSPORT_ILLEGAL_MKI_LEGNTH != mkiLength) {
             ORTC_THROW_INVALID_PARAMETERS_IF(mkiLength != keyParam.mMKILength)  // must ALL be the same size
           } else {
@@ -196,6 +201,31 @@ namespace ortc
 
           keyingMaterial->mOriginalValues = keyParam;
           keyingMaterial->mLifetime = parseLifetime(keyParam.mLifetime);
+
+          if (keyParam.mKeyMethod.hasData()) {
+            if (0 != keyParam.mKeyMethod.compareNoCase("inline")) {
+              ZS_LOG_WARNING(Detail, log("do not understand non-inline key method"))
+              continue;
+            }
+          }
+
+          if (!((CS_AES_CM_128_HMAC_SHA1_80 == mParams[loop].mCryptoSuite) ||
+                (CS_AES_CM_128_HMAC_SHA1_32 == mParams[loop].mCryptoSuite))) {
+            ZS_LOG_WARNING(Detail, log("crypto suite is not understood") + mParams[loop].toDebug())
+            continue;
+          }
+
+          keyingMaterial->mKeySalt = UseServicesHelper::convertFromBase64(keyParam.mKeySalt);
+          if (!(keyingMaterial->mKeySalt)) {
+            ZS_LOG_WARNING(Detail, log("could not extract key salt") + keyParam.toDebug())
+            continue;
+          }
+
+          // NOTE: only supporting this SRTP keying size at this moment
+          if (SRTP_MASTER_KEY_LEN != keyingMaterial->mKeySalt->SizeInBytes()) {
+            ZS_LOG_WARNING(Detail, log("key is not expected length") + ZS_PARAM("found", keyingMaterial->toDebug()) + ZS_PARAM("expecting", SRTP_MASTER_KEY_LEN) + keyParam.toDebug())
+            continue;
+          }
 
 #define TODO_EXTRACT_AND_FILL_IN_OTHER_KEYING_MATERIAL_VALUES 1
 #define TODO_EXTRACT_AND_FILL_IN_OTHER_KEYING_MATERIAL_VALUES 2
@@ -426,11 +456,12 @@ namespace ortc
 
       ASSERT(((bool)encryptedBuffer))
 
-      return transport->handleReceivedPacket(component, encryptedBuffer->BytePtr(), encryptedBuffer->SizeInBytes());
+      return transport->handleReceivedDecryptedPacket(component, encryptedBuffer->BytePtr(), encryptedBuffer->SizeInBytes());
     }
 
     //-------------------------------------------------------------------------
     bool SRTPTransport::sendPacket(
+                                   IICETypes::Components sendOverICETransport,
                                    IICETypes::Components component,
                                    const BYTE *buffer,
                                    size_t bufferLengthInBytes
@@ -490,7 +521,7 @@ namespace ortc
       ASSERT(((bool)encryptedBuffer))
 
       // do NOT call this method from within a lock
-      return transport->sendPacket(component, encryptedBuffer->BytePtr(), encryptedBuffer->SizeInBytes());
+      return transport->sendEncryptedPacket(sendOverICETransport, component, encryptedBuffer->BytePtr(), encryptedBuffer->SizeInBytes());
     }
 
     //-------------------------------------------------------------------------
@@ -778,6 +809,8 @@ namespace ortc
         }
         UseServicesHelper::debugAppend(resultEl, message, mTotalPackets[IICETypes::Component_RTP]);
       }
+
+      UseServicesHelper::debugAppend(resultEl, "key salt", mKeySalt ? UseServicesHelper::convertToHex(*mKeySalt) : String());
 
 #define FILL_IN_WITH_MORE_STUFF_HERE 1
 #define FILL_IN_WITH_MORE_STUFF_HERE 2
