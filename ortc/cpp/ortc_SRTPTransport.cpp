@@ -240,13 +240,13 @@ namespace ortc
           keyingMaterial->mKeySalt = UseServicesHelper::convertFromBase64(keyParam.mKeySalt);
           if (!(keyingMaterial->mKeySalt)) {
             ZS_LOG_WARNING(Detail, log("could not extract key salt") + keyParam.toDebug())
-            continue;
+            ORTC_THROW_INVALID_PARAMETERS("could not extract key salt:" + keyParam.mKeySalt)
           }
 
           // NOTE: only supporting this SRTP keying size at this moment
           if (SRTP_MASTER_KEY_LEN != keyingMaterial->mKeySalt->SizeInBytes()) {
             ZS_LOG_WARNING(Detail, log("key is not expected length") + ZS_PARAM("found", keyingMaterial->toDebug()) + ZS_PARAM("expecting", SRTP_MASTER_KEY_LEN) + keyParam.toDebug())
-            continue;
+            ORTC_THROW_INVALID_PARAMETERS("key is not expected length:" + keyParam.mKeySalt)
           }
 
 #define TODO_EXTRACT_AND_FILL_IN_OTHER_KEYING_MATERIAL_VALUES 1
@@ -255,14 +255,9 @@ namespace ortc
           if (0 != mkiLength) {
             keyingMaterial->mMKIValue = convertIntegerToBigEndianEncodedBuffer(keyParam.mMKIValue, mkiLength);
             mMaterial[loop].mKeys[keyingMaterial->mMKIValue] = keyingMaterial;
-          } else {
-            ASSERT(!((bool)mMaterial[loop].mKey)) // not possible
-            mMaterial[loop].mKey = keyingMaterial;
           }
 
-          if (Direction_Encrypt == loop) {
-            mMaterial[loop].mKeyList.push_back(keyingMaterial); // when encrypting order matters so need all keys in a list
-          }
+          mMaterial[loop].mKeyList.push_back(keyingMaterial); // when encrypting order matters so need all keys in a list
 
           mMaterial[loop].mMaxTotalLifetime[IICETypes::Component_RTP] += keyingMaterial->mLifetime;
           mMaterial[loop].mMaxTotalLifetime[IICETypes::Component_RTCP] += keyingMaterial->mLifetime;
@@ -271,11 +266,10 @@ namespace ortc
         ORTC_THROW_INVALID_PARAMETERS_IF((mMaterial[loop].mKeys.size() > 0) && (0 == mkiLength))
         ORTC_THROW_INVALID_PARAMETERS_IF((mMaterial[loop].mKeys.size() < 1) && (0 != mkiLength))
 
-        ORTC_THROW_INVALID_PARAMETERS_IF((!((bool)mMaterial[loop].mKey)) && (0 == mkiLength))
-        ORTC_THROW_INVALID_PARAMETERS_IF(((bool)mMaterial[loop].mKey) && (0 != mkiLength))
-
         mMaterial[loop].mMKILength = mkiLength;
-        mMaterial[loop].mTempMKIHolder = SecureByteBlockPtr(make_shared<SecureByteBlock>(mkiLength));
+        if (mkiLength > 0) {
+          mMaterial[loop].mTempMKIHolder = SecureByteBlockPtr(make_shared<SecureByteBlock>(mkiLength));
+        }
       }
     }
 
@@ -391,7 +385,13 @@ namespace ortc
       SecureByteBlockPtr decryptedBuffer;
       IICETypes::Components component = IICETypes::Component_RTP;
 
-      KeyingMaterialPtr keyingMaterial; // WARNING: do NOT modify contents of what pointer is pointing to outside of a lock (shouldn't need to change contents anyway)
+      size_t popSize = 0;
+
+      KeyingMaterialPtr oldKey;     // WARNING: do NOT modify contents of what pointer is pointing to outside of a lock (shouldn't need to change contents anyway)
+      KeyingMaterialPtr currentKey; // WARNING: do NOT modify contents of what pointer is pointing to outside of a lock (shouldn't need to change contents anyway)
+      KeyingMaterialPtr nextKey;    // WARNING: do NOT modify contents of what pointer is pointing to outside of a lock (shouldn't need to change contents anyway)
+
+      KeyingMaterialPtr decryptedWithKey; // WARNING: do NOT modify contents of what pointer is pointing to outside of a lock (shouldn't need to change contents anyway)
 
       const BYTE *pPacketMKI {NULL};
 
@@ -407,6 +407,8 @@ namespace ortc
       {
         AutoRecursiveLock lock(*this);
 
+        DirectionMaterial &material = mMaterial[Direction_Decrypt];
+
         if (0 == mLastRemainingOverallPercentageReported) {
           ZS_LOG_WARNING(Detail, log("cannot decrypt packet as packet lifetime is exhausted (and continuing to decrypt would violate security principles)"))
           return false;
@@ -417,8 +419,6 @@ namespace ortc
           ZS_LOG_WARNING(Debug, log("nowhere to send packet as secure transport is gone"))
           return false;
         }
-
-        DirectionMaterial &material = mMaterial[Direction_Decrypt];
 
         if (0 != material.mMKILength) {
           if (NULL == pPacketMKI) {
@@ -440,15 +440,26 @@ namespace ortc
             return false;
           }
 
-          keyingMaterial = (*found).second;
+          currentKey = (*found).second;
         } else {
-          keyingMaterial = material.mKey;
+          if (material.mKeyList.size() < 1) {
+            ZS_LOG_WARNING(Debug, log("keying material is exhausted"))
+            return false;
+          }
+
+          oldKey = material.mOldKey;
+          currentKey = material.mKeyList.front();
+          if (material.mKeyList.size() > 1) {
+            nextKey = *(++(material.mKeyList.begin())); // only set if there is a next key
+          }
+
+          popSize = material.mKeyList.size();
         }
 
 
-        ASSERT(((bool)keyingMaterial))
+        ASSERT(((bool)currentKey))
 
-        if (!keyingMaterial) {
+        if (!currentKey) {
           ZS_LOG_ERROR(Debug, log("no keying material found to decrypt packet") + ZS_PARAM("buffer length in bytes", bufferLengthInBytes))
           return false;
         }
@@ -456,12 +467,12 @@ namespace ortc
 #define TODO_FIGURE_OUT_IF_THIS_IS_AN_RTP_PACKET_OR_RTCP_PACKET_AND_SET_component 1
 #define TODO_FIGURE_OUT_IF_THIS_IS_AN_RTP_PACKET_OR_RTCP_PACKET_AND_SET_component 2
 
-        if (keyingMaterial->mTotalPackets[component] + 1 > keyingMaterial->mLifetime) {
-          ZS_LOG_WARNING(Debug, log("cannot use keying material as it's lifetime is exhausted") + keyingMaterial->toDebug())
+        if (currentKey->mTotalPackets[component] + 1 > currentKey->mLifetime) {
+          ZS_LOG_WARNING(Debug, log("cannot use keying material as it's lifetime is exhausted") + currentKey->toDebug())
           return false;
         }
 
-        updateTotalPackets(Direction_Decrypt, component, keyingMaterial);
+        updateTotalPackets(Direction_Decrypt, component, currentKey);
       }
 
       ASSERT(((bool)transport))
@@ -471,6 +482,33 @@ namespace ortc
 
 #define WARNING_SHOULD_NOT_REACH_HERE_UNLESS_decryptedBuffer_IS_VALID 1
 #define WARNING_SHOULD_NOT_REACH_HERE_UNLESS_decryptedBuffer_IS_VALID 2
+
+#define ONCE_FIGURED_OUT_WHICH_KEY_TO_USE_SET_decryptedWithKey_TO_POINT_TO_THAT_KEY 1
+#define ONCE_FIGURED_OUT_WHICH_KEY_TO_USE_SET_udecryptedWithKey_TO_POINT_TO_THAT_KEY 2
+
+      ASSERT(((bool)decryptedWithKey));
+
+      // need to update the usage of the key (depending on which key was acutally used for decrypting)
+      {
+        AutoRecursiveLock lock(*this);
+
+        DirectionMaterial &material = mMaterial[Direction_Decrypt];
+
+        if (decryptedWithKey->mTotalPackets[component] + 1 > decryptedWithKey->mLifetime) {
+          ZS_LOG_WARNING(Debug, log("cannot use keying material as it's lifetime is exhausted") + decryptedWithKey->toDebug())
+          return false;
+        }
+
+        updateTotalPackets(Direction_Decrypt, component, decryptedWithKey);
+
+        if (decryptedWithKey == nextKey) {
+          // double check this key has not already been popped off by another thread
+          if (popSize == material.mKeyList.size()) {
+            material.mKeyList.pop_front();  // the current key is disposed
+            material.mOldKey = currentKey;  // remember the current key as the old key
+          }
+        }
+      }
 
       ASSERT(((bool)decryptedBuffer))
 

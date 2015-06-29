@@ -36,6 +36,7 @@
 #include <ortc/internal/ortc_ICETransport.h>
 #include <ortc/internal/ortc_DTLSTransport.h>
 #include <ortc/internal/ortc_SCTPTransport.h>
+#include <ortc/internal/ortc_SRTPSDESTransport.h>
 #include <ortc/internal/ortc_SRTPTransport.h>
 
 #include <openpeer/services/IHelper.h>
@@ -148,6 +149,7 @@ namespace ortc
       IDTLSTransportForSettings::applyDefaults();
       ISCTPTransportForSettings::applyDefaults();
       ISRTPTransportForSettings::applyDefaults();
+      ISRTPSDESTransportForSettings::applyDefaults();
 
       {
         AutoRecursiveLock lock(mLock);

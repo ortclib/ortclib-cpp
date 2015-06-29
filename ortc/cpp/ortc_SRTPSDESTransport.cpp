@@ -69,6 +69,20 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
+    #pragma mark SRTPSDESTransport => ISRTPSDESTransportForSettings
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    void ISRTPSDESTransportForSettings::applyDefaults()
+    {
+      // none at this time
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
     #pragma mark SRTPSDESTransport => IStatsProvider
     #pragma mark
 
@@ -113,6 +127,13 @@ namespace ortc
                                  )
     {
       AutoRecursiveLock lock(*this);
+
+      if (mICETransportRTP) {
+        mICETransportRTP->notifyAttached(mID, mThisWeak.lock());
+      }
+
+      fixRTCPTransport();
+
       mRTPListener = UseRTPListener::create(mThisWeak.lock());
       mSRTPTransport = UseSRTPTransport::create(mThisWeak.lock(), mThisWeak.lock(), encryptParameters, decryptParameters);
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
@@ -165,7 +186,7 @@ namespace ortc
     #pragma mark
     #pragma mark SRTPSDESTransport => ISRTPSDESTransport
     #pragma mark
-    
+
     //-------------------------------------------------------------------------
     ElementPtr SRTPSDESTransport::toDebug(SRTPSDESTransportPtr transport)
     {
@@ -277,7 +298,15 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void SRTPSDESTransport::handleReceivedPacket(
+    void SRTPSDESTransport::notifyAssociateTransportCreated(
+                                                            IICETypes::Components associatedComponent,
+                                                            ICETransportPtr assoicated
+                                                            )
+    {
+    }
+
+    //-------------------------------------------------------------------------
+    bool SRTPSDESTransport::handleReceivedPacket(
                                                  IICETypes::Components viaTransport,
                                                  const BYTE *buffer,
                                                  size_t bufferLengthInBytes
@@ -287,12 +316,12 @@ namespace ortc
 
       if (isShutdown()) {
         ZS_LOG_WARNING(Debug, log("cannot receive packet on shutdown transport") + ZS_PARAM("via component", IICETypes::toString(viaTransport)) + ZS_PARAM("length", bufferLengthInBytes))
-        return;
+        return false;
       }
 
       ZS_LOG_INSANE(log("forwarding packet to SRTP transport") + ZS_PARAM("srtp transport id", mSRTPTransport->getID()) + ZS_PARAM("via", IICETypes::toString(viaTransport)) + ZS_PARAM("buffer length", bufferLengthInBytes))
 
-      mSRTPTransport->handleReceivedPacket(viaTransport, buffer, bufferLengthInBytes);
+      return mSRTPTransport->handleReceivedPacket(viaTransport, buffer, bufferLengthInBytes);
     }
 
     //-------------------------------------------------------------------------
@@ -378,6 +407,46 @@ namespace ortc
     RTPListenerPtr SRTPSDESTransport::getListener() const
     {
       return RTPListener::convert(mRTPListener);
+    }
+
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark SRTPSDESTransport => ISRTPSDESTransportAsyncDelegate
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    void SRTPSDESTransport::onAttachRTCP()
+    {
+      UseICETransportPtr iceTransport;
+
+      {
+        AutoRecursiveLock lock(*this);
+
+        if (mAttachedRTCP) {
+          ZS_LOG_TRACE(log("already attached to ICE RTCP"))
+          return;
+        }
+
+        iceTransport = fixRTCPTransport();
+        if (!iceTransport) {
+          ZS_LOG_WARNING(Detail, log("no RTCP transport present on ICE transport"))
+          return;
+        }
+
+        if ((isShuttingDown()) ||
+            (isShutdown())) {
+          ZS_LOG_WARNING(Detail, log("cannot attach to ICE transport while shutting down / shutdown"))
+          return;
+        }
+
+        mAttachedRTCP = true;
+      }
+
+      iceTransport->notifyAttached(mID, mThisWeak.lock());
     }
 
 
@@ -507,6 +576,7 @@ namespace ortc
       UseServicesHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
 
       UseServicesHelper::debugAppend(resultEl, "ice rtp transport", mICETransportRTP ? mICETransportRTP->getID() : 0);
+      UseServicesHelper::debugAppend(resultEl, "ice attached rtcp", mAttachedRTCP);
       UseServicesHelper::debugAppend(resultEl, "ice rtcp transport", mICETransportRTCP ? mICETransportRTCP->getID() : 0);
 
       UseServicesHelper::debugAppend(resultEl, "srtp transport", mSRTPTransport ? mSRTPTransport->getID() : 0);
@@ -562,6 +632,14 @@ namespace ortc
       //.......................................................................
       // final cleanup
 
+      if (mICETransportRTP) {
+        mICETransportRTP->notifyDetached(mID);
+      }
+      if ((mICETransportRTCP) &&
+          (mAttachedRTCP)) {
+        mICETransportRTCP->notifyDetached(mID);
+      }
+
 #define TODO 1
 #define TODO 2
 
@@ -595,6 +673,10 @@ namespace ortc
       AutoRecursiveLock lock(*this);
       if (!mICETransportRTCP) {
         mICETransportRTCP = mICETransportRTP->getRTCPTransport();
+        if (mICETransportRTCP) {
+          // ensure SRTP is attached to RTCP transport
+          ISRTPSDESTransportAsyncDelegateProxy::create(mThisWeak.lock())->onAttachRTCP();
+        }
       }
       return mICETransportRTCP;
     }

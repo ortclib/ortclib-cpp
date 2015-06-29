@@ -313,10 +313,12 @@ namespace ortc
         size_t mMKILength {};
         MKIValuePtr mTempMKIHolder;
 
-        KeyList mKeyList;
+        KeyList mKeyList;         // keys in order they are specified
 
-        KeyMap mKeys;            // when MKI length > 0
-        KeyingMaterialPtr mKey;  // when MKI length == 0
+        KeyMap mKeys;             // when MKI length > 0, lookup map based on MKI
+
+        KeyingMaterialPtr mOldKey;
+        KeyingMaterialPtr mCurrentKey;
 
         size_t mTotalPackets[IICETypes::Component_Last+1] {};
         size_t mMaxTotalLifetime[IICETypes::Component_Last+1] {};

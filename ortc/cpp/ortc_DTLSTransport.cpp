@@ -758,7 +758,16 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void DTLSTransport::handleReceivedPacket(
+    void DTLSTransport::notifyAssociateTransportCreated(
+                                                        IICETypes::Components associatedComponent,
+                                                        ICETransportPtr assoicated
+                                                        )
+    {
+      // ignored since RTP vs RTCP are treated as independent transports
+    }
+
+    //-------------------------------------------------------------------------
+    bool DTLSTransport::handleReceivedPacket(
                                              IICETypes::Components viaTransport,
                                              const BYTE *buffer,
                                              size_t bufferLengthInBytes
@@ -769,19 +778,21 @@ namespace ortc
       SecureByteBlockPtr decryptedPacket;
       UseSRTPTransportPtr srtpTransport;
 
+      ASSERT(viaTransport == component());  // must be identical
+
       // scope: pre-validation check
       {
         AutoRecursiveLock lock(*this);
 
         if ((isShutdown())) {
           ZS_LOG_WARNING(Debug, log("received packet after already shutdown (thus discarding)") + ZS_PARAM("buffer length", bufferLengthInBytes))
-          return;
+          return false;
         }
 
         if (isShuttingDown()) {
           if (isRtpPacket(buffer, bufferLengthInBytes)) {
             ZS_LOG_WARNING(Debug, log("received RTP packet after shutting down (thus discarding)") + ZS_PARAM("buffer length", bufferLengthInBytes))
-            return;
+            return false;
           }
         }
 
@@ -795,13 +806,13 @@ namespace ortc
           while (tmp_size > 0) {
             if (tmp_size < kDtlsRecordHeaderLen) {
               ZS_LOG_WARNING(Trace, log("too short for the DTLS header") + ZS_PARAM("buffer length", bufferLengthInBytes) + ZS_PARAM("tmp size", tmp_size))
-              return;
+              return false;
             }
 
             size_t record_len = (tmp_data[11] << 8) | (tmp_data[12]);
             if ((record_len + kDtlsRecordHeaderLen) > tmp_size) {
               ZS_LOG_WARNING(Trace, log("DTLS body is too short") + ZS_PARAM("buffer length", bufferLengthInBytes) + ZS_PARAM("record len", record_len) + ZS_PARAM("tmp size", tmp_size))
-              return;
+              return false;
             }
 
             tmp_data += record_len + kDtlsRecordHeaderLen;
@@ -835,36 +846,38 @@ namespace ortc
             }
             case SR_BLOCK: {
               ZS_LOG_TRACE(log("dtls packet consumed"))
-              return;
+              return true;
             }
             case SR_EOS:  {
               ZS_LOG_DEBUG(log("end of stream reached (thus shutting down)"))
               cancel();
-              return;
+              return true;
             }
             case SR_ERROR: {
               ZS_LOG_ERROR(Debug, log("read error found (thus shutting down)") + ZS_PARAM("error code", error))
               cancel();
-              return;
+              return false;
             }
           }
 
-          return;
+          ASSERT(false);
+
+          return false;
         }
 
         if (!isRtpPacket(buffer, bufferLengthInBytes)) {
            ZS_LOG_WARNING(Debug, log("received non DTLS nor RTP packet (thus discarding)") + ZS_PARAM("buffer length", bufferLengthInBytes))
-          return;
+          return false;
         }
 
-        if (!isValidated()) {
+        if (mPutIncomingRTPIntoPendingQueue) {
           ZS_LOG_TRACE(log("transport not verified thus pushing RTP packet onto pending queue") + ZS_PARAM("buffer length", bufferLengthInBytes))
           mPendingIncomingRTP.push(SecureByteBlockPtr(make_shared<SecureByteBlock>(buffer, bufferLengthInBytes)));
           if (mPendingIncomingRTP.size() > mMaxPendingRTPPackets) {
             ZS_LOG_WARNING(Debug, log("too many pending rtp packets (thus popping first packet)"))
               mPendingIncomingRTP.pop();
           }
-          return;
+          return true;
         }
 
         srtpTransport = mSRTPTransport;
@@ -881,16 +894,18 @@ namespace ortc
 #define WARNING_HANDLE_SRTP_KEY_LIFETIME_EXHAUSTION 2
 
         ZS_LOG_INSANE(log("forwarding packet to SRTP transport") + ZS_PARAM("srtp transport id", srtpTransport->getID()) + ZS_PARAM("via", IICETypes::toString(viaTransport)) + ZS_PARAM("buffer length", bufferLengthInBytes))
-        srtpTransport->handleReceivedPacket(viaTransport, buffer, bufferLengthInBytes);
-        return;
+        return srtpTransport->handleReceivedPacket(viaTransport, buffer, bufferLengthInBytes);
       }
 
     handle_data_packet:
       {
 #define TODO_FORWARD_TO_DATACHANNEL 1
 #define TODO_FORWARD_TO_DATACHANNEL 2
-        return;
+        return true;
       }
+
+      ASSERT(false); // cannot reach this point
+      return false;
     }
 
     //-------------------------------------------------------------------------
@@ -1083,6 +1098,55 @@ namespace ortc
           if (!transport->sendPacket(&(fillBuffer[0]), filled)) return;
           filled = 0;
         }
+      }
+    }
+
+    //-------------------------------------------------------------------------
+    void DTLSTransport::onDeliverPendingIncomingRTP()
+    {
+      PacketQueue pendingPackets;
+      UseSRTPTransportPtr srtpTransport;
+
+      IICETypes::Components viaTransport = component();
+
+      {
+        AutoRecursiveLock lock(*this);
+
+        if ((isShuttingDown()) ||
+            (isShutdown())) {
+          ZS_LOG_WARNING(Debug, log("cannot deliver pending RTP packets as shutdown / shutting down"))
+          return;
+        }
+
+        pendingPackets = mPendingIncomingRTP;
+        mPendingIncomingRTP = PacketQueue();
+
+        srtpTransport = mSRTPTransport;
+        if (!srtpTransport) {
+          ZS_LOG_WARNING(Debug, log("cannot process SRTP packets as no SRTP transport attached"))
+          return;
+        }
+      }
+
+      while (pendingPackets.size() > 0) {
+        auto packet = pendingPackets.front();
+
+        bool delivered = srtpTransport->handleReceivedPacket(viaTransport, packet->BytePtr(), packet->SizeInBytes());
+        if (!delivered) {
+          ZS_LOG_WARNING(Debug, log("failed to process SRTP packet"))
+        }
+      }
+
+      {
+        AutoRecursiveLock lock(*this);
+        if (mPendingIncomingRTP.size() > 0) {
+          // some more packets were put into queue after deliverying these packets, try again...
+          IDTLSTransportAsyncDelegateProxy::create(mThisWeak.lock())->onDeliverPendingIncomingRTP();
+          return;
+        }
+
+        // no longer need queue to deliver packets
+        mPutIncomingRTPIntoPendingQueue = false;
       }
     }
 
@@ -1290,6 +1354,7 @@ namespace ortc
       UseServicesHelper::debugAppend(resultEl, "max pending dtls buffer", mMaxPendingDTLSBuffer);
       UseServicesHelper::debugAppend(resultEl, "max pending rtp packets", mMaxPendingRTPPackets);
 
+      UseServicesHelper::debugAppend(resultEl, "put pending incoming RTP packets into queue", mPutIncomingRTPIntoPendingQueue);
       UseServicesHelper::debugAppend(resultEl, "pending incoming RTP packets", mPendingIncomingRTP.size());
       UseServicesHelper::debugAppend(resultEl, "pending incoming dtls buffer size (bytes)", mPendingIncomingDTLS.CurrentSize());
 
@@ -1519,6 +1584,10 @@ namespace ortc
 
       if (State_Connected == state) {
         setupSRTP();
+      }
+
+      if (State_Validated == state) {
+        IDTLSTransportAsyncDelegateProxy::create(mThisWeak.lock())->onDeliverPendingIncomingRTP();
       }
 
       DTLSTransportPtr pThis = mThisWeak.lock();

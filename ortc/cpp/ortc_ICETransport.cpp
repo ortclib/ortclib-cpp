@@ -518,6 +518,7 @@ namespace ortc
     IICETransportPtr ICETransport::createAssociatedTransport() throw (InvalidStateError)
     {
       ICETransportPtr pThis;
+      UseSecureTransportPtr secureTransport;
 
       {
         AutoRecursiveLock lock(*this);
@@ -537,9 +538,16 @@ namespace ortc
         pThis->mThisWeak.lock();
         pThis->mRTPTransport = mThisWeak.lock();
         mRTCPTransport = pThis;
+
+        secureTransport = mSecureTransport.lock();
       }
 
       pThis->init();
+
+      if (secureTransport) {
+        secureTransport->notifyAssociateTransportCreated(IICETypes::Component_RTCP, pThis);
+      }
+
       return pThis;
     }
 
@@ -1060,6 +1068,7 @@ namespace ortc
                                       )
     {
       ZS_LOG_DETAIL(log("notify attached") + ZS_PARAM("secure transport id", secureTransportID))
+
       AutoRecursiveLock lock(*this);
 
       if (isShutdown()) {

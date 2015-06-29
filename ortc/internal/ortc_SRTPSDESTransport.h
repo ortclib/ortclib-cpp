@@ -50,6 +50,40 @@ namespace ortc
     ZS_DECLARE_INTERACTION_PTR(ISRTPTransportForSecureTransport)
     ZS_DECLARE_INTERACTION_PTR(IRTPListenerForSecureTransport)
 
+    ZS_DECLARE_INTERACTION_PTR(ISRTPSDESTransportForSettings)
+    ZS_DECLARE_INTERACTION_PROXY(ISRTPSDESTransportAsyncDelegate)
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark ISRTPSDESTransportForSettings
+    #pragma mark
+
+    interaction ISRTPSDESTransportForSettings
+    {
+      ZS_DECLARE_TYPEDEF_PTR(ISRTPSDESTransportForSettings, ForSettings)
+
+      static void applyDefaults();
+
+      virtual ~ISRTPSDESTransportForSettings() {}
+    };
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark ISRTPSDESTransportAsyncDelegate
+    #pragma mark
+
+    interaction ISRTPSDESTransportAsyncDelegate
+    {
+      virtual void onAttachRTCP() = 0;
+    };
+
+
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -66,6 +100,8 @@ namespace ortc
                               public ISecureTransportForICETransport,
                               public ISecureTransportForSRTPTransport,
                               public ISecureTransportForRTPListener,
+                              public ISRTPSDESTransportForSettings,
+                              public ISRTPSDESTransportAsyncDelegate,
                               public IWakeDelegate,
                               public IICETransportDelegate,
                               public ISRTPTransportDelegate
@@ -80,6 +116,7 @@ namespace ortc
       friend interaction ISecureTransportForICETransport;
       friend interaction ISecureTransportForSRTPTransport;
       friend interaction ISecureTransportForRTPListener;
+      friend interaction ISRTPSDESTransportForSettings;
 
       ZS_DECLARE_TYPEDEF_PTR(IICETransportForSecureTransport, UseICETransport)
       ZS_DECLARE_TYPEDEF_PTR(ISRTPTransportForSecureTransport, UseSRTPTransport)
@@ -178,7 +215,12 @@ namespace ortc
 
       // (duplicate) virtual PUID getID() const;
 
-      virtual void handleReceivedPacket(
+      virtual void notifyAssociateTransportCreated(
+                                                   IICETypes::Components associatedComponent,
+                                                   ICETransportPtr assoicated
+                                                   ) override;
+
+      virtual bool handleReceivedPacket(
                                         IICETypes::Components viaTransport,
                                         const BYTE *buffer,
                                         size_t bufferLengthInBytes
@@ -221,6 +263,20 @@ namespace ortc
       // (duplicate) virtual PUID getID() const = 0;
 
       virtual RTPListenerPtr getListener() const override;
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark SRTPSDESTransport => ISRTPSDESTransportForSettings
+      #pragma mark
+
+      // (duplicate) static void applyDefaults();
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark SRTPSDESTransport => ISRTPSDESTransportAsyncDelegate
+      #pragma mark
+
+      virtual void onAttachRTCP() override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -303,6 +359,7 @@ namespace ortc
       String mLastErrorReason;
 
       UseICETransportPtr mICETransportRTP;
+      bool mAttachedRTCP {false};
       mutable UseICETransportPtr mICETransportRTCP;
 
       UseSRTPTransportPtr mSRTPTransport;
@@ -335,3 +392,7 @@ namespace ortc
     class SRTPSDESTransportFactory : public IFactory<ISRTPSDESTransportFactory> {};
   }
 }
+
+ZS_DECLARE_PROXY_BEGIN(ortc::internal::ISRTPSDESTransportAsyncDelegate)
+ZS_DECLARE_PROXY_METHOD_0(onAttachRTCP)
+ZS_DECLARE_PROXY_END()

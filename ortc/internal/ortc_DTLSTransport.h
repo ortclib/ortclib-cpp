@@ -119,6 +119,7 @@ namespace ortc
     interaction IDTLSTransportAsyncDelegate
     {
       virtual void onAdapterSendPacket() = 0;
+      virtual void onDeliverPendingIncomingRTP() = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -278,7 +279,12 @@ namespace ortc
 
       // (duplicate) virtual PUID getID() const;
 
-      virtual void handleReceivedPacket(
+      virtual void notifyAssociateTransportCreated(
+                                                   IICETypes::Components associatedComponent,
+                                                   ICETransportPtr assoicated
+                                                   ) override;
+
+      virtual bool handleReceivedPacket(
                                         IICETypes::Components viaTransport,
                                         const BYTE *buffer,
                                         size_t bufferLengthInBytes
@@ -342,6 +348,7 @@ namespace ortc
       #pragma mark
 
       virtual void onAdapterSendPacket() override;
+      virtual void onDeliverPendingIncomingRTP() override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -694,6 +701,7 @@ namespace ortc
       size_t mMaxPendingDTLSBuffer {};
       size_t mMaxPendingRTPPackets {};
 
+      bool mPutIncomingRTPIntoPendingQueue {true};
       PacketQueue mPendingIncomingRTP;
       ByteQueue mPendingIncomingDTLS;
 
@@ -733,4 +741,5 @@ namespace ortc
 
 ZS_DECLARE_PROXY_BEGIN(ortc::internal::IDTLSTransportAsyncDelegate)
 ZS_DECLARE_PROXY_METHOD_0(onAdapterSendPacket)
+ZS_DECLARE_PROXY_METHOD_0(onDeliverPendingIncomingRTP)
 ZS_DECLARE_PROXY_END()

@@ -110,7 +110,12 @@ namespace ortc
 
       virtual PUID getID() const = 0;
 
-      virtual void handleReceivedPacket(
+      virtual void notifyAssociateTransportCreated(
+                                                   IICETypes::Components associatedComponent,
+                                                   ICETransportPtr assoicated
+                                                   ) = 0;
+
+      virtual bool handleReceivedPacket(
                                         IICETypes::Components viaComponent,
                                         const BYTE *buffer,
                                         size_t bufferLengthInBytes
