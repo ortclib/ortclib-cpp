@@ -456,6 +456,8 @@ namespace ortc
           popSize = material.mKeyList.size();
         }
 
+        // NOTE: oldKey and nextKey might be null if there is no older key or
+        // next key. However, currentKey must be valid.
 
         ASSERT(((bool)currentKey))
 
@@ -484,7 +486,7 @@ namespace ortc
 #define WARNING_SHOULD_NOT_REACH_HERE_UNLESS_decryptedBuffer_IS_VALID 2
 
 #define ONCE_FIGURED_OUT_WHICH_KEY_TO_USE_SET_decryptedWithKey_TO_POINT_TO_THAT_KEY 1
-#define ONCE_FIGURED_OUT_WHICH_KEY_TO_USE_SET_udecryptedWithKey_TO_POINT_TO_THAT_KEY 2
+#define ONCE_FIGURED_OUT_WHICH_KEY_TO_USE_SET_decryptedWithKey_TO_POINT_TO_THAT_KEY 2
 
       ASSERT(((bool)decryptedWithKey));
 
