@@ -2617,14 +2617,14 @@ namespace ortc
       UseServicesHelper::debugAppend(resultEl, "sll read needs write", ssl_read_needs_write_);
       UseServicesHelper::debugAppend(resultEl, "sll write needs read", ssl_write_needs_read_);
 
-      UseServicesHelper::debugAppend(resultEl, "sll", (bool)ssl_);
-      UseServicesHelper::debugAppend(resultEl, "sll context", (bool)ssl_ctx_);
+      UseServicesHelper::debugAppend(resultEl, "sll", ssl_ ? true : false);
+      UseServicesHelper::debugAppend(resultEl, "sll context", ssl_ctx_ ? true : false);
 
       UseServicesHelper::debugAppend(resultEl, "use certificate", UseCertificate::toDebug(identity_));
 
       UseServicesHelper::debugAppend(resultEl, "ssl server name", ssl_server_name_);
 
-      UseServicesHelper::debugAppend(resultEl, "peer certificate", (bool)peer_certificate_);
+      UseServicesHelper::debugAppend(resultEl, "peer certificate", peer_certificate_ ? true : false);
 
       UseServicesHelper::debugAppend(resultEl, "custom verification succeeded", custom_verification_succeeded_);
 
