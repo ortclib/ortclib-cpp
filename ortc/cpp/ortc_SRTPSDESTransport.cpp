@@ -323,7 +323,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark SRTPSDESTransport => ISecureTransportForSRTP
+    #pragma mark SRTPSDESTransport => ISecureTransportForSRTPTransport
     #pragma mark
 
     //-------------------------------------------------------------------------
@@ -457,13 +457,14 @@ namespace ortc
     //-------------------------------------------------------------------------
     void SRTPSDESTransport::onSRTPTransportLifetimeRemaining(
                                                              ISRTPTransportPtr transport,
-                                                             ULONG lifetimeRemaingPercentage
+                                                             ULONG leastLifetimeRemainingPercentageForAllKeys,
+                                                             ULONG overallLifetimeRemainingPercentage
                                                              )
     {
-      ZS_LOG_TRACE(log("lifetime remaining") + ZS_PARAM("percent", lifetimeRemaingPercentage))
+      ZS_LOG_TRACE(log("lifetime remaining") + ZS_PARAM("least % for keys", leastLifetimeRemainingPercentageForAllKeys) + ZS_PARAM("% overall", overallLifetimeRemainingPercentage))
 
       AutoRecursiveLock lock(*this);
-      mSubscriptions.delegate()->onSRTPSDESTransportLifetimeRemaining(mThisWeak.lock(), lifetimeRemaingPercentage);
+      mSubscriptions.delegate()->onSRTPSDESTransportLifetimeRemaining(mThisWeak.lock(), leastLifetimeRemainingPercentageForAllKeys, overallLifetimeRemainingPercentage);
     }
 
     //-------------------------------------------------------------------------

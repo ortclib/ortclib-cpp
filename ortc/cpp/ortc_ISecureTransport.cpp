@@ -92,11 +92,11 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark ISecureTransportForSRTP
+    #pragma mark ISecureTransportForSRTPTransport
     #pragma mark
     
     //-------------------------------------------------------------------------
-    ElementPtr ISecureTransportForSRTP::toDebug(ForSRTPPtr transport)
+    ElementPtr ISecureTransportForSRTPTransport::toDebug(ForSRTPPtr transport)
     {
       if (!transport) return ElementPtr();
 

@@ -68,12 +68,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark ISecureTransportForSRTP
+    #pragma mark ISecureTransportForSRTPTransport
     #pragma mark
 
-    interaction ISecureTransportForSRTP
+    interaction ISecureTransportForSRTPTransport
     {
-      ZS_DECLARE_TYPEDEF_PTR(ISecureTransportForSRTP, ForSRTP)
+      ZS_DECLARE_TYPEDEF_PTR(ISecureTransportForSRTPTransport, ForSRTP)
 
       static ElementPtr toDebug(ForSRTPPtr transport);
 

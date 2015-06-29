@@ -913,7 +913,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark DTLSTransport => ISecureTransportForSRTP
+    #pragma mark DTLSTransport => ISecureTransportForSRTPTransport
     #pragma mark
 
     //-------------------------------------------------------------------------
@@ -976,7 +976,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark DTLSTransport => ISecureTransportForSRTP
+    #pragma mark DTLSTransport => ISecureTransportForSRTPTransport
     #pragma mark
 
     //-------------------------------------------------------------------------
@@ -1144,7 +1144,8 @@ namespace ortc
     //-------------------------------------------------------------------------
     void DTLSTransport::onSRTPTransportLifetimeRemaining(
                                                          ISRTPTransportPtr transport,
-                                                         ULONG lifetimeRemaingPercentage
+                                                         ULONG leastLifetimeRemainingPercentageForAllKeys,
+                                                         ULONG overallLifetimeRemainingPercentage
                                                          )
     {
 #define TODO_IN_FUTURE_WHEN_PERCENT_REMAINING_GETS_TOO_LOW_AS_A_CLIENT_RENEGOTIATE_A_NEW_SRTP_KEY 1
@@ -1632,7 +1633,7 @@ namespace ortc
       receivingKeyParams.mKeyMethod = "inline";
 
       sendingKeyParams.mKeySalt = UseServicesHelper::convertToBase64(sendKey->BytePtr(), sendKey->SizeInBytes());
-      receivingKeyParams.mKeySalt = UseServicesHelper::convertToBase64(sendKey->BytePtr(), sendKey->SizeInBytes());
+      receivingKeyParams.mKeySalt = UseServicesHelper::convertToBase64(receiveKey->BytePtr(), receiveKey->SizeInBytes());
 
       sendingKeyParams.mLifetime = "2^31";
       receivingKeyParams.mLifetime = "2^31";

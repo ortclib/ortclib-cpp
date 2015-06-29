@@ -40,7 +40,7 @@
 #include <zsLib/MessageQueueAssociator.h>
 #include <zsLib/Timer.h>
 
-#define ORTC_SETTING_SRTP_TRANSPORT_WARN_OF_KEY_LIFETIME_EXHAUGSTION_WHEN_REACH_PERCENTAGE_USSED "ortc/srtp/warm-key-lifetime-exhaustion-when-reach-percentage-used"
+//#define ORTC_SETTING_SRTP_TRANSPORT_WARN_OF_KEY_LIFETIME_EXHAUGSTION_WHEN_REACH_PERCENTAGE_USSED "ortc/srtp/warm-key-lifetime-exhaustion-when-reach-percentage-used"
 
 #pragma warning(push)
 #pragma warning(disable:4351)
@@ -49,7 +49,7 @@ namespace ortc
 {
   namespace internal
   {
-    ZS_DECLARE_INTERACTION_PTR(ISecureTransportForSRTP)
+    ZS_DECLARE_INTERACTION_PTR(ISecureTransportForSRTPTransport)
 
     ZS_DECLARE_INTERACTION_PTR(ISRTPTransportForSettings)
     ZS_DECLARE_INTERACTION_PTR(ISRTPTransportForSecureTransport)
@@ -83,7 +83,7 @@ namespace ortc
     {
       ZS_DECLARE_TYPEDEF_PTR(ISRTPTransportForSecureTransport, ForSecureTransport)
 
-      ZS_DECLARE_TYPEDEF_PTR(ISecureTransportForSRTP, UseSecureTransport)
+      ZS_DECLARE_TYPEDEF_PTR(ISecureTransportForSRTPTransport, UseSecureTransport)
       ZS_DECLARE_TYPEDEF_PTR(ISRTPSDESTransport::CryptoParameters, CryptoParameters)
 
       static ElementPtr toDebug(ForSecureTransportPtr transport);
@@ -143,7 +143,7 @@ namespace ortc
       ZS_DECLARE_STRUCT_PTR(KeyingMaterial)
       ZS_DECLARE_STRUCT_PTR(DirectionMaterial)
 
-      ZS_DECLARE_TYPEDEF_PTR(ISecureTransportForSRTP, UseSecureTransport)
+      ZS_DECLARE_TYPEDEF_PTR(ISecureTransportForSRTPTransport, UseSecureTransport)
       ZS_DECLARE_TYPEDEF_PTR(ISRTPSDESTransport::CryptoParameters, CryptoParameters)
       ZS_DECLARE_TYPEDEF_PTR(ISRTPSDESTransport::KeyParameters, KeyParameters)
 
@@ -267,7 +267,8 @@ namespace ortc
 
       void updateTotalPackets(
                               Directions direction,
-                              IICETypes::Components component
+                              IICETypes::Components component,
+                              KeyingMaterialPtr &keyingMaterial
                               );
 
       static size_t parseLifetime(const String &lifetime) throw(InvalidParameters);
@@ -317,6 +318,9 @@ namespace ortc
         KeyMap mKeys;            // when MKI length > 0
         KeyingMaterialPtr mKey;  // when MKI length == 0
 
+        size_t mTotalPackets[IICETypes::Component_Last+1] {};
+        size_t mMaxTotalLifetime[IICETypes::Component_Last+1] {};
+
         ElementPtr toDebug() const;
         String hash() const;
       };
@@ -337,9 +341,8 @@ namespace ortc
 
       CryptoParameters mParams[Direction_Last+1];
 
-      size_t mMaxTotalLifetime {};
-      size_t mTotalPackets[Direction_Last+1][IICETypes::Component_Last+1] {};
-      ULONG mLastRemainingPercentageReported {100};
+      ULONG mLastRemainingLeastKeyPercentageReported {100};
+      ULONG mLastRemainingOverallPercentageReported {100};
 
       DirectionMaterial mMaterial[Direction_Last+1];
     };
@@ -354,7 +357,7 @@ namespace ortc
 
     interaction ISRTPTransportFactory
     {
-      ZS_DECLARE_TYPEDEF_PTR(ISecureTransportForSRTP, UseSecureTransport)
+      ZS_DECLARE_TYPEDEF_PTR(ISecureTransportForSRTPTransport, UseSecureTransport)
       ZS_DECLARE_TYPEDEF_PTR(ISRTPSDESTransport::CryptoParameters, CryptoParameters)
 
       static ISRTPTransportFactory &singleton();

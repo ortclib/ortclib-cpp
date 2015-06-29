@@ -136,7 +136,7 @@ namespace ortc
                           public IDTLSTransportForDataTransport,
                           public ISecureTransportForRTPSender,
                           public ISecureTransportForICETransport,
-                          public ISecureTransportForSRTP,
+                          public ISecureTransportForSRTPTransport,
                           public ISecureTransportForRTPListener,
                           public IDTLSTransportForSettings,
                           public IWakeDelegate,
@@ -155,7 +155,7 @@ namespace ortc
       friend interaction ISecureTransportForRTPSender;
       friend interaction ISecureTransportForICETransport;
       friend interaction ISecureTransportForRTPListener;
-      friend interaction ISecureTransportForSRTP;
+      friend interaction ISecureTransportForSRTPTransport;
       friend interaction IDTLSTransportForSettings;
 
       ZS_DECLARE_TYPEDEF_PTR(IICETransportForSecureTransport, UseICETransport)
@@ -290,7 +290,7 @@ namespace ortc
 
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark DTLSTransport => ISecureTransportForSRTP
+      #pragma mark DTLSTransport => ISecureTransportForSRTPTransport
       #pragma mark
 
       // (duplicate) static ElementPtr toDebug(ForSRTPPtr transport);
@@ -374,7 +374,8 @@ namespace ortc
 
       virtual void onSRTPTransportLifetimeRemaining(
                                                     ISRTPTransportPtr transport,
-                                                    ULONG lifetimeRemaingPercentage
+                                                    ULONG leastLifetimeRemainingPercentageForAllKeys,
+                                                    ULONG overallLifetimeRemainingPercentage
                                                     ) override;
 
     public:

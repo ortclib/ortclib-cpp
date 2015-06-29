@@ -65,7 +65,7 @@ namespace ortc
     #pragma mark CryptoParameters
     #pragma mark
 
-    struct CryptoParameters {
+    struct CryptoParameters { // see RFC 4568 sect 9.2
       WORD              mTag {};
       String            mCryptoSuite;
       KeyParametersList mKeyParams;
@@ -92,12 +92,12 @@ namespace ortc
     #pragma mark KeyParameters
     #pragma mark
 
-    struct KeyParameters {
-      String  mKeyMethod;
-      String  mKeySalt;
-      String  mLifetime;
-      String  mMKIValue;
-      WORD    mMKILength {};
+    struct KeyParameters {    // see RFC 4568 sect 9.2
+      String  mKeyMethod;     // must be "inline"
+      String  mKeySalt;       // key + salt, base 64 encoded e.g. base64(16 bytes + 14 bytes)
+      String  mLifetime;      // must be "2^n" where n is the max number of packets to flow throw the transport
+      String  mMKIValue;      // base 10 expressed value of Master Key Identifier (MKI) converted to string
+      WORD    mMKILength {};  // number of bytes allocated on each SRTP packet for Master Key Identifier (MKI) [max = 128 bytes]
 
       ElementPtr toDebug() const;
       String hash() const;
@@ -153,7 +153,8 @@ namespace ortc
 
     virtual void onSRTPSDESTransportLifetimeRemaining(
                                                       ISRTPSDESTransportPtr transport,
-                                                      ULONG lifetimeRemaingPercentage
+                                                      ULONG leastLifetimeRemainingPercentageForAllKeys,
+                                                      ULONG overallLifetimeRemainingPercentage
                                                       ) = 0;
 
     virtual void onSRTPSDESTransportError(
@@ -184,13 +185,13 @@ namespace ortc
 ZS_DECLARE_PROXY_BEGIN(ortc::ISRTPSDESTransportDelegate)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::ISRTPSDESTransportPtr, ISRTPSDESTransportPtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::ISRTPSDESTransportDelegate::ErrorCode, ErrorCode)
-ZS_DECLARE_PROXY_METHOD_2(onSRTPSDESTransportLifetimeRemaining, ISRTPSDESTransportPtr, ULONG)
+ZS_DECLARE_PROXY_METHOD_3(onSRTPSDESTransportLifetimeRemaining, ISRTPSDESTransportPtr, ULONG, ULONG)
 ZS_DECLARE_PROXY_METHOD_3(onSRTPSDESTransportError, ISRTPSDESTransportPtr, ErrorCode, String)
 ZS_DECLARE_PROXY_END()
 
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_BEGIN(ortc::ISRTPSDESTransportDelegate, ortc::ISRTPSDESTransportSubscription)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::ISRTPSDESTransportPtr, ISRTPSDESTransportPtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::ISRTPSDESTransportDelegate::ErrorCode, ErrorCode)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onSRTPSDESTransportLifetimeRemaining, ISRTPSDESTransportPtr, ULONG)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_3(onSRTPSDESTransportLifetimeRemaining, ISRTPSDESTransportPtr, ULONG, ULONG)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_3(onSRTPSDESTransportError, ISRTPSDESTransportPtr, ErrorCode, String)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_END()

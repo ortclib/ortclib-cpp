@@ -81,7 +81,8 @@ namespace ortc
     {
       virtual void onSRTPTransportLifetimeRemaining(
                                                     ISRTPTransportPtr transport,
-                                                    ULONG lifetimeRemaingPercentage
+                                                    ULONG leastLifetimeRemainingPercentageForAllKeys,
+                                                    ULONG overallLifetimeRemainingPercentage
                                                     ) = 0;
     };
 
@@ -106,10 +107,10 @@ namespace ortc
 
 ZS_DECLARE_PROXY_BEGIN(ortc::internal::ISRTPTransportDelegate)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::ISRTPTransportPtr, ISRTPTransportPtr)
-ZS_DECLARE_PROXY_METHOD_2(onSRTPTransportLifetimeRemaining, ISRTPTransportPtr, ULONG)
+ZS_DECLARE_PROXY_METHOD_3(onSRTPTransportLifetimeRemaining, ISRTPTransportPtr, ULONG, ULONG)
 ZS_DECLARE_PROXY_END()
 
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_BEGIN(ortc::internal::ISRTPTransportDelegate, ortc::internal::ISRTPTransportSubscription)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::internal::ISRTPTransportPtr, ISRTPTransportPtr)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onSRTPTransportLifetimeRemaining, ISRTPTransportPtr, ULONG)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_3(onSRTPTransportLifetimeRemaining, ISRTPTransportPtr, ULONG, ULONG)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_END()

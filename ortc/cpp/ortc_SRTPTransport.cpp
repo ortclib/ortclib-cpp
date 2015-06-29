@@ -91,6 +91,25 @@ namespace ortc
     const char CS_AES_CM_128_HMAC_SHA1_32[] = "AES_CM_128_HMAC_SHA1_32";
 
     //-------------------------------------------------------------------------
+    static size_t toRemainingPercent(
+                                     size_t totalPackets,
+                                     size_t maxPackets
+                                     )
+    {
+      if (0 == maxPackets) return 0;
+      size_t consumed = (totalPackets * 100) / maxPackets;
+      if (consumed > 100) return 100;
+
+      size_t remaining = 100 - consumed;
+      if (0 != remaining) return remaining;
+
+      if (totalPackets >= maxPackets) return 0;
+
+      // still small amount of lifetime remaining
+      return 1;
+    }
+    
+    //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -101,7 +120,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     void ISRTPTransportForSettings::applyDefaults()
     {
-      UseSettings::setUInt(ORTC_SETTING_SRTP_TRANSPORT_WARN_OF_KEY_LIFETIME_EXHAUGSTION_WHEN_REACH_PERCENTAGE_USSED, 90);
+//      UseSettings::setUInt(ORTC_SETTING_SRTP_TRANSPORT_WARN_OF_KEY_LIFETIME_EXHAUGSTION_WHEN_REACH_PERCENTAGE_USSED, 90);
     }
 
     //-------------------------------------------------------------------------
@@ -184,6 +203,14 @@ namespace ortc
       }
 
       for (size_t loop = Direction_First; loop <= Direction_Last; ++loop) {
+
+        if (!((CS_AES_CM_128_HMAC_SHA1_80 == mParams[loop].mCryptoSuite) ||
+              (CS_AES_CM_128_HMAC_SHA1_32 == mParams[loop].mCryptoSuite))) {
+          ZS_LOG_WARNING(Detail, log("crypto suite is not understood") + mParams[loop].toDebug())
+          ORTC_THROW_INVALID_PARAMETERS("Crypto suite is not understood: " + mParams[loop].mCryptoSuite)
+          continue;
+        }
+
         size_t mkiLength = ORTC_SRTPTRANSPORT_ILLEGAL_MKI_LEGNTH;
 
         for (auto iter = mParams[loop].mKeyParams.begin(); iter != mParams[loop].mKeyParams.end(); ++iter) {
@@ -198,6 +225,7 @@ namespace ortc
           KeyingMaterialPtr keyingMaterial(make_shared<KeyingMaterial>());
 
           ORTC_THROW_INVALID_PARAMETERS_IF((keyParam.mMKIValue.hasData()) && (0 == mkiLength))
+          ORTC_THROW_INVALID_PARAMETERS_IF((keyParam.mMKIValue.isEmpty()) && (0 != mkiLength))
 
           keyingMaterial->mOriginalValues = keyParam;
           keyingMaterial->mLifetime = parseLifetime(keyParam.mLifetime);
@@ -207,12 +235,6 @@ namespace ortc
               ZS_LOG_WARNING(Detail, log("do not understand non-inline key method"))
               continue;
             }
-          }
-
-          if (!((CS_AES_CM_128_HMAC_SHA1_80 == mParams[loop].mCryptoSuite) ||
-                (CS_AES_CM_128_HMAC_SHA1_32 == mParams[loop].mCryptoSuite))) {
-            ZS_LOG_WARNING(Detail, log("crypto suite is not understood") + mParams[loop].toDebug())
-            continue;
           }
 
           keyingMaterial->mKeySalt = UseServicesHelper::convertFromBase64(keyParam.mKeySalt);
@@ -240,13 +262,13 @@ namespace ortc
 
           if (Direction_Encrypt == loop) {
             mMaterial[loop].mKeyList.push_back(keyingMaterial); // when encrypting order matters so need all keys in a list
-            mMaxTotalLifetime += keyingMaterial->mLifetime;
-          } else {
-            mMaxTotalLifetime = (0 == mMaxTotalLifetime ? keyingMaterial->mLifetime : (mMaxTotalLifetime > keyingMaterial->mLifetime ? keyingMaterial->mLifetime : mMaxTotalLifetime));
           }
+
+          mMaterial[loop].mMaxTotalLifetime[IICETypes::Component_RTP] += keyingMaterial->mLifetime;
+          mMaterial[loop].mMaxTotalLifetime[IICETypes::Component_RTCP] += keyingMaterial->mLifetime;
         }
 
-        ORTC_THROW_INVALID_PARAMETERS_IF((mMaterial[loop].mKeys.size() > 1) && (0 == mkiLength))
+        ORTC_THROW_INVALID_PARAMETERS_IF((mMaterial[loop].mKeys.size() > 0) && (0 == mkiLength))
         ORTC_THROW_INVALID_PARAMETERS_IF((mMaterial[loop].mKeys.size() < 1) && (0 != mkiLength))
 
         ORTC_THROW_INVALID_PARAMETERS_IF((!((bool)mMaterial[loop].mKey)) && (0 == mkiLength))
@@ -346,8 +368,9 @@ namespace ortc
       if (delegate) {
         SRTPTransportPtr pThis = mThisWeak.lock();
 
-        if (100 != mLastRemainingPercentageReported) {
-          delegate->onSRTPTransportLifetimeRemaining(pThis, mLastRemainingPercentageReported);
+        if ((100 != mLastRemainingLeastKeyPercentageReported) ||
+            (100 != mLastRemainingOverallPercentageReported)) {
+          delegate->onSRTPTransportLifetimeRemaining(pThis, mLastRemainingLeastKeyPercentageReported, mLastRemainingOverallPercentageReported);
         }
 
 #define TODO_DO_WE_NEED_TO_TELL_ABOUT_ANY_MISSED_EVENTS 1
@@ -365,7 +388,7 @@ namespace ortc
                                              )
     {
       UseSecureTransportPtr transport;
-      SecureByteBlockPtr encryptedBuffer;
+      SecureByteBlockPtr decryptedBuffer;
       IICETypes::Components component = IICETypes::Component_RTP;
 
       KeyingMaterialPtr keyingMaterial; // WARNING: do NOT modify contents of what pointer is pointing to outside of a lock (shouldn't need to change contents anyway)
@@ -384,19 +407,14 @@ namespace ortc
       {
         AutoRecursiveLock lock(*this);
 
-        if (0 == mLastRemainingPercentageReported) {
-          ZS_LOG_WARNING(Detail, log("cannot encrypt packet as packet lifetime is exhausted"))
+        if (0 == mLastRemainingOverallPercentageReported) {
+          ZS_LOG_WARNING(Detail, log("cannot decrypt packet as packet lifetime is exhausted (and continuing to decrypt would violate security principles)"))
           return false;
         }
 
         transport = mSecureTransport.lock();
         if (!transport) {
           ZS_LOG_WARNING(Debug, log("nowhere to send packet as secure transport is gone"))
-          return false;
-        }
-
-        if (0 == mLastRemainingPercentageReported) {
-          ZS_LOG_WARNING(Detail, log("cannot decrypt packet as packet lifetime is exhausted (and continuing to decrypt would violate security principles)"))
           return false;
         }
 
@@ -431,7 +449,7 @@ namespace ortc
         ASSERT(((bool)keyingMaterial))
 
         if (!keyingMaterial) {
-          ZS_LOG_WARNING(Debug, log("no keying material found to decrypt packet") + ZS_PARAM("buffer length in bytes", bufferLengthInBytes))
+          ZS_LOG_ERROR(Debug, log("no keying material found to decrypt packet") + ZS_PARAM("buffer length in bytes", bufferLengthInBytes))
           return false;
         }
 
@@ -443,8 +461,7 @@ namespace ortc
           return false;
         }
 
-        ++(keyingMaterial->mTotalPackets[component]);
-        updateTotalPackets(Direction_Decrypt, component);
+        updateTotalPackets(Direction_Decrypt, component, keyingMaterial);
       }
 
       ASSERT(((bool)transport))
@@ -452,20 +469,20 @@ namespace ortc
 #define WARNING_IF_POSSIBLE_PERFORM_DECRYPTION_OUTSIDE_OF_OBJECT_LOCK 1
 #define WARNING_IF_POSSIBLE_PERFORM_DECRYPTION_OUTSIDE_OF_OBJECT_LOCK 2
 
-#define WARNING_SHOULD_NOT_REACH_HERE_UNLESS_encryptedBuffer_IS_VALID 1
-#define WARNING_SHOULD_NOT_REACH_HERE_UNLESS_encryptedBuffer_IS_VALID 2
+#define WARNING_SHOULD_NOT_REACH_HERE_UNLESS_decryptedBuffer_IS_VALID 1
+#define WARNING_SHOULD_NOT_REACH_HERE_UNLESS_decryptedBuffer_IS_VALID 2
 
-      ASSERT(((bool)encryptedBuffer))
+      ASSERT(((bool)decryptedBuffer))
 
-      ZS_LOG_INSANE(log("forwarding packet to secure transport") + ZS_PARAM("via", IICETypes::toString(viaTransport)) + ZS_PARAM("component", IICETypes::toString(component)) + ZS_PARAM("buffer length in bytes", encryptedBuffer->SizeInBytes()))
+      ZS_LOG_INSANE(log("forwarding packet to secure transport") + ZS_PARAM("via", IICETypes::toString(viaTransport)) + ZS_PARAM("component", IICETypes::toString(component)) + ZS_PARAM("buffer length in bytes", decryptedBuffer->SizeInBytes()))
 
-      return transport->handleReceivedDecryptedPacket(viaTransport, component, encryptedBuffer->BytePtr(), encryptedBuffer->SizeInBytes());
+      return transport->handleReceivedDecryptedPacket(viaTransport, component, decryptedBuffer->BytePtr(), decryptedBuffer->SizeInBytes());
     }
 
     //-------------------------------------------------------------------------
     bool SRTPTransport::sendPacket(
                                    IICETypes::Components sendOverICETransport,
-                                   IICETypes::Components component,
+                                   IICETypes::Components packetType,  // is packet RTP or RTCP
                                    const BYTE *buffer,
                                    size_t bufferLengthInBytes
                                    )
@@ -478,7 +495,7 @@ namespace ortc
       {
         AutoRecursiveLock lock(*this);
 
-        if (0 == mLastRemainingPercentageReported) {
+        if (0 == mLastRemainingOverallPercentageReported) {
           ZS_LOG_WARNING(Detail, log("cannot encrypt packet as packet lifetime is exhausted"))
           return false;
         }
@@ -501,7 +518,7 @@ namespace ortc
 
           ASSERT(((bool)keyingMaterial))
 
-          if (keyingMaterial->mTotalPackets[component] + 1 > keyingMaterial->mLifetime) {
+          if (keyingMaterial->mTotalPackets[packetType] + 1 > keyingMaterial->mLifetime) {
             ZS_LOG_WARNING(Debug, log("cannot use keying material as it's lifetime is exhausted") + keyingMaterial->toDebug())
             material.mKeyList.pop_front();
             continue; // try another key
@@ -510,8 +527,7 @@ namespace ortc
           break;
         }
 
-        ++(keyingMaterial->mTotalPackets[component]);
-        updateTotalPackets(Direction_Encrypt, component);
+        updateTotalPackets(Direction_Encrypt, packetType, keyingMaterial);
       }
 
 #define WARNING_IF_POSSIBLE_DO_ENCRYPTION_OUTSIDE_OF_OBJECT_LOCK 1
@@ -524,7 +540,7 @@ namespace ortc
       ASSERT(((bool)encryptedBuffer))
 
       // do NOT call this method from within a lock
-      return transport->sendEncryptedPacket(sendOverICETransport, component, encryptedBuffer->BytePtr(), encryptedBuffer->SizeInBytes());
+      return transport->sendEncryptedPacket(sendOverICETransport, packetType, encryptedBuffer->BytePtr(), encryptedBuffer->SizeInBytes());
     }
 
     //-------------------------------------------------------------------------
@@ -619,35 +635,8 @@ namespace ortc
       UseServicesHelper::debugAppend(resultEl, "encrypt params", mParams[Direction_Encrypt].toDebug());
       UseServicesHelper::debugAppend(resultEl, "decrypt params", mParams[Direction_Decrypt].toDebug());
 
-      UseServicesHelper::debugAppend(resultEl, "max total lifetime", mMaxTotalLifetime);
-
-      {
-        for (size_t loopDirection = Direction_First; loopDirection != Direction_Last; ++loopDirection) {
-          for (size_t loopComponent = IICETypes::Component_First; loopComponent != IICETypes::Component_Last; ++loopComponent) {
-            const char *message = "UNDEFINED";
-            switch (loopDirection) {
-              case Direction_Encrypt: {
-                switch (loopComponent) {
-                  case IICETypes::Component_RTP:    message = "total RTP packets encrypted"; break;
-                  case IICETypes::Component_RTCP:   message = "total RTCP packets encrypted"; break;
-                }
-                break;
-              }
-              case Direction_Decrypt: {
-                switch (loopComponent) {
-                  case IICETypes::Component_RTP:    message = "total RTP packets decrypted"; break;
-                  case IICETypes::Component_RTCP:   message = "total RTCP packets decrypted"; break;
-                }
-                break;
-              }
-            }
-
-            UseServicesHelper::debugAppend(resultEl, message, mTotalPackets[loopDirection][loopComponent]);
-          }
-        }
-
-        UseServicesHelper::debugAppend(resultEl, "last remaining percentage reported", mLastRemainingPercentageReported);
-      }
+      UseServicesHelper::debugAppend(resultEl, "last remaining least key percentage reported", mLastRemainingLeastKeyPercentageReported);
+      UseServicesHelper::debugAppend(resultEl, "last remaining overall percentage reported", mLastRemainingOverallPercentageReported);
 
       for (size_t loopDirection = Direction_First; loopDirection != Direction_Last; ++loopDirection) {
         UseServicesHelper::debugAppend(resultEl, toString((Directions)loopDirection), mMaterial[loopDirection].toDebug());
@@ -673,35 +662,39 @@ namespace ortc
     //-------------------------------------------------------------------------
     void SRTPTransport::updateTotalPackets(
                                            Directions direction,
-                                           IICETypes::Components component
+                                           IICETypes::Components component,
+                                           KeyingMaterialPtr &keyingMaterial
                                            )
     {
-      size_t largestTotalPackets = 0;
+      size_t &totalKeyPackets = (keyingMaterial->mTotalPackets[component]);
+      size_t lifetimeKey = (keyingMaterial->mLifetime);
+      size_t &totalDirectionPackets = (mMaterial[direction].mTotalPackets[component]);
+      size_t lifetimeDirection = (mMaterial[direction].mMaxTotalLifetime[component]);
 
-      ++(mTotalPackets[direction][component]);
+      ++(totalKeyPackets);
+      ++(totalDirectionPackets);
 
-      for (size_t loopDirection = Direction_First; loopDirection != Direction_Last; ++loopDirection) {
-        for (size_t loopComponent = IICETypes::Component_First; loopComponent <= IICETypes::Component_Last; ++loopComponent) {
-          if (mTotalPackets[loopDirection][loopComponent] > largestTotalPackets) largestTotalPackets = mTotalPackets[loopDirection][loopComponent];
-        }
+      size_t remainingForKey = toRemainingPercent(totalKeyPackets, lifetimeKey);
+      size_t remainingDirection = toRemainingPercent(totalDirectionPackets, lifetimeDirection);
+
+      bool changed = false;
+
+      if (remainingForKey < mLastRemainingLeastKeyPercentageReported) {
+        mLastRemainingLeastKeyPercentageReported = remainingForKey;
+        changed = true;
       }
 
-      size_t consumed = (0 == mMaxTotalLifetime ? 100 : ((largestTotalPackets * 100) / mMaxTotalLifetime));
-      if (consumed > 100) consumed = 100;
-
-      size_t remaining = 100 - consumed;
-
-      if (0 == remaining) {
-        if (largestTotalPackets < mMaxTotalLifetime) remaining = 1; // do not report 0% percent remaining until FULLY exhausted (treat as 1% remaining in this case)
+      if (remainingDirection < mLastRemainingOverallPercentageReported) {
+        mLastRemainingOverallPercentageReported = remainingDirection;
+        changed = true;
       }
 
-      if (remaining >= mLastRemainingPercentageReported) return;    // do not report a larger value than last time
-
-      mLastRemainingPercentageReported = remaining;
+      if (!changed) return;
 
       auto pThis = mThisWeak.lock();
       if (pThis) {
-        mSubscriptions.delegate()->onSRTPTransportLifetimeRemaining(pThis, mLastRemainingPercentageReported);
+        ZS_LOG_TRACE(log("reporting remaining percentages") + ZS_PARAM("least for key", remainingForKey) + ZS_PARAM("overall", mLastRemainingOverallPercentageReported))
+        mSubscriptions.delegate()->onSRTPTransportLifetimeRemaining(pThis, mLastRemainingLeastKeyPercentageReported, mLastRemainingOverallPercentageReported);
       }
     }
 
@@ -866,6 +859,15 @@ namespace ortc
         UseServicesHelper::debugAppend(resultEl, keyingMaterial->toDebug());
       }
 
+      for (size_t loop = IICETypes::Component_First; loop <= IICETypes::Component_Last; ++loop) {
+        const char *message = "max total lifetime (UNKNOWN)";
+        switch (loop) {
+          case IICETypes::Component_RTP:   message = "max total lifetime (RTP)"; break;
+          case IICETypes::Component_RTCP:  message = "max total lifetime (RTCP)"; break;
+        }
+        UseServicesHelper::debugAppend(resultEl, message, mMaxTotalLifetime[loop]);
+      }
+
       return resultEl;
     }
 
@@ -888,6 +890,12 @@ namespace ortc
 
         hasher.update(":");
         hasher.update(hash);
+      }
+
+      hasher.update(":");
+      for (size_t loop = IICETypes::Component_First; loop <= IICETypes::Component_Last; ++loop) {
+        hasher.update(":");
+        hasher.update(string(mMaxTotalLifetime[loop]));
       }
 
       return hasher.final();
