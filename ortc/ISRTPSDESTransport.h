@@ -125,6 +125,8 @@ namespace ortc
                                         const CryptoParameters &decryptParameters
                                         );
 
+    static ISRTPSDESTransportPtr convert(IRTPTransportPtr rtpTransport);
+
     virtual PUID getID() const = 0;
 
     virtual ISRTPSDESTransportSubscriptionPtr subscribe(ISRTPSDESTransportDelegatePtr delegate) = 0;

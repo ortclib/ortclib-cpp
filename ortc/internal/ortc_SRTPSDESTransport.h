@@ -48,6 +48,7 @@ namespace ortc
   {
     ZS_DECLARE_INTERACTION_PTR(IICETransportForSecureTransport)
     ZS_DECLARE_INTERACTION_PTR(ISRTPTransportForSecureTransport)
+    ZS_DECLARE_INTERACTION_PTR(IRTPListenerForSecureTransport)
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -64,6 +65,7 @@ namespace ortc
                               public ISecureTransportForRTPSender,
                               public ISecureTransportForICETransport,
                               public ISecureTransportForSRTP,
+                              public ISecureTransportForRTPListener,
                               public IWakeDelegate,
                               public IICETransportDelegate,
                               public ISRTPTransportDelegate
@@ -77,9 +79,11 @@ namespace ortc
       friend interaction ISecureTransportForRTPSender;
       friend interaction ISecureTransportForICETransport;
       friend interaction ISecureTransportForSRTP;
+      friend interaction ISecureTransportForRTPListener;
 
       ZS_DECLARE_TYPEDEF_PTR(IICETransportForSecureTransport, UseICETransport)
       ZS_DECLARE_TYPEDEF_PTR(ISRTPTransportForSecureTransport, UseSRTPTransport)
+      ZS_DECLARE_TYPEDEF_PTR(IRTPListenerForSecureTransport, UseRTPListener)
 
       enum State
       {
@@ -112,6 +116,7 @@ namespace ortc
       static SRTPSDESTransportPtr convert(ForRTPSenderPtr object);
       static SRTPSDESTransportPtr convert(ForICETransportPtr object);
       static SRTPSDESTransportPtr convert(ForSRTPPtr object);
+      static SRTPSDESTransportPtr convert(ForRTPListenerPtr object);
 
     protected:
       //-----------------------------------------------------------------------
@@ -135,7 +140,9 @@ namespace ortc
                                          const CryptoParameters &decryptParameters
                                          );
 
-      virtual PUID getID() const override;
+      static SRTPSDESTransportPtr convert(IRTPTransportPtr rtpTransport);
+
+      virtual PUID getID() const override {return mID;}
 
       virtual ISRTPSDESTransportSubscriptionPtr subscribe(ISRTPSDESTransportDelegatePtr delegate) override;
 
@@ -151,6 +158,8 @@ namespace ortc
       #pragma mark SRTPSDESTransport => ISecureTransportForRTPSender
       #pragma mark
 
+      // (duplicate) static ElementPtr toDebug(ForRTPSenderPtr transport);
+
       // (duplicate) virtual PUID getID() const;
 
       virtual bool sendPacket(
@@ -165,10 +174,12 @@ namespace ortc
       #pragma mark SRTPSDESTransport => ISRTPSDESTransportForICETransport
       #pragma mark
 
+      // (duplicate) static ElementPtr toDebug(ForICETransportPtr transport);
+
       // (duplicate) virtual PUID getID() const;
 
       virtual void handleReceivedPacket(
-                                        IICETypes::Components viaComponent,
+                                        IICETypes::Components viaTransport,
                                         const BYTE *buffer,
                                         size_t bufferLengthInBytes
                                         ) override;
@@ -182,6 +193,8 @@ namespace ortc
       #pragma mark SRTPSDESTransport => ISecureTransportForSRTP
       #pragma mark
 
+      // (duplicate) static ElementPtr toDebug(ForSRTPPtr transport);
+
       // (duplicate) virtual PUID getID() const = 0;
 
       virtual bool sendEncryptedPacket(
@@ -192,10 +205,22 @@ namespace ortc
                                        ) override;
 
       virtual bool handleReceivedDecryptedPacket(
+                                                 IICETypes::Components viaTransport,
                                                  IICETypes::Components packetType,
                                                  const BYTE *buffer,
                                                  size_t bufferLengthInBytes
                                                  ) override;
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark SRTPSDESTransport => ISecureTransportForRTPListener
+      #pragma mark
+
+      // (duplicate) static ElementPtr toDebug(ForRTPListenerPtr transport);
+
+      // (duplicate) virtual PUID getID() const = 0;
+
+      virtual RTPListenerPtr getListener() const override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -280,6 +305,8 @@ namespace ortc
       mutable UseICETransportPtr mICETransportRTCP;
 
       UseSRTPTransportPtr mSRTPTransport;
+
+      UseRTPListenerPtr mRTPListener;   // no lock needed
     };
 
     //-------------------------------------------------------------------------

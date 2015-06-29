@@ -31,6 +31,7 @@
 
 #include <ortc/internal/ortc_SRTPSDESTransport.h>
 #include <ortc/internal/ortc_ICETransport.h>
+#include <ortc/internal/ortc_RTPListener.h>
 #include <ortc/internal/ortc_SRTPTransport.h>
 #include <ortc/internal/ortc_ORTC.h>
 #include <ortc/internal/platform.h>
@@ -112,6 +113,7 @@ namespace ortc
                                  )
     {
       AutoRecursiveLock lock(*this);
+      mRTPListener = UseRTPListener::create(mThisWeak.lock());
       mSRTPTransport = UseSRTPTransport::create(mThisWeak.lock(), mThisWeak.lock(), encryptParameters, decryptParameters);
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
     }
@@ -140,6 +142,18 @@ namespace ortc
 
     //-------------------------------------------------------------------------
     SRTPSDESTransportPtr SRTPSDESTransport::convert(ForICETransportPtr object)
+    {
+      return ZS_DYNAMIC_PTR_CAST(SRTPSDESTransport, object);
+    }
+
+    //-------------------------------------------------------------------------
+    SRTPSDESTransportPtr SRTPSDESTransport::convert(ForSRTPPtr object)
+    {
+      return ZS_DYNAMIC_PTR_CAST(SRTPSDESTransport, object);
+    }
+
+    //-------------------------------------------------------------------------
+    SRTPSDESTransportPtr SRTPSDESTransport::convert(ForRTPListenerPtr object)
     {
       return ZS_DYNAMIC_PTR_CAST(SRTPSDESTransport, object);
     }
@@ -174,9 +188,9 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    PUID SRTPSDESTransport::getID() const
+    SRTPSDESTransportPtr SRTPSDESTransport::convert(IRTPTransportPtr rtpTransport)
     {
-      return mID;
+      return ZS_DYNAMIC_PTR_CAST(SRTPSDESTransport, rtpTransport);
     }
 
     //-------------------------------------------------------------------------
@@ -264,19 +278,21 @@ namespace ortc
 
     //-------------------------------------------------------------------------
     void SRTPSDESTransport::handleReceivedPacket(
-                                                 IICETypes::Components viaComponent,
+                                                 IICETypes::Components viaTransport,
                                                  const BYTE *buffer,
                                                  size_t bufferLengthInBytes
                                                  )
     {
-      ZS_LOG_TRACE(log("handle receive packet") + ZS_PARAM("via component", IICETypes::toString(viaComponent)) + ZS_PARAM("length", bufferLengthInBytes))
+      ZS_LOG_TRACE(log("handle receive packet") + ZS_PARAM("via component", IICETypes::toString(viaTransport)) + ZS_PARAM("length", bufferLengthInBytes))
 
       if (isShutdown()) {
-        ZS_LOG_WARNING(Debug, log("cannot receive packet on shutdown transport") + ZS_PARAM("via component", IICETypes::toString(viaComponent)) + ZS_PARAM("length", bufferLengthInBytes))
+        ZS_LOG_WARNING(Debug, log("cannot receive packet on shutdown transport") + ZS_PARAM("via component", IICETypes::toString(viaTransport)) + ZS_PARAM("length", bufferLengthInBytes))
         return;
       }
 
-      mSRTPTransport->handleReceivedPacket(buffer, bufferLengthInBytes);
+      ZS_LOG_INSANE(log("forwarding packet to SRTP transport") + ZS_PARAM("srtp transport id", mSRTPTransport->getID()) + ZS_PARAM("via", IICETypes::toString(viaTransport)) + ZS_PARAM("buffer length", bufferLengthInBytes))
+
+      mSRTPTransport->handleReceivedPacket(viaTransport, buffer, bufferLengthInBytes);
     }
 
     //-------------------------------------------------------------------------
@@ -307,7 +323,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark SRTPSDESTransport => ISRTPSDESTransportForICETransport
+    #pragma mark SRTPSDESTransport => ISecureTransportForSRTP
     #pragma mark
 
     //-------------------------------------------------------------------------
@@ -334,6 +350,7 @@ namespace ortc
 
     //-------------------------------------------------------------------------
     bool SRTPSDESTransport::handleReceivedDecryptedPacket(
+                                                          IICETypes::Components viaTransport,
                                                           IICETypes::Components packetType,
                                                           const BYTE *buffer,
                                                           size_t bufferLengthInBytes
@@ -344,11 +361,25 @@ namespace ortc
         return false;
       }
 
-#define FORWARD_PACKET_TO_RTP_LISTENER 1
-#define FORWARD_PACKET_TO_RTP_LISTENER 1
+      ZS_LOG_INSANE(log("forwarding packet to RTP listener") + ZS_PARAM("rtp listener id", mRTPListener->getID()) + ZS_PARAM("via", IICETypes::toString(viaTransport)) + ZS_PARAM("packet type", IICETypes::toString(packetType)) + ZS_PARAM("buffer length", bufferLengthInBytes))
 
-      return false;
+      return mRTPListener->handleRTPPacket(viaTransport, packetType, buffer, bufferLengthInBytes);
     }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark SRTPSDESTransport => ISecureTransportForRTPListener
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    RTPListenerPtr SRTPSDESTransport::getListener() const
+    {
+      return RTPListener::convert(mRTPListener);
+    }
+
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -476,6 +507,10 @@ namespace ortc
 
       UseServicesHelper::debugAppend(resultEl, "ice rtp transport", mICETransportRTP ? mICETransportRTP->getID() : 0);
       UseServicesHelper::debugAppend(resultEl, "ice rtcp transport", mICETransportRTCP ? mICETransportRTCP->getID() : 0);
+
+      UseServicesHelper::debugAppend(resultEl, "srtp transport", mSRTPTransport ? mSRTPTransport->getID() : 0);
+
+      UseServicesHelper::debugAppend(resultEl, "rtp listener", mRTPListener ? mRTPListener->getID() : 0);
 
       return resultEl;
     }
@@ -786,5 +821,10 @@ namespace ortc
     return internal::ISRTPSDESTransportFactory::singleton().create(delegate, iceTransport, encryptParameters, decryptParameters);
   }
 
+  //---------------------------------------------------------------------------
+  ISRTPSDESTransportPtr ISRTPSDESTransport::convert(IRTPTransportPtr rtpTransport)
+  {
+    return internal::SRTPSDESTransport::convert(rtpTransport);
+  }
 
 }

@@ -29,7 +29,7 @@
  
  */
 
-#include <ortc/internal/ortc_SCTPTransport.h>
+#include <ortc/internal/ortc_RTPListener.h>
 #include <ortc/internal/ortc_DTLSTransport.h>
 #include <ortc/internal/ortc_ORTC.h>
 #include <ortc/internal/platform.h>
@@ -62,6 +62,8 @@ namespace ortc
 
   typedef openpeer::services::Hasher<CryptoPP::SHA1> SHA1Hasher;
 
+  ZS_DECLARE_INTERACTION_TEAR_AWAY(IRTPListener, internal::RTPListener::TearAwayData)
+
   namespace internal
   {
     //-------------------------------------------------------------------------
@@ -82,9 +84,9 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void ISCTPTransportForSettings::applyDefaults()
+    void IRTPListenerForSettings::applyDefaults()
     {
-      UseSettings::setUInt(ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE, 5*1024);
+//      UseSettings::setUInt(ORTC_SETTING_RTP_TRANSPORT_MAX_MESSAGE_SIZE, 5*1024);
     }
 
     //-------------------------------------------------------------------------
@@ -92,14 +94,20 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark ISCTPTransportForDTLSTransport
+    #pragma mark IRTPListenerForSecureTransport
     #pragma mark
 
     //-------------------------------------------------------------------------
-    ElementPtr ISCTPTransportForDTLSTransport::toDebug(ForDTLSTransportPtr transport)
+    ElementPtr IRTPListenerForSecureTransport::toDebug(ForSecureTransportPtr transport)
     {
       if (!transport) return ElementPtr();
-      return ZS_DYNAMIC_PTR_CAST(SCTPTransport, transport)->toDebug();
+      return ZS_DYNAMIC_PTR_CAST(RTPListener, transport)->toDebug();
+    }
+
+    //-------------------------------------------------------------------------
+    RTPListenerPtr IRTPListenerForSecureTransport::create(IRTPTransportPtr transport)
+    {
+      return IRTPListenerFactory::singleton().create(transport);
     }
 
     //-------------------------------------------------------------------------
@@ -107,11 +115,11 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark SCTPTransport
+    #pragma mark RTPListener
     #pragma mark
     
     //---------------------------------------------------------------------------
-    const char *SCTPTransport::toString(States state)
+    const char *RTPListener::toString(States state)
     {
       switch (state) {
         case State_Pending:       return "pending";
@@ -123,15 +131,15 @@ namespace ortc
     }
     
     //-------------------------------------------------------------------------
-    SCTPTransport::SCTPTransport(
-                                 const make_private &,
-                                 IMessageQueuePtr queue,
-                                 ISCTPTransportDelegatePtr originalDelegate,
-                                 IDTLSTransportPtr dtlsTransport
-                                 ) :
+    RTPListener::RTPListener(
+                             const make_private &,
+                             IMessageQueuePtr queue,
+                             IRTPListenerDelegatePtr originalDelegate,
+                             IRTPTransportPtr transport
+                             ) :
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
-      mDTLSTransport(DTLSTransport::convert(dtlsTransport))
+      mRTPTransport(transport)
     {
       ZS_LOG_DETAIL(debug("created"))
 
@@ -141,14 +149,14 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void SCTPTransport::init()
+    void RTPListener::init()
     {
       AutoRecursiveLock lock(*this);
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
     }
 
     //-------------------------------------------------------------------------
-    SCTPTransport::~SCTPTransport()
+    RTPListener::~RTPListener()
     {
       if (isNoop()) return;
 
@@ -159,38 +167,22 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    SCTPTransportPtr SCTPTransport::convert(ISCTPTransportPtr object)
+    RTPListenerPtr RTPListener::convert(IRTPListenerPtr object)
     {
-      return ZS_DYNAMIC_PTR_CAST(SCTPTransport, object);
+      IRTPListenerPtr original = IRTPListenerTearAway::original(object);
+      return ZS_DYNAMIC_PTR_CAST(RTPListener, original);
     }
 
     //-------------------------------------------------------------------------
-    SCTPTransportPtr SCTPTransport::convert(ForSettingsPtr object)
+    RTPListenerPtr RTPListener::convert(ForSettingsPtr object)
     {
-      return ZS_DYNAMIC_PTR_CAST(SCTPTransport, object);
+      return ZS_DYNAMIC_PTR_CAST(RTPListener, object);
     }
 
     //-------------------------------------------------------------------------
-    SCTPTransportPtr SCTPTransport::convert(ForDTLSTransportPtr object)
+    RTPListenerPtr RTPListener::convert(ForSecureTransportPtr object)
     {
-      return ZS_DYNAMIC_PTR_CAST(SCTPTransport, object);
-    }
-
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark SCTPTransport => IStatsProvider
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    IStatsProvider::PromiseWithStatsReportPtr SCTPTransport::getStats() const throw(InvalidStateError)
-    {
-#define TODO_COMPLETE 1
-#define TODO_COMPLETE 2
-      return PromiseWithStatsReportPtr();
+      return ZS_DYNAMIC_PTR_CAST(RTPListener, object);
     }
 
 
@@ -199,66 +191,59 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark SCTPTransport => ISCTPTransport
+    #pragma mark RTPListener => IRTPListener
     #pragma mark
     
     //-------------------------------------------------------------------------
-    ElementPtr SCTPTransport::toDebug(SCTPTransportPtr transport)
+    ElementPtr RTPListener::toDebug(RTPListenerPtr transport)
     {
       if (!transport) return ElementPtr();
       return transport->toDebug();
     }
 
     //-------------------------------------------------------------------------
-    SCTPTransportPtr SCTPTransport::create(
-                                           ISCTPTransportDelegatePtr delegate,
-                                           IDTLSTransportPtr transport
-                                           )
+    IRTPListenerPtr RTPListener::create(
+                                        IRTPListenerDelegatePtr delegate,
+                                        IRTPTransportPtr transport
+                                        )
     {
-      SCTPTransportPtr pThis(make_shared<SCTPTransport>(make_private {}, IORTCForInternal::queueORTC(), delegate, transport));
-      pThis->mThisWeak = pThis;
-      pThis->init();
-      return pThis;
+      ORTC_THROW_INVALID_PARAMETERS_IF(!transport)
+
+      auto useSecureTransport = UseSecureTransport::convert(transport);
+      ASSERT(((bool)useSecureTransport))
+
+      auto listener = useSecureTransport->getListener();
+      ORTC_THROW_INVALID_STATE_IF(!listener)
+
+      auto tearAway = IRTPListenerTearAway::create(listener);
+      ORTC_THROW_INVALID_STATE_IF(!tearAway)
+
+      auto tearAwayData = IRTPListenerTearAway::data(tearAway);
+      ORTC_THROW_INVALID_STATE_IF(!tearAwayData)
+
+      tearAwayData->mRTPTransport = transport;
+
+      if (delegate) {
+        tearAwayData->mDefaultSubscription = listener->subscribe(delegate);
+      }
+
+      return tearAway;
     }
 
     //-------------------------------------------------------------------------
-    ISCTPTransportTypes::CapabilitiesPtr SCTPTransport::getCapabilities()
-    {
-      CapabilitiesPtr result(make_shared<Capabilities>());
-      result->mMaxMessageSize = UseSettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE);
-      return result;
-    }
-
-    //-------------------------------------------------------------------------
-    void SCTPTransport::start(const Capabilities &remoteCapabilities)
-    {
-      AutoRecursiveLock lock(*this);
-#define TODO 1
-#define TODO 2
-    }
-
-    //-------------------------------------------------------------------------
-    void SCTPTransport::stop()
-    {
-      AutoRecursiveLock lock(*this);
-#define TODO 1
-#define TODO 2
-    }
-
-    //-------------------------------------------------------------------------
-    ISCTPTransportSubscriptionPtr SCTPTransport::subscribe(ISCTPTransportDelegatePtr originalDelegate)
+    IRTPListenerSubscriptionPtr RTPListener::subscribe(IRTPListenerDelegatePtr originalDelegate)
     {
       ZS_LOG_DETAIL(log("subscribing to transport state"))
 
       AutoRecursiveLock lock(*this);
       if (!originalDelegate) return mDefaultSubscription;
 
-      ISCTPTransportSubscriptionPtr subscription = mSubscriptions.subscribe(originalDelegate, IORTCForInternal::queueDelegate());
+      IRTPListenerSubscriptionPtr subscription = mSubscriptions.subscribe(originalDelegate, IORTCForInternal::queueDelegate());
 
-      ISCTPTransportDelegatePtr delegate = mSubscriptions.delegate(subscription, true);
+      IRTPListenerDelegatePtr delegate = mSubscriptions.delegate(subscription, true);
 
       if (delegate) {
-        SCTPTransportPtr pThis = mThisWeak.lock();
+        RTPListenerPtr pThis = mThisWeak.lock();
 
 #define TODO_DO_WE_NEED_TO_TELL_ABOUT_ANY_MISSED_EVENTS 1
 #define TODO_DO_WE_NEED_TO_TELL_ABOUT_ANY_MISSED_EVENTS 2
@@ -272,18 +257,35 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    IRTPTransportPtr RTPListener::transport() const
+    {
+      return mRTPTransport.lock();
+    }
+
+    //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark SCTPTransport => ISCTPTransportForDTLSTransport
+    #pragma mark RTPListener => IRTPListenerForSecureTransport
     #pragma mark
 
     //-------------------------------------------------------------------------
-    bool SCTPTransport::handleDataPacket(
-                                         const BYTE *buffer,
-                                         size_t bufferLengthInBytes
-                                         )
+    RTPListenerPtr RTPListener::create(IRTPTransportPtr transport)
+    {
+      RTPListenerPtr pThis(make_shared<RTPListener>(make_private {}, IORTCForInternal::queueORTC(), IRTPListenerDelegatePtr(), transport));
+      pThis->mThisWeak = pThis;
+      pThis->init();
+      return pThis;
+    }
+
+    //-------------------------------------------------------------------------
+    bool RTPListener::handleRTPPacket(
+                                      IICETypes::Components viaComponent,
+                                      IICETypes::Components packetType,
+                                      const BYTE *buffer,
+                                      size_t bufferLengthInBytes
+                                      )
     {
 #define TODO 1
 #define TODO 2
@@ -295,11 +297,11 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark SCTPTransport => IWakeDelegate
+    #pragma mark RTPListener => IWakeDelegate
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void SCTPTransport::onWake()
+    void RTPListener::onWake()
     {
       ZS_LOG_DEBUG(log("wake"))
 
@@ -312,11 +314,11 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark SCTPTransport => ITimerDelegate
+    #pragma mark RTPListener => ITimerDelegate
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void SCTPTransport::onTimer(TimerPtr timer)
+    void RTPListener::onTimer(TimerPtr timer)
     {
       ZS_LOG_DEBUG(log("timer") + ZS_PARAM("timer id", timer->getID()))
 
@@ -330,7 +332,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark SCTPTransport => ISCTPTransportAsyncDelegate
+    #pragma mark RTPListener => IRTPListenerAsyncDelegate
     #pragma mark
 
 
@@ -339,62 +341,29 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark SCTPTransport => IICETransportDelegate
+    #pragma mark RTPListener => (internal)
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void SCTPTransport::onDTLSTransportStateChanged(
-                                                    IDTLSTransportPtr transport,
-                                                    IDTLSTransport::States state
-                                                    )
+    Log::Params RTPListener::log(const char *message) const
     {
-      ZS_LOG_DEBUG(log("dtls transport state changed") + ZS_PARAM("dtls transport id", transport->getID()) + ZS_PARAM("state", IDTLSTransport::toString(state)))
-
-      AutoRecursiveLock lock(*this);
-      step();
-    }
-
-    //-------------------------------------------------------------------------
-    void SCTPTransport::onDTLSTransportError(
-                                             IDTLSTransportPtr transport,
-                                             ErrorCode errorCode,
-                                             String errorReason
-                                             )
-    {
-      ZS_LOG_DEBUG(log("dtls transport state changed") + ZS_PARAM("dtls transport id", transport->getID()) + ZS_PARAM("error", errorCode) + ZS_PARAM("reason", errorReason))
-
-      AutoRecursiveLock lock(*this);
-      step();
-    }
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark SCTPTransport => (internal)
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    Log::Params SCTPTransport::log(const char *message) const
-    {
-      ElementPtr objectEl = Element::create("ortc::SCTPTransport");
+      ElementPtr objectEl = Element::create("ortc::RTPListener");
       UseServicesHelper::debugAppend(objectEl, "id", mID);
       return Log::Params(message, objectEl);
     }
 
     //-------------------------------------------------------------------------
-    Log::Params SCTPTransport::debug(const char *message) const
+    Log::Params RTPListener::debug(const char *message) const
     {
       return Log::Params(message, toDebug());
     }
 
     //-------------------------------------------------------------------------
-    ElementPtr SCTPTransport::toDebug() const
+    ElementPtr RTPListener::toDebug() const
     {
       AutoRecursiveLock lock(*this);
 
-      ElementPtr resultEl = Element::create("ortc::SCTPTransport");
+      ElementPtr resultEl = Element::create("ortc::RTPListener");
 
       UseServicesHelper::debugAppend(resultEl, "id", mID);
 
@@ -408,28 +377,26 @@ namespace ortc
       UseServicesHelper::debugAppend(resultEl, "error", mLastError);
       UseServicesHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
 
-      UseServicesHelper::debugAppend(resultEl, "dtls transport", mDTLSTransport ? mDTLSTransport->getID() : 0);
-      UseServicesHelper::debugAppend(resultEl, "dtls transport subscription", (bool)mDTLSTransportSubscription);
-
-      UseServicesHelper::debugAppend(resultEl, mCapabilities.toDebug());
+      auto rtpTransport = mRTPTransport.lock();
+      UseServicesHelper::debugAppend(resultEl, "rtp transport", rtpTransport ? rtpTransport->getID() : 0);
 
       return resultEl;
     }
 
     //-------------------------------------------------------------------------
-    bool SCTPTransport::isShuttingDown() const
+    bool RTPListener::isShuttingDown() const
     {
       return State_ShuttingDown == mCurrentState;
     }
 
     //-------------------------------------------------------------------------
-    bool SCTPTransport::isShutdown() const
+    bool RTPListener::isShutdown() const
     {
       return State_Shutdown == mCurrentState;
     }
 
     //-------------------------------------------------------------------------
-    void SCTPTransport::step()
+    void RTPListener::step()
     {
       ZS_LOG_DEBUG(debug("step"))
 
@@ -459,7 +426,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool SCTPTransport::stepBogusDoSomething()
+    bool RTPListener::stepBogusDoSomething()
     {
       if ( /* step already done */ false ) {
         ZS_LOG_TRACE(log("already completed do something"))
@@ -481,7 +448,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void SCTPTransport::cancel()
+    void RTPListener::cancel()
     {
       //.......................................................................
       // try to gracefully shutdown
@@ -511,17 +478,12 @@ namespace ortc
         mDefaultSubscription.reset();
       }
 
-      if (mDTLSTransportSubscription) {
-        mDTLSTransportSubscription->cancel();
-        mDTLSTransportSubscription.reset();
-      }
-
       // make sure to cleanup any final reference to self
       mGracefulShutdownReference.reset();
     }
 
     //-------------------------------------------------------------------------
-    void SCTPTransport::setState(States state)
+    void RTPListener::setState(States state)
     {
       if (state == mCurrentState) return;
 
@@ -529,14 +491,14 @@ namespace ortc
 
       mCurrentState = state;
 
-//      SCTPTransportPtr pThis = mThisWeak.lock();
+//      RTPListenerPtr pThis = mThisWeak.lock();
 //      if (pThis) {
-//        mSubscriptions.delegate()->onSCTPTransportStateChanged(pThis, mCurrentState);
+//        mSubscriptions.delegate()->onRTPListenerStateChanged(pThis, mCurrentState);
 //      }
     }
 
     //-------------------------------------------------------------------------
-    void SCTPTransport::setError(WORD errorCode, const char *inReason)
+    void RTPListener::setError(WORD errorCode, const char *inReason)
     {
       String reason(inReason);
       if (reason.isEmpty()) {
@@ -560,32 +522,32 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark ISCTPTransportFactory
+    #pragma mark IRTPListenerFactory
     #pragma mark
 
     //-------------------------------------------------------------------------
-    ISCTPTransportFactory &ISCTPTransportFactory::singleton()
+    IRTPListenerFactory &IRTPListenerFactory::singleton()
     {
-      return SCTPTransportFactory::singleton();
+      return RTPListenerFactory::singleton();
     }
 
     //-------------------------------------------------------------------------
-    SCTPTransportPtr ISCTPTransportFactory::create(
-                                                   ISCTPTransportDelegatePtr delegate,
-                                                   IDTLSTransportPtr transport
-                                                   )
+    IRTPListenerPtr IRTPListenerFactory::create(
+                                                IRTPListenerDelegatePtr delegate,
+                                                IRTPTransportPtr transport
+                                                )
     {
       if (this) {}
-      return internal::SCTPTransport::create(delegate, transport);
+      return internal::RTPListener::create(delegate, transport);
     }
 
     //-------------------------------------------------------------------------
-    ISCTPTransportFactory::CapabilitiesPtr ISCTPTransportFactory::getCapabilities()
+    RTPListenerPtr IRTPListenerFactory::create(IRTPTransportPtr transport)
     {
       if (this) {}
-      return SCTPTransport::getCapabilities();
+      return internal::RTPListener::create(transport);
     }
-
+    
   } // internal namespace
 
 
@@ -594,56 +556,22 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   #pragma mark
-  #pragma mark ISCTPTransportTypes::Parameters
+  #pragma mark IRTPListener
   #pragma mark
 
   //---------------------------------------------------------------------------
-  ElementPtr ISCTPTransportTypes::Capabilities::toDebug() const
+  ElementPtr IRTPListener::toDebug(IRTPListenerPtr transport)
   {
-    ElementPtr resultEl = Element::create("ortc::ISCTPTransportTypes::Capabilities");
-
-    UseServicesHelper::debugAppend(resultEl, "max message size", mMaxMessageSize);
-
-    return resultEl;
+    return internal::RTPListener::toDebug(internal::RTPListener::convert(transport));
   }
 
   //---------------------------------------------------------------------------
-  String ISCTPTransportTypes::Capabilities::hash() const
+  IRTPListenerPtr IRTPListener::create(
+                                       IRTPListenerDelegatePtr delegate,
+                                       IRTPTransportPtr transport
+                                       )
   {
-    SHA1Hasher hasher;
-
-    hasher.update("ISCTPTransportTypes:Capabilities:");
-    hasher.update(string(mMaxMessageSize));
-    return hasher.final();
-  }
-
-  //---------------------------------------------------------------------------
-  //---------------------------------------------------------------------------
-  //---------------------------------------------------------------------------
-  //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark ISCTPTransport
-  #pragma mark
-
-  //---------------------------------------------------------------------------
-  ElementPtr ISCTPTransport::toDebug(ISCTPTransportPtr transport)
-  {
-    return internal::SCTPTransport::toDebug(internal::SCTPTransport::convert(transport));
-  }
-
-  //---------------------------------------------------------------------------
-  ISCTPTransportPtr ISCTPTransport::create(
-                                           ISCTPTransportDelegatePtr delegate,
-                                           IDTLSTransportPtr transport
-                                           )
-  {
-    return internal::ISCTPTransportFactory::singleton().create(delegate, transport);
-  }
-
-  //---------------------------------------------------------------------------
-  ISCTPTransportTypes::CapabilitiesPtr ISCTPTransport::getCapabilities()
-  {
-    return internal::ISCTPTransportFactory::singleton().getCapabilities();
+    return internal::IRTPListenerFactory::singleton().create(delegate, transport);
   }
 
 }

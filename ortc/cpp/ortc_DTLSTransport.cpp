@@ -32,6 +32,7 @@
 #include <ortc/internal/ortc_DTLSTransport.h>
 #include <ortc/internal/ortc_ICETransport.h>
 #include <ortc/internal/ortc_Certificate.h>
+#include <ortc/internal/ortc_RTPListener.h>
 #include <ortc/internal/ortc_SRTPTransport.h>
 #include <ortc/internal/ortc_ORTC.h>
 #include <ortc/internal/platform.h>
@@ -354,6 +355,7 @@ namespace ortc
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
       mICETransport(ICETransport::convert(iceTransport)),
+      mComponent(mICETransport->component()),
       mCertificate(Certificate::convert(certificate)),
       mMaxPendingDTLSBuffer(UseSettings::getUInt(ORTC_SETTING_DTLS_TRANSPORT_MAX_PENDING_DTLS_BUFFER)),
       mMaxPendingRTPPackets(UseSettings::getUInt(ORTC_SETTING_DTLS_TRANSPORT_MAX_PENDING_RTP_PACKETS))
@@ -373,6 +375,8 @@ namespace ortc
       // scope: setup generator
       {
         AutoRecursiveLock lock(*this);
+
+        mRTPListener = UseRTPListener::create(mThisWeak.lock());
 
         mAdapter = AdapterPtr(make_shared<Adapter>(mThisWeak.lock()));
         mAdapter->setIdentity(mCertificate);
@@ -439,6 +443,12 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    DTLSTransportPtr DTLSTransport::convert(ForRTPListenerPtr object)
+    {
+      return ZS_DYNAMIC_PTR_CAST(DTLSTransport, object);
+    }
+
+    //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -464,6 +474,34 @@ namespace ortc
       pThis->mThisWeak = pThis;
       pThis->init();
       return pThis;
+    }
+
+    //-------------------------------------------------------------------------
+    DTLSTransportPtr DTLSTransport::convert(IRTPTransportPtr rtpTransport)
+    {
+      auto transport = ZS_DYNAMIC_PTR_CAST(DTLSTransport, rtpTransport);
+      if (!transport) return transport;
+
+      auto component = transport->component();
+      if (IICETypes::Component_RTP != component) {
+        ZS_LOG_WARNING(Detail, transport->log("component not RTP") + ZS_PARAM("component", IICETypes::toString(component)))
+        return DTLSTransportPtr();
+      }
+      return transport;
+    }
+
+    //-------------------------------------------------------------------------
+    DTLSTransportPtr DTLSTransport::convert(IRTCPTransportPtr rtcpTransport)
+    {
+      auto transport = ZS_DYNAMIC_PTR_CAST(DTLSTransport, rtcpTransport);
+      if (!transport) return transport;
+
+      auto component = transport->component();
+      if (IICETypes::Component_RTCP != component) {
+        ZS_LOG_WARNING(Detail, transport->log("component not RTCP") + ZS_PARAM("component", IICETypes::toString(component)))
+        return DTLSTransportPtr();
+      }
+      return transport;
     }
 
     //-------------------------------------------------------------------------
@@ -721,7 +759,7 @@ namespace ortc
 
     //-------------------------------------------------------------------------
     void DTLSTransport::handleReceivedPacket(
-                                             IICETypes::Components viaComponent,
+                                             IICETypes::Components viaTransport,
                                              const BYTE *buffer,
                                              size_t bufferLengthInBytes
                                              )
@@ -841,7 +879,9 @@ namespace ortc
       {
 #define WARNING_HANDLE_SRTP_KEY_LIFETIME_EXHAUSTION 1
 #define WARNING_HANDLE_SRTP_KEY_LIFETIME_EXHAUSTION 2
-        srtpTransport->handleReceivedPacket(buffer, bufferLengthInBytes);
+
+        ZS_LOG_INSANE(log("forwarding packet to SRTP transport") + ZS_PARAM("srtp transport id", srtpTransport->getID()) + ZS_PARAM("via", IICETypes::toString(viaTransport)) + ZS_PARAM("buffer length", bufferLengthInBytes))
+        srtpTransport->handleReceivedPacket(viaTransport, buffer, bufferLengthInBytes);
         return;
       }
 
@@ -873,7 +913,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark DTLSTransport => ISecureTransportForICETransport
+    #pragma mark DTLSTransport => ISecureTransportForSRTP
     #pragma mark
 
     //-------------------------------------------------------------------------
@@ -909,6 +949,7 @@ namespace ortc
 
     //-------------------------------------------------------------------------
     bool DTLSTransport::handleReceivedDecryptedPacket(
+                                                      IICETypes::Components viaTransport,
                                                       IICETypes::Components packetType,
                                                       const BYTE *buffer,
                                                       size_t bufferLengthInBytes
@@ -925,10 +966,23 @@ namespace ortc
 
       }
 
-#define TODO_FORWARD_TO_RTP_LISTENER 1
-#define TODO_FORWARD_TO_RTP_LISTENER 2
+      ZS_LOG_INSANE(log("forwarding packet to RTP listener") + ZS_PARAM("rtp listener id", mRTPListener->getID()) + ZS_PARAM("via", IICETypes::toString(viaTransport)) + ZS_PARAM("packet type", IICETypes::toString(packetType)) + ZS_PARAM("buffer length", bufferLengthInBytes))
 
-      return false;
+      return mRTPListener->handleRTPPacket(mComponent, packetType, buffer, bufferLengthInBytes);
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark DTLSTransport => ISecureTransportForSRTP
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    RTPListenerPtr DTLSTransport::getListener() const
+    {
+      return RTPListener::convert(mRTPListener);
     }
 
     //-------------------------------------------------------------------------
@@ -1227,7 +1281,32 @@ namespace ortc
 
       UseServicesHelper::debugAppend(resultEl, "certificate", UseCertificate::toDebug(mCertificate));
 
+      UseServicesHelper::debugAppend(resultEl, "local params", mLocalParams.toDebug());
+      UseServicesHelper::debugAppend(resultEl, "remote params", mRemoteParams.toDebug());
+
+      UseServicesHelper::debugAppend(resultEl, "adapter", mAdapter ? mAdapter->toDebug() : ElementPtr());
+
+      UseServicesHelper::debugAppend(resultEl, "max pending dtls buffer", mMaxPendingDTLSBuffer);
+      UseServicesHelper::debugAppend(resultEl, "max pending rtp packets", mMaxPendingRTPPackets);
+
+      UseServicesHelper::debugAppend(resultEl, "pending incoming RTP packets", mPendingIncomingRTP.size());
+      UseServicesHelper::debugAppend(resultEl, "pending incoming dtls buffer size (bytes)", mPendingIncomingDTLS.CurrentSize());
+
+      UseServicesHelper::debugAppend(resultEl, "pending outgoing dtls packets", mPendingOutgoingDTLS.size());
+
+      UseServicesHelper::debugAppend(resultEl, "fixed role", mFixedRole);
+
+      UseServicesHelper::debugAppend(resultEl, "validation", Adapter::toString(mValidation));
+
+      UseServicesHelper::debugAppend(resultEl, "srtp transport", mSRTPTransport ? mSRTPTransport->getID() : 0);
+
       return resultEl;
+    }
+
+    //-------------------------------------------------------------------------
+    IICETypes::Components DTLSTransport::component() const
+    {
+      return mComponent;
     }
 
     //-------------------------------------------------------------------------
@@ -1571,6 +1650,59 @@ namespace ortc
     #pragma mark
     #pragma mark IDTLSTransportFactory::Adapter
     #pragma mark
+
+    //-------------------------------------------------------------------------
+    const char *DTLSTransport::Adapter::toString(StreamState state)
+    {
+      switch (state) {
+        case SS_CLOSED:           return "closed";
+        case SS_OPENING:          return "opening";
+        case SS_OPEN:             return "open";
+      }
+      return "UNDEFINED";
+    }
+
+    //-------------------------------------------------------------------------
+    const char *DTLSTransport::Adapter::toString(SSLRole role)
+    {
+      switch (role) {
+        case SSL_CLIENT:          return "client";
+        case SSL_SERVER:          return "server";
+      }
+      return "UNDEFINED";
+    }
+
+    //-------------------------------------------------------------------------
+    const char *DTLSTransport::Adapter::toString(SSLMode mode)
+    {
+      switch (mode) {
+        case SSL_MODE_TLS:        return "tls";
+        case SSL_MODE_DTLS:       return "dtls";
+      }
+      return "UNDEFINED";
+    }
+
+    //-------------------------------------------------------------------------
+    const char *DTLSTransport::Adapter::toString(SSLProtocolVersion version)
+    {
+      switch (version) {
+        case SSL_PROTOCOL_TLS_10:       return "1.0";
+        case SSL_PROTOCOL_TLS_11:       return "1.1/DTLS1.0";
+        case SSL_PROTOCOL_TLS_12:       return "1.2/DTLS1.2";
+      }
+      return "UNDEFINED";
+    }
+
+    //-------------------------------------------------------------------------
+    const char *DTLSTransport::Adapter::toString(Validation validation)
+    {
+      switch (validation) {
+        case VALIDATION_NA:       return "NA";
+        case VALIDATION_PASSED:   return "passed";
+        case VALIDATION_FAILED:   return "failed";
+      }
+      return "UNDEFINED";
+    }
 
     //-------------------------------------------------------------------------
     DTLSTransport::Adapter::Adapter(DTLSTransportPtr outer) :
@@ -2072,6 +2204,20 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    const char *DTLSTransport::Adapter::toString(SSLState state)
+    {
+      switch (state) {
+        case SSL_NONE:            return "none";
+        case SSL_WAIT:            return "wait";
+        case SSL_CONNECTING:      return "connecting";
+        case SSL_CONNECTED:       return "connected";
+        case SSL_ERROR:           return "error";
+        case SSL_CLOSED:          return "closed";
+      }
+      return "UNDEFINED";
+    }
+
+    //-------------------------------------------------------------------------
     int DTLSTransport::Adapter::startSSL() {
       ASSERT(state_ == SSL_NONE);
 
@@ -2405,7 +2551,11 @@ namespace ortc
         ASSERT(peer_certificate_ != NULL);
         // no server name validation
         ok = true;
+#if 0
       }
+#else
+      }
+#endif //0
 
       if (!ok && ignore_bad_cert()) {
         ZS_LOG_ERROR(Debug, log("SSL_get_verify_result(ssl)") + ZS_PARAM("result", SSL_get_verify_result(ssl)))
@@ -2448,6 +2598,46 @@ namespace ortc
             return kDefaultSslCipher12NoAesGcm;
           }
       }
+    }
+
+    //-------------------------------------------------------------------------
+    ElementPtr DTLSTransport::Adapter::toDebug() const
+    {
+      ElementPtr resultEl = Element::create("ortc::DTLSTransport::Adapter");
+
+      UseServicesHelper::debugAppend(resultEl, "id", mID);
+      UseServicesHelper::debugAppend(resultEl, "outer", (bool)(mOuter.lock()));
+
+      UseServicesHelper::debugAppend(resultEl, "timer", mTimer ? mTimer->getID() : 0);
+
+      UseServicesHelper::debugAppend(resultEl, "state", toString(state_));
+      UseServicesHelper::debugAppend(resultEl, "role", toString(role_));
+      UseServicesHelper::debugAppend(resultEl, "sll error code", ssl_error_code_);
+
+      UseServicesHelper::debugAppend(resultEl, "sll read needs write", ssl_read_needs_write_);
+      UseServicesHelper::debugAppend(resultEl, "sll write needs read", ssl_write_needs_read_);
+
+      UseServicesHelper::debugAppend(resultEl, "sll", (bool)ssl_);
+      UseServicesHelper::debugAppend(resultEl, "sll context", (bool)ssl_ctx_);
+
+      UseServicesHelper::debugAppend(resultEl, "use certificate", UseCertificate::toDebug(identity_));
+
+      UseServicesHelper::debugAppend(resultEl, "ssl server name", ssl_server_name_);
+
+      UseServicesHelper::debugAppend(resultEl, "peer certificate", (bool)peer_certificate_);
+
+      UseServicesHelper::debugAppend(resultEl, "custom verification succeeded", custom_verification_succeeded_);
+
+      UseServicesHelper::debugAppend(resultEl, "srtp ciphers", srtp_ciphers_);
+
+      UseServicesHelper::debugAppend(resultEl, "ssl mode", toString(ssl_mode_));
+
+      UseServicesHelper::debugAppend(resultEl, "ssl max version", toString(ssl_max_version_));
+
+      UseServicesHelper::debugAppend(resultEl, "client auth enabled", client_auth_enabled_);
+      UseServicesHelper::debugAppend(resultEl, "ignore bad certificate", ignore_bad_cert_);
+
+      return resultEl;
     }
 
     //-------------------------------------------------------------------------
@@ -2612,5 +2802,16 @@ namespace ortc
     return internal::IDTLSTransportFactory::singleton().create(delegate, iceTransport, certificate);
   }
 
+  //---------------------------------------------------------------------------
+  IDTLSTransportPtr IDTLSTransport::convert(IRTPTransportPtr rtpTransport)
+  {
+    return internal::DTLSTransport::convert(rtpTransport);
+  }
+
+  //---------------------------------------------------------------------------
+  IDTLSTransportPtr IDTLSTransport::convert(IRTCPTransportPtr rtcpTransport)
+  {
+    return internal::DTLSTransport::convert(rtcpTransport);
+  }
 
 }

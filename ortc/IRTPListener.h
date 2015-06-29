@@ -62,14 +62,14 @@ namespace ortc
 
     static IRTPListenerPtr create(
                                   IRTPListenerDelegatePtr delegate,
-                                  IDTLSTransportPtr transport
+                                  IRTPTransportPtr transport
                                   );
 
     virtual PUID getID() const = 0;
 
     virtual IRTPListenerSubscriptionPtr subscribe(IRTPListenerDelegatePtr delegate) = 0;
 
-    virtual IDTLSTransportPtr transport() const = 0;
+    virtual IRTPTransportPtr transport() const = 0;
   };
 
   //---------------------------------------------------------------------------

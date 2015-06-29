@@ -359,6 +359,7 @@ namespace ortc
 
     //-------------------------------------------------------------------------
     bool SRTPTransport::handleReceivedPacket(
+                                             IICETypes::Components viaTransport,
                                              const BYTE *buffer,
                                              size_t bufferLengthInBytes
                                              )
@@ -456,7 +457,9 @@ namespace ortc
 
       ASSERT(((bool)encryptedBuffer))
 
-      return transport->handleReceivedDecryptedPacket(component, encryptedBuffer->BytePtr(), encryptedBuffer->SizeInBytes());
+      ZS_LOG_INSANE(log("forwarding packet to secure transport") + ZS_PARAM("via", IICETypes::toString(viaTransport)) + ZS_PARAM("component", IICETypes::toString(component)) + ZS_PARAM("buffer length in bytes", encryptedBuffer->SizeInBytes()))
+
+      return transport->handleReceivedDecryptedPacket(viaTransport, component, encryptedBuffer->BytePtr(), encryptedBuffer->SizeInBytes());
     }
 
     //-------------------------------------------------------------------------

@@ -137,6 +137,37 @@ namespace ortc
       return ElementPtr();
     }
  
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark ISecureTransportForRTPListener
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    ElementPtr ISecureTransportForRTPListener::toDebug(ForRTPListenerPtr transport)
+    {
+      if (!transport) return ElementPtr();
+
+      {
+        auto pThis = DTLSTransport::convert(transport);
+        if (pThis) return DTLSTransport::toDebug(pThis);
+      }
+
+      {
+        auto pThis = SRTPSDESTransport::convert(transport);
+        if (pThis) return SRTPSDESTransport::toDebug(pThis);
+      }
+      return ElementPtr();
+    }
+
+    //-------------------------------------------------------------------------
+    ISecureTransportForRTPListener::ForRTPListenerPtr ISecureTransportForRTPListener::convert(IRTPTransportPtr transport)
+    {
+      if (!transport) return ForRTPListenerPtr();
+      return ZS_DYNAMIC_PTR_CAST(ForRTPListener, transport);
+    }
 
   }
 

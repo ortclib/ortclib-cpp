@@ -87,6 +87,7 @@ namespace ortc
                                        ) = 0;
 
       virtual bool handleReceivedDecryptedPacket(
+                                                 IICETypes::Components viaTransport,
                                                  IICETypes::Components packetType,
                                                  const BYTE *buffer,
                                                  size_t bufferLengthInBytes
@@ -119,6 +120,27 @@ namespace ortc
                                             IICETypes::Components viaComponent,
                                             STUNPacketPtr packet
                                             ) = 0;
+    };
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark ISecureTransportForRTPListener
+    #pragma mark
+
+    interaction ISecureTransportForRTPListener
+    {
+      ZS_DECLARE_TYPEDEF_PTR(ISecureTransportForRTPListener, ForRTPListener)
+
+      static ElementPtr toDebug(ForRTPListenerPtr transport);
+
+      static ForRTPListenerPtr convert(IRTPTransportPtr transport);
+
+      virtual PUID getID() const = 0;
+
+      virtual RTPListenerPtr getListener() const = 0;
     };
 
   }

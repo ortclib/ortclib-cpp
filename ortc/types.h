@@ -92,12 +92,12 @@ namespace ortc
 
   interaction IRTPTransport
   {
-    virtual ~IRTPTransport() {};
+    virtual PUID getID() const = 0;
   };
 
   interaction IRTCPTransport
   {
-    virtual ~IRTCPTransport() {};
+    virtual PUID getID() const = 0;
   };
 
   ZS_DECLARE_INTERACTION_PTR(ICertificate)

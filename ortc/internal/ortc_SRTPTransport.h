@@ -100,6 +100,7 @@ namespace ortc
       virtual ISRTPTransportSubscriptionPtr subscribe(ISRTPTransportDelegatePtr delegate) = 0;
 
       virtual bool handleReceivedPacket(
+                                        IICETypes::Components viaTransport,
                                         const BYTE *buffer,
                                         size_t bufferLengthInBytes
                                         ) = 0;
@@ -219,6 +220,7 @@ namespace ortc
       virtual ISRTPTransportSubscriptionPtr subscribe(ISRTPTransportDelegatePtr delegate) override;
 
       virtual bool handleReceivedPacket(
+                                        IICETypes::Components viaTransport,
                                         const BYTE *buffer,
                                         size_t bufferLengthInBytes
                                         ) override;

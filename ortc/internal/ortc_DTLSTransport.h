@@ -56,6 +56,7 @@ namespace ortc
     ZS_DECLARE_INTERACTION_PTR(IICETransportForSecureTransport)
     ZS_DECLARE_INTERACTION_PTR(ICertificateForDTLSTransport)
     ZS_DECLARE_INTERACTION_PTR(ISRTPTransportForSecureTransport)
+    ZS_DECLARE_INTERACTION_PTR(IRTPListenerForSecureTransport)
 
     ZS_DECLARE_INTERACTION_PTR(IDTLSTransportForSettings)
     ZS_DECLARE_INTERACTION_PTR(IDTLSTransportForDataTransport)
@@ -136,6 +137,7 @@ namespace ortc
                           public ISecureTransportForRTPSender,
                           public ISecureTransportForICETransport,
                           public ISecureTransportForSRTP,
+                          public ISecureTransportForRTPListener,
                           public IDTLSTransportForSettings,
                           public IWakeDelegate,
                           public zsLib::ITimerDelegate,
@@ -152,12 +154,14 @@ namespace ortc
       friend interaction IDTLSTransportForDataTransport;
       friend interaction ISecureTransportForRTPSender;
       friend interaction ISecureTransportForICETransport;
+      friend interaction ISecureTransportForRTPListener;
       friend interaction ISecureTransportForSRTP;
       friend interaction IDTLSTransportForSettings;
 
       ZS_DECLARE_TYPEDEF_PTR(IICETransportForSecureTransport, UseICETransport)
       ZS_DECLARE_TYPEDEF_PTR(ICertificateForDTLSTransport, UseCertificate)
       ZS_DECLARE_TYPEDEF_PTR(ISRTPTransportForSecureTransport, UseSRTPTransport)
+      ZS_DECLARE_TYPEDEF_PTR(IRTPListenerForSecureTransport, UseRTPListener)
 
       ZS_DECLARE_CLASS_PTR(Adapter)
 
@@ -192,6 +196,7 @@ namespace ortc
       static DTLSTransportPtr convert(ForRTPSenderPtr object);
       static DTLSTransportPtr convert(ForICETransportPtr object);
       static DTLSTransportPtr convert(ForSRTPPtr object);
+      static DTLSTransportPtr convert(ForRTPListenerPtr object);
 
     protected:
       //-----------------------------------------------------------------------
@@ -213,6 +218,9 @@ namespace ortc
                                      IICETransportPtr iceTransport,
                                      ICertificatePtr certificate
                                      );
+
+      static DTLSTransportPtr convert(IRTPTransportPtr rtpTransport);
+      static DTLSTransportPtr convert(IRTCPTransportPtr rtcpTransport);
 
       virtual PUID getID() const override {return mID;}
 
@@ -271,7 +279,7 @@ namespace ortc
       // (duplicate) virtual PUID getID() const;
 
       virtual void handleReceivedPacket(
-                                        IICETypes::Components viaComponent,
+                                        IICETypes::Components viaTransport,
                                         const BYTE *buffer,
                                         size_t bufferLengthInBytes
                                         ) override;
@@ -297,10 +305,22 @@ namespace ortc
                                        ) override;
 
       virtual bool handleReceivedDecryptedPacket(
+                                                 IICETypes::Components viaTransport,
                                                  IICETypes::Components packetType,
                                                  const BYTE *buffer,
                                                  size_t bufferLengthInBytes
                                                  ) override;
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark DTLSTransport => ISecureTransportForRTPListener
+      #pragma mark
+
+      // (duplicate) static ElementPtr toDebug(ForRTPListenerPtr transport);
+
+      // (duplicate) virtual PUID getID() const = 0;
+
+      virtual RTPListenerPtr getListener() const override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -402,6 +422,8 @@ namespace ortc
       Log::Params debug(const char *message) const;
       virtual ElementPtr toDebug() const;
 
+      IICETypes::Components component() const;
+
       bool isValidated() const {return IDTLSTransportTypes::State_Validated == mCurrentState;}
 
       bool isShuttingDown() const;
@@ -443,6 +465,12 @@ namespace ortc
         };
         enum { SSE_MSG_TRUNC = 0xff0001 };
         enum Validation {VALIDATION_NA, VALIDATION_PASSED, VALIDATION_FAILED};
+
+        static const char *toString(StreamState state);
+        static const char *toString(SSLRole role);
+        static const char *toString(SSLMode mode);
+        static const char *toString(SSLProtocolVersion version);
+        static const char *toString(Validation validation);
 
       public:
         Adapter(DTLSTransportPtr outer);
@@ -516,6 +544,9 @@ namespace ortc
         static bool haveExporter();
         static String getDefaultSslCipher(SSLProtocolVersion version);
 
+        // debug helpers
+        ElementPtr toDebug() const;
+
         // Override MessageHandler
         void onTimer(TimerPtr timer);
 
@@ -542,6 +573,8 @@ namespace ortc
           SSL_ERROR,      // some SSL error occurred, stream is closed
           SSL_CLOSED      // Clean close
         };
+
+        static const char *toString(SSLState state);
 
         // The following three methods return 0 on success and a negative
         // error code on failure. The error code may be from OpenSSL or -1
@@ -645,6 +678,8 @@ namespace ortc
       WORD mLastError {};
       String mLastErrorReason;
 
+      IICETypes::Components mComponent {IICETypes::Component_RTP};
+
       UseICETransportPtr mICETransport;
       IICETransportSubscriptionPtr mICETransportSubscription;
 
@@ -668,6 +703,8 @@ namespace ortc
       Adapter::Validation mValidation {Adapter::VALIDATION_NA};
 
       UseSRTPTransportPtr mSRTPTransport;
+
+      UseRTPListenerPtr mRTPListener; // no lock needed
     };
 
     //-------------------------------------------------------------------------

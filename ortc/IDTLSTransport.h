@@ -126,6 +126,9 @@ namespace ortc
                                     ICertificatePtr certificate
                                     );
 
+    static IDTLSTransportPtr convert(IRTPTransportPtr rtpTransport);
+    static IDTLSTransportPtr convert(IRTCPTransportPtr rtcpTransport);
+
     virtual PUID getID() const = 0;
 
     virtual IDTLSTransportSubscriptionPtr subscribe(IDTLSTransportDelegatePtr delegate) = 0;
