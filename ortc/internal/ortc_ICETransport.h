@@ -60,6 +60,8 @@
 
 #define ORTC_SETTING_ICE_TRANSPORT_TEST_CANDIDATE_PAIRS_OF_LOWER_PREFERENCE "ortc/ice-transport/test-candidate-pairs-of-lower-preference"
 
+#define ORTC_SETTING_ICE_TRANSPORT_MAX_BUFFERED_FOR_SECURE_TRANSPORT "ortc/ice-transport/max-buffered-packets-for-secure-transport"
+
 namespace ortc
 {
   namespace internal
@@ -210,6 +212,8 @@ namespace ortc
 
       virtual void onNotifyAttached(PUID secureTransportID) = 0;
       virtual void onNotifyDetached(PUID secureTransportID) = 0;
+
+      virtual void onDeliverPendingPackets() = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -286,8 +290,7 @@ namespace ortc
 
       typedef std::map<RouteID, LocalCandidateFromIPPair> RouteIDLocalCandidateFromIPMap;
 
-      typedef std::pair<RouterRoutePtr, SecureByteBlockPtr> RoutedPacketPair;
-      typedef std::queue<RoutedPacketPair> RoutedPacketQueue;
+      typedef std::queue<SecureByteBlockPtr> PacketQueue;
 
     public:
       ICETransport(
@@ -452,6 +455,8 @@ namespace ortc
 
       virtual void onNotifyAttached(PUID secureTransportID) override;
       virtual void onNotifyDetached(PUID secureTransportID) override;
+
+      virtual void onDeliverPendingPackets() override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -787,8 +792,8 @@ namespace ortc
 
       UseICETransportControllerWeakPtr mTransportController;
 
-      ICETransportPtr mRTPTransport;
-      ICETransportWeakPtr mRTCPTransport;
+      ICETransportWeakPtr mRTPTransport;
+      ICETransportPtr mRTCPTransport;
 
       std::atomic<bool> mWakeUp {false};
       int mWarmRoutesChanged {0};
@@ -851,8 +856,8 @@ namespace ortc
       UseSecureTransportWeakPtr mSecureTransportOld;
 
       size_t mMaxBufferedPackets {};
-      bool mBufferPackets {true};
-      RoutedPacketQueue mBufferedPackets;
+      bool mMustBufferPackets {true};
+      PacketQueue mBufferedPackets;
     };
 
     //-------------------------------------------------------------------------
@@ -887,4 +892,6 @@ ZS_DECLARE_PROXY_METHOD_3(onNotifyPacketRetried, CandidatePtr, IPAddress, STUNPa
 ZS_DECLARE_PROXY_METHOD_0(onWarmRoutesChanged)
 ZS_DECLARE_PROXY_METHOD_1(onNotifyAttached, PUID)
 ZS_DECLARE_PROXY_METHOD_1(onNotifyDetached, PUID)
+ZS_DECLARE_PROXY_METHOD_0(onDeliverPendingPackets)
 ZS_DECLARE_PROXY_END()
+
