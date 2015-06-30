@@ -85,10 +85,21 @@ namespace ortc
     #pragma mark (helpers)
     #pragma mark
 
-#define SRTP_MASTER_KEY_LEN 30
+#define SRTP_MASTER_KEY_LEN (30)
+
+#define RTP_MINIMUM_PACKET_HEADER_SIZE (12)
 
     const char CS_AES_CM_128_HMAC_SHA1_80[] = "AES_CM_128_HMAC_SHA1_80";
     const char CS_AES_CM_128_HMAC_SHA1_32[] = "AES_CM_128_HMAC_SHA1_32";
+
+    //-------------------------------------------------------------------------
+    static bool isRTCP(const BYTE *data, size_t len) {
+      if (len < 2) {
+        return false;
+      }
+      BYTE pt = (data[1] & 0x7F);
+      return (63 < pt) && (pt < 96);
+    }
 
     //-------------------------------------------------------------------------
     static size_t toRemainingPercent(
@@ -204,11 +215,15 @@ namespace ortc
 
       for (size_t loop = Direction_First; loop <= Direction_Last; ++loop) {
 
-        if (!((CS_AES_CM_128_HMAC_SHA1_80 == mParams[loop].mCryptoSuite) ||
-              (CS_AES_CM_128_HMAC_SHA1_32 == mParams[loop].mCryptoSuite))) {
+        if (CS_AES_CM_128_HMAC_SHA1_80 == mParams[loop].mCryptoSuite) {
+          mMaterial[loop].mAuthenticationTagLength[IICETypes::Component_RTP] = (80/8);
+          mMaterial[loop].mAuthenticationTagLength[IICETypes::Component_RTCP] = (80/8);
+        } else if (CS_AES_CM_128_HMAC_SHA1_32 == mParams[loop].mCryptoSuite) {
+          mMaterial[loop].mAuthenticationTagLength[IICETypes::Component_RTP] = (32/8);
+          mMaterial[loop].mAuthenticationTagLength[IICETypes::Component_RTCP] = (80/8);
+        } else {
           ZS_LOG_WARNING(Detail, log("crypto suite is not understood") + mParams[loop].toDebug())
           ORTC_THROW_INVALID_PARAMETERS("Crypto suite is not understood: " + mParams[loop].mCryptoSuite)
-          continue;
         }
 
         size_t mkiLength = ORTC_SRTPTRANSPORT_ILLEGAL_MKI_LEGNTH;
@@ -383,7 +398,7 @@ namespace ortc
     {
       UseSecureTransportPtr transport;
       SecureByteBlockPtr decryptedBuffer;
-      IICETypes::Components component = IICETypes::Component_RTP;
+      IICETypes::Components component = (isRTCP(buffer, bufferLengthInBytes) ? IICETypes::Component_RTP : IICETypes::Component_RTCP);
 
       size_t popSize = 0;
 
@@ -393,7 +408,19 @@ namespace ortc
 
       KeyingMaterialPtr decryptedWithKey; // WARNING: do NOT modify contents of what pointer is pointing to outside of a lock (shouldn't need to change contents anyway)
 
-      const BYTE *pPacketMKI {NULL};
+      DirectionMaterial &material = mMaterial[Direction_Decrypt]; // WARNING: only some values are accessible outside a lock
+
+      const BYTE *packetMKI {NULL};
+
+      size_t authenticationTagLength = material.mAuthenticationTagLength[component];
+
+      if (material.mMKILength > 0) {
+        if (bufferLengthInBytes < (RTP_MINIMUM_PACKET_HEADER_SIZE + material.mMKILength + authenticationTagLength)) {
+          ZS_LOG_WARNING(Debug, log("packet length is wrong (thus discarding)") + ZS_PARAM("buffer length in bytes", bufferLengthInBytes))
+          return false;
+        }
+        packetMKI = &(buffer[bufferLengthInBytes - authenticationTagLength - material.mMKILength]);
+      }
 
 #define TODO_SET_pPacketMKI_TO_POINT_TO_MKI_VALUE_INSIDE_PACKET_IF_APPLICABLE 1
 #define TODO_SET_pPacketMKI_TO_POINT_TO_MKI_VALUE_INSIDE_PACKET_IF_APPLICABLE 2
@@ -407,8 +434,6 @@ namespace ortc
       {
         AutoRecursiveLock lock(*this);
 
-        DirectionMaterial &material = mMaterial[Direction_Decrypt];
-
         if (0 == mLastRemainingOverallPercentageReported) {
           ZS_LOG_WARNING(Detail, log("cannot decrypt packet as packet lifetime is exhausted (and continuing to decrypt would violate security principles)"))
           return false;
@@ -421,7 +446,7 @@ namespace ortc
         }
 
         if (0 != material.mMKILength) {
-          if (NULL == pPacketMKI) {
+          if (NULL == packetMKI) {
             ZS_LOG_WARNING(Debug, log("packet mki value was not present (thus aborting decryption)") + ZS_PARAM("buffer length in bytes", bufferLengthInBytes))
             return false;
           }
@@ -429,10 +454,7 @@ namespace ortc
           ASSERT(((bool)material.mTempMKIHolder)) // must be present
           ASSERT(material.mMKILength == material.mTempMKIHolder->SizeInBytes()) // must be identical
 
-#define WARNING_DOUBLE_CHECK_THAT_THE_MKI_VALUE_SOURCE_POINTER_FROM_PACKET_PLUS_LENGTH_OF_MKI_WOULD_NOT_EXCEED_TOTAL_PACKET_LENGTH 1
-#define WARNING_DOUBLE_CHECK_THAT_THE_MKI_VALUE_SOURCE_POINTER_FROM_PACKET_PLUS_LENGTH_OF_MKI_WOULD_NOT_EXCEED_TOTAL_PACKET_LENGTH 2
-
-          memcpy(material.mTempMKIHolder->BytePtr(), pPacketMKI, material.mTempMKIHolder->SizeInBytes());
+          memcpy(material.mTempMKIHolder->BytePtr(), packetMKI, material.mTempMKIHolder->SizeInBytes());
 
           auto found = material.mKeys.find(material.mTempMKIHolder);
           if (found == material.mKeys.end()) {
@@ -466,9 +488,6 @@ namespace ortc
           return false;
         }
 
-#define TODO_FIGURE_OUT_IF_THIS_IS_AN_RTP_PACKET_OR_RTCP_PACKET_AND_SET_component 1
-#define TODO_FIGURE_OUT_IF_THIS_IS_AN_RTP_PACKET_OR_RTCP_PACKET_AND_SET_component 2
-
         if (currentKey->mTotalPackets[component] + 1 > currentKey->mLifetime) {
           ZS_LOG_WARNING(Debug, log("cannot use keying material as it's lifetime is exhausted") + currentKey->toDebug())
           return false;
@@ -479,11 +498,33 @@ namespace ortc
 
       ASSERT(((bool)transport))
 
+      if (material.mMKILength > 0) {
+        // As part of the decryption process, the MKI value must be stripped from
+        // the packet. This is done by selectively copying from the source packet
+        // to the decryptedBuffer (which is not yet decrypted).
+        decryptedBuffer = SecureByteBlockPtr(make_shared<SecureByteBlock>(bufferLengthInBytes - material.mMKILength));
+
+        size_t headerAndPayloadSize = bufferLengthInBytes - authenticationTagLength - material.mMKILength;
+
+        // first copy the RTP header and encrypted payload
+        memcpy(decryptedBuffer->BytePtr(), buffer, headerAndPayloadSize);
+
+        BYTE *destAuthTag = &((decryptedBuffer->BytePtr())[headerAndPayloadSize]);
+        const BYTE *sourceAuthTag = &(buffer[headerAndPayloadSize + material.mMKILength]);
+
+        memcpy(destAuthTag, sourceAuthTag, authenticationTagLength);
+      } else {
+        // nothing fancy here, just copy the source packet into the decrypted
+        // buffer and prepare for decryption
+        decryptedBuffer = SecureByteBlockPtr(make_shared<SecureByteBlock>(buffer, bufferLengthInBytes));
+      }
+
+
+      // NOTE: The decryptedBuffer now includes the RTP header, payload and
+      // authentication tag without the MKI value in the packet.
+
 #define WARNING_IF_POSSIBLE_PERFORM_DECRYPTION_OUTSIDE_OF_OBJECT_LOCK 1
 #define WARNING_IF_POSSIBLE_PERFORM_DECRYPTION_OUTSIDE_OF_OBJECT_LOCK 2
-
-#define WARNING_SHOULD_NOT_REACH_HERE_UNLESS_decryptedBuffer_IS_VALID 1
-#define WARNING_SHOULD_NOT_REACH_HERE_UNLESS_decryptedBuffer_IS_VALID 2
 
 #define ONCE_FIGURED_OUT_WHICH_KEY_TO_USE_SET_decryptedWithKey_TO_POINT_TO_THAT_KEY 1
 #define ONCE_FIGURED_OUT_WHICH_KEY_TO_USE_SET_decryptedWithKey_TO_POINT_TO_THAT_KEY 2
@@ -493,8 +534,6 @@ namespace ortc
       // need to update the usage of the key (depending on which key was acutally used for decrypting)
       {
         AutoRecursiveLock lock(*this);
-
-        DirectionMaterial &material = mMaterial[Direction_Decrypt];
 
         if (decryptedWithKey->mTotalPackets[component] + 1 > decryptedWithKey->mLifetime) {
           ZS_LOG_WARNING(Debug, log("cannot use keying material as it's lifetime is exhausted") + decryptedWithKey->toDebug())
@@ -516,7 +555,10 @@ namespace ortc
 
       ZS_LOG_INSANE(log("forwarding packet to secure transport") + ZS_PARAM("via", IICETypes::toString(viaTransport)) + ZS_PARAM("component", IICETypes::toString(component)) + ZS_PARAM("buffer length in bytes", decryptedBuffer->SizeInBytes()))
 
-      return transport->handleReceivedDecryptedPacket(viaTransport, component, decryptedBuffer->BytePtr(), decryptedBuffer->SizeInBytes());
+#define MIGHT_WANT_TO_USE_SRTPLIB_OUTPUT_LENGTH_INSTEAD 1
+#define MIGHT_WANT_TO_USE_SRTPLIB_OUTPUT_LENGTH_INSTEAD 2
+
+      return transport->handleReceivedDecryptedPacket(viaTransport, component, decryptedBuffer->BytePtr(), decryptedBuffer->SizeInBytes() - authenticationTagLength);
     }
 
     //-------------------------------------------------------------------------
@@ -532,6 +574,10 @@ namespace ortc
 
       SecureByteBlockPtr encryptedBuffer;
 
+      DirectionMaterial &material = mMaterial[Direction_Decrypt]; // WARNING: only some values are accessible outside a lock
+
+      size_t authenticationTagLength = material.mAuthenticationTagLength[packetType];
+
       {
         AutoRecursiveLock lock(*this);
 
@@ -545,8 +591,6 @@ namespace ortc
           ZS_LOG_WARNING(Debug, log("nowhere to send packet as secure transport is gone"))
           return false;
         }
-
-        DirectionMaterial &material = mMaterial[Direction_Encrypt];
 
         while (true) {
           if (material.mKeyList.size() < 1) {
@@ -570,11 +614,39 @@ namespace ortc
         updateTotalPackets(Direction_Encrypt, packetType, keyingMaterial);
       }
 
+      // Encrypted buffer must include enough room for the full packet and the
+      // MKI and authentication tag.
+      encryptedBuffer = SecureByteBlockPtr(make_shared<SecureByteBlock>(bufferLengthInBytes + authenticationTagLength + material.mMKILength));
+
+      memcpy(encryptedBuffer->BytePtr(), buffer, bufferLengthInBytes);
+
+      // lib srtp does not understand MKI thus we need to tell it the
+      // space available for the packet without including the additional MKI
+      // field...
+      size_t libSRTPMaxLength = bufferLengthInBytes + authenticationTagLength;
+
+#define TODO_APPLY_ENCRYPTION_TO_ENCRYPTED_BUFFER_BUT_LIE_TO_SRTP_ABOUT_LENGTH_SINCE_IT_DOESNT_KNOW_ABOUT_ADDITIONAL_MKI_FIELD 1
+#define TODO_APPLY_ENCRYPTION_TO_ENCRYPTED_BUFFER_BUT_LIE_TO_SRTP_ABOUT_LENGTH_SINCE_IT_DOESNT_KNOW_ABOUT_ADDITIONAL_MKI_FIELD 2
+
 #define WARNING_IF_POSSIBLE_DO_ENCRYPTION_OUTSIDE_OF_OBJECT_LOCK 1
 #define WARNING_IF_POSSIBLE_DO_ENCRYPTION_OUTSIDE_OF_OBJECT_LOCK 2
 
 #define WARNING_SHOULD_NOT_REACH_HERE_UNLESS_encryptedBuffer_IS_VALID 1
 #define WARNING_SHOULD_NOT_REACH_HERE_UNLESS_encryptedBuffer_IS_VALID 2
+
+      if (material.mMKILength > 0) {
+        // Need to make room for the MKI by moving the authentication tag
+        // after the spot where the MKI is to be inserted. Once moved then
+        // the MKI value from the keying material can be copied into the
+        // packet's MKI location.
+        const BYTE *sourceAuthentication = &(encryptedBuffer->BytePtr()[bufferLengthInBytes]);
+        BYTE *destAuthentication = &(encryptedBuffer->BytePtr()[bufferLengthInBytes + material.mMKILength]);
+        BYTE *packetMKI = &(encryptedBuffer->BytePtr()[bufferLengthInBytes]);
+
+        memmove(destAuthentication, sourceAuthentication, authenticationTagLength);   // must use a memmove not a memcpy incase the source/dest buffers overlap
+        memcpy(packetMKI, keyingMaterial->mMKIValue->BytePtr(), material.mMKILength);
+      }
+
 
       ASSERT(((bool)transport))
       ASSERT(((bool)encryptedBuffer))

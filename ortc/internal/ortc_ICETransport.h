@@ -43,6 +43,8 @@
 
 #include <zsLib/Timer.h>
 
+#include <queue>
+
 #define ORTC_SETTING_ICE_TRANSPORT_MAX_CANDIDATE_PAIRS_TO_TEST  "ortc/ice-transport/max-candidate-pairs-to-test"
 
 #define ORTC_SETTING_ICE_TRANSPORT_ACTIVATION_TIMER_IN_MILLISECONDS  "ortc/ice-transport/activation-timer-in-milliseconds"
@@ -283,6 +285,9 @@ namespace ortc
       typedef std::pair<LocalCandidatePtr, FromIP> LocalCandidateFromIPPair;
 
       typedef std::map<RouteID, LocalCandidateFromIPPair> RouteIDLocalCandidateFromIPMap;
+
+      typedef std::pair<RouterRoutePtr, SecureByteBlockPtr> RoutedPacketPair;
+      typedef std::queue<RoutedPacketPair> RoutedPacketQueue;
 
     public:
       ICETransport(
@@ -843,6 +848,11 @@ namespace ortc
 
       PUID mSecureTransportID {0};
       UseSecureTransportWeakPtr mSecureTransport;
+      UseSecureTransportWeakPtr mSecureTransportOld;
+
+      size_t mMaxBufferedPackets {};
+      bool mBufferPackets {true};
+      RoutedPacketQueue mBufferedPackets;
     };
 
     //-------------------------------------------------------------------------

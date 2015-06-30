@@ -925,16 +925,46 @@ namespace ortc
         }
 
         transport = mSecureTransport.lock();
-        goto forward_attached_listener;
+        if (!transport) {
+          ZS_LOG_WARNING(Debug, log("no secure transport attached (packet is being buffered)"))
+          mBufferPackets = true;
+        }
+
+        if (mBufferPackets) {
+          // packets must be buffered
+        }
+
+        goto forward_attached_secure_transport;
       }
 
-    forward_attached_listener:
+    forward_attached_secure_transport:
       {
-        if (!transport) {
-          ZS_LOG_WARNING(Debug, log("no secure transport attached (packet is being discarded)"))
+        bool handled = transport->handleReceivedPacket(mComponent, buffer, bufferSizeInBytes);
+
+        if (!handled) goto forward_old_transport;
+      }
+
+    forward_old_transport:
+      {
+        {
+          AutoRecursiveLock lock(*this);
+          transport = mSecureTransportOld.lock();
+          if (!transport) {
+            ZS_LOG_WARNING(Debug, log("no older transport available to send packet") + routerRoute->toDebug() + ZS_PARAMIZE(bufferSizeInBytes))
+            return;
+          }
+        }
+
+        bool handled = transport->handleReceivedPacket(mComponent, buffer, bufferSizeInBytes);
+        if (!handled) {
+          AutoRecursiveLock lock(*this);
+
+          auto oldTransportID = transport->getID();
+
+          mSecureTransportOld.reset();
+          ZS_LOG_DEBUG(log("old transport did not handle packet either (thus disposing of old transport)") + ZS_PARAM("old transport id", oldTransportID) + routerRoute->toDebug() + ZS_PARAMIZE(bufferSizeInBytes))
           return;
         }
-        transport->handleReceivedPacket(mComponent, buffer, bufferSizeInBytes);
       }
     }
     
@@ -1198,6 +1228,8 @@ namespace ortc
         ZS_LOG_WARNING(Detail, log("secure transport is not attached") + ZS_PARAM("secure transport id", secureTransportID))
         return;
       }
+
+      mSecureTransportOld = mSecureTransport;
 
       mSecureTransportID = 0;
       mSecureTransport.reset();
@@ -1806,6 +1838,7 @@ namespace ortc
 
       UseServicesHelper::debugAppend(resultEl, "secure transport id", mSecureTransportID);
       UseServicesHelper::debugAppend(resultEl, "secure transport", (bool)(mSecureTransport.lock()));
+      UseServicesHelper::debugAppend(resultEl, "secure transport (old)", (bool)(mSecureTransportOld.lock()));
 
       return resultEl;
     }
@@ -2562,9 +2595,6 @@ namespace ortc
 
       setState(IICETransportTypes::State_Closed);
 
-      mSecureTransportID = 0;
-      mSecureTransport.reset();
-
       mSubscriptions.clear();
 
       mLocalCandidates.clear();
@@ -2616,7 +2646,9 @@ namespace ortc
         mExpireRouteTimer.reset();
       }
 
+      mSecureTransportID = 0;
       mSecureTransport.reset();
+      mSecureTransportOld.reset();
     }
 
     //-------------------------------------------------------------------------
