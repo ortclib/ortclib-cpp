@@ -44,6 +44,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_IRTPRouter.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_ISecureTransport.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_ISRTPTransport.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_MediaDevices.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_MediaEngine.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_MediaManager.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_MediaStream.h" />
@@ -87,6 +88,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ortc_ICETransportController.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ortc_ICETypes.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ortc_ISecureTransport.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ortc_MediaDevices.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ortc_MediaEngine.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ortc_MediaManager.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ortc_MediaStream.cpp" />
