@@ -21,6 +21,7 @@
 		007B990C1856A1CD004AC6C0 /* ortc_RTPReceiver.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 007B99091856A1CD004AC6C0 /* ortc_RTPReceiver.cpp */; };
 		007B990D1856A1CD004AC6C0 /* ortc_RTPSender.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 007B990A1856A1CD004AC6C0 /* ortc_RTPSender.cpp */; };
 		007B990E1856A1CD004AC6C0 /* ortc_TrackDescription.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 007B990B1856A1CD004AC6C0 /* ortc_TrackDescription.cpp */; };
+		00961DD71B44552D00EEB0F0 /* ortc_MediaDevices.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00961DD61B44552D00EEB0F0 /* ortc_MediaDevices.cpp */; };
 		00AA4CBD1B38CAFA0073E17B /* ortc_Certificate.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00AA4CBC1B38CAFA0073E17B /* ortc_Certificate.cpp */; };
 		00D8BFA518479BC70001A335 /* ortc_ICETransport.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00D8BFA418479BC70001A335 /* ortc_ICETransport.cpp */; };
 		00D8BFF11848DF280001A335 /* ortc_Helper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00D8BFF01848DF280001A335 /* ortc_Helper.cpp */; };
@@ -93,6 +94,8 @@
 		007B99101856A1E4004AC6C0 /* ortc_RTPSender.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ortc_RTPSender.h; sourceTree = "<group>"; };
 		007B99111856A1FF004AC6C0 /* IRTPReceiver.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IRTPReceiver.h; sourceTree = "<group>"; };
 		007B99121856A1FF004AC6C0 /* IRTPSender.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IRTPSender.h; sourceTree = "<group>"; };
+		00961DD61B44552D00EEB0F0 /* ortc_MediaDevices.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_MediaDevices.cpp; sourceTree = "<group>"; };
+		00961DD81B44554000EEB0F0 /* ortc_MediaDevices.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ortc_MediaDevices.h; sourceTree = "<group>"; };
 		00AA4CB91B38C84D0073E17B /* ICertificate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ICertificate.h; sourceTree = "<group>"; };
 		00AA4CBB1B38CAEB0073E17B /* ortc_Certificate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ortc_Certificate.h; sourceTree = "<group>"; };
 		00AA4CBC1B38CAFA0073E17B /* ortc_Certificate.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_Certificate.cpp; sourceTree = "<group>"; };
@@ -211,6 +214,7 @@
 				00DD17BF1AE91DEB008C3404 /* ortc_ICETypes.cpp */,
 				00D8BFA418479BC70001A335 /* ortc_ICETransport.cpp */,
 				003BB1C31AEBCBA400748EA9 /* ortc_ICETransportController.cpp */,
+				00961DD61B44552D00EEB0F0 /* ortc_MediaDevices.cpp */,
 				00265E5B1B40983700D9B45F /* ortc_RTPListener.cpp */,
 				006E83881B3C5506007740C3 /* ortc_SCTPTransport.cpp */,
 				0064C6C51AFE847A0089571E /* ortc_ISecureTransport.cpp */,
@@ -232,6 +236,7 @@
 		E2260E9F182163D50084E4A4 /* internal */ = {
 			isa = PBXGroup;
 			children = (
+				00961DD81B44554000EEB0F0 /* ortc_MediaDevices.h */,
 				00DD17C51AE91E02008C3404 /* platform.h */,
 				E2260EA3182163D50084E4A4 /* types.h */,
 				00DD17C31AE91E02008C3404 /* ifaddrs-android.h */,
@@ -326,6 +331,7 @@
 				00724A72184CF4530049B9EF /* ortc_ORTC.cpp in Sources */,
 				E22F74F818401C0D008F502E /* ortc_MediaManager.cpp in Sources */,
 				00D8BFA518479BC70001A335 /* ortc_ICETransport.cpp in Sources */,
+				00961DD71B44552D00EEB0F0 /* ortc_MediaDevices.cpp in Sources */,
 				E22F74FA18401C0D008F502E /* ortc_MediaStreamTrack.cpp in Sources */,
 				004B60A41B23FF5B00568C22 /* ortc_ICEGathererRouter.cpp in Sources */,
 				007B990D1856A1CD004AC6C0 /* ortc_RTPSender.cpp in Sources */,

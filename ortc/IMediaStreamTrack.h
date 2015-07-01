@@ -32,7 +32,9 @@
 #pragma once
 
 #include <ortc/types.h>
+#include <ortc/ICapabilities.h>
 #include <ortc/IConstraints.h>
+#include <ortc/IStatsProvider.h>
 
 namespace ortc
 {
@@ -54,6 +56,21 @@ namespace ortc
 
     ZS_DECLARE_TYPEDEF_PTR(std::list<ConstraintSetPtr>, ConstraintSetList)
 
+    enum Kinds
+    {
+      Kind_First,
+
+      Kind_AudioInput = Kind_First,
+      Kind_AudioOutput,
+      Kind_Video,
+
+      Kind_Last = Kind_Video,
+    };
+
+    static const char *toString(Kinds kind);
+    static bool isAudio(Kinds kind);
+    static bool isVideo(Kinds kind);
+
     //-------------------------------------------------------------------------
     #pragma mark
     #pragma mark IMediaStreamTrackTypes::States
@@ -61,9 +78,15 @@ namespace ortc
     
     enum States
     {
-      State_Live,
+      State_First,
+
+      State_Live = State_First,
       State_Ended,
+
+      State_Last = State_Ended,
     };
+
+    static const char *toString(States state);
 
     //-------------------------------------------------------------------------
     #pragma mark
@@ -111,7 +134,8 @@ namespace ortc
     #pragma mark
 
     struct Constraints {
-      ConstraintSetList mAdvanced;
+      ConstraintSetList mVideo;
+      ConstraintSetList mAudio;
     };
 
     //-------------------------------------------------------------------------
@@ -150,7 +174,7 @@ namespace ortc
   {
     virtual PUID getID() const = 0;
 
-    virtual String kind() const = 0;
+    virtual Kinds kind() const = 0;
     virtual String id() const = 0;
     virtual String label() const = 0;
     virtual bool enabled() const = 0;
