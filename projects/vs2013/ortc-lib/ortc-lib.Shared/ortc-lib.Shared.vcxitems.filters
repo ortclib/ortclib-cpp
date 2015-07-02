@@ -263,5 +263,11 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ortc_MediaDevices.cpp">
       <Filter>ortc\cpp</Filter>
     </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ortc_Capabilities.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ortc_Constraints.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
