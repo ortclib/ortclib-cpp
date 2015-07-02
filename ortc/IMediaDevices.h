@@ -56,6 +56,23 @@ namespace ortc
     ZS_DECLARE_TYPEDEF_PTR(PromiseWith<MediaStreamTrackListPtr>, PromiseWithMediaStreamTrackList)
     ZS_DECLARE_TYPEDEF_PTR(PromiseWith<DeviceListPtr>, PromiseWithDeviceList)
 
+    enum DeviceKinds
+    {
+      DeviceKind_First,
+
+      DeviceKind_AudioInput = DeviceKind_First,
+      DeviceKind_AudioOutput,
+      DeviceKind_Video,
+
+      DeviceKind_Last = DeviceKind_Video,
+    };
+
+    static const char *toString(DeviceKinds kind);
+    static Kinds toKind(DeviceKinds kind);
+
+    static bool isAudio(DeviceKinds kind);
+    static bool isVideo(DeviceKinds kind);
+
     struct SupportedConstraints
     {
       bool mWidth {false};
@@ -81,6 +98,9 @@ namespace ortc
     #pragma mark
 
     struct Device {
+      DeviceKinds mKind {DeviceKind_First};
+
+      String mLabel;
       String mDeviceID;
       String mGroupID;
 
@@ -123,6 +143,8 @@ namespace ortc
   
   interaction IMediaDevices : public IMediaDevicesTypes
   {
+    static ElementPtr toDebug();
+
     static SupportedConstraintsPtr getSupportedConstraints();
 
     static PromiseWithDeviceListPtr enumerateDevices();

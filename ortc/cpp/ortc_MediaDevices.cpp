@@ -184,6 +184,17 @@ namespace ortc
     #pragma mark
     
     //-------------------------------------------------------------------------
+    ElementPtr MediaDevices::singletonToDebug()
+    {
+
+      MediaDevicesPtr pThis(MediaDevices::singleton());
+      if (!pThis) return ElementPtr();
+
+      AutoRecursiveLock lock(*pThis);
+      return pThis->toDebug();
+    }
+
+    //-------------------------------------------------------------------------
     IMediaDevices::SupportedConstraintsPtr MediaDevices::getSupportedConstraints()
     {
       SupportedConstraintsPtr result(make_shared<SupportedConstraints>());
@@ -542,6 +553,13 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    ElementPtr IMediaDevicesFactory::singletonToDebug()
+    {
+      if (this) {}
+      return internal::MediaDevices::singletonToDebug();
+    }
+
+    //-------------------------------------------------------------------------
     MediaDevicesPtr IMediaDevicesFactory::create()
     {
       if (this) {}
@@ -578,6 +596,63 @@ namespace ortc
 
   } // internal namespace
 
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IMediaDevicesTypes
+  #pragma mark
+
+  //---------------------------------------------------------------------------
+  const char *IMediaDevicesTypes::toString(DeviceKinds kind)
+  {
+    switch (kind) {
+      case DeviceKind_AudioInput:   return "audio in";
+      case DeviceKind_AudioOutput:  return "audio out";
+      case DeviceKind_Video:        return "video";
+    }
+    return "UNDEFINED";
+  }
+  
+  //---------------------------------------------------------------------------
+  IMediaStreamTrackTypes::Kinds IMediaDevicesTypes::toKind(DeviceKinds kind)
+  {
+    switch (kind) {
+      case DeviceKind_AudioInput:   return Kind_Audio;
+      case DeviceKind_AudioOutput:  return Kind_Audio;
+      case DeviceKind_Video:        return Kind_Video;
+    }
+
+    ASSERT(false)
+    return Kind_Audio;
+  }
+
+  //---------------------------------------------------------------------------
+  bool IMediaDevicesTypes::isAudio(DeviceKinds kind)
+  {
+    switch (kind) {
+      case DeviceKind_AudioInput:   return true;
+      case DeviceKind_AudioOutput:  return true;
+      case DeviceKind_Video:        return false;
+    }
+
+    ASSERT(false)
+    return false;
+  }
+
+  //---------------------------------------------------------------------------
+  bool IMediaDevicesTypes::isVideo(DeviceKinds kind)
+  {
+    switch (kind) {
+      case DeviceKind_AudioInput:   return false;
+      case DeviceKind_AudioOutput:  return false;
+      case DeviceKind_Video:        return true;
+    }
+
+    ASSERT(false)
+    return false;
+  }
 
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
@@ -641,6 +716,8 @@ namespace ortc
   {
     ElementPtr resultEl = Element::create("ortc::IMediaDevicesTypes::Device");
 
+    UseServicesHelper::debugAppend(resultEl, "device kind", toString(mKind));
+    UseServicesHelper::debugAppend(resultEl, "label", mLabel);
     UseServicesHelper::debugAppend(resultEl, "device id", mDeviceID);
     UseServicesHelper::debugAppend(resultEl, "group id", mGroupID);
     UseServicesHelper::debugAppend(resultEl, mSupportedConstraints.toDebug());
@@ -655,6 +732,10 @@ namespace ortc
 
     hasher.update("ortc::IMediaDevicesTypes::Device:");
 
+    hasher.update(toString(mKind));
+    hasher.update(":");
+    hasher.update(mLabel);
+    hasher.update(":");
     hasher.update(mDeviceID);
     hasher.update(":");
     hasher.update(mGroupID);
@@ -671,6 +752,12 @@ namespace ortc
   #pragma mark
   #pragma mark IMediaDevices
   #pragma mark
+
+  //---------------------------------------------------------------------------
+  ElementPtr IMediaDevices::toDebug()
+  {
+    return internal::IMediaDevicesFactory::singleton().singletonToDebug();
+  }
 
   //---------------------------------------------------------------------------
   IMediaDevicesTypes::SupportedConstraintsPtr IMediaDevices::getSupportedConstraints()

@@ -153,6 +153,8 @@ namespace ortc
       #pragma mark MediaDevices => IMediaDevices
       #pragma mark
 
+      static ElementPtr singletonToDebug();
+
       static SupportedConstraintsPtr getSupportedConstraints();
 
       static PromiseWithDeviceListPtr enumerateDevices();
@@ -250,6 +252,8 @@ namespace ortc
       static IMediaDevicesFactory &singleton();
 
       virtual MediaDevicesPtr create();
+
+      virtual ElementPtr singletonToDebug();
 
       virtual SupportedConstraintsPtr getSupportedConstraints();
 

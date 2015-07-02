@@ -33,7 +33,7 @@
 
 #include <ortc/types.h>
 
-#include <list>
+#include <set>
 
 namespace ortc
 {
@@ -47,10 +47,21 @@ namespace ortc
   
   interaction ICapabilities
   {
-    typedef bool CapabilityBool;
+    ZS_DECLARE_STRUCT_PTR(CapabilityBool)
     ZS_DECLARE_STRUCT_PTR(CapabilityLong)
     ZS_DECLARE_STRUCT_PTR(CapabilityDouble)
     ZS_DECLARE_STRUCT_PTR(CapabilityString)
+
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark ICapabilities::CapabilityBool
+    #pragma mark
+
+    struct CapabilityBool : public std::set<bool> {
+
+      ElementPtr toDebug() const;
+      String hash() const;
+    };
 
     //-------------------------------------------------------------------------
     #pragma mark
@@ -60,6 +71,16 @@ namespace ortc
     struct CapabilityLong {
       LONG mMin {};
       LONG mMax {};
+
+      CapabilityLong() {}
+      CapabilityLong(LONG value) :          mMin(value), mMax(value) {}
+      CapabilityLong(
+                     LONG min,
+                     LONG max
+                     ) :                    mMin(min), mMax(max) {}
+
+      ElementPtr toDebug() const;
+      String hash() const;
     };
 
     //-------------------------------------------------------------------------
@@ -70,6 +91,16 @@ namespace ortc
     struct CapabilityDouble {
       double mMin {};
       double mMax {};
+
+      CapabilityDouble() {}
+      CapabilityDouble(double value) :      mMin(value), mMax(value) {}
+      CapabilityDouble(
+                       double min,
+                       double max
+                       ) :                  mMin(min), mMax(max) {}
+
+      ElementPtr toDebug() const;
+      String hash() const;
     };
 
     //-------------------------------------------------------------------------
@@ -77,7 +108,10 @@ namespace ortc
     #pragma mark ICapabilities::CapabilityString
     #pragma mark
 
-    struct CapabilityString : public std::list<String> {
+    struct CapabilityString : public std::set<String> {
+
+      ElementPtr toDebug() const;
+      String hash() const;
     };
   };
 }

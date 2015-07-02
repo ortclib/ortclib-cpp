@@ -1,17 +1,17 @@
 /*
- 
- Copyright (c) 2014, Hookflash Inc. / Hookflash Inc.
+
+ Copyright (c) 2015, Hookflash Inc. / Hookflash Inc.
  All rights reserved.
- 
+
  Redistribution and use in source and binary forms, with or without
  modification, are permitted provided that the following conditions are met:
- 
+
  1. Redistributions of source code must retain the above copyright notice, this
  list of conditions and the following disclaimer.
  2. Redistributions in binary form must reproduce the above copyright notice,
  this list of conditions and the following disclaimer in the documentation
  and/or other materials provided with the distribution.
- 
+
  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -22,412 +22,336 @@
  ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- 
+
  The views and conclusions contained in the software and documentation are those
  of the authors and should not be interpreted as representing official policies,
  either expressed or implied, of the FreeBSD Project.
  
  */
 
-#if 0
-
 #include <ortc/internal/ortc_MediaStreamTrack.h>
-#include <ortc/internal/ortc_MediaEngine.h>
+#include <ortc/internal/ortc_DTLSTransport.h>
+#include <ortc/internal/ortc_ORTC.h>
+#include <ortc/internal/platform.h>
 
+#include <openpeer/services/ISettings.h>
 #include <openpeer/services/IHelper.h>
+#include <openpeer/services/IHTTP.h>
 
+#include <zsLib/Stringize.h>
 #include <zsLib/Log.h>
 #include <zsLib/XML.h>
+
+#include <cryptopp/sha.h>
+
+
+#ifdef _DEBUG
+#define ASSERT(x) ZS_THROW_BAD_STATE_IF(!(x))
+#else
+#define ASSERT(x)
+#endif //_DEBUG
+
 
 namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib) }
 
 namespace ortc
 {
+  ZS_DECLARE_TYPEDEF_PTR(openpeer::services::ISettings, UseSettings)
   ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHelper, UseServicesHelper)
+  ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHTTP, UseHTTP)
+
+  typedef openpeer::services::Hasher<CryptoPP::SHA1> SHA1Hasher;
+
+  using zsLib::SingletonManager;
 
   namespace internal
   {
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IReceiveMediaTransportForMediaManager
-    #pragma mark
-    
     //-------------------------------------------------------------------------
-    ReceiveMediaTransportPtr IReceiveMediaTransportForMediaManager::create()
-    {
-      ReceiveMediaTransportPtr pThis(new ReceiveMediaTransport());
-      pThis->mThisWeak = pThis;
-      return pThis;
-    }
-    
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ISendMediaTransportForMediaManager
-    #pragma mark
-    
     //-------------------------------------------------------------------------
-    SendMediaTransportPtr ISendMediaTransportForMediaManager::create()
-    {
-      SendMediaTransportPtr pThis(new SendMediaTransport());
-      pThis->mThisWeak = pThis;
-      return pThis;
-    }
-    
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaTransport
-    #pragma mark
-    
     //-------------------------------------------------------------------------
-    MediaTransport::MediaTransport()
-    {
-      
-    }
-    
     //-------------------------------------------------------------------------
-    MediaTransport::~MediaTransport()
-    {
-      
-    }
-    
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
     #pragma mark
-    #pragma mark MediaTransport => IMediaTransport
+    #pragma mark (helpers)
     #pragma mark
-    
+
+
     //-------------------------------------------------------------------------
-    int MediaTransport::getTransportStatistics(IMediaTransport::RtpRtcpStatistics &stat)
-    {
-      return 0;
-    }
-    
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ReceiveMediaTransport
-    #pragma mark
-    
     //-------------------------------------------------------------------------
-    ReceiveMediaTransport::ReceiveMediaTransport()
-    {
-      
-    }
-    
     //-------------------------------------------------------------------------
-    ReceiveMediaTransport::~ReceiveMediaTransport()
-    {
-      
-    }
-    
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ReceiveMediaTransport => IMediaTransport
-    #pragma mark
-    
     //-------------------------------------------------------------------------
-    int ReceiveMediaTransport::getTransportStatistics(IMediaTransport::RtpRtcpStatistics &stat)
-    {
-      return 0;
-    }
-    
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
     #pragma mark
-    #pragma mark ReceiveMediaTransport => IReceiveMediaTransportForMediaManager
+    #pragma mark IICETransportForSettings
     #pragma mark
-    
+
     //-------------------------------------------------------------------------
-    int ReceiveMediaTransport::receivedRTPPacket(const void *data, unsigned int length)
+    void IMediaStreamTrackForSettings::applyDefaults()
     {
-      return 0;
+//      UseSettings::setUInt(ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE, 5*1024);
     }
-    
+
     //-------------------------------------------------------------------------
-    int ReceiveMediaTransport::receivedRTCPPacket(const void *data, unsigned int length)
-    {
-      return 0;
-    }
-    
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark SendMediaTransport
-    #pragma mark
-    
     //-------------------------------------------------------------------------
-    SendMediaTransport::SendMediaTransport()
-    {
-      
-    }
-    
     //-------------------------------------------------------------------------
-    SendMediaTransport::~SendMediaTransport()
-    {
-      
-    }
-    
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark SendMediaTransport => IMediaTransport
-    #pragma mark
-    
     //-------------------------------------------------------------------------
-    int SendMediaTransport::getTransportStatistics(IMediaTransport::RtpRtcpStatistics &stat)
-    {
-      return 0;
-    }
-    
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark SendMediaTransport => ISendMediaTransportForMediaManager
-    #pragma mark
-    
-    //-------------------------------------------------------------------------
-    int SendMediaTransport::registerExternalTransport(Transport &transport)
-    {
-      return 0;
-    }
-    
-    int SendMediaTransport::deregisterExternalTransport()
-    {
-      return 0;
-    }
-    
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ILocalAudioStreamTrackForMediaManager
-    #pragma mark
-    
-    //-------------------------------------------------------------------------
-    LocalAudioStreamTrackPtr ILocalAudioStreamTrackForMediaManager::create(IMessageQueuePtr queue, IMediaStreamTrackDelegatePtr delegate)
-    {
-      LocalAudioStreamTrackPtr pThis(new LocalAudioStreamTrack(queue, delegate));
-      pThis->mThisWeak = pThis;
-      return pThis;
-    }
-    
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRemoteReceiveAudioStreamTrackForMediaManager
-    #pragma mark
-    
-    //-------------------------------------------------------------------------
-    RemoteReceiveAudioStreamTrackPtr IRemoteReceiveAudioStreamTrackForMediaManager::create(IMessageQueuePtr queue, IMediaStreamTrackDelegatePtr delegate)
-    {
-      RemoteReceiveAudioStreamTrackPtr pThis(new RemoteReceiveAudioStreamTrack(queue, delegate));
-      pThis->mThisWeak = pThis;
-      return pThis;
-    }
-    
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRemoteSendAudioStreamTrackForMediaManager
-    #pragma mark
-    
-    //-------------------------------------------------------------------------
-    RemoteSendAudioStreamTrackPtr IRemoteSendAudioStreamTrackForMediaManager::create(IMessageQueuePtr queue, IMediaStreamTrackDelegatePtr delegate)
-    {
-      RemoteSendAudioStreamTrackPtr pThis(new RemoteSendAudioStreamTrack(queue, delegate));
-      pThis->mThisWeak = pThis;
-      return pThis;
-    }
-    
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ILocalVideoStreamTrackForMediaManager
-    #pragma mark
-    
-    //-------------------------------------------------------------------------
-    LocalVideoStreamTrackPtr ILocalVideoStreamTrackForMediaManager::create(IMessageQueuePtr queue, IMediaStreamTrackDelegatePtr delegate)
-    {
-      LocalVideoStreamTrackPtr pThis(new LocalVideoStreamTrack(queue, delegate));
-      pThis->mThisWeak = pThis;
-      return pThis;
-    }
-    
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRemoteReceiveVideoStreamTrackForMediaManager
-    #pragma mark
-    
-    //-------------------------------------------------------------------------
-    RemoteReceiveVideoStreamTrackPtr IRemoteReceiveVideoStreamTrackForMediaManager::create(IMessageQueuePtr queue, IMediaStreamTrackDelegatePtr delegate)
-    {
-      RemoteReceiveVideoStreamTrackPtr pThis(new RemoteReceiveVideoStreamTrack(queue, delegate));
-      pThis->mThisWeak = pThis;
-      return pThis;
-    }
-    
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRemoteSendVideoStreamTrackForMediaManager
-    #pragma mark
-    
-    //-------------------------------------------------------------------------
-    RemoteSendVideoStreamTrackPtr IRemoteSendVideoStreamTrackForMediaManager::create(IMessageQueuePtr queue, IMediaStreamTrackDelegatePtr delegate)
-    {
-      RemoteSendVideoStreamTrackPtr pThis(new RemoteSendVideoStreamTrack(queue, delegate));
-      pThis->mThisWeak = pThis;
-      return pThis;
-    }
-    
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
     #pragma mark
     #pragma mark MediaStreamTrack
     #pragma mark
-    
-    //-----------------------------------------------------------------------
-    MediaStreamTrack::MediaStreamTrack(IMessageQueuePtr queue, IMediaStreamTrackDelegatePtr delegate) :
+
+    //-------------------------------------------------------------------------
+    MediaStreamTrack::MediaStreamTrack(
+                                       const make_private &,
+                                       IMessageQueuePtr queue
+                                       ) :
       MessageQueueAssociator(queue),
-      mID(zsLib::createPUID()),
-      mEnabled(false),
-      mMuted(false),
-      mReadonly(false),
-      mRemote(false),
-      mReadyState(IMediaStreamTrack::MediaStreamTrackState_New),
-      mSSRC(0),
-      mSource(-1),
-      mChannel(-1)
+      SharedRecursiveLock(SharedRecursiveLock::create())
     {
+      ZS_LOG_DETAIL(debug("created"))
     }
-    
-    //-----------------------------------------------------------------------
+
+    //-------------------------------------------------------------------------
+    void MediaStreamTrack::init()
+    {
+      AutoRecursiveLock lock(*this);
+      IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
+    }
+
+    //-------------------------------------------------------------------------
     MediaStreamTrack::~MediaStreamTrack()
     {
+      if (isNoop()) return;
+
+      ZS_LOG_DETAIL(log("destroyed"))
+      mThisWeak.reset();
+
+      cancel();
     }
-    
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
+
+    //-------------------------------------------------------------------------
+    MediaStreamTrackPtr MediaStreamTrack::create()
+    {
+      MediaStreamTrackPtr pThis(make_shared<MediaStreamTrack>(make_private {}, IORTCForInternal::queueORTC()));
+      pThis->mThisWeak = pThis;
+      pThis->init();
+      return pThis;
+    }
+
+    //-------------------------------------------------------------------------
+    MediaStreamTrackPtr MediaStreamTrack::convert(IMediaStreamTrackPtr object)
+    {
+      return ZS_DYNAMIC_PTR_CAST(MediaStreamTrack, object);
+    }
+
+    //-------------------------------------------------------------------------
+    MediaStreamTrackPtr MediaStreamTrack::convert(ForSettingsPtr object)
+    {
+      return ZS_DYNAMIC_PTR_CAST(MediaStreamTrack, object);
+    }
+
+    //-------------------------------------------------------------------------
+    MediaStreamTrackPtr MediaStreamTrack::convert(ForSenderPtr object)
+    {
+      return ZS_DYNAMIC_PTR_CAST(MediaStreamTrack, object);
+    }
+
+    //-------------------------------------------------------------------------
+    MediaStreamTrackPtr MediaStreamTrack::convert(ForReceiverPtr object)
+    {
+      return ZS_DYNAMIC_PTR_CAST(MediaStreamTrack, object);
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
     #pragma mark
     #pragma mark MediaStreamTrack => IMediaStreamTrack
     #pragma mark
     
     //-------------------------------------------------------------------------
-    String MediaStreamTrack::kind()
+    void MediaStreamTrack::onResolveStatsPromise(IStatsProvider::PromiseWithStatsReportPtr promise)
     {
+#define TODO_COMPLETE 1
+#define TODO_COMPLETE 2
+    }
+
+    //-------------------------------------------------------------------------
+    IStatsProvider::PromiseWithStatsReportPtr MediaStreamTrack::getStats() const throw(InvalidStateError)
+    {
+      AutoRecursiveLock lock(*this);
+      ORTC_THROW_INVALID_STATE_IF(isShutdown() || isShuttingDown())
+
+      PromiseWithStatsReportPtr promise = PromiseWithStatsReport::create(IORTCForInternal::queueDelegate());
+      IMediaStreamTrackAsyncDelegateProxy::create(mThisWeak.lock())->onResolveStatsPromise(promise);
+      return promise;
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark MediaStreamTrack => IMediaStreamTrack
+    #pragma mark
+    
+    //-------------------------------------------------------------------------
+    ElementPtr MediaStreamTrack::toDebug(MediaStreamTrackPtr object)
+    {
+      if (!object) return ElementPtr();
+      return object->toDebug();
+    }
+
+    //-------------------------------------------------------------------------
+    IMediaStreamTrackSubscriptionPtr MediaStreamTrack::subscribe(IMediaStreamTrackDelegatePtr originalDelegate)
+    {
+      ZS_LOG_DETAIL(slog("subscribing to media stream track"))
+
+      AutoRecursiveLock lock(*this);
+      if (!originalDelegate) return IMediaStreamTrackSubscriptionPtr();
+
+      IMediaStreamTrackSubscriptionPtr subscription = mSubscriptions.subscribe(originalDelegate, IORTCForInternal::queueDelegate());
+
+      IMediaStreamTrackDelegatePtr delegate = mSubscriptions.delegate(subscription, true);
+
+      if (delegate) {
+        auto pThis = mThisWeak.lock();
+
+#define TODO_DO_WE_NEED_TO_TELL_ABOUT_ANY_MISSED_EVENTS 1
+#define TODO_DO_WE_NEED_TO_TELL_ABOUT_ANY_MISSED_EVENTS 2
+        if (isShutdown()) {
+          delegate->onMediaStreamTrackEnded(pThis);
+        }
+      }
+
+      if (isShutdown()) {
+        mSubscriptions.clear();
+      }
+
+      return subscription;
+    }
+
+    //-------------------------------------------------------------------------
+    IMediaStreamTrackTypes::Kinds MediaStreamTrack::kind() const
+    {
+#define TODO 1
+#define TODO 2
+      return Kind_First;
+    }
+
+    //-------------------------------------------------------------------------
+    String MediaStreamTrack::id() const
+    {
+#define TODO 1
+#define TODO 2
       return String();
     }
-    
+
     //-------------------------------------------------------------------------
-    String MediaStreamTrack::id()
+    String MediaStreamTrack::label() const
     {
+#define TODO 1
+#define TODO 2
       return String();
     }
-    
+
     //-------------------------------------------------------------------------
-    String MediaStreamTrack::label()
+    bool MediaStreamTrack::enabled() const
     {
-      return String();
-    }
-    
-    //-------------------------------------------------------------------------
-    bool MediaStreamTrack::enabled()
-    {
+#define TODO 1
+#define TODO 2
       return false;
     }
-    
+
     //-------------------------------------------------------------------------
-    bool MediaStreamTrack::muted()
+    void MediaStreamTrack::enabeld(bool enabled)
     {
+#define TODO 1
+#define TODO 2
+    }
+
+    //-------------------------------------------------------------------------
+    bool MediaStreamTrack::muted() const
+    {
+#define TODO 1
+#define TODO 2
       return false;
     }
-    
+
     //-------------------------------------------------------------------------
-    bool MediaStreamTrack::readonly()
+    bool MediaStreamTrack::readOnly() const
     {
+#define TODO 1
+#define TODO 2
       return false;
     }
-    
+
     //-------------------------------------------------------------------------
-    bool MediaStreamTrack::remote()
+    bool MediaStreamTrack::remote() const
     {
+#define TODO 1
+#define TODO 2
       return false;
     }
-    
+
     //-------------------------------------------------------------------------
-    IMediaStreamTrack::MediaStreamTrackStates MediaStreamTrack::readyState()
+    IMediaStreamTrackTypes::States MediaStreamTrack::readyState() const
     {
-      return IMediaStreamTrack::MediaStreamTrackState_New;
+#define TODO 1
+#define TODO 2
+      return State_First;
     }
-    
+
     //-------------------------------------------------------------------------
-    IMediaStreamTrackPtr MediaStreamTrack::clone()
+    IMediaStreamTrackPtr MediaStreamTrack::clone() const
     {
+#define TODO 1
+#define TODO 2
       return IMediaStreamTrackPtr();
     }
-    
+
     //-------------------------------------------------------------------------
     void MediaStreamTrack::stop()
     {
-      
+#define TODO 1
+#define TODO 2
     }
-    
+
     //-------------------------------------------------------------------------
-    ULONG MediaStreamTrack::getSSRC()
+    IMediaStreamTrackTypes::CapabilitiesPtr MediaStreamTrack::getCapabilities() const
     {
-      return mSSRC;
+      CapabilitiesPtr result(make_shared<Capabilities>());
+#define TODO 1
+#define TODO 2
+      return result;
     }
-    
+
     //-------------------------------------------------------------------------
-    int MediaStreamTrack::getChannel()
+    IMediaStreamTrackTypes::TrackConstraintsPtr MediaStreamTrack::getConstraints() const
     {
-      return mChannel;
+      auto result = TrackConstraints::create();
+#define TODO 1
+#define TODO 2
+      return result;
     }
-    
+
     //-------------------------------------------------------------------------
-    void MediaStreamTrack::setChannel(int channel)
+    IMediaStreamTrackTypes::SettingsPtr MediaStreamTrack::getSettings() const
     {
-      mChannel = channel;
+      SettingsPtr result(make_shared<Settings>());
+#define TODO 1
+#define TODO 2
+      return result;
+    }
+
+    //-------------------------------------------------------------------------
+    PromisePtr MediaStreamTrack::applyConstraints(const TrackConstraints &inConstraints)
+    {
+      PromisePtr promise = Promise::createRejected(IORTCForInternal::queueDelegate());
+
+      auto constraints = TrackConstraints::create(inConstraints);
+
+      IMediaStreamTrackAsyncDelegateProxy::create(mThisWeak.lock())->onApplyConstraints(promise, constraints);
+
+      return promise;
     }
 
     //-------------------------------------------------------------------------
@@ -437,24 +361,62 @@ namespace ortc
     #pragma mark
     #pragma mark MediaStreamTrack => IWakeDelegate
     #pragma mark
-    
+
     //-------------------------------------------------------------------------
     void MediaStreamTrack::onWake()
     {
       ZS_LOG_DEBUG(log("wake"))
-      
-      AutoRecursiveLock lock(getLock());
+
+      AutoRecursiveLock lock(*this);
       step();
     }
-    
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark MediaStreamTrack => ITimerDelegate
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    void MediaStreamTrack::onTimer(TimerPtr timer)
+    {
+      ZS_LOG_DEBUG(log("timer") + ZS_PARAM("timer id", timer->getID()))
+
+      AutoRecursiveLock lock(*this);
+#define TODO 1
+#define TODO 2
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark MediaStreamTrack => IMediaStreamTrackAsyncDelegate
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    void MediaStreamTrack::onApplyConstraints(
+                                              PromisePtr promise,
+                                              TrackConstraintsPtr constraints
+                                              )
+    {
+      AutoRecursiveLock lock(*this);
+#define TODO 1
+#define TODO 2
+      promise->reject();  // temporarily reject everything
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
     #pragma mark
     #pragma mark MediaStreamTrack => (internal)
     #pragma mark
-    
+
     //-------------------------------------------------------------------------
     Log::Params MediaStreamTrack::log(const char *message) const
     {
@@ -462,1024 +424,171 @@ namespace ortc
       UseServicesHelper::debugAppend(objectEl, "id", mID);
       return Log::Params(message, objectEl);
     }
-    
+
+    //-------------------------------------------------------------------------
+    Log::Params MediaStreamTrack::slog(const char *message)
+    {
+      ElementPtr objectEl = Element::create("ortc::MediaStreamTrack");
+      return Log::Params(message, objectEl);
+    }
+
     //-------------------------------------------------------------------------
     Log::Params MediaStreamTrack::debug(const char *message) const
     {
       return Log::Params(message, toDebug());
     }
-    
+
     //-------------------------------------------------------------------------
     ElementPtr MediaStreamTrack::toDebug() const
     {
-      ElementPtr resultEl = Element::create("MediaStreamTrack");
-      
+      AutoRecursiveLock lock(*this);
+
+      ElementPtr resultEl = Element::create("ortc::MediaStreamTrack");
+
       UseServicesHelper::debugAppend(resultEl, "id", mID);
-      
+
       UseServicesHelper::debugAppend(resultEl, "graceful shutdown", (bool)mGracefulShutdownReference);
-      UseServicesHelper::debugAppend(resultEl, "graceful shutdown", mShutdown);
-      
+
+      UseServicesHelper::debugAppend(resultEl, "subscribers", mSubscriptions.size());
+
+      UseServicesHelper::debugAppend(resultEl, "state", toString(mCurrentState));
+
       UseServicesHelper::debugAppend(resultEl, "error", mLastError);
       UseServicesHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
-      
+
       return resultEl;
     }
-    
+
     //-------------------------------------------------------------------------
     bool MediaStreamTrack::isShuttingDown() const
     {
-      return (bool)mGracefulShutdownReference;
+      if (mGracefulShutdownReference) return true;
+      return State_Ended == mCurrentState;
     }
-    
+
     //-------------------------------------------------------------------------
     bool MediaStreamTrack::isShutdown() const
     {
       if (mGracefulShutdownReference) return false;
-      return mShutdown;
+      return State_Ended == mCurrentState;
     }
-    
+
     //-------------------------------------------------------------------------
     void MediaStreamTrack::step()
     {
       ZS_LOG_DEBUG(debug("step"))
-      
-      AutoRecursiveLock lock(getLock());
-      
+
       if ((isShuttingDown()) ||
           (isShutdown())) {
         ZS_LOG_DEBUG(debug("step forwarding to cancel"))
         cancel();
         return;
       }
-      
+
+      // ... other steps here ...
+      if (!stepBogusDoSomething()) goto not_ready;
+      // ... other steps here ...
+
+      goto ready;
+
+    not_ready:
+      {
+        ZS_LOG_TRACE(debug("dtls is not ready"))
+        return;
+      }
+
+    ready:
+      {
+        ZS_LOG_TRACE(log("ready"))
+      }
     }
-    
+
+    //-------------------------------------------------------------------------
+    bool MediaStreamTrack::stepBogusDoSomething()
+    {
+      if ( /* step already done */ false ) {
+        ZS_LOG_TRACE(log("already completed do something"))
+        return true;
+      }
+
+      if ( /* cannot do step yet */ false) {
+        ZS_LOG_DEBUG(log("waiting for XYZ to complete before continuing"))
+        return false;
+      }
+
+      ZS_LOG_DEBUG(log("doing step XYZ"))
+
+      // ....
+#define TODO 1
+#define TODO 2
+
+      return true;
+    }
+
     //-------------------------------------------------------------------------
     void MediaStreamTrack::cancel()
     {
       //.......................................................................
-      // start the shutdown process
-      
-      //.......................................................................
       // try to gracefully shutdown
-      
+
+      if (isShutdown()) return;
+
       if (!mGracefulShutdownReference) mGracefulShutdownReference = mThisWeak.lock();
-      
+
       if (mGracefulShutdownReference) {
+#define TODO_OBJECT_IS_BEING_KEPT_ALIVE_UNTIL_SESSION_IS_SHUTDOWN 1
+#define TODO_OBJECT_IS_BEING_KEPT_ALIVE_UNTIL_SESSION_IS_SHUTDOWN 2
+
+        // grace shutdown process done here
+
+        return;
       }
-      
+
       //.......................................................................
       // final cleanup
-      
-      mShutdown = true;
-      
+
+      setState(State_Ended);
+
+      mSubscriptions.clear();
+
       // make sure to cleanup any final reference to self
       mGracefulShutdownReference.reset();
     }
-    
-    //-----------------------------------------------------------------------
+
+    //-------------------------------------------------------------------------
+    void MediaStreamTrack::setState(States state)
+    {
+      if (state == mCurrentState) return;
+
+      ZS_LOG_DETAIL(debug("state changed") + ZS_PARAM("new state", toString(state)) + ZS_PARAM("old state", toString(mCurrentState)))
+
+      mCurrentState = state;
+
+//      MediaStreamTrackPtr pThis = mThisWeak.lock();
+//      if (pThis) {
+//        mSubscriptions.delegate()->onMediaStreamTrackStateChanged(pThis, mCurrentState);
+//      }
+    }
+
+    //-------------------------------------------------------------------------
     void MediaStreamTrack::setError(WORD errorCode, const char *inReason)
     {
       String reason(inReason);
-      
+      if (reason.isEmpty()) {
+        reason = UseHTTP::toString(UseHTTP::toStatusCode(errorCode));
+      }
+
       if (0 != mLastError) {
         ZS_LOG_WARNING(Detail, debug("error already set thus ignoring new error") + ZS_PARAM("new error", errorCode) + ZS_PARAM("new reason", reason))
         return;
       }
-      
+
       mLastError = errorCode;
       mLastErrorReason = reason;
-      
+
       ZS_LOG_WARNING(Detail, debug("error set") + ZS_PARAM("error", mLastError) + ZS_PARAM("reason", mLastErrorReason))
     }
 
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark AudioStreamTrack
-    #pragma mark
-    
-    //-------------------------------------------------------------------------
-    AudioStreamTrack::AudioStreamTrack(IMessageQueuePtr queue, IMediaStreamTrackDelegatePtr delegate) :
-      MediaStreamTrack(queue, delegate)
-    {
-      
-    }
-    
-    //-------------------------------------------------------------------------
-    AudioStreamTrack::~AudioStreamTrack()
-    {
-      
-    }
-    
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark VideoStreamTrack
-    #pragma mark
-    
-    //-------------------------------------------------------------------------
-    VideoStreamTrack::VideoStreamTrack(IMessageQueuePtr queue, IMediaStreamTrackDelegatePtr delegate) :
-      MediaStreamTrack(queue, delegate),
-      mRenderView(NULL)
-    {
-      
-    }
-    
-    //-------------------------------------------------------------------------
-    VideoStreamTrack::~VideoStreamTrack()
-    {
-      
-    }
-    
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark VideoStreamTrack => ILocalVideoStreamTrackForMediaManager, IRemoteReceiveVideoStreamForMediaManager,
-    #pragma mark                     IRemoteSendVideoStreamForMediaManager
-    #pragma mark
-    
-    //-------------------------------------------------------------------------
-    void VideoStreamTrack::setRenderView(void *renderView)
-    {
-      mRenderView = renderView;
-    }
-    
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark LocalAudioStreamTrack
-    #pragma mark
-    
-    //-------------------------------------------------------------------------
-    LocalAudioStreamTrack::LocalAudioStreamTrack(IMessageQueuePtr queue, IMediaStreamTrackDelegatePtr delegate) :
-      AudioStreamTrack(queue, delegate)
-    {
-      mTransport = ISendMediaTransportForMediaManager::create();
-    }
-    
-    //-------------------------------------------------------------------------
-    LocalAudioStreamTrack::~LocalAudioStreamTrack()
-    {
-      
-    }
-    
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark LocalAudioStreamTrack => IMediaStreamTrack
-    #pragma mark
-    
-    //-------------------------------------------------------------------------
-    String LocalAudioStreamTrack::kind()
-    {
-      return String();
-    }
-    
-    //-------------------------------------------------------------------------
-    String LocalAudioStreamTrack::id()
-    {
-      return String();
-    }
-    
-    //-------------------------------------------------------------------------
-    String LocalAudioStreamTrack::label()
-    {
-      return String();
-    }
-    
-    //-------------------------------------------------------------------------
-    bool LocalAudioStreamTrack::enabled()
-    {
-      return false;
-    }
-    
-    //-------------------------------------------------------------------------
-    bool LocalAudioStreamTrack::muted()
-    {
-      return false;
-    }
-    
-    //-------------------------------------------------------------------------
-    bool LocalAudioStreamTrack::readonly()
-    {
-      return false;
-    }
-    
-    //-------------------------------------------------------------------------
-    bool LocalAudioStreamTrack::remote()
-    {
-      return false;
-    }
-    
-    //-------------------------------------------------------------------------
-    IMediaStreamTrack::MediaStreamTrackStates LocalAudioStreamTrack::readyState()
-    {
-      return IMediaStreamTrack::MediaStreamTrackState_New;
-    }
-    
-    //-------------------------------------------------------------------------
-    IMediaStreamTrackPtr LocalAudioStreamTrack::clone()
-    {
-      return IMediaStreamTrackPtr();
-    }
-    
-    //-------------------------------------------------------------------------
-    void LocalAudioStreamTrack::stop()
-    {
-      
-    }
-
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark LocalAudioStreamTrack => ILocalAudioStreamTrackForMediaManager
-    #pragma mark
-    
-    //-------------------------------------------------------------------------
-    ULONG LocalAudioStreamTrack::getSSRC()
-    {
-      return MediaStreamTrack::getSSRC();
-    }
-    
-    //-------------------------------------------------------------------------
-    int LocalAudioStreamTrack::getChannel()
-    {
-      return MediaStreamTrack::getChannel();
-    }
-    
-    //-------------------------------------------------------------------------
-    void LocalAudioStreamTrack::setChannel(int channel)
-    {
-      MediaStreamTrack::setChannel(channel);
-      
-      IMediaEnginePtr mediaEngine = IMediaEngine::singleton();
-      mediaEngine->startSendVoice(channel);
-    }
-    
-    //-------------------------------------------------------------------------
-    void LocalAudioStreamTrack::start()
-    {
-    }
-    
-    //-------------------------------------------------------------------------
-//    void LocalAudioStreamTrack::stop()
-//    {
-//      
-//    }
-    
-    //-------------------------------------------------------------------------
-    SendMediaTransportPtr LocalAudioStreamTrack::getTransport()
-    {
-      return SendMediaTransportPtr();
-    }
-    
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark LocalAudioStreamTrack => ILocalAudioStreamTrackForRTCConnection
-    #pragma mark
-    
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RemoteReceiveAudioStreamTrack
-    #pragma mark
-    
-    //-------------------------------------------------------------------------
-    RemoteReceiveAudioStreamTrack::RemoteReceiveAudioStreamTrack(IMessageQueuePtr queue, IMediaStreamTrackDelegatePtr delegate) :
-      AudioStreamTrack(queue, delegate)
-    {
-    }
-    
-    //-------------------------------------------------------------------------
-    RemoteReceiveAudioStreamTrack::~RemoteReceiveAudioStreamTrack()
-    {
-      
-    }
-    
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RemoteReceiveAudioStreamTrack => IMediaStreamTrack
-    #pragma mark
-    
-    //-------------------------------------------------------------------------
-    String RemoteReceiveAudioStreamTrack::kind()
-    {
-      return String();
-    }
-    
-    //-------------------------------------------------------------------------
-    String RemoteReceiveAudioStreamTrack::id()
-    {
-      return String();
-    }
-    
-    //-------------------------------------------------------------------------
-    String RemoteReceiveAudioStreamTrack::label()
-    {
-      return String();
-    }
-    
-    //-------------------------------------------------------------------------
-    bool RemoteReceiveAudioStreamTrack::enabled()
-    {
-      return false;
-    }
-    
-    //-------------------------------------------------------------------------
-    bool RemoteReceiveAudioStreamTrack::muted()
-    {
-      return false;
-    }
-    
-    //-------------------------------------------------------------------------
-    bool RemoteReceiveAudioStreamTrack::readonly()
-    {
-      return false;
-    }
-    
-    //-------------------------------------------------------------------------
-    bool RemoteReceiveAudioStreamTrack::remote()
-    {
-      return false;
-    }
-    
-    //-------------------------------------------------------------------------
-    IMediaStreamTrack::MediaStreamTrackStates RemoteReceiveAudioStreamTrack::readyState()
-    {
-      return IMediaStreamTrack::MediaStreamTrackState_New;
-    }
-    
-    //-------------------------------------------------------------------------
-    IMediaStreamTrackPtr RemoteReceiveAudioStreamTrack::clone()
-    {
-      return IMediaStreamTrackPtr();
-    }
-    
-    //-------------------------------------------------------------------------
-    void RemoteReceiveAudioStreamTrack::stop()
-    {
-      
-    }
-
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RemoteReceiveAudioStreamTrack => IRemoteReceiveAudioStreamTrackForMediaManager
-    #pragma mark
-    
-    //-------------------------------------------------------------------------
-    ULONG RemoteReceiveAudioStreamTrack::getSSRC()
-    {
-      return MediaStreamTrack::getSSRC();
-    }
-    
-    //-------------------------------------------------------------------------
-    int RemoteReceiveAudioStreamTrack::getChannel()
-    {
-      return MediaStreamTrack::getChannel();
-    }
-    
-    //-------------------------------------------------------------------------
-    void RemoteReceiveAudioStreamTrack::setChannel(int channel)
-    {
-      MediaStreamTrack::setChannel(channel);
-      
-      IMediaEnginePtr mediaEngine = IMediaEngine::singleton();
-      mediaEngine->startReceiveVoice(channel);
-    }
-
-    //-------------------------------------------------------------------------
-    void RemoteReceiveAudioStreamTrack::setEcEnabled(bool enabled)
-    {
-      
-    }
-    
-    //-------------------------------------------------------------------------
-    void RemoteReceiveAudioStreamTrack::setAgcEnabled(bool enabled)
-    {
-      
-    }
-    
-    //-------------------------------------------------------------------------
-    void RemoteReceiveAudioStreamTrack::setNsEnabled(bool enabled)
-    {
-      
-    }
-    
-    //-------------------------------------------------------------------------
-    ReceiveMediaTransportPtr RemoteReceiveAudioStreamTrack::getTransport()
-    {
-      return ReceiveMediaTransportPtr();
-    }
-    
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RemoteReceiveAudioStreamTrack => IRemoteReceiveAudioStreamTrackForRTCConnection
-    #pragma mark
-    
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RemoteSendAudioStreamTrack
-    #pragma mark
-    
-    //-------------------------------------------------------------------------
-    RemoteSendAudioStreamTrack::RemoteSendAudioStreamTrack(IMessageQueuePtr queue, IMediaStreamTrackDelegatePtr delegate) :
-      AudioStreamTrack(queue, delegate)
-    {
-    }
-    
-    //-------------------------------------------------------------------------
-    RemoteSendAudioStreamTrack::~RemoteSendAudioStreamTrack()
-    {
-      
-    }
-    
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RemoteSendAudioStreamTrack => IMediaStreamTrack
-    #pragma mark
-    
-    //-------------------------------------------------------------------------
-    String RemoteSendAudioStreamTrack::kind()
-    {
-      return String();
-    }
-    
-    //-------------------------------------------------------------------------
-    String RemoteSendAudioStreamTrack::id()
-    {
-      return String();
-    }
-    
-    //-------------------------------------------------------------------------
-    String RemoteSendAudioStreamTrack::label()
-    {
-      return String();
-    }
-    
-    //-------------------------------------------------------------------------
-    bool RemoteSendAudioStreamTrack::enabled()
-    {
-      return false;
-    }
-    
-    //-------------------------------------------------------------------------
-    bool RemoteSendAudioStreamTrack::muted()
-    {
-      return false;
-    }
-    
-    //-------------------------------------------------------------------------
-    bool RemoteSendAudioStreamTrack::readonly()
-    {
-      return false;
-    }
-    
-    //-------------------------------------------------------------------------
-    bool RemoteSendAudioStreamTrack::remote()
-    {
-      return false;
-    }
-    
-    //-------------------------------------------------------------------------
-    IMediaStreamTrack::MediaStreamTrackStates RemoteSendAudioStreamTrack::readyState()
-    {
-      return IMediaStreamTrack::MediaStreamTrackState_New;
-    }
-    
-    //-------------------------------------------------------------------------
-    IMediaStreamTrackPtr RemoteSendAudioStreamTrack::clone()
-    {
-      return IMediaStreamTrackPtr();
-    }
-    
-    //-------------------------------------------------------------------------
-    void RemoteSendAudioStreamTrack::stop()
-    {
-      
-    }
-
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RemoteSendAudioStreamTrack => IRemoteSendAudioStreamTrackForMediaManager
-    #pragma mark
-    
-    //-------------------------------------------------------------------------
-    ULONG RemoteSendAudioStreamTrack::getSSRC()
-    {
-      return MediaStreamTrack::getSSRC();
-    }
-    
-    //-------------------------------------------------------------------------
-    int RemoteSendAudioStreamTrack::getChannel()
-    {
-      return MediaStreamTrack::getChannel();
-    }
-    
-    //-------------------------------------------------------------------------
-    void RemoteSendAudioStreamTrack::setChannel(int channel)
-    {
-      MediaStreamTrack::setChannel(channel);
-    }
-
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark LocalVideoStreamTrack
-    #pragma mark
-    
-    //-------------------------------------------------------------------------
-    LocalVideoStreamTrack::LocalVideoStreamTrack(IMessageQueuePtr queue, IMediaStreamTrackDelegatePtr delegate) :
-      VideoStreamTrack(queue, delegate)
-    {
-      IMediaEnginePtr mediaEngine = IMediaEngine::singleton();
-      
-      mSource = mediaEngine->createVideoSource();
-    }
-    
-    //-------------------------------------------------------------------------
-    LocalVideoStreamTrack::~LocalVideoStreamTrack()
-    {
-      
-    }
-    
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark LocalVideoStreamTrack => IMediaStreamTrack
-    #pragma mark
-    
-    //-------------------------------------------------------------------------
-    String LocalVideoStreamTrack::kind()
-    {
-      return String();
-    }
-    
-    //-------------------------------------------------------------------------
-    String LocalVideoStreamTrack::id()
-    {
-      return String();
-    }
-    
-    //-------------------------------------------------------------------------
-    String LocalVideoStreamTrack::label()
-    {
-      return String();
-    }
-    
-    //-------------------------------------------------------------------------
-    bool LocalVideoStreamTrack::enabled()
-    {
-      return false;
-    }
-    
-    //-------------------------------------------------------------------------
-    bool LocalVideoStreamTrack::muted()
-    {
-      return false;
-    }
-    
-    //-------------------------------------------------------------------------
-    bool LocalVideoStreamTrack::readonly()
-    {
-      return false;
-    }
-    
-    //-------------------------------------------------------------------------
-    bool LocalVideoStreamTrack::remote()
-    {
-      return false;
-    }
-    
-    //-------------------------------------------------------------------------
-    IMediaStreamTrack::MediaStreamTrackStates LocalVideoStreamTrack::readyState()
-    {
-      return IMediaStreamTrack::MediaStreamTrackState_New;
-    }
-    
-    //-------------------------------------------------------------------------
-    IMediaStreamTrackPtr LocalVideoStreamTrack::clone()
-    {
-      return IMediaStreamTrackPtr();
-    }
-    
-    //-------------------------------------------------------------------------
-    void LocalVideoStreamTrack::stop()
-    {
-      IMediaEnginePtr mediaEngine = IMediaEngine::singleton();
-      
-      mediaEngine->stopVideoCapture(mChannel);
-      
-    }
-
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark LocalVideoStreamTrack => ILocalVideoStreamTrackForMediaManager
-    #pragma mark
-    
-    //-------------------------------------------------------------------------
-    ULONG LocalVideoStreamTrack::getSSRC()
-    {
-      return MediaStreamTrack::getSSRC();
-    }
-    
-    //-------------------------------------------------------------------------
-    int LocalVideoStreamTrack::getChannel()
-    {
-      return MediaStreamTrack::getChannel();
-    }
-    
-    //-------------------------------------------------------------------------
-    void LocalVideoStreamTrack::setChannel(int channel)
-    {
-      MediaStreamTrack::setChannel(channel);
-      
-      IMediaEnginePtr mediaEngine = IMediaEngine::singleton();
-      mediaEngine->startSendVideoChannel(channel, mSource);
-    }
-
-    //-------------------------------------------------------------------------
-    void LocalVideoStreamTrack::start()
-    {
-      IMediaEnginePtr mediaEngine = IMediaEngine::singleton();
-      mediaEngine->startVideoCapture(mSource);
-    }
-    
-    //-------------------------------------------------------------------------
-//    void LocalVideoStreamTrack::stop()
-//    {
-//      
-//    }
-
-    //-------------------------------------------------------------------------
-    void LocalVideoStreamTrack::setContinuousVideoCapture(bool continuousVideoCapture)
-    {
-      
-    }
-    
-    //-------------------------------------------------------------------------
-    bool LocalVideoStreamTrack::getContinuousVideoCapture()
-    {
-      return false;
-    }
-    
-    //-------------------------------------------------------------------------
-    void LocalVideoStreamTrack::setFaceDetection(bool faceDetection)
-    {
-      
-    }
-    
-    //-------------------------------------------------------------------------
-    bool LocalVideoStreamTrack::getFaceDetection()
-    {
-      return false;
-    }
-    
-    //-------------------------------------------------------------------------
-    CameraTypes LocalVideoStreamTrack::getCameraType() const
-    {
-      return CameraType_None;
-    }
-    
-    //-------------------------------------------------------------------------
-    void LocalVideoStreamTrack::setCameraType(CameraTypes type)
-    {
-      
-    }
-    
-    //-------------------------------------------------------------------------
-    void LocalVideoStreamTrack::setRenderView(void *renderView)
-    {
-      VideoStreamTrack::setRenderView(renderView);
-      
-      IMediaEnginePtr mediaEngine = IMediaEngine::singleton();
-      mediaEngine->setRenderView(mSource, renderView);
-    }
-    
-    //-------------------------------------------------------------------------
-    void LocalVideoStreamTrack::startRecord(String fileName, bool saveToLibrary)
-    {
-      
-    }
-    
-    //-------------------------------------------------------------------------
-    void LocalVideoStreamTrack::stopRecord()
-    {
-      
-    }
-    
-    //-------------------------------------------------------------------------
-    SendMediaTransportPtr LocalVideoStreamTrack::getTransport()
-    {
-      return SendMediaTransportPtr();
-    }
-
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark LocalVideoStreamTrack => ILocalVideoStreamTrackForRTCConnection
-    #pragma mark
-    
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RemoteReceiveVideoStreamTrack
-    #pragma mark
-    
-    //-------------------------------------------------------------------------
-    RemoteReceiveVideoStreamTrack::RemoteReceiveVideoStreamTrack(IMessageQueuePtr queue, IMediaStreamTrackDelegatePtr delegate) :
-      VideoStreamTrack(queue, delegate)
-    {
-    }
-    
-    //-------------------------------------------------------------------------
-    RemoteReceiveVideoStreamTrack::~RemoteReceiveVideoStreamTrack()
-    {
-      
-    }
-    
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RemoteReceiveVideoStreamTrack => IMediaStreamTrack
-    #pragma mark
-    
-    //-------------------------------------------------------------------------
-    String RemoteReceiveVideoStreamTrack::kind()
-    {
-      return String();
-    }
-    
-    //-------------------------------------------------------------------------
-    String RemoteReceiveVideoStreamTrack::id()
-    {
-      return String();
-    }
-    
-    //-------------------------------------------------------------------------
-    String RemoteReceiveVideoStreamTrack::label()
-    {
-      return String();
-    }
-    
-    //-------------------------------------------------------------------------
-    bool RemoteReceiveVideoStreamTrack::enabled()
-    {
-      return false;
-    }
-    
-    //-------------------------------------------------------------------------
-    bool RemoteReceiveVideoStreamTrack::muted()
-    {
-      return false;
-    }
-    
-    //-------------------------------------------------------------------------
-    bool RemoteReceiveVideoStreamTrack::readonly()
-    {
-      return false;
-    }
-    
-    //-------------------------------------------------------------------------
-    bool RemoteReceiveVideoStreamTrack::remote()
-    {
-      return false;
-    }
-    
-    //-------------------------------------------------------------------------
-    IMediaStreamTrack::MediaStreamTrackStates RemoteReceiveVideoStreamTrack::readyState()
-    {
-      return IMediaStreamTrack::MediaStreamTrackState_New;
-    }
-    
-    //-------------------------------------------------------------------------
-    IMediaStreamTrackPtr RemoteReceiveVideoStreamTrack::clone()
-    {
-      return IMediaStreamTrackPtr();
-    }
-    
-    //-------------------------------------------------------------------------
-    void RemoteReceiveVideoStreamTrack::stop()
-    {
-      
-    }
-
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RemoteReceiveVideoStreamTrack => IRemoteReceiveVideoStreamTrackForMediaManager
-    #pragma mark
-    
-    //-------------------------------------------------------------------------
-    ULONG RemoteReceiveVideoStreamTrack::getSSRC()
-    {
-      return MediaStreamTrack::getSSRC();
-    }
-    
-    //-------------------------------------------------------------------------
-    int RemoteReceiveVideoStreamTrack::getChannel()
-    {
-      return MediaStreamTrack::getChannel();
-    }
-    
-    //-------------------------------------------------------------------------
-    void RemoteReceiveVideoStreamTrack::setChannel(int channel)
-    {
-      MediaStreamTrack::setChannel(channel);
-
-      IMediaEnginePtr mediaEngine = IMediaEngine::singleton();
-      mediaEngine->setRenderView(channel, mRenderView);
-      mediaEngine->startReceiveVideoChannel(channel);
-    }
-
-    //-------------------------------------------------------------------------
-    void RemoteReceiveVideoStreamTrack::setRenderView(void *renderView)
-    {
-      VideoStreamTrack::setRenderView(renderView);
-    }
-    
-    //-------------------------------------------------------------------------
-    ReceiveMediaTransportPtr RemoteReceiveVideoStreamTrack::getTransport()
-    {
-      return ReceiveMediaTransportPtr();
-    }
-    
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RemoteSendVideoStreamTrack
-    #pragma mark
-    
-    //-------------------------------------------------------------------------
-    RemoteSendVideoStreamTrack::RemoteSendVideoStreamTrack(IMessageQueuePtr queue, IMediaStreamTrackDelegatePtr delegate) :
-      VideoStreamTrack(queue, delegate)
-    {
-      
-    }
-    
-    //-------------------------------------------------------------------------
-    RemoteSendVideoStreamTrack::~RemoteSendVideoStreamTrack()
-    {
-      
-    }
-    
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RemoteSendVideoStreamTrack => IMediaStreamTrack
-    #pragma mark
-    
-    //-------------------------------------------------------------------------
-    String RemoteSendVideoStreamTrack::kind()
-    {
-      return String();
-    }
-    
-    //-------------------------------------------------------------------------
-    String RemoteSendVideoStreamTrack::id()
-    {
-      return String();
-    }
-    
-    //-------------------------------------------------------------------------
-    String RemoteSendVideoStreamTrack::label()
-    {
-      return String();
-    }
-    
-    //-------------------------------------------------------------------------
-    bool RemoteSendVideoStreamTrack::enabled()
-    {
-      return false;
-    }
-    
-    //-------------------------------------------------------------------------
-    bool RemoteSendVideoStreamTrack::muted()
-    {
-      return false;
-    }
-    
-    //-------------------------------------------------------------------------
-    bool RemoteSendVideoStreamTrack::readonly()
-    {
-      return false;
-    }
-    
-    //-------------------------------------------------------------------------
-    bool RemoteSendVideoStreamTrack::remote()
-    {
-      return false;
-    }
-    
-    //-------------------------------------------------------------------------
-    IMediaStreamTrack::MediaStreamTrackStates RemoteSendVideoStreamTrack::readyState()
-    {
-      return IMediaStreamTrack::MediaStreamTrackState_New;
-    }
-    
-    //-------------------------------------------------------------------------
-    IMediaStreamTrackPtr RemoteSendVideoStreamTrack::clone()
-    {
-      return IMediaStreamTrackPtr();
-    }
-    
-    //-------------------------------------------------------------------------
-    void RemoteSendVideoStreamTrack::stop()
-    {
-      
-    }
-
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RemoteSendVideoStreamTrack => IRemoteSendVideoStreamTrackForMediaManager
-    #pragma mark
-    
-    //-------------------------------------------------------------------------
-    ULONG RemoteSendVideoStreamTrack::getSSRC()
-    {
-      return MediaStreamTrack::getSSRC();
-    }
-    
-    //-------------------------------------------------------------------------
-    int RemoteSendVideoStreamTrack::getChannel()
-    {
-      return MediaStreamTrack::getChannel();
-    }
-    
-    //-------------------------------------------------------------------------
-    void RemoteSendVideoStreamTrack::setChannel(int channel)
-    {
-      MediaStreamTrack::setChannel(channel);
-    }
-
-    //-------------------------------------------------------------------------
-    void RemoteSendVideoStreamTrack::setRenderView(void *renderView)
-    {
-      VideoStreamTrack::setRenderView(renderView);
-    }
-
-    //-------------------------------------------------------------------------
-    SendMediaTransportPtr RemoteSendVideoStreamTrack::getTransport()
-    {
-      return SendMediaTransportPtr();
-    }
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -1488,56 +597,429 @@ namespace ortc
     #pragma mark
     #pragma mark IMediaStreamTrackFactory
     #pragma mark
-    
+
     //-------------------------------------------------------------------------
     IMediaStreamTrackFactory &IMediaStreamTrackFactory::singleton()
     {
       return MediaStreamTrackFactory::singleton();
     }
-    
+
     //-------------------------------------------------------------------------
-    LocalAudioStreamTrackPtr IMediaStreamTrackFactory::createLocalAudioStreamTrack(IMediaStreamTrackDelegatePtr delegate)
+    MediaStreamTrackPtr IMediaStreamTrackFactory::create()
     {
       if (this) {}
-      return LocalAudioStreamTrackPtr();
-    }
-    
-    //-------------------------------------------------------------------------
-    RemoteReceiveAudioStreamTrackPtr IMediaStreamTrackFactory::createRemoteReceiveAudioStreamTrack(IMediaStreamTrackDelegatePtr delegate)
-    {
-      if (this) {}
-      return RemoteReceiveAudioStreamTrackPtr();
-    }
-    
-    //-------------------------------------------------------------------------
-    RemoteSendAudioStreamTrackPtr IMediaStreamTrackFactory::createRemoteSendAudioStreamTrack(IMediaStreamTrackDelegatePtr delegate)
-    {
-      if (this) {}
-      return RemoteSendAudioStreamTrackPtr();
-    }
-    
-    //-------------------------------------------------------------------------
-    LocalVideoStreamTrackPtr IMediaStreamTrackFactory::createLocalVideoStreamTrack(IMediaStreamTrackDelegatePtr delegate)
-    {
-      if (this) {}
-      return LocalVideoStreamTrackPtr();
-    }
-    
-    //-------------------------------------------------------------------------
-    RemoteReceiveVideoStreamTrackPtr IMediaStreamTrackFactory::createRemoteReceiveVideoStreamTrack(IMediaStreamTrackDelegatePtr delegate)
-    {
-      if (this) {}
-      return RemoteReceiveVideoStreamTrackPtr();
-    }
-    
-    //-------------------------------------------------------------------------
-    RemoteSendVideoStreamTrackPtr IMediaStreamTrackFactory::createRemoteSendVideoStreamTrack(IMediaStreamTrackDelegatePtr delegate)
-    {
-      if (this) {}
-      return RemoteSendVideoStreamTrackPtr();
+      return internal::MediaStreamTrack::create();
     }
 
+
+  } // internal namespace
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IMediaStreamTrackTypes
+  #pragma mark
+
+  //---------------------------------------------------------------------------
+  const char *IMediaStreamTrackTypes::toString(Kinds kind)
+  {
+    switch (kind) {
+      case Kind_Audio:   return "audio";
+      case Kind_Video:   return "video";
+    }
+    return "UNDEFINED";
   }
-}
 
-#endif //0
+  //---------------------------------------------------------------------------
+  const char *IMediaStreamTrackTypes::toString(States state)
+  {
+    switch (state) {
+      case State_Live:    return "live";
+      case State_Ended:   return "ended";
+    }
+    return "UNDEFINED";
+  }
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IMediaStreamTrackTypes::Capabilities
+  #pragma mark
+
+  //---------------------------------------------------------------------------
+  IMediaStreamTrackTypes::CapabilitiesPtr IMediaStreamTrackTypes::Capabilities::create()
+  {
+    return CapabilitiesPtr(make_shared<Capabilities>());
+  }
+
+  //---------------------------------------------------------------------------
+  IMediaStreamTrackTypes::CapabilitiesPtr IMediaStreamTrackTypes::Capabilities::create(const CapabilitiesPtr &value)
+  {
+    if (!value) return create();
+    return create(*value);
+  }
+
+  //---------------------------------------------------------------------------
+  IMediaStreamTrackTypes::CapabilitiesPtr IMediaStreamTrackTypes::Capabilities::create(const Capabilities &value)
+  {
+    return CapabilitiesPtr(make_shared<Capabilities>(value));
+  }
+  
+  //---------------------------------------------------------------------------
+  ElementPtr IMediaStreamTrackTypes::Capabilities::toDebug() const
+  {
+    ElementPtr resultEl = Element::create("ortc::IMediaStreamTrackTypes::Capabilities");
+
+    UseServicesHelper::debugAppend(resultEl, "width", mWidth.hasValue() ? mWidth.value().toDebug() : ElementPtr());
+    UseServicesHelper::debugAppend(resultEl, "height", mHeight.hasValue() ? mHeight.value().toDebug() : ElementPtr());
+    UseServicesHelper::debugAppend(resultEl, "aspect ratio", mAspectRatio.hasValue() ? mAspectRatio.value().toDebug() : ElementPtr());
+    UseServicesHelper::debugAppend(resultEl, "frame rate", mFrameRate.hasValue() ? mFrameRate.value().toDebug() : ElementPtr());
+    UseServicesHelper::debugAppend(resultEl, "facingMode", mFacingMode.hasValue() ? mFacingMode.value().toDebug() : ElementPtr());
+    UseServicesHelper::debugAppend(resultEl, "volume", mVolume.hasValue() ? mVolume.value().toDebug() : ElementPtr());
+    UseServicesHelper::debugAppend(resultEl, "sample rate", mSampleRate.hasValue() ? mSampleRate.value().toDebug() : ElementPtr());
+    UseServicesHelper::debugAppend(resultEl, "echo cancellation", mEchoCancellation.hasValue() ? mEchoCancellation.value().toDebug() : ElementPtr());
+    UseServicesHelper::debugAppend(resultEl, "latency", mLatency.hasValue() ? mLatency.value().toDebug() : ElementPtr());
+    UseServicesHelper::debugAppend(resultEl, "device id", mDeviceID);
+    UseServicesHelper::debugAppend(resultEl, "group id", mGroupID);
+
+    return resultEl;
+  }
+
+  //---------------------------------------------------------------------------
+  String IMediaStreamTrackTypes::Capabilities::hash() const
+  {
+    SHA1Hasher hasher;
+
+    hasher.update("ortc::IMediaStreamTrackTypes::Capabilities:");
+    hasher.update(mWidth.hasValue() ? mWidth.value().hash() : "");
+    hasher.update(":");
+    hasher.update(mHeight.hasValue() ? mHeight.value().hash() : "");
+    hasher.update(":");
+    hasher.update(mAspectRatio.hasValue() ? mAspectRatio.value().hash() : "");
+    hasher.update(":");
+    hasher.update(mFrameRate.hasValue() ? mFrameRate.value().hash() : "");
+    hasher.update(":");
+    hasher.update(mFacingMode.hasValue() ? mFacingMode.value().hash() : "");
+    hasher.update(":");
+    hasher.update(mVolume.hasValue() ? mVolume.value().hash() : "");
+    hasher.update(":");
+    hasher.update(mSampleRate.hasValue() ? mSampleRate.value().hash() : "");
+    hasher.update(":");
+    hasher.update(mEchoCancellation.hasValue() ? mEchoCancellation.value().hash()  : "");
+    hasher.update(":");
+    hasher.update(mLatency.hasValue() ? mLatency.value().hash()  : "");
+    hasher.update(":");
+    hasher.update(mDeviceID);
+    hasher.update(":");
+    hasher.update(mGroupID);
+
+    return hasher.final();
+  }
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IMediaStreamTrackTypes::Settings
+  #pragma mark
+
+  //---------------------------------------------------------------------------
+  IMediaStreamTrackTypes::SettingsPtr IMediaStreamTrackTypes::Settings::create()
+  {
+    return SettingsPtr(make_shared<Settings>());
+  }
+
+  //---------------------------------------------------------------------------
+  IMediaStreamTrackTypes::SettingsPtr IMediaStreamTrackTypes::Settings::create(const SettingsPtr &value)
+  {
+    if (!value) return create();
+    return create(*value);
+  }
+
+  //---------------------------------------------------------------------------
+  IMediaStreamTrackTypes::SettingsPtr IMediaStreamTrackTypes::Settings::create(const Settings &value)
+  {
+    return SettingsPtr(make_shared<Settings>(value));
+  }
+  
+  //---------------------------------------------------------------------------
+  ElementPtr IMediaStreamTrackTypes::Settings::toDebug() const
+  {
+    ElementPtr resultEl = Element::create("ortc::IMediaStreamTrackTypes::Settings");
+
+    UseServicesHelper::debugAppend(resultEl, "width", mWidth.hasValue() ? mWidth.value() : 0);
+    UseServicesHelper::debugAppend(resultEl, "height", mHeight.hasValue() ? mHeight.value() : 0);
+    UseServicesHelper::debugAppend(resultEl, "aspect ratio", mAspectRatio.hasValue() ? mAspectRatio.value() : 0);
+    UseServicesHelper::debugAppend(resultEl, "frame rate", mFrameRate.hasValue() ? mFrameRate.value() : 0);
+    UseServicesHelper::debugAppend(resultEl, "facing mode", mFacingMode.hasValue() ? mFacingMode.value() : String());
+    UseServicesHelper::debugAppend(resultEl, "orientation", mOrientation.hasValue() ? mOrientation.value() : String());
+    UseServicesHelper::debugAppend(resultEl, "volume", mVolume.hasValue() ? mVolume.value() : 0);
+    UseServicesHelper::debugAppend(resultEl, "sample rate", mSampleRate.hasValue() ? mSampleRate.value() : 0);
+    UseServicesHelper::debugAppend(resultEl, "sample size", mSampleSize.hasValue() ? mSampleSize.value() : 0);
+    UseServicesHelper::debugAppend(resultEl, "echo cancellation", mEchoCancellation.hasValue() ? mEchoCancellation.value() : false);
+    UseServicesHelper::debugAppend(resultEl, "device id", mDeviceID.hasValue() ? mDeviceID.value() : false);
+    UseServicesHelper::debugAppend(resultEl, "group id", mGroupID.hasValue() ? mGroupID.value() : false);
+
+    return resultEl;
+  }
+
+  //---------------------------------------------------------------------------
+  String IMediaStreamTrackTypes::Settings::hash() const
+  {
+    SHA1Hasher hasher;
+
+    hasher.update("ortc::IMediaStreamTrackTypes::Settings:");
+
+    hasher.update(mWidth.hasValue() ? string(mWidth.value()) : "");
+    hasher.update(":");
+    hasher.update(mHeight.hasValue() ? string(mHeight.value()) : "");
+    hasher.update(":");
+    hasher.update(mAspectRatio.hasValue() ? string(mAspectRatio.value()) : "");
+    hasher.update(":");
+    hasher.update(mFrameRate.hasValue() ? string(mFrameRate.value()) : "");
+    hasher.update(":");
+    hasher.update(mFacingMode.hasValue() ? mFacingMode.value() : "bogus99255cc407eaf6f82b33a94ab86f588581df9000");
+    hasher.update(":");
+    hasher.update(mOrientation.hasValue() ? mOrientation.value() : "bogus99255cc407eaf6f82b33a94ab86f588581df9000");
+    hasher.update(":");
+    hasher.update(mVolume.hasValue() ? string(mVolume.value()) : "");
+    hasher.update(":");
+    hasher.update(mSampleRate.hasValue() ? string(mSampleRate.value()) : "");
+    hasher.update(":");
+    hasher.update(mSampleSize.hasValue() ? string(mSampleSize.value()) : "");
+    hasher.update(":");
+    hasher.update(mEchoCancellation.hasValue() ? string(mEchoCancellation.value()) : "");
+    hasher.update(":");
+    hasher.update(mLatency.hasValue() ? string(mLatency.value()) : "");
+    hasher.update(":");
+    hasher.update(mDeviceID.hasValue() ? mDeviceID.value() : "bogus99255cc407eaf6f82b33a94ab86f588581df9000");
+    hasher.update(":");
+    hasher.update(mGroupID.hasValue() ? mGroupID.value() : "bogus99255cc407eaf6f82b33a94ab86f588581df9000");
+
+    return hasher.final();
+  }
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IMediaStreamTrackTypes::ConstraintSet
+  #pragma mark
+
+  //---------------------------------------------------------------------------
+  IMediaStreamTrackTypes::ConstraintSetPtr IMediaStreamTrackTypes::ConstraintSet::create()
+  {
+    return ConstraintSetPtr(make_shared<ConstraintSet>());
+  }
+
+  //---------------------------------------------------------------------------
+  IMediaStreamTrackTypes::ConstraintSetPtr IMediaStreamTrackTypes::ConstraintSet::create(const ConstraintSetPtr &value)
+  {
+    if (!value) return create();
+    return create(*value);
+  }
+
+  //---------------------------------------------------------------------------
+  IMediaStreamTrackTypes:: ConstraintSetPtr IMediaStreamTrackTypes::ConstraintSet::create(const ConstraintSet &value)
+  {
+    return ConstraintSetPtr(make_shared<ConstraintSet>(value));
+  }
+  
+  //---------------------------------------------------------------------------
+  ElementPtr IMediaStreamTrackTypes::ConstraintSet::toDebug() const
+  {
+    ElementPtr resultEl = Element::create("ortc::IMediaStreamTrackTypes::ConstraintSet");
+
+    UseServicesHelper::debugAppend(resultEl, "width", mWidth.toDebug());
+    UseServicesHelper::debugAppend(resultEl, "height", mHeight.toDebug());
+    UseServicesHelper::debugAppend(resultEl, "aspect ratio", mAspectRatio.toDebug());
+    UseServicesHelper::debugAppend(resultEl, "frame rate", mFrameRate.toDebug());
+    UseServicesHelper::debugAppend(resultEl, "facingMode", mFacingMode.toDebug());
+    UseServicesHelper::debugAppend(resultEl, "volume", mVolume.toDebug());
+    UseServicesHelper::debugAppend(resultEl, "sample rate", mSampleRate.toDebug());
+    UseServicesHelper::debugAppend(resultEl, "echo cancellation", mEchoCancellation.toDebug());
+    UseServicesHelper::debugAppend(resultEl, "latency", mLatency.toDebug());
+    UseServicesHelper::debugAppend(resultEl, "device id", mDeviceID.toDebug());
+    UseServicesHelper::debugAppend(resultEl, "group id", mGroupID.toDebug());
+
+    return resultEl;
+  }
+
+  //---------------------------------------------------------------------------
+  String IMediaStreamTrackTypes::ConstraintSet::hash() const
+  {
+    SHA1Hasher hasher;
+
+    hasher.update("ortc::IMediaStreamTrackTypes::ConstraintSet:");
+
+    hasher.update(mWidth.hash());
+    hasher.update(":");
+    hasher.update(mHeight.hash());
+    hasher.update(":");
+    hasher.update(mAspectRatio.hash());
+    hasher.update(":");
+    hasher.update(mFrameRate.hash());
+    hasher.update(":");
+    hasher.update(mFacingMode.hash());
+    hasher.update(":");
+    hasher.update(mVolume.hash());
+    hasher.update(":");
+    hasher.update(mSampleRate.hash());
+    hasher.update(":");
+    hasher.update(mEchoCancellation.hash());
+    hasher.update(":");
+    hasher.update(mLatency.hash());
+    hasher.update(":");
+    hasher.update(mDeviceID.hash());
+    hasher.update(":");
+    hasher.update(mGroupID.hash());
+
+    return hasher.final();
+  }
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IMediaStreamTrackTypes::ConstraintSet
+  #pragma mark
+
+  //---------------------------------------------------------------------------
+  IMediaStreamTrackTypes::TrackConstraintsPtr IMediaStreamTrackTypes::TrackConstraints::create()
+  {
+    return TrackConstraintsPtr(make_shared<TrackConstraints>());
+  }
+
+  //---------------------------------------------------------------------------
+  IMediaStreamTrackTypes::TrackConstraintsPtr IMediaStreamTrackTypes::TrackConstraints::create(const TrackConstraintsPtr &value)
+  {
+    if (!value) return create();
+    return create(*value);
+  }
+
+  //---------------------------------------------------------------------------
+  IMediaStreamTrackTypes::TrackConstraintsPtr IMediaStreamTrackTypes::TrackConstraints::create(const TrackConstraints &value)
+  {
+    auto result = TrackConstraintsPtr(make_shared<TrackConstraints>());
+
+    for (auto iter = value.mAdvanced.begin(); iter != value.mAdvanced.end(); ++iter) {
+      auto clone = ConstraintSet::create(*iter);
+      result->mAdvanced.push_back(clone);
+    }
+
+    return result;
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IMediaStreamTrackTypes::TrackConstraints::toDebug() const
+  {
+    ElementPtr resultEl = Element::create("ortc::IMediaStreamTrackTypes::TrackConstraints");
+
+    ElementPtr advancedSet = Element::create("advanced set");
+
+    for (auto iter = mAdvanced.begin(); iter != mAdvanced.end(); ++iter) {
+      auto constraintSet = (*iter);
+      UseServicesHelper::debugAppend(advancedSet, constraintSet ? constraintSet->toDebug() : ElementPtr());
+    }
+    if (advancedSet->hasChildren()) {
+      UseServicesHelper::debugAppend(resultEl, advancedSet);
+    }
+
+    return resultEl;
+  }
+
+  //---------------------------------------------------------------------------
+  String IMediaStreamTrackTypes::TrackConstraints::hash() const
+  {
+    SHA1Hasher hasher;
+
+    hasher.update("ortc::IMediaStreamTrackTypes::TrackConstraints:");
+
+    for (auto iter = mAdvanced.begin(); iter != mAdvanced.end(); ++iter) {
+      auto constraintSet = (*iter);
+      hasher.update(constraintSet ? constraintSet->hash() : "");
+      hasher.update(":");
+    }
+
+    return hasher.final();
+  }
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IMediaStreamTrackTypes::ConstraintSet
+  #pragma mark
+
+  //---------------------------------------------------------------------------
+  IMediaStreamTrackTypes::ConstraintsPtr IMediaStreamTrackTypes::Constraints::create()
+  {
+    return ConstraintsPtr(make_shared<Constraints>());
+  }
+
+  //---------------------------------------------------------------------------
+  IMediaStreamTrackTypes::ConstraintsPtr IMediaStreamTrackTypes::Constraints::create(const ConstraintsPtr &value)
+  {
+    if (!value) return create();
+    return create(*value);
+  }
+
+  //---------------------------------------------------------------------------
+  IMediaStreamTrackTypes::ConstraintsPtr IMediaStreamTrackTypes::Constraints::create(const Constraints &value)
+  {
+    auto result = ConstraintsPtr(make_shared<Constraints>());
+    result->mVideo = value.mVideo ? TrackConstraints::create(value.mVideo) : TrackConstraintsPtr();
+    result->mAudio = value.mAudio ? TrackConstraints::create(value.mAudio) : TrackConstraintsPtr();
+    return result;
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IMediaStreamTrackTypes::Constraints::toDebug() const
+  {
+    ElementPtr resultEl = Element::create("ortc::IMediaStreamTrackTypes::Constraints");
+
+    UseServicesHelper::debugAppend(resultEl, "video", mVideo ? mVideo->toDebug() : ElementPtr());
+    UseServicesHelper::debugAppend(resultEl, "audio", mAudio ? mAudio->toDebug() : ElementPtr());
+
+    return resultEl;
+  }
+
+  //---------------------------------------------------------------------------
+  String IMediaStreamTrackTypes::Constraints::hash() const
+  {
+    SHA1Hasher hasher;
+
+    hasher.update("ortc::IMediaStreamTrackTypes::Constraints:");
+
+    hasher.update(mVideo ? mVideo->hash() : "");
+    hasher.update(":");
+    hasher.update(mAudio ? mAudio->hash() : "");
+
+    return hasher.final();
+  }
+  
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IMediaStreamTrack
+  #pragma mark
+
+  //---------------------------------------------------------------------------
+  ElementPtr IMediaStreamTrack::toDebug(IMediaStreamTrackPtr object)
+  {
+    return internal::MediaStreamTrack::toDebug(internal::MediaStreamTrack::convert(object));
+  }
+
+
+}
