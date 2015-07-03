@@ -33,7 +33,7 @@
 
 #include <ortc/internal/types.h>
 
-#include <ortc/IDTMFSender.h>
+#include <ortc/IIdentity.h>
 
 #include <openpeer/services/IWakeDelegate.h>
 
@@ -46,26 +46,23 @@ namespace ortc
 {
   namespace internal
   {
-    ZS_DECLARE_INTERACTION_PTR(IRTPSenderForDTMFSender)
-
-    ZS_DECLARE_INTERACTION_PTR(IDTMFSenderForSettings)
-    ZS_DECLARE_INTERACTION_PTR(IDTMFSenderForRTPSender)
+    ZS_DECLARE_INTERACTION_PTR(IIdentityForSettings)
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IDTMFSenderForSettings
+    #pragma mark IIdentityForSettings
     #pragma mark
 
-    interaction IDTMFSenderForSettings
+    interaction IIdentityForSettings
     {
-      ZS_DECLARE_TYPEDEF_PTR(IDTMFSenderForSettings, ForSettings)
+      ZS_DECLARE_TYPEDEF_PTR(IIdentityForSettings, ForSettings)
 
       static void applyDefaults();
 
-      virtual ~IDTMFSenderForSettings() {}
+      virtual ~IIdentityForSettings() {}
     };
     
     //-------------------------------------------------------------------------
@@ -73,57 +70,34 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IDTMFSenderForRTPSender
-    #pragma mark
-
-    interaction IDTMFSenderForRTPSender
-    {
-      ZS_DECLARE_TYPEDEF_PTR(IDTMFSenderForRTPSender, ForRTPSender)
-
-      static ElementPtr toDebug(ForRTPSenderPtr transport);
-
-      virtual PUID getID() const = 0;
-
-    };
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark DTMFSender
+    #pragma mark Identity
     #pragma mark
     
-    class DTMFSender : public Noop,
-                       public MessageQueueAssociator,
-                       public SharedRecursiveLock,
-                       public IDTMFSender,
-                       public IDTMFSenderForSettings,
-                       public IDTMFSenderForRTPSender,
-                       public IWakeDelegate,
-                       public zsLib::ITimerDelegate
+    class Identity : public Noop,
+                     public MessageQueueAssociator,
+                     public SharedRecursiveLock,
+                     public IIdentity,
+                     public IIdentityForSettings,
+                     public IWakeDelegate,
+                     public zsLib::ITimerDelegate
     {
     protected:
       struct make_private {};
 
     public:
-      friend interaction IDTMFSender;
-      friend interaction IDTMFSenderFactory;
-      friend interaction IDTMFSenderForSettings;
-      friend interaction IDTMFSenderForRTPSender;
-
-      ZS_DECLARE_TYPEDEF_PTR(IRTPSenderForDTMFSender, UseRTPSender)
+      friend interaction IIdentity;
+      friend interaction IIdentityFactory;
+      friend interaction IIdentityForSettings;
 
     public:
-      DTMFSender(
-                 const make_private &,
-                 IMessageQueuePtr queue,
-                 IDTMFSenderDelegatePtr delegate,
-                 IRTPSenderPtr sender
-                 );
+      Identity(
+               const make_private &,
+               IMessageQueuePtr queue,
+               IDTLSTransportPtr transport
+               );
 
     protected:
-      DTMFSender(Noop) :
+      Identity(Noop) :
         Noop(true),
         MessageQueueAssociator(IMessageQueuePtr()),
         SharedRecursiveLock(SharedRecursiveLock::create())
@@ -132,77 +106,60 @@ namespace ortc
       void init();
 
     public:
-      virtual ~DTMFSender();
+      virtual ~Identity();
 
-      static DTMFSenderPtr convert(IDTMFSenderPtr object);
-      static DTMFSenderPtr convert(ForSettingsPtr object);
-      static DTMFSenderPtr convert(ForRTPSenderPtr object);
+      static IdentityPtr convert(IIdentityPtr object);
+      static IdentityPtr convert(ForSettingsPtr object);
 
     protected:
 
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark DTMFSender => IDTMFSender
+      #pragma mark Identity => IIdentity
       #pragma mark
 
-      static ElementPtr toDebug(DTMFSenderPtr transport);
+      static ElementPtr toDebug(IdentityPtr transport);
 
-      static DTMFSenderPtr create(
-                                  IDTMFSenderDelegatePtr delegate,
-                                  IRTPSenderPtr sender
-                                  );
+      static IdentityPtr create(IDTLSTransportPtr transport);
 
       virtual PUID getID() const override {return mID;}
 
-      virtual IDTMFSenderSubscriptionPtr subscribe(IDTMFSenderDelegatePtr delegate) override;
+      virtual AssertionPtr peerIdentity() const override;
 
-      virtual bool canInsertDDTMF() const override;
+      virtual IDTLSTransportPtr transport() const override;
 
-      virtual void insertDTMF(
-                              const char *tones,
-                              Milliseconds duration = Milliseconds(70),
-                              Milliseconds interToneGap = Milliseconds(70)
-                              ) throw (InvalidStateError) override;
+      virtual PromiseWithResultPtr getIdentityAssertion(
+                                                        const char *provider,
+                                                        const char *protoocl = "default",
+                                                        const char *username = NULL
+                                                        ) throw (InvalidStateError) override;
 
-      virtual IRTPSenderPtr sender() const override;
-
-      virtual String toneBuffer() const override;
-      virtual Milliseconds duration() const override;
-      virtual Milliseconds interToneGap() const override;
+      virtual PromiseWithAssertionPtr setIdentityAssertion(const String &assertion) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark DTMFSender => IDTMFSenderForRTPSender
-      #pragma mark
-
-      // (duplicate) static ElementPtr toDebug(DTMFSenderPtr transport);
-
-      // (duplicate) virtual PUID getID() const = 0;
-
-      //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark DTMFSender => IWakeDelegate
+      #pragma mark Identity => IWakeDelegate
       #pragma mark
 
       virtual void onWake() override;
 
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark DTMFSender => ITimerDelegate
+      #pragma mark Identity => ITimerDelegate
       #pragma mark
 
       virtual void onTimer(TimerPtr timer) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark DTMFSender => IDTMFSenderAsyncDelegate
+      #pragma mark Identity => IIdentityAsyncDelegate
       #pragma mark
 
 
     protected:
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark DTMFSender => (internal)
+      #pragma mark Identity => (internal)
       #pragma mark
 
       Log::Params log(const char *message) const;
@@ -222,17 +179,12 @@ namespace ortc
     protected:
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark DTMFSender => (data)
+      #pragma mark Identity => (data)
       #pragma mark
 
       AutoPUID mID;
-      DTMFSenderWeakPtr mThisWeak;
-      DTMFSenderPtr mGracefulShutdownReference;
-
-      IDTMFSenderDelegateSubscriptions mSubscriptions;
-      IDTMFSenderSubscriptionPtr mDefaultSubscription;
-
-      UseRTPSenderWeakPtr mRTPSender;
+      IdentityWeakPtr mThisWeak;
+      IdentityPtr mGracefulShutdownReference;
 
       bool mShutdown {false};
     };
@@ -242,19 +194,16 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IDTMFSenderFactory
+    #pragma mark IIdentityFactory
     #pragma mark
 
-    interaction IDTMFSenderFactory
+    interaction IIdentityFactory
     {
-      static IDTMFSenderFactory &singleton();
+      static IIdentityFactory &singleton();
 
-      virtual DTMFSenderPtr create(
-                                   IDTMFSenderDelegatePtr delegate,
-                                   IRTPSenderPtr sender
-                                   );
+      virtual IdentityPtr create(IDTLSTransportPtr transport);
     };
 
-    class DTMFSenderFactory : public IFactory<IDTMFSenderFactory> {};
+    class IdentityFactory : public IFactory<IIdentityFactory> {};
   }
 }

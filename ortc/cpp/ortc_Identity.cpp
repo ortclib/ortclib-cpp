@@ -29,8 +29,7 @@
  
  */
 
-#include <ortc/internal/ortc_DTMFSender.h>
-#include <ortc/internal/ortc_RTPSender.h>
+#include <ortc/internal/ortc_Identity.h>
 #include <ortc/internal/ortc_ORTC.h>
 #include <ortc/internal/platform.h>
 
@@ -78,11 +77,11 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IDTMFSenderForSettings
+    #pragma mark IIdentityForSettings
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void IDTMFSenderForSettings::applyDefaults()
+    void IIdentityForSettings::applyDefaults()
     {
 //      UseSettings::setUInt(ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE, 5*1024);
     }
@@ -92,51 +91,32 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IDTMFSenderForRTPSender
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    ElementPtr IDTMFSenderForRTPSender::toDebug(ForRTPSenderPtr transport)
-    {
-      if (!transport) return ElementPtr();
-      return ZS_DYNAMIC_PTR_CAST(DTMFSender, transport)->toDebug();
-    }
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark DTMFSender
+    #pragma mark Identity
     #pragma mark
     
     //-------------------------------------------------------------------------
-    DTMFSender::DTMFSender(
-                           const make_private &,
-                           IMessageQueuePtr queue,
-                           IDTMFSenderDelegatePtr originalDelegate,
-                           IRTPSenderPtr sender
-                           ) :
+    Identity::Identity(
+                       const make_private &,
+                       IMessageQueuePtr queue,
+                       IDTLSTransportPtr transport
+                       ) :
       MessageQueueAssociator(queue),
-      SharedRecursiveLock(SharedRecursiveLock::create()),
-      mRTPSender(RTPSender::convert(sender))
+      SharedRecursiveLock(SharedRecursiveLock::create())
     {
       ZS_LOG_DETAIL(debug("created"))
 
-      if (originalDelegate) {
-        mDefaultSubscription = mSubscriptions.subscribe(originalDelegate, IORTCForInternal::queueDelegate());
-      }
+      ZS_THROW_NOT_IMPLEMENTED("identity API in specification is not ready")
     }
 
     //-------------------------------------------------------------------------
-    void DTMFSender::init()
+    void Identity::init()
     {
       AutoRecursiveLock lock(*this);
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
     }
 
     //-------------------------------------------------------------------------
-    DTMFSender::~DTMFSender()
+    Identity::~Identity()
     {
       if (isNoop()) return;
 
@@ -147,126 +127,71 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    DTMFSenderPtr DTMFSender::convert(IDTMFSenderPtr object)
+    IdentityPtr Identity::convert(IIdentityPtr object)
     {
-      return ZS_DYNAMIC_PTR_CAST(DTMFSender, object);
+      return ZS_DYNAMIC_PTR_CAST(Identity, object);
     }
 
     //-------------------------------------------------------------------------
-    DTMFSenderPtr DTMFSender::convert(ForSettingsPtr object)
+    IdentityPtr Identity::convert(ForSettingsPtr object)
     {
-      return ZS_DYNAMIC_PTR_CAST(DTMFSender, object);
+      return ZS_DYNAMIC_PTR_CAST(Identity, object);
     }
-
-    //-------------------------------------------------------------------------
-    DTMFSenderPtr DTMFSender::convert(ForRTPSenderPtr object)
-    {
-      return ZS_DYNAMIC_PTR_CAST(DTMFSender, object);
-    }
-
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark DTMFSender => IDTMFSender
+    #pragma mark Identity => IIdentity
     #pragma mark
     
     //-------------------------------------------------------------------------
-    ElementPtr DTMFSender::toDebug(DTMFSenderPtr transport)
+    ElementPtr Identity::toDebug(IdentityPtr transport)
     {
       if (!transport) return ElementPtr();
       return transport->toDebug();
     }
 
     //-------------------------------------------------------------------------
-    DTMFSenderPtr DTMFSender::create(
-                                     IDTMFSenderDelegatePtr delegate,
-                                     IRTPSenderPtr sender
-                                     )
+    IdentityPtr Identity::create(IDTLSTransportPtr transport)
     {
-      DTMFSenderPtr pThis(make_shared<DTMFSender>(make_private {}, IORTCForInternal::queueORTC(), delegate, sender));
+      IdentityPtr pThis(make_shared<Identity>(make_private {}, IORTCForInternal::queueORTC(), transport));
       pThis->mThisWeak = pThis;
       pThis->init();
       return pThis;
     }
 
     //-------------------------------------------------------------------------
-    IDTMFSenderSubscriptionPtr DTMFSender::subscribe(IDTMFSenderDelegatePtr originalDelegate)
+    IIdentityTypes::AssertionPtr Identity::peerIdentity() const
     {
-      ZS_LOG_DETAIL(log("subscribing to transport state"))
-
-      AutoRecursiveLock lock(*this);
-      if (!originalDelegate) return mDefaultSubscription;
-
-      IDTMFSenderSubscriptionPtr subscription = mSubscriptions.subscribe(originalDelegate, IORTCForInternal::queueDelegate());
-
-      IDTMFSenderDelegatePtr delegate = mSubscriptions.delegate(subscription, true);
-
-      if (delegate) {
-        DTMFSenderPtr pThis = mThisWeak.lock();
-
-#define TODO_DO_WE_NEED_TO_TELL_ABOUT_ANY_MISSED_EVENTS 1
-#define TODO_DO_WE_NEED_TO_TELL_ABOUT_ANY_MISSED_EVENTS 2
-      }
-
-      if (isShutdown()) {
-        mSubscriptions.clear();
-      }
-      
-      return subscription;
+      ZS_THROW_NOT_IMPLEMENTED("identity API in specification is not ready")
+      return AssertionPtr();
     }
 
     //-------------------------------------------------------------------------
-    bool DTMFSender::canInsertDDTMF() const
+    IDTLSTransportPtr Identity::transport() const
     {
-#define TODO 1
-#define TODO 2
-      return false;
+      ZS_THROW_NOT_IMPLEMENTED("identity API in specification is not ready")
+      return IDTLSTransportPtr();
     }
 
     //-------------------------------------------------------------------------
-    void DTMFSender::insertDTMF(
-                                const char *tones,
-                                Milliseconds duration,
-                                Milliseconds interToneGap
-                                ) throw (InvalidStateError)
+    IIdentityTypes::PromiseWithResultPtr Identity::getIdentityAssertion(
+                                                                        const char *provider,
+                                                                        const char *protoocl,
+                                                                        const char *username
+                                                                        ) throw (InvalidStateError)
     {
-#define TODO 1
-#define TODO 2
+      ZS_THROW_NOT_IMPLEMENTED("identity API in specification is not ready")
+      return PromiseWithResultPtr();
     }
 
     //-------------------------------------------------------------------------
-    IRTPSenderPtr DTMFSender::sender() const
+    IIdentityTypes::PromiseWithAssertionPtr Identity::setIdentityAssertion(const String &assertion)
     {
-#define TODO 1
-#define TODO 2
-      return RTPSender::convert(mRTPSender.lock());
-    }
-
-    //-------------------------------------------------------------------------
-    String DTMFSender::toneBuffer() const
-    {
-#define TODO 1
-#define TODO 2
-      return String();
-    }
-
-    //-------------------------------------------------------------------------
-    Milliseconds DTMFSender::duration() const
-    {
-#define TODO 1
-#define TODO 2
-      return Milliseconds();
-    }
-
-    //-------------------------------------------------------------------------
-    Milliseconds DTMFSender::interToneGap() const
-    {
-#define TODO 1
-#define TODO 2
-      return Milliseconds();
+      ZS_THROW_NOT_IMPLEMENTED("identity API in specification is not ready")
+      return PromiseWithAssertionPtr();
     }
 
     //-------------------------------------------------------------------------
@@ -274,7 +199,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark DTMFSender => IDTMFSenderForRTPSender
+    #pragma mark Identity => IIdentityForRTPSender
     #pragma mark
 
 
@@ -283,11 +208,11 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark DTMFSender => IWakeDelegate
+    #pragma mark Identity => IWakeDelegate
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void DTMFSender::onWake()
+    void Identity::onWake()
     {
       ZS_LOG_DEBUG(log("wake"))
 
@@ -300,11 +225,11 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark DTMFSender => ITimerDelegate
+    #pragma mark Identity => ITimerDelegate
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void DTMFSender::onTimer(TimerPtr timer)
+    void Identity::onTimer(TimerPtr timer)
     {
       ZS_LOG_DEBUG(log("timer") + ZS_PARAM("timer id", timer->getID()))
 
@@ -318,7 +243,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark DTMFSender => IDTMFSenderAsyncDelegate
+    #pragma mark Identity => IIdentityAsyncDelegate
     #pragma mark
 
 
@@ -327,62 +252,55 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark DTMFSender => (internal)
+    #pragma mark Identity => (internal)
     #pragma mark
 
     //-------------------------------------------------------------------------
-    Log::Params DTMFSender::log(const char *message) const
+    Log::Params Identity::log(const char *message) const
     {
-      ElementPtr objectEl = Element::create("ortc::DTMFSender");
+      ElementPtr objectEl = Element::create("ortc::Identity");
       UseServicesHelper::debugAppend(objectEl, "id", mID);
       return Log::Params(message, objectEl);
     }
 
     //-------------------------------------------------------------------------
-    Log::Params DTMFSender::debug(const char *message) const
+    Log::Params Identity::debug(const char *message) const
     {
       return Log::Params(message, toDebug());
     }
 
     //-------------------------------------------------------------------------
-    ElementPtr DTMFSender::toDebug() const
+    ElementPtr Identity::toDebug() const
     {
       AutoRecursiveLock lock(*this);
 
-      ElementPtr resultEl = Element::create("ortc::DTMFSender");
-
-      auto rtpSender = mRTPSender.lock();
+      ElementPtr resultEl = Element::create("ortc::Identity");
 
       UseServicesHelper::debugAppend(resultEl, "id", mID);
 
       UseServicesHelper::debugAppend(resultEl, "graceful shutdown", (bool)mGracefulShutdownReference);
 
-      UseServicesHelper::debugAppend(resultEl, "subscribers", mSubscriptions.size());
-      UseServicesHelper::debugAppend(resultEl, "default subscription", (bool)mDefaultSubscription);
-
       UseServicesHelper::debugAppend(resultEl, "shutdown", mShutdown);
-
-      UseServicesHelper::debugAppend(resultEl, "data transport", rtpSender ? rtpSender->getID() : 0);
 
       return resultEl;
     }
 
     //-------------------------------------------------------------------------
-    bool DTMFSender::isShuttingDown() const
+    bool Identity::isShuttingDown() const
     {
       if (mGracefulShutdownReference) return true;
       return false;
     }
 
     //-------------------------------------------------------------------------
-    bool DTMFSender::isShutdown() const
+    bool Identity::isShutdown() const
     {
       if (mGracefulShutdownReference) return false;
       return mShutdown;
     }
 
     //-------------------------------------------------------------------------
-    void DTMFSender::step()
+    void Identity::step()
     {
       ZS_LOG_DEBUG(debug("step"))
 
@@ -412,7 +330,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool DTMFSender::stepBogusDoSomething()
+    bool Identity::stepBogusDoSomething()
     {
       if ( /* step already done */ false ) {
         ZS_LOG_TRACE(log("already completed do something"))
@@ -434,7 +352,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void DTMFSender::cancel()
+    void Identity::cancel()
     {
       //.......................................................................
       // try to gracefully shutdown
@@ -457,13 +375,6 @@ namespace ortc
 
       mShutdown = true;
 
-      mSubscriptions.clear();
-
-      if (mDefaultSubscription) {
-        mDefaultSubscription->cancel();
-        mDefaultSubscription.reset();
-      }
-
       // make sure to cleanup any final reference to self
       mGracefulShutdownReference.reset();
     }
@@ -474,23 +385,20 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IDTMFSenderFactory
+    #pragma mark IIdentityFactory
     #pragma mark
 
     //-------------------------------------------------------------------------
-    IDTMFSenderFactory &IDTMFSenderFactory::singleton()
+    IIdentityFactory &IIdentityFactory::singleton()
     {
-      return DTMFSenderFactory::singleton();
+      return IdentityFactory::singleton();
     }
 
     //-------------------------------------------------------------------------
-    DTMFSenderPtr IDTMFSenderFactory::create(
-                                             IDTMFSenderDelegatePtr delegate,
-                                             IRTPSenderPtr sender
-                                             )
+    IdentityPtr IIdentityFactory::create(IDTLSTransportPtr transport)
     {
       if (this) {}
-      return internal::DTMFSender::create(delegate, sender);
+      return internal::Identity::create(transport);
     }
 
   } // internal namespace
@@ -501,22 +409,19 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   #pragma mark
-  #pragma mark IDTMFSenderTypes
+  #pragma mark IIdentityTypes
   #pragma mark
 
   //---------------------------------------------------------------------------
-  ElementPtr IDTMFSender::toDebug(IDTMFSenderPtr transport)
+  ElementPtr IIdentity::toDebug(IIdentityPtr transport)
   {
-    return internal::DTMFSender::toDebug(internal::DTMFSender::convert(transport));
+    return internal::Identity::toDebug(internal::Identity::convert(transport));
   }
 
   //---------------------------------------------------------------------------
-  IDTMFSenderPtr IDTMFSender::create(
-                                     IDTMFSenderDelegatePtr delegate,
-                                     IRTPSenderPtr sender
-                                     )
+  IIdentityPtr IIdentity::create(IDTLSTransportPtr transport)
   {
-    return internal::IDTMFSenderFactory::singleton().create(delegate, sender);
+    return internal::IIdentityFactory::singleton().create(transport);
   }
 
 

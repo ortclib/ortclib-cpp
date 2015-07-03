@@ -118,6 +118,7 @@ namespace ortc
     ZS_DECLARE_CLASS_PTR(ICEGathererRouter)
     ZS_DECLARE_CLASS_PTR(ICETransport)
     ZS_DECLARE_CLASS_PTR(ICETransportController)
+    ZS_DECLARE_CLASS_PTR(Identity)
     ZS_DECLARE_CLASS_PTR(MediaDevices)
     ZS_DECLARE_CLASS_PTR(MediaStreamTrack)
     ZS_DECLARE_CLASS_PTR(RTPListener)
