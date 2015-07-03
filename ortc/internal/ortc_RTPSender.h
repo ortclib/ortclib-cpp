@@ -92,6 +92,23 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
+    #pragma mark IRTPSenderForDTMFSender
+    #pragma mark
+
+    interaction IRTPSenderForDTMFSender
+    {
+      ZS_DECLARE_TYPEDEF_PTR(IRTPSenderForDTMFSender, ForDTMFSender)
+
+      static ElementPtr toDebug(ForDTMFSenderPtr transport);
+
+      virtual PUID getID() const = 0;
+    };
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
     #pragma mark IRTPSenderAsyncDelegate
     #pragma mark
 
@@ -114,6 +131,7 @@ namespace ortc
                         public IRTPSender,
                         public IRTPSenderForSettings,
                         public IRTPSenderForRTPListener,
+                        public IRTPSenderForDTMFSender,
                         public IWakeDelegate,
                         public zsLib::ITimerDelegate,
                         public IRTPSenderAsyncDelegate
@@ -126,6 +144,7 @@ namespace ortc
       friend interaction IRTPSenderFactory;
       friend interaction IRTPSenderForSettings;
       friend interaction IRTPSenderForRTPListener;
+      friend interaction IRTPSenderForDTMFSender;
 
       enum States
       {
@@ -161,6 +180,8 @@ namespace ortc
       static RTPSenderPtr convert(IRTPSenderPtr object);
       static RTPSenderPtr convert(ForSettingsPtr object);
       static RTPSenderPtr convert(ForRTPListenerPtr object);
+      static RTPSenderPtr convert(ForDTMFSenderPtr object);
+
 
     protected:
       //-----------------------------------------------------------------------
@@ -212,6 +233,16 @@ namespace ortc
       // (duplciate) static ElementPtr toDebug(ForRTPListenerPtr transport);
 
       // (duplicate) virtual PUID getID() const = 0;
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPSender => IRTPSenderForDTMFSender
+      #pragma mark
+
+      // (duplciate) static ElementPtr toDebug(ForRTPSenderPtr transport);
+
+      // (duplicate) virtual PUID getID() const = 0;
+
 
       //-----------------------------------------------------------------------
       #pragma mark

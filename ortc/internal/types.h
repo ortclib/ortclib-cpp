@@ -112,6 +112,7 @@ namespace ortc
     ZS_DECLARE_CLASS_PTR(Settings)
     ZS_DECLARE_CLASS_PTR(Certificate)
     ZS_DECLARE_CLASS_PTR(DataChannel)
+    ZS_DECLARE_CLASS_PTR(DTMFSender)
     ZS_DECLARE_CLASS_PTR(DTLSTransport)
     ZS_DECLARE_CLASS_PTR(ICEGatherer)
     ZS_DECLARE_CLASS_PTR(ICEGathererRouter)
