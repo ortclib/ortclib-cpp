@@ -339,7 +339,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark SCTPTransport => IICETransportDelegate
+    #pragma mark SCTPTransport => IDTLSTransportDelegate
     #pragma mark
 
     //-------------------------------------------------------------------------
@@ -613,7 +613,7 @@ namespace ortc
     SHA1Hasher hasher;
 
     hasher.update("ISCTPTransportTypes:Capabilities:");
-    hasher.update(string(mMaxMessageSize));
+    hasher.update(mMaxMessageSize);
     return hasher.final();
   }
 

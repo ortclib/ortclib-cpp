@@ -36,6 +36,10 @@
 #include <ortc/internal/ortc_ICETransport.h>
 #include <ortc/internal/ortc_DTLSTransport.h>
 #include <ortc/internal/ortc_MediaDevices.h>
+#include <ortc/internal/ortc_RTPListener.h>
+#include <ortc/internal/ortc_RTPReceiver.h>
+#include <ortc/internal/ortc_RTPSender.h>
+#include <ortc/internal/ortc_RTPSender.h>
 #include <ortc/internal/ortc_SCTPTransport.h>
 #include <ortc/internal/ortc_SRTPTransport.h>
 #include <ortc/internal/ortc_SRTPSDESTransport.h>
@@ -149,6 +153,9 @@ namespace ortc
       ICertificateForSettings::applyDefaults();
       IDTLSTransportForSettings::applyDefaults();
       IMediaDevicesForSettings::applyDefaults();
+      IRTPListenerForSettings::applyDefaults();
+      IRTPReceiverForSettings::applyDefaults();
+      IRTPSenderForSettings::applyDefaults();
       ISCTPTransportForSettings::applyDefaults();
       ISRTPTransportForSettings::applyDefaults();
       ISRTPSDESTransportForSettings::applyDefaults();

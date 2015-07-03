@@ -695,23 +695,23 @@ namespace ortc
     SHA1Hasher hasher;
 
     hasher.update("ortc::IMediaStreamTrackTypes::Capabilities:");
-    hasher.update(mWidth.hasValue() ? mWidth.value().hash() : "");
+    hasher.update(mWidth.hasValue() ? mWidth.value().hash() : String());
     hasher.update(":");
-    hasher.update(mHeight.hasValue() ? mHeight.value().hash() : "");
+    hasher.update(mHeight.hasValue() ? mHeight.value().hash() : String());
     hasher.update(":");
-    hasher.update(mAspectRatio.hasValue() ? mAspectRatio.value().hash() : "");
+    hasher.update(mAspectRatio.hasValue() ? mAspectRatio.value().hash() : String());
     hasher.update(":");
-    hasher.update(mFrameRate.hasValue() ? mFrameRate.value().hash() : "");
+    hasher.update(mFrameRate.hasValue() ? mFrameRate.value().hash() : String());
     hasher.update(":");
-    hasher.update(mFacingMode.hasValue() ? mFacingMode.value().hash() : "");
+    hasher.update(mFacingMode.hasValue() ? mFacingMode.value().hash() : String());
     hasher.update(":");
-    hasher.update(mVolume.hasValue() ? mVolume.value().hash() : "");
+    hasher.update(mVolume.hasValue() ? mVolume.value().hash() : String());
     hasher.update(":");
-    hasher.update(mSampleRate.hasValue() ? mSampleRate.value().hash() : "");
+    hasher.update(mSampleRate.hasValue() ? mSampleRate.value().hash() : String());
     hasher.update(":");
-    hasher.update(mEchoCancellation.hasValue() ? mEchoCancellation.value().hash()  : "");
+    hasher.update(mEchoCancellation.hasValue() ? mEchoCancellation.value().hash()  : String());
     hasher.update(":");
-    hasher.update(mLatency.hasValue() ? mLatency.value().hash()  : "");
+    hasher.update(mLatency.hasValue() ? mLatency.value().hash()  : String());
     hasher.update(":");
     hasher.update(mDeviceID);
     hasher.update(":");
@@ -752,18 +752,18 @@ namespace ortc
   {
     ElementPtr resultEl = Element::create("ortc::IMediaStreamTrackTypes::Settings");
 
-    UseServicesHelper::debugAppend(resultEl, "width", mWidth.hasValue() ? mWidth.value() : 0);
-    UseServicesHelper::debugAppend(resultEl, "height", mHeight.hasValue() ? mHeight.value() : 0);
-    UseServicesHelper::debugAppend(resultEl, "aspect ratio", mAspectRatio.hasValue() ? mAspectRatio.value() : 0);
-    UseServicesHelper::debugAppend(resultEl, "frame rate", mFrameRate.hasValue() ? mFrameRate.value() : 0);
-    UseServicesHelper::debugAppend(resultEl, "facing mode", mFacingMode.hasValue() ? mFacingMode.value() : String());
-    UseServicesHelper::debugAppend(resultEl, "orientation", mOrientation.hasValue() ? mOrientation.value() : String());
-    UseServicesHelper::debugAppend(resultEl, "volume", mVolume.hasValue() ? mVolume.value() : 0);
-    UseServicesHelper::debugAppend(resultEl, "sample rate", mSampleRate.hasValue() ? mSampleRate.value() : 0);
-    UseServicesHelper::debugAppend(resultEl, "sample size", mSampleSize.hasValue() ? mSampleSize.value() : 0);
-    UseServicesHelper::debugAppend(resultEl, "echo cancellation", mEchoCancellation.hasValue() ? mEchoCancellation.value() : false);
-    UseServicesHelper::debugAppend(resultEl, "device id", mDeviceID.hasValue() ? mDeviceID.value() : false);
-    UseServicesHelper::debugAppend(resultEl, "group id", mGroupID.hasValue() ? mGroupID.value() : false);
+    UseServicesHelper::debugAppend(resultEl, "width", mWidth);
+    UseServicesHelper::debugAppend(resultEl, "height", mHeight);
+    UseServicesHelper::debugAppend(resultEl, "aspect ratio", mAspectRatio);
+    UseServicesHelper::debugAppend(resultEl, "frame rate", mFrameRate);
+    UseServicesHelper::debugAppend(resultEl, "facing mode", mFacingMode);
+    UseServicesHelper::debugAppend(resultEl, "orientation", mOrientation);
+    UseServicesHelper::debugAppend(resultEl, "volume", mVolume);
+    UseServicesHelper::debugAppend(resultEl, "sample rate", mSampleRate);
+    UseServicesHelper::debugAppend(resultEl, "sample size", mSampleSize);
+    UseServicesHelper::debugAppend(resultEl, "echo cancellation", mEchoCancellation);
+    UseServicesHelper::debugAppend(resultEl, "device id", mDeviceID);
+    UseServicesHelper::debugAppend(resultEl, "group id", mGroupID);
 
     return resultEl;
   }
@@ -775,31 +775,31 @@ namespace ortc
 
     hasher.update("ortc::IMediaStreamTrackTypes::Settings:");
 
-    hasher.update(mWidth.hasValue() ? string(mWidth.value()) : "");
+    hasher.update(mWidth);
     hasher.update(":");
-    hasher.update(mHeight.hasValue() ? string(mHeight.value()) : "");
+    hasher.update(mHeight);
     hasher.update(":");
-    hasher.update(mAspectRatio.hasValue() ? string(mAspectRatio.value()) : "");
+    hasher.update(mAspectRatio);
     hasher.update(":");
-    hasher.update(mFrameRate.hasValue() ? string(mFrameRate.value()) : "");
+    hasher.update(mFrameRate);
     hasher.update(":");
-    hasher.update(mFacingMode.hasValue() ? mFacingMode.value() : "bogus99255cc407eaf6f82b33a94ab86f588581df9000");
+    hasher.update(mFacingMode, "bogus99255cc407eaf6f82b33a94ab86f588581df9000");
     hasher.update(":");
-    hasher.update(mOrientation.hasValue() ? mOrientation.value() : "bogus99255cc407eaf6f82b33a94ab86f588581df9000");
+    hasher.update(mOrientation, "bogus99255cc407eaf6f82b33a94ab86f588581df9000");
     hasher.update(":");
-    hasher.update(mVolume.hasValue() ? string(mVolume.value()) : "");
+    hasher.update(mVolume);
     hasher.update(":");
-    hasher.update(mSampleRate.hasValue() ? string(mSampleRate.value()) : "");
+    hasher.update(mSampleRate);
     hasher.update(":");
-    hasher.update(mSampleSize.hasValue() ? string(mSampleSize.value()) : "");
+    hasher.update(mSampleSize);
     hasher.update(":");
-    hasher.update(mEchoCancellation.hasValue() ? string(mEchoCancellation.value()) : "");
+    hasher.update(mEchoCancellation);
     hasher.update(":");
-    hasher.update(mLatency.hasValue() ? string(mLatency.value()) : "");
+    hasher.update(mLatency);
     hasher.update(":");
-    hasher.update(mDeviceID.hasValue() ? mDeviceID.value() : "bogus99255cc407eaf6f82b33a94ab86f588581df9000");
+    hasher.update(mDeviceID, "bogus99255cc407eaf6f82b33a94ab86f588581df9000");
     hasher.update(":");
-    hasher.update(mGroupID.hasValue() ? mGroupID.value() : "bogus99255cc407eaf6f82b33a94ab86f588581df9000");
+    hasher.update(mGroupID, "bogus99255cc407eaf6f82b33a94ab86f588581df9000");
 
     return hasher.final();
   }
@@ -944,7 +944,7 @@ namespace ortc
 
     for (auto iter = mAdvanced.begin(); iter != mAdvanced.end(); ++iter) {
       auto constraintSet = (*iter);
-      hasher.update(constraintSet ? constraintSet->hash() : "");
+      hasher.update(constraintSet ? constraintSet->hash() : String());
       hasher.update(":");
     }
 
@@ -999,9 +999,9 @@ namespace ortc
 
     hasher.update("ortc::IMediaStreamTrackTypes::Constraints:");
 
-    hasher.update(mVideo ? mVideo->hash() : "");
+    hasher.update(mVideo ? mVideo->hash() : String());
     hasher.update(":");
-    hasher.update(mAudio ? mAudio->hash() : "");
+    hasher.update(mAudio ? mAudio->hash() : String());
 
     return hasher.final();
   }

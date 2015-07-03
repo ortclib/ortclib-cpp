@@ -85,8 +85,8 @@ namespace ortc
       bool mSampleSize {false};
       bool mEchoCancellation {false};
       bool mLatency {false};
-      bool mDeviceId {false};
-      bool mGroupId {false};
+      bool mDeviceID {false};
+      bool mGroupID {false};
 
       ElementPtr toDebug() const;
       String hash() const;

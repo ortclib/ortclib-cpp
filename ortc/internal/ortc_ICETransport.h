@@ -316,6 +316,7 @@ namespace ortc
       virtual ~ICETransport();
 
       static ICETransportPtr convert(IICETransportPtr object);
+      static ICETransportPtr convert(IRTCPTransportPtr object);
       static ICETransportPtr convert(ForSettingsPtr object);
       static ICETransportPtr convert(ForICEGathererPtr object);
       static ICETransportPtr convert(ForTransportContollerPtr object);

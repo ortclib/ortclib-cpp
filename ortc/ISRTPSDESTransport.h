@@ -118,14 +118,14 @@ namespace ortc
   {
     static ElementPtr toDebug(ISRTPSDESTransportPtr transport);
 
+    static ISRTPSDESTransportPtr convert(IRTPTransportPtr rtpTransport);
+
     static ISRTPSDESTransportPtr create(
                                         ISRTPSDESTransportDelegatePtr delegate,
                                         IICETransportPtr iceTransport,
                                         const CryptoParameters &encryptParameters,
                                         const CryptoParameters &decryptParameters
                                         );
-
-    static ISRTPSDESTransportPtr convert(IRTPTransportPtr rtpTransport);
 
     virtual PUID getID() const = 0;
 

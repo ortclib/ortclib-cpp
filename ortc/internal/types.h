@@ -119,6 +119,8 @@ namespace ortc
     ZS_DECLARE_CLASS_PTR(MediaDevices)
     ZS_DECLARE_CLASS_PTR(MediaStreamTrack)
     ZS_DECLARE_CLASS_PTR(RTPListener)
+    ZS_DECLARE_CLASS_PTR(RTPReceiver)
+    ZS_DECLARE_CLASS_PTR(RTPSender)
     ZS_DECLARE_CLASS_PTR(SRTPSDESTransport)
     ZS_DECLARE_CLASS_PTR(SCTPTransport)
     ZS_DECLARE_CLASS_PTR(SRTPTransport)

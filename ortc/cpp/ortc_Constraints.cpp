@@ -76,8 +76,8 @@ namespace ortc
   {
     ElementPtr resultEl = Element::create("ortc::IConstraints::ConstrainBoolParameters");
 
-    UseServicesHelper::debugAppend(resultEl, "exact", mExact.hasValue() ? ((mExact.value()) ? "true" : "false") : "");
-    UseServicesHelper::debugAppend(resultEl, "ideal", mIdeal.hasValue() ? ((mIdeal.value()) ? "true" : "false") : "");
+    UseServicesHelper::debugAppend(resultEl, "exact", mExact);
+    UseServicesHelper::debugAppend(resultEl, "ideal", mIdeal);
 
     return resultEl;
   }
@@ -89,8 +89,9 @@ namespace ortc
 
     hasher.update("ortc::IConstraints::ConstrainBoolParameters:");
 
-    hasher.update(mExact.hasValue() ? ((mExact.hasValue()) ? ":true" : ":false") : ":");
-    hasher.update(mIdeal.hasValue() ? ((mIdeal.hasValue()) ? ":true" : ":false") : ":");
+    hasher.update(mExact);
+    hasher.update(":");
+    hasher.update(mIdeal);
 
     return hasher.final();
   }
@@ -123,8 +124,9 @@ namespace ortc
 
     hasher.update("ortc::IConstraints::ConstrainBool:");
 
-    hasher.update(mValue.hasValue() ? ((mValue.value()) ? ":true" : ":false") : ":");
-    hasher.update(mParameters.hasValue() ? mParameters.value().hash() : ":");
+    hasher.update(mValue);
+    hasher.update(":");
+    hasher.update(mParameters.hasValue() ? mParameters.value().hash() : String());
 
     return hasher.final();
   }
@@ -144,10 +146,10 @@ namespace ortc
   {
     ElementPtr resultEl = Element::create("ortc::IConstraints::ConstrainLongRange");
 
-    UseServicesHelper::debugAppend(resultEl, "min", mMin.hasValue() ? string(mMin.value()) : "");
-    UseServicesHelper::debugAppend(resultEl, "max", mMax.hasValue() ? string(mMax.value()) : "");
-    UseServicesHelper::debugAppend(resultEl, "ideal", mIdeal.hasValue() ? string(mIdeal.value()) : "");
-    UseServicesHelper::debugAppend(resultEl, "exact", mExact.hasValue() ? string(mExact.value()) : "");
+    UseServicesHelper::debugAppend(resultEl, "min", mMin);
+    UseServicesHelper::debugAppend(resultEl, "max", mMax);
+    UseServicesHelper::debugAppend(resultEl, "ideal", mIdeal);
+    UseServicesHelper::debugAppend(resultEl, "exact", mExact);
 
     return resultEl;
   }
@@ -159,10 +161,13 @@ namespace ortc
 
     hasher.update("ortc::IConstraints::ConstrainLongRange:");
 
-    hasher.update(mMin.hasValue() ? string(mMin.value()) : ":");
-    hasher.update(mMax.hasValue() ? string(mMax.value()) : ":");
-    hasher.update(mExact.hasValue() ? string(mExact.value()) : ":");
-    hasher.update(mIdeal.hasValue() ? string(mIdeal.value()) : ":");
+    hasher.update(mMin);
+    hasher.update(":");
+    hasher.update(mMax);
+    hasher.update(":");
+    hasher.update(mExact);
+    hasher.update(":");
+    hasher.update(mIdeal);
 
     return hasher.final();
   }
@@ -181,7 +186,7 @@ namespace ortc
   {
     ElementPtr resultEl = Element::create("ortc::IConstraints::ConstrainLong");
 
-    UseServicesHelper::debugAppend(resultEl, "value", mValue.hasValue() ? string(mValue.value()) : "");
+    UseServicesHelper::debugAppend(resultEl, "value", mValue);
     UseServicesHelper::debugAppend(resultEl, mRange.hasValue() ? mRange.value().toDebug() : ElementPtr());
 
     return resultEl;
@@ -194,8 +199,9 @@ namespace ortc
 
     hasher.update("ortc::IConstraints::ConstrainLong:");
 
-    hasher.update(mValue.hasValue() ? string(mValue.value()) : ":");
-    hasher.update(mRange.hasValue() ? mRange.value().hash() : ":");
+    hasher.update(mValue);
+    hasher.update(":");
+    hasher.update(mRange.hasValue() ? mRange.value().hash() : String());
 
     return hasher.final();
   }
@@ -215,10 +221,10 @@ namespace ortc
   {
     ElementPtr resultEl = Element::create("ortc::IConstraints::ConstrainDoubleRange");
 
-    UseServicesHelper::debugAppend(resultEl, "min", mMin.hasValue() ? string(mMin.value()) : "");
-    UseServicesHelper::debugAppend(resultEl, "max", mMax.hasValue() ? string(mMax.value()) : "");
-    UseServicesHelper::debugAppend(resultEl, "ideal", mIdeal.hasValue() ? string(mIdeal.value()) : "");
-    UseServicesHelper::debugAppend(resultEl, "exact", mExact.hasValue() ? string(mExact.value()) : "");
+    UseServicesHelper::debugAppend(resultEl, "min", mMin);
+    UseServicesHelper::debugAppend(resultEl, "max", mMax);
+    UseServicesHelper::debugAppend(resultEl, "ideal", mIdeal);
+    UseServicesHelper::debugAppend(resultEl, "exact", mExact);
 
     return resultEl;
   }
@@ -230,10 +236,13 @@ namespace ortc
 
     hasher.update("ortc::IConstraints::ConstrainDoubleRange:");
 
-    hasher.update(mMin.hasValue() ? string(mMin.value()) : ":");
-    hasher.update(mMax.hasValue() ? string(mMax.value()) : ":");
-    hasher.update(mExact.hasValue() ? string(mExact.value()) : ":");
-    hasher.update(mIdeal.hasValue() ? string(mIdeal.value()) : ":");
+    hasher.update(mMin);
+    hasher.update(":");
+    hasher.update(mMax);
+    hasher.update(":");
+    hasher.update(mExact);
+    hasher.update(":");
+    hasher.update(mIdeal);
     
     return hasher.final();
   }
@@ -252,7 +261,7 @@ namespace ortc
   {
     ElementPtr resultEl = Element::create("ortc::IConstraints::ConstrainDouble");
 
-    UseServicesHelper::debugAppend(resultEl, "value", mValue.hasValue() ? string(mValue.value()) : "");
+    UseServicesHelper::debugAppend(resultEl, "value", mValue);
     UseServicesHelper::debugAppend(resultEl, mRange.hasValue() ? mRange.value().toDebug() : ElementPtr());
 
     return resultEl;
@@ -265,8 +274,9 @@ namespace ortc
 
     hasher.update("ortc::IConstraints::ConstrainDouble:");
 
-    hasher.update(mValue.hasValue() ? string(mValue.value()) : ":");
-    hasher.update(mRange.hasValue() ? mRange.value().hash() : ":");
+    hasher.update(mValue);
+    hasher.update(":");
+    hasher.update(mRange.hasValue() ? mRange.value().hash() : String());
 
     return hasher.final();
   }
@@ -285,7 +295,7 @@ namespace ortc
   {
     ElementPtr resultEl = Element::create("ortc::IConstraints::StringOrStringList");
 
-    UseServicesHelper::debugAppend(resultEl, "value", mValue.hasValue() ? ((mValue.value()) ? "true" : "false") : "");
+    UseServicesHelper::debugAppend(resultEl, "value", mValue);
 
     if (mValues.hasValue()) {
       ElementPtr valuesEl = Element::create("values");
@@ -306,7 +316,8 @@ namespace ortc
 
     hasher.update("ortc::IConstraints::StringOrStringList:");
 
-    hasher.update(mValue.hasValue() ? ((mValue.value()) ? "true:" : "false:") : ":");
+    hasher.update(mValue);
+    hasher.update(":");
 
     if (mValues.hasValue()) {
       for (auto iter = mValues.value().begin(); iter != mValues.value().end(); ++iter) {
@@ -346,9 +357,9 @@ namespace ortc
 
     hasher.update("ortc::IConstraints::ConstrainStringParameters:");
 
-    hasher.update(mExact.hasValue() ? mExact.value().hash() : "");
+    hasher.update(mExact.hasValue() ? mExact.value().hash() : String());
     hasher.update(":");
-    hasher.update(mIdeal.hasValue() ? mIdeal.value().hash() : "");
+    hasher.update(mIdeal.hasValue() ? mIdeal.value().hash() : String());
 
     return hasher.final();
   }
@@ -381,9 +392,9 @@ namespace ortc
 
     hasher.update("ortc::IConstraints::ConstraintString:");
 
-    hasher.update(mValue.hasValue() ? mValue.value().hash() : "");
+    hasher.update(mValue.hasValue() ? mValue.value().hash() : String());
     hasher.update(":");
-    hasher.update(mParameters.hasValue() ? mParameters.value().hash() : "");
+    hasher.update(mParameters.hasValue() ? mParameters.value().hash() : String());
 
     return hasher.final();
   }

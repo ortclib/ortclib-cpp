@@ -85,7 +85,7 @@ namespace ortc
     for (auto iter = begin(); iter != end(); ++iter)
     {
       auto value = (*iter);
-      hasher.update(value ? ":true" : ":false");
+      hasher.update(value);
     }
 
     return hasher.final();
@@ -121,9 +121,9 @@ namespace ortc
 
     hasher.update("ortc::ICapabilities::CapabilityLong:");
 
-    hasher.update(string(mMin));
+    hasher.update(mMin);
     hasher.update(":");
-    hasher.update(string(mMax));
+    hasher.update(mMax);
 
     return hasher.final();
   }
@@ -158,9 +158,9 @@ namespace ortc
 
     hasher.update("ortc::ICapabilities::CapabilityDouble:");
 
-    hasher.update(string(mMin));
+    hasher.update(mMin);
     hasher.update(":");
-    hasher.update(string(mMax));
+    hasher.update(mMax);
 
     return hasher.final();
   }

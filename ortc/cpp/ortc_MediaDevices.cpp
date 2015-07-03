@@ -676,8 +676,8 @@ namespace ortc
     UseServicesHelper::debugAppend(resultEl, "sample rate", mSampleRate);
     UseServicesHelper::debugAppend(resultEl, "echo cancellation", mEchoCancellation);
     UseServicesHelper::debugAppend(resultEl, "latency", mLatency);
-    UseServicesHelper::debugAppend(resultEl, "device id", mDeviceId);
-    UseServicesHelper::debugAppend(resultEl, "group id", mGroupId);
+    UseServicesHelper::debugAppend(resultEl, "device id", mDeviceID);
+    UseServicesHelper::debugAppend(resultEl, "group id", mGroupID);
 
     return resultEl;
   }
@@ -688,17 +688,27 @@ namespace ortc
     SHA1Hasher hasher;
 
     hasher.update("ortc::IMediaDevicesTypes::SupportedConstraints:");
-    hasher.update(mWidth ? "true:" : ":");
-    hasher.update(mHeight ? "true:" : ":");
-    hasher.update(mAspectRatio ? "true:" : ":");
-    hasher.update(mFrameRate ? "true:" : ":");
-    hasher.update(mFacingMode ? "true:" : ":");
-    hasher.update(mVolume ? "true:" : ":");
-    hasher.update(mSampleRate ? "true:" : ":");
-    hasher.update(mEchoCancellation ? "true:" : ":");
-    hasher.update(mLatency ? "true:" : ":");
-    hasher.update(mDeviceId ? "true:" : ":");
-    hasher.update(mGroupId ? "true:" : ":");
+    hasher.update(mWidth);
+    hasher.update(":");
+    hasher.update(mHeight);
+    hasher.update(":");
+    hasher.update(mAspectRatio);
+    hasher.update(":");
+    hasher.update(mFrameRate);
+    hasher.update(":");
+    hasher.update(mFacingMode);
+    hasher.update(":");
+    hasher.update(mVolume);
+    hasher.update(":");
+    hasher.update(mSampleRate);
+    hasher.update(":");
+    hasher.update(mEchoCancellation);
+    hasher.update(":");
+    hasher.update(mLatency);
+    hasher.update(":");
+    hasher.update(mDeviceID);
+    hasher.update(":");
+    hasher.update(mGroupID);
 
     return hasher.final();
   }

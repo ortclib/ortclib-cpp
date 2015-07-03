@@ -237,6 +237,12 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    ICETransportPtr ICETransport::convert(IRTCPTransportPtr object)
+    {
+      return ZS_DYNAMIC_PTR_CAST(ICETransport, object);
+    }
+
+    //-------------------------------------------------------------------------
     ICETransportPtr ICETransport::convert(ForSettingsPtr object)
     {
       return ZS_DYNAMIC_PTR_CAST(ICETransport, object);
@@ -4553,7 +4559,8 @@ namespace ortc
     SHA1Hasher hasher;
 
     hasher.update("ortc::IICETransport::Options:");
-    hasher.update(mAggressiveICE ? "true:" : "false:");
+    hasher.update(mAggressiveICE);
+    hasher.update(":");
     hasher.update(IICETypes::toString(mRole));
 
     return hasher.final();
@@ -4571,6 +4578,12 @@ namespace ortc
   ElementPtr IICETransport::toDebug(IICETransportPtr transport)
   {
     return internal::ICETransport::toDebug(internal::ICETransport::convert(transport));
+  }
+
+  //---------------------------------------------------------------------------
+  IICETransportPtr IICETransport::convert(IRTCPTransportPtr object)
+  {
+    return internal::ICETransport::convert(object);
   }
 
   //---------------------------------------------------------------------------

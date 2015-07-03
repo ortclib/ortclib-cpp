@@ -83,6 +83,9 @@ namespace ortc
       CodecCapabilitiesList mCodecs;
       HeaderExtensionsList  mHeaderExtensions;
       FECMechanismList      mFECMechanisms;
+
+      ElementPtr toDebug() const;
+      String hash() const;
     };
 
     //-------------------------------------------------------------------------
@@ -103,6 +106,9 @@ namespace ortc
       USHORT            mMaxTemporalLayers {0};
       USHORT            mMaxSpatialLayers {0};
       bool              mSVCMultiStreamSupport {};
+
+      ElementPtr toDebug() const;
+      String hash() const;
     };
 
     //-------------------------------------------------------------------------
@@ -115,6 +121,9 @@ namespace ortc
       String mURI;
       USHORT mPreferredID {};
       bool   mPreferredEncrypt {false};
+
+      ElementPtr toDebug() const;
+      String hash() const;
     };
 
     //-------------------------------------------------------------------------
@@ -125,6 +134,9 @@ namespace ortc
     struct RtcpFeedback {
       String mType;
       String mParameter;
+
+      ElementPtr toDebug() const;
+      String hash() const;
     };
 
     //-------------------------------------------------------------------------
@@ -137,6 +149,9 @@ namespace ortc
       String    mCName;
       bool      mReducedSize {false};
       bool      mMux {true};
+
+      ElementPtr toDebug() const;
+      String hash() const;
     };
 
     //-------------------------------------------------------------------------
@@ -150,6 +165,9 @@ namespace ortc
       HeaderExtensionParametersList mHeaderExtensions;
       EncodingParametersList        mEncodingParameters;
       RTCPParameters                mRTCP;
+
+      ElementPtr toDebug() const;
+      String hash() const;
     };
 
     //-------------------------------------------------------------------------
@@ -165,6 +183,9 @@ namespace ortc
       ULONG             mNumChannels {};
       RtcpFeedbackList  mRTCPFeedback;
       AnyPtr            mParameters;
+
+      ElementPtr toDebug() const;
+      String hash() const;
     };
 
     //-------------------------------------------------------------------------
@@ -176,6 +197,34 @@ namespace ortc
       String  mURI;
       USHORT  mID {};
       bool    mEncrypt {false};
+
+      ElementPtr toDebug() const;
+      String hash() const;
+    };
+
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IRTPTypes::FECParameters
+    #pragma mark
+
+    struct FECParameters {
+      SSRCType  mSSRC {};
+      String    mMechanism;
+
+      ElementPtr toDebug() const;
+      String hash() const;
+    };
+
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IRTPTypes::RTXParameters
+    #pragma mark
+
+    struct RTXParameters {
+      SSRCType  mSSRC {};
+
+      ElementPtr toDebug() const;
+      String hash() const;
     };
 
     //-------------------------------------------------------------------------
@@ -184,40 +233,20 @@ namespace ortc
     #pragma mark
 
     struct EncodingParameters {
-      SSRCType          mSSRC {};
-      PayloadType       mCodecPayloadType {};
-      FECParametersPtr  mFEC;
-      RTXParametersPtr  mRTX;
-      double            mPriority {1.0};
-      ULONGLONG         mMaxBitrate {};
-      double            mMinQuality {0};
-      double            mFramerateBias {0.5};
-      bool              mActive {true};
-      EncodingID        mEncodingID;
-      EncodingIDList    mDependencyEncodingIDs;
-    };
+      SSRCType                mSSRC {};
+      PayloadType             mCodecPayloadType {};
+      Optional<FECParameters> mFEC;
+      Optional<RTXParameters> mRTX;
+      double                  mPriority {1.0};
+      ULONGLONG               mMaxBitrate {};
+      double                  mMinQuality {0};
+      double                  mFramerateBias {0.5};
+      bool                    mActive {true};
+      EncodingID              mEncodingID;
+      EncodingIDList          mDependencyEncodingIDs;
 
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPTypes::RTCPParameters
-    #pragma mark
-
-    struct FECParameters {
-      SSRCType  mSSRC {};
-      String    mMechanism;
-
-      static FECParametersPtr create();
-    };
-
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPTypes::RTCPParameters
-    #pragma mark
-
-    struct RTXParameters {
-      SSRCType  mSSRC {};
-
-      static RTXParametersPtr create();
+      ElementPtr toDebug() const;
+      String hash() const;
     };
 
   };

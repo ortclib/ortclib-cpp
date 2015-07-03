@@ -1,6 +1,6 @@
 /*
 
- Copyright (c) 2014, Hookflash Inc. / Hookflash Inc.
+ Copyright (c) 2015, Hookflash Inc. / Hookflash Inc.
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -29,12 +29,12 @@
  
  */
 
-#if 0
-
 #include <ortc/internal/ortc_RTPSender.h>
 #include <ortc/internal/ortc_DTLSTransport.h>
 #include <ortc/internal/ortc_ORTC.h>
+#include <ortc/internal/platform.h>
 
+#include <openpeer/services/ISettings.h>
 #include <openpeer/services/IHelper.h>
 #include <openpeer/services/IHTTP.h>
 
@@ -42,11 +42,25 @@
 #include <zsLib/Log.h>
 #include <zsLib/XML.h>
 
+#include <cryptopp/sha.h>
+
+
+#ifdef _DEBUG
+#define ASSERT(x) ZS_THROW_BAD_STATE_IF(!(x))
+#else
+#define ASSERT(x)
+#endif //_DEBUG
+
+
 namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib) }
 
 namespace ortc
 {
+  ZS_DECLARE_TYPEDEF_PTR(openpeer::services::ISettings, UseSettings)
   ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHelper, UseServicesHelper)
+  ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHTTP, UseHTTP)
+
+  typedef openpeer::services::Hasher<CryptoPP::SHA1> SHA1Hasher;
 
   namespace internal
   {
@@ -64,26 +78,69 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
+    #pragma mark IICETransportForSettings
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    void IRTPSenderForSettings::applyDefaults()
+    {
+//      UseSettings::setUInt(ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE, 5*1024);
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IRTPSenderForRTPListener
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    ElementPtr IRTPSenderForRTPListener::toDebug(ForRTPListenerPtr transport)
+    {
+      if (!transport) return ElementPtr();
+      return ZS_DYNAMIC_PTR_CAST(RTPSender, transport)->toDebug();
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
     #pragma mark RTPSender
     #pragma mark
     
+    //---------------------------------------------------------------------------
+    const char *RTPSender::toString(States state)
+    {
+      switch (state) {
+        case State_Pending:       return "pending";
+        case State_Ready:         return "ready";
+        case State_ShuttingDown:  return "shutting down";
+        case State_Shutdown:      return "shutdown";
+      }
+      return "UNDEFINED";
+    }
+    
     //-------------------------------------------------------------------------
     RTPSender::RTPSender(
+                         const make_private &,
                          IMessageQueuePtr queue,
-                         IDTLSTransportPtr rtpTransport,
-                         IDTLSTransportPtr rtcpTransport
+                         IRTPSenderDelegatePtr delegate,
+                         IMediaStreamTrackPtr track,
+                         IRTPTransportPtr transport,
+                         IRTCPTransportPtr rtcpTransport
                          ) :
       MessageQueueAssociator(queue),
-      mRTPTransport(DTLSTransport::convert(rtpTransport)),
-      mRTCPTransport(DTLSTransport::convert(rtcpTransport))
+      SharedRecursiveLock(SharedRecursiveLock::create())
     {
       ZS_LOG_DETAIL(debug("created"))
-
     }
 
     //-------------------------------------------------------------------------
     void RTPSender::init()
     {
+      AutoRecursiveLock lock(*this);
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
     }
 
@@ -94,6 +151,7 @@ namespace ortc
 
       ZS_LOG_DETAIL(log("destroyed"))
       mThisWeak.reset();
+
       cancel();
     }
 
@@ -104,6 +162,36 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    RTPSenderPtr RTPSender::convert(ForSettingsPtr object)
+    {
+      return ZS_DYNAMIC_PTR_CAST(RTPSender, object);
+    }
+
+    //-------------------------------------------------------------------------
+    RTPSenderPtr RTPSender::convert(ForRTPListenerPtr object)
+    {
+      return ZS_DYNAMIC_PTR_CAST(RTPSender, object);
+    }
+
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPSender => IStatsProvider
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    IStatsProvider::PromiseWithStatsReportPtr RTPSender::getStats() const throw(InvalidStateError)
+    {
+#define TODO_COMPLETE 1
+#define TODO_COMPLETE 2
+      return PromiseWithStatsReportPtr();
+    }
+
+
+    //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -112,152 +200,118 @@ namespace ortc
     #pragma mark
     
     //-------------------------------------------------------------------------
-    ElementPtr RTPSender::toDebug(IRTPSenderPtr transport)
+    ElementPtr RTPSender::toDebug(RTPSenderPtr transport)
     {
       if (!transport) return ElementPtr();
-      RTPSenderPtr pThis = RTPSender::convert(transport);
-      return pThis->toDebug();
+      return transport->toDebug();
     }
 
     //-------------------------------------------------------------------------
     RTPSenderPtr RTPSender::create(
-                                   IDTLSTransportPtr rtpTransport,
-                                   IDTLSTransportPtr rtcpTransport
+                                   IRTPSenderDelegatePtr delegate,
+                                   IMediaStreamTrackPtr track,
+                                   IRTPTransportPtr transport,
+                                   IRTCPTransportPtr rtcpTransport
                                    )
     {
-      RTPSenderPtr pThis(new RTPSender(IORTCForInternal::queueORTC(), rtpTransport, rtcpTransport));
-      pThis->mThisWeak.lock();
+      RTPSenderPtr pThis(make_shared<RTPSender>(make_private {}, IORTCForInternal::queueORTC(), delegate, track, transport, rtcpTransport));
+      pThis->mThisWeak = pThis;
       pThis->init();
       return pThis;
     }
 
     //-------------------------------------------------------------------------
-    PUID RTPSender::getID() const
+    IRTPSenderSubscriptionPtr RTPSender::subscribe(IRTPSenderDelegatePtr originalDelegate)
     {
-      return mID;
-    }
+      ZS_LOG_DETAIL(log("subscribing to receiver"))
 
-    //-------------------------------------------------------------------------
-    IRTPSender::CapabilitiesPtr RTPSender::getCapabilities()
-    {
-      return CapabilitiesPtr();
-    }
+      AutoRecursiveLock lock(*this);
+      if (!originalDelegate) return mDefaultSubscription;
 
-    //-------------------------------------------------------------------------
-    TrackDescriptionPtr RTPSender::createParams(CapabilitiesPtr capabilities)
-    {
-      return TrackDescriptionPtr();
-    }
+      IRTPSenderSubscriptionPtr subscription = mSubscriptions.subscribe(originalDelegate, IORTCForInternal::queueDelegate());
 
-    //-------------------------------------------------------------------------
-    TrackDescriptionPtr RTPSender::filterParams(
-                                                               TrackDescriptionPtr params,
-                                                               CapabilitiesPtr capabilities
-                                                               )
-    {
-      return TrackDescriptionPtr();
-    }
+      IRTPSenderDelegatePtr delegate = mSubscriptions.delegate(subscription, true);
 
-    //-------------------------------------------------------------------------
-    TrackDescriptionPtr RTPSender::getDescription()
-    {
-      AutoRecursiveLock lock(getLock());
-      return mDescription;
-    }
+      if (delegate) {
+        RTPSenderPtr pThis = mThisWeak.lock();
 
-    //-------------------------------------------------------------------------
-    void RTPSender::setDescription(TrackDescriptionPtr description)
-    {
-      AutoRecursiveLock lock(getLock());
-      mDescription = description;
-    }
-
-    //-------------------------------------------------------------------------
-    void RTPSender::attach(
-                           IDTLSTransportPtr inRtpTransport,
-                           IDTLSTransportPtr inRtcpTransport
-                           )
-    {
-      AutoRecursiveLock lock(getLock());
-
-      UseDTLSTransportPtr rtpTransport = DTLSTransport::convert(inRtpTransport);
-      UseDTLSTransportPtr rtcpTransport = DTLSTransport::convert(inRtcpTransport);
-
-      if ((rtpTransport == mRTPTransport) &&
-          (rtcpTransport == mRTCPTransport)) {
-        ZS_LOG_DEBUG(log("attach called but passed in same attachment values (noop)"))
-        return;
+#define TODO_DO_WE_NEED_TO_TELL_ABOUT_ANY_MISSED_EVENTS 1
+#define TODO_DO_WE_NEED_TO_TELL_ABOUT_ANY_MISSED_EVENTS 2
       }
 
-      // kick start step to fix up state later
-      IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
-
-      if (rtpTransport != mRTPTransport) {
-        if (mRTPTransport) {
-          ZS_LOG_DEBUG(log("detaching current RTP DTLS transport") + ZS_PARAM("transport", mRTPTransport->getID()))
-#define DO_DETACH 1
-#define DO_DETACH 2
-        }
-
-        ZS_LOG_DEBUG(log("attaching new RTP DTLS transport") + ZS_PARAM("transport", rtpTransport->getID()))
-
-        mRTPTransport = rtpTransport;
-#define DO_ATTACH 1
-#define DO_ATTACH 2
+      if (isShutdown()) {
+        mSubscriptions.clear();
       }
 
-      if (rtcpTransport != mRTCPTransport) {
-        if (mRTCPTransport) {
-          ZS_LOG_DEBUG(log("detaching current RTCP DTLS transport") + ZS_PARAM("transport", mRTCPTransport->getID()))
-#define DO_DETACH 1
-#define DO_DETACH 2
-        }
-
-        ZS_LOG_DEBUG(log("attaching new RTCP DTLS transport") + ZS_PARAM("transport", rtcpTransport->getID()))
-
-        mRTCPTransport = rtcpTransport;
-#define DO_ATTACH 1
-#define DO_ATTACH 2
-      }
+      return subscription;
     }
 
     //-------------------------------------------------------------------------
-    void RTPSender::start(TrackDescriptionPtr localTrackDescription)
+    IMediaStreamTrackPtr RTPSender::track() const
     {
-      ZS_LOG_DEBUG(log("stop"))
+#define TODO 1
+#define TODO 2
+      return IMediaStreamTrackPtr();
+    }
 
-      AutoRecursiveLock lock(getLock());
+    //-------------------------------------------------------------------------
+    IRTPTransportPtr RTPSender::transport() const
+    {
+#define TODO 1
+#define TODO 2
+      return IRTPTransportPtr();
+    }
 
-      ZS_LOG_DEBUG(log("start called"))
+    //-------------------------------------------------------------------------
+    IRTCPTransportPtr RTPSender::rtcpTransport() const
+    {
+#define TODO 1
+#define TODO 2
+      return IRTCPTransportPtr();
+    }
 
-      if ((isShuttingDown()) ||
-          (isShutdown())) {
-        ZS_LOG_WARNING(Detail, log("already shutdown"));
-        return;
-      }
+    //-------------------------------------------------------------------------
+    void RTPSender::setTransport(
+                                   IRTPTransportPtr transport,
+                                   IRTCPTransportPtr rtcpTransport
+                                   )
+    {
+#define TODO 1
+#define TODO 2
+    }
 
-      mStartCalled = true;
+    //-------------------------------------------------------------------------
+    IRTPSenderTypes::CapabilitiesPtr RTPSender::getCapabilities(Optional<Kinds> kind)
+    {
+      CapabilitiesPtr result(make_shared<Capabilities>());
+#define TODO 1
+#define TODO 2
+      return result;
+    }
 
-      IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
+    //-------------------------------------------------------------------------
+    PromisePtr RTPSender::send(const Parameters &parameters)
+    {
+#define TODO 1
+#define TODO 2
+      return PromisePtr();
     }
 
     //-------------------------------------------------------------------------
     void RTPSender::stop()
     {
-      ZS_LOG_DEBUG(log("stop"))
-
-      AutoRecursiveLock lock(getLock());
-
-      if ((isShuttingDown()) ||
-          (isShutdown())) {
-        ZS_LOG_TRACE(log("already shutting down/shutdown"))
-        return;
-      }
-
-      mGracefulShutdownReference = mThisWeak.lock();
-
-      IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
+      AutoRecursiveLock lock(*this);
+#define TODO 1
+#define TODO 2
     }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPSender => IRTPSenderForRTPListener
+    #pragma mark
 
 
     //-------------------------------------------------------------------------
@@ -273,7 +327,7 @@ namespace ortc
     {
       ZS_LOG_DEBUG(log("wake"))
 
-      AutoRecursiveLock lock(getLock());
+      AutoRecursiveLock lock(*this);
       step();
     }
 
@@ -282,19 +336,27 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark RTPSender => IDTLSTransportDelegate
+    #pragma mark RTPSender => ITimerDelegate
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void RTPSender::onDTLSTransportStateChanged(
-                                                IDTLSTransportPtr transport,
-                                                IDTLSTransport::ConnectionStates state
-                                                )
+    void RTPSender::onTimer(TimerPtr timer)
     {
-      ZS_LOG_DEBUG(log("dtls transport state change") + ZS_PARAM("transport", transport->getID()))
-      AutoRecursiveLock lock(getLock());
-      step();
+      ZS_LOG_DEBUG(log("timer") + ZS_PARAM("timer id", timer->getID()))
+
+      AutoRecursiveLock lock(*this);
+#define TODO 1
+#define TODO 2
     }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPSender => IRTPSenderAsyncDelegate
+    #pragma mark
+
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -321,25 +383,21 @@ namespace ortc
     //-------------------------------------------------------------------------
     ElementPtr RTPSender::toDebug() const
     {
+      AutoRecursiveLock lock(*this);
+
       ElementPtr resultEl = Element::create("ortc::RTPSender");
 
       UseServicesHelper::debugAppend(resultEl, "id", mID);
 
       UseServicesHelper::debugAppend(resultEl, "graceful shutdown", (bool)mGracefulShutdownReference);
-      UseServicesHelper::debugAppend(resultEl, "graceful shutdown", mShutdown);
 
-      UseServicesHelper::debugAppend(resultEl, "start called", mStartCalled);
+      UseServicesHelper::debugAppend(resultEl, "subscribers", mSubscriptions.size());
+      UseServicesHelper::debugAppend(resultEl, "default subscription", (bool)mDefaultSubscription);
+
+      UseServicesHelper::debugAppend(resultEl, "state", toString(mCurrentState));
 
       UseServicesHelper::debugAppend(resultEl, "error", mLastError);
       UseServicesHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
-
-      UseServicesHelper::debugAppend(resultEl, "description", mDescription ? mDescription->toDebug() : ElementPtr());
-
-      UseServicesHelper::debugAppend(resultEl, "dtls rtp transport", UseDTLSTransport::toDebug(mRTPTransport));
-      UseServicesHelper::debugAppend(resultEl, "dtls rtcp transport", UseDTLSTransport::toDebug(mRTCPTransport));
-
-      UseServicesHelper::debugAppend(resultEl, "dtls rtp transport subscription", (bool)mRTPTransportSubscription);
-      UseServicesHelper::debugAppend(resultEl, "dtls rtcp transport subscription", (bool)mRTCPTransportSubscription);
 
       return resultEl;
     }
@@ -347,22 +405,19 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool RTPSender::isShuttingDown() const
     {
-      return (bool)mGracefulShutdownReference;
+      return State_ShuttingDown == mCurrentState;
     }
 
     //-------------------------------------------------------------------------
     bool RTPSender::isShutdown() const
     {
-      if (mGracefulShutdownReference) return false;
-      return mShutdown;
+      return State_Shutdown == mCurrentState;
     }
 
     //-------------------------------------------------------------------------
     void RTPSender::step()
     {
       ZS_LOG_DEBUG(debug("step"))
-
-      AutoRecursiveLock lock(getLock());
 
       if ((isShuttingDown()) ||
           (isShutdown())) {
@@ -371,39 +426,94 @@ namespace ortc
         return;
       }
 
+      // ... other steps here ...
+      if (!stepBogusDoSomething()) goto not_ready;
+      // ... other steps here ...
+
+      goto ready;
+
+    not_ready:
+      {
+        ZS_LOG_TRACE(debug("dtls is not ready"))
+        return;
+      }
+
+    ready:
+      {
+        ZS_LOG_TRACE(log("ready"))
+      }
+    }
+
+    //-------------------------------------------------------------------------
+    bool RTPSender::stepBogusDoSomething()
+    {
+      if ( /* step already done */ false ) {
+        ZS_LOG_TRACE(log("already completed do something"))
+        return true;
+      }
+
+      if ( /* cannot do step yet */ false) {
+        ZS_LOG_DEBUG(log("waiting for XYZ to complete before continuing"))
+        return false;
+      }
+
+      ZS_LOG_DEBUG(log("doing step XYZ"))
+
+      // ....
+#define TODO 1
+#define TODO 2
+
+      return true;
     }
 
     //-------------------------------------------------------------------------
     void RTPSender::cancel()
     {
       //.......................................................................
-      // start the shutdown process
-
-      //.......................................................................
       // try to gracefully shutdown
+
+      if (isShutdown()) return;
 
       if (!mGracefulShutdownReference) mGracefulShutdownReference = mThisWeak.lock();
 
       if (mGracefulShutdownReference) {
+#define TODO_OBJECT_IS_BEING_KEPT_ALIVE_UNTIL_SCTP_SESSION_IS_SHUTDOWN 1
+#define TODO_OBJECT_IS_BEING_KEPT_ALIVE_UNTIL_SCTP_SESSION_IS_SHUTDOWN 2
+
+        // grace shutdown process done here
+
+        return;
       }
 
       //.......................................................................
       // final cleanup
 
-      mShutdown = true;
+      setState(State_Shutdown);
+
+      mSubscriptions.clear();
+
+      if (mDefaultSubscription) {
+        mDefaultSubscription->cancel();
+        mDefaultSubscription.reset();
+      }
 
       // make sure to cleanup any final reference to self
       mGracefulShutdownReference.reset();
+    }
 
-      if (mRTPTransportSubscription) {
-        mRTPTransportSubscription->cancel();
-        mRTPTransportSubscription.reset();
-      }
+    //-------------------------------------------------------------------------
+    void RTPSender::setState(States state)
+    {
+      if (state == mCurrentState) return;
 
-      if (mRTCPTransportSubscription) {
-        mRTCPTransportSubscription->cancel();
-        mRTCPTransportSubscription.reset();
-      }
+      ZS_LOG_DETAIL(debug("state changed") + ZS_PARAM("new state", toString(state)) + ZS_PARAM("old state", toString(mCurrentState)))
+
+      mCurrentState = state;
+
+//      RTPSenderPtr pThis = mThisWeak.lock();
+//      if (pThis) {
+//        mSubscriptions.delegate()->onRTPSenderStateChanged(pThis, mCurrentState);
+//      }
     }
 
     //-------------------------------------------------------------------------
@@ -411,7 +521,7 @@ namespace ortc
     {
       String reason(inReason);
       if (reason.isEmpty()) {
-        reason = IHTTP::toString(IHTTP::toStatusCode(errorCode));
+        reason = UseHTTP::toString(UseHTTP::toStatusCode(errorCode));
       }
 
       if (0 != mLastError) {
@@ -424,6 +534,7 @@ namespace ortc
 
       ZS_LOG_WARNING(Detail, debug("error set") + ZS_PARAM("error", mLastError) + ZS_PARAM("reason", mLastErrorReason))
     }
+
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -441,15 +552,25 @@ namespace ortc
 
     //-------------------------------------------------------------------------
     RTPSenderPtr IRTPSenderFactory::create(
-                                          IDTLSTransportPtr rtpTransport,
-                                          IDTLSTransportPtr rtcpTransport
-                                          )
+                                           IRTPSenderDelegatePtr delegate,
+                                           IMediaStreamTrackPtr track,
+                                           IRTPTransportPtr transport,
+                                           IRTCPTransportPtr rtcpTransport
+                                           )
     {
       if (this) {}
-      return internal::RTPSender::create(rtpTransport, rtcpTransport);
+      return internal::RTPSender::create(delegate, track, transport, rtcpTransport);
     }
-    
-  }
+
+    //-------------------------------------------------------------------------
+    IRTPSenderFactory::CapabilitiesPtr IRTPSenderFactory::getCapabilities(Optional<Kinds> kind)
+    {
+      if (this) {}
+      return RTPSender::getCapabilities(kind);
+    }
+
+  } // internal namespace
+
 
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
@@ -459,77 +580,27 @@ namespace ortc
   #pragma mark IRTPSender
   #pragma mark
 
-
-  //---------------------------------------------------------------------------
-  const char *IRTPSender::toString(Options option)
-  {
-    switch (option) {
-      case Option_Unknown:  return "Unknown";
-    }
-    return "UNDEFINED";
-  }
-
-
   //---------------------------------------------------------------------------
   ElementPtr IRTPSender::toDebug(IRTPSenderPtr transport)
   {
-    return internal::RTPSender::toDebug(transport);
+    return internal::RTPSender::toDebug(internal::RTPSender::convert(transport));
   }
 
   //---------------------------------------------------------------------------
   IRTPSenderPtr IRTPSender::create(
-                                   IDTLSTransportPtr rtpTransport,
-                                   IDTLSTransportPtr rtcpTransport
+                                   IRTPSenderDelegatePtr delegate,
+                                   IMediaStreamTrackPtr track,
+                                   IRTPTransportPtr transport,
+                                   IRTCPTransportPtr rtcpTransport
                                    )
   {
-    return internal::IRTPSenderFactory::singleton().create(rtpTransport, rtcpTransport);
+    return internal::IRTPSenderFactory::singleton().create(delegate, track, transport, rtcpTransport);
   }
 
   //---------------------------------------------------------------------------
-  IRTPSender::CapabilitiesPtr IRTPSender::getCapabilities()
+  IRTPSenderTypes::CapabilitiesPtr IRTPSender::getCapabilities(Optional<Kinds> kind)
   {
-    return internal::RTPSender::getCapabilities();
-  }
-
-  //---------------------------------------------------------------------------
-  TrackDescriptionPtr IRTPSender::filterParams(
-                                               TrackDescriptionPtr params,
-                                               CapabilitiesPtr capabilities
-                                               )
-  {
-    return internal::RTPSender::filterParams(params, capabilities);
-  }
-
-  //---------------------------------------------------------------------------
-  //---------------------------------------------------------------------------
-  //---------------------------------------------------------------------------
-  //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IRTPSender::Capabilities
-  #pragma mark
-
-  //---------------------------------------------------------------------------
-  IRTPSender::CapabilitiesPtr IRTPSender::Capabilities::create()
-  {
-    return CapabilitiesPtr(new Capabilities);
-  }
-
-  //---------------------------------------------------------------------------
-  ElementPtr IRTPSender::Capabilities::toDebug() const
-  {
-    if (mOptions.size() < 1) return ElementPtr();
-
-    ElementPtr resultEl = Element::create("IRTPSender::Capabilities");
-
-    for (OptionsList::const_iterator iter = mOptions.begin(); iter != mOptions.end(); ++iter)
-    {
-      const Options &option = (*iter);
-      UseServicesHelper::debugAppend(resultEl, "option", IRTPSender::toString(option));
-    }
-
-    return resultEl;
+    return internal::IRTPSenderFactory::singleton().getCapabilities(kind);
   }
 
 }
-
-#endif //0

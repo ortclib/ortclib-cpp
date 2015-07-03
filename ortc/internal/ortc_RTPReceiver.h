@@ -1,6 +1,6 @@
 /*
 
- Copyright (c) 2014, Hookflash Inc. / Hookflash Inc.
+ Copyright (c) 2015, Hookflash Inc. / Hookflash Inc.
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -31,39 +31,74 @@
 
 #pragma once
 
-#if 0
-
 #include <ortc/internal/types.h>
-#include <ortc/internal/ortc_ICETransport.h>
 
-#include <ortc/IDTLSTransport.h>
 #include <ortc/IRTPReceiver.h>
+#include <ortc/IDTLSTransport.h>
 
 #include <openpeer/services/IWakeDelegate.h>
-
 #include <zsLib/MessageQueueAssociator.h>
+#include <zsLib/Timer.h>
+
+//#define ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE "ortc/sctp/max-message-size"
 
 namespace ortc
 {
   namespace internal
   {
-    interaction IDTLSTransportForRTPReceiver;
+    ZS_DECLARE_INTERACTION_PTR(IRTPListenerForRTPReceiver)
+
+    ZS_DECLARE_INTERACTION_PTR(IRTPReceiverForSettings)
+    ZS_DECLARE_INTERACTION_PTR(IRTPReceiverForRTPListener)
+
+    ZS_DECLARE_INTERACTION_PROXY(IRTPReceiverAsyncDelegate)
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IRTPReceiverForDTLSTransport
+    #pragma mark IRTPReceiverForSettings
     #pragma mark
 
-    interaction IRTPReceiverForDTLSTransport
+    interaction IRTPReceiverForSettings
     {
-      ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverForDTLSTransport, ForDTLSTransport)
+      ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverForSettings, ForSettings)
 
-      virtual ~IRTPReceiverForDTLSTransport() {}  // needed until a virtual method is present for polymorphism
+      static void applyDefaults();
+
+      virtual ~IRTPReceiverForSettings() {}
+    };
+    
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IRTPReceiverForRTPListener
+    #pragma mark
+
+    interaction IRTPReceiverForRTPListener
+    {
+      ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverForRTPListener, ForRTPListener)
+
+      static ElementPtr toDebug(ForRTPListenerPtr transport);
+
+      virtual PUID getID() const = 0;
     };
 
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IRTPReceiverAsyncDelegate
+    #pragma mark
+
+    interaction IRTPReceiverAsyncDelegate
+    {
+      virtual ~IRTPReceiverAsyncDelegate() {}
+    };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -75,26 +110,47 @@ namespace ortc
     
     class RTPReceiver : public Noop,
                         public MessageQueueAssociator,
+                        public SharedRecursiveLock,
                         public IRTPReceiver,
-                        public IRTPReceiverForDTLSTransport,
+                        public IRTPReceiverForSettings,
+                        public IRTPReceiverForRTPListener,
                         public IWakeDelegate,
-                        public IDTLSTransportDelegate
+                        public zsLib::ITimerDelegate,
+                        public IRTPReceiverAsyncDelegate
     {
+    protected:
+      struct make_private {};
+
     public:
       friend interaction IRTPReceiver;
       friend interaction IRTPReceiverFactory;
-      friend interaction IRTPReceiverForDTLSTransport;
+      friend interaction IRTPReceiverForSettings;
+      friend interaction IRTPReceiverForRTPListener;
 
-      ZS_DECLARE_TYPEDEF_PTR(IDTLSTransportForRTPReceiver, UseDTLSTransport)
+      enum States
+      {
+        State_Pending,
+        State_Ready,
+        State_ShuttingDown,
+        State_Shutdown,
+      };
+      static const char *toString(States state);
+
+    public:
+      RTPReceiver(
+                  const make_private &,
+                  IMessageQueuePtr queue,
+                  IRTPReceiverDelegatePtr delegate,
+                  IRTPTransportPtr transport,
+                  IRTCPTransportPtr rtcpTransport = IRTCPTransportPtr()
+                  );
 
     protected:
-      RTPReceiver(
-                IMessageQueuePtr queue,
-                IDTLSTransportPtr rtpTransport,
-                IDTLSTransportPtr rtcpTransport = IDTLSTransportPtr()
-                );
-
-      RTPReceiver(Noop) : Noop(true), MessageQueueAssociator(IMessageQueuePtr()) {}
+      RTPReceiver(Noop) :
+        Noop(true),
+        MessageQueueAssociator(IMessageQueuePtr()),
+        SharedRecursiveLock(SharedRecursiveLock::create())
+      {}
 
       void init();
 
@@ -102,64 +158,80 @@ namespace ortc
       virtual ~RTPReceiver();
 
       static RTPReceiverPtr convert(IRTPReceiverPtr object);
-      
+      static RTPReceiverPtr convert(ForSettingsPtr object);
+      static RTPReceiverPtr convert(ForRTPListenerPtr object);
+
     protected:
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPReceiver => IStatsProvider
+      #pragma mark
+
+      virtual PromiseWithStatsReportPtr getStats() const throw(InvalidStateError);
+
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark RTPReceiver => IRTPReceiver
       #pragma mark
 
-      static ElementPtr toDebug(IRTPReceiverPtr transport);
+      static ElementPtr toDebug(RTPReceiverPtr receiver);
 
       static RTPReceiverPtr create(
-                                 IDTLSTransportPtr rtpTransport,
-                                 IDTLSTransportPtr rtcpTransport = IDTLSTransportPtr()
-                                 );
+                                   IRTPReceiverDelegatePtr delegate,
+                                   IRTPTransportPtr transport,
+                                   IRTCPTransportPtr rtcpTransport = IRTCPTransportPtr()
+                                   );
 
-      virtual PUID getID() const;
+      virtual PUID getID() const {return mID;}
 
-      static CapabilitiesPtr getCapabilities();
+      virtual IRTPReceiverSubscriptionPtr subscribe(IRTPReceiverDelegatePtr delegate) override;
 
-      virtual TrackDescriptionPtr createParams(CapabilitiesPtr capabilities = CapabilitiesPtr());
+      virtual IMediaStreamTrackPtr track() const override;
+      virtual IRTPTransportPtr transport() const override;
+      virtual IRTCPTransportPtr rtcpTransport() const override;
 
-      static TrackDescriptionPtr filterParams(
-                                              TrackDescriptionPtr params,
-                                              CapabilitiesPtr capabilities
-                                              );
+      virtual void setTransport(
+                                IRTPTransportPtr transport,
+                                IRTCPTransportPtr rtcpTransport = IRTCPTransportPtr()
+                                ) override;
 
-      virtual TrackDescriptionPtr getDescription();
-      virtual void setDescription(TrackDescriptionPtr);
+      static CapabilitiesPtr getCapabilities(Optional<Kinds> kind);
 
-      virtual void attach(
-                          IDTLSTransportPtr rtpTransport,
-                          IDTLSTransportPtr rtcpTransport = IDTLSTransportPtr()
-                          );
+      virtual PromisePtr receive(const Parameters &parameters) override;
+      virtual void stop() override;
 
-      virtual void start(TrackDescriptionPtr localTrackDescription);
-      virtual void stop();
+      virtual ContributingSourceList getContributingSources() const override;
+
+      virtual void requestSendCSRC(SSRCType csrc) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark RTPReceiver => IRTPReceiverForDTLS
+      #pragma mark RTPReceiver => IRTPReceiverForRTPListener
       #pragma mark
 
+      // (duplciate) static ElementPtr toDebug(ForRTPListenerPtr transport);
+
+      // (duplicate) virtual PUID getID() const = 0;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark RTPReceiver => IWakeDelegate
       #pragma mark
 
-      virtual void onWake();
+      virtual void onWake() override;
 
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark RTPReceiver => IDTLSTransportDelegate
+      #pragma mark RTPReceiver => ITimerDelegate
       #pragma mark
 
-      virtual void onDTLSTransportStateChanged(
-                                               IDTLSTransportPtr transport,
-                                               IDTLSTransport::ConnectionStates state
-                                               );
+      virtual void onTimer(TimerPtr timer) override;
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPReceiver => IRTPReceiverAsyncDelegate
+      #pragma mark
+
 
     protected:
       //-----------------------------------------------------------------------
@@ -169,17 +241,17 @@ namespace ortc
 
       Log::Params log(const char *message) const;
       Log::Params debug(const char *message) const;
-      ElementPtr toDebug() const;
-
-      virtual RecursiveLock &getLock() const {return mLock;}
+      virtual ElementPtr toDebug() const;
 
       bool isShuttingDown() const;
       bool isShutdown() const;
 
       void step();
+      bool stepBogusDoSomething();
 
       void cancel();
 
+      void setState(States state);
       void setError(WORD error, const char *reason = NULL);
 
     protected:
@@ -189,23 +261,18 @@ namespace ortc
       #pragma mark
 
       AutoPUID mID;
-      mutable RecursiveLock mLock;
       RTPReceiverWeakPtr mThisWeak;
       RTPReceiverPtr mGracefulShutdownReference;
-      bool mShutdown {};
 
-      bool mStartCalled {};
+      IRTPReceiverDelegateSubscriptions mSubscriptions;
+      IRTPReceiverSubscriptionPtr mDefaultSubscription;
+
+      States mCurrentState {State_Pending};
 
       WORD mLastError {};
       String mLastErrorReason;
 
-      TrackDescriptionPtr mDescription;
-
-      UseDTLSTransportPtr mRTPTransport;
-      UseDTLSTransportPtr mRTCPTransport;
-
-      IDTLSTransportSubscriptionPtr mRTPTransportSubscription;
-      IDTLSTransportSubscriptionPtr mRTCPTransportSubscription;
+      Capabilities mCapabilities;
     };
 
     //-------------------------------------------------------------------------
@@ -218,14 +285,24 @@ namespace ortc
 
     interaction IRTPReceiverFactory
     {
+      typedef IRTPReceiverTypes::Kinds Kinds;
+      typedef IRTPReceiverTypes::CapabilitiesPtr CapabilitiesPtr;
+
       static IRTPReceiverFactory &singleton();
 
       virtual RTPReceiverPtr create(
-                                  IDTLSTransportPtr rtpTransport,
-                                  IDTLSTransportPtr rtcpTransport = IDTLSTransportPtr()
-                                  );
+                                    IRTPReceiverDelegatePtr delegate,
+                                    IRTPTransportPtr transport,
+                                    IRTCPTransportPtr rtcpTransport = IRTCPTransportPtr()
+                                    );
+
+      virtual CapabilitiesPtr getCapabilities(Optional<Kinds> kind);
     };
+
+    class RTPReceiverFactory : public IFactory<IRTPReceiverFactory> {};
   }
 }
 
-#endif //0
+ZS_DECLARE_PROXY_BEGIN(ortc::internal::IRTPReceiverAsyncDelegate)
+//ZS_DECLARE_PROXY_METHOD_0(onWhatever)
+ZS_DECLARE_PROXY_END()

@@ -33,6 +33,7 @@
 
 #include <ortc/types.h>
 #include <ortc/IRTPTypes.h>
+#include <ortc/IMediaStreamTrack.h>
 #include <ortc/IStatsProvider.h>
 
 namespace ortc
@@ -47,6 +48,7 @@ namespace ortc
   
   interaction IRTPSenderTypes : public IRTPTypes
   {
+    typedef IMediaStreamTrack::Kinds Kinds;
   };
 
   //---------------------------------------------------------------------------
@@ -65,15 +67,8 @@ namespace ortc
     static IRTPSenderPtr create(
                                 IRTPSenderDelegatePtr delegate,
                                 IMediaStreamTrackPtr track,
-                                IDTLSTransportPtr transport,
-                                IDTLSTransportPtr rtcpTransport = IDTLSTransportPtr()
-                                );
-
-    static IRTPSenderPtr create(
-                                IRTPSenderDelegatePtr delegate,
-                                IMediaStreamTrackPtr track,
-                                ISRTPSDESTransportPtr transport,
-                                IICETransportPtr rtcpTransport = IICETransportPtr()
+                                IRTPTransportPtr transport,
+                                IRTCPTransportPtr rtcpTransport = IRTCPTransportPtr()
                                 );
 
     virtual PUID getID() const = 0;
@@ -84,24 +79,14 @@ namespace ortc
     virtual IRTPTransportPtr transport() const = 0;
     virtual IRTCPTransportPtr rtcpTransport() const = 0;
 
-    template <typename data_type>
-    std::shared_ptr<data_type> transport() const {return ZS_DYNAMIC_PTR_CAST(data_type, transport());}
-
-    template <typename data_type>
-    std::shared_ptr<data_type> rtcpTransport() const {return ZS_DYNAMIC_PTR_CAST(data_type, rtcpTransport());}
-
     virtual void setTransport(
-                              IDTLSTransportPtr transport,
-                              IDTLSTransportPtr rtcpTransport = IDTLSTransportPtr()
-                              ) = 0;
-    virtual void setTransport(
-                              ISRTPSDESTransportPtr transport,
-                              IICETransportPtr rtcpTransport = IICETransportPtr()
+                              IRTPTransportPtr transport,
+                              IRTCPTransportPtr rtcpTransport = IRTCPTransportPtr()
                               ) = 0;
 
     virtual PromisePtr setTrack(IMediaStreamTrackPtr track);
 
-    virtual CapabilitiesPtr getCapabilities(const char *kind = NULL);
+    static CapabilitiesPtr getCapabilities(Optional<Kinds> kind = Optional<Kinds>());
 
     virtual PromisePtr send(const Parameters &parameters);
     virtual void stop() = 0;

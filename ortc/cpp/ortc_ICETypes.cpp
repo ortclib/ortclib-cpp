@@ -246,16 +246,16 @@ namespace ortc
     hasher.update(mFoundation);
     hasher.update(":");
     if (includePriorities) {
-      hasher.update(string(mPriority));
+      hasher.update(mPriority);
       hasher.update(":");
-      hasher.update(string(mUnfreezePriority));
+      hasher.update(mUnfreezePriority);
       hasher.update(":");
     }
     hasher.update(toString(mProtocol));
     hasher.update(":");
     hasher.update(mIP);
     hasher.update(":");
-    hasher.update(string(mPort));
+    hasher.update(mPort);
     hasher.update(":");
     hasher.update(toString(mCandidateType));
     hasher.update(":");
@@ -265,7 +265,7 @@ namespace ortc
     }
     hasher.update(mRelatedAddress);
     hasher.update(":");
-    hasher.update(string(mRelatedPort));
+    hasher.update(mRelatedPort);
 
     return hasher.final();
   }

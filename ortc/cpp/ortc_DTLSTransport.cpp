@@ -2863,16 +2863,6 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IDTLSTransportPtr IDTLSTransport::create(
-                                           IDTLSTransportDelegatePtr delegate,
-                                           IICETransportPtr iceTransport,
-                                           ICertificatePtr certificate
-                                           )
-  {
-    return internal::IDTLSTransportFactory::singleton().create(delegate, iceTransport, certificate);
-  }
-
-  //---------------------------------------------------------------------------
   IDTLSTransportPtr IDTLSTransport::convert(IRTPTransportPtr rtpTransport)
   {
     return internal::DTLSTransport::convert(rtpTransport);
@@ -2883,5 +2873,15 @@ namespace ortc
   {
     return internal::DTLSTransport::convert(rtcpTransport);
   }
+  //---------------------------------------------------------------------------
+  IDTLSTransportPtr IDTLSTransport::create(
+                                           IDTLSTransportDelegatePtr delegate,
+                                           IICETransportPtr iceTransport,
+                                           ICertificatePtr certificate
+                                           )
+  {
+    return internal::IDTLSTransportFactory::singleton().create(delegate, iceTransport, certificate);
+  }
+
 
 }

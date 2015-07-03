@@ -1,6 +1,6 @@
 /*
 
- Copyright (c) 2014, Hookflash Inc. / Hookflash Inc.
+ Copyright (c) 2015, Hookflash Inc. / Hookflash Inc.
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -31,23 +31,74 @@
 
 #pragma once
 
-#if 0
-
 #include <ortc/internal/types.h>
-#include <ortc/internal/ortc_ICETransport.h>
 
-#include <ortc/IDTLSTransport.h>
 #include <ortc/IRTPSender.h>
+#include <ortc/IDTLSTransport.h>
 
 #include <openpeer/services/IWakeDelegate.h>
-
 #include <zsLib/MessageQueueAssociator.h>
+#include <zsLib/Timer.h>
+
+//#define ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE "ortc/sctp/max-message-size"
 
 namespace ortc
 {
   namespace internal
   {
-    interaction IDTLSTransportForRTPSender;
+    ZS_DECLARE_INTERACTION_PTR(IRTPListenerForRTPSender)
+
+    ZS_DECLARE_INTERACTION_PTR(IRTPSenderForSettings)
+    ZS_DECLARE_INTERACTION_PTR(IRTPSenderForRTPListener)
+
+    ZS_DECLARE_INTERACTION_PROXY(IRTPSenderAsyncDelegate)
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IRTPSenderForSettings
+    #pragma mark
+
+    interaction IRTPSenderForSettings
+    {
+      ZS_DECLARE_TYPEDEF_PTR(IRTPSenderForSettings, ForSettings)
+
+      static void applyDefaults();
+
+      virtual ~IRTPSenderForSettings() {}
+    };
+    
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IRTPSenderForRTPListener
+    #pragma mark
+
+    interaction IRTPSenderForRTPListener
+    {
+      ZS_DECLARE_TYPEDEF_PTR(IRTPSenderForRTPListener, ForRTPListener)
+
+      static ElementPtr toDebug(ForRTPListenerPtr transport);
+
+      virtual PUID getID() const = 0;
+    };
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IRTPSenderAsyncDelegate
+    #pragma mark
+
+    interaction IRTPSenderAsyncDelegate
+    {
+      virtual ~IRTPSenderAsyncDelegate() {}
+    };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -58,26 +109,49 @@ namespace ortc
     #pragma mark
     
     class RTPSender : public Noop,
-                      public MessageQueueAssociator,
-                      public IRTPSender,
-                      public IWakeDelegate,
-                      public IDTLSTransportDelegate
+                        public MessageQueueAssociator,
+                        public SharedRecursiveLock,
+                        public IRTPSender,
+                        public IRTPSenderForSettings,
+                        public IRTPSenderForRTPListener,
+                        public IWakeDelegate,
+                        public zsLib::ITimerDelegate,
+                        public IRTPSenderAsyncDelegate
     {
+    protected:
+      struct make_private {};
+
     public:
       friend interaction IRTPSender;
       friend interaction IRTPSenderFactory;
-      friend interaction IRTPSenderForICE;
+      friend interaction IRTPSenderForSettings;
+      friend interaction IRTPSenderForRTPListener;
 
-      ZS_DECLARE_TYPEDEF_PTR(IDTLSTransportForRTPSender, UseDTLSTransport)
+      enum States
+      {
+        State_Pending,
+        State_Ready,
+        State_ShuttingDown,
+        State_Shutdown,
+      };
+      static const char *toString(States state);
 
-    protected:
+    public:
       RTPSender(
+                const make_private &,
                 IMessageQueuePtr queue,
-                IDTLSTransportPtr rtpTransport,
-                IDTLSTransportPtr rtcpTransport = IDTLSTransportPtr()
+                IRTPSenderDelegatePtr delegate,
+                IMediaStreamTrackPtr track,
+                IRTPTransportPtr transport,
+                IRTCPTransportPtr rtcpTransport = IRTCPTransportPtr()
                 );
 
-      RTPSender(Noop) : Noop(true), MessageQueueAssociator(IMessageQueuePtr()) {}
+    protected:
+      RTPSender(Noop) :
+        Noop(true),
+        MessageQueueAssociator(IMessageQueuePtr()),
+        SharedRecursiveLock(SharedRecursiveLock::create())
+      {}
 
       void init();
 
@@ -85,58 +159,78 @@ namespace ortc
       virtual ~RTPSender();
 
       static RTPSenderPtr convert(IRTPSenderPtr object);
-      
+      static RTPSenderPtr convert(ForSettingsPtr object);
+      static RTPSenderPtr convert(ForRTPListenerPtr object);
+
     protected:
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPSender => IStatsProvider
+      #pragma mark
+
+      virtual PromiseWithStatsReportPtr getStats() const throw(InvalidStateError);
+
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark RTPSender => IRTPSender
       #pragma mark
 
-      static ElementPtr toDebug(IRTPSenderPtr transport);
+      static ElementPtr toDebug(RTPSenderPtr receiver);
 
       static RTPSenderPtr create(
-                                 IDTLSTransportPtr rtpTransport,
-                                 IDTLSTransportPtr rtcpTransport = IDTLSTransportPtr()
+                                 IRTPSenderDelegatePtr delegate,
+                                 IMediaStreamTrackPtr track,
+                                 IRTPTransportPtr transport,
+                                 IRTCPTransportPtr rtcpTransport = IRTCPTransportPtr()
                                  );
 
-      virtual PUID getID() const;
+      virtual PUID getID() const {return mID;}
 
-      static CapabilitiesPtr getCapabilities();
+      virtual IRTPSenderSubscriptionPtr subscribe(IRTPSenderDelegatePtr delegate) override;
 
-      virtual TrackDescriptionPtr createParams(CapabilitiesPtr capabilities = CapabilitiesPtr());
+      virtual IMediaStreamTrackPtr track() const override;
+      virtual IRTPTransportPtr transport() const override;
+      virtual IRTCPTransportPtr rtcpTransport() const override;
 
-      static TrackDescriptionPtr filterParams(
-                                              TrackDescriptionPtr params,
-                                              CapabilitiesPtr capabilities
-                                              );
+      virtual void setTransport(
+                                IRTPTransportPtr transport,
+                                IRTCPTransportPtr rtcpTransport = IRTCPTransportPtr()
+                                ) override;
 
-      virtual TrackDescriptionPtr getDescription();
-      virtual void setDescription(TrackDescriptionPtr);
+      static CapabilitiesPtr getCapabilities(Optional<Kinds> kind);
 
-      virtual void attach(
-                          IDTLSTransportPtr rtpTransport,
-                          IDTLSTransportPtr rtcpTransport = IDTLSTransportPtr()
-                          );
+      virtual PromisePtr send(const Parameters &parameters) override;
+      virtual void stop() override;
 
-      virtual void start(TrackDescriptionPtr localTrackDescription);
-      virtual void stop();
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPSender => IRTPSenderForRTPListener
+      #pragma mark
+
+      // (duplciate) static ElementPtr toDebug(ForRTPListenerPtr transport);
+
+      // (duplicate) virtual PUID getID() const = 0;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark RTPSender => IWakeDelegate
       #pragma mark
 
-      virtual void onWake();
+      virtual void onWake() override;
 
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark RTPSender => IDTLSTransportDelegate
+      #pragma mark RTPSender => ITimerDelegate
       #pragma mark
 
-      virtual void onDTLSTransportStateChanged(
-                                               IDTLSTransportPtr transport,
-                                               IDTLSTransport::ConnectionStates state
-                                               );
+      virtual void onTimer(TimerPtr timer) override;
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPSender => IRTPSenderAsyncDelegate
+      #pragma mark
+
 
     protected:
       //-----------------------------------------------------------------------
@@ -146,17 +240,17 @@ namespace ortc
 
       Log::Params log(const char *message) const;
       Log::Params debug(const char *message) const;
-      ElementPtr toDebug() const;
-
-      virtual RecursiveLock &getLock() const {return mLock;}
+      virtual ElementPtr toDebug() const;
 
       bool isShuttingDown() const;
       bool isShutdown() const;
 
       void step();
+      bool stepBogusDoSomething();
 
       void cancel();
 
+      void setState(States state);
       void setError(WORD error, const char *reason = NULL);
 
     protected:
@@ -166,23 +260,18 @@ namespace ortc
       #pragma mark
 
       AutoPUID mID;
-      mutable RecursiveLock mLock;
       RTPSenderWeakPtr mThisWeak;
       RTPSenderPtr mGracefulShutdownReference;
-      bool mShutdown {};
 
-      bool mStartCalled {};
+      IRTPSenderDelegateSubscriptions mSubscriptions;
+      IRTPSenderSubscriptionPtr mDefaultSubscription;
+
+      States mCurrentState {State_Pending};
 
       WORD mLastError {};
       String mLastErrorReason;
 
-      TrackDescriptionPtr mDescription;
-
-      UseDTLSTransportPtr mRTPTransport;
-      UseDTLSTransportPtr mRTCPTransport;
-
-      IDTLSTransportSubscriptionPtr mRTPTransportSubscription;
-      IDTLSTransportSubscriptionPtr mRTCPTransportSubscription;
+      Capabilities mCapabilities;
     };
 
     //-------------------------------------------------------------------------
@@ -195,16 +284,25 @@ namespace ortc
 
     interaction IRTPSenderFactory
     {
+      typedef IRTPSenderTypes::Kinds Kinds;
+      typedef IRTPSenderTypes::CapabilitiesPtr CapabilitiesPtr;
+
       static IRTPSenderFactory &singleton();
 
       virtual RTPSenderPtr create(
-                                  IDTLSTransportPtr rtpTransport,
-                                  IDTLSTransportPtr rtcpTransport = IDTLSTransportPtr()
+                                  IRTPSenderDelegatePtr delegate,
+                                  IMediaStreamTrackPtr track,
+                                  IRTPTransportPtr transport,
+                                  IRTCPTransportPtr rtcpTransport = IRTCPTransportPtr()
                                   );
+
+      virtual CapabilitiesPtr getCapabilities(Optional<Kinds> kind);
     };
 
     class RTPSenderFactory : public IFactory<IRTPSenderFactory> {};
   }
 }
 
-#endif //0
+ZS_DECLARE_PROXY_BEGIN(ortc::internal::IRTPSenderAsyncDelegate)
+//ZS_DECLARE_PROXY_METHOD_0(onWhatever)
+ZS_DECLARE_PROXY_END()
