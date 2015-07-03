@@ -32,9 +32,10 @@
 #include <ortc/internal/ortc_Settings.h>
 
 #include <ortc/internal/ortc_Certificate.h>
+#include <ortc/internal/ortc_DataChannel.h>
+#include <ortc/internal/ortc_DTLSTransport.h>
 #include <ortc/internal/ortc_ICEGatherer.h>
 #include <ortc/internal/ortc_ICETransport.h>
-#include <ortc/internal/ortc_DTLSTransport.h>
 #include <ortc/internal/ortc_MediaDevices.h>
 #include <ortc/internal/ortc_RTPListener.h>
 #include <ortc/internal/ortc_RTPReceiver.h>

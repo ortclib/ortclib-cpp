@@ -29,8 +29,8 @@
  
  */
 
+#include <ortc/internal/ortc_DataChannel.h>
 #include <ortc/internal/ortc_SCTPTransport.h>
-#include <ortc/internal/ortc_DTLSTransport.h>
 #include <ortc/internal/ortc_ORTC.h>
 #include <ortc/internal/platform.h>
 
@@ -78,13 +78,13 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark ISCTPTransportForSettings
+    #pragma mark IDataChannelForSettings
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void ISCTPTransportForSettings::applyDefaults()
+    void IDataChannelForSettings::applyDefaults()
     {
-      UseSettings::setUInt(ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE, 5*1024);
+//      UseSettings::setUInt(ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE, 5*1024);
     }
 
     //-------------------------------------------------------------------------
@@ -92,29 +92,14 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark ISCTPTransportForDTLSTransport
+    #pragma mark IDataChannelForSCTPTransport
     #pragma mark
 
     //-------------------------------------------------------------------------
-    ElementPtr ISCTPTransportForDTLSTransport::toDebug(ForDTLSTransportPtr transport)
-    {
-      if (!transport) return ElementPtr();
-      return ZS_DYNAMIC_PTR_CAST(SCTPTransport, transport)->toDebug();
-    }
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ISCTPTransportForDataChannel
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    ElementPtr ISCTPTransportForDataChannel::toDebug(ForDataChannelPtr transport)
+    ElementPtr IDataChannelForSCTPTransport::toDebug(ForDataTransportPtr transport)
     {
       if (!transport) return ElementPtr();
-      return ZS_DYNAMIC_PTR_CAST(SCTPTransport, transport)->toDebug();
+      return ZS_DYNAMIC_PTR_CAST(DataChannel, transport)->toDebug();
     }
 
     //-------------------------------------------------------------------------
@@ -122,31 +107,19 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark SCTPTransport
+    #pragma mark DataChannel
     #pragma mark
     
-    //---------------------------------------------------------------------------
-    const char *SCTPTransport::toString(States state)
-    {
-      switch (state) {
-        case State_Pending:       return "pending";
-        case State_Ready:         return "ready";
-        case State_ShuttingDown:  return "shutting down";
-        case State_Shutdown:      return "shutdown";
-      }
-      return "UNDEFINED";
-    }
-    
     //-------------------------------------------------------------------------
-    SCTPTransport::SCTPTransport(
-                                 const make_private &,
-                                 IMessageQueuePtr queue,
-                                 ISCTPTransportDelegatePtr originalDelegate,
-                                 IDTLSTransportPtr dtlsTransport
-                                 ) :
+    DataChannel::DataChannel(
+                             const make_private &,
+                             IMessageQueuePtr queue,
+                             IDataChannelDelegatePtr originalDelegate,
+                             IDataTransportPtr transport
+                             ) :
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
-      mDTLSTransport(DTLSTransport::convert(dtlsTransport))
+      mDataTransport(SCTPTransport::convert(transport))
     {
       ZS_LOG_DETAIL(debug("created"))
 
@@ -156,14 +129,14 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void SCTPTransport::init()
+    void DataChannel::init()
     {
       AutoRecursiveLock lock(*this);
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
     }
 
     //-------------------------------------------------------------------------
-    SCTPTransport::~SCTPTransport()
+    DataChannel::~DataChannel()
     {
       if (isNoop()) return;
 
@@ -174,27 +147,21 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    SCTPTransportPtr SCTPTransport::convert(ISCTPTransportPtr object)
+    DataChannelPtr DataChannel::convert(IDataChannelPtr object)
     {
-      return ZS_DYNAMIC_PTR_CAST(SCTPTransport, object);
+      return ZS_DYNAMIC_PTR_CAST(DataChannel, object);
     }
 
     //-------------------------------------------------------------------------
-    SCTPTransportPtr SCTPTransport::convert(IDataTransportPtr object)
+    DataChannelPtr DataChannel::convert(ForSettingsPtr object)
     {
-      return ZS_DYNAMIC_PTR_CAST(SCTPTransport, object);
+      return ZS_DYNAMIC_PTR_CAST(DataChannel, object);
     }
 
     //-------------------------------------------------------------------------
-    SCTPTransportPtr SCTPTransport::convert(ForSettingsPtr object)
+    DataChannelPtr DataChannel::convert(ForDataTransportPtr object)
     {
-      return ZS_DYNAMIC_PTR_CAST(SCTPTransport, object);
-    }
-
-    //-------------------------------------------------------------------------
-    SCTPTransportPtr SCTPTransport::convert(ForDTLSTransportPtr object)
-    {
-      return ZS_DYNAMIC_PTR_CAST(SCTPTransport, object);
+      return ZS_DYNAMIC_PTR_CAST(DataChannel, object);
     }
 
 
@@ -203,83 +170,42 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark SCTPTransport => IStatsProvider
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    IStatsProvider::PromiseWithStatsReportPtr SCTPTransport::getStats() const throw(InvalidStateError)
-    {
-#define TODO_COMPLETE 1
-#define TODO_COMPLETE 2
-      return PromiseWithStatsReportPtr();
-    }
-
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark SCTPTransport => ISCTPTransport
+    #pragma mark DataChannel => IDataChannel
     #pragma mark
     
     //-------------------------------------------------------------------------
-    ElementPtr SCTPTransport::toDebug(SCTPTransportPtr transport)
+    ElementPtr DataChannel::toDebug(DataChannelPtr transport)
     {
       if (!transport) return ElementPtr();
       return transport->toDebug();
     }
 
     //-------------------------------------------------------------------------
-    SCTPTransportPtr SCTPTransport::create(
-                                           ISCTPTransportDelegatePtr delegate,
-                                           IDTLSTransportPtr transport
-                                           )
+    DataChannelPtr DataChannel::create(
+                                       IDataChannelDelegatePtr delegate,
+                                       IDataTransportPtr transport
+                                       )
     {
-      SCTPTransportPtr pThis(make_shared<SCTPTransport>(make_private {}, IORTCForInternal::queueORTC(), delegate, transport));
+      DataChannelPtr pThis(make_shared<DataChannel>(make_private {}, IORTCForInternal::queueORTC(), delegate, transport));
       pThis->mThisWeak = pThis;
       pThis->init();
       return pThis;
     }
 
     //-------------------------------------------------------------------------
-    ISCTPTransportTypes::CapabilitiesPtr SCTPTransport::getCapabilities()
-    {
-      CapabilitiesPtr result(make_shared<Capabilities>());
-      result->mMaxMessageSize = UseSettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE);
-      return result;
-    }
-
-    //-------------------------------------------------------------------------
-    void SCTPTransport::start(const Capabilities &remoteCapabilities)
-    {
-      AutoRecursiveLock lock(*this);
-#define TODO 1
-#define TODO 2
-    }
-
-    //-------------------------------------------------------------------------
-    void SCTPTransport::stop()
-    {
-      AutoRecursiveLock lock(*this);
-#define TODO 1
-#define TODO 2
-    }
-
-    //-------------------------------------------------------------------------
-    ISCTPTransportSubscriptionPtr SCTPTransport::subscribe(ISCTPTransportDelegatePtr originalDelegate)
+    IDataChannelSubscriptionPtr DataChannel::subscribe(IDataChannelDelegatePtr originalDelegate)
     {
       ZS_LOG_DETAIL(log("subscribing to transport state"))
 
       AutoRecursiveLock lock(*this);
       if (!originalDelegate) return mDefaultSubscription;
 
-      ISCTPTransportSubscriptionPtr subscription = mSubscriptions.subscribe(originalDelegate, IORTCForInternal::queueDelegate());
+      IDataChannelSubscriptionPtr subscription = mSubscriptions.subscribe(originalDelegate, IORTCForInternal::queueDelegate());
 
-      ISCTPTransportDelegatePtr delegate = mSubscriptions.delegate(subscription, true);
+      IDataChannelDelegatePtr delegate = mSubscriptions.delegate(subscription, true);
 
       if (delegate) {
-        SCTPTransportPtr pThis = mThisWeak.lock();
+        DataChannelPtr pThis = mThisWeak.lock();
 
 #define TODO_DO_WE_NEED_TO_TELL_ABOUT_ANY_MISSED_EVENTS 1
 #define TODO_DO_WE_NEED_TO_TELL_ABOUT_ANY_MISSED_EVENTS 2
@@ -288,27 +214,76 @@ namespace ortc
       if (isShutdown()) {
         mSubscriptions.clear();
       }
-
+      
       return subscription;
     }
 
     //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark SCTPTransport => ISCTPTransportForDTLSTransport
-    #pragma mark
+    IDataTransportPtr DataChannel::transport() const
+    {
+      return SCTPTransport::convert(mDataTransport.lock());
+    }
 
     //-------------------------------------------------------------------------
-    bool SCTPTransport::handleDataPacket(
-                                         const BYTE *buffer,
-                                         size_t bufferLengthInBytes
-                                         )
+    IDataChannelTypes::ParametersPtr DataChannel::parameters() const
     {
 #define TODO 1
 #define TODO 2
-      return false;
+      return ParametersPtr();
+    }
+
+    //-------------------------------------------------------------------------
+    IDataChannelTypes::States DataChannel::readyState() const
+    {
+      AutoRecursiveLock lock(*this);
+      return mCurrentState;
+    }
+
+    //-------------------------------------------------------------------------
+    ULONG DataChannel::bufferedAmount() const
+    {
+#define TODO 1
+#define TODO 2
+      return 0;
+    }
+
+    //-------------------------------------------------------------------------
+    String DataChannel::binaryType() const
+    {
+#define TODO 1
+#define TODO 2
+      return String();
+    }
+
+    //-------------------------------------------------------------------------
+    void DataChannel::close()
+    {
+#define TODO 1
+#define TODO 2
+    }
+
+    //-------------------------------------------------------------------------
+    void DataChannel::send(const String &data)
+    {
+#define TODO 1
+#define TODO 2
+    }
+
+    //-------------------------------------------------------------------------
+    void DataChannel::send(const SecureByteBlock &data)
+    {
+#define TODO 1
+#define TODO 2
+    }
+
+    //-------------------------------------------------------------------------
+    void DataChannel::send(
+                           const BYTE *buffer,
+                           size_t bufferSizeInBytes
+                           )
+    {
+#define TODO 1
+#define TODO 2
     }
 
     //-------------------------------------------------------------------------
@@ -316,19 +291,20 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark SCTPTransport => ISCTPTransportForDataChannel
+    #pragma mark DataChannel => IDataChannelForSCTPTransport
     #pragma mark
+
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark SCTPTransport => IWakeDelegate
+    #pragma mark DataChannel => IWakeDelegate
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void SCTPTransport::onWake()
+    void DataChannel::onWake()
     {
       ZS_LOG_DEBUG(log("wake"))
 
@@ -341,11 +317,11 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark SCTPTransport => ITimerDelegate
+    #pragma mark DataChannel => ITimerDelegate
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void SCTPTransport::onTimer(TimerPtr timer)
+    void DataChannel::onTimer(TimerPtr timer)
     {
       ZS_LOG_DEBUG(log("timer") + ZS_PARAM("timer id", timer->getID()))
 
@@ -359,7 +335,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark SCTPTransport => ISCTPTransportAsyncDelegate
+    #pragma mark DataChannel => IDataChannelAsyncDelegate
     #pragma mark
 
 
@@ -368,62 +344,31 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark SCTPTransport => IDTLSTransportDelegate
+    #pragma mark DataChannel => (internal)
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void SCTPTransport::onDTLSTransportStateChanged(
-                                                    IDTLSTransportPtr transport,
-                                                    IDTLSTransport::States state
-                                                    )
+    Log::Params DataChannel::log(const char *message) const
     {
-      ZS_LOG_DEBUG(log("dtls transport state changed") + ZS_PARAM("dtls transport id", transport->getID()) + ZS_PARAM("state", IDTLSTransport::toString(state)))
-
-      AutoRecursiveLock lock(*this);
-      step();
-    }
-
-    //-------------------------------------------------------------------------
-    void SCTPTransport::onDTLSTransportError(
-                                             IDTLSTransportPtr transport,
-                                             ErrorCode errorCode,
-                                             String errorReason
-                                             )
-    {
-      ZS_LOG_DEBUG(log("dtls transport state changed") + ZS_PARAM("dtls transport id", transport->getID()) + ZS_PARAM("error", errorCode) + ZS_PARAM("reason", errorReason))
-
-      AutoRecursiveLock lock(*this);
-      step();
-    }
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark SCTPTransport => (internal)
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    Log::Params SCTPTransport::log(const char *message) const
-    {
-      ElementPtr objectEl = Element::create("ortc::SCTPTransport");
+      ElementPtr objectEl = Element::create("ortc::DataChannel");
       UseServicesHelper::debugAppend(objectEl, "id", mID);
       return Log::Params(message, objectEl);
     }
 
     //-------------------------------------------------------------------------
-    Log::Params SCTPTransport::debug(const char *message) const
+    Log::Params DataChannel::debug(const char *message) const
     {
       return Log::Params(message, toDebug());
     }
 
     //-------------------------------------------------------------------------
-    ElementPtr SCTPTransport::toDebug() const
+    ElementPtr DataChannel::toDebug() const
     {
       AutoRecursiveLock lock(*this);
 
-      ElementPtr resultEl = Element::create("ortc::SCTPTransport");
+      ElementPtr resultEl = Element::create("ortc::DataChannel");
+
+      auto dataTransport = mDataTransport.lock();
 
       UseServicesHelper::debugAppend(resultEl, "id", mID);
 
@@ -437,28 +382,25 @@ namespace ortc
       UseServicesHelper::debugAppend(resultEl, "error", mLastError);
       UseServicesHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
 
-      UseServicesHelper::debugAppend(resultEl, "dtls transport", mDTLSTransport ? mDTLSTransport->getID() : 0);
-      UseServicesHelper::debugAppend(resultEl, "dtls transport subscription", (bool)mDTLSTransportSubscription);
-
-      UseServicesHelper::debugAppend(resultEl, mCapabilities.toDebug());
+      UseServicesHelper::debugAppend(resultEl, "data transport", dataTransport ? dataTransport->getID() : 0);
 
       return resultEl;
     }
 
     //-------------------------------------------------------------------------
-    bool SCTPTransport::isShuttingDown() const
+    bool DataChannel::isShuttingDown() const
     {
-      return State_ShuttingDown == mCurrentState;
+      return State_Closing == mCurrentState;
     }
 
     //-------------------------------------------------------------------------
-    bool SCTPTransport::isShutdown() const
+    bool DataChannel::isShutdown() const
     {
-      return State_Shutdown == mCurrentState;
+      return State_Closed == mCurrentState;
     }
 
     //-------------------------------------------------------------------------
-    void SCTPTransport::step()
+    void DataChannel::step()
     {
       ZS_LOG_DEBUG(debug("step"))
 
@@ -488,7 +430,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool SCTPTransport::stepBogusDoSomething()
+    bool DataChannel::stepBogusDoSomething()
     {
       if ( /* step already done */ false ) {
         ZS_LOG_TRACE(log("already completed do something"))
@@ -505,12 +447,12 @@ namespace ortc
       // ....
 #define TODO 1
 #define TODO 2
-
+      
       return true;
     }
 
     //-------------------------------------------------------------------------
-    void SCTPTransport::cancel()
+    void DataChannel::cancel()
     {
       //.......................................................................
       // try to gracefully shutdown
@@ -531,7 +473,7 @@ namespace ortc
       //.......................................................................
       // final cleanup
 
-      setState(State_Shutdown);
+      setState(State_Closing);
 
       mSubscriptions.clear();
 
@@ -540,17 +482,12 @@ namespace ortc
         mDefaultSubscription.reset();
       }
 
-      if (mDTLSTransportSubscription) {
-        mDTLSTransportSubscription->cancel();
-        mDTLSTransportSubscription.reset();
-      }
-
       // make sure to cleanup any final reference to self
       mGracefulShutdownReference.reset();
     }
 
     //-------------------------------------------------------------------------
-    void SCTPTransport::setState(States state)
+    void DataChannel::setState(States state)
     {
       if (state == mCurrentState) return;
 
@@ -558,14 +495,14 @@ namespace ortc
 
       mCurrentState = state;
 
-//      SCTPTransportPtr pThis = mThisWeak.lock();
+//      DataChannelPtr pThis = mThisWeak.lock();
 //      if (pThis) {
-//        mSubscriptions.delegate()->onSCTPTransportStateChanged(pThis, mCurrentState);
+//        mSubscriptions.delegate()->onDataChannelStateChanged(pThis, mCurrentState);
 //      }
     }
 
     //-------------------------------------------------------------------------
-    void SCTPTransport::setError(WORD errorCode, const char *inReason)
+    void DataChannel::setError(WORD errorCode, const char *inReason)
     {
       String reason(inReason);
       if (reason.isEmpty()) {
@@ -589,30 +526,23 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark ISCTPTransportFactory
+    #pragma mark IDataChannelFactory
     #pragma mark
 
     //-------------------------------------------------------------------------
-    ISCTPTransportFactory &ISCTPTransportFactory::singleton()
+    IDataChannelFactory &IDataChannelFactory::singleton()
     {
-      return SCTPTransportFactory::singleton();
+      return DataChannelFactory::singleton();
     }
 
     //-------------------------------------------------------------------------
-    SCTPTransportPtr ISCTPTransportFactory::create(
-                                                   ISCTPTransportDelegatePtr delegate,
-                                                   IDTLSTransportPtr transport
-                                                   )
+    DataChannelPtr IDataChannelFactory::create(
+                                               IDataChannelDelegatePtr delegate,
+                                               IDataTransportPtr transport
+                                               )
     {
       if (this) {}
-      return internal::SCTPTransport::create(delegate, transport);
-    }
-
-    //-------------------------------------------------------------------------
-    ISCTPTransportFactory::CapabilitiesPtr ISCTPTransportFactory::getCapabilities()
-    {
-      if (this) {}
-      return SCTPTransport::getCapabilities();
+      return internal::DataChannel::create(delegate, transport);
     }
 
   } // internal namespace
@@ -623,26 +553,67 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   #pragma mark
-  #pragma mark ISCTPTransportTypes::Parameters
+  #pragma mark IDataChannelTypes
   #pragma mark
 
   //---------------------------------------------------------------------------
-  ElementPtr ISCTPTransportTypes::Capabilities::toDebug() const
+  const char *IDataChannelTypes::toString(States state)
   {
-    ElementPtr resultEl = Element::create("ortc::ISCTPTransportTypes::Capabilities");
+    switch (state) {
+      case IDataChannelTypes::State_Connecting: return "connecting";
+      case IDataChannelTypes::State_Open:       return "open";
+      case IDataChannelTypes::State_Closing:    return "closing";
+      case IDataChannelTypes::State_Closed:     return "closed";
+    }
 
-    UseServicesHelper::debugAppend(resultEl, "max message size", mMaxMessageSize);
+    ASSERT(false)
+    return "UNDEFINED";
+  }
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IDataChannelTypes::Parameters
+  #pragma mark
+
+  //---------------------------------------------------------------------------
+  ElementPtr IDataChannelTypes::Parameters::toDebug() const
+  {
+    ElementPtr resultEl = Element::create("ortc::IDataChannelTypes::Parameters");
+
+    UseServicesHelper::debugAppend(resultEl, "label", mLabel);
+    UseServicesHelper::debugAppend(resultEl, "ordered", mOrdered);
+    UseServicesHelper::debugAppend(resultEl, "max packet lifetime", mMaxPacketLifetime);
+    UseServicesHelper::debugAppend(resultEl, "max retransmits", mMaxRetransmits);
+    UseServicesHelper::debugAppend(resultEl, "protocol", mProtocol);
+    UseServicesHelper::debugAppend(resultEl, "negotiated", mNegotiated);
+    UseServicesHelper::debugAppend(resultEl, "id", mID);
 
     return resultEl;
   }
 
   //---------------------------------------------------------------------------
-  String ISCTPTransportTypes::Capabilities::hash() const
+  String IDataChannelTypes::Parameters::hash() const
   {
     SHA1Hasher hasher;
 
-    hasher.update("ISCTPTransportTypes:Capabilities:");
-    hasher.update(mMaxMessageSize);
+    hasher.update("IDataChannelTypes:Parameters:");
+    hasher.update(mLabel);
+    hasher.update(":");
+    hasher.update(mOrdered);
+    hasher.update(":");
+    hasher.update(mMaxPacketLifetime);
+    hasher.update(":");
+    hasher.update(mMaxRetransmits);
+    hasher.update(":");
+    hasher.update(mProtocol);
+    hasher.update(":");
+    hasher.update(mNegotiated);
+    hasher.update(":");
+    hasher.update(mID);
+
     return hasher.final();
   }
 
@@ -651,28 +622,23 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   #pragma mark
-  #pragma mark ISCTPTransport
+  #pragma mark IDataChannelTypes
   #pragma mark
 
   //---------------------------------------------------------------------------
-  ElementPtr ISCTPTransport::toDebug(ISCTPTransportPtr transport)
+  ElementPtr IDataChannel::toDebug(IDataChannelPtr transport)
   {
-    return internal::SCTPTransport::toDebug(internal::SCTPTransport::convert(transport));
+    return internal::DataChannel::toDebug(internal::DataChannel::convert(transport));
   }
 
   //---------------------------------------------------------------------------
-  ISCTPTransportPtr ISCTPTransport::create(
-                                           ISCTPTransportDelegatePtr delegate,
-                                           IDTLSTransportPtr transport
-                                           )
+  IDataChannelPtr IDataChannel::create(
+                                       IDataChannelDelegatePtr delegate,
+                                       IDataTransportPtr transport
+                                       )
   {
-    return internal::ISCTPTransportFactory::singleton().create(delegate, transport);
+    return internal::IDataChannelFactory::singleton().create(delegate, transport);
   }
 
-  //---------------------------------------------------------------------------
-  ISCTPTransportTypes::CapabilitiesPtr ISCTPTransport::getCapabilities()
-  {
-    return internal::ISCTPTransportFactory::singleton().getCapabilities();
-  }
 
 }
