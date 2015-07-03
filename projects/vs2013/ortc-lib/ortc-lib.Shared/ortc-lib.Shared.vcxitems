@@ -101,6 +101,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ortc_RTPListener.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ortc_RTPReceiver.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ortc_RTPSender.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ortc_RTPTypes.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ortc_SCTPTransport.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ortc_Settings.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ortc_SRTPSDESTransport.cpp" />

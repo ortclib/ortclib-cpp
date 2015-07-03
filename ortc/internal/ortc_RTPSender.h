@@ -196,6 +196,7 @@ namespace ortc
                                 IRTPTransportPtr transport,
                                 IRTCPTransportPtr rtcpTransport = IRTCPTransportPtr()
                                 ) override;
+      virtual PromisePtr setTrack(IMediaStreamTrackPtr track) override;
 
       static CapabilitiesPtr getCapabilities(Optional<Kinds> kind);
 

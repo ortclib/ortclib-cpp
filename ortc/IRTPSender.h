@@ -84,11 +84,11 @@ namespace ortc
                               IRTCPTransportPtr rtcpTransport = IRTCPTransportPtr()
                               ) = 0;
 
-    virtual PromisePtr setTrack(IMediaStreamTrackPtr track);
+    virtual PromisePtr setTrack(IMediaStreamTrackPtr track) = 0;
 
     static CapabilitiesPtr getCapabilities(Optional<Kinds> kind = Optional<Kinds>());
 
-    virtual PromisePtr send(const Parameters &parameters);
+    virtual PromisePtr send(const Parameters &parameters) = 0;
     virtual void stop() = 0;
   };
 
