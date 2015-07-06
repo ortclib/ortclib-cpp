@@ -80,7 +80,7 @@
 		0064C6C51AFE847A0089571E /* ortc_ISecureTransport.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_ISecureTransport.cpp; sourceTree = "<group>"; };
 		0064C6C71AFE847A0089571E /* ortc_SRTPSDESTransport.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_SRTPSDESTransport.cpp; sourceTree = "<group>"; };
 		006E83871B3C54FA007740C3 /* ortc_SCTPTransport.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ortc_SCTPTransport.h; sourceTree = "<group>"; };
-		006E83881B3C5506007740C3 /* ortc_SCTPTransport.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_SCTPTransport.cpp; sourceTree = "<group>"; };
+		006E83881B3C5506007740C3 /* ortc_SCTPTransport.cpp */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 2; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_SCTPTransport.cpp; sourceTree = "<group>"; tabWidth = 2; usesTabs = 0; };
 		00724A6F184CF4430049B9EF /* ortc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc.cpp; sourceTree = "<group>"; };
 		00724A71184CF4530049B9EF /* ortc_ORTC.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_ORTC.cpp; sourceTree = "<group>"; };
 		007B98F61855D60A004AC6C0 /* IDTLSTransport.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IDTLSTransport.h; sourceTree = "<group>"; };

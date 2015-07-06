@@ -50,7 +50,7 @@ namespace ortc
 
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark ISCTPTransportTypes::Parameters
+    #pragma mark ISCTPTransportTypes::Capabilities
     #pragma mark
 
     struct Capabilities {

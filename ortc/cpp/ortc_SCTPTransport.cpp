@@ -44,6 +44,7 @@
 
 #include <cryptopp/sha.h>
 
+#include <usrsctp/usrsctp.h>
 
 #ifdef _DEBUG
 #define ASSERT(x) ZS_THROW_BAD_STATE_IF(!(x))
@@ -78,13 +79,14 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IICETransportForSettings
+    #pragma mark ISCTPTransportForSettings
     #pragma mark
 
     //-------------------------------------------------------------------------
     void ISCTPTransportForSettings::applyDefaults()
     {
-      UseSettings::setUInt(ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE, 5*1024);
+        //https://tools.ietf.org/html/draft-ietf-rtcweb-data-channel-13#section-6.6
+      UseSettings::setUInt(ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE, 16*1024);
     }
 
     //-------------------------------------------------------------------------
@@ -145,6 +147,7 @@ namespace ortc
     {
       AutoRecursiveLock lock(*this);
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
+      recv_thread_init();
     }
 
     //-------------------------------------------------------------------------
