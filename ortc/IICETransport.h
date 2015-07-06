@@ -111,6 +111,8 @@ namespace ortc
   {
     static ElementPtr toDebug(IICETransportPtr transport);
 
+    static IICETransportPtr convert(IRTCPTransportPtr object);
+
     static IICETransportPtr create(
                                    IICETransportDelegatePtr delegate,
                                    IICEGathererPtr gatherer = IICEGathererPtr() // option to specify a gatherer

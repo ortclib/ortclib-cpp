@@ -43,6 +43,8 @@
 
 #include <zsLib/Timer.h>
 
+#include <queue>
+
 #define ORTC_SETTING_ICE_TRANSPORT_MAX_CANDIDATE_PAIRS_TO_TEST  "ortc/ice-transport/max-candidate-pairs-to-test"
 
 #define ORTC_SETTING_ICE_TRANSPORT_ACTIVATION_TIMER_IN_MILLISECONDS  "ortc/ice-transport/activation-timer-in-milliseconds"
@@ -57,6 +59,8 @@
 #define ORTC_SETTING_ICE_TRANSPORT_KEEP_WARM_TIME_RANDOMIZED_ADD_TIME_IN_MILLISECONDS "ortc/ice-transport/keep-warm-time-randomized-add-time-in-milliseconds"
 
 #define ORTC_SETTING_ICE_TRANSPORT_TEST_CANDIDATE_PAIRS_OF_LOWER_PREFERENCE "ortc/ice-transport/test-candidate-pairs-of-lower-preference"
+
+#define ORTC_SETTING_ICE_TRANSPORT_MAX_BUFFERED_FOR_SECURE_TRANSPORT "ortc/ice-transport/max-buffered-packets-for-secure-transport"
 
 namespace ortc
 {
@@ -208,6 +212,8 @@ namespace ortc
 
       virtual void onNotifyAttached(PUID secureTransportID) = 0;
       virtual void onNotifyDetached(PUID secureTransportID) = 0;
+
+      virtual void onDeliverPendingPackets() = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -284,6 +290,8 @@ namespace ortc
 
       typedef std::map<RouteID, LocalCandidateFromIPPair> RouteIDLocalCandidateFromIPMap;
 
+      typedef std::queue<SecureByteBlockPtr> PacketQueue;
+
     public:
       ICETransport(
                    const make_private &,
@@ -308,6 +316,7 @@ namespace ortc
       virtual ~ICETransport();
 
       static ICETransportPtr convert(IICETransportPtr object);
+      static ICETransportPtr convert(IRTCPTransportPtr object);
       static ICETransportPtr convert(ForSettingsPtr object);
       static ICETransportPtr convert(ForICEGathererPtr object);
       static ICETransportPtr convert(ForTransportContollerPtr object);
@@ -447,6 +456,8 @@ namespace ortc
 
       virtual void onNotifyAttached(PUID secureTransportID) override;
       virtual void onNotifyDetached(PUID secureTransportID) override;
+
+      virtual void onDeliverPendingPackets() override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -782,8 +793,8 @@ namespace ortc
 
       UseICETransportControllerWeakPtr mTransportController;
 
-      ICETransportPtr mRTPTransport;
-      ICETransportWeakPtr mRTCPTransport;
+      ICETransportWeakPtr mRTPTransport;
+      ICETransportPtr mRTCPTransport;
 
       std::atomic<bool> mWakeUp {false};
       int mWarmRoutesChanged {0};
@@ -843,6 +854,11 @@ namespace ortc
 
       PUID mSecureTransportID {0};
       UseSecureTransportWeakPtr mSecureTransport;
+      UseSecureTransportWeakPtr mSecureTransportOld;
+
+      size_t mMaxBufferedPackets {};
+      bool mMustBufferPackets {true};
+      PacketQueue mBufferedPackets;
     };
 
     //-------------------------------------------------------------------------
@@ -877,4 +893,6 @@ ZS_DECLARE_PROXY_METHOD_3(onNotifyPacketRetried, CandidatePtr, IPAddress, STUNPa
 ZS_DECLARE_PROXY_METHOD_0(onWarmRoutesChanged)
 ZS_DECLARE_PROXY_METHOD_1(onNotifyAttached, PUID)
 ZS_DECLARE_PROXY_METHOD_1(onNotifyDetached, PUID)
+ZS_DECLARE_PROXY_METHOD_0(onDeliverPendingPackets)
 ZS_DECLARE_PROXY_END()
+

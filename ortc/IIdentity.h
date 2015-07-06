@@ -95,7 +95,7 @@ namespace ortc
   
   interaction IIdentity : public IIdentityTypes
   {
-    static ElementPtr toDebug(IDataChannelPtr channel);
+    static ElementPtr toDebug(IIdentityPtr channel);
 
     static IIdentityPtr create(IDTLSTransportPtr transport);
 

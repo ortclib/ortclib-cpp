@@ -120,14 +120,14 @@ namespace ortc
   {
     static ElementPtr toDebug(IDTLSTransportPtr transport);
 
+    static IDTLSTransportPtr convert(IRTPTransportPtr object);
+    static IDTLSTransportPtr convert(IRTCPTransportPtr object);
+
     static IDTLSTransportPtr create(
                                     IDTLSTransportDelegatePtr delegate,
                                     IICETransportPtr iceTransport,
                                     ICertificatePtr certificate
                                     );
-
-    static IDTLSTransportPtr convert(IRTPTransportPtr rtpTransport);
-    static IDTLSTransportPtr convert(IRTCPTransportPtr rtcpTransport);
 
     virtual PUID getID() const = 0;
 

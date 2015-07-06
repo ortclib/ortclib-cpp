@@ -65,6 +65,8 @@ namespace ortc
     ZS_DECLARE_USING_PTR(zsLib, Socket)
     ZS_DECLARE_USING_PTR(zsLib, Promise)
 
+    ZS_DECLARE_USING_PTR(zsLib, ISingletonManagerDelegate)
+
     ZS_DECLARE_TYPEDEF_PTR(zsLib::AutoRecursiveLock, AutoRecursiveLock)
 
     using openpeer::services::SharedRecursiveLock;
@@ -109,12 +111,19 @@ namespace ortc
     ZS_DECLARE_CLASS_PTR(ORTC)
     ZS_DECLARE_CLASS_PTR(Settings)
     ZS_DECLARE_CLASS_PTR(Certificate)
+    ZS_DECLARE_CLASS_PTR(DataChannel)
+    ZS_DECLARE_CLASS_PTR(DTMFSender)
     ZS_DECLARE_CLASS_PTR(DTLSTransport)
     ZS_DECLARE_CLASS_PTR(ICEGatherer)
     ZS_DECLARE_CLASS_PTR(ICEGathererRouter)
     ZS_DECLARE_CLASS_PTR(ICETransport)
     ZS_DECLARE_CLASS_PTR(ICETransportController)
+    ZS_DECLARE_CLASS_PTR(Identity)
+    ZS_DECLARE_CLASS_PTR(MediaDevices)
+    ZS_DECLARE_CLASS_PTR(MediaStreamTrack)
     ZS_DECLARE_CLASS_PTR(RTPListener)
+    ZS_DECLARE_CLASS_PTR(RTPReceiver)
+    ZS_DECLARE_CLASS_PTR(RTPSender)
     ZS_DECLARE_CLASS_PTR(SRTPSDESTransport)
     ZS_DECLARE_CLASS_PTR(SCTPTransport)
     ZS_DECLARE_CLASS_PTR(SRTPTransport)

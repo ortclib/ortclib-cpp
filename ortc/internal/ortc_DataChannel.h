@@ -33,41 +33,39 @@
 
 #include <ortc/internal/types.h>
 
-#include <ortc/IRTPReceiver.h>
-#include <ortc/IDTLSTransport.h>
+#include <ortc/IDataChannel.h>
 
 #include <openpeer/services/IWakeDelegate.h>
+
 #include <zsLib/MessageQueueAssociator.h>
 #include <zsLib/Timer.h>
 
-//#define ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE "ortc/sctp/max-message-size"
+//#define ORTC_SETTING_SRTP_TRANSPORT_WARN_OF_KEY_LIFETIME_EXHAUGSTION_WHEN_REACH_PERCENTAGE_USSED "ortc/srtp/warm-key-lifetime-exhaustion-when-reach-percentage-used"
 
 namespace ortc
 {
   namespace internal
   {
-    ZS_DECLARE_INTERACTION_PTR(IRTPListenerForRTPReceiver)
+    ZS_DECLARE_INTERACTION_PTR(ISCTPTransportForDataChannel)
 
-    ZS_DECLARE_INTERACTION_PTR(IRTPReceiverForSettings)
-    ZS_DECLARE_INTERACTION_PTR(IRTPReceiverForRTPListener)
-
-    ZS_DECLARE_INTERACTION_PROXY(IRTPReceiverAsyncDelegate)
+    ZS_DECLARE_INTERACTION_PTR(IDataChannelForSettings)
+    ZS_DECLARE_INTERACTION_PTR(IDataChannelForSCTPTransport)
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IRTPReceiverForSettings
+    #pragma mark IDataChannelForSettings
     #pragma mark
 
-    interaction IRTPReceiverForSettings
+    interaction IDataChannelForSettings
     {
-      ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverForSettings, ForSettings)
+      ZS_DECLARE_TYPEDEF_PTR(IDataChannelForSettings, ForSettings)
 
       static void applyDefaults();
 
-      virtual ~IRTPReceiverForSettings() {}
+      virtual ~IDataChannelForSettings() {}
     };
     
     //-------------------------------------------------------------------------
@@ -75,16 +73,17 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IRTPReceiverForRTPListener
+    #pragma mark IDataChannelForSCTPTransport
     #pragma mark
 
-    interaction IRTPReceiverForRTPListener
+    interaction IDataChannelForSCTPTransport
     {
-      ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverForRTPListener, ForRTPListener)
+      ZS_DECLARE_TYPEDEF_PTR(IDataChannelForSCTPTransport, ForDataTransport)
 
-      static ElementPtr toDebug(ForRTPListenerPtr transport);
+      static ElementPtr toDebug(ForDataTransportPtr transport);
 
       virtual PUID getID() const = 0;
+
     };
 
     //-------------------------------------------------------------------------
@@ -92,61 +91,39 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IRTPReceiverAsyncDelegate
-    #pragma mark
-
-    interaction IRTPReceiverAsyncDelegate
-    {
-      virtual ~IRTPReceiverAsyncDelegate() {}
-    };
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPReceiver
+    #pragma mark DataChannel
     #pragma mark
     
-    class RTPReceiver : public Noop,
+    class DataChannel : public Noop,
                         public MessageQueueAssociator,
                         public SharedRecursiveLock,
-                        public IRTPReceiver,
-                        public IRTPReceiverForSettings,
-                        public IRTPReceiverForRTPListener,
+                        public IDataChannel,
+                        public IDataChannelForSettings,
+                        public IDataChannelForSCTPTransport,
                         public IWakeDelegate,
-                        public zsLib::ITimerDelegate,
-                        public IRTPReceiverAsyncDelegate
+                        public zsLib::ITimerDelegate
     {
     protected:
       struct make_private {};
 
     public:
-      friend interaction IRTPReceiver;
-      friend interaction IRTPReceiverFactory;
-      friend interaction IRTPReceiverForSettings;
-      friend interaction IRTPReceiverForRTPListener;
+      friend interaction IDataChannel;
+      friend interaction IDataChannelFactory;
+      friend interaction IDataChannelForSettings;
+      friend interaction IDataChannelForSCTPTransport;
 
-      enum States
-      {
-        State_Pending,
-        State_Ready,
-        State_ShuttingDown,
-        State_Shutdown,
-      };
-      static const char *toString(States state);
+      ZS_DECLARE_TYPEDEF_PTR(ISCTPTransportForDataChannel, UseDataTransport)
 
     public:
-      RTPReceiver(
+      DataChannel(
                   const make_private &,
                   IMessageQueuePtr queue,
-                  IRTPReceiverDelegatePtr delegate,
-                  IRTPTransportPtr transport,
-                  IRTCPTransportPtr rtcpTransport = IRTCPTransportPtr()
+                  IDataChannelDelegatePtr delegate,
+                  IDataTransportPtr transport
                   );
 
     protected:
-      RTPReceiver(Noop) :
+      DataChannel(Noop) :
         Noop(true),
         MessageQueueAssociator(IMessageQueuePtr()),
         SharedRecursiveLock(SharedRecursiveLock::create())
@@ -155,91 +132,86 @@ namespace ortc
       void init();
 
     public:
-      virtual ~RTPReceiver();
+      virtual ~DataChannel();
 
-      static RTPReceiverPtr convert(IRTPReceiverPtr object);
-      static RTPReceiverPtr convert(ForSettingsPtr object);
-      static RTPReceiverPtr convert(ForRTPListenerPtr object);
+      static DataChannelPtr convert(IDataChannelPtr object);
+      static DataChannelPtr convert(ForSettingsPtr object);
+      static DataChannelPtr convert(ForDataTransportPtr object);
 
     protected:
-      //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTPReceiver => IStatsProvider
-      #pragma mark
-
-      virtual PromiseWithStatsReportPtr getStats() const throw(InvalidStateError);
 
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark RTPReceiver => IRTPReceiver
+      #pragma mark DataChannel => IDataChannel
       #pragma mark
 
-      static ElementPtr toDebug(RTPReceiverPtr receiver);
+      static ElementPtr toDebug(DataChannelPtr transport);
 
-      static RTPReceiverPtr create(
-                                   IRTPReceiverDelegatePtr delegate,
-                                   IRTPTransportPtr transport,
-                                   IRTCPTransportPtr rtcpTransport = IRTCPTransportPtr()
+      static DataChannelPtr create(
+                                   IDataChannelDelegatePtr delegate,
+                                   IDataTransportPtr transport
                                    );
 
-      virtual PUID getID() const {return mID;}
+      virtual PUID getID() const override {return mID;}
 
-      virtual IRTPReceiverSubscriptionPtr subscribe(IRTPReceiverDelegatePtr delegate) override;
+      virtual IDataChannelSubscriptionPtr subscribe(IDataChannelDelegatePtr delegate) override;
 
-      virtual IMediaStreamTrackPtr track() const override;
-      virtual IRTPTransportPtr transport() const override;
-      virtual IRTCPTransportPtr rtcpTransport() const override;
+      virtual IDataTransportPtr transport() const override;
 
-      virtual void setTransport(
-                                IRTPTransportPtr transport,
-                                IRTCPTransportPtr rtcpTransport = IRTCPTransportPtr()
-                                ) override;
+      virtual ParametersPtr parameters() const override;
 
-      static CapabilitiesPtr getCapabilities(Optional<Kinds> kind);
+      virtual States readyState() const override;
 
-      virtual PromisePtr receive(const Parameters &parameters) override;
-      virtual void stop() override;
+      virtual ULONG bufferedAmount() const override;
 
-      virtual ContributingSourceList getContributingSources() const override;
+      virtual String binaryType() const override;
 
-      virtual void requestSendCSRC(SSRCType csrc) override;
+      virtual void close() override;
+
+      virtual void send(const String &data) override;
+      virtual void send(const SecureByteBlock &data) override;
+      virtual void send(
+                        const BYTE *buffer,
+                        size_t bufferSizeInBytes
+                        ) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark RTPReceiver => IRTPReceiverForRTPListener
+      #pragma mark DataChannel => IDataChannelForSCTPTransport
       #pragma mark
 
-      // (duplciate) static ElementPtr toDebug(ForRTPListenerPtr transport);
+      // (duplicate) static ElementPtr toDebug(DataChannelPtr transport);
 
       // (duplicate) virtual PUID getID() const = 0;
 
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark RTPReceiver => IWakeDelegate
+      #pragma mark DataChannel => IWakeDelegate
       #pragma mark
 
       virtual void onWake() override;
 
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark RTPReceiver => ITimerDelegate
+      #pragma mark DataChannel => ITimerDelegate
       #pragma mark
 
       virtual void onTimer(TimerPtr timer) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark RTPReceiver => IRTPReceiverAsyncDelegate
+      #pragma mark DataChannel => IDataChannelAsyncDelegate
       #pragma mark
 
 
     protected:
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark RTPReceiver => (internal)
+      #pragma mark DataChannel => (internal)
       #pragma mark
 
       Log::Params log(const char *message) const;
+      static Log::Params slog(const char *message);
       Log::Params debug(const char *message) const;
       virtual ElementPtr toDebug() const;
 
@@ -247,6 +219,7 @@ namespace ortc
       bool isShutdown() const;
 
       void step();
+
       bool stepBogusDoSomething();
 
       void cancel();
@@ -257,22 +230,22 @@ namespace ortc
     protected:
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark RTPReceiver => (data)
+      #pragma mark DataChannel => (data)
       #pragma mark
 
       AutoPUID mID;
-      RTPReceiverWeakPtr mThisWeak;
-      RTPReceiverPtr mGracefulShutdownReference;
+      DataChannelWeakPtr mThisWeak;
+      DataChannelPtr mGracefulShutdownReference;
 
-      IRTPReceiverDelegateSubscriptions mSubscriptions;
-      IRTPReceiverSubscriptionPtr mDefaultSubscription;
+      IDataChannelDelegateSubscriptions mSubscriptions;
+      IDataChannelSubscriptionPtr mDefaultSubscription;
 
-      States mCurrentState {State_Pending};
+      UseDataTransportWeakPtr mDataTransport;
+
+      States mCurrentState {State_Connecting};
 
       WORD mLastError {};
       String mLastErrorReason;
-
-      Capabilities mCapabilities;
     };
 
     //-------------------------------------------------------------------------
@@ -280,29 +253,19 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IRTPReceiverFactory
+    #pragma mark IDataChannelFactory
     #pragma mark
 
-    interaction IRTPReceiverFactory
+    interaction IDataChannelFactory
     {
-      typedef IRTPReceiverTypes::Kinds Kinds;
-      typedef IRTPReceiverTypes::CapabilitiesPtr CapabilitiesPtr;
+      static IDataChannelFactory &singleton();
 
-      static IRTPReceiverFactory &singleton();
-
-      virtual RTPReceiverPtr create(
-                                    IRTPReceiverDelegatePtr delegate,
-                                    IRTPTransportPtr transport,
-                                    IRTCPTransportPtr rtcpTransport = IRTCPTransportPtr()
+      virtual DataChannelPtr create(
+                                    IDataChannelDelegatePtr delegate,
+                                    IDataTransportPtr transport
                                     );
-
-      virtual CapabilitiesPtr getCapabilities(Optional<Kinds> kind);
     };
 
-    class RTPReceiverFactory : public IFactory<IRTPReceiverFactory> {};
+    class DataChannelFactory : public IFactory<IDataChannelFactory> {};
   }
 }
-
-ZS_DECLARE_PROXY_BEGIN(ortc::internal::IRTPReceiverAsyncDelegate)
-//ZS_DECLARE_PROXY_METHOD_0(onWhatever)
-ZS_DECLARE_PROXY_END()

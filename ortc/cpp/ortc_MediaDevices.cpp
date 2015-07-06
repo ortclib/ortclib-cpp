@@ -29,7 +29,7 @@
  
  */
 
-#include <ortc/internal/ortc_SCTPTransport.h>
+#include <ortc/internal/ortc_MediaDevices.h>
 #include <ortc/internal/ortc_DTLSTransport.h>
 #include <ortc/internal/ortc_ORTC.h>
 #include <ortc/internal/platform.h>
@@ -44,7 +44,6 @@
 
 #include <cryptopp/sha.h>
 
-#include <usrsctp/usrsctp.h>
 
 #ifdef _DEBUG
 #define ASSERT(x) ZS_THROW_BAD_STATE_IF(!(x))
@@ -63,6 +62,8 @@ namespace ortc
 
   typedef openpeer::services::Hasher<CryptoPP::SHA1> SHA1Hasher;
 
+  using zsLib::SingletonManager;
+
   namespace internal
   {
     //-------------------------------------------------------------------------
@@ -79,14 +80,13 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark ISCTPTransportForSettings
+    #pragma mark IICETransportForSettings
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void ISCTPTransportForSettings::applyDefaults()
+    void IMediaDevicesForSettings::applyDefaults()
     {
-        //https://tools.ietf.org/html/draft-ietf-rtcweb-data-channel-13#section-6.6
-      UseSettings::setUInt(ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE, 16*1024);
+//      UseSettings::setUInt(ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE, 5*1024);
     }
 
     //-------------------------------------------------------------------------
@@ -94,41 +94,11 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark ISCTPTransportForDTLSTransport
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    ElementPtr ISCTPTransportForDTLSTransport::toDebug(ForDTLSTransportPtr transport)
-    {
-      if (!transport) return ElementPtr();
-      return ZS_DYNAMIC_PTR_CAST(SCTPTransport, transport)->toDebug();
-    }
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ISCTPTransportForDataChannel
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    ElementPtr ISCTPTransportForDataChannel::toDebug(ForDataChannelPtr transport)
-    {
-      if (!transport) return ElementPtr();
-      return ZS_DYNAMIC_PTR_CAST(SCTPTransport, transport)->toDebug();
-    }
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark SCTPTransport
+    #pragma mark MediaDevices
     #pragma mark
     
     //---------------------------------------------------------------------------
-    const char *SCTPTransport::toString(States state)
+    const char *MediaDevices::toString(States state)
     {
       switch (state) {
         case State_Pending:       return "pending";
@@ -140,33 +110,25 @@ namespace ortc
     }
     
     //-------------------------------------------------------------------------
-    SCTPTransport::SCTPTransport(
-                                 const make_private &,
-                                 IMessageQueuePtr queue,
-                                 ISCTPTransportDelegatePtr originalDelegate,
-                                 IDTLSTransportPtr dtlsTransport
-                                 ) :
+    MediaDevices::MediaDevices(
+                               const make_private &,
+                               IMessageQueuePtr queue
+                               ) :
       MessageQueueAssociator(queue),
-      SharedRecursiveLock(SharedRecursiveLock::create()),
-      mDTLSTransport(DTLSTransport::convert(dtlsTransport))
+      SharedRecursiveLock(SharedRecursiveLock::create())
     {
       ZS_LOG_DETAIL(debug("created"))
-
-      if (originalDelegate) {
-        mDefaultSubscription = mSubscriptions.subscribe(originalDelegate, IORTCForInternal::queueDelegate());
-      }
     }
 
     //-------------------------------------------------------------------------
-    void SCTPTransport::init()
+    void MediaDevices::init()
     {
       AutoRecursiveLock lock(*this);
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
-      recv_thread_init();
     }
 
     //-------------------------------------------------------------------------
-    SCTPTransport::~SCTPTransport()
+    MediaDevices::~MediaDevices()
     {
       if (isNoop()) return;
 
@@ -177,121 +139,145 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    SCTPTransportPtr SCTPTransport::convert(ISCTPTransportPtr object)
+    MediaDevicesPtr MediaDevices::create()
     {
-      return ZS_DYNAMIC_PTR_CAST(SCTPTransport, object);
-    }
-
-    //-------------------------------------------------------------------------
-    SCTPTransportPtr SCTPTransport::convert(IDataTransportPtr object)
-    {
-      return ZS_DYNAMIC_PTR_CAST(SCTPTransport, object);
-    }
-
-    //-------------------------------------------------------------------------
-    SCTPTransportPtr SCTPTransport::convert(ForSettingsPtr object)
-    {
-      return ZS_DYNAMIC_PTR_CAST(SCTPTransport, object);
-    }
-
-    //-------------------------------------------------------------------------
-    SCTPTransportPtr SCTPTransport::convert(ForDTLSTransportPtr object)
-    {
-      return ZS_DYNAMIC_PTR_CAST(SCTPTransport, object);
-    }
-
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark SCTPTransport => IStatsProvider
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    IStatsProvider::PromiseWithStatsReportPtr SCTPTransport::getStats() const throw(InvalidStateError)
-    {
-#define TODO_COMPLETE 1
-#define TODO_COMPLETE 2
-      return PromiseWithStatsReportPtr();
-    }
-
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark SCTPTransport => ISCTPTransport
-    #pragma mark
-    
-    //-------------------------------------------------------------------------
-    ElementPtr SCTPTransport::toDebug(SCTPTransportPtr transport)
-    {
-      if (!transport) return ElementPtr();
-      return transport->toDebug();
-    }
-
-    //-------------------------------------------------------------------------
-    SCTPTransportPtr SCTPTransport::create(
-                                           ISCTPTransportDelegatePtr delegate,
-                                           IDTLSTransportPtr transport
-                                           )
-    {
-      SCTPTransportPtr pThis(make_shared<SCTPTransport>(make_private {}, IORTCForInternal::queueORTC(), delegate, transport));
+      MediaDevicesPtr pThis(make_shared<MediaDevices>(make_private {}, IORTCForInternal::queueORTC()));
       pThis->mThisWeak = pThis;
       pThis->init();
       return pThis;
     }
 
     //-------------------------------------------------------------------------
-    ISCTPTransportTypes::CapabilitiesPtr SCTPTransport::getCapabilities()
+    MediaDevicesPtr MediaDevices::singleton()
     {
-      CapabilitiesPtr result(make_shared<Capabilities>());
-      result->mMaxMessageSize = UseSettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE);
+      static SingletonLazySharedPtr<MediaDevices> singleton(create());
+      MediaDevicesPtr result = singleton.singleton();
+
+      static SingletonManager::Register registerSingleton("ortc::MediaDevices", result);
+
+      if (!result) {
+        ZS_LOG_WARNING(Detail, slog("singleton gone"))
+      }
+
       return result;
     }
 
     //-------------------------------------------------------------------------
-    void SCTPTransport::start(const Capabilities &remoteCapabilities)
+    MediaDevicesPtr MediaDevices::convert(IMediaDevicesPtr object)
     {
-      AutoRecursiveLock lock(*this);
-#define TODO 1
-#define TODO 2
+      return ZS_DYNAMIC_PTR_CAST(MediaDevices, object);
     }
 
     //-------------------------------------------------------------------------
-    void SCTPTransport::stop()
+    MediaDevicesPtr MediaDevices::convert(ForSettingsPtr object)
     {
-      AutoRecursiveLock lock(*this);
-#define TODO 1
-#define TODO 2
+      return ZS_DYNAMIC_PTR_CAST(MediaDevices, object);
+    }
+
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark MediaDevices => IMediaDevices
+    #pragma mark
+    
+    //-------------------------------------------------------------------------
+    ElementPtr MediaDevices::singletonToDebug()
+    {
+
+      MediaDevicesPtr pThis(MediaDevices::singleton());
+      if (!pThis) return ElementPtr();
+
+      AutoRecursiveLock lock(*pThis);
+      return pThis->toDebug();
     }
 
     //-------------------------------------------------------------------------
-    ISCTPTransportSubscriptionPtr SCTPTransport::subscribe(ISCTPTransportDelegatePtr originalDelegate)
+    IMediaDevices::SupportedConstraintsPtr MediaDevices::getSupportedConstraints()
     {
-      ZS_LOG_DETAIL(log("subscribing to transport state"))
+      SupportedConstraintsPtr result(make_shared<SupportedConstraints>());
 
-      AutoRecursiveLock lock(*this);
-      if (!originalDelegate) return mDefaultSubscription;
+#define TODO_IMPLEMENT 1
+#define TODO_IMPLEMENT 2
 
-      ISCTPTransportSubscriptionPtr subscription = mSubscriptions.subscribe(originalDelegate, IORTCForInternal::queueDelegate());
+      return result;
+    }
 
-      ISCTPTransportDelegatePtr delegate = mSubscriptions.delegate(subscription, true);
+    //-------------------------------------------------------------------------
+    IMediaDevicesTypes::PromiseWithDeviceListPtr MediaDevices::enumerateDevices()
+    {
+      PromiseWithDeviceListPtr promise = PromiseWithDeviceList::create(IORTCForInternal::queueDelegate());
+
+      MediaDevicesPtr pThis(MediaDevices::singleton());
+
+      if (!pThis) {
+        ZS_LOG_WARNING(Basic, slog("media devices singleton is gone"))
+        promise->reject();
+        return promise;
+      }
+
+      IMediaDevicesAsyncDelegateProxy::create(pThis)->onEnumerateDevices(promise);
+
+      return promise;
+    }
+
+
+    //-------------------------------------------------------------------------
+    IMediaDevicesTypes::PromiseWithMediaStreamTrackListPtr MediaDevices::getUserMedia(const Constraints &constraints)
+    {
+      PromiseWithMediaStreamTrackListPtr promise = PromiseWithMediaStreamTrackList::create(IORTCForInternal::queueDelegate());
+
+      MediaDevicesPtr pThis(MediaDevices::singleton());
+
+      if (!pThis) {
+        ZS_LOG_WARNING(Basic, slog("media devices singleton is gone"))
+        promise->reject();
+        return promise;
+      }
+
+      IMediaDevicesAsyncDelegateProxy::create(pThis)->onGetUserMedia(promise);
+
+      return promise;
+    }
+
+    //-------------------------------------------------------------------------
+    IMediaDevicesSubscriptionPtr MediaDevices::subscribe(IMediaDevicesDelegatePtr originalDelegate)
+    {
+      ZS_LOG_DETAIL(slog("subscribing to media devices"))
+
+      auto pThis = singleton();
+      if (!pThis) {
+        ZS_DECLARE_STRUCT_PTR(BogusSubscription)
+
+        struct BogusSubscription : public IMediaDevicesSubscription {
+          virtual PUID getID() const override {return mID;}
+          virtual void cancel() {}
+          virtual void background() {}
+
+          AutoPUID mID;
+        };
+
+        return BogusSubscriptionPtr(make_shared<BogusSubscription>());
+      }
+
+      AutoRecursiveLock lock(*pThis);
+      if (!originalDelegate) return IMediaDevicesSubscriptionPtr();
+
+      IMediaDevicesSubscriptionPtr subscription = pThis->mSubscriptions.subscribe(originalDelegate, IORTCForInternal::queueDelegate());
+
+      IMediaDevicesDelegatePtr delegate = pThis->mSubscriptions.delegate(subscription, true);
 
       if (delegate) {
-        SCTPTransportPtr pThis = mThisWeak.lock();
-
 #define TODO_DO_WE_NEED_TO_TELL_ABOUT_ANY_MISSED_EVENTS 1
 #define TODO_DO_WE_NEED_TO_TELL_ABOUT_ANY_MISSED_EVENTS 2
       }
 
-      if (isShutdown()) {
-        mSubscriptions.clear();
+      if (pThis->isShutdown()) {
+        pThis->mSubscriptions.clear();
       }
-
+      
       return subscription;
     }
 
@@ -300,38 +286,11 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark SCTPTransport => ISCTPTransportForDTLSTransport
+    #pragma mark MediaDevices => IWakeDelegate
     #pragma mark
 
     //-------------------------------------------------------------------------
-    bool SCTPTransport::handleDataPacket(
-                                         const BYTE *buffer,
-                                         size_t bufferLengthInBytes
-                                         )
-    {
-#define TODO 1
-#define TODO 2
-      return false;
-    }
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark SCTPTransport => ISCTPTransportForDataChannel
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark SCTPTransport => IWakeDelegate
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    void SCTPTransport::onWake()
+    void MediaDevices::onWake()
     {
       ZS_LOG_DEBUG(log("wake"))
 
@@ -344,11 +303,11 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark SCTPTransport => ITimerDelegate
+    #pragma mark MediaDevices => ITimerDelegate
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void SCTPTransport::onTimer(TimerPtr timer)
+    void MediaDevices::onTimer(TimerPtr timer)
     {
       ZS_LOG_DEBUG(log("timer") + ZS_PARAM("timer id", timer->getID()))
 
@@ -362,41 +321,25 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark SCTPTransport => ISCTPTransportAsyncDelegate
-    #pragma mark
-
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark SCTPTransport => IDTLSTransportDelegate
+    #pragma mark MediaDevices => IMediaDevicesAsyncDelegate
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void SCTPTransport::onDTLSTransportStateChanged(
-                                                    IDTLSTransportPtr transport,
-                                                    IDTLSTransport::States state
-                                                    )
+    void MediaDevices::onEnumerateDevices(PromiseWithDeviceListPtr promise)
     {
-      ZS_LOG_DEBUG(log("dtls transport state changed") + ZS_PARAM("dtls transport id", transport->getID()) + ZS_PARAM("state", IDTLSTransport::toString(state)))
-
       AutoRecursiveLock lock(*this);
-      step();
+#define TODO 1
+#define TODO 2
+      promise->reject();  // temporarily reject everything
     }
 
     //-------------------------------------------------------------------------
-    void SCTPTransport::onDTLSTransportError(
-                                             IDTLSTransportPtr transport,
-                                             ErrorCode errorCode,
-                                             String errorReason
-                                             )
+    void MediaDevices::onGetUserMedia(PromiseWithMediaStreamTrackListPtr promise)
     {
-      ZS_LOG_DEBUG(log("dtls transport state changed") + ZS_PARAM("dtls transport id", transport->getID()) + ZS_PARAM("error", errorCode) + ZS_PARAM("reason", errorReason))
-
       AutoRecursiveLock lock(*this);
-      step();
+#define TODO 1
+#define TODO 2
+      promise->reject();  // temporarily reject everything
     }
 
     //-------------------------------------------------------------------------
@@ -404,64 +347,82 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark SCTPTransport => (internal)
+    #pragma mark MediaDevices => ISingletonManagerDelegate
     #pragma mark
 
     //-------------------------------------------------------------------------
-    Log::Params SCTPTransport::log(const char *message) const
+    void MediaDevices::notifySingletonCleanup()
     {
-      ElementPtr objectEl = Element::create("ortc::SCTPTransport");
+      ZS_LOG_DEBUG(log("notify singleton cleanup"))
+
+      AutoRecursiveLock lock(*this);
+      cancel();
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark MediaDevices => (internal)
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    Log::Params MediaDevices::log(const char *message) const
+    {
+      ElementPtr objectEl = Element::create("ortc::MediaDevices");
       UseServicesHelper::debugAppend(objectEl, "id", mID);
       return Log::Params(message, objectEl);
     }
 
     //-------------------------------------------------------------------------
-    Log::Params SCTPTransport::debug(const char *message) const
+    Log::Params MediaDevices::slog(const char *message)
+    {
+      ElementPtr objectEl = Element::create("ortc::MediaDevices");
+      return Log::Params(message, objectEl);
+    }
+
+    //-------------------------------------------------------------------------
+    Log::Params MediaDevices::debug(const char *message) const
     {
       return Log::Params(message, toDebug());
     }
 
     //-------------------------------------------------------------------------
-    ElementPtr SCTPTransport::toDebug() const
+    ElementPtr MediaDevices::toDebug() const
     {
       AutoRecursiveLock lock(*this);
 
-      ElementPtr resultEl = Element::create("ortc::SCTPTransport");
+      ElementPtr resultEl = Element::create("ortc::MediaDevices");
 
       UseServicesHelper::debugAppend(resultEl, "id", mID);
 
       UseServicesHelper::debugAppend(resultEl, "graceful shutdown", (bool)mGracefulShutdownReference);
 
       UseServicesHelper::debugAppend(resultEl, "subscribers", mSubscriptions.size());
-      UseServicesHelper::debugAppend(resultEl, "default subscription", (bool)mDefaultSubscription);
 
       UseServicesHelper::debugAppend(resultEl, "state", toString(mCurrentState));
 
       UseServicesHelper::debugAppend(resultEl, "error", mLastError);
       UseServicesHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
 
-      UseServicesHelper::debugAppend(resultEl, "dtls transport", mDTLSTransport ? mDTLSTransport->getID() : 0);
-      UseServicesHelper::debugAppend(resultEl, "dtls transport subscription", (bool)mDTLSTransportSubscription);
-
-      UseServicesHelper::debugAppend(resultEl, mCapabilities.toDebug());
-
       return resultEl;
     }
 
     //-------------------------------------------------------------------------
-    bool SCTPTransport::isShuttingDown() const
+    bool MediaDevices::isShuttingDown() const
     {
       return State_ShuttingDown == mCurrentState;
     }
 
     //-------------------------------------------------------------------------
-    bool SCTPTransport::isShutdown() const
+    bool MediaDevices::isShutdown() const
     {
       return State_Shutdown == mCurrentState;
     }
 
     //-------------------------------------------------------------------------
-    void SCTPTransport::step()
+    void MediaDevices::step()
     {
       ZS_LOG_DEBUG(debug("step"))
 
@@ -491,7 +452,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool SCTPTransport::stepBogusDoSomething()
+    bool MediaDevices::stepBogusDoSomething()
     {
       if ( /* step already done */ false ) {
         ZS_LOG_TRACE(log("already completed do something"))
@@ -513,7 +474,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void SCTPTransport::cancel()
+    void MediaDevices::cancel()
     {
       //.......................................................................
       // try to gracefully shutdown
@@ -523,8 +484,8 @@ namespace ortc
       if (!mGracefulShutdownReference) mGracefulShutdownReference = mThisWeak.lock();
 
       if (mGracefulShutdownReference) {
-#define TODO_OBJECT_IS_BEING_KEPT_ALIVE_UNTIL_SCTP_SESSION_IS_SHUTDOWN 1
-#define TODO_OBJECT_IS_BEING_KEPT_ALIVE_UNTIL_SCTP_SESSION_IS_SHUTDOWN 2
+#define TODO_OBJECT_IS_BEING_KEPT_ALIVE_UNTIL_SESSION_IS_SHUTDOWN 1
+#define TODO_OBJECT_IS_BEING_KEPT_ALIVE_UNTIL_SESSION_IS_SHUTDOWN 2
 
         // grace shutdown process done here
 
@@ -538,22 +499,12 @@ namespace ortc
 
       mSubscriptions.clear();
 
-      if (mDefaultSubscription) {
-        mDefaultSubscription->cancel();
-        mDefaultSubscription.reset();
-      }
-
-      if (mDTLSTransportSubscription) {
-        mDTLSTransportSubscription->cancel();
-        mDTLSTransportSubscription.reset();
-      }
-
       // make sure to cleanup any final reference to self
       mGracefulShutdownReference.reset();
     }
 
     //-------------------------------------------------------------------------
-    void SCTPTransport::setState(States state)
+    void MediaDevices::setState(States state)
     {
       if (state == mCurrentState) return;
 
@@ -561,14 +512,14 @@ namespace ortc
 
       mCurrentState = state;
 
-//      SCTPTransportPtr pThis = mThisWeak.lock();
+//      MediaDevicesPtr pThis = mThisWeak.lock();
 //      if (pThis) {
-//        mSubscriptions.delegate()->onSCTPTransportStateChanged(pThis, mCurrentState);
+//        mSubscriptions.delegate()->onMediaDevicesStateChanged(pThis, mCurrentState);
 //      }
     }
 
     //-------------------------------------------------------------------------
-    void SCTPTransport::setError(WORD errorCode, const char *inReason)
+    void MediaDevices::setError(WORD errorCode, const char *inReason)
     {
       String reason(inReason);
       if (reason.isEmpty()) {
@@ -592,60 +543,173 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark ISCTPTransportFactory
+    #pragma mark IMediaDevicesFactory
     #pragma mark
 
     //-------------------------------------------------------------------------
-    ISCTPTransportFactory &ISCTPTransportFactory::singleton()
+    IMediaDevicesFactory &IMediaDevicesFactory::singleton()
     {
-      return SCTPTransportFactory::singleton();
+      return MediaDevicesFactory::singleton();
     }
 
     //-------------------------------------------------------------------------
-    SCTPTransportPtr ISCTPTransportFactory::create(
-                                                   ISCTPTransportDelegatePtr delegate,
-                                                   IDTLSTransportPtr transport
-                                                   )
+    ElementPtr IMediaDevicesFactory::singletonToDebug()
     {
       if (this) {}
-      return internal::SCTPTransport::create(delegate, transport);
+      return internal::MediaDevices::singletonToDebug();
     }
 
     //-------------------------------------------------------------------------
-    ISCTPTransportFactory::CapabilitiesPtr ISCTPTransportFactory::getCapabilities()
+    MediaDevicesPtr IMediaDevicesFactory::create()
     {
       if (this) {}
-      return SCTPTransport::getCapabilities();
+      return internal::MediaDevices::create();
+    }
+
+    //-------------------------------------------------------------------------
+    IMediaDevicesTypes::SupportedConstraintsPtr IMediaDevicesFactory::getSupportedConstraints()
+    {
+      if (this) {}
+      return internal::MediaDevices::getSupportedConstraints();
+    }
+
+    //-------------------------------------------------------------------------
+    IMediaDevicesTypes::PromiseWithDeviceListPtr IMediaDevicesFactory::enumerateDevices()
+    {
+      if (this) {}
+      return internal::MediaDevices::enumerateDevices();
+    }
+
+    //-------------------------------------------------------------------------
+    IMediaDevicesTypes::PromiseWithMediaStreamTrackListPtr IMediaDevicesFactory::getUserMedia(const Constraints &constraints)
+    {
+      if (this) {}
+      return internal::MediaDevices::getUserMedia(constraints);
+    }
+
+    //-------------------------------------------------------------------------
+    IMediaDevicesSubscriptionPtr IMediaDevicesFactory::subscribe(IMediaDevicesDelegatePtr delegate)
+    {
+      if (this) {}
+      return internal::MediaDevices::subscribe(delegate);
     }
 
   } // internal namespace
 
-
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   #pragma mark
-  #pragma mark ISCTPTransportTypes::Parameters
+  #pragma mark IMediaDevicesTypes
   #pragma mark
 
   //---------------------------------------------------------------------------
-  ElementPtr ISCTPTransportTypes::Capabilities::toDebug() const
+  const char *IMediaDevicesTypes::toString(DeviceKinds kind)
   {
-    ElementPtr resultEl = Element::create("ortc::ISCTPTransportTypes::Capabilities");
+    switch (kind) {
+      case DeviceKind_AudioInput:   return "audio in";
+      case DeviceKind_AudioOutput:  return "audio out";
+      case DeviceKind_Video:        return "video";
+    }
+    return "UNDEFINED";
+  }
+  
+  //---------------------------------------------------------------------------
+  IMediaStreamTrackTypes::Kinds IMediaDevicesTypes::toKind(DeviceKinds kind)
+  {
+    switch (kind) {
+      case DeviceKind_AudioInput:   return Kind_Audio;
+      case DeviceKind_AudioOutput:  return Kind_Audio;
+      case DeviceKind_Video:        return Kind_Video;
+    }
 
-    UseServicesHelper::debugAppend(resultEl, "max message size", mMaxMessageSize);
+    ASSERT(false)
+    return Kind_Audio;
+  }
+
+  //---------------------------------------------------------------------------
+  bool IMediaDevicesTypes::isAudio(DeviceKinds kind)
+  {
+    switch (kind) {
+      case DeviceKind_AudioInput:   return true;
+      case DeviceKind_AudioOutput:  return true;
+      case DeviceKind_Video:        return false;
+    }
+
+    ASSERT(false)
+    return false;
+  }
+
+  //---------------------------------------------------------------------------
+  bool IMediaDevicesTypes::isVideo(DeviceKinds kind)
+  {
+    switch (kind) {
+      case DeviceKind_AudioInput:   return false;
+      case DeviceKind_AudioOutput:  return false;
+      case DeviceKind_Video:        return true;
+    }
+
+    ASSERT(false)
+    return false;
+  }
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IMediaDevicesTypes::SupportedConstraints
+  #pragma mark
+
+  //---------------------------------------------------------------------------
+  ElementPtr IMediaDevicesTypes::SupportedConstraints::toDebug() const
+  {
+    ElementPtr resultEl = Element::create("ortc::IMediaDevicesTypes::SupportedConstraints");
+
+    UseServicesHelper::debugAppend(resultEl, "width", mWidth);
+    UseServicesHelper::debugAppend(resultEl, "height", mHeight);
+    UseServicesHelper::debugAppend(resultEl, "aspect ratio", mAspectRatio);
+    UseServicesHelper::debugAppend(resultEl, "frame rate", mFrameRate);
+    UseServicesHelper::debugAppend(resultEl, "facingMode", mFacingMode);
+    UseServicesHelper::debugAppend(resultEl, "volume", mVolume);
+    UseServicesHelper::debugAppend(resultEl, "sample rate", mSampleRate);
+    UseServicesHelper::debugAppend(resultEl, "echo cancellation", mEchoCancellation);
+    UseServicesHelper::debugAppend(resultEl, "latency", mLatency);
+    UseServicesHelper::debugAppend(resultEl, "device id", mDeviceID);
+    UseServicesHelper::debugAppend(resultEl, "group id", mGroupID);
 
     return resultEl;
   }
 
   //---------------------------------------------------------------------------
-  String ISCTPTransportTypes::Capabilities::hash() const
+  String IMediaDevicesTypes::SupportedConstraints::hash() const
   {
     SHA1Hasher hasher;
 
-    hasher.update("ISCTPTransportTypes:Capabilities:");
-    hasher.update(mMaxMessageSize);
+    hasher.update("ortc::IMediaDevicesTypes::SupportedConstraints:");
+    hasher.update(mWidth);
+    hasher.update(":");
+    hasher.update(mHeight);
+    hasher.update(":");
+    hasher.update(mAspectRatio);
+    hasher.update(":");
+    hasher.update(mFrameRate);
+    hasher.update(":");
+    hasher.update(mFacingMode);
+    hasher.update(":");
+    hasher.update(mVolume);
+    hasher.update(":");
+    hasher.update(mSampleRate);
+    hasher.update(":");
+    hasher.update(mEchoCancellation);
+    hasher.update(":");
+    hasher.update(mLatency);
+    hasher.update(":");
+    hasher.update(mDeviceID);
+    hasher.update(":");
+    hasher.update(mGroupID);
+
     return hasher.final();
   }
 
@@ -654,28 +718,79 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   #pragma mark
-  #pragma mark ISCTPTransport
+  #pragma mark IMediaDevicesTypes::Device
   #pragma mark
 
   //---------------------------------------------------------------------------
-  ElementPtr ISCTPTransport::toDebug(ISCTPTransportPtr transport)
+  ElementPtr IMediaDevicesTypes::Device::toDebug() const
   {
-    return internal::SCTPTransport::toDebug(internal::SCTPTransport::convert(transport));
+    ElementPtr resultEl = Element::create("ortc::IMediaDevicesTypes::Device");
+
+    UseServicesHelper::debugAppend(resultEl, "device kind", toString(mKind));
+    UseServicesHelper::debugAppend(resultEl, "label", mLabel);
+    UseServicesHelper::debugAppend(resultEl, "device id", mDeviceID);
+    UseServicesHelper::debugAppend(resultEl, "group id", mGroupID);
+    UseServicesHelper::debugAppend(resultEl, mSupportedConstraints.toDebug());
+
+    return resultEl;
   }
 
   //---------------------------------------------------------------------------
-  ISCTPTransportPtr ISCTPTransport::create(
-                                           ISCTPTransportDelegatePtr delegate,
-                                           IDTLSTransportPtr transport
-                                           )
+  String IMediaDevicesTypes::Device::hash() const
   {
-    return internal::ISCTPTransportFactory::singleton().create(delegate, transport);
+    SHA1Hasher hasher;
+
+    hasher.update("ortc::IMediaDevicesTypes::Device:");
+
+    hasher.update(toString(mKind));
+    hasher.update(":");
+    hasher.update(mLabel);
+    hasher.update(":");
+    hasher.update(mDeviceID);
+    hasher.update(":");
+    hasher.update(mGroupID);
+    hasher.update(":");
+    hasher.update(mSupportedConstraints.hash());
+
+    return hasher.final();
   }
 
   //---------------------------------------------------------------------------
-  ISCTPTransportTypes::CapabilitiesPtr ISCTPTransport::getCapabilities()
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IMediaDevices
+  #pragma mark
+
+  //---------------------------------------------------------------------------
+  ElementPtr IMediaDevices::toDebug()
   {
-    return internal::ISCTPTransportFactory::singleton().getCapabilities();
+    return internal::IMediaDevicesFactory::singleton().singletonToDebug();
+  }
+
+  //---------------------------------------------------------------------------
+  IMediaDevicesTypes::SupportedConstraintsPtr IMediaDevices::getSupportedConstraints()
+  {
+    return internal::IMediaDevicesFactory::singleton().getSupportedConstraints();
+  }
+
+  //---------------------------------------------------------------------------
+  IMediaDevicesTypes::PromiseWithDeviceListPtr IMediaDevices::enumerateDevices()
+  {
+    return internal::IMediaDevicesFactory::singleton().enumerateDevices();
+  }
+
+  //---------------------------------------------------------------------------
+  IMediaDevicesTypes::PromiseWithMediaStreamTrackListPtr IMediaDevices::getUserMedia(const Constraints &constraints)
+  {
+    return internal::IMediaDevicesFactory::singleton().getUserMedia(constraints);
+  }
+
+  //---------------------------------------------------------------------------
+  IMediaDevicesSubscriptionPtr IMediaDevices::subscribe(IMediaDevicesDelegatePtr delegate)
+  {
+    return internal::IMediaDevicesFactory::singleton().subscribe(delegate);
   }
 
 }

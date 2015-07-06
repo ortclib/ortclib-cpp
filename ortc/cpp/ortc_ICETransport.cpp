@@ -122,6 +122,8 @@ namespace ortc
       UseSettings::setUInt(ORTC_SETTING_ICE_TRANSPORT_KEEP_WARM_TIME_RANDOMIZED_ADD_TIME_IN_MILLISECONDS, 2000);
 
       UseSettings::setBool(ORTC_SETTING_ICE_TRANSPORT_TEST_CANDIDATE_PAIRS_OF_LOWER_PREFERENCE, false);
+
+      UseSettings::setUInt(ORTC_SETTING_ICE_TRANSPORT_MAX_BUFFERED_FOR_SECURE_TRANSPORT, 5);
     }
 
     //-------------------------------------------------------------------------
@@ -179,7 +181,8 @@ namespace ortc
       mTestLowerPreferenceCandidatePairs(UseSettings::getBool(ORTC_SETTING_ICE_TRANSPORT_TEST_CANDIDATE_PAIRS_OF_LOWER_PREFERENCE)),
       mBlacklistConsent(UseSettings::getBool(ORTC_SETTING_ICE_TRANSPORT_BLACKLIST_AFTER_CONSENT_REMOVAL)),
       mKeepWarmTimeBase(UseSettings::getUInt(ORTC_SETTING_ICE_TRANSPORT_KEEP_WARM_TIME_BASE_IN_MILLISECONDS)),
-      mKeepWarmTimeRandomizedAddTime(UseSettings::getUInt(ORTC_SETTING_ICE_TRANSPORT_KEEP_WARM_TIME_RANDOMIZED_ADD_TIME_IN_MILLISECONDS))
+      mKeepWarmTimeRandomizedAddTime(UseSettings::getUInt(ORTC_SETTING_ICE_TRANSPORT_KEEP_WARM_TIME_RANDOMIZED_ADD_TIME_IN_MILLISECONDS)),
+      mMaxBufferedPackets(UseSettings::getUInt(ORTC_SETTING_ICE_TRANSPORT_MAX_BUFFERED_FOR_SECURE_TRANSPORT))
     {
       ZS_LOG_BASIC(debug("created"))
 
@@ -229,6 +232,12 @@ namespace ortc
 
     //-------------------------------------------------------------------------
     ICETransportPtr ICETransport::convert(IICETransportPtr object)
+    {
+      return ZS_DYNAMIC_PTR_CAST(ICETransport, object);
+    }
+
+    //-------------------------------------------------------------------------
+    ICETransportPtr ICETransport::convert(IRTCPTransportPtr object)
     {
       return ZS_DYNAMIC_PTR_CAST(ICETransport, object);
     }
@@ -925,16 +934,54 @@ namespace ortc
         }
 
         transport = mSecureTransport.lock();
-        goto forward_attached_listener;
-      }
-
-    forward_attached_listener:
-      {
         if (!transport) {
-          ZS_LOG_WARNING(Debug, log("no secure transport attached (packet is being discarded)"))
+          ZS_LOG_WARNING(Debug, log("no secure transport attached (packet is being buffered)"))
+          mMustBufferPackets = true;
+        }
+
+        if (mMustBufferPackets) {
+          // packets must be buffered
+          ZS_LOG_TRACE(log("buffering packet for secure transport") + ZS_PARAM("buffer length", bufferSizeInBytes))
+          mBufferedPackets.push(SecureByteBlockPtr(make_shared<SecureByteBlock>(buffer, bufferSizeInBytes)));
+          while (mBufferedPackets.size() > mMaxBufferedPackets) {
+            ZS_LOG_TRACE(log("too many packets in buffered packet list (dropping packet") + ZS_PARAM("max packets", mMaxBufferedPackets) + ZS_PARAM("total packets", mBufferedPackets.size()))
+            mBufferedPackets.pop();
+          }
           return;
         }
-        transport->handleReceivedPacket(mComponent, buffer, bufferSizeInBytes);
+
+        goto forward_attached_secure_transport;
+      }
+
+    forward_attached_secure_transport:
+      {
+        bool handled = transport->handleReceivedPacket(mComponent, buffer, bufferSizeInBytes);
+
+        if (!handled) goto forward_old_transport;
+        return;
+      }
+
+    forward_old_transport:
+      {
+        {
+          AutoRecursiveLock lock(*this);
+          transport = mSecureTransportOld.lock();
+          if (!transport) {
+            ZS_LOG_WARNING(Debug, log("no older transport available to send packet") + routerRoute->toDebug() + ZS_PARAMIZE(bufferSizeInBytes))
+            return;
+          }
+        }
+
+        bool handled = transport->handleReceivedPacket(mComponent, buffer, bufferSizeInBytes);
+        if (!handled) {
+          AutoRecursiveLock lock(*this);
+
+          auto oldTransportID = transport->getID();
+
+          mSecureTransportOld.reset();
+          ZS_LOG_DEBUG(log("old transport did not handle packet either (thus disposing of old transport)") + ZS_PARAM("old transport id", oldTransportID) + routerRoute->toDebug() + ZS_PARAMIZE(bufferSizeInBytes))
+          return;
+        }
       }
     }
     
@@ -1098,7 +1145,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     ICETransportPtr ICETransport::getRTCPTransport() const
     {
-      return mRTCPTransport.lock();
+      return mRTCPTransport;
     }
 
     //-------------------------------------------------------------------------
@@ -1185,6 +1232,8 @@ namespace ortc
     void ICETransport::onNotifyAttached(PUID secureTransportID)
     {
       ZS_LOG_DETAIL(log("on notify attached") + ZS_PARAM("secure transport id", secureTransportID))
+
+      onDeliverPendingPackets();
     }
 
     //-------------------------------------------------------------------------
@@ -1199,8 +1248,88 @@ namespace ortc
         return;
       }
 
+      mSecureTransportOld = mSecureTransport;
+
       mSecureTransportID = 0;
       mSecureTransport.reset();
+    }
+
+    //-------------------------------------------------------------------------
+    void ICETransport::onDeliverPendingPackets()
+    {
+      ZS_LOG_TRACE(log("attempting to deliver pending packets"))
+
+      UseSecureTransportPtr transport;
+      UseSecureTransportPtr oldTransport;
+
+      bool firstTimeOldTransport {true};
+
+      PacketQueue packets;
+
+      {
+        AutoRecursiveLock lock(*this);
+
+        transport = mSecureTransport.lock();
+        if (!transport) {
+          ZS_LOG_WARNING(Debug, log("secure transport is not attached (thus must still buffer"))
+          return;
+        }
+
+        packets = mBufferedPackets;
+        mBufferedPackets = PacketQueue();
+      }
+
+      while (packets.size() > 0) {
+        SecureByteBlockPtr deliverPacket = packets.front();
+        packets.pop();
+
+        {
+          bool handled = transport->handleReceivedPacket(mComponent, deliverPacket->BytePtr(), deliverPacket->SizeInBytes());
+
+          if (!handled) goto forward_old_transport;
+          goto deliver_next;
+        }
+
+      forward_old_transport:
+        {
+          if (firstTimeOldTransport) {
+            AutoRecursiveLock lock(*this);
+            oldTransport = mSecureTransportOld.lock();
+          }
+
+          if (!oldTransport) {
+            ZS_LOG_WARNING(Debug, log("no older transport available to send packet (thus discarding packet)") + ZS_PARAM("packet size", deliverPacket->SizeInBytes()))
+            goto deliver_next;
+          }
+
+          bool handled = oldTransport->handleReceivedPacket(mComponent, deliverPacket->BytePtr(), deliverPacket->SizeInBytes());
+          if (!handled) {
+            AutoRecursiveLock lock(*this);
+
+            auto oldTransportID = transport->getID();
+
+            mSecureTransportOld.reset();
+            ZS_LOG_DEBUG(log("old transport did not handle packet either (thus disposing of old transport)") + ZS_PARAM("old transport id", oldTransportID) + ZS_PARAMIZE(deliverPacket->SizeInBytes()))
+          }
+          goto deliver_next;
+        }
+
+      deliver_next:
+        {
+        }
+      }
+
+
+      {
+        AutoRecursiveLock lock(*this);
+        if (mBufferedPackets.size() > 0) {
+          ZS_LOG_WARNING(Debug, log("more packets are pending thus attempt to deliver again"))
+          IICETransportAsyncDelegateProxy::create(mThisWeak.lock())->onDeliverPendingPackets();
+          return;
+        }
+
+        mMustBufferPackets = false;
+      }
     }
 
     //-------------------------------------------------------------------------
@@ -1723,7 +1852,7 @@ namespace ortc
       ElementPtr resultEl = Element::create("ortc::ICETransport");
 
       auto transportController = mTransportController.lock();
-      auto rtcpTransport = mRTCPTransport.lock();
+      auto rtpTransport = mRTPTransport.lock();
 
       UseServicesHelper::debugAppend(resultEl, "id", mID);
 
@@ -1746,8 +1875,8 @@ namespace ortc
 
       UseServicesHelper::debugAppend(resultEl, "transport controller", transportController ? transportController->getID() : 0);
 
-      UseServicesHelper::debugAppend(resultEl, "rtp transport", mRTPTransport ? mRTPTransport->getID() : 0);
-      UseServicesHelper::debugAppend(resultEl, "rtcp transport", mRTPTransport ? mRTPTransport->getID() : 0);
+      UseServicesHelper::debugAppend(resultEl, "rtp transport", rtpTransport ? rtpTransport->getID() : 0);
+      UseServicesHelper::debugAppend(resultEl, "rtcp transport", mRTCPTransport ? mRTCPTransport->getID() : 0);
 
       UseServicesHelper::debugAppend(resultEl, "wake up", mWakeUp);
       UseServicesHelper::debugAppend(resultEl, "warm routes changed", mWarmRoutesChanged);
@@ -1806,6 +1935,7 @@ namespace ortc
 
       UseServicesHelper::debugAppend(resultEl, "secure transport id", mSecureTransportID);
       UseServicesHelper::debugAppend(resultEl, "secure transport", (bool)(mSecureTransport.lock()));
+      UseServicesHelper::debugAppend(resultEl, "secure transport (old)", (bool)(mSecureTransportOld.lock()));
 
       return resultEl;
     }
@@ -2562,9 +2692,6 @@ namespace ortc
 
       setState(IICETransportTypes::State_Closed);
 
-      mSecureTransportID = 0;
-      mSecureTransport.reset();
-
       mSubscriptions.clear();
 
       mLocalCandidates.clear();
@@ -2616,7 +2743,9 @@ namespace ortc
         mExpireRouteTimer.reset();
       }
 
+      mSecureTransportID = 0;
       mSecureTransport.reset();
+      mSecureTransportOld.reset();
     }
 
     //-------------------------------------------------------------------------
@@ -2860,14 +2989,16 @@ namespace ortc
 
         if (IICETypes::Component_RTCP == mComponent) {
 
+          auto rtpTransport = mRTPTransport.lock();
+
           // freeze upon RTP component
-          if (!mRTPTransport) {
+          if (!rtpTransport) {
             ZS_LOG_TRACE(log("no ice transport to freeze upon (thus activating now)") + route->toDebug())
             goto activate_now;
           }
 
           PromisePtr promise = Promise::create(getAssociatedMessageQueue());
-          bool found = mRTPTransport->hasCandidatePairFoundation(route->mCandidatePair->mLocal->mFoundation, route->mCandidatePair->mRemote->mFoundation, promise);
+          bool found = rtpTransport->hasCandidatePairFoundation(route->mCandidatePair->mLocal->mFoundation, route->mCandidatePair->mRemote->mFoundation, promise);
           if (!found) {
             ZS_LOG_TRACE(log("rtp transport does not have an appropriate candidate pair to freeze upon") + route->toDebug())
             goto activate_now;
@@ -4428,7 +4559,8 @@ namespace ortc
     SHA1Hasher hasher;
 
     hasher.update("ortc::IICETransport::Options:");
-    hasher.update(mAggressiveICE ? "true:" : "false:");
+    hasher.update(mAggressiveICE);
+    hasher.update(":");
     hasher.update(IICETypes::toString(mRole));
 
     return hasher.final();
@@ -4446,6 +4578,12 @@ namespace ortc
   ElementPtr IICETransport::toDebug(IICETransportPtr transport)
   {
     return internal::ICETransport::toDebug(internal::ICETransport::convert(transport));
+  }
+
+  //---------------------------------------------------------------------------
+  IICETransportPtr IICETransport::convert(IRTCPTransportPtr object)
+  {
+    return internal::ICETransport::convert(object);
   }
 
   //---------------------------------------------------------------------------

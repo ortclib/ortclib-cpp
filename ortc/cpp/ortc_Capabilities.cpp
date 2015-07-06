@@ -29,153 +29,180 @@
  
  */
 
-#if 0
+#include <ortc/internal/types.h>
+#include <ortc/internal/platform.h>
 
-#include <ortc/TrackDescription.h>
+#include <ortc/ICapabilities.h>
 
 #include <openpeer/services/IHelper.h>
 
+#include <zsLib/Stringize.h>
 #include <zsLib/Log.h>
 #include <zsLib/XML.h>
+
+#include <cryptopp/sha.h>
+
 
 namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib) }
 
 namespace ortc
 {
+  ZS_DECLARE_TYPEDEF_PTR(openpeer::services::ISettings, UseSettings)
   ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHelper, UseServicesHelper)
+  ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHTTP, UseHTTP)
+
+  typedef openpeer::services::Hasher<CryptoPP::SHA1> SHA1Hasher;
 
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   #pragma mark
-  #pragma mark TrackDescription
+  #pragma mark ICapabilities::CapabilityBool
   #pragma mark
 
   //---------------------------------------------------------------------------
-  TrackDescriptionPtr TrackDescription::create()
+  ElementPtr ICapabilities::CapabilityBool::toDebug() const
   {
-    return TrackDescriptionPtr(new TrackDescription);
-  }
+    ElementPtr resultEl = Element::create("ortc::ICapabilities::CapabilityBool");
 
-  //---------------------------------------------------------------------------
-  ElementPtr TrackDescription::toDebug() const
-  {
-    ElementPtr resultEl = Element::create("ortc::TrackDescription");
-
-    for (FlowList::const_iterator iter = mFlows.begin(); iter != mFlows.end(); ++iter)
+    for (auto iter = begin(); iter != end(); ++iter)
     {
-      RTPFlowParamsPtr flow = (*iter);
-      UseServicesHelper::debugAppend(resultEl, "flow", flow->toDebug());
-    }
-    return resultEl;
-  }
-
-  //---------------------------------------------------------------------------
-  //---------------------------------------------------------------------------
-  //---------------------------------------------------------------------------
-  //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark RTPFlowParams
-  #pragma mark
-
-  RTPFlowParams::RTPFlowParams() :
-    mID(zsLib::createPUID()),
-    mSSRC(static_cast<DWORD>(UseServicesHelper::random(0, 0xFFFFFFFF)))
-  {
-  }
-
-  //---------------------------------------------------------------------------
-  //---------------------------------------------------------------------------
-  //---------------------------------------------------------------------------
-  //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark RTPRTXFlowParams
-  #pragma mark
-
-  //---------------------------------------------------------------------------
-  RTPRTXFlowParamsPtr RTPRTXFlowParams::create()
-  {
-    RTPRTXFlowParamsPtr pThis(new RTPRTXFlowParams);
-
-    return pThis;
-  }
-
-  //---------------------------------------------------------------------------
-  ElementPtr RTPRTXFlowParams::toDebug() const
-  {
-    ElementPtr resultEl = Element::create("ortc::RTPRTXFlowParams");
-
-    UseServicesHelper::debugAppend(resultEl, "id", mID);
-    UseServicesHelper::debugAppend(resultEl, "ssrc", mSSRC);
-
-    return resultEl;
-  }
-
-  //---------------------------------------------------------------------------
-  //---------------------------------------------------------------------------
-  //---------------------------------------------------------------------------
-  //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark RTPFECFlowParams
-  #pragma mark
-
-  //---------------------------------------------------------------------------
-  RTPFECFlowParamsPtr RTPFECFlowParams::create()
-  {
-    RTPFECFlowParamsPtr pThis(new RTPFECFlowParams);
-
-    return pThis;
-  }
-
-  //---------------------------------------------------------------------------
-  ElementPtr RTPFECFlowParams::toDebug() const
-  {
-    ElementPtr resultEl = Element::create("ortc::RTPFECFlowParams");
-
-    UseServicesHelper::debugAppend(resultEl, "id", mID);
-    UseServicesHelper::debugAppend(resultEl, "ssrc", mSSRC);
-    UseServicesHelper::debugAppend(resultEl, "mechanism", mMechanismg);
-
-    return resultEl;
-  }
-
-  //---------------------------------------------------------------------------
-  //---------------------------------------------------------------------------
-  //---------------------------------------------------------------------------
-  //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark RTPFECFlowParams
-  #pragma mark
-
-  //---------------------------------------------------------------------------
-  RTPLayeredFlowParamsPtr RTPLayeredFlowParams::create()
-  {
-    RTPLayeredFlowParamsPtr pThis(new RTPLayeredFlowParams);
-
-    return pThis;
-  }
-
-  //---------------------------------------------------------------------------
-  ElementPtr RTPLayeredFlowParams::toDebug() const
-  {
-    ElementPtr resultEl = Element::create("ortc::RTPLayeredFlowParams");
-
-    UseServicesHelper::debugAppend(resultEl, "id", mID);
-    UseServicesHelper::debugAppend(resultEl, "ssrc", mSSRC);
-
-    ElementPtr baseFlowsEl = Element::create("base flow ids");
-
-    for (BaseFlowIDList::const_iterator iter = mBaseFlowIDs.begin(); iter != mBaseFlowIDs.end(); ++iter)
-    {
-      const BaseFlowID &value = (*iter);
-      UseServicesHelper::debugAppend(baseFlowsEl, "id", value);
+      auto value = (*iter);
+      UseServicesHelper::debugAppend(resultEl, "value", value ? "true" : "false");
     }
 
-    resultEl->adoptAsLastChild(baseFlowsEl);
+    return resultEl;
+  }
+
+  //---------------------------------------------------------------------------
+  String ICapabilities::CapabilityBool::hash() const
+  {
+    SHA1Hasher hasher;
+
+    hasher.update("ortc::ICapabilities::CapabilityBool:");
+
+    for (auto iter = begin(); iter != end(); ++iter)
+    {
+      auto value = (*iter);
+      hasher.update(value);
+    }
+
+    return hasher.final();
+  }
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark ICapabilities::CapabilityLong
+  #pragma mark
+
+  //---------------------------------------------------------------------------
+  ElementPtr ICapabilities::CapabilityLong::toDebug() const
+  {
+    ElementPtr resultEl = Element::create("ortc::ICapabilities::CapabilityLong");
+
+    if (mMin != mMax) {
+      UseServicesHelper::debugAppend(resultEl, "min", mMin);
+      UseServicesHelper::debugAppend(resultEl, "min", mMax);
+    } else {
+      UseServicesHelper::debugAppend(resultEl, "value", mMin);
+    }
 
     return resultEl;
   }
+
+  //---------------------------------------------------------------------------
+  String ICapabilities::CapabilityLong::hash() const
+  {
+    SHA1Hasher hasher;
+
+    hasher.update("ortc::ICapabilities::CapabilityLong:");
+
+    hasher.update(mMin);
+    hasher.update(":");
+    hasher.update(mMax);
+
+    return hasher.final();
+  }
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark ICapabilities::CapabilityDouble
+  #pragma mark
+
+  //---------------------------------------------------------------------------
+  ElementPtr ICapabilities::CapabilityDouble::toDebug() const
+  {
+    ElementPtr resultEl = Element::create("ortc::ICapabilities::CapabilityDouble");
+
+    if (mMin != mMax) {
+      UseServicesHelper::debugAppend(resultEl, "min", mMin);
+      UseServicesHelper::debugAppend(resultEl, "min", mMax);
+    } else {
+      UseServicesHelper::debugAppend(resultEl, "value", mMin);
+    }
+
+    return resultEl;
+  }
+
+  //---------------------------------------------------------------------------
+  String ICapabilities::CapabilityDouble::hash() const
+  {
+    SHA1Hasher hasher;
+
+    hasher.update("ortc::ICapabilities::CapabilityDouble:");
+
+    hasher.update(mMin);
+    hasher.update(":");
+    hasher.update(mMax);
+
+    return hasher.final();
+  }
+
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark ICapabilities::CapabilityString
+  #pragma mark
+
+  //---------------------------------------------------------------------------
+  ElementPtr ICapabilities::CapabilityString::toDebug() const
+  {
+    ElementPtr resultEl = Element::create("ortc::ICapabilities::CapabilityString");
+
+    for (auto iter = begin(); iter != end(); ++iter)
+    {
+      auto value = (*iter);
+      UseServicesHelper::debugAppend(resultEl, "value", value);
+    }
+
+    return resultEl;
+  }
+
+  //---------------------------------------------------------------------------
+  String ICapabilities::CapabilityString::hash() const
+  {
+    SHA1Hasher hasher;
+
+    hasher.update("ortc::ICapabilities::CapabilityString:");
+
+    for (auto iter = begin(); iter != end(); ++iter)
+    {
+      auto value = (*iter);
+      hasher.update(":");
+      hasher.update(value);
+    }
+
+    return hasher.final();
+  }
+
 }
-
-#endif //0

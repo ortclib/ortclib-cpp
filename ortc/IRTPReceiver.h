@@ -34,6 +34,7 @@
 #include <ortc/types.h>
 #include <ortc/IRTPTypes.h>
 #include <ortc/IStatsProvider.h>
+#include <ortc/IMediaStreamTrack.h>
 
 #include <list>
 
@@ -49,6 +50,8 @@ namespace ortc
 
   interaction IRTPReceiverTypes : public IRTPTypes
   {
+    typedef IMediaStreamTrack::Kinds Kinds;
+
     ZS_DECLARE_STRUCT_PTR(ContributingSource)
 
     ZS_DECLARE_TYPEDEF_PTR(std::list<ContributingSource>, ContributingSourceList)
@@ -62,6 +65,9 @@ namespace ortc
       Time      mTimestamp;
       SSRCType  mCSRC {};
       BYTE      mAudioLevel {};
+
+      ElementPtr toDebug() const;
+      String hash() const;
     };
   };
 
@@ -80,8 +86,8 @@ namespace ortc
 
     static IRTPReceiverPtr create(
                                   IRTPReceiverDelegatePtr delegate,
-                                  IDTLSTransportPtr transport,
-                                  IDTLSTransportPtr rtcpTransport = IDTLSTransportPtr()
+                                  IRTPTransportPtr transport,
+                                  IRTCPTransportPtr rtcpTransport = IRTCPTransportPtr()
                                   );
 
     virtual PUID getID() const = 0;
@@ -89,17 +95,17 @@ namespace ortc
     virtual IRTPReceiverSubscriptionPtr subscribe(IRTPReceiverDelegatePtr delegate) = 0;
 
     virtual IMediaStreamTrackPtr track() const = 0;
-    virtual IDTLSTransportPtr transport() const = 0;
-    virtual IDTLSTransportPtr rtcpTransport() const = 0;
+    virtual IRTPTransportPtr transport() const = 0;
+    virtual IRTCPTransportPtr rtcpTransport() const = 0;
 
     virtual void setTransport(
-                              IDTLSTransportPtr transport,
-                              IDTLSTransportPtr rtcpTransport = IDTLSTransportPtr()
+                              IRTPTransportPtr transport,
+                              IRTCPTransportPtr rtcpTransport = IRTCPTransportPtr()
                               ) = 0;
 
-    virtual CapabilitiesPtr getCapabilities(const char *kind = NULL);
+    static CapabilitiesPtr getCapabilities(Optional<Kinds> kind = Optional<Kinds>());
 
-    virtual PromisePtr receive(const Parameters &parameters);
+    virtual PromisePtr receive(const Parameters &parameters) = 0;
     virtual void stop() = 0;
 
     virtual ContributingSourceList getContributingSources() const = 0;
@@ -147,7 +153,7 @@ namespace ortc
 
 ZS_DECLARE_PROXY_BEGIN(ortc::IRTPReceiverDelegate)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IRTPReceiverPtr, IRTPReceiverPtr)
-ZS_DECLARE_PROXY_TYPEDEF(ortc::IRTPSenderDelegate::ErrorCode, ErrorCode)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::IRTPReceiverDelegate::ErrorCode, ErrorCode)
 ZS_DECLARE_PROXY_METHOD_3(onRTPReceiverError, IRTPReceiverPtr, ErrorCode, String)
 ZS_DECLARE_PROXY_END()
 

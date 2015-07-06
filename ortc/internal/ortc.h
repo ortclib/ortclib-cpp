@@ -43,6 +43,7 @@
 #include <ortc/internal/ortc_ICEGathererRouter.h>
 #include <ortc/internal/ortc_ICETransport.h>
 #include <ortc/internal/ortc_ICETransportController.h>
+#include <ortc/internal/ortc_MediaDevices.h>
 #include <ortc/internal/ortc_RTPListener.h>
 #include <ortc/internal/ortc_SCTPTransport.h>
 #include <ortc/internal/ortc_ISecureTransport.h>
