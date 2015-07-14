@@ -50,6 +50,7 @@ namespace ortc
 
     ZS_DECLARE_INTERACTION_PTR(ISCTPTransportForSettings)
     ZS_DECLARE_INTERACTION_PTR(ISCTPTransportForDTLSTransport)
+    ZS_DECLARE_INTERACTION_PTR(ISCTPTransportForDataChannel)
 
     ZS_DECLARE_INTERACTION_PROXY(ISCTPTransportAsyncDelegate)
 
@@ -97,6 +98,23 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
+    #pragma mark ISCTPTransportForDataChannel
+    #pragma mark
+
+    interaction ISCTPTransportForDataChannel
+    {
+      ZS_DECLARE_TYPEDEF_PTR(ISCTPTransportForDataChannel, ForDataChannel)
+
+      static ElementPtr toDebug(ForDataChannelPtr transport);
+
+      virtual PUID getID() const = 0;
+    };
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
     #pragma mark ISCTPTransportAsyncDelegate
     #pragma mark
 
@@ -119,6 +137,7 @@ namespace ortc
                           public ISCTPTransport,
                           public ISCTPTransportForSettings,
                           public ISCTPTransportForDTLSTransport,
+                          public ISCTPTransportForDataChannel,
                           public IWakeDelegate,
                           public zsLib::ITimerDelegate,
                           public ISCTPTransportAsyncDelegate,
@@ -132,6 +151,7 @@ namespace ortc
       friend interaction ISCTPTransportFactory;
       friend interaction ISCTPTransportForSettings;
       friend interaction ISCTPTransportForDTLSTransport;
+      friend interaction ISCTPTransportForDataChannel;
 
       ZS_DECLARE_TYPEDEF_PTR(IDTLSTransportForDataTransport, UseDTLSTransport)
 
@@ -165,8 +185,10 @@ namespace ortc
       virtual ~SCTPTransport();
 
       static SCTPTransportPtr convert(ISCTPTransportPtr object);
+      static SCTPTransportPtr convert(IDataTransportPtr object);
       static SCTPTransportPtr convert(ForSettingsPtr object);
       static SCTPTransportPtr convert(ForDTLSTransportPtr object);
+      static SCTPTransportPtr convert(ForDataChannelPtr object);
 
     protected:
       //-----------------------------------------------------------------------
@@ -211,6 +233,16 @@ namespace ortc
                                     const BYTE *buffer,
                                     size_t bufferLengthInBytes
                                     ) override;
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark SCTPTransport => ISCTPTransportForDataChannel
+      #pragma mark
+
+      // (duplciate) static ElementPtr toDebug(ForDataChannelPtr transport);
+
+      // (duplicate) virtual PUID getID() const = 0;
+
 
       //-----------------------------------------------------------------------
       #pragma mark

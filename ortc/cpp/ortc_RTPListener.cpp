@@ -98,16 +98,46 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    ElementPtr IRTPListenerForSecureTransport::toDebug(ForSecureTransportPtr transport)
+    ElementPtr IRTPListenerForSecureTransport::toDebug(ForSecureTransportPtr listener)
     {
-      if (!transport) return ElementPtr();
-      return ZS_DYNAMIC_PTR_CAST(RTPListener, transport)->toDebug();
+      if (!listener) return ElementPtr();
+      return ZS_DYNAMIC_PTR_CAST(RTPListener, listener)->toDebug();
     }
 
     //-------------------------------------------------------------------------
     RTPListenerPtr IRTPListenerForSecureTransport::create(IRTPTransportPtr transport)
     {
       return IRTPListenerFactory::singleton().create(transport);
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IRTPListenerForRTPReceiver
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    ElementPtr IRTPListenerForRTPReceiver::toDebug(ForRTPReceiverPtr listener)
+    {
+      if (!listener) return ElementPtr();
+      return ZS_DYNAMIC_PTR_CAST(RTPListener, listener)->toDebug();
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IRTPListenerForRTPSender
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    ElementPtr IRTPListenerForRTPSender::toDebug(ForRTPSenderPtr listener)
+    {
+      if (!listener) return ElementPtr();
+      return ZS_DYNAMIC_PTR_CAST(RTPListener, listener)->toDebug();
     }
 
     //-------------------------------------------------------------------------
@@ -181,6 +211,18 @@ namespace ortc
 
     //-------------------------------------------------------------------------
     RTPListenerPtr RTPListener::convert(ForSecureTransportPtr object)
+    {
+      return ZS_DYNAMIC_PTR_CAST(RTPListener, object);
+    }
+
+    //-------------------------------------------------------------------------
+    RTPListenerPtr RTPListener::convert(ForRTPReceiverPtr object)
+    {
+      return ZS_DYNAMIC_PTR_CAST(RTPListener, object);
+    }
+
+    //-------------------------------------------------------------------------
+    RTPListenerPtr RTPListener::convert(ForRTPSenderPtr object)
     {
       return ZS_DYNAMIC_PTR_CAST(RTPListener, object);
     }

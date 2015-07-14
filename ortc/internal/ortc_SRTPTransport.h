@@ -190,7 +190,6 @@ namespace ortc
       struct make_private {};
 
     public:
-      friend struct SRTPHelpers;
       friend interaction ISRTPTransport;
       friend interaction ISRTPTransportFactory;
       friend interaction ISRTPTransportForSettings;

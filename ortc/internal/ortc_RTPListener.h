@@ -51,6 +51,8 @@ namespace ortc
 
     ZS_DECLARE_INTERACTION_PTR(IRTPListenerForSettings)
     ZS_DECLARE_INTERACTION_PTR(IRTPListenerForSecureTransport)
+    ZS_DECLARE_INTERACTION_PTR(IRTPListenerForRTPReceiver)
+    ZS_DECLARE_INTERACTION_PTR(IRTPListenerForRTPSender)
 
     ZS_DECLARE_INTERACTION_PROXY(IRTPListenerAsyncDelegate)
 
@@ -83,7 +85,7 @@ namespace ortc
     {
       ZS_DECLARE_TYPEDEF_PTR(IRTPListenerForSecureTransport, ForSecureTransport)
 
-      static ElementPtr toDebug(ForSecureTransportPtr transport);
+      static ElementPtr toDebug(ForSecureTransportPtr listener);
 
       static RTPListenerPtr create(IRTPTransportPtr transport);
 
@@ -95,6 +97,40 @@ namespace ortc
                                    const BYTE *buffer,
                                    size_t bufferLengthInBytes
                                    ) = 0;
+    };
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IRTPListenerForRTPReceiver
+    #pragma mark
+
+    interaction IRTPListenerForRTPReceiver
+    {
+      ZS_DECLARE_TYPEDEF_PTR(IRTPListenerForRTPReceiver, ForRTPReceiver)
+
+      static ElementPtr toDebug(ForRTPReceiverPtr listener);
+
+      virtual ~IRTPListenerForRTPReceiver() {}
+    };
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IRTPListenerForRTPSender
+    #pragma mark
+
+    interaction IRTPListenerForRTPSender
+    {
+      ZS_DECLARE_TYPEDEF_PTR(IRTPListenerForRTPSender, ForRTPSender)
+
+      static ElementPtr toDebug(ForRTPSenderPtr listener);
+
+      virtual ~IRTPListenerForRTPSender() {}
     };
 
     //-------------------------------------------------------------------------
@@ -124,6 +160,8 @@ namespace ortc
                         public IRTPListener,
                         public IRTPListenerForSettings,
                         public IRTPListenerForSecureTransport,
+                        public IRTPListenerForRTPReceiver,
+                        public IRTPListenerForRTPSender,
                         public IWakeDelegate,
                         public zsLib::ITimerDelegate,
                         public IRTPListenerAsyncDelegate
@@ -136,6 +174,8 @@ namespace ortc
       friend interaction IRTPListenerFactory;
       friend interaction IRTPListenerForSettings;
       friend interaction IRTPListenerForSecureTransport;
+      friend interaction IRTPListenerForRTPReceiver;
+      friend interaction IRTPListenerForRTPSender;
 
       ZS_DECLARE_STRUCT_PTR(TearAwayData)
 
@@ -175,6 +215,8 @@ namespace ortc
       static RTPListenerPtr convert(IRTPListenerPtr object);
       static RTPListenerPtr convert(ForSettingsPtr object);
       static RTPListenerPtr convert(ForSecureTransportPtr object);
+      static RTPListenerPtr convert(ForRTPReceiverPtr object);
+      static RTPListenerPtr convert(ForRTPSenderPtr object);
 
     protected:
       //-----------------------------------------------------------------------
@@ -213,6 +255,21 @@ namespace ortc
                                    const BYTE *buffer,
                                    size_t bufferLengthInBytes
                                    ) override;
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPListener => IRTPListenerForRTPReceiver
+      #pragma mark
+
+      // (duplicate) static ElementPtr toDebug(ForRTPReceiverPtr listener);
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPListener => IRTPListenerForRTPSender
+      #pragma mark
+
+      // (duplicate) static ElementPtr toDebug(ForRTPSenderPtr listener);
+
 
       //-----------------------------------------------------------------------
       #pragma mark

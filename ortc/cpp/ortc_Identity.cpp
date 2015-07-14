@@ -29,8 +29,7 @@
  
  */
 
-#include <ortc/internal/ortc_RTPSender.h>
-#include <ortc/internal/ortc_DTLSTransport.h>
+#include <ortc/internal/ortc_Identity.h>
 #include <ortc/internal/ortc_ORTC.h>
 #include <ortc/internal/platform.h>
 
@@ -78,11 +77,11 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IICETransportForSettings
+    #pragma mark IIdentityForSettings
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void IRTPSenderForSettings::applyDefaults()
+    void IIdentityForSettings::applyDefaults()
     {
 //      UseSettings::setUInt(ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE, 5*1024);
     }
@@ -92,75 +91,32 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IRTPSenderForRTPListener
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    ElementPtr IRTPSenderForRTPListener::toDebug(ForRTPListenerPtr transport)
-    {
-      if (!transport) return ElementPtr();
-      return ZS_DYNAMIC_PTR_CAST(RTPSender, transport)->toDebug();
-    }
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPSenderForRTPListener
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    ElementPtr IRTPSenderForDTMFSender::toDebug(ForDTMFSenderPtr transport)
-    {
-      if (!transport) return ElementPtr();
-      return ZS_DYNAMIC_PTR_CAST(RTPSender, transport)->toDebug();
-    }
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPSender
+    #pragma mark Identity
     #pragma mark
     
-    //---------------------------------------------------------------------------
-    const char *RTPSender::toString(States state)
-    {
-      switch (state) {
-        case State_Pending:       return "pending";
-        case State_Ready:         return "ready";
-        case State_ShuttingDown:  return "shutting down";
-        case State_Shutdown:      return "shutdown";
-      }
-      return "UNDEFINED";
-    }
-    
     //-------------------------------------------------------------------------
-    RTPSender::RTPSender(
-                         const make_private &,
-                         IMessageQueuePtr queue,
-                         IRTPSenderDelegatePtr delegate,
-                         IMediaStreamTrackPtr track,
-                         IRTPTransportPtr transport,
-                         IRTCPTransportPtr rtcpTransport
-                         ) :
+    Identity::Identity(
+                       const make_private &,
+                       IMessageQueuePtr queue,
+                       IDTLSTransportPtr transport
+                       ) :
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create())
     {
       ZS_LOG_DETAIL(debug("created"))
+
+      ZS_THROW_NOT_IMPLEMENTED("identity API in specification is not ready")
     }
 
     //-------------------------------------------------------------------------
-    void RTPSender::init()
+    void Identity::init()
     {
       AutoRecursiveLock lock(*this);
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
     }
 
     //-------------------------------------------------------------------------
-    RTPSender::~RTPSender()
+    Identity::~Identity()
     {
       if (isNoop()) return;
 
@@ -171,167 +127,71 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    RTPSenderPtr RTPSender::convert(IRTPSenderPtr object)
+    IdentityPtr Identity::convert(IIdentityPtr object)
     {
-      return ZS_DYNAMIC_PTR_CAST(RTPSender, object);
+      return ZS_DYNAMIC_PTR_CAST(Identity, object);
     }
 
     //-------------------------------------------------------------------------
-    RTPSenderPtr RTPSender::convert(ForSettingsPtr object)
+    IdentityPtr Identity::convert(ForSettingsPtr object)
     {
-      return ZS_DYNAMIC_PTR_CAST(RTPSender, object);
+      return ZS_DYNAMIC_PTR_CAST(Identity, object);
     }
-
-    //-------------------------------------------------------------------------
-    RTPSenderPtr RTPSender::convert(ForRTPListenerPtr object)
-    {
-      return ZS_DYNAMIC_PTR_CAST(RTPSender, object);
-    }
-
-    //-------------------------------------------------------------------------
-    RTPSenderPtr RTPSender::convert(ForDTMFSenderPtr object)
-    {
-      return ZS_DYNAMIC_PTR_CAST(RTPSender, object);
-    }
-
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark RTPSender => IStatsProvider
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    IStatsProvider::PromiseWithStatsReportPtr RTPSender::getStats() const throw(InvalidStateError)
-    {
-#define TODO_COMPLETE 1
-#define TODO_COMPLETE 2
-      return PromiseWithStatsReportPtr();
-    }
-
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPSender => IRTPSender
+    #pragma mark Identity => IIdentity
     #pragma mark
     
     //-------------------------------------------------------------------------
-    ElementPtr RTPSender::toDebug(RTPSenderPtr transport)
+    ElementPtr Identity::toDebug(IdentityPtr transport)
     {
       if (!transport) return ElementPtr();
       return transport->toDebug();
     }
 
     //-------------------------------------------------------------------------
-    RTPSenderPtr RTPSender::create(
-                                   IRTPSenderDelegatePtr delegate,
-                                   IMediaStreamTrackPtr track,
-                                   IRTPTransportPtr transport,
-                                   IRTCPTransportPtr rtcpTransport
-                                   )
+    IdentityPtr Identity::create(IDTLSTransportPtr transport)
     {
-      RTPSenderPtr pThis(make_shared<RTPSender>(make_private {}, IORTCForInternal::queueORTC(), delegate, track, transport, rtcpTransport));
+      IdentityPtr pThis(make_shared<Identity>(make_private {}, IORTCForInternal::queueORTC(), transport));
       pThis->mThisWeak = pThis;
       pThis->init();
       return pThis;
     }
 
     //-------------------------------------------------------------------------
-    IRTPSenderSubscriptionPtr RTPSender::subscribe(IRTPSenderDelegatePtr originalDelegate)
+    IIdentityTypes::AssertionPtr Identity::peerIdentity() const
     {
-      ZS_LOG_DETAIL(log("subscribing to receiver"))
-
-      AutoRecursiveLock lock(*this);
-      if (!originalDelegate) return mDefaultSubscription;
-
-      IRTPSenderSubscriptionPtr subscription = mSubscriptions.subscribe(originalDelegate, IORTCForInternal::queueDelegate());
-
-      IRTPSenderDelegatePtr delegate = mSubscriptions.delegate(subscription, true);
-
-      if (delegate) {
-        RTPSenderPtr pThis = mThisWeak.lock();
-
-#define TODO_DO_WE_NEED_TO_TELL_ABOUT_ANY_MISSED_EVENTS 1
-#define TODO_DO_WE_NEED_TO_TELL_ABOUT_ANY_MISSED_EVENTS 2
-      }
-
-      if (isShutdown()) {
-        mSubscriptions.clear();
-      }
-
-      return subscription;
+      ZS_THROW_NOT_IMPLEMENTED("identity API in specification is not ready")
+      return AssertionPtr();
     }
 
     //-------------------------------------------------------------------------
-    IMediaStreamTrackPtr RTPSender::track() const
+    IDTLSTransportPtr Identity::transport() const
     {
-#define TODO 1
-#define TODO 2
-      return IMediaStreamTrackPtr();
+      ZS_THROW_NOT_IMPLEMENTED("identity API in specification is not ready")
+      return IDTLSTransportPtr();
     }
 
     //-------------------------------------------------------------------------
-    IRTPTransportPtr RTPSender::transport() const
+    IIdentityTypes::PromiseWithResultPtr Identity::getIdentityAssertion(
+                                                                        const char *provider,
+                                                                        const char *protoocl,
+                                                                        const char *username
+                                                                        ) throw (InvalidStateError)
     {
-#define TODO 1
-#define TODO 2
-      return IRTPTransportPtr();
+      ZS_THROW_NOT_IMPLEMENTED("identity API in specification is not ready")
+      return PromiseWithResultPtr();
     }
 
     //-------------------------------------------------------------------------
-    IRTCPTransportPtr RTPSender::rtcpTransport() const
+    IIdentityTypes::PromiseWithAssertionPtr Identity::setIdentityAssertion(const String &assertion)
     {
-#define TODO 1
-#define TODO 2
-      return IRTCPTransportPtr();
-    }
-
-    //-------------------------------------------------------------------------
-    void RTPSender::setTransport(
-                                 IRTPTransportPtr transport,
-                                 IRTCPTransportPtr rtcpTransport
-                                 )
-    {
-#define TODO 1
-#define TODO 2
-    }
-
-    //-------------------------------------------------------------------------
-    PromisePtr RTPSender::setTrack(IMediaStreamTrackPtr track)
-    {
-#define TODO 1
-#define TODO 2
-      return PromisePtr();
-    }
-
-    //-------------------------------------------------------------------------
-    IRTPSenderTypes::CapabilitiesPtr RTPSender::getCapabilities(Optional<Kinds> kind)
-    {
-      CapabilitiesPtr result(make_shared<Capabilities>());
-#define TODO 1
-#define TODO 2
-      return result;
-    }
-
-    //-------------------------------------------------------------------------
-    PromisePtr RTPSender::send(const Parameters &parameters)
-    {
-#define TODO 1
-#define TODO 2
-      return PromisePtr();
-    }
-
-    //-------------------------------------------------------------------------
-    void RTPSender::stop()
-    {
-      AutoRecursiveLock lock(*this);
-#define TODO 1
-#define TODO 2
+      ZS_THROW_NOT_IMPLEMENTED("identity API in specification is not ready")
+      return PromiseWithAssertionPtr();
     }
 
     //-------------------------------------------------------------------------
@@ -339,15 +199,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark RTPSender => IRTPSenderForRTPListener
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPSender => IRTPSenderForDTMFSender
+    #pragma mark Identity => IIdentityForRTPSender
     #pragma mark
 
 
@@ -356,11 +208,11 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark RTPSender => IWakeDelegate
+    #pragma mark Identity => IWakeDelegate
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void RTPSender::onWake()
+    void Identity::onWake()
     {
       ZS_LOG_DEBUG(log("wake"))
 
@@ -373,11 +225,11 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark RTPSender => ITimerDelegate
+    #pragma mark Identity => ITimerDelegate
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void RTPSender::onTimer(TimerPtr timer)
+    void Identity::onTimer(TimerPtr timer)
     {
       ZS_LOG_DEBUG(log("timer") + ZS_PARAM("timer id", timer->getID()))
 
@@ -391,7 +243,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark RTPSender => IRTPSenderAsyncDelegate
+    #pragma mark Identity => IIdentityAsyncDelegate
     #pragma mark
 
 
@@ -400,59 +252,55 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark RTPSender => (internal)
+    #pragma mark Identity => (internal)
     #pragma mark
 
     //-------------------------------------------------------------------------
-    Log::Params RTPSender::log(const char *message) const
+    Log::Params Identity::log(const char *message) const
     {
-      ElementPtr objectEl = Element::create("ortc::RTPSender");
+      ElementPtr objectEl = Element::create("ortc::Identity");
       UseServicesHelper::debugAppend(objectEl, "id", mID);
       return Log::Params(message, objectEl);
     }
 
     //-------------------------------------------------------------------------
-    Log::Params RTPSender::debug(const char *message) const
+    Log::Params Identity::debug(const char *message) const
     {
       return Log::Params(message, toDebug());
     }
 
     //-------------------------------------------------------------------------
-    ElementPtr RTPSender::toDebug() const
+    ElementPtr Identity::toDebug() const
     {
       AutoRecursiveLock lock(*this);
 
-      ElementPtr resultEl = Element::create("ortc::RTPSender");
+      ElementPtr resultEl = Element::create("ortc::Identity");
 
       UseServicesHelper::debugAppend(resultEl, "id", mID);
 
       UseServicesHelper::debugAppend(resultEl, "graceful shutdown", (bool)mGracefulShutdownReference);
 
-      UseServicesHelper::debugAppend(resultEl, "subscribers", mSubscriptions.size());
-      UseServicesHelper::debugAppend(resultEl, "default subscription", (bool)mDefaultSubscription);
-
-      UseServicesHelper::debugAppend(resultEl, "state", toString(mCurrentState));
-
-      UseServicesHelper::debugAppend(resultEl, "error", mLastError);
-      UseServicesHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
+      UseServicesHelper::debugAppend(resultEl, "shutdown", mShutdown);
 
       return resultEl;
     }
 
     //-------------------------------------------------------------------------
-    bool RTPSender::isShuttingDown() const
+    bool Identity::isShuttingDown() const
     {
-      return State_ShuttingDown == mCurrentState;
+      if (mGracefulShutdownReference) return true;
+      return false;
     }
 
     //-------------------------------------------------------------------------
-    bool RTPSender::isShutdown() const
+    bool Identity::isShutdown() const
     {
-      return State_Shutdown == mCurrentState;
+      if (mGracefulShutdownReference) return false;
+      return mShutdown;
     }
 
     //-------------------------------------------------------------------------
-    void RTPSender::step()
+    void Identity::step()
     {
       ZS_LOG_DEBUG(debug("step"))
 
@@ -482,7 +330,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool RTPSender::stepBogusDoSomething()
+    bool Identity::stepBogusDoSomething()
     {
       if ( /* step already done */ false ) {
         ZS_LOG_TRACE(log("already completed do something"))
@@ -499,12 +347,12 @@ namespace ortc
       // ....
 #define TODO 1
 #define TODO 2
-
+      
       return true;
     }
 
     //-------------------------------------------------------------------------
-    void RTPSender::cancel()
+    void Identity::cancel()
     {
       //.......................................................................
       // try to gracefully shutdown
@@ -525,85 +373,32 @@ namespace ortc
       //.......................................................................
       // final cleanup
 
-      setState(State_Shutdown);
-
-      mSubscriptions.clear();
-
-      if (mDefaultSubscription) {
-        mDefaultSubscription->cancel();
-        mDefaultSubscription.reset();
-      }
+      mShutdown = true;
 
       // make sure to cleanup any final reference to self
       mGracefulShutdownReference.reset();
     }
 
-    //-------------------------------------------------------------------------
-    void RTPSender::setState(States state)
-    {
-      if (state == mCurrentState) return;
-
-      ZS_LOG_DETAIL(debug("state changed") + ZS_PARAM("new state", toString(state)) + ZS_PARAM("old state", toString(mCurrentState)))
-
-      mCurrentState = state;
-
-//      RTPSenderPtr pThis = mThisWeak.lock();
-//      if (pThis) {
-//        mSubscriptions.delegate()->onRTPSenderStateChanged(pThis, mCurrentState);
-//      }
-    }
-
-    //-------------------------------------------------------------------------
-    void RTPSender::setError(WORD errorCode, const char *inReason)
-    {
-      String reason(inReason);
-      if (reason.isEmpty()) {
-        reason = UseHTTP::toString(UseHTTP::toStatusCode(errorCode));
-      }
-
-      if (0 != mLastError) {
-        ZS_LOG_WARNING(Detail, debug("error already set thus ignoring new error") + ZS_PARAM("new error", errorCode) + ZS_PARAM("new reason", reason))
-        return;
-      }
-
-      mLastError = errorCode;
-      mLastErrorReason = reason;
-
-      ZS_LOG_WARNING(Detail, debug("error set") + ZS_PARAM("error", mLastError) + ZS_PARAM("reason", mLastErrorReason))
-    }
-
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IRTPSenderFactory
+    #pragma mark IIdentityFactory
     #pragma mark
 
     //-------------------------------------------------------------------------
-    IRTPSenderFactory &IRTPSenderFactory::singleton()
+    IIdentityFactory &IIdentityFactory::singleton()
     {
-      return RTPSenderFactory::singleton();
+      return IdentityFactory::singleton();
     }
 
     //-------------------------------------------------------------------------
-    RTPSenderPtr IRTPSenderFactory::create(
-                                           IRTPSenderDelegatePtr delegate,
-                                           IMediaStreamTrackPtr track,
-                                           IRTPTransportPtr transport,
-                                           IRTCPTransportPtr rtcpTransport
-                                           )
+    IdentityPtr IIdentityFactory::create(IDTLSTransportPtr transport)
     {
       if (this) {}
-      return internal::RTPSender::create(delegate, track, transport, rtcpTransport);
-    }
-
-    //-------------------------------------------------------------------------
-    IRTPSenderFactory::CapabilitiesPtr IRTPSenderFactory::getCapabilities(Optional<Kinds> kind)
-    {
-      if (this) {}
-      return RTPSender::getCapabilities(kind);
+      return internal::Identity::create(transport);
     }
 
   } // internal namespace
@@ -614,30 +409,20 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   #pragma mark
-  #pragma mark IRTPSender
+  #pragma mark IIdentityTypes
   #pragma mark
 
   //---------------------------------------------------------------------------
-  ElementPtr IRTPSender::toDebug(IRTPSenderPtr transport)
+  ElementPtr IIdentity::toDebug(IIdentityPtr transport)
   {
-    return internal::RTPSender::toDebug(internal::RTPSender::convert(transport));
+    return internal::Identity::toDebug(internal::Identity::convert(transport));
   }
 
   //---------------------------------------------------------------------------
-  IRTPSenderPtr IRTPSender::create(
-                                   IRTPSenderDelegatePtr delegate,
-                                   IMediaStreamTrackPtr track,
-                                   IRTPTransportPtr transport,
-                                   IRTCPTransportPtr rtcpTransport
-                                   )
+  IIdentityPtr IIdentity::create(IDTLSTransportPtr transport)
   {
-    return internal::IRTPSenderFactory::singleton().create(delegate, track, transport, rtcpTransport);
+    return internal::IIdentityFactory::singleton().create(transport);
   }
 
-  //---------------------------------------------------------------------------
-  IRTPSenderTypes::CapabilitiesPtr IRTPSender::getCapabilities(Optional<Kinds> kind)
-  {
-    return internal::IRTPSenderFactory::singleton().getCapabilities(kind);
-  }
 
 }

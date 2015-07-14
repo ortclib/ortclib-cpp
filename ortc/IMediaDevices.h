@@ -46,17 +46,51 @@ namespace ortc
   #pragma mark IMediaDevices
   #pragma mark
   
-  interaction IMediaDevicesTypes
+  interaction IMediaDevicesTypes : public IMediaStreamTrackTypes
   {
+    ZS_DECLARE_STRUCT_PTR(SupportedConstraints)
     ZS_DECLARE_STRUCT_PTR(Device)
     ZS_DECLARE_STRUCT_PTR(DeviceList)
+    ZS_DECLARE_STRUCT_PTR(MediaStreamTrackList)
 
-    ZS_DECLARE_TYPEDEF_PTR(std::list<String>, StringList)
-    ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::Constraints, Constraints)
-
-    ZS_DECLARE_TYPEDEF_PTR(PromiseWith<IMediaStreamTrackPtr>, PromiseWithMediaStreamTrack)
+    ZS_DECLARE_TYPEDEF_PTR(PromiseWith<MediaStreamTrackListPtr>, PromiseWithMediaStreamTrackList)
     ZS_DECLARE_TYPEDEF_PTR(PromiseWith<DeviceListPtr>, PromiseWithDeviceList)
 
+    enum DeviceKinds
+    {
+      DeviceKind_First,
+
+      DeviceKind_AudioInput = DeviceKind_First,
+      DeviceKind_AudioOutput,
+      DeviceKind_Video,
+
+      DeviceKind_Last = DeviceKind_Video,
+    };
+
+    static const char *toString(DeviceKinds kind);
+    static Kinds toKind(DeviceKinds kind);
+
+    static bool isAudio(DeviceKinds kind);
+    static bool isVideo(DeviceKinds kind);
+
+    struct SupportedConstraints
+    {
+      bool mWidth {false};
+      bool mHeight {false};
+      bool mAspectRatio {false};
+      bool mFrameRate {false};
+      bool mFacingMode {false};
+      bool mVolume {false};
+      bool mSampleRate {false};
+      bool mSampleSize {false};
+      bool mEchoCancellation {false};
+      bool mLatency {false};
+      bool mDeviceID {false};
+      bool mGroupID {false};
+
+      ElementPtr toDebug() const;
+      String hash() const;
+    };
 
     //-------------------------------------------------------------------------
     #pragma mark
@@ -64,9 +98,26 @@ namespace ortc
     #pragma mark
 
     struct Device {
-      String      mDeviceID;
-      String      mGroupID;
-      StringList  mSupportedConstraints;
+      DeviceKinds mKind {DeviceKind_First};
+
+      String mLabel;
+      String mDeviceID;
+      String mGroupID;
+
+      SupportedConstraints mSupportedConstraints;
+
+      ElementPtr toDebug() const;
+      String hash() const;
+    };
+
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IMediaDevices::DeviceList
+    #pragma mark
+
+    struct MediaStreamTrackList : public std::list<IMediaStreamTrackPtr>,
+                                  public Any
+    {
     };
 
     //-------------------------------------------------------------------------
@@ -77,6 +128,8 @@ namespace ortc
     struct DeviceList : public std::list<Device>,
                         public Any
     {
+      ElementPtr toDebug() const;
+      String hash() const;
     };
   };
 
@@ -90,8 +143,55 @@ namespace ortc
   
   interaction IMediaDevices : public IMediaDevicesTypes
   {
-    static StringListPtr getSupportedConstraints(const char *kind);
+    static ElementPtr toDebug();
 
-    static PromiseWithDeviceListPtr getUserMedia(const Constraints &constraints = Constraints());
+    static SupportedConstraintsPtr getSupportedConstraints();
+
+    static PromiseWithDeviceListPtr enumerateDevices();
+
+    static PromiseWithMediaStreamTrackListPtr getUserMedia(const Constraints &constraints = Constraints());
+
+    static IMediaDevicesSubscriptionPtr subscribe(IMediaDevicesDelegatePtr delegate);
+
+    virtual ~IMediaDevices() {} // make polymorphic
+  };
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IMediaDevicesDelegate
+  #pragma mark
+
+  interaction IMediaDevicesDelegate
+  {
+    virtual void onMediaDevicesChanged() = 0;
+  };
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IMediaDevicesSubscription
+  #pragma mark
+
+  interaction IMediaDevicesSubscription
+  {
+    virtual PUID getID() const = 0;
+
+    virtual void cancel() = 0;
+
+    virtual void background() = 0;
   };
 }
+
+
+ZS_DECLARE_PROXY_BEGIN(ortc::IMediaDevicesDelegate)
+ZS_DECLARE_PROXY_METHOD_0(onMediaDevicesChanged)
+ZS_DECLARE_PROXY_END()
+
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_BEGIN(ortc::IMediaDevicesDelegate, ortc::IMediaDevicesSubscription)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_0(onMediaDevicesChanged)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_END()

@@ -47,114 +47,103 @@ namespace ortc
   
   interaction IConstraints
   {
-    ZS_DECLARE_STRUCT_PTR(Constraints)
-    ZS_DECLARE_STRUCT_PTR(ConstraintSet)
-    ZS_DECLARE_STRUCT_PTR(ConstraintBool)
-    ZS_DECLARE_STRUCT_PTR(ConstraintBoolParameters)
-    ZS_DECLARE_STRUCT_PTR(ConstraintLong)
-    ZS_DECLARE_STRUCT_PTR(ConstraintLongRange)
-    ZS_DECLARE_STRUCT_PTR(ConstraintDouble)
-    ZS_DECLARE_STRUCT_PTR(ConstraintDoubleRange)
-    ZS_DECLARE_STRUCT_PTR(ConstraintString)
-    ZS_DECLARE_STRUCT_PTR(ConstraintStringParameters)
+    ZS_DECLARE_STRUCT_PTR(ConstrainBool)
+    ZS_DECLARE_STRUCT_PTR(ConstrainBoolParameters)
+    ZS_DECLARE_STRUCT_PTR(ConstrainLong)
+    ZS_DECLARE_STRUCT_PTR(ConstrainLongRange)
+    ZS_DECLARE_STRUCT_PTR(ConstrainDouble)
+    ZS_DECLARE_STRUCT_PTR(ConstrainDoubleRange)
+    ZS_DECLARE_STRUCT_PTR(ConstrainString)
+    ZS_DECLARE_STRUCT_PTR(ConstrainStringParameters)
     ZS_DECLARE_STRUCT_PTR(StringOrStringList)
 
-    ZS_DECLARE_TYPEDEF_PTR(zsLib::LONG, LongPtr)
-    ZS_DECLARE_TYPEDEF_PTR(bool, BoolPtr)
-    ZS_DECLARE_TYPEDEF_PTR(double, DoublePtr)
-    ZS_DECLARE_TYPEDEF_PTR(String, StringPtr)
+    ZS_DECLARE_TYPEDEF_PTR(zsLib::LONG, Long)
+    ZS_DECLARE_TYPEDEF_PTR(bool, Bool)
+    ZS_DECLARE_TYPEDEF_PTR(double, Double)
+    ZS_DECLARE_TYPEDEF_PTR(String, String)
 
-    ZS_DECLARE_TYPEDEF_PTR(std::list<ConstraintSetPtr>, ConstraintSetList)
     ZS_DECLARE_TYPEDEF_PTR(std::list<String>, StringList)
 
-    static BoolPtr createLong(bool value);
-    static LongPtr createLong(LONG value);
-    static DoublePtr createDouble(double value);
-    static StringOrStringListPtr createString(const String &value);
-    static StringOrStringListPtr createString(const StringList &values);
-
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IConstraints::ConstraintBool
+    #pragma mark IConstraints::ConstrainBoolParameters
     #pragma mark
 
-    struct ConstraintBool {
-      BoolPtr mValue;
-      ConstraintBoolParametersPtr mParameters;
+    struct ConstrainBoolParameters {
+      Optional<bool> mExact;
+      Optional<bool> mIdeal;
+
+      ElementPtr toDebug() const;
+      String hash() const;
     };
 
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IConstraints::ConstraintBoolParameters
+    #pragma mark IConstraints::ConstrainBool
     #pragma mark
 
-    struct ConstraintBoolParameters {
-      BoolPtr mExact;
-      BoolPtr mIdeal;
+    struct ConstrainBool {
+      Optional<bool> mValue;
+      Optional<ConstrainBoolParameters> mParameters;
+
+      ElementPtr toDebug() const;
+      String hash() const;
     };
 
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IConstraints::ConstraintLong
+    #pragma mark IConstraints::ConstrainLongRange
     #pragma mark
 
-    struct ConstraintLong {
-      LongPtr mValue;
-      ConstraintLongRangePtr mRange;
+    struct ConstrainLongRange {
+      Optional<LONG> mMin;
+      Optional<LONG> mMax;
+      Optional<LONG> mExact;
+      Optional<LONG> mIdeal;
+
+      ElementPtr toDebug() const;
+      String hash() const;
     };
 
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IConstraints::ConstraintLongRange
+    #pragma mark IConstraints::ConstrainLong
     #pragma mark
 
-    struct ConstraintLongRange {
-      LongPtr mMin;
-      LongPtr mMax;
-      LongPtr mExact;
-      LongPtr mIdeal;
+    struct ConstrainLong {
+      Optional<LONG> mValue;
+      Optional<ConstrainLongRange> mRange;
+
+      ElementPtr toDebug() const;
+      String hash() const;
     };
 
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IConstraints::ConstraintDouble
+    #pragma mark IConstraints::ConstrainDoubleRange
     #pragma mark
 
-    struct ConstraintDouble {
-      DoublePtr mValue;
-      ConstraintDoubleRangePtr mRange;
+    struct ConstrainDoubleRange {
+      Optional<double> mMin;
+      Optional<double> mMax;
+      Optional<double> mExact;
+      Optional<double> mIdeal;
+
+      ElementPtr toDebug() const;
+      String hash() const;
     };
 
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IConstraints::ConstraintDoubleRange
+    #pragma mark IConstraints::ConstrainDouble
     #pragma mark
 
-    struct ConstraintDoubleRange {
-      DoublePtr mMin;
-      DoublePtr mMax;
-      DoublePtr mExact;
-      DoublePtr mIdeal;
-    };
+    struct ConstrainDouble {
+      Optional<double> mValue;
+      Optional<ConstrainDoubleRange> mRange;
 
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IConstraints::ConstraintString
-    #pragma mark
-
-    struct ConstraintString {
-      StringOrStringListPtr mValue;
-      ConstraintStringParametersPtr mParameters;
-    };
-
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IConstraints::ConstraintStringParameters
-    #pragma mark
-
-    struct ConstraintStringParameters {
-      StringOrStringListPtr mExact;
-      StringOrStringListPtr mIdeal;
+      ElementPtr toDebug() const;
+      String hash() const;
     };
 
     //-------------------------------------------------------------------------
@@ -163,8 +152,38 @@ namespace ortc
     #pragma mark
 
     struct StringOrStringList {
-      StringPtr mValue;
-      StringListPtr mValues;
+      Optional<String> mValue;
+      Optional<StringList> mValues;
+
+      ElementPtr toDebug() const;
+      String hash() const;
     };
+
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IConstraints::ConstraintStringParameters
+    #pragma mark
+
+    struct ConstrainStringParameters {
+      Optional<StringOrStringList> mExact;
+      Optional<StringOrStringList> mIdeal;
+
+      ElementPtr toDebug() const;
+      String hash() const;
+    };
+
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IConstraints::ConstraintString
+    #pragma mark
+
+    struct ConstrainString {
+      Optional<StringOrStringList> mValue;
+      Optional<ConstrainStringParameters> mParameters;
+
+      ElementPtr toDebug() const;
+      String hash() const;
+    };
+
   };
 }

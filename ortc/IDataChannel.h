@@ -75,6 +75,9 @@ namespace ortc
       String        mProtocol;
       bool          mNegotiated {false};
       USHORT        mID {};
+
+      ElementPtr toDebug() const;
+      String hash() const;
     };
   };
 
@@ -99,7 +102,7 @@ namespace ortc
 
     virtual IDataChannelSubscriptionPtr subscribe(IDataChannelDelegatePtr delegate) = 0;
 
-    virtual IDataTransportPtr  transport() const = 0;
+    virtual IDataTransportPtr transport() const = 0;
 
     virtual ParametersPtr parameters() const = 0;
 

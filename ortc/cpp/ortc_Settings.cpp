@@ -32,12 +32,20 @@
 #include <ortc/internal/ortc_Settings.h>
 
 #include <ortc/internal/ortc_Certificate.h>
+#include <ortc/internal/ortc_DataChannel.h>
+#include <ortc/internal/ortc_DTMFSender.h>
+#include <ortc/internal/ortc_DTLSTransport.h>
 #include <ortc/internal/ortc_ICEGatherer.h>
 #include <ortc/internal/ortc_ICETransport.h>
-#include <ortc/internal/ortc_DTLSTransport.h>
+#include <ortc/internal/ortc_Identity.h>
+#include <ortc/internal/ortc_MediaDevices.h>
+#include <ortc/internal/ortc_RTPListener.h>
+#include <ortc/internal/ortc_RTPReceiver.h>
+#include <ortc/internal/ortc_RTPSender.h>
+#include <ortc/internal/ortc_RTPSender.h>
 #include <ortc/internal/ortc_SCTPTransport.h>
-#include <ortc/internal/ortc_SRTPSDESTransport.h>
 #include <ortc/internal/ortc_SRTPTransport.h>
+#include <ortc/internal/ortc_SRTPSDESTransport.h>
 
 #include <openpeer/services/IHelper.h>
 #include <openpeer/services/ISettings.h>
@@ -143,10 +151,16 @@ namespace ortc
     {
       UseServicesSettings::applyDefaults();
 
+      ICertificateForSettings::applyDefaults();
+      IDTMFSenderForSettings::applyDefaults();
+      IDTLSTransportForSettings::applyDefaults();
       IICEGathererForSettings::applyDefaults();
       IICETransportForSettings::applyDefaults();
-      ICertificateForSettings::applyDefaults();
-      IDTLSTransportForSettings::applyDefaults();
+      IIdentityForSettings::applyDefaults();
+      IMediaDevicesForSettings::applyDefaults();
+      IRTPListenerForSettings::applyDefaults();
+      IRTPReceiverForSettings::applyDefaults();
+      IRTPSenderForSettings::applyDefaults();
       ISCTPTransportForSettings::applyDefaults();
       ISRTPTransportForSettings::applyDefaults();
       ISRTPSDESTransportForSettings::applyDefaults();

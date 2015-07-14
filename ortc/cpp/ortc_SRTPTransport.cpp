@@ -132,7 +132,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IICETransportForSettings
+    #pragma mark ISRTPTransportForSettings
     #pragma mark
 
     //-------------------------------------------------------------------------
@@ -1138,11 +1138,11 @@ namespace ortc
       hasher.update(mMKIValue ? UseServicesHelper::convertToHex(*mMKIValue) : String());
 
       hasher.update(":");
-      hasher.update(string(mLifetime));
+      hasher.update(mLifetime);
 
       for (size_t loopComponent = IICETypes::Component_First; loopComponent <= IICETypes::Component_Last; ++loopComponent) {
         hasher.update(":");
-        hasher.update(string(mTotalPackets[loopComponent]));
+        hasher.update(mTotalPackets[loopComponent]);
       }
 
       return hasher.final();
@@ -1190,7 +1190,7 @@ namespace ortc
 
       hasher.update("ortc:SRTPTransport::DirectionMaterial:");
 
-      hasher.update(string(mMKILength));
+      hasher.update(mMKILength);
       hasher.update(":");
       hasher.update(mTempMKIHolder ? string(mTempMKIHolder->SizeInBytes()) : "0");  // do not hex encode because value is bogus temporary (but size must be fixed)
 
@@ -1207,7 +1207,7 @@ namespace ortc
       hasher.update(":");
       for (size_t loop = IICETypes::Component_First; loop <= IICETypes::Component_Last; ++loop) {
         hasher.update(":");
-        hasher.update(string(mMaxTotalLifetime[loop]));
+        hasher.update(mMaxTotalLifetime[loop]);
       }
 
       return hasher.final();

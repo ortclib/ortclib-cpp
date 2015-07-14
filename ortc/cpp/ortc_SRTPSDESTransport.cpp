@@ -764,7 +764,7 @@ namespace ortc
 
     hasher.update("ISRTPSDESTransportTypes:CryptoParameters:");
 
-    hasher.update(string(mTag));
+    hasher.update(mTag);
     hasher.update(":");
     hasher.update(mCryptoSuite);
 
@@ -874,7 +874,7 @@ namespace ortc
     hasher.update(":");
     hasher.update(mMKIValue);
     hasher.update(":");
-    hasher.update(string(mMKILength));
+    hasher.update(mMKILength);
 
     return hasher.final();
   }
@@ -894,6 +894,12 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
+  ISRTPSDESTransportPtr ISRTPSDESTransport::convert(IRTPTransportPtr rtpTransport)
+  {
+    return internal::SRTPSDESTransport::convert(rtpTransport);
+  }
+
+  //---------------------------------------------------------------------------
   ISRTPSDESTransportPtr ISRTPSDESTransport::create(
                                                    ISRTPSDESTransportDelegatePtr delegate,
                                                    IICETransportPtr iceTransport,
@@ -902,12 +908,6 @@ namespace ortc
                                                    )
   {
     return internal::ISRTPSDESTransportFactory::singleton().create(delegate, iceTransport, encryptParameters, decryptParameters);
-  }
-
-  //---------------------------------------------------------------------------
-  ISRTPSDESTransportPtr ISRTPSDESTransport::convert(IRTPTransportPtr rtpTransport)
-  {
-    return internal::SRTPSDESTransport::convert(rtpTransport);
   }
 
 }
