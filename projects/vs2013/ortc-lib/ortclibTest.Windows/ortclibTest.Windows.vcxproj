@@ -126,7 +126,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>ws2_32.lib;boringssl.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>ws2_32.lib;boringssl.lib;libsrtp.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(ProjectDir)\..\..\..\..\..\webrtc\build\$(Configuration)\lib</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -138,7 +138,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>ws2_32.lib;boringssl.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>ws2_32.lib;boringssl.lib;libsrtp.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(ProjectDir)\..\..\..\..\..\webrtc\build\$(Configuration)\lib</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
