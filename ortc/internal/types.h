@@ -47,6 +47,9 @@ namespace ortc
     using zsLib::Noop;
     using zsLib::MessageQueueAssociator;
     using zsLib::RecursiveLock;
+    using zsLib::AutoRecursiveLock;
+    using zsLib::Lock;
+    using zsLib::AutoLock;
     using zsLib::Log;
     using zsLib::Stringize;
     using zsLib::AutoPUID;
@@ -118,6 +121,7 @@ namespace ortc
     ZS_DECLARE_CLASS_PTR(SRTPSDESTransport)
     ZS_DECLARE_CLASS_PTR(SCTPTransport)
     ZS_DECLARE_CLASS_PTR(SRTPTransport)
+    ZS_DECLARE_CLASS_PTR(SRTPInit)
 
 
     ZS_DECLARE_INTERACTION_PROXY(ISRTPTransportDelegate)
