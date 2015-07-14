@@ -57,7 +57,6 @@
 //libSRTP
 #include "third_party/libsrtp/srtp/include/srtp.h"
 #include "third_party/libsrtp/srtp/include/srtp_priv.h"
-#include "third_party/libsrtp/srtp/crypto/include/err.h"
 
 #ifdef _DEBUG
 #define ASSERT(x) ZS_THROW_BAD_STATE_IF(!(x))
@@ -300,6 +299,26 @@ namespace ortc
     }
 
     //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+#pragma mark
+#pragma mark SRTPInit => ISingletonManagerDelegate
+#pragma mark
+
+    //-----------------------------------------------------------------------
+    void SRTPInit::notifySingletonCleanup()
+    {
+      //shutdownAllQueues();
+      //blockUntilDone();
+      //while (true) {
+      //  if (mFinalCheckComplete) break;
+      //  std::this_thread::yield();
+      //}
+      cancel();
+    }
+
+    //-----------------------------------------------------------------------
     SRTPInit::~SRTPInit()
     {
       ZS_LOG_BASIC(log("destroyed"))
@@ -415,7 +434,7 @@ namespace ortc
               // By default policy structure is initialized to HMAC_SHA1.
               policy.next = NULL;
 
-              int err = srtp_create(keyingMaterial->mSRTPSession, &policy);
+              int err = srtp_create(&keyingMaterial->mSRTPSession, &policy);
               if (err != err_status_ok) {
                   keyingMaterial->mSRTPSession = NULL;
                   ZS_LOG_ERROR(Debug, log("Failed to create SRTP session, err=") + ZS_PARAM("err=", err))
@@ -811,7 +830,7 @@ namespace ortc
 #define TODO_APPLY_ENCRYPTION_TO_ENCRYPTED_BUFFER_BUT_LIE_TO_SRTP_ABOUT_LENGTH_SINCE_IT_DOESNT_KNOW_ABOUT_ADDITIONAL_MKI_FIELD 1
 #define TODO_APPLY_ENCRYPTION_TO_ENCRYPTED_BUFFER_BUT_LIE_TO_SRTP_ABOUT_LENGTH_SINCE_IT_DOESNT_KNOW_ABOUT_ADDITIONAL_MKI_FIELD 2
 
-      int out_len {bufferLengthInBytes};
+      int out_len {static_cast<int>(bufferLengthInBytes)};
       int err {};
 
       // scope: lock the keying material with its own individual lock
