@@ -349,7 +349,7 @@
 			buildSettings = {
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"/Users/developerdevelopic/Projects/microsoft/ortc-lib-sdk/libs/webrtc/./out_mac/Debug",
+					"../../../../webrtc/out_mac/${CONFIGURATION}",
 					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/ortc-lib-sdk-dtasabrpmobnrqhhzituwuyevhiq/Build/Products/Debug",
 				);
 				ONLY_ACTIVE_ARCH = NO;
@@ -362,7 +362,7 @@
 			buildSettings = {
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"/Users/developerdevelopic/Projects/microsoft/ortc-lib-sdk/libs/webrtc/./out_mac/Debug",
+					"../../../../webrtc/out_mac/${CONFIGURATION}",
 					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/ortc-lib-sdk-dtasabrpmobnrqhhzituwuyevhiq/Build/Products/Debug",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
