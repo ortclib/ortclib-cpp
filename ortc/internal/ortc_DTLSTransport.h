@@ -181,9 +181,12 @@ namespace ortc
                     );
 
     protected:
-      DTLSTransport(Noop) :
+      DTLSTransport(
+                    Noop,
+                    IMessageQueuePtr queue = IMessageQueuePtr()
+                    ) :
         Noop(true),
-        MessageQueueAssociator(IMessageQueuePtr()),
+        MessageQueueAssociator(queue),
         SharedRecursiveLock(SharedRecursiveLock::create())
       {}
 

@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		0030F6971B1E88F800E8649B /* TestICETransport.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0030F6961B1E88F800E8649B /* TestICETransport.cpp */; };
 		004B60A71B275AD900568C22 /* TestSetup.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 004B60A61B275AD900568C22 /* TestSetup.cpp */; };
+		0055897F1B56A1ED00337372 /* TestSRTP.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0055897E1B56A1ED00337372 /* TestSRTP.cpp */; };
 		0056EE9C1B13B1BA0035B351 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0056EE991B13B1BA0035B351 /* main.cpp */; };
 		0056EE9D1B13B1BA0035B351 /* testing.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0056EE9A1B13B1BA0035B351 /* testing.cpp */; settings = {COMPILER_FLAGS = "-Wno-unreachable-code"; }; };
 		0056EED61B13B7720035B351 /* libresolv.9.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 0056EED51B13B7720035B351 /* libresolv.9.dylib */; };
@@ -316,6 +317,7 @@
 /* Begin PBXFileReference section */
 		0030F6961B1E88F800E8649B /* TestICETransport.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TestICETransport.cpp; sourceTree = "<group>"; };
 		004B60A61B275AD900568C22 /* TestSetup.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TestSetup.cpp; sourceTree = "<group>"; };
+		0055897E1B56A1ED00337372 /* TestSRTP.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TestSRTP.cpp; sourceTree = "<group>"; };
 		0056EE8A1B13B0910035B351 /* ortclibTest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = ortclibTest; sourceTree = BUILT_PRODUCTS_DIR; };
 		0056EE8D1B13B0910035B351 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		0056EE961B13B1680035B351 /* TestMediaEngine.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TestMediaEngine.cpp; sourceTree = "<group>"; };
@@ -406,6 +408,7 @@
 				00AA4CB71B3895840073E17B /* TestDTLS.cpp */,
 				0056EED81B13C1370035B351 /* TestICEGatherer.cpp */,
 				0030F6961B1E88F800E8649B /* TestICETransport.cpp */,
+				0055897E1B56A1ED00337372 /* TestSRTP.cpp */,
 				0056EE961B13B1680035B351 /* TestMediaEngine.cpp */,
 				0056EE971B13B1680035B351 /* TestMediaEngine.h */,
 			);
@@ -842,6 +845,7 @@
 				0056EE9D1B13B1BA0035B351 /* testing.cpp in Sources */,
 				0056EED91B13C1370035B351 /* TestICEGatherer.cpp in Sources */,
 				0030F6971B1E88F800E8649B /* TestICETransport.cpp in Sources */,
+				0055897F1B56A1ED00337372 /* TestSRTP.cpp in Sources */,
 				004B60A71B275AD900568C22 /* TestSetup.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -928,6 +932,7 @@
 					../../../..,
 					"../../../../op-services-cpp",
 					../../../../zsLib,
+					"../../../../webrtc-deps/boringssl/include",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				MTL_ENABLE_DEBUG_INFO = YES;
@@ -972,6 +977,7 @@
 					../../../..,
 					"../../../../op-services-cpp",
 					../../../../zsLib,
+					"../../../../webrtc-deps/boringssl/include",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				MTL_ENABLE_DEBUG_INFO = NO;

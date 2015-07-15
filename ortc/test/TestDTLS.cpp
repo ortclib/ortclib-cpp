@@ -1,6 +1,6 @@
 /*
  
- Copyright (c) 2013, SMB Phone Inc.
+ Copyright (c) 2015, Hookflash Inc.
  All rights reserved.
  
  Redistribution and use in source and binary forms, with or without
@@ -654,7 +654,7 @@ using ortc::IICETypes;
 
 void doTestDTLS()
 {
-  if (!ORTC_TEST_DO_ICE_TRANSPORT_TEST) return;
+  if (!ORTC_TEST_DO_DTLS_TRANSPORT_TEST) return;
 
   TESTING_INSTALL_LOGGER();
 
