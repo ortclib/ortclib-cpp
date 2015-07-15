@@ -27,6 +27,30 @@
 		94E2B59C1B56C71500582A08 /* libsrtp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 94E2B59B1B56C71500582A08 /* libsrtp.a */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		00EC109F1B56F453008FC2A0 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 94E2B2BC1B541C5800582A08 /* udns.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 0066820516C9D91300259F81;
+			remoteInfo = udns;
+		};
+		00EC10A61B56F453008FC2A0 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 94E2B2B01B541C3D00582A08 /* cryptopp.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 006682A016C9DC3D00259F81;
+			remoteInfo = cryptopp;
+		};
+		00EC10A91B56F453008FC2A0 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 94E2B2B61B541C4800582A08 /* idnkit.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 00CF44301A15505B00573A34;
+			remoteInfo = idnkit;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXCopyFilesBuildPhase section */
 		0056EE881B13B0910035B351 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
@@ -181,6 +205,30 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		00EC10971B56F452008FC2A0 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				00EC10A01B56F453008FC2A0 /* libudns.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		00EC10A11B56F453008FC2A0 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				00EC10A71B56F453008FC2A0 /* libcryptopp.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		00EC10A31B56F453008FC2A0 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				00EC10AA1B56F453008FC2A0 /* libidnkit.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -225,12 +273,50 @@
 			mainGroup = 0056EE811B13B0910035B351;
 			productRefGroup = 0056EE8B1B13B0910035B351 /* Products */;
 			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = 00EC10A11B56F453008FC2A0 /* Products */;
+					ProjectRef = 94E2B2B01B541C3D00582A08 /* cryptopp.xcodeproj */;
+				},
+				{
+					ProductGroup = 00EC10A31B56F453008FC2A0 /* Products */;
+					ProjectRef = 94E2B2B61B541C4800582A08 /* idnkit.xcodeproj */;
+				},
+				{
+					ProductGroup = 00EC10971B56F452008FC2A0 /* Products */;
+					ProjectRef = 94E2B2BC1B541C5800582A08 /* udns.xcodeproj */;
+				},
+			);
 			projectRoot = "";
 			targets = (
 				0056EE891B13B0910035B351 /* ortclibTest */,
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXReferenceProxy section */
+		00EC10A01B56F453008FC2A0 /* libudns.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libudns.a;
+			remoteRef = 00EC109F1B56F453008FC2A0 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		00EC10A71B56F453008FC2A0 /* libcryptopp.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libcryptopp.a;
+			remoteRef = 00EC10A61B56F453008FC2A0 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		00EC10AA1B56F453008FC2A0 /* libidnkit.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libidnkit.a;
+			remoteRef = 00EC10A91B56F453008FC2A0 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
 
 /* Begin PBXSourcesBuildPhase section */
 		0056EE861B13B0910035B351 /* Sources */ = {
