@@ -24,6 +24,7 @@
 		94E2B34C1B542D1100582A08 /* libudns.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 94E2B2C11B541C5900582A08 /* libudns.a */; };
 		94E2B34D1B542D1100582A08 /* libzsLib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 94E2B2C71B541C6C00582A08 /* libzsLib.a */; };
 		94E2B3531B542E2900582A08 /* libboringssl.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 94E2B3241B54255800582A08 /* libboringssl.a */; };
+		94E2B58C1B56C23800582A08 /* libsrtp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 94E2B32C1B54255800582A08 /* libsrtp.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -300,6 +301,13 @@
 			remoteGlobalIDString = CEE260265412566A3E5CAD77;
 			remoteInfo = boringssl;
 		};
+		94E2B56D1B56C23000582A08 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 94E2B2D21B541D6F00582A08 /* all_osx.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 12752FBDE5F6DF7397C4B9DF;
+			remoteInfo = libsrtp;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -345,6 +353,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				94E2B58C1B56C23800582A08 /* libsrtp.a in Frameworks */,
 				94E2B3531B542E2900582A08 /* libboringssl.a in Frameworks */,
 				94E2B3481B542D1100582A08 /* libcryptopp.a in Frameworks */,
 				94E2B3491B542D1100582A08 /* libhfservices.a in Frameworks */,
@@ -490,25 +499,25 @@
 		94E2B2D31B541D6F00582A08 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				94E2B31A1B54255800582A08 /* libvpx_intrinsics_avx2.a */,
-				94E2B31C1B54255800582A08 /* libwebrtc_common.a */,
-				94E2B31E1B54255800582A08 /* libjsoncpp.a */,
-				94E2B3201B54255800582A08 /* libvpx_intrinsics_sse2.a */,
 				94E2B3221B54255800582A08 /* libvpx_intrinsics_ssse3.a */,
-				94E2B3241B54255800582A08 /* libboringssl.a */,
+				94E2B3201B54255800582A08 /* libvpx_intrinsics_sse2.a */,
 				94E2B3261B54255800582A08 /* libvpx_intrinsics_mmx.a */,
+				94E2B31C1B54255800582A08 /* libwebrtc_common.a */,
+				94E2B31A1B54255800582A08 /* libvpx_intrinsics_avx2.a */,
 				94E2B3281B54255800582A08 /* libvpx_intrinsics_sse4_1.a */,
+				94E2B31E1B54255800582A08 /* libjsoncpp.a */,
+				94E2B3241B54255800582A08 /* libboringssl.a */,
 				94E2B32A1B54255800582A08 /* libwebrtc_opus.a */,
 				94E2B32C1B54255800582A08 /* libsrtp.a */,
 				94E2B32E1B54255800582A08 /* libwebrtc_i420.a */,
-				94E2B3301B54255800582A08 /* webrtc_opus_fec_test */,
 				94E2B3321B54255800582A08 /* libvpx.a */,
+				94E2B3301B54255800582A08 /* webrtc_opus_fec_test */,
 				94E2B3341B54255800582A08 /* libyuv.a */,
 				94E2B3361B54255800582A08 /* libwebrtc_utility.a */,
 				94E2B3381B54255800582A08 /* libwebrtc_vp8.a */,
-				94E2B33A1B54255800582A08 /* libwebrtc_test_renderer.a */,
 				94E2B33C1B54255800582A08 /* libwebrtc_vp9.a */,
 				94E2B33E1B54255800582A08 /* libwebrtc_video_coding.a */,
+				94E2B33A1B54255800582A08 /* libwebrtc_test_renderer.a */,
 				94E2B3401B54255800582A08 /* libwebrtc.a */,
 				94E2B3421B54255800582A08 /* libwebrtc_test_common.a */,
 				94E2B3441B54255800582A08 /* webrtc_test_common_unittests */,
@@ -534,6 +543,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				94E2B56E1B56C23000582A08 /* PBXTargetDependency */,
 				94E2B34F1B542D4900582A08 /* PBXTargetDependency */,
 				94E2B2C91B541CAC00582A08 /* PBXTargetDependency */,
 				94E2B2CB1B541CAC00582A08 /* PBXTargetDependency */,
@@ -887,6 +897,11 @@
 			isa = PBXTargetDependency;
 			name = boringssl;
 			targetProxy = 94E2B34E1B542D4900582A08 /* PBXContainerItemProxy */;
+		};
+		94E2B56E1B56C23000582A08 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = libsrtp;
+			targetProxy = 94E2B56D1B56C23000582A08 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
