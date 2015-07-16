@@ -53,14 +53,14 @@ namespace ortc
       //RTP Utils
       static int GetRtpPayloadType(const void* data, size_t len);
       static int GetRtpSeqNum(const void* data, size_t len);
-      static UINT GetRtpTimestamp(const void* data, size_t len);
-      static UINT GetRtpSsrc(const void* data, size_t len);
+      static DWORD GetRtpTimestamp(const void* data, size_t len);
+      static DWORD GetRtpSsrc(const void* data, size_t len);
       static size_t GetRtpHeaderLen(const void* data, size_t len);
       static int GetRtcpType(const void* data, size_t len);
-      static UINT GetRtcpSsrc(const void* data, size_t len);
+      static DWORD GetRtcpSsrc(const void* data, size_t len);
       //bool GetRtpHeader(const void* data, size_t len, RtpHeader* header);
 
-      static bool SetRtpSsrc(void* data, size_t len, UINT value);
+      static bool SetRtpSsrc(void* data, size_t len, DWORD value);
       // Assumes version 2, no padding, no extensions, no csrcs.
       //bool SetRtpHeader(void* data, size_t len, const RtpHeader& header);
 
