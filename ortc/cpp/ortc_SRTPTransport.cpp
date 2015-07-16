@@ -399,7 +399,7 @@ namespace ortc
 #define TODO_EXTRACT_AND_FILL_IN_OTHER_KEYING_MATERIAL_VALUES 1
 #define TODO_EXTRACT_AND_FILL_IN_OTHER_KEYING_MATERIAL_VALUES 2
 
-          if (keyingMaterial->mSRTPSession)
+          if (!keyingMaterial->mSRTPSession)
           {
               srtp_policy_t policy;
               memset(&policy, 0, sizeof(policy));

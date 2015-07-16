@@ -74,6 +74,8 @@ ZS_DECLARE_TYPEDEF_PTR(ortc::internal::ISecureTransportForSRTPTransport, UseSecu
 ZS_DECLARE_TYPEDEF_PTR(ortc::internal::ISRTPTransportForSecureTransport, UseSRTPTransport)
 
 ZS_DECLARE_TYPEDEF_PTR(ortc::ISRTPSDESTransport::CryptoParameters, CryptoParameters)
+ZS_DECLARE_TYPEDEF_PTR(ortc::ISRTPSDESTransport::KeyParameters, KeyParameters)
+
 
 
 namespace ortc
@@ -628,6 +630,42 @@ using ortc::IICETypes;
 
 #define TEST_BASIC_CONNECTIVITY 0
 
+static const BYTE kTestKey1[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234";
+static const BYTE kTestKey2[] = "4321ZYXWVUTSRQPONMLKJIHGFEDCBA";
+static const size_t kTestKeyLen = 30;
+
+const char CS_AES_CM_128_HMAC_SHA1_80[] = "AES_CM_128_HMAC_SHA1_80";
+const char CS_AES_CM_128_HMAC_SHA1_32[] = "AES_CM_128_HMAC_SHA1_32";
+
+// A typical PCMU RTP packet.
+// PT=0, SN=1, TS=0, SSRC=1
+// all data FF
+static const BYTE kPcmuFrame[] = {
+  0x80, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01,
+  0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+  0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+  0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+  0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+  0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+  0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+  0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+  0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+  0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+  0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+  0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+  0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+  0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+  0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+  0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+  0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+  0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+  0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+  0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+  0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+};
+
+static const size_t kBufferLen = 172;
+
 
 void doTestSRTP()
 {
@@ -671,11 +709,37 @@ void doTestSRTP()
       switch (testNumber) {
         case TEST_BASIC_CONNECTIVITY: {
           {
+            KeyParameters kParamsEncrypt1;
+            kParamsEncrypt1.mKeyMethod = "inline";
+            kParamsEncrypt1.mKeySalt = UseServicesHelper::convertToBase64(kTestKey1, kTestKeyLen);
+            kParamsEncrypt1.mLifetime = "2^20";
+            kParamsEncrypt1.mMKILength = 0;
+
+            KeyParameters kParamsEncrypt2;
+            kParamsEncrypt2.mKeyMethod = "inline";
+            kParamsEncrypt2.mKeySalt = UseServicesHelper::convertToBase64(kTestKey2, kTestKeyLen);
+            kParamsEncrypt2.mLifetime = "2^20";
+            kParamsEncrypt2.mMKILength = 0;
+
             CryptoParameters encrypt1;
             CryptoParameters decrypt1;
 
             CryptoParameters encrypt2;
             CryptoParameters decrypt2;
+
+
+            encrypt1.mKeyParams.push_front(kParamsEncrypt1);
+            encrypt1.mCryptoSuite = CS_AES_CM_128_HMAC_SHA1_80;
+
+            decrypt1.mKeyParams.push_front(kParamsEncrypt2);
+            decrypt1.mCryptoSuite = CS_AES_CM_128_HMAC_SHA1_80;
+
+            encrypt2.mKeyParams.push_front(kParamsEncrypt2);
+            encrypt2.mCryptoSuite = CS_AES_CM_128_HMAC_SHA1_80;
+
+            decrypt2.mKeyParams.push_front(kParamsEncrypt1);
+            decrypt2.mCryptoSuite = CS_AES_CM_128_HMAC_SHA1_80;
+
 
             // setup for test 0
             fakeDTLSObject1 = FakeSecureTransport::create(thread, encrypt1, decrypt1);
@@ -722,7 +786,8 @@ void doTestSRTP()
                 break;
               }
               case 10: {
-                SecureByteBlockPtr buffer(std::make_shared<SecureByteBlock>(40));  // allocate a buffer of 40 bytes
+                SecureByteBlockPtr buffer(std::make_shared<SecureByteBlock>(172));  // allocate a buffer of 40 bytes
+                buffer = UseServicesHelper::convertToBuffer(kPcmuFrame, kBufferLen);
                 if (testSRTPObject1) testSRTPObject1->expectingIncomingPacket(IICETypes::Component_RTP, IICETypes::Component_RTP, *buffer, buffer->SizeInBytes());
                 if (testSRTPObject2) testSRTPObject2->sendPacket(IICETypes::Component_RTP, IICETypes::Component_RTP, *buffer, buffer->SizeInBytes());
                 break;
