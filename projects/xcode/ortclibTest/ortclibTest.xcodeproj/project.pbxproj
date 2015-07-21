@@ -49,6 +49,27 @@
 			remoteGlobalIDString = 00CF44301A15505B00573A34;
 			remoteInfo = idnkit;
 		};
+		5005D8E71B5DCC6A00AFEC07 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 94E2B2AA1B541C2300582A08 /* hfservices.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 0095D8B116CA83CB005F53D3;
+			remoteInfo = hfservices;
+		};
+		5005D8EB1B5DCC6A00AFEC07 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 94E2B2A21B541BE500582A08 /* ortclib.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 008F56041821367E009863AA;
+			remoteInfo = ortclib;
+		};
+		5005D8F11B5DCC6A00AFEC07 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 94E2B2C21B541C6C00582A08 /* zsLib.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 006680AE16C9CE4300259F81;
+			remoteInfo = zsLib;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -229,6 +250,30 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		5005D8E11B5DCC6A00AFEC07 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				5005D8EC1B5DCC6A00AFEC07 /* libortclib.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		5005D8E31B5DCC6A00AFEC07 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				5005D8E81B5DCC6A00AFEC07 /* libhfservices.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		5005D8EE1B5DCC6A00AFEC07 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				5005D8F21B5DCC6A00AFEC07 /* libzsLib.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -279,12 +324,24 @@
 					ProjectRef = 94E2B2B01B541C3D00582A08 /* cryptopp.xcodeproj */;
 				},
 				{
+					ProductGroup = 5005D8E31B5DCC6A00AFEC07 /* Products */;
+					ProjectRef = 94E2B2AA1B541C2300582A08 /* hfservices.xcodeproj */;
+				},
+				{
 					ProductGroup = 00EC10A31B56F453008FC2A0 /* Products */;
 					ProjectRef = 94E2B2B61B541C4800582A08 /* idnkit.xcodeproj */;
 				},
 				{
+					ProductGroup = 5005D8E11B5DCC6A00AFEC07 /* Products */;
+					ProjectRef = 94E2B2A21B541BE500582A08 /* ortclib.xcodeproj */;
+				},
+				{
 					ProductGroup = 00EC10971B56F452008FC2A0 /* Products */;
 					ProjectRef = 94E2B2BC1B541C5800582A08 /* udns.xcodeproj */;
+				},
+				{
+					ProductGroup = 5005D8EE1B5DCC6A00AFEC07 /* Products */;
+					ProjectRef = 94E2B2C21B541C6C00582A08 /* zsLib.xcodeproj */;
 				},
 			);
 			projectRoot = "";
@@ -314,6 +371,27 @@
 			fileType = archive.ar;
 			path = libidnkit.a;
 			remoteRef = 00EC10A91B56F453008FC2A0 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		5005D8E81B5DCC6A00AFEC07 /* libhfservices.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libhfservices.a;
+			remoteRef = 5005D8E71B5DCC6A00AFEC07 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		5005D8EC1B5DCC6A00AFEC07 /* libortclib.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libortclib.a;
+			remoteRef = 5005D8EB1B5DCC6A00AFEC07 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		5005D8F21B5DCC6A00AFEC07 /* libzsLib.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libzsLib.a;
+			remoteRef = 5005D8F11B5DCC6A00AFEC07 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 /* End PBXReferenceProxy section */

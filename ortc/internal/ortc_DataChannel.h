@@ -32,6 +32,7 @@
 #pragma once
 
 #include <ortc/internal/types.h>
+#include <ortc/internal/ortc_SCTPTransport.h>
 
 #include <ortc/IDataChannel.h>
 
@@ -100,6 +101,7 @@ namespace ortc
                         public IDataChannel,
                         public IDataChannelForSettings,
                         public IDataChannelForSCTPTransport,
+                        public ISCTPTransportForDataChannelDelegate,
                         public IWakeDelegate,
                         public zsLib::ITimerDelegate
     {
@@ -184,6 +186,15 @@ namespace ortc
 
       // (duplicate) virtual PUID getID() const = 0;
 
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark DataChannel => ISCTPTransportForDataChannelDelegate
+      #pragma mark
+      
+      virtual void onSCTPTransportReady() override;
+      virtual void onSCTPTransportClosed() override;
+
+      
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark DataChannel => IWakeDelegate

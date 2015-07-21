@@ -457,6 +457,22 @@
 			buildSettings = {
 				COMBINE_HIDPI_IMAGES = YES;
 				EXECUTABLE_PREFIX = lib;
+				HEADER_SEARCH_PATHS = (
+					../../..,
+					../../../..,
+					"../../../../op-services-cpp",
+					../../../../zsLib,
+					"../../../../webrtc-deps/boringssl/include",
+					"../../../../webrtc-deps/libsrtp/srtp/include",
+					"../../../../webrtc-deps/libsrtp/srtp/crypto/include",
+					"../../../../webrtc-deps/usrsctp",
+					../../../../webrtc,
+					../../../../webrtc/webrtc,
+					../../../../webrtc/webrtc/voice_engine/include,
+					../../../../webrtc/webrtc/video_engine/include,
+					../../../../webrtc/webrtc/modules/video_capture/include,
+					"$(inherited)",
+				);
 				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -467,6 +483,22 @@
 			buildSettings = {
 				COMBINE_HIDPI_IMAGES = YES;
 				EXECUTABLE_PREFIX = lib;
+				HEADER_SEARCH_PATHS = (
+					../../..,
+					../../../..,
+					"../../../../op-services-cpp",
+					../../../../zsLib,
+					"../../../../webrtc-deps/boringssl/include",
+					"../../../../webrtc-deps/libsrtp/srtp/include",
+					"../../../../webrtc-deps/libsrtp/srtp/crypto/include",
+					"../../../../webrtc-deps/usrsctp",
+					../../../../webrtc,
+					../../../../webrtc/webrtc,
+					../../../../webrtc/webrtc/voice_engine/include,
+					../../../../webrtc/webrtc/video_engine/include,
+					../../../../webrtc/webrtc/modules/video_capture/include,
+					"$(inherited)",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;

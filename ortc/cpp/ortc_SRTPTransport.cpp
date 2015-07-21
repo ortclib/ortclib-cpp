@@ -55,8 +55,8 @@
 #endif //HAVE_TGMATH_H
 
 //libSRTP
-#include "third_party/libsrtp/srtp/include/srtp.h"
-#include "third_party/libsrtp/srtp/include/srtp_priv.h"
+#include "srtp.h"
+#include "srtp_priv.h"
 
 #ifdef _DEBUG
 #define ASSERT(x) ZS_THROW_BAD_STATE_IF(!(x))
