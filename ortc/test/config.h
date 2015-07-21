@@ -1,6 +1,6 @@
 /*
  
- Copyright (c) 2013, SMB Phone Inc.
+ Copyright (c) 2015, Hookflash Inc.
  All rights reserved.
  
  Redistribution and use in source and binary forms, with or without
@@ -45,7 +45,9 @@
 #define ORTC_TEST_TELNET_SERVER_LOGGING_PORT  (51999)
 
 #define ORTC_TEST_DO_ICE_GATHERER_TEST                    (false)
-#define ORTC_TEST_DO_ICE_TRANSPORT_TEST                   (true)
+#define ORTC_TEST_DO_ICE_TRANSPORT_TEST                   (false)
+#define ORTC_TEST_DO_DTLS_TRANSPORT_TEST                  (false)
+#define ORTC_TEST_DO_SRTP_TEST                            (true)
 
 
 #define ORTC_TEST_STUN_SERVER             "stun.vline.com"

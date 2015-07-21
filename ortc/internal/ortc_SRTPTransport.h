@@ -40,6 +40,11 @@
 #include <zsLib/MessageQueueAssociator.h>
 #include <zsLib/Timer.h>
 
+// Forward declaration to avoid pulling in libsrtp headers here
+struct srtp_event_data_t;
+struct srtp_ctx_t;
+struct srtp_policy_t;
+
 //#define ORTC_SETTING_SRTP_TRANSPORT_WARN_OF_KEY_LIFETIME_EXHAUGSTION_WHEN_REACH_PERCENTAGE_USSED "ortc/srtp/warm-key-lifetime-exhaustion-when-reach-percentage-used"
 
 #pragma warning(push)
@@ -111,6 +116,69 @@ namespace ortc
                               const BYTE *buffer,
                               size_t bufferLengthInBytes
                               ) = 0;
+    };
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark SRTPInit
+    #pragma mark
+
+    class SRTPInit : public ISingletonManagerDelegate
+    {
+      friend class SRTPTransport;
+
+      protected:
+        struct make_private {};
+
+      public:
+        SRTPInit(const make_private &);
+
+      protected:
+        void init();
+
+        static SRTPInitPtr create();
+
+      protected:
+        static SRTPInitPtr singleton();
+
+        //---------------------------------------------------------------------
+#pragma mark
+#pragma mark SRTPInit => ISingletonManagerDelegate
+#pragma mark
+
+        virtual void notifySingletonCleanup();
+
+      public:
+        ~SRTPInit();
+
+      protected:
+        //---------------------------------------------------------------------
+      #pragma mark
+      #pragma mark SRTPInit => (internal)
+      #pragma mark
+        Log::Params log(const char *message) const;
+        static Log::Params slog(const char *message);
+        Log::Params debug(const char *message) const;
+
+        virtual ElementPtr toDebug() const;
+
+        void cancel();
+
+      protected:
+        //---------------------------------------------------------------------
+      #pragma mark
+      #pragma mark SRTPInit => (data)
+      #pragma mark
+
+      AutoPUID mID;
+      mutable RecursiveLock mLock;
+      SRTPInitWeakPtr mThisWeak;
+
+      std::atomic<bool> mInitialized{ false };
+      std::atomic<bool> mTerminatedCalled {false};
     };
 
     //-------------------------------------------------------------------------
@@ -280,6 +348,11 @@ namespace ortc
     public:
       //-----------------------------------------------------------------------
       #pragma mark
+      #pragma mark SRTPTransport::SRTPSession
+      #pragma mark
+
+      //-----------------------------------------------------------------------
+      #pragma mark
       #pragma mark SRTPTransport::KeyingMaterial
       #pragma mark
 
@@ -295,6 +368,9 @@ namespace ortc
 
 #define TODO_NEED_MORE_STUFF_HERE 1
 #define TODO_NEED_MORE_STUFF_HERE 2
+        //libSRTP Session material
+        Lock mSRTPSessionLock;
+        srtp_ctx_t* mSRTPSession {};
 
         // E.g. (converted into proper useable format by crypto routines)
 
@@ -347,6 +423,8 @@ namespace ortc
       ULONG mLastRemainingOverallPercentageReported {100};
 
       DirectionMaterial mMaterial[Direction_Last+1];
+
+      SRTPInitPtr mSrtpInit;
     };
 
     //-------------------------------------------------------------------------

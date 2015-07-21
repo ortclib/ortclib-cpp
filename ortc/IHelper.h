@@ -35,6 +35,10 @@
 
 namespace ortc
 {
+  const size_t kMinRtpPacketLen = 12;
+  const size_t kMaxRtpPacketLen = 2048;
+  const size_t kMinRtcpPacketLen = 4;
+
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
@@ -45,9 +49,28 @@ namespace ortc
 
   interaction IHelper
   {
-    static String toString(ElementPtr el);
-    static ElementPtr toJSON(const char *str);
+    //static String toString(ElementPtr el);
+    //static ElementPtr toJSON(const char *str);
 
-    static ElementPtr toJSON(const Any &any);
+    //static ElementPtr toJSON(const Any &any);
+
+    //RTP Utils
+    static int GetRtpPayloadType(const void* data, size_t len);
+    static int GetRtpSeqNum(const void* data, size_t len);
+    static UINT GetRtpTimestamp(const void* data, size_t len);
+    static UINT GetRtpSsrc(const void* data, size_t len);
+    static size_t GetRtpHeaderLen(const void* data, size_t len);
+    static int GetRtcpType(const void* data, size_t len);
+    static UINT GetRtcpSsrc(const void* data, size_t len);
+    //bool GetRtpHeader(const void* data, size_t len, RtpHeader* header);
+
+    static bool SetRtpSsrc(void* data, size_t len, UINT value);
+    // Assumes version 2, no padding, no extensions, no csrcs.
+    //bool SetRtpHeader(void* data, size_t len, const RtpHeader& header);
+
+    static bool IsRtpPacket(const void* data, size_t len);
+
+    // True if |payload type| is 0-127.
+    static bool IsValidRtpPayloadType(int payload_type);
   };
 }

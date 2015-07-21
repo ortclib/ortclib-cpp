@@ -1,6 +1,6 @@
 /*
  
- Copyright (c) 2013, SMB Phone Inc.
+ Copyright (c) 2015, Hookflash Inc.
  All rights reserved.
  
  Redistribution and use in source and binary forms, with or without
@@ -55,6 +55,7 @@ typedef openpeer::services::ILogger ILogger;
 
 void doSetup();
 void doTestDTLS();
+void doTestSRTP();
 void doTestICEGatherer();
 void doTestICETransport();
 
@@ -154,9 +155,10 @@ namespace Testing
 
     doSetup();
 
+    TESTING_RUN_TEST_FUNC(doTestSRTP)
     TESTING_RUN_TEST_FUNC(doTestDTLS)
-    //TESTING_RUN_TEST_FUNC(doTestICEGatherer)
-    //TESTING_RUN_TEST_FUNC(doTestICETransport)
+    TESTING_RUN_TEST_FUNC(doTestICEGatherer)
+    TESTING_RUN_TEST_FUNC(doTestICETransport)
 
     TESTING_UNINSTALL_LOGGER()
   }

@@ -31,7 +31,6 @@
 
 #pragma once
 
-#if 0
 
 #include <ortc/internal/types.h>
 #include <ortc/IHelper.h>
@@ -51,8 +50,27 @@ namespace ortc
     class Helper : public IHelper
     {
     public:
+      //RTP Utils
+      static int GetRtpPayloadType(const void* data, size_t len);
+      static int GetRtpSeqNum(const void* data, size_t len);
+      static UINT GetRtpTimestamp(const void* data, size_t len);
+      static UINT GetRtpSsrc(const void* data, size_t len);
+      static size_t GetRtpHeaderLen(const void* data, size_t len);
+      static int GetRtcpType(const void* data, size_t len);
+      static UINT GetRtcpSsrc(const void* data, size_t len);
+      //bool GetRtpHeader(const void* data, size_t len, RtpHeader* header);
+
+      static bool SetRtpSsrc(void* data, size_t len, UINT value);
+      // Assumes version 2, no padding, no extensions, no csrcs.
+      //bool SetRtpHeader(void* data, size_t len, const RtpHeader& header);
+
+      static bool IsRtpPacket(const void* data, size_t len);
+
+      // True if |payload type| is 0-127.
+      static bool IsValidRtpPayloadType(int payload_type);
+
+      static Log::Params log(const char *message);
     };
   }
 }
 
-#endif //0

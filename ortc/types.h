@@ -47,6 +47,8 @@ namespace ortc
   using zsLib::DWORD;
   using zsLib::QWORD;
   using zsLib::USHORT;
+  using zsLib::UCHAR;
+  using zsLib::UINT;
   using zsLib::LONG;
   using zsLib::ULONG;
   using zsLib::ULONGLONG;

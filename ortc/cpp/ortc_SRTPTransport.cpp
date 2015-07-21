@@ -42,6 +42,8 @@
 #include <zsLib/Log.h>
 #include <zsLib/Numeric.h>
 #include <zsLib/XML.h>
+#include <zsLib/SafeInt.h>
+#include <zsLib/Singleton.h>
 
 #include <cryptopp/integer.h>
 #include <cryptopp/sha.h>
@@ -51,6 +53,10 @@
 #else
 #include <math.h>
 #endif //HAVE_TGMATH_H
+
+//libSRTP
+#include "third_party/libsrtp/srtp/include/srtp.h"
+#include "third_party/libsrtp/srtp/include/srtp_priv.h"
 
 #ifdef _DEBUG
 #define ASSERT(x) ZS_THROW_BAD_STATE_IF(!(x))
@@ -191,6 +197,135 @@ namespace ortc
       return "UNDEFINED";
     }
 
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    #pragma mark
+    #pragma mark SRTPInit
+    #pragma mark
+
+    //-----------------------------------------------------------------------
+    SRTPInit::SRTPInit(const make_private &)
+    {
+      ZS_LOG_BASIC(log("created"))
+    }
+
+    //-----------------------------------------------------------------------
+    void SRTPInit::init()
+    {
+      int err {};
+      AutoRecursiveLock lock(mLock);
+      err = srtp_init();
+      if (err != err_status_ok) {
+        ZS_LOG_ERROR(Trace, log("Failed to init SRTP"))
+      }
+      mInitialized = true;
+    }
+
+    //-----------------------------------------------------------------------
+    SRTPInitPtr SRTPInit::create()
+    {
+      SRTPInitPtr pThis(make_shared<SRTPInit>(make_private{}));
+      pThis->mThisWeak = pThis;
+      pThis->init();
+      return pThis;
+    }
+
+    //-----------------------------------------------------------------------
+    SRTPInitPtr SRTPInit::singleton()
+    {
+      static SingletonLazySharedPtr<SRTPInit> singleton(create());
+      SRTPInitPtr result = singleton.singleton();
+
+      static zsLib::SingletonManager::Register registerSingleton("openpeer::ortc::SRTPInit", result);
+
+      if (!result) {
+        ZS_LOG_WARNING(Detail, slog("singleton gone"))
+      }
+
+      return result;
+    }
+
+    //-----------------------------------------------------------------------
+    Log::Params SRTPInit::log(const char *message) const
+    {
+      ElementPtr objectEl = Element::create("ortc::SRTPInit");
+      UseServicesHelper::debugAppend(objectEl, "id", mID);
+      return Log::Params(message, objectEl);
+    }
+
+    //-----------------------------------------------------------------------
+    Log::Params SRTPInit::slog(const char *message)
+    {
+      return Log::Params(message, "ortc::SRTPInit");
+    }
+
+    //-----------------------------------------------------------------------
+    Log::Params SRTPInit::debug(const char *message) const
+    {
+      return Log::Params(message, toDebug());
+    }
+
+    //-----------------------------------------------------------------------
+    ElementPtr SRTPInit::toDebug() const
+    {
+      AutoRecursiveLock lock(mLock);
+      ElementPtr resultEl = Element::create("ortc::SRTPInit");
+
+      UseServicesHelper::debugAppend(resultEl, "id", mID);
+
+      return resultEl;
+    }
+
+    //-----------------------------------------------------------------------
+    void SRTPInit::cancel()
+    {
+      ZS_LOG_DEBUG(log("cancel called"))
+
+        if (mInitialized) 
+        {
+          bool wasTerminated = mTerminatedCalled.exchange(true);
+          if (!wasTerminated)
+          {
+            int err = srtp_shutdown();
+            if (err) {
+              ZS_LOG_ERROR(Trace, log("srtp_shutdown failed"))
+              return;
+            }
+            mInitialized = false;
+          }
+        }
+    }
+
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+#pragma mark
+#pragma mark SRTPInit => ISingletonManagerDelegate
+#pragma mark
+
+    //-----------------------------------------------------------------------
+    void SRTPInit::notifySingletonCleanup()
+    {
+      //shutdownAllQueues();
+      //blockUntilDone();
+      //while (true) {
+      //  if (mFinalCheckComplete) break;
+      //  std::this_thread::yield();
+      //}
+      cancel();
+    }
+
+    //-----------------------------------------------------------------------
+    SRTPInit::~SRTPInit()
+    {
+      ZS_LOG_BASIC(log("destroyed"))
+      mThisWeak.reset();
+      cancel();
+    }
+
     //-------------------------------------------------------------------------
     SRTPTransport::SRTPTransport(
                                  const make_private &,
@@ -202,7 +337,8 @@ namespace ortc
                                  ) throw(InvalidParameters) :
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
-      mSecureTransport(secureTransport)
+      mSecureTransport(secureTransport),
+      mSrtpInit(SRTPInit::create())
     {
       ZS_LOG_DETAIL(debug("created"))
 
@@ -266,6 +402,45 @@ namespace ortc
 
 #define TODO_EXTRACT_AND_FILL_IN_OTHER_KEYING_MATERIAL_VALUES 1
 #define TODO_EXTRACT_AND_FILL_IN_OTHER_KEYING_MATERIAL_VALUES 2
+
+          if (keyingMaterial->mSRTPSession)
+          {
+              srtp_policy_t policy;
+              memset(&policy, 0, sizeof(policy));
+
+              if (CS_AES_CM_128_HMAC_SHA1_80 == mParams[loop].mCryptoSuite) {
+                  crypto_policy_set_aes_cm_128_hmac_sha1_80(&policy.rtp);
+                  crypto_policy_set_aes_cm_128_hmac_sha1_80(&policy.rtcp);
+              }
+              else if (CS_AES_CM_128_HMAC_SHA1_32 == mParams[loop].mCryptoSuite) {
+                  crypto_policy_set_aes_cm_128_hmac_sha1_32(&policy.rtp);   // rtp is 32,
+                  crypto_policy_set_aes_cm_128_hmac_sha1_80(&policy.rtcp);  // rtcp still 80
+              }
+              else {
+                  ZS_LOG_WARNING(Detail, log("crypto suite is not understood") + mParams[loop].toDebug())
+                  ORTC_THROW_INVALID_PARAMETERS("Crypto suite is not understood: " + mParams[loop].mCryptoSuite)
+              }
+
+              policy.ssrc.type = (loop == Direction_Encrypt ? ssrc_any_outbound : ssrc_any_inbound);
+              policy.ssrc.value = 0;
+              policy.key = keyingMaterial->mKeySalt->BytePtr();
+              
+              // TODO(astor) parse window size from WSH session-param
+              policy.window_size = 1024;
+              policy.allow_repeat_tx = 1;
+              // If external authentication option is enabled, supply custom auth module
+              // id EXTERNAL_HMAC_SHA1 in the policy structure.
+              // We want to set this option only for rtp packets.
+              // By default policy structure is initialized to HMAC_SHA1.
+              policy.next = NULL;
+
+              int err = srtp_create(&keyingMaterial->mSRTPSession, &policy);
+              if (err != err_status_ok) {
+                  keyingMaterial->mSRTPSession = NULL;
+                  ZS_LOG_ERROR(Debug, log("Failed to create SRTP session, err=") + ZS_PARAM("err=", err))
+                  ORTC_THROW_INVALID_PARAMETERS("Failed to create SRTP session")
+              }
+          }
 
           if (0 != mkiLength) {
             keyingMaterial->mMKIValue = convertIntegerToBigEndianEncodedBuffer(keyParam.mMKIValue, mkiLength);
@@ -401,12 +576,19 @@ namespace ortc
       IICETypes::Components component = (isRTCP(buffer, bufferLengthInBytes) ? IICETypes::Component_RTP : IICETypes::Component_RTCP);
 
       size_t popSize = 0;
+      enum UsedKeys {
+        UsedKey_First,
 
-      KeyingMaterialPtr oldKey;     // WARNING: do NOT modify contents of what pointer is pointing to outside of a lock (shouldn't need to change contents anyway)
-      KeyingMaterialPtr currentKey; // WARNING: do NOT modify contents of what pointer is pointing to outside of a lock (shouldn't need to change contents anyway)
-      KeyingMaterialPtr nextKey;    // WARNING: do NOT modify contents of what pointer is pointing to outside of a lock (shouldn't need to change contents anyway)
+        UsedKey_Current = UsedKey_First,
+        UsedKey_Next,
+        UsedKey_Old,
 
-      KeyingMaterialPtr decryptedWithKey; // WARNING: do NOT modify contents of what pointer is pointing to outside of a lock (shouldn't need to change contents anyway)
+        UsedKey_Last = UsedKey_Old
+      };
+
+      // WARNING: do NOT modify contents of what pointer is pointing to outside of a lock (shouldn't need to change contents anyway)
+      KeyingMaterialPtr usedKeys[UsedKey_Last + 1];
+      UsedKeys decryptedWithKey {UsedKey_First};
 
       DirectionMaterial &material = mMaterial[Direction_Decrypt]; // WARNING: only some values are accessible outside a lock
 
@@ -422,8 +604,6 @@ namespace ortc
         packetMKI = &(buffer[bufferLengthInBytes - authenticationTagLength - material.mMKILength]);
       }
 
-#define TODO_SET_pPacketMKI_TO_POINT_TO_MKI_VALUE_INSIDE_PACKET_IF_APPLICABLE 1
-#define TODO_SET_pPacketMKI_TO_POINT_TO_MKI_VALUE_INSIDE_PACKET_IF_APPLICABLE 2
       // NOTE: *** WARNING ***
       // DO NOT TRUST THE INCOMING PACKET. Assume every size, index and
       // value inside the incoming packet is malicious. Thus double check
@@ -462,17 +642,17 @@ namespace ortc
             return false;
           }
 
-          currentKey = (*found).second;
+          usedKeys[UsedKey_Current] = (*found).second;
         } else {
           if (material.mKeyList.size() < 1) {
             ZS_LOG_WARNING(Debug, log("keying material is exhausted"))
             return false;
           }
 
-          oldKey = material.mOldKey;
-          currentKey = material.mKeyList.front();
+          usedKeys[UsedKey_Old] = material.mOldKey;
+          usedKeys[UsedKey_Current] = material.mKeyList.front();
           if (material.mKeyList.size() > 1) {
-            nextKey = *(++(material.mKeyList.begin())); // only set if there is a next key
+              usedKeys[UsedKey_Next] = *(++(material.mKeyList.begin())); // only set if there is a next key
           }
 
           popSize = material.mKeyList.size();
@@ -481,19 +661,12 @@ namespace ortc
         // NOTE: oldKey and nextKey might be null if there is no older key or
         // next key. However, currentKey must be valid.
 
-        ASSERT(((bool)currentKey))
+        ASSERT(((bool)usedKeys[UsedKey_Current]))
 
-        if (!currentKey) {
+        if (!usedKeys[UsedKey_Current]) {
           ZS_LOG_ERROR(Debug, log("no keying material found to decrypt packet") + ZS_PARAM("buffer length in bytes", bufferLengthInBytes))
           return false;
         }
-
-        if (currentKey->mTotalPackets[component] + 1 > currentKey->mLifetime) {
-          ZS_LOG_WARNING(Debug, log("cannot use keying material as it's lifetime is exhausted") + currentKey->toDebug())
-          return false;
-        }
-
-        updateTotalPackets(Direction_Decrypt, component, currentKey);
       }
 
       ASSERT(((bool)transport))
@@ -522,43 +695,72 @@ namespace ortc
 
       // NOTE: The decryptedBuffer now includes the RTP header, payload and
       // authentication tag without the MKI value in the packet.
+      
+      bool foundKey {false};
+      int out_len {};
+      for (size_t loop = UsedKey_First; loop <= UsedKey_Last; ++loop)
+      {
+        if (!((bool)(usedKeys[loop]))) continue;
 
-#define WARNING_IF_POSSIBLE_PERFORM_DECRYPTION_OUTSIDE_OF_OBJECT_LOCK 1
-#define WARNING_IF_POSSIBLE_PERFORM_DECRYPTION_OUTSIDE_OF_OBJECT_LOCK 2
+        out_len = decryptedBuffer->SizeInBytes();
 
-#define ONCE_FIGURED_OUT_WHICH_KEY_TO_USE_SET_decryptedWithKey_TO_POINT_TO_THAT_KEY 1
-#define ONCE_FIGURED_OUT_WHICH_KEY_TO_USE_SET_decryptedWithKey_TO_POINT_TO_THAT_KEY 2
+        // scope: lock the keying material with its own individual lock
+        {
+          AutoLock lock(usedKeys[loop]->mSRTPSessionLock);
+          int err = (component == IICETypes::Component_RTP ? srtp_unprotect(usedKeys[loop]->mSRTPSession, decryptedBuffer->BytePtr(), &out_len) :
+                                                             srtp_unprotect_rtcp(usedKeys[loop]->mSRTPSession, decryptedBuffer->BytePtr(), &out_len));
+          if (err != err_status_ok) {
+            ZS_LOG_WARNING(Trace, log("cannot use current keying material, trying with next key") + usedKeys[loop]->toDebug())
+              continue;
+          }
 
-      ASSERT(((bool)decryptedWithKey));
+          //uint32 ssrc;
+          //if (GetRtpSsrc(p, in_len, &ssrc)) {
+          //    srtp_stat_->AddUnprotectRtpResult(ssrc, err);
+          //}
+        }
+
+        foundKey = true;
+        decryptedWithKey = static_cast<UsedKeys>(loop);
+        break;
+      }
+
+      if (!foundKey)
+      {
+        ZS_LOG_WARNING(Trace, log("cannot decrypt packet with any key (thus discarding packet)"))
+        return false;
+      }
+
+      ASSERT(((bool)usedKeys[decryptedWithKey]));
 
       // need to update the usage of the key (depending on which key was acutally used for decrypting)
       {
         AutoRecursiveLock lock(*this);
 
-        if (decryptedWithKey->mTotalPackets[component] + 1 > decryptedWithKey->mLifetime) {
-          ZS_LOG_WARNING(Debug, log("cannot use keying material as it's lifetime is exhausted") + decryptedWithKey->toDebug())
+        if (usedKeys[decryptedWithKey]->mTotalPackets[component] + 1 > usedKeys[decryptedWithKey]->mLifetime) {
+          ZS_LOG_WARNING(Debug, log("cannot use keying material as it's lifetime is exhausted") + usedKeys[decryptedWithKey]->toDebug())
           return false;
         }
 
-        updateTotalPackets(Direction_Decrypt, component, decryptedWithKey);
+        updateTotalPackets(Direction_Decrypt, component, usedKeys[decryptedWithKey]);
 
-        if (decryptedWithKey == nextKey) {
+        if (decryptedWithKey == UsedKey_Next) {
           // double check this key has not already been popped off by another thread
           if (popSize == material.mKeyList.size()) {
             material.mKeyList.pop_front();  // the current key is disposed
-            material.mOldKey = currentKey;  // remember the current key as the old key
+            material.mOldKey = usedKeys[UsedKey_Current];  // remember the current key as the old key
           }
         }
       }
 
       ASSERT(((bool)decryptedBuffer))
+      ASSERT(out_len > 0)
+
+      ASSERT(out_len <= decryptedBuffer->SizeInBytes())
 
       ZS_LOG_INSANE(log("forwarding packet to secure transport") + ZS_PARAM("via", IICETypes::toString(viaTransport)) + ZS_PARAM("component", IICETypes::toString(component)) + ZS_PARAM("buffer length in bytes", decryptedBuffer->SizeInBytes()))
 
-#define MIGHT_WANT_TO_USE_SRTPLIB_OUTPUT_LENGTH_INSTEAD 1
-#define MIGHT_WANT_TO_USE_SRTPLIB_OUTPUT_LENGTH_INSTEAD 2
-
-      return transport->handleReceivedDecryptedPacket(viaTransport, component, decryptedBuffer->BytePtr(), decryptedBuffer->SizeInBytes() - authenticationTagLength);
+      return transport->handleReceivedDecryptedPacket(viaTransport, component, decryptedBuffer->BytePtr(), SafeInt<decltype(out_len)>(out_len));
     }
 
     //-------------------------------------------------------------------------
@@ -574,7 +776,7 @@ namespace ortc
 
       SecureByteBlockPtr encryptedBuffer;
 
-      DirectionMaterial &material = mMaterial[Direction_Decrypt]; // WARNING: only some values are accessible outside a lock
+      DirectionMaterial &material = mMaterial[Direction_Encrypt]; // WARNING: only some values are accessible outside a lock
 
       size_t authenticationTagLength = material.mAuthenticationTagLength[packetType];
 
@@ -628,11 +830,25 @@ namespace ortc
 #define TODO_APPLY_ENCRYPTION_TO_ENCRYPTED_BUFFER_BUT_LIE_TO_SRTP_ABOUT_LENGTH_SINCE_IT_DOESNT_KNOW_ABOUT_ADDITIONAL_MKI_FIELD 1
 #define TODO_APPLY_ENCRYPTION_TO_ENCRYPTED_BUFFER_BUT_LIE_TO_SRTP_ABOUT_LENGTH_SINCE_IT_DOESNT_KNOW_ABOUT_ADDITIONAL_MKI_FIELD 2
 
-#define WARNING_IF_POSSIBLE_DO_ENCRYPTION_OUTSIDE_OF_OBJECT_LOCK 1
-#define WARNING_IF_POSSIBLE_DO_ENCRYPTION_OUTSIDE_OF_OBJECT_LOCK 2
+      int out_len {static_cast<int>(bufferLengthInBytes)};
+      int err {};
 
-#define WARNING_SHOULD_NOT_REACH_HERE_UNLESS_encryptedBuffer_IS_VALID 1
-#define WARNING_SHOULD_NOT_REACH_HERE_UNLESS_encryptedBuffer_IS_VALID 2
+      // scope: lock the keying material with its own individual lock
+      {
+        AutoLock lock(keyingMaterial->mSRTPSessionLock);
+        err = (packetType == IICETypes::Component_RTP ? srtp_protect(keyingMaterial->mSRTPSession, encryptedBuffer->BytePtr(), &out_len) :
+                                                        srtp_protect_rtcp(keyingMaterial->mSRTPSession, encryptedBuffer->BytePtr(), &out_len));
+
+        //uint32 ssrc;
+        //if (GetRtpSsrc(p, in_len, &ssrc)) {
+        //    srtp_stat_->AddProtectRtpResult(ssrc, err);
+        //}
+      }
+
+      if (err != err_status_ok) {
+        ZS_LOG_WARNING(Debug, log("cannot use current keying material for encryption") + keyingMaterial->toDebug())
+        return false;
+      }
 
       if (material.mMKILength > 0) {
         // Need to make room for the MKI by moving the authentication tag
@@ -650,6 +866,8 @@ namespace ortc
 
       ASSERT(((bool)transport))
       ASSERT(((bool)encryptedBuffer))
+
+      ASSERT(out_len <= encryptedBuffer->SizeInBytes())
 
       // do NOT call this method from within a lock
       return transport->sendEncryptedPacket(sendOverICETransport, packetType, encryptedBuffer->BytePtr(), encryptedBuffer->SizeInBytes());
@@ -761,6 +979,7 @@ namespace ortc
     void SRTPTransport::cancel()
     {
       //.......................................................................
+      mSrtpInit.reset();
       // final cleanup
 
       mSubscriptions.clear();
