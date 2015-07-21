@@ -76,7 +76,7 @@
 		0064C6A61AFBF14D0089571E /* ortc_SRTPSDESTransport.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ortc_SRTPSDESTransport.h; sourceTree = "<group>"; };
 		0064C6BA1AFE75030089571E /* ortc_ISecureTransport.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ortc_ISecureTransport.h; sourceTree = "<group>"; };
 		0064C6BB1AFE75C40089571E /* ortc_ISecureTransport.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_ISecureTransport.cpp; sourceTree = "<group>"; };
-		006E838A1B3C7576007740C3 /* ortc_SCTPTransport.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_SCTPTransport.cpp; sourceTree = "<group>"; };
+		006E838A1B3C7576007740C3 /* ortc_SCTPTransport.cpp */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 2; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_SCTPTransport.cpp; sourceTree = "<group>"; tabWidth = 2; usesTabs = 0; };
 		006E838C1B3C7588007740C3 /* ortc_SCTPTransport.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ortc_SCTPTransport.h; sourceTree = "<group>"; };
 		00724A6D184CF42B0049B9EF /* ortc_ORTC.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_ORTC.cpp; sourceTree = "<group>"; };
 		007B98F71855D61C004AC6C0 /* ortc_DTLSTransport.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_DTLSTransport.cpp; sourceTree = "<group>"; };
@@ -457,6 +457,22 @@
 			buildSettings = {
 				COMBINE_HIDPI_IMAGES = YES;
 				EXECUTABLE_PREFIX = lib;
+				HEADER_SEARCH_PATHS = (
+					../../..,
+					../../../..,
+					"../../../../op-services-cpp",
+					../../../../zsLib,
+					"../../../../webrtc-deps/boringssl/include",
+					"../../../../webrtc-deps/libsrtp/srtp/include",
+					"../../../../webrtc-deps/libsrtp/srtp/crypto/include",
+					"../../../../webrtc-deps/usrsctp",
+					../../../../webrtc,
+					../../../../webrtc/webrtc,
+					../../../../webrtc/webrtc/voice_engine/include,
+					../../../../webrtc/webrtc/video_engine/include,
+					../../../../webrtc/webrtc/modules/video_capture/include,
+					"$(inherited)",
+				);
 				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -467,6 +483,22 @@
 			buildSettings = {
 				COMBINE_HIDPI_IMAGES = YES;
 				EXECUTABLE_PREFIX = lib;
+				HEADER_SEARCH_PATHS = (
+					../../..,
+					../../../..,
+					"../../../../op-services-cpp",
+					../../../../zsLib,
+					"../../../../webrtc-deps/boringssl/include",
+					"../../../../webrtc-deps/libsrtp/srtp/include",
+					"../../../../webrtc-deps/libsrtp/srtp/crypto/include",
+					"../../../../webrtc-deps/usrsctp",
+					../../../../webrtc,
+					../../../../webrtc/webrtc,
+					../../../../webrtc/webrtc/voice_engine/include,
+					../../../../webrtc/webrtc/video_engine/include,
+					../../../../webrtc/webrtc/modules/video_capture/include,
+					"$(inherited)",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;

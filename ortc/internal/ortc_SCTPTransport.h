@@ -39,6 +39,7 @@
 #include <openpeer/services/IWakeDelegate.h>
 #include <zsLib/MessageQueueAssociator.h>
 #include <zsLib/Timer.h>
+#include <zsLib/ProxySubscriptions.h>
 
 #define ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE "ortc/sctp/max-message-size"
 
@@ -51,8 +52,13 @@ namespace ortc
     ZS_DECLARE_INTERACTION_PTR(ISCTPTransportForSettings)
     ZS_DECLARE_INTERACTION_PTR(ISCTPTransportForDTLSTransport)
     ZS_DECLARE_INTERACTION_PTR(ISCTPTransportForDataChannel)
-
+    ZS_DECLARE_INTERACTION_PTR(IDataChannelForSCTPTransport)
+    
     ZS_DECLARE_INTERACTION_PROXY(ISCTPTransportAsyncDelegate)
+    ZS_DECLARE_INTERACTION_PROXY(ISCTPTransportForDataChannelDelegate)
+    
+    ZS_DECLARE_INTERACTION_PROXY_SUBSCRIPTION(ISCTPTransportForDataChannelSubscription, ISCTPTransportForDataChannelDelegate)
+
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -108,6 +114,7 @@ namespace ortc
       static ElementPtr toDebug(ForDataChannelPtr transport);
 
       virtual PUID getID() const = 0;
+      virtual ISCTPTransportForDataChannelSubscriptionPtr subscribe(ISCTPTransportForDataChannelDelegatePtr delegate) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -123,6 +130,57 @@ namespace ortc
       virtual ~ISCTPTransportAsyncDelegate() {}
     };
 
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark ISCTPTransportForDataChannelDelegate
+    #pragma mark
+
+    interaction ISCTPTransportForDataChannelDelegate
+    {
+      virtual void onSCTPTransportReady() = 0;
+      virtual void onSCTPTransportClosed() = 0;
+    };
+
+    //---------------------------------------------------------------------------
+    //---------------------------------------------------------------------------
+    //---------------------------------------------------------------------------
+    //---------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark ISCTPTransportForDataChannelSubscription
+    #pragma mark
+    
+    interaction ISCTPTransportForDataChannelSubscription
+    {
+      virtual PUID getID() const = 0;
+      
+      virtual void cancel() = 0;
+      
+      virtual void background() = 0;
+    };
+  }
+}
+
+ZS_DECLARE_PROXY_BEGIN(ortc::internal::ISCTPTransportAsyncDelegate)
+//ZS_DECLARE_PROXY_METHOD_0(onWhatever)
+ZS_DECLARE_PROXY_END()
+
+ZS_DECLARE_PROXY_BEGIN(ortc::internal::ISCTPTransportForDataChannelDelegate)
+ZS_DECLARE_PROXY_METHOD_0(onSCTPTransportReady)
+ZS_DECLARE_PROXY_METHOD_0(onSCTPTransportClosed)
+ZS_DECLARE_PROXY_END()
+
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_BEGIN(ortc::internal::ISCTPTransportForDataChannelDelegate, ortc::internal::ISCTPTransportForDataChannelSubscription)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_0(onSCTPTransportReady)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_0(onSCTPTransportClosed)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_END()
+
+namespace ortc
+{
+  namespace internal
+  {
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -154,10 +212,13 @@ namespace ortc
       friend interaction ISCTPTransportForDataChannel;
 
       ZS_DECLARE_TYPEDEF_PTR(IDTLSTransportForDataTransport, UseDTLSTransport)
+      ZS_DECLARE_TYPEDEF_PTR(IDataChannelForSCTPTransport, UseDataChannel)
+
 
       enum States
       {
         State_Pending,
+        State_DTLSComplete,
         State_Ready,
         State_ShuttingDown,
         State_Shutdown,
@@ -242,6 +303,7 @@ namespace ortc
       // (duplciate) static ElementPtr toDebug(ForDataChannelPtr transport);
 
       // (duplicate) virtual PUID getID() const = 0;
+      virtual ISCTPTransportForDataChannelSubscriptionPtr subscribe(ISCTPTransportForDataChannelDelegatePtr delegate) override;
 
 
       //-----------------------------------------------------------------------
@@ -295,6 +357,8 @@ namespace ortc
 
       void step();
       bool stepBogusDoSomething();
+      bool stepDTLSTransportReady();
+      bool stepDTLSTransportError();
 
       void cancel();
 
@@ -313,6 +377,8 @@ namespace ortc
 
       ISCTPTransportDelegateSubscriptions mSubscriptions;
       ISCTPTransportSubscriptionPtr mDefaultSubscription;
+
+      ISCTPTransportForDataChannelDelegateSubscriptions mDataChannelSubscriptions;
 
       States mCurrentState {State_Pending};
 
@@ -351,6 +417,3 @@ namespace ortc
   }
 }
 
-ZS_DECLARE_PROXY_BEGIN(ortc::internal::ISCTPTransportAsyncDelegate)
-//ZS_DECLARE_PROXY_METHOD_0(onWhatever)
-ZS_DECLARE_PROXY_END()
