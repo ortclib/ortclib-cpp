@@ -85,6 +85,10 @@ namespace ortc
 
       virtual PUID getID() const = 0;
 
+      virtual bool notifySendSCTPPacket(
+                                        const BYTE *buffer,
+                                        size_t bufferLengthInBytes
+                                        ) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -186,6 +190,11 @@ namespace ortc
 
       // (duplicate) virtual PUID getID() const = 0;
 
+      virtual bool notifySendSCTPPacket(
+                                        const BYTE *buffer,
+                                        size_t bufferLengthInBytes
+                                        ) override;
+
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark DataChannel => ISCTPTransportForDataChannelDelegate
@@ -251,7 +260,7 @@ namespace ortc
       IDataChannelDelegateSubscriptions mSubscriptions;
       IDataChannelSubscriptionPtr mDefaultSubscription;
 
-      UseDataTransportWeakPtr mDataTransport;
+      UseDataTransportPtr mDataTransport;
 
       States mCurrentState {State_Connecting};
 

@@ -47,6 +47,9 @@ namespace ortc
 {
   namespace internal
   {
+    ZS_DECLARE_CLASS_PTR(SCTPInit)
+    ZS_DECLARE_CLASS_PTR(SCTPTransport)
+
     ZS_DECLARE_INTERACTION_PTR(IDTLSTransportForDataTransport)
 
     ZS_DECLARE_INTERACTION_PTR(ISCTPTransportForSettings)
@@ -114,7 +117,13 @@ namespace ortc
       static ElementPtr toDebug(ForDataChannelPtr transport);
 
       virtual PUID getID() const = 0;
+
       virtual ISCTPTransportForDataChannelSubscriptionPtr subscribe(ISCTPTransportForDataChannelDelegatePtr delegate) = 0;
+
+      virtual bool notifySendSCTPPacket(
+                                        const BYTE *buffer,
+                                        size_t bufferLengthInBytes
+                                        ) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -305,6 +314,10 @@ namespace ortc
       // (duplicate) virtual PUID getID() const = 0;
       virtual ISCTPTransportForDataChannelSubscriptionPtr subscribe(ISCTPTransportForDataChannelDelegatePtr delegate) override;
 
+      virtual bool notifySendSCTPPacket(
+                                        const BYTE *buffer,
+                                        size_t bufferLengthInBytes
+                                        ) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -374,6 +387,8 @@ namespace ortc
       AutoPUID mID;
       SCTPTransportWeakPtr mThisWeak;
       SCTPTransportPtr mGracefulShutdownReference;
+
+      SCTPInitPtr mSCTPInit;
 
       ISCTPTransportDelegateSubscriptions mSubscriptions;
       ISCTPTransportSubscriptionPtr mDefaultSubscription;

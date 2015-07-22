@@ -77,6 +77,236 @@ namespace ortc
     #pragma mark (helpers)
     #pragma mark
 
+    const uint32_t kMaxSctpSid = 1023;
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark SCTPInit
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark SCTPInit
+    #pragma mark
+
+    // code borrowed from:
+    // https://chromium.googlesource.com/external/webrtc/+/master/talk/media/sctp/sctpdataengine.cc
+    // https://chromium.googlesource.com/external/webrtc/+/master/talk/media/sctp/sctpdataengine.h
+
+    class SCTPInit : public ISingletonManagerDelegate
+    {
+    protected:
+      struct make_private {};
+
+    public:
+      ZS_DECLARE_TYPEDEF_PTR(IDataChannelForSCTPTransport, UseDataChannel)
+
+    public:
+      //-----------------------------------------------------------------------
+      SCTPInit(const make_private &)
+      {
+        ZS_LOG_BASIC(log("created"))
+      }
+
+    protected:
+      //-----------------------------------------------------------------------
+      void init()
+      {
+        AutoRecursiveLock lock(mLock);
+
+        // First argument is udp_encapsulation_port, which is not releveant for our
+        // AF_CONN use of sctp.
+        usrsctp_init(0, OnSctpOutboundPacket, debug_sctp_printf);
+
+        // To turn on/off detailed SCTP debugging. You will also need to have the
+        // SCTP_DEBUG cpp defines flag.
+        // usrsctp_sysctl_set_sctp_debug_on(SCTP_DEBUG_ALL);
+        // TODO(ldixon): Consider turning this on/off.
+        usrsctp_sysctl_set_sctp_ecn_enable(0);
+        // TODO(ldixon): Consider turning this on/off.
+        // This is not needed right now (we don't do dynamic address changes):
+        // If SCTP Auto-ASCONF is enabled, the peer is informed automatically
+        // when a new address is added or removed. This feature is enabled by
+        // default.
+        // usrsctp_sysctl_set_sctp_auto_asconf(0);
+        // TODO(ldixon): Consider turning this on/off.
+        // Add a blackhole sysctl. Setting it to 1 results in no ABORTs
+        // being sent in response to INITs, setting it to 2 results
+        // in no ABORTs being sent for received OOTB packets.
+        // This is similar to the TCP sysctl.
+        //
+        // See: http://lakerest.net/pipermail/sctp-coders/2012-January/009438.html
+        // See: http://svnweb.freebsd.org/base?view=revision&revision=229805
+        // usrsctp_sysctl_set_sctp_blackhole(2);
+        // Set the number of default outgoing streams.  This is the number we'll
+        // send in the SCTP INIT message.  The 'appropriate default' in the
+        // second paragraph of
+        // http://tools.ietf.org/html/draft-ietf-rtcweb-data-channel-05#section-6.2
+        // is cricket::kMaxSctpSid.
+        usrsctp_sysctl_set_sctp_nr_outgoing_streams_default(kMaxSctpSid);
+
+        mInitialized = true;
+      }
+
+      //-----------------------------------------------------------------------
+      static SCTPInitPtr create()
+      {
+        SCTPInitPtr pThis(make_shared<SCTPInit>(make_private{}));
+        pThis->mThisWeak = pThis;
+        pThis->init();
+        return pThis;
+      }
+
+    public:
+      //-----------------------------------------------------------------------
+      ~SCTPInit()
+      {
+        mThisWeak.reset();
+        ZS_LOG_BASIC(log("destroyed"))
+        cancel();
+      }
+
+      //-----------------------------------------------------------------------
+      static SCTPInitPtr singleton()
+      {
+        static SingletonLazySharedPtr<SCTPInit> singleton(create());
+        SCTPInitPtr result = singleton.singleton();
+
+        static zsLib::SingletonManager::Register registerSingleton("openpeer::ortc::SCTPInit", result);
+
+        if (!result) {
+          ZS_LOG_WARNING(Detail, slog("singleton gone"))
+        }
+        
+        return result;
+      }
+
+    protected:
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark SCTPInit => ISingletonManagerDelegate
+      #pragma mark
+
+      //-----------------------------------------------------------------------
+      virtual void notifySingletonCleanup() override
+      {
+        cancel();
+      }
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark SCTPInit => usrscpt callbacks
+      #pragma mark
+
+      // This is the callback usrsctp uses when there's data to send on the network
+      // that has been wrapped appropriatly for the SCTP protocol.
+      static int OnSctpOutboundPacket(
+                                      void* addr,
+                                      void* data,
+                                      size_t length,
+                                      uint8_t tos,
+                                      uint8_t set_df
+                                      )
+      {
+        UseDataChannelPtr dataChannel = *(static_cast<UseDataChannelPtr *>(addr));
+
+        ZS_LOG_TRACE(slog("on sctp output backpet") + ZS_PARAM("address", ((PTRNUMBER)addr)) + ZS_PARAM("tos", tos) + ZS_PARAM("set_df", set_df))
+
+        if (ZS_IS_LOGGING(Insane)) {
+          String str = UseServicesHelper::getDebugString((const BYTE *)data, length);
+          ZS_LOG_INSANE(slog("sctp outgoing packet") + ZS_PARAM("raw", "\n" + str))
+        }
+
+        dataChannel->notifySendSCTPPacket((const BYTE *)data, length);
+        return 0;
+      }
+
+      //-----------------------------------------------------------------------
+      static void debug_sctp_printf(const char *format, ...)
+      {
+        char s[1024] {};
+
+        va_list ap;
+        va_start(ap, format);
+        vsnprintf(s, sizeof(s), format, ap);
+        ZS_LOG_BASIC(slog("debug") + ZS_PARAM("message", s))
+        va_end(ap);
+      }
+
+    protected:
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark SCTPInit => (internal)
+      #pragma mark
+
+      //-----------------------------------------------------------------------
+      Log::Params log(const char *message) const
+      {
+        ElementPtr objectEl = Element::create("ortc::SCTPInit");
+        UseServicesHelper::debugAppend(objectEl, "id", mID);
+        return Log::Params(message, objectEl);
+      }
+
+      //-----------------------------------------------------------------------
+      static Log::Params slog(const char *message)
+      {
+        return Log::Params(message, "ortc::SCTPInit");
+      }
+
+      //-----------------------------------------------------------------------
+      Log::Params debug(const char *message) const
+      {
+        return Log::Params(message, toDebug());
+      }
+
+      //-----------------------------------------------------------------------
+      virtual ElementPtr toDebug() const
+      {
+        AutoRecursiveLock lock(mLock);
+        ElementPtr resultEl = Element::create("ortc::SCTPInit");
+
+        UseServicesHelper::debugAppend(resultEl, "id", mID);
+
+        return resultEl;
+      }
+
+      //-----------------------------------------------------------------------
+      void cancel()
+      {
+        ZS_LOG_DEBUG(log("cancel called"))
+
+        bool initialized = mInitialized.exchange(false);
+        if (!initialized) return;
+
+        int count = 0;
+
+        while ((0 != usrsctp_finish()) &&
+               (count < 300))
+        {
+          std::this_thread::sleep_for(Milliseconds(10));
+          ++count;
+        }
+      }
+
+    protected:
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark SCTPInit => (data)
+      #pragma mark
+
+      AutoPUID mID;
+      mutable RecursiveLock mLock;
+      SCTPInitWeakPtr mThisWeak;
+
+      std::atomic<bool> mInitialized{ false };
+    };
+
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -153,9 +383,12 @@ namespace ortc
                                  ) :
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
+      mSCTPInit(SCTPInit::singleton()),
       mDTLSTransport(DTLSTransport::convert(dtlsTransport))
     {
       ZS_LOG_DETAIL(debug("created"))
+
+      ORTC_THROW_INVALID_STATE_IF(!mSCTPInit)
 
       if (originalDelegate) {
         mDefaultSubscription = mSubscriptions.subscribe(originalDelegate, IORTCForInternal::queueDelegate());
@@ -443,6 +676,22 @@ namespace ortc
       }
       
       return subscription;
+    }
+
+    //-------------------------------------------------------------------------
+    bool SCTPTransport::notifySendSCTPPacket(
+                                             const BYTE *buffer,
+                                             size_t bufferLengthInBytes
+                                             )
+    {
+      UseDTLSTransportPtr transport;
+
+      {
+        AutoRecursiveLock lock(*this);
+        transport = mDTLSTransport;
+      }
+
+      return transport->sendDataPacket(buffer, bufferLengthInBytes);
     }
 
     //-------------------------------------------------------------------------

@@ -221,7 +221,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     IDataTransportPtr DataChannel::transport() const
     {
-      return SCTPTransport::convert(mDataTransport.lock());
+      return SCTPTransport::convert(mDataTransport);
     }
 
     //-------------------------------------------------------------------------
@@ -294,6 +294,22 @@ namespace ortc
     #pragma mark DataChannel => IDataChannelForSCTPTransport
     #pragma mark
 
+    //-------------------------------------------------------------------------
+    bool DataChannel::notifySendSCTPPacket(
+                                           const BYTE *buffer,
+                                           size_t bufferLengthInBytes
+                                           )
+    {
+      UseDataTransportPtr transport;
+
+      {
+        AutoRecursiveLock lock(*this);
+
+        transport = mDataTransport;
+      }
+
+      return transport->notifySendSCTPPacket(buffer, bufferLengthInBytes);
+    }
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -392,8 +408,6 @@ namespace ortc
 
       ElementPtr resultEl = Element::create("ortc::DataChannel");
 
-      auto dataTransport = mDataTransport.lock();
-
       UseServicesHelper::debugAppend(resultEl, "id", mID);
 
       UseServicesHelper::debugAppend(resultEl, "graceful shutdown", (bool)mGracefulShutdownReference);
@@ -406,7 +420,7 @@ namespace ortc
       UseServicesHelper::debugAppend(resultEl, "error", mLastError);
       UseServicesHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
 
-      UseServicesHelper::debugAppend(resultEl, "data transport", dataTransport ? dataTransport->getID() : 0);
+      UseServicesHelper::debugAppend(resultEl, "data transport", mDataTransport ? mDataTransport->getID() : 0);
 
       return resultEl;
     }
