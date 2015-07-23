@@ -47,8 +47,11 @@
 
 #include <usrsctp.h>
 //#include <netinet/sctp_os.h>
-
-#include <sys/socket.h>
+#ifdef _WIN32
+# include <winsock2.h>
+#else
+# include <sys/socket.h>
+#endif  //_WIN32
 
 #ifdef _DEBUG
 #define ASSERT(x) ZS_THROW_BAD_STATE_IF(!(x))
@@ -234,7 +237,12 @@ namespace ortc
 
         va_list ap;
         va_start(ap, format);
+#ifdef _WIN32
+        vsnprintf_s(s, sizeof(s), format, ap);
+#else
         vsnprintf(s, sizeof(s), format, ap);
+#endif  //_WIN32
+
         ZS_LOG_BASIC(slog("debug") + ZS_PARAM("message", s))
         va_end(ap);
       }
