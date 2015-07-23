@@ -144,10 +144,10 @@ namespace ortc
       protected:
         static SRTPInitPtr singleton();
 
-        //---------------------------------------------------------------------
-#pragma mark
-#pragma mark SRTPInit => ISingletonManagerDelegate
-#pragma mark
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark SRTPInit => ISingletonManagerDelegate
+      #pragma mark
 
         virtual void notifySingletonCleanup();
 
@@ -155,7 +155,7 @@ namespace ortc
         ~SRTPInit();
 
       protected:
-        //---------------------------------------------------------------------
+      //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark SRTPInit => (internal)
       #pragma mark

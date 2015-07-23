@@ -435,12 +435,14 @@ namespace ortc
         struct Expectations {
           ULONG mSentPackets {0};
           ULONG mReceivedPackets {0};
+          ULONG mClosed {0};
 
           //-------------------------------------------------------------------
           bool operator==(const Expectations &op2) const
           {
             return (mSentPackets == op2.mSentPackets) &&
-                   (mReceivedPackets == op2.mReceivedPackets)
+              (mReceivedPackets == op2.mReceivedPackets) &&
+              (mClosed == op2.mClosed)
             ;
           }
         };
@@ -490,6 +492,7 @@ namespace ortc
         void close()
         {
           AutoRecursiveLock lock(*this);
+          ++mExpectations.mClosed;
           mDTLS.reset();
         }
 
@@ -629,9 +632,13 @@ ZS_DECLARE_USING_PTR(ortc, IICETransport)
 using ortc::IICETypes;
 
 #define TEST_BASIC_CONNECTIVITY 0
+#define TEST_MULTIPLE_KEYS 1
+#define TEST_MKI 2
+#define TEST_RTCP 3
 
 static const BYTE kTestKey1[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234";
 static const BYTE kTestKey2[] = "4321ZYXWVUTSRQPONMLKJIHGFEDCBA";
+static const BYTE kTestKey3[] = "111111111122222222223333333333";
 static const size_t kTestKeyLen = 30;
 
 const char CS_AES_CM_128_HMAC_SHA1_80[] = "AES_CM_128_HMAC_SHA1_80";
@@ -664,7 +671,28 @@ static const BYTE kPcmuFrame[] = {
   0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
 };
 
+// A typical Receiver Report RTCP packet.
+// PT=RR, LN=1, SSRC=1
+// send SSRC=2, all other fields 0
+static const BYTE kRtcpReport[] = {
+  0x80, 0xc9, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
+  0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+};
+
 static const size_t kBufferLen = 172;
+
+//-----------------------------------------------------------------------------
+static void Set8(void* memory, size_t offset, BYTE v) {
+  static_cast<BYTE*>(memory)[offset] = v;
+}
+
+//-----------------------------------------------------------------------------
+static void SetBE16(void* memory, WORD v) {
+  Set8(memory, 0, static_cast<BYTE>(v >> 8));
+  Set8(memory, 1, static_cast<BYTE>(v >> 0));
+}
 
 
 void doTestSRTP()
@@ -684,12 +712,12 @@ void doTestSRTP()
   SRTPTesterPtr testSRTPObject1;
   SRTPTesterPtr testSRTPObject2;
 
-  TESTING_STDOUT() << "WAITING:      Waiting for ICE testing to complete (max wait is 180 seconds).\n";
+  TESTING_STDOUT() << "WAITING:      Waiting for SRTP testing to complete (max wait is 180 seconds).\n";
 
   // check to see if all DNS routines have resolved
   {
     ULONG testNumber = 0;
-    ULONG maxSteps = 80;
+    ULONG maxSteps = 40;
 
     do
     {
@@ -701,14 +729,20 @@ void doTestSRTP()
       SRTPTester::Expectations expectationsDTLS1;
       SRTPTester::Expectations expectationsDTLS2;
 
-      expectationsDTLS1.mSentPackets = 0;
-      expectationsDTLS1.mReceivedPackets = 0;
 
-      expectationsDTLS2 = expectationsDTLS1;
 
       switch (testNumber) {
         case TEST_BASIC_CONNECTIVITY: {
           {
+
+            expectationsDTLS1.mSentPackets = 0;
+            expectationsDTLS1.mReceivedPackets = 1;
+            expectationsDTLS1.mClosed = 1;
+
+            expectationsDTLS2.mSentPackets = 1;
+            expectationsDTLS2.mReceivedPackets = 0;
+            expectationsDTLS2.mClosed = 1;
+
             KeyParameters kParamsEncrypt1;
             kParamsEncrypt1.mKeyMethod = "inline";
             kParamsEncrypt1.mKeySalt = UseServicesHelper::convertToBase64(kTestKey1, kTestKeyLen);
@@ -719,7 +753,7 @@ void doTestSRTP()
             kParamsEncrypt2.mKeyMethod = "inline";
             kParamsEncrypt2.mKeySalt = UseServicesHelper::convertToBase64(kTestKey2, kTestKeyLen);
             kParamsEncrypt2.mLifetime = "2^20";
-            kParamsEncrypt2.mMKILength = 0;
+            kParamsEncrypt2.mMKILength = 0; 
 
             CryptoParameters encrypt1;
             CryptoParameters decrypt1;
@@ -742,6 +776,193 @@ void doTestSRTP()
 
 
             // setup for test 0
+            fakeDTLSObject1 = FakeSecureTransport::create(thread, encrypt1, decrypt1);
+            fakeDTLSObject2 = FakeSecureTransport::create(thread, encrypt2, decrypt2);
+
+            TESTING_CHECK(fakeDTLSObject1)
+            TESTING_CHECK(fakeDTLSObject2)
+
+            testSRTPObject1 = SRTPTester::create(thread, fakeDTLSObject1);
+            testSRTPObject2 = SRTPTester::create(thread, fakeDTLSObject2);
+
+            TESTING_CHECK(testSRTPObject1)
+            TESTING_CHECK(testSRTPObject2)
+          }
+          break;
+        }
+        case TEST_MULTIPLE_KEYS: {
+          {
+            expectationsDTLS1.mSentPackets = 0;
+            expectationsDTLS1.mReceivedPackets = 8;
+            expectationsDTLS1.mClosed = 1;
+
+            expectationsDTLS2.mSentPackets = 8;
+            expectationsDTLS2.mReceivedPackets = 0;
+            expectationsDTLS2.mClosed = 1;
+
+            KeyParameters kParamsEncrypt1;
+            kParamsEncrypt1.mKeyMethod = "inline";
+            kParamsEncrypt1.mKeySalt = UseServicesHelper::convertToBase64(kTestKey1, kTestKeyLen);
+            kParamsEncrypt1.mLifetime = "2^2";
+            kParamsEncrypt1.mMKILength = 0;
+
+            KeyParameters kParamsEncrypt2;
+            kParamsEncrypt2.mKeyMethod = "inline";
+            kParamsEncrypt2.mKeySalt = UseServicesHelper::convertToBase64(kTestKey2, kTestKeyLen);
+            kParamsEncrypt2.mLifetime = "2^2";
+            kParamsEncrypt2.mMKILength = 0;
+
+            CryptoParameters encrypt1;
+            CryptoParameters decrypt1;
+
+            CryptoParameters encrypt2;
+            CryptoParameters decrypt2;
+
+            //add same key twice
+            encrypt1.mKeyParams.push_front(kParamsEncrypt1);
+            encrypt1.mKeyParams.push_front(kParamsEncrypt1);
+            encrypt1.mCryptoSuite = CS_AES_CM_128_HMAC_SHA1_80;
+
+            decrypt1.mKeyParams.push_front(kParamsEncrypt1);
+            decrypt1.mKeyParams.push_front(kParamsEncrypt2);
+            decrypt1.mCryptoSuite = CS_AES_CM_128_HMAC_SHA1_80;
+
+            encrypt2.mKeyParams.push_front(kParamsEncrypt1);
+            encrypt2.mKeyParams.push_front(kParamsEncrypt2);
+            encrypt2.mCryptoSuite = CS_AES_CM_128_HMAC_SHA1_80;
+
+            decrypt2.mKeyParams.push_front(kParamsEncrypt1);
+            decrypt2.mKeyParams.push_front(kParamsEncrypt1);
+            decrypt2.mCryptoSuite = CS_AES_CM_128_HMAC_SHA1_80;
+
+
+            // setup for test 1
+            fakeDTLSObject1 = FakeSecureTransport::create(thread, encrypt1, decrypt1);
+            fakeDTLSObject2 = FakeSecureTransport::create(thread, encrypt2, decrypt2);
+
+            TESTING_CHECK(fakeDTLSObject1)
+            TESTING_CHECK(fakeDTLSObject2)
+
+            testSRTPObject1 = SRTPTester::create(thread, fakeDTLSObject1);
+            testSRTPObject2 = SRTPTester::create(thread, fakeDTLSObject2);
+
+            TESTING_CHECK(testSRTPObject1)
+            TESTING_CHECK(testSRTPObject2)
+          }
+          break;
+        }
+        case TEST_MKI: {
+          {
+            expectationsDTLS1.mSentPackets = 0;
+            expectationsDTLS1.mReceivedPackets = 8;
+            expectationsDTLS1.mClosed = 1;
+
+            expectationsDTLS2.mSentPackets = 8;
+            expectationsDTLS2.mReceivedPackets = 0;
+            expectationsDTLS2.mClosed = 1;
+
+            KeyParameters kParamsEncrypt1;
+            kParamsEncrypt1.mKeyMethod = "inline";
+            kParamsEncrypt1.mKeySalt = UseServicesHelper::convertToBase64(kTestKey1, kTestKeyLen);
+            kParamsEncrypt1.mLifetime = "2^2";
+            kParamsEncrypt1.mMKILength = 16;
+            kParamsEncrypt1.mMKIValue = "24197857203266740204660220064686668406";
+
+            KeyParameters kParamsEncrypt2;
+            kParamsEncrypt2.mKeyMethod = "inline";
+            kParamsEncrypt2.mKeySalt = UseServicesHelper::convertToBase64(kTestKey2, kTestKeyLen);
+            kParamsEncrypt2.mLifetime = "2^2";
+            kParamsEncrypt2.mMKILength = 16;
+            kParamsEncrypt2.mMKIValue = "22690724228668818646660868826026842600";
+
+            CryptoParameters encrypt1;
+            CryptoParameters decrypt1;
+
+            CryptoParameters encrypt2;
+            CryptoParameters decrypt2;
+
+
+            encrypt1.mKeyParams.push_front(kParamsEncrypt1);
+            encrypt1.mKeyParams.push_front(kParamsEncrypt1);
+            encrypt1.mCryptoSuite = CS_AES_CM_128_HMAC_SHA1_80;
+
+            decrypt1.mKeyParams.push_front(kParamsEncrypt1);
+            decrypt1.mKeyParams.push_front(kParamsEncrypt2);
+            decrypt1.mCryptoSuite = CS_AES_CM_128_HMAC_SHA1_80;
+
+            encrypt2.mKeyParams.push_front(kParamsEncrypt1);
+            encrypt2.mKeyParams.push_front(kParamsEncrypt2);
+            encrypt2.mCryptoSuite = CS_AES_CM_128_HMAC_SHA1_80;
+
+            decrypt2.mKeyParams.push_front(kParamsEncrypt1);
+            decrypt2.mKeyParams.push_front(kParamsEncrypt1);
+            decrypt2.mCryptoSuite = CS_AES_CM_128_HMAC_SHA1_80;
+
+
+            // setup for test 2
+            fakeDTLSObject1 = FakeSecureTransport::create(thread, encrypt1, decrypt1);
+            fakeDTLSObject2 = FakeSecureTransport::create(thread, encrypt2, decrypt2);
+
+            TESTING_CHECK(fakeDTLSObject1)
+            TESTING_CHECK(fakeDTLSObject2)
+
+            testSRTPObject1 = SRTPTester::create(thread, fakeDTLSObject1);
+            testSRTPObject2 = SRTPTester::create(thread, fakeDTLSObject2);
+
+            TESTING_CHECK(testSRTPObject1)
+            TESTING_CHECK(testSRTPObject2)
+          }
+          break;
+        }
+        case TEST_RTCP: {
+          {
+            expectationsDTLS1.mSentPackets = 0;
+            expectationsDTLS1.mReceivedPackets = 1;
+            expectationsDTLS1.mClosed = 1;
+
+            expectationsDTLS2.mSentPackets = 1;
+            expectationsDTLS2.mReceivedPackets = 0;
+            expectationsDTLS2.mClosed = 1;
+
+            KeyParameters kParamsEncrypt1;
+            kParamsEncrypt1.mKeyMethod = "inline";
+            kParamsEncrypt1.mKeySalt = UseServicesHelper::convertToBase64(kTestKey1, kTestKeyLen);
+            kParamsEncrypt1.mLifetime = "2^2";
+            kParamsEncrypt1.mMKILength = 16;
+            kParamsEncrypt1.mMKIValue = "24197857203266740204660220064686668406";
+
+            KeyParameters kParamsEncrypt2;
+            kParamsEncrypt2.mKeyMethod = "inline";
+            kParamsEncrypt2.mKeySalt = UseServicesHelper::convertToBase64(kTestKey2, kTestKeyLen);
+            kParamsEncrypt2.mLifetime = "2^2";
+            kParamsEncrypt2.mMKILength = 16;
+            kParamsEncrypt2.mMKIValue = "22690724228668818646660868826026842600";
+
+            CryptoParameters encrypt1;
+            CryptoParameters decrypt1;
+
+            CryptoParameters encrypt2;
+            CryptoParameters decrypt2;
+
+            //add same key twice
+            encrypt1.mKeyParams.push_front(kParamsEncrypt1);
+            encrypt1.mKeyParams.push_front(kParamsEncrypt1);
+            encrypt1.mCryptoSuite = CS_AES_CM_128_HMAC_SHA1_80;
+
+            decrypt1.mKeyParams.push_front(kParamsEncrypt2);
+            decrypt1.mKeyParams.push_front(kParamsEncrypt2);
+            decrypt1.mCryptoSuite = CS_AES_CM_128_HMAC_SHA1_80;
+
+            encrypt2.mKeyParams.push_front(kParamsEncrypt2);
+            encrypt2.mKeyParams.push_front(kParamsEncrypt2);
+            encrypt2.mCryptoSuite = CS_AES_CM_128_HMAC_SHA1_80;
+
+            decrypt2.mKeyParams.push_front(kParamsEncrypt1);
+            decrypt2.mKeyParams.push_front(kParamsEncrypt1);
+            decrypt2.mCryptoSuite = CS_AES_CM_128_HMAC_SHA1_80;
+
+
+            // setup for test 3
             fakeDTLSObject1 = FakeSecureTransport::create(thread, encrypt1, decrypt1);
             fakeDTLSObject2 = FakeSecureTransport::create(thread, encrypt2, decrypt2);
 
@@ -813,6 +1034,134 @@ void doTestSRTP()
             }
             break;
           }
+          case TEST_MULTIPLE_KEYS: {
+            switch (step) {
+            case 2: {
+              if (fakeDTLSObject1) fakeDTLSObject1->linkTransport(testSRTPObject1, fakeDTLSObject2);
+              if (fakeDTLSObject2) fakeDTLSObject2->linkTransport(testSRTPObject2, fakeDTLSObject1);
+              break;
+            }
+            case 10: {
+              for (int i = 0; i < 8; ++i)
+              {
+                BYTE rtp_packet[sizeof(kPcmuFrame) + 10];
+                int rtp_len = sizeof(kPcmuFrame), out_len;
+                memcpy(rtp_packet, kPcmuFrame, rtp_len);
+                // In order to be able to run this test function multiple times we can not
+                // use the same sequence number twice. Increase the sequence number by one.
+                SetBE16(reinterpret_cast<BYTE*>(rtp_packet)+2, i);
+
+                SecureByteBlockPtr buffer(std::make_shared<SecureByteBlock>(172));  // allocate a buffer of 40 bytes
+                buffer = UseServicesHelper::convertToBuffer(rtp_packet, rtp_len);
+                if (testSRTPObject1) testSRTPObject1->expectingIncomingPacket(IICETypes::Component_RTP, IICETypes::Component_RTP, *buffer, buffer->SizeInBytes());
+                if (testSRTPObject2) testSRTPObject2->sendPacket(IICETypes::Component_RTP, IICETypes::Component_RTP, *buffer, buffer->SizeInBytes());
+              }
+              break;
+            }
+            case 20: {
+              break;
+            }
+            case 25: {
+              break;
+            }
+            case 30: {
+              break;
+            }
+            case 35: {
+              if (testSRTPObject1) testSRTPObject1->close();
+              if (testSRTPObject2) testSRTPObject2->close();
+              break;
+            }
+            default: {
+              // nothing happening in this step
+              break;
+            }
+            }
+            break;
+          }
+          case TEST_MKI: {
+            switch (step) {
+            case 2: {
+              if (fakeDTLSObject1) fakeDTLSObject1->linkTransport(testSRTPObject1, fakeDTLSObject2);
+              if (fakeDTLSObject2) fakeDTLSObject2->linkTransport(testSRTPObject2, fakeDTLSObject1);
+              break;
+            }
+            case 10: {
+              for (int i = 0; i < 8; ++i)
+              {
+                BYTE rtp_packet[sizeof(kPcmuFrame) + 10];
+                //BYTE original_rtp_packet[sizeof(kPcmuFrame)];
+                int rtp_len = sizeof(kPcmuFrame), out_len;
+                memcpy(rtp_packet, kPcmuFrame, rtp_len);
+                // In order to be able to run this test function multiple times we can not
+                // use the same sequence number twice. Increase the sequence number by one.
+                SetBE16(reinterpret_cast<BYTE*>(rtp_packet)+2, i);
+                //memcpy(original_rtp_packet, rtp_packet, rtp_len);
+
+                SecureByteBlockPtr buffer(std::make_shared<SecureByteBlock>(172));  // allocate a buffer of 40 bytes
+                buffer = UseServicesHelper::convertToBuffer(rtp_packet, rtp_len);
+                if (testSRTPObject1) testSRTPObject1->expectingIncomingPacket(IICETypes::Component_RTP, IICETypes::Component_RTP, *buffer, buffer->SizeInBytes());
+                if (testSRTPObject2) testSRTPObject2->sendPacket(IICETypes::Component_RTP, IICETypes::Component_RTP, *buffer, buffer->SizeInBytes());
+              }
+              break;
+            }
+            case 20: {
+              break;
+            }
+            case 25: {
+              break;
+            }
+            case 30: {
+              break;
+            }
+            case 35: {
+              if (testSRTPObject1) testSRTPObject1->close();
+              if (testSRTPObject2) testSRTPObject2->close();
+              break;
+            }
+            default: {
+              // nothing happening in this step
+              break;
+            }
+            }
+            break;
+          }
+          case TEST_RTCP: {
+            switch (step) {
+            case 2: {
+              if (fakeDTLSObject1) fakeDTLSObject1->linkTransport(testSRTPObject1, fakeDTLSObject2);
+              if (fakeDTLSObject2) fakeDTLSObject2->linkTransport(testSRTPObject2, fakeDTLSObject1);
+              break;
+            }
+            case 10: {
+              int rtcp_len = sizeof(kRtcpReport);
+              SecureByteBlockPtr buffer(std::make_shared<SecureByteBlock>(172));  // allocate a buffer of 40 bytes
+              buffer = UseServicesHelper::convertToBuffer(kRtcpReport, rtcp_len);
+              if (testSRTPObject1) testSRTPObject1->expectingIncomingPacket(IICETypes::Component_RTCP, IICETypes::Component_RTCP, *buffer, buffer->SizeInBytes());
+              if (testSRTPObject2) testSRTPObject2->sendPacket(IICETypes::Component_RTCP, IICETypes::Component_RTCP, *buffer, buffer->SizeInBytes());
+              break;
+            }
+            case 20: {
+              break;
+            }
+            case 25: {
+              break;
+            }
+            case 30: {
+              break;
+            }
+            case 35: {
+              if (testSRTPObject1) testSRTPObject1->close();
+              if (testSRTPObject2) testSRTPObject2->close();
+              break;
+            }
+            default: {
+              // nothing happening in this step
+              break;
+            }
+            }
+            break;
+          }
           default: {
             // none defined
             break;
@@ -853,7 +1202,7 @@ void doTestSRTP()
     } while (true);
   }
 
-  TESTING_STDOUT() << "WAITING:      All DTLS transports have finished. Waiting for 'bogus' events to process (10 second wait).\n";
+  TESTING_STDOUT() << "WAITING:      All SRTP transports have finished. Waiting for 'bogus' events to process (10 second wait).\n";
   TESTING_SLEEP(10000)
 
   // wait for shutdown

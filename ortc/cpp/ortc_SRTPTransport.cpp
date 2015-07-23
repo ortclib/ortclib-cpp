@@ -155,7 +155,7 @@ namespace ortc
       return ZS_DYNAMIC_PTR_CAST(SRTPTransport, transport)->toDebug();
     }
 
-    //---------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
     ISRTPTransportForSecureTransport::ForSecureTransportPtr ISRTPTransportForSecureTransport::create(
                                                                                                      ISRTPTransportDelegatePtr delegate,
                                                                                                      UseSecureTransportPtr transport,
@@ -302,9 +302,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-#pragma mark
-#pragma mark SRTPInit => ISingletonManagerDelegate
-#pragma mark
+    #pragma mark
+    #pragma mark SRTPInit => ISingletonManagerDelegate
+    #pragma mark
 
     //-------------------------------------------------------------------------
     void SRTPInit::notifySingletonCleanup()
@@ -569,7 +569,7 @@ namespace ortc
     {
       UseSecureTransportPtr transport;
       SecureByteBlockPtr decryptedBuffer;
-      IICETypes::Components component = (isRTCP(buffer, bufferLengthInBytes) ? IICETypes::Component_RTP : IICETypes::Component_RTCP);
+      IICETypes::Components component = (isRTCP(buffer, bufferLengthInBytes) ? IICETypes::Component_RTCP : IICETypes::Component_RTP);
 
       size_t popSize = 0;
       enum UsedKeys {
@@ -590,7 +590,10 @@ namespace ortc
 
       const BYTE *packetMKI {NULL};
 
-      size_t authenticationTagLength = material.mAuthenticationTagLength[component];
+      //size_t authenticationTagLength = material.mAuthenticationTagLength[component];
+      //lbojan fix for SRTCP packet lenght
+      size_t authenticationTagLength{ 0 };// = material.mAuthenticationTagLength[packetType];
+      component == IICETypes::Component_RTP ? (authenticationTagLength = material.mAuthenticationTagLength[component]) : (authenticationTagLength = material.mAuthenticationTagLength[component] + 4);
 
       if (material.mMKILength > 0) {
         if (bufferLengthInBytes < (RTP_MINIMUM_PACKET_HEADER_SIZE + material.mMKILength + authenticationTagLength)) {
@@ -707,7 +710,7 @@ namespace ortc
                                                              srtp_unprotect_rtcp(usedKeys[loop]->mSRTPSession, decryptedBuffer->BytePtr(), &out_len));
           if (err != err_status_ok) {
             ZS_LOG_WARNING(Trace, log("cannot use current keying material, trying with next key") + usedKeys[loop]->toDebug())
-              continue;
+            continue;
           }
 
           //uint32 ssrc;
@@ -774,7 +777,10 @@ namespace ortc
 
       DirectionMaterial &material = mMaterial[Direction_Encrypt]; // WARNING: only some values are accessible outside a lock
 
-      size_t authenticationTagLength = material.mAuthenticationTagLength[packetType];
+
+      //lbojan fix for SRTCP packet lenght
+      size_t authenticationTagLength  {0};// = material.mAuthenticationTagLength[packetType];
+      packetType == IICETypes::Component_RTP ? (authenticationTagLength = material.mAuthenticationTagLength[packetType]) : (authenticationTagLength = material.mAuthenticationTagLength[packetType] + 4);
 
       {
         AutoRecursiveLock lock(*this);
@@ -796,7 +802,7 @@ namespace ortc
             return false;
           }
 
-          KeyingMaterialPtr keyingMaterial = material.mKeyList.front();
+          keyingMaterial = material.mKeyList.front();
 
           ASSERT(((bool)keyingMaterial))
 
