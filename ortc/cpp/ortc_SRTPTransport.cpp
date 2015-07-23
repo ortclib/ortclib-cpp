@@ -55,8 +55,8 @@
 #endif //HAVE_TGMATH_H
 
 //libSRTP
-#include "third_party/libsrtp/srtp/include/srtp.h"
-#include "third_party/libsrtp/srtp/include/srtp_priv.h"
+#include "srtp.h"
+#include "srtp_priv.h"
 
 #ifdef _DEBUG
 #define ASSERT(x) ZS_THROW_BAD_STATE_IF(!(x))
@@ -205,120 +205,139 @@ namespace ortc
     #pragma mark SRTPInit
     #pragma mark
 
-    //-------------------------------------------------------------------------
-    SRTPInit::SRTPInit(const make_private &)
+    class SRTPInit : public ISingletonManagerDelegate
     {
-      ZS_LOG_BASIC(log("created"))
-    }
+    protected:
+      struct make_private {};
 
-    //-------------------------------------------------------------------------
-    void SRTPInit::init()
-    {
-      int err {};
-      AutoRecursiveLock lock(mLock);
-      err = srtp_init();
-      if (err != err_status_ok) {
-        ZS_LOG_ERROR(Trace, log("Failed to init SRTP"))
-      }
-      mInitialized = true;
-    }
-
-    //-------------------------------------------------------------------------
-    SRTPInitPtr SRTPInit::create()
-    {
-      SRTPInitPtr pThis(make_shared<SRTPInit>(make_private{}));
-      pThis->mThisWeak = pThis;
-      pThis->init();
-      return pThis;
-    }
-
-    //-------------------------------------------------------------------------
-    SRTPInitPtr SRTPInit::singleton()
-    {
-      static SingletonLazySharedPtr<SRTPInit> singleton(create());
-      SRTPInitPtr result = singleton.singleton();
-
-      static zsLib::SingletonManager::Register registerSingleton("openpeer::ortc::SRTPInit", result);
-
-      if (!result) {
-        ZS_LOG_WARNING(Detail, slog("singleton gone"))
+    public:
+      //-----------------------------------------------------------------------
+      SRTPInit(const make_private &)
+      {
+        ZS_LOG_BASIC(log("created"))
       }
 
-      return result;
-    }
+    protected:
+      //-----------------------------------------------------------------------
+      void init()
+      {
+        AutoRecursiveLock lock(mLock);
 
-    //-------------------------------------------------------------------------
-    Log::Params SRTPInit::log(const char *message) const
-    {
-      ElementPtr objectEl = Element::create("ortc::SRTPInit");
-      UseServicesHelper::debugAppend(objectEl, "id", mID);
-      return Log::Params(message, objectEl);
-    }
-
-    //-------------------------------------------------------------------------
-    Log::Params SRTPInit::slog(const char *message)
-    {
-      return Log::Params(message, "ortc::SRTPInit");
-    }
-
-    //-------------------------------------------------------------------------
-    Log::Params SRTPInit::debug(const char *message) const
-    {
-      return Log::Params(message, toDebug());
-    }
-
-    //-------------------------------------------------------------------------
-    ElementPtr SRTPInit::toDebug() const
-    {
-      AutoRecursiveLock lock(mLock);
-      ElementPtr resultEl = Element::create("ortc::SRTPInit");
-
-      UseServicesHelper::debugAppend(resultEl, "id", mID);
-
-      return resultEl;
-    }
-
-    //-------------------------------------------------------------------------
-    void SRTPInit::cancel()
-    {
-      ZS_LOG_DEBUG(log("cancel called"))
-
-        if (mInitialized) 
-        {
-          bool wasTerminated = mTerminatedCalled.exchange(true);
-          if (!wasTerminated)
-          {
-            int err = srtp_shutdown();
-            if (err) {
-              ZS_LOG_ERROR(Trace, log("srtp_shutdown failed"))
-              return;
-            }
-            mInitialized = false;
-          }
+        int err = srtp_init();
+        mInitialized = (err == err_status_ok);
+        if (!mInitialized) {
+          ZS_LOG_ERROR(Trace, log("Failed to init SRTP") + ZS_PARAM("error", err))
         }
-    }
+      }
 
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark SRTPInit => ISingletonManagerDelegate
-    #pragma mark
+      //-----------------------------------------------------------------------
+      static SRTPInitPtr create()
+      {
+        SRTPInitPtr pThis(make_shared<SRTPInit>(make_private{}));
+        pThis->mThisWeak = pThis;
+        pThis->init();
+        return pThis;
+      }
 
-    //-------------------------------------------------------------------------
-    void SRTPInit::notifySingletonCleanup()
-    {
-      cancel();
-    }
+    public:
+      //-----------------------------------------------------------------------
+      ~SRTPInit()
+      {
+        mThisWeak.reset();
+        ZS_LOG_BASIC(log("destroyed"))
+        cancel();
+      }
 
-    //-------------------------------------------------------------------------
-    SRTPInit::~SRTPInit()
-    {
-      ZS_LOG_BASIC(log("destroyed"))
-      mThisWeak.reset();
-      cancel();
-    }
+      //-----------------------------------------------------------------------
+      static SRTPInitPtr singleton()
+      {
+        static SingletonLazySharedPtr<SRTPInit> singleton(create());
+        SRTPInitPtr result = singleton.singleton();
+
+        static zsLib::SingletonManager::Register registerSingleton("openpeer::ortc::SRTPInit", result);
+
+        if (!result) {
+          ZS_LOG_WARNING(Detail, slog("singleton gone"))
+        }
+        
+        return result;
+      }
+
+    protected:
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark SRTPInit => ISingletonManagerDelegate
+      #pragma mark
+
+      virtual void notifySingletonCleanup() override
+      {
+        // ignored
+      }
+
+    protected:
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark SRTPInit => (internal)
+      #pragma mark
+
+      //-----------------------------------------------------------------------
+      Log::Params log(const char *message) const
+      {
+        ElementPtr objectEl = Element::create("ortc::SRTPInit");
+        UseServicesHelper::debugAppend(objectEl, "id", mID);
+        return Log::Params(message, objectEl);
+      }
+
+      //-----------------------------------------------------------------------
+      static Log::Params slog(const char *message)
+      {
+        return Log::Params(message, "ortc::SRTPInit");
+      }
+
+      //-----------------------------------------------------------------------
+      Log::Params debug(const char *message) const
+      {
+        return Log::Params(message, toDebug());
+      }
+
+      //-----------------------------------------------------------------------
+      virtual ElementPtr toDebug() const
+      {
+        AutoRecursiveLock lock(mLock);
+        ElementPtr resultEl = Element::create("ortc::SRTPInit");
+
+        UseServicesHelper::debugAppend(resultEl, "id", mID);
+
+        return resultEl;
+      }
+
+      //-----------------------------------------------------------------------
+      void cancel()
+      {
+        ZS_LOG_DEBUG(log("cancel called"))
+
+        bool initialized = mInitialized.exchange(false);
+        if (!initialized) return;
+
+        int err = srtp_shutdown();
+        if (err) {
+          ZS_LOG_ERROR(Trace, log("srtp_shutdown failed"))
+          return;
+        }
+      }
+
+    protected:
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark SRTPInit => (data)
+      #pragma mark
+
+      AutoPUID mID;
+      mutable RecursiveLock mLock;
+      SRTPInitWeakPtr mThisWeak;
+
+      std::atomic<bool> mInitialized{ false };
+    };
 
     //-------------------------------------------------------------------------
     SRTPTransport::SRTPTransport(
@@ -332,11 +351,11 @@ namespace ortc
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
       mSecureTransport(secureTransport),
-      mSrtpInit(SRTPInit::singleton())
+      mSRTPInit(SRTPInit::singleton())
     {
       ZS_LOG_DETAIL(debug("created"))
 
-      ORTC_THROW_INVALID_STATE_IF(!mSrtpInit)
+      ORTC_THROW_INVALID_STATE_IF(!mSRTPInit)
 
       mParams[Direction_Encrypt] = encryptParameters;
       mParams[Direction_Decrypt] = decryptParameters;
@@ -981,7 +1000,7 @@ namespace ortc
     void SRTPTransport::cancel()
     {
       //.......................................................................
-      mSrtpInit.reset();
+      mSRTPInit.reset();
       // final cleanup
 
       mSubscriptions.clear();

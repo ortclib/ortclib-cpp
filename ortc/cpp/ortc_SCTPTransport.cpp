@@ -31,6 +31,7 @@
 
 #include <ortc/internal/ortc_SCTPTransport.h>
 #include <ortc/internal/ortc_DTLSTransport.h>
+#include <ortc/internal/ortc_DataChannel.h>
 #include <ortc/internal/ortc_ORTC.h>
 #include <ortc/internal/platform.h>
 
@@ -44,6 +45,10 @@
 
 #include <cryptopp/sha.h>
 
+#include <usrsctp.h>
+//#include <netinet/sctp_os.h>
+
+#include <sys/socket.h>
 
 #ifdef _DEBUG
 #define ASSERT(x) ZS_THROW_BAD_STATE_IF(!(x))
@@ -72,6 +77,236 @@ namespace ortc
     #pragma mark (helpers)
     #pragma mark
 
+    const uint32_t kMaxSctpSid = 1023;
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark SCTPInit
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark SCTPInit
+    #pragma mark
+
+    // code borrowed from:
+    // https://chromium.googlesource.com/external/webrtc/+/master/talk/media/sctp/sctpdataengine.cc
+    // https://chromium.googlesource.com/external/webrtc/+/master/talk/media/sctp/sctpdataengine.h
+
+    class SCTPInit : public ISingletonManagerDelegate
+    {
+    protected:
+      struct make_private {};
+
+    public:
+      ZS_DECLARE_TYPEDEF_PTR(IDataChannelForSCTPTransport, UseDataChannel)
+
+    public:
+      //-----------------------------------------------------------------------
+      SCTPInit(const make_private &)
+      {
+        ZS_LOG_BASIC(log("created"))
+      }
+
+    protected:
+      //-----------------------------------------------------------------------
+      void init()
+      {
+        AutoRecursiveLock lock(mLock);
+
+        // First argument is udp_encapsulation_port, which is not releveant for our
+        // AF_CONN use of sctp.
+        usrsctp_init(0, OnSctpOutboundPacket, debug_sctp_printf);
+
+        // To turn on/off detailed SCTP debugging. You will also need to have the
+        // SCTP_DEBUG cpp defines flag.
+        // usrsctp_sysctl_set_sctp_debug_on(SCTP_DEBUG_ALL);
+        // TODO(ldixon): Consider turning this on/off.
+        usrsctp_sysctl_set_sctp_ecn_enable(0);
+        // TODO(ldixon): Consider turning this on/off.
+        // This is not needed right now (we don't do dynamic address changes):
+        // If SCTP Auto-ASCONF is enabled, the peer is informed automatically
+        // when a new address is added or removed. This feature is enabled by
+        // default.
+        // usrsctp_sysctl_set_sctp_auto_asconf(0);
+        // TODO(ldixon): Consider turning this on/off.
+        // Add a blackhole sysctl. Setting it to 1 results in no ABORTs
+        // being sent in response to INITs, setting it to 2 results
+        // in no ABORTs being sent for received OOTB packets.
+        // This is similar to the TCP sysctl.
+        //
+        // See: http://lakerest.net/pipermail/sctp-coders/2012-January/009438.html
+        // See: http://svnweb.freebsd.org/base?view=revision&revision=229805
+        // usrsctp_sysctl_set_sctp_blackhole(2);
+        // Set the number of default outgoing streams.  This is the number we'll
+        // send in the SCTP INIT message.  The 'appropriate default' in the
+        // second paragraph of
+        // http://tools.ietf.org/html/draft-ietf-rtcweb-data-channel-05#section-6.2
+        // is cricket::kMaxSctpSid.
+        usrsctp_sysctl_set_sctp_nr_outgoing_streams_default(kMaxSctpSid);
+
+        mInitialized = true;
+      }
+
+      //-----------------------------------------------------------------------
+      static SCTPInitPtr create()
+      {
+        SCTPInitPtr pThis(make_shared<SCTPInit>(make_private{}));
+        pThis->mThisWeak = pThis;
+        pThis->init();
+        return pThis;
+      }
+
+    public:
+      //-----------------------------------------------------------------------
+      ~SCTPInit()
+      {
+        mThisWeak.reset();
+        ZS_LOG_BASIC(log("destroyed"))
+        cancel();
+      }
+
+      //-----------------------------------------------------------------------
+      static SCTPInitPtr singleton()
+      {
+        static SingletonLazySharedPtr<SCTPInit> singleton(create());
+        SCTPInitPtr result = singleton.singleton();
+
+        static zsLib::SingletonManager::Register registerSingleton("openpeer::ortc::SCTPInit", result);
+
+        if (!result) {
+          ZS_LOG_WARNING(Detail, slog("singleton gone"))
+        }
+        
+        return result;
+      }
+
+    protected:
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark SCTPInit => ISingletonManagerDelegate
+      #pragma mark
+
+      //-----------------------------------------------------------------------
+      virtual void notifySingletonCleanup() override
+      {
+        cancel();
+      }
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark SCTPInit => usrscpt callbacks
+      #pragma mark
+
+      // This is the callback usrsctp uses when there's data to send on the network
+      // that has been wrapped appropriatly for the SCTP protocol.
+      static int OnSctpOutboundPacket(
+                                      void* addr,
+                                      void* data,
+                                      size_t length,
+                                      uint8_t tos,
+                                      uint8_t set_df
+                                      )
+      {
+        UseDataChannelPtr dataChannel = *(static_cast<UseDataChannelPtr *>(addr));
+
+        ZS_LOG_TRACE(slog("on sctp output backpet") + ZS_PARAM("address", ((PTRNUMBER)addr)) + ZS_PARAM("tos", tos) + ZS_PARAM("set_df", set_df))
+
+        if (ZS_IS_LOGGING(Insane)) {
+          String str = UseServicesHelper::getDebugString((const BYTE *)data, length);
+          ZS_LOG_INSANE(slog("sctp outgoing packet") + ZS_PARAM("raw", "\n" + str))
+        }
+
+        dataChannel->notifySendSCTPPacket((const BYTE *)data, length);
+        return 0;
+      }
+
+      //-----------------------------------------------------------------------
+      static void debug_sctp_printf(const char *format, ...)
+      {
+        char s[1024] {};
+
+        va_list ap;
+        va_start(ap, format);
+        vsnprintf(s, sizeof(s), format, ap);
+        ZS_LOG_BASIC(slog("debug") + ZS_PARAM("message", s))
+        va_end(ap);
+      }
+
+    protected:
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark SCTPInit => (internal)
+      #pragma mark
+
+      //-----------------------------------------------------------------------
+      Log::Params log(const char *message) const
+      {
+        ElementPtr objectEl = Element::create("ortc::SCTPInit");
+        UseServicesHelper::debugAppend(objectEl, "id", mID);
+        return Log::Params(message, objectEl);
+      }
+
+      //-----------------------------------------------------------------------
+      static Log::Params slog(const char *message)
+      {
+        return Log::Params(message, "ortc::SCTPInit");
+      }
+
+      //-----------------------------------------------------------------------
+      Log::Params debug(const char *message) const
+      {
+        return Log::Params(message, toDebug());
+      }
+
+      //-----------------------------------------------------------------------
+      virtual ElementPtr toDebug() const
+      {
+        AutoRecursiveLock lock(mLock);
+        ElementPtr resultEl = Element::create("ortc::SCTPInit");
+
+        UseServicesHelper::debugAppend(resultEl, "id", mID);
+
+        return resultEl;
+      }
+
+      //-----------------------------------------------------------------------
+      void cancel()
+      {
+        ZS_LOG_DEBUG(log("cancel called"))
+
+        bool initialized = mInitialized.exchange(false);
+        if (!initialized) return;
+
+        int count = 0;
+
+        while ((0 != usrsctp_finish()) &&
+               (count < 300))
+        {
+          std::this_thread::sleep_for(Milliseconds(10));
+          ++count;
+        }
+      }
+
+    protected:
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark SCTPInit => (data)
+      #pragma mark
+
+      AutoPUID mID;
+      mutable RecursiveLock mLock;
+      SCTPInitWeakPtr mThisWeak;
+
+      std::atomic<bool> mInitialized{ false };
+    };
+
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -84,7 +319,8 @@ namespace ortc
     //-------------------------------------------------------------------------
     void ISCTPTransportForSettings::applyDefaults()
     {
-      UseSettings::setUInt(ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE, 5*1024);
+      //https://tools.ietf.org/html/draft-ietf-rtcweb-data-channel-13#section-6.6
+      UseSettings::setUInt(ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE, 16*1024);
     }
 
     //-------------------------------------------------------------------------
@@ -130,6 +366,7 @@ namespace ortc
     {
       switch (state) {
         case State_Pending:       return "pending";
+        case State_DTLSComplete:  return "DTLS done";
         case State_Ready:         return "ready";
         case State_ShuttingDown:  return "shutting down";
         case State_Shutdown:      return "shutdown";
@@ -146,9 +383,12 @@ namespace ortc
                                  ) :
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
+      mSCTPInit(SCTPInit::singleton()),
       mDTLSTransport(DTLSTransport::convert(dtlsTransport))
     {
       ZS_LOG_DETAIL(debug("created"))
+
+      ORTC_THROW_INVALID_STATE_IF(!mSCTPInit)
 
       if (originalDelegate) {
         mDefaultSubscription = mSubscriptions.subscribe(originalDelegate, IORTCForInternal::queueDelegate());
@@ -159,6 +399,13 @@ namespace ortc
     void SCTPTransport::init()
     {
       AutoRecursiveLock lock(*this);
+      //IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
+      
+      ZS_LOG_DETAIL(debug("SCTP init"))
+      
+      //Subscribe to DTLS Transport and Wait for DTLS to complete
+      mDTLSTransportSubscription = mDTLSTransport->subscribe(mThisWeak.lock());
+      
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
     }
 
@@ -253,9 +500,84 @@ namespace ortc
     //-------------------------------------------------------------------------
     void SCTPTransport::start(const Capabilities &remoteCapabilities)
     {
+#if 0
+      struct socket *sock;
+      short mediaPort = 0, remoteUDPEncapPort = 0;
+      const int on = 1;
+      unsigned int i;
+      struct sctp_assoc_value av;
+      struct sctp_udpencaps encaps;
+      struct sctp_event event;
+      uint16_t event_types[] = {SCTP_ASSOC_CHANGE,
+        SCTP_PEER_ADDR_CHANGE,
+        SCTP_REMOTE_ERROR,
+        SCTP_SHUTDOWN_EVENT,
+        SCTP_ADAPTATION_INDICATION,
+        SCTP_PARTIAL_DELIVERY_EVENT};
+#endif
+      
       AutoRecursiveLock lock(*this);
-#define TODO 1
-#define TODO 2
+      if ((isShuttingDown()) ||
+          (isShutdown())) {
+#define WARNING_WHAT_IF_SCTP_ERROR_CAUSED_CLOSE 1
+#define WARNING_WHAT_IF_SCTP_ERROR_CAUSED_CLOSE 2
+        ORTC_THROW_INVALID_STATE("already shutting down")
+      }
+      
+      mCapabilities = remoteCapabilities;
+
+#if 0
+      //Retrieve media port over which SCTP to be established
+#define TODO_FIND_MEDIA_PORT 1
+#define TODO_FIND_MEDIA_PORT 2
+      usrsctp_init(mediaPort, NULL, NULL);
+#ifdef SCTP_DEBUG
+      usrsctp_sysctl_set_sctp_debug_on(0);
+#endif
+      //Enable SCTP blackholing
+      usrsctp_sysctl_set_sctp_blackhole(SCTPCTL_BLACKHOLE_MAX);
+      
+      //Pass DTLS packet handler to usrsctp socket; DTLS will pass it to SCTP after decryption
+      if ((sock = usrsctp_socket(AF_INET6, SOCK_SEQPACKET, IPPROTO_SCTP,
+                                 mDTLSTransport->handleReceivedPacket, NULL, 0)) == NULL) {
+        setError(errno);
+      }
+      if (usrsctp_setsockopt(sock, IPPROTO_SCTP, SCTP_I_WANT_MAPPED_V4_ADDR,
+                             (const void*)&on, (socklen_t)sizeof(int)) < 0) {
+        setError(errno);
+      }
+      memset(&av, 0, sizeof(struct sctp_assoc_value));
+      av.assoc_id = SCTP_ALL_ASSOC;
+      av.assoc_value = 47;
+      
+      if (usrsctp_setsockopt(sock, IPPROTO_SCTP, SCTP_CONTEXT, (const void*)&av,
+                             (socklen_t)sizeof(struct sctp_assoc_value)) < 0) {
+        setError(errno, "SCTP ");
+      }
+      
+#define TODO_REMOTE_UDP_ENCAPS 1
+#define TODO_REMOTE_UDP_ENCAPS 2
+      if (/* UDP encapsulation enabled */ false) {
+        memset(&encaps, 0, sizeof(struct sctp_udpencaps));
+        encaps.sue_address.ss_family = AF_INET6;
+        encaps.sue_port = htons(remoteUDPEncapPort);
+        if (usrsctp_setsockopt(sock, IPPROTO_SCTP, SCTP_REMOTE_UDP_ENCAPS_PORT,
+                               (const void*)&encaps,
+                               (socklen_t)sizeof(struct sctp_udpencaps)) < 0) {
+          setError(errno, "SCTP Remote UDP Encapsulation port config failed!!!");
+        }
+      }
+      memset(&event, 0, sizeof(event));
+      event.se_assoc_id = SCTP_FUTURE_ASSOC;
+      event.se_on = 1;
+      for (i = 0; i < (unsigned int)(sizeof(event_types)/sizeof(uint16_t)); i++) {
+        event.se_type = event_types[i];
+        if (usrsctp_setsockopt(sock, IPPROTO_SCTP, SCTP_EVENT, &event,
+                               sizeof(struct sctp_event)) < 0) {
+          setError(errno, "SCTP Event association failed!!!");
+        }
+      }
+#endif
     }
 
     //-------------------------------------------------------------------------
@@ -306,8 +628,10 @@ namespace ortc
                                          size_t bufferLengthInBytes
                                          )
     {
-#define TODO 1
-#define TODO 2
+      if (bufferLengthInBytes > 0) {
+        
+        return true;
+      }
       return false;
     }
 
@@ -318,6 +642,57 @@ namespace ortc
     #pragma mark
     #pragma mark SCTPTransport => ISCTPTransportForDataChannel
     #pragma mark
+
+    //-------------------------------------------------------------------------
+    ISCTPTransportForDataChannelSubscriptionPtr SCTPTransport::subscribe(ISCTPTransportForDataChannelDelegatePtr originalDelegate)
+    {
+      ZS_LOG_DETAIL(log("datachannel subscribing to SCTP Transport"))
+      
+      AutoRecursiveLock lock(*this);
+      
+      ISCTPTransportForDataChannelSubscriptionPtr subscription = mDataChannelSubscriptions.subscribe(originalDelegate, IORTCForInternal::queueORTC());
+      
+      ISCTPTransportForDataChannelDelegatePtr delegate = mDataChannelSubscriptions.delegate(subscription, true);
+      
+      if (delegate) {
+        SCTPTransportPtr pThis = mThisWeak.lock();
+        
+        switch (mCurrentState) {
+          case State_Ready:
+            delegate->onSCTPTransportReady();
+            break;
+            
+          case State_Shutdown:
+            delegate->onSCTPTransportClosed();
+            break;
+            
+          default:
+            break;
+        }
+      }
+      
+      if (isShutdown()) {
+        mSubscriptions.clear();
+      }
+      
+      return subscription;
+    }
+
+    //-------------------------------------------------------------------------
+    bool SCTPTransport::notifySendSCTPPacket(
+                                             const BYTE *buffer,
+                                             size_t bufferLengthInBytes
+                                             )
+    {
+      UseDTLSTransportPtr transport;
+
+      {
+        AutoRecursiveLock lock(*this);
+        transport = mDTLSTransport;
+      }
+
+      return transport->sendDataPacket(buffer, bufferLengthInBytes);
+    }
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -380,7 +755,13 @@ namespace ortc
       ZS_LOG_DEBUG(log("dtls transport state changed") + ZS_PARAM("dtls transport id", transport->getID()) + ZS_PARAM("state", IDTLSTransport::toString(state)))
 
       AutoRecursiveLock lock(*this);
-      step();
+      if (transport->getID() == mDTLSTransport->getID()) {
+        ZS_LOG_DEBUG(debug("known DTLS transport"))
+        if (state == IDTLSTransport::State_Connected) {
+          step();
+        }
+      }
+      //step();
     }
 
     //-------------------------------------------------------------------------
@@ -393,6 +774,8 @@ namespace ortc
       ZS_LOG_DEBUG(log("dtls transport state changed") + ZS_PARAM("dtls transport id", transport->getID()) + ZS_PARAM("error", errorCode) + ZS_PARAM("reason", errorReason))
 
       AutoRecursiveLock lock(*this);
+      setError(errorCode, errorReason);
+      setState(State_ShuttingDown);
       step();
     }
 
@@ -470,20 +853,23 @@ namespace ortc
       }
 
       // ... other steps here ...
-      if (!stepBogusDoSomething()) goto not_ready;
+      if (!stepDTLSTransportError()) goto not_ready;
+      if (!stepDTLSTransportReady()) goto not_ready;
       // ... other steps here ...
 
       goto ready;
 
     not_ready:
       {
-        ZS_LOG_TRACE(debug("dtls is not ready"))
+        ZS_LOG_TRACE(debug("SCTP is NOT ready!!!"))
         return;
       }
 
     ready:
       {
-        ZS_LOG_TRACE(log("ready"))
+        ZS_LOG_TRACE(log("SCTP is ready!!!"))
+        setState(State_Ready);
+        
       }
     }
 
@@ -509,6 +895,53 @@ namespace ortc
       return true;
     }
 
+    //-------------------------------------------------------------------------
+    bool SCTPTransport::stepDTLSTransportReady()
+    {
+      if (mCurrentState > State_DTLSComplete) {
+        ZS_LOG_TRACE(log("Not waiting on DTLS Transport"))
+        return true;
+      }
+      
+      if (mCurrentState < State_DTLSComplete) {
+        ZS_LOG_DEBUG(log("waiting for DTLS Transport to complete before continuing"))
+        return false;
+      }
+      
+      ZS_LOG_DEBUG(log("DTLS Transport is done"))
+      
+      // Set new self state
+      setState(State_DTLSComplete);
+      
+      // Update DataChannel Transport
+#define TODO_UPDATE_DATACHANNEL_TRANSPORT_LAYER 1
+#define TODO_UPDATE_DATACHANNEL_TRANSPORT_LAYER 2
+      
+      return true;
+    }
+
+    //-------------------------------------------------------------------------
+    bool SCTPTransport::stepDTLSTransportError()
+    {
+      if (mCurrentState < State_DTLSComplete) {
+        ZS_LOG_TRACE(log("DTLS Transport was not ready before, no impact"))
+        return true;
+      }
+      
+      if (mCurrentState > State_DTLSComplete) {
+        ZS_LOG_DEBUG(log("DTLS Transport broken"))
+      
+        // Set new self state
+        setState(State_Pending);
+      
+        // Update DataChannel Transport
+#define TODO_UPDATE_DATACHANNEL_TRANSPORT_LAYER 1
+#define TODO_UPDATE_DATACHANNEL_TRANSPORT_LAYER 2
+      }
+      
+      return false;
+    }
+    
     //-------------------------------------------------------------------------
     void SCTPTransport::cancel()
     {
@@ -557,6 +990,19 @@ namespace ortc
       ZS_LOG_DETAIL(debug("state changed") + ZS_PARAM("new state", toString(state)) + ZS_PARAM("old state", toString(mCurrentState)))
 
       mCurrentState = state;
+
+      switch (mCurrentState) {
+        case State_Ready:
+          mDataChannelSubscriptions.delegate()->onSCTPTransportReady();
+          break;
+          
+        case State_Shutdown:
+          mDataChannelSubscriptions.delegate()->onSCTPTransportClosed();
+          break;
+          
+        default:
+          break;
+      }
 
 //      SCTPTransportPtr pThis = mThisWeak.lock();
 //      if (pThis) {
