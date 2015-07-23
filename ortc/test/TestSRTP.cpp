@@ -1046,7 +1046,7 @@ void doTestSRTP()
               for (int i = 0; i < 8; ++i)
               {
                 BYTE rtp_packet[sizeof(kPcmuFrame) + 10];
-                int rtp_len = sizeof(kPcmuFrame), out_len;
+                int rtp_len = sizeof(kPcmuFrame);
                 memcpy(rtp_packet, kPcmuFrame, rtp_len);
                 // In order to be able to run this test function multiple times we can not
                 // use the same sequence number twice. Increase the sequence number by one.
@@ -1092,7 +1092,7 @@ void doTestSRTP()
               {
                 BYTE rtp_packet[sizeof(kPcmuFrame) + 10];
                 //BYTE original_rtp_packet[sizeof(kPcmuFrame)];
-                int rtp_len = sizeof(kPcmuFrame), out_len;
+                int rtp_len = sizeof(kPcmuFrame);
                 memcpy(rtp_packet, kPcmuFrame, rtp_len);
                 // In order to be able to run this test function multiple times we can not
                 // use the same sequence number twice. Increase the sequence number by one.
