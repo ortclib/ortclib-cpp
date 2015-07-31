@@ -53,6 +53,7 @@ namespace ortc { namespace test { ZS_DECLARE_SUBSYSTEM(ortc_test) } }
 using zsLib::BYTE;
 using zsLib::String;
 using zsLib::ULONG;
+using zsLib::WORD;
 using zsLib::PTRNUMBER;
 using zsLib::IMessageQueue;
 using zsLib::Log;
