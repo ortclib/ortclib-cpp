@@ -238,6 +238,8 @@ namespace ortc
     virtual SettingsPtr getSettings() const = 0;
 
     virtual PromisePtr applyConstraints(const TrackConstraints &constraints) = 0;
+
+    virtual void setMediaElement(void* element) = 0;
   };
 
   //-------------------------------------------------------------------------

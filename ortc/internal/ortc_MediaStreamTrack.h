@@ -39,7 +39,9 @@
 #include <zsLib/MessageQueueAssociator.h>
 #include <zsLib/Timer.h>
 
-//#define ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE "ortc/sctp/max-message-size"
+#include <webrtc/video_frame.h>
+#include <webrtc/modules/video_capture/include/video_capture.h>
+#include <webrtc/modules/video_render/include/video_render.h>
 
 namespace ortc
 {
@@ -48,6 +50,7 @@ namespace ortc
     ZS_DECLARE_INTERACTION_PTR(IMediaStreamTrackForSettings)
     ZS_DECLARE_INTERACTION_PTR(IMediaStreamTrackForRTPSender)
     ZS_DECLARE_INTERACTION_PTR(IMediaStreamTrackForRTPReceiver)
+    ZS_DECLARE_INTERACTION_PTR(IMediaStreamTrackForMediaDevices)
 
     ZS_DECLARE_INTERACTION_PROXY(IMediaStreamTrackAsyncDelegate)
 
@@ -103,12 +106,27 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
+    #pragma mark IMediaStreamTrackForMediaDevices
+    #pragma mark
+
+    interaction IMediaStreamTrackForMediaDevices
+    {
+      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForMediaDevices, ForMediaDevices)
+
+      virtual ~IMediaStreamTrackForMediaDevices() {}
+    };
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
     #pragma mark IMediaStreamTrackAsyncDelegate
     #pragma mark
 
     interaction IMediaStreamTrackAsyncDelegate
     {
-      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::TrackConstraintsPtr, TrackConstraintsPtr)
+      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::TrackConstraints, TrackConstraints)
 
       virtual void onResolveStatsPromise(IStatsProvider::PromiseWithStatsReportPtr promise) = 0;
 
@@ -133,9 +151,11 @@ namespace ortc
                              public IMediaStreamTrackForSettings,
                              public IMediaStreamTrackForRTPSender,
                              public IMediaStreamTrackForRTPReceiver,
+                             public IMediaStreamTrackForMediaDevices,
                              public IWakeDelegate,
                              public zsLib::ITimerDelegate,
-                             public IMediaStreamTrackAsyncDelegate
+                             public IMediaStreamTrackAsyncDelegate,
+                             public webrtc::VideoCaptureDataCallback
     {
     protected:
       struct make_private {};
@@ -146,14 +166,16 @@ namespace ortc
       friend interaction IMediaStreamTrackForSettings;
       friend interaction IMediaStreamTrackForRTPSender;
       friend interaction IMediaStreamTrackForRTPReceiver;
+      friend interaction IMediaStreamTrackForMediaDevices;
 
-      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::TrackConstraintsPtr, TrackConstraintsPtr)
+      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::TrackConstraints, TrackConstraints)
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::Constraints, Constraints)
 
     public:
       MediaStreamTrack(
                        const make_private &,
-                       IMessageQueuePtr queue
+                       IMessageQueuePtr queue,
+                       TrackConstraintsPtr constraints
                        );
 
     protected:
@@ -168,12 +190,13 @@ namespace ortc
     public:
       virtual ~MediaStreamTrack();
 
-      static MediaStreamTrackPtr create();
+      static MediaStreamTrackPtr create(TrackConstraintsPtr constraints);
 
       static MediaStreamTrackPtr convert(IMediaStreamTrackPtr object);
       static MediaStreamTrackPtr convert(ForSettingsPtr object);
       static MediaStreamTrackPtr convert(ForSenderPtr object);
       static MediaStreamTrackPtr convert(ForReceiverPtr object);
+      static MediaStreamTrackPtr convert(ForMediaDevicesPtr object);
 
     protected:
       //-----------------------------------------------------------------------
@@ -214,6 +237,8 @@ namespace ortc
 
       virtual PromisePtr applyConstraints(const TrackConstraints &constraints) override;
 
+      virtual void setMediaElement(void* element) override;
+
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark MediaStreamTrack => IMediaStreamTrackForSettings
@@ -227,6 +252,11 @@ namespace ortc
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark MediaStreamTrack => IMediaStreamTrackForRTPReceiver
+      #pragma mark
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark MediaStreamTrack => IMediaStreamTrackForMediaDevices
       #pragma mark
 
       //-----------------------------------------------------------------------
@@ -254,6 +284,15 @@ namespace ortc
                                       PromisePtr promise,
                                       TrackConstraintsPtr constraints
                                       ) override;
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark MediaStreamTrack => webrtc::VideoCaptureDataCallback
+      #pragma mark
+
+      virtual void OnIncomingCapturedFrame(const int32_t id, const webrtc::VideoFrame& videoFrame);
+
+      virtual void OnCaptureDelayChanged(const int32_t id, const int32_t delay);
 
     protected:
       //-----------------------------------------------------------------------
@@ -293,6 +332,11 @@ namespace ortc
 
       WORD mLastError {};
       String mLastErrorReason;
+
+      TrackConstraintsPtr mConstraints;
+      webrtc::VideoCaptureModule* mVideoCaptureModule;
+      webrtc::VideoRender* mVideoRenderModule;
+      webrtc::VideoRenderCallback* mVideoRendererCallback;
     };
 
     //-------------------------------------------------------------------------
@@ -305,9 +349,11 @@ namespace ortc
 
     interaction IMediaStreamTrackFactory
     {
+      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::TrackConstraints, TrackConstraints)
+
       static IMediaStreamTrackFactory &singleton();
 
-      virtual MediaStreamTrackPtr create();
+      virtual MediaStreamTrackPtr create(TrackConstraintsPtr constraints);
     };
 
     class MediaStreamTrackFactory : public IFactory<IMediaStreamTrackFactory> {};

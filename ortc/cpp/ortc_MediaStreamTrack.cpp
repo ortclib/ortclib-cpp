@@ -44,6 +44,7 @@
 
 #include <cryptopp/sha.h>
 
+#include <webrtc/modules/video_capture/include/video_capture_factory.h>
 
 #ifdef _DEBUG
 #define ASSERT(x) ZS_THROW_BAD_STATE_IF(!(x))
@@ -100,10 +101,15 @@ namespace ortc
     //-------------------------------------------------------------------------
     MediaStreamTrack::MediaStreamTrack(
                                        const make_private &,
-                                       IMessageQueuePtr queue
+                                       IMessageQueuePtr queue,
+                                       TrackConstraintsPtr constraints
                                        ) :
       MessageQueueAssociator(queue),
-      SharedRecursiveLock(SharedRecursiveLock::create())
+      SharedRecursiveLock(SharedRecursiveLock::create()),
+      mConstraints(constraints),
+      mVideoCaptureModule(NULL),
+      mVideoRenderModule(NULL),
+      mVideoRendererCallback(NULL)
     {
       ZS_LOG_DETAIL(debug("created"))
     }
@@ -113,6 +119,27 @@ namespace ortc
     {
       AutoRecursiveLock lock(*this);
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
+
+      String videoDeviceID = mConstraints->mAdvanced.front()->mDeviceID.mValue.value().mValue.value();
+      mVideoCaptureModule = webrtc::VideoCaptureFactory::Create(0, videoDeviceID.c_str());
+      if (!mVideoCaptureModule) {
+        return;
+      }
+
+      mVideoCaptureModule->AddRef();
+
+      mVideoCaptureModule->RegisterCaptureDataCallback(*this);
+
+      webrtc::VideoCaptureCapability cap;
+      cap.width = mConstraints->mAdvanced.front()->mWidth.mValue.value();
+      cap.height = mConstraints->mAdvanced.front()->mHeight.mValue.value();;
+      cap.maxFPS = 30;
+      cap.rawType = webrtc::kVideoYUY2;
+
+      if (mVideoCaptureModule->StartCapture(cap) != 0) {
+        mVideoCaptureModule->DeRegisterCaptureDataCallback();
+        return;
+      }
     }
 
     //-------------------------------------------------------------------------
@@ -127,9 +154,9 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    MediaStreamTrackPtr MediaStreamTrack::create()
+    MediaStreamTrackPtr MediaStreamTrack::create(TrackConstraintsPtr constraints)
     {
-      MediaStreamTrackPtr pThis(make_shared<MediaStreamTrack>(make_private {}, IORTCForInternal::queueORTC()));
+      MediaStreamTrackPtr pThis(make_shared<MediaStreamTrack>(make_private{}, IORTCForInternal::queueORTC(), constraints));
       pThis->mThisWeak = pThis;
       pThis->init();
       return pThis;
@@ -155,6 +182,12 @@ namespace ortc
 
     //-------------------------------------------------------------------------
     MediaStreamTrackPtr MediaStreamTrack::convert(ForReceiverPtr object)
+    {
+      return ZS_DYNAMIC_PTR_CAST(MediaStreamTrack, object);
+    }
+
+    //-------------------------------------------------------------------------
+    MediaStreamTrackPtr MediaStreamTrack::convert(ForMediaDevicesPtr object)
     {
       return ZS_DYNAMIC_PTR_CAST(MediaStreamTrack, object);
     }
@@ -355,6 +388,18 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    void MediaStreamTrack::setMediaElement(void* element)
+    {
+      AutoRecursiveLock lock(*this);
+
+      mVideoRenderModule = webrtc::VideoRender::CreateVideoRender(1, element, false);
+
+      mVideoRendererCallback = mVideoRenderModule->AddIncomingRenderStream(1, 0, 0.0, 0.0, 1.0, 1.0);
+
+      mVideoRenderModule->StartRender(1);
+    }
+
+    //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -407,6 +452,29 @@ namespace ortc
 #define TODO 1
 #define TODO 2
       promise->reject();  // temporarily reject everything
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark MediaStreamTrack => webrtc::VideoCaptureDataCallback
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    void MediaStreamTrack::OnIncomingCapturedFrame(const int32_t id, const webrtc::VideoFrame& videoFrame)
+    {
+      AutoRecursiveLock lock(*this);
+
+      if (mVideoRendererCallback)
+        mVideoRendererCallback->RenderFrame(1, videoFrame);
+    }
+
+    //-------------------------------------------------------------------------
+    void MediaStreamTrack::OnCaptureDelayChanged(const int32_t id, const int32_t delay)
+    {
+
     }
 
     //-------------------------------------------------------------------------
@@ -605,10 +673,10 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    MediaStreamTrackPtr IMediaStreamTrackFactory::create()
+    MediaStreamTrackPtr IMediaStreamTrackFactory::create(TrackConstraintsPtr constraints)
     {
       if (this) {}
-      return internal::MediaStreamTrack::create();
+      return internal::MediaStreamTrack::create(constraints);
     }
 
 

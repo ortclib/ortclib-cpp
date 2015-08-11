@@ -30,7 +30,7 @@
  */
 
 #include <ortc/internal/ortc_MediaDevices.h>
-#include <ortc/internal/ortc_DTLSTransport.h>
+#include <ortc/internal/ortc_MediaStreamTrack.h>
 #include <ortc/internal/ortc_ORTC.h>
 #include <ortc/internal/platform.h>
 
@@ -44,6 +44,7 @@
 
 #include <cryptopp/sha.h>
 
+#include <webrtc/modules/video_capture/include/video_capture_factory.h>
 
 #ifdef _DEBUG
 #define ASSERT(x) ZS_THROW_BAD_STATE_IF(!(x))
@@ -237,7 +238,9 @@ namespace ortc
         return promise;
       }
 
-      IMediaDevicesAsyncDelegateProxy::create(pThis)->onGetUserMedia(promise);
+      ConstraintsPtr constraintsCopy = Constraints::create(constraints);
+
+      IMediaDevicesAsyncDelegateProxy::create(pThis)->onGetUserMedia(promise, constraintsCopy);
 
       return promise;
     }
@@ -328,18 +331,42 @@ namespace ortc
     void MediaDevices::onEnumerateDevices(PromiseWithDeviceListPtr promise)
     {
       AutoRecursiveLock lock(*this);
-#define TODO 1
-#define TODO 2
-      promise->reject();  // temporarily reject everything
+
+      webrtc::VideoCaptureModule::DeviceInfo* info = webrtc::VideoCaptureFactory::CreateDeviceInfo(0);
+      if (!info) {
+        promise->reject();
+        return;
+      }
+
+      DeviceListPtr value(std::make_shared<DeviceList>());
+      int num_cams = info->NumberOfDevices();
+      for (int index = 0; index < num_cams; ++index) {
+        char vcm_name[256];
+        char vcm_id[256];
+        if (info->GetDeviceName(index, vcm_name, sizeof(vcm_name),
+          vcm_id, sizeof(vcm_id)) != -1) {
+          Device device;
+          device.mKind = DeviceKind_Video;
+          device.mDeviceID = vcm_id;
+          value->push_back(device);
+        }
+      }
+      delete info;
+
+      promise->resolve(value);
     }
 
     //-------------------------------------------------------------------------
-    void MediaDevices::onGetUserMedia(PromiseWithMediaStreamTrackListPtr promise)
+    void MediaDevices::onGetUserMedia(PromiseWithMediaStreamTrackListPtr promise, ConstraintsPtr constraints)
     {
       AutoRecursiveLock lock(*this);
-#define TODO 1
-#define TODO 2
-      promise->reject();  // temporarily reject everything
+
+      MediaStreamTrackPtr videoTrack = IMediaStreamTrackFactory::singleton().create(constraints->mVideo);
+
+      MediaStreamTrackListPtr value(std::make_shared<MediaStreamTrackList>());
+      value->push_back(videoTrack);
+
+      promise->resolve(value);
     }
 
     //-------------------------------------------------------------------------

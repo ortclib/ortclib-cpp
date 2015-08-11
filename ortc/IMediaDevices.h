@@ -112,7 +112,7 @@ namespace ortc
 
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IMediaDevices::DeviceList
+    #pragma mark IMediaDevices::MediaStreamTrackList
     #pragma mark
 
     struct MediaStreamTrackList : public std::list<IMediaStreamTrackPtr>,
