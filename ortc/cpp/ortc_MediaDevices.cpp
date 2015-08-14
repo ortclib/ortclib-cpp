@@ -339,15 +339,15 @@ namespace ortc
       }
 
       DeviceListPtr value(std::make_shared<DeviceList>());
-      int num_cams = info->NumberOfDevices();
-      for (int index = 0; index < num_cams; ++index) {
-        char vcm_name[256];
-        char vcm_id[256];
-        if (info->GetDeviceName(index, vcm_name, sizeof(vcm_name),
-          vcm_id, sizeof(vcm_id)) != -1) {
+      int numCams = info->NumberOfDevices();
+      for (int index = 0; index < numCams; ++index) {
+        char vcmName[256];
+        char vcmID[256];
+        if (info->GetDeviceName(index, vcmName, sizeof(vcmName),
+          vcmID, sizeof(vcmID)) != -1) {
           Device device;
           device.mKind = DeviceKind_Video;
-          device.mDeviceID = vcm_id;
+          device.mDeviceID = vcmID;
           value->push_back(device);
         }
       }

@@ -130,13 +130,49 @@ namespace ortc
 
       mVideoCaptureModule->RegisterCaptureDataCallback(*this);
 
-      webrtc::VideoCaptureCapability cap;
-      cap.width = mConstraints->mAdvanced.front()->mWidth.mValue.value();
-      cap.height = mConstraints->mAdvanced.front()->mHeight.mValue.value();;
-      cap.maxFPS = 30;
-      cap.rawType = webrtc::kVideoYUY2;
+      webrtc::VideoCaptureModule::DeviceInfo* info = webrtc::VideoCaptureFactory::CreateDeviceInfo(0);
+      if (!info) {
+        return;
+      }
 
-      if (mVideoCaptureModule->StartCapture(cap) != 0) {
+      LONG desiredWidth = mConstraints->mAdvanced.front()->mWidth.mValue.value();
+      LONG desiredHeight = mConstraints->mAdvanced.front()->mHeight.mValue.value();
+      DOUBLE desiredMaxFPS = mConstraints->mAdvanced.front()->mFrameRate.mValue.value();
+      LONG minWidthDiff = LONG_MAX;
+      LONG minHeightDiff = LONG_MAX;
+      DOUBLE minFpsDiff = DBL_MAX;
+      webrtc::VideoCaptureCapability bestCap;
+      int32_t numCaps = info->NumberOfCapabilities(videoDeviceID.c_str());
+      for (int32_t i = 0; i < numCaps; ++i) {
+        webrtc::VideoCaptureCapability cap;
+        if (info->GetCapability(videoDeviceID.c_str(), i, cap) != -1) {
+          if (cap.rawType == webrtc::kVideoMJPEG || cap.rawType == webrtc::kVideoUnknown)
+            continue;
+          LONG widthDiff = abs((LONG)(cap.width - desiredWidth));
+          LONG heightDiff = abs((LONG)(cap.height - desiredHeight));
+          DOUBLE fpsDiff = abs((DOUBLE)(cap.maxFPS - desiredMaxFPS));
+          if (widthDiff < minWidthDiff) {
+            bestCap = cap;
+            minWidthDiff = widthDiff;
+            minHeightDiff = heightDiff;
+            minFpsDiff = fpsDiff;
+          } else if (widthDiff == minWidthDiff) {
+            if (heightDiff < minHeightDiff) {
+              bestCap = cap;
+              minHeightDiff = heightDiff;
+              minFpsDiff = fpsDiff;
+            } else if (heightDiff == minHeightDiff) {
+              if (fpsDiff < minFpsDiff) {
+                bestCap = cap;
+                minFpsDiff = fpsDiff;
+              }
+            }
+          }
+        }
+      }
+      delete info;
+
+      if (mVideoCaptureModule->StartCapture(bestCap) != 0) {
         mVideoCaptureModule->DeRegisterCaptureDataCallback();
         return;
       }
