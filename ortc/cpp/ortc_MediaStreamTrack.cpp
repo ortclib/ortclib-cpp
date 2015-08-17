@@ -380,8 +380,11 @@ namespace ortc
     //-------------------------------------------------------------------------
     void MediaStreamTrack::stop()
     {
-#define TODO 1
-#define TODO 2
+      if (!mVideoCaptureModule) {
+        return;
+      }
+      mVideoCaptureModule->StopCapture();
+      mVideoCaptureModule->DeRegisterCaptureDataCallback();
     }
 
     //-------------------------------------------------------------------------
