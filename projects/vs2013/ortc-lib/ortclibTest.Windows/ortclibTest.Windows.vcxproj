@@ -124,9 +124,10 @@
       <DisableSpecificWarnings>4453;28204;4068;4290</DisableSpecificWarnings>
       <AdditionalIncludeDirectories>$(ProjectDir)\..\..\..\..;$(ProjectDir)\..\..\..\..\..;$(ProjectDir)\..\..\..\..\..\op-services-cpp;$(ProjectDir)\..\..\..\..\..\zsLib;$(ProjectDir)\..\..\..\..\..\webrtc\third_party\boringssl\src\include;$(ProjectDir)\..\..\..\..\..\webrtc\webrtc;%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory)</AdditionalIncludeDirectories>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PreprocessorDefinitions>_UNICODE;UNICODE;WIN32;WINRT;WEBRTC_WIN;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>ws2_32.lib;boringssl.lib;libsrtp.lib;usrsctplib.lib;mfplat.lib;mfuuid.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>mfplat.lib;mfuuid.lib;Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(ProjectDir)\..\..\..\..\..\webrtc\build\$(Configuration)\lib</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -204,6 +205,14 @@
     <ProjectReference Include="..\..\..\..\..\udns\projects\vs2013\udns\udns.Windows\udns.Windows.vcxproj">
       <Project>{3c9c21f5-54be-4c18-ac96-f28a43ef2844}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\..\..\..\..\webrtc\third_party\boringssl\boringssl_win.vcxproj">
+      <Project>{faa3af2e-d09e-399d-6a3b-f44e0aa2b7fb}</Project>
+      <Private>false</Private>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
+    </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\webrtc\third_party\libjpeg_turbo\libjpeg_win.vcxproj">
       <Project>{5afbcca4-e15a-96ed-708e-e0ac1fe92db6}</Project>
       <Private>false</Private>
@@ -212,8 +221,24 @@
       <LinkLibraryDependencies>true</LinkLibraryDependencies>
       <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
+    <ProjectReference Include="..\..\..\..\..\webrtc\third_party\libsrtp\libsrtp_win.vcxproj">
+      <Project>{2395856b-126e-06bb-4752-02f8dd47db0f}</Project>
+      <Private>false</Private>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
+    </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\webrtc\third_party\libyuv\libyuv_win.vcxproj">
       <Project>{de813719-cdba-b7d4-9786-e1ea2588fc37}</Project>
+      <Private>false</Private>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\..\webrtc\third_party\usrsctp\usrsctplib_win.vcxproj">
+      <Project>{a836af04-da07-eafe-9d32-475c4a86d2da}</Project>
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
