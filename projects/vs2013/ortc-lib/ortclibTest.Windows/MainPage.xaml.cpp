@@ -22,6 +22,8 @@ using namespace Windows::UI::Xaml::Input;
 using namespace Windows::UI::Xaml::Media;
 using namespace Windows::UI::Xaml::Navigation;
 
+Windows::UI::Core::CoreDispatcher^ g_windowDispatcher;
+
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=234238
 
 MainPage::MainPage()
@@ -41,4 +43,9 @@ void ortclibTest::MainPage::Button_Click(Platform::Object^ sender, Windows::UI::
     TESTING_STDOUT() << "FAILED!\n\n";
   }
 
+}
+
+void ortclibTest::MainPage::Page_Loaded(Platform::Object^ sender, Windows::UI::Xaml::RoutedEventArgs^ e)
+{
+  g_windowDispatcher = Window::Current->Dispatcher;
 }

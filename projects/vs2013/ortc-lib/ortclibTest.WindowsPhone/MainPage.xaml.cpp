@@ -19,6 +19,8 @@ using namespace Windows::UI::Xaml::Input;
 using namespace Windows::UI::Xaml::Media;
 using namespace Windows::UI::Xaml::Navigation;
 
+Windows::UI::Core::CoreDispatcher^ g_windowDispatcher;
+
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=234238
 
 MainPage::MainPage()
@@ -42,4 +44,9 @@ void MainPage::OnNavigatedTo(NavigationEventArgs^ e)
 	// Windows::Phone::UI::Input::HardwareButtons.BackPressed event.
 	// If you are using the NavigationHelper provided by some templates,
 	// this event is handled for you.
+}
+
+void ortclibTest::MainPage::Page_Loaded(Platform::Object^ sender, Windows::UI::Xaml::RoutedEventArgs^ e)
+{
+  g_windowDispatcher = Window::Current->Dispatcher;
 }
