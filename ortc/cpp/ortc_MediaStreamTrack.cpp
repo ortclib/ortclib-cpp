@@ -64,6 +64,7 @@ namespace ortc
   typedef openpeer::services::Hasher<CryptoPP::SHA1> SHA1Hasher;
 
   using zsLib::SingletonManager;
+  using zsLib::DOUBLE;
 
   namespace internal
   {
@@ -140,7 +141,7 @@ namespace ortc
       DOUBLE desiredMaxFPS = mConstraints->mAdvanced.front()->mFrameRate.mValue.value();
       LONG minWidthDiff = LONG_MAX;
       LONG minHeightDiff = LONG_MAX;
-      DOUBLE minFpsDiff = DBL_MAX;
+      DOUBLE minFpsDiff = std::numeric_limits<double>::max();
       webrtc::VideoCaptureCapability bestCap;
       int32_t numCaps = info->NumberOfCapabilities(videoDeviceID.c_str());
       for (int32_t i = 0; i < numCaps; ++i) {
