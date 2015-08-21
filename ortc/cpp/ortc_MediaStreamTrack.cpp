@@ -44,6 +44,8 @@
 
 #include <cryptopp/sha.h>
 
+#include <limits>
+
 #include <webrtc/modules/video_capture/include/video_capture_factory.h>
 
 #ifdef _DEBUG
