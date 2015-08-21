@@ -261,7 +261,13 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    ICETransportPtr ICETransport::convert(ForRTPTransportPtr object)
+    ICETransportPtr ICETransport::convert(ForSecureTransportPtr object)
+    {
+      return ZS_DYNAMIC_PTR_CAST(ICETransport, object);
+    }
+
+    //-------------------------------------------------------------------------
+    ICETransportPtr ICETransport::convert(ForDataTransportPtr object)
     {
       return ZS_DYNAMIC_PTR_CAST(ICETransport, object);
     }

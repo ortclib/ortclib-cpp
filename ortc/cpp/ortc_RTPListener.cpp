@@ -257,7 +257,7 @@ namespace ortc
       auto listener = useSecureTransport->getListener();
       ORTC_THROW_INVALID_STATE_IF(!listener)
 
-      auto tearAway = IRTPListenerTearAway::create(listener);
+      auto tearAway = IRTPListenerTearAway::create(listener, make_shared<TearAwayData>());
       ORTC_THROW_INVALID_STATE_IF(!tearAway)
 
       auto tearAwayData = IRTPListenerTearAway::data(tearAway);

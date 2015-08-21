@@ -57,9 +57,9 @@ namespace ortc
     ZS_DECLARE_INTERACTION_PTR(ICertificateForDTLSTransport)
     ZS_DECLARE_INTERACTION_PTR(ISRTPTransportForSecureTransport)
     ZS_DECLARE_INTERACTION_PTR(IRTPListenerForSecureTransport)
+    ZS_DECLARE_INTERACTION_PTR(IDataTransportForSecureTransport)
 
     ZS_DECLARE_INTERACTION_PTR(IDTLSTransportForSettings)
-    ZS_DECLARE_INTERACTION_PTR(IDTLSTransportForDataTransport)
 
     ZS_DECLARE_INTERACTION_PROXY(IDTLSTransportAsyncDelegate)
 
@@ -89,30 +89,6 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IDTLSTransportForDataTransport
-    #pragma mark
-
-    interaction IDTLSTransportForDataTransport
-    {
-      ZS_DECLARE_TYPEDEF_PTR(IDTLSTransportForDataTransport, ForDataTransport)
-
-      static ElementPtr toDebug(ForDataTransportPtr transport);
-
-      virtual PUID getID() const = 0;
-
-      virtual bool sendDataPacket(
-                                  const BYTE *buffer,
-                                  size_t bufferLengthInBytes
-                                  ) = 0;
-
-      virtual IDTLSTransportSubscriptionPtr subscribe(IDTLSTransportDelegatePtr delegate) = 0;
-    };
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
     #pragma mark IDTLSTransportAsyncDelegate
     #pragma mark
 
@@ -134,11 +110,11 @@ namespace ortc
                           public MessageQueueAssociator,
                           public SharedRecursiveLock,
                           public IDTLSTransport,
-                          public IDTLSTransportForDataTransport,
                           public ISecureTransportForRTPSender,
                           public ISecureTransportForICETransport,
                           public ISecureTransportForSRTPTransport,
                           public ISecureTransportForRTPListener,
+                          public ISecureTransportForDataTransport,
                           public IDTLSTransportForSettings,
                           public IWakeDelegate,
                           public zsLib::ITimerDelegate,
@@ -152,17 +128,18 @@ namespace ortc
     public:
       friend interaction IDTLSTransport;
       friend interaction IDTLSTransportFactory;
-      friend interaction IDTLSTransportForDataTransport;
       friend interaction ISecureTransportForRTPSender;
       friend interaction ISecureTransportForICETransport;
       friend interaction ISecureTransportForRTPListener;
       friend interaction ISecureTransportForSRTPTransport;
+      friend interaction ISecureTransportForDataTransport;
       friend interaction IDTLSTransportForSettings;
 
       ZS_DECLARE_TYPEDEF_PTR(IICETransportForSecureTransport, UseICETransport)
       ZS_DECLARE_TYPEDEF_PTR(ICertificateForDTLSTransport, UseCertificate)
       ZS_DECLARE_TYPEDEF_PTR(ISRTPTransportForSecureTransport, UseSRTPTransport)
       ZS_DECLARE_TYPEDEF_PTR(IRTPListenerForSecureTransport, UseRTPListener)
+      ZS_DECLARE_TYPEDEF_PTR(IDataTransportForSecureTransport, UseDataTransport)
 
       ZS_DECLARE_CLASS_PTR(Adapter)
 
@@ -249,18 +226,6 @@ namespace ortc
 
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark DTLSTransport => IDTLSTransportForDataTransport
-      #pragma mark
-
-      // (duplicate) virtual PUID getID() const;
-
-      virtual bool sendDataPacket(
-                                  const BYTE *buffer,
-                                  size_t bufferLengthInBytes
-                                  ) override;
-
-      //-----------------------------------------------------------------------
-      #pragma mark
       #pragma mark DTLSTransport => ISecureTransportForRTPSender
       #pragma mark
 
@@ -330,6 +295,26 @@ namespace ortc
       // (duplicate) virtual PUID getID() const = 0;
 
       virtual RTPListenerPtr getListener() const override;
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark DTLSTransport => ISecureTransportForDataTransport
+      #pragma mark
+
+      // (duplicate) static ElementPtr toDebug(ForDataTransport transport);
+
+      // (duplicate) virtual PUID getID() const = 0;
+
+      virtual PromisePtr notifyWhenReady() override;
+
+      virtual IICETransportPtr getICETransport() const override;
+
+      virtual UseDataTransportPtr getDataTransport() const override;
+
+      virtual bool sendDataPacket(
+                                  const BYTE *buffer,
+                                  size_t bufferLengthInBytes
+                                  ) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -716,7 +701,8 @@ namespace ortc
 
       UseSRTPTransportPtr mSRTPTransport;
 
-      UseRTPListenerPtr mRTPListener; // no lock needed
+      UseRTPListenerPtr mRTPListener;     // no lock needed
+      UseDataTransportPtr mDataTransport; // no lock needed
     };
 
     //-------------------------------------------------------------------------

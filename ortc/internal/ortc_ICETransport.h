@@ -70,6 +70,8 @@ namespace ortc
     ZS_DECLARE_INTERACTION_PTR(IICETransportForICEGatherer)
     ZS_DECLARE_INTERACTION_PTR(IICETransportForICETransportContoller)
     ZS_DECLARE_INTERACTION_PTR(IICETransportForSecureTransport)
+    ZS_DECLARE_INTERACTION_PTR(IICETransportForDataTransport)
+
 
     ZS_DECLARE_INTERACTION_PROXY(IICETransportAsyncDelegate)
 
@@ -164,7 +166,7 @@ namespace ortc
 
     interaction IICETransportForSecureTransport
     {
-      ZS_DECLARE_TYPEDEF_PTR(IICETransportForSecureTransport, ForRTPTransport)
+      ZS_DECLARE_TYPEDEF_PTR(IICETransportForSecureTransport, ForSecureTransport)
 
       ZS_DECLARE_TYPEDEF_PTR(ISecureTransportForICETransport, UseSecureTransport)
 
@@ -190,6 +192,23 @@ namespace ortc
                               const BYTE *buffer,
                               size_t bufferSizeInBytes
                               ) = 0;
+    };
+    
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IICETransportForDataTransport
+    #pragma mark
+
+    interaction IICETransportForDataTransport
+    {
+      ZS_DECLARE_TYPEDEF_PTR(IICETransportForDataTransport, ForDataTransport)
+
+      virtual PUID getID() const = 0;
+
+      virtual IICETransportSubscriptionPtr subscribe(IICETransportDelegatePtr delegate) = 0;
     };
     
     //-------------------------------------------------------------------------
@@ -232,6 +251,7 @@ namespace ortc
                          public IICETransportForICEGatherer,
                          public IICETransportForICETransportContoller,
                          public IICETransportForSecureTransport,
+                         public IICETransportForDataTransport,
                          public IICETransportAsyncDelegate,
                          public IWakeDelegate,
                          public zsLib::ITimerDelegate,
@@ -249,6 +269,7 @@ namespace ortc
       friend interaction IICETransportForICEGatherer;
       friend interaction IICETransportForICETransportContoller;
       friend interaction IICETransportForSecureTransport;
+      friend interaction IICETransportForDataTransport;
 
       ZS_DECLARE_STRUCT_PTR(RouteStateTracker)
       ZS_DECLARE_STRUCT_PTR(Route)
@@ -320,7 +341,8 @@ namespace ortc
       static ICETransportPtr convert(ForSettingsPtr object);
       static ICETransportPtr convert(ForICEGathererPtr object);
       static ICETransportPtr convert(ForTransportContollerPtr object);
-      static ICETransportPtr convert(ForRTPTransportPtr object);
+      static ICETransportPtr convert(ForSecureTransportPtr object);
+      static ICETransportPtr convert(ForDataTransportPtr object);
 
     protected:
       //-----------------------------------------------------------------------
@@ -440,6 +462,14 @@ namespace ortc
                               const BYTE *buffer,
                               size_t bufferSizeInBytes
                               ) override;
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark ICETransport => IICETransportForDataTransport
+      #pragma mark
+
+      // (duplicate) virtual PUID getID() const override;
+
+      // (duplicate) virtual IICETransportSubscriptionPtr subscribe(IICETransportDelegatePtr delegate);
 
       //-----------------------------------------------------------------------
       #pragma mark

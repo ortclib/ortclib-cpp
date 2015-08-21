@@ -32,6 +32,7 @@
 #include <ortc/internal/ortc_ISecureTransport.h>
 #include <ortc/internal/ortc_DTLSTransport.h>
 #include <ortc/internal/ortc_SRTPSDESTransport.h>
+#include <ortc/internal/ortc_SCTPTransport.h>
 #include <ortc/internal/platform.h>
 
 //#include <openpeer/services/IHelper.h>
@@ -169,6 +170,55 @@ namespace ortc
       return ZS_DYNAMIC_PTR_CAST(ForRTPListener, transport);
     }
 
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark ISecureTransportForSCTPTransport
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    ElementPtr ISecureTransportForDataTransport::toDebug(ForDataTransportPtr transport)
+    {
+      if (!transport) return ElementPtr();
+
+      {
+        auto pThis = DTLSTransport::convert(transport);
+        if (pThis) return DTLSTransport::toDebug(pThis);
+      }
+
+      return ElementPtr();
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IDataTransportForSecureTransport
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    ElementPtr IDataTransportForSecureTransport::toDebug(ForSecureTransportPtr transport)
+    {
+      if (!transport) return ElementPtr();
+
+      {
+        auto pThis = SCTPTransport::convert(transport);
+        if (pThis) return SCTPTransport::toDebug(pThis);
+      }
+
+      return ElementPtr();
+    }
+
+    //-------------------------------------------------------------------------
+    IDataTransportForSecureTransport::ForSecureTransportPtr IDataTransportForSecureTransport::create(UseSecureTransportPtr transport)
+    {
+      if (!transport) return ForSecureTransportPtr();
+
+      return internal::ISCTPTransportFactory::singleton().create(transport);
+    }
   }
 
 }

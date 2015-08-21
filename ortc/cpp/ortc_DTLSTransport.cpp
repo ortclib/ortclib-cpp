@@ -309,21 +309,6 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IDTLSTransportForDataTransport
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    ElementPtr IDTLSTransportForDataTransport::toDebug(ForDataTransportPtr transport)
-    {
-      if (!transport) return ElementPtr();
-      return ZS_DYNAMIC_PTR_CAST(DTLSTransport, transport)->toDebug();
-    }
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
     #pragma mark DTLSTransport => IStatsProvider
     #pragma mark
 
@@ -377,6 +362,8 @@ namespace ortc
         AutoRecursiveLock lock(*this);
 
         mRTPListener = UseRTPListener::create(mThisWeak.lock());
+
+        mDataTransport = UseDataTransport::create(mThisWeak.lock());
 
         mAdapter = AdapterPtr(make_shared<Adapter>(mThisWeak.lock()));
         mAdapter->setIdentity(mCertificate);
@@ -619,88 +606,6 @@ namespace ortc
 
       AutoRecursiveLock lock(*this);
       cancel();
-    }
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark DTLSTransport => IDTLSTransportForDataTransport
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    bool DTLSTransport::sendDataPacket(
-                                       const BYTE *buffer,
-                                       size_t bufferLengthInBytes
-                                       )
-    {
-      ZS_LOG_TRACE(log("sending data packet") + ZS_PARAM("length", bufferLengthInBytes))
-
-      UseICETransportPtr transport;
-      PacketQueue packets;
-
-      {
-        AutoRecursiveLock lock(*this);
-        if (!mICETransport) {
-          ZS_LOG_WARNING(Debug, log("no ice transport is attached"))
-          return false;
-        }
-        transport = mICETransport;
-
-        if ((isShutdown()) ||
-            (isShuttingDown())) {
-          ZS_LOG_WARNING(Debug, log("cannot send data packet while shutdown/shutting down") + ZS_PARAM("packet length", bufferLengthInBytes))
-          return false;
-        }
-
-        if (!isValidated()) {
-          ZS_LOG_WARNING(Debug, log("cannot send data packets while stream is not validated") + ZS_PARAM("packet length", bufferLengthInBytes))
-          return false;
-        }
-
-        ZS_THROW_BAD_STATE_IF(!mAdapter)
-
-        size_t written {};
-        int error {};
-
-        auto result = mAdapter->write(buffer, bufferLengthInBytes, &written, &error);
-
-        wakeUpIfNeeded();
-
-        switch (result) {
-          case SR_SUCCESS: {
-            packets = mPendingOutgoingDTLS;
-            mPendingOutgoingDTLS = PacketQueue();
-            goto send_packets;
-          }
-          case SR_BLOCK: {
-            ZS_LOG_TRACE(log("dtls packet consumed") + ZS_PARAM("packet length", bufferLengthInBytes))
-            return true;
-          }
-          case SR_EOS:  {
-            ZS_LOG_DEBUG(log("end of stream reached (thus shutting down)"))
-            cancel();
-            return false;
-          }
-          case SR_ERROR: {
-            ZS_LOG_ERROR(Debug, log("write error found (thus shutting down)") + ZS_PARAM("error code", error))
-            cancel();
-            return false;
-          }
-        }
-      }
-
-    send_packets:
-      {
-        while (packets.size() > 0) {
-          SecureByteBlockPtr packet = packets.front();
-          if (!transport->sendPacket(*packet, packet->SizeInBytes())) return false;
-          packets.pop();
-        }
-      }
-
-      return true;
     }
 
     //-------------------------------------------------------------------------
@@ -998,6 +903,112 @@ namespace ortc
     RTPListenerPtr DTLSTransport::getListener() const
     {
       return RTPListener::convert(mRTPListener);
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark DTLSTransport => ISecureTransportForDataTransport
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    PromisePtr DTLSTransport::notifyWhenReady()
+    {
+#define TODO 1
+#define TODO 2
+      return PromisePtr();
+    }
+
+    //-------------------------------------------------------------------------
+    IICETransportPtr DTLSTransport::getICETransport() const
+    {
+#define TODO 1
+#define TODO 2
+      return IICETransportPtr();
+    }
+
+    //-------------------------------------------------------------------------
+    DTLSTransport::UseDataTransportPtr DTLSTransport::getDataTransport() const
+    {
+#define TODO 1
+#define TODO 2
+      return UseDataTransportPtr();
+    }
+
+    //-------------------------------------------------------------------------
+    bool DTLSTransport::sendDataPacket(
+                                       const BYTE *buffer,
+                                       size_t bufferLengthInBytes
+                                       )
+    {
+      ZS_LOG_TRACE(log("sending data packet") + ZS_PARAM("length", bufferLengthInBytes))
+
+      UseICETransportPtr transport;
+      PacketQueue packets;
+
+      {
+        AutoRecursiveLock lock(*this);
+        if (!mICETransport) {
+          ZS_LOG_WARNING(Debug, log("no ice transport is attached"))
+          return false;
+        }
+        transport = mICETransport;
+
+        if ((isShutdown()) ||
+            (isShuttingDown())) {
+          ZS_LOG_WARNING(Debug, log("cannot send data packet while shutdown/shutting down") + ZS_PARAM("packet length", bufferLengthInBytes))
+          return false;
+        }
+
+        if (!isValidated()) {
+          ZS_LOG_WARNING(Debug, log("cannot send data packets while stream is not validated") + ZS_PARAM("packet length", bufferLengthInBytes))
+          return false;
+        }
+
+        ZS_THROW_BAD_STATE_IF(!mAdapter)
+
+        size_t written {};
+        int error {};
+
+        auto result = mAdapter->write(buffer, bufferLengthInBytes, &written, &error);
+
+        wakeUpIfNeeded();
+
+        switch (result) {
+          case SR_SUCCESS: {
+            packets = mPendingOutgoingDTLS;
+            mPendingOutgoingDTLS = PacketQueue();
+            goto send_packets;
+          }
+          case SR_BLOCK: {
+            ZS_LOG_TRACE(log("dtls packet consumed") + ZS_PARAM("packet length", bufferLengthInBytes))
+            return true;
+          }
+          case SR_EOS:  {
+            ZS_LOG_DEBUG(log("end of stream reached (thus shutting down)"))
+            cancel();
+            return false;
+          }
+          case SR_ERROR: {
+            ZS_LOG_ERROR(Debug, log("write error found (thus shutting down)") + ZS_PARAM("error code", error))
+            cancel();
+            return false;
+          }
+        }
+      }
+
+    send_packets:
+      {
+        while (packets.size() > 0) {
+          SecureByteBlockPtr packet = packets.front();
+          if (!transport->sendPacket(*packet, packet->SizeInBytes())) return false;
+          packets.pop();
+        }
+      }
+
+      return true;
     }
 
     //-------------------------------------------------------------------------

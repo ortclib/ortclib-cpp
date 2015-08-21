@@ -35,11 +35,14 @@
 
 #include <ortc/ISCTPTransport.h>
 #include <ortc/IDTLSTransport.h>
+#include <ortc/IICETransport.h>
+#include <ortc/internal/ortc_ISecureTransport.h>
 
 #include <openpeer/services/IWakeDelegate.h>
 #include <zsLib/MessageQueueAssociator.h>
 #include <zsLib/Timer.h>
 #include <zsLib/ProxySubscriptions.h>
+#include <zsLib/TearAway.h>
 
 #define ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE "ortc/sctp/max-message-size"
 
@@ -50,13 +53,14 @@ namespace ortc
     ZS_DECLARE_CLASS_PTR(SCTPInit)
     ZS_DECLARE_CLASS_PTR(SCTPTransport)
 
-    ZS_DECLARE_INTERACTION_PTR(IDTLSTransportForDataTransport)
-
     ZS_DECLARE_INTERACTION_PTR(ISCTPTransportForSettings)
-    ZS_DECLARE_INTERACTION_PTR(ISCTPTransportForDTLSTransport)
+    ZS_DECLARE_INTERACTION_PTR(ISCTPTransportForSecureTransport)
     ZS_DECLARE_INTERACTION_PTR(ISCTPTransportForDataChannel)
     ZS_DECLARE_INTERACTION_PTR(IDataChannelForSCTPTransport)
-    
+    ZS_DECLARE_INTERACTION_PTR(ISecureTransportForDataTransport)
+
+    ZS_DECLARE_INTERACTION_PTR(IICETransportForDataTransport)
+
     ZS_DECLARE_INTERACTION_PROXY(ISCTPTransportAsyncDelegate)
     ZS_DECLARE_INTERACTION_PROXY(ISCTPTransportForDataChannelDelegate)
     
@@ -80,28 +84,6 @@ namespace ortc
       virtual ~ISCTPTransportForSettings() {}
     };
     
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ISCTPTransportForDTLSTransport
-    #pragma mark
-
-    interaction ISCTPTransportForDTLSTransport
-    {
-      ZS_DECLARE_TYPEDEF_PTR(ISCTPTransportForDTLSTransport, ForDTLSTransport)
-
-      static ElementPtr toDebug(ForDTLSTransportPtr transport);
-
-      virtual PUID getID() const = 0;
-
-      virtual bool handleDataPacket(
-                                    const BYTE *buffer,
-                                    size_t bufferLengthInBytes
-                                    ) = 0;
-    };
-
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -203,12 +185,13 @@ namespace ortc
                           public SharedRecursiveLock,
                           public ISCTPTransport,
                           public ISCTPTransportForSettings,
-                          public ISCTPTransportForDTLSTransport,
+                          public IDataTransportForSecureTransport,
                           public ISCTPTransportForDataChannel,
                           public IWakeDelegate,
                           public zsLib::ITimerDelegate,
                           public ISCTPTransportAsyncDelegate,
-                          public IDTLSTransportDelegate
+                          public IICETransportDelegate,
+                          public IPromiseSettledDelegate
     {
     protected:
       struct make_private {};
@@ -217,12 +200,15 @@ namespace ortc
       friend interaction ISCTPTransport;
       friend interaction ISCTPTransportFactory;
       friend interaction ISCTPTransportForSettings;
-      friend interaction ISCTPTransportForDTLSTransport;
+      friend interaction ISCTPTransportForSecureTransport;
       friend interaction ISCTPTransportForDataChannel;
+      friend interaction IDataTransportForSecureTransport;
 
-      ZS_DECLARE_TYPEDEF_PTR(IDTLSTransportForDataTransport, UseDTLSTransport)
       ZS_DECLARE_TYPEDEF_PTR(IDataChannelForSCTPTransport, UseDataChannel)
+      ZS_DECLARE_TYPEDEF_PTR(ISecureTransportForDataTransport, UseSecureTransport)
+      ZS_DECLARE_TYPEDEF_PTR(IICETransportForDataTransport, UseICETransport)
 
+      ZS_DECLARE_STRUCT_PTR(TearAwayData)
 
       enum States
       {
@@ -238,8 +224,7 @@ namespace ortc
       SCTPTransport(
                     const make_private &,
                     IMessageQueuePtr queue,
-                    ISCTPTransportDelegatePtr delegate,
-                    IDTLSTransportPtr dtlsTransport
+                    UseSecureTransportPtr secureTransport
                     );
 
     protected:
@@ -257,7 +242,7 @@ namespace ortc
       static SCTPTransportPtr convert(ISCTPTransportPtr object);
       static SCTPTransportPtr convert(IDataTransportPtr object);
       static SCTPTransportPtr convert(ForSettingsPtr object);
-      static SCTPTransportPtr convert(ForDTLSTransportPtr object);
+      static SCTPTransportPtr convert(ForSecureTransportPtr object);
       static SCTPTransportPtr convert(ForDataChannelPtr object);
 
     protected:
@@ -275,10 +260,10 @@ namespace ortc
 
       static ElementPtr toDebug(SCTPTransportPtr transport);
 
-      static SCTPTransportPtr create(
-                                     ISCTPTransportDelegatePtr delegate,
-                                     IDTLSTransportPtr transport
-                                     );
+      static ISCTPTransportPtr create(
+                                      ISCTPTransportDelegatePtr delegate,
+                                      IDTLSTransportPtr transport
+                                      );
 
       virtual PUID getID() const override {return mID;}
 
@@ -292,12 +277,14 @@ namespace ortc
 
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark SCTPTransport => ISCTPTransportForDTLSTransport
+      #pragma mark SCTPTransport => IDataTransportForSecureTransport
       #pragma mark
 
       // (duplciate) static ElementPtr toDebug(ForDTLSTransportPtr transport);
 
       // (duplicate) virtual PUID getID() const = 0;
+
+      static ForSecureTransportPtr create(UseSecureTransportPtr transport);
 
       virtual bool handleDataPacket(
                                     const BYTE *buffer,
@@ -341,19 +328,35 @@ namespace ortc
 
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark SCTPTransport => IDTLSTransportDelegate
+      #pragma mark SCTPTransport => IICETransportDelegate
       #pragma mark
 
-      virtual void onDTLSTransportStateChanged(
-                                               IDTLSTransportPtr transport,
-                                               IDTLSTransport::States state
-                                               ) override;
+      virtual void onICETransportStateChanged(
+                                              IICETransportPtr transport,
+                                              IICETransport::States state
+                                              ) override;
 
-      virtual void onDTLSTransportError(
-                                        IDTLSTransportPtr transport,
-                                        ErrorCode errorCode,
-                                        String errorReason
-                                        ) override;
+      virtual void onICETransportCandidatePairAvailable(
+                                                        IICETransportPtr transport,
+                                                        CandidatePairPtr candidatePair
+                                                        ) override;
+      virtual void onICETransportCandidatePairGone(
+                                                   IICETransportPtr transport,
+                                                   CandidatePairPtr candidatePair
+                                                   ) override;
+
+      virtual void onICETransportCandidatePairChanged(
+                                                      IICETransportPtr transport,
+                                                      CandidatePairPtr candidatePair
+                                                      ) override;
+
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark SCTPTransport => IPromiseSettledDelegate
+      #pragma mark
+
+      virtual void onPromiseSettled(PromisePtr promise) override;
 
     protected:
       //-----------------------------------------------------------------------
@@ -378,6 +381,19 @@ namespace ortc
       void setState(States state);
       void setError(WORD error, const char *reason = NULL);
 
+    public:
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark SCTPTransport::TearAwayData
+      #pragma mark
+
+      struct TearAwayData
+      {
+        UseSecureTransportPtr mSecureTransport;
+        ISCTPTransportSubscriptionPtr mDefaultSubscription;
+      };
+
     protected:
       //-----------------------------------------------------------------------
       #pragma mark
@@ -391,7 +407,6 @@ namespace ortc
       SCTPInitPtr mSCTPInit;
 
       ISCTPTransportDelegateSubscriptions mSubscriptions;
-      ISCTPTransportSubscriptionPtr mDefaultSubscription;
 
       ISCTPTransportForDataChannelDelegateSubscriptions mDataChannelSubscriptions;
 
@@ -400,8 +415,12 @@ namespace ortc
       WORD mLastError {};
       String mLastErrorReason;
 
-      UseDTLSTransportPtr mDTLSTransport;
-      IDTLSTransportSubscriptionPtr mDTLSTransportSubscription;
+      UseSecureTransportPtr mSecureTransport;
+      PromisePtr mSecureTransportReady;
+//      ISecureTransportSubscriptionPtr mSecureTransportSubscription;
+
+      UseICETransportPtr mICETransport;
+      IICETransportSubscriptionPtr mICETransportSubscription;
 
       Capabilities mCapabilities;
     };
@@ -418,12 +437,17 @@ namespace ortc
     {
       typedef ISCTPTransportTypes::CapabilitiesPtr CapabilitiesPtr;
 
+      ZS_DECLARE_TYPEDEF_PTR(IDataTransportForSecureTransport, ForSecureTransport)
+      ZS_DECLARE_TYPEDEF_PTR(ISecureTransportForDataTransport, UseSecureTransport)
+
       static ISCTPTransportFactory &singleton();
 
-      virtual SCTPTransportPtr create(
-                                      ISCTPTransportDelegatePtr delegate,
-                                      IDTLSTransportPtr transport
-                                      );
+      virtual ISCTPTransportPtr create(
+                                       ISCTPTransportDelegatePtr delegate,
+                                       IDTLSTransportPtr transport
+                                       );
+
+      virtual ForSecureTransportPtr create(UseSecureTransportPtr transport);
 
       virtual CapabilitiesPtr getCapabilities();
     };
@@ -432,3 +456,19 @@ namespace ortc
   }
 }
 
+ZS_DECLARE_TEAR_AWAY_BEGIN(ortc::ISCTPTransport, ortc::internal::SCTPTransport::TearAwayData)
+ZS_DECLARE_TEAR_AWAY_TYPEDEF(ortc::ISCTPTransportSubscriptionPtr, ISCTPTransportSubscriptionPtr)
+ZS_DECLARE_TEAR_AWAY_TYPEDEF(ortc::ISCTPTransportDelegatePtr, ISCTPTransportDelegatePtr)
+ZS_DECLARE_TEAR_AWAY_TYPEDEF(ortc::ISCTPTransportTypes::Capabilities, Capabilities)
+ZS_DECLARE_TEAR_AWAY_TYPEDEF(ortc::IStatsProvider::PromiseWithStatsReportPtr, PromiseWithStatsReportPtr)
+ZS_DECLARE_TEAR_AWAY_TYPEDEF(ortc::InvalidStateError, InvalidStateError)
+  // NOTE: custom tear away forward
+  virtual PromiseWithStatsReportPtr getStats() const throw(InvalidStateError)
+  {
+    return getDelegate()->getStats();
+  }
+ZS_DECLARE_TEAR_AWAY_METHOD_CONST_RETURN_0(getID, PUID)
+ZS_DECLARE_TEAR_AWAY_METHOD_1(start, const Capabilities &)
+ZS_DECLARE_TEAR_AWAY_METHOD_0(stop)
+ZS_DECLARE_TEAR_AWAY_METHOD_RETURN_1(subscribe, ISCTPTransportSubscriptionPtr, ISCTPTransportDelegatePtr)
+ZS_DECLARE_TEAR_AWAY_END()

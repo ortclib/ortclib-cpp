@@ -148,5 +148,62 @@ namespace ortc
       virtual RTPListenerPtr getListener() const = 0;
     };
 
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark ISecureTransportForDataTransport
+    #pragma mark
+
+    interaction ISecureTransportForDataTransport
+    {
+      ZS_DECLARE_TYPEDEF_PTR(ISecureTransportForDataTransport, ForDataTransport)
+
+      ZS_DECLARE_TYPEDEF_PTR(IDataTransportForSecureTransport, UseDataTransport)
+
+      static ElementPtr toDebug(ForDataTransportPtr transport);
+
+      virtual PUID getID() const = 0;
+
+      virtual PromisePtr notifyWhenReady() = 0;
+
+      virtual IICETransportPtr getICETransport() const = 0;
+
+      virtual UseDataTransportPtr getDataTransport() const = 0;
+
+      virtual bool sendDataPacket(
+                                  const BYTE *buffer,
+                                  size_t bufferLengthInBytes
+                                  ) = 0;
+    };
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IDataTransportForSecureTransport
+    #pragma mark
+
+    interaction IDataTransportForSecureTransport
+    {
+      ZS_DECLARE_TYPEDEF_PTR(IDataTransportForSecureTransport, ForSecureTransport)
+
+      ZS_DECLARE_TYPEDEF_PTR(ISecureTransportForDataTransport, UseSecureTransport)
+
+      static ElementPtr toDebug(ForSecureTransportPtr transport);
+
+      static ForSecureTransportPtr create(UseSecureTransportPtr transport);
+
+      virtual PUID getID() const = 0;
+
+      virtual bool handleDataPacket(
+                                    const BYTE *buffer,
+                                    size_t bufferLengthInBytes
+                                    ) = 0;
+    };
+
   }
 }
+

@@ -32,6 +32,7 @@
 #include <ortc/internal/ortc_SCTPTransport.h>
 #include <ortc/internal/ortc_DTLSTransport.h>
 #include <ortc/internal/ortc_DataChannel.h>
+#include <ortc/internal/ortc_ICETransport.h>
 #include <ortc/internal/ortc_ORTC.h>
 #include <ortc/internal/platform.h>
 
@@ -69,6 +70,8 @@ namespace ortc
   ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHTTP, UseHTTP)
 
   typedef openpeer::services::Hasher<CryptoPP::SHA1> SHA1Hasher;
+
+  ZS_DECLARE_INTERACTION_TEAR_AWAY(ISCTPTransport, internal::SCTPTransport::TearAwayData)
 
   namespace internal
   {
@@ -336,21 +339,6 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark ISCTPTransportForDTLSTransport
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    ElementPtr ISCTPTransportForDTLSTransport::toDebug(ForDTLSTransportPtr transport)
-    {
-      if (!transport) return ElementPtr();
-      return ZS_DYNAMIC_PTR_CAST(SCTPTransport, transport)->toDebug();
-    }
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
     #pragma mark ISCTPTransportForDataChannel
     #pragma mark
 
@@ -386,21 +374,19 @@ namespace ortc
     SCTPTransport::SCTPTransport(
                                  const make_private &,
                                  IMessageQueuePtr queue,
-                                 ISCTPTransportDelegatePtr originalDelegate,
-                                 IDTLSTransportPtr dtlsTransport
+                                 UseSecureTransportPtr secureTransport
                                  ) :
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
       mSCTPInit(SCTPInit::singleton()),
-      mDTLSTransport(DTLSTransport::convert(dtlsTransport))
+      mSecureTransport(DTLSTransport::convert(secureTransport))
     {
       ZS_LOG_DETAIL(debug("created"))
 
-      ORTC_THROW_INVALID_STATE_IF(!mSCTPInit)
+      mSecureTransportReady = mSecureTransport->notifyWhenReady();
+      mICETransport = ICETransport::convert(mSecureTransport->getICETransport());
 
-      if (originalDelegate) {
-        mDefaultSubscription = mSubscriptions.subscribe(originalDelegate, IORTCForInternal::queueDelegate());
-      }
+      ORTC_THROW_INVALID_STATE_IF(!mSCTPInit)
     }
 
     //-------------------------------------------------------------------------
@@ -410,10 +396,12 @@ namespace ortc
       //IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
       
       ZS_LOG_DETAIL(debug("SCTP init"))
-      
+
+      mSecureTransportReady->thenWeak(mThisWeak.lock());
+
       //Subscribe to DTLS Transport and Wait for DTLS to complete
-      mDTLSTransportSubscription = mDTLSTransport->subscribe(mThisWeak.lock());
-      
+      mICETransportSubscription = mICETransport->subscribe(mThisWeak.lock());
+
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
     }
 
@@ -431,6 +419,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     SCTPTransportPtr SCTPTransport::convert(ISCTPTransportPtr object)
     {
+      ISCTPTransportPtr original = ISCTPTransportTearAway::original(object);
       return ZS_DYNAMIC_PTR_CAST(SCTPTransport, object);
     }
 
@@ -447,7 +436,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    SCTPTransportPtr SCTPTransport::convert(ForDTLSTransportPtr object)
+    SCTPTransportPtr SCTPTransport::convert(ForSecureTransportPtr object)
     {
       return ZS_DYNAMIC_PTR_CAST(SCTPTransport, object);
     }
@@ -486,15 +475,35 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    SCTPTransportPtr SCTPTransport::create(
-                                           ISCTPTransportDelegatePtr delegate,
-                                           IDTLSTransportPtr transport
-                                           )
+    ISCTPTransportPtr SCTPTransport::create(
+                                            ISCTPTransportDelegatePtr delegate,
+                                            IDTLSTransportPtr transport
+                                            )
     {
-      SCTPTransportPtr pThis(make_shared<SCTPTransport>(make_private {}, IORTCForInternal::queueORTC(), delegate, transport));
-      pThis->mThisWeak = pThis;
-      pThis->init();
-      return pThis;
+      ORTC_THROW_INVALID_PARAMETERS_IF(!transport)
+
+      UseSecureTransportPtr useSecureTransport = DTLSTransport::convert(transport);
+      ASSERT(((bool)useSecureTransport))
+
+      auto dataTransport = useSecureTransport->getDataTransport();
+      ORTC_THROW_INVALID_STATE_IF(!dataTransport)
+
+      auto sctpTransport = SCTPTransport::convert(dataTransport);
+      ORTC_THROW_INVALID_STATE_IF(!sctpTransport)
+
+      auto tearAway = ISCTPTransportTearAway::create(sctpTransport, make_shared<TearAwayData>());
+      ORTC_THROW_INVALID_STATE_IF(!tearAway)
+
+      auto tearAwayData = ISCTPTransportTearAway::data(tearAway);
+      ORTC_THROW_INVALID_STATE_IF(!tearAwayData)
+
+      tearAwayData->mSecureTransport = useSecureTransport;
+
+      if (delegate) {
+        tearAwayData->mDefaultSubscription = sctpTransport->subscribe(delegate);
+      }
+      
+      return tearAway;
     }
 
     //-------------------------------------------------------------------------
@@ -602,7 +611,6 @@ namespace ortc
       ZS_LOG_DETAIL(log("subscribing to transport state"))
 
       AutoRecursiveLock lock(*this);
-      if (!originalDelegate) return mDefaultSubscription;
 
       ISCTPTransportSubscriptionPtr subscription = mSubscriptions.subscribe(originalDelegate, IORTCForInternal::queueDelegate());
 
@@ -627,8 +635,17 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark SCTPTransport => ISCTPTransportForDTLSTransport
+    #pragma mark SCTPTransport => ISCTPTransportForSecureTransport
     #pragma mark
+
+    //-------------------------------------------------------------------------
+    SCTPTransport::ForSecureTransportPtr SCTPTransport::create(UseSecureTransportPtr transport)
+    {
+      SCTPTransportPtr pThis(make_shared<SCTPTransport>(make_private {}, IORTCForInternal::queueORTC(), transport));
+      pThis->mThisWeak = pThis;
+      pThis->init();
+      return pThis;
+    }
 
     //-------------------------------------------------------------------------
     bool SCTPTransport::handleDataPacket(
@@ -692,11 +709,11 @@ namespace ortc
                                              size_t bufferLengthInBytes
                                              )
     {
-      UseDTLSTransportPtr transport;
+      UseSecureTransportPtr transport;
 
       {
         AutoRecursiveLock lock(*this);
-        transport = mDTLSTransport;
+        transport = mSecureTransport;
       }
 
       return transport->sendDataPacket(buffer, bufferLengthInBytes);
@@ -751,40 +768,61 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark SCTPTransport => IDTLSTransportDelegate
+    #pragma mark SCTPTransport => IICETransportDelegate
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void SCTPTransport::onDTLSTransportStateChanged(
-                                                    IDTLSTransportPtr transport,
-                                                    IDTLSTransport::States state
-                                                    )
+    void SCTPTransport::onICETransportStateChanged(
+                                                   IICETransportPtr transport,
+                                                   IICETransport::States state
+                                                   )
     {
-      ZS_LOG_DEBUG(log("dtls transport state changed") + ZS_PARAM("dtls transport id", transport->getID()) + ZS_PARAM("state", IDTLSTransport::toString(state)))
+      ZS_LOG_DEBUG(log("ice transport state changed") + ZS_PARAM("ice transport id", transport->getID()) + ZS_PARAM("state", IICETransport::toString(state)))
 
       AutoRecursiveLock lock(*this);
-      if (transport->getID() == mDTLSTransport->getID()) {
-        ZS_LOG_DEBUG(debug("known DTLS transport"))
-        if (state == IDTLSTransport::State_Connected) {
-          step();
-        }
-      }
-      //step();
+      step();
     }
 
     //-------------------------------------------------------------------------
-    void SCTPTransport::onDTLSTransportError(
-                                             IDTLSTransportPtr transport,
-                                             ErrorCode errorCode,
-                                             String errorReason
-                                             )
+    void SCTPTransport::onICETransportCandidatePairAvailable(
+                                                             IICETransportPtr transport,
+                                                             CandidatePairPtr candidatePair
+                                                             )
     {
-      ZS_LOG_DEBUG(log("dtls transport state changed") + ZS_PARAM("dtls transport id", transport->getID()) + ZS_PARAM("error", errorCode) + ZS_PARAM("reason", errorReason))
+      // ignored
+    }
 
-      AutoRecursiveLock lock(*this);
-      setError(errorCode, errorReason);
-      setState(State_ShuttingDown);
-      step();
+    //-------------------------------------------------------------------------
+    void SCTPTransport::onICETransportCandidatePairGone(
+                                                        IICETransportPtr transport,
+                                                        CandidatePairPtr candidatePair
+                                                        )
+    {
+      // ignored
+    }
+
+    //-------------------------------------------------------------------------
+    void SCTPTransport::onICETransportCandidatePairChanged(
+                                                           IICETransportPtr transport,
+                                                           CandidatePairPtr candidatePair
+                                                           )
+    {
+      // ignored
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark SCTPTransport => IPromiseSettledDelegate
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    void SCTPTransport::onPromiseSettled(PromisePtr promise)
+    {
+#define TODO 1
+#define TODO 2
     }
 
     //-------------------------------------------------------------------------
@@ -821,15 +859,17 @@ namespace ortc
       UseServicesHelper::debugAppend(resultEl, "graceful shutdown", (bool)mGracefulShutdownReference);
 
       UseServicesHelper::debugAppend(resultEl, "subscribers", mSubscriptions.size());
-      UseServicesHelper::debugAppend(resultEl, "default subscription", (bool)mDefaultSubscription);
 
       UseServicesHelper::debugAppend(resultEl, "state", toString(mCurrentState));
 
       UseServicesHelper::debugAppend(resultEl, "error", mLastError);
       UseServicesHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
 
-      UseServicesHelper::debugAppend(resultEl, "dtls transport", mDTLSTransport ? mDTLSTransport->getID() : 0);
-      UseServicesHelper::debugAppend(resultEl, "dtls transport subscription", (bool)mDTLSTransportSubscription);
+      UseServicesHelper::debugAppend(resultEl, "secure transport", mSecureTransport ? mSecureTransport->getID() : 0);
+      UseServicesHelper::debugAppend(resultEl, "secure transport ready promise", (bool)mSecureTransportReady);
+
+      UseServicesHelper::debugAppend(resultEl, "ice transport", mICETransport ? mICETransport->getID() : 0);
+      UseServicesHelper::debugAppend(resultEl, "ice transport subscription", mICETransportSubscription ? mICETransportSubscription->getID() : 0);
 
       UseServicesHelper::debugAppend(resultEl, mCapabilities.toDebug());
 
@@ -976,14 +1016,9 @@ namespace ortc
 
       mSubscriptions.clear();
 
-      if (mDefaultSubscription) {
-        mDefaultSubscription->cancel();
-        mDefaultSubscription.reset();
-      }
-
-      if (mDTLSTransportSubscription) {
-        mDTLSTransportSubscription->cancel();
-        mDTLSTransportSubscription.reset();
+      if (mICETransportSubscription) {
+        mICETransportSubscription->cancel();
+        mICETransportSubscription.reset();
       }
 
       // make sure to cleanup any final reference to self
@@ -1053,13 +1088,20 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    SCTPTransportPtr ISCTPTransportFactory::create(
-                                                   ISCTPTransportDelegatePtr delegate,
-                                                   IDTLSTransportPtr transport
-                                                   )
+    ISCTPTransportPtr ISCTPTransportFactory::create(
+                                                    ISCTPTransportDelegatePtr delegate,
+                                                    IDTLSTransportPtr transport
+                                                    )
     {
       if (this) {}
       return internal::SCTPTransport::create(delegate, transport);
+    }
+
+    //-------------------------------------------------------------------------
+    ISCTPTransportFactory::ForSecureTransportPtr ISCTPTransportFactory::create(UseSecureTransportPtr transport)
+    {
+      if (this) {}
+      return internal::SCTPTransport::create(transport);
     }
 
     //-------------------------------------------------------------------------
