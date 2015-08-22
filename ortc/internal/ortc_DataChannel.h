@@ -81,7 +81,18 @@ namespace ortc
     {
       ZS_DECLARE_TYPEDEF_PTR(IDataChannelForSCTPTransport, ForDataTransport)
 
-      static ElementPtr toDebug(ForDataTransportPtr transport);
+      ZS_DECLARE_TYPEDEF_PTR(IDataChannelTypes::Parameters, Parameters)
+
+      ZS_DECLARE_TYPEDEF_PTR(ISCTPTransportForDataChannel, UseDataTransport)
+
+      static ElementPtr toDebug(ForDataTransportPtr dataChannel);
+
+      static ForDataTransportPtr create(
+                                        UseDataTransportPtr transport,
+                                        const Parameters &params,
+                                        WORD localPort,
+                                        WORD remotePort
+                                        );
 
       virtual PUID getID() const = 0;
 
@@ -89,6 +100,11 @@ namespace ortc
                                         const BYTE *buffer,
                                         size_t bufferLengthInBytes
                                         ) = 0;
+
+      virtual bool handleSCTPPacket(
+                                    const BYTE *buffer,
+                                    size_t bufferLengthInBytes
+                                    ) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -120,12 +136,19 @@ namespace ortc
 
       ZS_DECLARE_TYPEDEF_PTR(ISCTPTransportForDataChannel, UseDataTransport)
 
+      ZS_DECLARE_TYPEDEF_PTR(IDataChannelTypes::Parameters, Parameters)
+
+      typedef std::list<SecureByteBlockPtr> BufferList;
+
     public:
       DataChannel(
                   const make_private &,
                   IMessageQueuePtr queue,
                   IDataChannelDelegatePtr delegate,
-                  IDataTransportPtr transport
+                  UseDataTransportPtr transport,
+                  const Parameters &params,
+                  WORD localPort = 0,
+                  WORD remotePort = 0
                   );
 
     protected:
@@ -155,7 +178,8 @@ namespace ortc
 
       static DataChannelPtr create(
                                    IDataChannelDelegatePtr delegate,
-                                   IDataTransportPtr transport
+                                   IDataTransportPtr transport,
+                                   const Parameters &params
                                    );
 
       virtual PUID getID() const override {return mID;}
@@ -171,6 +195,7 @@ namespace ortc
       virtual ULONG bufferedAmount() const override;
 
       virtual String binaryType() const override;
+      virtual void binaryType(const char *str) override;
 
       virtual void close() override;
 
@@ -188,6 +213,13 @@ namespace ortc
 
       // (duplicate) static ElementPtr toDebug(DataChannelPtr transport);
 
+      static ForDataTransportPtr create(
+                                        UseDataTransportPtr transport,
+                                        const Parameters &params,
+                                        WORD localPort,
+                                        WORD remotePort
+                                        );
+
       // (duplicate) virtual PUID getID() const = 0;
 
       virtual bool notifySendSCTPPacket(
@@ -195,13 +227,17 @@ namespace ortc
                                         size_t bufferLengthInBytes
                                         ) override;
 
+      virtual bool handleSCTPPacket(
+                                    const BYTE *buffer,
+                                    size_t bufferLengthInBytes
+                                    ) override;
+
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark DataChannel => ISCTPTransportForDataChannelDelegate
       #pragma mark
       
-      virtual void onSCTPTransportReady() override;
-      virtual void onSCTPTransportClosed() override;
+      virtual void onSCTPTransportStateChanged() override;
 
       
       //-----------------------------------------------------------------------
@@ -239,13 +275,18 @@ namespace ortc
       bool isShutdown() const;
 
       void step();
-
-      bool stepBogusDoSomething();
+      bool stepSCTPTransport();
+      bool stepIssueConnect();
+      bool stepWaitConnectAck();
+      bool stepOpen();
+      bool stepSendData();
 
       void cancel();
 
       void setState(States state);
       void setError(WORD error, const char *reason = NULL);
+
+      UseDataTransportPtr getTransport() const;
 
     protected:
       //-----------------------------------------------------------------------
@@ -261,11 +302,29 @@ namespace ortc
       IDataChannelSubscriptionPtr mDefaultSubscription;
 
       UseDataTransportPtr mDataTransport;
+      UseDataTransportWeakPtr mDataTransportWeak;
 
       States mCurrentState {State_Connecting};
+      bool mSCTPReady {false};
 
       WORD mLastError {};
       String mLastErrorReason;
+
+      String mBinaryType;
+      ParametersPtr mParameters;
+
+      bool mIncoming {false};
+
+      WORD mLocalPort {};
+      WORD mRemotePort {};
+
+      bool mIssuedConnect {false};
+      bool mConnectAcked {false};
+
+      bool mIssuedClose {false};
+      bool mCloseAcked {false};
+
+      BufferList mOutgoingData;
     };
 
     //-------------------------------------------------------------------------
@@ -278,12 +337,26 @@ namespace ortc
 
     interaction IDataChannelFactory
     {
+      ZS_DECLARE_TYPEDEF_PTR(IDataChannelTypes::Parameters, Parameters)
+
+      ZS_DECLARE_TYPEDEF_PTR(IDataChannelForSCTPTransport, ForDataTransport)
+
+      ZS_DECLARE_TYPEDEF_PTR(ISCTPTransportForDataChannel, UseDataTransport)
+
       static IDataChannelFactory &singleton();
 
       virtual DataChannelPtr create(
                                     IDataChannelDelegatePtr delegate,
-                                    IDataTransportPtr transport
+                                    IDataTransportPtr transport,
+                                    const Parameters &params
                                     );
+
+      virtual ForDataTransportPtr create(
+                                         UseDataTransportPtr transport,
+                                         const Parameters &params,
+                                         WORD localPort,
+                                         WORD remotePort
+                                         );
     };
 
     class DataChannelFactory : public IFactory<IDataChannelFactory> {};

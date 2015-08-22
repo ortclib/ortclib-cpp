@@ -103,6 +103,17 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    IDataChannelForSCTPTransport::ForDataTransportPtr IDataChannelForSCTPTransport::create(
+                                                                                           UseDataTransportPtr transport,
+                                                                                           const Parameters &params,
+                                                                                           WORD localPort,
+                                                                                           WORD remotePort
+                                                                                           )
+    {
+      return IDataChannelFactory::singleton().create(transport, params, localPort, remotePort);
+    }
+
+    //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -115,16 +126,33 @@ namespace ortc
                              const make_private &,
                              IMessageQueuePtr queue,
                              IDataChannelDelegatePtr originalDelegate,
-                             IDataTransportPtr transport
+                             UseDataTransportPtr transport,
+                             const Parameters &params,
+                             WORD localPort,
+                             WORD remotePort
                              ) :
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
-      mDataTransport(SCTPTransport::convert(transport))
+      mDataTransport(SCTPTransport::convert(transport)),
+      mParameters(make_shared<Parameters>(params)),
+      mLocalPort(localPort),
+      mRemotePort(remotePort)
     {
       ZS_LOG_DETAIL(debug("created"))
 
+      mBinaryType = "blob";
+
       if (originalDelegate) {
         mDefaultSubscription = mSubscriptions.subscribe(originalDelegate, IORTCForInternal::queueDelegate());
+      }
+
+      if (0 != localPort) {
+        mIncoming = true;
+        // incoming connections must only retain a weak pointer to data
+        // transport as data transport already has a strong pointer to
+        // the data channel (and thus owns the data channel).
+        mDataTransportWeak = mDataTransport;
+        mDataTransport.reset();
       }
     }
 
@@ -183,10 +211,11 @@ namespace ortc
     //-------------------------------------------------------------------------
     DataChannelPtr DataChannel::create(
                                        IDataChannelDelegatePtr delegate,
-                                       IDataTransportPtr transport
+                                       IDataTransportPtr transport,
+                                       const Parameters &params
                                        )
     {
-      DataChannelPtr pThis(make_shared<DataChannel>(make_private {}, IORTCForInternal::queueORTC(), delegate, transport));
+      DataChannelPtr pThis(make_shared<DataChannel>(make_private {}, IORTCForInternal::queueORTC(), delegate, SCTPTransport::convert(transport), params));
       pThis->mThisWeak = pThis;
       pThis->init();
       return pThis;
@@ -221,15 +250,16 @@ namespace ortc
     //-------------------------------------------------------------------------
     IDataTransportPtr DataChannel::transport() const
     {
-      return SCTPTransport::convert(mDataTransport);
+      return SCTPTransport::convert(getTransport());
     }
 
     //-------------------------------------------------------------------------
     IDataChannelTypes::ParametersPtr DataChannel::parameters() const
     {
-#define TODO 1
-#define TODO 2
-      return ParametersPtr();
+      AutoRecursiveLock lock(*this);
+      auto params = ParametersPtr(make_shared<Parameters>());
+      if (mParameters) *params = *mParameters;
+      return params;
     }
 
     //-------------------------------------------------------------------------
@@ -242,38 +272,53 @@ namespace ortc
     //-------------------------------------------------------------------------
     ULONG DataChannel::bufferedAmount() const
     {
-#define TODO 1
-#define TODO 2
-      return 0;
+      AutoRecursiveLock lock(*this);
+
+      ULONG total = 0;
+
+      for (auto iter = mOutgoingData.begin(); iter != mOutgoingData.end(); ++iter)
+      {
+        auto buffer = (*iter);
+        total += buffer->SizeInBytes();
+      }
+
+      return total;
     }
 
     //-------------------------------------------------------------------------
     String DataChannel::binaryType() const
     {
-#define TODO 1
-#define TODO 2
-      return String();
+      AutoRecursiveLock lock(*this);
+      return mBinaryType;
+    }
+
+    //-------------------------------------------------------------------------
+    void DataChannel::binaryType(const char *str)
+    {
+      AutoRecursiveLock lock(*this);
+      mBinaryType = String(str);
     }
 
     //-------------------------------------------------------------------------
     void DataChannel::close()
     {
-#define TODO 1
-#define TODO 2
+      ZS_LOG_DEBUG(log("close called"))
+      AutoRecursiveLock lock(*this);
+      cancel();
     }
 
     //-------------------------------------------------------------------------
     void DataChannel::send(const String &data)
     {
-#define TODO 1
-#define TODO 2
+      if (data.isEmpty()) return;
+      send((const BYTE *)data.c_str(), data.length());
     }
 
     //-------------------------------------------------------------------------
     void DataChannel::send(const SecureByteBlock &data)
     {
-#define TODO 1
-#define TODO 2
+      if (data.SizeInBytes() < 1) return;
+      send(data.BytePtr(), data.SizeInBytes());
     }
 
     //-------------------------------------------------------------------------
@@ -282,8 +327,21 @@ namespace ortc
                            size_t bufferSizeInBytes
                            )
     {
-#define TODO 1
-#define TODO 2
+      if (0 == bufferSizeInBytes) return;
+      if (NULL == buffer) return;
+
+      AutoRecursiveLock lock(*this);
+
+      if ((isShuttingDown()) &&
+          (isShutdown())) {
+        ZS_LOG_WARNING(Debug, log("cannot send data (as shutting down / shutdown)"))
+        return;
+      }
+
+      SecureByteBlockPtr temp = UseServicesHelper::convertToBuffer(buffer, bufferSizeInBytes);
+      mOutgoingData.push_back(temp);
+
+      IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
     }
 
     //-------------------------------------------------------------------------
@@ -293,6 +351,20 @@ namespace ortc
     #pragma mark
     #pragma mark DataChannel => IDataChannelForSCTPTransport
     #pragma mark
+
+    //-------------------------------------------------------------------------
+    DataChannel::ForDataTransportPtr DataChannel::create(
+                                                         UseDataTransportPtr transport,
+                                                         const Parameters &params,
+                                                         WORD localPort,
+                                                         WORD remotePort
+                                                         )
+    {
+      DataChannelPtr pThis(make_shared<DataChannel>(make_private {}, IORTCForInternal::queueORTC(), IDataChannelDelegatePtr(), transport, params, localPort, remotePort));
+      pThis->mThisWeak = pThis;
+      pThis->init();
+      return pThis;
+    }
 
     //-------------------------------------------------------------------------
     bool DataChannel::notifySendSCTPPacket(
@@ -305,10 +377,29 @@ namespace ortc
       {
         AutoRecursiveLock lock(*this);
 
-        transport = mDataTransport;
+        transport = getTransport();
+      }
+
+      if (!transport) {
+        ZS_LOG_WARNING(Trace, log("transport is gone (thus cannot send data channel packet)") + ZS_PARAM("buffer size", bufferLengthInBytes))
+        return false;
       }
 
       return transport->notifySendSCTPPacket(buffer, bufferLengthInBytes);
+    }
+
+    //-------------------------------------------------------------------------
+    bool DataChannel::handleSCTPPacket(
+                                       const BYTE *buffer,
+                                       size_t bufferLengthInBytes
+                                       )
+    {
+      // scope: obtain whatever data is required inside lock to process SCTP packet
+      {
+        AutoRecursiveLock lock(*this);
+      }
+
+      return false;
     }
 
     //-------------------------------------------------------------------------
@@ -318,21 +409,13 @@ namespace ortc
     #pragma mark
     #pragma mark DataChannel => ISCTPTransportForDataChannelDelegate
     #pragma mark
-    
-    //-------------------------------------------------------------------------
-    void DataChannel::onSCTPTransportReady()
-    {
-#define TODO 1
-#define TODO 2
-      
-    }
-    
-    //-------------------------------------------------------------------------
-    void DataChannel::onSCTPTransportClosed()
-    {
-#define TODO 1
-#define TODO 2
 
+    //-------------------------------------------------------------------------
+    void DataChannel::onSCTPTransportStateChanged()
+    {
+      ZS_LOG_TRACE(log("on sctp transport state changed"))
+      AutoRecursiveLock lock(*this);
+      step();
     }
 
     //-------------------------------------------------------------------------
@@ -415,12 +498,30 @@ namespace ortc
       UseServicesHelper::debugAppend(resultEl, "subscribers", mSubscriptions.size());
       UseServicesHelper::debugAppend(resultEl, "default subscription", (bool)mDefaultSubscription);
 
+      auto dataTransport = getTransport();
+      UseServicesHelper::debugAppend(resultEl, "data transport", dataTransport ? dataTransport->getID() : 0);
+
       UseServicesHelper::debugAppend(resultEl, "state", toString(mCurrentState));
+      UseServicesHelper::debugAppend(resultEl, "sctp ready", mSCTPReady);
 
       UseServicesHelper::debugAppend(resultEl, "error", mLastError);
       UseServicesHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
 
-      UseServicesHelper::debugAppend(resultEl, "data transport", mDataTransport ? mDataTransport->getID() : 0);
+      UseServicesHelper::debugAppend(resultEl, "binary type", mBinaryType);
+      UseServicesHelper::debugAppend(resultEl, "parameters", mParameters ? mParameters->toDebug() : ElementPtr());
+
+      UseServicesHelper::debugAppend(resultEl, "incoming", mIncoming);
+
+      UseServicesHelper::debugAppend(resultEl, "local port", mLocalPort);
+      UseServicesHelper::debugAppend(resultEl, "remote port", mRemotePort);
+
+      UseServicesHelper::debugAppend(resultEl, "issued connect", mIssuedConnect);
+      UseServicesHelper::debugAppend(resultEl, "connect acked", mConnectAcked);
+
+      UseServicesHelper::debugAppend(resultEl, "issued close", mIssuedClose);
+      UseServicesHelper::debugAppend(resultEl, "close acked", mCloseAcked);
+
+      UseServicesHelper::debugAppend(resultEl, "outoing data", mOutgoingData.size());
 
       return resultEl;
     }
@@ -450,7 +551,11 @@ namespace ortc
       }
 
       // ... other steps here ...
-      if (!stepBogusDoSomething()) goto not_ready;
+      if (!stepSCTPTransport()) goto not_ready;
+      if (!stepIssueConnect()) goto not_ready;
+      if (!stepWaitConnectAck()) goto not_ready;
+      if (!stepOpen()) goto not_ready;
+      if (!stepSendData()) goto not_ready;
       // ... other steps here ...
 
       goto ready;
@@ -468,24 +573,106 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool DataChannel::stepBogusDoSomething()
+    bool DataChannel::stepSCTPTransport()
     {
-      if ( /* step already done */ false ) {
-        ZS_LOG_TRACE(log("already completed do something"))
-        return true;
-      }
-
-      if ( /* cannot do step yet */ false) {
-        ZS_LOG_DEBUG(log("waiting for XYZ to complete before continuing"))
+      auto transport = getTransport();
+      if (!transport) {
+        ZS_LOG_WARNING(Detail, log("sctp is gone (thus must shutdown)"))
+        cancel();
         return false;
       }
 
-      ZS_LOG_DEBUG(log("doing step XYZ"))
+      if ((transport->isShuttingDown()) ||
+          (transport->isShutdown())) {
+        ZS_LOG_WARNING(Detail, log("sctp is shutting down / shutdown (thus must shutdown)"))
+        cancel();
+        return false;
+      }
 
-      // ....
-#define TODO 1
-#define TODO 2
-      
+      if (!transport->isReady()) {
+        mSCTPReady = false;
+
+        ZS_LOG_TRACE(log("sctp is not ready"))
+        return false;
+      }
+
+      ZS_LOG_TRACE(log("sctp is ready"))
+
+      mSCTPReady = true;
+
+      if (0 == mLocalPort) {
+        mLocalPort = mRemotePort = mDataTransport->allocateLocalPort(mThisWeak.lock());
+        if (0 == mLocalPort) {
+          ZS_LOG_WARNING(Detail, log("unable to allocate local port"))
+          cancel();
+          return false;
+        }
+      }
+      return true;
+    }
+
+    //-------------------------------------------------------------------------
+    bool DataChannel::stepIssueConnect()
+    {
+      if (mIncoming) {
+        ZS_LOG_TRACE(log("incoming connection will not issue connect request"))
+        return true;
+      }
+
+      if (mIssuedConnect) {
+        ZS_LOG_TRACE(log("already issued connect"))
+        return true;
+      }
+
+      mIssuedConnect = true;
+
+#define TODO_SEND_CONNECT_REQUEST 1
+#define TODO_SEND_CONNECT_REQUEST 2
+
+      return true;
+    }
+
+    //-------------------------------------------------------------------------
+    bool DataChannel::stepWaitConnectAck()
+    {
+      if (mIncoming) {
+        ZS_LOG_TRACE(log("incoming connection will not issue connect request"))
+        return true;
+      }
+
+      if (!mConnectAcked) {
+        ZS_LOG_TRACE(log("waiting for connection ack"))
+        return false;
+      }
+
+      ZS_LOG_TRACE(log("incoming connection was acked"))
+      return true;
+    }
+
+    //-------------------------------------------------------------------------
+    bool DataChannel::stepOpen()
+    {
+      setState(State_Open);
+      return true;
+    }
+
+    //-------------------------------------------------------------------------
+    bool DataChannel::stepSendData()
+    {
+      for (auto iter_doNotUse = mOutgoingData.begin(); iter_doNotUse != mOutgoingData.end();)
+      {
+        auto current = iter_doNotUse;
+        ++iter_doNotUse;
+
+        SecureByteBlockPtr buffer = (*current);
+
+#define TODO_SEND_BUFFER 1
+#define TODO_SEND_BUFFER 2
+
+        // consume the buffer as "sent"
+        mOutgoingData.erase(current);
+      }
+
       return true;
     }
 
@@ -497,21 +684,37 @@ namespace ortc
 
       if (isShutdown()) return;
 
+      setState(State_Closing);
+
       if (!mGracefulShutdownReference) mGracefulShutdownReference = mThisWeak.lock();
 
       if (mGracefulShutdownReference) {
 #define TODO_OBJECT_IS_BEING_KEPT_ALIVE_UNTIL_SCTP_SESSION_IS_SHUTDOWN 1
 #define TODO_OBJECT_IS_BEING_KEPT_ALIVE_UNTIL_SCTP_SESSION_IS_SHUTDOWN 2
 
-        // grace shutdown process done here
+        if (!mIssuedClose) {
+#define TODO_SEND_CLOSE_REQUEST 1
+#define TODO_SEND_CLOSE_REQUEST 2
+        }
 
-        return;
+        auto transport = getTransport();
+        if (transport) {
+          if (!transport->isShutdown()) {
+            // grace shutdown process done here
+            if (!mCloseAcked) {
+              ZS_LOG_WARNING(Debug, log("waiting for close to ACK"))
+              return;
+            }
+          }
+        }
       }
 
       //.......................................................................
       // final cleanup
 
-      setState(State_Closing);
+      setState(State_Closed);
+
+      mOutgoingData.clear();
 
       mSubscriptions.clear();
 
@@ -558,6 +761,12 @@ namespace ortc
       ZS_LOG_WARNING(Detail, debug("error set") + ZS_PARAM("error", mLastError) + ZS_PARAM("reason", mLastErrorReason))
     }
 
+    //-------------------------------------------------------------------------
+    DataChannel::UseDataTransportPtr DataChannel::getTransport() const
+    {
+      if (mDataTransport) return mDataTransport;
+      return mDataTransportWeak.lock();
+    }
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -576,11 +785,24 @@ namespace ortc
     //-------------------------------------------------------------------------
     DataChannelPtr IDataChannelFactory::create(
                                                IDataChannelDelegatePtr delegate,
-                                               IDataTransportPtr transport
+                                               IDataTransportPtr transport,
+                                               const Parameters &params
                                                )
     {
       if (this) {}
-      return internal::DataChannel::create(delegate, transport);
+      return internal::DataChannel::create(delegate, transport, params);
+    }
+
+    //-------------------------------------------------------------------------
+    IDataChannelFactory::ForDataTransportPtr IDataChannelFactory::create(
+                                                                         UseDataTransportPtr transport,
+                                                                         const Parameters &params,
+                                                                         WORD localPort,
+                                                                         WORD remotePort
+                                                                         )
+    {
+      if (this) {}
+      return internal::DataChannel::create(transport, params, localPort, remotePort);
     }
 
   } // internal namespace
@@ -672,10 +894,11 @@ namespace ortc
   //---------------------------------------------------------------------------
   IDataChannelPtr IDataChannel::create(
                                        IDataChannelDelegatePtr delegate,
-                                       IDataTransportPtr transport
+                                       IDataTransportPtr transport,
+                                       const Parameters &params
                                        )
   {
-    return internal::IDataChannelFactory::singleton().create(delegate, transport);
+    return internal::IDataChannelFactory::singleton().create(delegate, transport, params);
   }
 
 

@@ -742,6 +742,9 @@ namespace ortc
           int error = 0;
           auto result = mAdapter->read(extractedBuffer, sizeof(extractedBuffer), &read, &error);
 
+#define WARNING_CHECK_IF_MORE_THAN_ONE_SCTP_PACKET_PER_DTLS_PACKT 1
+#define WARNING_CHECK_IF_MORE_THAN_ONE_SCTP_PACKET_PER_DTLS_PACKT 2
+
           wakeUpIfNeeded();
 
           switch (result) {
@@ -804,9 +807,11 @@ namespace ortc
 
     handle_data_packet:
       {
-#define TODO_FORWARD_TO_DATACHANNEL 1
-#define TODO_FORWARD_TO_DATACHANNEL 2
-        return true;
+        if (decryptedPacket) {
+          return mDataTransport->handleDataPacket(decryptedPacket->BytePtr(), decryptedPacket->SizeInBytes());
+        }
+        ZS_LOG_WARNING(Debug, log("no data packet was decrypted"))
+        return false;
       }
 
       ASSERT(false); // cannot reach this point
@@ -916,25 +921,46 @@ namespace ortc
     //-------------------------------------------------------------------------
     PromisePtr DTLSTransport::notifyWhenReady()
     {
-#define TODO 1
-#define TODO 2
-      return PromisePtr();
+      PromisePtr promise = Promise::create();
+      IDTLSTransportAsyncDelegateProxy::create(mThisWeak.lock())->onNotifyWhenReady(promise);
+      return promise;
+    }
+
+    //-------------------------------------------------------------------------
+    PromisePtr DTLSTransport::notifyWhenClosed()
+    {
+      PromisePtr promise = Promise::create();
+      IDTLSTransportAsyncDelegateProxy::create(mThisWeak.lock())->onNotifyWhenClosed(promise);
+      return promise;
+    }
+
+    //-------------------------------------------------------------------------
+    bool DTLSTransport::isClientRole() const
+    {
+      AutoRecursiveLock lock(*this);
+
+      if (!mAdapter) return false;
+
+      switch (mAdapter->role())
+      {
+        case Adapter::SSL_CLIENT: return true;
+        case Adapter::SSL_SERVER: return false;
+      }
+
+      return false;
     }
 
     //-------------------------------------------------------------------------
     IICETransportPtr DTLSTransport::getICETransport() const
     {
-#define TODO 1
-#define TODO 2
-      return IICETransportPtr();
+      AutoRecursiveLock lock(*this);
+      return ICETransport::convert(mICETransport);
     }
 
     //-------------------------------------------------------------------------
     DTLSTransport::UseDataTransportPtr DTLSTransport::getDataTransport() const
     {
-#define TODO 1
-#define TODO 2
-      return UseDataTransportPtr();
+      return mDataTransport;
     }
 
     //-------------------------------------------------------------------------
@@ -1161,6 +1187,26 @@ namespace ortc
       }
     }
 
+    //-------------------------------------------------------------------------
+    void DTLSTransport::onNotifyWhenReady(PromisePtr promise)
+    {
+      ZS_LOG_TRACE(log("on notify when ready"))
+
+      AutoRecursiveLock lock(*this);
+      mNotifyWhenReady.push_back(promise);
+      step();
+    }
+
+    //-------------------------------------------------------------------------
+    void DTLSTransport::onNotifyWhenClosed(PromisePtr promise)
+    {
+      ZS_LOG_TRACE(log("on notify when ready"))
+
+      AutoRecursiveLock lock(*this);
+      mNotifyWhenClosed.push_back(promise);
+      step();
+    }
+    
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -1415,6 +1461,7 @@ namespace ortc
       if (!stepStartSSL()) goto not_ready;
       if (!stepValidate()) goto not_ready;
       if (!stepFixState()) goto not_ready;
+      if (!stepNotifyReady()) goto not_ready;
       // ... other steps here ...
 
       goto ready;
@@ -1551,12 +1598,46 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    bool DTLSTransport::stepNotifyReady()
+    {
+      if (State_Validated != mCurrentState) {
+        ZS_LOG_TRACE(log("step notify ready is not validated yet"))
+        return true;
+      }
+
+      for (auto iter = mNotifyWhenReady.begin(); iter != mNotifyWhenReady.end(); ++iter)
+      {
+        PromisePtr promise = (*iter);
+        promise->resolve();
+      }
+
+      mNotifyWhenReady.clear();
+      return true;
+    }
+
+    //-------------------------------------------------------------------------
     void DTLSTransport::cancel()
     {
       //.......................................................................
       // try to gracefully shutdown
 
       if (!mGracefulShutdownReference) mGracefulShutdownReference = mThisWeak.lock();
+
+      for (auto iter = mNotifyWhenReady.begin(); iter != mNotifyWhenReady.end(); ++iter)
+      {
+        PromisePtr promise = (*iter);
+        promise->reject();
+      }
+
+      mNotifyWhenReady.clear();
+
+      for (auto iter = mNotifyWhenClosed.begin(); iter != mNotifyWhenClosed.end(); ++iter)
+      {
+        PromisePtr promise = (*iter);
+        promise->resolve();
+      }
+
+      mNotifyWhenClosed.clear();
 
       if (mGracefulShutdownReference) {
 #define TODO_OBJECT_IS_BEING_KEPT_ALIVE_UNTIL_DTLS_SESSION_IS_SHUTDOWN 1
@@ -1629,7 +1710,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     void DTLSTransport::wakeUpIfNeeded()
     {
-      switch (mCurrentState) {
+      switch ((States)mCurrentState) {
         case IDTLSTransportTypes::State_New:        {
           if (!mFixedRole) return;
           break;

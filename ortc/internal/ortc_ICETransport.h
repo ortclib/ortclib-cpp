@@ -209,6 +209,8 @@ namespace ortc
       virtual PUID getID() const = 0;
 
       virtual IICETransportSubscriptionPtr subscribe(IICETransportDelegatePtr delegate) = 0;
+
+      virtual IICETransport::States state() const = 0;
     };
     
     //-------------------------------------------------------------------------
@@ -470,6 +472,8 @@ namespace ortc
       // (duplicate) virtual PUID getID() const override;
 
       // (duplicate) virtual IICETransportSubscriptionPtr subscribe(IICETransportDelegatePtr delegate);
+
+      // (duplciate) virtual IICETransport::States state() const = 0;
 
       //-----------------------------------------------------------------------
       #pragma mark

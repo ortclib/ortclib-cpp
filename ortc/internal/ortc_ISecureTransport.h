@@ -167,6 +167,9 @@ namespace ortc
       virtual PUID getID() const = 0;
 
       virtual PromisePtr notifyWhenReady() = 0;
+      virtual PromisePtr notifyWhenClosed() = 0;
+
+      virtual bool isClientRole() const = 0;
 
       virtual IICETransportPtr getICETransport() const = 0;
 

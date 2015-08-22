@@ -45,6 +45,7 @@
 #include <zsLib/TearAway.h>
 
 #define ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE "ortc/sctp/max-message-size"
+#define ORTC_SETTING_SCTP_TRANSPORT_MAX_DATACHANNELS "ortc/sctp/max-data-channels"
 
 namespace ortc
 {
@@ -96,6 +97,8 @@ namespace ortc
     {
       ZS_DECLARE_TYPEDEF_PTR(ISCTPTransportForDataChannel, ForDataChannel)
 
+      ZS_DECLARE_TYPEDEF_PTR(IDataChannelForSCTPTransport, UseDataChannel)
+
       static ElementPtr toDebug(ForDataChannelPtr transport);
 
       virtual PUID getID() const = 0;
@@ -106,6 +109,12 @@ namespace ortc
                                         const BYTE *buffer,
                                         size_t bufferLengthInBytes
                                         ) = 0;
+
+      virtual bool isShuttingDown() const = 0;
+      virtual bool isShutdown() const = 0;
+      virtual bool isReady() const = 0;
+
+      virtual WORD allocateLocalPort(UseDataChannelPtr channel) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -131,8 +140,7 @@ namespace ortc
 
     interaction ISCTPTransportForDataChannelDelegate
     {
-      virtual void onSCTPTransportReady() = 0;
-      virtual void onSCTPTransportClosed() = 0;
+      virtual void onSCTPTransportStateChanged() = 0;
     };
 
     //---------------------------------------------------------------------------
@@ -159,13 +167,11 @@ ZS_DECLARE_PROXY_BEGIN(ortc::internal::ISCTPTransportAsyncDelegate)
 ZS_DECLARE_PROXY_END()
 
 ZS_DECLARE_PROXY_BEGIN(ortc::internal::ISCTPTransportForDataChannelDelegate)
-ZS_DECLARE_PROXY_METHOD_0(onSCTPTransportReady)
-ZS_DECLARE_PROXY_METHOD_0(onSCTPTransportClosed)
+ZS_DECLARE_PROXY_METHOD_0(onSCTPTransportStateChanged)
 ZS_DECLARE_PROXY_END()
 
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_BEGIN(ortc::internal::ISCTPTransportForDataChannelDelegate, ortc::internal::ISCTPTransportForDataChannelSubscription)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_0(onSCTPTransportReady)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_0(onSCTPTransportClosed)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_0(onSCTPTransportStateChanged)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_END()
 
 namespace ortc
@@ -210,11 +216,19 @@ namespace ortc
 
       ZS_DECLARE_STRUCT_PTR(TearAwayData)
 
+      typedef DWORD LocalRemoteTupleID;
+      typedef std::map<LocalRemoteTupleID, UseDataChannelWeakPtr> DataChannelTupleMap;
+
+      typedef PUID DataChannelID;
+      typedef std::map<DataChannelID, UseDataChannelPtr> DataChannelMap;
+
+      typedef std::map<WORD, size_t> AllocatedPortMap;
+
       enum States
       {
         State_Pending,
-        State_DTLSComplete,
         State_Ready,
+        State_Disconnected,
         State_ShuttingDown,
         State_Shutdown,
       };
@@ -306,6 +320,12 @@ namespace ortc
                                         size_t bufferLengthInBytes
                                         ) override;
 
+      // (duplicate) virtual bool isShuttingDown() const override;
+      // (duplicate) virtual bool isShutdown() const override;
+      virtual bool isReady() const override;
+
+      virtual WORD allocateLocalPort(UseDataChannelPtr channel);
+
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark SCTPTransport => IWakeDelegate
@@ -365,6 +385,7 @@ namespace ortc
       #pragma mark
 
       Log::Params log(const char *message) const;
+      static Log::Params slog(const char *message);
       Log::Params debug(const char *message) const;
       virtual ElementPtr toDebug() const;
 
@@ -372,14 +393,22 @@ namespace ortc
       bool isShutdown() const;
 
       void step();
-      bool stepBogusDoSomething();
-      bool stepDTLSTransportReady();
-      bool stepDTLSTransportError();
+      bool stepSecureTransport();
+      bool stepICETransport();
 
       void cancel();
 
       void setState(States state);
       void setError(WORD error, const char *reason = NULL);
+
+      void allocatePort(
+                        AllocatedPortMap &useMap,
+                        WORD port
+                        );
+      void deallocatePort(
+                          AllocatedPortMap &useMap,
+                          WORD port
+                          );
 
     public:
 
@@ -406,21 +435,35 @@ namespace ortc
 
       SCTPInitPtr mSCTPInit;
 
+      size_t mMaxDataChannels;
+
       ISCTPTransportDelegateSubscriptions mSubscriptions;
 
       ISCTPTransportForDataChannelDelegateSubscriptions mDataChannelSubscriptions;
 
-      States mCurrentState {State_Pending};
+      std::atomic<States> mCurrentState {State_Pending};
 
       WORD mLastError {};
       String mLastErrorReason;
 
-      UseSecureTransportPtr mSecureTransport;
+      UseSecureTransportWeakPtr mSecureTransport;
       PromisePtr mSecureTransportReady;
-//      ISecureTransportSubscriptionPtr mSecureTransportSubscription;
+      PromisePtr mSecureTransportClosed;
 
-      UseICETransportPtr mICETransport;
+      UseICETransportWeakPtr mICETransport;
       IICETransportSubscriptionPtr mICETransportSubscription;
+
+
+      DataChannelTupleMap mDataChannelTuples;
+      DataChannelMap mIncomingDataChannels;
+
+      AllocatedPortMap mAllocatedLocalPorts;
+      AllocatedPortMap mAllocatedRemotePorts;
+
+      WORD mCurrentAllocationPort {};
+      WORD mMinAllocationPort {5000};
+      WORD mMaxAllocationPort {65535};
+      WORD mNextAllocationIncremement {1};
 
       Capabilities mCapabilities;
     };

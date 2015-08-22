@@ -96,6 +96,8 @@ namespace ortc
     {
       virtual void onAdapterSendPacket() = 0;
       virtual void onDeliverPendingIncomingRTP() = 0;
+      virtual void onNotifyWhenReady(PromisePtr promise) = 0;
+      virtual void onNotifyWhenClosed(PromisePtr promise) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -147,6 +149,8 @@ namespace ortc
 
       typedef CryptoPP::ByteQueue ByteQueue;
       typedef std::queue<SecureByteBlockPtr> PacketQueue;
+
+      typedef std::list<PromisePtr> PromiseList;
 
     public:
       DTLSTransport(
@@ -306,6 +310,9 @@ namespace ortc
       // (duplicate) virtual PUID getID() const = 0;
 
       virtual PromisePtr notifyWhenReady() override;
+      virtual PromisePtr notifyWhenClosed() override;
+
+      virtual bool isClientRole() const override;
 
       virtual IICETransportPtr getICETransport() const override;
 
@@ -337,6 +344,8 @@ namespace ortc
 
       virtual void onAdapterSendPacket() override;
       virtual void onDeliverPendingIncomingRTP() override;
+      virtual void onNotifyWhenReady(PromisePtr promise) override;
+      virtual void onNotifyWhenClosed(PromisePtr promise) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -429,6 +438,7 @@ namespace ortc
       bool stepStartSSL();
       bool stepValidate();
       bool stepFixState();
+      bool stepNotifyReady();
 
       void cancel();
 
@@ -669,7 +679,7 @@ namespace ortc
       IDTLSTransportDelegateSubscriptions mSubscriptions;
       IDTLSTransportSubscriptionPtr mDefaultSubscription;
 
-      IDTLSTransportTypes::States mCurrentState {IDTLSTransportTypes::State_New};
+      std::atomic<IDTLSTransportTypes::States> mCurrentState {IDTLSTransportTypes::State_New};
 
       WORD mLastError {};
       String mLastErrorReason;
@@ -703,6 +713,9 @@ namespace ortc
 
       UseRTPListenerPtr mRTPListener;     // no lock needed
       UseDataTransportPtr mDataTransport; // no lock needed
+
+      PromiseList mNotifyWhenReady;
+      PromiseList mNotifyWhenClosed;
     };
 
     //-------------------------------------------------------------------------
@@ -729,6 +742,9 @@ namespace ortc
 }
 
 ZS_DECLARE_PROXY_BEGIN(ortc::internal::IDTLSTransportAsyncDelegate)
+ZS_DECLARE_PROXY_TYPEDEF(zsLib::PromisePtr, PromisePtr)
 ZS_DECLARE_PROXY_METHOD_0(onAdapterSendPacket)
 ZS_DECLARE_PROXY_METHOD_0(onDeliverPendingIncomingRTP)
+ZS_DECLARE_PROXY_METHOD_1(onNotifyWhenReady, PromisePtr)
+ZS_DECLARE_PROXY_METHOD_1(onNotifyWhenClosed, PromisePtr)
 ZS_DECLARE_PROXY_END()

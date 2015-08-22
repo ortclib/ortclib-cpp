@@ -95,7 +95,8 @@ namespace ortc
 
     static IDataChannelPtr create(
                                   IDataChannelDelegatePtr delegate,
-                                  IDataTransportPtr transport
+                                  IDataTransportPtr transport,
+                                  const Parameters &params
                                   );
 
     virtual PUID getID() const = 0;
@@ -111,6 +112,7 @@ namespace ortc
     virtual ULONG bufferedAmount() const = 0;
 
     virtual String binaryType() const = 0;
+    virtual void binaryType(const char *str) = 0;
 
     virtual void close() = 0;
 
