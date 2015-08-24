@@ -68,13 +68,14 @@ namespace ortc
     #pragma mark
 
     struct Parameters {
-      String        mLabel;
-      bool          mOrdered {true};
-      Milliseconds  mMaxPacketLifetime;
-      USHORT        mMaxRetransmits {};
-      String        mProtocol;
-      bool          mNegotiated {false};
-      USHORT        mID {};
+      String            mLabel;
+      bool              mOrdered {true};
+      Milliseconds      mMaxPacketLifetime;
+      USHORT            mMaxRetransmits {};
+      String            mProtocol;
+      bool              mNegotiated {false};
+      Optional<USHORT>  mID;
+      Optional<WORD>    mPort;
 
       ElementPtr toDebug() const;
       String hash() const;

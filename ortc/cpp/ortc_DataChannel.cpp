@@ -105,12 +105,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     IDataChannelForSCTPTransport::ForDataTransportPtr IDataChannelForSCTPTransport::create(
                                                                                            UseDataTransportPtr transport,
-                                                                                           const Parameters &params,
                                                                                            WORD localPort,
-                                                                                           WORD remotePort
+                                                                                           WORD remotePort,
+                                                                                           bool rejectIncoming
                                                                                            )
     {
-      return IDataChannelFactory::singleton().create(transport, params, localPort, remotePort);
+      return IDataChannelFactory::singleton().create(transport, localPort, remotePort, rejectIncoming);
     }
 
     //-------------------------------------------------------------------------
@@ -127,16 +127,19 @@ namespace ortc
                              IMessageQueuePtr queue,
                              IDataChannelDelegatePtr originalDelegate,
                              UseDataTransportPtr transport,
-                             const Parameters &params,
+                             ParametersPtr params,
                              WORD localPort,
-                             WORD remotePort
+                             WORD remotePort,
+                             bool rejectIncoming
                              ) :
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
+      mSCTPRegisteredAddress(new DataChannelWeakPtr),
       mDataTransport(SCTPTransport::convert(transport)),
-      mParameters(make_shared<Parameters>(params)),
+      mParameters(params),
       mLocalPort(localPort),
-      mRemotePort(remotePort)
+      mRemotePort(remotePort),
+      mRejectIncoming(rejectIncoming)
     {
       ZS_LOG_DETAIL(debug("created"))
 
@@ -160,6 +163,7 @@ namespace ortc
     void DataChannel::init()
     {
       AutoRecursiveLock lock(*this);
+      (*mSCTPRegisteredAddress) = mThisWeak.lock();
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
     }
 
@@ -167,6 +171,11 @@ namespace ortc
     DataChannel::~DataChannel()
     {
       if (isNoop()) return;
+
+      if (NULL != mSCTPRegisteredAddress) {
+        delete mSCTPRegisteredAddress;
+        mSCTPRegisteredAddress = NULL;
+      }
 
       ZS_LOG_DETAIL(log("destroyed"))
       mThisWeak.reset();
@@ -215,7 +224,7 @@ namespace ortc
                                        const Parameters &params
                                        )
     {
-      DataChannelPtr pThis(make_shared<DataChannel>(make_private {}, IORTCForInternal::queueORTC(), delegate, SCTPTransport::convert(transport), params));
+      DataChannelPtr pThis(make_shared<DataChannel>(make_private {}, IORTCForInternal::queueORTC(), delegate, SCTPTransport::convert(transport), ParametersPtr(make_shared<Parameters>(params))));
       pThis->mThisWeak = pThis;
       pThis->init();
       return pThis;
@@ -355,37 +364,15 @@ namespace ortc
     //-------------------------------------------------------------------------
     DataChannel::ForDataTransportPtr DataChannel::create(
                                                          UseDataTransportPtr transport,
-                                                         const Parameters &params,
                                                          WORD localPort,
-                                                         WORD remotePort
+                                                         WORD remotePort,
+                                                         bool rejectIncoming
                                                          )
     {
-      DataChannelPtr pThis(make_shared<DataChannel>(make_private {}, IORTCForInternal::queueORTC(), IDataChannelDelegatePtr(), transport, params, localPort, remotePort));
+      DataChannelPtr pThis(make_shared<DataChannel>(make_private {}, IORTCForInternal::queueORTC(), IDataChannelDelegatePtr(), transport, ParametersPtr(), localPort, remotePort, rejectIncoming));
       pThis->mThisWeak = pThis;
       pThis->init();
       return pThis;
-    }
-
-    //-------------------------------------------------------------------------
-    bool DataChannel::notifySendSCTPPacket(
-                                           const BYTE *buffer,
-                                           size_t bufferLengthInBytes
-                                           )
-    {
-      UseDataTransportPtr transport;
-
-      {
-        AutoRecursiveLock lock(*this);
-
-        transport = getTransport();
-      }
-
-      if (!transport) {
-        ZS_LOG_WARNING(Trace, log("transport is gone (thus cannot send data channel packet)") + ZS_PARAM("buffer size", bufferLengthInBytes))
-        return false;
-      }
-
-      return transport->notifySendSCTPPacket(buffer, bufferLengthInBytes);
     }
 
     //-------------------------------------------------------------------------
@@ -608,6 +595,7 @@ namespace ortc
           return false;
         }
       }
+
       return true;
     }
 
@@ -692,20 +680,35 @@ namespace ortc
 #define TODO_OBJECT_IS_BEING_KEPT_ALIVE_UNTIL_SCTP_SESSION_IS_SHUTDOWN 1
 #define TODO_OBJECT_IS_BEING_KEPT_ALIVE_UNTIL_SCTP_SESSION_IS_SHUTDOWN 2
 
-        if (!mIssuedClose) {
-#define TODO_SEND_CLOSE_REQUEST 1
-#define TODO_SEND_CLOSE_REQUEST 2
+        auto transport = getTransport();
+        if (!transport) goto nothing_to_do;
+        if (transport->isShutdown()) goto nothing_to_do;
+        if (!mSCTPReady) goto nothing_to_do;
+        if (!mIncoming) {
+          if (!mIssuedConnect) goto nothing_to_do;
+          if (mConnectAcked) goto nothing_to_do;
+        }
+        if (mIssuedClose) goto wait_for_close_ack;
+
+      issue_close:
+        {
+          // grace shutdown process done here
+#define TODO_ISSUE_CLOSE 1
+#define TODO_ISSUE_CLOSE 2
+          goto wait_for_close_ack;
         }
 
-        auto transport = getTransport();
-        if (transport) {
-          if (!transport->isShutdown()) {
-            // grace shutdown process done here
-            if (!mCloseAcked) {
-              ZS_LOG_WARNING(Debug, log("waiting for close to ACK"))
-              return;
-            }
+      wait_for_close_ack:
+        {
+          if (!mCloseAcked) {
+            ZS_LOG_WARNING(Debug, log("waiting for close to ACK"))
+            return;
           }
+          goto nothing_to_do;
+        }
+
+      nothing_to_do:
+        {
         }
       }
 
@@ -796,13 +799,13 @@ namespace ortc
     //-------------------------------------------------------------------------
     IDataChannelFactory::ForDataTransportPtr IDataChannelFactory::create(
                                                                          UseDataTransportPtr transport,
-                                                                         const Parameters &params,
                                                                          WORD localPort,
-                                                                         WORD remotePort
+                                                                         WORD remotePort,
+                                                                         bool rejectIncoming
                                                                          )
     {
       if (this) {}
-      return internal::DataChannel::create(transport, params, localPort, remotePort);
+      return internal::DataChannel::create(transport, localPort, remotePort, rejectIncoming);
     }
 
   } // internal namespace
@@ -850,6 +853,7 @@ namespace ortc
     UseServicesHelper::debugAppend(resultEl, "protocol", mProtocol);
     UseServicesHelper::debugAppend(resultEl, "negotiated", mNegotiated);
     UseServicesHelper::debugAppend(resultEl, "id", mID);
+    UseServicesHelper::debugAppend(resultEl, "port", mPort);
 
     return resultEl;
   }
@@ -873,6 +877,8 @@ namespace ortc
     hasher.update(mNegotiated);
     hasher.update(":");
     hasher.update(mID);
+    hasher.update(":");
+    hasher.update(mPort);
 
     return hasher.final();
   }

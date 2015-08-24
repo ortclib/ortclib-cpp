@@ -89,22 +89,20 @@ namespace ortc
 
       static ForDataTransportPtr create(
                                         UseDataTransportPtr transport,
-                                        const Parameters &params,
                                         WORD localPort,
-                                        WORD remotePort
+                                        WORD remotePort,
+                                        bool rejectIncoming
                                         );
 
       virtual PUID getID() const = 0;
-
-      virtual bool notifySendSCTPPacket(
-                                        const BYTE *buffer,
-                                        size_t bufferLengthInBytes
-                                        ) = 0;
 
       virtual bool handleSCTPPacket(
                                     const BYTE *buffer,
                                     size_t bufferLengthInBytes
                                     ) = 0;
+
+      virtual WORD getLocalPort() const = 0;
+      virtual WORD getRemotePort() const = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -114,7 +112,7 @@ namespace ortc
     #pragma mark
     #pragma mark DataChannel
     #pragma mark
-    
+
     class DataChannel : public Noop,
                         public MessageQueueAssociator,
                         public SharedRecursiveLock,
@@ -146,9 +144,10 @@ namespace ortc
                   IMessageQueuePtr queue,
                   IDataChannelDelegatePtr delegate,
                   UseDataTransportPtr transport,
-                  const Parameters &params,
+                  ParametersPtr params,
                   WORD localPort = 0,
-                  WORD remotePort = 0
+                  WORD remotePort = 0,
+                  bool rejectIncoming = false
                   );
 
     protected:
@@ -215,22 +214,20 @@ namespace ortc
 
       static ForDataTransportPtr create(
                                         UseDataTransportPtr transport,
-                                        const Parameters &params,
                                         WORD localPort,
-                                        WORD remotePort
+                                        WORD remotePort,
+                                        bool rejectIncoming
                                         );
 
       // (duplicate) virtual PUID getID() const = 0;
-
-      virtual bool notifySendSCTPPacket(
-                                        const BYTE *buffer,
-                                        size_t bufferLengthInBytes
-                                        ) override;
 
       virtual bool handleSCTPPacket(
                                     const BYTE *buffer,
                                     size_t bufferLengthInBytes
                                     ) override;
+
+      virtual WORD getLocalPort() const {return mLocalPort;}
+      virtual WORD getRemotePort() const {return mRemotePort;}
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -298,6 +295,8 @@ namespace ortc
       DataChannelWeakPtr mThisWeak;
       DataChannelPtr mGracefulShutdownReference;
 
+      DataChannelWeakPtr *mSCTPRegisteredAddress;
+
       IDataChannelDelegateSubscriptions mSubscriptions;
       IDataChannelSubscriptionPtr mDefaultSubscription;
 
@@ -314,9 +313,10 @@ namespace ortc
       ParametersPtr mParameters;
 
       bool mIncoming {false};
+      bool mRejectIncoming {false};
 
-      WORD mLocalPort {};
-      WORD mRemotePort {};
+      std::atomic<WORD> mLocalPort {};
+      std::atomic<WORD> mRemotePort {};
 
       bool mIssuedConnect {false};
       bool mConnectAcked {false};
@@ -353,9 +353,9 @@ namespace ortc
 
       virtual ForDataTransportPtr create(
                                          UseDataTransportPtr transport,
-                                         const Parameters &params,
                                          WORD localPort,
-                                         WORD remotePort
+                                         WORD remotePort,
+                                         bool rejectIncoming
                                          );
     };
 

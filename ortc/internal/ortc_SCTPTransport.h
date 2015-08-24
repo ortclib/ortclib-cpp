@@ -44,8 +44,11 @@
 #include <zsLib/ProxySubscriptions.h>
 #include <zsLib/TearAway.h>
 
+#include <usrsctp.h>
+
 #define ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE "ortc/sctp/max-message-size"
-#define ORTC_SETTING_SCTP_TRANSPORT_MAX_DATACHANNELS "ortc/sctp/max-data-channels"
+#define ORTC_SETTING_SCTP_TRANSPORT_MAX_SESSIONS_PER_PORT "ortc/sctp/max-sessions-per-port"
+#define ORTC_SETTING_SCTP_TRANSPORT_MAX_PORTS "ortc/sctp/max-ports"
 
 namespace ortc
 {
@@ -53,6 +56,7 @@ namespace ortc
   {
     ZS_DECLARE_CLASS_PTR(SCTPInit)
     ZS_DECLARE_CLASS_PTR(SCTPTransport)
+    ZS_DECLARE_STRUCT_PTR(SCTPPacket)
 
     ZS_DECLARE_INTERACTION_PTR(ISCTPTransportForSettings)
     ZS_DECLARE_INTERACTION_PTR(ISCTPTransportForSecureTransport)
@@ -67,6 +71,49 @@ namespace ortc
     
     ZS_DECLARE_INTERACTION_PROXY_SUBSCRIPTION(ISCTPTransportForDataChannelSubscription, ISCTPTransportForDataChannelDelegate)
 
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark PayloadProtocolIdentifier
+    #pragma mark
+
+    enum SCTPPayloadProtocolIdentifier
+    {
+      SCTP_PPID_NONE = 0,  // No protocol is specified.
+      // Matches the PPIDs in mozilla source and
+      // https://datatracker.ietf.org/doc/draft-ietf-rtcweb-data-protocol Sec. 8.1
+      // They're not yet assigned by IANA.
+      SCTP_PPID_CONTROL = 50,
+      SCTP_PPID_BINARY_PARTIAL = 52,
+      SCTP_PPID_BINARY_LAST = 53,
+      SCTP_PPID_TEXT_PARTIAL = 54,
+      SCTP_PPID_TEXT_LAST = 51
+    };
+    static const char *toString(SCTPPayloadProtocolIdentifier state);
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark SCTPPacket
+    #pragma mark
+
+    struct SCTPPacket
+    {
+      SCTPPayloadProtocolIdentifier mType {SCTP_PPID_NONE};
+
+      DWORD mTupleID {};
+      WORD mSessionID {};
+      WORD mSequenceNumber {};
+      DWORD mTimestamp {};
+      int mFlags {};
+      SecureByteBlockPtr mBuffer;
+
+      ElementPtr toDebug() const;
+    };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -105,11 +152,6 @@ namespace ortc
 
       virtual ISCTPTransportForDataChannelSubscriptionPtr subscribe(ISCTPTransportForDataChannelDelegatePtr delegate) = 0;
 
-      virtual bool notifySendSCTPPacket(
-                                        const BYTE *buffer,
-                                        size_t bufferLengthInBytes
-                                        ) = 0;
-
       virtual bool isShuttingDown() const = 0;
       virtual bool isShutdown() const = 0;
       virtual bool isReady() const = 0;
@@ -127,7 +169,7 @@ namespace ortc
 
     interaction ISCTPTransportAsyncDelegate
     {
-      virtual ~ISCTPTransportAsyncDelegate() {}
+      virtual void onIncomingPacket(SCTPPacketPtr packet) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -163,7 +205,8 @@ namespace ortc
 }
 
 ZS_DECLARE_PROXY_BEGIN(ortc::internal::ISCTPTransportAsyncDelegate)
-//ZS_DECLARE_PROXY_METHOD_0(onWhatever)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::SCTPPacketPtr, SCTPPacketPtr)
+ZS_DECLARE_PROXY_METHOD_1(onIncomingPacket, SCTPPacketPtr)
 ZS_DECLARE_PROXY_END()
 
 ZS_DECLARE_PROXY_BEGIN(ortc::internal::ISCTPTransportForDataChannelDelegate)
@@ -209,20 +252,27 @@ namespace ortc
       friend interaction ISCTPTransportForSecureTransport;
       friend interaction ISCTPTransportForDataChannel;
       friend interaction IDataTransportForSecureTransport;
+      friend class SCTPInit;
 
       ZS_DECLARE_TYPEDEF_PTR(IDataChannelForSCTPTransport, UseDataChannel)
       ZS_DECLARE_TYPEDEF_PTR(ISecureTransportForDataTransport, UseSecureTransport)
       ZS_DECLARE_TYPEDEF_PTR(IICETransportForDataTransport, UseICETransport)
 
       ZS_DECLARE_STRUCT_PTR(TearAwayData)
+      ZS_DECLARE_STRUCT_PTR(SocketInfo)
 
       typedef DWORD LocalRemoteTupleID;
-      typedef std::map<LocalRemoteTupleID, UseDataChannelWeakPtr> DataChannelTupleMap;
+      typedef std::map<LocalRemoteTupleID, SocketInfoPtr> SocketInfoMap;
 
       typedef PUID DataChannelID;
       typedef std::map<DataChannelID, UseDataChannelPtr> DataChannelMap;
 
+      typedef WORD SessionID;
+      typedef std::map<SessionID, UseDataChannelPtr> DataChannelSessionMap;
+
       typedef std::map<WORD, size_t> AllocatedPortMap;
+
+      typedef std::queue<SecureByteBlockPtr> BufferedQueue;
 
       enum States
       {
@@ -315,16 +365,21 @@ namespace ortc
       // (duplicate) virtual PUID getID() const = 0;
       virtual ISCTPTransportForDataChannelSubscriptionPtr subscribe(ISCTPTransportForDataChannelDelegatePtr delegate) override;
 
-      virtual bool notifySendSCTPPacket(
-                                        const BYTE *buffer,
-                                        size_t bufferLengthInBytes
-                                        ) override;
-
       // (duplicate) virtual bool isShuttingDown() const override;
       // (duplicate) virtual bool isShutdown() const override;
       virtual bool isReady() const override;
 
       virtual WORD allocateLocalPort(UseDataChannelPtr channel);
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark SCTPTransport => friend SCTPInit
+      #pragma mark
+
+      virtual bool notifySendSCTPPacket(
+                                        const BYTE *buffer,
+                                        size_t bufferLengthInBytes
+                                        );
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -345,6 +400,7 @@ namespace ortc
       #pragma mark SCTPTransport => ISCTPTransportAsyncDelegate
       #pragma mark
 
+      virtual void onIncomingPacket(SCTPPacketPtr packet);
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -395,6 +451,7 @@ namespace ortc
       void step();
       bool stepSecureTransport();
       bool stepICETransport();
+      bool stepDeliverIncomingPackets();
 
       void cancel();
 
@@ -410,6 +467,18 @@ namespace ortc
                           WORD port
                           );
 
+      SocketInfoPtr openIncomingSocket(
+                                       WORD localPort,
+                                       WORD remotePort,
+                                       LocalRemoteTupleID tupleID
+                                       );
+
+      bool openListenSCTPSocket(SocketInfo &socketInfo);
+      bool openSCTPSocket(SocketInfo &socketInfo);
+      bool prepareSocket(struct socket *sock);
+
+      void attemptAccept(SocketInfo &info);
+
     public:
 
       //-----------------------------------------------------------------------
@@ -421,6 +490,44 @@ namespace ortc
       {
         UseSecureTransportPtr mSecureTransport;
         ISCTPTransportSubscriptionPtr mDefaultSubscription;
+      };
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark SCTPTransport::SocketInfo
+      #pragma mark
+
+      struct SocketInfo
+      {
+        SocketInfoPtr *mThis {};
+        SCTPTransportWeakPtr mTransport;
+
+        bool mIncoming {false};
+
+        struct socket *mSocket {};
+        struct socket *mAcceptSocket {};
+
+        WORD mLocalPort {};
+        WORD mRemotePort {};
+        LocalRemoteTupleID mTupleID {};
+
+        DataChannelSessionMap mSessions;
+
+        DataChannelSessionMap mPendingResetSessions;
+        DataChannelSessionMap mQueuedResetSessions;
+
+        WORD mCurrentAllocationSessionID {};
+        WORD mMinAllocationSessionID {0};
+        WORD mMaxAllocationSessionID {65534};
+        WORD mNextAllocationIncrement {2};
+
+        SocketInfo();
+        ~SocketInfo();
+
+        sockaddr_conn getSockAddr(bool localPort);
+        void close();
+
+        ElementPtr toDebug() const;
       };
 
     protected:
@@ -435,7 +542,8 @@ namespace ortc
 
       SCTPInitPtr mSCTPInit;
 
-      size_t mMaxDataChannels;
+      size_t mMaxSessionsPerPort;
+      size_t mMaxPorts;
 
       ISCTPTransportDelegateSubscriptions mSubscriptions;
 
@@ -453,9 +561,7 @@ namespace ortc
       UseICETransportWeakPtr mICETransport;
       IICETransportSubscriptionPtr mICETransportSubscription;
 
-
-      DataChannelTupleMap mDataChannelTuples;
-      DataChannelMap mIncomingDataChannels;
+      SocketInfoMap mSockets;
 
       AllocatedPortMap mAllocatedLocalPorts;
       AllocatedPortMap mAllocatedRemotePorts;
@@ -463,9 +569,13 @@ namespace ortc
       WORD mCurrentAllocationPort {};
       WORD mMinAllocationPort {5000};
       WORD mMaxAllocationPort {65535};
-      WORD mNextAllocationIncremement {1};
+      WORD mNextAllocationIncremement {2};
 
       Capabilities mCapabilities;
+
+      DataChannelMap mAnnouncedIncomingDataChannels;
+
+      BufferedQueue mPendingIncomingData;
     };
 
     //-------------------------------------------------------------------------

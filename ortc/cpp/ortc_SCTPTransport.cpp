@@ -47,6 +47,7 @@
 #include <cryptopp/sha.h>
 
 #include <usrsctp.h>
+
 //#include <netinet/sctp_os.h>
 #ifdef _WIN32
 # include <winsock2.h>
@@ -60,6 +61,15 @@
 #define ASSERT(x)
 #endif //_DEBUG
 
+
+// The expression ARRAY_SIZE(a) is a compile-time constant of type
+// size_t which represents the number of elements of the given
+// array. You should only use ARRAY_SIZE on statically allocated
+// arrays.
+
+#define ARRAY_SIZE(a)                               \
+  ((sizeof(a) / sizeof(*(a))) /                     \
+  static_cast<size_t>(!(sizeof(a) % sizeof(*(a)))))
 
 namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib) }
 
@@ -88,6 +98,50 @@ namespace ortc
     #pragma mark
 
     const uint32_t kMaxSctpSid = 1023;
+    static const size_t kSctpMtu = 1200;
+
+    enum PreservedErrno {
+      SCTP_EINPROGRESS = EINPROGRESS,
+      SCTP_EWOULDBLOCK = EWOULDBLOCK
+    };
+
+    //-------------------------------------------------------------------------
+    const char *toString(SCTPPayloadProtocolIdentifier ppid)
+    {
+      switch (ppid) {
+        case SCTP_PPID_NONE:           return "NONE";
+        case SCTP_PPID_CONTROL:        return "CONTROL";
+        case SCTP_PPID_BINARY_PARTIAL: return "BINARY_PARTIAL";
+        case SCTP_PPID_BINARY_LAST:    return "BINARY_LAST";
+        case SCTP_PPID_TEXT_PARTIAL:   return "TEXT_PARTIAL";
+        case SCTP_PPID_TEXT_LAST:      return "TEXT_LAST";
+      }
+      return "UNDEFINED";
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark SCTPPacket
+    #pragma mark
+
+    //---------------------------------------------------------------------------
+    ElementPtr SCTPPacket::toDebug() const
+    {
+      ElementPtr resultEl = Element::create("ortc::SCTPPacket");
+
+      UseServicesHelper::debugAppend(resultEl, "type", toString(mType));
+      UseServicesHelper::debugAppend(resultEl, "tuple id", mTupleID);
+      UseServicesHelper::debugAppend(resultEl, "sessiond id", mSessionID);
+      UseServicesHelper::debugAppend(resultEl, "sequence number", mSequenceNumber);
+      UseServicesHelper::debugAppend(resultEl, "timestamp", mTimestamp);
+      UseServicesHelper::debugAppend(resultEl, "flags", mFlags);
+      UseServicesHelper::debugAppend(resultEl, "buffer", mBuffer ? mBuffer->SizeInBytes() : 0);
+
+      return resultEl;
+    }
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -181,65 +235,6 @@ namespace ortc
       }
 
       //-------------------------------------------------------------------------
-      static SecureByteBlockPtr createRejectionResponsePacket(
-                                                              const BYTE *packet,
-                                                              size_t bufferLengthInBytes,
-                                                              WORD localPort,
-                                                              WORD remotePort
-                                                              )
-      {
-        // NOTE: The incoming packet passed in can be any SCTP type. If a
-        // rejection response is possible then create then allocation and return
-        // the appropriate response packet. If no response is possible then
-        // return SecureByteBlockPtr().
-
-#define TODO 1
-#define TODO 2
-
-        SecureByteBlockPtr response;
-        //SecureByteBlockPtr response(make_shared<SecureByteBlock>(200)); // e.g. allocate a 200 byte response buffer
-        return response;
-      }
-
-      //-------------------------------------------------------------------------
-      static SecureByteBlockPtr createResponseIfOpenPacket(
-                                                           const BYTE *inPacket,
-                                                           size_t inBufferLengthInBytes,
-                                                           WORD inLocalPort,
-                                                           WORD inRemotePort,
-                                                           IDataChannelTypes::ParametersPtr &outDataChannelParams
-                                                           )
-      {
-        ZS_DECLARE_TYPEDEF_PTR(IDataChannelTypes::Parameters, Parameters)
-
-        // NOTE: The incoming packet passed in can be any SCTP type (but
-        // hopefully should be an SCTP open request. If the packet is not an
-        // SCTP open then a rejection packet must be created (if possible) or
-        // SecureByteBlockPtr() must be returned if no rejection is possible.
-
-        // If the SCTP open request was successfully parsed then the
-        // output ParameterPtr must be allocated and filled with appropriate
-        // information about the incoming SCTP data channel.
-
-#define TODO 1
-#define TODO 2
-
-        if (/* !isOpenPacket */ !true) {
-          return createRejectionResponsePacket(inPacket, inBufferLengthInBytes, inLocalPort, inRemotePort);
-        }
-
-        outDataChannelParams = ParametersPtr(make_shared<Parameters>());
-
-        outDataChannelParams->mID = inLocalPort;
-        outDataChannelParams->mLabel = String();  // should be included inside open packet
-        // outDataChannelParams->... = ...;
-
-        SecureByteBlockPtr response;
-        //SecureByteBlockPtr response(make_shared<SecureByteBlock>(200)); // e.g. allocate a 200 byte SCTP open ACK response buffer
-        return response;
-      }
-      
-      //-------------------------------------------------------------------------
       static Log::Params slog(const char *message)
       {
         ElementPtr objectEl = Element::create("ortc::SCTPHelper");
@@ -270,6 +265,9 @@ namespace ortc
 
     class SCTPInit : public ISingletonManagerDelegate
     {
+    public:
+      friend class SCTPTransport;
+
     protected:
       struct make_private {};
 
@@ -318,7 +316,7 @@ namespace ortc
         // second paragraph of
         // http://tools.ietf.org/html/draft-ietf-rtcweb-data-channel-05#section-6.2
         // is cricket::kMaxSctpSid.
-        usrsctp_sysctl_set_sctp_nr_outgoing_streams_default(kMaxSctpSid);
+        usrsctp_sysctl_set_sctp_nr_outgoing_streams_default(static_cast<uint32_t>(UseSettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_MAX_SESSIONS_PER_PORT)));
 
         mInitialized = true;
       }
@@ -373,6 +371,7 @@ namespace ortc
       #pragma mark SCTPInit => usrscpt callbacks
       #pragma mark
 
+      //-----------------------------------------------------------------------
       // This is the callback usrsctp uses when there's data to send on the network
       // that has been wrapped appropriatly for the SCTP protocol.
       static int OnSctpOutboundPacket(
@@ -383,16 +382,34 @@ namespace ortc
                                       uint8_t set_df
                                       )
       {
-        UseDataChannelPtr dataChannel = *(static_cast<UseDataChannelPtr *>(addr));
+        ZS_DECLARE_TYPEDEF_PTR(SCTPTransport::SocketInfo, SocketInfo)
 
-        ZS_LOG_TRACE(slog("on sctp output backpet") + ZS_PARAM("address", ((PTRNUMBER)addr)) + ZS_PARAM("tos", tos) + ZS_PARAM("set_df", set_df))
+        SocketInfoPtr socketInfo = *(static_cast<SocketInfoPtr *>(addr));
+
+        ZS_LOG_TRACE(slog("on sctp output backpet") + ZS_PARAM("address", ((PTRNUMBER)addr)) + ZS_PARAM("length", length) + ZS_PARAM("tos", tos) + ZS_PARAM("set_df", set_df))
 
         if (ZS_IS_LOGGING(Insane)) {
           String str = UseServicesHelper::getDebugString((const BYTE *)data, length);
           ZS_LOG_INSANE(slog("sctp outgoing packet") + ZS_PARAM("raw", "\n" + str))
         }
 
-        dataChannel->notifySendSCTPPacket((const BYTE *)data, length);
+        auto transport = socketInfo->mTransport.lock();
+
+        if (!transport) {
+          ZS_LOG_WARNING(Trace, slog("transport is gone (thus cannot send packet)") + ZS_PARAM("address", ((PTRNUMBER)addr)) + ZS_PARAM("length", length) + ZS_PARAM("tos", tos) + ZS_PARAM("set_df", set_df))
+#define FIX_RETURN_RESULT 1
+#define FIX_RETURN_RESULT 2
+          return 0;
+        }
+
+        bool result = transport->notifySendSCTPPacket((const BYTE *)data, length);
+        if (!result) {
+          ZS_LOG_WARNING(Trace, slog("transport is unable to send packet") + ZS_PARAM("address", ((PTRNUMBER)addr)) + ZS_PARAM("length", length) + ZS_PARAM("tos", tos) + ZS_PARAM("set_df", set_df))
+#define FIX_RETURN_RESULT 1
+#define FIX_RETURN_RESULT 2
+          return 0;
+        }
+
         return 0;
       }
 
@@ -413,6 +430,69 @@ namespace ortc
         va_end(ap);
       }
 
+      //-------------------------------------------------------------------------
+      static int OnSctpInboundPacket(
+                                     struct socket* sock,
+                                     union sctp_sockstore addr,
+                                     void* data,
+                                     size_t length,
+                                     struct sctp_rcvinfo rcv,
+                                     int flags,
+                                     void* ulp_info
+                                     )
+      {
+        ZS_DECLARE_TYPEDEF_PTR(SCTPTransport::SocketInfo, SocketInfo)
+        SocketInfoPtr socketInfo = *(static_cast<SocketInfoPtr *>(ulp_info));
+
+        const SCTPPayloadProtocolIdentifier ppid = static_cast<SCTPPayloadProtocolIdentifier>(ntohl(rcv.rcv_ppid));
+
+        switch (ppid) {
+          case SCTP_PPID_CONTROL:
+          case SCTP_PPID_BINARY_PARTIAL:
+          case SCTP_PPID_BINARY_LAST:
+          case SCTP_PPID_TEXT_PARTIAL:
+          case SCTP_PPID_TEXT_LAST:
+          {
+            break;
+          }
+          case SCTP_PPID_NONE:
+          default: {
+            ZS_LOG_WARNING(Trace, slog("incoming protocol identifier type was not understood (dropping packet)") + ZS_PARAM("ppid", ppid))
+            break;
+          }
+        }
+
+        SCTPPacketPtr packet(make_shared<SCTPPacket>());
+
+        packet->mTupleID = socketInfo->mTupleID;
+        packet->mType = ppid;
+        packet->mSessionID = rcv.rcv_sid;
+        packet->mSequenceNumber = rcv.rcv_ssn;
+        packet->mTimestamp = rcv.rcv_tsn;
+        packet->mFlags = flags;
+        packet->mBuffer = UseServicesHelper::convertToBuffer((const BYTE *)data, length);
+
+        auto transport = socketInfo->mTransport.lock();
+
+        if (!transport) {
+          ZS_LOG_WARNING(Trace, slog("transport is gone (thus cannot receive packet)") + ZS_PARAM("socket", ((PTRNUMBER)sock)) + ZS_PARAM("length", length) + ZS_PARAM("flags", flags) + ZS_PARAM("ulp", ((PTRNUMBER)ulp_info)))
+#define FIX_RETURN_RESULT 1
+#define FIX_RETURN_RESULT 2
+          return 0;
+        }
+
+        bool result = transport->notifySendSCTPPacket((const BYTE *)data, length);
+        if (!result) {
+          ZS_LOG_WARNING(Trace, slog("transport is unable to receive packet") + ZS_PARAM("socket", ((PTRNUMBER)sock)) + ZS_PARAM("length", length) + ZS_PARAM("flags", flags) + ZS_PARAM("ulp", ((PTRNUMBER)ulp_info)))
+#define FIX_RETURN_RESULT 1
+#define FIX_RETURN_RESULT 2
+          return 0;
+        }
+
+        ISCTPTransportAsyncDelegateProxy::create(transport)->onIncomingPacket(packet);
+        return 1;
+      }
+      
     protected:
       //-----------------------------------------------------------------------
       #pragma mark
@@ -481,7 +561,6 @@ namespace ortc
       std::atomic<bool> mInitialized{ false };
     };
 
-
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -495,7 +574,11 @@ namespace ortc
     {
       //https://tools.ietf.org/html/draft-ietf-rtcweb-data-channel-13#section-6.6
       UseSettings::setUInt(ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE, 16*1024);
-      UseSettings::setUInt(ORTC_SETTING_SCTP_TRANSPORT_MAX_DATACHANNELS, 10*1024);
+      // http://tools.ietf.org/html/draft-ietf-rtcweb-data-channel-05#section-6.2
+      UseSettings::setUInt(ORTC_SETTING_SCTP_TRANSPORT_MAX_SESSIONS_PER_PORT, kMaxSctpSid);
+
+      // 1/2 of port range for even vs odd ports and then only 1/2 filled for that possible range
+      UseSettings::setUInt(ORTC_SETTING_SCTP_TRANSPORT_MAX_PORTS, (65535-5000)/2/2);
     }
 
     //-------------------------------------------------------------------------
@@ -533,7 +616,7 @@ namespace ortc
       }
       return "UNDEFINED";
     }
-    
+
     //-------------------------------------------------------------------------
     SCTPTransport::SCTPTransport(
                                  const make_private &,
@@ -543,7 +626,8 @@ namespace ortc
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
       mSCTPInit(SCTPInit::singleton()),
-      mMaxDataChannels(UseSettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_MAX_DATACHANNELS)),
+      mMaxSessionsPerPort(UseSettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_MAX_SESSIONS_PER_PORT)),
+      mMaxPorts(UseSettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_MAX_PORTS)),
       mSecureTransport(DTLSTransport::convert(secureTransport))
     {
       ORTC_THROW_INVALID_PARAMETERS_IF(!secureTransport)
@@ -790,7 +874,7 @@ namespace ortc
       if (delegate) {
         SCTPTransportPtr pThis = mThisWeak.lock();
 
-        for (auto iter = mIncomingDataChannels.begin(); iter != mIncomingDataChannels.end(); ++iter) {
+        for (auto iter = mAnnouncedIncomingDataChannels.begin(); iter != mAnnouncedIncomingDataChannels.end(); ++iter) {
           // NOTE: ID of data channels are always greater than last so order
           // should be guarenteed.
           auto dataChannel = (*iter).second;
@@ -844,65 +928,38 @@ namespace ortc
         return false;
       }
 
-      SecureByteBlockPtr responsePacket;
-      UseDataChannelPtr dataChannel;
-
       {
         AutoRecursiveLock lock(*this);
 
-        auto found = mDataChannelTuples.find(tupleID);
-        if (found != mDataChannelTuples.end()) {
-          dataChannel = (*found).second.lock();
-          if (!dataChannel) {
-            ZS_LOG_WARNING(Detail, log("packet incoming for data channel that is now gone") + ZS_PARAM("local port", localPort) + ZS_PARAM("remote port", remotePort))
-            mDataChannelTuples.erase(found);
-            found = mDataChannelTuples.end();
+        if ((mPendingIncomingData.size() > 0) ||
+            (State_Pending == mCurrentState)) {
+          ZS_LOG_WARNING(Insane, log("buffering incoming packet until SCTP transport is ready"))
+          SecureByteBlockPtr queueBuffer = UseServicesHelper::convertToBuffer(buffer, bufferLengthInBytes);
+          mPendingIncomingData.push(queueBuffer);
+          return true;
+        }
+
+        SocketInfoPtr socketInfo;
+
+        auto found = mSockets.find(tupleID);
+        if (found == mSockets.end()) {
+          if (mAllocatedLocalPorts.end() != mAllocatedLocalPorts.find(localPort)) {
+            ZS_LOG_WARNING(Debug, log("local port is already in use (thus will ignore incoming SCTP packet on mismatched local:remote port mapping)") + ZS_PARAM("local port", localPort) + ZS_PARAM("remote port", remotePort))
+            return false;
           }
 
-          goto forward_datachannel;
+          socketInfo = openIncomingSocket(localPort, remotePort, tupleID);
+          if (!socketInfo) {
+            ZS_LOG_WARNING(Debug, log("unable to open socket"))
+            return false;
+          }
+        } else {
+          socketInfo = (*found).second;
         }
 
-        // this is an unknown mapping
-        if (mDataChannelTuples.size() > mMaxDataChannels) {
-          ZS_LOG_WARNING(Detail, log("cannot accept incoming data channel (too many channels in use)") + ZS_PARAM("local port", localPort) + ZS_PARAM("remote port", remotePort))
-          responsePacket = UseSCTPHelper::createRejectionResponsePacket(buffer, bufferLengthInBytes, localPort, remotePort);
-          goto response_packet;
-        }
+        usrsctp_conninput(socketInfo->mThis, buffer, bufferLengthInBytes, 0);
 
-        auto foundLocal = mAllocatedLocalPorts.find(localPort);
-        if (foundLocal != mAllocatedLocalPorts.end()) {
-          ZS_LOG_WARNING(Detail, log("cannot accept incoming data channel (as local port is already in use)") + ZS_PARAM("local port", localPort) + ZS_PARAM("remote port", remotePort))
-          responsePacket = UseSCTPHelper::createRejectionResponsePacket(buffer, bufferLengthInBytes, localPort, remotePort);
-          goto response_packet;
-        }
-
-        IDataChannelTypes::ParametersPtr params;
-        responsePacket = UseSCTPHelper::createResponseIfOpenPacket(buffer, bufferLengthInBytes, localPort, remotePort, params);
-
-        if (!params) {
-          ZS_LOG_WARNING(Trace, log("incoming packet is not an SCTP open packet") + ZS_PARAM("buffer length", bufferLengthInBytes) + ZS_PARAM("local port", localPort) + ZS_PARAM("remote port", remotePort))
-          goto response_packet;
-        }
-
-        dataChannel = UseDataChannel::create(mThisWeak.lock(), *params, localPort, remotePort);
-
-        mIncomingDataChannels[dataChannel->getID()] = dataChannel;
-        mDataChannelTuples[tupleID] = dataChannel;
-
-        // notify delegates about incoming data channels
-        mSubscriptions.delegate()->onSCTPTransportDataChannel(mThisWeak.lock(), DataChannel::convert(dataChannel));
-        goto forward_datachannel;
-      }
-
-    forward_datachannel:
-      {
-        return dataChannel->handleSCTPPacket(buffer, bufferLengthInBytes);
-      }
-
-    response_packet:
-      {
-        if (!responsePacket) return false;
-        return notifySendSCTPPacket(responsePacket->BytePtr(), responsePacket->SizeInBytes());
+        attemptAccept(*socketInfo);
       }
 
       return false;
@@ -944,6 +1001,58 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    bool SCTPTransport::isReady() const
+    {
+      return State_Ready == mCurrentState;
+    }
+
+    //-------------------------------------------------------------------------
+    WORD SCTPTransport::allocateLocalPort(UseDataChannelPtr channel)
+    {
+#define TODO_REMOVE 1
+#define TODO_REMOVE 2
+#if 0
+      AutoRecursiveLock lock(*this);
+
+      if (mSockets.size() > mMaxPorts) return 0;
+
+      while (true) {
+
+        {
+          auto found = mAllocatedLocalPorts.find(mCurrentAllocationPort);
+          if (found != mAllocatedLocalPorts.end()) goto next_port;
+        }
+        {
+          auto found = mAllocatedLocalPorts.find(mCurrentAllocationPort);
+          if (found != mAllocatedLocalPorts.end()) goto next_port;
+        }
+
+      next_port:
+        mCurrentAllocationPort = mCurrentAllocationPort + mNextAllocationIncremement;
+
+        if (mCurrentAllocationPort < mMinAllocationPort) mCurrentAllocationPort = mMinAllocationPort + (mCurrentAllocationPort % 2);
+        if (mCurrentAllocationPort > mMaxAllocationPort) mCurrentAllocationPort = mMinAllocationPort + (mCurrentAllocationPort % 2);
+      }
+
+      allocatePort(mAllocatedLocalPorts, mCurrentAllocationPort);
+      allocatePort(mAllocatedRemotePorts, mCurrentAllocationPort);
+
+//      mDataChannelTuples[UseSCTPHelper::createTuple(mCurrentAllocationPort, mCurrentAllocationPort)] = channel;
+
+      return mCurrentAllocationPort;
+#endif //0
+      return 0;
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark SCTPTransport => friend SCTPInit
+    #pragma mark
+
+    //-------------------------------------------------------------------------
     bool SCTPTransport::notifySendSCTPPacket(
                                              const BYTE *buffer,
                                              size_t bufferLengthInBytes
@@ -964,44 +1073,6 @@ namespace ortc
       return transport->sendDataPacket(buffer, bufferLengthInBytes);
     }
 
-    //-------------------------------------------------------------------------
-    bool SCTPTransport::isReady() const
-    {
-      return State_Ready == mCurrentState;
-    }
-
-    //-------------------------------------------------------------------------
-    WORD SCTPTransport::allocateLocalPort(UseDataChannelPtr channel)
-    {
-      AutoRecursiveLock lock(*this);
-
-      if (mDataChannelTuples.size() > mMaxDataChannels) return 0;
-
-      while (true) {
-
-        {
-          auto found = mAllocatedLocalPorts.find(mCurrentAllocationPort);
-          if (found != mAllocatedLocalPorts.end()) goto next_port;
-        }
-        {
-          auto found = mAllocatedLocalPorts.find(mCurrentAllocationPort);
-          if (found != mAllocatedLocalPorts.end()) goto next_port;
-        }
-
-      next_port:
-        mCurrentAllocationPort = mCurrentAllocationPort + mNextAllocationIncremement;
-
-        if (mCurrentAllocationPort < mMinAllocationPort) mCurrentAllocationPort = mMinAllocationPort;
-        if (mCurrentAllocationPort > mMaxAllocationPort) mCurrentAllocationPort = mMaxAllocationPort;
-      }
-
-      allocatePort(mAllocatedLocalPorts, mCurrentAllocationPort);
-      allocatePort(mAllocatedRemotePorts, mCurrentAllocationPort);
-
-      mDataChannelTuples[UseSCTPHelper::createTuple(mCurrentAllocationPort, mCurrentAllocationPort)] = channel;
-
-      return mCurrentAllocationPort;
-    }
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -1196,6 +1267,7 @@ namespace ortc
       // ... other steps here ...
       if (!stepSecureTransport()) goto not_ready;
       if (!stepICETransport()) goto not_ready;
+      if (!stepDeliverIncomingPackets()) goto not_ready;
       // ... other steps here ...
 
       goto ready;
@@ -1245,11 +1317,9 @@ namespace ortc
 
       auto clientRole = secureTransport->isClientRole();
       if (clientRole) {
-        mCurrentAllocationPort = mMinAllocationPort;
-        mNextAllocationIncremement = 1;
+        mCurrentAllocationPort = mMinAllocationPort;    // client picks even port numbers
       } else {
-        mCurrentAllocationPort = mMaxAllocationPort;
-        mNextAllocationIncremement = static_cast<WORD>(-1);
+        mCurrentAllocationPort = mMinAllocationPort+1;  // server picks odd port numbers
       }
 
       return true;
@@ -1299,7 +1369,27 @@ namespace ortc
 
       return false;
     }
-    
+
+    //-------------------------------------------------------------------------
+    bool SCTPTransport::stepDeliverIncomingPackets()
+    {
+      if (mPendingIncomingData.size() < 1) {
+        ZS_LOG_TRACE(log("no pending packets to deliver"))
+        return true;
+      }
+
+      BufferedQueue pending = mPendingIncomingData;
+      mPendingIncomingData = BufferedQueue();
+
+      while (pending.size() > 0) {
+        SecureByteBlockPtr buffer = pending.front();
+        handleDataPacket(buffer->BytePtr(), buffer->SizeInBytes());
+        pending.pop();
+      }
+
+      return true;
+    }
+
     //-------------------------------------------------------------------------
     void SCTPTransport::cancel()
     {
@@ -1405,6 +1495,154 @@ namespace ortc
       useMap.erase(found);
     }
     
+    //-------------------------------------------------------------------------
+    SCTPTransport::SocketInfoPtr SCTPTransport::openIncomingSocket(
+                                                                   WORD localPort,
+                                                                   WORD remotePort,
+                                                                   LocalRemoteTupleID tupleID
+                                                                   )
+    {
+      SocketInfoPtr socketInfo(make_shared<SocketInfo>());
+      socketInfo->mThis = new SocketInfoPtr(socketInfo);
+      socketInfo->mTransport = mThisWeak.lock();
+      socketInfo->mIncoming = true;
+      socketInfo->mLocalPort = localPort;
+      socketInfo->mRemotePort = remotePort;
+      socketInfo->mTupleID = tupleID;
+      socketInfo->mCurrentAllocationSessionID = 0 + (mCurrentAllocationPort % 2); // even vs odd allocation
+
+      if (!openListenSCTPSocket(*socketInfo)) {
+        ZS_LOG_ERROR(Debug, log("failed to open incoming socket") + socketInfo->toDebug())
+        socketInfo->close();
+        return SocketInfoPtr();
+      }
+
+      ZS_LOG_DEBUG(log("successfully opened incoming listen socket") + socketInfo->toDebug())
+      return socketInfo;
+    }
+
+    //-------------------------------------------------------------------------
+    bool SCTPTransport::openListenSCTPSocket(SocketInfo &info)
+    {
+      if (!openSCTPSocket(info)) {
+        ZS_LOG_ERROR(Detail, log("failed to open listen socket"))
+        return false;
+      }
+
+      if (usrsctp_listen(info.mSocket, 1)) {
+        ZS_LOG_ERROR(Detail, log("failed to listen on SCTP socket"))
+        return false;
+      }
+
+      return true;
+    }
+
+    //-------------------------------------------------------------------------
+    bool SCTPTransport::openSCTPSocket(SocketInfo &info)
+    {
+      info.mSocket = usrsctp_socket(AF_CONN, SOCK_STREAM, IPPROTO_SCTP, SCTPInit::OnSctpInboundPacket, NULL, 0,info.mThis);
+      if (!info.mSocket) {
+        ZS_LOG_ERROR(Detail, log("failed to create sctp socket"))
+        return false;
+      }
+
+      if (!prepareSocket(info.mSocket)) {
+        ZS_LOG_ERROR(Detail, log("failed to setup socket"))
+        return false;
+      }
+
+      usrsctp_register_address(info.mThis);
+      return true;
+    }
+
+    //-------------------------------------------------------------------------
+    bool SCTPTransport::prepareSocket(struct socket *sock)
+    {
+      // Make the socket non-blocking. Connect, close, shutdown etc will not
+      // block the thread waiting for the socket operation to complete.
+
+      if (usrsctp_set_non_blocking(sock, 1) < 0) {
+        ZS_LOG_ERROR(Detail, log("failed to set SCTP socket to non-blocking"))
+        return false;
+      }
+
+      // This ensures that the usrsctp close call deletes the association. This
+      // prevents usrsctp from calling OnSctpOutboundPacket with references to
+      // this class as the address.
+      linger linger_opt {};
+      linger_opt.l_onoff = 1;
+      linger_opt.l_linger = 0;
+      if (usrsctp_setsockopt(sock, SOL_SOCKET, SO_LINGER, &linger_opt, sizeof(linger_opt))) {
+        ZS_LOG_ERROR(Detail, log("failed to set SCTP socket SO_LINGER"))
+        return false;
+      }
+
+      // Enable stream ID resets.
+      struct sctp_assoc_value stream_rst {};
+      stream_rst.assoc_id = SCTP_ALL_ASSOC;
+      stream_rst.assoc_value = 1;
+      if (usrsctp_setsockopt(sock, IPPROTO_SCTP, SCTP_ENABLE_STREAM_RESET, &stream_rst, sizeof(stream_rst))) {
+        ZS_LOG_ERROR(Detail, log("failed to set SCTP_ENABLE_STREAM_RESET"))
+        return false;
+      }
+
+      // Nagle.
+      uint32_t nodelay = 1;
+      if (usrsctp_setsockopt(sock, IPPROTO_SCTP, SCTP_NODELAY, &nodelay, sizeof(nodelay))) {
+        ZS_LOG_ERROR(Detail, log("failed to set SCTP_NODELAY"))
+        return false;
+      }
+
+      struct sctp_paddrparams params = {{0}};
+      params.spp_assoc_id = 0;
+      params.spp_flags = SPP_PMTUD_DISABLE;
+      params.spp_pathmtu = kSctpMtu;
+      if (usrsctp_setsockopt(sock, IPPROTO_SCTP, SCTP_PEER_ADDR_PARAMS, &params, sizeof(params))) {
+        ZS_LOG_ERROR(Detail, log("failed to set SCTP_PEER_ADDR_PARAMS"))
+        return false;
+      }
+
+      int event_types[] = {
+        SCTP_ASSOC_CHANGE,
+        SCTP_PEER_ADDR_CHANGE,
+        SCTP_SEND_FAILED_EVENT,
+        SCTP_SENDER_DRY_EVENT,
+        SCTP_STREAM_RESET_EVENT
+      };
+      struct sctp_event event = {0};
+      event.se_assoc_id = SCTP_ALL_ASSOC;
+      event.se_on = 1;
+      for (size_t i = 0; i < ARRAY_SIZE(event_types); i++) {
+        event.se_type = event_types[i];
+        if (usrsctp_setsockopt(sock, IPPROTO_SCTP, SCTP_EVENT, &event, sizeof(event)) < 0) {
+          ZS_LOG_ERROR(Detail, log("failed to set SCTP_EVENT type") + ZS_PARAM("event", event.se_type))
+          return false;
+        }
+      }
+
+      return true;
+    }
+
+    //-------------------------------------------------------------------------
+    void SCTPTransport::attemptAccept(SocketInfo &info)
+    {
+      if (!info.mIncoming) return;    // only applies to incoming sockets
+      if (info.mAcceptSocket) return; // already accepted
+
+      sockaddr_conn localAddr = info.getSockAddr(true);
+
+      socklen_t addressLength = sizeof(localAddr);
+      if (usrsctp_accept(info.mSocket, reinterpret_cast<sockaddr *>(&localAddr), &addressLength)) {
+        if (SCTP_EWOULDBLOCK == errno) {
+          ZS_LOG_TRACE(log("not ready to accept incoming connection yet") + info.toDebug())
+          return;
+        }
+
+        ZS_LOG_ERROR(Debug, log("cannot accept socket at this time") + info.toDebug())
+        return;
+      }
+
+    }
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
