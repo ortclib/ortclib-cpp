@@ -456,7 +456,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"/Users/developerdevelopic/Projects/validOrtc2/ortc-lib-sdk/libs/webrtc/./out_ios/Debug-iphoneos",
+					"../../../../webrtc/out_ios/Debug-iphoneos",
 				);
 				ONLY_ACTIVE_ARCH = NO;
 				OTHER_LDFLAGS = "-ObjC";
@@ -511,7 +511,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"/Users/developerdevelopic/Projects/validOrtc2/ortc-lib-sdk/libs/webrtc/./out_ios/Debug-iphoneos",
+					"../../../../webrtc/out_ios/Debug-iphoneos",
 				);
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = "$(TARGET_NAME)";
