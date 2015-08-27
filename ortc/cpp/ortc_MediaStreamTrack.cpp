@@ -105,10 +105,14 @@ namespace ortc
     MediaStreamTrack::MediaStreamTrack(
                                        const make_private &,
                                        IMessageQueuePtr queue,
+                                       Kinds kind,
+                                       bool remote,
                                        TrackConstraintsPtr constraints
                                        ) :
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
+      mKind(kind),
+      mRemote(remote),
       mConstraints(constraints),
       mVideoCaptureModule(NULL),
       mVideoRenderModule(NULL),
@@ -123,61 +127,65 @@ namespace ortc
       AutoRecursiveLock lock(*this);
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
 
-      String videoDeviceID = mConstraints->mAdvanced.front()->mDeviceID.mValue.value().mValue.value();
-      mVideoCaptureModule = webrtc::VideoCaptureFactory::Create(0, videoDeviceID.c_str());
-      if (!mVideoCaptureModule) {
-        return;
-      }
+      if (mKind == Kind_Video && !mRemote) {
+        String videoDeviceID = mConstraints->mAdvanced.front()->mDeviceID.mValue.value().mValue.value();
+        mVideoCaptureModule = webrtc::VideoCaptureFactory::Create(0, videoDeviceID.c_str());
+        if (!mVideoCaptureModule) {
+          return;
+        }
 
-      mVideoCaptureModule->AddRef();
+        mVideoCaptureModule->AddRef();
 
-      mVideoCaptureModule->RegisterCaptureDataCallback(*this);
+        mVideoCaptureModule->RegisterCaptureDataCallback(*this);
 
-      webrtc::VideoCaptureModule::DeviceInfo* info = webrtc::VideoCaptureFactory::CreateDeviceInfo(0);
-      if (!info) {
-        return;
-      }
+        webrtc::VideoCaptureModule::DeviceInfo* info = webrtc::VideoCaptureFactory::CreateDeviceInfo(0);
+        if (!info) {
+          return;
+        }
 
-      LONG desiredWidth = mConstraints->mAdvanced.front()->mWidth.mValue.value();
-      LONG desiredHeight = mConstraints->mAdvanced.front()->mHeight.mValue.value();
-      DOUBLE desiredMaxFPS = mConstraints->mAdvanced.front()->mFrameRate.mValue.value();
-      LONG minWidthDiff = LONG_MAX;
-      LONG minHeightDiff = LONG_MAX;
-      DOUBLE minFpsDiff = std::numeric_limits<double>::max();
-      webrtc::VideoCaptureCapability bestCap;
-      int32_t numCaps = info->NumberOfCapabilities(videoDeviceID.c_str());
-      for (int32_t i = 0; i < numCaps; ++i) {
-        webrtc::VideoCaptureCapability cap;
-        if (info->GetCapability(videoDeviceID.c_str(), i, cap) != -1) {
-          if (cap.rawType == webrtc::kVideoMJPEG || cap.rawType == webrtc::kVideoUnknown)
-            continue;
-          LONG widthDiff = abs((LONG)(cap.width - desiredWidth));
-          LONG heightDiff = abs((LONG)(cap.height - desiredHeight));
-          DOUBLE fpsDiff = abs((DOUBLE)(cap.maxFPS - desiredMaxFPS));
-          if (widthDiff < minWidthDiff) {
-            bestCap = cap;
-            minWidthDiff = widthDiff;
-            minHeightDiff = heightDiff;
-            minFpsDiff = fpsDiff;
-          } else if (widthDiff == minWidthDiff) {
-            if (heightDiff < minHeightDiff) {
+        LONG desiredWidth = mConstraints->mAdvanced.front()->mWidth.mValue.value();
+        LONG desiredHeight = mConstraints->mAdvanced.front()->mHeight.mValue.value();
+        DOUBLE desiredMaxFPS = mConstraints->mAdvanced.front()->mFrameRate.mValue.value();
+        LONG minWidthDiff = LONG_MAX;
+        LONG minHeightDiff = LONG_MAX;
+        DOUBLE minFpsDiff = DBL_MAX;
+        webrtc::VideoCaptureCapability bestCap;
+        int32_t numCaps = info->NumberOfCapabilities(videoDeviceID.c_str());
+        for (int32_t i = 0; i < numCaps; ++i) {
+          webrtc::VideoCaptureCapability cap;
+          if (info->GetCapability(videoDeviceID.c_str(), i, cap) != -1) {
+            if (cap.rawType == webrtc::kVideoMJPEG || cap.rawType == webrtc::kVideoUnknown)
+              continue;
+            LONG widthDiff = abs((LONG)(cap.width - desiredWidth));
+            LONG heightDiff = abs((LONG)(cap.height - desiredHeight));
+            DOUBLE fpsDiff = abs((DOUBLE)(cap.maxFPS - desiredMaxFPS));
+            if (widthDiff < minWidthDiff) {
               bestCap = cap;
+              minWidthDiff = widthDiff;
               minHeightDiff = heightDiff;
               minFpsDiff = fpsDiff;
-            } else if (heightDiff == minHeightDiff) {
-              if (fpsDiff < minFpsDiff) {
+            } else if (widthDiff == minWidthDiff) {
+              if (heightDiff < minHeightDiff) {
                 bestCap = cap;
+                minHeightDiff = heightDiff;
                 minFpsDiff = fpsDiff;
+              } else if (heightDiff == minHeightDiff) {
+                if (fpsDiff < minFpsDiff) {
+                  bestCap = cap;
+                  minFpsDiff = fpsDiff;
+                }
               }
             }
           }
         }
-      }
-      delete info;
+        delete info;
 
-      if (mVideoCaptureModule->StartCapture(bestCap) != 0) {
-        mVideoCaptureModule->DeRegisterCaptureDataCallback();
-        return;
+        if (mVideoCaptureModule->StartCapture(bestCap) != 0) {
+          mVideoCaptureModule->DeRegisterCaptureDataCallback();
+          return;
+        }
+      } else if (mKind == Kind_Video && mRemote) {
+
       }
     }
 
@@ -193,9 +201,13 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    MediaStreamTrackPtr MediaStreamTrack::create(TrackConstraintsPtr constraints)
+    MediaStreamTrackPtr MediaStreamTrack::create(
+                                                 Kinds kind,
+                                                 bool remote,
+                                                 TrackConstraintsPtr constraints
+                                                 )
     {
-      MediaStreamTrackPtr pThis(make_shared<MediaStreamTrack>(make_private{}, IORTCForInternal::queueORTC(), constraints));
+      MediaStreamTrackPtr pThis(make_shared<MediaStreamTrack>(make_private{}, IORTCForInternal::queueORTC(), kind, remote, constraints));
       pThis->mThisWeak = pThis;
       pThis->init();
       return pThis;
@@ -361,7 +373,7 @@ namespace ortc
     {
 #define TODO 1
 #define TODO 2
-      return false;
+      return mRemote;
     }
 
     //-------------------------------------------------------------------------
@@ -715,10 +727,14 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    MediaStreamTrackPtr IMediaStreamTrackFactory::create(TrackConstraintsPtr constraints)
+    MediaStreamTrackPtr IMediaStreamTrackFactory::create(
+                                                         IMediaStreamTrackTypes::Kinds kind,
+                                                         bool remote,
+                                                         TrackConstraintsPtr constraints
+                                                         )
     {
       if (this) {}
-      return internal::MediaStreamTrack::create(constraints);
+      return internal::MediaStreamTrack::create(kind, remote, constraints);
     }
 
 

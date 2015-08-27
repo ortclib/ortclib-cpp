@@ -288,11 +288,10 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    PromisePtr RTPReceiver::receive(const Parameters &parameters)
+    void RTPReceiver::receive(const Parameters &parameters)
     {
 #define TODO 1
 #define TODO 2
-      return PromisePtr();
     }
 
     //-------------------------------------------------------------------------

@@ -175,6 +175,8 @@ namespace ortc
       MediaStreamTrack(
                        const make_private &,
                        IMessageQueuePtr queue,
+                       Kinds kind,
+                       bool remote,
                        TrackConstraintsPtr constraints
                        );
 
@@ -190,7 +192,11 @@ namespace ortc
     public:
       virtual ~MediaStreamTrack();
 
-      static MediaStreamTrackPtr create(TrackConstraintsPtr constraints);
+      static MediaStreamTrackPtr create(
+                                        Kinds kind,
+                                        bool remote,
+                                        TrackConstraintsPtr constraints
+                                        );
 
       static MediaStreamTrackPtr convert(IMediaStreamTrackPtr object);
       static MediaStreamTrackPtr convert(ForSettingsPtr object);
@@ -333,6 +339,9 @@ namespace ortc
       WORD mLastError {};
       String mLastErrorReason;
 
+      Kinds mKind;
+      bool mRemote;
+
       TrackConstraintsPtr mConstraints;
       webrtc::VideoCaptureModule* mVideoCaptureModule;
       webrtc::VideoRender* mVideoRenderModule;
@@ -353,7 +362,11 @@ namespace ortc
 
       static IMediaStreamTrackFactory &singleton();
 
-      virtual MediaStreamTrackPtr create(TrackConstraintsPtr constraints);
+      virtual MediaStreamTrackPtr create(
+                                         IMediaStreamTrackTypes::Kinds kind,
+                                         bool remote,
+                                         TrackConstraintsPtr constraints
+                                         );
     };
 
     class MediaStreamTrackFactory : public IFactory<IMediaStreamTrackFactory> {};

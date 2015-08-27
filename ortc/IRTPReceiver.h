@@ -105,7 +105,7 @@ namespace ortc
 
     static CapabilitiesPtr getCapabilities(Optional<Kinds> kind = Optional<Kinds>());
 
-    virtual PromisePtr receive(const Parameters &parameters) = 0;
+    virtual void receive(const Parameters &parameters) = 0;
     virtual void stop() = 0;
 
     virtual ContributingSourceList getContributingSources() const = 0;
