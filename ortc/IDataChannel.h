@@ -71,11 +71,10 @@ namespace ortc
       String            mLabel;
       bool              mOrdered {true};
       Milliseconds      mMaxPacketLifetime;
-      USHORT            mMaxRetransmits {};
+      Optional<USHORT>  mMaxRetransmits;
       String            mProtocol;
       bool              mNegotiated {false};
       Optional<USHORT>  mID;
-      Optional<WORD>    mPort;
 
       ElementPtr toDebug() const;
       String hash() const;
@@ -98,7 +97,7 @@ namespace ortc
                                   IDataChannelDelegatePtr delegate,
                                   IDataTransportPtr transport,
                                   const Parameters &params
-                                  );
+                                  ) throw (InvalidParameters, InvalidStateError);
 
     virtual PUID getID() const = 0;
 
@@ -110,7 +109,7 @@ namespace ortc
 
     virtual States readyState() const = 0;
 
-    virtual ULONG bufferedAmount() const = 0;
+    virtual size_t bufferedAmount() const = 0;
 
     virtual String binaryType() const = 0;
     virtual void binaryType(const char *str) = 0;

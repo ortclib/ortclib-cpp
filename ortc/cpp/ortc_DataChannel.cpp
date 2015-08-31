@@ -42,6 +42,8 @@
 #include <zsLib/Log.h>
 #include <zsLib/XML.h>
 
+#include <cryptopp/queue.h>
+
 #include <cryptopp/sha.h>
 
 
@@ -61,9 +63,15 @@ namespace ortc
   ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHTTP, UseHTTP)
 
   typedef openpeer::services::Hasher<CryptoPP::SHA1> SHA1Hasher;
+  typedef CryptoPP::ByteQueue ByteQueue;
+
+  ZS_DECLARE_INTERACTION_TEAR_AWAY(IDataChannel, internal::DataChannel::TearAwayData)
 
   namespace internal
   {
+    ZS_DECLARE_STRUCT_PTR(DataChannelHelper)
+    ZS_DECLARE_TYPEDEF_PTR(DataChannelHelper, UseDataHelper)
+
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -72,6 +80,81 @@ namespace ortc
     #pragma mark (helpers)
     #pragma mark
 
+    //-------------------------------------------------------------------------
+    // http://tools.ietf.org/html/draft-ietf-rtcweb-data-protocol-09#section-8.2.1
+    enum ControlMessageTypes
+    {
+      ControlMessageType_Unknown         = 0x00,
+
+      ControlMessageType_DataChannelOpen = 0x03,
+      ControlMessageType_DataChannelAck  = 0x02,
+    };
+
+    //-------------------------------------------------------------------------
+    static const char *toString(ControlMessageTypes type)
+    {
+      switch(type) {
+        case ControlMessageType_DataChannelOpen:  return "DATA_CHANNEL_OPEN";
+        case ControlMessageType_DataChannelAck:   return "DATA_CHANNEL_ACK";
+        default: break;
+      }
+      return "unknown";
+    }
+
+    //-------------------------------------------------------------------------
+    // http://tools.ietf.org/html/draft-ietf-rtcweb-data-protocol-09#section-5.1
+    enum DataChannelOpenMessageChannelTypes {
+      DataChannelOpenMessageChannelType_RELIABLE = 0x00,
+      DataChannelOpenMessageChannelType_RELIABLE_UNORDERED = 0x80,
+      DataChannelOpenMessageChannelType_PARTIAL_RELIABLE_REXMIT = 0x01,
+      DataChannelOpenMessageChannelType_PARTIAL_RELIABLE_REXMIT_UNORDERED = 0x81,
+      DataChannelOpenMessageChannelType_PARTIAL_RELIABLE_TIMED = 0x02,
+      DataChannelOpenMessageChannelType_PARTIAL_RELIABLE_TIMED_UNORDERED = 0x82,
+    };
+
+    //-------------------------------------------------------------------------
+    static const char *toString(DataChannelOpenMessageChannelTypes type)
+    {
+      switch(type) {
+        case DataChannelOpenMessageChannelType_RELIABLE:                          return "DATA_CHANNEL_RELIABLE";
+        case DataChannelOpenMessageChannelType_RELIABLE_UNORDERED:                return "DATA_CHANNEL_RELIABLE_UNORDERED";
+        case DataChannelOpenMessageChannelType_PARTIAL_RELIABLE_REXMIT:           return "DATA_CHANNEL_PARTIAL_RELIABLE_REXMIT";
+        case DataChannelOpenMessageChannelType_PARTIAL_RELIABLE_REXMIT_UNORDERED: return "DATA_CHANNEL_PARTIAL_RELIABLE_REXMIT_UNORDERED";
+        case DataChannelOpenMessageChannelType_PARTIAL_RELIABLE_TIMED:            return "DATA_CHANNEL_PARTIAL_RELIABLE_TIMED";
+        case DataChannelOpenMessageChannelType_PARTIAL_RELIABLE_TIMED_UNORDERED:  return "DATA_CHANNEL_PARTIAL_RELIABLE_TIMED_UNORDERED";
+        default: break;
+      }
+      return "unknown";
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark DataChannelHelper
+    #pragma mark
+
+    struct DataChannelHelper
+    {
+      //-----------------------------------------------------------------------
+      static ControlMessageTypes getControlMessageType(
+                                                       const BYTE *buffer,
+                                                       size_t bufferLengthInBytes
+                                                       )
+      {
+        if (bufferLengthInBytes < 1) return ControlMessageType_Unknown;
+        BYTE type = 0;
+        memcpy(&type, &(buffer[0]), sizeof(type));
+
+        switch(type) {
+          case ControlMessageType_DataChannelOpen:  return ControlMessageType_DataChannelOpen;
+          case ControlMessageType_DataChannelAck:   return ControlMessageType_DataChannelAck;
+        }
+
+        return ControlMessageType_Unknown;
+      }
+    };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -105,12 +188,10 @@ namespace ortc
     //-------------------------------------------------------------------------
     IDataChannelForSCTPTransport::ForDataTransportPtr IDataChannelForSCTPTransport::create(
                                                                                            UseDataTransportPtr transport,
-                                                                                           WORD localPort,
-                                                                                           WORD remotePort,
-                                                                                           bool rejectIncoming
+                                                                                           WORD sessionID
                                                                                            )
     {
-      return IDataChannelFactory::singleton().create(transport, localPort, remotePort, rejectIncoming);
+      return IDataChannelFactory::singleton().create(transport, sessionID);
     }
 
     //-------------------------------------------------------------------------
@@ -120,7 +201,7 @@ namespace ortc
     #pragma mark
     #pragma mark DataChannel
     #pragma mark
-    
+
     //-------------------------------------------------------------------------
     DataChannel::DataChannel(
                              const make_private &,
@@ -128,18 +209,14 @@ namespace ortc
                              IDataChannelDelegatePtr originalDelegate,
                              UseDataTransportPtr transport,
                              ParametersPtr params,
-                             WORD localPort,
-                             WORD remotePort,
-                             bool rejectIncoming
+                             WORD sessionID
                              ) :
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
-      mSCTPRegisteredAddress(new DataChannelWeakPtr),
-      mDataTransport(SCTPTransport::convert(transport)),
+      mDataTransport(transport),
       mParameters(params),
-      mLocalPort(localPort),
-      mRemotePort(remotePort),
-      mRejectIncoming(rejectIncoming)
+      mIncoming(ORTC_SCTP_INVALID_DATA_CHANNEL_SESSION_ID == sessionID),
+      mSessionID(ORTC_SCTP_INVALID_DATA_CHANNEL_SESSION_ID == sessionID ? (params->mID.hasValue() ? params->mID.value() : ORTC_SCTP_INVALID_DATA_CHANNEL_SESSION_ID) : sessionID)
     {
       ZS_LOG_DETAIL(debug("created"))
 
@@ -148,22 +225,12 @@ namespace ortc
       if (originalDelegate) {
         mDefaultSubscription = mSubscriptions.subscribe(originalDelegate, IORTCForInternal::queueDelegate());
       }
-
-      if (0 != localPort) {
-        mIncoming = true;
-        // incoming connections must only retain a weak pointer to data
-        // transport as data transport already has a strong pointer to
-        // the data channel (and thus owns the data channel).
-        mDataTransportWeak = mDataTransport;
-        mDataTransport.reset();
-      }
     }
 
     //-------------------------------------------------------------------------
     void DataChannel::init()
     {
       AutoRecursiveLock lock(*this);
-      (*mSCTPRegisteredAddress) = mThisWeak.lock();
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
     }
 
@@ -171,11 +238,6 @@ namespace ortc
     DataChannel::~DataChannel()
     {
       if (isNoop()) return;
-
-      if (NULL != mSCTPRegisteredAddress) {
-        delete mSCTPRegisteredAddress;
-        mSCTPRegisteredAddress = NULL;
-      }
 
       ZS_LOG_DETAIL(log("destroyed"))
       mThisWeak.reset();
@@ -186,6 +248,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     DataChannelPtr DataChannel::convert(IDataChannelPtr object)
     {
+      IDataChannelPtr original = IDataChannelTearAway::original(object);
       return ZS_DYNAMIC_PTR_CAST(DataChannel, object);
     }
 
@@ -224,10 +287,31 @@ namespace ortc
                                        const Parameters &params
                                        )
     {
+      ORTC_THROW_INVALID_PARAMETERS_IF(!transport)
+
+      ORTC_THROW_INVALID_PARAMETERS_IF((Milliseconds() != params.mMaxPacketLifetime) &&
+                                       (params.mMaxPacketLifetime.count() > UINT32_MAX));
+
+      ORTC_THROW_INVALID_PARAMETERS_IF(params.mLabel.length() > UINT16_MAX)
+      ORTC_THROW_INVALID_PARAMETERS_IF(params.mProtocol.length() > UINT16_MAX)
+
       DataChannelPtr pThis(make_shared<DataChannel>(make_private {}, IORTCForInternal::queueORTC(), delegate, SCTPTransport::convert(transport), ParametersPtr(make_shared<Parameters>(params))));
       pThis->mThisWeak = pThis;
-      pThis->init();
-      return pThis;
+      UseDataTransportPtr useTransport = pThis->mDataTransport.lock();
+
+      ForDataTransportPtr forTransport = pThis;
+
+      useTransport->registerNewDataChannel(forTransport, pThis->mSessionID);
+
+      DataChannelPtr selectedDataChannel = DataChannel::convert(forTransport);
+
+      if (selectedDataChannel->getID() == pThis->getID()) {
+        pThis->init();
+      } else {
+        pThis->cancel();
+      }
+
+      return selectedDataChannel;
     }
 
     //-------------------------------------------------------------------------
@@ -245,8 +329,13 @@ namespace ortc
       if (delegate) {
         DataChannelPtr pThis = mThisWeak.lock();
 
-#define TODO_DO_WE_NEED_TO_TELL_ABOUT_ANY_MISSED_EVENTS 1
-#define TODO_DO_WE_NEED_TO_TELL_ABOUT_ANY_MISSED_EVENTS 2
+        if (State_Connecting != mCurrentState) {
+          delegate->onDataChannelStateChanged(pThis, mCurrentState);
+        }
+
+        if (0 != mLastError) {
+          delegate->onDataChannelError(pThis, mLastError, mLastErrorReason);
+        }
       }
 
       if (isShutdown()) {
@@ -259,7 +348,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     IDataTransportPtr DataChannel::transport() const
     {
-      return SCTPTransport::convert(getTransport());
+      return SCTPTransport::convert(mDataTransport.lock());
     }
 
     //-------------------------------------------------------------------------
@@ -279,16 +368,16 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    ULONG DataChannel::bufferedAmount() const
+    size_t DataChannel::bufferedAmount() const
     {
       AutoRecursiveLock lock(*this);
 
-      ULONG total = 0;
+      size_t total = 0;
 
       for (auto iter = mOutgoingData.begin(); iter != mOutgoingData.end(); ++iter)
       {
         auto buffer = (*iter);
-        total += buffer->SizeInBytes();
+        total += (buffer->mBuffer ? buffer->mBuffer->SizeInBytes() : 0);
       }
 
       return total;
@@ -319,15 +408,16 @@ namespace ortc
     //-------------------------------------------------------------------------
     void DataChannel::send(const String &data)
     {
-      if (data.isEmpty()) return;
-      send((const BYTE *)data.c_str(), data.length());
+      AutoRecursiveLock lock(*this);
+      if (data.isEmpty()) send(SCTP_PPID_STRING_LAST, NULL, 0);
+      send(SCTP_PPID_STRING_LAST, (const BYTE *)data.c_str(), data.length());
     }
 
     //-------------------------------------------------------------------------
     void DataChannel::send(const SecureByteBlock &data)
     {
-      if (data.SizeInBytes() < 1) return;
-      send(data.BytePtr(), data.SizeInBytes());
+      AutoRecursiveLock lock(*this);
+      send(SCTP_PPID_BINARY_LAST, data.BytePtr(), data.SizeInBytes());
     }
 
     //-------------------------------------------------------------------------
@@ -336,21 +426,10 @@ namespace ortc
                            size_t bufferSizeInBytes
                            )
     {
-      if (0 == bufferSizeInBytes) return;
-      if (NULL == buffer) return;
+      ORTC_THROW_INVALID_PARAMETERS_IF((NULL == buffer) && (0 != bufferSizeInBytes))
 
       AutoRecursiveLock lock(*this);
-
-      if ((isShuttingDown()) &&
-          (isShutdown())) {
-        ZS_LOG_WARNING(Debug, log("cannot send data (as shutting down / shutdown)"))
-        return;
-      }
-
-      SecureByteBlockPtr temp = UseServicesHelper::convertToBuffer(buffer, bufferSizeInBytes);
-      mOutgoingData.push_back(temp);
-
-      IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
+      send(SCTP_PPID_BINARY_LAST, buffer, bufferSizeInBytes);
     }
 
     //-------------------------------------------------------------------------
@@ -364,29 +443,83 @@ namespace ortc
     //-------------------------------------------------------------------------
     DataChannel::ForDataTransportPtr DataChannel::create(
                                                          UseDataTransportPtr transport,
-                                                         WORD localPort,
-                                                         WORD remotePort,
-                                                         bool rejectIncoming
+                                                         WORD sessionID
                                                          )
     {
-      DataChannelPtr pThis(make_shared<DataChannel>(make_private {}, IORTCForInternal::queueORTC(), IDataChannelDelegatePtr(), transport, ParametersPtr(), localPort, remotePort, rejectIncoming));
+      DataChannelPtr pThis(make_shared<DataChannel>(make_private {}, IORTCForInternal::queueORTC(), IDataChannelDelegatePtr(), transport, ParametersPtr(), sessionID));
       pThis->mThisWeak = pThis;
       pThis->init();
       return pThis;
     }
 
     //-------------------------------------------------------------------------
-    bool DataChannel::handleSCTPPacket(
-                                       const BYTE *buffer,
-                                       size_t bufferLengthInBytes
-                                       )
+    bool DataChannel::handleSCTPPacket(SCTPPacketIncomingPtr packet)
     {
       // scope: obtain whatever data is required inside lock to process SCTP packet
       {
         AutoRecursiveLock lock(*this);
+
+        if (isShutdown()) {
+          ZS_LOG_WARNING(Debug, log("cannot handle incoming packet when already shutdown"))
+          return false;
+        }
+
+        if (SCTP_PPID_CONTROL == packet->mType) {
+          if (!packet->mBuffer) {
+            ZS_LOG_WARNING(Detail, log("packet does not contain a buffer (which is not valid)"))
+            return false;
+          }
+
+          if (isShuttingDown()) {
+            ZS_LOG_WARNING(Detail, log("cannot handle control packet when shutting down"))
+            return false;
+          }
+
+          auto type = UseDataHelper::getControlMessageType(packet->mBuffer->BytePtr(), packet->mBuffer->SizeInBytes());
+
+          switch (type) {
+            case ControlMessageType_DataChannelOpen: {
+              ZS_LOG_TRACE(log("handling data channel open packet"))
+              bool result = handleOpenPacket(*packet->mBuffer);
+              ZS_LOG_WARNING_IF(!result, Detail, log("faiiled to parse data channel open packet"))
+              return result;
+            }
+            case ControlMessageType_DataChannelAck: {
+              ZS_LOG_TRACE(log("handling data channel ack packet"))
+              bool result = handleAckPacket(*packet->mBuffer);
+              ZS_LOG_WARNING_IF(!result, Detail, log("faiiled to parse data channel ack packet"))
+              return result;
+            }
+            default: {
+              if (ZS_IS_LOGGING(Detail)) {
+                String base64 = UseServicesHelper::convertToBase64(*packet->mBuffer);
+                ZS_LOG_WARNING(Detail, log("control message type was not understood") + ZS_PARAM("wire in", base64))
+              }
+            }
+          }
+        }
+
+#define TODO 1
+#define TODO 2
+
+
       }
 
       return false;
+    }
+
+    //-------------------------------------------------------------------------
+    void DataChannel::requestShutdown()
+    {
+      ZS_LOG_TRACE(log("request shutdown"))
+      IDataChannelAsyncDelegateProxy::create(mThisWeak.lock())->onRequestShutdown();
+    }
+
+    //-------------------------------------------------------------------------
+    void DataChannel::notifyClosed()
+    {
+      ZS_LOG_TRACE(log("notify closed"))
+      IDataChannelAsyncDelegateProxy::create(mThisWeak.lock())->onNotifiedClosed();
     }
 
     //-------------------------------------------------------------------------
@@ -403,6 +536,33 @@ namespace ortc
       ZS_LOG_TRACE(log("on sctp transport state changed"))
       AutoRecursiveLock lock(*this);
       step();
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark DataChannel => IDataChannelAsyncDelegate
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    void DataChannel::onRequestShutdown()
+    {
+      ZS_LOG_TRACE(log("on request shutdown"))
+
+      AutoRecursiveLock lock(*this);
+      cancel();
+    }
+
+    //-------------------------------------------------------------------------
+    void DataChannel::onNotifiedClosed()
+    {
+      ZS_LOG_TRACE(log("on notified closed"))
+
+      AutoRecursiveLock lock(*this);
+      mNotifiedClosed = true;
+      cancel();
     }
 
     //-------------------------------------------------------------------------
@@ -440,6 +600,24 @@ namespace ortc
 #define TODO 2
     }
 
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark DataChannel => IPromiseSettledDelegate
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    void DataChannel::onPromiseSettled(PromisePtr promise)
+    {
+      ZS_LOG_TRACE(log("on promise settled"))
+
+      AutoRecursiveLock lock(*this);
+      step();
+    }
+
+    //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -485,11 +663,14 @@ namespace ortc
       UseServicesHelper::debugAppend(resultEl, "subscribers", mSubscriptions.size());
       UseServicesHelper::debugAppend(resultEl, "default subscription", (bool)mDefaultSubscription);
 
-      auto dataTransport = getTransport();
+      auto dataTransport = mDataTransport.lock();
       UseServicesHelper::debugAppend(resultEl, "data transport", dataTransport ? dataTransport->getID() : 0);
 
       UseServicesHelper::debugAppend(resultEl, "state", toString(mCurrentState));
-      UseServicesHelper::debugAppend(resultEl, "sctp ready", mSCTPReady);
+
+      UseServicesHelper::debugAppend(resultEl, "incoming", mIncoming);
+      UseServicesHelper::debugAppend(resultEl, "issued open", mIssuedOpen);
+      UseServicesHelper::debugAppend(resultEl, "session id", ORTC_SCTP_INVALID_DATA_CHANNEL_SESSION_ID != mSessionID ? string(mSessionID) : String());
 
       UseServicesHelper::debugAppend(resultEl, "error", mLastError);
       UseServicesHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
@@ -497,20 +678,18 @@ namespace ortc
       UseServicesHelper::debugAppend(resultEl, "binary type", mBinaryType);
       UseServicesHelper::debugAppend(resultEl, "parameters", mParameters ? mParameters->toDebug() : ElementPtr());
 
-      UseServicesHelper::debugAppend(resultEl, "incoming", mIncoming);
+      UseServicesHelper::debugAppend(resultEl, "incoming data", mIncomingData.size());
+      UseServicesHelper::debugAppend(resultEl, "outgoing data", mOutgoingData.size());
 
-      UseServicesHelper::debugAppend(resultEl, "local port", mLocalPort);
-      UseServicesHelper::debugAppend(resultEl, "remote port", mRemotePort);
-
-      UseServicesHelper::debugAppend(resultEl, "issued connect", mIssuedConnect);
-      UseServicesHelper::debugAppend(resultEl, "connect acked", mConnectAcked);
-
-      UseServicesHelper::debugAppend(resultEl, "issued close", mIssuedClose);
-      UseServicesHelper::debugAppend(resultEl, "close acked", mCloseAcked);
-
-      UseServicesHelper::debugAppend(resultEl, "outoing data", mOutgoingData.size());
+      UseServicesHelper::debugAppend(resultEl, "send ready", (bool)mSendReady);
 
       return resultEl;
+    }
+
+    //-------------------------------------------------------------------------
+    bool DataChannel::isOpen() const
+    {
+      return State_Open == mCurrentState;
     }
 
     //-------------------------------------------------------------------------
@@ -562,7 +741,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool DataChannel::stepSCTPTransport()
     {
-      auto transport = getTransport();
+      auto transport = mDataTransport.lock();
       if (!transport) {
         ZS_LOG_WARNING(Detail, log("sctp is gone (thus must shutdown)"))
         cancel();
@@ -577,25 +756,11 @@ namespace ortc
       }
 
       if (!transport->isReady()) {
-        mSCTPReady = false;
-
-        ZS_LOG_TRACE(log("sctp is not ready"))
+        ZS_LOG_TRACE(log("waiting for transport to be ready"))
         return false;
       }
 
       ZS_LOG_TRACE(log("sctp is ready"))
-
-      mSCTPReady = true;
-
-      if (0 == mLocalPort) {
-        mLocalPort = mRemotePort = mDataTransport->allocateLocalPort(mThisWeak.lock());
-        if (0 == mLocalPort) {
-          ZS_LOG_WARNING(Detail, log("unable to allocate local port"))
-          cancel();
-          return false;
-        }
-      }
-
       return true;
     }
 
@@ -607,15 +772,18 @@ namespace ortc
         return true;
       }
 
-      if (mIssuedConnect) {
+      if (mIssuedOpen) {
         ZS_LOG_TRACE(log("already issued connect"))
         return true;
       }
 
-      mIssuedConnect = true;
+      ZS_LOG_DEBUG(log("issuing channel open"))
 
-#define TODO_SEND_CONNECT_REQUEST 1
-#define TODO_SEND_CONNECT_REQUEST 2
+#define TODO_VERIFY_LOGIC 1
+#define TODO_VERIFY_LOGIC 2
+
+      mIssuedOpen = true;
+      sendControlOpen();
 
       return true;
     }
@@ -628,12 +796,15 @@ namespace ortc
         return true;
       }
 
-      if (!mConnectAcked) {
+      if (State_Connecting == mCurrentState) {
         ZS_LOG_TRACE(log("waiting for connection ack"))
         return false;
       }
 
       ZS_LOG_TRACE(log("incoming connection was acked"))
+#define TODO_VERIFY_LOGIC 1
+#define TODO_VERIFY_LOGIC 2
+
       return true;
     }
 
@@ -652,10 +823,14 @@ namespace ortc
         auto current = iter_doNotUse;
         ++iter_doNotUse;
 
-        SecureByteBlockPtr buffer = (*current);
+        SCTPPacketOutgoingPtr buffer = (*current);
+        if (!deliverOutgoing(*buffer)) {
+          ZS_LOG_WARNING(Trace, log("unable to deliver pending data"))
+          return true;
+        }
 
-#define TODO_SEND_BUFFER 1
-#define TODO_SEND_BUFFER 2
+#define TODO_VERIFY_LOGIC 1
+#define TODO_VERIFY_LOGIC 2
 
         // consume the buffer as "sent"
         mOutgoingData.erase(current);
@@ -677,38 +852,13 @@ namespace ortc
       if (!mGracefulShutdownReference) mGracefulShutdownReference = mThisWeak.lock();
 
       if (mGracefulShutdownReference) {
-#define TODO_OBJECT_IS_BEING_KEPT_ALIVE_UNTIL_SCTP_SESSION_IS_SHUTDOWN 1
-#define TODO_OBJECT_IS_BEING_KEPT_ALIVE_UNTIL_SCTP_SESSION_IS_SHUTDOWN 2
-
-        auto transport = getTransport();
-        if (!transport) goto nothing_to_do;
-        if (transport->isShutdown()) goto nothing_to_do;
-        if (!mSCTPReady) goto nothing_to_do;
-        if (!mIncoming) {
-          if (!mIssuedConnect) goto nothing_to_do;
-          if (mConnectAcked) goto nothing_to_do;
-        }
-        if (mIssuedClose) goto wait_for_close_ack;
-
-      issue_close:
-        {
-          // grace shutdown process done here
-#define TODO_ISSUE_CLOSE 1
-#define TODO_ISSUE_CLOSE 2
-          goto wait_for_close_ack;
-        }
-
-      wait_for_close_ack:
-        {
-          if (!mCloseAcked) {
-            ZS_LOG_WARNING(Debug, log("waiting for close to ACK"))
+        if (!mNotifiedClosed) {
+          auto dataTransport = mDataTransport.lock();
+          if (dataTransport) {
+            ZS_LOG_TRACE(log("waiting for data channel reset"))
+            dataTransport->requestShutdown(mThisWeak.lock(), mSessionID);
             return;
           }
-          goto nothing_to_do;
-        }
-
-      nothing_to_do:
-        {
         }
       }
 
@@ -726,6 +876,9 @@ namespace ortc
         mDefaultSubscription.reset();
       }
 
+#define TODO_VERIFY 1
+#define TODO_VERIFY 2
+
       // make sure to cleanup any final reference to self
       mGracefulShutdownReference.reset();
     }
@@ -739,10 +892,10 @@ namespace ortc
 
       mCurrentState = state;
 
-//      DataChannelPtr pThis = mThisWeak.lock();
-//      if (pThis) {
-//        mSubscriptions.delegate()->onDataChannelStateChanged(pThis, mCurrentState);
-//      }
+      DataChannelPtr pThis = mThisWeak.lock();
+      if (pThis) {
+        mSubscriptions.delegate()->onDataChannelStateChanged(pThis, mCurrentState);
+      }
     }
 
     //-------------------------------------------------------------------------
@@ -765,10 +918,289 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    DataChannel::UseDataTransportPtr DataChannel::getTransport() const
+    bool DataChannel::send(
+                           SCTPPayloadProtocolIdentifier ppid,
+                           const BYTE *buffer,
+                           size_t bufferSizeInBytes
+                           )
     {
-      if (mDataTransport) return mDataTransport;
-      return mDataTransportWeak.lock();
+      if ((isShuttingDown()) &&
+          (isShutdown())) {
+        ZS_LOG_WARNING(Debug, log("cannot send data (as shutting down / shutdown)"))
+        return false;
+      }
+
+      if ((NULL == buffer) ||
+          (0 == bufferSizeInBytes)) {
+
+        buffer = NULL;
+        bufferSizeInBytes = 0;
+
+        switch (ppid) {
+          case SCTP_PPID_BINARY_LAST: ppid = SCTP_PPID_BINARY_EMPTY; break;
+          case SCTP_PPID_STRING_LAST: ppid = SCTP_PPID_STRING_EMPTY; break;
+          default: {
+            break;
+          }
+        }
+      }
+
+      SCTPPacketOutgoingPtr packet(make_shared<SCTPPacketOutgoing>());
+      packet->mType = ppid;
+      if (NULL != buffer) packet->mBuffer = UseServicesHelper::convertToBuffer(buffer, bufferSizeInBytes);
+
+      // scope: check if buffering
+      {
+        if (mOutgoingData.size() > 0) {
+          goto buffer_data;
+        }
+
+        if (!isOpen()) {
+          if (mIncoming) goto buffer_data;
+          if (!mIssuedOpen) goto buffer_data;
+        }
+
+        if (mSendReady) {
+          if (!mSendReady->isSettled()) goto buffer_data;
+          mSendReady.reset();
+        }
+
+        if (!deliverOutgoing(*packet)) goto buffer_data;
+        return true;
+      }
+
+    buffer_data:
+      {
+        ZS_LOG_TRACE(log("buffering data") + ZS_PARAM("ppid", internal::toString(ppid)) + ZS_PARAM("length", bufferSizeInBytes))
+        mOutgoingData.push_back(packet);
+      }
+
+      return false;
+    }
+
+    //-------------------------------------------------------------------------
+    void DataChannel::sendControlOpen()
+    {
+      struct OpenPacket
+      {
+        BYTE mMessageType {ControlMessageType_DataChannelOpen};
+        BYTE mChanelType {};
+        WORD mPriority {};
+        DWORD mReliabilityParameter {};
+        WORD mLabelLength {};
+        WORD mProtocolLength {};
+        String mLabel;
+        String mProtocol;
+      } openPacket;
+
+      if (mParameters->mOrdered) {
+        if (mParameters->mMaxRetransmits.hasValue()) {
+          openPacket.mChanelType = DataChannelOpenMessageChannelType_PARTIAL_RELIABLE_REXMIT;
+          openPacket.mReliabilityParameter = mParameters->mMaxRetransmits.value();
+        } else if (Milliseconds() != mParameters->mMaxPacketLifetime) {
+          openPacket.mChanelType = DataChannelOpenMessageChannelType_PARTIAL_RELIABLE_TIMED;
+          openPacket.mReliabilityParameter = static_cast<decltype(openPacket.mReliabilityParameter)>(mParameters->mMaxPacketLifetime.count());
+        } else {
+          openPacket.mChanelType = DataChannelOpenMessageChannelType_RELIABLE;
+        }
+      } else {
+        if (mParameters->mMaxRetransmits.hasValue()) {
+          openPacket.mChanelType = DataChannelOpenMessageChannelType_PARTIAL_RELIABLE_REXMIT_UNORDERED;
+          openPacket.mReliabilityParameter = mParameters->mMaxRetransmits.value();
+        } else if (Milliseconds() != mParameters->mMaxPacketLifetime) {
+          openPacket.mChanelType = DataChannelOpenMessageChannelType_PARTIAL_RELIABLE_TIMED_UNORDERED;
+          openPacket.mReliabilityParameter = static_cast<decltype(openPacket.mReliabilityParameter)>(mParameters->mMaxPacketLifetime.count());
+        } else {
+          openPacket.mChanelType = DataChannelOpenMessageChannelType_RELIABLE_UNORDERED;
+        }
+      }
+      openPacket.mPriority = 0;
+      openPacket.mLabel = mParameters->mLabel;
+      openPacket.mLabelLength = mParameters->mLabel.length();
+      openPacket.mProtocol = mParameters->mProtocol;
+      openPacket.mProtocolLength = mParameters->mProtocol.length();
+
+      ByteQueue temp;
+
+      temp.Put(openPacket.mMessageType);
+      temp.Put(openPacket.mChanelType);
+      temp.PutWord16(openPacket.mPriority);
+      temp.PutWord32(openPacket.mReliabilityParameter);
+      temp.PutWord16(openPacket.mLabelLength);
+      temp.PutWord16(openPacket.mProtocolLength);
+      if (openPacket.mLabel.length() > 0) {
+        temp.Put((const BYTE *)(openPacket.mLabel.c_str()), openPacket.mLabel.length());
+      }
+      if (openPacket.mProtocol.length() > 0) {
+        temp.Put((const BYTE *)(openPacket.mProtocol.c_str()), openPacket.mProtocol.length());
+      }
+
+
+      SecureByteBlockPtr buffer(make_shared<SecureByteBlock>(temp.CurrentSize()));
+
+      temp.Get(buffer->BytePtr(), buffer->SizeInBytes());
+
+      SCTPPacketOutgoing packet;
+      packet.mOrdered = true;
+      packet.mBuffer = buffer;
+      deliverOutgoing(packet, false);
+    }
+
+    //-------------------------------------------------------------------------
+    void DataChannel::sendControlAck()
+    {
+      struct AckPacket
+      {
+        BYTE mMessageType {ControlMessageType_DataChannelAck};
+      } ackPacket;
+
+      ByteQueue temp;
+      temp.Put(ackPacket.mMessageType);
+
+      SecureByteBlockPtr buffer(make_shared<SecureByteBlock>(temp.CurrentSize()));
+
+      temp.Get(buffer->BytePtr(), buffer->SizeInBytes());
+
+      SCTPPacketOutgoing packet;
+      packet.mOrdered = true;
+      packet.mBuffer = buffer;
+      deliverOutgoing(packet, false);
+    }
+
+    //-------------------------------------------------------------------------
+    bool DataChannel::deliverOutgoing(
+                                      SCTPPacketOutgoing &packet,
+                                      bool fixPacket
+                                      )
+    {
+      ZS_LOG_TRACE(log("delivering data") + packet.toDebug())
+
+      ORTC_THROW_INVALID_STATE_IF(!mParameters)
+      packet.mSessionID = mSessionID;
+      if (fixPacket) {
+        packet.mOrdered = mParameters->mOrdered;
+        packet.mMaxPacketLifetime = mParameters->mMaxPacketLifetime;
+        packet.mMaxRetransmits = mParameters->mMaxRetransmits;
+      }
+
+#define TODO 1
+#define TODO 2
+
+      return true;
+    }
+
+    //-------------------------------------------------------------------------
+    bool DataChannel::handleOpenPacket(SecureByteBlock &buffer)
+    {
+      struct OpenPacket
+      {
+        BYTE mMessageType {ControlMessageType_DataChannelOpen};
+        BYTE mChanelType {};
+        WORD mPriority {};
+        DWORD mReliabilityParameter {};
+        WORD mLabelLength {};
+        WORD mProtocolLength {};
+        String mLabel;
+        String mProtocol;
+      } openPacket;
+
+      // scope: parse incoming data channel open message
+      {
+        ByteQueue temp;
+        temp.Put(buffer.BytePtr(), buffer.SizeInBytes());
+
+        if (temp.Get(openPacket.mMessageType) != sizeof(openPacket.mMessageType)) return false;
+        if (temp.Get(openPacket.mChanelType) != sizeof(openPacket.mChanelType)) return false;
+        if (temp.GetWord16(openPacket.mPriority) != sizeof(openPacket.mPriority)) return false;
+        if (temp.GetWord32(openPacket.mReliabilityParameter) != sizeof(openPacket.mReliabilityParameter)) return false;
+        if (temp.GetWord16(openPacket.mLabelLength) != sizeof(openPacket.mLabelLength)) return false;
+        if (temp.GetWord16(openPacket.mProtocolLength) != sizeof(openPacket.mProtocolLength)) return false;
+
+        SecureByteBlock tempLabel(openPacket.mLabelLength);
+        SecureByteBlock tempProtocol(openPacket.mProtocolLength);
+
+        if (temp.Get(tempLabel.BytePtr(), tempLabel.SizeInBytes()) != tempLabel.SizeInBytes()) return false;
+        if (temp.Get(tempProtocol.BytePtr(), tempProtocol.SizeInBytes()) != tempProtocol.SizeInBytes()) return false;
+
+        openPacket.mLabel = UseServicesHelper::convertToString(tempLabel);
+        openPacket.mProtocol = UseServicesHelper::convertToString(tempProtocol);
+
+        if (mIncoming) {
+          ParametersPtr params(make_shared<Parameters>());
+          params->mID = mSessionID;
+          switch (openPacket.mChanelType) {
+            case DataChannelOpenMessageChannelType_RELIABLE:                          {
+              params->mOrdered = true;
+              break;
+            }
+            case DataChannelOpenMessageChannelType_RELIABLE_UNORDERED:                {
+              params->mOrdered = false;
+              break;
+            }
+            case DataChannelOpenMessageChannelType_PARTIAL_RELIABLE_REXMIT:           {
+              params->mOrdered = true;
+              params->mMaxRetransmits = openPacket.mReliabilityParameter;
+              break;
+            }
+            case DataChannelOpenMessageChannelType_PARTIAL_RELIABLE_REXMIT_UNORDERED: {
+              params->mOrdered = false;
+              params->mMaxRetransmits = openPacket.mReliabilityParameter;
+              break;
+            }
+            case DataChannelOpenMessageChannelType_PARTIAL_RELIABLE_TIMED:            {
+              params->mOrdered = true;
+              params->mMaxPacketLifetime = Milliseconds(openPacket.mReliabilityParameter);
+              break;
+            }
+            case DataChannelOpenMessageChannelType_PARTIAL_RELIABLE_TIMED_UNORDERED:  {
+              params->mOrdered = false;
+              params->mMaxPacketLifetime = Milliseconds(openPacket.mReliabilityParameter);
+              break;
+            }
+            default: {
+              ZS_LOG_WARNING(Debug, log("data channel open channel type is not undersood") + ZS_PARAM("channel type", openPacket.mChanelType))
+              return false;
+            }
+          }
+          params->mLabel = openPacket.mLabel;
+          params->mProtocol = openPacket.mProtocol;
+
+          if (mParameters) {
+            ZS_LOG_WARNING(Debug, log("already received channel open message") + ZS_PARAM("original", mParameters->toDebug()) + ZS_PARAM("new", params->toDebug()))
+            goto send_ack;
+          }
+
+          auto dataTransport = mDataTransport.lock();
+
+        }
+
+        ZS_LOG_WARNING(Debug, log("received data channel open on non-incoming channel"))
+        goto send_ack;
+      }
+
+    send_ack:
+      {
+        sendControlAck();
+      }
+      return true;
+    }
+
+    //-------------------------------------------------------------------------
+    bool DataChannel::handleAckPacket(SecureByteBlock &buffer)
+    {
+      if (mIncoming) {
+        ZS_LOG_WARNING(Detail, log("received unexpected data channel ack on incoming channel"))
+        return false;
+      }
+
+      if (!mIssuedOpen) {
+        ZS_LOG_WARNING(Detail, log("received unexpected data channel ack when channel open was not sent"))
+        return false;
+      }
+
+      ZS_LOG_TRACE(log("channel is now open (because of ACK to data channel open)"))
+      setState(State_Open);
+      return true;
     }
 
     //-------------------------------------------------------------------------
@@ -799,13 +1231,11 @@ namespace ortc
     //-------------------------------------------------------------------------
     IDataChannelFactory::ForDataTransportPtr IDataChannelFactory::create(
                                                                          UseDataTransportPtr transport,
-                                                                         WORD localPort,
-                                                                         WORD remotePort,
-                                                                         bool rejectIncoming
+                                                                         WORD sessionID
                                                                          )
     {
       if (this) {}
-      return internal::DataChannel::create(transport, localPort, remotePort, rejectIncoming);
+      return internal::DataChannel::create(transport, sessionID);
     }
 
   } // internal namespace
@@ -853,7 +1283,6 @@ namespace ortc
     UseServicesHelper::debugAppend(resultEl, "protocol", mProtocol);
     UseServicesHelper::debugAppend(resultEl, "negotiated", mNegotiated);
     UseServicesHelper::debugAppend(resultEl, "id", mID);
-    UseServicesHelper::debugAppend(resultEl, "port", mPort);
 
     return resultEl;
   }
@@ -877,8 +1306,6 @@ namespace ortc
     hasher.update(mNegotiated);
     hasher.update(":");
     hasher.update(mID);
-    hasher.update(":");
-    hasher.update(mPort);
 
     return hasher.final();
   }
@@ -902,7 +1329,7 @@ namespace ortc
                                        IDataChannelDelegatePtr delegate,
                                        IDataTransportPtr transport,
                                        const Parameters &params
-                                       )
+                                       ) throw (InvalidParameters, InvalidStateError)
   {
     return internal::IDataChannelFactory::singleton().create(delegate, transport, params);
   }

@@ -32,6 +32,7 @@
 #include <ortc/internal/ortc_ISecureTransport.h>
 #include <ortc/internal/ortc_DTLSTransport.h>
 #include <ortc/internal/ortc_SRTPSDESTransport.h>
+#include <ortc/internal/ortc_SCTPTransportListener.h>
 #include <ortc/internal/ortc_SCTPTransport.h>
 #include <ortc/internal/platform.h>
 
@@ -205,8 +206,8 @@ namespace ortc
       if (!transport) return ElementPtr();
 
       {
-        auto pThis = SCTPTransport::convert(transport);
-        if (pThis) return SCTPTransport::toDebug(pThis);
+        auto pThis = SCTPTransportListener::convert(transport);
+        if (pThis) return SCTPTransportListener::toDebug(pThis);
       }
 
       return ElementPtr();
@@ -217,7 +218,7 @@ namespace ortc
     {
       if (!transport) return ForSecureTransportPtr();
 
-      return internal::ISCTPTransportFactory::singleton().create(transport);
+      return internal::ISCTPTransportListenerFactory::singleton().create(transport);
     }
   }
 

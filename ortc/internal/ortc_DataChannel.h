@@ -40,8 +40,12 @@
 
 #include <zsLib/MessageQueueAssociator.h>
 #include <zsLib/Timer.h>
+#include <zsLib/TearAway.h>
 
 //#define ORTC_SETTING_SRTP_TRANSPORT_WARN_OF_KEY_LIFETIME_EXHAUGSTION_WHEN_REACH_PERCENTAGE_USSED "ortc/srtp/warm-key-lifetime-exhaustion-when-reach-percentage-used"
+
+#define ORTC_SCTP_INVALID_DATA_CHANNEL_SESSION_ID 0xFFFF
+
 
 namespace ortc
 {
@@ -51,6 +55,8 @@ namespace ortc
 
     ZS_DECLARE_INTERACTION_PTR(IDataChannelForSettings)
     ZS_DECLARE_INTERACTION_PTR(IDataChannelForSCTPTransport)
+
+    ZS_DECLARE_INTERACTION_PROXY(IDataChannelAsyncDelegate)
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -89,22 +95,44 @@ namespace ortc
 
       static ForDataTransportPtr create(
                                         UseDataTransportPtr transport,
-                                        WORD localPort,
-                                        WORD remotePort,
-                                        bool rejectIncoming
+                                        WORD sessionID
                                         );
 
       virtual PUID getID() const = 0;
 
-      virtual bool handleSCTPPacket(
-                                    const BYTE *buffer,
-                                    size_t bufferLengthInBytes
-                                    ) = 0;
+      virtual bool isIncoming() const = 0;
 
-      virtual WORD getLocalPort() const = 0;
-      virtual WORD getRemotePort() const = 0;
+      virtual bool handleSCTPPacket(SCTPPacketIncomingPtr packet) = 0;
+
+      virtual void requestShutdown() = 0;
+      virtual void notifyClosed() = 0;
     };
 
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IDataChannelAsyncDelegate
+    #pragma mark
+
+    interaction IDataChannelAsyncDelegate
+    {
+      virtual void onRequestShutdown() = 0;
+      virtual void onNotifiedClosed() = 0;
+    };
+  }
+}
+
+ZS_DECLARE_PROXY_BEGIN(ortc::internal::IDataChannelAsyncDelegate)
+ZS_DECLARE_PROXY_METHOD_0(onRequestShutdown)
+ZS_DECLARE_PROXY_METHOD_0(onNotifiedClosed)
+ZS_DECLARE_PROXY_END()
+
+namespace ortc
+{
+  namespace internal
+  {
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -120,8 +148,10 @@ namespace ortc
                         public IDataChannelForSettings,
                         public IDataChannelForSCTPTransport,
                         public ISCTPTransportForDataChannelDelegate,
+                        public IDataChannelAsyncDelegate,
                         public IWakeDelegate,
-                        public zsLib::ITimerDelegate
+                        public zsLib::ITimerDelegate,
+                        public zsLib::IPromiseSettledDelegate
     {
     protected:
       struct make_private {};
@@ -136,7 +166,10 @@ namespace ortc
 
       ZS_DECLARE_TYPEDEF_PTR(IDataChannelTypes::Parameters, Parameters)
 
-      typedef std::list<SecureByteBlockPtr> BufferList;
+      ZS_DECLARE_STRUCT_PTR(TearAwayData)
+
+      typedef std::list<SCTPPacketIncomingPtr> BufferIncomingList;
+      typedef std::list<SCTPPacketOutgoingPtr> BufferOutgoingList;
 
     public:
       DataChannel(
@@ -145,9 +178,7 @@ namespace ortc
                   IDataChannelDelegatePtr delegate,
                   UseDataTransportPtr transport,
                   ParametersPtr params,
-                  WORD localPort = 0,
-                  WORD remotePort = 0,
-                  bool rejectIncoming = false
+                  WORD sessionID = ORTC_SCTP_INVALID_DATA_CHANNEL_SESSION_ID
                   );
 
     protected:
@@ -191,7 +222,7 @@ namespace ortc
 
       virtual States readyState() const override;
 
-      virtual ULONG bufferedAmount() const override;
+      virtual size_t bufferedAmount() const override;
 
       virtual String binaryType() const override;
       virtual void binaryType(const char *str) override;
@@ -214,20 +245,17 @@ namespace ortc
 
       static ForDataTransportPtr create(
                                         UseDataTransportPtr transport,
-                                        WORD localPort,
-                                        WORD remotePort,
-                                        bool rejectIncoming
+                                        WORD sessionID
                                         );
 
       // (duplicate) virtual PUID getID() const = 0;
 
-      virtual bool handleSCTPPacket(
-                                    const BYTE *buffer,
-                                    size_t bufferLengthInBytes
-                                    ) override;
+      virtual bool isIncoming() const override {return mIncoming;}
 
-      virtual WORD getLocalPort() const {return mLocalPort;}
-      virtual WORD getRemotePort() const {return mRemotePort;}
+      virtual bool handleSCTPPacket(SCTPPacketIncomingPtr packet) override;
+
+      virtual void requestShutdown() override;
+      virtual void notifyClosed() override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -236,7 +264,14 @@ namespace ortc
       
       virtual void onSCTPTransportStateChanged() override;
 
-      
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark DataChannel => IDataChannelAsyncDelegate
+      #pragma mark
+
+      virtual void onRequestShutdown() override;
+      virtual void onNotifiedClosed() override;
+
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark DataChannel => IWakeDelegate
@@ -253,9 +288,15 @@ namespace ortc
 
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark DataChannel => IDataChannelAsyncDelegate
+      #pragma mark DataChannel => IPromiseSettledDelegate
       #pragma mark
 
+      virtual void onPromiseSettled(PromisePtr promise) override;
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark DataChannel => IDataChannelAsyncDelegate
+      #pragma mark
 
     protected:
       //-----------------------------------------------------------------------
@@ -268,6 +309,7 @@ namespace ortc
       Log::Params debug(const char *message) const;
       virtual ElementPtr toDebug() const;
 
+      bool isOpen() const;
       bool isShuttingDown() const;
       bool isShutdown() const;
 
@@ -283,7 +325,33 @@ namespace ortc
       void setState(States state);
       void setError(WORD error, const char *reason = NULL);
 
-      UseDataTransportPtr getTransport() const;
+      bool send(
+                SCTPPayloadProtocolIdentifier ppid,
+                const BYTE *buffer,
+                size_t bufferSizeInBytes
+                );
+
+      void sendControlOpen();
+      void sendControlAck();
+
+      bool deliverOutgoing(
+                           SCTPPacketOutgoing &packet,
+                           bool fixPacket = true
+                           );
+
+      bool handleOpenPacket(SecureByteBlock &buffer);
+      bool handleAckPacket(SecureByteBlock &buffer);
+
+    public:
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark DataChannel::TearAwayData
+      #pragma mark
+
+      struct TearAwayData
+      {
+        IDataChannelSubscriptionPtr mDefaultSubscription;
+      };
 
     protected:
       //-----------------------------------------------------------------------
@@ -295,16 +363,18 @@ namespace ortc
       DataChannelWeakPtr mThisWeak;
       DataChannelPtr mGracefulShutdownReference;
 
-      DataChannelWeakPtr *mSCTPRegisteredAddress;
-
       IDataChannelDelegateSubscriptions mSubscriptions;
       IDataChannelSubscriptionPtr mDefaultSubscription;
 
-      UseDataTransportPtr mDataTransport;
-      UseDataTransportWeakPtr mDataTransportWeak;
+      UseDataTransportWeakPtr mDataTransport;
 
       States mCurrentState {State_Connecting};
-      bool mSCTPReady {false};
+
+      bool mIncoming {};
+      bool mIssuedOpen {};
+      WORD mSessionID {};
+
+      bool mNotifiedClosed {};
 
       WORD mLastError {};
       String mLastErrorReason;
@@ -312,19 +382,10 @@ namespace ortc
       String mBinaryType;
       ParametersPtr mParameters;
 
-      bool mIncoming {false};
-      bool mRejectIncoming {false};
+      BufferIncomingList mIncomingData;
+      BufferOutgoingList mOutgoingData;
 
-      std::atomic<WORD> mLocalPort {};
-      std::atomic<WORD> mRemotePort {};
-
-      bool mIssuedConnect {false};
-      bool mConnectAcked {false};
-
-      bool mIssuedClose {false};
-      bool mCloseAcked {false};
-
-      BufferList mOutgoingData;
+      PromisePtr mSendReady;
     };
 
     //-------------------------------------------------------------------------
@@ -353,12 +414,34 @@ namespace ortc
 
       virtual ForDataTransportPtr create(
                                          UseDataTransportPtr transport,
-                                         WORD localPort,
-                                         WORD remotePort,
-                                         bool rejectIncoming
+                                         WORD sessionID
                                          );
     };
 
     class DataChannelFactory : public IFactory<IDataChannelFactory> {};
   }
 }
+
+
+ZS_DECLARE_TEAR_AWAY_BEGIN(ortc::IDataChannel, ortc::internal::DataChannel::TearAwayData)
+ZS_DECLARE_TEAR_AWAY_TYPEDEF(ortc::IDataChannelSubscriptionPtr, IDataChannelSubscriptionPtr)
+ZS_DECLARE_TEAR_AWAY_TYPEDEF(ortc::IDataChannelDelegatePtr, IDataChannelDelegatePtr)
+ZS_DECLARE_TEAR_AWAY_TYPEDEF(ortc::IDataTransportPtr, IDataTransportPtr)
+ZS_DECLARE_TEAR_AWAY_TYPEDEF(ortc::IDataChannelTypes::ParametersPtr, ParametersPtr)
+ZS_DECLARE_TEAR_AWAY_TYPEDEF(ortc::IDataChannelTypes::States, States)
+ZS_DECLARE_TEAR_AWAY_TYPEDEF(ortc::SecureByteBlock, SecureByteBlock)
+ZS_DECLARE_TEAR_AWAY_TYPEDEF(zsLib::String, String)
+ZS_DECLARE_TEAR_AWAY_TYPEDEF(zsLib::BYTE, BYTE)
+ZS_DECLARE_TEAR_AWAY_METHOD_CONST_RETURN_0(getID, PUID)
+ZS_DECLARE_TEAR_AWAY_METHOD_RETURN_1(subscribe, IDataChannelSubscriptionPtr, IDataChannelDelegatePtr)
+ZS_DECLARE_TEAR_AWAY_METHOD_CONST_RETURN_0(transport, IDataTransportPtr)
+ZS_DECLARE_TEAR_AWAY_METHOD_CONST_RETURN_0(parameters, ParametersPtr)
+ZS_DECLARE_TEAR_AWAY_METHOD_CONST_RETURN_0(readyState, States)
+ZS_DECLARE_TEAR_AWAY_METHOD_CONST_RETURN_0(binaryType, String)
+ZS_DECLARE_TEAR_AWAY_METHOD_1(binaryType, const char *)
+ZS_DECLARE_TEAR_AWAY_METHOD_CONST_RETURN_0(bufferedAmount, size_t)
+ZS_DECLARE_TEAR_AWAY_METHOD_0(close)
+ZS_DECLARE_TEAR_AWAY_METHOD_1(send, const String &)
+ZS_DECLARE_TEAR_AWAY_METHOD_1(send, const SecureByteBlock &)
+ZS_DECLARE_TEAR_AWAY_METHOD_2(send, const BYTE *, size_t)
+ZS_DECLARE_TEAR_AWAY_END()

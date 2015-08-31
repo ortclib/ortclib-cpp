@@ -55,6 +55,10 @@ namespace ortc
 
     struct Capabilities {
       size_t mMaxMessageSize {};
+      WORD mMinPort {};
+      WORD mMaxPort {};
+      WORD mMaxUsablePorts {};
+      WORD mMaxSessionsPerPort {};
 
       ElementPtr toDebug() const;
       String hash() const;
@@ -76,12 +80,26 @@ namespace ortc
 
     static ISCTPTransportPtr create(
                                     ISCTPTransportDelegatePtr delegate,
-                                    IDTLSTransportPtr transport
-                                    );
+                                    IDTLSTransportPtr transport,
+                                    WORD localPort = 0,   // 0 = port automatically chosen
+                                    WORD remotePort = 0   // 0 = use same as local port (default)
+                                    ) throw (InvalidParameters, InvalidStateError);
+
+    static ISCTPTransportListenerSubscriptionPtr listen(
+                                                        ISCTPTransportListenerDelegatePtr delegate,
+                                                        IDTLSTransportPtr transport
+                                                        );
 
     virtual PUID getID() const = 0;
 
     static CapabilitiesPtr getCapabilities();
+
+    virtual IDTLSTransportPtr transport() const = 0;
+
+    virtual WORD port() const = 0;
+
+    virtual WORD localPort() const = 0;
+    virtual WORD remotePort() const = 0;
 
     virtual void start(const Capabilities &remoteCapabilities) = 0;
     virtual void stop() = 0;
@@ -121,6 +139,37 @@ namespace ortc
 
     virtual void background() = 0;
   };
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark ISCTPTransportListenerDelegate
+  #pragma mark
+
+  interaction ISCTPTransportListenerDelegate
+  {
+    virtual void onSCTPTransport(ISCTPTransportPtr transport) = 0;
+  };
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark ISCTPTransportListenerSubscription
+  #pragma mark
+
+  interaction ISCTPTransportListenerSubscription
+  {
+    virtual PUID getID() const = 0;
+
+    virtual void cancel() = 0;
+
+    virtual void background() = 0;
+  };
+
 }
 
 
@@ -134,4 +183,14 @@ ZS_DECLARE_PROXY_SUBSCRIPTIONS_BEGIN(ortc::ISCTPTransportDelegate, ortc::ISCTPTr
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::ISCTPTransportPtr, ISCTPTransportPtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IDataChannelPtr, IDataChannelPtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onSCTPTransportDataChannel, ISCTPTransportPtr, IDataChannelPtr)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_END()
+
+ZS_DECLARE_PROXY_BEGIN(ortc::ISCTPTransportListenerDelegate)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::ISCTPTransportPtr, ISCTPTransportPtr)
+ZS_DECLARE_PROXY_METHOD_1(onSCTPTransport, ISCTPTransportPtr)
+ZS_DECLARE_PROXY_END()
+
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_BEGIN(ortc::ISCTPTransportListenerDelegate, ortc::ISCTPTransportListenerSubscription)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::ISCTPTransportPtr, ISCTPTransportPtr)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_1(onSCTPTransport, ISCTPTransportPtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_END()
