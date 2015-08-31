@@ -199,7 +199,7 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void ISCTPTransportForSettings::applyDefaults()
+    void ISCTPTransportListenerForSettings::applyDefaults()
     {
       //https://tools.ietf.org/html/draft-ietf-rtcweb-data-channel-13#section-6.6
       UseSettings::setUInt(ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE, 16*1024);

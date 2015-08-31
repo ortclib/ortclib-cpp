@@ -146,9 +146,9 @@ namespace ortc
         LONG desiredWidth = mConstraints->mAdvanced.front()->mWidth.mValue.value();
         LONG desiredHeight = mConstraints->mAdvanced.front()->mHeight.mValue.value();
         DOUBLE desiredMaxFPS = mConstraints->mAdvanced.front()->mFrameRate.mValue.value();
-        LONG minWidthDiff = LONG_MAX;
-        LONG minHeightDiff = LONG_MAX;
-        DOUBLE minFpsDiff = DBL_MAX;
+        LONG minWidthDiff = std::numeric_limits<LONG>::max();
+        LONG minHeightDiff = std::numeric_limits<LONG>::max();
+        DOUBLE minFpsDiff = std::numeric_limits<double>::max();
         webrtc::VideoCaptureCapability bestCap;
         int32_t numCaps = info->NumberOfCapabilities(videoDeviceID.c_str());
         for (int32_t i = 0; i < numCaps; ++i) {
