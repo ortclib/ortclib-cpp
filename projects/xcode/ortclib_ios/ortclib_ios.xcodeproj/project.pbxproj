@@ -122,6 +122,8 @@
 		00DD17C31AE91E02008C3404 /* ifaddrs-android.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ifaddrs-android.h"; sourceTree = "<group>"; };
 		00DD17C41AE91E02008C3404 /* ortc_ICEGatherer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ortc_ICEGatherer.h; sourceTree = "<group>"; };
 		00DD17C51AE91E02008C3404 /* platform.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = platform.h; sourceTree = "<group>"; };
+		94EAB1011B873D1700F35502 /* libusrsctplib.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libusrsctplib.a; path = "../../../../webrtc/./out_ios/Debug-iphoneos/libusrsctplib.a"; sourceTree = "<group>"; };
+		94EAB1031B873D3B00F35502 /* libsrtp.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libsrtp.a; path = "../../../../webrtc/./out_ios/Debug-iphoneos/libsrtp.a"; sourceTree = "<group>"; };
 		E2260E731821628E0084E4A4 /* libortclib_ios.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libortclib_ios.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		E2260EA0182163D50084E4A4 /* ortc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ortc.h; sourceTree = "<group>"; };
 		E2260EA3182163D50084E4A4 /* types.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = types.h; sourceTree = "<group>"; };
@@ -147,6 +149,8 @@
 		E2260E65182161700084E4A4 = {
 			isa = PBXGroup;
 			children = (
+				94EAB1031B873D3B00F35502 /* libsrtp.a */,
+				94EAB1011B873D1700F35502 /* libusrsctplib.a */,
 				E2260E9A182163D50084E4A4 /* ortc */,
 				E2260E741821628E0084E4A4 /* Products */,
 				E2D0493E182C376700343A95 /* license.txt */,
@@ -434,7 +438,26 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					../../..,
+					../../../..,
+					"../../../../op-services-cpp",
+					../../../../zsLib,
+					"../../../../webrtc-deps/boringssl/include",
+					../../../../webrtc,
+					../../../../webrtc/webrtc,
+					../../../../webrtc/webrtc/voice_engine/include,
+					../../../../webrtc/webrtc/video_engine/include,
+					../../../../webrtc/webrtc/modules/video_capture/include,
+					"$(inherited)",
+					"../../../../webrtc/third_party/libsrtp/srtp/**",
+					../../../../webrtc/third_party/usrsctp/usrsctplib,
+				);
 				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"../../../../webrtc/out_ios/Debug-iphoneos",
+				);
 				ONLY_ACTIVE_ARCH = NO;
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -470,7 +493,26 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					../../..,
+					../../../..,
+					"../../../../op-services-cpp",
+					../../../../zsLib,
+					"../../../../webrtc-deps/boringssl/include",
+					../../../../webrtc,
+					../../../../webrtc/webrtc,
+					../../../../webrtc/webrtc/voice_engine/include,
+					../../../../webrtc/webrtc/video_engine/include,
+					../../../../webrtc/webrtc/modules/video_capture/include,
+					"$(inherited)",
+					"../../../../webrtc/third_party/libsrtp/srtp/**",
+					../../../../webrtc/third_party/usrsctp/usrsctplib,
+				);
 				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"../../../../webrtc/out_ios/Debug-iphoneos",
+				);
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;

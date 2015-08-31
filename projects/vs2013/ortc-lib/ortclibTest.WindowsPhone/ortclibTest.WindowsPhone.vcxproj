@@ -72,7 +72,7 @@
     <ClCompile>
       <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
       <DisableSpecificWarnings>4453;28204;4068;4290</DisableSpecificWarnings>
-      <AdditionalIncludeDirectories>$(ProjectDir)\..\..\..\..;$(ProjectDir)\..\..\..\..\..;$(ProjectDir)\..\..\..\..\..\op-services-cpp;$(ProjectDir)\..\..\..\..\..\zsLib;%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\..\..\..\..;$(ProjectDir)\..\..\..\..\..;$(ProjectDir)\..\..\..\..\..\op-services-cpp;$(ProjectDir)\..\..\..\..\..\zsLib;%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory);$(ProjectDir)\..\..\..\..\..\webrtc\third_party\boringssl\src\include\openssl</AdditionalIncludeDirectories>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
     <Link>

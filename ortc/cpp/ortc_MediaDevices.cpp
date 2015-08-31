@@ -361,7 +361,10 @@ namespace ortc
     {
       AutoRecursiveLock lock(*this);
 
-      MediaStreamTrackPtr videoTrack = IMediaStreamTrackFactory::singleton().create(constraints->mVideo);
+      MediaStreamTrackPtr videoTrack = IMediaStreamTrackFactory::singleton().create(IMediaStreamTrackTypes::Kinds::Kind_Video,
+                                                                                    false,
+                                                                                    constraints->mVideo
+                                                                                    );
 
       MediaStreamTrackListPtr value(std::make_shared<MediaStreamTrackList>());
       value->push_back(videoTrack);
