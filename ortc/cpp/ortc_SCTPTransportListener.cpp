@@ -243,10 +243,10 @@ namespace ortc
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
       mSecureTransport(DTLSTransport::convert(secureTransport)),
-      mMaxPorts(UseSettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_LISTENER_MAX_PORTS)),
-      mCurrentAllocationPort(UseSettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_LISTENER_DEFAULT_PORT)),
-      mMinAllocationPort(UseSettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_LISTENER_MIN_PORT)),
-      mMaxAllocationPort(UseSettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_LISTENER_MAX_PORT))
+      mMaxPorts(static_cast<decltype(mMaxPorts)>(UseSettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_LISTENER_MAX_PORTS))),
+      mCurrentAllocationPort(static_cast<decltype(mCurrentAllocationPort)>(UseSettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_LISTENER_DEFAULT_PORT))),
+      mMinAllocationPort(static_cast<decltype(mMinAllocationPort)>(UseSettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_LISTENER_MIN_PORT))),
+      mMaxAllocationPort(static_cast<decltype(mMaxAllocationPort)>(UseSettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_LISTENER_MAX_PORT)))
     {
       ORTC_THROW_INVALID_PARAMETERS_IF(!secureTransport)
 
@@ -310,10 +310,10 @@ namespace ortc
     {
       CapabilitiesPtr result(make_shared<Capabilities>());
       result->mMaxMessageSize = UseSettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE);
-      result->mMinPort = UseSettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_LISTENER_MIN_PORT);
-      result->mMaxPort = UseSettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_LISTENER_MAX_PORT);
-      result->mMaxUsablePorts = UseSettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_LISTENER_MAX_PORTS);
-      result->mMaxSessionsPerPort = UseSettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_MAX_SESSIONS_PER_PORT);
+      result->mMinPort = static_cast<decltype(result->mMinPort)>(UseSettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_LISTENER_MIN_PORT));
+      result->mMaxPort = static_cast<decltype(result->mMaxPort)>(UseSettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_LISTENER_MAX_PORT));
+      result->mMaxUsablePorts = static_cast<decltype(result->mMaxUsablePorts)>(UseSettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_LISTENER_MAX_PORTS));
+      result->mMaxSessionsPerPort = static_cast<decltype(result->mMaxSessionsPerPort)>(UseSettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_MAX_SESSIONS_PER_PORT));
       return result;
     }
 
@@ -808,7 +808,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     ISCTPTransportListenerFactory &ISCTPTransportListenerFactory::singleton()
     {
-      return ISCTPTransportListenerFactory::singleton();
+      return SCTPTransportListenerFactory::singleton();
     }
 
     //-------------------------------------------------------------------------

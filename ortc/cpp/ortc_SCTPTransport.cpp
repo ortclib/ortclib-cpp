@@ -52,6 +52,11 @@
 //#include <netinet/sctp_os.h>
 #ifdef _WIN32
 # include <winsock2.h>
+
+enum WindowsErrorCompatibility {
+  ESHUTDOWN = WSAESHUTDOWN,
+};
+
 #else
 # include <sys/socket.h>
 #endif  //_WIN32

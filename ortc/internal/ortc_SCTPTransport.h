@@ -132,7 +132,7 @@ namespace ortc
       WORD                mSessionID {};
       bool                mOrdered {true};
       Milliseconds        mMaxPacketLifetime;
-      USHORT              mMaxRetransmits {};
+      DWORD               mMaxRetransmits {};
       SecureByteBlockPtr  mBuffer;
 
       ElementPtr toDebug() const;

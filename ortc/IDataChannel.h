@@ -71,7 +71,7 @@ namespace ortc
       String            mLabel;
       bool              mOrdered {true};
       Milliseconds      mMaxPacketLifetime;
-      Optional<USHORT>  mMaxRetransmits;
+      Optional<DWORD>   mMaxRetransmits;
       String            mProtocol;
       bool              mNegotiated {false};
       Optional<USHORT>  mID;

@@ -127,6 +127,28 @@ namespace ortc
       return "unknown";
     }
 
+    namespace data_channel
+    {
+      struct OpenPacket
+      {
+        BYTE mMessageType {ControlMessageType_DataChannelOpen};
+        BYTE mChanelType {};
+        WORD mPriority {};
+        DWORD mReliabilityParameter {};
+        WORD mLabelLength {};
+        WORD mProtocolLength {};
+        String mLabel;
+        String mProtocol;
+      };
+
+      struct AckPacket
+      {
+        BYTE mMessageType{ControlMessageType_DataChannelAck};
+      };
+    }
+
+    typedef data_channel::OpenPacket OpenPacket;
+    typedef data_channel::AckPacket AckPacket;
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -981,17 +1003,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     void DataChannel::sendControlOpen()
     {
-      struct OpenPacket
-      {
-        BYTE mMessageType {ControlMessageType_DataChannelOpen};
-        BYTE mChanelType {};
-        WORD mPriority {};
-        DWORD mReliabilityParameter {};
-        WORD mLabelLength {};
-        WORD mProtocolLength {};
-        String mLabel;
-        String mProtocol;
-      } openPacket;
+      OpenPacket openPacket;
 
       if (mParameters->mOrdered) {
         if (mParameters->mMaxRetransmits.hasValue()) {
@@ -1036,7 +1048,7 @@ namespace ortc
       }
 
 
-      SecureByteBlockPtr buffer(make_shared<SecureByteBlock>(temp.CurrentSize()));
+      SecureByteBlockPtr buffer(make_shared<SecureByteBlock>(static_cast<size_t>(temp.CurrentSize())));
 
       temp.Get(buffer->BytePtr(), buffer->SizeInBytes());
 
@@ -1049,15 +1061,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     void DataChannel::sendControlAck()
     {
-      struct AckPacket
-      {
-        BYTE mMessageType {ControlMessageType_DataChannelAck};
-      } ackPacket;
+      AckPacket ackPacket;
 
       ByteQueue temp;
       temp.Put(ackPacket.mMessageType);
 
-      SecureByteBlockPtr buffer(make_shared<SecureByteBlock>(temp.CurrentSize()));
+      SecureByteBlockPtr buffer(make_shared<SecureByteBlock>(static_cast<size_t>(temp.CurrentSize())));
 
       temp.Get(buffer->BytePtr(), buffer->SizeInBytes());
 
@@ -1092,17 +1101,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool DataChannel::handleOpenPacket(SecureByteBlock &buffer)
     {
-      struct OpenPacket
-      {
-        BYTE mMessageType {ControlMessageType_DataChannelOpen};
-        BYTE mChanelType {};
-        WORD mPriority {};
-        DWORD mReliabilityParameter {};
-        WORD mLabelLength {};
-        WORD mProtocolLength {};
-        String mLabel;
-        String mProtocol;
-      } openPacket;
+      OpenPacket openPacket;
 
       // scope: parse incoming data channel open message
       {
@@ -1112,7 +1111,9 @@ namespace ortc
         if (temp.Get(openPacket.mMessageType) != sizeof(openPacket.mMessageType)) return false;
         if (temp.Get(openPacket.mChanelType) != sizeof(openPacket.mChanelType)) return false;
         if (temp.GetWord16(openPacket.mPriority) != sizeof(openPacket.mPriority)) return false;
-        if (temp.GetWord32(openPacket.mReliabilityParameter) != sizeof(openPacket.mReliabilityParameter)) return false;
+        CryptoPP::word32 reliabilityParam {};
+        if (temp.GetWord32(reliabilityParam) != sizeof(reliabilityParam)) return false;
+        openPacket.mReliabilityParameter = reliabilityParam;
         if (temp.GetWord16(openPacket.mLabelLength) != sizeof(openPacket.mLabelLength)) return false;
         if (temp.GetWord16(openPacket.mProtocolLength) != sizeof(openPacket.mProtocolLength)) return false;
 

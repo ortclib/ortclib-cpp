@@ -171,6 +171,9 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_Identity.h">
       <Filter>ortc\internal</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_SCTPTransportListener.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ifaddrs-android.cc">
@@ -252,6 +255,9 @@
       <Filter>ortc\cpp</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ortc_Identity.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ortc_SCTPTransportListener.cpp">
       <Filter>ortc\cpp</Filter>
     </ClCompile>
   </ItemGroup>
