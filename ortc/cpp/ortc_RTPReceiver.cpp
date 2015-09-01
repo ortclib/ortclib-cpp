@@ -44,6 +44,10 @@
 
 #include <cryptopp/sha.h>
 
+#include <webrtc/modules/rtp_rtcp/interface/rtp_header_parser.h>
+#include "webrtc/modules/rtp_rtcp/source/byte_io.h"
+#include <webrtc/video/video_receive_stream.h>
+
 
 #ifdef _DEBUG
 #define ASSERT(x) ZS_THROW_BAD_STATE_IF(!(x))
@@ -131,7 +135,9 @@ namespace ortc
                              IRTCPTransportPtr rtcpTransport
                              ) :
       MessageQueueAssociator(queue),
-      SharedRecursiveLock(SharedRecursiveLock::create())
+      SharedRecursiveLock(SharedRecursiveLock::create()),
+      mModuleProcessThread(webrtc::ProcessThread::Create()),
+      mChannelGroup(new webrtc::ChannelGroup(mModuleProcessThread.get()))
     {
       ZS_LOG_DETAIL(debug("created"))
     }
@@ -141,6 +147,20 @@ namespace ortc
     {
       AutoRecursiveLock lock(*this);
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
+
+      mModuleProcessThread->Start();
+
+      int numCpuCores = 2;
+      int baseChannelID = 0;
+      int channelID = 1;
+      const webrtc::VideoReceiveStream::Config config;
+      webrtc::newapi::Transport* transport = NULL;
+      webrtc::VoiceEngine* voiceEngine = NULL;
+
+      mVideoStream = rtc::scoped_ptr<webrtc::VideoReceiveStream>(new webrtc::internal::VideoReceiveStream(
+        numCpuCores, baseChannelID, mChannelGroup.get(),
+        channelID, config,
+        transport, voiceEngine));
     }
 
     //-------------------------------------------------------------------------
@@ -368,6 +388,25 @@ namespace ortc
     #pragma mark RTPReceiver => IRTPReceiverAsyncDelegate
     #pragma mark
 
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPReceiver => IRTPTypes::PacketReceiver
+    #pragma mark
+
+    IRTPTypes::PacketReceiver::DeliveryStatuses RTPReceiver::DeliverPacket(
+                                                                           MediaTypes mediaType,
+                                                                           const uint8_t* packet,
+                                                                           size_t length
+                                                                           )
+    {
+      if (webrtc::RtpHeaderParser::IsRtcp(packet, length))
+        return DeliverRtcp(mediaType, packet, length);
+
+      return DeliverRtp(mediaType, packet, length);
+    }
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -488,11 +527,7 @@ namespace ortc
       if (!mGracefulShutdownReference) mGracefulShutdownReference = mThisWeak.lock();
 
       if (mGracefulShutdownReference) {
-#define TODO_OBJECT_IS_BEING_KEPT_ALIVE_UNTIL_SCTP_SESSION_IS_SHUTDOWN 1
-#define TODO_OBJECT_IS_BEING_KEPT_ALIVE_UNTIL_SCTP_SESSION_IS_SHUTDOWN 2
-
-        // grace shutdown process done here
-
+        mModuleProcessThread->Stop();
         return;
       }
 
@@ -544,6 +579,46 @@ namespace ortc
       mLastErrorReason = reason;
 
       ZS_LOG_WARNING(Detail, debug("error set") + ZS_PARAM("error", mLastError) + ZS_PARAM("reason", mLastErrorReason))
+    }
+
+    //-------------------------------------------------------------------------
+    IRTPTypes::PacketReceiver::DeliveryStatuses RTPReceiver::DeliverRtcp(
+                                                                         MediaTypes mediaType,
+                                                                         const uint8_t* packet,
+                                                                         size_t length
+                                                                         )
+    {
+      bool rtcpDelivered = false;
+      if (mediaType == MediaTypes::MediaType_Any || mediaType == MediaTypes::MediaType_Video) {
+        webrtc::internal::VideoReceiveStream* receiveStreamImpl =
+          static_cast<webrtc::internal::VideoReceiveStream*>(mVideoStream.get());
+        if (receiveStreamImpl->DeliverRtcp(packet, length))
+          rtcpDelivered = true;
+      }
+      return rtcpDelivered ? DeliveryStatus_OK : DeliveryStatus_PacketError;
+    }
+
+    //-------------------------------------------------------------------------
+    IRTPTypes::PacketReceiver::DeliveryStatuses RTPReceiver::DeliverRtp(
+                                                                        MediaTypes mediaType,
+                                                                        const uint8_t* packet,
+                                                                        size_t length
+                                                                        )
+    {
+      // Minimum RTP header size.
+      if (length < 12)
+        return DeliveryStatus_PacketError;
+
+      uint32_t ssrc = webrtc::ByteReader<uint32_t>::ReadBigEndian(&packet[8]);
+
+      if (mediaType == MediaTypes::MediaType_Any || mediaType == MediaTypes::MediaType_Video) {
+        webrtc::internal::VideoReceiveStream* receiveStreamImpl =
+          static_cast<webrtc::internal::VideoReceiveStream*>(mVideoStream.get());
+        return receiveStreamImpl->DeliverRtp(packet, length) ? DeliveryStatus_OK
+                                                             : DeliveryStatus_PacketError;
+      }
+
+      return DeliveryStatus_UnknownSSRC;
     }
 
 

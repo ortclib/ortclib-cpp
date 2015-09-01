@@ -40,6 +40,13 @@
 #include <zsLib/MessageQueueAssociator.h>
 #include <zsLib/Timer.h>
 
+#include <webrtc/base/scoped_ptr.h>
+#include <webrtc/modules/utility/interface/process_thread.h>
+#include <webrtc/Transport.h>
+#include <webrtc/video_engine/vie_channel_group.h>
+#include <webrtc/video_receive_stream.h>
+
+
 //#define ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE "ortc/sctp/max-message-size"
 
 namespace ortc
@@ -116,7 +123,8 @@ namespace ortc
                         public IRTPReceiverForRTPListener,
                         public IWakeDelegate,
                         public zsLib::ITimerDelegate,
-                        public IRTPReceiverAsyncDelegate
+                        public IRTPReceiverAsyncDelegate,
+                        public IRTPTypes::PacketReceiver
     {
     protected:
       struct make_private {};
@@ -232,6 +240,17 @@ namespace ortc
       #pragma mark RTPReceiver => IRTPReceiverAsyncDelegate
       #pragma mark
 
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPSender => IRTPTypes::PacketReceiver
+      #pragma mark
+
+      virtual DeliveryStatuses DeliverPacket(
+                                             MediaTypes mediaType,
+                                             const uint8_t* packet,
+                                             size_t length
+                                             );
+
 
     protected:
       //-----------------------------------------------------------------------
@@ -254,6 +273,18 @@ namespace ortc
       void setState(States state);
       void setError(WORD error, const char *reason = NULL);
 
+      DeliveryStatuses DeliverRtcp(
+                                   MediaTypes mediaType,
+                                   const uint8_t* packet,
+                                   size_t length
+                                   );
+
+      DeliveryStatuses DeliverRtp(
+                                  MediaTypes mediaType,
+                                  const uint8_t* packet,
+                                  size_t length
+                                  );
+
     protected:
       //-----------------------------------------------------------------------
       #pragma mark
@@ -273,6 +304,10 @@ namespace ortc
       String mLastErrorReason;
 
       Capabilities mCapabilities;
+
+      rtc::scoped_ptr<webrtc::ProcessThread> mModuleProcessThread;
+      rtc::scoped_ptr<webrtc::ChannelGroup> mChannelGroup;
+      rtc::scoped_ptr<webrtc::VideoReceiveStream> mVideoStream;
     };
 
     //-------------------------------------------------------------------------

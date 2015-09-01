@@ -249,5 +249,45 @@ namespace ortc
       String hash() const;
     };
 
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IRTPTypes::MediaTypes
+    #pragma mark
+
+    enum class MediaTypes {
+      MediaType_Any,
+      MediaType_Audio,
+      MediaType_Video
+    };
+
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IRTPTypes::PacketReceiver
+    #pragma mark
+
+    class PacketReceiver {
+    public:
+
+      //-------------------------------------------------------------------------
+      #pragma mark
+      #pragma mark IRTPTypes::PacketReceiver::DeliveryStatuses
+      #pragma mark
+
+      enum DeliveryStatuses {
+        DeliveryStatus_OK,
+        DeliveryStatus_UnknownSSRC,
+        DeliveryStatus_PacketError
+      };
+
+      virtual DeliveryStatuses DeliverPacket(
+        MediaTypes media_type,
+        const uint8_t* packet,
+        size_t length
+        ) = 0;
+    protected:
+      virtual ~PacketReceiver() {}
+    };
+
+
   };
 }
