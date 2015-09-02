@@ -124,7 +124,8 @@ namespace ortc
                         public IWakeDelegate,
                         public zsLib::ITimerDelegate,
                         public IRTPReceiverAsyncDelegate,
-                        public IRTPTypes::PacketReceiver
+                        public IRTPTypes::PacketReceiver,
+                        public webrtc::newapi::Transport
     {
     protected:
       struct make_private {};
@@ -250,6 +251,14 @@ namespace ortc
                                              const uint8_t* packet,
                                              size_t length
                                              );
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPSender => Transport
+      #pragma mark
+
+      virtual bool SendRtp(const uint8_t* packet, size_t length);
+      virtual bool SendRtcp(const uint8_t* packet, size_t length);
 
 
     protected:

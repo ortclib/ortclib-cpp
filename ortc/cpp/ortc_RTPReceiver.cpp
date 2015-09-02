@@ -154,7 +154,7 @@ namespace ortc
       int baseChannelID = 0;
       int channelID = 1;
       const webrtc::VideoReceiveStream::Config config;
-      webrtc::newapi::Transport* transport = NULL;
+      webrtc::newapi::Transport* transport = this;
       webrtc::VoiceEngine* voiceEngine = NULL;
 
       mVideoStream = rtc::scoped_ptr<webrtc::VideoReceiveStream>(new webrtc::internal::VideoReceiveStream(
@@ -406,6 +406,24 @@ namespace ortc
         return DeliverRtcp(mediaType, packet, length);
 
       return DeliverRtp(mediaType, packet, length);
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPSender => Transport
+    #pragma mark
+
+    bool RTPReceiver::SendRtp(const uint8_t* packet, size_t length)
+    {
+      return false;
+    }
+
+    bool RTPReceiver::SendRtcp(const uint8_t* packet, size_t length)
+    {
+      return false;
     }
 
     //-------------------------------------------------------------------------
