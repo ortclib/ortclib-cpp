@@ -132,7 +132,7 @@ namespace ortc
       WORD                mSessionID {};
       bool                mOrdered {true};
       Milliseconds        mMaxPacketLifetime;
-      DWORD               mMaxRetransmits {};
+      Optional<DWORD>     mMaxRetransmits;
       SecureByteBlockPtr  mBuffer;
 
       ElementPtr toDebug() const;
@@ -550,6 +550,7 @@ namespace ortc
       bool stepICETransport();
       bool stepDeliverIncomingPackets();
       bool stepOpen();
+      bool stepResetStream();
 
       void cancel();
 
@@ -569,6 +570,10 @@ namespace ortc
                        bool &outWouldBlock
                        );
       void notifyWriteReady();
+
+      void handleNotificationPacket(const sctp_notification &notification);
+      void handleNotificationAssocChange(const sctp_assoc_change &change);
+      void handleStreamResetEvent(const sctp_stream_reset_event &event);
 
     public:
 
@@ -632,6 +637,8 @@ namespace ortc
 
       DataChannelSessionMap mPendingResetSessions;
       DataChannelSessionMap mQueuedResetSessions;
+      DataChannelSessionMap mQueuedReflectedResetSessions;
+      DataChannelSessionMap mWaitingForReflectedRemoteResetSessions;
 
       WORD mCurrentAllocationSessionID {};
       WORD mMinAllocationSessionID {0};
