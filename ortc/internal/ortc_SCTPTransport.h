@@ -33,6 +33,7 @@
 
 #include <ortc/internal/types.h>
 
+#include <ortc/IDataChannel.h>
 #include <ortc/ISCTPTransport.h>
 #include <ortc/IDTLSTransport.h>
 #include <ortc/IICETransport.h>
@@ -169,6 +170,8 @@ namespace ortc
 
       ZS_DECLARE_TYPEDEF_PTR(IDataChannelForSCTPTransport, UseDataChannel)
 
+      ZS_DECLARE_TYPEDEF_PTR(IDataChannelTypes::Parameters, Parameters)
+
       static ElementPtr toDebug(ForDataChannelPtr transport);
 
       virtual PUID getID() const = 0;
@@ -183,6 +186,11 @@ namespace ortc
       virtual bool isShuttingDown() const = 0;
       virtual bool isShutdown() const = 0;
       virtual bool isReady() const = 0;
+
+      virtual void announceIncoming(
+                                    UseDataChannelPtr dataChannel,
+                                    ParametersPtr params
+                                    ) = 0;
 
       virtual PromisePtr sendDataNow(SCTPPacketOutgoingPtr packet) = 0;
 
@@ -327,6 +335,8 @@ namespace ortc
       ZS_DECLARE_TYPEDEF_PTR(ISCTPTransportListenerForSCTPTransport, UseListener)
       ZS_DECLARE_TYPEDEF_PTR(IICETransportForDataTransport, UseICETransport)
 
+      ZS_DECLARE_TYPEDEF_PTR(IDataChannelTypes::Parameters, Parameters)
+
       ZS_DECLARE_STRUCT_PTR(TearAwayData)
 
       typedef PUID DataChannelID;
@@ -434,6 +444,11 @@ namespace ortc
       // (duplicate) virtual bool isShuttingDown() const override;
       // (duplicate) virtual bool isShutdown() const override;
       virtual bool isReady() const override;
+
+      virtual void announceIncoming(
+                                    UseDataChannelPtr dataChannel,
+                                    ParametersPtr params
+                                    ) override;
 
       virtual PromisePtr sendDataNow(SCTPPacketOutgoingPtr packet) override;
 
@@ -621,8 +636,6 @@ namespace ortc
 
       CapabilitiesPtr mCapabilities;
 
-      DataChannelMap mAnnouncedIncomingDataChannels;
-
       SCTPTransportWeakPtr *mThisSocket {};
 
       bool mIncoming {false};
@@ -632,6 +645,8 @@ namespace ortc
 
       WORD mLocalPort {};
       WORD mRemotePort {};
+
+      DataChannelMap mAnnouncedIncomingDataChannels;
 
       DataChannelSessionMap mSessions;
 
@@ -647,6 +662,7 @@ namespace ortc
 
       PromiseQueue mWaitingToSend;
 
+      bool mConnected {false};
       bool mWriteReady {false};
 
       BufferQueue mPendingIncomingBuffers;

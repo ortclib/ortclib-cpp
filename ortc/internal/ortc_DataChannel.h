@@ -318,7 +318,8 @@ namespace ortc
       bool stepIssueConnect();
       bool stepWaitConnectAck();
       bool stepOpen();
-      bool stepSendData();
+      bool stepSendData(bool onlyControlPackets = false);
+      bool stepDeliveryIncomingPacket();
 
       void cancel();
 
@@ -335,12 +336,13 @@ namespace ortc
       void sendControlAck();
 
       bool deliverOutgoing(
-                           SCTPPacketOutgoing &packet,
+                           SCTPPacketOutgoingPtr packet,
                            bool fixPacket = true
                            );
 
       bool handleOpenPacket(SecureByteBlock &buffer);
       bool handleAckPacket(SecureByteBlock &buffer);
+      void forwardDataPacketAsEvent(const SCTPPacketIncoming &packet);
 
     public:
       //-----------------------------------------------------------------------

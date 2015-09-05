@@ -441,6 +441,71 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    void SCTPTransportListener::announceTransport(
+                                                  UseSCTPTransportPtr transport,
+                                                  WORD localPort,
+                                                  WORD remotePort
+                                                  )
+    {
+      AutoRecursiveLock lock(*this);
+
+      if (isShutdown()) {
+        ZS_LOG_WARNING(Detail, log("cannot announce transport (as shutting down)"))
+        return;
+      }
+
+      auto tuple = UseListenerHelper::createTuple(localPort, remotePort);
+      auto found = mTransports.find(tuple);
+      if (found == mTransports.end()) {
+        ZS_LOG_WARNING(Detail, log("cannot announce incoming transport (as transport was not found in transport list)"))
+        return;
+      }
+
+      ZS_LOG_DEBUG(log("announcing incoming transport") + ZS_PARAM("transport", transport->getID()))
+
+      mSubscriptions.delegate()->onSCTPTransport(SCTPTransport::convert(transport));
+
+      mAnnouncedTransports[transport->getID()] = transport;
+    }
+
+    //-------------------------------------------------------------------------
+    void SCTPTransportListener::notifyShutdown(
+                                               UseSCTPTransport &transport,
+                                               WORD localPort,
+                                               WORD remotePort
+                                               )
+    {
+      AutoRecursiveLock lock(*this);
+
+      if (isShutdown()) {
+        ZS_LOG_TRACE(log("ignoring SCTP transport shutdown notification"))
+        return;
+      }
+
+      auto tuple = UseListenerHelper::createTuple(localPort, remotePort);
+
+      ZS_LOG_DETAIL(log("notified shutdown of SCTP transport") + ZS_PARAM("tuple", tuple) + ZS_PARAM("local port", localPort) + ZS_PARAM("remote port", remotePort) + ZS_PARAM("transport id", transport.getID()))
+
+      {
+        auto found = mTransports.find(tuple);
+        if (found != mTransports.end()) {
+          auto registeredTransport = (*found).second;
+          if (registeredTransport->getID() == transport.getID()) {
+            mTransports.erase(found);
+          }
+        }
+      }
+
+      {
+        auto found = mAnnouncedTransports.find(transport.getID());
+        if (found != mAnnouncedTransports.end()) {
+          mAnnouncedTransports.erase(found);
+        }
+      }
+
+    }
+
+    //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -708,12 +773,9 @@ namespace ortc
         for (auto iter = mAnnouncedTransports.begin(); iter != mAnnouncedTransports.end(); ++iter) {
           // NOTE: ID of data channels are always greater than last so order
           // should be guarenteed.
-          auto sctpTransport = (*iter).second;
+          UseSCTPTransportPtr sctpTransport = (*iter).second;
           delegate->onSCTPTransport(SCTPTransport::convert(sctpTransport));
         }
-
-#define TODO_DO_WE_NEED_TO_TELL_ABOUT_ANY_MISSED_EVENTS 1
-#define TODO_DO_WE_NEED_TO_TELL_ABOUT_ANY_MISSED_EVENTS 2
       }
 
       if (isShutdown()) {

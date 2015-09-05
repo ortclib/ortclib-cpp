@@ -107,6 +107,18 @@ namespace ortc
                                         WORD &ioLocalPort,
                                         WORD &ioRemotePort
                                         ) = 0;
+
+      virtual void announceTransport(
+                                     UseSCTPTransportPtr transport,
+                                     WORD localPort,
+                                     WORD remotePort
+                                     ) = 0;
+
+      virtual void notifyShutdown(
+                                  UseSCTPTransport &transport,
+                                  WORD localPort,
+                                  WORD remotePort
+                                  ) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -165,7 +177,9 @@ namespace ortc
       typedef std::map<LocalRemoteTupleID, UseSCTPTransportPtr> TransportMap;
 
       typedef std::pair<LocalRemoteTupleID, UseSCTPTransportPtr> TupleSCTPTransportPair;
-      typedef std::list<TupleSCTPTransportPair> TupleSCTPTransportList;
+
+      typedef PUID SCTPTransportID;
+      typedef std::map<SCTPTransportID, UseSCTPTransportPtr> TransportIDMap;
 
       typedef std::map<WORD, size_t> AllocatedPortMap;
 
@@ -221,6 +235,18 @@ namespace ortc
                                         WORD &ioLocalPort,
                                         WORD &ioRemotePort
                                         ) override;
+
+      virtual void announceTransport(
+                                     UseSCTPTransportPtr transport,
+                                     WORD localPort,
+                                     WORD remotePort
+                                     ) override;
+
+      virtual void notifyShutdown(
+                                  UseSCTPTransport &transport,
+                                  WORD localPort,
+                                  WORD remotePort
+                                  ) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -296,7 +322,7 @@ namespace ortc
       bool mShutdown {false};
 
       TransportMap mTransports;
-      TupleSCTPTransportList mAnnouncedTransports;
+      TransportIDMap mAnnouncedTransports;
 
       AllocatedPortMap mAllocatedLocalPorts;
       AllocatedPortMap mAllocatedRemotePorts;

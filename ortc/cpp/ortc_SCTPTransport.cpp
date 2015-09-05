@@ -1038,6 +1038,36 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    void SCTPTransport::announceIncoming(
+                                         UseDataChannelPtr dataChannel,
+                                         ParametersPtr params
+                                         )
+    {
+      ZS_THROW_INVALID_ARGUMENT_IF(!dataChannel)
+      ZS_THROW_INVALID_ARGUMENT_IF(!params)
+
+      AutoRecursiveLock lock(*this);
+
+      auto found = mSessions.find(params->mID.value());
+      if (found == mSessions.end()) {
+        ZS_LOG_WARNING(Debug, log("cannot announce incoming session as it is not active") + params->toDebug())
+        return;
+      }
+
+      if ((isShutdown()) ||
+          (isShuttingDown())) {
+        ZS_LOG_WARNING(Debug, log("cannot announce incoming session while shutting down / shutdown") + params->toDebug())
+        return;
+      }
+
+      mAnnouncedIncomingDataChannels[dataChannel->getID()] = dataChannel;
+
+      ZS_LOG_DEBUG(log("notify delegates of incoming data channel") + ZS_PARAM("data channel", dataChannel->getID()))
+
+      mSubscriptions.delegate()->onSCTPTransportDataChannel(mThisWeak.lock(), DataChannel::convert(dataChannel));
+    }
+
+    //-------------------------------------------------------------------------
     PromisePtr SCTPTransport::sendDataNow(SCTPPacketOutgoingPtr packet)
     {
       {
@@ -1051,6 +1081,13 @@ namespace ortc
 
         if (State_Ready != mCurrentState) goto waiting_to_send;
         if (!mWriteReady) goto waiting_to_send;
+
+        if (packet->mBuffer) {
+          if (packet->mBuffer->SizeInBytes() > mCapabilities->mMaxMessageSize) {
+            ZS_LOG_ERROR(Detail, log("attempting to send packet larger than remote is capable") + ZS_PARAM("buffer size", packet->mBuffer->SizeInBytes()) + mCapabilities->toDebug())
+            return Promise::createRejected(IORTCForInternal::queueORTC());
+          }
+        }
 
         bool wouldBlock = false;
         if (!attemptSend(*packet, wouldBlock)) {
@@ -1532,8 +1569,6 @@ namespace ortc
 
       UseServicesHelper::debugAppend(resultEl, mCapabilities ? mCapabilities->toDebug() : ElementPtr());
 
-      UseServicesHelper::debugAppend(resultEl, "announced data channels", mAnnouncedIncomingDataChannels.size());
-
       UseServicesHelper::debugAppend(resultEl, "this socket", (PTRNUMBER)mThisSocket);
 
       UseServicesHelper::debugAppend(resultEl, "incoming", mIncoming);
@@ -1545,6 +1580,8 @@ namespace ortc
       UseServicesHelper::debugAppend(resultEl, "remote port", mRemotePort);
 
       UseServicesHelper::debugAppend(resultEl, "sessions", mSessions.size());
+
+      UseServicesHelper::debugAppend(resultEl, "announced data channels", mAnnouncedIncomingDataChannels.size());
 
       UseServicesHelper::debugAppend(resultEl, "pending reset", mPendingResetSessions.size());
       UseServicesHelper::debugAppend(resultEl, "queued reset", mQueuedResetSessions.size());
@@ -1559,6 +1596,7 @@ namespace ortc
 
       UseServicesHelper::debugAppend(resultEl, "waiting to send", mWaitingToSend.size());
 
+      UseServicesHelper::debugAppend(resultEl, "connected", mConnected);
       UseServicesHelper::debugAppend(resultEl, "write ready", mWriteReady);
 
       UseServicesHelper::debugAppend(resultEl, "pending incoming buffers", mPendingIncomingBuffers.size());
@@ -1982,6 +2020,11 @@ namespace ortc
 
       mPendingIncomingBuffers = BufferQueue();
 
+      auto listener = mListener.lock();
+      if (listener) {
+        listener->notifyShutdown(*this, mLocalPort, mRemotePort);
+      }
+
       // make sure to cleanup any final reference to self
       mGracefulShutdownReference.reset();
     }
@@ -2275,6 +2318,19 @@ namespace ortc
     //-------------------------------------------------------------------------
     void SCTPTransport::notifyWriteReady()
     {
+      if (!mConnected) {
+        ZS_LOG_DEBUG(log("connected (as notified write ready)"))
+        IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
+
+        if (mIncoming) {
+          auto listener = mListener.lock();
+          if (listener) {
+            listener->announceTransport(mThisWeak.lock(), mLocalPort, mRemotePort);
+          }
+        }
+      }
+
+      mConnected = true;
       mWriteReady = true;
 
       while (mWaitingToSend.size() > 0) {
