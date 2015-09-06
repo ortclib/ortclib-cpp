@@ -218,18 +218,18 @@ namespace ortc
         std::stringstream result;
         bool first = true;
         // Skip past the first 12 chars (strlen("SCTP_STREAM_"))
-#define MAKEFLAG(X) { X, #X + 12}
+
         struct flaginfo_t {
           int value;
           const char* name;
         } flaginfo[] = {
-          MAKEFLAG(SCTP_STREAM_RESET_INCOMING_SSN),
-          MAKEFLAG(SCTP_STREAM_RESET_OUTGOING_SSN),
-          MAKEFLAG(SCTP_STREAM_RESET_DENIED),
-          MAKEFLAG(SCTP_STREAM_RESET_FAILED),
-          MAKEFLAG(SCTP_STREAM_CHANGE_DENIED)
+          {SCTP_STREAM_RESET_INCOMING_SSN, "RESET_INCOMING_SSN"},
+          {SCTP_STREAM_RESET_OUTGOING_SSN, "RESET_OUTGOING_SSN"},
+          {SCTP_STREAM_RESET_DENIED, "RESET_DENIED"},
+          {SCTP_STREAM_RESET_FAILED,"RESET_FAILED"},
+          {SCTP_STREAM_CHANGE_DENIED, "CHANGE_DENIED"}
         };
-#undef MAKEFLAG
+
         for (int i = 0; i < ARRAY_SIZE(flaginfo); ++i) {
           if (flags & flaginfo[i].value) {
             if (!first) result << " | ";
@@ -887,9 +887,6 @@ namespace ortc
           auto dataChannel = (*iter).second;
           delegate->onSCTPTransportDataChannel(mThisWeak.lock(), DataChannel::convert(dataChannel));
         }
-
-#define TODO_DO_WE_NEED_TO_TELL_ABOUT_ANY_MISSED_EVENTS 1
-#define TODO_DO_WE_NEED_TO_TELL_ABOUT_ANY_MISSED_EVENTS 2
       }
 
       if (isShutdown()) {
@@ -1323,11 +1320,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     void SCTPTransport::onTimer(TimerPtr timer)
     {
-      ZS_LOG_DEBUG(log("timer") + ZS_PARAM("timer id", timer->getID()))
-
-      AutoRecursiveLock lock(*this);
-#define TODO 1
-#define TODO 2
+      // UNUSED
+      // ZS_LOG_DEBUG(log("timer") + ZS_PARAM("timer id", timer->getID()))
+      // AutoRecursiveLock lock(*this);
     }
 
     //-------------------------------------------------------------------------

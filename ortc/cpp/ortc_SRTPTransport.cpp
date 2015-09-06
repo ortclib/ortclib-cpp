@@ -91,7 +91,9 @@ namespace ortc
     #pragma mark (helpers)
     #pragma mark
 
+#ifndef SRTP_MASTER_KEY_LEN
 #define SRTP_MASTER_KEY_LEN (30)
+#endif //ndef SRTP_MASTER_KEY_LEN
 
 #define RTP_MINIMUM_PACKET_HEADER_SIZE (12)
 
@@ -481,8 +483,8 @@ namespace ortc
     //-------------------------------------------------------------------------
     void SRTPTransport::init()
     {
-      AutoRecursiveLock lock(*this);
-      IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
+      //AutoRecursiveLock lock(*this);
+      //IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
     }
 
     //-------------------------------------------------------------------------
@@ -848,9 +850,6 @@ namespace ortc
       // field...
       size_t libSRTPMaxLength = bufferLengthInBytes + authenticationTagLength;
 
-#define TODO_APPLY_ENCRYPTION_TO_ENCRYPTED_BUFFER_BUT_LIE_TO_SRTP_ABOUT_LENGTH_SINCE_IT_DOESNT_KNOW_ABOUT_ADDITIONAL_MKI_FIELD 1
-#define TODO_APPLY_ENCRYPTION_TO_ENCRYPTED_BUFFER_BUT_LIE_TO_SRTP_ABOUT_LENGTH_SINCE_IT_DOESNT_KNOW_ABOUT_ADDITIONAL_MKI_FIELD 2
-
       int out_len {static_cast<int>(bufferLengthInBytes)};
       int err {};
 
@@ -905,11 +904,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     void SRTPTransport::onWake()
     {
-      ZS_LOG_DEBUG(log("wake"))
-
-      AutoRecursiveLock lock(*this);
-#define REMOVE_THIS_IF_NOT_NEEDED 1
-#define REMOVE_THIS_IF_NOT_NEEDED 2
+      // NOT USED
+      // ZS_LOG_DEBUG(log("wake"))
+      // AutoRecursiveLock lock(*this);
     }
 
     //-------------------------------------------------------------------------
@@ -923,11 +920,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     void SRTPTransport::onTimer(TimerPtr timer)
     {
-      ZS_LOG_DEBUG(log("timer") + ZS_PARAM("timer id", timer->getID()))
-
-      AutoRecursiveLock lock(*this);
-#define TODO 1
-#define TODO 2
+      // NOT USED
+      // ZS_LOG_DEBUG(log("timer") + ZS_PARAM("timer id", timer->getID()))
+      // AutoRecursiveLock lock(*this);
     }
 
     //-------------------------------------------------------------------------
@@ -1160,8 +1155,7 @@ namespace ortc
 
       UseServicesHelper::debugAppend(resultEl, "key salt", mKeySalt ? UseServicesHelper::convertToHex(*mKeySalt) : String());
 
-#define FILL_IN_WITH_MORE_STUFF_HERE 1
-#define FILL_IN_WITH_MORE_STUFF_HERE 2
+      UseServicesHelper::debugAppend(resultEl, "srtp session", (PTRNUMBER)mSRTPSession);
 
       return resultEl;
     }

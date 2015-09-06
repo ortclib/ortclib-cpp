@@ -305,8 +305,6 @@ namespace ortc
 
         SecureByteBlockPtr mKeySalt;  // key and salt
 
-#define TODO_NEED_MORE_STUFF_HERE 1
-#define TODO_NEED_MORE_STUFF_HERE 2
         //libSRTP Session material
         Lock mSRTPSessionLock;
         srtp_ctx_t* mSRTPSession {};
