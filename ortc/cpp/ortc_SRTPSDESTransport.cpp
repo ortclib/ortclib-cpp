@@ -255,9 +255,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     ISRTPSDESTransportTypes::ParametersPtr SRTPSDESTransport::getLocalParameters()
     {
-#define TODO_COMPLETE 1
-#define TODO_COMPLETE 2
-      return ParametersPtr();
+      return UseSRTPTransport::getLocalParameters();
     }
 
     //-------------------------------------------------------------------------

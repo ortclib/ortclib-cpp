@@ -151,6 +151,40 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
+    ISRTPTransportForSecureTransport::ParametersPtr ISRTPTransportForSecureTransport::getLocalParameters()
+    {
+      ParametersPtr params(make_shared<Parameters>());
+
+      {
+        CryptoParameters crypto;
+        crypto.mCryptoSuite = CS_AES_CM_128_HMAC_SHA1_80;
+
+        KeyParameters key;
+        key.mKeyMethod = "inline";
+        key.mKeySalt = UseServicesHelper::convertToBase64(*UseServicesHelper::random(SRTP_MASTER_KEY_LEN));
+        key.mLifetime = "2^32";
+        key.mMKILength = 0;
+
+        crypto.mKeyParams.push_back(key);
+        params->mCryptoParams.push_back(crypto);
+      }
+      {
+        CryptoParameters crypto;
+        crypto.mCryptoSuite = CS_AES_CM_128_HMAC_SHA1_32;
+
+        KeyParameters key;
+        key.mKeyMethod = "inline";
+        key.mKeySalt = UseServicesHelper::convertToBase64(*UseServicesHelper::random(SRTP_MASTER_KEY_LEN));
+        key.mLifetime = "2^32";
+        key.mMKILength = 0;
+
+        crypto.mKeyParams.push_back(key);
+        params->mCryptoParams.push_back(crypto);
+      }
+      return params;
+    }
+
+    //-------------------------------------------------------------------------
     ElementPtr ISRTPTransportForSecureTransport::toDebug(ForSecureTransportPtr transport)
     {
       if (!transport) return ElementPtr();
