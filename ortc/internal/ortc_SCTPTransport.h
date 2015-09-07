@@ -166,6 +166,8 @@ namespace ortc
 
     interaction ISCTPTransportForDataChannel
     {
+      ZS_DECLARE_STRUCT_PTR(RejectReason)
+
       ZS_DECLARE_TYPEDEF_PTR(ISCTPTransportForDataChannel, ForDataChannel)
 
       ZS_DECLARE_TYPEDEF_PTR(IDataChannelForSCTPTransport, UseDataChannel)
@@ -173,6 +175,14 @@ namespace ortc
       ZS_DECLARE_TYPEDEF_PTR(IDataChannelTypes::Parameters, Parameters)
 
       static ElementPtr toDebug(ForDataChannelPtr transport);
+
+      struct RejectReason : public Any
+      {
+        RejectReason(WORD error, const char *reason) : mError(error), mErrorReason(reason) {}
+        static RejectReasonPtr create(WORD error, const char *reason) {return RejectReasonPtr(make_shared<RejectReason>(error, reason));}
+        WORD mError {};
+        String mErrorReason;
+      };
 
       virtual PUID getID() const = 0;
 
@@ -410,8 +420,6 @@ namespace ortc
                                       ) throw (InvalidParameters, InvalidStateError);
 
       virtual PUID getID() const override {return mID;}
-
-      static CapabilitiesPtr getCapabilities();
 
       virtual IDTLSTransportPtr transport() const;
 

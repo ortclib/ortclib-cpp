@@ -451,8 +451,9 @@ namespace ortc
             ORTC_THROW_INVALID_PARAMETERS("key is not expected length:" + keyParam.mKeySalt)
           }
 
-#define TODO_EXTRACT_AND_FILL_IN_OTHER_KEYING_MATERIAL_VALUES 1
-#define TODO_EXTRACT_AND_FILL_IN_OTHER_KEYING_MATERIAL_VALUES 2
+          // If session params are needed, the values can be parsed here. As
+          // of the current supported crypto parameters, no session parameters
+          // are supported at this time.
 
           if (!keyingMaterial->mSRTPSession)
           {
@@ -607,9 +608,6 @@ namespace ortc
             (100 != mLastRemainingOverallPercentageReported)) {
           delegate->onSRTPTransportLifetimeRemaining(pThis, mLastRemainingLeastKeyPercentageReported, mLastRemainingOverallPercentageReported);
         }
-
-#define TODO_DO_WE_NEED_TO_TELL_ABOUT_ANY_MISSED_EVENTS 1
-#define TODO_DO_WE_NEED_TO_TELL_ABOUT_ANY_MISSED_EVENTS 2
       }
 
       return subscription;
@@ -756,7 +754,7 @@ namespace ortc
       {
         if (!((bool)(usedKeys[loop]))) continue;
 
-        out_len = decryptedBuffer->SizeInBytes();
+        out_len = SafeInt<decltype(out_len)>(decryptedBuffer->SizeInBytes());
 
         // scope: lock the keying material with its own individual lock
         {
@@ -882,7 +880,7 @@ namespace ortc
       // lib srtp does not understand MKI thus we need to tell it the
       // space available for the packet without including the additional MKI
       // field...
-      size_t libSRTPMaxLength = bufferLengthInBytes + authenticationTagLength;
+      //size_t libSRTPMaxLength = bufferLengthInBytes + authenticationTagLength;
 
       int out_len {static_cast<int>(bufferLengthInBytes)};
       int err {};

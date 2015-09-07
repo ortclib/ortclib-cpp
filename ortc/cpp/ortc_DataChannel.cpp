@@ -38,6 +38,7 @@
 #include <openpeer/services/IHelper.h>
 #include <openpeer/services/IHTTP.h>
 
+#include <zsLib/SafeInt.h>
 #include <zsLib/Stringize.h>
 #include <zsLib/Log.h>
 #include <zsLib/XML.h>
@@ -657,9 +658,24 @@ namespace ortc
     //-------------------------------------------------------------------------
     void DataChannel::onPromiseSettled(PromisePtr promise)
     {
+      ZS_DECLARE_TYPEDEF_PTR(ISCTPTransportForDataChannel::RejectReason, RejectReason)
+
       ZS_LOG_TRACE(log("on promise settled"))
 
       AutoRecursiveLock lock(*this);
+
+      if (mSendReady) {
+        if (mSendReady->isRejected()) {
+          RejectReasonPtr reason = mSendReady->reason<RejectReason>();
+          ZS_THROW_INVALID_ASSUMPTION_IF(!reason)
+
+          ZS_LOG_ERROR(Debug, log("cannot send data") + ZS_PARAM("error", reason->mError) + ZS_PARAM("reason", reason->mErrorReason))
+          setError(reason->mError, reason->mErrorReason);
+          cancel();
+          return;
+        }
+      }
+
       stepSendData(); // only the send promise exists so attempt to send data
     }
 
@@ -1079,7 +1095,7 @@ namespace ortc
           openPacket.mReliabilityParameter = mParameters->mMaxRetransmits.value();
         } else if (Milliseconds() != mParameters->mMaxPacketLifetime) {
           openPacket.mChanelType = DataChannelOpenMessageChannelType_PARTIAL_RELIABLE_TIMED;
-          openPacket.mReliabilityParameter = static_cast<decltype(openPacket.mReliabilityParameter)>(mParameters->mMaxPacketLifetime.count());
+          openPacket.mReliabilityParameter = SafeInt<decltype(openPacket.mReliabilityParameter)>(mParameters->mMaxPacketLifetime.count());
         } else {
           openPacket.mChanelType = DataChannelOpenMessageChannelType_RELIABLE;
         }
@@ -1089,7 +1105,7 @@ namespace ortc
           openPacket.mReliabilityParameter = mParameters->mMaxRetransmits.value();
         } else if (Milliseconds() != mParameters->mMaxPacketLifetime) {
           openPacket.mChanelType = DataChannelOpenMessageChannelType_PARTIAL_RELIABLE_TIMED_UNORDERED;
-          openPacket.mReliabilityParameter = static_cast<decltype(openPacket.mReliabilityParameter)>(mParameters->mMaxPacketLifetime.count());
+          openPacket.mReliabilityParameter = SafeInt<decltype(openPacket.mReliabilityParameter)>(mParameters->mMaxPacketLifetime.count());
         } else {
           openPacket.mChanelType = DataChannelOpenMessageChannelType_RELIABLE_UNORDERED;
         }
@@ -1117,7 +1133,7 @@ namespace ortc
 
       ZS_LOG_TRACE(log("sending open control packet") + ZS_PARAM("open message type", internal::toString(static_cast<DataChannelOpenMessageChannelTypes>(openPacket.mChanelType))) + mParameters->toDebug())
 
-      SecureByteBlockPtr buffer(make_shared<SecureByteBlock>(static_cast<size_t>(temp.CurrentSize())));
+      SecureByteBlockPtr buffer(make_shared<SecureByteBlock>(SafeInt<size_t>(temp.CurrentSize())));
 
       temp.Get(buffer->BytePtr(), buffer->SizeInBytes());
 
@@ -1138,7 +1154,7 @@ namespace ortc
       ByteQueue temp;
       temp.Put(ackPacket.mMessageType);
 
-      SecureByteBlockPtr buffer(make_shared<SecureByteBlock>(static_cast<size_t>(temp.CurrentSize())));
+      SecureByteBlockPtr buffer(make_shared<SecureByteBlock>(SafeInt<size_t>(temp.CurrentSize())));
 
       temp.Get(buffer->BytePtr(), buffer->SizeInBytes());
 

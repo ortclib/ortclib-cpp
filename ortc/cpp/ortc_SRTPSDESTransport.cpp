@@ -136,7 +136,6 @@ namespace ortc
 
       mRTPListener = UseRTPListener::create(mThisWeak.lock());
       mSRTPTransport = UseSRTPTransport::create(mThisWeak.lock(), mThisWeak.lock(), encryptParameters, decryptParameters);
-      IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
     }
 
     //-------------------------------------------------------------------------
@@ -261,9 +260,10 @@ namespace ortc
     //-------------------------------------------------------------------------
     void SRTPSDESTransport::stop()
     {
+      ZS_LOG_DEBUG(log("stop called"))
+
       AutoRecursiveLock lock(*this);
-#define TODO_COMPLETE 1
-#define TODO_COMPLETE 2
+      cancel();
     }
 
     //-------------------------------------------------------------------------
@@ -453,71 +453,6 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark SRTPSDESTransport => IWakeDelegate
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    void SRTPSDESTransport::onWake()
-    {
-      ZS_LOG_DEBUG(log("wake"))
-
-      AutoRecursiveLock lock(*this);
-      step();
-    }
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark SRTPSDESTransport => IICETransportDelegate
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    void SRTPSDESTransport::onICETransportStateChanged(
-                                                       IICETransportPtr transport,
-                                                       IICETransport::States state
-                                                       )
-    {
-#define TODO_IMPLEMENT 1
-#define TODO_IMPLEMENT 2
-    }
-
-    //-------------------------------------------------------------------------
-    void SRTPSDESTransport::onICETransportCandidatePairAvailable(
-                                                                 IICETransportPtr transport,
-                                                                 CandidatePairPtr candidatePair
-                                                                 )
-    {
-#define TODO_IMPLEMENT 1
-#define TODO_IMPLEMENT 2
-    }
-
-    //-------------------------------------------------------------------------
-    void SRTPSDESTransport::onICETransportCandidatePairGone(
-                                                            IICETransportPtr transport,
-                                                            CandidatePairPtr candidatePair
-                                                            )
-    {
-#define TODO_IMPLEMENT 1
-#define TODO_IMPLEMENT 2
-    }
-
-    //-------------------------------------------------------------------------
-    void SRTPSDESTransport::onICETransportCandidatePairChanged(
-                                                               IICETransportPtr transport,
-                                                               CandidatePairPtr candidatePair
-                                                               )
-    {
-#define TODO_IMPLEMENT 1
-#define TODO_IMPLEMENT 2
-    }
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
     #pragma mark SRTPSDESTransport => ISRTPTransportDelegate
     #pragma mark
 
@@ -532,6 +467,9 @@ namespace ortc
 
       AutoRecursiveLock lock(*this);
       mSubscriptions.delegate()->onSRTPSDESTransportLifetimeRemaining(mThisWeak.lock(), leastLifetimeRemainingPercentageForAllKeys, overallLifetimeRemainingPercentage);
+      if (0 == overallLifetimeRemainingPercentage) {
+        setError(UseHTTP::HTTPStatusCode_UpgradeRequired, "keying material is exhausted");
+      }
     }
 
     //-------------------------------------------------------------------------
@@ -597,22 +535,6 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void SRTPSDESTransport::step()
-    {
-      ZS_LOG_DEBUG(debug("step"))
-
-      if ((isShuttingDown()) ||
-          (isShutdown())) {
-        ZS_LOG_DEBUG(debug("step forwarding to cancel"))
-        cancel();
-        return;
-      }
-
-#define TODO_GET_INTO_VALIDATED_STATE 1
-#define TODO_GET_INTO_VALIDATED_STATE 2
-    }
-
-    //-------------------------------------------------------------------------
     void SRTPSDESTransport::cancel()
     {
       if (mShutdown) return;
@@ -623,8 +545,6 @@ namespace ortc
       if (!mGracefulShutdownReference) mGracefulShutdownReference = mThisWeak.lock();
 
       if (mGracefulShutdownReference) {
-#define TODO_OBJECT_IS_BEING_KEPT_ALIVE_UNTIL_DTLS_SESSION_IS_SHUTDOWN 1
-#define TODO_OBJECT_IS_BEING_KEPT_ALIVE_UNTIL_DTLS_SESSION_IS_SHUTDOWN 2
       }
 
       //.......................................................................
@@ -637,9 +557,6 @@ namespace ortc
           (mAttachedRTCP)) {
         mICETransportRTCP->notifyDetached(mID);
       }
-
-#define TODO 1
-#define TODO 2
 
       // make sure to cleanup any final reference to self
       mGracefulShutdownReference.reset();
@@ -661,6 +578,11 @@ namespace ortc
 
       mLastError = errorCode;
       mLastErrorReason = reason;
+
+      auto pThis = mThisWeak.lock();
+      if (pThis) {
+        mSubscriptions.delegate()->onSRTPSDESTransportError(mThisWeak.lock(), mLastError, mLastErrorReason);
+      }
 
       ZS_LOG_WARNING(Detail, debug("error set") + ZS_PARAM("error", mLastError) + ZS_PARAM("reason", mLastErrorReason))
     }

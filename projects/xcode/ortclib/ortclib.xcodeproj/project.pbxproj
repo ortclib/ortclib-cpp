@@ -16,7 +16,7 @@
 		004B60A11B227E2C00568C22 /* ortc_ICEGathererRouter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 004B60A01B227E2C00568C22 /* ortc_ICEGathererRouter.cpp */; };
 		0051D6BA1B8D02E4003B4A00 /* ortc_SCTPTransportListener.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0051D6B91B8D02E4003B4A00 /* ortc_SCTPTransportListener.cpp */; settings = {COMPILER_FLAGS = "-Wno-undefined-bool-conversion"; }; };
 		0056EEFE1B13DB2C0035B351 /* ortc_Settings.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0056EEFD1B13DB2C0035B351 /* ortc_Settings.cpp */; };
-		0064C6A51AFBF13B0089571E /* ortc_SRTPSDESTransport.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0064C6A41AFBF13B0089571E /* ortc_SRTPSDESTransport.cpp */; };
+		0064C6A51AFBF13B0089571E /* ortc_SRTPSDESTransport.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0064C6A41AFBF13B0089571E /* ortc_SRTPSDESTransport.cpp */; settings = {COMPILER_FLAGS = "-Wno-undefined-bool-conversion"; }; };
 		0064C6BC1AFE75C40089571E /* ortc_ISecureTransport.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0064C6BB1AFE75C40089571E /* ortc_ISecureTransport.cpp */; };
 		006E838B1B3C7576007740C3 /* ortc_SCTPTransport.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 006E838A1B3C7576007740C3 /* ortc_SCTPTransport.cpp */; settings = {COMPILER_FLAGS = "-Wno-undefined-bool-conversion"; }; };
 		00724A6E184CF42B0049B9EF /* ortc_ORTC.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00724A6D184CF42B0049B9EF /* ortc_ORTC.cpp */; };

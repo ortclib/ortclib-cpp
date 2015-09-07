@@ -41,6 +41,7 @@
 #include <openpeer/services/IHelper.h>
 #include <openpeer/services/IHTTP.h>
 
+#include <zsLib/SafeInt.h>
 #include <zsLib/Stringize.h>
 #include <zsLib/Log.h>
 #include <zsLib/XML.h>
@@ -331,7 +332,7 @@ namespace ortc
         // second paragraph of
         // http://tools.ietf.org/html/draft-ietf-rtcweb-data-channel-05#section-6.2
         // is cricket::kMaxSctpSid.
-        usrsctp_sysctl_set_sctp_nr_outgoing_streams_default(static_cast<uint32_t>(UseSettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_MAX_SESSIONS_PER_PORT)));
+        usrsctp_sysctl_set_sctp_nr_outgoing_streams_default(SafeInt<uint32_t>(UseSettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_MAX_SESSIONS_PER_PORT)));
 
         mInitialized = true;
       }
@@ -808,14 +809,6 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    ISCTPTransportTypes::CapabilitiesPtr SCTPTransport::getCapabilities()
-    {
-      CapabilitiesPtr result(make_shared<Capabilities>());
-      result->mMaxMessageSize = UseSettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE);
-      return result;
-    }
-
-    //-------------------------------------------------------------------------
     IDTLSTransportPtr SCTPTransport::transport() const
     {
       return DTLSTransport::convert(mSecureTransport.lock());
@@ -1067,13 +1060,14 @@ namespace ortc
     //-------------------------------------------------------------------------
     PromisePtr SCTPTransport::sendDataNow(SCTPPacketOutgoingPtr packet)
     {
+      ZS_DECLARE_TYPEDEF_PTR(ISCTPTransportForDataChannel::RejectReason, RejectReason)
       {
         AutoRecursiveLock lock(*this);
 
         if ((isShuttingDown()) ||
             (isShutdown())) {
           ZS_LOG_WARNING(Debug, log("cannot send data while shutting down / shutdown"))
-          return Promise::createRejected(IORTCForInternal::queueORTC());
+          return Promise::createRejected(RejectReason::create(UseHTTP::HTTPStatusCode_ClientClosedRequest, "cannot send during shutdown"), IORTCForInternal::queueORTC());
         }
 
         if (State_Ready != mCurrentState) goto waiting_to_send;
@@ -1082,7 +1076,7 @@ namespace ortc
         if (packet->mBuffer) {
           if (packet->mBuffer->SizeInBytes() > mCapabilities->mMaxMessageSize) {
             ZS_LOG_ERROR(Detail, log("attempting to send packet larger than remote is capable") + ZS_PARAM("buffer size", packet->mBuffer->SizeInBytes()) + mCapabilities->toDebug())
-            return Promise::createRejected(IORTCForInternal::queueORTC());
+            return Promise::createRejected(RejectReason::create(UseHTTP::HTTPStatusCode_BandwidthLimitExceeded, "buffer too large to send"), IORTCForInternal::queueORTC());
           }
         }
 
@@ -1091,7 +1085,7 @@ namespace ortc
           if (wouldBlock) goto waiting_to_send;
 
           ZS_LOG_WARNING(Debug, log("unable to send packet at this time"))
-          return Promise::createRejected(IORTCForInternal::queueORTC());
+          return Promise::createRejected(RejectReason::create(UseHTTP::HTTPStatusCode_ExpectationFailed, "unexpected error"), IORTCForInternal::queueORTC());
         }
         goto done;
       }
@@ -1819,6 +1813,7 @@ namespace ortc
 
       pReset->srs_assoc_id = SCTP_ALL_ASSOC;
       pReset->srs_flags = SCTP_STREAM_RESET_INCOMING | SCTP_STREAM_RESET_OUTGOING;
+      pReset->srs_number_streams = SafeInt<decltype(pReset->srs_number_streams)>(numStreams);
 
       int index = 0;
       for (auto iter = mPendingResetSessions.begin(); iter != mPendingResetSessions.end(); ++iter, ++index)
@@ -1830,7 +1825,7 @@ namespace ortc
 
       ZS_LOG_DEBUG(log("sending stream reset request") + ZS_PARAM("total to reset", mPendingResetSessions.size()))
 
-      auto result = usrsctp_setsockopt(mIncoming ? mAcceptSocket : mSocket, IPPROTO_SCTP, SCTP_RESET_STREAMS, pReset, static_cast<socklen_t>(buffer->SizeInBytes()));
+      auto result = usrsctp_setsockopt(mIncoming ? mAcceptSocket : mSocket, IPPROTO_SCTP, SCTP_RESET_STREAMS, pReset, SafeInt<socklen_t>(buffer->SizeInBytes()));
 
       if (result < 0) {
         ZS_LOG_ERROR(Detail, log("failed to perform stream reset") + ZS_PARAM("total to reset", mPendingResetSessions.size()))
@@ -2282,7 +2277,7 @@ namespace ortc
         } else {
           spa.sendv_flags |= SCTP_SEND_PRINFO_VALID;
           spa.sendv_prinfo.pr_policy = SCTP_PR_SCTP_TTL;
-          spa.sendv_prinfo.pr_value = static_cast<decltype(spa.sendv_prinfo.pr_value)>(inPacket.mMaxPacketLifetime.count());
+          spa.sendv_prinfo.pr_value = SafeInt<decltype(spa.sendv_prinfo.pr_value)>(inPacket.mMaxPacketLifetime.count());
         }
       }
 
@@ -2291,7 +2286,7 @@ namespace ortc
                                   (inPacket.mBuffer ? inPacket.mBuffer->BytePtr() : NULL),
                                   (inPacket.mBuffer ? inPacket.mBuffer->SizeInBytes() : 0),
                                   NULL, 0,
-                                  &spa, sizeof(spa),
+                                  &spa, SafeInt<socklen_t>(sizeof(spa)),
                                   SCTP_SENDV_SPA,
                                   0);
 
