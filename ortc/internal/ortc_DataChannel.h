@@ -39,7 +39,6 @@
 #include <openpeer/services/IWakeDelegate.h>
 
 #include <zsLib/MessageQueueAssociator.h>
-#include <zsLib/Timer.h>
 #include <zsLib/TearAway.h>
 
 //#define ORTC_SETTING_SRTP_TRANSPORT_WARN_OF_KEY_LIFETIME_EXHAUGSTION_WHEN_REACH_PERCENTAGE_USSED "ortc/srtp/warm-key-lifetime-exhaustion-when-reach-percentage-used"
@@ -150,7 +149,6 @@ namespace ortc
                         public ISCTPTransportForDataChannelDelegate,
                         public IDataChannelAsyncDelegate,
                         public IWakeDelegate,
-                        public zsLib::ITimerDelegate,
                         public zsLib::IPromiseSettledDelegate
     {
     protected:
@@ -278,14 +276,7 @@ namespace ortc
       #pragma mark
 
       virtual void onWake() override;
-
-      //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark DataChannel => ITimerDelegate
-      #pragma mark
-
-      virtual void onTimer(TimerPtr timer) override;
-
+      
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark DataChannel => IPromiseSettledDelegate

@@ -808,7 +808,7 @@ namespace ortc
       ASSERT(((bool)decryptedBuffer))
       ASSERT(out_len > 0)
 
-      ASSERT(out_len <= decryptedBuffer->SizeInBytes())
+      ASSERT(out_len <= SafeInt<decltype(out_len)>(decryptedBuffer->SizeInBytes()))
 
       ZS_LOG_INSANE(log("forwarding packet to secure transport") + ZS_PARAM("via", IICETypes::toString(viaTransport)) + ZS_PARAM("component", IICETypes::toString(component)) + ZS_PARAM("buffer length in bytes", decryptedBuffer->SizeInBytes()))
 
@@ -919,7 +919,7 @@ namespace ortc
       ASSERT(((bool)transport))
       ASSERT(((bool)encryptedBuffer))
 
-      ASSERT(out_len <= encryptedBuffer->SizeInBytes())
+      ASSERT(out_len <= SafeInt<decltype(out_len)>(encryptedBuffer->SizeInBytes()))
 
       // do NOT call this method from within a lock
       return transport->sendEncryptedPacket(sendOverICETransport, packetType, encryptedBuffer->BytePtr(), encryptedBuffer->SizeInBytes());
