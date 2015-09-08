@@ -131,7 +131,7 @@
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>$(ProjectDir)\..\..\..\..;$(ProjectDir)\..\..\..\..\..\zsLib;$(ProjectDir)\..\..\..\..\..\op-services-cpp;$(ProjectDir)\..\..\..\..\..\webrtc-deps\boringssl\include;$(ProjectDir)\..\..\..\..\..;$(ProjectDir)\..\..\..\..\..\webrtc;$(ProjectDir)\..\..\..\..\..\webrtc\third_party\libsrtp\config;$(ProjectDir)\..\..\..\..\..\webrtc\third_party\libsrtp\srtp\include;$(ProjectDir)\..\..\..\..\..\webrtc\third_party\libsrtp\srtp\crypto\include;$(ProjectDir)\..\..\..\..\..\webrtc\third_party\usrsctp\usrsctplib;$(ProjectDir)\..\..\..\..\..\webrtc\webrtc\voice_engine\include;$(ProjectDir)\..\..\..\..\..\webrtc\webrtc\video_engine\include;$(ProjectDir)\..\..\..\..\..\webrtc\webrtc\modules\video_capture\include;%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4068;4290</DisableSpecificWarnings>
-      <PreprocessorDefinitions>NOMINMAX;_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>USE_OPENSSL=1;NOMINMAX;WEBRTC_WIN;_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
