@@ -526,7 +526,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    IDTLSTransportTypes::States DTLSTransport::getState() const
+    IDTLSTransportTypes::States DTLSTransport::state() const
     {
       AutoRecursiveLock lock(*this);
       return mCurrentState;

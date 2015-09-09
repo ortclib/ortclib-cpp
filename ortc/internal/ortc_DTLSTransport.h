@@ -213,7 +213,7 @@ namespace ortc
 
       virtual IICETransportPtr transport() const override;
 
-      virtual States getState() const override;
+      virtual States state() const override;
 
       virtual ParametersPtr getLocalParameters() const override;
       virtual ParametersPtr getRemoteParameters() const override;
