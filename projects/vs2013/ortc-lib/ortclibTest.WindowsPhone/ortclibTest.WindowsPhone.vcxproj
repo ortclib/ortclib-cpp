@@ -84,12 +84,12 @@
     <ClCompile>
       <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
       <DisableSpecificWarnings>4453;28204;4068;4290</DisableSpecificWarnings>
-      <AdditionalIncludeDirectories>$(ProjectDir)\..\..\..\..;$(ProjectDir)\..\..\..\..\..;$(ProjectDir)\..\..\..\..\..\op-services-cpp;$(ProjectDir)\..\..\..\..\..\zsLib;%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\..\..\..\..;$(ProjectDir)\..\..\..\..\..;$(ProjectDir)\..\..\..\..\..\op-services-cpp;$(ProjectDir)\..\..\..\..\..\zsLib;$(ProjectDir)\..\..\..\..\..\webrtc\third_party\boringssl\src\include;$(ProjectDir)\..\..\..\..\..\webrtc\webrtc;%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory)</AdditionalIncludeDirectories>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <IgnoreSpecificDefaultLibraries>Advapi32.lib;kernel32.lib;ole32.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <AdditionalDependencies>ws2_32.lib;mfplat.lib;mfuuid.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <IgnoreSpecificDefaultLibraries>IPHLPAPI.lib;Advapi32.lib;kernel32.lib;ole32.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -178,6 +178,14 @@
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\webrtc\third_party\libsrtp\libsrtp_win_phone.vcxproj">
       <Project>{d93717e1-6103-4387-c194-f0f509597912}</Project>
+      <Private>false</Private>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\..\webrtc\third_party\libyuv\libyuv_neon_win_phone.vcxproj">
+      <Project>{fc846571-692a-a671-d75e-2d19bc91bb36}</Project>
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
