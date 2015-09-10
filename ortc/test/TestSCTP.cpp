@@ -223,6 +223,7 @@ namespace ortc
       void FakeICETransport::attachSecure(FakeSecureTransportPtr transport)
       {
         AutoRecursiveLock lock(*this);
+        TESTING_CHECK(!((bool)mSecureTransport.lock()))
         mSecureTransportID = transport->getID();
         mSecureTransport = transport;
       }
@@ -401,6 +402,7 @@ namespace ortc
       //-----------------------------------------------------------------------
       void FakeSecureTransport::init()
       {
+        AutoRecursiveLock lock(*this);
         mICETransport->attachSecure(mThisWeak.lock());
 
         mDataTransport = UseDataTransport::create(mThisWeak.lock());
@@ -858,6 +860,12 @@ namespace ortc
 
         mConnectedTester = remote;
         remote->mConnectedTester = mThisWeak.lock();
+
+        auto localCaps = ISCTPTransport::getCapabilities();
+        auto remoteCaps = ISCTPTransport::getCapabilities();
+
+        mSCTP->start(*remoteCaps);
+        remote->mSCTP->start(*localCaps);
       }
 
       //-----------------------------------------------------------------------
@@ -1163,7 +1171,7 @@ void doTestSCTP()
   SCTPTesterPtr testSCTPObject1;
   SCTPTesterPtr testSCTPObject2;
 
-  TESTING_STDOUT() << "WAITING:      Waiting for ICE testing to complete (max wait is 180 seconds).\n";
+  TESTING_STDOUT() << "WAITING:      Waiting for SCTP testing to complete (max wait is 180 seconds).\n";
 
   // check to see if all DNS routines have resolved
   {

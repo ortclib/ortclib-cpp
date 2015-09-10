@@ -768,6 +768,7 @@ namespace ortc
       ORTC_THROW_INVALID_STATE_IF(!listener)
 
       SCTPTransportPtr pThis(make_shared<SCTPTransport>(make_private {}, IORTCForInternal::queueORTC(), listener, useSecureTransport));
+      pThis->mThisWeak = pThis;
 
       ForListenerPtr forListener = pThis;
 
@@ -1537,7 +1538,12 @@ namespace ortc
 
       UseServicesHelper::debugAppend(resultEl, "graceful shutdown", (bool)mGracefulShutdownReference);
 
+      UseServicesHelper::debugAppend(resultEl, "sctp init", (bool)mSCTPInit);
+      UseServicesHelper::debugAppend(resultEl, "mMaxSessionsPerPort", mMaxSessionsPerPort);
+
       UseServicesHelper::debugAppend(resultEl, "subscribers", mSubscriptions.size());
+
+      UseServicesHelper::debugAppend(resultEl, "data channel subscriptions", mDataChannelSubscriptions.size());
 
       UseServicesHelper::debugAppend(resultEl, "state", toString(mCurrentState));
 
@@ -1568,9 +1574,9 @@ namespace ortc
       UseServicesHelper::debugAppend(resultEl, "local port", mLocalPort);
       UseServicesHelper::debugAppend(resultEl, "remote port", mRemotePort);
 
-      UseServicesHelper::debugAppend(resultEl, "sessions", mSessions.size());
-
       UseServicesHelper::debugAppend(resultEl, "announced data channels", mAnnouncedIncomingDataChannels.size());
+
+      UseServicesHelper::debugAppend(resultEl, "sessions", mSessions.size());
 
       UseServicesHelper::debugAppend(resultEl, "pending reset", mPendingResetSessions.size());
       UseServicesHelper::debugAppend(resultEl, "queued reset", mQueuedResetSessions.size());
@@ -1580,7 +1586,6 @@ namespace ortc
       UseServicesHelper::debugAppend(resultEl, "current allocation", mCurrentAllocationSessionID);
       UseServicesHelper::debugAppend(resultEl, "min allocation", mMinAllocationSessionID);
       UseServicesHelper::debugAppend(resultEl, "max allocation", mMaxAllocationSessionID);
-
       UseServicesHelper::debugAppend(resultEl, "next allocation increment", mNextAllocationIncrement);
 
       UseServicesHelper::debugAppend(resultEl, "waiting to send", mWaitingToSend.size());
