@@ -398,6 +398,8 @@ namespace ortc
                                       uint8_t set_df
                                       )
       {
+        ZS_THROW_INVALID_ASSUMPTION_IF(!addr)
+
         SCTPTransportPtr transport = (*(static_cast<SCTPTransportWeakPtr *>(addr))).lock();
 
         ZS_LOG_TRACE(slog("on sctp output backpet") + ZS_PARAM("address", ((PTRNUMBER)addr)) + ZS_PARAM("length", length) + ZS_PARAM("tos", tos) + ZS_PARAM("set_df", set_df))
@@ -451,6 +453,8 @@ namespace ortc
                                      void* ulp_info
                                      )
       {
+        ZS_THROW_INVALID_ASSUMPTION_IF(!ulp_info)
+
         SCTPTransportPtr transport = (*(static_cast<SCTPTransportWeakPtr *>(ulp_info))).lock();
 
         const SCTPPayloadProtocolIdentifier ppid = static_cast<SCTPPayloadProtocolIdentifier>(ntohl(rcv.rcv_ppid));
@@ -681,21 +685,26 @@ namespace ortc
 
       ZS_LOG_DETAIL(log("destroyed"))
       mThisWeak.reset();
+      mThisSocket->reset();
 
       cancel();
+
+      delete mThisSocket;
+      mThisSocket = NULL;
     }
 
     //-------------------------------------------------------------------------
     SCTPTransportPtr SCTPTransport::convert(ISCTPTransportPtr object)
     {
       ISCTPTransportPtr original = ISCTPTransportTearAway::original(object);
-      return ZS_DYNAMIC_PTR_CAST(SCTPTransport, object);
+      return ZS_DYNAMIC_PTR_CAST(SCTPTransport, original);
     }
 
     //-------------------------------------------------------------------------
     SCTPTransportPtr SCTPTransport::convert(IDataTransportPtr object)
     {
-      return ZS_DYNAMIC_PTR_CAST(SCTPTransport, object);
+      ISCTPTransportPtr sctpTransport = ZS_DYNAMIC_PTR_CAST(ISCTPTransport, object);
+      return convert(sctpTransport);
     }
 
     //-------------------------------------------------------------------------
@@ -769,6 +778,7 @@ namespace ortc
 
       SCTPTransportPtr pThis(make_shared<SCTPTransport>(make_private {}, IORTCForInternal::queueORTC(), listener, useSecureTransport));
       pThis->mThisWeak = pThis;
+      pThis->mThisSocket = new SCTPTransportWeakPtr(pThis);
 
       ForListenerPtr forListener = pThis;
 
@@ -993,6 +1003,7 @@ namespace ortc
 
       sessionID = mCurrentAllocationSessionID;
       ioDataChannel = dataChannel;
+      ioSessionID = sessionID;
       mSessions[sessionID] = dataChannel;
     }
 
@@ -1209,6 +1220,7 @@ namespace ortc
     {
       SCTPTransportPtr pThis(make_shared<SCTPTransport>(make_private {}, IORTCForInternal::queueORTC(), listener, secureTransport, localPort, remotePort));
       pThis->mThisWeak = pThis;
+      pThis->mThisSocket = new SCTPTransportWeakPtr(pThis);
       pThis->init();
       return pThis;
     }
@@ -1239,6 +1251,7 @@ namespace ortc
           usrsctp_conninput(mThisSocket, buffer, bufferLengthInBytes, 0);
 
           attemptAccept();
+          return true;
         }
 
       queue_packet:
@@ -1423,7 +1436,6 @@ namespace ortc
         ZS_LOG_TRACE(log("forwarding to data channel") + ZS_PARAM("data channel", dataChannel->getID()) + packet->toDebug())
         dataChannel->handleSCTPPacket(packet);
       }
-      // HERE
     }
 
     //-------------------------------------------------------------------------
@@ -1628,6 +1640,7 @@ namespace ortc
       if (!stepICETransport()) goto not_ready;
       if (!stepOpen()) goto not_ready;
       if (!stepDeliverIncomingPackets()) goto not_ready;
+      if (!stepConnected()) goto not_ready;
       if (!stepResetStream()) goto not_ready;
       // ... other steps here ...
 
@@ -1781,6 +1794,18 @@ namespace ortc
         pending.pop();
       }
 
+      return true;
+    }
+
+    //-------------------------------------------------------------------------
+    bool SCTPTransport::stepConnected()
+    {
+      if (!mConnected) {
+        ZS_LOG_TRACE(log("waiting to be connected"))
+        return false;
+      }
+
+      ZS_LOG_TRACE(log("connected"))
       return true;
     }
 
@@ -2070,7 +2095,7 @@ namespace ortc
       }
 
       if (usrsctp_listen(mSocket, 1)) {
-        ZS_LOG_ERROR(Detail, log("failed to listen on SCTP socket"))
+        ZS_LOG_ERROR(Detail, log("failed to listen on SCTP socket") + ZS_PARAM("errno", errno))
         return false;
       }
 
@@ -2101,7 +2126,7 @@ namespace ortc
           ZS_LOG_TRACE(log("connect with EINPROGRESS"))
           return true;
         }
-        ZS_LOG_ERROR(Detail, log("unable to connect to remote socket"))
+        ZS_LOG_ERROR(Detail, log("unable to connect to remote socket") + ZS_PARAM("errno", errno))
         return false;
       }
 
@@ -2114,7 +2139,7 @@ namespace ortc
     {
       mSocket = usrsctp_socket(AF_CONN, SOCK_STREAM, IPPROTO_SCTP, SCTPInit::OnSctpInboundPacket, NULL, 0, mThisSocket);
       if (!mSocket) {
-        ZS_LOG_ERROR(Detail, log("failed to create sctp socket"))
+        ZS_LOG_ERROR(Detail, log("failed to create sctp socket") + ZS_PARAM("errno", errno))
         return false;
       }
 
@@ -2136,7 +2161,7 @@ namespace ortc
       // block the thread waiting for the socket operation to complete.
 
       if (usrsctp_set_non_blocking(sock, 1) < 0) {
-        ZS_LOG_ERROR(Detail, log("failed to set SCTP socket to non-blocking"))
+        ZS_LOG_ERROR(Detail, log("failed to set SCTP socket to non-blocking") + ZS_PARAM("errno", errno))
         return false;
       }
 
@@ -2147,7 +2172,7 @@ namespace ortc
       linger_opt.l_onoff = 1;
       linger_opt.l_linger = 0;
       if (usrsctp_setsockopt(sock, SOL_SOCKET, SO_LINGER, &linger_opt, sizeof(linger_opt))) {
-        ZS_LOG_ERROR(Detail, log("failed to set SCTP socket SO_LINGER"))
+        ZS_LOG_ERROR(Detail, log("failed to set SCTP socket SO_LINGER") + ZS_PARAM("errno", errno))
         return false;
       }
 
@@ -2156,7 +2181,7 @@ namespace ortc
       stream_rst.assoc_id = SCTP_ALL_ASSOC;
       stream_rst.assoc_value = 1;
       if (usrsctp_setsockopt(sock, IPPROTO_SCTP, SCTP_ENABLE_STREAM_RESET, &stream_rst, sizeof(stream_rst))) {
-        ZS_LOG_ERROR(Detail, log("failed to set SCTP_ENABLE_STREAM_RESET"))
+        ZS_LOG_ERROR(Detail, log("failed to set SCTP_ENABLE_STREAM_RESET") + ZS_PARAM("errno", errno))
         cancel();
         return false;
       }
@@ -2173,7 +2198,7 @@ namespace ortc
       params.spp_flags = SPP_PMTUD_DISABLE;
       params.spp_pathmtu = kSctpMtu;
       if (usrsctp_setsockopt(sock, IPPROTO_SCTP, SCTP_PEER_ADDR_PARAMS, &params, sizeof(params))) {
-        ZS_LOG_ERROR(Detail, log("failed to set SCTP_PEER_ADDR_PARAMS"))
+        ZS_LOG_ERROR(Detail, log("failed to set SCTP_PEER_ADDR_PARAMS") + ZS_PARAM("errno", errno))
         cancel();
         return false;
       }
@@ -2191,7 +2216,7 @@ namespace ortc
       for (size_t i = 0; i < ARRAY_SIZE(event_types); i++) {
         event.se_type = event_types[i];
         if (usrsctp_setsockopt(sock, IPPROTO_SCTP, SCTP_EVENT, &event, sizeof(event)) < 0) {
-          ZS_LOG_ERROR(Detail, log("failed to set SCTP_EVENT type") + ZS_PARAM("event", event.se_type))
+          ZS_LOG_ERROR(Detail, log("failed to set SCTP_EVENT type") + ZS_PARAM("event", event.se_type) + ZS_PARAM("errno", errno))
           return false;
         }
       }
@@ -2223,8 +2248,13 @@ namespace ortc
         return;
       }
 
+      if (usrsctp_set_ulpinfo(mAcceptSocket, mThisSocket)) {
+        ZS_LOG_ERROR(Detail, log("unable to set this pointer on accept socket") + ZS_PARAM("errno", errno))
+        cancel();
+        return;
+      }
+
       ZS_LOG_TRACE(log("socket accept succeeded"))
-      IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
 
       notifyWriteReady();
     }
@@ -2261,10 +2291,16 @@ namespace ortc
 
       auto socket = mIncoming ? mAcceptSocket : mSocket;
 
-      if (!socket) return false;
+      if (!socket) {
+        ZS_LOG_WARNING(Trace, log("cannot send packet (no socket)"))
+        return false;
+      }
 
       auto found = mSessions.find(inPacket.mSessionID);
-      if (found == mSessions.end()) return false;
+      if (found == mSessions.end()) {
+        ZS_LOG_WARNING(Trace, log("cannot send packet (session was not found)"))
+        return false;
+      }
 
       struct sctp_sendv_spa spa = {};
 
@@ -2396,6 +2432,7 @@ namespace ortc
       switch (change.sac_state) {
         case SCTP_COMM_UP:
           ZS_LOG_TRACE(log("Association change SCTP_COMM_UP"))
+          notifyWriteReady();
           break;
         case SCTP_COMM_LOST:
           ZS_LOG_TRACE(log("Association change SCTP_COMM_LOST"))

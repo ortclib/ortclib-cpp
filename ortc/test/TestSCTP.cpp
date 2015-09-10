@@ -1155,6 +1155,13 @@ using ortc::IICETypes;
 
 #define TEST_BASIC_CONNECTIVITY 0
 
+static void bogusSleep()
+{
+  for (int loop = 0; loop < 100; ++loop)
+  {
+    TESTING_SLEEP(100)
+  }
+}
 
 void doTestSCTP()
 {
@@ -1235,66 +1242,79 @@ void doTestSCTP()
             switch (step) {
               case 2: {
                 if (testSCTPObject1) testSCTPObject1->start(testSCTPObject2);
+                //bogusSleep();
                 break;
               }
               case 3: {
                 if (testSCTPObject1) testSCTPObject1->state(IICETransport::State_Checking);
                 if (testSCTPObject2) testSCTPObject2->state(IICETransport::State_Checking);
+                //bogusSleep();
                 break;
               }
               case 5: {
                 if (testSCTPObject1) testSCTPObject1->state(IICETransport::State_Connected);
                 if (testSCTPObject2) testSCTPObject2->state(IICETransport::State_Connected);
+                //bogusSleep();
                 break;
               }
               case 7: {
                 if (testSCTPObject1) testSCTPObject1->state(IDTLSTransport::State_Connecting);
                 if (testSCTPObject2) testSCTPObject2->state(IDTLSTransport::State_Connecting);
+                //bogusSleep();
                 break;
               }
               case 10: {
                 if (testSCTPObject1) testSCTPObject1->state(IDTLSTransport::State_Connected);
                 if (testSCTPObject2) testSCTPObject2->state(IDTLSTransport::State_Connected);
+                //bogusSleep();
                 break;
               }
               case 11: {
                 if (testSCTPObject1) testSCTPObject1->state(IDTLSTransport::State_Validated);
                 if (testSCTPObject2) testSCTPObject2->state(IDTLSTransport::State_Validated);
+                //bogusSleep();
                 break;
               }
               case 12: {
                 if (testSCTPObject1) testSCTPObject1->state(IICETransport::State_Completed);
                 if (testSCTPObject2) testSCTPObject2->state(IICETransport::State_Completed);
+                //bogusSleep();
                 break;
               }
               case 15: {
                 IDataChannel::Parameters params;
                 params.mLabel = "foo1";
                 if (testSCTPObject1) testSCTPObject1->createChannel(params);
+                bogusSleep();
                 break;
               }
               case 25: {
                 if (testSCTPObject1) testSCTPObject1->sendData("foo1", UseServicesHelper::randomString(10));
+                bogusSleep();
                 break;
               }
               case 30: {
                 if (testSCTPObject1) testSCTPObject1->close();
                 if (testSCTPObject2) testSCTPObject1->close();
+                bogusSleep();
                 break;
               }
               case 33: {
                 if (testSCTPObject1) testSCTPObject1->state(IDTLSTransport::State_Closed);
                 if (testSCTPObject2) testSCTPObject2->state(IDTLSTransport::State_Closed);
+                bogusSleep();
                 break;
               }
               case 34: {
                 if (testSCTPObject1) testSCTPObject1->state(IICETransport::State_Disconnected);
                 if (testSCTPObject2) testSCTPObject2->state(IICETransport::State_Disconnected);
+                bogusSleep();
                 break;
               }
               case 35: {
                 if (testSCTPObject1) testSCTPObject1->state(IICETransport::State_Closed);
                 if (testSCTPObject2) testSCTPObject2->state(IICETransport::State_Closed);
+                bogusSleep();
                 break;
               }
               default: {

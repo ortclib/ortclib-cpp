@@ -238,7 +238,7 @@ namespace ortc
       SharedRecursiveLock(SharedRecursiveLock::create()),
       mDataTransport(transport),
       mParameters(params),
-      mIncoming(ORTC_SCTP_INVALID_DATA_CHANNEL_SESSION_ID == sessionID),
+      mIncoming(ORTC_SCTP_INVALID_DATA_CHANNEL_SESSION_ID != sessionID),
       mSessionID(ORTC_SCTP_INVALID_DATA_CHANNEL_SESSION_ID == sessionID ? (params->mID.hasValue() ? params->mID.value() : ORTC_SCTP_INVALID_DATA_CHANNEL_SESSION_ID) : sessionID)
     {
       ZS_LOG_DETAIL(debug("created"))
@@ -272,7 +272,7 @@ namespace ortc
     DataChannelPtr DataChannel::convert(IDataChannelPtr object)
     {
       IDataChannelPtr original = IDataChannelTearAway::original(object);
-      return ZS_DYNAMIC_PTR_CAST(DataChannel, object);
+      return ZS_DYNAMIC_PTR_CAST(DataChannel, original);
     }
 
     //-------------------------------------------------------------------------
@@ -715,6 +715,8 @@ namespace ortc
       UseServicesHelper::debugAppend(resultEl, "incoming", mIncoming);
       UseServicesHelper::debugAppend(resultEl, "issued open", mIssuedOpen);
       UseServicesHelper::debugAppend(resultEl, "session id", ORTC_SCTP_INVALID_DATA_CHANNEL_SESSION_ID != mSessionID ? string(mSessionID) : String());
+
+      UseServicesHelper::debugAppend(resultEl, "notified closed", mNotifiedClosed);
 
       UseServicesHelper::debugAppend(resultEl, "error", mLastError);
       UseServicesHelper::debugAppend(resultEl, "error reason", mLastErrorReason);

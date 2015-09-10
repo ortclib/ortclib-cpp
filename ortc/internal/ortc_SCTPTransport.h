@@ -571,8 +571,9 @@ namespace ortc
       bool stepStartCalled();
       bool stepSecureTransport();
       bool stepICETransport();
-      bool stepDeliverIncomingPackets();
       bool stepOpen();
+      bool stepDeliverIncomingPackets();
+      bool stepConnected();
       bool stepResetStream();
 
       void cancel();
