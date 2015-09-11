@@ -367,6 +367,7 @@ namespace ortc
       bool mIssuedOpen {};
       WORD mSessionID {};
 
+      bool mRequestedSCTPShutdown {};
       bool mNotifiedClosed {};
 
       WORD mLastError {};

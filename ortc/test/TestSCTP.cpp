@@ -725,7 +725,12 @@ namespace ortc
                (mStateClosing == op2.mStateClosing) &&
                (mStateClosed == op2.mStateClosed) &&
 
-               (mError == op2.mError);
+               (mReceivedBinary == op2.mReceivedBinary) &&
+               (mReceivedText == op2.mReceivedText) &&
+
+               (mError == op2.mError) &&
+
+               (mTransportIncoming == op2.mTransportIncoming);
       }
 
       //-----------------------------------------------------------------------
@@ -875,7 +880,9 @@ namespace ortc
 
         ZS_LOG_BASIC(log("creating data channel") + params.toDebug())
 
-        mDataChannels[params.mLabel] = IDataChannel::create(mThisWeak.lock(), mSCTP, params);
+        auto dataChannel = IDataChannel::create(mThisWeak.lock(), mSCTP, params);
+
+        mDataChannels[params.mLabel] = dataChannel;
       }
 
       //-----------------------------------------------------------------------
@@ -941,6 +948,23 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
+      void SCTPTester::closeChannel(const char *channelID)
+      {
+        IDataChannelPtr channel;
+
+        {
+          AutoRecursiveLock lock(*this);
+
+          auto found = mDataChannels.find(String(channelID));
+          TESTING_CHECK(found != mDataChannels.end())
+
+          channel = (*found).second;
+        }
+
+        channel->close();
+      }
+
+      //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
@@ -959,6 +983,13 @@ namespace ortc
 
         AutoRecursiveLock lock(*this);
         mDataChannels[params->mLabel] = channel;
+
+        auto subscription = channel->subscribe(mThisWeak.lock());
+        TESTING_CHECK(subscription)
+
+        subscription->background(); // auto clean subscription when data channel closes
+
+        ++mExpectations.mIncoming;
       }
 
       //-----------------------------------------------------------------------
@@ -978,6 +1009,8 @@ namespace ortc
 
         TESTING_CHECK(!((bool)mSCTP))
         mSCTP = transport;
+
+        ++mExpectations.mTransportIncoming;
       }
 
       //-----------------------------------------------------------------------
@@ -1052,6 +1085,8 @@ namespace ortc
 
           TESTING_CHECK(0 == UseServicesHelper::compare(*(bufferList.front()), *(data->mBinary)))
 
+          ++mExpectations.mReceivedBinary;
+
           bufferList.pop_front();
         } else {
           ZS_LOG_DETAIL(log("data channel text message") + ZS_PARAM("channel id", channel->getID()) + ZS_PARAM("data", data->mText))
@@ -1064,6 +1099,8 @@ namespace ortc
           TESTING_CHECK(stringList.size() > 0)
 
           TESTING_EQUAL(stringList.front(), data->mText)
+
+          ++mExpectations.mReceivedText;
 
           stringList.pop_front();
         }
@@ -1195,7 +1232,7 @@ void doTestSCTP()
       SCTPTester::Expectations expectationsSCTP1;
       SCTPTester::Expectations expectationsSCTP2;
 
-      expectationsSCTP1.mStateConnecting = 1;
+      expectationsSCTP1.mStateConnecting = 0;
       expectationsSCTP1.mStateOpen = 1;
       expectationsSCTP1.mStateClosing = 1;
       expectationsSCTP1.mStateClosed = 1;
@@ -1213,6 +1250,11 @@ void doTestSCTP()
 
             testSCTPObject1->setClientRole(true);
             testSCTPObject2->setClientRole(false);
+
+            expectationsSCTP2.mIncoming = 1;
+
+            expectationsSCTP2.mReceivedBinary = 0;
+            expectationsSCTP2.mReceivedText = 1;
           }
           break;
         }
@@ -1228,7 +1270,10 @@ void doTestSCTP()
       ULONG lastFound = 0;
       ULONG step = 0;
 
-      while (found < expecting)
+      bool lastStepReached = false;
+
+      while ((found < expecting) &&
+             (!lastStepReached))
       {
         TESTING_SLEEP(1000)
         ++step;
@@ -1285,36 +1330,45 @@ void doTestSCTP()
                 IDataChannel::Parameters params;
                 params.mLabel = "foo1";
                 if (testSCTPObject1) testSCTPObject1->createChannel(params);
-                bogusSleep();
+                //bogusSleep();
                 break;
               }
               case 25: {
                 if (testSCTPObject1) testSCTPObject1->sendData("foo1", UseServicesHelper::randomString(10));
-                bogusSleep();
+                //bogusSleep();
                 break;
               }
-              case 30: {
+              case 40: {
+                if (testSCTPObject1) testSCTPObject1->closeChannel("foo1");
+                //bogusSleep();
+                break;
+              }
+              case 44: {
                 if (testSCTPObject1) testSCTPObject1->close();
                 if (testSCTPObject2) testSCTPObject1->close();
-                bogusSleep();
+                //bogusSleep();
                 break;
               }
-              case 33: {
+              case 46: {
                 if (testSCTPObject1) testSCTPObject1->state(IDTLSTransport::State_Closed);
                 if (testSCTPObject2) testSCTPObject2->state(IDTLSTransport::State_Closed);
-                bogusSleep();
+                //bogusSleep();
                 break;
               }
-              case 34: {
+              case 47: {
                 if (testSCTPObject1) testSCTPObject1->state(IICETransport::State_Disconnected);
                 if (testSCTPObject2) testSCTPObject2->state(IICETransport::State_Disconnected);
                 bogusSleep();
                 break;
               }
-              case 35: {
+              case 49: {
                 if (testSCTPObject1) testSCTPObject1->state(IICETransport::State_Closed);
                 if (testSCTPObject2) testSCTPObject2->state(IICETransport::State_Closed);
                 bogusSleep();
+                break;
+              }
+              case 50: {
+                lastStepReached = true;
                 break;
               }
               default: {

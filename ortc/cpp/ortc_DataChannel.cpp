@@ -434,7 +434,10 @@ namespace ortc
     void DataChannel::send(const String &data)
     {
       AutoRecursiveLock lock(*this);
-      if (data.isEmpty()) send(SCTP_PPID_STRING_LAST, NULL, 0);
+      if (data.isEmpty()) {
+        send(SCTP_PPID_STRING_LAST, NULL, 0);
+        return;
+      }
       send(SCTP_PPID_STRING_LAST, (const BYTE *)data.c_str(), data.length());
     }
 
@@ -532,10 +535,8 @@ namespace ortc
             goto queue_for_later;
           }
 
-          if (isShuttingDown()) {
-            ZS_LOG_TRACE(log("forwarding as event"))
-            goto forward_as_event;
-          }
+          ZS_LOG_TRACE(log("forwarding as event"))
+          goto forward_as_event;
         }
 
       queue_for_later:
@@ -716,6 +717,7 @@ namespace ortc
       UseServicesHelper::debugAppend(resultEl, "issued open", mIssuedOpen);
       UseServicesHelper::debugAppend(resultEl, "session id", ORTC_SCTP_INVALID_DATA_CHANNEL_SESSION_ID != mSessionID ? string(mSessionID) : String());
 
+      UseServicesHelper::debugAppend(resultEl, "requested sctp shutdown", mRequestedSCTPShutdown);
       UseServicesHelper::debugAppend(resultEl, "notified closed", mNotifiedClosed);
 
       UseServicesHelper::debugAppend(resultEl, "error", mLastError);
@@ -940,7 +942,10 @@ namespace ortc
         if (!mNotifiedClosed) {
           auto dataTransport = mDataTransport.lock();
           if (dataTransport) {
-            dataTransport->requestShutdown(mThisWeak.lock(), mSessionID);
+            if (!mRequestedSCTPShutdown) {
+              dataTransport->requestShutdown(mThisWeak.lock(), mSessionID);
+              mRequestedSCTPShutdown = true;
+            }
             ZS_LOG_TRACE(log("waiting for data channel reset"))
             return;
           }

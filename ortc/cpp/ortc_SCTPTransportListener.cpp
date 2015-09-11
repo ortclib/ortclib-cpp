@@ -701,7 +701,10 @@ namespace ortc
       //.......................................................................
       // try to gracefully shutdown
 
-      if (isShutdown()) return;
+      if (isShutdown()) {
+        ZS_LOG_TRACE(log("already shutdown"))
+        return;
+      }
 
       if (!mGracefulShutdownReference) mGracefulShutdownReference = mThisWeak.lock();
 
