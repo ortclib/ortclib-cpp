@@ -41,13 +41,15 @@
 #include <zsLib/Timer.h>
 #include <zsLib/TearAway.h>
 
-//#define ORTC_SETTING_RTP_LISTENER_MAX_MESSAGE_SIZE "ortc/sctp/max-message-size"
+#define ORTC_SETTING_RTP_LISTENER_MAX_RTCP_PACKETS_IN_BUFFER "ortc/rtp-listener/max-rtcp-packets-in-buffer"
+#define ORTC_SETTING_RTP_LISTENER_MAX_AGE_RTCP_PACKETS_IN_SECONDS "ortc/rtp-listener/max-age-rtcp-packets-in-seconds"
 
 namespace ortc
 {
   namespace internal
   {
     ZS_DECLARE_INTERACTION_PTR(IRTPReceiverForRTPListener)
+    ZS_DECLARE_INTERACTION_PTR(IRTPSenderForRTPListener)
 
     ZS_DECLARE_INTERACTION_PTR(IRTPListenerForSettings)
     ZS_DECLARE_INTERACTION_PTR(IRTPListenerForSecureTransport)
@@ -111,9 +113,23 @@ namespace ortc
     {
       ZS_DECLARE_TYPEDEF_PTR(IRTPListenerForRTPReceiver, ForRTPReceiver)
 
+      ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverForRTPListener, UseReceiver)
+      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters)
+      typedef std::list<SecureByteBlockPtr> BufferList;
+
       static ElementPtr toDebug(ForRTPReceiverPtr listener);
 
-      virtual ~IRTPListenerForRTPReceiver() {}
+      static ForRTPReceiverPtr getListener(IRTPTransportPtr rtpTransport);
+
+      virtual PUID getID() const = 0;
+
+      virtual void registerReceiver(
+                                    UseReceiverPtr inReceiver,
+                                    const Parameters &inParams,
+                                    BufferList &outBufferList
+                                    ) = 0;
+
+      virtual void unregisterReceiver(UseReceiver &inReceiver) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -128,9 +144,23 @@ namespace ortc
     {
       ZS_DECLARE_TYPEDEF_PTR(IRTPListenerForRTPSender, ForRTPSender)
 
+      ZS_DECLARE_TYPEDEF_PTR(IRTPSenderForRTPListener, UseSender)
+      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters)
+      typedef std::list<SecureByteBlockPtr> BufferList;
+
       static ElementPtr toDebug(ForRTPSenderPtr listener);
 
-      virtual ~IRTPListenerForRTPSender() {}
+      static ForRTPSenderPtr getListener(IRTPTransportPtr rtpTransport);
+
+      virtual PUID getID() const = 0;
+
+      virtual void registerSender(
+                                  UseSenderPtr inSender,
+                                  const Parameters &inParams,
+                                  BufferList &outBufferList
+                                  ) = 0;
+
+      virtual void unregisterSender(UseSender &inSender) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -153,7 +183,7 @@ namespace ortc
     #pragma mark
     #pragma mark RTPListener
     #pragma mark
-    
+
     class RTPListener : public Noop,
                         public MessageQueueAssociator,
                         public SharedRecursiveLock,
@@ -180,8 +210,15 @@ namespace ortc
       ZS_DECLARE_STRUCT_PTR(TearAwayData)
 
       ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverForRTPListener, UseRTPReceiver)
+      ZS_DECLARE_TYPEDEF_PTR(IRTPSenderForRTPListener, UseRTPSender)
       ZS_DECLARE_TYPEDEF_PTR(IRTPTransport, UseRTPTransport)
       ZS_DECLARE_TYPEDEF_PTR(ISecureTransportForRTPListener, UseSecureTransport)
+      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters)
+
+      typedef std::list<SecureByteBlockPtr> BufferList;
+
+      typedef std::pair<Time, SecureByteBlockPtr> TimeBufferPair;
+      typedef std::list<TimeBufferPair> BufferedRTCPPacketList;
 
       enum States
       {
@@ -263,6 +300,16 @@ namespace ortc
 
       // (duplicate) static ElementPtr toDebug(ForRTPReceiverPtr listener);
 
+      // (duplicate) virtual PUID getID() const = 0;
+
+      virtual void registerReceiver(
+                                    UseReceiverPtr inReceiver,
+                                    const Parameters &inParams,
+                                    BufferList &outBufferList
+                                    );
+
+      virtual void unregisterReceiver(UseReceiver &inReceiver);
+
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark RTPListener => IRTPListenerForRTPSender
@@ -270,6 +317,15 @@ namespace ortc
 
       // (duplicate) static ElementPtr toDebug(ForRTPSenderPtr listener);
 
+      // (duplicate) virtual PUID getID() const = 0;
+
+      virtual void registerSender(
+                                  UseSenderPtr inSender,
+                                  const Parameters &inParams,
+                                  BufferList &outBufferList
+                                  );
+
+      virtual void unregisterSender(UseSender &inReceiver);
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -309,6 +365,7 @@ namespace ortc
       #pragma mark RTPListener => (internal)
       #pragma mark
 
+      static Log::Params slog(const char *message);
       Log::Params log(const char *message) const;
       Log::Params debug(const char *message) const;
       virtual ElementPtr toDebug() const;
@@ -323,6 +380,8 @@ namespace ortc
 
       void setState(States state);
       void setError(WORD error, const char *reason = NULL);
+
+      void expireRTCPPackets();
 
     protected:
       //-----------------------------------------------------------------------
@@ -343,6 +402,17 @@ namespace ortc
       String mLastErrorReason;
 
       UseRTPTransportWeakPtr mRTPTransport;
+
+      size_t mMaxBufferedRTCPPackets {};
+      Seconds mMaxRTCPPacketAge {};
+
+      BufferedRTCPPacketList mBufferedRTCPPackets;
+
+      PUID mReceiverID {};
+      UseRTPReceiverWeakPtr mReceiver;
+
+      PUID mSenderID {};
+      UseRTPSenderWeakPtr mSender;
     };
 
     //-------------------------------------------------------------------------

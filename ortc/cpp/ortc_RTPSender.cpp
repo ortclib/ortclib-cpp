@@ -31,6 +31,8 @@
 
 #include <ortc/internal/ortc_RTPSender.h>
 #include <ortc/internal/ortc_DTLSTransport.h>
+#include <ortc/internal/ortc_ISecureTransport.h>
+#include <ortc/internal/ortc_RTPListener.h>
 #include <ortc/internal/ortc_ORTC.h>
 #include <ortc/internal/platform.h>
 
@@ -150,6 +152,11 @@ namespace ortc
       SharedRecursiveLock(SharedRecursiveLock::create())
     {
       ZS_LOG_DETAIL(debug("created"))
+
+      mListener = UseListener::getListener(transport);
+      ORTC_THROW_INVALID_STATE_IF(!mListener)
+
+      UseSecureTransport::getSendingTransport(transport, rtcpTransport, mSendRTPOverTransport, mSendRTCPOverTransport, mRTPTransport, mRTCPTransport);
     }
 
     //-------------------------------------------------------------------------
@@ -297,8 +304,30 @@ namespace ortc
                                  IRTCPTransportPtr rtcpTransport
                                  )
     {
-#define TODO 1
-#define TODO 2
+      typedef UseListener::BufferList BufferList;
+
+      AutoRecursiveLock lock(*this);
+
+      auto listener = UseListener::getListener(transport);
+      ORTC_THROW_INVALID_STATE_IF(!listener)
+
+      if (mParameters) {
+        if (listener->getID() != mListener->getID()) {
+          // unregister from previous transport
+          mListener->unregisterSender(*this);
+
+          mListener = listener;
+
+          // register with new transport
+          BufferList historicalRTCPPackets;
+          mListener->registerSender(mThisWeak.lock(), *mParameters, historicalRTCPPackets);
+
+#define HANDLE_HISTORICAL_RTCP_PACKETS 1
+#define HANDLE_HISTORICAL_RTCP_PACKETS 2
+        }
+      }
+
+      UseSecureTransport::getSendingTransport(transport, rtcpTransport, mSendRTPOverTransport, mSendRTCPOverTransport, mRTPTransport, mRTCPTransport);
     }
 
     //-------------------------------------------------------------------------
@@ -319,11 +348,28 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    PromisePtr RTPSender::send(const Parameters &parameters)
+    void RTPSender::send(const Parameters &parameters)
     {
+      typedef UseListener::BufferList BufferList;
+
+      AutoRecursiveLock lock(*this);
+
+      if (mParameters) {
+        auto hash = parameters.hash();
+        auto previousHash = mParameters->hash();
+        if (hash == previousHash) {
+          ZS_LOG_TRACE(log("send parameters have not changed (noop)"))
+          return;
+        }
+      }
+
+      mParameters = ParametersPtr(make_shared<Parameters>(parameters));
+
+      BufferList historicalRTCPPackets;
+      mListener->registerSender(mThisWeak.lock(), *mParameters, historicalRTCPPackets);
+
 #define TODO 1
 #define TODO 2
-      return PromisePtr();
     }
 
     //-------------------------------------------------------------------------
@@ -341,6 +387,24 @@ namespace ortc
     #pragma mark
     #pragma mark RTPSender => IRTPSenderForRTPListener
     #pragma mark
+
+    //-------------------------------------------------------------------------
+    bool RTPSender::handlePacket(
+                                 IICETypes::Components viaTransport,
+                                 IICETypes::Components packetType, // will be IICETypes::Component_RTCP
+                                 const BYTE *buffer,
+                                 size_t bufferLengthInBytes
+                                 )
+    {
+      ZS_LOG_TRACE(log("received packet") + ZS_PARAM("via", IICETypes::toString(viaTransport)) + ZS_PARAM("via", IICETypes::toString(packetType)) + ZS_PARAM("buffer size", bufferLengthInBytes))
+
+      AutoRecursiveLock lock(*this);
+
+#define TODO 1
+#define TODO 2
+
+      return false; // return true if handled
+    }
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -572,6 +636,40 @@ namespace ortc
       ZS_LOG_WARNING(Detail, debug("error set") + ZS_PARAM("error", mLastError) + ZS_PARAM("reason", mLastErrorReason))
     }
 
+    //-------------------------------------------------------------------------
+    bool RTPSender::sendPacket(
+                               IICETypes::Components packetType,
+                               const BYTE *buffer,
+                               size_t bufferSizeInBytes
+                               )
+    {
+      IICETypes::Components sendOver {packetType};
+      UseSecureTransportPtr transport;
+
+      {
+        AutoRecursiveLock lock(*this);
+
+        switch (packetType) {
+          case IICETypes::Component_RTP:  {
+            transport = mRTPTransport;
+            sendOver = mSendRTPOverTransport;
+            break;
+          }
+          case IICETypes::Component_RTCP: {
+            transport = mRTCPTransport;
+            sendOver = mSendRTCPOverTransport;
+            break;
+          }
+        }
+      }
+
+      if (!transport) {
+        ZS_LOG_WARNING(Debug, log("no transport available"))
+        return false;
+      }
+
+      return transport->sendPacket(sendOver, packetType, buffer, bufferSizeInBytes);
+    }
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------

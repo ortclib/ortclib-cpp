@@ -135,7 +135,7 @@ namespace ortc
 
     virtual IICETransportPtr transport() const = 0;
 
-    virtual States getState() const = 0;
+    virtual States state() const = 0;
 
     virtual ParametersPtr getLocalParameters() const = 0;
     virtual ParametersPtr getRemoteParameters() const = 0;

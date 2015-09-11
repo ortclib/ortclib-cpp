@@ -361,7 +361,22 @@ namespace ortc
       {
         AutoRecursiveLock lock(*this);
 
-        mRTPListener = UseRTPListener::create(mThisWeak.lock());
+        switch (mComponent) {
+          case IICETypes::Component_RTP: {
+            mRTPListener = UseRTPListener::create(mThisWeak.lock());
+            break;
+          }
+          case IICETypes::Component_RTCP: {
+            UseICETransportPtr rtpIceTransport = mICETransport->getRTPTransport();
+            ORTC_THROW_INVALID_STATE_IF(!rtpIceTransport)
+
+            auto useSecureTransport = DTLSTransport::convert(rtpIceTransport->getSecureTransport());
+            ORTC_THROW_INVALID_STATE_IF(!useSecureTransport)
+
+            mRTPListener = useSecureTransport->getListener();
+            break;
+          }
+        }
 
         mDataTransport = UseDataTransport::create(mThisWeak.lock());
 
@@ -526,7 +541,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    IDTLSTransportTypes::States DTLSTransport::getState() const
+    IDTLSTransportTypes::States DTLSTransport::state() const
     {
       AutoRecursiveLock lock(*this);
       return mCurrentState;

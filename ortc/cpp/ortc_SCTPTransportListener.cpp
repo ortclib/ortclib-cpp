@@ -555,6 +555,8 @@ namespace ortc
             ZS_LOG_WARNING(Debug, log("unable to create sctp transport"))
             return false;
           }
+        } else {
+          transport = (*found).second;
         }
       }
 

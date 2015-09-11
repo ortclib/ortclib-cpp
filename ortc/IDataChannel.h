@@ -70,7 +70,7 @@ namespace ortc
     struct Parameters {
       String            mLabel;
       bool              mOrdered {true};
-      Milliseconds      mMaxPacketLifetime;
+      Milliseconds      mMaxPacketLifetime {};
       Optional<DWORD>   mMaxRetransmits;
       String            mProtocol;
       bool              mNegotiated {false};
