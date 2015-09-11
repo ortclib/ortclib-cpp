@@ -31,6 +31,7 @@
 
 #include <ortc/internal/ortc_RTPReceiver.h>
 #include <ortc/internal/ortc_DTLSTransport.h>
+#include <ortc/internal/ortc_RTPListener.h>
 #include <ortc/internal/ortc_ORTC.h>
 #include <ortc/internal/platform.h>
 
@@ -134,6 +135,9 @@ namespace ortc
       SharedRecursiveLock(SharedRecursiveLock::create())
     {
       ZS_LOG_DETAIL(debug("created"))
+
+      mListener = UseListener::getListener(transport);
+      ORTC_THROW_INVALID_PARAMETERS_IF(!mListener)
     }
 
     //-------------------------------------------------------------------------
@@ -274,8 +278,29 @@ namespace ortc
                                    IRTCPTransportPtr rtcpTransport
                                    )
     {
-#define TODO 1
-#define TODO 2
+      typedef UseListener::BufferList BufferList;
+
+      AutoRecursiveLock lock(*this);
+
+      UseListenerPtr listener = UseListener::getListener(transport);
+      ORTC_THROW_INVALID_PARAMETERS_IF(!listener)
+
+      if (listener->getID() == mListener->getID()) {
+        ZS_LOG_TRACE(log("transport has not changed (noop)"))
+        return;
+      }
+
+      if (mParameters) {
+        // unregister from old listener
+        mListener->unregisterReceiver(*this);
+
+        // register to new listener
+        BufferList historicalRTCPPackets;
+        mListener->registerReceiver(mThisWeak.lock(), *mParameters, historicalRTCPPackets);
+
+#define TODO_PROCESS_HISTORICAL_RTCP_PACKETS_FROM_NEW_TRANSPORT 1
+#define TODO_PROCESS_HISTORICAL_RTCP_PACKETS_FROM_NEW_TRANSPORT 2
+      }
     }
 
     //-------------------------------------------------------------------------
@@ -290,16 +315,35 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPReceiver::receive(const Parameters &parameters)
     {
-#define TODO 1
-#define TODO 2
+      typedef UseListener::BufferList BufferList;
+
+      AutoRecursiveLock lock(*this);
+
+      if (mParameters) {
+        auto hash = parameters.hash();
+        auto previousHash = mParameters->hash();
+        if (hash == previousHash) {
+          ZS_LOG_TRACE(log("receive has not changed (noop)"))
+          return;
+        }
+      }
+
+      mParameters = ParametersPtr(make_shared<Parameters>(parameters));
+
+      BufferList historicalRTCPPackets;
+      mListener->registerReceiver(mThisWeak.lock(), *mParameters, historicalRTCPPackets);
+
+#define TODO_PROCESS_HISTORICAL_RTCP_PACKETS_FROM_NEW_TRANSPORT 1
+#define TODO_PROCESS_HISTORICAL_RTCP_PACKETS_FROM_NEW_TRANSPORT 2
     }
 
     //-------------------------------------------------------------------------
     void RTPReceiver::stop()
     {
+      ZS_LOG_DEBUG(log("stop called"))
+
       AutoRecursiveLock lock(*this);
-#define TODO 1
-#define TODO 2
+      cancel();
     }
 
     //-------------------------------------------------------------------------
@@ -324,6 +368,24 @@ namespace ortc
     #pragma mark RTPReceiver => IRTPReceiverForRTPListener
     #pragma mark
 
+    //-------------------------------------------------------------------------
+    bool RTPReceiver::handlePacket(
+                                   IICETypes::Components viaTransport,
+                                   IICETypes::Components packetType,
+                                   const BYTE *buffer,
+                                   size_t bufferLengthInBytes
+                                   )
+    {
+      ZS_LOG_TRACE(log("received packet") + ZS_PARAM("via", IICETypes::toString(viaTransport)) + ZS_PARAM("via", IICETypes::toString(packetType)) + ZS_PARAM("buffer size", bufferLengthInBytes))
+
+      {
+        AutoRecursiveLock lock(*this);
+        // process packet here
+#define TOOD_PROCESS_PACKET_HERE 1
+#define TOOD_PROCESS_PACKET_HERE 2
+      }
+      return false; // return true if packet was handled
+    }
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -409,6 +471,8 @@ namespace ortc
 
       UseServicesHelper::debugAppend(resultEl, "error", mLastError);
       UseServicesHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
+
+      UseServicesHelper::debugAppend(resultEl, "listener", mListener ? mListener->getID() : 0);
 
       return resultEl;
     }
@@ -506,6 +570,10 @@ namespace ortc
       if (mDefaultSubscription) {
         mDefaultSubscription->cancel();
         mDefaultSubscription.reset();
+      }
+
+      if (mParameters) {
+        mListener->unregisterReceiver(*this);
       }
 
       // make sure to cleanup any final reference to self

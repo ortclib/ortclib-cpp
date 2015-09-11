@@ -242,7 +242,7 @@ namespace ortc
                               size_t bufferLengthInBytes
                               ) override;
 
-      // (duplicate) virtual IDTLSTransportSubscriptionPtr subscribe(IDTLSTransportDelegatePtr delegate) = 0;
+      // (duplicate) virtual IICETransportPtr getICETransport() const = 0;
 
       //-----------------------------------------------------------------------
       #pragma mark

@@ -53,6 +53,15 @@ namespace ortc
 
       static ElementPtr toDebug(ForRTPSenderPtr transport);
 
+      static void getSendingTransport(
+                                      IRTPTransportPtr inRTPTransport,
+                                      IRTCPTransportPtr inRTCPTransport,
+                                      IICETypes::Components &outWhenSendingRTPUseSendOverComponent,
+                                      IICETypes::Components &outWhenSendingRTCPUseSendOverComponent,
+                                      ForRTPSenderPtr &outRTPSecureTransport,
+                                      ForRTPSenderPtr &outRTCPSecureTransport
+                                      );
+
       virtual PUID getID() const = 0;
 
       virtual bool sendPacket(
@@ -61,6 +70,8 @@ namespace ortc
                               const BYTE *buffer,
                               size_t bufferLengthInBytes
                               ) = 0;
+
+      virtual IICETransportPtr getICETransport() const = 0;
     };
 
     //-------------------------------------------------------------------------

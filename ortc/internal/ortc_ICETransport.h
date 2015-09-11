@@ -186,7 +186,10 @@ namespace ortc
 
       virtual IICETypes::Roles getRole() const = 0;
 
+      virtual ICETransportPtr getRTPTransport() const = 0;
       virtual ICETransportPtr getRTCPTransport() const = 0;
+
+      virtual UseSecureTransportPtr getSecureTransport() const = 0;
 
       virtual bool sendPacket(
                               const BYTE *buffer,
@@ -458,12 +461,16 @@ namespace ortc
 
       virtual IICETypes::Roles getRole() const override;
 
+      virtual ICETransportPtr getRTPTransport() const override;
       virtual ICETransportPtr getRTCPTransport() const override;
+
+      virtual UseSecureTransportPtr getSecureTransport() const override;
 
       virtual bool sendPacket(
                               const BYTE *buffer,
                               size_t bufferSizeInBytes
                               ) override;
+
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark ICETransport => IICETransportForDataTransport

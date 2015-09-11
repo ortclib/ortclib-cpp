@@ -30,7 +30,10 @@
  */
 
 #include <ortc/internal/ortc_RTPListener.h>
+#include <ortc/internal/ortc_RTPReceiver.h>
+#include <ortc/internal/ortc_RTPSender.h>
 #include <ortc/internal/ortc_DTLSTransport.h>
+#include <ortc/internal/ortc_SRTPSDESTransport.h>
 #include <ortc/internal/ortc_ORTC.h>
 #include <ortc/internal/platform.h>
 
@@ -38,6 +41,7 @@
 #include <openpeer/services/IHelper.h>
 #include <openpeer/services/IHTTP.h>
 
+#include <zsLib/SafeInt.h>
 #include <zsLib/Stringize.h>
 #include <zsLib/Log.h>
 #include <zsLib/XML.h>
@@ -86,7 +90,8 @@ namespace ortc
     //-------------------------------------------------------------------------
     void IRTPListenerForSettings::applyDefaults()
     {
-//      UseSettings::setUInt(ORTC_SETTING_RTP_TRANSPORT_MAX_MESSAGE_SIZE, 5*1024);
+      UseSettings::setUInt(ORTC_SETTING_RTP_LISTENER_MAX_RTCP_PACKETS_IN_BUFFER, 100);
+      UseSettings::setUInt(ORTC_SETTING_RTP_LISTENER_MAX_AGE_RTCP_PACKETS_IN_SECONDS, 30);
     }
 
     //-------------------------------------------------------------------------
@@ -126,11 +131,39 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    IRTPListenerForRTPReceiver::ForRTPReceiverPtr IRTPListenerForRTPReceiver::getListener(IRTPTransportPtr rtpTransport)
+    {
+      ZS_DECLARE_TYPEDEF_PTR(ISecureTransportForRTPListener, UseSecureTransport)
+
+      ORTC_THROW_INVALID_PARAMETERS_IF(!rtpTransport)
+
+      UseSecureTransportPtr secureTransport;
+
+      {
+        auto result = IDTLSTransport::convert(rtpTransport);
+        if (result) {
+          secureTransport = DTLSTransport::convert(result);
+          if (secureTransport) return secureTransport->getListener();
+        }
+      }
+
+      {
+        auto result = ISRTPSDESTransport::convert(rtpTransport);
+        if (result) {
+          secureTransport = SRTPSDESTransport::convert(result);
+          if (secureTransport) return secureTransport->getListener();
+        }
+      }
+
+      return ForRTPReceiverPtr();
+    }
+
+    //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IRTPListenerForRTPSender
+    #pragma mark IRTPListenerForRTPReceiver
     #pragma mark
 
     //-------------------------------------------------------------------------
@@ -138,6 +171,34 @@ namespace ortc
     {
       if (!listener) return ElementPtr();
       return ZS_DYNAMIC_PTR_CAST(RTPListener, listener)->toDebug();
+    }
+
+    //-------------------------------------------------------------------------
+    IRTPListenerForRTPSender::ForRTPSenderPtr IRTPListenerForRTPSender::getListener(IRTPTransportPtr rtpTransport)
+    {
+      ZS_DECLARE_TYPEDEF_PTR(ISecureTransportForRTPListener, UseSecureTransport)
+
+      ORTC_THROW_INVALID_PARAMETERS_IF(!rtpTransport)
+
+      UseSecureTransportPtr secureTransport;
+
+      {
+        auto result = IDTLSTransport::convert(rtpTransport);
+        if (result) {
+          secureTransport = DTLSTransport::convert(result);
+          if (secureTransport) return secureTransport->getListener();
+        }
+      }
+
+      {
+        auto result = ISRTPSDESTransport::convert(rtpTransport);
+        if (result) {
+          secureTransport = SRTPSDESTransport::convert(result);
+          if (secureTransport) return secureTransport->getListener();
+        }
+      }
+
+      return ForRTPSenderPtr();
     }
 
     //-------------------------------------------------------------------------
@@ -169,7 +230,9 @@ namespace ortc
                              ) :
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
-      mRTPTransport(transport)
+      mRTPTransport(transport),
+      mMaxBufferedRTCPPackets(SafeInt<decltype(mMaxBufferedRTCPPackets)>(UseSettings::getUInt(ORTC_SETTING_RTP_LISTENER_MAX_RTCP_PACKETS_IN_BUFFER))),
+      mMaxRTCPPacketAge(UseSettings::getUInt(ORTC_SETTING_RTP_LISTENER_MAX_AGE_RTCP_PACKETS_IN_SECONDS))
     {
       ZS_LOG_DETAIL(debug("created"))
 
@@ -226,7 +289,6 @@ namespace ortc
     {
       return ZS_DYNAMIC_PTR_CAST(RTPListener, object);
     }
-
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -329,9 +391,128 @@ namespace ortc
                                       size_t bufferLengthInBytes
                                       )
     {
-#define TODO 1
-#define TODO 2
-      return false;
+      UseRTPReceiverPtr receiver;
+      UseRTPSenderPtr sender;
+
+      {
+        AutoRecursiveLock lock(*this);
+
+        if (IICETypes::Component_RTCP == packetType) {
+          SecureByteBlockPtr rtcpBuffer = UseServicesHelper::convertToBuffer(buffer, bufferLengthInBytes);
+
+          expireRTCPPackets();
+
+          mBufferedRTCPPackets.push_back(TimeBufferPair(zsLib::now(), rtcpBuffer));
+        }
+
+        receiver = mReceiver.lock();
+        if (IICETypes::Component_RTCP == packetType) {
+          sender = mSender.lock();
+        }
+      }
+
+#define TODO_THIS_IS_NOT_PROPER_HANDLING_OF_PACKET 1
+#define TODO_THIS_IS_NOT_PROPER_HANDLING_OF_PACKET 2
+
+      bool result = false;
+
+      if (receiver) {
+        auto success = receiver->handlePacket(viaComponent, packetType, buffer, bufferLengthInBytes);
+        result = result || success;
+      }
+
+      if (sender) {
+        auto success = sender->handlePacket(viaComponent, packetType, buffer, bufferLengthInBytes);
+        result = result || success;
+      }
+
+      return result;
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPListener => IRTPListenerForRTPReceiver
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    void RTPListener::registerReceiver(
+                                       UseReceiverPtr inReceiver,
+                                       const Parameters &inParams,
+                                       BufferList &outBufferList
+                                       )
+    {
+      ZS_LOG_TRACE(log("registering RTP receiver") + ZS_PARAM("receiver", inReceiver->getID()) + inParams.toDebug())
+
+      outBufferList.clear();
+
+      AutoRecursiveLock lock(*this);
+
+      mReceiverID = inReceiver->getID();
+      mReceiver = inReceiver;
+
+      expireRTCPPackets();
+
+      for (auto iter = mBufferedRTCPPackets.begin(); iter != mBufferedRTCPPackets.end(); ++iter)
+      {
+        auto buffer = (*iter).second;
+        outBufferList.push_back(buffer);
+      }
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPListener::unregisterReceiver(UseReceiver &inReceiver)
+    {
+      AutoRecursiveLock lock(*this);
+
+      if (inReceiver.getID() != mReceiverID) return;
+      mReceiverID = 0;
+      mReceiver.reset();
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPListener => IRTPListenerForRTPSender
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    void RTPListener::registerSender(
+                                     UseSenderPtr inSender,
+                                     const Parameters &inParams,
+                                     BufferList &outBufferList
+                                     )
+    {
+      ZS_LOG_TRACE(log("registering RTP sender (for RTCP feedback packets)") + ZS_PARAM("sender", inSender->getID()) + inParams.toDebug())
+
+      outBufferList.clear();
+
+      AutoRecursiveLock lock(*this);
+
+      mSenderID = inSender->getID();
+      mSender = inSender;
+
+      expireRTCPPackets();
+
+      for (auto iter = mBufferedRTCPPackets.begin(); iter != mBufferedRTCPPackets.end(); ++iter)
+      {
+        auto buffer = (*iter).second;
+        outBufferList.push_back(buffer);
+      }
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPListener::unregisterSender(UseSender &inSender)
+    {
+      AutoRecursiveLock lock(*this);
+
+      if (inSender.getID() != mSenderID) return;
+      mSenderID = 0;
+      mSender.reset();
     }
 
     //-------------------------------------------------------------------------
@@ -385,6 +566,13 @@ namespace ortc
     #pragma mark
     #pragma mark RTPListener => (internal)
     #pragma mark
+
+    //-------------------------------------------------------------------------
+    Log::Params RTPListener::slog(const char *message)
+    {
+      ElementPtr objectEl = Element::create("ortc::RTPListener");
+      return Log::Params(message, objectEl);
+    }
 
     //-------------------------------------------------------------------------
     Log::Params RTPListener::log(const char *message) const
@@ -558,6 +746,27 @@ namespace ortc
       ZS_LOG_WARNING(Detail, debug("error set") + ZS_PARAM("error", mLastError) + ZS_PARAM("reason", mLastErrorReason))
     }
 
+    //-------------------------------------------------------------------------
+    void RTPListener::expireRTCPPackets()
+    {
+      auto tick = zsLib::now();
+
+      while (mBufferedRTCPPackets.size() > 0) {
+        auto packetTime = mBufferedRTCPPackets.front().first;
+
+        {
+          if (mBufferedRTCPPackets.size() > mMaxBufferedRTCPPackets) goto expire_packet;
+          if (packetTime + mMaxRTCPPacketAge < tick) goto expire_packet;
+        }
+
+      expire_packet:
+        {
+          ZS_LOG_TRACE(log("expiring buffered rtcp packet") + ZS_PARAM("tick", tick) + ZS_PARAM("packet time (s)", packetTime) + ZS_PARAM("total", mBufferedRTCPPackets.size()))
+          mBufferedRTCPPackets.pop_front();
+        }
+      }
+    }
+    
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------

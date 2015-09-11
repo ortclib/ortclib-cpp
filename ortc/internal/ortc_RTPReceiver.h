@@ -33,6 +33,7 @@
 
 #include <ortc/internal/types.h>
 
+#include <ortc/IICETransport.h>
 #include <ortc/IRTPReceiver.h>
 #include <ortc/IDTLSTransport.h>
 
@@ -85,6 +86,13 @@ namespace ortc
       static ElementPtr toDebug(ForRTPListenerPtr transport);
 
       virtual PUID getID() const = 0;
+
+      virtual bool handlePacket(
+                                IICETypes::Components viaTransport,
+                                IICETypes::Components packetType,
+                                const BYTE *buffer,
+                                size_t bufferLengthInBytes
+                                ) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -126,6 +134,8 @@ namespace ortc
       friend interaction IRTPReceiverFactory;
       friend interaction IRTPReceiverForSettings;
       friend interaction IRTPReceiverForRTPListener;
+
+      ZS_DECLARE_TYPEDEF_PTR(IRTPListenerForRTPReceiver, UseListener)
 
       enum States
       {
@@ -213,6 +223,13 @@ namespace ortc
 
       // (duplicate) virtual PUID getID() const = 0;
 
+      virtual bool handlePacket(
+                                IICETypes::Components viaTransport,
+                                IICETypes::Components packetType,
+                                const BYTE *buffer,
+                                size_t bufferLengthInBytes
+                                );
+
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark RTPReceiver => IWakeDelegate
@@ -272,7 +289,9 @@ namespace ortc
       WORD mLastError {};
       String mLastErrorReason;
 
-      Capabilities mCapabilities;
+      ParametersPtr mParameters;
+
+      UseListenerPtr mListener;
     };
 
     //-------------------------------------------------------------------------

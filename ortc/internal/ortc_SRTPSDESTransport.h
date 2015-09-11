@@ -199,6 +199,8 @@ namespace ortc
                               size_t bufferLengthInBytes
                               ) override;
 
+      virtual IICETransportPtr getICETransport() const override;
+
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark SRTPSDESTransport => ISRTPSDESTransportForICETransport
