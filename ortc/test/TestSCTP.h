@@ -400,12 +400,20 @@ namespace ortc
 
       public:
         struct Expectations {
+          // data channel related
+          ULONG mIncoming {0};
           ULONG mStateConnecting {0};
           ULONG mStateOpen {0};
           ULONG mStateClosing {0};
           ULONG mStateClosed {0};
 
+          ULONG mReceivedBinary {0};
+          ULONG mReceivedText {0};
+
           ULONG mError {0};
+
+          // transport
+          ULONG mTransportIncoming {0};
 
           bool operator==(const Expectations &op2) const;
         };
@@ -465,6 +473,8 @@ namespace ortc
                       const char *channelID,
                       const String &message
                       );
+
+        void closeChannel(const char *channelID);
 
       protected:
 

@@ -659,10 +659,9 @@ namespace ortc
 
       DataChannelSessionMap mSessions;
 
+      bool mAttemptResetLater {false};
       DataChannelSessionMap mPendingResetSessions;
       DataChannelSessionMap mQueuedResetSessions;
-      DataChannelSessionMap mQueuedReflectedResetSessions;
-      DataChannelSessionMap mWaitingForReflectedRemoteResetSessions;
 
       WORD mCurrentAllocationSessionID {};
       WORD mMinAllocationSessionID {0};
