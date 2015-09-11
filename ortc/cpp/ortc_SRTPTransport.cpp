@@ -91,7 +91,9 @@ namespace ortc
     #pragma mark (helpers)
     #pragma mark
 
+#ifndef SRTP_MASTER_KEY_LEN
 #define SRTP_MASTER_KEY_LEN (30)
+#endif //ndef SRTP_MASTER_KEY_LEN
 
 #define RTP_MINIMUM_PACKET_HEADER_SIZE (12)
 
@@ -147,6 +149,40 @@ namespace ortc
     #pragma mark
     #pragma mark ISRTPTransportForSecureTransport
     #pragma mark
+
+    //-------------------------------------------------------------------------
+    ISRTPTransportForSecureTransport::ParametersPtr ISRTPTransportForSecureTransport::getLocalParameters()
+    {
+      ParametersPtr params(make_shared<Parameters>());
+
+      {
+        CryptoParameters crypto;
+        crypto.mCryptoSuite = CS_AES_CM_128_HMAC_SHA1_80;
+
+        KeyParameters key;
+        key.mKeyMethod = "inline";
+        key.mKeySalt = UseServicesHelper::convertToBase64(*UseServicesHelper::random(SRTP_MASTER_KEY_LEN));
+        key.mLifetime = "2^32";
+        key.mMKILength = 0;
+
+        crypto.mKeyParams.push_back(key);
+        params->mCryptoParams.push_back(crypto);
+      }
+      {
+        CryptoParameters crypto;
+        crypto.mCryptoSuite = CS_AES_CM_128_HMAC_SHA1_32;
+
+        KeyParameters key;
+        key.mKeyMethod = "inline";
+        key.mKeySalt = UseServicesHelper::convertToBase64(*UseServicesHelper::random(SRTP_MASTER_KEY_LEN));
+        key.mLifetime = "2^32";
+        key.mMKILength = 0;
+
+        crypto.mKeyParams.push_back(key);
+        params->mCryptoParams.push_back(crypto);
+      }
+      return params;
+    }
 
     //-------------------------------------------------------------------------
     ElementPtr ISRTPTransportForSecureTransport::toDebug(ForSecureTransportPtr transport)
@@ -415,8 +451,9 @@ namespace ortc
             ORTC_THROW_INVALID_PARAMETERS("key is not expected length:" + keyParam.mKeySalt)
           }
 
-#define TODO_EXTRACT_AND_FILL_IN_OTHER_KEYING_MATERIAL_VALUES 1
-#define TODO_EXTRACT_AND_FILL_IN_OTHER_KEYING_MATERIAL_VALUES 2
+          // If session params are needed, the values can be parsed here. As
+          // of the current supported crypto parameters, no session parameters
+          // are supported at this time.
 
           if (!keyingMaterial->mSRTPSession)
           {
@@ -481,8 +518,8 @@ namespace ortc
     //-------------------------------------------------------------------------
     void SRTPTransport::init()
     {
-      AutoRecursiveLock lock(*this);
-      IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
+      //AutoRecursiveLock lock(*this);
+      //IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
     }
 
     //-------------------------------------------------------------------------
@@ -571,9 +608,6 @@ namespace ortc
             (100 != mLastRemainingOverallPercentageReported)) {
           delegate->onSRTPTransportLifetimeRemaining(pThis, mLastRemainingLeastKeyPercentageReported, mLastRemainingOverallPercentageReported);
         }
-
-#define TODO_DO_WE_NEED_TO_TELL_ABOUT_ANY_MISSED_EVENTS 1
-#define TODO_DO_WE_NEED_TO_TELL_ABOUT_ANY_MISSED_EVENTS 2
       }
 
       return subscription;
@@ -720,7 +754,7 @@ namespace ortc
       {
         if (!((bool)(usedKeys[loop]))) continue;
 
-        out_len = decryptedBuffer->SizeInBytes();
+        out_len = SafeInt<decltype(out_len)>(decryptedBuffer->SizeInBytes());
 
         // scope: lock the keying material with its own individual lock
         {
@@ -774,7 +808,7 @@ namespace ortc
       ASSERT(((bool)decryptedBuffer))
       ASSERT(out_len > 0)
 
-      ASSERT(out_len <= decryptedBuffer->SizeInBytes())
+      ASSERT(out_len <= SafeInt<decltype(out_len)>(decryptedBuffer->SizeInBytes()))
 
       ZS_LOG_INSANE(log("forwarding packet to secure transport") + ZS_PARAM("via", IICETypes::toString(viaTransport)) + ZS_PARAM("component", IICETypes::toString(component)) + ZS_PARAM("buffer length in bytes", decryptedBuffer->SizeInBytes()))
 
@@ -846,10 +880,7 @@ namespace ortc
       // lib srtp does not understand MKI thus we need to tell it the
       // space available for the packet without including the additional MKI
       // field...
-      size_t libSRTPMaxLength = bufferLengthInBytes + authenticationTagLength;
-
-#define TODO_APPLY_ENCRYPTION_TO_ENCRYPTED_BUFFER_BUT_LIE_TO_SRTP_ABOUT_LENGTH_SINCE_IT_DOESNT_KNOW_ABOUT_ADDITIONAL_MKI_FIELD 1
-#define TODO_APPLY_ENCRYPTION_TO_ENCRYPTED_BUFFER_BUT_LIE_TO_SRTP_ABOUT_LENGTH_SINCE_IT_DOESNT_KNOW_ABOUT_ADDITIONAL_MKI_FIELD 2
+      //size_t libSRTPMaxLength = bufferLengthInBytes + authenticationTagLength;
 
       int out_len {static_cast<int>(bufferLengthInBytes)};
       int err {};
@@ -888,7 +919,7 @@ namespace ortc
       ASSERT(((bool)transport))
       ASSERT(((bool)encryptedBuffer))
 
-      ASSERT(out_len <= encryptedBuffer->SizeInBytes())
+      ASSERT(out_len <= SafeInt<decltype(out_len)>(encryptedBuffer->SizeInBytes()))
 
       // do NOT call this method from within a lock
       return transport->sendEncryptedPacket(sendOverICETransport, packetType, encryptedBuffer->BytePtr(), encryptedBuffer->SizeInBytes());
@@ -905,11 +936,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     void SRTPTransport::onWake()
     {
-      ZS_LOG_DEBUG(log("wake"))
-
-      AutoRecursiveLock lock(*this);
-#define REMOVE_THIS_IF_NOT_NEEDED 1
-#define REMOVE_THIS_IF_NOT_NEEDED 2
+      // NOT USED
+      // ZS_LOG_DEBUG(log("wake"))
+      // AutoRecursiveLock lock(*this);
     }
 
     //-------------------------------------------------------------------------
@@ -923,11 +952,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     void SRTPTransport::onTimer(TimerPtr timer)
     {
-      ZS_LOG_DEBUG(log("timer") + ZS_PARAM("timer id", timer->getID()))
-
-      AutoRecursiveLock lock(*this);
-#define TODO 1
-#define TODO 2
+      // NOT USED
+      // ZS_LOG_DEBUG(log("timer") + ZS_PARAM("timer id", timer->getID()))
+      // AutoRecursiveLock lock(*this);
     }
 
     //-------------------------------------------------------------------------
@@ -1160,8 +1187,7 @@ namespace ortc
 
       UseServicesHelper::debugAppend(resultEl, "key salt", mKeySalt ? UseServicesHelper::convertToHex(*mKeySalt) : String());
 
-#define FILL_IN_WITH_MORE_STUFF_HERE 1
-#define FILL_IN_WITH_MORE_STUFF_HERE 2
+      UseServicesHelper::debugAppend(resultEl, "srtp session", (PTRNUMBER)mSRTPSession);
 
       return resultEl;
     }

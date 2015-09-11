@@ -669,7 +669,7 @@ void doTestDTLS()
   DTLSTesterPtr testDTLSObject1;
   DTLSTesterPtr testDTLSObject2;
 
-  TESTING_STDOUT() << "WAITING:      Waiting for ICE testing to complete (max wait is 180 seconds).\n";
+  TESTING_STDOUT() << "WAITING:      Waiting for DTLS testing to complete (max wait is 180 seconds).\n";
 
   // check to see if all DNS routines have resolved
   {

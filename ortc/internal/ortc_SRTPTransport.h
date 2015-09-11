@@ -91,9 +91,13 @@ namespace ortc
       ZS_DECLARE_TYPEDEF_PTR(ISRTPTransportForSecureTransport, ForSecureTransport)
 
       ZS_DECLARE_TYPEDEF_PTR(ISecureTransportForSRTPTransport, UseSecureTransport)
+      ZS_DECLARE_TYPEDEF_PTR(ISRTPSDESTransport::Parameters, Parameters)
       ZS_DECLARE_TYPEDEF_PTR(ISRTPSDESTransport::CryptoParameters, CryptoParameters)
+      ZS_DECLARE_TYPEDEF_PTR(ISRTPSDESTransport::KeyParameters, KeyParameters)
 
       static ElementPtr toDebug(ForSecureTransportPtr transport);
+
+      static ParametersPtr getLocalParameters();
 
       static ForSecureTransportPtr create(
                                           ISRTPTransportDelegatePtr delegate,
@@ -150,6 +154,7 @@ namespace ortc
       ZS_DECLARE_STRUCT_PTR(DirectionMaterial)
 
       ZS_DECLARE_TYPEDEF_PTR(ISecureTransportForSRTPTransport, UseSecureTransport)
+      ZS_DECLARE_TYPEDEF_PTR(ISRTPSDESTransport::Parameters, Parameters)
       ZS_DECLARE_TYPEDEF_PTR(ISRTPSDESTransport::CryptoParameters, CryptoParameters)
       ZS_DECLARE_TYPEDEF_PTR(ISRTPSDESTransport::KeyParameters, KeyParameters)
 
@@ -305,8 +310,6 @@ namespace ortc
 
         SecureByteBlockPtr mKeySalt;  // key and salt
 
-#define TODO_NEED_MORE_STUFF_HERE 1
-#define TODO_NEED_MORE_STUFF_HERE 2
         //libSRTP Session material
         Lock mSRTPSessionLock;
         srtp_ctx_t* mSRTPSession {};

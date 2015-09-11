@@ -70,7 +70,7 @@ namespace ortc
     struct Parameters {
       String            mLabel;
       bool              mOrdered {true};
-      Milliseconds      mMaxPacketLifetime;
+      Milliseconds      mMaxPacketLifetime {};
       Optional<DWORD>   mMaxRetransmits;
       String            mProtocol;
       bool              mNegotiated {false};
@@ -134,8 +134,16 @@ namespace ortc
 
   interaction IDataChannelDelegate
   {
+    ZS_DECLARE_STRUCT_PTR(MessageEventData)
+
     typedef IDataChannelTypes::States States;
     typedef WORD ErrorCode;
+
+    struct MessageEventData
+    {
+      SecureByteBlockPtr mBinary;
+      String mText;
+    };
 
     virtual void onDataChannelStateChanged(
                                            IDataChannelPtr channel,
@@ -150,7 +158,7 @@ namespace ortc
 
     virtual void onDataChannelMessage(
                                       IDataChannelPtr channel,
-                                      SecureByteBlockPtr buffer
+                                      MessageEventDataPtr data
                                       ) = 0;
   };
 
@@ -178,9 +186,10 @@ ZS_DECLARE_PROXY_TYPEDEF(ortc::IDataChannelPtr, IDataChannelPtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IDataChannelTypes::States, States)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IDataChannelDelegate::ErrorCode, ErrorCode)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::SecureByteBlockPtr, SecureByteBlockPtr)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::IDataChannelDelegate::MessageEventDataPtr, MessageEventDataPtr)
 ZS_DECLARE_PROXY_METHOD_2(onDataChannelStateChanged, IDataChannelPtr, States)
 ZS_DECLARE_PROXY_METHOD_3(onDataChannelError, IDataChannelPtr, ErrorCode, String)
-ZS_DECLARE_PROXY_METHOD_2(onDataChannelMessage, IDataChannelPtr, SecureByteBlockPtr)
+ZS_DECLARE_PROXY_METHOD_2(onDataChannelMessage, IDataChannelPtr, MessageEventDataPtr)
 ZS_DECLARE_PROXY_END()
 
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_BEGIN(ortc::IDataChannelDelegate, ortc::IDataChannelSubscription)
@@ -188,7 +197,8 @@ ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IDataChannelPtr, IDataChannelPtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IDataChannelTypes::States, States)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IDataChannelDelegate::ErrorCode, ErrorCode)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::SecureByteBlockPtr, SecureByteBlockPtr)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IDataChannelDelegate::MessageEventDataPtr, MessageEventDataPtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onDataChannelStateChanged, IDataChannelPtr, States)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_3(onDataChannelError, IDataChannelPtr, ErrorCode, String)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onDataChannelMessage, IDataChannelPtr, SecureByteBlockPtr)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onDataChannelMessage, IDataChannelPtr, MessageEventDataPtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_END()

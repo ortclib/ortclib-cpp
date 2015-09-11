@@ -44,6 +44,7 @@
 #include <ortc/internal/ortc_RTPSender.h>
 #include <ortc/internal/ortc_RTPSender.h>
 #include <ortc/internal/ortc_SCTPTransport.h>
+#include <ortc/internal/ortc_SCTPTransportListener.h>
 #include <ortc/internal/ortc_SRTPTransport.h>
 #include <ortc/internal/ortc_SRTPSDESTransport.h>
 
@@ -152,6 +153,7 @@ namespace ortc
       UseServicesSettings::applyDefaults();
 
       ICertificateForSettings::applyDefaults();
+      IDataChannelForSettings::applyDefaults();
       IDTMFSenderForSettings::applyDefaults();
       IDTLSTransportForSettings::applyDefaults();
       IICEGathererForSettings::applyDefaults();
@@ -162,6 +164,7 @@ namespace ortc
       IRTPReceiverForSettings::applyDefaults();
       IRTPSenderForSettings::applyDefaults();
       ISCTPTransportForSettings::applyDefaults();
+      ISCTPTransportListenerForSettings::applyDefaults();
       ISRTPTransportForSettings::applyDefaults();
       ISRTPSDESTransportForSettings::applyDefaults();
 

@@ -38,6 +38,7 @@
 #include <openpeer/services/IHelper.h>
 #include <openpeer/services/IHTTP.h>
 
+#include <zsLib/SafeInt.h>
 #include <zsLib/Stringize.h>
 #include <zsLib/Log.h>
 #include <zsLib/XML.h>
@@ -237,7 +238,7 @@ namespace ortc
       SharedRecursiveLock(SharedRecursiveLock::create()),
       mDataTransport(transport),
       mParameters(params),
-      mIncoming(ORTC_SCTP_INVALID_DATA_CHANNEL_SESSION_ID == sessionID),
+      mIncoming(ORTC_SCTP_INVALID_DATA_CHANNEL_SESSION_ID != sessionID),
       mSessionID(ORTC_SCTP_INVALID_DATA_CHANNEL_SESSION_ID == sessionID ? (params->mID.hasValue() ? params->mID.value() : ORTC_SCTP_INVALID_DATA_CHANNEL_SESSION_ID) : sessionID)
     {
       ZS_LOG_DETAIL(debug("created"))
@@ -271,7 +272,7 @@ namespace ortc
     DataChannelPtr DataChannel::convert(IDataChannelPtr object)
     {
       IDataChannelPtr original = IDataChannelTearAway::original(object);
-      return ZS_DYNAMIC_PTR_CAST(DataChannel, object);
+      return ZS_DYNAMIC_PTR_CAST(DataChannel, original);
     }
 
     //-------------------------------------------------------------------------
@@ -358,6 +359,8 @@ namespace ortc
         if (0 != mLastError) {
           delegate->onDataChannelError(pThis, mLastError, mLastErrorReason);
         }
+
+        IWakeDelegateProxy::create(pThis)->onWake();
       }
 
       if (isShutdown()) {
@@ -481,50 +484,72 @@ namespace ortc
       {
         AutoRecursiveLock lock(*this);
 
-        if (isShutdown()) {
-          ZS_LOG_WARNING(Debug, log("cannot handle incoming packet when already shutdown"))
-          return false;
-        }
-
-        if (SCTP_PPID_CONTROL == packet->mType) {
-          if (!packet->mBuffer) {
-            ZS_LOG_WARNING(Detail, log("packet does not contain a buffer (which is not valid)"))
+        {
+          if (isShutdown()) {
+            ZS_LOG_WARNING(Debug, log("cannot handle incoming packet when already shutdown"))
             return false;
           }
 
-          if (isShuttingDown()) {
-            ZS_LOG_WARNING(Detail, log("cannot handle control packet when shutting down"))
-            return false;
-          }
-
-          auto type = UseDataHelper::getControlMessageType(packet->mBuffer->BytePtr(), packet->mBuffer->SizeInBytes());
-
-          switch (type) {
-            case ControlMessageType_DataChannelOpen: {
-              ZS_LOG_TRACE(log("handling data channel open packet"))
-              bool result = handleOpenPacket(*packet->mBuffer);
-              ZS_LOG_WARNING_IF(!result, Detail, log("faiiled to parse data channel open packet"))
-              return result;
+          if (SCTP_PPID_CONTROL == packet->mType) {
+            if (!packet->mBuffer) {
+              ZS_LOG_WARNING(Detail, log("packet does not contain a buffer (which is not valid)"))
+              return false;
             }
-            case ControlMessageType_DataChannelAck: {
-              ZS_LOG_TRACE(log("handling data channel ack packet"))
-              bool result = handleAckPacket(*packet->mBuffer);
-              ZS_LOG_WARNING_IF(!result, Detail, log("faiiled to parse data channel ack packet"))
-              return result;
+
+            if (isShuttingDown()) {
+              ZS_LOG_WARNING(Detail, log("cannot handle control packet when shutting down"))
+              return false;
             }
-            default: {
-              if (ZS_IS_LOGGING(Detail)) {
-                String base64 = UseServicesHelper::convertToBase64(*packet->mBuffer);
-                ZS_LOG_WARNING(Detail, log("control message type was not understood") + ZS_PARAM("wire in", base64))
+
+            auto type = UseDataHelper::getControlMessageType(packet->mBuffer->BytePtr(), packet->mBuffer->SizeInBytes());
+
+            ZS_LOG_TRACE(log("received control packet") + ZS_PARAM("type", internal::toString(type)))
+
+            switch (type) {
+              case ControlMessageType_DataChannelOpen: {
+                ZS_LOG_TRACE(log("handling data channel open packet"))
+                bool result = handleOpenPacket(*packet->mBuffer);
+                ZS_LOG_WARNING_IF(!result, Detail, log("faiiled to parse data channel open packet"))
+                return result;
+              }
+              case ControlMessageType_DataChannelAck: {
+                ZS_LOG_TRACE(log("handling data channel ack packet"))
+                bool result = handleAckPacket(*packet->mBuffer);
+                ZS_LOG_WARNING_IF(!result, Detail, log("faiiled to parse data channel ack packet"))
+                return result;
+              }
+              default: {
+                if (ZS_IS_LOGGING(Detail)) {
+                  String base64 = UseServicesHelper::convertToBase64(*packet->mBuffer);
+                  ZS_LOG_WARNING(Detail, log("control message type was not understood") + ZS_PARAM("wire in", base64))
+                }
               }
             }
           }
+
+          if (mSubscriptions.size() < 1) {
+            ZS_LOG_TRACE(log("queue until there is a subscriber"))
+            goto queue_for_later;
+          }
+
+          if (isShuttingDown()) {
+            ZS_LOG_TRACE(log("forwarding as event"))
+            goto forward_as_event;
+          }
         }
 
-#define TODO 1
-#define TODO 2
+      queue_for_later:
+        {
+          ZS_LOG_TRACE(log("queuing incoming data") + packet->toDebug())
+          mIncomingData.push_back(packet);
+          return true;
+        }
 
-
+      forward_as_event:
+        {
+          forwardDataPacketAsEvent(*packet);
+          return true;
+        }
       }
 
       return false;
@@ -609,34 +634,31 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark DataChannel => ITimerDelegate
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    void DataChannel::onTimer(TimerPtr timer)
-    {
-      ZS_LOG_DEBUG(log("timer") + ZS_PARAM("timer id", timer->getID()))
-
-      AutoRecursiveLock lock(*this);
-#define TODO 1
-#define TODO 2
-    }
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
     #pragma mark DataChannel => IPromiseSettledDelegate
     #pragma mark
 
     //-------------------------------------------------------------------------
     void DataChannel::onPromiseSettled(PromisePtr promise)
     {
+      ZS_DECLARE_TYPEDEF_PTR(ISCTPTransportForDataChannel::RejectReason, RejectReason)
+
       ZS_LOG_TRACE(log("on promise settled"))
 
       AutoRecursiveLock lock(*this);
-      step();
+
+      if (mSendReady) {
+        if (mSendReady->isRejected()) {
+          RejectReasonPtr reason = mSendReady->reason<RejectReason>();
+          ZS_THROW_INVALID_ASSUMPTION_IF(!reason)
+
+          ZS_LOG_ERROR(Debug, log("cannot send data") + ZS_PARAM("error", reason->mError) + ZS_PARAM("reason", reason->mErrorReason))
+          setError(reason->mError, reason->mErrorReason);
+          cancel();
+          return;
+        }
+      }
+
+      stepSendData(); // only the send promise exists so attempt to send data
     }
 
     //-------------------------------------------------------------------------
@@ -694,6 +716,8 @@ namespace ortc
       UseServicesHelper::debugAppend(resultEl, "issued open", mIssuedOpen);
       UseServicesHelper::debugAppend(resultEl, "session id", ORTC_SCTP_INVALID_DATA_CHANNEL_SESSION_ID != mSessionID ? string(mSessionID) : String());
 
+      UseServicesHelper::debugAppend(resultEl, "notified closed", mNotifiedClosed);
+
       UseServicesHelper::debugAppend(resultEl, "error", mLastError);
       UseServicesHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
 
@@ -741,16 +765,18 @@ namespace ortc
       // ... other steps here ...
       if (!stepSCTPTransport()) goto not_ready;
       if (!stepIssueConnect()) goto not_ready;
+      stepSendData(true);
       if (!stepWaitConnectAck()) goto not_ready;
       if (!stepOpen()) goto not_ready;
       if (!stepSendData()) goto not_ready;
+      if (!stepDeliveryIncomingPacket()) goto not_ready;
       // ... other steps here ...
 
       goto ready;
 
     not_ready:
       {
-        ZS_LOG_TRACE(debug("dtls is not ready"))
+        ZS_LOG_TRACE(debug("data channel is not ready"))
         return;
       }
 
@@ -801,9 +827,6 @@ namespace ortc
 
       ZS_LOG_DEBUG(log("issuing channel open"))
 
-#define TODO_VERIFY_LOGIC 1
-#define TODO_VERIFY_LOGIC 2
-
       mIssuedOpen = true;
       sendControlOpen();
 
@@ -824,9 +847,6 @@ namespace ortc
       }
 
       ZS_LOG_TRACE(log("incoming connection was acked"))
-#define TODO_VERIFY_LOGIC 1
-#define TODO_VERIFY_LOGIC 2
-
       return true;
     }
 
@@ -838,26 +858,69 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool DataChannel::stepSendData()
+    bool DataChannel::stepSendData(bool onlyControlPackets)
     {
+      if (mSendReady) {
+        if (!mSendReady->isResolved()) {
+          ZS_LOG_TRACE(log("waiting for send to be ready"))
+          return true;
+        }
+
+        ZS_LOG_DEBUG(log("send is now ready"))
+        mSendReady.reset();
+      }
+
       for (auto iter_doNotUse = mOutgoingData.begin(); iter_doNotUse != mOutgoingData.end();)
       {
         auto current = iter_doNotUse;
         ++iter_doNotUse;
 
-        SCTPPacketOutgoingPtr buffer = (*current);
-        if (!deliverOutgoing(*buffer)) {
-          ZS_LOG_WARNING(Trace, log("unable to deliver pending data"))
-          return true;
+        SCTPPacketOutgoingPtr packet = (*current);
+
+        if (onlyControlPackets) {
+          if (SCTP_PPID_CONTROL != packet->mType) {
+            ZS_LOG_TRACE(log("delivered all control packets"))
+            return true;
+          }
         }
 
-#define TODO_VERIFY_LOGIC 1
-#define TODO_VERIFY_LOGIC 2
+        if (!deliverOutgoing(packet)) {
+          ZS_LOG_WARNING(Trace, log("unable to deliver pending data") + packet->toDebug())
+          return true;
+        }
 
         // consume the buffer as "sent"
         mOutgoingData.erase(current);
       }
 
+      return true;
+    }
+
+    //-------------------------------------------------------------------------
+    bool DataChannel::stepDeliveryIncomingPacket()
+    {
+      if (mSubscriptions.size() < 1) {
+        ZS_LOG_TRACE(log("waiting for subscribers"))
+        return true;
+      }
+
+      if (mIncomingData.size() < 1) {
+        ZS_LOG_TRACE(log("no incoming packets to deliver"))
+        return true;
+      }
+
+      ZS_LOG_DEBUG(log("deliverying incoming packets"))
+
+      for (auto iter_doNotUse = mIncomingData.begin(); iter_doNotUse != mIncomingData.end(); )
+      {
+        auto current = iter_doNotUse;
+        ++iter_doNotUse;
+
+        auto packet = (*current);
+        forwardDataPacketAsEvent(*packet);
+
+        mIncomingData.erase(current);
+      }
       return true;
     }
 
@@ -877,8 +940,8 @@ namespace ortc
         if (!mNotifiedClosed) {
           auto dataTransport = mDataTransport.lock();
           if (dataTransport) {
-            ZS_LOG_TRACE(log("waiting for data channel reset"))
             dataTransport->requestShutdown(mThisWeak.lock(), mSessionID);
+            ZS_LOG_TRACE(log("waiting for data channel reset"))
             return;
           }
         }
@@ -889,6 +952,7 @@ namespace ortc
 
       setState(State_Closed);
 
+      mIncomingData.clear();
       mOutgoingData.clear();
 
       mSubscriptions.clear();
@@ -897,9 +961,6 @@ namespace ortc
         mDefaultSubscription->cancel();
         mDefaultSubscription.reset();
       }
-
-#define TODO_VERIFY 1
-#define TODO_VERIFY 2
 
       // make sure to cleanup any final reference to self
       mGracefulShutdownReference.reset();
@@ -937,6 +998,11 @@ namespace ortc
       mLastErrorReason = reason;
 
       ZS_LOG_WARNING(Detail, debug("error set") + ZS_PARAM("error", mLastError) + ZS_PARAM("reason", mLastErrorReason))
+
+      DataChannelPtr pThis = mThisWeak.lock();
+      if (pThis) {
+        mSubscriptions.delegate()->onDataChannelError(mThisWeak.lock(), mLastError, mLastErrorReason);
+      }
     }
 
     //-------------------------------------------------------------------------
@@ -987,7 +1053,7 @@ namespace ortc
           mSendReady.reset();
         }
 
-        if (!deliverOutgoing(*packet)) goto buffer_data;
+        if (!deliverOutgoing(packet)) goto buffer_data;
         return true;
       }
 
@@ -1003,6 +1069,8 @@ namespace ortc
     //-------------------------------------------------------------------------
     void DataChannel::sendControlOpen()
     {
+      ORTC_THROW_INVALID_STATE_IF(!mParameters)
+
       OpenPacket openPacket;
 
       if (mParameters->mOrdered) {
@@ -1011,7 +1079,7 @@ namespace ortc
           openPacket.mReliabilityParameter = mParameters->mMaxRetransmits.value();
         } else if (Milliseconds() != mParameters->mMaxPacketLifetime) {
           openPacket.mChanelType = DataChannelOpenMessageChannelType_PARTIAL_RELIABLE_TIMED;
-          openPacket.mReliabilityParameter = static_cast<decltype(openPacket.mReliabilityParameter)>(mParameters->mMaxPacketLifetime.count());
+          openPacket.mReliabilityParameter = SafeInt<decltype(openPacket.mReliabilityParameter)>(mParameters->mMaxPacketLifetime.count());
         } else {
           openPacket.mChanelType = DataChannelOpenMessageChannelType_RELIABLE;
         }
@@ -1021,7 +1089,7 @@ namespace ortc
           openPacket.mReliabilityParameter = mParameters->mMaxRetransmits.value();
         } else if (Milliseconds() != mParameters->mMaxPacketLifetime) {
           openPacket.mChanelType = DataChannelOpenMessageChannelType_PARTIAL_RELIABLE_TIMED_UNORDERED;
-          openPacket.mReliabilityParameter = static_cast<decltype(openPacket.mReliabilityParameter)>(mParameters->mMaxPacketLifetime.count());
+          openPacket.mReliabilityParameter = SafeInt<decltype(openPacket.mReliabilityParameter)>(mParameters->mMaxPacketLifetime.count());
         } else {
           openPacket.mChanelType = DataChannelOpenMessageChannelType_RELIABLE_UNORDERED;
         }
@@ -1047,15 +1115,19 @@ namespace ortc
         temp.Put((const BYTE *)(openPacket.mProtocol.c_str()), openPacket.mProtocol.length());
       }
 
+      ZS_LOG_TRACE(log("sending open control packet") + ZS_PARAM("open message type", internal::toString(static_cast<DataChannelOpenMessageChannelTypes>(openPacket.mChanelType))) + mParameters->toDebug())
 
-      SecureByteBlockPtr buffer(make_shared<SecureByteBlock>(static_cast<size_t>(temp.CurrentSize())));
+      SecureByteBlockPtr buffer(make_shared<SecureByteBlock>(SafeInt<size_t>(temp.CurrentSize())));
 
       temp.Get(buffer->BytePtr(), buffer->SizeInBytes());
 
-      SCTPPacketOutgoing packet;
-      packet.mOrdered = true;
-      packet.mBuffer = buffer;
-      deliverOutgoing(packet, false);
+      SCTPPacketOutgoingPtr packet(make_shared<SCTPPacketOutgoing>());
+      packet->mType = SCTP_PPID_CONTROL;
+      packet->mOrdered = true;
+      packet->mBuffer = buffer;
+      if (!deliverOutgoing(packet, false)) {
+        mOutgoingData.push_front(packet);
+      }
     }
 
     //-------------------------------------------------------------------------
@@ -1066,36 +1138,48 @@ namespace ortc
       ByteQueue temp;
       temp.Put(ackPacket.mMessageType);
 
-      SecureByteBlockPtr buffer(make_shared<SecureByteBlock>(static_cast<size_t>(temp.CurrentSize())));
+      SecureByteBlockPtr buffer(make_shared<SecureByteBlock>(SafeInt<size_t>(temp.CurrentSize())));
 
       temp.Get(buffer->BytePtr(), buffer->SizeInBytes());
 
-      SCTPPacketOutgoing packet;
-      packet.mOrdered = true;
-      packet.mBuffer = buffer;
-      deliverOutgoing(packet, false);
+      SCTPPacketOutgoingPtr packet(make_shared<SCTPPacketOutgoing>());
+      packet->mType = SCTP_PPID_CONTROL;
+      packet->mOrdered = true;
+      packet->mBuffer = buffer;
+      if (!deliverOutgoing(packet, false)) {
+        mOutgoingData.push_front(packet);
+      }
     }
 
     //-------------------------------------------------------------------------
     bool DataChannel::deliverOutgoing(
-                                      SCTPPacketOutgoing &packet,
+                                      SCTPPacketOutgoingPtr packet,
                                       bool fixPacket
                                       )
     {
-      ZS_LOG_TRACE(log("delivering data") + packet.toDebug())
+      ZS_LOG_TRACE(log("delivering data") + packet->toDebug())
 
-      ORTC_THROW_INVALID_STATE_IF(!mParameters)
-      packet.mSessionID = mSessionID;
+      packet->mSessionID = mSessionID;
       if (fixPacket) {
-        packet.mOrdered = mParameters->mOrdered;
-        packet.mMaxPacketLifetime = mParameters->mMaxPacketLifetime;
-        packet.mMaxRetransmits = mParameters->mMaxRetransmits;
+        ORTC_THROW_INVALID_STATE_IF(!mParameters)
+        packet->mOrdered = mParameters->mOrdered;
+        packet->mMaxPacketLifetime = mParameters->mMaxPacketLifetime;
+        packet->mMaxRetransmits = mParameters->mMaxRetransmits;
       }
 
-#define TODO 1
-#define TODO 2
+      auto transport = mDataTransport.lock();
+      if (!transport) {
+        ZS_LOG_WARNING(Debug, log("cannot send packet (as data transport is gone)"))
+        return false;
+      }
 
-      return true;
+      mSendReady = transport->sendDataNow(packet);
+
+      if (mSendReady) {
+        mSendReady->thenWeak(mThisWeak.lock());
+      }
+
+      return !((bool)mSendReady);
     }
 
     //-------------------------------------------------------------------------
@@ -1127,6 +1211,7 @@ namespace ortc
         openPacket.mProtocol = UseServicesHelper::convertToString(tempProtocol);
 
         if (mIncoming) {
+
           ParametersPtr params(make_shared<Parameters>());
           params->mID = mSessionID;
           switch (openPacket.mChanelType) {
@@ -1171,8 +1256,14 @@ namespace ortc
             goto send_ack;
           }
 
-          auto dataTransport = mDataTransport.lock();
+          ZS_LOG_TRACE(log("incoming channel") + ZS_PARAM("open message type", internal::toString(static_cast<DataChannelOpenMessageChannelTypes>(openPacket.mChanelType))) + params->toDebug())
 
+          mParameters = ParametersPtr(make_shared<Parameters>(*params));
+
+          auto dataTransport = mDataTransport.lock();
+          dataTransport->announceIncoming(mThisWeak.lock(), params);
+
+          goto send_ack;
         }
 
         ZS_LOG_WARNING(Debug, log("received data channel open on non-incoming channel"))
@@ -1204,6 +1295,54 @@ namespace ortc
       return true;
     }
 
+    //-------------------------------------------------------------------------
+    void DataChannel::forwardDataPacketAsEvent(const SCTPPacketIncoming &packet)
+    {
+      ZS_DECLARE_TYPEDEF_PTR(IDataChannelDelegate::MessageEventData, MessageEventData)
+
+      MessageEventDataPtr data(make_shared<MessageEventData>());
+
+      switch (packet.mType) {
+        case SCTP_PPID_NONE:
+        case SCTP_PPID_CONTROL:
+        {
+          ZS_LOG_WARNING(Detail, log("message type is not understood"))
+          return;
+        }
+        case SCTP_PPID_BINARY_EMPTY:
+        case SCTP_PPID_BINARY_PARTIAL:
+        case SCTP_PPID_BINARY_LAST:
+        {
+          if (packet.mBuffer) {
+            data->mBinary = packet.mBuffer;
+          } else {
+            data->mBinary = SecureByteBlockPtr(make_shared<SecureByteBlock>()); // empty buffer
+          }
+          ZS_LOG_TRACE(log("forwarding data binary packet") + ZS_PARAM("buffer size", data->mBinary->SizeInBytes()))
+          if (ZS_IS_LOGGING(Insane)) {
+            String base64 = UseServicesHelper::convertToBase64(*(data->mBinary));
+            ZS_LOG_BASIC(log("forwarding data binary packet") + ZS_PARAM("wire in", base64))
+          }
+          break;
+        }
+        case SCTP_PPID_STRING_EMPTY:
+        case SCTP_PPID_STRING_PARTIAL:
+        case SCTP_PPID_STRING_LAST:
+        {
+          if (packet.mBuffer) {
+            data->mText = UseServicesHelper::convertToString(*(packet.mBuffer));
+          }
+          ZS_LOG_TRACE(log("forwarding data text packet") + ZS_PARAM("text size", data->mText.length()))
+          if (ZS_IS_LOGGING(Insane)) {
+            ZS_LOG_BASIC(log("forwarding data text packet") + ZS_PARAM("text", data->mText))
+          }
+          break;
+        }
+      }
+
+      mSubscriptions.delegate()->onDataChannelMessage(mThisWeak.lock(), data);
+    }
+    
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------

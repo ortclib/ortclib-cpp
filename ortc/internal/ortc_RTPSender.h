@@ -35,6 +35,7 @@
 
 #include <ortc/IRTPSender.h>
 #include <ortc/IDTLSTransport.h>
+#include <ortc/IICETransport.h>
 
 #include <openpeer/services/IWakeDelegate.h>
 #include <zsLib/MessageQueueAssociator.h>
@@ -57,6 +58,9 @@ namespace ortc
 
     ZS_DECLARE_INTERACTION_PTR(IRTPSenderForSettings)
     ZS_DECLARE_INTERACTION_PTR(IRTPSenderForRTPListener)
+
+    ZS_DECLARE_INTERACTION_PTR(ISecureTransportForRTPSender)
+    ZS_DECLARE_INTERACTION_PTR(IRTPListenerForRTPSender)
 
     ZS_DECLARE_INTERACTION_PROXY(IRTPSenderAsyncDelegate)
 
@@ -92,6 +96,13 @@ namespace ortc
       static ElementPtr toDebug(ForRTPListenerPtr transport);
 
       virtual PUID getID() const = 0;
+
+      virtual bool handlePacket(
+                                IICETypes::Components viaTransport,
+                                IICETypes::Components packetType, // will be IICETypes::Component_RTCP
+                                const BYTE *buffer,
+                                size_t bufferLengthInBytes
+                                ) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -153,6 +164,9 @@ namespace ortc
       friend interaction IRTPSenderForSettings;
       friend interaction IRTPSenderForRTPListener;
       friend interaction IRTPSenderForDTMFSender;
+
+      ZS_DECLARE_TYPEDEF_PTR(ISecureTransportForRTPSender, UseSecureTransport)
+      ZS_DECLARE_TYPEDEF_PTR(IRTPListenerForRTPSender, UseListener)
 
       enum States
       {
@@ -229,7 +243,7 @@ namespace ortc
 
       static CapabilitiesPtr getCapabilities(Optional<Kinds> kind);
 
-      virtual PromisePtr send(const Parameters &parameters) override;
+      virtual void send(const Parameters &parameters) override;
       virtual void stop() override;
 
 
@@ -241,6 +255,13 @@ namespace ortc
       // (duplciate) static ElementPtr toDebug(ForRTPListenerPtr transport);
 
       // (duplicate) virtual PUID getID() const = 0;
+
+      virtual bool handlePacket(
+                                IICETypes::Components viaTransport,
+                                IICETypes::Components packetType, // will be IICETypes::Component_RTCP
+                                const BYTE *buffer,
+                                size_t bufferLengthInBytes
+                                );
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -309,6 +330,12 @@ namespace ortc
                                    size_t length
                                    );
 
+      bool sendPacket(
+                      IICETypes::Components packetType,
+                      const BYTE *buffer,
+                      size_t bufferSizeInBytes
+                      );
+
     protected:
       //-----------------------------------------------------------------------
       #pragma mark
@@ -327,7 +354,15 @@ namespace ortc
       WORD mLastError {};
       String mLastErrorReason;
 
-      Capabilities mCapabilities;
+      ParametersPtr mParameters;
+
+      UseListenerPtr mListener;
+
+      UseSecureTransportPtr mRTPTransport;
+      UseSecureTransportPtr mRTCPTransport;
+
+      IICETypes::Components mSendRTPOverTransport {IICETypes::Component_RTP};
+      IICETypes::Components mSendRTCPOverTransport {IICETypes::Component_RTCP};
 
       rtc::scoped_ptr<webrtc::ProcessThread> mModuleProcessThread;
       rtc::scoped_ptr<webrtc::ChannelGroup> mChannelGroup;

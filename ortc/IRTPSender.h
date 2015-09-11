@@ -88,7 +88,7 @@ namespace ortc
 
     static CapabilitiesPtr getCapabilities(Optional<Kinds> kind = Optional<Kinds>());
 
-    virtual PromisePtr send(const Parameters &parameters) = 0;
+    virtual void send(const Parameters &parameters) = 0;
     virtual void stop() = 0;
   };
 

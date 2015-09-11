@@ -1149,9 +1149,22 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    ICETransportPtr ICETransport::getRTPTransport() const
+    {
+      return mRTPTransport.lock();
+    }
+
+    //-------------------------------------------------------------------------
     ICETransportPtr ICETransport::getRTCPTransport() const
     {
       return mRTCPTransport;
+    }
+
+    //-------------------------------------------------------------------------
+    ICETransport::UseSecureTransportPtr ICETransport::getSecureTransport() const
+    {
+      AutoRecursiveLock lock(*this);
+      return mSecureTransport.lock();
     }
 
     //-------------------------------------------------------------------------

@@ -39,6 +39,7 @@
 #include <openpeer/services/IHelper.h>
 #include <openpeer/services/IHTTP.h>
 
+#include <zsLib/SafeInt.h>
 #include <zsLib/Stringize.h>
 #include <zsLib/Log.h>
 #include <zsLib/XML.h>
@@ -243,10 +244,10 @@ namespace ortc
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
       mSecureTransport(DTLSTransport::convert(secureTransport)),
-      mMaxPorts(static_cast<decltype(mMaxPorts)>(UseSettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_LISTENER_MAX_PORTS))),
-      mCurrentAllocationPort(static_cast<decltype(mCurrentAllocationPort)>(UseSettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_LISTENER_DEFAULT_PORT))),
-      mMinAllocationPort(static_cast<decltype(mMinAllocationPort)>(UseSettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_LISTENER_MIN_PORT))),
-      mMaxAllocationPort(static_cast<decltype(mMaxAllocationPort)>(UseSettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_LISTENER_MAX_PORT)))
+      mMaxPorts(SafeInt<decltype(mMaxPorts)>(UseSettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_LISTENER_MAX_PORTS))),
+      mCurrentAllocationPort(SafeInt<decltype(mCurrentAllocationPort)>(UseSettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_LISTENER_DEFAULT_PORT))),
+      mMinAllocationPort(SafeInt<decltype(mMinAllocationPort)>(UseSettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_LISTENER_MIN_PORT))),
+      mMaxAllocationPort(SafeInt<decltype(mMaxAllocationPort)>(UseSettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_LISTENER_MAX_PORT)))
     {
       ORTC_THROW_INVALID_PARAMETERS_IF(!secureTransport)
 
@@ -310,10 +311,10 @@ namespace ortc
     {
       CapabilitiesPtr result(make_shared<Capabilities>());
       result->mMaxMessageSize = UseSettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE);
-      result->mMinPort = static_cast<decltype(result->mMinPort)>(UseSettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_LISTENER_MIN_PORT));
-      result->mMaxPort = static_cast<decltype(result->mMaxPort)>(UseSettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_LISTENER_MAX_PORT));
-      result->mMaxUsablePorts = static_cast<decltype(result->mMaxUsablePorts)>(UseSettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_LISTENER_MAX_PORTS));
-      result->mMaxSessionsPerPort = static_cast<decltype(result->mMaxSessionsPerPort)>(UseSettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_MAX_SESSIONS_PER_PORT));
+      result->mMinPort = SafeInt<decltype(result->mMinPort)>(UseSettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_LISTENER_MIN_PORT));
+      result->mMaxPort = SafeInt<decltype(result->mMaxPort)>(UseSettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_LISTENER_MAX_PORT));
+      result->mMaxUsablePorts = SafeInt<decltype(result->mMaxUsablePorts)>(UseSettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_LISTENER_MAX_PORTS));
+      result->mMaxSessionsPerPort = SafeInt<decltype(result->mMaxSessionsPerPort)>(UseSettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_MAX_SESSIONS_PER_PORT));
       return result;
     }
 
@@ -441,6 +442,72 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    void SCTPTransportListener::announceTransport(
+                                                  UseSCTPTransportPtr transport,
+                                                  WORD localPort,
+                                                  WORD remotePort
+                                                  )
+    {
+      AutoRecursiveLock lock(*this);
+
+      if (isShutdown()) {
+        ZS_LOG_WARNING(Detail, log("cannot announce transport (as shutting down)"))
+        return;
+      }
+
+      auto tuple = UseListenerHelper::createTuple(localPort, remotePort);
+      auto found = mTransports.find(tuple);
+      if (found == mTransports.end()) {
+        ZS_LOG_WARNING(Detail, log("cannot announce incoming transport (as transport was not found in transport list)"))
+        return;
+      }
+
+      ZS_LOG_DEBUG(log("announcing incoming transport") + ZS_PARAM("transport", transport->getID()))
+
+      mSubscriptions.delegate()->onSCTPTransport(SCTPTransport::convert(transport));
+
+      mAnnouncedTransports[transport->getID()] = transport;
+    }
+
+    //-------------------------------------------------------------------------
+    void SCTPTransportListener::notifyShutdown(
+                                               UseSCTPTransport &transport,
+                                               WORD localPort,
+                                               WORD remotePort
+                                               )
+    {
+      AutoRecursiveLock lock(*this);
+
+      if (isShutdown()) {
+        ZS_LOG_TRACE(log("ignoring SCTP transport shutdown notification"))
+        return;
+      }
+
+      auto tuple = UseListenerHelper::createTuple(localPort, remotePort);
+
+      ZS_LOG_DETAIL(log("notified shutdown of SCTP transport") + ZS_PARAM("tuple", tuple) + ZS_PARAM("local port", localPort) + ZS_PARAM("remote port", remotePort) + ZS_PARAM("transport id", transport.getID()))
+
+      {
+        auto found = mTransports.find(tuple);
+        if (found != mTransports.end()) {
+          auto registeredTransport = (*found).second;
+          if (registeredTransport->getID() == transport.getID()) {
+            mTransports.erase(found);
+          }
+        }
+      }
+
+      {
+        auto found = mAnnouncedTransports.find(transport.getID());
+        if (found != mAnnouncedTransports.end()) {
+          mAnnouncedTransports.erase(found);
+        }
+      }
+
+      IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
+    }
+
+    //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -488,6 +555,8 @@ namespace ortc
             ZS_LOG_WARNING(Debug, log("unable to create sctp transport"))
             return false;
           }
+        } else {
+          transport = (*found).second;
         }
       }
 
@@ -612,11 +681,13 @@ namespace ortc
 
       goto ready;
 
+#if 0
     not_ready:
       {
         ZS_LOG_TRACE(debug("not ready"))
         return;
       }
+#endif //0
 
     ready:
       {
@@ -708,12 +779,9 @@ namespace ortc
         for (auto iter = mAnnouncedTransports.begin(); iter != mAnnouncedTransports.end(); ++iter) {
           // NOTE: ID of data channels are always greater than last so order
           // should be guarenteed.
-          auto sctpTransport = (*iter).second;
+          UseSCTPTransportPtr sctpTransport = (*iter).second;
           delegate->onSCTPTransport(SCTPTransport::convert(sctpTransport));
         }
-
-#define TODO_DO_WE_NEED_TO_TELL_ABOUT_ANY_MISSED_EVENTS 1
-#define TODO_DO_WE_NEED_TO_TELL_ABOUT_ANY_MISSED_EVENTS 2
       }
 
       if (isShutdown()) {

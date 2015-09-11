@@ -33,6 +33,7 @@
 
 #include <ortc/internal/types.h>
 
+#include <ortc/IDataChannel.h>
 #include <ortc/ISCTPTransport.h>
 #include <ortc/IDTLSTransport.h>
 #include <ortc/IICETransport.h>
@@ -132,7 +133,7 @@ namespace ortc
       WORD                mSessionID {};
       bool                mOrdered {true};
       Milliseconds        mMaxPacketLifetime;
-      DWORD               mMaxRetransmits {};
+      Optional<DWORD>     mMaxRetransmits;
       SecureByteBlockPtr  mBuffer;
 
       ElementPtr toDebug() const;
@@ -165,11 +166,23 @@ namespace ortc
 
     interaction ISCTPTransportForDataChannel
     {
+      ZS_DECLARE_STRUCT_PTR(RejectReason)
+
       ZS_DECLARE_TYPEDEF_PTR(ISCTPTransportForDataChannel, ForDataChannel)
 
       ZS_DECLARE_TYPEDEF_PTR(IDataChannelForSCTPTransport, UseDataChannel)
 
+      ZS_DECLARE_TYPEDEF_PTR(IDataChannelTypes::Parameters, Parameters)
+
       static ElementPtr toDebug(ForDataChannelPtr transport);
+
+      struct RejectReason : public Any
+      {
+        RejectReason(WORD error, const char *reason) : mError(error), mErrorReason(reason) {}
+        static RejectReasonPtr create(WORD error, const char *reason) {return RejectReasonPtr(make_shared<RejectReason>(error, reason));}
+        WORD mError {};
+        String mErrorReason;
+      };
 
       virtual PUID getID() const = 0;
 
@@ -183,6 +196,11 @@ namespace ortc
       virtual bool isShuttingDown() const = 0;
       virtual bool isShutdown() const = 0;
       virtual bool isReady() const = 0;
+
+      virtual void announceIncoming(
+                                    UseDataChannelPtr dataChannel,
+                                    ParametersPtr params
+                                    ) = 0;
 
       virtual PromisePtr sendDataNow(SCTPPacketOutgoingPtr packet) = 0;
 
@@ -327,6 +345,8 @@ namespace ortc
       ZS_DECLARE_TYPEDEF_PTR(ISCTPTransportListenerForSCTPTransport, UseListener)
       ZS_DECLARE_TYPEDEF_PTR(IICETransportForDataTransport, UseICETransport)
 
+      ZS_DECLARE_TYPEDEF_PTR(IDataChannelTypes::Parameters, Parameters)
+
       ZS_DECLARE_STRUCT_PTR(TearAwayData)
 
       typedef PUID DataChannelID;
@@ -401,8 +421,6 @@ namespace ortc
 
       virtual PUID getID() const override {return mID;}
 
-      static CapabilitiesPtr getCapabilities();
-
       virtual IDTLSTransportPtr transport() const;
 
       virtual WORD port() const;
@@ -434,6 +452,11 @@ namespace ortc
       // (duplicate) virtual bool isShuttingDown() const override;
       // (duplicate) virtual bool isShutdown() const override;
       virtual bool isReady() const override;
+
+      virtual void announceIncoming(
+                                    UseDataChannelPtr dataChannel,
+                                    ParametersPtr params
+                                    ) override;
 
       virtual PromisePtr sendDataNow(SCTPPacketOutgoingPtr packet) override;
 
@@ -548,8 +571,10 @@ namespace ortc
       bool stepStartCalled();
       bool stepSecureTransport();
       bool stepICETransport();
-      bool stepDeliverIncomingPackets();
       bool stepOpen();
+      bool stepDeliverIncomingPackets();
+      bool stepConnected();
+      bool stepResetStream();
 
       void cancel();
 
@@ -569,6 +594,10 @@ namespace ortc
                        bool &outWouldBlock
                        );
       void notifyWriteReady();
+
+      void handleNotificationPacket(const sctp_notification &notification);
+      void handleNotificationAssocChange(const sctp_assoc_change &change);
+      void handleStreamResetEvent(const sctp_stream_reset_event &event);
 
     public:
 
@@ -616,8 +645,6 @@ namespace ortc
 
       CapabilitiesPtr mCapabilities;
 
-      DataChannelMap mAnnouncedIncomingDataChannels;
-
       SCTPTransportWeakPtr *mThisSocket {};
 
       bool mIncoming {false};
@@ -628,10 +655,14 @@ namespace ortc
       WORD mLocalPort {};
       WORD mRemotePort {};
 
+      DataChannelMap mAnnouncedIncomingDataChannels;
+
       DataChannelSessionMap mSessions;
 
       DataChannelSessionMap mPendingResetSessions;
       DataChannelSessionMap mQueuedResetSessions;
+      DataChannelSessionMap mQueuedReflectedResetSessions;
+      DataChannelSessionMap mWaitingForReflectedRemoteResetSessions;
 
       WORD mCurrentAllocationSessionID {};
       WORD mMinAllocationSessionID {0};
@@ -640,6 +671,7 @@ namespace ortc
 
       PromiseQueue mWaitingToSend;
 
+      bool mConnected {false};
       bool mWriteReady {false};
 
       BufferQueue mPendingIncomingBuffers;

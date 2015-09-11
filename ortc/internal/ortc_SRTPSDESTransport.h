@@ -39,7 +39,6 @@
 #include <ortc/internal/ortc_ISecureTransport.h>
 #include <ortc/internal/ortc_ISRTPTransport.h>
 
-#include <openpeer/services/IWakeDelegate.h>
 #include <zsLib/MessageQueueAssociator.h>
 
 namespace ortc
@@ -102,8 +101,6 @@ namespace ortc
                               public ISecureTransportForRTPListener,
                               public ISRTPSDESTransportForSettings,
                               public ISRTPSDESTransportAsyncDelegate,
-                              public IWakeDelegate,
-                              public IICETransportDelegate,
                               public ISRTPTransportDelegate
     {
     protected:
@@ -121,10 +118,6 @@ namespace ortc
       ZS_DECLARE_TYPEDEF_PTR(IICETransportForSecureTransport, UseICETransport)
       ZS_DECLARE_TYPEDEF_PTR(ISRTPTransportForSecureTransport, UseSRTPTransport)
       ZS_DECLARE_TYPEDEF_PTR(IRTPListenerForSecureTransport, UseRTPListener)
-
-      enum State
-      {
-      };
 
     public:
       SRTPSDESTransport(
@@ -206,6 +199,8 @@ namespace ortc
                               size_t bufferLengthInBytes
                               ) override;
 
+      virtual IICETransportPtr getICETransport() const override;
+
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark SRTPSDESTransport => ISRTPSDESTransportForICETransport
@@ -280,36 +275,6 @@ namespace ortc
 
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark SRTPSDESTransport => IWakeDelegate
-      #pragma mark
-
-      virtual void onWake() override;
-
-      //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark SRTPSDESTransport => IICETransportDelegate
-      #pragma mark
-
-      virtual void onICETransportStateChanged(
-                                              IICETransportPtr transport,
-                                              IICETransport::States state
-                                              ) override;
-
-      virtual void onICETransportCandidatePairAvailable(
-                                                        IICETransportPtr transport,
-                                                        CandidatePairPtr candidatePair
-                                                        ) override;
-      virtual void onICETransportCandidatePairGone(
-                                                   IICETransportPtr transport,
-                                                   CandidatePairPtr candidatePair
-                                                   ) override;
-      virtual void onICETransportCandidatePairChanged(
-                                                      IICETransportPtr transport,
-                                                      CandidatePairPtr candidatePair
-                                                      ) override;
-
-      //-----------------------------------------------------------------------
-      #pragma mark
       #pragma mark SRTPSDESTransport => ISRTPTransportDelegate
       #pragma mark
 
@@ -331,8 +296,6 @@ namespace ortc
 
       bool isShuttingDown() const;
       bool isShutdown() const;
-
-      void step();
 
       void cancel();
 

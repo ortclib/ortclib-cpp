@@ -41,13 +41,17 @@
 #include <openpeer/services/IHelper.h>
 #include <openpeer/services/IHTTP.h>
 
+#include <zsLib/SafeInt.h>
 #include <zsLib/Stringize.h>
 #include <zsLib/Log.h>
 #include <zsLib/XML.h>
 
+#include <cryptopp/queue.h>
 #include <cryptopp/sha.h>
 
 #include <usrsctp.h>
+
+#include <sstream>
 
 //#include <netinet/sctp_os.h>
 #ifdef _WIN32
@@ -88,6 +92,8 @@ namespace ortc
   typedef openpeer::services::Hasher<CryptoPP::SHA1> SHA1Hasher;
 
   ZS_DECLARE_INTERACTION_TEAR_AWAY(ISCTPTransport, internal::SCTPTransport::TearAwayData)
+
+  typedef CryptoPP::ByteQueue ByteQueue;
 
   namespace internal
   {
@@ -206,6 +212,51 @@ namespace ortc
         ElementPtr objectEl = Element::create("ortc::SCTPHelper");
         return Log::Params(message, objectEl);
       }
+
+      //-----------------------------------------------------------------------
+      static String listFlags(int flags)
+      {
+        std::stringstream result;
+        bool first = true;
+        // Skip past the first 12 chars (strlen("SCTP_STREAM_"))
+
+        struct flaginfo_t {
+          int value;
+          const char* name;
+        } flaginfo[] = {
+          {SCTP_STREAM_RESET_INCOMING_SSN, "RESET_INCOMING_SSN"},
+          {SCTP_STREAM_RESET_OUTGOING_SSN, "RESET_OUTGOING_SSN"},
+          {SCTP_STREAM_RESET_DENIED, "RESET_DENIED"},
+          {SCTP_STREAM_RESET_FAILED,"RESET_FAILED"},
+          {SCTP_STREAM_CHANGE_DENIED, "CHANGE_DENIED"}
+        };
+
+        for (int i = 0; i < ARRAY_SIZE(flaginfo); ++i) {
+          if (flags & flaginfo[i].value) {
+            if (!first) result << " | ";
+            result << flaginfo[i].name;
+            first = false;
+          }
+        }
+        return result.str();
+      }
+
+      //-----------------------------------------------------------------------
+      static String listArray(
+                              const WORD *array,
+                              size_t numElements
+                              )
+      {
+        std::stringstream result;
+        for (size_t i = 0; i < numElements; ++i) {
+          if (i) {
+            result << ", " << array[i];
+          } else {
+            result << array[i];
+          }
+        }
+        return result.str();
+      }
     };
 
     //-------------------------------------------------------------------------
@@ -281,7 +332,7 @@ namespace ortc
         // second paragraph of
         // http://tools.ietf.org/html/draft-ietf-rtcweb-data-channel-05#section-6.2
         // is cricket::kMaxSctpSid.
-        usrsctp_sysctl_set_sctp_nr_outgoing_streams_default(static_cast<uint32_t>(UseSettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_MAX_SESSIONS_PER_PORT)));
+        usrsctp_sysctl_set_sctp_nr_outgoing_streams_default(SafeInt<uint32_t>(UseSettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_MAX_SESSIONS_PER_PORT)));
 
         mInitialized = true;
       }
@@ -347,6 +398,8 @@ namespace ortc
                                       uint8_t set_df
                                       )
       {
+        ZS_THROW_INVALID_ASSUMPTION_IF(!addr)
+
         SCTPTransportPtr transport = (*(static_cast<SCTPTransportWeakPtr *>(addr))).lock();
 
         ZS_LOG_TRACE(slog("on sctp output backpet") + ZS_PARAM("address", ((PTRNUMBER)addr)) + ZS_PARAM("length", length) + ZS_PARAM("tos", tos) + ZS_PARAM("set_df", set_df))
@@ -400,25 +453,30 @@ namespace ortc
                                      void* ulp_info
                                      )
       {
+        ZS_THROW_INVALID_ASSUMPTION_IF(!ulp_info)
+
         SCTPTransportPtr transport = (*(static_cast<SCTPTransportWeakPtr *>(ulp_info))).lock();
 
         const SCTPPayloadProtocolIdentifier ppid = static_cast<SCTPPayloadProtocolIdentifier>(ntohl(rcv.rcv_ppid));
 
-        switch (ppid) {
-          case SCTP_PPID_CONTROL:
-          case SCTP_PPID_BINARY_EMPTY:
-          case SCTP_PPID_BINARY_PARTIAL:
-          case SCTP_PPID_BINARY_LAST:
-          case SCTP_PPID_STRING_EMPTY:
-          case SCTP_PPID_STRING_PARTIAL:
-          case SCTP_PPID_STRING_LAST:
-          {
-            break;
-          }
-          case SCTP_PPID_NONE:
-          default: {
-            ZS_LOG_WARNING(Trace, slog("incoming protocol identifier type was not understood (dropping packet)") + ZS_PARAM("ppid", ppid))
-            return 1;
+
+        if (0 == (flags & MSG_NOTIFICATION)) {
+          switch (ppid) {
+            case SCTP_PPID_CONTROL:
+            case SCTP_PPID_BINARY_EMPTY:
+            case SCTP_PPID_BINARY_PARTIAL:
+            case SCTP_PPID_BINARY_LAST:
+            case SCTP_PPID_STRING_EMPTY:
+            case SCTP_PPID_STRING_PARTIAL:
+            case SCTP_PPID_STRING_LAST:
+            {
+              break;
+            }
+            case SCTP_PPID_NONE:
+            default: {
+              ZS_LOG_WARNING(Trace, slog("incoming protocol identifier type was not understood (dropping packet)") + ZS_PARAM("ppid", ppid))
+              return 1;
+            }
           }
         }
 
@@ -627,21 +685,26 @@ namespace ortc
 
       ZS_LOG_DETAIL(log("destroyed"))
       mThisWeak.reset();
+      mThisSocket->reset();
 
       cancel();
+
+      delete mThisSocket;
+      mThisSocket = NULL;
     }
 
     //-------------------------------------------------------------------------
     SCTPTransportPtr SCTPTransport::convert(ISCTPTransportPtr object)
     {
       ISCTPTransportPtr original = ISCTPTransportTearAway::original(object);
-      return ZS_DYNAMIC_PTR_CAST(SCTPTransport, object);
+      return ZS_DYNAMIC_PTR_CAST(SCTPTransport, original);
     }
 
     //-------------------------------------------------------------------------
     SCTPTransportPtr SCTPTransport::convert(IDataTransportPtr object)
     {
-      return ZS_DYNAMIC_PTR_CAST(SCTPTransport, object);
+      ISCTPTransportPtr sctpTransport = ZS_DYNAMIC_PTR_CAST(ISCTPTransport, object);
+      return convert(sctpTransport);
     }
 
     //-------------------------------------------------------------------------
@@ -714,6 +777,8 @@ namespace ortc
       ORTC_THROW_INVALID_STATE_IF(!listener)
 
       SCTPTransportPtr pThis(make_shared<SCTPTransport>(make_private {}, IORTCForInternal::queueORTC(), listener, useSecureTransport));
+      pThis->mThisWeak = pThis;
+      pThis->mThisSocket = new SCTPTransportWeakPtr(pThis);
 
       ForListenerPtr forListener = pThis;
 
@@ -752,14 +817,6 @@ namespace ortc
         oldThis->cancel();
       }
       return tearAway;
-    }
-
-    //-------------------------------------------------------------------------
-    ISCTPTransportTypes::CapabilitiesPtr SCTPTransport::getCapabilities()
-    {
-      CapabilitiesPtr result(make_shared<Capabilities>());
-      result->mMaxMessageSize = UseSettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE);
-      return result;
     }
 
     //-------------------------------------------------------------------------
@@ -834,9 +891,6 @@ namespace ortc
           auto dataChannel = (*iter).second;
           delegate->onSCTPTransportDataChannel(mThisWeak.lock(), DataChannel::convert(dataChannel));
         }
-
-#define TODO_DO_WE_NEED_TO_TELL_ABOUT_ANY_MISSED_EVENTS 1
-#define TODO_DO_WE_NEED_TO_TELL_ABOUT_ANY_MISSED_EVENTS 2
       }
 
       if (isShutdown()) {
@@ -892,6 +946,16 @@ namespace ortc
             ZS_LOG_ERROR(Detail, log("session is queued to reset (i.e. in use)") + ZS_PARAM("session id", sessionID))
             ORTC_THROW_INVALID_PARAMETERS("session is queued pending reset, sessions=" + string(sessionID))
           }
+          found = mQueuedReflectedResetSessions.find(sessionID);
+          if (found != mQueuedReflectedResetSessions.end()) {
+            ZS_LOG_ERROR(Detail, log("session is reflectively queued to reset (i.e. in use)") + ZS_PARAM("session id", sessionID))
+            ORTC_THROW_INVALID_PARAMETERS("session is reflectively queued pending reset, sessions=" + string(sessionID))
+          }
+          found = mWaitingForReflectedRemoteResetSessions.find(sessionID);
+          if (found != mWaitingForReflectedRemoteResetSessions.end()) {
+            ZS_LOG_ERROR(Detail, log("session is waiting for reflected remote reset (i.e. in use)") + ZS_PARAM("session id", sessionID))
+            ORTC_THROW_INVALID_PARAMETERS("session is waiting for reflected remote reset reset, sessions=" + string(sessionID))
+          }
 
           if (!existingDataChannel->isIncoming()) {
             ZS_LOG_ERROR(Detail, log("session is already in use") + ZS_PARAM("session id", sessionID))
@@ -939,6 +1003,7 @@ namespace ortc
 
       sessionID = mCurrentAllocationSessionID;
       ioDataChannel = dataChannel;
+      ioSessionID = sessionID;
       mSessions[sessionID] = dataChannel;
     }
 
@@ -975,26 +1040,64 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    void SCTPTransport::announceIncoming(
+                                         UseDataChannelPtr dataChannel,
+                                         ParametersPtr params
+                                         )
+    {
+      ZS_THROW_INVALID_ARGUMENT_IF(!dataChannel)
+      ZS_THROW_INVALID_ARGUMENT_IF(!params)
+
+      AutoRecursiveLock lock(*this);
+
+      auto found = mSessions.find(params->mID.value());
+      if (found == mSessions.end()) {
+        ZS_LOG_WARNING(Debug, log("cannot announce incoming session as it is not active") + params->toDebug())
+        return;
+      }
+
+      if ((isShutdown()) ||
+          (isShuttingDown())) {
+        ZS_LOG_WARNING(Debug, log("cannot announce incoming session while shutting down / shutdown") + params->toDebug())
+        return;
+      }
+
+      mAnnouncedIncomingDataChannels[dataChannel->getID()] = dataChannel;
+
+      ZS_LOG_DEBUG(log("notify delegates of incoming data channel") + ZS_PARAM("data channel", dataChannel->getID()))
+
+      mSubscriptions.delegate()->onSCTPTransportDataChannel(mThisWeak.lock(), DataChannel::convert(dataChannel));
+    }
+
+    //-------------------------------------------------------------------------
     PromisePtr SCTPTransport::sendDataNow(SCTPPacketOutgoingPtr packet)
     {
+      ZS_DECLARE_TYPEDEF_PTR(ISCTPTransportForDataChannel::RejectReason, RejectReason)
       {
         AutoRecursiveLock lock(*this);
 
         if ((isShuttingDown()) ||
             (isShutdown())) {
           ZS_LOG_WARNING(Debug, log("cannot send data while shutting down / shutdown"))
-          return Promise::createRejected(IORTCForInternal::queueORTC());
+          return Promise::createRejected(RejectReason::create(UseHTTP::HTTPStatusCode_ClientClosedRequest, "cannot send during shutdown"), IORTCForInternal::queueORTC());
         }
 
         if (State_Ready != mCurrentState) goto waiting_to_send;
         if (!mWriteReady) goto waiting_to_send;
+
+        if (packet->mBuffer) {
+          if (packet->mBuffer->SizeInBytes() > mCapabilities->mMaxMessageSize) {
+            ZS_LOG_ERROR(Detail, log("attempting to send packet larger than remote is capable") + ZS_PARAM("buffer size", packet->mBuffer->SizeInBytes()) + mCapabilities->toDebug())
+            return Promise::createRejected(RejectReason::create(UseHTTP::HTTPStatusCode_BandwidthLimitExceeded, "buffer too large to send"), IORTCForInternal::queueORTC());
+          }
+        }
 
         bool wouldBlock = false;
         if (!attemptSend(*packet, wouldBlock)) {
           if (wouldBlock) goto waiting_to_send;
 
           ZS_LOG_WARNING(Debug, log("unable to send packet at this time"))
-          return Promise::createRejected(IORTCForInternal::queueORTC());
+          return Promise::createRejected(RejectReason::create(UseHTTP::HTTPStatusCode_ExpectationFailed, "unexpected error"), IORTCForInternal::queueORTC());
         }
         goto done;
       }
@@ -1069,12 +1172,23 @@ namespace ortc
         resetPending = resetPending || (found != mQueuedResetSessions.end());
       }
 
+      {
+        auto found = mQueuedReflectedResetSessions.find(sessionID);
+        resetPending = resetPending || (found != mQueuedReflectedResetSessions.end());
+      }
+
+      {
+        auto found = mWaitingForReflectedRemoteResetSessions.find(sessionID);
+        resetPending = resetPending || (found != mWaitingForReflectedRemoteResetSessions.end());
+      }
+
       if (wasActive) {
         if (resetPending) {
           ZS_LOG_TRACE(log("already pending reset") + ZS_PARAM("session id", sessionID))
           return;
         }
         mQueuedResetSessions[sessionID] = dataChannel;
+        mWaitingForReflectedRemoteResetSessions[sessionID] = dataChannel;
         IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
         return;
       }
@@ -1106,6 +1220,7 @@ namespace ortc
     {
       SCTPTransportPtr pThis(make_shared<SCTPTransport>(make_private {}, IORTCForInternal::queueORTC(), listener, secureTransport, localPort, remotePort));
       pThis->mThisWeak = pThis;
+      pThis->mThisSocket = new SCTPTransportWeakPtr(pThis);
       pThis->init();
       return pThis;
     }
@@ -1136,6 +1251,7 @@ namespace ortc
           usrsctp_conninput(mThisSocket, buffer, bufferLengthInBytes, 0);
 
           attemptAccept();
+          return true;
         }
 
       queue_packet:
@@ -1212,11 +1328,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     void SCTPTransport::onTimer(TimerPtr timer)
     {
-      ZS_LOG_DEBUG(log("timer") + ZS_PARAM("timer id", timer->getID()))
-
-      AutoRecursiveLock lock(*this);
-#define TODO 1
-#define TODO 2
+      // UNUSED
+      // ZS_LOG_DEBUG(log("timer") + ZS_PARAM("timer id", timer->getID()))
+      // AutoRecursiveLock lock(*this);
     }
 
     //-------------------------------------------------------------------------
@@ -1231,6 +1345,21 @@ namespace ortc
     void SCTPTransport::onIncomingPacket(SCTPPacketIncomingPtr packet)
     {
       ZS_LOG_TRACE(log("on incoming packet") + packet->toDebug())
+
+      if (0 != (packet->mFlags & MSG_NOTIFICATION)) {
+        ZS_LOG_TRACE(log("incoming packet is a notification packet") + packet->toDebug())
+
+        if (!packet->mBuffer) {
+          ZS_LOG_WARNING(Detail, log("incoming notification packet missing data") + packet->toDebug())
+          return;
+        }
+
+        const sctp_notification &notification = reinterpret_cast<const sctp_notification&>(*(packet->mBuffer->BytePtr()));
+        ZS_THROW_INVALID_ASSUMPTION_IF(notification.sn_header.sn_length != packet->mBuffer->SizeInBytes())
+
+        handleNotificationPacket(notification);
+        return;
+      }
 
       UseDataChannelPtr dataChannel;
 
@@ -1264,6 +1393,24 @@ namespace ortc
           }
         }
 
+        // scope: check queued reset
+        {
+          auto found = mQueuedReflectedResetSessions.find(packet->mSessionID);
+          if (found != mQueuedReflectedResetSessions.end()) {
+            dataChannel = (*found).second;
+            goto forward_to_data_channel;
+          }
+        }
+
+        // scope: check waiting for reflected remote reset
+        {
+          auto found = mWaitingForReflectedRemoteResetSessions.find(packet->mSessionID);
+          if (found != mWaitingForReflectedRemoteResetSessions.end()) {
+            dataChannel = (*found).second;
+            goto forward_to_data_channel;
+          }
+        }
+
         // not found anywhere
         dataChannel = UseDataChannel::create(mThisWeak.lock(), packet->mSessionID);
 
@@ -1282,10 +1429,13 @@ namespace ortc
 
     forward_to_data_channel:
       {
+        if (!dataChannel) {
+          ZS_LOG_WARNING(Detail, log("data channel is not known (likely already closed)") + packet->toDebug())
+          return;
+        }
         ZS_LOG_TRACE(log("forwarding to data channel") + ZS_PARAM("data channel", dataChannel->getID()) + packet->toDebug())
         dataChannel->handleSCTPPacket(packet);
       }
-      // HERE
     }
 
     //-------------------------------------------------------------------------
@@ -1400,7 +1550,12 @@ namespace ortc
 
       UseServicesHelper::debugAppend(resultEl, "graceful shutdown", (bool)mGracefulShutdownReference);
 
+      UseServicesHelper::debugAppend(resultEl, "sctp init", (bool)mSCTPInit);
+      UseServicesHelper::debugAppend(resultEl, "mMaxSessionsPerPort", mMaxSessionsPerPort);
+
       UseServicesHelper::debugAppend(resultEl, "subscribers", mSubscriptions.size());
+
+      UseServicesHelper::debugAppend(resultEl, "data channel subscriptions", mDataChannelSubscriptions.size());
 
       UseServicesHelper::debugAppend(resultEl, "state", toString(mCurrentState));
 
@@ -1421,8 +1576,6 @@ namespace ortc
 
       UseServicesHelper::debugAppend(resultEl, mCapabilities ? mCapabilities->toDebug() : ElementPtr());
 
-      UseServicesHelper::debugAppend(resultEl, "announced data channels", mAnnouncedIncomingDataChannels.size());
-
       UseServicesHelper::debugAppend(resultEl, "this socket", (PTRNUMBER)mThisSocket);
 
       UseServicesHelper::debugAppend(resultEl, "incoming", mIncoming);
@@ -1433,19 +1586,23 @@ namespace ortc
       UseServicesHelper::debugAppend(resultEl, "local port", mLocalPort);
       UseServicesHelper::debugAppend(resultEl, "remote port", mRemotePort);
 
+      UseServicesHelper::debugAppend(resultEl, "announced data channels", mAnnouncedIncomingDataChannels.size());
+
       UseServicesHelper::debugAppend(resultEl, "sessions", mSessions.size());
 
       UseServicesHelper::debugAppend(resultEl, "pending reset", mPendingResetSessions.size());
       UseServicesHelper::debugAppend(resultEl, "queued reset", mQueuedResetSessions.size());
+      UseServicesHelper::debugAppend(resultEl, "queued reflective reset", mQueuedReflectedResetSessions.size());
+      UseServicesHelper::debugAppend(resultEl, "waiting for remote reflected reset", mWaitingForReflectedRemoteResetSessions.size());
 
       UseServicesHelper::debugAppend(resultEl, "current allocation", mCurrentAllocationSessionID);
       UseServicesHelper::debugAppend(resultEl, "min allocation", mMinAllocationSessionID);
       UseServicesHelper::debugAppend(resultEl, "max allocation", mMaxAllocationSessionID);
-
       UseServicesHelper::debugAppend(resultEl, "next allocation increment", mNextAllocationIncrement);
 
       UseServicesHelper::debugAppend(resultEl, "waiting to send", mWaitingToSend.size());
 
+      UseServicesHelper::debugAppend(resultEl, "connected", mConnected);
       UseServicesHelper::debugAppend(resultEl, "write ready", mWriteReady);
 
       UseServicesHelper::debugAppend(resultEl, "pending incoming buffers", mPendingIncomingBuffers.size());
@@ -1483,6 +1640,8 @@ namespace ortc
       if (!stepICETransport()) goto not_ready;
       if (!stepOpen()) goto not_ready;
       if (!stepDeliverIncomingPackets()) goto not_ready;
+      if (!stepConnected()) goto not_ready;
+      if (!stepResetStream()) goto not_ready;
       // ... other steps here ...
 
       goto ready;
@@ -1624,6 +1783,8 @@ namespace ortc
         return true;
       }
 
+      ZS_LOG_DEBUG(log("delivering pending packets") + ZS_PARAM("pending packets", mPendingIncomingBuffers.size()))
+
       BufferQueue pending = mPendingIncomingBuffers;
       mPendingIncomingBuffers = BufferQueue();
 
@@ -1631,6 +1792,74 @@ namespace ortc
         SecureByteBlockPtr buffer = pending.front();
         handleDataPacket(buffer->BytePtr(), buffer->SizeInBytes());
         pending.pop();
+      }
+
+      return true;
+    }
+
+    //-------------------------------------------------------------------------
+    bool SCTPTransport::stepConnected()
+    {
+      if (!mConnected) {
+        ZS_LOG_TRACE(log("waiting to be connected"))
+        return false;
+      }
+
+      ZS_LOG_TRACE(log("connected"))
+      return true;
+    }
+
+    //-------------------------------------------------------------------------
+    bool SCTPTransport::stepResetStream()
+    {
+      if (mPendingResetSessions.size() > 0) {
+        ZS_LOG_TRACE(log("still waiting for stream resets to complete"))
+        return true;
+      }
+
+      if ((mQueuedResetSessions.size() < 1) &&
+          (mQueuedReflectedResetSessions.size() < 1)) {
+        ZS_LOG_TRACE(log("no streams waiting to reset"))
+        return true;
+      }
+
+      for (auto iter = mQueuedResetSessions.begin(); iter != mQueuedResetSessions.end(); ++iter) {
+        auto sessionID = (*iter).first;
+        auto dataChannel = (*iter).second;
+        mPendingResetSessions[sessionID] = dataChannel;
+      }
+      for (auto iter = mQueuedReflectedResetSessions.begin(); iter != mQueuedReflectedResetSessions.end(); ++iter) {
+        auto sessionID = (*iter).first;
+        auto dataChannel = (*iter).second;
+        mPendingResetSessions[sessionID] = dataChannel;
+      }
+
+      const size_t numStreams = mPendingResetSessions.size();
+      const size_t numBytes = sizeof(struct sctp_reset_streams) + (numStreams * sizeof(WORD));
+
+      SecureByteBlockPtr buffer(make_shared<SecureByteBlock>(numBytes));
+
+      struct sctp_reset_streams *pReset = reinterpret_cast<struct sctp_reset_streams *>(buffer->BytePtr());
+
+      pReset->srs_assoc_id = SCTP_ALL_ASSOC;
+      pReset->srs_flags = SCTP_STREAM_RESET_INCOMING | SCTP_STREAM_RESET_OUTGOING;
+      pReset->srs_number_streams = SafeInt<decltype(pReset->srs_number_streams)>(numStreams);
+
+      int index = 0;
+      for (auto iter = mPendingResetSessions.begin(); iter != mPendingResetSessions.end(); ++iter, ++index)
+      {
+        auto sessionID = (*iter).first;
+        pReset->srs_stream_list[index] = sessionID;
+        ZS_LOG_TRACE(log("will need to reset stream") + ZS_PARAM("session ID", sessionID))
+      }
+
+      ZS_LOG_DEBUG(log("sending stream reset request") + ZS_PARAM("total to reset", mPendingResetSessions.size()))
+
+      auto result = usrsctp_setsockopt(mIncoming ? mAcceptSocket : mSocket, IPPROTO_SCTP, SCTP_RESET_STREAMS, pReset, SafeInt<socklen_t>(buffer->SizeInBytes()));
+
+      if (result < 0) {
+        ZS_LOG_ERROR(Detail, log("failed to perform stream reset") + ZS_PARAM("total to reset", mPendingResetSessions.size()))
+        return false;
       }
 
       return true;
@@ -1659,10 +1888,23 @@ namespace ortc
               session->requestShutdown();
             }
 
-            if (mSecureTransportReady) {
-              if (!mSecureTransportReady->isSettled()) goto transport_not_available;
+            if (!mCapabilities) {
+              ZS_LOG_WARNING(Detail, log("start was not called"))
+              goto transport_not_available;
             }
-            if (mSecureTransportClosed->isSettled()) goto transport_not_available;
+
+            if (mSecureTransportReady) {
+              if (!mSecureTransportReady->isSettled()) {
+                ZS_LOG_WARNING(Detail, log("secure transport was never ready"))
+                goto transport_not_available;
+              }
+            }
+            if (mSecureTransportClosed) {
+              if (mSecureTransportClosed->isSettled()) {
+                ZS_LOG_WARNING(Detail, log("secure transport is already closed"))
+                goto transport_not_available;
+              }
+            }
 
             auto iceTransport = mICETransport.lock();
             if (!iceTransport) {
@@ -1686,16 +1928,35 @@ namespace ortc
               }
             }
 
+            if (!mSocket) {
+              ZS_LOG_WARNING(Detail, log("socket was not open"))
+              goto transport_not_available;
+            }
+            if (mIncoming) {
+              if (!mAcceptSocket) {
+                ZS_LOG_WARNING(Detail, log("accept socket was not open"))
+                goto transport_not_available;
+              }
+            }
+
+            stepDeliverIncomingPackets();
+            if (!stepResetStream()) {
+              ZS_LOG_WARNING(Detail, log("failed to reset streams during shutdown"))
+              goto transport_not_available;
+            }
+
             if (mSessions.size() > 0) goto waiting_to_close;
             if (mPendingResetSessions.size() > 0) goto waiting_to_close;
             if (mQueuedResetSessions.size() > 0) goto waiting_to_close;
+            if (mQueuedReflectedResetSessions.size() > 0) goto waiting_to_close;
+            if (mWaitingForReflectedRemoteResetSessions.size() > 0) goto waiting_to_close;
 
             goto done_waiting;
           }
 
         waiting_to_close:
           {
-            ZS_LOG_TRACE(log("waiting for sessions to close") + ZS_PARAM("sessions", mSessions.size()) + ZS_PARAM("pending", mPendingResetSessions.size()) + ZS_PARAM("queued", mQueuedResetSessions.size()))
+            ZS_LOG_TRACE(log("waiting for sessions to close") + ZS_PARAM("sessions", mSessions.size()) + ZS_PARAM("pending", mPendingResetSessions.size()) + ZS_PARAM("queued", mQueuedResetSessions.size()) + ZS_PARAM("waiting", mWaitingForReflectedRemoteResetSessions.size()))
             return;
           }
 
@@ -1747,16 +2008,29 @@ namespace ortc
       for (auto iter = mPendingResetSessions.begin(); iter != mPendingResetSessions.end(); ++iter)
       {
         auto session = (*iter).second;
-        session->notifyClosed();
+        if (session) {
+          session->notifyClosed();
+        }
       }
       mPendingResetSessions.clear();
 
       for (auto iter = mQueuedResetSessions.begin(); iter != mQueuedResetSessions.end(); ++iter)
       {
         auto session = (*iter).second;
-        session->notifyClosed();
+        if (session) {
+          session->notifyClosed();
+        }
       }
       mQueuedResetSessions.clear();
+
+      for (auto iter = mWaitingForReflectedRemoteResetSessions.begin(); iter != mWaitingForReflectedRemoteResetSessions.end(); ++iter)
+      {
+        auto session = (*iter).second;
+        if (session) {
+          session->notifyClosed();
+        }
+      }
+      mWaitingForReflectedRemoteResetSessions.clear();
 
       while (mWaitingToSend.size() > 0) {
         auto promise = mWaitingToSend.front();
@@ -1765,6 +2039,11 @@ namespace ortc
       }
 
       mPendingIncomingBuffers = BufferQueue();
+
+      auto listener = mListener.lock();
+      if (listener) {
+        listener->notifyShutdown(*this, mLocalPort, mRemotePort);
+      }
 
       // make sure to cleanup any final reference to self
       mGracefulShutdownReference.reset();
@@ -1816,7 +2095,7 @@ namespace ortc
       }
 
       if (usrsctp_listen(mSocket, 1)) {
-        ZS_LOG_ERROR(Detail, log("failed to listen on SCTP socket"))
+        ZS_LOG_ERROR(Detail, log("failed to listen on SCTP socket") + ZS_PARAM("errno", errno))
         return false;
       }
 
@@ -1847,7 +2126,7 @@ namespace ortc
           ZS_LOG_TRACE(log("connect with EINPROGRESS"))
           return true;
         }
-        ZS_LOG_ERROR(Detail, log("unable to connect to remote socket"))
+        ZS_LOG_ERROR(Detail, log("unable to connect to remote socket") + ZS_PARAM("errno", errno))
         return false;
       }
 
@@ -1860,7 +2139,7 @@ namespace ortc
     {
       mSocket = usrsctp_socket(AF_CONN, SOCK_STREAM, IPPROTO_SCTP, SCTPInit::OnSctpInboundPacket, NULL, 0, mThisSocket);
       if (!mSocket) {
-        ZS_LOG_ERROR(Detail, log("failed to create sctp socket"))
+        ZS_LOG_ERROR(Detail, log("failed to create sctp socket") + ZS_PARAM("errno", errno))
         return false;
       }
 
@@ -1882,7 +2161,7 @@ namespace ortc
       // block the thread waiting for the socket operation to complete.
 
       if (usrsctp_set_non_blocking(sock, 1) < 0) {
-        ZS_LOG_ERROR(Detail, log("failed to set SCTP socket to non-blocking"))
+        ZS_LOG_ERROR(Detail, log("failed to set SCTP socket to non-blocking") + ZS_PARAM("errno", errno))
         return false;
       }
 
@@ -1893,7 +2172,7 @@ namespace ortc
       linger_opt.l_onoff = 1;
       linger_opt.l_linger = 0;
       if (usrsctp_setsockopt(sock, SOL_SOCKET, SO_LINGER, &linger_opt, sizeof(linger_opt))) {
-        ZS_LOG_ERROR(Detail, log("failed to set SCTP socket SO_LINGER"))
+        ZS_LOG_ERROR(Detail, log("failed to set SCTP socket SO_LINGER") + ZS_PARAM("errno", errno))
         return false;
       }
 
@@ -1902,7 +2181,7 @@ namespace ortc
       stream_rst.assoc_id = SCTP_ALL_ASSOC;
       stream_rst.assoc_value = 1;
       if (usrsctp_setsockopt(sock, IPPROTO_SCTP, SCTP_ENABLE_STREAM_RESET, &stream_rst, sizeof(stream_rst))) {
-        ZS_LOG_ERROR(Detail, log("failed to set SCTP_ENABLE_STREAM_RESET"))
+        ZS_LOG_ERROR(Detail, log("failed to set SCTP_ENABLE_STREAM_RESET") + ZS_PARAM("errno", errno))
         cancel();
         return false;
       }
@@ -1919,7 +2198,7 @@ namespace ortc
       params.spp_flags = SPP_PMTUD_DISABLE;
       params.spp_pathmtu = kSctpMtu;
       if (usrsctp_setsockopt(sock, IPPROTO_SCTP, SCTP_PEER_ADDR_PARAMS, &params, sizeof(params))) {
-        ZS_LOG_ERROR(Detail, log("failed to set SCTP_PEER_ADDR_PARAMS"))
+        ZS_LOG_ERROR(Detail, log("failed to set SCTP_PEER_ADDR_PARAMS") + ZS_PARAM("errno", errno))
         cancel();
         return false;
       }
@@ -1937,7 +2216,7 @@ namespace ortc
       for (size_t i = 0; i < ARRAY_SIZE(event_types); i++) {
         event.se_type = event_types[i];
         if (usrsctp_setsockopt(sock, IPPROTO_SCTP, SCTP_EVENT, &event, sizeof(event)) < 0) {
-          ZS_LOG_ERROR(Detail, log("failed to set SCTP_EVENT type") + ZS_PARAM("event", event.se_type))
+          ZS_LOG_ERROR(Detail, log("failed to set SCTP_EVENT type") + ZS_PARAM("event", event.se_type) + ZS_PARAM("errno", errno))
           return false;
         }
       }
@@ -1969,8 +2248,13 @@ namespace ortc
         return;
       }
 
+      if (usrsctp_set_ulpinfo(mAcceptSocket, mThisSocket)) {
+        ZS_LOG_ERROR(Detail, log("unable to set this pointer on accept socket") + ZS_PARAM("errno", errno))
+        cancel();
+        return;
+      }
+
       ZS_LOG_TRACE(log("socket accept succeeded"))
-      IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
 
       notifyWriteReady();
     }
@@ -1990,6 +2274,10 @@ namespace ortc
         auto found = mQueuedResetSessions.find(sessionID);
         if (found != mQueuedResetSessions.end()) return false;
       }
+      {
+        auto found = mWaitingForReflectedRemoteResetSessions.find(sessionID);
+        if (found != mWaitingForReflectedRemoteResetSessions.end()) return false;
+      }
       return true;
     }
 
@@ -2003,10 +2291,16 @@ namespace ortc
 
       auto socket = mIncoming ? mAcceptSocket : mSocket;
 
-      if (!socket) return false;
+      if (!socket) {
+        ZS_LOG_WARNING(Trace, log("cannot send packet (no socket)"))
+        return false;
+      }
 
       auto found = mSessions.find(inPacket.mSessionID);
-      if (found == mSessions.end()) return false;
+      if (found == mSessions.end()) {
+        ZS_LOG_WARNING(Trace, log("cannot send packet (session was not found)"))
+        return false;
+      }
 
       struct sctp_sendv_spa spa = {};
 
@@ -2016,15 +2310,15 @@ namespace ortc
 
       if (!inPacket.mOrdered) {
         spa.sendv_sndinfo.snd_flags = SCTP_UNORDERED;
-        if ((inPacket.mMaxRetransmits >= 0) ||
+        if ((inPacket.mMaxRetransmits.hasValue()) ||
             (Milliseconds() == inPacket.mMaxPacketLifetime)) {
           spa.sendv_flags |= SCTP_SEND_PRINFO_VALID;
           spa.sendv_prinfo.pr_policy = SCTP_PR_SCTP_RTX;
-          spa.sendv_prinfo.pr_value = inPacket.mMaxRetransmits;
+          spa.sendv_prinfo.pr_value = inPacket.mMaxRetransmits.value();
         } else {
           spa.sendv_flags |= SCTP_SEND_PRINFO_VALID;
           spa.sendv_prinfo.pr_policy = SCTP_PR_SCTP_TTL;
-          spa.sendv_prinfo.pr_value = static_cast<decltype(spa.sendv_prinfo.pr_value)>(inPacket.mMaxPacketLifetime.count());
+          spa.sendv_prinfo.pr_value = SafeInt<decltype(spa.sendv_prinfo.pr_value)>(inPacket.mMaxPacketLifetime.count());
         }
       }
 
@@ -2033,7 +2327,7 @@ namespace ortc
                                   (inPacket.mBuffer ? inPacket.mBuffer->BytePtr() : NULL),
                                   (inPacket.mBuffer ? inPacket.mBuffer->SizeInBytes() : 0),
                                   NULL, 0,
-                                  &spa, sizeof(spa),
+                                  &spa, SafeInt<socklen_t>(sizeof(spa)),
                                   SCTP_SENDV_SPA,
                                   0);
 
@@ -2055,12 +2349,204 @@ namespace ortc
     //-------------------------------------------------------------------------
     void SCTPTransport::notifyWriteReady()
     {
+      if (!mConnected) {
+        ZS_LOG_DEBUG(log("connected (as notified write ready)"))
+        IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
+
+        if (mIncoming) {
+          auto listener = mListener.lock();
+          if (listener) {
+            listener->announceTransport(mThisWeak.lock(), mLocalPort, mRemotePort);
+          }
+        }
+      }
+
+      mConnected = true;
       mWriteReady = true;
 
       while (mWaitingToSend.size() > 0) {
         auto promise = mWaitingToSend.front();
         promise->resolve();
         mWaitingToSend.pop();
+      }
+    }
+
+    //-------------------------------------------------------------------------
+    void SCTPTransport::handleNotificationPacket(const sctp_notification &notification)
+    {
+
+      switch (notification.sn_header.sn_type) {
+        case SCTP_ASSOC_CHANGE:
+          ZS_LOG_TRACE(log("SCTP_ASSOC_CHANGE"))
+          handleNotificationAssocChange(notification.sn_assoc_change);
+          break;
+        case SCTP_REMOTE_ERROR:
+          ZS_LOG_TRACE(log("SCTP_REMOTE_ERROR"))
+          break;
+        case SCTP_SHUTDOWN_EVENT:
+          ZS_LOG_TRACE(log("SCTP_SHUTDOWN_EVENT"))
+          break;
+        case SCTP_ADAPTATION_INDICATION:
+          ZS_LOG_TRACE(log("SCTP_ADAPTATION_INDICATION"))
+          break;
+        case SCTP_PARTIAL_DELIVERY_EVENT:
+          ZS_LOG_TRACE(log("SCTP_PARTIAL_DELIVERY_EVENT"))
+          break;
+        case SCTP_AUTHENTICATION_EVENT:
+          ZS_LOG_TRACE(log("SCTP_AUTHENTICATION_EVENT"))
+          break;
+        case SCTP_SENDER_DRY_EVENT:
+          ZS_LOG_TRACE(log("SCTP_SENDER_DRY_EVENT"))
+          notifyWriteReady();
+          break;
+        case SCTP_NOTIFICATIONS_STOPPED_EVENT:
+          ZS_LOG_TRACE(log("SCTP_NOTIFICATIONS_STOPPED_EVENT"))
+          break;
+        case SCTP_SEND_FAILED_EVENT:
+          ZS_LOG_TRACE(log("SCTP_SEND_FAILED_EVENT"))
+          break;
+        case SCTP_STREAM_RESET_EVENT:
+          ZS_LOG_TRACE(log("SCTP_STREAM_RESET_EVENT"))
+          handleStreamResetEvent(notification.sn_strreset_event);
+          break;
+        case SCTP_ASSOC_RESET_EVENT:
+          ZS_LOG_TRACE(log("SCTP_ASSOC_RESET_EVENT"))
+          break;
+        case SCTP_STREAM_CHANGE_EVENT:
+          ZS_LOG_TRACE(log("SCTP_STREAM_CHANGE_EVENT"))
+          // An acknowledgment we get after our stream resets have gone through,
+          // if they've failed.  We log the message, but don't react -- we don't
+          // keep around the last-transmitted set of SSIDs we wanted to close for
+          // error recovery.  It doesn't seem likely to occur, and if so, likely
+          // harmless within the lifetime of a single SCTP association.
+          break;
+        default:
+          ZS_LOG_WARNING(Debug, log("Uknown SCTP event") + ZS_PARAM("type", notification.sn_header.sn_type))
+          break;
+      }
+    }
+
+    //-------------------------------------------------------------------------
+    void SCTPTransport::handleNotificationAssocChange(const sctp_assoc_change &change)
+    {
+      switch (change.sac_state) {
+        case SCTP_COMM_UP:
+          ZS_LOG_TRACE(log("Association change SCTP_COMM_UP"))
+          notifyWriteReady();
+          break;
+        case SCTP_COMM_LOST:
+          ZS_LOG_TRACE(log("Association change SCTP_COMM_LOST"))
+          break;
+        case SCTP_RESTART:
+          ZS_LOG_TRACE(log("Association change SCTP_RESTART"))
+          break;
+        case SCTP_SHUTDOWN_COMP:
+          ZS_LOG_TRACE(log("Association change SCTP_SHUTDOWN_COMP"))
+          break;
+        case SCTP_CANT_STR_ASSOC:
+          ZS_LOG_TRACE(log("Association change SCTP_CANT_STR_ASSOC"))
+          break;
+        default:
+          ZS_LOG_TRACE(log("Association change UNKNOWN"))
+          break;
+      }
+    }
+
+    //-------------------------------------------------------------------------
+    void SCTPTransport::handleStreamResetEvent(const sctp_stream_reset_event &event)
+    {
+      // A stream reset requires both sides to reset the stream. Thus if the
+      // stream was closed locally it expects the remote side to cause a reset
+      // too. If the remote side resets a stream then the local side will
+      // reflect back the reset in return (if there is a stream to reset).
+
+      const size_t numSSRCs = (event.strreset_length - sizeof(event)) / sizeof(event.strreset_stream_list[0]);
+
+      ZS_LOG_TRACE(log("SCTP_STREAM_RESET_EVENT") + ZS_PARAM("flags (hex)", Stringize<decltype(event.strreset_flags)>(event.strreset_flags, 16)) + ZS_PARAM("flags", UseSCTPHelper::listFlags(event.strreset_flags)) + ZS_PARAM("association", event.strreset_assoc_id) + ZS_PARAM("streams", UseSCTPHelper::listArray(event.strreset_stream_list, numSSRCs)))
+
+      // If both sides try to reset some streams at the same time (even if they're
+      // disjoint sets), we can get reset failures.
+      if ((0 != (event.strreset_flags & SCTP_STREAM_RESET_FAILED)) ||
+          (0 != (event.strreset_flags & SCTP_STREAM_RESET_DENIED))) {
+        ZS_LOG_WARNING(Detail, log("stream reset failed (will try again later)"))
+        // OK, just try again.  The stream IDs sent over when the RESET_FAILED flag
+        // is set seem to be garbage values.  Ignore them.
+
+        for (auto iter = mPendingResetSessions.begin(); iter != mPendingResetSessions.end(); ++iter) {
+          auto sessionID = (*iter).first;
+          auto dataChannel = (*iter).second;
+          mQueuedResetSessions[sessionID] = dataChannel;
+        }
+
+        mPendingResetSessions.clear();
+        IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
+        return;
+      }
+
+      if (0 != (event.strreset_flags & SCTP_STREAM_RESET_INCOMING_SSN)) {
+        for (size_t i = 0; i < numSSRCs; ++i) {
+          const SessionID sessionID = event.strreset_stream_list[i];
+
+          bool needsReflection = true;
+
+          {
+            auto found = mPendingResetSessions.find(sessionID);
+            if (found != mPendingResetSessions.end()) {
+              mPendingResetSessions.erase(sessionID);
+              needsReflection = false;
+            }
+          }
+          {
+            auto found = mQueuedResetSessions.find(sessionID);
+            if (found != mQueuedResetSessions.end()) {
+              mQueuedResetSessions.erase(sessionID);
+              needsReflection = false;
+            }
+          }
+          {
+            auto found = mWaitingForReflectedRemoteResetSessions.find(sessionID);
+            if (found != mWaitingForReflectedRemoteResetSessions.end()) {
+              mWaitingForReflectedRemoteResetSessions.erase(sessionID);
+              needsReflection = false;
+            }
+          }
+
+          {
+            auto found = mSessions.find(sessionID);
+            if (found != mSessions.end()) {
+              auto dataChannel = (*found).second;
+              ZS_LOG_DEBUG(log("remote party is closing session") + ZS_PARAM("session id", sessionID))
+              mQueuedResetSessions[sessionID] = dataChannel;  // also have to issue close session
+              needsReflection = false;
+            }
+          }
+
+          if (needsReflection) {
+            mQueuedReflectedResetSessions[sessionID] = UseDataChannelPtr();  // reflect back the incoming close request
+          }
+        }
+
+        IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
+        return;
+      }
+      if (0 != (event.strreset_flags & SCTP_STREAM_RESET_OUTGOING_SSN)) {
+        for (size_t i = 0; i < numSSRCs; ++i) {
+          const SessionID sessionID = event.strreset_stream_list[i];
+
+          {
+            auto found = mQueuedReflectedResetSessions.find(sessionID);
+            if (found == mQueuedReflectedResetSessions.end()) continue;
+            mQueuedReflectedResetSessions.erase(sessionID);
+          }
+
+          // only remove from pending if this was a reflected queued address
+          {
+            auto found = mPendingResetSessions.find(sessionID);
+            if (found != mPendingResetSessions.end()) {
+              mPendingResetSessions.erase(sessionID);
+            }
+          }
+        }
       }
     }
 
