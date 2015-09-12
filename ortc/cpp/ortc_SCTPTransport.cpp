@@ -402,11 +402,11 @@ namespace ortc
 
         SCTPTransportPtr transport = (*(static_cast<SCTPTransportWeakPtr *>(addr))).lock();
 
-        ZS_LOG_TRACE(slog("on sctp output backpet") + ZS_PARAM("address", ((PTRNUMBER)addr)) + ZS_PARAM("length", length) + ZS_PARAM("tos", tos) + ZS_PARAM("set_df", set_df))
+        ZS_LOG_TRACE(slog("on sctp output packet") + ZS_PARAM("address", ((PTRNUMBER)addr)) + ZS_PARAM("length", length) + ZS_PARAM("tos", tos) + ZS_PARAM("set_df", set_df))
 
         if (ZS_IS_LOGGING(Insane)) {
-          String str = UseServicesHelper::getDebugString((const BYTE *)data, length);
-          ZS_LOG_INSANE(slog("sctp outgoing packet") + ZS_PARAM("raw", "\n" + str))
+          String str = UseServicesHelper::convertToBase64((const BYTE *)data, length);
+          ZS_LOG_INSANE(slog("sctp outgoing packet") + ZS_PARAM("wire out", str))
         }
 
         if (!transport) {
@@ -1226,10 +1226,10 @@ namespace ortc
 
           if (!mCapabilities) goto queue_packet;
           if (mPendingIncomingBuffers.size() > 0) goto queue_packet;
+          if (!mSocket) goto queue_packet;
 
           usrsctp_conninput(mThisSocket, buffer, bufferLengthInBytes, 0);
 
-          attemptAccept();
           return true;
         }
 
@@ -1263,12 +1263,12 @@ namespace ortc
                                              size_t bufferLengthInBytes
                                              )
     {
-      UseSecureTransportPtr transport;
+      // WARNING: DO NOT ENTER A LOCK AS IT COULD CAUSE A DEADLOCK.
+      //          usrsctp calls this method which has a lock and an attempt
+      //          could be made to send a packet into usrsctp while attempting
+      //          to deliver a packet from usrsctp.
 
-      {
-        AutoRecursiveLock lock(*this);
-        transport = mSecureTransport.lock();
-      }
+      UseSecureTransportPtr transport = mSecureTransport.lock();
 
       if (!transport) {
         ZS_LOG_WARNING(Trace, log("secure transport is gone (thus send packet is not available)") + ZS_PARAM("buffer length", bufferLengthInBytes))
@@ -1542,7 +1542,6 @@ namespace ortc
       UseServicesHelper::debugAppend(resultEl, "incoming", mIncoming);
 
       UseServicesHelper::debugAppend(resultEl, "socket", (PTRNUMBER)mSocket);
-      UseServicesHelper::debugAppend(resultEl, "socket", (PTRNUMBER)mAcceptSocket);
 
       UseServicesHelper::debugAppend(resultEl, "local port", mLocalPort);
       UseServicesHelper::debugAppend(resultEl, "remote port", mRemotePort);
@@ -1607,13 +1606,13 @@ namespace ortc
 
     not_ready:
       {
-        ZS_LOG_TRACE(debug("SCTP is NOT ready!!!"))
+        ZS_LOG_TRACE(debug("SCTP is NOT ready"))
         return;
       }
 
     ready:
       {
-        ZS_LOG_TRACE(log("SCTP is ready!!!"))
+        ZS_LOG_TRACE(log("SCTP is ready"))
         setState(State_Ready);
       }
     }
@@ -1716,20 +1715,11 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool SCTPTransport::stepOpen()
     {
-      if (mIncoming) {
-        ZS_LOG_TRACE(log("open listen socket"))
-        if (!openListenSCTPSocket()) {
-          ZS_LOG_ERROR(Detail, log("failed to open listen port"))
-          cancel();
-          return false;
-        }
-      } else {
-        ZS_LOG_TRACE(log("open connect socket"))
-        if (!openConnectSCTPSocket()) {
-          ZS_LOG_ERROR(Detail, log("failed to open connect port"))
-          cancel();
-          return false;
-        }
+      ZS_LOG_TRACE(log("open connect socket"))
+      if (!openConnectSCTPSocket()) {
+        ZS_LOG_ERROR(Detail, log("failed to open connect port"))
+        cancel();
+        return false;
       }
       return true;
     }
@@ -1737,6 +1727,8 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool SCTPTransport::stepDeliverIncomingPackets()
     {
+      ORTC_THROW_INVALID_STATE_IF(!mSocket)
+
       if (mPendingIncomingBuffers.size() < 1) {
         ZS_LOG_TRACE(log("no pending packets to deliver"))
         return true;
@@ -1812,7 +1804,7 @@ namespace ortc
 
       ZS_LOG_DEBUG(log("sending stream reset request") + ZS_PARAM("total to reset", mPendingResetSessions.size()))
 
-      auto result = usrsctp_setsockopt(mIncoming ? mAcceptSocket : mSocket, IPPROTO_SCTP, SCTP_RESET_STREAMS, pReset, SafeInt<socklen_t>(buffer->SizeInBytes()));
+      auto result = usrsctp_setsockopt(mSocket, IPPROTO_SCTP, SCTP_RESET_STREAMS, pReset, SafeInt<socklen_t>(buffer->SizeInBytes()));
 
       if (result < 0) {
         if (EALREADY == errno) {
@@ -1898,12 +1890,6 @@ namespace ortc
               ZS_LOG_WARNING(Detail, log("socket was not open"))
               goto transport_not_available;
             }
-            if (mIncoming) {
-              if (!mAcceptSocket) {
-                ZS_LOG_WARNING(Detail, log("accept socket was not open"))
-                goto transport_not_available;
-              }
-            }
 
             stepDeliverIncomingPackets();
             if (!stepResetStream()) {
@@ -1952,10 +1938,6 @@ namespace ortc
 
       mAnnouncedIncomingDataChannels.clear();
 
-      if (mAcceptSocket) {
-        usrsctp_close(mAcceptSocket);
-        mAcceptSocket = NULL;
-      }
       if (mSocket) {
         usrsctp_close(mSocket);
         mSocket = NULL;
@@ -2037,24 +2019,6 @@ namespace ortc
       mLastErrorReason = reason;
 
       ZS_LOG_WARNING(Detail, debug("error set") + ZS_PARAM("error", mLastError) + ZS_PARAM("reason", mLastErrorReason))
-    }
-
-    //-------------------------------------------------------------------------
-    bool SCTPTransport::openListenSCTPSocket()
-    {
-      if (mSocket) return true;
-
-      if (!openSCTPSocket()) {
-        ZS_LOG_ERROR(Detail, log("failed to open listen socket"))
-        return false;
-      }
-
-      if (usrsctp_listen(mSocket, 1)) {
-        ZS_LOG_ERROR(Detail, log("failed to listen on SCTP socket") + ZS_PARAM("errno", errno))
-        return false;
-      }
-
-      return true;
     }
 
     //-------------------------------------------------------------------------
@@ -2181,40 +2145,6 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void SCTPTransport::attemptAccept()
-    {
-      if (!mIncoming) return;         // only applies to incoming sockets
-      if (!mSocket) return;           // only applies to socket
-      if (mAcceptSocket) return;      // already accepted
-
-      auto localAddr = UseSCTPHelper::getAddress(mLocalPort, mThisSocket);
-
-      socklen_t addressLength = sizeof(localAddr);
-      mAcceptSocket = usrsctp_accept(mSocket, reinterpret_cast<sockaddr *>(&localAddr), &addressLength);
-
-      if (NULL == mAcceptSocket) {
-        if ((SCTP_EINPROGRESS == errno) ||
-            (SCTP_EWOULDBLOCK == errno)) {
-          ZS_LOG_TRACE(log("accept socket not ready"))
-          return;
-        }
-        ZS_LOG_ERROR(Detail, log("attempt to accept failed"))
-        cancel();
-        return;
-      }
-
-      if (usrsctp_set_ulpinfo(mAcceptSocket, mThisSocket)) {
-        ZS_LOG_ERROR(Detail, log("unable to set this pointer on accept socket") + ZS_PARAM("errno", errno))
-        cancel();
-        return;
-      }
-
-      ZS_LOG_TRACE(log("socket accept succeeded"))
-
-      notifyWriteReady();
-    }
-
-    //-------------------------------------------------------------------------
     bool SCTPTransport::isSessionAvailable(WORD sessionID)
     {
       {
@@ -2240,7 +2170,7 @@ namespace ortc
     {
       outWouldBlock = false;
 
-      auto socket = mIncoming ? mAcceptSocket : mSocket;
+      auto socket = mSocket;
 
       if (!socket) {
         ZS_LOG_WARNING(Trace, log("cannot send packet (no socket)"))
@@ -2599,10 +2529,11 @@ namespace ortc
   //---------------------------------------------------------------------------
   ISCTPTransportListenerSubscriptionPtr ISCTPTransport::listen(
                                                                ISCTPTransportListenerDelegatePtr delegate,
-                                                               IDTLSTransportPtr transport
+                                                               IDTLSTransportPtr transport,
+                                                               const Capabilities &remoteCapabilities
                                                                )
   {
-    return internal::ISCTPTransportListenerFactory::singleton().listen(delegate, transport);
+    return internal::ISCTPTransportListenerFactory::singleton().listen(delegate, transport, remoteCapabilities);
   }
 
   //---------------------------------------------------------------------------

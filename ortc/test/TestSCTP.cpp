@@ -279,7 +279,7 @@ namespace ortc
           }
         }
 
-        ZS_LOG_DEBUG(log("sending packet to linked fake transport") + ZS_PARAM("buffer", (PTRNUMBER)(buffer)) + ZS_PARAM("buffer size", bufferSizeInBytes))
+        ZS_LOG_DEBUG(log("sending packet to linked fake transport") + ZS_PARAM("other transport", transport->getID()) + ZS_PARAM("buffer", (PTRNUMBER)(buffer)) + ZS_PARAM("buffer size", bufferSizeInBytes))
 
         SecureByteBlockPtr sendBuffer(make_shared<SecureByteBlock>(buffer, bufferSizeInBytes));
 
@@ -531,6 +531,10 @@ namespace ortc
       PromisePtr FakeSecureTransport::notifyWhenReady()
       {
         AutoRecursiveLock lock(*this);
+
+        if (State_Validated == mCurrentState) {
+          return Promise::createResolved();
+        }
 
         PromisePtr promise = Promise::create();
         mNotifyReadyPromises.push_back(promise);
@@ -843,7 +847,8 @@ namespace ortc
       void SCTPTester::listen()
       {
         AutoRecursiveLock lock(*this);
-        mListenerSubscription = ISCTPTransport::listen(mThisWeak.lock(), mDTLSTransport);
+        auto remoteCaps = ISCTPTransport::getCapabilities();
+        mListenerSubscription = ISCTPTransport::listen(mThisWeak.lock(), mDTLSTransport, *remoteCaps);
       }
 
       //-----------------------------------------------------------------------
@@ -869,8 +874,12 @@ namespace ortc
         auto localCaps = ISCTPTransport::getCapabilities();
         auto remoteCaps = ISCTPTransport::getCapabilities();
 
-        mSCTP->start(*remoteCaps);
-        remote->mSCTP->start(*localCaps);
+        if (mSCTP) {
+          mSCTP->start(*remoteCaps);
+        }
+        if (remote->mSCTP) {
+          remote->mSCTP->start(*localCaps);
+        }
       }
 
       //-----------------------------------------------------------------------
@@ -1191,6 +1200,7 @@ ZS_DECLARE_USING_PTR(ortc, IDataChannel)
 using ortc::IICETypes;
 
 #define TEST_BASIC_CONNECTIVITY 0
+#define TEST_INCOMING_SCTP 1
 
 static void bogusSleep()
 {
@@ -1258,6 +1268,23 @@ void doTestSCTP()
           }
           break;
         }
+        case TEST_INCOMING_SCTP:
+        {
+          testSCTPObject1 = SCTPTester::create(thread, true, 7000, 9000);
+          testSCTPObject2 = SCTPTester::create(thread, false);
+
+          TESTING_CHECK(testSCTPObject1)
+          TESTING_CHECK(testSCTPObject2)
+
+          testSCTPObject1->setClientRole(true);
+          testSCTPObject2->setClientRole(false);
+
+          expectationsSCTP2.mReceivedBinary = 3;
+          expectationsSCTP2.mReceivedText = 0;
+
+          expectationsSCTP2.mTransportIncoming = 1;
+          break;
+        }
         default:  quit = true; break;
       }
       if (quit) break;
@@ -1272,13 +1299,15 @@ void doTestSCTP()
 
       bool lastStepReached = false;
 
-      while ((found < expecting) &&
+      while ((found < expecting) ||
              (!lastStepReached))
       {
         TESTING_SLEEP(1000)
         ++step;
-        if (step >= maxSteps)
+        if (step >= maxSteps) {
+          TESTING_CHECK(false)
           break;
+        }
 
         found = 0;
 
@@ -1358,13 +1387,117 @@ void doTestSCTP()
               case 47: {
                 if (testSCTPObject1) testSCTPObject1->state(IICETransport::State_Disconnected);
                 if (testSCTPObject2) testSCTPObject2->state(IICETransport::State_Disconnected);
-                bogusSleep();
+                //bogusSleep();
                 break;
               }
               case 49: {
                 if (testSCTPObject1) testSCTPObject1->state(IICETransport::State_Closed);
                 if (testSCTPObject2) testSCTPObject2->state(IICETransport::State_Closed);
+                //bogusSleep();
+                break;
+              }
+              case 50: {
+                lastStepReached = true;
+                break;
+              }
+              default: {
+                // nothing happening in this step
+                break;
+              }
+            }
+            break;
+          }
+          case TEST_INCOMING_SCTP: {
+            switch (step) {
+              case 1: {
+                if (testSCTPObject2) testSCTPObject2->listen();
+                //bogusSleep();
+                break;
+              }
+              case 2: {
+                if (testSCTPObject1) testSCTPObject1->start(testSCTPObject2);
+                //bogusSleep();
+                break;
+              }
+              case 3: {
+                if (testSCTPObject1) testSCTPObject1->state(IICETransport::State_Checking);
+                if (testSCTPObject2) testSCTPObject2->state(IICETransport::State_Checking);
+                //bogusSleep();
+                break;
+              }
+              case 5: {
+                if (testSCTPObject1) testSCTPObject1->state(IICETransport::State_Connected);
+                if (testSCTPObject2) testSCTPObject2->state(IICETransport::State_Connected);
+                //bogusSleep();
+                break;
+              }
+              case 7: {
+                if (testSCTPObject1) testSCTPObject1->state(IDTLSTransport::State_Connecting);
+                if (testSCTPObject2) testSCTPObject2->state(IDTLSTransport::State_Connecting);
+                //bogusSleep();
+                break;
+              }
+              case 10: {
+                if (testSCTPObject1) testSCTPObject1->state(IDTLSTransport::State_Connected);
+                if (testSCTPObject2) testSCTPObject2->state(IDTLSTransport::State_Connected);
+                //bogusSleep();
+                break;
+              }
+              case 11: {
+                if (testSCTPObject1) testSCTPObject1->state(IDTLSTransport::State_Validated);
+                if (testSCTPObject2) testSCTPObject2->state(IDTLSTransport::State_Validated);
+                //bogusSleep();
+                break;
+              }
+              case 12: {
+                if (testSCTPObject1) testSCTPObject1->state(IICETransport::State_Completed);
+                if (testSCTPObject2) testSCTPObject2->state(IICETransport::State_Completed);
+                //bogusSleep();
+                break;
+              }
+              case 15: {
+                IDataChannel::Parameters params;
+                params.mLabel = "foo1";
+                params.mID = 0;
+                if (testSCTPObject1) testSCTPObject1->createChannel(params);
+                if (testSCTPObject2) testSCTPObject2->createChannel(params);
+                //bogusSleep();
+                break;
+              }
+              case 25: {
+                if (testSCTPObject1) testSCTPObject1->sendData("foo1", UseServicesHelper::random(20));
+                if (testSCTPObject1) testSCTPObject1->sendData("foo1", UseServicesHelper::random(20));
+                if (testSCTPObject1) testSCTPObject1->sendData("foo1", UseServicesHelper::random(20));
+                //bogusSleep();
+                break;
+              }
+              case 40: {
+                if (testSCTPObject1) testSCTPObject1->closeChannel("foo1");
+                //bogusSleep();
+                break;
+              }
+              case 44: {
+                if (testSCTPObject1) testSCTPObject1->close();
+                if (testSCTPObject2) testSCTPObject1->close();
                 bogusSleep();
+                break;
+              }
+              case 46: {
+                if (testSCTPObject1) testSCTPObject1->state(IDTLSTransport::State_Closed);
+                if (testSCTPObject2) testSCTPObject2->state(IDTLSTransport::State_Closed);
+                //bogusSleep();
+                break;
+              }
+              case 47: {
+                if (testSCTPObject1) testSCTPObject1->state(IICETransport::State_Disconnected);
+                if (testSCTPObject2) testSCTPObject2->state(IICETransport::State_Disconnected);
+                //bogusSleep();
+                break;
+              }
+              case 49: {
+                if (testSCTPObject1) testSCTPObject1->state(IICETransport::State_Closed);
+                if (testSCTPObject2) testSCTPObject2->state(IICETransport::State_Closed);
+                //bogusSleep();
                 break;
               }
               case 50: {
