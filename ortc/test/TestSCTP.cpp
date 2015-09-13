@@ -77,9 +77,11 @@ namespace ortc
       //-----------------------------------------------------------------------
       FakeICETransport::FakeICETransport(
                                          const make_private &,
-                                         IMessageQueuePtr queue
+                                         IMessageQueuePtr queue,
+                                         Milliseconds packetDelay
                                          ) :
-      ICETransport(zsLib::Noop(true), queue)
+        ICETransport(zsLib::Noop(true), queue),
+        mPacketDelay(packetDelay)
       {
         ZS_LOG_BASIC(log("created"))
       }
@@ -87,6 +89,10 @@ namespace ortc
       //-----------------------------------------------------------------------
       void FakeICETransport::init()
       {
+        AutoRecursiveLock lock(*this);
+        if (Milliseconds() != mPacketDelay) {
+          mTimer = Timer::create(mThisWeak.lock(), mPacketDelay);
+        }
       }
 
       //-----------------------------------------------------------------------
@@ -98,9 +104,12 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      FakeICETransportPtr FakeICETransport::create(IMessageQueuePtr queue)
+      FakeICETransportPtr FakeICETransport::create(
+                                                   IMessageQueuePtr queue,
+                                                   Milliseconds packetDelay
+                                                   )
       {
-        FakeICETransportPtr pThis(make_shared<FakeICETransport>(make_private{}, queue));
+        FakeICETransportPtr pThis(make_shared<FakeICETransport>(make_private{}, queue, packetDelay));
         pThis->mThisWeak = pThis;
         pThis->init();
         return pThis;
@@ -328,11 +337,82 @@ namespace ortc
 
         TESTING_CHECK(buffer)
 
+        if (Milliseconds() != mPacketDelay) {
+          ZS_LOG_DEBUG(log("delaying packet arrival") + ZS_PARAM("buffer", (PTRNUMBER)(buffer->BytePtr())) + ZS_PARAM("buffer size", buffer->SizeInBytes()))
+          mDelayedBuffers.push_back(DelayedBufferPair(zsLib::now() + mPacketDelay, buffer));
+          return;
+        }
+
         ZS_LOG_DEBUG(log("packet received") + ZS_PARAM("buffer", (PTRNUMBER)(buffer->BytePtr())) + ZS_PARAM("buffer size", buffer->SizeInBytes()))
 
         transport->handleReceivedPacket(mComponent, buffer->BytePtr(), buffer->SizeInBytes());
       }
 
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark FakeICETransport => ITimerDelegate
+      #pragma mark
+
+      //-----------------------------------------------------------------------
+      void FakeICETransport::onTimer(TimerPtr timer)
+      {
+        FakeSecureTransportPtr transport;
+
+        DelayedBufferList delayedPackets;
+
+        auto tick = zsLib::now();
+
+        {
+          AutoRecursiveLock lock(*this);
+          transport = mSecureTransport.lock();
+          if (!transport) {
+            ZS_LOG_WARNING(Detail, log("no sctp transport attached (thus cannot forward delayed packets)"))
+            return;
+          }
+
+          while (mDelayedBuffers.size() > 0) {
+            Time &delayTime = mDelayedBuffers.front().first;
+            SecureByteBlockPtr buffer = mDelayedBuffers.front().second;
+
+            if (delayTime > tick) {
+              ZS_LOG_INSANE(log("delaying packet until tick") + ZS_PARAM("delay", delayTime) + ZS_PARAM("tick", tick))
+              break;
+            }
+
+            switch (mCurrentState) {
+              case IICETransport::State_New:
+              case IICETransport::State_Checking:
+              case IICETransport::State_Disconnected:
+              case IICETransport::State_Failed:
+              case IICETransport::State_Closed:
+              {
+                ZS_LOG_WARNING(Detail, log("dropping incoming packet to simulate non-connected state"))
+                return;
+              }
+              case IICETransport::State_Connected:
+              case IICETransport::State_Completed:
+              {
+                delayedPackets.push_back(DelayedBufferPair(delayTime, buffer));
+                break;
+              }
+            }
+
+            mDelayedBuffers.pop_front();
+          }
+        }
+
+        for (auto iter = delayedPackets.begin(); iter != delayedPackets.end(); ++iter)
+        {
+          auto buffer = (*iter).second;
+
+          ZS_LOG_DEBUG(log("packet received (after delay)") + ZS_PARAM("buffer", (PTRNUMBER)(buffer->BytePtr())) + ZS_PARAM("buffer size", buffer->SizeInBytes()))
+
+          transport->handleReceivedPacket(mComponent, buffer->BytePtr(), buffer->SizeInBytes());
+        }
+      }
 
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
@@ -742,12 +822,13 @@ namespace ortc
                                        IMessageQueuePtr queue,
                                        bool createSCTPNow,
                                        Optional<WORD> localPort,
-                                       Optional<WORD> removePort
+                                       Optional<WORD> removePort,
+                                       Milliseconds packetDelay
                                        )
       {
         SCTPTesterPtr pThis(new SCTPTester(queue));
         pThis->mThisWeak = pThis;
-        pThis->init(createSCTPNow, localPort, removePort);
+        pThis->init(createSCTPNow, localPort, removePort, packetDelay);
         return pThis;
       }
 
@@ -769,11 +850,12 @@ namespace ortc
       void SCTPTester::init(
                             bool createSCTPNow,
                             Optional<WORD> localPort,
-                            Optional<WORD> removePort
+                            Optional<WORD> removePort,
+                            Milliseconds packetDelay
                             )
       {
         AutoRecursiveLock lock(*this);
-        mICETransport = FakeICETransport::create(getAssociatedMessageQueue());
+        mICETransport = FakeICETransport::create(getAssociatedMessageQueue(), packetDelay);
         mDTLSTransport = FakeSecureTransport::create(getAssociatedMessageQueue(), mICETransport);
 
         if (createSCTPNow) {
@@ -1018,6 +1100,10 @@ namespace ortc
 
         TESTING_CHECK(!((bool)mSCTP))
         mSCTP = transport;
+        auto subscription = mSCTP->subscribe(mThisWeak.lock());
+        TESTING_CHECK(subscription)
+
+        subscription->background();
 
         ++mExpectations.mTransportIncoming;
       }
@@ -1198,9 +1284,16 @@ ZS_DECLARE_USING_PTR(ortc, IICETransport)
 ZS_DECLARE_USING_PTR(ortc, IDTLSTransport)
 ZS_DECLARE_USING_PTR(ortc, IDataChannel)
 using ortc::IICETypes;
+using zsLib::Optional;
+using zsLib::WORD;
+using zsLib::BYTE;
+using zsLib::Milliseconds;
+using ortc::SecureByteBlock;
+using ortc::SecureByteBlockPtr;
 
 #define TEST_BASIC_CONNECTIVITY 0
 #define TEST_INCOMING_SCTP 1
+#define TEST_INCOMING_DELAYED_SCTP 2
 
 static void bogusSleep()
 {
@@ -1281,6 +1374,25 @@ void doTestSCTP()
 
           expectationsSCTP2.mReceivedBinary = 3;
           expectationsSCTP2.mReceivedText = 0;
+
+          expectationsSCTP2.mTransportIncoming = 1;
+          break;
+        }
+        case TEST_INCOMING_DELAYED_SCTP:
+        {
+          testSCTPObject1 = SCTPTester::create(thread, true, 5000, Optional<WORD>(), Milliseconds(300));
+          testSCTPObject2 = SCTPTester::create(thread, false);
+
+          TESTING_CHECK(testSCTPObject1)
+          TESTING_CHECK(testSCTPObject2)
+
+          testSCTPObject1->setClientRole(true);
+          testSCTPObject2->setClientRole(false);
+
+          expectationsSCTP2.mIncoming = 1;
+
+          expectationsSCTP2.mReceivedBinary = 1;
+          expectationsSCTP1.mReceivedText = 3;
 
           expectationsSCTP2.mTransportIncoming = 1;
           break;
@@ -1411,7 +1523,7 @@ void doTestSCTP()
             switch (step) {
               case 1: {
                 if (testSCTPObject2) testSCTPObject2->listen();
-                //bogusSleep();
+                bogusSleep();
                 break;
               }
               case 2: {
@@ -1480,6 +1592,108 @@ void doTestSCTP()
                 if (testSCTPObject1) testSCTPObject1->close();
                 if (testSCTPObject2) testSCTPObject1->close();
                 bogusSleep();
+                break;
+              }
+              case 46: {
+                if (testSCTPObject1) testSCTPObject1->state(IDTLSTransport::State_Closed);
+                if (testSCTPObject2) testSCTPObject2->state(IDTLSTransport::State_Closed);
+                //bogusSleep();
+                break;
+              }
+              case 47: {
+                if (testSCTPObject1) testSCTPObject1->state(IICETransport::State_Disconnected);
+                if (testSCTPObject2) testSCTPObject2->state(IICETransport::State_Disconnected);
+                //bogusSleep();
+                break;
+              }
+              case 49: {
+                if (testSCTPObject1) testSCTPObject1->state(IICETransport::State_Closed);
+                if (testSCTPObject2) testSCTPObject2->state(IICETransport::State_Closed);
+                //bogusSleep();
+                break;
+              }
+              case 50: {
+                lastStepReached = true;
+                break;
+              }
+              default: {
+                // nothing happening in this step
+                break;
+              }
+            }
+            break;
+          }
+          case TEST_INCOMING_DELAYED_SCTP: {
+            switch (step) {
+              case 1: {
+                if (testSCTPObject2) testSCTPObject2->listen();
+                //bogusSleep();
+                break;
+              }
+              case 2: {
+                if (testSCTPObject1) testSCTPObject1->start(testSCTPObject2);
+                IDataChannel::Parameters params;
+                params.mLabel = "foo1";
+                params.mID = 0;
+                if (testSCTPObject1) testSCTPObject1->createChannel(params);
+                const char *bufferedStr = "buffing-this-string-until-connected";
+                SecureByteBlockPtr buffer(std::make_shared<SecureByteBlock>((const BYTE *)bufferedStr, strlen(bufferedStr)));
+                if (testSCTPObject1) testSCTPObject1->sendData("foo1", buffer);
+                //bogusSleep();
+                break;
+              }
+              case 3: {
+                if (testSCTPObject1) testSCTPObject1->state(IICETransport::State_Checking);
+                if (testSCTPObject2) testSCTPObject2->state(IICETransport::State_Checking);
+                //bogusSleep();
+                break;
+              }
+              case 5: {
+                if (testSCTPObject1) testSCTPObject1->state(IICETransport::State_Connected);
+                if (testSCTPObject2) testSCTPObject2->state(IICETransport::State_Connected);
+                //bogusSleep();
+                break;
+              }
+              case 7: {
+                if (testSCTPObject1) testSCTPObject1->state(IDTLSTransport::State_Connecting);
+                if (testSCTPObject2) testSCTPObject2->state(IDTLSTransport::State_Connecting);
+                //bogusSleep();
+                break;
+              }
+              case 10: {
+                if (testSCTPObject1) testSCTPObject1->state(IDTLSTransport::State_Connected);
+                if (testSCTPObject2) testSCTPObject2->state(IDTLSTransport::State_Connected);
+                //bogusSleep();
+                break;
+              }
+              case 11: {
+                if (testSCTPObject1) testSCTPObject1->state(IDTLSTransport::State_Validated);
+                if (testSCTPObject2) testSCTPObject2->state(IDTLSTransport::State_Validated);
+                //bogusSleep();
+                break;
+              }
+              case 12: {
+                if (testSCTPObject1) testSCTPObject1->state(IICETransport::State_Completed);
+                if (testSCTPObject2) testSCTPObject2->state(IICETransport::State_Completed);
+                //bogusSleep();
+                break;
+              }
+              case 25: {
+                if (testSCTPObject2) testSCTPObject2->sendData("foo1", UseServicesHelper::randomString(1024));
+                if (testSCTPObject2) testSCTPObject2->sendData("foo1", UseServicesHelper::randomString(4098));
+                if (testSCTPObject2) testSCTPObject2->sendData("foo1", UseServicesHelper::randomString(8192));
+                //bogusSleep();
+                break;
+              }
+              case 40: {
+                if (testSCTPObject1) testSCTPObject1->closeChannel("foo1");
+                //bogusSleep();
+                break;
+              }
+              case 44: {
+                if (testSCTPObject1) testSCTPObject1->close();
+                if (testSCTPObject2) testSCTPObject1->close();
+                //bogusSleep();
                 break;
               }
               case 46: {

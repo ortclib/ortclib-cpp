@@ -54,6 +54,7 @@ namespace ortc
 
     ZS_DECLARE_INTERACTION_PTR(IDataChannelForSettings)
     ZS_DECLARE_INTERACTION_PTR(IDataChannelForSCTPTransport)
+    ZS_DECLARE_INTERACTION_PTR(ISCTPTransportForDataChannelSubscription)
 
     ZS_DECLARE_INTERACTION_PROXY(IDataChannelAsyncDelegate)
 
@@ -161,6 +162,7 @@ namespace ortc
       friend interaction IDataChannelForSCTPTransport;
 
       ZS_DECLARE_TYPEDEF_PTR(ISCTPTransportForDataChannel, UseDataTransport)
+      ZS_DECLARE_TYPEDEF_PTR(ISCTPTransportForDataChannelSubscription, UseDataTransportSubscription)
 
       ZS_DECLARE_TYPEDEF_PTR(IDataChannelTypes::Parameters, Parameters)
 
@@ -360,6 +362,7 @@ namespace ortc
       IDataChannelSubscriptionPtr mDefaultSubscription;
 
       UseDataTransportWeakPtr mDataTransport;
+      UseDataTransportSubscriptionPtr mDataTransportSubscription;
 
       States mCurrentState {State_Connecting};
 
