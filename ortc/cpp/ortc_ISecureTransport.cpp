@@ -180,6 +180,114 @@ namespace ortc
       }
     }
 
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark ISecureTransportForRTPReceiver
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    ElementPtr ISecureTransportForRTPReceiver::toDebug(ForRTPReceiverPtr transport)
+    {
+      if (!transport) return ElementPtr();
+
+      {
+        auto pThis = DTLSTransport::convert(transport);
+        if (pThis) return DTLSTransport::toDebug(pThis);
+      }
+
+      {
+        auto pThis = SRTPSDESTransport::convert(transport);
+        if (pThis) return SRTPSDESTransport::toDebug(pThis);
+      }
+      return ElementPtr();
+    }
+
+    //-------------------------------------------------------------------------
+    void ISecureTransportForRTPReceiver::getReceivingTransport(
+                                                               IRTPTransportPtr inRTPTransport,
+                                                               IRTCPTransportPtr inRTCPTransport,
+                                                               IICETypes::Components &outWhenReceivingRTPUseReceiveOverComponent,
+                                                               IICETypes::Components &outWhenReceivingRTCPUseReceiveOverComponent,
+                                                               ForRTPReceiverPtr &outRTPSecureTransport,
+                                                               ForRTPReceiverPtr &outRTCPSecureTransport
+                                                               )
+    {
+      ZS_DECLARE_TYPEDEF_PTR(IICETransportForSecureTransport, UseICETransport)
+
+      outWhenReceivingRTPUseReceiveOverComponent = IICETypes::Component_RTP;
+      outWhenReceivingRTCPUseReceiveOverComponent = IICETypes::Component_RTP;
+
+      outRTPSecureTransport = ForRTPReceiverPtr();
+      outRTCPSecureTransport = ForRTPReceiverPtr();
+
+      if (inRTCPTransport) {
+        if (inRTPTransport->getID() == inRTCPTransport->getID()) {
+          ZS_LOG_WARNING(Trace, secure_slog("rtcp transport is rtp transport (thus ignoring rtcp parameter)"))
+            inRTCPTransport = IRTCPTransportPtr();
+        }
+      }
+
+      {
+        auto result = IDTLSTransport::convert(inRTPTransport);
+        if (result) {
+          auto dtlsTransport = DTLSTransport::convert(result);
+
+          if (dtlsTransport) {
+            outRTPSecureTransport = dtlsTransport;
+            outRTCPSecureTransport = dtlsTransport;
+
+            if (inRTCPTransport) {
+              UseICETransportPtr rtpICETransport = ICETransport::convert(ForRTPReceiverPtr(dtlsTransport)->getICETransport());
+              auto rtcpDTLSTransport = DTLSTransport::convert(IDTLSTransport::convert(inRTCPTransport));
+              ORTC_THROW_INVALID_PARAMETERS_IF(!rtcpDTLSTransport)
+
+              auto rtcpICETransport = UseICETransportPtr(ICETransport::convert(ForRTPReceiverPtr(rtcpDTLSTransport)->getICETransport()));
+              ORTC_THROW_INVALID_PARAMETERS_IF(!rtcpICETransport)
+
+              auto relatedRTPICETransport = UseICETransportPtr(rtcpICETransport->getRTPTransport());
+              ORTC_THROW_INVALID_STATE_IF(!relatedRTPICETransport)
+              ORTC_THROW_INVALID_PARAMETERS_IF(relatedRTPICETransport->getID() != rtpICETransport->getID()) // ICE RTP related to ICE RTCP must be the same ICE RTP transport related to RTP transport
+
+              outWhenReceivingRTCPUseReceiveOverComponent = IICETypes::Component_RTCP;
+              outRTCPSecureTransport = rtcpDTLSTransport;
+            }
+            return;
+          }
+        }
+      }
+
+      {
+        auto result = ISRTPSDESTransport::convert(inRTPTransport);
+        if (result) {
+          auto sdesTransport = SRTPSDESTransport::convert(result);
+          ORTC_THROW_INVALID_PARAMETERS_IF(!sdesTransport)      // not a dtls transport and not an SDES transport, what is this transport type?
+
+          outRTPSecureTransport = sdesTransport;
+          outRTCPSecureTransport = sdesTransport;
+
+          if (inRTCPTransport) {
+            UseICETransportPtr rtcpICETransport = ICETransport::convert(IICETransport::convert(inRTCPTransport));
+            ORTC_THROW_INVALID_PARAMETERS_IF(!rtcpICETransport) // must be an ICE transport
+
+            UseICETransportPtr relatedRTPTransport = rtcpICETransport->getRTPTransport();
+            ORTC_THROW_INVALID_STATE_IF(!relatedRTPTransport) // must have a related ICE transport
+
+            UseICETransportPtr rtpTransport = ICETransport::convert(ForRTPReceiverPtr(sdesTransport)->getICETransport());
+            ORTC_THROW_INVALID_STATE_IF(!rtpTransport) // must have a ICE transport
+
+            ORTC_THROW_INVALID_PARAMETERS_IF(relatedRTPTransport->getID() != rtpTransport->getID()) // ICE RTP related to ICE RTCP must be the same ICE RTP transport related to RTP transport
+
+            outWhenReceivingRTCPUseReceiveOverComponent = IICETypes::Component_RTCP;
+          }
+
+        }
+      }
+    }
+
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------

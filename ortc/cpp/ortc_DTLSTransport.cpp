@@ -433,6 +433,12 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    DTLSTransportPtr DTLSTransport::convert(ForRTPReceiverPtr object)
+    {
+      return ZS_DYNAMIC_PTR_CAST(DTLSTransport, object);
+    }
+
+    //-------------------------------------------------------------------------
     DTLSTransportPtr DTLSTransport::convert(ForICETransportPtr object)
     {
       return ZS_DYNAMIC_PTR_CAST(DTLSTransport, object);

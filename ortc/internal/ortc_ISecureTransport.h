@@ -79,6 +79,41 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
+    #pragma mark ISecureTransportForRTPReceiver
+    #pragma mark
+
+    interaction ISecureTransportForRTPReceiver
+    {
+      ZS_DECLARE_TYPEDEF_PTR(ISecureTransportForRTPReceiver, ForRTPReceiver)
+
+      static ElementPtr toDebug(ForRTPReceiverPtr transport);
+
+      static void getReceivingTransport(
+                                        IRTPTransportPtr inRTPTransport,
+                                        IRTCPTransportPtr inRTCPTransport,
+                                        IICETypes::Components &outWhenReceivingRTPUseReceiveOverComponent,
+                                        IICETypes::Components &outWhenReceivingRTCPUseReceiveOverComponent,
+                                        ForRTPReceiverPtr &outRTPSecureTransport,
+                                        ForRTPReceiverPtr &outRTCPSecureTransport
+                                        );
+
+      virtual PUID getID() const = 0;
+
+      virtual bool sendPacket(
+                              IICETypes::Components sendOverICETransport,
+                              IICETypes::Components packetType,
+                              const BYTE *buffer,
+                              size_t bufferLengthInBytes
+                              ) = 0;
+
+      virtual IICETransportPtr getICETransport() const = 0;
+    };
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
     #pragma mark ISecureTransportForSRTPTransport
     #pragma mark
 

@@ -54,8 +54,6 @@ namespace ortc
 {
   namespace internal
   {
-    ZS_DECLARE_INTERACTION_PTR(IRTPListenerForRTPSender)
-
     ZS_DECLARE_INTERACTION_PTR(IRTPSenderForSettings)
     ZS_DECLARE_INTERACTION_PTR(IRTPSenderForRTPListener)
 
@@ -153,7 +151,8 @@ namespace ortc
                       public IWakeDelegate,
                       public zsLib::ITimerDelegate,
                       public IRTPSenderAsyncDelegate,
-                      public IRTPTypes::PacketReceiver
+                      public IRTPTypes::PacketReceiver,
+                      public webrtc::newapi::Transport
     {
     protected:
       struct make_private {};
@@ -303,6 +302,14 @@ namespace ortc
                                              size_t length
                                              );
 
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPSender => Transport
+      #pragma mark
+
+      virtual bool SendRtp(const uint8_t* packet, size_t length);
+      virtual bool SendRtcp(const uint8_t* packet, size_t length);
+
     protected:
       //-----------------------------------------------------------------------
       #pragma mark
@@ -363,6 +370,7 @@ namespace ortc
 
       IICETypes::Components mSendRTPOverTransport {IICETypes::Component_RTP};
       IICETypes::Components mSendRTCPOverTransport {IICETypes::Component_RTCP};
+      IICETypes::Components mReceiveRTCPOverTransport{ IICETypes::Component_RTCP };
 
       rtc::scoped_ptr<webrtc::ProcessThread> mModuleProcessThread;
       rtc::scoped_ptr<webrtc::ChannelGroup> mChannelGroup;

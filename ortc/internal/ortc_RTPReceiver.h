@@ -54,10 +54,11 @@ namespace ortc
 {
   namespace internal
   {
-    ZS_DECLARE_INTERACTION_PTR(IRTPListenerForRTPReceiver)
-
     ZS_DECLARE_INTERACTION_PTR(IRTPReceiverForSettings)
     ZS_DECLARE_INTERACTION_PTR(IRTPReceiverForRTPListener)
+
+    ZS_DECLARE_INTERACTION_PTR(ISecureTransportForRTPReceiver)
+    ZS_DECLARE_INTERACTION_PTR(IRTPListenerForRTPReceiver)
 
     ZS_DECLARE_INTERACTION_PROXY(IRTPReceiverAsyncDelegate)
 
@@ -144,6 +145,7 @@ namespace ortc
       friend interaction IRTPReceiverForSettings;
       friend interaction IRTPReceiverForRTPListener;
 
+      ZS_DECLARE_TYPEDEF_PTR(ISecureTransportForRTPReceiver, UseSecureTransport)
       ZS_DECLARE_TYPEDEF_PTR(IRTPListenerForRTPReceiver, UseListener)
 
       enum States
@@ -311,6 +313,12 @@ namespace ortc
                                   size_t length
                                   );
 
+      bool sendPacket(
+                      IICETypes::Components packetType,
+                      const BYTE *buffer,
+                      size_t bufferSizeInBytes
+                      );
+
     protected:
       //-----------------------------------------------------------------------
       #pragma mark
@@ -332,7 +340,14 @@ namespace ortc
       ParametersPtr mParameters;
       
       UseListenerPtr mListener;
-      
+
+      UseSecureTransportPtr mRTPTransport;
+      UseSecureTransportPtr mRTCPTransport;
+
+      IICETypes::Components mReceiveRTPOverTransport{ IICETypes::Component_RTP };
+      IICETypes::Components mReceiveRTCPOverTransport{ IICETypes::Component_RTCP };
+      IICETypes::Components mSendRTCPOverTransport{ IICETypes::Component_RTCP };
+
       rtc::scoped_ptr<webrtc::ProcessThread> mModuleProcessThread;
       rtc::scoped_ptr<webrtc::ChannelGroup> mChannelGroup;
       rtc::scoped_ptr<webrtc::VideoReceiveStream> mVideoStream;

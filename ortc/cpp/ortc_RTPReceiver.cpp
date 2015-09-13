@@ -144,6 +144,8 @@ namespace ortc
 
       mListener = UseListener::getListener(transport);
       ORTC_THROW_INVALID_PARAMETERS_IF(!mListener)
+
+      UseSecureTransport::getReceivingTransport(transport, rtcpTransport, mReceiveRTPOverTransport, mReceiveRTCPOverTransport, mRTPTransport, mRTCPTransport);
     }
 
     //-------------------------------------------------------------------------
@@ -321,6 +323,8 @@ namespace ortc
 #define TODO_PROCESS_HISTORICAL_RTCP_PACKETS_FROM_NEW_TRANSPORT 1
 #define TODO_PROCESS_HISTORICAL_RTCP_PACKETS_FROM_NEW_TRANSPORT 2
       }
+
+      UseSecureTransport::getReceivingTransport(transport, rtcpTransport, mReceiveRTPOverTransport, mReceiveRTCPOverTransport, mRTPTransport, mRTCPTransport);
     }
 
     //-------------------------------------------------------------------------
@@ -404,7 +408,9 @@ namespace ortc
 #define TOOD_PROCESS_PACKET_HERE 1
 #define TOOD_PROCESS_PACKET_HERE 2
       }
-      return false; // return true if packet was handled
+
+      DeliverPacket(MediaTypes::MediaType_Video, buffer, bufferLengthInBytes);
+      return true; // return true if handled
     }
 
     //-------------------------------------------------------------------------
@@ -480,12 +486,12 @@ namespace ortc
 
     bool RTPReceiver::SendRtp(const uint8_t* packet, size_t length)
     {
-      return false;
+      return sendPacket(IICETypes::Components::Component_RTP, packet, length);
     }
 
     bool RTPReceiver::SendRtcp(const uint8_t* packet, size_t length)
     {
-      return false;
+      return sendPacket(IICETypes::Components::Component_RTCP, packet, length);
     }
 
     //-------------------------------------------------------------------------
@@ -705,6 +711,41 @@ namespace ortc
       }
 
       return DeliveryStatus_UnknownSSRC;
+    }
+
+    //-------------------------------------------------------------------------
+    bool RTPReceiver::sendPacket(
+                                 IICETypes::Components packetType,
+                                 const BYTE *buffer,
+                                 size_t bufferSizeInBytes
+                                 )
+    {
+      IICETypes::Components sendOver{ packetType };
+      UseSecureTransportPtr transport;
+
+      {
+        AutoRecursiveLock lock(*this);
+
+        switch (packetType) {
+        case IICETypes::Component_RTP:  {
+          transport = mRTPTransport;
+          sendOver = mReceiveRTPOverTransport;
+          break;
+        }
+        case IICETypes::Component_RTCP: {
+          transport = mRTCPTransport;
+          sendOver = mReceiveRTCPOverTransport;
+          break;
+        }
+        }
+      }
+
+      if (!transport) {
+        ZS_LOG_WARNING(Debug, log("no transport available"))
+          return false;
+      }
+
+      return transport->sendPacket(sendOver, packetType, buffer, bufferSizeInBytes);
     }
 
 

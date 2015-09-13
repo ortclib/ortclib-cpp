@@ -96,6 +96,7 @@ namespace ortc
                               public SharedRecursiveLock,
                               public ISRTPSDESTransport,
                               public ISecureTransportForRTPSender,
+                              public ISecureTransportForRTPReceiver,
                               public ISecureTransportForICETransport,
                               public ISecureTransportForSRTPTransport,
                               public ISecureTransportForRTPListener,
@@ -110,6 +111,7 @@ namespace ortc
       friend interaction ISRTPSDESTransport;
       friend interaction ISRTPSDESTransportFactory;
       friend interaction ISecureTransportForRTPSender;
+      friend interaction ISecureTransportForRTPReceiver;
       friend interaction ISecureTransportForICETransport;
       friend interaction ISecureTransportForSRTPTransport;
       friend interaction ISecureTransportForRTPListener;
@@ -144,6 +146,7 @@ namespace ortc
 
       static SRTPSDESTransportPtr convert(ISRTPSDESTransportPtr object);
       static SRTPSDESTransportPtr convert(ForRTPSenderPtr object);
+      static SRTPSDESTransportPtr convert(ForRTPReceiverPtr object);
       static SRTPSDESTransportPtr convert(ForICETransportPtr object);
       static SRTPSDESTransportPtr convert(ForSRTPPtr object);
       static SRTPSDESTransportPtr convert(ForRTPListenerPtr object);
@@ -200,6 +203,24 @@ namespace ortc
                               ) override;
 
       virtual IICETransportPtr getICETransport() const override;
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark SRTPSDESTransport => ISecureTransportForRTPReceiver
+      #pragma mark
+
+      // (duplicate) static ElementPtr toDebug(ForRTPSenderPtr transport);
+
+      // (duplicate) virtual PUID getID() const;
+
+      // (duplicate) virtual bool sendPacket(
+      //                                     IICETypes::Components sendOverICETransport,
+      //                                     IICETypes::Components packetType,
+      //                                     const BYTE *buffer,
+      //                                     size_t bufferLengthInBytes
+      //                                     ) override;
+
+      // (duplicate) virtual IICETransportPtr getICETransport() const override;
 
       //-----------------------------------------------------------------------
       #pragma mark

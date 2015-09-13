@@ -159,6 +159,12 @@ namespace ortc
     {
       return ZS_DYNAMIC_PTR_CAST(SRTPSDESTransport, object);
     }
+    //-------------------------------------------------------------------------
+    SRTPSDESTransportPtr SRTPSDESTransport::convert(ForRTPReceiverPtr object)
+    {
+      return ZS_DYNAMIC_PTR_CAST(SRTPSDESTransport, object);
+    }
+
 
     //-------------------------------------------------------------------------
     SRTPSDESTransportPtr SRTPSDESTransport::convert(ForICETransportPtr object)
