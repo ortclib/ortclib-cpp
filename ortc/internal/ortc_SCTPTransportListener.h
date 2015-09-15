@@ -219,7 +219,8 @@ namespace ortc
 
       static ISCTPTransportListenerSubscriptionPtr listen(
                                                           ISCTPTransportListenerDelegatePtr delegate,
-                                                          IDTLSTransportPtr transport
+                                                          IDTLSTransportPtr transport,
+                                                          const Capabilities &remoteCapabilities
                                                           );
       
       //-----------------------------------------------------------------------
@@ -293,7 +294,10 @@ namespace ortc
       void step();
       void cancel();
 
-      virtual ISCTPTransportListenerSubscriptionPtr subscribe(ISCTPTransportListenerDelegatePtr originalDelegate);
+      virtual ISCTPTransportListenerSubscriptionPtr subscribe(
+                                                              ISCTPTransportListenerDelegatePtr originalDelegate,
+                                                              const Capabilities &remoteCapabilities
+                                                              );
 
       WORD allocateLocalPort(WORD remotePort);
       void allocatePort(
@@ -322,6 +326,7 @@ namespace ortc
       bool mShutdown {false};
 
       TransportMap mTransports;
+      TransportIDMap mPendingTransports;
       TransportIDMap mAnnouncedTransports;
 
       AllocatedPortMap mAllocatedLocalPorts;
@@ -333,6 +338,8 @@ namespace ortc
       WORD mMinAllocationPort {5000};
       WORD mMaxAllocationPort {65535};
       WORD mNextAllocationIncremement {1};
+
+      CapabilitiesPtr mRemoteCapabilities;
     };
 
     //-------------------------------------------------------------------------
@@ -345,7 +352,7 @@ namespace ortc
 
     interaction ISCTPTransportListenerFactory
     {
-      typedef ISCTPTransportTypes::CapabilitiesPtr CapabilitiesPtr;
+      ZS_DECLARE_TYPEDEF_PTR(ISCTPTransportTypes::Capabilities, Capabilities)
 
       ZS_DECLARE_TYPEDEF_PTR(IDataTransportForSecureTransport, ForSecureTransport)
       ZS_DECLARE_TYPEDEF_PTR(ISecureTransportForDataTransport, UseSecureTransport)
@@ -354,7 +361,8 @@ namespace ortc
 
       virtual ISCTPTransportListenerSubscriptionPtr listen(
                                                            ISCTPTransportListenerDelegatePtr delegate,
-                                                           IDTLSTransportPtr transport
+                                                           IDTLSTransportPtr transport,
+                                                           const Capabilities &remoteCapabilities
                                                            );
 
       virtual ForSecureTransportPtr create(UseSecureTransportPtr transport);

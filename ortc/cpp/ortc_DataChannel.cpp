@@ -254,6 +254,10 @@ namespace ortc
     void DataChannel::init()
     {
       AutoRecursiveLock lock(*this);
+      auto transport = mDataTransport.lock();
+      if (transport) {
+        mDataTransportSubscription = transport->subscribe(mThisWeak.lock());
+      }
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
     }
 
@@ -710,6 +714,7 @@ namespace ortc
 
       auto dataTransport = mDataTransport.lock();
       UseServicesHelper::debugAppend(resultEl, "data transport", dataTransport ? dataTransport->getID() : 0);
+      UseServicesHelper::debugAppend(resultEl, "data transport subscription", (bool)mDataTransportSubscription);
 
       UseServicesHelper::debugAppend(resultEl, "state", toString(mCurrentState));
 
@@ -967,6 +972,11 @@ namespace ortc
         mDefaultSubscription.reset();
       }
 
+      if (mDataTransportSubscription) {
+        mDataTransportSubscription->cancel();
+        mDataTransportSubscription.reset();
+      }
+
       // make sure to cleanup any final reference to self
       mGracefulShutdownReference.reset();
     }
@@ -1068,7 +1078,7 @@ namespace ortc
         mOutgoingData.push_back(packet);
       }
 
-      return false;
+      return true;
     }
 
     //-------------------------------------------------------------------------
@@ -1297,6 +1307,7 @@ namespace ortc
 
       ZS_LOG_TRACE(log("channel is now open (because of ACK to data channel open)"))
       setState(State_Open);
+      IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
       return true;
     }
 

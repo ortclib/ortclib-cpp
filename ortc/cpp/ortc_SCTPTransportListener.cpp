@@ -321,7 +321,8 @@ namespace ortc
     //-------------------------------------------------------------------------
     ISCTPTransportListenerSubscriptionPtr SCTPTransportListener::listen(
                                                                         ISCTPTransportListenerDelegatePtr delegate,
-                                                                        IDTLSTransportPtr transport
+                                                                        IDTLSTransportPtr transport,
+                                                                        const Capabilities &remoteCapabilities
                                                                         )
     {
       ORTC_THROW_INVALID_PARAMETERS_IF(!transport)
@@ -335,7 +336,7 @@ namespace ortc
       auto listener = SCTPTransportListener::convert(dataTransport);
       ORTC_THROW_INVALID_STATE_IF(!listener)
 
-      return listener->subscribe(delegate);
+      return listener->subscribe(delegate, remoteCapabilities);
     }
 
     //-------------------------------------------------------------------------
@@ -412,6 +413,8 @@ namespace ortc
           allocatePort(mAllocatedLocalPorts, localPort);
           allocatePort(mAllocatedRemotePorts, remotePort);
 
+          ioLocalPort = localPort;
+          ioRemotePort = remotePort;
           mTransports[tupleID] = ioTransport;
           return;
         }
@@ -492,6 +495,8 @@ namespace ortc
         if (found != mTransports.end()) {
           auto registeredTransport = (*found).second;
           if (registeredTransport->getID() == transport.getID()) {
+            deallocatePort(mAllocatedLocalPorts, localPort);
+            deallocatePort(mAllocatedRemotePorts, remotePort);
             mTransports.erase(found);
           }
         }
@@ -499,9 +504,12 @@ namespace ortc
 
       {
         auto found = mAnnouncedTransports.find(transport.getID());
-        if (found != mAnnouncedTransports.end()) {
-          mAnnouncedTransports.erase(found);
-        }
+        if (found != mAnnouncedTransports.end()) mAnnouncedTransports.erase(found);
+      }
+
+      {
+        auto found = mPendingTransports.find(transport.getID());
+        if (found != mPendingTransports.end()) mPendingTransports.erase(found);
       }
 
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
@@ -555,6 +563,14 @@ namespace ortc
             ZS_LOG_WARNING(Debug, log("unable to create sctp transport"))
             return false;
           }
+          if (mRemoteCapabilities) {
+            transport->start(*mRemoteCapabilities);
+          } else {
+            mPendingTransports[transport->getID()] = transport;
+          }
+          allocatePort(mAllocatedLocalPorts, localPort);
+          allocatePort(mAllocatedRemotePorts, remotePort);
+          mTransports[tupleID] = transport;
         } else {
           transport = (*found).second;
         }
@@ -636,6 +652,7 @@ namespace ortc
       UseServicesHelper::debugAppend(resultEl, "secure transport", secureTransport ? secureTransport->getID() : 0);
 
       UseServicesHelper::debugAppend(resultEl, "transports", mTransports.size());
+      UseServicesHelper::debugAppend(resultEl, "pending transports", mPendingTransports.size());
       UseServicesHelper::debugAppend(resultEl, "announced transports", mAnnouncedTransports.size());
 
       UseServicesHelper::debugAppend(resultEl, "allocated local ports", mAllocatedLocalPorts.size());
@@ -647,6 +664,8 @@ namespace ortc
       UseServicesHelper::debugAppend(resultEl, "min allocation port", mMinAllocationPort);
       UseServicesHelper::debugAppend(resultEl, "max allocation port", mMaxAllocationPort);
       UseServicesHelper::debugAppend(resultEl, "next allocation increment", mNextAllocationIncremement);
+
+      UseServicesHelper::debugAppend(resultEl, "remote capabilities", mRemoteCapabilities ? mRemoteCapabilities->toDebug() : ElementPtr());
 
       return resultEl;
     }
@@ -726,6 +745,15 @@ namespace ortc
             deallocatePort(mAllocatedRemotePorts, remotePort);
 
             mTransports.erase(current);
+
+            {
+              auto found = mPendingTransports.find(transport->getID());
+              if (found != mPendingTransports.end()) mPendingTransports.erase(found);
+            }
+            {
+              auto found = mAnnouncedTransports.find(transport->getID());
+              if (found != mAnnouncedTransports.end()) mPendingTransports.erase(found);
+            }
             continue;
           }
         }
@@ -759,6 +787,7 @@ namespace ortc
         mAllocatedRemotePorts.clear();
       }
 
+      mPendingTransports.clear();
       mAnnouncedTransports.clear();
 
       // make sure to cleanup any final reference to self
@@ -766,7 +795,10 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    ISCTPTransportListenerSubscriptionPtr SCTPTransportListener::subscribe(ISCTPTransportListenerDelegatePtr originalDelegate)
+    ISCTPTransportListenerSubscriptionPtr SCTPTransportListener::subscribe(
+                                                                           ISCTPTransportListenerDelegatePtr originalDelegate,
+                                                                           const Capabilities &remoteCapabilities
+                                                                           )
     {
       ZS_LOG_DETAIL(log("subscribing to transport listener"))
 
@@ -775,6 +807,15 @@ namespace ortc
       ISCTPTransportListenerSubscriptionPtr subscription = mSubscriptions.subscribe(originalDelegate, IORTCForInternal::queueDelegate());
 
       ISCTPTransportListenerDelegatePtr delegate = mSubscriptions.delegate(subscription, true);
+
+      mRemoteCapabilities = CapabilitiesPtr(make_shared<Capabilities>(remoteCapabilities));
+
+      for (auto iter = mPendingTransports.begin(); iter != mPendingTransports.end(); ++iter)
+      {
+        UseSCTPTransportPtr transport = (*iter).second;
+        transport->start(*mRemoteCapabilities);
+      }
+      mPendingTransports.clear();
 
       if (delegate) {
         SCTPTransportListenerPtr pThis = mThisWeak.lock();
@@ -885,11 +926,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     ISCTPTransportListenerSubscriptionPtr ISCTPTransportListenerFactory::listen(
                                                                                 ISCTPTransportListenerDelegatePtr delegate,
-                                                                                IDTLSTransportPtr transport
+                                                                                IDTLSTransportPtr transport,
+                                                                                const Capabilities &remoteCapabilities
                                                                                 )
     {
       if (this) {}
-      return internal::SCTPTransportListener::listen(delegate, transport);
+      return internal::SCTPTransportListener::listen(delegate, transport, remoteCapabilities);
     }
 
     //-------------------------------------------------------------------------
