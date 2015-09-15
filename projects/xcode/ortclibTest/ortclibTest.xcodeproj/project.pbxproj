@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		0030F6971B1E88F800E8649B /* TestICETransport.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0030F6961B1E88F800E8649B /* TestICETransport.cpp */; };
+		00429A921BA76FCE00D65AAB /* TestRTPPacket.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00429A911BA76FCE00D65AAB /* TestRTPPacket.cpp */; };
 		004B60A71B275AD900568C22 /* TestSetup.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 004B60A61B275AD900568C22 /* TestSetup.cpp */; };
 		0055897F1B56A1ED00337372 /* TestSRTP.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0055897E1B56A1ED00337372 /* TestSRTP.cpp */; };
 		0056EE9C1B13B1BA0035B351 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0056EE991B13B1BA0035B351 /* main.cpp */; };
@@ -380,6 +381,7 @@
 
 /* Begin PBXFileReference section */
 		0030F6961B1E88F800E8649B /* TestICETransport.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TestICETransport.cpp; sourceTree = "<group>"; };
+		00429A911BA76FCE00D65AAB /* TestRTPPacket.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TestRTPPacket.cpp; sourceTree = "<group>"; };
 		004B60A61B275AD900568C22 /* TestSetup.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TestSetup.cpp; sourceTree = "<group>"; };
 		0055897E1B56A1ED00337372 /* TestSRTP.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TestSRTP.cpp; sourceTree = "<group>"; };
 		0056EE8A1B13B0910035B351 /* ortclibTest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = ortclibTest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -516,6 +518,7 @@
 				00AA4CB71B3895840073E17B /* TestDTLS.cpp */,
 				0056EED81B13C1370035B351 /* TestICEGatherer.cpp */,
 				0030F6961B1E88F800E8649B /* TestICETransport.cpp */,
+				00429A911BA76FCE00D65AAB /* TestRTPPacket.cpp */,
 				00AEDD331B9F21180050A0E6 /* TestSCTP.cpp */,
 				00AEDD681B9F572B0050A0E6 /* TestSCTP.h */,
 				0055897E1B56A1ED00337372 /* TestSRTP.cpp */,
@@ -1075,6 +1078,7 @@
 				0030F6971B1E88F800E8649B /* TestICETransport.cpp in Sources */,
 				0055897F1B56A1ED00337372 /* TestSRTP.cpp in Sources */,
 				004B60A71B275AD900568C22 /* TestSetup.cpp in Sources */,
+				00429A921BA76FCE00D65AAB /* TestRTPPacket.cpp in Sources */,
 				00AEDD341B9F21180050A0E6 /* TestSCTP.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

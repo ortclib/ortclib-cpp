@@ -51,6 +51,12 @@ namespace ortc
     {
     public:
       //RTP Utils
+      static WORD GetBE16(const void* memory);
+      static DWORD GetBE32(const void* memory);
+
+      static void SetBE16(void* memory, WORD v);
+      static void SetBE32(void* memory, DWORD v);
+
       static int GetRtpPayloadType(const void* data, size_t len);
       static int GetRtpSeqNum(const void* data, size_t len);
       static DWORD GetRtpTimestamp(const void* data, size_t len);
@@ -65,11 +71,12 @@ namespace ortc
       //bool SetRtpHeader(void* data, size_t len, const RtpHeader& header);
 
       static bool IsRtpPacket(const void* data, size_t len);
+      static bool IsRTCPPacketType(const BYTE *data, size_t len);
 
       // True if |payload type| is 0-127.
       static bool IsValidRtpPayloadType(int payload_type);
 
-      static Log::Params log(const char *message);
+      static Log::Params slog(const char *message);
     };
   }
 }
