@@ -67,6 +67,9 @@
       <DelayLoadDLLs>
       </DelayLoadDLLs>
     </Link>
+    <PostBuildEvent>
+      <Command>copy $(SolutionDir)..\..\..\libs\webrtc\build_win32\$(Configuration)\boringssl.dll $(SolutionDir)\$(Configuration)\</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -90,6 +93,9 @@
       <DelayLoadDLLs>
       </DelayLoadDLLs>
     </Link>
+    <PostBuildEvent>
+      <Command>copy $(SolutionDir)..\..\..\libs\webrtc\build_win32\$(Configuration)\boringssl.dll $(SolutionDir)\$(Configuration)\</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
