@@ -116,7 +116,8 @@ namespace ortc
       mConstraints(constraints),
       mVideoCaptureModule(NULL),
       mVideoRenderModule(NULL),
-      mVideoRendererCallback(NULL)
+      mVideoRendererCallback(NULL),
+      mVideoCaptureDataCallback(NULL)
     {
       ZS_LOG_DETAIL(debug("created"))
     }
@@ -454,6 +455,12 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    void MediaStreamTrack::registerVideoCaptureDataCallback(webrtc::VideoCaptureDataCallback* callback)
+    {
+      mVideoCaptureDataCallback = callback;
+    }
+
+    //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -523,6 +530,9 @@ namespace ortc
 
       if (mVideoRendererCallback)
         mVideoRendererCallback->RenderFrame(1, videoFrame);
+
+      if (mVideoCaptureDataCallback)
+        mVideoCaptureDataCallback->OnIncomingCapturedFrame(id, videoFrame);
     }
 
     //-------------------------------------------------------------------------

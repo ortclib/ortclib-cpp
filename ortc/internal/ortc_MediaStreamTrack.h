@@ -83,6 +83,8 @@ namespace ortc
     {
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPSender, ForSender)
 
+      virtual void registerVideoCaptureDataCallback(webrtc::VideoCaptureDataCallback* callback) = 0;
+
       virtual ~IMediaStreamTrackForRTPSender() {}
     };
 
@@ -255,6 +257,8 @@ namespace ortc
       #pragma mark MediaStreamTrack => IMediaStreamTrackForRTPSender
       #pragma mark
 
+      virtual void registerVideoCaptureDataCallback(webrtc::VideoCaptureDataCallback* callback);
+
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark MediaStreamTrack => IMediaStreamTrackForRTPReceiver
@@ -293,7 +297,7 @@ namespace ortc
 
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark MediaStreamTrack => webrtc::VideoCaptureDataCallback
+      #pragma mark MediaStreamTrack => VideoCaptureDataCallback
       #pragma mark
 
       virtual void OnIncomingCapturedFrame(const int32_t id, const webrtc::VideoFrame& videoFrame);
@@ -346,6 +350,7 @@ namespace ortc
       webrtc::VideoCaptureModule* mVideoCaptureModule;
       webrtc::VideoRender* mVideoRenderModule;
       webrtc::VideoRenderCallback* mVideoRendererCallback;
+      webrtc::VideoCaptureDataCallback* mVideoCaptureDataCallback;
     };
 
     //-------------------------------------------------------------------------

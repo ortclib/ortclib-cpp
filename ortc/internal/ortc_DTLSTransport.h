@@ -704,10 +704,10 @@ namespace ortc
       WORD mLastError {};
       String mLastErrorReason;
 
-      IICETypes::Components mComponent {IICETypes::Component_RTP};
-
       UseICETransportPtr mICETransport;
       IICETransportSubscriptionPtr mICETransportSubscription;
+
+      IICETypes::Components mComponent{ IICETypes::Component_RTP };
 
       UseCertificatePtr mCertificate;
 

@@ -44,6 +44,7 @@
 #include <webrtc/base/scoped_ptr.h>
 #include <webrtc/modules/utility/interface/process_thread.h>
 #include <webrtc/Transport.h>
+#include <webrtc/video/transport_adapter.h>
 #include <webrtc/video_engine/vie_channel_group.h>
 #include <webrtc/video_receive_stream.h>
 
@@ -170,7 +171,8 @@ namespace ortc
       RTPReceiver(Noop) :
         Noop(true),
         MessageQueueAssociator(IMessageQueuePtr()),
-        SharedRecursiveLock(SharedRecursiveLock::create())
+        SharedRecursiveLock(SharedRecursiveLock::create()),
+        mTransportAdapter(nullptr)
       {}
 
       void init();
@@ -337,6 +339,8 @@ namespace ortc
       WORD mLastError {};
       String mLastErrorReason;
 
+      MediaStreamTrackPtr mVideoTrack;
+
       ParametersPtr mParameters;
       
       UseListenerPtr mListener;
@@ -351,6 +355,7 @@ namespace ortc
       rtc::scoped_ptr<webrtc::ProcessThread> mModuleProcessThread;
       rtc::scoped_ptr<webrtc::ChannelGroup> mChannelGroup;
       rtc::scoped_ptr<webrtc::VideoReceiveStream> mVideoStream;
+      webrtc::internal::TransportAdapter mTransportAdapter;
     };
 
     //-------------------------------------------------------------------------

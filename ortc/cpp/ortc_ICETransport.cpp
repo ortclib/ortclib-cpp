@@ -1130,7 +1130,7 @@ namespace ortc
       }
 
       mSecureTransportID = secureTransportID;
-      mSecureTransport = mSecureTransport;
+      mSecureTransport = transport;
 
       IICETransportAsyncDelegateProxy::create(mThisWeak.lock())->onNotifyAttached(secureTransportID);
     }

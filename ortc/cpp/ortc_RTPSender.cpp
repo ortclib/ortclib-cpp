@@ -33,6 +33,7 @@
 #include <ortc/internal/ortc_DTLSTransport.h>
 #include <ortc/internal/ortc_ISecureTransport.h>
 #include <ortc/internal/ortc_RTPListener.h>
+#include <ortc/internal/ortc_MediaStreamTrack.h>
 #include <ortc/internal/ortc_ORTC.h>
 #include <ortc/internal/platform.h>
 
@@ -153,8 +154,10 @@ namespace ortc
                          ) :
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
+      mVideoTrack(MediaStreamTrack::convert(track)),
       mModuleProcessThread(webrtc::ProcessThread::Create()),
-      mChannelGroup(new webrtc::ChannelGroup(mModuleProcessThread.get()))
+      mChannelGroup(new webrtc::ChannelGroup(mModuleProcessThread.get())),
+      mTransportAdapter(nullptr)
     {
       ZS_LOG_DETAIL(debug("created"))
 
@@ -162,6 +165,10 @@ namespace ortc
       ORTC_THROW_INVALID_STATE_IF(!mListener)
 
       UseSecureTransport::getSendingTransport(transport, rtcpTransport, mSendRTPOverTransport, mSendRTCPOverTransport, mRTPTransport, mRTCPTransport);
+
+      mVideoTrack->registerVideoCaptureDataCallback(this);
+
+      mChannelGroup->CreateSendChannel(0, 0, &mTransportAdapter, 2, std::vector<uint32_t>(), true);
     }
 
     //-------------------------------------------------------------------------
@@ -175,10 +182,41 @@ namespace ortc
       webrtc::newapi::Transport* transport = this;
       webrtc::CpuOveruseObserver* overuseObserver = NULL;
       int numCpuCores = 2;
-      int channelID = 0;
-      const webrtc::VideoSendStream::Config config;
-      const webrtc::VideoEncoderConfig encoderConfig;
-      const std::map<uint32_t, webrtc::RtpState> suspendedSSRCs;
+      int channelID = 1;
+      webrtc::VideoSendStream::Config config;
+      webrtc::VideoEncoderConfig encoderConfig;
+      std::map<uint32_t, webrtc::RtpState> suspendedSSRCs;
+
+      webrtc::VideoCodecType type = webrtc::kVideoCodecVP8;
+      webrtc::VideoEncoder* videoEncoder = webrtc::VideoEncoder::Create(webrtc::VideoEncoder::kVp8);
+
+      config.encoder_settings.encoder = videoEncoder;
+      config.encoder_settings.payload_name = "VP8";
+      config.encoder_settings.payload_type = 100;
+      config.rtp.c_name = "test-cname";
+      config.rtp.extensions.push_back(webrtc::RtpExtension("urn:3gpp:video-orientation", 4));
+      config.rtp.extensions.push_back(webrtc::RtpExtension("http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time", 3));
+      config.rtp.extensions.push_back(webrtc::RtpExtension("urn:ietf:params:rtp-hdrext:toffset", 2));
+      config.rtp.nack.rtp_history_ms = 1000;
+      config.rtp.ssrcs.push_back(1000);
+
+      webrtc::VideoStream stream;
+      stream.width = 800;
+      stream.height = 600;
+      stream.max_framerate = 30;
+      stream.min_bitrate_bps = 30000;
+      stream.target_bitrate_bps = 2000000;
+      stream.max_bitrate_bps = 2000000;
+      stream.max_qp = 56;
+      webrtc::VideoCodecVP8 videoCodec = webrtc::VideoEncoder::GetDefaultVp8Settings();
+      videoCodec.automaticResizeOn = true;
+      videoCodec.denoisingOn = true;
+      videoCodec.frameDroppingOn = true;
+
+      encoderConfig.min_transmit_bitrate_bps = 0;
+      encoderConfig.content_type = webrtc::VideoEncoderConfig::ContentType::kRealtimeVideo;
+      encoderConfig.streams.push_back(stream);
+      encoderConfig.encoder_specific_settings = &videoCodec;
 
       mVideoStream = rtc::scoped_ptr<webrtc::VideoSendStream>(new webrtc::internal::VideoSendStream(
         transport, overuseObserver, numCpuCores,
@@ -389,16 +427,14 @@ namespace ortc
       BufferList historicalRTCPPackets;
       mListener->registerSender(mThisWeak.lock(), *mParameters, historicalRTCPPackets);
 
-#define TODO 1
-#define TODO 2
+      mVideoStream->Start();
     }
 
     //-------------------------------------------------------------------------
     void RTPSender::stop()
     {
       AutoRecursiveLock lock(*this);
-#define TODO 1
-#define TODO 2
+      mVideoStream->Stop();
     }
 
     //-------------------------------------------------------------------------
@@ -507,12 +543,45 @@ namespace ortc
 
     bool RTPSender::SendRtp(const uint8_t* packet, size_t length)
     {
+      IDTLSTransportPtr dtlsTransport = IDTLSTransportPtr(DTLSTransport::convert(mRTPTransport));
+
+      if (dtlsTransport && dtlsTransport->state() != IDTLSTransportTypes::State_Connected)
+        return true;
+
+      ZS_LOG_TRACE(log("sent packet") + ZS_PARAM("via", IICETypes::toString(IICETypes::Components::Component_RTP)) + ZS_PARAM("buffer size", length))
+
       return sendPacket(IICETypes::Components::Component_RTP, packet, length);
     }
 
     bool RTPSender::SendRtcp(const uint8_t* packet, size_t length)
     {
+      IDTLSTransportPtr dtlsTransport = IDTLSTransportPtr(DTLSTransport::convert(mRTCPTransport));
+
+      if (dtlsTransport && dtlsTransport->state() != IDTLSTransportTypes::State_Connected)
+        return true;
+
+      ZS_LOG_TRACE(log("sent packet") + ZS_PARAM("via", IICETypes::toString(IICETypes::Components::Component_RTCP)) + ZS_PARAM("buffer size", length))
+
       return sendPacket(IICETypes::Components::Component_RTCP, packet, length);
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPSender => VideoCaptureDataCallback
+    #pragma mark
+
+    void RTPSender::OnIncomingCapturedFrame(const int32_t id, const webrtc::VideoFrame& videoFrame)
+    {
+      if (mVideoStream)
+        mVideoStream->Input()->IncomingCapturedFrame(videoFrame);
+    }
+
+    void RTPSender::OnCaptureDelayChanged(const int32_t id, const int32_t delay)
+    {
+
     }
 
     //-------------------------------------------------------------------------

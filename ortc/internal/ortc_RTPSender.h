@@ -44,8 +44,10 @@
 #include <webrtc/base/scoped_ptr.h>
 #include <webrtc/modules/utility/interface/process_thread.h>
 #include <webrtc/Transport.h>
+#include <webrtc/video/transport_adapter.h>
 #include <webrtc/video_engine/vie_channel_group.h>
 #include <webrtc/video_send_stream.h>
+#include <webrtc/modules/video_capture/include/video_capture.h>
 
 
 //#define ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE "ortc/sctp/max-message-size"
@@ -59,6 +61,7 @@ namespace ortc
 
     ZS_DECLARE_INTERACTION_PTR(ISecureTransportForRTPSender)
     ZS_DECLARE_INTERACTION_PTR(IRTPListenerForRTPSender)
+    ZS_DECLARE_INTERACTION_PTR(IMediaStreamTrackForRTPSender)
 
     ZS_DECLARE_INTERACTION_PROXY(IRTPSenderAsyncDelegate)
 
@@ -152,7 +155,8 @@ namespace ortc
                       public zsLib::ITimerDelegate,
                       public IRTPSenderAsyncDelegate,
                       public IRTPTypes::PacketReceiver,
-                      public webrtc::newapi::Transport
+                      public webrtc::newapi::Transport,
+                      public webrtc::VideoCaptureDataCallback
     {
     protected:
       struct make_private {};
@@ -166,6 +170,7 @@ namespace ortc
 
       ZS_DECLARE_TYPEDEF_PTR(ISecureTransportForRTPSender, UseSecureTransport)
       ZS_DECLARE_TYPEDEF_PTR(IRTPListenerForRTPSender, UseListener)
+      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPSender, UseMediaStreamTrack)
 
       enum States
       {
@@ -190,7 +195,8 @@ namespace ortc
       RTPSender(Noop) :
         Noop(true),
         MessageQueueAssociator(IMessageQueuePtr()),
-        SharedRecursiveLock(SharedRecursiveLock::create())
+        SharedRecursiveLock(SharedRecursiveLock::create()),
+        mTransportAdapter(nullptr)
       {}
 
       void init();
@@ -310,6 +316,15 @@ namespace ortc
       virtual bool SendRtp(const uint8_t* packet, size_t length);
       virtual bool SendRtcp(const uint8_t* packet, size_t length);
 
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPSender => VideoCaptureDataCallback
+      #pragma mark
+
+      virtual void OnIncomingCapturedFrame(const int32_t id, const webrtc::VideoFrame& videoFrame);
+
+      virtual void OnCaptureDelayChanged(const int32_t id, const int32_t delay);
+
     protected:
       //-----------------------------------------------------------------------
       #pragma mark
@@ -361,6 +376,8 @@ namespace ortc
       WORD mLastError {};
       String mLastErrorReason;
 
+      UseMediaStreamTrackPtr mVideoTrack;
+
       ParametersPtr mParameters;
 
       UseListenerPtr mListener;
@@ -375,6 +392,7 @@ namespace ortc
       rtc::scoped_ptr<webrtc::ProcessThread> mModuleProcessThread;
       rtc::scoped_ptr<webrtc::ChannelGroup> mChannelGroup;
       rtc::scoped_ptr<webrtc::VideoSendStream> mVideoStream;
+      webrtc::internal::TransportAdapter mTransportAdapter;
     };
 
     //-------------------------------------------------------------------------
