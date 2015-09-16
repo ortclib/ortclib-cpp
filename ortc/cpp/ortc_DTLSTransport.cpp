@@ -388,6 +388,8 @@ namespace ortc
           ciphers.push_back(entry->external_name);
         }
 
+        mAdapter->setDtlsSrtpCiphers(ciphers);
+
         transport = mICETransport;
 
         mICETransportSubscription = transport->subscribe(mThisWeak.lock());
@@ -1795,11 +1797,10 @@ namespace ortc
       }
 
       String cipher;
-      if (!mAdapter->getSslCipher(&cipher)) {
+      if (!mAdapter->getDtlsSrtpCipher(&cipher)) {
         ZS_LOG_WARNING(Detail, log("failed to negotiate SRTP cipher suite"))
         return;
       }
-
 
       CryptoParameters sendingParams;
       CryptoParameters receivingParams;
