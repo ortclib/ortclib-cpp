@@ -173,7 +173,7 @@ namespace ortc
           SetBE32(&(pos[8]), ssrc);
 
           pos += (sizeof(DWORD)*3);
-          for (size_t index = 0; index < (cc & 0xF); ++index, pos += sizeof(DWORD))
+          for (size_t index = 0; index < (static_cast<size_t>(cc) & 0xF); ++index, pos += sizeof(DWORD))
           {
             SetBE32(&(pos[0]), ccrcs[index]);
           }

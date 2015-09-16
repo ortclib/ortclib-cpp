@@ -54,7 +54,7 @@
 #define RTP_HEADER_PADDING(buffer) (0 != ((buffer[0]) & 0x20))
 #define RTP_HEADER_EXTENSION(buffer) (0 != ((buffer[0] & RTP_HEADER_EXTENSION_BIT)))
 #define RTP_HEADER_CC(buffer) ((buffer[0]) & 0xF)
-#define RTP_HEADER_M(buffer) ((buffer[1]) & 0x80)
+#define RTP_HEADER_M(buffer) (0 != ((buffer[1]) & 0x80))
 #define RTP_HEADER_PT(buffer) ((buffer[1]) & 0x7F)
 
 namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib) }
@@ -585,7 +585,7 @@ namespace ortc
           // labels and identifiers, while losing the possibility of zero-length
           // values -- which would often be padded anyway.)
 
-          WORD length = (pos[0] & 0x0F) + 1;
+          size_t length = static_cast<size_t>((pos[0] & 0x0F) + 1);
 
           if (remaining < (1 + length)) {
             ZS_LOG_WARNING(Trace, log("extension header is not valid") + ZS_PARAM("id", id) + ZS_PARAM("remaining", remaining) + ZS_PARAM("length", length))
