@@ -1336,6 +1336,7 @@ namespace ortc
         const sctp_notification &notification = reinterpret_cast<const sctp_notification&>(*(packet->mBuffer->BytePtr()));
         ZS_THROW_INVALID_ASSUMPTION_IF(notification.sn_header.sn_length != packet->mBuffer->SizeInBytes())
 
+        AutoRecursiveLock lock(*this);
         handleNotificationPacket(notification);
         return;
       }
