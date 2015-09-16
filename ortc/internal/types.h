@@ -106,6 +106,9 @@ namespace ortc
     #pragma mark (forwards)
     #pragma mark
 
+    ZS_DECLARE_CLASS_PTR(RTPPacket)
+    ZS_DECLARE_CLASS_PTR(RTCPPacket)
+
     ZS_DECLARE_INTERACTION_PTR(ISRTPTransport)
 
     ZS_DECLARE_INTERACTION_PTR(ISecureTransportForRTPSender)

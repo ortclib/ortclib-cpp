@@ -84,7 +84,7 @@ namespace ortc
 {
   namespace test
   {
-    namespace dtls
+    namespace srtp
     {
       ZS_DECLARE_INTERACTION_PROXY(IFakeSecureTransportAsyncDelegate)
 
@@ -109,7 +109,7 @@ namespace ortc
   }
 }
 
-ZS_DECLARE_PROXY_BEGIN(ortc::test::dtls::IFakeSecureTransportAsyncDelegate)
+ZS_DECLARE_PROXY_BEGIN(ortc::test::srtp::IFakeSecureTransportAsyncDelegate)
 ZS_DECLARE_PROXY_TYPEDEF(openpeer::services::SecureByteBlockPtr, SecureByteBlockPtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IICETypes::Components, Components)
 ZS_DECLARE_PROXY_METHOD_3(onPacketFromLinkedFakedTransport, Components, Components, SecureByteBlockPtr)
@@ -119,7 +119,7 @@ namespace ortc
 {
   namespace test
   {
-    namespace dtls
+    namespace srtp
     {
       ZS_DECLARE_CLASS_PTR(FakeSecureTransport)
       ZS_DECLARE_INTERACTION_PTR(ISRTPTester)
@@ -257,7 +257,7 @@ namespace ortc
         {
           AutoRecursiveLock lock(*this);
 
-          ElementPtr resultEl = Element::create("ortc::test::dtls::FakeSecureTransport");
+          ElementPtr resultEl = Element::create("ortc::test::srtp::FakeSecureTransport");
 
           UseServicesHelper::debugAppend(resultEl, "id", getID());
 
@@ -388,7 +388,7 @@ namespace ortc
         //---------------------------------------------------------------------
         Log::Params log(const char *message) const
         {
-          ElementPtr objectEl = Element::create("ortc::test::dtls::FakeSecureTransport");
+          ElementPtr objectEl = Element::create("ortc::test::srtp::FakeSecureTransport");
           UseServicesHelper::debugAppend(objectEl, "id", DTLSTransport::getID());
           return Log::Params(message, objectEl);
         }
@@ -467,13 +467,13 @@ namespace ortc
           SharedRecursiveLock(SharedRecursiveLock::create()),
           MessageQueueAssociator(queue)
         {
-          ZS_LOG_BASIC(log("dtls tester"))
+          ZS_LOG_BASIC(log("created"))
         }
 
         //---------------------------------------------------------------------
         ~SRTPTester()
         {
-          ZS_LOG_BASIC(log("dtls tester"))
+          ZS_LOG_BASIC(log("destroyed"))
         }
 
         //---------------------------------------------------------------------
@@ -594,7 +594,7 @@ namespace ortc
         //---------------------------------------------------------------------
         Log::Params log(const char *message) const
         {
-          ElementPtr objectEl = Element::create("ortc::test::dtls::SRTPTester");
+          ElementPtr objectEl = Element::create("ortc::test::srtp::SRTPTester");
           UseServicesHelper::debugAppend(objectEl, "id", mID);
           return Log::Params(message, objectEl);
         }
@@ -628,8 +628,8 @@ namespace ortc
   }
 }
 
-ZS_DECLARE_USING_PTR(ortc::test::dtls, FakeSecureTransport)
-ZS_DECLARE_USING_PTR(ortc::test::dtls, SRTPTester)
+ZS_DECLARE_USING_PTR(ortc::test::srtp, FakeSecureTransport)
+ZS_DECLARE_USING_PTR(ortc::test::srtp, SRTPTester)
 ZS_DECLARE_USING_PTR(ortc, IICETransport)
 using ortc::IICETypes;
 

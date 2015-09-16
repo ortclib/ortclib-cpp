@@ -1283,6 +1283,8 @@ ZS_DECLARE_USING_PTR(ortc::test::sctp, SCTPTester)
 ZS_DECLARE_USING_PTR(ortc, IICETransport)
 ZS_DECLARE_USING_PTR(ortc, IDTLSTransport)
 ZS_DECLARE_USING_PTR(ortc, IDataChannel)
+ZS_DECLARE_USING_PTR(ortc, ISCTPTransport)
+
 using ortc::IICETypes;
 using zsLib::Optional;
 using zsLib::WORD;
@@ -1391,10 +1393,11 @@ void doTestSCTP()
 
           expectationsSCTP2.mIncoming = 1;
 
-          expectationsSCTP2.mReceivedBinary = 1;
+          expectationsSCTP2.mReceivedBinary = 2;
           expectationsSCTP1.mReceivedText = 3;
 
           expectationsSCTP2.mTransportIncoming = 1;
+          expectationsSCTP1.mError = 1;
           break;
         }
         default:  quit = true; break;
@@ -1523,7 +1526,7 @@ void doTestSCTP()
             switch (step) {
               case 1: {
                 if (testSCTPObject2) testSCTPObject2->listen();
-                bogusSleep();
+                //bogusSleep();
                 break;
               }
               case 2: {
@@ -1571,6 +1574,7 @@ void doTestSCTP()
                 IDataChannel::Parameters params;
                 params.mLabel = "foo1";
                 params.mID = 0;
+                params.mNegotiated = true;
                 if (testSCTPObject1) testSCTPObject1->createChannel(params);
                 if (testSCTPObject2) testSCTPObject2->createChannel(params);
                 //bogusSleep();
@@ -1591,7 +1595,7 @@ void doTestSCTP()
               case 44: {
                 if (testSCTPObject1) testSCTPObject1->close();
                 if (testSCTPObject2) testSCTPObject1->close();
-                bogusSleep();
+                //bogusSleep();
                 break;
               }
               case 46: {
@@ -1685,8 +1689,21 @@ void doTestSCTP()
                 //bogusSleep();
                 break;
               }
+              case 33: {
+                auto remoteCaps = ISCTPTransport::getCapabilities();
+
+                if (testSCTPObject2) testSCTPObject1->sendData("foo1", UseServicesHelper::random(remoteCaps->mMaxMessageSize));
+                //bogusSleep();
+                break;
+              }
+              case 39: {
+                auto remoteCaps = ISCTPTransport::getCapabilities();
+                if (testSCTPObject2) testSCTPObject1->sendData("foo1", UseServicesHelper::random(remoteCaps->mMaxMessageSize+1));
+                //bogusSleep();
+                break;
+              }
               case 40: {
-                if (testSCTPObject1) testSCTPObject1->closeChannel("foo1");
+                // if (testSCTPObject1) testSCTPObject1->closeChannel("foo1");  // DO NOT CLOSE - ERROR SHOULD CLOSE IT
                 //bogusSleep();
                 break;
               }

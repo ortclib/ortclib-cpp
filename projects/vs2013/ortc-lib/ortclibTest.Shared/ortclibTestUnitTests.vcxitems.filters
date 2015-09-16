@@ -47,6 +47,9 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\test\TestSRTP.cpp">
       <Filter>ortc\test</Filter>
     </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\test\TestRTPPacket.cpp">
+      <Filter>ortc\test</Filter>
+    </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\test\TestSCTP.cpp">
       <Filter>ortc\test</Filter>
     </ClCompile>

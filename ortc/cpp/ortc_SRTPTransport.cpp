@@ -31,6 +31,7 @@
 
 #include <ortc/internal/ortc_SRTPTransport.h>
 #include <ortc/internal/ortc_DTLSTransport.h>
+#include <ortc/internal/ortc_Helper.h>
 #include <ortc/internal/ortc_ORTC.h>
 #include <ortc/internal/platform.h>
 
@@ -74,6 +75,7 @@ namespace ortc
   ZS_DECLARE_TYPEDEF_PTR(openpeer::services::ISettings, UseSettings)
   ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHelper, UseServicesHelper)
   ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHTTP, UseHTTP)
+  ZS_DECLARE_TYPEDEF_PTR(ortc::internal::Helper, UseHelper)
 
   typedef openpeer::services::Hasher<CryptoPP::SHA1> SHA1Hasher;
 
@@ -99,15 +101,6 @@ namespace ortc
 
     const char CS_AES_CM_128_HMAC_SHA1_80[] = "AES_CM_128_HMAC_SHA1_80";
     const char CS_AES_CM_128_HMAC_SHA1_32[] = "AES_CM_128_HMAC_SHA1_32";
-
-    //-------------------------------------------------------------------------
-    static bool isRTCP(const BYTE *data, size_t len) {
-      if (len < 2) {
-        return false;
-      }
-      BYTE pt = (data[1] & 0x7F);
-      return (63 < pt) && (pt < 96);
-    }
 
     //-------------------------------------------------------------------------
     static size_t toRemainingPercent(
@@ -622,7 +615,7 @@ namespace ortc
     {
       UseSecureTransportPtr transport;
       SecureByteBlockPtr decryptedBuffer;
-      IICETypes::Components component = (isRTCP(buffer, bufferLengthInBytes) ? IICETypes::Component_RTCP : IICETypes::Component_RTP);
+      IICETypes::Components component = (UseHelper::IsRTCPPacketType(buffer, bufferLengthInBytes) ? IICETypes::Component_RTCP : IICETypes::Component_RTP);
 
       size_t popSize = 0;
       enum UsedKeys {
