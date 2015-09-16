@@ -822,6 +822,13 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool DataChannel::stepIssueConnect()
     {
+      if (mParameters) {
+        if (mParameters->mNegotiated) {
+          ZS_LOG_TRACE(log("no need to issue connect as channel is negotiated externally"))
+          return true;
+        }
+      }
+
       if (mIncoming) {
         ZS_LOG_TRACE(log("incoming connection will not issue connect request"))
         return true;
@@ -843,6 +850,13 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool DataChannel::stepWaitConnectAck()
     {
+      if (mParameters) {
+        if (mParameters->mNegotiated) {
+          ZS_LOG_TRACE(log("no need to wait for ack as channel is negotiated externally"))
+          return true;
+        }
+      }
+
       if (mIncoming) {
         ZS_LOG_TRACE(log("incoming connection will not issue connect request"))
         return true;

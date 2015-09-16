@@ -1574,6 +1574,7 @@ void doTestSCTP()
                 IDataChannel::Parameters params;
                 params.mLabel = "foo1";
                 params.mID = 0;
+                params.mNegotiated = true;
                 if (testSCTPObject1) testSCTPObject1->createChannel(params);
                 if (testSCTPObject2) testSCTPObject2->createChannel(params);
                 //bogusSleep();
