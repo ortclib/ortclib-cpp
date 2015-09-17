@@ -225,6 +225,8 @@ namespace ortc
       ZS_DECLARE_TYPEDEF_PTR(ISCTPTransportListenerForSCTPTransport, UseListener)
       ZS_DECLARE_TYPEDEF_PTR(ISecureTransportForDataTransport, UseSecureTransport)
 
+      ZS_DECLARE_TYPEDEF_PTR(ISCTPTransportTypes::Capabilities, Capabilities);
+
       static ForListenerPtr create(
                                    UseListenerPtr listener,
                                    UseSecureTransportPtr secureTransport,
@@ -233,6 +235,8 @@ namespace ortc
                                    );
 
       virtual PUID getID() const = 0;
+
+      virtual void start(const Capabilities &remoteCapabilities) = 0;
 
       virtual bool handleDataPacket(
                                     const BYTE *buffer,
@@ -346,6 +350,7 @@ namespace ortc
       ZS_DECLARE_TYPEDEF_PTR(IICETransportForDataTransport, UseICETransport)
 
       ZS_DECLARE_TYPEDEF_PTR(IDataChannelTypes::Parameters, Parameters)
+      ZS_DECLARE_TYPEDEF_PTR(ISCTPTransportTypes::Capabilities, Capabilities);
 
       ZS_DECLARE_STRUCT_PTR(TearAwayData)
 
@@ -479,6 +484,8 @@ namespace ortc
                                    WORD remotePort
                                    );
 
+      // (duplicate) virtual void start(const Capabilities &remoteCapabilities) = 0;
+
       virtual bool handleDataPacket(
                                     const BYTE *buffer,
                                     size_t bufferLengthInBytes
@@ -581,12 +588,9 @@ namespace ortc
       void setState(States state);
       void setError(WORD error, const char *reason = NULL);
 
-      bool openListenSCTPSocket();
       bool openConnectSCTPSocket();
       bool openSCTPSocket();
       bool prepareSocket(struct socket *sock);
-
-      void attemptAccept();
 
       bool isSessionAvailable(WORD sessionID);
       bool attemptSend(
@@ -636,7 +640,7 @@ namespace ortc
 
       UseListenerWeakPtr mListener;
 
-      UseSecureTransportWeakPtr mSecureTransport;
+      UseSecureTransportWeakPtr mSecureTransport; // no lock needed
       PromisePtr mSecureTransportReady;
       PromisePtr mSecureTransportClosed;
 
@@ -650,7 +654,6 @@ namespace ortc
       bool mIncoming {false};
 
       struct socket *mSocket {};
-      struct socket *mAcceptSocket {};
 
       WORD mLocalPort {};
       WORD mRemotePort {};
@@ -659,10 +662,9 @@ namespace ortc
 
       DataChannelSessionMap mSessions;
 
+      bool mAttemptResetLater {false};
       DataChannelSessionMap mPendingResetSessions;
       DataChannelSessionMap mQueuedResetSessions;
-      DataChannelSessionMap mQueuedReflectedResetSessions;
-      DataChannelSessionMap mWaitingForReflectedRemoteResetSessions;
 
       WORD mCurrentAllocationSessionID {};
       WORD mMinAllocationSessionID {0};

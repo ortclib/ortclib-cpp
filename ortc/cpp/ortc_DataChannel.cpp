@@ -254,6 +254,10 @@ namespace ortc
     void DataChannel::init()
     {
       AutoRecursiveLock lock(*this);
+      auto transport = mDataTransport.lock();
+      if (transport) {
+        mDataTransportSubscription = transport->subscribe(mThisWeak.lock());
+      }
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
     }
 
@@ -434,7 +438,10 @@ namespace ortc
     void DataChannel::send(const String &data)
     {
       AutoRecursiveLock lock(*this);
-      if (data.isEmpty()) send(SCTP_PPID_STRING_LAST, NULL, 0);
+      if (data.isEmpty()) {
+        send(SCTP_PPID_STRING_LAST, NULL, 0);
+        return;
+      }
       send(SCTP_PPID_STRING_LAST, (const BYTE *)data.c_str(), data.length());
     }
 
@@ -532,10 +539,8 @@ namespace ortc
             goto queue_for_later;
           }
 
-          if (isShuttingDown()) {
-            ZS_LOG_TRACE(log("forwarding as event"))
-            goto forward_as_event;
-          }
+          ZS_LOG_TRACE(log("forwarding as event"))
+          goto forward_as_event;
         }
 
       queue_for_later:
@@ -709,6 +714,7 @@ namespace ortc
 
       auto dataTransport = mDataTransport.lock();
       UseServicesHelper::debugAppend(resultEl, "data transport", dataTransport ? dataTransport->getID() : 0);
+      UseServicesHelper::debugAppend(resultEl, "data transport subscription", (bool)mDataTransportSubscription);
 
       UseServicesHelper::debugAppend(resultEl, "state", toString(mCurrentState));
 
@@ -716,6 +722,7 @@ namespace ortc
       UseServicesHelper::debugAppend(resultEl, "issued open", mIssuedOpen);
       UseServicesHelper::debugAppend(resultEl, "session id", ORTC_SCTP_INVALID_DATA_CHANNEL_SESSION_ID != mSessionID ? string(mSessionID) : String());
 
+      UseServicesHelper::debugAppend(resultEl, "requested sctp shutdown", mRequestedSCTPShutdown);
       UseServicesHelper::debugAppend(resultEl, "notified closed", mNotifiedClosed);
 
       UseServicesHelper::debugAppend(resultEl, "error", mLastError);
@@ -815,6 +822,13 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool DataChannel::stepIssueConnect()
     {
+      if (mParameters) {
+        if (mParameters->mNegotiated) {
+          ZS_LOG_TRACE(log("no need to issue connect as channel is negotiated externally"))
+          return true;
+        }
+      }
+
       if (mIncoming) {
         ZS_LOG_TRACE(log("incoming connection will not issue connect request"))
         return true;
@@ -836,6 +850,13 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool DataChannel::stepWaitConnectAck()
     {
+      if (mParameters) {
+        if (mParameters->mNegotiated) {
+          ZS_LOG_TRACE(log("no need to wait for ack as channel is negotiated externally"))
+          return true;
+        }
+      }
+
       if (mIncoming) {
         ZS_LOG_TRACE(log("incoming connection will not issue connect request"))
         return true;
@@ -940,7 +961,10 @@ namespace ortc
         if (!mNotifiedClosed) {
           auto dataTransport = mDataTransport.lock();
           if (dataTransport) {
-            dataTransport->requestShutdown(mThisWeak.lock(), mSessionID);
+            if (!mRequestedSCTPShutdown) {
+              dataTransport->requestShutdown(mThisWeak.lock(), mSessionID);
+              mRequestedSCTPShutdown = true;
+            }
             ZS_LOG_TRACE(log("waiting for data channel reset"))
             return;
           }
@@ -960,6 +984,11 @@ namespace ortc
       if (mDefaultSubscription) {
         mDefaultSubscription->cancel();
         mDefaultSubscription.reset();
+      }
+
+      if (mDataTransportSubscription) {
+        mDataTransportSubscription->cancel();
+        mDataTransportSubscription.reset();
       }
 
       // make sure to cleanup any final reference to self
@@ -1063,7 +1092,7 @@ namespace ortc
         mOutgoingData.push_back(packet);
       }
 
-      return false;
+      return true;
     }
 
     //-------------------------------------------------------------------------
@@ -1292,6 +1321,7 @@ namespace ortc
 
       ZS_LOG_TRACE(log("channel is now open (because of ACK to data channel open)"))
       setState(State_Open);
+      IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
       return true;
     }
 

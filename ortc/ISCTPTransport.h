@@ -87,7 +87,8 @@ namespace ortc
 
     static ISCTPTransportListenerSubscriptionPtr listen(
                                                         ISCTPTransportListenerDelegatePtr delegate,
-                                                        IDTLSTransportPtr transport
+                                                        IDTLSTransportPtr transport,
+                                                        const Capabilities &remoteCapabilities
                                                         );
 
     virtual PUID getID() const = 0;

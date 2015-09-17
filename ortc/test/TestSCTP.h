@@ -43,6 +43,7 @@
 #include <openpeer/services/IHelper.h>
 
 #include <zsLib/Promise.h>
+#include <zsLib/Timer.h>
 #include <zsLib/Log.h>
 
 #include "config.h"
@@ -105,6 +106,9 @@ namespace ortc
       using zsLib::Log;
       using zsLib::IPromiseSettledDelegate;
       using zsLib::AutoPUID;
+      using zsLib::Milliseconds;
+
+      ZS_DECLARE_USING_PTR(zsLib, Timer)
 
       ZS_DECLARE_CLASS_PTR(FakeICETransport)
       ZS_DECLARE_CLASS_PTR(FakeSecureTransport)
@@ -128,11 +132,15 @@ namespace ortc
       protected:
         struct make_private {};
 
+        typedef std::pair<Time, SecureByteBlockPtr> DelayedBufferPair;
+        typedef std::list<DelayedBufferPair> DelayedBufferList;
+
       public:
         //---------------------------------------------------------------------
         FakeICETransport(
                          const make_private &,
-                         IMessageQueuePtr queue
+                         IMessageQueuePtr queue,
+                         Milliseconds packetDelay
                          );
 
       protected:
@@ -147,7 +155,10 @@ namespace ortc
 
         ~FakeICETransport();
 
-        static FakeICETransportPtr create(IMessageQueuePtr queue);
+        static FakeICETransportPtr create(
+                                          IMessageQueuePtr queue,
+                                          Milliseconds packetDelay = Milliseconds()
+                                          );
 
         void reliability(ULONG percentage);
 
@@ -182,6 +193,14 @@ namespace ortc
 
         //---------------------------------------------------------------------
         virtual void onPacketFromLinkedFakedTransport(SecureByteBlockPtr buffer);
+
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark FakeICETransport => ITimerDelegate
+        #pragma mark
+
+        //---------------------------------------------------------------------
+        virtual void onTimer(TimerPtr timer);
 
         //---------------------------------------------------------------------
         #pragma mark
@@ -231,6 +250,11 @@ namespace ortc
         IICETransportSubscriptionPtr mDefaultSubscription;
 
         ULONG mReliability {100};
+        Milliseconds mPacketDelay {};
+
+        DelayedBufferList mDelayedBuffers;
+
+        TimerPtr mTimer;
       };
 
       //---------------------------------------------------------------------
@@ -400,12 +424,20 @@ namespace ortc
 
       public:
         struct Expectations {
+          // data channel related
+          ULONG mIncoming {0};
           ULONG mStateConnecting {0};
           ULONG mStateOpen {0};
           ULONG mStateClosing {0};
           ULONG mStateClosed {0};
 
+          ULONG mReceivedBinary {0};
+          ULONG mReceivedText {0};
+
           ULONG mError {0};
+
+          // transport
+          ULONG mTransportIncoming {0};
 
           bool operator==(const Expectations &op2) const;
         };
@@ -423,7 +455,8 @@ namespace ortc
                                     IMessageQueuePtr queue,
                                     bool createSCTPNow = true,
                                     Optional<WORD> localPort = Optional<WORD>(),
-                                    Optional<WORD> removePort = Optional<WORD>()
+                                    Optional<WORD> removePort = Optional<WORD>(),
+                                    Milliseconds packetDelay = Milliseconds()
                                     );
 
         SCTPTester(IMessageQueuePtr queue);
@@ -433,7 +466,8 @@ namespace ortc
         void init(
                   bool createSCTPNow,
                   Optional<WORD> localPort,
-                  Optional<WORD> removePort
+                  Optional<WORD> removePort,
+                  Milliseconds packetDelay
                   );
 
         bool matches(const Expectations &op2);
@@ -465,6 +499,8 @@ namespace ortc
                       const char *channelID,
                       const String &message
                       );
+
+        void closeChannel(const char *channelID);
 
       protected:
 

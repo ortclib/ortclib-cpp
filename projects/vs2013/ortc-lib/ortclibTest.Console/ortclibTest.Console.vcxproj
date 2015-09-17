@@ -42,6 +42,8 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -55,13 +57,19 @@
       <SDLCheck>true</SDLCheck>
       <DisableSpecificWarnings>4453;28204;4068;4290</DisableSpecificWarnings>
       <AdditionalIncludeDirectories>$(ProjectDir)\..\..\..\..;$(ProjectDir)\..\..\..\..\..;$(ProjectDir)\..\..\..\..\..\op-services-cpp;$(ProjectDir)\..\..\..\..\..\zsLib;%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory);$(ProjectDir)\..\..\..\..\..\webrtc\third_party\boringssl\src\include</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(ProjectDir)\..\..\..\..\..\curl\$(PlatformTarget)-$(Configuration)-static\lib;$(ProjectDir)\..\..\..\..\..\webrtc\build\$(Configuration)\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>ws2_32.lib;wldap32.lib;wsock32.lib;Userenv.lib;libcurl.lib;boringssl.lib;libsrtp.lib;usrsctplib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)\..\..\..\..\..\curl\$(PlatformTarget)-$(Configuration)-static\lib;$(ProjectDir)\..\..\..\..\..\webrtc\build\$(Configuration)\lib;$(ProjectDir)\..\..\..\..\..\webrtc\build_win32\$(Configuration)\obj\third_party\boringssl;$(ProjectDir)\..\..\..\..\..\webrtc\build_win32\$(Configuration)\obj\third_party\libsrtp;$(ProjectDir)\..\..\..\..\..\webrtc\build_win32\$(Configuration)\obj\third_party\usrsctp;$(ProjectDir)\..\..\..\..\..\webrtc\build_win32\$(Configuration)\obj\webrtc\common_video;$(ProjectDir)\..\..\..\..\..\webrtc\build_win32\$(Configuration)\obj\webrtc\system_wrappers;$(ProjectDir)\..\..\..\..\..\webrtc\build_win32\$(Configuration)\obj\webrtc\base;$(ProjectDir)\..\..\..\..\..\webrtc\build_win32\$(Configuration)\obj\webrtc\modules;$(ProjectDir)\..\..\..\..\..\webrtc\build_win32\$(Configuration)\obj\third_party\libjpeg_turbo;$(ProjectDir)\..\..\..\..\..\webrtc\build_win32\$(Configuration);$(ProjectDir)\..\..\..\..\..\webrtc\build_win32\$(Configuration)\obj\webrtc;$(ProjectDir)\..\..\..\..\..\webrtc\build_win32\$(Configuration)\obj\third_party\winsdk_samples</AdditionalLibraryDirectories>
+      <AdditionalDependencies>ws2_32.lib;wldap32.lib;wsock32.lib;Userenv.lib;libcurl.lib;%(AdditionalDependencies);boringssl.dll.lib;webrtc_common.lib;directshow_baseclasses.lib;video_capture_module.lib;video_capture_module_internal_impl.lib;common_video.lib;libjpeg.lib;libsrtp.lib;libyuv.lib;rtc_base_approved.lib;system_wrappers.lib;usrsctplib.lib;video_render_module_internal_impl.lib;video_render_module.lib;Strmiids.lib;Quartz.lib;Winmm.lib</AdditionalDependencies>
+      <DelayLoadDLLs>
+      </DelayLoadDLLs>
     </Link>
+    <PostBuildEvent>
+      <Command>copy $(SolutionDir)..\..\..\libs\webrtc\build_win32\$(Configuration)\boringssl.dll $(SolutionDir)\$(Configuration)\</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -80,9 +88,14 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>$(ProjectDir)\..\..\..\..\..\curl\$(PlatformTarget)-$(Configuration)-static\lib;$(ProjectDir)\..\..\..\..\..\webrtc\build\$(Configuration)\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>ws2_32.lib;wldap32.lib;wsock32.lib;Userenv.lib;libcurl.lib;boringssl.lib;libsrtp.lib;usrsctplib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)\..\..\..\..\..\curl\$(PlatformTarget)-$(Configuration)-static\lib;$(ProjectDir)\..\..\..\..\..\webrtc\build\$(Configuration)\lib;$(ProjectDir)\..\..\..\..\..\webrtc\build_win32\$(Configuration)\obj\third_party\boringssl;$(ProjectDir)\..\..\..\..\..\webrtc\build_win32\$(Configuration)\obj\third_party\libsrtp;$(ProjectDir)\..\..\..\..\..\webrtc\build_win32\$(Configuration)\obj\third_party\usrsctp;$(ProjectDir)\..\..\..\..\..\webrtc\build_win32\$(Configuration)\obj\webrtc\common_video;$(ProjectDir)\..\..\..\..\..\webrtc\build_win32\$(Configuration)\obj\webrtc\system_wrappers;$(ProjectDir)\..\..\..\..\..\webrtc\build_win32\$(Configuration)\obj\webrtc\base;$(ProjectDir)\..\..\..\..\..\webrtc\build_win32\$(Configuration)\obj\webrtc\modules;$(ProjectDir)\..\..\..\..\..\webrtc\build_win32\$(Configuration)\obj\third_party\libjpeg_turbo;$(ProjectDir)\..\..\..\..\..\webrtc\build_win32\$(Configuration);$(ProjectDir)\..\..\..\..\..\webrtc\build_win32\$(Configuration)\obj\webrtc;$(ProjectDir)\..\..\..\..\..\webrtc\build_win32\$(Configuration)\obj\third_party\winsdk_samples;$(ProjectDir)\..\..\..\..\..\webrtc\build_win32\$(Configuration)\obj\third_party\libyuv</AdditionalLibraryDirectories>
+      <AdditionalDependencies>ws2_32.lib;wldap32.lib;wsock32.lib;Userenv.lib;libcurl.lib;%(AdditionalDependencies);boringssl.dll.lib;webrtc_common.lib;directshow_baseclasses.lib;video_capture_module.lib;video_capture_module_internal_impl.lib;common_video.lib;libjpeg.lib;libsrtp.lib;libyuv.lib;rtc_base_approved.lib;system_wrappers.lib;usrsctplib.lib;video_render_module_internal_impl.lib;video_render_module.lib;Strmiids.lib;Quartz.lib;Winmm.lib</AdditionalDependencies>
+      <DelayLoadDLLs>
+      </DelayLoadDLLs>
     </Link>
+    <PostBuildEvent>
+      <Command>copy $(SolutionDir)..\..\..\libs\webrtc\build_win32\$(Configuration)\boringssl.dll $(SolutionDir)\$(Configuration)\</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -101,21 +114,51 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\..\cryptopp\projects\vs2013\cryptopp\cryptopp.Win32\cryptopp.Win32.vcxproj">
       <Project>{f73d1443-6e8d-4b5b-9f0a-cab724692a5a}</Project>
+      <Private>false</Private>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\idnkit\projects\vs2013\idnkit\idnkit.Win32\idnkit.Win32.vcxproj">
       <Project>{ea7f7b95-2bea-43f4-b456-f8d740f9c9c8}</Project>
+      <Private>false</Private>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\op-services-cpp\projects\vs2013\hfservices\hfservices.Win32\hfservices.Win32.vcxproj">
       <Project>{55c55370-b836-41fe-9d17-db2095363dad}</Project>
+      <Private>false</Private>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\udns\projects\vs2013\udns\udns.Win32\udns.Win32.vcxproj">
       <Project>{356b3bbc-30c4-45fd-9270-1aa6b32ad553}</Project>
+      <Private>false</Private>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\zsLib\projects\vs2013\zsLib\zsLib.Win32\zsLib.Win32.vcxproj">
       <Project>{d4990072-586d-43e3-9973-51092bd9226f}</Project>
+      <Private>false</Private>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
     <ProjectReference Include="..\ortc-lib.Win32\ortc-lib.Win32.vcxproj">
       <Project>{96d33368-1468-463b-82d9-c5d50bd7a4b2}</Project>
+      <Private>false</Private>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

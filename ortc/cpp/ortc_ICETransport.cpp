@@ -1290,7 +1290,7 @@ namespace ortc
 
         transport = mSecureTransport.lock();
         if (!transport) {
-          ZS_LOG_WARNING(Debug, log("secure transport is not attached (thus must still buffer"))
+          ZS_LOG_WARNING(Debug, log("secure transport is not attached (thus must still buffer)"))
           return;
         }
 
