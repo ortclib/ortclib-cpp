@@ -194,9 +194,9 @@ namespace ortc
       config.encoder_settings.payload_name = "VP8";
       config.encoder_settings.payload_type = 100;
       config.rtp.c_name = "test-cname";
-      config.rtp.extensions.push_back(webrtc::RtpExtension("urn:3gpp:video-orientation", 4));
-      config.rtp.extensions.push_back(webrtc::RtpExtension("http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time", 3));
-      config.rtp.extensions.push_back(webrtc::RtpExtension("urn:ietf:params:rtp-hdrext:toffset", 2));
+      //config.rtp.extensions.push_back(webrtc::RtpExtension("urn:3gpp:video-orientation", 4));
+      //config.rtp.extensions.push_back(webrtc::RtpExtension("http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time", 3));
+      //config.rtp.extensions.push_back(webrtc::RtpExtension("urn:ietf:params:rtp-hdrext:toffset", 2));
       config.rtp.nack.rtp_history_ms = 1000;
       config.rtp.ssrcs.push_back(1000);
 
@@ -527,9 +527,12 @@ namespace ortc
                                                                          size_t length
                                                                          )
     {
-      if (webrtc::RtpHeaderParser::IsRtcp(packet, length))
+      if (webrtc::RtpHeaderParser::IsRtcp(packet, length)) {
+        ZS_LOG_TRACE(log("received packet") + ZS_PARAM("via", IICETypes::toString(IICETypes::Components::Component_RTP)) + ZS_PARAM("buffer size", length))
         return DeliverRtcp(mediaType, packet, length);
+      }
 
+      ZS_LOG_TRACE(log("received packet") + ZS_PARAM("via", IICETypes::toString(IICETypes::Components::Component_RTCP)) + ZS_PARAM("buffer size", length))
       return DeliveryStatus_PacketError;
     }
 
@@ -545,8 +548,10 @@ namespace ortc
     {
       IDTLSTransportPtr dtlsTransport = IDTLSTransportPtr(DTLSTransport::convert(mRTPTransport));
 
-      if (dtlsTransport && dtlsTransport->state() != IDTLSTransportTypes::State_Connected)
+      if (dtlsTransport && dtlsTransport->state() != IDTLSTransportTypes::State_Connected &&
+        dtlsTransport->state() != IDTLSTransportTypes::State_Validated) {
         return true;
+      }
 
       ZS_LOG_TRACE(log("sent packet") + ZS_PARAM("via", IICETypes::toString(IICETypes::Components::Component_RTP)) + ZS_PARAM("buffer size", length))
 
@@ -557,8 +562,10 @@ namespace ortc
     {
       IDTLSTransportPtr dtlsTransport = IDTLSTransportPtr(DTLSTransport::convert(mRTCPTransport));
 
-      if (dtlsTransport && dtlsTransport->state() != IDTLSTransportTypes::State_Connected)
+      if (dtlsTransport && dtlsTransport->state() != IDTLSTransportTypes::State_Connected &&
+        dtlsTransport->state() != IDTLSTransportTypes::State_Validated) {
         return true;
+      }
 
       ZS_LOG_TRACE(log("sent packet") + ZS_PARAM("via", IICETypes::toString(IICETypes::Components::Component_RTCP)) + ZS_PARAM("buffer size", length))
 

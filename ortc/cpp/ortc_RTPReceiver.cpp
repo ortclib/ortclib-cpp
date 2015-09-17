@@ -49,6 +49,7 @@
 #include <webrtc/modules/rtp_rtcp/interface/rtp_header_parser.h>
 #include <webrtc/modules/rtp_rtcp/source/byte_io.h>
 #include <webrtc/video/video_receive_stream.h>
+#include <webrtc/video_renderer.h>
 
 
 #ifdef _DEBUG
@@ -113,6 +114,32 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
+    #pragma mark RTPReceiver::ReceiverVideoRenderer
+    #pragma mark
+
+    //---------------------------------------------------------------------------
+    void RTPReceiver::ReceiverVideoRenderer::setMediaStreamTrack(UseMediaStreamTrackPtr videoTrack)
+    {
+      mVideoTrack = videoTrack;
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPReceiver::ReceiverVideoRenderer::RenderFrame(const webrtc::VideoFrame& video_frame, int time_to_render_ms)
+    {
+      mVideoTrack->renderVideoFrame(video_frame);
+    }
+
+    //-------------------------------------------------------------------------
+    bool RTPReceiver::ReceiverVideoRenderer::IsTextureSupported() const
+    {
+      return false;
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
     #pragma mark RTPReceiver
     #pragma mark
     
@@ -140,7 +167,8 @@ namespace ortc
       SharedRecursiveLock(SharedRecursiveLock::create()),
       mModuleProcessThread(webrtc::ProcessThread::Create()),
       mChannelGroup(new webrtc::ChannelGroup(mModuleProcessThread.get())),
-      mTransportAdapter(nullptr)
+      mTransportAdapter(nullptr),
+      mReceiverVideoRenderer()
     {
       ZS_LOG_DETAIL(debug("created"))
 
@@ -167,6 +195,7 @@ namespace ortc
                                                                  true,
                                                                  constraints->mVideo
                                                                  );
+      mReceiverVideoRenderer.setMediaStreamTrack(mVideoTrack);
 
       int numCpuCores = 2;
       int baseChannelID = 0;
@@ -188,6 +217,7 @@ namespace ortc
       config.rtp.remb = true;
       config.rtp.nack.rtp_history_ms = 1000;
       config.decoders.push_back(decoder);
+      config.renderer = &mReceiverVideoRenderer;
 
       mVideoStream = rtc::scoped_ptr<webrtc::VideoReceiveStream>(new webrtc::internal::VideoReceiveStream(
         numCpuCores, baseChannelID, mChannelGroup.get(),
@@ -299,7 +329,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     IMediaStreamTrackPtr RTPReceiver::track() const
     {
-      return IMediaStreamTrackPtr(mVideoTrack);
+      return IMediaStreamTrackPtr(MediaStreamTrack::convert(mVideoTrack));
     }
 
     //-------------------------------------------------------------------------
@@ -499,9 +529,12 @@ namespace ortc
                                                                            size_t length
                                                                            )
     {
-      if (webrtc::RtpHeaderParser::IsRtcp(packet, length))
+      if (webrtc::RtpHeaderParser::IsRtcp(packet, length)) {
+        ZS_LOG_TRACE(log("received packet") + ZS_PARAM("via", IICETypes::toString(IICETypes::Components::Component_RTP)) + ZS_PARAM("buffer size", length))
         return DeliverRtcp(mediaType, packet, length);
+      }
 
+      ZS_LOG_TRACE(log("received packet") + ZS_PARAM("via", IICETypes::toString(IICETypes::Components::Component_RTCP)) + ZS_PARAM("buffer size", length))
       return DeliverRtp(mediaType, packet, length);
     }
 
@@ -517,8 +550,10 @@ namespace ortc
     {
       IDTLSTransportPtr dtlsTransport = IDTLSTransportPtr(DTLSTransport::convert(mRTPTransport));
 
-      if (dtlsTransport && dtlsTransport->state() != IDTLSTransportTypes::State_Connected)
+      if (dtlsTransport && dtlsTransport->state() != IDTLSTransportTypes::State_Connected &&
+        dtlsTransport->state() != IDTLSTransportTypes::State_Validated) {
         return true;
+      }
 
       ZS_LOG_TRACE(log("sent packet") + ZS_PARAM("via", IICETypes::toString(IICETypes::Components::Component_RTP)) + ZS_PARAM("buffer size", length))
       
@@ -529,8 +564,10 @@ namespace ortc
     {
       IDTLSTransportPtr dtlsTransport = IDTLSTransportPtr(DTLSTransport::convert(mRTCPTransport));
 
-      if (dtlsTransport && dtlsTransport->state() != IDTLSTransportTypes::State_Connected)
+      if (dtlsTransport && dtlsTransport->state() != IDTLSTransportTypes::State_Connected &&
+        dtlsTransport->state() != IDTLSTransportTypes::State_Validated) {
         return true;
+      }
 
       ZS_LOG_TRACE(log("sent packet") + ZS_PARAM("via", IICETypes::toString(IICETypes::Components::Component_RTCP)) + ZS_PARAM("buffer size", length))
       

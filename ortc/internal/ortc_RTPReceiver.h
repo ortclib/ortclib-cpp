@@ -36,6 +36,7 @@
 #include <ortc/IICETransport.h>
 #include <ortc/IRTPReceiver.h>
 #include <ortc/IDTLSTransport.h>
+#include <ortc/IMediaStreamTrack.h>
 
 #include <openpeer/services/IWakeDelegate.h>
 #include <zsLib/MessageQueueAssociator.h>
@@ -60,6 +61,7 @@ namespace ortc
 
     ZS_DECLARE_INTERACTION_PTR(ISecureTransportForRTPReceiver)
     ZS_DECLARE_INTERACTION_PTR(IRTPListenerForRTPReceiver)
+    ZS_DECLARE_INTERACTION_PTR(IMediaStreamTrackForRTPReceiver)
 
     ZS_DECLARE_INTERACTION_PROXY(IRTPReceiverAsyncDelegate)
 
@@ -148,6 +150,7 @@ namespace ortc
 
       ZS_DECLARE_TYPEDEF_PTR(ISecureTransportForRTPReceiver, UseSecureTransport)
       ZS_DECLARE_TYPEDEF_PTR(IRTPListenerForRTPReceiver, UseListener)
+      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPReceiver, UseMediaStreamTrack)
 
       enum States
       {
@@ -157,6 +160,27 @@ namespace ortc
         State_Shutdown,
       };
       static const char *toString(States state);
+
+      //-------------------------------------------------------------------------
+      //-------------------------------------------------------------------------
+      //-------------------------------------------------------------------------
+      //-------------------------------------------------------------------------
+      #pragma mark
+      #pragma mark ReceiverVideoRenderer
+      #pragma mark
+      class ReceiverVideoRenderer : public webrtc::VideoRenderer
+      {
+      public:
+        void setMediaStreamTrack(UseMediaStreamTrackPtr videoTrack);
+
+        virtual void RenderFrame(const webrtc::VideoFrame& video_frame, int time_to_render_ms);
+
+        virtual bool IsTextureSupported() const;
+
+      private:
+        UseMediaStreamTrackPtr mVideoTrack;
+      };
+
 
     public:
       RTPReceiver(
@@ -339,7 +363,7 @@ namespace ortc
       WORD mLastError {};
       String mLastErrorReason;
 
-      MediaStreamTrackPtr mVideoTrack;
+      UseMediaStreamTrackPtr mVideoTrack;
 
       ParametersPtr mParameters;
       
@@ -356,6 +380,7 @@ namespace ortc
       rtc::scoped_ptr<webrtc::ChannelGroup> mChannelGroup;
       rtc::scoped_ptr<webrtc::VideoReceiveStream> mVideoStream;
       webrtc::internal::TransportAdapter mTransportAdapter;
+      ReceiverVideoRenderer mReceiverVideoRenderer;
     };
 
     //-------------------------------------------------------------------------

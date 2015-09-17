@@ -100,6 +100,8 @@ namespace ortc
     {
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPReceiver, ForReceiver)
 
+      virtual void renderVideoFrame(const webrtc::VideoFrame& videoFrame) = 0;
+
       virtual ~IMediaStreamTrackForRTPReceiver() {}
     };
 
@@ -263,6 +265,8 @@ namespace ortc
       #pragma mark
       #pragma mark MediaStreamTrack => IMediaStreamTrackForRTPReceiver
       #pragma mark
+
+      virtual void renderVideoFrame(const webrtc::VideoFrame& videoFrame);
 
       //-----------------------------------------------------------------------
       #pragma mark

@@ -447,17 +447,27 @@ namespace ortc
     {
       AutoRecursiveLock lock(*this);
 
-      mVideoRenderModule = webrtc::VideoRender::CreateVideoRender(1, element, false);
+      if (mKind == Kind_Video) {
+        mVideoRenderModule = webrtc::VideoRender::CreateVideoRender(1, element, false);
 
-      mVideoRendererCallback = mVideoRenderModule->AddIncomingRenderStream(1, 0, 0.0, 0.0, 1.0, 1.0);
+        mVideoRendererCallback = mVideoRenderModule->AddIncomingRenderStream(1, 0, 0.0, 0.0, 1.0, 1.0);
 
-      mVideoRenderModule->StartRender(1);
+        mVideoRenderModule->StartRender(1);
+      }
     }
 
     //-------------------------------------------------------------------------
     void MediaStreamTrack::registerVideoCaptureDataCallback(webrtc::VideoCaptureDataCallback* callback)
     {
       mVideoCaptureDataCallback = callback;
+    }
+
+    void MediaStreamTrack::renderVideoFrame(const webrtc::VideoFrame& videoFrame)
+    {
+      AutoRecursiveLock lock(*this);
+
+      if (mVideoRendererCallback)
+        mVideoRendererCallback->RenderFrame(1, videoFrame);
     }
 
     //-------------------------------------------------------------------------
