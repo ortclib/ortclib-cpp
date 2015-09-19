@@ -151,7 +151,7 @@ namespace ortc
     DWORD RTPPacket::getCSRC(size_t index) const
     {
       ASSERT(index < cc())
-      return UseHelper::GetBE32(&((ptr())[kMinRtpPacketLen + (sizeof(DWORD)*index)]));
+      return UseHelper::getBE32(&((ptr())[kMinRtpPacketLen + (sizeof(DWORD)*index)]));
     }
 
     //-------------------------------------------------------------------------
@@ -440,7 +440,7 @@ namespace ortc
         return false;
       }
 
-      if (UseHelper::IsRTCPPacketType(buffer, size)) {
+      if (UseHelper::isRTCPPacketType(buffer, size)) {
         ZS_LOG_WARNING(Trace, log("packet is RTCP not RTP") + ZS_PARAM("length", size))
         return false;
       }
@@ -449,9 +449,9 @@ namespace ortc
       mCC = RTP_HEADER_CC(buffer);
       mM = RTP_HEADER_M(buffer);
       mPT = RTP_HEADER_PT(buffer);
-      mSequenceNumber = UseHelper::GetBE16(&(buffer[2]));
-      mTimestamp = UseHelper::GetBE32(&(buffer[4]));
-      mSSRC = UseHelper::GetBE32(&(buffer[8]));
+      mSequenceNumber = UseHelper::getBE16(&(buffer[2]));
+      mTimestamp = UseHelper::getBE32(&(buffer[4]));
+      mSSRC = UseHelper::getBE32(&(buffer[8]));
 
       mHeaderSize = kMinRtpPacketLen + (static_cast<size_t>(mCC) * sizeof(DWORD));
 
@@ -466,7 +466,7 @@ namespace ortc
           return false;
         }
 
-        mHeaderExtensionSize = (static_cast<size_t>(UseHelper::GetBE16(&(buffer[mHeaderSize + 2]))) * sizeof(DWORD)) + sizeof(DWORD);
+        mHeaderExtensionSize = (static_cast<size_t>(UseHelper::getBE16(&(buffer[mHeaderSize + 2]))) * sizeof(DWORD)) + sizeof(DWORD);
         if (size < (mHeaderSize + mHeaderExtensionSize)) {
           ZS_LOG_WARNING(Trace, debug("illegal RTP packet"))
           return false;
@@ -502,7 +502,7 @@ namespace ortc
           (0xDE == profilePos[1])) {
         oneByte = true;
       } else {
-        WORD twoByteHeader = UseHelper::GetBE16(profilePos);
+        WORD twoByteHeader = UseHelper::getBE16(profilePos);
         mHeaderExtensionAppBits = (twoByteHeader & 0xF);
 
         if (0x100 != ((twoByteHeader & 0xFFF0) >> 4)) {

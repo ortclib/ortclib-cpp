@@ -51,30 +51,35 @@ namespace ortc
     {
     public:
       //RTP Utils
-      static WORD GetBE16(const void* memory);
-      static DWORD GetBE32(const void* memory);
+      static WORD getBE16(const void* memory);
+      static DWORD getBE32(const void* memory);
 
-      static void SetBE16(void* memory, WORD v);
-      static void SetBE32(void* memory, DWORD v);
+      static void setBE16(void* memory, WORD v);
+      static void setBE32(void* memory, DWORD v);
 
-      static int GetRtpPayloadType(const void* data, size_t len);
-      static int GetRtpSeqNum(const void* data, size_t len);
-      static DWORD GetRtpTimestamp(const void* data, size_t len);
-      static DWORD GetRtpSsrc(const void* data, size_t len);
-      static size_t GetRtpHeaderLen(const void* data, size_t len);
-      static int GetRtcpType(const void* data, size_t len);
-      static DWORD GetRtcpSsrc(const void* data, size_t len);
-      //bool GetRtpHeader(const void* data, size_t len, RtpHeader* header);
+      static int getRtpPayloadType(const void* data, size_t len);
+      static int getRtpSeqNum(const void* data, size_t len);
+      static DWORD getRtpTimestamp(const void* data, size_t len);
+      static DWORD getRtpSsrc(const void* data, size_t len);
+      static size_t getRtpHeaderLen(const void* data, size_t len);
+      static int getRtcpType(const void* data, size_t len);
+      static DWORD getRtcpSsrc(const void* data, size_t len);
+      //bool getRtpHeader(const void* data, size_t len, RtpHeader* header);
 
-      static bool SetRtpSsrc(void* data, size_t len, DWORD value);
+      static bool setRtpSsrc(void* data, size_t len, DWORD value);
       // Assumes version 2, no padding, no extensions, no csrcs.
-      //bool SetRtpHeader(void* data, size_t len, const RtpHeader& header);
+      //bool setRtpHeader(void* data, size_t len, const RtpHeader& header);
 
-      static bool IsRtpPacket(const void* data, size_t len);
-      static bool IsRTCPPacketType(const BYTE *data, size_t len);
+      static bool isRtpPacket(const void* data, size_t len);
+      static bool isRTCPPacketType(const BYTE *data, size_t len);
 
       // True if |payload type| is 0-127.
-      static bool IsValidRtpPayloadType(int payload_type);
+      static bool isValidRtpPayloadType(int payload_type);
+
+      static Time ntpToTime(
+                            DWORD ntpMS,
+                            DWORD ntpLS
+                            );
 
       static Log::Params slog(const char *message);
     };

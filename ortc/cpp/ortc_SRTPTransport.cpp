@@ -615,7 +615,7 @@ namespace ortc
     {
       UseSecureTransportPtr transport;
       SecureByteBlockPtr decryptedBuffer;
-      IICETypes::Components component = (UseHelper::IsRTCPPacketType(buffer, bufferLengthInBytes) ? IICETypes::Component_RTCP : IICETypes::Component_RTP);
+      IICETypes::Components component = (UseHelper::isRTCPPacketType(buffer, bufferLengthInBytes) ? IICETypes::Component_RTCP : IICETypes::Component_RTP);
 
       size_t popSize = 0;
       enum UsedKeys {

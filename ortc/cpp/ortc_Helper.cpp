@@ -64,17 +64,17 @@ namespace ortc
     static const size_t kRtcpPayloadTypeOffset = 1;
 
     //-------------------------------------------------------------------------
-    static void Set8(void* memory, size_t offset, BYTE v) {
+    static void set8(void* memory, size_t offset, BYTE v) {
       static_cast<BYTE*>(memory)[offset] = v;
     }
 
     //-------------------------------------------------------------------------
-    static BYTE Get8(const void* memory, size_t offset) {
+    static BYTE get8(const void* memory, size_t offset) {
       return static_cast<const BYTE*>(memory)[offset];
     }
 
     //-------------------------------------------------------------------------
-    static bool GetUint8(const void* data, size_t offset, int* value) {
+    static bool getUint8(const void* data, size_t offset, int* value) {
       if (!data || !value) {
         return false;
       }
@@ -83,64 +83,64 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    static bool GetUint16(const void* data, size_t offset, int* value) {
+    static bool getUint16(const void* data, size_t offset, int* value) {
       if (!data || !value) {
         return false;
       }
-      *value = static_cast<int>(Helper::GetBE16(static_cast<const BYTE*>(data)+offset));
+      *value = static_cast<int>(Helper::getBE16(static_cast<const BYTE*>(data)+offset));
       return true;
     }
 
     //-------------------------------------------------------------------------
-    static bool GetUint32(const void* data, size_t offset, DWORD* value) {
+    static bool getUint32(const void* data, size_t offset, DWORD* value) {
       if (!data || !value) {
         return false;
       }
-      *value = Helper::GetBE32(static_cast<const BYTE*>(data)+offset);
+      *value = Helper::getBE32(static_cast<const BYTE*>(data)+offset);
       return true;
     }
 
     //-------------------------------------------------------------------------
-    static bool SetUint8(void* data, size_t offset, uint8_t value) {
+    static bool setUint8(void* data, size_t offset, uint8_t value) {
       if (!data) {
         return false;
       }
-      Set8(data, offset, value);
+      set8(data, offset, value);
       return true;
     }
 
     //-------------------------------------------------------------------------
-    static bool SetUint16(void* data, size_t offset, uint16_t value) {
+    static bool setUint16(void* data, size_t offset, uint16_t value) {
       if (!data) {
         return false;
       }
-      Helper::SetBE16(static_cast<BYTE*>(data)+offset, value);
+      Helper::setBE16(static_cast<BYTE*>(data)+offset, value);
       return true;
     }
 
     //-------------------------------------------------------------------------
-    static bool SetUint32(void* data, size_t offset, DWORD value) {
+    static bool setUint32(void* data, size_t offset, DWORD value) {
       if (!data) {
         return false;
       }
-      Helper::SetBE32(static_cast<BYTE*>(data)+offset, value);
+      Helper::setBE32(static_cast<BYTE*>(data)+offset, value);
       return true;
     }
 
     //-------------------------------------------------------------------------
-    static bool GetRtpFlags(const void* data, size_t len, int* value) {
+    static bool getRtpFlags(const void* data, size_t len, int* value) {
       if (len < kMinRtpPacketLen) {
         return false;
       }
-      return GetUint8(data, kRtpFlagsOffset, value);
+      return getUint8(data, kRtpFlagsOffset, value);
     }
 
     //-------------------------------------------------------------------------
-    static bool GetRtpPayloadType(const void* data, size_t len, int* value) {
+    static bool getRtpPayloadType(const void* data, size_t len, int* value) {
       if (len < kMinRtpPacketLen) {
         return false;
       }
-      if (!GetUint8(data, kRtpPayloadTypeOffset, value)) {
+      if (!getUint8(data, kRtpPayloadTypeOffset, value)) {
         return false;
       }
       *value &= 0x7F;
@@ -148,31 +148,31 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    static bool GetRtpSeqNum(const void* data, size_t len, int* value) {
+    static bool getRtpSeqNum(const void* data, size_t len, int* value) {
       if (len < kMinRtpPacketLen) {
         return false;
       }
-      return GetUint16(data, kRtpSeqNumOffset, value);
+      return getUint16(data, kRtpSeqNumOffset, value);
     }
 
     //-------------------------------------------------------------------------
-    static bool GetRtpTimestamp(const void* data, size_t len, DWORD* value) {
+    static bool getRtpTimestamp(const void* data, size_t len, DWORD* value) {
       if (len < kMinRtpPacketLen) {
         return false;
       }
-      return GetUint32(data, kRtpTimestampOffset, value);
+      return getUint32(data, kRtpTimestampOffset, value);
     }
 
     //-------------------------------------------------------------------------
-    static bool GetRtpSsrc(const void* data, size_t len, DWORD* value) {
+    static bool getRtpSsrc(const void* data, size_t len, DWORD* value) {
       if (len < kMinRtpPacketLen) {
         return false;
       }
-      return GetUint32(data, kRtpSsrcOffset, value);
+      return getUint32(data, kRtpSsrcOffset, value);
     }
 
     //-------------------------------------------------------------------------
-    static bool GetRtpHeaderLen(const void* data, size_t len, size_t* value) {
+    static bool getRtpHeaderLen(const void* data, size_t len, size_t* value) {
       if (!data || len < kMinRtpPacketLen || !value) return false;
       const BYTE* header = static_cast<const BYTE*>(data);
       // Get base header size + length of CSRCs (not counting extension yet).
@@ -181,7 +181,7 @@ namespace ortc
       // If there's an extension, read and add in the extension size.
       if (header[0] & 0x10) {
         if (len < header_size + sizeof(DWORD)) return false;
-        header_size += ((Helper::GetBE16(header + header_size + 2) + 1) *
+        header_size += ((Helper::getBE16(header + header_size + 2) + 1) *
           sizeof(DWORD));
         if (len < header_size) return false;
       }
@@ -190,7 +190,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    //bool GetRtpHeader(const void* data, size_t len, RtpHeader* header) {
+    //bool getRtpHeader(const void* data, size_t len, RtpHeader* header) {
     //  return (GetRtpPayloadType(data, len, &(header->payload_type)) &&
     //    GetRtpSeqNum(data, len, &(header->seq_num)) &&
     //    GetRtpTimestamp(data, len, &(header->timestamp)) &&
@@ -198,31 +198,31 @@ namespace ortc
     //}
 
     //-------------------------------------------------------------------------
-    static bool GetRtcpType(const void* data, size_t len, int* value) {
+    static bool getRtcpType(const void* data, size_t len, int* value) {
       if (len < kMinRtcpPacketLen) {
         return false;
       }
-      return GetUint8(data, kRtcpPayloadTypeOffset, value);
+      return getUint8(data, kRtcpPayloadTypeOffset, value);
     }
 
     //-------------------------------------------------------------------------
     // This method returns SSRC first of RTCP packet, except if packet is SDES.
     // TODO(mallinath) - Fully implement RFC 5506. This standard doesn't restrict
     // to send non-compound packets only to feedback messages.
-    static bool GetRtcpSsrc(const void* data, size_t len, DWORD* value) {
+    static bool getRtcpSsrc(const void* data, size_t len, DWORD* value) {
       // Packet should be at least of 8 bytes, to get SSRC from a RTCP packet.
       if (!data || len < kMinRtcpPacketLen + 4 || !value) return false;
       int pl_type;
-      if (!GetRtcpType(data, len, &pl_type)) return false;
+      if (!getRtcpType(data, len, &pl_type)) return false;
       // SDES packet parsing is not supported.
       if (pl_type == 202) return false; // payload type SDES
-      *value = Helper::GetBE32(static_cast<const BYTE*>(data)+4);
+      *value = Helper::getBE32(static_cast<const BYTE*>(data)+4);
       return true;
     }
 
     //-------------------------------------------------------------------------
-    static bool SetRtpSsrc(void* data, size_t len, DWORD value) {
-      return SetUint32(data, kRtpSsrcOffset, value);
+    static bool setRtpSsrc(void* data, size_t len, DWORD value) {
+      return setUint32(data, kRtpSsrcOffset, value);
     }
 
     //-------------------------------------------------------------------------
@@ -262,38 +262,38 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    WORD Helper::GetBE16(const void* memory) {
-      return static_cast<WORD>((Get8(memory, 0) << 8) |
-                               (Get8(memory, 1) << 0));
+    WORD Helper::getBE16(const void* memory) {
+      return static_cast<WORD>((get8(memory, 0) << 8) |
+                               (get8(memory, 1) << 0));
     }
 
     //-------------------------------------------------------------------------
-    DWORD Helper::GetBE32(const void* memory) {
-      return (static_cast<DWORD>(Get8(memory, 0)) << 24) |
-             (static_cast<DWORD>(Get8(memory, 1)) << 16) |
-             (static_cast<DWORD>(Get8(memory, 2)) << 8) |
-             (static_cast<DWORD>(Get8(memory, 3)) << 0);
+    DWORD Helper::getBE32(const void* memory) {
+      return (static_cast<DWORD>(get8(memory, 0)) << 24) |
+             (static_cast<DWORD>(get8(memory, 1)) << 16) |
+             (static_cast<DWORD>(get8(memory, 2)) << 8) |
+             (static_cast<DWORD>(get8(memory, 3)) << 0);
     }
 
     //-------------------------------------------------------------------------
-    void Helper::SetBE16(void* memory, WORD v) {
-      Set8(memory, 0, static_cast<BYTE>(v >> 8));
-      Set8(memory, 1, static_cast<BYTE>(v >> 0));
+    void Helper::setBE16(void* memory, WORD v) {
+      set8(memory, 0, static_cast<BYTE>(v >> 8));
+      set8(memory, 1, static_cast<BYTE>(v >> 0));
     }
 
     //-------------------------------------------------------------------------
-    void Helper::SetBE32(void* memory, DWORD v) {
-      Set8(memory, 0, static_cast<BYTE>(v >> 24));
-      Set8(memory, 1, static_cast<BYTE>(v >> 16));
-      Set8(memory, 2, static_cast<BYTE>(v >> 8));
-      Set8(memory, 3, static_cast<BYTE>(v >> 0));
+    void Helper::setBE32(void* memory, DWORD v) {
+      set8(memory, 0, static_cast<BYTE>(v >> 24));
+      set8(memory, 1, static_cast<BYTE>(v >> 16));
+      set8(memory, 2, static_cast<BYTE>(v >> 8));
+      set8(memory, 3, static_cast<BYTE>(v >> 0));
     }
 
     //-------------------------------------------------------------------------
-    int Helper::GetRtpPayloadType(const void* data, size_t len)
+    int Helper::getRtpPayloadType(const void* data, size_t len)
     {
       int value {};
-      if (ortc::internal::GetRtpPayloadType(data, len, &value)) {
+      if (ortc::internal::getRtpPayloadType(data, len, &value)) {
         return value;
       }
 
@@ -302,10 +302,10 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    int Helper::GetRtpSeqNum(const void* data, size_t len)
+    int Helper::getRtpSeqNum(const void* data, size_t len)
     {
       int value{};
-      if (ortc::internal::GetRtpSeqNum(data, len, &value)) {
+      if (ortc::internal::getRtpSeqNum(data, len, &value)) {
         return value;
       }
 
@@ -314,10 +314,10 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    DWORD Helper::GetRtpTimestamp(const void* data, size_t len)
+    DWORD Helper::getRtpTimestamp(const void* data, size_t len)
     {
       DWORD value{};
-      if (ortc::internal::GetRtpTimestamp(data, len, &value)) {
+      if (ortc::internal::getRtpTimestamp(data, len, &value)) {
         return value;
       }
 
@@ -326,10 +326,10 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    DWORD Helper::GetRtpSsrc(const void* data, size_t len)
+    DWORD Helper::getRtpSsrc(const void* data, size_t len)
     {
       DWORD value{};
-      if (ortc::internal::GetRtpSsrc(data, len, &value)) {
+      if (ortc::internal::getRtpSsrc(data, len, &value)) {
         return value;
       }
 
@@ -338,10 +338,10 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    size_t Helper::GetRtpHeaderLen(const void* data, size_t len)
+    size_t Helper::getRtpHeaderLen(const void* data, size_t len)
     {
       size_t value{};
-      if (ortc::internal::GetRtpHeaderLen(data, len, &value)) {
+      if (ortc::internal::getRtpHeaderLen(data, len, &value)) {
         return value;
       }
 
@@ -350,9 +350,9 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    int Helper::GetRtcpType(const void* data, size_t len) {
+    int Helper::getRtcpType(const void* data, size_t len) {
       int value{};
-      if (ortc::internal::GetRtcpType(data, len, &value)) {
+      if (ortc::internal::getRtcpType(data, len, &value)) {
         return value;
       }
 
@@ -361,10 +361,10 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    DWORD Helper::GetRtcpSsrc(const void* data, size_t len)
+    DWORD Helper::getRtcpSsrc(const void* data, size_t len)
     {
       DWORD value{};
-      if (ortc::internal::GetRtcpSsrc(data, len, &value)) {
+      if (ortc::internal::getRtcpSsrc(data, len, &value)) {
         return value;
       }
 
@@ -373,19 +373,19 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool Helper::SetRtpSsrc(void* data, size_t len, DWORD value)
+    bool Helper::setRtpSsrc(void* data, size_t len, DWORD value)
     {
-      return ortc::internal::SetRtpSsrc(data, len, value);
+      return ortc::internal::setRtpSsrc(data, len, value);
     }
 
     //-------------------------------------------------------------------------
-    bool Helper::IsRtpPacket(const void* data, size_t len)
+    bool Helper::isRtpPacket(const void* data, size_t len)
     {
       return ortc::internal::IsRtpPacket(data, len);
     }
 
     //-------------------------------------------------------------------------
-    bool Helper::IsRTCPPacketType(const BYTE *data, size_t len)
+    bool Helper::isRTCPPacketType(const BYTE *data, size_t len)
     {
       if (len < 2) {
         return false;
@@ -395,9 +395,50 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool Helper::IsValidRtpPayloadType(int payload_type)
+    bool Helper::isValidRtpPayloadType(int payload_type)
     {
       return ortc::internal::IsValidRtpPayloadType(payload_type);
+    }
+
+    //-------------------------------------------------------------------------
+    Time Helper::ntpToTime(
+                           DWORD ntpMS,
+                           DWORD ntpLS
+                           )
+    {
+      // 0x3B9ACA00ULL = 1,000,000,000 (microsoeconds)
+      // 0xFFFFFFFFULL = 2^32
+      QWORD microseconds = (static_cast<QWORD>(ntpLS) * 0x3B9ACA00ULL) / 0xFFFFFFFFULL;
+
+      Microseconds totalMicrosecondsSince(microseconds);
+
+      Seconds secondsSince(static_cast<Seconds::rep>(static_cast<QWORD>(ntpMS)));
+
+      std::tm tmepoch {};
+
+      if (0 == (0x80000000 & ntpMS)) {
+        // 7-Feb-2036 @ 06:28:16 UTC
+        tmepoch.tm_year = 2036;
+        tmepoch.tm_mon = 1; // 2-1
+        tmepoch.tm_mday = 7;
+        tmepoch.tm_hour = 6;
+        tmepoch.tm_min = 28;
+        tmepoch.tm_sec = 16;
+      } else {
+        // 1-Jan-1900 @ 00:00:00
+        tmepoch.tm_year = 1900;
+        tmepoch.tm_mon = 0; // 1-1
+        tmepoch.tm_mday = 1;
+        tmepoch.tm_hour = 0;
+        tmepoch.tm_min = 0;
+        tmepoch.tm_sec = 0;
+      }
+
+      time_t tepoch = std::mktime(&tmepoch);
+
+      Time epoch = std::chrono::system_clock::from_time_t(tepoch);
+
+      return (epoch + secondsSince) + totalMicrosecondsSince;
     }
 
     //-------------------------------------------------------------------------
