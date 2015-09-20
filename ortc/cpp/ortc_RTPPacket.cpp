@@ -57,6 +57,9 @@
 #define RTP_HEADER_M(buffer) (0 != ((buffer[1]) & 0x80))
 #define RTP_HEADER_PT(buffer) ((buffer[1]) & 0x7F)
 
+#define RTP_IS_FLAG_SET(xByte, xBitPos) (0 != ((xByte) & (1 << xBitPos)))
+#define RTP_GET_BITS(xByte, xBitPattern, xLowestBit) (((xByte) >> (xLowestBit)) & (xBitPattern))
+
 namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib) }
 
 namespace ortc
@@ -80,6 +83,171 @@ namespace ortc
 
     static const size_t kMinRtpPacketLen = 12;
     static const BYTE kRtpVersion = 2;
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPPacket::ClientToMixerExtension
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    RTPPacket::ClientToMixerExtension::ClientToMixerExtension(const HeaderExtension &header)
+    {
+      mID = header.mID;
+      mDataSizeInBytes = header.mDataSizeInBytes;
+      mPostPaddingSize = header.mPostPaddingSize;
+      if (NULL == header.mData) mDataSizeInBytes = 0;
+
+      if (sizeof(BYTE) == header.mDataSizeInBytes) {
+        memcpy(&mLevelBuffer, header.mData, sizeof(BYTE));
+        mData = &mLevelBuffer;
+      }
+    }
+
+    //-------------------------------------------------------------------------
+    RTPPacket::ClientToMixerExtension::ClientToMixerExtension(
+                                                              BYTE id,
+                                                              bool voiceActivity,
+                                                              BYTE level
+                                                              )
+    {
+      mID = id;
+      mData = &mLevelBuffer;
+      mDataSizeInBytes = sizeof(BYTE);
+
+      mLevelBuffer = static_cast<BYTE>(voiceActivity ? 0x80 : 0x00) | (level & 0x7F);
+    }
+
+    //-------------------------------------------------------------------------
+    bool RTPPacket::ClientToMixerExtension::voiceActivity() const
+    {
+      return RTP_IS_FLAG_SET(mLevelBuffer, 7);
+    }
+
+    //-------------------------------------------------------------------------
+    BYTE RTPPacket::ClientToMixerExtension::level() const
+    {
+      return RTP_GET_BITS(mLevelBuffer, 0x7F, 0);
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPPacket::MixerToClientExtension
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    RTPPacket::MixerToClientExtension::MixerToClientExtension(const HeaderExtension &header)
+    {
+      mID = header.mID;
+      mDataSizeInBytes = header.mDataSizeInBytes;
+      mPostPaddingSize = header.mPostPaddingSize;
+      if (NULL == header.mData) mDataSizeInBytes = 0;
+
+      size_t copySize = header.mDataSizeInBytes;
+      if (copySize > sizeof(mLevelBuffer)) copySize = sizeof(mLevelBuffer);
+
+      if (0 != copySize) {
+        memcpy(&(mLevelBuffer[0]), header.mData, copySize);
+        mData = &(mLevelBuffer[0]);
+      }
+      mDataSizeInBytes = copySize;
+    }
+
+    //-------------------------------------------------------------------------
+    RTPPacket::MixerToClientExtension::MixerToClientExtension(
+                                                              BYTE id,
+                                                              BYTE *levels,
+                                                              size_t count
+                                                              )
+    {
+      mID = id;
+      mDataSizeInBytes = count * sizeof(BYTE);
+
+      if (mDataSizeInBytes > sizeof(mLevelBuffer)) {
+        count = sizeof(mLevelBuffer)/sizeof(BYTE);
+      }
+
+      if (0 != mDataSizeInBytes) {
+        memcpy(&(mLevelBuffer[0]), levels, mDataSizeInBytes);
+      }
+    }
+
+    //-------------------------------------------------------------------------
+    size_t RTPPacket::MixerToClientExtension::levelsCount() const
+    {
+      return mDataSizeInBytes / sizeof(BYTE);
+    }
+
+    //-------------------------------------------------------------------------
+    BYTE RTPPacket::MixerToClientExtension::unusedBit(size_t index) const
+    {
+      ASSERT(index < levelsCount())
+      return RTP_GET_BITS(mLevelBuffer[index], 0x80, 7);
+    }
+
+    //-------------------------------------------------------------------------
+    BYTE RTPPacket::MixerToClientExtension::level(size_t index) const
+    {
+      ASSERT(index < levelsCount())
+      return RTP_GET_BITS(mLevelBuffer[index], 0x7F, 0);
+    }
+
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPPacket::MidHeadExtension
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    RTPPacket::MidHeadExtension::MidHeadExtension(const HeaderExtension &header)
+    {
+      ASSERT(sizeof(char) == sizeof(BYTE))
+
+      mID = header.mID;
+      mDataSizeInBytes = header.mDataSizeInBytes;
+      mPostPaddingSize = header.mPostPaddingSize;
+      if (NULL == header.mData) mDataSizeInBytes = 0;
+
+      size_t copySize = header.mDataSizeInBytes;
+      if (copySize > (sizeof(BYTE)*kMaxMidLength)) copySize = (sizeof(BYTE)*kMaxMidLength);
+
+      if (0 != copySize) {
+        memcpy(&(mMidBuffer[0]), header.mData, copySize);
+        mData = &(mMidBuffer[0]);
+      }
+      mDataSizeInBytes = copySize;
+    }
+
+    //-------------------------------------------------------------------------
+    RTPPacket::MidHeadExtension::MidHeadExtension(
+                                                  BYTE id,
+                                                  const char *mid
+                                                  )
+    {
+      mID = id;
+      mData = &(mMidBuffer[0]);
+      mDataSizeInBytes = sizeof(char)*(NULL != mid ? strlen(mid) : 0);
+
+      if (mDataSizeInBytes > (sizeof(BYTE)*kMaxMidLength)) mDataSizeInBytes = (sizeof(BYTE)*kMaxMidLength);
+
+      if (0 != mDataSizeInBytes) {
+        memcpy(&(mMidBuffer[0]), mid, mDataSizeInBytes);
+      }
+    }
+
+    //-------------------------------------------------------------------------
+    const char *RTPPacket::MidHeadExtension::mid() const
+    {
+      return reinterpret_cast<const char *>(&mMidBuffer[0]);
+    }
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -290,7 +458,7 @@ namespace ortc
         mHeaderExtensionParseStoppedPos = NULL;
         mHeaderExtensionParseStoppedSize = 0;
 
-        ZS_LOG_INSANE(debug("stipped existing extension header"))
+        ZS_LOG_INSANE(debug("stripped existing extension header"))
         return;
       }
 

@@ -34,13 +34,10 @@
 #include <ortc/internal/platform.h>
 
 #include <openpeer/services/IHelper.h>
-//#include <openpeer/services/IHTTP.h>
-//
-//#include <zsLib/Stringize.h>
-//#include <zsLib/Log.h>
+
+#include <zsLib/Stringize.h>
+#include <zsLib/Log.h>
 #include <zsLib/XML.h>
-//
-//#include <cryptopp/sha.h>
 
 #include <cstddef>
 
@@ -53,15 +50,6 @@
 
 #define RTCP_IS_FLAG_SET(xByte, xBitPos) (0 != ((xByte) & (1 << xBitPos)))
 #define RTCP_GET_BITS(xByte, xBitPattern, xLowestBit) (((xByte) >> (xLowestBit)) & (xBitPattern))
-
-//#define RTP_HEADER_EXTENSION_BIT (0x10)
-//
-//#define RTP_HEADER_VERSION(buffer) (((buffer[0]) & 0xC0) >> 6)
-//#define RTP_HEADER_PADDING(buffer) (0 != ((buffer[0]) & 0x20))
-//#define RTP_HEADER_EXTENSION(buffer) (0 != ((buffer[0] & RTP_HEADER_EXTENSION_BIT)))
-//#define RTP_HEADER_CC(buffer) ((buffer[0]) & 0xF)
-//#define RTP_HEADER_M(buffer) (0 != ((buffer[1]) & 0x80))
-//#define RTP_HEADER_PT(buffer) ((buffer[1]) & 0x7F)
 
 namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib) }
 
@@ -116,6 +104,44 @@ namespace ortc
       ioRemaining -= size;
 
       return result;
+    }
+
+    //-------------------------------------------------------------------------
+    static size_t boundarySize(
+                               size_t size,
+                               size_t alignment = sizeof(DWORD)
+                               )
+    {
+      size_t modulus = size % alignment;
+      if (0 == modulus) return size;
+      return size + (alignment - modulus);
+    }
+
+    //-------------------------------------------------------------------------
+    static void throwIfGreaterThanBitsAllow(
+                                            size_t value,
+                                            size_t maxBits
+                                            )
+    {
+      ORTC_THROW_INVALID_PARAMETERS_IF(value > ((1 << maxBits)-1))
+    }
+
+    //-------------------------------------------------------------------------
+    static void throwIfGreaterThan(
+                                   size_t size,
+                                   size_t max
+                                   )
+    {
+      ORTC_THROW_INVALID_PARAMETERS_IF(size > max)
+    }
+
+    //-------------------------------------------------------------------------
+    static void throwIfLessThan(
+                                size_t size,
+                                size_t min
+                                )
+    {
+      ORTC_THROW_INVALID_PARAMETERS_IF(size < min)
     }
 
     //-------------------------------------------------------------------------
@@ -194,6 +220,13 @@ namespace ortc
     {
       ASSERT(index < mPrivCount)
       return &(mFirstPriv[index]);
+    }
+
+    //-------------------------------------------------------------------------
+    RTCPPacket::SDES::Chunk::Mid *RTCPPacket::SDES::Chunk::midAtIndex(size_t index) const
+    {
+      ASSERT(index < mMidCount)
+      return &(mFirstMid[index]);
     }
 
     //-------------------------------------------------------------------------
@@ -1008,6 +1041,7 @@ namespace ortc
           UseServicesHelper::debugAppend(chunkEl, internal::toDebug("tools", "tool", chunk->firstTool()));
           UseServicesHelper::debugAppend(chunkEl, internal::toDebug("notes", "note", chunk->firstNote()));
           UseServicesHelper::debugAppend(chunkEl, internal::toDebug("privs", "priv", chunk->firstPriv()));
+          UseServicesHelper::debugAppend(chunkEl, internal::toDebug("mid", "mid", chunk->firstMid()));
           UseServicesHelper::debugAppend(chunkEl, internal::toDebug("unknowns", "unknown", chunk->firstUnknown()));
 
           UseServicesHelper::debugAppend(chunksEl, chunkEl);
@@ -1954,6 +1988,7 @@ namespace ortc
               }
               break;
             }
+            case SDES::Chunk::Mid::kItemType:  mAllocationSize += alignedSize(sizeof(SDES::Chunk::Mid)); break;
             default:
             {
               mAllocationSize += alignedSize(sizeof(SDES::Chunk::Unknown));
@@ -2847,6 +2882,7 @@ namespace ortc
             case SDES::Chunk::Tool::kItemType:  ++(chunk->mToolCount); break;
             case SDES::Chunk::Note::kItemType:  ++(chunk->mNoteCount); break;
             case SDES::Chunk::Priv::kItemType:  ++(chunk->mPrivCount); break;
+            case SDES::Chunk::Mid::kItemType:   ++(chunk->mMidCount); break;
             default:
             {
               ++(chunk->mUnknownCount);
@@ -2884,6 +2920,9 @@ namespace ortc
         if (0 != chunk->mPrivCount) {
           chunk->mFirstPriv = new (allocateBuffer(alignedSize(sizeof(SDES::Chunk::Priv))*(chunk->mPrivCount))) SDES::Chunk::Priv[chunk->mPrivCount];
         }
+        if (0 != chunk->mMidCount) {
+          chunk->mFirstMid = new (allocateBuffer(alignedSize(sizeof(SDES::Chunk::Mid))*(chunk->mMidCount))) SDES::Chunk::Mid[chunk->mMidCount];
+        }
         if (0 != chunk->mUnknownCount) {
           chunk->mFirstUnknown = new (allocateBuffer(alignedSize(sizeof(SDES::Chunk::Unknown))*(chunk->mUnknownCount))) SDES::Chunk::Unknown[chunk->mUnknownCount];
         }
@@ -2896,6 +2935,7 @@ namespace ortc
         chunk->mToolCount = 0;
         chunk->mNoteCount = 0;
         chunk->mPrivCount = 0;
+        chunk->mMidCount = 0;
         chunk->mUnknownCount = 0;
 
         // start over and now parse
@@ -3011,6 +3051,14 @@ namespace ortc
               item = priv;
 
               ++(chunk->mPrivCount);
+              break;
+            }
+            case SDES::Chunk::Mid::kItemType:  {
+              item = &(chunk->mFirstMid[chunk->mMidCount]);
+              if (0 != chunk->mMidCount) {
+                item->mNext = &(chunk->mFirstMid[chunk->mMidCount-1]);
+              }
+              ++(chunk->mMidCount);
               break;
             }
             default:
@@ -4199,6 +4247,448 @@ namespace ortc
     void *RTCPPacket::allocateBuffer(size_t size)
     {
       return internal::allocateBuffer(mAllocationPos, mAllocationSize, size);
+    }
+
+    //-------------------------------------------------------------------------
+    static size_t getPacketSizeSenderReport(const RTCPPacket::SenderReport *report)
+    {
+      auto rc = report->rc();
+      throwIfGreaterThanBitsAllow(rc, 5);
+      return (sizeof(DWORD)*2) + (sizeof(DWORD)*5) + ((sizeof(DWORD)*6)*rc);
+    }
+
+    //-------------------------------------------------------------------------
+    static size_t getPacketSizeReceiverReport(const RTCPPacket::ReceiverReport *report)
+    {
+      auto rc = report->rc();
+      throwIfGreaterThanBitsAllow(rc, 5);
+      return (sizeof(DWORD)*2) + ((sizeof(DWORD)*6)*rc);
+    }
+
+    //-------------------------------------------------------------------------
+    static size_t getPacketSizeSDES(const RTCPPacket::SDES *report)
+    {
+      typedef RTCPPacket::SDES::Chunk Chunk;
+
+      size_t result = (sizeof(DWORD));
+
+      size_t chunkCount = 0;
+
+      for (Chunk *chunk = report->firstChunk(); NULL != chunk; ++chunk, ++chunkCount)
+      {
+        size_t chunkSize = sizeof(DWORD);
+
+        for (auto *item = chunk->firstCName(); NULL != item; item = item->next())
+        {
+          chunkSize += (sizeof(BYTE)*2);
+          size_t len = (NULL != item->mValue ? strlen(item->mValue) : 0);
+          throwIfGreaterThanBitsAllow(len, 8);
+          chunkSize += ((sizeof(BYTE))*len);
+        }
+
+        for (auto *item = chunk->firstName(); NULL != item; item = item->next())
+        {
+          chunkSize += (sizeof(BYTE)*2);
+          size_t len = (NULL != item->mValue ? strlen(item->mValue) : 0);
+          throwIfGreaterThanBitsAllow(len, 8);
+          chunkSize += ((sizeof(BYTE))*len);
+        }
+
+        for (auto *item = chunk->firstEmail(); NULL != item; item = item->next())
+        {
+          chunkSize += (sizeof(BYTE)*2);
+          size_t len = (NULL != item->mValue ? strlen(item->mValue) : 0);
+          throwIfGreaterThanBitsAllow(len, 8);
+          chunkSize += ((sizeof(BYTE))*len);
+        }
+
+        for (auto *item = chunk->firstPhone(); NULL != item; item = item->next())
+        {
+          chunkSize += (sizeof(BYTE)*2);
+          size_t len = (NULL != item->mValue ? strlen(item->mValue) : 0);
+          throwIfGreaterThanBitsAllow(len, 8);
+          chunkSize += ((sizeof(BYTE))*len);
+        }
+
+        for (auto *item = chunk->firstLoc(); NULL != item; item = item->next())
+        {
+          chunkSize += (sizeof(BYTE)*2);
+          size_t len = (NULL != item->mValue ? strlen(item->mValue) : 0);
+          throwIfGreaterThanBitsAllow(len, 8);
+          chunkSize += ((sizeof(BYTE))*len);
+        }
+
+        for (auto *item = chunk->firstTool(); NULL != item; item = item->next())
+        {
+          chunkSize += (sizeof(BYTE)*2);
+          size_t len = (NULL != item->mValue ? strlen(item->mValue) : 0);
+          throwIfGreaterThanBitsAllow(len, 8);
+          chunkSize += ((sizeof(BYTE))*len);
+        }
+
+        for (auto *item = chunk->firstNote(); NULL != item; item = item->next())
+        {
+          chunkSize += (sizeof(BYTE)*2);
+          size_t len = (NULL != item->mValue ? strlen(item->mValue) : 0);
+          throwIfGreaterThanBitsAllow(len, 8);
+          chunkSize += ((sizeof(BYTE))*len);
+        }
+
+        for (auto *item = chunk->firstPriv(); NULL != item; item = item->next())
+        {
+          chunkSize += (sizeof(BYTE)*2);
+          size_t len1 = (NULL != item->mValue ? strlen(item->mValue) : 0);
+          size_t len2 = (NULL != item->mPrefix ? strlen(item->mPrefix) : 0);
+
+          size_t totalLen = len1 + len2;
+          if (0 != totalLen) ++totalLen;
+
+          throwIfGreaterThanBitsAllow(totalLen, 8);
+          chunkSize += ((sizeof(BYTE))*totalLen);
+        }
+
+        for (auto *item = chunk->firstMid(); NULL != item; item = item->next())
+        {
+          chunkSize += (sizeof(BYTE)*2);
+          if (NULL != item->mValue) chunkSize += (sizeof(BYTE)*strlen(item->mValue));
+        }
+
+        if (chunkSize == sizeof(DWORD)) {
+          chunkSize += sizeof(DWORD);
+        }
+
+        result += boundarySize(chunkSize);
+      }
+
+      throwIfGreaterThanBitsAllow(chunkCount, 5);
+      return result;
+    }
+
+    //-------------------------------------------------------------------------
+    static size_t getPacketSizeBye(const RTCPPacket::Bye *report)
+    {
+      auto sc = report->sc();
+      throwIfGreaterThanBitsAllow(sc, 5);
+
+      size_t result = (sizeof(DWORD)) + (sizeof(DWORD)*sc);
+
+      if (NULL != report->reasonForLeaving()) {
+        size_t len = strlen(report->reasonForLeaving());
+        throwIfGreaterThanBitsAllow(len, 8);
+        result += sizeof(BYTE)+(sizeof(BYTE)*len);
+      }
+
+      return boundarySize(result);
+    }
+
+    //-------------------------------------------------------------------------
+    static size_t getPacketSizeApp(const RTCPPacket::App *report)
+    {
+      size_t result = (sizeof(DWORD)*3);
+
+      auto dataSize = report->dataSize();
+      if (0 != dataSize) {
+        ORTC_THROW_INVALID_PARAMETERS_IF(NULL == report->mData)
+        result += dataSize;
+      }
+
+      return boundarySize(result);
+    }
+    
+    //-------------------------------------------------------------------------
+    static size_t getPacketSizeTransportLayerFeedbackMessage(const RTCPPacket::TransportLayerFeedbackMessage *fm)
+    {
+      typedef RTCPPacket::TransportLayerFeedbackMessage TransportLayerFeedbackMessage;
+      typedef RTCPPacket::TransportLayerFeedbackMessage::GenericNACK GenericNACK;
+      typedef RTCPPacket::TransportLayerFeedbackMessage::TMMBR TMMBR;
+      typedef RTCPPacket::TransportLayerFeedbackMessage::TMMBN TMMBN;
+
+      size_t result = (sizeof(DWORD)*3);
+
+      switch (fm->fmt()) {
+        case GenericNACK::kFmt:
+        {
+          auto count = fm->genericNACKCount();
+          throwIfLessThan(count, 1);
+          result += ((sizeof(DWORD))*(count));
+          break;
+        }
+        case TMMBR::kFmt:
+        {
+          auto count = fm->tmmbrCount();
+          throwIfLessThan(count, 1);
+          result += ((sizeof(DWORD)*2)*(count));
+          break;
+        }
+        case TMMBN::kFmt:
+        {
+          auto count = fm->tmmbnCount();
+          throwIfLessThan(count, 1);
+          result += ((sizeof(DWORD)*2)*(count));
+          break;
+        }
+        default:
+        {
+          auto fciSize = fm->fciSize();
+          if (0 != fciSize) {
+            ORTC_THROW_INVALID_PARAMETERS_IF(NULL == fm->fci())
+            result += fciSize;
+          }
+          break;
+        }
+      }
+
+      return boundarySize(result);
+    }
+
+    static size_t getPacketSizePayloadSpecificFeedbackMessage(const RTCPPacket::PayloadSpecificFeedbackMessage *fm)
+    {
+      typedef RTCPPacket::PayloadSpecificFeedbackMessage PayloadSpecificFeedbackMessage;
+      typedef RTCPPacket::PayloadSpecificFeedbackMessage::PLI PLI;
+      typedef RTCPPacket::PayloadSpecificFeedbackMessage::SLI SLI;
+      typedef RTCPPacket::PayloadSpecificFeedbackMessage::RPSI RPSI;
+      typedef RTCPPacket::PayloadSpecificFeedbackMessage::FIR FIR;
+      typedef RTCPPacket::PayloadSpecificFeedbackMessage::TSTR TSTR;
+      typedef RTCPPacket::PayloadSpecificFeedbackMessage::TSTN TSTN;
+      typedef RTCPPacket::PayloadSpecificFeedbackMessage::VBCM VBCM;
+      typedef RTCPPacket::PayloadSpecificFeedbackMessage::AFB AFB;
+      typedef RTCPPacket::PayloadSpecificFeedbackMessage::REMB REMB;
+
+      size_t result = (sizeof(DWORD)*3);
+
+      switch (fm->fmt()) {
+        case PLI::kFmt:
+        {
+          break;
+        }
+        case SLI::kFmt:
+        {
+          auto count = fm->sliCount();
+          throwIfLessThan(count, 1);
+          result += ((sizeof(DWORD)*2)*(count));
+          break;
+        }
+        case RPSI::kFmt:
+        {
+          auto rpsi = fm->rpsi();
+          ORTC_THROW_INVALID_PARAMETERS_IF(NULL == rpsi)
+          result += sizeof(WORD) + rpsi->nativeRPSIBitStringSize();
+          break;
+        }
+        case FIR::kFmt:
+        {
+          auto count = fm->firCount();
+          throwIfLessThan(count, 1);
+          result += ((sizeof(DWORD)*2)*(count));
+          break;
+        }
+        case TSTR::kFmt:
+        {
+          auto count = fm->tstrCount();
+          throwIfLessThan(count, 1);
+          result += ((sizeof(DWORD)*2)*(count));
+          break;
+        }
+        case TSTN::kFmt:
+        {
+          auto count = fm->tstnCount();
+          throwIfLessThan(count, 1);
+          result += ((sizeof(DWORD)*2)*(count));
+          break;
+        }
+        case VBCM::kFmt:
+        {
+          auto count = fm->vbcmCount();
+          throwIfLessThan(count, 1);
+          for (size_t index = 0; index < count; ++index)
+          {
+            auto vbcm = fm->vbcmAtIndex(index);
+            ORTC_THROW_INVALID_PARAMETERS_IF(NULL == vbcm)
+
+            size_t size = (sizeof(DWORD)*2) + vbcm->vbcmOctetStringSize();
+            result += boundarySize(size);
+          }
+          break;
+        }
+        case AFB::kFmt:
+        {
+          auto remb = fm->remb();
+          if (NULL == remb) {
+            auto afb = fm->afb();
+            ORTC_THROW_INVALID_PARAMETERS_IF(NULL == afb)
+
+            result += afb->dataSize();
+          } else {
+            result += (sizeof(DWORD)*2);
+            size_t numSSRCs = remb->numSSRC();
+            throwIfGreaterThanBitsAllow(numSSRCs, 8);
+            throwIfLessThan(numSSRCs, 1);
+            result += ((sizeof(DWORD))*numSSRCs);
+          }
+          break;
+        }
+        default:
+        {
+          auto fciSize = fm->fciSize();
+          if (0 != fciSize) {
+            ORTC_THROW_INVALID_PARAMETERS_IF(NULL == fm->fci())
+            result += fciSize;
+          }
+          break;
+        }
+      }
+
+      return boundarySize(result);
+    }
+
+    //-------------------------------------------------------------------------
+    static size_t getPacketSizeXR(const RTCPPacket::XR *report)
+    {
+      typedef RTCPPacket::XR XR;
+      typedef RTCPPacket::XR::ReportBlock ReportBlock;
+      typedef RTCPPacket::XR::LossRLEReportBlock LossRLEReportBlock;
+      typedef RTCPPacket::XR::DuplicateRLEReportBlock DuplicateRLEReportBlock;
+      typedef RTCPPacket::XR::PacketReceiptTimesReportBlock PacketReceiptTimesReportBlock;
+      typedef RTCPPacket::XR::ReceiverReferenceTimeReportBlock ReceiverReferenceTimeReportBlock;
+      typedef RTCPPacket::XR::DLRRReportBlock DLRRReportBlock;
+      typedef RTCPPacket::XR::StatisticsSummaryReportBlock StatisticsSummaryReportBlock;
+      typedef RTCPPacket::XR::VoIPMetricsReportBlock VoIPMetricsReportBlock;
+      typedef RTCPPacket::XR::UnknownReportBlock UnknownReportBlock;
+
+      size_t result = (sizeof(DWORD)*2);
+
+      for (const ReportBlock *reportBlock = report->firstReportBlock(); NULL != reportBlock; reportBlock = reportBlock->next())
+      {
+        switch (reportBlock->mBlockType) {
+          case LossRLEReportBlock::kBlockType:
+          {
+            auto block = reinterpret_cast<const LossRLEReportBlock *>(reportBlock);
+            result += (sizeof(DWORD)*3);
+            result += boundarySize(sizeof(WORD)*(block->chunkCount()));
+            break;
+          }
+          case DuplicateRLEReportBlock::kBlockType:
+          {
+            auto block = reinterpret_cast<const DuplicateRLEReportBlock *>(reportBlock);
+            result += (sizeof(DWORD)*3);
+            result += boundarySize(sizeof(WORD)*(block->chunkCount()));
+            break;
+          }
+          case PacketReceiptTimesReportBlock::kBlockType:
+          {
+            auto block = reinterpret_cast<const PacketReceiptTimesReportBlock *>(reportBlock);
+            result += (sizeof(DWORD)*3);
+            result += (sizeof(DWORD)*(block->receiptTimeCount()));
+            break;
+          }
+          case ReceiverReferenceTimeReportBlock::kBlockType:
+          {
+            result += (sizeof(DWORD)*3);
+            break;
+          }
+          case DLRRReportBlock::kBlockType:
+          {
+            auto block = reinterpret_cast<const DLRRReportBlock *>(reportBlock);
+            result += (sizeof(DWORD));
+            result += ((sizeof(DWORD)*3)*(block->subBlockCount()));
+            break;
+          }
+          case StatisticsSummaryReportBlock::kBlockType:
+          {
+            result += (sizeof(DWORD)*10);
+            break;
+          }
+          case VoIPMetricsReportBlock::kBlockType:
+          {
+            result += (sizeof(DWORD)*9);
+            break;
+          }
+          default:
+          {
+            result += (sizeof(DWORD)) + boundarySize(reportBlock->mTypeSpecificContentSize);
+          }
+        }
+      }
+
+      return boundarySize(result);
+    }
+
+    //-------------------------------------------------------------------------
+    size_t RTCPPacket::getPacketSize(const Report *first)
+    {
+      size_t result = 0;
+
+      const Report *final = NULL;
+
+      for (const Report *report = first; NULL != report; report = report->next())
+      {
+        final = report;
+
+        switch (report->pt()) {
+          case SenderReport::kPayloadType:
+          {
+            const SenderReport *sr = static_cast<const SenderReport *>(report);
+            result += internal::getPacketSizeSenderReport(sr);
+            break;
+          }
+          case ReceiverReport::kPayloadType:
+          {
+            const ReceiverReport *rr = static_cast<const ReceiverReport *>(report);
+            result += internal::getPacketSizeReceiverReport(rr);
+            break;
+          }
+          case SDES::kPayloadType:
+          {
+            const SDES *sdes = static_cast<const SDES *>(report);
+            result += internal::getPacketSizeSDES(sdes);
+            break;
+          }
+          case Bye::kPayloadType:
+          {
+            const Bye *bye = static_cast<const Bye *>(report);
+            result += internal::getPacketSizeBye(bye);
+            break;
+          }
+          case App::kPayloadType:
+          {
+            const App *app = static_cast<const App *>(report);
+            result += internal::getPacketSizeApp(app);
+            break;
+          }
+          case TransportLayerFeedbackMessage::kPayloadType:
+          {
+            const TransportLayerFeedbackMessage *fm = static_cast<const TransportLayerFeedbackMessage *>(report);
+            result += internal::getPacketSizeTransportLayerFeedbackMessage(fm);
+            break;
+          }
+          case PayloadSpecificFeedbackMessage::kPayloadType:
+          {
+            const PayloadSpecificFeedbackMessage *fm = static_cast<const PayloadSpecificFeedbackMessage *>(report);
+            result += internal::getPacketSizePayloadSpecificFeedbackMessage(fm);
+            break;
+          }
+          case XR::kPayloadType:
+          {
+            const XR *xr = static_cast<const XR *>(report);
+            result += internal::getPacketSizeXR(xr);
+            break;
+          }
+          default:
+          {
+            result += sizeof(DWORD) +  boundarySize(report->size());
+            break;
+          }
+        }
+      }
+
+      if (NULL != final) {
+        auto padding = final->padding();
+        if (0 != padding) {
+          result += padding;
+        }
+      }
+
+      return boundarySize(result);
     }
   }
 

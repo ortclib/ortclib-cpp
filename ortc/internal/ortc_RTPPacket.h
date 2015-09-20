@@ -60,6 +60,8 @@ namespace ortc
 
       struct HeaderExtension
       {
+        // see https://tools.ietf.org/html/rfc5285
+
         BYTE mID {};
 
         const BYTE *mData {};
@@ -69,6 +71,79 @@ namespace ortc
         HeaderExtension *mNext {};
       };
 
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPPacket::ClientToMixerExtension
+      #pragma mark
+
+      struct ClientToMixerExtension : public HeaderExtension
+      {
+        // see https://tools.ietf.org/html/rfc6464
+
+        ClientToMixerExtension(const HeaderExtension &header);
+        ClientToMixerExtension(
+                               BYTE id,
+                               bool voiceActivity,
+                               BYTE level
+                               );
+
+        bool voiceActivity() const;
+        BYTE level() const;
+
+      public:
+        BYTE mLevelBuffer {};
+      };
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPPacket::MixerToClientExtension
+      #pragma mark
+
+      struct MixerToClientExtension : public HeaderExtension
+      {
+        // see https://tools.ietf.org/html/rfc6464
+
+        static const size_t kMaxLevelCount {0xF};
+
+        MixerToClientExtension(const HeaderExtension &header);
+        MixerToClientExtension(
+                               BYTE id,
+                               BYTE *levels,
+                               size_t count
+                               );
+
+        size_t levelsCount() const;
+
+        BYTE unusedBit(size_t index) const;
+        BYTE level(size_t index) const;
+
+      public:
+        BYTE mLevelBuffer[kMaxLevelCount] {};
+      };
+      
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPPacket::MixerToClientExtension
+      #pragma mark
+
+      struct MidHeadExtension : public HeaderExtension
+      {
+        // https://tools.ietf.org/html/draft-ietf-mmusic-sdp-bundle-negotiation-23#section-14.3
+
+        static const size_t kMaxMidLength {0xFF};
+
+        MidHeadExtension(const HeaderExtension &header);
+        MidHeadExtension(
+                         BYTE id,
+                         const char *mid
+                         );
+
+        const char *mid() const;
+
+      public:
+        BYTE mMidBuffer[kMaxMidLength+sizeof(char)] {};
+      };
+      
     public:
       //-----------------------------------------------------------------------
       #pragma mark

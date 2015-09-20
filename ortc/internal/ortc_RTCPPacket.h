@@ -149,6 +149,8 @@ namespace ortc
 
       struct SenderReport : public SenderReceiverCommonReport
       {
+        // https://tools.ietf.org/html/rfc3550#section-6.4.1
+
         static const BYTE kPayloadType {200};
 
         SenderReport *nextSenderReport() const  {return mNextSenderReport;}
@@ -176,6 +178,8 @@ namespace ortc
 
       struct ReceiverReport : public SenderReceiverCommonReport
       {
+        // https://tools.ietf.org/html/rfc3550#section-6.4.2
+
         static const BYTE kPayloadType {201};
 
         ReceiverReport *nextReceiverReport() const  {return mNextReceiverReport;}
@@ -193,6 +197,8 @@ namespace ortc
 
       struct SDES : public Report
       {
+        // https://tools.ietf.org/html/rfc3550#section-6.5
+
         //---------------------------------------------------------------------
         #pragma mark
         #pragma mark RTCPPacket::SDES::Chunk
@@ -223,6 +229,8 @@ namespace ortc
 
           struct CName : public StringItem
           {
+            // https://tools.ietf.org/html/rfc3550#section-6.5.1
+
             static const BYTE kItemType = 1;
 
             CName *next() const                               {return static_cast<CName *>(mNext);}
@@ -237,6 +245,8 @@ namespace ortc
 
           struct Name : public StringItem
           {
+            // https://tools.ietf.org/html/rfc3550#section-6.5.2
+
             static const BYTE kItemType = 2;
 
             Name *next() const                                {return static_cast<Name *>(mNext);}
@@ -251,6 +261,8 @@ namespace ortc
 
           struct Email : public StringItem
           {
+            // https://tools.ietf.org/html/rfc3550#section-6.5.3
+
             static const BYTE kItemType = 3;
 
             Email *next() const                               {return static_cast<Email *>(mNext);}
@@ -265,6 +277,8 @@ namespace ortc
 
           struct Phone : public StringItem
           {
+            // https://tools.ietf.org/html/rfc3550#section-6.5.4
+
             static const BYTE kItemType = 4;
 
             Phone *next() const                               {return static_cast<Phone *>(mNext);}
@@ -279,6 +293,8 @@ namespace ortc
 
           struct Loc : public StringItem
           {
+            // https://tools.ietf.org/html/rfc3550#section-6.5.5
+
             static const BYTE kItemType = 5;
 
             Loc *next() const                                 {return static_cast<Loc *>(mNext);}
@@ -293,6 +309,8 @@ namespace ortc
 
           struct Tool : public StringItem
           {
+            // https://tools.ietf.org/html/rfc3550#section-6.5.6
+
             static const BYTE kItemType = 6;
 
             Tool *next() const                                {return static_cast<Tool *>(mNext);}
@@ -307,6 +325,8 @@ namespace ortc
 
           struct Note : public StringItem
           {
+            // https://tools.ietf.org/html/rfc3550#section-6.5.7
+
             static const BYTE kItemType = 7;
 
             Note *next() const                                {return static_cast<Note *>(mNext);}
@@ -321,6 +341,8 @@ namespace ortc
 
           struct Priv : public StringItem
           {
+            // https://tools.ietf.org/html/rfc3550#section-6.5.8
+
             static const BYTE kItemType = 8;
 
             Priv *next() const                                {return static_cast<Priv *>(mNext);}
@@ -348,6 +370,21 @@ namespace ortc
 
           //-------------------------------------------------------------------
           #pragma mark
+          #pragma mark RTCPPacket::SDES::Chunk::Mid
+          #pragma mark
+
+          struct Mid : public StringItem
+          {
+            // https://tools.ietf.org/html/draft-ietf-mmusic-sdp-bundle-negotiation-23#section-14.2
+            static const BYTE kItemType = 9;  // TBD
+
+            Mid *next() const                                {return static_cast<Mid *>(mNext);}
+
+            const char *mid() const                          {return value();}
+          };
+
+          //-------------------------------------------------------------------
+          #pragma mark
           #pragma mark RTCPPacket::SDES::Chunk
           #pragma mark
 
@@ -365,6 +402,7 @@ namespace ortc
           Tool *firstTool() const                             {return mFirstTool;}
           Note *firstNote() const                             {return mFirstNote;}
           Priv *firstPriv() const                             {return mFirstPriv;}
+          Mid *firstMid() const                               {return mFirstMid;}
           Unknown *firstUnknown() const                       {return mFirstUnknown;}
 
           size_t cNameCount() const                           {return mCNameCount;}
@@ -375,6 +413,7 @@ namespace ortc
           size_t toolCount() const                            {return mToolCount;}
           size_t noteCount() const                            {return mNoteCount;}
           size_t privCount() const                            {return mPrivCount;}
+          size_t midCount() const                             {return mMidCount;}
           size_t unknownCount() const                         {return mUnknownCount;}
 
           CName *cNameAtIndex(size_t index) const;
@@ -385,6 +424,7 @@ namespace ortc
           Tool *toolAtIndex(size_t index) const;
           Note *noteAtIndex(size_t index) const;
           Priv *privAtIndex(size_t index) const;
+          Mid *midAtIndex(size_t index) const;
           Unknown *unknownAtIndex(size_t index) const;
 
         public:
@@ -402,6 +442,7 @@ namespace ortc
           size_t mToolCount {};
           size_t mNoteCount {};
           size_t mPrivCount {};
+          size_t mMidCount {};
           size_t mUnknownCount {};
 
           CName *mFirstCName {};
@@ -412,6 +453,7 @@ namespace ortc
           Tool *mFirstTool {};
           Note *mFirstNote {};
           Priv *mFirstPriv {};
+          Mid *mFirstMid {};
           Unknown *mFirstUnknown {};
         };
 
@@ -436,6 +478,8 @@ namespace ortc
 
       struct Bye : public Report
       {
+        // https://tools.ietf.org/html/rfc3550#section-6.6
+
         static const BYTE kPayloadType {203};
 
         Bye *nextBye() const                    {return mNextBye;}
@@ -461,6 +505,8 @@ namespace ortc
 
       struct App : public Report
       {
+        // https://tools.ietf.org/html/rfc3550#section-6.7
+
         static const BYTE kPayloadType {204};
 
         App *nextApp() const                    {return mNextApp;}
@@ -490,6 +536,8 @@ namespace ortc
 
       struct FeedbackMessage : public Report
       {
+        // https://tools.ietf.org/html/rfc4585#section-6.1
+
         BYTE fmt() const                                        {return mReportSpecific;}
 
         DWORD ssrcOfPacketSender() const                        {return mSSRCOfPacketSender;}
@@ -513,6 +561,8 @@ namespace ortc
 
       struct TransportLayerFeedbackMessage : public FeedbackMessage
       {
+        // https://tools.ietf.org/html/rfc4585#section-6.2
+
         //---------------------------------------------------------------------
         #pragma mark
         #pragma mark RTCPPacket::TransportLayerFeedbackMessage::GenericNACK
@@ -520,6 +570,8 @@ namespace ortc
 
         struct GenericNACK
         {
+          // https://tools.ietf.org/html/rfc4585#section-6.2.1
+
           static const BYTE kFmt {1};
 
           WORD pid() const                                      {return mPID;}
@@ -558,6 +610,8 @@ namespace ortc
 
         struct TMMBR : public TMMBRCommon
         {
+          // http://tools.ietf.org/html/rfc5104#section-4.2.1.1
+
           static const BYTE kFmt {3};
 
         public:
@@ -570,6 +624,8 @@ namespace ortc
 
         struct TMMBN : public TMMBRCommon
         {
+          // http://tools.ietf.org/html/rfc5104#section-4.2.2.1
+
           static const BYTE kFmt {4};
 
         public:
@@ -617,6 +673,8 @@ namespace ortc
 
       struct PayloadSpecificFeedbackMessage : public FeedbackMessage
       {
+        // https://tools.ietf.org/html/rfc4585#section-6.3
+
         //---------------------------------------------------------------------
         #pragma mark
         #pragma mark RTCPPacket::PayloadSpecificFeedbackMessage::PLI
@@ -624,6 +682,8 @@ namespace ortc
 
         struct PLI
         {
+          // https://tools.ietf.org/html/rfc4585#section-6.3.1
+
           static const BYTE kFmt {1};
         public:
         };
@@ -635,6 +695,8 @@ namespace ortc
 
         struct SLI
         {
+          // https://tools.ietf.org/html/rfc4585#section-6.3.2
+
           static const BYTE kFmt {2};
 
           WORD first() const                        {return mFirst;}
@@ -654,10 +716,12 @@ namespace ortc
 
         struct RPSI
         {
+          // https://tools.ietf.org/html/rfc4585#section-6.3.3
+
           static const BYTE kFmt {3};
 
-          WORD pb() const                           {return mPB;}
-          WORD zeroBit() const                      {return mZeroBit;}
+          BYTE pb() const                           {return mPB;}
+          BYTE zeroBit() const                      {return mZeroBit;}
           BYTE payloadType() const                  {return mPayloadType;}
 
           const BYTE *nativeRPSIBitString() const   {return mNativeRPSIBitString;}
@@ -697,6 +761,8 @@ namespace ortc
 
         struct FIR : public CodecControlCommon
         {
+          // http://tools.ietf.org/html/rfc5104#section-4.3.1.1
+
           static const BYTE kFmt {4};
 
         public:
@@ -709,6 +775,8 @@ namespace ortc
 
         struct TSTR : public CodecControlCommon
         {
+          // http://tools.ietf.org/html/rfc5104#section-4.3.2.1
+
           static const BYTE kFmt {5};
 
           BYTE index() const                        {return static_cast<BYTE>(mControlSpecific);}
@@ -723,6 +791,8 @@ namespace ortc
 
         struct TSTN : public CodecControlCommon
         {
+          // http://tools.ietf.org/html/rfc5104#section-4.3.3.1
+
           static const BYTE kFmt {6};
 
           BYTE index() const                        {return static_cast<BYTE>(mControlSpecific);}
@@ -737,6 +807,8 @@ namespace ortc
 
         struct VBCM : public CodecControlCommon
         {
+          // http://tools.ietf.org/html/rfc5104#section-4.3.4.1
+
           static const BYTE kFmt {7};
 
           BYTE zeroBit() const;
@@ -756,6 +828,8 @@ namespace ortc
 
         struct AFB
         {
+          // https://tools.ietf.org/html/rfc4585#section-6.4
+
           static const BYTE kFmt {15};
 
           const BYTE *data() const                  {return mData;}
@@ -773,6 +847,8 @@ namespace ortc
 
         struct REMB
         {
+          // https://tools.ietf.org/html/draft-alvestrand-rmcat-remb-03#section-2.2
+
           static const BYTE kFmt {15};
 
           size_t numSSRC() const                    {return static_cast<size_t>(mNumSSRC);}
@@ -843,6 +919,8 @@ namespace ortc
 
       struct XR : public Report
       {
+        // https://tools.ietf.org/html/rfc3611#section-3
+
         typedef WORD RLEChunk;
 
         //---------------------------------------------------------------------
@@ -915,6 +993,8 @@ namespace ortc
 
         struct LossRLEReportBlock : public RLEReportBlock
         {
+          // https://tools.ietf.org/html/rfc3611#section-4.1
+
           static const BYTE kBlockType {1};
 
           LossRLEReportBlock *nextLossRLE() const             {return mNextLossRLE;}
@@ -930,6 +1010,8 @@ namespace ortc
 
         struct DuplicateRLEReportBlock : public RLEReportBlock
         {
+          // https://tools.ietf.org/html/rfc3611#section-4.2
+
           static const BYTE kBlockType {2};
 
           DuplicateRLEReportBlock *nextDuplicateRLE() const {return mNextDuplicateRLE;}
@@ -945,6 +1027,8 @@ namespace ortc
 
         struct PacketReceiptTimesReportBlock : public ReportBlockRange
         {
+          // https://tools.ietf.org/html/rfc3611#section-4.3
+
           static const BYTE kBlockType {3};
 
           PacketReceiptTimesReportBlock *nextPacketReceiptTimesReportBlock() const  {return mNextPacketReceiptTimesReportBlock;}
@@ -966,6 +1050,8 @@ namespace ortc
 
         struct ReceiverReferenceTimeReportBlock : public ReportBlock
         {
+          // https://tools.ietf.org/html/rfc3611#section-4.4
+
           static const BYTE kBlockType {4};
 
           ReceiverReferenceTimeReportBlock *nextReceiverReferenceTimeReportBlock() const  {return mNextReceiverReferenceTimeReportBlock;}
@@ -988,6 +1074,8 @@ namespace ortc
 
         struct DLRRReportBlock : public ReportBlock
         {
+          // https://tools.ietf.org/html/rfc3611#section-4.5
+
           static const BYTE kBlockType {5};
 
           struct SubBlock
@@ -1020,6 +1108,8 @@ namespace ortc
 
         struct StatisticsSummaryReportBlock : public ReportBlockRange
         {
+          // https://tools.ietf.org/html/rfc3611#section-4.6
+
           static const BYTE kBlockType {6};
 
           StatisticsSummaryReportBlock *nextStatisticsSummaryReportBlock() const {return mNextStatisticsSummaryReportBlock;}
@@ -1071,6 +1161,8 @@ namespace ortc
 
         struct VoIPMetricsReportBlock : public ReportBlock
         {
+          // https://tools.ietf.org/html/rfc3611#section-4.7
+
           static const BYTE kBlockType {7};
 
           VoIPMetricsReportBlock *nextVoIPMetricsReportBlock() const {return mNextVoIPMetricsReportBlock;}
@@ -1161,6 +1253,8 @@ namespace ortc
 
         struct RunLength
         {
+          // https://tools.ietf.org/html/rfc3611#section-4.1.1
+
           RunLength(RLEChunk chunk);
 
           BYTE runType() const {return mRunType;}
@@ -1178,6 +1272,8 @@ namespace ortc
 
         struct BitVector
         {
+          // https://tools.ietf.org/html/rfc3611#section-4.1.2
+
           BitVector(RLEChunk chunk);
 
           BYTE bitAtIndex(size_t index) const;  // Zero indicates loss.
@@ -1289,6 +1385,8 @@ namespace ortc
       static RTCPPacketPtr create(const BYTE *buffer, size_t bufferLengthInBytes);
       static RTCPPacketPtr create(const SecureByteBlock &buffer);
       static RTCPPacketPtr create(SecureByteBlockPtr buffer);  // NOTE: ownership of buffer is taken
+      static RTCPPacketPtr create(const Report *first);
+      static SecureByteBlockPtr generateFrom(const Report *first);
 
       const BYTE *ptr() const;
       size_t size() const;
@@ -1427,6 +1525,8 @@ namespace ortc
       bool parse(XR *xr, XR::UnknownReportBlock *reportBlock);
 
       void *allocateBuffer(size_t size);
+
+      static size_t getPacketSize(const Report *first);
 
     public:
       SecureByteBlockPtr mBuffer;
