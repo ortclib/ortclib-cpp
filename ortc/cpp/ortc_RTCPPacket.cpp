@@ -690,6 +690,30 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    RTCPPacketPtr RTCPPacket::create(const Report *first)
+    {
+      size_t allocationSize = getPacketSize(first);
+      SecureByteBlockPtr temp(make_shared<SecureByteBlock>(allocationSize));
+
+      BYTE *buffer = temp->BytePtr();
+      writePacket(first, buffer, allocationSize);
+
+      return create(temp);
+    }
+
+    //-------------------------------------------------------------------------
+    SecureByteBlockPtr RTCPPacket::generateFrom(const Report *first)
+    {
+      size_t allocationSize = getPacketSize(first);
+      SecureByteBlockPtr temp(make_shared<SecureByteBlock>(allocationSize));
+
+      BYTE *buffer = temp->BytePtr();
+      writePacket(first, buffer, allocationSize);
+
+      return temp;
+    }
+
+    //-------------------------------------------------------------------------
     const BYTE *RTCPPacket::ptr() const
     {
       return mBuffer->BytePtr();
