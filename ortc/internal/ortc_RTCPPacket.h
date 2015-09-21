@@ -102,7 +102,7 @@ namespace ortc
 
           DWORD ssrc() const                                  {return mSSRC;}
           BYTE fractionLost() const                           {return mFractionLost;}
-          DWORD cumulativeNumberOfPacketsLost()               {return mCumulativeNumberOfPacketsLost;}
+          DWORD cumulativeNumberOfPacketsLost() const         {return mCumulativeNumberOfPacketsLost;}
           DWORD extendedHighestSequenceNumberReceived() const {return mExtendedHighestSequenceNumberReceived;}
           DWORD interarrivalJitter() const                    {return mInterarrivalJitter;}
           DWORD lsr() const                                   {return mLSR;}
@@ -158,6 +158,7 @@ namespace ortc
         DWORD ntpTimestampMS() const            {return mNTPTimestampMS;}
         DWORD ntpTimestampLS() const            {return mNTPTimestampLS;}
         Time ntpTimestamp() const;
+        DWORD rtpTimestamp() const              {return mRTPTimestamp;}
         DWORD senderPacketCount() const         {return mSenderPacketCount;}
         DWORD senderOctetCount() const          {return mSenderOctetCount;}
 
@@ -958,7 +959,7 @@ namespace ortc
           BYTE reserved() const                               {return mReserved;}
           BYTE thinning() const                               {return mThinning;}
 
-          DWORD ssrc() const                                  {return mSSRC;}
+          DWORD ssrcOfSource() const                          {return mSSRCOfSource;}
           WORD beginSeq() const                               {return mBeginSeq;}
           WORD endSeq() const                                 {return mEndSeq;}
 
@@ -966,7 +967,7 @@ namespace ortc
           BYTE mReserved {};
           BYTE mThinning {};
 
-          DWORD mSSRC {};
+          DWORD mSSRCOfSource {};
           WORD mBeginSeq {};
           WORD mEndSeq {};
         };
@@ -1527,6 +1528,7 @@ namespace ortc
       void *allocateBuffer(size_t size);
 
       static size_t getPacketSize(const Report *first);
+      static void writePacket(const Report *first, BYTE * &ioPos, size_t &ioRemaining);
 
     public:
       SecureByteBlockPtr mBuffer;

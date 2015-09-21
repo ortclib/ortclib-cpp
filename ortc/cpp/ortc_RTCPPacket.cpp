@@ -50,6 +50,7 @@
 
 #define RTCP_IS_FLAG_SET(xByte, xBitPos) (0 != ((xByte) & (1 << xBitPos)))
 #define RTCP_GET_BITS(xByte, xBitPattern, xLowestBit) (((xByte) >> (xLowestBit)) & (xBitPattern))
+#define RTCP_PACK_BITS(xByte, xBitPattern, xLowestBit) (((xByte) & (xBitPattern)) << (xLowestBit))
 
 namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib) }
 
@@ -78,9 +79,18 @@ namespace ortc
     //-------------------------------------------------------------------------
     static size_t alignedSize(size_t size)
     {
-      size_t modules = size % alignof(std::max_align_t);
+      size_t modulas = size % alignof(std::max_align_t);
 
-      return size + (0 == modules ? 0 : (alignof(std::max_align_t) - modules));
+      return size + (0 == modulas ? 0 : (alignof(std::max_align_t) - modulas));
+    }
+
+    //-------------------------------------------------------------------------
+    static void advancePos(BYTE * &ioPos, size_t &ioRemaining, size_t length = 1)
+    {
+      ASSERT(ioRemaining >= length)
+
+      ioPos += length;
+      ioRemaining -= length;
     }
 
     //-------------------------------------------------------------------------
@@ -91,7 +101,7 @@ namespace ortc
       ioPos += length;
       ioRemaining -= length;
     }
-
+    
     //-------------------------------------------------------------------------
     static void *allocateBuffer(BYTE * &ioAllocationBuffer, size_t &ioRemaining, size_t size)
     {
@@ -118,30 +128,36 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    static void throwIfGreaterThanBitsAllow(
+    static bool throwIfGreaterThanBitsAllow(
                                             size_t value,
                                             size_t maxBits
                                             )
     {
+      ASSERT(value <= ((1 << maxBits)-1))
       ORTC_THROW_INVALID_PARAMETERS_IF(value > ((1 << maxBits)-1))
+      return true;
     }
 
     //-------------------------------------------------------------------------
-    static void throwIfGreaterThan(
+    static bool throwIfGreaterThan(
                                    size_t size,
                                    size_t max
                                    )
     {
+      ASSERT(size <= max)
       ORTC_THROW_INVALID_PARAMETERS_IF(size > max)
+      return true;
     }
 
     //-------------------------------------------------------------------------
-    static void throwIfLessThan(
+    static bool throwIfLessThan(
                                 size_t size,
                                 size_t min
                                 )
     {
+      ASSERT(size >= min)
       ORTC_THROW_INVALID_PARAMETERS_IF(size < min)
+      return true;
     }
 
     //-------------------------------------------------------------------------
@@ -931,7 +947,7 @@ namespace ortc
       internal::toDebugReportBlock(subEl, common);
       UseServicesHelper::debugAppend(subEl, "reserved", common->reserved());
       UseServicesHelper::debugAppend(subEl, "thinning", common->thinning());
-      UseServicesHelper::debugAppend(subEl, "ssrc", common->ssrc());
+      UseServicesHelper::debugAppend(subEl, "ssrc", common->ssrcOfSource());
       UseServicesHelper::debugAppend(subEl, "begin seq", common->beginSeq());
       UseServicesHelper::debugAppend(subEl, "end seq", common->endSeq());
     }
@@ -3035,17 +3051,19 @@ namespace ortc
                 priv->mNext = &(chunk->mFirstPriv[chunk->mPrivCount-1]);
               }
 
-              size_t privLength = static_cast<size_t>(*pos);
-              if (0 != privLength) {
-                advancePos(pos, remaining);
+              if (length > 0) {
+                size_t privLength = static_cast<size_t>(*pos);
+                if (0 != privLength) {
+                  advancePos(pos, remaining);
 
-                priv->mPrefix = new (allocateBuffer(sizeof(char)*(privLength+1))) char [privLength+1];
-                memcpy(const_cast<char *>(priv->mValue), pos, privLength);
+                  priv->mPrefix = new (allocateBuffer(sizeof(char)*(privLength+1))) char [privLength+1];
+                  memcpy(const_cast<char *>(priv->mValue), pos, privLength);
 
-                advancePos(pos, remaining, privLength);
-                ASSERT(length >= privLength)
+                  advancePos(pos, remaining, privLength);
+                  ASSERT(length >= privLength)
 
-                length -= privLength;
+                  length -= privLength;
+                }
               }
 
               item = priv;
@@ -3999,7 +4017,7 @@ namespace ortc
 
         reportBlock->mReserved = RTCP_GET_BITS(reportBlock->mTypeSpecific, 0xF, 4);
         reportBlock->mThinning = RTCP_GET_BITS(reportBlock->mTypeSpecific, 0xF, 0);
-        reportBlock->mSSRC = UseHelper::getBE32(&(pos[0]));
+        reportBlock->mSSRCOfSource = UseHelper::getBE32(&(pos[0]));
         reportBlock->mBeginSeq = UseHelper::getBE16(&(pos[4]));
         reportBlock->mEndSeq = UseHelper::getBE16(&(pos[6]));
 
@@ -4254,7 +4272,7 @@ namespace ortc
     {
       auto rc = report->rc();
       throwIfGreaterThanBitsAllow(rc, 5);
-      return (sizeof(DWORD)*2) + (sizeof(DWORD)*5) + ((sizeof(DWORD)*6)*rc);
+      return (sizeof(DWORD)*2) + (sizeof(DWORD)*5) + ((sizeof(DWORD)*6)*rc) + boundarySize(report->extensionSize());
     }
 
     //-------------------------------------------------------------------------
@@ -4262,7 +4280,7 @@ namespace ortc
     {
       auto rc = report->rc();
       throwIfGreaterThanBitsAllow(rc, 5);
-      return (sizeof(DWORD)*2) + ((sizeof(DWORD)*6)*rc);
+      return (sizeof(DWORD)*2) + ((sizeof(DWORD)*6)*rc) + boundarySize(report->extensionSize());
     }
 
     //-------------------------------------------------------------------------
@@ -4350,7 +4368,17 @@ namespace ortc
         for (auto *item = chunk->firstMid(); NULL != item; item = item->next())
         {
           chunkSize += (sizeof(BYTE)*2);
-          if (NULL != item->mValue) chunkSize += (sizeof(BYTE)*strlen(item->mValue));
+          size_t len = (NULL != item->mValue ? strlen(item->mValue) : 0);
+          throwIfGreaterThanBitsAllow(len, 8);
+          chunkSize += ((sizeof(BYTE))*len);
+        }
+
+        for (auto *item = chunk->firstUnknown(); NULL != item; item = item->next())
+        {
+          chunkSize += (sizeof(BYTE)*2);
+          size_t len = (NULL != item->mValue ? strlen(item->mValue) : 0);
+          throwIfGreaterThanBitsAllow(len, 8);
+          chunkSize += ((sizeof(BYTE))*len);
         }
 
         if (chunkSize == sizeof(DWORD)) {
@@ -4374,8 +4402,10 @@ namespace ortc
 
       if (NULL != report->reasonForLeaving()) {
         size_t len = strlen(report->reasonForLeaving());
-        throwIfGreaterThanBitsAllow(len, 8);
-        result += sizeof(BYTE)+(sizeof(BYTE)*len);
+        if (len > 0) {
+          throwIfGreaterThanBitsAllow(len, 8);
+          result += sizeof(BYTE)+(sizeof(BYTE)*len);
+        }
       }
 
       return boundarySize(result);
@@ -4690,6 +4720,881 @@ namespace ortc
 
       return boundarySize(result);
     }
+
+    //-------------------------------------------------------------------------
+    static void writePacketHeader(const RTCPPacket::Report *report, BYTE * &pos, size_t &remaining)
+    {
+      ASSERT(remaining > sizeof(DWORD))
+      ASSERT(2 == report->version())
+
+      auto padding = report->padding();
+      if (0 != padding) {
+        ASSERT(NULL == report->next())
+        ASSERT(throwIfGreaterThanBitsAllow(padding, 8))
+      }
+
+      ASSERT(throwIfGreaterThanBitsAllow(report->reportSpecific(), 5))
+
+      pos[0] = RTCP_PACK_BITS(report->version(), 0x3, 6) |
+               ((0 != padding) ? RTCP_PACK_BITS(1, 0x1, 5) : 0) |
+               RTCP_PACK_BITS(report->reportSpecific(), 0x1F, 0);
+      pos[1] = report->pt();
+    }
+
+    //-------------------------------------------------------------------------
+    static void writePacketSenderReceiverCommonReport(const RTCPPacket::SenderReceiverCommonReport *report, BYTE * &pos, size_t &remaining)
+    {
+      typedef RTCPPacket::SenderReceiverCommonReport SenderReceiverCommonReport;
+      typedef RTCPPacket::SenderReceiverCommonReport::ReportBlock ReportBlock;
+
+      size_t count = 0;
+      for (const ReportBlock *block = report->firstReportBlock(); NULL != block; block = block->next(), ++count)
+      {
+        ASSERT(count < report->rc())
+
+        UseHelper::setBE32(&(pos[0]), block->ssrc());
+        ASSERT(throwIfGreaterThanBitsAllow(block->cumulativeNumberOfPacketsLost(), 24))
+        UseHelper::setBE32(&(pos[4]), block->cumulativeNumberOfPacketsLost());
+        pos[5] = block->fractionLost();
+        UseHelper::setBE32(&(pos[8]), block->extendedHighestSequenceNumberReceived());
+        UseHelper::setBE32(&(pos[12]), block->interarrivalJitter());
+        UseHelper::setBE32(&(pos[16]), block->lsr());
+        UseHelper::setBE32(&(pos[20]), block->dlsr());
+
+        advancePos(pos, remaining, sizeof(DWORD)*6);
+      }
+
+      ASSERT(count == report->rc())
+
+      if (report->extensionSize() > 0) {
+        ASSERT(NULL != report->extension())
+        memcpy(pos, report->extension(), report->extensionSize());
+        advancePos(pos, remaining, boundarySize(report->extensionSize()));
+      }
+    }
+    
+    //-------------------------------------------------------------------------
+    static void writePacketSenderReport(const RTCPPacket::SenderReport *report, BYTE * &pos, size_t &remaining)
+    {
+      typedef RTCPPacket::SenderReport SenderReport;
+      pos[1] = SenderReport::kPayloadType;
+
+      size_t length = getPacketSizeSenderReport(report);
+
+      UseHelper::setBE16(&(pos[2]), (boundarySize(length) / sizeof(DWORD))-1);
+      UseHelper::setBE32(&(pos[4]), report->ssrcOfSender());
+      UseHelper::setBE32(&(pos[8]), report->ntpTimestampMS());
+      UseHelper::setBE32(&(pos[12]), report->ntpTimestampLS());
+      UseHelper::setBE32(&(pos[16]), report->rtpTimestamp());
+      UseHelper::setBE32(&(pos[20]), report->senderPacketCount());
+      UseHelper::setBE32(&(pos[24]), report->senderOctetCount());
+
+      advancePos(pos, remaining, sizeof(DWORD)*7);
+
+      writePacketSenderReceiverCommonReport(report, pos, remaining);
+    }
+
+    //-------------------------------------------------------------------------
+    static void writePacketReceiverReport(const RTCPPacket::ReceiverReport *report, BYTE * &pos, size_t &remaining)
+    {
+      typedef RTCPPacket::ReceiverReport ReceiverReport;
+      pos[1] = ReceiverReport::kPayloadType;
+
+      size_t length = getPacketSizeReceiverReport(report);
+
+      UseHelper::setBE16(&(pos[2]), (boundarySize(length) / sizeof(DWORD))-1);
+      UseHelper::setBE32(&(pos[4]), report->ssrcOfPacketSender());
+
+      advancePos(pos, remaining, sizeof(DWORD)*2);
+
+      writePacketSenderReceiverCommonReport(report, pos, remaining);
+    }
+    
+    //-------------------------------------------------------------------------
+    static void writePacketSDES(const RTCPPacket::SDES *report, BYTE * &pos, size_t &remaining)
+    {
+      typedef RTCPPacket::SDES SDES;
+      typedef RTCPPacket::SDES::Chunk Chunk;
+
+      pos[1] = SDES::kPayloadType;
+
+      size_t length = getPacketSizeSDES(report);
+
+      UseHelper::setBE16(&(pos[2]), (boundarySize(length) / sizeof(DWORD))-1);
+      advancePos(pos, remaining, sizeof(DWORD));
+
+      size_t chunkCount = 0;
+
+      for (Chunk *chunk = report->firstChunk(); NULL != chunk; ++chunk, ++chunkCount)
+      {
+        UseHelper::setBE32(pos, chunk->ssrc());
+        advancePos(pos, remaining, sizeof(DWORD));
+
+        BYTE *startPos = pos;
+
+        for (auto *item = chunk->firstCName(); NULL != item; item = item->next())
+        {
+          pos[0] = Chunk::CName::kItemType;
+          size_t len = (NULL != item->mValue ? strlen(item->mValue) : 0);
+          pos[1] = len;
+          ASSERT(throwIfGreaterThanBitsAllow(len, 8))
+
+          advancePos(pos, remaining, sizeof(WORD));
+
+          if (len > 0) {
+            memcpy(pos, item->value(), len*sizeof(BYTE));
+            advancePos(pos, remaining, len*sizeof(BYTE));
+          }
+        }
+
+        for (auto *item = chunk->firstName(); NULL != item; item = item->next())
+        {
+          pos[0] = Chunk::Name::kItemType;
+          size_t len = (NULL != item->mValue ? strlen(item->mValue) : 0);
+          pos[1] = len;
+          ASSERT(throwIfGreaterThanBitsAllow(len, 8))
+
+          advancePos(pos, remaining, sizeof(WORD));
+
+          if (len > 0) {
+            memcpy(pos, item->value(), len*sizeof(BYTE));
+            advancePos(pos, remaining, len*sizeof(BYTE));
+          }
+        }
+
+        for (auto *item = chunk->firstEmail(); NULL != item; item = item->next())
+        {
+          pos[0] = Chunk::Email::kItemType;
+          size_t len = (NULL != item->mValue ? strlen(item->mValue) : 0);
+          pos[1] = len;
+          ASSERT(throwIfGreaterThanBitsAllow(len, 8))
+
+          advancePos(pos, remaining, sizeof(WORD));
+
+          if (len > 0) {
+            memcpy(pos, item->value(), len*sizeof(BYTE));
+            advancePos(pos, remaining, len*sizeof(BYTE));
+          }
+        }
+
+        for (auto *item = chunk->firstPhone(); NULL != item; item = item->next())
+        {
+          pos[0] = Chunk::Phone::kItemType;
+          size_t len = (NULL != item->mValue ? strlen(item->mValue) : 0);
+          pos[1] = len;
+          ASSERT(throwIfGreaterThanBitsAllow(len, 8))
+
+          advancePos(pos, remaining, sizeof(WORD));
+
+          if (len > 0) {
+            memcpy(pos, item->value(), len*sizeof(BYTE));
+            advancePos(pos, remaining, len*sizeof(BYTE));
+          }
+        }
+
+        for (auto *item = chunk->firstLoc(); NULL != item; item = item->next())
+        {
+          pos[0] = Chunk::Loc::kItemType;
+          size_t len = (NULL != item->mValue ? strlen(item->mValue) : 0);
+          pos[1] = len;
+          ASSERT(throwIfGreaterThanBitsAllow(len, 8))
+
+          advancePos(pos, remaining, sizeof(WORD));
+
+          if (len > 0) {
+            memcpy(pos, item->value(), len*sizeof(BYTE));
+            advancePos(pos, remaining, len*sizeof(BYTE));
+          }
+        }
+
+        for (auto *item = chunk->firstTool(); NULL != item; item = item->next())
+        {
+          pos[0] = Chunk::Tool::kItemType;
+          size_t len = (NULL != item->mValue ? strlen(item->mValue) : 0);
+          pos[1] = len;
+          ASSERT(throwIfGreaterThanBitsAllow(len, 8))
+
+          advancePos(pos, remaining, sizeof(WORD));
+
+          if (len > 0) {
+            memcpy(pos, item->value(), len*sizeof(BYTE));
+            advancePos(pos, remaining, len*sizeof(BYTE));
+          }
+        }
+
+        for (auto *item = chunk->firstNote(); NULL != item; item = item->next())
+        {
+          pos[0] = Chunk::Note::kItemType;
+          size_t len = (NULL != item->mValue ? strlen(item->mValue) : 0);
+          pos[1] = len;
+          ASSERT(throwIfGreaterThanBitsAllow(len, 8))
+
+          advancePos(pos, remaining, sizeof(WORD));
+
+          if (len > 0) {
+            memcpy(pos, item->value(), len*sizeof(BYTE));
+            advancePos(pos, remaining, len*sizeof(BYTE));
+          }
+        }
+
+        for (auto *item = chunk->firstPriv(); NULL != item; item = item->next())
+        {
+          pos[0] = Chunk::Priv::kItemType;
+          size_t len1 = (NULL != item->mPrefix ? strlen(item->mPrefix) : 0);
+          size_t len2 = (NULL != item->mValue ? strlen(item->mValue) : 0);
+          size_t len = len1 + len2;
+          if (len > 0) ++len;
+          pos[1] = len;
+          ASSERT(throwIfGreaterThanBitsAllow(len, 8))
+
+          advancePos(pos, remaining, sizeof(WORD));
+
+          if (len > 0) {
+            pos[0] = len1;
+            advancePos(pos, remaining);
+            if (len1 > 0) {
+              memcpy(pos, item->prefix(), len1*sizeof(BYTE));
+              advancePos(pos, remaining, len1*sizeof(BYTE));
+            }
+            if (len2 > 0) {
+              memcpy(pos, item->value(), len2*sizeof(BYTE));
+              advancePos(pos, remaining, len2*sizeof(BYTE));
+            }
+          }
+        }
+
+        for (auto *item = chunk->firstMid(); NULL != item; item = item->next())
+        {
+          pos[0] = Chunk::Mid::kItemType;
+          size_t len = (NULL != item->mValue ? strlen(item->mValue) : 0);
+          pos[1] = len;
+          ASSERT(throwIfGreaterThanBitsAllow(len, 8))
+
+          advancePos(pos, remaining, sizeof(WORD));
+
+          if (len > 0) {
+            memcpy(pos, item->value(), len*sizeof(BYTE));
+            advancePos(pos, remaining, len*sizeof(BYTE));
+          }
+        }
+
+        for (auto *item = chunk->firstUnknown(); NULL != item; item = item->next())
+        {
+          pos[0] = item->type();
+          size_t len = (NULL != item->mValue ? strlen(item->mValue) : 0);
+          pos[1] = len;
+          ASSERT(throwIfGreaterThanBitsAllow(len, 8))
+
+          advancePos(pos, remaining, sizeof(WORD));
+
+          if (len > 0) {
+            memcpy(pos, item->value(), len*sizeof(BYTE));
+            advancePos(pos, remaining, len*sizeof(BYTE));
+          }
+        }
+
+        BYTE *endPos = pos;
+
+        PTRNUMBER diff = reinterpret_cast<PTRNUMBER>(endPos) - reinterpret_cast<PTRNUMBER>(startPos);
+        auto modulas = (diff % sizeof(DWORD));
+        if (0 != modulas) {
+          advancePos(pos, remaining, sizeof(DWORD)-modulas);
+        }
+      }
+
+      throwIfGreaterThanBitsAllow(chunkCount, 5);
+    }
+    
+    //-------------------------------------------------------------------------
+    static void writePacketBye(const RTCPPacket::Bye *report, BYTE * &pos, size_t &remaining)
+    {
+      typedef RTCPPacket::Bye Bye;
+      pos[1] = Bye::kPayloadType;
+
+      size_t length = getPacketSizeBye(report);
+
+      UseHelper::setBE16(&(pos[2]), (boundarySize(length) / sizeof(DWORD))-1);
+
+      advancePos(pos, remaining, sizeof(DWORD));
+
+      for (size_t index = 0; index < report->sc(); ++index)
+      {
+        UseHelper::setBE32(pos, report->ssrc(index));
+        advancePos(pos, remaining, sizeof(DWORD));
+      }
+
+      if (NULL != report->reasonForLeaving()) {
+        size_t len = strlen(report->reasonForLeaving());
+        if (len > 0) {
+          pos[0] = len;
+          memcpy(&(pos[1]), report->reasonForLeaving(), len);
+          advancePos(pos, remaining, boundarySize(sizeof(BYTE)+(sizeof(BYTE)*len)));
+        }
+      }
+    }
+
+    //-------------------------------------------------------------------------
+    static void writePacketApp(const RTCPPacket::App *report, BYTE * &pos, size_t &remaining)
+    {
+      typedef RTCPPacket::App App;
+      pos[1] = App::kPayloadType;
+
+      size_t length = getPacketSizeApp(report);
+
+      UseHelper::setBE16(&(pos[2]), (boundarySize(length) / sizeof(DWORD))-1);
+      UseHelper::setBE32(&(pos[4]), report->ssrc());
+      memcpy(&(pos[8]), report->name(), sizeof(DWORD));
+
+      advancePos(pos, remaining, sizeof(DWORD)*3);
+
+      size_t dataSize = report->dataSize();
+      if (0 != dataSize) {
+        memcpy(pos, report->data(), dataSize);
+        advancePos(pos, remaining, boundarySize(dataSize));
+      }
+    }
+
+    //-------------------------------------------------------------------------
+    static void writePacketTransportLayerFeedbackMessage(const RTCPPacket::TransportLayerFeedbackMessage *report, BYTE * &pos, size_t &remaining)
+    {
+      typedef RTCPPacket::TransportLayerFeedbackMessage TransportLayerFeedbackMessage;
+      typedef RTCPPacket::TransportLayerFeedbackMessage::GenericNACK GenericNACK;
+      typedef RTCPPacket::TransportLayerFeedbackMessage::TMMBR TMMBR;
+      typedef RTCPPacket::TransportLayerFeedbackMessage::TMMBN TMMBN;
+
+      pos[1] = TransportLayerFeedbackMessage::kPayloadType;
+
+      size_t length = getPacketSizeTransportLayerFeedbackMessage(report);
+
+      UseHelper::setBE16(&(pos[2]), (boundarySize(length) / sizeof(DWORD))-1);
+      UseHelper::setBE32(&(pos[4]), report->ssrcOfPacketSender());
+      UseHelper::setBE32(&(pos[8]), report->ssrcOfMediaSource());
+
+      advancePos(pos, remaining, sizeof(DWORD)*3);
+
+      switch (report->fmt()) {
+        case GenericNACK::kFmt:
+        {
+          auto count = report->genericNACKCount();
+
+          for (size_t index = 0; index < count; ++index)
+          {
+            auto item = report->genericNACKAtIndex(index);
+            pos[0] = item->pid();
+            pos[1] = item->blp();
+            advancePos(pos, remaining, sizeof(DWORD));
+          }
+          break;
+        }
+        case TMMBR::kFmt:
+        {
+          auto count = report->tmmbrCount();
+
+          for (size_t index = 0; index < count; ++index)
+          {
+            auto item = report->tmmbrAtIndex(index);
+            UseHelper::setBE32(&(pos[0]), item->ssrc());
+
+            DWORD merged = RTCP_PACK_BITS(static_cast<DWORD>(item->mxTBRExp()), 0x3F, 26) |
+                           RTCP_PACK_BITS(static_cast<DWORD>(item->mxTBRMantissa()), 0x1FFFF, 9) |
+                           RTCP_PACK_BITS(static_cast<DWORD>(item->measuredOverhead()), 0x1FF, 0);
+
+            UseHelper::setBE32(&(pos[4]), merged);
+
+            advancePos(pos, remaining, sizeof(DWORD)*2);
+          }
+          break;
+        }
+        case TMMBN::kFmt:
+        {
+          auto count = report->tmmbnCount();
+
+          for (size_t index = 0; index < count; ++index)
+          {
+            auto item = report->tmmbnAtIndex(index);
+            UseHelper::setBE32(&(pos[0]), item->ssrc());
+
+            DWORD merged = RTCP_PACK_BITS(static_cast<DWORD>(item->mxTBRExp()), 0x3F, 26) |
+                           RTCP_PACK_BITS(static_cast<DWORD>(item->mxTBRMantissa()), 0x1FFFF, 9) |
+                           RTCP_PACK_BITS(static_cast<DWORD>(item->measuredOverhead()), 0x1FF, 0);
+
+            UseHelper::setBE32(&(pos[4]), merged);
+
+            advancePos(pos, remaining, sizeof(DWORD)*2);
+          }
+          break;
+        }
+        default:
+        {
+          auto fciSize = report->fciSize();
+          if (0 != fciSize) {
+            memcpy(pos, report->fci(), report->fciSize());
+            advancePos(pos, remaining, boundarySize(report->fciSize()));
+          }
+          break;
+        }
+      }
+    }
+    
+    //-------------------------------------------------------------------------
+    static void writePacketPayloadSpecificFeedbackMessage(const RTCPPacket::PayloadSpecificFeedbackMessage *report, BYTE * &pos, size_t &remaining)
+    {
+      typedef RTCPPacket::PayloadSpecificFeedbackMessage PayloadSpecificFeedbackMessage;
+      typedef RTCPPacket::PayloadSpecificFeedbackMessage::PLI PLI;
+      typedef RTCPPacket::PayloadSpecificFeedbackMessage::SLI SLI;
+      typedef RTCPPacket::PayloadSpecificFeedbackMessage::RPSI RPSI;
+      typedef RTCPPacket::PayloadSpecificFeedbackMessage::FIR FIR;
+      typedef RTCPPacket::PayloadSpecificFeedbackMessage::TSTR TSTR;
+      typedef RTCPPacket::PayloadSpecificFeedbackMessage::TSTN TSTN;
+      typedef RTCPPacket::PayloadSpecificFeedbackMessage::VBCM VBCM;
+      typedef RTCPPacket::PayloadSpecificFeedbackMessage::AFB AFB;
+      typedef RTCPPacket::PayloadSpecificFeedbackMessage::REMB REMB;
+
+      pos[1] = PayloadSpecificFeedbackMessage::kPayloadType;
+
+      size_t length = getPacketSizePayloadSpecificFeedbackMessage(report);
+
+      UseHelper::setBE16(&(pos[2]), (boundarySize(length) / sizeof(DWORD))-1);
+      UseHelper::setBE32(&(pos[4]), report->ssrcOfPacketSender());
+      UseHelper::setBE32(&(pos[8]), report->ssrcOfMediaSource());
+
+      advancePos(pos, remaining, sizeof(DWORD)*3);
+
+      switch (report->fmt()) {
+        case PLI::kFmt:
+        {
+          break;
+        }
+        case SLI::kFmt:
+        {
+          auto count = report->sliCount();
+
+          for (size_t index = 0; index < count; ++index)
+          {
+            auto item = report->sliAtIndex(index);
+
+            DWORD merged = RTCP_PACK_BITS(static_cast<DWORD>(item->first()), 0x1FFF, 19) |
+                           RTCP_PACK_BITS(static_cast<DWORD>(item->number()), 0x1FFF, 6) |
+                           RTCP_PACK_BITS(static_cast<DWORD>(item->pictureID()), 0x3F, 0);
+
+            UseHelper::setBE32(&(pos[0]), merged);
+            advancePos(pos, remaining, sizeof(DWORD));
+          }
+          break;
+        }
+        case RPSI::kFmt:
+        {
+          auto rpsi = report->rpsi();
+
+          pos[0] = rpsi->pb();
+          pos[1] = RTCP_PACK_BITS(static_cast<BYTE>(rpsi->zeroBit()), 0x1, 7) |
+                   RTCP_PACK_BITS(static_cast<BYTE>(rpsi->payloadType()), 0x7F, 0);
+
+          auto size = rpsi->nativeRPSIBitStringSize();
+          if (0 != size) {
+            memcpy(&(pos[2]), rpsi->nativeRPSIBitString(), size);
+          }
+
+          advancePos(pos, remaining, boundarySize(sizeof(WORD)+(sizeof(BYTE)*size)));
+          break;
+        }
+        case FIR::kFmt:
+        {
+          auto count = report->firCount();
+
+          for (size_t index = 0; index < count; ++index)
+          {
+            auto item = report->firAtIndex(index);
+            UseHelper::setBE32(&(pos[0]), item->ssrc());
+            UseHelper::setBE32(&(pos[4]), item->reserved());
+            pos[4] = item->seqNr();
+            advancePos(pos, remaining, sizeof(DWORD)*2);
+          }
+          break;
+        }
+        case TSTR::kFmt:
+        {
+          auto count = report->tstrCount();
+
+          for (size_t index = 0; index < count; ++index)
+          {
+            auto item = report->tstrAtIndex(index);
+            UseHelper::setBE32(&(pos[0]), item->ssrc());
+
+            DWORD merged = RTCP_PACK_BITS(static_cast<DWORD>(item->seqNr()), 0xFF, 24) |
+                           RTCP_PACK_BITS(static_cast<DWORD>(item->reserved()), 0x7FFFF, 5) |
+                           RTCP_PACK_BITS(static_cast<DWORD>(item->index()), 0x1F, 0);
+
+            UseHelper::setBE32(&(pos[4]), merged);
+            advancePos(pos, remaining, sizeof(DWORD)*2);
+          }
+          break;
+        }
+        case TSTN::kFmt:
+        {
+          auto count = report->tstnCount();
+
+          for (size_t index = 0; index < count; ++index)
+          {
+            auto item = report->tstnAtIndex(index);
+            UseHelper::setBE32(&(pos[0]), item->ssrc());
+
+            DWORD merged = RTCP_PACK_BITS(static_cast<DWORD>(item->seqNr()), 0xFF, 24) |
+                           RTCP_PACK_BITS(static_cast<DWORD>(item->reserved()), 0x7FFFF, 5) |
+                           RTCP_PACK_BITS(static_cast<DWORD>(item->index()), 0x1F, 0);
+
+            UseHelper::setBE32(&(pos[4]), merged);
+            advancePos(pos, remaining, sizeof(DWORD)*2);
+          }
+          break;
+        }
+        case VBCM::kFmt:
+        {
+          auto count = report->vbcmCount();
+
+          for (size_t index = 0; index < count; ++index)
+          {
+            auto item = report->vbcmAtIndex(index);
+
+            pos[0] = item->seqNr();
+            pos[1] = RTCP_PACK_BITS(static_cast<BYTE>(item->zeroBit()), 0x1, 7) |
+                     RTCP_PACK_BITS(static_cast<BYTE>(item->payloadType()), 0x7F, 0);
+
+            auto size = item->vbcmOctetStringSize();
+            if (0 != size) {
+              memcpy(&(pos[2]), item->vbcmOctetString(), size*sizeof(BYTE));
+            }
+
+            advancePos(pos, remaining, boundarySize((sizeof(DWORD)*2)+sizeof(WORD)+(count*sizeof(BYTE))));
+          }
+          break;
+        }
+        case AFB::kFmt:
+        {
+
+          auto remb = report->remb();
+          if (NULL == remb) {
+            auto afb = report->afb();
+
+            size_t size = afb->dataSize();
+            if (0 != size) {
+              memcpy(pos, afb->data(), size*sizeof(BYTE));
+              advancePos(pos, remaining, boundarySize(size*sizeof(BYTE)));
+            }
+          } else {
+            memcpy(pos, "REMB", sizeof(DWORD));
+
+            DWORD merged = RTCP_PACK_BITS(static_cast<DWORD>(remb->brExp()), 0x3F, 18) |
+                           RTCP_PACK_BITS(static_cast<DWORD>(remb->brMantissa()), 0x3FFFF, 0);
+            UseHelper::setBE32(&(pos[4]), merged);
+            pos[4] = remb->numSSRC();
+            advancePos(pos, remaining, sizeof(DWORD)*2);
+
+            auto count = remb->numSSRC();
+            for (size_t index = 0; index < count; ++index)
+            {
+              auto ssrc = remb->ssrcAtIndex(index);
+              UseHelper::setBE32(pos, ssrc);
+              advancePos(pos, remaining, sizeof(DWORD));
+            }
+          }
+          break;
+        }
+        default:
+        {
+          auto fciSize = report->fciSize();
+          if (0 != fciSize) {
+            memcpy(pos, report->fci(), fciSize);
+            advancePos(pos, remaining, boundarySize(fciSize));
+          }
+          break;
+        }
+      }
+    }
+
+    //-------------------------------------------------------------------------
+    static void writePacketXR(const RTCPPacket::XR *report, BYTE * &pos, size_t &remaining)
+    {
+      typedef RTCPPacket::XR XR;
+      typedef RTCPPacket::XR::ReportBlock ReportBlock;
+      typedef RTCPPacket::XR::LossRLEReportBlock LossRLEReportBlock;
+      typedef RTCPPacket::XR::DuplicateRLEReportBlock DuplicateRLEReportBlock;
+      typedef RTCPPacket::XR::PacketReceiptTimesReportBlock PacketReceiptTimesReportBlock;
+      typedef RTCPPacket::XR::ReceiverReferenceTimeReportBlock ReceiverReferenceTimeReportBlock;
+      typedef RTCPPacket::XR::DLRRReportBlock DLRRReportBlock;
+      typedef RTCPPacket::XR::StatisticsSummaryReportBlock StatisticsSummaryReportBlock;
+      typedef RTCPPacket::XR::VoIPMetricsReportBlock VoIPMetricsReportBlock;
+      typedef RTCPPacket::XR::UnknownReportBlock UnknownReportBlock;
+      typedef RTCPPacket::XR::RLEChunk RLEChunk;
+
+      pos[1] = XR::kPayloadType;
+
+      size_t length = getPacketSizeXR(report);
+      UseHelper::setBE16(&(pos[2]), (boundarySize(length) / sizeof(DWORD))-1);
+
+      advancePos(pos, remaining, sizeof(DWORD));
+
+      for (const ReportBlock *reportBlock = report->firstReportBlock(); NULL != reportBlock; reportBlock = reportBlock->next())
+      {
+        BYTE *blockStart = pos;
+
+        pos[0] = reportBlock->blockType();
+        pos[1] = reportBlock->typeSpecific();
+
+        advancePos(pos, remaining, sizeof(DWORD));
+
+        switch (reportBlock->mBlockType) {
+          case LossRLEReportBlock::kBlockType:
+          {
+            auto block = reinterpret_cast<const LossRLEReportBlock *>(reportBlock);
+
+            UseHelper::setBE32(&(pos[0]), block->ssrcOfSource());
+            UseHelper::setBE16(&(pos[4]), block->beginSeq());
+            UseHelper::setBE16(&(pos[6]), block->endSeq());
+
+            advancePos(pos, remaining, sizeof(DWORD)*2);
+
+            size_t chunkCount = block->chunkCount();
+            for (size_t index = 0; index < chunkCount; ++index)
+            {
+              RLEChunk chunk = block->chunkAtIndex(index);
+              UseHelper::setBE16(pos, chunk);
+              advancePos(pos, remaining, sizeof(WORD));
+            }
+            break;
+          }
+          case DuplicateRLEReportBlock::kBlockType:
+          {
+            auto block = reinterpret_cast<const DuplicateRLEReportBlock *>(reportBlock);
+            UseHelper::setBE32(&(pos[0]), block->ssrcOfSource());
+            UseHelper::setBE16(&(pos[4]), block->beginSeq());
+            UseHelper::setBE16(&(pos[6]), block->endSeq());
+
+            advancePos(pos, remaining, sizeof(DWORD)*2);
+
+            size_t count = block->chunkCount();
+            for (size_t index = 0; index < count; ++index)
+            {
+              RLEChunk chunk = block->chunkAtIndex(index);
+              UseHelper::setBE16(pos, chunk);
+              advancePos(pos, remaining, sizeof(WORD));
+            }
+            break;
+          }
+          case PacketReceiptTimesReportBlock::kBlockType:
+          {
+            auto block = reinterpret_cast<const PacketReceiptTimesReportBlock *>(reportBlock);
+            UseHelper::setBE32(&(pos[0]), block->ssrcOfSource());
+            UseHelper::setBE16(&(pos[4]), block->beginSeq());
+            UseHelper::setBE16(&(pos[6]), block->endSeq());
+
+            advancePos(pos, remaining, sizeof(DWORD)*2);
+
+            size_t count = block->receiptTimeCount();
+            for (size_t index = 0; index < count; ++index)
+            {
+              DWORD receiptTime = block->receiptTimeAtIndex(index);
+              UseHelper::setBE32(pos, receiptTime);
+              advancePos(pos, remaining, sizeof(DWORD));
+            }
+            break;
+          }
+          case ReceiverReferenceTimeReportBlock::kBlockType:
+          {
+            auto block = reinterpret_cast<const ReceiverReferenceTimeReportBlock *>(reportBlock);
+            UseHelper::setBE32(&(pos[0]), block->ntpTimestampMS());
+            UseHelper::setBE32(&(pos[4]), block->ntpTimestampLS());
+            advancePos(pos, remaining, sizeof(DWORD)*2);
+            break;
+          }
+          case DLRRReportBlock::kBlockType:
+          {
+            auto block = reinterpret_cast<const DLRRReportBlock *>(reportBlock);
+
+            size_t count = block->subBlockCount();
+            for (size_t index = 0; index < count; ++index)
+            {
+              DLRRReportBlock::SubBlock *subBlock = block->subBlockAtIndex(index);
+              UseHelper::setBE32(&(pos[0]), subBlock->ssrc());
+              UseHelper::setBE32(&(pos[4]), subBlock->lrr());
+              UseHelper::setBE32(&(pos[8]), subBlock->dlrr());
+              advancePos(pos, remaining, sizeof(DWORD)*3);
+            }
+            break;
+          }
+          case StatisticsSummaryReportBlock::kBlockType:
+          {
+            auto block = reinterpret_cast<const StatisticsSummaryReportBlock *>(reportBlock);
+            UseHelper::setBE32(&(pos[0]), block->ssrcOfSource());
+            UseHelper::setBE16(&(pos[4]), block->beginSeq());
+            UseHelper::setBE16(&(pos[6]), block->endSeq());
+            UseHelper::setBE32(&(pos[8]), block->lostPackets());
+            UseHelper::setBE32(&(pos[12]), block->dupPackets());
+            UseHelper::setBE32(&(pos[16]), block->minJitter());
+            UseHelper::setBE32(&(pos[20]), block->maxJitter());
+            UseHelper::setBE32(&(pos[24]), block->meanJitter());
+            UseHelper::setBE32(&(pos[28]), block->devJitter());
+            pos[32] = block->mMinTTLOrHL;
+            pos[33] = block->mMaxTTLOrHL;
+            pos[34] = block->mMeanTTLOrHL;
+            pos[35] = block->mDevTTLOrHL;
+            advancePos(pos, remaining, sizeof(DWORD)*9);
+            break;
+          }
+          case VoIPMetricsReportBlock::kBlockType:
+          {
+            auto block = reinterpret_cast<const VoIPMetricsReportBlock *>(reportBlock);
+            UseHelper::setBE32(&(pos[0]), block->ssrcOfSource());
+            pos[4] = block->lossRate();
+            pos[5] = block->discardRate();
+            pos[6] = block->burstDensity();
+            pos[7] = block->gapDensity();
+            UseHelper::setBE16(&(pos[8]), block->burstDuration());
+            UseHelper::setBE16(&(pos[10]), block->gapDuration());
+            UseHelper::setBE16(&(pos[12]), block->roundTripDelay());
+            UseHelper::setBE16(&(pos[14]), block->endSystemDelay());
+            pos[16] = block->signalLevel();
+            pos[17] = block->noiseLevel();
+            pos[18] = block->rerl();
+            pos[19] = block->Gmin();
+            pos[20] = block->rxConfig();
+            pos[21] = block->mReservedVoIP;
+            UseHelper::setBE16(&(pos[22]), block->jbNominal());
+            UseHelper::setBE16(&(pos[24]), block->jbMaximum());
+            UseHelper::setBE16(&(pos[26]), block->jbAbsMax());
+            advancePos(pos, remaining, sizeof(DWORD)*8);
+            break;
+          }
+          default:
+          {
+            auto block = reinterpret_cast<const UnknownReportBlock *>(reportBlock);
+
+            auto size = block->typeSpecificContentSize();
+            if (0 != size) {
+              memcpy(pos, block->typeSpecificContents(), size*sizeof(BYTE));
+              advancePos(pos, remaining, boundarySize(size*sizeof(BYTE)));
+            }
+          }
+        }
+
+        BYTE *blockEnd = pos;
+
+        size_t diff = static_cast<size_t>(reinterpret_cast<PTRNUMBER>(blockEnd) - reinterpret_cast<PTRNUMBER>(blockStart));
+        auto modulas = diff % sizeof(DWORD);
+        if (0 != modulas) {
+          advancePos(pos, remaining, sizeof(DWORD)-modulas);
+        }
+
+        UseHelper::setBE16(&(blockStart[2]), (boundarySize(diff)/sizeof(DWORD))-1);
+      }
+    }
+
+    //-------------------------------------------------------------------------
+    static void writePacketUnknown(const RTCPPacket::UnknownReport *report, BYTE * &pos, size_t &remaining)
+    {
+      typedef RTCPPacket::UnknownReport UnknownReport;
+      pos[1] = report->pt();
+
+      auto size = report->size();
+
+      UseHelper::setBE16(&(pos[2]), (boundarySize(size) / sizeof(DWORD))-1);
+
+      advancePos(pos, remaining, sizeof(DWORD));
+
+      if (0 == size) return;
+
+      ASSERT(NULL != report->ptr())
+
+      memcpy(pos, report->ptr(), size);
+
+      advancePos(pos, remaining, boundarySize(size));
+    }
+    
+    //-------------------------------------------------------------------------
+    void RTCPPacket::writePacket(const Report *first, BYTE * &pos, size_t &remaining)
+    {
+      ASSERT(sizeof(char) == sizeof(BYTE))
+
+      const Report *final = NULL;
+
+      for (const Report *report = first; NULL != report; report = report->next())
+      {
+        final = report;
+
+        writePacketHeader(report, pos, remaining);
+
+        switch (report->pt()) {
+          case SenderReport::kPayloadType:
+          {
+            const SenderReport *sr = static_cast<const SenderReport *>(report);
+            internal::writePacketSenderReport(sr, pos, remaining);
+            break;
+          }
+          case ReceiverReport::kPayloadType:
+          {
+            const ReceiverReport *rr = static_cast<const ReceiverReport *>(report);
+            internal::writePacketReceiverReport(rr, pos, remaining);
+            break;
+          }
+          case SDES::kPayloadType:
+          {
+            const SDES *sdes = static_cast<const SDES *>(report);
+            internal::writePacketSDES(sdes, pos, remaining);
+            break;
+          }
+          case Bye::kPayloadType:
+          {
+            const Bye *bye = static_cast<const Bye *>(report);
+            internal::writePacketBye(bye, pos, remaining);
+            break;
+          }
+          case App::kPayloadType:
+          {
+            const App *app = static_cast<const App *>(report);
+            internal::writePacketApp(app, pos, remaining);
+            break;
+          }
+          case TransportLayerFeedbackMessage::kPayloadType:
+          {
+            const TransportLayerFeedbackMessage *fm = static_cast<const TransportLayerFeedbackMessage *>(report);
+            internal::writePacketTransportLayerFeedbackMessage(fm, pos, remaining);
+            break;
+          }
+          case PayloadSpecificFeedbackMessage::kPayloadType:
+          {
+            const PayloadSpecificFeedbackMessage *fm = static_cast<const PayloadSpecificFeedbackMessage *>(report);
+            internal::writePacketPayloadSpecificFeedbackMessage(fm, pos, remaining);
+            break;
+          }
+          case XR::kPayloadType:
+          {
+            const XR *xr = static_cast<const XR *>(report);
+            internal::writePacketXR(xr, pos, remaining);
+            break;
+          }
+          default:
+          {
+            const UnknownReport *unknown = static_cast<const UnknownReport *>(report);
+            internal::writePacketUnknown(unknown, pos, remaining);
+            break;
+          }
+        }
+      }
+
+      if (NULL != final) {
+        auto padding = final->padding();
+        if (0 != padding) {
+          if (padding > 1) {
+            advancePos(pos, remaining, padding*sizeof(BYTE));
+          }
+          pos[0] = padding;
+          advancePos(pos, remaining);
+        }
+      }
+
+      ASSERT(0 == remaining)
+    }
+
   }
 
 }
