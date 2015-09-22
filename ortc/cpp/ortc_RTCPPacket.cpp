@@ -626,6 +626,13 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    BYTE RTCPPacket::XR::BitVector::bitAtIndex(size_t index) const
+    {
+      ASSERT(index < (sizeof(WORD)*8))
+      return (mBitVector >> ((sizeof(WORD)*8)-index-1)) & 0x1;
+    }
+
+    //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -1237,7 +1244,7 @@ namespace ortc
           UseServicesHelper::debugAppend(formatEl, "payload type", format->payloadType());
 
           UseServicesHelper::debugAppend(formatEl, "native rpsi bit string", (NULL != format->nativeRPSIBitString()));
-          UseServicesHelper::debugAppend(formatEl, "native rpsi bit string size", format->nativeRPSIBitStringSize());
+          UseServicesHelper::debugAppend(formatEl, "native rpsi bit string size", format->nativeRPSIBitStringSizeInBits());
 
           UseServicesHelper::debugAppend(subEl, formatEl);
         }
@@ -1873,6 +1880,14 @@ namespace ortc
 
       return true;
     }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTCPPacket (sizing routines)
+    #pragma mark
 
     //-------------------------------------------------------------------------
     bool RTCPPacket::getAllocationSize(
@@ -2651,6 +2666,14 @@ namespace ortc
       mAllocationSize += alignedSize(sizeof(XR::UnknownReportBlock));
       return true;
     }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTCPPacket (parsing routines)
+    #pragma mark
 
     //-------------------------------------------------------------------------
     bool RTCPPacket::parse(
@@ -3776,7 +3799,13 @@ namespace ortc
 
         if (remaining > 0) {
           report->mRPSI.mNativeRPSIBitString = pos;
-          report->mRPSI.mNativeRPSIBitStringSize = remaining;
+          report->mRPSI.mNativeRPSIBitStringSizeInBits = (remaining*8);
+          if (report->mRPSI.mPB > report->mRPSI.mNativeRPSIBitStringSizeInBits) goto illegal_remaining;
+
+          report->mRPSI.mNativeRPSIBitStringSizeInBits -= static_cast<size_t>(report->mRPSI.mPB);
+          if (0 == report->mRPSI.mNativeRPSIBitStringSizeInBits) {
+            report->mRPSI.mNativeRPSIBitString = NULL;
+          }
         }
 
         return true;
@@ -4286,6 +4315,14 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTCPPacket (allocation sizing routines)
+    #pragma mark
+
+    //-------------------------------------------------------------------------
     void *RTCPPacket::allocateBuffer(size_t size)
     {
       return internal::allocateBuffer(mAllocationPos, mAllocationSize, size);
@@ -4526,7 +4563,8 @@ namespace ortc
         {
           auto rpsi = fm->rpsi();
           ORTC_THROW_INVALID_PARAMETERS_IF(NULL == rpsi)
-          result += sizeof(WORD) + rpsi->nativeRPSIBitStringSize();
+          result += sizeof(WORD) + (rpsi->nativeRPSIBitStringSizeInBits()/8);
+          if (0 != (rpsi->nativeRPSIBitStringSizeInBits()%8)) ++result;
           break;
         }
         case FIR::kFmt:
@@ -4746,6 +4784,14 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTCPPacket (packet writing routines)
+    #pragma mark
+
+    //-------------------------------------------------------------------------
     static void writePacketHeader(const RTCPPacket::Report *report, BYTE * &pos, size_t &remaining)
     {
       ASSERT(remaining > sizeof(DWORD))
@@ -4803,9 +4849,6 @@ namespace ortc
       typedef RTCPPacket::SenderReport SenderReport;
       pos[1] = SenderReport::kPayloadType;
 
-      size_t length = getPacketSizeSenderReport(report);
-
-      UseHelper::setBE16(&(pos[2]), (boundarySize(length) / sizeof(DWORD))-1);
       UseHelper::setBE32(&(pos[4]), report->ssrcOfSender());
       UseHelper::setBE32(&(pos[8]), report->ntpTimestampMS());
       UseHelper::setBE32(&(pos[12]), report->ntpTimestampLS());
@@ -4824,9 +4867,6 @@ namespace ortc
       typedef RTCPPacket::ReceiverReport ReceiverReport;
       pos[1] = ReceiverReport::kPayloadType;
 
-      size_t length = getPacketSizeReceiverReport(report);
-
-      UseHelper::setBE16(&(pos[2]), (boundarySize(length) / sizeof(DWORD))-1);
       UseHelper::setBE32(&(pos[4]), report->ssrcOfPacketSender());
 
       advancePos(pos, remaining, sizeof(DWORD)*2);
@@ -4842,9 +4882,6 @@ namespace ortc
 
       pos[1] = SDES::kPayloadType;
 
-      size_t length = getPacketSizeSDES(report);
-
-      UseHelper::setBE16(&(pos[2]), (boundarySize(length) / sizeof(DWORD))-1);
       advancePos(pos, remaining, sizeof(DWORD));
 
       size_t chunkCount = 0;
@@ -5035,10 +5072,6 @@ namespace ortc
       typedef RTCPPacket::Bye Bye;
       pos[1] = Bye::kPayloadType;
 
-      size_t length = getPacketSizeBye(report);
-
-      UseHelper::setBE16(&(pos[2]), (boundarySize(length) / sizeof(DWORD))-1);
-
       advancePos(pos, remaining, sizeof(DWORD));
 
       for (size_t index = 0; index < report->sc(); ++index)
@@ -5051,8 +5084,8 @@ namespace ortc
         size_t len = strlen(report->reasonForLeaving());
         if (len > 0) {
           pos[0] = len;
-          memcpy(&(pos[1]), report->reasonForLeaving(), len);
-          advancePos(pos, remaining, boundarySize(sizeof(BYTE)+(sizeof(BYTE)*len)));
+          memcpy(&(pos[1]), report->reasonForLeaving(), len*sizeof(BYTE));
+          advancePos(pos, remaining, (len*sizeof(BYTE))+sizeof(BYTE));
         }
       }
     }
@@ -5063,9 +5096,6 @@ namespace ortc
       typedef RTCPPacket::App App;
       pos[1] = App::kPayloadType;
 
-      size_t length = getPacketSizeApp(report);
-
-      UseHelper::setBE16(&(pos[2]), (boundarySize(length) / sizeof(DWORD))-1);
       UseHelper::setBE32(&(pos[4]), report->ssrc());
       memcpy(&(pos[8]), report->name(), sizeof(DWORD));
 
@@ -5074,7 +5104,7 @@ namespace ortc
       size_t dataSize = report->dataSize();
       if (0 != dataSize) {
         memcpy(pos, report->data(), dataSize);
-        advancePos(pos, remaining, boundarySize(dataSize));
+        advancePos(pos, remaining, dataSize);
       }
     }
 
@@ -5088,9 +5118,6 @@ namespace ortc
 
       pos[1] = TransportLayerFeedbackMessage::kPayloadType;
 
-      size_t length = getPacketSizeTransportLayerFeedbackMessage(report);
-
-      UseHelper::setBE16(&(pos[2]), (boundarySize(length) / sizeof(DWORD))-1);
       UseHelper::setBE32(&(pos[4]), report->ssrcOfPacketSender());
       UseHelper::setBE32(&(pos[8]), report->ssrcOfMediaSource());
 
@@ -5153,7 +5180,7 @@ namespace ortc
           auto fciSize = report->fciSize();
           if (0 != fciSize) {
             memcpy(pos, report->fci(), report->fciSize());
-            advancePos(pos, remaining, boundarySize(report->fciSize()));
+            advancePos(pos, remaining, report->fciSize());
           }
           break;
         }
@@ -5176,9 +5203,6 @@ namespace ortc
 
       pos[1] = PayloadSpecificFeedbackMessage::kPayloadType;
 
-      size_t length = getPacketSizePayloadSpecificFeedbackMessage(report);
-
-      UseHelper::setBE16(&(pos[2]), (boundarySize(length) / sizeof(DWORD))-1);
       UseHelper::setBE32(&(pos[4]), report->ssrcOfPacketSender());
       UseHelper::setBE32(&(pos[8]), report->ssrcOfMediaSource());
 
@@ -5214,12 +5238,20 @@ namespace ortc
           pos[1] = RTCP_PACK_BITS(static_cast<BYTE>(rpsi->zeroBit()), 0x1, 7) |
                    RTCP_PACK_BITS(static_cast<BYTE>(rpsi->payloadType()), 0x7F, 0);
 
-          auto size = rpsi->nativeRPSIBitStringSize();
+          auto size = rpsi->nativeRPSIBitStringSizeInBits();
+          auto modulas = static_cast<BYTE>(size%8);
+          size = size/8;
+          if (0 != modulas) ++size;
           if (0 != size) {
             memcpy(&(pos[2]), rpsi->nativeRPSIBitString(), size);
+            if (0 != modulas) {
+              // fill the extra bits at the end of the bit stream with 0s
+              BYTE &by = (pos[2+size-1]);
+              by = by & ((1 << (8-modulas))-1);
+            }
           }
 
-          advancePos(pos, remaining, boundarySize(sizeof(WORD)+(sizeof(BYTE)*size)));
+          advancePos(pos, remaining, sizeof(WORD)+(sizeof(BYTE)*size));
           break;
         }
         case FIR::kFmt:
@@ -5289,7 +5321,7 @@ namespace ortc
               memcpy(&(pos[2]), item->vbcmOctetString(), size*sizeof(BYTE));
             }
 
-            advancePos(pos, remaining, boundarySize((sizeof(DWORD)*2)+sizeof(WORD)+(count*sizeof(BYTE))));
+            advancePos(pos, remaining, boundarySize((sizeof(DWORD)*2)+sizeof(WORD)+(size*sizeof(BYTE))));
           }
           break;
         }
@@ -5329,7 +5361,7 @@ namespace ortc
           auto fciSize = report->fciSize();
           if (0 != fciSize) {
             memcpy(pos, report->fci(), fciSize);
-            advancePos(pos, remaining, boundarySize(fciSize));
+            advancePos(pos, remaining, fciSize);
           }
           break;
         }
@@ -5352,9 +5384,6 @@ namespace ortc
       typedef RTCPPacket::XR::RLEChunk RLEChunk;
 
       pos[1] = XR::kPayloadType;
-
-      size_t length = getPacketSizeXR(report);
-      UseHelper::setBE16(&(pos[2]), (boundarySize(length) / sizeof(DWORD))-1);
 
       advancePos(pos, remaining, sizeof(DWORD));
 
@@ -5519,31 +5548,31 @@ namespace ortc
       typedef RTCPPacket::UnknownReport UnknownReport;
       pos[1] = report->pt();
 
-      auto size = report->size();
-
-      UseHelper::setBE16(&(pos[2]), (boundarySize(size) / sizeof(DWORD))-1);
-
       advancePos(pos, remaining, sizeof(DWORD));
 
+      auto size = report->size();
       if (0 == size) return;
 
       ASSERT(NULL != report->ptr())
 
       memcpy(pos, report->ptr(), size);
 
-      advancePos(pos, remaining, boundarySize(size));
+      advancePos(pos, remaining, size);
     }
-    
+
     //-------------------------------------------------------------------------
     void RTCPPacket::writePacket(const Report *first, BYTE * &pos, size_t &remaining)
     {
       ASSERT(sizeof(char) == sizeof(BYTE))
+      ASSERT(NULL != first)
 
       const Report *final = NULL;
 
       for (const Report *report = first; NULL != report; report = report->next())
       {
         final = report;
+
+        BYTE *startOfReport = pos;
 
         writePacketHeader(report, pos, remaining);
 
@@ -5603,6 +5632,17 @@ namespace ortc
             break;
           }
         }
+
+        BYTE *endOfReport = pos;
+        size_t diff = static_cast<size_t>(reinterpret_cast<PTRNUMBER>(endOfReport) - reinterpret_cast<PTRNUMBER>(startOfReport));
+
+        size_t modulas = diff % sizeof(DWORD);
+        if (0 != modulas) {
+          advancePos(pos, remaining, sizeof(DWORD)-modulas);
+          diff += (sizeof(DWORD)-modulas);
+        }
+
+        UseHelper::setBE16(&(pos[2]), (diff/sizeof(DWORD))-1);
       }
 
       if (NULL != final) {

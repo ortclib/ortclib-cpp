@@ -721,12 +721,12 @@ namespace ortc
 
           static const BYTE kFmt {3};
 
-          BYTE pb() const                           {return mPB;}
-          BYTE zeroBit() const                      {return mZeroBit;}
-          BYTE payloadType() const                  {return mPayloadType;}
+          BYTE pb() const                               {return mPB;}
+          BYTE zeroBit() const                          {return mZeroBit;}
+          BYTE payloadType() const                      {return mPayloadType;}
 
-          const BYTE *nativeRPSIBitString() const   {return mNativeRPSIBitString;}
-          size_t nativeRPSIBitStringSize() const    {return mNativeRPSIBitStringSize;}
+          const BYTE *nativeRPSIBitString() const       {return mNativeRPSIBitString;}
+          size_t nativeRPSIBitStringSizeInBits() const  {return mNativeRPSIBitStringSizeInBits;}
 
         public:
           BYTE mPB {};
@@ -734,7 +734,7 @@ namespace ortc
           BYTE mPayloadType {};
 
           const BYTE *mNativeRPSIBitString {};
-          size_t mNativeRPSIBitStringSize {};
+          size_t mNativeRPSIBitStringSizeInBits {};
         };
 
         //---------------------------------------------------------------------
@@ -920,6 +920,7 @@ namespace ortc
 
       struct XR : public Report
       {
+        // https://tools.ietf.org/html/rfc3611#section-2
         // https://tools.ietf.org/html/rfc3611#section-3
 
         typedef WORD RLEChunk;
@@ -1121,13 +1122,13 @@ namespace ortc
           bool ttlFlag() const;
           bool hopLimitFlag() const;
 
-          BYTE lostPackets() const              {return mLostPackets;}
-          BYTE dupPackets() const               {return mDupPackets;}
+          DWORD lostPackets() const             {return mLostPackets;}
+          DWORD dupPackets() const              {return mDupPackets;}
 
-          BYTE minJitter() const                {return mMinJitter;}
-          BYTE maxJitter() const                {return mMaxJitter;}
-          BYTE meanJitter() const               {return mMeanJitter;}
-          BYTE devJitter() const                {return mDevJitter;}
+          DWORD minJitter() const               {return mMinJitter;}
+          DWORD maxJitter() const               {return mMaxJitter;}
+          DWORD meanJitter() const              {return mMeanJitter;}
+          DWORD devJitter() const               {return mDevJitter;}
 
           BYTE minTTL() const                   {return mMinTTLOrHL;}
           BYTE maxTTL() const                   {return mMaxTTLOrHL;}
