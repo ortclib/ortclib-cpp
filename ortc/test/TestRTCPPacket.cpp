@@ -94,6 +94,17 @@ namespace ortc
         }
       };
 
+      //-------------------------------------------------------------------------
+      static size_t boundarySize(
+                                 size_t size,
+                                 size_t alignment = sizeof(DWORD)
+                                 )
+      {
+        size_t modulus = size % alignment;
+        if (0 == modulus) return size;
+        return size + (alignment - modulus);
+      }
+      
       //-----------------------------------------------------------------------
       static size_t random(size_t min, size_t max)
       {
@@ -107,7 +118,7 @@ namespace ortc
           for (size_t index = 0; index < sizeof(result); ++index) {
             *pos = static_cast<BYTE>(rand()%0xFF);
           }
-          size_t range = max - min;
+          size_t range = (max - min)+1;
 
           result = min + (result % range);
           return result;
@@ -129,7 +140,7 @@ namespace ortc
       {
         if (maxSize < minSize) maxSize = minSize;
         if (minSize > maxSize) minSize = maxSize;
-        return UseServicesHelper::random(minSize, maxSize);
+        return random(minSize, maxSize);
       }
 
       //-----------------------------------------------------------------------
@@ -1951,7 +1962,15 @@ namespace ortc
         //---------------------------------------------------------------------
         static void compareUnknownReport(UnknownReport *report1, UnknownReport *report2)
         {
-          checkEqual(report1->ptr(), report1->size(), report2->ptr(), report2->size());
+          auto size1 = report1->size();
+          auto size2 = report2->size();
+          if (size1 != size2) {
+            if (boundarySize(size1) == boundarySize(size2)) {
+              if (size2 < size1) size1 = size2;
+              if (size1 < size2) size2 = size1;
+            }
+          }
+          checkEqual(report1->ptr(), size1, report2->ptr(), size2);
         }
 
         //---------------------------------------------------------------------
@@ -2085,7 +2104,6 @@ namespace ortc
               for (auto item = block->mFirstUnknown; NULL != item; item = item->next(), --itemCount, --itemTotal) {
               }
               TESTING_EQUAL(itemCount, 0)
-
 
               TESTING_EQUAL(itemTotal, 0)
             }
@@ -2339,7 +2357,7 @@ namespace ortc
               if (shouldPerform(20)) {
                 chunk->mEmailCount = randomSize(1, shouldPerform(80) ? 1 : randomSize(2, 5));
                 chunk->mFirstEmail = new Chunk::Email[chunk->mEmailCount];
-                fillSenderReceiverStringItem(Chunk::Email::kItemType, chunk->mFirstName, chunk->mEmailCount, totalItems);
+                fillSenderReceiverStringItem(Chunk::Email::kItemType, chunk->mFirstEmail, chunk->mEmailCount, totalItems);
               }
               if (shouldPerform(20)) {
                 chunk->mPhoneCount = randomSize(1, shouldPerform(80) ? 1 : randomSize(2, 5));
@@ -2442,16 +2460,17 @@ namespace ortc
           result->mSSRCOfMediaSource = randomDWORD();
 
           switch (randomSize(3)) {
-            case 0: result->mReportSpecific = TransportLayerFeedbackMessage::GenericNACK::kFmt; break;
-            case 1: result->mReportSpecific = TransportLayerFeedbackMessage::TMMBR::kFmt; break;
-            case 2: result->mReportSpecific = TransportLayerFeedbackMessage::TMMBN::kFmt; break;
+            case 0: result->mReportSpecific = GenericNACK::kFmt; break;
+            case 1: result->mReportSpecific = TMMBR::kFmt; break;
+            case 2: result->mReportSpecific = TMMBN::kFmt; break;
             case 3: {
-              result->mReportSpecific = randomSize(TransportLayerFeedbackMessage::TMMBN::kFmt, 15);
+              result->mReportSpecific = randomSize(TMMBN::kFmt+1, 0x1F);
               break;
             }
             default:
             {
               TESTING_CHECK(false)
+              break;
             }
           }
 
@@ -2535,7 +2554,7 @@ namespace ortc
               break;
             }
             case 9: {
-              result->mReportSpecific = randomSize(TransportLayerFeedbackMessage::TMMBN::kFmt, 15);
+              result->mReportSpecific = randomSize(AFB::kFmt+1, 0x1F);
               break;
             }
             default:
@@ -3097,6 +3116,7 @@ namespace ortc
             if (NULL != lastReport) {
               lastReport->mNext = current;
             }
+            lastReport = current;
           }
 
           mGeneratedFirst = first;
@@ -3113,9 +3133,9 @@ namespace ortc
         //---------------------------------------------------------------------
         void generatePacket()
         {
-          if (NULL == mGeneratedFirst) randomReports();
-          TESTING_CHECK(NULL != mGeneratedFirst)
-          mPacket = RTCPPacket::create(mGeneratedFirst);
+          if (!mGeneratedBuffer) generateBuffer();
+          TESTING_CHECK(mGeneratedBuffer)
+          mPacket = RTCPPacket::create(*mGeneratedBuffer, mGeneratedBuffer->SizeInBytes());
         }
 
         //---------------------------------------------------------------------
@@ -3158,7 +3178,7 @@ namespace ortc
         AutoPUID mID;
         TesterWeakPtr mThisWeak;
 
-        Report *mGeneratedFirst;
+        Report *mGeneratedFirst {};
         SecureByteBlockPtr mGeneratedBuffer;
         RTCPPacketPtr mPacket;
       };

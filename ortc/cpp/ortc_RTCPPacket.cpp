@@ -110,7 +110,7 @@ namespace ortc
       void *result = ioAllocationBuffer;
 
       ioAllocationBuffer += size;
-      ASSERT(ioRemaining > size)
+      ASSERT(ioRemaining >= size)
       ioRemaining -= size;
 
       return result;
@@ -703,7 +703,8 @@ namespace ortc
       SecureByteBlockPtr temp(make_shared<SecureByteBlock>(allocationSize));
 
       BYTE *buffer = temp->BytePtr();
-      writePacket(first, buffer, allocationSize);
+      BYTE *pos = buffer;
+      writePacket(first, pos, allocationSize);
 
       return create(temp);
     }
@@ -1878,6 +1879,8 @@ namespace ortc
         }
       }
 
+      ZS_LOG_INSANE(debug("parsed"))
+
       return true;
     }
 
@@ -2026,13 +2029,14 @@ namespace ortc
               {
                 mAllocationSize += alignedSize(sizeof(SDES::Chunk::Priv));
 
-                if (length < sizeof(BYTE)) goto illegal_priv_prefix;
-                size_t prefixLength = static_cast<size_t>(*pos);
+                if (length > 0) {
+                  size_t prefixLength = static_cast<size_t>(*pos);
 
-                if (prefixLength >= length) goto illegal_priv_prefix;
+                  if (prefixLength > (length-1)) goto illegal_priv_prefix;
 
-                if (0 != prefixLength) {
-                  mAllocationSize += alignedSize(sizeof(char)*(prefixLength+1));
+                  if (0 != prefixLength) {
+                    mAllocationSize += alignedSize(sizeof(char)*(prefixLength+1));
+                  }
                 }
                 break;
               }
@@ -2686,8 +2690,6 @@ namespace ortc
                            size_t contentSize
                            )
     {
-      bool result = false;
-
       Report *usingReport = NULL;
 
       switch (pt) {
@@ -2756,12 +2758,12 @@ namespace ortc
         }
       }
 
-      if (ioLastReport) {
+      if (NULL != ioLastReport) {
         ioLastReport->mNext = usingReport;
       }
 
       ioLastReport = usingReport;
-      return result;
+      return true;
     }
 
     //-------------------------------------------------------------------------
@@ -2855,8 +2857,7 @@ namespace ortc
     bool RTCPPacket::parse(SenderReport *report)
     {
       if (0 != mSenderReportCount) {
-        auto temp = &(mFirstSenderReport[mSenderReportCount-1]);;
-        temp->mNextSenderReport = report;
+        (&(mFirstSenderReport[mSenderReportCount-1]))->mNextSenderReport = report;
       }
       ++mSenderReportCount;
 
@@ -2877,8 +2878,7 @@ namespace ortc
     bool RTCPPacket::parse(ReceiverReport *report)
     {
       if (0 != mReceiverReportCount) {
-        auto temp = &(mFirstReceiverReport[mReceiverReportCount-1]);;
-        temp->mNextReceiverReport = report;
+        (&(mFirstReceiverReport[mReceiverReportCount-1]))->mNextReceiverReport = report;
       }
       ++mReceiverReportCount;
 
@@ -2891,8 +2891,7 @@ namespace ortc
     bool RTCPPacket::parse(SDES *report)
     {
       if (0 != mSDESCount) {
-        auto temp = &(mFirstSDES[mSDESCount-1]);;
-        temp->mNextSDES = report;
+        (&(mFirstSDES[mSDESCount-1]))->mNextSDES = report;
       }
       ++mSDESCount;
 
@@ -2902,6 +2901,8 @@ namespace ortc
 
       const BYTE *pos = report->ptr();
       size_t remaining = report->size();
+
+      report->mFirstChunk = new (allocateBuffer(alignedSize(sizeof(SDES::Chunk))*(report->sc()))) SDES::Chunk[report->sc()];
 
       while ((remaining > sizeof(DWORD)) &&
              ((chunkCount < report->sc())))
@@ -3039,7 +3040,7 @@ namespace ortc
             case SDES::Chunk::CName::kItemType: {
               item = &(chunk->mFirstCName[chunk->mCNameCount]);
               if (0 != chunk->mCNameCount) {
-                item->mNext = &(chunk->mFirstCName[chunk->mCNameCount-1]);
+                (&(chunk->mFirstCName[chunk->mCNameCount-1]))->mNext = item;
               }
               ++(chunk->mCNameCount);
               break;
@@ -3047,7 +3048,7 @@ namespace ortc
             case SDES::Chunk::Name::kItemType:  {
               item = &(chunk->mFirstName[chunk->mNameCount]);
               if (0 != chunk->mNameCount) {
-                item->mNext = &(chunk->mFirstName[chunk->mNameCount-1]);
+                (&(chunk->mFirstName[chunk->mNameCount-1]))->mNext = item;
               }
               ++(chunk->mNameCount);
               break;
@@ -3055,7 +3056,7 @@ namespace ortc
             case SDES::Chunk::Email::kItemType: {
               item = &(chunk->mFirstEmail[chunk->mEmailCount]);
               if (0 != chunk->mEmailCount) {
-                item->mNext = &(chunk->mFirstEmail[chunk->mEmailCount-1]);
+                (&(chunk->mFirstEmail[chunk->mEmailCount-1]))->mNext = item;
               }
               ++(chunk->mEmailCount);
               break;
@@ -3063,7 +3064,7 @@ namespace ortc
             case SDES::Chunk::Phone::kItemType: {
               item = &(chunk->mFirstPhone[chunk->mPhoneCount]);
               if (0 != chunk->mPhoneCount) {
-                item->mNext = &(chunk->mFirstPhone[chunk->mPhoneCount-1]);
+                (&(chunk->mFirstPhone[chunk->mPhoneCount-1]))->mNext = item;
               }
               ++(chunk->mPhoneCount);
               break;
@@ -3071,7 +3072,7 @@ namespace ortc
             case SDES::Chunk::Loc::kItemType:   {
               item = &(chunk->mFirstLoc[chunk->mLocCount]);
               if (0 != chunk->mLocCount) {
-                item->mNext = &(chunk->mFirstLoc[chunk->mLocCount-1]);
+                (&(chunk->mFirstLoc[chunk->mLocCount-1]))->mNext = item;
               }
               ++(chunk->mLocCount);
               break;
@@ -3079,7 +3080,7 @@ namespace ortc
             case SDES::Chunk::Tool::kItemType:  {
               item = &(chunk->mFirstTool[chunk->mToolCount]);
               if (0 != chunk->mToolCount) {
-                item->mNext = &(chunk->mFirstTool[chunk->mToolCount-1]);
+                (&(chunk->mFirstTool[chunk->mToolCount-1]))->mNext = item;
               }
               ++(chunk->mToolCount);
               break;
@@ -3087,7 +3088,7 @@ namespace ortc
             case SDES::Chunk::Note::kItemType:  {
               item = &(chunk->mFirstNote[chunk->mNoteCount]);
               if (0 != chunk->mNoteCount) {
-                item->mNext = &(chunk->mFirstNote[chunk->mNoteCount-1]);
+                (&(chunk->mFirstNote[chunk->mNoteCount-1]))->mNext = item;
               }
               ++(chunk->mNoteCount);
               break;
@@ -3095,14 +3096,14 @@ namespace ortc
             case SDES::Chunk::Priv::kItemType:  {
               SDES::Chunk::Priv *priv = &(chunk->mFirstPriv[chunk->mPrivCount]);
               if (0 != chunk->mPrivCount) {
-                priv->mNext = &(chunk->mFirstPriv[chunk->mPrivCount-1]);
+                (&(chunk->mFirstPriv[chunk->mPrivCount-1]))->mNext = item;
               }
 
               if (length > 0) {
                 size_t privLength = static_cast<size_t>(*pos);
+                advancePos(pos, remaining);
+                --length;
                 if (0 != privLength) {
-                  advancePos(pos, remaining);
-
                   priv->mPrefix = new (allocateBuffer(sizeof(char)*(privLength+1))) char [privLength+1];
                   memcpy(const_cast<char *>(priv->mValue), pos, privLength);
 
@@ -3121,7 +3122,7 @@ namespace ortc
             case SDES::Chunk::Mid::kItemType:  {
               item = &(chunk->mFirstMid[chunk->mMidCount]);
               if (0 != chunk->mMidCount) {
-                item->mNext = &(chunk->mFirstMid[chunk->mMidCount-1]);
+                (&(chunk->mFirstMid[chunk->mMidCount-1]))->mNext = item;
               }
               ++(chunk->mMidCount);
               break;
@@ -3130,7 +3131,7 @@ namespace ortc
             {
               item = &(chunk->mFirstUnknown[chunk->mUnknownCount]);
               if (0 != chunk->mUnknownCount) {
-                item->mNext = &(chunk->mFirstUnknown[chunk->mUnknownCount-1]);
+                (&(chunk->mFirstUnknown[chunk->mUnknownCount-1]))->mNext = item;
               }
               ++(chunk->mUnknownCount);
               ZS_LOG_WARNING(Insane, log("SDES item type is not understood") + ZS_PARAM("type", type))
@@ -3145,6 +3146,8 @@ namespace ortc
               memcpy(const_cast<char *>(item->mValue), pos, length);
             }
           }
+
+          ++(chunk->mCount);
 
           advancePos(pos, remaining, length);
         }
@@ -3163,8 +3166,7 @@ namespace ortc
     bool RTCPPacket::parse(Bye *report)
     {
       if (0 != mByeCount) {
-        auto temp = &(mFirstBye[mByeCount-1]);;
-        temp->mNextBye = report;
+        (&(mFirstBye[mByeCount-1]))->mNextBye = report;
       }
       ++mByeCount;
 
@@ -3212,15 +3214,14 @@ namespace ortc
       {
         ZS_LOG_WARNING(Trace, debug("malformed BYE") + ZS_PARAM("pos", reinterpret_cast<PTRNUMBER>(pos) - reinterpret_cast<PTRNUMBER>(report->ptr()))  + ZS_PARAM("remaining", remaining))
       }
-      return true;
+      return false;
     }
 
     //-------------------------------------------------------------------------
     bool RTCPPacket::parse(App *report)
     {
       if (0 != mAppCount) {
-        auto temp = &(mFirstApp[mAppCount-1]);;
-        temp->mNextApp = report;
+        (&(mFirstApp[mAppCount-1]))->mNextApp = report;
       }
       ++mAppCount;
 
@@ -3252,15 +3253,14 @@ namespace ortc
       {
         ZS_LOG_WARNING(Trace, debug("malformed APP") + ZS_PARAM("pos", reinterpret_cast<PTRNUMBER>(pos) - reinterpret_cast<PTRNUMBER>(report->ptr()))  + ZS_PARAM("remaining", remaining))
       }
-      return true;
+      return false;
     }
     
     //-------------------------------------------------------------------------
     bool RTCPPacket::parse(TransportLayerFeedbackMessage *report)
     {
       if (0 != mTransportLayerFeedbackMessageCount) {
-        auto temp = &(mFirstTransportLayerFeedbackMessage[mTransportLayerFeedbackMessageCount-1]);;
-        temp->mNextTransportLayerFeedbackMessage = report;
+        (&(mFirstTransportLayerFeedbackMessage[mTransportLayerFeedbackMessageCount-1]))->mNextTransportLayerFeedbackMessage = report;
       }
       ++mTransportLayerFeedbackMessageCount;
 
@@ -3291,15 +3291,14 @@ namespace ortc
       {
         ZS_LOG_WARNING(Trace, debug("malformed transport layer feedback message") + ZS_PARAM("pos", reinterpret_cast<PTRNUMBER>(pos) - reinterpret_cast<PTRNUMBER>(report->ptr()))  + ZS_PARAM("remaining", remaining))
       }
-      return true;
+      return false;
     }
     
     //-------------------------------------------------------------------------
     bool RTCPPacket::parse(PayloadSpecificFeedbackMessage *report)
     {
       if (0 != mPayloadSpecificFeedbackMessageCount) {
-        auto temp = &(mFirstPayloadSpecificFeedbackMessage[mPayloadSpecificFeedbackMessageCount-1]);;
-        temp->mNextPayloadSpecificFeedbackMessage = report;
+        (&(mFirstPayloadSpecificFeedbackMessage[mPayloadSpecificFeedbackMessageCount-1]))->mNextPayloadSpecificFeedbackMessage = report;
       }
       ++mPayloadSpecificFeedbackMessageCount;
 
@@ -3349,15 +3348,14 @@ namespace ortc
       {
         ZS_LOG_WARNING(Trace, debug("malformed payload specific feedback message") + ZS_PARAM("pos", reinterpret_cast<PTRNUMBER>(pos) - reinterpret_cast<PTRNUMBER>(report->ptr()))  + ZS_PARAM("remaining", remaining))
       }
-      return true;
+      return false;
     }
     
     //-------------------------------------------------------------------------
     bool RTCPPacket::parse(XR *report)
     {
       if (0 != mXRCount) {
-        auto temp = &(mFirstXR[mXRCount-1]);;
-        temp->mNextXR = report;
+        (&(mFirstXR[mXRCount-1]))->mNextXR = report;
       }
       ++mXRCount;
 
@@ -3463,8 +3461,7 @@ namespace ortc
             case XR::LossRLEReportBlock::kBlockType:                {
               auto reportBlock = &(report->mFirstLossRLEReportBlock[report->mLossRLEReportBlockCount]);
               if (0 != report->mLossRLEReportBlockCount) {
-                auto temp = &(report->mFirstLossRLEReportBlock[report->mLossRLEReportBlockCount-1]);
-                temp->mNextLossRLE = reportBlock;
+                (&(report->mFirstLossRLEReportBlock[report->mLossRLEReportBlockCount-1]))->mNextLossRLE = reportBlock;
               }
               ++(report->mLossRLEReportBlockCount);
               fill(report, reportBlock, previousReportBlock, bt, typeSpecific, pos, blockLength);
@@ -3474,8 +3471,7 @@ namespace ortc
             case XR::DuplicateRLEReportBlock::kBlockType:           {
               auto reportBlock = &(report->mFirstDuplicateRLEReportBlock[report->mDuplicateRLEReportBlockCount]);
               if (0 != report->mDuplicateRLEReportBlockCount) {
-                auto temp = &(report->mFirstDuplicateRLEReportBlock[report->mDuplicateRLEReportBlockCount-1]);
-                temp->mNextDuplicateRLE = reportBlock;
+                (&(report->mFirstDuplicateRLEReportBlock[report->mDuplicateRLEReportBlockCount-1]))->mNextDuplicateRLE = reportBlock;
               }
               ++(report->mDuplicateRLEReportBlockCount);
               fill(report, reportBlock, previousReportBlock, bt, typeSpecific, pos, blockLength);
@@ -3485,8 +3481,7 @@ namespace ortc
             case XR::PacketReceiptTimesReportBlock::kBlockType:     {
               auto reportBlock = &(report->mFirstPacketReceiptTimesReportBlock[report->mPacketReceiptTimesReportBlockCount]);
               if (0 != report->mPacketReceiptTimesReportBlockCount) {
-                auto temp = &(report->mFirstPacketReceiptTimesReportBlock[report->mPacketReceiptTimesReportBlockCount-1]);
-                temp->mNextPacketReceiptTimesReportBlock = reportBlock;
+                (&(report->mFirstPacketReceiptTimesReportBlock[report->mPacketReceiptTimesReportBlockCount-1]))->mNextPacketReceiptTimesReportBlock = reportBlock;
               }
               ++(report->mPacketReceiptTimesReportBlockCount);
               fill(report, reportBlock, previousReportBlock, bt, typeSpecific, pos, blockLength);
@@ -3496,8 +3491,7 @@ namespace ortc
             case XR::ReceiverReferenceTimeReportBlock::kBlockType:  {
               auto reportBlock = &(report->mFirstReceiverReferenceTimeReportBlock[report->mReceiverReferenceTimeReportBlockCount]);
               if (0 != report->mReceiverReferenceTimeReportBlockCount) {
-                auto temp = &(report->mFirstReceiverReferenceTimeReportBlock[report->mReceiverReferenceTimeReportBlockCount-1]);
-                temp->mNextReceiverReferenceTimeReportBlock = reportBlock;
+                (&(report->mFirstReceiverReferenceTimeReportBlock[report->mReceiverReferenceTimeReportBlockCount-1]))->mNextReceiverReferenceTimeReportBlock = reportBlock;
               }
               ++(report->mReceiverReferenceTimeReportBlockCount);
               fill(report, reportBlock, previousReportBlock, bt, typeSpecific, pos, blockLength);
@@ -3507,8 +3501,7 @@ namespace ortc
             case XR::DLRRReportBlock::kBlockType:                   {
               auto reportBlock = &(report->mFirstDLRRReportBlock[report->mDLRRReportBlockCount]);
               if (0 != report->mDLRRReportBlockCount) {
-                auto temp = &(report->mFirstDLRRReportBlock[report->mDLRRReportBlockCount-1]);
-                temp->mNextDLRRReportBlock = reportBlock;
+                (&(report->mFirstDLRRReportBlock[report->mDLRRReportBlockCount-1]))->mNextDLRRReportBlock = reportBlock;
               }
               ++(report->mDLRRReportBlockCount);
               fill(report, reportBlock, previousReportBlock, bt, typeSpecific, pos, blockLength);
@@ -3518,8 +3511,7 @@ namespace ortc
             case XR::StatisticsSummaryReportBlock::kBlockType:      {
               auto reportBlock = &(report->mFirstStatisticsSummaryReportBlock[report->mStatisticsSummaryReportBlockCount]);
               if (0 != report->mStatisticsSummaryReportBlockCount) {
-                auto temp = &(report->mFirstStatisticsSummaryReportBlock[report->mStatisticsSummaryReportBlockCount-1]);
-                temp->mNextStatisticsSummaryReportBlock = reportBlock;
+                (&(report->mFirstStatisticsSummaryReportBlock[report->mStatisticsSummaryReportBlockCount-1]))->mNextStatisticsSummaryReportBlock = reportBlock;
               }
               ++(report->mStatisticsSummaryReportBlockCount);
               fill(report, reportBlock, previousReportBlock, bt, typeSpecific, pos, blockLength);
@@ -3529,8 +3521,7 @@ namespace ortc
             case XR::VoIPMetricsReportBlock::kBlockType:            {
               auto reportBlock = &(report->mFirstVoIPMetricsReportBlock[report->mVoIPMetricsReportBlockCount]);
               if (0 != report->mVoIPMetricsReportBlockCount) {
-                auto temp = &(report->mFirstVoIPMetricsReportBlock[report->mVoIPMetricsReportBlockCount-1]);
-                temp->mNextVoIPMetricsReportBlock = reportBlock;
+                (&(report->mFirstVoIPMetricsReportBlock[report->mVoIPMetricsReportBlockCount-1]))->mNextVoIPMetricsReportBlock = reportBlock;
               }
               ++(report->mVoIPMetricsReportBlockCount);
               fill(report, reportBlock, previousReportBlock, bt, typeSpecific, pos, blockLength);
@@ -3540,8 +3531,7 @@ namespace ortc
             default:                                                {
               auto reportBlock = &(report->mFirstUnknownReportBlock[report->mUnknownReportBlockCount]);
               if (0 != report->mUnknownReportBlockCount) {
-                auto temp = &(report->mFirstUnknownReportBlock[report->mUnknownReportBlockCount-1]);
-                temp->mNextUnknownReportBlock = reportBlock;
+                (&(report->mFirstUnknownReportBlock[report->mUnknownReportBlockCount-1]))->mNextUnknownReportBlock = reportBlock;
               }
               ++(report->mUnknownReportBlockCount);
               fill(report, reportBlock, previousReportBlock, bt, typeSpecific, pos, blockLength);
@@ -3561,15 +3551,14 @@ namespace ortc
       {
         ZS_LOG_WARNING(Trace, debug("malformed XR when parsing") + ZS_PARAM("pos", reinterpret_cast<PTRNUMBER>(pos) - reinterpret_cast<PTRNUMBER>(report->ptr()))  + ZS_PARAM("remaining", remaining))
       }
-      return true;
+      return false;
     }
 
     //-------------------------------------------------------------------------
     bool RTCPPacket::parse(UnknownReport *report)
     {
       if (0 != mUnknownReportCount) {
-        auto temp = &(mFirstUnknownReport[mUnknownReportCount-1]);;
-        temp->mNextUnknown = report;
+        (&(mFirstUnknownReport[mUnknownReportCount-1]))->mNextUnknown = report;
       }
       ++mUnknownReportCount;
 
@@ -4353,7 +4342,7 @@ namespace ortc
 
       size_t chunkCount = 0;
 
-      for (Chunk *chunk = report->firstChunk(); NULL != chunk; ++chunk, ++chunkCount)
+      for (Chunk *chunk = report->firstChunk(); NULL != chunk; chunk = chunk->next(), ++chunkCount)
       {
         size_t chunkSize = sizeof(DWORD);
 
@@ -4886,7 +4875,7 @@ namespace ortc
 
       size_t chunkCount = 0;
 
-      for (Chunk *chunk = report->firstChunk(); NULL != chunk; ++chunk, ++chunkCount)
+      for (Chunk *chunk = report->firstChunk(); NULL != chunk; chunk = chunk->next(), ++chunkCount)
       {
         UseHelper::setBE32(pos, chunk->ssrc());
         advancePos(pos, remaining, sizeof(DWORD));
@@ -5642,7 +5631,7 @@ namespace ortc
           diff += (sizeof(DWORD)-modulas);
         }
 
-        UseHelper::setBE16(&(pos[2]), (diff/sizeof(DWORD))-1);
+        UseHelper::setBE16(&(startOfReport[2]), (diff/sizeof(DWORD))-1);
       }
 
       if (NULL != final) {
