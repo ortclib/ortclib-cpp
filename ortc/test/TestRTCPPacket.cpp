@@ -2213,7 +2213,7 @@ namespace ortc
 
           if (shouldPerform(ORTC_RTCP_TEST_PROBABILITY_OF_SENDER_RECEIVER_REPORT_HAVING_EXTENSION)) {
             common->mExtensionSize = randomSize(1, 1000);
-            common->mExtension = new BYTE[randomSize(1, 1000)];
+            common->mExtension = new BYTE[common->mExtensionSize];
             randomizeBuffer(const_cast<BYTE *>(common->mExtension), common->mExtensionSize);
           }
 
@@ -2533,7 +2533,7 @@ namespace ortc
         static PayloadSpecificFeedbackMessage *createPayloadSpecificFeedbackMessage()
         {
           PayloadSpecificFeedbackMessage *result = new PayloadSpecificFeedbackMessage;
-          result->mPT = TransportLayerFeedbackMessage::kPayloadType;
+          result->mPT = PayloadSpecificFeedbackMessage::kPayloadType;
           fillReport(result);
 
           result->mSSRCOfPacketSender = randomDWORD();
@@ -2753,13 +2753,14 @@ namespace ortc
           result->mReportBlockCount = randomSize(1,10);
 
           unsigned int fixedSeed = 0;
-          randomizeBuffer(reinterpret_cast<BYTE *>(&fixedSeed), sizeof(fixedSeed));
-          srand(fixedSeed);
 
-          for (size_t index = 0; index < result->mReportBlockCount; ++index) {
+          BYTE *randomBuffer = new BYTE[result->mReportBlockCount+1];
+          randomizeBuffer(randomBuffer, result->mReportBlockCount);
+
+          for (size_t loop = 0; loop < result->mReportBlockCount; ++loop) {
             BYTE type = 0;
 
-            switch (rand()%8) { // using the fixed seed
+            switch (randomBuffer[loop]%8) { // using the fixed seed
               case 0: type = ++(result->mLossRLEReportBlockCount); break;
               case 1: type = ++(result->mDuplicateRLEReportBlockCount); break;
               case 2: type = ++(result->mPacketReceiptTimesReportBlockCount); break;
@@ -2778,14 +2779,47 @@ namespace ortc
             }
           }
 
-          srand(fixedSeed);
+          if (0 != result->mLossRLEReportBlockCount) {
+            result->mFirstLossRLEReportBlock = new LossRLEReportBlock[result->mLossRLEReportBlockCount];
+            result->mLossRLEReportBlockCount = 0;
+          }
+          if (0 != result->mDuplicateRLEReportBlockCount) {
+            result->mFirstDuplicateRLEReportBlock = new DuplicateRLEReportBlock[result->mDuplicateRLEReportBlockCount];
+            result->mDuplicateRLEReportBlockCount = 0;
+          }
+          if (0 != result->mPacketReceiptTimesReportBlockCount) {
+            result->mFirstPacketReceiptTimesReportBlock = new PacketReceiptTimesReportBlock[result->mPacketReceiptTimesReportBlockCount];
+            result->mPacketReceiptTimesReportBlockCount = 0;
+          }
+          if (0 != result->mReceiverReferenceTimeReportBlockCount) {
+            result->mFirstReceiverReferenceTimeReportBlock = new ReceiverReferenceTimeReportBlock[result->mReceiverReferenceTimeReportBlockCount];
+            result->mReceiverReferenceTimeReportBlockCount = 0;
+          }
+          if (0 != result->mDLRRReportBlockCount) {
+            result->mFirstDLRRReportBlock = new DLRRReportBlock[result->mDLRRReportBlockCount];
+            result->mDLRRReportBlockCount = 0;
+          }
+          if (0 != result->mStatisticsSummaryReportBlockCount) {
+            result->mFirstStatisticsSummaryReportBlock = new StatisticsSummaryReportBlock[result->mStatisticsSummaryReportBlockCount];
+            result->mStatisticsSummaryReportBlockCount = 0;
+          }
+          if (0 != result->mVoIPMetricsReportBlockCount) {
+            result->mFirstVoIPMetricsReportBlock = new VoIPMetricsReportBlock[result->mVoIPMetricsReportBlockCount];
+            result->mVoIPMetricsReportBlockCount = 0;
+          }
+          if (0 != result->mUnknownReportBlockCount) {
+            result->mFirstUnknownReportBlock = new UnknownReportBlock[result->mUnknownReportBlockCount];
+            result->mUnknownReportBlockCount = 0;
+          }
 
           ReportBlock *lastBlock = NULL;
 
-          for (size_t index = 0; index < result->mReportBlockCount; ++index) {
+          for (size_t loop = 0; loop < result->mReportBlockCount; ++loop) {
             BYTE type = 0;
 
-            switch (rand()%8) { // using the fixed seed
+            ReportBlock *useBlock = NULL;
+
+            switch (randomBuffer[loop]%8) { // using the fixed seed
               case 0: type = LossRLEReportBlock::kBlockType; break;
               case 1: type = DuplicateRLEReportBlock::kBlockType; break;
               case 2: type = PacketReceiptTimesReportBlock::kBlockType; break;
@@ -2803,227 +2837,186 @@ namespace ortc
               }
             }
 
-            ReportBlock *useBlock = NULL;
-
             switch (type) {
               case LossRLEReportBlock::kBlockType:                  {
-                size_t count = result->mLossRLEReportBlockCount;
-                if (0 != count) {
-                  result->mFirstLossRLEReportBlock = new LossRLEReportBlock[count];
+                size_t &index = result->mLossRLEReportBlockCount;
+                LossRLEReportBlock *first = result->mFirstLossRLEReportBlock;
 
-                  auto *first = result->mFirstLossRLEReportBlock;
-
-                  for (size_t index = 0; index < count; ++index) {
-                    auto current = (&(first[index]));
-                    if (0 != index) {
-                      (&(first[index-1]))->mNextLossRLE = current;
-                    }
-
-                    fillRLEReportBlock(current);
-                  }
+                auto current = (&(first[index]));
+                useBlock = current;
+                if (0 != index) {
+                  (&(first[index-1]))->mNextLossRLE = current;
                 }
+                ++(index);
+
+                fillRLEReportBlock(current);
                 break;
               }
               case DuplicateRLEReportBlock::kBlockType:             {
-                size_t count = result->mDuplicateRLEReportBlockCount;
-                if (0 != count) {
-                  result->mFirstDuplicateRLEReportBlock = new DuplicateRLEReportBlock[count];
+                size_t &index = result->mDuplicateRLEReportBlockCount;
+                DuplicateRLEReportBlock *first = result->mFirstDuplicateRLEReportBlock;
 
-                  auto *first = result->mFirstDuplicateRLEReportBlock;
-
-                  for (size_t index = 0; index < count; ++index) {
-                    auto current = (&(first[index]));
-                    if (0 != index) {
-                      (&(first[index-1]))->mNextDuplicateRLE = current;
-                    }
-
-                    fillRLEReportBlock(current);
-                  }
+                auto current = (&(first[index]));
+                useBlock = current;
+                if (0 != index) {
+                  (&(first[index-1]))->mNextDuplicateRLE = current;
                 }
+
+                fillRLEReportBlock(current);
                 break;
               }
               case PacketReceiptTimesReportBlock::kBlockType:       {
-                size_t count = result->mPacketReceiptTimesReportBlockCount;
-                if (0 != count) {
-                  result->mFirstPacketReceiptTimesReportBlock = new PacketReceiptTimesReportBlock[count];
+                size_t &index = result->mPacketReceiptTimesReportBlockCount;
+                PacketReceiptTimesReportBlock *first = result->mFirstPacketReceiptTimesReportBlock;
 
-                  auto *first = result->mFirstPacketReceiptTimesReportBlock;
+                auto current = (&(first[index]));
+                useBlock = current;
+                if (0 != index) {
+                  (&(first[index-1]))->mNextPacketReceiptTimesReportBlock = current;
+                }
 
-                  for (size_t index = 0; index < count; ++index) {
-                    auto current = (&(first[index]));
-                    if (0 != index) {
-                      (&(first[index-1]))->mNextPacketReceiptTimesReportBlock = current;
-                    }
+                fillReportBlockRange(current);
 
-                    fillReportBlockRange(current);
-
-                    if (shouldPerform(80)) {
-                      current->mReceiptTimeCount = random(1, 20);
-                      current->mReceiptTimes = new DWORD[current->mReceiptTimeCount];
-                      for (size_t innerCount = 0; innerCount < current->mReceiptTimeCount; ++innerCount) {
-                        current->mReceiptTimes[innerCount] = randomDWORD();
-                      }
-                    }
+                if (shouldPerform(80)) {
+                  current->mReceiptTimeCount = random(1, 20);
+                  current->mReceiptTimes = new DWORD[current->mReceiptTimeCount];
+                  for (size_t innerCount = 0; innerCount < current->mReceiptTimeCount; ++innerCount) {
+                    current->mReceiptTimes[innerCount] = randomDWORD();
                   }
                 }
                 break;
               }
               case ReceiverReferenceTimeReportBlock::kBlockType:    {
-                size_t count = result->mReceiverReferenceTimeReportBlockCount;
-                if (0 != count) {
-                  result->mFirstReceiverReferenceTimeReportBlock = new ReceiverReferenceTimeReportBlock[count];
+                size_t &index = result->mReceiverReferenceTimeReportBlockCount;
+                ReceiverReferenceTimeReportBlock *first = result->mFirstReceiverReferenceTimeReportBlock;
 
-                  auto *first = result->mFirstReceiverReferenceTimeReportBlock;
-
-                  for (size_t index = 0; index < count; ++index) {
-                    auto current = (&(first[index]));
-                    if (0 != index) {
-                      (&(first[index-1]))->mNextReceiverReferenceTimeReportBlock = current;
-                    }
-
-                    current->mNTPTimestampMS = randomDWORD();
-                    current->mNTPTimestampLS = randomDWORD();
-                  }
+                auto current = (&(first[index]));
+                useBlock = current;
+                if (0 != index) {
+                  (&(first[index-1]))->mNextReceiverReferenceTimeReportBlock = current;
                 }
+
+                current->mNTPTimestampMS = randomDWORD();
+                current->mNTPTimestampLS = randomDWORD();
                 break;
               }
               case DLRRReportBlock::kBlockType:                     {
-                size_t count = result->mDLRRReportBlockCount;
-                if (0 != count) {
-                  result->mFirstDLRRReportBlock = new DLRRReportBlock[count];
+                size_t &index = result->mDLRRReportBlockCount;
+                DLRRReportBlock *first = result->mFirstDLRRReportBlock;
 
-                  auto *first = result->mFirstDLRRReportBlock;
+                auto current = (&(first[index]));
+                useBlock = current;
+                if (0 != index) {
+                  (&(first[index-1]))->mNextDLRRReportBlock = current;
+                }
 
-                  for (size_t index = 0; index < count; ++index) {
-                    auto current = (&(first[index]));
-                    if (0 != index) {
-                      (&(first[index-1]))->mNextDLRRReportBlock = current;
-                    }
-
-                    if (shouldPerform(90)) {
-                      current->mSubBlockCount = random(1, 20);
-                      current->mSubBlocks = new DLRRReportBlock::SubBlock[current->mSubBlockCount];
-                      for (size_t innerCount = 0; innerCount < current->mSubBlockCount; ++innerCount) {
-                        auto sub = (&(current->mSubBlocks[innerCount]));
-                        sub->mSSRC = randomDWORD();
-                        sub->mLRR = randomDWORD();
-                        sub->mDLRR = randomDWORD();
-                      }
-                    }
+                if (shouldPerform(90)) {
+                  current->mSubBlockCount = random(1, 20);
+                  current->mSubBlocks = new DLRRReportBlock::SubBlock[current->mSubBlockCount];
+                  for (size_t innerCount = 0; innerCount < current->mSubBlockCount; ++innerCount) {
+                    auto sub = (&(current->mSubBlocks[innerCount]));
+                    sub->mSSRC = randomDWORD();
+                    sub->mLRR = randomDWORD();
+                    sub->mDLRR = randomDWORD();
                   }
                 }
                 break;
               }
               case StatisticsSummaryReportBlock::kBlockType:      {
-                size_t count = result->mStatisticsSummaryReportBlockCount;
-                if (0 != count) {
-                  result->mFirstStatisticsSummaryReportBlock = new StatisticsSummaryReportBlock[count];
+                size_t &index = result->mStatisticsSummaryReportBlockCount;
+                StatisticsSummaryReportBlock *first = result->mFirstStatisticsSummaryReportBlock;
 
-                  auto *first = result->mFirstStatisticsSummaryReportBlock;
+                auto current = (&(first[index]));
+                useBlock = current;
+                if (0 != index) {
+                  (&(first[index-1]))->mNextStatisticsSummaryReportBlock = current;
+                }
 
-                  for (size_t index = 0; index < count; ++index) {
-                    auto current = (&(first[index]));
-                    if (0 != index) {
-                      (&(first[index-1]))->mNextStatisticsSummaryReportBlock = current;
-                    }
+                fillReportBlockRange(current);
 
-                    fillReportBlockRange(current);
+                current->mTypeSpecific = (((shouldPerform(50)) ? 1 : 0) << 7) |
+                                         (((shouldPerform(50)) ? 1 : 0) << 6) |
+                                         (((shouldPerform(50)) ? 1 : 0) << 5) |
+                                         (randomBYTE(2) << 3);  // note: could produce illegal "3" value at times
 
-                    current->mTypeSpecific = (((shouldPerform(50)) ? 1 : 0) << 7) |
-                                             (((shouldPerform(50)) ? 1 : 0) << 6) |
-                                             (((shouldPerform(50)) ? 1 : 0) << 5) |
-                                             (randomBYTE(2) << 3);  // note: could produce illegal "3" value at times
+                if (current->lossReportFlag()) {
+                  current->mLostPackets = randomDWORD();
+                  current->mDupPackets = randomDWORD();
+                }
 
-                    if (current->lossReportFlag()) {
-                      current->mLostPackets = randomDWORD();
-                      current->mDupPackets = randomDWORD();
-                    }
+                if (current->jitterFlag()) {
+                  current->mMinJitter = randomDWORD();
+                  current->mMaxJitter = randomDWORD();
+                  current->mMeanJitter = randomDWORD();
+                  current->mDevJitter = randomDWORD();
+                }
 
-                    if (current->jitterFlag()) {
-                      current->mMinJitter = randomDWORD();
-                      current->mMaxJitter = randomDWORD();
-                      current->mMeanJitter = randomDWORD();
-                      current->mDevJitter = randomDWORD();
-                    }
-
-                    if ((current->ttlFlag()) ||
-                        (current->hopLimitFlag())) {
-                      current->mMinTTLOrHL = randomBYTE();
-                      current->mMaxTTLOrHL = randomBYTE();
-                      current->mMeanTTLOrHL = randomBYTE();
-                      current->mDevTTLOrHL = randomBYTE();
-                    }
-                  }
+                if ((current->ttlFlag()) ||
+                    (current->hopLimitFlag())) {
+                  current->mMinTTLOrHL = randomBYTE();
+                  current->mMaxTTLOrHL = randomBYTE();
+                  current->mMeanTTLOrHL = randomBYTE();
+                  current->mDevTTLOrHL = randomBYTE();
                 }
                 break;
               }
               case VoIPMetricsReportBlock::kBlockType:          {
-                size_t count = result->mVoIPMetricsReportBlockCount;
-                if (0 != count) {
-                  result->mFirstVoIPMetricsReportBlock = new VoIPMetricsReportBlock[count];
+                size_t &index = result->mVoIPMetricsReportBlockCount;
+                VoIPMetricsReportBlock *first = result->mFirstVoIPMetricsReportBlock;
 
-                  auto *first = result->mFirstVoIPMetricsReportBlock;
-
-                  for (size_t index = 0; index < count; ++index) {
-                    auto current = (&(first[index]));
-                    if (0 != index) {
-                      (&(first[index-1]))->mNextVoIPMetricsReportBlock = current;
-                    }
-
-                    current->mSSRCOfSource = randomDWORD();
-
-                    current->mLossRate = randomBYTE();
-                    current->mDiscardRate = randomBYTE();
-                    current->mBurstDensity = randomBYTE();
-                    current->mGapDensity = randomBYTE();
-
-                    current->mBurstDuration = randomWORD();
-                    current->mGapDuration = randomWORD();
-                    current->mRoundTripDelay = randomWORD();
-                    current->mEndSystemDelay = randomWORD();
-
-                    current->mSignalLevel = randomBYTE();
-                    current->mNoiseLevel = randomBYTE();
-                    current->mRERL = randomBYTE();
-                    current->mGmin = randomBYTE();
-
-                    current->mRFactor = randomBYTE();
-                    current->mExtRFactor = randomBYTE();
-                    current->mMOSLQ = randomBYTE();
-                    current->mMOSCQ = randomBYTE();
-
-                    current->mRXConfig = randomBYTE();
-                    if (shouldPerform(10)) {
-                      current->mReservedVoIP = randomBYTE();
-                    }
-                    current->mJBNominal = randomWORD();
-                    current->mJBMaximum = randomWORD();
-                    current->mJBAbsMax = randomWORD();
-                  }
+                auto current = (&(first[index]));
+                useBlock = current;
+                if (0 != index) {
+                  (&(first[index-1]))->mNextVoIPMetricsReportBlock = current;
                 }
+
+                current->mSSRCOfSource = randomDWORD();
+
+                current->mLossRate = randomBYTE();
+                current->mDiscardRate = randomBYTE();
+                current->mBurstDensity = randomBYTE();
+                current->mGapDensity = randomBYTE();
+
+                current->mBurstDuration = randomWORD();
+                current->mGapDuration = randomWORD();
+                current->mRoundTripDelay = randomWORD();
+                current->mEndSystemDelay = randomWORD();
+
+                current->mSignalLevel = randomBYTE();
+                current->mNoiseLevel = randomBYTE();
+                current->mRERL = randomBYTE();
+                current->mGmin = randomBYTE();
+
+                current->mRFactor = randomBYTE();
+                current->mExtRFactor = randomBYTE();
+                current->mMOSLQ = randomBYTE();
+                current->mMOSCQ = randomBYTE();
+
+                current->mRXConfig = randomBYTE();
+                if (shouldPerform(10)) {
+                  current->mReservedVoIP = randomBYTE();
+                }
+                current->mJBNominal = randomWORD();
+                current->mJBMaximum = randomWORD();
+                current->mJBAbsMax = randomWORD();
                 break;
               }
               default:
               {
-                size_t count = result->mVoIPMetricsReportBlockCount;
-                if (0 != count) {
-                  result->mFirstVoIPMetricsReportBlock = new VoIPMetricsReportBlock[count];
+                size_t &index = result->mUnknownReportBlockCount;
+                UnknownReportBlock *first = result->mFirstUnknownReportBlock;
 
-                  auto *first = result->mFirstVoIPMetricsReportBlock;
+                auto current = (&(first[index]));
+                useBlock = current;
+                if (0 != index) {
+                  (&(first[index-1]))->mNextUnknownReportBlock = current;
+                }
 
-                  for (size_t index = 0; index < count; ++index) {
-                    auto current = (&(first[index]));
-                    if (0 != index) {
-                      (&(first[index-1]))->mNextVoIPMetricsReportBlock = current;
-                    }
+                if (shouldPerform(90)) {
+                  current->mTypeSpecificContentSize = randomSize(1, 100);
+                  current->mTypeSpecificContents = new BYTE[current->mTypeSpecificContentSize];
 
-                    if (shouldPerform(90)) {
-                      current->mTypeSpecificContentSize = randomSize(1, 100);
-                      current->mTypeSpecificContents = new BYTE[current->mTypeSpecificContentSize];
-
-                      randomizeBuffer(const_cast<BYTE *>(current->mTypeSpecificContents), current->mTypeSpecificContentSize);
-                    }
-                  }
+                  randomizeBuffer(const_cast<BYTE *>(current->mTypeSpecificContents), current->mTypeSpecificContentSize);
                 }
                 break;
               }
@@ -3035,6 +3028,9 @@ namespace ortc
             }
             lastBlock = useBlock;
           }
+
+          delete [] randomBuffer;
+          randomBuffer = NULL;
 
           return result;
         }
@@ -3233,6 +3229,7 @@ void doTestRTCPPacket()
         case TEST_BASIC_RTCP: {
           {
             testObject1 = Tester::create();
+            testObject2 = Tester::create();
 
             TESTING_CHECK(testObject1)
           }
@@ -3267,6 +3264,7 @@ void doTestRTCPPacket()
             switch (step) {
               case 1: {
                 testObject1->compare();
+                testObject2->compare();
                 break;
               }
               case 2: {

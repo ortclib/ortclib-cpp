@@ -716,7 +716,8 @@ namespace ortc
       SecureByteBlockPtr temp(make_shared<SecureByteBlock>(allocationSize));
 
       BYTE *buffer = temp->BytePtr();
-      writePacket(first, buffer, allocationSize);
+      BYTE *pos = buffer;
+      writePacket(first, pos, allocationSize);
 
       return temp;
     }
@@ -4521,6 +4522,7 @@ namespace ortc
       return boundarySize(result);
     }
 
+    //-------------------------------------------------------------------------
     static size_t getPacketSizePayloadSpecificFeedbackMessage(const RTCPPacket::PayloadSpecificFeedbackMessage *fm)
     {
       typedef RTCPPacket::PayloadSpecificFeedbackMessage PayloadSpecificFeedbackMessage;
@@ -5236,7 +5238,7 @@ namespace ortc
             if (0 != modulas) {
               // fill the extra bits at the end of the bit stream with 0s
               BYTE &by = (pos[2+size-1]);
-              by = by & ((1 << (8-modulas))-1);
+              by = by & (((1 << modulas)-1) << (8-modulas));
             }
           }
 

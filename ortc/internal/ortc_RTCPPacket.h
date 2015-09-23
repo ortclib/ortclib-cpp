@@ -744,7 +744,7 @@ namespace ortc
 
         struct CodecControlCommon
         {
-          WORD ssrc() const                         {return mSSRC;}
+          DWORD ssrc() const                         {return mSSRC;}
           BYTE seqNr() const                        {return mSeqNr;}
           DWORD reserved() const                    {return mReserved;}
 
