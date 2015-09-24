@@ -60,16 +60,18 @@ namespace ortc
 
       struct Report
       {
-        Report *next() const        {return mNext;}
+        Report *next() const            {return mNext;}
 
-        const BYTE *ptr() const     {return mPtr;}
-        size_t size() const         {return mSize;}
+        const BYTE *ptr() const         {return mPtr;}
+        size_t size() const             {return mSize;}
 
-        BYTE version() const        {return mVersion;}
-        size_t padding() const      {return static_cast<size_t>(mPadding);}
-        BYTE reportSpecific() const {return mReportSpecific;}
+        BYTE version() const            {return mVersion;}
+        size_t padding() const          {return static_cast<size_t>(mPadding);}
+        BYTE reportSpecific() const     {return mReportSpecific;}
 
-        BYTE pt() const             {return mPT;}
+        BYTE pt() const                 {return mPT;}
+        static const char *ptToString(BYTE pt);
+        const char *ptToString() const  {return ptToString(mPT);}
 
       public:
         Report *mNext {};
@@ -214,6 +216,9 @@ namespace ortc
             BYTE type() const                 {return mType;}
             size_t length() const             {return mLength;}
             const char *value() const         {return mValue;}
+
+            static const char *typeToString(BYTE type);
+            const char *typeToString() const  {return typeToString(mType);}
 
           public:
             StringItem *mNext {};
@@ -526,8 +531,8 @@ namespace ortc
         DWORD mSSRC {};
         char mName[sizeof(DWORD)+1] {};
 
-        const BYTE *mData;
-        size_t mDataSize;
+        const BYTE *mData {};
+        size_t mDataSize {};
       };
 
       //-----------------------------------------------------------------------
@@ -546,6 +551,9 @@ namespace ortc
 
         const BYTE *fci() const                                 {return mFCI;}
         size_t fciSize() const                                  {return mFCISize;}
+
+        static const char *fmtToString(BYTE pt, BYTE fmt, DWORD subFmt = 0);
+        const char *fmtToString() const;
 
       public:
         DWORD mSSRCOfPacketSender {};
@@ -940,6 +948,9 @@ namespace ortc
           const BYTE *typeSpecificContents() const            {return mTypeSpecificContents;}
           size_t typeSpecificContentSize() const              {return mTypeSpecificContentSize;}
 
+          static const char *blockTypeToString(BYTE blockType);
+          const char *blockTypeToString() const               {return blockTypeToString(mBlockType);}
+
         public:
           ReportBlock *mNext {};
 
@@ -1133,12 +1144,12 @@ namespace ortc
           BYTE minTTL() const                   {return mMinTTLOrHL;}
           BYTE maxTTL() const                   {return mMaxTTLOrHL;}
           BYTE meanTTL() const                  {return mMeanTTLOrHL;}
-          BYTE devTTL() const                   {return mDevJitter;}
+          BYTE devTTL() const                   {return mDevTTLOrHL;}
 
           BYTE minHopLimit() const              {return mMinTTLOrHL;}
           BYTE maxHopLimit() const              {return mMaxTTLOrHL;}
           BYTE meanHopLimit() const             {return mMeanTTLOrHL;}
-          BYTE devHopLimit() const              {return mDevJitter;}
+          BYTE devHopLimit() const              {return mDevTTLOrHL;}
 
         public:
           StatisticsSummaryReportBlock *mNextStatisticsSummaryReportBlock {};

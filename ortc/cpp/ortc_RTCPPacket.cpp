@@ -77,6 +77,13 @@ namespace ortc
     static const BYTE kRtpVersion = 2;
 
     //-------------------------------------------------------------------------
+    static Log::Params packet_slog(const char *message)
+    {
+      ElementPtr objectEl = Element::create("ortc::RTCPPacket");
+      return Log::Params(message, objectEl);
+    }
+
+    //-------------------------------------------------------------------------
     static size_t alignedSize(size_t size)
     {
       size_t modulas = size % alignof(std::max_align_t);
@@ -160,6 +167,33 @@ namespace ortc
       return true;
     }
 
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTCPPacket::SenderReport
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    const char *RTCPPacket::Report::ptToString(BYTE pt)
+    {
+      switch (pt) {
+        case SenderReport::kPayloadType:                    return "SenderReport";
+        case ReceiverReport::kPayloadType:                  return "ReceiverReport";
+        case SDES::kPayloadType:                            return "SDES";
+        case Bye::kPayloadType:                             return "Bye";
+        case App::kPayloadType:                             return "App";
+        case TransportLayerFeedbackMessage::kPayloadType:   return "TransportLayerFeedbackMessage";
+        case PayloadSpecificFeedbackMessage::kPayloadType:  return "PayloadSpecificFeedbackMessage";
+        case XR::kPayloadType:                              return "XR";
+        default:  {
+        }
+      }
+      return "Uknown";
+    }
+
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -172,6 +206,34 @@ namespace ortc
     Time RTCPPacket::SenderReport::ntpTimestamp() const
     {
       return UseHelper::ntpToTime(mNTPTimestampMS, mNTPTimestampLS);
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTCPPacket::SDES::Chunk::StringItem
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    const char *RTCPPacket::SDES::Chunk::StringItem::typeToString(BYTE type)
+    {
+      switch (type) {
+        case CName::kItemType:  return "CName";
+        case Name::kItemType:   return "Name";
+        case Email::kItemType:  return "Email";
+        case Phone::kItemType:  return "Phone";
+        case Loc::kItemType:    return "Loc";
+        case Tool::kItemType:   return "Tool";
+        case Note::kItemType:   return "Note";
+        case Priv::kItemType:   return "Priv";
+        case Mid::kItemType:    return "Mid";
+        default: {
+          break;
+        }
+      }
+      return "Unknown";
     }
 
     //-------------------------------------------------------------------------
@@ -265,6 +327,68 @@ namespace ortc
     {
       ASSERT(index < sc())
       return mSSRCs[index];
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTCPPacket::FeedbackMessage
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    const char *RTCPPacket::FeedbackMessage::fmtToString(BYTE pt, BYTE fmt, DWORD subFmt)
+    {
+      switch (pt) {
+        case TransportLayerFeedbackMessage::kPayloadType:     {
+          switch (fmt) {
+            case TransportLayerFeedbackMessage::GenericNACK::kFmt:  return "GenericNACK";
+            case TransportLayerFeedbackMessage::TMMBR::kFmt:        return "TMMBR";
+            case TransportLayerFeedbackMessage::TMMBN::kFmt:        return "TMMBN";
+            default:                                                break;
+          }
+          break;
+        }
+        case PayloadSpecificFeedbackMessage::kPayloadType:    {
+          switch (fmt) {
+            case PayloadSpecificFeedbackMessage::PLI::kFmt:         return "PLI";
+            case PayloadSpecificFeedbackMessage::SLI::kFmt:         return "SLI";
+            case PayloadSpecificFeedbackMessage::RPSI::kFmt:        return "RPSI";
+            case PayloadSpecificFeedbackMessage::FIR::kFmt:         return "FIR";
+            case PayloadSpecificFeedbackMessage::TSTR::kFmt:        return "TSTR";
+            case PayloadSpecificFeedbackMessage::TSTN::kFmt:        return "TSTN";
+            case PayloadSpecificFeedbackMessage::VBCM::kFmt:        return "VBCM";
+            case PayloadSpecificFeedbackMessage::AFB::kFmt:         {
+              const char *tmp = "REMB";
+              if (subFmt == *(reinterpret_cast<const DWORD *>(tmp))) return "REMB";
+              return "AFB";
+            }
+            default:                                                break;
+          }
+          break;
+        }
+        default:                                              {
+          break;
+        }
+      }
+      return "Unknown";
+    }
+
+    //-------------------------------------------------------------------------
+    const char *RTCPPacket::FeedbackMessage::fmtToString() const
+    {
+      if (PayloadSpecificFeedbackMessage::kPayloadType == mPT) {
+        if (PayloadSpecificFeedbackMessage::AFB::kFmt == mReportSpecific) {
+          auto result = reinterpret_cast<const PayloadSpecificFeedbackMessage *>(this);
+          const char tmp1[sizeof(DWORD)] {};
+          const char *tmp2 = "REMB";
+          const char *usingTmp = (result->mHasREMB ? tmp2 : (&(tmp1[0])));
+
+          return fmtToString(mPT, mReportSpecific, *(reinterpret_cast<const DWORD *>(usingTmp)));
+        }
+      }
+      return fmtToString(mPT, mReportSpecific);
     }
 
     //-------------------------------------------------------------------------
@@ -407,6 +531,33 @@ namespace ortc
       if (REMB::kFmt != fmt()) return NULL;
       if (!mHasREMB) return NULL;
       return const_cast<REMB *>(&mREMB);
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTCPPacket::XR::ReportBlock
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    const char *RTCPPacket::XR::ReportBlock::blockTypeToString(BYTE blockType)
+    {
+      switch (blockType) {
+        case LossRLEReportBlock::kBlockType:                return "LossRLEReportBlock";
+        case DuplicateRLEReportBlock::kBlockType:           return "DuplicateRLEReportBlock";
+        case PacketReceiptTimesReportBlock::kBlockType:     return "PacketReceiptTimesReportBlock";
+        case ReceiverReferenceTimeReportBlock::kBlockType:  return "ReceiverReferenceTimeReportBlock";
+        case DLRRReportBlock::kBlockType:                   return "DLRRReportBlock";
+        case StatisticsSummaryReportBlock::kBlockType:      return "StatisticsSummaryReportBlock";
+        case VoIPMetricsReportBlock::kBlockType:            return "VoIPMetricsReportBlock";
+        default: {
+          break;
+        }
+      }
+
+      return "UnknownReportBlock";
     }
 
     //-------------------------------------------------------------------------
@@ -1263,8 +1414,6 @@ namespace ortc
             auto format = fm->firAtIndex(index);
             internal::toDebug(formatEl, format);
 
-            //                  UseServicesHelper::debugAppend(formatEl, "first", format->first());
-
             UseServicesHelper::debugAppend(formatsEl, formatEl);
           }
           UseServicesHelper::debugAppend(subEl, formatsEl);
@@ -1483,9 +1632,9 @@ namespace ortc
               {
                 ElementPtr subblockEl = Element::create("SubBlock");
                 auto subBlock = format->subBlockAtIndex(indexSubBlock);
-                UseServicesHelper::debugAppend(formatEl, "ssrc", subBlock->ssrc());
-                UseServicesHelper::debugAppend(formatEl, "lrr", subBlock->lrr());
-                UseServicesHelper::debugAppend(formatEl, "dlrr", subBlock->dlrr());
+                UseServicesHelper::debugAppend(subblockEl, "ssrc", subBlock->ssrc());
+                UseServicesHelper::debugAppend(subblockEl, "lrr", subBlock->lrr());
+                UseServicesHelper::debugAppend(subblockEl, "dlrr", subBlock->dlrr());
                 UseServicesHelper::debugAppend(subblocksEl, subblockEl);
               }
               UseServicesHelper::debugAppend(formatEl, subblocksEl);
@@ -1721,8 +1870,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     Log::Params RTCPPacket::slog(const char *message)
     {
-      ElementPtr objectEl = Element::create("ortc::RTCPPacket");
-      return Log::Params(message, objectEl);
+      return packet_slog(message);
     }
 
     //-------------------------------------------------------------------------
@@ -1783,13 +1931,20 @@ namespace ortc
 
           BYTE reportSpecific = RTCP_GET_BITS(*pos, 0x1F, 0);
 
+          const BYTE *prePos = pos;
           BYTE pt = pos[1];
 
           advancePos(pos, remaining, sizeof(DWORD));
 
+          size_t preAllocationSize = mAllocationSize;
+
           if (!getAllocationSize(version, padding, reportSpecific, pt, pos, length - sizeof(DWORD))) return false;
 
           advancePos(pos, remaining, length - sizeof(DWORD));
+
+          if (ZS_IS_LOGGING(Insane)) {
+            ZS_LOG_TRACE(log("report allocation size") + ZS_PARAM("pt", Report::ptToString(pt)) + ZS_PARAM("pt (number)", pt) + ZS_PARAM("consumed", (reinterpret_cast<PTRNUMBER>(pos) - reinterpret_cast<PTRNUMBER>(prePos))) + ZS_PARAM("allocation size", mAllocationSize - preAllocationSize))
+          }
 
           ++mCount;
         }
@@ -1863,9 +2018,12 @@ namespace ortc
 
           BYTE reportSpecific = RTCP_GET_BITS(*pos, 0x1F, 0);
 
+          const BYTE *prePos = pos;
           BYTE pt = pos[1];
 
           advancePos(pos, remaining, sizeof(DWORD));
+
+          size_t preAllocationSize = mAllocationSize;
 
           if (!parse(lastReport, version, padding, reportSpecific, pt, pos, length - sizeof(DWORD))) return false;
 
@@ -1874,6 +2032,10 @@ namespace ortc
           }
 
           advancePos(pos, remaining, length - sizeof(DWORD));
+
+          if (ZS_IS_LOGGING(Insane)) {
+            ZS_LOG_TRACE(log("report parsed") + ZS_PARAM("pt", Report::ptToString(pt)) + ZS_PARAM("pt (number)", pt) + ZS_PARAM("consumed", (reinterpret_cast<PTRNUMBER>(pos) - reinterpret_cast<PTRNUMBER>(prePos))) + ZS_PARAM("consumed allocation", preAllocationSize - mAllocationSize))
+          }
 
           ++count;
           ASSERT(count <= mCount)
@@ -1890,7 +2052,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark RTCPPacket (sizing routines)
+    #pragma mark RTCPPacket (parse allocation sizing routines)
     #pragma mark
 
     //-------------------------------------------------------------------------
@@ -1977,9 +2139,13 @@ namespace ortc
       {
         advancePos(pos, remaining, sizeof(DWORD));
 
+        ZS_LOG_INSANE(log("getting SDES chunk allocation size") + ZS_PARAM("chunk number", static_cast<size_t>(reportSpecific) - chunksCount))
+
         --chunksCount;
 
         while (remaining >= sizeof(BYTE)) {
+
+          size_t preAllocationSize = mAllocationSize;
 
           BYTE type = *pos;
           advancePos(pos, remaining);
@@ -2009,6 +2175,7 @@ namespace ortc
             return false;
           }
 
+          size_t prefixLength = 0;
           size_t length = static_cast<size_t>(*pos);
           advancePos(pos, remaining);
 
@@ -2031,7 +2198,7 @@ namespace ortc
                 mAllocationSize += alignedSize(sizeof(SDES::Chunk::Priv));
 
                 if (length > 0) {
-                  size_t prefixLength = static_cast<size_t>(*pos);
+                  prefixLength = static_cast<size_t>(*pos);
 
                   if (prefixLength > (length-1)) goto illegal_priv_prefix;
 
@@ -2060,6 +2227,8 @@ namespace ortc
           if (0 != length) {
             mAllocationSize += alignedSize((sizeof(char)*length)+sizeof(char));
           }
+
+          ZS_LOG_INSANE(log("get SDES item allocation size") + ZS_PARAM("type", SDES::Chunk::StringItem::typeToString(type)) + ZS_PARAM("type (number)", type) + ZS_PARAM("prefix length", prefixLength) + ZS_PARAM("length", length) + ZS_PARAM("allocation size", (mAllocationSize - preAllocationSize)))
 
           advancePos(pos, remaining, length);
         }
@@ -2166,6 +2335,8 @@ namespace ortc
         }
       }
 
+      ZS_LOG_INSANE(packet_slog("getting transport layer feedback message size") + ZS_PARAM("fmt", FeedbackMessage::fmtToString(TransportLayerFeedbackMessage::kPayloadType, reportSpecific)) + ZS_PARAM("fmt (number)", reportSpecific))
+
       return true;
     }
 
@@ -2194,6 +2365,9 @@ namespace ortc
 
       bool result = false;
 
+      char bogus[sizeof(DWORD)] {};
+      const DWORD *usingSubType = reinterpret_cast<const DWORD *>(&(bogus[0]));
+
       switch (reportSpecific) {
         case PayloadSpecificFeedbackMessage::PLI::kFmt:   result = getPayloadSpecificFeedbackMessagePLIAllocationSize(reportSpecific, pos, remaining); break;
         case PayloadSpecificFeedbackMessage::SLI::kFmt:   result = getPayloadSpecificFeedbackMessageSLIAllocationSize(reportSpecific, pos, remaining); break;
@@ -2206,6 +2380,8 @@ namespace ortc
           {
             if (remaining < sizeof(DWORD)) goto generic_afb;
             if (0 != memcmp(pos, reinterpret_cast<const BYTE *>("REMB"), sizeof(DWORD))) goto generic_afb;
+
+            usingSubType = reinterpret_cast<const DWORD *>(pos);
 
             result = getPayloadSpecificFeedbackMessageREMBAllocationSize(reportSpecific, pos, remaining);
             break;
@@ -2220,6 +2396,8 @@ namespace ortc
           break;
         }
       }
+
+      ZS_LOG_INSANE(packet_slog("getting payload specific feedback message size") + ZS_PARAM("fmt", FeedbackMessage::fmtToString(TransportLayerFeedbackMessage::kPayloadType, reportSpecific, *usingSubType)) + ZS_PARAM("fmt (number)", reportSpecific))
 
       return true;
     }
@@ -2248,6 +2426,9 @@ namespace ortc
       advancePos(pos, remaining, sizeof(DWORD));
 
       while (remaining >= sizeof(DWORD)) {
+        const BYTE *prePos = pos;
+        size_t preAllocationSize = mAllocationSize;
+
         BYTE bt = pos[0];
         BYTE typeSpecific = pos[1];
         size_t blockLength = static_cast<size_t>(UseHelper::getBE16(&(pos[2]))) * sizeof(DWORD);
@@ -2279,6 +2460,8 @@ namespace ortc
         if (!result) return false;
 
         advancePos(pos, remaining, blockLength);
+
+        ZS_LOG_INSANE(log("get XR allocation size for block") + ZS_PARAM("block type", XR::ReportBlock::blockTypeToString(bt)) + ZS_PARAM("block type (number)", bt) + ZS_PARAM("block size", blockLength) + ZS_PARAM("consumed", (reinterpret_cast<PTRNUMBER>(pos) - reinterpret_cast<PTRNUMBER>(prePos))) + ZS_PARAM("allocation size", mAllocationSize - preAllocationSize))
       }
 
       return true;
@@ -2550,7 +2733,7 @@ namespace ortc
       size_t possibleChunks = remaining  / sizeof(WORD);
 
       if (0 != possibleChunks) {
-        mAllocationSize = alignedSize(sizeof(XR::RLEChunk)) * possibleChunks;
+        mAllocationSize += alignedSize(sizeof(XR::RLEChunk)) * possibleChunks;
       }
 
       return true;
@@ -2578,7 +2761,7 @@ namespace ortc
       size_t possibleChunks = remaining  / sizeof(WORD);
 
       if (0 != possibleChunks) {
-        mAllocationSize = alignedSize(sizeof(XR::RLEChunk)) * possibleChunks;
+        mAllocationSize += alignedSize(sizeof(XR::RLEChunk)) * possibleChunks;
       }
 
       return true;
@@ -2606,7 +2789,7 @@ namespace ortc
       size_t possibleReceiptTimes = remaining  / sizeof(DWORD);
 
       if (0 != possibleReceiptTimes) {
-        mAllocationSize = alignedSize(sizeof(DWORD)) * possibleReceiptTimes;
+        mAllocationSize += alignedSize(sizeof(DWORD)) * possibleReceiptTimes;
       }
 
       return true;
@@ -2634,7 +2817,7 @@ namespace ortc
 
       size_t possibleSubBlocks = contentSize / (sizeof(DWORD) + sizeof(DWORD) + sizeof(DWORD));
       if (0 != possibleSubBlocks) {
-        mAllocationSize = alignedSize(sizeof(XR::DLRRReportBlock::SubBlock)) * possibleSubBlocks;
+        mAllocationSize += alignedSize(sizeof(XR::DLRRReportBlock::SubBlock)) * possibleSubBlocks;
       }
       return true;
     }
@@ -2744,17 +2927,18 @@ namespace ortc
           break;
         }
         case XR::kPayloadType:                                          {
-          auto temp = &(mFirstXR[mXRCount]); break;
+          auto temp = &(mFirstXR[mXRCount]);
           fill(temp, version, padding, reportSpecific, pt, contents, contentSize);
           if (!parse(temp)) return false;
           usingReport = temp;
+          break;
         }
         default:
         {
           auto temp = &(mFirstUnknownReport[mUnknownReportCount]);
           fill(temp, version, padding, reportSpecific, pt, contents, contentSize);
-          usingReport = temp;
           if (!parse(temp)) return false;
+          usingReport = temp;
           break;
         }
       }
@@ -2914,6 +3098,8 @@ namespace ortc
         }
         ++chunkCount;
 
+        ZS_LOG_INSANE(log("parsing SDES chunk") + ZS_PARAM("chunk number", chunkCount-1))
+
         chunk->mSSRC = UseHelper::getBE32(pos);
         advancePos(pos, remaining, sizeof(DWORD));
 
@@ -3037,6 +3223,9 @@ namespace ortc
 
           SDES::Chunk::StringItem *item {};
 
+          const char *prefixStr = NULL;
+          size_t prefixLen = 0;
+
           switch (type) {
             case SDES::Chunk::CName::kItemType: {
               item = &(chunk->mFirstCName[chunk->mCNameCount]);
@@ -3097,21 +3286,22 @@ namespace ortc
             case SDES::Chunk::Priv::kItemType:  {
               SDES::Chunk::Priv *priv = &(chunk->mFirstPriv[chunk->mPrivCount]);
               if (0 != chunk->mPrivCount) {
-                (&(chunk->mFirstPriv[chunk->mPrivCount-1]))->mNext = item;
+                (&(chunk->mFirstPriv[chunk->mPrivCount-1]))->mNext = priv;
               }
 
               if (length > 0) {
-                size_t privLength = static_cast<size_t>(*pos);
+                prefixLen = static_cast<size_t>(*pos);
                 advancePos(pos, remaining);
                 --length;
-                if (0 != privLength) {
-                  priv->mPrefix = new (allocateBuffer(sizeof(char)*(privLength+1))) char [privLength+1];
-                  memcpy(const_cast<char *>(priv->mValue), pos, privLength);
+                if (0 != prefixLen) {
+                  priv->mPrefix = new (allocateBuffer(sizeof(char)*(prefixLen+1))) char [prefixLen+1];
+                  priv->mPrefixLength = prefixLen;
+                  memcpy(const_cast<char *>(priv->mPrefix), pos, prefixLen);
 
-                  advancePos(pos, remaining, privLength);
-                  ASSERT(length >= privLength)
+                  advancePos(pos, remaining, prefixLen);
+                  ASSERT(length >= prefixLen)
 
-                  length -= privLength;
+                  length -= prefixLen;
                 }
               }
 
@@ -3144,7 +3334,15 @@ namespace ortc
             item->mType = type;
             if (length > 0) {
               item->mValue = new (allocateBuffer(length+1)) char [length+1];
+              item->mLength = length;
               memcpy(const_cast<char *>(item->mValue), pos, length);
+            }
+            if (ZS_IS_LOGGING(Insane)) {
+              if (NULL != prefixStr) {
+                ZS_LOG_INSANE(packet_slog("parsing SDES") + ZS_PARAM("type", item->typeToString()) + ZS_PARAM("chunk", chunkCount) + ZS_PARAM("prefix len", prefixLen) + ZS_PARAM("prefix", prefixStr) + ZS_PARAM("len", length) + ZS_PARAM("value", (NULL != item->mValue ? item->mValue : NULL)))
+              } else {
+                ZS_LOG_INSANE(packet_slog("parsing SDES") + ZS_PARAM("type", item->typeToString()) + ZS_PARAM("chunk", chunkCount) + ZS_PARAM("len", length) + ZS_PARAM("value", (NULL != item->mValue ? item->mValue : NULL)))
+              }
             }
           }
 
@@ -3238,7 +3436,7 @@ namespace ortc
         if (remaining < sizeof(DWORD)) goto illegal_remaining;
 
         for (size_t index = 0; index < sizeof(DWORD); ++index) {
-          report->mName[index] = static_cast<char>(*pos);
+          report->mName[index] = static_cast<char>(pos[index]);
         }
         advancePos(pos, remaining, sizeof(DWORD));
 
@@ -3284,6 +3482,8 @@ namespace ortc
             break;
           }
         }
+
+        ZS_LOG_INSANE(packet_slog("parsed transport layer feedback message") + ZS_PARAM("fmt", report->fmtToString()) + ZS_PARAM("fmt (number)", report->reportSpecific()))
 
         return true;
       }
@@ -3341,6 +3541,8 @@ namespace ortc
             break;
           }
         }
+
+        ZS_LOG_INSANE(packet_slog("parsed payload specific feedback message") + ZS_PARAM("fmt", report->fmtToString()) + ZS_PARAM("fmt (number)", report->reportSpecific()))
 
         return true;
       }
@@ -3446,6 +3648,8 @@ namespace ortc
 
         // parse each XR report block
         while (remaining >= sizeof(DWORD)) {
+          const BYTE *prePos = pos;
+          size_t preAllocationSize = mAllocationSize;
 
           BYTE bt = pos[0];
           BYTE typeSpecific = pos[1];
@@ -3458,9 +3662,12 @@ namespace ortc
             return false;
           }
 
+          XR::ReportBlock *usingBlock = NULL;
+
           switch (bt) {
             case XR::LossRLEReportBlock::kBlockType:                {
               auto reportBlock = &(report->mFirstLossRLEReportBlock[report->mLossRLEReportBlockCount]);
+              usingBlock = reportBlock;
               if (0 != report->mLossRLEReportBlockCount) {
                 (&(report->mFirstLossRLEReportBlock[report->mLossRLEReportBlockCount-1]))->mNextLossRLE = reportBlock;
               }
@@ -3471,6 +3678,7 @@ namespace ortc
             }
             case XR::DuplicateRLEReportBlock::kBlockType:           {
               auto reportBlock = &(report->mFirstDuplicateRLEReportBlock[report->mDuplicateRLEReportBlockCount]);
+              usingBlock = reportBlock;
               if (0 != report->mDuplicateRLEReportBlockCount) {
                 (&(report->mFirstDuplicateRLEReportBlock[report->mDuplicateRLEReportBlockCount-1]))->mNextDuplicateRLE = reportBlock;
               }
@@ -3481,6 +3689,7 @@ namespace ortc
             }
             case XR::PacketReceiptTimesReportBlock::kBlockType:     {
               auto reportBlock = &(report->mFirstPacketReceiptTimesReportBlock[report->mPacketReceiptTimesReportBlockCount]);
+              usingBlock = reportBlock;
               if (0 != report->mPacketReceiptTimesReportBlockCount) {
                 (&(report->mFirstPacketReceiptTimesReportBlock[report->mPacketReceiptTimesReportBlockCount-1]))->mNextPacketReceiptTimesReportBlock = reportBlock;
               }
@@ -3491,6 +3700,7 @@ namespace ortc
             }
             case XR::ReceiverReferenceTimeReportBlock::kBlockType:  {
               auto reportBlock = &(report->mFirstReceiverReferenceTimeReportBlock[report->mReceiverReferenceTimeReportBlockCount]);
+              usingBlock = reportBlock;
               if (0 != report->mReceiverReferenceTimeReportBlockCount) {
                 (&(report->mFirstReceiverReferenceTimeReportBlock[report->mReceiverReferenceTimeReportBlockCount-1]))->mNextReceiverReferenceTimeReportBlock = reportBlock;
               }
@@ -3501,6 +3711,7 @@ namespace ortc
             }
             case XR::DLRRReportBlock::kBlockType:                   {
               auto reportBlock = &(report->mFirstDLRRReportBlock[report->mDLRRReportBlockCount]);
+              usingBlock = reportBlock;
               if (0 != report->mDLRRReportBlockCount) {
                 (&(report->mFirstDLRRReportBlock[report->mDLRRReportBlockCount-1]))->mNextDLRRReportBlock = reportBlock;
               }
@@ -3511,6 +3722,7 @@ namespace ortc
             }
             case XR::StatisticsSummaryReportBlock::kBlockType:      {
               auto reportBlock = &(report->mFirstStatisticsSummaryReportBlock[report->mStatisticsSummaryReportBlockCount]);
+              usingBlock = reportBlock;
               if (0 != report->mStatisticsSummaryReportBlockCount) {
                 (&(report->mFirstStatisticsSummaryReportBlock[report->mStatisticsSummaryReportBlockCount-1]))->mNextStatisticsSummaryReportBlock = reportBlock;
               }
@@ -3521,6 +3733,7 @@ namespace ortc
             }
             case XR::VoIPMetricsReportBlock::kBlockType:            {
               auto reportBlock = &(report->mFirstVoIPMetricsReportBlock[report->mVoIPMetricsReportBlockCount]);
+              usingBlock = reportBlock;
               if (0 != report->mVoIPMetricsReportBlockCount) {
                 (&(report->mFirstVoIPMetricsReportBlock[report->mVoIPMetricsReportBlockCount-1]))->mNextVoIPMetricsReportBlock = reportBlock;
               }
@@ -3531,6 +3744,7 @@ namespace ortc
             }
             default:                                                {
               auto reportBlock = &(report->mFirstUnknownReportBlock[report->mUnknownReportBlockCount]);
+              usingBlock = reportBlock;
               if (0 != report->mUnknownReportBlockCount) {
                 (&(report->mFirstUnknownReportBlock[report->mUnknownReportBlockCount-1]))->mNextUnknownReportBlock = reportBlock;
               }
@@ -3542,6 +3756,8 @@ namespace ortc
           }
 
           advancePos(pos, remaining, blockLength);
+
+          ZS_LOG_INSANE(packet_slog("parsed XR block") + ZS_PARAM("block type", usingBlock->blockTypeToString()) + ZS_PARAM("block type (number)", usingBlock->blockType()) + ZS_PARAM("block size", blockLength) + ZS_PARAM("consumed", (reinterpret_cast<PTRNUMBER>(pos) - reinterpret_cast<PTRNUMBER>(prePos)))  + ZS_PARAM("allocation consumed", preAllocationSize - mAllocationSize))
         }
         
 
@@ -3626,8 +3842,8 @@ namespace ortc
       while (remaining >= sizeof(DWORD)) {
         GenericNACK *nack = &(report->mFirstGenericNACK[report->mGenericNACKCount]);
 
-        nack->mPID = UseHelper::getBE16(&(pos[2]));
-        nack->mBLP = UseHelper::getBE16(&(pos[0]));
+        nack->mPID = UseHelper::getBE16(&(pos[0]));
+        nack->mBLP = UseHelper::getBE16(&(pos[2]));
 
         advancePos(pos, remaining, sizeof(DWORD));
 
@@ -3741,35 +3957,27 @@ namespace ortc
       const BYTE *pos = report->fci();
       size_t remaining = report->fciSize();
 
-      {
-        size_t possibleSLIs = remaining / (sizeof(DWORD));
+      size_t possibleSLIs = remaining / (sizeof(DWORD));
 
-        ASSERT(0 != possibleSLIs)
+      ASSERT(0 != possibleSLIs)
 
-        report->mFirstSLI = new (allocateBuffer(alignedSize(sizeof(SLI))*possibleSLIs)) SLI[possibleSLIs];
+      report->mFirstSLI = new (allocateBuffer(alignedSize(sizeof(SLI))*possibleSLIs)) SLI[possibleSLIs];
 
-        while (remaining >= (sizeof(DWORD))) {
-          SLI *sli = &(report->mFirstSLI[report->mSLICount]);
+      while (remaining >= (sizeof(DWORD))) {
+        SLI *sli = &(report->mFirstSLI[report->mSLICount]);
 
-          sli->mFirst = RTCP_GET_BITS(UseHelper::getBE16(&(pos[0])), 0x1FFF, 3);
-          sli->mNumber = static_cast<WORD>(RTCP_GET_BITS(UseHelper::getBE32(&(pos[0])), 0x1FFF, 6));
-          sli->mPictureID = RTCP_GET_BITS(pos[3], 0x3F, 0);
+        sli->mFirst = RTCP_GET_BITS(UseHelper::getBE16(&(pos[0])), 0x1FFF, 3);
+        sli->mNumber = static_cast<WORD>(RTCP_GET_BITS(UseHelper::getBE32(&(pos[0])), 0x1FFF, 6));
+        sli->mPictureID = RTCP_GET_BITS(pos[3], 0x3F, 0);
 
-          advancePos(pos, remaining, sizeof(DWORD));
+        advancePos(pos, remaining, sizeof(DWORD));
 
-          ++(report->mSLICount);
-        }
-
-        ASSERT(possibleSLIs == report->mSLICount)
-
-        return true;
+        ++(report->mSLICount);
       }
 
-    illegal_remaining:
-      {
-        ZS_LOG_WARNING(Trace, debug("malformed SLI payload specific feedback message") + ZS_PARAM("pos", reinterpret_cast<PTRNUMBER>(pos) - reinterpret_cast<PTRNUMBER>(report->fci()))  + ZS_PARAM("remaining", remaining))
-      }
-      return false;
+      ASSERT(possibleSLIs == report->mSLICount)
+
+      return true;
     }
     
     //-------------------------------------------------------------------------
@@ -4083,39 +4291,31 @@ namespace ortc
       const BYTE *pos = reportBlock->typeSpecificContents();
       size_t remaining = reportBlock->typeSpecificContentSize();
 
+      if (!parseCommonRange(xr, reportBlock)) return false;
+
+      advancePos(pos, remaining, sizeof(DWORD)*2);
+
+      size_t possibleRLEsCount = (remaining / sizeof(WORD));
+
+      if (0 == possibleRLEsCount) return true;
+
+      reportBlock->mChunks = new (allocateBuffer(alignedSize(sizeof(XR::RLEChunk)*possibleRLEsCount))) XR::RLEChunk[possibleRLEsCount];
+
+      while (remaining >= sizeof(WORD))
       {
-        if (!parseCommonRange(xr, reportBlock)) return false;
+        XR::RLEChunk value = UseHelper::getBE16(pos);
+        advancePos(pos, remaining, sizeof(WORD));
 
-        advancePos(pos, remaining, sizeof(DWORD)*2);
-
-        size_t possibleRLEsCount = (remaining / sizeof(WORD));
-
-        if (0 == possibleRLEsCount) return true;
-
-        reportBlock->mChunks = new (allocateBuffer(alignedSize(sizeof(XR::RLEChunk)*possibleRLEsCount))) XR::RLEChunk[possibleRLEsCount];
-
-        while (remaining >= sizeof(WORD))
-        {
-          XR::RLEChunk value = UseHelper::getBE16(pos);
-          advancePos(pos, remaining, sizeof(WORD));
-
-          if (0 == value) break;
-          reportBlock->mChunks[reportBlock->mChunkCount] = value;
-          ++(reportBlock->mChunkCount);
-        }
-
-        if (0 == reportBlock->mChunkCount) {
-          reportBlock->mChunks = NULL;
-        }
-
-        return true;
+        if (0 == value) break;
+        reportBlock->mChunks[reportBlock->mChunkCount] = value;
+        ++(reportBlock->mChunkCount);
       }
 
-    illegal_size:
-      {
-        ZS_LOG_WARNING(Trace, debug("malformed RLE block") + ZS_PARAM("pos", reinterpret_cast<PTRNUMBER>(pos) - reinterpret_cast<PTRNUMBER>(reportBlock->typeSpecificContents()))  + ZS_PARAM("remaining", remaining))
+      if (0 == reportBlock->mChunkCount) {
+        reportBlock->mChunks = NULL;
       }
-      return false;
+
+      return true;
     }
     
     //-------------------------------------------------------------------------
@@ -4309,7 +4509,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark RTCPPacket (allocation sizing routines)
+    #pragma mark RTCPPacket (writing sizing routines)
     #pragma mark
 
     //-------------------------------------------------------------------------
@@ -4353,6 +4553,7 @@ namespace ortc
           size_t len = (NULL != item->mValue ? strlen(item->mValue) : 0);
           throwIfGreaterThanBitsAllow(len, 8);
           chunkSize += ((sizeof(BYTE))*len);
+          ZS_LOG_INSANE(packet_slog("get packet SDES CName size") + ZS_PARAM("chunk", chunkCount) + ZS_PARAM("len", len) + ZS_PARAM("value", (NULL != item->mValue ? item->mValue : NULL)))
         }
 
         for (auto *item = chunk->firstName(); NULL != item; item = item->next())
@@ -4361,6 +4562,7 @@ namespace ortc
           size_t len = (NULL != item->mValue ? strlen(item->mValue) : 0);
           throwIfGreaterThanBitsAllow(len, 8);
           chunkSize += ((sizeof(BYTE))*len);
+          ZS_LOG_INSANE(packet_slog("get packet SDES Name size") + ZS_PARAM("chunk", chunkCount) + ZS_PARAM("len", len) + ZS_PARAM("value", (NULL != item->mValue ? item->mValue : NULL)))
         }
 
         for (auto *item = chunk->firstEmail(); NULL != item; item = item->next())
@@ -4369,6 +4571,7 @@ namespace ortc
           size_t len = (NULL != item->mValue ? strlen(item->mValue) : 0);
           throwIfGreaterThanBitsAllow(len, 8);
           chunkSize += ((sizeof(BYTE))*len);
+          ZS_LOG_INSANE(packet_slog("get packet SDES Email size") + ZS_PARAM("chunk", chunkCount) + ZS_PARAM("len", len) + ZS_PARAM("value", (NULL != item->mValue ? item->mValue : NULL)))
         }
 
         for (auto *item = chunk->firstPhone(); NULL != item; item = item->next())
@@ -4377,6 +4580,7 @@ namespace ortc
           size_t len = (NULL != item->mValue ? strlen(item->mValue) : 0);
           throwIfGreaterThanBitsAllow(len, 8);
           chunkSize += ((sizeof(BYTE))*len);
+          ZS_LOG_INSANE(packet_slog("get packet SDES Phone size") + ZS_PARAM("chunk", chunkCount) + ZS_PARAM("len", len) + ZS_PARAM("value", (NULL != item->mValue ? item->mValue : NULL)))
         }
 
         for (auto *item = chunk->firstLoc(); NULL != item; item = item->next())
@@ -4385,6 +4589,7 @@ namespace ortc
           size_t len = (NULL != item->mValue ? strlen(item->mValue) : 0);
           throwIfGreaterThanBitsAllow(len, 8);
           chunkSize += ((sizeof(BYTE))*len);
+          ZS_LOG_INSANE(packet_slog("get packet SDES Loc size") + ZS_PARAM("chunk", chunkCount) + ZS_PARAM("len", len) + ZS_PARAM("value", (NULL != item->mValue ? item->mValue : NULL)))
         }
 
         for (auto *item = chunk->firstTool(); NULL != item; item = item->next())
@@ -4393,6 +4598,7 @@ namespace ortc
           size_t len = (NULL != item->mValue ? strlen(item->mValue) : 0);
           throwIfGreaterThanBitsAllow(len, 8);
           chunkSize += ((sizeof(BYTE))*len);
+          ZS_LOG_INSANE(packet_slog("get packet SDES Tool size") + ZS_PARAM("chunk", chunkCount) + ZS_PARAM("len", len) + ZS_PARAM("value", (NULL != item->mValue ? item->mValue : NULL)))
         }
 
         for (auto *item = chunk->firstNote(); NULL != item; item = item->next())
@@ -4401,6 +4607,7 @@ namespace ortc
           size_t len = (NULL != item->mValue ? strlen(item->mValue) : 0);
           throwIfGreaterThanBitsAllow(len, 8);
           chunkSize += ((sizeof(BYTE))*len);
+          ZS_LOG_INSANE(packet_slog("get packet SDES Note size") + ZS_PARAM("chunk", chunkCount) + ZS_PARAM("len", len) + ZS_PARAM("value", (NULL != item->mValue ? item->mValue : NULL)))
         }
 
         for (auto *item = chunk->firstPriv(); NULL != item; item = item->next())
@@ -4414,6 +4621,7 @@ namespace ortc
 
           throwIfGreaterThanBitsAllow(totalLen, 8);
           chunkSize += ((sizeof(BYTE))*totalLen);
+          ZS_LOG_INSANE(packet_slog("get packet SDES Priv size") + ZS_PARAM("chunk", chunkCount) + ZS_PARAM("prefix len", len2) + ZS_PARAM("prefix", (NULL != item->mPrefix ? item->mPrefix : NULL)) + ZS_PARAM("len", len1) + ZS_PARAM("value", (NULL != item->mValue ? item->mValue : NULL)))
         }
 
         for (auto *item = chunk->firstMid(); NULL != item; item = item->next())
@@ -4422,6 +4630,7 @@ namespace ortc
           size_t len = (NULL != item->mValue ? strlen(item->mValue) : 0);
           throwIfGreaterThanBitsAllow(len, 8);
           chunkSize += ((sizeof(BYTE))*len);
+          ZS_LOG_INSANE(packet_slog("get packet SDES Mid size") + ZS_PARAM("chunk", chunkCount) + ZS_PARAM("len", len) + ZS_PARAM("value", (NULL != item->mValue ? item->mValue : NULL)))
         }
 
         for (auto *item = chunk->firstUnknown(); NULL != item; item = item->next())
@@ -4430,9 +4639,13 @@ namespace ortc
           size_t len = (NULL != item->mValue ? strlen(item->mValue) : 0);
           throwIfGreaterThanBitsAllow(len, 8);
           chunkSize += ((sizeof(BYTE))*len);
+          ZS_LOG_INSANE(packet_slog("get packet SDES Unknown size") + ZS_PARAM("chunk", chunkCount) + ZS_PARAM("len", len) + ZS_PARAM("value", (NULL != item->mValue ? item->mValue : NULL)))
         }
 
-        if (chunkSize == sizeof(DWORD)) {
+        size_t modulas = chunkSize % sizeof(DWORD);
+
+        if ((chunkSize == sizeof(DWORD)) ||
+            (0 == modulas)) {
           chunkSize += sizeof(DWORD);
         }
 
@@ -4519,6 +4732,8 @@ namespace ortc
         }
       }
 
+      ZS_LOG_INSANE(packet_slog("getting transport layer feedback message packet size") + ZS_PARAM("fmt", fm->fmtToString()) + ZS_PARAM("fmt (number)", fm->reportSpecific()) + ZS_PARAM("size", result))
+
       return boundarySize(result);
     }
 
@@ -4547,7 +4762,7 @@ namespace ortc
         {
           auto count = fm->sliCount();
           throwIfLessThan(count, 1);
-          result += ((sizeof(DWORD)*2)*(count));
+          result += (sizeof(DWORD)*(count));
           break;
         }
         case RPSI::kFmt:
@@ -4621,6 +4836,8 @@ namespace ortc
         }
       }
 
+      ZS_LOG_INSANE(packet_slog("getting payload specific feedback message packet size") + ZS_PARAM("fmt", fm->fmtToString()) + ZS_PARAM("fmt (number)", fm->reportSpecific()) + ZS_PARAM("size", result))
+
       return boundarySize(result);
     }
 
@@ -4642,6 +4859,8 @@ namespace ortc
 
       for (const ReportBlock *reportBlock = report->firstReportBlock(); NULL != reportBlock; reportBlock = reportBlock->next())
       {
+        size_t preSize = result;
+
         switch (reportBlock->mBlockType) {
           case LossRLEReportBlock::kBlockType:
           {
@@ -4691,6 +4910,8 @@ namespace ortc
             result += (sizeof(DWORD)) + boundarySize(reportBlock->mTypeSpecificContentSize);
           }
         }
+
+        ZS_LOG_INSANE(packet_slog("XR block packet size") + ZS_PARAM("block type", reportBlock->blockTypeToString()) + ZS_PARAM("block type (number)", reportBlock->blockType()) + ZS_PARAM("size", result - preSize))
       }
 
       return boundarySize(result);
@@ -4706,6 +4927,8 @@ namespace ortc
       for (const Report *report = first; NULL != report; report = report->next())
       {
         final = report;
+
+        size_t beforeSize = result;
 
         switch (report->pt()) {
           case SenderReport::kPayloadType:
@@ -4762,6 +4985,12 @@ namespace ortc
             break;
           }
         }
+
+        size_t afterSize = result;
+
+        if (ZS_IS_LOGGING(Insane)) {
+          ZS_LOG_TRACE(slog("getting report packet size") + ZS_PARAM("pt", report->ptToString()) + ZS_PARAM("pt (num)", report->pt()) + ZS_PARAM("size", afterSize-beforeSize))
+        }
       }
 
       if (NULL != final) {
@@ -4816,7 +5045,7 @@ namespace ortc
         UseHelper::setBE32(&(pos[0]), block->ssrc());
         ASSERT(throwIfGreaterThanBitsAllow(block->cumulativeNumberOfPacketsLost(), 24))
         UseHelper::setBE32(&(pos[4]), block->cumulativeNumberOfPacketsLost());
-        pos[5] = block->fractionLost();
+        pos[4] = block->fractionLost();
         UseHelper::setBE32(&(pos[8]), block->extendedHighestSequenceNumberReceived());
         UseHelper::setBE32(&(pos[12]), block->interarrivalJitter());
         UseHelper::setBE32(&(pos[16]), block->lsr());
@@ -4897,6 +5126,7 @@ namespace ortc
             memcpy(pos, item->value(), len*sizeof(BYTE));
             advancePos(pos, remaining, len*sizeof(BYTE));
           }
+          ZS_LOG_INSANE(packet_slog("writing SDES CName") + ZS_PARAM("chunk", chunkCount) + ZS_PARAM("len", len) + ZS_PARAM("value", (NULL != item->mValue ? item->mValue : NULL)))
         }
 
         for (auto *item = chunk->firstName(); NULL != item; item = item->next())
@@ -4912,6 +5142,7 @@ namespace ortc
             memcpy(pos, item->value(), len*sizeof(BYTE));
             advancePos(pos, remaining, len*sizeof(BYTE));
           }
+          ZS_LOG_INSANE(packet_slog("writing SDES Name") + ZS_PARAM("chunk", chunkCount) + ZS_PARAM("len", len) + ZS_PARAM("value", (NULL != item->mValue ? item->mValue : NULL)))
         }
 
         for (auto *item = chunk->firstEmail(); NULL != item; item = item->next())
@@ -4927,6 +5158,7 @@ namespace ortc
             memcpy(pos, item->value(), len*sizeof(BYTE));
             advancePos(pos, remaining, len*sizeof(BYTE));
           }
+          ZS_LOG_INSANE(packet_slog("writing SDES Email") + ZS_PARAM("chunk", chunkCount) + ZS_PARAM("len", len) + ZS_PARAM("value", (NULL != item->mValue ? item->mValue : NULL)))
         }
 
         for (auto *item = chunk->firstPhone(); NULL != item; item = item->next())
@@ -4942,6 +5174,7 @@ namespace ortc
             memcpy(pos, item->value(), len*sizeof(BYTE));
             advancePos(pos, remaining, len*sizeof(BYTE));
           }
+          ZS_LOG_INSANE(packet_slog("writing SDES Phone") + ZS_PARAM("chunk", chunkCount) + ZS_PARAM("len", len) + ZS_PARAM("value", (NULL != item->mValue ? item->mValue : NULL)))
         }
 
         for (auto *item = chunk->firstLoc(); NULL != item; item = item->next())
@@ -4957,6 +5190,7 @@ namespace ortc
             memcpy(pos, item->value(), len*sizeof(BYTE));
             advancePos(pos, remaining, len*sizeof(BYTE));
           }
+          ZS_LOG_INSANE(packet_slog("writing SDES Loc") + ZS_PARAM("chunk", chunkCount) + ZS_PARAM("len", len) + ZS_PARAM("value", (NULL != item->mValue ? item->mValue : NULL)))
         }
 
         for (auto *item = chunk->firstTool(); NULL != item; item = item->next())
@@ -4972,6 +5206,7 @@ namespace ortc
             memcpy(pos, item->value(), len*sizeof(BYTE));
             advancePos(pos, remaining, len*sizeof(BYTE));
           }
+          ZS_LOG_INSANE(packet_slog("writing SDES Tool") + ZS_PARAM("chunk", chunkCount) + ZS_PARAM("len", len) + ZS_PARAM("value", (NULL != item->mValue ? item->mValue : NULL)))
         }
 
         for (auto *item = chunk->firstNote(); NULL != item; item = item->next())
@@ -4987,6 +5222,7 @@ namespace ortc
             memcpy(pos, item->value(), len*sizeof(BYTE));
             advancePos(pos, remaining, len*sizeof(BYTE));
           }
+          ZS_LOG_INSANE(packet_slog("writing SDES Note") + ZS_PARAM("chunk", chunkCount) + ZS_PARAM("len", len) + ZS_PARAM("value", (NULL != item->mValue ? item->mValue : NULL)))
         }
 
         for (auto *item = chunk->firstPriv(); NULL != item; item = item->next())
@@ -5013,6 +5249,7 @@ namespace ortc
               advancePos(pos, remaining, len2*sizeof(BYTE));
             }
           }
+          ZS_LOG_INSANE(packet_slog("writing SDES Priv") + ZS_PARAM("chunk", chunkCount) + ZS_PARAM("prefix len", len1) + ZS_PARAM("prefix", (NULL != item->mPrefix ? item->mPrefix : NULL)) + ZS_PARAM("len", len2) + ZS_PARAM("value", (NULL != item->mValue ? item->mValue : NULL)))
         }
 
         for (auto *item = chunk->firstMid(); NULL != item; item = item->next())
@@ -5028,6 +5265,7 @@ namespace ortc
             memcpy(pos, item->value(), len*sizeof(BYTE));
             advancePos(pos, remaining, len*sizeof(BYTE));
           }
+          ZS_LOG_INSANE(packet_slog("writing SDES Mid report") + ZS_PARAM("chunk", chunkCount) + ZS_PARAM("len", len) + ZS_PARAM("value", (NULL != item->mValue ? item->mValue : NULL)))
         }
 
         for (auto *item = chunk->firstUnknown(); NULL != item; item = item->next())
@@ -5043,6 +5281,7 @@ namespace ortc
             memcpy(pos, item->value(), len*sizeof(BYTE));
             advancePos(pos, remaining, len*sizeof(BYTE));
           }
+          ZS_LOG_INSANE(packet_slog("writing SDES Unknown") + ZS_PARAM("chunk", chunkCount) + ZS_PARAM("len", len) + ZS_PARAM("type", item->mType) + ZS_PARAM("value", (NULL != item->mValue ? item->mValue : NULL)))
         }
 
         BYTE *endPos = pos;
@@ -5051,6 +5290,13 @@ namespace ortc
         auto modulas = (diff % sizeof(DWORD));
         if (0 != modulas) {
           advancePos(pos, remaining, sizeof(DWORD)-modulas);
+        }
+
+        if ((0 == diff) ||
+            (0 == modulas)) {
+          // write "empty" chunk
+          UseHelper::setBE32(pos, 0);
+          advancePos(pos, remaining, sizeof(DWORD));
         }
       }
 
@@ -5122,8 +5368,8 @@ namespace ortc
           for (size_t index = 0; index < count; ++index)
           {
             auto item = report->genericNACKAtIndex(index);
-            pos[0] = item->pid();
-            pos[1] = item->blp();
+            UseHelper::setBE16(&(pos[0]), item->pid());
+            UseHelper::setBE16(&(pos[2]), item->blp());
             advancePos(pos, remaining, sizeof(DWORD));
           }
           break;
@@ -5176,6 +5422,8 @@ namespace ortc
           break;
         }
       }
+
+      ZS_LOG_INSANE(packet_slog("writing transport layer feedback message") + ZS_PARAM("fmt", report->fmtToString()) + ZS_PARAM("fmt (number)", report->reportSpecific()))
     }
     
     //-------------------------------------------------------------------------
@@ -5357,6 +5605,7 @@ namespace ortc
           break;
         }
       }
+      ZS_LOG_INSANE(packet_slog("writing payload specific feedback message") + ZS_PARAM("fmt", report->fmtToString()) + ZS_PARAM("fmt (number)", report->reportSpecific()))
     }
 
     //-------------------------------------------------------------------------
@@ -5375,8 +5624,9 @@ namespace ortc
       typedef RTCPPacket::XR::RLEChunk RLEChunk;
 
       pos[1] = XR::kPayloadType;
+      UseHelper::setBE32(&(pos[4]), report->mSSRC);
 
-      advancePos(pos, remaining, sizeof(DWORD));
+      advancePos(pos, remaining, sizeof(DWORD)*2);
 
       for (const ReportBlock *reportBlock = report->firstReportBlock(); NULL != reportBlock; reportBlock = reportBlock->next())
       {
@@ -5501,11 +5751,17 @@ namespace ortc
             pos[17] = block->noiseLevel();
             pos[18] = block->rerl();
             pos[19] = block->Gmin();
-            pos[20] = block->rxConfig();
-            pos[21] = block->mReservedVoIP;
-            UseHelper::setBE16(&(pos[22]), block->jbNominal());
-            UseHelper::setBE16(&(pos[24]), block->jbMaximum());
-            UseHelper::setBE16(&(pos[26]), block->jbAbsMax());
+
+            pos[20] = block->rFactor();
+            pos[21] = block->extRFactor();
+            pos[22] = block->mosLQ();
+            pos[23] = block->mosCQ();
+
+            pos[24] = block->rxConfig();
+            pos[25] = block->mReservedVoIP;
+            UseHelper::setBE16(&(pos[26]), block->jbNominal());
+            UseHelper::setBE16(&(pos[28]), block->jbMaximum());
+            UseHelper::setBE16(&(pos[30]), block->jbAbsMax());
             advancePos(pos, remaining, sizeof(DWORD)*8);
             break;
           }
@@ -5529,7 +5785,10 @@ namespace ortc
           advancePos(pos, remaining, sizeof(DWORD)-modulas);
         }
 
-        UseHelper::setBE16(&(blockStart[2]), (boundarySize(diff)/sizeof(DWORD))-1);
+        diff = boundarySize(diff);
+        ZS_LOG_INSANE(packet_slog("writing XR block") + ZS_PARAM("block type", reportBlock->blockTypeToString()) + ZS_PARAM("block type (number)", reportBlock->blockType()) + ZS_PARAM("block size", diff))
+
+        UseHelper::setBE16(&(blockStart[2]), (diff/sizeof(DWORD))-1);
       }
     }
 
@@ -5631,6 +5890,10 @@ namespace ortc
         if (0 != modulas) {
           advancePos(pos, remaining, sizeof(DWORD)-modulas);
           diff += (sizeof(DWORD)-modulas);
+        }
+
+        if (ZS_IS_LOGGING(Insane)) {
+          ZS_LOG_TRACE(slog("writing report") + ZS_PARAM("pt", report->ptToString()) + ZS_PARAM("pt (number)", report->pt()) + ZS_PARAM("size", diff))
         }
 
         UseHelper::setBE16(&(startOfReport[2]), (diff/sizeof(DWORD))-1);
