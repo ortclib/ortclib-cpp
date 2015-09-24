@@ -66,12 +66,6 @@ using zsLib::AutoRecursiveLock;
 ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHelper, UseServicesHelper)
 ZS_DECLARE_TYPEDEF_PTR(ortc::internal::Helper, UseHelper)
 
-#define ORTC_RTCP_TEST_PROBABILITY_OF_SENDER_RECEIVER_REPORT_HAVING_REPORT_BLOCKS (70)
-#define ORTC_RTCP_TEST_PROBABILITY_OF_SENDER_RECEIVER_REPORT_HAVING_EXTENSION (30)
-
-#define ORTC_RTCP_TEST_FIXED_RANDOM_SEQUENCE (true)
-//#define ORTC_RTCP_TEST_FIXED_RANDOM_SEED (-57479) // set 1
-#define ORTC_RTCP_TEST_FIXED_RANDOM_SEED (1000)
 
 namespace ortc
 {
@@ -79,22 +73,6 @@ namespace ortc
   {
     namespace rtcppacket
     {
-      //-----------------------------------------------------------------------
-      class TesterSingleton
-      {
-      public:
-        TesterSingleton()
-        {
-          if (!ORTC_RTCP_TEST_FIXED_RANDOM_SEQUENCE) return;
-          srand(static_cast<signed int>(ORTC_RTCP_TEST_FIXED_RANDOM_SEED));
-        }
-
-        static void init()
-        {
-          static TesterSingleton singleton;
-        }
-      };
-
       //-------------------------------------------------------------------------
       static size_t boundarySize(
                                  size_t size,
@@ -112,19 +90,15 @@ namespace ortc
         ZS_THROW_INVALID_ARGUMENT_IF(min > max)
         if (min == max) return min;
 
-        TesterSingleton::init();
-        if (ORTC_RTCP_TEST_FIXED_RANDOM_SEQUENCE) {
-          size_t result = 0;
-          BYTE *pos = reinterpret_cast<BYTE *>(&result);
-          for (size_t index = 0; index < sizeof(result); ++index) {
-            *pos = static_cast<BYTE>(rand()%0xFF);
-          }
-          size_t range = (max - min)+1;
-
-          result = min + (result % range);
-          return result;
+        size_t result = 0;
+        BYTE *pos = reinterpret_cast<BYTE *>(&result);
+        for (size_t index = 0; index < sizeof(result); ++index) {
+          *pos = static_cast<BYTE>(rand()%0xFF);
         }
-        return UseServicesHelper::random(min, max);
+        size_t range = (max - min)+1;
+
+        result = min + (result % range);
+        return result;
       }
 
       //-----------------------------------------------------------------------
@@ -251,6 +225,7 @@ namespace ortc
       //-----------------------------------------------------------------------
       bool shouldPerform(size_t percentageProbability)
       {
+        if (0 == percentageProbability) return false;
         auto result = random(0, 100);
         if (result <= percentageProbability) return true;
         return false;
@@ -286,7 +261,7 @@ namespace ortc
         if ((sizeof(DWORD)*8) == maxBits) return;
 
         DWORD max = (1 << static_cast<DWORD>(maxBits))-1;
-        TESTING_CHECK(value < max)
+        TESTING_CHECK(value <= max)
       }
 
       ZS_DECLARE_CLASS_PTR(Tester)
@@ -741,7 +716,7 @@ namespace ortc
         static void compareReport(Report *report1, Report *report2)
         {
           TESTING_EQUAL(report1->version(), report2->version())
-          TESTING_EQUAL(report1->padding(), report2->padding())
+          TESTING_EQUAL(boundarySize(report1->padding()), boundarySize(report2->padding())) // padding is aligned to boundary size
           TESTING_EQUAL(report1->reportSpecific(), report2->reportSpecific())
           TESTING_EQUAL(report1->pt(), report2->pt())
 
@@ -758,12 +733,18 @@ namespace ortc
 
           TESTING_EQUAL(report1->rc(), report2->rc())
           TESTING_EQUAL(report1->ssrcOfSender(), report2->ssrcOfSender())
-          TESTING_EQUAL(report1->extensionSize(), report2->extensionSize())
+          TESTING_EQUAL(boundarySize(report1->extensionSize()), boundarySize(report2->extensionSize())) // padding can cause a slight difference in size
 
           TESTING_EQUAL(report1->ssrcOfSender(), report1->mSSRCOfSender)
           TESTING_EQUAL(report1->extensionSize(), report1->mExtensionSize)
 
-          checkEqual(report1->extension(), report1->extensionSize(), report2->extension(), report2->extensionSize());
+          // padding can cause a slight difference in size
+          auto size1 = report1->extensionSize();
+          auto size2 = report2->extensionSize();
+          if (size1 < size2) size2 = size1;
+          if (size2 < size1) size1 = size2;
+
+          checkEqual(report1->extension(), size1, report2->extension(), size2);
 
           if (0 == report1->rc()) {
             TESTING_CHECK(NULL == report1->mFirstReportBlock)
@@ -1347,7 +1328,16 @@ namespace ortc
               TESTING_CHECK(report1->unknown() == report1->mUnknown)
               TESTING_CHECK(report2->unknown() == report2->mUnknown)
 
-              checkEqual(report1->mFCI, report1->mFCISize, report2->mFCI, report2->mFCISize);
+              // padding can cause FCI size to be padded to next DWORD boundary
+              TESTING_EQUAL(boundarySize(report1->mFCISize), boundarySize(report2->mFCISize))
+
+              auto size1 = report1->mFCISize;
+              auto size2 = report2->mFCISize;
+
+              if (size1 < size2) size2 = size1;
+              if (size2 < size1) size1 = size2;
+
+              checkEqual(report1->mFCI, size1, report2->mFCI, size2);
             }
           }
         }
@@ -1673,14 +1663,11 @@ namespace ortc
           TESTING_EQUAL(item1->beginSeq(), item2->beginSeq())
           TESTING_EQUAL(item1->endSeq(), item2->endSeq())
 
-          TESTING_EQUAL(item1->reserved(), item1->mReserved)
-          TESTING_EQUAL(item1->thinning(), item1->mThinning)
+          TESTING_EQUAL(item1->reserved(), ((item1->mTypeSpecific >> 4) & 0xF))
+          TESTING_EQUAL(item1->thinning(), ((item1->mTypeSpecific >> 0) & 0xF))
           TESTING_EQUAL(item1->ssrcOfSource(), item1->mSSRCOfSource)
           TESTING_EQUAL(item1->beginSeq(), item1->mBeginSeq)
           TESTING_EQUAL(item1->endSeq(), item1->mEndSeq)
-
-          checkMaxBits(item1->mReserved, 4);
-          checkMaxBits(item1->mThinning, 4);
         }
 
         //---------------------------------------------------------------------
@@ -2020,7 +2007,17 @@ namespace ortc
                 break;
               }
               default:                                                {
-                checkEqual(current1->typeSpecificContents(), current1->typeSpecificContentSize(), current2->typeSpecificContents(), current2->typeSpecificContentSize());
+                // padding could cause the buffer size to be increased to padding size
+                TESTING_EQUAL(boundarySize(current1->typeSpecificContentSize()), boundarySize(current2->typeSpecificContentSize()))
+                
+                // check within boundary size
+                auto size1 = current1->typeSpecificContentSize();
+                auto size2 = current2->typeSpecificContentSize();
+
+                if (size1 < size2) size2 = size1;
+                if (size2 < size1) size1 = size2;
+
+                checkEqual(current1->typeSpecificContents(), size1, current2->typeSpecificContents(), size2);
                 break;
               }
             }
@@ -2294,13 +2291,13 @@ namespace ortc
 
           common->mSSRCOfSender = randomDWORD();
 
-          if (shouldPerform(ORTC_RTCP_TEST_PROBABILITY_OF_SENDER_RECEIVER_REPORT_HAVING_EXTENSION)) {
+          if (shouldPerform(30)) {
             common->mExtensionSize = randomSize(1, 1000);
             common->mExtension = new BYTE[common->mExtensionSize];
             randomizeBufferSequencial(const_cast<BYTE *>(common->mExtension), common->mExtensionSize);
           }
 
-          if (shouldPerform(ORTC_RTCP_TEST_PROBABILITY_OF_SENDER_RECEIVER_REPORT_HAVING_REPORT_BLOCKS)) {
+          if (shouldPerform(70)) {
             common->mReportSpecific = static_cast<BYTE>(randomSize(1, randomBYTE(5)));
 
             common->mFirstReportBlock = new CommonReportBlock[common->rc()];
@@ -2357,19 +2354,38 @@ namespace ortc
 
           if (shouldPerform(80)) {
             common->mPrefixLength = random(1, 20);
+            if (shouldPerform(5)) {
+              common->mPrefixLength = 0xFE;   // force to maximum length
+            } else if (shouldPerform(5)) {
+              common->mPrefixLength = 0xFD;   // force to maximum length-1
+            } else if (shouldPerform(5)) {
+              common->mPrefixLength = 1;      // force to minimum length possible
+            }
             common->mPrefix = new char[common->mPrefixLength+1];
             memset(const_cast<char *>(common->mPrefix), 0, (common->mPrefixLength+1)*sizeof(char));
 
             String str = randomString(common->mPrefixLength);
             memcpy(const_cast<char *>(common->mPrefix), str.c_str(), common->mPrefixLength);
           }
-          if (shouldPerform(95)) {
-            common->mLength = random(1, 0xFF-(common->mPrefixLength)-1);
-            common->mValue = new char[common->mLength+1];
-            memset(const_cast<char *>(common->mValue), 0, (common->mLength+1)*sizeof(char));
 
-            String str = randomString(common->mLength);
-            memcpy(const_cast<char *>(common->mValue), str.c_str(), common->mLength);
+          if (shouldPerform(95)) {
+            if (common->mPrefixLength < 0xFE) {
+              common->mLength = random(1, 0xFF-(common->mPrefixLength)-1);
+              if (shouldPerform(5)) {
+                common->mLength = 0xFF-(common->mPrefixLength)-1;   // force to maximum length possible
+              } else if (shouldPerform(5)) {
+                if (common->mPrefixLength < 0xFD) {
+                  common->mLength = 0xFF-(common->mPrefixLength)-2; // force to maximum length possible-1
+                }
+              } else if (shouldPerform(5)) {
+                common->mLength = 1;                                // force to minimum length possible
+              }
+              common->mValue = new char[common->mLength+1];
+              memset(const_cast<char *>(common->mValue), 0, (common->mLength+1)*sizeof(char));
+
+              String str = randomString(common->mLength);
+              memcpy(const_cast<char *>(common->mValue), str.c_str(), common->mLength);
+            }
           }
         }
 
@@ -2379,6 +2395,13 @@ namespace ortc
           common->mType = type;
           if (shouldPerform(95)) {
             common->mLength = random(1, 0xFF);
+            if (shouldPerform(5)) {
+              common->mLength = 0xFF; // force to maximum length
+            } else if (shouldPerform(5)) {
+              common->mLength = 0xFF-1; // force to maximum length-1
+            } else if (shouldPerform(5)) {
+              common->mLength = 1;      // force to minimum length possible
+            }
             common->mValue = new char[common->mLength+1];
             memset(const_cast<char *>(common->mValue), 0, (common->mLength+1)*sizeof(char));
 
@@ -2538,7 +2561,10 @@ namespace ortc
 
           result->mReportSpecific = random(0, 15);
           result->mSSRC = randomDWORD();
-          randomizeBuffer(reinterpret_cast<BYTE *>(&(result->mName[0])), sizeof(result->mName)-sizeof(char));
+
+          String tmp = randomString(sizeof(DWORD));
+
+          memcpy(&(result->mName[0]), tmp.c_str(), sizeof(DWORD));
 
           if (shouldPerform(80)) {
             result->mDataSize = randomSize(1, 150);
@@ -2688,6 +2714,13 @@ namespace ortc
 
               if (shouldPerform(80)) {
                 result->mRPSI.mNativeRPSIBitStringSizeInBits = (random(1, 50*8));
+                if (shouldPerform(5)) {
+                  result->mRPSI.mNativeRPSIBitStringSizeInBits = 0xFFFF;      // force to max length
+                } else if (shouldPerform(5)) {
+                  result->mRPSI.mNativeRPSIBitStringSizeInBits = (0xFFFF-1);  // force to max length-1
+                } else if (shouldPerform(5)) {
+                  result->mRPSI.mNativeRPSIBitStringSizeInBits = 1;           // force to minimu length possible
+                }
                 result->mRPSI.mNativeRPSIBitString = new BYTE[((result->mRPSI.mNativeRPSIBitStringSizeInBits)/8)+1];
 
                 randomizeBufferSequencial(const_cast<BYTE *>(result->mRPSI.mNativeRPSIBitString), (result->mRPSI.mNativeRPSIBitStringSizeInBits/8)+1);
@@ -2746,27 +2779,66 @@ namespace ortc
               break;
             }
             case VBCM::kFmt:        {
-              result->mVBCMCount = randomSize(1, 25);
-              result->mFirstVBCM = new VBCM[result->mVBCMCount];
+              size_t totalSize = 0;
 
-              for (size_t index = 0; index < result->mVBCMCount; ++index) {
-                auto current = (&(result->mFirstVBCM[index]));
+              result->mVBCMCount = 0;
+              result->mFirstVBCM = NULL;
 
-                current->mSSRC = randomBYTE();
-                current->mControlSpecific = static_cast<DWORD>(randomBYTE(7)) << 16;
-                if (shouldPerform(10)) {
-                  current->mControlSpecific = current->mControlSpecific | (1 << 23);
+              do {
+
+                for (size_t index = 0; index < result->mVBCMCount; ++index) {
+                  auto current = (&(result->mFirstVBCM[index]));
+
+                  if (current->mVBCMOctetString) {
+                    delete [] const_cast<BYTE *>(current->mVBCMOctetString);
+                    current->mVBCMOctetString = NULL;
+                  }
                 }
-                current->mSeqNr = randomBYTE();
-                current->mReserved = 0;
-                if (shouldPerform(90)) {
-                  WORD size = randomWORD();
-                  current->mControlSpecific = current->mControlSpecific | static_cast<DWORD>(size);
-                  current->mVBCMOctetString = new BYTE[static_cast<size_t>(size)];
-
-                  randomizeBufferSequencial(const_cast<BYTE *>(current->mVBCMOctetString), static_cast<size_t>(size));
+                if (NULL != result->mFirstVBCM) {
+                  delete [] result->mFirstVBCM;
+                  result->mFirstVBCM = NULL;
                 }
-              }
+
+                result->mVBCMCount = randomSize(1, 25);
+                result->mFirstVBCM = new VBCM[result->mVBCMCount];
+
+                totalSize = (sizeof(DWORD)*2);
+
+                for (size_t index = 0; index < result->mVBCMCount; ++index) {
+                  auto current = (&(result->mFirstVBCM[index]));
+
+                  current->mSSRC = randomDWORD();
+                  current->mControlSpecific = static_cast<DWORD>(randomBYTE(7)) << 16;
+                  if (shouldPerform(10)) {
+                    current->mControlSpecific = current->mControlSpecific | (1 << 23);
+                  }
+                  current->mSeqNr = randomBYTE();
+                  current->mReserved = 0;
+
+                  totalSize += sizeof(DWORD)*2;
+
+                  if (shouldPerform(90)) {
+                    WORD size = randomWORD();
+                    if (shouldPerform(50)) {
+                      size = size % 1000; // keep small to prevent massively large RTCP report blocks
+                    }
+                    if (shouldPerform(5)) {
+                      size = 0xFFFF;                // fill to capacity
+                    } else if (shouldPerform(5)) {
+                      size = (0xFFFF-1);            // fill to capacity-1
+                    } else if (shouldPerform(5)) {
+                      size = 1;                     // fill to minum capacity possible
+                    }
+                    if (0 == size) ++size;
+
+                    totalSize += boundarySize(size);
+                    current->mControlSpecific = current->mControlSpecific | static_cast<DWORD>(size);
+                    current->mVBCMOctetString = new BYTE[static_cast<size_t>(size)];
+
+                    randomizeBufferSequencial(const_cast<BYTE *>(current->mVBCMOctetString), static_cast<size_t>(size));
+                  }
+                }
+              } while ((totalSize / sizeof(DWORD)) > 0xFFFF);
               break;
             }
             case AFB::kFmt:         {
@@ -2811,9 +2883,11 @@ namespace ortc
         static void fillReportBlockRange(ReportBlockRange *range)
         {
           if (shouldPerform(5)) {
-            range->mReserved = randomBYTE(4);
+            range->mTypeSpecific = (randomBYTE(4)) << 4;
+          } else {
+            range->mTypeSpecific = 0;
           }
-          range->mThinning = randomBYTE(4);
+          range->mTypeSpecific = range->mTypeSpecific | randomBYTE(4);
 
           range->mSSRCOfSource = randomDWORD();
           range->mBeginSeq = randomWORD();
@@ -3232,6 +3306,10 @@ namespace ortc
             lastReport = current;
           }
 
+          if (shouldPerform(10)) {
+            lastReport->mPadding = randomSize(1, 50);
+          }
+
           mGeneratedFirst = first;
         }
 
@@ -3313,6 +3391,10 @@ static void bogusSleep()
 ZS_DECLARE_USING_PTR(ortc::test::rtcppacket, Tester)
 ZS_DECLARE_USING_PTR(ortc::internal, RTCPPacket)
 
+static signed gSeeds[] = {-57479, 1000, 1001, -17, 89, -97};
+
+using namespace ortc::test;
+
 void doTestRTCPPacket()
 {
   if (!ORTC_TEST_DO_RTCP_PACKET_TEST) return;
@@ -3345,10 +3427,6 @@ void doTestRTCPPacket()
       switch (testNumber) {
         case TEST_BASIC_RTCP: {
           {
-            testObject1 = Tester::create();
-            testObject2 = Tester::create();
-
-            TESTING_CHECK(testObject1)
           }
           break;
         }
@@ -3380,8 +3458,23 @@ void doTestRTCPPacket()
           case TEST_BASIC_RTCP: {
             switch (step) {
               case 1: {
-                testObject1->compare();
-                testObject2->compare();
+                for (size_t index = 0; 0 != gSeeds[index]; ++index) {
+                  TESTING_STDOUT() << "\n\nTESTING SEED: [" << gSeeds[index] << "].\n\n";
+                  ZS_LOG_BASIC(Tester::slog("testing seed") + ZS_PARAM("seed", gSeeds[index]))
+
+                  srand(static_cast<unsigned>(gSeeds[index]));  // want fixed random seeds that guarentee API coverage
+
+                  testObject1 = Tester::create();
+                  testObject2 = Tester::create();
+
+                  TESTING_CHECK(testObject1)
+
+                  testObject1->compare();
+                  testObject2->compare();
+
+                  testObject1.reset();
+                  testObject2.reset();
+                }
                 break;
               }
               case 2: {
@@ -3453,4 +3546,6 @@ void doTestRTCPPacket()
   TESTING_UNINSTALL_LOGGER();
   zsLib::proxyDump();
   TESTING_EQUAL(zsLib::proxyGetTotalConstructed(), 0);
+
+  srand(static_cast<unsigned>(time(NULL))); // put seed back to current time
 }

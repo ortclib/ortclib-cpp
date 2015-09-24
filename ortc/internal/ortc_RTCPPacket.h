@@ -752,7 +752,7 @@ namespace ortc
 
         struct CodecControlCommon
         {
-          DWORD ssrc() const                         {return mSSRC;}
+          DWORD ssrc() const                        {return mSSRC;}
           BYTE seqNr() const                        {return mSeqNr;}
           DWORD reserved() const                    {return mReserved;}
 
@@ -968,17 +968,14 @@ namespace ortc
 
         struct ReportBlockRange : public ReportBlock
         {
-          BYTE reserved() const                               {return mReserved;}
-          BYTE thinning() const                               {return mThinning;}
+          BYTE reserved() const;
+          BYTE thinning() const;
 
           DWORD ssrcOfSource() const                          {return mSSRCOfSource;}
           WORD beginSeq() const                               {return mBeginSeq;}
           WORD endSeq() const                                 {return mEndSeq;}
 
         public:
-          BYTE mReserved {};
-          BYTE mThinning {};
-
           DWORD mSSRCOfSource {};
           WORD mBeginSeq {};
           WORD mEndSeq {};

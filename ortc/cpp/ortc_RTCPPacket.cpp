@@ -73,7 +73,7 @@ namespace ortc
     #pragma mark (helpers)
     #pragma mark
 
-    static const size_t kMinRtcpPacketLen = 12;
+    static const size_t kMinRtcpPacketLen = 4;
     static const BYTE kRtpVersion = 2;
 
     //-------------------------------------------------------------------------
@@ -142,17 +142,6 @@ namespace ortc
     {
       ASSERT(value <= ((1 << maxBits)-1))
       ORTC_THROW_INVALID_PARAMETERS_IF(value > ((1 << maxBits)-1))
-      return true;
-    }
-
-    //-------------------------------------------------------------------------
-    static bool throwIfGreaterThan(
-                                   size_t size,
-                                   size_t max
-                                   )
-    {
-      ASSERT(size <= max)
-      ORTC_THROW_INVALID_PARAMETERS_IF(size > max)
       return true;
     }
 
@@ -522,6 +511,7 @@ namespace ortc
     RTCPPacket::PayloadSpecificFeedbackMessage::AFB *RTCPPacket::PayloadSpecificFeedbackMessage::afb() const
     {
       if (AFB::kFmt != fmt()) return NULL;
+      if (mHasREMB) return NULL;
       return const_cast<AFB *>(&mAFB);
     }
 
@@ -565,63 +555,19 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark RTCPPacket::XR
+    #pragma mark RTCPPacket::XR::ReportBlockRange
     #pragma mark
 
     //-------------------------------------------------------------------------
-    RTCPPacket::XR::LossRLEReportBlock *RTCPPacket::XR::lossRLEReportBlockAtIndex(size_t index) const
+    BYTE RTCPPacket::XR::ReportBlockRange::reserved() const
     {
-      ASSERT(index < mLossRLEReportBlockCount)
-      return &(mFirstLossRLEReportBlock[index]);
+      return RTCP_GET_BITS(mTypeSpecific, 0xF, 4);
     }
 
     //-------------------------------------------------------------------------
-    RTCPPacket::XR::DuplicateRLEReportBlock *RTCPPacket::XR::duplicateRLEReportBlockAtIndex(size_t index) const
+    BYTE RTCPPacket::XR::ReportBlockRange::thinning() const
     {
-      ASSERT(index < mDuplicateRLEReportBlockCount)
-      return &(mFirstDuplicateRLEReportBlock[index]);
-    }
-
-    //-------------------------------------------------------------------------
-    RTCPPacket::XR::PacketReceiptTimesReportBlock *RTCPPacket::XR::packetReceiptTimesReportBlockAtIndex(size_t index) const
-    {
-      ASSERT(index < mPacketReceiptTimesReportBlockCount)
-      return &(mFirstPacketReceiptTimesReportBlock[index]);
-    }
-
-    //-------------------------------------------------------------------------
-    RTCPPacket::XR::ReceiverReferenceTimeReportBlock *RTCPPacket::XR::receiverReferenceTimeReportBlockAtIndex(size_t index) const
-    {
-      ASSERT(index < mReceiverReferenceTimeReportBlockCount)
-      return &(mFirstReceiverReferenceTimeReportBlock[index]);
-    }
-
-    //-------------------------------------------------------------------------
-    RTCPPacket::XR::DLRRReportBlock *RTCPPacket::XR::dlrrReportBlockAtIndex(size_t index) const
-    {
-      ASSERT(index < mDLRRReportBlockCount)
-      return &(mFirstDLRRReportBlock[index]);
-    }
-
-    //-------------------------------------------------------------------------
-    RTCPPacket::XR::StatisticsSummaryReportBlock *RTCPPacket::XR::statisticsSummaryReportBlockAtIndex(size_t index) const
-    {
-      ASSERT(index < mStatisticsSummaryReportBlockCount)
-      return &(mFirstStatisticsSummaryReportBlock[index]);
-    }
-
-    //-------------------------------------------------------------------------
-    RTCPPacket::XR::VoIPMetricsReportBlock *RTCPPacket::XR::voIPMetricsReportBlockAtIndex(size_t index) const
-    {
-      ASSERT(index < mVoIPMetricsReportBlockCount)
-      return &(mFirstVoIPMetricsReportBlock[index]);
-    }
-
-    //-------------------------------------------------------------------------
-    RTCPPacket::XR::UnknownReportBlock *RTCPPacket::XR::unknownReportBlockAtIndex(size_t index) const
-    {
-      ASSERT(index < mUnknownReportBlockCount)
-      return &(mFirstUnknownReportBlock[index]);
+      return RTCP_GET_BITS(mTypeSpecific, 0xF, 0);
     }
 
     //-------------------------------------------------------------------------
@@ -790,6 +736,62 @@ namespace ortc
     #pragma mark
     #pragma mark RTCPPacket::XR
     #pragma mark
+
+    //-------------------------------------------------------------------------
+    RTCPPacket::XR::LossRLEReportBlock *RTCPPacket::XR::lossRLEReportBlockAtIndex(size_t index) const
+    {
+      ASSERT(index < mLossRLEReportBlockCount)
+      return &(mFirstLossRLEReportBlock[index]);
+    }
+
+    //-------------------------------------------------------------------------
+    RTCPPacket::XR::DuplicateRLEReportBlock *RTCPPacket::XR::duplicateRLEReportBlockAtIndex(size_t index) const
+    {
+      ASSERT(index < mDuplicateRLEReportBlockCount)
+      return &(mFirstDuplicateRLEReportBlock[index]);
+    }
+
+    //-------------------------------------------------------------------------
+    RTCPPacket::XR::PacketReceiptTimesReportBlock *RTCPPacket::XR::packetReceiptTimesReportBlockAtIndex(size_t index) const
+    {
+      ASSERT(index < mPacketReceiptTimesReportBlockCount)
+      return &(mFirstPacketReceiptTimesReportBlock[index]);
+    }
+
+    //-------------------------------------------------------------------------
+    RTCPPacket::XR::ReceiverReferenceTimeReportBlock *RTCPPacket::XR::receiverReferenceTimeReportBlockAtIndex(size_t index) const
+    {
+      ASSERT(index < mReceiverReferenceTimeReportBlockCount)
+      return &(mFirstReceiverReferenceTimeReportBlock[index]);
+    }
+
+    //-------------------------------------------------------------------------
+    RTCPPacket::XR::DLRRReportBlock *RTCPPacket::XR::dlrrReportBlockAtIndex(size_t index) const
+    {
+      ASSERT(index < mDLRRReportBlockCount)
+      return &(mFirstDLRRReportBlock[index]);
+    }
+
+    //-------------------------------------------------------------------------
+    RTCPPacket::XR::StatisticsSummaryReportBlock *RTCPPacket::XR::statisticsSummaryReportBlockAtIndex(size_t index) const
+    {
+      ASSERT(index < mStatisticsSummaryReportBlockCount)
+      return &(mFirstStatisticsSummaryReportBlock[index]);
+    }
+
+    //-------------------------------------------------------------------------
+    RTCPPacket::XR::VoIPMetricsReportBlock *RTCPPacket::XR::voIPMetricsReportBlockAtIndex(size_t index) const
+    {
+      ASSERT(index < mVoIPMetricsReportBlockCount)
+      return &(mFirstVoIPMetricsReportBlock[index]);
+    }
+
+    //-------------------------------------------------------------------------
+    RTCPPacket::XR::UnknownReportBlock *RTCPPacket::XR::unknownReportBlockAtIndex(size_t index) const
+    {
+      ASSERT(index < mUnknownReportBlockCount)
+      return &(mFirstUnknownReportBlock[index]);
+    }
 
     //-------------------------------------------------------------------------
     bool RTCPPacket::XR::isRunLengthChunk(RLEChunk chunk)
@@ -1361,8 +1363,6 @@ namespace ortc
         if (NULL != format) {
           ElementPtr formatEl = Element::create("PLI");
 
-          //UseServicesHelper::debugAppend(formatEl, "pid", format->pid());
-
           UseServicesHelper::debugAppend(subEl, formatEl);
         }
       }
@@ -1913,7 +1913,7 @@ namespace ortc
 
           size_t length = sizeof(DWORD) + (static_cast<size_t>(UseHelper::getBE16(&(pos[2]))) * sizeof(DWORD));
 
-          BYTE padding = 0;
+          size_t padding = 0;
 
           if (RTCP_IS_FLAG_SET(*pos, 5)) {
             if (foundPaddingBit) {
@@ -1924,7 +1924,14 @@ namespace ortc
             padding = buffer[size-1];
           }
 
-          if (remaining < length + static_cast<size_t>(padding)) {
+          if ((sizeof(DWORD) + padding) > length) {
+            ZS_LOG_WARNING(Trace, debug("malformed padding size in RTCP packet"))
+            return false;
+          }
+
+          length -= padding;
+
+          if (remaining < length) {
             ZS_LOG_WARNING(Trace, debug("insufficient length remaining for RTCP block") + ZS_PARAM("length", length) + ZS_PARAM("remaining", remaining))
             return false;
           }
@@ -1938,9 +1945,13 @@ namespace ortc
 
           size_t preAllocationSize = mAllocationSize;
 
-          if (!getAllocationSize(version, padding, reportSpecific, pt, pos, length - sizeof(DWORD))) return false;
+          if (!getAllocationSize(version, static_cast<BYTE>(padding), reportSpecific, pt, pos, length - sizeof(DWORD))) return false;
 
           advancePos(pos, remaining, length - sizeof(DWORD));
+
+          if (0 != padding) {
+            advancePos(pos, remaining, padding);
+          }
 
           if (ZS_IS_LOGGING(Insane)) {
             ZS_LOG_TRACE(log("report allocation size") + ZS_PARAM("pt", Report::ptToString(pt)) + ZS_PARAM("pt (number)", pt) + ZS_PARAM("consumed", (reinterpret_cast<PTRNUMBER>(pos) - reinterpret_cast<PTRNUMBER>(prePos))) + ZS_PARAM("allocation size", mAllocationSize - preAllocationSize))
@@ -2010,10 +2021,11 @@ namespace ortc
           auto version = RTCP_GET_BITS(*pos, 0x3, 6);
           size_t length = sizeof(DWORD) + (static_cast<size_t>(UseHelper::getBE16(&(pos[2]))) * sizeof(DWORD));
 
-          BYTE padding = 0;
+          size_t padding = 0;
 
           if (RTCP_IS_FLAG_SET(*pos, 5)) {
             padding = buffer[size-1];
+            length -= padding; // already protected during pre-parse against malformed padding length
           }
 
           BYTE reportSpecific = RTCP_GET_BITS(*pos, 0x1F, 0);
@@ -2025,13 +2037,17 @@ namespace ortc
 
           size_t preAllocationSize = mAllocationSize;
 
-          if (!parse(lastReport, version, padding, reportSpecific, pt, pos, length - sizeof(DWORD))) return false;
+          if (!parse(lastReport, version, static_cast<BYTE>(padding), reportSpecific, pt, pos, length - sizeof(DWORD))) return false;
 
           if (NULL == mFirst) {
             mFirst = lastReport;
           }
 
           advancePos(pos, remaining, length - sizeof(DWORD));
+
+          if (0 != padding) {
+            advancePos(pos, remaining, padding);
+          }
 
           if (ZS_IS_LOGGING(Insane)) {
             ZS_LOG_TRACE(log("report parsed") + ZS_PARAM("pt", Report::ptToString(pt)) + ZS_PARAM("pt (number)", pt) + ZS_PARAM("consumed", (reinterpret_cast<PTRNUMBER>(pos) - reinterpret_cast<PTRNUMBER>(prePos))) + ZS_PARAM("consumed allocation", preAllocationSize - mAllocationSize))
@@ -2656,6 +2672,7 @@ namespace ortc
 
       while (remaining >= (sizeof(DWORD)*2)) {
         mAllocationSize += alignedSize(sizeof(PayloadSpecificFeedbackMessage::VBCM));
+        ++possibleVBCMs;
 
         size_t length = UseHelper::getBE16(&(pos[6]));
         size_t modulas = length % sizeof(DWORD);
@@ -3369,8 +3386,6 @@ namespace ortc
       }
       ++mByeCount;
 
-      report->mSSRCs = new (allocateBuffer(alignedSize(sizeof(DWORD))*(report->sc()))) DWORD[report->sc()];
-
       const BYTE *pos = report->ptr();
       size_t remaining = report->size();
 
@@ -3381,6 +3396,10 @@ namespace ortc
         }
 
         return true;
+      }
+
+      if (0 != report->sc()) {
+        report->mSSRCs = new (allocateBuffer(alignedSize(sizeof(DWORD))*(report->sc()))) DWORD[report->sc()];
       }
 
       {
@@ -3867,7 +3886,7 @@ namespace ortc
       common->mSSRC = UseHelper::getBE32(&(pos[0]));
       common->mMxTBRExp = RTCP_GET_BITS(pos[4], 0x3F, 2);
       common->mMxTBRMantissa = RTCP_GET_BITS(UseHelper::getBE32(&(pos[4])), 0x1FFFF, 9);
-      common->mMeasuredOverhead = RTCP_GET_BITS(UseHelper::getBE32(&(pos[6])), 0x1FF, 0);
+      common->mMeasuredOverhead = RTCP_GET_BITS(UseHelper::getBE32(&(pos[4])), 0x1FF, 0);
     }
     
     //-------------------------------------------------------------------------
@@ -3907,33 +3926,25 @@ namespace ortc
       const BYTE *pos = report->fci();
       size_t remaining = report->fciSize();
 
-      {
-        size_t possibleTMMBNs = remaining / (sizeof(DWORD)*2);
+      size_t possibleTMMBNs = remaining / (sizeof(DWORD)*2);
 
-        ASSERT(0 != possibleTMMBNs)
+      ASSERT(0 != possibleTMMBNs)
 
-        report->mFirstTMMBN = new (allocateBuffer(alignedSize(sizeof(TMMBN))*possibleTMMBNs)) TMMBN[possibleTMMBNs];
+      report->mFirstTMMBN = new (allocateBuffer(alignedSize(sizeof(TMMBN))*possibleTMMBNs)) TMMBN[possibleTMMBNs];
 
-        while (remaining >= (sizeof(DWORD)*2)) {
-          TMMBN *tmmbr = &(report->mFirstTMMBN[report->mTMMBNCount]);
+      while (remaining >= (sizeof(DWORD)*2)) {
+        TMMBN *tmmbr = &(report->mFirstTMMBN[report->mTMMBNCount]);
 
-          fillTMMBRCommon(report, tmmbr, pos);
+        fillTMMBRCommon(report, tmmbr, pos);
 
-          advancePos(pos, remaining, sizeof(DWORD)*2);
+        advancePos(pos, remaining, sizeof(DWORD)*2);
 
-          ++(report->mTMMBNCount);
-        }
-
-        ASSERT(possibleTMMBNs == report->mTMMBNCount)
-
-        return true;
+        ++(report->mTMMBNCount);
       }
 
-    illegal_remaining:
-      {
-        ZS_LOG_WARNING(Trace, debug("malformed report block range") + ZS_PARAM("pos", reinterpret_cast<PTRNUMBER>(pos) - reinterpret_cast<PTRNUMBER>(report->fci()))  + ZS_PARAM("remaining", remaining))
-      }
-      return false;
+      ASSERT(possibleTMMBNs == report->mTMMBNCount)
+
+      return true;
     }
 
     //-------------------------------------------------------------------------
@@ -4160,6 +4171,10 @@ namespace ortc
           VBCM *vcbm = &(report->mFirstVBCM[report->mVBCMCount]);
           fillCodecControlCommon(report, vcbm, pos);
 
+          // move reserved to control specific
+          vcbm->mControlSpecific = vcbm->mReserved;
+          vcbm->mReserved = 0;
+
           size_t length = UseHelper::getBE16(&(pos[6]));
           size_t modulas = length % sizeof(DWORD);
           size_t padding = ((0 != modulas) ? (sizeof(DWORD)-modulas) : 0);
@@ -4180,9 +4195,8 @@ namespace ortc
         }
 
         ASSERT(possibleVBCMs == report->mVBCMCount)
-
-        return true;
       }
+      return true;
     }
 
     //-------------------------------------------------------------------------
@@ -4266,8 +4280,6 @@ namespace ortc
       {
         if (remaining < (sizeof(DWORD)*2)) goto illegal_remaining;
 
-        reportBlock->mReserved = RTCP_GET_BITS(reportBlock->mTypeSpecific, 0xF, 4);
-        reportBlock->mThinning = RTCP_GET_BITS(reportBlock->mTypeSpecific, 0xF, 0);
         reportBlock->mSSRCOfSource = UseHelper::getBE32(&(pos[0]));
         reportBlock->mBeginSeq = UseHelper::getBE16(&(pos[4]));
         reportBlock->mEndSeq = UseHelper::getBE16(&(pos[6]));
@@ -4349,7 +4361,7 @@ namespace ortc
 
       advancePos(pos, remaining, sizeof(DWORD)*2);
 
-      size_t possibleTimes = sizeof(DWORD) / remaining;
+      size_t possibleTimes = remaining / sizeof(DWORD);
 
       if (0 == possibleTimes) return true;
 
@@ -4803,7 +4815,7 @@ namespace ortc
             auto vbcm = fm->vbcmAtIndex(index);
             ORTC_THROW_INVALID_PARAMETERS_IF(NULL == vbcm)
 
-            size_t size = (sizeof(DWORD)*2) + vbcm->vbcmOctetStringSize();
+            size_t size = (sizeof(DWORD)*2) + (vbcm->vbcmOctetStringSize()*sizeof(BYTE));
             result += boundarySize(size);
           }
           break;
@@ -5014,7 +5026,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     static void writePacketHeader(const RTCPPacket::Report *report, BYTE * &pos, size_t &remaining)
     {
-      ASSERT(remaining > sizeof(DWORD))
+      ASSERT(remaining >= sizeof(DWORD))
       ASSERT(2 == report->version())
 
       auto padding = report->padding();
@@ -5551,16 +5563,19 @@ namespace ortc
           {
             auto item = report->vbcmAtIndex(index);
 
-            pos[0] = item->seqNr();
-            pos[1] = RTCP_PACK_BITS(static_cast<BYTE>(item->zeroBit()), 0x1, 7) |
+            UseHelper::setBE32(&(pos[0]), item->ssrc());
+
+            pos[4] = item->seqNr();
+            pos[5] = RTCP_PACK_BITS(static_cast<BYTE>(item->zeroBit()), 0x1, 7) |
                      RTCP_PACK_BITS(static_cast<BYTE>(item->payloadType()), 0x7F, 0);
 
             auto size = item->vbcmOctetStringSize();
             if (0 != size) {
-              memcpy(&(pos[2]), item->vbcmOctetString(), size*sizeof(BYTE));
+              UseHelper::setBE16(&(pos[6]), size);
+              memcpy(&(pos[8]), item->vbcmOctetString(), size*sizeof(BYTE));
             }
 
-            advancePos(pos, remaining, boundarySize((sizeof(DWORD)*2)+sizeof(WORD)+(size*sizeof(BYTE))));
+            advancePos(pos, remaining, boundarySize((sizeof(DWORD)*2)+(size*sizeof(BYTE))));
           }
           break;
         }
@@ -5660,6 +5675,7 @@ namespace ortc
           case DuplicateRLEReportBlock::kBlockType:
           {
             auto block = reinterpret_cast<const DuplicateRLEReportBlock *>(reportBlock);
+
             UseHelper::setBE32(&(pos[0]), block->ssrcOfSource());
             UseHelper::setBE16(&(pos[4]), block->beginSeq());
             UseHelper::setBE16(&(pos[6]), block->endSeq());
@@ -5678,6 +5694,7 @@ namespace ortc
           case PacketReceiptTimesReportBlock::kBlockType:
           {
             auto block = reinterpret_cast<const PacketReceiptTimesReportBlock *>(reportBlock);
+
             UseHelper::setBE32(&(pos[0]), block->ssrcOfSource());
             UseHelper::setBE16(&(pos[4]), block->beginSeq());
             UseHelper::setBE16(&(pos[6]), block->endSeq());
@@ -5816,12 +5833,8 @@ namespace ortc
       ASSERT(sizeof(char) == sizeof(BYTE))
       ASSERT(NULL != first)
 
-      const Report *final = NULL;
-
       for (const Report *report = first; NULL != report; report = report->next())
       {
-        final = report;
-
         BYTE *startOfReport = pos;
 
         writePacketHeader(report, pos, remaining);
@@ -5896,18 +5909,20 @@ namespace ortc
           ZS_LOG_TRACE(slog("writing report") + ZS_PARAM("pt", report->ptToString()) + ZS_PARAM("pt (number)", report->pt()) + ZS_PARAM("size", diff))
         }
 
-        UseHelper::setBE16(&(startOfReport[2]), (diff/sizeof(DWORD))-1);
-      }
+        size_t padding = 0;
 
-      if (NULL != final) {
-        auto padding = final->padding();
-        if (0 != padding) {
-          if (padding > 1) {
-            advancePos(pos, remaining, padding*sizeof(BYTE));
+        if (NULL == report->next()) {
+          padding = boundarySize(static_cast<size_t>(report->padding()));
+          if (0 != padding) {
+            if (padding > 1) {
+              advancePos(pos, remaining, (padding-1)*sizeof(BYTE));
+            }
+            pos[0] = static_cast<BYTE>(padding);
+            advancePos(pos, remaining);
           }
-          pos[0] = padding;
-          advancePos(pos, remaining);
         }
+
+        UseHelper::setBE16(&(startOfReport[2]), ((diff+padding)/sizeof(DWORD))-1);
       }
 
       ASSERT(0 == remaining)
