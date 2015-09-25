@@ -1174,6 +1174,7 @@ namespace ortc
           UseServicesHelper::debugAppend(chunkEl, "bit vector", bits);
         } else {
           chunkEl = Element::create("unknown");
+          UseServicesHelper::debugAppend(chunkEl, "value", chunk);
         }
 
         UseServicesHelper::debugAppend(outerEl, chunkEl);
@@ -1392,12 +1393,11 @@ namespace ortc
         if (NULL != format) {
           ElementPtr formatEl = Element::create("RPSI");
 
-          UseServicesHelper::debugAppend(formatEl, "pb", format->pb());
           UseServicesHelper::debugAppend(formatEl, "zero bit", format->zeroBit());
           UseServicesHelper::debugAppend(formatEl, "payload type", format->payloadType());
 
           UseServicesHelper::debugAppend(formatEl, "native rpsi bit string", (NULL != format->nativeRPSIBitString()));
-          UseServicesHelper::debugAppend(formatEl, "native rpsi bit string size", format->nativeRPSIBitStringSizeInBits());
+          UseServicesHelper::debugAppend(formatEl, "native rpsi bit string size (bits)", format->nativeRPSIBitStringSizeInBits());
 
           UseServicesHelper::debugAppend(subEl, formatEl);
         }
@@ -4000,7 +4000,7 @@ namespace ortc
       {
         if (remaining < sizeof(WORD)) goto illegal_remaining;
 
-        report->mRPSI.mPB = pos[0];
+        BYTE pb = pos[0];
         report->mRPSI.mZeroBit = RTCP_GET_BITS(pos[1], 0x1, 7);
         report->mRPSI.mPayloadType = RTCP_GET_BITS(pos[1], 0x7F, 0);
 
@@ -4009,9 +4009,9 @@ namespace ortc
         if (remaining > 0) {
           report->mRPSI.mNativeRPSIBitString = pos;
           report->mRPSI.mNativeRPSIBitStringSizeInBits = (remaining*8);
-          if (report->mRPSI.mPB > report->mRPSI.mNativeRPSIBitStringSizeInBits) goto illegal_remaining;
+          if (pb > report->mRPSI.mNativeRPSIBitStringSizeInBits) goto illegal_remaining;
 
-          report->mRPSI.mNativeRPSIBitStringSizeInBits -= static_cast<size_t>(report->mRPSI.mPB);
+          report->mRPSI.mNativeRPSIBitStringSizeInBits -= static_cast<size_t>(pb);
           if (0 == report->mRPSI.mNativeRPSIBitStringSizeInBits) {
             report->mRPSI.mNativeRPSIBitString = NULL;
           }
@@ -5485,24 +5485,32 @@ namespace ortc
         {
           auto rpsi = report->rpsi();
 
-          pos[0] = rpsi->pb();
           pos[1] = RTCP_PACK_BITS(static_cast<BYTE>(rpsi->zeroBit()), 0x1, 7) |
                    RTCP_PACK_BITS(static_cast<BYTE>(rpsi->payloadType()), 0x7F, 0);
 
-          auto size = rpsi->nativeRPSIBitStringSizeInBits();
-          auto modulas = static_cast<BYTE>(size%8);
-          size = size/8;
-          if (0 != modulas) ++size;
-          if (0 != size) {
-            memcpy(&(pos[2]), rpsi->nativeRPSIBitString(), size);
-            if (0 != modulas) {
-              // fill the extra bits at the end of the bit stream with 0s
-              BYTE &by = (pos[2+size-1]);
-              by = by & (((1 << modulas)-1) << (8-modulas));
+          auto totalBits = static_cast<size_t>(rpsi->nativeRPSIBitStringSizeInBits());
+
+          size_t byteModulas = (totalBits%8);
+
+          size_t totalBytes = (totalBits/8) + ((0 != byteModulas) ? 1 : 0);
+          if (0 != totalBytes) {
+            memcpy(&(pos[2]), rpsi->nativeRPSIBitString(), totalBytes);
+            if (0 != byteModulas) {
+              BYTE &by = (pos[2+totalBytes-1]);
+              by = by & static_cast<BYTE>(((1 << byteModulas)-1) << (8-byteModulas));
             }
           }
 
-          advancePos(pos, remaining, sizeof(WORD)+(sizeof(BYTE)*size));
+          size_t totalSizeInBits = (sizeof(WORD)*8)+(totalBits);
+          auto boundaryModulas = totalSizeInBits % (sizeof(DWORD)*8);
+
+          if (0 != boundaryModulas) {
+            pos[0] = static_cast<BYTE>((sizeof(DWORD)*8)-boundaryModulas);
+          } else {
+            pos[0] = 0;
+          }
+
+          advancePos(pos, remaining, sizeof(WORD)+(sizeof(BYTE)*totalBytes));
           break;
         }
         case FIR::kFmt:

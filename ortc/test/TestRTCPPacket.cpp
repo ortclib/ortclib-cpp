@@ -335,6 +335,10 @@ namespace ortc
         //---------------------------------------------------------------------
         ~Tester()
         {
+          if (NULL != mGeneratedFirst) {
+            clean(mGeneratedFirst);
+            mGeneratedFirst = NULL;
+          }
         }
 
         //---------------------------------------------------------------------
@@ -400,23 +404,34 @@ namespace ortc
           for (size_t index = 0; index < length; ++index)
           {
             auto current = (&(first[index]));
-            if (current->mValue) {
+            if (NULL != current->mValue) {
+              char *value = const_cast<char *>(current->mValue);
+              delete [] value;
+              current->mValue = NULL;
+            }
+          }
+        }
+
+        //---------------------------------------------------------------------
+        static void cleanSDESPriv(SDES::Chunk::Priv *first, size_t length)
+        {
+          for (size_t index = 0; index < length; ++index)
+          {
+            auto current = (&(first[index]));
+            if (NULL != current->mValue) {
               char *value = const_cast<char *>(current->mValue);
               delete [] value;
               current->mValue = NULL;
             }
 
-            if (SDES::Chunk::Priv::kItemType == current->mType) {
-              auto priv = reinterpret_cast<SDES::Chunk::Priv *>(current);
-              if (NULL != priv->mPrefix) {
-                char *value = const_cast<char *>(priv->mPrefix);
-                delete [] value;
-                priv->mPrefix = NULL;
-              }
+            if (NULL != current->mPrefix) {
+              char *value = const_cast<char *>(current->mPrefix);
+              delete [] value;
+              current->mPrefix = NULL;
             }
           }
         }
-
+        
         //---------------------------------------------------------------------
         static void cleanSDES(SDES::Chunk *chunk)
         {
@@ -456,7 +471,7 @@ namespace ortc
             chunk->mFirstNote = NULL;
           }
           if (NULL != chunk->mFirstPriv) {
-            cleanSDES(chunk->mFirstPriv, chunk->mPrivCount);
+            cleanSDESPriv(chunk->mFirstPriv, chunk->mPrivCount);
             delete [] chunk->mFirstPriv;
             chunk->mFirstPriv = NULL;
           }
@@ -680,26 +695,26 @@ namespace ortc
           {
             next = current->next();
 
-            switch (report->pt()) {
-              case SenderReport::kPayloadType:                    cleanSenderReport(reinterpret_cast<SenderReport *>(report)); break;
-              case ReceiverReport::kPayloadType:                  cleanReceiverReport(reinterpret_cast<ReceiverReport *>(report)); break;
-              case SDES::kPayloadType:                            cleanSDES(reinterpret_cast<SDES *>(report)); break;
-              case Bye::kPayloadType:                             cleanBye(reinterpret_cast<Bye *>(report)); break;
-              case App::kPayloadType:                             cleanApp(reinterpret_cast<App *>(report)); break;
-              case TransportLayerFeedbackMessage::kPayloadType:   cleanTransportLayerFeedbackMessage(reinterpret_cast<TransportLayerFeedbackMessage *>(report)); break;
-              case PayloadSpecificFeedbackMessage::kPayloadType:  cleanPayloadSpecificFeedbackMessage(reinterpret_cast<PayloadSpecificFeedbackMessage *>(report)); break;
-              case XR::kPayloadType:                              cleanXR(reinterpret_cast<XR *>(report)); break;
-              default:
-              {
-                cleanUnknownReport(reinterpret_cast<UnknownReport *>(report));
-                break;
-              }
+            if (NULL != current->mPtr) {
+              BYTE *buffer = const_cast<BYTE *>(current->mPtr);
+              delete [] buffer;
+              current->mPtr = NULL;
             }
 
-            if (NULL != report->mPtr) {
-              BYTE *buffer = const_cast<BYTE *>(report->mPtr);
-              delete [] buffer;
-              report->mPtr = NULL;
+            switch (current->pt()) {
+              case SenderReport::kPayloadType:                    cleanSenderReport(reinterpret_cast<SenderReport *>(current)); break;
+              case ReceiverReport::kPayloadType:                  cleanReceiverReport(reinterpret_cast<ReceiverReport *>(current)); break;
+              case SDES::kPayloadType:                            cleanSDES(reinterpret_cast<SDES *>(current)); break;
+              case Bye::kPayloadType:                             cleanBye(reinterpret_cast<Bye *>(current)); break;
+              case App::kPayloadType:                             cleanApp(reinterpret_cast<App *>(current)); break;
+              case TransportLayerFeedbackMessage::kPayloadType:   cleanTransportLayerFeedbackMessage(reinterpret_cast<TransportLayerFeedbackMessage *>(current)); break;
+              case PayloadSpecificFeedbackMessage::kPayloadType:  cleanPayloadSpecificFeedbackMessage(reinterpret_cast<PayloadSpecificFeedbackMessage *>(current)); break;
+              case XR::kPayloadType:                              cleanXR(reinterpret_cast<XR *>(current)); break;
+              default:
+              {
+                cleanUnknownReport(reinterpret_cast<UnknownReport *>(current));
+                break;
+              }
             }
           }
         }
@@ -1525,25 +1540,25 @@ namespace ortc
               auto item1 = report1->rpsi();
               auto item2 = report1->rpsi();
 
-              TESTING_EQUAL(item1->pb(), item2->pb())
               TESTING_EQUAL(item1->zeroBit(), item2->zeroBit())
               TESTING_EQUAL(item1->payloadType(), item2->payloadType())
               TESTING_EQUAL(item1->nativeRPSIBitStringSizeInBits(), item2->nativeRPSIBitStringSizeInBits())
 
-              TESTING_EQUAL(item1->pb(), item1->mPB)
               TESTING_EQUAL(item1->zeroBit(), item1->mZeroBit)
               TESTING_EQUAL(item1->payloadType(), item1->mPayloadType)
               TESTING_EQUAL(item1->nativeRPSIBitStringSizeInBits(), item1->mNativeRPSIBitStringSizeInBits)
 
-              TESTING_EQUAL(item1->nativeRPSIBitString(), item1->mNativeRPSIBitString)
-              TESTING_EQUAL(item2->nativeRPSIBitString(), item2->mNativeRPSIBitString)
+              TESTING_CHECK(item1->nativeRPSIBitString() == item1->mNativeRPSIBitString)
+              TESTING_CHECK(item2->nativeRPSIBitString() == item2->mNativeRPSIBitString)
 
               checkMaxBits(item1->mPayloadType, 7);
               checkMaxBits(item1->mZeroBit, 1);
 
-              checkEqual(item1->nativeRPSIBitString(), item1->nativeRPSIBitStringSizeInBits()/8, item2->nativeRPSIBitString(), item2->nativeRPSIBitStringSizeInBits()/8);
-
               if (0 != item1->nativeRPSIBitStringSizeInBits()) {
+                if (0 != (item1->nativeRPSIBitStringSizeInBits()/8)) {
+                  checkEqual(item1->nativeRPSIBitString(), item1->nativeRPSIBitStringSizeInBits()/8, item2->nativeRPSIBitString(), item2->nativeRPSIBitStringSizeInBits()/8);
+                }
+
                 auto modulas = item1->nativeRPSIBitStringSizeInBits() % 8;
                 if (0 != modulas) {
                   BYTE by1 = item1->nativeRPSIBitString()[item1->nativeRPSIBitStringSizeInBits()/8];
@@ -2107,27 +2122,40 @@ namespace ortc
           {
           }
 
-          for (auto *current = packet.mFirstSenderReport; NULL != current; current = current->nextSenderReport(), --total)
+          size_t index = 0;
+
+          index = 0;
+          for (auto *current = packet.mFirstSenderReport; NULL != current; current = current->nextSenderReport(), --total, ++index)
           {
             TESTING_CHECK(0 != total)
+
+            TESTING_CHECK(packet.senderReportAtIndex(index) == current)
 
             size_t count = 0;
             for (auto block = current->mFirstReportBlock; NULL != block; block = block->next(), ++count) {
             }
             TESTING_EQUAL(count, current->rc())
           }
-          for (auto *current = packet.mFirstReceiverReport; NULL != current; current = current->nextReceiverReport(), --total)
+
+          index = 0;
+          for (auto *current = packet.mFirstReceiverReport; NULL != current; current = current->nextReceiverReport(), --total, ++index)
           {
             TESTING_CHECK(0 != total)
+
+            TESTING_CHECK(packet.receiverReportAtIndex(index) == current)
 
             size_t count = 0;
             for (auto block = current->mFirstReportBlock; NULL != block; block = block->next(), ++count) {
             }
             TESTING_EQUAL(count, current->rc())
           }
-          for (auto *current = packet.mFirstSDES; NULL != current; current = current->nextSDES(), --total)
+
+          index = 0;
+          for (auto *current = packet.mFirstSDES; NULL != current; current = current->nextSDES(), --total, ++index)
           {
             TESTING_CHECK(0 != total)
+
+            TESTING_CHECK(packet.sdesAtIndex(index) == current)
 
             size_t count = 0;
             for (auto block = current->mFirstChunk; NULL != block; block = block->next(), ++count) {
@@ -2189,25 +2217,45 @@ namespace ortc
             }
             TESTING_EQUAL(count, current->sc())
           }
-          for (auto *current = packet.mFirstBye; NULL != current; current = current->nextBye(), --total)
+
+          index = 0;
+          for (auto *current = packet.mFirstBye; NULL != current; current = current->nextBye(), --total, ++index)
           {
             TESTING_CHECK(0 != total)
+
+            TESTING_CHECK(packet.byeAtIndex(index) == current)
           }
-          for (auto *current = packet.mFirstApp; NULL != current; current = current->nextApp(), --total)
+
+          index = 0;
+          for (auto *current = packet.mFirstApp; NULL != current; current = current->nextApp(), --total, ++index)
           {
             TESTING_CHECK(0 != total)
+
+            TESTING_CHECK(packet.appAtIndex(index) == current)
           }
-          for (auto *current = packet.mFirstTransportLayerFeedbackMessage; NULL != current; current = current->nextTransportLayerFeedbackMessage(), --total)
+
+          index = 0;
+          for (auto *current = packet.mFirstTransportLayerFeedbackMessage; NULL != current; current = current->nextTransportLayerFeedbackMessage(), --total, ++index)
           {
             TESTING_CHECK(0 != total)
+
+            TESTING_CHECK(packet.transportLayerFeedbackReportAtIndex(index) == current)
           }
-          for (auto *current = packet.mFirstPayloadSpecificFeedbackMessage; NULL != current; current = current->nextPayloadSpecificFeedbackMessage(), --total)
+
+          index = 0;
+          for (auto *current = packet.mFirstPayloadSpecificFeedbackMessage; NULL != current; current = current->nextPayloadSpecificFeedbackMessage(), --total, ++index)
           {
             TESTING_CHECK(0 != total)
+
+            TESTING_CHECK(packet.payloadSpecificFeedbackReportAtIndex(index) == current)
           }
-          for (auto *current = packet.mFirstXR; NULL != current; current = current->nextXR(), --total)
+
+          index = 0;
+          for (auto *current = packet.mFirstXR; NULL != current; current = current->nextXR(), --total, ++index)
           {
             TESTING_CHECK(0 != total)
+
+            TESTING_CHECK(packet.xrAtIndex(index) == current)
 
             size_t count = 0;
             for (auto block = current->mFirstReportBlock; NULL != block; block = block->next(), ++count) {
@@ -2260,9 +2308,13 @@ namespace ortc
 
             TESTING_EQUAL(count, 0)
           }
-          for (auto *current = packet.mFirstUnknownReport; NULL != current; current = current->nextUnknown(), --total)
+
+          index = 0;
+          for (auto *current = packet.mFirstUnknownReport; NULL != current; current = current->nextUnknown(), --total, ++index)
           {
             TESTING_CHECK(0 != total)
+
+            TESTING_CHECK(packet.unknownAtIndex(index) == current)
           }
 
           TESTING_EQUAL(total, 0)
@@ -2715,9 +2767,9 @@ namespace ortc
               if (shouldPerform(80)) {
                 result->mRPSI.mNativeRPSIBitStringSizeInBits = (random(1, 50*8));
                 if (shouldPerform(5)) {
-                  result->mRPSI.mNativeRPSIBitStringSizeInBits = 0xFFFF;      // force to max length
+                  result->mRPSI.mNativeRPSIBitStringSizeInBits = (0xFFFC*sizeof(DWORD))*8;      // force to max length
                 } else if (shouldPerform(5)) {
-                  result->mRPSI.mNativeRPSIBitStringSizeInBits = (0xFFFF-1);  // force to max length-1
+                  result->mRPSI.mNativeRPSIBitStringSizeInBits = ((0xFFFC*sizeof(DWORD))*8)-1;  // force to max length-1
                 } else if (shouldPerform(5)) {
                   result->mRPSI.mNativeRPSIBitStringSizeInBits = 1;           // force to minimu length possible
                 }
@@ -2725,10 +2777,6 @@ namespace ortc
 
                 randomizeBufferSequencial(const_cast<BYTE *>(result->mRPSI.mNativeRPSIBitString), (result->mRPSI.mNativeRPSIBitStringSizeInBits/8)+1);
               }
-
-              size_t modulas = ((sizeof(WORD)*8) + result->mRPSI.mNativeRPSIBitStringSizeInBits)%(sizeof(DWORD)*8);
-
-              result->mRPSI.mPB = (sizeof(DWORD)*8)-modulas;
               break;
             }
             case FIR::kFmt:         {
@@ -2845,14 +2893,12 @@ namespace ortc
               auto remb = result->remb();
               if (NULL != remb) {
                 // REMB feedback message
-                if (shouldPerform(90)) {
-                  remb->mNumSSRC = randomBYTE();
-                  remb->mSSRCs = new DWORD[remb->numSSRC()];
-                  for (size_t index = 0; index < remb->numSSRC(); ++index) {
-                    remb->mSSRCs[index] = randomDWORD();
-                  }
+                remb->mNumSSRC = randomBYTE();
+                if (0 == remb->mNumSSRC) ++(remb->mNumSSRC);
+                remb->mSSRCs = new DWORD[remb->numSSRC()];
+                for (size_t index = 0; index < remb->numSSRC(); ++index) {
+                  remb->mSSRCs[index] = randomDWORD();
                 }
-
               } else {
                 // application feedback message
                 if (shouldPerform(90)) {
@@ -3391,7 +3437,7 @@ static void bogusSleep()
 ZS_DECLARE_USING_PTR(ortc::test::rtcppacket, Tester)
 ZS_DECLARE_USING_PTR(ortc::internal, RTCPPacket)
 
-static signed gSeeds[] = {-57479, 1000, 1001, -17, 89, -97};
+static signed gSeeds[] = {-57479, 1000, 1001, -17, 89, -97, 523, 104297, -1269287};
 
 using namespace ortc::test;
 
@@ -3478,10 +3524,27 @@ void doTestRTCPPacket()
                 break;
               }
               case 2: {
-                reachedFinalStep = true;
+                for (size_t index = 0; index < 500; ++index) {
+                  TESTING_STDOUT() << "\n\nTESTING SEED: [" << gSeeds[index] << "].\n\n";
+                  ZS_LOG_BASIC(Tester::slog("testing seed (part 2)") + ZS_PARAM("seed", index))
+
+                  srand(static_cast<unsigned>(index));  // want fixed random seeds that guarentee API coverage
+
+                  testObject1 = Tester::create();
+                  testObject2 = Tester::create();
+
+                  TESTING_CHECK(testObject1)
+
+                  testObject1->compare();
+                  testObject2->compare();
+
+                  testObject1.reset();
+                  testObject2.reset();
+                }
                 break;
               }
               case 3: {
+                reachedFinalStep = true;
                 break;
               }
               case 4: {

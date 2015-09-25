@@ -729,7 +729,6 @@ namespace ortc
 
           static const BYTE kFmt {3};
 
-          BYTE pb() const                               {return mPB;}
           BYTE zeroBit() const                          {return mZeroBit;}
           BYTE payloadType() const                      {return mPayloadType;}
 
@@ -737,7 +736,6 @@ namespace ortc
           size_t nativeRPSIBitStringSizeInBits() const  {return mNativeRPSIBitStringSizeInBits;}
 
         public:
-          BYTE mPB {};
           BYTE mZeroBit {};
           BYTE mPayloadType {};
 
