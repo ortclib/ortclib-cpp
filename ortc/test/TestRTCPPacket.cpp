@@ -325,6 +325,16 @@ namespace ortc
         typedef RTCPPacket::XR::RunLength RunLength;
         typedef RTCPPacket::XR::BitVector BitVector;
 
+        class CheckRTCPPcaket : public RTCPPacket
+        {
+        public:
+          static size_t checkOutputSize(const Report *first)
+          {
+            return RTCPPacket::getPacketSize(first);
+          }
+        };
+
+
       public:
         //---------------------------------------------------------------------
         Tester() :
@@ -2696,7 +2706,7 @@ namespace ortc
             default: {
               result->mUnknown = result;
               if (shouldPerform(90)) {
-                result->mFCISize = randomSize(100);
+                result->mFCISize = randomSize(1,100);
                 result->mFCI = new BYTE[result->mFCISize];
                 randomizeBufferSequencial(const_cast<BYTE *>(result->mFCI), result->mFCISize);
               }
@@ -2912,7 +2922,7 @@ namespace ortc
             default: {
               result->mUnknown = result;
               if (shouldPerform(90)) {
-                result->mFCISize = randomSize(100);
+                result->mFCISize = randomSize(1, 100);
                 result->mFCI = new BYTE[result->mFCISize];
                 randomizeBufferSequencial(const_cast<BYTE *>(result->mFCI), result->mFCISize);
               }
@@ -3354,6 +3364,12 @@ namespace ortc
 
           if (shouldPerform(10)) {
             lastReport->mPadding = randomSize(1, 50);
+            size_t outputSize = CheckRTCPPcaket::checkOutputSize(lastReport);
+            outputSize += static_cast<size_t>(lastReport->mPadding);
+            if ((outputSize / sizeof(DWORD)) > 0xFFFF) {
+              // disable padding if packet is already too big
+              lastReport->mPadding = 0;
+            }
           }
 
           mGeneratedFirst = first;
@@ -3437,7 +3453,7 @@ static void bogusSleep()
 ZS_DECLARE_USING_PTR(ortc::test::rtcppacket, Tester)
 ZS_DECLARE_USING_PTR(ortc::internal, RTCPPacket)
 
-static signed gSeeds[] = {-57479, 1000, 1001, -17, 89, -97, 523, 104297, -1269287};
+static signed gSeeds[] = {2286, 2075, -57479, 1000, 1001, -17, 89, -97, 523, 104297, -1269287};
 
 using namespace ortc::test;
 
@@ -3524,7 +3540,7 @@ void doTestRTCPPacket()
                 break;
               }
               case 2: {
-                for (size_t index = 0; index < 500; ++index) {
+                for (size_t index = 0; index < 5000; ++index) {
                   TESTING_STDOUT() << "\n\nTESTING SEED: [" << gSeeds[index] << "].\n\n";
                   ZS_LOG_BASIC(Tester::slog("testing seed (part 2)") + ZS_PARAM("seed", index))
 

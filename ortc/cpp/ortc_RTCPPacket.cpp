@@ -5930,7 +5930,10 @@ namespace ortc
           }
         }
 
-        UseHelper::setBE16(&(startOfReport[2]), ((diff+padding)/sizeof(DWORD))-1);
+        size_t headerSize = ((diff+padding)/sizeof(DWORD))-1;
+        ASSERT(throwIfGreaterThanBitsAllow(headerSize, 16))
+
+        UseHelper::setBE16(&(startOfReport[2]), headerSize);
       }
 
       ASSERT(0 == remaining)
