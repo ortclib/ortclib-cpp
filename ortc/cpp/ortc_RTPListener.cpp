@@ -33,6 +33,8 @@
 #include <ortc/internal/ortc_RTPReceiver.h>
 #include <ortc/internal/ortc_RTPSender.h>
 #include <ortc/internal/ortc_DTLSTransport.h>
+#include <ortc/internal/ortc_RTPPacket.h>
+#include <ortc/internal/ortc_RTCPPacket.h>
 #include <ortc/internal/ortc_SRTPSDESTransport.h>
 #include <ortc/internal/ortc_ORTC.h>
 #include <ortc/internal/platform.h>
@@ -332,6 +334,11 @@ namespace ortc
         tearAwayData->mDefaultSubscription = listener->subscribe(delegate);
       }
 
+      if (headerExtensions.hasValue()) {
+        // replace any existing registered header extensions
+        listener->setHeaderExtensions(headerExtensions.value());
+      }
+
       return tearAway;
     }
 
@@ -370,9 +377,22 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPListener::setHeaderExtensions(const HeaderExtensionParametersList &headerExtensions)
     {
-      ZS_THROW_NOT_IMPLEMENTED("todo")
-#define TODO 1
-#define TODO 2
+      AutoRecursiveLock lock(*this);
+
+      // unregister previous header extensions
+      unregisterAllReference(kAPIReference);
+
+      // register all new header extensions
+      for (auto iter = headerExtensions.begin(); iter != headerExtensions.end(); ++iter) {
+        auto extension = (*iter);
+        auto headerExtension = IRTPTypes::toHeaderExtensionURI(extension.mURI);
+        if (HeaderExtensionURI_Unknown == headerExtension) {
+          ZS_LOG_WARNING(Debug, log("header extension is not understood") + extension.toDebug())
+          continue;
+        }
+
+        registerReference(kAPIReference, headerExtension, extension.mID, extension.mEncrypt);
+      }
     }
 
     //-------------------------------------------------------------------------
@@ -403,19 +423,29 @@ namespace ortc
       UseRTPReceiverPtr receiver;
       UseRTPSenderPtr sender;
 
+      RTPPacketPtr rtpPacket;
+      RTCPPacketPtr rtcpPacket;
+
       {
         AutoRecursiveLock lock(*this);
 
         if (IICETypes::Component_RTCP == packetType) {
-          SecureByteBlockPtr rtcpBuffer = UseServicesHelper::convertToBuffer(buffer, bufferLengthInBytes);
-
           expireRTCPPackets();
 
-          mBufferedRTCPPackets.push_back(TimeBufferPair(zsLib::now(), rtcpBuffer));
+          rtcpPacket = RTCPPacket::create(buffer, bufferLengthInBytes);
+          if (!rtcpPacket) {
+            ZS_LOG_WARNING(Trace, log("invalid rtcp packet received"))
+            return false;
+          }
+
+          mBufferedRTCPPackets.push_back(TimePacketPair(zsLib::now(), rtcpPacket));
+        } else {
         }
 
         receiver = mReceiver.lock();
         if (IICETypes::Component_RTCP == packetType) {
+          rtpPacket = RTPPacket::create(buffer, bufferLengthInBytes);
+
           sender = mSender.lock();
         }
       }
@@ -426,12 +456,12 @@ namespace ortc
       bool result = false;
 
       if (receiver) {
-        auto success = receiver->handlePacket(viaComponent, packetType, buffer, bufferLengthInBytes);
+        auto success = receiver->handlePacket(viaComponent, rtpPacket);
         result = result || success;
       }
 
       if (sender) {
-        auto success = sender->handlePacket(viaComponent, packetType, buffer, bufferLengthInBytes);
+        auto success = sender->handlePacket(viaComponent, rtcpPacket);
         result = result || success;
       }
 
@@ -450,12 +480,12 @@ namespace ortc
     void RTPListener::registerReceiver(
                                        UseReceiverPtr inReceiver,
                                        const Parameters &inParams,
-                                       BufferList &outBufferList
+                                       RTCPPacketList &outPacketList
                                        )
     {
       ZS_LOG_TRACE(log("registering RTP receiver") + ZS_PARAM("receiver", inReceiver->getID()) + inParams.toDebug())
 
-      outBufferList.clear();
+      outPacketList.clear();
 
       AutoRecursiveLock lock(*this);
 
@@ -467,7 +497,7 @@ namespace ortc
       for (auto iter = mBufferedRTCPPackets.begin(); iter != mBufferedRTCPPackets.end(); ++iter)
       {
         auto buffer = (*iter).second;
-        outBufferList.push_back(buffer);
+        outPacketList.push_back(buffer);
       }
     }
 
@@ -493,12 +523,12 @@ namespace ortc
     void RTPListener::registerSender(
                                      UseSenderPtr inSender,
                                      const Parameters &inParams,
-                                     BufferList &outBufferList
+                                     RTCPPacketList &outPacketList
                                      )
     {
       ZS_LOG_TRACE(log("registering RTP sender (for RTCP feedback packets)") + ZS_PARAM("sender", inSender->getID()) + inParams.toDebug())
 
-      outBufferList.clear();
+      outPacketList.clear();
 
       AutoRecursiveLock lock(*this);
 
@@ -510,7 +540,7 @@ namespace ortc
       for (auto iter = mBufferedRTCPPackets.begin(); iter != mBufferedRTCPPackets.end(); ++iter)
       {
         auto buffer = (*iter).second;
-        outBufferList.push_back(buffer);
+        outPacketList.push_back(buffer);
       }
     }
 
@@ -776,6 +806,94 @@ namespace ortc
       }
     }
     
+    //-------------------------------------------------------------------------
+    void RTPListener::registerReference(
+                                        PUID objectID,
+                                        HeaderExtensionURIs extensionURI,
+                                        LocalID localID,
+                                        bool encrytped
+                                        )
+    {
+      ORTC_THROW_INVALID_PARAMETERS_IF(HeaderExtensionURI_Unknown == extensionURI)
+
+      auto found = mRegisteredExtensions.find(localID);
+      if (found == mRegisteredExtensions.end()) {
+        RegisteredHeaderExtension extension;
+        extension.mHeaderExtensionURI = extensionURI;
+        extension.mLocalID = localID;
+        extension.mEncrypted = encrytped;
+        extension.mReferences[objectID] = true;
+        mRegisteredExtensions[localID] = extension;
+
+        ZS_LOG_DEBUG(log("registered header extension") + ZS_PARAM("object id", objectID) + ZS_PARAM("header extension", IRTPTypes::toString(extensionURI)) + ZS_PARAM("local id", localID))
+        return;
+      }
+
+      RegisteredHeaderExtension &extension = (*found).second;
+
+      // cannot change meaning of header extension
+      ORTC_THROW_INVALID_PARAMETERS_IF((extension.mEncrypted) &&
+                                       (!encrytped))
+      ORTC_THROW_INVALID_PARAMETERS_IF((!extension.mEncrypted) &&
+                                       (encrytped))
+      ORTC_THROW_INVALID_PARAMETERS_IF(extensionURI != extension.mHeaderExtensionURI)
+
+      extension.mReferences[objectID] = objectID;
+
+      ZS_LOG_DEBUG(log("referencing existing header extension") + ZS_PARAM("object id", objectID) + ZS_PARAM("header extension", IRTPTypes::toString(extensionURI)) + ZS_PARAM("local id", localID) + ZS_PARAM("total", extension.mReferences.size()))
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPListener::unregisterReference(
+                                          PUID objectID,
+                                          HeaderExtensionURIs extensionURI,
+                                          LocalID localID
+                                          )
+    {
+      auto found = mRegisteredExtensions.find(localID);
+      if (found != mRegisteredExtensions.end()) {
+        ZS_LOG_DEBUG(log("local id was not registered") + ZS_PARAM("object id", objectID) + ZS_PARAM("header extension", IRTPTypes::toString(extensionURI)) + ZS_PARAM("local id", localID))
+        return;
+      }
+
+      RegisteredHeaderExtension &extension = (*found).second;
+
+      auto foundObject = extension.mReferences.find(objectID);
+      if (foundObject == extension.mReferences.end()) {
+        ZS_LOG_DEBUG(log("local object was not registered") + ZS_PARAM("object id", objectID) + ZS_PARAM("header extension", IRTPTypes::toString(extensionURI)) + ZS_PARAM("local id", localID))
+        return;
+      }
+
+      extension.mReferences.erase(foundObject);
+
+      ZS_LOG_DEBUG(log("removing reference to existing header extension") + ZS_PARAM("object id", objectID) + ZS_PARAM("header extension", IRTPTypes::toString(extensionURI)) + ZS_PARAM("local id", localID) + ZS_PARAM("remaining", extension.mReferences.size()))
+      if (extension.mReferences.size() > 0) return;
+
+      mRegisteredExtensions.erase(found);
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPListener::unregisterAllReference(PUID objectID)
+    {
+      for (auto iter_doNotUse = mRegisteredExtensions.begin(); iter_doNotUse != mRegisteredExtensions.end(); )
+      {
+        auto current = iter_doNotUse;
+        ++iter_doNotUse;
+
+        RegisteredHeaderExtension &extension = (*current).second;
+
+        auto found = extension.mReferences.find(objectID);
+        if (found == extension.mReferences.end()) continue;
+
+        extension.mReferences.erase(found);
+
+        ZS_LOG_DEBUG(log("removing reference to existing header extension") + ZS_PARAM("object id", objectID) + ZS_PARAM("header extension", IRTPTypes::toString(extension.mHeaderExtensionURI)) + ZS_PARAM("local id", extension.mLocalID) + ZS_PARAM("remaining", extension.mReferences.size()))
+
+        if (extension.mReferences.size() > 0) continue;
+
+        mRegisteredExtensions.erase(current);
+      }
+    }
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------

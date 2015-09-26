@@ -115,7 +115,7 @@ namespace ortc
 
       ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverForRTPListener, UseReceiver)
       ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters)
-      typedef std::list<SecureByteBlockPtr> BufferList;
+      typedef std::list<RTCPPacketPtr> RTCPPacketList;
 
       static ElementPtr toDebug(ForRTPReceiverPtr listener);
 
@@ -126,7 +126,7 @@ namespace ortc
       virtual void registerReceiver(
                                     UseReceiverPtr inReceiver,
                                     const Parameters &inParams,
-                                    BufferList &outBufferList
+                                    RTCPPacketList &outPacketList
                                     ) = 0;
 
       virtual void unregisterReceiver(UseReceiver &inReceiver) = 0;
@@ -146,7 +146,7 @@ namespace ortc
 
       ZS_DECLARE_TYPEDEF_PTR(IRTPSenderForRTPListener, UseSender)
       ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters)
-      typedef std::list<SecureByteBlockPtr> BufferList;
+      typedef std::list<RTCPPacketPtr> RTCPPacketList;
 
       static ElementPtr toDebug(ForRTPSenderPtr listener);
 
@@ -157,7 +157,7 @@ namespace ortc
       virtual void registerSender(
                                   UseSenderPtr inSender,
                                   const Parameters &inParams,
-                                  BufferList &outBufferList
+                                  RTCPPacketList &outPacketList
                                   ) = 0;
 
       virtual void unregisterSender(UseSender &inSender) = 0;
@@ -215,10 +215,29 @@ namespace ortc
       ZS_DECLARE_TYPEDEF_PTR(ISecureTransportForRTPListener, UseSecureTransport)
       ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters)
 
-      typedef std::list<SecureByteBlockPtr> BufferList;
+      typedef std::list<RTCPPacketPtr> RTCPPacketList;
 
-      typedef std::pair<Time, SecureByteBlockPtr> TimeBufferPair;
-      typedef std::list<TimeBufferPair> BufferedRTCPPacketList;
+      typedef std::pair<Time, RTCPPacketPtr> TimePacketPair;
+      typedef std::list<TimePacketPair> BufferedRTCPPacketList;
+
+      typedef PUID ObjectID;
+      typedef USHORT LocalID;
+      typedef size_t ReferenceCount;
+
+      struct RegisteredHeaderExtension
+      {
+        typedef std::map<ObjectID, bool> ReferenceMap;
+
+        HeaderExtensionURIs mHeaderExtensionURI {HeaderExtensionURI_Unknown};
+        LocalID mLocalID {};
+        bool mEncrypted {};
+
+        ReferenceMap mReferences;
+      };
+
+      typedef std::map<LocalID, RegisteredHeaderExtension> HeaderExtensionMap;
+
+      const ObjectID kAPIReference {0};
 
       enum States
       {
@@ -307,7 +326,7 @@ namespace ortc
       virtual void registerReceiver(
                                     UseReceiverPtr inReceiver,
                                     const Parameters &inParams,
-                                    BufferList &outBufferList
+                                    RTCPPacketList &outPacketList
                                     );
 
       virtual void unregisterReceiver(UseReceiver &inReceiver);
@@ -324,7 +343,7 @@ namespace ortc
       virtual void registerSender(
                                   UseSenderPtr inSender,
                                   const Parameters &inParams,
-                                  BufferList &outBufferList
+                                  RTCPPacketList &outPacketList
                                   );
 
       virtual void unregisterSender(UseSender &inReceiver);
@@ -385,6 +404,21 @@ namespace ortc
 
       void expireRTCPPackets();
 
+      void registerReference(
+                             PUID objectID,
+                             HeaderExtensionURIs extensionURI,
+                             LocalID localID,
+                             bool encrytped
+                             );
+
+      void unregisterReference(
+                               PUID objectID,
+                               HeaderExtensionURIs extensionURI,
+                               LocalID localID
+                               );
+
+      void unregisterAllReference(PUID objectID);
+
     protected:
       //-----------------------------------------------------------------------
       #pragma mark
@@ -415,6 +449,8 @@ namespace ortc
 
       PUID mSenderID {};
       UseRTPSenderWeakPtr mSender;
+
+      HeaderExtensionMap mRegisteredExtensions;
     };
 
     //-------------------------------------------------------------------------

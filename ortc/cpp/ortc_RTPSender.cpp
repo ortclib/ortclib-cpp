@@ -33,6 +33,7 @@
 #include <ortc/internal/ortc_DTLSTransport.h>
 #include <ortc/internal/ortc_ISecureTransport.h>
 #include <ortc/internal/ortc_RTPListener.h>
+#include <ortc/internal/ortc_RTCPPacket.h>
 #include <ortc/internal/ortc_ORTC.h>
 #include <ortc/internal/platform.h>
 
@@ -304,7 +305,7 @@ namespace ortc
                                  IRTCPTransportPtr rtcpTransport
                                  )
     {
-      typedef UseListener::BufferList BufferList;
+      typedef UseListener::RTCPPacketList RTCPPacketList;
 
       AutoRecursiveLock lock(*this);
 
@@ -319,7 +320,7 @@ namespace ortc
           mListener = listener;
 
           // register with new transport
-          BufferList historicalRTCPPackets;
+          RTCPPacketList historicalRTCPPackets;
           mListener->registerSender(mThisWeak.lock(), *mParameters, historicalRTCPPackets);
 
 #define HANDLE_HISTORICAL_RTCP_PACKETS 1
@@ -350,7 +351,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPSender::send(const Parameters &parameters)
     {
-      typedef UseListener::BufferList BufferList;
+      typedef UseListener::RTCPPacketList RTCPPacketList;
 
       AutoRecursiveLock lock(*this);
 
@@ -365,7 +366,7 @@ namespace ortc
 
       mParameters = ParametersPtr(make_shared<Parameters>(parameters));
 
-      BufferList historicalRTCPPackets;
+      RTCPPacketList historicalRTCPPackets;
       mListener->registerSender(mThisWeak.lock(), *mParameters, historicalRTCPPackets);
 
 #define TODO 1
@@ -391,12 +392,10 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool RTPSender::handlePacket(
                                  IICETypes::Components viaTransport,
-                                 IICETypes::Components packetType, // will be IICETypes::Component_RTCP
-                                 const BYTE *buffer,
-                                 size_t bufferLengthInBytes
+                                 RTCPPacketPtr packet
                                  )
     {
-      ZS_LOG_TRACE(log("received packet") + ZS_PARAM("via", IICETypes::toString(viaTransport)) + ZS_PARAM("via", IICETypes::toString(packetType)) + ZS_PARAM("buffer size", bufferLengthInBytes))
+      ZS_LOG_TRACE(log("received packet") + ZS_PARAM("via", IICETypes::toString(viaTransport)) + packet->toDebug())
 
       AutoRecursiveLock lock(*this);
 

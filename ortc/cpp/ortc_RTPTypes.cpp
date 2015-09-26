@@ -672,7 +672,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IRTPTypes::HeaderExtensionURIs IRTPTypes::toHeaderExtension(const char *uri)
+  IRTPTypes::HeaderExtensionURIs IRTPTypes::toHeaderExtensionURI(const char *uri)
   {
     static IRTPTypes::HeaderExtensionURIs uris[] = {
       HeaderExtensionURI_MuxID,

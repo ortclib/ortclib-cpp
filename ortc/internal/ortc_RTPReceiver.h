@@ -89,9 +89,12 @@ namespace ortc
 
       virtual bool handlePacket(
                                 IICETypes::Components viaTransport,
-                                IICETypes::Components packetType,
-                                const BYTE *buffer,
-                                size_t bufferLengthInBytes
+                                RTPPacketPtr packet
+                                ) = 0;
+
+      virtual bool handlePacket(
+                                IICETypes::Components viaTransport,
+                                RTCPPacketPtr packet
                                 ) = 0;
     };
 
@@ -225,9 +228,12 @@ namespace ortc
 
       virtual bool handlePacket(
                                 IICETypes::Components viaTransport,
-                                IICETypes::Components packetType,
-                                const BYTE *buffer,
-                                size_t bufferLengthInBytes
+                                RTPPacketPtr packet
+                                );
+
+      virtual bool handlePacket(
+                                IICETypes::Components viaTransport,
+                                RTCPPacketPtr packet
                                 );
 
       //-----------------------------------------------------------------------

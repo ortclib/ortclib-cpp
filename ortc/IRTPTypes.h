@@ -278,7 +278,7 @@ namespace ortc
       // 0                   1                   2                   3
       // 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
       // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-      // |ID=1 |          Reserved         |  Original sequence number   |
+      // |ID=1 |          Reserved       |   Original sequence number    |
       // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
       // |      Associated synchronization source (SSRC) identifier      |
       //
@@ -302,7 +302,7 @@ namespace ortc
       // 0                   1                   2                   3
       // 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
       // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-      // |ID=2 |           |A|        Reserved                           |
+      // |ID=1 |        Reserved       |A|            Reserved           |
       // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
       // |      Associated synchronization source (SSRC) identifier      |
       //
@@ -314,6 +314,6 @@ namespace ortc
     };
 
     static const char *toString(HeaderExtensionURIs extension);         // converts header enum to URN format
-    static HeaderExtensionURIs toHeaderExtension(const char *uri);
+    static HeaderExtensionURIs toHeaderExtensionURI(const char *uri);
   };
 }
