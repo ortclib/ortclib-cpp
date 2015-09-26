@@ -654,4 +654,41 @@ namespace ortc
 
     return hasher.final();
   }
+
+  //---------------------------------------------------------------------------
+  const char *IRTPTypes::toString(HeaderExtensionURIs extension)
+  {
+    switch (extension) {
+      case HeaderExtensionURI_Unknown:                            return "";
+      case HeaderExtensionURI_MuxID:                              return "urn:ietf:params:rtp-hdrext:sdes:mid";
+      case HeaderExtensionURI_ClienttoMixerAudioLevelIndication:  return "urn:ietf:params:rtp-hdrext:ssrc-audio-level";
+      case HeaderExtensionURI_MixertoClientAudioLevelIndication:  return "urn:ietf:params:rtp-hdrext:csrc-audio-level";
+      case PHeaderExtensionURI_FrameMarking:                      return "urn:ietf:params:rtp-hdrext:framemarkinginfo";
+
+      case HeaderExtensionURI_ExtendedSourceInformation:          return "urn:example:params:rtp-hdrext:extended-ssrc-info";
+    }
+
+    return "unknown";
+  }
+
+  //---------------------------------------------------------------------------
+  IRTPTypes::HeaderExtensionURIs IRTPTypes::toHeaderExtension(const char *uri)
+  {
+    static IRTPTypes::HeaderExtensionURIs uris[] = {
+      HeaderExtensionURI_MuxID,
+      HeaderExtensionURI_ClienttoMixerAudioLevelIndication,
+      HeaderExtensionURI_MixertoClientAudioLevelIndication,
+      PHeaderExtensionURI_FrameMarking,
+      HeaderExtensionURI_ExtendedSourceInformation,
+      HeaderExtensionURI_Unknown
+    };
+
+    String uriStr(uri);
+
+    for (size_t index = 0; HeaderExtensionURI_Unknown != uris[index]; ++index) {
+      if (uriStr == IRTPTypes::toString(uris[index])) return uris[index];
+    }
+
+    return HeaderExtensionURI_Unknown;
+  }
 }

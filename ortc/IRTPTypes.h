@@ -249,5 +249,71 @@ namespace ortc
       String hash() const;
     };
 
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IRTPTypes
+    #pragma mark
+
+    enum HeaderExtensionURIs
+    {
+      HeaderExtensionURI_Unknown,
+
+      HeaderExtensionURI_MuxID,                                         // https://tools.ietf.org/html/draft-ietf-avtext-sdes-hdr-ext-02
+      HeaderExtensionURI_MID = HeaderExtensionURI_MuxID,                // urn:ietf:params:rtp-hdrext:sdes:mid
+
+      HeaderExtensionURI_ClienttoMixerAudioLevelIndication,             // https://tools.ietf.org/html/rfc6464
+                                                                        // urn:ietf:params:rtp-hdrext:ssrc-audio-level
+      HeaderExtensionURI_MixertoClientAudioLevelIndication,             // https://tools.ietf.org/html/rfc6465
+                                                                        // urn:ietf:params:rtp-hdrext:csrc-audio-level
+
+      PHeaderExtensionURI_FrameMarking,                                 // https://tools.ietf.org/html/draft-berger-avtext-framemarking-01
+                                                                        // urn:ietf:params:rtp-hdrext:framemarkinginfo
+
+      HeaderExtensionURI_ExtendedSourceInformation,                     // extended information about the encoded packet
+                                                                        // urn:example:params:rtp-hdrext:extended-ssrc-info
+
+      // 0                   1                   2                   3
+      // 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+      // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      // |ID=1 |          Reserved         |  Original sequence number   |
+      // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      // |      Associated synchronization source (SSRC) identifier      |
+      //
+      // ID=1 Extended SSRC RTX packet information
+      //
+      // Original sequence number - original sequence number field as copied
+      //                            outside the encryped paylod (for mixers)
+      // Associated SSRC - the SSSRC of the original SSRC to which this RTX
+      //                   stream applies.
+      //
+      // When a mixer is present, this header can be carried non-encryopted to
+      // the mixer indicating the important information about the RTX packet
+      // so the mixer can make intellegent decisions about where to forward the
+      // RTX packet.
+      //
+      // When no mixer is present, this header need only be transmitted by
+      // the sending party until the receiver has successfully acknoledged
+      // receipt of any RTP packet carrying this data though any means (e.g.
+      // RTCP receiver report or RTCP ACK)
+
+      // 0                   1                   2                   3
+      // 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+      // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      // |ID=2 |           |A|        Reserved                           |
+      // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      // |      Associated synchronization source (SSRC) identifier      |
+      //
+      // ID=2 Extended FEC/RED information
+      //
+      // A bit - the Asssociated SSRC value is valid
+      // Associated SSRC - the SSSRC of the original SSRC to which this FEC/RED
+      //                   applies (i.e. needed where ambiguity may exist).
+    };
+
+    static const char *toString(HeaderExtensionURIs extension);         // converts header enum to URN format
+    static HeaderExtensionURIs toHeaderExtension(const char *uri);
   };
 }

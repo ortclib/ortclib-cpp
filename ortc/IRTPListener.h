@@ -62,7 +62,8 @@ namespace ortc
 
     static IRTPListenerPtr create(
                                   IRTPListenerDelegatePtr delegate,
-                                  IRTPTransportPtr transport
+                                  IRTPTransportPtr transport,
+                                  Optional<HeaderExtensionParametersList> headerExtensions = Optional<HeaderExtensionParametersList>()
                                   );
 
     virtual PUID getID() const = 0;
@@ -70,6 +71,15 @@ namespace ortc
     virtual IRTPListenerSubscriptionPtr subscribe(IRTPListenerDelegatePtr delegate) = 0;
 
     virtual IRTPTransportPtr transport() const = 0;
+
+    //-------------------------------------------------------------------------
+    // PURPOSE: (re-)set a mapping between a local indentifiers present in the
+    //          RTP header extension to the type of information being carried
+    //          in the header extension
+    // THROWS:  InvalidParameters - if any RTPReceiver has already mapped this
+    //                              local identifier mapped to an another
+    //                              header URI definition
+    virtual void setHeaderExtensions(const HeaderExtensionParametersList &headerExtensions) = 0;
   };
 
   //---------------------------------------------------------------------------

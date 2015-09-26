@@ -265,7 +265,8 @@ namespace ortc
 
       static IRTPListenerPtr create(
                                     IRTPListenerDelegatePtr delegate,
-                                    IRTPTransportPtr transport
+                                    IRTPTransportPtr transport,
+                                    Optional<HeaderExtensionParametersList> headerExtensions
                                     );
 
       virtual PUID getID() const {return mID;}
@@ -274,6 +275,7 @@ namespace ortc
 
       virtual IRTPTransportPtr transport() const override;
 
+      virtual void setHeaderExtensions(const HeaderExtensionParametersList &headerExtensions);
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -425,11 +427,14 @@ namespace ortc
 
     interaction IRTPListenerFactory
     {
+      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::HeaderExtensionParametersList, HeaderExtensionParametersList)
+
       static IRTPListenerFactory &singleton();
 
       virtual IRTPListenerPtr create(
                                      IRTPListenerDelegatePtr delegate,
-                                     IRTPTransportPtr transport
+                                     IRTPTransportPtr transport,
+                                     Optional<HeaderExtensionParametersList> headerExtensions = Optional<HeaderExtensionParametersList>()
                                      );
 
       virtual RTPListenerPtr create(IRTPTransportPtr transport);
@@ -448,7 +453,9 @@ ZS_DECLARE_TEAR_AWAY_BEGIN(ortc::IRTPListener, ortc::internal::RTPListener::Tear
 ZS_DECLARE_TEAR_AWAY_TYPEDEF(ortc::IRTPListenerSubscriptionPtr, IRTPListenerSubscriptionPtr)
 ZS_DECLARE_TEAR_AWAY_TYPEDEF(ortc::IRTPListenerDelegatePtr, IRTPListenerDelegatePtr)
 ZS_DECLARE_TEAR_AWAY_TYPEDEF(ortc::IRTPTransportPtr, IRTPTransportPtr)
+ZS_DECLARE_TEAR_AWAY_TYPEDEF(ortc::IRTPTypes::HeaderExtensionParametersList, HeaderExtensionParametersList)
 ZS_DECLARE_TEAR_AWAY_METHOD_CONST_RETURN_0(getID, PUID)
 ZS_DECLARE_TEAR_AWAY_METHOD_RETURN_1(subscribe, IRTPListenerSubscriptionPtr, IRTPListenerDelegatePtr)
 ZS_DECLARE_TEAR_AWAY_METHOD_CONST_RETURN_0(transport, IRTPTransportPtr)
+ZS_DECLARE_TEAR_AWAY_METHOD_1(setHeaderExtensions, const HeaderExtensionParametersList &)
 ZS_DECLARE_TEAR_AWAY_END()

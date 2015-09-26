@@ -308,7 +308,8 @@ namespace ortc
     //-------------------------------------------------------------------------
     IRTPListenerPtr RTPListener::create(
                                         IRTPListenerDelegatePtr delegate,
-                                        IRTPTransportPtr transport
+                                        IRTPTransportPtr transport,
+                                        Optional<HeaderExtensionParametersList> headerExtensions
                                         )
     {
       ORTC_THROW_INVALID_PARAMETERS_IF(!transport)
@@ -364,6 +365,14 @@ namespace ortc
     IRTPTransportPtr RTPListener::transport() const
     {
       return mRTPTransport.lock();
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPListener::setHeaderExtensions(const HeaderExtensionParametersList &headerExtensions)
+    {
+      ZS_THROW_NOT_IMPLEMENTED("todo")
+#define TODO 1
+#define TODO 2
     }
 
     //-------------------------------------------------------------------------
@@ -785,11 +794,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     IRTPListenerPtr IRTPListenerFactory::create(
                                                 IRTPListenerDelegatePtr delegate,
-                                                IRTPTransportPtr transport
+                                                IRTPTransportPtr transport,
+                                                Optional<HeaderExtensionParametersList> headerExtensions
                                                 )
     {
       if (this) {}
-      return internal::RTPListener::create(delegate, transport);
+      return internal::RTPListener::create(delegate, transport, headerExtensions);
     }
 
     //-------------------------------------------------------------------------
@@ -819,10 +829,11 @@ namespace ortc
   //---------------------------------------------------------------------------
   IRTPListenerPtr IRTPListener::create(
                                        IRTPListenerDelegatePtr delegate,
-                                       IRTPTransportPtr transport
+                                       IRTPTransportPtr transport,
+                                       Optional<HeaderExtensionParametersList> headerExtensions
                                        )
   {
-    return internal::IRTPListenerFactory::singleton().create(delegate, transport);
+    return internal::IRTPListenerFactory::singleton().create(delegate, transport, headerExtensions);
   }
 
 }
