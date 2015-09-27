@@ -656,6 +656,301 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
+  const char *IRTPTypes::toString(Kinds kind)
+  {
+    switch (kind) {
+      case Kind_Unknown:  return "";
+      case Kind_Audio:    return "audio";
+      case Kind_Video:    return "video";
+      case Kind_AV:       return "av";
+      case Kind_RTX:      return "rtx";
+      case Kind_FEC:      return "fec";
+    }
+
+    return "unknown";
+  }
+
+  //---------------------------------------------------------------------------
+  IRTPTypes::Kinds IRTPTypes::toKind(const char *kind)
+  {
+    String kindStr(kind);
+
+    for (Kinds index = Kind_First; index >= Kind_Last; index = static_cast<Kinds>(static_cast<std::underlying_type<Kinds>::type>(index) + 1)) {
+      if (kindStr == IRTPTypes::toString(index)) return index;
+    }
+
+    return Kind_Unknown;
+  }
+
+  //---------------------------------------------------------------------------
+  const char *IRTPTypes::toString(SupportedCodecs codec)
+  {
+    switch (codec) {
+      case SupportedCodec_Unknown:            return "";
+
+      case SupportedCodec_Opus:               return "opus";
+      case SupportedCodec_Isac:               return "isac";
+      case SupportedCodec_G722:               return "g722";
+      case SupportedCodec_ILBC:               return "ilbc";
+      case SupportedCodec_PCMU:               return "pcmu";
+      case SupportedCodec_PCMA:               return "pcma";
+
+      case SupportedCodec_VP8:                return "VP8";
+      case SupportedCodec_VP9:                return "VP9";
+      case SupportedCodec_H264:               return "H264";
+
+      case SupportedCodec_RTX:                return "rtx";
+
+      case SupportedCodec_RED:                return "red";
+      case SupportedCodec_ULPFEC:             return "ulpfec";
+
+      case SupportedCodec_CN:                 return "cn";
+        
+      case SupportedCodec_TelephoneEvent:     return "telephone-event";
+    }
+
+    return "unknown";
+  }
+
+  //---------------------------------------------------------------------------
+  IRTPTypes::SupportedCodecs IRTPTypes::toSupportedCodec(const char *codec)
+  {
+    String codecStr(codec);
+
+    for (SupportedCodecs index = SupportedCodec_First; index >= SupportedCodec_Last; index = static_cast<SupportedCodecs>(static_cast<std::underlying_type<SupportedCodecs>::type>(index) + 1)) {
+      if (0 == codecStr.compareNoCase(IRTPTypes::toString(index))) return index;
+    }
+
+    return SupportedCodec_Unknown;
+  }
+
+  //---------------------------------------------------------------------------
+  IRTPTypes::Kinds IRTPTypes::getKind(SupportedCodecs codec)
+  {
+    switch (codec) {
+      case SupportedCodec_Unknown:            return Kind_Unknown;
+
+      case SupportedCodec_Opus:               return Kind_Audio;
+      case SupportedCodec_Isac:               return Kind_Audio;
+      case SupportedCodec_G722:               return Kind_Audio;
+      case SupportedCodec_ILBC:               return Kind_Audio;
+      case SupportedCodec_PCMU:               return Kind_Audio;
+      case SupportedCodec_PCMA:               return Kind_Audio;
+
+      case SupportedCodec_VP8:                return Kind_Video;
+      case SupportedCodec_VP9:                return Kind_Video;
+      case SupportedCodec_H264:               return Kind_Video;
+
+      case SupportedCodec_RTX:                return Kind_RTX;
+
+      case SupportedCodec_RED:                return Kind_FEC;
+      case SupportedCodec_ULPFEC:             return Kind_FEC;
+
+      case SupportedCodec_CN:                 return Kind_Audio;
+
+      case SupportedCodec_TelephoneEvent:     return Kind_Audio;
+    }
+    
+    return Kind_Unknown;
+  }
+
+  //---------------------------------------------------------------------------
+  const char *IRTPTypes::toString(ReservedCodecPayloadTypes reservedCodec)
+  {
+    switch (reservedCodec) {
+      case ReservedCodecPayloadType_Unknown:      return "";
+      case ReservedCodecPayloadType_PCMU_8000:    return "pcmu";
+
+      case ReservedCodecPayloadType_GSM_8000:     return "gsm";
+      case ReservedCodecPayloadType_G723_8000:    return "g723";
+      case ReservedCodecPayloadType_DVI4_8000:    return "dvi4";
+      case ReservedCodecPayloadType_DVI4_16000:   return "dvi4";
+      case ReservedCodecPayloadType_LPC_8000:     return "lpc";
+      case ReservedCodecPayloadType_PCMA_8000:    return "pcma";
+      case ReservedCodecPayloadType_G722_8000:    return "g722";
+      case ReservedCodecPayloadType_L16_44100_2:  return "l16";
+      case ReservedCodecPayloadType_L16_44100_1:  return "l16";
+      case ReservedCodecPayloadType_QCELP_8000:   return "qcelp";
+      case ReservedCodecPayloadType_CN_8000:      return "cn";
+      case ReservedCodecPayloadType_MPA_90000:    return "mpa";
+      case ReservedCodecPayloadType_G728_8000:    return "g728";
+      case ReservedCodecPayloadType_DVI4_11025:   return "dvi4";
+      case ReservedCodecPayloadType_DVI4_22050:   return "dvi4";
+      case ReservedCodecPayloadType_G729_8000:    return "g729";
+
+      case ReservedCodecPayloadType_CelB_90000:   return "CelB";
+      case ReservedCodecPayloadType_JPEG_90000:   return "jpeg";
+
+      case ReservedCodecPayloadType_nv_90000:     return "nv";
+
+      case ReservedCodecPayloadType_H261_90000:   return "H261";
+      case ReservedCodecPayloadType_MPV_90000:    return "MPV";
+      case ReservedCodecPayloadType_MP2T_90000:   return "MP2T";
+      case ReservedCodecPayloadType_H263_90000:   return "H263";
+    }
+
+    return "unknown";
+  }
+
+  //---------------------------------------------------------------------------
+  IRTPTypes::ReservedCodecPayloadTypes IRTPTypes::toReservedCodec(const char *encodingName)
+  {
+    static ReservedCodecPayloadTypes types[] = {
+      ReservedCodecPayloadType_PCMU_8000,
+
+      ReservedCodecPayloadType_GSM_8000,
+      ReservedCodecPayloadType_G723_8000,
+      ReservedCodecPayloadType_DVI4_8000,
+      ReservedCodecPayloadType_DVI4_16000,
+      ReservedCodecPayloadType_LPC_8000,
+      ReservedCodecPayloadType_PCMA_8000,
+      ReservedCodecPayloadType_G722_8000,
+      ReservedCodecPayloadType_L16_44100_2,
+      ReservedCodecPayloadType_L16_44100_1,
+      ReservedCodecPayloadType_QCELP_8000,
+      ReservedCodecPayloadType_CN_8000,
+      ReservedCodecPayloadType_MPA_90000,
+      ReservedCodecPayloadType_G728_8000,
+      ReservedCodecPayloadType_DVI4_11025,
+      ReservedCodecPayloadType_DVI4_22050,
+      ReservedCodecPayloadType_G729_8000,
+
+      ReservedCodecPayloadType_CelB_90000,
+      ReservedCodecPayloadType_JPEG_90000,
+
+      ReservedCodecPayloadType_nv_90000,
+
+      ReservedCodecPayloadType_H261_90000,
+      ReservedCodecPayloadType_MPV_90000,
+      ReservedCodecPayloadType_MP2T_90000,
+      ReservedCodecPayloadType_H263_90000,
+
+      ReservedCodecPayloadType_Unknown
+    };
+
+    String encodingNameStr(encodingName);
+
+    for (size_t index = 0; ReservedCodecPayloadType_Unknown != types[index]; ++index) {
+      if (0 == encodingNameStr.compareNoCase(toString(types[index]))) return types[index];
+    }
+    return ReservedCodecPayloadType_Unknown;
+  }
+
+  //---------------------------------------------------------------------------
+  ULONG IRTPTypes::getDefaultClockRate(ReservedCodecPayloadTypes reservedCodec)
+  {
+    switch (reservedCodec) {
+      case ReservedCodecPayloadType_Unknown:      return 0;
+      case ReservedCodecPayloadType_PCMU_8000:    return 8000;
+
+      case ReservedCodecPayloadType_GSM_8000:     return 8000;
+      case ReservedCodecPayloadType_G723_8000:    return 8000;
+      case ReservedCodecPayloadType_DVI4_8000:    return 8000;
+      case ReservedCodecPayloadType_DVI4_16000:   return 16000;
+      case ReservedCodecPayloadType_LPC_8000:     return 8000;
+      case ReservedCodecPayloadType_PCMA_8000:    return 8000;
+      case ReservedCodecPayloadType_G722_8000:    return 8000;
+      case ReservedCodecPayloadType_L16_44100_2:  return 44100;
+      case ReservedCodecPayloadType_L16_44100_1:  return 44100;
+      case ReservedCodecPayloadType_QCELP_8000:   return 8000;
+      case ReservedCodecPayloadType_CN_8000:      return 8000;
+      case ReservedCodecPayloadType_MPA_90000:    return 90000;
+      case ReservedCodecPayloadType_G728_8000:    return 8000;
+      case ReservedCodecPayloadType_DVI4_11025:   return 11025;
+      case ReservedCodecPayloadType_DVI4_22050:   return 22050;
+      case ReservedCodecPayloadType_G729_8000:    return 8000;
+
+      case ReservedCodecPayloadType_CelB_90000:   return 90000;
+      case ReservedCodecPayloadType_JPEG_90000:   return 90000;
+
+      case ReservedCodecPayloadType_nv_90000:     return 90000;
+
+      case ReservedCodecPayloadType_H261_90000:   return 90000;
+      case ReservedCodecPayloadType_MPV_90000:    return 90000;
+      case ReservedCodecPayloadType_MP2T_90000:   return 90000;
+      case ReservedCodecPayloadType_H263_90000:   return 90000;
+    }
+    
+    return 0;
+  }
+
+  //---------------------------------------------------------------------------
+  IRTPTypes::Kinds IRTPTypes::getKind(ReservedCodecPayloadTypes reservedCodec)
+  {
+    switch (reservedCodec) {
+      case ReservedCodecPayloadType_Unknown:      return Kind_Unknown;
+      case ReservedCodecPayloadType_PCMU_8000:    return Kind_Audio;
+
+      case ReservedCodecPayloadType_GSM_8000:     return Kind_Audio;
+      case ReservedCodecPayloadType_G723_8000:    return Kind_Audio;
+      case ReservedCodecPayloadType_DVI4_8000:    return Kind_Audio;
+      case ReservedCodecPayloadType_DVI4_16000:   return Kind_Audio;
+      case ReservedCodecPayloadType_LPC_8000:     return Kind_Audio;
+      case ReservedCodecPayloadType_PCMA_8000:    return Kind_Audio;
+      case ReservedCodecPayloadType_G722_8000:    return Kind_Audio;
+      case ReservedCodecPayloadType_L16_44100_2:  return Kind_Audio;
+      case ReservedCodecPayloadType_L16_44100_1:  return Kind_Audio;
+      case ReservedCodecPayloadType_QCELP_8000:   return Kind_Audio;
+      case ReservedCodecPayloadType_CN_8000:      return Kind_Audio;
+      case ReservedCodecPayloadType_MPA_90000:    return Kind_Video;
+      case ReservedCodecPayloadType_G728_8000:    return Kind_Audio;
+      case ReservedCodecPayloadType_DVI4_11025:   return Kind_Audio;
+      case ReservedCodecPayloadType_DVI4_22050:   return Kind_Audio;
+      case ReservedCodecPayloadType_G729_8000:    return Kind_Audio;
+
+      case ReservedCodecPayloadType_CelB_90000:   return Kind_Audio;
+      case ReservedCodecPayloadType_JPEG_90000:   return Kind_Video;
+
+      case ReservedCodecPayloadType_nv_90000:     return Kind_Video;
+
+      case ReservedCodecPayloadType_H261_90000:   return Kind_Video;
+      case ReservedCodecPayloadType_MPV_90000:    return Kind_Video;
+      case ReservedCodecPayloadType_MP2T_90000:   return Kind_AV;
+      case ReservedCodecPayloadType_H263_90000:   return Kind_Video;
+    }
+    
+    return Kind_Unknown;
+  }
+
+  //---------------------------------------------------------------------------
+  IRTPTypes::SupportedCodecs IRTPTypes::toSupportedCodec(ReservedCodecPayloadTypes reservedCodec)
+  {
+    switch (reservedCodec) {
+      case ReservedCodecPayloadType_Unknown:      return SupportedCodec_Unknown;
+      case ReservedCodecPayloadType_PCMU_8000:    return SupportedCodec_PCMU;
+
+      case ReservedCodecPayloadType_GSM_8000:     return SupportedCodec_Unknown;
+      case ReservedCodecPayloadType_G723_8000:    return SupportedCodec_Unknown;
+      case ReservedCodecPayloadType_DVI4_8000:    return SupportedCodec_Unknown;
+      case ReservedCodecPayloadType_DVI4_16000:   return SupportedCodec_Unknown;
+      case ReservedCodecPayloadType_LPC_8000:     return SupportedCodec_Unknown;
+      case ReservedCodecPayloadType_PCMA_8000:    return SupportedCodec_PCMA;
+      case ReservedCodecPayloadType_G722_8000:    return SupportedCodec_Unknown;
+      case ReservedCodecPayloadType_L16_44100_2:  return SupportedCodec_Unknown;
+      case ReservedCodecPayloadType_L16_44100_1:  return SupportedCodec_Unknown;
+      case ReservedCodecPayloadType_QCELP_8000:   return SupportedCodec_Unknown;
+      case ReservedCodecPayloadType_CN_8000:      return SupportedCodec_CN;
+      case ReservedCodecPayloadType_MPA_90000:    return SupportedCodec_Unknown;
+      case ReservedCodecPayloadType_G728_8000:    return SupportedCodec_Unknown;
+      case ReservedCodecPayloadType_DVI4_11025:   return SupportedCodec_Unknown;
+      case ReservedCodecPayloadType_DVI4_22050:   return SupportedCodec_Unknown;
+      case ReservedCodecPayloadType_G729_8000:    return SupportedCodec_Unknown;
+
+      case ReservedCodecPayloadType_CelB_90000:   return SupportedCodec_Unknown;
+      case ReservedCodecPayloadType_JPEG_90000:   return SupportedCodec_Unknown;
+
+      case ReservedCodecPayloadType_nv_90000:     return SupportedCodec_Unknown;
+
+      case ReservedCodecPayloadType_H261_90000:   return SupportedCodec_Unknown;
+      case ReservedCodecPayloadType_MPV_90000:    return SupportedCodec_Unknown;
+      case ReservedCodecPayloadType_MP2T_90000:   return SupportedCodec_Unknown;
+      case ReservedCodecPayloadType_H263_90000:   return SupportedCodec_Unknown;
+    }
+
+    return SupportedCodec_Unknown;
+  }
+
+  //---------------------------------------------------------------------------
   const char *IRTPTypes::toString(HeaderExtensionURIs extension)
   {
     switch (extension) {
@@ -674,21 +969,40 @@ namespace ortc
   //---------------------------------------------------------------------------
   IRTPTypes::HeaderExtensionURIs IRTPTypes::toHeaderExtensionURI(const char *uri)
   {
-    static IRTPTypes::HeaderExtensionURIs uris[] = {
-      HeaderExtensionURI_MuxID,
-      HeaderExtensionURI_ClienttoMixerAudioLevelIndication,
-      HeaderExtensionURI_MixertoClientAudioLevelIndication,
-      HeaderExtensionURI_FrameMarking,
-      HeaderExtensionURI_ExtendedSourceInformation,
-      HeaderExtensionURI_Unknown
-    };
-
     String uriStr(uri);
 
-    for (size_t index = 0; HeaderExtensionURI_Unknown != uris[index]; ++index) {
-      if (uriStr == IRTPTypes::toString(uris[index])) return uris[index];
+    for (HeaderExtensionURIs index = HeaderExtensionURI_First; index >= HeaderExtensionURI_Last; index = static_cast<HeaderExtensionURIs>(static_cast<std::underlying_type<HeaderExtensionURIs>::type>(index) + 1)) {
+      if (uriStr == IRTPTypes::toString(index)) return index;
     }
 
     return HeaderExtensionURI_Unknown;
+  }
+
+  //---------------------------------------------------------------------------
+  const char *IRTPTypes::toString(SupportedRTCPMechanisms mechanism)
+  {
+    switch (mechanism) {
+      case SupportedRTCPMechanism_Unknown:   return "";
+
+      case SupportedRTCPMechanism_SR:        return "sr";
+      case SupportedRTCPMechanism_RR:        return "rr";
+      case SupportedRTCPMechanism_SDES:      return "sdes";
+      case SupportedRTCPMechanism_BYE:       return "bye";
+      case SupportedRTCPMechanism_RTPFB:     return "rtpfb";
+      case SupportedRTCPMechanism_PSFB:      return "psfb";
+    }
+    return "unknown";
+  }
+
+  //---------------------------------------------------------------------------
+  IRTPTypes::SupportedRTCPMechanisms IRTPTypes::toSupportedRTCPMechanism(const char *mechanism)
+  {
+    String mechanismStr(mechanism);
+
+    for (SupportedRTCPMechanisms index = SupportedRTCPMechanism_First; index >= SupportedRTCPMechanism_Last; index = static_cast<SupportedRTCPMechanisms>(static_cast<std::underlying_type<SupportedRTCPMechanisms>::type>(index) + 1)) {
+      if (0 == mechanismStr.compareNoCase(IRTPTypes::toString(index))) return index;
+    }
+
+    return SupportedRTCPMechanism_Unknown;
   }
 }

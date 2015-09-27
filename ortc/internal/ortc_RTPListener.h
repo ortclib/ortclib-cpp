@@ -44,6 +44,8 @@
 #define ORTC_SETTING_RTP_LISTENER_MAX_RTCP_PACKETS_IN_BUFFER "ortc/rtp-listener/max-rtcp-packets-in-buffer"
 #define ORTC_SETTING_RTP_LISTENER_MAX_AGE_RTCP_PACKETS_IN_SECONDS "ortc/rtp-listener/max-age-rtcp-packets-in-seconds"
 
+#define ORTC_SETTING_RTP_LISTENER_SSRC_TO_MUX_ID_TIMEOUT_IN_SECONDS "ortc/rtp-listener/ssrc-to-mux-id-timeout-in-seconds"
+
 namespace ortc
 {
   namespace internal
@@ -252,6 +254,7 @@ namespace ortc
         UseRTPReceiverWeakPtr mReceiver;
 
         Parameters mParameters;
+        Parameters mOriginalParameters;
 
         ElementPtr toDebug() const;
       };
@@ -266,6 +269,8 @@ namespace ortc
       typedef String MuxID;
       typedef std::map<MuxID, ReceiverInfoPtr> MuxIDMap;
 
+      typedef std::pair<Time, MuxID> TimeMuxPair;
+      typedef std::map<SSRCType, TimeMuxPair> SSSRCToTimeMuxIDPairMap;
 
       enum States
       {
@@ -432,29 +437,24 @@ namespace ortc
 
       void expireRTCPPackets();
 
-      void registerReference(
-                             PUID objectID,
-                             HeaderExtensionURIs extensionURI,
-                             LocalID localID,
-                             bool encrytped
-                             );
+      void registerHeaderExtensionReference(
+                                            PUID objectID,
+                                            HeaderExtensionURIs extensionURI,
+                                            LocalID localID,
+                                            bool encrytped
+                                            );
 
-      void unregisterReference(
-                               PUID objectID,
-                               LocalID localID
-                               );
-
-      void unregisterAllReference(PUID objectID);
+      void unregisterAllHeaderExtensionReferences(PUID objectID);
 
       bool findMapping(
                        const RTPPacket &rtpPacket,
                        ReceiverInfoPtr &outReceiverInfo
                        );
 
-      bool findMappingUsingSSRC(
-                                const RTPPacket &rtpPacket,
-                                ReceiverInfoPtr &outReceiverInfo
-                                );
+      bool findMappingUsingSSRCTable(
+                                     const RTPPacket &rtpPacket,
+                                     ReceiverInfoPtr &outReceiverInfo
+                                     );
 
       bool findMappingUsingMuxID(
                                  const String &muxID,
@@ -462,12 +462,20 @@ namespace ortc
                                  ReceiverInfoPtr &outReceiverInfo
                                  );
 
+      bool findMappingUsingSSRCInEncodingParams(
+                                                const String &muxID,
+                                                const RTPPacket &rtpPacket,
+                                                ReceiverInfoPtr &outReceiverInfo
+                                                );
+
       bool findMappingUsingHeaderExtensions(
+                                            const String &muxID,
                                             const RTPPacket &rtpPacket,
                                             ReceiverInfoPtr &outReceiverInfo
                                             );
 
       bool findMappingUsingPayloadType(
+                                       const String &muxID,
                                        const RTPPacket &rtpPacket,
                                        ReceiverInfoPtr &outReceiverInfo
                                        );
@@ -480,6 +488,8 @@ namespace ortc
                                );
 
       void setReceiverInfo(ReceiverInfoPtr receiverInfo);
+
+      void processByes(const RTCPPacket &rtcpPacket);
 
     protected:
       //-----------------------------------------------------------------------
@@ -506,12 +516,6 @@ namespace ortc
 
       BufferedRTCPPacketList mBufferedRTCPPackets;
 
-      PUID mReceiverID {};
-      UseRTPReceiverWeakPtr mReceiver;
-
-      PUID mSenderID {};
-      UseRTPSenderWeakPtr mSender;
-
       HeaderExtensionMap mRegisteredExtensions;
 
       ReceiverObjectMapPtr mReceivers;  // non-mutable map values (COW)
@@ -519,6 +523,10 @@ namespace ortc
 
       SSRCReceiverMap mSSRCTable;
       MuxIDMap mMuxIDTable;
+
+      SSSRCToTimeMuxIDPairMap mSSRCToMuxTable;
+      TimerPtr mSSRCToMuxTableTimer;
+      Seconds mSSRCToMuxTableExpires {};
     };
 
     //-------------------------------------------------------------------------

@@ -221,7 +221,7 @@ namespace ortc
     #pragma mark
 
     struct RTXParameters {
-      SSRCType  mSSRC {};
+      SSRCType mSSRC {};
 
       ElementPtr toDebug() const;
       String hash() const;
@@ -233,7 +233,7 @@ namespace ortc
     #pragma mark
 
     struct EncodingParameters {
-      SSRCType                mSSRC {};
+      Optional<SSRCType>      mSSRC {};
       PayloadType             mCodecPayloadType {};
       Optional<FECParameters> mFEC;
       Optional<RTXParameters> mRTX;
@@ -250,16 +250,135 @@ namespace ortc
     };
 
     //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IRTPTypes::Kinds
+    #pragma mark
+
+    enum Kinds
+    {
+      Kind_First,
+
+      Kind_Unknown = Kind_First,
+
+      Kind_Audio,
+      Kind_Video,
+      Kind_AV,
+
+      Kind_RTX,
+      Kind_FEC,
+
+      Kind_Last = Kind_FEC,
+    };
+
+    static const char *toString(Kinds kind);
+    static Kinds toKind(const char *kind);
+
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IRTPTypes
+    #pragma mark IRTPTypes::SupportedCodecs
+    #pragma mark
+
+    enum SupportedCodecs
+    {
+      SupportedCodec_First,
+
+      SupportedCodec_Unknown = SupportedCodec_First,
+
+      // audio codecs
+      SupportedCodec_Opus,            // opus
+      SupportedCodec_Isac,            // isac
+      SupportedCodec_G722,            // g722
+      SupportedCodec_ILBC,            // ilbc
+      SupportedCodec_PCMU,            // pcmu
+      SupportedCodec_PCMA,            // pcma
+
+      // video codecs
+      SupportedCodec_VP8,             // VP8
+      SupportedCodec_VP9,             // VP9
+      SupportedCodec_H264,            // H264
+
+      // RTX
+      SupportedCodec_RTX,             // rtx
+
+      // FEC
+      SupportedCodec_RED,             // red
+      SupportedCodec_ULPFEC,          // ulpfec
+
+      SupportedCodec_CN,              // cn
+
+      SupportedCodec_TelephoneEvent,  // telephone-event
+
+      SupportedCodec_Last = SupportedCodec_TelephoneEvent
+    };
+
+    static const char *toString(SupportedCodecs codec);
+    static SupportedCodecs toSupportedCodec(const char *codec);
+
+    static Kinds getKind(SupportedCodecs codec);
+
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IRTPTypes::SupportedCodecs
+    #pragma mark
+
+    enum ReservedCodecPayloadTypes
+    {
+      // http://www.iana.org/assignments/rtp-parameters/rtp-parameters.xhtml
+
+      ReservedCodecPayloadType_First          = 0,
+
+      ReservedCodecPayloadType_Unknown        = 0xFF,
+
+      ReservedCodecPayloadType_PCMU_8000      = 0,
+
+      ReservedCodecPayloadType_GSM_8000       = 3,
+      ReservedCodecPayloadType_G723_8000      = 4,
+      ReservedCodecPayloadType_DVI4_8000      = 5,
+      ReservedCodecPayloadType_DVI4_16000     = 6,
+      ReservedCodecPayloadType_LPC_8000       = 7,
+      ReservedCodecPayloadType_PCMA_8000      = 8,
+      ReservedCodecPayloadType_G722_8000      = 9,
+      ReservedCodecPayloadType_L16_44100_2    = 10,
+      ReservedCodecPayloadType_L16_44100_1    = 11,
+      ReservedCodecPayloadType_QCELP_8000     = 12,
+      ReservedCodecPayloadType_CN_8000        = 13,
+      ReservedCodecPayloadType_MPA_90000      = 14,
+      ReservedCodecPayloadType_G728_8000      = 15,
+      ReservedCodecPayloadType_DVI4_11025     = 16,
+      ReservedCodecPayloadType_DVI4_22050     = 17,
+      ReservedCodecPayloadType_G729_8000      = 18,
+
+      ReservedCodecPayloadType_CelB_90000     = 25,
+      ReservedCodecPayloadType_JPEG_90000     = 26,
+
+      ReservedCodecPayloadType_nv_90000       = 28,
+
+      ReservedCodecPayloadType_H261_90000     = 31,
+      ReservedCodecPayloadType_MPV_90000      = 32,
+      ReservedCodecPayloadType_MP2T_90000     = 33,
+      ReservedCodecPayloadType_H263_90000     = 34,
+
+      ReservedCodecPayloadType_Last = ReservedCodecPayloadType_H263_90000
+    };
+
+    static const char *toString(ReservedCodecPayloadTypes reservedCodec);
+    static ReservedCodecPayloadTypes toReservedCodec(const char *encodingName);
+
+    static ULONG getDefaultClockRate(ReservedCodecPayloadTypes reservedCodec);
+
+    static Kinds getKind(ReservedCodecPayloadTypes reservedCodec);
+    static SupportedCodecs toSupportedCodec(ReservedCodecPayloadTypes reservedCodec);
+
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IRTPTypes::HeaderExtensionURIs
     #pragma mark
 
     enum HeaderExtensionURIs
     {
-      HeaderExtensionURI_Unknown,
+      HeaderExtensionURI_First,
+
+      HeaderExtensionURI_Unknown = HeaderExtensionURI_First,
 
       HeaderExtensionURI_MuxID,                                         // https://tools.ietf.org/html/draft-ietf-avtext-sdes-hdr-ext-02
       HeaderExtensionURI_MID = HeaderExtensionURI_MuxID,                // urn:ietf:params:rtp-hdrext:sdes:mid
@@ -314,9 +433,53 @@ namespace ortc
       // Associated SSRC (32 bits)- the SSSRC of the original SSRC to which
       //                            this FEC/RED applies (i.e. needed where
       //                            ambiguity may exist).
+
+
+      HeaderExtensionURI_Last = HeaderExtensionURI_ExtendedSourceInformation
     };
 
     static const char *toString(HeaderExtensionURIs extension);         // converts header enum to URN format
     static HeaderExtensionURIs toHeaderExtensionURI(const char *uri);
+
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IRTPTypes::KnownFeedbackMechanisms
+    #pragma mark
+
+    enum KnownFeedbackMechanisms
+    {
+      KnownFeedbackMechanism_NACK,          // nack
+      KnownFeedbackMechanism_PLI,           // pli
+      KnownFeedbackMechanism_REMB,          // goog-remb
+    };
+
+    static const char *toSting(KnownFeedbackMechanisms mechanism);
+    static KnownFeedbackMechanisms toFeedbackMechanism(const char *mechanism);
+
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IRTPTypes::KnownRTCP
+    #pragma mark
+
+    enum SupportedRTCPMechanisms
+    {
+      // http://www.iana.org/assignments/rtp-parameters/rtp-parameters.xhtml#rtp-parameters-4
+
+      SupportedRTCPMechanism_First,
+
+      SupportedRTCPMechanism_Unknown = SupportedRTCPMechanism_First,
+
+      SupportedRTCPMechanism_SR,               // https://tools.ietf.org/html/rfc3550#section-6.4.1
+      SupportedRTCPMechanism_RR,               // https://tools.ietf.org/html/rfc3550#section-6.4.2
+      SupportedRTCPMechanism_SDES,             // https://tools.ietf.org/html/rfc3550#section-6.5
+      SupportedRTCPMechanism_BYE,              // https://tools.ietf.org/html/rfc3550#section-6.6
+      SupportedRTCPMechanism_RTPFB,            // https://tools.ietf.org/html/rfc4585#section-6.2
+      SupportedRTCPMechanism_PSFB,             // https://tools.ietf.org/html/rfc4585#section-6.3
+
+      SupportedRTCPMechanism_Last = SupportedRTCPMechanism_PSFB
+    };
+
+    static const char *toString(SupportedRTCPMechanisms mechanism);
+    static SupportedRTCPMechanisms toSupportedRTCPMechanism(const char *mechanism);
   };
 }

@@ -94,6 +94,7 @@ namespace ortc
     {
       UseSettings::setUInt(ORTC_SETTING_RTP_LISTENER_MAX_RTCP_PACKETS_IN_BUFFER, 100);
       UseSettings::setUInt(ORTC_SETTING_RTP_LISTENER_MAX_AGE_RTCP_PACKETS_IN_SECONDS, 30);
+      UseSettings::setUInt(ORTC_SETTING_RTP_LISTENER_SSRC_TO_MUX_ID_TIMEOUT_IN_SECONDS, 60);
     }
 
     //-------------------------------------------------------------------------
@@ -303,6 +304,13 @@ namespace ortc
     {
       AutoRecursiveLock lock(*this);
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
+
+      mSSRCToMuxTableExpires = Seconds(UseSettings::getUInt(ORTC_SETTING_RTP_LISTENER_SSRC_TO_MUX_ID_TIMEOUT_IN_SECONDS));
+      if (mSSRCToMuxTableExpires < Seconds(1)) {
+        mSSRCToMuxTableExpires = Seconds(1);
+      }
+
+      mSSRCToMuxTableTimer = Timer::create(mThisWeak.lock(), (zsLib::toMilliseconds(mSSRCToMuxTableExpires) / 2));
     }
 
     //-------------------------------------------------------------------------
@@ -435,7 +443,7 @@ namespace ortc
       AutoRecursiveLock lock(*this);
 
       // unregister previous header extensions
-      unregisterAllReference(kAPIReference);
+      unregisterAllHeaderExtensionReferences(kAPIReference);
 
       // register all new header extensions
       for (auto iter = headerExtensions.begin(); iter != headerExtensions.end(); ++iter) {
@@ -446,7 +454,7 @@ namespace ortc
           continue;
         }
 
-        registerReference(kAPIReference, headerExtension, extension.mID, extension.mEncrypt);
+        registerHeaderExtensionReference(kAPIReference, headerExtension, extension.mID, extension.mEncrypt);
       }
     }
 
@@ -506,6 +514,8 @@ namespace ortc
 
         if (IICETypes::Component_RTCP == packetType) {
           expireRTCPPackets();
+
+          processByes(*rtcpPacket);
 
           mBufferedRTCPPackets.push_back(TimePacketPair(zsLib::now(), rtcpPacket));
 
@@ -592,8 +602,40 @@ namespace ortc
 
       AutoRecursiveLock lock(*this);
 
-      mReceiverID = inReceiver->getID();
-      mReceiver = inReceiver;
+      if ((isShutdown()) ||
+          (isShuttingDown())) {
+        ZS_LOG_WARNING(Detail, log("cannot register receiver while shutdown / shutting down"))
+        return;
+      }
+
+      ReceiverID receiverID = inReceiver->getID();
+
+      ReceiverInfoPtr receiverInfo(make_shared<ReceiverInfo>());
+
+      receiverInfo->mReceiverID = receiverID;
+      receiverInfo->mReceiver = inReceiver;
+      receiverInfo->mParameters = inParams;
+      receiverInfo->mOriginalParameters = inParams;
+
+      setReceiverInfo(receiverInfo);
+
+#define TODO_CHANGE_RECEIVER_INFO_IF_ALREADY_EXISTS 1
+#define TODO_CHANGE_RECEIVER_INFO_IF_ALREADY_EXISTS 2
+
+      unregisterAllHeaderExtensionReferences(receiverID);
+
+      // register all new header extensions
+      for (auto iter = inParams.mHeaderExtensions.begin(); iter != inParams.mHeaderExtensions.end(); ++iter) {
+        auto extension = (*iter);
+
+        auto headerExtension = IRTPTypes::toHeaderExtensionURI(extension.mURI);
+        if (HeaderExtensionURI_Unknown == headerExtension) {
+          ZS_LOG_WARNING(Debug, log("header extension is not understood") + extension.toDebug())
+          continue;
+        }
+
+        registerHeaderExtensionReference(receiverID, headerExtension, extension.mID, extension.mEncrypt);
+      }
 
       expireRTCPPackets();
 
@@ -609,9 +651,67 @@ namespace ortc
     {
       AutoRecursiveLock lock(*this);
 
-      if (inReceiver.getID() != mReceiverID) return;
-      mReceiverID = 0;
-      mReceiver.reset();
+      ReceiverID receiverID = inReceiver.getID();
+
+      {
+        // scope: search existing receiver list
+        {
+          auto found = mReceivers->find(receiverID);
+          if (found == mReceivers->end()) {
+            ZS_LOG_WARNING(Debug, log("receiver was not registered (thus ignoring request to unregister)") + ZS_PARAM("receiver id", receiverID))
+            return;
+          }
+        }
+
+        // scope: create a replacement receiver list (without this receiver)
+        {
+          ReceiverObjectMapPtr receivers(make_shared<ReceiverObjectMap>(*mReceivers));
+
+          auto found = receivers->find(receiverID);
+          ASSERT(found != receivers->end())
+
+          auto receiverInfo = (*found).second;
+
+          ZS_LOG_DEBUG(log("unregistering receiver") + ZS_PARAM("receiver id", receiverID) + receiverInfo->toDebug())
+
+          receivers->erase(found);
+
+          mReceivers = receivers;
+        }
+      }
+
+      // purge receiver from ssrc table
+      for (auto iter_doNotUse = mSSRCTable.begin(); iter_doNotUse != mSSRCTable.end(); )
+      {
+        auto current = iter_doNotUse;
+        ++iter_doNotUse;
+
+        SSRCType ssrc = (*current).first;
+        ReceiverInfoPtr &receiverInfo = (*current).second;
+        if (receiverInfo->mReceiverID != receiverID) continue;
+
+        ZS_LOG_TRACE(log("removing SSRC mapping to receiver") + ZS_PARAM("ssrc", ssrc) + receiverInfo->toDebug())
+
+        mSSRCTable.erase(current);
+      }
+
+      // purge from mux id table
+      for (auto iter_doNotUse = mMuxIDTable.begin(); iter_doNotUse != mMuxIDTable.end(); )
+      {
+        auto current = iter_doNotUse;
+        ++iter_doNotUse;
+
+        const String &muxID = (*current).first;
+        ReceiverInfoPtr &receiverInfo = (*current).second;
+
+        if (receiverInfo->mReceiverID != receiverID) continue;
+
+        ZS_LOG_TRACE(log("removing mux id mapping to receiver") + ZS_PARAM("mux id", muxID) + receiverInfo->toDebug())
+
+        mMuxIDTable.erase(current);
+      }
+
+      unregisterAllHeaderExtensionReferences(receiverID);
     }
 
     //-------------------------------------------------------------------------
@@ -635,8 +735,15 @@ namespace ortc
 
       AutoRecursiveLock lock(*this);
 
-      mSenderID = inSender->getID();
-      mSender = inSender;
+      if ((isShutdown()) ||
+          (isShuttingDown())) {
+        ZS_LOG_WARNING(Detail, log("cannot register sender while shutdown / shutting down"))
+        return;
+      }
+
+      SenderObjectMapPtr senders(make_shared<SenderObjectMap>(*mSenders));
+      (*senders)[inSender->getID()] = inSender;
+      mSenders = senders;
 
       expireRTCPPackets();
 
@@ -652,9 +759,33 @@ namespace ortc
     {
       AutoRecursiveLock lock(*this);
 
-      if (inSender.getID() != mSenderID) return;
-      mSenderID = 0;
-      mSender.reset();
+      SenderID senderID = inSender.getID();
+
+      {
+        // scope: search existing sender list
+        {
+          auto found = mSenders->find(senderID);
+          if (found == mSenders->end()) {
+            ZS_LOG_WARNING(Debug, log("sender was not registered (thus ignoring request to unregister)") + ZS_PARAM("sender id", senderID))
+            return;
+          }
+        }
+
+        // scope: create a replacement sender list (without this sender)
+        {
+          SenderObjectMapPtr senders(make_shared<SenderObjectMap>(*mSenders));
+
+          auto found = senders->find(senderID);
+          ASSERT(found != senders->end())
+
+          ZS_LOG_DEBUG(log("unregistering sender") + ZS_PARAM("sender id", senderID))
+
+          senders->erase(found);
+
+          mSenders = senders;
+        }
+      }
+      
     }
 
     //-------------------------------------------------------------------------
@@ -688,8 +819,36 @@ namespace ortc
       ZS_LOG_DEBUG(log("timer") + ZS_PARAM("timer id", timer->getID()))
 
       AutoRecursiveLock lock(*this);
-#define TODO 1
-#define TODO 2
+
+      if (timer == mSSRCToMuxTableTimer) {
+
+        expireRTCPPackets();  // might as well expire these too now
+
+        auto adjustedTick = zsLib::now() - mSSRCToMuxTableExpires;
+
+        // now =  N; then = T; expire = E; adjusted = A;    N-E = A; if A > T then expired
+        // now = 10; then = 5; expiry = 3;                 10-3 = 7;    7 > 5 = expired (true)
+        // now =  6; then = 5; expiry = 3;                  6-3 = 3;    3 > 5 = not expired (false)
+
+        for (auto iter_doNotUse = mSSRCToMuxTable.begin(); iter_doNotUse != mSSRCToMuxTable.end(); )
+        {
+          auto current = iter_doNotUse;
+          ++iter_doNotUse;
+
+          const Time &lastReceived = (*current).second.first;
+
+          if (!(adjustedTick > lastReceived)) continue;
+
+          SSRCType ssrc = (*current).first;
+
+          ZS_LOG_TRACE(log("expiring SSRC to mux ID mapping") + ZS_PARAM("ssrc", ssrc) + ZS_PARAM("last received", lastReceived) + ZS_PARAM("adjusted tick", adjustedTick))
+          mSSRCToMuxTable.erase(current);
+        }
+
+        return;
+      }
+
+      ZS_LOG_WARNING(Debug, log("notified about obsolete timer (thus ignoring)") + ZS_PARAM("timer id", timer->getID()))
     }
 
     //-------------------------------------------------------------------------
@@ -850,6 +1009,11 @@ namespace ortc
         mDefaultSubscription.reset();
       }
 
+      if (mSSRCToMuxTableTimer) {
+        mSSRCToMuxTableTimer->cancel();
+        mSSRCToMuxTableTimer.reset();
+      }
+
       // make sure to cleanup any final reference to self
       mGracefulShutdownReference.reset();
     }
@@ -925,15 +1089,13 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPListener::registerReference(
-                                        PUID objectID,
-                                        HeaderExtensionURIs extensionURI,
-                                        LocalID localID,
-                                        bool encrytped
-                                        )
+    void RTPListener::registerHeaderExtensionReference(
+                                                       PUID objectID,
+                                                       HeaderExtensionURIs extensionURI,
+                                                       LocalID localID,
+                                                       bool encrytped
+                                                       )
     {
-      ORTC_THROW_INVALID_PARAMETERS_IF(HeaderExtensionURI_Unknown == extensionURI)
-
       if (shouldFilter(extensionURI)) {
         ZS_LOG_DEBUG(log("extension header is not relevant  to listener (thus filtering)") + ZS_PARAM("object id", objectID) + ZS_PARAM("extension uri", IRTPTypes::toString(extensionURI)) + ZS_PARAM("local ID", localID) + ZS_PARAM("encrypted", encrytped))
         return;
@@ -967,35 +1129,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPListener::unregisterReference(
-                                          PUID objectID,
-                                          LocalID localID
-                                          )
-    {
-      auto found = mRegisteredExtensions.find(localID);
-      if (found != mRegisteredExtensions.end()) {
-        ZS_LOG_DEBUG(log("local id was not registered") + ZS_PARAM("object id", objectID) + ZS_PARAM("local id", localID))
-        return;
-      }
-
-      RegisteredHeaderExtension &extension = (*found).second;
-
-      auto foundObject = extension.mReferences.find(objectID);
-      if (foundObject == extension.mReferences.end()) {
-        ZS_LOG_DEBUG(log("local object was not registered") + ZS_PARAM("object id", objectID) + ZS_PARAM("local id", localID))
-        return;
-      }
-
-      extension.mReferences.erase(foundObject);
-
-      ZS_LOG_DEBUG(log("removing reference to existing header extension") + ZS_PARAM("object id", objectID) + extension.toDebug())
-      if (extension.mReferences.size() > 0) return;
-
-      mRegisteredExtensions.erase(found);
-    }
-
-    //-------------------------------------------------------------------------
-    void RTPListener::unregisterAllReference(PUID objectID)
+    void RTPListener::unregisterAllHeaderExtensionReferences(PUID objectID)
     {
       for (auto iter_doNotUse = mRegisteredExtensions.begin(); iter_doNotUse != mRegisteredExtensions.end(); )
       {
@@ -1026,13 +1160,17 @@ namespace ortc
       String muxID = extractMuxID(rtpPacket);
 
       {
-        if (findMappingUsingSSRC(rtpPacket, outReceiverInfo)) goto fill_mux_id;
+        if (findMappingUsingSSRCTable(rtpPacket, outReceiverInfo)) goto fill_mux_id;
 
         if (findMappingUsingMuxID(muxID, rtpPacket, outReceiverInfo)) return true;
 
-        if (findMappingUsingHeaderExtensions(rtpPacket, outReceiverInfo)) goto fill_mux_id;
+        if (findMappingUsingSSRCInEncodingParams(muxID, rtpPacket, outReceiverInfo)) goto fill_mux_id;
 
-        if (findMappingUsingPayloadType(rtpPacket, outReceiverInfo)) return true;
+        if (findMappingUsingHeaderExtensions(muxID, rtpPacket, outReceiverInfo)) goto fill_mux_id;
+
+        if (findMappingUsingPayloadType(muxID, rtpPacket, outReceiverInfo)) goto fill_mux_id;
+
+        return false;
       }
 
     fill_mux_id:
@@ -1048,7 +1186,7 @@ namespace ortc
     }
     
     //-------------------------------------------------------------------------
-    bool RTPListener::findMappingUsingSSRC(
+    bool RTPListener::findMappingUsingSSRCTable(
                                            const RTPPacket &rtpPacket,
                                            ReceiverInfoPtr &outReceiverInfo
                                            )
@@ -1082,7 +1220,73 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    bool RTPListener::findMappingUsingSSRCInEncodingParams(
+                                                           const String &muxID,
+                                                           const RTPPacket &rtpPacket,
+                                                           ReceiverInfoPtr &outReceiverInfo
+                                                           )
+    {
+      ReceiverObjectMapPtr receivers = mReceivers;
+
+      for (auto iter = receivers->begin(); iter != receivers->end(); ++iter)
+      {
+        ReceiverInfoPtr &info = (*iter).second;
+
+        if ((info->mParameters.mMuxID.hasData()) &&
+            (muxID.hasData())) {
+          if (muxID != info->mParameters.mMuxID) {
+            // cannot consider any receiver which has a mux id but does not
+            // match this receiver's mux id
+            continue;
+          }
+        }
+
+        // first check to see if this SSRC is inside this receiver's
+        // encoding parameters but if this value was auto-filled in
+        // those encoding paramters and not set by the application
+        // developer.
+        {
+          auto iterParm = info->mParameters.mEncodingParameters.begin();
+
+          for (; iterParm != info->mParameters.mEncodingParameters.end(); ++iterParm)
+          {
+            EncodingParameters &encParams = (*iterParm);
+
+            if (encParams.mSSRC.hasValue()) {
+              if (rtpPacket.ssrc() == encParams.mSSRC.value()) goto map_ssrc;
+            }
+
+            if (encParams.mRTX.hasValue())  {
+              if (rtpPacket.ssrc() == encParams.mRTX.value().mSSRC) goto map_ssrc;
+            }
+
+            if (encParams.mFEC.hasValue()) {
+              if (rtpPacket.ssrc() == encParams.mFEC.value().mSSRC) goto map_ssrc;
+            }
+          }
+
+          // no SSRC match was found
+          continue;
+        }
+
+      map_ssrc:
+        {
+          outReceiverInfo = info;
+
+          ZS_LOG_DEBUG(log("creating a new SSRC entry in SSRC table (based on associated SSRC being found)") + outReceiverInfo->toDebug())
+
+          // the associated SSRC was found in table thus must route to same receiver
+          mSSRCTable[rtpPacket.ssrc()] = outReceiverInfo;
+          return true;
+        }
+      }
+
+      return false;
+    }
+
+    //-------------------------------------------------------------------------
     bool RTPListener::findMappingUsingHeaderExtensions(
+                                                       const String &muxID,
                                                        const RTPPacket &rtpPacket,
                                                        ReceiverInfoPtr &outReceiverInfo
                                                        )
@@ -1112,6 +1316,15 @@ namespace ortc
 
         outReceiverInfo = (*foundSSRC).second;
 
+        if ((outReceiverInfo->mParameters.mMuxID.hasData()) &&
+            (muxID.hasData())) {
+          if (muxID != outReceiverInfo->mParameters.mMuxID) {
+            ZS_LOG_WARNING(Trace, log("associated SSRC and mux ID extension do not match (thus cannot consider this receiver a match)") + outReceiverInfo->toDebug())
+            outReceiverInfo = ReceiverInfoPtr();
+            return false;
+          }
+        }
+
         ZS_LOG_DEBUG(log("creating a new SSRC entry in SSRC table (based on associated SSRC being found)") + extendedInfo.toDebug() + outReceiverInfo->toDebug())
 
         // the associated SSRC was found in table thus must route to same receiver
@@ -1124,12 +1337,139 @@ namespace ortc
 
     //-------------------------------------------------------------------------
     bool RTPListener::findMappingUsingPayloadType(
+                                                  const String &muxID,
                                                   const RTPPacket &rtpPacket,
                                                   ReceiverInfoPtr &outReceiverInfo
                                                   )
     {
-#define TODO 1
-#define TODO 2
+      auto payloadType = rtpPacket.pt();
+
+      for (auto iter = mReceivers->begin(); iter != mReceivers->end(); ++iter) {
+        auto &receiverInfo = (*iter).second;
+
+        if ((receiverInfo->mParameters.mMuxID.hasData()) &&
+            (muxID.hasData())) {
+          if (muxID != receiverInfo->mParameters.mMuxID) {
+            // cannot consider any receiver which has a mux id but does not
+            // match this receiver's mux id
+            continue;
+          }
+        }
+
+        Kinds kind = Kind_Unknown;
+
+        for (auto iterCodec = receiverInfo->mParameters.mCodecs.begin(); iterCodec != receiverInfo->mParameters.mCodecs.end(); ++iterCodec) {
+          auto &codecInfo = (*iterCodec);
+          if (payloadType != codecInfo.mPayloadType) continue;
+
+          auto supportedType = toSupportedCodec(codecInfo.mName);
+          if (SupportedCodec_Unknown == supportedType) continue;
+
+          kind = getKind(supportedType);
+          if (Kind_Unknown == kind) continue;
+
+          break;
+        }
+
+        if (Kind_Unknown == kind) continue; // make sure this codec type is understood
+
+        if (receiverInfo->mParameters.mEncodingParameters.size() < 1) {
+          // special case where this is a "match all" for the codec
+          outReceiverInfo = receiverInfo;
+          goto insert_ssrc_into_table;
+        }
+
+        for (auto encodingIter = receiverInfo->mParameters.mEncodingParameters.begin(); encodingIter != receiverInfo->mParameters.mEncodingParameters.end(); ++encodingIter) {
+
+          auto &encodingInfo = (*encodingIter);
+
+          switch (kind) {
+            case Kind_Unknown:  ASSERT(false) break;
+            case Kind_Audio:
+            case Kind_Video:
+            case Kind_AV:     {
+              if (encodingInfo.mSSRC.hasValue()) break; // cannot match if there was an SSRC already attached
+              goto fill_ssrc;
+            }
+            case Kind_RTX:    {
+              if (encodingInfo.mRTX.hasValue()) break; // cannot match if there was an SSRC already attached
+              goto fill_ssrc;
+            }
+            case Kind_FEC:    {
+              if (encodingInfo.mFEC.hasValue()) break; // cannot match if there was an SSRC already attached
+              goto fill_ssrc;
+            }
+          }
+        }
+        goto not_found;
+
+      fill_ssrc:
+        {
+          ReceiverInfoPtr replacementInfo(make_shared<ReceiverInfo>(*receiverInfo));
+
+          auto encodingIter = receiverInfo->mParameters.mEncodingParameters.begin();
+          auto replacementIter = replacementInfo->mParameters.mEncodingParameters.begin();
+
+          for (; encodingIter != receiverInfo->mParameters.mEncodingParameters.end(); ++encodingIter, ++replacementIter) {
+
+            ASSERT(replacementIter != replacementInfo->mParameters.mEncodingParameters.end())
+
+            auto &encodingInfo = (*encodingIter);
+            auto &replaceEncodingInfo = (*encodingIter);
+
+            switch (kind) {
+              case Kind_Unknown:  ASSERT(false) break;
+              case Kind_Audio:
+              case Kind_Video:
+              case Kind_AV:     {
+                if (encodingInfo.mSSRC.hasValue()) break; // cannot match if there was an SSRC already attached
+                replaceEncodingInfo.mSSRC = rtpPacket.ssrc();
+
+                setReceiverInfo(replacementInfo);
+                outReceiverInfo = replacementInfo;
+                goto insert_ssrc_into_table;
+              }
+              case Kind_RTX:    {
+                if (encodingInfo.mRTX.hasValue()) break; // cannot match if there was an SSRC already attached
+                RTXParameters rtx;
+                rtx.mSSRC = rtpPacket.ssrc();
+                replaceEncodingInfo.mRTX = rtx;
+
+                setReceiverInfo(replacementInfo);
+                outReceiverInfo = replacementInfo;
+                goto insert_ssrc_into_table;
+              }
+              case Kind_FEC:    {
+                if (encodingInfo.mFEC.hasValue()) break; // cannot match if there was an SSRC already attached
+                goto insert_ssrc_into_table;
+                FECParameters fec;
+                fec.mSSRC = rtpPacket.ssrc();
+                replaceEncodingInfo.mFEC = fec;
+
+                setReceiverInfo(replacementInfo);
+                outReceiverInfo = replacementInfo;
+                goto insert_ssrc_into_table;
+              }
+            }
+          }
+
+          ASSERT(false)
+        }
+        goto not_found;
+      }
+
+    insert_ssrc_into_table:
+      {
+        ZS_LOG_DEBUG(log("creating a new SSRC entry in SSRC table (based on payload type matching)") + outReceiverInfo->toDebug())
+
+        mSSRCTable[rtpPacket.ssrc()] = outReceiverInfo;
+        return true;
+      }
+
+    not_found:
+      {
+      }
+
       return false;
     }
 
@@ -1150,10 +1490,19 @@ namespace ortc
         String muxID(mid.mid());
         if (!muxID.hasData()) continue;
 
+        mSSRCToMuxTable[rtpPacket.ssrc()] = TimeMuxPair(zsLib::now(), muxID);
+
         return muxID;
       }
 
-      return String();
+      auto found = mSSRCToMuxTable.find(rtpPacket.ssrc());
+      if (found == mSSRCToMuxTable.end()) return String();
+
+      TimeMuxPair &info = (*found).second;
+
+      info.first = zsLib::now();  // reflect last usage of this SSRC
+
+      return info.second;
     }
 
     //-------------------------------------------------------------------------
@@ -1207,6 +1556,122 @@ namespace ortc
       mReceivers = receivers;
     }
 
+    //-------------------------------------------------------------------------
+    void RTPListener::processByes(const RTCPPacket &rtcpPacket)
+    {
+      for (auto bye = rtcpPacket.firstBye(); NULL != bye; bye = bye->nextBye()) {
+        for (size_t index = 0; index < bye->sc(); ++index) {
+          auto byeSSRC = bye->ssrc(index);
+
+          // scope: clean SSRC to mux id table
+          {
+            auto found = mSSRCToMuxTable.find(byeSSRC);
+            if (found != mSSRCToMuxTable.end()) {
+              auto muxID = (*found).second.second;
+
+              ZS_LOG_TRACE(log("removing ssrc to mux table entry due to BYE") + ZS_PARAM("ssrc", byeSSRC) + ZS_PARAM("mux id", muxID))
+
+              mSSRCToMuxTable.erase(found);
+            }
+          }
+
+          // scope: clean normal SSRC table
+          {
+            auto found = mSSRCTable.find(byeSSRC);
+            if (found != mSSRCTable.end()) {
+              auto receiverInfo = (*found).second;
+              ZS_LOG_TRACE(log("removing ssrc table entry due to BYE") + ZS_PARAM("ssrc", byeSSRC) + receiverInfo->toDebug())
+              mSSRCTable.erase(found);
+            }
+          }
+
+          // scope: clean out any receiver infos that have this SSRCs
+          {
+            ReceiverObjectMapPtr receivers = mReceivers;
+
+            for (auto iter = receivers->begin(); iter != receivers->end(); ++iter)
+            {
+              ReceiverInfoPtr &info = (*iter).second;
+
+              // first check to see if this SSRC is inside this receiver's
+              // encoding parameters but if this value was auto-filled in
+              // those encoding paramters and not set by the application
+              // developer.
+              {
+                auto iterParm = info->mParameters.mEncodingParameters.begin();
+                auto iterOriginalParams = info->mParameters.mEncodingParameters.begin();
+
+                for (; iterParm != info->mParameters.mEncodingParameters.end(); ++iterParm, ++iterOriginalParams)
+                {
+                  ASSERT(iterOriginalParams != info->mOriginalParameters.mEncodingParameters.end())
+                  EncodingParameters &encParams = (*iterParm);
+                  EncodingParameters &originalEncParams = (*iterParm);
+
+                  if ((encParams.mSSRC.hasValue()) &&
+                      (!originalEncParams.mSSRC.hasValue())) {
+                    if (byeSSRC == encParams.mSSRC.value()) goto strip_ssrc;
+                  }
+
+                  if ((encParams.mRTX.hasValue()) &&
+                      (!originalEncParams.mRTX.hasValue())) {
+                    if (byeSSRC == encParams.mRTX.value().mSSRC) goto strip_ssrc;
+                  }
+
+                  if ((encParams.mFEC.hasValue()) &&
+                      (!originalEncParams.mFEC.hasValue())) {
+                    if (byeSSRC == encParams.mFEC.value().mSSRC) goto strip_ssrc;
+                  }
+                }
+
+                // no stripping of SSRC is needed
+                continue;
+              }
+
+            strip_ssrc:
+              {
+                ReceiverInfoPtr replacementInfo(make_shared<ReceiverInfo>(*info));
+
+                auto iterParm = replacementInfo->mParameters.mEncodingParameters.begin();
+                auto iterOriginalParams = replacementInfo->mParameters.mEncodingParameters.begin();
+
+                for (; iterParm != info->mParameters.mEncodingParameters.end(); ++iterParm, ++iterOriginalParams)
+                {
+                  ASSERT(iterOriginalParams != info->mOriginalParameters.mEncodingParameters.end())
+                  EncodingParameters &encParams = (*iterParm);
+                  EncodingParameters &originalEncParams = (*iterParm);
+
+                  // reset SSRC matches back to the original value specified
+                  // by the application developer
+
+                  if (encParams.mSSRC.hasValue()) {
+                    if (byeSSRC == encParams.mSSRC.value()) {
+                      encParams.mSSRC = originalEncParams.mSSRC;
+                    }
+                  }
+
+                  if (encParams.mRTX.hasValue()) {
+                    if (byeSSRC == encParams.mRTX.value().mSSRC) {
+                      encParams.mRTX = originalEncParams.mRTX;
+                    }
+                  }
+
+                  if (encParams.mFEC.hasValue()) {
+                    if (byeSSRC == encParams.mFEC.value().mSSRC) {
+                      encParams.mFEC = originalEncParams.mFEC;
+                    }
+                  }
+                }
+                
+                setReceiverInfo(replacementInfo);
+              }
+            }
+          }
+          
+        }
+      }
+      
+    }
+    
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
