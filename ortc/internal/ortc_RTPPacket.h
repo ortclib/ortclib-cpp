@@ -140,10 +140,58 @@ namespace ortc
 
         const char *mid() const;
 
+        ElementPtr toDebug() const;
+
       public:
         BYTE mMidBuffer[kMaxMidLength+sizeof(char)] {};
       };
       
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPPacket::MixerToClientExtension
+      #pragma mark
+
+      struct ExtendedSourceInformationHeadExtension : public HeaderExtension
+      {
+        // urn:example:params:rtp-hdrext:extended-ssrc-info
+
+        struct RTXType {
+          static const BYTE kType {1};
+        };
+        struct FECType {
+          static const BYTE kType {2};
+        };
+
+
+        ExtendedSourceInformationHeadExtension(const HeaderExtension &header);
+        ExtendedSourceInformationHeadExtension(
+                                               const RTXType &,
+                                               BYTE id,
+                                               DWORD associatedSSRC
+                                               );
+        ExtendedSourceInformationHeadExtension(
+                                               const FECType &,
+                                               BYTE id,
+                                               bool associatedSSRCIsValid,
+                                               DWORD associatedSSRC
+                                               );
+
+
+        BYTE type() const                   {return mType;}
+
+        bool isAssociatedSSRCValid() const  {return mIsAssociateSSRCValid;}
+        DWORD associatedSSRC() const        {return mAssociatedSSRC;}
+
+        ElementPtr toDebug() const;
+
+      public:
+        BYTE mType {0};
+        bool mIsAssociateSSRCValid {};
+        DWORD mAssociatedSSRC {};
+
+        BYTE mEncoded[sizeof(DWORD)*2] {};
+      };
+
     public:
       //-----------------------------------------------------------------------
       #pragma mark

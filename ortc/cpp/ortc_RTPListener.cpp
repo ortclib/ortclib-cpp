@@ -208,6 +208,59 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
+    #pragma mark RTPListener::RegisteredHeaderExtension
+    #pragma mark
+    
+    //---------------------------------------------------------------------------
+    ElementPtr RTPListener::RegisteredHeaderExtension::toDebug() const
+    {
+      ElementPtr resultEl = Element::create("ortc::RTPListener::RegisteredHeaderExtension");
+
+      UseServicesHelper::debugAppend(resultEl, "header extension uri", IRTPTypes::toString(mHeaderExtensionURI));
+      UseServicesHelper::debugAppend(resultEl, "local id", mLocalID);
+      UseServicesHelper::debugAppend(resultEl, "encrypted", mEncrypted);
+
+      ElementPtr referencesEl = Element::create("references");
+      for (auto iter = mReferences.begin(); iter != mReferences.end(); ++iter)
+      {
+        auto objectID = (*iter).first;
+
+        UseServicesHelper::debugAppend(referencesEl, "reference", string(objectID));
+      }
+
+      if (referencesEl->hasChildren()) {
+        UseServicesHelper::debugAppend(resultEl, referencesEl);
+      }
+
+      return resultEl;
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPListener::ReceiverInfo
+    #pragma mark
+
+    //---------------------------------------------------------------------------
+    ElementPtr RTPListener::ReceiverInfo::toDebug() const
+    {
+      ElementPtr resultEl = Element::create("ortc::RTPListener::ReceiverInfo");
+
+      UseServicesHelper::debugAppend(resultEl, "object id", mReceiverID);
+      UseServicesHelper::debugAppend(resultEl, "receiver", ((bool)mReceiver.lock()));
+
+      UseServicesHelper::debugAppend(resultEl, mParameters.toDebug());
+
+      return resultEl;
+    }
+    
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
     #pragma mark RTPListener
     #pragma mark
     
@@ -234,7 +287,9 @@ namespace ortc
       SharedRecursiveLock(SharedRecursiveLock::create()),
       mRTPTransport(transport),
       mMaxBufferedRTCPPackets(SafeInt<decltype(mMaxBufferedRTCPPackets)>(UseSettings::getUInt(ORTC_SETTING_RTP_LISTENER_MAX_RTCP_PACKETS_IN_BUFFER))),
-      mMaxRTCPPacketAge(UseSettings::getUInt(ORTC_SETTING_RTP_LISTENER_MAX_AGE_RTCP_PACKETS_IN_SECONDS))
+      mMaxRTCPPacketAge(UseSettings::getUInt(ORTC_SETTING_RTP_LISTENER_MAX_AGE_RTCP_PACKETS_IN_SECONDS)),
+      mReceivers(make_shared<ReceiverObjectMap>()),
+      mSenders(make_shared<SenderObjectMap>())
     {
       ZS_LOG_DETAIL(debug("created"))
 
@@ -420,11 +475,31 @@ namespace ortc
                                       size_t bufferLengthInBytes
                                       )
     {
-      UseRTPReceiverPtr receiver;
-      UseRTPSenderPtr sender;
+      bool result = false;
+
+      ReceiverInfoPtr receiverInfo;
+
+      ReceiverObjectMapPtr receivers;
+      SenderObjectMapPtr senders;
 
       RTPPacketPtr rtpPacket;
       RTCPPacketPtr rtcpPacket;
+
+      // parse packet outside of a lock
+      if (IICETypes::Component_RTCP == packetType) {
+        rtcpPacket = RTCPPacket::create(buffer, bufferLengthInBytes);
+        if (!rtcpPacket) {
+          ZS_LOG_WARNING(Trace, log("invalid rtcp packet received (thus dropping)"))
+          return false;
+        }
+      } else {
+        rtpPacket = RTPPacket::create(buffer, bufferLengthInBytes);
+
+        if (!rtpPacket) {
+          ZS_LOG_WARNING(Trace, log("invalid RTP packet received (thus dropping)"))
+          return false;
+        }
+      }
 
       {
         AutoRecursiveLock lock(*this);
@@ -432,37 +507,65 @@ namespace ortc
         if (IICETypes::Component_RTCP == packetType) {
           expireRTCPPackets();
 
-          rtcpPacket = RTCPPacket::create(buffer, bufferLengthInBytes);
-          if (!rtcpPacket) {
-            ZS_LOG_WARNING(Trace, log("invalid rtcp packet received"))
-            return false;
+          mBufferedRTCPPackets.push_back(TimePacketPair(zsLib::now(), rtcpPacket));
+
+          receivers = mReceivers;
+          senders = mSenders;
+          goto process_rtcp;
+        }
+
+        if (findMapping(*rtpPacket, receiverInfo)) goto process_rtp;
+
+#define TODO_FIRE_UNHANDLED_EVENT 1
+#define TODO_FIRE_UNHANDLED_EVENT 2
+
+        return false;
+      }
+
+    process_rtp:
+      {
+        auto receiver = receiverInfo->mReceiver.lock();
+
+        if (!receiver) {
+          ZS_LOG_WARNING(Trace, log("receiver is gone") + receiverInfo->toDebug())
+          return false;
+        }
+
+        ZS_LOG_TRACE(log("forwarding RTP packet to receiver") + ZS_PARAM("receiver id", receiver->getID()))
+        return receiver->handlePacket(viaComponent, rtpPacket);
+      }
+
+    process_rtcp:
+      {
+        for (auto iter = receivers->begin(); iter != receivers->end(); ++iter) {
+          ReceiverID receiverID = (*iter).first;
+          auto receiverInfo = (*iter).second;
+
+          auto receiver = (*iter).second->mReceiver.lock();
+
+          if (!receiver) {
+            ZS_LOG_WARNING(Trace, log("receiver is gone") + ZS_PARAM("receiver ID", receiverID) + receiverInfo->toDebug())
+            continue;
           }
 
-          mBufferedRTCPPackets.push_back(TimePacketPair(zsLib::now(), rtcpPacket));
-        } else {
+          ZS_LOG_TRACE(log("forwarding RTCP packet to receiver") + ZS_PARAM("receiver id", receiverID))
+          auto success = receiver->handlePacket(viaComponent, rtcpPacket);
+          result = result || success;
         }
 
-        receiver = mReceiver.lock();
-        if (IICETypes::Component_RTCP == packetType) {
-          rtpPacket = RTPPacket::create(buffer, bufferLengthInBytes);
+        for (auto iter = senders->begin(); iter != senders->end(); ++iter) {
+          SenderID senderID = (*iter).first;
+          auto sender = (*iter).second.lock();
 
-          sender = mSender.lock();
+          if (!sender) {
+            ZS_LOG_WARNING(Trace, log("sender is gone") + ZS_PARAM("sender ID", senderID))
+            continue;
+          }
+
+          ZS_LOG_TRACE(log("forwarding RTCP packet to sender") + ZS_PARAM("sender id", senderID))
+          auto success = sender->handlePacket(viaComponent, rtcpPacket);
+          result = result || success;
         }
-      }
-
-#define TODO_THIS_IS_NOT_PROPER_HANDLING_OF_PACKET 1
-#define TODO_THIS_IS_NOT_PROPER_HANDLING_OF_PACKET 2
-
-      bool result = false;
-
-      if (receiver) {
-        auto success = receiver->handlePacket(viaComponent, rtpPacket);
-        result = result || success;
-      }
-
-      if (sender) {
-        auto success = sender->handlePacket(viaComponent, rtcpPacket);
-        result = result || success;
       }
 
       return result;
@@ -805,7 +908,22 @@ namespace ortc
         }
       }
     }
-    
+
+    //-------------------------------------------------------------------------
+    static bool shouldFilter(IRTPTypes::HeaderExtensionURIs extensionURI)
+    {
+      switch (extensionURI) {
+        case IRTPTypes::HeaderExtensionURI_Unknown:                           return true;
+        case IRTPTypes::HeaderExtensionURI_MuxID:                             return false;
+      //case IRTPTypes::HeaderExtensionURI_MID:                               return false;
+        case IRTPTypes::HeaderExtensionURI_ClienttoMixerAudioLevelIndication: return true;
+        case IRTPTypes::HeaderExtensionURI_MixertoClientAudioLevelIndication: return true;
+        case IRTPTypes::HeaderExtensionURI_FrameMarking:                      return true;
+        case IRTPTypes::HeaderExtensionURI_ExtendedSourceInformation:         return false;
+      }
+      return true;
+    }
+
     //-------------------------------------------------------------------------
     void RTPListener::registerReference(
                                         PUID objectID,
@@ -816,6 +934,11 @@ namespace ortc
     {
       ORTC_THROW_INVALID_PARAMETERS_IF(HeaderExtensionURI_Unknown == extensionURI)
 
+      if (shouldFilter(extensionURI)) {
+        ZS_LOG_DEBUG(log("extension header is not relevant  to listener (thus filtering)") + ZS_PARAM("object id", objectID) + ZS_PARAM("extension uri", IRTPTypes::toString(extensionURI)) + ZS_PARAM("local ID", localID) + ZS_PARAM("encrypted", encrytped))
+        return;
+      }
+
       auto found = mRegisteredExtensions.find(localID);
       if (found == mRegisteredExtensions.end()) {
         RegisteredHeaderExtension extension;
@@ -825,7 +948,7 @@ namespace ortc
         extension.mReferences[objectID] = true;
         mRegisteredExtensions[localID] = extension;
 
-        ZS_LOG_DEBUG(log("registered header extension") + ZS_PARAM("object id", objectID) + ZS_PARAM("header extension", IRTPTypes::toString(extensionURI)) + ZS_PARAM("local id", localID))
+        ZS_LOG_DEBUG(log("registered header extension") + ZS_PARAM("object id", objectID) + extension.toDebug())
         return;
       }
 
@@ -840,19 +963,18 @@ namespace ortc
 
       extension.mReferences[objectID] = objectID;
 
-      ZS_LOG_DEBUG(log("referencing existing header extension") + ZS_PARAM("object id", objectID) + ZS_PARAM("header extension", IRTPTypes::toString(extensionURI)) + ZS_PARAM("local id", localID) + ZS_PARAM("total", extension.mReferences.size()))
+      ZS_LOG_DEBUG(log("referencing existing header extension") + ZS_PARAM("object id", objectID) + extension.toDebug())
     }
 
     //-------------------------------------------------------------------------
     void RTPListener::unregisterReference(
                                           PUID objectID,
-                                          HeaderExtensionURIs extensionURI,
                                           LocalID localID
                                           )
     {
       auto found = mRegisteredExtensions.find(localID);
       if (found != mRegisteredExtensions.end()) {
-        ZS_LOG_DEBUG(log("local id was not registered") + ZS_PARAM("object id", objectID) + ZS_PARAM("header extension", IRTPTypes::toString(extensionURI)) + ZS_PARAM("local id", localID))
+        ZS_LOG_DEBUG(log("local id was not registered") + ZS_PARAM("object id", objectID) + ZS_PARAM("local id", localID))
         return;
       }
 
@@ -860,13 +982,13 @@ namespace ortc
 
       auto foundObject = extension.mReferences.find(objectID);
       if (foundObject == extension.mReferences.end()) {
-        ZS_LOG_DEBUG(log("local object was not registered") + ZS_PARAM("object id", objectID) + ZS_PARAM("header extension", IRTPTypes::toString(extensionURI)) + ZS_PARAM("local id", localID))
+        ZS_LOG_DEBUG(log("local object was not registered") + ZS_PARAM("object id", objectID) + ZS_PARAM("local id", localID))
         return;
       }
 
       extension.mReferences.erase(foundObject);
 
-      ZS_LOG_DEBUG(log("removing reference to existing header extension") + ZS_PARAM("object id", objectID) + ZS_PARAM("header extension", IRTPTypes::toString(extensionURI)) + ZS_PARAM("local id", localID) + ZS_PARAM("remaining", extension.mReferences.size()))
+      ZS_LOG_DEBUG(log("removing reference to existing header extension") + ZS_PARAM("object id", objectID) + extension.toDebug())
       if (extension.mReferences.size() > 0) return;
 
       mRegisteredExtensions.erase(found);
@@ -887,12 +1009,202 @@ namespace ortc
 
         extension.mReferences.erase(found);
 
-        ZS_LOG_DEBUG(log("removing reference to existing header extension") + ZS_PARAM("object id", objectID) + ZS_PARAM("header extension", IRTPTypes::toString(extension.mHeaderExtensionURI)) + ZS_PARAM("local id", extension.mLocalID) + ZS_PARAM("remaining", extension.mReferences.size()))
+        ZS_LOG_DEBUG(log("removing reference to existing header extension") + ZS_PARAM("object id", objectID) + extension.toDebug())
 
         if (extension.mReferences.size() > 0) continue;
 
         mRegisteredExtensions.erase(current);
       }
+    }
+
+    //-------------------------------------------------------------------------
+    bool RTPListener::findMapping(
+                                  const RTPPacket &rtpPacket,
+                                  ReceiverInfoPtr &outReceiverInfo
+                                  )
+    {
+      String muxID = extractMuxID(rtpPacket);
+
+      {
+        if (findMappingUsingSSRC(rtpPacket, outReceiverInfo)) goto fill_mux_id;
+
+        if (findMappingUsingMuxID(muxID, rtpPacket, outReceiverInfo)) return true;
+
+        if (findMappingUsingHeaderExtensions(rtpPacket, outReceiverInfo)) goto fill_mux_id;
+
+        if (findMappingUsingPayloadType(rtpPacket, outReceiverInfo)) return true;
+      }
+
+    fill_mux_id:
+      {
+        ASSERT((bool)outReceiverInfo)
+        if (!fillMuxIDParameters(muxID, outReceiverInfo)) {
+          outReceiverInfo = ReceiverInfoPtr();
+          return false;
+        }
+      }
+
+      return true;
+    }
+    
+    //-------------------------------------------------------------------------
+    bool RTPListener::findMappingUsingSSRC(
+                                           const RTPPacket &rtpPacket,
+                                           ReceiverInfoPtr &outReceiverInfo
+                                           )
+    {
+      auto found = mSSRCTable.find(rtpPacket.mSSRC);
+      if (found == mSSRCTable.end()) return false;
+
+      outReceiverInfo = (*found).second;
+      return true;
+    }
+
+    //-------------------------------------------------------------------------
+    bool RTPListener::findMappingUsingMuxID(
+                                            const String &muxID,
+                                            const RTPPacket &rtpPacket,
+                                            ReceiverInfoPtr &outReceiverInfo
+                                            )
+    {
+      if (!muxID.hasData()) return false;
+
+      auto found = mMuxIDTable.find(muxID);
+      if (found == mMuxIDTable.end()) return false;
+
+      outReceiverInfo = (*found).second;
+
+      ZS_LOG_DEBUG(log("creating new SSRC table entry (based on mux id mapping to existing receiver)") + ZS_PARAM("mux id", muxID) + outReceiverInfo->toDebug())
+
+      mSSRCTable[rtpPacket.ssrc()] = outReceiverInfo;
+
+      return true;
+    }
+
+    //-------------------------------------------------------------------------
+    bool RTPListener::findMappingUsingHeaderExtensions(
+                                                       const RTPPacket &rtpPacket,
+                                                       ReceiverInfoPtr &outReceiverInfo
+                                                       )
+    {
+      for (auto ext = rtpPacket.firstHeaderExtension(); NULL != ext; ext = ext->mNext) {
+
+        LocalID localID = static_cast<LocalID>(ext->mID);
+        auto found = mRegisteredExtensions.find(localID);
+        if (found == mRegisteredExtensions.end()) continue; // header extension is not understood
+
+        RegisteredHeaderExtension &headerInfo = (*found).second;
+
+        if (IRTPTypes::HeaderExtensionURI_ExtendedSourceInformation != headerInfo.mHeaderExtensionURI) continue;
+
+        RTPPacket::ExtendedSourceInformationHeadExtension extendedInfo(*ext);
+        if (!extendedInfo.isAssociatedSSRCValid()) {
+          ZS_LOG_TRACE(log("extended source info associated SSRC is not set") + extendedInfo.toDebug())
+          continue;
+        }
+
+        auto foundSSRC = mSSRCTable.find(extendedInfo.associatedSSRC());
+
+        if (foundSSRC == mSSRCTable.end()) {
+          ZS_LOG_WARNING(Trace, log("associated SSRC was not found in SSRC table") + extendedInfo.toDebug())
+          continue;
+        }
+
+        outReceiverInfo = (*foundSSRC).second;
+
+        ZS_LOG_DEBUG(log("creating a new SSRC entry in SSRC table (based on associated SSRC being found)") + extendedInfo.toDebug() + outReceiverInfo->toDebug())
+
+        // the associated SSRC was found in table thus must route to same receiver
+        mSSRCTable[rtpPacket.ssrc()] = outReceiverInfo;
+        return true;
+      }
+
+      return false;
+    }
+
+    //-------------------------------------------------------------------------
+    bool RTPListener::findMappingUsingPayloadType(
+                                                  const RTPPacket &rtpPacket,
+                                                  ReceiverInfoPtr &outReceiverInfo
+                                                  )
+    {
+#define TODO 1
+#define TODO 2
+      return false;
+    }
+
+    //-------------------------------------------------------------------------
+    String RTPListener::extractMuxID(const RTPPacket &rtpPacket)
+    {
+      for (auto ext = rtpPacket.firstHeaderExtension(); NULL != ext; ext = ext->mNext) {
+        LocalID localID = static_cast<LocalID>(ext->mID);
+        auto found = mRegisteredExtensions.find(localID);
+        if (found == mRegisteredExtensions.end()) continue; // header extension is not understood
+
+        RegisteredHeaderExtension &headerInfo = (*found).second;
+
+        if (IRTPTypes::HeaderExtensionURI_MuxID != headerInfo.mHeaderExtensionURI) continue;
+
+        RTPPacket::MidHeadExtension mid(*ext);
+
+        String muxID(mid.mid());
+        if (!muxID.hasData()) continue;
+
+        return muxID;
+      }
+
+      return String();
+    }
+
+    //-------------------------------------------------------------------------
+    bool RTPListener::fillMuxIDParameters(
+                                          const String &muxID,
+                                          ReceiverInfoPtr &ioReceiverInfo
+                                          )
+    {
+      ASSERT((bool)ioReceiverInfo)
+
+      if (!muxID.hasData()) return true;
+
+      if (ioReceiverInfo->mParameters.mMuxID.hasData()) {
+        if (muxID != ioReceiverInfo->mParameters.mMuxID) {
+          // already has a MuxID and this isn't it!
+          ZS_LOG_WARNING(Debug, log("receiver mux id and packet mux id are mis-matched") + ZS_PARAM("mux id", muxID) + ioReceiverInfo->toDebug())
+          return false;
+        }
+      }
+
+      ReceiverInfoPtr info(make_shared<ReceiverInfo>(*ioReceiverInfo));
+      info->mParameters.mMuxID = muxID;
+      setReceiverInfo(info);
+
+      ioReceiverInfo = info;
+      return true;
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPListener::setReceiverInfo(ReceiverInfoPtr receiverInfo)
+    {
+      ReceiverObjectMapPtr receivers(make_shared<ReceiverObjectMap>(*mReceivers));
+
+      // replace or add to replacement list
+      (*receivers)[receiverInfo->mReceiverID] = receiverInfo;
+
+      for (auto iter = mSSRCTable.begin(); iter != mSSRCTable.end(); ++iter) {
+        ReceiverInfoPtr &existingInfo = (*iter).second;
+        if (existingInfo->mReceiverID != receiverInfo->mReceiverID) continue;
+
+        // replace existing entry in receiver table
+        existingInfo = receiverInfo;
+      }
+
+      if (receiverInfo->mParameters.mMuxID.hasData()) {
+        // replace existing receiver info in mux table
+        mMuxIDTable[receiverInfo->mParameters.mMuxID] = receiverInfo;
+      }
+
+      // point to replacement list
+      mReceivers = receivers;
     }
 
     //-------------------------------------------------------------------------

@@ -59,6 +59,7 @@
 
 #define RTP_IS_FLAG_SET(xByte, xBitPos) (0 != ((xByte) & (1 << xBitPos)))
 #define RTP_GET_BITS(xByte, xBitPattern, xLowestBit) (((xByte) >> (xLowestBit)) & (xBitPattern))
+#define RTP_PACK_BITS(xByte, xBitPattern, xLowestBit) (((xByte) & (xBitPattern)) << (xLowestBit))
 
 namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib) }
 
@@ -249,6 +250,106 @@ namespace ortc
       return reinterpret_cast<const char *>(&mMidBuffer[0]);
     }
 
+    //-------------------------------------------------------------------------
+    ElementPtr RTPPacket::MidHeadExtension::toDebug() const
+    {
+      ElementPtr result = Element::create("ortc::RTPPacket::MidHeadExtension");
+
+      UseServicesHelper::debugAppend(result, "mid", mid());
+
+      return result;
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPPacket::ExtendedSourceInformationHeadExtension
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    RTPPacket::ExtendedSourceInformationHeadExtension::ExtendedSourceInformationHeadExtension(const HeaderExtension &header)
+    {
+      mID = header.mID;
+      mDataSizeInBytes = header.mDataSizeInBytes;
+      mPostPaddingSize = header.mPostPaddingSize;
+      if (NULL == header.mData) mDataSizeInBytes = 0;
+
+      if (mDataSizeInBytes < sizeof(DWORD)*2) return; // cannot decrypt this packet
+
+      mType = RTP_GET_BITS(mData[0], 0xF, 4);
+
+      switch (mType) {
+        case RTXType::kType: {
+          mAssociatedSSRC = UseHelper::getBE32(&(mData[4]));
+          break;
+        }
+        case FECType::kType: {
+          mIsAssociateSSRCValid = RTP_IS_FLAG_SET(mData[1], 0);
+          mAssociatedSSRC = UseHelper::getBE32(&(mData[4]));
+          break;
+        }
+        default: {
+          break;
+        }
+      }
+    }
+
+    //-------------------------------------------------------------------------
+    RTPPacket::ExtendedSourceInformationHeadExtension::ExtendedSourceInformationHeadExtension(
+                                                                                              const RTXType &,
+                                                                                              BYTE id,
+                                                                                              DWORD associatedSSRC
+                                                                                              )
+    {
+      mID = id;
+      mData = &(mEncoded[0]);
+      mDataSizeInBytes = sizeof(mEncoded);
+
+      mType = RTXType::kType;
+      mIsAssociateSSRCValid = true;
+      mAssociatedSSRC = associatedSSRC;
+
+      mEncoded[0] = RTP_PACK_BITS(mType, 0xF, 4) | 0;
+      UseHelper::setBE32(&(mEncoded[4]), mAssociatedSSRC);
+    }
+
+    //-------------------------------------------------------------------------
+    RTPPacket::ExtendedSourceInformationHeadExtension::ExtendedSourceInformationHeadExtension(
+                                                                                              const FECType &,
+                                                                                              BYTE id,
+                                                                                              bool associatedSSRCIsValid,
+                                                                                              DWORD associatedSSRC
+                                                                                              )
+    {
+      mID = id;
+      mData = &(mEncoded[0]);
+      mDataSizeInBytes = sizeof(mEncoded);
+
+      mType = FECType::kType;
+      mIsAssociateSSRCValid = associatedSSRCIsValid;
+      mAssociatedSSRC = associatedSSRC;
+
+      mEncoded[0] = RTP_PACK_BITS(mType, 0xF, 4) | 0;
+      if (mIsAssociateSSRCValid) {
+        mEncoded[1] = RTP_PACK_BITS(1, 0x1, 0);
+      }
+      UseHelper::setBE32(&(mEncoded[4]), mAssociatedSSRC);
+    }
+
+    //-------------------------------------------------------------------------
+    ElementPtr RTPPacket::ExtendedSourceInformationHeadExtension::toDebug() const
+    {
+      ElementPtr result = Element::create("ortc::RTPPacket::ExtendedSourceInformationHeadExtension");
+
+      UseServicesHelper::debugAppend(result, "type", mType);
+      UseServicesHelper::debugAppend(result, "is associated SSRC valid", mIsAssociateSSRCValid);
+      UseServicesHelper::debugAppend(result, "associated SSRC", mAssociatedSSRC);
+
+      return result;
+    }
+    
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------

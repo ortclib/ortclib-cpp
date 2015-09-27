@@ -208,6 +208,7 @@ namespace ortc
       friend interaction IRTPListenerForRTPSender;
 
       ZS_DECLARE_STRUCT_PTR(TearAwayData)
+      ZS_DECLARE_STRUCT_PTR(ReceiverInfo)
 
       ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverForRTPListener, UseRTPReceiver)
       ZS_DECLARE_TYPEDEF_PTR(IRTPSenderForRTPListener, UseRTPSender)
@@ -233,11 +234,38 @@ namespace ortc
         bool mEncrypted {};
 
         ReferenceMap mReferences;
+
+        ElementPtr toDebug() const;
       };
 
       typedef std::map<LocalID, RegisteredHeaderExtension> HeaderExtensionMap;
 
       const ObjectID kAPIReference {0};
+
+
+      typedef ObjectID ReceiverID;
+      typedef ObjectID SenderID;
+
+      struct ReceiverInfo
+      {
+        ReceiverID mReceiverID {};
+        UseRTPReceiverWeakPtr mReceiver;
+
+        Parameters mParameters;
+
+        ElementPtr toDebug() const;
+      };
+
+      typedef std::map<ReceiverID, ReceiverInfoPtr> ReceiverObjectMap;
+      typedef std::map<SenderID, UseSenderWeakPtr> SenderObjectMap;
+      ZS_DECLARE_PTR(ReceiverObjectMap)
+      ZS_DECLARE_PTR(SenderObjectMap)
+
+      typedef std::map<SSRCType, ReceiverInfoPtr> SSRCReceiverMap;
+
+      typedef String MuxID;
+      typedef std::map<MuxID, ReceiverInfoPtr> MuxIDMap;
+
 
       enum States
       {
@@ -413,11 +441,45 @@ namespace ortc
 
       void unregisterReference(
                                PUID objectID,
-                               HeaderExtensionURIs extensionURI,
                                LocalID localID
                                );
 
       void unregisterAllReference(PUID objectID);
+
+      bool findMapping(
+                       const RTPPacket &rtpPacket,
+                       ReceiverInfoPtr &outReceiverInfo
+                       );
+
+      bool findMappingUsingSSRC(
+                                const RTPPacket &rtpPacket,
+                                ReceiverInfoPtr &outReceiverInfo
+                                );
+
+      bool findMappingUsingMuxID(
+                                 const String &muxID,
+                                 const RTPPacket &rtpPacket,
+                                 ReceiverInfoPtr &outReceiverInfo
+                                 );
+
+      bool findMappingUsingHeaderExtensions(
+                                            const RTPPacket &rtpPacket,
+                                            ReceiverInfoPtr &outReceiverInfo
+                                            );
+
+      bool findMappingUsingPayloadType(
+                                       const RTPPacket &rtpPacket,
+                                       ReceiverInfoPtr &outReceiverInfo
+                                       );
+
+      String extractMuxID(const RTPPacket &rtpPacket);
+
+      bool fillMuxIDParameters(
+                               const String &muxID,
+                               ReceiverInfoPtr &ioReceiverInfo
+                               );
+
+      void setReceiverInfo(ReceiverInfoPtr receiverInfo);
 
     protected:
       //-----------------------------------------------------------------------
@@ -451,6 +513,12 @@ namespace ortc
       UseRTPSenderWeakPtr mSender;
 
       HeaderExtensionMap mRegisteredExtensions;
+
+      ReceiverObjectMapPtr mReceivers;  // non-mutable map values (COW)
+      SenderObjectMapPtr mSenders;      // non-mutable map values (COW)
+
+      SSRCReceiverMap mSSRCTable;
+      MuxIDMap mMuxIDTable;
     };
 
     //-------------------------------------------------------------------------

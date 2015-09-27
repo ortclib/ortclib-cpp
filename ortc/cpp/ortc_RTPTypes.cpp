@@ -663,7 +663,7 @@ namespace ortc
       case HeaderExtensionURI_MuxID:                              return "urn:ietf:params:rtp-hdrext:sdes:mid";
       case HeaderExtensionURI_ClienttoMixerAudioLevelIndication:  return "urn:ietf:params:rtp-hdrext:ssrc-audio-level";
       case HeaderExtensionURI_MixertoClientAudioLevelIndication:  return "urn:ietf:params:rtp-hdrext:csrc-audio-level";
-      case PHeaderExtensionURI_FrameMarking:                      return "urn:ietf:params:rtp-hdrext:framemarkinginfo";
+      case HeaderExtensionURI_FrameMarking:                       return "urn:ietf:params:rtp-hdrext:framemarkinginfo";
 
       case HeaderExtensionURI_ExtendedSourceInformation:          return "urn:example:params:rtp-hdrext:extended-ssrc-info";
     }
@@ -678,7 +678,7 @@ namespace ortc
       HeaderExtensionURI_MuxID,
       HeaderExtensionURI_ClienttoMixerAudioLevelIndication,
       HeaderExtensionURI_MixertoClientAudioLevelIndication,
-      PHeaderExtensionURI_FrameMarking,
+      HeaderExtensionURI_FrameMarking,
       HeaderExtensionURI_ExtendedSourceInformation,
       HeaderExtensionURI_Unknown
     };

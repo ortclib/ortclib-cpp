@@ -269,25 +269,26 @@ namespace ortc
       HeaderExtensionURI_MixertoClientAudioLevelIndication,             // https://tools.ietf.org/html/rfc6465
                                                                         // urn:ietf:params:rtp-hdrext:csrc-audio-level
 
-      PHeaderExtensionURI_FrameMarking,                                 // https://tools.ietf.org/html/draft-berger-avtext-framemarking-01
+      HeaderExtensionURI_FrameMarking,                                  // https://tools.ietf.org/html/draft-berger-avtext-framemarking-01
                                                                         // urn:ietf:params:rtp-hdrext:framemarkinginfo
 
       HeaderExtensionURI_ExtendedSourceInformation,                     // extended information about the encoded packet
                                                                         // urn:example:params:rtp-hdrext:extended-ssrc-info
 
-      // 0                   1                   2                   3
-      // 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+      //  0                   1                   2                   3
+      //  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
       // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-      // |ID=1 |          Reserved       |   Original sequence number    |
+      // |ID=1   |        Reserved       |   Original sequence number    |
       // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
       // |      Associated synchronization source (SSRC) identifier      |
       //
-      // ID=1 Extended SSRC RTX packet information
+      // ID=1 (4 bits) Extended SSRC RTX packet information
       //
-      // Original sequence number - original sequence number field as copied
-      //                            outside the encryped paylod (for mixers)
-      // Associated SSRC - the SSSRC of the original SSRC to which this RTX
-      //                   stream applies.
+      // Original sequence number (16 bits) - original sequence number field
+      //                                      as copied outside the encryped
+      //                                      paylod (for mixers)
+      // Associated SSRC (32 bits) - the SSSRC of the original SSRC to which
+      //                             this RTX stream applies.
       //
       // When a mixer is present, this header can be carried non-encryopted to
       // the mixer indicating the important information about the RTX packet
@@ -299,18 +300,20 @@ namespace ortc
       // receipt of any RTP packet carrying this data though any means (e.g.
       // RTCP receiver report or RTCP ACK)
 
-      // 0                   1                   2                   3
-      // 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+      //  0                   1                   2                   3
+      //  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
       // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-      // |ID=1 |        Reserved       |A|            Reserved           |
+      // |ID=1   |      Reserved       |A|            Reserved           |
       // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
       // |      Associated synchronization source (SSRC) identifier      |
       //
-      // ID=2 Extended FEC/RED information
+      // ID=2 (4 bits) Extended FEC/RED information
       //
-      // A bit - the Asssociated SSRC value is valid
-      // Associated SSRC - the SSSRC of the original SSRC to which this FEC/RED
-      //                   applies (i.e. needed where ambiguity may exist).
+      // A flag (1 bit) - the Asssociated SSRC field is valid.
+      //
+      // Associated SSRC (32 bits)- the SSSRC of the original SSRC to which
+      //                            this FEC/RED applies (i.e. needed where
+      //                            ambiguity may exist).
     };
 
     static const char *toString(HeaderExtensionURIs extension);         // converts header enum to URN format
