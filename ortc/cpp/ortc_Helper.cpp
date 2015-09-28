@@ -36,6 +36,13 @@
 #include <zsLib/Log.h>
 #include <zsLib/XML.h>
 
+
+#ifdef _WIN32
+namespace std {
+  inline time_t mktime(struct tm *timeptr) { return ::mktime(timeptr); }
+}
+#endif //_WIN32
+
 namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib) }
 
 namespace ortc

@@ -127,7 +127,7 @@ namespace ortc
       
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark RTPPacket::MixerToClientExtension
+      #pragma mark RTPPacket::MidHeadExtension
       #pragma mark
 
       struct MidHeadExtension : public HeaderExtension
@@ -152,7 +152,7 @@ namespace ortc
       
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark RTPPacket::MixerToClientExtension
+      #pragma mark RTPPacket::ExtendedSourceInformationHeaderExtension
       #pragma mark
 
       struct ExtendedSourceInformationHeaderExtension : public HeaderExtension
@@ -206,8 +206,8 @@ namespace ortc
         struct Clockwise {};
         struct CounterClockwise {};
 
-        VideoOrientationHeaderExtension(const VideoOrientation6HeaderExtension &);
         VideoOrientationHeaderExtension(const HeaderExtension &header);
+        VideoOrientationHeaderExtension(const VideoOrientation6HeaderExtension &);
         VideoOrientationHeaderExtension(
                                         const Clockwise &,
                                         bool frontFacingCamera, // true = front facing, false = backfacing

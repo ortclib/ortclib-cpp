@@ -1382,6 +1382,8 @@ namespace ortc
         case IRTPTypes::HeaderExtensionURI_MixertoClientAudioLevelIndication: return true;
         case IRTPTypes::HeaderExtensionURI_FrameMarking:                      return true;
         case IRTPTypes::HeaderExtensionURI_ExtendedSourceInformation:         return false;
+        case IRTPTypes::HeaderExtensionURI_3gpp_VideoOrientation:             return false;
+        case IRTPTypes::HeaderExtensionURI_3gpp_VideoOrientation6:            return false;
       }
       return true;
     }
@@ -1486,9 +1488,9 @@ namespace ortc
     
     //-------------------------------------------------------------------------
     bool RTPListener::findMappingUsingSSRCTable(
-                                           const RTPPacket &rtpPacket,
-                                           ReceiverInfoPtr &outReceiverInfo
-                                           )
+                                                const RTPPacket &rtpPacket,
+                                                ReceiverInfoPtr &outReceiverInfo
+                                                )
     {
       auto found = mSSRCTable.find(rtpPacket.mSSRC);
       if (found == mSSRCTable.end()) return false;
@@ -1646,7 +1648,7 @@ namespace ortc
     {
       auto payloadType = rtpPacket.pt();
 
-      Kinds foundKind = Kind_Unknown;
+      CodecKinds foundKind = CodecKind_Unknown;
 
       for (auto iter = mReceivers->begin(); iter != mReceivers->end(); ++iter) {
         auto &receiverInfo = (*iter).second;
@@ -1660,7 +1662,7 @@ namespace ortc
           }
         }
 
-        Kinds kind = Kind_Unknown;
+        CodecKinds kind = CodecKind_Unknown;
 
         for (auto iterCodec = receiverInfo->mParameters.mCodecs.begin(); iterCodec != receiverInfo->mParameters.mCodecs.end(); ++iterCodec) {
           auto &codecInfo = (*iterCodec);
@@ -1669,13 +1671,13 @@ namespace ortc
           auto supportedType = toSupportedCodec(codecInfo.mName);
           if (SupportedCodec_Unknown == supportedType) continue;
 
-          kind = getKind(supportedType);
-          if (Kind_Unknown == kind) continue;
+          kind = getCodecKind(supportedType);
+          if (CodecKind_Unknown == kind) continue;
 
           break;
         }
 
-        if (Kind_Unknown == kind) continue; // make sure this codec type is understood
+        if (CodecKind_Unknown == kind) continue; // make sure this codec type is understood
 
         if (receiverInfo->mParameters.mEncodingParameters.size() < 1) {
           // special case where this is a "match all" for the codec
@@ -1692,18 +1694,18 @@ namespace ortc
           }
 
           switch (kind) {
-            case Kind_Unknown:  ASSERT(false) break;
-            case Kind_Audio:
-            case Kind_Video:
-            case Kind_AV:     {
+            case CodecKind_Unknown:  ASSERT(false) break;
+            case CodecKind_Audio:
+            case CodecKind_Video:
+            case CodecKind_AV:     {
               if (encodingInfo.mSSRC.hasValue()) break; // cannot match if there was an SSRC already attached
               goto found_receiver;
             }
-            case Kind_RTX:    {
+            case CodecKind_RTX:    {
               if (encodingInfo.mRTX.hasValue()) break; // cannot match if there was an SSRC already attached
               goto found_receiver;
             }
-            case Kind_FEC:    {
+            case CodecKind_FEC:    {
               if (encodingInfo.mFEC.hasValue()) break; // cannot match if there was an SSRC already attached
               goto found_receiver;
             }
@@ -1725,46 +1727,62 @@ namespace ortc
 
       if (!outReceiverInfo) return false;
 
-      ReceiverInfoPtr replacementInfo(make_shared<ReceiverInfo>(*outReceiverInfo));
+      ReceiverInfoPtr replacementInfo;
 
-      auto encodingIter = outReceiverInfo->mParameters.mEncodingParameters.begin();
-      auto replacementIter = replacementInfo->mParameters.mEncodingParameters.begin();
+      // scope: fill in SSRC in encoding parameters
+      {
+        if (outReceiverInfo->mParameters.mEncodingParameters.size() < 1) goto insert_ssrc_into_table;
 
-      for (; encodingIter != outReceiverInfo->mParameters.mEncodingParameters.end(); ++encodingIter, ++replacementIter) {
+        replacementInfo = ReceiverInfoPtr(make_shared<ReceiverInfo>(*outReceiverInfo));
 
-        ASSERT(replacementIter != replacementInfo->mParameters.mEncodingParameters.end())
+        auto encodingIter = outReceiverInfo->mParameters.mEncodingParameters.begin();
+        auto replacementIter = replacementInfo->mParameters.mEncodingParameters.begin();
 
-        auto &encodingInfo = (*encodingIter);
-        auto &replaceEncodingInfo = (*encodingIter);
+        for (; encodingIter != outReceiverInfo->mParameters.mEncodingParameters.end(); ++encodingIter, ++replacementIter) {
 
-        switch (foundKind) {
-          case Kind_Unknown:  ASSERT(false) break;
-          case Kind_Audio:
-          case Kind_Video:
-          case Kind_AV:     {
-            if (encodingInfo.mSSRC.hasValue()) break; // cannot match if there was an SSRC already attached
-            replaceEncodingInfo.mSSRC = rtpPacket.ssrc();
-            goto insert_ssrc_into_table;
-          }
-          case Kind_RTX:    {
-            if (encodingInfo.mRTX.hasValue()) break; // cannot match if there was an SSRC already attached
-            RTXParameters rtx;
-            rtx.mSSRC = rtpPacket.ssrc();
-            replaceEncodingInfo.mRTX = rtx;
-            goto insert_ssrc_into_table;
-          }
-          case Kind_FEC:    {
-            if (encodingInfo.mFEC.hasValue()) break; // cannot match if there was an SSRC already attached
-            goto insert_ssrc_into_table;
-            FECParameters fec;
-            fec.mSSRC = rtpPacket.ssrc();
-            replaceEncodingInfo.mFEC = fec;
-            goto insert_ssrc_into_table;
+          ASSERT(replacementIter != replacementInfo->mParameters.mEncodingParameters.end())
+
+          auto &encodingInfo = (*encodingIter);
+          auto &replaceEncodingInfo = (*encodingIter);
+
+          switch (foundKind) {
+            case CodecKind_Unknown:  ASSERT(false) break;
+            case CodecKind_Audio:
+            case CodecKind_Video:
+            case CodecKind_AV:     {
+              if (encodingInfo.mSSRC.hasValue()) break; // cannot match if there was an SSRC already attached
+              replaceEncodingInfo.mSSRC = rtpPacket.ssrc();
+              goto replace_receiver;
+            }
+            case CodecKind_RTX:    {
+              if (encodingInfo.mRTX.hasValue()) break; // cannot match if there was an SSRC already attached
+              RTXParameters rtx;
+              rtx.mSSRC = rtpPacket.ssrc();
+              replaceEncodingInfo.mRTX = rtx;
+              goto replace_receiver;
+            }
+            case CodecKind_FEC:    {
+              if (encodingInfo.mFEC.hasValue()) break; // cannot match if there was an SSRC already attached
+              goto insert_ssrc_into_table;
+              FECParameters fec;
+              fec.mSSRC = rtpPacket.ssrc();
+              replaceEncodingInfo.mFEC = fec;
+              goto replace_receiver;
+            }
           }
         }
+
+        ASSERT(false)
+        return false;
       }
 
-      ASSERT(false)
+    replace_receiver:
+      {
+        ZS_LOG_DEBUG(log("filled in SSSRC value in receiver (thus replacing existing receiver)") + outReceiverInfo->toDebug())
+
+        setReceiverInfo(replacementInfo);
+        outReceiverInfo = replacementInfo;
+      }
 
     insert_ssrc_into_table:
       {
@@ -1775,14 +1793,9 @@ namespace ortc
 
         mSSRCTable[rtpPacket.ssrc()] = replacementInfo;
         reattemptDelivery();
-        return true;
       }
 
-    not_found:
-      {
-      }
-
-      return false;
+      return true;
     }
 
     //-------------------------------------------------------------------------

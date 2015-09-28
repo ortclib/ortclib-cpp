@@ -251,27 +251,27 @@ namespace ortc
 
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IRTPTypes::Kinds
+    #pragma mark IRTPTypes::CodecKinds
     #pragma mark
 
-    enum Kinds
+    enum CodecKinds
     {
-      Kind_First,
+      CodecKind_First,
 
-      Kind_Unknown = Kind_First,
+      CodecKind_Unknown = CodecKind_First,
 
-      Kind_Audio,
-      Kind_Video,
-      Kind_AV,
+      CodecKind_Audio,
+      CodecKind_Video,
+      CodecKind_AV,
 
-      Kind_RTX,
-      Kind_FEC,
+      CodecKind_RTX,
+      CodecKind_FEC,
 
-      Kind_Last = Kind_FEC,
+      CodecKind_Last = CodecKind_FEC,
     };
 
-    static const char *toString(Kinds kind);
-    static Kinds toKind(const char *kind);
+    static const char *toString(CodecKinds kind);
+    static CodecKinds toCodecKind(const char *kind);
 
     //-------------------------------------------------------------------------
     #pragma mark
@@ -314,7 +314,7 @@ namespace ortc
     static const char *toString(SupportedCodecs codec);
     static SupportedCodecs toSupportedCodec(const char *codec);
 
-    static Kinds getKind(SupportedCodecs codec);
+    static CodecKinds getCodecKind(SupportedCodecs codec);
 
     //-------------------------------------------------------------------------
     #pragma mark
@@ -366,7 +366,7 @@ namespace ortc
 
     static ULONG getDefaultClockRate(ReservedCodecPayloadTypes reservedCodec);
 
-    static Kinds getKind(ReservedCodecPayloadTypes reservedCodec);
+    static CodecKinds getCodecKind(ReservedCodecPayloadTypes reservedCodec);
     static SupportedCodecs toSupportedCodec(ReservedCodecPayloadTypes reservedCodec);
 
     //-------------------------------------------------------------------------
@@ -394,9 +394,6 @@ namespace ortc
       HeaderExtensionURI_ExtendedSourceInformation,                     // extended information about the encoded packet
                                                                         // urn:example:params:rtp-hdrext:extended-ssrc-info
 
-      HeaderExtensionURI_3gpp_VideoOrientation,                         //  urn:3gpp:video-orientation
-      HeaderExtensionURI_3gpp_VideoOrientation6,                        //  urn:3gpp:video-orientation:6
-
       //  0                   1                   2                   3
       //  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
       // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -407,36 +404,53 @@ namespace ortc
       // ID=1 (4 bits) Extended SSRC RTX packet information
       //
       // Original sequence number (16 bits) - original sequence number field
-      //                                      as copied outside the encryped
-      //                                      paylod (for mixers)
+      //                                      as copied outside the encrypted
+      //                                      payload (for mixers)
       // Associated SSRC (32 bits) - the SSSRC of the original SSRC to which
       //                             this RTX stream applies.
       //
-      // When a mixer is present, this header can be carried non-encryopted to
+      // When a mixer is present, this header can be carried encrypted to
       // the mixer indicating the important information about the RTX packet
-      // so the mixer can make intellegent decisions about where to forward the
+      // so the mixer can make intelligent decisions about where to forward the
       // RTX packet.
       //
       // When no mixer is present, this header need only be transmitted by
-      // the sending party until the receiver has successfully acknoledged
+      // the sending party until the receiver has successfully acknowledged
       // receipt of any RTP packet carrying this data though any means (e.g.
       // RTCP receiver report or RTCP ACK)
 
       //  0                   1                   2                   3
       //  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
       // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-      // |ID=1   |      Reserved       |A|            Reserved           |
+      // |ID=2   |      Reserved       |A|            Reserved           |
       // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
       // |      Associated synchronization source (SSRC) identifier      |
       //
       // ID=2 (4 bits) Extended FEC/RED information
       //
-      // A flag (1 bit) - the Asssociated SSRC field is valid.
+      // A flag (1 bit) - the Associated SSRC field is valid.
       //
       // Associated SSRC (32 bits)- the SSSRC of the original SSRC to which
       //                            this FEC/RED applies (i.e. needed where
       //                            ambiguity may exist).
 
+      //  0                   1                   2                   3
+      //  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+      // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      // |ID=3   |      Reserved       |A|            Reserved           |
+      // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      // |      Associated synchronization source (SSRC) identifier      |
+      //
+      // ID=3 (4 bits) MST SVC packet layer
+      //
+      // A flag (1 bit) - the Associated SSRC field is valid.
+      //
+      // Associated SSRC (32 bits)- the SSSRC of the base layer SSRC to which
+      //                            this MST applies (i.e. needed where
+      //                            ambiguity may exist).
+
+      HeaderExtensionURI_3gpp_VideoOrientation,                         //  urn:3gpp:video-orientation
+      HeaderExtensionURI_3gpp_VideoOrientation6,                        //  urn:3gpp:video-orientation:6
 
       HeaderExtensionURI_Last = HeaderExtensionURI_3gpp_VideoOrientation6
     };

@@ -656,30 +656,30 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  const char *IRTPTypes::toString(Kinds kind)
+  const char *IRTPTypes::toString(CodecKinds kind)
   {
     switch (kind) {
-      case Kind_Unknown:  return "";
-      case Kind_Audio:    return "audio";
-      case Kind_Video:    return "video";
-      case Kind_AV:       return "av";
-      case Kind_RTX:      return "rtx";
-      case Kind_FEC:      return "fec";
+      case CodecKind_Unknown:  return "";
+      case CodecKind_Audio:    return "audio";
+      case CodecKind_Video:    return "video";
+      case CodecKind_AV:       return "av";
+      case CodecKind_RTX:      return "rtx";
+      case CodecKind_FEC:      return "fec";
     }
 
     return "unknown";
   }
 
   //---------------------------------------------------------------------------
-  IRTPTypes::Kinds IRTPTypes::toKind(const char *kind)
+  IRTPTypes::CodecKinds IRTPTypes::toCodecKind(const char *kind)
   {
     String kindStr(kind);
 
-    for (Kinds index = Kind_First; index >= Kind_Last; index = static_cast<Kinds>(static_cast<std::underlying_type<Kinds>::type>(index) + 1)) {
+    for (CodecKinds index = CodecKind_First; index >= CodecKind_Last; index = static_cast<CodecKinds>(static_cast<std::underlying_type<CodecKinds>::type>(index) + 1)) {
       if (kindStr == IRTPTypes::toString(index)) return index;
     }
 
-    return Kind_Unknown;
+    return CodecKind_Unknown;
   }
 
   //---------------------------------------------------------------------------
@@ -725,33 +725,33 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IRTPTypes::Kinds IRTPTypes::getKind(SupportedCodecs codec)
+  IRTPTypes::CodecKinds IRTPTypes::getCodecKind(SupportedCodecs codec)
   {
     switch (codec) {
-      case SupportedCodec_Unknown:            return Kind_Unknown;
+      case SupportedCodec_Unknown:            return CodecKind_Unknown;
 
-      case SupportedCodec_Opus:               return Kind_Audio;
-      case SupportedCodec_Isac:               return Kind_Audio;
-      case SupportedCodec_G722:               return Kind_Audio;
-      case SupportedCodec_ILBC:               return Kind_Audio;
-      case SupportedCodec_PCMU:               return Kind_Audio;
-      case SupportedCodec_PCMA:               return Kind_Audio;
+      case SupportedCodec_Opus:               return CodecKind_Audio;
+      case SupportedCodec_Isac:               return CodecKind_Audio;
+      case SupportedCodec_G722:               return CodecKind_Audio;
+      case SupportedCodec_ILBC:               return CodecKind_Audio;
+      case SupportedCodec_PCMU:               return CodecKind_Audio;
+      case SupportedCodec_PCMA:               return CodecKind_Audio;
 
-      case SupportedCodec_VP8:                return Kind_Video;
-      case SupportedCodec_VP9:                return Kind_Video;
-      case SupportedCodec_H264:               return Kind_Video;
+      case SupportedCodec_VP8:                return CodecKind_Video;
+      case SupportedCodec_VP9:                return CodecKind_Video;
+      case SupportedCodec_H264:               return CodecKind_Video;
 
-      case SupportedCodec_RTX:                return Kind_RTX;
+      case SupportedCodec_RTX:                return CodecKind_RTX;
 
-      case SupportedCodec_RED:                return Kind_FEC;
-      case SupportedCodec_ULPFEC:             return Kind_FEC;
+      case SupportedCodec_RED:                return CodecKind_FEC;
+      case SupportedCodec_ULPFEC:             return CodecKind_FEC;
 
-      case SupportedCodec_CN:                 return Kind_Audio;
+      case SupportedCodec_CN:                 return CodecKind_Audio;
 
-      case SupportedCodec_TelephoneEvent:     return Kind_Audio;
+      case SupportedCodec_TelephoneEvent:     return CodecKind_Audio;
     }
     
-    return Kind_Unknown;
+    return CodecKind_Unknown;
   }
 
   //---------------------------------------------------------------------------
@@ -875,41 +875,41 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IRTPTypes::Kinds IRTPTypes::getKind(ReservedCodecPayloadTypes reservedCodec)
+  IRTPTypes::CodecKinds IRTPTypes::getCodecKind(ReservedCodecPayloadTypes reservedCodec)
   {
     switch (reservedCodec) {
-      case ReservedCodecPayloadType_Unknown:      return Kind_Unknown;
-      case ReservedCodecPayloadType_PCMU_8000:    return Kind_Audio;
+      case ReservedCodecPayloadType_Unknown:      return CodecKind_Unknown;
+      case ReservedCodecPayloadType_PCMU_8000:    return CodecKind_Audio;
 
-      case ReservedCodecPayloadType_GSM_8000:     return Kind_Audio;
-      case ReservedCodecPayloadType_G723_8000:    return Kind_Audio;
-      case ReservedCodecPayloadType_DVI4_8000:    return Kind_Audio;
-      case ReservedCodecPayloadType_DVI4_16000:   return Kind_Audio;
-      case ReservedCodecPayloadType_LPC_8000:     return Kind_Audio;
-      case ReservedCodecPayloadType_PCMA_8000:    return Kind_Audio;
-      case ReservedCodecPayloadType_G722_8000:    return Kind_Audio;
-      case ReservedCodecPayloadType_L16_44100_2:  return Kind_Audio;
-      case ReservedCodecPayloadType_L16_44100_1:  return Kind_Audio;
-      case ReservedCodecPayloadType_QCELP_8000:   return Kind_Audio;
-      case ReservedCodecPayloadType_CN_8000:      return Kind_Audio;
-      case ReservedCodecPayloadType_MPA_90000:    return Kind_Video;
-      case ReservedCodecPayloadType_G728_8000:    return Kind_Audio;
-      case ReservedCodecPayloadType_DVI4_11025:   return Kind_Audio;
-      case ReservedCodecPayloadType_DVI4_22050:   return Kind_Audio;
-      case ReservedCodecPayloadType_G729_8000:    return Kind_Audio;
+      case ReservedCodecPayloadType_GSM_8000:     return CodecKind_Audio;
+      case ReservedCodecPayloadType_G723_8000:    return CodecKind_Audio;
+      case ReservedCodecPayloadType_DVI4_8000:    return CodecKind_Audio;
+      case ReservedCodecPayloadType_DVI4_16000:   return CodecKind_Audio;
+      case ReservedCodecPayloadType_LPC_8000:     return CodecKind_Audio;
+      case ReservedCodecPayloadType_PCMA_8000:    return CodecKind_Audio;
+      case ReservedCodecPayloadType_G722_8000:    return CodecKind_Audio;
+      case ReservedCodecPayloadType_L16_44100_2:  return CodecKind_Audio;
+      case ReservedCodecPayloadType_L16_44100_1:  return CodecKind_Audio;
+      case ReservedCodecPayloadType_QCELP_8000:   return CodecKind_Audio;
+      case ReservedCodecPayloadType_CN_8000:      return CodecKind_Audio;
+      case ReservedCodecPayloadType_MPA_90000:    return CodecKind_Video;
+      case ReservedCodecPayloadType_G728_8000:    return CodecKind_Audio;
+      case ReservedCodecPayloadType_DVI4_11025:   return CodecKind_Audio;
+      case ReservedCodecPayloadType_DVI4_22050:   return CodecKind_Audio;
+      case ReservedCodecPayloadType_G729_8000:    return CodecKind_Audio;
 
-      case ReservedCodecPayloadType_CelB_90000:   return Kind_Audio;
-      case ReservedCodecPayloadType_JPEG_90000:   return Kind_Video;
+      case ReservedCodecPayloadType_CelB_90000:   return CodecKind_Audio;
+      case ReservedCodecPayloadType_JPEG_90000:   return CodecKind_Video;
 
-      case ReservedCodecPayloadType_nv_90000:     return Kind_Video;
+      case ReservedCodecPayloadType_nv_90000:     return CodecKind_Video;
 
-      case ReservedCodecPayloadType_H261_90000:   return Kind_Video;
-      case ReservedCodecPayloadType_MPV_90000:    return Kind_Video;
-      case ReservedCodecPayloadType_MP2T_90000:   return Kind_AV;
-      case ReservedCodecPayloadType_H263_90000:   return Kind_Video;
+      case ReservedCodecPayloadType_H261_90000:   return CodecKind_Video;
+      case ReservedCodecPayloadType_MPV_90000:    return CodecKind_Video;
+      case ReservedCodecPayloadType_MP2T_90000:   return CodecKind_AV;
+      case ReservedCodecPayloadType_H263_90000:   return CodecKind_Video;
     }
     
-    return Kind_Unknown;
+    return CodecKind_Unknown;
   }
 
   //---------------------------------------------------------------------------
