@@ -961,6 +961,8 @@ namespace ortc
       case HeaderExtensionURI_FrameMarking:                       return "urn:ietf:params:rtp-hdrext:framemarkinginfo";
 
       case HeaderExtensionURI_ExtendedSourceInformation:          return "urn:example:params:rtp-hdrext:extended-ssrc-info";
+      case HeaderExtensionURI_3gpp_VideoOrientation:              return "urn:3gpp:video-orientation";
+      case HeaderExtensionURI_3gpp_VideoOrientation6:             return "urn:3gpp:video-orientation:6";
     }
 
     return "unknown";

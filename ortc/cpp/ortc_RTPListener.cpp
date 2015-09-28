@@ -1602,7 +1602,7 @@ namespace ortc
 
         if (IRTPTypes::HeaderExtensionURI_ExtendedSourceInformation != headerInfo.mHeaderExtensionURI) continue;
 
-        RTPPacket::ExtendedSourceInformationHeadExtension extendedInfo(*ext);
+        RTPPacket::ExtendedSourceInformationHeaderExtension extendedInfo(*ext);
         if (!extendedInfo.isAssociatedSSRCValid()) {
           ZS_LOG_TRACE(log("extended source info associated SSRC is not set") + extendedInfo.toDebug())
           continue;

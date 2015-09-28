@@ -394,6 +394,9 @@ namespace ortc
       HeaderExtensionURI_ExtendedSourceInformation,                     // extended information about the encoded packet
                                                                         // urn:example:params:rtp-hdrext:extended-ssrc-info
 
+      HeaderExtensionURI_3gpp_VideoOrientation,                         //  urn:3gpp:video-orientation
+      HeaderExtensionURI_3gpp_VideoOrientation6,                        //  urn:3gpp:video-orientation:6
+
       //  0                   1                   2                   3
       //  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
       // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -435,7 +438,7 @@ namespace ortc
       //                            ambiguity may exist).
 
 
-      HeaderExtensionURI_Last = HeaderExtensionURI_ExtendedSourceInformation
+      HeaderExtensionURI_Last = HeaderExtensionURI_3gpp_VideoOrientation6
     };
 
     static const char *toString(HeaderExtensionURIs extension);         // converts header enum to URN format

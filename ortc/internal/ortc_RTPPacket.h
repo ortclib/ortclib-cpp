@@ -53,6 +53,10 @@ namespace ortc
       struct make_private {};
 
     public:
+      struct VideoOrientationHeaderExtension;
+      struct VideoOrientation6HeaderExtension;
+
+    public:
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark RTPPacket::Extension
@@ -151,7 +155,7 @@ namespace ortc
       #pragma mark RTPPacket::MixerToClientExtension
       #pragma mark
 
-      struct ExtendedSourceInformationHeadExtension : public HeaderExtension
+      struct ExtendedSourceInformationHeaderExtension : public HeaderExtension
       {
         // urn:example:params:rtp-hdrext:extended-ssrc-info
 
@@ -163,18 +167,18 @@ namespace ortc
         };
 
 
-        ExtendedSourceInformationHeadExtension(const HeaderExtension &header);
-        ExtendedSourceInformationHeadExtension(
-                                               const RTXType &,
-                                               BYTE id,
-                                               DWORD associatedSSRC
-                                               );
-        ExtendedSourceInformationHeadExtension(
-                                               const FECType &,
-                                               BYTE id,
-                                               bool associatedSSRCIsValid,
-                                               DWORD associatedSSRC
-                                               );
+        ExtendedSourceInformationHeaderExtension(const HeaderExtension &header);
+        ExtendedSourceInformationHeaderExtension(
+                                                 const RTXType &,
+                                                 BYTE id,
+                                                 DWORD associatedSSRC
+                                                 );
+        ExtendedSourceInformationHeaderExtension(
+                                                 const FECType &,
+                                                 BYTE id,
+                                                 bool associatedSSRCIsValid,
+                                                 DWORD associatedSSRC
+                                                 );
 
 
         BYTE type() const                   {return mType;}
@@ -190,6 +194,72 @@ namespace ortc
         DWORD mAssociatedSSRC {};
 
         BYTE mEncoded[sizeof(DWORD)*2] {};
+      };
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPPacket::VideoOrientationHeaderExtension
+      #pragma mark
+
+      struct VideoOrientationHeaderExtension : public HeaderExtension
+      {
+        struct Clockwise {};
+        struct CounterClockwise {};
+
+        VideoOrientationHeaderExtension(const VideoOrientation6HeaderExtension &);
+        VideoOrientationHeaderExtension(const HeaderExtension &header);
+        VideoOrientationHeaderExtension(
+                                        const Clockwise &,
+                                        bool frontFacingCamera, // true = front facing, false = backfacing
+                                        bool flip, // horizontal left-right flip (mirro)
+                                        UINT orientation
+                                        );
+        VideoOrientationHeaderExtension(
+                                        const CounterClockwise &,
+                                        bool frontFacingCamera, // true = front facing, false = backfacing
+                                        bool flip, // horizontal left-right flip (mirro)
+                                        UINT orientation
+                                        );
+
+        bool frontFacing() const;
+        bool backFacing() const;
+        bool flip() const;
+        UINT degreesClockwise() const;
+        UINT degreesCounterClockwise() const;
+
+        ElementPtr toDebug() const;
+
+      public:
+        BYTE mEncoded[1] {};
+      };
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPPacket::VideoOrientationHeaderExtension
+      #pragma mark
+
+      struct VideoOrientation6HeaderExtension : public VideoOrientationHeaderExtension
+      {
+        VideoOrientation6HeaderExtension(const HeaderExtension &header);
+        VideoOrientation6HeaderExtension(
+                                         const Clockwise &,
+                                         bool frontFacingCamera, // true = front facing, false = backfacing
+                                         bool flip, // horizontal left-right flip (mirro)
+                                         UINT orientation
+                                         );
+        VideoOrientation6HeaderExtension(
+                                         const CounterClockwise &,
+                                         bool frontFacingCamera, // true = front facing, false = backfacing
+                                         bool flip, // horizontal left-right flip (mirro)
+                                         UINT orientation
+                                         );
+
+        UINT degreesClockwise() const;
+        UINT degreesCounterClockwise() const;
+
+        ElementPtr toDebug() const;
+
+      public:
       };
 
     public:

@@ -265,11 +265,11 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark RTPPacket::ExtendedSourceInformationHeadExtension
+    #pragma mark RTPPacket::ExtendedSourceInformationHeaderExtension
     #pragma mark
 
     //-------------------------------------------------------------------------
-    RTPPacket::ExtendedSourceInformationHeadExtension::ExtendedSourceInformationHeadExtension(const HeaderExtension &header)
+    RTPPacket::ExtendedSourceInformationHeaderExtension::ExtendedSourceInformationHeaderExtension(const HeaderExtension &header)
     {
       mID = header.mID;
       mDataSizeInBytes = header.mDataSizeInBytes;
@@ -297,11 +297,11 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    RTPPacket::ExtendedSourceInformationHeadExtension::ExtendedSourceInformationHeadExtension(
-                                                                                              const RTXType &,
-                                                                                              BYTE id,
-                                                                                              DWORD associatedSSRC
-                                                                                              )
+    RTPPacket::ExtendedSourceInformationHeaderExtension::ExtendedSourceInformationHeaderExtension(
+                                                                                                  const RTXType &,
+                                                                                                  BYTE id,
+                                                                                                  DWORD associatedSSRC
+                                                                                                  )
     {
       mID = id;
       mData = &(mEncoded[0]);
@@ -316,12 +316,12 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    RTPPacket::ExtendedSourceInformationHeadExtension::ExtendedSourceInformationHeadExtension(
-                                                                                              const FECType &,
-                                                                                              BYTE id,
-                                                                                              bool associatedSSRCIsValid,
-                                                                                              DWORD associatedSSRC
-                                                                                              )
+    RTPPacket::ExtendedSourceInformationHeaderExtension::ExtendedSourceInformationHeaderExtension(
+                                                                                                  const FECType &,
+                                                                                                  BYTE id,
+                                                                                                  bool associatedSSRCIsValid,
+                                                                                                  DWORD associatedSSRC
+                                                                                                  )
     {
       mID = id;
       mData = &(mEncoded[0]);
@@ -339,13 +339,223 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    ElementPtr RTPPacket::ExtendedSourceInformationHeadExtension::toDebug() const
+    ElementPtr RTPPacket::ExtendedSourceInformationHeaderExtension::toDebug() const
     {
-      ElementPtr result = Element::create("ortc::RTPPacket::ExtendedSourceInformationHeadExtension");
+      ElementPtr result = Element::create("ortc::RTPPacket::ExtendedSourceInformationHeaderExtension");
 
       UseServicesHelper::debugAppend(result, "type", mType);
       UseServicesHelper::debugAppend(result, "is associated SSRC valid", mIsAssociateSSRCValid);
       UseServicesHelper::debugAppend(result, "associated SSRC", mAssociatedSSRC);
+
+      return result;
+    }
+    
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPPacket::VideoOrientationHeaderExtension
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    RTPPacket::VideoOrientationHeaderExtension::VideoOrientationHeaderExtension(const HeaderExtension &header)
+    {
+      mID = header.mID;
+      mDataSizeInBytes = header.mDataSizeInBytes;
+      mPostPaddingSize = header.mPostPaddingSize;
+      if (NULL == header.mData) mDataSizeInBytes = 0;
+
+      if (mDataSizeInBytes < sizeof(mEncoded)) return; // cannot decrypt this packet
+    }
+
+    //-------------------------------------------------------------------------
+    RTPPacket::VideoOrientationHeaderExtension::VideoOrientationHeaderExtension(const VideoOrientation6HeaderExtension &)
+    {
+      mData = &(mEncoded[0]);
+      mDataSizeInBytes = sizeof(mEncoded);
+    }
+
+    //-------------------------------------------------------------------------
+    RTPPacket::VideoOrientationHeaderExtension::VideoOrientationHeaderExtension(
+                                                                                const Clockwise &,
+                                                                                bool frontFacingCamera,
+                                                                                bool flip,
+                                                                                UINT orientation
+                                                                                )
+    {
+      mData = &(mEncoded[0]);
+      mDataSizeInBytes = sizeof(mEncoded);
+
+      orientation %= 360;
+
+      // find closest approximation to the video orientation for the 2 bit allowance
+      orientation += 45;  // range is now 45 -> 404
+      orientation /= 90;
+      orientation %= 4;   // range is now 0..3
+
+      // Bit#       7   6   5   4   3   2    1     0 (LSB)
+      // Definition 0   0   0   0   C   F   R1    R0
+
+      mEncoded[0] = RTP_PACK_BITS(frontFacingCamera ? 1 : 0, 0x1, 3) |
+                    RTP_PACK_BITS(flip ? 1 : 0, 0x1, 2) |
+                    RTP_PACK_BITS(static_cast<BYTE>(orientation), 0x3, 0);
+    }
+
+    //-------------------------------------------------------------------------
+    RTPPacket::VideoOrientationHeaderExtension::VideoOrientationHeaderExtension(
+                                                                                const CounterClockwise &,
+                                                                                bool frontFacingCamera, // true = front facing, false = backfacing
+                                                                                bool flip, // horizontal left-right flip (mirro)
+                                                                                UINT orientation
+                                                                                ) :
+      VideoOrientationHeaderExtension(Clockwise {}, frontFacingCamera, flip, 360-(orientation%360))
+    {
+    }
+
+    //-------------------------------------------------------------------------
+    bool RTPPacket::VideoOrientationHeaderExtension::frontFacing() const
+    {
+      if (NULL == mData) return false;
+      return (0 != RTP_GET_BITS(mData[0], 0x1, 3));
+    }
+
+    //-------------------------------------------------------------------------
+    bool RTPPacket::VideoOrientationHeaderExtension::backFacing() const
+    {
+      if (NULL == mData) return false;
+      return (0 == RTP_GET_BITS(mData[0], 0x1, 3));
+    }
+
+    //-------------------------------------------------------------------------
+    bool RTPPacket::VideoOrientationHeaderExtension::flip() const
+    {
+      if (NULL == mData) return false;
+      return (0 == RTP_GET_BITS(mData[0], 0x1, 2));
+    }
+
+    //-------------------------------------------------------------------------
+    UINT RTPPacket::VideoOrientationHeaderExtension::degreesClockwise() const
+    {
+      if (NULL == mData) return 0;
+      UINT degrees = static_cast<UINT>(RTP_GET_BITS(mData[0], 0x3, 0));
+
+      degrees *= 90;
+
+      return degrees;
+    }
+
+    //-------------------------------------------------------------------------
+    UINT RTPPacket::VideoOrientationHeaderExtension::degreesCounterClockwise() const
+    {
+      return (360-degreesClockwise())%360;
+    }
+
+    //-------------------------------------------------------------------------
+    ElementPtr RTPPacket::VideoOrientationHeaderExtension::toDebug() const
+    {
+      ElementPtr result = Element::create("ortc::RTPPacket::VideoOrientationHeaderExtension");
+
+      UseServicesHelper::debugAppend(result, "front facing", frontFacing());
+      UseServicesHelper::debugAppend(result, "flip", flip());
+      UseServicesHelper::debugAppend(result, "degrees", degreesClockwise());
+
+      return result;
+    }
+    
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPPacket::VideoOrientation6HeaderExtension
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    RTPPacket::VideoOrientation6HeaderExtension::VideoOrientation6HeaderExtension(const HeaderExtension &header) :
+      VideoOrientationHeaderExtension(header)
+    {
+    }
+
+    //-------------------------------------------------------------------------
+    RTPPacket::VideoOrientation6HeaderExtension::VideoOrientation6HeaderExtension(
+                                                                                  const Clockwise &,
+                                                                                  bool frontFacingCamera,
+                                                                                  bool flip,
+                                                                                  UINT orientation
+                                                                                  ) :
+      VideoOrientationHeaderExtension(*this)
+    {
+      // find closest approximation to the video orientation for the 6 bit allowance
+      orientation %= 360;
+
+      // r = x * 360
+      //     -------
+      //        64
+      //
+      // r * 64 = x * 360
+      //
+      // x = r * 64
+      //     ------
+      //      360
+
+      orientation *= 64;
+      orientation /= 360;
+      orientation %= 64;
+
+      //  Bit#         7   6     5     4     3     2     1     0 (LSB)
+      //  Definition  R5  R4    R3    R2     C     F    R1    R0
+
+      // R1	R0	R5	R4	R3	R2
+      // 0  0   0   0   0   0   = 0
+      // 0  0   0   0   0   1   = 1
+      // 1  1   1   1   1   1   = 63
+
+      BYTE ordered = static_cast<BYTE>(orientation) & 0x3F;
+
+      mEncoded[0] = RTP_PACK_BITS(frontFacingCamera ? 1 : 0, 0x1, 3) |
+                    RTP_PACK_BITS(flip ? 1 : 0, 0x1, 2) |
+                    RTP_PACK_BITS(RTP_GET_BITS(ordered, 0x3, 4), 0x3, 0) |
+                    RTP_PACK_BITS(RTP_GET_BITS(ordered, 0xF, 0), 0xF, 4);
+    }
+
+    //-------------------------------------------------------------------------
+    RTPPacket::VideoOrientation6HeaderExtension::VideoOrientation6HeaderExtension(
+                                                                                  const CounterClockwise &,
+                                                                                  bool frontFacingCamera,
+                                                                                  bool flip,
+                                                                                  UINT orientation
+                                                                                  ) :
+      VideoOrientation6HeaderExtension(Clockwise{}, frontFacingCamera, flip, 360-(orientation % 360))
+    {
+    }
+
+    //-------------------------------------------------------------------------
+    UINT RTPPacket::VideoOrientation6HeaderExtension::degreesClockwise() const
+    {
+      if (NULL == mData) return 0;
+
+      BYTE ordered = RTP_PACK_BITS(RTP_GET_BITS(mData[0], 0x3, 0), 0x3, 4) |
+                     RTP_PACK_BITS(RTP_GET_BITS(mData[0], 0xF, 4), 0xF, 0);
+
+      UINT degrees = (static_cast<UINT>(ordered)*360)/64;
+      return degrees % 360;
+    }
+
+    //-------------------------------------------------------------------------
+    UINT RTPPacket::VideoOrientation6HeaderExtension::degreesCounterClockwise() const
+    {
+      return (360-degreesClockwise())%360;
+    }
+
+    //-------------------------------------------------------------------------
+    ElementPtr RTPPacket::VideoOrientation6HeaderExtension::toDebug() const
+    {
+      ElementPtr result = Element::create("ortc::RTPPacket::VideoOrientation6HeaderExtension");
+
+      UseServicesHelper::debugAppend(result, "front facing", frontFacing());
+      UseServicesHelper::debugAppend(result, "flip", flip());
+      UseServicesHelper::debugAppend(result, "degrees", degreesClockwise());
 
       return result;
     }
