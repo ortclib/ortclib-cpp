@@ -234,7 +234,7 @@ namespace ortc
 
     struct EncodingParameters {
       Optional<SSRCType>      mSSRC {};
-      PayloadType             mCodecPayloadType {};
+      Optional<PayloadType>   mCodecPayloadType;
       Optional<FECParameters> mFEC;
       Optional<RTXParameters> mRTX;
       double                  mPriority {1.0};

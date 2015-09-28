@@ -41,10 +41,14 @@
 #include <zsLib/Timer.h>
 #include <zsLib/TearAway.h>
 
+#define ORTC_SETTING_RTP_LISTENER_MAX_RTP_PACKETS_IN_BUFFER "ortc/rtp-listener/max-rtp-packets-in-buffer"
+#define ORTC_SETTING_RTP_LISTENER_MAX_AGE_RTP_PACKETS_IN_SECONDS "ortc/rtp-listener/max-age-rtp-packets-in-seconds"
+
 #define ORTC_SETTING_RTP_LISTENER_MAX_RTCP_PACKETS_IN_BUFFER "ortc/rtp-listener/max-rtcp-packets-in-buffer"
 #define ORTC_SETTING_RTP_LISTENER_MAX_AGE_RTCP_PACKETS_IN_SECONDS "ortc/rtp-listener/max-age-rtcp-packets-in-seconds"
 
 #define ORTC_SETTING_RTP_LISTENER_SSRC_TO_MUX_ID_TIMEOUT_IN_SECONDS "ortc/rtp-listener/ssrc-to-mux-id-timeout-in-seconds"
+#define ORTC_SETTING_RTP_LISTENER_UNHANDLED_EVENTS_TIMEOUT_IN_SECONDS "ortc/rtp-listener/unhandled-ssrc-event-timeout-in-seconds"
 
 namespace ortc
 {
@@ -175,7 +179,13 @@ namespace ortc
 
     interaction IRTPListenerAsyncDelegate
     {
-      virtual ~IRTPListenerAsyncDelegate() {}
+      ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverForRTPListener, UseRTPReceiver)
+
+      virtual void onDeliverPacket(
+                                   IICETypes::Components viaComponent,
+                                   UseRTPReceiverPtr receiver,
+                                   RTPPacketPtr packet
+                                   ) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -210,7 +220,9 @@ namespace ortc
       friend interaction IRTPListenerForRTPSender;
 
       ZS_DECLARE_STRUCT_PTR(TearAwayData)
+      ZS_DECLARE_STRUCT_PTR(RegisteredHeaderExtension)
       ZS_DECLARE_STRUCT_PTR(ReceiverInfo)
+      ZS_DECLARE_STRUCT_PTR(UnhandledEventInfo)
 
       ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverForRTPListener, UseRTPReceiver)
       ZS_DECLARE_TYPEDEF_PTR(IRTPSenderForRTPListener, UseRTPSender)
@@ -220,8 +232,11 @@ namespace ortc
 
       typedef std::list<RTCPPacketPtr> RTCPPacketList;
 
-      typedef std::pair<Time, RTCPPacketPtr> TimePacketPair;
-      typedef std::list<TimePacketPair> BufferedRTCPPacketList;
+      typedef std::pair<Time, RTCPPacketPtr> TimeRTCPPacketPair;
+      typedef std::list<TimeRTCPPacketPair> BufferedRTCPPacketList;
+
+      typedef std::pair<Time, RTPPacketPtr> TimeRTPPacketPair;
+      typedef std::list<TimeRTPPacketPair> BufferedRTPPacketList;
 
       typedef PUID ObjectID;
       typedef USHORT LocalID;
@@ -250,6 +265,7 @@ namespace ortc
 
       struct ReceiverInfo
       {
+        PUID mOrderID {};
         ReceiverID mReceiverID {};
         UseRTPReceiverWeakPtr mReceiver;
 
@@ -271,6 +287,19 @@ namespace ortc
 
       typedef std::pair<Time, MuxID> TimeMuxPair;
       typedef std::map<SSRCType, TimeMuxPair> SSSRCToTimeMuxIDPairMap;
+
+      struct UnhandledEventInfo
+      {
+        SSRCType mSSRC {};
+        PayloadType mCodecPayloadType {};
+        String mMuxID;
+
+        bool operator<(const UnhandledEventInfo &) const;
+
+        ElementPtr toDebug() const;
+      };
+
+      typedef std::map<struct UnhandledEventInfo, Time> UnhandledEventMap;
 
       enum States
       {
@@ -400,6 +429,12 @@ namespace ortc
       #pragma mark RTPListener => IRTPListenerAsyncDelegate
       #pragma mark
 
+      virtual void onDeliverPacket(
+                                   IICETypes::Components viaComponent,
+                                   UseRTPReceiverPtr receiver,
+                                   RTPPacketPtr packet
+                                   );
+
     public:
 
       //-----------------------------------------------------------------------
@@ -428,13 +463,14 @@ namespace ortc
       bool isShutdown() const;
 
       void step();
-      bool stepBogusDoSomething();
+      bool stepAttemptDelivery();
 
       void cancel();
 
       void setState(States state);
       void setError(WORD error, const char *reason = NULL);
 
+      void expireRTPPackets();
       void expireRTCPPackets();
 
       void registerHeaderExtensionReference(
@@ -448,7 +484,8 @@ namespace ortc
 
       bool findMapping(
                        const RTPPacket &rtpPacket,
-                       ReceiverInfoPtr &outReceiverInfo
+                       ReceiverInfoPtr &outReceiverInfo,
+                       String &outMuxID
                        );
 
       bool findMappingUsingSSRCTable(
@@ -490,6 +527,19 @@ namespace ortc
       void setReceiverInfo(ReceiverInfoPtr receiverInfo);
 
       void processByes(const RTCPPacket &rtcpPacket);
+      void processSDESMid(const RTCPPacket &rtcpPacket);
+      void processSenderReports(const RTCPPacket &rtcpPacket);
+
+      void handleDeltaChanges(
+                              const EncodingParameters &existing,
+                              EncodingParameters &ioReplacement
+                              );
+
+      void unregisterEncoding(const EncodingParameters &existing);
+
+      void unregisterSSRCUsage(SSRCType ssrc);
+
+      void reattemptDelivery();
 
     protected:
       //-----------------------------------------------------------------------
@@ -511,9 +561,13 @@ namespace ortc
 
       UseRTPTransportWeakPtr mRTPTransport;
 
+      size_t mMaxBufferedRTPPackets {};
+      Seconds mMaxRTPPacketAge {};
+
       size_t mMaxBufferedRTCPPackets {};
       Seconds mMaxRTCPPacketAge {};
 
+      BufferedRTPPacketList mBufferedRTPPackets;
       BufferedRTCPPacketList mBufferedRTCPPackets;
 
       HeaderExtensionMap mRegisteredExtensions;
@@ -527,6 +581,12 @@ namespace ortc
       SSSRCToTimeMuxIDPairMap mSSRCToMuxTable;
       TimerPtr mSSRCToMuxTableTimer;
       Seconds mSSRCToMuxTableExpires {};
+
+      bool mReattemptRTPDelivery {};
+
+      UnhandledEventMap mUnhandledEvents;
+      TimerPtr mUnhanldedEventsTimer;
+      Seconds mUnhanldedEventsExpires {};
     };
 
     //-------------------------------------------------------------------------
@@ -557,8 +617,13 @@ namespace ortc
 }
 
 ZS_DECLARE_PROXY_BEGIN(ortc::internal::IRTPListenerAsyncDelegate)
-//ZS_DECLARE_PROXY_METHOD_0(onWhatever)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::IICETypes::Components, Components)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::IRTPListenerAsyncDelegate::UseRTPReceiverPtr, UseRTPReceiverPtr)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::RTPPacketPtr, RTPPacketPtr)
+ZS_DECLARE_PROXY_METHOD_3(onDeliverPacket, Components, UseRTPReceiverPtr, RTPPacketPtr)
 ZS_DECLARE_PROXY_END()
+
+
 
 
 ZS_DECLARE_TEAR_AWAY_BEGIN(ortc::IRTPListener, ortc::internal::RTPListener::TearAwayData)
