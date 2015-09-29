@@ -57,6 +57,10 @@
 #define RTP_HEADER_M(buffer) (0 != ((buffer[1]) & 0x80))
 #define RTP_HEADER_PT(buffer) ((buffer[1]) & 0x7F)
 
+#define RTP_IS_FLAG_SET(xByte, xBitPos) (0 != ((xByte) & (1 << xBitPos)))
+#define RTP_GET_BITS(xByte, xBitPattern, xLowestBit) (((xByte) >> (xLowestBit)) & (xBitPattern))
+#define RTP_PACK_BITS(xByte, xBitPattern, xLowestBit) (((xByte) & (xBitPattern)) << (xLowestBit))
+
 namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib) }
 
 namespace ortc
@@ -81,6 +85,481 @@ namespace ortc
     static const size_t kMinRtpPacketLen = 12;
     static const BYTE kRtpVersion = 2;
 
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPPacket::ClientToMixerExtension
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    RTPPacket::ClientToMixerExtension::ClientToMixerExtension(const HeaderExtension &header)
+    {
+      mID = header.mID;
+      mDataSizeInBytes = header.mDataSizeInBytes;
+      mPostPaddingSize = header.mPostPaddingSize;
+      if (NULL == header.mData) mDataSizeInBytes = 0;
+
+      if (sizeof(BYTE) == header.mDataSizeInBytes) {
+        memcpy(&mLevelBuffer, header.mData, sizeof(BYTE));
+        mData = &mLevelBuffer;
+      }
+    }
+
+    //-------------------------------------------------------------------------
+    RTPPacket::ClientToMixerExtension::ClientToMixerExtension(
+                                                              BYTE id,
+                                                              bool voiceActivity,
+                                                              BYTE level
+                                                              )
+    {
+      mID = id;
+      mData = &mLevelBuffer;
+      mDataSizeInBytes = sizeof(BYTE);
+
+      mLevelBuffer = static_cast<BYTE>(voiceActivity ? 0x80 : 0x00) | (level & 0x7F);
+    }
+
+    //-------------------------------------------------------------------------
+    bool RTPPacket::ClientToMixerExtension::voiceActivity() const
+    {
+      return RTP_IS_FLAG_SET(mLevelBuffer, 7);
+    }
+
+    //-------------------------------------------------------------------------
+    BYTE RTPPacket::ClientToMixerExtension::level() const
+    {
+      return RTP_GET_BITS(mLevelBuffer, 0x7F, 0);
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPPacket::MixerToClientExtension
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    RTPPacket::MixerToClientExtension::MixerToClientExtension(const HeaderExtension &header)
+    {
+      mID = header.mID;
+      mDataSizeInBytes = header.mDataSizeInBytes;
+      mPostPaddingSize = header.mPostPaddingSize;
+      if (NULL == header.mData) mDataSizeInBytes = 0;
+
+      size_t copySize = header.mDataSizeInBytes;
+      if (copySize > sizeof(mLevelBuffer)) copySize = sizeof(mLevelBuffer);
+
+      if (0 != copySize) {
+        memcpy(&(mLevelBuffer[0]), header.mData, copySize);
+        mData = &(mLevelBuffer[0]);
+      }
+      mDataSizeInBytes = copySize;
+    }
+
+    //-------------------------------------------------------------------------
+    RTPPacket::MixerToClientExtension::MixerToClientExtension(
+                                                              BYTE id,
+                                                              BYTE *levels,
+                                                              size_t count
+                                                              )
+    {
+      mID = id;
+      mDataSizeInBytes = count * sizeof(BYTE);
+
+      if (mDataSizeInBytes > sizeof(mLevelBuffer)) {
+        count = sizeof(mLevelBuffer)/sizeof(BYTE);
+      }
+
+      if (0 != mDataSizeInBytes) {
+        memcpy(&(mLevelBuffer[0]), levels, mDataSizeInBytes);
+      }
+    }
+
+    //-------------------------------------------------------------------------
+    size_t RTPPacket::MixerToClientExtension::levelsCount() const
+    {
+      return mDataSizeInBytes / sizeof(BYTE);
+    }
+
+    //-------------------------------------------------------------------------
+    BYTE RTPPacket::MixerToClientExtension::unusedBit(size_t index) const
+    {
+      ASSERT(index < levelsCount())
+      return RTP_GET_BITS(mLevelBuffer[index], 0x80, 7);
+    }
+
+    //-------------------------------------------------------------------------
+    BYTE RTPPacket::MixerToClientExtension::level(size_t index) const
+    {
+      ASSERT(index < levelsCount())
+      return RTP_GET_BITS(mLevelBuffer[index], 0x7F, 0);
+    }
+
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPPacket::MidHeadExtension
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    RTPPacket::MidHeadExtension::MidHeadExtension(const HeaderExtension &header)
+    {
+      ASSERT(sizeof(char) == sizeof(BYTE))
+
+      mID = header.mID;
+      mDataSizeInBytes = header.mDataSizeInBytes;
+      mPostPaddingSize = header.mPostPaddingSize;
+      if (NULL == header.mData) mDataSizeInBytes = 0;
+
+      size_t copySize = header.mDataSizeInBytes;
+      if (copySize > (sizeof(BYTE)*kMaxMidLength)) copySize = (sizeof(BYTE)*kMaxMidLength);
+
+      if (0 != copySize) {
+        memcpy(&(mMidBuffer[0]), header.mData, copySize);
+        mData = &(mMidBuffer[0]);
+      }
+      mDataSizeInBytes = copySize;
+    }
+
+    //-------------------------------------------------------------------------
+    RTPPacket::MidHeadExtension::MidHeadExtension(
+                                                  BYTE id,
+                                                  const char *mid
+                                                  )
+    {
+      mID = id;
+      mData = &(mMidBuffer[0]);
+      mDataSizeInBytes = sizeof(char)*(NULL != mid ? strlen(mid) : 0);
+
+      if (mDataSizeInBytes > (sizeof(BYTE)*kMaxMidLength)) mDataSizeInBytes = (sizeof(BYTE)*kMaxMidLength);
+
+      if (0 != mDataSizeInBytes) {
+        memcpy(&(mMidBuffer[0]), mid, mDataSizeInBytes);
+      }
+    }
+
+    //-------------------------------------------------------------------------
+    const char *RTPPacket::MidHeadExtension::mid() const
+    {
+      return reinterpret_cast<const char *>(&mMidBuffer[0]);
+    }
+
+    //-------------------------------------------------------------------------
+    ElementPtr RTPPacket::MidHeadExtension::toDebug() const
+    {
+      ElementPtr result = Element::create("ortc::RTPPacket::MidHeadExtension");
+
+      UseServicesHelper::debugAppend(result, "mid", mid());
+
+      return result;
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPPacket::ExtendedSourceInformationHeaderExtension
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    RTPPacket::ExtendedSourceInformationHeaderExtension::ExtendedSourceInformationHeaderExtension(const HeaderExtension &header)
+    {
+      mID = header.mID;
+      mDataSizeInBytes = header.mDataSizeInBytes;
+      mPostPaddingSize = header.mPostPaddingSize;
+      if (NULL == header.mData) mDataSizeInBytes = 0;
+
+      if (mDataSizeInBytes < sizeof(DWORD)*2) return; // cannot decrypt this packet
+
+      mType = RTP_GET_BITS(mData[0], 0xF, 4);
+
+      switch (mType) {
+        case RTXType::kType: {
+          mAssociatedSSRC = UseHelper::getBE32(&(mData[4]));
+          break;
+        }
+        case FECType::kType: {
+          mIsAssociateSSRCValid = RTP_IS_FLAG_SET(mData[1], 0);
+          mAssociatedSSRC = UseHelper::getBE32(&(mData[4]));
+          break;
+        }
+        default: {
+          break;
+        }
+      }
+    }
+
+    //-------------------------------------------------------------------------
+    RTPPacket::ExtendedSourceInformationHeaderExtension::ExtendedSourceInformationHeaderExtension(
+                                                                                                  const RTXType &,
+                                                                                                  BYTE id,
+                                                                                                  DWORD associatedSSRC
+                                                                                                  )
+    {
+      mID = id;
+      mData = &(mEncoded[0]);
+      mDataSizeInBytes = sizeof(mEncoded);
+
+      mType = RTXType::kType;
+      mIsAssociateSSRCValid = true;
+      mAssociatedSSRC = associatedSSRC;
+
+      mEncoded[0] = RTP_PACK_BITS(mType, 0xF, 4) | 0;
+      UseHelper::setBE32(&(mEncoded[4]), mAssociatedSSRC);
+    }
+
+    //-------------------------------------------------------------------------
+    RTPPacket::ExtendedSourceInformationHeaderExtension::ExtendedSourceInformationHeaderExtension(
+                                                                                                  const FECType &,
+                                                                                                  BYTE id,
+                                                                                                  bool associatedSSRCIsValid,
+                                                                                                  DWORD associatedSSRC
+                                                                                                  )
+    {
+      mID = id;
+      mData = &(mEncoded[0]);
+      mDataSizeInBytes = sizeof(mEncoded);
+
+      mType = FECType::kType;
+      mIsAssociateSSRCValid = associatedSSRCIsValid;
+      mAssociatedSSRC = associatedSSRC;
+
+      mEncoded[0] = RTP_PACK_BITS(mType, 0xF, 4) | 0;
+      if (mIsAssociateSSRCValid) {
+        mEncoded[1] = RTP_PACK_BITS(1, 0x1, 0);
+      }
+      UseHelper::setBE32(&(mEncoded[4]), mAssociatedSSRC);
+    }
+
+    //-------------------------------------------------------------------------
+    ElementPtr RTPPacket::ExtendedSourceInformationHeaderExtension::toDebug() const
+    {
+      ElementPtr result = Element::create("ortc::RTPPacket::ExtendedSourceInformationHeaderExtension");
+
+      UseServicesHelper::debugAppend(result, "type", mType);
+      UseServicesHelper::debugAppend(result, "is associated SSRC valid", mIsAssociateSSRCValid);
+      UseServicesHelper::debugAppend(result, "associated SSRC", mAssociatedSSRC);
+
+      return result;
+    }
+    
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPPacket::VideoOrientationHeaderExtension
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    RTPPacket::VideoOrientationHeaderExtension::VideoOrientationHeaderExtension(const HeaderExtension &header)
+    {
+      mID = header.mID;
+      mDataSizeInBytes = header.mDataSizeInBytes;
+      mPostPaddingSize = header.mPostPaddingSize;
+      if (NULL == header.mData) mDataSizeInBytes = 0;
+
+      if (mDataSizeInBytes < sizeof(mEncoded)) return; // cannot decrypt this packet
+    }
+
+    //-------------------------------------------------------------------------
+    RTPPacket::VideoOrientationHeaderExtension::VideoOrientationHeaderExtension(const VideoOrientation6HeaderExtension &)
+    {
+      mData = &(mEncoded[0]);
+      mDataSizeInBytes = sizeof(mEncoded);
+    }
+
+    //-------------------------------------------------------------------------
+    RTPPacket::VideoOrientationHeaderExtension::VideoOrientationHeaderExtension(
+                                                                                const Clockwise &,
+                                                                                bool frontFacingCamera,
+                                                                                bool flip,
+                                                                                UINT orientation
+                                                                                )
+    {
+      mData = &(mEncoded[0]);
+      mDataSizeInBytes = sizeof(mEncoded);
+
+      orientation %= 360;
+
+      // find closest approximation to the video orientation for the 2 bit allowance
+      orientation += 45;  // range is now 45 -> 404
+      orientation /= 90;
+      orientation %= 4;   // range is now 0..3
+
+      // Bit#       7   6   5   4   3   2    1     0 (LSB)
+      // Definition 0   0   0   0   C   F   R1    R0
+
+      mEncoded[0] = RTP_PACK_BITS(frontFacingCamera ? 1 : 0, 0x1, 3) |
+                    RTP_PACK_BITS(flip ? 1 : 0, 0x1, 2) |
+                    RTP_PACK_BITS(static_cast<BYTE>(orientation), 0x3, 0);
+    }
+
+    //-------------------------------------------------------------------------
+    RTPPacket::VideoOrientationHeaderExtension::VideoOrientationHeaderExtension(
+                                                                                const CounterClockwise &,
+                                                                                bool frontFacingCamera, // true = front facing, false = backfacing
+                                                                                bool flip, // horizontal left-right flip (mirro)
+                                                                                UINT orientation
+                                                                                ) :
+      VideoOrientationHeaderExtension(Clockwise {}, frontFacingCamera, flip, 360-(orientation%360))
+    {
+    }
+
+    //-------------------------------------------------------------------------
+    bool RTPPacket::VideoOrientationHeaderExtension::frontFacing() const
+    {
+      if (NULL == mData) return false;
+      return (0 != RTP_GET_BITS(mData[0], 0x1, 3));
+    }
+
+    //-------------------------------------------------------------------------
+    bool RTPPacket::VideoOrientationHeaderExtension::backFacing() const
+    {
+      if (NULL == mData) return false;
+      return (0 == RTP_GET_BITS(mData[0], 0x1, 3));
+    }
+
+    //-------------------------------------------------------------------------
+    bool RTPPacket::VideoOrientationHeaderExtension::flip() const
+    {
+      if (NULL == mData) return false;
+      return (0 == RTP_GET_BITS(mData[0], 0x1, 2));
+    }
+
+    //-------------------------------------------------------------------------
+    UINT RTPPacket::VideoOrientationHeaderExtension::degreesClockwise() const
+    {
+      if (NULL == mData) return 0;
+      UINT degrees = static_cast<UINT>(RTP_GET_BITS(mData[0], 0x3, 0));
+
+      degrees *= 90;
+
+      return degrees;
+    }
+
+    //-------------------------------------------------------------------------
+    UINT RTPPacket::VideoOrientationHeaderExtension::degreesCounterClockwise() const
+    {
+      return (360-degreesClockwise())%360;
+    }
+
+    //-------------------------------------------------------------------------
+    ElementPtr RTPPacket::VideoOrientationHeaderExtension::toDebug() const
+    {
+      ElementPtr result = Element::create("ortc::RTPPacket::VideoOrientationHeaderExtension");
+
+      UseServicesHelper::debugAppend(result, "front facing", frontFacing());
+      UseServicesHelper::debugAppend(result, "flip", flip());
+      UseServicesHelper::debugAppend(result, "degrees", degreesClockwise());
+
+      return result;
+    }
+    
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPPacket::VideoOrientation6HeaderExtension
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    RTPPacket::VideoOrientation6HeaderExtension::VideoOrientation6HeaderExtension(const HeaderExtension &header) :
+      VideoOrientationHeaderExtension(header)
+    {
+    }
+
+    //-------------------------------------------------------------------------
+    RTPPacket::VideoOrientation6HeaderExtension::VideoOrientation6HeaderExtension(
+                                                                                  const Clockwise &,
+                                                                                  bool frontFacingCamera,
+                                                                                  bool flip,
+                                                                                  UINT orientation
+                                                                                  ) :
+      VideoOrientationHeaderExtension(*this)
+    {
+      // find closest approximation to the video orientation for the 6 bit allowance
+      orientation %= 360;
+
+      // r = x * 360
+      //     -------
+      //        64
+      //
+      // r * 64 = x * 360
+      //
+      // x = r * 64
+      //     ------
+      //      360
+
+      orientation *= 64;
+      orientation /= 360;
+      orientation %= 64;
+
+      //  Bit#         7   6     5     4     3     2     1     0 (LSB)
+      //  Definition  R5  R4    R3    R2     C     F    R1    R0
+
+      // R1	R0	R5	R4	R3	R2
+      // 0  0   0   0   0   0   = 0
+      // 0  0   0   0   0   1   = 1
+      // 1  1   1   1   1   1   = 63
+
+      BYTE ordered = static_cast<BYTE>(orientation) & 0x3F;
+
+      mEncoded[0] = RTP_PACK_BITS(frontFacingCamera ? 1 : 0, 0x1, 3) |
+                    RTP_PACK_BITS(flip ? 1 : 0, 0x1, 2) |
+                    RTP_PACK_BITS(RTP_GET_BITS(ordered, 0x3, 4), 0x3, 0) |
+                    RTP_PACK_BITS(RTP_GET_BITS(ordered, 0xF, 0), 0xF, 4);
+    }
+
+    //-------------------------------------------------------------------------
+    RTPPacket::VideoOrientation6HeaderExtension::VideoOrientation6HeaderExtension(
+                                                                                  const CounterClockwise &,
+                                                                                  bool frontFacingCamera,
+                                                                                  bool flip,
+                                                                                  UINT orientation
+                                                                                  ) :
+      VideoOrientation6HeaderExtension(Clockwise{}, frontFacingCamera, flip, 360-(orientation % 360))
+    {
+    }
+
+    //-------------------------------------------------------------------------
+    UINT RTPPacket::VideoOrientation6HeaderExtension::degreesClockwise() const
+    {
+      if (NULL == mData) return 0;
+
+      BYTE ordered = RTP_PACK_BITS(RTP_GET_BITS(mData[0], 0x3, 0), 0x3, 4) |
+                     RTP_PACK_BITS(RTP_GET_BITS(mData[0], 0xF, 4), 0xF, 0);
+
+      UINT degrees = (static_cast<UINT>(ordered)*360)/64;
+      return degrees % 360;
+    }
+
+    //-------------------------------------------------------------------------
+    UINT RTPPacket::VideoOrientation6HeaderExtension::degreesCounterClockwise() const
+    {
+      return (360-degreesClockwise())%360;
+    }
+
+    //-------------------------------------------------------------------------
+    ElementPtr RTPPacket::VideoOrientation6HeaderExtension::toDebug() const
+    {
+      ElementPtr result = Element::create("ortc::RTPPacket::VideoOrientation6HeaderExtension");
+
+      UseServicesHelper::debugAppend(result, "front facing", frontFacing());
+      UseServicesHelper::debugAppend(result, "flip", flip());
+      UseServicesHelper::debugAppend(result, "degrees", degreesClockwise());
+
+      return result;
+    }
+    
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -151,7 +630,7 @@ namespace ortc
     DWORD RTPPacket::getCSRC(size_t index) const
     {
       ASSERT(index < cc())
-      return UseHelper::GetBE32(&((ptr())[kMinRtpPacketLen + (sizeof(DWORD)*index)]));
+      return UseHelper::getBE32(&((ptr())[kMinRtpPacketLen + (sizeof(DWORD)*index)]));
     }
 
     //-------------------------------------------------------------------------
@@ -290,7 +769,7 @@ namespace ortc
         mHeaderExtensionParseStoppedPos = NULL;
         mHeaderExtensionParseStoppedSize = 0;
 
-        ZS_LOG_INSANE(debug("stipped existing extension header"))
+        ZS_LOG_INSANE(debug("stripped existing extension header"))
         return;
       }
 
@@ -440,7 +919,7 @@ namespace ortc
         return false;
       }
 
-      if (UseHelper::IsRTCPPacketType(buffer, size)) {
+      if (UseHelper::isRTCPPacketType(buffer, size)) {
         ZS_LOG_WARNING(Trace, log("packet is RTCP not RTP") + ZS_PARAM("length", size))
         return false;
       }
@@ -449,9 +928,9 @@ namespace ortc
       mCC = RTP_HEADER_CC(buffer);
       mM = RTP_HEADER_M(buffer);
       mPT = RTP_HEADER_PT(buffer);
-      mSequenceNumber = UseHelper::GetBE16(&(buffer[2]));
-      mTimestamp = UseHelper::GetBE32(&(buffer[4]));
-      mSSRC = UseHelper::GetBE32(&(buffer[8]));
+      mSequenceNumber = UseHelper::getBE16(&(buffer[2]));
+      mTimestamp = UseHelper::getBE32(&(buffer[4]));
+      mSSRC = UseHelper::getBE32(&(buffer[8]));
 
       mHeaderSize = kMinRtpPacketLen + (static_cast<size_t>(mCC) * sizeof(DWORD));
 
@@ -466,7 +945,7 @@ namespace ortc
           return false;
         }
 
-        mHeaderExtensionSize = (static_cast<size_t>(UseHelper::GetBE16(&(buffer[mHeaderSize + 2]))) * sizeof(DWORD)) + sizeof(DWORD);
+        mHeaderExtensionSize = (static_cast<size_t>(UseHelper::getBE16(&(buffer[mHeaderSize + 2]))) * sizeof(DWORD)) + sizeof(DWORD);
         if (size < (mHeaderSize + mHeaderExtensionSize)) {
           ZS_LOG_WARNING(Trace, debug("illegal RTP packet"))
           return false;
@@ -502,7 +981,7 @@ namespace ortc
           (0xDE == profilePos[1])) {
         oneByte = true;
       } else {
-        WORD twoByteHeader = UseHelper::GetBE16(profilePos);
+        WORD twoByteHeader = UseHelper::getBE16(profilePos);
         mHeaderExtensionAppBits = (twoByteHeader & 0xF);
 
         if (0x100 != ((twoByteHeader & 0xFFF0) >> 4)) {

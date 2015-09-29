@@ -55,6 +55,7 @@ typedef openpeer::services::ILogger ILogger;
 
 void doSetup();
 void doTestRTPPacket();
+void doTestRTCPPacket();
 void doTestSCTP();
 void doTestDTLS();
 void doTestSRTP();
@@ -158,6 +159,7 @@ namespace Testing
     doSetup();
 
     TESTING_RUN_TEST_FUNC(doTestRTPPacket)
+    TESTING_RUN_TEST_FUNC(doTestRTCPPacket)
     TESTING_RUN_TEST_FUNC(doTestSCTP)
     TESTING_RUN_TEST_FUNC(doTestSRTP)
     TESTING_RUN_TEST_FUNC(doTestDTLS)

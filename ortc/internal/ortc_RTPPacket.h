@@ -53,6 +53,10 @@ namespace ortc
       struct make_private {};
 
     public:
+      struct VideoOrientationHeaderExtension;
+      struct VideoOrientation6HeaderExtension;
+
+    public:
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark RTPPacket::Extension
@@ -60,6 +64,8 @@ namespace ortc
 
       struct HeaderExtension
       {
+        // see https://tools.ietf.org/html/rfc5285
+
         BYTE mID {};
 
         const BYTE *mData {};
@@ -67,6 +73,193 @@ namespace ortc
         size_t mPostPaddingSize {};
 
         HeaderExtension *mNext {};
+      };
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPPacket::ClientToMixerExtension
+      #pragma mark
+
+      struct ClientToMixerExtension : public HeaderExtension
+      {
+        // see https://tools.ietf.org/html/rfc6464
+
+        ClientToMixerExtension(const HeaderExtension &header);
+        ClientToMixerExtension(
+                               BYTE id,
+                               bool voiceActivity,
+                               BYTE level
+                               );
+
+        bool voiceActivity() const;
+        BYTE level() const;
+
+      public:
+        BYTE mLevelBuffer {};
+      };
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPPacket::MixerToClientExtension
+      #pragma mark
+
+      struct MixerToClientExtension : public HeaderExtension
+      {
+        // see https://tools.ietf.org/html/rfc6464
+
+        static const size_t kMaxLevelCount {0xF};
+
+        MixerToClientExtension(const HeaderExtension &header);
+        MixerToClientExtension(
+                               BYTE id,
+                               BYTE *levels,
+                               size_t count
+                               );
+
+        size_t levelsCount() const;
+
+        BYTE unusedBit(size_t index) const;
+        BYTE level(size_t index) const;
+
+      public:
+        BYTE mLevelBuffer[kMaxLevelCount] {};
+      };
+      
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPPacket::MidHeadExtension
+      #pragma mark
+
+      struct MidHeadExtension : public HeaderExtension
+      {
+        // https://tools.ietf.org/html/draft-ietf-mmusic-sdp-bundle-negotiation-23#section-14.3
+
+        static const size_t kMaxMidLength {0xFF};
+
+        MidHeadExtension(const HeaderExtension &header);
+        MidHeadExtension(
+                         BYTE id,
+                         const char *mid
+                         );
+
+        const char *mid() const;
+
+        ElementPtr toDebug() const;
+
+      public:
+        BYTE mMidBuffer[kMaxMidLength+sizeof(char)] {};
+      };
+      
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPPacket::ExtendedSourceInformationHeaderExtension
+      #pragma mark
+
+      struct ExtendedSourceInformationHeaderExtension : public HeaderExtension
+      {
+        // urn:example:params:rtp-hdrext:extended-ssrc-info
+
+        struct RTXType {
+          static const BYTE kType {1};
+        };
+        struct FECType {
+          static const BYTE kType {2};
+        };
+
+
+        ExtendedSourceInformationHeaderExtension(const HeaderExtension &header);
+        ExtendedSourceInformationHeaderExtension(
+                                                 const RTXType &,
+                                                 BYTE id,
+                                                 DWORD associatedSSRC
+                                                 );
+        ExtendedSourceInformationHeaderExtension(
+                                                 const FECType &,
+                                                 BYTE id,
+                                                 bool associatedSSRCIsValid,
+                                                 DWORD associatedSSRC
+                                                 );
+
+
+        BYTE type() const                   {return mType;}
+
+        bool isAssociatedSSRCValid() const  {return mIsAssociateSSRCValid;}
+        DWORD associatedSSRC() const        {return mAssociatedSSRC;}
+
+        ElementPtr toDebug() const;
+
+      public:
+        BYTE mType {0};
+        bool mIsAssociateSSRCValid {};
+        DWORD mAssociatedSSRC {};
+
+        BYTE mEncoded[sizeof(DWORD)*2] {};
+      };
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPPacket::VideoOrientationHeaderExtension
+      #pragma mark
+
+      struct VideoOrientationHeaderExtension : public HeaderExtension
+      {
+        struct Clockwise {};
+        struct CounterClockwise {};
+
+        VideoOrientationHeaderExtension(const HeaderExtension &header);
+        VideoOrientationHeaderExtension(const VideoOrientation6HeaderExtension &);
+        VideoOrientationHeaderExtension(
+                                        const Clockwise &,
+                                        bool frontFacingCamera, // true = front facing, false = backfacing
+                                        bool flip, // horizontal left-right flip (mirro)
+                                        UINT orientation
+                                        );
+        VideoOrientationHeaderExtension(
+                                        const CounterClockwise &,
+                                        bool frontFacingCamera, // true = front facing, false = backfacing
+                                        bool flip, // horizontal left-right flip (mirro)
+                                        UINT orientation
+                                        );
+
+        bool frontFacing() const;
+        bool backFacing() const;
+        bool flip() const;
+        UINT degreesClockwise() const;
+        UINT degreesCounterClockwise() const;
+
+        ElementPtr toDebug() const;
+
+      public:
+        BYTE mEncoded[1] {};
+      };
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPPacket::VideoOrientationHeaderExtension
+      #pragma mark
+
+      struct VideoOrientation6HeaderExtension : public VideoOrientationHeaderExtension
+      {
+        VideoOrientation6HeaderExtension(const HeaderExtension &header);
+        VideoOrientation6HeaderExtension(
+                                         const Clockwise &,
+                                         bool frontFacingCamera, // true = front facing, false = backfacing
+                                         bool flip, // horizontal left-right flip (mirro)
+                                         UINT orientation
+                                         );
+        VideoOrientation6HeaderExtension(
+                                         const CounterClockwise &,
+                                         bool frontFacingCamera, // true = front facing, false = backfacing
+                                         bool flip, // horizontal left-right flip (mirro)
+                                         UINT orientation
+                                         );
+
+        UINT degreesClockwise() const;
+        UINT degreesCounterClockwise() const;
+
+        ElementPtr toDebug() const;
+
+      public:
       };
 
     public:

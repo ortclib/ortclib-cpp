@@ -32,16 +32,11 @@
 
 #include <zsLib/MessageQueueThread.h>
 
-//#include <ortc/IDTLSTransport.h>
-//#include <ortc/ISRTPSDESTransport.h>
 #include <ortc/ISettings.h>
 
 #include <ortc/internal/ortc_RTPPacket.h>
+#include <ortc/internal/ortc_Helper.h>
 
-//#include <ortc/internal/ortc_SRTPTransport.h>
-//#include <ortc/internal/ortc_ISecureTransport.h>
-//#include <ortc/internal/ortc_DTLSTransport.h>
-//
 #include <openpeer/services/IHelper.h>
 //
 //#include <zsLib/XML.h>
@@ -63,25 +58,12 @@ using zsLib::IMessageQueue;
 //using zsLib::Log;
 using zsLib::AutoPUID;
 using zsLib::AutoRecursiveLock;
-//using zsLib::IPromiseSettledDelegate;
 //using namespace zsLib::XML;
-//using ortc::internal::ISecureTransportForSRTPTransport;
-//using ortc::internal::ISRTPTransportForSecureTransport;
-//using ortc::internal::ISRTPTransportDelegate;
-//using ortc::internal::ISRTPTransportDelegatePtr;
 //
-//
-//ZS_DECLARE_USING_PTR(ortc::internal, ISRTPTransport)
-//ZS_DECLARE_USING_PTR(openpeer::services, SecureByteBlock)
 //
 //ZS_DECLARE_TYPEDEF_PTR(ortc::ISettings, UseSettings)
 ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHelper, UseServicesHelper)
-//ZS_DECLARE_TYPEDEF_PTR(ortc::internal::ISecureTransportForSRTPTransport, UseSecureTransport)
-//ZS_DECLARE_TYPEDEF_PTR(ortc::internal::ISRTPTransportForSecureTransport, UseSRTPTransport)
-//
-//ZS_DECLARE_TYPEDEF_PTR(ortc::ISRTPSDESTransport::CryptoParameters, CryptoParameters)
-//ZS_DECLARE_TYPEDEF_PTR(ortc::ISRTPSDESTransport::KeyParameters, KeyParameters)
-//
+ZS_DECLARE_TYPEDEF_PTR(ortc::internal::Helper, UseHelper)
 
 
 namespace ortc
@@ -93,25 +75,6 @@ namespace ortc
       ZS_DECLARE_CLASS_PTR(Tester)
       ZS_DECLARE_USING_PTR(ortc::internal, RTPPacket)
 
-      //-------------------------------------------------------------------------
-      static void Set8(void* memory, size_t offset, BYTE v) {
-        static_cast<BYTE*>(memory)[offset] = v;
-      }
-
-      //-------------------------------------------------------------------------
-      static void SetBE16(void* memory, WORD v) {
-        Set8(memory, 0, static_cast<BYTE>(v >> 8));
-        Set8(memory, 1, static_cast<BYTE>(v >> 0));
-      }
-
-      //-------------------------------------------------------------------------
-      static void SetBE32(void* memory, DWORD v) {
-        Set8(memory, 0, static_cast<BYTE>(v >> 24));
-        Set8(memory, 1, static_cast<BYTE>(v >> 16));
-        Set8(memory, 2, static_cast<BYTE>(v >> 8));
-        Set8(memory, 3, static_cast<BYTE>(v >> 0));
-      }
-      
       class Tester : public SharedRecursiveLock
       {
       public:
@@ -168,14 +131,14 @@ namespace ortc
           pos[0] = (version << 6) | ((p ? 1 : 0) << 5) | ((x ? 1 :0) << 4) | (cc & 0xF);
           pos[1] = ((m ? 1: 0) << 7) | (pt & 0x7F);
 
-          SetBE16(&(pos[2]), sequenceNumber);
-          SetBE32(&(pos[4]), timeStamp);
-          SetBE32(&(pos[8]), ssrc);
+          UseHelper::setBE16(&(pos[2]), sequenceNumber);
+          UseHelper::setBE32(&(pos[4]), timeStamp);
+          UseHelper::setBE32(&(pos[8]), ssrc);
 
           pos += (sizeof(DWORD)*3);
           for (size_t index = 0; index < (static_cast<size_t>(cc) & 0xF); ++index, pos += sizeof(DWORD))
           {
-            SetBE32(&(pos[0]), ccrcs[index]);
+            UseHelper::setBE32(&(pos[0]), ccrcs[index]);
           }
 
           if (NULL != headerExtensionData) {

@@ -33,6 +33,8 @@
 #include <ortc/internal/ortc_DTLSTransport.h>
 #include <ortc/internal/ortc_RTPListener.h>
 #include <ortc/internal/ortc_MediaStreamTrack.h>
+#include <ortc/internal/ortc_RTPPacket.h>
+#include <ortc/internal/ortc_RTCPPacket.h>
 #include <ortc/internal/ortc_ORTC.h>
 #include <ortc/internal/platform.h>
 
@@ -354,7 +356,7 @@ namespace ortc
                                    IRTCPTransportPtr rtcpTransport
                                    )
     {
-      typedef UseListener::BufferList BufferList;
+      typedef UseListener::RTCPPacketList RTCPPacketList;
 
       AutoRecursiveLock lock(*this);
 
@@ -371,7 +373,7 @@ namespace ortc
         mListener->unregisterReceiver(*this);
 
         // register to new listener
-        BufferList historicalRTCPPackets;
+        RTCPPacketList historicalRTCPPackets;
         mListener->registerReceiver(mThisWeak.lock(), *mParameters, historicalRTCPPackets);
 
 #define TODO_PROCESS_HISTORICAL_RTCP_PACKETS_FROM_NEW_TRANSPORT 1
@@ -393,7 +395,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPReceiver::receive(const Parameters &parameters)
     {
-      typedef UseListener::BufferList BufferList;
+      typedef UseListener::RTCPPacketList RTCPPacketList;
 
       AutoRecursiveLock lock(*this);
 
@@ -408,7 +410,7 @@ namespace ortc
 
       mParameters = ParametersPtr(make_shared<Parameters>(parameters));
 
-      BufferList historicalRTCPPackets;
+      RTCPPacketList historicalRTCPPackets;
       mListener->registerReceiver(mThisWeak.lock(), *mParameters, historicalRTCPPackets);
 
       mVideoStream->Start();
@@ -454,12 +456,27 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool RTPReceiver::handlePacket(
                                    IICETypes::Components viaTransport,
-                                   IICETypes::Components packetType,
-                                   const BYTE *buffer,
-                                   size_t bufferLengthInBytes
+                                   RTPPacketPtr packet
                                    )
     {
-      ZS_LOG_TRACE(log("received packet") + ZS_PARAM("via", IICETypes::toString(viaTransport)) + ZS_PARAM("via", IICETypes::toString(packetType)) + ZS_PARAM("buffer size", bufferLengthInBytes))
+      ZS_LOG_TRACE(log("received packet") + ZS_PARAM("via", IICETypes::toString(viaTransport)) + packet->toDebug())
+
+      {
+        AutoRecursiveLock lock(*this);
+        // process packet here
+#define TOOD_PROCESS_PACKET_HERE 1
+#define TOOD_PROCESS_PACKET_HERE 2
+      }
+      return false; // return true if packet was handled
+    }
+
+    //-------------------------------------------------------------------------
+    bool RTPReceiver::handlePacket(
+                                   IICETypes::Components viaTransport,
+                                   RTCPPacketPtr packet
+                                   )
+    {
+      ZS_LOG_TRACE(log("received packet") + ZS_PARAM("via", IICETypes::toString(viaTransport)) + packet->toDebug())
 
       {
         AutoRecursiveLock lock(*this);
@@ -468,7 +485,7 @@ namespace ortc
 #define TOOD_PROCESS_PACKET_HERE 2
       }
 
-      DeliverPacket(MediaTypes::MediaType_Video, buffer, bufferLengthInBytes);
+      DeliverPacket(MediaTypes::MediaType_Video, packet->ptr(), packet->size());
       return true; // return true if handled
     }
 
