@@ -86,6 +86,48 @@ namespace ortc
     static const BYTE kRtpVersion = 2;
 
     //-------------------------------------------------------------------------
+    static bool requiredExtension(
+                                  RTPPacket::HeaderExtension *firstExtension,
+                                  BYTE headerExtensionAppBits,
+                                  size_t headerExtensionPrepaddedSize,
+                                  const BYTE *headerExtensionParseStoppedPos
+                                  )
+    {
+      return (NULL != firstExtension) ||
+      (0 != headerExtensionAppBits) ||
+      (0 != headerExtensionPrepaddedSize) ||
+      (NULL != headerExtensionParseStoppedPos);
+    }
+
+    //-------------------------------------------------------------------------
+    static void getHeaderExtensionSize(
+                                       RTPPacket::HeaderExtension *firstExtension,
+                                       bool twoByteHeader,
+                                       size_t headerExtensionPrepaddedSize,
+                                       size_t headerExtensionParseStoppedSize,
+                                       size_t &outSizeInBytes,
+                                       size_t &outTotalHeaderExtensions
+                                       )
+    {
+      typedef RTPPacket::HeaderExtension HeaderExtension;
+
+      outSizeInBytes = sizeof(DWORD) + headerExtensionPrepaddedSize + headerExtensionParseStoppedSize;
+
+      outTotalHeaderExtensions = 0;
+      for (HeaderExtension *current = firstExtension; NULL != current; current = current->mNext) {
+        ++outTotalHeaderExtensions;
+        outSizeInBytes += (twoByteHeader ? 2 : 1) + (current->mDataSizeInBytes) + current->mPostPaddingSize;
+      }
+
+      size_t modulas = (outSizeInBytes % sizeof(DWORD));
+
+      if (0 != modulas) {
+        outSizeInBytes += (sizeof(DWORD) - modulas);
+      }
+    }
+    
+
+    //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -583,6 +625,14 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    RTPPacketPtr RTPPacket::create(const CreationParams &params)
+    {
+      RTPPacketPtr pThis(make_shared<RTPPacket>(make_private{}));
+      pThis->generate(params);
+      return pThis;
+    }
+
+    //-------------------------------------------------------------------------
     RTPPacketPtr RTPPacket::create(const BYTE *buffer, size_t bufferLengthInBytes)
     {
       ORTC_THROW_INVALID_PARAMETERS_IF(!buffer)
@@ -689,9 +739,14 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPPacket::changeHeaderExtensions(HeaderExtension *firstExtension)
+    static bool requiresTwoByteHeader(
+                                      RTPPacket::HeaderExtension *firstExtension,
+                                      BYTE headerExtensionAppBits
+                                      )
     {
-      bool twoByteHeader = (0 != mHeaderExtensionAppBits);
+      typedef RTPPacket::HeaderExtension HeaderExtension;
+
+      bool twoByteHeader = (0 != headerExtensionAppBits);
       if (!twoByteHeader) {
         for (HeaderExtension *current = firstExtension; NULL != current; current = current->mNext) {
           ASSERT(0 != current->mID) // not legal
@@ -711,15 +766,19 @@ namespace ortc
           }
         }
       }
+      return twoByteHeader;
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPPacket::changeHeaderExtensions(HeaderExtension *firstExtension)
+    {
+      bool twoByteHeader = requiresTwoByteHeader(firstExtension, mHeaderExtensionAppBits);
 
       if (twoByteHeader) {
         ORTC_THROW_INVALID_STATE_IF(NULL != mHeaderExtensionParseStoppedPos)  // requires a 1 byte header to append this data
       }
 
-      bool requiresExtension = (NULL != firstExtension) ||
-                               (0 != mHeaderExtensionAppBits) ||
-                               (0 != mHeaderExtensionPrepaddedSize) ||
-                               (NULL != mHeaderExtensionParseStoppedPos);
+      bool requiresExtension = requiredExtension(firstExtension, mHeaderExtensionAppBits, mHeaderExtensionPrepaddedSize, mHeaderExtensionParseStoppedPos);
 
       const BYTE *buffer = ptr();
 
@@ -773,103 +832,25 @@ namespace ortc
         return;
       }
 
-      size_t newHeaderExtensionSize = sizeof(DWORD) + mHeaderExtensionPrepaddedSize + mHeaderExtensionParseStoppedSize;
+      mHeaderExtensionSize = 0;
+      mTotalHeaderExtensions = 0;
+      getHeaderExtensionSize(firstExtension, twoByteHeader, mHeaderExtensionPrepaddedSize, mHeaderExtensionParseStoppedSize, mHeaderExtensionSize, mTotalHeaderExtensions);
 
-      size_t newTotalExtensions = 0;
-      for (HeaderExtension *current = firstExtension; NULL != current; current = current->mNext) {
-        ++newTotalExtensions;
-        newHeaderExtensionSize += (twoByteHeader ? 2 : 1) + (current->mDataSizeInBytes) + current->mPostPaddingSize;
-      }
+      size_t newSize = mHeaderSize + mHeaderExtensionSize + postHeaderExtensionSize;
 
-      size_t modulas = (newHeaderExtensionSize % sizeof(DWORD));
+      SecureByteBlockPtr oldBuffer = mBuffer; // temporary to keep previous allocation alive during swap
 
-      if (0 != modulas) {
-        newHeaderExtensionSize += (sizeof(DWORD) - modulas);
-      }
+      mBuffer = SecureByteBlockPtr(make_shared<SecureByteBlock>(newSize));
 
-      size_t newSize = mHeaderSize + newHeaderExtensionSize + postHeaderExtensionSize;
-
-      SecureByteBlockPtr tempBuffer(make_shared<SecureByteBlock>(newSize));
-
-      BYTE *newBuffer = tempBuffer->BytePtr();
+      BYTE *newBuffer = mBuffer->BytePtr();
 
       // copy the bytes before the extension header to the new buffer
       memcpy(newBuffer, buffer, mHeaderSize);
 
       // copy the bytes from after the extension header in the older buffer to the new buffer
-      memcpy(&(newBuffer[mHeaderSize + newHeaderExtensionSize]), &(buffer[mHeaderSize + existingHeaderExtensionSize]), postHeaderExtensionSize);
+      memcpy(&(newBuffer[mHeaderSize + mHeaderExtensionSize]), &(buffer[mHeaderSize + existingHeaderExtensionSize]), postHeaderExtensionSize);
 
-      // set the extension bit
-      newBuffer[0] = newBuffer[0] | RTP_HEADER_EXTENSION_BIT;
-
-      BYTE *newProfilePos = &(newBuffer[mHeaderSize]);
-
-      if (twoByteHeader) {
-        WORD profileType = (0x100 << 4) | (mHeaderExtensionAppBits & 0xF);
-        newProfilePos[0] = static_cast<BYTE>((profileType & 0xFF00) >> 8);
-        newProfilePos[1] = static_cast<BYTE>(profileType & 0xFF);
-      } else {
-        newProfilePos[0] = 0xBE;
-        newProfilePos[1] = 0xDE;
-      }
-
-      WORD totalDWORDsLength = ((newHeaderExtensionSize - sizeof(DWORD)) / sizeof(DWORD));
-      newProfilePos[2] = static_cast<BYTE>((totalDWORDsLength & 0xFF00) >> 8);
-      newProfilePos[3] = static_cast<BYTE>(totalDWORDsLength & 0xFF);
-
-      BYTE *pos = &(newProfilePos[sizeof(DWORD)]) + mHeaderExtensionPrepaddedSize;
-
-      HeaderExtension *newExtensions = NULL;
-      if (0 != newTotalExtensions) {
-        newExtensions = new HeaderExtension[newTotalExtensions] {};
-      }
-
-      size_t index = 0;
-      for (HeaderExtension *current = firstExtension; NULL != current; current = current->mNext, ++index) {
-        HeaderExtension *newCurrent = &(newExtensions[index]);
-        if (0 != index) {
-          newExtensions[index-1].mNext = newCurrent;
-        }
-
-        if (twoByteHeader) {
-          pos[0] = current->mID;
-          pos[1] = current->mDataSizeInBytes;
-          pos += 2;
-        } else {
-          pos[0] = ((current->mID) << 4) | ((current->mDataSizeInBytes - 1) & 0xF);
-          ++pos;
-        }
-
-        newCurrent->mID = current->mID;
-        newCurrent->mData = pos;
-        newCurrent->mDataSizeInBytes = current->mDataSizeInBytes;
-        newCurrent->mPostPaddingSize = current->mPostPaddingSize;
-
-        if (0 != current->mDataSizeInBytes) {
-          memcpy(pos, current->mData, current->mDataSizeInBytes);
-          pos += current->mDataSizeInBytes;
-        }
-        pos += current->mPostPaddingSize;
-      }
-
-      if (0 != mHeaderExtensionParseStoppedSize) {
-        ASSERT(NULL != mHeaderExtensionParseStoppedPos)
-
-        memcpy(pos, mHeaderExtensionParseStoppedPos, mHeaderExtensionParseStoppedSize);
-        mHeaderExtensionParseStoppedPos = pos;
-      } else {
-        mHeaderExtensionParseStoppedPos = NULL;
-      }
-
-      mTotalHeaderExtensions = index;
-      if (NULL != mHeaderExtensions) {
-        delete [] mHeaderExtensions;
-        mHeaderExtensions = NULL;
-      }
-      mHeaderExtensions = newExtensions;
-      mHeaderExtensionSize = newHeaderExtensionSize;
-
-      mBuffer = tempBuffer; // replace existing buffer with new buffer
+      writeHeaderExtensions(firstExtension, twoByteHeader);
 
       ZS_LOG_INSANE(debug("header extension changed"))
     }
@@ -1120,6 +1101,178 @@ namespace ortc
       return true;
     }
     
+    //-------------------------------------------------------------------------
+    void RTPPacket::writeHeaderExtensions(
+                                          HeaderExtension *firstExtension,
+                                          bool twoByteHeader
+                                          )
+    {
+      ASSERT((bool)mBuffer)
+      ASSERT(0 != mBuffer->SizeInBytes())
+      ASSERT(0 != mHeaderSize)
+      //ASSERT(mHeaderExtensionAppBits)           // needs to be set (but no way to verify here)
+      //ASSERT(mTotalHeaderExtensions)            // needs to be set (but no way to verify here)
+      //ASSERT(mHeaderExtensionPrepaddedSize)     // needs to be set (but no way to verify here)
+      //ASSSRT(mHeaderExtensionParseStoppedSize)  // needs to be set (but no way to verify here)
+      //ASSERT(mHeaderExtensionParseStoppedPos)   // needs to be set (but no way to verify here)
+      ASSERT(0 != mHeaderExtensionSize)
+
+
+      BYTE *newBuffer = mBuffer->BytePtr();
+
+      // set the extension bit
+      newBuffer[0] = newBuffer[0] | RTP_HEADER_EXTENSION_BIT;
+
+      BYTE *newProfilePos = &(newBuffer[mHeaderSize]);
+
+      if (twoByteHeader) {
+        WORD profileType = (0x100 << 4) | (mHeaderExtensionAppBits & 0xF);
+        newProfilePos[0] = static_cast<BYTE>((profileType & 0xFF00) >> 8);
+        newProfilePos[1] = static_cast<BYTE>(profileType & 0xFF);
+      } else {
+        newProfilePos[0] = 0xBE;
+        newProfilePos[1] = 0xDE;
+      }
+
+      WORD totalDWORDsLength = ((mHeaderExtensionSize - sizeof(DWORD)) / sizeof(DWORD));
+      newProfilePos[2] = static_cast<BYTE>((totalDWORDsLength & 0xFF00) >> 8);
+      newProfilePos[3] = static_cast<BYTE>(totalDWORDsLength & 0xFF);
+
+      BYTE *pos = &(newProfilePos[sizeof(DWORD)]) + mHeaderExtensionPrepaddedSize;
+
+      HeaderExtension *newExtensions = NULL;
+      if (0 != mTotalHeaderExtensions) {
+        newExtensions = new HeaderExtension[mTotalHeaderExtensions] {};
+      }
+
+      size_t index = 0;
+      for (HeaderExtension *current = firstExtension; NULL != current; current = current->mNext, ++index) {
+        HeaderExtension *newCurrent = &(newExtensions[index]);
+        if (0 != index) {
+          newExtensions[index-1].mNext = newCurrent;
+        }
+
+        if (twoByteHeader) {
+          pos[0] = current->mID;
+          pos[1] = current->mDataSizeInBytes;
+          pos += 2;
+        } else {
+          pos[0] = ((current->mID) << 4) | ((current->mDataSizeInBytes - 1) & 0xF);
+          ++pos;
+        }
+
+        newCurrent->mID = current->mID;
+        newCurrent->mData = pos;
+        newCurrent->mDataSizeInBytes = current->mDataSizeInBytes;
+        newCurrent->mPostPaddingSize = current->mPostPaddingSize;
+
+        if (0 != current->mDataSizeInBytes) {
+          memcpy(pos, current->mData, current->mDataSizeInBytes);
+          pos += current->mDataSizeInBytes;
+        }
+        pos += current->mPostPaddingSize;
+      }
+
+      if (0 != mHeaderExtensionParseStoppedSize) {
+        ASSERT(NULL != mHeaderExtensionParseStoppedPos)
+
+        memcpy(pos, mHeaderExtensionParseStoppedPos, mHeaderExtensionParseStoppedSize);
+        mHeaderExtensionParseStoppedPos = pos;
+      } else {
+        mHeaderExtensionParseStoppedPos = NULL;
+      }
+
+      ASSERT(index == mTotalHeaderExtensions)
+
+      mTotalHeaderExtensions = index;
+      if (NULL != mHeaderExtensions) {
+        delete [] mHeaderExtensions;
+        mHeaderExtensions = NULL;
+      }
+      mHeaderExtensions = newExtensions;
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPPacket::generate(const CreationParams &params)
+    {
+      ASSERT(params.mVersion <= 0x3)
+      ASSERT(params.mPadding <= 0xFF)
+      ASSERT(params.mCC <= 0xF)
+      ASSERT(params.mPT <= 0x7F)
+
+      ASSERT(0 == params.mCC ? (NULL == params.mCSRCList) : (NULL != params.mCSRCList))
+
+      mVersion = params.mVersion & 0x3;
+      mPadding = params.mPadding;
+      mCC = (static_cast<BYTE>(params.mCC) & 0xF);
+      mM = params.mM;
+      mPT = (params.mPT & 0x7F);
+      mSequenceNumber = params.mSequenceNumber;
+      mTimestamp = params.mTimestamp;
+      mSSRC = params.mSSRC;
+
+      mHeaderSize = kMinRtpPacketLen + (static_cast<size_t>(mCC) * sizeof(DWORD));
+      //mHeaderExtensionSize = 0; // filled in later
+      mPayloadSize = params.mPayloadSize;
+
+      //mTotalHeaderExtensions (later)
+      //mHeaderExtensions (later)
+      mHeaderExtensionAppBits = params.mHeaderExtensionAppBits;
+
+      mHeaderExtensionPrepaddedSize = params.mHeaderExtensionPrepaddedSize;
+      mHeaderExtensionParseStoppedPos = params.mHeaderExtensionStopParsePos;
+      mHeaderExtensionParseStoppedSize = params.mHeaderExtensionStopParseSize;
+
+      bool twoByteHeader = requiresTwoByteHeader(params.mFirstHeaderExtension, mHeaderExtensionAppBits);
+
+      if (twoByteHeader) {
+        ORTC_THROW_INVALID_STATE_IF(NULL != mHeaderExtensionParseStoppedPos)  // requires a 1 byte header to append this data
+      }
+
+      bool requiresExtension = requiredExtension(params.mFirstHeaderExtension, mHeaderExtensionAppBits, mHeaderExtensionPrepaddedSize, mHeaderExtensionParseStoppedPos);
+
+      if (requiresExtension) {
+        mHeaderExtensionSize = 0;
+        mTotalHeaderExtensions = 0;
+        getHeaderExtensionSize(params.mFirstHeaderExtension, twoByteHeader, mHeaderExtensionPrepaddedSize, mHeaderExtensionParseStoppedSize, mHeaderExtensionSize, mTotalHeaderExtensions);
+      }
+
+      size_t postHeaderExtensionSize = mPayloadSize + mPadding;
+
+      size_t newSize = mHeaderSize + mHeaderExtensionSize + postHeaderExtensionSize;
+
+      mBuffer = SecureByteBlockPtr(make_shared<SecureByteBlock>(newSize));
+
+      BYTE *newBuffer = mBuffer->BytePtr();
+
+      // fill standard header
+
+      BYTE *pos = newBuffer;
+      pos[0] = RTP_PACK_BITS(mVersion, 0x3, 6) |
+      RTP_PACK_BITS(0 != mPadding ? 1 : 0, 0x1, 5) |
+      RTP_PACK_BITS(requiresExtension ? 1 : 0, 0x1, 4) |
+      RTP_PACK_BITS(mCC, 0xF, 0);
+      pos[1] = RTP_PACK_BITS(mM ? 1 : 0, 0x1, 7) |
+      RTP_PACK_BITS(mPT, 0x7F, 0);
+
+      UseHelper::setBE16(&(pos[2]), mSequenceNumber);
+      UseHelper::setBE32(&(pos[4]), mTimestamp);
+
+      // write CSRC list (if any)
+      for (size_t index = 0; index < static_cast<size_t>(mCC); ++index) {
+        UseHelper::setBE32(&(pos[8+(sizeof(DWORD)*index)]), params.mCSRCList[index]);
+      }
+
+      if (requiresExtension) {
+        writeHeaderExtensions(params.mFirstHeaderExtension, twoByteHeader);
+      }
+      
+      if (0 != mPadding) {
+        newBuffer[newSize-1] = static_cast<BYTE>(mPadding);
+      }
+      
+      ZS_LOG_INSANE(debug("generated RTP packet"))
+    }
   }
 
 }

@@ -36,6 +36,7 @@
 #include <ortc/IRTPListener.h>
 #include <ortc/ISettings.h>
 
+#include <ortc/internal/ortc_RTPListener.h>
 #include <ortc/internal/ortc_ICETransport.h>
 #include <ortc/internal/ortc_ISecureTransport.h>
 #include <ortc/internal/ortc_DTLSTransport.h>
@@ -184,17 +185,6 @@ namespace ortc
 
         //---------------------------------------------------------------------
         #pragma mark
-        #pragma mark FakeICETransport => IICETransportForDataTransport
-        #pragma mark
-
-        virtual PUID getID() const override;
-
-        virtual IICETransportSubscriptionPtr subscribe(IICETransportDelegatePtr originalDelegate) override;
-
-        virtual IICETransport::States state() const override;
-
-        //---------------------------------------------------------------------
-        #pragma mark
         #pragma mark FakeICETransport => IFakeICETransportAsyncDelegate
         #pragma mark
 
@@ -278,6 +268,8 @@ namespace ortc
       {
       public:
         friend class FakeICETransport;
+        friend class FakeReceiver;
+        friend class FakeSender;
 
       protected:
         struct make_private {};
@@ -397,12 +389,6 @@ namespace ortc
 
         bool mClientRole {false};
 
-//        IDTLSTransportDelegateSubscriptions mSubscriptions;
-//        IDTLSTransportSubscriptionPtr mDefaultSubscription;
-//
-//        std::list<PromisePtr> mNotifyReadyPromises;
-//        std::list<PromisePtr> mNotifyClosedPromises;
-
         UseListenerPtr mListener;
       };
 
@@ -419,6 +405,7 @@ namespace ortc
       {
       public:
         typedef std::list<SecureByteBlockPtr> BufferList;
+        typedef RTPListener::RTCPPacketList RTCPPacketList;
 
         ZS_DECLARE_TYPEDEF_PTR(internal::IRTPListenerForRTPReceiver, UseListener)
 
@@ -432,8 +419,6 @@ namespace ortc
         #pragma mark
         #pragma mark FakeReceiver => IRTPReceiverForRTPListener
         #pragma mark
-
-        // (duplciate) static ElementPtr toDebug(ForRTPListenerPtr transport);
 
         virtual ElementPtr toDebug() const override;
 
@@ -461,10 +446,19 @@ namespace ortc
         virtual void stop() override;
 
       protected:
-        String mReceiverID;
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark FakeReceiver => (internal)
+        #pragma mark
+
+        Log::Params log(const char *message) const;
+
+      protected:
+        FakeReceiverWeakPtr mThisWeak;
+
         RTPListenerTesterWeakPtr mTester;
 
-        Parameters mParameters;
+        ParametersPtr mParameters;
 
         BufferList mBuffers;
 
@@ -476,7 +470,7 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark FakeSecureTransport
+      #pragma mark FakeSender
       #pragma mark
 
       //-----------------------------------------------------------------------
@@ -487,6 +481,7 @@ namespace ortc
         ZS_DECLARE_TYPEDEF_PTR(internal::IRTPListenerForRTPSender, UseListener)
 
         typedef std::list<SecureByteBlockPtr> BufferList;
+        typedef RTPListener::RTCPPacketList RTCPPacketList;
 
       public:
         FakeSender();
@@ -496,7 +491,7 @@ namespace ortc
 
         //---------------------------------------------------------------------
         #pragma mark
-        #pragma mark RTPSender => IRTPSenderForRTPListener
+        #pragma mark FakeSender => IRTPSenderForRTPListener
         #pragma mark
 
         virtual ElementPtr toDebug() const override;
@@ -510,7 +505,7 @@ namespace ortc
 
         //---------------------------------------------------------------------
         #pragma mark
-        #pragma mark FakeReceiver => (friend RTPListenerTester)
+        #pragma mark FakeSender => (friend RTPListenerTester)
         #pragma mark
 
         void setTransport(RTPListenerTesterPtr tester);
@@ -521,7 +516,16 @@ namespace ortc
         void expectData(SecureByteBlockPtr data);
 
         void sendPacket(SecureByteBlockPtr buffer);
-        
+
+
+      protected:
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark FakeSender => (internal)
+        #pragma mark
+
+        Log::Params log(const char *message) const;
+
 
       protected:
         //---------------------------------------------------------------------
@@ -529,8 +533,11 @@ namespace ortc
         #pragma mark RTPSender => (data)
         #pragma mark
 
-        String mSenderID;
+        FakeSenderWeakPtr mThisWeak;
+
         RTPListenerTesterWeakPtr mTester;
+
+        ParametersPtr mParameters;
 
         BufferList mBuffers;
 
@@ -562,6 +569,23 @@ namespace ortc
         typedef std::map<ReceiverID, FakeReceiverPtr> ReceiverMap;
         typedef std::map<SenderID, FakeSenderPtr> SenderMap;
 
+        struct UnhandledEventData
+        {
+          UnhandledEventData(
+                             DWORD ssrc,
+                             BYTE pt,
+                             const char *mid
+                             );
+
+          bool operator==(const UnhandledEventData &op2) const;
+
+          DWORD mSSRC {};
+          BYTE mPT {};
+          String mMID;
+        };
+
+        typedef std::list<UnhandledEventData> UnhandledEventDataList;
+
       protected:
         struct make_private {};
 
@@ -573,6 +597,7 @@ namespace ortc
           ULONG mStateClosing {0};
           ULONG mStateClosed {0};
 
+          ULONG mUnhandled {0};
           ULONG mReceivedPackets {0};
 
           ULONG mError {0};
@@ -582,23 +607,15 @@ namespace ortc
 
       public:
         static RTPListenerTesterPtr create(
-                                    IMessageQueuePtr queue,
-                                    bool createRTPListenerNow = true,
-                                    Optional<WORD> localPort = Optional<WORD>(),
-                                    Optional<WORD> removePort = Optional<WORD>(),
-                                    Milliseconds packetDelay = Milliseconds()
-                                    );
+                                           IMessageQueuePtr queue,
+                                           Milliseconds packetDelay = Milliseconds()
+                                           );
 
         RTPListenerTester(IMessageQueuePtr queue);
 
         ~RTPListenerTester();
 
-        void init(
-                  bool createRTPListenerNow,
-                  Optional<WORD> localPort,
-                  Optional<WORD> removePort,
-                  Milliseconds packetDelay
-                  );
+        void init(Milliseconds packetDelay);
 
         bool matches(const Expectations &op2);
 
@@ -615,8 +632,7 @@ namespace ortc
 
         void setClientRole(bool clientRole);
 
-        void listen();
-        void start(RTPListenerTesterPtr remote);
+        void connect(RTPListenerTesterPtr remote);
 
         void createReceiver(const char *receiverID);
         void createSender(const char *senderID);
@@ -653,6 +669,12 @@ namespace ortc
         FakeReceiverPtr detachReceiver(const char *receiverID);
         FakeSenderPtr detachSender(const char *senderID);
 
+        void expectingUnhandled(
+                                SSRCType ssrc,
+                                PayloadType payloadType,
+                                const char *mid
+                                );
+
       protected:
 
         //---------------------------------------------------------------------
@@ -664,7 +686,7 @@ namespace ortc
                                                IRTPListenerPtr listener,
                                                SSRCType ssrc,
                                                PayloadType payloadType,
-                                               String mid
+                                               const char *mid
                                                ) override;
 
         //---------------------------------------------------------------------
@@ -675,6 +697,7 @@ namespace ortc
         FakeSecureTransportPtr getFakeSecureTransport() const;
 
         void notifyReceivedPacket();
+        void notifyReceivedBufferedRTCPPacket();
 
       protected:
         //---------------------------------------------------------------------
@@ -689,8 +712,6 @@ namespace ortc
         FakeReceiverPtr getReceiver(const char *receiverID);
         FakeSenderPtr getSender(const char *senderID);
 
-        void remove(const char *senderOrReceiverID);
-
       public:
         //---------------------------------------------------------------------
         #pragma mark
@@ -702,7 +723,6 @@ namespace ortc
 
         FakeICETransportPtr mICETransport;
         FakeSecureTransportPtr mDTLSTransport;
-        IRTPListenerPtr mRTPListener;
 
         RTPListenerTesterWeakPtr mConnectedTester;
 
@@ -712,6 +732,8 @@ namespace ortc
 
         ReceiverMap mReceivers;
         SenderMap mSenders;
+
+        UnhandledEventDataList mExpectingUnhandled;
       };
     }
   }

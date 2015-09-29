@@ -53,10 +53,40 @@ namespace ortc
       struct make_private {};
 
     public:
+      struct HeaderExtension;
       struct VideoOrientationHeaderExtension;
       struct VideoOrientation6HeaderExtension;
 
     public:
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPPacket::CreationParams
+      #pragma mark
+
+      struct CreationParams
+      {
+        BYTE mVersion {2};
+        size_t mPadding {};
+        bool mM {};
+        BYTE mPT {};
+        WORD mSequenceNumber {};
+        DWORD mTimestamp {};
+        DWORD mSSRC {};
+
+        size_t mCC {};
+        DWORD *mCSRCList {};
+
+        const BYTE *mPayload {};
+        size_t mPayloadSize {};
+
+        HeaderExtension *mFirstHeaderExtension {};
+        BYTE mHeaderExtensionAppBits {};
+
+        size_t mHeaderExtensionPrepaddedSize {};
+        const BYTE *mHeaderExtensionStopParsePos {};
+        size_t mHeaderExtensionStopParseSize {};
+      };
+
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark RTPPacket::Extension
@@ -271,6 +301,7 @@ namespace ortc
       RTPPacket(const make_private &);
       ~RTPPacket();
 
+      static RTPPacketPtr create(const CreationParams &params);
       static RTPPacketPtr create(const BYTE *buffer, size_t bufferLengthInBytes);
       static RTPPacketPtr create(const SecureByteBlock &buffer);
       static RTPPacketPtr create(SecureByteBlockPtr buffer);  // NOTE: ownership of buffer is taken
@@ -320,6 +351,12 @@ namespace ortc
       Log::Params debug(const char *message) const;
 
       bool parse();
+
+      void writeHeaderExtensions(
+                                 HeaderExtension *firstExtension,
+                                 bool twoByteHeader
+                                 );
+      void generate(const CreationParams &params);
 
     public:
       SecureByteBlockPtr mBuffer;

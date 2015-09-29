@@ -469,7 +469,7 @@ namespace ortc
         for (auto iter = mUnhandledEvents.begin(); iter != mUnhandledEvents.end(); ++iter) {
           auto &unhandledData = (*iter).first;
 
-          delegate->onRTPListenerUnhandledRTP(pThis, unhandledData.mSSRC, unhandledData.mCodecPayloadType, unhandledData.mMuxID);
+          delegate->onRTPListenerUnhandledRTP(pThis, unhandledData.mSSRC, unhandledData.mCodecPayloadType, unhandledData.mMuxID.c_str());
         }
       }
 
@@ -610,7 +610,7 @@ namespace ortc
 
           mUnhandledEvents[unhandled] = tick;
 
-          mSubscriptions.delegate()->onRTPListenerUnhandledRTP(mThisWeak.lock(), unhandled.mSSRC, unhandled.mCodecPayloadType, unhandled.mMuxID);
+          mSubscriptions.delegate()->onRTPListenerUnhandledRTP(mThisWeak.lock(), unhandled.mSSRC, unhandled.mCodecPayloadType, unhandled.mMuxID.c_str());
         }
 
         return true;
