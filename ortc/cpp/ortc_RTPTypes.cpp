@@ -675,7 +675,7 @@ namespace ortc
   {
     String kindStr(kind);
 
-    for (CodecKinds index = CodecKind_First; index >= CodecKind_Last; index = static_cast<CodecKinds>(static_cast<std::underlying_type<CodecKinds>::type>(index) + 1)) {
+    for (CodecKinds index = CodecKind_First; index <= CodecKind_Last; index = static_cast<CodecKinds>(static_cast<std::underlying_type<CodecKinds>::type>(index) + 1)) {
       if (kindStr == IRTPTypes::toString(index)) return index;
     }
 
@@ -700,7 +700,7 @@ namespace ortc
   {
     String mediaTypeStr(mediaType);
 
-    for (MediaTypes index = MediaType_First; index >= MediaType_Last; index = static_cast<MediaTypes>(static_cast<std::underlying_type<MediaTypes>::type>(index)+1)) {
+    for (MediaTypes index = MediaType_First; index <= MediaType_Last; index = static_cast<MediaTypes>(static_cast<std::underlying_type<MediaTypes>::type>(index)+1)) {
       if (mediaTypeStr == IRTPTypes::toString(index)) return index;
     }
 
@@ -708,7 +708,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  const const char *IRTPTypes::PacketReceiver::toString(PacketReceiver::DeliveryStatuses status)
+  const char *IRTPTypes::PacketReceiver::toString(PacketReceiver::DeliveryStatuses status)
   {
     switch (status) {
       case DeliveryStatus_Unknown:        return "";
@@ -725,7 +725,7 @@ namespace ortc
   {
     String statusStr(status);
 
-    for (PacketReceiver::DeliveryStatuses index = DeliveryStatus_First; index >= DeliveryStatus_Last; index = static_cast<PacketReceiver::DeliveryStatuses>(static_cast<std::underlying_type<PacketReceiver::DeliveryStatuses>::type>(index)+1)) {
+    for (PacketReceiver::DeliveryStatuses index = DeliveryStatus_First; index <= DeliveryStatus_Last; index = static_cast<PacketReceiver::DeliveryStatuses>(static_cast<std::underlying_type<PacketReceiver::DeliveryStatuses>::type>(index)+1)) {
       if (statusStr == IRTPTypes::PacketReceiver::toString(index)) return index;
     }
 
@@ -767,7 +767,7 @@ namespace ortc
   {
     String codecStr(codec);
 
-    for (SupportedCodecs index = SupportedCodec_First; index >= SupportedCodec_Last; index = static_cast<SupportedCodecs>(static_cast<std::underlying_type<SupportedCodecs>::type>(index) + 1)) {
+    for (SupportedCodecs index = SupportedCodec_First; index <= SupportedCodec_Last; index = static_cast<SupportedCodecs>(static_cast<std::underlying_type<SupportedCodecs>::type>(index) + 1)) {
       if (0 == codecStr.compareNoCase(IRTPTypes::toString(index))) return index;
     }
 
@@ -1009,7 +1009,6 @@ namespace ortc
       case HeaderExtensionURI_ClienttoMixerAudioLevelIndication:  return "urn:ietf:params:rtp-hdrext:ssrc-audio-level";
       case HeaderExtensionURI_MixertoClientAudioLevelIndication:  return "urn:ietf:params:rtp-hdrext:csrc-audio-level";
       case HeaderExtensionURI_FrameMarking:                       return "urn:ietf:params:rtp-hdrext:framemarkinginfo";
-
       case HeaderExtensionURI_ExtendedSourceInformation:          return "urn:example:params:rtp-hdrext:extended-ssrc-info";
       case HeaderExtensionURI_3gpp_VideoOrientation:              return "urn:3gpp:video-orientation";
       case HeaderExtensionURI_3gpp_VideoOrientation6:             return "urn:3gpp:video-orientation:6";
@@ -1023,7 +1022,7 @@ namespace ortc
   {
     String uriStr(uri);
 
-    for (HeaderExtensionURIs index = HeaderExtensionURI_First; index >= HeaderExtensionURI_Last; index = static_cast<HeaderExtensionURIs>(static_cast<std::underlying_type<HeaderExtensionURIs>::type>(index) + 1)) {
+    for (HeaderExtensionURIs index = HeaderExtensionURI_First; index <= HeaderExtensionURI_Last; index = static_cast<HeaderExtensionURIs>(static_cast<std::underlying_type<HeaderExtensionURIs>::type>(index) + 1)) {
       if (uriStr == IRTPTypes::toString(index)) return index;
     }
 
@@ -1051,7 +1050,7 @@ namespace ortc
   {
     String mechanismStr(mechanism);
 
-    for (SupportedRTCPMechanisms index = SupportedRTCPMechanism_First; index >= SupportedRTCPMechanism_Last; index = static_cast<SupportedRTCPMechanisms>(static_cast<std::underlying_type<SupportedRTCPMechanisms>::type>(index) + 1)) {
+    for (SupportedRTCPMechanisms index = SupportedRTCPMechanism_First; index <= SupportedRTCPMechanism_Last; index = static_cast<SupportedRTCPMechanisms>(static_cast<std::underlying_type<SupportedRTCPMechanisms>::type>(index) + 1)) {
       if (0 == mechanismStr.compareNoCase(IRTPTypes::toString(index))) return index;
     }
 

@@ -1203,6 +1203,7 @@ namespace ortc
 
     ready:
       {
+        setState(State_Ready);
         ZS_LOG_TRACE(log("ready"))
       }
     }
@@ -1251,6 +1252,8 @@ namespace ortc
       // try to gracefully shutdown
 
       if (isShutdown()) return;
+
+      setState(State_ShuttingDown);
 
       if (!mGracefulShutdownReference) mGracefulShutdownReference = mThisWeak.lock();
 
@@ -1340,6 +1343,7 @@ namespace ortc
         {
           if (mBufferedRTPPackets.size() > mMaxBufferedRTPPackets) goto expire_packet;
           if (packetTime + mMaxRTPPacketAge < tick) goto expire_packet;
+          break;
         }
 
       expire_packet:
@@ -1361,6 +1365,7 @@ namespace ortc
         {
           if (mBufferedRTCPPackets.size() > mMaxBufferedRTCPPackets) goto expire_packet;
           if (packetTime + mMaxRTCPPacketAge < tick) goto expire_packet;
+          break;
         }
 
       expire_packet:
@@ -1382,8 +1387,8 @@ namespace ortc
         case IRTPTypes::HeaderExtensionURI_MixertoClientAudioLevelIndication: return true;
         case IRTPTypes::HeaderExtensionURI_FrameMarking:                      return true;
         case IRTPTypes::HeaderExtensionURI_ExtendedSourceInformation:         return false;
-        case IRTPTypes::HeaderExtensionURI_3gpp_VideoOrientation:             return false;
-        case IRTPTypes::HeaderExtensionURI_3gpp_VideoOrientation6:            return false;
+        case IRTPTypes::HeaderExtensionURI_3gpp_VideoOrientation:             return true;
+        case IRTPTypes::HeaderExtensionURI_3gpp_VideoOrientation6:            return true;
       }
       return true;
     }
@@ -1589,7 +1594,7 @@ namespace ortc
 
     //-------------------------------------------------------------------------
     bool RTPListener::findMappingUsingHeaderExtensions(
-                                                       const String &muxID,
+                                                       String &muxID,
                                                        const RTPPacket &rtpPacket,
                                                        ReceiverInfoPtr &outReceiverInfo
                                                        )
@@ -1629,6 +1634,10 @@ namespace ortc
         }
 
         ZS_LOG_DEBUG(log("creating a new SSRC entry in SSRC table (based on associated SSRC being found)") + extendedInfo.toDebug() + outReceiverInfo->toDebug())
+
+        if (muxID.isEmpty()) {
+          muxID = outReceiverInfo->mParameters.mMuxID;
+        }
 
         // the associated SSRC was found in table thus must route to same receiver
         mSSRCTable[rtpPacket.ssrc()] = outReceiverInfo;
@@ -1853,6 +1862,8 @@ namespace ortc
           ZS_LOG_WARNING(Debug, log("receiver mux id and packet mux id are mis-matched") + ZS_PARAM("mux id", muxID) + ioReceiverInfo->toDebug())
           return false;
         }
+
+        return true;
       }
 
       ReceiverInfoPtr info(make_shared<ReceiverInfo>(*ioReceiverInfo));

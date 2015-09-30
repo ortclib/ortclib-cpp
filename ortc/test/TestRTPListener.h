@@ -270,6 +270,7 @@ namespace ortc
         friend class FakeICETransport;
         friend class FakeReceiver;
         friend class FakeSender;
+        friend class RTPListenerTester;
 
       protected:
         struct make_private {};
@@ -564,10 +565,18 @@ namespace ortc
 
         ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters)
 
-        typedef String ReceiverID;
-        typedef String SenderID;
-        typedef std::map<ReceiverID, FakeReceiverPtr> ReceiverMap;
-        typedef std::map<SenderID, FakeSenderPtr> SenderMap;
+        typedef String SenderOrReceiverID;
+        typedef std::pair<FakeReceiverPtr, FakeSenderPtr> FakePair;
+        typedef std::map<SenderOrReceiverID, FakePair> SenderOrReceiverMap;
+
+        typedef String PacketID;
+        typedef std::pair<RTPPacketPtr, RTCPPacketPtr> PacketPair;
+        typedef std::map<PacketID, PacketPair> PacketMap;
+
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark RTPListenerTester::UnhandledEventData
+        #pragma mark
 
         struct UnhandledEventData
         {
@@ -606,6 +615,11 @@ namespace ortc
         };
 
       public:
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark RTPListenerTester (api)
+        #pragma mark
+
         static RTPListenerTesterPtr create(
                                            IMessageQueuePtr queue,
                                            Milliseconds packetDelay = Milliseconds()
@@ -641,21 +655,13 @@ namespace ortc
                   const char *senderID,
                   const Parameters &params
                   );
+
         void receive(
                      const char *receiverID,
                      const Parameters &params
                      );
 
         void stop(const char *senderOrReceiverID);
-
-        void expectData(
-                        const char *senderOrReceiverID,
-                        SecureByteBlockPtr secureBuffer
-                        );
-        void sendData(
-                      const char *senderID,
-                      SecureByteBlockPtr secureBuffer
-                      );
 
         void attach(
                     const char *receiverID,
@@ -674,6 +680,26 @@ namespace ortc
                                 PayloadType payloadType,
                                 const char *mid
                                 );
+
+        void store(
+                   const char *packetID,
+                   RTPPacketPtr packet
+                   );
+        void store(
+                   const char *packetID,
+                   RTCPPacketPtr packet
+                   );
+        RTPPacketPtr getRTPPacket(const char *packetID);
+        RTCPPacketPtr getRTCPPacket(const char *packetID);
+
+        void sendPacket(
+                        const char *packetID,
+                        const char *viaSenderID
+                        );
+        void expectPacket(
+                          const char *packetID,
+                          const char *senderOrReceiverID
+                          );
 
       protected:
 
@@ -712,6 +738,15 @@ namespace ortc
         FakeReceiverPtr getReceiver(const char *receiverID);
         FakeSenderPtr getSender(const char *senderID);
 
+        void expectData(
+                        const char *senderOrReceiverID,
+                        SecureByteBlockPtr secureBuffer
+                        );
+        void sendData(
+                      const char *senderID,
+                      SecureByteBlockPtr secureBuffer
+                      );
+
       public:
         //---------------------------------------------------------------------
         #pragma mark
@@ -730,8 +765,8 @@ namespace ortc
 
         Expectations mExpectations;
 
-        ReceiverMap mReceivers;
-        SenderMap mSenders;
+        SenderOrReceiverMap mAttached;
+        PacketMap mPackets;
 
         UnhandledEventDataList mExpectingUnhandled;
       };

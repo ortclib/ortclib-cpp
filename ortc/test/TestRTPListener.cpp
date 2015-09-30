@@ -36,6 +36,7 @@
 
 #include <ortc/internal/ortc_RTPPacket.h>
 #include <ortc/internal/ortc_RTCPPacket.h>
+#include <ortc/IRTPTypes.h>
 #include <ortc/ISettings.h>
 
 #include <zsLib/XML.h>
@@ -70,6 +71,26 @@ namespace ortc
 
       ZS_DECLARE_USING_PTR(ortc::internal, RTPReceiver)
       ZS_DECLARE_USING_PTR(ortc::internal, RTPSender)
+
+      using zsLib::AutoRecursiveLock;
+
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark (helpers)
+      #pragma mark
+
+      //-------------------------------------------------------------------------
+      static bool isRTCPPacketType(const BYTE *data, size_t len)
+      {
+        if (len < 2) {
+          return false;
+        }
+        BYTE pt = (data[1] & 0x7F);
+        return (63 < pt) && (pt < 96);
+      }
 
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
@@ -588,7 +609,7 @@ namespace ortc
                                                      size_t bufferSizeInBytes
                                                      )
       {
-        UseDataTransportPtr dataTransport;
+        UseListenerPtr listener;
 
         {
           AutoRecursiveLock lock(*this);
@@ -598,15 +619,15 @@ namespace ortc
             return false;
           }
 
-          dataTransport = mDataTransport;
+          listener = mListener;
         }
 
-        if (!dataTransport) {
+        if (!listener) {
           ZS_LOG_WARNING(Detail, log("dropping incoming packet (as data channel is gone)"))
           return false;
         }
 
-        return dataTransport->handleDataPacket(buffer, bufferSizeInBytes);
+        return listener->handleRTPPacket(component, isRTCPPacketType(buffer, bufferSizeInBytes) ? IICETypes::Component_RTCP : IICETypes::Component_RTP, buffer, bufferSizeInBytes);
       }
 
       //-----------------------------------------------------------------------
@@ -794,6 +815,8 @@ namespace ortc
       //-----------------------------------------------------------------------
       void FakeReceiver::expectData(SecureByteBlockPtr data)
       {
+        TESTING_CHECK((bool)data)
+
         AutoRecursiveLock lock(*this);
 
         ZS_LOG_TRACE(log("expecting buffer") + ZS_PARAM("buffer size", data->SizeInBytes()))
@@ -996,6 +1019,8 @@ namespace ortc
       //-----------------------------------------------------------------------
       void FakeSender::expectData(SecureByteBlockPtr data)
       {
+        TESTING_CHECK((bool)data)
+
         AutoRecursiveLock lock(*this);
 
         ZS_LOG_TRACE(log("expecting buffer") + ZS_PARAM("buffer size", data->SizeInBytes()))
@@ -1112,6 +1137,11 @@ namespace ortc
         AutoRecursiveLock lock(*this);
         mICETransport = FakeICETransport::create(getAssociatedMessageQueue(), packetDelay);
         mDTLSTransport = FakeSecureTransport::create(getAssociatedMessageQueue(), mICETransport);
+
+        auto listener = mDTLSTransport->getListener();
+        TESTING_CHECK(listener)
+
+        mListenerSubscription = IRTPListenerPtr(listener)->subscribe(mThisWeak.lock());
       }
 
       //-----------------------------------------------------------------------
@@ -1125,6 +1155,19 @@ namespace ortc
       void RTPListenerTester::close()
       {
         AutoRecursiveLock lock(*this);
+        for (auto iter = mAttached.begin(); iter != mAttached.end(); ++iter) {
+          auto &receiver = (*iter).second.first;
+          auto &sender = (*iter).second.second;
+
+          if (receiver) {
+            receiver->stop();
+          }
+          if (sender) {
+            sender->stop();
+          }
+        }
+
+        mAttached.clear();
       }
 
       //-----------------------------------------------------------------------
@@ -1196,6 +1239,32 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
+      void RTPListenerTester::createReceiver(const char *receiverID)
+      {
+        FakeReceiverPtr receiver = getReceiver(receiverID);
+
+        if (!receiver) {
+          receiver = FakeReceiver::create();
+          attach(receiverID, receiver);
+        }
+
+        TESTING_CHECK(receiver)
+      }
+
+      //-----------------------------------------------------------------------
+      void RTPListenerTester::createSender(const char *senderID)
+      {
+        FakeSenderPtr sender = getSender(senderID);
+
+        if (!sender) {
+          sender = FakeSender::create();
+          attach(senderID, sender);
+        }
+
+        TESTING_CHECK(sender)
+      }
+
+      //-----------------------------------------------------------------------
       void RTPListenerTester::send(
                                    const char *senderID,
                                    const Parameters &params
@@ -1236,56 +1305,20 @@ namespace ortc
       {
         AutoRecursiveLock lock(*this);
 
-        {
-          auto found = mReceivers.find(String(senderOrReceiverID));
-          if (mReceivers.end() != found) {
-            (*found).second->stop();
-            mReceivers.erase(found);
-            return;
-          }
+        auto found = mAttached.find(String(senderOrReceiverID));
+        TESTING_CHECK(found != mAttached.end())
+
+        auto receiver = (*found).second.first;
+        auto sender = (*found).second.second;
+
+        if (receiver) {
+          receiver->stop();
+        }
+        if (sender) {
+          sender->stop();
         }
 
-        {
-          auto found = mSenders.find(String(senderOrReceiverID));
-          TESTING_CHECK(mSenders.end() != found)
-          (*found).second->stop();
-          mSenders.erase(found);
-        }
-      }
-
-      //-----------------------------------------------------------------------
-      void RTPListenerTester::expectData(
-                                         const char *senderOrReceiverID,
-                                         SecureByteBlockPtr secureBuffer
-                                         )
-      {
-        {
-          FakeSenderPtr sender = getSender(senderOrReceiverID);
-
-          if (sender) {
-            sender->expectData(secureBuffer);
-            return;
-          }
-        }
-
-        {
-          FakeReceiverPtr receiver = getReceiver(senderOrReceiverID);
-          TESTING_CHECK(receiver)
-
-          receiver->expectData(secureBuffer);
-        }
-      }
-
-      //-----------------------------------------------------------------------
-      void RTPListenerTester::sendData(
-                                       const char *senderID,
-                                       SecureByteBlockPtr secureBuffer
-                                       )
-      {
-        FakeSenderPtr sender = getSender(senderID);
-        TESTING_CHECK(sender)
-
-        sender->sendPacket(secureBuffer);
+        mAttached.erase(found);
       }
 
       //-----------------------------------------------------------------------
@@ -1296,10 +1329,21 @@ namespace ortc
       {
         AutoRecursiveLock lock(*this);
 
-        auto previousReceiver = getReceiver(receiverID);
-        TESTING_CHECK(!previousReceiver)
+        auto found = mAttached.find(String(String(receiverID)));
 
-        mReceivers[String(receiverID)] = receiver;
+        if (found != mAttached.end()) {
+          auto &previousReceiver = (*found).second.first;
+          if (previousReceiver) {
+            previousReceiver->stop();
+          }
+
+          previousReceiver = receiver;
+          receiver->setTransport(mThisWeak.lock());
+          return;
+        }
+
+        mAttached[String(receiverID)] = FakePair(receiver, FakeSenderPtr());
+        receiver->setTransport(mThisWeak.lock());
       }
 
       //-----------------------------------------------------------------------
@@ -1310,10 +1354,21 @@ namespace ortc
       {
         AutoRecursiveLock lock(*this);
 
-        auto previousSender = getSender(senderID);
-        TESTING_CHECK(!previousSender)
+        auto found = mAttached.find(String(String(senderID)));
 
-        mSenders[String(senderID)] = sender;
+        if (found != mAttached.end()) {
+          auto &previousSender = (*found).second.second;
+          if (previousSender) {
+            previousSender->stop();
+          }
+
+          previousSender = sender;
+          sender->setTransport(mThisWeak.lock());
+          return;
+        }
+
+        mAttached[String(senderID)] = FakePair(FakeReceiverPtr(), sender);
+        sender->setTransport(mThisWeak.lock());
       }
 
       //-----------------------------------------------------------------------
@@ -1321,14 +1376,22 @@ namespace ortc
       {
         AutoRecursiveLock lock(*this);
 
-        auto found = mReceivers.find(String(receiverID));
-        TESTING_CHECK(found != mReceivers.end())
+        auto found = mAttached.find(String(String(receiverID)));
+        TESTING_CHECK(found != mAttached.end())
 
-        FakeReceiverPtr result = (*found).second;
+        auto &currentReceiver = (*found).second.first;
+        auto &currentSender = (*found).second.second;
 
-        mReceivers.erase(found);
+        FakeReceiverPtr receiver = currentReceiver;
 
-        return result;
+        if (receiver) {
+          receiver->setTransport(RTPListenerTesterPtr());
+        }
+
+        currentReceiver.reset();
+        if (!currentSender) mAttached.erase(found);
+
+        return receiver;
       }
       
       //-----------------------------------------------------------------------
@@ -1336,14 +1399,22 @@ namespace ortc
       {
         AutoRecursiveLock lock(*this);
 
-        auto found = mSenders.find(String(senderID));
-        TESTING_CHECK(found != mSenders.end())
+        auto found = mAttached.find(String(String(senderID)));
+        TESTING_CHECK(found != mAttached.end())
 
-        FakeSenderPtr result = (*found).second;
+        auto &currentReceiver = (*found).second.first;
+        auto &currentSender = (*found).second.second;
 
-        mSenders.erase(found);
+        FakeSenderPtr sender = currentSender;
+
+        if (sender) {
+          sender->setTransport(RTPListenerTesterPtr());
+        }
+
+        currentSender.reset();
+        if (!currentReceiver) mAttached.erase(found);
         
-        return result;
+        return sender;
       }
 
       //-----------------------------------------------------------------------
@@ -1355,7 +1426,115 @@ namespace ortc
       {
         AutoRecursiveLock lock(*this);
 
-        mExpectingUnhandled.push_back(UnhandledEventData(ssrc, payloadType, mid));
+        mExpectingUnhandled.push_back(UnhandledEventData(ssrc, payloadType, String(mid)));
+      }
+
+      //-----------------------------------------------------------------------
+      void RTPListenerTester::store(
+                                    const char *packetID,
+                                    RTPPacketPtr packet
+                                    )
+      {
+        TESTING_CHECK(packet)
+        AutoRecursiveLock lock(*this);
+
+        auto found = mPackets.find(String(packetID));
+        if (found != mPackets.end()) {
+          (*found).second.first = packet;
+          return;
+        }
+
+        mPackets[String(packetID)] = PacketPair(packet, RTCPPacketPtr());
+      }
+
+      //-----------------------------------------------------------------------
+      void RTPListenerTester::store(
+                                    const char *packetID,
+                                    RTCPPacketPtr packet
+                                    )
+      {
+        TESTING_CHECK(packet)
+        AutoRecursiveLock lock(*this);
+
+        auto found = mPackets.find(String(packetID));
+        if (found != mPackets.end()) {
+          (*found).second.second = packet;
+          return;
+        }
+
+        mPackets[String(packetID)] = PacketPair(RTPPacketPtr(), packet);
+      }
+
+      //-----------------------------------------------------------------------
+      RTPPacketPtr RTPListenerTester::getRTPPacket(const char *packetID)
+      {
+        AutoRecursiveLock lock(*this);
+
+        auto found = mPackets.find(String(packetID));
+        if (found == mPackets.end()) return RTPPacketPtr();
+        return (*found).second.first;
+      }
+
+      //-----------------------------------------------------------------------
+      RTCPPacketPtr RTPListenerTester::getRTCPPacket(const char *packetID)
+      {
+        AutoRecursiveLock lock(*this);
+
+        auto found = mPackets.find(String(packetID));
+        if (found == mPackets.end()) return RTCPPacketPtr();
+        return (*found).second.second;
+      }
+
+      //-----------------------------------------------------------------------
+      void RTPListenerTester::sendPacket(
+                                         const char *packetID,
+                                         const char *viaSenderID
+                                         )
+      {
+        RTPPacketPtr rtp;
+        RTCPPacketPtr rtcp;
+
+        {
+          AutoRecursiveLock lock(*this);
+          auto found = mPackets.find(String(packetID));
+          TESTING_CHECK(found != mPackets.end())
+
+          rtp = (*found).second.first;
+          rtcp = (*found).second.second;
+        }
+
+        if (rtp) {
+          sendData(viaSenderID, rtp->buffer());
+        }
+        if (rtcp) {
+          sendData(viaSenderID, rtcp->buffer());
+        }
+      }
+
+      //-----------------------------------------------------------------------
+      void RTPListenerTester::expectPacket(
+                                           const char *packetID,
+                                           const char *senderOrReceiverID
+                                           )
+      {
+        RTPPacketPtr rtp;
+        RTCPPacketPtr rtcp;
+
+        {
+          AutoRecursiveLock lock(*this);
+          auto found = mPackets.find(String(packetID));
+          TESTING_CHECK(found != mPackets.end())
+
+          rtp = (*found).second.first;
+          rtcp = (*found).second.second;
+        }
+
+        if (rtp) {
+          expectData(senderOrReceiverID, rtp->buffer());
+        }
+        if (rtcp) {
+          sendData(senderOrReceiverID, rtcp->buffer());
+        }
       }
 
       //-----------------------------------------------------------------------
@@ -1438,20 +1617,54 @@ namespace ortc
       FakeReceiverPtr RTPListenerTester::getReceiver(const char *receiverID)
       {
         AutoRecursiveLock lock(*this);
-        auto found = mReceivers.find(String(receiverID));
-        if (mReceivers.end() == found) return FakeReceiverPtr();
-        return (*found).second;
+        auto found = mAttached.find(String(receiverID));
+        if (mAttached.end() == found) return FakeReceiverPtr();
+        return (*found).second.first;
       }
 
       //-----------------------------------------------------------------------
       FakeSenderPtr RTPListenerTester::getSender(const char *senderID)
       {
         AutoRecursiveLock lock(*this);
-        auto found = mSenders.find(String(senderID));
-        if (mSenders.end() == found) return FakeSenderPtr();
-        return (*found).second;
+        auto found = mAttached.find(String(senderID));
+        if (mAttached.end() == found) return FakeSenderPtr();
+        return (*found).second.second;
       }
 
+      //-----------------------------------------------------------------------
+      void RTPListenerTester::expectData(
+                                         const char *senderOrReceiverID,
+                                         SecureByteBlockPtr secureBuffer
+                                         )
+      {
+        {
+          FakeSenderPtr sender = getSender(senderOrReceiverID);
+
+          if (sender) {
+            sender->expectData(secureBuffer);
+          }
+        }
+
+        {
+          FakeReceiverPtr receiver = getReceiver(senderOrReceiverID);
+
+          if (receiver) {
+            receiver->expectData(secureBuffer);
+          }
+        }
+      }
+
+      //-----------------------------------------------------------------------
+      void RTPListenerTester::sendData(
+                                       const char *senderID,
+                                       SecureByteBlockPtr secureBuffer
+                                       )
+      {
+        FakeSenderPtr sender = getSender(senderID);
+        TESTING_CHECK(sender)
+
+        sender->sendPacket(secureBuffer);
+      }
     }
   }
 }
@@ -1462,8 +1675,13 @@ ZS_DECLARE_USING_PTR(ortc, IICETransport)
 ZS_DECLARE_USING_PTR(ortc, IDTLSTransport)
 ZS_DECLARE_USING_PTR(ortc, IDataChannel)
 ZS_DECLARE_USING_PTR(ortc, IRTPListener)
+ZS_DECLARE_USING_PTR(ortc, IRTPTypes)
+
+ZS_DECLARE_USING_PTR(ortc::internal, RTPPacket)
+ZS_DECLARE_USING_PTR(ortc::internal, RTCPPacket)
 
 ZS_DECLARE_TYPEDEF_PTR(ortc::IRTPTypes::Parameters, Parameters)
+ZS_DECLARE_TYPEDEF_PTR(ortc::IRTPTypes::EncodingParameters, EncodingParameters)
 
 using ortc::IICETypes;
 using zsLib::Optional;
@@ -1473,8 +1691,8 @@ using zsLib::Milliseconds;
 using ortc::SecureByteBlock;
 using ortc::SecureByteBlockPtr;
 
-#define TEST_BASIC_CONNECTIVITY 0
-#define TEST_INCOMING_RTPListener 1
+#define TEST_BASIC_ROUTING 1
+#define TEST_BASIC_ROUTING_EXTENDED_SOURCE 0
 #define TEST_INCOMING_DELAYED_RTPListener 2
 
 static void bogusSleep()
@@ -1487,6 +1705,9 @@ static void bogusSleep()
 
 void doTestRTPListener()
 {
+  typedef ortc::IRTPTypes IRTPTypes;
+
+
   if (!ORTC_TEST_DO_RTP_LISTENER_TEST) return;
 
   TESTING_INSTALL_LOGGER();
@@ -1497,8 +1718,8 @@ void doTestRTPListener()
 
   zsLib::MessageQueueThreadPtr thread(zsLib::MessageQueueThread::createBasic());
 
-  RTPListenerTesterPtr testRTPListenerObject1;
-  RTPListenerTesterPtr testRTPListenerObject2;
+  RTPListenerTesterPtr testObject1;
+  RTPListenerTesterPtr testObject2;
 
   TESTING_STDOUT() << "WAITING:      Waiting for RTPListener testing to complete (max wait is 180 seconds).\n";
 
@@ -1514,52 +1735,44 @@ void doTestRTPListener()
       bool quit = false;
       ULONG expecting = 0;
 
-      RTPListenerTester::Expectations expectationsRTPListener1;
-      RTPListenerTester::Expectations expectationsRTPListener2;
+      RTPListenerTester::Expectations expectations1;
+      RTPListenerTester::Expectations expectations2;
 
-      expectationsRTPListener1.mStateConnecting = 0;
-      expectationsRTPListener1.mStateOpen = 1;
-      expectationsRTPListener1.mStateClosing = 1;
-      expectationsRTPListener1.mStateClosed = 1;
-
-      expectationsRTPListener2 = expectationsRTPListener1;
+      expectations2 = expectations1;
 
       switch (testNumber) {
-        case TEST_BASIC_CONNECTIVITY: {
+        case TEST_BASIC_ROUTING: {
           {
-            testRTPListenerObject1 = RTPListenerTester::create(thread);
-            testRTPListenerObject2 = RTPListenerTester::create(thread);
+            UseSettings::setUInt("ortc/rtp-listener/max-age-rtp-packets-in-seconds", 60);
+            UseSettings::setUInt("ortc/rtp-listener/max-age-rtcp-packets-in-seconds", 60);
 
-            TESTING_CHECK(testRTPListenerObject1)
-            TESTING_CHECK(testRTPListenerObject2)
+            testObject1 = RTPListenerTester::create(thread);
+            testObject2 = RTPListenerTester::create(thread);
 
-            testRTPListenerObject1->setClientRole(true);
-            testRTPListenerObject2->setClientRole(false);
+            TESTING_CHECK(testObject1)
+            TESTING_CHECK(testObject2)
+
+            testObject1->setClientRole(true);
+            testObject2->setClientRole(false);
+
+            expectations1.mReceivedPackets = 6;
+            expectations1.mUnhandled = 1;
           }
           break;
         }
-        case TEST_INCOMING_RTPListener:
+        case TEST_BASIC_ROUTING_EXTENDED_SOURCE:
         {
-          testRTPListenerObject1 = RTPListenerTester::create(thread);
-          testRTPListenerObject2 = RTPListenerTester::create(thread);
+          testObject1 = RTPListenerTester::create(thread);
+          testObject2 = RTPListenerTester::create(thread);
 
-          TESTING_CHECK(testRTPListenerObject1)
-          TESTING_CHECK(testRTPListenerObject2)
+          TESTING_CHECK(testObject1)
+          TESTING_CHECK(testObject2)
 
-          testRTPListenerObject1->setClientRole(true);
-          testRTPListenerObject2->setClientRole(false);
-          break;
-        }
-        case TEST_INCOMING_DELAYED_RTPListener:
-        {
-          testRTPListenerObject1 = RTPListenerTester::create(thread, Milliseconds(300));
-          testRTPListenerObject2 = RTPListenerTester::create(thread);
+          testObject1->setClientRole(true);
+          testObject2->setClientRole(false);
 
-          TESTING_CHECK(testRTPListenerObject1)
-          TESTING_CHECK(testRTPListenerObject2)
-
-          testRTPListenerObject1->setClientRole(true);
-          testRTPListenerObject2->setClientRole(false);
+          expectations1.mReceivedPackets = 2;
+          expectations1.mUnhandled = 0;
           break;
         }
         default:  quit = true; break;
@@ -1567,8 +1780,8 @@ void doTestRTPListener()
       if (quit) break;
 
       expecting = 0;
-      expecting += (testRTPListenerObject1 ? 1 : 0);
-      expecting += (testRTPListenerObject2 ? 1 : 0);
+      expecting += (testObject1 ? 1 : 0);
+      expecting += (testObject2 ? 1 : 0);
 
       ULONG found = 0;
       ULONG lastFound = 0;
@@ -1589,166 +1802,195 @@ void doTestRTPListener()
         found = 0;
 
         switch (testNumber) {
-          case TEST_BASIC_CONNECTIVITY: {
+          case TEST_BASIC_ROUTING: {
             switch (step) {
               case 2: {
-                if (testRTPListenerObject1) testRTPListenerObject1->connect(testRTPListenerObject2);
+                if (testObject1) testObject1->connect(testObject2);
                 //bogusSleep();
                 break;
               }
               case 3: {
-                if (testRTPListenerObject1) testRTPListenerObject1->state(IICETransport::State_Completed);
-                if (testRTPListenerObject2) testRTPListenerObject2->state(IICETransport::State_Completed);
+                if (testObject1) testObject1->state(IICETransport::State_Completed);
+                if (testObject2) testObject2->state(IICETransport::State_Completed);
                 //bogusSleep();
                 break;
               }
               case 4: {
-                if (testRTPListenerObject1) testRTPListenerObject1->state(IDTLSTransport::State_Validated);
-                if (testRTPListenerObject2) testRTPListenerObject2->state(IDTLSTransport::State_Validated);
+                if (testObject1) testObject1->state(IDTLSTransport::State_Validated);
+                if (testObject2) testObject2->state(IDTLSTransport::State_Validated);
                 //bogusSleep();
                 break;
               }
               case 5: {
                 Parameters params;
                 params.mMuxID = "r1";
-                testRTPListenerObject1->receive("r1", params);
-                bogusSleep();
+
+                IRTPTypes::HeaderExtensionParameters headerParams;
+                headerParams.mID = 1;
+                headerParams.mURI = IRTPTypes::toString(IRTPTypes::HeaderExtensionURI_MuxID);
+                params.mHeaderExtensions.push_back(headerParams);
+                testObject1->receive("r1", params);
+                //bogusSleep();
                 break;
               }
               case 6: {
                 Parameters params;
-                params.mMuxID = "s1";
-                testRTPListenerObject1->send("s1", params);
-                bogusSleep();
-                break;
-              }
-              case 25: {
+                testObject2->send("s1", params);
                 //bogusSleep();
                 break;
               }
-              case 40: {
-                //bogusSleep();
-                break;
-              }
-              case 44: {
-                if (testRTPListenerObject1) testRTPListenerObject1->close();
-                if (testRTPListenerObject2) testRTPListenerObject1->close();
-                //bogusSleep();
-                break;
-              }
-              case 46: {
-                if (testRTPListenerObject1) testRTPListenerObject1->state(IDTLSTransport::State_Closed);
-                if (testRTPListenerObject2) testRTPListenerObject2->state(IDTLSTransport::State_Closed);
-                //bogusSleep();
-                break;
-              }
-              case 47: {
-                if (testRTPListenerObject1) testRTPListenerObject1->state(IICETransport::State_Disconnected);
-                if (testRTPListenerObject2) testRTPListenerObject2->state(IICETransport::State_Disconnected);
-                //bogusSleep();
-                break;
-              }
-              case 49: {
-                if (testRTPListenerObject1) testRTPListenerObject1->state(IICETransport::State_Closed);
-                if (testRTPListenerObject2) testRTPListenerObject2->state(IICETransport::State_Closed);
-                //bogusSleep();
-                break;
-              }
-              case 50: {
-                lastStepReached = true;
-                break;
-              }
-              default: {
-                // nothing happening in this step
-                break;
-              }
-            }
-            break;
-          }
-          case TEST_INCOMING_RTPListener: {
-            switch (step) {
-              case 1: {
-                //bogusSleep();
-                break;
-              }
-              case 2: {
-                if (testRTPListenerObject1) testRTPListenerObject1->connect(testRTPListenerObject2);
-                //bogusSleep();
-                break;
-              }
-              case 3: {
-                if (testRTPListenerObject1) testRTPListenerObject1->state(IICETransport::State_Checking);
-                if (testRTPListenerObject2) testRTPListenerObject2->state(IICETransport::State_Checking);
-                //bogusSleep();
-                break;
-              }
-              case 4: {
-                if (testRTPListenerObject1) testRTPListenerObject1->state(IICETransport::State_Connected);
-                if (testRTPListenerObject2) testRTPListenerObject2->state(IICETransport::State_Connected);
-                //bogusSleep();
-                break;
-              }
-              case 5: {
-                if (testRTPListenerObject1) testRTPListenerObject1->state(IDTLSTransport::State_Connecting);
-                if (testRTPListenerObject2) testRTPListenerObject2->state(IDTLSTransport::State_Connecting);
-                //bogusSleep();
-                break;
-              }
-              case 6: {
-                if (testRTPListenerObject1) testRTPListenerObject1->state(IDTLSTransport::State_Connected);
-                if (testRTPListenerObject2) testRTPListenerObject2->state(IDTLSTransport::State_Connected);
-                //bogusSleep();
-                break;
-              }
-              case 7: {
-                if (testRTPListenerObject1) testRTPListenerObject1->state(IDTLSTransport::State_Validated);
-                if (testRTPListenerObject2) testRTPListenerObject2->state(IDTLSTransport::State_Validated);
+              case 7:
+              {
+                RTPPacket::CreationParams params;
+                params.mPT = 96;
+                params.mSequenceNumber = 1;
+                params.mTimestamp = 10000;
+                params.mSSRC = 5;
+                const char *payload = "sparksthesoftware";
+                params.mPayload = reinterpret_cast<const BYTE *>(payload);
+                params.mPayloadSize = strlen(payload);
+
+                RTPPacket::MidHeadExtension mid1(1, "r1");
+
+                params.mFirstHeaderExtension = &mid1;
+
+                RTPPacketPtr packet = RTPPacket::create(params);
+                testObject1->store("p1", packet);
+                testObject2->store("p1", packet);
+
+                params.mFirstHeaderExtension = NULL;
+                packet = RTPPacket::create(params);
+                testObject1->store("p2", packet);
+                testObject2->store("p2", packet);
+
+                RTPPacket::MidHeadExtension mid2(1, "r2");
+                params.mSSRC = 6;
+                params.mFirstHeaderExtension = &mid2;
+
+                packet = RTPPacket::create(params);
+                testObject1->store("p3", packet);
+                testObject2->store("p3", packet);
+
+                params.mSSRC = 7;
+                params.mFirstHeaderExtension = NULL;
+                packet = RTPPacket::create(params);
+
+                testObject1->store("p4", packet);
+                testObject2->store("p4", packet);
+
+                params.mSSRC = 8;
+                params.mFirstHeaderExtension = NULL;
+                packet = RTPPacket::create(params);
+
+                testObject1->store("p5", packet);
+                testObject2->store("p5", packet);
+
+                params.mSSRC = 9;
+                params.mFirstHeaderExtension = NULL;
+                packet = RTPPacket::create(params);
+
+                testObject1->store("p9", packet);
+                testObject2->store("p9", packet);
                 //bogusSleep();
                 break;
               }
               case 8: {
-                if (testRTPListenerObject1) testRTPListenerObject1->state(IICETransport::State_Completed);
-                if (testRTPListenerObject2) testRTPListenerObject2->state(IICETransport::State_Completed);
+                testObject1->expectPacket("p1", "r1");
+                testObject1->expectPacket("p2", "r1");
+                testObject1->expectPacket("p1", "r1");
+                //bogusSleep();
+                break;
+              }
+              case 9: {
+                testObject2->sendPacket("p1", "s1");
+                //bogusSleep();
+                break;
+              }
+              case 10: {
+                testObject2->sendPacket("p2", "s1");
+                //bogusSleep();
+                break;
+              }
+              case 11: {
+                testObject2->sendPacket("p1", "s1");
+                //bogusSleep();
+                break;
+              }
+              case 12: {
+                testObject1->expectingUnhandled(6, 96, "r2");
+                testObject2->sendPacket("p3", "s1");
+                //bogusSleep();
+                break;
+              }
+              case 13: {
+                Parameters params;
+                params.mMuxID = "r2";
+
+                testObject1->createReceiver("r2");
+                testObject1->expectPacket("p3", "r2");
+                testObject1->receive("r2", params);
+                //bogusSleep();
+                break;
+              }
+              case 14: {
+                Parameters params;
+                EncodingParameters encoding;
+
+                encoding.mSSRC = 7;
+
+                params.mEncodingParameters.push_back(encoding);
+
+                testObject1->receive("r3", params);
+                testObject1->expectPacket("p4", "r3");
+                testObject2->sendPacket("p4", "s1");
                 //bogusSleep();
                 break;
               }
               case 15: {
+                Parameters params;
+                EncodingParameters encoding;
+
+                encoding.mSSRC = 9;
+
+                params.mEncodingParameters.push_back(encoding);
+
+                testObject1->receive("r9", params);
+                testObject1->expectPacket("p9", "r9");
+                testObject2->sendPacket("p9", "s1");
                 //bogusSleep();
                 break;
               }
-              case 25: {
+              case 16: {
+                if (testObject1) testObject1->close();
+                if (testObject2) testObject1->close();
                 //bogusSleep();
                 break;
               }
-              case 40: {
+              case 17: {
+                if (testObject1) testObject1->state(IDTLSTransport::State_Closed);
+                if (testObject2) testObject2->state(IDTLSTransport::State_Closed);
                 //bogusSleep();
                 break;
               }
-              case 44: {
-                if (testRTPListenerObject1) testRTPListenerObject1->close();
-                if (testRTPListenerObject2) testRTPListenerObject1->close();
+              case 18: {
+                if (testObject1) testObject1->state(IICETransport::State_Disconnected);
+                if (testObject2) testObject2->state(IICETransport::State_Disconnected);
                 //bogusSleep();
                 break;
               }
-              case 46: {
-                if (testRTPListenerObject1) testRTPListenerObject1->state(IDTLSTransport::State_Closed);
-                if (testRTPListenerObject2) testRTPListenerObject2->state(IDTLSTransport::State_Closed);
+              case 19: {
+                if (testObject1) testObject1->state(IICETransport::State_Closed);
+                if (testObject2) testObject2->state(IICETransport::State_Closed);
                 //bogusSleep();
                 break;
               }
-              case 47: {
-                if (testRTPListenerObject1) testRTPListenerObject1->state(IICETransport::State_Disconnected);
-                if (testRTPListenerObject2) testRTPListenerObject2->state(IICETransport::State_Disconnected);
+              case 20: {
+                if (testObject1) testObject1->closeByReset();
+                if (testObject2) testObject2->closeByReset();
                 //bogusSleep();
                 break;
               }
-              case 49: {
-                if (testRTPListenerObject1) testRTPListenerObject1->state(IICETransport::State_Closed);
-                if (testRTPListenerObject2) testRTPListenerObject2->state(IICETransport::State_Closed);
-                //bogusSleep();
-                break;
-              }
-              case 50: {
+              case 21: {
                 lastStepReached = true;
                 break;
               }
@@ -1759,96 +2001,94 @@ void doTestRTPListener()
             }
             break;
           }
-          case TEST_INCOMING_DELAYED_RTPListener: {
+          case TEST_BASIC_ROUTING_EXTENDED_SOURCE: {
             switch (step) {
               case 1: {
+                if (testObject1) testObject1->connect(testObject2);
+                if (testObject1) testObject1->state(IICETransport::State_Completed);
+                if (testObject2) testObject2->state(IICETransport::State_Completed);
+                if (testObject1) testObject1->state(IDTLSTransport::State_Validated);
+                if (testObject2) testObject2->state(IDTLSTransport::State_Validated);
                 //bogusSleep();
                 break;
               }
               case 2: {
-                if (testRTPListenerObject1) testRTPListenerObject1->connect(testRTPListenerObject2);
+                Parameters params;
+                testObject2->send("s1", params);
                 //bogusSleep();
                 break;
               }
               case 3: {
-                if (testRTPListenerObject1) testRTPListenerObject1->state(IICETransport::State_Checking);
-                if (testRTPListenerObject2) testRTPListenerObject2->state(IICETransport::State_Checking);
+                RTPPacket::CreationParams params;
+                params.mPT = 96;
+                params.mSequenceNumber = 1;
+                params.mTimestamp = 10000;
+                params.mSSRC = 1;
+                const char *payload = "flashthemessagesomethingsouthere";
+                params.mPayload = reinterpret_cast<const BYTE *>(payload);
+                params.mPayloadSize = strlen(payload);
+
+                RTPPacket::MidHeadExtension mid1(1, "r1");
+
+                params.mFirstHeaderExtension = &mid1;
+
+                RTPPacketPtr packet = RTPPacket::create(params);
+                testObject1->store("p1", packet);
+                testObject2->store("p1", packet);
+
+                // RTX packet
+                params.mPT = 101;
+                params.mSSRC = 9000;
+
+                RTPPacket::ExtendedSourceInformationHeaderExtension extend1(RTPPacket::ExtendedSourceInformationHeaderExtension::RTXType {}, 2, 1);
+                params.mFirstHeaderExtension = &extend1;
+
+                packet = RTPPacket::create(params);
+                testObject1->store("p2", packet);
+                testObject2->store("p2", packet);
+
                 //bogusSleep();
                 break;
               }
               case 4: {
-                if (testRTPListenerObject1) testRTPListenerObject1->state(IICETransport::State_Connected);
-                if (testRTPListenerObject2) testRTPListenerObject2->state(IICETransport::State_Connected);
+                Parameters params;
+                params.mMuxID = "r1";
+
+                IRTPTypes::HeaderExtensionParameters headerParams;
+                headerParams.mID = 1;
+                headerParams.mURI = IRTPTypes::toString(IRTPTypes::HeaderExtensionURI_MuxID);
+                params.mHeaderExtensions.push_back(headerParams);
+
+                headerParams.mID = 2;
+                headerParams.mURI = IRTPTypes::toString(IRTPTypes::HeaderExtensionURI_ExtendedSourceInformation);
+                params.mHeaderExtensions.push_back(headerParams);
+                testObject1->receive("r1", params);
                 //bogusSleep();
                 break;
               }
               case 5: {
-                if (testRTPListenerObject1) testRTPListenerObject1->state(IDTLSTransport::State_Connecting);
-                if (testRTPListenerObject2) testRTPListenerObject2->state(IDTLSTransport::State_Connecting);
+                testObject1->expectPacket("p1", "r1");
+                testObject2->sendPacket("p1", "s1");
                 //bogusSleep();
                 break;
               }
               case 6: {
-                if (testRTPListenerObject1) testRTPListenerObject1->state(IDTLSTransport::State_Connected);
-                if (testRTPListenerObject2) testRTPListenerObject2->state(IDTLSTransport::State_Connected);
-                //bogusSleep();
+                testObject1->expectPacket("p2", "r1");
+                testObject2->sendPacket("p2", "s1");
+//                bogusSleep();
                 break;
               }
               case 7: {
-                if (testRTPListenerObject1) testRTPListenerObject1->state(IDTLSTransport::State_Validated);
-                if (testRTPListenerObject2) testRTPListenerObject2->state(IDTLSTransport::State_Validated);
+                if (testObject1) testObject1->state(IDTLSTransport::State_Closed);
+                if (testObject2) testObject2->state(IDTLSTransport::State_Closed);
+                if (testObject1) testObject1->state(IICETransport::State_Closed);
+                if (testObject2) testObject2->state(IICETransport::State_Closed);
                 //bogusSleep();
                 break;
               }
               case 8: {
-                if (testRTPListenerObject1) testRTPListenerObject1->state(IICETransport::State_Completed);
-                if (testRTPListenerObject2) testRTPListenerObject2->state(IICETransport::State_Completed);
-                //bogusSleep();
-                break;
-              }
-              case 25: {
-                //bogusSleep();
-                break;
-              }
-              case 33: {
-                //bogusSleep();
-                break;
-              }
-              case 39: {
-                //bogusSleep();
-                break;
-              }
-              case 40: {
-                // if (testRTPListenerObject1) testRTPListenerObject1->closeChannel("foo1");  // DO NOT CLOSE - ERROR SHOULD CLOSE IT
-                //bogusSleep();
-                break;
-              }
-              case 44: {
-                if (testRTPListenerObject1) testRTPListenerObject1->close();
-                if (testRTPListenerObject2) testRTPListenerObject1->close();
-                //bogusSleep();
-                break;
-              }
-              case 46: {
-                if (testRTPListenerObject1) testRTPListenerObject1->state(IDTLSTransport::State_Closed);
-                if (testRTPListenerObject2) testRTPListenerObject2->state(IDTLSTransport::State_Closed);
-                //bogusSleep();
-                break;
-              }
-              case 47: {
-                if (testRTPListenerObject1) testRTPListenerObject1->state(IICETransport::State_Disconnected);
-                if (testRTPListenerObject2) testRTPListenerObject2->state(IICETransport::State_Disconnected);
-                //bogusSleep();
-                break;
-              }
-              case 49: {
-                if (testRTPListenerObject1) testRTPListenerObject1->state(IICETransport::State_Closed);
-                if (testRTPListenerObject2) testRTPListenerObject2->state(IICETransport::State_Closed);
-                //bogusSleep();
-                break;
-              }
-              case 50: {
                 lastStepReached = true;
+                //bogusSleep();
                 break;
               }
               default: {
@@ -1865,8 +2105,8 @@ void doTestRTPListener()
         }
 
         if (0 == found) {
-          found += (testRTPListenerObject1 ? (testRTPListenerObject1->matches(expectationsRTPListener1) ? 1 : 0) : 0);
-          found += (testRTPListenerObject2 ? (testRTPListenerObject2->matches(expectationsRTPListener2) ? 1 : 0) : 0);
+          found += (testObject1 ? (testObject1->matches(expectations1) ? 1 : 0) : 0);
+          found += (testObject2 ? (testObject2->matches(expectations2) ? 1 : 0) : 0);
         }
 
         if (lastFound != found) {
@@ -1882,14 +2122,14 @@ void doTestRTPListener()
       switch (testNumber) {
         default:
         {
-          if (testRTPListenerObject1) {TESTING_CHECK(testRTPListenerObject1->matches(expectationsRTPListener1))}
-          if (testRTPListenerObject2) {TESTING_CHECK(testRTPListenerObject2->matches(expectationsRTPListener2))}
+          if (testObject1) {TESTING_CHECK(testObject1->matches(expectations1))}
+          if (testObject2) {TESTING_CHECK(testObject2->matches(expectations2))}
           break;
         }
       }
 
-      testRTPListenerObject1.reset();
-      testRTPListenerObject2.reset();
+      testObject1.reset();
+      testObject2.reset();
 
       ++testNumber;
     } while (true);

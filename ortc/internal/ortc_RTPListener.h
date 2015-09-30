@@ -506,7 +506,7 @@ namespace ortc
                                                 );
 
       bool findMappingUsingHeaderExtensions(
-                                            const String &muxID,
+                                            String &muxID,
                                             const RTPPacket &rtpPacket,
                                             ReceiverInfoPtr &outReceiverInfo
                                             );

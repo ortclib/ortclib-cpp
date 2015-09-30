@@ -142,6 +142,7 @@ namespace ortc
       mDataSizeInBytes = header.mDataSizeInBytes;
       mPostPaddingSize = header.mPostPaddingSize;
       if (NULL == header.mData) mDataSizeInBytes = 0;
+      if (0 == mDataSizeInBytes) mData = NULL;
 
       if (sizeof(BYTE) == header.mDataSizeInBytes) {
         memcpy(&mLevelBuffer, header.mData, sizeof(BYTE));
@@ -190,6 +191,7 @@ namespace ortc
       mDataSizeInBytes = header.mDataSizeInBytes;
       mPostPaddingSize = header.mPostPaddingSize;
       if (NULL == header.mData) mDataSizeInBytes = 0;
+      if (0 == mDataSizeInBytes) mData = NULL;
 
       size_t copySize = header.mDataSizeInBytes;
       if (copySize > sizeof(mLevelBuffer)) copySize = sizeof(mLevelBuffer);
@@ -258,6 +260,7 @@ namespace ortc
       mDataSizeInBytes = header.mDataSizeInBytes;
       mPostPaddingSize = header.mPostPaddingSize;
       if (NULL == header.mData) mDataSizeInBytes = 0;
+      if (0 == mDataSizeInBytes) mData = NULL;
 
       size_t copySize = header.mDataSizeInBytes;
       if (copySize > (sizeof(BYTE)*kMaxMidLength)) copySize = (sizeof(BYTE)*kMaxMidLength);
@@ -314,16 +317,21 @@ namespace ortc
     RTPPacket::ExtendedSourceInformationHeaderExtension::ExtendedSourceInformationHeaderExtension(const HeaderExtension &header)
     {
       mID = header.mID;
+      mData = &(mEncoded[0]);
       mDataSizeInBytes = header.mDataSizeInBytes;
       mPostPaddingSize = header.mPostPaddingSize;
       if (NULL == header.mData) mDataSizeInBytes = 0;
+      if (0 == mDataSizeInBytes) mData = NULL;
 
       if (mDataSizeInBytes < sizeof(DWORD)*2) return; // cannot decrypt this packet
+
+      memcpy(&(mEncoded[0]), header.mData, sizeof(DWORD)*2);
 
       mType = RTP_GET_BITS(mData[0], 0xF, 4);
 
       switch (mType) {
         case RTXType::kType: {
+          mIsAssociateSSRCValid = true;
           mAssociatedSSRC = UseHelper::getBE32(&(mData[4]));
           break;
         }
@@ -1249,18 +1257,19 @@ namespace ortc
 
       BYTE *pos = newBuffer;
       pos[0] = RTP_PACK_BITS(mVersion, 0x3, 6) |
-      RTP_PACK_BITS(0 != mPadding ? 1 : 0, 0x1, 5) |
-      RTP_PACK_BITS(requiresExtension ? 1 : 0, 0x1, 4) |
-      RTP_PACK_BITS(mCC, 0xF, 0);
+               RTP_PACK_BITS(0 != mPadding ? 1 : 0, 0x1, 5) |
+               RTP_PACK_BITS(requiresExtension ? 1 : 0, 0x1, 4) |
+               RTP_PACK_BITS(mCC, 0xF, 0);
       pos[1] = RTP_PACK_BITS(mM ? 1 : 0, 0x1, 7) |
-      RTP_PACK_BITS(mPT, 0x7F, 0);
+               RTP_PACK_BITS(mPT, 0x7F, 0);
 
       UseHelper::setBE16(&(pos[2]), mSequenceNumber);
       UseHelper::setBE32(&(pos[4]), mTimestamp);
+      UseHelper::setBE32(&(pos[8]), mSSRC);
 
       // write CSRC list (if any)
       for (size_t index = 0; index < static_cast<size_t>(mCC); ++index) {
-        UseHelper::setBE32(&(pos[8+(sizeof(DWORD)*index)]), params.mCSRCList[index]);
+        UseHelper::setBE32(&(pos[12+(sizeof(DWORD)*index)]), params.mCSRCList[index]);
       }
 
       if (requiresExtension) {

@@ -278,6 +278,8 @@ namespace ortc
     #pragma mark IRTPTypes::MediaTypes
     #pragma mark
 
+#define TODO_REMOVE_THIS_PLEASE 1
+#define TODO_REMOVE_THIS_PLEASE 2
     enum MediaTypes
     {
       MediaType_First,
