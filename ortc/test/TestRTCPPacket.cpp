@@ -3453,7 +3453,7 @@ static void bogusSleep()
 ZS_DECLARE_USING_PTR(ortc::test::rtcppacket, Tester)
 ZS_DECLARE_USING_PTR(ortc::internal, RTCPPacket)
 
-static signed gSeeds[] = {2286, 2075, -57479, 1000, 1001, -17, 89, -97, 523, 104297, -1269287};
+static signed gSeeds[] = {2286, 2075, -57479, 1000, 1001, -17, 89, -97, 523, 104297, -1269287, 0};
 
 using namespace ortc::test;
 
@@ -3540,8 +3540,8 @@ void doTestRTCPPacket()
                 break;
               }
               case 2: {
-                for (size_t index = 0; index < 5000; ++index) {
-                  TESTING_STDOUT() << "\n\nTESTING SEED: [" << gSeeds[index] << "].\n\n";
+                for (size_t index = 0; index < 500; ++index) {
+                  TESTING_STDOUT() << "\n\nTESTING SEED: [" << index << "].\n\n";
                   ZS_LOG_BASIC(Tester::slog("testing seed (part 2)") + ZS_PARAM("seed", index))
 
                   srand(static_cast<unsigned>(index));  // want fixed random seeds that guarentee API coverage
@@ -3607,8 +3607,8 @@ void doTestRTCPPacket()
     } while (true);
   }
 
-  TESTING_STDOUT() << "WAITING:      All RTCP packet tests have finished. Waiting for 'bogus' events to process (10 second wait).\n";
-  TESTING_SLEEP(10000)
+  TESTING_STDOUT() << "WAITING:      All RTCP packet tests have finished. Waiting for 'bogus' events to process (1 second wait).\n";
+  TESTING_SLEEP(1000)
 
   // wait for shutdown
   {

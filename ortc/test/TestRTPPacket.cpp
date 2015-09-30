@@ -1058,8 +1058,8 @@ void doTestRTPPacket()
     } while (true);
   }
 
-  TESTING_STDOUT() << "WAITING:      All RTP packet tests have finished. Waiting for 'bogus' events to process (10 second wait).\n";
-  TESTING_SLEEP(10000)
+  TESTING_STDOUT() << "WAITING:      All RTP packet tests have finished. Waiting for 'bogus' events to process (1 second wait).\n";
+  TESTING_SLEEP(1000)
 
   // wait for shutdown
   {
