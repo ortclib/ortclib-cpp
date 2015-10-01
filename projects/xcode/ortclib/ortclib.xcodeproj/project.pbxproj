@@ -389,6 +389,7 @@
 					"DEBUG=1",
 					CRYPTOPP_DISABLE_SSE2,
 					ORTCLIB_INTERNAL,
+					WEBRTC_POSIX,
 					"$(inherited)",
 				);
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -442,6 +443,7 @@
 					"NDEBUG=1",
 					CRYPTOPP_DISABLE_SSE2,
 					ORTCLIB_INTERNAL,
+					WEBRTC_POSIX,
 					"$(inherited)",
 				);
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;

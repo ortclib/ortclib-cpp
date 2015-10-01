@@ -379,6 +379,7 @@
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
 					ORTCLIB_INTERNAL,
+					WEBRTC_POSIX,
 					"$(inherited)",
 				);
 				HEADER_SEARCH_PATHS = (
@@ -409,6 +410,7 @@
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"NDEBUG=1",
 					ORTCLIB_INTERNAL,
+					WEBRTC_POSIX,
 					"$(inherited)",
 				);
 				HEADER_SEARCH_PATHS = (
