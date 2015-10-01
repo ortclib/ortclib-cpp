@@ -475,6 +475,13 @@
 			buildSettings = {
 				COMBINE_HIDPI_IMAGES = YES;
 				EXECUTABLE_PREFIX = lib;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					CRYPTOPP_DISABLE_SSE2,
+					ORTCLIB_INTERNAL,
+					"$(inherited)",
+					WEBRTC_POSIX,
+				);
 				HEADER_SEARCH_PATHS = (
 					../../..,
 					../../../..,
@@ -501,6 +508,13 @@
 			buildSettings = {
 				COMBINE_HIDPI_IMAGES = YES;
 				EXECUTABLE_PREFIX = lib;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"NDEBUG=1",
+					CRYPTOPP_DISABLE_SSE2,
+					ORTCLIB_INTERNAL,
+					"$(inherited)",
+					WEBRTC_POSIX,
+				);
 				HEADER_SEARCH_PATHS = (
 					../../..,
 					../../../..,
