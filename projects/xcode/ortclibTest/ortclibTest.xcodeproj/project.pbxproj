@@ -262,20 +262,6 @@
 			remoteGlobalIDString = A551026952C47E2F96FF7D7F;
 			remoteInfo = libjingle_peerconnection_unittest;
 		};
-		9462FEE51B62C01300395664 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 94E2B2D21B541D6F00582A08 /* all_osx.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 788DD645C2BEB5E9854C3D54;
-			remoteInfo = libjingle_peerconnection_objc_test;
-		};
-		9462FEE71B62C01300395664 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 94E2B2D21B541D6F00582A08 /* all_osx.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 25646FF05200DDA95B49140A;
-			remoteInfo = AppRTCDemo;
-		};
 		9462FF281B62CAC700395664 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 94E2B2D21B541D6F00582A08 /* all_osx.xcodeproj */;
@@ -632,45 +618,43 @@
 		9462FE951B62C01300395664 /* Products */ = {
 			isa = PBXGroup;
 			children = (
+				9462FEBE1B62C01300395664 /* libboringssl.a */,
+				9462FEB81B62C01300395664 /* libwebrtc_common.a */,
+				94D43CAD1B8B410400B3A66F /* librtc_base_approved.a */,
+				9462FEC41B62C01300395664 /* libvpx_intrinsics_mmx.a */,
 				94EAB1401B875AEB00F35502 /* libwebrtc_h264.a */,
+				9462FF291B62CAC700395664 /* libusrsctplib.a */,
+				9462FEC61B62C01300395664 /* libsrtp.a */,
+				9462FEC21B62C01300395664 /* libvpx_intrinsics_sse4_1.a */,
+				9462FEC01B62C01300395664 /* libvpx_intrinsics_avx2.a */,
+				9462FEBC1B62C01300395664 /* libvpx_intrinsics_sse2.a */,
+				94D43CAF1B8B410400B3A66F /* libsystem_wrappers.a */,
 				9462FEBA1B62C01300395664 /* libjsoncpp.a */,
 				9462FEB61B62C01300395664 /* libvpx_intrinsics_ssse3.a */,
-				9462FEC41B62C01300395664 /* libvpx_intrinsics_mmx.a */,
-				9462FEBC1B62C01300395664 /* libvpx_intrinsics_sse2.a */,
-				9462FEBE1B62C01300395664 /* libboringssl.a */,
-				9462FEC01B62C01300395664 /* libvpx_intrinsics_avx2.a */,
-				9462FF291B62CAC700395664 /* libusrsctplib.a */,
-				9462FEC21B62C01300395664 /* libvpx_intrinsics_sse4_1.a */,
-				94D43CAD1B8B410400B3A66F /* librtc_base_approved.a */,
-				9462FEB81B62C01300395664 /* libwebrtc_common.a */,
-				9462FEC61B62C01300395664 /* libsrtp.a */,
 				9462FEC81B62C01300395664 /* libwebrtc_opus.a */,
-				94D43CAF1B8B410400B3A66F /* libsystem_wrappers.a */,
 				9462FECA1B62C01300395664 /* libwebrtc_i420.a */,
 				94D43CB11B8B410400B3A66F /* libsystem_wrappers_default.a */,
-				94A4EDFC1B8B4526008473EF /* libjpeg_turbo.a */,
 				9462FECE1B62C01300395664 /* libvpx.a */,
-				94D43CB31B8B410400B3A66F /* system_wrappers_unittests */,
+				94A4EDFC1B8B4526008473EF /* libjpeg_turbo.a */,
 				9462FED01B62C01300395664 /* libyuv.a */,
+				94D43CB31B8B410400B3A66F /* system_wrappers_unittests */,
+				9462FED21B62C01300395664 /* libwebrtc_utility.a */,
 				9462FECC1B62C01300395664 /* webrtc_opus_fec_test */,
 				94D43CB51B8B410400B3A66F /* libcommon_video.a */,
-				94D43CB71B8B410400B3A66F /* common_video_unittests */,
 				9462FED41B62C01300395664 /* libwebrtc_vp8.a */,
-				9462FED21B62C01300395664 /* libwebrtc_utility.a */,
-				94D43CB91B8B410400B3A66F /* libvideo_capture_module.a */,
+				94D43CBB1B8B410400B3A66F /* libvideo_render_module.a */,
+				94D43CBF1B8B410400B3A66F /* libvideo_render_module_internal_impl.a */,
+				94D43CB71B8B410400B3A66F /* common_video_unittests */,
 				9462FED61B62C01300395664 /* libwebrtc_vp9.a */,
+				94D43CB91B8B410400B3A66F /* libvideo_capture_module.a */,
 				9462FED81B62C01300395664 /* libwebrtc_video_coding.a */,
 				94D43CBD1B8B410400B3A66F /* libvideo_capture_module_internal_impl.a */,
-				94D43CBB1B8B410400B3A66F /* libvideo_render_module.a */,
-				9462FEDA1B62C01300395664 /* libwebrtc_test_renderer.a */,
 				9462FEDC1B62C01300395664 /* libwebrtc.a */,
-				94D43CBF1B8B410400B3A66F /* libvideo_render_module_internal_impl.a */,
+				9462FEDA1B62C01300395664 /* libwebrtc_test_renderer.a */,
 				9462FEDE1B62C01300395664 /* libwebrtc_test_common.a */,
 				9462FEE21B62C01300395664 /* webrtc_perf_tests */,
 				9462FEE01B62C01300395664 /* webrtc_test_common_unittests */,
 				9462FEE41B62C01300395664 /* libjingle_peerconnection_unittest */,
-				9462FEE61B62C01300395664 /* libjingle_peerconnection_objc_test.app */,
-				9462FEE81B62C01300395664 /* AppRTCDemo.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -967,20 +951,6 @@
 			remoteRef = 9462FEE31B62C01300395664 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		9462FEE61B62C01300395664 /* libjingle_peerconnection_objc_test.app */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.application;
-			path = libjingle_peerconnection_objc_test.app;
-			remoteRef = 9462FEE51B62C01300395664 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		9462FEE81B62C01300395664 /* AppRTCDemo.app */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.application;
-			path = AppRTCDemo.app;
-			remoteRef = 9462FEE71B62C01300395664 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
 		9462FF291B62CAC700395664 /* libusrsctplib.a */ = {
 			isa = PBXReferenceProxy;
 			fileType = archive.ar;
@@ -1195,6 +1165,20 @@
 		0056EE921B13B0910035B351 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					../../..,
+					../../../..,
+					"../../../../op-services-cpp",
+					../../../../zsLib,
+					../../../../webrtc,
+					../../../../webrtc/webrtc,
+					../../../../webrtc/webrtc/voice_engine/include,
+					../../../../webrtc/webrtc/video_engine/include,
+					../../../../webrtc/webrtc/modules/video_capture/include,
+					"../../../../ortc-lib/ortc",
+					"../../../../webrtc-deps/boringssl/include",
+				);
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1204,6 +1188,20 @@
 		0056EE931B13B0910035B351 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					../../..,
+					../../../..,
+					"../../../../op-services-cpp",
+					../../../../zsLib,
+					../../../../webrtc,
+					../../../../webrtc/webrtc,
+					../../../../webrtc/webrtc/voice_engine/include,
+					../../../../webrtc/webrtc/video_engine/include,
+					../../../../webrtc/webrtc/modules/video_capture/include,
+					"../../../../ortc-lib/ortc",
+					"../../../../webrtc-deps/boringssl/include",
+				);
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
