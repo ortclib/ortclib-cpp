@@ -1,14 +1,6 @@
-//
-//  AppDelegate.m
-//  hfmediatest_ios
-//
-//  Created by Vladimir Morosev on 9/12/12.
-//
-//
-
 #import "AppDelegate.h"
 
-//#import "ViewController.h"
+#import "ViewController.h"
 
 @implementation AppDelegate
 
@@ -18,8 +10,8 @@
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
     self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
-    //self.viewController = [[ViewController alloc] initWithNibName:@"ViewController" bundle:nil];
-    //self.window.rootViewController = self.viewController;
+    self.viewController = [[ViewController alloc] initWithNibName:@"ViewController" bundle:nil];
+    self.window.rootViewController = self.viewController;
     [self.window makeKeyAndVisible];
     return YES;
 }
