@@ -137,7 +137,7 @@ namespace ortc
       }
 
       RoutePtr route(make_shared<Route>());
-      route->mLocalCandidate = localCandidate ? CandidatePtr(make_shared<Candidate>(*localCandidate)) : CandidatePtr();
+      route->mLocalCandidate = localCandidate ? make_shared<Candidate>(*localCandidate) : CandidatePtr();
       route->mRemoteIP = remoteIP;
 
       mRoutes[search] = route;

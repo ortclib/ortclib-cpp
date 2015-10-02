@@ -808,7 +808,7 @@ namespace ortc
 
       ISCTPTransportListenerDelegatePtr delegate = mSubscriptions.delegate(subscription, true);
 
-      mRemoteCapabilities = CapabilitiesPtr(make_shared<Capabilities>(remoteCapabilities));
+      mRemoteCapabilities = make_shared<Capabilities>(remoteCapabilities);
 
       for (auto iter = mPendingTransports.begin(); iter != mPendingTransports.end(); ++iter)
       {

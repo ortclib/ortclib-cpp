@@ -181,7 +181,7 @@ namespace ortc
     {
       AutoRecursiveLock lock(*this);
 
-      mPromise = PromiseCertificateHolderPtr(make_shared<PromiseCertificateHolder>(IORTCForInternal::queueDelegate()));
+      mPromise = make_shared<PromiseCertificateHolder>(IORTCForInternal::queueDelegate());
       mPromise->setThisWeak(mPromise);
       mPromiseWeak = mPromise;
       mPromise->mCertificate = mThisWeak.lock();

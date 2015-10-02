@@ -419,8 +419,8 @@ namespace ortc
 
       CandidatePairPtr result(make_shared<CandidatePair>());
 
-      result->mLocal = CandidatePtr(make_shared<Candidate>(*(mActiveRoute->mCandidatePair->mLocal)));
-      result->mRemote = CandidatePtr(make_shared<Candidate>(*(mActiveRoute->mCandidatePair->mRemote)));
+      result->mLocal = make_shared<Candidate>(*(mActiveRoute->mCandidatePair->mLocal));
+      result->mRemote = make_shared<Candidate>(*(mActiveRoute->mCandidatePair->mRemote));
 
       return result;
     }
@@ -549,7 +549,7 @@ namespace ortc
           ORTC_THROW_INVALID_PARAMETERS_IF(IICEGatherer::State_Complete == rtcpGatherer->state())
         }
 
-        pThis = ICETransportPtr(make_shared<ICETransport>(make_private {}, IORTCForInternal::queueORTC(), IICETransportDelegatePtr(), rtcpGatherer));
+        pThis = make_shared<ICETransport>(make_private {}, IORTCForInternal::queueORTC(), IICETransportDelegatePtr(), rtcpGatherer);
         pThis->mThisWeak.lock();
         pThis->mRTPTransport = mThisWeak.lock();
         mRTCPTransport = pThis;
@@ -948,7 +948,7 @@ namespace ortc
         if (mMustBufferPackets) {
           // packets must be buffered
           ZS_LOG_TRACE(log("buffering packet for secure transport") + ZS_PARAM("buffer length", bufferSizeInBytes))
-          mBufferedPackets.push(SecureByteBlockPtr(make_shared<SecureByteBlock>(buffer, bufferSizeInBytes)));
+          mBufferedPackets.push(make_shared<SecureByteBlock>(buffer, bufferSizeInBytes));
           while (mBufferedPackets.size() > mMaxBufferedPackets) {
             ZS_LOG_TRACE(log("too many packets in buffered packet list (dropping packet") + ZS_PARAM("max packets", mMaxBufferedPackets) + ZS_PARAM("total packets", mBufferedPackets.size()))
             mBufferedPackets.pop();
@@ -1038,7 +1038,7 @@ namespace ortc
 
         auto route = (*current).second;
 
-        removeFrozenDependencies(route, false, ReasonNoMoreRelationshipPtr(make_shared<ReasonNoMoreRelationship>()));
+        removeFrozenDependencies(route, false, make_shared<ReasonNoMoreRelationship>());
 
         if (!route->isFrozen()) continue;
 
@@ -2734,7 +2734,7 @@ namespace ortc
         ++iter_doNotUse;
 
         auto promise = (*current).first;
-        promise->reject(ReasonNoMoreRelationshipPtr(make_shared<ReasonNoMoreRelationship>()));
+        promise->reject(make_shared<ReasonNoMoreRelationship>());
       }
 
       mActiveRoute.reset();
@@ -3187,7 +3187,7 @@ namespace ortc
       removeFoundation(route);
       removePendingActivation(route);
       removeFrozen(route);
-      removeFrozenDependencies(route, false, ReasonNoMoreRelationshipPtr(make_shared<ReasonNoMoreRelationship>()));
+      removeFrozenDependencies(route, false, make_shared<ReasonNoMoreRelationship>());
       removeActive(route);
       removeWarm(route);
       removeGathererRoute(route);
@@ -3255,8 +3255,8 @@ namespace ortc
       if (!route) return CandidatePairPtr();
 
       CandidatePairPtr tempPair(make_shared<CandidatePair>());
-      tempPair->mLocal = CandidatePtr(make_shared<Candidate>(*(route->mCandidatePair->mLocal)));
-      tempPair->mRemote = CandidatePtr(make_shared<Candidate>(*(route->mCandidatePair->mRemote)));
+      tempPair->mLocal = make_shared<Candidate>(*(route->mCandidatePair->mLocal));
+      tempPair->mRemote = make_shared<Candidate>(*(route->mCandidatePair->mRemote));
       return tempPair;
     }
     
@@ -4175,9 +4175,9 @@ namespace ortc
         }
 
         // now have everything needed to create a brand new legal route
-        route = RoutePtr(make_shared<Route>(mRouteStateTracker));
-        route->mCandidatePair = CandidatePairPtr(make_shared<CandidatePair>());
-        route->mCandidatePair->mLocal = CandidatePtr(make_shared<Candidate>(*(routerRoute->mLocalCandidate)));
+        route = make_shared<Route>(mRouteStateTracker);
+        route->mCandidatePair = make_shared<CandidatePair>();
+        route->mCandidatePair->mLocal = make_shared<Candidate>(*(routerRoute->mLocalCandidate));
         route->mCandidatePair->mRemote = remoteCandidate;
         route->mCandidatePairHash = route->mCandidatePair->hash();
 

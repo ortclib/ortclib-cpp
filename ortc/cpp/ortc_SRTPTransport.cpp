@@ -503,7 +503,7 @@ namespace ortc
 
         mMaterial[loop].mMKILength = mkiLength;
         if (mkiLength > 0) {
-          mMaterial[loop].mTempMKIHolder = SecureByteBlockPtr(make_shared<SecureByteBlock>(mkiLength));
+          mMaterial[loop].mTempMKIHolder = make_shared<SecureByteBlock>(mkiLength);
         }
       }
     }
@@ -720,7 +720,7 @@ namespace ortc
         // As part of the decryption process, the MKI value must be stripped from
         // the packet. This is done by selectively copying from the source packet
         // to the decryptedBuffer (which is not yet decrypted).
-        decryptedBuffer = SecureByteBlockPtr(make_shared<SecureByteBlock>(bufferLengthInBytes - material.mMKILength));
+        decryptedBuffer = make_shared<SecureByteBlock>(bufferLengthInBytes - material.mMKILength);
 
         size_t headerAndPayloadSize = bufferLengthInBytes - authenticationTagLength - material.mMKILength;
 
@@ -734,7 +734,7 @@ namespace ortc
       } else {
         // nothing fancy here, just copy the source packet into the decrypted
         // buffer and prepare for decryption
-        decryptedBuffer = SecureByteBlockPtr(make_shared<SecureByteBlock>(buffer, bufferLengthInBytes));
+        decryptedBuffer = make_shared<SecureByteBlock>(buffer, bufferLengthInBytes);
       }
 
 
@@ -866,7 +866,7 @@ namespace ortc
 
       // Encrypted buffer must include enough room for the full packet and the
       // MKI and authentication tag.
-      encryptedBuffer = SecureByteBlockPtr(make_shared<SecureByteBlock>(bufferLengthInBytes + authenticationTagLength + material.mMKILength));
+      encryptedBuffer = make_shared<SecureByteBlock>(bufferLengthInBytes + authenticationTagLength + material.mMKILength);
 
       memcpy(encryptedBuffer->BytePtr(), buffer, bufferLengthInBytes);
 

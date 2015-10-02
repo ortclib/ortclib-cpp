@@ -322,7 +322,7 @@ namespace ortc
       ORTC_THROW_INVALID_PARAMETERS_IF(params.mLabel.length() > UINT16_MAX)
       ORTC_THROW_INVALID_PARAMETERS_IF(params.mProtocol.length() > UINT16_MAX)
 
-      DataChannelPtr pThis(make_shared<DataChannel>(make_private {}, IORTCForInternal::queueORTC(), delegate, SCTPTransport::convert(transport), ParametersPtr(make_shared<Parameters>(params))));
+      DataChannelPtr pThis(make_shared<DataChannel>(make_private {}, IORTCForInternal::queueORTC(), delegate, SCTPTransport::convert(transport), make_shared<Parameters>(params)));
       pThis->mThisWeak = pThis;
       UseDataTransportPtr useTransport = pThis->mDataTransport.lock();
 
@@ -384,7 +384,7 @@ namespace ortc
     IDataChannelTypes::ParametersPtr DataChannel::parameters() const
     {
       AutoRecursiveLock lock(*this);
-      auto params = ParametersPtr(make_shared<Parameters>());
+      auto params = make_shared<Parameters>();
       if (mParameters) *params = *mParameters;
       return params;
     }
@@ -1287,7 +1287,7 @@ namespace ortc
 
           ZS_LOG_TRACE(log("incoming channel") + ZS_PARAM("open message type", internal::toString(static_cast<DataChannelOpenMessageChannelTypes>(openPacket.mChanelType))) + params->toDebug())
 
-          mParameters = ParametersPtr(make_shared<Parameters>(*params));
+          mParameters = make_shared<Parameters>(*params);
 
           auto dataTransport = mDataTransport.lock();
           dataTransport->announceIncoming(mThisWeak.lock(), params);
@@ -1346,7 +1346,7 @@ namespace ortc
           if (packet.mBuffer) {
             data->mBinary = packet.mBuffer;
           } else {
-            data->mBinary = SecureByteBlockPtr(make_shared<SecureByteBlock>()); // empty buffer
+            data->mBinary = make_shared<SecureByteBlock>(); // empty buffer
           }
           ZS_LOG_TRACE(log("forwarding data binary packet") + ZS_PARAM("buffer size", data->mBinary->SizeInBytes()))
           if (ZS_IS_LOGGING(Insane)) {

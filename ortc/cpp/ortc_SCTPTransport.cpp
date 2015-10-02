@@ -858,7 +858,7 @@ namespace ortc
         ORTC_THROW_INVALID_STATE("already started")
       }
 
-      mCapabilities = CapabilitiesPtr(make_shared<Capabilities>(remoteCapabilities));
+      mCapabilities = make_shared<Capabilities>(remoteCapabilities);
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
     }
 
@@ -1235,7 +1235,7 @@ namespace ortc
 
       queue_packet:
         {
-          mPendingIncomingBuffers.push(SecureByteBlockPtr(make_shared<SecureByteBlock>(buffer, bufferLengthInBytes)));
+          mPendingIncomingBuffers.push(make_shared<SecureByteBlock>(buffer, bufferLengthInBytes));
           return true;
         }
       }

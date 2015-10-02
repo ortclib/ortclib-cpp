@@ -262,7 +262,7 @@ namespace ortc
           AutoPUID mID;
         };
 
-        return BogusSubscriptionPtr(make_shared<BogusSubscription>());
+        return make_shared<BogusSubscription>();
       }
 
       AutoRecursiveLock lock(*pThis);

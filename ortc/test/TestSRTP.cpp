@@ -519,7 +519,7 @@ namespace ortc
           AutoRecursiveLock lock(*this);
 
           ExpectingPacket packetInfo;
-          packetInfo.mBuffer = SecureByteBlockPtr(make_shared<SecureByteBlock>(buffer, bufferLengthInBytes));
+          packetInfo.mBuffer = make_shared<SecureByteBlock>(buffer, bufferLengthInBytes);
           packetInfo.mVia = viaTransport;
           packetInfo.mPacketType = packetType;
 

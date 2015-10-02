@@ -1966,7 +1966,7 @@ namespace ortc
         return true;
       }
 
-      mAllocationBuffer = SecureByteBlockPtr(make_shared<SecureByteBlock>(alignedSize(mAllocationSize)));
+      mAllocationBuffer = make_shared<SecureByteBlock>(alignedSize(mAllocationSize));
 
       mAllocationPos = mAllocationBuffer->BytePtr();
 

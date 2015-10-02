@@ -1276,8 +1276,8 @@ namespace ortc
 
       mRegisteredExtensions.clear();
 
-      mReceivers = ReceiverObjectMapPtr(make_shared<ReceiverObjectMap>());
-      mSenders = SenderObjectMapPtr(make_shared<SenderObjectMap>());
+      mReceivers = make_shared<ReceiverObjectMap>();
+      mSenders = make_shared<SenderObjectMap>();
 
       mSSRCTable.clear();
       mMuxIDTable.clear();
@@ -1742,7 +1742,7 @@ namespace ortc
       {
         if (outReceiverInfo->mParameters.mEncodingParameters.size() < 1) goto insert_ssrc_into_table;
 
-        replacementInfo = ReceiverInfoPtr(make_shared<ReceiverInfo>(*outReceiverInfo));
+        replacementInfo = make_shared<ReceiverInfo>(*outReceiverInfo);
 
         auto encodingIter = outReceiverInfo->mParameters.mEncodingParameters.begin();
         auto replacementIter = replacementInfo->mParameters.mEncodingParameters.begin();

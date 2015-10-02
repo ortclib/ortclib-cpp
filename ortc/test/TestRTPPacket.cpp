@@ -120,7 +120,7 @@ namespace ortc
         {
           size_t size = 12 + (sizeof(DWORD)*cc) + headerExtensionSizeInBytes + (NULL != payloadData ? strlen(payloadData) : 0) + static_cast<size_t>(padding);
 
-          auto result = SecureByteBlockPtr(make_shared<SecureByteBlock>(size));
+          auto result = make_shared<SecureByteBlock>(size);
 
           BYTE *buffer = result->BytePtr();
 

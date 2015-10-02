@@ -848,7 +848,7 @@ namespace ortc
 
       SecureByteBlockPtr oldBuffer = mBuffer; // temporary to keep previous allocation alive during swap
 
-      mBuffer = SecureByteBlockPtr(make_shared<SecureByteBlock>(newSize));
+      mBuffer = make_shared<SecureByteBlock>(newSize);
 
       BYTE *newBuffer = mBuffer->BytePtr();
 
@@ -1249,7 +1249,7 @@ namespace ortc
 
       size_t newSize = mHeaderSize + mHeaderExtensionSize + postHeaderExtensionSize;
 
-      mBuffer = SecureByteBlockPtr(make_shared<SecureByteBlock>(newSize));
+      mBuffer = make_shared<SecureByteBlock>(newSize);
 
       BYTE *newBuffer = mBuffer->BytePtr();
 

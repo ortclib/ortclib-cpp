@@ -423,7 +423,7 @@ namespace ortc
         }
       }
 
-      mParameters = ParametersPtr(make_shared<Parameters>(parameters));
+      mParameters = make_shared<Parameters>(parameters);
 
       RTCPPacketList historicalRTCPPackets;
       mListener->registerSender(mThisWeak.lock(), *mParameters, historicalRTCPPackets);

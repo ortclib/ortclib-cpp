@@ -380,7 +380,7 @@ namespace ortc
 
         mDataTransport = UseDataTransport::create(mThisWeak.lock());
 
-        mAdapter = AdapterPtr(make_shared<Adapter>(mThisWeak.lock()));
+        mAdapter = make_shared<Adapter>(mThisWeak.lock());
         mAdapter->setIdentity(mCertificate);
 
         std::vector<String> ciphers;
@@ -772,7 +772,7 @@ namespace ortc
 
           switch (result) {
             case SR_SUCCESS: {
-              decryptedPacket = SecureByteBlockPtr(make_shared<SecureByteBlock>(extractedBuffer, read));
+              decryptedPacket = make_shared<SecureByteBlock>(extractedBuffer, read);
               goto handle_data_packet;
             }
             case SR_BLOCK: {
@@ -803,7 +803,7 @@ namespace ortc
 
         if (mPutIncomingRTPIntoPendingQueue) {
           ZS_LOG_TRACE(log("transport not verified thus pushing RTP packet onto pending queue") + ZS_PARAM("buffer length", bufferLengthInBytes))
-          mPendingIncomingRTP.push(SecureByteBlockPtr(make_shared<SecureByteBlock>(buffer, bufferLengthInBytes)));
+          mPendingIncomingRTP.push(make_shared<SecureByteBlock>(buffer, bufferLengthInBytes));
           if (mPendingIncomingRTP.size() > mMaxPendingRTPPackets) {
             ZS_LOG_WARNING(Debug, log("too many pending rtp packets (thus popping first packet)"))
               mPendingIncomingRTP.pop();
@@ -1357,7 +1357,7 @@ namespace ortc
                                           )
     {
       ZS_LOG_TRACE(log("adding dtls packet to send to outgoing queue") + ZS_PARAM("buffer length", bufferLengthInBytes))
-      mPendingOutgoingDTLS.push(SecureByteBlockPtr(make_shared<SecureByteBlock>(buffer, bufferLengthInBytes)));
+      mPendingOutgoingDTLS.push(make_shared<SecureByteBlock>(buffer, bufferLengthInBytes));
 
       IDTLSTransportAsyncDelegateProxy::create(mThisWeak.lock())->onAdapterSendPacket();
     }

@@ -799,7 +799,7 @@ namespace ortc
   //---------------------------------------------------------------------------
   IMediaStreamTrackTypes::CapabilitiesPtr IMediaStreamTrackTypes::Capabilities::create()
   {
-    return CapabilitiesPtr(make_shared<Capabilities>());
+    return make_shared<Capabilities>();
   }
 
   //---------------------------------------------------------------------------
@@ -812,7 +812,7 @@ namespace ortc
   //---------------------------------------------------------------------------
   IMediaStreamTrackTypes::CapabilitiesPtr IMediaStreamTrackTypes::Capabilities::create(const Capabilities &value)
   {
-    return CapabilitiesPtr(make_shared<Capabilities>(value));
+    return make_shared<Capabilities>(value);
   }
   
   //---------------------------------------------------------------------------
@@ -877,7 +877,7 @@ namespace ortc
   //---------------------------------------------------------------------------
   IMediaStreamTrackTypes::SettingsPtr IMediaStreamTrackTypes::Settings::create()
   {
-    return SettingsPtr(make_shared<Settings>());
+    return make_shared<Settings>();
   }
 
   //---------------------------------------------------------------------------
@@ -890,7 +890,7 @@ namespace ortc
   //---------------------------------------------------------------------------
   IMediaStreamTrackTypes::SettingsPtr IMediaStreamTrackTypes::Settings::create(const Settings &value)
   {
-    return SettingsPtr(make_shared<Settings>(value));
+    return make_shared<Settings>(value);
   }
   
   //---------------------------------------------------------------------------
@@ -961,7 +961,7 @@ namespace ortc
   //---------------------------------------------------------------------------
   IMediaStreamTrackTypes::ConstraintSetPtr IMediaStreamTrackTypes::ConstraintSet::create()
   {
-    return ConstraintSetPtr(make_shared<ConstraintSet>());
+    return make_shared<ConstraintSet>();
   }
 
   //---------------------------------------------------------------------------
@@ -974,7 +974,7 @@ namespace ortc
   //---------------------------------------------------------------------------
   IMediaStreamTrackTypes:: ConstraintSetPtr IMediaStreamTrackTypes::ConstraintSet::create(const ConstraintSet &value)
   {
-    return ConstraintSetPtr(make_shared<ConstraintSet>(value));
+    return make_shared<ConstraintSet>(value);
   }
   
   //---------------------------------------------------------------------------
@@ -1040,7 +1040,7 @@ namespace ortc
   //---------------------------------------------------------------------------
   IMediaStreamTrackTypes::TrackConstraintsPtr IMediaStreamTrackTypes::TrackConstraints::create()
   {
-    return TrackConstraintsPtr(make_shared<TrackConstraints>());
+    return make_shared<TrackConstraints>();
   }
 
   //---------------------------------------------------------------------------
@@ -1053,7 +1053,7 @@ namespace ortc
   //---------------------------------------------------------------------------
   IMediaStreamTrackTypes::TrackConstraintsPtr IMediaStreamTrackTypes::TrackConstraints::create(const TrackConstraints &value)
   {
-    auto result = TrackConstraintsPtr(make_shared<TrackConstraints>());
+    auto result = make_shared<TrackConstraints>();
 
     for (auto iter = value.mAdvanced.begin(); iter != value.mAdvanced.end(); ++iter) {
       auto clone = ConstraintSet::create(*iter);
@@ -1108,7 +1108,7 @@ namespace ortc
   //---------------------------------------------------------------------------
   IMediaStreamTrackTypes::ConstraintsPtr IMediaStreamTrackTypes::Constraints::create()
   {
-    return ConstraintsPtr(make_shared<Constraints>());
+    return make_shared<Constraints>();
   }
 
   //---------------------------------------------------------------------------
@@ -1121,7 +1121,7 @@ namespace ortc
   //---------------------------------------------------------------------------
   IMediaStreamTrackTypes::ConstraintsPtr IMediaStreamTrackTypes::Constraints::create(const Constraints &value)
   {
-    auto result = ConstraintsPtr(make_shared<Constraints>());
+    auto result = make_shared<Constraints>();
     result->mVideo = value.mVideo ? TrackConstraints::create(value.mVideo) : TrackConstraintsPtr();
     result->mAudio = value.mAudio ? TrackConstraints::create(value.mAudio) : TrackConstraintsPtr();
     return result;

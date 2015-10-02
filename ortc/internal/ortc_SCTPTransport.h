@@ -179,7 +179,7 @@ namespace ortc
       struct RejectReason : public Any
       {
         RejectReason(WORD error, const char *reason) : mError(error), mErrorReason(reason) {}
-        static RejectReasonPtr create(WORD error, const char *reason) {return RejectReasonPtr(make_shared<RejectReason>(error, reason));}
+        static RejectReasonPtr create(WORD error, const char *reason) {return make_shared<RejectReason>(error, reason);}
         WORD mError {};
         String mErrorReason;
       };

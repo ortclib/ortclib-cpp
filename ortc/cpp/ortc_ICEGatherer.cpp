@@ -754,7 +754,7 @@ namespace ortc
 
         ORTC_THROW_INVALID_STATE_IF(mRTCPGatherer.lock())
 
-        pThis = ICEGathererPtr(make_shared<ICEGatherer>(make_private {}, IORTCForInternal::queueORTC(), delegate, mOptions));
+        pThis = make_shared<ICEGatherer>(make_private {}, IORTCForInternal::queueORTC(), delegate, mOptions);
         pThis->mThisWeak = pThis;
         pThis->mComponent = Component_RTCP;
         pThis->mRTPGatherer = mThisWeak.lock();
@@ -3066,7 +3066,7 @@ namespace ortc
               }
             }
 
-            reflexivePort = ReflexivePortPtr(make_shared<ReflexivePort>());
+            reflexivePort = make_shared<ReflexivePort>();
             reflexivePort->mServer = server;
 
             hostPort->mReflexivePorts.push_back(reflexivePort);
@@ -3332,7 +3332,7 @@ namespace ortc
               }
             }
 
-            relayPort = RelayPortPtr(make_shared<RelayPort>());
+            relayPort = make_shared<RelayPort>();
             relayPort->mServer = server;
 
             hostPort->mRelayPorts.push_back(relayPort);
@@ -4856,7 +4856,7 @@ namespace ortc
             // now have enough to extract out of buffer
 
             BufferedPacketPtr packet(make_shared<BufferedPacket>());
-            packet->mBuffer = SecureByteBlockPtr(make_shared<SecureByteBlock>(packetSize));
+            packet->mBuffer = make_shared<SecureByteBlock>(packetSize);
             if (!localCandidate) {
               localCandidate = tcpPort.mCandidate;
               fromIP = tcpPort.mRemoteIP;
@@ -5427,7 +5427,7 @@ namespace ortc
         }
 
         // install a route
-        route = RoutePtr(make_shared<Route>());
+        route = make_shared<Route>();
         route->mLastUsed = zsLib::now();
         route->mLocalCandidate = sentFromLocalCandidate;
         route->mTransportID = transport->getID();

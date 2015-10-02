@@ -829,7 +829,7 @@ namespace ortc
       {
         AutoRecursiveLock lock(*this);
 
-        mParameters = ParametersPtr(make_shared<Parameters>(parameters));
+        mParameters = make_shared<Parameters>(parameters);
 
         if (mListener) {
           RTCPPacketList packetList;
@@ -993,7 +993,7 @@ namespace ortc
       {
         AutoRecursiveLock lock(*this);
 
-        mParameters = ParametersPtr(make_shared<Parameters>(parameters));
+        mParameters = make_shared<Parameters>(parameters);
 
         if (mListener) {
           RTCPPacketList packetList;
