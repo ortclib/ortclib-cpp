@@ -140,18 +140,18 @@
 			remoteGlobalIDString = 006680AE16C9CE4300259F81;
 			remoteInfo = zsLib;
 		};
-		948918301BC47C320011DA02 /* PBXContainerItemProxy */ = {
+		9451F2ED1BC55721008CB8D7 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = 94D8FEFA1BC4450D00608006 /* webrtcWrapper_mac.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = 9499DA8A1BC2A4AD000EA8E9;
-			remoteInfo = webrtcWrapper_mac;
-		};
-		94D8FEFE1BC4450D00608006 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 94D8FEFA1BC4450D00608006 /* webrtcWrapper_mac.xcodeproj */;
+			containerPortal = 9451F2E91BC55721008CB8D7 /* webrtcWrapper_mac.xcodeproj */;
 			proxyType = 2;
 			remoteGlobalIDString = 9499DA8B1BC2A4AD000EA8E9;
+			remoteInfo = webrtcWrapper_mac;
+		};
+		9451F2EF1BC5572E008CB8D7 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 9451F2E91BC55721008CB8D7 /* webrtcWrapper_mac.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 9499DA8A1BC2A4AD000EA8E9;
 			remoteInfo = webrtcWrapper_mac;
 		};
 /* End PBXContainerItemProxy section */
@@ -187,6 +187,7 @@
 		00AA4CB71B3895840073E17B /* TestDTLS.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TestDTLS.cpp; sourceTree = "<group>"; };
 		00AEDD331B9F21180050A0E6 /* TestSCTP.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TestSCTP.cpp; sourceTree = "<group>"; };
 		00AEDD681B9F572B0050A0E6 /* TestSCTP.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TestSCTP.h; sourceTree = "<group>"; };
+		9451F2E91BC55721008CB8D7 /* webrtcWrapper_mac.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = webrtcWrapper_mac.xcodeproj; path = ../../../../../ios/projects/xcode/webrtcWrappers/webrtcWrapper_mac/webrtcWrapper_mac.xcodeproj; sourceTree = "<group>"; };
 		9499DADC1BC407D9000EA8E9 /* libaudio_coding_module.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libaudio_coding_module.a; path = ../../../../webrtc/out_mac/Debug/libaudio_coding_module.a; sourceTree = "<group>"; };
 		9499DADD1BC407D9000EA8E9 /* libaudio_conference_mixer.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libaudio_conference_mixer.a; path = ../../../../webrtc/out_mac/Debug/libaudio_conference_mixer.a; sourceTree = "<group>"; };
 		9499DADE1BC407D9000EA8E9 /* libaudio_decoder_interface.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libaudio_decoder_interface.a; path = ../../../../webrtc/out_mac/Debug/libaudio_decoder_interface.a; sourceTree = "<group>"; };
@@ -254,7 +255,6 @@
 		94A4EE0C1B8B489E008473EF /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		94A4EE0E1B8B48D3008473EF /* QTKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QTKit.framework; path = System/Library/Frameworks/QTKit.framework; sourceTree = SDKROOT; };
 		94A4EE121B8B492D008473EF /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
-		94D8FEFA1BC4450D00608006 /* webrtcWrapper_mac.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = webrtcWrapper_mac.xcodeproj; path = "/Users/developerdevelopic/WorkForMicrosoft/ortc-lib-sdk/ios/projects/xcode/../../../libs/webrtc-deps/webrtcWrapper_mac/webrtcWrapper_mac.xcodeproj"; sourceTree = "<absolute>"; };
 		94E2B2A21B541BE500582A08 /* ortclib.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = ortclib.xcodeproj; path = ../ortclib/ortclib.xcodeproj; sourceTree = SOURCE_ROOT; };
 		94E2B2AA1B541C2300582A08 /* hfservices.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = hfservices.xcodeproj; path = "../../../../op-services-cpp/projects/xcode/hfservices/hfservices.xcodeproj"; sourceTree = SOURCE_ROOT; };
 		94E2B2B01B541C3D00582A08 /* cryptopp.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = cryptopp.xcodeproj; path = ../../../../cryptopp/projects/xcode/cryptopp/cryptopp.xcodeproj; sourceTree = SOURCE_ROOT; };
@@ -416,7 +416,7 @@
 		0056EE9E1B13B1F30035B351 /* Projects */ = {
 			isa = PBXGroup;
 			children = (
-				94D8FEFA1BC4450D00608006 /* webrtcWrapper_mac.xcodeproj */,
+				9451F2E91BC55721008CB8D7 /* webrtcWrapper_mac.xcodeproj */,
 				94E2B2A21B541BE500582A08 /* ortclib.xcodeproj */,
 				94E2B2AA1B541C2300582A08 /* hfservices.xcodeproj */,
 				94E2B2B01B541C3D00582A08 /* cryptopp.xcodeproj */,
@@ -554,10 +554,10 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		94D8FEFB1BC4450D00608006 /* Products */ = {
+		9451F2EA1BC55721008CB8D7 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				94D8FEFF1BC4450D00608006 /* libwebrtcWrapper_mac.a */,
+				9451F2EE1BC55721008CB8D7 /* libwebrtcWrapper_mac.a */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -576,7 +576,7 @@
 			buildRules = (
 			);
 			dependencies = (
-				948918311BC47C320011DA02 /* PBXTargetDependency */,
+				9451F2F01BC5572E008CB8D7 /* PBXTargetDependency */,
 			);
 			name = ortclibTest;
 			productName = ortclibTest;
@@ -629,8 +629,8 @@
 					ProjectRef = 94E2B2BC1B541C5800582A08 /* udns.xcodeproj */;
 				},
 				{
-					ProductGroup = 94D8FEFB1BC4450D00608006 /* Products */;
-					ProjectRef = 94D8FEFA1BC4450D00608006 /* webrtcWrapper_mac.xcodeproj */;
+					ProductGroup = 9451F2EA1BC55721008CB8D7 /* Products */;
+					ProjectRef = 9451F2E91BC55721008CB8D7 /* webrtcWrapper_mac.xcodeproj */;
 				},
 				{
 					ProductGroup = 5005D8EE1B5DCC6A00AFEC07 /* Products */;
@@ -687,11 +687,11 @@
 			remoteRef = 5005D8F11B5DCC6A00AFEC07 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		94D8FEFF1BC4450D00608006 /* libwebrtcWrapper_mac.a */ = {
+		9451F2EE1BC55721008CB8D7 /* libwebrtcWrapper_mac.a */ = {
 			isa = PBXReferenceProxy;
 			fileType = archive.ar;
 			path = libwebrtcWrapper_mac.a;
-			remoteRef = 94D8FEFE1BC4450D00608006 /* PBXContainerItemProxy */;
+			remoteRef = 9451F2ED1BC55721008CB8D7 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 /* End PBXReferenceProxy section */
@@ -718,10 +718,10 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		948918311BC47C320011DA02 /* PBXTargetDependency */ = {
+		9451F2F01BC5572E008CB8D7 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = webrtcWrapper_mac;
-			targetProxy = 948918301BC47C320011DA02 /* PBXContainerItemProxy */;
+			targetProxy = 9451F2EF1BC5572E008CB8D7 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 

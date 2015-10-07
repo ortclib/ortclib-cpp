@@ -170,16 +170,16 @@
 			remoteGlobalIDString = 0066818116C9D64000259F81;
 			remoteInfo = zsLib_ios;
 		};
-		9451F2731BC55181008CB8D7 /* PBXContainerItemProxy */ = {
+		9451F2E11BC5570F008CB8D7 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = 9451F26F1BC55180008CB8D7 /* webrtcWrapper_ios.xcodeproj */;
+			containerPortal = 9451F2DD1BC5570E008CB8D7 /* webrtcWrapper_ios.xcodeproj */;
 			proxyType = 2;
 			remoteGlobalIDString = 9451F25C1BC54F57008CB8D7;
 			remoteInfo = webrtcWrapper_ios;
 		};
-		9451F2751BC5518D008CB8D7 /* PBXContainerItemProxy */ = {
+		9451F2F11BC5574C008CB8D7 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = 9451F26F1BC55180008CB8D7 /* webrtcWrapper_ios.xcodeproj */;
+			containerPortal = 9451F2DD1BC5570E008CB8D7 /* webrtcWrapper_ios.xcodeproj */;
 			proxyType = 1;
 			remoteGlobalIDString = 9451F25B1BC54F57008CB8D7;
 			remoteInfo = webrtcWrapper_ios;
@@ -195,7 +195,6 @@
 
 /* Begin PBXFileReference section */
 		0063EB7A1846665E00A877C3 /* libcurl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcurl.a; path = "../../../../curl/curl/ios-appstore/lib/libcurl.a"; sourceTree = "<group>"; };
-		9451F26F1BC55180008CB8D7 /* webrtcWrapper_ios.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = webrtcWrapper_ios.xcodeproj; path = "/Users/developerdevelopic/WorkForMicrosoft/ortc-lib-sdk/ios/projects/xcode/../../../libs/webrtc-deps/webrtcWrapper_ios/webrtcWrapper_ios.xcodeproj"; sourceTree = "<absolute>"; };
 		9451F2771BC551CE008CB8D7 /* libaudio_coding_module.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libaudio_coding_module.a; path = "../../../../webrtc/out_ios/Debug-iphoneos/libaudio_coding_module.a"; sourceTree = "<group>"; };
 		9451F2781BC551CE008CB8D7 /* libaudio_conference_mixer.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libaudio_conference_mixer.a; path = "../../../../webrtc/out_ios/Debug-iphoneos/libaudio_conference_mixer.a"; sourceTree = "<group>"; };
 		9451F2791BC551CE008CB8D7 /* libaudio_decoder_interface.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libaudio_decoder_interface.a; path = "../../../../webrtc/out_ios/Debug-iphoneos/libaudio_decoder_interface.a"; sourceTree = "<group>"; };
@@ -247,6 +246,7 @@
 		9451F2A71BC551CE008CB8D7 /* libwebrtc.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libwebrtc.a; path = "../../../../webrtc/out_ios/Debug-iphoneos/libwebrtc.a"; sourceTree = "<group>"; };
 		9451F2A81BC551CE008CB8D7 /* libyuv_neon.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libyuv_neon.a; path = "../../../../webrtc/out_ios/Debug-iphoneos/libyuv_neon.a"; sourceTree = "<group>"; };
 		9451F2A91BC551CE008CB8D7 /* libyuv.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libyuv.a; path = "../../../../webrtc/out_ios/Debug-iphoneos/libyuv.a"; sourceTree = "<group>"; };
+		9451F2DD1BC5570E008CB8D7 /* webrtcWrapper_ios.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = webrtcWrapper_ios.xcodeproj; path = ../../../../../ios/projects/xcode/webrtcWrappers/webrtcWrapper_ios/webrtcWrapper_ios.xcodeproj; sourceTree = "<group>"; };
 		E214EE591BBEBBE5003DDC95 /* config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = config.h; sourceTree = "<group>"; };
 		E214EE5B1BBEBBE5003DDC95 /* TestDTLS.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TestDTLS.cpp; sourceTree = "<group>"; };
 		E214EE5C1BBEBBE5003DDC95 /* TestICEGatherer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TestICEGatherer.cpp; sourceTree = "<group>"; };
@@ -415,10 +415,10 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		9451F2701BC55180008CB8D7 /* Products */ = {
+		9451F2DE1BC5570E008CB8D7 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				9451F2741BC55181008CB8D7 /* libwebrtcWrapper_ios.a */,
+				9451F2E21BC5570F008CB8D7 /* libwebrtcWrapper_ios.a */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -426,7 +426,7 @@
 		E2234C7D18454CDA00F9E2C8 /* Projects */ = {
 			isa = PBXGroup;
 			children = (
-				9451F26F1BC55180008CB8D7 /* webrtcWrapper_ios.xcodeproj */,
+				9451F2DD1BC5570E008CB8D7 /* webrtcWrapper_ios.xcodeproj */,
 				E27A76081A40E7D6000A3D5C /* idnkit_ios.xcodeproj */,
 				E2234C8A18454DDA00F9E2C8 /* ortclib_ios.xcodeproj */,
 				E2234C9018454DF400F9E2C8 /* hfservices_ios.xcodeproj */,
@@ -601,7 +601,7 @@
 			buildRules = (
 			);
 			dependencies = (
-				9451F2761BC5518D008CB8D7 /* PBXTargetDependency */,
+				9451F2F21BC5574C008CB8D7 /* PBXTargetDependency */,
 				00F00B781AAD1C99008C64A8 /* PBXTargetDependency */,
 				00F00B7A1AAD1C99008C64A8 /* PBXTargetDependency */,
 				00F00B7C1AAD1C99008C64A8 /* PBXTargetDependency */,
@@ -660,8 +660,8 @@
 					ProjectRef = E2234CA018454E5800F9E2C8 /* udns_ios.xcodeproj */;
 				},
 				{
-					ProductGroup = 9451F2701BC55180008CB8D7 /* Products */;
-					ProjectRef = 9451F26F1BC55180008CB8D7 /* webrtcWrapper_ios.xcodeproj */;
+					ProductGroup = 9451F2DE1BC5570E008CB8D7 /* Products */;
+					ProjectRef = 9451F2DD1BC5570E008CB8D7 /* webrtcWrapper_ios.xcodeproj */;
 				},
 				{
 					ProductGroup = 00F00B651AAD1C7C008C64A8 /* Products */;
@@ -711,11 +711,11 @@
 			remoteRef = 00F00B681AAD1C7D008C64A8 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		9451F2741BC55181008CB8D7 /* libwebrtcWrapper_ios.a */ = {
+		9451F2E21BC5570F008CB8D7 /* libwebrtcWrapper_ios.a */ = {
 			isa = PBXReferenceProxy;
 			fileType = archive.ar;
 			path = libwebrtcWrapper_ios.a;
-			remoteRef = 9451F2731BC55181008CB8D7 /* PBXContainerItemProxy */;
+			remoteRef = 9451F2E11BC5570F008CB8D7 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 		E2234C8F18454DDA00F9E2C8 /* libortclib_ios.a */ = {
@@ -794,10 +794,10 @@
 			name = zsLib_ios;
 			targetProxy = 00F00B7F1AAD1C99008C64A8 /* PBXContainerItemProxy */;
 		};
-		9451F2761BC5518D008CB8D7 /* PBXTargetDependency */ = {
+		9451F2F21BC5574C008CB8D7 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = webrtcWrapper_ios;
-			targetProxy = 9451F2751BC5518D008CB8D7 /* PBXContainerItemProxy */;
+			targetProxy = 9451F2F11BC5574C008CB8D7 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
