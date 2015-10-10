@@ -1203,9 +1203,9 @@ namespace ortc
           BYTE jba() const;
           BYTE jbRate() const;
 
-          BYTE jbNominal() const                  {return mJBNominal;}
-          BYTE jbMaximum() const                  {return mJBMaximum;}
-          BYTE jbAbsMax() const                   {return mJBAbsMax;}
+          WORD jbNominal() const                  {return mJBNominal;}
+          WORD jbMaximum() const                  {return mJBMaximum;}
+          WORD jbAbsMax() const                   {return mJBAbsMax;}
 
         public:
           VoIPMetricsReportBlock *mNextVoIPMetricsReportBlock {};
