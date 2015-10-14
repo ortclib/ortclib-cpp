@@ -156,7 +156,7 @@ namespace ortc
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
       mVideoTrack(MediaStreamTrack::convert(track)),
-      mModuleProcessThread(webrtc::ProcessThread::Create()),
+      mModuleProcessThread(webrtc::ProcessThread::Create("RTPSenderThread")),
       mChannelGroup(new webrtc::ChannelGroup(mModuleProcessThread.get())),
       mTransportAdapter(nullptr)
     {
@@ -168,8 +168,6 @@ namespace ortc
       UseSecureTransport::getSendingTransport(transport, rtcpTransport, mSendRTPOverTransport, mSendRTCPOverTransport, mRTPTransport, mRTCPTransport);
 
       mVideoTrack->registerVideoCaptureDataCallback(this);
-
-      mChannelGroup->CreateSendChannel(0, 0, &mTransportAdapter, 2, std::vector<uint32_t>(), true);
     }
 
     //-------------------------------------------------------------------------
@@ -184,7 +182,7 @@ namespace ortc
       webrtc::CpuOveruseObserver* overuseObserver = NULL;
       int numCpuCores = 2;
       int channelID = 1;
-      webrtc::VideoSendStream::Config config;
+      webrtc::VideoSendStream::Config config(transport);
       webrtc::VideoEncoderConfig encoderConfig;
       std::map<uint32_t, webrtc::RtpState> suspendedSSRCs;
 
@@ -220,8 +218,7 @@ namespace ortc
       encoderConfig.encoder_specific_settings = &videoCodec;
 
       mVideoStream = rtc::scoped_ptr<webrtc::VideoSendStream>(new webrtc::internal::VideoSendStream(
-        transport, overuseObserver, numCpuCores,
-        mModuleProcessThread.get(), mChannelGroup.get(),
+        numCpuCores, mModuleProcessThread.get(), mChannelGroup.get(),
         channelID, config, encoderConfig,
         suspendedSSRCs));
     }
@@ -456,7 +453,7 @@ namespace ortc
 
       AutoRecursiveLock lock(*this);
 
-      DeliverPacket(MediaTypes::MediaType_Video, packet->ptr(), packet->size());
+      DeliverPacket(MediaTypes::MediaType_Video, packet->ptr(), packet->size(), 0);
       return true; // return true if handled
     }
 
@@ -523,7 +520,8 @@ namespace ortc
     IRTPTypes::PacketReceiver::DeliveryStatuses RTPSender::DeliverPacket(
                                                                          MediaTypes mediaType,
                                                                          const uint8_t* packet,
-                                                                         size_t length
+                                                                         size_t length,
+																		 int64_t timestamp
                                                                          )
     {
       if (webrtc::RtpHeaderParser::IsRtcp(packet, length)) {

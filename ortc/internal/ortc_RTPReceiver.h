@@ -300,7 +300,8 @@ namespace ortc
       virtual DeliveryStatuses DeliverPacket(
                                              MediaTypes mediaType,
                                              const uint8_t* packet,
-                                             size_t length
+                                             size_t length,
+											 int64_t timestamp
                                              );
 
       //-----------------------------------------------------------------------
@@ -308,7 +309,7 @@ namespace ortc
       #pragma mark RTPSender => Transport
       #pragma mark
 
-      virtual bool SendRtp(const uint8_t* packet, size_t length);
+	  virtual bool SendRtp(const uint8_t* packet, size_t length);
       virtual bool SendRtcp(const uint8_t* packet, size_t length);
 
 
@@ -342,7 +343,8 @@ namespace ortc
       DeliveryStatuses DeliverRtp(
                                   MediaTypes mediaType,
                                   const uint8_t* packet,
-                                  size_t length
+                                  size_t length,
+								  int64_t timestamp
                                   );
 
       bool sendPacket(

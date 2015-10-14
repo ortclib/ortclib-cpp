@@ -347,7 +347,7 @@
       <LinkLibraryDependencies>true</LinkLibraryDependencies>
       <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\webrtc\webrtc\modules\CNG_win_phone.vcxproj">
+    <ProjectReference Include="..\..\..\..\..\webrtc\webrtc\modules\cng_win_phone.vcxproj">
       <Project>{5898db25-044e-b45e-7702-957bfb00727a}</Project>
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
@@ -355,7 +355,7 @@
       <LinkLibraryDependencies>true</LinkLibraryDependencies>
       <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\webrtc\webrtc\modules\G711_win_phone.vcxproj">
+    <ProjectReference Include="..\..\..\..\..\webrtc\webrtc\modules\g711_win_phone.vcxproj">
       <Project>{248e4546-6112-ebec-7a1b-705353b122e0}</Project>
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
@@ -363,7 +363,7 @@
       <LinkLibraryDependencies>true</LinkLibraryDependencies>
       <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\webrtc\webrtc\modules\G722_win_phone.vcxproj">
+    <ProjectReference Include="..\..\..\..\..\webrtc\webrtc\modules\g722_win_phone.vcxproj">
       <Project>{4cff2a7f-1b46-f601-9173-17440a429742}</Project>
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
@@ -371,8 +371,16 @@
       <LinkLibraryDependencies>true</LinkLibraryDependencies>
       <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\webrtc\webrtc\modules\iLBC_win_phone.vcxproj">
+    <ProjectReference Include="..\..\..\..\..\webrtc\webrtc\modules\ilbc_win_phone.vcxproj">
       <Project>{d273dc13-02a4-4a21-5626-ab105645c8e1}</Project>
+      <Private>false</Private>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\..\webrtc\webrtc\modules\isac_common_win_phone.vcxproj">
+      <Project>{cb8ebbd1-7f74-8aaf-12f8-07b4ccdc1706}</Project>
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
@@ -395,7 +403,7 @@
       <LinkLibraryDependencies>true</LinkLibraryDependencies>
       <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\webrtc\webrtc\modules\iSAC_win_phone.vcxproj">
+    <ProjectReference Include="..\..\..\..\..\webrtc\webrtc\modules\isac_win_phone.vcxproj">
       <Project>{92df14dc-9784-7c1e-b6c9-10273adefa78}</Project>
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
@@ -427,7 +435,7 @@
       <LinkLibraryDependencies>true</LinkLibraryDependencies>
       <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\webrtc\webrtc\modules\PCM16B_win_phone.vcxproj">
+    <ProjectReference Include="..\..\..\..\..\webrtc\webrtc\modules\pcm16b_win_phone.vcxproj">
       <Project>{15678891-d9fc-8ca8-af4d-329fe0599b8f}</Project>
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
@@ -557,6 +565,14 @@
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\webrtc\webrtc\modules\webrtc_video_coding_win_phone.vcxproj">
       <Project>{04a80fab-bb4f-5c03-8c78-11c5555786aa}</Project>
+      <Private>false</Private>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\..\webrtc\webrtc\rtc_event_log_win_phone.vcxproj">
+      <Project>{47348b2c-8504-138d-630e-cb416e21d24c}</Project>
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>

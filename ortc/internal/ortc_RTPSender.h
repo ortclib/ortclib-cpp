@@ -301,7 +301,8 @@ namespace ortc
       virtual DeliveryStatuses DeliverPacket(
                                              MediaTypes mediaType,
                                              const uint8_t* packet,
-                                             size_t length
+                                             size_t length,
+											 int64_t timestamp
                                              );
 
       //-----------------------------------------------------------------------

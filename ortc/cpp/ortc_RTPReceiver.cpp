@@ -167,7 +167,7 @@ namespace ortc
                              ) :
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
-      mModuleProcessThread(webrtc::ProcessThread::Create()),
+      mModuleProcessThread(webrtc::ProcessThread::Create("RTPReceiverThread")),
       mChannelGroup(new webrtc::ChannelGroup(mModuleProcessThread.get())),
       mTransportAdapter(nullptr),
       mReceiverVideoRenderer()
@@ -178,8 +178,6 @@ namespace ortc
       ORTC_THROW_INVALID_PARAMETERS_IF(!mListener)
 
       UseSecureTransport::getReceivingTransport(transport, rtcpTransport, mReceiveRTPOverTransport, mReceiveRTCPOverTransport, mRTPTransport, mRTCPTransport);
-
-      mChannelGroup->CreateSendChannel(0, 0, &mTransportAdapter, 2, std::vector<uint32_t>(), true);
     }
 
     //-------------------------------------------------------------------------
@@ -200,10 +198,9 @@ namespace ortc
       mReceiverVideoRenderer.setMediaStreamTrack(mVideoTrack);
 
       int numCpuCores = 2;
-      int baseChannelID = 0;
       int channelID = 2;
-      webrtc::VideoReceiveStream::Config config;
-      webrtc::newapi::Transport* transport = this;
+	  webrtc::newapi::Transport* transport = this;
+	  webrtc::VideoReceiveStream::Config config(transport);
       webrtc::VoiceEngine* voiceEngine = NULL;
 
       webrtc::VideoCodecType type = webrtc::kVideoCodecVP8;
@@ -222,9 +219,9 @@ namespace ortc
       config.renderer = &mReceiverVideoRenderer;
 
       mVideoStream = rtc::scoped_ptr<webrtc::VideoReceiveStream>(new webrtc::internal::VideoReceiveStream(
-        numCpuCores, baseChannelID, mChannelGroup.get(),
+        numCpuCores, mChannelGroup.get(),
         channelID, config,
-        transport, voiceEngine));
+        voiceEngine));
     }
 
     //-------------------------------------------------------------------------
@@ -485,7 +482,7 @@ namespace ortc
 #define TOOD_PROCESS_PACKET_HERE 2
       }
 
-      DeliverPacket(MediaTypes::MediaType_Video, packet->ptr(), packet->size());
+	  DeliverPacket(MediaTypes::MediaType_Video, packet->ptr(), packet->size(), 0);
       return true; // return true if handled
     }
 
@@ -543,7 +540,8 @@ namespace ortc
     IRTPTypes::PacketReceiver::DeliveryStatuses RTPReceiver::DeliverPacket(
                                                                            MediaTypes mediaType,
                                                                            const uint8_t* packet,
-                                                                           size_t length
+                                                                           size_t length,
+																		   int64_t timestamp
                                                                            )
     {
       if (webrtc::RtpHeaderParser::IsRtcp(packet, length)) {
@@ -552,7 +550,7 @@ namespace ortc
       }
 
       ZS_LOG_TRACE(log("received packet") + ZS_PARAM("via", IICETypes::toString(IICETypes::Components::Component_RTCP)) + ZS_PARAM("buffer size", length))
-      return DeliverRtp(mediaType, packet, length);
+	  return DeliverRtp(mediaType, packet, length, timestamp);
     }
 
     //-------------------------------------------------------------------------
@@ -563,7 +561,7 @@ namespace ortc
     #pragma mark RTPSender => Transport
     #pragma mark
 
-    bool RTPReceiver::SendRtp(const uint8_t* packet, size_t length)
+	bool RTPReceiver::SendRtp(const uint8_t* packet, size_t length)
     {
       IDTLSTransportPtr dtlsTransport = IDTLSTransportPtr(DTLSTransport::convert(mRTPTransport));
 
@@ -791,7 +789,8 @@ namespace ortc
     IRTPTypes::PacketReceiver::DeliveryStatuses RTPReceiver::DeliverRtp(
                                                                         MediaTypes mediaType,
                                                                         const uint8_t* packet,
-                                                                        size_t length
+                                                                        size_t length,
+																		int64_t timestamp
                                                                         )
     {
       // Minimum RTP header size.
@@ -803,8 +802,9 @@ namespace ortc
       if (mediaType == MediaTypes::MediaType_Any || mediaType == MediaTypes::MediaType_Video) {
         webrtc::internal::VideoReceiveStream* receiveStreamImpl =
           static_cast<webrtc::internal::VideoReceiveStream*>(mVideoStream.get());
-        return receiveStreamImpl->DeliverRtp(packet, length) ? DeliveryStatus_OK
-                                                             : DeliveryStatus_PacketError;
+		webrtc::PacketTime packetTime(timestamp, 0);
+		return receiveStreamImpl->DeliverRtp(packet, length, packetTime) ? DeliveryStatus_OK
+																		 : DeliveryStatus_PacketError;
       }
 
       return DeliveryStatus_UnknownSSRC;
