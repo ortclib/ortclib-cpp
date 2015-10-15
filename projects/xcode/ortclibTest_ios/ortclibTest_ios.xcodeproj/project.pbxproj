@@ -82,6 +82,8 @@
 		E2234CE11845513600F9E2C8 /* MobileCoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E2234CE01845513600F9E2C8 /* MobileCoreServices.framework */; };
 		E2234CE9184552E400F9E2C8 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E2234CE8184552E400F9E2C8 /* AudioToolbox.framework */; };
 		E2234CED184553C400F9E2C8 /* AssetsLibrary.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E2234CEC184553C300F9E2C8 /* AssetsLibrary.framework */; };
+		E2688C8F1BCFCCE3005C3731 /* librtc_event_log.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E2688C8E1BCFCCE3005C3731 /* librtc_event_log.a */; settings = {ASSET_TAGS = (); }; };
+		E2688C911BCFCD00005C3731 /* libisac_common.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E2688C901BCFCD00005C3731 /* libisac_common.a */; settings = {ASSET_TAGS = (); }; };
 		E2F20060184413B3005234CC /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E2F2005F184413B3005234CC /* Foundation.framework */; };
 		E2F20062184413B3005234CC /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E2F20061184413B3005234CC /* CoreGraphics.framework */; };
 		E2F20064184413B3005234CC /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E2F20063184413B3005234CC /* UIKit.framework */; };
@@ -272,6 +274,8 @@
 		E2234CE01845513600F9E2C8 /* MobileCoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MobileCoreServices.framework; path = System/Library/Frameworks/MobileCoreServices.framework; sourceTree = SDKROOT; };
 		E2234CE8184552E400F9E2C8 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 		E2234CEC184553C300F9E2C8 /* AssetsLibrary.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AssetsLibrary.framework; path = System/Library/Frameworks/AssetsLibrary.framework; sourceTree = SDKROOT; };
+		E2688C8E1BCFCCE3005C3731 /* librtc_event_log.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = librtc_event_log.a; path = "../../../../webrtc/out_ios/Debug-iphoneos/librtc_event_log.a"; sourceTree = "<group>"; };
+		E2688C901BCFCD00005C3731 /* libisac_common.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libisac_common.a; path = "../../../../webrtc/out_ios/Debug-iphoneos/libisac_common.a"; sourceTree = "<group>"; };
 		E27A76081A40E7D6000A3D5C /* idnkit_ios.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = idnkit_ios.xcodeproj; path = ../../../../idnkit/projects/xcode/idnkit_ios.xcodeproj; sourceTree = "<group>"; };
 		E2F2005C184413B3005234CC /* ortclibTest_ios.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ortclibTest_ios.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E2F2005F184413B3005234CC /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
@@ -307,6 +311,7 @@
 				9451F2B41BC551CE008CB8D7 /* libcommon_audio.a in Frameworks */,
 				9451F2B51BC551CE008CB8D7 /* libcommon_video.a in Frameworks */,
 				9451F2B61BC551CE008CB8D7 /* libfield_trial_default.a in Frameworks */,
+				E2688C911BCFCD00005C3731 /* libisac_common.a in Frameworks */,
 				9451F2B71BC551CE008CB8D7 /* libg711.a in Frameworks */,
 				9451F2B81BC551CE008CB8D7 /* libg722.a in Frameworks */,
 				9451F2B91BC551CE008CB8D7 /* libilbc.a in Frameworks */,
@@ -321,6 +326,7 @@
 				9451F2C21BC551CE008CB8D7 /* libpcm16b.a in Frameworks */,
 				9451F2C31BC551CE008CB8D7 /* libred.a in Frameworks */,
 				9451F2C41BC551CE008CB8D7 /* libremote_bitrate_estimator.a in Frameworks */,
+				E2688C8F1BCFCCE3005C3731 /* librtc_event_log.a in Frameworks */,
 				9451F2C51BC551CE008CB8D7 /* librtc_base_approved.a in Frameworks */,
 				9451F2C61BC551CE008CB8D7 /* librtp_rtcp.a in Frameworks */,
 				9451F2C71BC551CE008CB8D7 /* libsrtp.a in Frameworks */,
@@ -484,6 +490,7 @@
 				9451F2841BC551CE008CB8D7 /* libg711.a */,
 				9451F2851BC551CE008CB8D7 /* libg722.a */,
 				9451F2861BC551CE008CB8D7 /* libilbc.a */,
+				E2688C901BCFCD00005C3731 /* libisac_common.a */,
 				9451F2871BC551CE008CB8D7 /* libisac_fix.a */,
 				9451F2881BC551CE008CB8D7 /* libisac_neon.a */,
 				9451F2891BC551CE008CB8D7 /* libisac.a */,
@@ -496,6 +503,7 @@
 				9451F2901BC551CE008CB8D7 /* libred.a */,
 				9451F2911BC551CE008CB8D7 /* libremote_bitrate_estimator.a */,
 				9451F2921BC551CE008CB8D7 /* librtc_base_approved.a */,
+				E2688C8E1BCFCCE3005C3731 /* librtc_event_log.a */,
 				9451F2931BC551CE008CB8D7 /* librtp_rtcp.a */,
 				9451F2941BC551CE008CB8D7 /* libsrtp.a */,
 				9451F2951BC551CE008CB8D7 /* libsystem_wrappers.a */,

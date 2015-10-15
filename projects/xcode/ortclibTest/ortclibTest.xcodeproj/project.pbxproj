@@ -86,6 +86,9 @@
 		94A4EE0F1B8B48D3008473EF /* QTKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 94A4EE0E1B8B48D3008473EF /* QTKit.framework */; };
 		94A4EE131B8B492D008473EF /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 94A4EE121B8B492D008473EF /* OpenGL.framework */; };
 		94D43CC91B8B413C00B3A66F /* libcryptopp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 00EC10A71B56F453008FC2A0 /* libcryptopp.a */; };
+		E2688C681BCFAF55005C3731 /* librtc_event_log_proto.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E2688C661BCFAF55005C3731 /* librtc_event_log_proto.a */; settings = {ASSET_TAGS = (); }; };
+		E2688C691BCFAF55005C3731 /* librtc_event_log.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E2688C671BCFAF55005C3731 /* librtc_event_log.a */; settings = {ASSET_TAGS = (); }; };
+		E2688C711BCFAF6A005C3731 /* libisac_common.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E2688C701BCFAF6A005C3731 /* libisac_common.a */; settings = {ASSET_TAGS = (); }; };
 		E2973FEF1BBC420D0000CDDB /* libhfservices.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5005D8E81B5DCC6A00AFEC07 /* libhfservices.a */; };
 		E2973FF01BBC420D0000CDDB /* libidnkit.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 00EC10AA1B56F453008FC2A0 /* libidnkit.a */; };
 		E2973FF11BBC420D0000CDDB /* libortclib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5005D8EC1B5DCC6A00AFEC07 /* libortclib.a */; };
@@ -261,6 +264,9 @@
 		94E2B2B61B541C4800582A08 /* idnkit.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = idnkit.xcodeproj; path = ../../../../idnkit/projects/xcode/idnkit.xcodeproj; sourceTree = SOURCE_ROOT; };
 		94E2B2BC1B541C5800582A08 /* udns.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = udns.xcodeproj; path = ../../../../udns/projects/xcode/udns/udns.xcodeproj; sourceTree = SOURCE_ROOT; };
 		94E2B2C21B541C6C00582A08 /* zsLib.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = zsLib.xcodeproj; path = ../../../../zsLib/projects/xcode/zsLib/zsLib.xcodeproj; sourceTree = SOURCE_ROOT; };
+		E2688C661BCFAF55005C3731 /* librtc_event_log_proto.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = librtc_event_log_proto.a; path = ../../../../webrtc/out_mac/Debug/librtc_event_log_proto.a; sourceTree = "<group>"; };
+		E2688C671BCFAF55005C3731 /* librtc_event_log.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = librtc_event_log.a; path = ../../../../webrtc/out_mac/Debug/librtc_event_log.a; sourceTree = "<group>"; };
+		E2688C701BCFAF6A005C3731 /* libisac_common.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libisac_common.a; path = ../../../../webrtc/out_mac/Debug/libisac_common.a; sourceTree = "<group>"; };
 		E2973FF41BBC42BE0000CDDB /* libcurl.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libcurl.tbd; path = usr/lib/libcurl.tbd; sourceTree = SDKROOT; };
 		E2A4ED681BBB6E0600613063 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
 		E2A4ED6A1BBB6EF200613063 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
@@ -274,6 +280,7 @@
 			files = (
 				9489179A1BC471250011DA02 /* libaudio_coding_module.a in Frameworks */,
 				9489179B1BC471250011DA02 /* libaudio_conference_mixer.a in Frameworks */,
+				E2688C681BCFAF55005C3731 /* librtc_event_log_proto.a in Frameworks */,
 				9489179C1BC471250011DA02 /* libaudio_decoder_interface.a in Frameworks */,
 				9489179D1BC471250011DA02 /* libaudio_device.a in Frameworks */,
 				9489179E1BC471250011DA02 /* libaudio_encoder_interface.a in Frameworks */,
@@ -296,6 +303,7 @@
 				948917AF1BC471250011DA02 /* libmetrics_default.a in Frameworks */,
 				948917B01BC471250011DA02 /* libneteq.a in Frameworks */,
 				948917B11BC471250011DA02 /* libopenmax_dl.a in Frameworks */,
+				E2688C691BCFAF55005C3731 /* librtc_event_log.a in Frameworks */,
 				948917B21BC471250011DA02 /* libopus.a in Frameworks */,
 				948917B31BC471250011DA02 /* libpaced_sender.a in Frameworks */,
 				948917B41BC471250011DA02 /* libpcm16b.a in Frameworks */,
@@ -348,6 +356,7 @@
 				94A4EE091B8B4831008473EF /* CoreServices.framework in Frameworks */,
 				94A4EE061B8B4759008473EF /* CoreGraphics.framework in Frameworks */,
 				94A4EE071B8B4759008473EF /* CoreVideo.framework in Frameworks */,
+				E2688C711BCFAF6A005C3731 /* libisac_common.a in Frameworks */,
 				0056EEDB1B13C2A80035B351 /* CoreFoundation.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -448,6 +457,7 @@
 				9499DAEB1BC407DA000EA8E9 /* libg711.a */,
 				9499DAEC1BC407DA000EA8E9 /* libg722.a */,
 				9499DAED1BC407DA000EA8E9 /* libilbc.a */,
+				E2688C701BCFAF6A005C3731 /* libisac_common.a */,
 				9499DAEE1BC407DA000EA8E9 /* libisac.a */,
 				9499DAEF1BC407DA000EA8E9 /* libjpeg_turbo.a */,
 				9499DAF01BC407DA000EA8E9 /* libmedia_file.a */,
@@ -462,6 +472,8 @@
 				9499DAF91BC407DA000EA8E9 /* libred.a */,
 				9499DAFA1BC407DA000EA8E9 /* libremote_bitrate_estimator.a */,
 				9499DAFB1BC407DA000EA8E9 /* librtc_base_approved.a */,
+				E2688C661BCFAF55005C3731 /* librtc_event_log_proto.a */,
+				E2688C671BCFAF55005C3731 /* librtc_event_log.a */,
 				9499DAFC1BC407DA000EA8E9 /* librtp_rtcp.a */,
 				9499DAFD1BC407DA000EA8E9 /* libsrtp.a */,
 				9499DAFE1BC407DA000EA8E9 /* libsystem_wrappers.a */,
