@@ -683,56 +683,6 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  const char *IRTPTypes::toString(MediaTypes mediaType)
-  {
-    switch (mediaType) {
-      case MediaType_Unknown:  return "";
-      case MediaType_Any:      return "any";
-      case MediaType_Audio:    return "audio";
-      case MediaType_Video:    return "video";
-    }
-
-    return "unknown";
-  }
-
-  //---------------------------------------------------------------------------
-  IRTPTypes::MediaTypes IRTPTypes::toMediaType(const char *mediaType)
-  {
-    String mediaTypeStr(mediaType);
-
-    for (MediaTypes index = MediaType_First; index <= MediaType_Last; index = static_cast<MediaTypes>(static_cast<std::underlying_type<MediaTypes>::type>(index)+1)) {
-      if (mediaTypeStr == IRTPTypes::toString(index)) return index;
-    }
-
-    return MediaType_Unknown;
-  }
-
-  //---------------------------------------------------------------------------
-  const char *IRTPTypes::PacketReceiver::toString(PacketReceiver::DeliveryStatuses status)
-  {
-    switch (status) {
-      case DeliveryStatus_Unknown:        return "";
-      case DeliveryStatus_OK:             return "OK";
-      case DeliveryStatus_UnknownSSRC:    return "unknown SSRC";
-      case DeliveryStatus_PacketError:    return "packet error";
-    }
-
-    return "unknown";
-  }
-
-  //---------------------------------------------------------------------------
-  IRTPTypes::PacketReceiver::DeliveryStatuses IRTPTypes::PacketReceiver::toDeliveryStatus(const char *status)
-  {
-    String statusStr(status);
-
-    for (PacketReceiver::DeliveryStatuses index = DeliveryStatus_First; index <= DeliveryStatus_Last; index = static_cast<PacketReceiver::DeliveryStatuses>(static_cast<std::underlying_type<PacketReceiver::DeliveryStatuses>::type>(index)+1)) {
-      if (statusStr == IRTPTypes::PacketReceiver::toString(index)) return index;
-    }
-
-    return DeliveryStatus_Unknown;
-  }
-
-  //---------------------------------------------------------------------------
   const char *IRTPTypes::toString(SupportedCodecs codec)
   {
     switch (codec) {

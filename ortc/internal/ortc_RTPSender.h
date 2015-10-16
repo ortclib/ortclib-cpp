@@ -41,15 +41,6 @@
 #include <zsLib/MessageQueueAssociator.h>
 #include <zsLib/Timer.h>
 
-#include <webrtc/base/scoped_ptr.h>
-#include <webrtc/modules/utility/interface/process_thread.h>
-#include <webrtc/Transport.h>
-#include <webrtc/video/transport_adapter.h>
-#include <webrtc/video_engine/vie_channel_group.h>
-#include <webrtc/video_send_stream.h>
-#include <webrtc/modules/video_capture/include/video_capture.h>
-
-
 //#define ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE "ortc/sctp/max-message-size"
 
 namespace ortc
@@ -58,9 +49,11 @@ namespace ortc
   {
     ZS_DECLARE_INTERACTION_PTR(IRTPSenderForSettings)
     ZS_DECLARE_INTERACTION_PTR(IRTPSenderForRTPListener)
+    ZS_DECLARE_INTERACTION_PTR(IRTPSenderChannelForRTPSender)
 
     ZS_DECLARE_INTERACTION_PTR(ISecureTransportForRTPSender)
     ZS_DECLARE_INTERACTION_PTR(IRTPListenerForRTPSender)
+    ZS_DECLARE_INTERACTION_PTR(IRTPSenderForRTPSenderChannel)
     ZS_DECLARE_INTERACTION_PTR(IMediaStreamTrackForRTPSender)
 
     ZS_DECLARE_INTERACTION_PROXY(IRTPSenderAsyncDelegate)
@@ -109,6 +102,26 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
+    #pragma mark IRTPSenderForRTPSenderChannel
+    #pragma mark
+
+    interaction IRTPSenderForRTPSenderChannel
+    {
+      ZS_DECLARE_TYPEDEF_PTR(IRTPSenderForRTPSenderChannel, ForRTPSenderChannel)
+
+      static ElementPtr toDebug(ForRTPSenderChannelPtr transport);
+
+      virtual PUID getID() const = 0;
+
+      virtual bool sendPacket(RTPPacketPtr packet) = 0;
+      virtual bool sendPacket(RTCPPacketPtr packet) = 0;
+    };
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
     #pragma mark IRTPSenderForDTMFSender
     #pragma mark
 
@@ -148,13 +161,11 @@ namespace ortc
                       public IRTPSender,
                       public IRTPSenderForSettings,
                       public IRTPSenderForRTPListener,
+                      public IRTPSenderForRTPSenderChannel,
                       public IRTPSenderForDTMFSender,
                       public IWakeDelegate,
                       public zsLib::ITimerDelegate,
-                      public IRTPSenderAsyncDelegate,
-                      public IRTPTypes::PacketReceiver,
-                      public webrtc::newapi::Transport,
-                      public webrtc::VideoCaptureDataCallback
+                      public IRTPSenderAsyncDelegate
     {
     protected:
       struct make_private {};
@@ -164,10 +175,12 @@ namespace ortc
       friend interaction IRTPSenderFactory;
       friend interaction IRTPSenderForSettings;
       friend interaction IRTPSenderForRTPListener;
+      friend interaction IRTPSenderForRTPSenderChannel;
       friend interaction IRTPSenderForDTMFSender;
 
       ZS_DECLARE_TYPEDEF_PTR(ISecureTransportForRTPSender, UseSecureTransport)
       ZS_DECLARE_TYPEDEF_PTR(IRTPListenerForRTPSender, UseListener)
+      ZS_DECLARE_TYPEDEF_PTR(IRTPSenderChannelForRTPSender, UseChannel)
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPSender, UseMediaStreamTrack)
 
       enum States
@@ -193,8 +206,7 @@ namespace ortc
       RTPSender(Noop) :
         Noop(true),
         MessageQueueAssociator(IMessageQueuePtr()),
-        SharedRecursiveLock(SharedRecursiveLock::create()),
-        mTransportAdapter(nullptr)
+        SharedRecursiveLock(SharedRecursiveLock::create())
       {}
 
       void init();
@@ -214,7 +226,7 @@ namespace ortc
       #pragma mark RTPSender => IStatsProvider
       #pragma mark
 
-      virtual PromiseWithStatsReportPtr getStats() const throw(InvalidStateError);
+      virtual PromiseWithStatsReportPtr getStats() const throw(InvalidStateError) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -230,7 +242,7 @@ namespace ortc
                                  IRTCPTransportPtr rtcpTransport = IRTCPTransportPtr()
                                  );
 
-      virtual PUID getID() const {return mID;}
+      virtual PUID getID() const override {return mID;}
 
       virtual IRTPSenderSubscriptionPtr subscribe(IRTPSenderDelegatePtr delegate) override;
 
@@ -262,7 +274,18 @@ namespace ortc
       virtual bool handlePacket(
                                 IICETypes::Components viaTransport,
                                 RTCPPacketPtr packet
-                                );
+                                ) override;
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPSender => IRTPSenderForRTPSenderChannel
+      #pragma mark
+
+      // (duplciate) static ElementPtr toDebug(ForRTPListenerPtr transport);
+
+      // (duplicate) virtual PUID getID() const = 0;
+      virtual bool sendPacket(RTPPacketPtr packet) override;
+      virtual bool sendPacket(RTCPPacketPtr packet) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -293,35 +316,6 @@ namespace ortc
       #pragma mark RTPSender => IRTPSenderAsyncDelegate
       #pragma mark
 
-      //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTPSender => IRTPTypes::PacketReceiver
-      #pragma mark
-
-      virtual DeliveryStatuses DeliverPacket(
-                                             MediaTypes mediaType,
-                                             const uint8_t* packet,
-                                             size_t length,
-											 int64_t timestamp
-                                             );
-
-      //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTPSender => Transport
-      #pragma mark
-
-      virtual bool SendRtp(const uint8_t* packet, size_t length);
-      virtual bool SendRtcp(const uint8_t* packet, size_t length);
-
-      //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTPSender => VideoCaptureDataCallback
-      #pragma mark
-
-      virtual void OnIncomingCapturedFrame(const int32_t id, const webrtc::VideoFrame& videoFrame);
-
-      virtual void OnCaptureDelayChanged(const int32_t id, const int32_t delay);
-
     protected:
       //-----------------------------------------------------------------------
       #pragma mark
@@ -342,12 +336,6 @@ namespace ortc
 
       void setState(States state);
       void setError(WORD error, const char *reason = NULL);
-
-      DeliveryStatuses DeliverRtcp(
-                                   MediaTypes mediaType,
-                                   const uint8_t* packet,
-                                   size_t length
-                                   );
 
       bool sendPacket(
                       IICETypes::Components packetType,
@@ -373,8 +361,6 @@ namespace ortc
       WORD mLastError {};
       String mLastErrorReason;
 
-      UseMediaStreamTrackPtr mVideoTrack;
-
       ParametersPtr mParameters;
 
       UseListenerPtr mListener;
@@ -384,12 +370,7 @@ namespace ortc
 
       IICETypes::Components mSendRTPOverTransport {IICETypes::Component_RTP};
       IICETypes::Components mSendRTCPOverTransport {IICETypes::Component_RTCP};
-      IICETypes::Components mReceiveRTCPOverTransport{ IICETypes::Component_RTCP };
-
-      rtc::scoped_ptr<webrtc::ProcessThread> mModuleProcessThread;
-      rtc::scoped_ptr<webrtc::ChannelGroup> mChannelGroup;
-      rtc::scoped_ptr<webrtc::VideoSendStream> mVideoStream;
-      webrtc::internal::TransportAdapter mTransportAdapter;
+      IICETypes::Components mReceiveRTCPOverTransport {IICETypes::Component_RTCP};
     };
 
     //-------------------------------------------------------------------------

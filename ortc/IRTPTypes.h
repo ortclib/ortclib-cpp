@@ -275,69 +275,6 @@ namespace ortc
 
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IRTPTypes::MediaTypes
-    #pragma mark
-
-#define TODO_REMOVE_THIS_PLEASE 1
-#define TODO_REMOVE_THIS_PLEASE 2
-    enum MediaTypes
-    {
-      MediaType_First,
-
-      MediaType_Unknown = MediaType_First,
-
-      MediaType_Any,
-      MediaType_Audio,
-      MediaType_Video,
-
-      MediaType_Last = MediaType_Video,
-    };
-
-    static const char *toString(MediaTypes mediaType);
-    static MediaTypes toMediaType(const char *mediaType);
-
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPTypes::PacketReceiver
-    #pragma mark
-
-    class PacketReceiver {
-    public:
-
-      //-------------------------------------------------------------------------
-      #pragma mark
-      #pragma mark IRTPTypes::PacketReceiver::DeliveryStatuses
-      #pragma mark
-
-      enum DeliveryStatuses {
-        DeliveryStatus_First,
-
-        DeliveryStatus_Unknown = MediaType_First,
-
-        DeliveryStatus_OK,
-        DeliveryStatus_UnknownSSRC,
-        DeliveryStatus_PacketError,
-
-        DeliveryStatus_Last = DeliveryStatus_PacketError,
-      };
-
-      static const char *toString(DeliveryStatuses status);
-      static DeliveryStatuses toDeliveryStatus(const char *status);
-
-      virtual DeliveryStatuses DeliverPacket(
-                                             MediaTypes media_type,
-                                             const uint8_t* packet,
-                                             size_t length,
-											 int64_t timestamp
-                                             ) = 0;
-
-    protected:
-      virtual ~PacketReceiver() {}
-    };
-
-
-    //-------------------------------------------------------------------------
-    #pragma mark
     #pragma mark IRTPTypes::SupportedCodecs
     #pragma mark
 

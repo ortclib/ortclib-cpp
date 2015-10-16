@@ -105,10 +105,10 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    ElementPtr IRTPReceiverForRTPListener::toDebug(ForRTPListenerPtr transport)
+    ElementPtr IRTPReceiverForRTPListener::toDebug(ForRTPListenerPtr object)
     {
-      if (!transport) return ElementPtr();
-      return ZS_DYNAMIC_PTR_CAST(RTPReceiver, transport)->toDebug();
+      if (!object) return ElementPtr();
+      return ZS_DYNAMIC_PTR_CAST(RTPReceiver, object)->toDebug();
     }
 
     //-------------------------------------------------------------------------
@@ -116,25 +116,14 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark RTPReceiver::ReceiverVideoRenderer
+    #pragma mark IRTPReceiverForRTPReceiverChannel
     #pragma mark
 
-    //---------------------------------------------------------------------------
-    void RTPReceiver::ReceiverVideoRenderer::setMediaStreamTrack(UseMediaStreamTrackPtr videoTrack)
-    {
-      mVideoTrack = videoTrack;
-    }
-
     //-------------------------------------------------------------------------
-    void RTPReceiver::ReceiverVideoRenderer::RenderFrame(const webrtc::VideoFrame& video_frame, int time_to_render_ms)
+    ElementPtr IRTPReceiverForRTPReceiverChannel::toDebug(ForRTPReceiverChannelPtr object)
     {
-      mVideoTrack->renderVideoFrame(video_frame);
-    }
-
-    //-------------------------------------------------------------------------
-    bool RTPReceiver::ReceiverVideoRenderer::IsTextureSupported() const
-    {
-      return false;
+      if (!object) return ElementPtr();
+      return ZS_DYNAMIC_PTR_CAST(RTPReceiver, object)->toDebug();
     }
 
     //-------------------------------------------------------------------------
@@ -166,11 +155,7 @@ namespace ortc
                              IRTCPTransportPtr rtcpTransport
                              ) :
       MessageQueueAssociator(queue),
-      SharedRecursiveLock(SharedRecursiveLock::create()),
-      mModuleProcessThread(webrtc::ProcessThread::Create("RTPReceiverThread")),
-      mChannelGroup(new webrtc::ChannelGroup(mModuleProcessThread.get())),
-      mTransportAdapter(nullptr),
-      mReceiverVideoRenderer()
+      SharedRecursiveLock(SharedRecursiveLock::create())
     {
       ZS_LOG_DETAIL(debug("created"))
 
@@ -185,43 +170,6 @@ namespace ortc
     {
       AutoRecursiveLock lock(*this);
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
-
-      mModuleProcessThread->Start();
-
-      IMediaStreamTrackTypes::ConstraintsPtr constraints = IMediaStreamTrackTypes::Constraints::create();
-
-      mVideoTrack = IMediaStreamTrackFactory::singleton().create(
-                                                                 IMediaStreamTrackTypes::Kinds::Kind_Video,
-                                                                 true,
-                                                                 constraints->mVideo
-                                                                 );
-      mReceiverVideoRenderer.setMediaStreamTrack(mVideoTrack);
-
-      int numCpuCores = 2;
-      int channelID = 2;
-	  webrtc::newapi::Transport* transport = this;
-	  webrtc::VideoReceiveStream::Config config(transport);
-      webrtc::VoiceEngine* voiceEngine = NULL;
-
-      webrtc::VideoCodecType type = webrtc::kVideoCodecVP8;
-      webrtc::VideoDecoder* videoDecoder = webrtc::VideoDecoder::Create(webrtc::VideoDecoder::kVp8);
-      webrtc::VideoReceiveStream::Decoder decoder;
-      decoder.decoder = videoDecoder;
-      decoder.payload_name = "VP8";
-      decoder.payload_type = 100;
-
-      config.rtp.remote_ssrc = 1000;
-      config.rtp.local_ssrc = 1020;
-      config.rtp.rtcp_mode = webrtc::newapi::kRtcpReducedSize;
-      config.rtp.remb = true;
-      config.rtp.nack.rtp_history_ms = 1000;
-      config.decoders.push_back(decoder);
-      config.renderer = &mReceiverVideoRenderer;
-
-      mVideoStream = rtc::scoped_ptr<webrtc::VideoReceiveStream>(new webrtc::internal::VideoReceiveStream(
-        numCpuCores, mChannelGroup.get(),
-        channelID, config,
-        voiceEngine));
     }
 
     //-------------------------------------------------------------------------
@@ -410,8 +358,6 @@ namespace ortc
       RTCPPacketList historicalRTCPPackets;
       mListener->registerReceiver(mThisWeak.lock(), *mParameters, historicalRTCPPackets);
 
-      mVideoStream->Start();
-
 #define TODO_PROCESS_HISTORICAL_RTCP_PACKETS_FROM_NEW_TRANSPORT 1
 #define TODO_PROCESS_HISTORICAL_RTCP_PACKETS_FROM_NEW_TRANSPORT 2
     }
@@ -422,8 +368,6 @@ namespace ortc
       ZS_LOG_DEBUG(log("stop called"))
 
       AutoRecursiveLock lock(*this);
-
-      mVideoStream->Stop();
 
       cancel();
     }
@@ -482,8 +426,23 @@ namespace ortc
 #define TOOD_PROCESS_PACKET_HERE 2
       }
 
-	  DeliverPacket(MediaTypes::MediaType_Video, packet->ptr(), packet->size(), 0);
       return true; // return true if handled
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPReceiver => IRTPReceiverForRTPReceiverChannel
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    bool RTPReceiver::sendPacket(RTCPPacketPtr packet)
+    {
+#define TODO 1
+#define TODO 2
+      return false;
     }
 
     //-------------------------------------------------------------------------
@@ -529,65 +488,6 @@ namespace ortc
     #pragma mark RTPReceiver => IRTPReceiverAsyncDelegate
     #pragma mark
 
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPReceiver => IRTPTypes::PacketReceiver
-    #pragma mark
-
-    IRTPTypes::PacketReceiver::DeliveryStatuses RTPReceiver::DeliverPacket(
-                                                                           MediaTypes mediaType,
-                                                                           const uint8_t* packet,
-                                                                           size_t length,
-																		   int64_t timestamp
-                                                                           )
-    {
-      if (webrtc::RtpHeaderParser::IsRtcp(packet, length)) {
-        ZS_LOG_TRACE(log("received packet") + ZS_PARAM("via", IICETypes::toString(IICETypes::Components::Component_RTP)) + ZS_PARAM("buffer size", length))
-        return DeliverRtcp(mediaType, packet, length);
-      }
-
-      ZS_LOG_TRACE(log("received packet") + ZS_PARAM("via", IICETypes::toString(IICETypes::Components::Component_RTCP)) + ZS_PARAM("buffer size", length))
-	  return DeliverRtp(mediaType, packet, length, timestamp);
-    }
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPSender => Transport
-    #pragma mark
-
-	bool RTPReceiver::SendRtp(const uint8_t* packet, size_t length)
-    {
-      IDTLSTransportPtr dtlsTransport = IDTLSTransportPtr(DTLSTransport::convert(mRTPTransport));
-
-      if (dtlsTransport && dtlsTransport->state() != IDTLSTransportTypes::State_Connected &&
-        dtlsTransport->state() != IDTLSTransportTypes::State_Validated) {
-        return true;
-      }
-
-      ZS_LOG_TRACE(log("sent packet") + ZS_PARAM("via", IICETypes::toString(IICETypes::Components::Component_RTP)) + ZS_PARAM("buffer size", length))
-      
-      return sendPacket(IICETypes::Components::Component_RTP, packet, length);
-    }
-
-    bool RTPReceiver::SendRtcp(const uint8_t* packet, size_t length)
-    {
-      IDTLSTransportPtr dtlsTransport = IDTLSTransportPtr(DTLSTransport::convert(mRTCPTransport));
-
-      if (dtlsTransport && dtlsTransport->state() != IDTLSTransportTypes::State_Connected &&
-        dtlsTransport->state() != IDTLSTransportTypes::State_Validated) {
-        return true;
-      }
-
-      ZS_LOG_TRACE(log("sent packet") + ZS_PARAM("via", IICETypes::toString(IICETypes::Components::Component_RTCP)) + ZS_PARAM("buffer size", length))
-      
-      return sendPacket(IICETypes::Components::Component_RTCP, packet, length);
-    }
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -710,8 +610,7 @@ namespace ortc
       if (!mGracefulShutdownReference) mGracefulShutdownReference = mThisWeak.lock();
 
       if (mGracefulShutdownReference) {
-        mModuleProcessThread->Stop();
-        return;
+//        return;
       }
 
       //.......................................................................
@@ -766,48 +665,6 @@ namespace ortc
       mLastErrorReason = reason;
 
       ZS_LOG_WARNING(Detail, debug("error set") + ZS_PARAM("error", mLastError) + ZS_PARAM("reason", mLastErrorReason))
-    }
-
-    //-------------------------------------------------------------------------
-    IRTPTypes::PacketReceiver::DeliveryStatuses RTPReceiver::DeliverRtcp(
-                                                                         MediaTypes mediaType,
-                                                                         const uint8_t* packet,
-                                                                         size_t length
-                                                                         )
-    {
-      bool rtcpDelivered = false;
-      if (mediaType == MediaTypes::MediaType_Any || mediaType == MediaTypes::MediaType_Video) {
-        webrtc::internal::VideoReceiveStream* receiveStreamImpl =
-          static_cast<webrtc::internal::VideoReceiveStream*>(mVideoStream.get());
-        if (receiveStreamImpl->DeliverRtcp(packet, length))
-          rtcpDelivered = true;
-      }
-      return rtcpDelivered ? DeliveryStatus_OK : DeliveryStatus_PacketError;
-    }
-
-    //-------------------------------------------------------------------------
-    IRTPTypes::PacketReceiver::DeliveryStatuses RTPReceiver::DeliverRtp(
-                                                                        MediaTypes mediaType,
-                                                                        const uint8_t* packet,
-                                                                        size_t length,
-																		int64_t timestamp
-                                                                        )
-    {
-      // Minimum RTP header size.
-      if (length < 12)
-        return DeliveryStatus_PacketError;
-
-      uint32_t ssrc = webrtc::ByteReader<uint32_t>::ReadBigEndian(&packet[8]);
-
-      if (mediaType == MediaTypes::MediaType_Any || mediaType == MediaTypes::MediaType_Video) {
-        webrtc::internal::VideoReceiveStream* receiveStreamImpl =
-          static_cast<webrtc::internal::VideoReceiveStream*>(mVideoStream.get());
-		webrtc::PacketTime packetTime(timestamp, 0);
-		return receiveStreamImpl->DeliverRtp(packet, length, packetTime) ? DeliveryStatus_OK
-																		 : DeliveryStatus_PacketError;
-      }
-
-      return DeliveryStatus_UnknownSSRC;
     }
 
     //-------------------------------------------------------------------------
