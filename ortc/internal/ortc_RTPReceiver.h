@@ -51,6 +51,8 @@ namespace ortc
   {
     ZS_DECLARE_INTERACTION_PTR(IRTPReceiverForSettings)
     ZS_DECLARE_INTERACTION_PTR(IRTPReceiverForRTPListener)
+    ZS_DECLARE_INTERACTION_PTR(IRTPReceiverForMediaStreamTrack)
+
     ZS_DECLARE_INTERACTION_PTR(IRTPReceiverChannelForRTPReceiver)
 
     ZS_DECLARE_INTERACTION_PTR(ISecureTransportForRTPReceiver)
@@ -128,6 +130,23 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
+    #pragma mark IRTPReceiverForMediaStreamTrack
+    #pragma mark
+
+    interaction IRTPReceiverForMediaStreamTrack
+    {
+      ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverForMediaStreamTrack, ForMediaStreamTrack)
+
+      static ElementPtr toDebug(ForMediaStreamTrackPtr object);
+
+      virtual PUID getID() const = 0;
+    };
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
     #pragma mark IRTPReceiverAsyncDelegate
     #pragma mark
 
@@ -151,6 +170,7 @@ namespace ortc
                         public IRTPReceiverForSettings,
                         public IRTPReceiverForRTPListener,
                         public IRTPReceiverForRTPReceiverChannel,
+                        public IRTPReceiverForMediaStreamTrack,
                         public IWakeDelegate,
                         public zsLib::ITimerDelegate,
                         public IRTPReceiverAsyncDelegate
@@ -164,6 +184,7 @@ namespace ortc
       friend interaction IRTPReceiverForSettings;
       friend interaction IRTPReceiverForRTPListener;
       friend interaction IRTPReceiverForRTPReceiverChannel;
+      friend interaction IRTPReceiverForMediaStreamTrack;
 
       ZS_DECLARE_TYPEDEF_PTR(ISecureTransportForRTPReceiver, UseSecureTransport)
       ZS_DECLARE_TYPEDEF_PTR(IRTPListenerForRTPReceiver, UseListener)
@@ -204,6 +225,8 @@ namespace ortc
       static RTPReceiverPtr convert(IRTPReceiverPtr object);
       static RTPReceiverPtr convert(ForSettingsPtr object);
       static RTPReceiverPtr convert(ForRTPListenerPtr object);
+      static RTPReceiverPtr convert(ForRTPReceiverChannelPtr object);
+      static RTPReceiverPtr convert(ForMediaStreamTrackPtr object);
 
     protected:
       //-----------------------------------------------------------------------
@@ -277,6 +300,15 @@ namespace ortc
       // (duplicate) virtual PUID getID() const = 0;
 
       virtual bool sendPacket(RTCPPacketPtr packet) override;
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPReceiver => IRTPReceiverForMediaStreamTrack
+      #pragma mark
+
+      // (duplicate) static ElementPtr toDebug(ForMediaStreamTrackPtr object);
+
+      // (duplicate) virtual PUID getID() const = 0;
 
       //-----------------------------------------------------------------------
       #pragma mark

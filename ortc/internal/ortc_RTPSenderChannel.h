@@ -58,8 +58,10 @@ namespace ortc
   {
     ZS_DECLARE_INTERACTION_PTR(IRTPSenderChannelForSettings)
     ZS_DECLARE_INTERACTION_PTR(IRTPSenderChannelForRTPSender)
+    ZS_DECLARE_INTERACTION_PTR(IRTPSenderChannelForMediaStreamTrack)
 
     ZS_DECLARE_INTERACTION_PTR(IRTPSenderForRTPSenderChannel)
+    ZS_DECLARE_INTERACTION_PTR(IMediaStreamTrackForRTPSenderChannel)
 
     ZS_DECLARE_INTERACTION_PROXY(IRTPSenderChannelAsyncDelegate)
 
@@ -113,6 +115,23 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
+    #pragma mark IRTPSenderChannelForMediaStreamTrack
+    #pragma mark
+
+    interaction IRTPSenderChannelForMediaStreamTrack
+    {
+      ZS_DECLARE_TYPEDEF_PTR(IRTPSenderChannelForMediaStreamTrack, ForMediaStreamTrack)
+
+      static ElementPtr toDebug(ForMediaStreamTrackPtr object);
+
+      virtual PUID getID() const = 0;
+    };
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
     #pragma mark IRTPSenderChannelAsyncDelegate
     #pragma mark
 
@@ -134,6 +153,7 @@ namespace ortc
                              public SharedRecursiveLock,
                              public IRTPSenderChannelForSettings,
                              public IRTPSenderChannelForRTPSender,
+                             public IRTPSenderChannelForMediaStreamTrack,
                              public IWakeDelegate,
                              public zsLib::ITimerDelegate
     {
@@ -145,8 +165,11 @@ namespace ortc
       friend interaction IRTPSenderChannelFactory;
       friend interaction IRTPSenderChannelForSettings;
       friend interaction IRTPSenderChannelForRTPSender;
+      friend interaction IRTPSenderChannelForMediaStreamTrack;
 
       ZS_DECLARE_TYPEDEF_PTR(IRTPSenderForRTPSenderChannel, UseSender)
+      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPSenderChannel, UseMediaStreamTrack)
+
       ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters)
 
       enum States
@@ -180,6 +203,7 @@ namespace ortc
 
       static RTPSenderChannelPtr convert(ForSettingsPtr object);
       static RTPSenderChannelPtr convert(ForRTPSenderPtr object);
+      static RTPSenderChannelPtr convert(ForMediaStreamTrackPtr object);
 
 
     protected:
@@ -200,6 +224,15 @@ namespace ortc
       virtual void update(const Parameters &params) override;
 
       virtual bool handlePacket(RTCPPacketPtr packet) override;
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPSenderChannel => IRTPSenderChannelForMediaStreamTrack
+      #pragma mark
+
+      // (duplicate) static ElementPtr toDebug(ForMediaStreamTrackPtr receiver);
+
+      // (duplicate) virtual PUID getID() const = 0;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -256,7 +289,7 @@ namespace ortc
       WORD mLastError {};
       String mLastErrorReason;
 
-      UseSenderPtr mSender;
+      UseSenderWeakPtr mSender;
 
       ParametersPtr mParameters;
     };

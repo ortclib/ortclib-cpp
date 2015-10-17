@@ -131,6 +131,21 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
+    #pragma mark IRTPReceiverForMediaStreamTrack
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    ElementPtr IRTPReceiverForMediaStreamTrack::toDebug(ForMediaStreamTrackPtr object)
+    {
+      if (!object) return ElementPtr();
+      return ZS_DYNAMIC_PTR_CAST(RTPReceiver, object)->toDebug();
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
     #pragma mark RTPReceiver
     #pragma mark
     
@@ -197,6 +212,18 @@ namespace ortc
 
     //-------------------------------------------------------------------------
     RTPReceiverPtr RTPReceiver::convert(ForRTPListenerPtr object)
+    {
+      return ZS_DYNAMIC_PTR_CAST(RTPReceiver, object);
+    }
+
+    //-------------------------------------------------------------------------
+    RTPReceiverPtr RTPReceiver::convert(ForRTPReceiverChannelPtr object)
+    {
+      return ZS_DYNAMIC_PTR_CAST(RTPReceiver, object);
+    }
+
+    //-------------------------------------------------------------------------
+    RTPReceiverPtr RTPReceiver::convert(ForMediaStreamTrackPtr object)
     {
       return ZS_DYNAMIC_PTR_CAST(RTPReceiver, object);
     }

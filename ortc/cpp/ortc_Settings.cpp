@@ -39,10 +39,12 @@
 #include <ortc/internal/ortc_ICETransport.h>
 #include <ortc/internal/ortc_Identity.h>
 #include <ortc/internal/ortc_MediaDevices.h>
+#include <ortc/internal/ortc_MediaStreamTrack.h>
 #include <ortc/internal/ortc_RTPListener.h>
 #include <ortc/internal/ortc_RTPReceiver.h>
+#include <ortc/internal/ortc_RTPReceiverChannel.h>
 #include <ortc/internal/ortc_RTPSender.h>
-#include <ortc/internal/ortc_RTPSender.h>
+#include <ortc/internal/ortc_RTPSenderChannel.h>
 #include <ortc/internal/ortc_SCTPTransport.h>
 #include <ortc/internal/ortc_SCTPTransportListener.h>
 #include <ortc/internal/ortc_SRTPTransport.h>
@@ -160,9 +162,12 @@ namespace ortc
       IICETransportForSettings::applyDefaults();
       IIdentityForSettings::applyDefaults();
       IMediaDevicesForSettings::applyDefaults();
+      IMediaStreamTrackForSettings::applyDefaults();
       IRTPListenerForSettings::applyDefaults();
       IRTPReceiverForSettings::applyDefaults();
+      IRTPReceiverChannelForSettings::applyDefaults();
       IRTPSenderForSettings::applyDefaults();
+      IRTPSenderChannelForSettings::applyDefaults();
       ISCTPTransportForSettings::applyDefaults();
       ISCTPTransportListenerForSettings::applyDefaults();
       ISRTPTransportForSettings::applyDefaults();

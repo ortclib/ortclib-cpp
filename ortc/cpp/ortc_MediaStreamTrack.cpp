@@ -31,6 +31,10 @@
 
 #include <ortc/internal/ortc_MediaStreamTrack.h>
 #include <ortc/internal/ortc_DTLSTransport.h>
+#include <ortc/internal/ortc_RTPSender.h>
+#include <ortc/internal/ortc_RTPSenderChannel.h>
+#include <ortc/internal/ortc_RTPReceiver.h>
+#include <ortc/internal/ortc_RTPReceiverChannel.h>
 #include <ortc/internal/ortc_ORTC.h>
 #include <ortc/internal/platform.h>
 
@@ -91,6 +95,20 @@ namespace ortc
     void IMediaStreamTrackForSettings::applyDefaults()
     {
 //      UseSettings::setUInt(ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE, 5*1024);
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IMediaStreamTrackForRTPReceiver
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    MediaStreamTrackPtr IMediaStreamTrackForRTPReceiver::create(Kinds kind)
+    {
+      return internal::IMediaStreamTrackFactory::singleton().create(kind);
     }
 
     //-------------------------------------------------------------------------
@@ -233,7 +251,19 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    MediaStreamTrackPtr MediaStreamTrack::convert(ForSenderChannelPtr object)
+    {
+      return ZS_DYNAMIC_PTR_CAST(MediaStreamTrack, object);
+    }
+
+    //-------------------------------------------------------------------------
     MediaStreamTrackPtr MediaStreamTrack::convert(ForReceiverPtr object)
+    {
+      return ZS_DYNAMIC_PTR_CAST(MediaStreamTrack, object);
+    }
+
+    //-------------------------------------------------------------------------
+    MediaStreamTrackPtr MediaStreamTrack::convert(ForReceiverChannelPtr object)
     {
       return ZS_DYNAMIC_PTR_CAST(MediaStreamTrack, object);
     }
@@ -457,11 +487,74 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark MediaStreamTrack => IMediaStreamTrackForRTPSender
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    void MediaStreamTrack::attachSenderChannel(RTPSenderChannelPtr channel)
+    {
+#define TODO 1
+#define TODO 2
+    }
+
+    //-------------------------------------------------------------------------
+    void MediaStreamTrack::detachSenderChannel(RTPSenderChannelPtr channel)
+    {
+#define TODO 1
+#define TODO 2
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark MediaStreamTrack => IMediaStreamTrackForRTPSenderChannel
+    #pragma mark
+
+    //-------------------------------------------------------------------------
     void MediaStreamTrack::registerVideoCaptureDataCallback(webrtc::VideoCaptureDataCallback* callback)
     {
       mVideoCaptureDataCallback = callback;
     }
 
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark MediaStreamTrack => IMediaStreamTrackForRTPReceiver
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    MediaStreamTrackPtr MediaStreamTrack::create(Kinds kind)
+    {
+#define TODO_MOSA_VERIFY_THIS_LOGIC 1
+#define TODO_MOSA_VERIFY_THIS_LOGIC 2
+      return create(kind, true, TrackConstraintsPtr());
+    }
+
+    //-------------------------------------------------------------------------
+    void MediaStreamTrack::setActiveReceiverChannel(RTPReceiverChannelPtr inChannel)
+    {
+      UseReceiverChannelPtr channel(inChannel);
+#define TODO 1
+#define TODO 2
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark MediaStreamTrack => IMediaStreamTrackForRTPReceiverChannel
+    #pragma mark
+
+    //-------------------------------------------------------------------------
     void MediaStreamTrack::renderVideoFrame(const webrtc::VideoFrame& videoFrame)
     {
       AutoRecursiveLock lock(*this);
@@ -755,6 +848,13 @@ namespace ortc
     {
       if (this) {}
       return internal::MediaStreamTrack::create(kind, remote, constraints);
+    }
+
+    //-------------------------------------------------------------------------
+    MediaStreamTrackPtr IMediaStreamTrackFactory::create(IMediaStreamTrackTypes::Kinds kind)
+    {
+      if (this) {}
+      return internal::MediaStreamTrack::create(kind);
     }
 
 

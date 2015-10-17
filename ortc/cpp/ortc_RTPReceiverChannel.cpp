@@ -121,6 +121,21 @@ namespace ortc
       return internal::IRTPReceiverChannelFactory::singleton().create(receiver, params);
     }
 
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IRTPReceiverChannelForMediaStreamTrack
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    ElementPtr IRTPReceiverChannelForMediaStreamTrack::toDebug(ForMediaStreamTrackPtr object)
+    {
+      if (!object) return ElementPtr();
+      return ZS_DYNAMIC_PTR_CAST(RTPReceiverChannel, object)->toDebug();
+    }
+
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -156,7 +171,7 @@ namespace ortc
     {
       ZS_LOG_DETAIL(debug("created"))
 
-      ORTC_THROW_INVALID_PARAMETERS_IF(!mReceiver)
+      ORTC_THROW_INVALID_PARAMETERS_IF(!receiver)
     }
 
     //-------------------------------------------------------------------------
@@ -185,6 +200,12 @@ namespace ortc
 
     //-------------------------------------------------------------------------
     RTPReceiverChannelPtr RTPReceiverChannel::convert(ForRTPReceiverPtr object)
+    {
+      return ZS_DYNAMIC_PTR_CAST(RTPReceiverChannel, object);
+    }
+
+    //-------------------------------------------------------------------------
+    RTPReceiverChannelPtr RTPReceiverChannel::convert(ForMediaStreamTrackPtr object)
     {
       return ZS_DYNAMIC_PTR_CAST(RTPReceiverChannel, object);
     }
@@ -325,7 +346,8 @@ namespace ortc
       UseServicesHelper::debugAppend(resultEl, "error", mLastError);
       UseServicesHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
 
-      UseServicesHelper::debugAppend(resultEl, "receiver", mReceiver ? mReceiver->getID() : 0);
+      auto receiver = mReceiver.lock();
+      UseServicesHelper::debugAppend(resultEl, "receiver", receiver ? receiver->getID() : 0);
 
       return resultEl;
     }

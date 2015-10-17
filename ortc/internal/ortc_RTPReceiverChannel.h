@@ -50,8 +50,10 @@ namespace ortc
   {
     ZS_DECLARE_INTERACTION_PTR(IRTPReceiverChannelForSettings)
     ZS_DECLARE_INTERACTION_PTR(IRTPReceiverChannelForRTPReceiver)
+    ZS_DECLARE_INTERACTION_PTR(IRTPReceiverChannelForMediaStreamTrack)
 
     ZS_DECLARE_INTERACTION_PTR(IRTPReceiverForRTPReceiverChannel)
+    ZS_DECLARE_INTERACTION_PTR(IMediaStreamTrackForRTPReceiverChannel)
 
     ZS_DECLARE_INTERACTION_PROXY(IRTPReceiverChannelAsyncDelegate)
 
@@ -95,11 +97,30 @@ namespace ortc
 
       virtual PUID getID() const = 0;
 
-      virtual void update(const Parameters &params);
+      virtual void update(const Parameters &params) = 0;
 
       virtual bool handlePacket(RTPPacketPtr packet) = 0;
 
       virtual bool handlePacket(RTCPPacketPtr packet) = 0;
+    };
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IRTPReceiverChannelForMediaStreamTrack
+    #pragma mark
+
+    interaction IRTPReceiverChannelForMediaStreamTrack
+    {
+      ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverChannelForMediaStreamTrack, ForMediaStreamTrack)
+
+      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters)
+
+      static ElementPtr toDebug(ForMediaStreamTrackPtr object);
+
+      virtual PUID getID() const = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -128,6 +149,7 @@ namespace ortc
                                public SharedRecursiveLock,
                                public IRTPReceiverChannelForSettings,
                                public IRTPReceiverChannelForRTPReceiver,
+                               public IRTPReceiverChannelForMediaStreamTrack,
                                public IWakeDelegate,
                                public zsLib::ITimerDelegate,
                                public IRTPReceiverChannelAsyncDelegate
@@ -140,8 +162,11 @@ namespace ortc
       friend interaction IRTPReceiverChannelFactory;
       friend interaction IRTPReceiverChannelForSettings;
       friend interaction IRTPReceiverChannelForRTPReceiver;
+      friend interaction IRTPReceiverChannelForMediaStreamTrack;
 
       ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverForRTPReceiverChannel, UseReceiver)
+      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPReceiverChannel, UseMediaStreamTrack)
+      
       ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters)
 
       enum States
@@ -175,11 +200,12 @@ namespace ortc
 
       static RTPReceiverChannelPtr convert(ForSettingsPtr object);
       static RTPReceiverChannelPtr convert(ForRTPReceiverPtr object);
+      static RTPReceiverChannelPtr convert(ForMediaStreamTrackPtr object);
 
     protected:
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark RTPReceiverChannel => ForRTPReceiver
+      #pragma mark RTPReceiverChannel => IRTPReceiverChannelForRTPReceiver
       #pragma mark
 
       static ElementPtr toDebug(RTPReceiverChannelPtr object);
@@ -196,6 +222,15 @@ namespace ortc
       virtual bool handlePacket(RTPPacketPtr packet) override;
 
       virtual bool handlePacket(RTCPPacketPtr packet) override;
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPReceiverChannel => IRTPReceiverChannelForMediaStreamTrack
+      #pragma mark
+
+      // (duplicate) static ElementPtr toDebug(ForMediaStreamTrackPtr object);
+
+      // (duplicate) virtual PUID getID() const = 0;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -254,9 +289,9 @@ namespace ortc
       WORD mLastError {};
       String mLastErrorReason;
 
+      UseReceiverWeakPtr mReceiver;
+
       ParametersPtr mParameters;
-      
-      UseReceiverPtr mReceiver;
     };
 
     //-------------------------------------------------------------------------

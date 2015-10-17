@@ -49,8 +49,15 @@ namespace ortc
   {
     ZS_DECLARE_INTERACTION_PTR(IMediaStreamTrackForSettings)
     ZS_DECLARE_INTERACTION_PTR(IMediaStreamTrackForRTPSender)
+    ZS_DECLARE_INTERACTION_PTR(IMediaStreamTrackForRTPSenderChannel)
     ZS_DECLARE_INTERACTION_PTR(IMediaStreamTrackForRTPReceiver)
+    ZS_DECLARE_INTERACTION_PTR(IMediaStreamTrackForRTPReceiverChannel)
     ZS_DECLARE_INTERACTION_PTR(IMediaStreamTrackForMediaDevices)
+
+    ZS_DECLARE_INTERACTION_PTR(IRTPSenderForMediaStreamTrack)
+    ZS_DECLARE_INTERACTION_PTR(IRTPSenderChannelForMediaStreamTrack)
+    ZS_DECLARE_INTERACTION_PTR(IRTPReceiverForMediaStreamTrack)
+    ZS_DECLARE_INTERACTION_PTR(IRTPReceiverChannelForMediaStreamTrack)
 
     ZS_DECLARE_INTERACTION_PROXY(IMediaStreamTrackAsyncDelegate)
 
@@ -83,9 +90,25 @@ namespace ortc
     {
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPSender, ForSender)
 
+      virtual void attachSenderChannel(RTPSenderChannelPtr channel) = 0;
+      virtual void detachSenderChannel(RTPSenderChannelPtr channel) = 0;
+    };
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IMediaStreamTrackForRTPSenderChannel
+    #pragma mark
+
+    interaction IMediaStreamTrackForRTPSenderChannel
+    {
+      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPSenderChannel, ForSenderChannel)
+
       virtual void registerVideoCaptureDataCallback(webrtc::VideoCaptureDataCallback* callback) = 0;
 
-      virtual ~IMediaStreamTrackForRTPSender() {}
+      virtual ~IMediaStreamTrackForRTPSenderChannel() {}
     };
 
     //-------------------------------------------------------------------------
@@ -100,9 +123,28 @@ namespace ortc
     {
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPReceiver, ForReceiver)
 
+      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::Kinds, Kinds)
+
+      static MediaStreamTrackPtr create(Kinds kind);
+
+      virtual void setActiveReceiverChannel(RTPReceiverChannelPtr channel) = 0;
+    };
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IMediaStreamTrackForRTPReceiverChannel
+    #pragma mark
+
+    interaction IMediaStreamTrackForRTPReceiverChannel
+    {
+      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPReceiverChannel, ForReceiverChannel)
+
       virtual void renderVideoFrame(const webrtc::VideoFrame& videoFrame) = 0;
 
-      virtual ~IMediaStreamTrackForRTPReceiver() {}
+      virtual ~IMediaStreamTrackForRTPReceiverChannel() {}
     };
 
     //-------------------------------------------------------------------------
@@ -154,7 +196,9 @@ namespace ortc
                              public IMediaStreamTrack,
                              public IMediaStreamTrackForSettings,
                              public IMediaStreamTrackForRTPSender,
+                             public IMediaStreamTrackForRTPSenderChannel,
                              public IMediaStreamTrackForRTPReceiver,
+                             public IMediaStreamTrackForRTPReceiverChannel,
                              public IMediaStreamTrackForMediaDevices,
                              public IWakeDelegate,
                              public zsLib::ITimerDelegate,
@@ -170,10 +214,19 @@ namespace ortc
       friend interaction IMediaStreamTrackForSettings;
       friend interaction IMediaStreamTrackForRTPSender;
       friend interaction IMediaStreamTrackForRTPReceiver;
+      friend interaction IMediaStreamTrackForRTPReceiverChannel;
       friend interaction IMediaStreamTrackForMediaDevices;
+      friend interaction IMediaStreamTrackForMediaDevicesChannel;
+
+      ZS_DECLARE_TYPEDEF_PTR(IRTPSenderForMediaStreamTrack, UseSender)
+      ZS_DECLARE_TYPEDEF_PTR(IRTPSenderChannelForMediaStreamTrack, UseSenderChannel)
+      ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverForMediaStreamTrack, UseReceiver)
+      ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverChannelForMediaStreamTrack, UseReceiverChannel)
 
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::TrackConstraints, TrackConstraints)
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::Constraints, Constraints)
+
+      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::Kinds, Kinds)
 
     public:
       MediaStreamTrack(
@@ -205,7 +258,9 @@ namespace ortc
       static MediaStreamTrackPtr convert(IMediaStreamTrackPtr object);
       static MediaStreamTrackPtr convert(ForSettingsPtr object);
       static MediaStreamTrackPtr convert(ForSenderPtr object);
+      static MediaStreamTrackPtr convert(ForSenderChannelPtr object);
       static MediaStreamTrackPtr convert(ForReceiverPtr object);
+      static MediaStreamTrackPtr convert(ForReceiverChannelPtr object);
       static MediaStreamTrackPtr convert(ForMediaDevicesPtr object);
 
     protected:
@@ -259,14 +314,31 @@ namespace ortc
       #pragma mark MediaStreamTrack => IMediaStreamTrackForRTPSender
       #pragma mark
 
-      virtual void registerVideoCaptureDataCallback(webrtc::VideoCaptureDataCallback* callback);
+      virtual void attachSenderChannel(RTPSenderChannelPtr channel) override;
+      virtual void detachSenderChannel(RTPSenderChannelPtr channel) override;
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark MediaStreamTrack => IMediaStreamTrackForRTPSenderChannel
+      #pragma mark
+
+      virtual void registerVideoCaptureDataCallback(webrtc::VideoCaptureDataCallback* callback) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark MediaStreamTrack => IMediaStreamTrackForRTPReceiver
       #pragma mark
 
-      virtual void renderVideoFrame(const webrtc::VideoFrame& videoFrame);
+      static MediaStreamTrackPtr create(Kinds kind);
+
+      virtual void setActiveReceiverChannel(RTPReceiverChannelPtr channel) override;
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark MediaStreamTrack => IMediaStreamTrackForRTPReceiverChannel
+      #pragma mark
+
+      virtual void renderVideoFrame(const webrtc::VideoFrame& videoFrame) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -304,9 +376,9 @@ namespace ortc
       #pragma mark MediaStreamTrack => VideoCaptureDataCallback
       #pragma mark
 
-      virtual void OnIncomingCapturedFrame(const int32_t id, const webrtc::VideoFrame& videoFrame);
+      virtual void OnIncomingCapturedFrame(const int32_t id, const webrtc::VideoFrame& videoFrame) override;
 
-      virtual void OnCaptureDelayChanged(const int32_t id, const int32_t delay);
+      virtual void OnCaptureDelayChanged(const int32_t id, const int32_t delay) override;
 
     protected:
       //-----------------------------------------------------------------------
@@ -376,6 +448,7 @@ namespace ortc
                                          bool remote,
                                          TrackConstraintsPtr constraints
                                          );
+      virtual MediaStreamTrackPtr create(IMediaStreamTrackTypes::Kinds kind);
     };
 
     class MediaStreamTrackFactory : public IFactory<IMediaStreamTrackFactory> {};

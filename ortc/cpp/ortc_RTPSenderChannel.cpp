@@ -100,7 +100,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IRTPSenderChannelForRTPListener
+    #pragma mark IRTPSenderChannelForRTPSender
     #pragma mark
 
     //-------------------------------------------------------------------------
@@ -124,10 +124,25 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
+    #pragma mark IRTPSenderChannelForMediaStreamTrack
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    ElementPtr IRTPSenderChannelForMediaStreamTrack::toDebug(ForMediaStreamTrackPtr object)
+    {
+      if (!object) return ElementPtr();
+      return ZS_DYNAMIC_PTR_CAST(RTPSenderChannel, object)->toDebug();
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
     #pragma mark RTPSenderChannel
     #pragma mark
     
-    //---------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
     const char *RTPSenderChannel::toString(States state)
     {
       switch (state) {
@@ -185,6 +200,12 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    RTPSenderChannelPtr RTPSenderChannel::convert(ForMediaStreamTrackPtr object)
+    {
+      return ZS_DYNAMIC_PTR_CAST(RTPSenderChannel, object);
+    }
+
+    //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -230,6 +251,14 @@ namespace ortc
       return false;
     }
 
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPSenderChannel => IRTPSenderChannelForMediaStreamTrack
+    #pragma mark
+    
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -311,7 +340,8 @@ namespace ortc
       UseServicesHelper::debugAppend(resultEl, "error", mLastError);
       UseServicesHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
 
-      UseServicesHelper::debugAppend(resultEl, "sender", mSender ? mSender->getID() : 0);
+      auto sender = mSender.lock();
+      UseServicesHelper::debugAppend(resultEl, "sender", sender ? sender->getID() : 0);
 
       return resultEl;
     }
