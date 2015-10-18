@@ -29,21 +29,11 @@
  
  */
 
+#pragma once
 
-#include <ortc/internal/ortc_Helper.h>
-#include <openpeer/services/IHelper.h>
+#include <ortc/internal/types.h>
 
-#include <zsLib/Log.h>
-#include <zsLib/XML.h>
-
-
-#ifdef _WIN32
-namespace std {
-  inline time_t mktime(struct tm *timeptr) { return ::mktime(timeptr); }
-}
-#endif //_WIN32
-
-namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib) }
+#include <ortc/IICETypes.h>
 
 namespace ortc
 {
@@ -54,24 +44,45 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark (helpers)
+    #pragma mark RTPHelpers
     #pragma mark
 
-    //-------------------------------------------------------------------------
-    Log::Params Helper::slog(const char *message)
+    class RTPUtils
     {
-      return Log::Params(message, "ortc::Helper");
-    }
+    public:
+      //RTP Utils
+      static WORD getBE16(const void* memory);
+      static DWORD getBE32(const void* memory);
 
-  }  //ortc::internal
+      static void setBE16(void* memory, WORD v);
+      static void setBE32(void* memory, DWORD v);
 
-  //---------------------------------------------------------------------------
-  //---------------------------------------------------------------------------
-  //---------------------------------------------------------------------------
-  //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IHelper
-  #pragma mark
+      static int getRtpPayloadType(const void* data, size_t len);
+      static int getRtpSeqNum(const void* data, size_t len);
+      static DWORD getRtpTimestamp(const void* data, size_t len);
+      static DWORD getRtpSsrc(const void* data, size_t len);
+      static size_t getRtpHeaderLen(const void* data, size_t len);
+      static int getRtcpType(const void* data, size_t len);
+      static DWORD getRtcpSsrc(const void* data, size_t len);
+      //bool getRtpHeader(const void* data, size_t len, RtpHeader* header);
 
+      static bool setRtpSsrc(void* data, size_t len, DWORD value);
+      // Assumes version 2, no padding, no extensions, no csrcs.
+      //bool setRtpHeader(void* data, size_t len, const RtpHeader& header);
+
+      static bool isRtpPacket(const void* data, size_t len);
+      static bool isRTCPPacketType(const BYTE *data, size_t len);
+
+      // True if |payload type| is 0-127.
+      static bool isValidRtpPayloadType(int payload_type);
+
+      static Time ntpToTime(
+                            DWORD ntpMS,
+                            DWORD ntpLS
+                            );
+
+      static Log::Params slog(const char *message);
+    };
+
+  }
 }
-

@@ -31,6 +31,7 @@
 
 #include <ortc/internal/types.h>
 #include <ortc/internal/platform.h>
+#include <ortc/internal/ortc_RTPTypes.h>
 
 #include <ortc/IRTPTypes.h>
 
@@ -47,11 +48,14 @@ namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib) }
 
 namespace ortc
 {
-  ZS_DECLARE_TYPEDEF_PTR(openpeer::services::ISettings, UseSettings)
   ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHelper, UseServicesHelper)
-  ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHTTP, UseHTTP)
 
   typedef openpeer::services::Hasher<CryptoPP::SHA1> SHA1Hasher;
+
+  namespace internal
+  {
+
+  } // namespace internal
 
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
@@ -959,7 +963,7 @@ namespace ortc
       case HeaderExtensionURI_ClienttoMixerAudioLevelIndication:  return "urn:ietf:params:rtp-hdrext:ssrc-audio-level";
       case HeaderExtensionURI_MixertoClientAudioLevelIndication:  return "urn:ietf:params:rtp-hdrext:csrc-audio-level";
       case HeaderExtensionURI_FrameMarking:                       return "urn:ietf:params:rtp-hdrext:framemarkinginfo";
-      case HeaderExtensionURI_ExtendedSourceInformation:          return "urn:example:params:rtp-hdrext:extended-ssrc-info";
+      case HeaderExtensionURI_RID:                                return "urn:ietf:params:rtp-hdrext:rid";
       case HeaderExtensionURI_3gpp_VideoOrientation:              return "urn:3gpp:video-orientation";
       case HeaderExtensionURI_3gpp_VideoOrientation6:             return "urn:3gpp:video-orientation:6";
     }

@@ -154,76 +154,107 @@ namespace ortc
       public:
         BYTE mLevelBuffer[kMaxLevelCount] {};
       };
-      
+
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark RTPPacket::MidHeadExtension
+      #pragma mark RTPPacket::StringHeaderExtension
       #pragma mark
 
-      struct MidHeadExtension : public HeaderExtension
+      struct StringHeaderExtension : public HeaderExtension
       {
-        // https://tools.ietf.org/html/draft-ietf-mmusic-sdp-bundle-negotiation-23#section-14.3
+        static const size_t kMaxStringLength {0xFF};
 
-        static const size_t kMaxMidLength {0xFF};
+        StringHeaderExtension(const HeaderExtension &header);
+        StringHeaderExtension(
+                            BYTE id,
+                            const char *str
+                            );
 
-        MidHeadExtension(const HeaderExtension &header);
-        MidHeadExtension(
-                         BYTE id,
-                         const char *mid
-                         );
-
-        const char *mid() const;
+        const char *str() const;
 
         ElementPtr toDebug() const;
 
       public:
-        BYTE mMidBuffer[kMaxMidLength+sizeof(char)] {};
+        BYTE mStringBuffer[kMaxStringLength+sizeof(char)] {};
       };
       
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark RTPPacket::ExtendedSourceInformationHeaderExtension
+      #pragma mark RTPPacket::NumberHeaderExtension
       #pragma mark
 
-      struct ExtendedSourceInformationHeaderExtension : public HeaderExtension
+      struct NumberHeaderExtension : public HeaderExtension
       {
-        // urn:example:params:rtp-hdrext:extended-ssrc-info
+        static const size_t kMaxNumberByteLength {0xFF};
 
-        struct RTXType {
-          static const BYTE kType {1};
-        };
-        struct FECType {
-          static const BYTE kType {2};
-        };
+        NumberHeaderExtension(const HeaderExtension &header);
+        NumberHeaderExtension(
+                              BYTE id,
+                              const BYTE *number,
+                              size_t lengthInBytes
+                              );
+        NumberHeaderExtension(
+                              BYTE id,
+                              const char *valueInBase10
+                              );
 
+        const BYTE *number() const;
+        size_t length() const;
 
-        ExtendedSourceInformationHeaderExtension(const HeaderExtension &header);
-        ExtendedSourceInformationHeaderExtension(
-                                                 const RTXType &,
-                                                 BYTE id,
-                                                 DWORD associatedSSRC
-                                                 );
-        ExtendedSourceInformationHeaderExtension(
-                                                 const FECType &,
-                                                 BYTE id,
-                                                 bool associatedSSRCIsValid,
-                                                 DWORD associatedSSRC
-                                                 );
-
-
-        BYTE type() const                   {return mType;}
-
-        bool isAssociatedSSRCValid() const  {return mIsAssociateSSRCValid;}
-        DWORD associatedSSRC() const        {return mAssociatedSSRC;}
+        String str() const;
 
         ElementPtr toDebug() const;
 
       public:
-        BYTE mType {0};
-        bool mIsAssociateSSRCValid {};
-        DWORD mAssociatedSSRC {};
+        BYTE mNumberBuffer[kMaxNumberByteLength] {};
+      };
+      
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPPacket::MidHeaderExtension
+      #pragma mark
 
-        BYTE mEncoded[sizeof(DWORD)*2] {};
+      struct MidHeaderExtension : public StringHeaderExtension
+      {
+        // https://tools.ietf.org/html/draft-ietf-mmusic-sdp-bundle-negotiation-23#section-14.3
+
+        static const size_t kMaxMidLength = kMaxStringLength;
+
+        MidHeaderExtension(const HeaderExtension &header) : StringHeaderExtension(header) {}
+        MidHeaderExtension(
+                         BYTE id,
+                         const char *mid
+                         ) :                              StringHeaderExtension(id, mid) {}
+
+        const char *mid() const {return str();}
+
+        ElementPtr toDebug() const;
+
+      public:
+      };
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPPacket::RidHeaderExtension
+      #pragma mark
+
+      struct RidHeaderExtension : public StringHeaderExtension
+      {
+        // https://tools.ietf.org/html/draft-pthatcher-mmusic-rid-00
+
+        static const size_t kMaxMidLength = kMaxStringLength;
+
+        RidHeaderExtension(const HeaderExtension &header) : StringHeaderExtension(header) {}
+        RidHeaderExtension(
+                           BYTE id,
+                           const char *rid
+                           ) :                              StringHeaderExtension(id, rid) {}
+
+        const char *rid() const {return str();}
+
+        ElementPtr toDebug() const;
+
+      public:
       };
 
       //-----------------------------------------------------------------------

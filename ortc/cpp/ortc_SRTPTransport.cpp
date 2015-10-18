@@ -32,6 +32,7 @@
 #include <ortc/internal/ortc_SRTPTransport.h>
 #include <ortc/internal/ortc_DTLSTransport.h>
 #include <ortc/internal/ortc_Helper.h>
+#include <ortc/internal/ortc_RTPUtils.h>
 #include <ortc/internal/ortc_ORTC.h>
 #include <ortc/internal/platform.h>
 
@@ -615,7 +616,7 @@ namespace ortc
     {
       UseSecureTransportPtr transport;
       SecureByteBlockPtr decryptedBuffer;
-      IICETypes::Components component = (UseHelper::isRTCPPacketType(buffer, bufferLengthInBytes) ? IICETypes::Component_RTCP : IICETypes::Component_RTP);
+      IICETypes::Components component = (RTPUtils::isRTCPPacketType(buffer, bufferLengthInBytes) ? IICETypes::Component_RTCP : IICETypes::Component_RTP);
 
       size_t popSize = 0;
       enum UsedKeys {

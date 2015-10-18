@@ -29,49 +29,15 @@
  
  */
 
+#pragma once
 
-#include <ortc/internal/ortc_Helper.h>
-#include <openpeer/services/IHelper.h>
+#include <ortc/internal/types.h>
 
-#include <zsLib/Log.h>
-#include <zsLib/XML.h>
-
-
-#ifdef _WIN32
-namespace std {
-  inline time_t mktime(struct tm *timeptr) { return ::mktime(timeptr); }
-}
-#endif //_WIN32
-
-namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib) }
+#include <ortc/IICETypes.h>
 
 namespace ortc
 {
   namespace internal
   {
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark (helpers)
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    Log::Params Helper::slog(const char *message)
-    {
-      return Log::Params(message, "ortc::Helper");
-    }
-
-  }  //ortc::internal
-
-  //---------------------------------------------------------------------------
-  //---------------------------------------------------------------------------
-  //---------------------------------------------------------------------------
-  //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IHelper
-  #pragma mark
-
+  }
 }
-

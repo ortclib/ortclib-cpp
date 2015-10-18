@@ -31,16 +31,20 @@
 
 #include <ortc/internal/ortc_RTPPacket.h>
 #include <ortc/internal/ortc_Helper.h>
+#include <ortc/internal/ortc_RTPUtils.h>
 #include <ortc/internal/platform.h>
 
 #include <openpeer/services/IHelper.h>
+
 //#include <openpeer/services/IHTTP.h>
 //
 //#include <zsLib/Stringize.h>
 //#include <zsLib/Log.h>
 #include <zsLib/XML.h>
-//
-//#include <cryptopp/sha.h>
+
+#include <cryptopp/integer.h>
+
+#include <sstream>
 
 #ifdef _DEBUG
 #define ASSERT(x) ZS_THROW_BAD_STATE_IF(!(x))
@@ -73,6 +77,8 @@ namespace ortc
   namespace internal
   {
     ZS_DECLARE_TYPEDEF_PTR(ortc::internal::Helper, UseHelper)
+
+    using CryptoPP::Integer;
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -248,11 +254,11 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark RTPPacket::MidHeadExtension
+    #pragma mark RTPPacket::StringHeaderExtension
     #pragma mark
 
     //-------------------------------------------------------------------------
-    RTPPacket::MidHeadExtension::MidHeadExtension(const HeaderExtension &header)
+    RTPPacket::StringHeaderExtension::StringHeaderExtension(const HeaderExtension &header)
     {
       ASSERT(sizeof(char) == sizeof(BYTE))
 
@@ -263,42 +269,174 @@ namespace ortc
       if (0 == mDataSizeInBytes) mData = NULL;
 
       size_t copySize = header.mDataSizeInBytes;
-      if (copySize > (sizeof(BYTE)*kMaxMidLength)) copySize = (sizeof(BYTE)*kMaxMidLength);
+      if (copySize > (sizeof(BYTE)*kMaxStringLength)) copySize = (sizeof(BYTE)*kMaxStringLength);
 
       if (0 != copySize) {
-        memcpy(&(mMidBuffer[0]), header.mData, copySize);
-        mData = &(mMidBuffer[0]);
+        memcpy(&(mStringBuffer[0]), header.mData, copySize);
+        mData = &(mStringBuffer[0]);
       }
       mDataSizeInBytes = copySize;
     }
 
     //-------------------------------------------------------------------------
-    RTPPacket::MidHeadExtension::MidHeadExtension(
+    RTPPacket::StringHeaderExtension::StringHeaderExtension(
                                                   BYTE id,
                                                   const char *mid
                                                   )
     {
       mID = id;
-      mData = &(mMidBuffer[0]);
+      mData = &(mStringBuffer[0]);
       mDataSizeInBytes = sizeof(char)*(NULL != mid ? strlen(mid) : 0);
 
-      if (mDataSizeInBytes > (sizeof(BYTE)*kMaxMidLength)) mDataSizeInBytes = (sizeof(BYTE)*kMaxMidLength);
+      if (mDataSizeInBytes > (sizeof(BYTE)*kMaxStringLength)) mDataSizeInBytes = (sizeof(BYTE)*kMaxStringLength);
 
       if (0 != mDataSizeInBytes) {
-        memcpy(&(mMidBuffer[0]), mid, mDataSizeInBytes);
+        memcpy(&(mStringBuffer[0]), mid, mDataSizeInBytes);
       }
     }
 
     //-------------------------------------------------------------------------
-    const char *RTPPacket::MidHeadExtension::mid() const
+    const char *RTPPacket::StringHeaderExtension::str() const
     {
-      return reinterpret_cast<const char *>(&mMidBuffer[0]);
+      return reinterpret_cast<const char *>(&mStringBuffer[0]);
     }
 
     //-------------------------------------------------------------------------
-    ElementPtr RTPPacket::MidHeadExtension::toDebug() const
+    ElementPtr RTPPacket::StringHeaderExtension::toDebug() const
     {
-      ElementPtr result = Element::create("ortc::RTPPacket::MidHeadExtension");
+      ElementPtr result = Element::create("ortc::RTPPacket::StringHeaderExtension");
+
+      UseServicesHelper::debugAppend(result, "str", str());
+
+      return result;
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPPacket::StringHeaderExtension
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    RTPPacket::NumberHeaderExtension::NumberHeaderExtension(const HeaderExtension &header)
+    {
+      ASSERT(sizeof(char) == sizeof(BYTE))
+
+      mID = header.mID;
+      mDataSizeInBytes = header.mDataSizeInBytes;
+      mPostPaddingSize = header.mPostPaddingSize;
+      if (NULL == header.mData) mDataSizeInBytes = 0;
+      if (0 == mDataSizeInBytes) mData = NULL;
+
+      size_t copySize = header.mDataSizeInBytes;
+      if (copySize > (sizeof(BYTE)*kMaxNumberByteLength)) copySize = (sizeof(BYTE)*kMaxNumberByteLength);
+
+      if (0 != copySize) {
+        memcpy(&(mNumberBuffer[0]), header.mData, copySize);
+        mData = &(mNumberBuffer[0]);
+      }
+      mDataSizeInBytes = copySize;
+    }
+
+    //-------------------------------------------------------------------------
+    RTPPacket::NumberHeaderExtension::NumberHeaderExtension(
+                                                            BYTE id,
+                                                            const BYTE *number,
+                                                            size_t lengthInBytes
+                                                            )
+    {
+      mID = id;
+      mData = &(mNumberBuffer[0]);
+      mDataSizeInBytes = sizeof(char)*(NULL != number ? lengthInBytes : 0);
+
+      if (mDataSizeInBytes > (sizeof(BYTE)*kMaxNumberByteLength)) mDataSizeInBytes = (sizeof(BYTE)*kMaxNumberByteLength);
+
+      if (0 != mDataSizeInBytes) {
+        memcpy(&(mNumberBuffer[0]), number, mDataSizeInBytes);
+      }
+    }
+
+    //-------------------------------------------------------------------------
+    RTPPacket::NumberHeaderExtension::NumberHeaderExtension(
+                                                            BYTE id,
+                                                            const char *valueInBase10
+                                                            )
+    {
+      mID = id;
+      mData = &(mNumberBuffer[0]);
+      mDataSizeInBytes = 1;
+
+      String str(valueInBase10);
+
+      try {
+        Integer value(str); // convert from base 10 into big number class
+
+        size_t minSizeNeeded = value.MinEncodedSize();
+        ORTC_THROW_INVALID_PARAMETERS_IF(minSizeNeeded > kMaxNumberByteLength)
+
+        // this will encode in big endian and pad with most significant "0"
+        // values as needed
+        value.Encode(&(mNumberBuffer[0]), minSizeNeeded);
+
+        mDataSizeInBytes = minSizeNeeded;
+
+      } catch(...) {
+        ORTC_THROW_INVALID_PARAMETERS("unable to convert integer: " + str)
+      }
+    }
+
+    //-------------------------------------------------------------------------
+    const BYTE *RTPPacket::NumberHeaderExtension::number() const
+    {
+      return &(mNumberBuffer[0]);
+    }
+
+    //-------------------------------------------------------------------------
+    size_t RTPPacket::NumberHeaderExtension::length() const
+    {
+      return mDataSizeInBytes;
+    }
+
+    //-------------------------------------------------------------------------
+    String RTPPacket::NumberHeaderExtension::str() const
+    {
+      if (mDataSizeInBytes < 1) return String();
+
+      Integer value(&(mNumberBuffer[0]), mDataSizeInBytes);
+
+      std::stringstream output;
+
+      output << value;
+
+      return output.str();
+    }
+
+    //-------------------------------------------------------------------------
+    ElementPtr RTPPacket::NumberHeaderExtension::toDebug() const
+    {
+      ElementPtr result = Element::create("ortc::RTPPacket::NumberHeaderExtension");
+
+      Integer value(number(), length());
+
+      UseServicesHelper::debugAppend(result, "number", str());
+
+      return result;
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPPacket::MidHeaderExtension
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    ElementPtr RTPPacket::MidHeaderExtension::toDebug() const
+    {
+      ElementPtr result = Element::create("ortc::RTPPacket::MidHeaderExtension");
 
       UseServicesHelper::debugAppend(result, "mid", mid());
 
@@ -310,96 +448,19 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark RTPPacket::ExtendedSourceInformationHeaderExtension
+    #pragma mark RTPPacket::RidHeaderExtension
     #pragma mark
 
     //-------------------------------------------------------------------------
-    RTPPacket::ExtendedSourceInformationHeaderExtension::ExtendedSourceInformationHeaderExtension(const HeaderExtension &header)
+    ElementPtr RTPPacket::RidHeaderExtension::toDebug() const
     {
-      mID = header.mID;
-      mData = &(mEncoded[0]);
-      mDataSizeInBytes = header.mDataSizeInBytes;
-      mPostPaddingSize = header.mPostPaddingSize;
-      if (NULL == header.mData) mDataSizeInBytes = 0;
-      if (0 == mDataSizeInBytes) mData = NULL;
+      ElementPtr result = Element::create("ortc::RTPPacket::RidHeaderExtension");
 
-      if (mDataSizeInBytes < sizeof(DWORD)*2) return; // cannot decrypt this packet
-
-      memcpy(&(mEncoded[0]), header.mData, sizeof(DWORD)*2);
-
-      mType = RTP_GET_BITS(mData[0], 0xF, 4);
-
-      switch (mType) {
-        case RTXType::kType: {
-          mIsAssociateSSRCValid = true;
-          mAssociatedSSRC = UseHelper::getBE32(&(mData[4]));
-          break;
-        }
-        case FECType::kType: {
-          mIsAssociateSSRCValid = RTP_IS_FLAG_SET(mData[1], 0);
-          mAssociatedSSRC = UseHelper::getBE32(&(mData[4]));
-          break;
-        }
-        default: {
-          break;
-        }
-      }
-    }
-
-    //-------------------------------------------------------------------------
-    RTPPacket::ExtendedSourceInformationHeaderExtension::ExtendedSourceInformationHeaderExtension(
-                                                                                                  const RTXType &,
-                                                                                                  BYTE id,
-                                                                                                  DWORD associatedSSRC
-                                                                                                  )
-    {
-      mID = id;
-      mData = &(mEncoded[0]);
-      mDataSizeInBytes = sizeof(mEncoded);
-
-      mType = RTXType::kType;
-      mIsAssociateSSRCValid = true;
-      mAssociatedSSRC = associatedSSRC;
-
-      mEncoded[0] = RTP_PACK_BITS(mType, 0xF, 4) | 0;
-      UseHelper::setBE32(&(mEncoded[4]), mAssociatedSSRC);
-    }
-
-    //-------------------------------------------------------------------------
-    RTPPacket::ExtendedSourceInformationHeaderExtension::ExtendedSourceInformationHeaderExtension(
-                                                                                                  const FECType &,
-                                                                                                  BYTE id,
-                                                                                                  bool associatedSSRCIsValid,
-                                                                                                  DWORD associatedSSRC
-                                                                                                  )
-    {
-      mID = id;
-      mData = &(mEncoded[0]);
-      mDataSizeInBytes = sizeof(mEncoded);
-
-      mType = FECType::kType;
-      mIsAssociateSSRCValid = associatedSSRCIsValid;
-      mAssociatedSSRC = associatedSSRC;
-
-      mEncoded[0] = RTP_PACK_BITS(mType, 0xF, 4) | 0;
-      if (mIsAssociateSSRCValid) {
-        mEncoded[1] = RTP_PACK_BITS(1, 0x1, 0);
-      }
-      UseHelper::setBE32(&(mEncoded[4]), mAssociatedSSRC);
-    }
-
-    //-------------------------------------------------------------------------
-    ElementPtr RTPPacket::ExtendedSourceInformationHeaderExtension::toDebug() const
-    {
-      ElementPtr result = Element::create("ortc::RTPPacket::ExtendedSourceInformationHeaderExtension");
-
-      UseServicesHelper::debugAppend(result, "type", mType);
-      UseServicesHelper::debugAppend(result, "is associated SSRC valid", mIsAssociateSSRCValid);
-      UseServicesHelper::debugAppend(result, "associated SSRC", mAssociatedSSRC);
+      UseServicesHelper::debugAppend(result, "rid", rid());
 
       return result;
     }
-    
+
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -688,7 +749,7 @@ namespace ortc
     DWORD RTPPacket::getCSRC(size_t index) const
     {
       ASSERT(index < cc())
-      return UseHelper::getBE32(&((ptr())[kMinRtpPacketLen + (sizeof(DWORD)*index)]));
+      return RTPUtils::getBE32(&((ptr())[kMinRtpPacketLen + (sizeof(DWORD)*index)]));
     }
 
     //-------------------------------------------------------------------------
@@ -908,7 +969,7 @@ namespace ortc
         return false;
       }
 
-      if (UseHelper::isRTCPPacketType(buffer, size)) {
+      if (RTPUtils::isRTCPPacketType(buffer, size)) {
         ZS_LOG_WARNING(Trace, log("packet is RTCP not RTP") + ZS_PARAM("length", size))
         return false;
       }
@@ -917,9 +978,9 @@ namespace ortc
       mCC = RTP_HEADER_CC(buffer);
       mM = RTP_HEADER_M(buffer);
       mPT = RTP_HEADER_PT(buffer);
-      mSequenceNumber = UseHelper::getBE16(&(buffer[2]));
-      mTimestamp = UseHelper::getBE32(&(buffer[4]));
-      mSSRC = UseHelper::getBE32(&(buffer[8]));
+      mSequenceNumber = RTPUtils::getBE16(&(buffer[2]));
+      mTimestamp = RTPUtils::getBE32(&(buffer[4]));
+      mSSRC = RTPUtils::getBE32(&(buffer[8]));
 
       mHeaderSize = kMinRtpPacketLen + (static_cast<size_t>(mCC) * sizeof(DWORD));
 
@@ -934,7 +995,7 @@ namespace ortc
           return false;
         }
 
-        mHeaderExtensionSize = (static_cast<size_t>(UseHelper::getBE16(&(buffer[mHeaderSize + 2]))) * sizeof(DWORD)) + sizeof(DWORD);
+        mHeaderExtensionSize = (static_cast<size_t>(RTPUtils::getBE16(&(buffer[mHeaderSize + 2]))) * sizeof(DWORD)) + sizeof(DWORD);
         if (size < (mHeaderSize + mHeaderExtensionSize)) {
           ZS_LOG_WARNING(Trace, debug("illegal RTP packet"))
           return false;
@@ -970,7 +1031,7 @@ namespace ortc
           (0xDE == profilePos[1])) {
         oneByte = true;
       } else {
-        WORD twoByteHeader = UseHelper::getBE16(profilePos);
+        WORD twoByteHeader = RTPUtils::getBE16(profilePos);
         mHeaderExtensionAppBits = (twoByteHeader & 0xF);
 
         if (0x100 != ((twoByteHeader & 0xFFF0) >> 4)) {
@@ -1263,13 +1324,13 @@ namespace ortc
       pos[1] = RTP_PACK_BITS(mM ? 1 : 0, 0x1, 7) |
                RTP_PACK_BITS(mPT, 0x7F, 0);
 
-      UseHelper::setBE16(&(pos[2]), mSequenceNumber);
-      UseHelper::setBE32(&(pos[4]), mTimestamp);
-      UseHelper::setBE32(&(pos[8]), mSSRC);
+      RTPUtils::setBE16(&(pos[2]), mSequenceNumber);
+      RTPUtils::setBE32(&(pos[4]), mTimestamp);
+      RTPUtils::setBE32(&(pos[8]), mSSRC);
 
       // write CSRC list (if any)
       for (size_t index = 0; index < static_cast<size_t>(mCC); ++index) {
-        UseHelper::setBE32(&(pos[12+(sizeof(DWORD)*index)]), params.mCSRCList[index]);
+        RTPUtils::setBE32(&(pos[12+(sizeof(DWORD)*index)]), params.mCSRCList[index]);
       }
 
       if (requiresExtension) {

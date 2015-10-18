@@ -1850,7 +1850,7 @@ void doTestRTPListener()
                 params.mPayload = reinterpret_cast<const BYTE *>(payload);
                 params.mPayloadSize = strlen(payload);
 
-                RTPPacket::MidHeadExtension mid1(1, "r1");
+                RTPPacket::MidHeaderExtension mid1(1, "r1");
 
                 params.mFirstHeaderExtension = &mid1;
 
@@ -1863,7 +1863,7 @@ void doTestRTPListener()
                 testObject1->store("p2", packet);
                 testObject2->store("p2", packet);
 
-                RTPPacket::MidHeadExtension mid2(1, "r2");
+                RTPPacket::MidHeaderExtension mid2(1, "r2");
                 params.mSSRC = 6;
                 params.mFirstHeaderExtension = &mid2;
 
@@ -2028,7 +2028,7 @@ void doTestRTPListener()
                 params.mPayload = reinterpret_cast<const BYTE *>(payload);
                 params.mPayloadSize = strlen(payload);
 
-                RTPPacket::MidHeadExtension mid1(1, "r1");
+                RTPPacket::MidHeaderExtension mid1(1, "r1");
 
                 params.mFirstHeaderExtension = &mid1;
 
@@ -2039,9 +2039,7 @@ void doTestRTPListener()
                 // RTX packet
                 params.mPT = 101;
                 params.mSSRC = 9000;
-
-                RTPPacket::ExtendedSourceInformationHeaderExtension extend1(RTPPacket::ExtendedSourceInformationHeaderExtension::RTXType {}, 2, 1);
-                params.mFirstHeaderExtension = &extend1;
+                params.mFirstHeaderExtension = &mid1;
 
                 packet = RTPPacket::create(params);
                 testObject1->store("p2", packet);
@@ -2060,7 +2058,7 @@ void doTestRTPListener()
                 params.mHeaderExtensions.push_back(headerParams);
 
                 headerParams.mID = 2;
-                headerParams.mURI = IRTPTypes::toString(IRTPTypes::HeaderExtensionURI_ExtendedSourceInformation);
+                headerParams.mURI = IRTPTypes::toString(IRTPTypes::HeaderExtensionURI_RID);
                 params.mHeaderExtensions.push_back(headerParams);
                 testObject1->receive("r1", params);
                 //bogusSleep();

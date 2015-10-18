@@ -35,6 +35,7 @@
 #include <ortc/ISettings.h>
 
 #include <ortc/internal/ortc_RTPPacket.h>
+#include <ortc/internal/ortc_RTPUtils.h>
 #include <ortc/internal/ortc_Helper.h>
 
 #include <openpeer/services/IHelper.h>
@@ -64,6 +65,7 @@ using zsLib::AutoRecursiveLock;
 //ZS_DECLARE_TYPEDEF_PTR(ortc::ISettings, UseSettings)
 ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHelper, UseServicesHelper)
 ZS_DECLARE_TYPEDEF_PTR(ortc::internal::Helper, UseHelper)
+ZS_DECLARE_TYPEDEF_PTR(ortc::internal::RTPUtils, UseRTPUtils)
 
 
 namespace ortc
@@ -131,14 +133,14 @@ namespace ortc
           pos[0] = (version << 6) | ((p ? 1 : 0) << 5) | ((x ? 1 :0) << 4) | (cc & 0xF);
           pos[1] = ((m ? 1: 0) << 7) | (pt & 0x7F);
 
-          UseHelper::setBE16(&(pos[2]), sequenceNumber);
-          UseHelper::setBE32(&(pos[4]), timeStamp);
-          UseHelper::setBE32(&(pos[8]), ssrc);
+          UseRTPUtils::setBE16(&(pos[2]), sequenceNumber);
+          UseRTPUtils::setBE32(&(pos[4]), timeStamp);
+          UseRTPUtils::setBE32(&(pos[8]), ssrc);
 
           pos += (sizeof(DWORD)*3);
           for (size_t index = 0; index < (static_cast<size_t>(cc) & 0xF); ++index, pos += sizeof(DWORD))
           {
-            UseHelper::setBE32(&(pos[0]), ccrcs[index]);
+            UseRTPUtils::setBE32(&(pos[0]), ccrcs[index]);
           }
 
           if (NULL != headerExtensionData) {

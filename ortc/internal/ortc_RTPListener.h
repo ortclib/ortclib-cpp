@@ -505,12 +505,6 @@ namespace ortc
                                                 ReceiverInfoPtr &outReceiverInfo
                                                 );
 
-      bool findMappingUsingHeaderExtensions(
-                                            String &muxID,
-                                            const RTPPacket &rtpPacket,
-                                            ReceiverInfoPtr &outReceiverInfo
-                                            );
-
       bool findMappingUsingPayloadType(
                                        const String &muxID,
                                        const RTPPacket &rtpPacket,

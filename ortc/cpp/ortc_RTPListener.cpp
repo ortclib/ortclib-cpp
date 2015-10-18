@@ -1386,7 +1386,7 @@ namespace ortc
         case IRTPTypes::HeaderExtensionURI_ClienttoMixerAudioLevelIndication: return true;
         case IRTPTypes::HeaderExtensionURI_MixertoClientAudioLevelIndication: return true;
         case IRTPTypes::HeaderExtensionURI_FrameMarking:                      return true;
-        case IRTPTypes::HeaderExtensionURI_ExtendedSourceInformation:         return false;
+        case IRTPTypes::HeaderExtensionURI_RID:                               return true;
         case IRTPTypes::HeaderExtensionURI_3gpp_VideoOrientation:             return true;
         case IRTPTypes::HeaderExtensionURI_3gpp_VideoOrientation6:            return true;
       }
@@ -1471,8 +1471,6 @@ namespace ortc
         if (findMappingUsingMuxID(outMuxID, rtpPacket, outReceiverInfo)) return true;
 
         if (findMappingUsingSSRCInEncodingParams(outMuxID, rtpPacket, outReceiverInfo)) goto fill_mux_id;
-
-        if (findMappingUsingHeaderExtensions(outMuxID, rtpPacket, outReceiverInfo)) goto fill_mux_id;
 
         if (findMappingUsingPayloadType(outMuxID, rtpPacket, outReceiverInfo)) goto fill_mux_id;
 
@@ -1587,62 +1585,6 @@ namespace ortc
           reattemptDelivery();
           return true;
         }
-      }
-
-      return false;
-    }
-
-    //-------------------------------------------------------------------------
-    bool RTPListener::findMappingUsingHeaderExtensions(
-                                                       String &muxID,
-                                                       const RTPPacket &rtpPacket,
-                                                       ReceiverInfoPtr &outReceiverInfo
-                                                       )
-    {
-      for (auto ext = rtpPacket.firstHeaderExtension(); NULL != ext; ext = ext->mNext) {
-
-        LocalID localID = static_cast<LocalID>(ext->mID);
-        auto found = mRegisteredExtensions.find(localID);
-        if (found == mRegisteredExtensions.end()) continue; // header extension is not understood
-
-        RegisteredHeaderExtension &headerInfo = (*found).second;
-
-        if (IRTPTypes::HeaderExtensionURI_ExtendedSourceInformation != headerInfo.mHeaderExtensionURI) continue;
-
-        RTPPacket::ExtendedSourceInformationHeaderExtension extendedInfo(*ext);
-        if (!extendedInfo.isAssociatedSSRCValid()) {
-          ZS_LOG_TRACE(log("extended source info associated SSRC is not set") + extendedInfo.toDebug())
-          continue;
-        }
-
-        auto foundSSRC = mSSRCTable.find(extendedInfo.associatedSSRC());
-
-        if (foundSSRC == mSSRCTable.end()) {
-          ZS_LOG_WARNING(Trace, log("associated SSRC was not found in SSRC table") + extendedInfo.toDebug())
-          continue;
-        }
-
-        outReceiverInfo = (*foundSSRC).second;
-
-        if ((outReceiverInfo->mParameters.mMuxID.hasData()) &&
-            (muxID.hasData())) {
-          if (muxID != outReceiverInfo->mParameters.mMuxID) {
-            ZS_LOG_WARNING(Trace, log("associated SSRC and mux ID extension do not match (thus cannot consider this receiver a match)") + outReceiverInfo->toDebug())
-            outReceiverInfo = ReceiverInfoPtr();
-            return false;
-          }
-        }
-
-        ZS_LOG_DEBUG(log("creating a new SSRC entry in SSRC table (based on associated SSRC being found)") + extendedInfo.toDebug() + outReceiverInfo->toDebug())
-
-        if (muxID.isEmpty()) {
-          muxID = outReceiverInfo->mParameters.mMuxID;
-        }
-
-        // the associated SSRC was found in table thus must route to same receiver
-        mSSRCTable[rtpPacket.ssrc()] = outReceiverInfo;
-        reattemptDelivery();
-        return true;
       }
 
       return false;
@@ -1819,7 +1761,7 @@ namespace ortc
 
         if (IRTPTypes::HeaderExtensionURI_MuxID != headerInfo.mHeaderExtensionURI) continue;
 
-        RTPPacket::MidHeadExtension mid(*ext);
+        RTPPacket::MidHeaderExtension mid(*ext);
 
         String muxID(mid.mid());
         if (!muxID.hasData()) continue;

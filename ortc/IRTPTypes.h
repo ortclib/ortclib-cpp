@@ -391,63 +391,8 @@ namespace ortc
       HeaderExtensionURI_FrameMarking,                                  // https://tools.ietf.org/html/draft-berger-avtext-framemarking-01
                                                                         // urn:ietf:params:rtp-hdrext:framemarkinginfo
 
-      HeaderExtensionURI_ExtendedSourceInformation,                     // extended information about the encoded packet
-                                                                        // urn:example:params:rtp-hdrext:extended-ssrc-info
-
-      //  0                   1                   2                   3
-      //  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-      // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-      // |ID=1   |        Reserved       |   Original sequence number    |
-      // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-      // |      Associated synchronization source (SSRC) identifier      |
-      //
-      // ID=1 (4 bits) Extended SSRC RTX packet information
-      //
-      // Original sequence number (16 bits) - original sequence number field
-      //                                      as copied outside the encrypted
-      //                                      payload (for mixers)
-      // Associated SSRC (32 bits) - the SSSRC of the original SSRC to which
-      //                             this RTX stream applies.
-      //
-      // When a mixer is present, this header can be carried encrypted to
-      // the mixer indicating the important information about the RTX packet
-      // so the mixer can make intelligent decisions about where to forward the
-      // RTX packet.
-      //
-      // When no mixer is present, this header need only be transmitted by
-      // the sending party until the receiver has successfully acknowledged
-      // receipt of any RTP packet carrying this data though any means (e.g.
-      // RTCP receiver report or RTCP ACK)
-
-      //  0                   1                   2                   3
-      //  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-      // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-      // |ID=2   |      Reserved       |A|            Reserved           |
-      // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-      // |      Associated synchronization source (SSRC) identifier      |
-      //
-      // ID=2 (4 bits) Extended FEC/RED information
-      //
-      // A flag (1 bit) - the Associated SSRC field is valid.
-      //
-      // Associated SSRC (32 bits)- the SSSRC of the original SSRC to which
-      //                            this FEC/RED applies (i.e. needed where
-      //                            ambiguity may exist).
-
-      //  0                   1                   2                   3
-      //  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-      // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-      // |ID=3   |      Reserved       |A|            Reserved           |
-      // +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-      // |      Associated synchronization source (SSRC) identifier      |
-      //
-      // ID=3 (4 bits) MST SVC packet layer
-      //
-      // A flag (1 bit) - the Associated SSRC field is valid.
-      //
-      // Associated SSRC (32 bits)- the SSSRC of the base layer SSRC to which
-      //                            this MST applies (i.e. needed where
-      //                            ambiguity may exist).
+      HeaderExtensionURI_RID,                                           // https://tools.ietf.org/html/draft-pthatcher-mmusic-rid-00
+                                                                        // urn:ietf:params:rtp-hdrext:rid
 
       HeaderExtensionURI_3gpp_VideoOrientation,                         //  urn:3gpp:video-orientation
       HeaderExtensionURI_3gpp_VideoOrientation6,                        //  urn:3gpp:video-orientation:6

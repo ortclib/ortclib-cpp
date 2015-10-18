@@ -31,6 +31,7 @@
 
 #include <ortc/internal/ortc_RTCPPacket.h>
 #include <ortc/internal/ortc_Helper.h>
+#include <ortc/internal/ortc_RTPUtils.h>
 #include <ortc/internal/platform.h>
 
 #include <openpeer/services/IHelper.h>
@@ -194,7 +195,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     Time RTCPPacket::SenderReport::ntpTimestamp() const
     {
-      return UseHelper::ntpToTime(mNTPTimestampMS, mNTPTimestampLS);
+      return RTPUtils::ntpToTime(mNTPTimestampMS, mNTPTimestampLS);
     }
 
     //-------------------------------------------------------------------------
@@ -611,7 +612,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     Time RTCPPacket::XR::ReceiverReferenceTimeReportBlock::ntpTimestamp() const
     {
-      return UseHelper::ntpToTime(mNTPTimestampMS, mNTPTimestampLS);
+      return RTPUtils::ntpToTime(mNTPTimestampMS, mNTPTimestampLS);
     }
 
     //-------------------------------------------------------------------------
@@ -1911,7 +1912,7 @@ namespace ortc
             return false;
           }
 
-          size_t length = sizeof(DWORD) + (static_cast<size_t>(UseHelper::getBE16(&(pos[2]))) * sizeof(DWORD));
+          size_t length = sizeof(DWORD) + (static_cast<size_t>(RTPUtils::getBE16(&(pos[2]))) * sizeof(DWORD));
 
           size_t padding = 0;
 
@@ -2019,7 +2020,7 @@ namespace ortc
 
         while (remaining >= kMinRtcpPacketLen) {
           auto version = RTCP_GET_BITS(*pos, 0x3, 6);
-          size_t length = sizeof(DWORD) + (static_cast<size_t>(UseHelper::getBE16(&(pos[2]))) * sizeof(DWORD));
+          size_t length = sizeof(DWORD) + (static_cast<size_t>(RTPUtils::getBE16(&(pos[2]))) * sizeof(DWORD));
 
           size_t padding = 0;
 
@@ -2447,7 +2448,7 @@ namespace ortc
 
         BYTE bt = pos[0];
         BYTE typeSpecific = pos[1];
-        size_t blockLength = static_cast<size_t>(UseHelper::getBE16(&(pos[2]))) * sizeof(DWORD);
+        size_t blockLength = static_cast<size_t>(RTPUtils::getBE16(&(pos[2]))) * sizeof(DWORD);
 
         advancePos(pos, remaining, sizeof(DWORD));
 
@@ -2674,7 +2675,7 @@ namespace ortc
         mAllocationSize += alignedSize(sizeof(PayloadSpecificFeedbackMessage::VBCM));
         ++possibleVBCMs;
 
-        size_t length = UseHelper::getBE16(&(pos[6]));
+        size_t length = RTPUtils::getBE16(&(pos[6]));
         size_t modulas = length % sizeof(DWORD);
         size_t padding = ((0 != modulas) ? (sizeof(DWORD)-modulas) : 0);
 
@@ -3001,7 +3002,7 @@ namespace ortc
       {
         if (remaining < sizeof(DWORD)) goto illegal_size;
 
-        report->mSSRCOfSender = UseHelper::getBE32(pos);
+        report->mSSRCOfSender = RTPUtils::getBE32(pos);
 
         advancePos(pos, remaining, sizeof(DWORD));
 
@@ -3022,14 +3023,14 @@ namespace ortc
               report->mFirstReportBlock[count-1].mNext = block;
             }
 
-            block->mSSRC = UseHelper::getBE32(&(pos[0]));
+            block->mSSRC = RTPUtils::getBE32(&(pos[0]));
             block->mFractionLost = pos[4];
-            block->mCumulativeNumberOfPacketsLost = UseHelper::getBE32(&(pos[4]));
+            block->mCumulativeNumberOfPacketsLost = RTPUtils::getBE32(&(pos[4]));
             block->mCumulativeNumberOfPacketsLost = block->mCumulativeNumberOfPacketsLost & 0x00FFFFFF;
-            block->mExtendedHighestSequenceNumberReceived = UseHelper::getBE32(&(pos[8]));
-            block->mInterarrivalJitter = UseHelper::getBE32(&(pos[12]));
-            block->mLSR = UseHelper::getBE32(&(pos[16]));
-            block->mDLSR = UseHelper::getBE32(&(pos[20]));
+            block->mExtendedHighestSequenceNumberReceived = RTPUtils::getBE32(&(pos[8]));
+            block->mInterarrivalJitter = RTPUtils::getBE32(&(pos[12]));
+            block->mLSR = RTPUtils::getBE32(&(pos[16]));
+            block->mDLSR = RTPUtils::getBE32(&(pos[20]));
 
             advancePos(pos, remaining, sizeof(DWORD)*6);
 
@@ -3067,11 +3068,11 @@ namespace ortc
 
       const BYTE *pos = report->ptr();
 
-      report->mNTPTimestampMS = UseHelper::getBE32(&(pos[4]));
-      report->mNTPTimestampLS = UseHelper::getBE32(&(pos[8]));
-      report->mRTPTimestamp = UseHelper::getBE32(&(pos[12]));
-      report->mSenderPacketCount = UseHelper::getBE32(&(pos[16]));
-      report->mSenderOctetCount = UseHelper::getBE32(&(pos[20]));
+      report->mNTPTimestampMS = RTPUtils::getBE32(&(pos[4]));
+      report->mNTPTimestampLS = RTPUtils::getBE32(&(pos[8]));
+      report->mRTPTimestamp = RTPUtils::getBE32(&(pos[12]));
+      report->mSenderPacketCount = RTPUtils::getBE32(&(pos[16]));
+      report->mSenderOctetCount = RTPUtils::getBE32(&(pos[20]));
 
       return true;
     }
@@ -3117,7 +3118,7 @@ namespace ortc
 
         ZS_LOG_INSANE(log("parsing SDES chunk") + ZS_PARAM("chunk number", chunkCount-1))
 
-        chunk->mSSRC = UseHelper::getBE32(pos);
+        chunk->mSSRC = RTPUtils::getBE32(pos);
         advancePos(pos, remaining, sizeof(DWORD));
 
         const BYTE *startOfItems = pos;
@@ -3408,7 +3409,7 @@ namespace ortc
         while (index < report->sc()) {
           if (remaining < sizeof(DWORD)) goto illegal_remaining;
 
-          report->mSSRCs[index] = UseHelper::getBE32(pos);
+          report->mSSRCs[index] = RTPUtils::getBE32(pos);
           advancePos(pos, remaining, sizeof(DWORD));
           ++index;
         }
@@ -3449,7 +3450,7 @@ namespace ortc
       {
         if (remaining < sizeof(DWORD)) goto illegal_remaining;
 
-        report->mSSRC = UseHelper::getBE32(pos);
+        report->mSSRC = RTPUtils::getBE32(pos);
         advancePos(pos, remaining, sizeof(DWORD));
 
         if (remaining < sizeof(DWORD)) goto illegal_remaining;
@@ -3587,14 +3588,14 @@ namespace ortc
       {
         if (remaining < sizeof(DWORD)) goto illegal_remaining;
 
-        report->mSSRC = UseHelper::getBE32(pos);
+        report->mSSRC = RTPUtils::getBE32(pos);
         advancePos(pos, remaining, sizeof(DWORD));
 
         // first count the totals for each XR block type
         while (remaining >= sizeof(DWORD)) {
 
           BYTE bt = pos[0];
-          size_t blockLength = static_cast<size_t>(UseHelper::getBE16(&(pos[2]))) * sizeof(DWORD);
+          size_t blockLength = static_cast<size_t>(RTPUtils::getBE16(&(pos[2]))) * sizeof(DWORD);
 
           advancePos(pos, remaining, sizeof(DWORD));
 
@@ -3672,7 +3673,7 @@ namespace ortc
 
           BYTE bt = pos[0];
           BYTE typeSpecific = pos[1];
-          size_t blockLength = static_cast<size_t>(UseHelper::getBE16(&(pos[2]))) * sizeof(DWORD);
+          size_t blockLength = static_cast<size_t>(RTPUtils::getBE16(&(pos[2]))) * sizeof(DWORD);
 
           advancePos(pos, remaining, sizeof(DWORD));
 
@@ -3807,8 +3808,8 @@ namespace ortc
       const BYTE *pos = contents;
       size_t remaining = contentSize;
 
-      report->mSSRCOfPacketSender = UseHelper::getBE32(&(pos[0]));
-      report->mSSRCOfMediaSource = UseHelper::getBE32(&(pos[4]));
+      report->mSSRCOfPacketSender = RTPUtils::getBE32(&(pos[0]));
+      report->mSSRCOfMediaSource = RTPUtils::getBE32(&(pos[4]));
 
       advancePos(pos, remaining, sizeof(DWORD)*2);
 
@@ -3861,8 +3862,8 @@ namespace ortc
       while (remaining >= sizeof(DWORD)) {
         GenericNACK *nack = &(report->mFirstGenericNACK[report->mGenericNACKCount]);
 
-        nack->mPID = UseHelper::getBE16(&(pos[0]));
-        nack->mBLP = UseHelper::getBE16(&(pos[2]));
+        nack->mPID = RTPUtils::getBE16(&(pos[0]));
+        nack->mBLP = RTPUtils::getBE16(&(pos[2]));
 
         advancePos(pos, remaining, sizeof(DWORD));
 
@@ -3883,10 +3884,10 @@ namespace ortc
     {
       typedef TransportLayerFeedbackMessage::TMMBRCommon TMMBRCommon;
 
-      common->mSSRC = UseHelper::getBE32(&(pos[0]));
+      common->mSSRC = RTPUtils::getBE32(&(pos[0]));
       common->mMxTBRExp = RTCP_GET_BITS(pos[4], 0x3F, 2);
-      common->mMxTBRMantissa = RTCP_GET_BITS(UseHelper::getBE32(&(pos[4])), 0x1FFFF, 9);
-      common->mMeasuredOverhead = RTCP_GET_BITS(UseHelper::getBE32(&(pos[4])), 0x1FF, 0);
+      common->mMxTBRMantissa = RTCP_GET_BITS(RTPUtils::getBE32(&(pos[4])), 0x1FFFF, 9);
+      common->mMeasuredOverhead = RTCP_GET_BITS(RTPUtils::getBE32(&(pos[4])), 0x1FF, 0);
     }
     
     //-------------------------------------------------------------------------
@@ -3977,8 +3978,8 @@ namespace ortc
       while (remaining >= (sizeof(DWORD))) {
         SLI *sli = &(report->mFirstSLI[report->mSLICount]);
 
-        sli->mFirst = RTCP_GET_BITS(UseHelper::getBE16(&(pos[0])), 0x1FFF, 3);
-        sli->mNumber = static_cast<WORD>(RTCP_GET_BITS(UseHelper::getBE32(&(pos[0])), 0x1FFF, 6));
+        sli->mFirst = RTCP_GET_BITS(RTPUtils::getBE16(&(pos[0])), 0x1FFF, 3);
+        sli->mNumber = static_cast<WORD>(RTCP_GET_BITS(RTPUtils::getBE32(&(pos[0])), 0x1FFF, 6));
         sli->mPictureID = RTCP_GET_BITS(pos[3], 0x3F, 0);
 
         advancePos(pos, remaining, sizeof(DWORD));
@@ -4034,9 +4035,9 @@ namespace ortc
                                             const BYTE *pos
                                             )
     {
-      common->mSSRC = UseHelper::getBE32(&(pos[0]));
+      common->mSSRC = RTPUtils::getBE32(&(pos[0]));
       common->mSeqNr = pos[4];
-      common->mReserved = RTCP_GET_BITS(UseHelper::getBE32(&(pos[4])), 0xFFFFFF, 0);
+      common->mReserved = RTCP_GET_BITS(RTPUtils::getBE32(&(pos[4])), 0xFFFFFF, 0);
     }
 
     //-------------------------------------------------------------------------
@@ -4144,7 +4145,7 @@ namespace ortc
         while (remaining >= (sizeof(DWORD)*2)) {
           ++possibleVBCMs;
 
-          size_t length = UseHelper::getBE16(&(pos[6]));
+          size_t length = RTPUtils::getBE16(&(pos[6]));
           size_t modulas = length % sizeof(DWORD);
           size_t padding = ((0 != modulas) ? (sizeof(DWORD)-modulas) : 0);
 
@@ -4175,7 +4176,7 @@ namespace ortc
           vcbm->mControlSpecific = vcbm->mReserved;
           vcbm->mReserved = 0;
 
-          size_t length = UseHelper::getBE16(&(pos[6]));
+          size_t length = RTPUtils::getBE16(&(pos[6]));
           size_t modulas = length % sizeof(DWORD);
           size_t padding = ((0 != modulas) ? (sizeof(DWORD)-modulas) : 0);
 
@@ -4231,7 +4232,7 @@ namespace ortc
 
         report->mREMB.mNumSSRC = pos[4];
         report->mREMB.mBRExp = RTCP_GET_BITS(pos[5], 0x3F, 2);
-        report->mREMB.mBRMantissa = RTCP_GET_BITS(UseHelper::getBE32(&(pos[4])), 0x3FFFF, 0);
+        report->mREMB.mBRMantissa = RTCP_GET_BITS(RTPUtils::getBE32(&(pos[4])), 0x3FFFF, 0);
 
         size_t possibleSSRCs = (remaining - sizeof(DWORD)*2) / (sizeof(DWORD));
 
@@ -4244,7 +4245,7 @@ namespace ortc
                (count < report->mREMB.numSSRC()) &&
                (remaining >= sizeof(DWORD)))
         {
-          report->mREMB.mSSRCs[count] = UseHelper::getBE32(pos);
+          report->mREMB.mSSRCs[count] = RTPUtils::getBE32(pos);
           advancePos(pos, remaining, sizeof(DWORD));
           --possibleSSRCs;
           ++count;
@@ -4280,9 +4281,9 @@ namespace ortc
       {
         if (remaining < (sizeof(DWORD)*2)) goto illegal_remaining;
 
-        reportBlock->mSSRCOfSource = UseHelper::getBE32(&(pos[0]));
-        reportBlock->mBeginSeq = UseHelper::getBE16(&(pos[4]));
-        reportBlock->mEndSeq = UseHelper::getBE16(&(pos[6]));
+        reportBlock->mSSRCOfSource = RTPUtils::getBE32(&(pos[0]));
+        reportBlock->mBeginSeq = RTPUtils::getBE16(&(pos[4]));
+        reportBlock->mEndSeq = RTPUtils::getBE16(&(pos[6]));
 
         return true;
       }
@@ -4315,7 +4316,7 @@ namespace ortc
 
       while (remaining >= sizeof(WORD))
       {
-        XR::RLEChunk value = UseHelper::getBE16(pos);
+        XR::RLEChunk value = RTPUtils::getBE16(pos);
         advancePos(pos, remaining, sizeof(WORD));
 
         if (0 == value) break;
@@ -4368,7 +4369,7 @@ namespace ortc
       reportBlock->mReceiptTimes = new (allocateBuffer(alignedSize(sizeof(DWORD))*possibleTimes)) DWORD[possibleTimes];
 
       while (remaining >= sizeof(DWORD)) {
-        reportBlock->mReceiptTimes[reportBlock->mReceiptTimeCount] = UseHelper::getBE32(pos);
+        reportBlock->mReceiptTimes[reportBlock->mReceiptTimeCount] = RTPUtils::getBE32(pos);
         advancePos(pos, remaining, sizeof(DWORD));
         ++(reportBlock->mReceiptTimeCount);
       }
@@ -4390,8 +4391,8 @@ namespace ortc
         return false;
       }
 
-      reportBlock->mNTPTimestampMS = UseHelper::getBE32(&(pos[0]));
-      reportBlock->mNTPTimestampLS = UseHelper::getBE32(&(pos[4]));
+      reportBlock->mNTPTimestampMS = RTPUtils::getBE32(&(pos[0]));
+      reportBlock->mNTPTimestampLS = RTPUtils::getBE32(&(pos[4]));
 
       return true;
     }
@@ -4420,9 +4421,9 @@ namespace ortc
       {
         auto subBlock = &(reportBlock->mSubBlocks[reportBlock->mSubBlockCount]);
 
-        subBlock->mSSRC = UseHelper::getBE32(&(pos[0]));
-        subBlock->mLRR = UseHelper::getBE32(&(pos[4]));
-        subBlock->mDLRR = UseHelper::getBE32(&(pos[8]));
+        subBlock->mSSRC = RTPUtils::getBE32(&(pos[0]));
+        subBlock->mLRR = RTPUtils::getBE32(&(pos[4]));
+        subBlock->mDLRR = RTPUtils::getBE32(&(pos[8]));
 
         advancePos(pos, remaining, sizeof(DWORD)*3);
 
@@ -4452,12 +4453,12 @@ namespace ortc
 
       advancePos(pos, remaining, sizeof(DWORD)*2);
 
-      reportBlock->mLostPackets = UseHelper::getBE32(&(pos[0]));
-      reportBlock->mDupPackets = UseHelper::getBE32(&(pos[4]));
-      reportBlock->mMinJitter = UseHelper::getBE32(&(pos[8]));
-      reportBlock->mMaxJitter = UseHelper::getBE32(&(pos[12]));
-      reportBlock->mMeanJitter = UseHelper::getBE32(&(pos[16]));
-      reportBlock->mDevJitter = UseHelper::getBE32(&(pos[20]));
+      reportBlock->mLostPackets = RTPUtils::getBE32(&(pos[0]));
+      reportBlock->mDupPackets = RTPUtils::getBE32(&(pos[4]));
+      reportBlock->mMinJitter = RTPUtils::getBE32(&(pos[8]));
+      reportBlock->mMaxJitter = RTPUtils::getBE32(&(pos[12]));
+      reportBlock->mMeanJitter = RTPUtils::getBE32(&(pos[16]));
+      reportBlock->mDevJitter = RTPUtils::getBE32(&(pos[20]));
 
       reportBlock->mMinTTLOrHL = pos[24];
       reportBlock->mMaxTTLOrHL = pos[25];
@@ -4481,15 +4482,15 @@ namespace ortc
         return false;
       }
 
-      reportBlock->mSSRCOfSource = UseHelper::getBE32(&(pos[0]));
+      reportBlock->mSSRCOfSource = RTPUtils::getBE32(&(pos[0]));
       reportBlock->mLossRate = pos[4];
       reportBlock->mDiscardRate = pos[5];
       reportBlock->mBurstDensity = pos[6];
       reportBlock->mGapDensity = pos[7];
-      reportBlock->mBurstDuration = UseHelper::getBE16(&(pos[8]));
-      reportBlock->mGapDuration = UseHelper::getBE16(&(pos[10]));
-      reportBlock->mRoundTripDelay = UseHelper::getBE16(&(pos[12]));
-      reportBlock->mEndSystemDelay = UseHelper::getBE16(&(pos[14]));
+      reportBlock->mBurstDuration = RTPUtils::getBE16(&(pos[8]));
+      reportBlock->mGapDuration = RTPUtils::getBE16(&(pos[10]));
+      reportBlock->mRoundTripDelay = RTPUtils::getBE16(&(pos[12]));
+      reportBlock->mEndSystemDelay = RTPUtils::getBE16(&(pos[14]));
       reportBlock->mSignalLevel = pos[16];
       reportBlock->mNoiseLevel = pos[17];
       reportBlock->mRERL = pos[18];
@@ -4500,9 +4501,9 @@ namespace ortc
       reportBlock->mMOSCQ = pos[23];
       reportBlock->mRXConfig = pos[24];
       reportBlock->mReservedVoIP = pos[25];
-      reportBlock->mJBNominal = UseHelper::getBE16(&(pos[26]));
-      reportBlock->mJBMaximum = UseHelper::getBE16(&(pos[28]));
-      reportBlock->mJBAbsMax = UseHelper::getBE16(&(pos[30]));
+      reportBlock->mJBNominal = RTPUtils::getBE16(&(pos[26]));
+      reportBlock->mJBMaximum = RTPUtils::getBE16(&(pos[28]));
+      reportBlock->mJBAbsMax = RTPUtils::getBE16(&(pos[30]));
 
       return true;
     }
@@ -5054,14 +5055,14 @@ namespace ortc
       {
         ASSERT(count < report->rc())
 
-        UseHelper::setBE32(&(pos[0]), block->ssrc());
+        RTPUtils::setBE32(&(pos[0]), block->ssrc());
         ASSERT(throwIfGreaterThanBitsAllow(block->cumulativeNumberOfPacketsLost(), 24))
-        UseHelper::setBE32(&(pos[4]), block->cumulativeNumberOfPacketsLost());
+        RTPUtils::setBE32(&(pos[4]), block->cumulativeNumberOfPacketsLost());
         pos[4] = block->fractionLost();
-        UseHelper::setBE32(&(pos[8]), block->extendedHighestSequenceNumberReceived());
-        UseHelper::setBE32(&(pos[12]), block->interarrivalJitter());
-        UseHelper::setBE32(&(pos[16]), block->lsr());
-        UseHelper::setBE32(&(pos[20]), block->dlsr());
+        RTPUtils::setBE32(&(pos[8]), block->extendedHighestSequenceNumberReceived());
+        RTPUtils::setBE32(&(pos[12]), block->interarrivalJitter());
+        RTPUtils::setBE32(&(pos[16]), block->lsr());
+        RTPUtils::setBE32(&(pos[20]), block->dlsr());
 
         advancePos(pos, remaining, sizeof(DWORD)*6);
       }
@@ -5081,12 +5082,12 @@ namespace ortc
       typedef RTCPPacket::SenderReport SenderReport;
       pos[1] = SenderReport::kPayloadType;
 
-      UseHelper::setBE32(&(pos[4]), report->ssrcOfSender());
-      UseHelper::setBE32(&(pos[8]), report->ntpTimestampMS());
-      UseHelper::setBE32(&(pos[12]), report->ntpTimestampLS());
-      UseHelper::setBE32(&(pos[16]), report->rtpTimestamp());
-      UseHelper::setBE32(&(pos[20]), report->senderPacketCount());
-      UseHelper::setBE32(&(pos[24]), report->senderOctetCount());
+      RTPUtils::setBE32(&(pos[4]), report->ssrcOfSender());
+      RTPUtils::setBE32(&(pos[8]), report->ntpTimestampMS());
+      RTPUtils::setBE32(&(pos[12]), report->ntpTimestampLS());
+      RTPUtils::setBE32(&(pos[16]), report->rtpTimestamp());
+      RTPUtils::setBE32(&(pos[20]), report->senderPacketCount());
+      RTPUtils::setBE32(&(pos[24]), report->senderOctetCount());
 
       advancePos(pos, remaining, sizeof(DWORD)*7);
 
@@ -5099,7 +5100,7 @@ namespace ortc
       typedef RTCPPacket::ReceiverReport ReceiverReport;
       pos[1] = ReceiverReport::kPayloadType;
 
-      UseHelper::setBE32(&(pos[4]), report->ssrcOfPacketSender());
+      RTPUtils::setBE32(&(pos[4]), report->ssrcOfPacketSender());
 
       advancePos(pos, remaining, sizeof(DWORD)*2);
 
@@ -5120,7 +5121,7 @@ namespace ortc
 
       for (Chunk *chunk = report->firstChunk(); NULL != chunk; chunk = chunk->next(), ++chunkCount)
       {
-        UseHelper::setBE32(pos, chunk->ssrc());
+        RTPUtils::setBE32(pos, chunk->ssrc());
         advancePos(pos, remaining, sizeof(DWORD));
 
         BYTE *startPos = pos;
@@ -5307,7 +5308,7 @@ namespace ortc
         if ((0 == diff) ||
             (0 == modulas)) {
           // write "empty" chunk
-          UseHelper::setBE32(pos, 0);
+          RTPUtils::setBE32(pos, 0);
           advancePos(pos, remaining, sizeof(DWORD));
         }
       }
@@ -5325,7 +5326,7 @@ namespace ortc
 
       for (size_t index = 0; index < report->sc(); ++index)
       {
-        UseHelper::setBE32(pos, report->ssrc(index));
+        RTPUtils::setBE32(pos, report->ssrc(index));
         advancePos(pos, remaining, sizeof(DWORD));
       }
 
@@ -5345,7 +5346,7 @@ namespace ortc
       typedef RTCPPacket::App App;
       pos[1] = App::kPayloadType;
 
-      UseHelper::setBE32(&(pos[4]), report->ssrc());
+      RTPUtils::setBE32(&(pos[4]), report->ssrc());
       memcpy(&(pos[8]), report->name(), sizeof(DWORD));
 
       advancePos(pos, remaining, sizeof(DWORD)*3);
@@ -5367,8 +5368,8 @@ namespace ortc
 
       pos[1] = TransportLayerFeedbackMessage::kPayloadType;
 
-      UseHelper::setBE32(&(pos[4]), report->ssrcOfPacketSender());
-      UseHelper::setBE32(&(pos[8]), report->ssrcOfMediaSource());
+      RTPUtils::setBE32(&(pos[4]), report->ssrcOfPacketSender());
+      RTPUtils::setBE32(&(pos[8]), report->ssrcOfMediaSource());
 
       advancePos(pos, remaining, sizeof(DWORD)*3);
 
@@ -5380,8 +5381,8 @@ namespace ortc
           for (size_t index = 0; index < count; ++index)
           {
             auto item = report->genericNACKAtIndex(index);
-            UseHelper::setBE16(&(pos[0]), item->pid());
-            UseHelper::setBE16(&(pos[2]), item->blp());
+            RTPUtils::setBE16(&(pos[0]), item->pid());
+            RTPUtils::setBE16(&(pos[2]), item->blp());
             advancePos(pos, remaining, sizeof(DWORD));
           }
           break;
@@ -5393,13 +5394,13 @@ namespace ortc
           for (size_t index = 0; index < count; ++index)
           {
             auto item = report->tmmbrAtIndex(index);
-            UseHelper::setBE32(&(pos[0]), item->ssrc());
+            RTPUtils::setBE32(&(pos[0]), item->ssrc());
 
             DWORD merged = RTCP_PACK_BITS(static_cast<DWORD>(item->mxTBRExp()), 0x3F, 26) |
                            RTCP_PACK_BITS(static_cast<DWORD>(item->mxTBRMantissa()), 0x1FFFF, 9) |
                            RTCP_PACK_BITS(static_cast<DWORD>(item->measuredOverhead()), 0x1FF, 0);
 
-            UseHelper::setBE32(&(pos[4]), merged);
+            RTPUtils::setBE32(&(pos[4]), merged);
 
             advancePos(pos, remaining, sizeof(DWORD)*2);
           }
@@ -5412,13 +5413,13 @@ namespace ortc
           for (size_t index = 0; index < count; ++index)
           {
             auto item = report->tmmbnAtIndex(index);
-            UseHelper::setBE32(&(pos[0]), item->ssrc());
+            RTPUtils::setBE32(&(pos[0]), item->ssrc());
 
             DWORD merged = RTCP_PACK_BITS(static_cast<DWORD>(item->mxTBRExp()), 0x3F, 26) |
                            RTCP_PACK_BITS(static_cast<DWORD>(item->mxTBRMantissa()), 0x1FFFF, 9) |
                            RTCP_PACK_BITS(static_cast<DWORD>(item->measuredOverhead()), 0x1FF, 0);
 
-            UseHelper::setBE32(&(pos[4]), merged);
+            RTPUtils::setBE32(&(pos[4]), merged);
 
             advancePos(pos, remaining, sizeof(DWORD)*2);
           }
@@ -5454,8 +5455,8 @@ namespace ortc
 
       pos[1] = PayloadSpecificFeedbackMessage::kPayloadType;
 
-      UseHelper::setBE32(&(pos[4]), report->ssrcOfPacketSender());
-      UseHelper::setBE32(&(pos[8]), report->ssrcOfMediaSource());
+      RTPUtils::setBE32(&(pos[4]), report->ssrcOfPacketSender());
+      RTPUtils::setBE32(&(pos[8]), report->ssrcOfMediaSource());
 
       advancePos(pos, remaining, sizeof(DWORD)*3);
 
@@ -5476,7 +5477,7 @@ namespace ortc
                            RTCP_PACK_BITS(static_cast<DWORD>(item->number()), 0x1FFF, 6) |
                            RTCP_PACK_BITS(static_cast<DWORD>(item->pictureID()), 0x3F, 0);
 
-            UseHelper::setBE32(&(pos[0]), merged);
+            RTPUtils::setBE32(&(pos[0]), merged);
             advancePos(pos, remaining, sizeof(DWORD));
           }
           break;
@@ -5520,8 +5521,8 @@ namespace ortc
           for (size_t index = 0; index < count; ++index)
           {
             auto item = report->firAtIndex(index);
-            UseHelper::setBE32(&(pos[0]), item->ssrc());
-            UseHelper::setBE32(&(pos[4]), item->reserved());
+            RTPUtils::setBE32(&(pos[0]), item->ssrc());
+            RTPUtils::setBE32(&(pos[4]), item->reserved());
             pos[4] = item->seqNr();
             advancePos(pos, remaining, sizeof(DWORD)*2);
           }
@@ -5534,13 +5535,13 @@ namespace ortc
           for (size_t index = 0; index < count; ++index)
           {
             auto item = report->tstrAtIndex(index);
-            UseHelper::setBE32(&(pos[0]), item->ssrc());
+            RTPUtils::setBE32(&(pos[0]), item->ssrc());
 
             DWORD merged = RTCP_PACK_BITS(static_cast<DWORD>(item->seqNr()), 0xFF, 24) |
                            RTCP_PACK_BITS(static_cast<DWORD>(item->reserved()), 0x7FFFF, 5) |
                            RTCP_PACK_BITS(static_cast<DWORD>(item->index()), 0x1F, 0);
 
-            UseHelper::setBE32(&(pos[4]), merged);
+            RTPUtils::setBE32(&(pos[4]), merged);
             advancePos(pos, remaining, sizeof(DWORD)*2);
           }
           break;
@@ -5552,13 +5553,13 @@ namespace ortc
           for (size_t index = 0; index < count; ++index)
           {
             auto item = report->tstnAtIndex(index);
-            UseHelper::setBE32(&(pos[0]), item->ssrc());
+            RTPUtils::setBE32(&(pos[0]), item->ssrc());
 
             DWORD merged = RTCP_PACK_BITS(static_cast<DWORD>(item->seqNr()), 0xFF, 24) |
                            RTCP_PACK_BITS(static_cast<DWORD>(item->reserved()), 0x7FFFF, 5) |
                            RTCP_PACK_BITS(static_cast<DWORD>(item->index()), 0x1F, 0);
 
-            UseHelper::setBE32(&(pos[4]), merged);
+            RTPUtils::setBE32(&(pos[4]), merged);
             advancePos(pos, remaining, sizeof(DWORD)*2);
           }
           break;
@@ -5571,7 +5572,7 @@ namespace ortc
           {
             auto item = report->vbcmAtIndex(index);
 
-            UseHelper::setBE32(&(pos[0]), item->ssrc());
+            RTPUtils::setBE32(&(pos[0]), item->ssrc());
 
             pos[4] = item->seqNr();
             pos[5] = RTCP_PACK_BITS(static_cast<BYTE>(item->zeroBit()), 0x1, 7) |
@@ -5579,7 +5580,7 @@ namespace ortc
 
             auto size = item->vbcmOctetStringSize();
             if (0 != size) {
-              UseHelper::setBE16(&(pos[6]), size);
+              RTPUtils::setBE16(&(pos[6]), size);
               memcpy(&(pos[8]), item->vbcmOctetString(), size*sizeof(BYTE));
             }
 
@@ -5604,7 +5605,7 @@ namespace ortc
 
             DWORD merged = RTCP_PACK_BITS(static_cast<DWORD>(remb->brExp()), 0x3F, 18) |
                            RTCP_PACK_BITS(static_cast<DWORD>(remb->brMantissa()), 0x3FFFF, 0);
-            UseHelper::setBE32(&(pos[4]), merged);
+            RTPUtils::setBE32(&(pos[4]), merged);
             pos[4] = remb->numSSRC();
             advancePos(pos, remaining, sizeof(DWORD)*2);
 
@@ -5612,7 +5613,7 @@ namespace ortc
             for (size_t index = 0; index < count; ++index)
             {
               auto ssrc = remb->ssrcAtIndex(index);
-              UseHelper::setBE32(pos, ssrc);
+              RTPUtils::setBE32(pos, ssrc);
               advancePos(pos, remaining, sizeof(DWORD));
             }
           }
@@ -5647,7 +5648,7 @@ namespace ortc
       typedef RTCPPacket::XR::RLEChunk RLEChunk;
 
       pos[1] = XR::kPayloadType;
-      UseHelper::setBE32(&(pos[4]), report->mSSRC);
+      RTPUtils::setBE32(&(pos[4]), report->mSSRC);
 
       advancePos(pos, remaining, sizeof(DWORD)*2);
 
@@ -5665,9 +5666,9 @@ namespace ortc
           {
             auto block = reinterpret_cast<const LossRLEReportBlock *>(reportBlock);
 
-            UseHelper::setBE32(&(pos[0]), block->ssrcOfSource());
-            UseHelper::setBE16(&(pos[4]), block->beginSeq());
-            UseHelper::setBE16(&(pos[6]), block->endSeq());
+            RTPUtils::setBE32(&(pos[0]), block->ssrcOfSource());
+            RTPUtils::setBE16(&(pos[4]), block->beginSeq());
+            RTPUtils::setBE16(&(pos[6]), block->endSeq());
 
             advancePos(pos, remaining, sizeof(DWORD)*2);
 
@@ -5675,7 +5676,7 @@ namespace ortc
             for (size_t index = 0; index < chunkCount; ++index)
             {
               RLEChunk chunk = block->chunkAtIndex(index);
-              UseHelper::setBE16(pos, chunk);
+              RTPUtils::setBE16(pos, chunk);
               advancePos(pos, remaining, sizeof(WORD));
             }
             break;
@@ -5684,9 +5685,9 @@ namespace ortc
           {
             auto block = reinterpret_cast<const DuplicateRLEReportBlock *>(reportBlock);
 
-            UseHelper::setBE32(&(pos[0]), block->ssrcOfSource());
-            UseHelper::setBE16(&(pos[4]), block->beginSeq());
-            UseHelper::setBE16(&(pos[6]), block->endSeq());
+            RTPUtils::setBE32(&(pos[0]), block->ssrcOfSource());
+            RTPUtils::setBE16(&(pos[4]), block->beginSeq());
+            RTPUtils::setBE16(&(pos[6]), block->endSeq());
 
             advancePos(pos, remaining, sizeof(DWORD)*2);
 
@@ -5694,7 +5695,7 @@ namespace ortc
             for (size_t index = 0; index < count; ++index)
             {
               RLEChunk chunk = block->chunkAtIndex(index);
-              UseHelper::setBE16(pos, chunk);
+              RTPUtils::setBE16(pos, chunk);
               advancePos(pos, remaining, sizeof(WORD));
             }
             break;
@@ -5703,9 +5704,9 @@ namespace ortc
           {
             auto block = reinterpret_cast<const PacketReceiptTimesReportBlock *>(reportBlock);
 
-            UseHelper::setBE32(&(pos[0]), block->ssrcOfSource());
-            UseHelper::setBE16(&(pos[4]), block->beginSeq());
-            UseHelper::setBE16(&(pos[6]), block->endSeq());
+            RTPUtils::setBE32(&(pos[0]), block->ssrcOfSource());
+            RTPUtils::setBE16(&(pos[4]), block->beginSeq());
+            RTPUtils::setBE16(&(pos[6]), block->endSeq());
 
             advancePos(pos, remaining, sizeof(DWORD)*2);
 
@@ -5713,7 +5714,7 @@ namespace ortc
             for (size_t index = 0; index < count; ++index)
             {
               DWORD receiptTime = block->receiptTimeAtIndex(index);
-              UseHelper::setBE32(pos, receiptTime);
+              RTPUtils::setBE32(pos, receiptTime);
               advancePos(pos, remaining, sizeof(DWORD));
             }
             break;
@@ -5721,8 +5722,8 @@ namespace ortc
           case ReceiverReferenceTimeReportBlock::kBlockType:
           {
             auto block = reinterpret_cast<const ReceiverReferenceTimeReportBlock *>(reportBlock);
-            UseHelper::setBE32(&(pos[0]), block->ntpTimestampMS());
-            UseHelper::setBE32(&(pos[4]), block->ntpTimestampLS());
+            RTPUtils::setBE32(&(pos[0]), block->ntpTimestampMS());
+            RTPUtils::setBE32(&(pos[4]), block->ntpTimestampLS());
             advancePos(pos, remaining, sizeof(DWORD)*2);
             break;
           }
@@ -5734,9 +5735,9 @@ namespace ortc
             for (size_t index = 0; index < count; ++index)
             {
               DLRRReportBlock::SubBlock *subBlock = block->subBlockAtIndex(index);
-              UseHelper::setBE32(&(pos[0]), subBlock->ssrc());
-              UseHelper::setBE32(&(pos[4]), subBlock->lrr());
-              UseHelper::setBE32(&(pos[8]), subBlock->dlrr());
+              RTPUtils::setBE32(&(pos[0]), subBlock->ssrc());
+              RTPUtils::setBE32(&(pos[4]), subBlock->lrr());
+              RTPUtils::setBE32(&(pos[8]), subBlock->dlrr());
               advancePos(pos, remaining, sizeof(DWORD)*3);
             }
             break;
@@ -5744,15 +5745,15 @@ namespace ortc
           case StatisticsSummaryReportBlock::kBlockType:
           {
             auto block = reinterpret_cast<const StatisticsSummaryReportBlock *>(reportBlock);
-            UseHelper::setBE32(&(pos[0]), block->ssrcOfSource());
-            UseHelper::setBE16(&(pos[4]), block->beginSeq());
-            UseHelper::setBE16(&(pos[6]), block->endSeq());
-            UseHelper::setBE32(&(pos[8]), block->lostPackets());
-            UseHelper::setBE32(&(pos[12]), block->dupPackets());
-            UseHelper::setBE32(&(pos[16]), block->minJitter());
-            UseHelper::setBE32(&(pos[20]), block->maxJitter());
-            UseHelper::setBE32(&(pos[24]), block->meanJitter());
-            UseHelper::setBE32(&(pos[28]), block->devJitter());
+            RTPUtils::setBE32(&(pos[0]), block->ssrcOfSource());
+            RTPUtils::setBE16(&(pos[4]), block->beginSeq());
+            RTPUtils::setBE16(&(pos[6]), block->endSeq());
+            RTPUtils::setBE32(&(pos[8]), block->lostPackets());
+            RTPUtils::setBE32(&(pos[12]), block->dupPackets());
+            RTPUtils::setBE32(&(pos[16]), block->minJitter());
+            RTPUtils::setBE32(&(pos[20]), block->maxJitter());
+            RTPUtils::setBE32(&(pos[24]), block->meanJitter());
+            RTPUtils::setBE32(&(pos[28]), block->devJitter());
             pos[32] = block->mMinTTLOrHL;
             pos[33] = block->mMaxTTLOrHL;
             pos[34] = block->mMeanTTLOrHL;
@@ -5763,15 +5764,15 @@ namespace ortc
           case VoIPMetricsReportBlock::kBlockType:
           {
             auto block = reinterpret_cast<const VoIPMetricsReportBlock *>(reportBlock);
-            UseHelper::setBE32(&(pos[0]), block->ssrcOfSource());
+            RTPUtils::setBE32(&(pos[0]), block->ssrcOfSource());
             pos[4] = block->lossRate();
             pos[5] = block->discardRate();
             pos[6] = block->burstDensity();
             pos[7] = block->gapDensity();
-            UseHelper::setBE16(&(pos[8]), block->burstDuration());
-            UseHelper::setBE16(&(pos[10]), block->gapDuration());
-            UseHelper::setBE16(&(pos[12]), block->roundTripDelay());
-            UseHelper::setBE16(&(pos[14]), block->endSystemDelay());
+            RTPUtils::setBE16(&(pos[8]), block->burstDuration());
+            RTPUtils::setBE16(&(pos[10]), block->gapDuration());
+            RTPUtils::setBE16(&(pos[12]), block->roundTripDelay());
+            RTPUtils::setBE16(&(pos[14]), block->endSystemDelay());
             pos[16] = block->signalLevel();
             pos[17] = block->noiseLevel();
             pos[18] = block->rerl();
@@ -5784,9 +5785,9 @@ namespace ortc
 
             pos[24] = block->rxConfig();
             pos[25] = block->mReservedVoIP;
-            UseHelper::setBE16(&(pos[26]), block->jbNominal());
-            UseHelper::setBE16(&(pos[28]), block->jbMaximum());
-            UseHelper::setBE16(&(pos[30]), block->jbAbsMax());
+            RTPUtils::setBE16(&(pos[26]), block->jbNominal());
+            RTPUtils::setBE16(&(pos[28]), block->jbMaximum());
+            RTPUtils::setBE16(&(pos[30]), block->jbAbsMax());
             advancePos(pos, remaining, sizeof(DWORD)*8);
             break;
           }
@@ -5813,7 +5814,7 @@ namespace ortc
         diff = boundarySize(diff);
         ZS_LOG_INSANE(packet_slog("writing XR block") + ZS_PARAM("block type", reportBlock->blockTypeToString()) + ZS_PARAM("block type (number)", reportBlock->blockType()) + ZS_PARAM("block size", diff))
 
-        UseHelper::setBE16(&(blockStart[2]), (diff/sizeof(DWORD))-1);
+        RTPUtils::setBE16(&(blockStart[2]), (diff/sizeof(DWORD))-1);
       }
     }
 
@@ -5933,7 +5934,7 @@ namespace ortc
         size_t headerSize = ((diff+padding)/sizeof(DWORD))-1;
         ASSERT(throwIfGreaterThanBitsAllow(headerSize, 16))
 
-        UseHelper::setBE16(&(startOfReport[2]), headerSize);
+        RTPUtils::setBE16(&(startOfReport[2]), headerSize);
       }
 
       ASSERT(0 == remaining)
