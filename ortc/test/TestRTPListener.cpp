@@ -53,7 +53,6 @@ using zsLib::IMessageQueue;
 using zsLib::Log;
 using zsLib::AutoPUID;
 using zsLib::AutoRecursiveLock;
-using zsLib::IPromiseSettledDelegate;
 using namespace zsLib::XML;
 
 ZS_DECLARE_TYPEDEF_PTR(ortc::ISettings, UseSettings)

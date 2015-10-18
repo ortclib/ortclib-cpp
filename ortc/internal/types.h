@@ -109,13 +109,13 @@ namespace ortc
     ZS_DECLARE_CLASS_PTR(RTPPacket)
     ZS_DECLARE_CLASS_PTR(RTCPPacket)
 
-    ZS_DECLARE_INTERACTION_PTR(ISRTPTransport)
-
+    ZS_DECLARE_INTERACTION_PTR(IDataTransportForSecureTransport)
+    ZS_DECLARE_INTERACTION_PTR(ISecureTransport)
     ZS_DECLARE_INTERACTION_PTR(ISecureTransportForRTPSender)
     ZS_DECLARE_INTERACTION_PTR(ISecureTransportForSRTPTransport)
     ZS_DECLARE_INTERACTION_PTR(ISecureTransportForICETransport)
     ZS_DECLARE_INTERACTION_PTR(ISecureTransportForRTPListener)
-    ZS_DECLARE_INTERACTION_PTR(IDataTransportForSecureTransport)
+    ZS_DECLARE_INTERACTION_PTR(ISRTPTransport)
 
     ZS_DECLARE_CLASS_PTR(ORTC)
     ZS_DECLARE_CLASS_PTR(Settings)
@@ -140,8 +140,10 @@ namespace ortc
     ZS_DECLARE_CLASS_PTR(SRTPTransport)
 
 
+    ZS_DECLARE_INTERACTION_PROXY(ISecureTransportDelegate)
     ZS_DECLARE_INTERACTION_PROXY(ISRTPTransportDelegate)
 
     ZS_DECLARE_INTERACTION_PROXY_SUBSCRIPTION(ISRTPTransportSubscription, ISRTPTransportDelegate)
+    ZS_DECLARE_INTERACTION_PROXY_SUBSCRIPTION(ISecureTransportSubscription, ISecureTransportDelegate)
   }
 }

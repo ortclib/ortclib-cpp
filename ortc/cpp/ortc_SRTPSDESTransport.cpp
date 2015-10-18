@@ -115,6 +115,8 @@ namespace ortc
     {
       ZS_LOG_DETAIL(debug("created"))
 
+      ORTC_THROW_INVALID_PARAMETERS_IF(!mICETransportRTP)
+
       if (originalDelegate) {
         mDefaultSubscription = mSubscriptions.subscribe(originalDelegate, IORTCForInternal::queueDelegate());
       }
@@ -128,9 +130,8 @@ namespace ortc
     {
       AutoRecursiveLock lock(*this);
 
-      if (mICETransportRTP) {
-        mICETransportRTP->notifyAttached(mID, mThisWeak.lock());
-      }
+      mICETransportRTP->notifyAttached(mID, mThisWeak.lock());
+      mICETransportSubscription = mICETransportRTP->subscribe(mThisWeak.lock());
 
       fixRTCPTransport();
 
@@ -277,8 +278,48 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark SRTPSDESTransport => ISRTPSDESTransportForRTPSender
+    #pragma mark SRTPSDESTransport => ISecureTransport
     #pragma mark
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark SRTPSDESTransport => ISecureTransportForRTPSender
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    ISecureTransportSubscriptionPtr SRTPSDESTransport::subscribe(ISecureTransportDelegatePtr originalDelegate)
+    {
+      ZS_LOG_DETAIL(log("subscribing to secure transport state"))
+
+      AutoRecursiveLock lock(*this);
+
+      ISecureTransportSubscriptionPtr subscription = mSecureTransportSubscriptions.subscribe(ISecureTransportDelegateProxy::create(IORTCForInternal::queueDelegate(), originalDelegate));
+
+      ISecureTransportDelegatePtr delegate = mSecureTransportSubscriptions.delegate(subscription, true);
+
+      if (delegate) {
+        auto pThis = mThisWeak.lock();
+
+        if (ISecureTransport::State_Pending != mSecureTransportState) {
+          delegate->onSecureTransportStateChanged(pThis, mSecureTransportState);
+        }
+      }
+
+      if (isShutdown()) {
+        mSecureTransportSubscriptions.clear();
+      }
+
+      return subscription;
+    }
+    
+    //-------------------------------------------------------------------------
+    ISecureTransportTypes::States SRTPSDESTransport::state(ISecureTransportTypes::States ignored) const
+    {
+      return mSecureTransportState; // no lock needed
+    }
 
     //-------------------------------------------------------------------------
     bool SRTPSDESTransport::sendPacket(
@@ -489,6 +530,53 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
+    #pragma mark SRTPSDESTransport => ISRTPTransportDelegate
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    void SRTPSDESTransport::onICETransportStateChanged(
+                                                       IICETransportPtr transport,
+                                                       IICETransport::States state
+                                                       )
+    {
+      ZS_LOG_DEBUG(log("ice transport state changed") + ZS_PARAM("transport", transport->getID()) + ZS_PARAM("state", IICETransportTypes::toString(state)))
+
+      AutoRecursiveLock lock(*this);
+      step();
+    }
+
+    //-------------------------------------------------------------------------
+    void SRTPSDESTransport::onICETransportCandidatePairAvailable(
+                                                                 IICETransportPtr transport,
+                                                                 CandidatePairPtr candidatePair
+                                                                 )
+    {
+      // ignored
+    }
+
+    //-------------------------------------------------------------------------
+    void SRTPSDESTransport::onICETransportCandidatePairGone(
+                                                            IICETransportPtr transport,
+                                                            CandidatePairPtr candidatePair
+                                                            )
+    {
+      // ignored
+    }
+
+    //-------------------------------------------------------------------------
+    void SRTPSDESTransport::onICETransportCandidatePairChanged(
+                                                               IICETransportPtr transport,
+                                                               CandidatePairPtr candidatePair
+                                                               )
+    {
+      // ignored
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
     #pragma mark SRTPSDESTransport => (internal)
     #pragma mark
 
@@ -520,6 +608,9 @@ namespace ortc
       UseServicesHelper::debugAppend(resultEl, "subscribers", mSubscriptions.size());
       UseServicesHelper::debugAppend(resultEl, "default subscription", (bool)mDefaultSubscription);
 
+      UseServicesHelper::debugAppend(resultEl, "secure transport subscriptions", mSecureTransportSubscriptions.size());
+      UseServicesHelper::debugAppend(resultEl, "secure transport state", ISecureTransportTypes::toString(mSecureTransportState));
+
       UseServicesHelper::debugAppend(resultEl, "error", mLastError);
       UseServicesHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
 
@@ -547,6 +638,49 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    void SRTPSDESTransport::step()
+    {
+      if ((isShuttingDown()) ||
+          (isShutdown())) {
+        ZS_LOG_DEBUG(debug("step calling cancel (already shutting down / shutdown)"))
+        cancel();
+        return;
+      }
+
+      if (!stepIceState()) goto not_ready;
+
+    not_ready:
+      {
+      }
+    }
+
+    //-------------------------------------------------------------------------
+    bool SRTPSDESTransport::stepIceState()
+    {
+      auto state = mICETransportRTP->state();
+
+      switch (state) {
+        case IICETransportTypes::State_Connected:
+        case IICETransportTypes::State_Completed:
+        {
+          setState(ISecureTransportTypes::State_Connected);
+          break;
+        }
+        case IICETransportTypes::State_New:
+        case IICETransportTypes::State_Checking:
+        case IICETransportTypes::State_Disconnected:
+        case IICETransportTypes::State_Failed:
+        case IICETransportTypes::State_Closed:
+        {
+          setState(ISecureTransportTypes::State_Disconnected);
+          break;
+        }
+      }
+
+      return true;
+    }
+
+    //-------------------------------------------------------------------------
     void SRTPSDESTransport::cancel()
     {
       if (mShutdown) return;
@@ -569,6 +703,8 @@ namespace ortc
           (mAttachedRTCP)) {
         mICETransportRTCP->notifyDetached(mID);
       }
+
+      setState(ISecureTransportTypes::State_Closed);
 
       // make sure to cleanup any final reference to self
       mGracefulShutdownReference.reset();
@@ -597,6 +733,21 @@ namespace ortc
       }
 
       ZS_LOG_WARNING(Detail, debug("error set") + ZS_PARAM("error", mLastError) + ZS_PARAM("reason", mLastErrorReason))
+    }
+
+    //-------------------------------------------------------------------------
+    void SRTPSDESTransport::setState(ISecureTransportTypes::States state)
+    {
+      if (state == mSecureTransportState) return;
+
+      ZS_LOG_DETAIL(debug("state changed") + ZS_PARAM("new state", ISecureTransportTypes::toString(state)) + ZS_PARAM("old state", ISecureTransportTypes::toString(mSecureTransportState)))
+
+      mSecureTransportState = state;
+
+      auto pThis = mThisWeak.lock();
+      if (pThis) {
+        mSecureTransportSubscriptions.delegate()->onSecureTransportStateChanged(pThis, mSecureTransportState);
+      }
     }
 
     //-------------------------------------------------------------------------

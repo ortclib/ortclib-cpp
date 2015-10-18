@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		000E70891BD3FF3C00622A01 /* ortc_RTPUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 000E70881BD3FF3C00622A01 /* ortc_RTPUtils.cpp */; settings = {ASSET_TAGS = (); }; };
 		00265E5C1B40983700D9B45F /* ortc_RTPListener.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00265E5B1B40983700D9B45F /* ortc_RTPListener.cpp */; };
 		00265E611B41631400D9B45F /* ortc_SRTPTransport.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00265E601B41631400D9B45F /* ortc_SRTPTransport.cpp */; };
 		0030F6781B1A01EB00E8649B /* ortc_Settings.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0030F6771B1A01EB00E8649B /* ortc_Settings.cpp */; };
@@ -54,6 +55,9 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		000E70861BD3FF1E00622A01 /* ortc_RTPTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ortc_RTPTypes.h; sourceTree = "<group>"; };
+		000E70871BD3FF1E00622A01 /* ortc_RTPUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ortc_RTPUtils.h; sourceTree = "<group>"; };
+		000E70881BD3FF3C00622A01 /* ortc_RTPUtils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_RTPUtils.cpp; sourceTree = "<group>"; };
 		0020ED6D1AB9138200B66C74 /* ICapabilities.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ICapabilities.h; sourceTree = "<group>"; };
 		0020ED6E1AB9138200B66C74 /* IConstraints.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IConstraints.h; sourceTree = "<group>"; };
 		0020ED6F1AB9138200B66C74 /* IDataChannel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IDataChannel.h; sourceTree = "<group>"; };
@@ -243,6 +247,7 @@
 				007B990A1856A1CD004AC6C0 /* ortc_RTPSender.cpp */,
 				004A6E831BD16BA80089677B /* ortc_RTPSenderChannel.cpp */,
 				00C295841B46CF7E002C623A /* ortc_RTPTypes.cpp */,
+				000E70881BD3FF3C00622A01 /* ortc_RTPUtils.cpp */,
 				006E83881B3C5506007740C3 /* ortc_SCTPTransport.cpp */,
 				00429A891BA7202200D65AAB /* ortc_SCTPTransportListener.cpp */,
 				0064C6C51AFE847A0089571E /* ortc_ISecureTransport.cpp */,
@@ -280,6 +285,8 @@
 				004A6E861BD16BC00089677B /* ortc_RTPReceiverChannel.h */,
 				007B99101856A1E4004AC6C0 /* ortc_RTPSender.h */,
 				004A6E871BD16BC00089677B /* ortc_RTPSenderChannel.h */,
+				000E70861BD3FF1E00622A01 /* ortc_RTPTypes.h */,
+				000E70871BD3FF1E00622A01 /* ortc_RTPUtils.h */,
 				006E83871B3C54FA007740C3 /* ortc_SCTPTransport.h */,
 				00265E5D1B40984900D9B45F /* ortc_ISRTPTransport.h */,
 				00429A8D1BA7204000D65AAB /* ortc_SCTPTransportListener.h */,
@@ -342,6 +349,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				00F99B971BAA027000D2E178 /* ortc_RTCPPacket.cpp in Sources */,
+				000E70891BD3FF3C00622A01 /* ortc_RTPUtils.cpp in Sources */,
 				00C295901B472DB4002C623A /* ifaddrs-android.cc in Sources */,
 				00724A70184CF4430049B9EF /* ortc.cpp in Sources */,
 				00724A72184CF4530049B9EF /* ortc_ORTC.cpp in Sources */,

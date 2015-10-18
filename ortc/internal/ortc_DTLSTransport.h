@@ -96,8 +96,6 @@ namespace ortc
     {
       virtual void onAdapterSendPacket() = 0;
       virtual void onDeliverPendingIncomingRTP() = 0;
-      virtual void onNotifyWhenReady(PromisePtr promise) = 0;
-      virtual void onNotifyWhenClosed(PromisePtr promise) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -112,6 +110,7 @@ namespace ortc
                           public MessageQueueAssociator,
                           public SharedRecursiveLock,
                           public IDTLSTransport,
+                          public ISecureTransport,
                           public ISecureTransportForRTPSender,
                           public ISecureTransportForRTPReceiver,
                           public ISecureTransportForICETransport,
@@ -138,6 +137,8 @@ namespace ortc
       friend interaction ISecureTransportForSRTPTransport;
       friend interaction ISecureTransportForDataTransport;
       friend interaction IDTLSTransportForSettings;
+
+      typedef IDTLSTransport::States States;
 
       ZS_DECLARE_TYPEDEF_PTR(IICETransportForSecureTransport, UseICETransport)
       ZS_DECLARE_TYPEDEF_PTR(ICertificateForDTLSTransport, UseCertificate)
@@ -192,7 +193,7 @@ namespace ortc
       #pragma mark DTLSTransport => IStatsProvider
       #pragma mark
 
-      virtual PromiseWithStatsReportPtr getStats() const throw(InvalidStateError);
+      virtual PromiseWithStatsReportPtr getStats() const throw(InvalidStateError) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -230,6 +231,12 @@ namespace ortc
 
       virtual void stop() override;
 
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark DTLSTransport => ISecureTransport
+      #pragma mark
+
+      // (duplicate) virtual PUID getID() const;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -238,6 +245,10 @@ namespace ortc
 
       // (duplicate) virtual PUID getID() const;
 
+      // (duplicate) virtual ISecureTransportSubscriptionPtr subscribe(ISecureTransportDelegatePtr delegate) = 0;
+
+      // (duplicate) virtual ISecureTransportTypes::States state(ISecureTransportTypes::States ignored = ISecureTransportTypes::States()) const = 0;
+
       virtual bool sendPacket(
                               IICETypes::Components sendOverICETransport,
                               IICETypes::Components packetType,
@@ -245,7 +256,7 @@ namespace ortc
                               size_t bufferLengthInBytes
                               ) override;
 
-      // (duplicate) virtual IICETransportPtr getICETransport() const = 0;
+      virtual IICETransportPtr getICETransport() const override;
 
 
       //-----------------------------------------------------------------------
@@ -329,12 +340,11 @@ namespace ortc
 
       // (duplicate) virtual PUID getID() const = 0;
 
-      virtual PromisePtr notifyWhenReady() override;
-      virtual PromisePtr notifyWhenClosed() override;
+      virtual ISecureTransportSubscriptionPtr subscribe(ISecureTransportDelegatePtr delegate) override;
+
+      virtual ISecureTransportTypes::States state(ISecureTransportTypes::States ignored) const override;
 
       virtual bool isClientRole() const override;
-
-      virtual IICETransportPtr getICETransport() const override;
 
       virtual UseDataTransportPtr getDataTransport() const override;
 
@@ -364,8 +374,6 @@ namespace ortc
 
       virtual void onAdapterSendPacket() override;
       virtual void onDeliverPendingIncomingRTP() override;
-      virtual void onNotifyWhenReady(PromisePtr promise) override;
-      virtual void onNotifyWhenClosed(PromisePtr promise) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -464,6 +472,8 @@ namespace ortc
 
       void setState(IDTLSTransportTypes::States state);
       void setError(WORD error, const char *reason = NULL);
+
+      void setState(ISecureTransportTypes::States state);
 
       void wakeUpIfNeeded();
 
@@ -701,13 +711,16 @@ namespace ortc
 
       std::atomic<IDTLSTransportTypes::States> mCurrentState {IDTLSTransportTypes::State_New};
 
+      ISecureTransportDelegateSubscriptions mSecureTransportSubscriptions;
+      std::atomic<ISecureTransport::States> mSecureTransportState {ISecureTransport::State_Pending};
+
       WORD mLastError {};
       String mLastErrorReason;
 
       UseICETransportPtr mICETransport;
       IICETransportSubscriptionPtr mICETransportSubscription;
 
-      IICETypes::Components mComponent{ IICETypes::Component_RTP };
+      IICETypes::Components mComponent {IICETypes::Component_RTP};
 
       UseCertificatePtr mCertificate;
 
@@ -733,9 +746,6 @@ namespace ortc
 
       UseRTPListenerPtr mRTPListener;     // no lock needed
       UseDataTransportPtr mDataTransport; // no lock needed
-
-      PromiseList mNotifyWhenReady;
-      PromiseList mNotifyWhenClosed;
     };
 
     //-------------------------------------------------------------------------
@@ -765,6 +775,4 @@ ZS_DECLARE_PROXY_BEGIN(ortc::internal::IDTLSTransportAsyncDelegate)
 ZS_DECLARE_PROXY_TYPEDEF(zsLib::PromisePtr, PromisePtr)
 ZS_DECLARE_PROXY_METHOD_0(onAdapterSendPacket)
 ZS_DECLARE_PROXY_METHOD_0(onDeliverPendingIncomingRTP)
-ZS_DECLARE_PROXY_METHOD_1(onNotifyWhenReady, PromisePtr)
-ZS_DECLARE_PROXY_METHOD_1(onNotifyWhenClosed, PromisePtr)
 ZS_DECLARE_PROXY_END()

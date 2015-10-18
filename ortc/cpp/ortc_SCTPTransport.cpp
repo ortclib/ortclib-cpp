@@ -652,10 +652,6 @@ namespace ortc
 
       ZS_LOG_DETAIL(debug("created"))
 
-      mSecureTransportReady = secureTransport->notifyWhenReady();
-      mSecureTransportClosed = secureTransport->notifyWhenClosed();
-      mICETransport = ICETransport::convert(secureTransport->getICETransport());
-
       ORTC_THROW_INVALID_STATE_IF(!mSCTPInit)
     }
 
@@ -667,12 +663,9 @@ namespace ortc
       
       ZS_LOG_DETAIL(debug("SCTP init"))
 
-      mSecureTransportReady->thenWeak(mThisWeak.lock());
-      mSecureTransportClosed->thenWeak(mThisWeak.lock());
-
-      auto iceTransport = mICETransport.lock();
-      if (iceTransport) {
-        mICETransportSubscription = iceTransport->subscribe(mThisWeak.lock());
+      auto secureTransport = mSecureTransport.lock();
+      if (secureTransport) {
+        mSecureTransportSubscription = secureTransport->subscribe(mThisWeak.lock());
       }
 
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
@@ -1418,56 +1411,13 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void SCTPTransport::onICETransportStateChanged(
-                                                   IICETransportPtr transport,
-                                                   IICETransport::States state
-                                                   )
+    void SCTPTransport::onSecureTransportStateChanged(
+                                                      ISecureTransportPtr transport,
+                                                      ISecureTransportTypes::States state
+                                                      )
     {
-      ZS_LOG_DEBUG(log("ice transport state changed") + ZS_PARAM("ice transport id", transport->getID()) + ZS_PARAM("state", IICETransport::toString(state)))
+      ZS_LOG_DEBUG(log("secure transport state changed") + ZS_PARAM("secure transport id", transport->getID()) + ZS_PARAM("state", ISecureTransportTypes::toString(state)))
 
-      AutoRecursiveLock lock(*this);
-      step();
-    }
-
-    //-------------------------------------------------------------------------
-    void SCTPTransport::onICETransportCandidatePairAvailable(
-                                                             IICETransportPtr transport,
-                                                             CandidatePairPtr candidatePair
-                                                             )
-    {
-      // ignored
-    }
-
-    //-------------------------------------------------------------------------
-    void SCTPTransport::onICETransportCandidatePairGone(
-                                                        IICETransportPtr transport,
-                                                        CandidatePairPtr candidatePair
-                                                        )
-    {
-      // ignored
-    }
-
-    //-------------------------------------------------------------------------
-    void SCTPTransport::onICETransportCandidatePairChanged(
-                                                           IICETransportPtr transport,
-                                                           CandidatePairPtr candidatePair
-                                                           )
-    {
-      // ignored
-    }
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark SCTPTransport => IPromiseSettledDelegate
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    void SCTPTransport::onPromiseSettled(PromisePtr promise)
-    {
-      ZS_LOG_TRACE(log("on promise settled"))
       AutoRecursiveLock lock(*this);
       step();
     }
@@ -1529,12 +1479,7 @@ namespace ortc
 
       auto secureTransport = mSecureTransport.lock();
       UseServicesHelper::debugAppend(resultEl, "secure transport", secureTransport ? secureTransport->getID() : 0);
-      UseServicesHelper::debugAppend(resultEl, "secure transport ready promise", (bool)mSecureTransportReady);
-      UseServicesHelper::debugAppend(resultEl, "secure transport closed promise", (bool)mSecureTransportClosed);
-
-      auto iceTransport = mICETransport.lock();
-      UseServicesHelper::debugAppend(resultEl, "ice transport", iceTransport ? iceTransport->getID() : 0);
-      UseServicesHelper::debugAppend(resultEl, "ice transport subscription", mICETransportSubscription ? mICETransportSubscription->getID() : 0);
+      UseServicesHelper::debugAppend(resultEl, "secure transport subscription", (bool)mSecureTransportSubscription);
 
       UseServicesHelper::debugAppend(resultEl, mCapabilities ? mCapabilities->toDebug() : ElementPtr());
 
@@ -1554,6 +1499,7 @@ namespace ortc
       UseServicesHelper::debugAppend(resultEl, "pending reset", mPendingResetSessions.size());
       UseServicesHelper::debugAppend(resultEl, "queued reset", mQueuedResetSessions.size());
 
+      UseServicesHelper::debugAppend(resultEl, "settled role", mSettledRole);
       UseServicesHelper::debugAppend(resultEl, "current allocation", mCurrentAllocationSessionID);
       UseServicesHelper::debugAppend(resultEl, "min allocation", mMinAllocationSessionID);
       UseServicesHelper::debugAppend(resultEl, "max allocation", mMaxAllocationSessionID);
@@ -1596,7 +1542,6 @@ namespace ortc
       // ... other steps here ...
       if (!stepStartCalled()) goto not_ready;
       if (!stepSecureTransport()) goto not_ready;
-      if (!stepICETransport()) goto not_ready;
       if (!stepOpen()) goto not_ready;
       if (!stepDeliverIncomingPackets()) goto not_ready;
       if (!stepConnected()) goto not_ready;
@@ -1633,31 +1578,47 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool SCTPTransport::stepSecureTransport()
     {
-      if (mSecureTransportClosed->isSettled()) {
-        ZS_LOG_WARNING(Detail, log("secure transport is now closed (thus must shutdown)"))
+      auto secureTransport = mSecureTransport.lock();
+      if (!secureTransport) {
+        ZS_LOG_WARNING(Detail, log("secure transport is now gone (thus must shutdown)"))
         cancel();
         return false;
       }
 
-      if (!mSecureTransportReady) {
-        ZS_LOG_TRACE(log("secure transport already notified ready"))
+      switch (secureTransport->state()) {
+        case ISecureTransportTypes::State_Pending:
+        {
+          ZS_LOG_TRACE(log("waiting for secure transport to be ready"))
+          return false;
+        }
+        case ISecureTransportTypes::State_Connected:
+        {
+          ZS_LOG_TRACE(log("secure transport already notified ready"))
+          break;
+        }
+        case ISecureTransportTypes::State_Disconnected:
+        {
+          setState(State_Disconnected);
+          return false;
+        }
+        case ISecureTransportTypes::State_Closed:
+        {
+          ZS_LOG_WARNING(Detail, log("secure transport is now gone (thus must shutdown)"))
+          cancel();
+          return false;
+        }
+      }
+
+
+      if (!mSettledRole) {
+        ZS_LOG_TRACE(log("role of secure transport already settled"))
         return true;
       }
 
-      if (!mSecureTransportReady->isSettled()) {
-        ZS_LOG_TRACE(log("waiting for secure transport to notify ready"))
-        return false;
-      }
 
       ZS_LOG_DEBUG(log("secure transport notified ready"))
-      mSecureTransportReady.reset();
 
-      auto secureTransport = mSecureTransport.lock();
-      if (!secureTransport) {
-        ZS_LOG_WARNING(Detail, log("secure transport is gone (thus must shutdown)"))
-        cancel();
-        return false;
-      }
+      mSettledRole = true;
 
       auto clientRole = secureTransport->isClientRole();
       if (clientRole) {
@@ -1667,50 +1628,6 @@ namespace ortc
       }
 
       return true;
-    }
-
-    //-------------------------------------------------------------------------
-    bool SCTPTransport::stepICETransport()
-    {
-      auto iceTransport = mICETransport.lock();
-
-      if (!iceTransport) {
-        ZS_LOG_WARNING(Detail, log("ice transport is gone (thus must shutdown)"))
-        cancel();
-        return false;
-      }
-
-      auto state = iceTransport->state();
-      switch (state) {
-        case IICETransport::State_New:
-        case IICETransport::State_Checking:
-        {
-          ZS_LOG_TRACE(log("ice is not ready"))
-          setState(State_Disconnected);
-          break;
-        }
-        case IICETransport::State_Connected:
-        case IICETransport::State_Completed:
-        {
-          ZS_LOG_TRACE(log("ice is ready"))
-          return true;
-        }
-        case IICETransport::State_Disconnected:
-        case IICETransport::State_Failed:
-        {
-          ZS_LOG_TRACE(log("ice is disconnected"))
-          setState(State_Disconnected);
-          break;
-        }
-        case IICETransport::State_Closed:
-        {
-          ZS_LOG_WARNING(Detail, log("ice is closed"))
-          cancel();
-          break;
-        }
-      }
-
-      return false;
     }
 
     //-------------------------------------------------------------------------
@@ -1852,38 +1769,25 @@ namespace ortc
               goto transport_not_available;
             }
 
-            if (mSecureTransportReady) {
-              if (!mSecureTransportReady->isSettled()) {
-                ZS_LOG_WARNING(Detail, log("secure transport was never ready"))
-                goto transport_not_available;
-              }
-            }
-            if (mSecureTransportClosed) {
-              if (mSecureTransportClosed->isSettled()) {
-                ZS_LOG_WARNING(Detail, log("secure transport is already closed"))
-                goto transport_not_available;
-              }
-            }
-
-            auto iceTransport = mICETransport.lock();
-            if (!iceTransport) {
-              ZS_LOG_WARNING(Debug, log("ice tranport is gone"))
-              goto transport_not_available;
-            }
-            switch (iceTransport->state()) {
-              case IICETransport::State_New:
-              case IICETransport::State_Checking:
-              case IICETransport::State_Disconnected:
-              case IICETransport::State_Failed:
-              case IICETransport::State_Closed:
-              {
-                ZS_LOG_WARNING(Debug, log("ice tranport is not available"))
-                goto transport_not_available;
-              }
-              case IICETransport::State_Connected:
-              case IICETransport::State_Completed:
-              {
-                break;
+            auto secureTransport = mSecureTransport.lock();
+            if (secureTransport) {
+              switch (secureTransport->state()) {
+                case ISecureTransportTypes::State_Pending:
+                case ISecureTransportTypes::State_Disconnected:
+                {
+                  ZS_LOG_WARNING(Detail, log("secure transport is not connected"))
+                  goto transport_not_available;
+                }
+                case ISecureTransportTypes::State_Connected:
+                {
+                  ZS_LOG_TRACE(log("seecure transport is connected"))
+                  break;
+                }
+                case ISecureTransportTypes::State_Closed:
+                {
+                  ZS_LOG_WARNING(Detail, log("secure transport is already closed"))
+                  goto transport_not_available;
+                }
               }
             }
 
@@ -1929,12 +1833,9 @@ namespace ortc
       mSubscriptions.clear();
       mDataChannelSubscriptions.clear();
 
-      mSecureTransportReady.reset();
-      mSecureTransportClosed.reset();
-
-      if (mICETransportSubscription) {
-        mICETransportSubscription->cancel();
-        mICETransportSubscription.reset();
+      if (mSecureTransportSubscription) {
+        mSecureTransportSubscription->cancel();
+        mSecureTransportSubscription.reset();
       }
 
       mAnnouncedIncomingDataChannels.clear();

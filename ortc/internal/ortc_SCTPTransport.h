@@ -331,8 +331,7 @@ namespace ortc
                           public IWakeDelegate,
                           public zsLib::ITimerDelegate,
                           public ISCTPTransportAsyncDelegate,
-                          public IICETransportDelegate,
-                          public IPromiseSettledDelegate
+                          public ISecureTransportDelegate
     {
     protected:
       struct make_private {};
@@ -408,7 +407,7 @@ namespace ortc
       #pragma mark SCTPTransport => IStatsProvider
       #pragma mark
 
-      virtual PromiseWithStatsReportPtr getStats() const throw(InvalidStateError);
+      virtual PromiseWithStatsReportPtr getStats() const throw(InvalidStateError) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -426,12 +425,12 @@ namespace ortc
 
       virtual PUID getID() const override {return mID;}
 
-      virtual IDTLSTransportPtr transport() const;
+      virtual IDTLSTransportPtr transport() const override;
 
-      virtual WORD port() const;
+      virtual WORD port() const override;
 
-      virtual WORD localPort() const;
-      virtual WORD remotePort() const;
+      virtual WORD localPort() const override;
+      virtual WORD remotePort() const override;
       
       virtual void start(const Capabilities &remoteCapabilities) override;
       virtual void stop() override;
@@ -530,37 +529,14 @@ namespace ortc
 
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark SCTPTransport => IICETransportDelegate
+      #pragma mark SCTPTransport => ISecureTransportDelegate
       #pragma mark
 
-      virtual void onICETransportStateChanged(
-                                              IICETransportPtr transport,
-                                              IICETransport::States state
-                                              ) override;
+      virtual void onSecureTransportStateChanged(
+                                                 ISecureTransportPtr transport,
+                                                 ISecureTransportTypes::States state
+                                                 ) override;
 
-      virtual void onICETransportCandidatePairAvailable(
-                                                        IICETransportPtr transport,
-                                                        CandidatePairPtr candidatePair
-                                                        ) override;
-      virtual void onICETransportCandidatePairGone(
-                                                   IICETransportPtr transport,
-                                                   CandidatePairPtr candidatePair
-                                                   ) override;
-
-      virtual void onICETransportCandidatePairChanged(
-                                                      IICETransportPtr transport,
-                                                      CandidatePairPtr candidatePair
-                                                      ) override;
-
-
-      //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark SCTPTransport => IPromiseSettledDelegate
-      #pragma mark
-
-      virtual void onPromiseSettled(PromisePtr promise) override;
-
-    protected:
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark SCTPTransport => (internal)
@@ -571,13 +547,12 @@ namespace ortc
       Log::Params debug(const char *message) const;
       virtual ElementPtr toDebug() const;
 
-      bool isShuttingDown() const;
-      bool isShutdown() const;
+      bool isShuttingDown() const override;
+      bool isShutdown() const override;
 
       void step();
       bool stepStartCalled();
       bool stepSecureTransport();
-      bool stepICETransport();
       bool stepOpen();
       bool stepDeliverIncomingPackets();
       bool stepConnected();
@@ -641,11 +616,7 @@ namespace ortc
       UseListenerWeakPtr mListener;
 
       UseSecureTransportWeakPtr mSecureTransport; // no lock needed
-      PromisePtr mSecureTransportReady;
-      PromisePtr mSecureTransportClosed;
-
-      UseICETransportWeakPtr mICETransport;
-      IICETransportSubscriptionPtr mICETransportSubscription;
+      ISecureTransportSubscriptionPtr mSecureTransportSubscription;
 
       CapabilitiesPtr mCapabilities;
 
@@ -666,6 +637,7 @@ namespace ortc
       DataChannelSessionMap mPendingResetSessions;
       DataChannelSessionMap mQueuedResetSessions;
 
+      bool mSettledRole {false};
       WORD mCurrentAllocationSessionID {};
       WORD mMinAllocationSessionID {0};
       WORD mMaxAllocationSessionID {65534};

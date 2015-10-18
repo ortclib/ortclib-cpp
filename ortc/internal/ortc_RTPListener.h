@@ -350,13 +350,13 @@ namespace ortc
                                     Optional<HeaderExtensionParametersList> headerExtensions
                                     );
 
-      virtual PUID getID() const {return mID;}
+      virtual PUID getID() const override {return mID;}
 
       virtual IRTPListenerSubscriptionPtr subscribe(IRTPListenerDelegatePtr delegate) override;
 
       virtual IRTPTransportPtr transport() const override;
 
-      virtual void setHeaderExtensions(const HeaderExtensionParametersList &headerExtensions);
+      virtual void setHeaderExtensions(const HeaderExtensionParametersList &headerExtensions) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -389,9 +389,9 @@ namespace ortc
                                     UseReceiverPtr inReceiver,
                                     const Parameters &inParams,
                                     RTCPPacketList &outPacketList
-                                    );
+                                    ) override;
 
-      virtual void unregisterReceiver(UseReceiver &inReceiver);
+      virtual void unregisterReceiver(UseReceiver &inReceiver) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -406,9 +406,9 @@ namespace ortc
                                   UseSenderPtr inSender,
                                   const Parameters &inParams,
                                   RTCPPacketList &outPacketList
-                                  );
+                                  ) override;
 
-      virtual void unregisterSender(UseSender &inReceiver);
+      virtual void unregisterSender(UseSender &inReceiver) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -433,7 +433,7 @@ namespace ortc
                                    IICETypes::Components viaComponent,
                                    UseRTPReceiverPtr receiver,
                                    RTPPacketPtr packet
-                                   );
+                                   ) override;
 
     public:
 

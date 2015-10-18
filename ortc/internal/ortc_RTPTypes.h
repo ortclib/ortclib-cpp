@@ -33,11 +33,24 @@
 
 #include <ortc/internal/types.h>
 
-#include <ortc/IICETypes.h>
+#include <ortc/IRTPTypes.h>
 
 namespace ortc
 {
   namespace internal
   {
+    class RTPypesHelper
+    {
+    public:
+      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters)
+      ZS_DECLARE_TYPEDEF_PTR(std::list<ParametersPtr>, ParametersPtrList)
+
+      void splitParamsIntoChannels(
+                                   const Parameters &params,
+                                   ParametersPtrList &outParamsGroupedIntoChannels
+                                   );
+
+      static Log::Params slog(const char *message);
+    };
   }
 }

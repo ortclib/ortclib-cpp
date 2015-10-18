@@ -104,7 +104,6 @@ namespace ortc
     namespace sctp
     {
       using zsLib::Log;
-      using zsLib::IPromiseSettledDelegate;
       using zsLib::AutoPUID;
       using zsLib::Milliseconds;
 
@@ -280,6 +279,12 @@ namespace ortc
 
         ZS_DECLARE_TYPEDEF_PTR(ortc::internal::IDataTransportForSecureTransport, UseDataTransport)
 
+        ZS_DECLARE_TYPEDEF_PTR(ortc::internal::ISecureTransportTypes, ISecureTransportTypes)
+        ZS_DECLARE_TYPEDEF_PTR(ortc::internal::ISecureTransport, ISecureTransport)
+        ZS_DECLARE_TYPEDEF_PTR(ortc::internal::ISecureTransportDelegate, ISecureTransportDelegate)
+        ZS_DECLARE_TYPEDEF_PTR(ortc::internal::ISecureTransportSubscription, ISecureTransportSubscription)
+        ZS_DECLARE_TYPEDEF_PTR(ortc::internal::ISecureTransportDelegateSubscriptions, ISecureTransportDelegateSubscriptions)
+
       public:
         //---------------------------------------------------------------------
         FakeSecureTransport(
@@ -336,19 +341,20 @@ namespace ortc
 
         // (duplicate) virtual PUID getID() const;
 
-        virtual PromisePtr notifyWhenReady();
-        virtual PromisePtr notifyWhenClosed();
+        virtual ISecureTransportSubscriptionPtr subscribe(ISecureTransportDelegatePtr delegate) override;
 
-        virtual bool isClientRole() const;
+        virtual ISecureTransportTypes::States state(ISecureTransportTypes::States ignored) const override;
 
-        virtual IICETransportPtr getICETransport() const;
+        virtual bool isClientRole() const override;
 
-        virtual UseDataTransportPtr getDataTransport() const;
+        virtual IICETransportPtr getICETransport() const override;
+
+        virtual UseDataTransportPtr getDataTransport() const override;
 
         virtual bool sendDataPacket(
                                     const BYTE *buffer,
                                     size_t bufferLengthInBytes
-                                    );
+                                    ) override;
 
         //---------------------------------------------------------------------
         #pragma mark
@@ -360,13 +366,35 @@ namespace ortc
         #pragma mark FakeSecureTransport => friend FakeICETransport
         #pragma mark
 
-        //---------------------------------------------------------------------
         bool handleReceivedPacket(
                                   IICETypes::Components component,
                                   const BYTE *buffer,
                                   size_t bufferSizeInBytes
-                                  );
+                                  ) override;
 
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark FakeSecureTransport => friend IICETransportDelegate
+        #pragma mark
+
+        virtual void onICETransportStateChanged(
+                                                IICETransportPtr transport,
+                                                IICETransport::States state
+                                                ) override;
+
+        virtual void onICETransportCandidatePairAvailable(
+                                                          IICETransportPtr transport,
+                                                          CandidatePairPtr candidatePair
+                                                          ) override;
+        virtual void onICETransportCandidatePairGone(
+                                                     IICETransportPtr transport,
+                                                     CandidatePairPtr candidatePair
+                                                     ) override;
+
+        virtual void onICETransportCandidatePairChanged(
+                                                        IICETransportPtr transport,
+                                                        CandidatePairPtr candidatePair
+                                                        ) override;
       protected:
         //---------------------------------------------------------------------
         #pragma mark
@@ -374,12 +402,14 @@ namespace ortc
         #pragma mark
 
         void setState(IDTLSTransportTypes::States state);
+        void setState(ISecureTransportTypes::States state);
 
         bool isShutdown();
 
         Log::Params log(const char *message) const;
 
         void cancel();
+        void fixState();
 
       protected:
         //---------------------------------------------------------------------
@@ -390,6 +420,8 @@ namespace ortc
         FakeSecureTransportWeakPtr mThisWeak;
 
         FakeICETransportPtr mICETransport;
+        IICETransportTypes::States mICETransportState {IICETransportTypes::State_New};
+        IICETransportSubscriptionPtr mICETransportSubscription;
 
         IDTLSTransportTypes::States mCurrentState {IDTLSTransportTypes::State_New};
 
@@ -398,8 +430,8 @@ namespace ortc
         IDTLSTransportDelegateSubscriptions mSubscriptions;
         IDTLSTransportSubscriptionPtr mDefaultSubscription;
 
-        std::list<PromisePtr> mNotifyReadyPromises;
-        std::list<PromisePtr> mNotifyClosedPromises;
+        ISecureTransportDelegateSubscriptions mSecureTransportSubscriptions;
+        std::atomic<ISecureTransportTypes::States> mSecureTransportState {State_Pending};
 
         UseDataTransportPtr mDataTransport;
       };

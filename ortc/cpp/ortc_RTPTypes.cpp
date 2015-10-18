@@ -54,6 +54,94 @@ namespace ortc
 
   namespace internal
   {
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IRTPTypes::RTPypesHelper
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    void RTPypesHelper::splitParamsIntoChannels(
+                                                const Parameters &params,
+                                                ParametersPtrList &outGroupedIntoChannels
+                                                )
+    {
+      typedef IRTPTypes::EncodingID EncodingID;
+      typedef std::map<EncodingID, ParametersPtr> StreamMap;
+
+      StreamMap streamMap;
+
+      for (auto iter = params.mEncodingParameters.begin(); iter != params.mEncodingParameters.end(); ++iter)
+      {
+        auto &encoding = (*iter);
+        if (encoding.mDependencyEncodingIDs.size() > 0) continue; // skip all that are dependent on other layers
+
+        ParametersPtr tmpParam(make_shared<Parameters>());
+        tmpParam->mCodecs = params.mCodecs;
+        tmpParam->mHeaderExtensions = params.mHeaderExtensions;
+        tmpParam->mMuxID = params.mMuxID;
+        tmpParam->mRTCP = params.mRTCP;
+        tmpParam->mEncodingParameters.push_back(encoding);
+
+        outGroupedIntoChannels.push_back(tmpParam);
+
+        if (encoding.mEncodingID.hasData()) {
+          streamMap[encoding.mEncodingID] = tmpParam;
+        }
+      }
+
+      bool missingEntry = false;
+      bool foundEntry = false;
+
+      do {
+        missingEntry = false;
+        foundEntry = false;
+
+        for (auto iter = params.mEncodingParameters.begin(); iter != params.mEncodingParameters.end(); ++iter) {
+          auto &encoding = (*iter);
+
+          if (encoding.mDependencyEncodingIDs.size() < 1) continue;         // skip all that do not have any dependencies
+
+          ORTC_THROW_INVALID_PARAMETERS_IF(encoding.mEncodingID.isEmpty())  // if dependencies exist, this layer must have an encoding id
+
+          auto foundExisting = streamMap.find(encoding.mEncodingID);
+          if (foundExisting != streamMap.end()) continue;                   // already processed this entry
+
+          for (auto iterDependency = encoding.mDependencyEncodingIDs.begin(); iterDependency != encoding.mDependencyEncodingIDs.end(); ++iterDependency) {
+            auto &dependencyID = (*iterDependency);
+            auto foundDependency = streamMap.find(dependencyID);
+            if (foundDependency == streamMap.end()) continue;
+
+            ParametersPtr existingParam = (*foundDependency).second;
+            existingParam->mEncodingParameters.push_back(encoding);
+
+            streamMap[encoding.mEncodingID] = existingParam;
+            foundEntry = true;
+            goto next;
+          }
+
+          missingEntry = true;
+          goto next;
+
+        next: {}
+        }
+
+      } while ((missingEntry) &&
+               (foundEntry));
+
+      ORTC_THROW_INVALID_PARAMETERS_IF((missingEntry) &&
+                                       (!foundEntry))
+    }
+
+    //-------------------------------------------------------------------------
+    Log::Params RTPypesHelper::slog(const char *message)
+    {
+      return Log::Params(message, "ortc::RTPypesHelper");
+    }
+
 
   } // namespace internal
 

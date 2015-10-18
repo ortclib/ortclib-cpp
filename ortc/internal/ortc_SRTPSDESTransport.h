@@ -95,6 +95,7 @@ namespace ortc
                               public MessageQueueAssociator,
                               public SharedRecursiveLock,
                               public ISRTPSDESTransport,
+                              public ISecureTransport,
                               public ISecureTransportForRTPSender,
                               public ISecureTransportForRTPReceiver,
                               public ISecureTransportForICETransport,
@@ -102,7 +103,8 @@ namespace ortc
                               public ISecureTransportForRTPListener,
                               public ISRTPSDESTransportForSettings,
                               public ISRTPSDESTransportAsyncDelegate,
-                              public ISRTPTransportDelegate
+                              public ISRTPTransportDelegate,
+                              public IICETransportDelegate
     {
     protected:
       struct make_private {};
@@ -157,7 +159,7 @@ namespace ortc
       #pragma mark SRTPSDESTransport => IStatsProvider
       #pragma mark
 
-      virtual PromiseWithStatsReportPtr getStats() const throw(InvalidStateError);
+      virtual PromiseWithStatsReportPtr getStats() const throw(InvalidStateError) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -188,12 +190,23 @@ namespace ortc
 
       //-----------------------------------------------------------------------
       #pragma mark
+      #pragma mark DTLSTransport => ISecureTransport
+      #pragma mark
+
+      // (duplicate) virtual PUID getID() const;
+
+      //-----------------------------------------------------------------------
+      #pragma mark
       #pragma mark SRTPSDESTransport => ISecureTransportForRTPSender
       #pragma mark
 
       // (duplicate) static ElementPtr toDebug(ForRTPSenderPtr transport);
 
       // (duplicate) virtual PUID getID() const;
+
+      virtual ISecureTransportSubscriptionPtr subscribe(ISecureTransportDelegatePtr delegate) override;
+
+      virtual ISecureTransportTypes::States state(ISecureTransportTypes::States ignored) const override;
 
       virtual bool sendPacket(
                               IICETypes::Components sendOverICETransport,
@@ -305,6 +318,30 @@ namespace ortc
                                                     ULONG overallLifetimeRemainingPercentage
                                                     ) override;
 
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark SRTPSDESTransport => IICETransportDelegate
+      #pragma mark
+
+      virtual void onICETransportStateChanged(
+                                              IICETransportPtr transport,
+                                              IICETransport::States state
+                                              ) override;
+
+      virtual void onICETransportCandidatePairAvailable(
+                                                        IICETransportPtr transport,
+                                                        CandidatePairPtr candidatePair
+                                                        ) override;
+      virtual void onICETransportCandidatePairGone(
+                                                   IICETransportPtr transport,
+                                                   CandidatePairPtr candidatePair
+                                                   ) override;
+
+      virtual void onICETransportCandidatePairChanged(
+                                                      IICETransportPtr transport,
+                                                      CandidatePairPtr candidatePair
+                                                      ) override;
+
     protected:
       //-----------------------------------------------------------------------
       #pragma mark
@@ -318,9 +355,13 @@ namespace ortc
       bool isShuttingDown() const;
       bool isShutdown() const;
 
+      void step();
       void cancel();
 
+      bool stepIceState();
+
       void setError(WORD error, const char *reason = NULL);
+      void setState(ISecureTransportTypes::States state);
 
       UseICETransportPtr fixRTCPTransport() const;
 
@@ -339,10 +380,14 @@ namespace ortc
       ISRTPSDESTransportDelegateSubscriptions mSubscriptions;
       ISRTPSDESTransportSubscriptionPtr mDefaultSubscription;
 
+      ISecureTransportDelegateSubscriptions mSecureTransportSubscriptions;
+      std::atomic<ISecureTransport::States> mSecureTransportState {ISecureTransport::State_Pending};
+
       WORD mLastError {};
       String mLastErrorReason;
 
       UseICETransportPtr mICETransportRTP;
+      IICETransportSubscriptionPtr mICETransportSubscription;
       bool mAttachedRTCP {false};
       mutable UseICETransportPtr mICETransportRTCP;
 

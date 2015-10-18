@@ -44,6 +44,75 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
+    #pragma mark ISecureTransportTypes
+    #pragma mark
+
+    interaction ISecureTransportTypes
+    {
+      enum States
+      {
+        State_Pending,
+        State_Connected,
+        State_Disconnected,
+        State_Closed,
+      };
+
+      static const char *toString(States state);
+    };
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark ISecureTransport
+    #pragma mark
+
+    interaction ISecureTransport : public ISecureTransportTypes
+    {
+      virtual PUID getID() const = 0;
+    };
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark ISecureTransportDelegate
+    #pragma mark
+
+    interaction ISecureTransportDelegate
+    {
+      typedef ISecureTransportTypes::States States;
+
+      virtual void onSecureTransportStateChanged(
+                                                 ISecureTransportPtr transport,
+                                                 States state
+                                                 ) = 0;
+    };
+
+    //---------------------------------------------------------------------------
+    //---------------------------------------------------------------------------
+    //---------------------------------------------------------------------------
+    //---------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark ISecureTransportSubscription
+    #pragma mark
+
+    interaction ISecureTransportSubscription
+    {
+      virtual PUID getID() const = 0;
+
+      virtual void cancel() = 0;
+
+      virtual void background() = 0;
+    };
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
     #pragma mark ISecureTransportForRTPSender
     #pragma mark
 
@@ -63,6 +132,10 @@ namespace ortc
                                       );
 
       virtual PUID getID() const = 0;
+
+      virtual ISecureTransportSubscriptionPtr subscribe(ISecureTransportDelegatePtr delegate) = 0;
+
+      virtual ISecureTransportTypes::States state(ISecureTransportTypes::States ignored = ISecureTransportTypes::States()) const = 0;
 
       virtual bool sendPacket(
                               IICETypes::Components sendOverICETransport,
@@ -212,12 +285,11 @@ namespace ortc
 
       virtual PUID getID() const = 0;
 
-      virtual PromisePtr notifyWhenReady() = 0;
-      virtual PromisePtr notifyWhenClosed() = 0;
+      virtual ISecureTransportSubscriptionPtr subscribe(ISecureTransportDelegatePtr delegate) = 0;
+
+      virtual ISecureTransportTypes::States state(ISecureTransportTypes::States ignored = ISecureTransportTypes::States()) const = 0;
 
       virtual bool isClientRole() const = 0;
-
-      virtual IICETransportPtr getICETransport() const = 0;
 
       virtual UseDataTransportPtr getDataTransport() const = 0;
 
@@ -256,3 +328,14 @@ namespace ortc
   }
 }
 
+ZS_DECLARE_PROXY_BEGIN(ortc::internal::ISecureTransportDelegate)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::ISecureTransportPtr, ISecureTransportPtr)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::ISecureTransportTypes::States, States)
+ZS_DECLARE_PROXY_METHOD_2(onSecureTransportStateChanged, ISecureTransportPtr, States)
+ZS_DECLARE_PROXY_END()
+
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_BEGIN(ortc::internal::ISecureTransportDelegate, ortc::internal::ISecureTransportSubscription)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::internal::ISecureTransportPtr, ISecureTransportPtr)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::internal::ISecureTransportTypes::States, States)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onSecureTransportStateChanged, ISecureTransportPtr, States)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_END()

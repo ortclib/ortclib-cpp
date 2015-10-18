@@ -636,7 +636,15 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark DTLSTransport => IDTLSTransportForRTPSender
+    #pragma mark DTLSTransport => ISecureTransport
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark DTLSTransport => ISecureTransportForRTPSender
     #pragma mark
 
     //-------------------------------------------------------------------------
@@ -675,6 +683,14 @@ namespace ortc
 
       // WARNING: Best to not send packet to srtp transport inside an object lock
       return transport->sendPacket(sendOverICETransport, packetType, buffer, bufferLengthInBytes);
+    }
+
+
+    //-------------------------------------------------------------------------
+    IICETransportPtr DTLSTransport::getICETransport() const
+    {
+      AutoRecursiveLock lock(*this);
+      return ICETransport::convert(mICETransport);
     }
 
     //-------------------------------------------------------------------------
@@ -942,19 +958,35 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    PromisePtr DTLSTransport::notifyWhenReady()
+    ISecureTransportSubscriptionPtr DTLSTransport::subscribe(ISecureTransportDelegatePtr originalDelegate)
     {
-      PromisePtr promise = Promise::create();
-      IDTLSTransportAsyncDelegateProxy::create(mThisWeak.lock())->onNotifyWhenReady(promise);
-      return promise;
+      ZS_LOG_DETAIL(log("subscribing to secure transport state"))
+
+      AutoRecursiveLock lock(*this);
+
+      ISecureTransportSubscriptionPtr subscription = mSecureTransportSubscriptions.subscribe(ISecureTransportDelegateProxy::create(IORTCForInternal::queueDelegate(), originalDelegate));
+
+      ISecureTransportDelegatePtr delegate = mSecureTransportSubscriptions.delegate(subscription, true);
+
+      if (delegate) {
+        DTLSTransportPtr pThis = mThisWeak.lock();
+
+        if (ISecureTransport::State_Pending != mSecureTransportState) {
+          delegate->onSecureTransportStateChanged(pThis, mSecureTransportState);
+        }
+      }
+
+      if (isShutdown()) {
+        mSecureTransportSubscriptions.clear();
+      }
+
+      return subscription;
     }
 
     //-------------------------------------------------------------------------
-    PromisePtr DTLSTransport::notifyWhenClosed()
+    ISecureTransportTypes::States DTLSTransport::state(ISecureTransportTypes::States ignored) const
     {
-      PromisePtr promise = Promise::create();
-      IDTLSTransportAsyncDelegateProxy::create(mThisWeak.lock())->onNotifyWhenClosed(promise);
-      return promise;
+      return mSecureTransportState; // no lock needed
     }
 
     //-------------------------------------------------------------------------
@@ -971,13 +1003,6 @@ namespace ortc
       }
 
       return false;
-    }
-
-    //-------------------------------------------------------------------------
-    IICETransportPtr DTLSTransport::getICETransport() const
-    {
-      AutoRecursiveLock lock(*this);
-      return ICETransport::convert(mICETransport);
     }
 
     //-------------------------------------------------------------------------
@@ -1211,26 +1236,6 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void DTLSTransport::onNotifyWhenReady(PromisePtr promise)
-    {
-      ZS_LOG_TRACE(log("on notify when ready"))
-
-      AutoRecursiveLock lock(*this);
-      mNotifyWhenReady.push_back(promise);
-      step();
-    }
-
-    //-------------------------------------------------------------------------
-    void DTLSTransport::onNotifyWhenClosed(PromisePtr promise)
-    {
-      ZS_LOG_TRACE(log("on notify when ready"))
-
-      AutoRecursiveLock lock(*this);
-      mNotifyWhenClosed.push_back(promise);
-      step();
-    }
-    
-    //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -1414,10 +1419,13 @@ namespace ortc
 
       UseServicesHelper::debugAppend(resultEl, "graceful shutdown", (bool)mGracefulShutdownReference);
 
-      UseServicesHelper::debugAppend(resultEl, "subscribers", mSubscriptions.size());
+      UseServicesHelper::debugAppend(resultEl, "subscriptions", mSubscriptions.size());
       UseServicesHelper::debugAppend(resultEl, "default subscription", (bool)mDefaultSubscription);
 
       UseServicesHelper::debugAppend(resultEl, "state", IDTLSTransport::toString(mCurrentState));
+
+      UseServicesHelper::debugAppend(resultEl, "secure transport subscriptions", mSecureTransportSubscriptions.size());
+      UseServicesHelper::debugAppend(resultEl, "secure transport state", ISecureTransportTypes::toString(mSecureTransportState));
 
       UseServicesHelper::debugAppend(resultEl, "error", mLastError);
       UseServicesHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
@@ -1465,7 +1473,7 @@ namespace ortc
     bool DTLSTransport::isShutdown() const
     {
       if (mGracefulShutdownReference) return false;
-      return State_Closed == mCurrentState;
+      return IDTLSTransport::State_Closed == mCurrentState;
     }
 
     //-------------------------------------------------------------------------
@@ -1517,6 +1525,7 @@ namespace ortc
 
       auto iceState = mICETransport->state();
       switch (iceState) {
+          
         case IICETransportTypes::State_Connected:
         case IICETransportTypes::State_Completed:
         {
@@ -1530,9 +1539,12 @@ namespace ortc
           mAdapter->startSSLWithPeer();
           return true;
         }
-        default: {
-#define WARNING_SHOULD_THIS_AUTO_STOP_EVEN_IN_FAILED_STATE 1
-#define WARNING_SHOULD_THIS_AUTO_STOP_EVEN_IN_FAILED_STATE 2
+
+        case IICETransportTypes::State_New:
+        case IICETransportTypes::State_Checking:
+        case IICETransportTypes::State_Disconnected:
+        case IICETransportTypes::State_Failed:
+        case IICETransportTypes::State_Closed: {
           break;
         }
       }
@@ -1628,13 +1640,26 @@ namespace ortc
         return true;
       }
 
-      for (auto iter = mNotifyWhenReady.begin(); iter != mNotifyWhenReady.end(); ++iter)
-      {
-        PromisePtr promise = (*iter);
-        promise->resolve();
+      auto iceState = mICETransport->state();
+      switch (iceState) {
+
+        case IICETransportTypes::State_Connected:
+        case IICETransportTypes::State_Completed:
+        {
+          setState(ISecureTransport::State_Connected);
+          return true;
+        }
+
+        case IICETransportTypes::State_New:
+        case IICETransportTypes::State_Checking:
+        case IICETransportTypes::State_Disconnected:
+        case IICETransportTypes::State_Failed:
+        case IICETransportTypes::State_Closed: {
+          setState(ISecureTransport::State_Disconnected);
+          break;
+        }
       }
 
-      mNotifyWhenReady.clear();
       return true;
     }
 
@@ -1646,21 +1671,7 @@ namespace ortc
 
       if (!mGracefulShutdownReference) mGracefulShutdownReference = mThisWeak.lock();
 
-      for (auto iter = mNotifyWhenReady.begin(); iter != mNotifyWhenReady.end(); ++iter)
-      {
-        PromisePtr promise = (*iter);
-        promise->reject();
-      }
-
-      mNotifyWhenReady.clear();
-
-      for (auto iter = mNotifyWhenClosed.begin(); iter != mNotifyWhenClosed.end(); ++iter)
-      {
-        PromisePtr promise = (*iter);
-        promise->resolve();
-      }
-
-      mNotifyWhenClosed.clear();
+      setState(ISecureTransport::State_Closed);
 
       if (mGracefulShutdownReference) {
 #define TODO_OBJECT_IS_BEING_KEPT_ALIVE_UNTIL_DTLS_SESSION_IS_SHUTDOWN 1
@@ -1670,7 +1681,7 @@ namespace ortc
       //.......................................................................
       // final cleanup
 
-      setState(State_Closed);
+      setState(IDTLSTransport::State_Closed);
 
       mAdapter->close();
 
@@ -1697,7 +1708,7 @@ namespace ortc
 
       mCurrentState = state;
 
-      if (State_Connected == state) {
+      if (IDTLSTransport::State_Connected == state) {
         setupSRTP();
       }
 
@@ -1728,6 +1739,21 @@ namespace ortc
       mLastErrorReason = reason;
 
       ZS_LOG_WARNING(Detail, debug("error set") + ZS_PARAM("error", mLastError) + ZS_PARAM("reason", mLastErrorReason))
+    }
+
+    //-------------------------------------------------------------------------
+    void DTLSTransport::setState(ISecureTransportTypes::States state)
+    {
+      if (state == mSecureTransportState) return;
+
+      ZS_LOG_DETAIL(debug("state changed") + ZS_PARAM("new state", ISecureTransportTypes::toString(state)) + ZS_PARAM("old state", ISecureTransportTypes::toString(mSecureTransportState)))
+
+      mSecureTransportState = state;
+
+      DTLSTransportPtr pThis = mThisWeak.lock();
+      if (pThis) {
+        mSecureTransportSubscriptions.delegate()->onSecureTransportStateChanged(pThis, mSecureTransportState);
+      }
     }
 
     //-------------------------------------------------------------------------

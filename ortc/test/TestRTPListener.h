@@ -107,7 +107,6 @@ namespace ortc
     namespace rtplistener
     {
       using zsLib::Log;
-      using zsLib::IPromiseSettledDelegate;
       using zsLib::AutoPUID;
       using zsLib::Milliseconds;
 

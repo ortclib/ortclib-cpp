@@ -50,7 +50,6 @@ using zsLib::IMessageQueue;
 using zsLib::Log;
 using zsLib::AutoPUID;
 using zsLib::AutoRecursiveLock;
-using zsLib::IPromiseSettledDelegate;
 using namespace zsLib::XML;
 
 ZS_DECLARE_TYPEDEF_PTR(ortc::ISettings, UseSettings)
@@ -65,6 +64,9 @@ namespace ortc
       ZS_DECLARE_CLASS_PTR(FakeICETransport)
       ZS_DECLARE_CLASS_PTR(FakeSecureTransport)
       ZS_DECLARE_CLASS_PTR(SCTPTester)
+
+      ZS_DECLARE_TYPEDEF_PTR(ortc::internal::ISecureTransportTypes, ISecureTransportTypes)
+      ZS_DECLARE_TYPEDEF_PROXY(ortc::internal::ISecureTransportDelegate, ISecureTransportDelegate)
 
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
@@ -484,6 +486,7 @@ namespace ortc
       {
         AutoRecursiveLock lock(*this);
         mICETransport->attachSecure(mThisWeak.lock());
+        mICETransportSubscription = mICETransport->subscribe(mThisWeak.lock());
 
         mDataTransport = UseDataTransport::create(mThisWeak.lock());
       }
@@ -544,9 +547,14 @@ namespace ortc
         UseServicesHelper::debugAppend(resultEl, "state", IDTLSTransport::toString(mCurrentState));
 
         UseServicesHelper::debugAppend(resultEl, "ice transport", mICETransport ? mICETransport->getID() : 0);
+        UseServicesHelper::debugAppend(resultEl, "ice transport state", IICETransportTypes::toString(mICETransportState));
+        UseServicesHelper::debugAppend(resultEl, "ice transport subscription", (bool)mICETransportSubscription);
 
         UseServicesHelper::debugAppend(resultEl, "subscriptions", mSubscriptions.size());
         UseServicesHelper::debugAppend(resultEl, "default subscription", (bool)mDefaultSubscription);
+
+        UseServicesHelper::debugAppend(resultEl, "secure transport subscriptions", mSecureTransportSubscriptions.size());
+        UseServicesHelper::debugAppend(resultEl, "secure transport state", ISecureTransportTypes::toString(mSecureTransportState));
 
         return resultEl;
       }
@@ -608,31 +616,35 @@ namespace ortc
       #pragma mark
 
       //-----------------------------------------------------------------------
-      PromisePtr FakeSecureTransport::notifyWhenReady()
+      FakeSecureTransport::ISecureTransportSubscriptionPtr FakeSecureTransport::subscribe(ISecureTransportDelegatePtr originalDelegate)
       {
+        ZS_LOG_DETAIL(log("subscribing to secure transport state"))
+
         AutoRecursiveLock lock(*this);
 
-        if (State_Validated == mCurrentState) {
-          return Promise::createResolved();
+        ISecureTransportSubscriptionPtr subscription = mSecureTransportSubscriptions.subscribe(ISecureTransportDelegateProxy::create(getAssociatedMessageQueue(), originalDelegate));
+
+        ISecureTransportDelegatePtr delegate = mSecureTransportSubscriptions.delegate(subscription, true);
+
+        if (delegate) {
+          FakeSecureTransportPtr pThis = mThisWeak.lock();
+
+          if (ISecureTransportTypes::State_Pending != mSecureTransportState) {
+            delegate->onSecureTransportStateChanged(pThis, mSecureTransportState);
+          }
         }
 
-        PromisePtr promise = Promise::create();
-        mNotifyReadyPromises.push_back(promise);
-        return promise;
+        if (isShutdown()) {
+          mSubscriptions.clear();
+        }
+        
+        return subscription;
       }
 
       //-----------------------------------------------------------------------
-      PromisePtr FakeSecureTransport::notifyWhenClosed()
+      ISecureTransportTypes::States FakeSecureTransport::FakeSecureTransport::state(ISecureTransportTypes::States ignored) const
       {
-        AutoRecursiveLock lock(*this);
-
-        if (isShutdown()) {
-          return Promise::createResolved();
-        }
-
-        PromisePtr promise = Promise::create();
-        mNotifyClosedPromises.push_back(promise);
-        return promise;
+        return mSecureTransportState;
       }
 
       //-----------------------------------------------------------------------
@@ -724,6 +736,58 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       #pragma mark
+      #pragma mark FakeICETransport => friend IICETransportDelegate
+      #pragma mark
+
+      //-----------------------------------------------------------------------
+      void FakeSecureTransport::onICETransportStateChanged(
+                                                           IICETransportPtr transport,
+                                                           IICETransport::States state
+                                                           )
+      {
+        ZS_LOG_BASIC(log("ice transport state changed") + ZS_PARAM("transport", transport->getID()) + ZS_PARAM("state", IICETransportTypes::toString(state)))
+
+        AutoRecursiveLock lock(*this);
+        mICETransportState = state;
+        fixState();
+
+        if (IICETransportTypes::State_Closed == state) {
+          cancel();
+        }
+      }
+
+      //-----------------------------------------------------------------------
+      void FakeSecureTransport::onICETransportCandidatePairAvailable(
+                                                                     IICETransportPtr transport,
+                                                                     CandidatePairPtr candidatePair
+                                                                     )
+      {
+        // IGNORED
+      }
+
+      //-----------------------------------------------------------------------
+      void FakeSecureTransport::onICETransportCandidatePairGone(
+                                                                IICETransportPtr transport,
+                                                                CandidatePairPtr candidatePair
+                                                                )
+      {
+        // IGNORED
+      }
+
+      //-----------------------------------------------------------------------
+      void FakeSecureTransport::onICETransportCandidatePairChanged(
+                                                                   IICETransportPtr transport,
+                                                                   CandidatePairPtr candidatePair
+                                                                   )
+      {
+        // IGNORED
+      }
+
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
       #pragma mark FakeSecureTransport => (internal)
       #pragma mark
 
@@ -740,35 +804,23 @@ namespace ortc
         if (pThis) {
           mSubscriptions.delegate()->onDTLSTransportStateChanged(pThis, mCurrentState);
         }
+      }
 
-        switch (mCurrentState) {
-          case IDTLSTransport::State_New:
-          case IDTLSTransport::State_Connecting:
-          case IDTLSTransport::State_Connected:
-          {
-            break;
-          }
-          case IDTLSTransport::State_Validated:
-          {
-            for (auto iter = mNotifyReadyPromises.begin(); iter != mNotifyReadyPromises.end(); ++iter)
-            {
-              auto promise = (*iter);
-              promise->resolve();
-            }
-            mNotifyReadyPromises.clear();
-            break;
-          }
-          case IDTLSTransport::State_Closed:
-          {
-            for (auto iter = mNotifyClosedPromises.begin(); iter != mNotifyClosedPromises.end(); ++iter)
-            {
-              auto promise = (*iter);
-              promise->resolve();
-            }
-            mNotifyClosedPromises.clear();
-            break;
-          }
+      //-----------------------------------------------------------------------
+      void FakeSecureTransport::setState(ISecureTransportTypes::States state)
+      {
+        if (state == mSecureTransportState) return;
+
+        ZS_LOG_DETAIL(log("secure state changed") + ZS_PARAM("new state", ISecureTransport::toString(state)) + ZS_PARAM("old state", ISecureTransport::toString(mSecureTransportState)))
+
+        mSecureTransportState = state;
+
+        auto pThis = mThisWeak.lock();
+        if (pThis) {
+          mSecureTransportSubscriptions.delegate()->onSecureTransportStateChanged(pThis, mSecureTransportState);
         }
+
+        fixState();
       }
 
       //-----------------------------------------------------------------------
@@ -786,9 +838,56 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
+      void FakeSecureTransport::fixState()
+      {
+        switch (mCurrentState) {
+          case IDTLSTransportTypes::State_New:
+          case IDTLSTransportTypes::State_Connecting:
+          case IDTLSTransportTypes::State_Connected:
+          {
+            ZS_LOG_TRACE(log("transport not ready yet"))
+            break;
+          }
+          case IDTLSTransportTypes::State_Validated:
+          {
+            switch (mICETransportState) {
+              case IICETransportTypes::State_Connected:
+              case IICETransportTypes::State_Completed:
+              {
+                setState(ISecureTransportTypes::State_Connected);
+                break;
+              }
+              case IICETransportTypes::State_New:
+              case IICETransportTypes::State_Checking:
+              case IICETransportTypes::State_Disconnected:
+              case IICETransportTypes::State_Failed:
+              case IICETransportTypes::State_Closed:
+              {
+                setState(ISecureTransportTypes::State_Disconnected);
+                break;
+              }
+            }
+            break;
+          }
+          case IDTLSTransportTypes::State_Closed:
+          {
+            ZS_LOG_TRACE(log("transport closed"))
+            setState(ISecureTransportTypes::State_Closed);
+            break;
+          }
+        }
+      }
+
+      //-----------------------------------------------------------------------
       void FakeSecureTransport::cancel()
       {
         setState(IDTLSTransport::State_Closed);
+        setState(ISecureTransportTypes::State_Closed);
+
+        if (mICETransportSubscription) {
+          mICETransportSubscription->cancel();
+          mICETransportSubscription.reset();
+        }
 
         mICETransport->detachSecure(*this);
       }
