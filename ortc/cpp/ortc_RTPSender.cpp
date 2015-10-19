@@ -157,8 +157,7 @@ namespace ortc
       SharedRecursiveLock(SharedRecursiveLock::create()),
       mVideoTrack(MediaStreamTrack::convert(track)),
       mModuleProcessThread(webrtc::ProcessThread::Create("RTPSenderThread")),
-      mChannelGroup(new webrtc::ChannelGroup(mModuleProcessThread.get())),
-      mTransportAdapter(nullptr)
+      mChannelGroup(new webrtc::ChannelGroup(mModuleProcessThread.get()))
     {
       ZS_LOG_DETAIL(debug("created"))
 

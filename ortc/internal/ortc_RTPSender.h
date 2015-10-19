@@ -193,8 +193,7 @@ namespace ortc
       RTPSender(Noop) :
         Noop(true),
         MessageQueueAssociator(IMessageQueuePtr()),
-        SharedRecursiveLock(SharedRecursiveLock::create()),
-        mTransportAdapter(nullptr)
+        SharedRecursiveLock(SharedRecursiveLock::create())
       {}
 
       void init();
@@ -389,7 +388,6 @@ namespace ortc
       rtc::scoped_ptr<webrtc::ProcessThread> mModuleProcessThread;
       rtc::scoped_ptr<webrtc::ChannelGroup> mChannelGroup;
       rtc::scoped_ptr<webrtc::VideoSendStream> mVideoStream;
-      webrtc::internal::TransportAdapter mTransportAdapter;
     };
 
     //-------------------------------------------------------------------------
