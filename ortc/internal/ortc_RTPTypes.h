@@ -33,6 +33,7 @@
 
 #include <ortc/internal/types.h>
 
+#include <ortc/IMediaStreamTrack.h>
 #include <ortc/IRTPTypes.h>
 
 namespace ortc
@@ -42,13 +43,56 @@ namespace ortc
     class RTPypesHelper
     {
     public:
+      typedef IRTPTypes::PayloadType PayloadType;
+
+      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::CodecParameters, CodecParameters)
       ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters)
       ZS_DECLARE_TYPEDEF_PTR(std::list<ParametersPtr>, ParametersPtrList)
 
-      void splitParamsIntoChannels(
-                                   const Parameters &params,
-                                   ParametersPtrList &outParamsGroupedIntoChannels
-                                   );
+      ZS_DECLARE_TYPEDEF_PTR(Parameters, OldParameters)
+      ZS_DECLARE_TYPEDEF_PTR(Parameters, NewParameters)
+
+      typedef std::pair<OldParametersPtr, NewParametersPtr> OldNewParametersPair;
+
+      ZS_DECLARE_TYPEDEF_PTR(std::list<OldNewParametersPair>, ParametersPtrPairList)
+
+      static void splitParamsIntoChannels(
+                                          const Parameters &params,
+                                          ParametersPtrList &outParamsGroupedIntoChannels
+                                          );
+
+      static void calculateDeltaChangesInChannels(
+                                                  Optional<IMediaStreamTrackTypes::Kinds> kind,
+                                                  const ParametersPtrList &inExistingParamsGroupedIntoChannels,
+                                                  const ParametersPtrList &inNewParamsGroupedIntoChannels,
+                                                  ParametersPtrList &outUnchangedChannels,
+                                                  ParametersPtrList &outNewChannels,
+                                                  ParametersPtrPairList &outUpdatedChannels,
+                                                  ParametersPtrList &outRemovedChannels
+                                                  );
+
+      static bool isGeneralizedSSRCCompatibleChange(
+                                                    const Parameters &oldParams,
+                                                    const Parameters &newParams
+                                                    );
+
+      static bool isCompatibleCodec(
+                                    const CodecParameters &oldCodec,
+                                    const CodecParameters &newCodec,
+                                    float &ioRank
+                                    );
+
+      static Optional<PayloadType> pickCodec(
+                                             Optional<IMediaStreamTrackTypes::Kinds> kind,
+                                             const Parameters &channelParams
+                                             );
+
+      static bool isRankableMatch(
+                                  Optional<IMediaStreamTrackTypes::Kinds> kind,
+                                  const Parameters &oldChannelParams,
+                                  const Parameters &newChannelParams,
+                                  float &outRank
+                                  );
 
       static Log::Params slog(const char *message);
     };

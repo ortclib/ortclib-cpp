@@ -166,8 +166,19 @@ namespace ortc
       EncodingParametersList        mEncodingParameters;
       RTCPParameters                mRTCP;
 
+      struct HashOptions
+      {
+        bool mMuxID {true};
+        bool mCodecs {true};
+        bool mHeaderExtensions {true};
+        bool mEncodingParameters {true};
+        bool mRTCP {true};
+
+        HashOptions() {}
+      };
+
       ElementPtr toDebug() const;
-      String hash() const;
+      String hash(const HashOptions &options = HashOptions()) const;
     };
 
     //-------------------------------------------------------------------------
@@ -266,6 +277,10 @@ namespace ortc
 
       CodecKind_RTX,
       CodecKind_FEC,
+
+      CodecKind_AudioSupplemental,  // e.g. CN, telephone-event
+
+      CodecKind_Data,               // e.g. fax, teletype
 
       CodecKind_Last = CodecKind_FEC,
     };

@@ -43,6 +43,12 @@
 
 #include <cryptopp/sha.h>
 
+#ifdef _DEBUG
+#define ASSERT(x) ZS_THROW_BAD_STATE_IF(!(x))
+#else
+#define ASSERT(x)
+#endif //_DEBUG
+
 
 namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib) }
 
@@ -58,6 +64,15 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark (helpers)
+    #pragma mark
+
+    const float kExactMatchRankAmount = 1000000.0;
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
     #pragma mark IRTPTypes::RTPypesHelper
@@ -66,7 +81,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPypesHelper::splitParamsIntoChannels(
                                                 const Parameters &params,
-                                                ParametersPtrList &outGroupedIntoChannels
+                                                ParametersPtrList &outParamsGroupedIntoChannels
                                                 )
     {
       typedef IRTPTypes::EncodingID EncodingID;
@@ -86,7 +101,7 @@ namespace ortc
         tmpParam->mRTCP = params.mRTCP;
         tmpParam->mEncodingParameters.push_back(encoding);
 
-        outGroupedIntoChannels.push_back(tmpParam);
+        outParamsGroupedIntoChannels.push_back(tmpParam);
 
         if (encoding.mEncodingID.hasData()) {
           streamMap[encoding.mEncodingID] = tmpParam;
@@ -134,6 +149,553 @@ namespace ortc
 
       ORTC_THROW_INVALID_PARAMETERS_IF((missingEntry) &&
                                        (!foundEntry))
+
+      if (outParamsGroupedIntoChannels.size() < 1) {
+        // ensure at least one channel exists
+        outParamsGroupedIntoChannels.push_back(make_shared<Parameters>(params));
+      }
+    }
+
+    //-------------------------------------------------------------------------
+    bool RTPypesHelper::isGeneralizedSSRCCompatibleChange(
+                                                          const Parameters &oldParams,
+                                                          const Parameters &newParams
+                                                          )
+    {
+      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters)
+
+      // these changes must cause an SSRC change to occur
+      if (oldParams.mMuxID != newParams.mMuxID) return false;
+
+      return true;
+    }
+
+    //-------------------------------------------------------------------------
+    bool RTPypesHelper::isCompatibleCodec(
+                                          const CodecParameters &oldCodec,
+                                          const CodecParameters &newCodec,
+                                          float &ioRank
+                                          )
+    {
+      auto supportedCodec = IRTPTypes::toSupportedCodec(oldCodec.mName);
+
+      bool checkMaxPTime = false;
+      bool checkNumChannels = true;
+
+      // do codec specific compatibility test(s)
+      switch (supportedCodec) {
+        case IRTPTypes::SupportedCodec_Unknown:
+        {
+          break;
+        }
+        case IRTPTypes::SupportedCodec_Opus:              break;
+        case IRTPTypes::SupportedCodec_Isac:              break;
+        case IRTPTypes::SupportedCodec_G722:              break;
+        case IRTPTypes::SupportedCodec_ILBC:              break;
+        case IRTPTypes::SupportedCodec_PCMU:              break;
+        case IRTPTypes::SupportedCodec_PCMA:              break;
+
+          // video codecs
+        case IRTPTypes::SupportedCodec_VP8:               break;
+        case IRTPTypes::SupportedCodec_VP9:               break;
+        case IRTPTypes::SupportedCodec_H264:              break;
+
+          // RTX
+        case IRTPTypes::SupportedCodec_RTX:               break;
+
+          // FEC
+        case IRTPTypes::SupportedCodec_RED:               break;
+        case IRTPTypes::SupportedCodec_ULPFEC:            break;
+
+        case IRTPTypes::SupportedCodec_CN:                break;
+          
+        case IRTPTypes::SupportedCodec_TelephoneEvent:    break;
+      }
+
+      if (checkMaxPTime) {
+        if (oldCodec.mMaxPTime != newCodec.mMaxPTime) return false;       // not compatible
+      } else {
+        ioRank += (oldCodec.mMaxPTime == newCodec.mMaxPTime ? 0.01 : -0.01);
+      }
+      if (checkNumChannels) {
+        if (oldCodec.mNumChannels != newCodec.mNumChannels) return false; // not compatible
+
+        ioRank += (oldCodec.mNumChannels == newCodec.mNumChannels ? 0.01 : -0.01);
+      }
+
+      ioRank += 0.1;
+      return true;
+    }
+
+    //-------------------------------------------------------------------------
+    Optional<RTPypesHelper::PayloadType> RTPypesHelper::pickCodec(
+                                                                  Optional<IMediaStreamTrackTypes::Kinds> kind,
+                                                                  const Parameters &params
+                                                                  )
+    {
+      typedef IRTPTypes::CodecKinds CodecKinds;
+
+      if (params.mEncodingParameters.size() > 0) {
+        auto &encoding = params.mEncodingParameters.front();
+        if (encoding.mCodecPayloadType.hasValue()) {
+          return encoding.mCodecPayloadType.value();
+        }
+      }
+
+      for (auto iter = params.mCodecs.begin(); iter != params.mCodecs.end(); ++iter) {
+        // pick the first codec found
+
+        auto &codec = (*iter);
+        auto supportedCodec = IRTPTypes::toSupportedCodec(codec.mName);
+
+        CodecKinds codecKind = IRTPTypes::getCodecKind(supportedCodec);
+
+        switch (codecKind) {
+          case IRTPTypes::CodecKind_Unknown:  break;
+
+            // audio codecs
+          case IRTPTypes::CodecKind_Audio:
+          {
+            if (kind.hasValue()) {
+              if (IMediaStreamTrack::Kind_Audio != kind.value()) {
+                // not a match and thus cannot choose
+                break;
+              }
+            }
+            return codec.mPayloadType;
+          }
+
+            // video codecs
+          case IRTPTypes::CodecKind_Video:
+          {
+            if (kind.hasValue()) {
+              if (IMediaStreamTrack::Kind_Video != kind.value()) {
+                // not a match and thus cannot choose
+                break;
+              }
+            }
+            return codec.mPayloadType;
+          }
+          case IRTPTypes::CodecKind_AV:
+          {
+            // always choose this payload
+            return codec.mPayloadType;
+          }
+
+          case IRTPTypes::CodecKind_RTX:
+          case IRTPTypes::CodecKind_FEC:
+          case IRTPTypes::CodecKind_AudioSupplemental:
+          case IRTPTypes::CodecKind_Data:
+          {
+            // never select
+            break;
+          }
+        }
+      }
+
+      return Optional<PayloadType>(); // nothing picked
+    }
+
+    //-------------------------------------------------------------------------
+    bool RTPypesHelper::isRankableMatch(
+                                        Optional<IMediaStreamTrackTypes::Kinds> kind,
+                                        const Parameters &oldParams,
+                                        const Parameters &newParams,
+                                        float &outRank
+                                        )
+    {
+      outRank = 0;
+
+      if (oldParams.mEncodingParameters.size() < 1) {
+        if (newParams.mEncodingParameters.size() > 0) return false;
+      }
+      if (newParams.mEncodingParameters.size() < 1) {
+        if (oldParams.mEncodingParameters.size() > 0) return false;
+      }
+
+      if (oldParams.mEncodingParameters.size() < 1) {
+        // all codecs must match compatibly
+        for (auto iterOldCodec = oldParams.mCodecs.begin(); iterOldCodec != oldParams.mCodecs.end(); ++iterOldCodec) {
+          auto &oldCodec = (*iterOldCodec);
+
+          bool found = false;
+
+          for (auto iterNewCodec = newParams.mCodecs.begin(); iterNewCodec != newParams.mCodecs.end(); ++iterNewCodec) {
+            auto &newCodec = (*iterNewCodec);
+
+            if (newCodec.mName != oldCodec.mName) continue;               // cannot be the same codec
+            if (newCodec.mClockRate != oldCodec.mClockRate) continue;     // cannot be the same codec
+            if (newCodec.mPayloadType != oldCodec.mPayloadType) continue; // cannot be the same payload type
+
+            if (!isCompatibleCodec(newCodec, oldCodec, outRank)) return false;
+
+            if (found) {
+              ZS_LOG_TRACE(slog("old supplied codec has two matches (thus old params are not compatible)") + ZS_PARAM("old", oldParams.toDebug()) + ZS_PARAM("new", newParams.toDebug()))
+              return false;
+            }
+            // these changes are "incompatible"
+          }
+
+          if (!found) {
+            ZS_LOG_TRACE(slog("old supplied codec no longer exists (thus old params are not compatible)") + ZS_PARAM("old", oldParams.toDebug()) + ZS_PARAM("new", newParams.toDebug()))
+            return false;
+          }
+        }
+
+        goto check_other_properties;
+      }
+
+      // scope: check codec used in encoding params
+      {
+        auto oldChosen = pickCodec(kind, oldParams);
+        auto newChosen = pickCodec(kind, newParams);
+
+        if (!oldChosen.hasValue()) return false;
+        if (!newChosen.hasValue()) return false;
+
+        //  payload type cannot change for picked codec
+        if (oldChosen.value() != newChosen.value()) return false;
+
+        const CodecParameters *foundOldCodec = NULL;
+        const CodecParameters *foundNewCodec = NULL;
+
+        for (auto iterOldCodec = oldParams.mCodecs.begin(); iterOldCodec != oldParams.mCodecs.end(); ++iterOldCodec) {
+          auto &oldCodec = (*iterOldCodec);
+          if (oldCodec.mPayloadType != oldChosen.value()) continue;
+          foundOldCodec = &oldCodec;
+          break;
+        }
+        for (auto iterNewCodec = newParams.mCodecs.begin(); iterNewCodec != newParams.mCodecs.end(); ++iterNewCodec) {
+          auto &newCodec = (*iterNewCodec);
+          if (newCodec.mPayloadType != newChosen.value()) continue;
+          foundNewCodec = &newCodec;
+          break;
+        }
+
+        // codec must be found in codec list
+        if (NULL == foundOldCodec) return false;
+        if (NULL == foundNewCodec) return false;
+
+        // make sure meaning of codec is the same
+        if (foundOldCodec->mName != foundNewCodec->mName) return false;
+        if (foundOldCodec->mClockRate != foundNewCodec->mClockRate) return false;
+
+        if (!isCompatibleCodec(*foundOldCodec, *foundNewCodec, outRank)) return false;
+      }
+
+    check_other_properties:
+      {
+        if (oldParams.mEncodingParameters.size() > 0) {
+          ASSERT(newParams.mEncodingParameters.size() > 0)
+
+          auto &oldEncoding = oldParams.mEncodingParameters.front();
+          auto &newEncoding = newParams.mEncodingParameters.front();
+
+          // make sure the rid (if specified) matches
+          if (oldEncoding.mEncodingID != newEncoding.mEncodingID) return false; // a non-match on the RID is not the same stream
+
+          if (oldEncoding.mEncodingID.hasData()) {
+            // this must be an exact match (thus weight so heavily that it will be chosen)
+            outRank += kExactMatchRankAmount;
+          }
+        }
+
+        outRank += (oldParams.mEncodingParameters.size() == newParams.mEncodingParameters.size() ? 1.0 : -0.2);
+
+        for (auto iterOldEncoding = oldParams.mEncodingParameters.begin(); iterOldEncoding != oldParams.mEncodingParameters.end(); ++iterOldEncoding)
+        {
+          auto &oldEncoding = (*iterOldEncoding);
+
+          bool foundLayer = false;
+          for (auto iterNewEncoding = newParams.mEncodingParameters.begin(); iterNewEncoding != newParams.mEncodingParameters.end(); ++iterNewEncoding)
+          {
+            auto &newEncoding = (*iterNewEncoding);
+
+            if (oldEncoding.mEncodingID != newEncoding.mEncodingID) continue;
+
+            foundLayer = true;
+            outRank += (oldEncoding.hash() == newEncoding.hash() ? 0.3 : -0.1);
+            break;
+          }
+          if (!foundLayer) outRank -= 0.2;
+        }
+
+        for (auto iterNewEncoding = newParams.mEncodingParameters.begin(); iterNewEncoding != newParams.mEncodingParameters.end(); ++iterNewEncoding)
+        {
+          auto &newEncoding = (*iterNewEncoding);
+
+          bool foundLayer = false;
+
+          for (auto iterOldEncoding = oldParams.mEncodingParameters.begin(); iterOldEncoding != oldParams.mEncodingParameters.end(); ++iterOldEncoding)
+          {
+            auto &oldEncoding = (*iterOldEncoding);
+            if (oldEncoding.mEncodingID != newEncoding.mEncodingID) continue;
+
+            foundLayer = true;
+            break;
+          }
+          if (!foundLayer) outRank -= 0.2;
+        }
+      }
+
+      return true;
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPypesHelper::calculateDeltaChangesInChannels(
+                                                        Optional<IMediaStreamTrackTypes::Kinds> kind,
+                                                        const ParametersPtrList &inExistingParamsGroupedIntoChannels,
+                                                        const ParametersPtrList &inNewParamsGroupedIntoChannels,
+                                                        ParametersPtrList &outUnchangedChannels,
+                                                        ParametersPtrList &outNewChannels,
+                                                        ParametersPtrPairList &outUpdatedChannels,
+                                                        ParametersPtrList &outRemovedChannels
+                                                        )
+    {
+      typedef String Hash;
+      typedef std::pair<Hash, ParametersPtr> HashParameterPair;
+      typedef std::list<HashParameterPair> HashParameterPairList;
+
+      ZS_LOG_DEBUG(slog("calculating delate changes in channels") + ZS_PARAM("existing", inExistingParamsGroupedIntoChannels.size()) + ZS_PARAM("new", inNewParamsGroupedIntoChannels.size()))
+
+      // scope: pre-screen special cases
+      {
+        if (inExistingParamsGroupedIntoChannels.size() < 1) {
+          ZS_LOG_TRACE(slog("all channels are new"))
+          outNewChannels = inNewParamsGroupedIntoChannels;
+          return;
+        }
+
+        if (inNewParamsGroupedIntoChannels.size() < 1) {
+          ZS_LOG_TRACE(slog("all channels are gone"))
+          // special case where all are now "gone"
+          outRemovedChannels = inExistingParamsGroupedIntoChannels;
+          return;
+        }
+      }
+
+      ParametersPtrList oldList(inExistingParamsGroupedIntoChannels);
+      ParametersPtrList newList(inNewParamsGroupedIntoChannels);
+
+      HashParameterPairList newHashedList;
+
+      Parameters::HashOptions hashOptions;
+
+      hashOptions.mHeaderExtensions = false;
+      hashOptions.mRTCP = false;
+
+      // scope: calculate hashes for new list
+      {
+        for (auto iter_doNotUse = newList.begin(); iter_doNotUse != newList.end(); ) {
+          auto current = iter_doNotUse;
+          ++iter_doNotUse;
+
+          auto params = (*current);
+          auto hash = params->hash(hashOptions);
+
+          newHashedList.push_back(HashParameterPair(hash, params));
+        }
+      }
+
+      // scope: find exact matches
+      {
+        for (auto iterOld_doNotUse = oldList.begin(); iterOld_doNotUse != oldList.end(); ) {
+          auto currentOld = iterOld_doNotUse;
+          ++iterOld_doNotUse;
+
+          auto oldParams = (*currentOld);
+          auto oldHash = oldParams->hash(hashOptions);
+
+          auto iterNew_doNotUse = newList.begin();
+          auto iterNewHash_doNotUse = newHashedList.begin();
+
+          for (; iterNew_doNotUse != newList.begin();) {
+            auto currentNew = iterNew_doNotUse;
+            ++iterNew_doNotUse;
+
+            auto currentNewHash = iterNewHash_doNotUse;
+            ++iterNewHash_doNotUse;
+
+            auto &newHash = (*currentNewHash).first;
+
+            if (oldHash != newHash) continue;   // not an exact match
+
+            auto newParams = (*currentNew);
+
+            if (oldParams->hash() == newParams->hash()) {
+              // an exact match
+              ZS_LOG_TRACE(slog("parameters are unchanged") + oldParams->toDebug())
+              outUnchangedChannels.push_back(oldParams);
+            } else {
+              ZS_LOG_TRACE(slog("parameters are almost an exact match (but some options have changed)") + ZS_PARAM("old", oldParams->toDebug()) + ZS_PARAM("new", newParams->toDebug()))
+              outUpdatedChannels.push_back(OldNewParametersPair(oldParams, newParams));
+            }
+
+            // remove this entry since it's now been processed
+            oldList.erase(currentOld);
+            newList.erase(currentNew);
+            newHashedList.erase(currentNewHash);
+          }
+
+        }
+      }
+
+      newHashedList.clear();  // do not need this list anymore
+
+      // scope: find exact ssrc matching base layer SSRCs
+      {
+        for (auto iterOld_doNotUse = oldList.begin(); iterOld_doNotUse != oldList.end(); ) {
+          auto currentOld = iterOld_doNotUse;
+          ++iterOld_doNotUse;
+
+          auto oldParams = (*currentOld);
+
+          for (auto iterNew_doNotUse = newList.begin(); iterNew_doNotUse != newList.begin();) {
+            auto currentNew = iterNew_doNotUse;
+            ++iterNew_doNotUse;
+
+            auto newParams = (*currentNew);
+
+            if (oldParams->mEncodingParameters.size() < 1) continue;
+            if (newParams->mEncodingParameters.size() < 1) continue;
+
+            auto &firstOld = oldParams->mEncodingParameters.front();
+            auto &firstNew = newParams->mEncodingParameters.front();
+
+            if (!firstOld.mSSRC.hasValue()) continue;
+            if (!firstNew.mSSRC.hasValue()) continue;
+
+            if (firstOld.mSSRC.value() != firstNew.mSSRC.value()) continue;
+
+            ZS_LOG_TRACE(slog("parameters has an SSRC match (thus must match)") + ZS_PARAM("old", oldParams->toDebug()) + ZS_PARAM("new", newParams->toDebug()))
+            outUpdatedChannels.push_back(OldNewParametersPair(oldParams, newParams));
+          }
+        }
+      }
+
+      // scope: old params with non-matching SSRC entries must be removed
+      {
+        for (auto iterOld_doNotUse = oldList.begin(); iterOld_doNotUse != oldList.end(); ) {
+          auto currentOld = iterOld_doNotUse;
+          ++iterOld_doNotUse;
+
+          auto oldParams = (*currentOld);
+
+          if (oldParams->mEncodingParameters.size() < 1) continue;
+
+          auto &firstOld = oldParams->mEncodingParameters.front();
+          if (!firstOld.mSSRC.hasValue()) continue;
+
+          ZS_LOG_TRACE(slog("old parameters did not have an SSRC match (thus must remove)") + oldParams->toDebug())
+          outRemovedChannels.push_back(oldParams);
+
+          oldList.erase(currentOld);
+        }
+      }
+
+      // scope: new params with non-matching SSRC entries must be added
+      {
+        for (auto iterNew_doNotUse = newList.begin(); iterNew_doNotUse != newList.begin();) {
+          auto currentNew = iterNew_doNotUse;
+          ++iterNew_doNotUse;
+
+          auto newParams = (*currentNew);
+
+          if (newParams->mEncodingParameters.size() < 1) continue;
+
+          auto &firstNew = newParams->mEncodingParameters.front();
+          if (!firstNew.mSSRC.hasValue()) continue;
+
+          ZS_LOG_TRACE(slog("new parameters did not have an SSRC match (thus must add)") + newParams->toDebug())
+          outNewChannels.push_back(newParams);
+
+          newList.erase(currentNew);
+        }
+      }
+
+      // scope: SSRC is not a factor thus check to see what is left is an "update" compatible change (or not)
+      {
+        if (newList.size() < 1) goto non_compatible_change;
+        if (oldList.size() < 1) goto non_compatible_change;
+
+        if (!isGeneralizedSSRCCompatibleChange(*(oldList.front()), *(newList.front()))) goto non_compatible_change;
+
+        goto do_more_matching;
+
+      non_compatible_change:
+        {
+          outNewChannels = newList;
+          outRemovedChannels = oldList;
+
+          ZS_LOG_TRACE(slog("no more compatible changes found") + ZS_PARAM("remove size", outRemovedChannels.size()) + ZS_PARAM("add size", outNewChannels.size()))
+          return;
+        }
+
+      do_more_matching: {}
+      }
+      
+      // scope: find closest matches
+      {
+        for (auto iterOld_doNotUse = oldList.begin(); iterOld_doNotUse != oldList.end(); ) {
+          auto currentOld = iterOld_doNotUse;
+          ++iterOld_doNotUse;
+
+          auto oldParams = (*currentOld);
+
+          float closestRank = 0.0;
+          ParametersPtr closestMatchNew;
+          auto closestMatchNewIter = newList.end();
+
+          for (auto iterNew_doNotUse = newList.begin(); iterNew_doNotUse != newList.begin();) {
+            auto currentNew = iterNew_doNotUse;
+            ++iterNew_doNotUse;
+
+            auto newParams = (*currentNew);
+
+            float rank = 0.0;
+            if (!isRankableMatch(kind, *oldParams, *newParams, rank)) continue;
+
+            if (!closestMatchNew) {
+              // first time match
+              closestRank = rank;
+              closestMatchNew = newParams;
+              closestMatchNewIter = currentNew;
+              continue;
+            }
+
+            if (rank < closestRank) continue; // this not not a better match
+
+            closestRank = rank;
+            closestMatchNew = newParams;
+            closestMatchNewIter = currentNew;
+          }
+
+          if (closestMatchNew) {
+            ZS_LOG_INSANE(slog("close channel params match was found (thus going to update)") + oldParams->toDebug())
+            outUpdatedChannels.push_back(OldNewParametersPair(oldParams, closestMatchNew));
+
+            oldList.erase(currentOld);
+            newList.erase(closestMatchNewIter);
+          } else {
+            ZS_LOG_INSANE(slog("old channel params was not found (thus going to remove)") + oldParams->toDebug())
+
+            oldList.erase(currentOld);
+            outRemovedChannels.push_back(oldParams);
+          }
+        }
+      }
+
+      // scope: all unprocessed "new" list channels must be added
+      {
+        outNewChannels = newList;
+      }
+
+      ZS_LOG_TRACE(slog("delta calculated for channel params") +
+                   ZS_PARAM("kind", (kind.hasValue() ? IMediaStreamTrackTypes::toString(kind.value()) : "")) +
+                   ZS_PARAM("unchanged channels", outUnchangedChannels.size()) +
+                   ZS_PARAM("new channels", outNewChannels.size()) +
+                   ZS_PARAM("udpated channels", outUpdatedChannels.size()) +
+                   ZS_PARAM("removed channels", outRemovedChannels.size()))
     }
 
     //-------------------------------------------------------------------------
@@ -470,41 +1032,50 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  String IRTPTypes::Parameters::hash() const
+  String IRTPTypes::Parameters::hash(const HashOptions &options) const
   {
     SHA1Hasher hasher;
 
     hasher.update("ortc::IRTPTypes::Parameters:");
 
-    hasher.update(mMuxID);
-
-    hasher.update("codecs:0e69ea312f56834897bc0c29eb74bf991bee8d86");
-
-    for (auto iter = mCodecs.begin(); iter != mCodecs.end(); ++iter) {
-      auto value = (*iter);
-      hasher.update(":");
-      hasher.update(value.hash());
+    if (options.mMuxID) {
+      hasher.update(mMuxID);
     }
 
-    hasher.update("headers:0e69ea312f56834897bc0c29eb74bf991bee8d86");
+    if (options.mCodecs) {
+      hasher.update("codecs:0e69ea312f56834897bc0c29eb74bf991bee8d86");
 
-    for (auto iter = mHeaderExtensions.begin(); iter != mHeaderExtensions.end(); ++iter) {
-      auto value = (*iter);
-      hasher.update(":");
-      hasher.update(value.hash());
+      for (auto iter = mCodecs.begin(); iter != mCodecs.end(); ++iter) {
+        auto value = (*iter);
+        hasher.update(":");
+        hasher.update(value.hash());
+      }
     }
 
+    if (options.mHeaderExtensions) {
+      hasher.update("headers:0e69ea312f56834897bc0c29eb74bf991bee8d86");
 
-    hasher.update("encodings:0e69ea312f56834897bc0c29eb74bf991bee8d86");
-
-    for (auto iter = mEncodingParameters.begin(); iter != mEncodingParameters.end(); ++iter) {
-      auto value = (*iter);
-      hasher.update(":");
-      hasher.update(value.hash());
+      for (auto iter = mHeaderExtensions.begin(); iter != mHeaderExtensions.end(); ++iter) {
+        auto value = (*iter);
+        hasher.update(":");
+        hasher.update(value.hash());
+      }
     }
 
-    hasher.update(":");
-    hasher.update(mRTCP.hash());
+    if (options.mEncodingParameters) {
+      hasher.update("encodings:0e69ea312f56834897bc0c29eb74bf991bee8d86");
+
+      for (auto iter = mEncodingParameters.begin(); iter != mEncodingParameters.end(); ++iter) {
+        auto value = (*iter);
+        hasher.update(":");
+        hasher.update(value.hash());
+      }
+    }
+
+    if (options.mRTCP) {
+      hasher.update("rtcp:72b2b94700e10e41adba3cdf656abed590bb65f4:");
+      hasher.update(mRTCP.hash());
+    }
 
     return hasher.final();
   }
@@ -751,12 +1322,14 @@ namespace ortc
   const char *IRTPTypes::toString(CodecKinds kind)
   {
     switch (kind) {
-      case CodecKind_Unknown:  return "";
-      case CodecKind_Audio:    return "audio";
-      case CodecKind_Video:    return "video";
-      case CodecKind_AV:       return "av";
-      case CodecKind_RTX:      return "rtx";
-      case CodecKind_FEC:      return "fec";
+      case CodecKind_Unknown:           return "";
+      case CodecKind_Audio:             return "audio";
+      case CodecKind_Video:             return "video";
+      case CodecKind_AV:                return "av";
+      case CodecKind_RTX:               return "rtx";
+      case CodecKind_FEC:               return "fec";
+      case CodecKind_AudioSupplemental: return "asupplemental";
+      case CodecKind_Data:              return "data";
     }
 
     return "unknown";
@@ -838,9 +1411,9 @@ namespace ortc
       case SupportedCodec_RED:                return CodecKind_FEC;
       case SupportedCodec_ULPFEC:             return CodecKind_FEC;
 
-      case SupportedCodec_CN:                 return CodecKind_Audio;
+      case SupportedCodec_CN:                 return CodecKind_AudioSupplemental;
 
-      case SupportedCodec_TelephoneEvent:     return CodecKind_Audio;
+      case SupportedCodec_TelephoneEvent:     return CodecKind_AudioSupplemental;
     }
     
     return CodecKind_Unknown;
