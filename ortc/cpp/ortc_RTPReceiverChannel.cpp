@@ -239,9 +239,18 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    void RTPReceiverChannel::notifyTransportState(ISecureTransport::States state)
+    {
+      // do NOT lock this object here, instead notify self asynchronously
+      IRTPReceiverChannelAsyncDelegateProxy::create(mThisWeak.lock())->onSecureTransportState(state);
+    }
+
+    //-------------------------------------------------------------------------
     void RTPReceiverChannel::update(const Parameters &params)
     {
       AutoRecursiveLock lock(*this);
+#define TODO 1
+#define TODO 2
     }
 
     //-------------------------------------------------------------------------
@@ -249,6 +258,8 @@ namespace ortc
     {
       {
         AutoRecursiveLock lock(*this);
+#define TODO 1
+#define TODO 2
       }
 
       return false;
@@ -260,6 +271,8 @@ namespace ortc
     {
       {
         AutoRecursiveLock lock(*this);
+#define TODO 1
+#define TODO 2
       }
 
       return false;
@@ -309,6 +322,18 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
+    void RTPReceiverChannel::onSecureTransportState(ISecureTransport::States state)
+    {
+      ZS_LOG_TRACE(log("notified secure transport state") + ZS_PARAM("state", ISecureTransport::toString(state)))
+
+      AutoRecursiveLock lock(*this);
+
+      mSecureTransportState = state;
+#define TODO 1
+#define TODO 2
+    }
+
+    //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -345,6 +370,8 @@ namespace ortc
 
       UseServicesHelper::debugAppend(resultEl, "error", mLastError);
       UseServicesHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
+
+      UseServicesHelper::debugAppend(resultEl, "secure transport state", ISecureTransport::toString(mSecureTransportState));
 
       auto receiver = mReceiver.lock();
       UseServicesHelper::debugAppend(resultEl, "receiver", receiver ? receiver->getID() : 0);

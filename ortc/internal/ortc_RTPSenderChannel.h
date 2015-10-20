@@ -32,6 +32,7 @@
 #pragma once
 
 #include <ortc/internal/types.h>
+#include <ortc/internal/ortc_ISecureTransport.h>
 
 #include <ortc/IDTLSTransport.h>
 #include <ortc/IICETransport.h>
@@ -105,6 +106,8 @@ namespace ortc
 
       virtual PUID getID() const = 0;
 
+      virtual void notifyTransportState(ISecureTransport::States state) = 0;
+
       virtual void update(const Parameters &params) = 0;
 
       virtual bool handlePacket(RTCPPacketPtr packet) = 0;
@@ -137,7 +140,7 @@ namespace ortc
 
     interaction IRTPSenderChannelAsyncDelegate
     {
-      virtual ~IRTPSenderChannelAsyncDelegate() {}
+      virtual void onSecureTransportState(ISecureTransport::States state) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -155,7 +158,8 @@ namespace ortc
                              public IRTPSenderChannelForRTPSender,
                              public IRTPSenderChannelForMediaStreamTrack,
                              public IWakeDelegate,
-                             public zsLib::ITimerDelegate
+                             public zsLib::ITimerDelegate,
+                             public IRTPSenderChannelAsyncDelegate
     {
     protected:
       struct make_private {};
@@ -221,6 +225,8 @@ namespace ortc
 
       virtual PUID getID() const override {return mID;}
 
+      virtual void notifyTransportState(ISecureTransport::States state) override;
+
       virtual void update(const Parameters &params) override;
 
       virtual bool handlePacket(RTCPPacketPtr packet) override;
@@ -252,6 +258,8 @@ namespace ortc
       #pragma mark
       #pragma mark RTPSenderChannel => IRTPSenderChannelAsyncDelegate
       #pragma mark
+
+      virtual void onSecureTransportState(ISecureTransport::States state) override;
 
     protected:
       //-----------------------------------------------------------------------
@@ -289,6 +297,8 @@ namespace ortc
       WORD mLastError {};
       String mLastErrorReason;
 
+      ISecureTransport::States mSecureTransportState {ISecureTransport::State_Pending};
+
       UseSenderWeakPtr mSender;
 
       ParametersPtr mParameters;
@@ -319,5 +329,6 @@ namespace ortc
 }
 
 ZS_DECLARE_PROXY_BEGIN(ortc::internal::IRTPSenderChannelAsyncDelegate)
-//ZS_DECLARE_PROXY_METHOD_0(onWhatever)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::ISecureTransport::States, States)
+ZS_DECLARE_PROXY_METHOD_1(onSecureTransportState, States)
 ZS_DECLARE_PROXY_END()

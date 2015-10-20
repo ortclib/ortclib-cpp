@@ -233,6 +233,13 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    void RTPSenderChannel::notifyTransportState(ISecureTransport::States state)
+    {
+      // do NOT lock this object here, instead notify self asynchronously
+      IRTPSenderChannelAsyncDelegateProxy::create(mThisWeak.lock())->onSecureTransportState(state);
+    }
+
+    //-------------------------------------------------------------------------
     void RTPSenderChannel::update(const Parameters &params)
     {
       AutoRecursiveLock lock(*this);
@@ -303,6 +310,19 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
+    void RTPSenderChannel::onSecureTransportState(ISecureTransport::States state)
+    {
+      ZS_LOG_TRACE(log("notified secure transport state") + ZS_PARAM("state", ISecureTransport::toString(state)))
+
+      AutoRecursiveLock lock(*this);
+
+      mSecureTransportState = state;
+#define TODO 1
+#define TODO 2
+    }
+
+
+    //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -339,6 +359,8 @@ namespace ortc
 
       UseServicesHelper::debugAppend(resultEl, "error", mLastError);
       UseServicesHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
+
+      UseServicesHelper::debugAppend(resultEl, "secure transport state", ISecureTransport::toString(mSecureTransportState));
 
       auto sender = mSender.lock();
       UseServicesHelper::debugAppend(resultEl, "sender", sender ? sender->getID() : 0);

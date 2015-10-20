@@ -32,6 +32,7 @@
 #pragma once
 
 #include <ortc/internal/types.h>
+#include <ortc/internal/ortc_ISecureTransport.h>
 
 #include <ortc/IICETransport.h>
 #include <ortc/IDTLSTransport.h>
@@ -97,6 +98,8 @@ namespace ortc
 
       virtual PUID getID() const = 0;
 
+      virtual void notifyTransportState(ISecureTransport::States state) = 0;
+
       virtual void update(const Parameters &params) = 0;
 
       virtual bool handlePacket(RTPPacketPtr packet) = 0;
@@ -133,7 +136,7 @@ namespace ortc
 
     interaction IRTPReceiverChannelAsyncDelegate
     {
-      virtual ~IRTPReceiverChannelAsyncDelegate() {}
+      virtual void onSecureTransportState(ISecureTransport::States state) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -217,6 +220,8 @@ namespace ortc
 
       virtual PUID getID() const override {return mID;}
 
+      virtual void notifyTransportState(ISecureTransport::States state) override;
+
       virtual void update(const Parameters &params) override;
 
       virtual bool handlePacket(RTPPacketPtr packet) override;
@@ -250,6 +255,8 @@ namespace ortc
       #pragma mark
       #pragma mark RTPReceiverChannel => IRTPReceiverChannelAsyncDelegate
       #pragma mark
+
+      virtual void onSecureTransportState(ISecureTransport::States state) override;
 
     protected:
       //-----------------------------------------------------------------------
@@ -289,6 +296,8 @@ namespace ortc
       WORD mLastError {};
       String mLastErrorReason;
 
+      ISecureTransport::States mSecureTransportState {ISecureTransport::State_Pending};
+
       UseReceiverWeakPtr mReceiver;
 
       ParametersPtr mParameters;
@@ -319,5 +328,6 @@ namespace ortc
 }
 
 ZS_DECLARE_PROXY_BEGIN(ortc::internal::IRTPReceiverChannelAsyncDelegate)
-//ZS_DECLARE_PROXY_METHOD_0(onWhatever)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::ISecureTransport::States, States)
+ZS_DECLARE_PROXY_METHOD_1(onSecureTransportState, States)
 ZS_DECLARE_PROXY_END()
