@@ -30,11 +30,14 @@
  */
 
 #include <ortc/internal/ortc_RTPReceiver.h>
+#include <ortc/internal/ortc_RTPReceiverChannel.h>
 #include <ortc/internal/ortc_DTLSTransport.h>
 #include <ortc/internal/ortc_RTPListener.h>
 #include <ortc/internal/ortc_MediaStreamTrack.h>
 #include <ortc/internal/ortc_RTPPacket.h>
 #include <ortc/internal/ortc_RTCPPacket.h>
+#include <ortc/internal/ortc_RTPTypes.h>
+#include <ortc/internal/ortc_SRTPSDESTransport.h>
 #include <ortc/internal/ortc_ORTC.h>
 #include <ortc/internal/platform.h>
 
@@ -81,6 +84,22 @@ namespace ortc
     #pragma mark (helpers)
     #pragma mark
 
+    //-------------------------------------------------------------------------
+    static bool shouldFilter(IRTPTypes::HeaderExtensionURIs extensionURI)
+    {
+      switch (extensionURI) {
+        case IRTPTypes::HeaderExtensionURI_Unknown:                           return true;
+        case IRTPTypes::HeaderExtensionURI_MuxID:                             return true;
+      //case IRTPTypes::HeaderExtensionURI_MID:                               return true;
+        case IRTPTypes::HeaderExtensionURI_ClienttoMixerAudioLevelIndication: return false;
+        case IRTPTypes::HeaderExtensionURI_MixertoClientAudioLevelIndication: return false;
+        case IRTPTypes::HeaderExtensionURI_FrameMarking:                      return true;
+        case IRTPTypes::HeaderExtensionURI_RID:                               return false;
+        case IRTPTypes::HeaderExtensionURI_3gpp_VideoOrientation:             return true;
+        case IRTPTypes::HeaderExtensionURI_3gpp_VideoOrientation6:            return true;
+      }
+      return true;
+    }
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -93,7 +112,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     void IRTPReceiverForSettings::applyDefaults()
     {
-//      UseSettings::setUInt(ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE, 5*1024);
+      UseSettings::setUInt(ORTC_SETTING_RTP_RECEIVER_SSRC_TIMEOUT_IN_SECONDS, 60);
     }
 
     //-------------------------------------------------------------------------
@@ -146,6 +165,75 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
+    #pragma mark RTPReceiver::RegisteredHeaderExtension
+    #pragma mark
+    
+    //---------------------------------------------------------------------------
+    ElementPtr RTPReceiver::RegisteredHeaderExtension::toDebug() const
+    {
+      ElementPtr resultEl = Element::create("ortc::RTPReceiver::RegisteredHeaderExtension");
+
+      UseServicesHelper::debugAppend(resultEl, "header extension uri", IRTPTypes::toString(mHeaderExtensionURI));
+      UseServicesHelper::debugAppend(resultEl, "local id", mLocalID);
+      UseServicesHelper::debugAppend(resultEl, "encrypted", mEncrypted);
+
+      return resultEl;
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPReceiver::ChannelInfo
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    ElementPtr RTPReceiver::ChannelInfo::toDebug() const
+    {
+      ElementPtr resultEl = Element::create("ortc::RTPReceiver::ChannelInfo");
+
+      UseServicesHelper::debugAppend(resultEl, "id", mID);
+
+      UseServicesHelper::debugAppend(resultEl, "channel params", mOriginalParams ? mOriginalParams->toDebug() : ElementPtr());
+      UseServicesHelper::debugAppend(resultEl, "filled params", mFilledParams ? mFilledParams->toDebug() : ElementPtr());
+      UseServicesHelper::debugAppend(resultEl, "channel", mChannel ? mChannel->getID() : 0);
+
+      return resultEl;
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPReceiver::SSRCInfo
+    #pragma mark
+
+    //---------------------------------------------------------------------------
+    RTPReceiver::SSRCInfo::SSRCInfo() :
+      mLastUsage(zsLib::now())
+    {
+    }
+
+    //---------------------------------------------------------------------------
+    ElementPtr RTPReceiver::SSRCInfo::toDebug() const
+    {
+      ElementPtr resultEl = Element::create("ortc::RTPReceiver::SSRCInfo");
+
+      UseServicesHelper::debugAppend(resultEl, "last usage", mLastUsage);
+      UseServicesHelper::debugAppend(resultEl, "rid", mRID);
+      UseServicesHelper::debugAppend(resultEl, "registered usage count", mRegisteredUsageCount);
+      UseServicesHelper::debugAppend(resultEl, mChannelInfo ? mChannelInfo->toDebug() : ElementPtr());
+
+      return resultEl;
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
     #pragma mark RTPReceiver
     #pragma mark
     
@@ -184,6 +272,14 @@ namespace ortc
     void RTPReceiver::init()
     {
       AutoRecursiveLock lock(*this);
+
+      mSSRCTableExpires = Seconds(UseSettings::getUInt(ORTC_SETTING_RTP_RECEIVER_SSRC_TIMEOUT_IN_SECONDS));
+      if (mSSRCTableExpires < Seconds(1)) {
+        mSSRCTableExpires = Seconds(1);
+      }
+
+      mSSRCTableTimer = Timer::create(mThisWeak.lock(), (zsLib::toMilliseconds(mSSRCTableExpires) / 2));
+
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
     }
 
@@ -303,22 +399,45 @@ namespace ortc
     //-------------------------------------------------------------------------
     IMediaStreamTrackPtr RTPReceiver::track() const
     {
-      return IMediaStreamTrackPtr(MediaStreamTrack::convert(mVideoTrack));
+      return IMediaStreamTrackPtr(MediaStreamTrack::convert(mTrack));
     }
 
     //-------------------------------------------------------------------------
     IRTPTransportPtr RTPReceiver::transport() const
     {
-#define TODO 1
-#define TODO 2
+      AutoRecursiveLock lock(*this);
+      if (!mRTPTransport) return IRTPTransportPtr();
+
+      {
+        auto result = DTLSTransport::convert(mRTPTransport);
+        if (result) return result;
+      }
+      {
+        auto result = SRTPSDESTransport::convert(mRTPTransport);
+        if (result) return result;
+      }
+
       return IRTPTransportPtr();
     }
 
     //-------------------------------------------------------------------------
     IRTCPTransportPtr RTPReceiver::rtcpTransport() const
     {
-#define TODO 1
-#define TODO 2
+      AutoRecursiveLock lock(*this);
+      if (!mRTCPTransport) return IRTCPTransportPtr();
+
+      {
+        auto result = DTLSTransport::convert(mRTCPTransport);
+        if (result) return result;
+      }
+      {
+        auto result = SRTPSDESTransport::convert(mRTCPTransport);
+        if (result) {
+          auto iceTransport = mRTCPTransport->getICETransport();
+          if (iceTransport) return iceTransport;
+        }
+      }
+
       return IRTCPTransportPtr();
     }
 
@@ -328,7 +447,7 @@ namespace ortc
                                    IRTCPTransportPtr rtcpTransport
                                    )
     {
-      typedef UseListener::RTCPPacketList RTCPPacketList;
+      typedef std::set<PUID> PUIDSet;
 
       AutoRecursiveLock lock(*this);
 
@@ -346,13 +465,50 @@ namespace ortc
 
         // register to new listener
         RTCPPacketList historicalRTCPPackets;
-        mListener->registerReceiver(mThisWeak.lock(), *mParameters, historicalRTCPPackets);
+        mListener->registerReceiver(mThisWeak.lock(), *mParameters, &historicalRTCPPackets);
 
-#define TODO_PROCESS_HISTORICAL_RTCP_PACKETS_FROM_NEW_TRANSPORT 1
-#define TODO_PROCESS_HISTORICAL_RTCP_PACKETS_FROM_NEW_TRANSPORT 2
+        if (historicalRTCPPackets.size() > 0) {
+          RTCPPacketListPtr notifyPackets;
+
+          if (shouldLatchAll()) {
+            PUIDSet processed;
+
+            for (auto iter = mSSRCTable.begin(); iter != mSSRCTable.end(); ++iter) {
+              SSRCInfo &ssrcInfo = (*iter).second;
+              auto &channelInfo = ssrcInfo.mChannelInfo;
+
+              if (!channelInfo) continue;
+              if (!channelInfo->mChannel) continue;
+
+              auto found = processed.find(channelInfo->mID);
+              if (found != processed.end()) continue;
+
+              processed.insert(channelInfo->mID);
+
+              if (!notifyPackets) {
+                notifyPackets = make_shared<RTCPPacketList>(historicalRTCPPackets);
+              }
+
+              channelInfo->mChannel->notifyPackets(notifyPackets);
+            }
+          } else {
+            for (auto iter = mChannels.begin(); iter != mChannels.end(); ++iter) {
+              auto &channelInfo = (*iter).second;
+              if (!channelInfo->mChannel) continue;
+
+              if (!notifyPackets) {
+                notifyPackets = make_shared<RTCPPacketList>(historicalRTCPPackets);
+              }
+
+              channelInfo->mChannel->notifyPackets(notifyPackets);
+            }
+          }
+        }
       }
 
       UseSecureTransport::getReceivingTransport(transport, rtcpTransport, mReceiveRTPOverTransport, mReceiveRTCPOverTransport, mRTPTransport, mRTCPTransport);
+
+      notifyChannelsOfTransportState();
     }
 
     //-------------------------------------------------------------------------
@@ -367,9 +523,59 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPReceiver::receive(const Parameters &parameters)
     {
-      typedef UseListener::RTCPPacketList RTCPPacketList;
+      typedef RTPTypesHelper::ParametersPtrPairList ParametersPtrPairList;
 
       AutoRecursiveLock lock(*this);
+
+      Optional<IMediaStreamTrack::Kinds> foundKind;
+
+      // scope: figure out codec "kind"
+      {
+        for (auto iter = parameters.mCodecs.begin(); iter != parameters.mCodecs.end(); ++iter) {
+          auto &codec = (*iter);
+
+          auto codecKind = IRTPTypes::toCodecKind(codec.mName);
+
+          switch (codecKind) {
+            case IRTPTypes::CodecKind_Audio:
+            case IRTPTypes::CodecKind_AudioSupplemental:
+            {
+              if (foundKind.hasValue()) {
+                ORTC_THROW_INVALID_PARAMETERS_IF(foundKind.value() != IMediaStreamTrack::Kind_Audio)
+              }
+              foundKind = IMediaStreamTrack::Kind_Audio;
+              break;
+            }
+            case IRTPTypes::CodecKind_Video:
+            {
+              if (foundKind.hasValue()) {
+                ORTC_THROW_INVALID_PARAMETERS_IF(foundKind.value() != IMediaStreamTrack::Kind_Video)
+              }
+              foundKind = IMediaStreamTrack::Kind_Video;
+              break;
+            }
+            case IRTPTypes::CodecKind_Unknown:
+            case IRTPTypes::CodecKind_AV:
+            case IRTPTypes::CodecKind_RTX:
+            case IRTPTypes::CodecKind_FEC:
+            case IRTPTypes::CodecKind_Data:
+            {
+              // codec kind is not a media kind
+              break;
+            }
+          }
+        }
+      }
+
+      if (!mTrack) {
+        ORTC_THROW_INVALID_PARAMETERS_IF(!foundKind.hasValue())
+
+        ZS_LOG_DEBUG(log("creating media stream track") + ZS_PARAM("kind", IMediaStreamTrack::toString(foundKind.value())))
+
+        mTrack = UseMediaStreamTrack::create(foundKind.value());
+
+        ZS_LOG_DEBUG(log("created media stream track") + ZS_PARAM("kind", IMediaStreamTrack::toString(foundKind.value())) + ZS_PARAM("track", mTrack ? mTrack->getID() : 0))
+      }
 
       if (mParameters) {
         auto hash = parameters.hash();
@@ -378,15 +584,90 @@ namespace ortc
           ZS_LOG_TRACE(log("receive has not changed (noop)"))
           return;
         }
+
+        bool oldShouldLatchAll = shouldLatchAll();
+        ParametersPtrList oldGroupedParams = mParametersGroupedIntoChannels;
+
+        mParameters = make_shared<Parameters>(parameters);
+
+        mParametersGroupedIntoChannels.clear();
+        RTPTypesHelper::splitParamsIntoChannels(parameters, mParametersGroupedIntoChannels);
+
+        ParametersPtrList unchangedChannels;
+        ParametersPtrList newChannels;
+        ParametersPtrPairList updateChannels;
+        ParametersPtrList removeChannels;
+
+        RTPTypesHelper::calculateDeltaChangesInChannels(mKind, oldGroupedParams, mParametersGroupedIntoChannels, unchangedChannels, newChannels, updateChannels, removeChannels);
+
+        // scope: remove dead channels
+        {
+          for (auto iter = removeChannels.begin(); iter != removeChannels.end(); ++iter) {
+            auto &params = (*iter);
+            auto found = mChannels.find(params);
+            ASSERT(found != mChannels.end())
+
+            if (found == mChannels.end()) continue;
+
+            auto channelInfo = (*found).second;
+            removeChannel(*channelInfo);
+            mChannels.erase(found);
+          }
+        }
+
+        // scope: update existing channels
+        {
+          for (auto iter = updateChannels.begin(); iter != updateChannels.end(); ++iter) {
+            auto &pairInfo = (*iter);
+            auto &oldParams = pairInfo.first;
+            auto &newParams = pairInfo.second;
+            auto found = mChannels.find(oldParams);
+            ASSERT(found != mChannels.end())
+
+            if (found == mChannels.end()) continue;
+
+            auto channelInfo = (*found).second;
+
+            mChannels.erase(found);
+            mChannels[newParams] = channelInfo;
+
+            updateChannel(*channelInfo, newParams);
+          }
+        }
+
+        // scope: add new channels
+        {
+          for (auto iter = newChannels.begin(); iter != newChannels.end(); ++iter) {
+            auto &params = (*iter);
+            addChannel(params);
+          }
+        }
+
+        if (oldShouldLatchAll) {
+          if (shouldLatchAll()) {
+            if (removeChannels.size() > 0) {
+              ZS_LOG_DEBUG(log("old latch-all is being removed (thus need to flush all auto-latched channels)"))
+              flushAllAutoLatchedChannels();
+            }
+          } else {
+            ZS_LOG_DEBUG(log("no longer auto-latching all channels (thus need to flush all auto-latched channels)"))
+            flushAllAutoLatchedChannels();
+          }
+        }
+      } else {
+        mParameters = make_shared<Parameters>(parameters);
+
+        RTPTypesHelper::splitParamsIntoChannels(parameters, mParametersGroupedIntoChannels);
+
+        for (auto iter = mParametersGroupedIntoChannels.begin(); iter != mParametersGroupedIntoChannels.end(); ++iter) {
+          auto &params = (*iter);
+          addChannel(params);
+        }
       }
 
-      mParameters = make_shared<Parameters>(parameters);
+      mListener->registerReceiver(mThisWeak.lock(), *mParameters);
 
-      RTCPPacketList historicalRTCPPackets;
-      mListener->registerReceiver(mThisWeak.lock(), *mParameters, historicalRTCPPackets);
-
-#define TODO_PROCESS_HISTORICAL_RTCP_PACKETS_FROM_NEW_TRANSPORT 1
-#define TODO_PROCESS_HISTORICAL_RTCP_PACKETS_FROM_NEW_TRANSPORT 2
+      registerHeaderExtensions(*mParameters);
     }
 
     //-------------------------------------------------------------------------
@@ -503,8 +784,41 @@ namespace ortc
       ZS_LOG_DEBUG(log("timer") + ZS_PARAM("timer id", timer->getID()))
 
       AutoRecursiveLock lock(*this);
-#define TODO 1
-#define TODO 2
+
+      if (timer == mSSRCTableTimer) {
+
+        auto adjustedTick = zsLib::now() - mSSRCTableExpires;
+
+        // now =  N; then = T; expire = E; adjusted = A;    N-E = A; if A > T then expired
+        // now = 10; then = 5; expiry = 3;                 10-3 = 7;    7 > 5 = expired (true)
+        // now =  6; then = 5; expiry = 3;                  6-3 = 3;    3 > 5 = not expired (false)
+
+        for (auto iter_doNotUse = mSSRCTable.begin(); iter_doNotUse != mSSRCTable.end(); )
+        {
+          auto current = iter_doNotUse;
+          ++iter_doNotUse;
+
+          SSRCInfo &ssrcInfo = (*current).second;
+
+          if (ssrcInfo.mRegisteredUsageCount > 0) {
+            ZS_LOG_INSANE(log("cannot expire registered SSRC usages") + ssrcInfo.toDebug())
+            continue;
+          }
+
+          const Time &lastReceived = ssrcInfo.mLastUsage;
+
+          if (!(adjustedTick > lastReceived)) continue;
+
+          SSRCType ssrc = (*current).first;
+
+          ZS_LOG_TRACE(log("expiring SSRC to RID mapping") + ZS_PARAM("ssrc", ssrc) + ZS_PARAM("last received", lastReceived) + ZS_PARAM("adjusted tick", adjustedTick))
+          mSSRCTable.erase(current);
+        }
+
+        return;
+      }
+
+      ZS_LOG_WARNING(Debug, log("notified about obsolete timer (thus ignoring)") + ZS_PARAM("timer id", timer->getID()))
     }
 
     //-------------------------------------------------------------------------
@@ -514,7 +828,6 @@ namespace ortc
     #pragma mark
     #pragma mark RTPReceiver => IRTPReceiverAsyncDelegate
     #pragma mark
-
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -557,7 +870,32 @@ namespace ortc
       UseServicesHelper::debugAppend(resultEl, "error", mLastError);
       UseServicesHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
 
+      UseServicesHelper::debugAppend(resultEl, "kind", IMediaStreamTrack::toString(mKind));
+      UseServicesHelper::debugAppend(resultEl, "track", mTrack ? mTrack->getID() : 0);
+
+      UseServicesHelper::debugAppend(resultEl, "parameters", mParameters ? mParameters->toDebug() : ElementPtr());
+
       UseServicesHelper::debugAppend(resultEl, "listener", mListener ? mListener->getID() : 0);
+
+      UseServicesHelper::debugAppend(resultEl, "rtp transport", mRTPTransport ? mRTPTransport->getID() : 0);
+      UseServicesHelper::debugAppend(resultEl, "rtcp transport", mRTCPTransport ? mRTCPTransport->getID() : 0);
+
+      UseServicesHelper::debugAppend(resultEl, "receive rtp over transport", IICETypes::toString(mReceiveRTPOverTransport));
+      UseServicesHelper::debugAppend(resultEl, "receive rtcp over transport", IICETypes::toString(mReceiveRTCPOverTransport));
+      UseServicesHelper::debugAppend(resultEl, "send rtcp over transport", IICETypes::toString(mSendRTCPOverTransport));
+
+      UseServicesHelper::debugAppend(resultEl, "last reported transport state to channels", ISecureTransportTypes::toString(mLastReportedTransportStateToChannels));
+
+      UseServicesHelper::debugAppend(resultEl, "params grouped into channels", mParametersGroupedIntoChannels.size());
+
+      UseServicesHelper::debugAppend(resultEl, "channels", mChannels.size());
+
+      UseServicesHelper::debugAppend(resultEl, "ssrc table", mSSRCTable.size());
+
+      UseServicesHelper::debugAppend(resultEl, "rid channel map", mRIDToChannelMap.size());
+
+      UseServicesHelper::debugAppend(resultEl, "ssrc table timer", mSSRCTableTimer ? mSSRCTableTimer->getID() : 0);
+      UseServicesHelper::debugAppend(resultEl, "ssrc table expires", mSSRCTableExpires);
 
       return resultEl;
     }
@@ -656,6 +994,16 @@ namespace ortc
         mListener->unregisterReceiver(*this);
       }
 
+      mRegisteredExtensions.clear();
+
+      mSSRCTable.clear();
+      mRIDToChannelMap.clear();
+
+      if (mSSRCTableTimer) {
+        mSSRCTableTimer->cancel();
+        mSSRCTableTimer.reset();
+      }
+
       // make sure to cleanup any final reference to self
       mGracefulShutdownReference.reset();
     }
@@ -729,6 +1077,304 @@ namespace ortc
       return transport->sendPacket(sendOver, packetType, buffer, bufferSizeInBytes);
     }
 
+    //-------------------------------------------------------------------------
+    bool RTPReceiver::shouldLatchAll()
+    {
+      if (1 != mChannels.size()) return false;
+
+      auto &params = (mChannels.begin())->first;
+
+      if (params->mEncodingParameters.size() < 1) return true;
+
+      return false;
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPReceiver::notifyChannelsOfTransportState()
+    {
+      ISecureTransport::States currentState = ISecureTransport::State_Pending;
+
+      if (mRTPTransport) {
+        currentState = mRTPTransport->state();
+        if (ISecureTransport::State_Closed == currentState) currentState = ISecureTransport::State_Disconnected;
+      } else {
+        currentState = ISecureTransport::State_Disconnected;
+      }
+
+      if (currentState == mLastReportedTransportStateToChannels) {
+        ZS_LOG_TRACE(log("no change in secure transport state to notify") + ZS_PARAM("state", ISecureTransportTypes::toString(currentState)))
+        return;
+      }
+
+      ZS_LOG_TRACE(log("notify secure transport state change") + ZS_PARAM("new state", ISecureTransportTypes::toString(currentState)) + ZS_PARAM("old state", ISecureTransportTypes::toString(mLastReportedTransportStateToChannels)))
+
+      mLastReportedTransportStateToChannels = currentState;
+
+      for (auto iter = mChannels.begin(); iter != mChannels.end(); ++iter) {
+        auto &channelInfo = (*iter).second;
+
+        if (!channelInfo->mChannel) continue; // no channel created
+
+        channelInfo->mChannel->notifyTransportState(mLastReportedTransportStateToChannels);
+      }
+
+      if (shouldLatchAll()) {
+        for (auto iter = mSSRCTable.begin(); iter != mSSRCTable.end(); ++iter) {
+          auto &ssrcInfo = (*iter).second;
+          auto &channelInfo = ssrcInfo.mChannelInfo;
+
+          if (!channelInfo) continue;
+          if (!channelInfo->mChannel) continue;
+
+          channelInfo->mChannel->notifyTransportState(mLastReportedTransportStateToChannels);
+        }
+      }
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPReceiver::flushAllAutoLatchedChannels()
+    {
+      typedef std::set<PUID> PUIDSet;
+
+      ZS_LOG_TRACE(log("flushing all auto-latched channels") + ZS_PARAM("channels", mSSRCTable.size()))
+
+      PUIDSet processed;
+
+      for (auto iter = mSSRCTable.begin(); iter != mSSRCTable.end(); ++iter)
+      {
+        auto &ssrcInfo = (*iter).second;
+        auto &channelInfo = ssrcInfo.mChannelInfo;
+
+        if (!channelInfo) continue;
+        if (!channelInfo->mChannel) continue;
+
+        auto found = processed.find(channelInfo->mID);
+        if (found != processed.end()) continue; // already closed
+
+        channelInfo->mChannel->notifyTransportState(ISecureTransport::State_Closed);
+
+        // mark this channel as having been processed
+        processed.insert(channelInfo->mID);
+      }
+
+      mSSRCTable.clear();
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPReceiver::addChannel(ParametersPtr params)
+    {
+      ChannelInfoPtr channelInfo(make_shared<ChannelInfo>());
+      channelInfo->mOriginalParams = params;
+      channelInfo->mFilledParams = make_shared<Parameters>(*params);  // make a filled duplicate
+
+      // don't create the channel until its actually needed
+
+      mChannels[params] = channelInfo;
+
+#define TODO_REGISTER_RIDs 1
+#define TODO_REGISTER_RIDs 2
+
+#define TODO_REGISTER_SSRCs 1
+#define TODO_REGISTER_SSRCs 2
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPReceiver::updateChannel(
+                                    ChannelInfo &channelInfo,
+                                    ParametersPtr newParams
+                                    )
+    {
+      ParametersPtr oldOriginalParams = channelInfo.mOriginalParams;
+      ParametersPtr oldFilledParams = channelInfo.mFilledParams;
+
+      channelInfo.mOriginalParams = newParams;
+      channelInfo.mFilledParams = make_shared<Parameters>(*newParams);
+
+      if (oldOriginalParams->mEncodingParameters.size() < 1) {
+        ZS_LOG_DEBUG(log("nothing to copy from old channel (this skipping)"))
+        return;
+      }
+
+      auto iterOldOriginalEncodings = oldOriginalParams->mEncodingParameters.begin();
+      auto iterOldFilledEncodings = oldFilledParams->mEncodingParameters.begin();
+
+      auto &baseOldOriginalEncoding = (*iterOldOriginalEncodings);
+      auto &baseOldFilledEncoding = (*iterOldFilledEncodings);
+
+      if (newParams->mEncodingParameters.size() < 1) {
+        ZS_LOG_DEBUG(log("new params now a catch all for all encoding for this channel"))
+
+#define TODO_UNREGISTER_SSRCs 1
+#define TODO_UNREGISTER_SSRCs 2
+
+#define TODO_UNREGISTER_RIDs 1
+#define TODO_UNREGISTER_RIDs 2
+
+      }
+
+      auto iterNewOriginalEncodings = newParams->mEncodingParameters.begin();
+      auto iterNewFilledEncodings = channelInfo.mFilledParams->mEncodingParameters.begin();
+
+      auto &baseNewOriginalEncoding = (*iterNewOriginalEncodings);
+      auto &baseNewFilledEncoding = (*iterNewFilledEncodings);
+
+#define TODO 1
+#define TODO 2
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPReceiver::removeChannel(const ChannelInfo &channelInfo)
+    {
+      // scope: clean out any SSRCs pointing to this channel
+      {
+        for (auto iter_doNotUse = mSSRCTable.begin(); iter_doNotUse != mSSRCTable.end(); )
+        {
+          auto current = iter_doNotUse;
+          ++iter_doNotUse;
+
+          auto &ssrcInfo = (*current).second;
+          auto &existingChannelInfo = ssrcInfo.mChannelInfo;
+
+          if (!existingChannelInfo) continue;
+          if (existingChannelInfo->mID != channelInfo.mID) continue;
+
+          mSSRCTable.erase(current);
+        }
+      }
+
+      // scope: clean out any RIDs pointing to this channel
+      {
+        for (auto iter_doNotUse = mRIDToChannelMap.begin(); iter_doNotUse != mRIDToChannelMap.end(); )
+        {
+          auto current = iter_doNotUse;
+          ++iter_doNotUse;
+
+          auto &existingChannel = (*current).second;
+
+          if (existingChannel->mID != channelInfo.mID) continue;
+
+          mRIDToChannelMap.erase(current);
+        }
+      }
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPReceiver::registerHeaderExtensions(const Parameters &params)
+    {
+      mRegisteredExtensions.clear();
+
+      for (auto iter = mParameters->mHeaderExtensions.begin(); iter != mParameters->mHeaderExtensions.end(); ++iter) {
+        auto &ext = (*iter);
+
+        auto uri = IRTPTypes::toHeaderExtensionURI(ext.mURI);
+        if (shouldFilter(uri)) {
+          ZS_LOG_TRACE(log("header extension is not important to receiver (thus filtering)") + ext.toDebug())
+          continue;
+        }
+
+        RegisteredHeaderExtension newExt;
+
+        newExt.mLocalID = ext.mID;
+        newExt.mEncrypted = ext.mEncrypt;
+        newExt.mHeaderExtensionURI = IRTPTypes::toHeaderExtensionURI(ext.mURI);
+
+        mRegisteredExtensions[newExt.mLocalID] = newExt;
+      }
+    }
+
+    //-------------------------------------------------------------------------
+    String RTPReceiver::extractRID(const RTPPacket &rtpPacket)
+    {
+      for (auto ext = rtpPacket.firstHeaderExtension(); NULL != ext; ext = ext->mNext) {
+        LocalID localID = static_cast<LocalID>(ext->mID);
+        auto found = mRegisteredExtensions.find(localID);
+        if (found == mRegisteredExtensions.end()) continue; // header extension is not understood
+
+        RegisteredHeaderExtension &headerInfo = (*found).second;
+
+        if (IRTPTypes::HeaderExtensionURI_RID != headerInfo.mHeaderExtensionURI) continue;
+
+        RTPPacket::RidHeaderExtension rid(*ext);
+
+        String ridStr(rid.rid());
+        if (!ridStr.hasData()) continue;
+
+        ChannelInfoPtr ignored;
+        setSSRCUsage(rtpPacket.ssrc(), ridStr, ignored, false);
+        return ridStr;
+      }
+
+      String result;
+      ChannelInfoPtr ignored;
+      setSSRCUsage(rtpPacket.ssrc(), result, ignored, false);
+
+      return result;
+    }
+
+    //-------------------------------------------------------------------------
+    bool RTPReceiver::setSSRCUsage(
+                                   SSRCType ssrc,
+                                   String &ioRID,
+                                   ChannelInfoPtr &ioChannelInfo,
+                                   bool registerUsage
+                                   )
+    {
+      auto found = mSSRCTable.find(ssrc);
+
+      if (found == mSSRCTable.end()) {
+        SSRCInfo ssrcInfo;
+        if (ioRID.hasData()) {
+          ssrcInfo.mRID = ioRID;
+        } else if (ioChannelInfo) {
+          if (ioChannelInfo->mFilledParams->mEncodingParameters.size() > 0) {
+            ioRID = ssrcInfo.mRID = ioChannelInfo->mFilledParams->mEncodingParameters.front().mEncodingID;
+          }
+        }
+        ssrcInfo.mChannelInfo = ioChannelInfo;
+        ssrcInfo.mRegisteredUsageCount = (registerUsage ? 1 : 0);
+        mSSRCTable[ssrc] = ssrcInfo;
+        reattemptDelivery();
+        return true;
+      }
+
+      SSRCInfo &ssrcInfo = (*found).second;
+
+      ssrcInfo.mLastUsage = zsLib::now();
+
+      if (ioChannelInfo) {
+        ssrcInfo.mChannelInfo = ioChannelInfo;
+      } else {
+        ioChannelInfo = ssrcInfo.mChannelInfo;
+      }
+
+      if (ioRID.hasData()) {
+        if (ioRID != ssrcInfo.mRID) ssrcInfo.mRID = ioRID;
+      } else if (ssrcInfo.mChannelInfo) {
+        if (ssrcInfo.mChannelInfo->mFilledParams->mEncodingParameters.size() > 0) {
+          if (ssrcInfo.mChannelInfo->mFilledParams->mEncodingParameters.front().mEncodingID.hasData()) {
+            if (ssrcInfo.mRID != ssrcInfo.mChannelInfo->mFilledParams->mEncodingParameters.front().mEncodingID) {
+              ioRID = ssrcInfo.mRID = ssrcInfo.mChannelInfo->mFilledParams->mEncodingParameters.front().mEncodingID;
+            } else {
+              ioRID = ssrcInfo.mRID;
+            }
+          }
+        }
+      }
+
+      if (registerUsage) {
+        ++ssrcInfo.mRegisteredUsageCount;
+      }
+
+      return false;
+    }
+    
+    //-------------------------------------------------------------------------
+    void RTPReceiver::reattemptDelivery()
+    {
+      if (mReattemptRTPDelivery) return;
+      mReattemptRTPDelivery = true;
+      IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
+    }
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------

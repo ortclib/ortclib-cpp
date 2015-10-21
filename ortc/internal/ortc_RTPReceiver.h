@@ -32,6 +32,7 @@
 #pragma once
 
 #include <ortc/internal/types.h>
+#include <ortc/internal/ortc_ISecureTransport.h>
 
 #include <ortc/IICETransport.h>
 #include <ortc/IRTPReceiver.h>
@@ -42,8 +43,7 @@
 #include <zsLib/MessageQueueAssociator.h>
 #include <zsLib/Timer.h>
 
-
-//#define ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE "ortc/sctp/max-message-size"
+#define ORTC_SETTING_RTP_RECEIVER_SSRC_TIMEOUT_IN_SECONDS "ortc/rtp-receiver/ssrc-timeout-in-seconds"
 
 namespace ortc
 {
@@ -191,6 +191,78 @@ namespace ortc
       ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverChannelForRTPReceiver, UseChannel)
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPReceiver, UseMediaStreamTrack)
 
+      ZS_DECLARE_STRUCT_PTR(RegisteredHeaderExtension)
+      ZS_DECLARE_STRUCT_PTR(ChannelInfo)
+      ZS_DECLARE_STRUCT_PTR(SSRCInfo)
+
+      typedef IRTPTypes::SSRCType SSRCType;
+      typedef std::list<RTCPPacketPtr> RTCPPacketList;
+
+      ZS_DECLARE_TYPEDEF_PTR(std::list<ParametersPtr>, ParametersPtrList)
+
+      ZS_DECLARE_PTR(RTCPPacketList)
+
+      typedef String RID;
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPReceiver::RegisteredHeaderExtension
+      #pragma mark
+
+      typedef USHORT LocalID;
+      typedef size_t ReferenceCount;
+
+      struct RegisteredHeaderExtension
+      {
+        HeaderExtensionURIs mHeaderExtensionURI {HeaderExtensionURI_Unknown};
+        LocalID mLocalID {};
+        bool mEncrypted {};
+
+        ElementPtr toDebug() const;
+      };
+
+      typedef std::map<LocalID, RegisteredHeaderExtension> HeaderExtensionMap;
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPReceiver::SSRCInfo
+      #pragma mark
+
+      struct ChannelInfo
+      {
+        AutoPUID mID;
+
+        ParametersPtr mOriginalParams;
+        ParametersPtr mFilledParams;
+        UseChannelPtr mChannel;       // NOTE: might be null if channel is not created yet
+
+        ElementPtr toDebug() const;
+      };
+
+      typedef std::map<ParametersPtr, ChannelInfoPtr> ParametersToChannelMap;
+      typedef std::map<RID, ChannelInfoPtr> RIDToChannelMap;
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPReceiver::SSRCInfo
+      #pragma mark
+
+      struct SSRCInfo
+      {
+        Time mLastUsage;
+        String mRID;
+
+        size_t mRegisteredUsageCount {};  // as fixed SSRC values in receiver params
+        ChannelInfoPtr mChannelInfo;     // can be NULL
+
+        SSRCInfo();
+        ElementPtr toDebug() const;
+      };
+
+      typedef std::map<SSRCType, SSRCInfo> SSRCMap;
+
+
+
       enum States
       {
         State_Pending,
@@ -199,7 +271,6 @@ namespace ortc
         State_Shutdown,
       };
       static const char *toString(States state);
-
 
     public:
       RTPReceiver(
@@ -356,6 +427,29 @@ namespace ortc
                       size_t bufferSizeInBytes
                       );
 
+      bool shouldLatchAll();
+      void notifyChannelsOfTransportState();
+
+      void flushAllAutoLatchedChannels();
+
+      void addChannel(ParametersPtr params);
+      void updateChannel(
+                         ChannelInfo &channelInfo,
+                         ParametersPtr newParams
+                         );
+      void removeChannel(const ChannelInfo &channelInfo);
+
+      void registerHeaderExtensions(const Parameters &params);
+      String extractRID(const RTPPacket &rtpPacket);
+
+      bool setSSRCUsage(
+                        SSRCType ssrc,
+                        String &ioRID,
+                        ChannelInfoPtr &ioChannelInfo,
+                        bool registerUsage
+                        );
+      void reattemptDelivery();
+
     protected:
       //-----------------------------------------------------------------------
       #pragma mark
@@ -374,7 +468,8 @@ namespace ortc
       WORD mLastError {};
       String mLastErrorReason;
 
-      UseMediaStreamTrackPtr mVideoTrack;
+      IMediaStreamTrack::Kinds mKind {IMediaStreamTrack::Kind_First};
+      UseMediaStreamTrackPtr mTrack;
 
       ParametersPtr mParameters;
       
@@ -386,6 +481,23 @@ namespace ortc
       IICETypes::Components mReceiveRTPOverTransport {IICETypes::Component_RTP};
       IICETypes::Components mReceiveRTCPOverTransport {IICETypes::Component_RTCP};
       IICETypes::Components mSendRTCPOverTransport {IICETypes::Component_RTCP};
+
+      ISecureTransport::States mLastReportedTransportStateToChannels {ISecureTransport::State_Pending};
+
+      ParametersPtrList mParametersGroupedIntoChannels;
+
+      ParametersToChannelMap mChannels;
+
+      HeaderExtensionMap mRegisteredExtensions;
+
+      SSRCMap mSSRCTable;
+
+      RIDToChannelMap mRIDToChannelMap;
+
+      TimerPtr mSSRCTableTimer;
+      Seconds mSSRCTableExpires {};
+
+      bool mReattemptRTPDelivery {false};
     };
 
     //-------------------------------------------------------------------------
@@ -417,5 +529,5 @@ namespace ortc
 }
 
 ZS_DECLARE_PROXY_BEGIN(ortc::internal::IRTPReceiverAsyncDelegate)
-//ZS_DECLARE_PROXY_METHOD_0(onWhatever)
+//ZS_DECLARE_PROXY_METHOD_0(onDeliverHistoricalPackets)
 ZS_DECLARE_PROXY_END()

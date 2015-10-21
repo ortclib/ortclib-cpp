@@ -40,7 +40,7 @@ namespace ortc
 {
   namespace internal
   {
-    class RTPypesHelper
+    class RTPTypesHelper
     {
     public:
       typedef IRTPTypes::PayloadType PayloadType;

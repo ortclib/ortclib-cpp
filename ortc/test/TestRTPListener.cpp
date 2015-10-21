@@ -798,7 +798,7 @@ namespace ortc
             ZS_LOG_BASIC(log("registering listener") + ZS_PARAM("listener", mListener->getID()) + mParameters->toDebug())
 
             RTCPPacketList packetList;
-            mListener->registerReceiver(mThisWeak.lock(), *mParameters, packetList);
+            mListener->registerReceiver(mThisWeak.lock(), *mParameters);
 
             for (auto iter = packetList.begin(); iter != packetList.end(); ++iter) {
               // fake this as if it was a received packet
@@ -832,7 +832,7 @@ namespace ortc
 
         if (mListener) {
           RTCPPacketList packetList;
-          mListener->registerReceiver(mThisWeak.lock(), *mParameters, packetList);
+          mListener->registerReceiver(mThisWeak.lock(), *mParameters);
 
           for (auto iter = packetList.begin(); iter != packetList.end(); ++iter) {
             // fake this as if it was a received packet

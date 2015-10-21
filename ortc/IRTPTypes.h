@@ -189,7 +189,7 @@ namespace ortc
     struct CodecParameters {
       String            mName;
       PayloadType       mPayloadType {};
-      ULONG             mClockRate {};
+      Optional<ULONG>   mClockRate;
       ULONG             mMaxPTime {};
       ULONG             mNumChannels {};
       RtcpFeedbackList  mRTCPFeedback;
@@ -219,8 +219,8 @@ namespace ortc
     #pragma mark
 
     struct FECParameters {
-      SSRCType  mSSRC {};
-      String    mMechanism;
+      Optional<SSRCType>  mSSRC;
+      String              mMechanism;
 
       ElementPtr toDebug() const;
       String hash() const;
@@ -232,7 +232,9 @@ namespace ortc
     #pragma mark
 
     struct RTXParameters {
-      SSRCType mSSRC {};
+      Optional<SSRCType>    mSSRC;
+      Optional<PayloadType> mPayloadType;
+      Milliseconds          mRTXTime {};
 
       ElementPtr toDebug() const;
       String hash() const;

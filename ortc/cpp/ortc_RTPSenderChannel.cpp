@@ -317,6 +317,13 @@ namespace ortc
       AutoRecursiveLock lock(*this);
 
       mSecureTransportState = state;
+
+      if (ISecureTransport::State_Closed == state) {
+        ZS_LOG_DEBUG(log("secure channel closed (thus shutting down)"))
+        cancel();
+        return;
+      }
+
 #define TODO 1
 #define TODO 2
     }

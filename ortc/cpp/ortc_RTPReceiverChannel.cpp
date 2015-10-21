@@ -115,10 +115,11 @@ namespace ortc
     //-------------------------------------------------------------------------
     RTPReceiverChannelPtr IRTPReceiverChannelForRTPReceiver::create(
                                                                     RTPReceiverPtr receiver,
-                                                                    const Parameters &params
+                                                                    const Parameters &params,
+                                                                    const RTCPPacketList &packets
                                                                     )
     {
-      return internal::IRTPReceiverChannelFactory::singleton().create(receiver, params);
+      return internal::IRTPReceiverChannelFactory::singleton().create(receiver, params, packets);
     }
 
     //-------------------------------------------------------------------------
@@ -175,7 +176,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPReceiverChannel::init()
+    void RTPReceiverChannel::init(const RTCPPacketList &packets)
     {
       AutoRecursiveLock lock(*this);
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
@@ -229,12 +230,13 @@ namespace ortc
     //-------------------------------------------------------------------------
     RTPReceiverChannelPtr RTPReceiverChannel::create(
                                                      RTPReceiverPtr receiver,
-                                                     const Parameters &params
+                                                     const Parameters &params,
+                                                     const RTCPPacketList &packets
                                                      )
     {
       RTPReceiverChannelPtr pThis(make_shared<RTPReceiverChannel>(make_private {}, IORTCForInternal::queueORTC(), receiver, params));
       pThis->mThisWeak = pThis;
-      pThis->init();
+      pThis->init(packets);
       return pThis;
     }
 
@@ -243,6 +245,13 @@ namespace ortc
     {
       // do NOT lock this object here, instead notify self asynchronously
       IRTPReceiverChannelAsyncDelegateProxy::create(mThisWeak.lock())->onSecureTransportState(state);
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPReceiverChannel::notifyPackets(RTCPPacketListPtr packets)
+    {
+      // do NOT lock this object here, instead notify self asynchronously
+      IRTPReceiverChannelAsyncDelegateProxy::create(mThisWeak.lock())->onNotifyPackets(packets);
     }
 
     //-------------------------------------------------------------------------
@@ -329,6 +338,28 @@ namespace ortc
       AutoRecursiveLock lock(*this);
 
       mSecureTransportState = state;
+
+      if (ISecureTransport::State_Closed == state) {
+        ZS_LOG_DEBUG(log("secure channel closed (thus shutting down)"))
+        cancel();
+        return;
+      }
+
+#define TODO 1
+#define TODO 2
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPReceiverChannel::onNotifyPackets(RTCPPacketListPtr packets)
+    {
+      ZS_LOG_TRACE(log("notified rtcp packets") + ZS_PARAM("packets", packets->size()))
+
+      AutoRecursiveLock lock(*this);
+
+      // WARNING: Do NOT modify the contents of "packets" as this same list
+      //          could have been sent to multiple channels simultaneously.
+      //          Use COW pattern if needing mutability.
+
 #define TODO 1
 #define TODO 2
     }
@@ -517,11 +548,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     RTPReceiverChannelPtr IRTPReceiverChannelFactory::create(
                                                              RTPReceiverPtr receiver,
-                                                             const Parameters &params
+                                                             const Parameters &params,
+                                                             const RTCPPacketList &packets
                                                              )
     {
       if (this) {}
-      return internal::RTPReceiverChannel::create(receiver, params);
+      return internal::RTPReceiverChannel::create(receiver, params, packets);
     }
 
   } // internal namespace

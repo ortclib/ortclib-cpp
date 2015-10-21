@@ -30,6 +30,7 @@
  */
 
 #include <ortc/internal/ortc_RTPSender.h>
+#include <ortc/internal/ortc_RTPSenderChannel.h>
 #include <ortc/internal/ortc_DTLSTransport.h>
 #include <ortc/internal/ortc_ISecureTransport.h>
 #include <ortc/internal/ortc_RTPListener.h>
@@ -375,6 +376,8 @@ namespace ortc
       }
 
       UseSecureTransport::getSendingTransport(transport, rtcpTransport, mSendRTPOverTransport, mSendRTCPOverTransport, mRTPTransport, mRTCPTransport);
+
+      notifyChannelsOfTransportState();
     }
 
     //-------------------------------------------------------------------------
@@ -575,6 +578,17 @@ namespace ortc
       UseServicesHelper::debugAppend(resultEl, "error", mLastError);
       UseServicesHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
 
+      UseServicesHelper::debugAppend(resultEl, "rtp transport", mRTPTransport ? mRTPTransport->getID() : 0);
+      UseServicesHelper::debugAppend(resultEl, "rtcp transport", mRTCPTransport ? mRTCPTransport->getID() : 0);
+
+      UseServicesHelper::debugAppend(resultEl, "send rtp over transport", IICETypes::toString(mSendRTPOverTransport));
+      UseServicesHelper::debugAppend(resultEl, "send rtcp over transport", IICETypes::toString(mSendRTCPOverTransport));
+      UseServicesHelper::debugAppend(resultEl, "receive rtcp over transport", IICETypes::toString(mReceiveRTCPOverTransport));
+
+      UseServicesHelper::debugAppend(resultEl, "last reported transport state to channels", ISecureTransportTypes::toString(mLastReportedTransportStateToChannels));
+
+      UseServicesHelper::debugAppend(resultEl, "channels", mChannels.size());
+
       return resultEl;
     }
 
@@ -739,6 +753,34 @@ namespace ortc
       }
 
       return transport->sendPacket(sendOver, packetType, buffer, bufferSizeInBytes);
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPSender::notifyChannelsOfTransportState()
+    {
+      ISecureTransport::States currentState = ISecureTransport::State_Pending;
+
+      if (mRTPTransport) {
+        currentState = mRTPTransport->state();
+        if (ISecureTransport::State_Closed == currentState) currentState = ISecureTransport::State_Disconnected;
+      } else {
+        currentState = ISecureTransport::State_Disconnected;
+      }
+
+      if (currentState == mLastReportedTransportStateToChannels) {
+        ZS_LOG_TRACE(log("no change in secure transport state to notify") + ZS_PARAM("state", ISecureTransportTypes::toString(currentState)))
+        return;
+      }
+
+      ZS_LOG_TRACE(log("notify secure transport state change") + ZS_PARAM("new state", ISecureTransportTypes::toString(currentState)) + ZS_PARAM("old state", ISecureTransportTypes::toString(mLastReportedTransportStateToChannels)))
+
+      mLastReportedTransportStateToChannels = currentState;
+
+      for (auto iter = mChannels.begin(); iter != mChannels.end(); ++iter) {
+        auto &channel = (*iter).second;
+
+        channel->notifyTransportState(mLastReportedTransportStateToChannels);
+      }
     }
 
     //-------------------------------------------------------------------------

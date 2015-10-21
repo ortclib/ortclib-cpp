@@ -75,11 +75,11 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IRTPTypes::RTPypesHelper
+    #pragma mark IRTPTypes::RTPTypesHelper
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void RTPypesHelper::splitParamsIntoChannels(
+    void RTPTypesHelper::splitParamsIntoChannels(
                                                 const Parameters &params,
                                                 ParametersPtrList &outParamsGroupedIntoChannels
                                                 )
@@ -157,7 +157,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool RTPypesHelper::isGeneralizedSSRCCompatibleChange(
+    bool RTPTypesHelper::isGeneralizedSSRCCompatibleChange(
                                                           const Parameters &oldParams,
                                                           const Parameters &newParams
                                                           )
@@ -171,7 +171,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool RTPypesHelper::isCompatibleCodec(
+    bool RTPTypesHelper::isCompatibleCodec(
                                           const CodecParameters &oldCodec,
                                           const CodecParameters &newCodec,
                                           float &ioRank
@@ -228,7 +228,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    Optional<RTPypesHelper::PayloadType> RTPypesHelper::pickCodec(
+    Optional<RTPTypesHelper::PayloadType> RTPTypesHelper::pickCodec(
                                                                   Optional<IMediaStreamTrackTypes::Kinds> kind,
                                                                   const Parameters &params
                                                                   )
@@ -297,7 +297,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool RTPypesHelper::isRankableMatch(
+    bool RTPTypesHelper::isRankableMatch(
                                         Optional<IMediaStreamTrackTypes::Kinds> kind,
                                         const Parameters &oldParams,
                                         const Parameters &newParams,
@@ -442,7 +442,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPypesHelper::calculateDeltaChangesInChannels(
+    void RTPTypesHelper::calculateDeltaChangesInChannels(
                                                         Optional<IMediaStreamTrackTypes::Kinds> kind,
                                                         const ParametersPtrList &inExistingParamsGroupedIntoChannels,
                                                         const ParametersPtrList &inNewParamsGroupedIntoChannels,
@@ -699,9 +699,9 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    Log::Params RTPypesHelper::slog(const char *message)
+    Log::Params RTPTypesHelper::slog(const char *message)
     {
-      return Log::Params(message, "ortc::RTPypesHelper");
+      return Log::Params(message, "ortc::RTPTypesHelper");
     }
 
 
@@ -1230,6 +1230,8 @@ namespace ortc
     ElementPtr resultEl = Element::create("ortc::IRTPTypes::RTXParameters");
 
     UseServicesHelper::debugAppend(resultEl, "ssrc", mSSRC);
+    UseServicesHelper::debugAppend(resultEl, "payload type", mPayloadType);
+    UseServicesHelper::debugAppend(resultEl, "rtx time", mRTXTime);
 
     return resultEl;
   }
@@ -1242,6 +1244,10 @@ namespace ortc
     hasher.update("ortc::IRTPTypes::RTXParameters:");
 
     hasher.update(mSSRC);
+    hasher.update(":");
+    hasher.update(mPayloadType);
+    hasher.update(":");
+    hasher.update(mRTXTime);
 
     return hasher.final();
   }

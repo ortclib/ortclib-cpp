@@ -90,6 +90,8 @@ namespace ortc
     {
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPSender, ForSender)
 
+      virtual PUID getID() const = 0;
+
       virtual void attachSenderChannel(RTPSenderChannelPtr channel) = 0;
       virtual void detachSenderChannel(RTPSenderChannelPtr channel) = 0;
     };
@@ -106,9 +108,9 @@ namespace ortc
     {
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPSenderChannel, ForSenderChannel)
 
-      virtual void registerVideoCaptureDataCallback(webrtc::VideoCaptureDataCallback* callback) = 0;
+      virtual PUID getID() const = 0;
 
-      virtual ~IMediaStreamTrackForRTPSenderChannel() {}
+      virtual void registerVideoCaptureDataCallback(webrtc::VideoCaptureDataCallback* callback) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -127,6 +129,8 @@ namespace ortc
 
       static MediaStreamTrackPtr create(Kinds kind);
 
+      virtual PUID getID() const = 0;
+
       virtual void setActiveReceiverChannel(RTPReceiverChannelPtr channel) = 0;
     };
 
@@ -142,9 +146,9 @@ namespace ortc
     {
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPReceiverChannel, ForReceiverChannel)
 
-      virtual void renderVideoFrame(const webrtc::VideoFrame& videoFrame) = 0;
+      virtual PUID getID() const = 0;
 
-      virtual ~IMediaStreamTrackForRTPReceiverChannel() {}
+      virtual void renderVideoFrame(const webrtc::VideoFrame& videoFrame) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -314,6 +318,8 @@ namespace ortc
       #pragma mark MediaStreamTrack => IMediaStreamTrackForRTPSender
       #pragma mark
 
+      // (duplicate) virtual PUID getID() const = 0;
+
       virtual void attachSenderChannel(RTPSenderChannelPtr channel) override;
       virtual void detachSenderChannel(RTPSenderChannelPtr channel) override;
 
@@ -321,6 +327,8 @@ namespace ortc
       #pragma mark
       #pragma mark MediaStreamTrack => IMediaStreamTrackForRTPSenderChannel
       #pragma mark
+
+      // (duplicate) virtual PUID getID() const = 0;
 
       virtual void registerVideoCaptureDataCallback(webrtc::VideoCaptureDataCallback* callback) override;
 
@@ -331,12 +339,16 @@ namespace ortc
 
       static MediaStreamTrackPtr create(Kinds kind);
 
+      // (duplicate) virtual PUID getID() const = 0;
+
       virtual void setActiveReceiverChannel(RTPReceiverChannelPtr channel) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark MediaStreamTrack => IMediaStreamTrackForRTPReceiverChannel
       #pragma mark
+
+      // (duplicate) virtual PUID getID() const = 0;
 
       virtual void renderVideoFrame(const webrtc::VideoFrame& videoFrame) override;
 

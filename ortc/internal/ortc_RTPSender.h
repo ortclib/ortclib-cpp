@@ -32,6 +32,7 @@
 #pragma once
 
 #include <ortc/internal/types.h>
+#include <ortc/internal/ortc_ISecureTransport.h>
 
 #include <ortc/IRTPSender.h>
 #include <ortc/IDTLSTransport.h>
@@ -202,6 +203,8 @@ namespace ortc
       ZS_DECLARE_TYPEDEF_PTR(IRTPListenerForRTPSender, UseListener)
       ZS_DECLARE_TYPEDEF_PTR(IRTPSenderChannelForRTPSender, UseChannel)
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPSender, UseMediaStreamTrack)
+
+      typedef std::map<ParametersPtr, UseChannelPtr> ParametersToChannelMap;
 
       enum States
       {
@@ -375,6 +378,8 @@ namespace ortc
                       size_t bufferSizeInBytes
                       );
 
+      void notifyChannelsOfTransportState();
+
     protected:
       //-----------------------------------------------------------------------
       #pragma mark
@@ -403,6 +408,10 @@ namespace ortc
       IICETypes::Components mSendRTPOverTransport {IICETypes::Component_RTP};
       IICETypes::Components mSendRTCPOverTransport {IICETypes::Component_RTCP};
       IICETypes::Components mReceiveRTCPOverTransport {IICETypes::Component_RTCP};
+
+      ISecureTransport::States mLastReportedTransportStateToChannels {ISecureTransport::State_Pending};
+
+      ParametersToChannelMap mChannels;
     };
 
     //-------------------------------------------------------------------------

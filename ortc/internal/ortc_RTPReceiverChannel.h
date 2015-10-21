@@ -88,17 +88,22 @@ namespace ortc
       ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverChannelForRTPReceiver, ForRTPReceiver)
 
       ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters)
+      typedef std::list<RTCPPacketPtr> RTCPPacketList;
+      ZS_DECLARE_PTR(RTCPPacketList)
 
       static ElementPtr toDebug(ForRTPReceiverPtr object);
 
       static RTPReceiverChannelPtr create(
                                           RTPReceiverPtr receiver,
-                                          const Parameters &params
+                                          const Parameters &params,
+                                          const RTCPPacketList &packets
                                           );
 
       virtual PUID getID() const = 0;
 
       virtual void notifyTransportState(ISecureTransport::States state) = 0;
+
+      virtual void notifyPackets(RTCPPacketListPtr packets) = 0;
 
       virtual void update(const Parameters &params) = 0;
 
@@ -136,7 +141,12 @@ namespace ortc
 
     interaction IRTPReceiverChannelAsyncDelegate
     {
+      typedef std::list<RTCPPacketPtr> RTCPPacketList;
+      ZS_DECLARE_PTR(RTCPPacketList)
+
       virtual void onSecureTransportState(ISecureTransport::States state) = 0;
+
+      virtual void onNotifyPackets(RTCPPacketListPtr packets) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -171,6 +181,8 @@ namespace ortc
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPReceiverChannel, UseMediaStreamTrack)
       
       ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters)
+      typedef std::list<RTCPPacketPtr> RTCPPacketList;
+      ZS_DECLARE_PTR(RTCPPacketList)
 
       enum States
       {
@@ -196,7 +208,7 @@ namespace ortc
         SharedRecursiveLock(SharedRecursiveLock::create())
       {}
 
-      void init();
+      void init(const RTCPPacketList &packets);
 
     public:
       virtual ~RTPReceiverChannel();
@@ -215,12 +227,15 @@ namespace ortc
 
       static RTPReceiverChannelPtr create(
                                           RTPReceiverPtr receiver,
-                                          const Parameters &params
+                                          const Parameters &params,
+                                          const RTCPPacketList &packets
                                           );
 
       virtual PUID getID() const override {return mID;}
 
       virtual void notifyTransportState(ISecureTransport::States state) override;
+
+      virtual void notifyPackets(RTCPPacketListPtr packets) override;
 
       virtual void update(const Parameters &params) override;
 
@@ -257,6 +272,8 @@ namespace ortc
       #pragma mark
 
       virtual void onSecureTransportState(ISecureTransport::States state) override;
+
+      virtual void onNotifyPackets(RTCPPacketListPtr packets) override;
 
     protected:
       //-----------------------------------------------------------------------
@@ -314,12 +331,14 @@ namespace ortc
     interaction IRTPReceiverChannelFactory
     {
       ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters)
+      typedef std::list<RTCPPacketPtr> RTCPPacketList;
 
       static IRTPReceiverChannelFactory &singleton();
 
       virtual RTPReceiverChannelPtr create(
                                            RTPReceiverPtr receiver,
-                                           const Parameters &params
+                                           const Parameters &params,
+                                           const RTCPPacketList &packets
                                            );
     };
 
@@ -329,5 +348,8 @@ namespace ortc
 
 ZS_DECLARE_PROXY_BEGIN(ortc::internal::IRTPReceiverChannelAsyncDelegate)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::ISecureTransport::States, States)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::IRTPReceiverChannelAsyncDelegate::RTCPPacketListPtr, RTCPPacketListPtr)
 ZS_DECLARE_PROXY_METHOD_1(onSecureTransportState, States)
+ZS_DECLARE_PROXY_METHOD_1(onNotifyPackets, RTCPPacketListPtr)
 ZS_DECLARE_PROXY_END()
+//virtual void onNotifyPackets(RTCPPacketListPtr packets) = 0;

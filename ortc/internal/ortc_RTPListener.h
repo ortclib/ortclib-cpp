@@ -47,7 +47,7 @@
 #define ORTC_SETTING_RTP_LISTENER_MAX_RTCP_PACKETS_IN_BUFFER "ortc/rtp-listener/max-rtcp-packets-in-buffer"
 #define ORTC_SETTING_RTP_LISTENER_MAX_AGE_RTCP_PACKETS_IN_SECONDS "ortc/rtp-listener/max-age-rtcp-packets-in-seconds"
 
-#define ORTC_SETTING_RTP_LISTENER_SSRC_TO_MUX_ID_TIMEOUT_IN_SECONDS "ortc/rtp-listener/ssrc-to-mux-id-timeout-in-seconds"
+#define ORTC_SETTING_RTP_LISTENER_SSRC_TIMEOUT_IN_SECONDS "ortc/rtp-listener/ssrc-timeout-in-seconds"
 #define ORTC_SETTING_RTP_LISTENER_UNHANDLED_EVENTS_TIMEOUT_IN_SECONDS "ortc/rtp-listener/unhandled-ssrc-event-timeout-in-seconds"
 
 namespace ortc
@@ -132,10 +132,18 @@ namespace ortc
       virtual void registerReceiver(
                                     UseReceiverPtr inReceiver,
                                     const Parameters &inParams,
-                                    RTCPPacketList &outPacketList
+                                    RTCPPacketList *outPacketList = NULL
                                     ) = 0;
 
       virtual void unregisterReceiver(UseReceiver &inReceiver) = 0;
+
+      virtual void getPackets(RTCPPacketList &outPacketList) = 0;
+
+      virtual void notifyUnhandled(
+                                   const String &muxID,
+                                   IRTPTypes::SSRCType ssrc,
+                                   IRTPTypes::PayloadType payloadType
+                                   ) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -242,6 +250,11 @@ namespace ortc
       typedef USHORT LocalID;
       typedef size_t ReferenceCount;
 
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPListener::RegisteredHeaderExtension
+      #pragma mark
+
       struct RegisteredHeaderExtension
       {
         typedef std::map<ObjectID, bool> ReferenceMap;
@@ -263,13 +276,18 @@ namespace ortc
       typedef ObjectID ReceiverID;
       typedef ObjectID SenderID;
 
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPListener::ReceiverInfo
+      #pragma mark
+
       struct ReceiverInfo
       {
         PUID mOrderID {};
         ReceiverID mReceiverID {};
         UseRTPReceiverWeakPtr mReceiver;
 
-        Parameters mParameters;
+        Parameters mFilledParameters;
         Parameters mOriginalParameters;
 
         ElementPtr toDebug() const;
@@ -280,13 +298,32 @@ namespace ortc
       ZS_DECLARE_PTR(ReceiverObjectMap)
       ZS_DECLARE_PTR(SenderObjectMap)
 
-      typedef std::map<SSRCType, ReceiverInfoPtr> SSRCReceiverMap;
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPListener::SSRCInfo
+      #pragma mark
+
+      struct SSRCInfo
+      {
+        Time mLastUsage;
+        String mMuxID;
+
+        size_t mRegisteredUsageCount {};  // as fixed SSRC values in params
+        ReceiverInfoPtr mReceiverInfo;    // can be NULL
+
+        SSRCInfo();
+        ElementPtr toDebug() const;
+      };
+
+      typedef std::map<SSRCType, SSRCInfo> SSRCMap;
 
       typedef String MuxID;
       typedef std::map<MuxID, ReceiverInfoPtr> MuxIDMap;
 
-      typedef std::pair<Time, MuxID> TimeMuxPair;
-      typedef std::map<SSRCType, TimeMuxPair> SSSRCToTimeMuxIDPairMap;
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPListener::UnhandledEventInfo
+      #pragma mark
 
       struct UnhandledEventInfo
       {
@@ -388,10 +425,18 @@ namespace ortc
       virtual void registerReceiver(
                                     UseReceiverPtr inReceiver,
                                     const Parameters &inParams,
-                                    RTCPPacketList &outPacketList
+                                    RTCPPacketList *outPacketList = NULL
                                     ) override;
 
       virtual void unregisterReceiver(UseReceiver &inReceiver) override;
+
+      virtual void getPackets(RTCPPacketList &outPacketList) override;
+
+      virtual void notifyUnhandled(
+                                   const String &muxID,
+                                   IRTPTypes::SSRCType ssrc,
+                                   IRTPTypes::PayloadType payloadType
+                                   ) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -531,9 +576,23 @@ namespace ortc
 
       void unregisterEncoding(const EncodingParameters &existing);
 
+      bool setSSRCUsage(
+                        SSRCType ssrc,
+                        String &ioMuxID,
+                        ReceiverInfoPtr &ioReceiverInfo,
+                        bool registerUsage
+                        );
+
       void unregisterSSRCUsage(SSRCType ssrc);
 
       void reattemptDelivery();
+
+      void processUnhandled(
+                            const String &muxID,
+                            IRTPTypes::SSRCType ssrc,
+                            IRTPTypes::PayloadType payloadType,
+                            const Time &tick
+                            );
 
     protected:
       //-----------------------------------------------------------------------
@@ -569,12 +628,11 @@ namespace ortc
       ReceiverObjectMapPtr mReceivers;  // non-mutable map values (COW)
       SenderObjectMapPtr mSenders;      // non-mutable map values (COW)
 
-      SSRCReceiverMap mSSRCTable;
+      SSRCMap mSSRCTable;
       MuxIDMap mMuxIDTable;
 
-      SSSRCToTimeMuxIDPairMap mSSRCToMuxTable;
-      TimerPtr mSSRCToMuxTableTimer;
-      Seconds mSSRCToMuxTableExpires {};
+      TimerPtr mSSRCTableTimer;
+      Seconds mSSRCTableExpires {};
 
       bool mReattemptRTPDelivery {};
 

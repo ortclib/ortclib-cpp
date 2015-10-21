@@ -266,6 +266,8 @@ namespace ortc
 
       // (duplicate) virtual PUID getID() const;
 
+      // (duplicate) virtual ISecureTransportTypes::States state(ISecureTransportTypes::States ignored = ISecureTransportTypes::States()) const = 0;
+
       // (duplicate) virtual bool sendPacket(
       //                                     IICETypes::Components sendOverICETransport,
       //                                     IICETypes::Components packetType,
