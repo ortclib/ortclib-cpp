@@ -258,7 +258,8 @@ namespace ortc
                              IRTCPTransportPtr rtcpTransport
                              ) :
       MessageQueueAssociator(queue),
-      SharedRecursiveLock(SharedRecursiveLock::create())
+      SharedRecursiveLock(SharedRecursiveLock::create()),
+      mChannels(make_shared<ChannelMap>())
     {
       ZS_LOG_DETAIL(debug("created"))
 
@@ -492,15 +493,13 @@ namespace ortc
               channelInfo->mChannel->notifyPackets(notifyPackets);
             }
           } else {
-            for (auto iter = mChannels.begin(); iter != mChannels.end(); ++iter) {
-              auto &channelInfo = (*iter).second;
-              if (!channelInfo->mChannel) continue;
-
+            for (auto iter = mChannels->begin(); iter != mChannels->end(); ++iter) {
+              auto &channel = (*iter).second;
               if (!notifyPackets) {
                 notifyPackets = make_shared<RTCPPacketList>(historicalRTCPPackets);
               }
 
-              channelInfo->mChannel->notifyPackets(notifyPackets);
+              channel->notifyPackets(notifyPackets);
             }
           }
         }
@@ -600,18 +599,44 @@ namespace ortc
 
         RTPTypesHelper::calculateDeltaChangesInChannels(mKind, oldGroupedParams, mParametersGroupedIntoChannels, unchangedChannels, newChannels, updateChannels, removeChannels);
 
+        ChannelMap removedChannels;
+
         // scope: remove dead channels
         {
           for (auto iter = removeChannels.begin(); iter != removeChannels.end(); ++iter) {
             auto &params = (*iter);
-            auto found = mChannels.find(params);
-            ASSERT(found != mChannels.end())
+            auto found = mChannelInfos.find(params);
+            ASSERT(found != mChannelInfos.end())
 
-            if (found == mChannels.end()) continue;
+            if (found == mChannelInfos.end()) continue;
 
             auto channelInfo = (*found).second;
+            if (channelInfo->mChannel) {
+              removedChannels[channelInfo->mChannel->getID()] = channelInfo->mChannel;
+            }
+
             removeChannel(*channelInfo);
-            mChannels.erase(found);
+            mChannelInfos.erase(found);
+          }
+        }
+
+        // scope: perform COW for all removed channels
+        {
+          if (removedChannels.size() > 0) {
+            ChannelMapPtr replacementChannels(make_shared<ChannelMap>(*mChannels));
+            for (auto iter = removedChannels.begin(); iter != removedChannels.end(); ++iter) {
+              ChannelID id = (*iter).second->getID();
+
+              auto found = replacementChannels->find(id);
+              if (found == replacementChannels->end()) {
+                ZS_LOG_ERROR(Detail, log("channel existed in channel info list but not in channel list") + ZS_PARAM("channel", id))
+                continue;
+              }
+
+              replacementChannels->erase(found);
+            }
+
+            mChannels = replacementChannels;  // finalize COW
           }
         }
 
@@ -621,15 +646,15 @@ namespace ortc
             auto &pairInfo = (*iter);
             auto &oldParams = pairInfo.first;
             auto &newParams = pairInfo.second;
-            auto found = mChannels.find(oldParams);
-            ASSERT(found != mChannels.end())
+            auto found = mChannelInfos.find(oldParams);
+            ASSERT(found != mChannelInfos.end())
 
-            if (found == mChannels.end()) continue;
+            if (found == mChannelInfos.end()) continue;
 
             auto channelInfo = (*found).second;
 
-            mChannels.erase(found);
-            mChannels[newParams] = channelInfo;
+            mChannelInfos.erase(found);
+            mChannelInfos[newParams] = channelInfo;
 
             updateChannel(channelInfo, newParams);
           }
@@ -727,14 +752,26 @@ namespace ortc
     {
       ZS_LOG_TRACE(log("received packet") + ZS_PARAM("via", IICETypes::toString(viaTransport)) + packet->toDebug())
 
+      ChannelMapPtr channels;
+
       {
         AutoRecursiveLock lock(*this);
-        // process packet here
-#define TOOD_PROCESS_PACKET_HERE 1
-#define TOOD_PROCESS_PACKET_HERE 2
+        channels = mChannels; // obtain pointer to COW list while inside a lock
+
+#define TODO_PROCESS_BYES_AND_MAYBE_OTHER_STUFF 1
+#define TODO_PROCESS_BYES_AND_MAYBE_OTHER_STUFF 2
+
       }
 
-      return true; // return true if handled
+      auto result = false;
+      for (auto iter = channels->begin(); iter != channels->end(); ++iter)
+      {
+        auto &channel = (*iter).second;
+        auto channelResult = channel->handlePacket(packet);
+        result = result || channelResult;
+      }
+
+      return result;
     }
 
     //-------------------------------------------------------------------------
@@ -888,7 +925,8 @@ namespace ortc
 
       UseServicesHelper::debugAppend(resultEl, "params grouped into channels", mParametersGroupedIntoChannels.size());
 
-      UseServicesHelper::debugAppend(resultEl, "channels", mChannels.size());
+      UseServicesHelper::debugAppend(resultEl, "channels", mChannels->size());
+      UseServicesHelper::debugAppend(resultEl, "channel infos", mChannelInfos.size());
 
       UseServicesHelper::debugAppend(resultEl, "ssrc table", mSSRCTable.size());
 
@@ -896,6 +934,8 @@ namespace ortc
 
       UseServicesHelper::debugAppend(resultEl, "ssrc table timer", mSSRCTableTimer ? mSSRCTableTimer->getID() : 0);
       UseServicesHelper::debugAppend(resultEl, "ssrc table expires", mSSRCTableExpires);
+
+      UseServicesHelper::debugAppend(resultEl, "reattempt delivery", mReattemptRTPDelivery);
 
       return resultEl;
     }
@@ -1080,9 +1120,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool RTPReceiver::shouldLatchAll()
     {
-      if (1 != mChannels.size()) return false;
+      if (1 != mChannelInfos.size()) return false;
 
-      auto &params = (mChannels.begin())->first;
+      auto &params = (mChannelInfos.begin())->first;
 
       if (params->mEncodingParameters.size() < 1) return true;
 
@@ -1110,53 +1150,26 @@ namespace ortc
 
       mLastReportedTransportStateToChannels = currentState;
 
-      for (auto iter = mChannels.begin(); iter != mChannels.end(); ++iter) {
-        auto &channelInfo = (*iter).second;
+      for (auto iter = mChannels->begin(); iter != mChannels->end(); ++iter) {
+        auto &channel = (*iter).second;
 
-        if (!channelInfo->mChannel) continue; // no channel created
-
-        channelInfo->mChannel->notifyTransportState(mLastReportedTransportStateToChannels);
-      }
-
-      if (shouldLatchAll()) {
-        for (auto iter = mSSRCTable.begin(); iter != mSSRCTable.end(); ++iter) {
-          auto &ssrcInfo = (*iter).second;
-          auto &channelInfo = ssrcInfo.mChannelInfo;
-
-          if (!channelInfo) continue;
-          if (!channelInfo->mChannel) continue;
-
-          channelInfo->mChannel->notifyTransportState(mLastReportedTransportStateToChannels);
-        }
+        channel->notifyTransportState(mLastReportedTransportStateToChannels);
       }
     }
 
     //-------------------------------------------------------------------------
     void RTPReceiver::flushAllAutoLatchedChannels()
     {
-      typedef std::set<PUID> PUIDSet;
+      ZS_LOG_TRACE(log("flushing all auto-latched channels") + ZS_PARAM("channels", mChannels->size()))
 
-      ZS_LOG_TRACE(log("flushing all auto-latched channels") + ZS_PARAM("channels", mSSRCTable.size()))
-
-      PUIDSet processed;
-
-      for (auto iter = mSSRCTable.begin(); iter != mSSRCTable.end(); ++iter)
+      for (auto iter = mChannels->begin(); iter != mChannels->end(); ++iter)
       {
-        auto &ssrcInfo = (*iter).second;
-        auto &channelInfo = ssrcInfo.mChannelInfo;
+        auto &channel = (*iter).second;
 
-        if (!channelInfo) continue;
-        if (!channelInfo->mChannel) continue;
-
-        auto found = processed.find(channelInfo->mID);
-        if (found != processed.end()) continue; // already closed
-
-        channelInfo->mChannel->notifyTransportState(ISecureTransport::State_Closed);
-
-        // mark this channel as having been processed
-        processed.insert(channelInfo->mID);
+        channel->notifyTransportState(ISecureTransport::State_Closed);
       }
 
+      mChannels = make_shared<ChannelMap>();  // all channels are now gone (COW with empty replacement list)
       mSSRCTable.clear();
     }
 
@@ -1169,7 +1182,7 @@ namespace ortc
 
       // don't create the channel until its actually needed
 
-      mChannels[params] = channelInfo;
+      mChannelInfos[params] = channelInfo;
 
       if (channelInfo->mOriginalParams->mEncodingParameters.size() < 1) {
         ZS_LOG_TRACE(log("auto latching channel added") + channelInfo->toDebug())

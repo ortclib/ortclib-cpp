@@ -203,6 +203,10 @@ namespace ortc
       ZS_DECLARE_PTR(RTCPPacketList)
 
       typedef String RID;
+      typedef PUID ChannelID;
+
+      typedef std::map<ChannelID, UseChannelPtr> ChannelMap;
+      ZS_DECLARE_PTR(ChannelMap)
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -239,7 +243,7 @@ namespace ortc
         ElementPtr toDebug() const;
       };
 
-      typedef std::map<ParametersPtr, ChannelInfoPtr> ParametersToChannelMap;
+      typedef std::map<ParametersPtr, ChannelInfoPtr> ParametersToChannelInfoMap;
       typedef std::map<RID, ChannelInfoPtr> RIDToChannelMap;
 
       //-----------------------------------------------------------------------
@@ -488,7 +492,8 @@ namespace ortc
 
       ParametersPtrList mParametersGroupedIntoChannels;
 
-      ParametersToChannelMap mChannels;
+      ChannelMapPtr mChannels;                  // COW pattern, always valid ptr
+      ParametersToChannelInfoMap mChannelInfos;
 
       HeaderExtensionMap mRegisteredExtensions;
 
