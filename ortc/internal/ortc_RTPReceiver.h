@@ -434,7 +434,7 @@ namespace ortc
 
       void addChannel(ParametersPtr params);
       void updateChannel(
-                         ChannelInfo &channelInfo,
+                         ChannelInfoPtr channelInfo,
                          ParametersPtr newParams
                          );
       void removeChannel(const ChannelInfo &channelInfo);
@@ -448,6 +448,8 @@ namespace ortc
                         ChannelInfoPtr &ioChannelInfo,
                         bool registerUsage
                         );
+      void unregisterSSRCUsage(SSRCType ssrc);
+
       void reattemptDelivery();
 
     protected:

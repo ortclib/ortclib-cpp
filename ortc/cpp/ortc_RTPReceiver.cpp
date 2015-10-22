@@ -631,7 +631,7 @@ namespace ortc
             mChannels.erase(found);
             mChannels[newParams] = channelInfo;
 
-            updateChannel(*channelInfo, newParams);
+            updateChannel(channelInfo, newParams);
           }
         }
 
@@ -1171,24 +1171,41 @@ namespace ortc
 
       mChannels[params] = channelInfo;
 
-#define TODO_REGISTER_RIDs 1
-#define TODO_REGISTER_RIDs 2
+      if (channelInfo->mOriginalParams->mEncodingParameters.size() < 1) {
+        ZS_LOG_TRACE(log("auto latching channel added") + channelInfo->toDebug())
+        return;
+      }
 
-#define TODO_REGISTER_SSRCs 1
-#define TODO_REGISTER_SSRCs 2
+      auto &encodingParmas = channelInfo->mOriginalParams->mEncodingParameters.front();
+
+      if (encodingParmas.mEncodingID.hasData()) {
+        mRIDToChannelMap[encodingParmas.mEncodingID] = channelInfo;
+      }
+
+      if (encodingParmas.mSSRC.hasValue()) {
+        setSSRCUsage(encodingParmas.mSSRC.value(), encodingParmas.mEncodingID, channelInfo, true);
+      }
+      if ((encodingParmas.mRTX.hasValue()) &&
+          (encodingParmas.mRTX.value().mSSRC.hasValue())) {
+        setSSRCUsage(encodingParmas.mRTX.value().mSSRC.value(), encodingParmas.mEncodingID, channelInfo, true);
+      }
+      if ((encodingParmas.mFEC.hasValue()) &&
+          (encodingParmas.mFEC.value().mSSRC.hasValue())) {
+        setSSRCUsage(encodingParmas.mFEC.value().mSSRC.value(), encodingParmas.mEncodingID, channelInfo, true);
+      }
     }
 
     //-------------------------------------------------------------------------
     void RTPReceiver::updateChannel(
-                                    ChannelInfo &channelInfo,
+                                    ChannelInfoPtr channelInfo,
                                     ParametersPtr newParams
                                     )
     {
-      ParametersPtr oldOriginalParams = channelInfo.mOriginalParams;
-      ParametersPtr oldFilledParams = channelInfo.mFilledParams;
+      ParametersPtr oldOriginalParams = channelInfo->mOriginalParams;
+      ParametersPtr oldFilledParams = channelInfo->mFilledParams;
 
-      channelInfo.mOriginalParams = newParams;
-      channelInfo.mFilledParams = make_shared<Parameters>(*newParams);
+      channelInfo->mOriginalParams = newParams;
+      channelInfo->mFilledParams = make_shared<Parameters>(*newParams);
 
       if (oldOriginalParams->mEncodingParameters.size() < 1) {
         ZS_LOG_DEBUG(log("nothing to copy from old channel (this skipping)"))
@@ -1204,22 +1221,110 @@ namespace ortc
       if (newParams->mEncodingParameters.size() < 1) {
         ZS_LOG_DEBUG(log("new params now a catch all for all encoding for this channel"))
 
-#define TODO_UNREGISTER_SSRCs 1
-#define TODO_UNREGISTER_SSRCs 2
+        if (baseOldOriginalEncoding.mEncodingID.hasData()) {
+          auto found = mRIDToChannelMap.find(baseOldOriginalEncoding.mEncodingID);
+          if (found != mRIDToChannelMap.end()) {
+            mRIDToChannelMap.erase(found);
+          }
+        }
 
-#define TODO_UNREGISTER_RIDs 1
-#define TODO_UNREGISTER_RIDs 2
+        if (baseOldOriginalEncoding.mSSRC.hasValue()) {
+          unregisterSSRCUsage(baseOldOriginalEncoding.mSSRC.value());
+        }
 
+        if ((baseOldOriginalEncoding.mRTX.hasValue()) &&
+            (baseOldOriginalEncoding.mRTX.value().mSSRC.hasValue())) {
+          unregisterSSRCUsage(baseOldOriginalEncoding.mRTX.value().mSSRC.value());
+        }
+
+        if ((baseOldOriginalEncoding.mFEC.hasValue()) &&
+            (baseOldOriginalEncoding.mFEC.value().mSSRC.hasValue())) {
+          unregisterSSRCUsage(baseOldOriginalEncoding.mFEC.value().mSSRC.value());
+        }
+        return;
       }
 
       auto iterNewOriginalEncodings = newParams->mEncodingParameters.begin();
-      auto iterNewFilledEncodings = channelInfo.mFilledParams->mEncodingParameters.begin();
+      auto iterNewFilledEncodings = channelInfo->mFilledParams->mEncodingParameters.begin();
 
       auto &baseNewOriginalEncoding = (*iterNewOriginalEncodings);
       auto &baseNewFilledEncoding = (*iterNewFilledEncodings);
 
-#define TODO 1
-#define TODO 2
+      // scope: deregister the changed or removed SSRCs, register the new SSRC
+      {
+        if (baseOldOriginalEncoding.mSSRC.hasValue()) {
+          if (baseNewOriginalEncoding.mSSRC.hasValue()) {
+            if (baseOldOriginalEncoding.mSSRC.value() != baseNewOriginalEncoding.mSSRC.value()) {
+              unregisterSSRCUsage(baseOldOriginalEncoding.mSSRC.value());
+              setSSRCUsage(baseNewOriginalEncoding.mSSRC.value(), baseNewOriginalEncoding.mEncodingID, channelInfo, true);
+            }
+          } else {
+            unregisterSSRCUsage(baseOldOriginalEncoding.mSSRC.value());
+          }
+        } else if (baseNewOriginalEncoding.mSSRC.hasValue()) {
+          setSSRCUsage(baseNewOriginalEncoding.mSSRC.value(), baseNewOriginalEncoding.mEncodingID, channelInfo, true);
+        }
+
+        if ((baseOldOriginalEncoding.mRTX.hasValue()) &&
+            (baseOldOriginalEncoding.mRTX.value().mSSRC.hasValue())) {
+          if ((baseNewOriginalEncoding.mRTX.hasValue()) &&
+              (baseNewOriginalEncoding.mRTX.value().mSSRC.hasValue())) {
+            if (baseOldOriginalEncoding.mRTX.value().mSSRC.value() != baseNewOriginalEncoding.mRTX.value().mSSRC.value()) {
+              unregisterSSRCUsage(baseOldOriginalEncoding.mRTX.value().mSSRC.value());
+              setSSRCUsage(baseNewOriginalEncoding.mRTX.value().mSSRC.value(), baseNewOriginalEncoding.mEncodingID, channelInfo, true);
+            }
+          } else {
+            unregisterSSRCUsage(baseOldOriginalEncoding.mRTX.value().mSSRC.value());
+          }
+        } else if ((baseNewOriginalEncoding.mRTX.hasValue()) &&
+                   (baseNewOriginalEncoding.mRTX.value().mSSRC.hasValue())) {
+          setSSRCUsage(baseNewOriginalEncoding.mRTX.value().mSSRC.value(), baseNewOriginalEncoding.mEncodingID, channelInfo, true);
+        }
+
+        if ((baseOldOriginalEncoding.mFEC.hasValue()) &&
+            (baseOldOriginalEncoding.mFEC.value().mSSRC.hasValue())) {
+          if ((baseNewOriginalEncoding.mFEC.hasValue()) &&
+              (baseNewOriginalEncoding.mFEC.value().mSSRC.hasValue())) {
+            if (baseOldOriginalEncoding.mFEC.value().mSSRC.value() != baseNewOriginalEncoding.mRTX.value().mSSRC.value()) {
+              unregisterSSRCUsage(baseOldOriginalEncoding.mFEC.value().mSSRC.value());
+              setSSRCUsage(baseNewOriginalEncoding.mFEC.value().mSSRC.value(), baseNewOriginalEncoding.mEncodingID, channelInfo, true);
+            }
+          } else {
+            unregisterSSRCUsage(baseOldOriginalEncoding.mFEC.value().mSSRC.value());
+          }
+        } else if ((baseNewOriginalEncoding.mFEC.hasValue()) &&
+                   (baseNewOriginalEncoding.mFEC.value().mSSRC.hasValue())) {
+          setSSRCUsage(baseNewOriginalEncoding.mFEC.value().mSSRC.value(), baseNewOriginalEncoding.mEncodingID, channelInfo, true);
+        }
+      }
+
+      // scope: re-fill previously filled SSRCs with old values
+      {
+        if ((!baseOldOriginalEncoding.mSSRC.hasValue()) &&
+            (baseOldFilledEncoding.mSSRC.hasValue())) {
+          if (!baseNewFilledEncoding.mSSRC.hasValue()) {
+            baseNewFilledEncoding.mSSRC = baseOldFilledEncoding.mSSRC;
+          }
+        }
+
+        if (((baseOldOriginalEncoding.mRTX.hasValue()) &&
+              (!baseOldOriginalEncoding.mRTX.value().mSSRC.hasValue())) &&
+             (baseOldFilledEncoding.mRTX.value().mSSRC.hasValue())) {
+          if ((baseNewFilledEncoding.mRTX.hasValue()) &&
+              (!baseNewFilledEncoding.mRTX.value().mSSRC.hasValue())) {
+            baseNewFilledEncoding.mRTX.value().mSSRC = baseOldFilledEncoding.mRTX.value().mSSRC;
+          }
+        }
+
+        if (((baseOldOriginalEncoding.mFEC.hasValue()) &&
+             (!baseOldOriginalEncoding.mFEC.value().mSSRC.hasValue())) &&
+            (baseOldFilledEncoding.mFEC.value().mSSRC.hasValue())) {
+          if ((baseNewFilledEncoding.mFEC.hasValue()) &&
+              (!baseNewFilledEncoding.mFEC.value().mSSRC.hasValue())) {
+            baseNewFilledEncoding.mFEC.value().mSSRC = baseOldFilledEncoding.mFEC.value().mSSRC;
+          }
+        }
+      }
     }
 
     //-------------------------------------------------------------------------
@@ -1366,6 +1471,24 @@ namespace ortc
       }
 
       return false;
+    }
+    
+    //-------------------------------------------------------------------------
+    void RTPReceiver::unregisterSSRCUsage(SSRCType ssrc)
+    {
+      auto found = mSSRCTable.find(ssrc);
+      if (found == mSSRCTable.end()) return;
+
+      auto &ssrcInfo = (*found).second;
+
+      if (ssrcInfo.mRegisteredUsageCount <= 1) {
+        ZS_LOG_TRACE(log("removing entry from SSRC table") + ZS_PARAM("ssrc", ssrc) + ssrcInfo.toDebug())
+
+        mSSRCTable.erase(found);
+        return;
+      }
+
+      --(ssrcInfo.mRegisteredUsageCount);
     }
     
     //-------------------------------------------------------------------------
