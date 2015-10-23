@@ -909,10 +909,7 @@ namespace ortc
         channels = mChannels; // obtain pointer to COW list while inside a lock
 
         processByes(*packet);
-
-#define TODO_PROCESS_SENDER_REPORTS 1
-#define TODO_PROCESS_SENDER_REPORTS 2
-
+        processSenderReports(*packet);
       }
 
       bool clean = false;
@@ -1222,7 +1219,7 @@ namespace ortc
 
       return true;
     }
-    
+
     //-------------------------------------------------------------------------
     void RTPReceiver::cancel()
     {
@@ -1600,6 +1597,32 @@ namespace ortc
           if (existingChannelInfo->mID != channelInfo.mID) continue;
 
           mSSRCTable.erase(current);
+        }
+      }
+
+      // scope: clean out any registered SSRCs pointing to this channel
+      {
+        for (auto iter_doNotUse = mRegisteredSSRCs.begin(); iter_doNotUse != mRegisteredSSRCs.end(); )
+        {
+          auto current = iter_doNotUse;
+          ++iter_doNotUse;
+
+          auto ssrcInfo = (*current).second.lock();
+          if (!ssrcInfo) {
+            mRegisteredSSRCs.erase(current);
+            continue;
+          }
+
+          auto &channelHolder = ssrcInfo->mChannelHolder;
+
+          if (!channelHolder) continue;
+
+          auto &existingChannelInfo = channelHolder->mChannelInfo;
+
+          if (!existingChannelInfo) continue;
+          if (existingChannelInfo->mID != channelInfo.mID) continue;
+
+          mRegisteredSSRCs.erase(current);
         }
       }
 
@@ -2298,6 +2321,19 @@ namespace ortc
             }
           }
         }
+      }
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPReceiver::processSenderReports(const RTCPPacket &rtcpPacket)
+    {
+      for (auto sr = rtcpPacket.firstSenderReport(); NULL != sr; sr = sr->nextSenderReport()) {
+        auto found = mSSRCTable.find(sr->ssrcOfSender());
+        if (found == mSSRCTable.end()) continue;
+
+        String ignoredRID;
+        ChannelHolderPtr channelHolder;
+        setSSRCUsage(sr->ssrcOfSender(), ignoredRID, channelHolder);
       }
     }
 

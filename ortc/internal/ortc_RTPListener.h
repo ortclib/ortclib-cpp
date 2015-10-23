@@ -231,6 +231,7 @@ namespace ortc
       ZS_DECLARE_STRUCT_PTR(TearAwayData)
       ZS_DECLARE_STRUCT_PTR(RegisteredHeaderExtension)
       ZS_DECLARE_STRUCT_PTR(ReceiverInfo)
+      ZS_DECLARE_STRUCT_PTR(SSRCInfo)
       ZS_DECLARE_STRUCT_PTR(UnhandledEventInfo)
 
       ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverForRTPListener, UseRTPReceiver)
@@ -246,6 +247,9 @@ namespace ortc
 
       typedef std::pair<Time, RTCPPacketPtr> TimeRTCPPacketPair;
       typedef std::list<TimeRTCPPacketPair> BufferedRTCPPacketList;
+
+      typedef std::map<SSRCType, SSRCInfoPtr> SSRCMap;
+      typedef std::map<SSRCType, SSRCInfoWeakPtr> SSRCWeakMap;
 
       typedef PUID ObjectID;
       typedef USHORT LocalID;
@@ -273,7 +277,6 @@ namespace ortc
 
       const ObjectID kAPIReference {0};
 
-
       typedef ObjectID ReceiverID;
       typedef ObjectID SenderID;
 
@@ -291,6 +294,11 @@ namespace ortc
         Parameters mFilledParameters;
         Parameters mOriginalParameters;
 
+        SSRCMap mRegisteredSSRCs;
+
+        SSRCInfoPtr registerSSRCUsage(SSRCInfoPtr ssrcInfo);
+        void unregisterSSRCUsage(SSRCType ssrc);
+
         ElementPtr toDebug() const;
       };
 
@@ -306,17 +314,15 @@ namespace ortc
 
       struct SSRCInfo
       {
+        SSRCType mSSRC {};
         Time mLastUsage;
         String mMuxID;
 
-        size_t mRegisteredUsageCount {};  // as fixed SSRC values in params
         ReceiverInfoPtr mReceiverInfo;    // can be NULL
 
         SSRCInfo();
         ElementPtr toDebug() const;
       };
-
-      typedef std::map<SSRCType, SSRCInfo> SSRCMap;
 
       typedef String MuxID;
       typedef std::map<MuxID, ReceiverInfoPtr> MuxIDMap;
@@ -536,11 +542,6 @@ namespace ortc
                        String &outMuxID
                        );
 
-      bool findMappingUsingSSRCTable(
-                                     const RTPPacket &rtpPacket,
-                                     ReceiverInfoPtr &outReceiverInfo
-                                     );
-
       bool findMappingUsingMuxID(
                                  const String &muxID,
                                  const RTPPacket &rtpPacket,
@@ -577,20 +578,19 @@ namespace ortc
       void processSenderReports(const RTCPPacket &rtcpPacket);
 
       void handleDeltaChanges(
+                              ReceiverInfoPtr replacementInfo,
                               const EncodingParameters &existing,
                               EncodingParameters &ioReplacement
                               );
 
       void unregisterEncoding(const EncodingParameters &existing);
 
-      bool setSSRCUsage(
-                        SSRCType ssrc,
-                        String &ioMuxID,
-                        ReceiverInfoPtr &ioReceiverInfo,
-                        bool registerUsage
-                        );
-
-      void unregisterSSRCUsage(SSRCType ssrc);
+      SSRCInfoPtr setSSRCUsage(
+                               SSRCType ssrc,
+                               String &ioMuxID,
+                               ReceiverInfoPtr &ioReceiverInfo
+                               );
+      void registerSSRCUsage(SSRCInfoPtr ssrcInfo);
 
       void reattemptDelivery();
 
@@ -637,6 +637,8 @@ namespace ortc
       SenderObjectMapPtr mSenders;      // non-mutable map values (COW)
 
       SSRCMap mSSRCTable;
+      SSRCWeakMap mRegisteredSSRCs;
+
       MuxIDMap mMuxIDTable;
 
       TimerPtr mSSRCTableTimer;

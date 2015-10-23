@@ -593,6 +593,7 @@ namespace ortc
                             );
 
       void processByes(const RTCPPacket &rtcpPacket);
+      void processSenderReports(const RTCPPacket &rtcpPacket);
 
     protected:
       //-----------------------------------------------------------------------

@@ -266,6 +266,21 @@ namespace ortc
     #pragma mark RTPListener::ReceiverInfo
     #pragma mark
 
+    //-------------------------------------------------------------------------
+    RTPListener::SSRCInfoPtr RTPListener::ReceiverInfo::registerSSRCUsage(SSRCInfoPtr ssrcInfo)
+    {
+      mRegisteredSSRCs[ssrcInfo->mSSRC] = ssrcInfo;
+      return ssrcInfo;
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPListener::ReceiverInfo::unregisterSSRCUsage(SSRCType ssrc)
+    {
+      auto found = mRegisteredSSRCs.find(ssrc);
+      if (found == mRegisteredSSRCs.end()) return;
+      mRegisteredSSRCs.erase(found);
+    }
+
     //---------------------------------------------------------------------------
     ElementPtr RTPListener::ReceiverInfo::toDebug() const
     {
@@ -280,7 +295,7 @@ namespace ortc
 
       return resultEl;
     }
-    
+
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -300,9 +315,9 @@ namespace ortc
     {
       ElementPtr resultEl = Element::create("ortc::RTPListener::SSRCInfo");
 
+      UseServicesHelper::debugAppend(resultEl, "ssrc", mSSRC);
       UseServicesHelper::debugAppend(resultEl, "last usage", mLastUsage);
       UseServicesHelper::debugAppend(resultEl, "mux id", mMuxID);
-      UseServicesHelper::debugAppend(resultEl, "registered usage count", mRegisteredUsageCount);
       UseServicesHelper::debugAppend(resultEl, mReceiverInfo ? mReceiverInfo->toDebug() : ElementPtr());
 
       return resultEl;
@@ -760,7 +775,7 @@ namespace ortc
                 auto &replacementEncodingInfo = (*iterReplacementEncoding);
                 if (replacementEncodingInfo.mEncodingID == existinEncodingInfo.mEncodingID) {
                   // these encoding are identical
-                  handleDeltaChanges(existinEncodingInfo, replacementEncodingInfo);
+                  handleDeltaChanges(replacementInfo, existinEncodingInfo, replacementEncodingInfo);
                   goto done_search_by_encoding_id;
                 }
               }
@@ -784,7 +799,7 @@ namespace ortc
                 goto done_search_by_index;
               }
 
-              handleDeltaChanges(existinEncodingInfo, replacementEncodingInfo);
+              handleDeltaChanges(replacementInfo, existinEncodingInfo, replacementEncodingInfo);
               goto done_search_by_index;
             }
 
@@ -870,10 +885,10 @@ namespace ortc
         auto current = iter_doNotUse;
         ++iter_doNotUse;
 
-        SSRCType ssrc = (*current).first;
-        SSRCInfo &ssrcInfo = (*current).second;
+        auto ssrc = (*current).first;
+        auto &ssrcInfo = (*current).second;
 
-        ReceiverInfoPtr &receiverInfo = ssrcInfo.mReceiverInfo;
+        ReceiverInfoPtr &receiverInfo = ssrcInfo->mReceiverInfo;
         if (!receiverInfo) continue;
 
         if (receiverInfo->mReceiverID != receiverID) continue;
@@ -1054,16 +1069,11 @@ namespace ortc
 
           auto &ssrcInfo = (*current).second;
 
-          if (ssrcInfo.mRegisteredUsageCount > 0) {
-            ZS_LOG_INSANE(log("cannot expire registered SSRC usages") + ssrcInfo.toDebug())
-            continue;
-          }
-
-          const Time &lastReceived = ssrcInfo.mLastUsage;
+          const Time &lastReceived = ssrcInfo->mLastUsage;
 
           if (!(adjustedTick > lastReceived)) continue;
 
-          ZS_LOG_TRACE(log("expiring SSRC mapping") + ssrcInfo.toDebug() + ZS_PARAM("adjusted tick", adjustedTick))
+          ZS_LOG_TRACE(log("expiring SSRC mapping") + ssrcInfo->toDebug() + ZS_PARAM("adjusted tick", adjustedTick))
           mSSRCTable.erase(current);
         }
 
@@ -1455,8 +1465,6 @@ namespace ortc
       {
         if (outReceiverInfo) goto fill_mux_id;
 
-        if (findMappingUsingSSRCTable(rtpPacket, outReceiverInfo)) goto fill_mux_id;
-
         if (findMappingUsingMuxID(outMuxID, rtpPacket, outReceiverInfo)) return true;
 
         if (findMappingUsingSSRCInEncodingParams(outMuxID, rtpPacket, outReceiverInfo)) goto fill_mux_id;
@@ -1477,21 +1485,6 @@ namespace ortc
 
       return true;
     }
-    
-    //-------------------------------------------------------------------------
-    bool RTPListener::findMappingUsingSSRCTable(
-                                                const RTPPacket &rtpPacket,
-                                                ReceiverInfoPtr &outReceiverInfo
-                                                )
-    {
-      auto found = mSSRCTable.find(rtpPacket.mSSRC);
-      if (found == mSSRCTable.end()) return false;
-
-      outReceiverInfo = (*found).second.mReceiverInfo;
-
-      if (!outReceiverInfo) return false;
-      return true;
-    }
 
     //-------------------------------------------------------------------------
     bool RTPListener::findMappingUsingMuxID(
@@ -1510,7 +1503,7 @@ namespace ortc
       ZS_LOG_DEBUG(log("creating new SSRC table entry (based on mux id mapping to existing receiver)") + ZS_PARAM("mux id", muxID) + outReceiverInfo->toDebug())
 
       String inMuxID = muxID;
-      setSSRCUsage(rtpPacket.ssrc(), inMuxID, outReceiverInfo, false);
+      setSSRCUsage(rtpPacket.ssrc(), inMuxID, outReceiverInfo);
       return true;
     }
 
@@ -1573,7 +1566,7 @@ namespace ortc
 
           // the associated SSRC was found in table thus must route to same receiver
           String inMuxID = muxID;
-          setSSRCUsage(rtpPacket.ssrc(), inMuxID, outReceiverInfo, false);
+          setSSRCUsage(rtpPacket.ssrc(), inMuxID, outReceiverInfo);
           return true;
         }
       }
@@ -1768,7 +1761,7 @@ namespace ortc
         outReceiverInfo = replacementInfo;
 
         String inMuxID = muxID;
-        setSSRCUsage(rtpPacket.ssrc(), inMuxID, replacementInfo, false);
+        setSSRCUsage(rtpPacket.ssrc(), inMuxID, replacementInfo);
       }
 
       return true;
@@ -1794,12 +1787,12 @@ namespace ortc
         String muxID(mid.mid());
         if (!muxID.hasData()) continue;
 
-        setSSRCUsage(rtpPacket.ssrc(), muxID, ioReceiverInfo, false);
+        setSSRCUsage(rtpPacket.ssrc(), muxID, ioReceiverInfo);
         return muxID;
       }
 
       String muxID;
-      setSSRCUsage(rtpPacket.ssrc(), muxID, ioReceiverInfo, false);
+      setSSRCUsage(rtpPacket.ssrc(), muxID, ioReceiverInfo);
 
       return muxID;
     }
@@ -1864,13 +1857,29 @@ namespace ortc
       (*receivers)[receiverInfo->mReceiverID] = receiverInfo;
 
       for (auto iter = mSSRCTable.begin(); iter != mSSRCTable.end(); ++iter) {
-        SSRCInfo &existingInfo = (*iter).second;
-        if (!existingInfo.mReceiverInfo) continue;
-
-        if (existingInfo.mReceiverInfo->mReceiverID != receiverInfo->mReceiverID) continue;
+        SSRCInfoPtr &existingInfo = (*iter).second;
+        if (!existingInfo->mReceiverInfo) continue;
+        if (existingInfo->mReceiverInfo->mReceiverID != receiverInfo->mReceiverID) continue;
 
         // replace existing entry in receiver table
-        existingInfo.mReceiverInfo = receiverInfo;
+        existingInfo->mReceiverInfo = receiverInfo;
+      }
+
+      for (auto iter_doNotUse = mRegisteredSSRCs.begin(); iter_doNotUse != mRegisteredSSRCs.end(); ) {
+        auto current = iter_doNotUse;
+        ++iter_doNotUse;
+
+        SSRCInfoPtr existingInfo = (*current).second.lock();
+        if (!existingInfo) {
+          mRegisteredSSRCs.erase(current);
+          continue;
+        }
+
+        if (!existingInfo->mReceiverInfo) continue;
+        if (existingInfo->mReceiverInfo->mReceiverID != receiverInfo->mReceiverID) continue;
+
+        // replace existing entry in receiver table
+        existingInfo->mReceiverInfo = receiverInfo;
       }
 
       for (auto iter_doNotUse = mMuxIDTable.begin(); iter_doNotUse != mMuxIDTable.end(); ) {
@@ -1895,18 +1904,18 @@ namespace ortc
       for (auto iter = receiverInfo->mOriginalParameters.mEncodingParameters.begin(); iter != receiverInfo->mOriginalParameters.mEncodingParameters.end(); ++iter) {
         auto &encodingInfo = (*iter);
 
-        String ignored;
+        String muxID = receiverInfo->mOriginalParameters.mMuxID;
 
         if (encodingInfo.mSSRC.hasValue()) {
-          setSSRCUsage(encodingInfo.mSSRC.value(), ignored, receiverInfo, true);
+          registerSSRCUsage(receiverInfo->registerSSRCUsage(setSSRCUsage(encodingInfo.mSSRC.value(), muxID, receiverInfo)));
         }
         if ((encodingInfo.mRTX.hasValue()) &&
             (encodingInfo.mRTX.value().mSSRC.hasValue())) {
-          setSSRCUsage(encodingInfo.mRTX.value().mSSRC.value(), ignored, receiverInfo, true);
+          registerSSRCUsage(receiverInfo->registerSSRCUsage(setSSRCUsage(encodingInfo.mRTX.value().mSSRC.value(), muxID, receiverInfo)));
         }
         if ((encodingInfo.mFEC.hasValue()) &&
             (encodingInfo.mFEC.value().mSSRC.hasValue())) {
-          setSSRCUsage(encodingInfo.mFEC.value().mSSRC.value(), ignored, receiverInfo, true);
+          registerSSRCUsage(receiverInfo->registerSSRCUsage(setSSRCUsage(encodingInfo.mFEC.value().mSSRC.value(), muxID, receiverInfo)));
         }
       }
 
@@ -1926,7 +1935,7 @@ namespace ortc
             auto found = mSSRCTable.find(byeSSRC);
             if (found != mSSRCTable.end()) {
               auto &ssrcInfo = (*found).second;
-              ZS_LOG_TRACE(log("removing ssrc table entry due to BYE") + ZS_PARAM("ssrc", byeSSRC) + ssrcInfo.toDebug())
+              ZS_LOG_TRACE(log("removing ssrc table entry due to BYE") + ZS_PARAM("ssrc", byeSSRC) + ssrcInfo->toDebug())
               mSSRCTable.erase(found);
             }
           }
@@ -2035,7 +2044,7 @@ namespace ortc
           for (auto mid = chunk->firstMid(); NULL != mid; mid = mid->next()) {
             String inMuxID = mid->mid();
             ReceiverInfoPtr ignored;
-            setSSRCUsage(chunk->ssrc(), inMuxID, ignored, false);
+            setSSRCUsage(chunk->ssrc(), inMuxID, ignored);
           }
         }
       }
@@ -2047,12 +2056,13 @@ namespace ortc
       for (auto sr = rtcpPacket.firstSenderReport(); NULL != sr; sr = sr->nextSenderReport()) {
         String ignoredStr;
         ReceiverInfoPtr ignored;
-        setSSRCUsage(sr->ssrcOfSender(), ignoredStr, ignored, false);
+        setSSRCUsage(sr->ssrcOfSender(), ignoredStr, ignored);
       }
     }
 
     //-------------------------------------------------------------------------
     void RTPListener::handleDeltaChanges(
+                                         ReceiverInfoPtr replacementInfo,
                                          const EncodingParameters &existing,
                                          EncodingParameters &ioReplacement
                                          )
@@ -2079,7 +2089,7 @@ namespace ortc
       if (existing.mSSRC.hasValue()) {
         if (ioReplacement.mSSRC.hasValue()) {
           if (existing.mSSRC.value() != ioReplacement.mSSRC.value()) {
-            unregisterSSRCUsage(existing.mSSRC.value());
+            registerSSRCUsage(replacementInfo->registerSSRCUsage(setSSRCUsage(ioReplacement.mSSRC.value(), replacementInfo->mOriginalParameters.mMuxID, replacementInfo)));
           }
         } else {
           ioReplacement.mSSRC = existing.mSSRC;
@@ -2091,7 +2101,7 @@ namespace ortc
         if ((ioReplacement.mRTX.hasValue()) &&
             (ioReplacement.mRTX.value().mSSRC.hasValue())) {
           if (existing.mRTX.value().mSSRC.value() != ioReplacement.mRTX.value().mSSRC.value()) {
-            unregisterSSRCUsage(existing.mRTX.value().mSSRC.value());
+            registerSSRCUsage(replacementInfo->registerSSRCUsage(setSSRCUsage(ioReplacement.mRTX.value().mSSRC.value(), replacementInfo->mOriginalParameters.mMuxID, replacementInfo)));
           }
         } else {
           ioReplacement.mRTX = existing.mRTX;
@@ -2103,7 +2113,7 @@ namespace ortc
         if ((ioReplacement.mFEC.hasValue()) &&
             (ioReplacement.mFEC.value().mSSRC.hasValue())) {
           if (existing.mFEC.value().mSSRC.value() != ioReplacement.mFEC.value().mSSRC.value()) {
-            unregisterSSRCUsage(existing.mFEC.value().mSSRC.value());
+            registerSSRCUsage(replacementInfo->registerSSRCUsage(setSSRCUsage(ioReplacement.mFEC.value().mSSRC.value(), replacementInfo->mOriginalParameters.mMuxID, replacementInfo)));
           }
         } else {
           ioReplacement.mFEC = existing.mFEC;
@@ -2114,86 +2124,72 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPListener::unregisterEncoding(const EncodingParameters &existing)
     {
-      if (existing.mSSRC.hasValue()) {
-        unregisterSSRCUsage(existing.mSSRC.value());
-      }
-      if ((existing.mRTX.hasValue()) &&
-          (existing.mRTX.value().mSSRC.hasValue())) {
-        unregisterSSRCUsage(existing.mRTX.value().mSSRC.value());
-      }
-      if ((existing.mFEC.hasValue()) &&
-          (existing.mFEC.value().mSSRC.hasValue())) {
-        unregisterSSRCUsage(existing.mFEC.value().mSSRC.value());
-      }
     }
 
     //-------------------------------------------------------------------------
-    bool RTPListener::setSSRCUsage(
-                                   SSRCType ssrc,
-                                   String &ioMuxID,
-                                   ReceiverInfoPtr &ioReceiverInfo,
-                                   bool registerUsage
-                                   )
+    RTPListener::SSRCInfoPtr RTPListener::setSSRCUsage(
+                                                       SSRCType ssrc,
+                                                       String &ioMuxID,
+                                                       ReceiverInfoPtr &ioReceiverInfo
+                                                       )
     {
+      SSRCInfoPtr ssrcInfo;
+
       auto found = mSSRCTable.find(ssrc);
 
       if (found == mSSRCTable.end()) {
-        SSRCInfo ssrcInfo;
-        if (ioMuxID.hasData()) {
-          ssrcInfo.mMuxID = ioMuxID;
-        } else if (ioReceiverInfo) {
-          ioMuxID = ssrcInfo.mMuxID = ioReceiverInfo->mFilledParameters.mMuxID;
+        auto foundWeak = mRegisteredSSRCs.find(ssrc);
+        if (foundWeak != mRegisteredSSRCs.end()) {
+          ssrcInfo = (*foundWeak).second.lock();
+          if (!ssrcInfo) {
+            mRegisteredSSRCs.erase(foundWeak);
+          }
         }
-        ssrcInfo.mReceiverInfo = ioReceiverInfo;
-        ssrcInfo.mRegisteredUsageCount = (registerUsage ? 1 : 0);
-        mSSRCTable[ssrc] = ssrcInfo;
-        reattemptDelivery();
-        return true;
+      } else {
+        ssrcInfo = (*found).second;
       }
 
-      SSRCInfo &ssrcInfo = (*found).second;
+      if (!ssrcInfo) {
+        ssrcInfo = make_shared<SSRCInfo>();
+        ssrcInfo->mSSRC = ssrc;
+        if (ioMuxID.hasData()) {
+          ssrcInfo->mMuxID = ioMuxID;
+        } else if (ioReceiverInfo) {
+          ioMuxID = ssrcInfo->mMuxID = ioReceiverInfo->mFilledParameters.mMuxID;
+        }
+        ssrcInfo->mReceiverInfo = ioReceiverInfo;
+        mSSRCTable[ssrc] = ssrcInfo;
+        reattemptDelivery();
+        return ssrcInfo;
+      }
 
-      ssrcInfo.mLastUsage = zsLib::now();
+      ssrcInfo->mLastUsage = zsLib::now();
 
       if (ioReceiverInfo) {
-        ssrcInfo.mReceiverInfo = ioReceiverInfo;
+        ssrcInfo->mReceiverInfo = ioReceiverInfo;
       } else {
-        ioReceiverInfo = ssrcInfo.mReceiverInfo;
+        ioReceiverInfo = ssrcInfo->mReceiverInfo;
       }
 
       if (ioMuxID.hasData()) {
-        if (ioMuxID != ssrcInfo.mMuxID) ssrcInfo.mMuxID = ioMuxID;
-      } else if (ssrcInfo.mReceiverInfo) {
-        if (ssrcInfo.mReceiverInfo->mFilledParameters.mMuxID.hasData()) {
-          if (ssrcInfo.mMuxID != ssrcInfo.mReceiverInfo->mFilledParameters.mMuxID) {
-            ioMuxID = ssrcInfo.mMuxID = ssrcInfo.mReceiverInfo->mFilledParameters.mMuxID;
+        if (ioMuxID != ssrcInfo->mMuxID) ssrcInfo->mMuxID = ioMuxID;
+      } else if (ssrcInfo->mReceiverInfo) {
+        if (ssrcInfo->mReceiverInfo->mFilledParameters.mMuxID.hasData()) {
+          if (ssrcInfo->mMuxID != ssrcInfo->mReceiverInfo->mFilledParameters.mMuxID) {
+            ioMuxID = ssrcInfo->mMuxID = ssrcInfo->mReceiverInfo->mFilledParameters.mMuxID;
           } else {
-            ioMuxID = ssrcInfo.mMuxID;
+            ioMuxID = ssrcInfo->mMuxID;
           }
         }
       }
-      if (registerUsage) {
-        ++ssrcInfo.mRegisteredUsageCount;
-      }
-      return false;
+
+      return ssrcInfo;
     }
     
     //-------------------------------------------------------------------------
-    void RTPListener::unregisterSSRCUsage(SSRCType ssrc)
+    void RTPListener::registerSSRCUsage(SSRCInfoPtr ssrcInfo)
     {
-      auto found = mSSRCTable.find(ssrc);
-      if (found == mSSRCTable.end()) return;
-
-      auto &ssrcInfo = (*found).second;
-
-      if (ssrcInfo.mRegisteredUsageCount <= 1) {
-        ZS_LOG_TRACE(log("removing entry from SSRC table") + ZS_PARAM("ssrc", ssrc) + ssrcInfo.toDebug())
-
-        mSSRCTable.erase(found);
-        return;
-      }
-
-      --(ssrcInfo.mRegisteredUsageCount);
+      mRegisteredSSRCs[ssrcInfo->mSSRC] = ssrcInfo;
     }
 
     //-------------------------------------------------------------------------
