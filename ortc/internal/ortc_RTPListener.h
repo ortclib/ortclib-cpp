@@ -141,6 +141,7 @@ namespace ortc
 
       virtual void notifyUnhandled(
                                    const String &muxID,
+                                   const String &rid,
                                    IRTPTypes::SSRCType ssrc,
                                    IRTPTypes::PayloadType payloadType
                                    ) = 0;
@@ -240,11 +241,11 @@ namespace ortc
 
       typedef std::list<RTCPPacketPtr> RTCPPacketList;
 
-      typedef std::pair<Time, RTCPPacketPtr> TimeRTCPPacketPair;
-      typedef std::list<TimeRTCPPacketPair> BufferedRTCPPacketList;
-
       typedef std::pair<Time, RTPPacketPtr> TimeRTPPacketPair;
       typedef std::list<TimeRTPPacketPair> BufferedRTPPacketList;
+
+      typedef std::pair<Time, RTCPPacketPtr> TimeRTCPPacketPair;
+      typedef std::list<TimeRTCPPacketPair> BufferedRTCPPacketList;
 
       typedef PUID ObjectID;
       typedef USHORT LocalID;
@@ -330,6 +331,7 @@ namespace ortc
         SSRCType mSSRC {};
         PayloadType mCodecPayloadType {};
         String mMuxID;
+        String mRID;
 
         bool operator<(const UnhandledEventInfo &) const;
 
@@ -434,6 +436,7 @@ namespace ortc
 
       virtual void notifyUnhandled(
                                    const String &muxID,
+                                   const String &rid,
                                    IRTPTypes::SSRCType ssrc,
                                    IRTPTypes::PayloadType payloadType
                                    ) override;
@@ -556,7 +559,11 @@ namespace ortc
                                        ReceiverInfoPtr &outReceiverInfo
                                        );
 
-      String extractMuxID(const RTPPacket &rtpPacket);
+      String extractMuxID(
+                          const RTPPacket &rtpPacket,
+                          ReceiverInfoPtr &ioReceiverInfo
+                          );
+      String extractRID(const RTPPacket &rtpPacket);
 
       bool fillMuxIDParameters(
                                const String &muxID,
@@ -589,6 +596,7 @@ namespace ortc
 
       void processUnhandled(
                             const String &muxID,
+                            const String &rid,
                             IRTPTypes::SSRCType ssrc,
                             IRTPTypes::PayloadType payloadType,
                             const Time &tick

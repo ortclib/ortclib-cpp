@@ -45,6 +45,9 @@
 
 #define ORTC_SETTING_RTP_RECEIVER_SSRC_TIMEOUT_IN_SECONDS "ortc/rtp-receiver/ssrc-timeout-in-seconds"
 
+#define ORTC_SETTING_RTP_RECEIVER_MAX_RTP_PACKETS_IN_BUFFER "ortc/rtp-receiver/max-rtp-packets-in-buffer"
+#define ORTC_SETTING_RTP_RECEIVER_MAX_AGE_RTP_PACKETS_IN_SECONDS "ortc/rtp-receiver/max-age-rtp-packets-in-seconds"
+
 namespace ortc
 {
   namespace internal
@@ -192,8 +195,11 @@ namespace ortc
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPReceiver, UseMediaStreamTrack)
 
       ZS_DECLARE_STRUCT_PTR(RegisteredHeaderExtension)
+      ZS_DECLARE_STRUCT_PTR(ChannelHolder)
       ZS_DECLARE_STRUCT_PTR(ChannelInfo)
       ZS_DECLARE_STRUCT_PTR(SSRCInfo)
+
+      friend ChannelHolder;
 
       typedef IRTPTypes::SSRCType SSRCType;
       typedef std::list<RTCPPacketPtr> RTCPPacketList;
@@ -201,6 +207,9 @@ namespace ortc
       ZS_DECLARE_TYPEDEF_PTR(std::list<ParametersPtr>, ParametersPtrList)
 
       ZS_DECLARE_PTR(RTCPPacketList)
+
+      typedef std::pair<Time, RTPPacketPtr> TimeRTPPacketPair;
+      typedef std::list<TimeRTPPacketPair> BufferedRTPPacketList;
 
       typedef String RID;
       typedef PUID ChannelID;
@@ -229,22 +238,67 @@ namespace ortc
 
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark RTPReceiver::SSRCInfo
+      #pragma mark RTPReceiver::ChannelHolder
+      #pragma mark
+
+      struct ChannelHolder
+      {
+        RTPReceiverWeakPtr mHolder;
+        UseChannelPtr mChannel;
+        ChannelInfoWeakPtr mChannelInfo;
+        std::atomic<ISecureTransport::States> mLastReportedState {ISecureTransport::State_Pending};
+
+        ChannelHolder();
+        ~ChannelHolder();
+
+        PUID getID() const;
+        void notify(ISecureTransport::States state);
+
+        void notify(RTPPacketPtr packet);
+        void notify(RTCPPacketListPtr packets);
+
+        void update(const Parameters &params);
+
+        bool handle(RTPPacketPtr packet);
+        bool handle(RTCPPacketPtr packet);
+
+        ElementPtr toDebug() const;
+      };
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPReceiver::ChannelInfo
       #pragma mark
 
       struct ChannelInfo
       {
         AutoPUID mID;
 
-        ParametersPtr mOriginalParams;
-        ParametersPtr mFilledParams;
-        UseChannelPtr mChannel;       // NOTE: might be null if channel is not created yet
+        ParametersPtr mOriginalParameters;
+        ParametersPtr mFilledParameters;
+        ChannelHolderWeakPtr mChannelHolder;      // NOTE: might be null if channel is not created yet
+
+        bool latchAll() const;
 
         ElementPtr toDebug() const;
       };
 
       typedef std::map<ParametersPtr, ChannelInfoPtr> ParametersToChannelInfoMap;
-      typedef std::map<RID, ChannelInfoPtr> RIDToChannelMap;
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPReceiver::RIDInfo
+      #pragma mark
+
+      struct RIDInfo
+      {
+        ChannelInfoPtr mChannelInfo;
+        ChannelHolderWeakPtr mChannelHolder;      // NOTE: might be null if channel is not created yet
+
+        ElementPtr toDebug() const;
+      };
+
+      typedef std::map<RID, RIDInfo> RIDToChannelMap;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -257,7 +311,8 @@ namespace ortc
         String mRID;
 
         size_t mRegisteredUsageCount {};  // as fixed SSRC values in receiver params
-        ChannelInfoPtr mChannelInfo;     // can be NULL
+        ChannelInfoPtr mChannelInfo;          // can be NULL
+        ChannelHolderPtr mChannelHolder;      // can be NULL
 
         SSRCInfo();
         ElementPtr toDebug() const;
@@ -265,7 +320,10 @@ namespace ortc
 
       typedef std::map<SSRCType, SSRCInfo> SSRCMap;
 
-
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPReceiver::States
+      #pragma mark
 
       enum States
       {
@@ -404,6 +462,13 @@ namespace ortc
       #pragma mark RTPReceiver => IRTPReceiverAsyncDelegate
       #pragma mark
 
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPReceiver => (friend RTPReceiver::ChannelHolder)
+      #pragma mark
+
+      void notifyChannelGone(UseChannelPtr channel);
+
     protected:
       //-----------------------------------------------------------------------
       #pragma mark
@@ -418,7 +483,7 @@ namespace ortc
       bool isShutdown() const;
 
       void step();
-      bool stepBogusDoSomething();
+      bool stepAttemptDelivery();
 
       void cancel();
 
@@ -444,17 +509,81 @@ namespace ortc
       void removeChannel(const ChannelInfo &channelInfo);
 
       void registerHeaderExtensions(const Parameters &params);
-      String extractRID(const RTPPacket &rtpPacket);
 
       bool setSSRCUsage(
                         SSRCType ssrc,
                         String &ioRID,
                         ChannelInfoPtr &ioChannelInfo,
+                        ChannelHolderPtr &ioChannelHolder,
                         bool registerUsage
                         );
       void unregisterSSRCUsage(SSRCType ssrc);
 
+      void setRIDUsage(
+                       const String &rid,
+                       ChannelInfoPtr &ioChannelInfo,
+                       ChannelHolderPtr &ioChannelHolder
+                       );
+
       void reattemptDelivery();
+      void expireRTPPackets();
+
+      bool findMapping(
+                       const RTPPacket &rtpPacket,
+                       ChannelHolderPtr &outChannelHolder,
+                       String &outRID
+                       );
+
+      String extractRID(
+                        const RTPPacket &rtpPacket,
+                        ChannelInfoPtr &outChannelInfo,
+                        ChannelHolderPtr &outChannelHolder
+                        );
+
+      String extractMuxID(const RTPPacket &rtpPacket);
+
+      bool findMappingUsingRID(
+                               const String &muridxID,
+                               const RTPPacket &rtpPacket,
+                               ChannelInfoPtr &outChannelInfo,
+                               ChannelHolderPtr &outChannelHolder
+                               );
+
+      bool findMappingUsingSSRCInEncodingParams(
+                                                const String &rid,
+                                                const RTPPacket &rtpPacket,
+                                                ChannelInfoPtr &outChannelInfo,
+                                                ChannelHolderPtr &outChannelHolder
+                                                );
+
+      bool findMappingUsingPayloadType(
+                                       const String &rid,
+                                       const RTPPacket &rtpPacket,
+                                       ChannelInfoPtr &outChannelInfo,
+                                       ChannelHolderPtr &outChannelHolder
+                                       );
+
+      bool fillRIDParameters(
+                             const String &rid,
+                             ChannelInfoPtr &ioChannelInfo,
+                             ChannelHolderPtr &ioChannelHolder
+                             );
+
+      void createChannel(
+                         SSRCType ssrc,
+                         const String &rid,
+                         ChannelInfoPtr channelInfo,
+                         ChannelHolderPtr &ioChannelHolder
+                         );
+
+      void processUnhandled(
+                            const String &muxID,
+                            const String &rid,
+                            IRTPTypes::SSRCType ssrc,
+                            IRTPTypes::PayloadType payloadType
+                            );
+
+      void processByes(const RTCPPacket &rtcpPacket);
 
     protected:
       //-----------------------------------------------------------------------
@@ -499,11 +628,15 @@ namespace ortc
 
       SSRCMap mSSRCTable;
 
-      RIDToChannelMap mRIDToChannelMap;
+      RIDToChannelMap mRIDTable;
 
       TimerPtr mSSRCTableTimer;
       Seconds mSSRCTableExpires {};
 
+      size_t mMaxBufferedRTPPackets {};
+      Seconds mMaxRTPPacketAge {};
+
+      BufferedRTPPacketList mBufferedRTPPackets;
       bool mReattemptRTPDelivery {false};
     };
 
@@ -536,5 +669,5 @@ namespace ortc
 }
 
 ZS_DECLARE_PROXY_BEGIN(ortc::internal::IRTPReceiverAsyncDelegate)
-//ZS_DECLARE_PROXY_METHOD_0(onDeliverHistoricalPackets)
+//ZS_DECLARE_PROXY_METHOD_2(onDeliverPacket, UseChannelPtr, RTPPacketPtr)
 ZS_DECLARE_PROXY_END()

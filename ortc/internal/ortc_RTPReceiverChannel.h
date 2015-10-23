@@ -103,6 +103,8 @@ namespace ortc
 
       virtual void notifyTransportState(ISecureTransport::States state) = 0;
 
+      virtual void notifyPacket(RTPPacketPtr packet) = 0;
+
       virtual void notifyPackets(RTCPPacketListPtr packets) = 0;
 
       virtual void update(const Parameters &params) = 0;
@@ -145,6 +147,8 @@ namespace ortc
       ZS_DECLARE_PTR(RTCPPacketList)
 
       virtual void onSecureTransportState(ISecureTransport::States state) = 0;
+
+      virtual void onNotifyPacket(RTPPacketPtr packet) = 0;
 
       virtual void onNotifyPackets(RTCPPacketListPtr packets) = 0;
     };
@@ -235,6 +239,8 @@ namespace ortc
 
       virtual void notifyTransportState(ISecureTransport::States state) override;
 
+      virtual void notifyPacket(RTPPacketPtr packet) override;
+
       virtual void notifyPackets(RTCPPacketListPtr packets) override;
 
       virtual void update(const Parameters &params) override;
@@ -272,6 +278,8 @@ namespace ortc
       #pragma mark
 
       virtual void onSecureTransportState(ISecureTransport::States state) override;
+
+      virtual void onNotifyPacket(RTPPacketPtr packet) override;
 
       virtual void onNotifyPackets(RTCPPacketListPtr packets) override;
 
@@ -349,7 +357,8 @@ namespace ortc
 ZS_DECLARE_PROXY_BEGIN(ortc::internal::IRTPReceiverChannelAsyncDelegate)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::ISecureTransport::States, States)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::IRTPReceiverChannelAsyncDelegate::RTCPPacketListPtr, RTCPPacketListPtr)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::RTPPacketPtr, RTPPacketPtr)
 ZS_DECLARE_PROXY_METHOD_1(onSecureTransportState, States)
+ZS_DECLARE_PROXY_METHOD_1(onNotifyPacket, RTPPacketPtr)
 ZS_DECLARE_PROXY_METHOD_1(onNotifyPackets, RTCPPacketListPtr)
 ZS_DECLARE_PROXY_END()
-//virtual void onNotifyPackets(RTCPPacketListPtr packets) = 0;

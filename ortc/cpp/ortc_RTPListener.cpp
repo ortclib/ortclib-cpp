@@ -90,7 +90,7 @@ namespace ortc
         case IRTPTypes::HeaderExtensionURI_ClienttoMixerAudioLevelIndication: return true;
         case IRTPTypes::HeaderExtensionURI_MixertoClientAudioLevelIndication: return true;
         case IRTPTypes::HeaderExtensionURI_FrameMarking:                      return true;
-        case IRTPTypes::HeaderExtensionURI_RID:                               return true;
+        case IRTPTypes::HeaderExtensionURI_RID:                               return false;
         case IRTPTypes::HeaderExtensionURI_3gpp_VideoOrientation:             return true;
         case IRTPTypes::HeaderExtensionURI_3gpp_VideoOrientation6:            return true;
       }
@@ -323,8 +323,12 @@ namespace ortc
       if (mSSRC > op2.mSSRC) return false;
       if (mCodecPayloadType < op2.mCodecPayloadType) return true;
       if (mCodecPayloadType > op2.mCodecPayloadType) return false;
+
       if (mMuxID < op2.mMuxID) return true;
-      //if (mMuxID > op2.mMuxID) return false; // test not needed (will be false either way)
+      if (mMuxID > op2.mMuxID) return false;
+
+      if (mRID < op2.mRID) return true;
+      //if (mRID > op2.mRID) return false;  // test not needed (will be false either way)
       return false;
     }
     
@@ -336,6 +340,7 @@ namespace ortc
       UseServicesHelper::debugAppend(resultEl, "ssrc", mSSRC);
       UseServicesHelper::debugAppend(resultEl, "codec payload type", mCodecPayloadType);
       UseServicesHelper::debugAppend(resultEl, "mux id", mMuxID);
+      UseServicesHelper::debugAppend(resultEl, "rid", mRID);
 
       return resultEl;
     }
@@ -370,7 +375,7 @@ namespace ortc
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
       mRTPTransport(transport),
-      mMaxBufferedRTPPackets(SafeInt<decltype(mMaxBufferedRTCPPackets)>(UseSettings::getUInt(ORTC_SETTING_RTP_LISTENER_MAX_RTP_PACKETS_IN_BUFFER))),
+      mMaxBufferedRTPPackets(SafeInt<decltype(mMaxBufferedRTPPackets)>(UseSettings::getUInt(ORTC_SETTING_RTP_LISTENER_MAX_RTP_PACKETS_IN_BUFFER))),
       mMaxRTPPacketAge(UseSettings::getUInt(ORTC_SETTING_RTP_LISTENER_MAX_AGE_RTP_PACKETS_IN_SECONDS)),
       mMaxBufferedRTCPPackets(SafeInt<decltype(mMaxBufferedRTCPPackets)>(UseSettings::getUInt(ORTC_SETTING_RTP_LISTENER_MAX_RTCP_PACKETS_IN_BUFFER))),
       mMaxRTCPPacketAge(UseSettings::getUInt(ORTC_SETTING_RTP_LISTENER_MAX_AGE_RTCP_PACKETS_IN_SECONDS)),
@@ -641,7 +646,9 @@ namespace ortc
         // provide some modest buffering
         mBufferedRTPPackets.push_back(TimeRTPPacketPair(tick, rtpPacket));
 
-        processUnhandled(muxID, rtpPacket->ssrc(), rtpPacket->pt(), tick);
+        String rid = extractRID(*rtpPacket);
+
+        processUnhandled(muxID, rid, rtpPacket->ssrc(), rtpPacket->pt(), tick);
         return true;
       }
 
@@ -912,6 +919,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPListener::notifyUnhandled(
                                       const String &muxID,
+                                      const String &rid,
                                       IRTPTypes::SSRCType ssrc,
                                       IRTPTypes::PayloadType payloadType
                                       )
@@ -919,7 +927,7 @@ namespace ortc
       ZS_LOG_TRACE(log("notified that a receiver did not handle a delivered packet") + ZS_PARAM("ssrc", ssrc) + ZS_PARAM("payload", payloadType))
 
       AutoRecursiveLock lock(*this);
-      processUnhandled(muxID, ssrc, payloadType, zsLib::now());
+      processUnhandled(muxID, rid, ssrc, payloadType, zsLib::now());
     }
 
     //-------------------------------------------------------------------------
@@ -1194,7 +1202,7 @@ namespace ortc
 
     not_ready:
       {
-        ZS_LOG_TRACE(debug("dtls is not ready"))
+        ZS_LOG_TRACE(debug("listener is not ready"))
         return;
       }
 
@@ -1442,9 +1450,11 @@ namespace ortc
                                   String &outMuxID
                                   )
     {
-      outMuxID = extractMuxID(rtpPacket);
+      outMuxID = extractMuxID(rtpPacket, outReceiverInfo);
 
       {
+        if (outReceiverInfo) goto fill_mux_id;
+
         if (findMappingUsingSSRCTable(rtpPacket, outReceiverInfo)) goto fill_mux_id;
 
         if (findMappingUsingMuxID(outMuxID, rtpPacket, outReceiverInfo)) return true;
@@ -1528,7 +1538,7 @@ namespace ortc
 
         // first check to see if this SSRC is inside this receiver's
         // encoding parameters if this value was auto-filled in those encoding
-        // paramters and not set by the application developer.
+        // paramters or set by the application developer.
         {
           auto iterParm = info->mFilledParameters.mEncodingParameters.begin();
 
@@ -1636,7 +1646,15 @@ namespace ortc
           auto &encodingInfo = (*encodingIter);
 
           if (encodingInfo.mCodecPayloadType.hasValue()) {
-            if (encodingInfo.mCodecPayloadType.value() != payloadType) continue;  // do not allow non-matching codec types to match
+            bool foundMatch = false;
+            if ((CodecKind_RTX == kind) &&
+                ((encodingInfo.mRTX.hasValue()) &&
+                 (encodingInfo.mRTX.value().mPayloadType.hasValue()) &&
+                 (encodingInfo.mRTX.value().mPayloadType.value() == payloadType))) {
+              foundMatch = true;
+            }
+            if (encodingInfo.mCodecPayloadType.value() == payloadType) foundMatch = true;
+            if (!foundMatch) continue;  // do not allow non-matching codec types to match
           }
 
           switch (kind) {
@@ -1757,7 +1775,10 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    String RTPListener::extractMuxID(const RTPPacket &rtpPacket)
+    String RTPListener::extractMuxID(
+                                     const RTPPacket &rtpPacket,
+                                     ReceiverInfoPtr &ioReceiverInfo
+                                     )
     {
       for (auto ext = rtpPacket.firstHeaderExtension(); NULL != ext; ext = ext->mNext) {
         LocalID localID = static_cast<LocalID>(ext->mID);
@@ -1773,16 +1794,37 @@ namespace ortc
         String muxID(mid.mid());
         if (!muxID.hasData()) continue;
 
-        ReceiverInfoPtr ignored;
-        setSSRCUsage(rtpPacket.ssrc(), muxID, ignored, false);
+        setSSRCUsage(rtpPacket.ssrc(), muxID, ioReceiverInfo, false);
         return muxID;
       }
 
       String muxID;
-      ReceiverInfoPtr ignored;
-      setSSRCUsage(rtpPacket.ssrc(), muxID, ignored, false);
+      setSSRCUsage(rtpPacket.ssrc(), muxID, ioReceiverInfo, false);
 
       return muxID;
+    }
+
+    //-------------------------------------------------------------------------
+    String RTPListener::extractRID(const RTPPacket &rtpPacket)
+    {
+      for (auto ext = rtpPacket.firstHeaderExtension(); NULL != ext; ext = ext->mNext) {
+        LocalID localID = static_cast<LocalID>(ext->mID);
+        auto found = mRegisteredExtensions.find(localID);
+        if (found == mRegisteredExtensions.end()) continue; // header extension is not understood
+
+        RegisteredHeaderExtension &headerInfo = (*found).second;
+
+        if (IRTPTypes::HeaderExtensionURI_RID != headerInfo.mHeaderExtensionURI) continue;
+
+        RTPPacket::RidHeaderExtension rid(*ext);
+
+        String ridStr(rid.rid());
+        if (!ridStr.hasData()) continue;
+
+        return ridStr;
+      }
+
+      return String();
     }
 
     //-------------------------------------------------------------------------
@@ -2165,6 +2207,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPListener::processUnhandled(
                                        const String &muxID,
+                                       const String &rid,
                                        IRTPTypes::SSRCType ssrc,
                                        IRTPTypes::PayloadType payloadType,
                                        const Time &tick
@@ -2174,6 +2217,7 @@ namespace ortc
       unhandled.mSSRC = ssrc;
       unhandled.mCodecPayloadType = payloadType;
       unhandled.mMuxID = muxID;
+      unhandled.mRID = rid;
 
       auto found = mUnhandledEvents.find(unhandled);
       if (found != mUnhandledEvents.end()) return;
@@ -2184,7 +2228,7 @@ namespace ortc
 
       mUnhandledEvents[unhandled] = tick;
 
-      ZS_LOG_TRACE(log("notifying subscribers of unhandled SSRC") + ZS_PARAM("mux id", muxID) + ZS_PARAM("ssrc", ssrc) + ZS_PARAM("payload type", payloadType) + ZS_PARAM("timer", mUnhanldedEventsTimer ? mUnhanldedEventsTimer->getID() : 0) + ZS_PARAM("tick", tick))
+      ZS_LOG_TRACE(log("notifying subscribers of unhandled SSRC") + ZS_PARAM("mux id", muxID) + ZS_PARAM("rid", rid) + ZS_PARAM("ssrc", ssrc) + ZS_PARAM("payload type", payloadType) + ZS_PARAM("timer", mUnhanldedEventsTimer ? mUnhanldedEventsTimer->getID() : 0) + ZS_PARAM("tick", tick))
 
       mSubscriptions.delegate()->onRTPListenerUnhandledRTP(mThisWeak.lock(), unhandled.mSSRC, unhandled.mCodecPayloadType, unhandled.mMuxID.c_str());
     }

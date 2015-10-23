@@ -248,6 +248,13 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    void RTPReceiverChannel::notifyPacket(RTPPacketPtr packet)
+    {
+      // do NOT lock this object here, instead notify self asynchronously
+      IRTPReceiverChannelAsyncDelegateProxy::create(mThisWeak.lock())->onNotifyPacket(packet);
+    }
+
+    //-------------------------------------------------------------------------
     void RTPReceiverChannel::notifyPackets(RTCPPacketListPtr packets)
     {
       // do NOT lock this object here, instead notify self asynchronously
@@ -347,6 +354,13 @@ namespace ortc
 
 #define TODO 1
 #define TODO 2
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPReceiverChannel::onNotifyPacket(RTPPacketPtr packet)
+    {
+      ZS_LOG_TRACE(log("notified rtcp packets") + ZS_PARAM("packet", packet->ssrc()))
+      handlePacket(packet);
     }
 
     //-------------------------------------------------------------------------
