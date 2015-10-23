@@ -206,7 +206,7 @@ namespace ortc
 
       auto outer = mHolder.lock();
       if (outer) {
-        outer->notifyChannelGone(mChannel);
+        outer->notifyChannelGone();
       }
     }
 
@@ -268,8 +268,7 @@ namespace ortc
       auto outer = mHolder.lock();
       UseServicesHelper::debugAppend(resultEl, "outer", outer ? outer->getID() : 0);
       UseServicesHelper::debugAppend(resultEl, "channel", mChannel ? mChannel->getID() : 0);
-      auto channelInfo = mChannelInfo.lock();
-      UseServicesHelper::debugAppend(resultEl, "channel info", channelInfo ? channelInfo->mID : (PUID)0);
+      UseServicesHelper::debugAppend(resultEl, "channel info", mChannelInfo ? mChannelInfo->toDebug() : ElementPtr());
       UseServicesHelper::debugAppend(resultEl, "last reported state", ISecureTransport::toString(mLastReportedState));
       return resultEl;
     }
@@ -283,10 +282,44 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    bool RTPReceiver::ChannelInfo::latchAll() const
+    bool RTPReceiver::ChannelInfo::shouldLatchAll() const
     {
       if (mOriginalParameters->mEncodingParameters.size() < 1) return true;
       return false;
+    }
+
+    //-------------------------------------------------------------------------
+    String RTPReceiver::ChannelInfo::rid() const
+    {
+      if (shouldLatchAll()) return String();
+      return mFilledParameters->mEncodingParameters.front().mEncodingID;
+    }
+
+    //-------------------------------------------------------------------------
+    RTPReceiver::SSRCInfoPtr RTPReceiver::ChannelInfo::registerSSRCUsage(SSRCInfoPtr ssrcInfo)
+    {
+      mRegisteredSSRCs[ssrcInfo->mSSRC] = ssrcInfo;
+      return ssrcInfo;
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPReceiver::ChannelInfo::unregisterSSRCUsage(SSRCType ssrc)
+    {
+      auto found = mRegisteredSSRCs.find(ssrc);
+      if (found == mRegisteredSSRCs.end()) return;
+      mRegisteredSSRCs.erase(found);
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPReceiver::ChannelInfo::registerHolder(ChannelHolderPtr channelHolder)
+    {
+      if (!channelHolder) return;
+      mChannelHolder = channelHolder;
+
+      for (auto iter = mRegisteredSSRCs.begin(); iter != mRegisteredSSRCs.end(); ++iter) {
+        auto &ssrcInfo = (*iter).second;
+        ssrcInfo->mChannelHolder = channelHolder;
+      }
     }
 
     //-------------------------------------------------------------------------
@@ -299,7 +332,16 @@ namespace ortc
       UseServicesHelper::debugAppend(resultEl, "channel params", mOriginalParameters ? mOriginalParameters->toDebug() : ElementPtr());
       UseServicesHelper::debugAppend(resultEl, "filled params", mFilledParameters ? mFilledParameters->toDebug() : ElementPtr());
       auto channelHolder = mChannelHolder.lock();
-      UseServicesHelper::debugAppend(resultEl, "channel", channelHolder ? channelHolder->mChannel->getID() : 0);
+      UseServicesHelper::debugAppend(resultEl, "channel", channelHolder ? channelHolder->getID() : 0);
+
+      if (mRegisteredSSRCs.size() > 0) {
+        ElementPtr ssrcsEl = Element::create("ssrcs");
+        for (auto iter = mRegisteredSSRCs.begin(); iter != mRegisteredSSRCs.end(); ++iter) {
+          auto &ssrcInfo = (*iter).second;
+          UseServicesHelper::debugAppend(ssrcsEl, ssrcInfo->toDebug());
+        }
+        UseServicesHelper::debugAppend(resultEl, ssrcsEl);
+      }
 
       return resultEl;
     }
@@ -317,9 +359,8 @@ namespace ortc
     {
       ElementPtr resultEl = Element::create("ortc::RTPReceiver::RIDInfo");
 
-      UseServicesHelper::debugAppend(resultEl, "rid", mChannelInfo ? mChannelInfo->toDebug() : ElementPtr());
-      auto channelHolder = mChannelHolder.lock();
-      UseServicesHelper::debugAppend(resultEl, "filled params", channelHolder ? channelHolder->toDebug() : ElementPtr());
+      UseServicesHelper::debugAppend(resultEl, "rid", mRID);
+      UseServicesHelper::debugAppend(resultEl, "channel info", mChannelInfo ? mChannelInfo->toDebug() : ElementPtr());
 
       return resultEl;
     }
@@ -343,9 +384,9 @@ namespace ortc
     {
       ElementPtr resultEl = Element::create("ortc::RTPReceiver::SSRCInfo");
 
-      UseServicesHelper::debugAppend(resultEl, "last usage", mLastUsage);
+      UseServicesHelper::debugAppend(resultEl, "ssrc", mSSRC);
       UseServicesHelper::debugAppend(resultEl, "rid", mRID);
-      UseServicesHelper::debugAppend(resultEl, "registered usage count", mRegisteredUsageCount);
+      UseServicesHelper::debugAppend(resultEl, "last usage", mLastUsage);
       UseServicesHelper::debugAppend(resultEl, mChannelHolder ? mChannelHolder->toDebug() : ElementPtr());
 
       return resultEl;
@@ -381,7 +422,7 @@ namespace ortc
                              ) :
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
-      mChannels(make_shared<ChannelMap>()),
+      mChannels(make_shared<ChannelWeakMap>()),
       mMaxBufferedRTPPackets(SafeInt<decltype(mMaxBufferedRTPPackets)>(UseSettings::getUInt(ORTC_SETTING_RTP_RECEIVER_MAX_RTP_PACKETS_IN_BUFFER))),
       mMaxRTPPacketAge(UseSettings::getUInt(ORTC_SETTING_RTP_RECEIVER_MAX_AGE_RTP_PACKETS_IN_SECONDS))
     {
@@ -595,33 +636,15 @@ namespace ortc
         if (historicalRTCPPackets.size() > 0) {
           RTCPPacketListPtr notifyPackets;
 
-          if (shouldLatchAll()) {
-            PUIDSet processed;
+          for (auto iter = mChannels->begin(); iter != mChannels->end(); ++iter)
+          {
+            auto channelHolder = (*iter).second.lock();
+            if (shouldCleanChannel((bool)channelHolder)) continue;
 
-            for (auto iter = mSSRCTable.begin(); iter != mSSRCTable.end(); ++iter) {
-              SSRCInfo &ssrcInfo = (*iter).second;
-              auto &channelHolder = ssrcInfo.mChannelHolder;
-
-              auto found = processed.find(channelHolder->getID());
-              if (found != processed.end()) continue;
-
-              processed.insert(channelHolder->getID());
-
-              if (!notifyPackets) {
-                notifyPackets = make_shared<RTCPPacketList>(historicalRTCPPackets);
-              }
-
-              channelHolder->notify(notifyPackets);
+            if (!notifyPackets) {
+              notifyPackets = make_shared<RTCPPacketList>(historicalRTCPPackets);
             }
-          } else {
-            for (auto iter = mChannels->begin(); iter != mChannels->end(); ++iter) {
-              auto &channel = (*iter).second;
-              if (!notifyPackets) {
-                notifyPackets = make_shared<RTCPPacketList>(historicalRTCPPackets);
-              }
-
-              channel->notifyPackets(notifyPackets);
-            }
+            channelHolder->notify(notifyPackets);
           }
         }
       }
@@ -643,7 +666,6 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPReceiver::receive(const Parameters &parameters)
     {
-      typedef std::map<ChannelID, ChannelHolderPtr> ChannelHolderMap;
       typedef RTPTypesHelper::ParametersPtrPairList ParametersPtrPairList;
 
       AutoRecursiveLock lock(*this);
@@ -721,8 +743,6 @@ namespace ortc
 
         RTPTypesHelper::calculateDeltaChangesInChannels(mKind, oldGroupedParams, mParametersGroupedIntoChannels, unchangedChannels, newChannels, updateChannels, removeChannels);
 
-        ChannelHolderMap removedChannels;
-
         // scope: remove dead channels
         {
           for (auto iter = removeChannels.begin(); iter != removeChannels.end(); ++iter) {
@@ -734,36 +754,9 @@ namespace ortc
 
             auto &channelInfo = (*found).second;
 
-            auto channelHolder = channelInfo->mChannelHolder.lock();
-            if (channelHolder) {
-              removedChannels[channelHolder->getID()] = channelHolder;
-            }
-
             removeChannel(*channelInfo);
             mChannelInfos.erase(found);
           }
-        }
-
-        // scope: perform COW for all removed channels
-        {
-          if (removedChannels.size() > 0) {
-            ChannelMapPtr replacementChannels(make_shared<ChannelMap>(*mChannels));
-            for (auto iter = removedChannels.begin(); iter != removedChannels.end(); ++iter) {
-              ChannelID id = (*iter).second->getID();
-
-              auto found = replacementChannels->find(id);
-              if (found == replacementChannels->end()) {
-                ZS_LOG_ERROR(Detail, log("channel existed in channel info list but not in channel list") + ZS_PARAM("channel", id))
-                continue;
-              }
-
-              replacementChannels->erase(found);
-            }
-
-            mChannels = replacementChannels;  // finalize COW
-          }
-
-          removedChannels.clear();  // force channel holder destruction immediately
         }
 
         // scope: update existing channels
@@ -909,23 +902,36 @@ namespace ortc
     {
       ZS_LOG_TRACE(log("received packet") + ZS_PARAM("via", IICETypes::toString(viaTransport)) + packet->toDebug())
 
-      ChannelMapPtr channels;
+      ChannelWeakMapPtr channels;
 
       {
         AutoRecursiveLock lock(*this);
         channels = mChannels; // obtain pointer to COW list while inside a lock
 
-#define TODO_PROCESS_BYES_AND_MAYBE_OTHER_STUFF 1
-#define TODO_PROCESS_BYES_AND_MAYBE_OTHER_STUFF 2
+        processByes(*packet);
+
+#define TODO_PROCESS_SENDER_REPORTS 1
+#define TODO_PROCESS_SENDER_REPORTS 2
 
       }
 
+      bool clean = false;
       auto result = false;
       for (auto iter = channels->begin(); iter != channels->end(); ++iter)
       {
-        auto &channel = (*iter).second;
-        auto channelResult = channel->handlePacket(packet);
+        auto channelHolder = (*iter).second.lock();
+        if (!channelHolder) {
+          clean = true;
+          continue;
+        }
+
+        auto channelResult = channelHolder->handle(packet);
         result = result || channelResult;
+      }
+
+      if (clean) {
+        AutoRecursiveLock lock(*this);
+        cleanChannels();
       }
 
       return result;
@@ -992,14 +998,9 @@ namespace ortc
           auto current = iter_doNotUse;
           ++iter_doNotUse;
 
-          SSRCInfo &ssrcInfo = (*current).second;
+          auto &ssrcInfo = (*current).second;
 
-          if (ssrcInfo.mRegisteredUsageCount > 0) {
-            ZS_LOG_INSANE(log("cannot expire registered SSRC usages") + ssrcInfo.toDebug())
-            continue;
-          }
-
-          const Time &lastReceived = ssrcInfo.mLastUsage;
+          const Time &lastReceived = ssrcInfo->mLastUsage;
 
           if (!(adjustedTick > lastReceived)) continue;
 
@@ -1008,7 +1009,6 @@ namespace ortc
           ZS_LOG_TRACE(log("expiring SSRC to RID mapping") + ZS_PARAM("ssrc", ssrc) + ZS_PARAM("last received", lastReceived) + ZS_PARAM("adjusted tick", adjustedTick))
           mSSRCTable.erase(current);
         }
-
         return;
       }
 
@@ -1032,11 +1032,10 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void RTPReceiver::notifyChannelGone(UseChannelPtr channel)
+    void RTPReceiver::notifyChannelGone()
     {
       AutoRecursiveLock lock(*this);
-#define TODO 1
-#define TODO 2
+      cleanChannels();
     }
 
     //-------------------------------------------------------------------------
@@ -1099,9 +1098,12 @@ namespace ortc
       UseServicesHelper::debugAppend(resultEl, "params grouped into channels", mParametersGroupedIntoChannels.size());
 
       UseServicesHelper::debugAppend(resultEl, "channels", mChannels->size());
+      UseServicesHelper::debugAppend(resultEl, "clean channels", mCleanChannels);
+
       UseServicesHelper::debugAppend(resultEl, "channel infos", mChannelInfos.size());
 
       UseServicesHelper::debugAppend(resultEl, "ssrc table", mSSRCTable.size());
+      UseServicesHelper::debugAppend(resultEl, "registered ssrcs", mRegisteredSSRCs.size());
 
       UseServicesHelper::debugAppend(resultEl, "rid channel map", mRIDTable.size());
 
@@ -1143,6 +1145,7 @@ namespace ortc
 
       // ... other steps here ...
       if (!stepAttemptDelivery()) goto not_ready;
+      if (!stepCleanChannels()) goto not_ready;
       // ... other steps here ...
 
       goto ready;
@@ -1193,6 +1196,34 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    bool RTPReceiver::stepCleanChannels()
+    {
+      if (!mCleanChannels) {
+        ZS_LOG_TRACE(log("no need to reattempt clean channels at this time"))
+        return true;
+      }
+
+      ZS_LOG_DEBUG(log("will attempt to clean channels"))
+
+      ChannelWeakMapPtr replacement(make_shared<ChannelWeakMap>(*mChannels));
+
+      for (auto iter_doNotUse = replacement->begin(); iter_doNotUse != replacement->end(); ) {
+        auto current = iter_doNotUse;
+        ++iter_doNotUse;
+
+        auto channelHolder = (*current).second.lock();
+        if (channelHolder) continue;
+
+        replacement->erase(current);
+      }
+
+      mChannels = replacement;
+      mCleanChannels = false;
+
+      return true;
+    }
+    
+    //-------------------------------------------------------------------------
     void RTPReceiver::cancel()
     {
       //.......................................................................
@@ -1208,6 +1239,8 @@ namespace ortc
 
       //.......................................................................
       // final cleanup
+#define TODO 1
+#define TODO 2
 
       setState(State_Shutdown);
 
@@ -1309,8 +1342,7 @@ namespace ortc
     bool RTPReceiver::shouldLatchAll()
     {
       if (1 != mChannelInfos.size()) return false;
-
-      return (mChannelInfos.begin())->second->latchAll();
+      return (mChannelInfos.begin())->second->shouldLatchAll();
     }
 
     //-------------------------------------------------------------------------
@@ -1335,9 +1367,12 @@ namespace ortc
       mLastReportedTransportStateToChannels = currentState;
 
       for (auto iter = mChannels->begin(); iter != mChannels->end(); ++iter) {
-        auto &channel = (*iter).second;
+        auto channelHolder = (*iter).second.lock();
 
-        channel->notifyTransportState(mLastReportedTransportStateToChannels);
+        if (!channelHolder) {
+        }
+
+        channelHolder->notify(mLastReportedTransportStateToChannels);
       }
     }
 
@@ -1348,12 +1383,12 @@ namespace ortc
 
       for (auto iter = mChannels->begin(); iter != mChannels->end(); ++iter)
       {
-        auto &channel = (*iter).second;
+        auto channel = (*iter).second.lock();
 
-        channel->notifyTransportState(ISecureTransport::State_Closed);
+        channel->notify(ISecureTransport::State_Closed);
       }
 
-      mChannels = make_shared<ChannelMap>();  // all channels are now gone (COW with empty replacement list)
+      mChannels = make_shared<ChannelWeakMap>();  // all channels are now gone (COW with empty replacement list)
       mSSRCTable.clear();
     }
 
@@ -1368,29 +1403,31 @@ namespace ortc
 
       mChannelInfos[params] = channelInfo;
 
-      if (channelInfo->mOriginalParameters->mEncodingParameters.size() < 1) {
+      if (channelInfo->shouldLatchAll()) {
         ZS_LOG_TRACE(log("auto latching channel added") + channelInfo->toDebug())
         return;
       }
 
       auto &encodingParmas = channelInfo->mOriginalParameters->mEncodingParameters.front();
 
-      ChannelHolderPtr ignored;
-      if (encodingParmas.mEncodingID.hasData()) {
-        setRIDUsage(encodingParmas.mEncodingID, channelInfo, ignored);
-      }
+      setRIDUsage(encodingParmas.mEncodingID, channelInfo);
 
+      ChannelHolderPtr channelHolder;
       if (encodingParmas.mSSRC.hasValue()) {
-        setSSRCUsage(encodingParmas.mSSRC.value(), encodingParmas.mEncodingID, channelInfo, ignored, true);
+        registerSSRCUsage(channelInfo->registerSSRCUsage(setSSRCUsage(encodingParmas.mSSRC.value(), encodingParmas.mEncodingID, channelHolder)));
       }
       if ((encodingParmas.mRTX.hasValue()) &&
           (encodingParmas.mRTX.value().mSSRC.hasValue())) {
-        setSSRCUsage(encodingParmas.mRTX.value().mSSRC.value(), encodingParmas.mEncodingID, channelInfo, ignored, true);
+        registerSSRCUsage(channelInfo->registerSSRCUsage(setSSRCUsage(encodingParmas.mRTX.value().mSSRC.value(), encodingParmas.mEncodingID, channelHolder)));
       }
       if ((encodingParmas.mFEC.hasValue()) &&
           (encodingParmas.mFEC.value().mSSRC.hasValue())) {
-        setSSRCUsage(encodingParmas.mFEC.value().mSSRC.value(), encodingParmas.mEncodingID, channelInfo, ignored, true);
+        registerSSRCUsage(channelInfo->registerSSRCUsage(setSSRCUsage(encodingParmas.mFEC.value().mSSRC.value(), encodingParmas.mEncodingID, channelHolder)));
       }
+
+      channelInfo->registerHolder(channelHolder);
+
+      ZS_LOG_DEBUG(log("added channel") + channelInfo->toDebug())
     }
 
     //-------------------------------------------------------------------------
@@ -1399,25 +1436,50 @@ namespace ortc
                                     ParametersPtr newParams
                                     )
     {
+      bool wasLatchAll = channelInfo->shouldLatchAll();
+
       ParametersPtr oldOriginalParams = channelInfo->mOriginalParameters;
       ParametersPtr oldFilledParams = channelInfo->mFilledParameters;
+      SSRCMap oldRegisteredSSRCs(channelInfo->mRegisteredSSRCs);
 
       channelInfo->mOriginalParameters = newParams;
       channelInfo->mFilledParameters = make_shared<Parameters>(*newParams);
+      channelInfo->mRegisteredSSRCs.clear();
 
-      if (oldOriginalParams->mEncodingParameters.size() < 1) {
-        ZS_LOG_DEBUG(log("nothing to copy from old channel (this skipping)"))
+      if (wasLatchAll) {
+        ZS_LOG_DEBUG(log("nothing to copy from old channel (thus skipping)"))
+
+        if (channelInfo->shouldLatchAll()) {
+          ZS_LOG_DEBUG(log("nothing to resgister (thus skipping)"))
+          return;
+        }
+
+        auto &encodingParmas = channelInfo->mOriginalParameters->mEncodingParameters.front();
+
+        setRIDUsage(encodingParmas.mEncodingID, channelInfo);
+
+        ChannelHolderPtr channelHolder;
+        if (encodingParmas.mSSRC.hasValue()) {
+          registerSSRCUsage(channelInfo->registerSSRCUsage(setSSRCUsage(encodingParmas.mSSRC.value(), encodingParmas.mEncodingID, channelHolder)));
+        }
+        if ((encodingParmas.mRTX.hasValue()) &&
+            (encodingParmas.mRTX.value().mSSRC.hasValue())) {
+          registerSSRCUsage(channelInfo->registerSSRCUsage(setSSRCUsage(encodingParmas.mRTX.value().mSSRC.value(), encodingParmas.mEncodingID, channelHolder)));
+        }
+        if ((encodingParmas.mFEC.hasValue()) &&
+            (encodingParmas.mFEC.value().mSSRC.hasValue())) {
+          registerSSRCUsage(channelInfo->registerSSRCUsage(setSSRCUsage(encodingParmas.mFEC.value().mSSRC.value(), encodingParmas.mEncodingID, channelHolder)));
+        }
+
+        channelInfo->registerHolder(channelHolder);
         return;
       }
 
-      auto iterOldOriginalEncodings = oldOriginalParams->mEncodingParameters.begin();
-      auto iterOldFilledEncodings = oldFilledParams->mEncodingParameters.begin();
+      auto &baseOldOriginalEncoding = (*(oldOriginalParams->mEncodingParameters.begin()));
+      auto &baseOldFilledEncoding = (*(oldFilledParams->mEncodingParameters.begin()));
 
-      auto &baseOldOriginalEncoding = (*iterOldOriginalEncodings);
-      auto &baseOldFilledEncoding = (*iterOldFilledEncodings);
-
-      if (newParams->mEncodingParameters.size() < 1) {
-        ZS_LOG_DEBUG(log("new params now a catch all for all encoding for this channel"))
+      if (channelInfo->shouldLatchAll()) {
+        ZS_LOG_DEBUG(log("new params now a latch all for all encoding for this channel"))
 
         if (baseOldOriginalEncoding.mEncodingID.hasData()) {
           auto found = mRIDTable.find(baseOldOriginalEncoding.mEncodingID);
@@ -1425,28 +1487,11 @@ namespace ortc
             mRIDTable.erase(found);
           }
         }
-
-        if (baseOldOriginalEncoding.mSSRC.hasValue()) {
-          unregisterSSRCUsage(baseOldOriginalEncoding.mSSRC.value());
-        }
-
-        if ((baseOldOriginalEncoding.mRTX.hasValue()) &&
-            (baseOldOriginalEncoding.mRTX.value().mSSRC.hasValue())) {
-          unregisterSSRCUsage(baseOldOriginalEncoding.mRTX.value().mSSRC.value());
-        }
-
-        if ((baseOldOriginalEncoding.mFEC.hasValue()) &&
-            (baseOldOriginalEncoding.mFEC.value().mSSRC.hasValue())) {
-          unregisterSSRCUsage(baseOldOriginalEncoding.mFEC.value().mSSRC.value());
-        }
         return;
       }
 
-      auto iterNewOriginalEncodings = newParams->mEncodingParameters.begin();
-      auto iterNewFilledEncodings = channelInfo->mFilledParameters->mEncodingParameters.begin();
-
-      auto &baseNewOriginalEncoding = (*iterNewOriginalEncodings);
-      auto &baseNewFilledEncoding = (*iterNewFilledEncodings);
+      auto &baseNewOriginalEncoding = (*(newParams->mEncodingParameters.begin()));
+      auto &baseNewFilledEncoding = (*(channelInfo->mFilledParameters->mEncodingParameters.begin()));
 
       ChannelHolderPtr channelHolder;
 
@@ -1455,14 +1500,11 @@ namespace ortc
         if (baseOldOriginalEncoding.mSSRC.hasValue()) {
           if (baseNewOriginalEncoding.mSSRC.hasValue()) {
             if (baseOldOriginalEncoding.mSSRC.value() != baseNewOriginalEncoding.mSSRC.value()) {
-              unregisterSSRCUsage(baseOldOriginalEncoding.mSSRC.value());
-              setSSRCUsage(baseNewOriginalEncoding.mSSRC.value(), baseNewOriginalEncoding.mEncodingID, channelInfo, channelHolder, true);
+              registerSSRCUsage(channelInfo->registerSSRCUsage(setSSRCUsage(baseNewOriginalEncoding.mSSRC.value(), baseNewOriginalEncoding.mEncodingID, channelHolder)));
             }
-          } else {
-            unregisterSSRCUsage(baseOldOriginalEncoding.mSSRC.value());
           }
         } else if (baseNewOriginalEncoding.mSSRC.hasValue()) {
-          setSSRCUsage(baseNewOriginalEncoding.mSSRC.value(), baseNewOriginalEncoding.mEncodingID, channelInfo, channelHolder, true);
+          registerSSRCUsage(channelInfo->registerSSRCUsage(setSSRCUsage(baseNewOriginalEncoding.mSSRC.value(), baseNewOriginalEncoding.mEncodingID, channelHolder)));
         }
 
         if ((baseOldOriginalEncoding.mRTX.hasValue()) &&
@@ -1470,15 +1512,12 @@ namespace ortc
           if ((baseNewOriginalEncoding.mRTX.hasValue()) &&
               (baseNewOriginalEncoding.mRTX.value().mSSRC.hasValue())) {
             if (baseOldOriginalEncoding.mRTX.value().mSSRC.value() != baseNewOriginalEncoding.mRTX.value().mSSRC.value()) {
-              unregisterSSRCUsage(baseOldOriginalEncoding.mRTX.value().mSSRC.value());
-              setSSRCUsage(baseNewOriginalEncoding.mRTX.value().mSSRC.value(), baseNewOriginalEncoding.mEncodingID, channelInfo, channelHolder, true);
+              registerSSRCUsage(channelInfo->registerSSRCUsage(setSSRCUsage(baseNewOriginalEncoding.mRTX.value().mSSRC.value(), baseNewOriginalEncoding.mEncodingID, channelHolder)));
             }
-          } else {
-            unregisterSSRCUsage(baseOldOriginalEncoding.mRTX.value().mSSRC.value());
           }
         } else if ((baseNewOriginalEncoding.mRTX.hasValue()) &&
                    (baseNewOriginalEncoding.mRTX.value().mSSRC.hasValue())) {
-          setSSRCUsage(baseNewOriginalEncoding.mRTX.value().mSSRC.value(), baseNewOriginalEncoding.mEncodingID, channelInfo, channelHolder, true);
+          registerSSRCUsage(channelInfo->registerSSRCUsage(setSSRCUsage(baseNewOriginalEncoding.mRTX.value().mSSRC.value(), baseNewOriginalEncoding.mEncodingID, channelHolder)));
         }
 
         if ((baseOldOriginalEncoding.mFEC.hasValue()) &&
@@ -1486,16 +1525,15 @@ namespace ortc
           if ((baseNewOriginalEncoding.mFEC.hasValue()) &&
               (baseNewOriginalEncoding.mFEC.value().mSSRC.hasValue())) {
             if (baseOldOriginalEncoding.mFEC.value().mSSRC.value() != baseNewOriginalEncoding.mRTX.value().mSSRC.value()) {
-              unregisterSSRCUsage(baseOldOriginalEncoding.mFEC.value().mSSRC.value());
-              setSSRCUsage(baseNewOriginalEncoding.mFEC.value().mSSRC.value(), baseNewOriginalEncoding.mEncodingID, channelInfo, channelHolder, true);
+              registerSSRCUsage(channelInfo->registerSSRCUsage(setSSRCUsage(baseNewOriginalEncoding.mFEC.value().mSSRC.value(), baseNewOriginalEncoding.mEncodingID, channelHolder)));
             }
-          } else {
-            unregisterSSRCUsage(baseOldOriginalEncoding.mFEC.value().mSSRC.value());
           }
         } else if ((baseNewOriginalEncoding.mFEC.hasValue()) &&
                    (baseNewOriginalEncoding.mFEC.value().mSSRC.hasValue())) {
-          setSSRCUsage(baseNewOriginalEncoding.mFEC.value().mSSRC.value(), baseNewOriginalEncoding.mEncodingID, channelInfo, channelHolder, true);
+          registerSSRCUsage(channelInfo->registerSSRCUsage(setSSRCUsage(baseNewOriginalEncoding.mFEC.value().mSSRC.value(), baseNewOriginalEncoding.mEncodingID, channelHolder)));
         }
+
+        channelInfo->registerHolder(channelHolder);
       }
 
       // scope: re-fill previously filled SSRCs with old values
@@ -1536,7 +1574,6 @@ namespace ortc
         }
       }
 
-      channelHolder = channelInfo->mChannelHolder.lock();
       if (channelHolder) {
         channelHolder->update(*(channelInfo->mOriginalParameters));
       }
@@ -1553,9 +1590,11 @@ namespace ortc
           ++iter_doNotUse;
 
           auto &ssrcInfo = (*current).second;
-          if (!ssrcInfo.mChannelInfo) continue;
+          auto &channelHolder = ssrcInfo->mChannelHolder;
 
-          auto &existingChannelInfo = ssrcInfo.mChannelInfo;
+          if (!channelHolder) continue;
+
+          auto &existingChannelInfo = channelHolder->mChannelInfo;
 
           if (!existingChannelInfo) continue;
           if (existingChannelInfo->mID != channelInfo.mID) continue;
@@ -1606,98 +1645,73 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool RTPReceiver::setSSRCUsage(
-                                   SSRCType ssrc,
-                                   String &ioRID,
-                                   ChannelInfoPtr &ioChannelInfo,
-                                   ChannelHolderPtr &ioChannelHolder,
-                                   bool registerUsage
-                                   )
+    RTPReceiver::SSRCInfoPtr RTPReceiver::setSSRCUsage(
+                                                       SSRCType ssrc,
+                                                       String &ioRID,
+                                                       ChannelHolderPtr &ioChannelHolder
+                                                       )
     {
+      SSRCInfoPtr ssrcInfo;
+
       auto found = mSSRCTable.find(ssrc);
 
       if (found == mSSRCTable.end()) {
-        SSRCInfo ssrcInfo;
-        if (ioRID.hasData()) {
-          ssrcInfo.mRID = ioRID;
-        } else if (ioChannelInfo) {
-          if (ioChannelInfo->mFilledParameters->mEncodingParameters.size() > 0) {
-            ioRID = ssrcInfo.mRID = ioChannelInfo->mFilledParameters->mEncodingParameters.front().mEncodingID;
+        auto foundWeak = mRegisteredSSRCs.find(ssrc);
+        if (foundWeak != mRegisteredSSRCs.end()) {
+          ssrcInfo = (*foundWeak).second.lock();
+          if (!ssrcInfo) {
+            mRegisteredSSRCs.erase(foundWeak);
           }
         }
-        ssrcInfo.mChannelInfo = ioChannelInfo;
-        ssrcInfo.mChannelHolder = ioChannelHolder;
-        ssrcInfo.mRegisteredUsageCount = (registerUsage ? 1 : 0);
+      } else {
+        ssrcInfo = (*found).second;
+      }
+
+      if (!ssrcInfo) {
+        ssrcInfo = make_shared<SSRCInfo>();
+        ssrcInfo->mSSRC = ssrc;
+        ssrcInfo->mChannelHolder = ioChannelHolder;
+
+        if (ioRID.hasData()) {
+          ssrcInfo->mRID = ioRID;
+        } else {
+          if (ioChannelHolder) {
+            ioRID = ssrcInfo->mRID = ioChannelHolder->mChannelInfo->rid();
+          }
+        }
+
         mSSRCTable[ssrc] = ssrcInfo;
         reattemptDelivery();
-        return true;
+        return ssrcInfo;
       }
 
-      SSRCInfo &ssrcInfo = (*found).second;
-
-      ssrcInfo.mLastUsage = zsLib::now();
-
-      if (ioChannelInfo) {
-        ssrcInfo.mChannelInfo = ioChannelInfo;
-      }
+      ssrcInfo->mLastUsage = zsLib::now();
 
       if (ioChannelHolder) {
-        ssrcInfo.mChannelHolder = ioChannelHolder;
-      }
-
-      if ((!ssrcInfo.mChannelInfo) &&
-          (ssrcInfo.mChannelHolder)) {
-        ssrcInfo.mChannelInfo = ssrcInfo.mChannelHolder->mChannelInfo.lock();
-      }
-      if ((!ssrcInfo.mChannelHolder) &&
-          (ssrcInfo.mChannelInfo)) {
-        ssrcInfo.mChannelHolder = ssrcInfo.mChannelInfo->mChannelHolder.lock();
-      }
-
-      if ((ssrcInfo.mChannelHolder) &&
-          (ssrcInfo.mChannelInfo)) {
-        ssrcInfo.mChannelHolder->mChannelInfo = ssrcInfo.mChannelInfo;
-
-        if (!ssrcInfo.mChannelInfo->latchAll()) {
-          // only point channel info back to channel holder if not "catch all"
-          ssrcInfo.mChannelInfo->mChannelHolder = ssrcInfo.mChannelHolder;
-        }
-      }
-
-      if (!ioChannelInfo) {
-        ioChannelInfo = ssrcInfo.mChannelInfo;
-      }
-
-      if (!ioChannelHolder) {
-        ioChannelHolder = ssrcInfo.mChannelHolder;
+        ssrcInfo->mChannelHolder = ioChannelHolder;
+      } else {
+        ioChannelHolder = ssrcInfo->mChannelHolder;
       }
 
       if (ioRID.hasData()) {
-        if (ioRID != ssrcInfo.mRID) ssrcInfo.mRID = ioRID;
-      } else if (ssrcInfo.mChannelInfo) {
-        if (ssrcInfo.mChannelInfo->mFilledParameters->mEncodingParameters.size() > 0) {
-          if (ssrcInfo.mChannelInfo->mFilledParameters->mEncodingParameters.front().mEncodingID.hasData()) {
-            if (ssrcInfo.mRID != ssrcInfo.mChannelInfo->mFilledParameters->mEncodingParameters.front().mEncodingID) {
-              ioRID = ssrcInfo.mRID = ssrcInfo.mChannelInfo->mFilledParameters->mEncodingParameters.front().mEncodingID;
-            } else {
-              ioRID = ssrcInfo.mRID;
-            }
+        ssrcInfo->mRID = ioRID;
+      } else {
+        if (ssrcInfo->mRID.isEmpty()) {
+          if (ioChannelHolder) {
+            ioRID = ssrcInfo->mRID = ioChannelHolder->mChannelInfo->rid();
           }
+        } else {
+          ioRID = ssrcInfo->mRID;
         }
       }
 
-      if (registerUsage) {
-        ++ssrcInfo.mRegisteredUsageCount;
-      }
-
-      return false;
+      return ssrcInfo;
     }
 
     //-------------------------------------------------------------------------
     void RTPReceiver::setRIDUsage(
                                   const String &rid,
-                                  ChannelInfoPtr &ioChannelInfo,
-                                  ChannelHolderPtr &ioChannelHolder
+                                  ChannelInfoPtr &ioChannelInfo
                                   )
     {
       if (rid.isEmpty()) return;
@@ -1706,12 +1720,11 @@ namespace ortc
       if (found == mRIDTable.end()) {
 
         // don't add if there's nothing useful to associate with it
-        if ((!ioChannelInfo) &&
-            (!ioChannelHolder)) return;
+        if (!ioChannelInfo) return;
 
         RIDInfo ridInfo;
+        ridInfo.mRID = rid;
         ridInfo.mChannelInfo = ioChannelInfo;
-        ridInfo.mChannelHolder = ioChannelHolder;
         return;
       }
 
@@ -1722,42 +1735,14 @@ namespace ortc
       } else {
         ioChannelInfo = ridInfo.mChannelInfo;
       }
-
-      if (ioChannelHolder) {
-        ridInfo.mChannelHolder = ioChannelHolder;
-      } else {
-        ioChannelHolder = ridInfo.mChannelHolder.lock();
-      }
-
-      if ((ioChannelHolder) &&
-          (!ioChannelInfo)) {
-        ridInfo.mChannelHolder = ioChannelHolder = ioChannelInfo->mChannelHolder.lock();
-      }
-
-      if ((ioChannelInfo) &&
-          (!ioChannelHolder)) {
-        ridInfo.mChannelInfo = ioChannelInfo = ioChannelHolder->mChannelInfo.lock();
-      }
     }
 
     //-------------------------------------------------------------------------
-    void RTPReceiver::unregisterSSRCUsage(SSRCType ssrc)
+    void RTPReceiver::registerSSRCUsage(SSRCInfoPtr ssrcInfo)
     {
-      auto found = mSSRCTable.find(ssrc);
-      if (found == mSSRCTable.end()) return;
-
-      auto &ssrcInfo = (*found).second;
-
-      if (ssrcInfo.mRegisteredUsageCount <= 1) {
-        ZS_LOG_TRACE(log("removing entry from SSRC table") + ZS_PARAM("ssrc", ssrc) + ssrcInfo.toDebug())
-
-        mSSRCTable.erase(found);
-        return;
-      }
-
-      --(ssrcInfo.mRegisteredUsageCount);
+      mRegisteredSSRCs[ssrcInfo->mSSRC] = ssrcInfo;
     }
-    
+
     //-------------------------------------------------------------------------
     void RTPReceiver::reattemptDelivery()
     {
@@ -1789,6 +1774,21 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    bool RTPReceiver::shouldCleanChannel(bool shouldClean)
+    {
+      if (shouldClean) cleanChannels();
+      return shouldClean;
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPReceiver::cleanChannels()
+    {
+      if (mCleanChannels) return;
+      mCleanChannels = true;
+      IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
+    }
+
+    //-------------------------------------------------------------------------
     bool RTPReceiver::findMapping(
                                   const RTPPacket &rtpPacket,
                                   ChannelHolderPtr &outChannelHolder,
@@ -1797,13 +1797,10 @@ namespace ortc
     {
       ChannelInfoPtr channelInfo;
 
-      outRID = extractRID(rtpPacket, channelInfo, outChannelHolder);
+      outRID = extractRID(rtpPacket, outChannelHolder);
 
       {
         if (outChannelHolder) goto fill_rid;
-        if (channelInfo) {
-          if (!channelInfo->latchAll()) goto fill_rid;
-        }
 
         if (findMappingUsingRID(outRID, rtpPacket, channelInfo, outChannelHolder)) goto fill_rid;
 
@@ -1816,16 +1813,20 @@ namespace ortc
 
     fill_rid:
       {
-        ASSERT((bool)channelInfo)
+        if (!outChannelHolder) {
+          ASSERT((bool)channelInfo)
 
-        createChannel(rtpPacket.ssrc(), outRID, channelInfo, outChannelHolder);
+          createChannel(rtpPacket.ssrc(), outRID, channelInfo, outChannelHolder);
 
-        outChannelHolder = channelInfo->mChannelHolder.lock();
-        ASSERT(outChannelHolder)
+          outChannelHolder = channelInfo->mChannelHolder.lock();
+          ASSERT(outChannelHolder)
+        }
 
-        if (!fillRIDParameters(outRID, channelInfo, outChannelHolder)) {
-          outChannelHolder = ChannelHolderPtr();
-          return false;
+        if (channelInfo) {
+          if (!fillRIDParameters(outRID, channelInfo)) {
+            outChannelHolder = ChannelHolderPtr();
+            return false;
+          }
         }
       }
       
@@ -1835,7 +1836,6 @@ namespace ortc
     //-------------------------------------------------------------------------
     String RTPReceiver::extractRID(
                                    const RTPPacket &rtpPacket,
-                                   ChannelInfoPtr &outChannelInfo,
                                    ChannelHolderPtr &outChannelHolder
                                    )
     {
@@ -1853,12 +1853,12 @@ namespace ortc
         String ridStr(rid.rid());
         if (!ridStr.hasData()) continue;
 
-        setSSRCUsage(rtpPacket.ssrc(), ridStr, outChannelInfo, outChannelHolder, false);
+        setSSRCUsage(rtpPacket.ssrc(), ridStr, outChannelHolder);
         return ridStr;
       }
 
       String result;
-      setSSRCUsage(rtpPacket.ssrc(), result, outChannelInfo, outChannelHolder, false);
+      setSSRCUsage(rtpPacket.ssrc(), result, outChannelHolder);
 
       return result;
     }
@@ -1902,15 +1902,12 @@ namespace ortc
       auto &ridInfo = (*found).second;
 
       outChannelInfo = ridInfo.mChannelInfo;
-      outChannelHolder = ridInfo.mChannelHolder.lock();
-
-      if ((outChannelInfo) &&
-          (outChannelHolder)) return true;
+      outChannelHolder = outChannelInfo->mChannelHolder.lock();
 
       ZS_LOG_DEBUG(log("creating new SSRC table entry (based on rid mapping to existing receiver)") + ZS_PARAM("rid", rid) + ridInfo.toDebug())
 
       String inRID = rid;
-      setSSRCUsage(rtpPacket.ssrc(), inRID, outChannelInfo, outChannelHolder, false);
+      setSSRCUsage(rtpPacket.ssrc(), inRID, outChannelHolder);
       if (!outChannelInfo) return false;
       return true;
     }
@@ -1979,7 +1976,7 @@ namespace ortc
 
           // the associated SSRC was found in table thus must route to same receiver
           String inRID = rid;
-          setSSRCUsage(rtpPacket.ssrc(), inRID, outChannelInfo, outChannelHolder, false);
+          setSSRCUsage(rtpPacket.ssrc(), inRID, outChannelHolder);
           return true;
         }
       }
@@ -2145,9 +2142,9 @@ namespace ortc
     insert_ssrc_into_table:
       {
         ZS_LOG_DEBUG(log("creating a new SSRC entry in SSRC table (based on payload type matching)") + outChannelInfo->toDebug())
-        
+
         String inRID = rid;
-        setSSRCUsage(rtpPacket.ssrc(), inRID, outChannelInfo, outChannelHolder, false);
+        setSSRCUsage(rtpPacket.ssrc(), inRID, outChannelHolder);
       }
 
       return true;
@@ -2156,15 +2153,14 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool RTPReceiver::fillRIDParameters(
                                         const String &rid,
-                                        ChannelInfoPtr &ioChannelInfo,
-                                        ChannelHolderPtr &ioChannelHolder
+                                        ChannelInfoPtr &ioChannelInfo
                                         )
     {
       ASSERT((bool)ioChannelInfo)
 
       if (!rid.hasData()) return true;
 
-      if (!ioChannelInfo->latchAll()) {
+      if (!ioChannelInfo->shouldLatchAll()) {
         auto &encoding = ioChannelInfo->mFilledParameters->mEncodingParameters.front();
 
         if (encoding.mEncodingID.hasData()) {
@@ -2174,14 +2170,14 @@ namespace ortc
             return false;
           }
 
-          setRIDUsage(rid, ioChannelInfo, ioChannelHolder);
+          setRIDUsage(rid, ioChannelInfo);
           return true;
         }
 
         encoding.mEncodingID = rid;
       }
 
-      setRIDUsage(rid, ioChannelInfo, ioChannelHolder);
+      setRIDUsage(rid, ioChannelInfo);
       return true;
     }
 
@@ -2200,7 +2196,7 @@ namespace ortc
       ioChannelHolder = channelInfo->mChannelHolder.lock();
       if (ioChannelHolder) {
         String inRID = rid;
-        setSSRCUsage(ssrc, inRID, channelInfo, ioChannelHolder, false);
+        setSSRCUsage(ssrc, inRID, ioChannelHolder);
         return;
       }
 
@@ -2210,16 +2206,17 @@ namespace ortc
       ioChannelHolder = make_shared<ChannelHolder>();
 
       ioChannelHolder->mHolder = mThisWeak.lock();
+      ioChannelHolder->mChannelInfo = channelInfo;
       ioChannelHolder->mChannel = UseChannel::create(mThisWeak.lock(), *(channelInfo->mOriginalParameters), historicalPackets);
       ioChannelHolder->notify(mLastReportedTransportStateToChannels);
 
       // remember the channel (mChannels is using COW pattern)
-      ChannelMapPtr replacementChannels(make_shared<ChannelMap>(*mChannels));
-      (*replacementChannels)[ioChannelHolder->getID()] = ioChannelHolder->mChannel;
+      ChannelWeakMapPtr replacementChannels(make_shared<ChannelWeakMap>(*mChannels));
+      (*replacementChannels)[ioChannelHolder->getID()] = ioChannelHolder;
       mChannels = replacementChannels;
 
       String inRID = rid;
-      setSSRCUsage(ssrc, inRID, channelInfo, ioChannelHolder, false);
+      setSSRCUsage(ssrc, inRID, ioChannelHolder);
     }
 
     //-------------------------------------------------------------------------
@@ -2242,69 +2239,66 @@ namespace ortc
         for (size_t index = 0; index < bye->sc(); ++index) {
           auto byeSSRC = bye->ssrc(index);
 
-          ChannelInfoPtr channelInfo;
-
           // scope: clean normal SSRC table
           {
             auto found = mSSRCTable.find(byeSSRC);
             if (found != mSSRCTable.end()) {
               auto &ssrcInfo = (*found).second;
-              channelInfo = ssrcInfo.mChannelInfo;
-              ZS_LOG_TRACE(log("removing ssrc table entry due to BYE") + ZS_PARAM("ssrc", byeSSRC) + ssrcInfo.toDebug())
+              ZS_LOG_TRACE(log("removing ssrc table entry due to BYE") + ZS_PARAM("ssrc", byeSSRC) + ssrcInfo->toDebug())
 
               mSSRCTable.erase(found);
             }
           }
 
-          if (!channelInfo) continue;
-          if (channelInfo->latchAll()) continue;
-
           // scope: clean out any channels that have this SSRCs
           {
-            // Check to see if this SSRC is inside this channel's
-            // encoding parameters but if this value was auto-filled in
-            // those encoding paramters and not set by the application
-            // developer and reset those parameters back to the original.
-            auto iterFilledParams = channelInfo->mFilledParameters->mEncodingParameters.begin();
-            auto iterOriginalParams = channelInfo->mOriginalParameters->mEncodingParameters.begin();
+            for (auto iter = mChannelInfos.begin(); iter != mChannelInfos.end(); ++iter) {
+              auto &channelInfo = (*iter).second;
 
-            for (; iterFilledParams != channelInfo->mFilledParameters->mEncodingParameters.end(); ++iterFilledParams, ++iterOriginalParams)
-            {
-              ASSERT(iterOriginalParams != channelInfo->mOriginalParameters->mEncodingParameters.end())
-              EncodingParameters &filledParams = (*iterFilledParams);
-              EncodingParameters &originalEncParams = (*iterOriginalParams);
+              // Check to see if this SSRC is inside this channel's
+              // encoding parameters but if this value was auto-filled in
+              // those encoding paramters and not set by the application
+              // developer and reset those parameters back to the original.
+              auto iterFilledParams = channelInfo->mFilledParameters->mEncodingParameters.begin();
+              auto iterOriginalParams = channelInfo->mOriginalParameters->mEncodingParameters.begin();
 
-              if ((filledParams.mSSRC.hasValue()) &&
-                  (!originalEncParams.mSSRC.hasValue())) {
-                if (byeSSRC == filledParams.mSSRC.value()) {
-                  filledParams.mSSRC = originalEncParams.mSSRC;
+              for (; iterFilledParams != channelInfo->mFilledParameters->mEncodingParameters.end(); ++iterFilledParams, ++iterOriginalParams)
+              {
+                ASSERT(iterOriginalParams != channelInfo->mOriginalParameters->mEncodingParameters.end())
+                EncodingParameters &filledParams = (*iterFilledParams);
+                EncodingParameters &originalEncParams = (*iterOriginalParams);
+
+                if ((filledParams.mSSRC.hasValue()) &&
+                    (!originalEncParams.mSSRC.hasValue())) {
+                  if (byeSSRC == filledParams.mSSRC.value()) {
+                    filledParams.mSSRC = originalEncParams.mSSRC;
+                  }
                 }
+
+                if (((filledParams.mRTX.hasValue()) &&
+                     (filledParams.mRTX.value().mSSRC.hasValue())) &&
+                    (!  ((originalEncParams.mRTX.hasValue()) &&
+                         (originalEncParams.mRTX.value().mSSRC.hasValue()))
+                     )) {
+                      if (byeSSRC == filledParams.mRTX.value().mSSRC.value()) {
+                        filledParams.mRTX.value().mSSRC = originalEncParams.mRTX.value().mSSRC;
+                      }
+                    }
+
+                if (((filledParams.mFEC.hasValue()) &&
+                     (filledParams.mFEC.value().mSSRC.hasValue())) &&
+                    (! ((originalEncParams.mFEC.hasValue()) &&
+                        (originalEncParams.mFEC.value().mSSRC.hasValue()))
+                     )) {
+                      if (byeSSRC == filledParams.mFEC.value().mSSRC.value()) {
+                        filledParams.mFEC.value().mSSRC = originalEncParams.mFEC.value().mSSRC;
+                      }
+                    }
               }
-
-              if (((filledParams.mRTX.hasValue()) &&
-                   (filledParams.mRTX.value().mSSRC.hasValue())) &&
-                  (!  ((originalEncParams.mRTX.hasValue()) &&
-                       (originalEncParams.mRTX.value().mSSRC.hasValue()))
-                   )) {
-                    if (byeSSRC == filledParams.mRTX.value().mSSRC.value()) {
-                      filledParams.mRTX.value().mSSRC = originalEncParams.mRTX.value().mSSRC;
-                    }
-                  }
-
-              if (((filledParams.mFEC.hasValue()) &&
-                   (filledParams.mFEC.value().mSSRC.hasValue())) &&
-                  (! ((originalEncParams.mFEC.hasValue()) &&
-                      (originalEncParams.mFEC.value().mSSRC.hasValue()))
-                   )) {
-                    if (byeSSRC == filledParams.mFEC.value().mSSRC.value()) {
-                      filledParams.mFEC.value().mSSRC = originalEncParams.mFEC.value().mSSRC;
-                    }
-                  }
             }
           }
         }
       }
-      
     }
 
 

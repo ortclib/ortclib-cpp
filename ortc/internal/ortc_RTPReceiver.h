@@ -214,8 +214,11 @@ namespace ortc
       typedef String RID;
       typedef PUID ChannelID;
 
-      typedef std::map<ChannelID, UseChannelPtr> ChannelMap;
-      ZS_DECLARE_PTR(ChannelMap)
+      typedef std::map<ChannelID, ChannelHolderWeakPtr> ChannelWeakMap;
+      ZS_DECLARE_PTR(ChannelWeakMap)
+
+      typedef std::map<SSRCType, SSRCInfoPtr> SSRCMap;
+      typedef std::map<SSRCType, SSRCInfoWeakPtr> SSRCWeakMap;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -245,7 +248,7 @@ namespace ortc
       {
         RTPReceiverWeakPtr mHolder;
         UseChannelPtr mChannel;
-        ChannelInfoWeakPtr mChannelInfo;
+        ChannelInfoPtr mChannelInfo;
         std::atomic<ISecureTransport::States> mLastReportedState {ISecureTransport::State_Pending};
 
         ChannelHolder();
@@ -276,9 +279,17 @@ namespace ortc
 
         ParametersPtr mOriginalParameters;
         ParametersPtr mFilledParameters;
-        ChannelHolderWeakPtr mChannelHolder;      // NOTE: might be null if channel is not created yet
 
-        bool latchAll() const;
+        ChannelHolderWeakPtr mChannelHolder;  // NOTE: might be null if channel is not created yet (or previously destoyed)
+        SSRCMap mRegisteredSSRCs;
+
+        bool shouldLatchAll() const;
+        String rid() const;
+
+        void registerHolder(ChannelHolderPtr channelHolder);
+
+        SSRCInfoPtr registerSSRCUsage(SSRCInfoPtr ssrcInfo);
+        void unregisterSSRCUsage(SSRCType ssrc);
 
         ElementPtr toDebug() const;
       };
@@ -292,8 +303,8 @@ namespace ortc
 
       struct RIDInfo
       {
+        String mRID;
         ChannelInfoPtr mChannelInfo;
-        ChannelHolderWeakPtr mChannelHolder;      // NOTE: might be null if channel is not created yet
 
         ElementPtr toDebug() const;
       };
@@ -307,18 +318,16 @@ namespace ortc
 
       struct SSRCInfo
       {
-        Time mLastUsage;
+        SSRCType mSSRC {};
         String mRID;
+        Time mLastUsage;
 
-        size_t mRegisteredUsageCount {};  // as fixed SSRC values in receiver params
-        ChannelInfoPtr mChannelInfo;          // can be NULL
         ChannelHolderPtr mChannelHolder;      // can be NULL
 
         SSRCInfo();
+
         ElementPtr toDebug() const;
       };
-
-      typedef std::map<SSRCType, SSRCInfo> SSRCMap;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -467,7 +476,7 @@ namespace ortc
       #pragma mark RTPReceiver => (friend RTPReceiver::ChannelHolder)
       #pragma mark
 
-      void notifyChannelGone(UseChannelPtr channel);
+      void notifyChannelGone();
 
     protected:
       //-----------------------------------------------------------------------
@@ -484,6 +493,7 @@ namespace ortc
 
       void step();
       bool stepAttemptDelivery();
+      bool stepCleanChannels();
 
       void cancel();
 
@@ -510,23 +520,24 @@ namespace ortc
 
       void registerHeaderExtensions(const Parameters &params);
 
-      bool setSSRCUsage(
-                        SSRCType ssrc,
-                        String &ioRID,
-                        ChannelInfoPtr &ioChannelInfo,
-                        ChannelHolderPtr &ioChannelHolder,
-                        bool registerUsage
-                        );
-      void unregisterSSRCUsage(SSRCType ssrc);
+      SSRCInfoPtr setSSRCUsage(
+                               SSRCType ssrc,
+                               String &ioRID,
+                               ChannelHolderPtr &ioChannelHolder
+                               );
 
       void setRIDUsage(
                        const String &rid,
-                       ChannelInfoPtr &ioChannelInfo,
-                       ChannelHolderPtr &ioChannelHolder
+                       ChannelInfoPtr &ioChannelInfo
                        );
+
+      void registerSSRCUsage(SSRCInfoPtr ssrcInfo);
 
       void reattemptDelivery();
       void expireRTPPackets();
+
+      bool shouldCleanChannel(bool shouldClean);
+      void cleanChannels();
 
       bool findMapping(
                        const RTPPacket &rtpPacket,
@@ -536,7 +547,6 @@ namespace ortc
 
       String extractRID(
                         const RTPPacket &rtpPacket,
-                        ChannelInfoPtr &outChannelInfo,
                         ChannelHolderPtr &outChannelHolder
                         );
 
@@ -565,8 +575,7 @@ namespace ortc
 
       bool fillRIDParameters(
                              const String &rid,
-                             ChannelInfoPtr &ioChannelInfo,
-                             ChannelHolderPtr &ioChannelHolder
+                             ChannelInfoPtr &ioChannelInfo
                              );
 
       void createChannel(
@@ -621,12 +630,15 @@ namespace ortc
 
       ParametersPtrList mParametersGroupedIntoChannels;
 
-      ChannelMapPtr mChannels;                  // COW pattern, always valid ptr
+      ChannelWeakMapPtr mChannels;                 // COW pattern, always valid ptr
+      bool mCleanChannels {false};
+
       ParametersToChannelInfoMap mChannelInfos;
 
       HeaderExtensionMap mRegisteredExtensions;
 
       SSRCMap mSSRCTable;
+      SSRCWeakMap mRegisteredSSRCs;
 
       RIDToChannelMap mRIDTable;
 
