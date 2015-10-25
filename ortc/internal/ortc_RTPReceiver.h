@@ -50,6 +50,8 @@
 
 #define ORTC_SETTING_RTP_RECEIVER_CSRC_EXPIRY_TIME_IN_SECONDS "ortc/rtp-receiver/csrc-expiry-time-in-seconds"
 
+#define ORTC_SETTING_RTP_RECEIVER_LOCK_TO_RECEIVER_CHANNEL_AFTER_SWITCH_EXCLUSIVELY_FOR_IN_MILLISECONDS "ortc/rtp-receiver/lock-to-receiver-channel-after-switch-in-milliseconds"
+
 namespace ortc
 {
   namespace internal
@@ -616,6 +618,13 @@ namespace ortc
                                  BYTE level
                                  );
 
+      void postFindMappingProcessPacket(
+                                        const RTPPacket &rtpPacket,
+                                        ChannelHolderPtr &channelHolder
+                                        );
+
+      void resetActiveReceiverChannel();
+
     protected:
       //-----------------------------------------------------------------------
       #pragma mark
@@ -676,6 +685,10 @@ namespace ortc
       ContributingSourceMap mContributingSources;
       Seconds mContributingSourcesExpiry {};
       TimerPtr mContributingSourcesTimer;
+
+      ChannelHolderPtr mCurrentChannel;
+      Time mLastSwitchedCurrentChannel;
+      Milliseconds mLockAfterSwitchTime {};
     };
 
     //-------------------------------------------------------------------------

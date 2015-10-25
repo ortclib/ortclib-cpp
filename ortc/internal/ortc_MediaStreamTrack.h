@@ -92,8 +92,8 @@ namespace ortc
 
       virtual PUID getID() const = 0;
 
-      virtual void attachSenderChannel(RTPSenderChannelPtr channel) = 0;
-      virtual void detachSenderChannel(RTPSenderChannelPtr channel) = 0;
+      virtual void notifyAttachSenderChannel(RTPSenderChannelPtr channel) = 0;
+      virtual void notifyDetachSenderChannel(RTPSenderChannelPtr channel) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -131,7 +131,7 @@ namespace ortc
 
       virtual PUID getID() const = 0;
 
-      virtual void setActiveReceiverChannel(RTPReceiverChannelPtr channel) = 0;
+      virtual void notifyActiveReceiverChannel(RTPReceiverChannelPtr channel) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -177,6 +177,8 @@ namespace ortc
     interaction IMediaStreamTrackAsyncDelegate
     {
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::TrackConstraints, TrackConstraints)
+      ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverChannelForMediaStreamTrack, UseReceiverChannel)
+      ZS_DECLARE_TYPEDEF_PTR(IRTPSenderChannelForMediaStreamTrack, UseSenderChannel)
 
       virtual void onResolveStatsPromise(IStatsProvider::PromiseWithStatsReportPtr promise) = 0;
 
@@ -184,6 +186,11 @@ namespace ortc
                                       PromisePtr promise,
                                       TrackConstraintsPtr constraints
                                       ) = 0;
+
+      virtual void onSetActiveReceiverChannel(UseReceiverChannelPtr channel) = 0;
+      
+      virtual void onAttachSenderChannel(UseSenderChannelPtr channel) = 0;
+      virtual void onDetachSenderChannel(UseSenderChannelPtr channel) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -320,8 +327,8 @@ namespace ortc
 
       // (duplicate) virtual PUID getID() const = 0;
 
-      virtual void attachSenderChannel(RTPSenderChannelPtr channel) override;
-      virtual void detachSenderChannel(RTPSenderChannelPtr channel) override;
+      virtual void notifyAttachSenderChannel(RTPSenderChannelPtr channel) override;
+      virtual void notifyDetachSenderChannel(RTPSenderChannelPtr channel) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -341,7 +348,7 @@ namespace ortc
 
       // (duplicate) virtual PUID getID() const = 0;
 
-      virtual void setActiveReceiverChannel(RTPReceiverChannelPtr channel) override;
+      virtual void notifyActiveReceiverChannel(RTPReceiverChannelPtr channel) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -382,6 +389,11 @@ namespace ortc
                                       PromisePtr promise,
                                       TrackConstraintsPtr constraints
                                       ) override;
+
+      virtual void onSetActiveReceiverChannel(UseReceiverChannelPtr channel) override;
+
+      virtual void onAttachSenderChannel(UseSenderChannelPtr channel) override;
+      virtual void onDetachSenderChannel(UseSenderChannelPtr channel) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -471,6 +483,11 @@ ZS_DECLARE_PROXY_BEGIN(ortc::internal::IMediaStreamTrackAsyncDelegate)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IStatsProvider::PromiseWithStatsReportPtr, PromiseWithStatsReportPtr)
 ZS_DECLARE_PROXY_TYPEDEF(zsLib::PromisePtr, PromisePtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IMediaStreamTrackTypes::TrackConstraintsPtr, TrackConstraintsPtr)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::IMediaStreamTrackAsyncDelegate::UseReceiverChannelPtr, UseReceiverChannelPtr)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::IMediaStreamTrackAsyncDelegate::UseSenderChannelPtr, UseSenderChannelPtr)
 ZS_DECLARE_PROXY_METHOD_1(onResolveStatsPromise, PromiseWithStatsReportPtr)
 ZS_DECLARE_PROXY_METHOD_2(onApplyConstraints, PromisePtr, TrackConstraintsPtr)
+ZS_DECLARE_PROXY_METHOD_1(onSetActiveReceiverChannel, UseReceiverChannelPtr)
+ZS_DECLARE_PROXY_METHOD_1(onAttachSenderChannel, UseSenderChannelPtr)
+ZS_DECLARE_PROXY_METHOD_1(onDetachSenderChannel, UseSenderChannelPtr)
 ZS_DECLARE_PROXY_END()

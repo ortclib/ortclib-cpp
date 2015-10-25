@@ -283,13 +283,6 @@ namespace ortc
     #pragma mark
     
     //-------------------------------------------------------------------------
-    void MediaStreamTrack::onResolveStatsPromise(IStatsProvider::PromiseWithStatsReportPtr promise)
-    {
-#define TODO_COMPLETE 1
-#define TODO_COMPLETE 2
-    }
-
-    //-------------------------------------------------------------------------
     IStatsProvider::PromiseWithStatsReportPtr MediaStreamTrack::getStats() const throw(InvalidStateError)
     {
       AutoRecursiveLock lock(*this);
@@ -495,17 +488,15 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void MediaStreamTrack::attachSenderChannel(RTPSenderChannelPtr channel)
+    void MediaStreamTrack::notifyAttachSenderChannel(RTPSenderChannelPtr channel)
     {
-#define TODO 1
-#define TODO 2
+      IMediaStreamTrackAsyncDelegateProxy::create(mThisWeak.lock())->onAttachSenderChannel(channel);
     }
 
     //-------------------------------------------------------------------------
-    void MediaStreamTrack::detachSenderChannel(RTPSenderChannelPtr channel)
+    void MediaStreamTrack::notifyDetachSenderChannel(RTPSenderChannelPtr channel)
     {
-#define TODO 1
-#define TODO 2
+      IMediaStreamTrackAsyncDelegateProxy::create(mThisWeak.lock())->onDetachSenderChannel(channel);
     }
 
     //-------------------------------------------------------------------------
@@ -539,11 +530,9 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void MediaStreamTrack::setActiveReceiverChannel(RTPReceiverChannelPtr inChannel)
+    void MediaStreamTrack::notifyActiveReceiverChannel(RTPReceiverChannelPtr inChannel)
     {
-      UseReceiverChannelPtr channel(inChannel);
-#define TODO 1
-#define TODO 2
+      IMediaStreamTrackAsyncDelegateProxy::create(mThisWeak.lock())->onSetActiveReceiverChannel(inChannel);
     }
 
     //-------------------------------------------------------------------------
@@ -607,6 +596,13 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
+    void MediaStreamTrack::onResolveStatsPromise(IStatsProvider::PromiseWithStatsReportPtr promise)
+    {
+#define TODO_COMPLETE 1
+#define TODO_COMPLETE 2
+    }
+
+    //-------------------------------------------------------------------------
     void MediaStreamTrack::onApplyConstraints(
                                               PromisePtr promise,
                                               TrackConstraintsPtr constraints
@@ -616,6 +612,43 @@ namespace ortc
 #define TODO 1
 #define TODO 2
       promise->reject();  // temporarily reject everything
+    }
+
+    //-------------------------------------------------------------------------
+    void MediaStreamTrack::onSetActiveReceiverChannel(UseReceiverChannelPtr channel)
+    {
+      AutoRecursiveLock lock(*this);
+
+      if (!channel) {
+        ZS_LOG_DEBUG(log("active receiver channel is being removed"))
+#define TODO 1
+#define TODO 2
+        return;
+      }
+
+      ZS_LOG_DEBUG(log("setting to active receiver channel") + ZS_PARAM("channel", channel->getID()))
+#define TODO 1
+#define TODO 2
+    }
+
+    //-------------------------------------------------------------------------
+    void MediaStreamTrack::onAttachSenderChannel(UseSenderChannelPtr channel)
+    {
+      ZS_LOG_DEBUG(log("attaching sender channel") + ZS_PARAM("channel", channel->getID()))
+
+      AutoRecursiveLock lock(*this);
+#define TODO 1
+#define TODO 2
+    }
+    
+    //-------------------------------------------------------------------------
+    void MediaStreamTrack::onDetachSenderChannel(UseSenderChannelPtr channel)
+    {
+      ZS_LOG_DEBUG(log("detaching sender channel") + ZS_PARAM("channel", channel->getID()))
+
+      AutoRecursiveLock lock(*this);
+#define TODO 1
+#define TODO 2
     }
 
     //-------------------------------------------------------------------------

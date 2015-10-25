@@ -119,6 +119,8 @@ namespace ortc
       UseSettings::setUInt(ORTC_SETTING_RTP_RECEIVER_MAX_AGE_RTP_PACKETS_IN_SECONDS, 30);
 
       UseSettings::setUInt(ORTC_SETTING_RTP_RECEIVER_CSRC_EXPIRY_TIME_IN_SECONDS, 10);
+
+      UseSettings::setUInt(ORTC_SETTING_RTP_RECEIVER_LOCK_TO_RECEIVER_CHANNEL_AFTER_SWITCH_EXCLUSIVELY_FOR_IN_MILLISECONDS, 3*1000);
     }
 
     //-------------------------------------------------------------------------
@@ -426,7 +428,8 @@ namespace ortc
       SharedRecursiveLock(SharedRecursiveLock::create()),
       mChannels(make_shared<ChannelWeakMap>()),
       mMaxBufferedRTPPackets(SafeInt<decltype(mMaxBufferedRTPPackets)>(UseSettings::getUInt(ORTC_SETTING_RTP_RECEIVER_MAX_RTP_PACKETS_IN_BUFFER))),
-      mMaxRTPPacketAge(UseSettings::getUInt(ORTC_SETTING_RTP_RECEIVER_MAX_AGE_RTP_PACKETS_IN_SECONDS))
+      mMaxRTPPacketAge(UseSettings::getUInt(ORTC_SETTING_RTP_RECEIVER_MAX_AGE_RTP_PACKETS_IN_SECONDS)),
+      mLockAfterSwitchTime(UseSettings::getUInt(ORTC_SETTING_RTP_RECEIVER_LOCK_TO_RECEIVER_CHANNEL_AFTER_SWITCH_EXCLUSIVELY_FOR_IN_MILLISECONDS))
     {
       ZS_LOG_DETAIL(debug("created"))
 
@@ -1089,7 +1092,7 @@ namespace ortc
 
         String rid;
         if (findMapping(*packet, channelHolder, rid)) {
-          extractCSRCs(*packet);
+          postFindMappingProcessPacket(*packet, channelHolder);
           goto process_rtp;
         }
 
@@ -1449,7 +1452,7 @@ namespace ortc
         String rid;
         if (!findMapping(*packet, channelHolder, rid)) continue;
 
-        extractCSRCs(*packet);
+        postFindMappingProcessPacket(*packet, channelHolder);
 
         ZS_LOG_TRACE(log("will attempt to deliver buffered RTP packet") + ZS_PARAM("channel", channelHolder->getID()) + ZS_PARAM("ssrc", packet->ssrc()))
         channelHolder->notify(packet);
@@ -1657,6 +1660,8 @@ namespace ortc
 
         channel->notify(ISecureTransport::State_Closed);
       }
+
+      resetActiveReceiverChannel();
 
       mChannels = make_shared<ChannelWeakMap>();  // all channels are now gone (COW with empty replacement list)
       mSSRCTable.clear();
@@ -1914,6 +1919,38 @@ namespace ortc
           mRIDTable.erase(current);
         }
       }
+
+      if (mCurrentChannel) {
+        if (mCurrentChannel->mChannelInfo->mID == channelInfo.mID) {
+          resetActiveReceiverChannel();
+        }
+      }
+
+      ChannelWeakMapPtr replacementChannels(make_shared<ChannelWeakMap>(*mChannels));
+
+      for (auto iter_doNotUse = replacementChannels->begin(); iter_doNotUse != replacementChannels->end(); )
+      {
+        auto current = iter_doNotUse;
+        ++iter_doNotUse;
+
+        auto channelHolder = (*current).second.lock();
+        if (!channelHolder) {
+          replacementChannels->erase(current);
+          continue;
+        }
+
+        if (channelHolder->mChannelInfo->mID != channelInfo.mID) continue;
+
+        // shutdown the channel
+        channelHolder->notify(ISecureTransport::State_Closed);
+
+        replacementChannels->erase(current);
+      }
+
+      mChannels = replacementChannels;
+
+      // already cleaned out channels so don't do again
+      mCleanChannels = false;
     }
 
     //-------------------------------------------------------------------------
@@ -2701,6 +2738,13 @@ namespace ortc
         case CodecKind_Data:
         {
           ChannelInfoPtr channelInfo(make_shared<ChannelInfo>());
+
+          if (mChannelInfos.size() > 0) {
+            // force sharing of the same channel ID
+            auto &baseOnChannelInfo = (*(mChannelInfos.begin())).second;
+            channelInfo->mID.reset(baseOnChannelInfo->mID);
+          }
+
           channelInfo->mOriginalParameters = make_shared<Parameters>(*mParameters);
           channelInfo->mFilledParameters = make_shared<Parameters>(*mParameters);
 
@@ -2708,6 +2752,7 @@ namespace ortc
           encoding.mEncodingID = rid;
           encoding.mSSRC = rtpPacket.ssrc();
           encoding.mCodecPayloadType = rtpPacket.pt();
+          encoding.mActive = true;
 
           channelInfo->mFilledParameters->mEncodingParameters.push_back(encoding);
 
@@ -2977,6 +3022,51 @@ namespace ortc
 
       source.mTimestamp = zsLib::now();
       source.mAudioLevel = level;
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPReceiver::postFindMappingProcessPacket(
+                                                   const RTPPacket &rtpPacket,
+                                                   ChannelHolderPtr &channelHolder
+                                                   )
+    {
+      ASSERT(channelHolder)
+      ASSERT(channelHolder->mChannelInfo->mFilledParameters->mEncodingParameters.size() > 0)
+
+      auto &encoding = *(channelHolder->mChannelInfo->mFilledParameters->mEncodingParameters.begin());
+
+      if (!encoding.mActive) {
+        ZS_LOG_WARNING(Trace, log("encoding is not active thus do not process information from this channel"))
+        return;
+      }
+
+      extractCSRCs(rtpPacket);
+
+      if (channelHolder == mCurrentChannel) return;
+
+      Time tick = zsLib::now();
+
+      if (mCurrentChannel) {
+        if (Time() != mLastSwitchedCurrentChannel) {
+          if (mLastSwitchedCurrentChannel + mLockAfterSwitchTime > tick) {
+            ZS_LOG_INSANE(log("cannot switch channel (as locked out after last switch)"))
+            return;
+          }
+        }
+      }
+
+      mLastSwitchedCurrentChannel = tick;
+      mCurrentChannel = channelHolder;
+
+      mTrack->notifyActiveReceiverChannel(RTPReceiverChannel::convert(channelHolder->mChannel));
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPReceiver::resetActiveReceiverChannel()
+    {
+      mCurrentChannel.reset();
+      mLastSwitchedCurrentChannel = Time();
+      mTrack->notifyActiveReceiverChannel(RTPReceiverChannelPtr());
     }
 
     //-------------------------------------------------------------------------
