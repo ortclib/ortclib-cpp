@@ -880,6 +880,157 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   #pragma mark
+  #pragma mark IRTPTypes::OpusCodecCapability
+  #pragma mark
+
+  //---------------------------------------------------------------------------
+  IRTPTypes::OpusCodecCapabilityPtr IRTPTypes::OpusCodecCapability::convert(AnyPtr any)
+  {
+    return ZS_DYNAMIC_PTR_CAST(OpusCodecCapability, any);
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IRTPTypes::OpusCodecCapability::toDebug() const
+  {
+    ElementPtr resultEl = Element::create("ortc::IRTPTypes::OpusCodecCapability");
+
+    UseServicesHelper::debugAppend(resultEl, "max playback rate", mMaxPlaybackRate);
+    UseServicesHelper::debugAppend(resultEl, "stereo", mStereo);
+
+    return resultEl;
+  }
+
+  //---------------------------------------------------------------------------
+  String IRTPTypes::OpusCodecCapability::hash() const
+  {
+    SHA1Hasher hasher;
+
+    hasher.update("ortc::IRTPTypes::OpusCodecCapability:");
+
+    hasher.update(mMaxPlaybackRate);
+    hasher.update(":");
+    hasher.update(mStereo);
+
+    return hasher.final();
+  }
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IRTPTypes::VP8CodecCapability
+  #pragma mark
+
+  //---------------------------------------------------------------------------
+  IRTPTypes::VP8CodecCapabilityPtr IRTPTypes::VP8CodecCapability::convert(AnyPtr any)
+  {
+    return ZS_DYNAMIC_PTR_CAST(VP8CodecCapability, any);
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IRTPTypes::VP8CodecCapability::toDebug() const
+  {
+    ElementPtr resultEl = Element::create("ortc::IRTPTypes::VP8CodecCapability");
+
+    UseServicesHelper::debugAppend(resultEl, "max ft", mMaxFT);
+    UseServicesHelper::debugAppend(resultEl, "max fs", mMaxFS);
+
+    return resultEl;
+  }
+
+  //---------------------------------------------------------------------------
+  String IRTPTypes::VP8CodecCapability::hash() const
+  {
+    SHA1Hasher hasher;
+
+    hasher.update("ortc::IRTPTypes::VP8CodecCapability:");
+
+    hasher.update(mMaxFT);
+    hasher.update(":");
+    hasher.update(mMaxFS);
+
+    return hasher.final();
+  }
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IRTPTypes::H264CodecCapability
+  #pragma mark
+
+  //---------------------------------------------------------------------------
+  IRTPTypes::H264CodecCapabilityPtr IRTPTypes::H264CodecCapability::convert(AnyPtr any)
+  {
+    return ZS_DYNAMIC_PTR_CAST(H264CodecCapability, any);
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IRTPTypes::H264CodecCapability::toDebug() const
+  {
+    ElementPtr resultEl = Element::create("ortc::IRTPTypes::H264CodecCapability");
+
+    UseServicesHelper::debugAppend(resultEl, "profile level id", mProfileLevelID);
+
+    if (mPacketizationModes.size() > 0) {
+      ElementPtr packetizationModesEl = Element::create("packetization modes");
+      for (auto iter = mPacketizationModes.begin(); iter != mPacketizationModes.end(); ++iter) {
+        auto &mode = (*iter);
+        UseServicesHelper::debugAppend(packetizationModesEl, "packetization mode", mode);
+      }
+      UseServicesHelper::debugAppend(resultEl, packetizationModesEl);
+    }
+
+    UseServicesHelper::debugAppend(resultEl, "max mbps", mMaxMBPS);
+    UseServicesHelper::debugAppend(resultEl, "max smbps", mMaxSMBPS);
+    UseServicesHelper::debugAppend(resultEl, "max fs", mMaxFS);
+    UseServicesHelper::debugAppend(resultEl, "max cpb", mMaxCPB);
+    UseServicesHelper::debugAppend(resultEl, "max dpb", mMaxDPB);
+    UseServicesHelper::debugAppend(resultEl, "max br", mMaxBR);
+
+    return resultEl;
+  }
+
+  //---------------------------------------------------------------------------
+  String IRTPTypes::H264CodecCapability::hash() const
+  {
+    SHA1Hasher hasher;
+
+    hasher.update("ortc::IRTPTypes::H264CodecCapability:");
+
+    hasher.update(mProfileLevelID);
+    hasher.update(":packetizationmodes");
+
+    for (auto iter = mPacketizationModes.begin(); iter != mPacketizationModes.end(); ++iter) {
+      auto &mode = (*iter);
+      hasher.update(":");
+      hasher.update(mode);
+    }
+
+    hasher.update(":packetizationmodes:");
+
+    hasher.update(mMaxMBPS);
+    hasher.update(":");
+    hasher.update(mMaxSMBPS);
+    hasher.update(":");
+    hasher.update(mMaxFS);
+    hasher.update(":");
+    hasher.update(mMaxCPB);
+    hasher.update(":");
+    hasher.update(mMaxDPB);
+    hasher.update(":");
+    hasher.update(mMaxBR);
+
+    return hasher.final();
+  }
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
   #pragma mark IRTPTypes::HeaderExtensions
   #pragma mark
 
@@ -1258,6 +1409,41 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   #pragma mark
+  #pragma mark IRTPTypes::PriorityTypes
+  #pragma mark
+
+  //---------------------------------------------------------------------------
+  const char *IRTPTypes::toString(PriorityTypes type)
+  {
+    switch (type) {
+      case PriorityType_Unknown:        return "";
+      case PriorityType_VeryLow:        return "very-low";
+      case PriorityType_Low:            return "low";
+      case PriorityType_Medium:         return "medium";
+      case PriorityType_High:           return "high";
+    }
+
+    return "unknown";
+  }
+
+  //---------------------------------------------------------------------------
+  IRTPTypes::PriorityTypes IRTPTypes::toPriorityType(const char *type)
+  {
+    String typeStr(type);
+
+    for (PriorityTypes index = PriorityType_First; index <= PriorityType_Last; index = static_cast<PriorityTypes>(static_cast<std::underlying_type<PriorityTypes>::type>(index) + 1)) {
+      if (typeStr == IRTPTypes::toString(index)) return index;
+    }
+
+    return PriorityType_Unknown;
+  }
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
   #pragma mark IRTPTypes::EncodingParameters
   #pragma mark
 
@@ -1270,7 +1456,7 @@ namespace ortc
     UseServicesHelper::debugAppend(resultEl, "codec payload type", mCodecPayloadType);
     UseServicesHelper::debugAppend(resultEl, "fec", mFEC.hasValue() ? mFEC.value().toDebug() : ElementPtr());
     UseServicesHelper::debugAppend(resultEl, "rtx", mRTX.hasValue() ? mRTX.value().toDebug() : ElementPtr());
-    UseServicesHelper::debugAppend(resultEl, "priority", mPriority);
+    UseServicesHelper::debugAppend(resultEl, "priority", mPriority.hasValue() ? toString(mPriority) : ((const char *)NULL));
     UseServicesHelper::debugAppend(resultEl, "max bitrate", mMaxBitrate);
     UseServicesHelper::debugAppend(resultEl, "min quality", mMinQuality);
     UseServicesHelper::debugAppend(resultEl, "framerate bias", mFramerateBias);

@@ -50,6 +50,9 @@ namespace ortc
   {
     ZS_DECLARE_STRUCT_PTR(Capabilities)
     ZS_DECLARE_STRUCT_PTR(CodecCapability)
+    ZS_DECLARE_STRUCT_PTR(OpusCodecCapability)
+    ZS_DECLARE_STRUCT_PTR(VP8CodecCapability)
+    ZS_DECLARE_STRUCT_PTR(H264CodecCapability)
     ZS_DECLARE_STRUCT_PTR(HeaderExtensions)
     ZS_DECLARE_STRUCT_PTR(RtcpFeedback)
     ZS_DECLARE_STRUCT_PTR(Parameters)
@@ -107,6 +110,63 @@ namespace ortc
       USHORT            mMaxTemporalLayers {0};
       USHORT            mMaxSpatialLayers {0};
       bool              mSVCMultiStreamSupport {};
+
+      ElementPtr toDebug() const;
+      String hash() const;
+    };
+
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IRTPTypes::OpusCodecCapability
+    #pragma mark
+
+    struct OpusCodecCapability : public Any
+    {
+      ULONG mMaxPlaybackRate {};
+      bool mStereo {};
+
+      static OpusCodecCapabilityPtr convert(AnyPtr any);
+
+      ElementPtr toDebug() const;
+      String hash() const;
+    };
+
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IRTPTypes::VP8CodecCapability
+    #pragma mark
+
+    struct VP8CodecCapability : public Any
+    {
+      ULONG mMaxFT {};
+      ULONGLONG mMaxFS {};
+
+      static VP8CodecCapabilityPtr convert(AnyPtr any);
+
+      ElementPtr toDebug() const;
+      String hash() const;
+    };
+
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IRTPTypes::H264CodecCapability
+    #pragma mark
+
+    struct H264CodecCapability : public Any
+    {
+      typedef std::list<USHORT>  PacketizationModeList;
+
+      ULONG mProfileLevelID {};
+      PacketizationModeList mPacketizationModes;
+
+      ULONGLONG mMaxMBPS {};
+      ULONGLONG mMaxSMBPS {};
+      ULONGLONG mMaxFS {};
+      ULONGLONG mMaxCPB {};
+      ULONGLONG mMaxDPB {};
+      ULONGLONG mMaxBR {};
+
+      static H264CodecCapabilityPtr convert(AnyPtr any);
 
       ElementPtr toDebug() const;
       String hash() const;
@@ -243,6 +303,27 @@ namespace ortc
 
     //-------------------------------------------------------------------------
     #pragma mark
+    #pragma mark IRTPTypes::PriorityTypes
+    #pragma mark
+
+    enum PriorityTypes {
+      PriorityType_First,
+
+      PriorityType_Unknown =        PriorityType_First,
+
+      PriorityType_VeryLow,
+      PriorityType_Low,
+      PriorityType_Medium,
+      PriorityType_High,
+
+      PriorityType_Last =           PriorityType_High,
+    };
+
+    static const char *toString(PriorityTypes type);
+    static PriorityTypes toPriorityType(const char *type);
+
+    //-------------------------------------------------------------------------
+    #pragma mark
     #pragma mark IRTPTypes::EncodingParameters
     #pragma mark
 
@@ -251,7 +332,7 @@ namespace ortc
       Optional<PayloadType>   mCodecPayloadType;
       Optional<FECParameters> mFEC;
       Optional<RTXParameters> mRTX;
-      double                  mPriority {1.0};
+      Optional<PriorityTypes> mPriority;
       ULONGLONG               mMaxBitrate {};
       double                  mMinQuality {0};
       double                  mFramerateBias {0.5};
