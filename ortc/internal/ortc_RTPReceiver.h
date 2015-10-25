@@ -577,6 +577,17 @@ namespace ortc
                                        ChannelHolderPtr &outChannelHolder
                                        );
 
+      bool findBestExistingLatchAllOrCreateNew(
+                                               CodecKinds kind,
+                                               CodecParameters &codec,
+                                               const String &rid,
+                                               const RTPPacket &rtpPacket,
+                                               ChannelInfoPtr &outChannelInfo,
+                                               ChannelHolderPtr &outChannelHolder
+                                               );
+
+      ULONG findClockRate(PayloadType pt);
+
       bool fillRIDParameters(
                              const String &rid,
                              ChannelInfoPtr &ioChannelInfo
