@@ -1456,7 +1456,7 @@ namespace ortc
     UseServicesHelper::debugAppend(resultEl, "codec payload type", mCodecPayloadType);
     UseServicesHelper::debugAppend(resultEl, "fec", mFEC.hasValue() ? mFEC.value().toDebug() : ElementPtr());
     UseServicesHelper::debugAppend(resultEl, "rtx", mRTX.hasValue() ? mRTX.value().toDebug() : ElementPtr());
-    UseServicesHelper::debugAppend(resultEl, "priority", mPriority.hasValue() ? toString(mPriority) : ((const char *)NULL));
+    UseServicesHelper::debugAppend(resultEl, "priority", toString(mPriority));
     UseServicesHelper::debugAppend(resultEl, "max bitrate", mMaxBitrate);
     UseServicesHelper::debugAppend(resultEl, "min quality", mMinQuality);
     UseServicesHelper::debugAppend(resultEl, "framerate bias", mFramerateBias);

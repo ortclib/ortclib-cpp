@@ -332,7 +332,7 @@ namespace ortc
       Optional<PayloadType>   mCodecPayloadType;
       Optional<FECParameters> mFEC;
       Optional<RTXParameters> mRTX;
-      Optional<PriorityTypes> mPriority;
+      PriorityTypes           mPriority {PriorityType_Unknown};
       ULONGLONG               mMaxBitrate {};
       double                  mMinQuality {0};
       double                  mFramerateBias {0.5};
