@@ -48,6 +48,8 @@
 #define ORTC_SETTING_RTP_RECEIVER_MAX_RTP_PACKETS_IN_BUFFER "ortc/rtp-receiver/max-rtp-packets-in-buffer"
 #define ORTC_SETTING_RTP_RECEIVER_MAX_AGE_RTP_PACKETS_IN_SECONDS "ortc/rtp-receiver/max-age-rtp-packets-in-seconds"
 
+#define ORTC_SETTING_RTP_RECEIVER_CSRC_EXPIRY_TIME_IN_SECONDS "ortc/rtp-receiver/csrc-expiry-time-in-seconds"
+
 namespace ortc
 {
   namespace internal
@@ -238,6 +240,8 @@ namespace ortc
       };
 
       typedef std::map<LocalID, RegisteredHeaderExtension> HeaderExtensionMap;
+
+      typedef std::map<SSRCType, ContributingSource> ContributingSourceMap;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -595,6 +599,12 @@ namespace ortc
       void processByes(const RTCPPacket &rtcpPacket);
       void processSenderReports(const RTCPPacket &rtcpPacket);
 
+      void extractCSRCs(const RTPPacket &rtpPacket);
+      void setContributingSource(
+                                 SSRCType csrc,
+                                 BYTE level
+                                 );
+
     protected:
       //-----------------------------------------------------------------------
       #pragma mark
@@ -651,6 +661,10 @@ namespace ortc
 
       BufferedRTPPacketList mBufferedRTPPackets;
       bool mReattemptRTPDelivery {false};
+
+      ContributingSourceMap mContributingSources;
+      Seconds mContributingSourcesExpiry {};
+      TimerPtr mContributingSourcesTimer;
     };
 
     //-------------------------------------------------------------------------

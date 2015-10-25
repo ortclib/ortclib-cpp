@@ -1650,6 +1650,109 @@ namespace ortc
     return HeaderExtensionURI_Unknown;
   }
 
+
+
+  //---------------------------------------------------------------------------
+  const char *IRTPTypes::toString(KnownFeedbackTypes type)
+  {
+    switch (type) {
+      case KnownFeedbackType_Unknown:               return "";
+
+      case KnownFeedbackType_ACK:                   return "ack";
+      case KnownFeedbackType_APP:                   return "app";
+      case KnownFeedbackType_CCM:                   return "ccm";
+      case KnownFeedbackType_NACK:                  return "nack";
+      case KnownFeedbackType_TRR_INT:               return "trr-int";
+      case KnownFeedbackType_3gpp_roi_arbitrary:    return "3gpp-roi-arbitrary";
+      case KnownFeedbackType_3gpp_roi_predefined:   return "3gpp-roi-predefined";
+    }
+
+    return "unknown";
+  }
+
+  //---------------------------------------------------------------------------
+  IRTPTypes::KnownFeedbackTypes IRTPTypes::toKnownFeedbackType(const char *type)
+  {
+    String typeStr(type);
+
+    for (KnownFeedbackTypes index = KnownFeedbackType_First; index <= KnownFeedbackType_Last; index = static_cast<KnownFeedbackTypes>(static_cast<std::underlying_type<KnownFeedbackTypes>::type>(index) + 1)) {
+      if (0 == typeStr.compareNoCase(IRTPTypes::toString(index))) return index;
+    }
+
+    return KnownFeedbackType_Unknown;
+  }
+
+  //---------------------------------------------------------------------------
+  const char *IRTPTypes::toString(KnownFeedbackMechanisms mechanism)
+  {
+    switch (mechanism) {
+      case KnownFeedbackMechanism_Unknown:    return "";
+
+      case KnownFeedbackMechanism_SLI:        return "sli";
+      case KnownFeedbackMechanism_PLI:        return "pli";
+      case KnownFeedbackMechanism_RPSI:       return "rpsi";
+      case KnownFeedbackMechanism_APP:        return "app";
+      case KnownFeedbackMechanism_RAI:        return "rai";
+      case KnownFeedbackMechanism_TLLEI:      return "tllei";
+      case KnownFeedbackMechanism_PSLEI:      return "pslei";
+      case KnownFeedbackMechanism_FIR:        return "fir";
+      case KnownFeedbackMechanism_TMMBR:      return "tmmbr";
+      case KnownFeedbackMechanism_TSTR:       return "tstr";
+      case KnownFeedbackMechanism_VBCM:       return "vbcm";
+      case KnownFeedbackMechanism_PAUSE:      return "pause";
+      case KnownFeedbackMechanism_REMB:       return "goog-remb";
+    }
+
+    return "unknown";
+  }
+
+  //---------------------------------------------------------------------------
+  IRTPTypes::KnownFeedbackMechanisms IRTPTypes::toKnownFeedbackMechanism(const char *mechanism)
+  {
+    String mechanismStr(mechanism);
+
+    for (KnownFeedbackMechanisms index = KnownFeedbackMechanism_First; index <= KnownFeedbackMechanism_Last; index = static_cast<KnownFeedbackMechanisms>(static_cast<std::underlying_type<KnownFeedbackMechanisms>::type>(index) + 1)) {
+      if (0 == mechanismStr.compareNoCase(IRTPTypes::toString(index))) return index;
+    }
+
+    return KnownFeedbackMechanism_Unknown;
+  }
+
+  //---------------------------------------------------------------------------
+  IRTPTypes::KnownFeedbackTypesSet IRTPTypes::getUseableWithFeedbackTypes(KnownFeedbackMechanisms mechanism)
+  {
+    KnownFeedbackTypesSet result;
+
+    switch (mechanism) {
+      case KnownFeedbackMechanism_Unknown:    break;
+
+      case KnownFeedbackMechanism_SLI:
+      case KnownFeedbackMechanism_PLI:
+      case KnownFeedbackMechanism_RAI:
+      case KnownFeedbackMechanism_TLLEI:
+      case KnownFeedbackMechanism_PSLEI:      {
+        result.insert(KnownFeedbackType_NACK);
+        break;
+      }
+      case KnownFeedbackMechanism_RPSI:
+      case KnownFeedbackMechanism_APP:        {
+        result.insert(KnownFeedbackType_ACK);
+        result.insert(KnownFeedbackType_NACK);
+        break;
+      }
+      case KnownFeedbackMechanism_REMB:
+      case KnownFeedbackMechanism_FIR:
+      case KnownFeedbackMechanism_TMMBR:
+      case KnownFeedbackMechanism_TSTR:
+      case KnownFeedbackMechanism_VBCM:
+      case KnownFeedbackMechanism_PAUSE:      {
+        result.insert(KnownFeedbackType_CCM);
+        break;
+      }
+    }
+    return result;
+  }
+
   //---------------------------------------------------------------------------
   const char *IRTPTypes::toString(SupportedRTCPMechanisms mechanism)
   {

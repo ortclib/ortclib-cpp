@@ -117,6 +117,8 @@ namespace ortc
 
       UseSettings::setUInt(ORTC_SETTING_RTP_RECEIVER_MAX_RTP_PACKETS_IN_BUFFER, 100);
       UseSettings::setUInt(ORTC_SETTING_RTP_RECEIVER_MAX_AGE_RTP_PACKETS_IN_SECONDS, 30);
+
+      UseSettings::setUInt(ORTC_SETTING_RTP_RECEIVER_CSRC_EXPIRY_TIME_IN_SECONDS, 10);
     }
 
     //-------------------------------------------------------------------------
@@ -446,6 +448,13 @@ namespace ortc
 
       mSSRCTableTimer = Timer::create(mThisWeak.lock(), (zsLib::toMilliseconds(mSSRCTableExpires) / 2));
 
+      mContributingSourcesExpiry = Seconds(UseSettings::getUInt(ORTC_SETTING_RTP_RECEIVER_CSRC_EXPIRY_TIME_IN_SECONDS));
+      if (mContributingSourcesExpiry < Seconds(1)) {
+        mContributingSourcesExpiry = Seconds(1);
+      }
+
+      mContributingSourcesTimer = Timer::create(mThisWeak.lock(), (zsLib::toMilliseconds(mContributingSourcesExpiry) / 2));
+
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
     }
 
@@ -551,8 +560,9 @@ namespace ortc
       if (delegate) {
         RTPReceiverPtr pThis = mThisWeak.lock();
 
-#define TODO_DO_WE_NEED_TO_TELL_ABOUT_ANY_MISSED_EVENTS 1
-#define TODO_DO_WE_NEED_TO_TELL_ABOUT_ANY_MISSED_EVENTS 2
+        if (0 != mLastError) {
+          mSubscriptions.delegate()->onRTPReceiverError(pThis, mLastError, mLastErrorReason);
+        }
       }
 
       if (isShutdown()) {
@@ -657,9 +667,214 @@ namespace ortc
     //-------------------------------------------------------------------------
     IRTPReceiverTypes::CapabilitiesPtr RTPReceiver::getCapabilities(Optional<Kinds> kind)
     {
+      typedef std::set<KnownFeedbackMechanisms> KnownFeedbackMechanismsSet;
+
       CapabilitiesPtr result(make_shared<Capabilities>());
-#define TODO 1
-#define TODO 2
+
+      for (IRTPTypes::SupportedCodecs index = IRTPTypes::SupportedCodec_First; index <= IRTPTypes::SupportedCodec_Last; index = static_cast<IRTPTypes::SupportedCodecs>(static_cast<std::underlying_type<IRTPTypes::SupportedCodecs>::type>(index) + 1)) {
+
+        CodecCapability codec;
+        KnownFeedbackMechanismsSet mechanisms;
+
+        codec.mName = IRTPTypes::toString(index);
+        codec.mMaxPTime = 60;
+
+        switch (IRTPTypes::getCodecKind(index)) {
+
+          case IRTPTypes::CodecKind_Unknown:    break;
+          case IRTPTypes::CodecKind_Audio:
+          case IRTPTypes::CodecKind_AudioSupplemental:
+          {
+            codec.mNumChannels = 1;
+            codec.mKind = "audio";
+            break;
+          }
+          case IRTPTypes::CodecKind_Video:
+          {
+            codec.mKind = "video";
+            mechanisms.insert(KnownFeedbackMechanism_REMB);
+            mechanisms.insert(KnownFeedbackMechanism_PLI);
+            mechanisms.insert(KnownFeedbackMechanism_FIR);
+            mechanisms.insert(KnownFeedbackMechanism_RPSI);
+            mechanisms.insert(KnownFeedbackMechanism_TMMBR);
+
+            codec.mClockRate = 90000;
+            break;
+          }
+
+          case IRTPTypes::CodecKind_AV:         break;
+          case IRTPTypes::CodecKind_RTX:        {
+            codec.mClockRate = 90000;
+            break;
+          }
+          case IRTPTypes::CodecKind_FEC:        {
+            codec.mClockRate = 90000;
+            break;
+          }
+          case IRTPTypes::CodecKind_Data:
+          {
+            break;
+          }
+        }
+
+        bool add = true;
+
+        switch (index) {
+          case IRTPTypes::SupportedCodec_Unknown: {
+            add = false;
+            break;
+          }
+          case IRTPTypes::SupportedCodec_Opus:    {
+            codec.mNumChannels = 2;
+            codec.mClockRate = 48000;
+            break;
+          }
+          case IRTPTypes::SupportedCodec_Isac:    {
+            codec.mClockRate = 32000;
+            break;
+          }
+          case IRTPTypes::SupportedCodec_G722:    {
+            codec.mClockRate = 16000;
+            break;
+          }
+          case IRTPTypes::SupportedCodec_ILBC:    {
+            codec.mClockRate = 16000;
+            codec.mMaxPTime = 30;
+            break;
+          }
+          case IRTPTypes::SupportedCodec_PCMU:
+          case IRTPTypes::SupportedCodec_PCMA:    {
+            codec.mClockRate = 8000;
+            break;
+          }
+
+            // video codecs
+          case IRTPTypes::SupportedCodec_VP8:
+          case IRTPTypes::SupportedCodec_VP9:
+          case IRTPTypes::SupportedCodec_H264:    {
+            break;
+          }
+
+            // RTX
+          case IRTPTypes::SupportedCodec_RTX:     break;
+
+            // FEC
+          case IRTPTypes::SupportedCodec_RED:     break;
+          case IRTPTypes::SupportedCodec_ULPFEC:  break;
+
+          case IRTPTypes::SupportedCodec_CN:              {
+            codec.mClockRate = 32000;
+            break;
+          }
+            
+          case IRTPTypes::SupportedCodec_TelephoneEvent:  {
+            codec.mClockRate = 8000;
+            break;
+          }
+        }
+
+        for (auto iter = mechanisms.begin(); iter != mechanisms.end(); ++iter) {
+          auto mechanism = (*iter);
+
+          auto typesSet = IRTPTypes::getUseableWithFeedbackTypes(mechanism);
+          for (auto iterTypes = typesSet.begin(); iterTypes != typesSet.end(); ++iterTypes) {
+            auto type = (*iterTypes);
+            IRTPTypes::RtcpFeedback feedback;
+            feedback.mType = IRTPTypes::toString(type);
+            feedback.mParameter = IRTPTypes::toString(mechanism);
+            codec.mFeedback.push_back(feedback);
+          }
+        }
+
+        switch (index) {
+          case IRTPTypes::SupportedCodec_Unknown:         break;
+          case IRTPTypes::SupportedCodec_Opus:            break;
+          case IRTPTypes::SupportedCodec_Isac:            {
+            result->mCodecs.push_back(codec);
+            codec.mClockRate = 16000;
+            break;
+          }
+          case IRTPTypes::SupportedCodec_G722:            break;
+          case IRTPTypes::SupportedCodec_ILBC:            {
+            result->mCodecs.push_back(codec);
+            codec.mClockRate = 8000;
+            break;
+          }
+          case IRTPTypes::SupportedCodec_PCMU:            break;
+          case IRTPTypes::SupportedCodec_PCMA:            break;
+
+            // video codecs
+          case IRTPTypes::SupportedCodec_VP8:             break;
+          case IRTPTypes::SupportedCodec_VP9:             break;
+          case IRTPTypes::SupportedCodec_H264:            break;
+
+            // RTX
+          case IRTPTypes::SupportedCodec_RTX:             break;
+
+            // FEC
+          case IRTPTypes::SupportedCodec_RED:             break;
+          case IRTPTypes::SupportedCodec_ULPFEC:          break;
+
+          case IRTPTypes::SupportedCodec_CN:              {
+            result->mCodecs.push_back(codec);
+            codec.mClockRate = 16000;
+            result->mCodecs.push_back(codec);
+            codec.mClockRate = 8000;
+            break;
+          }
+
+          case IRTPTypes::SupportedCodec_TelephoneEvent:  break;
+        }
+
+        if (add) {
+          result->mCodecs.push_back(codec);
+        }
+      }
+
+      USHORT preference = 0;
+
+      for (IRTPTypes::HeaderExtensionURIs index = IRTPTypes::HeaderExtensionURI_First; index <= IRTPTypes::HeaderExtensionURI_Last; index = static_cast<IRTPTypes::HeaderExtensionURIs>(static_cast<std::underlying_type<IRTPTypes::HeaderExtensionURIs>::type>(index) + 1), ++preference) {
+        IRTPTypes::HeaderExtensions ext;
+
+        ext.mPreferredID = preference;
+
+        bool add = true;
+
+        switch (index) {
+          case HeaderExtensionURI_Unknown:                                {
+            add = false;
+            break;
+          }
+
+          case HeaderExtensionURI_MuxID:                                  {
+            break;
+          }
+          case HeaderExtensionURI_ClienttoMixerAudioLevelIndication:
+          case HeaderExtensionURI_MixertoClientAudioLevelIndication:      {
+            ext.mKind = "audio";
+            break;
+          }
+
+          case HeaderExtensionURI_FrameMarking:                           {
+            ext.mKind = "video";
+            break;
+          }
+          case HeaderExtensionURI_RID:                                    {
+            break;
+          }
+
+          case HeaderExtensionURI_3gpp_VideoOrientation:
+          case HeaderExtensionURI_3gpp_VideoOrientation6:                 {
+            ext.mKind = "video";
+            break;
+          }
+        }
+
+        if (add) {
+          result->mHeaderExtensions.push_back(ext);
+        }
+      }
+
       return result;
     }
 
@@ -827,9 +1042,17 @@ namespace ortc
     //-------------------------------------------------------------------------
     IRTPReceiverTypes::ContributingSourceList RTPReceiver::getContributingSources() const
     {
-#define TODO 1
-#define TODO 2
-      return ContributingSourceList();
+      ContributingSourceList result;
+
+      AutoRecursiveLock lock(*this);
+
+      for (auto iter = mContributingSources.begin(); iter != mContributingSources.end(); ++iter) {
+        auto &source = (*iter).second;
+        result.push_back(source);
+      }
+
+      ZS_LOG_TRACE(log("get contributing sources") + ZS_PARAM("total", result.size()))
+      return result;
     }
 
     //-------------------------------------------------------------------------
@@ -865,7 +1088,10 @@ namespace ortc
         }
 
         String rid;
-        if (findMapping(*packet, channelHolder, rid)) goto process_rtp;
+        if (findMapping(*packet, channelHolder, rid)) {
+          extractCSRCs(*packet);
+          goto process_rtp;
+        }
 
         if (isShuttingDown()) {
           ZS_LOG_WARNING(Debug, log("ignoring unhandled packet (during shutdown process)"))
@@ -945,9 +1171,28 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool RTPReceiver::sendPacket(RTCPPacketPtr packet)
     {
-#define TODO 1
-#define TODO 2
-      return false;
+
+      UseSecureTransportPtr rtcpTransport;
+
+      {
+        AutoRecursiveLock lock(*this);
+
+        if (isShutdown()) {
+          ZS_LOG_WARNING(Debug, log("cannot send packet while shutdown"))
+          return false;
+        }
+
+        rtcpTransport = mRTCPTransport;
+      }
+
+      if (!rtcpTransport) {
+        ZS_LOG_WARNING(Debug, log("no rtcp transport is currently attached (thus discarding sent packet)"))
+        return false;
+      }
+
+      ZS_LOG_TRACE(log("sending rtcp packet over secure transport") + ZS_PARAM("size", packet->size()))
+
+      return rtcpTransport->sendPacket(mSendRTCPOverTransport, IICETypes::Component_RTCP, packet->ptr(), packet->size());
     }
 
     //-------------------------------------------------------------------------
@@ -1007,6 +1252,23 @@ namespace ortc
           mSSRCTable.erase(current);
         }
         return;
+      }
+
+      if (timer == mContributingSourcesTimer) {
+        auto tick = zsLib::now();
+
+        for (auto iter_doNotUse = mContributingSources.begin(); iter_doNotUse != mContributingSources.end(); ) {
+          auto current = iter_doNotUse;
+          ++iter_doNotUse;
+
+          auto &source = (*current).second;
+
+          if (source.mTimestamp + mContributingSourcesExpiry > tick) continue;
+
+          ZS_LOG_TRACE(log("expiring contributing source") + source.toDebug())
+
+          mContributingSources.erase(current);
+        }
       }
 
       ZS_LOG_WARNING(Debug, log("notified about obsolete timer (thus ignoring)") + ZS_PARAM("timer id", timer->getID()))
@@ -1113,6 +1375,10 @@ namespace ortc
       UseServicesHelper::debugAppend(resultEl, "buffered rtp packets", mBufferedRTPPackets.size());
       UseServicesHelper::debugAppend(resultEl, "reattempt delivery", mReattemptRTPDelivery);
 
+      UseServicesHelper::debugAppend(resultEl, "contributing sources", mContributingSources.size());
+      UseServicesHelper::debugAppend(resultEl, "contributing sources expiry", mContributingSourcesExpiry);
+      UseServicesHelper::debugAppend(resultEl, "contributing source timer", mContributingSourcesTimer ? mContributingSourcesTimer->getID() : 0);
+
       return resultEl;
     }
 
@@ -1182,6 +1448,8 @@ namespace ortc
         ChannelHolderPtr channelHolder;
         String rid;
         if (!findMapping(*packet, channelHolder, rid)) continue;
+
+        extractCSRCs(*packet);
 
         ZS_LOG_TRACE(log("will attempt to deliver buffered RTP packet") + ZS_PARAM("channel", channelHolder->getID()) + ZS_PARAM("ssrc", packet->ssrc()))
         channelHolder->notify(packet);
@@ -1260,6 +1528,11 @@ namespace ortc
       if (mSSRCTableTimer) {
         mSSRCTableTimer->cancel();
         mSSRCTableTimer.reset();
+      }
+
+      if (mContributingSourcesTimer) {
+        mContributingSourcesTimer->cancel();
+        mContributingSourcesTimer.reset();
       }
 
       // make sure to cleanup any final reference to self
@@ -2337,6 +2610,59 @@ namespace ortc
       }
     }
 
+    //-------------------------------------------------------------------------
+    void RTPReceiver::extractCSRCs(const RTPPacket &rtpPacket)
+    {
+      for (auto ext = rtpPacket.firstHeaderExtension(); NULL != ext; ext = ext->mNext) {
+        LocalID localID = static_cast<LocalID>(ext->mID);
+        auto found = mRegisteredExtensions.find(localID);
+        if (found == mRegisteredExtensions.end()) continue; // header extension is not understood
+
+        RegisteredHeaderExtension &headerInfo = (*found).second;
+
+        switch (headerInfo.mHeaderExtensionURI) {
+          case IRTPTypes::HeaderExtensionURI_ClienttoMixerAudioLevelIndication:   {
+            RTPPacket::ClientToMixerExtension levelExt(*ext);
+            auto level = levelExt.level();
+            setContributingSource(rtpPacket.ssrc(), level);
+            break;
+          }
+          case IRTPTypes::HeaderExtensionURI_MixertoClientAudioLevelIndication:   {
+            RTPPacket::MixerToClientExtension levelExt(*ext);
+            for (size_t index = 0; index < levelExt.levelsCount(); ++index) {
+              auto level = levelExt.level(index);              
+              setContributingSource(rtpPacket.ssrc(), level);
+            }
+            break;
+          }
+          default:
+            // ignored
+            break;
+        }
+      }
+    }
+    
+    //-------------------------------------------------------------------------
+    void RTPReceiver::setContributingSource(
+                                            SSRCType csrc,
+                                            BYTE level
+                                            )
+    {
+      auto found = mContributingSources.find(csrc);
+      if (found == mContributingSources.end()) {
+        ContributingSource source;
+        source.mCSRC = csrc;
+        source.mTimestamp = zsLib::now();
+        source.mAudioLevel = level;
+        mContributingSources[csrc] = source;
+        return;
+      }
+
+      auto &source = (*found).second;
+
+      source.mTimestamp = zsLib::now();
+      source.mAudioLevel = level;
+    }
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------

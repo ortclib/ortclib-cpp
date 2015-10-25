@@ -34,6 +34,7 @@
 #include <ortc/types.h>
 
 #include <list>
+#include <set>
 
 namespace ortc
 {
@@ -422,18 +423,67 @@ namespace ortc
 
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IRTPTypes::KnownFeedbackMechanisms
+    #pragma mark IRTPTypes::KnownFeedbackTypes
+    #pragma mark
+
+    enum KnownFeedbackTypes
+    {
+      KnownFeedbackType_First,
+
+      KnownFeedbackType_Unknown = KnownFeedbackType_First,
+
+      // http://www.iana.org/assignments/sdp-parameters/sdp-parameters.xhtml#sdp-parameters-14
+      KnownFeedbackType_ACK,                                // ack
+      KnownFeedbackType_APP,                                // app
+      KnownFeedbackType_CCM,                                // ccm
+      KnownFeedbackType_NACK,                               // nack
+      KnownFeedbackType_TRR_INT,                            // trr-int
+      KnownFeedbackType_3gpp_roi_arbitrary,                 // 3gpp-roi-arbitrary
+      KnownFeedbackType_3gpp_roi_predefined,                // 3gpp-roi-predefined
+
+      KnownFeedbackType_Last = KnownFeedbackType_3gpp_roi_predefined,
+    };
+
+    typedef std::set<KnownFeedbackTypes> KnownFeedbackTypesSet;
+
+    static const char *toString(KnownFeedbackTypes type);
+    static KnownFeedbackTypes toKnownFeedbackType(const char *type);
+
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IRTPTypes::KnownFeedbackKinds
     #pragma mark
 
     enum KnownFeedbackMechanisms
     {
-      KnownFeedbackMechanism_NACK,          // nack
-      KnownFeedbackMechanism_PLI,           // pli
-      KnownFeedbackMechanism_REMB,          // goog-remb
+      KnownFeedbackMechanism_First,
+
+      KnownFeedbackMechanism_Unknown = KnownFeedbackMechanism_First,
+
+      // http://www.iana.org/assignments/sdp-parameters/sdp-parameters.xhtml#sdp-parameters-15
+      KnownFeedbackMechanism_SLI,                                 // sli
+      KnownFeedbackMechanism_PLI,                                 // pli
+      KnownFeedbackMechanism_RPSI,                                // rpsi
+      KnownFeedbackMechanism_APP,                                 // app
+      KnownFeedbackMechanism_RAI,                                 // rai
+      KnownFeedbackMechanism_TLLEI,                               // tllei
+      KnownFeedbackMechanism_PSLEI,                               // pslei
+
+      //http://www.iana.org/assignments/sdp-parameters/sdp-parameters.xhtml#sdp-parameters-19
+      KnownFeedbackMechanism_FIR,                                 // fir
+      KnownFeedbackMechanism_TMMBR,                               // tmmbr
+      KnownFeedbackMechanism_TSTR,                                // tstr
+      KnownFeedbackMechanism_VBCM,                                // vbcm
+      KnownFeedbackMechanism_PAUSE,                               // pause
+      KnownFeedbackMechanism_REMB,                                // goog-remb
+
+      KnownFeedbackMechanism_Last = KnownFeedbackMechanism_REMB,
     };
 
-    static const char *toSting(KnownFeedbackMechanisms mechanism);
-    static KnownFeedbackMechanisms toFeedbackMechanism(const char *mechanism);
+    static const char *toString(KnownFeedbackMechanisms mechanism);
+    static KnownFeedbackMechanisms toKnownFeedbackMechanism(const char *mechanism);
+
+    static KnownFeedbackTypesSet getUseableWithFeedbackTypes(KnownFeedbackMechanisms mechanism);
 
     //-------------------------------------------------------------------------
     #pragma mark
