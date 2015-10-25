@@ -120,6 +120,8 @@ namespace ortc
 
       UseSettings::setUInt(ORTC_SETTING_RTP_RECEIVER_CSRC_EXPIRY_TIME_IN_SECONDS, 10);
 
+      UseSettings::setUInt(ORTC_SETTING_RTP_RECEIVER_ONLY_RESOLVE_AMBIGUOUS_PAYLOAD_MAPPING_IF_ACTIVITY_DIFFERS_IN_MILLISECONDS, 5*1000);
+
       UseSettings::setUInt(ORTC_SETTING_RTP_RECEIVER_LOCK_TO_RECEIVER_CHANNEL_AFTER_SWITCH_EXCLUSIVELY_FOR_IN_MILLISECONDS, 3*1000);
     }
 
@@ -429,7 +431,8 @@ namespace ortc
       mChannels(make_shared<ChannelWeakMap>()),
       mMaxBufferedRTPPackets(SafeInt<decltype(mMaxBufferedRTPPackets)>(UseSettings::getUInt(ORTC_SETTING_RTP_RECEIVER_MAX_RTP_PACKETS_IN_BUFFER))),
       mMaxRTPPacketAge(UseSettings::getUInt(ORTC_SETTING_RTP_RECEIVER_MAX_AGE_RTP_PACKETS_IN_SECONDS)),
-      mLockAfterSwitchTime(UseSettings::getUInt(ORTC_SETTING_RTP_RECEIVER_LOCK_TO_RECEIVER_CHANNEL_AFTER_SWITCH_EXCLUSIVELY_FOR_IN_MILLISECONDS))
+      mLockAfterSwitchTime(UseSettings::getUInt(ORTC_SETTING_RTP_RECEIVER_LOCK_TO_RECEIVER_CHANNEL_AFTER_SWITCH_EXCLUSIVELY_FOR_IN_MILLISECONDS)),
+      mAmbigousPayloadMappingMinDifference(UseSettings::getUInt(ORTC_SETTING_RTP_RECEIVER_ONLY_RESOLVE_AMBIGUOUS_PAYLOAD_MAPPING_IF_ACTIVITY_DIFFERS_IN_MILLISECONDS))
     {
       ZS_LOG_DETAIL(debug("created"))
 
@@ -1382,6 +1385,12 @@ namespace ortc
       UseServicesHelper::debugAppend(resultEl, "contributing sources expiry", mContributingSourcesExpiry);
       UseServicesHelper::debugAppend(resultEl, "contributing source timer", mContributingSourcesTimer ? mContributingSourcesTimer->getID() : 0);
 
+      UseServicesHelper::debugAppend(resultEl, "current channel", mCurrentChannel ? mCurrentChannel->getID() : 0);
+      UseServicesHelper::debugAppend(resultEl, "last switched current channel", mLastSwitchedCurrentChannel);
+      UseServicesHelper::debugAppend(resultEl, "lock after switch time", mLockAfterSwitchTime);
+
+      UseServicesHelper::debugAppend(resultEl, "ambiguous payload mapping min difference", mAmbigousPayloadMappingMinDifference);
+
       return resultEl;
     }
 
@@ -1507,8 +1516,6 @@ namespace ortc
 
       //.......................................................................
       // final cleanup
-#define TODO 1
-#define TODO 2
 
       setState(State_Shutdown);
 
@@ -1519,12 +1526,25 @@ namespace ortc
         mDefaultSubscription.reset();
       }
 
+      resetActiveReceiverChannel();
+
+      for (auto iter = mChannels->begin(); iter != mChannels->end(); ++iter) {
+        auto channelHolder = (*iter).second.lock();
+        if (!channelHolder) continue;
+
+        channelHolder->notify(ISecureTransport::State_Closed);
+      }
+
+      ChannelWeakMapPtr channels = ChannelWeakMapPtr(make_shared<ChannelWeakMap>());
+      mChannels = channels;
+
       if (mParameters) {
         mListener->unregisterReceiver(*this);
       }
 
       mRegisteredExtensions.clear();
 
+      mChannelInfos.clear();
       mSSRCTable.clear();
       mRIDTable.clear();
 
@@ -1533,6 +1553,9 @@ namespace ortc
         mSSRCTableTimer.reset();
       }
 
+      mBufferedRTPPackets.clear();
+
+      mContributingSources.clear();
       if (mContributingSourcesTimer) {
         mContributingSourcesTimer->cancel();
         mContributingSourcesTimer.reset();
@@ -2118,7 +2141,11 @@ namespace ortc
     {
       if (mCleanChannels) return;
       mCleanChannels = true;
-      IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
+
+      auto pThis = mThisWeak.lock();  // NOTE: possible to be called during destruction
+      if (pThis) {
+        IWakeDelegateProxy::create(pThis)->onWake();
+      }
     }
 
     //-------------------------------------------------------------------------
@@ -2648,6 +2675,17 @@ namespace ortc
           if (foundChannelInfo) {
             // look at the latest time the master SSRC was used
 
+            auto tick = zsLib::now();
+
+            auto diffLast = tick - lastMatchUsageTime;
+            auto diffCurrent = tick - ssrcInfo->mLastUsage;
+
+            if ((diffLast > mAmbigousPayloadMappingMinDifference) &&
+                (diffCurrent > mAmbigousPayloadMappingMinDifference)) {
+              ZS_LOG_WARNING(Debug, log("ambiguity exists to which receiver channel the packet should match because both channels have been recendly active (thus cannot pick any encoding)") + ZS_PARAM("tick", tick) + ZS_PARAM("match time", lastMatchUsageTime) + ZS_PARAM("ambiguity window", mAmbigousPayloadMappingMinDifference) + ZS_PARAM("diff last", diffLast) + ZS_PARAM("diff current", diffCurrent) + ssrcInfo->toDebug() + ZS_PARAM("previous find", foundChannelHolder->toDebug()) + ZS_PARAM("found", channelHolder->toDebug()))
+              return false;
+            }
+
             if (ssrcInfo->mLastUsage < lastMatchUsageTime) {
               ZS_LOG_WARNING(Trace, log("possible ambiguity in match (but going with previous more recent usage)") + ZS_PARAM("match time", lastMatchUsageTime) + ssrcInfo->toDebug())
               continue;
@@ -3064,6 +3102,8 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPReceiver::resetActiveReceiverChannel()
     {
+      if (!mCurrentChannel) return;
+
       mCurrentChannel.reset();
       mLastSwitchedCurrentChannel = Time();
       mTrack->notifyActiveReceiverChannel(RTPReceiverChannelPtr());

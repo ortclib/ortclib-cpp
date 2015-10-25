@@ -50,6 +50,8 @@
 
 #define ORTC_SETTING_RTP_RECEIVER_CSRC_EXPIRY_TIME_IN_SECONDS "ortc/rtp-receiver/csrc-expiry-time-in-seconds"
 
+#define ORTC_SETTING_RTP_RECEIVER_ONLY_RESOLVE_AMBIGUOUS_PAYLOAD_MAPPING_IF_ACTIVITY_DIFFERS_IN_MILLISECONDS "ortc/rtp-receiver/only-resolve-ambiguous-payload-mapping-if-activity-differs-in-milliseconds"
+
 #define ORTC_SETTING_RTP_RECEIVER_LOCK_TO_RECEIVER_CHANNEL_AFTER_SWITCH_EXCLUSIVELY_FOR_IN_MILLISECONDS "ortc/rtp-receiver/lock-to-receiver-channel-after-switch-in-milliseconds"
 
 namespace ortc
@@ -689,6 +691,8 @@ namespace ortc
       ChannelHolderPtr mCurrentChannel;
       Time mLastSwitchedCurrentChannel;
       Milliseconds mLockAfterSwitchTime {};
+
+      Milliseconds mAmbigousPayloadMappingMinDifference {};
     };
 
     //-------------------------------------------------------------------------
