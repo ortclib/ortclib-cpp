@@ -249,7 +249,7 @@ namespace ortc
     void RTPReceiver::ChannelHolder::update(const Parameters &params)
     {
       if (ISecureTransport::State_Closed == mLastReportedState) return;
-      mChannel->update(params);
+      mChannel->notifyUpdate(params);
     }
 
     //-------------------------------------------------------------------------
@@ -701,7 +701,7 @@ namespace ortc
             mechanisms.insert(KnownFeedbackMechanism_REMB);
             mechanisms.insert(KnownFeedbackMechanism_PLI);
             mechanisms.insert(KnownFeedbackMechanism_FIR);
-            mechanisms.insert(KnownFeedbackMechanism_RPSI);
+            mechanisms.insert(KnownFeedbackMechanism_RPSI); // ?
             mechanisms.insert(KnownFeedbackMechanism_TMMBR);
 
             codec.mClockRate = 90000;

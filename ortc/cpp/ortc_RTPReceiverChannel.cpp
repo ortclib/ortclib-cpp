@@ -262,11 +262,10 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPReceiverChannel::update(const Parameters &params)
+    void RTPReceiverChannel::notifyUpdate(const Parameters &params)
     {
-      AutoRecursiveLock lock(*this);
-#define TODO 1
-#define TODO 2
+      // do NOT lock this object here, instead notify self asynchronously
+      IRTPReceiverChannelAsyncDelegateProxy::create(mThisWeak.lock())->onUpdate(make_shared<Parameters>(params));
     }
 
     //-------------------------------------------------------------------------
@@ -370,12 +369,25 @@ namespace ortc
 
       AutoRecursiveLock lock(*this);
 
-      // WARNING: Do NOT modify the contents of "packets" as this same list
-      //          could have been sent to multiple channels simultaneously.
-      //          Use COW pattern if needing mutability.
+      // WARNING: Do NOT modify the contents of "packets" as the pointer to
+      //          this list could have been sent to multiple receiver channels
+      //          simultaneously. Use COW pattern if needing mutability.
 
 #define TODO 1
 #define TODO 2
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPReceiverChannel::onUpdate(ParametersPtr params)
+    {
+      ZS_LOG_TRACE(log("on update") + params->toDebug())
+
+      AutoRecursiveLock lock(*this);
+
+#define TODO 1
+#define TODO 2
+
+      mParameters = params;
     }
 
     //-------------------------------------------------------------------------
