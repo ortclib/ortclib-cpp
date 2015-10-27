@@ -1015,6 +1015,9 @@ namespace ortc
         typedef std::pair<ReceiverChannelID, FakeReceiverChannelPtr> FakeReceiverChannelPair;
         typedef std::list<FakeReceiverChannelPair> FakeReceiverChannelList;
 
+        typedef String ParametersID;
+        typedef std::map<ParametersID, ParametersPtr> ParametersMap;
+
         //---------------------------------------------------------------------
         #pragma mark
         #pragma mark RTPReceiverTester::UnhandledEventData
@@ -1085,20 +1088,19 @@ namespace ortc
 
       public:
         struct Expectations {
-          // data channel related
-          ULONG mStateConnecting {0};
-          ULONG mStateOpen {0};
-          ULONG mStateClosing {0};
-          ULONG mStateClosed {0};
-
+          // listener related
           ULONG mUnhandled {0};
+
+          // general
           ULONG mReceivedPackets {0};
 
+          // receiver cannel related
           ULONG mError {0};
           ULONG mChannelUpdate {0};
-
-          ULONG mActiveReceiverChannel {0};
           ULONG mReceiverChannelOfSecureTransportState {0};
+
+          // media stream track
+          ULONG mActiveReceiverChannel {0};
 
           IMediaStreamTrackTypes::Kinds mKind {IMediaStreamTrack::Kind_Audio};
 
@@ -1141,18 +1143,18 @@ namespace ortc
 
         void createReceiverChannel(
                                    const char *receiverChannelID,
-                                   const Parameters &expectedParams
+                                   const char *parametersID
                                    );
         void createSender(const char *senderID);
 
         void send(
                   const char *senderID,
-                  const Parameters &params
+                  const char *parametersID
                   );
 
-        void receive(const Parameters &params);
+        void receive(const char *parametersID);
 
-        void stop(const char *senderOrReceiverID);
+        void stop(const char *senderOrReceiverChannelID);
 
         void attach(
                     const char *receiverChannelID,
@@ -1193,8 +1195,14 @@ namespace ortc
                    const char *packetID,
                    RTCPPacketPtr packet
                    );
+        void store(
+                   const char *parametersID,
+                   const Parameters &params
+                   );
+
         RTPPacketPtr getRTPPacket(const char *packetID);
         RTCPPacketPtr getRTCPPacket(const char *packetID);
+        ParametersPtr getParameters(const char *parametersID);
 
         void sendPacket(
                         const char *packetID,
@@ -1303,6 +1311,8 @@ namespace ortc
         FakeReceiverChannelList mFakeReceiverChannelCreationList;
 
         UnhandledEventDataList mExpectingUnhandled;
+
+        ParametersMap mParameters;
       };
     }
   }
