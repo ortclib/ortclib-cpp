@@ -7,9 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		0008910E1BD01DB100D3D45D /* ortc_RTPReceiverChannel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0008910C1BD01DB100D3D45D /* ortc_RTPReceiverChannel.cpp */; settings = {ASSET_TAGS = (); }; };
-		0008910F1BD01DB100D3D45D /* ortc_RTPSenderChannel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0008910D1BD01DB100D3D45D /* ortc_RTPSenderChannel.cpp */; settings = {ASSET_TAGS = (); }; };
-		000E70841BD3E17700622A01 /* ortc_RTPUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 000E70831BD3E17700622A01 /* ortc_RTPUtils.cpp */; settings = {ASSET_TAGS = (); }; };
+		0008910E1BD01DB100D3D45D /* ortc_RTPReceiverChannel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0008910C1BD01DB100D3D45D /* ortc_RTPReceiverChannel.cpp */; };
+		0008910F1BD01DB100D3D45D /* ortc_RTPSenderChannel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0008910D1BD01DB100D3D45D /* ortc_RTPSenderChannel.cpp */; };
+		000E70841BD3E17700622A01 /* ortc_RTPUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 000E70831BD3E17700622A01 /* ortc_RTPUtils.cpp */; };
 		00265E521B3DE72C00D9B45F /* ortc_SRTPTransport.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00265E511B3DE72C00D9B45F /* ortc_SRTPTransport.cpp */; settings = {COMPILER_FLAGS = "-Wno-undefined-bool-conversion"; }; };
 		00265E591B40981500D9B45F /* ortc_RTPListener.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00265E581B40981500D9B45F /* ortc_RTPListener.cpp */; settings = {COMPILER_FLAGS = "-Wno-undefined-bool-conversion"; }; };
 		003199081AD0496D000511CC /* ortc_ICEGatherer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 003199071AD0496D000511CC /* ortc_ICEGatherer.cpp */; settings = {COMPILER_FLAGS = "-Wno-undefined-bool-conversion"; }; };

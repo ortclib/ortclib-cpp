@@ -1511,6 +1511,14 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IRTPTypes::CodecKinds
+  #pragma mark
+
+  //---------------------------------------------------------------------------
   const char *IRTPTypes::toString(CodecKinds kind)
   {
     switch (kind) {
@@ -1538,6 +1546,14 @@ namespace ortc
 
     return CodecKind_Unknown;
   }
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IRTPTypes::SupportedCodecs
+  #pragma mark
 
   //---------------------------------------------------------------------------
   const char *IRTPTypes::toString(SupportedCodecs codec)
@@ -1610,6 +1626,14 @@ namespace ortc
     
     return CodecKind_Unknown;
   }
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IRTPTypes::ReservedCodecPayloadTypes
+  #pragma mark
 
   //---------------------------------------------------------------------------
   const char *IRTPTypes::toString(ReservedCodecPayloadTypes reservedCodec)
@@ -1808,6 +1832,14 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IRTPTypes::HeaderExtensionURIs
+  #pragma mark
+
+  //---------------------------------------------------------------------------
   const char *IRTPTypes::toString(HeaderExtensionURIs extension)
   {
     switch (extension) {
@@ -1836,7 +1868,46 @@ namespace ortc
     return HeaderExtensionURI_Unknown;
   }
 
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IRTPTypes::KnownFeedbackTypes
+  #pragma mark
 
+  //---------------------------------------------------------------------------
+  const char *IRTPTypes::toString(KnownFECMechanisms mechanism)
+  {
+    switch (mechanism) {
+      case KnownFECMechanism_Unknown:       return "";
+      case KnownFECMechanism_RED:           return "red";
+      case KnownFECMechanism_RED_ULPFEC:    return "red+ulpfec";
+      case KnownFECMechanism_FLEXFEC:       return "flexfec";
+    }
+
+    return "unknown";  }
+
+  //---------------------------------------------------------------------------
+  IRTPTypes::KnownFECMechanisms IRTPTypes::toKnownFECMechanism(const char *mechanism)
+  {
+    String mechanismStr(mechanism);
+
+    for (KnownFECMechanisms index = KnownFECMechanism_First; index <= KnownFECMechanism_Last; index = static_cast<KnownFECMechanisms>(static_cast<std::underlying_type<KnownFECMechanisms>::type>(index) + 1)) {
+      if (mechanismStr == IRTPTypes::toString(index)) return index;
+    }
+
+    return KnownFECMechanism_Unknown;
+  }
+
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IRTPTypes::KnownFeedbackTypes
+  #pragma mark
 
   //---------------------------------------------------------------------------
   const char *IRTPTypes::toString(KnownFeedbackTypes type)
@@ -1867,6 +1938,14 @@ namespace ortc
 
     return KnownFeedbackType_Unknown;
   }
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IRTPTypes::KnownFeedbackMechanisms
+  #pragma mark
 
   //---------------------------------------------------------------------------
   const char *IRTPTypes::toString(KnownFeedbackMechanisms mechanism)
@@ -1938,6 +2017,14 @@ namespace ortc
     }
     return result;
   }
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IRTPTypes::SupportedRTCPMechanisms
+  #pragma mark
 
   //---------------------------------------------------------------------------
   const char *IRTPTypes::toString(SupportedRTCPMechanisms mechanism)

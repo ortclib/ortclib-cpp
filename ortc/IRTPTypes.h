@@ -502,6 +502,28 @@ namespace ortc
     static const char *toString(HeaderExtensionURIs extension);         // converts header enum to URN format
     static HeaderExtensionURIs toHeaderExtensionURI(const char *uri);
 
+
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IRTPTypes::KnownFECMechanisms
+    #pragma mark
+
+    enum KnownFECMechanisms
+    {
+      KnownFECMechanism_First,
+
+      KnownFECMechanism_Unknown = KnownFECMechanism_First,
+
+      KnownFECMechanism_RED,                                // "red" https://tools.ietf.org/html/rfc2198 as a redendent FEC mechanism
+      KnownFECMechanism_RED_ULPFEC,                         // "red+ulpfec" https://tools.ietf.org/html/rfc5109 as a single SSRC stream using RED
+      KnownFECMechanism_FLEXFEC,                            // "flexfec" https://tools.ietf.org/html/draft-ietf-payload-flexible-fec-scheme-01
+
+      KnownFECMechanism_Last = KnownFECMechanism_FLEXFEC,
+    };
+
+    static const char *toString(KnownFECMechanisms mechanism);
+    static KnownFECMechanisms toKnownFECMechanism(const char *mechanism);
+
     //-------------------------------------------------------------------------
     #pragma mark
     #pragma mark IRTPTypes::KnownFeedbackTypes

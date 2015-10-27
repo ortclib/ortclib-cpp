@@ -364,9 +364,9 @@ namespace ortc
                   );
 
     protected:
-      RTPListener(Noop) :
+      RTPListener(Noop, IMessageQueuePtr queue = IMessageQueuePtr()) :
         Noop(true),
-        MessageQueueAssociator(IMessageQueuePtr()),
+        MessageQueueAssociator(queue),
         SharedRecursiveLock(SharedRecursiveLock::create())
       {}
 

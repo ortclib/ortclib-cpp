@@ -249,9 +249,9 @@ namespace ortc
                        );
 
     protected:
-      MediaStreamTrack(Noop) :
+      MediaStreamTrack(Noop, IMessageQueuePtr queue = IMessageQueuePtr()) :
         Noop(true),
-        MessageQueueAssociator(IMessageQueuePtr()),
+        MessageQueueAssociator(queue),
         SharedRecursiveLock(SharedRecursiveLock::create())
       {}
 

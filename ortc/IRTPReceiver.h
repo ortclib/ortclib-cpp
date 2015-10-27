@@ -126,7 +126,7 @@ namespace ortc
     typedef WORD ErrorCode;
 
     virtual void onRTPReceiverError(
-                                    IRTPReceiverPtr sender,
+                                    IRTPReceiverPtr receiver,
                                     ErrorCode errorCode,
                                     String errorReason
                                     ) = 0;

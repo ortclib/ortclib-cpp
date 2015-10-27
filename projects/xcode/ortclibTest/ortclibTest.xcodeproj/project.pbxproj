@@ -11,6 +11,7 @@
 		00429A921BA76FCE00D65AAB /* TestRTPPacket.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00429A911BA76FCE00D65AAB /* TestRTPPacket.cpp */; };
 		004B60A71B275AD900568C22 /* TestSetup.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 004B60A61B275AD900568C22 /* TestSetup.cpp */; };
 		004D7A901BB0368800F5E461 /* TestRTCPPacket.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 004D7A8F1BB0368800F5E461 /* TestRTCPPacket.cpp */; };
+		0055472B1BDE92040033F91F /* TestRTPReceiver.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0055472A1BDE92040033F91F /* TestRTPReceiver.cpp */; };
 		0055897F1B56A1ED00337372 /* TestSRTP.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0055897E1B56A1ED00337372 /* TestSRTP.cpp */; };
 		0056EE9C1B13B1BA0035B351 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0056EE991B13B1BA0035B351 /* main.cpp */; };
 		0056EE9D1B13B1BA0035B351 /* testing.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0056EE9A1B13B1BA0035B351 /* testing.cpp */; settings = {COMPILER_FLAGS = "-Wno-unreachable-code"; }; };
@@ -86,9 +87,9 @@
 		94A4EE0F1B8B48D3008473EF /* QTKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 94A4EE0E1B8B48D3008473EF /* QTKit.framework */; };
 		94A4EE131B8B492D008473EF /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 94A4EE121B8B492D008473EF /* OpenGL.framework */; };
 		94D43CC91B8B413C00B3A66F /* libcryptopp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 00EC10A71B56F453008FC2A0 /* libcryptopp.a */; };
-		E2688C681BCFAF55005C3731 /* librtc_event_log_proto.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E2688C661BCFAF55005C3731 /* librtc_event_log_proto.a */; settings = {ASSET_TAGS = (); }; };
-		E2688C691BCFAF55005C3731 /* librtc_event_log.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E2688C671BCFAF55005C3731 /* librtc_event_log.a */; settings = {ASSET_TAGS = (); }; };
-		E2688C711BCFAF6A005C3731 /* libisac_common.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E2688C701BCFAF6A005C3731 /* libisac_common.a */; settings = {ASSET_TAGS = (); }; };
+		E2688C681BCFAF55005C3731 /* librtc_event_log_proto.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E2688C661BCFAF55005C3731 /* librtc_event_log_proto.a */; };
+		E2688C691BCFAF55005C3731 /* librtc_event_log.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E2688C671BCFAF55005C3731 /* librtc_event_log.a */; };
+		E2688C711BCFAF6A005C3731 /* libisac_common.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E2688C701BCFAF6A005C3731 /* libisac_common.a */; };
 		E2973FEF1BBC420D0000CDDB /* libhfservices.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5005D8E81B5DCC6A00AFEC07 /* libhfservices.a */; };
 		E2973FF01BBC420D0000CDDB /* libidnkit.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 00EC10AA1B56F453008FC2A0 /* libidnkit.a */; };
 		E2973FF11BBC420D0000CDDB /* libortclib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5005D8EC1B5DCC6A00AFEC07 /* libortclib.a */; };
@@ -176,6 +177,8 @@
 		00429A911BA76FCE00D65AAB /* TestRTPPacket.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TestRTPPacket.cpp; sourceTree = "<group>"; };
 		004B60A61B275AD900568C22 /* TestSetup.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TestSetup.cpp; sourceTree = "<group>"; };
 		004D7A8F1BB0368800F5E461 /* TestRTCPPacket.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TestRTCPPacket.cpp; sourceTree = "<group>"; };
+		0055472A1BDE92040033F91F /* TestRTPReceiver.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TestRTPReceiver.cpp; sourceTree = "<group>"; };
+		005547321BDE92120033F91F /* TestRTPReceiver.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TestRTPReceiver.h; sourceTree = "<group>"; };
 		0055897E1B56A1ED00337372 /* TestSRTP.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TestSRTP.cpp; sourceTree = "<group>"; };
 		0056EE8A1B13B0910035B351 /* ortclibTest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = ortclibTest; sourceTree = BUILT_PRODUCTS_DIR; };
 		0056EE8D1B13B0910035B351 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
@@ -415,6 +418,8 @@
 				006A7EDB1BB9712C00DF0F29 /* TestRTPListener.h */,
 				00429A911BA76FCE00D65AAB /* TestRTPPacket.cpp */,
 				004D7A8F1BB0368800F5E461 /* TestRTCPPacket.cpp */,
+				0055472A1BDE92040033F91F /* TestRTPReceiver.cpp */,
+				005547321BDE92120033F91F /* TestRTPReceiver.h */,
 				00AEDD331B9F21180050A0E6 /* TestSCTP.cpp */,
 				00AEDD681B9F572B0050A0E6 /* TestSCTP.h */,
 				0055897E1B56A1ED00337372 /* TestSRTP.cpp */,
@@ -724,6 +729,7 @@
 				00429A921BA76FCE00D65AAB /* TestRTPPacket.cpp in Sources */,
 				00AEDD341B9F21180050A0E6 /* TestSCTP.cpp in Sources */,
 				006A7EA71BB9712300DF0F29 /* TestRTPListener.cpp in Sources */,
+				0055472B1BDE92040033F91F /* TestRTPReceiver.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -188,7 +188,7 @@ namespace ortc
         #pragma mark
 
         //---------------------------------------------------------------------
-        virtual void onPacketFromLinkedFakedTransport(SecureByteBlockPtr buffer);
+        virtual void onPacketFromLinkedFakedTransport(SecureByteBlockPtr buffer) override;
 
         //---------------------------------------------------------------------
         #pragma mark
@@ -196,7 +196,7 @@ namespace ortc
         #pragma mark
 
         //---------------------------------------------------------------------
-        virtual void onTimer(TimerPtr timer);
+        virtual void onTimer(TimerPtr timer) override;
 
         //---------------------------------------------------------------------
         #pragma mark
@@ -340,9 +340,9 @@ namespace ortc
                                 IICETypes::Components packetType,
                                 const BYTE *buffer,
                                 size_t bufferLengthInBytes
-                                );
+                                ) override;
 
-        virtual IICETransportPtr getICETransport() const;
+        virtual IICETransportPtr getICETransport() const override;
 
         //---------------------------------------------------------------------
         #pragma mark
@@ -359,7 +359,7 @@ namespace ortc
                                   IICETypes::Components component,
                                   const BYTE *buffer,
                                   size_t bufferSizeInBytes
-                                  );
+                                  ) override;
 
       protected:
         //---------------------------------------------------------------------
@@ -711,7 +711,8 @@ namespace ortc
                                                IRTPListenerPtr listener,
                                                SSRCType ssrc,
                                                PayloadType payloadType,
-                                               const char *mid
+                                               const char *mid,
+                                               const char *rid
                                                ) override;
 
         //---------------------------------------------------------------------
@@ -722,7 +723,6 @@ namespace ortc
         FakeSecureTransportPtr getFakeSecureTransport() const;
 
         void notifyReceivedPacket();
-        void notifyReceivedBufferedRTCPPacket();
 
       protected:
         //---------------------------------------------------------------------

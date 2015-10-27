@@ -99,7 +99,8 @@ namespace ortc
                                            IRTPListenerPtr listener,
                                            SSRCType ssrc,
                                            PayloadType payloadType,
-                                           const char *mid
+                                           const char *mid,
+                                           const char *rid
                                            ) = 0;
   };
 
@@ -125,12 +126,12 @@ ZS_DECLARE_PROXY_BEGIN(ortc::IRTPListenerDelegate)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IRTPListenerPtr, IRTPListenerPtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IRTPListenerDelegate::SSRCType, SSRCType)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IRTPListenerDelegate::PayloadType, PayloadType)
-ZS_DECLARE_PROXY_METHOD_4(onRTPListenerUnhandledRTP, IRTPListenerPtr, SSRCType, PayloadType, const char *)
+ZS_DECLARE_PROXY_METHOD_5(onRTPListenerUnhandledRTP, IRTPListenerPtr, SSRCType, PayloadType, const char *, const char *)
 ZS_DECLARE_PROXY_END()
 
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_BEGIN(ortc::IRTPListenerDelegate, ortc::IRTPListenerSubscription)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IRTPListenerPtr, IRTPListenerPtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IRTPListenerDelegate::SSRCType, SSRCType)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IRTPListenerDelegate::PayloadType, PayloadType)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_4(onRTPListenerUnhandledRTP, IRTPListenerPtr, SSRCType, PayloadType, const char *)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_5(onRTPListenerUnhandledRTP, IRTPListenerPtr, SSRCType, PayloadType, const char *, const char *)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_END()

@@ -172,6 +172,8 @@ namespace ortc
 
       virtual PUID getID() const = 0;
 
+      virtual ISecureTransportSubscriptionPtr subscribe(ISecureTransportDelegatePtr delegate) = 0;
+
       virtual ISecureTransportTypes::States state(ISecureTransportTypes::States ignored = ISecureTransportTypes::States()) const = 0;
 
       virtual bool sendPacket(

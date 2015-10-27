@@ -180,6 +180,7 @@ namespace ortc
                         public IRTPReceiverForRTPListener,
                         public IRTPReceiverForRTPReceiverChannel,
                         public IRTPReceiverForMediaStreamTrack,
+                        public ISecureTransportDelegate,
                         public IWakeDelegate,
                         public zsLib::ITimerDelegate,
                         public IRTPReceiverAsyncDelegate
@@ -462,6 +463,16 @@ namespace ortc
 
       //-----------------------------------------------------------------------
       #pragma mark
+      #pragma mark RTPReceiver => ISecureTransportDelegate
+      #pragma mark
+
+      virtual void onSecureTransportStateChanged(
+                                                 ISecureTransportPtr transport,
+                                                 ISecureTransport::States state
+                                                 ) override;
+
+      //-----------------------------------------------------------------------
+      #pragma mark
       #pragma mark RTPReceiver => IWakeDelegate
       #pragma mark
 
@@ -507,12 +518,6 @@ namespace ortc
 
       void setState(States state);
       void setError(WORD error, const char *reason = NULL);
-
-      bool sendPacket(
-                      IICETypes::Components packetType,
-                      const BYTE *buffer,
-                      size_t bufferSizeInBytes
-                      );
 
       bool shouldLatchAll();
       void notifyChannelsOfTransportState();
@@ -654,6 +659,8 @@ namespace ortc
 
       UseSecureTransportPtr mRTPTransport;
       UseSecureTransportPtr mRTCPTransport;
+
+      ISecureTransportSubscriptionPtr mRTCPTransportSubscription;
 
       IICETypes::Components mReceiveRTPOverTransport {IICETypes::Component_RTP};
       IICETypes::Components mReceiveRTCPOverTransport {IICETypes::Component_RTCP};

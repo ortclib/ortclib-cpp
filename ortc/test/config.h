@@ -51,7 +51,8 @@
 #define ORTC_TEST_DO_SCTP_TRANSPORT_TEST                  (false)
 #define ORTC_TEST_DO_RTP_PACKET_TEST                      (false)
 #define ORTC_TEST_DO_RTCP_PACKET_TEST                     (false)
-#define ORTC_TEST_DO_RTP_LISTENER_TEST                    (true)
+#define ORTC_TEST_DO_RTP_LISTENER_TEST                    (false)
+#define ORTC_TEST_DO_RTP_RECEIVER_TEST                    (true)
 
 
 #define ORTC_TEST_STUN_SERVER             "stun.vline.com"

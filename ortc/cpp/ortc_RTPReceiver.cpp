@@ -461,6 +461,8 @@ namespace ortc
 
       mContributingSourcesTimer = Timer::create(mThisWeak.lock(), (zsLib::toMilliseconds(mContributingSourcesExpiry) / 2));
 
+      mRTCPTransportSubscription = mRTCPTransport->subscribe(mThisWeak.lock());
+
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
     }
 
@@ -667,6 +669,13 @@ namespace ortc
 
       UseSecureTransport::getReceivingTransport(transport, rtcpTransport, mReceiveRTPOverTransport, mReceiveRTCPOverTransport, mRTPTransport, mRTCPTransport);
 
+      if (mRTCPTransportSubscription) {
+        mRTCPTransportSubscription->cancel();
+        mRTCPTransportSubscription.reset();
+      }
+
+      mRTCPTransportSubscription = mRTCPTransport->subscribe(mThisWeak.lock());
+
       notifyChannelsOfTransportState();
     }
 
@@ -692,16 +701,18 @@ namespace ortc
           case IRTPTypes::CodecKind_AudioSupplemental:
           {
             codec.mNumChannels = 1;
-            codec.mKind = "audio";
+            codec.mKind = IMediaStreamTrack::toString(IMediaStreamTrackTypes::Kind_Audio);
             break;
           }
           case IRTPTypes::CodecKind_Video:
           {
-            codec.mKind = "video";
+            codec.mKind = IMediaStreamTrack::toString(IMediaStreamTrackTypes::Kind_Video);
             mechanisms.insert(KnownFeedbackMechanism_REMB);
             mechanisms.insert(KnownFeedbackMechanism_PLI);
             mechanisms.insert(KnownFeedbackMechanism_FIR);
             mechanisms.insert(KnownFeedbackMechanism_RPSI); // ?
+#define TODO_VERIFY 1
+#define TODO_VERIFY 2
             mechanisms.insert(KnownFeedbackMechanism_TMMBR);
 
             codec.mClockRate = 90000;
@@ -710,10 +721,12 @@ namespace ortc
 
           case IRTPTypes::CodecKind_AV:         break;
           case IRTPTypes::CodecKind_RTX:        {
+            codec.mKind = IMediaStreamTrack::toString(IMediaStreamTrackTypes::Kind_Video);
             codec.mClockRate = 90000;
             break;
           }
           case IRTPTypes::CodecKind_FEC:        {
+            codec.mKind = IMediaStreamTrack::toString(IMediaStreamTrackTypes::Kind_Video);
             codec.mClockRate = 90000;
             break;
           }
@@ -731,11 +744,13 @@ namespace ortc
             break;
           }
           case IRTPTypes::SupportedCodec_Opus:    {
+            codec.mPreferredPayloadType = 111;
             codec.mNumChannels = 2;
             codec.mClockRate = 48000;
             break;
           }
           case IRTPTypes::SupportedCodec_Isac:    {
+            codec.mPreferredPayloadType = 104;
             codec.mClockRate = 32000;
             break;
           }
@@ -744,37 +759,61 @@ namespace ortc
             break;
           }
           case IRTPTypes::SupportedCodec_ILBC:    {
+            codec.mPreferredPayloadType = 102;
             codec.mClockRate = 16000;
             codec.mMaxPTime = 30;
             break;
           }
-          case IRTPTypes::SupportedCodec_PCMU:
+          case IRTPTypes::SupportedCodec_PCMU:    {
+            codec.mPreferredPayloadType = 0;
+            codec.mClockRate = 8000;
+            break;
+          }
           case IRTPTypes::SupportedCodec_PCMA:    {
+            codec.mPreferredPayloadType = 8;
             codec.mClockRate = 8000;
             break;
           }
 
             // video codecs
-          case IRTPTypes::SupportedCodec_VP8:
-          case IRTPTypes::SupportedCodec_VP9:
+          case IRTPTypes::SupportedCodec_VP8:     {
+            codec.mPreferredPayloadType = 100;
+            break;
+          }
+          case IRTPTypes::SupportedCodec_VP9:     {
+            codec.mPreferredPayloadType = 99;
+            break;
+          }
           case IRTPTypes::SupportedCodec_H264:    {
+            codec.mPreferredPayloadType = 98;
             break;
           }
 
             // RTX
-          case IRTPTypes::SupportedCodec_RTX:     break;
+          case IRTPTypes::SupportedCodec_RTX:     {
+            codec.mPreferredPayloadType = 115;
+            break;
+          }
 
             // FEC
-          case IRTPTypes::SupportedCodec_RED:     break;
-          case IRTPTypes::SupportedCodec_ULPFEC:  break;
+          case IRTPTypes::SupportedCodec_RED:     {
+            codec.mPreferredPayloadType = 116;
+            break;
+          }
+          case IRTPTypes::SupportedCodec_ULPFEC:  {
+            codec.mPreferredPayloadType = 117;
+            break;
+          }
 
           case IRTPTypes::SupportedCodec_CN:              {
             codec.mClockRate = 32000;
+            codec.mPreferredPayloadType = 106;
             break;
           }
             
           case IRTPTypes::SupportedCodec_TelephoneEvent:  {
             codec.mClockRate = 8000;
+            codec.mPreferredPayloadType = 126;
             break;
           }
         }
@@ -792,17 +831,33 @@ namespace ortc
           }
         }
 
+        if (kind.hasValue()) {
+          String kindStr(IMediaStreamTrackTypes::toString(kind.value()));
+
+          if (codec.mKind.hasData()) {
+            if (codec.mKind != kindStr) {
+              add = false;
+            }
+          }
+        }
+
         switch (index) {
           case IRTPTypes::SupportedCodec_Unknown:         break;
           case IRTPTypes::SupportedCodec_Opus:            break;
           case IRTPTypes::SupportedCodec_Isac:            {
-            result->mCodecs.push_back(codec);
+            if (add) {
+              result->mCodecs.push_back(codec);
+            }
             codec.mClockRate = 16000;
+            codec.mPreferredPayloadType = 103;
             break;
           }
           case IRTPTypes::SupportedCodec_G722:            break;
           case IRTPTypes::SupportedCodec_ILBC:            {
-            result->mCodecs.push_back(codec);
+            if (add) {
+              result->mCodecs.push_back(codec);
+            }
+            codec.mPreferredPayloadType = 101;
             codec.mClockRate = 8000;
             break;
           }
@@ -822,9 +877,15 @@ namespace ortc
           case IRTPTypes::SupportedCodec_ULPFEC:          break;
 
           case IRTPTypes::SupportedCodec_CN:              {
-            result->mCodecs.push_back(codec);
+            if (add) {
+              result->mCodecs.push_back(codec);
+            }
             codec.mClockRate = 16000;
-            result->mCodecs.push_back(codec);
+            codec.mPreferredPayloadType = 105;
+            if (add) {
+              result->mCodecs.push_back(codec);
+            }
+            codec.mPreferredPayloadType = 13;
             codec.mClockRate = 8000;
             break;
           }
@@ -879,6 +940,16 @@ namespace ortc
         if (add) {
           result->mHeaderExtensions.push_back(ext);
         }
+      }
+
+      bool addFecMechanisms = true;
+      if ((kind.hasValue()) &&
+          (IMediaStreamTrackTypes::Kind_Video != kind.value())) {
+        addFecMechanisms = false;
+      }
+
+      if (addFecMechanisms) {
+        result->mFECMechanisms.push_back(String(IRTPTypes::toString(IRTPTypes::KnownFECMechanism_RED_ULPFEC)));
       }
 
       return result;
@@ -1200,6 +1271,35 @@ namespace ortc
 
       return rtcpTransport->sendPacket(mSendRTCPOverTransport, IICETypes::Component_RTCP, packet->ptr(), packet->size());
     }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPReceiver => IRTPReceiverForRTPReceiverChannel
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPReceiver => ISecureTransportDelegate
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    void RTPReceiver::onSecureTransportStateChanged(
+                                                    ISecureTransportPtr transport,
+                                                    ISecureTransport::States state
+                                                    )
+    {
+      ZS_LOG_DEBUG(log("on secure transport state changed") + ZS_PARAM("secure transport", transport->getID()) + ZS_PARAM("state", ISecureTransportTypes::toString(state)))
+
+      AutoRecursiveLock lock(*this);
+      notifyChannelsOfTransportState();
+    }
+
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -1561,6 +1661,14 @@ namespace ortc
         mContributingSourcesTimer.reset();
       }
 
+      mRTPTransport.reset();
+      mRTCPTransport.reset();
+
+      if (mRTCPTransportSubscription) {
+        mRTCPTransportSubscription->cancel();
+        mRTCPTransportSubscription.reset();
+      }
+
       // make sure to cleanup any final reference to self
       mGracefulShutdownReference.reset();
     }
@@ -1600,41 +1708,6 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool RTPReceiver::sendPacket(
-                                 IICETypes::Components packetType,
-                                 const BYTE *buffer,
-                                 size_t bufferSizeInBytes
-                                 )
-    {
-      IICETypes::Components sendOver{ packetType };
-      UseSecureTransportPtr transport;
-
-      {
-        AutoRecursiveLock lock(*this);
-
-        switch (packetType) {
-        case IICETypes::Component_RTP:  {
-          transport = mRTPTransport;
-          sendOver = mReceiveRTPOverTransport;
-          break;
-        }
-        case IICETypes::Component_RTCP: {
-          transport = mRTCPTransport;
-          sendOver = mReceiveRTCPOverTransport;
-          break;
-        }
-        }
-      }
-
-      if (!transport) {
-        ZS_LOG_WARNING(Debug, log("no transport available"))
-          return false;
-      }
-
-      return transport->sendPacket(sendOver, packetType, buffer, bufferSizeInBytes);
-    }
-
-    //-------------------------------------------------------------------------
     bool RTPReceiver::shouldLatchAll()
     {
       if (1 != mChannelInfos.size()) return false;
@@ -1646,8 +1719,8 @@ namespace ortc
     {
       ISecureTransport::States currentState = ISecureTransport::State_Pending;
 
-      if (mRTPTransport) {
-        currentState = mRTPTransport->state();
+      if (mRTCPTransport) {
+        currentState = mRTCPTransport->state();
         if (ISecureTransport::State_Closed == currentState) currentState = ISecureTransport::State_Disconnected;
       } else {
         currentState = ISecureTransport::State_Disconnected;
