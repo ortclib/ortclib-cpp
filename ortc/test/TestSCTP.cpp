@@ -642,7 +642,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      ISecureTransportTypes::States FakeSecureTransport::FakeSecureTransport::state(ISecureTransportTypes::States ignored) const
+      ISecureTransportTypes::States FakeSecureTransport::state(ISecureTransportTypes::States ignored) const
       {
         return mSecureTransportState;
       }
