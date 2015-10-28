@@ -969,7 +969,9 @@ namespace ortc
         for (auto iter = parameters.mCodecs.begin(); iter != parameters.mCodecs.end(); ++iter) {
           auto &codec = (*iter);
 
-          auto codecKind = IRTPTypes::toCodecKind(codec.mName);
+          auto knownCodec = IRTPTypes::toSupportedCodec(codec.mName);
+
+          auto codecKind = IRTPTypes::getCodecKind(knownCodec);
 
           switch (codecKind) {
             case IRTPTypes::CodecKind_Audio:
@@ -1375,6 +1377,7 @@ namespace ortc
 
           mContributingSources.erase(current);
         }
+        return;
       }
 
       ZS_LOG_WARNING(Debug, log("notified about obsolete timer (thus ignoring)") + ZS_PARAM("timer id", timer->getID()))
@@ -1534,6 +1537,7 @@ namespace ortc
     ready:
       {
         ZS_LOG_TRACE(log("ready"))
+        setState(State_Ready);
       }
     }
 
@@ -1607,6 +1611,8 @@ namespace ortc
       // try to gracefully shutdown
 
       if (isShutdown()) return;
+
+      setState(State_ShuttingDown);
 
       if (!mGracefulShutdownReference) mGracefulShutdownReference = mThisWeak.lock();
 
@@ -1738,8 +1744,7 @@ namespace ortc
       for (auto iter = mChannels->begin(); iter != mChannels->end(); ++iter) {
         auto channelHolder = (*iter).second.lock();
 
-        if (!channelHolder) {
-        }
+        if (shouldCleanChannel((bool)channelHolder)) continue;
 
         channelHolder->notify(mLastReportedTransportStateToChannels);
       }
@@ -2154,6 +2159,8 @@ namespace ortc
         RIDInfo ridInfo;
         ridInfo.mRID = rid;
         ridInfo.mChannelInfo = ioChannelInfo;
+
+        mRIDTable[rid] = ridInfo;
         return;
       }
 
@@ -2485,7 +2492,7 @@ namespace ortc
           if (CodecKind_Unknown == kind) continue; // make sure this codec type is understood
         }
 
-        if (channelInfo->mFilledParameters->mEncodingParameters.size() < 1) {
+        if (channelInfo->shouldLatchAll()) {
           // special case where this is a "match all" for the codec
           if (findBestExistingLatchAllOrCreateNew(kind, *codec, rid, rtpPacket, outChannelInfo, outChannelHolder)) goto insert_ssrc_into_table;
           ZS_LOG_WARNING(Debug, log("unable to find a good latch candidate for packet") + ZS_PARAM("ssrc", rtpPacket.ssrc()))

@@ -489,8 +489,10 @@ namespace ortc
         mICETransport->attachSecure(mThisWeak.lock());
 
         mICESubscription = mICETransport->subscribe(mThisWeak.lock());
+        TESTING_CHECK(mICESubscription)
 
-        mListener = UseListener::create(mThisWeak.lock());
+        mListener = FakeListener::create(getAssociatedMessageQueue());
+        TESTING_CHECK(mListener)
       }
 
       //-----------------------------------------------------------------------
@@ -667,6 +669,7 @@ namespace ortc
         ZS_LOG_BASIC(log("ice transport state changed") + ZS_PARAM("transport", transport->getID()) + ZS_PARAM("state", IICETransportTypes::toString(state)))
 
         AutoRecursiveLock lock(*this);
+        notifySecureState();
       }
 
       //-----------------------------------------------------------------------
@@ -1153,6 +1156,8 @@ namespace ortc
       //-----------------------------------------------------------------------
       void FakeListener::onTimer(TimerPtr timer)
       {
+        AutoRecursiveLock lock(*this);
+
         if (timer == mCleanBuffersTimer) {
 
           auto tick = zsLib::now();
@@ -1396,7 +1401,7 @@ namespace ortc
 
           TESTING_CHECK(0 == UseServicesHelper::compare(*(mExpectBuffers.front()), *(packet->mBuffer)))
 
-          mExpectStates.pop_front();
+          mExpectBuffers.pop_front();
         }
         
         tester->notifyReceivedPacket();
@@ -1421,7 +1426,7 @@ namespace ortc
 
           TESTING_CHECK(0 == UseServicesHelper::compare(*(mExpectBuffers.front()), *(packet->mBuffer)))
 
-          mExpectStates.pop_front();
+          mExpectBuffers.pop_front();
         }
 
         tester->notifyReceivedPacket();
@@ -1644,9 +1649,7 @@ namespace ortc
       {
         UseReceiverChannelPtr channel(inChannel);
 
-        ZS_LOG_BASIC(log("notify active receiver channel") + ZS_PARAM("channel", channel->getID()))
-
-        TESTING_CHECK(channel)
+        ZS_LOG_BASIC(log("notify active receiver channel") + ZS_PARAM("channel", channel ? channel->getID() : 0))
 
         RTPReceiverTesterPtr tester;
 
@@ -1658,7 +1661,7 @@ namespace ortc
 
           TESTING_CHECK(mExpectActiveChannelIDs.size() > 0)
 
-          auto channelID = channel->getID();
+          auto channelID = (channel ? channel->getID() : 0);
 
           TESTING_EQUAL(channelID, mExpectActiveChannelIDs.front())
 
@@ -1956,13 +1959,14 @@ namespace ortc
       bool RTPReceiverTester::Expectations::operator==(const Expectations &op2) const
       {
         return (mUnhandled == op2.mUnhandled) &&
+
                (mReceivedPackets == op2.mReceivedPackets) &&
 
                (mError == op2.mError) &&
                (mChannelUpdate == op2.mChannelUpdate) &&
+               (mReceiverChannelOfSecureTransportState == op2.mReceiverChannelOfSecureTransportState) &&
 
                (mActiveReceiverChannel == op2.mActiveReceiverChannel) &&
-               (mReceiverChannelOfSecureTransportState == op2.mReceiverChannelOfSecureTransportState) &&
 
                (mKind == op2.mKind);
       }
@@ -2043,19 +2047,24 @@ namespace ortc
       //-----------------------------------------------------------------------
       RTPReceiverTesterPtr RTPReceiverTester::create(
                                                      IMessageQueuePtr queue,
+                                                     bool overrideFactories,
                                                      Milliseconds packetDelay
                                                      )
       {
-        RTPReceiverTesterPtr pThis(new RTPReceiverTester(queue));
+        RTPReceiverTesterPtr pThis(new RTPReceiverTester(queue, overrideFactories));
         pThis->mThisWeak = pThis;
         pThis->init(packetDelay);
         return pThis;
       }
 
       //-----------------------------------------------------------------------
-      RTPReceiverTester::RTPReceiverTester(IMessageQueuePtr queue) :
+      RTPReceiverTester::RTPReceiverTester(
+                                           IMessageQueuePtr queue,
+                                           bool overrideFactories
+                                           ) :
         SharedRecursiveLock(SharedRecursiveLock::create()),
-        MessageQueueAssociator(queue)
+        MessageQueueAssociator(queue),
+        mOverrideFactories(overrideFactories)
       {
         ZS_LOG_BASIC(log("rtpreceiver tester"))
       }
@@ -2065,8 +2074,10 @@ namespace ortc
       {
         ZS_LOG_BASIC(log("rtpreceiver tester"))
 
-        RTPReceiverChannelFactory::override(RTPReceiverChannelFactoryPtr());
-        MediaStreamTrackFactory::override(MediaStreamTrackFactoryPtr());
+        if (mOverrideFactories) {
+          RTPReceiverChannelFactory::override(RTPReceiverChannelFactoryPtr());
+          MediaStreamTrackFactory::override(MediaStreamTrackFactoryPtr());
+        }
       }
 
       //-----------------------------------------------------------------------
@@ -2074,8 +2085,10 @@ namespace ortc
       {
         AutoRecursiveLock lock(*this);
 
-        RTPReceiverChannelFactory::override(OverrideReceiverChannelFactory::create(mThisWeak.lock()));
-        MediaStreamTrackFactory::override(OverrideMediaStreamTrackFactory::create(mThisWeak.lock()));
+        if (mOverrideFactories) {
+          RTPReceiverChannelFactory::override(OverrideReceiverChannelFactory::create(mThisWeak.lock()));
+          MediaStreamTrackFactory::override(OverrideMediaStreamTrackFactory::create(mThisWeak.lock()));
+        }
 
         mICETransport = FakeICETransport::create(getAssociatedMessageQueue(), packetDelay);
         mDTLSTransport = FakeSecureTransport::create(getAssociatedMessageQueue(), mICETransport);
@@ -2084,8 +2097,10 @@ namespace ortc
         TESTING_CHECK(listener)
 
         mListenerSubscription = FakeListener::convert(listener)->subscribe(mThisWeak.lock());
+        TESTING_CHECK(mListenerSubscription)
 
         mReceiver = IRTPReceiver::create(mThisWeak.lock(), mDTLSTransport);
+        TESTING_CHECK(mReceiver)
       }
 
       //-----------------------------------------------------------------------
@@ -2283,6 +2298,8 @@ namespace ortc
 
         AutoRecursiveLock lock(*this);
 
+        FakeReceiverChannelPtr oldChannel;
+
         for (auto iter_doNotUse = mFakeReceiverChannelCreationList.begin(); iter_doNotUse != mFakeReceiverChannelCreationList.end(); )
         {
           auto current = iter_doNotUse;
@@ -2291,6 +2308,8 @@ namespace ortc
           auto &channelID = (*current).first;
 
           if (channelID != receiverChannelIDStr) continue;
+
+          oldChannel = (*current).second;
 
           mFakeReceiverChannelCreationList.erase(current);
         }
@@ -2306,7 +2325,7 @@ namespace ortc
             previousReceiver->stop();
           }
 
-          previousReceiver = receiverChannel;
+          previousReceiverWeak = receiverChannel;
           receiverChannel->setTransport(mThisWeak.lock());
           return;
         }
@@ -2453,14 +2472,16 @@ namespace ortc
 
           TESTING_CHECK(mMediaStreamTrack)
 
-          receiverChannel = getReceiverChannel(receiverChannelID);
+          if (NULL != receiverChannelID) {
+            receiverChannel = getReceiverChannel(receiverChannelID);
 
-          TESTING_CHECK(receiverChannel)
+            TESTING_CHECK(receiverChannel)
+          }
 
           track = mMediaStreamTrack;
         }
 
-        track->expectActiveChannel(receiverChannel->getID());
+        track->expectActiveChannel(receiverChannel ? receiverChannel->getID() : 0);
       }
 
       //-----------------------------------------------------------------------
@@ -2548,8 +2569,8 @@ namespace ortc
 
       //-----------------------------------------------------------------------
       void RTPReceiverTester::sendPacket(
-                                         const char *packetID,
-                                         const char *senderOrReceiverChannelID
+                                         const char *senderOrReceiverChannelID,
+                                         const char *packetID
                                          )
       {
         RTPPacketPtr rtp;
@@ -2582,8 +2603,8 @@ namespace ortc
 
       //-----------------------------------------------------------------------
       void RTPReceiverTester::expectPacket(
-                                           const char *packetID,
-                                           const char *senderOrReceiverID
+                                           const char *senderOrReceiverID,
+                                           const char *packetID
                                            )
       {
         RTPPacketPtr rtp;
@@ -2854,9 +2875,7 @@ using zsLib::Milliseconds;
 using ortc::SecureByteBlock;
 using ortc::SecureByteBlockPtr;
 
-#define TEST_BASIC_ROUTING 1
-#define TEST_BASIC_ROUTING_EXTENDED_SOURCE 0
-#define TEST_INCOMING_DELAYED_RTPReceiver 2
+#define TEST_BASIC_ROUTING 0
 
 static void bogusSleep()
 {
@@ -2868,10 +2887,7 @@ static void bogusSleep()
 
 void doTestRTPReceiver()
 {
-  typedef ortc::IRTPTypes IRTPTypes;
-
-
-  if (!ORTC_TEST_DO_RTP_LISTENER_TEST) return;
+  if (!ORTC_TEST_DO_RTP_RECEIVER_TEST) return;
 
   TESTING_INSTALL_LOGGER();
 
@@ -2909,8 +2925,8 @@ void doTestRTPReceiver()
             UseSettings::setUInt("ortc/rtp-receiver/max-age-rtp-packets-in-seconds", 60);
             UseSettings::setUInt("ortc/rtp-receiver/max-age-rtcp-packets-in-seconds", 60);
 
-            testObject1 = RTPReceiverTester::create(thread);
-            testObject2 = RTPReceiverTester::create(thread);
+            testObject1 = RTPReceiverTester::create(thread, true);
+            testObject2 = RTPReceiverTester::create(thread, false);
 
             TESTING_CHECK(testObject1)
             TESTING_CHECK(testObject2)
@@ -2921,7 +2937,7 @@ void doTestRTPReceiver()
             expectations1.mUnhandled = 0;
             expectations1.mReceivedPackets = 1;
             expectations1.mChannelUpdate = 0;
-            expectations1.mActiveReceiverChannel = 1;
+            expectations1.mActiveReceiverChannel = 2;
             expectations1.mReceiverChannelOfSecureTransportState = 2;
             expectations1.mKind = IMediaStreamTrackTypes::Kind_Audio;
           }
@@ -2958,25 +2974,26 @@ void doTestRTPReceiver()
             switch (step) {
               case 2: {
                 if (testObject1) testObject1->connect(testObject2);
-                bogusSleep();
+            //  bogusSleep();
                 break;
               }
               case 3: {
                 if (testObject1) testObject1->state(IICETransport::State_Completed);
                 if (testObject2) testObject2->state(IICETransport::State_Completed);
-                bogusSleep();
+          //    bogusSleep();
                 break;
               }
               case 4: {
                 if (testObject1) testObject1->state(IDTLSTransport::State_Validated);
                 if (testObject2) testObject2->state(IDTLSTransport::State_Validated);
-                bogusSleep();
+          //    bogusSleep();
                 break;
               }
               case 5: {
                 {
                   Parameters params;
                   testObject1->store("params-empty", params);
+                  testObject2->store("params-empty", params);
                 }
                 {
                   Parameters params;
@@ -2999,19 +3016,19 @@ void doTestRTPReceiver()
 
                   testObject1->store("param1", params);
                 }
-                bogusSleep();
+         //     bogusSleep();
                 break;
               }
               case 6: {
                 testObject1->createReceiverChannel("c1", "param1");
                 testObject1->receive("param1");
-                bogusSleep();
+         //     bogusSleep();
                 break;
               }
               case 7: {
                 Parameters params;
                 testObject2->send("s1", "params-empty");
-                bogusSleep();
+         //     bogusSleep();
                 break;
               }
               case 8:
@@ -3039,16 +3056,23 @@ void doTestRTPReceiver()
               case 9: {
                 testObject1->expectState("c1", ISecureTransportTypes::State_Connected);
                 testObject1->expectState("c1", ISecureTransportTypes::State_Closed);
-                bogusSleep();
+         //     bogusSleep();
                 break;
               }
               case 10: {
-                testObject1->expectPacket("p1", "r1");
-                bogusSleep();
+                testObject1->expectPacket("c1","p1");
+                testObject1->expectActiveChannel("c1");
+         //     bogusSleep();
                 break;
               }
-
+              case 11: {
+                testObject2->sendPacket("s1", "p1");
+         //     bogusSleep();
+                break;
+              }
               case 16: {
+                testObject1->expectActiveChannel(NULL);
+
                 if (testObject1) testObject1->close();
                 if (testObject2) testObject1->close();
                 //bogusSleep();

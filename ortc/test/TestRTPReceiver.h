@@ -1115,11 +1115,14 @@ namespace ortc
 
         static RTPReceiverTesterPtr create(
                                            IMessageQueuePtr queue,
+                                           bool overrideFactories,
                                            Milliseconds packetDelay = Milliseconds()
                                            );
 
-        RTPReceiverTester(IMessageQueuePtr queue);
-
+        RTPReceiverTester(
+                          IMessageQueuePtr queue,
+                          bool overrideFactories
+                          );
         ~RTPReceiverTester();
 
         void init(Milliseconds packetDelay);
@@ -1205,13 +1208,13 @@ namespace ortc
         ParametersPtr getParameters(const char *parametersID);
 
         void sendPacket(
-                        const char *packetID,
-                        const char *senderOrReceiverChannelID
+                        const char *senderOrReceiverChannelID,
+                        const char *packetID
                         );
 
         void expectPacket(
-                          const char *packetID,
-                          const char *senderOrReceiverChannelID
+                          const char *senderOrReceiverChannelID,
+                          const char *packetID
                           );
 
       protected:
@@ -1290,6 +1293,8 @@ namespace ortc
 
         AutoPUID mID;
         RTPReceiverTesterWeakPtr mThisWeak;
+
+        bool mOverrideFactories {false};
 
         FakeICETransportPtr mICETransport;
         FakeSecureTransportPtr mDTLSTransport;

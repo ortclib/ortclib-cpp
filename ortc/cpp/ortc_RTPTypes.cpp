@@ -1528,7 +1528,7 @@ namespace ortc
       case CodecKind_AV:                return "av";
       case CodecKind_RTX:               return "rtx";
       case CodecKind_FEC:               return "fec";
-      case CodecKind_AudioSupplemental: return "asupplemental";
+      case CodecKind_AudioSupplemental: return "audio-supplemental";
       case CodecKind_Data:              return "data";
     }
 

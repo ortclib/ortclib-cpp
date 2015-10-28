@@ -1683,9 +1683,8 @@ using zsLib::Milliseconds;
 using ortc::SecureByteBlock;
 using ortc::SecureByteBlockPtr;
 
-#define TEST_BASIC_ROUTING 1
-#define TEST_BASIC_ROUTING_EXTENDED_SOURCE 0
-#define TEST_INCOMING_DELAYED_RTPListener 2
+#define TEST_BASIC_ROUTING 0
+#define TEST_BASIC_ROUTING_EXTENDED_SOURCE 1
 
 static void bogusSleep()
 {
