@@ -16,9 +16,7 @@
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\test\config.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\test\testing.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\test\TestMediaEngine.h">
-      <ExcludedFromBuild>true</ExcludedFromBuild>
-    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\test\TestMediaStreamTrack.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\test\TestRTPListener.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\test\TestRTPReceiver.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\test\TestSCTP.h" />
@@ -32,9 +30,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\test\TestICEGatherer.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\test\TestICETransport.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\test\testing.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\test\TestMediaEngine.cpp">
-      <ExcludedFromBuild>true</ExcludedFromBuild>
-    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\test\TestMediaStreamTrack.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\test\TestRTCPPacket.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\test\TestRTPListener.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\test\TestRTPPacket.cpp" />
