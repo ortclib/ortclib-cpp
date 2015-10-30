@@ -592,6 +592,7 @@ namespace ortc
         // (base hanlded) virtual PUID getID() const = 0;
 
         virtual void registerReceiver(
+                                      Optional<IMediaStreamTrackTypes::Kinds> kind,
                                       UseReceiverPtr inReceiver,
                                       const Parameters &inParams,
                                       RTCPPacketList *outPacketList = NULL

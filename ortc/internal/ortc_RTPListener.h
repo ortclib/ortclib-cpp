@@ -35,6 +35,7 @@
 #include <ortc/internal/ortc_ISecureTransport.h>
 
 #include <ortc/IRTPListener.h>
+#include <ortc/IMediaStreamTrack.h>
 
 #include <openpeer/services/IWakeDelegate.h>
 #include <zsLib/MessageQueueAssociator.h>
@@ -49,6 +50,8 @@
 
 #define ORTC_SETTING_RTP_LISTENER_SSRC_TIMEOUT_IN_SECONDS "ortc/rtp-listener/ssrc-timeout-in-seconds"
 #define ORTC_SETTING_RTP_LISTENER_UNHANDLED_EVENTS_TIMEOUT_IN_SECONDS "ortc/rtp-listener/unhandled-ssrc-event-timeout-in-seconds"
+
+#define ORTC_SETTING_RTP_LISTENER_ONLY_RESOLVE_AMBIGUOUS_PAYLOAD_MAPPING_IF_ACTIVITY_DIFFERS_IN_MILLISECONDS "ortc/rtp-listener/only-resolve-ambiguous-payload-mapping-if-activity-differs-in-milliseconds"
 
 namespace ortc
 {
@@ -130,6 +133,7 @@ namespace ortc
       virtual PUID getID() const = 0;
 
       virtual void registerReceiver(
+                                    Optional<IMediaStreamTrack::Kinds> kind,
                                     UseReceiverPtr inReceiver,
                                     const Parameters &inParams,
                                     RTCPPacketList *outPacketList = NULL
@@ -291,6 +295,7 @@ namespace ortc
         ReceiverID mReceiverID {};
         UseRTPReceiverWeakPtr mReceiver;
 
+        Optional<IMediaStreamTrack::Kinds> mKind;
         Parameters mFilledParameters;
         Parameters mOriginalParameters;
 
@@ -431,6 +436,7 @@ namespace ortc
       // (duplicate) virtual PUID getID() const = 0;
 
       virtual void registerReceiver(
+                                    Optional<IMediaStreamTrack::Kinds> kind,
                                     UseReceiverPtr inReceiver,
                                     const Parameters &inParams,
                                     RTCPPacketList *outPacketList = NULL
@@ -649,6 +655,8 @@ namespace ortc
       UnhandledEventMap mUnhandledEvents;
       TimerPtr mUnhanldedEventsTimer;
       Seconds mUnhanldedEventsExpires {};
+
+      Milliseconds mAmbigousPayloadMappingMinDifference {};
     };
 
     //-------------------------------------------------------------------------

@@ -50,13 +50,20 @@ namespace ortc
   {
     ZS_DECLARE_STRUCT_PTR(Capabilities)
     ZS_DECLARE_STRUCT_PTR(CodecCapability)
-    ZS_DECLARE_STRUCT_PTR(OpusCodecCapability)
+    ZS_DECLARE_STRUCT_PTR(OpusCodecCapabilityOptions)
+    ZS_DECLARE_STRUCT_PTR(OpusCodecCapabilityParameters)
     ZS_DECLARE_STRUCT_PTR(VP8CodecCapability)
     ZS_DECLARE_STRUCT_PTR(H264CodecCapability)
     ZS_DECLARE_STRUCT_PTR(HeaderExtensions)
     ZS_DECLARE_STRUCT_PTR(RtcpFeedback)
     ZS_DECLARE_STRUCT_PTR(Parameters)
     ZS_DECLARE_STRUCT_PTR(CodecParameters)
+    ZS_DECLARE_STRUCT_PTR(OpusCodecParameters)
+    ZS_DECLARE_TYPEDEF_PTR(VP8CodecCapability, VP8CodecParameters)
+    ZS_DECLARE_TYPEDEF_PTR(H264CodecCapability, H264CodecParameters)
+    ZS_DECLARE_STRUCT_PTR(RTXCodecParameters)
+    ZS_DECLARE_STRUCT_PTR(REDCodecParameters)
+    ZS_DECLARE_STRUCT_PTR(FlexFECCodecParameters)
     ZS_DECLARE_STRUCT_PTR(HeaderExtensionParameters)
     ZS_DECLARE_STRUCT_PTR(EncodingParameters)
     ZS_DECLARE_STRUCT_PTR(RTCPParameters)
@@ -75,6 +82,7 @@ namespace ortc
 
     typedef BYTE PayloadType;
     typedef DWORD SSRCType;
+    ZS_DECLARE_TYPEDEF_PTR(std::list<PayloadType>, PayloadTypeList)
     typedef String EncodingID;
     ZS_DECLARE_TYPEDEF_PTR(std::list<EncodingID>, EncodingIDList)
 
@@ -117,15 +125,47 @@ namespace ortc
 
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IRTPTypes::OpusCodecCapability
+    #pragma mark IRTPTypes::OpusCodecCapabilityOptions
     #pragma mark
 
-    struct OpusCodecCapability : public Any
+    struct OpusCodecCapabilityOptions : public Any
     {
-      ULONG mMaxPlaybackRate {};
-      bool mStereo {};
+      // sender capabilities
+      bool mComplexity {};
+      bool mSignal {};
+      bool mApplication {};
+      bool mPacketLossPerc {};
+      bool mPredictionDisabled {};
 
-      static OpusCodecCapabilityPtr convert(AnyPtr any);
+      static OpusCodecCapabilityOptionsPtr create(const OpusCodecCapabilityOptions &capability);
+      static OpusCodecCapabilityOptionsPtr convert(AnyPtr any);
+
+      ElementPtr toDebug() const;
+      String hash() const;
+    };
+
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IRTPTypes::OpusCodecCapabilityParameters
+    #pragma mark
+
+    struct OpusCodecCapabilityParameters : public Any
+    {
+      // receiver capability parameters
+      Optional<ULONG> mMaxPlaybackRate;
+      Optional<ULONG> mPTime;
+      Optional<ULONG> mMaxAverageBitrate;
+      Optional<bool> mStereo;
+      Optional<bool> mCBR;
+      Optional<bool> mUseInbandFEC;
+      Optional<bool> mUseDTX;
+
+      // sender capability parameters
+      Optional<ULONG> mSPropMaxCaptureRate;
+      Optional<bool> mSPropStereo;
+
+      static OpusCodecCapabilityParametersPtr create(const OpusCodecCapabilityParameters &capability);
+      static OpusCodecCapabilityParametersPtr convert(AnyPtr any);
 
       ElementPtr toDebug() const;
       String hash() const;
@@ -141,6 +181,7 @@ namespace ortc
       ULONG mMaxFT {};
       ULONGLONG mMaxFS {};
 
+      static VP8CodecCapabilityPtr create(const VP8CodecCapability &capability);
       static VP8CodecCapabilityPtr convert(AnyPtr any);
 
       ElementPtr toDebug() const;
@@ -166,6 +207,7 @@ namespace ortc
       ULONGLONG mMaxDPB {};
       ULONGLONG mMaxBR {};
 
+      static H264CodecCapabilityPtr create(const H264CodecCapability &capability);
       static H264CodecCapabilityPtr convert(AnyPtr any);
 
       ElementPtr toDebug() const;
@@ -254,7 +296,143 @@ namespace ortc
       ULONG             mMaxPTime {};
       ULONG             mNumChannels {};
       RtcpFeedbackList  mRTCPFeedback;
-      AnyPtr            mParameters;
+      AnyPtr            mParameters;  // see OpusCodecParameters, RTXCodecParameters, REDCodecParameters, FlexFECCodecParameters for definitions
+
+      ElementPtr toDebug() const;
+      String hash() const;
+    };
+
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IRTPTypes::OpusCodecParameters
+    #pragma mark
+
+    struct OpusCodecParameters : public Any
+    {
+      enum Signals {
+        Signal_First,
+
+        Signal_Auto   = Signal_First,
+        Signal_Music,
+        Signal_Voice,
+
+        Signal_Last   = Signal_Voice
+      };
+      static const char *toString(Signals signal);
+      static Signals toSignal(const char *signal);
+
+      enum Applications {
+        Application_First,
+
+        Application_VoIP      = Application_First,
+        Application_Audio,
+        Application_LowDelay,
+
+        Application_Last      = Application_LowDelay
+      };
+      static const char *toString(Applications application);
+      static Applications toApplication(const char *application);
+
+      // sedner parameters
+      Optional<ULONG> mMaxPlaybackRate;
+      Optional<ULONG> mPTime;
+      Optional<ULONG> mMaxAverageBitrate;
+      Optional<bool> mStereo;
+      Optional<bool> mCBR;
+      Optional<bool> mUseInbandFEC;
+      Optional<bool> mUseDTX;
+
+      Optional<ULONG> mComplexity;
+      Optional<Signals> mSignal;
+      Optional<Applications> mApplication;
+      Optional<ULONG> mPacketLossPerc;
+      Optional<bool> mPredictionDisabled;
+
+      // receiver parameters
+      Optional<ULONG> mSPropMaxCaptureRate;
+      Optional<bool> mSPropStereo;
+
+      static OpusCodecParametersPtr create(const OpusCodecParameters &capability);
+      static OpusCodecParametersPtr convert(AnyPtr any);
+
+      ElementPtr toDebug() const;
+      String hash() const;
+    };
+
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IRTPTypes::VP8CodecParameters
+    #pragma mark
+
+    // see VP8CodecCapabilityParameters
+
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IRTPTypes::H264CodecParameters
+    #pragma mark
+
+    // see H264CodecCapabilityParameters
+
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IRTPTypes::RTXCodecParameters
+    #pragma mark
+
+    struct RTXCodecParameters : public Any
+    {
+      Milliseconds mRTXTime {};
+
+      static RTXCodecParametersPtr create(const RTXCodecParameters &params);
+      static RTXCodecParametersPtr convert(AnyPtr any);
+
+      ElementPtr toDebug() const;
+      String hash() const;
+    };
+
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IRTPTypes::REDCodecParameters
+    #pragma mark
+
+    struct REDCodecParameters : public Any
+    {
+      PayloadTypeList mPayloadTypes;
+
+      static REDCodecParametersPtr create(const REDCodecParameters &params);
+      static REDCodecParametersPtr convert(AnyPtr any);
+
+      ElementPtr toDebug() const;
+      String hash() const;
+    };
+
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IRTPTypes::FlexFECCodecParameters
+    #pragma mark
+
+    struct FlexFECCodecParameters : public Any
+    {
+      enum ToPs {
+        ToP_First                           = 0,
+
+        ToP_1DInterleavedFEC                = ToP_First,  // 1d-interleaved-fec
+        ToP_1DNonInterleavedFEC             = 1,          // 1d-non-interleaved-fec
+        ToP_2DParityFEEC                    = 2,          // 2d-parity-fec
+        ToP_Reserved                        = 3,
+
+        ToP_Last = ToP_Reserved,
+      };
+      static const char *toString(ToPs top);
+      static ToPs toToP(const char *top);
+
+      Microseconds mRepairWindow {};
+
+      Optional<ULONG> mL;
+      Optional<ULONG> mD;
+      Optional<ToPs> mToP;
+
+      static FlexFECCodecParametersPtr create(const FlexFECCodecParameters &params);
+      static FlexFECCodecParametersPtr convert(AnyPtr any);
 
       ElementPtr toDebug() const;
       String hash() const;
@@ -295,7 +473,6 @@ namespace ortc
     struct RTXParameters {
       Optional<SSRCType>    mSSRC;
       Optional<PayloadType> mPayloadType;
-      Milliseconds          mRTXTime {};
 
       ElementPtr toDebug() const;
       String hash() const;
@@ -402,6 +579,7 @@ namespace ortc
       // FEC
       SupportedCodec_RED,             // red
       SupportedCodec_ULPFEC,          // ulpfec
+      SupportedCodec_FlexFEC,         // flexfec
 
       SupportedCodec_CN,              // cn
 
@@ -414,6 +592,8 @@ namespace ortc
     static SupportedCodecs toSupportedCodec(const char *codec);
 
     static CodecKinds getCodecKind(SupportedCodecs codec);
+    static bool isSRSTCodec(SupportedCodecs codec); // Single RTP streams Single Transport
+    static bool isMRSTCodec(SupportedCodecs codec); // Multiple RTP streams Single Transport
 
     //-------------------------------------------------------------------------
     #pragma mark
@@ -516,9 +696,9 @@ namespace ortc
 
       KnownFECMechanism_RED,                                // "red" https://tools.ietf.org/html/rfc2198 as a redendent FEC mechanism
       KnownFECMechanism_RED_ULPFEC,                         // "red+ulpfec" https://tools.ietf.org/html/rfc5109 as a single SSRC stream using RED
-      KnownFECMechanism_FLEXFEC,                            // "flexfec" https://tools.ietf.org/html/draft-ietf-payload-flexible-fec-scheme-01
+      KnownFECMechanism_FlexFEC,                            // "flexfec" https://tools.ietf.org/html/draft-ietf-payload-flexible-fec-scheme-01
 
-      KnownFECMechanism_Last = KnownFECMechanism_FLEXFEC,
+      KnownFECMechanism_Last = KnownFECMechanism_FlexFEC,
     };
 
     static const char *toString(KnownFECMechanisms mechanism);

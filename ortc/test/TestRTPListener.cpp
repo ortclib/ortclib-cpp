@@ -670,8 +670,9 @@ namespace ortc
       #pragma mark
 
       //-----------------------------------------------------------------------
-      FakeReceiver::FakeReceiver() :
-        RTPReceiver(Noop(true))
+      FakeReceiver::FakeReceiver(IMediaStreamTrackTypes::Kinds kind) :
+        RTPReceiver(Noop(true)),
+        mKind(kind)
       {
       }
 
@@ -683,9 +684,9 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      FakeReceiverPtr FakeReceiver::create()
+      FakeReceiverPtr FakeReceiver::create(IMediaStreamTrackTypes::Kinds kind)
       {
-        FakeReceiverPtr pThis(make_shared<FakeReceiver>());
+        FakeReceiverPtr pThis(make_shared<FakeReceiver>(kind));
         pThis->mThisWeak = pThis;
         return pThis;
       }
@@ -790,7 +791,7 @@ namespace ortc
             ZS_LOG_BASIC(log("registering listener") + ZS_PARAM("listener", mListener->getID()) + mParameters->toDebug())
 
             RTCPPacketList packetList;
-            mListener->registerReceiver(mThisWeak.lock(), *mParameters);
+            mListener->registerReceiver(mKind, mThisWeak.lock(), *mParameters);
 
             for (auto iter = packetList.begin(); iter != packetList.end(); ++iter) {
               // fake this as if it was a received packet
@@ -824,7 +825,7 @@ namespace ortc
 
         if (mListener) {
           RTCPPacketList packetList;
-          mListener->registerReceiver(mThisWeak.lock(), *mParameters);
+          mListener->registerReceiver(mKind, mThisWeak.lock(), *mParameters);
 
           for (auto iter = packetList.begin(); iter != packetList.end(); ++iter) {
             // fake this as if it was a received packet
@@ -1235,7 +1236,7 @@ namespace ortc
         FakeReceiverPtr receiver = getReceiver(receiverID);
 
         if (!receiver) {
-          receiver = FakeReceiver::create();
+          receiver = FakeReceiver::create(IMediaStreamTrackTypes::Kind_Audio);
           attach(receiverID, receiver);
         }
 
@@ -1282,7 +1283,7 @@ namespace ortc
         FakeReceiverPtr receiver = getReceiver(receiverID);
 
         if (!receiver) {
-          receiver = FakeReceiver::create();
+          receiver = FakeReceiver::create(IMediaStreamTrackTypes::Kind_Audio);
           attach(receiverID, receiver);
         }
 

@@ -588,14 +588,12 @@ namespace ortc
 
       bool findBestExistingLatchAllOrCreateNew(
                                                CodecKinds kind,
-                                               CodecParameters &codec,
+                                               const CodecParameters &codec,
                                                const String &rid,
                                                const RTPPacket &rtpPacket,
                                                ChannelInfoPtr &outChannelInfo,
                                                ChannelHolderPtr &outChannelHolder
                                                );
-
-      ULONG findClockRate(PayloadType pt);
 
       bool fillRIDParameters(
                              const String &rid,

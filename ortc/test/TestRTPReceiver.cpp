@@ -920,6 +920,7 @@ namespace ortc
 
       //-----------------------------------------------------------------------
       void FakeListener::registerReceiver(
+                                          Optional<IMediaStreamTrackTypes::Kinds> kind,
                                           UseReceiverPtr inReceiver,
                                           const Parameters &inParams,
                                           RTCPPacketList *outPacketList
