@@ -135,6 +135,11 @@ namespace ortc
                                                  const EncodingParameters *baseEncoding = NULL
                                                  );
 
+      static EncodingParameters *findEncodingBase(
+                                                  Parameters &inParams,
+                                                  EncodingParameters *inEncoding
+                                                  );
+
       static EncodingParameters *pickEncodingToFill(
                                                     Optional<IMediaStreamTrackTypes::Kinds> kind,
                                                     PayloadType packetPayloadType,

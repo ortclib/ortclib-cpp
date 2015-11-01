@@ -1003,6 +1003,63 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    RTPTypesHelper::EncodingParameters *RTPTypesHelper::findEncodingBase(
+                                                                         Parameters &inParams,
+                                                                         EncodingParameters *inEncoding
+                                                                         )
+    {
+      typedef std::map<String, EncodingParameters *> DependencyMap;
+
+      if (!inEncoding) {
+        if (inParams.mEncodingParameters.size() < 1) return NULL;
+        inEncoding = &(*(inParams.mEncodingParameters.begin()));
+      }
+
+      if (inEncoding->mDependencyEncodingIDs.size() < 1) {
+        // if there are no dependencies then this is the base
+        return inEncoding;
+      }
+
+      DependencyMap encodings;
+
+      for (auto iter = inParams.mEncodingParameters.begin(); iter != inParams.mEncodingParameters.end(); ++iter)
+      {
+        auto &encoding = (*iter);
+
+        encodings[encoding.mEncodingID] = &encoding;
+      }
+
+      DependencyMap previouslyChecked;
+      DependencyMap pending;
+
+      pending[inEncoding->mEncodingID] = inEncoding;
+
+      while (pending.size() > 0) {
+        auto check = pending.begin();
+        String encodingID = check->first;
+        EncodingParameters *encoding = check->second;
+        pending.erase(check);
+
+        if (encoding->mDependencyEncodingIDs.size() < 1) {
+          return encoding;
+        }
+
+        for (auto iter = encoding->mDependencyEncodingIDs.begin(); iter != encoding->mDependencyEncodingIDs.end(); ++iter) {
+          auto &dependencyID = (*iter);
+          auto foundPrevious = previouslyChecked.find(dependencyID);
+          if (foundPrevious != previouslyChecked.end()) continue;
+
+          auto found = encodings.find(dependencyID);
+          if (found == encodings.end()) continue;
+
+          pending[found->first] = found->second;
+        }
+      }
+
+      return inEncoding;
+    }
+
+    //-------------------------------------------------------------------------
     RTPTypesHelper::EncodingParameters *RTPTypesHelper::pickEncodingToFill(
                                                                            Optional<IMediaStreamTrackTypes::Kinds> kind,
                                                                            PayloadType packetPayloadType,
@@ -1029,16 +1086,18 @@ namespace ortc
         return NULL;
       }
 
-      auto &baseEncoding = (*(filledParams.mEncodingParameters.begin()));
-
-      const CodecParameters *baseCodec = NULL;
-      if (baseEncoding.mCodecPayloadType.hasValue()) {
-        baseCodec = RTPTypesHelper::pickCodec(kind, filledParams);
-      }
+      (*(filledParams.mEncodingParameters.begin()));
 
       for (auto encodingIter = filledParams.mEncodingParameters.begin(); encodingIter != filledParams.mEncodingParameters.end(); ++encodingIter) {
 
         auto &encoding = (*encodingIter);
+
+        EncodingParameters &baseEncoding = *(RTPTypesHelper::findEncodingBase(filledParams, &encoding));
+
+        const CodecParameters *baseCodec = NULL;
+        if (baseEncoding.mCodecPayloadType.hasValue()) {
+          baseCodec = RTPTypesHelper::pickCodec(kind, filledParams);
+        }
 
         switch (outCodecKind) {
           case IRTPTypes::CodecKind_Unknown:  ASSERT(false) break;
