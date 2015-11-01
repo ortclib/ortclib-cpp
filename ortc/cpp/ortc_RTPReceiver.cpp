@@ -2455,7 +2455,8 @@ namespace ortc
         IRTPTypes::SupportedCodecs supportedCodec {};
         IRTPTypes::CodecKinds codecKind {};
 
-        auto matchEncoding = RTPTypesHelper::pickEncodingToFill(mKind, rtpPacket.pt(), *(channelInfo->mFilledParameters), codecParams, supportedCodec, codecKind);
+        EncodingParameters *baseEncoding = NULL;
+        auto matchEncoding = RTPTypesHelper::pickEncodingToFill(mKind, rtpPacket.pt(), *(channelInfo->mFilledParameters), codecParams, supportedCodec, codecKind, baseEncoding);
 
         if (channelInfo->shouldLatchAll()) {
           if (!codecParams) {
@@ -2469,8 +2470,7 @@ namespace ortc
           return false;
         }
         if (NULL == matchEncoding) continue; // did not find an appropriate encoding
-
-        auto &baseEncoding = (*(channelInfo->mFilledParameters->mEncodingParameters.begin()));
+        ASSERT(NULL != baseEncoding)  // has to always have a base
 
         {
           switch (codecKind) {
@@ -2484,7 +2484,7 @@ namespace ortc
             case CodecKind_RTX:
             case CodecKind_FEC:     {
 
-              auto ssrc = baseEncoding.mSSRC.value();
+              auto ssrc = baseEncoding->mSSRC.value();
 
               auto foundSSRC = mSSRCTable.find(ssrc);
               if (foundSSRC == mSSRCTable.end()) {

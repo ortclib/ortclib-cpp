@@ -1066,11 +1066,13 @@ namespace ortc
                                                                            Parameters &filledParams,
                                                                            const CodecParameters * &outCodecParameters,
                                                                            IRTPTypes::SupportedCodecs &outSupportedCodec,
-                                                                           IRTPTypes::CodecKinds &outCodecKind
+                                                                           IRTPTypes::CodecKinds &outCodecKind,
+                                                                           EncodingParameters * &outBaseEncoding
                                                                            )
     {
       outSupportedCodec = IRTPTypes::SupportedCodec_Unknown;
       outCodecKind = IRTPTypes::CodecKind_Unknown;
+      outBaseEncoding = NULL;
 
       outCodecParameters = RTPTypesHelper::pickCodec(kind, filledParams, packetPayloadType);
       if (NULL == outCodecParameters) {
@@ -1116,6 +1118,7 @@ namespace ortc
 
             if (encoding.mSSRC.hasValue()) goto not_possible_layer_match;
 
+            outBaseEncoding = &baseEncoding;
             return &encoding;
           }
           case IRTPTypes::CodecKind_AudioSupplemental:
@@ -1128,6 +1131,7 @@ namespace ortc
               }
             }
 
+            outBaseEncoding = &baseEncoding;
             return &encoding;
           }
           case IRTPTypes::CodecKind_RTX:    {
@@ -1146,6 +1150,7 @@ namespace ortc
             auto foundRTXCodec = RTPTypesHelper::pickRTXCodec(kind, filledParams, packetPayloadType, &encoding, &baseEncoding);
             if (!foundRTXCodec) goto not_possible_layer_match;
 
+            outBaseEncoding = &baseEncoding;
             return &encoding;
           }
           case IRTPTypes::CodecKind_FEC:    {
@@ -1164,6 +1169,7 @@ namespace ortc
             auto foundFECCodec = RTPTypesHelper::pickFECCodec(kind, filledParams, packetPayloadType, &encoding, &baseEncoding);
             if (!foundFECCodec) goto not_possible_layer_match;
 
+            outBaseEncoding = &baseEncoding;
             return &encoding;
           }
         }
@@ -1176,6 +1182,7 @@ namespace ortc
       outCodecParameters = NULL;
       outSupportedCodec = IRTPTypes::SupportedCodec_Unknown;
       outCodecKind = IRTPTypes::CodecKind_Unknown;
+      outBaseEncoding = NULL;
       return NULL;
     }
 

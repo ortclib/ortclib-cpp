@@ -146,7 +146,8 @@ namespace ortc
                                                     Parameters &filledParams,
                                                     const CodecParameters * &outCodecParameters,
                                                     IRTPTypes::SupportedCodecs &outSupportedCodec,
-                                                    IRTPTypes::CodecKinds &outCodecKind
+                                                    IRTPTypes::CodecKinds &outCodecKind,
+                                                    EncodingParameters * &outBaseEncoding
                                                     );
 
       static Log::Params slog(const char *message);
