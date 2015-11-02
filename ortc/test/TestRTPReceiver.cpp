@@ -2975,7 +2975,7 @@ void doTestRTPReceiver()
             switch (step) {
               case 2: {
                 if (testObject1) testObject1->connect(testObject2);
-            //  bogusSleep();
+          //    bogusSleep();
                 break;
               }
               case 3: {
@@ -3017,19 +3017,19 @@ void doTestRTPReceiver()
 
                   testObject1->store("param1", params);
                 }
-         //     bogusSleep();
+          //    bogusSleep();
                 break;
               }
               case 6: {
                 testObject1->createReceiverChannel("c1", "param1");
                 testObject1->receive("param1");
-         //     bogusSleep();
+          //    bogusSleep();
                 break;
               }
               case 7: {
                 Parameters params;
                 testObject2->send("s1", "params-empty");
-         //     bogusSleep();
+          //    bogusSleep();
                 break;
               }
               case 8:
@@ -3057,18 +3057,18 @@ void doTestRTPReceiver()
               case 9: {
                 testObject1->expectState("c1", ISecureTransportTypes::State_Connected);
                 testObject1->expectState("c1", ISecureTransportTypes::State_Closed);
-         //     bogusSleep();
+          //    bogusSleep();
                 break;
               }
               case 10: {
                 testObject1->expectPacket("c1","p1");
                 testObject1->expectActiveChannel("c1");
-         //     bogusSleep();
+          //    bogusSleep();
                 break;
               }
               case 11: {
                 testObject2->sendPacket("s1", "p1");
-         //     bogusSleep();
+          //    bogusSleep();
                 break;
               }
               case 16: {

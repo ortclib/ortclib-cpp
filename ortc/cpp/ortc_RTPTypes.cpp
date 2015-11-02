@@ -583,8 +583,6 @@ namespace ortc
             case IRTPTypes::CodecKind_RTX:      continue;
             case IRTPTypes::CodecKind_FEC:      continue;
           }
-
-          if (options.mCodecKind.value() != codecKind) continue;
         }
 
         if ((options.mDisallowMultipleMatches.hasValue()) &&
@@ -1843,27 +1841,33 @@ namespace ortc
 
     UseServicesHelper::debugAppend(resultEl, "ssrc", mMuxID);
 
-    ElementPtr codecsEl = Element::create("codecs");
-    ElementPtr headersEl = Element::create("headers");
-    ElementPtr encodingsEl = Element::create("encodings");
-
-    for (auto iter = mCodecs.begin(); iter != mCodecs.end(); ++iter) {
-      auto value = (*iter);
-      UseServicesHelper::debugAppend(codecsEl, value.toDebug());
+    if (mCodecs.size() > 0) {
+      ElementPtr codecsEl = Element::create("codecs");
+      for (auto iter = mCodecs.begin(); iter != mCodecs.end(); ++iter) {
+        auto value = (*iter);
+        UseServicesHelper::debugAppend(codecsEl, value.toDebug());
+      }
+      UseServicesHelper::debugAppend(resultEl, codecsEl);
     }
-    if (codecsEl) UseServicesHelper::debugAppend(resultEl, codecsEl);
 
-    for (auto iter = mHeaderExtensions.begin(); iter != mHeaderExtensions.end(); ++iter) {
-      auto value = (*iter);
-      UseServicesHelper::debugAppend(headersEl, value.toDebug());
+    if (mHeaderExtensions.size() > 0) {
+      ElementPtr headersEl = Element::create("headers");
+      for (auto iter = mHeaderExtensions.begin(); iter != mHeaderExtensions.end(); ++iter) {
+        auto value = (*iter);
+        UseServicesHelper::debugAppend(headersEl, value.toDebug());
+      }
+      UseServicesHelper::debugAppend(resultEl, headersEl);
     }
-    if (headersEl) UseServicesHelper::debugAppend(resultEl, headersEl);
 
-    for (auto iter = mEncodingParameters.begin(); iter != mEncodingParameters.end(); ++iter) {
-      auto value = (*iter);
-      UseServicesHelper::debugAppend(encodingsEl, value.toDebug());
+    if (mEncodingParameters.size() > 0) {
+      ElementPtr encodingsEl = Element::create("encodings");
+      
+      for (auto iter = mEncodingParameters.begin(); iter != mEncodingParameters.end(); ++iter) {
+        auto value = (*iter);
+        UseServicesHelper::debugAppend(encodingsEl, value.toDebug());
+      }
+      UseServicesHelper::debugAppend(resultEl, encodingsEl);
     }
-    if (encodingsEl) UseServicesHelper::debugAppend(resultEl, encodingsEl);
 
     UseServicesHelper::debugAppend(resultEl, "rtcp params", mRTCP.toDebug());
 
@@ -1939,13 +1943,14 @@ namespace ortc
     UseServicesHelper::debugAppend(resultEl, "max ptime", mMaxPTime);
     UseServicesHelper::debugAppend(resultEl, "number of channels", mNumChannels);
 
-    ElementPtr feedbacksEl = Element::create("feedbacks");
-
-    for (auto iter = mRTCPFeedback.begin(); iter != mRTCPFeedback.end(); ++iter) {
-      auto value = (*iter);
-      UseServicesHelper::debugAppend(feedbacksEl, value.toDebug());
+    if (mRTCPFeedback.size() > 0) {
+      ElementPtr feedbacksEl = Element::create("feedbacks");
+      for (auto iter = mRTCPFeedback.begin(); iter != mRTCPFeedback.end(); ++iter) {
+        auto value = (*iter);
+        UseServicesHelper::debugAppend(feedbacksEl, value.toDebug());
+      }
+      UseServicesHelper::debugAppend(resultEl, feedbacksEl);
     }
-    if (feedbacksEl) UseServicesHelper::debugAppend(resultEl, feedbacksEl);
 
     SupportedCodecs supported = toSupportedCodec(mName);
 
@@ -2535,13 +2540,15 @@ namespace ortc
     UseServicesHelper::debugAppend(resultEl, "active", mActive);
     UseServicesHelper::debugAppend(resultEl, "encoding id", mEncodingID);
 
-    ElementPtr depedenciesEl = Element::create("dependency encoding ids");
+    if (mDependencyEncodingIDs.size() > 0) {
+      ElementPtr depedenciesEl = Element::create("dependency encoding ids");
 
-    for (auto iter = mDependencyEncodingIDs.begin(); iter != mDependencyEncodingIDs.end(); ++iter) {
-      auto value = (*iter);
-      UseServicesHelper::debugAppend(depedenciesEl, "dependency encoding id", value);
+      for (auto iter = mDependencyEncodingIDs.begin(); iter != mDependencyEncodingIDs.end(); ++iter) {
+        auto value = (*iter);
+        UseServicesHelper::debugAppend(depedenciesEl, "dependency encoding id", value);
+      }
+      UseServicesHelper::debugAppend(resultEl, depedenciesEl);
     }
-    if (depedenciesEl->hasChildren()) UseServicesHelper::debugAppend(resultEl, depedenciesEl);
 
     return resultEl;
   }
