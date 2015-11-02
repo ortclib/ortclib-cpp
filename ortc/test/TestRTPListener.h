@@ -693,12 +693,12 @@ namespace ortc
         RTCPPacketPtr getRTCPPacket(const char *packetID);
 
         void sendPacket(
-                        const char *packetID,
-                        const char *viaSenderID
+                        const char *viaSenderID,
+                        const char *packetID
                         );
         void expectPacket(
-                          const char *packetID,
-                          const char *senderOrReceiverID
+                          const char *senderOrReceiverID,
+                          const char *packetID
                           );
 
       protected:
