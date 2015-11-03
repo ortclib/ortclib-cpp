@@ -2871,6 +2871,7 @@ ZS_DECLARE_TYPEDEF_PTR(ortc::IMediaStreamTrackTypes, IMediaStreamTrackTypes)
 using ortc::IICETypes;
 using zsLib::Optional;
 using zsLib::WORD;
+using zsLib::DWORD;
 using zsLib::BYTE;
 using zsLib::Milliseconds;
 using ortc::SecureByteBlock;
@@ -3014,6 +3015,12 @@ void doTestRTPReceiver()
                   headerParams.mID = 2;
                   headerParams.mURI = IRTPTypes::toString(IRTPTypes::HeaderExtensionURI_RID);
                   params.mHeaderExtensions.push_back(headerParams);
+                  headerParams.mID = 3;
+                  headerParams.mURI = IRTPTypes::toString(IRTPTypes::HeaderExtensionURI_ClienttoMixerAudioLevelIndication);
+                  params.mHeaderExtensions.push_back(headerParams);
+                  headerParams.mID = 4;
+                  headerParams.mURI = IRTPTypes::toString(IRTPTypes::HeaderExtensionURI_MixertoClientAudioLevelIndication);
+                  params.mHeaderExtensions.push_back(headerParams);
 
                   testObject1->store("param1", params);
                 }
@@ -3039,15 +3046,23 @@ void doTestRTPReceiver()
                 params.mSequenceNumber = 1;
                 params.mTimestamp = 10000;
                 params.mSSRC = 5;
+                DWORD csrcs[] = {77,88};
+                params.mCSRCList = csrcs;
+                params.mCC = sizeof(csrcs)/sizeof(DWORD);
                 const char *payload = "sparksthesoftware";
                 params.mPayload = reinterpret_cast<const BYTE *>(payload);
                 params.mPayloadSize = strlen(payload);
 
                 RTPPacket::MidHeaderExtension mid1(1, "r1");
-                params.mFirstHeaderExtension = &mid1;
-
                 RTPPacket::MidHeaderExtension rid1(2, "c1");
-                params.mFirstHeaderExtension->mNext = &rid1;
+                RTPPacket::ClientToMixerExtension ctm1(3, true, 2);
+                BYTE levels[] = {4,15};
+                RTPPacket::MixerToClientExtension mtc1(4, levels, sizeof(levels)/sizeof(BYTE));
+
+                params.mFirstHeaderExtension = &mid1;
+                mid1.mNext = &rid1;
+                rid1.mNext = &ctm1;
+                ctm1.mNext = &mtc1;
 
                 RTPPacketPtr packet = RTPPacket::create(params);
                 testObject1->store("p1", packet);

@@ -3098,9 +3098,9 @@ namespace ortc
           }
           case IRTPTypes::HeaderExtensionURI_MixertoClientAudioLevelIndication:   {
             RTPPacket::MixerToClientExtension levelExt(*ext);
-            for (size_t index = 0; index < levelExt.levelsCount(); ++index) {
-              auto level = levelExt.level(index);              
-              setContributingSource(rtpPacket.ssrc(), level);
+            for (size_t index = 0; (index < levelExt.levelsCount()) && (index < rtpPacket.cc()); ++index) {
+              auto level = levelExt.level(index);
+              setContributingSource(rtpPacket.getCSRC(index) , level);
             }
             break;
           }
