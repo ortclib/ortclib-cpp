@@ -2471,6 +2471,11 @@ namespace ortc
         {
           AutoRecursiveLock lock(*this);
 
+          if (!mMediaStreamTrack) {
+            mExpectingActiveChannelsUponMediaTrackCreation.push_back(String(receiverChannelID));
+            return;
+          }
+
           TESTING_CHECK(mMediaStreamTrack)
 
           if (NULL != receiverChannelID) {
@@ -2765,6 +2770,22 @@ namespace ortc
 
           mExpectations.mKind = kind;
           mMediaStreamTrack = track;
+
+          for (auto iter = mExpectingActiveChannelsUponMediaTrackCreation.begin(); iter != mExpectingActiveChannelsUponMediaTrackCreation.end(); ++iter) {
+            auto &receiverChannelID = (*iter);
+
+            FakeReceiverChannelPtr receiverChannel;
+
+            if (receiverChannelID.hasData()) {
+              receiverChannel = getReceiverChannel(receiverChannelID);
+
+              TESTING_CHECK(receiverChannel)
+            }
+
+            track->expectActiveChannel(receiverChannel ? receiverChannel->getID() : 0);
+          }
+
+          mExpectingActiveChannelsUponMediaTrackCreation.clear();
         }
 
         TESTING_CHECK(track)
@@ -2868,6 +2889,8 @@ ZS_DECLARE_TYPEDEF_PTR(ortc::internal::ISecureTransportTypes, ISecureTransportTy
 ZS_DECLARE_TYPEDEF_PTR(ortc::IRTPTypes::Parameters, Parameters)
 ZS_DECLARE_TYPEDEF_PTR(ortc::IRTPTypes::CodecParameters, CodecParameters)
 ZS_DECLARE_TYPEDEF_PTR(ortc::IRTPTypes::EncodingParameters, EncodingParameters)
+ZS_DECLARE_TYPEDEF_PTR(ortc::IRTPTypes::RTXParameters, RTXParameters)
+ZS_DECLARE_TYPEDEF_PTR(ortc::IRTPTypes::FECParameters, FECParameters)
 ZS_DECLARE_TYPEDEF_PTR(ortc::IMediaStreamTrackTypes, IMediaStreamTrackTypes)
 
 using ortc::IICETypes;
@@ -2879,7 +2902,8 @@ using zsLib::Milliseconds;
 using ortc::SecureByteBlock;
 using ortc::SecureByteBlockPtr;
 
-#define TEST_BASIC_ROUTING 0
+#define TEST_BASIC_ROUTING 3
+#define TEST_SSRC_ROUTING 0
 
 static void bogusSleep()
 {
@@ -2943,6 +2967,26 @@ void doTestRTPReceiver()
             expectations1.mChannelUpdate = 0;
             expectations1.mActiveReceiverChannel = 3;
             expectations1.mReceiverChannelOfSecureTransportState = 4;
+            expectations1.mKind = IMediaStreamTrackTypes::Kind_Audio;
+          }
+          break;
+        }
+        case TEST_SSRC_ROUTING: {
+          {
+            testObject1 = RTPReceiverTester::create(thread, true);
+            testObject2 = RTPReceiverTester::create(thread, false);
+
+            TESTING_CHECK(testObject1)
+            TESTING_CHECK(testObject2)
+
+            testObject1->setClientRole(true);
+            testObject2->setClientRole(false);
+
+            expectations1.mUnhandled = 0;
+            expectations1.mReceivedPackets = 1;
+            expectations1.mChannelUpdate = 0;
+            expectations1.mActiveReceiverChannel = 2;
+            expectations1.mReceiverChannelOfSecureTransportState = 2;
             expectations1.mKind = IMediaStreamTrackTypes::Kind_Audio;
           }
           break;
@@ -3164,6 +3208,205 @@ void doTestRTPReceiver()
                 if (testObject1) testObject1->close();
                 if (testObject2) testObject1->close();
                 //bogusSleep();
+                break;
+              }
+              case 21: {
+                if (testObject1) testObject1->state(IDTLSTransport::State_Closed);
+                if (testObject2) testObject2->state(IDTLSTransport::State_Closed);
+                //bogusSleep();
+                break;
+              }
+              case 22: {
+                if (testObject1) testObject1->state(IICETransport::State_Disconnected);
+                if (testObject2) testObject2->state(IICETransport::State_Disconnected);
+                //bogusSleep();
+                break;
+              }
+              case 23: {
+                if (testObject1) testObject1->state(IICETransport::State_Closed);
+                if (testObject2) testObject2->state(IICETransport::State_Closed);
+                //bogusSleep();
+                break;
+              }
+              case 24: {
+                if (testObject1) testObject1->closeByReset();
+                if (testObject2) testObject2->closeByReset();
+                //bogusSleep();
+                break;
+              }
+              case 25: {
+                lastStepReached = true;
+                break;
+              }
+              default: {
+                // nothing happening in this step
+                break;
+              }
+            }
+            break;
+          }
+          case TEST_SSRC_ROUTING: {
+            switch (step) {
+              case 2: {
+                if (testObject1) testObject1->connect(testObject2);
+          //    bogusSleep();
+                break;
+              }
+              case 3: {
+                if (testObject1) testObject1->state(IICETransport::State_Completed);
+                if (testObject2) testObject2->state(IICETransport::State_Completed);
+          //    bogusSleep();
+                break;
+              }
+              case 4: {
+                {
+                  Parameters params;
+                  testObject1->store("params-empty", params);
+                  testObject2->store("params-empty", params);
+                }
+                {
+                  Parameters params;
+
+                  CodecParameters codec;
+                  codec.mName = IRTPTypes::toString(IRTPTypes::SupportedCodec_Opus);
+                  codec.mClockRate = 48000;
+                  codec.mPayloadType = 96;
+                  params.mCodecs.push_back(codec);
+
+                  IRTPTypes::RTXCodecParameters rtxCodecParams;
+                  rtxCodecParams.mRTXTime = Milliseconds(100);
+
+                  codec.mName = IRTPTypes::toString(IRTPTypes::SupportedCodec_RTX);
+                  codec.mClockRate = 90000;
+                  codec.mPayloadType = 120;
+                  codec.mParameters = IRTPTypes::RTXCodecParameters::create(rtxCodecParams);
+                  params.mCodecs.push_back(codec);  // not used
+
+                  codec.mName = IRTPTypes::toString(IRTPTypes::SupportedCodec_RTX);
+                  codec.mClockRate = 48000;
+                  codec.mPayloadType = 121;
+                  codec.mParameters = IRTPTypes::RTXCodecParameters::create(rtxCodecParams);
+                  params.mCodecs.push_back(codec);
+
+                  codec.mName = IRTPTypes::toString(IRTPTypes::SupportedCodec_ULPFEC);
+                  codec.mClockRate = 90000;
+                  codec.mPayloadType = 122;
+                  params.mCodecs.push_back(codec);  // not used
+
+                  codec.mName = IRTPTypes::toString(IRTPTypes::SupportedCodec_ULPFEC);
+                  codec.mClockRate = 48000;
+                  codec.mPayloadType = 123;
+                  params.mCodecs.push_back(codec);
+
+                  IRTPTypes::REDCodecParameters redCodecParams1;
+                  redCodecParams1.mPayloadTypes.push_back(122);
+                  IRTPTypes::REDCodecParameters redCodecParams2;
+                  redCodecParams1.mPayloadTypes.push_back(123);
+
+                  codec.mName = IRTPTypes::toString(IRTPTypes::SupportedCodec_RED);
+                  codec.mClockRate = 90000;
+                  codec.mPayloadType = 124;
+                  codec.mParameters = IRTPTypes::REDCodecParameters::create(redCodecParams1);
+                  params.mCodecs.push_back(codec);  // red herring -- get it?? get it??? *sigh*
+
+                  codec.mName = IRTPTypes::toString(IRTPTypes::SupportedCodec_RED);
+                  codec.mClockRate = 48000;
+                  codec.mPayloadType = 125;
+                  codec.mParameters = IRTPTypes::REDCodecParameters::create(redCodecParams2);
+                  params.mCodecs.push_back(codec);
+
+                  EncodingParameters encoding;
+                  encoding.mSSRC = 19;
+                  encoding.mCodecPayloadType = 96;
+
+                  RTXParameters rtx;
+                  rtx.mSSRC = 23;
+                  rtx.mPayloadType = 121;
+                  encoding.mRTX = rtx;
+
+                  FECParameters fec;
+                  fec.mSSRC = 31;
+                  fec.mMechanism = IRTPTypes::toString(IRTPTypes::KnownFECMechanism_RED_ULPFEC);
+                  encoding.mFEC = fec;
+
+                  params.mEncodingParameters.push_back(encoding);
+
+                  testObject1->store("params1", params);
+                }
+          //    bogusSleep();
+                break;
+              }
+              case 5:
+              {
+                {
+                  RTPPacket::CreationParams params;
+                  params.mPT = 96;
+                  params.mSequenceNumber = 1;
+                  params.mTimestamp = 10000;
+                  params.mSSRC = 19;
+                  const char *payload = "makemyday";
+                  params.mPayload = reinterpret_cast<const BYTE *>(payload);
+                  params.mPayloadSize = strlen(payload);
+
+                  RTPPacketPtr packet = RTPPacket::create(params);
+                  testObject1->store("p1", packet);
+                  testObject2->store("p1", packet);
+                }
+                {
+                  RTPPacket::CreationParams params;
+                  params.mPT = 121;
+                  params.mSequenceNumber = 2;
+                  params.mTimestamp = 10001;
+                  params.mSSRC = 23;
+                  const char *payload = "Hasta la vista Baby!";
+                  params.mPayload = reinterpret_cast<const BYTE *>(payload);
+                  params.mPayloadSize = strlen(payload);
+
+                  RTPPacketPtr packet = RTPPacket::create(params);
+                  testObject1->store("p2", packet);
+                  testObject2->store("p2", packet);
+                }
+                {
+                  RTPPacket::CreationParams params;
+                  params.mPT = 125;
+                  params.mSequenceNumber = 3;
+                  params.mTimestamp = 10002;
+                  params.mSSRC = 31;
+                  const char *payload = "Monster high";
+                  params.mPayload = reinterpret_cast<const BYTE *>(payload);
+                  params.mPayloadSize = strlen(payload);
+
+                  RTPPacketPtr packet = RTPPacket::create(params);
+                  testObject1->store("p3", packet);
+                  testObject2->store("p3", packet);
+                }
+          //    bogusSleep();
+                break;
+              }
+              case 6: {
+                if (testObject2) testObject2->state(IDTLSTransport::State_Validated);
+                if (testObject1) testObject1->state(IDTLSTransport::State_Validated);
+                testObject2->createSender("s1");
+                testObject2->sendPacket("s1", "p1");
+          //    bogusSleep();
+                break;
+              }
+              case 10: {
+                testObject1->createReceiverChannel("c1", "params1");
+                testObject1->expectPacket("c1", "p1");
+                testObject1->expectState("c1", ISecureTransportTypes::State_Connected);
+                testObject1->expectState("c1", ISecureTransportTypes::State_Closed);
+                testObject1->expectActiveChannel("c1");
+                testObject1->receive("params1");
+          //    bogusSleep();
+                break;
+              }
+              case 20: {
+                testObject1->expectActiveChannel(NULL);
+
+                if (testObject1) testObject1->close();
+                if (testObject2) testObject1->close();
+                bogusSleep();
                 break;
               }
               case 21: {

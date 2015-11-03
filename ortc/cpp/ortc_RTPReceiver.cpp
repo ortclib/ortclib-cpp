@@ -2892,6 +2892,8 @@ namespace ortc
           channelHolder->mChannel = UseChannel::create(mThisWeak.lock(), *(channelInfo->mOriginalParameters), historicalPackets);
           channelHolder->notify(mLastReportedTransportStateToChannels);
 
+          channelInfo->mChannelHolder = channelHolder;
+
           // remember the channel (mChannels is using COW pattern)
           ChannelWeakMapPtr replacementChannels(make_shared<ChannelWeakMap>(*mChannels));
           (*replacementChannels)[channelHolder->getID()] = channelHolder;
@@ -2975,6 +2977,8 @@ namespace ortc
       ioChannelHolder->mChannelInfo = channelInfo;
       ioChannelHolder->mChannel = UseChannel::create(mThisWeak.lock(), *(channelInfo->mOriginalParameters), historicalPackets);
       ioChannelHolder->notify(mLastReportedTransportStateToChannels);
+
+      channelInfo->mChannelHolder = ioChannelHolder;
 
       // remember the channel (mChannels is using COW pattern)
       ChannelWeakMapPtr replacementChannels(make_shared<ChannelWeakMap>(*mChannels));

@@ -1019,6 +1019,8 @@ namespace ortc
         typedef String ParametersID;
         typedef std::map<ParametersID, ParametersPtr> ParametersMap;
 
+        typedef std::list<ReceiverChannelID> ReceiverIDList;
+
         //---------------------------------------------------------------------
         #pragma mark
         #pragma mark RTPReceiverTester::UnhandledEventData
@@ -1301,6 +1303,7 @@ namespace ortc
         FakeSecureTransportPtr mDTLSTransport;
 
         FakeMediaStreamTrackPtr mMediaStreamTrack;
+        ReceiverIDList mExpectingActiveChannelsUponMediaTrackCreation;
 
         IRTPReceiverPtr mReceiver;
 
