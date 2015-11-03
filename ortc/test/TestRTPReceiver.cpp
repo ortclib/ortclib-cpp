@@ -2936,8 +2936,8 @@ void doTestRTPReceiver()
             testObject1->setClientRole(true);
             testObject2->setClientRole(false);
 
-            expectations1.mUnhandled = 0;
-            expectations1.mReceivedPackets = 1;
+            expectations1.mUnhandled = 1;
+            expectations1.mReceivedPackets = 3;
             expectations1.mChannelUpdate = 0;
             expectations1.mActiveReceiverChannel = 2;
             expectations1.mReceiverChannelOfSecureTransportState = 2;
@@ -3041,32 +3041,69 @@ void doTestRTPReceiver()
               }
               case 8:
               {
-                RTPPacket::CreationParams params;
-                params.mPT = 96;
-                params.mSequenceNumber = 1;
-                params.mTimestamp = 10000;
-                params.mSSRC = 5;
-                DWORD csrcs[] = {77,88};
-                params.mCSRCList = csrcs;
-                params.mCC = sizeof(csrcs)/sizeof(DWORD);
-                const char *payload = "sparksthesoftware";
-                params.mPayload = reinterpret_cast<const BYTE *>(payload);
-                params.mPayloadSize = strlen(payload);
+                {
+                  RTPPacket::CreationParams params;
+                  params.mPT = 96;
+                  params.mSequenceNumber = 1;
+                  params.mTimestamp = 10000;
+                  params.mSSRC = 5;
+                  DWORD csrcs[] = {77,88};
+                  params.mCSRCList = csrcs;
+                  params.mCC = sizeof(csrcs)/sizeof(DWORD);
+                  const char *payload = "sparksthesoftware";
+                  params.mPayload = reinterpret_cast<const BYTE *>(payload);
+                  params.mPayloadSize = strlen(payload);
 
-                RTPPacket::MidHeaderExtension mid1(1, "r1");
-                RTPPacket::MidHeaderExtension rid1(2, "c1");
-                RTPPacket::ClientToMixerExtension ctm1(3, true, 2);
-                BYTE levels[] = {4,15};
-                RTPPacket::MixerToClientExtension mtc1(4, levels, sizeof(levels)/sizeof(BYTE));
+                  RTPPacket::MidHeaderExtension mid1(1, "r1");
+                  RTPPacket::MidHeaderExtension rid1(2, "c1");
+                  RTPPacket::ClientToMixerExtension ctm1(3, true, 2);
+                  BYTE levels[] = {4,15};
+                  RTPPacket::MixerToClientExtension mtc1(4, levels, sizeof(levels)/sizeof(BYTE));
 
-                params.mFirstHeaderExtension = &mid1;
-                mid1.mNext = &rid1;
-                rid1.mNext = &ctm1;
-                ctm1.mNext = &mtc1;
+                  params.mFirstHeaderExtension = &mid1;
+                  mid1.mNext = &rid1;
+                  rid1.mNext = &ctm1;
+                  ctm1.mNext = &mtc1;
 
-                RTPPacketPtr packet = RTPPacket::create(params);
-                testObject1->store("p1", packet);
-                testObject2->store("p1", packet);
+                  RTPPacketPtr packet = RTPPacket::create(params);
+                  testObject1->store("p1", packet);
+                  testObject2->store("p1", packet);
+                }
+                {
+                  RTPPacket::CreationParams params;
+                  params.mPT = 96;
+                  params.mSequenceNumber = 2;
+                  params.mTimestamp = 10001;
+                  params.mSSRC = 5;
+                  const char *payload = "sparksthesoftware2";
+                  params.mPayload = reinterpret_cast<const BYTE *>(payload);
+                  params.mPayloadSize = strlen(payload);
+
+                  RTPPacketPtr packet = RTPPacket::create(params);
+                  testObject1->store("p2", packet);
+                  testObject2->store("p2", packet);
+                }
+                {
+                  RTPPacket::CreationParams params;
+                  params.mPT = 97;
+                  params.mSequenceNumber = 3;
+                  params.mTimestamp = 10002;
+                  params.mSSRC = 6;
+                  const char *payload = "sparksthesoftware3";
+                  params.mPayload = reinterpret_cast<const BYTE *>(payload);
+                  params.mPayloadSize = strlen(payload);
+
+                  RTPPacket::MidHeaderExtension mid1(1, "r2");
+                  RTPPacket::MidHeaderExtension rid1(2, "c2");
+
+                  params.mFirstHeaderExtension = &mid1;
+                  mid1.mNext = &rid1;
+
+                  RTPPacketPtr packet = RTPPacket::create(params);
+                  testObject1->store("p3", packet);
+                  testObject2->store("p3", packet);
+                }
+          //    bogusSleep();
                 break;
               }
               case 9: {
@@ -3077,12 +3114,22 @@ void doTestRTPReceiver()
               }
               case 10: {
                 testObject1->expectPacket("c1","p1");
+                testObject1->expectPacket("c1","p1");
+                testObject1->expectPacket("c1","p2");
                 testObject1->expectActiveChannel("c1");
           //    bogusSleep();
                 break;
               }
               case 11: {
                 testObject2->sendPacket("s1", "p1");
+                testObject2->sendPacket("s1", "p1");
+                testObject2->sendPacket("s1", "p2");
+          //    bogusSleep();
+                break;
+              }
+              case 12: {
+                testObject1->expectingUnhandled(6, 97, "r2", "c2");
+                testObject2->sendPacket("s1", "p3");
           //    bogusSleep();
                 break;
               }
