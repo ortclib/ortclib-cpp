@@ -2937,7 +2937,7 @@ void doTestRTPReceiver()
             testObject2->setClientRole(false);
 
             expectations1.mUnhandled = 1;
-            expectations1.mReceivedPackets = 3;
+            expectations1.mReceivedPackets = 4;
             expectations1.mChannelUpdate = 0;
             expectations1.mActiveReceiverChannel = 2;
             expectations1.mReceiverChannelOfSecureTransportState = 2;
@@ -3022,14 +3022,14 @@ void doTestRTPReceiver()
                   headerParams.mURI = IRTPTypes::toString(IRTPTypes::HeaderExtensionURI_MixertoClientAudioLevelIndication);
                   params.mHeaderExtensions.push_back(headerParams);
 
-                  testObject1->store("param1", params);
+                  testObject1->store("params1", params);
                 }
           //    bogusSleep();
                 break;
               }
               case 6: {
-                testObject1->createReceiverChannel("c1", "param1");
-                testObject1->receive("param1");
+                testObject1->createReceiverChannel("c1", "params1");
+                testObject1->receive("params1");
           //    bogusSleep();
                 break;
               }
@@ -3133,7 +3133,26 @@ void doTestRTPReceiver()
           //    bogusSleep();
                 break;
               }
-              case 16: {
+              case 14: {
+                auto params = testObject1->getParameters("params1");
+
+                CodecParameters codec;
+                codec.mName = "isac";
+                codec.mClockRate = 32000;
+                codec.mPayloadType = 97;
+
+                params->mCodecs.push_back(codec);
+                testObject1->store("params2", *params);
+          //    bogusSleep();
+                break;
+              }
+              case 15: {
+                testObject1->expectPacket("c1","p3");
+                testObject1->receive("params2");
+                bogusSleep();
+                break;
+              }
+              case 20: {
                 testObject1->expectActiveChannel(NULL);
 
                 if (testObject1) testObject1->close();
@@ -3141,31 +3160,31 @@ void doTestRTPReceiver()
                 //bogusSleep();
                 break;
               }
-              case 17: {
+              case 21: {
                 if (testObject1) testObject1->state(IDTLSTransport::State_Closed);
                 if (testObject2) testObject2->state(IDTLSTransport::State_Closed);
                 //bogusSleep();
                 break;
               }
-              case 18: {
+              case 22: {
                 if (testObject1) testObject1->state(IICETransport::State_Disconnected);
                 if (testObject2) testObject2->state(IICETransport::State_Disconnected);
                 //bogusSleep();
                 break;
               }
-              case 19: {
+              case 23: {
                 if (testObject1) testObject1->state(IICETransport::State_Closed);
                 if (testObject2) testObject2->state(IICETransport::State_Closed);
                 //bogusSleep();
                 break;
               }
-              case 20: {
+              case 24: {
                 if (testObject1) testObject1->closeByReset();
                 if (testObject2) testObject2->closeByReset();
                 //bogusSleep();
                 break;
               }
-              case 21: {
+              case 25: {
                 lastStepReached = true;
                 break;
               }

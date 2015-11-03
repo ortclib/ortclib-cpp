@@ -257,7 +257,7 @@ namespace ortc
           auto iterNew_doNotUse = newList.begin();
           auto iterNewHash_doNotUse = newHashedList.begin();
 
-          for (; iterNew_doNotUse != newList.begin();) {
+          for (; iterNew_doNotUse != newList.end();) {
             auto currentNew = iterNew_doNotUse;
             ++iterNew_doNotUse;
 
@@ -298,7 +298,7 @@ namespace ortc
 
           auto oldParams = (*currentOld);
 
-          for (auto iterNew_doNotUse = newList.begin(); iterNew_doNotUse != newList.begin();) {
+          for (auto iterNew_doNotUse = newList.begin(); iterNew_doNotUse != newList.end();) {
             auto currentNew = iterNew_doNotUse;
             ++iterNew_doNotUse;
 
@@ -343,7 +343,7 @@ namespace ortc
 
       // scope: new params with non-matching SSRC entries must be added
       {
-        for (auto iterNew_doNotUse = newList.begin(); iterNew_doNotUse != newList.begin();) {
+        for (auto iterNew_doNotUse = newList.begin(); iterNew_doNotUse != newList.end();) {
           auto currentNew = iterNew_doNotUse;
           ++iterNew_doNotUse;
 
@@ -394,7 +394,7 @@ namespace ortc
           ParametersPtr closestMatchNew;
           auto closestMatchNewIter = newList.end();
 
-          for (auto iterNew_doNotUse = newList.begin(); iterNew_doNotUse != newList.begin();) {
+          for (auto iterNew_doNotUse = newList.begin(); iterNew_doNotUse != newList.end();) {
             auto currentNew = iterNew_doNotUse;
             ++iterNew_doNotUse;
 

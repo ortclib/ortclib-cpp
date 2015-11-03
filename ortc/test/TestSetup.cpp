@@ -32,6 +32,8 @@
 
 #include <zsLib/MessageQueueThread.h>
 
+#include <ortc/internal/ortc_ORTC.h>
+
 #include <ortc/IICEGatherer.h>
 #include <ortc/ISettings.h>
 
@@ -41,6 +43,7 @@
 
 
 #include <openpeer/services/IHelper.h>
+#include <openpeer/services/IMessageQueueManager.h>
 
 #include <zsLib/XML.h>
 
@@ -82,8 +85,12 @@ using zsLib::RecursiveLock;
 using zsLib::AutoRecursiveLock;
 using namespace zsLib::XML;
 
+#define ORTC_TEST_QUEUE_FOR_DELEGATE "org.ortc.test.delegateQueue"
+
 ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHelper, UseServicesHelper)
 ZS_DECLARE_TYPEDEF_PTR(ortc::ISettings, UseSettings)
+ZS_DECLARE_TYPEDEF_PTR(ortc::internal::IORTCForInternal, UseORTC)
+ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IMessageQueueManager, UseMessageQueueManager)
 
 namespace ortc
 {
@@ -571,6 +578,7 @@ ZS_DECLARE_USING_PTR(ortc::test::setup, TestSetup)
 
 void doSetup()
 {
+  ortc::internal::IORTCForInternal::overrideQueueDelegate(UseMessageQueueManager::getMessageQueue(ORTC_TEST_QUEUE_FOR_DELEGATE));
   ortc::ISettings::applyDefaults();
 
   TestSetup setup;
