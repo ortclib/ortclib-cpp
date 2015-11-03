@@ -36,6 +36,7 @@
 #include <ortc/internal/ortc_RTPPacket.h>
 #include <ortc/internal/ortc_RTCPPacket.h>
 #include <ortc/internal/ortc_SRTPSDESTransport.h>
+#include <ortc/internal/ortc_RTPTypes.h>
 #include <ortc/internal/ortc_ORTC.h>
 #include <ortc/internal/platform.h>
 
@@ -117,6 +118,8 @@ namespace ortc
 
       UseSettings::setUInt(ORTC_SETTING_RTP_LISTENER_SSRC_TIMEOUT_IN_SECONDS, 60);
       UseSettings::setUInt(ORTC_SETTING_RTP_LISTENER_UNHANDLED_EVENTS_TIMEOUT_IN_SECONDS, 60);
+
+      UseSettings::setUInt(ORTC_SETTING_RTP_LISTENER_ONLY_RESOLVE_AMBIGUOUS_PAYLOAD_MAPPING_IF_ACTIVITY_DIFFERS_IN_MILLISECONDS, 5*1000);
     }
 
     //-------------------------------------------------------------------------
@@ -290,6 +293,7 @@ namespace ortc
       UseServicesHelper::debugAppend(resultEl, "receiver id", mReceiverID);
       UseServicesHelper::debugAppend(resultEl, "receiver", ((bool)mReceiver.lock()));
 
+      UseServicesHelper::debugAppend(resultEl, "kind", mKind.hasValue() ? IMediaStreamTrackTypes::toString(mKind) : (const char *)NULL);
       UseServicesHelper::debugAppend(resultEl, mFilledParameters.toDebug());
       UseServicesHelper::debugAppend(resultEl, mOriginalParameters.toDebug());
 
@@ -328,7 +332,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark RTPListener::ReceiverInfo
+    #pragma mark RTPListener::UnhandledEventInfo
     #pragma mark
 
     //---------------------------------------------------------------------------
@@ -395,7 +399,8 @@ namespace ortc
       mMaxBufferedRTCPPackets(SafeInt<decltype(mMaxBufferedRTCPPackets)>(UseSettings::getUInt(ORTC_SETTING_RTP_LISTENER_MAX_RTCP_PACKETS_IN_BUFFER))),
       mMaxRTCPPacketAge(UseSettings::getUInt(ORTC_SETTING_RTP_LISTENER_MAX_AGE_RTCP_PACKETS_IN_SECONDS)),
       mReceivers(make_shared<ReceiverObjectMap>()),
-      mSenders(make_shared<SenderObjectMap>())
+      mSenders(make_shared<SenderObjectMap>()),
+      mAmbigousPayloadMappingMinDifference(UseSettings::getUInt(ORTC_SETTING_RTP_LISTENER_ONLY_RESOLVE_AMBIGUOUS_PAYLOAD_MAPPING_IF_ACTIVITY_DIFFERS_IN_MILLISECONDS))
     {
       ZS_LOG_DETAIL(debug("created"))
 
@@ -726,6 +731,7 @@ namespace ortc
 
     //-------------------------------------------------------------------------
     void RTPListener::registerReceiver(
+                                       Optional<IMediaStreamTrack::Kinds> kind,
                                        UseReceiverPtr inReceiver,
                                        const Parameters &inParams,
                                        RTCPPacketList *outPacketList
@@ -751,6 +757,7 @@ namespace ortc
       replacementInfo->mOrderID = AutoPUID();
       replacementInfo->mReceiverID = receiverID;
       replacementInfo->mReceiver = inReceiver;
+      replacementInfo->mKind = kind;
       replacementInfo->mFilledParameters = inParams;
       replacementInfo->mOriginalParameters = inParams;
 
@@ -1581,9 +1588,10 @@ namespace ortc
                                                   ReceiverInfoPtr &outReceiverInfo
                                                   )
     {
-      auto payloadType = rtpPacket.pt();
+      EncodingParameters *foundEncoding = NULL;
+      CodecKinds foundCodecKind = CodecKind_Unknown;
 
-      CodecKinds foundKind = CodecKind_Unknown;
+      Time lastMatchUsageTime {};
 
       for (auto iter = mReceivers->begin(); iter != mReceivers->end(); ++iter) {
         auto &receiverInfo = (*iter).second;
@@ -1597,97 +1605,98 @@ namespace ortc
           }
         }
 
-        CodecKinds kind = CodecKind_Unknown;
+        const CodecParameters *codecParams = NULL;
+        IRTPTypes::SupportedCodecs supportedCodec {};
+        IRTPTypes::CodecKinds codecKind {};
 
-        for (auto iterCodec = receiverInfo->mFilledParameters.mCodecs.begin(); iterCodec != receiverInfo->mFilledParameters.mCodecs.end(); ++iterCodec) {
-          auto &codecInfo = (*iterCodec);
-          if (payloadType != codecInfo.mPayloadType) continue;
-
-          auto supportedType = toSupportedCodec(codecInfo.mName);
-          if (SupportedCodec_Unknown == supportedType) continue;
-
-          kind = getCodecKind(supportedType);
-          if (CodecKind_Unknown == kind) continue;
-
-          break;
-        }
-
-        if (CodecKind_Unknown == kind) {
-          for (auto iterEncodings = receiverInfo->mFilledParameters.mEncodingParameters.begin(); iterEncodings != receiverInfo->mFilledParameters.mEncodingParameters.end(); ++iterEncodings) {
-            auto &encoding = (*iterEncodings);
-
-            if (!encoding.mRTX.hasValue()) continue;
-            if (!encoding.mRTX.value().mPayloadType.hasValue()) continue;
-            if (encoding.mRTX.value().mPayloadType.value() != payloadType) continue;
-
-            // found a match based to a particular encoding's RTX payload type (thus assume it must be RTX)
-            kind = CodecKind_RTX;
-            break;
-          }
-
-          if (CodecKind_Unknown == kind) continue; // make sure this codec type is understood
-        }
+        EncodingParameters *baseEncoding = NULL;
+        auto matchEncoding = RTPTypesHelper::pickEncodingToFill(receiverInfo->mKind, rtpPacket.pt(), receiverInfo->mFilledParameters, codecParams, supportedCodec, codecKind, baseEncoding);
 
         if (receiverInfo->mFilledParameters.mEncodingParameters.size() < 1) {
-          // special case where this is a "match all" for the codec
+          if (!codecParams) {
+            ZS_LOG_WARNING(Debug, log("unable to find a codec for packet") + ZS_PARAM("packet ssrc", rtpPacket.ssrc()) + ZS_PARAM("payload type", rtpPacket.pt()) + receiverInfo->mFilledParameters.toDebug())
+            return false;
+          }
+
+          // special case where this is a "latch all" for the codec
           outReceiverInfo = receiverInfo;
           goto found_receiver;
         }
 
-        for (auto encodingIter = receiverInfo->mFilledParameters.mEncodingParameters.begin(); encodingIter != receiverInfo->mFilledParameters.mEncodingParameters.end(); ++encodingIter) {
+        if (NULL == matchEncoding) continue; // did not find an appropriate encoding
+        ASSERT(NULL != baseEncoding)  // has to always have a base
 
-          auto &encodingInfo = (*encodingIter);
-
-          if (encodingInfo.mCodecPayloadType.hasValue()) {
-            bool foundMatch = false;
-            if ((CodecKind_RTX == kind) &&
-                ((encodingInfo.mRTX.hasValue()) &&
-                 (encodingInfo.mRTX.value().mPayloadType.hasValue()) &&
-                 (encodingInfo.mRTX.value().mPayloadType.value() == payloadType))) {
-              foundMatch = true;
-            }
-            if (encodingInfo.mCodecPayloadType.value() == payloadType) foundMatch = true;
-            if (!foundMatch) continue;  // do not allow non-matching codec types to match
-          }
-
-          switch (kind) {
+        {
+          switch (codecKind) {
             case CodecKind_Unknown:  ASSERT(false) break;
             case CodecKind_Audio:
+            case CodecKind_AudioSupplemental:
             case CodecKind_Video:
             case CodecKind_AV:
-            case CodecKind_AudioSupplemental:
-            case CodecKind_Data:
-            {
-              if (encodingInfo.mSSRC.hasValue()) break;                 // cannot match if there was an SSRC already attached
-              goto found_receiver;
-            }
-            case CodecKind_RTX:    {
-              if ((encodingInfo.mRTX.hasValue()) &&
-                  (encodingInfo.mRTX.value().mSSRC.hasValue())) break;  // cannot match if there was an SSRC already attached
-              goto found_receiver;
-            }
-            case CodecKind_FEC:    {
-              if ((encodingInfo.mFEC.hasValue()) &&
-                  (encodingInfo.mFEC.value().mSSRC.hasValue())) break;  // cannot match if there was an SSRC already attached
-              goto found_receiver;
+            case CodecKind_Data:    break;
+
+            case CodecKind_RTX:
+            case CodecKind_FEC:     {
+
+              auto ssrc = baseEncoding->mSSRC.value();
+
+              auto foundSSRC = mSSRCTable.find(ssrc);
+              if (foundSSRC == mSSRCTable.end()) {
+                ZS_LOG_WARNING(Trace, log("catch not match encoding as master SSRC was not active recently") + receiverInfo->toDebug())
+                continue;
+              }
+
+              auto &ssrcInfo = (*foundSSRC).second;
+
+              if (outReceiverInfo) {
+                // look at the latest time the master SSRC was used
+
+                auto tick = zsLib::now();
+
+                auto diffLast = tick - lastMatchUsageTime;
+                auto diffCurrent = tick - ssrcInfo->mLastUsage;
+
+                if ((diffLast > mAmbigousPayloadMappingMinDifference) &&
+                    (diffCurrent > mAmbigousPayloadMappingMinDifference)) {
+                  ZS_LOG_WARNING(Debug, log("ambiguity exists to which receiver the packet should match because both channels have been recendly active (thus cannot pick any encoding)") + ZS_PARAM("tick", tick) + ZS_PARAM("match time", lastMatchUsageTime) + ZS_PARAM("ambiguity window", mAmbigousPayloadMappingMinDifference) + ZS_PARAM("diff last", diffLast) + ZS_PARAM("diff current", diffCurrent) + ssrcInfo->toDebug() + ZS_PARAM("previous find", outReceiverInfo->toDebug()) + ZS_PARAM("found", receiverInfo->toDebug()))
+                  return false;
+                }
+
+                if (ssrcInfo->mLastUsage < lastMatchUsageTime) {
+                  ZS_LOG_WARNING(Trace, log("possible ambiguity in match (but going with previous more recent usage)") + ZS_PARAM("match time", lastMatchUsageTime) + ssrcInfo->toDebug())
+                  continue;
+                }
+
+                ZS_LOG_WARNING(Trace, log("possible ambiguity in match (going with this as more recent in usage)") + ZS_PARAM("match time", lastMatchUsageTime) + ssrcInfo->toDebug() + ZS_PARAM("using", receiverInfo->toDebug()) + ZS_PARAM("previous found", outReceiverInfo->toDebug()))
+
+                lastMatchUsageTime = ssrcInfo->mLastUsage;
+                outReceiverInfo = receiverInfo;
+                foundEncoding = matchEncoding;
+                foundCodecKind = codecKind;
+              } else {
+                ZS_LOG_TRACE(log("found likely match") + receiverInfo->toDebug() + ssrcInfo->toDebug())
+
+                lastMatchUsageTime = ssrcInfo->mLastUsage;
+                outReceiverInfo = receiverInfo;
+                foundEncoding = matchEncoding;
+                foundCodecKind = codecKind;
+              }
+              continue;
             }
           }
-        }
 
-        continue;
-
-      found_receiver:
-        {
           if (!outReceiverInfo) outReceiverInfo = receiverInfo;
-          if (outReceiverInfo->mOrderID < receiverInfo->mOrderID) continue; // smaller = older (and better match)
+          if (outReceiverInfo->mOrderID < receiverInfo->mOrderID) continue; // smaller = older (and thus better match)
 
           // this is a better match
           outReceiverInfo = receiverInfo;
-          foundKind = kind;
+          foundEncoding = matchEncoding;
         }
       }
 
       if (!outReceiverInfo) return false;
+
+    found_receiver: {}
 
       ReceiverInfoPtr replacementInfo;
 
@@ -1704,38 +1713,35 @@ namespace ortc
 
           ASSERT(replacementIter != replacementInfo->mFilledParameters.mEncodingParameters.end())
 
-          auto &encodingInfo = (*encodingIter);
-          auto &replaceEncodingInfo = (*encodingIter);
+          auto &encoding = (*encodingIter);
+          auto &replaceEncoding = (*encodingIter);
 
-          switch (foundKind) {
+          if ((&encoding) != foundEncoding) continue; // this is not the encoding you are searching for...
+
+          switch (foundCodecKind) {
             case CodecKind_Unknown:  ASSERT(false) break;
             case CodecKind_Audio:
             case CodecKind_Video:
             case CodecKind_AV:
-            case CodecKind_AudioSupplemental:
             case CodecKind_Data:
             {
-              if (encodingInfo.mSSRC.hasValue()) break;               // cannot match if there was an SSRC already attached
-              replaceEncodingInfo.mSSRC = rtpPacket.ssrc();
+              replaceEncoding.mSSRC = rtpPacket.ssrc();
+              replaceEncoding.mCodecPayloadType = rtpPacket.pt();
+              goto replace_receiver;
+            }
+            case CodecKind_AudioSupplemental:
+            {
               goto replace_receiver;
             }
             case CodecKind_RTX:
             {
-              if ((encodingInfo.mRTX.hasValue()) &&
-                  (encodingInfo.mRTX.value().mSSRC.hasValue())) break; // cannot match if there was an SSRC already attached
-              RTXParameters rtx;
-              rtx.mSSRC = rtpPacket.ssrc();
-              replaceEncodingInfo.mRTX = rtx;
+              replaceEncoding.mRTX.value().mSSRC = rtpPacket.ssrc();
+              replaceEncoding.mRTX.value().mPayloadType = rtpPacket.pt();
               goto replace_receiver;
             }
             case CodecKind_FEC:
             {
-              if ((encodingInfo.mFEC.hasValue()) &&
-                  (encodingInfo.mFEC.value().mSSRC.hasValue())) break; // cannot match if there was an SSRC already attached
-              goto insert_ssrc_into_table;
-              FECParameters fec;
-              fec.mSSRC = rtpPacket.ssrc();
-              replaceEncodingInfo.mFEC = fec;
+              replaceEncoding.mFEC.value().mSSRC = rtpPacket.ssrc();
               goto replace_receiver;
             }
           }

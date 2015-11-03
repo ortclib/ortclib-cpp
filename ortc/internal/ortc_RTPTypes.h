@@ -46,6 +46,7 @@ namespace ortc
       typedef IRTPTypes::PayloadType PayloadType;
 
       ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::CodecParameters, CodecParameters)
+      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::EncodingParameters, EncodingParameters)
       ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters)
       ZS_DECLARE_TYPEDEF_PTR(std::list<ParametersPtr>, ParametersPtrList)
 
@@ -55,6 +56,22 @@ namespace ortc
       typedef std::pair<OldParametersPtr, NewParametersPtr> OldNewParametersPair;
 
       ZS_DECLARE_TYPEDEF_PTR(std::list<OldNewParametersPair>, ParametersPtrPairList)
+
+      struct FindCodecOptions
+      {
+        typedef std::set<PayloadType> PayloadTypeSet;
+
+        Optional<PayloadType> mPayloadType;
+        Optional<IMediaStreamTrackTypes::Kinds> mKind;
+        Optional<IRTPTypes::CodecKinds> mCodecKind;
+        Optional<IRTPTypes::SupportedCodecs> mSupportedCodec;
+        Optional<ULONG> mClockRate;
+        PayloadTypeSet mDisallowedPayloadtypeMatches;
+        Optional<bool> mDisallowMultipleMatches;
+
+        ElementPtr toDebug() const;
+      };
+      
 
       static void splitParamsIntoChannels(
                                           const Parameters &params,
@@ -82,10 +99,18 @@ namespace ortc
                                     float &ioRank
                                     );
 
-      static Optional<PayloadType> pickCodec(
-                                             Optional<IMediaStreamTrackTypes::Kinds> kind,
-                                             const Parameters &channelParams
-                                             );
+      static const CodecParameters *findCodec(
+                                              const Parameters &params,
+                                              const FindCodecOptions &options
+                                              );
+
+      static const CodecParameters *pickCodec(
+                                              Optional<IMediaStreamTrackTypes::Kinds> kind,
+                                              const Parameters &params,
+                                              Optional<PayloadType> packetPayloadType = Optional<PayloadType>(),
+                                              const EncodingParameters *encoding = NULL,
+                                              const EncodingParameters *baseEncoding = NULL
+                                              );
 
       static bool isRankableMatch(
                                   Optional<IMediaStreamTrackTypes::Kinds> kind,
@@ -93,6 +118,37 @@ namespace ortc
                                   const Parameters &newChannelParams,
                                   float &outRank
                                   );
+
+      static const CodecParameters *pickRTXCodec(
+                                                 Optional<IMediaStreamTrackTypes::Kinds> kind,
+                                                 const Parameters &params,
+                                                 Optional<PayloadType> packetRTXPayloadType = Optional<PayloadType>(),
+                                                 const EncodingParameters *encoding = NULL,
+                                                 const EncodingParameters *baseEncoding = NULL
+                                                 );
+
+      static const CodecParameters *pickFECCodec(
+                                                 Optional<IMediaStreamTrackTypes::Kinds> kind,
+                                                 const Parameters &params,
+                                                 Optional<PayloadType> packetFECPayloadType = Optional<PayloadType>(),
+                                                 const EncodingParameters *encoding = NULL,
+                                                 const EncodingParameters *baseEncoding = NULL
+                                                 );
+
+      static EncodingParameters *findEncodingBase(
+                                                  Parameters &inParams,
+                                                  EncodingParameters *inEncoding
+                                                  );
+
+      static EncodingParameters *pickEncodingToFill(
+                                                    Optional<IMediaStreamTrackTypes::Kinds> kind,
+                                                    PayloadType packetPayloadType,
+                                                    Parameters &filledParams,
+                                                    const CodecParameters * &outCodecParameters,
+                                                    IRTPTypes::SupportedCodecs &outSupportedCodec,
+                                                    IRTPTypes::CodecKinds &outCodecKind,
+                                                    EncodingParameters * &outBaseEncoding
+                                                    );
 
       static Log::Params slog(const char *message);
     };

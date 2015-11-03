@@ -224,6 +224,7 @@ namespace ortc
       }
 
       if (0 != mDataSizeInBytes) {
+        mData = &(mLevelBuffer[0]);
         memcpy(&(mLevelBuffer[0]), levels, mDataSizeInBytes);
       }
     }

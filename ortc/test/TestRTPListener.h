@@ -410,10 +410,10 @@ namespace ortc
         ZS_DECLARE_TYPEDEF_PTR(internal::IRTPListenerForRTPReceiver, UseListener)
 
       public:
-        FakeReceiver();
+        FakeReceiver(IMediaStreamTrackTypes::Kinds kind);
         ~FakeReceiver();
 
-        static FakeReceiverPtr create();
+        static FakeReceiverPtr create(IMediaStreamTrackTypes::Kinds kind);
 
         //---------------------------------------------------------------------
         #pragma mark
@@ -462,6 +462,7 @@ namespace ortc
 
         BufferList mBuffers;
 
+        IMediaStreamTrackTypes::Kinds mKind {};
         UseListenerPtr mListener;
       };
 
@@ -692,12 +693,12 @@ namespace ortc
         RTCPPacketPtr getRTCPPacket(const char *packetID);
 
         void sendPacket(
-                        const char *packetID,
-                        const char *viaSenderID
+                        const char *viaSenderID,
+                        const char *packetID
                         );
         void expectPacket(
-                          const char *packetID,
-                          const char *senderOrReceiverID
+                          const char *senderOrReceiverID,
+                          const char *packetID
                           );
 
       protected:

@@ -75,7 +75,40 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IRTPTypes::RTPTypesHelper
+    #pragma mark RTPTypesHelper::FindCodecOptions
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    ElementPtr RTPTypesHelper::FindCodecOptions::toDebug() const
+    {
+      ElementPtr resultEl = Element::create("ortc::RTPTypesHelper::FindCodecOptions");
+
+      UseServicesHelper::debugAppend(resultEl, "payload type", mPayloadType);
+      UseServicesHelper::debugAppend(resultEl, "kind", mKind);
+      UseServicesHelper::debugAppend(resultEl, "codec kind", mCodecKind.hasValue() ? IRTPTypes::toString(mCodecKind.value()) : (const char *)NULL);
+      UseServicesHelper::debugAppend(resultEl, "supported codec", mSupportedCodec.hasValue() ? IRTPTypes::toString(mSupportedCodec.value()) : (const char *)NULL);
+      UseServicesHelper::debugAppend(resultEl, "clock rate", mClockRate);
+      UseServicesHelper::debugAppend(resultEl, "disallowed matches", mDisallowedPayloadtypeMatches.size());
+
+      if (mDisallowedPayloadtypeMatches.size() > 0) {
+        ElementPtr disallowEl = Element::create("disallowed");
+        for (auto iter = mDisallowedPayloadtypeMatches.begin(); iter != mDisallowedPayloadtypeMatches.end(); ++iter) {
+          UseServicesHelper::debugAppend(resultEl, "disallowed payload", *iter);
+        }
+        UseServicesHelper::debugAppend(resultEl, disallowEl);
+      }
+      UseServicesHelper::debugAppend(resultEl, "disallow multiple matches", mDisallowMultipleMatches);
+
+      return resultEl;
+    }
+
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPTypesHelper
     #pragma mark
 
     //-------------------------------------------------------------------------
@@ -157,291 +190,6 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool RTPTypesHelper::isGeneralizedSSRCCompatibleChange(
-                                                          const Parameters &oldParams,
-                                                          const Parameters &newParams
-                                                          )
-    {
-      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters)
-
-      // these changes must cause an SSRC change to occur
-      if (oldParams.mMuxID != newParams.mMuxID) return false;
-
-      return true;
-    }
-
-    //-------------------------------------------------------------------------
-    bool RTPTypesHelper::isCompatibleCodec(
-                                          const CodecParameters &oldCodec,
-                                          const CodecParameters &newCodec,
-                                          float &ioRank
-                                          )
-    {
-      auto supportedCodec = IRTPTypes::toSupportedCodec(oldCodec.mName);
-
-      bool checkMaxPTime = false;
-      bool checkNumChannels = true;
-
-      // do codec specific compatibility test(s)
-      switch (supportedCodec) {
-        case IRTPTypes::SupportedCodec_Unknown:
-        {
-          break;
-        }
-        case IRTPTypes::SupportedCodec_Opus:              break;
-        case IRTPTypes::SupportedCodec_Isac:              break;
-        case IRTPTypes::SupportedCodec_G722:              break;
-        case IRTPTypes::SupportedCodec_ILBC:              break;
-        case IRTPTypes::SupportedCodec_PCMU:              break;
-        case IRTPTypes::SupportedCodec_PCMA:              break;
-
-          // video codecs
-        case IRTPTypes::SupportedCodec_VP8:               break;
-        case IRTPTypes::SupportedCodec_VP9:               break;
-        case IRTPTypes::SupportedCodec_H264:              break;
-
-          // RTX
-        case IRTPTypes::SupportedCodec_RTX:               break;
-
-          // FEC
-        case IRTPTypes::SupportedCodec_RED:               break;
-        case IRTPTypes::SupportedCodec_ULPFEC:            break;
-
-        case IRTPTypes::SupportedCodec_CN:                break;
-          
-        case IRTPTypes::SupportedCodec_TelephoneEvent:    break;
-      }
-
-      if (checkMaxPTime) {
-        if (oldCodec.mMaxPTime != newCodec.mMaxPTime) return false;       // not compatible
-      } else {
-        ioRank += (oldCodec.mMaxPTime == newCodec.mMaxPTime ? 0.01 : -0.01);
-      }
-      if (checkNumChannels) {
-        if (oldCodec.mNumChannels != newCodec.mNumChannels) return false; // not compatible
-
-        ioRank += (oldCodec.mNumChannels == newCodec.mNumChannels ? 0.01 : -0.01);
-      }
-
-      ioRank += 0.1;
-      return true;
-    }
-
-    //-------------------------------------------------------------------------
-    Optional<RTPTypesHelper::PayloadType> RTPTypesHelper::pickCodec(
-                                                                  Optional<IMediaStreamTrackTypes::Kinds> kind,
-                                                                  const Parameters &params
-                                                                  )
-    {
-      typedef IRTPTypes::CodecKinds CodecKinds;
-
-      if (params.mEncodingParameters.size() > 0) {
-        auto &encoding = params.mEncodingParameters.front();
-        if (encoding.mCodecPayloadType.hasValue()) {
-          return encoding.mCodecPayloadType.value();
-        }
-      }
-
-      for (auto iter = params.mCodecs.begin(); iter != params.mCodecs.end(); ++iter) {
-        // pick the first codec found
-
-        auto &codec = (*iter);
-        auto supportedCodec = IRTPTypes::toSupportedCodec(codec.mName);
-
-        CodecKinds codecKind = IRTPTypes::getCodecKind(supportedCodec);
-
-        switch (codecKind) {
-          case IRTPTypes::CodecKind_Unknown:  break;
-
-            // audio codecs
-          case IRTPTypes::CodecKind_Audio:
-          {
-            if (kind.hasValue()) {
-              if (IMediaStreamTrack::Kind_Audio != kind.value()) {
-                // not a match and thus cannot choose
-                break;
-              }
-            }
-            return codec.mPayloadType;
-          }
-
-            // video codecs
-          case IRTPTypes::CodecKind_Video:
-          {
-            if (kind.hasValue()) {
-              if (IMediaStreamTrack::Kind_Video != kind.value()) {
-                // not a match and thus cannot choose
-                break;
-              }
-            }
-            return codec.mPayloadType;
-          }
-          case IRTPTypes::CodecKind_AV:
-          {
-            // always choose this payload
-            return codec.mPayloadType;
-          }
-
-          case IRTPTypes::CodecKind_RTX:
-          case IRTPTypes::CodecKind_FEC:
-          case IRTPTypes::CodecKind_AudioSupplemental:
-          case IRTPTypes::CodecKind_Data:
-          {
-            // never select
-            break;
-          }
-        }
-      }
-
-      return Optional<PayloadType>(); // nothing picked
-    }
-
-    //-------------------------------------------------------------------------
-    bool RTPTypesHelper::isRankableMatch(
-                                        Optional<IMediaStreamTrackTypes::Kinds> kind,
-                                        const Parameters &oldParams,
-                                        const Parameters &newParams,
-                                        float &outRank
-                                        )
-    {
-      outRank = 0;
-
-      if (oldParams.mEncodingParameters.size() < 1) {
-        if (newParams.mEncodingParameters.size() > 0) return false;
-      }
-      if (newParams.mEncodingParameters.size() < 1) {
-        if (oldParams.mEncodingParameters.size() > 0) return false;
-      }
-
-      if (oldParams.mEncodingParameters.size() < 1) {
-        // all codecs must match compatibly
-        for (auto iterOldCodec = oldParams.mCodecs.begin(); iterOldCodec != oldParams.mCodecs.end(); ++iterOldCodec) {
-          auto &oldCodec = (*iterOldCodec);
-
-          bool found = false;
-
-          for (auto iterNewCodec = newParams.mCodecs.begin(); iterNewCodec != newParams.mCodecs.end(); ++iterNewCodec) {
-            auto &newCodec = (*iterNewCodec);
-
-            if (newCodec.mName != oldCodec.mName) continue;               // cannot be the same codec
-            if (newCodec.mClockRate != oldCodec.mClockRate) continue;     // cannot be the same codec
-            if (newCodec.mPayloadType != oldCodec.mPayloadType) continue; // cannot be the same payload type
-
-            if (!isCompatibleCodec(newCodec, oldCodec, outRank)) return false;
-
-            if (found) {
-              ZS_LOG_TRACE(slog("old supplied codec has two matches (thus old params are not compatible)") + ZS_PARAM("old", oldParams.toDebug()) + ZS_PARAM("new", newParams.toDebug()))
-              return false;
-            }
-            // these changes are "incompatible"
-          }
-
-          if (!found) {
-            ZS_LOG_TRACE(slog("old supplied codec no longer exists (thus old params are not compatible)") + ZS_PARAM("old", oldParams.toDebug()) + ZS_PARAM("new", newParams.toDebug()))
-            return false;
-          }
-        }
-
-        goto check_other_properties;
-      }
-
-      // scope: check codec used in encoding params
-      {
-        auto oldChosen = pickCodec(kind, oldParams);
-        auto newChosen = pickCodec(kind, newParams);
-
-        if (!oldChosen.hasValue()) return false;
-        if (!newChosen.hasValue()) return false;
-
-        //  payload type cannot change for picked codec
-        if (oldChosen.value() != newChosen.value()) return false;
-
-        const CodecParameters *foundOldCodec = NULL;
-        const CodecParameters *foundNewCodec = NULL;
-
-        for (auto iterOldCodec = oldParams.mCodecs.begin(); iterOldCodec != oldParams.mCodecs.end(); ++iterOldCodec) {
-          auto &oldCodec = (*iterOldCodec);
-          if (oldCodec.mPayloadType != oldChosen.value()) continue;
-          foundOldCodec = &oldCodec;
-          break;
-        }
-        for (auto iterNewCodec = newParams.mCodecs.begin(); iterNewCodec != newParams.mCodecs.end(); ++iterNewCodec) {
-          auto &newCodec = (*iterNewCodec);
-          if (newCodec.mPayloadType != newChosen.value()) continue;
-          foundNewCodec = &newCodec;
-          break;
-        }
-
-        // codec must be found in codec list
-        if (NULL == foundOldCodec) return false;
-        if (NULL == foundNewCodec) return false;
-
-        // make sure meaning of codec is the same
-        if (foundOldCodec->mName != foundNewCodec->mName) return false;
-        if (foundOldCodec->mClockRate != foundNewCodec->mClockRate) return false;
-
-        if (!isCompatibleCodec(*foundOldCodec, *foundNewCodec, outRank)) return false;
-      }
-
-    check_other_properties:
-      {
-        if (oldParams.mEncodingParameters.size() > 0) {
-          ASSERT(newParams.mEncodingParameters.size() > 0)
-
-          auto &oldEncoding = oldParams.mEncodingParameters.front();
-          auto &newEncoding = newParams.mEncodingParameters.front();
-
-          // make sure the rid (if specified) matches
-          if (oldEncoding.mEncodingID != newEncoding.mEncodingID) return false; // a non-match on the RID is not the same stream
-
-          if (oldEncoding.mEncodingID.hasData()) {
-            // this must be an exact match (thus weight so heavily that it will be chosen)
-            outRank += kExactMatchRankAmount;
-          }
-        }
-
-        outRank += (oldParams.mEncodingParameters.size() == newParams.mEncodingParameters.size() ? 1.0 : -0.2);
-
-        for (auto iterOldEncoding = oldParams.mEncodingParameters.begin(); iterOldEncoding != oldParams.mEncodingParameters.end(); ++iterOldEncoding)
-        {
-          auto &oldEncoding = (*iterOldEncoding);
-
-          bool foundLayer = false;
-          for (auto iterNewEncoding = newParams.mEncodingParameters.begin(); iterNewEncoding != newParams.mEncodingParameters.end(); ++iterNewEncoding)
-          {
-            auto &newEncoding = (*iterNewEncoding);
-
-            if (oldEncoding.mEncodingID != newEncoding.mEncodingID) continue;
-
-            foundLayer = true;
-            outRank += (oldEncoding.hash() == newEncoding.hash() ? 0.3 : -0.1);
-            break;
-          }
-          if (!foundLayer) outRank -= 0.2;
-        }
-
-        for (auto iterNewEncoding = newParams.mEncodingParameters.begin(); iterNewEncoding != newParams.mEncodingParameters.end(); ++iterNewEncoding)
-        {
-          auto &newEncoding = (*iterNewEncoding);
-
-          bool foundLayer = false;
-
-          for (auto iterOldEncoding = oldParams.mEncodingParameters.begin(); iterOldEncoding != oldParams.mEncodingParameters.end(); ++iterOldEncoding)
-          {
-            auto &oldEncoding = (*iterOldEncoding);
-            if (oldEncoding.mEncodingID != newEncoding.mEncodingID) continue;
-
-            foundLayer = true;
-            break;
-          }
-          if (!foundLayer) outRank -= 0.2;
-        }
-      }
-
-      return true;
-    }
-
-    //-------------------------------------------------------------------------
     void RTPTypesHelper::calculateDeltaChangesInChannels(
                                                         Optional<IMediaStreamTrackTypes::Kinds> kind,
                                                         const ParametersPtrList &inExistingParamsGroupedIntoChannels,
@@ -509,7 +257,7 @@ namespace ortc
           auto iterNew_doNotUse = newList.begin();
           auto iterNewHash_doNotUse = newHashedList.begin();
 
-          for (; iterNew_doNotUse != newList.begin();) {
+          for (; iterNew_doNotUse != newList.end();) {
             auto currentNew = iterNew_doNotUse;
             ++iterNew_doNotUse;
 
@@ -550,7 +298,7 @@ namespace ortc
 
           auto oldParams = (*currentOld);
 
-          for (auto iterNew_doNotUse = newList.begin(); iterNew_doNotUse != newList.begin();) {
+          for (auto iterNew_doNotUse = newList.begin(); iterNew_doNotUse != newList.end();) {
             auto currentNew = iterNew_doNotUse;
             ++iterNew_doNotUse;
 
@@ -595,7 +343,7 @@ namespace ortc
 
       // scope: new params with non-matching SSRC entries must be added
       {
-        for (auto iterNew_doNotUse = newList.begin(); iterNew_doNotUse != newList.begin();) {
+        for (auto iterNew_doNotUse = newList.begin(); iterNew_doNotUse != newList.end();) {
           auto currentNew = iterNew_doNotUse;
           ++iterNew_doNotUse;
 
@@ -646,7 +394,7 @@ namespace ortc
           ParametersPtr closestMatchNew;
           auto closestMatchNewIter = newList.end();
 
-          for (auto iterNew_doNotUse = newList.begin(); iterNew_doNotUse != newList.begin();) {
+          for (auto iterNew_doNotUse = newList.begin(); iterNew_doNotUse != newList.end();) {
             auto currentNew = iterNew_doNotUse;
             ++iterNew_doNotUse;
 
@@ -696,6 +444,744 @@ namespace ortc
                    ZS_PARAM("new channels", outNewChannels.size()) +
                    ZS_PARAM("udpated channels", outUpdatedChannels.size()) +
                    ZS_PARAM("removed channels", outRemovedChannels.size()))
+    }
+
+    //-------------------------------------------------------------------------
+    bool RTPTypesHelper::isGeneralizedSSRCCompatibleChange(
+                                                          const Parameters &oldParams,
+                                                          const Parameters &newParams
+                                                          )
+    {
+      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters)
+
+      // these changes must cause an SSRC change to occur
+      if (oldParams.mMuxID != newParams.mMuxID) return false;
+
+      return true;
+    }
+
+    //-------------------------------------------------------------------------
+    bool RTPTypesHelper::isCompatibleCodec(
+                                          const CodecParameters &oldCodec,
+                                          const CodecParameters &newCodec,
+                                          float &ioRank
+                                          )
+    {
+      auto supportedCodec = IRTPTypes::toSupportedCodec(oldCodec.mName);
+
+      bool checkMaxPTime = false;
+      bool checkNumChannels = true;
+
+      // do codec specific compatibility test(s)
+      switch (supportedCodec) {
+        case IRTPTypes::SupportedCodec_Unknown:
+        {
+          break;
+        }
+        case IRTPTypes::SupportedCodec_Opus:              break;
+        case IRTPTypes::SupportedCodec_Isac:              break;
+        case IRTPTypes::SupportedCodec_G722:              break;
+        case IRTPTypes::SupportedCodec_ILBC:              break;
+        case IRTPTypes::SupportedCodec_PCMU:              break;
+        case IRTPTypes::SupportedCodec_PCMA:              break;
+
+          // video codecs
+        case IRTPTypes::SupportedCodec_VP8:               break;
+        case IRTPTypes::SupportedCodec_VP9:               break;
+        case IRTPTypes::SupportedCodec_H264:              break;
+
+          // RTX
+        case IRTPTypes::SupportedCodec_RTX:               break;
+
+          // FEC
+        case IRTPTypes::SupportedCodec_RED:               break;
+        case IRTPTypes::SupportedCodec_ULPFEC:            break;
+        case IRTPTypes::SupportedCodec_FlexFEC:           break;
+
+        case IRTPTypes::SupportedCodec_CN:                break;
+          
+        case IRTPTypes::SupportedCodec_TelephoneEvent:    break;
+      }
+
+      if (checkMaxPTime) {
+        if (oldCodec.mMaxPTime != newCodec.mMaxPTime) return false;       // not compatible
+      } else {
+        ioRank += (oldCodec.mMaxPTime == newCodec.mMaxPTime ? 0.01 : -0.01);
+      }
+      if (checkNumChannels) {
+        if (oldCodec.mNumChannels != newCodec.mNumChannels) return false; // not compatible
+
+        ioRank += (oldCodec.mNumChannels == newCodec.mNumChannels ? 0.01 : -0.01);
+      }
+
+      ioRank += 0.1;
+      return true;
+    }
+
+    //-------------------------------------------------------------------------
+    const RTPTypesHelper::CodecParameters *RTPTypesHelper::findCodec(
+                                                                     const Parameters &params,
+                                                                     const FindCodecOptions &options
+                                                                     )
+    {
+      const CodecParameters *foundCodec = NULL;
+
+      for (auto iter = params.mCodecs.begin(); iter != params.mCodecs.end(); ++iter) {
+        auto &codec = (*iter);
+
+        IRTPTypes::SupportedCodecs supported = IRTPTypes::SupportedCodec_Unknown;
+        IRTPTypes::CodecKinds codecKind = IRTPTypes::CodecKind_Unknown;
+
+        if (options.mDisallowedPayloadtypeMatches.size() > 0) {
+          auto found = options.mDisallowedPayloadtypeMatches.find(codec.mPayloadType);
+          if (found != options.mDisallowedPayloadtypeMatches.end()) continue;
+        }
+
+        if (options.mPayloadType.hasValue()) {
+          if (options.mPayloadType.value() != codec.mPayloadType) continue;
+        }
+
+        if ((options.mKind.hasValue()) ||
+            (options.mSupportedCodec.hasValue()) ||
+            (options.mCodecKind.hasValue()))
+        {
+          supported = IRTPTypes::toSupportedCodec(codec.mName);
+        }
+
+        if ((options.mKind.hasValue()) ||
+            (options.mCodecKind.hasValue()))
+        {
+          codecKind = IRTPTypes::getCodecKind(supported);
+        }
+
+        if (options.mSupportedCodec.hasValue()) {
+          if (options.mSupportedCodec.value() != IRTPTypes::SupportedCodec_Unknown) {
+            if (options.mSupportedCodec.value() != supported) continue;
+          }
+        }
+
+        if (options.mCodecKind.hasValue()) {
+          if (options.mCodecKind.value() != IRTPTypes::CodecKind_Unknown) {
+            if (options.mCodecKind.value() != codecKind) continue;
+          }
+        }
+
+        if (options.mKind.hasValue()) {
+          switch (codecKind) {
+            case IRTPTypes::CodecKind_Unknown:  continue;
+            case IRTPTypes::CodecKind_Audio:
+            case IRTPTypes::CodecKind_AudioSupplemental:    {
+              if (IMediaStreamTrackTypes::Kind_Audio != options.mKind.value()) continue;
+              break;
+            }
+            case IRTPTypes::CodecKind_Video:                {
+              if (IMediaStreamTrackTypes::Kind_Video != options.mKind.value()) continue;
+              break;
+            }
+            case IRTPTypes::CodecKind_AV:       break;
+            case IRTPTypes::CodecKind_Data:     continue;
+            case IRTPTypes::CodecKind_RTX:      continue;
+            case IRTPTypes::CodecKind_FEC:      continue;
+          }
+        }
+
+        if ((options.mDisallowMultipleMatches.hasValue()) &&
+            (options.mDisallowMultipleMatches.value())) {
+          if (foundCodec) {
+            ZS_LOG_WARNING(Trace, slog("codec choice is ambiguous") + ZS_PARAM("found", codec.toDebug()) + ZS_PARAM("previously found", foundCodec->toDebug()) + options.toDebug())
+            return NULL;
+          }
+          foundCodec = &codec;
+        } else {
+          return &codec;
+        }
+      }
+
+      return foundCodec;
+    }
+
+    //-------------------------------------------------------------------------
+    const RTPTypesHelper::CodecParameters *RTPTypesHelper::pickCodec(
+                                                                     Optional<IMediaStreamTrackTypes::Kinds> kind,
+                                                                     const Parameters &params,
+                                                                     Optional<PayloadType> packetPayloadType,
+                                                                     const EncodingParameters *encoding,
+                                                                     const EncodingParameters *baseEncoding
+                                                                     )
+    {
+      typedef IRTPTypes::CodecKinds CodecKinds;
+
+      Optional<PayloadType> payloadType;
+
+      if (NULL != encoding) {
+        if (encoding->mCodecPayloadType.hasValue()) {
+          payloadType = encoding->mCodecPayloadType;
+        }
+      }
+
+      if ((!payloadType.hasValue()) &&
+          (baseEncoding)) {
+        if (baseEncoding->mCodecPayloadType.hasValue()) {
+          payloadType = baseEncoding->mCodecPayloadType;
+        }
+      }
+
+      if (!payloadType.hasValue()) {
+        if (params.mEncodingParameters.size() > 0) {
+          auto &frontEncoding = params.mEncodingParameters.front();
+          if (frontEncoding.mCodecPayloadType.hasValue()) {
+            payloadType = frontEncoding.mCodecPayloadType;
+          }
+        }
+      }
+
+      if (packetPayloadType.hasValue()) {
+        if (payloadType.hasValue()) {
+          if (payloadType.value() != packetPayloadType.value()) {
+            ZS_LOG_INSANE(slog("cannot match codec as paylod type specified in encoding do not match packet payload type") + params.toDebug() + ZS_PARAM("encoding", encoding ? encoding->toDebug() : ElementPtr()) + ZS_PARAM("base encoding", baseEncoding ? baseEncoding->toDebug() : ElementPtr()))
+            return NULL;
+          }
+        } else {
+          payloadType = packetPayloadType;
+        }
+      }
+
+      FindCodecOptions findOptions;
+
+      findOptions.mPayloadType = payloadType;
+      findOptions.mKind = kind;
+
+      auto foundCodec = findCodec(params, findOptions);
+
+      if (!foundCodec) {
+        ZS_LOG_INSANE(slog("did not codec to use") + params.toDebug() + ZS_PARAM("encoding", encoding ? encoding->toDebug() : ElementPtr()) + ZS_PARAM("base encoding", baseEncoding ? baseEncoding->toDebug() : ElementPtr()) + findOptions.toDebug())
+        return NULL;
+      }
+
+      ZS_LOG_INSANE(slog("found codec to use") + foundCodec->toDebug() + params.toDebug() + ZS_PARAM("encoding", encoding ? encoding->toDebug() : ElementPtr()) + ZS_PARAM("base encoding", baseEncoding ? baseEncoding->toDebug() : ElementPtr()) + findOptions.toDebug())
+      return foundCodec;
+    }
+
+    //-------------------------------------------------------------------------
+    bool RTPTypesHelper::isRankableMatch(
+                                        Optional<IMediaStreamTrackTypes::Kinds> kind,
+                                        const Parameters &oldParams,
+                                        const Parameters &newParams,
+                                        float &outRank
+                                        )
+    {
+      outRank = 0;
+
+      if (oldParams.mEncodingParameters.size() < 1) {
+        if (newParams.mEncodingParameters.size() > 0) return false;
+      }
+      if (newParams.mEncodingParameters.size() < 1) {
+        if (oldParams.mEncodingParameters.size() > 0) return false;
+      }
+
+      if (oldParams.mEncodingParameters.size() < 1) {
+        // all codecs must match compatibly
+        for (auto iterOldCodec = oldParams.mCodecs.begin(); iterOldCodec != oldParams.mCodecs.end(); ++iterOldCodec) {
+          auto &oldCodec = (*iterOldCodec);
+
+          FindCodecOptions options;
+          options.mClockRate = oldCodec.mClockRate;
+          options.mPayloadType = oldCodec.mPayloadType;
+          options.mSupportedCodec = IRTPTypes::toSupportedCodec(oldCodec.mName);
+          options.mDisallowMultipleMatches = true;
+
+          auto newCodec = findCodec(newParams, options);
+          if (!newCodec) {
+            ZS_LOG_TRACE(slog("old supplied codec no longer matches with new codecs (thus old params are not compatible)") + ZS_PARAM("old", oldParams.toDebug()) + ZS_PARAM("new", newParams.toDebug()) + oldCodec.toDebug())
+            return false;
+          }
+
+          if (!isCompatibleCodec(*newCodec, oldCodec, outRank)) {
+            ZS_LOG_TRACE(slog("old supplied codec no longer compatible with new codec") + ZS_PARAM("old", oldParams.toDebug()) + ZS_PARAM("new", newParams.toDebug()) + ZS_PARAM("old codec", oldCodec.toDebug()) + ZS_PARAM("new codec", newCodec->toDebug()))
+            return false;
+          }
+        }
+
+        goto check_other_properties;
+      }
+
+      // scope: check codec used in encoding params
+      {
+        auto oldCodec = pickCodec(kind, oldParams);
+        auto newCodec = pickCodec(kind, newParams);
+
+        if (!oldCodec) return false;
+        if (!newCodec) return false;
+
+        //  payload type cannot change for picked codec
+        if (oldCodec->mPayloadType != newCodec->mPayloadType) return false;
+
+        // make sure meaning of codec is the same
+        if (oldCodec->mName != newCodec->mName) return false;
+        if (oldCodec->mClockRate != newCodec->mClockRate) return false;
+
+        if (!isCompatibleCodec(*oldCodec, *newCodec, outRank)) return false;
+      }
+
+    check_other_properties:
+      {
+        if (oldParams.mEncodingParameters.size() > 0) {
+          ASSERT(newParams.mEncodingParameters.size() > 0)
+
+          auto &oldEncoding = oldParams.mEncodingParameters.front();
+          auto &newEncoding = newParams.mEncodingParameters.front();
+
+          // make sure the rid (if specified) matches
+          if (oldEncoding.mEncodingID != newEncoding.mEncodingID) return false; // a non-match on the RID is not the same stream
+
+          if (oldEncoding.mEncodingID.hasData()) {
+            // this must be an exact match (thus weight so heavily that it will be chosen)
+            outRank += kExactMatchRankAmount;
+          }
+        }
+
+        outRank += (oldParams.mEncodingParameters.size() == newParams.mEncodingParameters.size() ? 1.0 : -0.2);
+
+        for (auto iterOldEncoding = oldParams.mEncodingParameters.begin(); iterOldEncoding != oldParams.mEncodingParameters.end(); ++iterOldEncoding)
+        {
+          auto &oldEncoding = (*iterOldEncoding);
+
+          bool foundLayer = false;
+          for (auto iterNewEncoding = newParams.mEncodingParameters.begin(); iterNewEncoding != newParams.mEncodingParameters.end(); ++iterNewEncoding)
+          {
+            auto &newEncoding = (*iterNewEncoding);
+
+            if (oldEncoding.mEncodingID != newEncoding.mEncodingID) continue;
+
+            foundLayer = true;
+            outRank += (oldEncoding.hash() == newEncoding.hash() ? 0.3 : -0.1);
+            break;
+          }
+          if (!foundLayer) outRank -= 0.2;
+        }
+
+        for (auto iterNewEncoding = newParams.mEncodingParameters.begin(); iterNewEncoding != newParams.mEncodingParameters.end(); ++iterNewEncoding)
+        {
+          auto &newEncoding = (*iterNewEncoding);
+
+          bool foundLayer = false;
+
+          for (auto iterOldEncoding = oldParams.mEncodingParameters.begin(); iterOldEncoding != oldParams.mEncodingParameters.end(); ++iterOldEncoding)
+          {
+            auto &oldEncoding = (*iterOldEncoding);
+            if (oldEncoding.mEncodingID != newEncoding.mEncodingID) continue;
+
+            foundLayer = true;
+            break;
+          }
+          if (!foundLayer) outRank -= 0.2;
+        }
+      }
+
+      return true;
+    }
+
+    //-------------------------------------------------------------------------
+    const RTPTypesHelper::CodecParameters *RTPTypesHelper::pickRTXCodec(
+                                                                        Optional<IMediaStreamTrackTypes::Kinds> kind,
+                                                                        const Parameters &params,
+                                                                        Optional<PayloadType> packetRTXPayloadType,
+                                                                        const EncodingParameters *encoding,
+                                                                        const EncodingParameters *baseEncoding
+                                                                        )
+    {
+      Optional<PayloadType> rtxPayloadType;
+
+      bool foundEncoding = false;
+      bool usesRTX = false;
+
+      if ((!rtxPayloadType.hasValue()) &&
+          (encoding)) {
+        foundEncoding = true;
+        if (encoding->mRTX.hasValue()) {
+          usesRTX = true;
+          rtxPayloadType = encoding->mRTX.value().mPayloadType;
+        }
+      }
+
+      if ((!rtxPayloadType.hasValue()) &&
+          (baseEncoding)) {
+        foundEncoding = true;
+        if (baseEncoding->mRTX.hasValue()) {
+          usesRTX = true;
+          rtxPayloadType = baseEncoding->mRTX.value().mPayloadType;
+        }
+      }
+
+      if (!rtxPayloadType.hasValue()) {
+        if (params.mEncodingParameters.size() > 0) {
+          auto &frontEncoding = params.mEncodingParameters.front();
+          foundEncoding = true;
+          if (frontEncoding.mRTX.hasValue()) {
+            usesRTX = true;
+            rtxPayloadType = frontEncoding.mRTX.value().mPayloadType;
+          }
+        }
+      }
+
+      if (packetRTXPayloadType.hasValue()) {
+        if (rtxPayloadType.hasValue()) {
+          if (rtxPayloadType.value() != packetRTXPayloadType.value()) {
+            ZS_LOG_INSANE(slog("cannot match RTX codec as RTX payload type specified do not match encoding") + params.toDebug() + ZS_PARAM("encoding", encoding ? encoding->toDebug() : ElementPtr()) + ZS_PARAM("base encoding", baseEncoding ? baseEncoding->toDebug() : ElementPtr()))
+            return NULL;
+          }
+        } else {
+          rtxPayloadType = packetRTXPayloadType;
+        }
+      }
+
+      if ((!usesRTX) &&
+          (foundEncoding)) {
+        ZS_LOG_INSANE(slog("encoding is not using RTX") + params.toDebug() + ZS_PARAM("encoding", encoding ? encoding->toDebug() : ElementPtr()) + ZS_PARAM("base encoding", baseEncoding ? baseEncoding->toDebug() : ElementPtr()))
+        return NULL;
+      }
+
+      auto mainCodec = pickCodec(kind, params, Optional<PayloadType>(), encoding, baseEncoding);
+      if (!mainCodec) return NULL;
+
+      FindCodecOptions options;
+
+      options.mPayloadType = rtxPayloadType;
+      options.mClockRate = mainCodec->mClockRate;
+      options.mCodecKind = IRTPTypes::CodecKind_RTX;
+      options.mDisallowMultipleMatches = true;
+
+      auto foundRTXCodec = findCodec(params, options);
+
+      if (!foundRTXCodec) {
+        ZS_LOG_WARNING(Debug, slog("did not find an appropriate RTX codec") + params.toDebug() + ZS_PARAM("encoding", encoding ? encoding->toDebug() : ElementPtr()) + ZS_PARAM("base encoding", baseEncoding ? baseEncoding->toDebug() : ElementPtr()) + options.toDebug())
+        return NULL;
+      }
+
+      ZS_LOG_TRACE(slog("found RTX codec") + foundRTXCodec->toDebug() + params.toDebug() + ZS_PARAM("encoding", encoding ? encoding->toDebug() : ElementPtr()) + ZS_PARAM("base encoding", baseEncoding ? baseEncoding->toDebug() : ElementPtr()) + options.toDebug())
+      return foundRTXCodec;
+    }
+
+    //-------------------------------------------------------------------------
+    const RTPTypesHelper::CodecParameters *RTPTypesHelper::pickFECCodec(
+                                                                        Optional<IMediaStreamTrackTypes::Kinds> kind,
+                                                                        const Parameters &params,
+                                                                        Optional<PayloadType> packetFECPayloadType,
+                                                                        const EncodingParameters *encoding,
+                                                                        const EncodingParameters *baseEncoding
+                                                                        )
+    {
+      IRTPTypes::KnownFECMechanisms mechanism = IRTPTypes::KnownFECMechanism_Unknown;
+
+      bool foundEncoding = false;
+      bool usesFEC = false;
+
+      if (NULL != encoding) {
+        foundEncoding = true;
+        if (encoding->mFEC.hasValue()) {
+          usesFEC = true;
+          mechanism = IRTPTypes::toKnownFECMechanism(encoding->mFEC.value().mMechanism);
+        }
+      }
+
+      if ((IRTPTypes::KnownFECMechanism_Unknown == mechanism) &&
+          (baseEncoding)) {
+        foundEncoding = true;
+        if (baseEncoding->mFEC.hasValue()) {
+          usesFEC = true;
+          mechanism = IRTPTypes::toKnownFECMechanism(baseEncoding->mFEC.value().mMechanism);
+        }
+      }
+
+      if (IRTPTypes::KnownFECMechanism_Unknown == mechanism) {
+        if (params.mEncodingParameters.size() > 0) {
+          auto &frontEncoding = params.mEncodingParameters.front();
+          foundEncoding = true;
+          if (frontEncoding.mFEC.hasValue()) {
+            usesFEC = true;
+            mechanism = IRTPTypes::toKnownFECMechanism(frontEncoding.mFEC.value().mMechanism);
+          }
+        }
+      }
+
+      if ((!usesFEC) &&
+          (foundEncoding)) {
+        ZS_LOG_INSANE(slog("encoding is not using FEC") + params.toDebug() + ZS_PARAM("encoding", encoding ? encoding->toDebug() : ElementPtr()) + ZS_PARAM("base encoding", baseEncoding ? baseEncoding->toDebug() : ElementPtr()))
+        return NULL;
+      }
+
+      auto mainCodec = pickCodec(kind, params, Optional<PayloadType>(), encoding, baseEncoding);
+      if (!mainCodec) return NULL;
+
+      FindCodecOptions options;
+      options.mCodecKind = IRTPTypes::CodecKind_FEC;
+      options.mClockRate = mainCodec->mClockRate;
+
+      switch (mechanism) {
+        case IRTPTypes::KnownFECMechanism_Unknown:      {
+          ZS_LOG_WARNING(Trace, slog("FEC mechanism is not known") + params.toDebug() + ZS_PARAM("encoding", encoding ? encoding->toDebug() : ElementPtr()) + ZS_PARAM("base encoding", baseEncoding ? baseEncoding->toDebug() : ElementPtr()))
+          return NULL;
+        }
+        case IRTPTypes::KnownFECMechanism_RED:          {
+          options.mSupportedCodec = IRTPTypes::SupportedCodec_RED;
+          options.mDisallowMultipleMatches = true;
+          break;
+        }
+        case IRTPTypes::KnownFECMechanism_RED_ULPFEC:   {
+          options.mSupportedCodec = IRTPTypes::SupportedCodec_RED;
+          break;
+        }
+        case IRTPTypes::KnownFECMechanism_FlexFEC:      {
+          options.mSupportedCodec = IRTPTypes::SupportedCodec_FlexFEC;
+          options.mDisallowMultipleMatches = true;
+          break;
+        }
+      }
+
+      const CodecParameters *foundFECCodec = NULL;
+      const CodecParameters *oldFECMatch = NULL;
+
+      while (true) {
+        foundFECCodec = findCodec(params, options);
+        if (!foundFECCodec) break;
+
+        if (IRTPTypes::KnownFECMechanism_RED_ULPFEC != mechanism) break;
+
+        if (!foundFECCodec->mParameters) {
+          options.mDisallowedPayloadtypeMatches.insert(foundFECCodec->mPayloadType);
+          continue;                               // RED+ULPFEC requires finding ULPFEC codec
+        }
+
+        auto redCodecParams = IRTPTypes::REDCodecParameters::convert(foundFECCodec->mParameters);
+        if (!redCodecParams) {
+          options.mDisallowedPayloadtypeMatches.insert(foundFECCodec->mPayloadType);
+          continue;                                          // must specify codec embedding for RED
+        }
+
+        bool foundULP = false;
+
+        for (auto iterRed = redCodecParams->mPayloadTypes.begin(); iterRed != redCodecParams->mPayloadTypes.end(); ++iterRed) {
+          auto redPayloadType = (*iterRed);
+
+          FindCodecOptions ulpOptions;
+
+          ulpOptions.mSupportedCodec = IRTPTypes::SupportedCodec_ULPFEC;
+          ulpOptions.mPayloadType = redPayloadType;
+          ulpOptions.mClockRate = mainCodec->mClockRate;
+
+          auto foundULPCodec = findCodec(params, ulpOptions);
+          if (!foundULPCodec) continue;
+
+          foundULP = true;
+          break;
+        }
+
+        if (!foundULP) {
+          options.mDisallowedPayloadtypeMatches.insert(foundFECCodec->mPayloadType);
+          continue;
+        }
+
+        if (oldFECMatch) {
+          ZS_LOG_WARNING(Detail, slog("FEC payload to use is ambiguous") + ZS_PARAM("found", foundFECCodec->toDebug()) + ZS_PARAM("previously found", oldFECMatch->toDebug()))
+          return NULL;
+        }
+
+        oldFECMatch = foundFECCodec;
+      }
+
+      if (oldFECMatch) foundFECCodec = oldFECMatch;
+
+      if (!foundFECCodec) {
+        ZS_LOG_WARNING(Debug, slog("did not find an appropriate FEC codec") + params.toDebug() + ZS_PARAM("encoding", encoding ? encoding->toDebug() : ElementPtr()) + ZS_PARAM("base encoding", baseEncoding ? baseEncoding->toDebug() : ElementPtr()))
+        return NULL;
+      }
+
+      ZS_LOG_TRACE(slog("found FEC codec") + foundFECCodec->toDebug() + params.toDebug() + ZS_PARAM("encoding", encoding ? encoding->toDebug() : ElementPtr()) + ZS_PARAM("base encoding", baseEncoding ? baseEncoding->toDebug() : ElementPtr()))
+      return foundFECCodec;
+    }
+
+    //-------------------------------------------------------------------------
+    RTPTypesHelper::EncodingParameters *RTPTypesHelper::findEncodingBase(
+                                                                         Parameters &inParams,
+                                                                         EncodingParameters *inEncoding
+                                                                         )
+    {
+      typedef std::map<String, EncodingParameters *> DependencyMap;
+
+      if (!inEncoding) {
+        if (inParams.mEncodingParameters.size() < 1) return NULL;
+        inEncoding = &(*(inParams.mEncodingParameters.begin()));
+      }
+
+      if (inEncoding->mDependencyEncodingIDs.size() < 1) {
+        // if there are no dependencies then this is the base
+        return inEncoding;
+      }
+
+      DependencyMap encodings;
+
+      for (auto iter = inParams.mEncodingParameters.begin(); iter != inParams.mEncodingParameters.end(); ++iter)
+      {
+        auto &encoding = (*iter);
+
+        encodings[encoding.mEncodingID] = &encoding;
+      }
+
+      DependencyMap previouslyChecked;
+      DependencyMap pending;
+
+      pending[inEncoding->mEncodingID] = inEncoding;
+
+      while (pending.size() > 0) {
+        auto check = pending.begin();
+        String encodingID = check->first;
+        EncodingParameters *encoding = check->second;
+        pending.erase(check);
+
+        if (encoding->mDependencyEncodingIDs.size() < 1) {
+          return encoding;
+        }
+
+        for (auto iter = encoding->mDependencyEncodingIDs.begin(); iter != encoding->mDependencyEncodingIDs.end(); ++iter) {
+          auto &dependencyID = (*iter);
+          auto foundPrevious = previouslyChecked.find(dependencyID);
+          if (foundPrevious != previouslyChecked.end()) continue;
+
+          auto found = encodings.find(dependencyID);
+          if (found == encodings.end()) continue;
+
+          pending[found->first] = found->second;
+        }
+      }
+
+      return inEncoding;
+    }
+
+    //-------------------------------------------------------------------------
+    RTPTypesHelper::EncodingParameters *RTPTypesHelper::pickEncodingToFill(
+                                                                           Optional<IMediaStreamTrackTypes::Kinds> kind,
+                                                                           PayloadType packetPayloadType,
+                                                                           Parameters &filledParams,
+                                                                           const CodecParameters * &outCodecParameters,
+                                                                           IRTPTypes::SupportedCodecs &outSupportedCodec,
+                                                                           IRTPTypes::CodecKinds &outCodecKind,
+                                                                           EncodingParameters * &outBaseEncoding
+                                                                           )
+    {
+      outSupportedCodec = IRTPTypes::SupportedCodec_Unknown;
+      outCodecKind = IRTPTypes::CodecKind_Unknown;
+      outBaseEncoding = NULL;
+
+      outCodecParameters = RTPTypesHelper::pickCodec(kind, filledParams, packetPayloadType);
+      if (NULL == outCodecParameters) {
+        ZS_LOG_INSANE(slog("cannot match because codec is not found in parameters") + filledParams.toDebug() + ZS_PARAM("packet payload type", packetPayloadType) + ZS_PARAM("kind", kind.hasValue() ? IMediaStreamTrackTypes::toString(kind.value()) : (const char *)NULL))
+        return NULL;
+      }
+
+      outSupportedCodec = IRTPTypes::toSupportedCodec(outCodecParameters->mName);
+      outCodecKind = IRTPTypes::getCodecKind(outSupportedCodec);
+
+      if (filledParams.mEncodingParameters.size() < 1) {
+        // "latch all" allows this codec to match all incoming packets
+        return NULL;
+      }
+
+      (*(filledParams.mEncodingParameters.begin()));
+
+      for (auto encodingIter = filledParams.mEncodingParameters.begin(); encodingIter != filledParams.mEncodingParameters.end(); ++encodingIter) {
+
+        auto &encoding = (*encodingIter);
+
+        EncodingParameters &baseEncoding = *(RTPTypesHelper::findEncodingBase(filledParams, &encoding));
+
+        const CodecParameters *baseCodec = NULL;
+        if (baseEncoding.mCodecPayloadType.hasValue()) {
+          baseCodec = RTPTypesHelper::pickCodec(kind, filledParams);
+        }
+
+        switch (outCodecKind) {
+          case IRTPTypes::CodecKind_Unknown:  ASSERT(false) break;
+          case IRTPTypes::CodecKind_Audio:
+          case IRTPTypes::CodecKind_Video:
+          case IRTPTypes::CodecKind_AV:
+          case IRTPTypes::CodecKind_Data:
+          {
+            if (baseCodec) {
+              if (baseCodec->mPayloadType != packetPayloadType) goto not_possible_match;
+            }
+
+            if (baseEncoding.mSSRC.hasValue()) {
+              if (!IRTPTypes::isMRSTCodec(outSupportedCodec)) goto not_possible_match;
+            }
+
+            if (encoding.mSSRC.hasValue()) goto not_possible_layer_match;
+
+            outBaseEncoding = &baseEncoding;
+            return &encoding;
+          }
+          case IRTPTypes::CodecKind_AudioSupplemental:
+          {
+            if (!baseCodec) goto not_possible_match;
+
+            if (baseCodec->mClockRate.hasValue()) {
+              if (outCodecParameters->mClockRate.hasValue()) {
+                if (baseCodec->mClockRate.value() != outCodecParameters->mClockRate.value()) goto not_possible_match;
+              }
+            }
+
+            outBaseEncoding = &baseEncoding;
+            return &encoding;
+          }
+          case IRTPTypes::CodecKind_RTX:    {
+            if (!baseCodec) goto not_possible_match;
+
+            if (!baseEncoding.mSSRC.hasValue()) goto not_possible_match;
+
+            if ((baseEncoding.mRTX.hasValue()) &&
+                (baseEncoding.mRTX.value().mSSRC.hasValue())) {
+              if (!IRTPTypes::isMRSTCodec(outSupportedCodec)) goto not_possible_match;
+            }
+
+            if ((encoding.mRTX.hasValue()) &&
+                (encoding.mRTX.value().mSSRC.hasValue())) goto not_possible_layer_match;
+
+            auto foundRTXCodec = RTPTypesHelper::pickRTXCodec(kind, filledParams, packetPayloadType, &encoding, &baseEncoding);
+            if (!foundRTXCodec) goto not_possible_layer_match;
+
+            outBaseEncoding = &baseEncoding;
+            return &encoding;
+          }
+          case IRTPTypes::CodecKind_FEC:    {
+            if (!baseCodec) goto not_possible_match;
+
+            if (!baseEncoding.mSSRC.hasValue()) goto not_possible_match;
+
+            if ((baseEncoding.mFEC.hasValue()) &&
+                (baseEncoding.mFEC.value().mSSRC.hasValue())) {
+              if (!IRTPTypes::isMRSTCodec(outSupportedCodec)) goto not_possible_match;
+            }
+
+            if ((encoding.mFEC.hasValue()) &&
+                (encoding.mFEC.value().mSSRC.hasValue())) goto not_possible_layer_match;
+
+            auto foundFECCodec = RTPTypesHelper::pickFECCodec(kind, filledParams, packetPayloadType, &encoding, &baseEncoding);
+            if (!foundFECCodec) goto not_possible_layer_match;
+
+            outBaseEncoding = &baseEncoding;
+            return &encoding;
+          }
+        }
+
+      not_possible_layer_match: {}
+      }
+
+    not_possible_match: {}
+
+      outCodecParameters = NULL;
+      outSupportedCodec = IRTPTypes::SupportedCodec_Unknown;
+      outCodecKind = IRTPTypes::CodecKind_Unknown;
+      outBaseEncoding = NULL;
+      return NULL;
     }
 
     //-------------------------------------------------------------------------
@@ -821,8 +1307,69 @@ namespace ortc
       UseServicesHelper::debugAppend(resultEl, feedbacksEl);
     }
 
-    UseServicesHelper::debugAppend(resultEl, "parameters", (bool)mParameters);
-    UseServicesHelper::debugAppend(resultEl, "options", (bool)mOptions);
+    SupportedCodecs supported = toSupportedCodec(mName);
+
+    // scope: output params
+    {
+      bool found = false;
+
+      if (mParameters) {
+        switch (supported) {
+          case SupportedCodec_Opus: {
+            auto codec = OpusCodecCapabilityParameters::convert(mParameters);
+            if (codec) {
+              UseServicesHelper::debugAppend(resultEl, codec->toDebug());
+              found = true;
+            }
+            break;
+          }
+          case SupportedCodec_VP8:    {
+            auto codec = VP8CodecCapability::convert(mParameters);
+            if (codec) {
+              UseServicesHelper::debugAppend(resultEl, codec->toDebug());
+              found = true;
+            }
+            break;
+          }
+          case SupportedCodec_H264:   {
+            auto codec = H264CodecCapability::convert(mParameters);
+            if (codec) {
+              UseServicesHelper::debugAppend(resultEl, codec->toDebug());
+              found = true;
+            }
+            break;
+          }
+          default: break;
+        }
+      }
+
+      if (!found) {
+        UseServicesHelper::debugAppend(resultEl, "parameters", (bool)mParameters);
+      }
+    }
+
+    // scope: output options
+    {
+      bool found = false;
+
+      if (mOptions) {
+        switch (supported) {
+          case SupportedCodec_Opus: {
+            auto codec = OpusCodecCapabilityOptions::convert(mOptions);
+            if (codec) {
+              UseServicesHelper::debugAppend(resultEl, codec->toDebug());
+              found = true;
+            }
+            break;
+          }
+          default: break;
+        }
+      }
+
+      if (!found) {
+        UseServicesHelper::debugAppend(resultEl, "options", (bool)mOptions);
+      }
+    }
 
     UseServicesHelper::debugAppend(resultEl, "max temporal layers", mMaxTemporalLayers);
     UseServicesHelper::debugAppend(resultEl, "max spatial layers", mMaxSpatialLayers);
@@ -862,6 +1409,50 @@ namespace ortc
 
     hasher.update(":feedback:0e69ea312f56834897bc0c29eb74bf991bee8d86:");
 
+    SupportedCodecs supported = toSupportedCodec(mName);
+
+    // scope: output params
+    {
+      hasher.update(":");
+
+      if (mParameters) {
+        switch (supported) {
+          case SupportedCodec_Opus: {
+            auto codec = OpusCodecCapabilityParameters::convert(mParameters);
+            if (codec) hasher.update(codec->hash());
+            break;
+          }
+          case SupportedCodec_VP8:    {
+            auto codec = VP8CodecCapability::convert(mParameters);
+            if (codec) hasher.update(codec->hash());
+            break;
+          }
+          case SupportedCodec_H264:   {
+            auto codec = H264CodecCapability::convert(mParameters);
+            if (codec) hasher.update(codec->hash());
+            break;
+          }
+          default: break;
+        }
+      }
+    }
+
+    // scope: output options
+    {
+      hasher.update(":");
+
+      if (mOptions) {
+        switch (supported) {
+          case SupportedCodec_Opus: {
+            auto codec = OpusCodecCapabilityOptions::convert(mOptions);
+            if (codec) hasher.update(codec->hash());
+            break;
+          }
+          default: break;
+        }
+      }
+    }
+
     hasher.update((bool)mParameters);
     hasher.update(":");
     hasher.update((bool)mOptions);
@@ -880,36 +1471,119 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   #pragma mark
-  #pragma mark IRTPTypes::OpusCodecCapability
+  #pragma mark IRTPTypes::OpusCodecCapabilityOptions
   #pragma mark
 
   //---------------------------------------------------------------------------
-  IRTPTypes::OpusCodecCapabilityPtr IRTPTypes::OpusCodecCapability::convert(AnyPtr any)
+  IRTPTypes::OpusCodecCapabilityOptionsPtr IRTPTypes::OpusCodecCapabilityOptions::create(const OpusCodecCapabilityOptions &capability)
   {
-    return ZS_DYNAMIC_PTR_CAST(OpusCodecCapability, any);
+    return make_shared<OpusCodecCapabilityOptions>(capability);
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IRTPTypes::OpusCodecCapability::toDebug() const
+  IRTPTypes::OpusCodecCapabilityOptionsPtr IRTPTypes::OpusCodecCapabilityOptions::convert(AnyPtr any)
   {
-    ElementPtr resultEl = Element::create("ortc::IRTPTypes::OpusCodecCapability");
+    return ZS_DYNAMIC_PTR_CAST(OpusCodecCapabilityOptions, any);
+  }
 
-    UseServicesHelper::debugAppend(resultEl, "max playback rate", mMaxPlaybackRate);
-    UseServicesHelper::debugAppend(resultEl, "stereo", mStereo);
+  //---------------------------------------------------------------------------
+  ElementPtr IRTPTypes::OpusCodecCapabilityOptions::toDebug() const
+  {
+    ElementPtr resultEl = Element::create("ortc::IRTPTypes::OpusCodecCapabilityOptions");
+
+    UseServicesHelper::debugAppend(resultEl, "complexity", mComplexity);
+    UseServicesHelper::debugAppend(resultEl, "signal", mSignal);
+    UseServicesHelper::debugAppend(resultEl, "application", mApplication);
+    UseServicesHelper::debugAppend(resultEl, "packet loss percentage", mPacketLossPerc);
+    UseServicesHelper::debugAppend(resultEl, "prediction disabled", mPredictionDisabled);
 
     return resultEl;
   }
 
   //---------------------------------------------------------------------------
-  String IRTPTypes::OpusCodecCapability::hash() const
+  String IRTPTypes::OpusCodecCapabilityOptions::hash() const
   {
     SHA1Hasher hasher;
 
-    hasher.update("ortc::IRTPTypes::OpusCodecCapability:");
+    hasher.update("ortc::IRTPTypes::OpusCodecCapabilityOptions:");
+
+    hasher.update(mComplexity);
+    hasher.update(":");
+    hasher.update(mSignal);
+    hasher.update(":");
+    hasher.update(mApplication);
+    hasher.update(":");
+    hasher.update(mPacketLossPerc);
+    hasher.update(":");
+    hasher.update(mPredictionDisabled);
+
+    return hasher.final();
+  }
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IRTPTypes::OpusCodecCapabilityParameters
+  #pragma mark
+
+  //---------------------------------------------------------------------------
+  IRTPTypes::OpusCodecCapabilityParametersPtr IRTPTypes::OpusCodecCapabilityParameters::create(const OpusCodecCapabilityParameters &capability)
+  {
+    return make_shared<OpusCodecCapabilityParameters>(capability);
+  }
+
+  //---------------------------------------------------------------------------
+  IRTPTypes::OpusCodecCapabilityParametersPtr IRTPTypes::OpusCodecCapabilityParameters::convert(AnyPtr any)
+  {
+    return ZS_DYNAMIC_PTR_CAST(OpusCodecCapabilityParameters, any);
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IRTPTypes::OpusCodecCapabilityParameters::toDebug() const
+  {
+    ElementPtr resultEl = Element::create("ortc::IRTPTypes::OpusCodecCapabilityParameters");
+
+    UseServicesHelper::debugAppend(resultEl, "max playback rate", mMaxPlaybackRate);
+    UseServicesHelper::debugAppend(resultEl, "ptime", mPTime);
+    UseServicesHelper::debugAppend(resultEl, "max average bitrate", mMaxAverageBitrate);
+    UseServicesHelper::debugAppend(resultEl, "stereo", mStereo);
+    UseServicesHelper::debugAppend(resultEl, "cbr", mCBR);
+    UseServicesHelper::debugAppend(resultEl, "use inband fec", mUseInbandFEC);
+    UseServicesHelper::debugAppend(resultEl, "use dtx", mUseDTX);
+
+    UseServicesHelper::debugAppend(resultEl, "sprop max capture rate", mSPropMaxCaptureRate);
+    UseServicesHelper::debugAppend(resultEl, "sprop stereo", mSPropStereo);
+
+    return resultEl;
+  }
+
+  //---------------------------------------------------------------------------
+  String IRTPTypes::OpusCodecCapabilityParameters::hash() const
+  {
+    SHA1Hasher hasher;
+
+    hasher.update("ortc::IRTPTypes::OpusCodecCapabilityParameters:");
 
     hasher.update(mMaxPlaybackRate);
     hasher.update(":");
+    hasher.update(mPTime);
+    hasher.update(":");
+    hasher.update(mMaxAverageBitrate);
+    hasher.update(":");
     hasher.update(mStereo);
+    hasher.update(":");
+    hasher.update(mCBR);
+    hasher.update(":");
+    hasher.update(mUseInbandFEC);
+    hasher.update(":");
+    hasher.update(mUseDTX);
+
+    hasher.update(":");
+    hasher.update(mSPropMaxCaptureRate);
+    hasher.update(":");
+    hasher.update(mSPropStereo);
 
     return hasher.final();
   }
@@ -921,6 +1595,12 @@ namespace ortc
   #pragma mark
   #pragma mark IRTPTypes::VP8CodecCapability
   #pragma mark
+
+  //---------------------------------------------------------------------------
+  IRTPTypes::VP8CodecCapabilityPtr IRTPTypes::VP8CodecCapability::create(const VP8CodecCapability &capability)
+  {
+    return make_shared<VP8CodecCapability>(capability);
+  }
 
   //---------------------------------------------------------------------------
   IRTPTypes::VP8CodecCapabilityPtr IRTPTypes::VP8CodecCapability::convert(AnyPtr any)
@@ -960,6 +1640,12 @@ namespace ortc
   #pragma mark
   #pragma mark IRTPTypes::H264CodecCapability
   #pragma mark
+
+  //---------------------------------------------------------------------------
+  IRTPTypes::H264CodecCapabilityPtr IRTPTypes::H264CodecCapability::create(const H264CodecCapability &capability)
+  {
+    return make_shared<H264CodecCapability>(capability);
+  }
 
   //---------------------------------------------------------------------------
   IRTPTypes::H264CodecCapabilityPtr IRTPTypes::H264CodecCapability::convert(AnyPtr any)
@@ -1155,27 +1841,33 @@ namespace ortc
 
     UseServicesHelper::debugAppend(resultEl, "ssrc", mMuxID);
 
-    ElementPtr codecsEl = Element::create("codecs");
-    ElementPtr headersEl = Element::create("headers");
-    ElementPtr encodingsEl = Element::create("encodings");
-
-    for (auto iter = mCodecs.begin(); iter != mCodecs.end(); ++iter) {
-      auto value = (*iter);
-      UseServicesHelper::debugAppend(codecsEl, value.toDebug());
+    if (mCodecs.size() > 0) {
+      ElementPtr codecsEl = Element::create("codecs");
+      for (auto iter = mCodecs.begin(); iter != mCodecs.end(); ++iter) {
+        auto value = (*iter);
+        UseServicesHelper::debugAppend(codecsEl, value.toDebug());
+      }
+      UseServicesHelper::debugAppend(resultEl, codecsEl);
     }
-    if (codecsEl) UseServicesHelper::debugAppend(resultEl, codecsEl);
 
-    for (auto iter = mHeaderExtensions.begin(); iter != mHeaderExtensions.end(); ++iter) {
-      auto value = (*iter);
-      UseServicesHelper::debugAppend(headersEl, value.toDebug());
+    if (mHeaderExtensions.size() > 0) {
+      ElementPtr headersEl = Element::create("headers");
+      for (auto iter = mHeaderExtensions.begin(); iter != mHeaderExtensions.end(); ++iter) {
+        auto value = (*iter);
+        UseServicesHelper::debugAppend(headersEl, value.toDebug());
+      }
+      UseServicesHelper::debugAppend(resultEl, headersEl);
     }
-    if (headersEl) UseServicesHelper::debugAppend(resultEl, headersEl);
 
-    for (auto iter = mEncodingParameters.begin(); iter != mEncodingParameters.end(); ++iter) {
-      auto value = (*iter);
-      UseServicesHelper::debugAppend(encodingsEl, value.toDebug());
+    if (mEncodingParameters.size() > 0) {
+      ElementPtr encodingsEl = Element::create("encodings");
+      
+      for (auto iter = mEncodingParameters.begin(); iter != mEncodingParameters.end(); ++iter) {
+        auto value = (*iter);
+        UseServicesHelper::debugAppend(encodingsEl, value.toDebug());
+      }
+      UseServicesHelper::debugAppend(resultEl, encodingsEl);
     }
-    if (encodingsEl) UseServicesHelper::debugAppend(resultEl, encodingsEl);
 
     UseServicesHelper::debugAppend(resultEl, "rtcp params", mRTCP.toDebug());
 
@@ -1251,15 +1943,76 @@ namespace ortc
     UseServicesHelper::debugAppend(resultEl, "max ptime", mMaxPTime);
     UseServicesHelper::debugAppend(resultEl, "number of channels", mNumChannels);
 
-    ElementPtr feedbacksEl = Element::create("feedbacks");
-
-    for (auto iter = mRTCPFeedback.begin(); iter != mRTCPFeedback.end(); ++iter) {
-      auto value = (*iter);
-      UseServicesHelper::debugAppend(feedbacksEl, value.toDebug());
+    if (mRTCPFeedback.size() > 0) {
+      ElementPtr feedbacksEl = Element::create("feedbacks");
+      for (auto iter = mRTCPFeedback.begin(); iter != mRTCPFeedback.end(); ++iter) {
+        auto value = (*iter);
+        UseServicesHelper::debugAppend(feedbacksEl, value.toDebug());
+      }
+      UseServicesHelper::debugAppend(resultEl, feedbacksEl);
     }
-    if (feedbacksEl) UseServicesHelper::debugAppend(resultEl, feedbacksEl);
 
-    UseServicesHelper::debugAppend(resultEl, "parameters", (bool)mParameters);
+    SupportedCodecs supported = toSupportedCodec(mName);
+
+    bool found = false;
+
+    if (mParameters) {
+      switch (supported) {
+        case SupportedCodec_Opus: {
+          auto codec = OpusCodecParameters::convert(mParameters);
+          if (codec) {
+            found = true;
+            UseServicesHelper::debugAppend(resultEl, codec->toDebug());
+          }
+          break;
+        }
+        case SupportedCodec_VP8: {
+          auto codec = VP8CodecParameters::convert(mParameters);
+          if (codec) {
+            found = true;
+            UseServicesHelper::debugAppend(resultEl, codec->toDebug());
+          }
+          break;
+        }
+        case SupportedCodec_H264: {
+          auto codec = H264CodecParameters::convert(mParameters);
+          if (codec) {
+            found = true;
+            UseServicesHelper::debugAppend(resultEl, codec->toDebug());
+          }
+          break;
+        }
+        case SupportedCodec_RTX: {
+          auto codec = RTXCodecParameters::convert(mParameters);
+          if (codec) {
+            found = true;
+            UseServicesHelper::debugAppend(resultEl, codec->toDebug());
+          }
+          break;
+        }
+        case SupportedCodec_RED: {
+          auto codec = REDCodecParameters::convert(mParameters);
+          if (codec) {
+            found = true;
+            UseServicesHelper::debugAppend(resultEl, codec->toDebug());
+          }
+          break;
+        }
+        case SupportedCodec_FlexFEC: {
+          auto codec = FlexFECCodecParameters::convert(mParameters);
+          if (codec) {
+            found = true;
+            UseServicesHelper::debugAppend(resultEl, codec->toDebug());
+          }
+          break;
+        }
+        default: break;
+      }
+    }
+
+    if (!found) {
+      UseServicesHelper::debugAppend(resultEl, "parameters", (bool)mParameters);
+    }
 
     return resultEl;
   }
@@ -1289,8 +2042,334 @@ namespace ortc
       hasher.update(value.hash());
     }
 
+    auto supported = toSupportedCodec(mName);
+
+    hasher.update(":");
+    if (mParameters) {
+      switch (supported) {
+        case SupportedCodec_Opus: {
+          auto codec = OpusCodecParameters::convert(mParameters);
+          if (codec) hasher.update(codec->hash());
+          break;
+        }
+        case SupportedCodec_VP8: {
+          auto codec = VP8CodecParameters::convert(mParameters);
+          if (codec) hasher.update(codec->hash());
+          break;
+        }
+        case SupportedCodec_H264: {
+          auto codec = H264CodecParameters::convert(mParameters);
+          if (codec) hasher.update(codec->hash());
+          break;
+        }
+        case SupportedCodec_RTX: {
+          auto codec = RTXCodecParameters::convert(mParameters);
+          if (codec) hasher.update(codec->hash());
+          break;
+        }
+        case SupportedCodec_RED: {
+          auto codec = REDCodecParameters::convert(mParameters);
+          if (codec) hasher.update(codec->hash());
+          break;
+        }
+        case SupportedCodec_FlexFEC: {
+          auto codec = FlexFECCodecParameters::convert(mParameters);
+          if (codec) hasher.update(codec->hash());
+          break;
+        }
+        default: break;
+      }
+    }
+
     hasher.update(":");
     hasher.update((bool)mParameters);
+
+    return hasher.final();
+  }
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IRTPTypes::OpusCodecParameters
+  #pragma mark
+
+  //---------------------------------------------------------------------------
+  const char *IRTPTypes::OpusCodecParameters::toString(Signals signal)
+  {
+    switch (signal) {
+      case Signal_Auto:         return "auto";
+      case Signal_Music:        return "music";
+      case Signal_Voice:        return "voice";
+    }
+
+    return "unknown";
+  }
+
+  //---------------------------------------------------------------------------
+  IRTPTypes::OpusCodecParameters::Signals IRTPTypes::OpusCodecParameters::toSignal(const char *signal)
+  {
+    String signalStr(signal);
+
+    for (Signals index = Signal_First; index <= Signal_Last; index = static_cast<Signals>(static_cast<std::underlying_type<Signals>::type>(index) + 1)) {
+      if (signalStr == IRTPTypes::OpusCodecParameters::toString(index)) return index;
+    }
+
+    return Signal_Auto;
+  }
+
+  //---------------------------------------------------------------------------
+  const char *IRTPTypes::OpusCodecParameters::toString(Applications application)
+  {
+    switch (application) {
+      case Application_VoIP:      return "voip";
+      case Application_Audio:     return "audio";
+      case Application_LowDelay:  return "lowdelay";
+    }
+
+    return "unknown";
+  }
+
+  //---------------------------------------------------------------------------
+  IRTPTypes::OpusCodecParameters::Applications IRTPTypes::OpusCodecParameters::toApplication(const char *application)
+  {
+    String applicationStr(application);
+
+    for (Applications index = Application_First; index <= Application_Last; index = static_cast<Applications>(static_cast<std::underlying_type<Applications>::type>(index) + 1)) {
+      if (applicationStr == IRTPTypes::OpusCodecParameters::toString(index)) return index;
+    }
+
+    return Application_VoIP;
+  }
+
+  //---------------------------------------------------------------------------
+  IRTPTypes::OpusCodecParametersPtr IRTPTypes::OpusCodecParameters::create(const OpusCodecParameters &capability)
+  {
+    return make_shared<OpusCodecParameters>(capability);
+  }
+
+  //---------------------------------------------------------------------------
+  IRTPTypes::OpusCodecParametersPtr IRTPTypes::OpusCodecParameters::convert(AnyPtr any)
+  {
+    return ZS_DYNAMIC_PTR_CAST(OpusCodecParameters, any);
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IRTPTypes::OpusCodecParameters::toDebug() const
+  {
+    ElementPtr resultEl = Element::create("ortc::IRTPTypes::OpusCodecParameters");
+
+    UseServicesHelper::debugAppend(resultEl, "max playback rate", mMaxPlaybackRate);
+    UseServicesHelper::debugAppend(resultEl, "ptime", mPTime);
+    UseServicesHelper::debugAppend(resultEl, "max average bitrate", mMaxAverageBitrate);
+    UseServicesHelper::debugAppend(resultEl, "stereo", mStereo);
+    UseServicesHelper::debugAppend(resultEl, "cbr", mCBR);
+    UseServicesHelper::debugAppend(resultEl, "use inband fec", mUseInbandFEC);
+    UseServicesHelper::debugAppend(resultEl, "use dtx", mUseDTX);
+
+    UseServicesHelper::debugAppend(resultEl, "complexity", mComplexity);
+    UseServicesHelper::debugAppend(resultEl, "signal", mSignal.hasValue() ? toString(mSignal.value()) : (const char *)NULL);
+    UseServicesHelper::debugAppend(resultEl, "application", mApplication.hasValue() ? toString(mApplication.value()) : (const char *)NULL);
+    UseServicesHelper::debugAppend(resultEl, "packet loss percentage", mPacketLossPerc);
+    UseServicesHelper::debugAppend(resultEl, "prediction disabled", mPredictionDisabled);
+
+    UseServicesHelper::debugAppend(resultEl, "sprop max capture rate", mSPropMaxCaptureRate);
+    UseServicesHelper::debugAppend(resultEl, "sprop stereo", mSPropStereo);
+
+    return resultEl;
+  }
+
+  //---------------------------------------------------------------------------
+  String IRTPTypes::OpusCodecParameters::hash() const
+  {
+    SHA1Hasher hasher;
+
+    hasher.update("ortc::IRTPTypes::OpusCodecParameters:");
+
+    hasher.update(mComplexity);
+    hasher.update(":");
+    hasher.update(mSignal);
+    hasher.update(":");
+    hasher.update(mApplication);
+    hasher.update(":");
+    hasher.update(mPacketLossPerc);
+    hasher.update(":");
+    hasher.update(mPredictionDisabled);
+
+    return hasher.final();
+  }
+
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IRTPTypes::RTXCodecParameters
+  #pragma mark
+
+  //---------------------------------------------------------------------------
+  IRTPTypes::RTXCodecParametersPtr IRTPTypes::RTXCodecParameters::create(const RTXCodecParameters &capability)
+  {
+    return make_shared<RTXCodecParameters>(capability);
+  }
+
+  //---------------------------------------------------------------------------
+  IRTPTypes::RTXCodecParametersPtr IRTPTypes::RTXCodecParameters::convert(AnyPtr any)
+  {
+    return ZS_DYNAMIC_PTR_CAST(RTXCodecParameters, any);
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IRTPTypes::RTXCodecParameters::toDebug() const
+  {
+    ElementPtr resultEl = Element::create("ortc::IRTPTypes::RTXCodecParameters");
+
+    UseServicesHelper::debugAppend(resultEl, "rtx time", mRTXTime);
+
+    return resultEl;
+  }
+
+  //---------------------------------------------------------------------------
+  String IRTPTypes::RTXCodecParameters::hash() const
+  {
+    SHA1Hasher hasher;
+
+    hasher.update("ortc::IRTPTypes::RTXCodecParameters:");
+
+    hasher.update(mRTXTime);
+
+    return hasher.final();
+  }
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IRTPTypes::REDCodecParameters
+  #pragma mark
+
+  //---------------------------------------------------------------------------
+  IRTPTypes::REDCodecParametersPtr IRTPTypes::REDCodecParameters::create(const REDCodecParameters &capability)
+  {
+    return make_shared<REDCodecParameters>(capability);
+  }
+
+  //---------------------------------------------------------------------------
+  IRTPTypes::REDCodecParametersPtr IRTPTypes::REDCodecParameters::convert(AnyPtr any)
+  {
+    return ZS_DYNAMIC_PTR_CAST(REDCodecParameters, any);
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IRTPTypes::REDCodecParameters::toDebug() const
+  {
+    ElementPtr resultEl = Element::create("ortc::IRTPTypes::REDCodecParameters");
+
+    if (mPayloadTypes.size()) {
+      ElementPtr payloadTypesEl = Element::create("payload types");
+      for (auto iter = mPayloadTypes.begin(); iter != mPayloadTypes.end(); ++iter) {
+        auto payloadType = (*iter);
+        UseServicesHelper::debugAppend(payloadTypesEl, "payload type", payloadType);
+      }
+      UseServicesHelper::debugAppend(resultEl, payloadTypesEl);
+    }
+
+    return resultEl;
+  }
+
+  //---------------------------------------------------------------------------
+  String IRTPTypes::REDCodecParameters::hash() const
+  {
+    SHA1Hasher hasher;
+
+    hasher.update("ortc::IRTPTypes::REDCodecParameters:");
+
+    hasher.update("payloadTypes");
+    for (auto iter = mPayloadTypes.begin(); iter != mPayloadTypes.end(); ++iter) {
+      auto payloadType = (*iter);
+      hasher.update(":");
+      hasher.update(payloadType);
+    }
+    hasher.update(":");
+
+    return hasher.final();
+  }
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IRTPTypes::FlexFECCodecParameters
+  #pragma mark
+
+  //---------------------------------------------------------------------------
+  const char *IRTPTypes::FlexFECCodecParameters::toString(ToPs top)
+  {
+    switch (top) {
+      case ToP_1DInterleavedFEC:      return "1d-interleaved-fec";
+      case ToP_1DNonInterleavedFEC:   return "1d-non-interleaved-fec";
+      case ToP_2DParityFEEC:          return "2d-parity-fec";
+      case ToP_Reserved:              return "reserved";
+    }
+
+    return "unknown";
+  }
+
+  //---------------------------------------------------------------------------
+  IRTPTypes::FlexFECCodecParameters::ToPs IRTPTypes::FlexFECCodecParameters::toToP(const char *top)
+  {
+    String topStr(top);
+
+    for (ToPs index = ToP_First; index <= ToP_Last; index = static_cast<ToPs>(static_cast<std::underlying_type<ToPs>::type>(index) + 1)) {
+      if (topStr == IRTPTypes::FlexFECCodecParameters::toString(index)) return index;
+    }
+
+    return ToP_Reserved;
+  }
+
+  //---------------------------------------------------------------------------
+  IRTPTypes::FlexFECCodecParametersPtr IRTPTypes::FlexFECCodecParameters::create(const FlexFECCodecParameters &capability)
+  {
+    return make_shared<FlexFECCodecParameters>(capability);
+  }
+
+  //---------------------------------------------------------------------------
+  IRTPTypes::FlexFECCodecParametersPtr IRTPTypes::FlexFECCodecParameters::convert(AnyPtr any)
+  {
+    return ZS_DYNAMIC_PTR_CAST(FlexFECCodecParameters, any);
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IRTPTypes::FlexFECCodecParameters::toDebug() const
+  {
+    ElementPtr resultEl = Element::create("ortc::IRTPTypes::FlexFECCodecParameters");
+
+    UseServicesHelper::debugAppend(resultEl, "repair window", mRepairWindow);
+    UseServicesHelper::debugAppend(resultEl, "L", mL);
+    UseServicesHelper::debugAppend(resultEl, "D", mD);
+    UseServicesHelper::debugAppend(resultEl, "ToP", mToP.hasValue() ? toString(mToP.value()) : (const char *)NULL);
+
+    return resultEl;
+  }
+
+  //---------------------------------------------------------------------------
+  String IRTPTypes::FlexFECCodecParameters::hash() const
+  {
+    SHA1Hasher hasher;
+
+    hasher.update("ortc::IRTPTypes::FlexFECCodecParameters:");
+
+    hasher.update(mRepairWindow);
+    hasher.update(":");
+    hasher.update(mL);
+    hasher.update(":");
+    hasher.update(mD);
+    hasher.update(":");
+    hasher.update(mToP);
 
     return hasher.final();
   }
@@ -1382,7 +2461,6 @@ namespace ortc
 
     UseServicesHelper::debugAppend(resultEl, "ssrc", mSSRC);
     UseServicesHelper::debugAppend(resultEl, "payload type", mPayloadType);
-    UseServicesHelper::debugAppend(resultEl, "rtx time", mRTXTime);
 
     return resultEl;
   }
@@ -1398,7 +2476,6 @@ namespace ortc
     hasher.update(":");
     hasher.update(mPayloadType);
     hasher.update(":");
-    hasher.update(mRTXTime);
 
     return hasher.final();
   }
@@ -1463,13 +2540,15 @@ namespace ortc
     UseServicesHelper::debugAppend(resultEl, "active", mActive);
     UseServicesHelper::debugAppend(resultEl, "encoding id", mEncodingID);
 
-    ElementPtr depedenciesEl = Element::create("dependency encoding ids");
+    if (mDependencyEncodingIDs.size() > 0) {
+      ElementPtr depedenciesEl = Element::create("dependency encoding ids");
 
-    for (auto iter = mDependencyEncodingIDs.begin(); iter != mDependencyEncodingIDs.end(); ++iter) {
-      auto value = (*iter);
-      UseServicesHelper::debugAppend(depedenciesEl, "dependency encoding id", value);
+      for (auto iter = mDependencyEncodingIDs.begin(); iter != mDependencyEncodingIDs.end(); ++iter) {
+        auto value = (*iter);
+        UseServicesHelper::debugAppend(depedenciesEl, "dependency encoding id", value);
+      }
+      UseServicesHelper::debugAppend(resultEl, depedenciesEl);
     }
-    if (depedenciesEl->hasChildren()) UseServicesHelper::debugAppend(resultEl, depedenciesEl);
 
     return resultEl;
   }
@@ -1576,6 +2655,7 @@ namespace ortc
 
       case SupportedCodec_RED:                return "red";
       case SupportedCodec_ULPFEC:             return "ulpfec";
+      case SupportedCodec_FlexFEC:            return "flexfec";
 
       case SupportedCodec_CN:                 return "cn";
         
@@ -1618,6 +2698,7 @@ namespace ortc
 
       case SupportedCodec_RED:                return CodecKind_FEC;
       case SupportedCodec_ULPFEC:             return CodecKind_FEC;
+      case SupportedCodec_FlexFEC:            return CodecKind_FEC;
 
       case SupportedCodec_CN:                 return CodecKind_AudioSupplemental;
 
@@ -1626,6 +2707,70 @@ namespace ortc
     
     return CodecKind_Unknown;
   }
+
+  //---------------------------------------------------------------------------
+  bool IRTPTypes::isSRSTCodec(SupportedCodecs codec)
+  {
+    switch (codec) {
+      case SupportedCodec_Unknown:            return false;
+
+      case SupportedCodec_Opus:               return false;
+      case SupportedCodec_Isac:               return false;
+      case SupportedCodec_G722:               return false;
+      case SupportedCodec_ILBC:               return false;
+      case SupportedCodec_PCMU:               return false;
+      case SupportedCodec_PCMA:               return false;
+
+      case SupportedCodec_VP8:                return true;
+      case SupportedCodec_VP9:                return true;
+      case SupportedCodec_H264:               return true;
+
+      case SupportedCodec_RTX:                return false;
+
+      case SupportedCodec_RED:                return false;
+      case SupportedCodec_ULPFEC:             return false;
+      case SupportedCodec_FlexFEC:            return false;
+
+      case SupportedCodec_CN:                 return false;
+
+      case SupportedCodec_TelephoneEvent:     return false;
+    }
+
+    return false;
+  }
+  
+
+  //---------------------------------------------------------------------------
+  bool IRTPTypes::isMRSTCodec(SupportedCodecs codec)
+  {
+    switch (codec) {
+      case SupportedCodec_Unknown:            return false;
+
+      case SupportedCodec_Opus:               return false;
+      case SupportedCodec_Isac:               return false;
+      case SupportedCodec_G722:               return false;
+      case SupportedCodec_ILBC:               return false;
+      case SupportedCodec_PCMU:               return false;
+      case SupportedCodec_PCMA:               return false;
+
+      case SupportedCodec_VP8:                return false;
+      case SupportedCodec_VP9:                return false;
+      case SupportedCodec_H264:               return false;
+
+      case SupportedCodec_RTX:                return false;
+
+      case SupportedCodec_RED:                return false;
+      case SupportedCodec_ULPFEC:             return false;
+      case SupportedCodec_FlexFEC:            return false;
+
+      case SupportedCodec_CN:                 return false;
+
+      case SupportedCodec_TelephoneEvent:     return false;
+    }
+    
+    return false;
+  }
+  
 
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
@@ -1883,7 +3028,7 @@ namespace ortc
       case KnownFECMechanism_Unknown:       return "";
       case KnownFECMechanism_RED:           return "red";
       case KnownFECMechanism_RED_ULPFEC:    return "red+ulpfec";
-      case KnownFECMechanism_FLEXFEC:       return "flexfec";
+      case KnownFECMechanism_FlexFEC:       return "flexfec";
     }
 
     return "unknown";  }

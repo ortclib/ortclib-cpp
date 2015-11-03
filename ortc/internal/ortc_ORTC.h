@@ -54,6 +54,7 @@ namespace ortc
     {
       ZS_DECLARE_TYPEDEF_PTR(IORTCForInternal, ForInternal)
 
+      static void overrideQueueDelegate(IMessageQueuePtr queue);
       static IMessageQueuePtr queueDelegate();
       static IMessageQueuePtr queueORTC();
       static IMessageQueuePtr queueBlockingMediaStartStopThread();
@@ -108,6 +109,7 @@ namespace ortc
       #pragma mark ORTC => IORTCForInternal
       #pragma mark
 
+      virtual void overrideQueueDelegate(IMessageQueuePtr queue);
       virtual IMessageQueuePtr queueDelegate() const;
       virtual IMessageQueuePtr queueORTC() const;
       virtual IMessageQueuePtr queueBlockingMediaStartStopThread() const;

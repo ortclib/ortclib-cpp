@@ -670,8 +670,9 @@ namespace ortc
       #pragma mark
 
       //-----------------------------------------------------------------------
-      FakeReceiver::FakeReceiver() :
-        RTPReceiver(Noop(true))
+      FakeReceiver::FakeReceiver(IMediaStreamTrackTypes::Kinds kind) :
+        RTPReceiver(Noop(true)),
+        mKind(kind)
       {
       }
 
@@ -683,9 +684,9 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      FakeReceiverPtr FakeReceiver::create()
+      FakeReceiverPtr FakeReceiver::create(IMediaStreamTrackTypes::Kinds kind)
       {
-        FakeReceiverPtr pThis(make_shared<FakeReceiver>());
+        FakeReceiverPtr pThis(make_shared<FakeReceiver>(kind));
         pThis->mThisWeak = pThis;
         return pThis;
       }
@@ -790,7 +791,7 @@ namespace ortc
             ZS_LOG_BASIC(log("registering listener") + ZS_PARAM("listener", mListener->getID()) + mParameters->toDebug())
 
             RTCPPacketList packetList;
-            mListener->registerReceiver(mThisWeak.lock(), *mParameters);
+            mListener->registerReceiver(mKind, mThisWeak.lock(), *mParameters);
 
             for (auto iter = packetList.begin(); iter != packetList.end(); ++iter) {
               // fake this as if it was a received packet
@@ -824,7 +825,7 @@ namespace ortc
 
         if (mListener) {
           RTCPPacketList packetList;
-          mListener->registerReceiver(mThisWeak.lock(), *mParameters);
+          mListener->registerReceiver(mKind, mThisWeak.lock(), *mParameters);
 
           for (auto iter = packetList.begin(); iter != packetList.end(); ++iter) {
             // fake this as if it was a received packet
@@ -1235,7 +1236,7 @@ namespace ortc
         FakeReceiverPtr receiver = getReceiver(receiverID);
 
         if (!receiver) {
-          receiver = FakeReceiver::create();
+          receiver = FakeReceiver::create(IMediaStreamTrackTypes::Kind_Audio);
           attach(receiverID, receiver);
         }
 
@@ -1282,7 +1283,7 @@ namespace ortc
         FakeReceiverPtr receiver = getReceiver(receiverID);
 
         if (!receiver) {
-          receiver = FakeReceiver::create();
+          receiver = FakeReceiver::create(IMediaStreamTrackTypes::Kind_Audio);
           attach(receiverID, receiver);
         }
 
@@ -1478,8 +1479,8 @@ namespace ortc
 
       //-----------------------------------------------------------------------
       void RTPListenerTester::sendPacket(
-                                         const char *packetID,
-                                         const char *viaSenderID
+                                         const char *viaSenderID,
+                                         const char *packetID
                                          )
       {
         RTPPacketPtr rtp;
@@ -1504,8 +1505,8 @@ namespace ortc
 
       //-----------------------------------------------------------------------
       void RTPListenerTester::expectPacket(
-                                           const char *packetID,
-                                           const char *senderOrReceiverID
+                                           const char *senderOrReceiverID,
+                                           const char *packetID
                                            )
       {
         RTPPacketPtr rtp;
@@ -1886,30 +1887,30 @@ void doTestRTPListener()
                 break;
               }
               case 8: {
-                testObject1->expectPacket("p1", "r1");
-                testObject1->expectPacket("p2", "r1");
-                testObject1->expectPacket("p1", "r1");
+                testObject1->expectPacket("r1", "p1");
+                testObject1->expectPacket("r1", "p2");
+                testObject1->expectPacket("r1", "p1");
                 //bogusSleep();
                 break;
               }
               case 9: {
-                testObject2->sendPacket("p1", "s1");
+                testObject2->sendPacket("s1", "p1");
                 //bogusSleep();
                 break;
               }
               case 10: {
-                testObject2->sendPacket("p2", "s1");
+                testObject2->sendPacket("s1", "p2");
                 //bogusSleep();
                 break;
               }
               case 11: {
-                testObject2->sendPacket("p1", "s1");
+                testObject2->sendPacket("s1", "p1");
                 //bogusSleep();
                 break;
               }
               case 12: {
                 testObject1->expectingUnhandled(6, 96, "r2");
-                testObject2->sendPacket("p3", "s1");
+                testObject2->sendPacket("s1", "p3");
                 //bogusSleep();
                 break;
               }
@@ -1918,7 +1919,7 @@ void doTestRTPListener()
                 params.mMuxID = "r2";
 
                 testObject1->createReceiver("r2");
-                testObject1->expectPacket("p3", "r2");
+                testObject1->expectPacket("r2", "p3");
                 testObject1->receive("r2", params);
                 //bogusSleep();
                 break;
@@ -1932,8 +1933,8 @@ void doTestRTPListener()
                 params.mEncodingParameters.push_back(encoding);
 
                 testObject1->receive("r3", params);
-                testObject1->expectPacket("p4", "r3");
-                testObject2->sendPacket("p4", "s1");
+                testObject1->expectPacket("r3", "p4");
+                testObject2->sendPacket("s1", "p4");
                 //bogusSleep();
                 break;
               }
@@ -1946,8 +1947,8 @@ void doTestRTPListener()
                 params.mEncodingParameters.push_back(encoding);
 
                 testObject1->receive("r9", params);
-                testObject1->expectPacket("p9", "r9");
-                testObject2->sendPacket("p9", "s1");
+                testObject1->expectPacket("r9", "p9");
+                testObject2->sendPacket("s1", "p9");
                 //bogusSleep();
                 break;
               }
@@ -2056,14 +2057,14 @@ void doTestRTPListener()
                 break;
               }
               case 5: {
-                testObject1->expectPacket("p1", "r1");
-                testObject2->sendPacket("p1", "s1");
+                testObject1->expectPacket("r1", "p1");
+                testObject2->sendPacket("s1", "p1");
                 //bogusSleep();
                 break;
               }
               case 6: {
-                testObject1->expectPacket("p2", "r1");
-                testObject2->sendPacket("p2", "s1");
+                testObject1->expectPacket("r1", "p2");
+                testObject2->sendPacket("s1", "p2");
 //                bogusSleep();
                 break;
               }

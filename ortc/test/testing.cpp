@@ -151,7 +151,7 @@ namespace Testing
       TESTING_STDOUT() << "***FAILED***: [" << Testing::getGlobalFailedVar() << "]\n";
     }
   }
-  
+
   void runAllTests()
   {
     srand(static_cast<signed int>(time(NULL)));

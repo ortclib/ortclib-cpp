@@ -920,6 +920,7 @@ namespace ortc
 
       //-----------------------------------------------------------------------
       void FakeListener::registerReceiver(
+                                          Optional<IMediaStreamTrackTypes::Kinds> kind,
                                           UseReceiverPtr inReceiver,
                                           const Parameters &inParams,
                                           RTCPPacketList *outPacketList
@@ -2870,6 +2871,7 @@ ZS_DECLARE_TYPEDEF_PTR(ortc::IMediaStreamTrackTypes, IMediaStreamTrackTypes)
 using ortc::IICETypes;
 using zsLib::Optional;
 using zsLib::WORD;
+using zsLib::DWORD;
 using zsLib::BYTE;
 using zsLib::Milliseconds;
 using ortc::SecureByteBlock;
@@ -2934,8 +2936,8 @@ void doTestRTPReceiver()
             testObject1->setClientRole(true);
             testObject2->setClientRole(false);
 
-            expectations1.mUnhandled = 0;
-            expectations1.mReceivedPackets = 1;
+            expectations1.mUnhandled = 1;
+            expectations1.mReceivedPackets = 4;
             expectations1.mChannelUpdate = 0;
             expectations1.mActiveReceiverChannel = 2;
             expectations1.mReceiverChannelOfSecureTransportState = 2;
@@ -2974,7 +2976,7 @@ void doTestRTPReceiver()
             switch (step) {
               case 2: {
                 if (testObject1) testObject1->connect(testObject2);
-            //  bogusSleep();
+          //    bogusSleep();
                 break;
               }
               case 3: {
@@ -3013,64 +3015,144 @@ void doTestRTPReceiver()
                   headerParams.mID = 2;
                   headerParams.mURI = IRTPTypes::toString(IRTPTypes::HeaderExtensionURI_RID);
                   params.mHeaderExtensions.push_back(headerParams);
+                  headerParams.mID = 3;
+                  headerParams.mURI = IRTPTypes::toString(IRTPTypes::HeaderExtensionURI_ClienttoMixerAudioLevelIndication);
+                  params.mHeaderExtensions.push_back(headerParams);
+                  headerParams.mID = 4;
+                  headerParams.mURI = IRTPTypes::toString(IRTPTypes::HeaderExtensionURI_MixertoClientAudioLevelIndication);
+                  params.mHeaderExtensions.push_back(headerParams);
 
-                  testObject1->store("param1", params);
+                  testObject1->store("params1", params);
                 }
-         //     bogusSleep();
+          //    bogusSleep();
                 break;
               }
               case 6: {
-                testObject1->createReceiverChannel("c1", "param1");
-                testObject1->receive("param1");
-         //     bogusSleep();
+                testObject1->createReceiverChannel("c1", "params1");
+                testObject1->receive("params1");
+          //    bogusSleep();
                 break;
               }
               case 7: {
                 Parameters params;
                 testObject2->send("s1", "params-empty");
-         //     bogusSleep();
+          //    bogusSleep();
                 break;
               }
               case 8:
               {
-                RTPPacket::CreationParams params;
-                params.mPT = 96;
-                params.mSequenceNumber = 1;
-                params.mTimestamp = 10000;
-                params.mSSRC = 5;
-                const char *payload = "sparksthesoftware";
-                params.mPayload = reinterpret_cast<const BYTE *>(payload);
-                params.mPayloadSize = strlen(payload);
+                {
+                  RTPPacket::CreationParams params;
+                  params.mPT = 96;
+                  params.mSequenceNumber = 1;
+                  params.mTimestamp = 10000;
+                  params.mSSRC = 5;
+                  DWORD csrcs[] = {77,88};
+                  params.mCSRCList = csrcs;
+                  params.mCC = sizeof(csrcs)/sizeof(DWORD);
+                  const char *payload = "sparksthesoftware";
+                  params.mPayload = reinterpret_cast<const BYTE *>(payload);
+                  params.mPayloadSize = strlen(payload);
 
-                RTPPacket::MidHeaderExtension mid1(1, "r1");
-                params.mFirstHeaderExtension = &mid1;
+                  RTPPacket::MidHeaderExtension mid1(1, "r1");
+                  RTPPacket::MidHeaderExtension rid1(2, "c1");
+                  RTPPacket::ClientToMixerExtension ctm1(3, true, 2);
+                  BYTE levels[] = {4,15};
+                  RTPPacket::MixerToClientExtension mtc1(4, levels, sizeof(levels)/sizeof(BYTE));
 
-                RTPPacket::MidHeaderExtension rid1(2, "c1");
-                params.mFirstHeaderExtension->mNext = &rid1;
+                  params.mFirstHeaderExtension = &mid1;
+                  mid1.mNext = &rid1;
+                  rid1.mNext = &ctm1;
+                  ctm1.mNext = &mtc1;
 
-                RTPPacketPtr packet = RTPPacket::create(params);
-                testObject1->store("p1", packet);
-                testObject2->store("p1", packet);
+                  RTPPacketPtr packet = RTPPacket::create(params);
+                  testObject1->store("p1", packet);
+                  testObject2->store("p1", packet);
+                }
+                {
+                  RTPPacket::CreationParams params;
+                  params.mPT = 96;
+                  params.mSequenceNumber = 2;
+                  params.mTimestamp = 10001;
+                  params.mSSRC = 5;
+                  const char *payload = "sparksthesoftware2";
+                  params.mPayload = reinterpret_cast<const BYTE *>(payload);
+                  params.mPayloadSize = strlen(payload);
+
+                  RTPPacketPtr packet = RTPPacket::create(params);
+                  testObject1->store("p2", packet);
+                  testObject2->store("p2", packet);
+                }
+                {
+                  RTPPacket::CreationParams params;
+                  params.mPT = 97;
+                  params.mSequenceNumber = 3;
+                  params.mTimestamp = 10002;
+                  params.mSSRC = 6;
+                  const char *payload = "sparksthesoftware3";
+                  params.mPayload = reinterpret_cast<const BYTE *>(payload);
+                  params.mPayloadSize = strlen(payload);
+
+                  RTPPacket::MidHeaderExtension mid1(1, "r2");
+                  RTPPacket::MidHeaderExtension rid1(2, "c2");
+
+                  params.mFirstHeaderExtension = &mid1;
+                  mid1.mNext = &rid1;
+
+                  RTPPacketPtr packet = RTPPacket::create(params);
+                  testObject1->store("p3", packet);
+                  testObject2->store("p3", packet);
+                }
+          //    bogusSleep();
                 break;
               }
               case 9: {
                 testObject1->expectState("c1", ISecureTransportTypes::State_Connected);
                 testObject1->expectState("c1", ISecureTransportTypes::State_Closed);
-         //     bogusSleep();
+          //    bogusSleep();
                 break;
               }
               case 10: {
                 testObject1->expectPacket("c1","p1");
+                testObject1->expectPacket("c1","p1");
+                testObject1->expectPacket("c1","p2");
                 testObject1->expectActiveChannel("c1");
-         //     bogusSleep();
+          //    bogusSleep();
                 break;
               }
               case 11: {
                 testObject2->sendPacket("s1", "p1");
-         //     bogusSleep();
+                testObject2->sendPacket("s1", "p1");
+                testObject2->sendPacket("s1", "p2");
+          //    bogusSleep();
                 break;
               }
-              case 16: {
+              case 12: {
+                testObject1->expectingUnhandled(6, 97, "r2", "c2");
+                testObject2->sendPacket("s1", "p3");
+          //    bogusSleep();
+                break;
+              }
+              case 14: {
+                auto params = testObject1->getParameters("params1");
+
+                CodecParameters codec;
+                codec.mName = "isac";
+                codec.mClockRate = 32000;
+                codec.mPayloadType = 97;
+
+                params->mCodecs.push_back(codec);
+                testObject1->store("params2", *params);
+          //    bogusSleep();
+                break;
+              }
+              case 15: {
+                testObject1->expectPacket("c1","p3");
+                testObject1->receive("params2");
+                bogusSleep();
+                break;
+              }
+              case 20: {
                 testObject1->expectActiveChannel(NULL);
 
                 if (testObject1) testObject1->close();
@@ -3078,31 +3160,31 @@ void doTestRTPReceiver()
                 //bogusSleep();
                 break;
               }
-              case 17: {
+              case 21: {
                 if (testObject1) testObject1->state(IDTLSTransport::State_Closed);
                 if (testObject2) testObject2->state(IDTLSTransport::State_Closed);
                 //bogusSleep();
                 break;
               }
-              case 18: {
+              case 22: {
                 if (testObject1) testObject1->state(IICETransport::State_Disconnected);
                 if (testObject2) testObject2->state(IICETransport::State_Disconnected);
                 //bogusSleep();
                 break;
               }
-              case 19: {
+              case 23: {
                 if (testObject1) testObject1->state(IICETransport::State_Closed);
                 if (testObject2) testObject2->state(IICETransport::State_Closed);
                 //bogusSleep();
                 break;
               }
-              case 20: {
+              case 24: {
                 if (testObject1) testObject1->closeByReset();
                 if (testObject2) testObject2->closeByReset();
                 //bogusSleep();
                 break;
               }
-              case 21: {
+              case 25: {
                 lastStepReached = true;
                 break;
               }

@@ -55,6 +55,12 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
+    void IORTCForInternal::overrideQueueDelegate(IMessageQueuePtr queue)
+    {
+      return (ORTC::singleton())->overrideQueueDelegate(queue);
+    }
+
+    //-------------------------------------------------------------------------
     IMessageQueuePtr IORTCForInternal::queueDelegate()
     {
       return (ORTC::singleton())->queueDelegate();
@@ -156,6 +162,13 @@ namespace ortc
     #pragma mark
     #pragma mark Stack => IORTCForInternal
     #pragma mark
+
+    //-------------------------------------------------------------------------
+    void ORTC::overrideQueueDelegate(IMessageQueuePtr queue)
+    {
+      AutoRecursiveLock lock(*this);
+      mDelegateQueue = queue;
+    }
 
     //-------------------------------------------------------------------------
     IMessageQueuePtr ORTC::queueDelegate() const
