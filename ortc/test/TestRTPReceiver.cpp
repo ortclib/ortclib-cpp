@@ -2747,6 +2747,8 @@ namespace ortc
 
         receiverChannel->create(receiver, params, packets);
 
+        mFakeReceiverChannelCreationList.pop_front();
+
         return receiverChannel;
       }
 
@@ -2939,8 +2941,8 @@ void doTestRTPReceiver()
             expectations1.mUnhandled = 1;
             expectations1.mReceivedPackets = 4;
             expectations1.mChannelUpdate = 0;
-            expectations1.mActiveReceiverChannel = 2;
-            expectations1.mReceiverChannelOfSecureTransportState = 2;
+            expectations1.mActiveReceiverChannel = 3;
+            expectations1.mReceiverChannelOfSecureTransportState = 4;
             expectations1.mKind = IMediaStreamTrackTypes::Kind_Audio;
           }
           break;
@@ -3147,9 +3149,13 @@ void doTestRTPReceiver()
                 break;
               }
               case 15: {
-                testObject1->expectPacket("c1","p3");
+                testObject1->createReceiverChannel("c2", "params2");
+                testObject1->expectState("c2", ISecureTransportTypes::State_Connected);
+                testObject1->expectState("c2", ISecureTransportTypes::State_Closed);
+                testObject1->expectPacket("c2","p3");
+                testObject1->expectActiveChannel("c2");
                 testObject1->receive("params2");
-                bogusSleep();
+          //    bogusSleep();
                 break;
               }
               case 20: {

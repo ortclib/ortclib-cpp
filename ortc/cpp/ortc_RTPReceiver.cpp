@@ -1102,6 +1102,7 @@ namespace ortc
             flushAllAutoLatchedChannels();
           }
         }
+        reattemptDelivery();
       } else {
         mParameters = make_shared<Parameters>(parameters);
 
@@ -2220,10 +2221,10 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool RTPReceiver::shouldCleanChannel(bool shouldClean)
+    bool RTPReceiver::shouldCleanChannel(bool objectExists)
     {
-      if (shouldClean) cleanChannels();
-      return shouldClean;
+      if (!objectExists) cleanChannels();
+      return !objectExists;
     }
 
     //-------------------------------------------------------------------------
