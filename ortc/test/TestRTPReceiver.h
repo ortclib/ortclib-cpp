@@ -998,6 +998,8 @@ namespace ortc
         ZS_DECLARE_TYPEDEF_PTR(internal::MediaStreamTrack, MediaStreamTrack)
         ZS_DECLARE_TYPEDEF_PTR(internal::MediaStreamTrackFactory, MediaStreamTrackFactory)
 
+        ZS_DECLARE_TYPEDEF_PTR(ortc::IRTPReceiverTypes::ContributingSourceList, ContributingSourceList)
+
         ZS_DECLARE_CLASS_PTR(OverrideReceiverChannelFactory)
         ZS_DECLARE_CLASS_PTR(OverrideMediaStreamTrackFactory)
 
@@ -1219,6 +1221,8 @@ namespace ortc
                           const char *senderOrReceiverChannelID,
                           const char *packetID
                           );
+
+        ContributingSourceList getContributingSources() const;
 
       protected:
 

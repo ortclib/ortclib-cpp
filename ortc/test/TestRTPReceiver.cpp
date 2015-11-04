@@ -2634,6 +2634,20 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
+      RTPReceiverTester::ContributingSourceList RTPReceiverTester::getContributingSources() const
+      {
+        IRTPReceiverPtr receiver;
+        {
+          AutoRecursiveLock lock(*this);
+
+          TESTING_CHECK(mReceiver)
+          receiver = mReceiver;
+        }
+
+        return receiver->getContributingSources();
+      }
+
+      //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
@@ -3199,6 +3213,22 @@ void doTestRTPReceiver()
                 testObject1->expectPacket("c2","p3");
                 testObject1->expectActiveChannel("c2");
                 testObject1->receive("params2");
+
+                auto sources = testObject1->getContributingSources();
+
+                TESTING_EQUAL(sources.size(), 3)
+                TESTING_EQUAL(sources.front().mCSRC, 5);
+                TESTING_EQUAL(sources.front().mAudioLevel, 2);
+                sources.pop_front();
+
+                TESTING_EQUAL(sources.front().mCSRC, 77);
+                TESTING_EQUAL(sources.front().mAudioLevel, 4);
+                sources.pop_front();
+
+                TESTING_EQUAL(sources.front().mCSRC, 88);
+                TESTING_EQUAL(sources.front().mAudioLevel, 15);
+                sources.pop_front();
+
           //    bogusSleep();
                 break;
               }
