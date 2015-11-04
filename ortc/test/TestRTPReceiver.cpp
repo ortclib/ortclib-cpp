@@ -2983,10 +2983,10 @@ void doTestRTPReceiver()
             testObject2->setClientRole(false);
 
             expectations1.mUnhandled = 2;
-            expectations1.mReceivedPackets = 3;
+            expectations1.mReceivedPackets = 5;
             expectations1.mChannelUpdate = 0;
-            expectations1.mActiveReceiverChannel = 2;
-            expectations1.mReceiverChannelOfSecureTransportState = 2;
+            expectations1.mActiveReceiverChannel = 3;
+            expectations1.mReceiverChannelOfSecureTransportState = 4;
             expectations1.mKind = IMediaStreamTrackTypes::Kind_Audio;
           }
           break;
@@ -3437,10 +3437,10 @@ void doTestRTPReceiver()
               case 12: {
                 testObject1->expectingUnhandled(37, 125, NULL, NULL);
                 testObject1->expectingUnhandled(11, 96, NULL, NULL);
-                testObject2->sendPacket("s1", "p4");  // these should not get routed (ever)
-                testObject2->sendPacket("s1", "p5");  // these should not get routed (ever)
-                testObject2->sendPacket("s1", "p4");  // these should not get routed (ever)
-                testObject2->sendPacket("s1", "p5");  // these should not get routed (ever)
+                testObject2->sendPacket("s1", "p4");  // these should not get routed
+                testObject2->sendPacket("s1", "p5");  // these should not get routed
+                testObject2->sendPacket("s1", "p4");  // these should not get routed
+                testObject2->sendPacket("s1", "p5");  // these should not get routed
           //    bogusSleep();
                 break;
               }
@@ -3450,9 +3450,48 @@ void doTestRTPReceiver()
           //    bogusSleep();
                 break;
               }
+              case 14: {
+                {
+                  auto params = testObject1->getParameters("params1");
+                  EncodingParameters encoding;
+                  encoding.mCodecPayloadType = 96;
+
+                  RTXParameters rtx;
+                  rtx.mPayloadType = 121;
+                  encoding.mRTX = rtx;
+
+                  FECParameters fec;
+                  fec.mMechanism = IRTPTypes::toString(IRTPTypes::KnownFECMechanism_RED_ULPFEC);
+                  encoding.mFEC = fec;
+
+                  params->mEncodingParameters.push_back(encoding);
+
+                  testObject1->store("params2", *params);
+                }
+                {
+                  auto params = testObject1->getParameters("params2");
+                  params->mEncodingParameters.pop_front();
+                  testObject1->store("params2-c2", *params);  // only a single encoding will go to this new channel
+                }
+          //    bogusSleep();
+                break;
+              }
+              case 15: {
+                testObject1->createReceiverChannel("c2", "params2-c2");
+                testObject1->expectState("c2", ISecureTransportTypes::State_Connected);
+                testObject1->expectPacket("c2", "p5");
+                testObject1->expectPacket("c2", "p5");
+                testObject1->expectPacket("c2", "p4");
+                testObject1->expectPacket("c2", "p4");
+                testObject1->expectActiveChannel("c2");
+                testObject1->receive("params2");
+          //    bogusSleep();
+                break;
+              }
               case 20: {
                 testObject1->expectActiveChannel(NULL);
                 testObject1->expectState("c1", ISecureTransportTypes::State_Closed);
+                testObject1->expectState("c2", ISecureTransportTypes::State_Closed);
 
                 if (testObject1) testObject1->close();
                 if (testObject2) testObject1->close();

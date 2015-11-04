@@ -1566,24 +1566,35 @@ namespace ortc
 
       expireRTPPackets();
 
-      for (auto iter_doNotUse = mBufferedRTPPackets.begin(); iter_doNotUse != mBufferedRTPPackets.end();) {
-        auto current = iter_doNotUse;
-        ++iter_doNotUse;
+      size_t beforeSize = 0;
 
-        RTPPacketPtr packet = (*current).second;
+      do
+      {
+        beforeSize = mBufferedRTPPackets.size();
+        for (auto iter_doNotUse = mBufferedRTPPackets.begin(); iter_doNotUse != mBufferedRTPPackets.end();) {
+          auto current = iter_doNotUse;
+          ++iter_doNotUse;
 
-        ChannelHolderPtr channelHolder;
-        String rid;
-        if (!findMapping(*packet, channelHolder, rid)) continue;
+          RTPPacketPtr packet = (*current).second;
 
-        postFindMappingProcessPacket(*packet, channelHolder);
+          ChannelHolderPtr channelHolder;
+          String rid;
+          if (!findMapping(*packet, channelHolder, rid)) continue;
 
-        ZS_LOG_TRACE(log("will attempt to deliver buffered RTP packet") + ZS_PARAM("channel", channelHolder->getID()) + ZS_PARAM("ssrc", packet->ssrc()))
-        channelHolder->notify(packet);
+          postFindMappingProcessPacket(*packet, channelHolder);
 
-        mBufferedRTPPackets.erase(current);
-      }
-      
+          ZS_LOG_TRACE(log("will attempt to deliver buffered RTP packet") + ZS_PARAM("channel", channelHolder->getID()) + ZS_PARAM("ssrc", packet->ssrc()))
+          channelHolder->notify(packet);
+
+          mBufferedRTPPackets.erase(current);
+        }
+
+      // NOTE: need to repetitively attempt to deliver packets as it's possible
+      //       processinging some packets will then allow delivery of other
+      //       packets
+      } while ((beforeSize != mBufferedRTPPackets.size()) &&
+               (0 != mBufferedRTPPackets.size()));
+
       return true;
     }
 
@@ -2539,6 +2550,7 @@ namespace ortc
           // this is a better match
           outChannelInfo = channelInfo;
           foundEncoding = matchEncoding;
+          foundCodecKind = codecKind;
         }
       }
 

@@ -1244,25 +1244,36 @@ namespace ortc
 
       expireRTPPackets();
 
-      for (auto iter_doNotUse = mBufferedRTPPackets.begin(); iter_doNotUse != mBufferedRTPPackets.end();) {
-        auto current = iter_doNotUse;
-        ++iter_doNotUse;
+      size_t previousSize = 0;
 
-        RTPPacketPtr packet = (*current).second;
+      do
+      {
+        previousSize = mBufferedRTPPackets.size();
+        for (auto iter_doNotUse = mBufferedRTPPackets.begin(); iter_doNotUse != mBufferedRTPPackets.end();) {
+          auto current = iter_doNotUse;
+          ++iter_doNotUse;
 
-        ReceiverInfoPtr receiverInfo;
-        String muxID;
-        if (!findMapping(*packet, receiverInfo, muxID)) continue;
+          RTPPacketPtr packet = (*current).second;
 
-        auto receiver = receiverInfo->mReceiver.lock();
+          ReceiverInfoPtr receiverInfo;
+          String muxID;
+          if (!findMapping(*packet, receiverInfo, muxID)) continue;
 
-        if (receiver) {
-          ZS_LOG_TRACE(log("will attempt to deliver buffered RTP packet") + ZS_PARAM("receiver", receiver->getID()) + ZS_PARAM("ssrc", packet->ssrc()))
-          IRTPListenerAsyncDelegateProxy::create(mThisWeak.lock())->onDeliverPacket(IICETypes::Component_RTP, receiver, packet);
+          auto receiver = receiverInfo->mReceiver.lock();
+
+          if (receiver) {
+            ZS_LOG_TRACE(log("will attempt to deliver buffered RTP packet") + ZS_PARAM("receiver", receiver->getID()) + ZS_PARAM("ssrc", packet->ssrc()))
+            IRTPListenerAsyncDelegateProxy::create(mThisWeak.lock())->onDeliverPacket(IICETypes::Component_RTP, receiver, packet);
+          }
+
+          mBufferedRTPPackets.erase(current);
         }
 
-        mBufferedRTPPackets.erase(current);
-      }
+      // NOTE: need to repetitively attempt to deliver packets as it's possible
+      //       processinging some packets will then allow delivery of other
+      //       packets
+      } while ((mBufferedRTPPackets.size() != previousSize) &&
+               (0 != mBufferedRTPPackets.size()));
 
       return true;
     }
