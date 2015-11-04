@@ -344,7 +344,7 @@ namespace ortc
         ElementPtr ssrcsEl = Element::create("ssrcs");
         for (auto iter = mRegisteredSSRCs.begin(); iter != mRegisteredSSRCs.end(); ++iter) {
           auto &ssrcInfo = (*iter).second;
-          UseServicesHelper::debugAppend(ssrcsEl, ssrcInfo->toDebug());
+          UseServicesHelper::debugAppend(ssrcsEl, "ssrc", ssrcInfo->mSSRC);
         }
         UseServicesHelper::debugAppend(resultEl, ssrcsEl);
       }

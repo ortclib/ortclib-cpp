@@ -2982,8 +2982,8 @@ void doTestRTPReceiver()
             testObject1->setClientRole(true);
             testObject2->setClientRole(false);
 
-            expectations1.mUnhandled = 0;
-            expectations1.mReceivedPackets = 1;
+            expectations1.mUnhandled = 2;
+            expectations1.mReceivedPackets = 3;
             expectations1.mChannelUpdate = 0;
             expectations1.mActiveReceiverChannel = 2;
             expectations1.mReceiverChannelOfSecureTransportState = 2;
@@ -3380,6 +3380,34 @@ void doTestRTPReceiver()
                   testObject1->store("p3", packet);
                   testObject2->store("p3", packet);
                 }
+                {
+                  RTPPacket::CreationParams params;
+                  params.mPT = 125;
+                  params.mSequenceNumber = 3;
+                  params.mTimestamp = 10002;
+                  params.mSSRC = 37;
+                  const char *payload = "Totally radical fec";
+                  params.mPayload = reinterpret_cast<const BYTE *>(payload);
+                  params.mPayloadSize = strlen(payload);
+
+                  RTPPacketPtr packet = RTPPacket::create(params);
+                  testObject1->store("p4", packet);
+                  testObject2->store("p4", packet);
+                }
+                {
+                  RTPPacket::CreationParams params;
+                  params.mPT = 96;
+                  params.mSequenceNumber = 100;
+                  params.mTimestamp = 10003;
+                  params.mSSRC = 11;
+                  const char *payload = "Totally radical opus";
+                  params.mPayload = reinterpret_cast<const BYTE *>(payload);
+                  params.mPayloadSize = strlen(payload);
+
+                  RTPPacketPtr packet = RTPPacket::create(params);
+                  testObject1->store("p5", packet);
+                  testObject2->store("p5", packet);
+                }
           //    bogusSleep();
                 break;
               }
@@ -3395,18 +3423,40 @@ void doTestRTPReceiver()
                 testObject1->createReceiverChannel("c1", "params1");
                 testObject1->expectPacket("c1", "p1");
                 testObject1->expectState("c1", ISecureTransportTypes::State_Connected);
-                testObject1->expectState("c1", ISecureTransportTypes::State_Closed);
                 testObject1->expectActiveChannel("c1");
                 testObject1->receive("params1");
           //    bogusSleep();
                 break;
               }
+              case 11: {
+                testObject1->expectPacket("c1", "p2");
+                testObject2->sendPacket("s1", "p2");
+          //    bogusSleep();
+                break;
+              }
+              case 12: {
+                testObject1->expectingUnhandled(37, 125, NULL, NULL);
+                testObject1->expectingUnhandled(11, 96, NULL, NULL);
+                testObject2->sendPacket("s1", "p4");  // these should not get routed (ever)
+                testObject2->sendPacket("s1", "p5");  // these should not get routed (ever)
+                testObject2->sendPacket("s1", "p4");  // these should not get routed (ever)
+                testObject2->sendPacket("s1", "p5");  // these should not get routed (ever)
+          //    bogusSleep();
+                break;
+              }
+              case 13: {
+                testObject1->expectPacket("c1", "p3");
+                testObject2->sendPacket("s1", "p3");
+          //    bogusSleep();
+                break;
+              }
               case 20: {
                 testObject1->expectActiveChannel(NULL);
+                testObject1->expectState("c1", ISecureTransportTypes::State_Closed);
 
                 if (testObject1) testObject1->close();
                 if (testObject2) testObject1->close();
-                bogusSleep();
+          //    bogusSleep();
                 break;
               }
               case 21: {
