@@ -1295,8 +1295,12 @@ namespace ortc
       #pragma mark
 
       //-----------------------------------------------------------------------
-      FakeReceiverChannel::FakeReceiverChannel(IMessageQueuePtr queue) :
-        RTPReceiverChannel(Noop(true), queue)
+      FakeReceiverChannel::FakeReceiverChannel(
+                                               IMessageQueuePtr queue,
+                                               const char *receiverChannelID
+                                               ) :
+        RTPReceiverChannel(Noop(true), queue),
+        mReceiverChannelID(receiverChannelID)
       {
       }
 
@@ -1512,10 +1516,11 @@ namespace ortc
       //-----------------------------------------------------------------------
       FakeReceiverChannelPtr FakeReceiverChannel::create(
                                                          IMessageQueuePtr queue,
+                                                         const char *receiverChannelID,
                                                          const Parameters &expectedParams
                                                          )
       {
-        FakeReceiverChannelPtr pThis(make_shared<FakeReceiverChannel>(queue));
+        FakeReceiverChannelPtr pThis(make_shared<FakeReceiverChannel>(queue, receiverChannelID));
         pThis->mThisWeak = pThis;
         pThis->mParameters = make_shared<Parameters>(expectedParams);
         return pThis;
@@ -1585,6 +1590,7 @@ namespace ortc
       {
         ElementPtr objectEl = Element::create("ortc::test::rtpreceiver::FakeReceiverChannel");
         UseServicesHelper::debugAppend(objectEl, "id", RTPReceiverChannel::getID());
+        UseServicesHelper::debugAppend(objectEl, "channel id", mReceiverChannelID);
         return Log::Params(message, objectEl);
       }
 
@@ -2205,17 +2211,17 @@ namespace ortc
 
       //-----------------------------------------------------------------------
       void RTPReceiverTester::createReceiverChannel(
-                                                    const char *receiverID,
+                                                    const char *receiverChannelID,
                                                     const char *parametersID
                                                     )
       {
-        FakeReceiverChannelPtr receiverChannel = getReceiverChannel(receiverID);
+        FakeReceiverChannelPtr receiverChannel = getReceiverChannel(receiverChannelID);
 
         if (!receiverChannel) {
           auto params = getParameters(parametersID);
           TESTING_CHECK(params)
-          receiverChannel = FakeReceiverChannel::create(getAssociatedMessageQueue(), *params);
-          attach(receiverID, receiverChannel);
+          receiverChannel = FakeReceiverChannel::create(getAssociatedMessageQueue(), receiverChannelID, *params);
+          attach(receiverChannelID, receiverChannel);
         }
 
         TESTING_CHECK(receiverChannel)
@@ -2997,10 +3003,10 @@ void doTestRTPReceiver()
             testObject2->setClientRole(false);
 
             expectations1.mUnhandled = 2;
-            expectations1.mReceivedPackets = 6;
+            expectations1.mReceivedPackets = 9;
             expectations1.mChannelUpdate = 0;
-            expectations1.mActiveReceiverChannel = 3;
-            expectations1.mReceiverChannelOfSecureTransportState = 6;
+            expectations1.mActiveReceiverChannel = 4;
+            expectations1.mReceiverChannelOfSecureTransportState = 8;
             expectations1.mKind = IMediaStreamTrackTypes::Kind_Audio;
           }
           break;
@@ -3522,7 +3528,7 @@ void doTestRTPReceiver()
                 {
                   auto params = testObject1->getParameters("params2");
                   auto &encoding = (*(params->mEncodingParameters.begin()));
-                  encoding.mSSRC = 63;
+                  encoding.mSSRC = 61;
                   testObject1->store("params3", *params);
                 }
                 {
@@ -3535,7 +3541,7 @@ void doTestRTPReceiver()
                   params.mPT = 96;
                   params.mSequenceNumber = 1;
                   params.mTimestamp = 10000;
-                  params.mSSRC = 63;
+                  params.mSSRC = 61;
                   const char *payload = "flash the message";
                   params.mPayload = reinterpret_cast<const BYTE *>(payload);
                   params.mPayloadSize = strlen(payload);
@@ -3558,41 +3564,131 @@ void doTestRTPReceiver()
           //    bogusSleep();
                 break;
               }
+              case 18: {
+                {
+                  auto params = testObject1->getParameters("params3");
+
+                  EncodingParameters encoding;
+                  encoding.mEncodingID = "enc1";
+                  encoding.mCodecPayloadType = 96;
+                  encoding.mSSRC = 79;
+
+                  RTXParameters rtx;
+                  rtx.mPayloadType = 121;
+                  rtx.mSSRC = 151;
+                  encoding.mRTX = rtx;
+
+                  FECParameters fec;
+                  fec.mMechanism = IRTPTypes::toString(IRTPTypes::KnownFECMechanism_RED_ULPFEC);
+                  fec.mSSRC = 149;
+                  encoding.mFEC = fec;
+
+                  params->mEncodingParameters.push_back(encoding);
+
+                  testObject1->store("params4", *params);
+                }
+                {
+                  auto params = testObject1->getParameters("params4");
+                  while (params->mEncodingParameters.size() > 1) {
+                    params->mEncodingParameters.pop_front();
+                  }
+                  testObject1->store("params4-c4", *params);
+                }
+                {
+                  RTPPacket::CreationParams params;
+                  params.mPT = 96;
+                  params.mSequenceNumber = 1;
+                  params.mTimestamp = 10000;
+                  params.mSSRC = 79;
+                  const char *payload = "somethings out there";
+                  params.mPayload = reinterpret_cast<const BYTE *>(payload);
+                  params.mPayloadSize = strlen(payload);
+
+                  RTPPacketPtr packet = RTPPacket::create(params);
+                  testObject1->store("p7", packet);
+                  testObject2->store("p7", packet);
+                }
+                {
+                  RTPPacket::CreationParams params;
+                  params.mPT = 125;
+                  params.mSequenceNumber = 2;
+                  params.mTimestamp = 10001;
+                  params.mSSRC = 149;
+                  const char *payload = "captain kirk";
+                  params.mPayload = reinterpret_cast<const BYTE *>(payload);
+                  params.mPayloadSize = strlen(payload);
+
+                  RTPPacketPtr packet = RTPPacket::create(params);
+                  testObject1->store("p8", packet);
+                  testObject2->store("p8", packet);
+                }
+                {
+                  RTPPacket::CreationParams params;
+                  params.mPT = 121;
+                  params.mSequenceNumber = 3;
+                  params.mTimestamp = 10002;
+                  params.mSSRC = 151;
+                  const char *payload = "captain picard";
+                  params.mPayload = reinterpret_cast<const BYTE *>(payload);
+                  params.mPayloadSize = strlen(payload);
+
+                  RTPPacketPtr packet = RTPPacket::create(params);
+                  testObject1->store("p9", packet);
+                  testObject2->store("p9", packet);
+                }
+                testObject1->receive("params4");
+          //    bogusSleep();
+                break;
+              }
               case 20: {
+                testObject1->createReceiverChannel("c4", "params4-c4");
+                testObject1->expectPacket("c4", "p9");
+                testObject1->expectPacket("c4", "p8");
+                testObject1->expectPacket("c4", "p7");
+                testObject1->expectActiveChannel("c4");
+                testObject1->expectState("c4", ISecureTransportTypes::State_Connected);
+                testObject2->sendPacket("s1", "p9");
+                testObject2->sendPacket("s1", "p8");
+                testObject2->sendPacket("s1", "p7");
+          //    bogusSleep();
+                break;
+              }
+              case 25: {
                 testObject1->expectActiveChannel(NULL);
                 testObject1->expectState("c2", ISecureTransportTypes::State_Closed);
                 testObject1->expectState("c3", ISecureTransportTypes::State_Closed);
+                testObject1->expectState("c4", ISecureTransportTypes::State_Closed);
 
                 if (testObject1) testObject1->close();
                 if (testObject2) testObject1->close();
           //    bogusSleep();
                 break;
               }
-              case 21: {
+              case 26: {
                 if (testObject1) testObject1->state(IDTLSTransport::State_Closed);
                 if (testObject2) testObject2->state(IDTLSTransport::State_Closed);
                 //bogusSleep();
                 break;
               }
-              case 22: {
+              case 27: {
                 if (testObject1) testObject1->state(IICETransport::State_Disconnected);
                 if (testObject2) testObject2->state(IICETransport::State_Disconnected);
                 //bogusSleep();
                 break;
               }
-              case 23: {
+              case 28: {
                 if (testObject1) testObject1->state(IICETransport::State_Closed);
                 if (testObject2) testObject2->state(IICETransport::State_Closed);
                 //bogusSleep();
                 break;
               }
-              case 24: {
+              case 29: {
                 if (testObject1) testObject1->closeByReset();
                 if (testObject2) testObject2->closeByReset();
                 //bogusSleep();
                 break;
               }
-              case 25: {
+              case 30: {
                 lastStepReached = true;
                 break;
               }

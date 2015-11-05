@@ -729,7 +729,10 @@ namespace ortc
         ZS_DECLARE_TYPEDEF_PTR(internal::IRTPReceiverForRTPReceiverChannel, UseReceiver)
 
       public:
-        FakeReceiverChannel(IMessageQueuePtr queue);
+        FakeReceiverChannel(
+                            IMessageQueuePtr queue,
+                            const char *receiverChannelID
+                            );
         ~FakeReceiverChannel();
 
         //---------------------------------------------------------------------
@@ -776,6 +779,7 @@ namespace ortc
 
         static FakeReceiverChannelPtr create(
                                              IMessageQueuePtr queue,
+                                             const char *receiverChannelID,
                                              const Parameters &expectedParams
                                              );
 
@@ -811,6 +815,7 @@ namespace ortc
         StateList mExpectStates;
 
         UseReceiverWeakPtr mReceiver;
+        String mReceiverChannelID;
       };
 
 
