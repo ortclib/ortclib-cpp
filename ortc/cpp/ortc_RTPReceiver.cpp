@@ -1874,7 +1874,7 @@ namespace ortc
 
         setRIDUsage(encodingParmas.mEncodingID, channelInfo);
 
-        ChannelHolderPtr channelHolder;
+        ChannelHolderPtr channelHolder = channelInfo->mChannelHolder.lock();
         if (encodingParmas.mSSRC.hasValue()) {
           registerSSRCUsage(channelInfo->registerSSRCUsage(setSSRCUsage(encodingParmas.mSSRC.value(), encodingParmas.mEncodingID, channelHolder)));
         }
@@ -1909,7 +1909,7 @@ namespace ortc
       auto &baseNewOriginalEncoding = (*(newParams->mEncodingParameters.begin()));
       auto &baseNewFilledEncoding = (*(channelInfo->mFilledParameters->mEncodingParameters.begin()));
 
-      ChannelHolderPtr channelHolder;
+      ChannelHolderPtr channelHolder = channelInfo->mChannelHolder.lock();
 
       // scope: deregister the changed or removed SSRCs, register the new SSRC
       {

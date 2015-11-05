@@ -325,6 +325,7 @@ namespace ortc
             oldList.erase(currentOld);
             newList.erase(currentNew);
             newHashedList.erase(currentNewHash);
+            break;
           }
         }
       }
@@ -414,8 +415,8 @@ namespace ortc
             oldList.erase(currentOld);
             newList.erase(currentNew);
             newHashedList.erase(currentNewHash);
+            break;
           }
-
         }
       }
 
@@ -458,6 +459,7 @@ namespace ortc
 
             oldList.erase(currentOld);
             newList.erase(currentNew);
+            break;
           }
         }
       }

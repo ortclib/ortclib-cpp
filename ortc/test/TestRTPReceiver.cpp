@@ -3015,8 +3015,8 @@ void doTestRTPReceiver()
             testObject2->setClientRole(false);
 
             expectations1.mUnhandled = 2;
-            expectations1.mReceivedPackets = 15;
-            expectations1.mChannelUpdate = 1;
+            expectations1.mReceivedPackets = 18;
+            expectations1.mChannelUpdate = 4;
             expectations1.mActiveReceiverChannel = 6;
             expectations1.mReceiverChannelOfSecureTransportState = 10;
             expectations1.mKind = IMediaStreamTrackTypes::Kind_Audio;
@@ -3770,6 +3770,49 @@ void doTestRTPReceiver()
                 testObject1->createReceiverChannel("c5", "params6-c5");
                 testObject1->expectState("c5", ISecureTransportTypes::State_Connected);
                 testObject1->expectActiveChannel("c5");
+                testObject1->expectPacket("c5", "p11");
+                testObject1->expectPacket("c5", "p10");
+                testObject1->expectPacket("c5", "p12");
+                testObject2->sendPacket("s1", "p11");
+                testObject2->sendPacket("s1", "p10");
+                testObject2->sendPacket("s1", "p12");
+          //    bogusSleep();
+                break;
+              }
+              case 25: {
+                {
+                  auto params = testObject1->getParameters("params6");
+                  params->mRTCP.mSSRC = 271;
+                  testObject1->store("params7", *params);
+                }
+                {
+                  auto params = testObject1->getParameters("params7");
+                  params->mEncodingParameters.pop_front();
+                  params->mEncodingParameters.pop_back();
+                  testObject1->store("params7-c2", *params);
+                }
+                {
+                  auto params = testObject1->getParameters("params7");
+                  while (params->mEncodingParameters.size() > 1) {
+                    params->mEncodingParameters.pop_back();
+                  }
+                  testObject1->store("params7-c3", *params);
+                }
+                {
+                  auto params = testObject1->getParameters("params7");
+                  while (params->mEncodingParameters.size() > 1) {
+                    params->mEncodingParameters.pop_front();
+                  }
+                  testObject1->store("params7-c5", *params);
+                }
+                testObject1->expectReceiveChannelUpdate("c5", "params7-c5");
+                testObject1->expectReceiveChannelUpdate("c2", "params7-c2");
+                testObject1->expectReceiveChannelUpdate("c3", "params7-c3");
+                testObject1->receive("params7");
+          //    bogusSleep();
+                break;
+              }
+              case 26: {
                 testObject1->expectPacket("c5", "p11");
                 testObject1->expectPacket("c5", "p10");
                 testObject1->expectPacket("c5", "p12");
