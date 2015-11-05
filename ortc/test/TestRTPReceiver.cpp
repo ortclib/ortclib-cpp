@@ -3015,10 +3015,10 @@ void doTestRTPReceiver()
             testObject2->setClientRole(false);
 
             expectations1.mUnhandled = 2;
-            expectations1.mReceivedPackets = 12;
+            expectations1.mReceivedPackets = 15;
             expectations1.mChannelUpdate = 1;
-            expectations1.mActiveReceiverChannel = 4;
-            expectations1.mReceiverChannelOfSecureTransportState = 8;
+            expectations1.mActiveReceiverChannel = 6;
+            expectations1.mReceiverChannelOfSecureTransportState = 10;
             expectations1.mKind = IMediaStreamTrackTypes::Kind_Audio;
           }
           break;
@@ -3319,6 +3319,11 @@ void doTestRTPReceiver()
                   codec.mName = IRTPTypes::toString(IRTPTypes::SupportedCodec_Opus);
                   codec.mClockRate = 48000;
                   codec.mPayloadType = 96;
+                  params.mCodecs.push_back(codec);
+
+                  codec.mName = IRTPTypes::toString(IRTPTypes::SupportedCodec_ILBC);
+                  codec.mClockRate = 48000;
+                  codec.mPayloadType = 97;
                   params.mCodecs.push_back(codec);
 
                   IRTPTypes::RTXCodecParameters rtxCodecParams;
@@ -3727,42 +3732,89 @@ void doTestRTPReceiver()
           //    bogusSleep();
                 break;
               }
-              case 25: {
+              case 23: {
+                {
+                  auto params = testObject1->getParameters("params5");
+                  auto &encoding = params->mEncodingParameters.back();
+                  encoding.mCodecPayloadType = 97;
+                  testObject1->store("params6", *params);
+                }
+                {
+                  auto params = testObject1->getParameters("params6");
+                  while (params->mEncodingParameters.size() > 1) {
+                    params->mEncodingParameters.pop_front();
+                  }
+                  testObject1->store("params6-c5", *params);
+                }
+                {
+                  RTPPacket::CreationParams params;
+                  params.mPT = 97;
+                  params.mSequenceNumber = 4;
+                  params.mTimestamp = 10003;
+                  params.mSSRC = 79;
+                  const char *payload = "one two three four five";
+                  params.mPayload = reinterpret_cast<const BYTE *>(payload);
+                  params.mPayloadSize = strlen(payload);
+
+                  RTPPacketPtr packet = RTPPacket::create(params);
+                  testObject1->store("p12", packet);
+                  testObject2->store("p12", packet);
+                }
+                testObject1->expectState("c4", ISecureTransportTypes::State_Closed);
+                testObject1->expectActiveChannel(NULL);
+                testObject1->receive("params6");
+          //    bogusSleep();
+                break;
+              }
+              case 24: {
+                testObject1->createReceiverChannel("c5", "params6-c5");
+                testObject1->expectState("c5", ISecureTransportTypes::State_Connected);
+                testObject1->expectActiveChannel("c5");
+                testObject1->expectPacket("c5", "p11");
+                testObject1->expectPacket("c5", "p10");
+                testObject1->expectPacket("c5", "p12");
+                testObject2->sendPacket("s1", "p11");
+                testObject2->sendPacket("s1", "p10");
+                testObject2->sendPacket("s1", "p12");
+          //    bogusSleep();
+                break;
+              }
+              case 30: {
                 testObject1->expectActiveChannel(NULL);
                 testObject1->expectState("c2", ISecureTransportTypes::State_Closed);
                 testObject1->expectState("c3", ISecureTransportTypes::State_Closed);
-                testObject1->expectState("c4", ISecureTransportTypes::State_Closed);
+                testObject1->expectState("c5", ISecureTransportTypes::State_Closed);
 
                 if (testObject1) testObject1->close();
                 if (testObject2) testObject1->close();
           //    bogusSleep();
                 break;
               }
-              case 26: {
+              case 31: {
                 if (testObject1) testObject1->state(IDTLSTransport::State_Closed);
                 if (testObject2) testObject2->state(IDTLSTransport::State_Closed);
                 //bogusSleep();
                 break;
               }
-              case 27: {
+              case 32: {
                 if (testObject1) testObject1->state(IICETransport::State_Disconnected);
                 if (testObject2) testObject2->state(IICETransport::State_Disconnected);
                 //bogusSleep();
                 break;
               }
-              case 28: {
+              case 33: {
                 if (testObject1) testObject1->state(IICETransport::State_Closed);
                 if (testObject2) testObject2->state(IICETransport::State_Closed);
                 //bogusSleep();
                 break;
               }
-              case 29: {
+              case 34: {
                 if (testObject1) testObject1->closeByReset();
                 if (testObject2) testObject2->closeByReset();
                 //bogusSleep();
                 break;
               }
-              case 30: {
+              case 35: {
                 lastStepReached = true;
                 break;
               }
