@@ -34,15 +34,18 @@
 
 #include <ortc/ISettings.h>
 
+#include <ortc/internal/ortc_MediaDevices.h>
 #include <ortc/internal/ortc_RTPReceiver.h>
 #include <ortc/internal/ortc_RTPReceiverChannel.h>
 #include <ortc/internal/ortc_RTPSender.h>
+#include <ortc/internal/ortc_RTPSenderChannel.h>
 #include <ortc/internal/ortc_MediaStreamTrack.h>
 
 #include <openpeer/services/IHelper.h>
 
 #include <zsLib/Promise.h>
 #include <zsLib/Timer.h>
+#include <zsLib/Event.h>
 #include <zsLib/Log.h>
 
 #include "config.h"
@@ -102,13 +105,24 @@ namespace ortc
       using zsLib::AutoPUID;
 
       ZS_DECLARE_USING_PTR(zsLib, Timer)
+      ZS_DECLARE_USING_PTR(zsLib, Event)
       ZS_DECLARE_USING_PTR(ortc::internal, RTPReceiver)
       ZS_DECLARE_USING_PTR(ortc::internal, RTPReceiverChannel)
+      ZS_DECLARE_USING_PTR(ortc::internal, RTPSender)
+      ZS_DECLARE_USING_PTR(ortc::internal, RTPSenderChannel)
+      ZS_DECLARE_USING_PTR(ortc::internal, MediaStreamTrack)
+
+      ZS_DECLARE_TYPEDEF_PTR(ortc::IMediaDevicesTypes::PromiseWithDeviceList, PromiseWithDeviceList)
+      ZS_DECLARE_TYPEDEF_PTR(ortc::IMediaDevicesTypes::PromiseWithMediaStreamTrackList, PromiseWithMediaStreamTrackList)
 
       ZS_DECLARE_CLASS_PTR(FakeReceiver)
       ZS_DECLARE_CLASS_PTR(FakeReceiverChannel)
       ZS_DECLARE_CLASS_PTR(FakeSender)
+      ZS_DECLARE_CLASS_PTR(FakeSenderChannel)
       ZS_DECLARE_CLASS_PTR(MediaStreamTrackTester)
+      ZS_DECLARE_CLASS_PTR(PromiseWithCertificateCallback)
+      ZS_DECLARE_CLASS_PTR(PromiseWithMediaStreamTrackListCallback)
+      ZS_DECLARE_CLASS_PTR(PromiseWithDeviceListCallback)
 
       //---------------------------------------------------------------------
       //---------------------------------------------------------------------
@@ -129,6 +143,7 @@ namespace ortc
         //---------------------------------------------------------------------
         FakeReceiver(
                      const make_private &,
+                     MediaStreamTrackTesterPtr tester,
                      IMessageQueuePtr queue = IMessageQueuePtr()
                      );
 
@@ -145,6 +160,7 @@ namespace ortc
         ~FakeReceiver();
 
         static FakeReceiverPtr create(
+                                      MediaStreamTrackTesterPtr tester,
                                       IMessageQueuePtr queue
                                       );
 
@@ -179,6 +195,8 @@ namespace ortc
         #pragma mark
 
         FakeReceiverWeakPtr mThisWeak;
+
+        MediaStreamTrackTesterWeakPtr mTester;
       };
 
 
@@ -197,10 +215,12 @@ namespace ortc
       public:
         friend class MediaStreamTrackTester;
 
+        typedef std::list<SecureByteBlockPtr> BufferList;
+
         ZS_DECLARE_TYPEDEF_PTR(internal::IMediaStreamTrackForRTPReceiverChannel, UseMediaStreamTrack)
 
       public:
-        FakeReceiverChannel(IMessageQueuePtr queue);
+        FakeReceiverChannel(MediaStreamTrackTesterPtr tester, IMessageQueuePtr queue);
         ~FakeReceiverChannel();
 
         //---------------------------------------------------------------------
@@ -221,10 +241,13 @@ namespace ortc
         #pragma mark
 
         static FakeReceiverChannelPtr create(
+                                             MediaStreamTrackTesterPtr tester,
                                              IMessageQueuePtr queue
                                              );
 
         void stop();
+
+        void expectData(SecureByteBlockPtr data);
 
       protected:
         //---------------------------------------------------------------------
@@ -240,6 +263,8 @@ namespace ortc
         MediaStreamTrackTesterWeakPtr mTester;
 
         UseReceiverWeakPtr mReceiver;
+
+        BufferList mExpectBuffers;
       };
 
 
@@ -259,10 +284,10 @@ namespace ortc
         typedef RTPReceiver::RTCPPacketList RTCPPacketList;
 
       public:
-        FakeSender();
+        FakeSender(MediaStreamTrackTesterPtr tester, IMediaStreamTrackPtr track);
         ~FakeSender();
 
-        static FakeSenderPtr create();
+        static FakeSenderPtr create(MediaStreamTrackTesterPtr tester, IMediaStreamTrackPtr track);
 
         //---------------------------------------------------------------------
         #pragma mark
@@ -283,6 +308,8 @@ namespace ortc
         virtual void send(const Parameters &parameters) override;
         virtual void stop() override;
 
+        void expectData(SecureByteBlockPtr data);
+
       protected:
         //---------------------------------------------------------------------
         #pragma mark
@@ -300,6 +327,94 @@ namespace ortc
         FakeSenderWeakPtr mThisWeak;
 
         MediaStreamTrackTesterWeakPtr mTester;
+
+        UseChannelPtr mChannel;
+
+        BufferList mExpectBuffers;
+      };
+
+
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark FakeSenderChannel
+      #pragma mark
+
+      //-----------------------------------------------------------------------
+      class FakeSenderChannel : public ortc::internal::RTPSenderChannel
+      {
+      public:
+        friend class MediaStreamTrackTester;
+
+        typedef std::list<SecureByteBlockPtr> BufferList;
+
+        ZS_DECLARE_TYPEDEF_PTR(internal::IMediaStreamTrackForRTPSenderChannel, UseMediaStreamTrack)
+
+      public:
+        FakeSenderChannel(
+                          MediaStreamTrackTesterPtr tester,
+                          UseSenderPtr sender,
+                          IMediaStreamTrackPtr track
+                          );
+        ~FakeSenderChannel();
+
+        static FakeSenderChannelPtr create(
+                                           MediaStreamTrackTesterPtr tester,
+                                           UseSenderPtr sender,
+                                           IMediaStreamTrackPtr track
+                                           );
+
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark FakeSenderChannel => IRTPSenderChannelForMediaStreamTrack
+        #pragma mark
+
+        virtual ElementPtr toDebug() const override;
+
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark FakeSenderChannel => IFakeSenderChannelAsyncDelegate
+        #pragma mark
+
+        //-----------------------------------------------------------------------
+        #pragma mark
+        #pragma mark FakeSenderChannel => VideoCaptureDataCallback
+        #pragma mark
+
+        virtual void OnIncomingCapturedFrame(const int32_t id, const webrtc::VideoFrame& videoFrame);
+
+        virtual void OnCaptureDelayChanged(const int32_t id, const int32_t delay);
+
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark FakeSenderChannel => (friend MediaStreamTrackTester)
+        #pragma mark
+
+        void stop();
+
+        void expectData(SecureByteBlockPtr data);
+
+      protected:
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark FakeSenderChannel => (internal)
+        #pragma mark
+
+        Log::Params log(const char *message) const;
+
+      protected:
+        FakeSenderChannelWeakPtr mThisWeak;
+
+        MediaStreamTrackTesterWeakPtr mTester;
+
+        UseMediaStreamTrackPtr mTrack;
+
+        UseSenderWeakPtr mSender;
+
+        BufferList mExpectBuffers;
+        ULONG mReceivedVideoFrames;
       };
 
 
@@ -319,6 +434,11 @@ namespace ortc
       public:
         friend class FakeReceiver;
         friend class FakeReceiverChannel;
+        friend class FakeSender;
+        friend class FakeSenderChannel;
+        friend class PromiseWithCertificateCallback;
+        friend class PromiseWithMediaStreamTrackListCallback;
+        friend class PromiseWithDeviceListCallback;
 
         ZS_DECLARE_TYPEDEF_PTR(ortc::IRTPTypes::Parameters, Parameters)
         ZS_DECLARE_TYPEDEF_PTR(internal::RTCPPacket, RTCPPacket)
@@ -388,6 +508,12 @@ namespace ortc
           // receiver cannel related
           ULONG mError{ 0 };
 
+          // sender related
+
+          // sender channel related
+
+          ULONG mReceivedVideoFrames;
+
           IMediaStreamTrackTypes::Kinds mKind{ IMediaStreamTrack::Kind_Audio };
 
           bool operator==(const Expectations &op2) const;
@@ -416,6 +542,8 @@ namespace ortc
 
         void close();
         void closeByReset();
+
+        void startLocalVideoTrack();
 
         Expectations getExpectations() const;
 
@@ -470,6 +598,14 @@ namespace ortc
                                      const RTCPPacketList &packets
                                      );
 
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark MediaStreamTrackTester => (friend fake sender)
+        #pragma mark
+
+        void notifyReceivedVideoFrame();
+        void notifyLocalVideoTrackEvent();
+
       protected:
         //---------------------------------------------------------------------
         #pragma mark
@@ -491,6 +627,14 @@ namespace ortc
         MediaStreamTrackTesterWeakPtr mThisWeak;
 
         bool mOverrideFactories{ false };
+
+        EventPtr mLocalVideoTrackEvent;
+
+        PromiseWithMediaStreamTrackListPtr mVideoPromiseWithMediaStreamTrackList;
+        PromiseWithDeviceListPtr mVideoPromiseWithDeviceList;
+
+        MediaStreamTrackPtr mLocalVideoMediaStreamTrack;
+        FakeSenderPtr mVideoSender;
 
         Expectations mExpectations;
       };

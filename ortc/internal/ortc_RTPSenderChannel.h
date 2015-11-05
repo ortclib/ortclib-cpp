@@ -159,7 +159,8 @@ namespace ortc
                              public IRTPSenderChannelForMediaStreamTrack,
                              public IWakeDelegate,
                              public zsLib::ITimerDelegate,
-                             public IRTPSenderChannelAsyncDelegate
+                             public IRTPSenderChannelAsyncDelegate,
+                             public webrtc::VideoCaptureDataCallback
     {
     protected:
       struct make_private {};
@@ -260,6 +261,15 @@ namespace ortc
       #pragma mark
 
       virtual void onSecureTransportState(ISecureTransport::States state) override;
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPSenderChannel => VideoCaptureDataCallback
+      #pragma mark
+
+      virtual void OnIncomingCapturedFrame(const int32_t id, const webrtc::VideoFrame& videoFrame);
+
+      virtual void OnCaptureDelayChanged(const int32_t id, const int32_t delay);
 
     protected:
       //-----------------------------------------------------------------------

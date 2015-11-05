@@ -63,6 +63,7 @@ void doTestDTLS();
 void doTestSRTP();
 void doTestICEGatherer();
 void doTestICETransport();
+void doTestMediaStreamTrack();
 
 namespace Testing
 {
@@ -169,6 +170,7 @@ namespace Testing
     TESTING_RUN_TEST_FUNC(doTestDTLS)
     TESTING_RUN_TEST_FUNC(doTestICEGatherer)
     TESTING_RUN_TEST_FUNC(doTestICETransport)
+    TESTING_RUN_TEST_FUNC(doTestMediaStreamTrack)
 
     TESTING_UNINSTALL_LOGGER()
   }

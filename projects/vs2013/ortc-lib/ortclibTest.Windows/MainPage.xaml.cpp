@@ -34,15 +34,21 @@ MainPage::MainPage()
 
 void ortclibTest::MainPage::Button_Click(Platform::Object^ sender, Windows::UI::Xaml::RoutedEventArgs^ e)
 {
-  TESTING_STDOUT() << "TEST NOW STARTING...\n\n";
+  RunTestButton->IsEnabled = false;
+  Concurrency::create_task([this]() {
+    TESTING_STDOUT() << "TEST NOW STARTING...\n\n";
 
-  Testing::runAllTests();
-  Testing::output();
+    Testing::runAllTests();
+    Testing::output();
 
-  if (0 != Testing::getGlobalFailedVar()) {
-    TESTING_STDOUT() << "FAILED!\n\n";
-  }
+    if (0 != Testing::getGlobalFailedVar()) {
+      TESTING_STDOUT() << "FAILED!\n\n";
+    }
 
+    return Concurrency::create_task(g_windowDispatcher->RunAsync(Windows::UI::Core::CoreDispatcherPriority::Normal, ref new Windows::UI::Core::DispatchedHandler([this]() {
+      RunTestButton->IsEnabled = true;
+    })));
+  });
 }
 
 void ortclibTest::MainPage::Page_Loaded(Platform::Object^ sender, Windows::UI::Xaml::RoutedEventArgs^ e)

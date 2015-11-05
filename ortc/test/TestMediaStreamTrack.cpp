@@ -34,12 +34,16 @@
 
 #include "TestMediaStreamTrack.h"
 
-#include <ortc/ISettings.h>
+#include <ppltasks.h>
 
 #include <zsLib/XML.h>
 
 #include "config.h"
 #include "testing.h"
+
+#include <webrtc/base/logging.h>
+#include <webrtc/modules/video_render/windows/video_render_winrt.h>
+#include <webrtc/system_wrappers/interface/trace.h>
 
 namespace ortc { namespace test { ZS_DECLARE_SUBSYSTEM(ortc_test) } }
 
@@ -51,9 +55,13 @@ using zsLib::Log;
 using zsLib::AutoPUID;
 using zsLib::AutoRecursiveLock;
 using namespace zsLib::XML;
+using zsLib::IPromiseResolutionDelegate;
+using ortc::IMediaDevices;
 
 ZS_DECLARE_TYPEDEF_PTR(ortc::ISettings, UseSettings)
 ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHelper, UseServicesHelper)
+ZS_DECLARE_TYPEDEF_PTR(zsLib::Promise, Promise)
+ZS_DECLARE_TYPEDEF_PTR(ortc::IMediaDevicesTypes::Constraints, Constraints)
 
 namespace ortc
 {
@@ -69,7 +77,134 @@ namespace ortc
       ZS_DECLARE_USING_PTR(ortc::internal, RTPReceiverChannel)
       ZS_DECLARE_USING_PTR(ortc::internal, MediaStreamTrack)
 
-      using zsLib::AutoRecursiveLock;
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark WebRtcTraceCallback
+      #pragma mark
+
+      class WebRtcTraceCallback : public webrtc::TraceCallback
+      {
+      public:
+
+        virtual void Print(webrtc::TraceLevel level, const char* message, int length)
+        {
+          rtc::LoggingSeverity sev = rtc::LS_VERBOSE;
+          if (level == webrtc::kTraceError || level == webrtc::kTraceCritical)
+            sev = rtc::LS_ERROR;
+          else if (level == webrtc::kTraceWarning)
+            sev = rtc::LS_WARNING;
+          else if (level == webrtc::kTraceStateInfo || level == webrtc::kTraceInfo)
+            sev = rtc::LS_INFO;
+          else if (level == webrtc::kTraceTerseInfo)
+            sev = rtc::LS_INFO;
+
+          // Skip past boilerplate prefix text
+          if (length < 72) {
+            std::string msg(message, length);
+            LOG(LS_ERROR) << "Malformed webrtc log message: ";
+            LOG_V(sev) << msg;
+          } else {
+            std::string msg(message + 71, length - 72);
+            LOG_V(sev) << "webrtc: " << msg;
+          }
+        }
+      };
+
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark PromiseWithMediaStreamTrackListCallback
+      #pragma mark
+
+      class PromiseWithMediaStreamTrackListCallback : public IPromiseResolutionDelegate
+      {
+      private:
+        PromiseWithMediaStreamTrackListCallback(MediaStreamTrackTesterPtr tester) : mTester(tester)
+        {
+        }
+
+      public:
+        static PromiseWithMediaStreamTrackListCallbackPtr create(MediaStreamTrackTesterPtr tester)
+        {
+          return PromiseWithMediaStreamTrackListCallbackPtr(new PromiseWithMediaStreamTrackListCallback(tester));
+        }
+
+        virtual void onPromiseResolved(PromisePtr promise)
+        {
+          ortc::IMediaDevicesTypes::MediaStreamTrackListPtr trackList = promise->value<ortc::IMediaDevicesTypes::MediaStreamTrackList>();
+          mTester.lock()->mLocalVideoMediaStreamTrack = MediaStreamTrack::convert(*trackList->begin());
+          //IInspectable* localMediaElementPtr = reinterpret_cast<IInspectable*>(mTester.lock()->mLocalMediaElement);
+          //mTester.lock()->mLocalVideoMediaStreamTrack->setMediaElement(localMediaElementPtr);
+
+          mTester.lock()->mVideoSender = FakeSender::create(mTester.lock(), mTester.lock()->mLocalVideoMediaStreamTrack);
+        }
+
+        virtual void onPromiseRejected(PromisePtr promise)
+        {
+        }
+
+        ~PromiseWithMediaStreamTrackListCallback()
+        {
+        }
+
+      private:
+        MediaStreamTrackTesterWeakPtr mTester;
+      };
+
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark PromiseWithDeviceListCallback
+      #pragma mark
+
+      class PromiseWithDeviceListCallback : public IPromiseResolutionDelegate
+      {
+      private:
+        PromiseWithDeviceListCallback(MediaStreamTrackTesterPtr tester) : mTester(tester)
+        {
+        }
+
+      public:
+        static PromiseWithDeviceListCallbackPtr create(MediaStreamTrackTesterPtr tester)
+        {
+          return PromiseWithDeviceListCallbackPtr(new PromiseWithDeviceListCallback(tester));
+        }
+
+        virtual void onPromiseResolved(PromisePtr promise)
+        {
+          ortc::IMediaDevicesTypes::DeviceListPtr deviceList = promise->value<ortc::IMediaDevicesTypes::DeviceList>();
+          ortc::IMediaDevicesTypes::Device device = deviceList->front();
+          ortc::IMediaDevicesTypes::ConstraintSetPtr constraintSet = ortc::IMediaDevicesTypes::ConstraintSet::create();
+          constraintSet->mDeviceID.mValue.value().mValue.value() = device.mDeviceID;
+          constraintSet->mWidth.mValue.value() = 800;
+          constraintSet->mHeight.mValue.value() = 600;
+          constraintSet->mFrameRate.mValue.value() = 30;
+          ConstraintsPtr constraints = Constraints::create();
+          constraints->mVideo = ortc::IMediaStreamTrackTypes::TrackConstraints::create();
+          constraints->mVideo->mAdvanced.push_back(constraintSet);
+          //IMediaDevicesTypes::PromiseWithMediaStreamTrackListPtr  ptr = IMediaDevices::getUserMedia(*constraints);
+          mTester.lock()->mVideoPromiseWithMediaStreamTrackList = IMediaDevices::getUserMedia(*constraints);
+          mTester.lock()->mVideoPromiseWithMediaStreamTrackList->then(PromiseWithMediaStreamTrackListCallback::create(mTester.lock()));
+        }
+
+        virtual void onPromiseRejected(PromisePtr promise)
+        {
+        }
+
+        ~PromiseWithDeviceListCallback()
+        {
+        }
+
+      private:
+        MediaStreamTrackTesterWeakPtr mTester;
+      };
 
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
@@ -91,9 +226,11 @@ namespace ortc
       //-----------------------------------------------------------------------
       FakeReceiver::FakeReceiver(
                                  const make_private &,
+                                 MediaStreamTrackTesterPtr tester,
                                  IMessageQueuePtr queue
                                  ) :
-        RTPReceiver(zsLib::Noop(true))
+        RTPReceiver(zsLib::Noop(true)),
+        mTester(tester)
       {
         ZS_LOG_BASIC(log("created"))
       }
@@ -114,10 +251,11 @@ namespace ortc
 
       //-----------------------------------------------------------------------
       FakeReceiverPtr FakeReceiver::create(
+                                           MediaStreamTrackTesterPtr tester,
                                            IMessageQueuePtr queue
                                            )
       {
-        FakeReceiverPtr pThis(make_shared<FakeReceiver>(make_private{}, queue));
+        FakeReceiverPtr pThis(make_shared<FakeReceiver>(make_private{}, tester, queue));
         pThis->mThisWeak = pThis;
         pThis->init();
         return pThis;
@@ -183,8 +321,9 @@ namespace ortc
       #pragma mark
 
       //-----------------------------------------------------------------------
-      FakeReceiverChannel::FakeReceiverChannel(IMessageQueuePtr queue) :
-        RTPReceiverChannel(Noop(true), queue)
+      FakeReceiverChannel::FakeReceiverChannel(MediaStreamTrackTesterPtr tester, IMessageQueuePtr queue) :
+        RTPReceiverChannel(Noop(true), queue),
+        mTester(tester)
       {
       }
 
@@ -235,10 +374,11 @@ namespace ortc
 
       //-----------------------------------------------------------------------
       FakeReceiverChannelPtr FakeReceiverChannel::create(
+                                                         MediaStreamTrackTesterPtr tester,
                                                          IMessageQueuePtr queue
                                                          )
       {
-        FakeReceiverChannelPtr pThis(make_shared<FakeReceiverChannel>(queue));
+        FakeReceiverChannelPtr pThis(make_shared<FakeReceiverChannel>(tester, queue));
         pThis->mThisWeak = pThis;
         return pThis;
       }
@@ -249,6 +389,13 @@ namespace ortc
         AutoRecursiveLock lock(*this);
 
         mReceiver.reset();
+      }
+
+      //-----------------------------------------------------------------------
+      void FakeReceiverChannel::expectData(SecureByteBlockPtr data)
+      {
+        AutoRecursiveLock lock(*this);
+        mExpectBuffers.push_back(data);
       }
 
       //-----------------------------------------------------------------------
@@ -277,8 +424,10 @@ namespace ortc
       #pragma mark
 
       //-----------------------------------------------------------------------
-      FakeSender::FakeSender() :
-        RTPSender(Noop(true))
+      FakeSender::FakeSender(MediaStreamTrackTesterPtr tester, IMediaStreamTrackPtr track) :
+        RTPSender(Noop(true)),
+        mTester(tester),
+        mChannel(FakeSenderChannel::create(tester, mThisWeak.lock(), track))
       {
       }
 
@@ -289,9 +438,9 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      FakeSenderPtr FakeSender::create()
+      FakeSenderPtr FakeSender::create(MediaStreamTrackTesterPtr tester, IMediaStreamTrackPtr track)
       {
-        FakeSenderPtr pThis(make_shared<FakeSender>());
+        FakeSenderPtr pThis(make_shared<FakeSender>(tester, track));
         pThis->mThisWeak = pThis;
         return pThis;
       }
@@ -343,6 +492,18 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
+      void FakeSender::expectData(SecureByteBlockPtr data)
+      {
+        TESTING_CHECK((bool)data)
+
+        AutoRecursiveLock lock(*this);
+
+        ZS_LOG_TRACE(log("expecting buffer") + ZS_PARAM("buffer size", data->SizeInBytes()))
+
+        mExpectBuffers.push_back(data);
+      }
+
+      //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
@@ -355,6 +516,141 @@ namespace ortc
       {
         ElementPtr objectEl = Element::create("ortc::test::mediastreamtrack::FakeSender");
         UseServicesHelper::debugAppend(objectEl, "id", FakeSender::getID());
+        return Log::Params(message, objectEl);
+      }
+
+
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark FakeSenderChannel
+      #pragma mark
+
+      //-----------------------------------------------------------------------
+      FakeSenderChannel::FakeSenderChannel(
+                                           MediaStreamTrackTesterPtr tester,
+                                           UseSenderPtr sender,
+                                           IMediaStreamTrackPtr track
+                                           ) :
+        RTPSenderChannel(Noop(true)),
+        mTester(tester),
+        mTrack(MediaStreamTrack::convert(track)),
+        mSender(sender),
+        mReceivedVideoFrames(0)
+      {
+        mTrack->registerVideoCaptureDataCallback(this);
+      }
+
+      //-----------------------------------------------------------------------
+      FakeSenderChannel::~FakeSenderChannel()
+      {
+        mThisWeak.reset();
+      }
+
+      //-----------------------------------------------------------------------
+      FakeSenderChannelPtr FakeSenderChannel::create(
+                                                     MediaStreamTrackTesterPtr tester,
+                                                     UseSenderPtr sender,
+                                                     IMediaStreamTrackPtr track
+                                                     )
+      {
+        FakeSenderChannelPtr pThis(make_shared<FakeSenderChannel>(tester, sender, track));
+        pThis->mThisWeak = pThis;
+        return pThis;
+      }
+
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark FakeSenderChannel => IRTPSenderChannelForMediaStreamTrack
+      #pragma mark
+
+      //-----------------------------------------------------------------------
+      ElementPtr FakeSenderChannel::toDebug() const
+      {
+        AutoRecursiveLock lock(*this);
+
+        ElementPtr result = Element::create("ortc::test::mediastreamtrack::FakeSenderChannel");
+
+        UseServicesHelper::debugAppend(result, "tester", (bool)mTester.lock());
+
+        auto receiver = mSender.lock();
+        UseServicesHelper::debugAppend(result, "receiver", receiver ? receiver->getID() : 0);
+
+        return result;
+      }
+
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark FakeSenderChannel => IFakeSenderChannelAsyncDelegate
+      #pragma mark
+
+      //-------------------------------------------------------------------------
+      //-------------------------------------------------------------------------
+      //-------------------------------------------------------------------------
+      //-------------------------------------------------------------------------
+      #pragma mark
+      #pragma mark FakeSenderChannel => VideoCaptureDataCallback
+      #pragma mark
+
+      //-------------------------------------------------------------------------
+      void FakeSenderChannel::OnIncomingCapturedFrame(const int32_t id, const webrtc::VideoFrame& videoFrame)
+      {
+        mReceivedVideoFrames++;
+        mTester.lock()->notifyReceivedVideoFrame();
+        if (mReceivedVideoFrames == 100)
+          mTester.lock()->notifyLocalVideoTrackEvent();
+      }
+
+      //-------------------------------------------------------------------------
+      void FakeSenderChannel::OnCaptureDelayChanged(const int32_t id, const int32_t delay)
+      {
+
+      }
+
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark FakeSenderChannel => (friend MediaStreamTrackTester)
+      #pragma mark
+
+      //-----------------------------------------------------------------------
+      void FakeSenderChannel::stop()
+      {
+        AutoRecursiveLock lock(*this);
+
+        mSender.reset();
+      }
+
+      //-----------------------------------------------------------------------
+      void FakeSenderChannel::expectData(SecureByteBlockPtr data)
+      {
+        AutoRecursiveLock lock(*this);
+        mExpectBuffers.push_back(data);
+      }
+
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark FakeSenderChannel => (internal)
+      #pragma mark
+
+      //-----------------------------------------------------------------------
+      Log::Params FakeSenderChannel::log(const char *message) const
+      {
+        ElementPtr objectEl = Element::create("ortc::test::mediastreamtrack::FakeSenderChannel");
+        UseServicesHelper::debugAppend(objectEl, "id", RTPSenderChannel::getID());
         return Log::Params(message, objectEl);
       }
 
@@ -459,7 +755,8 @@ namespace ortc
                                                      ) :
         SharedRecursiveLock(SharedRecursiveLock::create()),
         MessageQueueAssociator(queue),
-        mOverrideFactories(overrideFactories)
+        mOverrideFactories(overrideFactories),
+        mLocalVideoTrackEvent(Event::create())
       {
         ZS_LOG_BASIC(log("mediastreamtrack tester"))
       }
@@ -506,6 +803,16 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
+      void MediaStreamTrackTester::startLocalVideoTrack()
+      {
+        mVideoPromiseWithDeviceList = IMediaDevices::enumerateDevices();
+        mVideoPromiseWithDeviceList->then(PromiseWithDeviceListCallback::create(mThisWeak.lock()));
+        mLocalVideoTrackEvent->wait();
+        if (mLocalVideoMediaStreamTrack)
+          IMediaStreamTrackPtr(mLocalVideoMediaStreamTrack)->stop();
+      }
+
+      //-----------------------------------------------------------------------
       MediaStreamTrackTester::Expectations MediaStreamTrackTester::getExpectations() const
       {
         return mExpectations;
@@ -518,7 +825,7 @@ namespace ortc
                                                          )
       {
       }
-\
+
       //-----------------------------------------------------------------------
       void MediaStreamTrackTester::stop(const char *senderOrReceiverID)
       {
@@ -611,6 +918,33 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       #pragma mark
+      #pragma mark MediaStreamTrackTester => (friend fake sender)
+      #pragma mark
+
+      //-----------------------------------------------------------------------
+      void MediaStreamTrackTester::notifyReceivedVideoFrame()
+      {
+        ZS_LOG_BASIC(log("notified received video frame"))
+
+        AutoRecursiveLock lock(*this);
+        ++mExpectations.mReceivedVideoFrames;
+      }
+
+      //-----------------------------------------------------------------------
+      void MediaStreamTrackTester::notifyLocalVideoTrackEvent()
+      {
+        ZS_LOG_BASIC(log("notified local video track event"))
+
+        AutoRecursiveLock lock(*this);
+        mLocalVideoTrackEvent->notify();
+        mLocalVideoTrackEvent->reset();
+      }
+
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
       #pragma mark MediaStreamTrackTester => (internal)
       #pragma mark
 
@@ -675,8 +1009,7 @@ void doTestMediaStreamTrack()
 
   zsLib::MessageQueueThreadPtr thread(zsLib::MessageQueueThread::createBasic());
 
-  MediaStreamTrackTesterPtr testObject1;
-  MediaStreamTrackTesterPtr testObject2;
+  MediaStreamTrackTesterPtr testObject;
 
   TESTING_STDOUT() << "WAITING:      Waiting for MediaStreamTrack testing to complete (max wait is 180 seconds).\n";
 
@@ -691,21 +1024,17 @@ void doTestMediaStreamTrack()
       bool quit = false;
       ULONG expecting = 0;
 
-      MediaStreamTrackTester::Expectations expectations1;
-      MediaStreamTrackTester::Expectations expectations2;
-
-      expectations2 = expectations1;
+      MediaStreamTrackTester::Expectations expectations;
 
       switch (testNumber) {
       case TEST_BASIC_ROUTING: {
         {
-          testObject1 = MediaStreamTrackTester::create(thread, true);
-          testObject2 = MediaStreamTrackTester::create(thread, false);
+          testObject = MediaStreamTrackTester::create(thread, true);
 
-          TESTING_CHECK(testObject1)
-          TESTING_CHECK(testObject2)
+          TESTING_CHECK(testObject)
 
-          expectations1.mKind = IMediaStreamTrackTypes::Kind_Audio;
+          expectations.mReceivedVideoFrames = 100;
+          expectations.mKind = IMediaStreamTrackTypes::Kind_Audio;
         }
         break;
       }
@@ -714,8 +1043,7 @@ void doTestMediaStreamTrack()
       if (quit) break;
 
       expecting = 0;
-      expecting += (testObject1 ? 1 : 0);
-      expecting += (testObject2 ? 1 : 0);
+      expecting += (testObject ? 1 : 0);
 
       ULONG found = 0;
       ULONG lastFound = 0;
@@ -727,10 +1055,10 @@ void doTestMediaStreamTrack()
         (!lastStepReached))
       {
         TESTING_SLEEP(1000)
-          ++step;
+        ++step;
         if (step >= maxSteps) {
           TESTING_CHECK(false)
-            break;
+          break;
         }
 
         found = 0;
@@ -739,7 +1067,8 @@ void doTestMediaStreamTrack()
         case TEST_BASIC_ROUTING: {
           switch (step) {
           case 2: {
-            //  bogusSleep();
+            if (testObject) testObject->startLocalVideoTrack();
+        //  bogusSleep();
             break;
           }
           case 3: {
@@ -750,21 +1079,20 @@ void doTestMediaStreamTrack()
             break;
           }
           default: {
-            // nothing happening in this step
+         // nothing happening in this step
             break;
           }
           }
           break;
         }
         default: {
-          // none defined
+       // none defined
           break;
         }
         }
 
         if (0 == found) {
-          found += (testObject1 ? (testObject1->matches(expectations1) ? 1 : 0) : 0);
-          found += (testObject2 ? (testObject2->matches(expectations2) ? 1 : 0) : 0);
+          found += (testObject ? (testObject->matches(expectations) ? 1 : 0) : 0);
         }
 
         if (lastFound != found) {
@@ -775,19 +1103,17 @@ void doTestMediaStreamTrack()
 
       TESTING_EQUAL(found, expecting)
 
-        TESTING_SLEEP(2000)
+      TESTING_SLEEP(2000)
 
-        switch (testNumber) {
+      switch (testNumber) {
         default:
         {
-          if (testObject1) { TESTING_CHECK(testObject1->matches(expectations1)) }
-          if (testObject2) { TESTING_CHECK(testObject2->matches(expectations2)) }
+          if (testObject) { TESTING_CHECK(testObject->matches(expectations)) }
           break;
         }
       }
 
-      testObject1.reset();
-      testObject2.reset();
+      testObject.reset();
 
       ++testNumber;
     } while (true);
@@ -796,7 +1122,7 @@ void doTestMediaStreamTrack()
   TESTING_STDOUT() << "WAITING:      All MediaStreamTrack tests have finished. Waiting for 'bogus' events to process (1 second wait).\n";
   TESTING_SLEEP(1000)
 
-    // wait for shutdown
+  // wait for shutdown
   {
     IMessageQueue::size_type count = 0;
     do
