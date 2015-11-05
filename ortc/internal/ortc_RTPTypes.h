@@ -82,7 +82,7 @@ namespace ortc
                                                   Optional<IMediaStreamTrackTypes::Kinds> kind,
                                                   const ParametersPtrList &inExistingParamsGroupedIntoChannels,
                                                   const ParametersPtrList &inNewParamsGroupedIntoChannels,
-                                                  ParametersPtrList &outUnchangedChannels,
+                                                  ParametersPtrPairList &outUnchangedChannels,
                                                   ParametersPtrList &outNewChannels,
                                                   ParametersPtrPairList &outUpdatedChannels,
                                                   ParametersPtrList &outRemovedChannels

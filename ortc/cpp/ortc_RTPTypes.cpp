@@ -194,7 +194,7 @@ namespace ortc
                                                         Optional<IMediaStreamTrackTypes::Kinds> kind,
                                                         const ParametersPtrList &inExistingParamsGroupedIntoChannels,
                                                         const ParametersPtrList &inNewParamsGroupedIntoChannels,
-                                                        ParametersPtrList &outUnchangedChannels,
+                                                        ParametersPtrPairList &outUnchangedChannels,
                                                         ParametersPtrList &outNewChannels,
                                                         ParametersPtrPairList &outUpdatedChannels,
                                                         ParametersPtrList &outRemovedChannels
@@ -225,13 +225,34 @@ namespace ortc
       ParametersPtrList oldList(inExistingParamsGroupedIntoChannels);
       ParametersPtrList newList(inNewParamsGroupedIntoChannels);
 
+      // scope: SSRC is not a factor thus check to see what is left is an "update" compatible change (or not)
+      {
+        if (newList.size() < 1) goto non_compatible_change;
+        if (oldList.size() < 1) goto non_compatible_change;
+
+        if (!isGeneralizedSSRCCompatibleChange(*(oldList.front()), *(newList.front()))) goto non_compatible_change;
+
+        goto do_more_matching;
+
+      non_compatible_change:
+        {
+          outNewChannels = newList;
+          outRemovedChannels = oldList;
+
+          ZS_LOG_TRACE(slog("no more compatible changes found") + ZS_PARAM("remove size", outRemovedChannels.size()) + ZS_PARAM("add size", outNewChannels.size()))
+          return;
+        }
+
+      do_more_matching: {}
+      }
+
       HashParameterPairList newHashedList;
 
       Parameters::HashOptions hashOptions;
 
       hashOptions.mHeaderExtensions = false;
       hashOptions.mRTCP = false;
-
+      
       // scope: calculate hashes for new list
       {
         for (auto iter_doNotUse = newList.begin(); iter_doNotUse != newList.end(); ) {
@@ -242,6 +263,65 @@ namespace ortc
           auto hash = params->hash(hashOptions);
 
           newHashedList.push_back(HashParameterPair(hash, params));
+        }
+      }
+
+      // scope: find matches by encoding ID
+      {
+        for (auto iterOld_doNotUse = oldList.begin(); iterOld_doNotUse != oldList.end(); ) {
+          auto currentOld = iterOld_doNotUse;
+          ++iterOld_doNotUse;
+
+          auto oldParams = (*currentOld);
+
+          auto &oldEncodingBase = (*(oldParams->mEncodingParameters.begin()));
+          if (oldEncodingBase.mEncodingID.isEmpty()) continue;
+
+          auto iterNew_doNotUse = newList.begin();
+          auto iterNewHash_doNotUse = newHashedList.begin();
+
+          for (; iterNew_doNotUse != newList.end();) {
+            auto currentNew = iterNew_doNotUse;
+            ++iterNew_doNotUse;
+
+            auto currentNewHash = iterNewHash_doNotUse;
+            ++iterNewHash_doNotUse;
+
+            auto &newHash = (*currentNewHash).first;
+
+            auto newParams = (*currentNew);
+
+            auto &newEncodingBase = (*(newParams->mEncodingParameters.begin()));
+
+            if (newEncodingBase.mEncodingID.isEmpty()) continue;
+
+            if (oldEncodingBase.mEncodingID != newEncodingBase.mEncodingID) continue;
+
+            auto oldHash = oldParams->hash(hashOptions);
+
+            float rank {};
+            if (oldParams->hash() == newParams->hash()) {
+              // an exact match
+              ZS_LOG_TRACE(slog("parameters are unchanged") + oldParams->toDebug())
+              outUnchangedChannels.push_back(OldNewParametersPair(oldParams, newParams));
+            } else {
+              if (oldHash == newHash) {
+                ZS_LOG_TRACE(slog("parameters are almost an exact match (but some options have changed)") + ZS_PARAM("old", oldParams->toDebug()) + ZS_PARAM("new", newParams->toDebug()))
+                outUpdatedChannels.push_back(OldNewParametersPair(oldParams, newParams));
+              } else if (isRankableMatch(kind, *oldParams, *newParams, rank)) {
+                ZS_LOG_TRACE(slog("parameter changes are compatible (thus performing an update)") + ZS_PARAM("old", oldParams->toDebug()) + ZS_PARAM("new", newParams->toDebug()))
+                outUpdatedChannels.push_back(OldNewParametersPair(oldParams, newParams));
+              } else {
+                ZS_LOG_TRACE(slog("parameters changes do not appear to be compatible (thus removing old channel and creating new channel)") + ZS_PARAM("old", oldParams->toDebug()) + ZS_PARAM("new", newParams->toDebug()))
+                outRemovedChannels.push_back(oldParams);
+                outNewChannels.push_back(newParams);
+              }
+            }
+
+            oldList.erase(currentOld);
+            newList.erase(currentNew);
+            newHashedList.erase(currentNewHash);
+          }
         }
       }
 
@@ -273,7 +353,7 @@ namespace ortc
             if (oldParams->hash() == newParams->hash()) {
               // an exact match
               ZS_LOG_TRACE(slog("parameters are unchanged") + oldParams->toDebug())
-              outUnchangedChannels.push_back(oldParams);
+              outUnchangedChannels.push_back(OldNewParametersPair(oldParams, newParams));
             } else {
               ZS_LOG_TRACE(slog("parameters are almost an exact match (but some options have changed)") + ZS_PARAM("old", oldParams->toDebug()) + ZS_PARAM("new", newParams->toDebug()))
               outUpdatedChannels.push_back(OldNewParametersPair(oldParams, newParams));
@@ -315,8 +395,18 @@ namespace ortc
 
             if (firstOld.mSSRC.value() != firstNew.mSSRC.value()) continue;
 
-            ZS_LOG_TRACE(slog("parameters has an SSRC match (thus must match)") + ZS_PARAM("old", oldParams->toDebug()) + ZS_PARAM("new", newParams->toDebug()))
-            outUpdatedChannels.push_back(OldNewParametersPair(oldParams, newParams));
+            float rank {};
+            if (isRankableMatch(kind, *oldParams, *newParams, rank)) {
+              ZS_LOG_TRACE(slog("parameters has an SSRC match and changes are compatible (thus must update channel)") + ZS_PARAM("old", oldParams->toDebug()) + ZS_PARAM("new", newParams->toDebug()))
+              outUpdatedChannels.push_back(OldNewParametersPair(oldParams, newParams));
+            } else {
+              ZS_LOG_TRACE(slog("parameters has an SSRC match but changes are not compatible (thus must remove old and add channel)") + ZS_PARAM("old", oldParams->toDebug()) + ZS_PARAM("new", newParams->toDebug()))
+              outRemovedChannels.push_back(oldParams);
+              outNewChannels.push_back(newParams);
+            }
+
+            oldList.erase(currentOld);
+            newList.erase(currentNew);
           }
         }
       }
@@ -361,27 +451,6 @@ namespace ortc
         }
       }
 
-      // scope: SSRC is not a factor thus check to see what is left is an "update" compatible change (or not)
-      {
-        if (newList.size() < 1) goto non_compatible_change;
-        if (oldList.size() < 1) goto non_compatible_change;
-
-        if (!isGeneralizedSSRCCompatibleChange(*(oldList.front()), *(newList.front()))) goto non_compatible_change;
-
-        goto do_more_matching;
-
-      non_compatible_change:
-        {
-          outNewChannels = newList;
-          outRemovedChannels = oldList;
-
-          ZS_LOG_TRACE(slog("no more compatible changes found") + ZS_PARAM("remove size", outRemovedChannels.size()) + ZS_PARAM("add size", outNewChannels.size()))
-          return;
-        }
-
-      do_more_matching: {}
-      }
-      
       // scope: find closest matches
       {
         for (auto iterOld_doNotUse = oldList.begin(); iterOld_doNotUse != oldList.end(); ) {
@@ -400,7 +469,7 @@ namespace ortc
 
             auto newParams = (*currentNew);
 
-            float rank = 0.0;
+            float rank {};
             if (!isRankableMatch(kind, *oldParams, *newParams, rank)) continue;
 
             if (!closestMatchNew) {
@@ -435,7 +504,16 @@ namespace ortc
 
       // scope: all unprocessed "new" list channels must be added
       {
-        outNewChannels = newList;
+        for (auto iterOld = oldList.begin(); iterOld != oldList.end(); ++iterOld) {
+          auto &oldParams = (*iterOld);
+          ZS_LOG_TRACE(slog("old parameters did not have any match (thus must remove)") + oldParams->toDebug())
+          outRemovedChannels.push_back(oldParams);
+        }
+        for (auto iterNew = newList.begin(); iterNew != newList.end(); ++iterNew) {
+          auto &newParams = (*iterNew);
+          ZS_LOG_TRACE(slog("new parameters did not have any match (thus must add)") + newParams->toDebug())
+          outNewChannels.push_back(newParams);
+        }
       }
 
       ZS_LOG_TRACE(slog("delta calculated for channel params") +

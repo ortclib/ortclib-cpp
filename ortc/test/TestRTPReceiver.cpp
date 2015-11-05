@@ -2997,10 +2997,10 @@ void doTestRTPReceiver()
             testObject2->setClientRole(false);
 
             expectations1.mUnhandled = 2;
-            expectations1.mReceivedPackets = 5;
+            expectations1.mReceivedPackets = 6;
             expectations1.mChannelUpdate = 0;
             expectations1.mActiveReceiverChannel = 3;
-            expectations1.mReceiverChannelOfSecureTransportState = 4;
+            expectations1.mReceiverChannelOfSecureTransportState = 6;
             expectations1.mKind = IMediaStreamTrackTypes::Kind_Audio;
           }
           break;
@@ -3518,10 +3518,50 @@ void doTestRTPReceiver()
           //    bogusSleep();
                 break;
               }
+              case 16: {
+                {
+                  auto params = testObject1->getParameters("params2");
+                  auto &encoding = (*(params->mEncodingParameters.begin()));
+                  encoding.mSSRC = 63;
+                  testObject1->store("params3", *params);
+                }
+                {
+                  auto params = testObject1->getParameters("params3");
+                  params->mEncodingParameters.pop_back();
+                  testObject1->store("params3-c3", *params);  // only a single encoding will go to this new channel
+                }
+                {
+                  RTPPacket::CreationParams params;
+                  params.mPT = 96;
+                  params.mSequenceNumber = 1;
+                  params.mTimestamp = 10000;
+                  params.mSSRC = 63;
+                  const char *payload = "flash the message";
+                  params.mPayload = reinterpret_cast<const BYTE *>(payload);
+                  params.mPayloadSize = strlen(payload);
+
+                  RTPPacketPtr packet = RTPPacket::create(params);
+                  testObject1->store("p6", packet);
+                  testObject2->store("p6", packet);
+                }
+                testObject1->createReceiverChannel("c3", "params3-c3");
+                testObject1->expectState("c1", ISecureTransportTypes::State_Closed);
+                testObject1->expectState("c3", ISecureTransportTypes::State_Connected);
+                testObject1->receive("params3");
+          //    bogusSleep();
+                break;
+              }
+              case 17: {
+                testObject1->expectPacket("c3", "p6");
+                // testObject1->expectActiveChannel("c3");  // no - will not become active because switch lockout
+                testObject2->sendPacket("s1", "p6");
+          //    bogusSleep();
+                break;
+              }
               case 20: {
                 testObject1->expectActiveChannel(NULL);
-                testObject1->expectState("c1", ISecureTransportTypes::State_Closed);
                 testObject1->expectState("c2", ISecureTransportTypes::State_Closed);
+                testObject1->expectState("c3", ISecureTransportTypes::State_Closed);
 
                 if (testObject1) testObject1->close();
                 if (testObject2) testObject1->close();

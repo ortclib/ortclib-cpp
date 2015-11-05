@@ -1040,7 +1040,7 @@ namespace ortc
         mParametersGroupedIntoChannels.clear();
         RTPTypesHelper::splitParamsIntoChannels(parameters, mParametersGroupedIntoChannels);
 
-        ParametersPtrList unchangedChannels;
+        ParametersPtrPairList unchangedChannels;
         ParametersPtrList newChannels;
         ParametersPtrPairList updateChannels;
         ParametersPtrList removeChannels;
@@ -1060,6 +1060,24 @@ namespace ortc
 
             removeChannel(*channelInfo);
             mChannelInfos.erase(found);
+          }
+        }
+
+        // scope: swap out new / old parameters
+        {
+          for (auto iter = unchangedChannels.begin(); iter != unchangedChannels.end(); ++iter) {
+            auto &pairInfo = (*iter);
+            auto &oldParams = pairInfo.first;
+            auto &newParams = pairInfo.second;
+            auto found = mChannelInfos.find(oldParams);
+            ASSERT(found != mChannelInfos.end())
+
+            if (found == mChannelInfos.end()) continue;
+
+            auto channelInfo = (*found).second;
+
+            mChannelInfos.erase(found);
+            mChannelInfos[newParams] = channelInfo;
           }
         }
 
