@@ -1190,7 +1190,7 @@ namespace ortc
 
         void expectReceiveChannelUpdate(
                                         const char *receiverChannelID,
-                                        const Parameters &params
+                                        const char *parametersID
                                         );
 
         void expectState(

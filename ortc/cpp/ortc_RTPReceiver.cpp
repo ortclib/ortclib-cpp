@@ -1913,39 +1913,17 @@ namespace ortc
 
       // scope: deregister the changed or removed SSRCs, register the new SSRC
       {
-        if (baseOldOriginalEncoding.mSSRC.hasValue()) {
-          if (baseNewOriginalEncoding.mSSRC.hasValue()) {
-            if (baseOldOriginalEncoding.mSSRC.value() != baseNewOriginalEncoding.mSSRC.value()) {
-              registerSSRCUsage(channelInfo->registerSSRCUsage(setSSRCUsage(baseNewOriginalEncoding.mSSRC.value(), baseNewOriginalEncoding.mEncodingID, channelHolder)));
-            }
-          }
-        } else if (baseNewOriginalEncoding.mSSRC.hasValue()) {
+        if (baseNewOriginalEncoding.mSSRC.hasValue()) {
           registerSSRCUsage(channelInfo->registerSSRCUsage(setSSRCUsage(baseNewOriginalEncoding.mSSRC.value(), baseNewOriginalEncoding.mEncodingID, channelHolder)));
         }
 
-        if ((baseOldOriginalEncoding.mRTX.hasValue()) &&
-            (baseOldOriginalEncoding.mRTX.value().mSSRC.hasValue())) {
-          if ((baseNewOriginalEncoding.mRTX.hasValue()) &&
-              (baseNewOriginalEncoding.mRTX.value().mSSRC.hasValue())) {
-            if (baseOldOriginalEncoding.mRTX.value().mSSRC.value() != baseNewOriginalEncoding.mRTX.value().mSSRC.value()) {
-              registerSSRCUsage(channelInfo->registerSSRCUsage(setSSRCUsage(baseNewOriginalEncoding.mRTX.value().mSSRC.value(), baseNewOriginalEncoding.mEncodingID, channelHolder)));
-            }
-          }
-        } else if ((baseNewOriginalEncoding.mRTX.hasValue()) &&
-                   (baseNewOriginalEncoding.mRTX.value().mSSRC.hasValue())) {
+        if ((baseNewOriginalEncoding.mRTX.hasValue()) &&
+            (baseNewOriginalEncoding.mRTX.value().mSSRC.hasValue())) {
           registerSSRCUsage(channelInfo->registerSSRCUsage(setSSRCUsage(baseNewOriginalEncoding.mRTX.value().mSSRC.value(), baseNewOriginalEncoding.mEncodingID, channelHolder)));
         }
 
-        if ((baseOldOriginalEncoding.mFEC.hasValue()) &&
-            (baseOldOriginalEncoding.mFEC.value().mSSRC.hasValue())) {
-          if ((baseNewOriginalEncoding.mFEC.hasValue()) &&
-              (baseNewOriginalEncoding.mFEC.value().mSSRC.hasValue())) {
-            if (baseOldOriginalEncoding.mFEC.value().mSSRC.value() != baseNewOriginalEncoding.mRTX.value().mSSRC.value()) {
-              registerSSRCUsage(channelInfo->registerSSRCUsage(setSSRCUsage(baseNewOriginalEncoding.mFEC.value().mSSRC.value(), baseNewOriginalEncoding.mEncodingID, channelHolder)));
-            }
-          }
-        } else if ((baseNewOriginalEncoding.mFEC.hasValue()) &&
-                   (baseNewOriginalEncoding.mFEC.value().mSSRC.hasValue())) {
+        if ((baseNewOriginalEncoding.mFEC.hasValue()) &&
+            (baseNewOriginalEncoding.mFEC.value().mSSRC.hasValue())) {
           registerSSRCUsage(channelInfo->registerSSRCUsage(setSSRCUsage(baseNewOriginalEncoding.mFEC.value().mSSRC.value(), baseNewOriginalEncoding.mEncodingID, channelHolder)));
         }
 
