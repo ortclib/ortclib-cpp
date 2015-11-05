@@ -191,14 +191,14 @@ namespace ortc
 
     //-------------------------------------------------------------------------
     void RTPTypesHelper::calculateDeltaChangesInChannels(
-                                                        Optional<IMediaStreamTrackTypes::Kinds> kind,
-                                                        const ParametersPtrList &inExistingParamsGroupedIntoChannels,
-                                                        const ParametersPtrList &inNewParamsGroupedIntoChannels,
-                                                        ParametersPtrPairList &outUnchangedChannels,
-                                                        ParametersPtrList &outNewChannels,
-                                                        ParametersPtrPairList &outUpdatedChannels,
-                                                        ParametersPtrList &outRemovedChannels
-                                                        )
+                                                         Optional<IMediaStreamTrackTypes::Kinds> kind,
+                                                         const ParametersPtrList &inExistingParamsGroupedIntoChannels,
+                                                         const ParametersPtrList &inNewParamsGroupedIntoChannels,
+                                                         ParametersPtrPairList &outUnchangedChannels,
+                                                         ParametersPtrList &outNewChannels,
+                                                         ParametersPtrPairList &outUpdatedChannels,
+                                                         ParametersPtrList &outRemovedChannels
+                                                         )
     {
       typedef String Hash;
       typedef std::pair<Hash, ParametersPtr> HashParameterPair;
@@ -274,6 +274,8 @@ namespace ortc
 
           auto oldParams = (*currentOld);
 
+          if (oldParams->mEncodingParameters.size() < 1) continue;
+
           auto &oldEncodingBase = (*(oldParams->mEncodingParameters.begin()));
           if (oldEncodingBase.mEncodingID.isEmpty()) continue;
 
@@ -290,6 +292,8 @@ namespace ortc
             auto &newHash = (*currentNewHash).first;
 
             auto newParams = (*currentNew);
+
+            if (newParams->mEncodingParameters.size() < 1) continue;
 
             auto &newEncodingBase = (*(newParams->mEncodingParameters.begin()));
 
@@ -322,6 +326,53 @@ namespace ortc
             newList.erase(currentNew);
             newHashedList.erase(currentNewHash);
           }
+        }
+      }
+
+      // scope: old params with non-matching encoding ID entries must be removed
+      {
+        for (auto iterOld_doNotUse = oldList.begin(); iterOld_doNotUse != oldList.end(); ) {
+          auto currentOld = iterOld_doNotUse;
+          ++iterOld_doNotUse;
+
+          auto oldParams = (*currentOld);
+
+          if (oldParams->mEncodingParameters.size() < 1) continue;
+
+          auto &firstOld = oldParams->mEncodingParameters.front();
+          if (firstOld.mEncodingID.isEmpty()) continue;
+
+          ZS_LOG_TRACE(slog("old parameters did not have an encoding ID match (thus must remove)") + oldParams->toDebug())
+          outRemovedChannels.push_back(oldParams);
+
+          oldList.erase(currentOld);
+        }
+      }
+
+      // scope: new params with non-matching encoding ID entries must be added
+      {
+        auto iterNew_doNotUse = newList.begin();
+        auto iterNewHash_doNotUse = newHashedList.begin();
+
+        for (; iterNew_doNotUse != newList.end();) {
+          auto currentNew = iterNew_doNotUse;
+          ++iterNew_doNotUse;
+
+          auto currentNewHash = iterNewHash_doNotUse;
+          ++iterNewHash_doNotUse;
+
+          auto newParams = (*currentNew);
+
+          if (newParams->mEncodingParameters.size() < 1) continue;
+
+          auto &firstNew = newParams->mEncodingParameters.front();
+          if (firstNew.mEncodingID.isEmpty()) continue;
+
+          ZS_LOG_TRACE(slog("new parameters did not have an encoding ID match (thus must add)") + newParams->toDebug())
+          outNewChannels.push_back(newParams);
+          
+          newList.erase(currentNew);
+          newHashedList.erase(currentNewHash);
         }
       }
 
