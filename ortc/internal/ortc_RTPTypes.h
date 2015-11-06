@@ -63,6 +63,7 @@ namespace ortc
 
         Optional<PayloadType> mPayloadType;
         Optional<IMediaStreamTrackTypes::Kinds> mKind;
+        Optional<bool> mAllowNeutralKind;
         Optional<IRTPTypes::CodecKinds> mCodecKind;
         Optional<IRTPTypes::SupportedCodecs> mSupportedCodec;
         Optional<ULONG> mClockRate;

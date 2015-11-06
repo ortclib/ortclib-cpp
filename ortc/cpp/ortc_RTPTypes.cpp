@@ -85,6 +85,7 @@ namespace ortc
 
       UseServicesHelper::debugAppend(resultEl, "payload type", mPayloadType);
       UseServicesHelper::debugAppend(resultEl, "kind", mKind);
+      UseServicesHelper::debugAppend(resultEl, "allow neutral kind", mAllowNeutralKind);
       UseServicesHelper::debugAppend(resultEl, "codec kind", mCodecKind.hasValue() ? IRTPTypes::toString(mCodecKind.value()) : (const char *)NULL);
       UseServicesHelper::debugAppend(resultEl, "supported codec", mSupportedCodec.hasValue() ? IRTPTypes::toString(mSupportedCodec.value()) : (const char *)NULL);
       UseServicesHelper::debugAppend(resultEl, "clock rate", mClockRate);
@@ -710,9 +711,14 @@ namespace ortc
               break;
             }
             case IRTPTypes::CodecKind_AV:       break;
-            case IRTPTypes::CodecKind_Data:     continue;
-            case IRTPTypes::CodecKind_RTX:      continue;
-            case IRTPTypes::CodecKind_FEC:      continue;
+            case IRTPTypes::CodecKind_Data:
+            case IRTPTypes::CodecKind_RTX:
+            case IRTPTypes::CodecKind_FEC:
+            {
+              if (!options.mAllowNeutralKind.hasValue()) continue;
+              if (!options.mAllowNeutralKind.value()) continue;
+              break;
+            }
           }
         }
 
@@ -766,18 +772,12 @@ namespace ortc
         }
       }
 
-      if (packetPayloadType.hasValue()) {
-        if (payloadType.hasValue()) {
-          if (payloadType.value() != packetPayloadType.value()) {
-            ZS_LOG_INSANE(slog("cannot match codec as paylod type specified in encoding do not match packet payload type") + params.toDebug() + ZS_PARAM("encoding", encoding ? encoding->toDebug() : ElementPtr()) + ZS_PARAM("base encoding", baseEncoding ? baseEncoding->toDebug() : ElementPtr()))
-            return NULL;
-          }
-        } else {
-          payloadType = packetPayloadType;
-        }
-      }
-
       FindCodecOptions findOptions;
+
+      if (packetPayloadType.hasValue()) {
+        payloadType = packetPayloadType;
+        findOptions.mAllowNeutralKind = true;
+      }
 
       findOptions.mPayloadType = payloadType;
       findOptions.mKind = kind;
@@ -1118,6 +1118,7 @@ namespace ortc
         }
 
         oldFECMatch = foundFECCodec;
+        options.mDisallowedPayloadtypeMatches.insert(foundFECCodec->mPayloadType);
       }
 
       if (oldFECMatch) foundFECCodec = oldFECMatch;

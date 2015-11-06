@@ -2934,8 +2934,8 @@ using zsLib::Milliseconds;
 using ortc::SecureByteBlock;
 using ortc::SecureByteBlockPtr;
 
-#define TEST_BASIC_ROUTING 3
-#define TEST_SSRC_ROUTING 0
+#define TEST_BASIC_ROUTING 0
+#define TEST_SSRC_ROUTING 1
 
 static void bogusSleep()
 {
@@ -3015,10 +3015,10 @@ void doTestRTPReceiver()
             testObject2->setClientRole(false);
 
             expectations1.mUnhandled = 2;
-            expectations1.mReceivedPackets = 18;
+            expectations1.mReceivedPackets = 23;
             expectations1.mChannelUpdate = 4;
-            expectations1.mActiveReceiverChannel = 6;
-            expectations1.mReceiverChannelOfSecureTransportState = 10;
+            expectations1.mActiveReceiverChannel = 7;
+            expectations1.mReceiverChannelOfSecureTransportState = 12;
             expectations1.mKind = IMediaStreamTrackTypes::Kind_Audio;
           }
           break;
@@ -3533,8 +3533,8 @@ void doTestRTPReceiver()
                 testObject1->createReceiverChannel("c2", "params2-c2");
                 testObject1->expectState("c2", ISecureTransportTypes::State_Connected);
                 testObject1->expectPacket("c2", "p5");
-                testObject1->expectPacket("c2", "p5");
                 testObject1->expectPacket("c2", "p4");
+                testObject1->expectPacket("c2", "p5");
                 testObject1->expectPacket("c2", "p4");
                 testObject1->expectActiveChannel("c2");
                 testObject1->receive("params2");
@@ -3822,11 +3822,99 @@ void doTestRTPReceiver()
           //    bogusSleep();
                 break;
               }
+              case 27: {
+                {
+                  auto params = testObject1->getParameters("params7");
+
+                  EncodingParameters encoding;
+                  encoding.mEncodingID = "enc2";
+                  encoding.mCodecPayloadType = 96;
+
+                  RTXParameters rtx;
+                  rtx.mPayloadType = 121;
+
+                  FECParameters fec;
+                  fec.mMechanism = IRTPTypes::toString(IRTPTypes::KnownFECMechanism_RED_ULPFEC);
+
+                  encoding.mRTX = rtx;
+                  encoding.mFEC = fec;
+
+                  params->mEncodingParameters.push_back(encoding);
+
+                  testObject1->store("params8", *params);
+                }
+                {
+                  auto params = testObject1->getParameters("params8");
+                  while (params->mEncodingParameters.size() > 1) {
+                    params->mEncodingParameters.pop_front();
+                  }
+                  testObject1->store("params8-c6", *params);
+                }
+                {
+                  RTPPacket::CreationParams params;
+                  params.mPT = 96;
+                  params.mSequenceNumber = 6;
+                  params.mTimestamp = 9001;
+                  params.mSSRC = 173;
+                  const char *payload = "milk";
+                  params.mPayload = reinterpret_cast<const BYTE *>(payload);
+                  params.mPayloadSize = strlen(payload);
+
+                  RTPPacketPtr packet = RTPPacket::create(params);
+                  testObject1->store("p13", packet);
+                  testObject2->store("p13", packet);
+                }
+                {
+                  RTPPacket::CreationParams params;
+                  params.mPT = 125;
+                  params.mSequenceNumber = 7;
+                  params.mTimestamp = 9002;
+                  params.mSSRC = 179;
+                  const char *payload = "butter";
+                  params.mPayload = reinterpret_cast<const BYTE *>(payload);
+                  params.mPayloadSize = strlen(payload);
+
+                  RTPPacketPtr packet = RTPPacket::create(params);
+                  testObject1->store("p14", packet);
+                  testObject2->store("p14", packet);
+                }
+                {
+                  RTPPacket::CreationParams params;
+                  params.mPT = 121;
+                  params.mSequenceNumber = 8;
+                  params.mTimestamp = 9003;
+                  params.mSSRC = 199;
+                  const char *payload = "eggs";
+                  params.mPayload = reinterpret_cast<const BYTE *>(payload);
+                  params.mPayloadSize = strlen(payload);
+
+                  RTPPacketPtr packet = RTPPacket::create(params);
+                  testObject1->store("p15", packet);
+                  testObject2->store("p15", packet);
+                }
+                testObject1->receive("params8");
+          //    bogusSleep();
+                break;
+              }
+              case 28: {
+                testObject1->createReceiverChannel("c6", "params8-c6");
+                testObject1->expectState("c6", ISecureTransportTypes::State_Connected);
+                testObject1->expectActiveChannel("c6");
+                testObject1->expectPacket("c6", "p13");
+                testObject1->expectPacket("c6", "p14");
+                testObject1->expectPacket("c6", "p15");
+                testObject2->sendPacket("s1", "p13");
+                testObject2->sendPacket("s1", "p14");
+                testObject2->sendPacket("s1", "p15");
+          //    bogusSleep();
+                break;
+              }
               case 30: {
                 testObject1->expectActiveChannel(NULL);
                 testObject1->expectState("c2", ISecureTransportTypes::State_Closed);
                 testObject1->expectState("c3", ISecureTransportTypes::State_Closed);
                 testObject1->expectState("c5", ISecureTransportTypes::State_Closed);
+                testObject1->expectState("c6", ISecureTransportTypes::State_Closed);
 
                 if (testObject1) testObject1->close();
                 if (testObject2) testObject1->close();

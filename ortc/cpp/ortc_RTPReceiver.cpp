@@ -2510,8 +2510,8 @@ namespace ortc
                 auto diffLast = tick - lastMatchUsageTime;
                 auto diffCurrent = tick - ssrcInfo->mLastUsage;
 
-                if ((diffLast > mAmbigousPayloadMappingMinDifference) &&
-                    (diffCurrent > mAmbigousPayloadMappingMinDifference)) {
+                if ((diffLast < mAmbigousPayloadMappingMinDifference) &&
+                    (diffCurrent < mAmbigousPayloadMappingMinDifference)) {
                   ZS_LOG_WARNING(Debug, log("ambiguity exists to which receiver channel the packet should match because both channels have been recendly active (thus cannot pick any encoding)") + ZS_PARAM("tick", tick) + ZS_PARAM("match time", lastMatchUsageTime) + ZS_PARAM("ambiguity window", mAmbigousPayloadMappingMinDifference) + ZS_PARAM("diff last", diffLast) + ZS_PARAM("diff current", diffCurrent) + ssrcInfo->toDebug() + ZS_PARAM("previous find", outChannelInfo->toDebug()) + ZS_PARAM("found", channelInfo->toDebug()))
                   return false;
                 }
