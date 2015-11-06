@@ -140,7 +140,9 @@ namespace ortc
         struct make_private {};
 
       public:
-        //---------------------------------------------------------------------
+        friend class MediaStreamTrackTester;
+
+      public:
         FakeReceiver(
                      const make_private &,
                      MediaStreamTrackTesterPtr tester,
@@ -151,6 +153,9 @@ namespace ortc
         static FakeReceiverPtr create(
                                       MediaStreamTrackTesterPtr tester
                                       );
+
+      protected:
+        void init();
 
       protected:
         //---------------------------------------------------------------------
@@ -225,6 +230,10 @@ namespace ortc
                                              IMediaStreamTrackPtr track
                                              );
 
+      protected:
+        void init();
+
+      protected:
         //---------------------------------------------------------------------
         #pragma mark
         #pragma mark FakeReceiverChannel => IRTPReceiverChannelForMediaStreamTrack
@@ -232,11 +241,13 @@ namespace ortc
 
         virtual ElementPtr toDebug() const override;
 
+      protected:
         //---------------------------------------------------------------------
         #pragma mark
         #pragma mark FakeReceiverChannel => IFakeReceiverChannelAsyncDelegate
         #pragma mark
 
+      protected:
         //---------------------------------------------------------------------
         #pragma mark
         #pragma mark FakeReceiverChannel => ITimerDelegate
@@ -259,6 +270,8 @@ namespace ortc
 
         UseMediaStreamTrackPtr mTrack;
 
+        TimerPtr mTimer;
+
         ULONG mSentVideoFrames;
       };
 
@@ -278,6 +291,9 @@ namespace ortc
         struct make_private {};
 
       public:
+        friend class MediaStreamTrackTester;
+
+      public:
         FakeSender(
                    const make_private &,
                    MediaStreamTrackTesterPtr tester,
@@ -291,6 +307,10 @@ namespace ortc
                                     IMediaStreamTrackPtr track
                                     );
 
+      protected:
+        void init();
+
+      protected:
         //---------------------------------------------------------------------
         #pragma mark
         #pragma mark FakeSender => IRTPSenderForMediaStreamTrack
@@ -357,6 +377,10 @@ namespace ortc
                                            IMediaStreamTrackPtr track
                                            );
 
+      protected:
+        void init();
+
+      protected:
         //---------------------------------------------------------------------
         #pragma mark
         #pragma mark FakeSenderChannel => IRTPSenderChannelForMediaStreamTrack
@@ -510,7 +534,7 @@ namespace ortc
         void closeByReset();
 
         void startLocalVideoTrack();
-        void startRemoteVideoTrack();
+        void startRemoteVideoTrack(void* videoSurface);
 
         Expectations getExpectations() const;
 
@@ -565,9 +589,17 @@ namespace ortc
                                      const RTCPPacketList &packets
                                      );
 
+        void notifySentVideoFrame();
+        void notifyRemoteVideoTrackEvent();
+
         //---------------------------------------------------------------------
         #pragma mark
         #pragma mark MediaStreamTrackTester => (friend fake sender)
+        #pragma mark
+
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark MediaStreamTrackTester => (friend fake sender channel)
         #pragma mark
 
         void notifyReceivedVideoFrame();
@@ -596,11 +628,13 @@ namespace ortc
         bool mOverrideFactories{ false };
 
         EventPtr mLocalVideoTrackEvent;
+        EventPtr mRemoteVideoTrackEvent;
 
         PromiseWithMediaStreamTrackListPtr mVideoPromiseWithMediaStreamTrackList;
         PromiseWithDeviceListPtr mVideoPromiseWithDeviceList;
 
         MediaStreamTrackPtr mLocalVideoMediaStreamTrack;
+        MediaStreamTrackPtr mRemoteVideoMediaStreamTrack;
         FakeSenderPtr mVideoSender;
         FakeReceiverPtr mVideoReceiver;
 

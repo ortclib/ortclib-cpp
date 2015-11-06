@@ -34,6 +34,8 @@
 
 #include "TestMediaStreamTrack.h"
 
+#include <ortc/internal/ortc_ORTC.h>
+
 #include <ppltasks.h>
 
 #include <zsLib/XML.h>
@@ -57,6 +59,7 @@ using zsLib::AutoRecursiveLock;
 using namespace zsLib::XML;
 using zsLib::IPromiseResolutionDelegate;
 using ortc::IMediaDevices;
+using ortc::internal::IORTCForInternal;
 
 ZS_DECLARE_TYPEDEF_PTR(ortc::ISettings, UseSettings)
 ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHelper, UseServicesHelper)
@@ -234,9 +237,8 @@ namespace ortc
       {
         ZS_LOG_BASIC(log("created"))
 
-        IMediaStreamTrackPtr track;
-
-        mChannel = FakeReceiverChannel::create(tester, mThisWeak.lock(), track);
+        mTrack = UseMediaStreamTrack::create(IMediaStreamTrackTypes::Kinds::Kind_Video);
+        mChannel = FakeReceiverChannel::create(tester, mThisWeak.lock(), MediaStreamTrack::convert(mTrack));
       }
 
       //-----------------------------------------------------------------------
@@ -254,7 +256,13 @@ namespace ortc
       {
         FakeReceiverPtr pThis(make_shared<FakeReceiver>(make_private{}, tester));
         pThis->mThisWeak = pThis;
+        pThis->init();
         return pThis;
+      }
+
+      //-----------------------------------------------------------------------
+      void FakeReceiver::init()
+      {
       }
 
       //-----------------------------------------------------------------------
@@ -343,9 +351,18 @@ namespace ortc
                                                          IMediaStreamTrackPtr track
                                                          )
       {
-        FakeReceiverChannelPtr pThis(make_shared<FakeReceiverChannel>(make_private{}, tester, receiver, track));
+        FakeReceiverChannelPtr pThis(make_shared<FakeReceiverChannel>(make_private{}, tester, receiver, track, IORTCForInternal::queueDelegate()));
         pThis->mThisWeak = pThis;
+        pThis->init();
         return pThis;
+      }
+
+      //-----------------------------------------------------------------------
+      void FakeReceiverChannel::init()
+      {
+        AutoRecursiveLock lock(*this);
+
+        mTimer = Timer::create(mThisWeak.lock(), Milliseconds(30));
       }
 
       //-----------------------------------------------------------------------
@@ -390,7 +407,40 @@ namespace ortc
       //-----------------------------------------------------------------------
       void FakeReceiverChannel::onTimer(TimerPtr timer)
       {
+        mSentVideoFrames++;
 
+        if (mSentVideoFrames > 100)
+          return;
+
+        const int width = 640;
+        const int height = 480;
+
+        webrtc::VideoFrame frame;
+        frame.CreateEmptyFrame(width, height, width, width / 2, width / 2);
+
+        uint8_t* yBuffer = frame.buffer(webrtc::kYPlane);
+        for (int i = 0; i < height; i++)
+        {
+          memset(yBuffer, 0, width);
+          yBuffer += width;
+        }
+
+        uint8_t* uBuffer = frame.buffer(webrtc::kUPlane);
+        uint8_t* vBuffer = frame.buffer(webrtc::kVPlane);
+        for (int i = 0; i < height / 2; i++)
+        {
+          memset(uBuffer, 0, width / 2);
+          memset(vBuffer, 0, width / 2);
+          uBuffer += width / 2;
+          vBuffer += width / 2;
+        }
+
+        if (mTrack)
+          mTrack->renderVideoFrame(frame);
+
+        mTester.lock()->notifySentVideoFrame();
+        if (mSentVideoFrames == 100)
+          mTester.lock()->notifyRemoteVideoTrackEvent();
       }
 
       //-----------------------------------------------------------------------
@@ -453,7 +503,13 @@ namespace ortc
       {
         FakeSenderPtr pThis(make_shared<FakeSender>(make_private{}, tester, track));
         pThis->mThisWeak = pThis;
+        pThis->init();
         return pThis;
+      }
+
+      //-----------------------------------------------------------------------
+      void FakeSender::init()
+      {
       }
 
       //-----------------------------------------------------------------------
@@ -536,7 +592,13 @@ namespace ortc
       {
         FakeSenderChannelPtr pThis(make_shared<FakeSenderChannel>(make_private{}, tester, sender, track));
         pThis->mThisWeak = pThis;
+        pThis->init();
         return pThis;
+      }
+
+      //-----------------------------------------------------------------------
+      void FakeSenderChannel::init()
+      {
       }
 
       //-----------------------------------------------------------------------
@@ -566,10 +628,11 @@ namespace ortc
       void FakeSenderChannel::sendVideoFrame(const webrtc::VideoFrame& videoFrame)
       {
         mReceivedVideoFrames++;
+        if (mReceivedVideoFrames > 100)
+          return;
         mTester.lock()->notifyReceivedVideoFrame();
         if (mReceivedVideoFrames == 100)
           mTester.lock()->notifyLocalVideoTrackEvent();
-
       }
 
       //-----------------------------------------------------------------------
@@ -690,7 +753,8 @@ namespace ortc
         SharedRecursiveLock(SharedRecursiveLock::create()),
         MessageQueueAssociator(queue),
         mOverrideFactories(overrideFactories),
-        mLocalVideoTrackEvent(Event::create())
+        mLocalVideoTrackEvent(Event::create()),
+        mRemoteVideoTrackEvent(Event::create())
       {
         ZS_LOG_BASIC(log("mediastreamtrack tester"))
       }
@@ -747,9 +811,16 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void MediaStreamTrackTester::startRemoteVideoTrack()
+      void MediaStreamTrackTester::startRemoteVideoTrack(void* videoSurface)
       {
         mVideoReceiver = FakeReceiver::create(mThisWeak.lock());
+
+        IMediaStreamTrackPtr track = mVideoReceiver->track();
+        track->setMediaElement(videoSurface);
+
+        mRemoteVideoTrackEvent->wait();
+        if (mRemoteVideoMediaStreamTrack)
+          IMediaStreamTrackPtr(mRemoteVideoMediaStreamTrack)->stop();
       }
 
       //-----------------------------------------------------------------------
@@ -854,11 +925,38 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
+      void MediaStreamTrackTester::notifySentVideoFrame()
+      {
+        ZS_LOG_BASIC(log("notified sent video frame"))
+
+        AutoRecursiveLock lock(*this);
+        ++mExpectations.mSentVideoFrames;
+      }
+
+      //-----------------------------------------------------------------------
+      void MediaStreamTrackTester::notifyRemoteVideoTrackEvent()
+      {
+        ZS_LOG_BASIC(log("notified remote video track event"))
+
+        AutoRecursiveLock lock(*this);
+        mRemoteVideoTrackEvent->notify();
+        mRemoteVideoTrackEvent->reset();
+      }
+
+      //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark MediaStreamTrackTester => (friend fake sender)
+      #pragma mark
+
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark MediaStreamTrackTester => (friend fake sender channel)
       #pragma mark
 
       //-----------------------------------------------------------------------
@@ -937,7 +1035,7 @@ static void bogusSleep()
   }
 }
 
-void doTestMediaStreamTrack()
+void doTestMediaStreamTrack(void* videoSurface)
 {
   if (!ORTC_TEST_DO_RTP_RECEIVER_TEST) return;
 
@@ -974,7 +1072,7 @@ void doTestMediaStreamTrack()
           TESTING_CHECK(testObject)
 
           expectations.mReceivedVideoFrames = 100;
-          expectations.mSentVideoFrames = 0;
+          expectations.mSentVideoFrames = 100;
         }
         break;
       }
@@ -1012,7 +1110,7 @@ void doTestMediaStreamTrack()
             break;
           }
           case 3: {
-            if (testObject) testObject->startRemoteVideoTrack();
+            if (testObject) testObject->startRemoteVideoTrack(videoSurface);
         //  bogusSleep();
             break;
           }

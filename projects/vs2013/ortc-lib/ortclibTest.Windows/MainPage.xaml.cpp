@@ -38,7 +38,8 @@ void ortclibTest::MainPage::Button_Click(Platform::Object^ sender, Windows::UI::
   Concurrency::create_task([this]() {
     TESTING_STDOUT() << "TEST NOW STARTING...\n\n";
 
-    Testing::runAllTests();
+    IInspectable* videoMediaElement = reinterpret_cast<IInspectable*>(VideoMediaElement);
+    Testing::runAllTests(videoMediaElement);
     Testing::output();
 
     if (0 != Testing::getGlobalFailedVar()) {
