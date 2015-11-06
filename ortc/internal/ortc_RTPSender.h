@@ -398,6 +398,8 @@ namespace ortc
       WORD mLastError {};
       String mLastErrorReason;
 
+      UseMediaStreamTrackPtr mTrack;
+
       ParametersPtr mParameters;
 
       UseListenerPtr mListener;

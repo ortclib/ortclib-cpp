@@ -265,7 +265,13 @@ namespace ortc
     #pragma mark
     #pragma mark RTPSenderChannel => IRTPSenderChannelForMediaStreamTrack
     #pragma mark
-    
+
+    //-------------------------------------------------------------------------
+    void RTPSenderChannel::sendVideoFrame(const webrtc::VideoFrame& videoFrame)
+    {
+
+    }
+
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -326,26 +332,6 @@ namespace ortc
 
 #define TODO 1
 #define TODO 2
-    }
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPSenderChannel => VideoCaptureDataCallback
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    void RTPSenderChannel::OnIncomingCapturedFrame(const int32_t id, const webrtc::VideoFrame& videoFrame)
-    {
-
-    }
-
-    //-------------------------------------------------------------------------
-    void RTPSenderChannel::OnCaptureDelayChanged(const int32_t id, const int32_t delay)
-    {
-
     }
 
     //-------------------------------------------------------------------------

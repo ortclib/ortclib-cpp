@@ -12,6 +12,9 @@
         <TextBlock HorizontalAlignment="Left" Margin="85,73,0,0" TextWrapping="Wrap" VerticalAlignment="Top" FontSize="24">
     	<Run Text="ORTC MediaStreamTrack"/>
         </TextBlock>
+        <Border HorizontalAlignment="Left" Height="240" Margin="83,175,0,0" VerticalAlignment="Top" Width="320" BorderBrush="{ThemeResource TextBoxBorderThemeBrush}" BorderThickness="2">
+            <MediaElement x:Name="VideoMediaElement"/>
+        </Border>
 
     </Grid>
 </Page>

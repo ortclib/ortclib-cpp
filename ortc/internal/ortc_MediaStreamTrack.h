@@ -92,6 +92,8 @@ namespace ortc
 
       virtual PUID getID() const = 0;
 
+      virtual void setSender(IRTPSenderPtr sender) = 0;
+
       virtual void notifyAttachSenderChannel(RTPSenderChannelPtr channel) = 0;
       virtual void notifyDetachSenderChannel(RTPSenderChannelPtr channel) = 0;
     };
@@ -109,8 +111,6 @@ namespace ortc
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPSenderChannel, ForSenderChannel)
 
       virtual PUID getID() const = 0;
-
-      virtual void registerVideoCaptureDataCallback(webrtc::VideoCaptureDataCallback* callback) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -130,6 +130,8 @@ namespace ortc
       static MediaStreamTrackPtr create(Kinds kind);
 
       virtual PUID getID() const = 0;
+
+      virtual void setReceiver(IRTPReceiverPtr receiver) = 0;
 
       virtual void notifyActiveReceiverChannel(RTPReceiverChannelPtr channel) = 0;
     };
@@ -327,6 +329,8 @@ namespace ortc
 
       // (duplicate) virtual PUID getID() const = 0;
 
+      virtual void setSender(IRTPSenderPtr sender) override;
+
       virtual void notifyAttachSenderChannel(RTPSenderChannelPtr channel) override;
       virtual void notifyDetachSenderChannel(RTPSenderChannelPtr channel) override;
 
@@ -337,8 +341,6 @@ namespace ortc
 
       // (duplicate) virtual PUID getID() const = 0;
 
-      virtual void registerVideoCaptureDataCallback(webrtc::VideoCaptureDataCallback* callback) override;
-
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark MediaStreamTrack => IMediaStreamTrackForRTPReceiver
@@ -347,6 +349,8 @@ namespace ortc
       static MediaStreamTrackPtr create(Kinds kind);
 
       // (duplicate) virtual PUID getID() const = 0;
+
+      virtual void setReceiver(IRTPReceiverPtr receiver) override;
 
       virtual void notifyActiveReceiverChannel(RTPReceiverChannelPtr channel) override;
 
@@ -446,11 +450,15 @@ namespace ortc
       Kinds mKind;
       bool mRemote;
 
+      UseSenderWeakPtr mSender;
+      UseSenderChannelWeakPtr mSenderChannel;
+      UseReceiverWeakPtr mReceiver;
+      UseReceiverChannelWeakPtr mReceiverChannel;
+
       TrackConstraintsPtr mConstraints;
       webrtc::VideoCaptureModule* mVideoCaptureModule;
       webrtc::VideoRender* mVideoRenderModule;
       webrtc::VideoRenderCallback* mVideoRendererCallback;
-      webrtc::VideoCaptureDataCallback* mVideoCaptureDataCallback;
     };
 
     //-------------------------------------------------------------------------

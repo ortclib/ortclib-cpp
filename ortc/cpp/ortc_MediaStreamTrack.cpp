@@ -134,8 +134,7 @@ namespace ortc
       mConstraints(constraints),
       mVideoCaptureModule(NULL),
       mVideoRenderModule(NULL),
-      mVideoRendererCallback(NULL),
-      mVideoCaptureDataCallback(NULL)
+      mVideoRendererCallback(NULL)
     {
       ZS_LOG_DETAIL(debug("created"))
     }
@@ -419,11 +418,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     void MediaStreamTrack::stop()
     {
-      if (!mVideoCaptureModule) {
-        return;
+      if (mVideoCaptureModule) {
+        mVideoCaptureModule->StopCapture();
+        mVideoCaptureModule->DeRegisterCaptureDataCallback();
       }
-      mVideoCaptureModule->StopCapture();
-      mVideoCaptureModule->DeRegisterCaptureDataCallback();
+      if (mVideoRenderModule)
+        mVideoRenderModule->StopRender(1);
     }
 
     //-------------------------------------------------------------------------
@@ -488,6 +488,14 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
+    void MediaStreamTrack::setSender(IRTPSenderPtr sender)
+    {
+      AutoRecursiveLock lock(*this);
+
+      mSender = RTPSender::convert(sender);
+    }
+
+    //-------------------------------------------------------------------------
     void MediaStreamTrack::notifyAttachSenderChannel(RTPSenderChannelPtr channel)
     {
       IMediaStreamTrackAsyncDelegateProxy::create(mThisWeak.lock())->onAttachSenderChannel(channel);
@@ -508,12 +516,6 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void MediaStreamTrack::registerVideoCaptureDataCallback(webrtc::VideoCaptureDataCallback* callback)
-    {
-      mVideoCaptureDataCallback = callback;
-    }
-
-    //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -527,6 +529,14 @@ namespace ortc
 #define TODO_MOSA_VERIFY_THIS_LOGIC 1
 #define TODO_MOSA_VERIFY_THIS_LOGIC 2
       return create(kind, true, TrackConstraintsPtr());
+    }
+
+    //-------------------------------------------------------------------------
+    void MediaStreamTrack::setReceiver(IRTPReceiverPtr receiver)
+    {
+      AutoRecursiveLock lock(*this);
+
+      mReceiver = RTPReceiver::convert(receiver);
     }
 
     //-------------------------------------------------------------------------
@@ -627,6 +637,9 @@ namespace ortc
       }
 
       ZS_LOG_DEBUG(log("setting to active receiver channel") + ZS_PARAM("channel", channel->getID()))
+
+      mReceiverChannel = channel;
+
 #define TODO 1
 #define TODO 2
     }
@@ -637,6 +650,9 @@ namespace ortc
       ZS_LOG_DEBUG(log("attaching sender channel") + ZS_PARAM("channel", channel->getID()))
 
       AutoRecursiveLock lock(*this);
+
+      mSenderChannel = channel;
+
 #define TODO 1
 #define TODO 2
     }
@@ -647,6 +663,9 @@ namespace ortc
       ZS_LOG_DEBUG(log("detaching sender channel") + ZS_PARAM("channel", channel->getID()))
 
       AutoRecursiveLock lock(*this);
+
+      mSenderChannel.reset();
+
 #define TODO 1
 #define TODO 2
     }
@@ -667,8 +686,8 @@ namespace ortc
       if (mVideoRendererCallback)
         mVideoRendererCallback->RenderFrame(1, videoFrame);
 
-      if (mVideoCaptureDataCallback)
-        mVideoCaptureDataCallback->OnIncomingCapturedFrame(id, videoFrame);
+      if (mSenderChannel.lock())
+        mSenderChannel.lock()->sendVideoFrame(videoFrame);
     }
 
     //-------------------------------------------------------------------------

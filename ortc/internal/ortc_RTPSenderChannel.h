@@ -128,6 +128,8 @@ namespace ortc
       static ElementPtr toDebug(ForMediaStreamTrackPtr object);
 
       virtual PUID getID() const = 0;
+
+      virtual void sendVideoFrame(const webrtc::VideoFrame& videoFrame) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -159,8 +161,7 @@ namespace ortc
                              public IRTPSenderChannelForMediaStreamTrack,
                              public IWakeDelegate,
                              public zsLib::ITimerDelegate,
-                             public IRTPSenderChannelAsyncDelegate,
-                             public webrtc::VideoCaptureDataCallback
+                             public IRTPSenderChannelAsyncDelegate
     {
     protected:
       struct make_private {};
@@ -241,6 +242,8 @@ namespace ortc
 
       // (duplicate) virtual PUID getID() const = 0;
 
+      virtual void sendVideoFrame(const webrtc::VideoFrame& videoFrame) override;
+
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark RTPSenderChannel => IWakeDelegate
@@ -261,15 +264,6 @@ namespace ortc
       #pragma mark
 
       virtual void onSecureTransportState(ISecureTransport::States state) override;
-
-      //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTPSenderChannel => VideoCaptureDataCallback
-      #pragma mark
-
-      virtual void OnIncomingCapturedFrame(const int32_t id, const webrtc::VideoFrame& videoFrame);
-
-      virtual void OnCaptureDelayChanged(const int32_t id, const int32_t delay);
 
     protected:
       //-----------------------------------------------------------------------
