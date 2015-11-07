@@ -1137,7 +1137,7 @@ namespace ortc
 
         void init(Milliseconds packetDelay);
 
-        bool matches(const Expectations &op2);
+        bool matches();
 
         void close();
         void closeByReset();
@@ -1180,6 +1180,8 @@ namespace ortc
 
         FakeReceiverChannelPtr detachReceiverChannel(const char *receiverChannelID);
         FakeSenderPtr detachSender(const char *senderID);
+
+        void expectKind(IMediaStreamTrackTypes::Kinds kind);
 
         void expectingUnhandled(
                                 IRTPTypes::SSRCType ssrc,
@@ -1321,7 +1323,8 @@ namespace ortc
         IRTPListenerSubscriptionPtr mListenerSubscription;
         IRTPReceiverSubscriptionPtr mReceiverSubscription;
 
-        Expectations mExpectations;
+        Expectations mExpecting;
+        Expectations mExpectationsFound;
 
         SenderOrReceiverMap mAttached;
         PacketMap mPackets;

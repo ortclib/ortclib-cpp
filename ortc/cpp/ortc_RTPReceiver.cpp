@@ -2480,6 +2480,15 @@ namespace ortc
         if (NULL == matchEncoding) continue; // did not find an appropriate encoding
         ASSERT(NULL != baseEncoding)  // has to always have a base
 
+        if (baseEncoding->mEncodingID.hasData()) {
+          if (rid.hasData()) {
+            if (baseEncoding->mEncodingID != rid) {
+              ZS_LOG_TRACE(log("cannot match as encoding ID does not match rid") + baseEncoding->toDebug() + ZS_PARAM("rid", rid))
+              continue; // cannot consider packets with mismatched RID / base encoding ID
+            }
+          }
+        }
+
         {
           switch (codecKind) {
             case CodecKind_Unknown:  ASSERT(false) break;

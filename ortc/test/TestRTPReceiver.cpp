@@ -2111,10 +2111,10 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      bool RTPReceiverTester::matches(const Expectations &op2)
+      bool RTPReceiverTester::matches()
       {
         AutoRecursiveLock lock(*this);
-        return mExpectations == op2;
+        return mExpectationsFound == mExpecting;
       }
 
       //-----------------------------------------------------------------------
@@ -2152,7 +2152,7 @@ namespace ortc
       //-----------------------------------------------------------------------
       RTPReceiverTester::Expectations RTPReceiverTester::getExpectations() const
       {
-        return mExpectations;
+        return mExpectationsFound;
       }
 
       //-----------------------------------------------------------------------
@@ -2430,6 +2430,13 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
+      void RTPReceiverTester::expectKind(IMediaStreamTrackTypes::Kinds kind)
+      {
+        AutoRecursiveLock lock(*this);
+        mExpecting.mKind = kind;
+      }
+
+      //-----------------------------------------------------------------------
       void RTPReceiverTester::expectingUnhandled(
                                                  SSRCType ssrc,
                                                  PayloadType payloadType,
@@ -2439,6 +2446,7 @@ namespace ortc
       {
         AutoRecursiveLock lock(*this);
 
+        ++mExpecting.mUnhandled;
         mExpectingUnhandled.push_back(UnhandledEventData(ssrc, payloadType, mid, rid));
       }
 
@@ -2454,6 +2462,7 @@ namespace ortc
 
         {
           AutoRecursiveLock lock(*this);
+          ++mExpecting.mChannelUpdate;
 
           auto found = mParameters.find(String(parametersID));
           TESTING_CHECK(found != mParameters.end())
@@ -2473,6 +2482,10 @@ namespace ortc
                                           ISecureTransportTypes::States state
                                           )
       {
+        {
+          AutoRecursiveLock lock(*this);
+          ++mExpecting.mReceiverChannelOfSecureTransportState;
+        }
         FakeReceiverChannelPtr receiverChannel = getReceiverChannel(receiverChannelID);
 
         TESTING_CHECK(receiverChannel)
@@ -2488,6 +2501,7 @@ namespace ortc
 
         {
           AutoRecursiveLock lock(*this);
+          ++mExpecting.mActiveReceiverChannel;
 
           if (!mMediaStreamTrack) {
             mExpectingActiveChannelsUponMediaTrackCreation.push_back(String(receiverChannelID));
@@ -2636,6 +2650,8 @@ namespace ortc
 
         {
           AutoRecursiveLock lock(*this);
+          ++mExpecting.mReceivedPackets;
+
           auto found = mPackets.find(String(packetID));
           TESTING_CHECK(found != mPackets.end())
 
@@ -2685,7 +2701,7 @@ namespace ortc
         ZS_LOG_BASIC(log("rtp listener unhandled rtp event") + ZS_PARAM("receiver id", receiver->getID()) + ZS_PARAM("ssrc", ssrc) + ZS_PARAM("payload type", payloadType) + ZS_PARAM("mid", mid) + ZS_PARAM("rid", rid))
 
         AutoRecursiveLock lock(*this);
-        ++mExpectations.mUnhandled;
+        ++mExpectationsFound.mUnhandled;
 
         TESTING_CHECK(mExpectingUnhandled.size() > 0)
 
@@ -2714,7 +2730,7 @@ namespace ortc
         ZS_LOG_BASIC(log("rtp receiver error") + ZS_PARAM("receiver", receiver->getID()) + ZS_PARAM("error code", errorCode) + ZS_PARAM("error reason", errorReason))
 
         AutoRecursiveLock lock(*this);
-        ++mExpectations.mError;
+        ++mExpectationsFound.mError;
       }
 
       //-----------------------------------------------------------------------
@@ -2737,7 +2753,7 @@ namespace ortc
         ZS_LOG_BASIC(log("notified received packet"))
 
         AutoRecursiveLock lock(*this);
-        ++mExpectations.mReceivedPackets;
+        ++mExpectationsFound.mReceivedPackets;
       }
 
       //-----------------------------------------------------------------------
@@ -2746,7 +2762,7 @@ namespace ortc
         ZS_LOG_BASIC(log("notified received channel update"))
 
         AutoRecursiveLock lock(*this);
-        ++mExpectations.mChannelUpdate;
+        ++mExpectationsFound.mChannelUpdate;
       }
 
       //-----------------------------------------------------------------------
@@ -2755,7 +2771,7 @@ namespace ortc
         ZS_LOG_BASIC(log("notified active channel"))
 
         AutoRecursiveLock lock(*this);
-        ++mExpectations.mActiveReceiverChannel;
+        ++mExpectationsFound.mActiveReceiverChannel;
       }
 
       //-----------------------------------------------------------------------
@@ -2764,7 +2780,7 @@ namespace ortc
         ZS_LOG_BASIC(log("notified receiver channel of secure transport state"))
 
         AutoRecursiveLock lock(*this);
-        ++mExpectations.mReceiverChannelOfSecureTransportState;
+        ++mExpectationsFound.mReceiverChannelOfSecureTransportState;
       }
 
       //-----------------------------------------------------------------------
@@ -2800,7 +2816,7 @@ namespace ortc
 
           TESTING_CHECK(!mMediaStreamTrack)
 
-          mExpectations.mKind = kind;
+          mExpectationsFound.mKind = kind;
           mMediaStreamTrack = track;
 
           for (auto iter = mExpectingActiveChannelsUponMediaTrackCreation.begin(); iter != mExpectingActiveChannelsUponMediaTrackCreation.end(); ++iter) {
@@ -2974,11 +2990,6 @@ void doTestRTPReceiver()
       bool quit = false;
       ULONG expecting = 0;
 
-      RTPReceiverTester::Expectations expectations1;
-      RTPReceiverTester::Expectations expectations2;
-
-      expectations2 = expectations1;
-
       switch (testNumber) {
         case TEST_BASIC_ROUTING: {
           {
@@ -2993,13 +3004,6 @@ void doTestRTPReceiver()
 
             testObject1->setClientRole(true);
             testObject2->setClientRole(false);
-
-            expectations1.mUnhandled = 1;
-            expectations1.mReceivedPackets = 4;
-            expectations1.mChannelUpdate = 0;
-            expectations1.mActiveReceiverChannel = 3;
-            expectations1.mReceiverChannelOfSecureTransportState = 4;
-            expectations1.mKind = IMediaStreamTrackTypes::Kind_Audio;
           }
           break;
         }
@@ -3013,13 +3017,6 @@ void doTestRTPReceiver()
 
             testObject1->setClientRole(true);
             testObject2->setClientRole(false);
-
-            expectations1.mUnhandled = 2;
-            expectations1.mReceivedPackets = 23;
-            expectations1.mChannelUpdate = 4;
-            expectations1.mActiveReceiverChannel = 7;
-            expectations1.mReceiverChannelOfSecureTransportState = 12;
-            expectations1.mKind = IMediaStreamTrackTypes::Kind_Audio;
           }
           break;
         }
@@ -3070,6 +3067,7 @@ void doTestRTPReceiver()
                 break;
               }
               case 5: {
+                testObject1->expectKind(IMediaStreamTrackTypes::Kind_Audio);
                 {
                   Parameters params;
                   testObject1->store("params-empty", params);
@@ -3307,6 +3305,7 @@ void doTestRTPReceiver()
                 break;
               }
               case 4: {
+                testObject1->expectKind(IMediaStreamTrackTypes::Kind_Audio);
                 {
                   Parameters params;
                   testObject1->store("params-empty", params);
@@ -3909,43 +3908,160 @@ void doTestRTPReceiver()
           //    bogusSleep();
                 break;
               }
+              case 29: {
+                {
+                  auto params = testObject1->getParameters("params8");
+
+                  EncodingParameters encoding;
+                  encoding.mEncodingID = "enc3";
+                  encoding.mCodecPayloadType = 96;
+                  encoding.mSSRC = 229;
+
+                  RTXParameters rtx;
+                  rtx.mPayloadType = 121;
+                  rtx.mSSRC = 233;
+
+                  FECParameters fec;
+                  fec.mMechanism = IRTPTypes::toString(IRTPTypes::KnownFECMechanism_RED_ULPFEC);
+                  fec.mSSRC = 239;
+
+                  encoding.mRTX = rtx;
+                  encoding.mFEC = fec;
+
+                  params->mEncodingParameters.push_back(encoding);
+
+                  IRTPTypes::HeaderExtensionParameters headerParams;
+                  headerParams.mID = 1;
+                  headerParams.mURI = IRTPTypes::toString(IRTPTypes::HeaderExtensionURI_MuxID);
+                  params->mHeaderExtensions.push_back(headerParams);
+                  headerParams.mID = 2;
+                  headerParams.mURI = IRTPTypes::toString(IRTPTypes::HeaderExtensionURI_RID);
+                  params->mHeaderExtensions.push_back(headerParams);
+                  headerParams.mID = 3;
+                  headerParams.mURI = IRTPTypes::toString(IRTPTypes::HeaderExtensionURI_ClienttoMixerAudioLevelIndication);
+                  params->mHeaderExtensions.push_back(headerParams);
+                  headerParams.mID = 4;
+                  headerParams.mURI = IRTPTypes::toString(IRTPTypes::HeaderExtensionURI_MixertoClientAudioLevelIndication);
+                  params->mHeaderExtensions.push_back(headerParams);
+
+                  testObject1->store("params9", *params);
+                }
+                {
+                  auto params = testObject1->getParameters("params9");
+                  while (params->mEncodingParameters.size() > 1) {
+                    params->mEncodingParameters.pop_front();
+                  }
+                  testObject1->store("params9-c7", *params);
+                }
+                {
+                  auto sourceParams = testObject1->getParameters("params9");
+                  {
+                    auto params = testObject1->getParameters("params7-c2");
+                    params->mHeaderExtensions = sourceParams->mHeaderExtensions;
+                    testObject1->store("params9-c2", *params);
+                  }
+                  {
+                    auto params = testObject1->getParameters("params7-c3");
+                    params->mHeaderExtensions = sourceParams->mHeaderExtensions;
+                    testObject1->store("params9-c3", *params);
+                  }
+                  {
+                    auto params = testObject1->getParameters("params7-c5");
+                    params->mHeaderExtensions = sourceParams->mHeaderExtensions;
+                    testObject1->store("params9-c5", *params);
+                  }
+                  {
+                    auto params = testObject1->getParameters("params8-c6");
+                    params->mHeaderExtensions = sourceParams->mHeaderExtensions;
+                    testObject1->store("params9-c6", *params);
+                  }
+                }
+                {
+                  RTPPacket::CreationParams params;
+                  params.mPT = 96;
+                  params.mSequenceNumber = 6;
+                  params.mTimestamp = 9001;
+                  params.mSSRC = 229;
+                  const char *payload = "wetlands";
+                  params.mPayload = reinterpret_cast<const BYTE *>(payload);
+                  params.mPayloadSize = strlen(payload);
+
+                  {
+                    RTPPacket::RidHeaderExtension rid(2, "enc3");
+                    params.mFirstHeaderExtension = &rid;
+
+                    RTPPacketPtr packet = RTPPacket::create(params);
+                    testObject1->store("p16", packet);
+                    testObject2->store("p16", packet);
+                  }
+                  {
+                    params.mPT = 121;
+                    params.mSSRC = 233;
+
+                    RTPPacket::RidHeaderExtension rid(2, "enc3-no");
+                    params.mFirstHeaderExtension = &rid;
+
+                    RTPPacketPtr packet = RTPPacket::create(params);
+                    testObject1->store("p17", packet);
+                    testObject2->store("p17", packet);
+                  }
+                }
+                testObject1->expectReceiveChannelUpdate("c2", "params9-c2");
+                testObject1->expectReceiveChannelUpdate("c3", "params9-c3");
+                testObject1->expectReceiveChannelUpdate("c5", "params9-c5");
+                testObject1->expectReceiveChannelUpdate("c6", "params9-c6");
+                testObject1->receive("params9");
+          //    bogusSleep();
+                break;
+              }
               case 30: {
+                testObject1->createReceiverChannel("c7", "params9-c7");
+                testObject1->expectState("c7", ISecureTransportTypes::State_Connected);
+                testObject1->expectPacket("c7", "p16");
+                testObject2->sendPacket("s1", "p16");
+                testObject1->expectPacket("c2", "p17"); // will latch the "c2" which does not have RTX filled in and "c7" rid does not match (nor does "c2" have an encoding ID)
+                testObject2->sendPacket("s1", "p17");
+          //    bogusSleep();
+                break;
+              }
+              case 35: {
                 testObject1->expectActiveChannel(NULL);
                 testObject1->expectState("c2", ISecureTransportTypes::State_Closed);
                 testObject1->expectState("c3", ISecureTransportTypes::State_Closed);
                 testObject1->expectState("c5", ISecureTransportTypes::State_Closed);
                 testObject1->expectState("c6", ISecureTransportTypes::State_Closed);
+                testObject1->expectState("c7", ISecureTransportTypes::State_Closed);
 
                 if (testObject1) testObject1->close();
                 if (testObject2) testObject1->close();
           //    bogusSleep();
                 break;
               }
-              case 31: {
+              case 36: {
                 if (testObject1) testObject1->state(IDTLSTransport::State_Closed);
                 if (testObject2) testObject2->state(IDTLSTransport::State_Closed);
                 //bogusSleep();
                 break;
               }
-              case 32: {
+              case 37: {
                 if (testObject1) testObject1->state(IICETransport::State_Disconnected);
                 if (testObject2) testObject2->state(IICETransport::State_Disconnected);
                 //bogusSleep();
                 break;
               }
-              case 33: {
+              case 38: {
                 if (testObject1) testObject1->state(IICETransport::State_Closed);
                 if (testObject2) testObject2->state(IICETransport::State_Closed);
                 //bogusSleep();
                 break;
               }
-              case 34: {
+              case 39: {
                 if (testObject1) testObject1->closeByReset();
                 if (testObject2) testObject2->closeByReset();
                 //bogusSleep();
                 break;
               }
-              case 35: {
+              case 40: {
                 lastStepReached = true;
                 break;
               }
@@ -3963,8 +4079,8 @@ void doTestRTPReceiver()
         }
 
         if (0 == found) {
-          found += (testObject1 ? (testObject1->matches(expectations1) ? 1 : 0) : 0);
-          found += (testObject2 ? (testObject2->matches(expectations2) ? 1 : 0) : 0);
+          found += (testObject1 ? (testObject1->matches() ? 1 : 0) : 0);
+          found += (testObject2 ? (testObject2->matches() ? 1 : 0) : 0);
         }
 
         if (lastFound != found) {
@@ -3980,8 +4096,8 @@ void doTestRTPReceiver()
       switch (testNumber) {
         default:
         {
-          if (testObject1) {TESTING_CHECK(testObject1->matches(expectations1))}
-          if (testObject2) {TESTING_CHECK(testObject2->matches(expectations2))}
+          if (testObject1) {TESTING_CHECK(testObject1->matches())}
+          if (testObject2) {TESTING_CHECK(testObject2->matches())}
           break;
         }
       }
