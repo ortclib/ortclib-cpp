@@ -89,6 +89,7 @@ namespace ortc
       UseServicesHelper::debugAppend(resultEl, "codec kind", mCodecKind.hasValue() ? IRTPTypes::toString(mCodecKind.value()) : (const char *)NULL);
       UseServicesHelper::debugAppend(resultEl, "supported codec", mSupportedCodec.hasValue() ? IRTPTypes::toString(mSupportedCodec.value()) : (const char *)NULL);
       UseServicesHelper::debugAppend(resultEl, "clock rate", mClockRate);
+      UseServicesHelper::debugAppend(resultEl, "match clock rate not set", mMatchClockRateNotSet);
       UseServicesHelper::debugAppend(resultEl, "disallowed matches", mDisallowedPayloadtypeMatches.size());
 
       if (mDisallowedPayloadtypeMatches.size() > 0) {
@@ -698,6 +699,26 @@ namespace ortc
           }
         }
 
+        if (options.mClockRate.hasValue()) {
+          if (codec.mClockRate.hasValue()) {
+            if (codec.mClockRate.value() != options.mClockRate.value()) continue;
+          } else {
+            if (options.mMatchClockRateNotSet.hasValue()) {
+              if (!options.mMatchClockRateNotSet.value()) continue;
+            } else {
+              continue; // must match exact clock rate
+            }
+          }
+        } else {
+          if (options.mMatchClockRateNotSet.hasValue()) {
+            if (options.mMatchClockRateNotSet.value()) {
+              if (codec.mClockRate.hasValue()) continue;  // cannot match as clock rate was set
+            } else {
+              if (!codec.mClockRate.hasValue()) continue; // cannot match as clock rate was not set
+            }
+          }
+        }
+
         if (options.mKind.hasValue()) {
           switch (codecKind) {
             case IRTPTypes::CodecKind_Unknown:  continue;
@@ -817,6 +838,9 @@ namespace ortc
 
           FindCodecOptions options;
           options.mClockRate = oldCodec.mClockRate;
+          if (!oldCodec.mClockRate.hasValue()) {
+            options.mMatchClockRateNotSet = true;
+          }
           options.mPayloadType = oldCodec.mPayloadType;
           options.mSupportedCodec = IRTPTypes::toSupportedCodec(oldCodec.mName);
           options.mDisallowMultipleMatches = true;
@@ -979,6 +1003,7 @@ namespace ortc
 
       options.mPayloadType = rtxPayloadType;
       options.mClockRate = mainCodec->mClockRate;
+      options.mMatchClockRateNotSet = true;
       options.mCodecKind = IRTPTypes::CodecKind_RTX;
       options.mDisallowMultipleMatches = true;
 
@@ -1047,6 +1072,7 @@ namespace ortc
       FindCodecOptions options;
       options.mCodecKind = IRTPTypes::CodecKind_FEC;
       options.mClockRate = mainCodec->mClockRate;
+      options.mMatchClockRateNotSet = true;
 
       switch (mechanism) {
         case IRTPTypes::KnownFECMechanism_Unknown:      {
@@ -1099,6 +1125,7 @@ namespace ortc
           ulpOptions.mSupportedCodec = IRTPTypes::SupportedCodec_ULPFEC;
           ulpOptions.mPayloadType = redPayloadType;
           ulpOptions.mClockRate = mainCodec->mClockRate;
+          ulpOptions.mMatchClockRateNotSet = true;
 
           auto foundULPCodec = findCodec(params, ulpOptions);
           if (!foundULPCodec) continue;
@@ -1256,7 +1283,7 @@ namespace ortc
             if (!baseCodec) goto not_possible_match;
 
             if (baseCodec->mClockRate.hasValue()) {
-              if (outCodecParameters->mClockRate.hasValue()) {
+              if (outCodecParameters->mClockRate.hasValue()) {  // NOTE: will allow match if supplemental codec does not have a clock rate specified at all
                 if (baseCodec->mClockRate.value() != outCodecParameters->mClockRate.value()) goto not_possible_match;
               }
             }
@@ -1416,6 +1443,63 @@ namespace ortc
   #pragma mark
   #pragma mark IRTPTypes::CodecCapability
   #pragma mark
+
+  //---------------------------------------------------------------------------
+  IRTPTypes::CodecCapability::CodecCapability(const CodecCapability &source) :
+    mName(source.mName),
+    mKind(source.mKind),
+    mClockRate(source.mClockRate),
+    mPreferredPayloadType(source.mPreferredPayloadType),
+    mMaxPTime(source.mMaxPTime),
+    mNumChannels(source.mNumChannels),
+    mFeedback(source.mFeedback),
+    mMaxTemporalLayers(source.mMaxTemporalLayers),
+    mMaxSpatialLayers(source.mMaxSpatialLayers),
+    mSVCMultiStreamSupport(source.mSVCMultiStreamSupport)
+  {
+    if ((source.mParameters) ||
+        (source.mOptions)) {
+      SupportedCodecs supported = toSupportedCodec(source.mName);
+      if (source.mParameters) {
+        switch (supported) {
+          case SupportedCodec_Opus: {
+            auto codec = OpusCodecCapabilityParameters::convert(source.mParameters);
+            if (codec) {
+              mParameters = OpusCodecCapabilityParameters::create(*codec);
+            }
+            break;
+          }
+          case SupportedCodec_VP8:    {
+            auto codec = VP8CodecCapability::convert(source.mParameters);
+            if (codec) {
+              mParameters = VP8CodecCapability::create(*codec);
+            }
+            break;
+          }
+          case SupportedCodec_H264:   {
+            auto codec = H264CodecCapability::convert(source.mParameters);
+            if (codec) {
+              mParameters = H264CodecCapability::create(*codec);
+            }
+            break;
+          }
+          default: break;
+        }
+      }
+      if (source.mOptions) {
+        switch (supported) {
+          case SupportedCodec_Opus: {
+            auto codec = OpusCodecCapabilityOptions::convert(source.mOptions);
+            if (codec) {
+              mOptions = OpusCodecCapabilityOptions::create(*codec);
+            }
+            break;
+          }
+          default: break;
+        }
+      }
+    }
+  }
 
   //---------------------------------------------------------------------------
   ElementPtr IRTPTypes::CodecCapability::toDebug() const
@@ -2063,6 +2147,65 @@ namespace ortc
   #pragma mark
   #pragma mark IRTPTypes::CodecParameters
   #pragma mark
+
+  //---------------------------------------------------------------------------
+  IRTPTypes::CodecParameters::CodecParameters(const CodecParameters &source) :
+    mName(source.mName),
+    mPayloadType(source.mPayloadType),
+    mClockRate(source.mClockRate),
+    mMaxPTime(source.mMaxPTime),
+    mNumChannels(source.mNumChannels),
+    mRTCPFeedback(source.mRTCPFeedback)
+  {
+    if (source.mParameters) {
+      SupportedCodecs supported = toSupportedCodec(source.mName);
+      switch (supported) {
+        case SupportedCodec_Opus: {
+          auto codec = OpusCodecParameters::convert(source.mParameters);
+          if (codec) {
+            mParameters = OpusCodecParameters::create(*codec);
+          }
+          break;
+        }
+        case SupportedCodec_VP8: {
+          auto codec = VP8CodecParameters::convert(source.mParameters);
+          if (codec) {
+            mParameters = VP8CodecParameters::create(*codec);
+          }
+          break;
+        }
+        case SupportedCodec_H264: {
+          auto codec = H264CodecParameters::convert(source.mParameters);
+          if (codec) {
+            mParameters = H264CodecParameters::create(*codec);
+          }
+          break;
+        }
+        case SupportedCodec_RTX: {
+          auto codec = RTXCodecParameters::convert(source.mParameters);
+          if (codec) {
+            mParameters = RTXCodecParameters::create(*codec);
+          }
+          break;
+        }
+        case SupportedCodec_RED: {
+          auto codec = REDCodecParameters::convert(source.mParameters);
+          if (codec) {
+            mParameters = REDCodecParameters::create(*codec);
+          }
+          break;
+        }
+        case SupportedCodec_FlexFEC: {
+          auto codec = FlexFECCodecParameters::convert(source.mParameters);
+          if (codec) {
+            mParameters = FlexFECCodecParameters::create(*codec);
+          }
+          break;
+        }
+        default: break;
+      }
+    }
+  }
 
   //---------------------------------------------------------------------------
   ElementPtr IRTPTypes::CodecParameters::toDebug() const

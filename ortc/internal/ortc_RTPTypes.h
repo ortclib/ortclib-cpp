@@ -67,6 +67,7 @@ namespace ortc
         Optional<IRTPTypes::CodecKinds> mCodecKind;
         Optional<IRTPTypes::SupportedCodecs> mSupportedCodec;
         Optional<ULONG> mClockRate;
+        Optional<bool> mMatchClockRateNotSet;
         PayloadTypeSet mDisallowedPayloadtypeMatches;
         Optional<bool> mDisallowMultipleMatches;
 

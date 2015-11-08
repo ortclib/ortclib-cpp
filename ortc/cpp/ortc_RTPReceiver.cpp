@@ -2733,6 +2733,7 @@ namespace ortc
         {
           RTPTypesHelper::FindCodecOptions options;
           options.mClockRate = codec.mClockRate;
+          options.mMatchClockRateNotSet = true;
           options.mPayloadType = filledEncoding.mCodecPayloadType;
 
           auto foundCodec = RTPTypesHelper::findCodec(*mParameters, options);
@@ -2844,6 +2845,7 @@ namespace ortc
                 RTPTypesHelper::FindCodecOptions rtxFindOptions;
                 rtxFindOptions.mSupportedCodec = SupportedCodec_ULPFEC;
                 rtxFindOptions.mClockRate = codec.mClockRate;
+                rtxFindOptions.mMatchClockRateNotSet = true;
 
                 const CodecParameters *ulpfecCodec = RTPTypesHelper::findCodec(*mParameters, rtxFindOptions);
                 if (ulpfecCodec) {

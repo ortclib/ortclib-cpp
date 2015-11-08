@@ -3353,7 +3353,7 @@ void doTestRTPReceiver()
                   IRTPTypes::REDCodecParameters redCodecParams1;
                   redCodecParams1.mPayloadTypes.push_back(122);
                   IRTPTypes::REDCodecParameters redCodecParams2;
-                  redCodecParams1.mPayloadTypes.push_back(123);
+                  redCodecParams2.mPayloadTypes.push_back(123);
 
                   codec.mName = IRTPTypes::toString(IRTPTypes::SupportedCodec_RED);
                   codec.mClockRate = 90000;

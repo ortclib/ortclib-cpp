@@ -119,6 +119,8 @@ namespace ortc
       USHORT            mMaxSpatialLayers {0};
       bool              mSVCMultiStreamSupport {};
 
+      CodecCapability() {};
+      CodecCapability(const CodecCapability &source);
       ElementPtr toDebug() const;
       String hash() const;
     };
@@ -298,6 +300,8 @@ namespace ortc
       RtcpFeedbackList  mRTCPFeedback;
       AnyPtr            mParameters;  // see OpusCodecParameters, RTXCodecParameters, REDCodecParameters, FlexFECCodecParameters for definitions
 
+      CodecParameters() {}
+      CodecParameters(const CodecParameters &source);
       ElementPtr toDebug() const;
       String hash() const;
     };
