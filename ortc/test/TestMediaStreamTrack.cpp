@@ -127,24 +127,36 @@ namespace ortc
       class PromiseWithMediaStreamTrackListCallback : public IPromiseResolutionDelegate
       {
       private:
-        PromiseWithMediaStreamTrackListCallback(MediaStreamTrackTesterPtr tester) : mTester(tester)
+        PromiseWithMediaStreamTrackListCallback(MediaStreamTrackTesterPtr tester, IMediaStreamTrackTypes::Kinds kind) : 
+          mTester(tester),
+          mKind(kind)
         {
         }
 
       public:
-        static PromiseWithMediaStreamTrackListCallbackPtr create(MediaStreamTrackTesterPtr tester)
+        static PromiseWithMediaStreamTrackListCallbackPtr create(MediaStreamTrackTesterPtr tester, IMediaStreamTrackTypes::Kinds kind)
         {
-          return PromiseWithMediaStreamTrackListCallbackPtr(new PromiseWithMediaStreamTrackListCallback(tester));
+          return PromiseWithMediaStreamTrackListCallbackPtr(new PromiseWithMediaStreamTrackListCallback(tester, kind));
         }
 
         virtual void onPromiseResolved(PromisePtr promise)
         {
-          ortc::IMediaDevicesTypes::MediaStreamTrackListPtr trackList = promise->value<ortc::IMediaDevicesTypes::MediaStreamTrackList>();
-          mTester.lock()->mLocalVideoMediaStreamTrack = MediaStreamTrack::convert(*trackList->begin());
-          //IInspectable* localMediaElementPtr = reinterpret_cast<IInspectable*>(mTester.lock()->mLocalMediaElement);
-          //mTester.lock()->mLocalVideoMediaStreamTrack->setMediaElement(localMediaElementPtr);
+          if (mKind == IMediaStreamTrackTypes::Kinds::Kind_Video)
+          {
+            ortc::IMediaDevicesTypes::MediaStreamTrackListPtr trackList = promise->value<ortc::IMediaDevicesTypes::MediaStreamTrackList>();
+            mTester.lock()->mLocalVideoMediaStreamTrack = MediaStreamTrack::convert(*trackList->begin());
+            //IInspectable* localMediaElementPtr = reinterpret_cast<IInspectable*>(mTester.lock()->mLocalMediaElement);
+            //mTester.lock()->mLocalVideoMediaStreamTrack->setMediaElement(localMediaElementPtr);
 
-          mTester.lock()->mVideoSender = FakeSender::create(mTester.lock(), mTester.lock()->mLocalVideoMediaStreamTrack);
+            mTester.lock()->mVideoSender = FakeSender::create(mTester.lock(), mTester.lock()->mLocalVideoMediaStreamTrack);
+          }
+          else if (mKind == IMediaStreamTrackTypes::Kinds::Kind_Audio)
+          {
+            ortc::IMediaDevicesTypes::MediaStreamTrackListPtr trackList = promise->value<ortc::IMediaDevicesTypes::MediaStreamTrackList>();
+            mTester.lock()->mLocalAudioMediaStreamTrack = MediaStreamTrack::convert(*trackList->begin());
+
+            mTester.lock()->mVideoSender = FakeSender::create(mTester.lock(), mTester.lock()->mLocalAudioMediaStreamTrack);
+          }
         }
 
         virtual void onPromiseRejected(PromisePtr promise)
@@ -157,6 +169,7 @@ namespace ortc
 
       private:
         MediaStreamTrackTesterWeakPtr mTester;
+        IMediaStreamTrackTypes::Kinds mKind;
       };
 
       //-----------------------------------------------------------------------
@@ -170,31 +183,71 @@ namespace ortc
       class PromiseWithDeviceListCallback : public IPromiseResolutionDelegate
       {
       private:
-        PromiseWithDeviceListCallback(MediaStreamTrackTesterPtr tester) : mTester(tester)
+        PromiseWithDeviceListCallback(MediaStreamTrackTesterPtr tester, IMediaStreamTrackTypes::Kinds kind) : 
+          mTester(tester),
+          mKind(kind)
         {
         }
 
       public:
-        static PromiseWithDeviceListCallbackPtr create(MediaStreamTrackTesterPtr tester)
+        static PromiseWithDeviceListCallbackPtr create(MediaStreamTrackTesterPtr tester, IMediaStreamTrackTypes::Kinds kind)
         {
-          return PromiseWithDeviceListCallbackPtr(new PromiseWithDeviceListCallback(tester));
+          return PromiseWithDeviceListCallbackPtr(new PromiseWithDeviceListCallback(tester, kind));
         }
 
         virtual void onPromiseResolved(PromisePtr promise)
         {
-          ortc::IMediaDevicesTypes::DeviceListPtr deviceList = promise->value<ortc::IMediaDevicesTypes::DeviceList>();
-          ortc::IMediaDevicesTypes::Device device = deviceList->front();
-          ortc::IMediaDevicesTypes::ConstraintSetPtr constraintSet = ortc::IMediaDevicesTypes::ConstraintSet::create();
-          constraintSet->mDeviceID.mValue.value().mValue.value() = device.mDeviceID;
-          constraintSet->mWidth.mValue.value() = 800;
-          constraintSet->mHeight.mValue.value() = 600;
-          constraintSet->mFrameRate.mValue.value() = 30;
-          ConstraintsPtr constraints = Constraints::create();
-          constraints->mVideo = ortc::IMediaStreamTrackTypes::TrackConstraints::create();
-          constraints->mVideo->mAdvanced.push_back(constraintSet);
-          //IMediaDevicesTypes::PromiseWithMediaStreamTrackListPtr  ptr = IMediaDevices::getUserMedia(*constraints);
-          mTester.lock()->mVideoPromiseWithMediaStreamTrackList = IMediaDevices::getUserMedia(*constraints);
-          mTester.lock()->mVideoPromiseWithMediaStreamTrackList->then(PromiseWithMediaStreamTrackListCallback::create(mTester.lock()));
+          if (mKind == IMediaStreamTrackTypes::Kinds::Kind_Video)
+          {
+            ortc::IMediaDevicesTypes::DeviceListPtr deviceList = promise->value<ortc::IMediaDevicesTypes::DeviceList>();
+            ortc::IMediaDevicesTypes::Device device;
+            ortc::IMediaDevicesTypes::DeviceList::iterator iter = deviceList->begin();
+            while (iter != deviceList->end())
+            {
+              if (iter->mKind == IMediaDevicesTypes::DeviceKinds::DeviceKind_Video)
+              {
+                device = *iter;
+              }
+              iter++;
+            }
+            ortc::IMediaDevicesTypes::ConstraintSetPtr constraintSet = ortc::IMediaDevicesTypes::ConstraintSet::create();
+            constraintSet->mDeviceID.mValue.value().mValue.value() = device.mDeviceID;
+            constraintSet->mWidth.mValue.value() = 800;
+            constraintSet->mHeight.mValue.value() = 600;
+            constraintSet->mFrameRate.mValue.value() = 30;
+            ConstraintsPtr constraints = Constraints::create();
+            constraints->mVideo = ortc::IMediaStreamTrackTypes::TrackConstraints::create();
+            constraints->mVideo->mAdvanced.push_back(constraintSet);
+            mTester.lock()->mVideoPromiseWithMediaStreamTrackList = IMediaDevices::getUserMedia(*constraints);
+            mTester.lock()->mVideoPromiseWithMediaStreamTrackList->then(PromiseWithMediaStreamTrackListCallback::create(mTester.lock(), mKind));
+          }
+          else if (mKind == IMediaStreamTrackTypes::Kinds::Kind_Audio)
+          {
+            ortc::IMediaDevicesTypes::DeviceListPtr deviceList = promise->value<ortc::IMediaDevicesTypes::DeviceList>();
+            ortc::IMediaDevicesTypes::Device inputDevice;
+            ortc::IMediaDevicesTypes::Device outputDevice;
+            ortc::IMediaDevicesTypes::DeviceList::iterator iter = deviceList->begin();
+            while (iter != deviceList->end())
+            {
+              if (iter->mKind == IMediaDevicesTypes::DeviceKinds::DeviceKind_AudioInput)
+              {
+                inputDevice = *iter;
+              }
+              if (iter->mKind == IMediaDevicesTypes::DeviceKinds::DeviceKind_AudioOutput)
+              {
+                outputDevice = *iter;
+              }
+              iter++;
+            }
+            ortc::IMediaDevicesTypes::ConstraintSetPtr constraintSet = ortc::IMediaDevicesTypes::ConstraintSet::create();
+            constraintSet->mDeviceID.mValue.value().mValue.value() = inputDevice.mDeviceID;
+            constraintSet->mSampleRate.mValue.value() = 48000;
+            ConstraintsPtr constraints = Constraints::create();
+            constraints->mAudio = ortc::IMediaStreamTrackTypes::TrackConstraints::create();
+            constraints->mAudio->mAdvanced.push_back(constraintSet);
+            mTester.lock()->mAudioPromiseWithMediaStreamTrackList = IMediaDevices::getUserMedia(*constraints);
+            mTester.lock()->mAudioPromiseWithMediaStreamTrackList->then(PromiseWithMediaStreamTrackListCallback::create(mTester.lock(), mKind));
+          }
         }
 
         virtual void onPromiseRejected(PromisePtr promise)
@@ -207,6 +260,7 @@ namespace ortc
 
       private:
         MediaStreamTrackTesterWeakPtr mTester;
+        IMediaStreamTrackTypes::Kinds mKind;
       };
 
       //-----------------------------------------------------------------------
@@ -482,9 +536,6 @@ namespace ortc
         ZS_LOG_BASIC(log("created"))
 
         mTrack = MediaStreamTrack::convert(track);
-
-        mTrack->setSender(mThisWeak.lock());
-        mTrack->notifyAttachSenderChannel(RTPSenderChannel::convert(mChannel));
       }
 
       //-----------------------------------------------------------------------
@@ -510,6 +561,8 @@ namespace ortc
       //-----------------------------------------------------------------------
       void FakeSender::init()
       {
+        mTrack->setSender(mThisWeak.lock());
+        mTrack->notifyAttachSenderChannel(RTPSenderChannel::convert(mChannel));
       }
 
       //-----------------------------------------------------------------------
@@ -568,7 +621,8 @@ namespace ortc
         RTPSenderChannel(Noop(true)),
         mTester(tester),
         mTrack(MediaStreamTrack::convert(track)),
-        mReceivedVideoFrames(0)
+        mReceivedVideoFrames(0),
+        mReceivedAudioSamples(0)
       {
         ZS_LOG_BASIC(log("created"))
 
@@ -636,6 +690,20 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
+      void FakeSenderChannel::sendAudioSamples(
+                                               const void* audioSamples,
+                                               const size_t numberOfSamples
+                                               )
+      {
+        mReceivedAudioSamples += numberOfSamples;
+        if (mReceivedAudioSamples > 144000)
+          return;
+        mTester.lock()->notifyReceivedAudioSamples(numberOfSamples);
+        if (mReceivedAudioSamples == 144000)
+          mTester.lock()->notifyLocalAudioTrackEvent();
+      }
+
+      //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
@@ -663,8 +731,10 @@ namespace ortc
       //-----------------------------------------------------------------------
       bool MediaStreamTrackTester::Expectations::operator==(const Expectations &op2) const
       {
-        return  (mReceivedVideoFrames == op2.mReceivedVideoFrames) &&
-          (mSentVideoFrames == op2.mSentVideoFrames);
+        return (mSentVideoFrames == op2.mSentVideoFrames) &&
+          (mSentAudioSamples == op2.mSentAudioSamples) &&
+          (mReceivedVideoFrames == op2.mReceivedVideoFrames) &&
+          (mReceivedAudioSamples == op2.mReceivedAudioSamples);
       }
 
       //-----------------------------------------------------------------------
@@ -754,7 +824,9 @@ namespace ortc
         MessageQueueAssociator(queue),
         mOverrideFactories(overrideFactories),
         mLocalVideoTrackEvent(Event::create()),
-        mRemoteVideoTrackEvent(Event::create())
+        mRemoteVideoTrackEvent(Event::create()),
+        mLocalAudioTrackEvent(Event::create()),
+        mRemoteAudioTrackEvent(Event::create())
       {
         ZS_LOG_BASIC(log("mediastreamtrack tester"))
       }
@@ -804,7 +876,7 @@ namespace ortc
       void MediaStreamTrackTester::startLocalVideoTrack()
       {
         mVideoPromiseWithDeviceList = IMediaDevices::enumerateDevices();
-        mVideoPromiseWithDeviceList->then(PromiseWithDeviceListCallback::create(mThisWeak.lock()));
+        mVideoPromiseWithDeviceList->then(PromiseWithDeviceListCallback::create(mThisWeak.lock(), IMediaStreamTrackTypes::Kinds::Kind_Video));
         mLocalVideoTrackEvent->wait();
         if (mLocalVideoMediaStreamTrack)
           IMediaStreamTrackPtr(mLocalVideoMediaStreamTrack)->stop();
@@ -815,12 +887,34 @@ namespace ortc
       {
         mVideoReceiver = FakeReceiver::create(mThisWeak.lock());
 
-        IMediaStreamTrackPtr track = mVideoReceiver->track();
-        track->setMediaElement(videoSurface);
+        mRemoteVideoMediaStreamTrack = MediaStreamTrack::convert(mVideoReceiver->track());
+        IMediaStreamTrackPtr(mRemoteVideoMediaStreamTrack)->setMediaElement(videoSurface);
 
         mRemoteVideoTrackEvent->wait();
         if (mRemoteVideoMediaStreamTrack)
           IMediaStreamTrackPtr(mRemoteVideoMediaStreamTrack)->stop();
+      }
+
+      //-----------------------------------------------------------------------
+      void MediaStreamTrackTester::startLocalAudioTrack()
+      {
+        mAudioPromiseWithDeviceList = IMediaDevices::enumerateDevices();
+        mAudioPromiseWithDeviceList->then(PromiseWithDeviceListCallback::create(mThisWeak.lock(), IMediaStreamTrackTypes::Kinds::Kind_Audio));
+        mLocalAudioTrackEvent->wait();
+        if (mLocalAudioMediaStreamTrack)
+          IMediaStreamTrackPtr(mLocalAudioMediaStreamTrack)->stop();
+      }
+
+      //-----------------------------------------------------------------------
+      void MediaStreamTrackTester::startRemoteAudioTrack()
+      {
+        mAudioReceiver = FakeReceiver::create(mThisWeak.lock());
+
+        mRemoteAudioMediaStreamTrack = MediaStreamTrack::convert(mVideoReceiver->track());
+
+        mRemoteAudioTrackEvent->wait();
+        if (mRemoteAudioMediaStreamTrack)
+          IMediaStreamTrackPtr(mRemoteAudioMediaStreamTrack)->stop();
       }
 
       //-----------------------------------------------------------------------
@@ -944,6 +1038,20 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
+      void MediaStreamTrackTester::notifySentAudioSamples(int numberOfSamples)
+      {
+        ZS_LOG_BASIC(log("notified sent audio samples"))
+
+      }
+
+      //-----------------------------------------------------------------------
+      void MediaStreamTrackTester::notifyRemoteAudioTrackEvent()
+      {
+        ZS_LOG_BASIC(log("notified remote audio track event"))
+
+      }
+
+      //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
@@ -976,6 +1084,26 @@ namespace ortc
         AutoRecursiveLock lock(*this);
         mLocalVideoTrackEvent->notify();
         mLocalVideoTrackEvent->reset();
+      }
+
+      //-----------------------------------------------------------------------
+      void MediaStreamTrackTester::notifyReceivedAudioSamples(int numberOfSamples)
+      {
+        ZS_LOG_BASIC(log("notified received audio samples"))
+
+        AutoRecursiveLock lock(*this);
+        mExpectations.mReceivedAudioSamples += numberOfSamples;
+      }
+
+      //-----------------------------------------------------------------------
+      void MediaStreamTrackTester::notifyLocalAudioTrackEvent()
+      {
+        ZS_LOG_BASIC(log("notified local audio track event"))
+
+        AutoRecursiveLock lock(*this);
+        mLocalAudioTrackEvent->notify();
+        mLocalAudioTrackEvent->reset();
+
       }
 
       //-----------------------------------------------------------------------
@@ -1073,6 +1201,8 @@ void doTestMediaStreamTrack(void* videoSurface)
 
           expectations.mReceivedVideoFrames = 100;
           expectations.mSentVideoFrames = 100;
+          expectations.mReceivedAudioSamples = 144000;
+          expectations.mSentAudioSamples = 144000;
         }
         break;
       }
@@ -1115,6 +1245,16 @@ void doTestMediaStreamTrack(void* videoSurface)
             break;
           }
           case 4: {
+            if (testObject) testObject->startLocalAudioTrack();
+            //  bogusSleep();
+            break;
+          }
+          case 5: {
+            if (testObject) testObject->startRemoteAudioTrack();
+            //  bogusSleep();
+            break;
+          }
+          case 6: {
             lastStepReached = true;
             break;
           }

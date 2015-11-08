@@ -51,6 +51,7 @@
 #include <limits>
 
 #include <webrtc/modules/video_capture/include/video_capture_factory.h>
+#include <webrtc/modules/audio_device/audio_device_impl.h>
 
 #ifdef _DEBUG
 #define ASSERT(x) ZS_THROW_BAD_STATE_IF(!(x))
@@ -134,7 +135,8 @@ namespace ortc
       mConstraints(constraints),
       mVideoCaptureModule(NULL),
       mVideoRenderModule(NULL),
-      mVideoRendererCallback(NULL)
+      mVideoRendererCallback(NULL),
+      mAudioDeviceModule(NULL)
     {
       ZS_LOG_DETAIL(debug("created"))
     }
@@ -204,6 +206,23 @@ namespace ortc
         }
       } else if (mKind == Kind_Video && mRemote) {
 
+      } else if (mKind == Kind_Audio) {
+        mAudioDeviceModule = webrtc::AudioDeviceModuleImpl::Create(1, webrtc::AudioDeviceModule::kWindowsWasapiAudio);
+        if (!mAudioDeviceModule) {
+          return;
+        }
+        mAudioDeviceModule->AddRef();
+        mAudioDeviceModule->RegisterAudioCallback(this);
+        mAudioDeviceModule->Init();
+        if (!mRemote) {
+          mAudioDeviceModule->SetRecordingDevice(webrtc::AudioDeviceModule::kDefaultCommunicationDevice);
+          mAudioDeviceModule->InitRecording();
+          mAudioDeviceModule->StartRecording();
+        } else {
+          mAudioDeviceModule->SetPlayoutDevice(webrtc::AudioDeviceModule::kDefaultCommunicationDevice);
+          mAudioDeviceModule->InitPlayout();
+          mAudioDeviceModule->StartPlayout();
+        }
       }
     }
 
@@ -422,8 +441,18 @@ namespace ortc
         mVideoCaptureModule->StopCapture();
         mVideoCaptureModule->DeRegisterCaptureDataCallback();
       }
+
       if (mVideoRenderModule)
         mVideoRenderModule->StopRender(1);
+
+      if (mAudioDeviceModule) {
+        if (!mRemote)
+          mAudioDeviceModule->StopRecording();
+        else
+          mAudioDeviceModule->StopPlayout();
+        mAudioDeviceModule->RegisterAudioCallback(nullptr);
+        mAudioDeviceModule->Terminate();
+      }
     }
 
     //-------------------------------------------------------------------------
@@ -694,6 +723,48 @@ namespace ortc
     void MediaStreamTrack::OnCaptureDelayChanged(const int32_t id, const int32_t delay)
     {
 
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark MediaStreamTrack => webrtc::AudioTransport
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    int32_t MediaStreamTrack::RecordedDataIsAvailable(
+                                                      const void* audioSamples,
+                                                      const size_t nSamples,
+                                                      const size_t nBytesPerSample,
+                                                      const uint8_t nChannels,
+                                                      const uint32_t samplesPerSec,
+                                                      const uint32_t totalDelayMS,
+                                                      const int32_t clockDrift,
+                                                      const uint32_t currentMicLevel,
+                                                      const bool keyPressed,
+                                                      uint32_t& newMicLevel
+                                                      )
+    {
+      if (mSenderChannel.lock())
+        mSenderChannel.lock()->sendAudioSamples(audioSamples, nSamples);
+      return 0;
+    }
+
+    //-------------------------------------------------------------------------
+    int32_t MediaStreamTrack::NeedMorePlayData(
+                                               const size_t nSamples,
+                                               const size_t nBytesPerSample,
+                                               const uint8_t nChannels,
+                                               const uint32_t samplesPerSec,
+                                               void* audioSamples,
+                                               size_t& nSamplesOut,
+                                               int64_t* elapsed_time_ms,
+                                               int64_t* ntp_time_ms
+                                               )
+    {
+      return 0;
     }
 
     //-------------------------------------------------------------------------

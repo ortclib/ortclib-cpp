@@ -45,6 +45,7 @@
 #include <cryptopp/sha.h>
 
 #include <webrtc/modules/video_capture/include/video_capture_factory.h>
+#include <webrtc/modules/audio_device/audio_device_impl.h>
 
 #ifdef _DEBUG
 #define ASSERT(x) ZS_THROW_BAD_STATE_IF(!(x))
@@ -332,26 +333,64 @@ namespace ortc
     {
       AutoRecursiveLock lock(*this);
 
+      DeviceListPtr value(std::make_shared<DeviceList>());
+
       webrtc::VideoCaptureModule::DeviceInfo* info = webrtc::VideoCaptureFactory::CreateDeviceInfo(0);
       if (!info) {
         promise->reject();
         return;
       }
 
-      DeviceListPtr value(std::make_shared<DeviceList>());
       int numCams = info->NumberOfDevices();
       for (int index = 0; index < numCams; ++index) {
-        char vcmName[256];
-        char vcmID[256];
-        if (info->GetDeviceName(index, vcmName, sizeof(vcmName),
-          vcmID, sizeof(vcmID)) != -1) {
+        char deviceName[256];
+        char deviceUniqueId[256];
+        if (info->GetDeviceName(index, deviceName, sizeof(deviceName),
+          deviceUniqueId, sizeof(deviceUniqueId)) != -1) {
           Device device;
           device.mKind = DeviceKind_Video;
-          device.mDeviceID = vcmID;
+          device.mDeviceID = deviceUniqueId;
           value->push_back(device);
         }
       }
       delete info;
+
+      webrtc::AudioDeviceModule* audioDevice =
+        webrtc::AudioDeviceModuleImpl::Create(1, webrtc::AudioDeviceModule::kWindowsWasapiAudio);
+      if (!audioDevice) {
+        promise->reject();
+        return;
+      }
+
+      audioDevice->AddRef();
+
+      audioDevice->Init();
+
+      int numMics = audioDevice->RecordingDevices();
+      for (int index = 0; index < numMics; ++index) {
+        char deviceName[webrtc::kAdmMaxDeviceNameSize];
+        char deviceGuid[webrtc::kAdmMaxGuidSize];
+        if (audioDevice->RecordingDeviceName(index, deviceName, deviceGuid) != -1) {
+          Device device;
+          device.mKind = DeviceKind_AudioInput;
+          device.mDeviceID = deviceGuid;
+          value->push_back(device);
+        }
+      }
+
+      int numSpeaks = audioDevice->PlayoutDevices();
+      for (int index = 0; index < numSpeaks; ++index) {
+        char deviceName[webrtc::kAdmMaxDeviceNameSize];
+        char deviceGuid[webrtc::kAdmMaxGuidSize];
+        if (audioDevice->PlayoutDeviceName(index, deviceName, deviceGuid) != -1) {
+          Device device;
+          device.mKind = DeviceKind_AudioOutput;
+          device.mDeviceID = deviceGuid;
+          value->push_back(device);
+        }
+      }
+
+      audioDevice->Terminate();
 
       promise->resolve(value);
     }
@@ -361,13 +400,27 @@ namespace ortc
     {
       AutoRecursiveLock lock(*this);
 
-      MediaStreamTrackPtr videoTrack = IMediaStreamTrackFactory::singleton().create(IMediaStreamTrackTypes::Kinds::Kind_Video,
-                                                                                    false,
-                                                                                    constraints->mVideo
-                                                                                    );
-
       MediaStreamTrackListPtr value(std::make_shared<MediaStreamTrackList>());
-      value->push_back(videoTrack);
+
+      if (constraints->mVideo)
+      {
+        MediaStreamTrackPtr videoTrack = IMediaStreamTrackFactory::singleton().create(
+                                                                                      IMediaStreamTrackTypes::Kinds::Kind_Video,
+                                                                                      false,
+                                                                                      constraints->mVideo
+                                                                                      );
+        value->push_back(videoTrack);
+      }
+
+      if (constraints->mAudio)
+      {
+        MediaStreamTrackPtr audioTrack = IMediaStreamTrackFactory::singleton().create(
+                                                                                      IMediaStreamTrackTypes::Kinds::Kind_Audio,
+                                                                                      false,
+                                                                                      constraints->mAudio
+                                                                                      );
+        value->push_back(audioTrack);
+      }
 
       promise->resolve(value);
     }

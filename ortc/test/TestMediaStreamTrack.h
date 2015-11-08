@@ -388,7 +388,12 @@ namespace ortc
 
         virtual ElementPtr toDebug() const override;
 
-        virtual void sendVideoFrame(const webrtc::VideoFrame& videoFrame);
+        virtual void sendVideoFrame(const webrtc::VideoFrame& videoFrame) override;
+
+        virtual void sendAudioSamples(
+                                      const void* audioSamples,
+                                      const size_t numberOfSamples
+                                      ) override;
 
       protected:
         //---------------------------------------------------------------------
@@ -406,6 +411,7 @@ namespace ortc
         UseMediaStreamTrackPtr mTrack;
 
         ULONG mReceivedVideoFrames;
+        ULONG mReceivedAudioSamples;
       };
 
 
@@ -499,12 +505,14 @@ namespace ortc
           // receiver cannel related
 
           ULONG mSentVideoFrames;
+          ULONG mSentAudioSamples;
 
           // sender related
 
           // sender channel related
 
           ULONG mReceivedVideoFrames;
+          ULONG mReceivedAudioSamples;
 
           bool operator==(const Expectations &op2) const;
         };
@@ -535,6 +543,8 @@ namespace ortc
 
         void startLocalVideoTrack();
         void startRemoteVideoTrack(void* videoSurface);
+        void startLocalAudioTrack();
+        void startRemoteAudioTrack();
 
         Expectations getExpectations() const;
 
@@ -591,6 +601,8 @@ namespace ortc
 
         void notifySentVideoFrame();
         void notifyRemoteVideoTrackEvent();
+        void notifySentAudioSamples(int numberOfSamples);
+        void notifyRemoteAudioTrackEvent();
 
         //---------------------------------------------------------------------
         #pragma mark
@@ -604,6 +616,8 @@ namespace ortc
 
         void notifyReceivedVideoFrame();
         void notifyLocalVideoTrackEvent();
+        void notifyReceivedAudioSamples(int numberOfSamples);
+        void notifyLocalAudioTrackEvent();
 
       protected:
         //---------------------------------------------------------------------
@@ -629,14 +643,23 @@ namespace ortc
 
         EventPtr mLocalVideoTrackEvent;
         EventPtr mRemoteVideoTrackEvent;
+        EventPtr mLocalAudioTrackEvent;
+        EventPtr mRemoteAudioTrackEvent;
 
         PromiseWithMediaStreamTrackListPtr mVideoPromiseWithMediaStreamTrackList;
         PromiseWithDeviceListPtr mVideoPromiseWithDeviceList;
+        PromiseWithMediaStreamTrackListPtr mAudioPromiseWithMediaStreamTrackList;
+        PromiseWithDeviceListPtr mAudioPromiseWithDeviceList;
 
         MediaStreamTrackPtr mLocalVideoMediaStreamTrack;
         MediaStreamTrackPtr mRemoteVideoMediaStreamTrack;
+        MediaStreamTrackPtr mLocalAudioMediaStreamTrack;
+        MediaStreamTrackPtr mRemoteAudioMediaStreamTrack;
+
         FakeSenderPtr mVideoSender;
         FakeReceiverPtr mVideoReceiver;
+        FakeSenderPtr mAudioSender;
+        FakeReceiverPtr mAudioReceiver;
 
         Expectations mExpectations;
       };

@@ -42,6 +42,7 @@
 #include <webrtc/video_frame.h>
 #include <webrtc/modules/video_capture/include/video_capture.h>
 #include <webrtc/modules/video_render/include/video_render.h>
+#include <webrtc/modules/audio_device/include/audio_device.h>
 
 namespace ortc
 {
@@ -216,7 +217,8 @@ namespace ortc
                              public IWakeDelegate,
                              public zsLib::ITimerDelegate,
                              public IMediaStreamTrackAsyncDelegate,
-                             public webrtc::VideoCaptureDataCallback
+                             public webrtc::VideoCaptureDataCallback,
+                             public webrtc::AudioTransport
     {
     protected:
       struct make_private {};
@@ -401,12 +403,41 @@ namespace ortc
 
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark MediaStreamTrack => VideoCaptureDataCallback
+      #pragma mark MediaStreamTrack => webrtc::VideoCaptureDataCallback
       #pragma mark
 
       virtual void OnIncomingCapturedFrame(const int32_t id, const webrtc::VideoFrame& videoFrame) override;
 
       virtual void OnCaptureDelayChanged(const int32_t id, const int32_t delay) override;
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark MediaStreamTrack => webrtc::AudioTransport
+      #pragma mark
+
+      virtual int32_t RecordedDataIsAvailable(
+                                              const void* audioSamples,
+                                              const size_t nSamples,
+                                              const size_t nBytesPerSample,
+                                              const uint8_t nChannels,
+                                              const uint32_t samplesPerSec,
+                                              const uint32_t totalDelayMS,
+                                              const int32_t clockDrift,
+                                              const uint32_t currentMicLevel,
+                                              const bool keyPressed,
+                                              uint32_t& newMicLevel
+                                              );
+
+      virtual int32_t NeedMorePlayData(
+                                       const size_t nSamples,
+                                       const size_t nBytesPerSample,
+                                       const uint8_t nChannels,
+                                       const uint32_t samplesPerSec,
+                                       void* audioSamples,
+                                       size_t& nSamplesOut,
+                                       int64_t* elapsed_time_ms,
+                                       int64_t* ntp_time_ms
+                                       );
 
     protected:
       //-----------------------------------------------------------------------
@@ -459,6 +490,7 @@ namespace ortc
       webrtc::VideoCaptureModule* mVideoCaptureModule;
       webrtc::VideoRender* mVideoRenderModule;
       webrtc::VideoRenderCallback* mVideoRendererCallback;
+      webrtc::AudioDeviceModule* mAudioDeviceModule;
     };
 
     //-------------------------------------------------------------------------
