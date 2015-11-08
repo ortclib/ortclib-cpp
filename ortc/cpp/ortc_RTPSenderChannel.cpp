@@ -275,7 +275,8 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPSenderChannel::sendAudioSamples(
                                             const void* audioSamples,
-                                            const size_t numberOfSamples
+                                            const size_t numberOfSamples,
+                                            const uint8_t numberOfChannels
                                             )
     {
 

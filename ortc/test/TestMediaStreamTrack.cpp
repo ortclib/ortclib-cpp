@@ -284,6 +284,7 @@ namespace ortc
       FakeReceiver::FakeReceiver(
                                  const make_private &,
                                  MediaStreamTrackTesterPtr tester,
+                                 IMediaStreamTrackTypes::Kinds kind,
                                  IMessageQueuePtr queue
                                  ) :
         RTPReceiver(Noop(true)),
@@ -291,7 +292,7 @@ namespace ortc
       {
         ZS_LOG_BASIC(log("created"))
 
-        mTrack = UseMediaStreamTrack::create(IMediaStreamTrackTypes::Kinds::Kind_Video);
+        mTrack = UseMediaStreamTrack::create(kind);
         mChannel = FakeReceiverChannel::create(tester, mThisWeak.lock(), MediaStreamTrack::convert(mTrack));
       }
 
@@ -305,10 +306,11 @@ namespace ortc
 
       //-----------------------------------------------------------------------
       FakeReceiverPtr FakeReceiver::create(
-                                           MediaStreamTrackTesterPtr tester
+                                           MediaStreamTrackTesterPtr tester,
+                                           IMediaStreamTrackTypes::Kinds kind
                                            )
       {
-        FakeReceiverPtr pThis(make_shared<FakeReceiver>(make_private{}, tester));
+        FakeReceiverPtr pThis(make_shared<FakeReceiver>(make_private{}, tester, kind));
         pThis->mThisWeak = pThis;
         pThis->init();
         return pThis;
@@ -317,6 +319,8 @@ namespace ortc
       //-----------------------------------------------------------------------
       void FakeReceiver::init()
       {
+        mTrack->setReceiver(mThisWeak.lock());
+        mTrack->notifyActiveReceiverChannel(RTPReceiverChannel::convert(mChannel));
       }
 
       //-----------------------------------------------------------------------
@@ -383,7 +387,8 @@ namespace ortc
         RTPReceiverChannel(Noop(true), queue),
         mTester(tester),
         mTrack(MediaStreamTrack::convert(track)),
-        mSentVideoFrames(0)
+        mSentVideoFrames(0),
+        mSentAudioSamples(0)
       {
         ZS_LOG_BASIC(log("created"))
 
@@ -416,7 +421,8 @@ namespace ortc
       {
         AutoRecursiveLock lock(*this);
 
-        mTimer = Timer::create(mThisWeak.lock(), Milliseconds(30));
+        if (IMediaStreamTrackPtr(MediaStreamTrack::convert(mTrack))->kind() == IMediaStreamTrackTypes::Kinds::Kind_Video)
+          mTimer = Timer::create(mThisWeak.lock(), Milliseconds(30));
       }
 
       //-----------------------------------------------------------------------
@@ -442,6 +448,37 @@ namespace ortc
         return result;
       }
 
+      //-------------------------------------------------------------------------
+      void FakeReceiverChannel::getAudioSamples(
+                                                const size_t numberOfSamples,
+                                                const uint8_t numberOfChannels,
+                                                const void* audioSamples,
+                                                size_t& numberOfSamplesOut
+                                                )
+      {
+        mSentAudioSamples += numberOfSamples;
+
+        if (mSentAudioSamples > 144000)
+          return;
+
+        const UINT sampleRate = 48000;
+        const UINT waveFrequency = 5000;
+        const FLOAT pi = 3.14159265;
+        const UINT wavePeriodInSamples = sampleRate / waveFrequency;
+        SHORT* audioSamplesShort = (SHORT*)audioSamples;
+
+        for (int i = 0; i < numberOfSamples; i++)
+        {
+          float x = float(i % wavePeriodInSamples) / float(wavePeriodInSamples) * 2 * pi;
+          audioSamplesShort[2 * i + 0] = sin(x) * SHRT_MAX;
+          audioSamplesShort[2 * i + 1] = sin(x) * SHRT_MAX;
+        }
+
+        mTester.lock()->notifySentAudioSamples(numberOfSamples);
+        if (mSentAudioSamples == 144000)
+          mTester.lock()->notifyRemoteAudioTrackEvent();
+      }
+
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
@@ -463,7 +500,7 @@ namespace ortc
       {
         mSentVideoFrames++;
 
-        if (mSentVideoFrames > 100)
+        if (mSentVideoFrames > 100 || !mTrack)
           return;
 
         const int width = 640;
@@ -489,8 +526,7 @@ namespace ortc
           vBuffer += width / 2;
         }
 
-        if (mTrack)
-          mTrack->renderVideoFrame(frame);
+        mTrack->renderVideoFrame(frame);
 
         mTester.lock()->notifySentVideoFrame();
         if (mSentVideoFrames == 100)
@@ -692,7 +728,8 @@ namespace ortc
       //-----------------------------------------------------------------------
       void FakeSenderChannel::sendAudioSamples(
                                                const void* audioSamples,
-                                               const size_t numberOfSamples
+                                               const size_t numberOfSamples,
+                                               const uint8_t numberOfChannels
                                                )
       {
         mReceivedAudioSamples += numberOfSamples;
@@ -885,7 +922,7 @@ namespace ortc
       //-----------------------------------------------------------------------
       void MediaStreamTrackTester::startRemoteVideoTrack(void* videoSurface)
       {
-        mVideoReceiver = FakeReceiver::create(mThisWeak.lock());
+        mVideoReceiver = FakeReceiver::create(mThisWeak.lock(), IMediaStreamTrackTypes::Kinds::Kind_Video);
 
         mRemoteVideoMediaStreamTrack = MediaStreamTrack::convert(mVideoReceiver->track());
         IMediaStreamTrackPtr(mRemoteVideoMediaStreamTrack)->setMediaElement(videoSurface);
@@ -908,9 +945,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       void MediaStreamTrackTester::startRemoteAudioTrack()
       {
-        mAudioReceiver = FakeReceiver::create(mThisWeak.lock());
+        mAudioReceiver = FakeReceiver::create(mThisWeak.lock(), IMediaStreamTrackTypes::Kinds::Kind_Audio);
 
-        mRemoteAudioMediaStreamTrack = MediaStreamTrack::convert(mVideoReceiver->track());
+        mRemoteAudioMediaStreamTrack = MediaStreamTrack::convert(mAudioReceiver->track());
 
         mRemoteAudioTrackEvent->wait();
         if (mRemoteAudioMediaStreamTrack)
@@ -1042,6 +1079,8 @@ namespace ortc
       {
         ZS_LOG_BASIC(log("notified sent audio samples"))
 
+        AutoRecursiveLock lock(*this);
+        mExpectations.mSentAudioSamples += numberOfSamples;
       }
 
       //-----------------------------------------------------------------------
@@ -1049,6 +1088,9 @@ namespace ortc
       {
         ZS_LOG_BASIC(log("notified remote audio track event"))
 
+        AutoRecursiveLock lock(*this);
+        mRemoteAudioTrackEvent->notify();
+        mRemoteAudioTrackEvent->reset();
       }
 
       //-----------------------------------------------------------------------
@@ -1246,12 +1288,12 @@ void doTestMediaStreamTrack(void* videoSurface)
           }
           case 4: {
             if (testObject) testObject->startLocalAudioTrack();
-            //  bogusSleep();
+        //  bogusSleep();
             break;
           }
           case 5: {
             if (testObject) testObject->startRemoteAudioTrack();
-            //  bogusSleep();
+        //  bogusSleep();
             break;
           }
           case 6: {

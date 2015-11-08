@@ -146,12 +146,14 @@ namespace ortc
         FakeReceiver(
                      const make_private &,
                      MediaStreamTrackTesterPtr tester,
+                     IMediaStreamTrackTypes::Kinds kind,
                      IMessageQueuePtr queue = IMessageQueuePtr()
                      );
         ~FakeReceiver();
 
         static FakeReceiverPtr create(
-                                      MediaStreamTrackTesterPtr tester
+                                      MediaStreamTrackTesterPtr tester,
+                                      IMediaStreamTrackTypes::Kinds kind
                                       );
 
       protected:
@@ -241,6 +243,13 @@ namespace ortc
 
         virtual ElementPtr toDebug() const override;
 
+        virtual void getAudioSamples(
+                                     const size_t numberOfSamples,
+                                     const uint8_t numberOfChannels,
+                                     const void* audioSamples,
+                                     size_t& numberOfSamplesOut
+                                     ) override;
+
       protected:
         //---------------------------------------------------------------------
         #pragma mark
@@ -273,6 +282,7 @@ namespace ortc
         TimerPtr mTimer;
 
         ULONG mSentVideoFrames;
+        ULONG mSentAudioSamples;
       };
 
 
@@ -392,7 +402,8 @@ namespace ortc
 
         virtual void sendAudioSamples(
                                       const void* audioSamples,
-                                      const size_t numberOfSamples
+                                      const size_t numberOfSamples,
+                                      const uint8_t numberOfChannels
                                       ) override;
 
       protected:

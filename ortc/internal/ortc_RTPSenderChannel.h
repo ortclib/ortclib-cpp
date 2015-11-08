@@ -130,9 +130,11 @@ namespace ortc
       virtual PUID getID() const = 0;
 
       virtual void sendVideoFrame(const webrtc::VideoFrame& videoFrame) = 0;
+
       virtual void sendAudioSamples(
                                     const void* audioSamples,
-                                    const size_t numberOfSamples
+                                    const size_t numberOfSamples,
+                                    const uint8_t numberOfChannels
                                     ) = 0;
     };
 
@@ -250,7 +252,8 @@ namespace ortc
 
       virtual void sendAudioSamples(
                                     const void* audioSamples,
-                                    const size_t numberOfSamples
+                                    const size_t numberOfSamples,
+                                    const uint8_t numberOfChannels
                                     ) override;
 
       //-----------------------------------------------------------------------

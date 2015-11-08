@@ -298,6 +298,25 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
+    #pragma mark RTPReceiverChannel => IRTPReceiverChannelForMediaStreamTrack
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    void RTPReceiverChannel::getAudioSamples(
+                                             const size_t numberOfSamples,
+                                             const uint8_t numberOfChannels,
+                                             const void* audioSamples,
+                                             size_t& numberOfSamplesOut
+                                             )
+    {
+
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
     #pragma mark RTPReceiverChannel => IWakeDelegate
     #pragma mark
 

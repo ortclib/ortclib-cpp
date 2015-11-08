@@ -748,7 +748,7 @@ namespace ortc
                                                       )
     {
       if (mSenderChannel.lock())
-        mSenderChannel.lock()->sendAudioSamples(audioSamples, nSamples);
+        mSenderChannel.lock()->sendAudioSamples(audioSamples, nSamples, nChannels);
       return 0;
     }
 
@@ -764,6 +764,8 @@ namespace ortc
                                                int64_t* ntp_time_ms
                                                )
     {
+      if (mReceiverChannel.lock())
+        mReceiverChannel.lock()->getAudioSamples(nSamples, nChannels, audioSamples, nSamplesOut);
       return 0;
     }
 
