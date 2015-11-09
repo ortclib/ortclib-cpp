@@ -639,15 +639,15 @@ namespace ortc
       if (checkMaxPTime) {
         if (oldCodec.mMaxPTime != newCodec.mMaxPTime) return false;       // not compatible
       } else {
-        ioRank += (oldCodec.mMaxPTime == newCodec.mMaxPTime ? 0.01 : -0.01);
+        ioRank += (oldCodec.mMaxPTime == newCodec.mMaxPTime ? 0.01f : -0.01f);
       }
       if (checkNumChannels) {
         if (oldCodec.mNumChannels != newCodec.mNumChannels) return false; // not compatible
 
-        ioRank += (oldCodec.mNumChannels == newCodec.mNumChannels ? 0.01 : -0.01);
+        ioRank += (oldCodec.mNumChannels == newCodec.mNumChannels ? 0.01f : -0.01f);
       }
 
-      ioRank += 0.1;
+      ioRank += 0.1f;
       return true;
     }
 
@@ -895,7 +895,7 @@ namespace ortc
           }
         }
 
-        outRank += (oldParams.mEncodingParameters.size() == newParams.mEncodingParameters.size() ? 1.0 : -0.2);
+        outRank += (oldParams.mEncodingParameters.size() == newParams.mEncodingParameters.size() ? 1.0f : -0.2f);
 
         for (auto iterOldEncoding = oldParams.mEncodingParameters.begin(); iterOldEncoding != oldParams.mEncodingParameters.end(); ++iterOldEncoding)
         {
@@ -909,10 +909,10 @@ namespace ortc
             if (oldEncoding.mEncodingID != newEncoding.mEncodingID) continue;
 
             foundLayer = true;
-            outRank += (oldEncoding.hash() == newEncoding.hash() ? 0.3 : -0.1);
+            outRank += (oldEncoding.hash() == newEncoding.hash() ? 0.3f : -0.1f);
             break;
           }
-          if (!foundLayer) outRank -= 0.2;
+          if (!foundLayer) outRank -= 0.2f;
         }
 
         for (auto iterNewEncoding = newParams.mEncodingParameters.begin(); iterNewEncoding != newParams.mEncodingParameters.end(); ++iterNewEncoding)
@@ -929,7 +929,7 @@ namespace ortc
             foundLayer = true;
             break;
           }
-          if (!foundLayer) outRank -= 0.2;
+          if (!foundLayer) outRank -= 0.2f;
         }
       }
 

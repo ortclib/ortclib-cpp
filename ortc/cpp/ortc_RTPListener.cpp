@@ -1443,7 +1443,7 @@ namespace ortc
                                        (encrytped))
       ORTC_THROW_INVALID_PARAMETERS_IF(extensionURI != extension.mHeaderExtensionURI)
 
-      extension.mReferences[objectID] = objectID;
+      extension.mReferences[objectID] = true;
 
       ZS_LOG_DEBUG(log("referencing existing header extension") + ZS_PARAM("object id", objectID) + extension.toDebug())
     }
