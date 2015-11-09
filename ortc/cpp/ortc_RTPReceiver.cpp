@@ -971,57 +971,19 @@ namespace ortc
 
       AutoRecursiveLock lock(*this);
 
-      Optional<IMediaStreamTrack::Kinds> foundKind;
+      Optional<IMediaStreamTrack::Kinds> foundKind = RTPTypesHelper::getCodecsKind(parameters);
 
-      // scope: figure out codec "kind"
-      {
-        for (auto iter = parameters.mCodecs.begin(); iter != parameters.mCodecs.end(); ++iter) {
-          auto &codec = (*iter);
-
-          auto knownCodec = IRTPTypes::toSupportedCodec(codec.mName);
-
-          auto codecKind = IRTPTypes::getCodecKind(knownCodec);
-
-          switch (codecKind) {
-            case IRTPTypes::CodecKind_Audio:
-            case IRTPTypes::CodecKind_AudioSupplemental:
-            {
-              if (foundKind.hasValue()) {
-                ORTC_THROW_INVALID_PARAMETERS_IF(foundKind.value() != IMediaStreamTrack::Kind_Audio)
-              }
-              foundKind = IMediaStreamTrack::Kind_Audio;
-              break;
-            }
-            case IRTPTypes::CodecKind_Video:
-            {
-              if (foundKind.hasValue()) {
-                ORTC_THROW_INVALID_PARAMETERS_IF(foundKind.value() != IMediaStreamTrack::Kind_Video)
-              }
-              foundKind = IMediaStreamTrack::Kind_Video;
-              break;
-            }
-            case IRTPTypes::CodecKind_Unknown:
-            case IRTPTypes::CodecKind_AV:
-            case IRTPTypes::CodecKind_RTX:
-            case IRTPTypes::CodecKind_FEC:
-            case IRTPTypes::CodecKind_Data:
-            {
-              // codec kind is not a media kind
-              break;
-            }
-          }
-        }
-      }
+      ORTC_THROW_INVALID_PARAMETERS_IF(!foundKind.hasValue())
 
       if (!mTrack) {
-        ORTC_THROW_INVALID_PARAMETERS_IF(!foundKind.hasValue())
-
         ZS_LOG_DEBUG(log("creating media stream track") + ZS_PARAM("kind", IMediaStreamTrack::toString(foundKind.value())))
 
         mKind = foundKind;
         mTrack = UseMediaStreamTrack::create(foundKind.value());
 
         ZS_LOG_DEBUG(log("created media stream track") + ZS_PARAM("kind", IMediaStreamTrack::toString(foundKind.value())) + ZS_PARAM("track", mTrack ? mTrack->getID() : 0))
+      } else {
+        ORTC_THROW_INVALID_PARAMETERS_IF(foundKind.value() != mKind)
       }
 
       if (mParameters) {
@@ -1143,7 +1105,6 @@ namespace ortc
       ZS_LOG_DEBUG(log("stop called"))
 
       AutoRecursiveLock lock(*this);
-
       cancel();
     }
 
@@ -1279,7 +1240,6 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool RTPReceiver::sendPacket(RTCPPacketPtr packet)
     {
-
       UseSecureTransportPtr rtcpTransport;
 
       {

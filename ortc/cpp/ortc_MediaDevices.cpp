@@ -790,6 +790,96 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   #pragma mark
+  #pragma mark IMediaDevices::MediaStreamTrackList
+  #pragma mark
+
+  //---------------------------------------------------------------------------
+  IMediaDevices::MediaStreamTrackListPtr IMediaDevices::MediaStreamTrackList::convert(AnyPtr any)
+  {
+    return ZS_DYNAMIC_PTR_CAST(MediaStreamTrackList, any);
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IMediaDevicesTypes::MediaStreamTrackList::toDebug() const
+  {
+    ElementPtr resultEl = Element::create("ortc::IMediaDevicesTypes::MediaStreamTrackList");
+
+    for (auto iter = begin(); iter != end(); ++iter)
+    {
+      auto &track = (*iter);
+      UseServicesHelper::debugAppend(resultEl, IMediaStreamTrack::toDebug(track));
+    }
+
+    return resultEl;
+  }
+
+  //---------------------------------------------------------------------------
+  String IMediaDevicesTypes::MediaStreamTrackList::hash() const
+  {
+    SHA1Hasher hasher;
+
+    hasher.update("ortc::IMediaDevicesTypes::MediaStreamTrackList:");
+
+    for (auto iter = begin(); iter != end(); ++iter)
+    {
+      auto &track = (*iter);
+      hasher.update(track ? track->getID() : 0);
+      hasher.update(":");
+    }
+
+    return hasher.final();
+  }
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IMediaDevices::DeviceList
+  #pragma mark
+
+  //---------------------------------------------------------------------------
+  IMediaDevices::DeviceListPtr IMediaDevices::DeviceList::convert(AnyPtr any)
+  {
+    return ZS_DYNAMIC_PTR_CAST(DeviceList, any);
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IMediaDevicesTypes::DeviceList::toDebug() const
+  {
+    ElementPtr resultEl = Element::create("ortc::IMediaDevicesTypes::DeviceList");
+
+    for (auto iter = begin(); iter != end(); ++iter)
+    {
+      auto &device = (*iter);
+      UseServicesHelper::debugAppend(resultEl, device.toDebug());
+    }
+
+    return resultEl;
+  }
+
+  //---------------------------------------------------------------------------
+  String IMediaDevicesTypes::DeviceList::hash() const
+  {
+    SHA1Hasher hasher;
+
+    hasher.update("ortc::IMediaDevicesTypes::DeviceList:");
+
+    for (auto iter = begin(); iter != end(); ++iter)
+    {
+      auto &device = (*iter);
+      hasher.update(device.hash());
+      hasher.update(":");
+    }
+
+    return hasher.final();
+  }
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
   #pragma mark IMediaDevices
   #pragma mark
 

@@ -118,6 +118,10 @@ namespace ortc
     struct MediaStreamTrackList : public std::list<IMediaStreamTrackPtr>,
                                   public Any
     {
+      static MediaStreamTrackListPtr convert(AnyPtr any);
+
+      ElementPtr toDebug() const;
+      String hash() const;
     };
 
     //-------------------------------------------------------------------------
@@ -128,6 +132,8 @@ namespace ortc
     struct DeviceList : public std::list<Device>,
                         public Any
     {
+      static DeviceListPtr convert(AnyPtr any);
+
       ElementPtr toDebug() const;
       String hash() const;
     };

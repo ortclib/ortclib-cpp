@@ -35,9 +35,14 @@
 #include <ortc/internal/ortc_ISecureTransport.h>
 #include <ortc/internal/ortc_RTPListener.h>
 #include <ortc/internal/ortc_MediaStreamTrack.h>
+#include <ortc/internal/ortc_SRTPSDESTransport.h>
+#include <ortc/internal/ortc_RTPPacket.h>
 #include <ortc/internal/ortc_RTCPPacket.h>
+#include <ortc/internal/ortc_RTPTypes.h>
 #include <ortc/internal/ortc_ORTC.h>
 #include <ortc/internal/platform.h>
+
+#include <ortc/IRTPReceiver.h>
 
 #include <openpeer/services/ISettings.h>
 #include <openpeer/services/IHelper.h>
@@ -155,6 +160,81 @@ namespace ortc
       return ZS_DYNAMIC_PTR_CAST(RTPSender, transport)->toDebug();
     }
 
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPReceiver::ChannelHolder
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    RTPSender::ChannelHolder::ChannelHolder()
+    {
+    }
+
+    //-------------------------------------------------------------------------
+    RTPSender::ChannelHolder::~ChannelHolder()
+    {
+      notify(ISecureTransport::State_Closed);
+
+      ASSERT((bool)mChannel)
+
+      auto outer = mHolder.lock();
+      if (outer) {
+        outer->notifyChannelGone();
+      }
+    }
+
+    //-------------------------------------------------------------------------
+    PUID RTPSender::ChannelHolder::getID() const
+    {
+      return mChannel->getID();
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPSender::ChannelHolder::notify(ISecureTransport::States state)
+    {
+      if (state == mLastReportedState) return;
+
+      mLastReportedState = state;
+      mChannel->notifyTransportState(state);
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPSender::ChannelHolder::notify(RTCPPacketListPtr packets)
+    {
+      if (ISecureTransport::State_Closed == mLastReportedState) return;
+      mChannel->notifyPackets(packets);
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPSender::ChannelHolder::update(const Parameters &params)
+    {
+      if (ISecureTransport::State_Closed == mLastReportedState) return;
+      mChannel->notifyUpdate(params);
+    }
+
+    //-------------------------------------------------------------------------
+    bool RTPSender::ChannelHolder::handle(RTCPPacketPtr packet)
+    {
+      if (ISecureTransport::State_Closed == mLastReportedState) return false;
+      return mChannel->handlePacket(packet);
+    }
+
+    //-------------------------------------------------------------------------
+    ElementPtr RTPSender::ChannelHolder::toDebug() const
+    {
+      ElementPtr resultEl = Element::create("ortc::RTPSender::ChannelHolder");
+
+      auto outer = mHolder.lock();
+      UseServicesHelper::debugAppend(resultEl, "outer", outer ? outer->getID() : 0);
+      UseServicesHelper::debugAppend(resultEl, "channel", mChannel ? mChannel->getID() : 0);
+      UseServicesHelper::debugAppend(resultEl, "last reported state", ISecureTransport::toString(mLastReportedState));
+      return resultEl;
+    }
+
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -185,7 +265,8 @@ namespace ortc
                          IRTCPTransportPtr rtcpTransport
                          ) :
       MessageQueueAssociator(queue),
-      SharedRecursiveLock(SharedRecursiveLock::create())
+      SharedRecursiveLock(SharedRecursiveLock::create()),
+      mChannels(make_shared<ParametersToChannelHolderMap>())
     {
       ZS_LOG_DETAIL(debug("created"))
 
@@ -200,6 +281,8 @@ namespace ortc
     {
       AutoRecursiveLock lock(*this);
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
+
+      mRTCPTransportSubscription = mRTCPTransport->subscribe(mThisWeak.lock());
     }
 
     //-------------------------------------------------------------------------
@@ -311,8 +394,20 @@ namespace ortc
       if (delegate) {
         RTPSenderPtr pThis = mThisWeak.lock();
 
-#define TODO_DO_WE_NEED_TO_TELL_ABOUT_ANY_MISSED_EVENTS 1
-#define TODO_DO_WE_NEED_TO_TELL_ABOUT_ANY_MISSED_EVENTS 2
+        ASSERT((bool)pThis)
+
+        for (auto iter = mConflicts.begin(); iter != mConflicts.end(); ++iter) {
+          auto &ssrc = (*iter);
+
+          delegate->onRTPSenderSSRCConflict(pThis, ssrc);
+        }
+
+        for (auto iter = mErrors.begin(); iter != mErrors.end(); ++iter) {
+          auto &errorPair = (*iter);
+
+          delegate->onRTPSenderError(pThis, errorPair.first, errorPair.second);
+        }
+        mErrors.clear();
       }
 
       if (isShutdown()) {
@@ -325,24 +420,46 @@ namespace ortc
     //-------------------------------------------------------------------------
     IMediaStreamTrackPtr RTPSender::track() const
     {
-#define TODO 1
-#define TODO 2
-      return IMediaStreamTrackPtr();
+      AutoRecursiveLock lock(*this);
+      return MediaStreamTrack::convert(mTrack);
     }
 
     //-------------------------------------------------------------------------
     IRTPTransportPtr RTPSender::transport() const
     {
-#define TODO 1
-#define TODO 2
+      AutoRecursiveLock lock(*this);
+      if (!mRTPTransport) return IRTPTransportPtr();
+
+      {
+        auto result = DTLSTransport::convert(mRTPTransport);
+        if (result) return result;
+      }
+      {
+        auto result = SRTPSDESTransport::convert(mRTPTransport);
+        if (result) return result;
+      }
+
       return IRTPTransportPtr();
     }
 
     //-------------------------------------------------------------------------
     IRTCPTransportPtr RTPSender::rtcpTransport() const
     {
-#define TODO 1
-#define TODO 2
+      AutoRecursiveLock lock(*this);
+      if (!mRTCPTransport) return IRTCPTransportPtr();
+
+      {
+        auto result = DTLSTransport::convert(mRTCPTransport);
+        if (result) return result;
+      }
+      {
+        auto result = SRTPSDESTransport::convert(mRTCPTransport);
+        if (result) {
+          auto iceTransport = mRTCPTransport->getICETransport();
+          if (iceTransport) return iceTransport;
+        }
+      }
+
       return IRTCPTransportPtr();
     }
 
@@ -370,47 +487,209 @@ namespace ortc
           RTCPPacketList historicalRTCPPackets;
           mListener->registerSender(mThisWeak.lock(), *mParameters, historicalRTCPPackets);
 
-#define HANDLE_HISTORICAL_RTCP_PACKETS 1
-#define HANDLE_HISTORICAL_RTCP_PACKETS 2
+          if (historicalRTCPPackets.size() > 0) {
+            RTCPPacketListPtr notifyPackets;
+
+            for (auto iter = mChannels->begin(); iter != mChannels->end(); ++iter)
+            {
+              auto channel = (*iter).second;
+
+              if (!notifyPackets) {
+                notifyPackets = make_shared<RTCPPacketList>(historicalRTCPPackets);
+              }
+
+              channel->notify(notifyPackets);
+            }
+          }
         }
       }
 
       UseSecureTransport::getSendingTransport(transport, rtcpTransport, mSendRTPOverTransport, mSendRTCPOverTransport, mRTPTransport, mRTCPTransport);
 
+      if (mRTCPTransportSubscription) {
+        mRTCPTransportSubscription->cancel();
+        mRTCPTransportSubscription.reset();
+      }
+
+      mRTCPTransportSubscription = mRTCPTransport->subscribe(mThisWeak.lock());
+
       notifyChannelsOfTransportState();
     }
 
     //-------------------------------------------------------------------------
-    PromisePtr RTPSender::setTrack(IMediaStreamTrackPtr track)
+    PromisePtr RTPSender::setTrack(IMediaStreamTrackPtr inTrack)
     {
-#define TODO 1
-#define TODO 2
-      return PromisePtr();
+      UseMediaStreamTrackPtr track = MediaStreamTrack::convert(inTrack);
+
+      Kinds kind = (track ? track->kind() : IMediaStreamTrackTypes::Kind_Audio);
+
+      {
+        AutoRecursiveLock lock(*this);
+
+        if (mKind.hasValue()) {
+          if (track) {
+            if (mKind.value() != kind) {
+              return Promise::createRejected(make_shared<IncompatibleMediaStreamTrackError>(), IORTCForInternal::queueDelegate());
+            }
+          }
+        } else {
+          if (track) {
+            mKind = track->kind();
+          }
+        }
+
+        if (mTrack) {
+          if (track) {
+            if (track->getID() == mTrack->getID()) {
+              ZS_LOG_DEBUG(log("setting track to same track (noop)") + ZS_PARAM("track id", track->getID()))
+              return Promise::createResolved(IORTCForInternal::queueDelegate());
+            }
+          }
+          for (auto iter = mChannels->begin(); iter != mChannels->end(); ++iter) {
+            auto &channel = (*iter).second;
+            mTrack->notifyDetachSenderChannel(RTPSenderChannel::convert(channel->mChannel));
+          }
+        }
+
+        mTrack = track;
+
+        if (mTrack) {
+          for (auto iter = mChannels->begin(); iter != mChannels->end(); ++iter) {
+            auto &channel = (*iter).second;
+            mTrack->notifyAttachSenderChannel(RTPSenderChannel::convert(channel->mChannel));
+          }
+        }
+
+      }
+
+      return Promise::createResolved(IORTCForInternal::queueDelegate());
     }
 
     //-------------------------------------------------------------------------
     IRTPSenderTypes::CapabilitiesPtr RTPSender::getCapabilities(Optional<Kinds> kind)
     {
-      CapabilitiesPtr result(make_shared<Capabilities>());
-#define TODO 1
-#define TODO 2
-      return result;
+      return IRTPReceiver::getCapabilities(kind);
     }
 
     //-------------------------------------------------------------------------
     void RTPSender::send(const Parameters &parameters)
     {
-      typedef UseListener::RTCPPacketList RTCPPacketList;
+      typedef RTPTypesHelper::ParametersPtrPairList ParametersPtrPairList;
+
+      ZS_LOG_DEBUG(log("send called") + parameters.toDebug())
 
       AutoRecursiveLock lock(*this);
+
+      Optional<IMediaStreamTrackTypes::Kinds> foundKind = RTPTypesHelper::getCodecsKind(parameters);
+
+      ORTC_THROW_INVALID_PARAMETERS_IF(!foundKind.hasValue()) // only one media kind is allowed to be specified to a sender
+
+      if (mKind.hasValue()) {
+        ORTC_THROW_INVALID_PARAMETERS_IF(mKind.value() != foundKind.value())  // not allowed to change codec kind
+      } else {
+        mKind = foundKind;
+      }
 
       if (mParameters) {
         auto hash = parameters.hash();
         auto previousHash = mParameters->hash();
         if (hash == previousHash) {
-          ZS_LOG_TRACE(log("send parameters have not changed (noop)"))
+          ZS_LOG_TRACE(log("send parameters have not changed (noop)") + parameters.toDebug())
           return;
         }
+
+        ParametersPtrList oldGroupedParams = mParametersGroupedIntoChannels;
+
+        mParameters = make_shared<Parameters>(parameters);
+
+        mParametersGroupedIntoChannels.clear();
+        RTPTypesHelper::splitParamsIntoChannels(parameters, mParametersGroupedIntoChannels);
+
+        ParametersToChannelHolderMapPtr replacementChannels = make_shared<ParametersToChannelHolderMap>(*mChannels);
+
+        ParametersPtrPairList unchangedChannels;
+        ParametersPtrList newChannels;
+        ParametersPtrPairList updateChannels;
+        ParametersPtrList removeChannels;
+
+        RTPTypesHelper::calculateDeltaChangesInChannels(mKind, oldGroupedParams, mParametersGroupedIntoChannels, unchangedChannels, newChannels, updateChannels, removeChannels);
+
+        // scope: remove dead channels
+        {
+          for (auto iter = removeChannels.begin(); iter != removeChannels.end(); ++iter) {
+            auto &params = (*iter);
+            auto found = replacementChannels->find(params);
+
+            if (found == replacementChannels->end()) continue;  // possible it will not be found (when channel self destructs)
+
+            auto &channel = (*found).second;
+
+            removeChannel(channel);
+            replacementChannels->erase(found);
+          }
+        }
+
+        // scope: swap out new / old parameters
+        {
+          for (auto iter = unchangedChannels.begin(); iter != unchangedChannels.end(); ++iter) {
+            auto &pairInfo = (*iter);
+            auto &oldParams = pairInfo.first;
+            auto &newParams = pairInfo.second;
+            auto found = replacementChannels->find(oldParams);
+
+            if (found == replacementChannels->end()) continue;  // possible it will not be found (when channel self destructs)
+
+            auto channel = (*found).second;
+
+            replacementChannels->erase(found);
+            (*replacementChannels)[newParams] = channel;
+          }
+        }
+
+        // scope: update existing channels
+        {
+          for (auto iter = updateChannels.begin(); iter != updateChannels.end(); ++iter) {
+            auto &pairInfo = (*iter);
+            auto &oldParams = pairInfo.first;
+            auto &newParams = pairInfo.second;
+            auto found = replacementChannels->find(oldParams);
+
+            if (found == replacementChannels->end()) continue;  // possible it will not be found (when channel self destructs)
+
+            auto channel = (*found).second;
+
+            replacementChannels->erase(found);
+            (*replacementChannels)[newParams] = channel;
+
+            updateChannel(channel, newParams);
+          }
+        }
+
+        // scope: add new channels
+        {
+          for (auto iter = newChannels.begin(); iter != newChannels.end(); ++iter) {
+            auto &newParams = (*iter);
+            auto channel = addChannel(newParams);
+
+            (*replacementChannels)[newParams] = channel;
+          }
+        }
+
+        mChannels = replacementChannels;  // COW replacement
+      } else {
+        mParameters = make_shared<Parameters>(parameters);
+
+        RTPTypesHelper::splitParamsIntoChannels(parameters, mParametersGroupedIntoChannels);
+
+        ParametersToChannelHolderMapPtr replacementChannels = make_shared<ParametersToChannelHolderMap>();
+
+        for (auto iter = mParametersGroupedIntoChannels.begin(); iter != mParametersGroupedIntoChannels.end(); ++iter) {
+          auto &params = (*iter);
+          auto channel = addChannel(params);
+
+          (*replacementChannels)[params] = channel;
+        }
+        mChannels = replacementChannels;
       }
 
       mParameters = make_shared<Parameters>(parameters);
@@ -422,7 +701,10 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPSender::stop()
     {
+      ZS_LOG_DEBUG(log("stop called"))
+
       AutoRecursiveLock lock(*this);
+      cancel();
     }
 
     //-------------------------------------------------------------------------
@@ -441,9 +723,23 @@ namespace ortc
     {
       ZS_LOG_TRACE(log("received packet") + ZS_PARAM("via", IICETypes::toString(viaTransport)) + packet->toDebug())
 
-      AutoRecursiveLock lock(*this);
+      ParametersToChannelHolderMapPtr channels;
 
-      return true; // return true if handled
+      {
+        AutoRecursiveLock lock(*this);
+        channels = mChannels; // obtain pointer to COW list while inside a lock
+      }
+
+      bool result = false;
+      for (auto iter = channels->begin(); iter != channels->end(); ++iter)
+      {
+        auto channel = (*iter).second;
+
+        auto channelResult = channel->handle(packet);
+        result = result || channelResult;
+      }
+
+      return result;
     }
 
     //-------------------------------------------------------------------------
@@ -457,17 +753,110 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool RTPSender::sendPacket(RTPPacketPtr packet)
     {
-#define TODO 1
-#define TODO 2
-      return false;
+      UseSecureTransportPtr rtpTransport;
+
+      {
+        AutoRecursiveLock lock(*this);
+
+        if (isShutdown()) {
+          ZS_LOG_WARNING(Debug, log("cannot send packet while shutdown"))
+          return false;
+        }
+
+        rtpTransport = mRTPTransport;
+      }
+
+      if (!rtpTransport) {
+        ZS_LOG_WARNING(Debug, log("no rtp transport is currently attached (thus discarding sent packet)"))
+        return false;
+      }
+
+      ZS_LOG_TRACE(log("sending rtp packet over secure transport") + ZS_PARAM("size", packet->size()))
+
+      return rtpTransport->sendPacket(mSendRTCPOverTransport, IICETypes::Component_RTCP, packet->ptr(), packet->size());
     }
 
     //-------------------------------------------------------------------------
     bool RTPSender::sendPacket(RTCPPacketPtr packet)
     {
-#define TODO 1
-#define TODO 2
-      return false;
+      UseSecureTransportPtr rtcpTransport;
+
+      {
+        AutoRecursiveLock lock(*this);
+
+        if (isShutdown()) {
+          ZS_LOG_WARNING(Debug, log("cannot send packet while shutdown"))
+          return false;
+        }
+
+        rtcpTransport = mRTCPTransport;
+      }
+
+      if (!rtcpTransport) {
+        ZS_LOG_WARNING(Debug, log("no rtcp transport is currently attached (thus discarding sent packet)"))
+        return false;
+      }
+
+      ZS_LOG_TRACE(log("sending rtcp packet over secure transport") + ZS_PARAM("size", packet->size()))
+
+      return rtcpTransport->sendPacket(mSendRTCPOverTransport, IICETypes::Component_RTCP, packet->ptr(), packet->size());
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPSender::notifyConflict(
+                                   UseChannelPtr channel,
+                                   IRTPTypes::SSRCType ssrc,
+                                   bool selfDestruct
+                                   )
+    {
+      ZS_LOG_DEBUG(log("notify ssrc conflict") + ZS_PARAM("channel", channel ? channel->getID() : 0) + ZS_PARAM("ssrc", ssrc) + ZS_PARAM("self destruct", selfDestruct))
+
+      AutoRecursiveLock lock(*this);
+
+      bool found = false;
+      for (auto iter = mConflicts.begin(); iter != mConflicts.end(); ++iter) {
+        auto &existingSSRC = (*iter);
+        if (existingSSRC == ssrc) {
+          ZS_LOG_WARNING(Detail, log("conflict already registered") + ZS_PARAM("ssrc", ssrc))
+          found = true;
+          break;
+        }
+      }
+
+      if (!found) {
+        mConflicts.push_back(ssrc);
+      }
+
+      mSubscriptions.delegate()->onRTPSenderSSRCConflict(mThisWeak.lock(), ssrc);
+
+      if ((selfDestruct) &&
+          (channel)) {
+        IRTPSenderAsyncDelegateProxy::create(mThisWeak.lock())->onDestroyChannel(channel);
+      }
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPSender::notifyError(
+                                UseChannelPtr channel,
+                                IRTPSenderDelegate::ErrorCode error,
+                                const char *errorReason,
+                                bool selfDestruct
+                                )
+    {
+      ZS_LOG_DEBUG(log("notify channel error") + ZS_PARAM("channel", channel ? channel->getID() : 0) + ZS_PARAM("error", error) + ZS_PARAM("error reason", errorReason) + ZS_PARAM("self destruct", selfDestruct))
+
+      AutoRecursiveLock lock(*this);
+
+      if (mSubscriptions.size() < 1) {
+        mErrors.push_back(ErrorPair(error, String(errorReason)));
+      } else {
+        mSubscriptions.delegate()->onRTPSenderError(mThisWeak.lock(), error, errorReason);
+      }
+
+      if ((selfDestruct) &&
+          (channel)) {
+        IRTPSenderAsyncDelegateProxy::create(mThisWeak.lock())->onDestroyChannel(channel);
+      }
     }
 
     //-------------------------------------------------------------------------
@@ -495,6 +884,18 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
+    void RTPSender::onSecureTransportStateChanged(
+                                                  ISecureTransportPtr transport,
+                                                  ISecureTransport::States state
+                                                  )
+    {
+      ZS_LOG_DEBUG(log("on secure transport state changed") + ZS_PARAM("secure transport", transport->getID()) + ZS_PARAM("state", ISecureTransportTypes::toString(state)))
+
+      AutoRecursiveLock lock(*this);
+      notifyChannelsOfTransportState();
+    }
+
+    //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -516,17 +917,40 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark RTPSender => ITimerDelegate
+    #pragma mark RTPSender => IRTPSenderAsyncDelegate
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void RTPSender::onTimer(TimerPtr timer)
+    void RTPSender::onDestroyChannel(UseChannelPtr channel)
     {
-      ZS_LOG_DEBUG(log("timer") + ZS_PARAM("timer id", timer->getID()))
+      ZS_LOG_TRACE(log("on destroy channel") + ZS_PARAM("channel", channel->getID()))
 
       AutoRecursiveLock lock(*this);
-#define TODO 1
-#define TODO 2
+
+      ParametersToChannelHolderMapPtr replacementChannels(make_shared<ParametersToChannelHolderMap>(*mChannels));
+
+      for (auto iter_doNotUse = replacementChannels->begin(); iter_doNotUse != replacementChannels->end(); )
+      {
+        auto current = iter_doNotUse;
+        ++iter_doNotUse;
+
+        auto &params = (*current).first;
+        auto &existingChannel = (*current).second;
+        if (channel->getID() != existingChannel->getID()) continue;
+
+        ZS_LOG_DEBUG(log("destroying channel") + ZS_PARAM("channel id", channel->getID()) + ZS_PARAM("channel params", params->toDebug()))
+
+        existingChannel->notify(ISecureTransportTypes::State_Closed);
+
+        if (mTrack) {
+          mTrack->notifyDetachSenderChannel(RTPSenderChannel::convert(existingChannel->mChannel));
+        }
+
+        replacementChannels->erase(current);
+        break;
+      }
+
+      mChannels = replacementChannels;
     }
 
     //-------------------------------------------------------------------------
@@ -534,8 +958,14 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark RTPSender => IRTPSenderAsyncDelegate
+    #pragma mark RTPSender => (friend ChannelHolder)
     #pragma mark
+
+    //-------------------------------------------------------------------------
+    void RTPSender::notifyChannelGone()
+    {
+      // nothing to do
+    }
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -578,8 +1008,15 @@ namespace ortc
       UseServicesHelper::debugAppend(resultEl, "error", mLastError);
       UseServicesHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
 
+      UseServicesHelper::debugAppend(resultEl, "parameters", mParameters ? mParameters->toDebug() : ElementPtr());
+      UseServicesHelper::debugAppend(resultEl, "parameter grouped into channels", mParametersGroupedIntoChannels.size());
+
+      UseServicesHelper::debugAppend(resultEl, "listener", mListener ? mListener->getID() : 0);
+
       UseServicesHelper::debugAppend(resultEl, "rtp transport", mRTPTransport ? mRTPTransport->getID() : 0);
       UseServicesHelper::debugAppend(resultEl, "rtcp transport", mRTCPTransport ? mRTCPTransport->getID() : 0);
+
+      UseServicesHelper::debugAppend(resultEl, "rtcp transport subscription", mRTCPTransportSubscription ? mRTCPTransportSubscription->getID() : 0);
 
       UseServicesHelper::debugAppend(resultEl, "send rtp over transport", IICETypes::toString(mSendRTPOverTransport));
       UseServicesHelper::debugAppend(resultEl, "send rtcp over transport", IICETypes::toString(mSendRTCPOverTransport));
@@ -587,7 +1024,13 @@ namespace ortc
 
       UseServicesHelper::debugAppend(resultEl, "last reported transport state to channels", ISecureTransportTypes::toString(mLastReportedTransportStateToChannels));
 
-      UseServicesHelper::debugAppend(resultEl, "channels", mChannels.size());
+      UseServicesHelper::debugAppend(resultEl, "kind", mKind.hasValue() ? IMediaStreamTrackTypes::toString(mKind.value()) : (const char *)NULL);
+      UseServicesHelper::debugAppend(resultEl, "track", mTrack ? mTrack->getID() : 0);
+
+      UseServicesHelper::debugAppend(resultEl, "channels", mChannels->size());
+
+      UseServicesHelper::debugAppend(resultEl, "conflicts", mConflicts.size());
+      UseServicesHelper::debugAppend(resultEl, "errors", mErrors.size());
 
       return resultEl;
     }
@@ -617,7 +1060,6 @@ namespace ortc
       }
 
       // ... other steps here ...
-      if (!stepBogusDoSomething()) goto not_ready;
       // ... other steps here ...
 
       goto ready;
@@ -631,29 +1073,8 @@ namespace ortc
     ready:
       {
         ZS_LOG_TRACE(log("ready"))
+        setState(State_Ready);
       }
-    }
-
-    //-------------------------------------------------------------------------
-    bool RTPSender::stepBogusDoSomething()
-    {
-      if ( /* step already done */ false ) {
-        ZS_LOG_TRACE(log("already completed do something"))
-        return true;
-      }
-
-      if ( /* cannot do step yet */ false) {
-        ZS_LOG_DEBUG(log("waiting for XYZ to complete before continuing"))
-        return false;
-      }
-
-      ZS_LOG_DEBUG(log("doing step XYZ"))
-
-      // ....
-#define TODO 1
-#define TODO 2
-
-      return true;
     }
 
     //-------------------------------------------------------------------------
@@ -680,6 +1101,11 @@ namespace ortc
       if (mDefaultSubscription) {
         mDefaultSubscription->cancel();
         mDefaultSubscription.reset();
+      }
+
+      if (mRTCPTransportSubscription) {
+        mRTCPTransportSubscription->cancel();
+        mRTCPTransportSubscription.reset();
       }
 
       // make sure to cleanup any final reference to self
@@ -756,6 +1182,36 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    RTPSender::ChannelHolderPtr RTPSender::addChannel(ParametersPtr newParams)
+    {
+      ChannelHolderPtr channel(make_shared<ChannelHolder>());
+      channel->mHolder = mThisWeak.lock();
+      channel->mChannel = UseChannel::create(mThisWeak.lock(), *newParams);
+      if (mTrack) {
+        mTrack->notifyAttachSenderChannel(RTPSenderChannel::convert(channel->mChannel));
+      }
+      return channel;
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPSender::updateChannel(
+                                  ChannelHolderPtr channel,
+                                  ParametersPtr newParams
+                                  )
+    {
+      channel->update(*newParams);
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPSender::removeChannel(ChannelHolderPtr channel)
+    {
+      channel->notify(ISecureTransport::State_Closed);
+      if (mTrack) {
+        mTrack->notifyDetachSenderChannel(RTPSenderChannel::convert(channel->mChannel));
+      }
+    }
+
+    //-------------------------------------------------------------------------
     void RTPSender::notifyChannelsOfTransportState()
     {
       ISecureTransport::States currentState = ISecureTransport::State_Pending;
@@ -776,10 +1232,10 @@ namespace ortc
 
       mLastReportedTransportStateToChannels = currentState;
 
-      for (auto iter = mChannels.begin(); iter != mChannels.end(); ++iter) {
+      for (auto iter = mChannels->begin(); iter != mChannels->end(); ++iter) {
         auto &channel = (*iter).second;
 
-        channel->notifyTransportState(mLastReportedTransportStateToChannels);
+        channel->notify(mLastReportedTransportStateToChannels);
       }
     }
 
@@ -818,6 +1274,21 @@ namespace ortc
 
   } // internal namespace
 
+
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IRTPSenderTypes
+  #pragma mark
+
+  //---------------------------------------------------------------------------
+  IRTPSenderTypes::IncompatibleMediaStreamTrackErrorPtr IRTPSenderTypes::IncompatibleMediaStreamTrackError::convert(AnyPtr any)
+  {
+    return ZS_DYNAMIC_PTR_CAST(IncompatibleMediaStreamTrackError, any);
+  }
 
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------

@@ -110,6 +110,7 @@ namespace ortc
       static CapabilitiesPtr create();
       static CapabilitiesPtr create(const CapabilitiesPtr &value);
       static CapabilitiesPtr create(const Capabilities &value);
+      static CapabilitiesPtr convert(AnyPtr any);
       ElementPtr toDebug() const;
       String hash() const;
     };
@@ -137,6 +138,7 @@ namespace ortc
       static SettingsPtr create();
       static SettingsPtr create(const SettingsPtr &value);
       static SettingsPtr create(const Settings &value);
+      static SettingsPtr convert(AnyPtr any);
       ElementPtr toDebug() const;
       String hash() const;
     };
@@ -214,6 +216,8 @@ namespace ortc
                                   public IStatsProvider
   {
     static ElementPtr toDebug(IMediaStreamTrackPtr object);
+
+    static IMediaStreamTrackPtr convert(AnyPtr any);
 
     virtual PUID getID() const = 0;
 

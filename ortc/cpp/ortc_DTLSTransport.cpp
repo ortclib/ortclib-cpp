@@ -2958,6 +2958,12 @@ namespace ortc
   #pragma mark
 
   //---------------------------------------------------------------------------
+  IDTLSTransportTypes::ParametersPtr IDTLSTransportTypes::Parameters::convert(AnyPtr any)
+  {
+    return ZS_DYNAMIC_PTR_CAST(Parameters, any);
+  }
+
+  //---------------------------------------------------------------------------
   ElementPtr IDTLSTransportTypes::Parameters::toDebug() const
   {
     ElementPtr resultEl = Element::create("ortc::IDTLSTransportTypes::Parameters");

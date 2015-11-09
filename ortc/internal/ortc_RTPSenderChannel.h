@@ -96,6 +96,8 @@ namespace ortc
       ZS_DECLARE_TYPEDEF_PTR(IRTPSenderChannelForRTPSender, ForRTPSender)
 
       ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters)
+      typedef std::list<RTCPPacketPtr> RTCPPacketList;
+      ZS_DECLARE_PTR(RTCPPacketList)
 
       static ElementPtr toDebug(ForRTPSenderPtr object);
 
@@ -108,7 +110,9 @@ namespace ortc
 
       virtual void notifyTransportState(ISecureTransport::States state) = 0;
 
-      virtual void update(const Parameters &params) = 0;
+      virtual void notifyPackets(RTCPPacketListPtr packets) = 0;
+
+      virtual void notifyUpdate(const Parameters &params) = 0;
 
       virtual bool handlePacket(RTCPPacketPtr packet) = 0;
     };
@@ -140,7 +144,15 @@ namespace ortc
 
     interaction IRTPSenderChannelAsyncDelegate
     {
+      typedef std::list<RTCPPacketPtr> RTCPPacketList;
+      ZS_DECLARE_PTR(RTCPPacketList)
+      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters)
+
       virtual void onSecureTransportState(ISecureTransport::States state) = 0;
+
+      virtual void onNotifyPackets(RTCPPacketListPtr packets) = 0;
+
+      virtual void onUpdate(ParametersPtr params) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -175,6 +187,8 @@ namespace ortc
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPSenderChannel, UseMediaStreamTrack)
 
       ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters)
+      typedef std::list<RTCPPacketPtr> RTCPPacketList;
+      ZS_DECLARE_PTR(RTCPPacketList)
 
       enum States
       {
@@ -227,7 +241,9 @@ namespace ortc
 
       virtual void notifyTransportState(ISecureTransport::States state) override;
 
-      virtual void update(const Parameters &params) override;
+      virtual void notifyPackets(RTCPPacketListPtr packets) override;
+
+      virtual void notifyUpdate(const Parameters &params) override;
 
       virtual bool handlePacket(RTCPPacketPtr packet) override;
 
@@ -260,6 +276,10 @@ namespace ortc
       #pragma mark
 
       virtual void onSecureTransportState(ISecureTransport::States state) override;
+
+      virtual void onNotifyPackets(RTCPPacketListPtr packets) override;
+
+      virtual void onUpdate(ParametersPtr params) override;
 
     protected:
       //-----------------------------------------------------------------------
@@ -330,5 +350,9 @@ namespace ortc
 
 ZS_DECLARE_PROXY_BEGIN(ortc::internal::IRTPSenderChannelAsyncDelegate)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::ISecureTransport::States, States)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::IRTPSenderChannelAsyncDelegate::RTCPPacketListPtr, RTCPPacketListPtr)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::IRTPSenderChannelAsyncDelegate::ParametersPtr, ParametersPtr)
 ZS_DECLARE_PROXY_METHOD_1(onSecureTransportState, States)
+ZS_DECLARE_PROXY_METHOD_1(onNotifyPackets, RTCPPacketListPtr)
+ZS_DECLARE_PROXY_METHOD_1(onUpdate, ParametersPtr)
 ZS_DECLARE_PROXY_END()

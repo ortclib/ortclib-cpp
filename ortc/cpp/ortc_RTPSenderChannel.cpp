@@ -210,7 +210,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark RTPSenderChannel => IRTPSenderChannelForRTPSender
+    #pragma mark RTPSenderChannel => ForRTPSender
     #pragma mark
     
     //-------------------------------------------------------------------------
@@ -240,11 +240,17 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPSenderChannel::update(const Parameters &params)
+    void RTPSenderChannel::notifyPackets(RTCPPacketListPtr packets)
     {
-      AutoRecursiveLock lock(*this);
-#define TODO 1
-#define TODO 2
+      // do NOT lock this object here, instead notify self asynchronously
+      IRTPSenderChannelAsyncDelegateProxy::create(mThisWeak.lock())->onNotifyPackets(packets);
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPSenderChannel::notifyUpdate(const Parameters &params)
+    {
+      // do NOT lock this object here, instead notify self asynchronously
+      IRTPSenderChannelAsyncDelegateProxy::create(mThisWeak.lock())->onUpdate(make_shared<Parameters>(params));
     }
 
     //-------------------------------------------------------------------------
@@ -326,6 +332,34 @@ namespace ortc
 
 #define TODO 1
 #define TODO 2
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPSenderChannel::onNotifyPackets(RTCPPacketListPtr packets)
+    {
+      ZS_LOG_TRACE(log("notified rtcp packets") + ZS_PARAM("packets", packets->size()))
+
+      AutoRecursiveLock lock(*this);
+
+      // WARNING: Do NOT modify the contents of "packets" as the pointer to
+      //          this list could have been sent to multiple receiver channels
+      //          simultaneously. Use COW pattern if needing mutability.
+
+#define TODO 1
+#define TODO 2
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPSenderChannel::onUpdate(ParametersPtr params)
+    {
+      ZS_LOG_TRACE(log("on update") + params->toDebug())
+
+      AutoRecursiveLock lock(*this);
+
+#define TODO 1
+#define TODO 2
+
+      mParameters = params;
     }
 
 

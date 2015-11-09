@@ -71,6 +71,8 @@ namespace ortc
 
     struct Result : public Any {
       String        mAssertion;
+
+      static ResultPtr convert(AnyPtr any);
     };
 
     //-------------------------------------------------------------------------
@@ -82,6 +84,8 @@ namespace ortc
       String        mIDP;
       String        mProtocol;
       String        mLoginURL;
+
+      static ErrorPtr convert(AnyPtr any);
     };
   };
 

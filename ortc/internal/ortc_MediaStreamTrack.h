@@ -90,7 +90,11 @@ namespace ortc
     {
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPSender, ForSender)
 
+      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::Kinds, Kinds)
+
       virtual PUID getID() const = 0;
+
+      virtual Kinds kind() const = 0;
 
       virtual void notifyAttachSenderChannel(RTPSenderChannelPtr channel) = 0;
       virtual void notifyDetachSenderChannel(RTPSenderChannelPtr channel) = 0;
@@ -326,6 +330,8 @@ namespace ortc
       #pragma mark
 
       // (duplicate) virtual PUID getID() const = 0;
+
+      // (duplicate) virtual Kinds kind() const = 0;
 
       virtual void notifyAttachSenderChannel(RTPSenderChannelPtr channel) override;
       virtual void notifyDetachSenderChannel(RTPSenderChannelPtr channel) override;

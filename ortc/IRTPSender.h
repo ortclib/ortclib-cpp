@@ -48,7 +48,14 @@ namespace ortc
   
   interaction IRTPSenderTypes : public IRTPTypes
   {
+    ZS_DECLARE_STRUCT_PTR(IncompatibleMediaStreamTrackError)
+
     typedef IMediaStreamTrack::Kinds Kinds;
+
+    struct IncompatibleMediaStreamTrackError : public Any
+    {
+      static IncompatibleMediaStreamTrackErrorPtr convert(AnyPtr any);
+    };
   };
 
   //---------------------------------------------------------------------------

@@ -43,7 +43,7 @@ namespace ortc
   #pragma mark IStatsReportTypes
   #pragma mark
 
-  interaction IStatsReportTypes : public Any
+  interaction IStatsReportTypes
   {
     ZS_DECLARE_STRUCT_PTR(Stats);
 
@@ -79,11 +79,16 @@ namespace ortc
     #pragma mark IStatsReportTypes::Stats
     #pragma mark
 
-    struct Stats
+    struct Stats : public Any
     {
       Time mTimeStamp;
       String mStatsType;
       String mID;
+
+      static StatsPtr convert(AnyPtr any);
+
+      virtual ElementPtr toDebug() const = 0;
+      virtual String hash() const = 0;
     };
   };
   
@@ -95,9 +100,15 @@ namespace ortc
   #pragma mark IStatsReport
   #pragma mark
 
-  interaction IStatsReport : public IStatsReportTypes
+  interaction IStatsReport : public IStatsReportTypes,
+                             public Any
   {
-    virtual StatsPtr getStats(const char *id);
+    static ElementPtr toDebug(IStatsReportPtr report);
+    static IStatsReportPtr convert(AnyPtr any);
+
+    virtual PUID getID() const = 0;
+
+    virtual StatsPtr getStats(const char *id) = 0;
   };
 
 }

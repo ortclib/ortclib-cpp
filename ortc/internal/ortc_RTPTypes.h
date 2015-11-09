@@ -152,6 +152,8 @@ namespace ortc
                                                     EncodingParameters * &outBaseEncoding
                                                     );
 
+      static Optional<IMediaStreamTrackTypes::Kinds> getCodecsKind(const Parameters &params);
+
       static Log::Params slog(const char *message);
     };
   }

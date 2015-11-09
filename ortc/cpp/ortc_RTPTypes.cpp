@@ -1344,6 +1344,51 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    Optional<IMediaStreamTrackTypes::Kinds> RTPTypesHelper::getCodecsKind(const Parameters &params)
+    {
+      Optional<IMediaStreamTrack::Kinds> foundKind;
+
+      for (auto iter = params.mCodecs.begin(); iter != params.mCodecs.end(); ++iter) {
+        auto &codec = (*iter);
+
+        auto knownCodec = IRTPTypes::toSupportedCodec(codec.mName);
+
+        auto codecKind = IRTPTypes::getCodecKind(knownCodec);
+
+        switch (codecKind) {
+          case IRTPTypes::CodecKind_Audio:
+          case IRTPTypes::CodecKind_AudioSupplemental:
+          {
+            if (foundKind.hasValue()) {
+              if (foundKind.value() != IMediaStreamTrack::Kind_Audio) return Optional<IMediaStreamTrack::Kinds>();
+            }
+            foundKind = IMediaStreamTrack::Kind_Audio;
+            break;
+          }
+          case IRTPTypes::CodecKind_Video:
+          {
+            if (foundKind.hasValue()) {
+              if (foundKind.value() != IMediaStreamTrack::Kind_Video) return Optional<IMediaStreamTrack::Kinds>();
+            }
+            foundKind = IMediaStreamTrack::Kind_Video;
+            break;
+          }
+          case IRTPTypes::CodecKind_Unknown:
+          case IRTPTypes::CodecKind_AV:
+          case IRTPTypes::CodecKind_RTX:
+          case IRTPTypes::CodecKind_FEC:
+          case IRTPTypes::CodecKind_Data:
+          {
+            // codec kind is not a media kind
+            break;
+          }
+        }
+      }
+
+      return foundKind;
+    }
+
+    //-------------------------------------------------------------------------
     Log::Params RTPTypesHelper::slog(const char *message)
     {
       return Log::Params(message, "ortc::RTPTypesHelper");

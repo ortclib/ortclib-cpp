@@ -100,6 +100,7 @@ namespace ortc
       Roles mRole {Role_Auto};
       FingerprintList mFingerprints;
 
+      static ParametersPtr convert(AnyPtr any);
       ElementPtr toDebug() const;
       String hash() const;
     };

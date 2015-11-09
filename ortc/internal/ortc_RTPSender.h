@@ -111,12 +111,27 @@ namespace ortc
     {
       ZS_DECLARE_TYPEDEF_PTR(IRTPSenderForRTPSenderChannel, ForRTPSenderChannel)
 
+      ZS_DECLARE_TYPEDEF_PTR(IRTPSenderChannelForRTPSender, UseChannel)
+
       static ElementPtr toDebug(ForRTPSenderChannelPtr transport);
 
       virtual PUID getID() const = 0;
 
       virtual bool sendPacket(RTPPacketPtr packet) = 0;
       virtual bool sendPacket(RTCPPacketPtr packet) = 0;
+
+      virtual void notifyConflict(
+                                  UseChannelPtr channel,
+                                  IRTPTypes::SSRCType ssrc,
+                                  bool selfDestruct
+                                  ) = 0;
+
+      virtual void notifyError(
+                               UseChannelPtr channel,
+                               IRTPSenderDelegate::ErrorCode error,
+                               const char *errorReason,
+                               bool selfDestruct
+                               ) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -163,7 +178,9 @@ namespace ortc
 
     interaction IRTPSenderAsyncDelegate
     {
-      virtual ~IRTPSenderAsyncDelegate() {}
+      ZS_DECLARE_TYPEDEF_PTR(IRTPSenderChannelForRTPSender, UseChannel)
+
+      virtual void onDestroyChannel(UseChannelPtr channel) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -183,8 +200,8 @@ namespace ortc
                       public IRTPSenderForRTPSenderChannel,
                       public IRTPSenderForDTMFSender,
                       public IRTPSenderForMediaStreamTrack,
+                      public ISecureTransportDelegate,
                       public IWakeDelegate,
-                      public zsLib::ITimerDelegate,
                       public IRTPSenderAsyncDelegate
     {
     protected:
@@ -204,7 +221,51 @@ namespace ortc
       ZS_DECLARE_TYPEDEF_PTR(IRTPSenderChannelForRTPSender, UseChannel)
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPSender, UseMediaStreamTrack)
 
-      typedef std::map<ParametersPtr, UseChannelPtr> ParametersToChannelMap;
+      typedef std::list<RTCPPacketPtr> RTCPPacketList;
+      ZS_DECLARE_PTR(RTCPPacketList)
+
+      ZS_DECLARE_STRUCT_PTR(ChannelHolder)
+
+      typedef std::map<ParametersPtr, ChannelHolderPtr> ParametersToChannelHolderMap;
+      ZS_DECLARE_PTR(ParametersToChannelHolderMap)
+
+      ZS_DECLARE_TYPEDEF_PTR(std::list<ParametersPtr>, ParametersPtrList)
+
+      typedef std::list<IRTPTypes::SSRCType> SSRCList;
+
+      typedef std::pair<IRTPSenderDelegate::ErrorCode, String> ErrorPair;
+      typedef std::list<ErrorPair> ErrorList;
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPSender::ChannelHolder
+      #pragma mark
+
+      struct ChannelHolder
+      {
+        RTPSenderWeakPtr mHolder;
+        UseChannelPtr mChannel;
+        std::atomic<ISecureTransport::States> mLastReportedState {ISecureTransport::State_Pending};
+
+        ChannelHolder();
+        ~ChannelHolder();
+
+        PUID getID() const;
+        void notify(ISecureTransport::States state);
+
+        void notify(RTCPPacketListPtr packets);
+
+        void update(const Parameters &params);
+
+        bool handle(RTCPPacketPtr packet);
+
+        ElementPtr toDebug() const;
+      };
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPSender::States
+      #pragma mark
 
       enum States
       {
@@ -313,6 +374,19 @@ namespace ortc
       virtual bool sendPacket(RTPPacketPtr packet) override;
       virtual bool sendPacket(RTCPPacketPtr packet) override;
 
+      virtual void notifyConflict(
+                                  UseChannelPtr channel,
+                                  IRTPTypes::SSRCType ssrc,
+                                  bool selfDestruct
+                                  ) override;
+
+      virtual void notifyError(
+                               UseChannelPtr channel,
+                               IRTPSenderDelegate::ErrorCode error,
+                               const char *errorReason,
+                               bool selfDestruct
+                               ) override;
+
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark RTPSender => IRTPSenderForMediaStreamTrack
@@ -334,6 +408,16 @@ namespace ortc
 
       //-----------------------------------------------------------------------
       #pragma mark
+      #pragma mark RTPReceiver => ISecureTransportDelegate
+      #pragma mark
+
+      virtual void onSecureTransportStateChanged(
+                                                 ISecureTransportPtr transport,
+                                                 ISecureTransport::States state
+                                                 ) override;
+
+      //-----------------------------------------------------------------------
+      #pragma mark
       #pragma mark RTPSender => IWakeDelegate
       #pragma mark
 
@@ -341,15 +425,17 @@ namespace ortc
 
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark RTPSender => ITimerDelegate
+      #pragma mark RTPSender => IRTPSenderAsyncDelegate
       #pragma mark
 
-      virtual void onTimer(TimerPtr timer) override;
+      virtual void onDestroyChannel(UseChannelPtr channel) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark RTPSender => IRTPSenderAsyncDelegate
+      #pragma mark RTPReceiver => (friend ChannelHolder)
       #pragma mark
+
+      void notifyChannelGone();
 
     protected:
       //-----------------------------------------------------------------------
@@ -365,7 +451,6 @@ namespace ortc
       bool isShutdown() const;
 
       void step();
-      bool stepBogusDoSomething();
 
       void cancel();
 
@@ -377,6 +462,13 @@ namespace ortc
                       const BYTE *buffer,
                       size_t bufferSizeInBytes
                       );
+
+      ChannelHolderPtr addChannel(ParametersPtr newParams);
+      void updateChannel(
+                         ChannelHolderPtr channel,
+                         ParametersPtr newParams
+                         );
+      void removeChannel(ChannelHolderPtr channel);
 
       void notifyChannelsOfTransportState();
 
@@ -399,11 +491,14 @@ namespace ortc
       String mLastErrorReason;
 
       ParametersPtr mParameters;
+      ParametersPtrList mParametersGroupedIntoChannels;
 
       UseListenerPtr mListener;
 
       UseSecureTransportPtr mRTPTransport;
       UseSecureTransportPtr mRTCPTransport;
+
+      ISecureTransportSubscriptionPtr mRTCPTransportSubscription;
 
       IICETypes::Components mSendRTPOverTransport {IICETypes::Component_RTP};
       IICETypes::Components mSendRTCPOverTransport {IICETypes::Component_RTCP};
@@ -411,7 +506,13 @@ namespace ortc
 
       ISecureTransport::States mLastReportedTransportStateToChannels {ISecureTransport::State_Pending};
 
-      ParametersToChannelMap mChannels;
+      Optional<IMediaStreamTrackTypes::Kinds> mKind;
+      UseMediaStreamTrackPtr mTrack;
+
+      ParametersToChannelHolderMapPtr mChannels;  // using COW pattern
+
+      SSRCList mConflicts;
+      ErrorList mErrors;
     };
 
     //-------------------------------------------------------------------------
@@ -444,5 +545,6 @@ namespace ortc
 }
 
 ZS_DECLARE_PROXY_BEGIN(ortc::internal::IRTPSenderAsyncDelegate)
-//ZS_DECLARE_PROXY_METHOD_0(onWhatever)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::IRTPSenderAsyncDelegate::UseChannelPtr, UseChannelPtr)
+ZS_DECLARE_PROXY_METHOD_1(onDestroyChannel, UseChannelPtr)
 ZS_DECLARE_PROXY_END()

@@ -788,6 +788,12 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
+  ICertificatePtr ICertificate::convert(AnyPtr any)
+  {
+    return ZS_DYNAMIC_PTR_CAST(ICertificate, any);
+  }
+
+  //---------------------------------------------------------------------------
   ICertificateTypes::PromiseWithCertificatePtr ICertificate::generateCertificate(AlgorithmIdentifier algorithm)
   {
     return internal::ICertificateFactory::singleton().generateCertificate(algorithm);
