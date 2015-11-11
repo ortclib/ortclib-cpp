@@ -358,9 +358,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     IMediaStreamTrackTypes::Kinds MediaStreamTrack::kind() const
     {
-#define TODO 1
-#define TODO 2
-      return Kind_First;
+      AutoRecursiveLock lock(*this);
+
+      return mKind;
     }
 
     //-------------------------------------------------------------------------
@@ -413,8 +413,8 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool MediaStreamTrack::remote() const
     {
-#define TODO 1
-#define TODO 2
+      AutoRecursiveLock lock(*this);
+
       return mRemote;
     }
 

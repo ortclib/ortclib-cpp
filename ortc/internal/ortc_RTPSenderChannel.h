@@ -202,9 +202,9 @@ namespace ortc
                        );
 
     protected:
-      RTPSenderChannel(Noop) :
+      RTPSenderChannel(Noop, IMessageQueuePtr queue = IMessageQueuePtr()) :
         Noop(true),
-        MessageQueueAssociator(IMessageQueuePtr()),
+        MessageQueueAssociator(queue),
         SharedRecursiveLock(SharedRecursiveLock::create())
       {}
 

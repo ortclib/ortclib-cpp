@@ -58,6 +58,8 @@ namespace ortc
     {
       ZS_DECLARE_INTERACTION_PROXY(IFakeReceiverAsyncDelegate)
       ZS_DECLARE_INTERACTION_PROXY(IFakeReceiverChannelAsyncDelegate)
+      ZS_DECLARE_INTERACTION_PROXY(IFakeSenderAsyncDelegate)
+      ZS_DECLARE_INTERACTION_PROXY(IFakeSenderChannelAsyncDelegate)
 
       //---------------------------------------------------------------------
       //---------------------------------------------------------------------
@@ -84,6 +86,32 @@ namespace ortc
       {
         virtual ~IFakeReceiverChannelAsyncDelegate() {}
       };
+
+      //---------------------------------------------------------------------
+      //---------------------------------------------------------------------
+      //---------------------------------------------------------------------
+      //---------------------------------------------------------------------
+      #pragma mark
+      #pragma mark IFakeSenderAsyncDelegate
+      #pragma mark
+
+      interaction IFakeSenderAsyncDelegate
+      {
+        virtual ~IFakeSenderAsyncDelegate() {}
+      };
+
+      //---------------------------------------------------------------------
+      //---------------------------------------------------------------------
+      //---------------------------------------------------------------------
+      //---------------------------------------------------------------------
+      #pragma mark
+      #pragma mark IFakeSenderChannelAsyncDelegate
+      #pragma mark
+
+      interaction IFakeSenderChannelAsyncDelegate
+      {
+        virtual void onNotifyLocalVideoTrackEvent() = 0;
+      };
     }
   }
 }
@@ -92,6 +120,13 @@ ZS_DECLARE_PROXY_BEGIN(ortc::test::mediastreamtrack::IFakeReceiverAsyncDelegate)
 ZS_DECLARE_PROXY_END()
 
 ZS_DECLARE_PROXY_BEGIN(ortc::test::mediastreamtrack::IFakeReceiverChannelAsyncDelegate)
+ZS_DECLARE_PROXY_END()
+
+ZS_DECLARE_PROXY_BEGIN(ortc::test::mediastreamtrack::IFakeSenderAsyncDelegate)
+ZS_DECLARE_PROXY_END()
+
+ZS_DECLARE_PROXY_BEGIN(ortc::test::mediastreamtrack::IFakeSenderChannelAsyncDelegate)
+ZS_DECLARE_PROXY_METHOD_0(onNotifyLocalVideoTrackEvent)
 ZS_DECLARE_PROXY_END()
 
 namespace ortc
@@ -169,6 +204,7 @@ namespace ortc
 
         // (duplicate) virtual PUID getID() const = 0;
 
+      protected:
         //---------------------------------------------------------------------
         #pragma mark
         #pragma mark FakeReceiver => IFakeReceiverAsyncDelegate
@@ -295,7 +331,8 @@ namespace ortc
       #pragma mark
 
       //-----------------------------------------------------------------------
-      class FakeSender : public ortc::internal::RTPSender
+      class FakeSender : public ortc::internal::RTPSender,
+                         public IFakeSenderAsyncDelegate
       {
       protected:
         struct make_private {};
@@ -333,6 +370,12 @@ namespace ortc
       protected:
         //---------------------------------------------------------------------
         #pragma mark
+        #pragma mark FakeSender => IFakeSenderAsyncDelegate
+        #pragma mark
+
+      protected:
+        //---------------------------------------------------------------------
+        #pragma mark
         #pragma mark FakeSender => (internal)
         #pragma mark
 
@@ -361,7 +404,8 @@ namespace ortc
       #pragma mark
 
       //-----------------------------------------------------------------------
-      class FakeSenderChannel : public ortc::internal::RTPSenderChannel
+      class FakeSenderChannel : public ortc::internal::RTPSenderChannel,
+                                public IFakeSenderChannelAsyncDelegate
       {
       protected:
         struct make_private {};
@@ -405,6 +449,13 @@ namespace ortc
                                       const size_t numberOfSamples,
                                       const uint8_t numberOfChannels
                                       ) override;
+      protected:
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark FakeSenderChannel => IFakeSenderChannelAsyncDelegate
+        #pragma mark
+          
+        virtual void onNotifyLocalVideoTrackEvent() override;
 
       protected:
         //---------------------------------------------------------------------
@@ -536,12 +587,14 @@ namespace ortc
 
         static MediaStreamTrackTesterPtr create(
                                                 IMessageQueuePtr queue,
-                                                bool overrideFactories
+                                                bool overrideFactories,
+                                                void* videoSurface
                                                 );
 
         MediaStreamTrackTester(
                                IMessageQueuePtr queue,
-                               bool overrideFactories
+                               bool overrideFactories,
+                               void* videoSurface
                                );
         ~MediaStreamTrackTester();
 
@@ -553,7 +606,7 @@ namespace ortc
         void closeByReset();
 
         void startLocalVideoTrack();
-        void startRemoteVideoTrack(void* videoSurface);
+        void startRemoteVideoTrack();
         void startLocalAudioTrack();
         void startRemoteAudioTrack();
 
@@ -651,6 +704,8 @@ namespace ortc
         MediaStreamTrackTesterWeakPtr mThisWeak;
 
         bool mOverrideFactories{ false };
+
+        void* mVideoSurface;
 
         EventPtr mLocalVideoTrackEvent;
         EventPtr mRemoteVideoTrackEvent;

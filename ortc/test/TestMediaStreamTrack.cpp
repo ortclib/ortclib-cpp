@@ -145,14 +145,19 @@ namespace ortc
           {
             ortc::IMediaDevicesTypes::MediaStreamTrackListPtr trackList = promise->value<ortc::IMediaDevicesTypes::MediaStreamTrackList>();
             mTester.lock()->mLocalVideoMediaStreamTrack = MediaStreamTrack::convert(*trackList->begin());
-            //IInspectable* localMediaElementPtr = reinterpret_cast<IInspectable*>(mTester.lock()->mLocalMediaElement);
-            //mTester.lock()->mLocalVideoMediaStreamTrack->setMediaElement(localMediaElementPtr);
+
+            ZS_LOG_DEBUG(log("getUserMedia promise resolved for video") + IMediaStreamTrack::toDebug(mTester.lock()->mLocalVideoMediaStreamTrack))
+              
+            IMediaStreamTrackPtr(mTester.lock()->mLocalVideoMediaStreamTrack)->setMediaElement(mTester.lock()->mVideoSurface);
 
             mTester.lock()->mVideoSender = FakeSender::create(mTester.lock(), mTester.lock()->mLocalVideoMediaStreamTrack);
           }
           else if (mKind == IMediaStreamTrackTypes::Kinds::Kind_Audio)
           {
             ortc::IMediaDevicesTypes::MediaStreamTrackListPtr trackList = promise->value<ortc::IMediaDevicesTypes::MediaStreamTrackList>();
+
+            ZS_LOG_DEBUG(log("getUserMedia promise resolved for audio") + IMediaStreamTrack::toDebug(mTester.lock()->mLocalVideoMediaStreamTrack))
+
             mTester.lock()->mLocalAudioMediaStreamTrack = MediaStreamTrack::convert(*trackList->begin());
 
             mTester.lock()->mVideoSender = FakeSender::create(mTester.lock(), mTester.lock()->mLocalAudioMediaStreamTrack);
@@ -165,6 +170,12 @@ namespace ortc
 
         ~PromiseWithMediaStreamTrackListCallback()
         {
+        }
+
+        Log::Params log(const char *message) const
+        {
+          ElementPtr objectEl = Element::create("ortc::test::mediastreamtrack::PromiseWithMediaStreamTrackListCallback");
+          return Log::Params(message, objectEl);
         }
 
       private:
@@ -200,10 +211,15 @@ namespace ortc
           if (mKind == IMediaStreamTrackTypes::Kinds::Kind_Video)
           {
             ortc::IMediaDevicesTypes::DeviceListPtr deviceList = promise->value<ortc::IMediaDevicesTypes::DeviceList>();
+              
+            ZS_LOG_DEBUG(log("enumerateDevices promise resolved"))
+
             ortc::IMediaDevicesTypes::Device device;
             ortc::IMediaDevicesTypes::DeviceList::iterator iter = deviceList->begin();
             while (iter != deviceList->end())
             {
+              ZS_LOG_DEBUG(log("device") + iter->toDebug())
+              
               if (iter->mKind == IMediaDevicesTypes::DeviceKinds::DeviceKind_Video)
               {
                 device = *iter;
@@ -220,15 +236,22 @@ namespace ortc
             constraints->mVideo->mAdvanced.push_back(constraintSet);
             mTester.lock()->mVideoPromiseWithMediaStreamTrackList = IMediaDevices::getUserMedia(*constraints);
             mTester.lock()->mVideoPromiseWithMediaStreamTrackList->then(PromiseWithMediaStreamTrackListCallback::create(mTester.lock(), mKind));
+
+            ZS_LOG_DEBUG(log("getUserMedia method called for video") + constraintSet->toDebug())
           }
           else if (mKind == IMediaStreamTrackTypes::Kinds::Kind_Audio)
           {
             ortc::IMediaDevicesTypes::DeviceListPtr deviceList = promise->value<ortc::IMediaDevicesTypes::DeviceList>();
+
+            ZS_LOG_DEBUG(log("enumerateDevices promise resolved"))
+
             ortc::IMediaDevicesTypes::Device inputDevice;
             ortc::IMediaDevicesTypes::Device outputDevice;
             ortc::IMediaDevicesTypes::DeviceList::iterator iter = deviceList->begin();
             while (iter != deviceList->end())
             {
+              ZS_LOG_DEBUG(log("device") + iter->toDebug())
+
               if (iter->mKind == IMediaDevicesTypes::DeviceKinds::DeviceKind_AudioInput)
               {
                 inputDevice = *iter;
@@ -247,6 +270,8 @@ namespace ortc
             constraints->mAudio->mAdvanced.push_back(constraintSet);
             mTester.lock()->mAudioPromiseWithMediaStreamTrackList = IMediaDevices::getUserMedia(*constraints);
             mTester.lock()->mAudioPromiseWithMediaStreamTrackList->then(PromiseWithMediaStreamTrackListCallback::create(mTester.lock(), mKind));
+
+            ZS_LOG_DEBUG(log("getUserMedia method called for audio") + constraintSet->toDebug())
           }
         }
 
@@ -256,6 +281,12 @@ namespace ortc
 
         ~PromiseWithDeviceListCallback()
         {
+        }
+
+        Log::Params log(const char *message) const
+        {
+          ElementPtr objectEl = Element::create("ortc::test::mediastreamtrack::PromiseWithDeviceListCallback");
+          return Log::Params(message, objectEl);
         }
 
       private:
@@ -473,6 +504,9 @@ namespace ortc
           audioSamplesShort[2 * i + 0] = sin(x) * SHRT_MAX;
           audioSamplesShort[2 * i + 1] = sin(x) * SHRT_MAX;
         }
+        numberOfSamplesOut = numberOfSamples;
+
+        TESTING_EQUAL(numberOfSamplesOut, 480)
 
         mTester.lock()->notifySentAudioSamples(numberOfSamples);
         if (mSentAudioSamples == 144000)
@@ -513,6 +547,9 @@ namespace ortc
         for (int i = 0; i < height; i++)
         {
           memset(yBuffer, 0, width);
+          int lineOffset = 640 * mSentVideoFrames / 100;
+          int lineWidth = lineOffset + 60 <= 640 ? 60 : 640 - lineOffset;
+          memset(yBuffer + lineOffset, 255, lineWidth);
           yBuffer += width;
         }
 
@@ -520,13 +557,16 @@ namespace ortc
         uint8_t* vBuffer = frame.buffer(webrtc::kVPlane);
         for (int i = 0; i < height / 2; i++)
         {
-          memset(uBuffer, 0, width / 2);
-          memset(vBuffer, 0, width / 2);
+          memset(uBuffer, 128, width / 2);
+          memset(vBuffer, 128, width / 2);
           uBuffer += width / 2;
           vBuffer += width / 2;
         }
 
         mTrack->renderVideoFrame(frame);
+
+        TESTING_EQUAL(frame.width(), 640)
+        TESTING_EQUAL(frame.height(), 480)
 
         mTester.lock()->notifySentVideoFrame();
         if (mSentVideoFrames == 100)
@@ -626,6 +666,14 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       #pragma mark
+      #pragma mark FakeSender => IFakeSenderAsyncDelegate
+      #pragma mark
+
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
       #pragma mark FakeSender => (internal)
       #pragma mark
 
@@ -654,7 +702,7 @@ namespace ortc
                                            IMediaStreamTrackPtr track,
                                            IMessageQueuePtr queue
                                            ) :
-        RTPSenderChannel(Noop(true)),
+        RTPSenderChannel(Noop(true), queue),
         mTester(tester),
         mTrack(MediaStreamTrack::convert(track)),
         mReceivedVideoFrames(0),
@@ -680,7 +728,7 @@ namespace ortc
                                                      IMediaStreamTrackPtr track
                                                      )
       {
-        FakeSenderChannelPtr pThis(make_shared<FakeSenderChannel>(make_private{}, tester, sender, track));
+        FakeSenderChannelPtr pThis(make_shared<FakeSenderChannel>(make_private{}, tester, sender, track, IORTCForInternal::queueDelegate()));
         pThis->mThisWeak = pThis;
         pThis->init();
         return pThis;
@@ -720,9 +768,13 @@ namespace ortc
         mReceivedVideoFrames++;
         if (mReceivedVideoFrames > 100)
           return;
+
+        TESTING_EQUAL(videoFrame.width(), 640)
+        TESTING_EQUAL(videoFrame.height(), 480)
+
         mTester.lock()->notifyReceivedVideoFrame();
         if (mReceivedVideoFrames == 100)
-          mTester.lock()->notifyLocalVideoTrackEvent();
+          IFakeSenderChannelAsyncDelegateProxy::create(mThisWeak.lock())->onNotifyLocalVideoTrackEvent();
       }
 
       //-----------------------------------------------------------------------
@@ -735,9 +787,27 @@ namespace ortc
         mReceivedAudioSamples += numberOfSamples;
         if (mReceivedAudioSamples > 144000)
           return;
+
+        TESTING_EQUAL(numberOfSamples, 480)
+
         mTester.lock()->notifyReceivedAudioSamples(numberOfSamples);
         if (mReceivedAudioSamples == 144000)
           mTester.lock()->notifyLocalAudioTrackEvent();
+      }
+
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark FakeSenderChannel => IFakeSenderChannelAsyncDelegate
+      #pragma mark
+
+      void FakeSenderChannel::onNotifyLocalVideoTrackEvent()
+      {
+        if (mTester.lock()->mLocalVideoMediaStreamTrack)
+          IMediaStreamTrackPtr(mTester.lock()->mLocalVideoMediaStreamTrack)->stop();
+        mTester.lock()->notifyLocalVideoTrackEvent();
       }
 
       //-----------------------------------------------------------------------
@@ -843,10 +913,11 @@ namespace ortc
       //-----------------------------------------------------------------------
       MediaStreamTrackTesterPtr MediaStreamTrackTester::create(
                                                                IMessageQueuePtr queue,
-                                                               bool overrideFactories
+                                                               bool overrideFactories,
+                                                               void* videoSurface
                                                                )
       {
-        MediaStreamTrackTesterPtr pThis(new MediaStreamTrackTester(queue, overrideFactories));
+        MediaStreamTrackTesterPtr pThis(new MediaStreamTrackTester(queue, overrideFactories, videoSurface));
         pThis->mThisWeak = pThis;
         pThis->init();
         return pThis;
@@ -855,11 +926,13 @@ namespace ortc
       //-----------------------------------------------------------------------
       MediaStreamTrackTester::MediaStreamTrackTester(
                                                      IMessageQueuePtr queue,
-                                                     bool overrideFactories
+                                                     bool overrideFactories,
+                                                     void* videoSurface
                                                      ) :
         SharedRecursiveLock(SharedRecursiveLock::create()),
         MessageQueueAssociator(queue),
         mOverrideFactories(overrideFactories),
+        mVideoSurface(videoSurface),
         mLocalVideoTrackEvent(Event::create()),
         mRemoteVideoTrackEvent(Event::create()),
         mLocalAudioTrackEvent(Event::create()),
@@ -914,18 +987,19 @@ namespace ortc
       {
         mVideoPromiseWithDeviceList = IMediaDevices::enumerateDevices();
         mVideoPromiseWithDeviceList->then(PromiseWithDeviceListCallback::create(mThisWeak.lock(), IMediaStreamTrackTypes::Kinds::Kind_Video));
+
+        ZS_LOG_DEBUG(log("enumerateDevices method called"))
+
         mLocalVideoTrackEvent->wait();
-        if (mLocalVideoMediaStreamTrack)
-          IMediaStreamTrackPtr(mLocalVideoMediaStreamTrack)->stop();
       }
 
       //-----------------------------------------------------------------------
-      void MediaStreamTrackTester::startRemoteVideoTrack(void* videoSurface)
+      void MediaStreamTrackTester::startRemoteVideoTrack()
       {
         mVideoReceiver = FakeReceiver::create(mThisWeak.lock(), IMediaStreamTrackTypes::Kinds::Kind_Video);
 
         mRemoteVideoMediaStreamTrack = MediaStreamTrack::convert(mVideoReceiver->track());
-        IMediaStreamTrackPtr(mRemoteVideoMediaStreamTrack)->setMediaElement(videoSurface);
+        IMediaStreamTrackPtr(mRemoteVideoMediaStreamTrack)->setMediaElement(mVideoSurface);
 
         mRemoteVideoTrackEvent->wait();
         if (mRemoteVideoMediaStreamTrack)
@@ -937,7 +1011,11 @@ namespace ortc
       {
         mAudioPromiseWithDeviceList = IMediaDevices::enumerateDevices();
         mAudioPromiseWithDeviceList->then(PromiseWithDeviceListCallback::create(mThisWeak.lock(), IMediaStreamTrackTypes::Kinds::Kind_Audio));
+
+        ZS_LOG_DEBUG(log("enumerateDevices method called"))
+
         mLocalAudioTrackEvent->wait();
+
         if (mLocalAudioMediaStreamTrack)
           IMediaStreamTrackPtr(mLocalAudioMediaStreamTrack)->stop();
       }
@@ -1145,7 +1223,6 @@ namespace ortc
         AutoRecursiveLock lock(*this);
         mLocalAudioTrackEvent->notify();
         mLocalAudioTrackEvent->reset();
-
       }
 
       //-----------------------------------------------------------------------
@@ -1237,7 +1314,7 @@ void doTestMediaStreamTrack(void* videoSurface)
       switch (testNumber) {
       case TEST_BASIC_ROUTING: {
         {
-          testObject = MediaStreamTrackTester::create(thread, true);
+          testObject = MediaStreamTrackTester::create(thread, true, videoSurface);
 
           TESTING_CHECK(testObject)
 
@@ -1282,7 +1359,7 @@ void doTestMediaStreamTrack(void* videoSurface)
             break;
           }
           case 3: {
-            if (testObject) testObject->startRemoteVideoTrack(videoSurface);
+            if (testObject) testObject->startRemoteVideoTrack();
         //  bogusSleep();
             break;
           }
