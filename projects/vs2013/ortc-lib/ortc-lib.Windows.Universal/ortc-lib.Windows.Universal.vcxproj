@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|ARM">
       <Configuration>Debug</Configuration>
@@ -27,51 +27,58 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{5f43b342-f389-4968-8330-8cd7f5f633b7}</ProjectGuid>
-    <RootNamespace>ortc_lib</RootNamespace>
+    <ProjectGuid>{f4ef2e27-727c-4cf8-b727-81583b864265}</ProjectGuid>
+    <Keyword>StaticLibrary</Keyword>
+    <ProjectName>ortc-lib.Windows.Universal</ProjectName>
+    <RootNamespace>ortc_lib_Windows_Universal</RootNamespace>
     <DefaultLanguage>en-US</DefaultLanguage>
-    <MinimumVisualStudioVersion>12.0</MinimumVisualStudioVersion>
+    <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
     <AppContainerApplication>true</AppContainerApplication>
     <ApplicationType>Windows Store</ApplicationType>
-    <ApplicationTypeRevision>8.1</ApplicationTypeRevision>
-    <ConvergedProjectType>CodeSharingStaticLibrary</ConvergedProjectType>
+    <WindowsTargetPlatformVersion>10.0.10586.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformMinVersion>10.0.10240.0</WindowsTargetPlatformMinVersion>
+    <ApplicationTypeRevision>10.0</ApplicationTypeRevision>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
-  <Import Project="..\ortc-lib.Shared\ortc-lib.Shared.vcxitems" Label="Shared" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+    <Import Project="..\ortc-lib.Shared\ortc-lib.Shared.vcxitems" Label="Shared" />
+  </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
@@ -91,6 +98,7 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
+  <PropertyGroup />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <GenerateManifest>false</GenerateManifest>
   </PropertyGroup>
@@ -126,12 +134,9 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <CompileAsWinRT>true</CompileAsWinRT>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <CompileAsWinRT>false</CompileAsWinRT>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)\..\..\..\..;$(ProjectDir)\..\..\..\..\..\zsLib;$(ProjectDir)\..\..\..\..\..\op-services-cpp;$(ProjectDir)\..\..\..\..\..\webrtc-deps\boringssl\include;$(ProjectDir)\..\..\..\..\..;$(ProjectDir)\..\..\..\..\..\webrtc;$(ProjectDir)\..\..\..\..\..\webrtc\third_party\libsrtp\config;$(ProjectDir)\..\..\..\..\..\webrtc\third_party\libsrtp\srtp\include;$(ProjectDir)\..\..\..\..\..\webrtc\third_party\libsrtp\srtp\crypto\include;$(ProjectDir)\..\..\..\..\..\webrtc\third_party\usrsctp\usrsctplib;$(ProjectDir)\..\..\..\..\..\webrtc\webrtc\voice_engine\include;$(ProjectDir)\..\..\..\..\..\webrtc\webrtc\video_engine\include;$(ProjectDir)\..\..\..\..\..\webrtc\webrtc\modules\video_capture\include;%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory)</AdditionalIncludeDirectories>
-      <DisableSpecificWarnings>4068;4290</DisableSpecificWarnings>
-      <PreprocessorDefinitions>USE_OPENSSL=1;NOMINMAX;WEBRTC_WIN;_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -146,7 +151,7 @@
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>$(ProjectDir)\..\..\..\..;$(ProjectDir)\..\..\..\..\..\zsLib;$(ProjectDir)\..\..\..\..\..\op-services-cpp;$(ProjectDir)\..\..\..\..\..\webrtc-deps\boringssl\include;$(ProjectDir)\..\..\..\..\..;$(ProjectDir)\..\..\..\..\..\webrtc;$(ProjectDir)\..\..\..\..\..\webrtc\third_party\libsrtp\config;$(ProjectDir)\..\..\..\..\..\webrtc\third_party\libsrtp\srtp\include;$(ProjectDir)\..\..\..\..\..\webrtc\third_party\libsrtp\srtp\crypto\include;$(ProjectDir)\..\..\..\..\..\webrtc\third_party\usrsctp\usrsctplib;$(ProjectDir)\..\..\..\..\..\webrtc\webrtc\voice_engine\include;$(ProjectDir)\..\..\..\..\..\webrtc\webrtc\video_engine\include;$(ProjectDir)\..\..\..\..\..\webrtc\webrtc\modules\video_capture\include;%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4068;4290</DisableSpecificWarnings>
-      <PreprocessorDefinitions>WEBRTC_WIN;NOMINMAX;_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WEBRTC_WIN;NOMINMAX;_UNICODE;UNICODE;_ARM_WINAPI_PARTITION_DESKTOP_SDK_AVAILABLE=1;%(ClCompile.PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -156,12 +161,9 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|arm'">
     <ClCompile>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <CompileAsWinRT>true</CompileAsWinRT>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <CompileAsWinRT>false</CompileAsWinRT>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)\..\..\..\..;$(ProjectDir)\..\..\..\..\..\zsLib;$(ProjectDir)\..\..\..\..\..\op-services-cpp;$(ProjectDir)\..\..\..\..\..\webrtc-deps\boringssl\include;$(ProjectDir)\..\..\..\..\..;$(ProjectDir)\..\..\..\..\..\webrtc;%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory)</AdditionalIncludeDirectories>
-      <DisableSpecificWarnings>4068;4290</DisableSpecificWarnings>
-      <PreprocessorDefinitions>NOMINMAX;_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -186,12 +188,9 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <CompileAsWinRT>true</CompileAsWinRT>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <CompileAsWinRT>false</CompileAsWinRT>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)\..\..\..\..;$(ProjectDir)\..\..\..\..\..\zsLib;$(ProjectDir)\..\..\..\..\..\op-services-cpp;$(ProjectDir)\..\..\..\..\..\webrtc-deps\boringssl\include;$(ProjectDir)\..\..\..\..\..;$(ProjectDir)\..\..\..\..\..\webrtc;%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory)</AdditionalIncludeDirectories>
-      <DisableSpecificWarnings>4068;4290</DisableSpecificWarnings>
-      <PreprocessorDefinitions>NOMINMAX;_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
