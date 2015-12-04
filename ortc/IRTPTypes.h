@@ -757,39 +757,39 @@ namespace ortc
 
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IRTPTypes::KnownFeedbackKinds
+    #pragma mark IRTPTypes::KnownFeedbackParameters
     #pragma mark
 
-    enum KnownFeedbackMechanisms
+    enum KnownFeedbackParameters
     {
-      KnownFeedbackMechanism_First,
+      KnownFeedbackParameter_First,
 
-      KnownFeedbackMechanism_Unknown = KnownFeedbackMechanism_First,
+      KnownFeedbackParameter_Unknown = KnownFeedbackParameter_First,
 
       // http://www.iana.org/assignments/sdp-parameters/sdp-parameters.xhtml#sdp-parameters-15
-      KnownFeedbackMechanism_SLI,                                 // sli
-      KnownFeedbackMechanism_PLI,                                 // pli
-      KnownFeedbackMechanism_RPSI,                                // rpsi
-      KnownFeedbackMechanism_APP,                                 // app
-      KnownFeedbackMechanism_RAI,                                 // rai
-      KnownFeedbackMechanism_TLLEI,                               // tllei
-      KnownFeedbackMechanism_PSLEI,                               // pslei
+      KnownFeedbackParameter_SLI,                                 // sli
+      KnownFeedbackParameter_PLI,                                 // pli
+      KnownFeedbackParameter_RPSI,                                // rpsi
+      KnownFeedbackParameter_APP,                                 // app
+      KnownFeedbackParameter_RAI,                                 // rai
+      KnownFeedbackParameter_TLLEI,                               // tllei
+      KnownFeedbackParameter_PSLEI,                               // pslei
 
       //http://www.iana.org/assignments/sdp-parameters/sdp-parameters.xhtml#sdp-parameters-19
-      KnownFeedbackMechanism_FIR,                                 // fir
-      KnownFeedbackMechanism_TMMBR,                               // tmmbr
-      KnownFeedbackMechanism_TSTR,                                // tstr
-      KnownFeedbackMechanism_VBCM,                                // vbcm
-      KnownFeedbackMechanism_PAUSE,                               // pause
-      KnownFeedbackMechanism_REMB,                                // goog-remb
+      KnownFeedbackParameter_FIR,                                 // fir
+      KnownFeedbackParameter_TMMBR,                               // tmmbr
+      KnownFeedbackParameter_TSTR,                                // tstr
+      KnownFeedbackParameter_VBCM,                                // vbcm
+      KnownFeedbackParameter_PAUSE,                               // pause
+      KnownFeedbackParameter_REMB,                                // goog-remb
 
-      KnownFeedbackMechanism_Last = KnownFeedbackMechanism_REMB,
+      KnownFeedbackParameter_Last = KnownFeedbackParameter_REMB,
     };
 
-    static const char *toString(KnownFeedbackMechanisms mechanism);
-    static KnownFeedbackMechanisms toKnownFeedbackMechanism(const char *mechanism);
+    static const char *toString(KnownFeedbackParameters parameter);
+    static KnownFeedbackParameters toKnownFeedbackParameter(const char *parameter);
 
-    static KnownFeedbackTypesSet getUseableWithFeedbackTypes(KnownFeedbackMechanisms mechanism);
+    static KnownFeedbackTypesSet getUseableWithFeedbackTypes(KnownFeedbackParameters mechanism);
 
     //-------------------------------------------------------------------------
     #pragma mark

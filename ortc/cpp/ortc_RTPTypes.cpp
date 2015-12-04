@@ -3445,73 +3445,73 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   #pragma mark
-  #pragma mark IRTPTypes::KnownFeedbackMechanisms
+  #pragma mark IRTPTypes::KnownFeedbackParameters
   #pragma mark
 
   //---------------------------------------------------------------------------
-  const char *IRTPTypes::toString(KnownFeedbackMechanisms mechanism)
+  const char *IRTPTypes::toString(KnownFeedbackParameters mechanism)
   {
     switch (mechanism) {
-      case KnownFeedbackMechanism_Unknown:    return "";
+      case KnownFeedbackParameter_Unknown:    return "";
 
-      case KnownFeedbackMechanism_SLI:        return "sli";
-      case KnownFeedbackMechanism_PLI:        return "pli";
-      case KnownFeedbackMechanism_RPSI:       return "rpsi";
-      case KnownFeedbackMechanism_APP:        return "app";
-      case KnownFeedbackMechanism_RAI:        return "rai";
-      case KnownFeedbackMechanism_TLLEI:      return "tllei";
-      case KnownFeedbackMechanism_PSLEI:      return "pslei";
-      case KnownFeedbackMechanism_FIR:        return "fir";
-      case KnownFeedbackMechanism_TMMBR:      return "tmmbr";
-      case KnownFeedbackMechanism_TSTR:       return "tstr";
-      case KnownFeedbackMechanism_VBCM:       return "vbcm";
-      case KnownFeedbackMechanism_PAUSE:      return "pause";
-      case KnownFeedbackMechanism_REMB:       return "goog-remb";
+      case KnownFeedbackParameter_SLI:        return "sli";
+      case KnownFeedbackParameter_PLI:        return "pli";
+      case KnownFeedbackParameter_RPSI:       return "rpsi";
+      case KnownFeedbackParameter_APP:        return "app";
+      case KnownFeedbackParameter_RAI:        return "rai";
+      case KnownFeedbackParameter_TLLEI:      return "tllei";
+      case KnownFeedbackParameter_PSLEI:      return "pslei";
+      case KnownFeedbackParameter_FIR:        return "fir";
+      case KnownFeedbackParameter_TMMBR:      return "tmmbr";
+      case KnownFeedbackParameter_TSTR:       return "tstr";
+      case KnownFeedbackParameter_VBCM:       return "vbcm";
+      case KnownFeedbackParameter_PAUSE:      return "pause";
+      case KnownFeedbackParameter_REMB:       return "goog-remb";
     }
 
     return "unknown";
   }
 
   //---------------------------------------------------------------------------
-  IRTPTypes::KnownFeedbackMechanisms IRTPTypes::toKnownFeedbackMechanism(const char *mechanism)
+  IRTPTypes::KnownFeedbackParameters IRTPTypes::toKnownFeedbackParameter(const char *mechanism)
   {
     String mechanismStr(mechanism);
 
-    for (KnownFeedbackMechanisms index = KnownFeedbackMechanism_First; index <= KnownFeedbackMechanism_Last; index = static_cast<KnownFeedbackMechanisms>(static_cast<std::underlying_type<KnownFeedbackMechanisms>::type>(index) + 1)) {
+    for (KnownFeedbackParameters index = KnownFeedbackParameter_First; index <= KnownFeedbackParameter_Last; index = static_cast<KnownFeedbackParameters>(static_cast<std::underlying_type<KnownFeedbackParameters>::type>(index) + 1)) {
       if (0 == mechanismStr.compareNoCase(IRTPTypes::toString(index))) return index;
     }
 
-    return KnownFeedbackMechanism_Unknown;
+    return KnownFeedbackParameter_Unknown;
   }
 
   //---------------------------------------------------------------------------
-  IRTPTypes::KnownFeedbackTypesSet IRTPTypes::getUseableWithFeedbackTypes(KnownFeedbackMechanisms mechanism)
+  IRTPTypes::KnownFeedbackTypesSet IRTPTypes::getUseableWithFeedbackTypes(KnownFeedbackParameters mechanism)
   {
     KnownFeedbackTypesSet result;
 
     switch (mechanism) {
-      case KnownFeedbackMechanism_Unknown:    break;
+      case KnownFeedbackParameter_Unknown:    break;
 
-      case KnownFeedbackMechanism_SLI:
-      case KnownFeedbackMechanism_PLI:
-      case KnownFeedbackMechanism_RAI:
-      case KnownFeedbackMechanism_TLLEI:
-      case KnownFeedbackMechanism_PSLEI:      {
+      case KnownFeedbackParameter_SLI:
+      case KnownFeedbackParameter_PLI:
+      case KnownFeedbackParameter_RAI:
+      case KnownFeedbackParameter_TLLEI:
+      case KnownFeedbackParameter_PSLEI:      {
         result.insert(KnownFeedbackType_NACK);
         break;
       }
-      case KnownFeedbackMechanism_RPSI:
-      case KnownFeedbackMechanism_APP:        {
+      case KnownFeedbackParameter_RPSI:
+      case KnownFeedbackParameter_APP:        {
         result.insert(KnownFeedbackType_ACK);
         result.insert(KnownFeedbackType_NACK);
         break;
       }
-      case KnownFeedbackMechanism_REMB:
-      case KnownFeedbackMechanism_FIR:
-      case KnownFeedbackMechanism_TMMBR:
-      case KnownFeedbackMechanism_TSTR:
-      case KnownFeedbackMechanism_VBCM:
-      case KnownFeedbackMechanism_PAUSE:      {
+      case KnownFeedbackParameter_REMB:
+      case KnownFeedbackParameter_FIR:
+      case KnownFeedbackParameter_TMMBR:
+      case KnownFeedbackParameter_TSTR:
+      case KnownFeedbackParameter_VBCM:
+      case KnownFeedbackParameter_PAUSE:      {
         result.insert(KnownFeedbackType_CCM);
         break;
       }

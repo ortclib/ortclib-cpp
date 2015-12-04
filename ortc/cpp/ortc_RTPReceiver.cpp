@@ -682,14 +682,11 @@ namespace ortc
     //-------------------------------------------------------------------------
     IRTPReceiverTypes::CapabilitiesPtr RTPReceiver::getCapabilities(Optional<Kinds> kind)
     {
-      typedef std::set<KnownFeedbackMechanisms> KnownFeedbackMechanismsSet;
-
       CapabilitiesPtr result(make_shared<Capabilities>());
 
       for (IRTPTypes::SupportedCodecs index = IRTPTypes::SupportedCodec_First; index <= IRTPTypes::SupportedCodec_Last; index = static_cast<IRTPTypes::SupportedCodecs>(static_cast<std::underlying_type<IRTPTypes::SupportedCodecs>::type>(index) + 1)) {
 
         CodecCapability codec;
-        KnownFeedbackMechanismsSet mechanisms;
 
         codec.mName = IRTPTypes::toString(index);
         codec.mMaxPTime = 60;
@@ -707,13 +704,35 @@ namespace ortc
           case IRTPTypes::CodecKind_Video:
           {
             codec.mKind = IMediaStreamTrack::toString(IMediaStreamTrackTypes::Kind_Video);
-            mechanisms.insert(KnownFeedbackMechanism_REMB);
-            mechanisms.insert(KnownFeedbackMechanism_PLI);
-            mechanisms.insert(KnownFeedbackMechanism_FIR);
-            mechanisms.insert(KnownFeedbackMechanism_RPSI); // ?
-#define TODO_VERIFY 1
-#define TODO_VERIFY 2
-            mechanisms.insert(KnownFeedbackMechanism_TMMBR);
+
+            // generic NACK
+            {
+              IRTPTypes::RTCPFeedback feedback;
+              feedback.mType = IRTPTypes::toString(KnownFeedbackType_NACK);
+              feedback.mParameter = IRTPTypes::toString(KnownFeedbackParameter_Unknown);
+              codec.mFeedback.push_back(feedback);
+            }
+            // NACK + PLI
+            {
+              IRTPTypes::RTCPFeedback feedback;
+              feedback.mType = IRTPTypes::toString(KnownFeedbackType_NACK);
+              feedback.mParameter = IRTPTypes::toString(KnownFeedbackParameter_PLI);
+              codec.mFeedback.push_back(feedback);
+            }
+            // CCM + FIR
+            {
+              IRTPTypes::RTCPFeedback feedback;
+              feedback.mType = IRTPTypes::toString(KnownFeedbackType_CCM);
+              feedback.mParameter = IRTPTypes::toString(KnownFeedbackParameter_FIR);
+              codec.mFeedback.push_back(feedback);
+            }
+            // CCM + REMB
+            {
+              IRTPTypes::RTCPFeedback feedback;
+              feedback.mType = IRTPTypes::toString(KnownFeedbackType_CCM);
+              feedback.mParameter = IRTPTypes::toString(KnownFeedbackParameter_REMB);
+              codec.mFeedback.push_back(feedback);
+            }
 
             codec.mClockRate = 90000;
 
@@ -823,19 +842,6 @@ namespace ortc
             codec.mClockRate = 8000;
             codec.mPreferredPayloadType = 126;
             break;
-          }
-        }
-
-        for (auto iter = mechanisms.begin(); iter != mechanisms.end(); ++iter) {
-          auto mechanism = (*iter);
-
-          auto typesSet = IRTPTypes::getUseableWithFeedbackTypes(mechanism);
-          for (auto iterTypes = typesSet.begin(); iterTypes != typesSet.end(); ++iterTypes) {
-            auto type = (*iterTypes);
-            IRTPTypes::RTCPFeedback feedback;
-            feedback.mType = IRTPTypes::toString(type);
-            feedback.mParameter = IRTPTypes::toString(mechanism);
-            codec.mFeedback.push_back(feedback);
           }
         }
 
