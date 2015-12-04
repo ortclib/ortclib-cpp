@@ -52,15 +52,15 @@ namespace ortc
     ZS_DECLARE_STRUCT_PTR(CodecCapability)
     ZS_DECLARE_STRUCT_PTR(OpusCodecCapabilityOptions)
     ZS_DECLARE_STRUCT_PTR(OpusCodecCapabilityParameters)
-    ZS_DECLARE_STRUCT_PTR(VP8CodecCapability)
-    ZS_DECLARE_STRUCT_PTR(H264CodecCapability)
+    ZS_DECLARE_STRUCT_PTR(VP8CodecCapabilityParameters)
+    ZS_DECLARE_STRUCT_PTR(H264CodecCapabilityParameters)
     ZS_DECLARE_STRUCT_PTR(HeaderExtensions)
-    ZS_DECLARE_STRUCT_PTR(RtcpFeedback)
+    ZS_DECLARE_STRUCT_PTR(RTCPFeedback)
     ZS_DECLARE_STRUCT_PTR(Parameters)
     ZS_DECLARE_STRUCT_PTR(CodecParameters)
     ZS_DECLARE_STRUCT_PTR(OpusCodecParameters)
-    ZS_DECLARE_TYPEDEF_PTR(VP8CodecCapability, VP8CodecParameters)
-    ZS_DECLARE_TYPEDEF_PTR(H264CodecCapability, H264CodecParameters)
+    ZS_DECLARE_TYPEDEF_PTR(VP8CodecCapabilityParameters, VP8CodecParameters)
+    ZS_DECLARE_TYPEDEF_PTR(H264CodecCapabilityParameters, H264CodecParameters)
     ZS_DECLARE_STRUCT_PTR(RTXCodecParameters)
     ZS_DECLARE_STRUCT_PTR(REDCodecParameters)
     ZS_DECLARE_STRUCT_PTR(FlexFECCodecParameters)
@@ -72,7 +72,7 @@ namespace ortc
 
     ZS_DECLARE_TYPEDEF_PTR(std::list<CodecCapability>, CodecCapabilitiesList)
     ZS_DECLARE_TYPEDEF_PTR(std::list<HeaderExtensions>, HeaderExtensionsList)
-    ZS_DECLARE_TYPEDEF_PTR(std::list<RtcpFeedback>, RtcpFeedbackList)
+    ZS_DECLARE_TYPEDEF_PTR(std::list<RTCPFeedback>, RTCPFeedbackList)
     ZS_DECLARE_TYPEDEF_PTR(std::list<CodecParameters>, CodecParametersList)
     ZS_DECLARE_TYPEDEF_PTR(std::list<HeaderExtensionParameters>, HeaderExtensionParametersList)
     ZS_DECLARE_TYPEDEF_PTR(std::list<EncodingParameters>, EncodingParametersList)
@@ -85,6 +85,24 @@ namespace ortc
     ZS_DECLARE_TYPEDEF_PTR(std::list<PayloadType>, PayloadTypeList)
     typedef String EncodingID;
     ZS_DECLARE_TYPEDEF_PTR(std::list<EncodingID>, EncodingIDList)
+
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IRTPTypes::DegradationPreference
+    #pragma mark
+
+    enum DegradationPreferences {
+      DegradationPreference_First,
+
+      DegradationPreference_MaintainFramerate     = DegradationPreference_First,
+      DegradationPreference_MaintainResolution,
+      DegradationPreference_Balanced,
+
+      DegradationPreference_Last                  = DegradationPreference_Balanced,
+    };
+
+    static const char *toString(DegradationPreferences preference);
+    static DegradationPreferences toDegredationPreference(const char *preference) throw (InvalidParameters);
 
     //-------------------------------------------------------------------------
     #pragma mark
@@ -112,7 +130,7 @@ namespace ortc
       PayloadType       mPreferredPayloadType {};
       ULONG             mMaxPTime {};
       ULONG             mNumChannels {};
-      RtcpFeedbackList  mFeedback;
+      RTCPFeedbackList  mFeedback;
       AnyPtr            mParameters;
       AnyPtr            mOptions;
       USHORT            mMaxTemporalLayers {0};
@@ -178,13 +196,13 @@ namespace ortc
     #pragma mark IRTPTypes::VP8CodecCapability
     #pragma mark
 
-    struct VP8CodecCapability : public Any
+    struct VP8CodecCapabilityParameters : public Any
     {
-      ULONG mMaxFT {};
-      ULONGLONG mMaxFS {};
+      Optional<ULONG> mMaxFT;
+      Optional<ULONGLONG> mMaxFS;
 
-      static VP8CodecCapabilityPtr create(const VP8CodecCapability &capability);
-      static VP8CodecCapabilityPtr convert(AnyPtr any);
+      static VP8CodecCapabilityParametersPtr create(const VP8CodecCapabilityParameters &capability);
+      static VP8CodecCapabilityParametersPtr convert(AnyPtr any);
 
       ElementPtr toDebug() const;
       String hash() const;
@@ -195,22 +213,22 @@ namespace ortc
     #pragma mark IRTPTypes::H264CodecCapability
     #pragma mark
 
-    struct H264CodecCapability : public Any
+    struct H264CodecCapabilityParameters : public Any
     {
       typedef std::list<USHORT>  PacketizationModeList;
 
-      ULONG mProfileLevelID {};
+      Optional<ULONG> mProfileLevelID {};
       PacketizationModeList mPacketizationModes;
 
-      ULONGLONG mMaxMBPS {};
-      ULONGLONG mMaxSMBPS {};
-      ULONGLONG mMaxFS {};
-      ULONGLONG mMaxCPB {};
-      ULONGLONG mMaxDPB {};
-      ULONGLONG mMaxBR {};
+      Optional<ULONGLONG> mMaxMBPS {};
+      Optional<ULONGLONG> mMaxSMBPS {};
+      Optional<ULONGLONG> mMaxFS {};
+      Optional<ULONGLONG> mMaxCPB {};
+      Optional<ULONGLONG> mMaxDPB {};
+      Optional<ULONGLONG> mMaxBR {};
 
-      static H264CodecCapabilityPtr create(const H264CodecCapability &capability);
-      static H264CodecCapabilityPtr convert(AnyPtr any);
+      static H264CodecCapabilityParametersPtr create(const H264CodecCapabilityParameters &capability);
+      static H264CodecCapabilityParametersPtr convert(AnyPtr any);
 
       ElementPtr toDebug() const;
       String hash() const;
@@ -233,10 +251,10 @@ namespace ortc
 
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IRTPTypes::RtcpFeedback
+    #pragma mark IRTPTypes::RTCPFeedback
     #pragma mark
 
-    struct RtcpFeedback {
+    struct RTCPFeedback {
       String mType;
       String mParameter;
 
@@ -270,6 +288,7 @@ namespace ortc
       HeaderExtensionParametersList mHeaderExtensions;
       EncodingParametersList        mEncodingParameters;
       RTCPParameters                mRTCP;
+      DegradationPreferences        mDegredationPreference {DegradationPreference_Balanced};
 
       struct HashOptions
       {
@@ -278,6 +297,7 @@ namespace ortc
         bool mHeaderExtensions {true};
         bool mEncodingParameters {true};
         bool mRTCP {true};
+        bool mDegredationPreference {true};
 
         HashOptions() {}
       };
@@ -297,7 +317,7 @@ namespace ortc
       Optional<ULONG>   mClockRate;
       ULONG             mMaxPTime {};
       ULONG             mNumChannels {};
-      RtcpFeedbackList  mRTCPFeedback;
+      RTCPFeedbackList  mRTCPFeedback;
       AnyPtr            mParameters;  // see OpusCodecParameters, RTXCodecParameters, REDCodecParameters, FlexFECCodecParameters for definitions
 
       CodecParameters() {}
@@ -516,7 +536,6 @@ namespace ortc
       PriorityTypes           mPriority {PriorityType_Unknown};
       ULONGLONG               mMaxBitrate {};
       double                  mMinQuality {0};
-      double                  mFramerateBias {0.5};
       bool                    mActive {true};
       EncodingID              mEncodingID;
       EncodingIDList          mDependencyEncodingIDs;

@@ -340,7 +340,7 @@ namespace ortc
         ICETransportPtr pThis = mThisWeak.lock();
 
         if (IICETransportTypes::State_New != mCurrentState) {
-          delegate->onICETransportStateChanged(pThis, mCurrentState);
+          delegate->onICETransportStateChange(pThis, mCurrentState);
         }
 
         if (!isShutdown()) {
@@ -411,7 +411,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    IICETransportTypes::CandidatePairPtr ICETransport::getNominatedCandidatePair() const
+    IICETransportTypes::CandidatePairPtr ICETransport::getSelectedCandidatePair() const
     {
       AutoRecursiveLock lock(*this);
 
@@ -1469,10 +1469,10 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void ICETransport::onICEGathererStateChanged(
-                                                 IICEGathererPtr gatherer,
-                                                 IICEGatherer::States state
-                                                 )
+    void ICETransport::onICEGathererStateChange(
+                                                IICEGathererPtr gatherer,
+                                                IICEGatherer::States state
+                                                )
     {
       AutoRecursiveLock lock(*this);
       ZS_LOG_TRACE(log("ice gatherer state changed") + ZS_PARAM("gather id", gatherer->getID()) + ZS_PARAM("state", IICEGatherer::toString(state)))
@@ -2778,7 +2778,7 @@ namespace ortc
 
       ICETransportPtr pThis = mThisWeak.lock();
       if (pThis) {
-        mSubscriptions.delegate()->onICETransportStateChanged(pThis, mCurrentState);
+        mSubscriptions.delegate()->onICETransportStateChange(pThis, mCurrentState);
         if (mGatherer) {
           mGatherer->notifyTransportStateChange(pThis);
         }
@@ -4477,7 +4477,7 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   #pragma mark
-  #pragma mark IICETransportTypes
+  #pragma mark IICETransportTypes::States
   #pragma mark
 
   //---------------------------------------------------------------------------
@@ -4496,25 +4496,14 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IICETransportTypes::States IICETransportTypes::toState(const char *state)
+  IICETransportTypes::States IICETransportTypes::toState(const char *state) throw (InvalidParameters)
   {
-    static States states[] = {
-      State_New,
-      State_Checking,
-      State_Connected,
-      State_Completed,
-      State_Disconnected,
-      State_Failed,
-      State_Closed,
-    };
-
     String stateStr(state);
-    for (size_t loop = 0; loop < (sizeof(states) / sizeof(states[0])); ++loop) {
-      if (stateStr == toString(states[loop])) return states[loop];
+    for (IICETransportTypes::States index = IICETransportTypes::State_First; index <= IICETransportTypes::State_Last; index = static_cast<IICETransportTypes::States>(static_cast<std::underlying_type<IICETransportTypes::States>::type>(index) + 1)) {
+      if (0 == stateStr.compareNoCase(IICETransportTypes::toString(index))) return index;
     }
-
     ORTC_THROW_INVALID_PARAMETERS("Invalid parameter value: " + stateStr)
-    return State_Closed;
+    return IICETransportTypes::State_First;
   }
 
   //---------------------------------------------------------------------------

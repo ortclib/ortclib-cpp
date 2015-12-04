@@ -56,17 +56,21 @@ namespace ortc
 
     enum States
     {
-      State_New,
+      State_First,
+
+      State_New     = State_First,
       State_Checking,
       State_Connected,
       State_Completed,
       State_Disconnected,
       State_Failed,
       State_Closed,
+
+      State_Last    = State_Closed,
     };
 
     static const char *toString(States state);
-    static States toState(const char *state);
+    static States toState(const char *state) throw (InvalidParameters);
 
     //-------------------------------------------------------------------------
     #pragma mark
@@ -130,7 +134,7 @@ namespace ortc
 
     virtual CandidateListPtr getRemoteCandidates() const = 0;
 
-    virtual CandidatePairPtr getNominatedCandidatePair() const = 0;
+    virtual CandidatePairPtr getSelectedCandidatePair() const = 0;
 
     virtual void start(
                        IICEGathererPtr gatherer,
@@ -166,10 +170,10 @@ namespace ortc
   {
     ZS_DECLARE_TYPEDEF_PTR(IICETransportTypes::CandidatePair, CandidatePair)
 
-    virtual void onICETransportStateChanged(
-                                            IICETransportPtr transport,
-                                            IICETransport::States state
-                                            ) = 0;
+    virtual void onICETransportStateChange(
+                                           IICETransportPtr transport,
+                                           IICETransport::States state
+                                           ) = 0;
 
     virtual void onICETransportCandidatePairAvailable(
                                                       IICETransportPtr transport,
@@ -208,7 +212,7 @@ ZS_DECLARE_PROXY_BEGIN(ortc::IICETransportDelegate)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IICETransportPtr, IICETransportPtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IICETransport::States, States)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IICETransport::CandidatePairPtr, CandidatePairPtr)
-ZS_DECLARE_PROXY_METHOD_2(onICETransportStateChanged, IICETransportPtr, States)
+ZS_DECLARE_PROXY_METHOD_2(onICETransportStateChange, IICETransportPtr, States)
 ZS_DECLARE_PROXY_METHOD_2(onICETransportCandidatePairAvailable, IICETransportPtr, CandidatePairPtr)
 ZS_DECLARE_PROXY_METHOD_2(onICETransportCandidatePairGone, IICETransportPtr, CandidatePairPtr)
 ZS_DECLARE_PROXY_METHOD_2(onICETransportCandidatePairChanged, IICETransportPtr, CandidatePairPtr)
@@ -218,7 +222,7 @@ ZS_DECLARE_PROXY_SUBSCRIPTIONS_BEGIN(ortc::IICETransportDelegate, ortc::IICETran
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IICETransportPtr, IICETransportPtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IICETransport::States, States)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IICETransport::CandidatePairPtr, CandidatePairPtr)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onICETransportStateChanged, IICETransportPtr, States)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onICETransportStateChange, IICETransportPtr, States)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onICETransportCandidatePairAvailable, IICETransportPtr, CandidatePairPtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onICETransportCandidatePairGone, IICETransportPtr, CandidatePairPtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onICETransportCandidatePairChanged, IICETransportPtr, CandidatePairPtr)

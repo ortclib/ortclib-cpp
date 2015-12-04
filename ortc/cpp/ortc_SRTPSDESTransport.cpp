@@ -534,10 +534,10 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void SRTPSDESTransport::onICETransportStateChanged(
-                                                       IICETransportPtr transport,
-                                                       IICETransport::States state
-                                                       )
+    void SRTPSDESTransport::onICETransportStateChange(
+                                                      IICETransportPtr transport,
+                                                      IICETransport::States state
+                                                      )
     {
       ZS_LOG_DEBUG(log("ice transport state changed") + ZS_PARAM("transport", transport->getID()) + ZS_PARAM("state", IICETransportTypes::toString(state)))
 

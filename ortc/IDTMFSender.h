@@ -45,6 +45,7 @@ namespace ortc
   
   interaction IDTMFSenderTypes
   {
+    ZS_DECLARE_CUSTOM_EXCEPTION(InvalidCharacterError)
   };
 
   //---------------------------------------------------------------------------
@@ -74,7 +75,10 @@ namespace ortc
                             const char *tones,
                             Milliseconds duration = Milliseconds(70),
                             Milliseconds interToneGap = Milliseconds(70)
-                            ) throw (InvalidStateError) = 0;
+                            ) throw (
+                                     InvalidStateError,
+                                     InvalidCharacterError
+                                     ) = 0;
 
     virtual IRTPSenderPtr sender() const = 0;
 

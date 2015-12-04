@@ -61,10 +61,14 @@ namespace ortc
     #pragma mark
 
     enum States {
-      State_New,
+      State_First,
+
+      State_New       = State_First,
       State_Gathering,
       State_Complete,
       State_Closed,
+
+      State_Last      = State_Closed,
     };
 
     static const char *toString(States state);
@@ -102,6 +106,23 @@ namespace ortc
 
     //-------------------------------------------------------------------------
     #pragma mark
+    #pragma mark IICEGathererTypes::CredentialType
+    #pragma mark
+
+    enum CredentialTypes {
+      CredentialType_First,
+
+      CredentialType_Password   = CredentialType_First,
+      CredentialType_Token,
+
+      CredentialType_Last       = CredentialType_Token,
+    };
+
+    static const char *toString(CredentialTypes type);
+    static CredentialTypes toCredentialType(const char *type) throw (InvalidParameters);
+
+    //-------------------------------------------------------------------------
+    #pragma mark
     #pragma mark IICEGathererTypes::Options
     #pragma mark
 
@@ -120,9 +141,10 @@ namespace ortc
     #pragma mark
 
     struct Server {
-      StringList mURLs;
-      String     mUserName;
-      String     mCredential;
+      StringList      mURLs;
+      String          mUserName;
+      String          mCredential;
+      CredentialTypes mCredentialType {CredentialType_Password};
 
       ElementPtr toDebug() const;
       String hash() const;
@@ -191,10 +213,10 @@ namespace ortc
     ZS_DECLARE_TYPEDEF_PTR(IICETypes::CandidateComplete, CandidateComplete)
     typedef WORD ErrorCode;
 
-    virtual void onICEGathererStateChanged(
-                                           IICEGathererPtr gatherer,
-                                           IICEGatherer::States state
-                                           ) = 0;
+    virtual void onICEGathererStateChange(
+                                          IICEGathererPtr gatherer,
+                                          IICEGatherer::States state
+                                          ) = 0;
 
     virtual void onICEGathererLocalCandidate(
                                              IICEGathererPtr gatherer,
@@ -242,7 +264,7 @@ ZS_DECLARE_PROXY_TYPEDEF(ortc::IICEGatherer::States, States)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IICEGathererDelegate::CandidatePtr, CandidatePtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IICEGathererDelegate::CandidateCompletePtr, CandidateCompletePtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IICEGathererDelegate::ErrorCode, ErrorCode)
-ZS_DECLARE_PROXY_METHOD_2(onICEGathererStateChanged, IICEGathererPtr, States)
+ZS_DECLARE_PROXY_METHOD_2(onICEGathererStateChange, IICEGathererPtr, States)
 ZS_DECLARE_PROXY_METHOD_2(onICEGathererLocalCandidate, IICEGathererPtr, CandidatePtr)
 ZS_DECLARE_PROXY_METHOD_2(onICEGathererLocalCandidateComplete, IICEGathererPtr, CandidateCompletePtr)
 ZS_DECLARE_PROXY_METHOD_2(onICEGathererLocalCandidateGone, IICEGathererPtr, CandidatePtr)
@@ -255,7 +277,7 @@ ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IICEGatherer::States, States)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IICEGathererDelegate::CandidatePtr, CandidatePtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IICEGathererDelegate::CandidateCompletePtr, CandidateCompletePtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IICEGathererDelegate::ErrorCode, ErrorCode)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onICEGathererStateChanged, IICEGathererPtr, States)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onICEGathererStateChange, IICEGathererPtr, States)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onICEGathererLocalCandidate, IICEGathererPtr, CandidatePtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onICEGathererLocalCandidateComplete, IICEGathererPtr, CandidateCompletePtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onICEGathererLocalCandidateGone, IICEGathererPtr, CandidatePtr)

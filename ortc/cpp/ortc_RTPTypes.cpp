@@ -1397,6 +1397,39 @@ namespace ortc
 
   } // namespace internal
 
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IRTPTypes::DegradationPreferences
+  #pragma mark
+
+  //---------------------------------------------------------------------------
+  const char *IRTPTypes::toString(DegradationPreferences preference)
+  {
+    switch (preference) {
+      case DegradationPreference_MaintainFramerate:   return "maintain-framerate";
+      case DegradationPreference_MaintainResolution:  return "maintain-resolution";
+      case DegradationPreference_Balanced:            return "balanced";
+    }
+    return "UNDEFINED";
+  }
+
+  //---------------------------------------------------------------------------
+  IRTPTypes::DegradationPreferences IRTPTypes::toDegredationPreference(const char *preference) throw (InvalidParameters)
+  {
+    String str(preference);
+    for (IRTPTypes::DegradationPreferences index = IRTPTypes::DegradationPreference_First; index <= IRTPTypes::DegradationPreference_Last; index = static_cast<IRTPTypes::DegradationPreferences>(static_cast<std::underlying_type<IRTPTypes::DegradationPreferences>::type>(index) + 1)) {
+      if (0 == str.compareNoCase(IRTPTypes::toString(index))) return index;
+    }
+
+    ORTC_THROW_INVALID_PARAMETERS("Invalid parameter value: " + str)
+    return DegradationPreference_First;
+  }
+
+
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
@@ -1515,16 +1548,16 @@ namespace ortc
             break;
           }
           case SupportedCodec_VP8:    {
-            auto codec = VP8CodecCapability::convert(source.mParameters);
+            auto codec = VP8CodecCapabilityParameters::convert(source.mParameters);
             if (codec) {
-              mParameters = VP8CodecCapability::create(*codec);
+              mParameters = VP8CodecCapabilityParameters::create(*codec);
             }
             break;
           }
           case SupportedCodec_H264:   {
-            auto codec = H264CodecCapability::convert(source.mParameters);
+            auto codec = H264CodecCapabilityParameters::convert(source.mParameters);
             if (codec) {
-              mParameters = H264CodecCapability::create(*codec);
+              mParameters = H264CodecCapabilityParameters::create(*codec);
             }
             break;
           }
@@ -1585,7 +1618,7 @@ namespace ortc
             break;
           }
           case SupportedCodec_VP8:    {
-            auto codec = VP8CodecCapability::convert(mParameters);
+            auto codec = VP8CodecCapabilityParameters::convert(mParameters);
             if (codec) {
               UseServicesHelper::debugAppend(resultEl, codec->toDebug());
               found = true;
@@ -1593,7 +1626,7 @@ namespace ortc
             break;
           }
           case SupportedCodec_H264:   {
-            auto codec = H264CodecCapability::convert(mParameters);
+            auto codec = H264CodecCapabilityParameters::convert(mParameters);
             if (codec) {
               UseServicesHelper::debugAppend(resultEl, codec->toDebug());
               found = true;
@@ -1684,12 +1717,12 @@ namespace ortc
             break;
           }
           case SupportedCodec_VP8:    {
-            auto codec = VP8CodecCapability::convert(mParameters);
+            auto codec = VP8CodecCapabilityParameters::convert(mParameters);
             if (codec) hasher.update(codec->hash());
             break;
           }
           case SupportedCodec_H264:   {
-            auto codec = H264CodecCapability::convert(mParameters);
+            auto codec = H264CodecCapabilityParameters::convert(mParameters);
             if (codec) hasher.update(codec->hash());
             break;
           }
@@ -1858,21 +1891,21 @@ namespace ortc
   #pragma mark
 
   //---------------------------------------------------------------------------
-  IRTPTypes::VP8CodecCapabilityPtr IRTPTypes::VP8CodecCapability::create(const VP8CodecCapability &capability)
+  IRTPTypes::VP8CodecCapabilityParametersPtr IRTPTypes::VP8CodecCapabilityParameters::create(const VP8CodecCapabilityParameters &capability)
   {
-    return make_shared<VP8CodecCapability>(capability);
+    return make_shared<VP8CodecCapabilityParameters>(capability);
   }
 
   //---------------------------------------------------------------------------
-  IRTPTypes::VP8CodecCapabilityPtr IRTPTypes::VP8CodecCapability::convert(AnyPtr any)
+  IRTPTypes::VP8CodecCapabilityParametersPtr IRTPTypes::VP8CodecCapabilityParameters::convert(AnyPtr any)
   {
-    return ZS_DYNAMIC_PTR_CAST(VP8CodecCapability, any);
+    return ZS_DYNAMIC_PTR_CAST(VP8CodecCapabilityParameters, any);
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IRTPTypes::VP8CodecCapability::toDebug() const
+  ElementPtr IRTPTypes::VP8CodecCapabilityParameters::toDebug() const
   {
-    ElementPtr resultEl = Element::create("ortc::IRTPTypes::VP8CodecCapability");
+    ElementPtr resultEl = Element::create("ortc::IRTPTypes::VP8CodecCapabilityParameters");
 
     UseServicesHelper::debugAppend(resultEl, "max ft", mMaxFT);
     UseServicesHelper::debugAppend(resultEl, "max fs", mMaxFS);
@@ -1881,11 +1914,11 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  String IRTPTypes::VP8CodecCapability::hash() const
+  String IRTPTypes::VP8CodecCapabilityParameters::hash() const
   {
     SHA1Hasher hasher;
 
-    hasher.update("ortc::IRTPTypes::VP8CodecCapability:");
+    hasher.update("ortc::IRTPTypes::VP8CodecCapabilityParameters:");
 
     hasher.update(mMaxFT);
     hasher.update(":");
@@ -1899,25 +1932,25 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   #pragma mark
-  #pragma mark IRTPTypes::H264CodecCapability
+  #pragma mark IRTPTypes::H264CodecCapabilityParameters
   #pragma mark
 
   //---------------------------------------------------------------------------
-  IRTPTypes::H264CodecCapabilityPtr IRTPTypes::H264CodecCapability::create(const H264CodecCapability &capability)
+  IRTPTypes::H264CodecCapabilityParametersPtr IRTPTypes::H264CodecCapabilityParameters::create(const H264CodecCapabilityParameters &capability)
   {
-    return make_shared<H264CodecCapability>(capability);
+    return make_shared<H264CodecCapabilityParameters>(capability);
   }
 
   //---------------------------------------------------------------------------
-  IRTPTypes::H264CodecCapabilityPtr IRTPTypes::H264CodecCapability::convert(AnyPtr any)
+  IRTPTypes::H264CodecCapabilityParametersPtr IRTPTypes::H264CodecCapabilityParameters::convert(AnyPtr any)
   {
-    return ZS_DYNAMIC_PTR_CAST(H264CodecCapability, any);
+    return ZS_DYNAMIC_PTR_CAST(H264CodecCapabilityParameters, any);
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IRTPTypes::H264CodecCapability::toDebug() const
+  ElementPtr IRTPTypes::H264CodecCapabilityParameters::toDebug() const
   {
-    ElementPtr resultEl = Element::create("ortc::IRTPTypes::H264CodecCapability");
+    ElementPtr resultEl = Element::create("ortc::IRTPTypes::H264CodecCapabilityParameters");
 
     UseServicesHelper::debugAppend(resultEl, "profile level id", mProfileLevelID);
 
@@ -1941,11 +1974,11 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  String IRTPTypes::H264CodecCapability::hash() const
+  String IRTPTypes::H264CodecCapabilityParameters::hash() const
   {
     SHA1Hasher hasher;
 
-    hasher.update("ortc::IRTPTypes::H264CodecCapability:");
+    hasher.update("ortc::IRTPTypes::H264CodecCapabilityParameters:");
 
     hasher.update(mProfileLevelID);
     hasher.update(":packetizationmodes");
@@ -2018,13 +2051,13 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   #pragma mark
-  #pragma mark IRTPTypes::RtcpFeedback
+  #pragma mark IRTPTypes::RTCPFeedback
   #pragma mark
 
   //---------------------------------------------------------------------------
-  ElementPtr IRTPTypes::RtcpFeedback::toDebug() const
+  ElementPtr IRTPTypes::RTCPFeedback::toDebug() const
   {
-    ElementPtr resultEl = Element::create("ortc::IRTPTypes::RtcpFeedback");
+    ElementPtr resultEl = Element::create("ortc::IRTPTypes::RTCPFeedback");
 
     UseServicesHelper::debugAppend(resultEl, "type", mType);
     UseServicesHelper::debugAppend(resultEl, "parameter", mParameter);
@@ -2033,11 +2066,11 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  String IRTPTypes::RtcpFeedback::hash() const
+  String IRTPTypes::RTCPFeedback::hash() const
   {
     SHA1Hasher hasher;
 
-    hasher.update("ortc::IRTPTypes::RtcpFeedback:");
+    hasher.update("ortc::IRTPTypes::RTCPFeedback:");
 
     hasher.update(mType);
     hasher.update(":");
@@ -2131,6 +2164,7 @@ namespace ortc
     }
 
     UseServicesHelper::debugAppend(resultEl, "rtcp params", mRTCP.toDebug());
+    UseServicesHelper::debugAppend(resultEl, "delegration preference", toString(mDegredationPreference));
 
     return resultEl;
   }
@@ -2179,6 +2213,11 @@ namespace ortc
     if (options.mRTCP) {
       hasher.update("rtcp:72b2b94700e10e41adba3cdf656abed590bb65f4:");
       hasher.update(mRTCP.hash());
+    }
+
+    if (options.mDegredationPreference) {
+      hasher.update("degredation:14bac0ecdadf8b017403d37459be8490:");
+      hasher.update(mDegredationPreference);
     }
 
     return hasher.final();
@@ -2856,7 +2895,6 @@ namespace ortc
     UseServicesHelper::debugAppend(resultEl, "priority", toString(mPriority));
     UseServicesHelper::debugAppend(resultEl, "max bitrate", mMaxBitrate);
     UseServicesHelper::debugAppend(resultEl, "min quality", mMinQuality);
-    UseServicesHelper::debugAppend(resultEl, "framerate bias", mFramerateBias);
     UseServicesHelper::debugAppend(resultEl, "active", mActive);
     UseServicesHelper::debugAppend(resultEl, "encoding id", mEncodingID);
 
@@ -2893,8 +2931,6 @@ namespace ortc
     hasher.update(mMaxBitrate);
     hasher.update(":");
     hasher.update(mMinQuality);
-    hasher.update(":");
-    hasher.update(mFramerateBias);
     hasher.update(":");
     hasher.update(mActive);
     hasher.update(":");

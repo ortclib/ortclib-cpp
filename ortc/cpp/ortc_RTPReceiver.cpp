@@ -832,7 +832,7 @@ namespace ortc
           auto typesSet = IRTPTypes::getUseableWithFeedbackTypes(mechanism);
           for (auto iterTypes = typesSet.begin(); iterTypes != typesSet.end(); ++iterTypes) {
             auto type = (*iterTypes);
-            IRTPTypes::RtcpFeedback feedback;
+            IRTPTypes::RTCPFeedback feedback;
             feedback.mType = IRTPTypes::toString(type);
             feedback.mParameter = IRTPTypes::toString(mechanism);
             codec.mFeedback.push_back(feedback);

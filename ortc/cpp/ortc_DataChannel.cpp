@@ -1434,6 +1434,19 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
+  IDataChannelTypes::States IDataChannelTypes::toState(const char *state) throw (InvalidParameters)
+  {
+    String str(state);
+
+    for (IDataChannelTypes::States index = IDataChannelTypes::State_First; index <= IDataChannelTypes::State_Last; index = static_cast<IDataChannelTypes::States>(static_cast<std::underlying_type<IDataChannelTypes::States>::type>(index) + 1)) {
+      if (str == IDataChannelTypes::toString(index)) return index;
+    }
+
+    ORTC_THROW_INVALID_PARAMETERS("Invalid parameter value: " + str)
+    return State_First;
+  }
+  
+  //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------

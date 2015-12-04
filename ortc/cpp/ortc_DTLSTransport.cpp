@@ -530,7 +530,7 @@ namespace ortc
         DTLSTransportPtr pThis = mThisWeak.lock();
 
         if (IDTLSTransportTypes::State_New != mCurrentState) {
-          delegate->onDTLSTransportStateChanged(pThis, mCurrentState);
+          delegate->onDTLSTransportStateChange(pThis, mCurrentState);
         }
       }
 
@@ -539,6 +539,13 @@ namespace ortc
       }
 
       return subscription;
+    }
+
+    //-------------------------------------------------------------------------
+    ICertificatePtr DTLSTransport::certificate() const
+    {
+      AutoRecursiveLock lock(*this);
+      return Certificate::convert(mCertificate);
     }
 
     //-------------------------------------------------------------------------
@@ -1244,10 +1251,10 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void DTLSTransport::onICETransportStateChanged(
-                                                   IICETransportPtr transport,
-                                                   IICETransport::States state
-                                                   )
+    void DTLSTransport::onICETransportStateChange(
+                                                  IICETransportPtr transport,
+                                                  IICETransport::States state
+                                                  )
     {
       ZS_LOG_DEBUG(log("on ice transport state changed"))
 
@@ -1718,7 +1725,7 @@ namespace ortc
 
       DTLSTransportPtr pThis = mThisWeak.lock();
       if (pThis) {
-        mSubscriptions.delegate()->onDTLSTransportStateChanged(pThis, mCurrentState);
+        mSubscriptions.delegate()->onDTLSTransportStateChange(pThis, mCurrentState);
       }
     }
 
@@ -2882,7 +2889,7 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   #pragma mark
-  #pragma mark IDTLSTransportTypes
+  #pragma mark IDTLSTransportTypes::States
   #pragma mark
 
   //---------------------------------------------------------------------------
@@ -2900,24 +2907,24 @@ namespace ortc
 
 
   //---------------------------------------------------------------------------
-  IDTLSTransportTypes::States IDTLSTransportTypes::toState(const char *state)
+  IDTLSTransportTypes::States IDTLSTransportTypes::toState(const char *state) throw (InvalidParameters)
   {
-    static States states[] = {
-      State_New,
-      State_Connecting,
-      State_Connected,
-      State_Validated,
-      State_Closed,
-    };
-
-    String compareStr(state);
-    for (size_t loop = 0; loop < (sizeof(states) / sizeof(states[0])); ++loop) {
-      if (compareStr == toString(states[loop])) return states[loop];
+    String str(state);
+    for (IDTLSTransportTypes::States index = IDTLSTransportTypes::State_First; index <= IDTLSTransportTypes::State_Last; index = static_cast<IDTLSTransportTypes::States>(static_cast<std::underlying_type<IDTLSTransportTypes::States>::type>(index) + 1)) {
+      if (0 == str.compareNoCase(IDTLSTransportTypes::toString(index))) return index;
     }
 
-    ORTC_THROW_INVALID_PARAMETERS("Invalid parameter value: " + compareStr)
-    return State_Closed;
+    ORTC_THROW_INVALID_PARAMETERS("Invalid parameter value: " + str)
+    return State_First;
   }
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IDTLSTransportTypes::Roles
+  #pragma mark
 
   //---------------------------------------------------------------------------
   const char *IDTLSTransportTypes::toString(Roles state)
@@ -2932,21 +2939,15 @@ namespace ortc
 
 
   //---------------------------------------------------------------------------
-  IDTLSTransportTypes::Roles IDTLSTransportTypes::toRole(const char *role)
+  IDTLSTransportTypes::Roles IDTLSTransportTypes::toRole(const char *role) throw (InvalidParameters)
   {
-    static Roles roles[] = {
-      Role_Auto,
-      Role_Client,
-      Role_Server,
-    };
-
-    String compareStr(role);
-    for (size_t loop = 0; loop < (sizeof(roles) / sizeof(roles[0])); ++loop) {
-      if (compareStr == toString(roles[loop])) return roles[loop];
+    String str(role);
+    for (IDTLSTransportTypes::Roles index = IDTLSTransportTypes::Role_First; index <= IDTLSTransportTypes::Role_Last; index = static_cast<IDTLSTransportTypes::Roles>(static_cast<std::underlying_type<IDTLSTransportTypes::Roles>::type>(index) + 1)) {
+      if (0 == str.compareNoCase(IDTLSTransportTypes::toString(index))) return index;
     }
 
-    ORTC_THROW_INVALID_PARAMETERS("Invalid parameter value: " + compareStr)
-    return Role_Auto;
+    ORTC_THROW_INVALID_PARAMETERS("Invalid parameter value: " + str)
+    return Role_First;
   }
   
   //---------------------------------------------------------------------------
