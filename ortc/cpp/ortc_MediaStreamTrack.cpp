@@ -51,6 +51,7 @@
 #include <limits>
 
 #include <webrtc/modules/video_capture/include/video_capture_factory.h>
+#include <webrtc/modules/audio_device/audio_device_impl.h>
 
 #ifdef _DEBUG
 #define ASSERT(x) ZS_THROW_BAD_STATE_IF(!(x))
@@ -135,7 +136,7 @@ namespace ortc
       mVideoCaptureModule(NULL),
       mVideoRenderModule(NULL),
       mVideoRendererCallback(NULL),
-      mVideoCaptureDataCallback(NULL)
+      mAudioDeviceModule(NULL)
     {
       ZS_LOG_DETAIL(debug("created"))
     }
@@ -205,6 +206,23 @@ namespace ortc
         }
       } else if (mKind == Kind_Video && mRemote) {
 
+      } else if (mKind == Kind_Audio) {
+        mAudioDeviceModule = webrtc::AudioDeviceModuleImpl::Create(1, webrtc::AudioDeviceModule::kWindowsWasapiAudio);
+        if (!mAudioDeviceModule) {
+          return;
+        }
+        mAudioDeviceModule->AddRef();
+        mAudioDeviceModule->RegisterAudioCallback(this);
+        mAudioDeviceModule->Init();
+        if (!mRemote) {
+          mAudioDeviceModule->SetRecordingDevice(webrtc::AudioDeviceModule::kDefaultCommunicationDevice);
+          mAudioDeviceModule->InitRecording();
+          mAudioDeviceModule->StartRecording();
+        } else {
+          mAudioDeviceModule->SetPlayoutDevice(webrtc::AudioDeviceModule::kDefaultCommunicationDevice);
+          mAudioDeviceModule->InitPlayout();
+          mAudioDeviceModule->StartPlayout();
+        }
       }
     }
 
@@ -340,9 +358,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     IMediaStreamTrackTypes::Kinds MediaStreamTrack::kind() const
     {
-#define TODO 1
-#define TODO 2
-      return Kind_First;
+      AutoRecursiveLock lock(*this);
+
+      return mKind;
     }
 
     //-------------------------------------------------------------------------
@@ -395,8 +413,8 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool MediaStreamTrack::remote() const
     {
-#define TODO 1
-#define TODO 2
+      AutoRecursiveLock lock(*this);
+
       return mRemote;
     }
 
@@ -419,11 +437,22 @@ namespace ortc
     //-------------------------------------------------------------------------
     void MediaStreamTrack::stop()
     {
-      if (!mVideoCaptureModule) {
-        return;
+      if (mVideoCaptureModule) {
+        mVideoCaptureModule->StopCapture();
+        mVideoCaptureModule->DeRegisterCaptureDataCallback();
       }
-      mVideoCaptureModule->StopCapture();
-      mVideoCaptureModule->DeRegisterCaptureDataCallback();
+
+      if (mVideoRenderModule)
+        mVideoRenderModule->StopRender(1);
+
+      if (mAudioDeviceModule) {
+        if (!mRemote)
+          mAudioDeviceModule->StopRecording();
+        else
+          mAudioDeviceModule->StopPlayout();
+        mAudioDeviceModule->RegisterAudioCallback(nullptr);
+        mAudioDeviceModule->Terminate();
+      }
     }
 
     //-------------------------------------------------------------------------
@@ -488,6 +517,14 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
+    void MediaStreamTrack::setSender(IRTPSenderPtr sender)
+    {
+      AutoRecursiveLock lock(*this);
+
+      mSender = RTPSender::convert(sender);
+    }
+
+    //-------------------------------------------------------------------------
     void MediaStreamTrack::notifyAttachSenderChannel(RTPSenderChannelPtr channel)
     {
       IMediaStreamTrackAsyncDelegateProxy::create(mThisWeak.lock())->onAttachSenderChannel(channel);
@@ -508,12 +545,6 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void MediaStreamTrack::registerVideoCaptureDataCallback(webrtc::VideoCaptureDataCallback* callback)
-    {
-      mVideoCaptureDataCallback = callback;
-    }
-
-    //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -527,6 +558,14 @@ namespace ortc
 #define TODO_MOSA_VERIFY_THIS_LOGIC 1
 #define TODO_MOSA_VERIFY_THIS_LOGIC 2
       return create(kind, true, TrackConstraintsPtr());
+    }
+
+    //-------------------------------------------------------------------------
+    void MediaStreamTrack::setReceiver(IRTPReceiverPtr receiver)
+    {
+      AutoRecursiveLock lock(*this);
+
+      mReceiver = RTPReceiver::convert(receiver);
     }
 
     //-------------------------------------------------------------------------
@@ -627,6 +666,9 @@ namespace ortc
       }
 
       ZS_LOG_DEBUG(log("setting to active receiver channel") + ZS_PARAM("channel", channel->getID()))
+
+      mReceiverChannel = channel;
+
 #define TODO 1
 #define TODO 2
     }
@@ -637,6 +679,9 @@ namespace ortc
       ZS_LOG_DEBUG(log("attaching sender channel") + ZS_PARAM("channel", channel->getID()))
 
       AutoRecursiveLock lock(*this);
+
+      mSenderChannel = channel;
+
 #define TODO 1
 #define TODO 2
     }
@@ -647,6 +692,9 @@ namespace ortc
       ZS_LOG_DEBUG(log("detaching sender channel") + ZS_PARAM("channel", channel->getID()))
 
       AutoRecursiveLock lock(*this);
+
+      mSenderChannel.reset();
+
 #define TODO 1
 #define TODO 2
     }
@@ -667,14 +715,58 @@ namespace ortc
       if (mVideoRendererCallback)
         mVideoRendererCallback->RenderFrame(1, videoFrame);
 
-      if (mVideoCaptureDataCallback)
-        mVideoCaptureDataCallback->OnIncomingCapturedFrame(id, videoFrame);
+      if (mSenderChannel.lock())
+        mSenderChannel.lock()->sendVideoFrame(videoFrame);
     }
 
     //-------------------------------------------------------------------------
     void MediaStreamTrack::OnCaptureDelayChanged(const int32_t id, const int32_t delay)
     {
 
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark MediaStreamTrack => webrtc::AudioTransport
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    int32_t MediaStreamTrack::RecordedDataIsAvailable(
+                                                      const void* audioSamples,
+                                                      const size_t nSamples,
+                                                      const size_t nBytesPerSample,
+                                                      const uint8_t nChannels,
+                                                      const uint32_t samplesPerSec,
+                                                      const uint32_t totalDelayMS,
+                                                      const int32_t clockDrift,
+                                                      const uint32_t currentMicLevel,
+                                                      const bool keyPressed,
+                                                      uint32_t& newMicLevel
+                                                      )
+    {
+      if (mSenderChannel.lock())
+        mSenderChannel.lock()->sendAudioSamples(audioSamples, nSamples, nChannels);
+      return 0;
+    }
+
+    //-------------------------------------------------------------------------
+    int32_t MediaStreamTrack::NeedMorePlayData(
+                                               const size_t nSamples,
+                                               const size_t nBytesPerSample,
+                                               const uint8_t nChannels,
+                                               const uint32_t samplesPerSec,
+                                               void* audioSamples,
+                                               size_t& nSamplesOut,
+                                               int64_t* elapsed_time_ms,
+                                               int64_t* ntp_time_ms
+                                               )
+    {
+      if (mReceiverChannel.lock())
+        mReceiverChannel.lock()->getAudioSamples(nSamples, nChannels, audioSamples, nSamplesOut);
+      return 0;
     }
 
     //-------------------------------------------------------------------------

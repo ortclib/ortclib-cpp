@@ -124,7 +124,7 @@
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>$(ProjectDir)\..\..\..\..;$(ProjectDir)\..\..\..\..\..\zsLib;$(ProjectDir)\..\..\..\..\..\op-services-cpp;$(ProjectDir)\..\..\..\..\..\webrtc-deps\boringssl\include;$(ProjectDir)\..\..\..\..\..;$(ProjectDir)\..\..\..\..\..\webrtc;$(ProjectDir)\..\..\..\..\..\webrtc\third_party\libsrtp\config;$(ProjectDir)\..\..\..\..\..\webrtc\third_party\libsrtp\srtp\include;$(ProjectDir)\..\..\..\..\..\webrtc\third_party\libsrtp\srtp\crypto\include;$(ProjectDir)\..\..\..\..\..\webrtc\third_party\usrsctp\usrsctplib;$(ProjectDir)\..\..\..\..\..\webrtc\webrtc\voice_engine\include;$(ProjectDir)\..\..\..\..\..\webrtc\webrtc\video_engine\include;$(ProjectDir)\..\..\..\..\..\webrtc\webrtc\modules\video_capture\include;%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4068;4290</DisableSpecificWarnings>
-      <PreprocessorDefinitions>USE_OPENSSL=1;NOMINMAX;WEBRTC_WIN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>USE_OPENSSL=1;NOMINMAX;WEBRTC_WIN;WEBRTC_INCLUDE_INTERNAL_AUDIO_DEVICE;_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -137,6 +137,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <CompileAsWinRT>false</CompileAsWinRT>
       <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>USE_OPENSSL=1;NOMINMAX;WEBRTC_WIN;WEBRTC_INCLUDE_INTERNAL_AUDIO_DEVICE;_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -151,7 +152,7 @@
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>$(ProjectDir)\..\..\..\..;$(ProjectDir)\..\..\..\..\..\zsLib;$(ProjectDir)\..\..\..\..\..\op-services-cpp;$(ProjectDir)\..\..\..\..\..\webrtc-deps\boringssl\include;$(ProjectDir)\..\..\..\..\..;$(ProjectDir)\..\..\..\..\..\webrtc;$(ProjectDir)\..\..\..\..\..\webrtc\third_party\libsrtp\config;$(ProjectDir)\..\..\..\..\..\webrtc\third_party\libsrtp\srtp\include;$(ProjectDir)\..\..\..\..\..\webrtc\third_party\libsrtp\srtp\crypto\include;$(ProjectDir)\..\..\..\..\..\webrtc\third_party\usrsctp\usrsctplib;$(ProjectDir)\..\..\..\..\..\webrtc\webrtc\voice_engine\include;$(ProjectDir)\..\..\..\..\..\webrtc\webrtc\video_engine\include;$(ProjectDir)\..\..\..\..\..\webrtc\webrtc\modules\video_capture\include;%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4068;4290</DisableSpecificWarnings>
-      <PreprocessorDefinitions>WEBRTC_WIN;NOMINMAX;_UNICODE;UNICODE;_ARM_WINAPI_PARTITION_DESKTOP_SDK_AVAILABLE=1;%(ClCompile.PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NOMINMAX;WEBRTC_WIN;WEBRTC_INCLUDE_INTERNAL_AUDIO_DEVICE;_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -164,6 +165,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <CompileAsWinRT>false</CompileAsWinRT>
       <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>NOMINMAX;WEBRTC_WIN;WEBRTC_INCLUDE_INTERNAL_AUDIO_DEVICE;_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -178,7 +180,7 @@
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>$(ProjectDir)\..\..\..\..;$(ProjectDir)\..\..\..\..\..\zsLib;$(ProjectDir)\..\..\..\..\..\op-services-cpp;$(ProjectDir)\..\..\..\..\..\webrtc-deps\boringssl\include;$(ProjectDir)\..\..\..\..\..;$(ProjectDir)\..\..\..\..\..\webrtc;$(ProjectDir)\..\..\..\..\..\webrtc\third_party\libsrtp\config;$(ProjectDir)\..\..\..\..\..\webrtc\third_party\libsrtp\srtp\include;$(ProjectDir)\..\..\..\..\..\webrtc\third_party\libsrtp\srtp\crypto\include;$(ProjectDir)\..\..\..\..\..\webrtc\third_party\usrsctp\usrsctplib;$(ProjectDir)\..\..\..\..\..\webrtc\webrtc\voice_engine\include;$(ProjectDir)\..\..\..\..\..\webrtc\webrtc\video_engine\include;$(ProjectDir)\..\..\..\..\..\webrtc\webrtc\modules\video_capture\include;%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4068;4290</DisableSpecificWarnings>
-      <PreprocessorDefinitions>WEBRTC_WIN;NOMINMAX;_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NOMINMAX;WEBRTC_WIN;WEBRTC_INCLUDE_INTERNAL_AUDIO_DEVICE;_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -191,6 +193,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <CompileAsWinRT>false</CompileAsWinRT>
       <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>NOMINMAX;WEBRTC_WIN;WEBRTC_INCLUDE_INTERNAL_AUDIO_DEVICE;_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

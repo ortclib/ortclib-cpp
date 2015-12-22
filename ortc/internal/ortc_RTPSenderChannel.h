@@ -132,6 +132,14 @@ namespace ortc
       static ElementPtr toDebug(ForMediaStreamTrackPtr object);
 
       virtual PUID getID() const = 0;
+
+      virtual void sendVideoFrame(const webrtc::VideoFrame& videoFrame) = 0;
+
+      virtual void sendAudioSamples(
+                                    const void* audioSamples,
+                                    const size_t numberOfSamples,
+                                    const uint8_t numberOfChannels
+                                    ) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -208,9 +216,9 @@ namespace ortc
                        );
 
     protected:
-      RTPSenderChannel(Noop) :
+      RTPSenderChannel(Noop, IMessageQueuePtr queue = IMessageQueuePtr()) :
         Noop(true),
-        MessageQueueAssociator(IMessageQueuePtr()),
+        MessageQueueAssociator(queue),
         SharedRecursiveLock(SharedRecursiveLock::create())
       {}
 
@@ -255,6 +263,14 @@ namespace ortc
       // (duplicate) static ElementPtr toDebug(ForMediaStreamTrackPtr receiver);
 
       // (duplicate) virtual PUID getID() const = 0;
+
+      virtual void sendVideoFrame(const webrtc::VideoFrame& videoFrame) override;
+
+      virtual void sendAudioSamples(
+                                    const void* audioSamples,
+                                    const size_t numberOfSamples,
+                                    const uint8_t numberOfChannels
+                                    ) override;
 
       //-----------------------------------------------------------------------
       #pragma mark

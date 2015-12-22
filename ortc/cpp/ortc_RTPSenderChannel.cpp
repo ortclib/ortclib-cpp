@@ -271,7 +271,23 @@ namespace ortc
     #pragma mark
     #pragma mark RTPSenderChannel => IRTPSenderChannelForMediaStreamTrack
     #pragma mark
-    
+
+    //-------------------------------------------------------------------------
+    void RTPSenderChannel::sendVideoFrame(const webrtc::VideoFrame& videoFrame)
+    {
+
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPSenderChannel::sendAudioSamples(
+                                            const void* audioSamples,
+                                            const size_t numberOfSamples,
+                                            const uint8_t numberOfChannels
+                                            )
+    {
+
+    }
+
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -361,7 +377,6 @@ namespace ortc
 
       mParameters = params;
     }
-
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------

@@ -150,7 +150,7 @@ namespace Testing
   void passed();
   void failed();
   void output();
-  void runAllTests();
+  void runAllTests(void* videoSurface);
 }
 
 #define TESTING_INSTALL_LOGGER()                                             \
@@ -195,6 +195,16 @@ namespace Testing
   std::cout << "STARTING:     " #xTestCase "\n";                \
   try                                                           \
   { xTestCase(); }                                              \
+  catch(...)                                                    \
+  { TESTING_STDOUT() << "***UNCAUGHT EXCEPTION IN***: " #xTestCase "\n"; Testing::failed(); }   \
+  TESTING_STDOUT() << "ENDING:       " #xTestCase "\n\n";              \
+}                                                               \
+
+#define TESTING_RUN_TEST_FUNC_1(xTestCase, xValue) \
+{                                                               \
+  std::cout << "STARTING:     " #xTestCase "\n";                \
+  try                                                           \
+  { xTestCase(xValue); }                                              \
   catch(...)                                                    \
   { TESTING_STDOUT() << "***UNCAUGHT EXCEPTION IN***: " #xTestCase "\n"; Testing::failed(); }   \
   TESTING_STDOUT() << "ENDING:       " #xTestCase "\n\n";              \

@@ -63,6 +63,7 @@ void doTestDTLS();
 void doTestSRTP();
 void doTestICEGatherer();
 void doTestICETransport();
+void doTestMediaStreamTrack(void* videoSurface);
 
 namespace Testing
 {
@@ -152,7 +153,7 @@ namespace Testing
     }
   }
 
-  void runAllTests()
+  void runAllTests(void* videoSurface)
   {
     srand(static_cast<signed int>(time(NULL)));
 
@@ -169,6 +170,7 @@ namespace Testing
     TESTING_RUN_TEST_FUNC(doTestDTLS)
     TESTING_RUN_TEST_FUNC(doTestICEGatherer)
     TESTING_RUN_TEST_FUNC(doTestICETransport)
+    TESTING_RUN_TEST_FUNC_1(doTestMediaStreamTrack, videoSurface)
 
     TESTING_UNINSTALL_LOGGER()
   }
