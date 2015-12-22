@@ -62,7 +62,7 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   #pragma mark
-  #pragma mark IICETypes
+  #pragma mark IICETypes::Roles
   #pragma mark
 
   //---------------------------------------------------------------------------
@@ -76,21 +76,24 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IICETypes::Roles IICETypes::toRole(const char *role)
+  IICETypes::Roles IICETypes::toRole(const char *role) throw (InvalidParameters)
   {
-    static Roles roles[] = {
-      Role_Controlling,
-      Role_Controlled,
-    };
-
-    String rolesStr(role);
-    for (size_t loop = 0; loop < (sizeof(roles) / sizeof(roles[0])); ++loop) {
-      if (rolesStr == toString(roles[loop])) return roles[loop];
+    String str(role);
+    for (IICETypes::Roles index = IICETypes::Role_First; index <= IICETypes::Role_Last; index = static_cast<IICETypes::Roles>(static_cast<std::underlying_type<IICETypes::Roles>::type>(index) + 1)) {
+      if (0 == str.compareNoCase(IICETypes::toString(index))) return index;
     }
 
-    ORTC_THROW_INVALID_PARAMETERS("Invalid parameter value: " + rolesStr)
-    return Role_Controlling;
+    ORTC_THROW_INVALID_PARAMETERS("Invalid parameter value: " + str)
+    return Role_First;
   }
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IICETypes::Components
+  #pragma mark
 
   //---------------------------------------------------------------------------
   const char *IICETypes::toString(Components component)
@@ -103,21 +106,24 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IICETypes::Components IICETypes::toComponent(const char *component)
+  IICETypes::Components IICETypes::toComponent(const char *component) throw (InvalidParameters)
   {
-    static Components components[] = {
-      Component_RTP,
-      Component_RTCP,
-    };
-
-    String componentStr(component);
-    for (size_t loop = 0; loop < (sizeof(components) / sizeof(components[0])); ++loop) {
-      if (componentStr == toString(components[loop])) return components[loop];
+    String str(component);
+    for (IICETypes::Components index = IICETypes::Component_First; index <= IICETypes::Component_Last; index = static_cast<IICETypes::Components>(static_cast<std::underlying_type<IICETypes::Components>::type>(index) + 1)) {
+      if (0 == str.compareNoCase(IICETypes::toString(index))) return index;
     }
 
-    ORTC_THROW_INVALID_PARAMETERS("Invalid parameter value: " + componentStr)
-    return Component_RTP;
+    ORTC_THROW_INVALID_PARAMETERS("Invalid parameter value: " + str)
+    return Component_First;
   }
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IICETypes::Protocols
+  #pragma mark
 
   //---------------------------------------------------------------------------
   const char *IICETypes::toString(Protocols protocol)
@@ -130,21 +136,24 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IICETypes::Protocols IICETypes::toProtocol(const char *protocol)
+  IICETypes::Protocols IICETypes::toProtocol(const char *protocol) throw (InvalidParameters)
   {
-    static Protocols protocols[] = {
-      Protocol_UDP,
-      Protocol_TCP,
-    };
-
-    String protocolStr(protocol);
-    for (size_t loop = 0; loop < (sizeof(protocols) / sizeof(protocols[0])); ++loop) {
-      if (protocolStr == toString(protocols[loop])) return protocols[loop];
+    String str(protocol);
+    for (IICETypes::Protocols index = IICETypes::Protocol_First; index <= IICETypes::Protocol_Last; index = static_cast<IICETypes::Protocols>(static_cast<std::underlying_type<IICETypes::Protocols>::type>(index) + 1)) {
+      if (0 == str.compareNoCase(IICETypes::toString(index))) return index;
     }
 
-    ORTC_THROW_INVALID_PARAMETERS("Invalid parameter value: " + protocolStr)
-    return Protocol_UDP;
+    ORTC_THROW_INVALID_PARAMETERS("Invalid parameter value: " + str)
+    return Protocol_First;
   }
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IICETypes::CandidateTypes
+  #pragma mark
 
   //---------------------------------------------------------------------------
   const char *IICETypes::toString(CandidateTypes candidateType)
@@ -159,23 +168,24 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IICETypes::CandidateTypes IICETypes::toCandidateType(const char *candidateType)
+  IICETypes::CandidateTypes IICETypes::toCandidateType(const char *candidateType) throw (InvalidParameters)
   {
-    static CandidateTypes candidateTypes[] = {
-      CandidateType_Host,
-      CandidateType_Srflex,
-      CandidateType_Prflx,
-      CandidateType_Relay,
-    };
-
-    String candidateTypeStr(candidateType);
-    for (size_t loop = 0; loop < (sizeof(candidateTypes) / sizeof(candidateTypes[0])); ++loop) {
-      if (candidateTypeStr == toString(candidateTypes[loop])) return candidateTypes[loop];
+    String str(candidateType);
+    for (IICETypes::CandidateTypes index = IICETypes::CandidateType_First; index <= IICETypes::CandidateType_Last; index = static_cast<IICETypes::CandidateTypes>(static_cast<std::underlying_type<IICETypes::CandidateTypes>::type>(index) + 1)) {
+      if (0 == str.compareNoCase(IICETypes::toString(index))) return index;
     }
 
-    ORTC_THROW_INVALID_PARAMETERS("Invalid parameter value: " + candidateTypeStr)
-    return CandidateType_Host;
+    ORTC_THROW_INVALID_PARAMETERS("Invalid parameter value: " + str)
+    return CandidateType_First;
   }
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IICETypes::TCPCandidateTypes
+  #pragma mark
 
   //---------------------------------------------------------------------------
   const char *IICETypes::toString(TCPCandidateTypes protocol)
@@ -189,21 +199,15 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IICETypes::TCPCandidateTypes IICETypes::toTCPCandidateType(const char *tcpCandidateType)
+  IICETypes::TCPCandidateTypes IICETypes::toTCPCandidateType(const char *tcpCandidateType) throw (InvalidParameters)
   {
-    static TCPCandidateTypes tcpCandidateTypes[] = {
-      TCPCandidateType_Active,
-      TCPCandidateType_Passive,
-      TCPCandidateType_SO
-    };
-
-    String tcpCandidateTypeStr(tcpCandidateType);
-    for (size_t loop = 0; loop < (sizeof(tcpCandidateTypes) / sizeof(tcpCandidateTypes[0])); ++loop) {
-      if (tcpCandidateTypeStr == toString(tcpCandidateTypes[loop])) return tcpCandidateTypes[loop];
+    String str(tcpCandidateType);
+    for (IICETypes::TCPCandidateTypes index = IICETypes::TCPCandidateType_First; index <= IICETypes::TCPCandidateType_Last; index = static_cast<IICETypes::TCPCandidateTypes>(static_cast<std::underlying_type<IICETypes::TCPCandidateTypes>::type>(index) + 1)) {
+      if (0 == str.compareNoCase(IICETypes::toString(index))) return index;
     }
 
-    ORTC_THROW_INVALID_PARAMETERS("Invalid parameter value: " + tcpCandidateTypeStr)
-    return TCPCandidateType_SO;
+    ORTC_THROW_INVALID_PARAMETERS("Invalid parameter value: " + str)
+    return TCPCandidateType_First;
   }
 
   //---------------------------------------------------------------------------
@@ -241,6 +245,7 @@ namespace ortc
   {
     SHA1Hasher hasher;
 
+    hasher.update("IICETypes::Candidate:");
     hasher.update(mInterfaceType);
     hasher.update(":");
     hasher.update(mFoundation);
@@ -339,6 +344,17 @@ namespace ortc
   {
     ElementPtr resultEl = Element::create("ortc::IICETypes::CandidateComplete");
     return resultEl;
+  }
+
+  //---------------------------------------------------------------------------
+  String IICETypes::CandidateComplete::hash() const
+  {
+    SHA1Hasher hasher;
+
+    hasher.update("IICETypes::CandidateComplete:");
+    hasher.update(mComplete);
+
+    return hasher.final();
   }
 
   //---------------------------------------------------------------------------

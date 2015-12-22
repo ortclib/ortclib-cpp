@@ -549,7 +549,7 @@ namespace ortc
       void reattemptDelivery();
       void expireRTPPackets();
 
-      bool shouldCleanChannel(bool shouldClean);
+      bool shouldCleanChannel(bool objectExists);
       void cleanChannels();
 
       bool findMapping(

@@ -141,8 +141,8 @@ namespace ortc
                                             size_t maxBits
                                             )
     {
-      ASSERT(value <= ((1 << maxBits)-1))
-      ORTC_THROW_INVALID_PARAMETERS_IF(value > ((1 << maxBits)-1))
+      ASSERT(value <= static_cast<size_t>(((1 << maxBits)-1)))
+      ORTC_THROW_INVALID_PARAMETERS_IF(value > static_cast<size_t>(((1 << maxBits)-1)))
       return true;
     }
 

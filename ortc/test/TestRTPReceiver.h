@@ -461,10 +461,10 @@ namespace ortc
         #pragma mark FakeSecureTransport => IICETransportDelegate
         #pragma mark
 
-        virtual void onICETransportStateChanged(
-                                                IICETransportPtr transport,
-                                                IICETransport::States state
-                                                ) override;
+        virtual void onICETransportStateChange(
+                                               IICETransportPtr transport,
+                                               IICETransport::States state
+                                               ) override;
 
         virtual void onICETransportCandidatePairAvailable(
                                                           IICETransportPtr transport,
@@ -729,7 +729,10 @@ namespace ortc
         ZS_DECLARE_TYPEDEF_PTR(internal::IRTPReceiverForRTPReceiverChannel, UseReceiver)
 
       public:
-        FakeReceiverChannel(IMessageQueuePtr queue);
+        FakeReceiverChannel(
+                            IMessageQueuePtr queue,
+                            const char *receiverChannelID
+                            );
         ~FakeReceiverChannel();
 
         //---------------------------------------------------------------------
@@ -776,6 +779,7 @@ namespace ortc
 
         static FakeReceiverChannelPtr create(
                                              IMessageQueuePtr queue,
+                                             const char *receiverChannelID,
                                              const Parameters &expectedParams
                                              );
 
@@ -811,6 +815,7 @@ namespace ortc
         StateList mExpectStates;
 
         UseReceiverWeakPtr mReceiver;
+        String mReceiverChannelID;
       };
 
 
@@ -998,6 +1003,8 @@ namespace ortc
         ZS_DECLARE_TYPEDEF_PTR(internal::MediaStreamTrack, MediaStreamTrack)
         ZS_DECLARE_TYPEDEF_PTR(internal::MediaStreamTrackFactory, MediaStreamTrackFactory)
 
+        ZS_DECLARE_TYPEDEF_PTR(ortc::IRTPReceiverTypes::ContributingSourceList, ContributingSourceList)
+
         ZS_DECLARE_CLASS_PTR(OverrideReceiverChannelFactory)
         ZS_DECLARE_CLASS_PTR(OverrideMediaStreamTrackFactory)
 
@@ -1018,6 +1025,8 @@ namespace ortc
 
         typedef String ParametersID;
         typedef std::map<ParametersID, ParametersPtr> ParametersMap;
+
+        typedef std::list<ReceiverChannelID> ReceiverIDList;
 
         //---------------------------------------------------------------------
         #pragma mark
@@ -1128,7 +1137,7 @@ namespace ortc
 
         void init(Milliseconds packetDelay);
 
-        bool matches(const Expectations &op2);
+        bool matches();
 
         void close();
         void closeByReset();
@@ -1172,6 +1181,8 @@ namespace ortc
         FakeReceiverChannelPtr detachReceiverChannel(const char *receiverChannelID);
         FakeSenderPtr detachSender(const char *senderID);
 
+        void expectKind(IMediaStreamTrackTypes::Kinds kind);
+
         void expectingUnhandled(
                                 IRTPTypes::SSRCType ssrc,
                                 IRTPTypes::PayloadType payloadType,
@@ -1181,7 +1192,7 @@ namespace ortc
 
         void expectReceiveChannelUpdate(
                                         const char *receiverChannelID,
-                                        const Parameters &params
+                                        const char *parametersID
                                         );
 
         void expectState(
@@ -1217,6 +1228,8 @@ namespace ortc
                           const char *senderOrReceiverChannelID,
                           const char *packetID
                           );
+
+        ContributingSourceList getContributingSources() const;
 
       protected:
 
@@ -1301,6 +1314,7 @@ namespace ortc
         FakeSecureTransportPtr mDTLSTransport;
 
         FakeMediaStreamTrackPtr mMediaStreamTrack;
+        ReceiverIDList mExpectingActiveChannelsUponMediaTrackCreation;
 
         IRTPReceiverPtr mReceiver;
 
@@ -1309,7 +1323,8 @@ namespace ortc
         IRTPListenerSubscriptionPtr mListenerSubscription;
         IRTPReceiverSubscriptionPtr mReceiverSubscription;
 
-        Expectations mExpectations;
+        Expectations mExpecting;
+        Expectations mExpectationsFound;
 
         SenderOrReceiverMap mAttached;
         PacketMap mPackets;

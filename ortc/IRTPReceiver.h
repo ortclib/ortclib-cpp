@@ -62,7 +62,7 @@ namespace ortc
     #pragma mark
 
     struct ContributingSource {
-      Time      mTimestamp;
+      Time      mTimestamp {};
       SSRCType  mCSRC {};
       BYTE      mAudioLevel {};
 

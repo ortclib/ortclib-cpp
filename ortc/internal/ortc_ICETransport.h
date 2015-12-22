@@ -381,7 +381,7 @@ namespace ortc
 
       virtual CandidateListPtr getRemoteCandidates() const override;
 
-      virtual CandidatePairPtr getNominatedCandidatePair() const override;
+      virtual CandidatePairPtr getSelectedCandidatePair() const override;
 
       virtual void start(
                          IICEGathererPtr gatherer,
@@ -526,10 +526,10 @@ namespace ortc
       #pragma mark ICETransport => IICEGathererDelegate
       #pragma mark
 
-      virtual void onICEGathererStateChanged(
-                                             IICEGathererPtr gatherer,
-                                             IICEGatherer::States state
-                                             ) override;
+      virtual void onICEGathererStateChange(
+                                            IICEGathererPtr gatherer,
+                                            IICEGatherer::States state
+                                            ) override;
 
       virtual void onICEGathererLocalCandidate(
                                                IICEGathererPtr gatherer,

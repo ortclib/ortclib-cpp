@@ -65,15 +65,19 @@ namespace ortc
     
     enum States
     {
-      State_New,
+      State_First,
+
+      State_New         = State_First,
       State_Connecting,
       State_Connected,
       State_Validated,
       State_Closed,
+
+      State_Last        = State_Closed,
     };
 
     static const char *toString(States state);
-    static States toState(const char *state);
+    static States toState(const char *state) throw (InvalidParameters);
 
     //-------------------------------------------------------------------------
     #pragma mark
@@ -82,13 +86,17 @@ namespace ortc
 
     enum Roles
     {
-      Role_Auto,
+      Role_First,
+
+      Role_Auto     = Role_First,
       Role_Client,
       Role_Server,
+
+      Role_Last     = Role_Server,
     };
 
     static const char *toString(Roles role);
-    static Roles toRole(const char *role);
+    static Roles toRole(const char *role) throw (InvalidParameters);
 
     //-------------------------------------------------------------------------
     #pragma mark
@@ -100,6 +108,7 @@ namespace ortc
       Roles mRole {Role_Auto};
       FingerprintList mFingerprints;
 
+      static ParametersPtr convert(AnyPtr any);
       ElementPtr toDebug() const;
       String hash() const;
     };
@@ -133,6 +142,7 @@ namespace ortc
 
     virtual IDTLSTransportSubscriptionPtr subscribe(IDTLSTransportDelegatePtr delegate) = 0;
 
+    virtual ICertificatePtr certificate() const = 0;
     virtual IICETransportPtr transport() const = 0;
 
     virtual States state() const = 0;
@@ -162,10 +172,10 @@ namespace ortc
   {
     typedef WORD ErrorCode;
 
-    virtual void onDTLSTransportStateChanged(
-                                             IDTLSTransportPtr transport,
-                                             IDTLSTransport::States state
-                                             ) = 0;
+    virtual void onDTLSTransportStateChange(
+                                            IDTLSTransportPtr transport,
+                                            IDTLSTransport::States state
+                                            ) = 0;
 
     virtual void onDTLSTransportError(
                                       IDTLSTransportPtr transport,
@@ -196,7 +206,7 @@ ZS_DECLARE_PROXY_BEGIN(ortc::IDTLSTransportDelegate)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IDTLSTransportPtr, IDTLSTransportPtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IDTLSTransport::States, States)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IDTLSTransportDelegate::ErrorCode, ErrorCode)
-ZS_DECLARE_PROXY_METHOD_2(onDTLSTransportStateChanged, IDTLSTransportPtr, States)
+ZS_DECLARE_PROXY_METHOD_2(onDTLSTransportStateChange, IDTLSTransportPtr, States)
 ZS_DECLARE_PROXY_METHOD_3(onDTLSTransportError, IDTLSTransportPtr, ErrorCode, String)
 ZS_DECLARE_PROXY_END()
 
@@ -204,6 +214,6 @@ ZS_DECLARE_PROXY_SUBSCRIPTIONS_BEGIN(ortc::IDTLSTransportDelegate, ortc::IDTLSTr
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IDTLSTransportPtr, IDTLSTransportPtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IDTLSTransport::States, States)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IDTLSTransportDelegate::ErrorCode, ErrorCode)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onDTLSTransportStateChanged, IDTLSTransportPtr, States)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onDTLSTransportStateChange, IDTLSTransportPtr, States)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_3(onDTLSTransportError, IDTLSTransportPtr, ErrorCode, String)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_END()

@@ -48,7 +48,7 @@ namespace ortc
   #pragma mark IDTLSTransportTypes
   #pragma mark
   
-  interaction ICertificateTypes : public Any
+  interaction ICertificateTypes
   {
     ZS_DECLARE_STRUCT_PTR(Fingerprint)
     ZS_DECLARE_TYPEDEF_PTR(std::list<Fingerprint>, FingerprintList)
@@ -80,9 +80,12 @@ namespace ortc
   #pragma mark IDTLSTransport
   #pragma mark
 
-  interaction ICertificate : public ICertificateTypes
+  interaction ICertificate : public ICertificateTypes,
+                             public Any
   {
     static ElementPtr toDebug(ICertificatePtr certificate);
+
+    static ICertificatePtr convert(AnyPtr any);
 
     static PromiseWithCertificatePtr generateCertificate(AlgorithmIdentifier algorithm = AlgorithmIdentifier());
 

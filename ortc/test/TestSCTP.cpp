@@ -204,7 +204,7 @@ namespace ortc
           FakeICETransportPtr pThis = mThisWeak.lock();
 
           if (IICETransportTypes::State_New != mCurrentState) {
-            delegate->onICETransportStateChanged(pThis, mCurrentState);
+            delegate->onICETransportStateChange(pThis, mCurrentState);
           }
         }
 
@@ -443,7 +443,7 @@ namespace ortc
 
         auto pThis = mThisWeak.lock();
         if (pThis) {
-          mSubscriptions.delegate()->onICETransportStateChanged(pThis, mCurrentState);
+          mSubscriptions.delegate()->onICETransportStateChange(pThis, mCurrentState);
         }
       }
 
@@ -589,7 +589,7 @@ namespace ortc
           FakeSecureTransportPtr pThis = mThisWeak.lock();
 
           if (IDTLSTransportTypes::State_New != mCurrentState) {
-            delegate->onDTLSTransportStateChanged(pThis, mCurrentState);
+            delegate->onDTLSTransportStateChange(pThis, mCurrentState);
           }
         }
 
@@ -740,10 +740,10 @@ namespace ortc
       #pragma mark
 
       //-----------------------------------------------------------------------
-      void FakeSecureTransport::onICETransportStateChanged(
-                                                           IICETransportPtr transport,
-                                                           IICETransport::States state
-                                                           )
+      void FakeSecureTransport::onICETransportStateChange(
+                                                          IICETransportPtr transport,
+                                                          IICETransport::States state
+                                                          )
       {
         ZS_LOG_BASIC(log("ice transport state changed") + ZS_PARAM("transport", transport->getID()) + ZS_PARAM("state", IICETransportTypes::toString(state)))
 
@@ -802,7 +802,7 @@ namespace ortc
 
         auto pThis = mThisWeak.lock();
         if (pThis) {
-          mSubscriptions.delegate()->onDTLSTransportStateChanged(pThis, mCurrentState);
+          mSubscriptions.delegate()->onDTLSTransportStateChange(pThis, mCurrentState);
         }
       }
 

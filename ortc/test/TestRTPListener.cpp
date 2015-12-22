@@ -410,7 +410,7 @@ namespace ortc
 
         auto pThis = mThisWeak.lock();
         if (pThis) {
-          mSubscriptions.delegate()->onICETransportStateChanged(pThis, mCurrentState);
+          mSubscriptions.delegate()->onICETransportStateChange(pThis, mCurrentState);
         }
       }
 

@@ -1271,6 +1271,7 @@ namespace ortc
       ASSERT(params.mPT <= 0x7F)
 
       ASSERT(0 == params.mCC ? (NULL == params.mCSRCList) : (NULL != params.mCSRCList))
+      ASSERT(0 == params.mPayloadSize ? (NULL == params.mPayload) : (NULL != params.mPayload))
 
       mVersion = params.mVersion & 0x3;
       mPadding = params.mPadding;
@@ -1337,11 +1338,15 @@ namespace ortc
       if (requiresExtension) {
         writeHeaderExtensions(params.mFirstHeaderExtension, twoByteHeader);
       }
-      
+
+      if (0 != mPayloadSize) {
+        memcpy(&(pos[mHeaderSize+mHeaderExtensionSize]), params.mPayload, mPayloadSize);
+      }
+
       if (0 != mPadding) {
         newBuffer[newSize-1] = static_cast<BYTE>(mPadding);
       }
-      
+
       ZS_LOG_INSANE(debug("generated RTP packet"))
     }
   }

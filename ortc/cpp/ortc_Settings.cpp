@@ -45,6 +45,7 @@
 #include <ortc/internal/ortc_RTPReceiverChannel.h>
 #include <ortc/internal/ortc_RTPSender.h>
 #include <ortc/internal/ortc_RTPSenderChannel.h>
+#include <ortc/internal/ortc_StatsReport.h>
 #include <ortc/internal/ortc_SCTPTransport.h>
 #include <ortc/internal/ortc_SCTPTransportListener.h>
 #include <ortc/internal/ortc_SRTPTransport.h>
@@ -168,6 +169,7 @@ namespace ortc
       IRTPReceiverChannelForSettings::applyDefaults();
       IRTPSenderForSettings::applyDefaults();
       IRTPSenderChannelForSettings::applyDefaults();
+      IStatsReportForSettings::applyDefaults();
       ISCTPTransportForSettings::applyDefaults();
       ISCTPTransportListenerForSettings::applyDefaults();
       ISRTPTransportForSettings::applyDefaults();

@@ -196,10 +196,10 @@ namespace ortc
         Expectations getExpectations() const {return mExpectations;}
 
         //---------------------------------------------------------------------
-        virtual void onICEGathererStateChanged(
-                                               IICEGathererPtr gatherer,
-                                               IICEGatherer::States state
-                                               ) override
+        virtual void onICEGathererStateChange(
+                                              IICEGathererPtr gatherer,
+                                              IICEGatherer::States state
+                                              ) override
         {
           ZS_LOG_BASIC(log("gatherer state changed") + IICEGatherer::toDebug(gatherer) + ZS_PARAM("state", IICEGatherer::toString(state)))
 

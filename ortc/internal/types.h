@@ -135,8 +135,9 @@ namespace ortc
     ZS_DECLARE_CLASS_PTR(RTPReceiverChannel)
     ZS_DECLARE_CLASS_PTR(RTPSender)
     ZS_DECLARE_CLASS_PTR(RTPSenderChannel)
-    ZS_DECLARE_CLASS_PTR(SRTPSDESTransport)
+    ZS_DECLARE_CLASS_PTR(StatsReport)
     ZS_DECLARE_CLASS_PTR(SCTPTransport)
+    ZS_DECLARE_CLASS_PTR(SRTPSDESTransport)
     ZS_DECLARE_CLASS_PTR(SRTPTransport)
 
 

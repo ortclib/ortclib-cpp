@@ -671,7 +671,7 @@ namespace ortc
 
         if (State_Closed != currentState) {
           if (State_New != currentState) {
-            delegate->onICEGathererStateChanged(pThis, State_Gathering);
+            delegate->onICEGathererStateChange(pThis, State_Gathering);
           }
           for (auto iter = mNotifiedCandidates.begin(); iter != mNotifiedCandidates.end(); ++iter) {
             auto candidate = (*iter).second.first;
@@ -691,7 +691,7 @@ namespace ortc
         if ((State_New != currentState) &&
             (State_Gathering != currentState)) {
           // get out of the gathering state
-          delegate->onICEGathererStateChanged(pThis, toState(mCurrentState));
+          delegate->onICEGathererStateChange(pThis, toState(mCurrentState));
         }
       }
 
@@ -3801,7 +3801,7 @@ namespace ortc
         }
 
         ZS_LOG_TRACE(log("reporting state change to delegates") + ZS_PARAM("new state", IICEGathererTypes::toString(newState)) + ZS_PARAM("old state", IICEGathererTypes::toString(oldState)))
-        mSubscriptions.delegate()->onICEGathererStateChanged(pThis, newState);
+        mSubscriptions.delegate()->onICEGathererStateChange(pThis, newState);
       }
     }
 
@@ -6451,7 +6451,7 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   #pragma mark
-  #pragma mark IICEGathererTypes
+  #pragma mark IICEGathererTypes::States
   #pragma mark
 
   //---------------------------------------------------------------------------
@@ -6469,25 +6469,21 @@ namespace ortc
   //---------------------------------------------------------------------------
   IICEGathererTypes::States IICEGathererTypes::toState(const char *state) throw (InvalidParameters)
   {
-    static IICEGathererTypes::States states[] =
-    {
-      State_New,
-      State_Gathering,
-      State_Complete,
-      State_Closed,
-    };
-
     String stateStr(state);
-
-    for (size_t loop = 0; loop < (sizeof(states) / sizeof(states[0])); ++loop) {
-      if (stateStr == toString(states[loop])) {
-        return states[loop];
-      }
+    for (IICEGathererTypes::States index = IICEGathererTypes::State_First; index <= IICEGathererTypes::State_Last; index = static_cast<IICEGathererTypes::States>(static_cast<std::underlying_type<IICEGathererTypes::States>::type>(index) + 1)) {
+      if (0 == stateStr.compareNoCase(IICEGathererTypes::toString(index))) return index;
     }
-
     ORTC_THROW_INVALID_PARAMETERS("Invalid parameter value: " + stateStr)
-    return State_New;
+    return IICEGathererTypes::State_First;
   }
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IICEGathererTypes::FilterPolicies
+  #pragma mark
 
   namespace internal
   {
@@ -6600,6 +6596,66 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
+  ElementPtr IICEGathererTypes::InterfacePolicy::toDebug() const
+  {
+    ElementPtr resultEl = Element::create("ortc::IICEGathererTypes::InterfacePolicy");
+
+    UseServicesHelper::debugAppend(resultEl, "interface type", mInterfaceType);
+    UseServicesHelper::debugAppend(resultEl, "gather policy", toString(mGatherPolicy));
+
+    return resultEl;
+  }
+
+  //---------------------------------------------------------------------------
+  String IICEGathererTypes::InterfacePolicy::hash() const
+  {
+    SHA1Hasher hasher;
+
+    hasher.update("InterfacePolicy:");
+    hasher.update(mInterfaceType);
+    hasher.update(":");
+    hasher.update(toString(mGatherPolicy));
+    return hasher.final();
+  }
+  
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IICEGathererTypes::CredentialType
+  #pragma mark
+
+  //---------------------------------------------------------------------------
+  const char *IICEGathererTypes::toString(CredentialTypes type)
+  {
+    switch (type) {
+      case CredentialType_Password:     return "password";
+      case CredentialType_Token:        return "token";
+    }
+    return "unknown";
+  }
+
+  //---------------------------------------------------------------------------
+  IICEGathererTypes::CredentialTypes IICEGathererTypes::toCredentialType(const char *type) throw (InvalidParameters)
+  {
+    String typeStr(type);
+    for (IICEGathererTypes::CredentialTypes index = IICEGathererTypes::CredentialType_First; index <= IICEGathererTypes::CredentialType_Last; index = static_cast<IICEGathererTypes::CredentialTypes>(static_cast<std::underlying_type<IICEGathererTypes::CredentialTypes>::type>(index) + 1)) {
+      if (0 == typeStr.compareNoCase(IICEGathererTypes::toString(index))) return index;
+    }
+    ORTC_THROW_INVALID_PARAMETERS("Invalid parameter value: " + typeStr)
+    return IICEGathererTypes::CredentialType_First;
+  }
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IICEGathererTypes::Options
+  #pragma mark
+
+  //---------------------------------------------------------------------------
   ElementPtr IICEGathererTypes::Options::toDebug() const
   {
     ElementPtr resultEl = Element::create("ortc::IICEGathererTypes::Options");
@@ -6641,6 +6697,14 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IICEGathererTypes::Server
+  #pragma mark
+
+  //---------------------------------------------------------------------------
   ElementPtr IICEGathererTypes::Server::toDebug() const
   {
     ElementPtr resultEl = Element::create("ortc::IICEGathererTypes::Server");
@@ -6657,6 +6721,7 @@ namespace ortc
 
     UseServicesHelper::debugAppend(resultEl, "username", mUserName);
     UseServicesHelper::debugAppend(resultEl, "credential", mCredential);
+    UseServicesHelper::debugAppend(resultEl, "credential type", toString(mCredentialType));
 
     return resultEl;
   }
@@ -6676,30 +6741,9 @@ namespace ortc
     hasher.update(mUserName);
     hasher.update(":");
     hasher.update(mCredential);
-
-    return hasher.final();
-  }
-  
-  //---------------------------------------------------------------------------
-  ElementPtr IICEGathererTypes::InterfacePolicy::toDebug() const
-  {
-    ElementPtr resultEl = Element::create("ortc::IICEGathererTypes::InterfacePolicy");
-
-    UseServicesHelper::debugAppend(resultEl, "interface type", mInterfaceType);
-    UseServicesHelper::debugAppend(resultEl, "gather policy", toString(mGatherPolicy));
-
-    return resultEl;
-  }
-
-  //---------------------------------------------------------------------------
-  String IICEGathererTypes::InterfacePolicy::hash() const
-  {
-    SHA1Hasher hasher;
-
-    hasher.update("InterfacePolicy:");
-    hasher.update(mInterfaceType);
     hasher.update(":");
-    hasher.update(toString(mGatherPolicy));
+    hasher.update(toString(mCredentialType));
+
     return hasher.final();
   }
   

@@ -1041,6 +1041,12 @@ namespace ortc
   }
   
   //---------------------------------------------------------------------------
+  IMediaStreamTrackTypes::CapabilitiesPtr IMediaStreamTrackTypes::Capabilities::convert(AnyPtr any)
+  {
+    return ZS_DYNAMIC_PTR_CAST(Capabilities, any);
+  }
+
+  //---------------------------------------------------------------------------
   ElementPtr IMediaStreamTrackTypes::Capabilities::toDebug() const
   {
     ElementPtr resultEl = Element::create("ortc::IMediaStreamTrackTypes::Capabilities");
@@ -1118,6 +1124,12 @@ namespace ortc
     return make_shared<Settings>(value);
   }
   
+  //---------------------------------------------------------------------------
+  IMediaStreamTrackTypes::SettingsPtr IMediaStreamTrackTypes::Settings::convert(AnyPtr any)
+  {
+    return ZS_DYNAMIC_PTR_CAST(Settings, any);
+  }
+
   //---------------------------------------------------------------------------
   ElementPtr IMediaStreamTrackTypes::Settings::toDebug() const
   {
@@ -1392,5 +1404,10 @@ namespace ortc
     return internal::MediaStreamTrack::toDebug(internal::MediaStreamTrack::convert(object));
   }
 
+  //---------------------------------------------------------------------------
+  IMediaStreamTrackPtr IMediaStreamTrack::convert(AnyPtr any)
+  {
+    return ZS_DYNAMIC_PTR_CAST(IMediaStreamTrack, any);
+  }
 
 }

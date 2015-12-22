@@ -1244,25 +1244,36 @@ namespace ortc
 
       expireRTPPackets();
 
-      for (auto iter_doNotUse = mBufferedRTPPackets.begin(); iter_doNotUse != mBufferedRTPPackets.end();) {
-        auto current = iter_doNotUse;
-        ++iter_doNotUse;
+      size_t previousSize = 0;
 
-        RTPPacketPtr packet = (*current).second;
+      do
+      {
+        previousSize = mBufferedRTPPackets.size();
+        for (auto iter_doNotUse = mBufferedRTPPackets.begin(); iter_doNotUse != mBufferedRTPPackets.end();) {
+          auto current = iter_doNotUse;
+          ++iter_doNotUse;
 
-        ReceiverInfoPtr receiverInfo;
-        String muxID;
-        if (!findMapping(*packet, receiverInfo, muxID)) continue;
+          RTPPacketPtr packet = (*current).second;
 
-        auto receiver = receiverInfo->mReceiver.lock();
+          ReceiverInfoPtr receiverInfo;
+          String muxID;
+          if (!findMapping(*packet, receiverInfo, muxID)) continue;
 
-        if (receiver) {
-          ZS_LOG_TRACE(log("will attempt to deliver buffered RTP packet") + ZS_PARAM("receiver", receiver->getID()) + ZS_PARAM("ssrc", packet->ssrc()))
-          IRTPListenerAsyncDelegateProxy::create(mThisWeak.lock())->onDeliverPacket(IICETypes::Component_RTP, receiver, packet);
+          auto receiver = receiverInfo->mReceiver.lock();
+
+          if (receiver) {
+            ZS_LOG_TRACE(log("will attempt to deliver buffered RTP packet") + ZS_PARAM("receiver", receiver->getID()) + ZS_PARAM("ssrc", packet->ssrc()))
+            IRTPListenerAsyncDelegateProxy::create(mThisWeak.lock())->onDeliverPacket(IICETypes::Component_RTP, receiver, packet);
+          }
+
+          mBufferedRTPPackets.erase(current);
         }
 
-        mBufferedRTPPackets.erase(current);
-      }
+      // NOTE: need to repetitively attempt to deliver packets as it's possible
+      //       processinging some packets will then allow delivery of other
+      //       packets
+      } while ((mBufferedRTPPackets.size() != previousSize) &&
+               (0 != mBufferedRTPPackets.size()));
 
       return true;
     }
@@ -1432,7 +1443,7 @@ namespace ortc
                                        (encrytped))
       ORTC_THROW_INVALID_PARAMETERS_IF(extensionURI != extension.mHeaderExtensionURI)
 
-      extension.mReferences[objectID] = objectID;
+      extension.mReferences[objectID] = true;
 
       ZS_LOG_DEBUG(log("referencing existing header extension") + ZS_PARAM("object id", objectID) + extension.toDebug())
     }
@@ -1656,8 +1667,8 @@ namespace ortc
                 auto diffLast = tick - lastMatchUsageTime;
                 auto diffCurrent = tick - ssrcInfo->mLastUsage;
 
-                if ((diffLast > mAmbigousPayloadMappingMinDifference) &&
-                    (diffCurrent > mAmbigousPayloadMappingMinDifference)) {
+                if ((diffLast < mAmbigousPayloadMappingMinDifference) &&
+                    (diffCurrent < mAmbigousPayloadMappingMinDifference)) {
                   ZS_LOG_WARNING(Debug, log("ambiguity exists to which receiver the packet should match because both channels have been recendly active (thus cannot pick any encoding)") + ZS_PARAM("tick", tick) + ZS_PARAM("match time", lastMatchUsageTime) + ZS_PARAM("ambiguity window", mAmbigousPayloadMappingMinDifference) + ZS_PARAM("diff last", diffLast) + ZS_PARAM("diff current", diffCurrent) + ssrcInfo->toDebug() + ZS_PARAM("previous find", outReceiverInfo->toDebug()) + ZS_PARAM("found", receiverInfo->toDebug()))
                   return false;
                 }

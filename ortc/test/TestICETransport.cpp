@@ -205,10 +205,10 @@ namespace ortc
         }
 
         //---------------------------------------------------------------------
-        virtual void onICEGathererStateChanged(
-                                               IICEGathererPtr gatherer,
-                                               IICEGatherer::States state
-                                               ) override
+        virtual void onICEGathererStateChange(
+                                              IICEGathererPtr gatherer,
+                                              IICEGatherer::States state
+                                              ) override
         {
           ZS_LOG_BASIC(log("gatherer state changed") + IICEGatherer::toDebug(gatherer) + ZS_PARAM("state", IICEGatherer::toString(state)))
 
@@ -492,10 +492,10 @@ namespace ortc
       protected:
 
         //-----------------------------------------------------------------------
-        virtual void onICETransportStateChanged(
-                                                IICETransportPtr transport,
-                                                IICETransport::States state
-                                                ) override
+        virtual void onICETransportStateChange(
+                                               IICETransportPtr transport,
+                                               IICETransport::States state
+                                               ) override
         {
           ZS_LOG_BASIC(log("transport state changed") + ZS_PARAM("state", IICETransport::toString(state)) + IICETransport::toDebug(transport))
 
@@ -541,10 +541,10 @@ namespace ortc
 
       protected:
         //---------------------------------------------------------------------
-        virtual void onICEGathererStateChanged(
-                                               IICEGathererPtr gatherer,
-                                               IICEGatherer::States state
-                                               ) override
+        virtual void onICEGathererStateChange(
+                                              IICEGathererPtr gatherer,
+                                              IICEGatherer::States state
+                                              ) override
         {
           ZS_LOG_BASIC(log("remote gatherer state changed") + IICEGatherer::toDebug(gatherer) + ZS_PARAM("state", IICEGatherer::toString(state)))
         }

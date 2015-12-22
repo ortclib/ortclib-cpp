@@ -58,12 +58,16 @@ namespace ortc
 
     enum Roles
     {
-      Role_Controlling,
+      Role_First,
+
+      Role_Controlling    = Role_First,
       Role_Controlled,
+
+      Role_Last           = Role_Controlled,
     };
 
     static const char *toString(Roles role);
-    static Roles toRole(const char *role);
+    static Roles toRole(const char *role) throw (InvalidParameters);
 
     //-------------------------------------------------------------------------
     #pragma mark
@@ -81,7 +85,7 @@ namespace ortc
     };
 
     static const char *toString(Components component);
-    static Components toComponent(const char *component);
+    static Components toComponent(const char *component) throw (InvalidParameters);
 
     //-------------------------------------------------------------------------
     #pragma mark
@@ -99,7 +103,7 @@ namespace ortc
     };
 
     static const char *toString(Protocols protocol);
-    static Protocols toProtocol(const char *protocol);
+    static Protocols toProtocol(const char *protocol) throw (InvalidParameters);
 
     //-------------------------------------------------------------------------
     #pragma mark
@@ -119,7 +123,7 @@ namespace ortc
     };
 
     static const char *toString(CandidateTypes type);
-    static CandidateTypes toCandidateType(const char *type);
+    static CandidateTypes toCandidateType(const char *type) throw (InvalidParameters);
 
     //-------------------------------------------------------------------------
     #pragma mark
@@ -138,7 +142,7 @@ namespace ortc
     };
 
     static const char *toString(TCPCandidateTypes type);
-    static TCPCandidateTypes toTCPCandidateType(const char *type);
+    static TCPCandidateTypes toTCPCandidateType(const char *type) throw (InvalidParameters);
 
     //-------------------------------------------------------------------------
     struct GatherCandidate
@@ -181,7 +185,10 @@ namespace ortc
     #pragma mark
 
     struct CandidateComplete : public GatherCandidate {
+      bool mComplete {true};
+
       ElementPtr toDebug() const;
+      String hash() const;
     };
 
     //-------------------------------------------------------------------------

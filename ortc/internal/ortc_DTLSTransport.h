@@ -215,6 +215,7 @@ namespace ortc
 
       virtual IDTLSTransportSubscriptionPtr subscribe(IDTLSTransportDelegatePtr delegate) override;
 
+      virtual ICertificatePtr certificate() const override;
       virtual IICETransportPtr transport() const override;
 
       virtual States state() const override;
@@ -384,10 +385,10 @@ namespace ortc
       #pragma mark DTLSTransport => IICETransportDelegate
       #pragma mark
 
-      virtual void onICETransportStateChanged(
-                                              IICETransportPtr transport,
-                                              IICETransport::States state
-                                              ) override;
+      virtual void onICETransportStateChange(
+                                             IICETransportPtr transport,
+                                             IICETransport::States state
+                                             ) override;
 
       virtual void onICETransportCandidatePairAvailable(
                                                         IICETransportPtr transport,

@@ -33,7 +33,7 @@
 
 #include <ortc/internal/types.h>
 
-#include <ortc/IIdentity.h>
+#include <ortc/IStatsReport.h>
 
 #include <openpeer/services/IWakeDelegate.h>
 
@@ -46,23 +46,24 @@ namespace ortc
 {
   namespace internal
   {
-    ZS_DECLARE_INTERACTION_PTR(IIdentityForSettings)
+    ZS_DECLARE_INTERACTION_PTR(IStatsReportForSettings)
+    ZS_DECLARE_INTERACTION_PTR(IStatsReportForInternal)
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IIdentityForSettings
+    #pragma mark IStatsReportForSettings
     #pragma mark
 
-    interaction IIdentityForSettings
+    interaction IStatsReportForSettings
     {
-      ZS_DECLARE_TYPEDEF_PTR(IIdentityForSettings, ForSettings)
+      ZS_DECLARE_TYPEDEF_PTR(IStatsReportForSettings, ForSettings)
 
       static void applyDefaults();
 
-      virtual ~IIdentityForSettings() {}
+      virtual ~IStatsReportForSettings() {}
     };
     
     //-------------------------------------------------------------------------
@@ -70,34 +71,57 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark Identity
+    #pragma mark IStatsReportForInternal
+    #pragma mark
+
+    interaction IStatsReportForInternal
+    {
+      ZS_DECLARE_TYPEDEF_PTR(IStatsReportForInternal, ForInternal)
+
+      ZS_DECLARE_TYPEDEF_PTR(IStatsReportTypes::Stats, Stats)
+
+      typedef String StatID;
+      typedef std::map<StatID, StatsPtr> StatMap;
+
+      static StatsReportPtr create(const StatMap &stats);
+
+      virtual ~IStatsReportForInternal() {}
+    };
+    
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark StatsReport
     #pragma mark
     
-    class Identity : public Noop,
-                     public MessageQueueAssociator,
-                     public SharedRecursiveLock,
-                     public IIdentity,
-                     public IIdentityForSettings,
-                     public IWakeDelegate,
-                     public zsLib::ITimerDelegate
+    class StatsReport : public Noop,
+                        public MessageQueueAssociator,
+                        public SharedRecursiveLock,
+                        public IStatsReport,
+                        public IStatsReportForSettings,
+                        public IStatsReportForInternal
     {
     protected:
       struct make_private {};
 
     public:
-      friend interaction IIdentity;
-      friend interaction IIdentityFactory;
-      friend interaction IIdentityForSettings;
+      friend interaction IStatsReport;
+      friend interaction IStatsReportFactory;
+      friend interaction IStatsReportForSettings;
+
+      ZS_DECLARE_TYPEDEF_PTR(IStatsReportTypes::Stats, Stats)
 
     public:
-      Identity(
-               const make_private &,
-               IMessageQueuePtr queue,
-               IDTLSTransportPtr transport
-               );
+      StatsReport(
+                  const make_private &,
+                  IMessageQueuePtr queue,
+                  const StatMap &stats
+                  );
 
     protected:
-      Identity(Noop) :
+      StatsReport(Noop) :
         Noop(true),
         MessageQueueAssociator(IMessageQueuePtr()),
         SharedRecursiveLock(SharedRecursiveLock::create())
@@ -106,60 +130,36 @@ namespace ortc
       void init();
 
     public:
-      virtual ~Identity();
+      virtual ~StatsReport();
 
-      static IdentityPtr convert(IIdentityPtr object);
-      static IdentityPtr convert(ForSettingsPtr object);
+      static StatsReportPtr convert(IStatsReportPtr object);
+      static StatsReportPtr convert(ForSettingsPtr object);
+      static StatsReportPtr convert(ForInternalPtr object);
 
     protected:
 
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark Identity => IIdentity
+      #pragma mark StatsReport => IStatsReport
       #pragma mark
 
-      static ElementPtr toDebug(IdentityPtr object);
-
-      static IdentityPtr create(IDTLSTransportPtr transport);
+      static ElementPtr toDebug(StatsReportPtr report);
 
       virtual PUID getID() const override {return mID;}
 
-      virtual AssertionPtr peerIdentity() const override;
-
-      virtual IDTLSTransportPtr transport() const override;
-
-      virtual PromiseWithResultPtr getIdentityAssertion(
-                                                        const char *provider,
-                                                        const char *protoocl = "default",
-                                                        const char *username = NULL
-                                                        ) throw (InvalidStateError) override;
-
-      virtual PromiseWithAssertionPtr setIdentityAssertion(const String &assertion) override;
+      virtual StatsPtr getStats(const char *id) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark Identity => IWakeDelegate
+      #pragma mark StatsReport => IStatsReportForInternal
       #pragma mark
 
-      virtual void onWake() override;
-
-      //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark Identity => ITimerDelegate
-      #pragma mark
-
-      virtual void onTimer(TimerPtr timer) override;
-
-      //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark Identity => IIdentityAsyncDelegate
-      #pragma mark
-
+      static StatsReportPtr create(const StatMap &stats);
 
     protected:
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark Identity => (internal)
+      #pragma mark StatsReport => (internal)
       #pragma mark
 
       Log::Params log(const char *message) const;
@@ -167,26 +167,18 @@ namespace ortc
       Log::Params debug(const char *message) const;
       virtual ElementPtr toDebug() const;
 
-      bool isShuttingDown() const;
-      bool isShutdown() const;
-
-      void step();
-
-      bool stepBogusDoSomething();
-
       void cancel();
 
     protected:
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark Identity => (data)
+      #pragma mark StatsReport => (data)
       #pragma mark
 
       AutoPUID mID;
-      IdentityWeakPtr mThisWeak;
-      IdentityPtr mGracefulShutdownReference;
+      StatsReportWeakPtr mThisWeak;
 
-      bool mShutdown {false};
+      StatMap mStats;
     };
 
     //-------------------------------------------------------------------------
@@ -194,16 +186,18 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IIdentityFactory
+    #pragma mark IStatsReportFactory
     #pragma mark
 
-    interaction IIdentityFactory
+    interaction IStatsReportFactory
     {
-      static IIdentityFactory &singleton();
+      ZS_DECLARE_TYPEDEF_PTR(IStatsReportForInternal::StatMap, StatMap)
 
-      virtual IdentityPtr create(IDTLSTransportPtr transport);
+      static IStatsReportFactory &singleton();
+
+      virtual StatsReportPtr create(const StatMap &stats);
     };
 
-    class IdentityFactory : public IFactory<IIdentityFactory> {};
+    class StatsReportFactory : public IFactory<IStatsReportFactory> {};
   }
 }

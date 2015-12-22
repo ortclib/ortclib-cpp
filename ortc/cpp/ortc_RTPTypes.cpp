@@ -85,9 +85,11 @@ namespace ortc
 
       UseServicesHelper::debugAppend(resultEl, "payload type", mPayloadType);
       UseServicesHelper::debugAppend(resultEl, "kind", mKind);
+      UseServicesHelper::debugAppend(resultEl, "allow neutral kind", mAllowNeutralKind);
       UseServicesHelper::debugAppend(resultEl, "codec kind", mCodecKind.hasValue() ? IRTPTypes::toString(mCodecKind.value()) : (const char *)NULL);
       UseServicesHelper::debugAppend(resultEl, "supported codec", mSupportedCodec.hasValue() ? IRTPTypes::toString(mSupportedCodec.value()) : (const char *)NULL);
       UseServicesHelper::debugAppend(resultEl, "clock rate", mClockRate);
+      UseServicesHelper::debugAppend(resultEl, "match clock rate not set", mMatchClockRateNotSet);
       UseServicesHelper::debugAppend(resultEl, "disallowed matches", mDisallowedPayloadtypeMatches.size());
 
       if (mDisallowedPayloadtypeMatches.size() > 0) {
@@ -191,14 +193,14 @@ namespace ortc
 
     //-------------------------------------------------------------------------
     void RTPTypesHelper::calculateDeltaChangesInChannels(
-                                                        Optional<IMediaStreamTrackTypes::Kinds> kind,
-                                                        const ParametersPtrList &inExistingParamsGroupedIntoChannels,
-                                                        const ParametersPtrList &inNewParamsGroupedIntoChannels,
-                                                        ParametersPtrList &outUnchangedChannels,
-                                                        ParametersPtrList &outNewChannels,
-                                                        ParametersPtrPairList &outUpdatedChannels,
-                                                        ParametersPtrList &outRemovedChannels
-                                                        )
+                                                         Optional<IMediaStreamTrackTypes::Kinds> kind,
+                                                         const ParametersPtrList &inExistingParamsGroupedIntoChannels,
+                                                         const ParametersPtrList &inNewParamsGroupedIntoChannels,
+                                                         ParametersPtrPairList &outUnchangedChannels,
+                                                         ParametersPtrList &outNewChannels,
+                                                         ParametersPtrPairList &outUpdatedChannels,
+                                                         ParametersPtrList &outRemovedChannels
+                                                         )
     {
       typedef String Hash;
       typedef std::pair<Hash, ParametersPtr> HashParameterPair;
@@ -225,13 +227,34 @@ namespace ortc
       ParametersPtrList oldList(inExistingParamsGroupedIntoChannels);
       ParametersPtrList newList(inNewParamsGroupedIntoChannels);
 
+      // scope: SSRC is not a factor thus check to see what is left is an "update" compatible change (or not)
+      {
+        if (newList.size() < 1) goto non_compatible_change;
+        if (oldList.size() < 1) goto non_compatible_change;
+
+        if (!isGeneralizedSSRCCompatibleChange(*(oldList.front()), *(newList.front()))) goto non_compatible_change;
+
+        goto do_more_matching;
+
+      non_compatible_change:
+        {
+          outNewChannels = newList;
+          outRemovedChannels = oldList;
+
+          ZS_LOG_TRACE(slog("no more compatible changes found") + ZS_PARAM("remove size", outRemovedChannels.size()) + ZS_PARAM("add size", outNewChannels.size()))
+          return;
+        }
+
+      do_more_matching: {}
+      }
+
       HashParameterPairList newHashedList;
 
       Parameters::HashOptions hashOptions;
 
       hashOptions.mHeaderExtensions = false;
       hashOptions.mRTCP = false;
-
+      
       // scope: calculate hashes for new list
       {
         for (auto iter_doNotUse = newList.begin(); iter_doNotUse != newList.end(); ) {
@@ -242,6 +265,117 @@ namespace ortc
           auto hash = params->hash(hashOptions);
 
           newHashedList.push_back(HashParameterPair(hash, params));
+        }
+      }
+
+      // scope: find matches by encoding ID
+      {
+        for (auto iterOld_doNotUse = oldList.begin(); iterOld_doNotUse != oldList.end(); ) {
+          auto currentOld = iterOld_doNotUse;
+          ++iterOld_doNotUse;
+
+          auto oldParams = (*currentOld);
+
+          if (oldParams->mEncodingParameters.size() < 1) continue;
+
+          auto &oldEncodingBase = (*(oldParams->mEncodingParameters.begin()));
+          if (oldEncodingBase.mEncodingID.isEmpty()) continue;
+
+          auto iterNew_doNotUse = newList.begin();
+          auto iterNewHash_doNotUse = newHashedList.begin();
+
+          for (; iterNew_doNotUse != newList.end();) {
+            auto currentNew = iterNew_doNotUse;
+            ++iterNew_doNotUse;
+
+            auto currentNewHash = iterNewHash_doNotUse;
+            ++iterNewHash_doNotUse;
+
+            auto &newHash = (*currentNewHash).first;
+
+            auto newParams = (*currentNew);
+
+            if (newParams->mEncodingParameters.size() < 1) continue;
+
+            auto &newEncodingBase = (*(newParams->mEncodingParameters.begin()));
+
+            if (newEncodingBase.mEncodingID.isEmpty()) continue;
+
+            if (oldEncodingBase.mEncodingID != newEncodingBase.mEncodingID) continue;
+
+            auto oldHash = oldParams->hash(hashOptions);
+
+            float rank {};
+            if (oldParams->hash() == newParams->hash()) {
+              // an exact match
+              ZS_LOG_TRACE(slog("parameters are unchanged") + oldParams->toDebug())
+              outUnchangedChannels.push_back(OldNewParametersPair(oldParams, newParams));
+            } else {
+              if (oldHash == newHash) {
+                ZS_LOG_TRACE(slog("parameters are almost an exact match (but some options have changed)") + ZS_PARAM("old", oldParams->toDebug()) + ZS_PARAM("new", newParams->toDebug()))
+                outUpdatedChannels.push_back(OldNewParametersPair(oldParams, newParams));
+              } else if (isRankableMatch(kind, *oldParams, *newParams, rank)) {
+                ZS_LOG_TRACE(slog("parameter changes are compatible (thus performing an update)") + ZS_PARAM("old", oldParams->toDebug()) + ZS_PARAM("new", newParams->toDebug()))
+                outUpdatedChannels.push_back(OldNewParametersPair(oldParams, newParams));
+              } else {
+                ZS_LOG_TRACE(slog("parameters changes do not appear to be compatible (thus removing old channel and creating new channel)") + ZS_PARAM("old", oldParams->toDebug()) + ZS_PARAM("new", newParams->toDebug()))
+                outRemovedChannels.push_back(oldParams);
+                outNewChannels.push_back(newParams);
+              }
+            }
+
+            oldList.erase(currentOld);
+            newList.erase(currentNew);
+            newHashedList.erase(currentNewHash);
+            break;
+          }
+        }
+      }
+
+      // scope: old params with non-matching encoding ID entries must be removed
+      {
+        for (auto iterOld_doNotUse = oldList.begin(); iterOld_doNotUse != oldList.end(); ) {
+          auto currentOld = iterOld_doNotUse;
+          ++iterOld_doNotUse;
+
+          auto oldParams = (*currentOld);
+
+          if (oldParams->mEncodingParameters.size() < 1) continue;
+
+          auto &firstOld = oldParams->mEncodingParameters.front();
+          if (firstOld.mEncodingID.isEmpty()) continue;
+
+          ZS_LOG_TRACE(slog("old parameters did not have an encoding ID match (thus must remove)") + oldParams->toDebug())
+          outRemovedChannels.push_back(oldParams);
+
+          oldList.erase(currentOld);
+        }
+      }
+
+      // scope: new params with non-matching encoding ID entries must be added
+      {
+        auto iterNew_doNotUse = newList.begin();
+        auto iterNewHash_doNotUse = newHashedList.begin();
+
+        for (; iterNew_doNotUse != newList.end();) {
+          auto currentNew = iterNew_doNotUse;
+          ++iterNew_doNotUse;
+
+          auto currentNewHash = iterNewHash_doNotUse;
+          ++iterNewHash_doNotUse;
+
+          auto newParams = (*currentNew);
+
+          if (newParams->mEncodingParameters.size() < 1) continue;
+
+          auto &firstNew = newParams->mEncodingParameters.front();
+          if (firstNew.mEncodingID.isEmpty()) continue;
+
+          ZS_LOG_TRACE(slog("new parameters did not have an encoding ID match (thus must add)") + newParams->toDebug())
+          outNewChannels.push_back(newParams);
+          
+          newList.erase(currentNew);
+          newHashedList.erase(currentNewHash);
         }
       }
 
@@ -273,7 +407,7 @@ namespace ortc
             if (oldParams->hash() == newParams->hash()) {
               // an exact match
               ZS_LOG_TRACE(slog("parameters are unchanged") + oldParams->toDebug())
-              outUnchangedChannels.push_back(oldParams);
+              outUnchangedChannels.push_back(OldNewParametersPair(oldParams, newParams));
             } else {
               ZS_LOG_TRACE(slog("parameters are almost an exact match (but some options have changed)") + ZS_PARAM("old", oldParams->toDebug()) + ZS_PARAM("new", newParams->toDebug()))
               outUpdatedChannels.push_back(OldNewParametersPair(oldParams, newParams));
@@ -283,8 +417,8 @@ namespace ortc
             oldList.erase(currentOld);
             newList.erase(currentNew);
             newHashedList.erase(currentNewHash);
+            break;
           }
-
         }
       }
 
@@ -315,8 +449,19 @@ namespace ortc
 
             if (firstOld.mSSRC.value() != firstNew.mSSRC.value()) continue;
 
-            ZS_LOG_TRACE(slog("parameters has an SSRC match (thus must match)") + ZS_PARAM("old", oldParams->toDebug()) + ZS_PARAM("new", newParams->toDebug()))
-            outUpdatedChannels.push_back(OldNewParametersPair(oldParams, newParams));
+            float rank {};
+            if (isRankableMatch(kind, *oldParams, *newParams, rank)) {
+              ZS_LOG_TRACE(slog("parameters has an SSRC match and changes are compatible (thus must update channel)") + ZS_PARAM("old", oldParams->toDebug()) + ZS_PARAM("new", newParams->toDebug()))
+              outUpdatedChannels.push_back(OldNewParametersPair(oldParams, newParams));
+            } else {
+              ZS_LOG_TRACE(slog("parameters has an SSRC match but changes are not compatible (thus must remove old and add channel)") + ZS_PARAM("old", oldParams->toDebug()) + ZS_PARAM("new", newParams->toDebug()))
+              outRemovedChannels.push_back(oldParams);
+              outNewChannels.push_back(newParams);
+            }
+
+            oldList.erase(currentOld);
+            newList.erase(currentNew);
+            break;
           }
         }
       }
@@ -361,27 +506,6 @@ namespace ortc
         }
       }
 
-      // scope: SSRC is not a factor thus check to see what is left is an "update" compatible change (or not)
-      {
-        if (newList.size() < 1) goto non_compatible_change;
-        if (oldList.size() < 1) goto non_compatible_change;
-
-        if (!isGeneralizedSSRCCompatibleChange(*(oldList.front()), *(newList.front()))) goto non_compatible_change;
-
-        goto do_more_matching;
-
-      non_compatible_change:
-        {
-          outNewChannels = newList;
-          outRemovedChannels = oldList;
-
-          ZS_LOG_TRACE(slog("no more compatible changes found") + ZS_PARAM("remove size", outRemovedChannels.size()) + ZS_PARAM("add size", outNewChannels.size()))
-          return;
-        }
-
-      do_more_matching: {}
-      }
-      
       // scope: find closest matches
       {
         for (auto iterOld_doNotUse = oldList.begin(); iterOld_doNotUse != oldList.end(); ) {
@@ -400,7 +524,7 @@ namespace ortc
 
             auto newParams = (*currentNew);
 
-            float rank = 0.0;
+            float rank {};
             if (!isRankableMatch(kind, *oldParams, *newParams, rank)) continue;
 
             if (!closestMatchNew) {
@@ -435,7 +559,16 @@ namespace ortc
 
       // scope: all unprocessed "new" list channels must be added
       {
-        outNewChannels = newList;
+        for (auto iterOld = oldList.begin(); iterOld != oldList.end(); ++iterOld) {
+          auto &oldParams = (*iterOld);
+          ZS_LOG_TRACE(slog("old parameters did not have any match (thus must remove)") + oldParams->toDebug())
+          outRemovedChannels.push_back(oldParams);
+        }
+        for (auto iterNew = newList.begin(); iterNew != newList.end(); ++iterNew) {
+          auto &newParams = (*iterNew);
+          ZS_LOG_TRACE(slog("new parameters did not have any match (thus must add)") + newParams->toDebug())
+          outNewChannels.push_back(newParams);
+        }
       }
 
       ZS_LOG_TRACE(slog("delta calculated for channel params") +
@@ -506,15 +639,15 @@ namespace ortc
       if (checkMaxPTime) {
         if (oldCodec.mMaxPTime != newCodec.mMaxPTime) return false;       // not compatible
       } else {
-        ioRank += (oldCodec.mMaxPTime == newCodec.mMaxPTime ? 0.01 : -0.01);
+        ioRank += (oldCodec.mMaxPTime == newCodec.mMaxPTime ? 0.01f : -0.01f);
       }
       if (checkNumChannels) {
         if (oldCodec.mNumChannels != newCodec.mNumChannels) return false; // not compatible
 
-        ioRank += (oldCodec.mNumChannels == newCodec.mNumChannels ? 0.01 : -0.01);
+        ioRank += (oldCodec.mNumChannels == newCodec.mNumChannels ? 0.01f : -0.01f);
       }
 
-      ioRank += 0.1;
+      ioRank += 0.1f;
       return true;
     }
 
@@ -566,6 +699,26 @@ namespace ortc
           }
         }
 
+        if (options.mClockRate.hasValue()) {
+          if (codec.mClockRate.hasValue()) {
+            if (codec.mClockRate.value() != options.mClockRate.value()) continue;
+          } else {
+            if (options.mMatchClockRateNotSet.hasValue()) {
+              if (!options.mMatchClockRateNotSet.value()) continue;
+            } else {
+              continue; // must match exact clock rate
+            }
+          }
+        } else {
+          if (options.mMatchClockRateNotSet.hasValue()) {
+            if (options.mMatchClockRateNotSet.value()) {
+              if (codec.mClockRate.hasValue()) continue;  // cannot match as clock rate was set
+            } else {
+              if (!codec.mClockRate.hasValue()) continue; // cannot match as clock rate was not set
+            }
+          }
+        }
+
         if (options.mKind.hasValue()) {
           switch (codecKind) {
             case IRTPTypes::CodecKind_Unknown:  continue;
@@ -579,9 +732,14 @@ namespace ortc
               break;
             }
             case IRTPTypes::CodecKind_AV:       break;
-            case IRTPTypes::CodecKind_Data:     continue;
-            case IRTPTypes::CodecKind_RTX:      continue;
-            case IRTPTypes::CodecKind_FEC:      continue;
+            case IRTPTypes::CodecKind_Data:
+            case IRTPTypes::CodecKind_RTX:
+            case IRTPTypes::CodecKind_FEC:
+            {
+              if (!options.mAllowNeutralKind.hasValue()) continue;
+              if (!options.mAllowNeutralKind.value()) continue;
+              break;
+            }
           }
         }
 
@@ -635,18 +793,12 @@ namespace ortc
         }
       }
 
-      if (packetPayloadType.hasValue()) {
-        if (payloadType.hasValue()) {
-          if (payloadType.value() != packetPayloadType.value()) {
-            ZS_LOG_INSANE(slog("cannot match codec as paylod type specified in encoding do not match packet payload type") + params.toDebug() + ZS_PARAM("encoding", encoding ? encoding->toDebug() : ElementPtr()) + ZS_PARAM("base encoding", baseEncoding ? baseEncoding->toDebug() : ElementPtr()))
-            return NULL;
-          }
-        } else {
-          payloadType = packetPayloadType;
-        }
-      }
-
       FindCodecOptions findOptions;
+
+      if (packetPayloadType.hasValue()) {
+        payloadType = packetPayloadType;
+        findOptions.mAllowNeutralKind = true;
+      }
 
       findOptions.mPayloadType = payloadType;
       findOptions.mKind = kind;
@@ -686,6 +838,9 @@ namespace ortc
 
           FindCodecOptions options;
           options.mClockRate = oldCodec.mClockRate;
+          if (!oldCodec.mClockRate.hasValue()) {
+            options.mMatchClockRateNotSet = true;
+          }
           options.mPayloadType = oldCodec.mPayloadType;
           options.mSupportedCodec = IRTPTypes::toSupportedCodec(oldCodec.mName);
           options.mDisallowMultipleMatches = true;
@@ -740,7 +895,7 @@ namespace ortc
           }
         }
 
-        outRank += (oldParams.mEncodingParameters.size() == newParams.mEncodingParameters.size() ? 1.0 : -0.2);
+        outRank += (oldParams.mEncodingParameters.size() == newParams.mEncodingParameters.size() ? 1.0f : -0.2f);
 
         for (auto iterOldEncoding = oldParams.mEncodingParameters.begin(); iterOldEncoding != oldParams.mEncodingParameters.end(); ++iterOldEncoding)
         {
@@ -754,10 +909,10 @@ namespace ortc
             if (oldEncoding.mEncodingID != newEncoding.mEncodingID) continue;
 
             foundLayer = true;
-            outRank += (oldEncoding.hash() == newEncoding.hash() ? 0.3 : -0.1);
+            outRank += (oldEncoding.hash() == newEncoding.hash() ? 0.3f : -0.1f);
             break;
           }
-          if (!foundLayer) outRank -= 0.2;
+          if (!foundLayer) outRank -= 0.2f;
         }
 
         for (auto iterNewEncoding = newParams.mEncodingParameters.begin(); iterNewEncoding != newParams.mEncodingParameters.end(); ++iterNewEncoding)
@@ -774,7 +929,7 @@ namespace ortc
             foundLayer = true;
             break;
           }
-          if (!foundLayer) outRank -= 0.2;
+          if (!foundLayer) outRank -= 0.2f;
         }
       }
 
@@ -848,6 +1003,7 @@ namespace ortc
 
       options.mPayloadType = rtxPayloadType;
       options.mClockRate = mainCodec->mClockRate;
+      options.mMatchClockRateNotSet = true;
       options.mCodecKind = IRTPTypes::CodecKind_RTX;
       options.mDisallowMultipleMatches = true;
 
@@ -916,6 +1072,7 @@ namespace ortc
       FindCodecOptions options;
       options.mCodecKind = IRTPTypes::CodecKind_FEC;
       options.mClockRate = mainCodec->mClockRate;
+      options.mMatchClockRateNotSet = true;
 
       switch (mechanism) {
         case IRTPTypes::KnownFECMechanism_Unknown:      {
@@ -968,6 +1125,7 @@ namespace ortc
           ulpOptions.mSupportedCodec = IRTPTypes::SupportedCodec_ULPFEC;
           ulpOptions.mPayloadType = redPayloadType;
           ulpOptions.mClockRate = mainCodec->mClockRate;
+          ulpOptions.mMatchClockRateNotSet = true;
 
           auto foundULPCodec = findCodec(params, ulpOptions);
           if (!foundULPCodec) continue;
@@ -987,6 +1145,7 @@ namespace ortc
         }
 
         oldFECMatch = foundFECCodec;
+        options.mDisallowedPayloadtypeMatches.insert(foundFECCodec->mPayloadType);
       }
 
       if (oldFECMatch) foundFECCodec = oldFECMatch;
@@ -1124,7 +1283,7 @@ namespace ortc
             if (!baseCodec) goto not_possible_match;
 
             if (baseCodec->mClockRate.hasValue()) {
-              if (outCodecParameters->mClockRate.hasValue()) {
+              if (outCodecParameters->mClockRate.hasValue()) {  // NOTE: will allow match if supplemental codec does not have a clock rate specified at all
                 if (baseCodec->mClockRate.value() != outCodecParameters->mClockRate.value()) goto not_possible_match;
               }
             }
@@ -1185,6 +1344,51 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    Optional<IMediaStreamTrackTypes::Kinds> RTPTypesHelper::getCodecsKind(const Parameters &params)
+    {
+      Optional<IMediaStreamTrack::Kinds> foundKind;
+
+      for (auto iter = params.mCodecs.begin(); iter != params.mCodecs.end(); ++iter) {
+        auto &codec = (*iter);
+
+        auto knownCodec = IRTPTypes::toSupportedCodec(codec.mName);
+
+        auto codecKind = IRTPTypes::getCodecKind(knownCodec);
+
+        switch (codecKind) {
+          case IRTPTypes::CodecKind_Audio:
+          case IRTPTypes::CodecKind_AudioSupplemental:
+          {
+            if (foundKind.hasValue()) {
+              if (foundKind.value() != IMediaStreamTrack::Kind_Audio) return Optional<IMediaStreamTrack::Kinds>();
+            }
+            foundKind = IMediaStreamTrack::Kind_Audio;
+            break;
+          }
+          case IRTPTypes::CodecKind_Video:
+          {
+            if (foundKind.hasValue()) {
+              if (foundKind.value() != IMediaStreamTrack::Kind_Video) return Optional<IMediaStreamTrack::Kinds>();
+            }
+            foundKind = IMediaStreamTrack::Kind_Video;
+            break;
+          }
+          case IRTPTypes::CodecKind_Unknown:
+          case IRTPTypes::CodecKind_AV:
+          case IRTPTypes::CodecKind_RTX:
+          case IRTPTypes::CodecKind_FEC:
+          case IRTPTypes::CodecKind_Data:
+          {
+            // codec kind is not a media kind
+            break;
+          }
+        }
+      }
+
+      return foundKind;
+    }
+
+    //-------------------------------------------------------------------------
     Log::Params RTPTypesHelper::slog(const char *message)
     {
       return Log::Params(message, "ortc::RTPTypesHelper");
@@ -1192,6 +1396,39 @@ namespace ortc
 
 
   } // namespace internal
+
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IRTPTypes::DegradationPreferences
+  #pragma mark
+
+  //---------------------------------------------------------------------------
+  const char *IRTPTypes::toString(DegradationPreferences preference)
+  {
+    switch (preference) {
+      case DegradationPreference_MaintainFramerate:   return "maintain-framerate";
+      case DegradationPreference_MaintainResolution:  return "maintain-resolution";
+      case DegradationPreference_Balanced:            return "balanced";
+    }
+    return "UNDEFINED";
+  }
+
+  //---------------------------------------------------------------------------
+  IRTPTypes::DegradationPreferences IRTPTypes::toDegredationPreference(const char *preference) throw (InvalidParameters)
+  {
+    String str(preference);
+    for (IRTPTypes::DegradationPreferences index = IRTPTypes::DegradationPreference_First; index <= IRTPTypes::DegradationPreference_Last; index = static_cast<IRTPTypes::DegradationPreferences>(static_cast<std::underlying_type<IRTPTypes::DegradationPreferences>::type>(index) + 1)) {
+      if (0 == str.compareNoCase(IRTPTypes::toString(index))) return index;
+    }
+
+    ORTC_THROW_INVALID_PARAMETERS("Invalid parameter value: " + str)
+    return DegradationPreference_First;
+  }
+
 
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
@@ -1286,6 +1523,63 @@ namespace ortc
   #pragma mark
 
   //---------------------------------------------------------------------------
+  IRTPTypes::CodecCapability::CodecCapability(const CodecCapability &source) :
+    mName(source.mName),
+    mKind(source.mKind),
+    mClockRate(source.mClockRate),
+    mPreferredPayloadType(source.mPreferredPayloadType),
+    mMaxPTime(source.mMaxPTime),
+    mNumChannels(source.mNumChannels),
+    mFeedback(source.mFeedback),
+    mMaxTemporalLayers(source.mMaxTemporalLayers),
+    mMaxSpatialLayers(source.mMaxSpatialLayers),
+    mSVCMultiStreamSupport(source.mSVCMultiStreamSupport)
+  {
+    if ((source.mParameters) ||
+        (source.mOptions)) {
+      SupportedCodecs supported = toSupportedCodec(source.mName);
+      if (source.mParameters) {
+        switch (supported) {
+          case SupportedCodec_Opus: {
+            auto codec = OpusCodecCapabilityParameters::convert(source.mParameters);
+            if (codec) {
+              mParameters = OpusCodecCapabilityParameters::create(*codec);
+            }
+            break;
+          }
+          case SupportedCodec_VP8:    {
+            auto codec = VP8CodecCapabilityParameters::convert(source.mParameters);
+            if (codec) {
+              mParameters = VP8CodecCapabilityParameters::create(*codec);
+            }
+            break;
+          }
+          case SupportedCodec_H264:   {
+            auto codec = H264CodecCapabilityParameters::convert(source.mParameters);
+            if (codec) {
+              mParameters = H264CodecCapabilityParameters::create(*codec);
+            }
+            break;
+          }
+          default: break;
+        }
+      }
+      if (source.mOptions) {
+        switch (supported) {
+          case SupportedCodec_Opus: {
+            auto codec = OpusCodecCapabilityOptions::convert(source.mOptions);
+            if (codec) {
+              mOptions = OpusCodecCapabilityOptions::create(*codec);
+            }
+            break;
+          }
+          default: break;
+        }
+      }
+    }
+  }
+
+  //---------------------------------------------------------------------------
   ElementPtr IRTPTypes::CodecCapability::toDebug() const
   {
     ElementPtr resultEl = Element::create("ortc::IRTPTypes::CodecCapability");
@@ -1324,7 +1618,7 @@ namespace ortc
             break;
           }
           case SupportedCodec_VP8:    {
-            auto codec = VP8CodecCapability::convert(mParameters);
+            auto codec = VP8CodecCapabilityParameters::convert(mParameters);
             if (codec) {
               UseServicesHelper::debugAppend(resultEl, codec->toDebug());
               found = true;
@@ -1332,7 +1626,7 @@ namespace ortc
             break;
           }
           case SupportedCodec_H264:   {
-            auto codec = H264CodecCapability::convert(mParameters);
+            auto codec = H264CodecCapabilityParameters::convert(mParameters);
             if (codec) {
               UseServicesHelper::debugAppend(resultEl, codec->toDebug());
               found = true;
@@ -1423,12 +1717,12 @@ namespace ortc
             break;
           }
           case SupportedCodec_VP8:    {
-            auto codec = VP8CodecCapability::convert(mParameters);
+            auto codec = VP8CodecCapabilityParameters::convert(mParameters);
             if (codec) hasher.update(codec->hash());
             break;
           }
           case SupportedCodec_H264:   {
-            auto codec = H264CodecCapability::convert(mParameters);
+            auto codec = H264CodecCapabilityParameters::convert(mParameters);
             if (codec) hasher.update(codec->hash());
             break;
           }
@@ -1597,21 +1891,21 @@ namespace ortc
   #pragma mark
 
   //---------------------------------------------------------------------------
-  IRTPTypes::VP8CodecCapabilityPtr IRTPTypes::VP8CodecCapability::create(const VP8CodecCapability &capability)
+  IRTPTypes::VP8CodecCapabilityParametersPtr IRTPTypes::VP8CodecCapabilityParameters::create(const VP8CodecCapabilityParameters &capability)
   {
-    return make_shared<VP8CodecCapability>(capability);
+    return make_shared<VP8CodecCapabilityParameters>(capability);
   }
 
   //---------------------------------------------------------------------------
-  IRTPTypes::VP8CodecCapabilityPtr IRTPTypes::VP8CodecCapability::convert(AnyPtr any)
+  IRTPTypes::VP8CodecCapabilityParametersPtr IRTPTypes::VP8CodecCapabilityParameters::convert(AnyPtr any)
   {
-    return ZS_DYNAMIC_PTR_CAST(VP8CodecCapability, any);
+    return ZS_DYNAMIC_PTR_CAST(VP8CodecCapabilityParameters, any);
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IRTPTypes::VP8CodecCapability::toDebug() const
+  ElementPtr IRTPTypes::VP8CodecCapabilityParameters::toDebug() const
   {
-    ElementPtr resultEl = Element::create("ortc::IRTPTypes::VP8CodecCapability");
+    ElementPtr resultEl = Element::create("ortc::IRTPTypes::VP8CodecCapabilityParameters");
 
     UseServicesHelper::debugAppend(resultEl, "max ft", mMaxFT);
     UseServicesHelper::debugAppend(resultEl, "max fs", mMaxFS);
@@ -1620,11 +1914,11 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  String IRTPTypes::VP8CodecCapability::hash() const
+  String IRTPTypes::VP8CodecCapabilityParameters::hash() const
   {
     SHA1Hasher hasher;
 
-    hasher.update("ortc::IRTPTypes::VP8CodecCapability:");
+    hasher.update("ortc::IRTPTypes::VP8CodecCapabilityParameters:");
 
     hasher.update(mMaxFT);
     hasher.update(":");
@@ -1638,25 +1932,25 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   #pragma mark
-  #pragma mark IRTPTypes::H264CodecCapability
+  #pragma mark IRTPTypes::H264CodecCapabilityParameters
   #pragma mark
 
   //---------------------------------------------------------------------------
-  IRTPTypes::H264CodecCapabilityPtr IRTPTypes::H264CodecCapability::create(const H264CodecCapability &capability)
+  IRTPTypes::H264CodecCapabilityParametersPtr IRTPTypes::H264CodecCapabilityParameters::create(const H264CodecCapabilityParameters &capability)
   {
-    return make_shared<H264CodecCapability>(capability);
+    return make_shared<H264CodecCapabilityParameters>(capability);
   }
 
   //---------------------------------------------------------------------------
-  IRTPTypes::H264CodecCapabilityPtr IRTPTypes::H264CodecCapability::convert(AnyPtr any)
+  IRTPTypes::H264CodecCapabilityParametersPtr IRTPTypes::H264CodecCapabilityParameters::convert(AnyPtr any)
   {
-    return ZS_DYNAMIC_PTR_CAST(H264CodecCapability, any);
+    return ZS_DYNAMIC_PTR_CAST(H264CodecCapabilityParameters, any);
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IRTPTypes::H264CodecCapability::toDebug() const
+  ElementPtr IRTPTypes::H264CodecCapabilityParameters::toDebug() const
   {
-    ElementPtr resultEl = Element::create("ortc::IRTPTypes::H264CodecCapability");
+    ElementPtr resultEl = Element::create("ortc::IRTPTypes::H264CodecCapabilityParameters");
 
     UseServicesHelper::debugAppend(resultEl, "profile level id", mProfileLevelID);
 
@@ -1680,11 +1974,11 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  String IRTPTypes::H264CodecCapability::hash() const
+  String IRTPTypes::H264CodecCapabilityParameters::hash() const
   {
     SHA1Hasher hasher;
 
-    hasher.update("ortc::IRTPTypes::H264CodecCapability:");
+    hasher.update("ortc::IRTPTypes::H264CodecCapabilityParameters:");
 
     hasher.update(mProfileLevelID);
     hasher.update(":packetizationmodes");
@@ -1757,13 +2051,13 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   #pragma mark
-  #pragma mark IRTPTypes::RtcpFeedback
+  #pragma mark IRTPTypes::RTCPFeedback
   #pragma mark
 
   //---------------------------------------------------------------------------
-  ElementPtr IRTPTypes::RtcpFeedback::toDebug() const
+  ElementPtr IRTPTypes::RTCPFeedback::toDebug() const
   {
-    ElementPtr resultEl = Element::create("ortc::IRTPTypes::RtcpFeedback");
+    ElementPtr resultEl = Element::create("ortc::IRTPTypes::RTCPFeedback");
 
     UseServicesHelper::debugAppend(resultEl, "type", mType);
     UseServicesHelper::debugAppend(resultEl, "parameter", mParameter);
@@ -1772,11 +2066,11 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  String IRTPTypes::RtcpFeedback::hash() const
+  String IRTPTypes::RTCPFeedback::hash() const
   {
     SHA1Hasher hasher;
 
-    hasher.update("ortc::IRTPTypes::RtcpFeedback:");
+    hasher.update("ortc::IRTPTypes::RTCPFeedback:");
 
     hasher.update(mType);
     hasher.update(":");
@@ -1870,6 +2164,7 @@ namespace ortc
     }
 
     UseServicesHelper::debugAppend(resultEl, "rtcp params", mRTCP.toDebug());
+    UseServicesHelper::debugAppend(resultEl, "delegration preference", toString(mDegredationPreference));
 
     return resultEl;
   }
@@ -1920,6 +2215,11 @@ namespace ortc
       hasher.update(mRTCP.hash());
     }
 
+    if (options.mDegredationPreference) {
+      hasher.update("degredation:14bac0ecdadf8b017403d37459be8490:");
+      hasher.update(mDegredationPreference);
+    }
+
     return hasher.final();
   }
 
@@ -1931,6 +2231,65 @@ namespace ortc
   #pragma mark
   #pragma mark IRTPTypes::CodecParameters
   #pragma mark
+
+  //---------------------------------------------------------------------------
+  IRTPTypes::CodecParameters::CodecParameters(const CodecParameters &source) :
+    mName(source.mName),
+    mPayloadType(source.mPayloadType),
+    mClockRate(source.mClockRate),
+    mMaxPTime(source.mMaxPTime),
+    mNumChannels(source.mNumChannels),
+    mRTCPFeedback(source.mRTCPFeedback)
+  {
+    if (source.mParameters) {
+      SupportedCodecs supported = toSupportedCodec(source.mName);
+      switch (supported) {
+        case SupportedCodec_Opus: {
+          auto codec = OpusCodecParameters::convert(source.mParameters);
+          if (codec) {
+            mParameters = OpusCodecParameters::create(*codec);
+          }
+          break;
+        }
+        case SupportedCodec_VP8: {
+          auto codec = VP8CodecParameters::convert(source.mParameters);
+          if (codec) {
+            mParameters = VP8CodecParameters::create(*codec);
+          }
+          break;
+        }
+        case SupportedCodec_H264: {
+          auto codec = H264CodecParameters::convert(source.mParameters);
+          if (codec) {
+            mParameters = H264CodecParameters::create(*codec);
+          }
+          break;
+        }
+        case SupportedCodec_RTX: {
+          auto codec = RTXCodecParameters::convert(source.mParameters);
+          if (codec) {
+            mParameters = RTXCodecParameters::create(*codec);
+          }
+          break;
+        }
+        case SupportedCodec_RED: {
+          auto codec = REDCodecParameters::convert(source.mParameters);
+          if (codec) {
+            mParameters = REDCodecParameters::create(*codec);
+          }
+          break;
+        }
+        case SupportedCodec_FlexFEC: {
+          auto codec = FlexFECCodecParameters::convert(source.mParameters);
+          if (codec) {
+            mParameters = FlexFECCodecParameters::create(*codec);
+          }
+          break;
+        }
+        default: break;
+      }
+    }
+  }
 
   //---------------------------------------------------------------------------
   ElementPtr IRTPTypes::CodecParameters::toDebug() const
@@ -2536,7 +2895,6 @@ namespace ortc
     UseServicesHelper::debugAppend(resultEl, "priority", toString(mPriority));
     UseServicesHelper::debugAppend(resultEl, "max bitrate", mMaxBitrate);
     UseServicesHelper::debugAppend(resultEl, "min quality", mMinQuality);
-    UseServicesHelper::debugAppend(resultEl, "framerate bias", mFramerateBias);
     UseServicesHelper::debugAppend(resultEl, "active", mActive);
     UseServicesHelper::debugAppend(resultEl, "encoding id", mEncodingID);
 
@@ -2573,8 +2931,6 @@ namespace ortc
     hasher.update(mMaxBitrate);
     hasher.update(":");
     hasher.update(mMinQuality);
-    hasher.update(":");
-    hasher.update(mFramerateBias);
     hasher.update(":");
     hasher.update(mActive);
     hasher.update(":");
@@ -3089,73 +3445,73 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   #pragma mark
-  #pragma mark IRTPTypes::KnownFeedbackMechanisms
+  #pragma mark IRTPTypes::KnownFeedbackParameters
   #pragma mark
 
   //---------------------------------------------------------------------------
-  const char *IRTPTypes::toString(KnownFeedbackMechanisms mechanism)
+  const char *IRTPTypes::toString(KnownFeedbackParameters mechanism)
   {
     switch (mechanism) {
-      case KnownFeedbackMechanism_Unknown:    return "";
+      case KnownFeedbackParameter_Unknown:    return "";
 
-      case KnownFeedbackMechanism_SLI:        return "sli";
-      case KnownFeedbackMechanism_PLI:        return "pli";
-      case KnownFeedbackMechanism_RPSI:       return "rpsi";
-      case KnownFeedbackMechanism_APP:        return "app";
-      case KnownFeedbackMechanism_RAI:        return "rai";
-      case KnownFeedbackMechanism_TLLEI:      return "tllei";
-      case KnownFeedbackMechanism_PSLEI:      return "pslei";
-      case KnownFeedbackMechanism_FIR:        return "fir";
-      case KnownFeedbackMechanism_TMMBR:      return "tmmbr";
-      case KnownFeedbackMechanism_TSTR:       return "tstr";
-      case KnownFeedbackMechanism_VBCM:       return "vbcm";
-      case KnownFeedbackMechanism_PAUSE:      return "pause";
-      case KnownFeedbackMechanism_REMB:       return "goog-remb";
+      case KnownFeedbackParameter_SLI:        return "sli";
+      case KnownFeedbackParameter_PLI:        return "pli";
+      case KnownFeedbackParameter_RPSI:       return "rpsi";
+      case KnownFeedbackParameter_APP:        return "app";
+      case KnownFeedbackParameter_RAI:        return "rai";
+      case KnownFeedbackParameter_TLLEI:      return "tllei";
+      case KnownFeedbackParameter_PSLEI:      return "pslei";
+      case KnownFeedbackParameter_FIR:        return "fir";
+      case KnownFeedbackParameter_TMMBR:      return "tmmbr";
+      case KnownFeedbackParameter_TSTR:       return "tstr";
+      case KnownFeedbackParameter_VBCM:       return "vbcm";
+      case KnownFeedbackParameter_PAUSE:      return "pause";
+      case KnownFeedbackParameter_REMB:       return "goog-remb";
     }
 
     return "unknown";
   }
 
   //---------------------------------------------------------------------------
-  IRTPTypes::KnownFeedbackMechanisms IRTPTypes::toKnownFeedbackMechanism(const char *mechanism)
+  IRTPTypes::KnownFeedbackParameters IRTPTypes::toKnownFeedbackParameter(const char *mechanism)
   {
     String mechanismStr(mechanism);
 
-    for (KnownFeedbackMechanisms index = KnownFeedbackMechanism_First; index <= KnownFeedbackMechanism_Last; index = static_cast<KnownFeedbackMechanisms>(static_cast<std::underlying_type<KnownFeedbackMechanisms>::type>(index) + 1)) {
+    for (KnownFeedbackParameters index = KnownFeedbackParameter_First; index <= KnownFeedbackParameter_Last; index = static_cast<KnownFeedbackParameters>(static_cast<std::underlying_type<KnownFeedbackParameters>::type>(index) + 1)) {
       if (0 == mechanismStr.compareNoCase(IRTPTypes::toString(index))) return index;
     }
 
-    return KnownFeedbackMechanism_Unknown;
+    return KnownFeedbackParameter_Unknown;
   }
 
   //---------------------------------------------------------------------------
-  IRTPTypes::KnownFeedbackTypesSet IRTPTypes::getUseableWithFeedbackTypes(KnownFeedbackMechanisms mechanism)
+  IRTPTypes::KnownFeedbackTypesSet IRTPTypes::getUseableWithFeedbackTypes(KnownFeedbackParameters mechanism)
   {
     KnownFeedbackTypesSet result;
 
     switch (mechanism) {
-      case KnownFeedbackMechanism_Unknown:    break;
+      case KnownFeedbackParameter_Unknown:    break;
 
-      case KnownFeedbackMechanism_SLI:
-      case KnownFeedbackMechanism_PLI:
-      case KnownFeedbackMechanism_RAI:
-      case KnownFeedbackMechanism_TLLEI:
-      case KnownFeedbackMechanism_PSLEI:      {
+      case KnownFeedbackParameter_SLI:
+      case KnownFeedbackParameter_PLI:
+      case KnownFeedbackParameter_RAI:
+      case KnownFeedbackParameter_TLLEI:
+      case KnownFeedbackParameter_PSLEI:      {
         result.insert(KnownFeedbackType_NACK);
         break;
       }
-      case KnownFeedbackMechanism_RPSI:
-      case KnownFeedbackMechanism_APP:        {
+      case KnownFeedbackParameter_RPSI:
+      case KnownFeedbackParameter_APP:        {
         result.insert(KnownFeedbackType_ACK);
         result.insert(KnownFeedbackType_NACK);
         break;
       }
-      case KnownFeedbackMechanism_REMB:
-      case KnownFeedbackMechanism_FIR:
-      case KnownFeedbackMechanism_TMMBR:
-      case KnownFeedbackMechanism_TSTR:
-      case KnownFeedbackMechanism_VBCM:
-      case KnownFeedbackMechanism_PAUSE:      {
+      case KnownFeedbackParameter_REMB:
+      case KnownFeedbackParameter_FIR:
+      case KnownFeedbackParameter_TMMBR:
+      case KnownFeedbackParameter_TSTR:
+      case KnownFeedbackParameter_VBCM:
+      case KnownFeedbackParameter_PAUSE:      {
         result.insert(KnownFeedbackType_CCM);
         break;
       }

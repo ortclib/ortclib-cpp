@@ -63,9 +63,11 @@ namespace ortc
 
         Optional<PayloadType> mPayloadType;
         Optional<IMediaStreamTrackTypes::Kinds> mKind;
+        Optional<bool> mAllowNeutralKind;
         Optional<IRTPTypes::CodecKinds> mCodecKind;
         Optional<IRTPTypes::SupportedCodecs> mSupportedCodec;
         Optional<ULONG> mClockRate;
+        Optional<bool> mMatchClockRateNotSet;
         PayloadTypeSet mDisallowedPayloadtypeMatches;
         Optional<bool> mDisallowMultipleMatches;
 
@@ -82,7 +84,7 @@ namespace ortc
                                                   Optional<IMediaStreamTrackTypes::Kinds> kind,
                                                   const ParametersPtrList &inExistingParamsGroupedIntoChannels,
                                                   const ParametersPtrList &inNewParamsGroupedIntoChannels,
-                                                  ParametersPtrList &outUnchangedChannels,
+                                                  ParametersPtrPairList &outUnchangedChannels,
                                                   ParametersPtrList &outNewChannels,
                                                   ParametersPtrPairList &outUpdatedChannels,
                                                   ParametersPtrList &outRemovedChannels
@@ -149,6 +151,8 @@ namespace ortc
                                                     IRTPTypes::CodecKinds &outCodecKind,
                                                     EncodingParameters * &outBaseEncoding
                                                     );
+
+      static Optional<IMediaStreamTrackTypes::Kinds> getCodecsKind(const Parameters &params);
 
       static Log::Params slog(const char *message);
     };

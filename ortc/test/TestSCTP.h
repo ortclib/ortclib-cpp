@@ -377,10 +377,10 @@ namespace ortc
         #pragma mark FakeSecureTransport => friend IICETransportDelegate
         #pragma mark
 
-        virtual void onICETransportStateChanged(
-                                                IICETransportPtr transport,
-                                                IICETransport::States state
-                                                ) override;
+        virtual void onICETransportStateChange(
+                                               IICETransportPtr transport,
+                                               IICETransport::States state
+                                               ) override;
 
         virtual void onICETransportCandidatePairAvailable(
                                                           IICETransportPtr transport,

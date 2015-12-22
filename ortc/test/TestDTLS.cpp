@@ -267,7 +267,7 @@ namespace ortc
             FakeICETransportPtr pThis = mThisWeak.lock();
 
             if (IICETransportTypes::State_New != mCurrentState) {
-              delegate->onICETransportStateChanged(pThis, mCurrentState);
+              delegate->onICETransportStateChange(pThis, mCurrentState);
             }
           }
           
@@ -323,7 +323,7 @@ namespace ortc
         #pragma mark
 
         //---------------------------------------------------------------------
-        virtual void onPacketFromLinkedFakedTransport(SecureByteBlockPtr buffer)
+        virtual void onPacketFromLinkedFakedTransport(SecureByteBlockPtr buffer) override
         {
           UseSecureTransportPtr transport;
 
@@ -360,7 +360,7 @@ namespace ortc
 
           auto pThis = mThisWeak.lock();
           if (pThis) {
-            mSubscriptions.delegate()->onICETransportStateChanged(pThis, mCurrentState);
+            mSubscriptions.delegate()->onICETransportStateChange(pThis, mCurrentState);
           }
         }
 
@@ -537,7 +537,7 @@ namespace ortc
         #pragma mark
 
         //---------------------------------------------------------------------
-        virtual void onDTLSTransportStateChanged(
+        virtual void onDTLSTransportStateChange(
                                                  IDTLSTransportPtr transport,
                                                  IDTLSTransport::States state
                                                  ) override
@@ -562,7 +562,7 @@ namespace ortc
                                           IDTLSTransportPtr transport,
                                           ErrorCode errorCode,
                                           String errorReason
-                                          )
+                                          ) override
         {
           TESTING_CHECK(transport)
 

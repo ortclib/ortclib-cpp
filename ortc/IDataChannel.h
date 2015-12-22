@@ -53,14 +53,18 @@ namespace ortc
     #pragma mark
 
     enum States {
-      State_Connecting,
+      State_First,
+
+      State_Connecting    = State_First,
       State_Open,
       State_Closing,
       State_Closed,
+
+      State_Last          = State_Closed,
     };
 
     static const char *toString(States state);
-    static States toState(const char *state);
+    static States toState(const char *state) throw (InvalidParameters);
 
     //-------------------------------------------------------------------------
     #pragma mark
