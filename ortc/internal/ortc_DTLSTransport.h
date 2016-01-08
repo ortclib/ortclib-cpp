@@ -81,6 +81,8 @@ namespace ortc
 
       static void applyDefaults();
 
+      static void forceSRTPInit();
+
       virtual ~IDTLSTransportForSettings() {}
     };
     
@@ -210,6 +212,8 @@ namespace ortc
 
       static DTLSTransportPtr convert(IRTPTransportPtr rtpTransport);
       static DTLSTransportPtr convert(IRTCPTransportPtr rtcpTransport);
+
+      static void forceSRTPInit();
 
       virtual PUID getID() const override {return mID;}
 

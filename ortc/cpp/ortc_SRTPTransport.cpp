@@ -196,7 +196,10 @@ namespace ortc
       return internal::ISRTPTransportFactory::singleton().create(delegate, transport, encryptParameters, decryptParameters);
     }
     
-
+    void ISRTPTransportForSecureTransport::forceSRTPInit()
+    {
+      SRTPTransport::forceSRTPInit();
+    }
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -514,6 +517,11 @@ namespace ortc
     {
       //AutoRecursiveLock lock(*this);
       //IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
+    }
+
+    void SRTPTransport::forceSRTPInit()
+    {
+      SRTPInit::singleton();
     }
 
     //-------------------------------------------------------------------------

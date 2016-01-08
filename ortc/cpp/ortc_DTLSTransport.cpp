@@ -302,6 +302,8 @@ namespace ortc
       UseSettings::setUInt(ORTC_SETTING_DTLS_TRANSPORT_MAX_PENDING_DTLS_BUFFER, kMaxDtlsPacketLen*4);
 
       UseSettings::setUInt(ORTC_SETTING_DTLS_TRANSPORT_MAX_PENDING_RTP_PACKETS, 50);
+
+      DTLSTransport::forceSRTPInit();
     }
 
     //-------------------------------------------------------------------------
@@ -2855,6 +2857,13 @@ namespace ortc
       UseServicesHelper::debugAppend(resultEl, "ignore bad certificate", ignore_bad_cert_);
 
       return resultEl;
+    }
+
+    void DTLSTransport::forceSRTPInit()
+    {
+      UseSRTPTransport::forceSRTPInit();
+      DTLSTransportFactory::singleton(); 
+      RTPListenerFactory::singleton();
     }
 
     //-------------------------------------------------------------------------

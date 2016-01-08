@@ -106,6 +106,8 @@ namespace ortc
                                           const CryptoParameters &decryptParameters
                                           );
 
+      static void forceSRTPInit();
+
       virtual PUID getID() const = 0;
 
       virtual ISRTPTransportSubscriptionPtr subscribe(ISRTPTransportDelegatePtr delegate) = 0;
@@ -226,6 +228,7 @@ namespace ortc
                                      const CryptoParameters &decryptParameters
                                      ) throw(InvalidParameters);
 
+      static void forceSRTPInit();
       virtual PUID getID() const override {return mID;}
 
       virtual ISRTPTransportSubscriptionPtr subscribe(ISRTPTransportDelegatePtr delegate) override;

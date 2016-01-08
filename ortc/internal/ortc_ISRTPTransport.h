@@ -67,6 +67,8 @@ namespace ortc
     interaction ISRTPTransport : public ISRTPTransportTypes
     {
       virtual PUID getID() const = 0;
+
+      static void forceSRTPInit();
     };
 
     //-------------------------------------------------------------------------
