@@ -358,6 +358,7 @@ namespace ortc
       //-----------------------------------------------------------------------
       static SCTPInitPtr singleton()
       {
+        AutoRecursiveLock lock(*UseServicesHelper::getGlobalLock());
         static SingletonLazySharedPtr<SCTPInit> singleton(create());
         SCTPInitPtr result = singleton.singleton();
 

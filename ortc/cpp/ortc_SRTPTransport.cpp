@@ -281,6 +281,7 @@ namespace ortc
       //-----------------------------------------------------------------------
       static SRTPInitPtr singleton()
       {
+        AutoRecursiveLock lock(*UseServicesHelper::getGlobalLock());
         static SingletonLazySharedPtr<SRTPInit> singleton(create());
         SRTPInitPtr result = singleton.singleton();
 

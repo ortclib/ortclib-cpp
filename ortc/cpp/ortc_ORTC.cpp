@@ -137,6 +137,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     ORTCPtr ORTC::singleton()
     {
+      AutoRecursiveLock lock(*UseServicesHelper::getGlobalLock());
       static SingletonLazySharedPtr<ORTC> singleton(ORTC::create());
       ORTCPtr result = singleton.singleton();
       if (!result) {

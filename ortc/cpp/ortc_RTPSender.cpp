@@ -266,7 +266,8 @@ namespace ortc
                          ) :
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
-      mChannels(make_shared<ParametersToChannelHolderMap>())
+      mChannels(make_shared<ParametersToChannelHolderMap>()),
+      mTrack(MediaStreamTrack::convert(track))
     {
       ZS_LOG_DETAIL(debug("created"))
 
@@ -1080,13 +1081,23 @@ namespace ortc
       if (!mGracefulShutdownReference) mGracefulShutdownReference = mThisWeak.lock();
 
       if (mGracefulShutdownReference) {
-        return;
+        // return;
       }
 
       //.......................................................................
       // final cleanup
 
       setState(State_Shutdown);
+
+      for (auto iter = mChannels->begin(); iter != mChannels->end(); ++iter) {
+        auto channel = (*iter).second;
+        if (!channel) continue;
+
+        removeChannel(channel);
+      }
+
+      ParametersToChannelHolderMapPtr channels = ParametersToChannelHolderMapPtr(make_shared<ParametersToChannelHolderMap>());
+      mChannels = channels;
 
       mSubscriptions.clear();
 
@@ -1179,6 +1190,7 @@ namespace ortc
       ChannelHolderPtr channel(make_shared<ChannelHolder>());
       channel->mHolder = mThisWeak.lock();
       channel->mChannel = UseChannel::create(mThisWeak.lock(), *newParams);
+      channel->notify(mLastReportedTransportStateToChannels);
       if (mTrack) {
         mTrack->notifyAttachSenderChannel(RTPSenderChannel::convert(channel->mChannel));
       }

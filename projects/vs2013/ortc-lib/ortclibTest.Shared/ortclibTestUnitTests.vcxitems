@@ -19,6 +19,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\test\TestMediaStreamTrack.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\test\TestRTPListener.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\test\TestRTPReceiver.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\test\TestRTPSender.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\test\TestSCTP.h" />
   </ItemGroup>
   <ItemGroup>
@@ -35,6 +36,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\test\TestRTPListener.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\test\TestRTPPacket.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\test\TestRTPReceiver.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\test\TestRTPSender.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\test\TestSCTP.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\test\TestSetup.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\test\TestSRTP.cpp" />

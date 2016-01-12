@@ -152,6 +152,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     MediaDevicesPtr MediaDevices::singleton()
     {
+      AutoRecursiveLock lock(*UseServicesHelper::getGlobalLock());
       static SingletonLazySharedPtr<MediaDevices> singleton(create());
       MediaDevicesPtr result = singleton.singleton();
 

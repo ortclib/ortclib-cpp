@@ -166,9 +166,9 @@ namespace ortc
 
         StringHeaderExtension(const HeaderExtension &header);
         StringHeaderExtension(
-                            BYTE id,
-                            const char *str
-                            );
+                              BYTE id,
+                              const char *str
+                              );
 
         const char *str() const;
 

@@ -33,16 +33,16 @@
 #include <zsLib/MessageQueueThread.h>
 
 #include <ortc/IDataChannel.h>
-#include <ortc/IRTPReceiver.h>
+#include <ortc/IRTPSender.h>
 #include <ortc/ISettings.h>
 
 #include <ortc/internal/ortc_RTPListener.h>
+#include <ortc/internal/ortc_RTPSender.h>
+#include <ortc/internal/ortc_RTPSenderChannel.h>
 #include <ortc/internal/ortc_RTPReceiver.h>
-#include <ortc/internal/ortc_RTPReceiverChannel.h>
 #include <ortc/internal/ortc_ICETransport.h>
 #include <ortc/internal/ortc_ISecureTransport.h>
 #include <ortc/internal/ortc_DTLSTransport.h>
-#include <ortc/internal/ortc_RTPSender.h>
 #include <ortc/internal/ortc_MediaStreamTrack.h>
 
 #include <openpeer/services/IHelper.h>
@@ -58,12 +58,12 @@ namespace ortc
 {
   namespace test
   {
-    namespace rtpreceiver
+    namespace rtpsender
     {
       ZS_DECLARE_INTERACTION_PROXY(IFakeICETransportAsyncDelegate)
       ZS_DECLARE_INTERACTION_PROXY(IFakeSecureTransportAsyncDelegate)
       ZS_DECLARE_INTERACTION_PROXY(IFakeListenerAsyncDelegate)
-      ZS_DECLARE_INTERACTION_PROXY(IFakeReceiverChannelAsyncDelegate)
+      ZS_DECLARE_INTERACTION_PROXY(IFakeSenderChannelAsyncDelegate)
 
       //---------------------------------------------------------------------
       //---------------------------------------------------------------------
@@ -111,21 +111,18 @@ namespace ortc
       //---------------------------------------------------------------------
       //---------------------------------------------------------------------
       #pragma mark
-      #pragma mark IFakeReceiverChannelAsyncDelegate
+      #pragma mark IFakeSenderChannelAsyncDelegate
       #pragma mark
 
-      interaction IFakeReceiverChannelAsyncDelegate
+      interaction IFakeSenderChannelAsyncDelegate
       {
-
         ZS_DECLARE_TYPEDEF_PTR(ortc::internal::RTPPacket, RTPPacket)
         ZS_DECLARE_TYPEDEF_PTR(ortc::internal::RTCPPacket, RTCPPacket)
-        ZS_DECLARE_TYPEDEF_PTR(std::list<RTCPPacketPtr>, RTCPPacketList)
         ZS_DECLARE_TYPEDEF_PTR(ortc::internal::ISecureTransportTypes, ISecureTransportTypes)
         ZS_DECLARE_TYPEDEF_PTR(ortc::IRTPTypes::Parameters, Parameters)
+        ZS_DECLARE_TYPEDEF_PTR(std::list<RTCPPacketPtr>, RTCPPacketList)
 
         virtual void onState(ISecureTransportTypes::States state) = 0;
-        virtual void onRTPPacket(RTPPacketPtr packet) = 0;
-        virtual void onRTCPPacket(RTCPPacketPtr packet) = 0;
         virtual void onRTCPPackets(RTCPPacketListPtr packets) = 0;
         virtual void onUpdate(ParametersPtr params) = 0;
       };
@@ -133,29 +130,27 @@ namespace ortc
   }
 }
 
-ZS_DECLARE_PROXY_BEGIN(ortc::test::rtpreceiver::IFakeICETransportAsyncDelegate)
+ZS_DECLARE_PROXY_BEGIN(ortc::test::rtpsender::IFakeICETransportAsyncDelegate)
 ZS_DECLARE_PROXY_TYPEDEF(openpeer::services::SecureByteBlockPtr, SecureByteBlockPtr)
 ZS_DECLARE_PROXY_METHOD_1(onPacketFromLinkedFakedTransport, SecureByteBlockPtr)
 ZS_DECLARE_PROXY_END()
 
-ZS_DECLARE_PROXY_BEGIN(ortc::test::rtpreceiver::IFakeSecureTransportAsyncDelegate)
+ZS_DECLARE_PROXY_BEGIN(ortc::test::rtpsender::IFakeSecureTransportAsyncDelegate)
 //ZS_DECLARE_PROXY_TYPEDEF(openpeer::services::SecureByteBlockPtr, SecureByteBlockPtr)
 //ZS_DECLARE_PROXY_METHOD_1(onPacketFromLinkedFakedTransport, SecureByteBlockPtr)
 ZS_DECLARE_PROXY_END()
 
-ZS_DECLARE_PROXY_BEGIN(ortc::test::rtpreceiver::IFakeListenerAsyncDelegate)
+ZS_DECLARE_PROXY_BEGIN(ortc::test::rtpsender::IFakeListenerAsyncDelegate)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::RTPPacketPtr, RTPPacketPtr)
 ZS_DECLARE_PROXY_METHOD_1(onForwardBufferedPacket, RTPPacketPtr)
 ZS_DECLARE_PROXY_END()
 
-ZS_DECLARE_PROXY_BEGIN(ortc::test::rtpreceiver::IFakeReceiverChannelAsyncDelegate)
+ZS_DECLARE_PROXY_BEGIN(ortc::test::rtpsender::IFakeSenderChannelAsyncDelegate)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::RTPPacketPtr, RTPPacketPtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::RTCPPacketPtr, RTCPPacketPtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::ISecureTransportTypes::States, States)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IRTPTypes::Parameters, Parameters)
 ZS_DECLARE_PROXY_METHOD_1(onState, States)
-ZS_DECLARE_PROXY_METHOD_1(onRTPPacket, RTPPacketPtr)
-ZS_DECLARE_PROXY_METHOD_1(onRTCPPacket, RTCPPacketPtr)
 ZS_DECLARE_PROXY_METHOD_1(onRTCPPackets, RTCPPacketListPtr)
 ZS_DECLARE_PROXY_METHOD_1(onUpdate, ParametersPtr)
 ZS_DECLARE_PROXY_END()
@@ -164,7 +159,7 @@ namespace ortc
 {
   namespace test
   {
-    namespace rtpreceiver
+    namespace rtpsender
     {
       using zsLib::Log;
       using zsLib::AutoPUID;
@@ -173,15 +168,15 @@ namespace ortc
       ZS_DECLARE_USING_PTR(zsLib, Timer)
       ZS_DECLARE_USING_PTR(ortc::internal, RTPPacket)
       ZS_DECLARE_USING_PTR(ortc::internal, RTCPPacket)
-      ZS_DECLARE_USING_PTR(ortc::internal, RTPReceiver)
+      ZS_DECLARE_USING_PTR(ortc::internal, RTPSender)
 
       ZS_DECLARE_CLASS_PTR(FakeICETransport)
       ZS_DECLARE_CLASS_PTR(FakeSecureTransport)
       ZS_DECLARE_CLASS_PTR(FakeListener)
-      ZS_DECLARE_CLASS_PTR(FakeReceiverChannel)
+      ZS_DECLARE_CLASS_PTR(FakeSenderChannel)
       ZS_DECLARE_CLASS_PTR(FakeMediaStreamTrack)
-      ZS_DECLARE_CLASS_PTR(FakeSender)
-      ZS_DECLARE_CLASS_PTR(RTPReceiverTester)
+      ZS_DECLARE_CLASS_PTR(FakeReceiver)
+      ZS_DECLARE_CLASS_PTR(RTPSenderTester)
 
       //---------------------------------------------------------------------
       //---------------------------------------------------------------------
@@ -332,8 +327,8 @@ namespace ortc
       {
       public:
         friend class FakeICETransport;
-        friend class FakeSender;
-        friend class RTPReceiverTester;
+        friend class FakeReceiver;
+        friend class RTPSenderTester;
 
       protected:
         struct make_private {};
@@ -391,7 +386,7 @@ namespace ortc
         #pragma mark DTLSTransport => ISecureTransportForRTPListener
         #pragma mark
 
-        // (duplicate) static ElementPtr toDebug(ForRTPReceiverPtr transport);
+        // (duplicate) static ElementPtr toDebug(ForRTPSenderPtr transport);
 
         // (duplicate) virtual PUID getID() const = 0;
 
@@ -430,7 +425,7 @@ namespace ortc
 
         //---------------------------------------------------------------------
         #pragma mark
-        #pragma mark FakeSecureTransport => ISecureTransportForRTPReceiver
+        #pragma mark FakeSecureTransport => ISecureTransportForRTPSender
         #pragma mark
 
         // (duplicate) static ElementPtr toDebug(ForRTPSenderPtr transport);
@@ -665,10 +660,10 @@ namespace ortc
 
         //---------------------------------------------------------------------
         #pragma mark
-        #pragma mark FakeListener => (friend RTPReceiverTester)
+        #pragma mark FakeListener => (friend RTPSenderTester)
         #pragma mark
 
-        void setTransport(RTPReceiverTesterPtr tester);
+        void setTransport(RTPSenderTesterPtr tester);
 
         virtual IRTPListenerSubscriptionPtr subscribe(IRTPListenerDelegatePtr originalDelegate) override;
 
@@ -685,7 +680,7 @@ namespace ortc
       protected:
         FakeListenerWeakPtr mThisWeak;
 
-        RTPReceiverTesterWeakPtr mTester;
+        RTPSenderTesterWeakPtr mTester;
 
         IRTPListenerDelegateSubscriptions mSubscriptions;
         IRTPListenerSubscriptionPtr mDefaultSubscription;
@@ -708,19 +703,19 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark FakeReceiverChannel
+      #pragma mark FakeSenderChannel
       #pragma mark
 
       //-----------------------------------------------------------------------
-      class FakeReceiverChannel : public ortc::internal::RTPReceiverChannel,
-                                  public IFakeReceiverChannelAsyncDelegate
+      class FakeSenderChannel : public ortc::internal::RTPSenderChannel,
+                                public IFakeSenderChannelAsyncDelegate
       {
       public:
-        friend class RTPReceiverTester;
+        friend class RTPSenderTester;
 
         ZS_DECLARE_TYPEDEF_PTR(internal::ISecureTransportTypes, ISecureTransportTypes)
         ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters)
-        ZS_DECLARE_TYPEDEF_PTR(IFakeReceiverChannelAsyncDelegate::RTCPPacketList, RTCPPacketList)
+        ZS_DECLARE_TYPEDEF_PTR(IFakeSenderChannelAsyncDelegate::RTCPPacketList, RTCPPacketList)
 
         typedef std::list<SecureByteBlockPtr> BufferList;
 
@@ -729,66 +724,62 @@ namespace ortc
         typedef std::list<ISecureTransportTypes::States> StateList;
 
         ZS_DECLARE_TYPEDEF_PTR(internal::ISecureTransport, ISecureTransport)
-        ZS_DECLARE_TYPEDEF_PTR(internal::IRTPReceiverForRTPReceiverChannel, UseReceiver)
+        ZS_DECLARE_TYPEDEF_PTR(internal::IRTPSenderForRTPSenderChannel, UseSender)
 
       public:
-        FakeReceiverChannel(
-                            IMessageQueuePtr queue,
-                            const char *receiverChannelID
-                            );
-        ~FakeReceiverChannel();
+        FakeSenderChannel(
+                          IMessageQueuePtr queue,
+                          const char *senderChannelID
+                          );
+        ~FakeSenderChannel();
 
         //---------------------------------------------------------------------
         #pragma mark
-        #pragma mark FakeReceiverChannel => IRTPReceiverChannelForRTPReceiver
+        #pragma mark FakeSenderChannel => IRTPSenderChannelForRTPSender
         #pragma mark
 
         virtual ElementPtr toDebug() const override;
 
-        void create(
-                    RTPReceiverPtr receiver,
-                    const Parameters &params,
-                    const RTCPPacketList &packets
-                    );
-
         // (base handles) virtual PUID getID() const = 0;
 
-        virtual void notifyTransportState(ISecureTransport::States state) override;
+        void create(
+                    RTPSenderPtr sender,
+                    const Parameters &params
+                    );
 
-        virtual void notifyPacket(RTPPacketPtr packet) override;
+        virtual PUID getID() const override {return mID;}
+
+        virtual void notifyTransportState(ISecureTransport::States state) override;
 
         virtual void notifyPackets(RTCPPacketListPtr packets) override;
 
         virtual void notifyUpdate(const Parameters &params) override;
 
-        virtual bool handlePacket(RTPPacketPtr packet) override;
-        
         virtual bool handlePacket(RTCPPacketPtr packet) override;
 
         //---------------------------------------------------------------------
         #pragma mark
-        #pragma mark FakeReceiverChannel => IFakeReceiverChannelAsyncDelegate
+        #pragma mark FakeSenderChannel => IFakeSenderChannelAsyncDelegate
         #pragma mark
 
         virtual void onState(ISecureTransportTypes::States state) override;
-        virtual void onRTPPacket(RTPPacketPtr packet) override;
-        virtual void onRTCPPacket(RTCPPacketPtr packet) override;
         virtual void onRTCPPackets(RTCPPacketListPtr packets) override;
         virtual void onUpdate(ParametersPtr params) override;
 
         //---------------------------------------------------------------------
         #pragma mark
-        #pragma mark FakeReceiverChannel => (friend RTPReceiverTester)
+        #pragma mark FakeSenderChannel => (friend RTPSenderTester)
         #pragma mark
 
-        static FakeReceiverChannelPtr create(
+        static FakeSenderChannelPtr create(
                                              IMessageQueuePtr queue,
-                                             const char *receiverChannelID,
+                                             const char *senderChannelID,
                                              const Parameters &expectedParams
                                              );
 
-        void setTransport(RTPReceiverTesterPtr tester);
+        void setTransport(RTPSenderTesterPtr tester);
 
+        void sendPacket(RTPPacketPtr packet);
         void sendPacket(RTCPPacketPtr packet);
 
         void expectState(ISecureTransport::States state);
@@ -802,15 +793,15 @@ namespace ortc
       protected:
         //---------------------------------------------------------------------
         #pragma mark
-        #pragma mark FakeReceiverChannel => (internal)
+        #pragma mark FakeSenderChannel => (internal)
         #pragma mark
 
         Log::Params log(const char *message) const;
 
       protected:
-        FakeReceiverChannelWeakPtr mThisWeak;
+        FakeSenderChannelWeakPtr mThisWeak;
 
-        RTPReceiverTesterWeakPtr mTester;
+        RTPSenderTesterWeakPtr mTester;
 
         ParametersPtr mParameters;
 
@@ -818,8 +809,8 @@ namespace ortc
         ParametersList mExpectParameters;
         StateList mExpectStates;
 
-        UseReceiverWeakPtr mReceiver;
-        String mReceiverChannelID;
+        UseSenderWeakPtr mSender;
+        String mSenderChannelID;
       };
 
 
@@ -836,12 +827,12 @@ namespace ortc
       class FakeMediaStreamTrack : public ortc::internal::MediaStreamTrack
       {
       public:
-        typedef PUID ReceiverChannelID;
-        typedef std::list<ReceiverChannelID> ReceiverChannelIDList;
+        typedef PUID SenderChannelID;
+        typedef std::list<SenderChannelID> SenderChannelIDList;
 
         ZS_DECLARE_TYPEDEF_PTR(internal::ISecureTransport, ISecureTransport)
-        ZS_DECLARE_TYPEDEF_PTR(internal::RTPReceiverChannel, RTPReceiverChannel)
-        ZS_DECLARE_TYPEDEF_PTR(internal::IRTPReceiverForMediaStreamTrack, UseReceiver)
+        ZS_DECLARE_TYPEDEF_PTR(internal::RTPSenderChannel, RTPSenderChannel)
+        ZS_DECLARE_TYPEDEF_PTR(internal::IRTPSenderForMediaStreamTrack, UseSender)
 
       public:
         FakeMediaStreamTrack(IMessageQueuePtr queue);
@@ -849,7 +840,7 @@ namespace ortc
 
         //---------------------------------------------------------------------
         #pragma mark
-        #pragma mark FakeMediaStreamTrack => IMediaStreamTrackForRTPReceiver
+        #pragma mark FakeMediaStreamTrack => IMediaStreamTrackForRTPSender
         #pragma mark
 
         virtual ElementPtr toDebug() const override;
@@ -858,11 +849,14 @@ namespace ortc
 
         // (base handles) virtual PUID getID() const = 0;
 
-        virtual void notifyActiveReceiverChannel(RTPReceiverChannelPtr channel) override;
+        virtual Kinds kind() const override;
+
+        virtual void notifyAttachSenderChannel(RTPSenderChannelPtr channel) override;
+        virtual void notifyDetachSenderChannel(RTPSenderChannelPtr channel) override;
 
         //---------------------------------------------------------------------
         #pragma mark
-        #pragma mark FakeReceiverChannel => (friend RTPReceiverTester)
+        #pragma mark FakeSenderChannel => (friend RTPSenderTester)
         #pragma mark
 
         static FakeMediaStreamTrackPtr create(
@@ -870,14 +864,15 @@ namespace ortc
                                               IMediaStreamTrackTypes::Kinds kind
                                               );
 
-        void setTransport(RTPReceiverTesterPtr tester);
+        void setTransport(RTPSenderTesterPtr tester);
 
-        void expectActiveChannel(ReceiverChannelID channelID);
+        void expectAttachChannel(SenderChannelID channelID);
+        void expectDetachChannel(SenderChannelID channelID);
 
       protected:
         //---------------------------------------------------------------------
         #pragma mark
-        #pragma mark FakeReceiverChannel => (internal)
+        #pragma mark FakeSenderChannel => (internal)
         #pragma mark
 
         Log::Params log(const char *message) const;
@@ -885,17 +880,18 @@ namespace ortc
       protected:
         //---------------------------------------------------------------------
         #pragma mark
-        #pragma mark FakeReceiverChannel => (data)
+        #pragma mark FakeSenderChannel => (data)
         #pragma mark
         FakeMediaStreamTrackWeakPtr mThisWeak;
 
         IMediaStreamTrackTypes::Kinds mKind {IMediaStreamTrackTypes::Kind_Audio};
 
-        RTPReceiverTesterWeakPtr mTester;
+        RTPSenderTesterWeakPtr mTester;
 
-        UseReceiverWeakPtr mReceiver;
+        UseSenderWeakPtr mSender;
 
-        ReceiverChannelIDList mExpectActiveChannelIDs;
+        SenderChannelIDList mExpectAttachChannelIDs;
+        SenderChannelIDList mExpectDetachChannelIDs;
       };
 
       //-----------------------------------------------------------------------
@@ -903,28 +899,28 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark FakeSender
+      #pragma mark FakeReceiver
       #pragma mark
 
       //-----------------------------------------------------------------------
-      class FakeSender : public ortc::internal::RTPSender
+      class FakeReceiver : public ortc::internal::RTPReceiver
       {
       public:
-        ZS_DECLARE_TYPEDEF_PTR(internal::ISecureTransportForRTPSender, UseSecureTransport)
-        ZS_DECLARE_TYPEDEF_PTR(internal::IRTPListenerForRTPSender, UseListener)
+        ZS_DECLARE_TYPEDEF_PTR(internal::ISecureTransportForRTPReceiver, UseSecureTransport)
+        ZS_DECLARE_TYPEDEF_PTR(internal::IRTPListenerForRTPReceiver, UseListener)
 
         typedef std::list<SecureByteBlockPtr> BufferList;
-        typedef RTPReceiver::RTCPPacketList RTCPPacketList;
+        typedef RTPSender::RTCPPacketList RTCPPacketList;
 
       public:
-        FakeSender();
-        ~FakeSender();
+        FakeReceiver(IMediaStreamTrackTypes::Kinds kind);
+        ~FakeReceiver();
 
-        static FakeSenderPtr create();
+        static FakeReceiverPtr create(IMediaStreamTrackTypes::Kinds kind);
 
         //---------------------------------------------------------------------
         #pragma mark
-        #pragma mark FakeSender => IRTPSenderForRTPReceiver
+        #pragma mark FakeReceiver => IRTPReceiverForRTPListener
         #pragma mark
 
         virtual ElementPtr toDebug() const override;
@@ -933,17 +929,22 @@ namespace ortc
 
         virtual bool handlePacket(
                                   IICETypes::Components viaTransport,
+                                  RTPPacketPtr packet
+                                  ) override;
+
+        virtual bool handlePacket(
+                                  IICETypes::Components viaTransport,
                                   RTCPPacketPtr packet
                                   ) override;
 
         //---------------------------------------------------------------------
         #pragma mark
-        #pragma mark FakeSender => (friend RTPReceiverTester)
+        #pragma mark FakeReceiver => (friend RTPSenderTester)
         #pragma mark
 
-        void setTransport(RTPReceiverTesterPtr tester);
+        void setTransport(RTPSenderTesterPtr tester);
 
-        virtual void send(const Parameters &parameters) override;
+        virtual void receive(const Parameters &parameters) override;
         virtual void stop() override;
 
         void expectData(SecureByteBlockPtr data);
@@ -953,7 +954,7 @@ namespace ortc
       protected:
         //---------------------------------------------------------------------
         #pragma mark
-        #pragma mark FakeSender => (internal)
+        #pragma mark FakeReceiver => (internal)
         #pragma mark
 
         Log::Params log(const char *message) const;
@@ -962,12 +963,14 @@ namespace ortc
       protected:
         //---------------------------------------------------------------------
         #pragma mark
-        #pragma mark RTPSender => (data)
+        #pragma mark FakeReceiver => (data)
         #pragma mark
 
-        FakeSenderWeakPtr mThisWeak;
+        FakeReceiverWeakPtr mThisWeak;
 
-        RTPReceiverTesterWeakPtr mTester;
+        IMediaStreamTrackTypes::Kinds mKind {IMediaStreamTrackTypes::Kind_Audio};
+
+        RTPSenderTesterWeakPtr mTester;
 
         ParametersPtr mParameters;
 
@@ -982,59 +985,57 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark RTPReceiverTester
+      #pragma mark RTPSenderTester
       #pragma mark
 
       //-----------------------------------------------------------------------
-      class RTPReceiverTester : public SharedRecursiveLock,
-                                public zsLib::MessageQueueAssociator,
-                                public IRTPListenerDelegate,
-                                public IRTPReceiverDelegate
+      class RTPSenderTester : public SharedRecursiveLock,
+                              public zsLib::MessageQueueAssociator,
+                              public IRTPListenerDelegate,
+                              public IRTPSenderDelegate
       {
       public:
-        friend class FakeReceiverChannel;
-        friend class FakeSender;
+        friend class FakeSenderChannel;
+        friend class FakeReceiver;
         friend class FakeListener;
         friend class FakeMediaStreamTrack;
 
         ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters)
         ZS_DECLARE_TYPEDEF_PTR(internal::ISecureTransportTypes, ISecureTransportTypes)
 
-        ZS_DECLARE_TYPEDEF_PTR(internal::RTPReceiverChannel, RTPReceiverChannel)
-        ZS_DECLARE_TYPEDEF_PTR(internal::RTPReceiverChannelFactory, RTPReceiverChannelFactory)
-        ZS_DECLARE_TYPEDEF_PTR(internal::RTPReceiverChannel::RTCPPacketList, RTCPPacketList)
+        ZS_DECLARE_TYPEDEF_PTR(internal::RTPSenderChannel, RTPSenderChannel)
+        ZS_DECLARE_TYPEDEF_PTR(internal::RTPSenderChannelFactory, RTPSenderChannelFactory)
+        ZS_DECLARE_TYPEDEF_PTR(internal::RTPSenderChannel::RTCPPacketList, RTCPPacketList)
 
         ZS_DECLARE_TYPEDEF_PTR(internal::MediaStreamTrack, MediaStreamTrack)
         ZS_DECLARE_TYPEDEF_PTR(internal::MediaStreamTrackFactory, MediaStreamTrackFactory)
 
-        ZS_DECLARE_TYPEDEF_PTR(ortc::IRTPReceiverTypes::ContributingSourceList, ContributingSourceList)
-
-        ZS_DECLARE_CLASS_PTR(OverrideReceiverChannelFactory)
+        ZS_DECLARE_CLASS_PTR(OverrideSenderChannelFactory)
         ZS_DECLARE_CLASS_PTR(OverrideMediaStreamTrackFactory)
 
-        friend class OverrideReceiverChannelFactory;
+        friend class OverrideSenderChannelFactory;
         friend class OverrideMediaStreamTrackFactory;
 
         typedef String SenderOrReceiverChannelID;
-        typedef std::pair<FakeReceiverChannelWeakPtr, FakeSenderPtr> FakeReceiverChannelFakeSenderPair;
-        typedef std::map<SenderOrReceiverChannelID, FakeReceiverChannelFakeSenderPair> SenderOrReceiverMap;
+        typedef std::pair<FakeSenderChannelWeakPtr, FakeReceiverPtr> FakeSenderChannelFakeReceiverPair;
+        typedef std::map<SenderOrReceiverChannelID, FakeSenderChannelFakeReceiverPair> SenderOrReceiverMap;
 
         typedef String PacketID;
         typedef std::pair<RTPPacketPtr, RTCPPacketPtr> PacketPair;
         typedef std::map<PacketID, PacketPair> PacketMap;
 
-        typedef String ReceiverChannelID;
-        typedef std::pair<ReceiverChannelID, FakeReceiverChannelPtr> FakeReceiverChannelPair;
-        typedef std::list<FakeReceiverChannelPair> FakeReceiverChannelList;
+        typedef String SenderChannelID;
+        typedef std::pair<SenderChannelID, FakeSenderChannelPtr> FakeSenderChannelPair;
+        typedef std::list<FakeSenderChannelPair> FakeSenderChannelList;
 
         typedef String ParametersID;
         typedef std::map<ParametersID, ParametersPtr> ParametersMap;
 
-        typedef std::list<ReceiverChannelID> ReceiverIDList;
+        typedef std::list<SenderChannelID> SenderIDList;
 
         //---------------------------------------------------------------------
         #pragma mark
-        #pragma mark RTPReceiverTester::UnhandledEventData
+        #pragma mark RTPSenderTester::UnhandledEventData
         #pragma mark
 
         struct UnhandledEventData
@@ -1058,33 +1059,32 @@ namespace ortc
 
         //---------------------------------------------------------------------
         #pragma mark
-        #pragma mark RTPReceiverTester::OverrideReceiverChannelFactory
+        #pragma mark RTPSenderTester::OverrideSenderChannelFactory
         #pragma mark
 
-        class OverrideReceiverChannelFactory : public RTPReceiverChannelFactory
+        class OverrideSenderChannelFactory : public RTPSenderChannelFactory
         {
         public:
-          static OverrideReceiverChannelFactoryPtr create(RTPReceiverTesterPtr tester);
+          static OverrideSenderChannelFactoryPtr create(RTPSenderTesterPtr tester);
 
-          virtual RTPReceiverChannelPtr create(
-                                               RTPReceiverPtr receiver,
-                                               const Parameters &params,
-                                               const RTCPPacketList &packets
-                                               ) override;
+          virtual RTPSenderChannelPtr create(
+                                             RTPSenderPtr sender,
+                                             const Parameters &params
+                                             ) override;
 
         protected:
-          RTPReceiverTesterWeakPtr mTester;
+          RTPSenderTesterWeakPtr mTester;
         };
 
         //---------------------------------------------------------------------
         #pragma mark
-        #pragma mark RTPReceiverTester::OverrideReceiverChannelFactory
+        #pragma mark RTPSenderTester::OverrideSenderChannelFactory
         #pragma mark
 
         class OverrideMediaStreamTrackFactory : public MediaStreamTrackFactory
         {
         public:
-          static OverrideMediaStreamTrackFactoryPtr create(RTPReceiverTesterPtr tester);
+          static OverrideMediaStreamTrackFactoryPtr create(RTPSenderTesterPtr tester);
 
           virtual MediaStreamTrackPtr create(
                                              IMediaStreamTrackTypes::Kinds kind,
@@ -1094,7 +1094,7 @@ namespace ortc
           virtual MediaStreamTrackPtr create(IMediaStreamTrackTypes::Kinds kind);
 
         protected:
-          RTPReceiverTesterWeakPtr mTester;
+          RTPSenderTesterWeakPtr mTester;
         };
 
       protected:
@@ -1108,13 +1108,15 @@ namespace ortc
           // general
           ULONG mReceivedPackets {0};
 
-          // receiver cannel related
+          // sender cannel related
           ULONG mError {0};
+          ULONG mSSRCconflict {0};
           ULONG mChannelUpdate {0};
-          ULONG mReceiverChannelOfSecureTransportState {0};
+          ULONG mSenderChannelOfSecureTransportState {0};
 
           // media stream track
-          ULONG mActiveReceiverChannel {0};
+          ULONG mAttachSenderChannel {0};
+          ULONG mDetachSenderChannel {0};
 
           IMediaStreamTrackTypes::Kinds mKind {IMediaStreamTrack::Kind_Audio};
 
@@ -1124,22 +1126,26 @@ namespace ortc
       public:
         //---------------------------------------------------------------------
         #pragma mark
-        #pragma mark RTPReceiverTester (api)
+        #pragma mark RTPSenderTester (api)
         #pragma mark
 
-        static RTPReceiverTesterPtr create(
-                                           IMessageQueuePtr queue,
-                                           bool overrideFactories,
-                                           Milliseconds packetDelay = Milliseconds()
-                                           );
+        static RTPSenderTesterPtr create(
+                                         IMessageQueuePtr queue,
+                                         IMediaStreamTrackTypes::Kinds kind,
+                                         bool overrideFactories,
+                                         Milliseconds packetDelay = Milliseconds()
+                                         );
 
-        RTPReceiverTester(
-                          IMessageQueuePtr queue,
-                          bool overrideFactories
-                          );
-        ~RTPReceiverTester();
+        RTPSenderTester(
+                        IMessageQueuePtr queue,
+                        bool overrideFactories
+                        );
+        ~RTPSenderTester();
 
-        void init(Milliseconds packetDelay);
+        void init(
+                  IMediaStreamTrackTypes::Kinds kind,
+                  Milliseconds packetDelay
+                  );
 
         bool matches();
 
@@ -1156,34 +1162,34 @@ namespace ortc
 
         void setClientRole(bool clientRole);
 
-        void connect(RTPReceiverTesterPtr remote);
+        void connect(RTPSenderTesterPtr remote);
 
-        void createReceiverChannel(
-                                   const char *receiverChannelID,
-                                   const char *parametersID
-                                   );
-        void createSender(const char *senderID);
+        void createSenderChannel(
+                                 const char *senderChannelID,
+                                 const char *parametersID
+                                 );
+        void createReceiver(const char *senderID);
 
-        void send(
-                  const char *senderID,
-                  const char *parametersID
-                  );
+        void receive(
+                     const char *receiverID,
+                     const char *parametersID
+                     );
 
-        void receive(const char *parametersID);
+        void send(const char *parametersID);
 
-        void stop(const char *senderOrReceiverChannelID);
+        void stop(const char *senderOrSenderChannelID);
 
         void attach(
-                    const char *receiverChannelID,
-                    FakeReceiverChannelPtr receiver
+                    const char *senderChannelID,
+                    FakeSenderChannelPtr sender
                     );
         void attach(
-                    const char *senderID,
-                    FakeSenderPtr sender
+                    const char *receiverID,
+                    FakeReceiverPtr receiver
                     );
 
-        FakeReceiverChannelPtr detachReceiverChannel(const char *receiverChannelID);
-        FakeSenderPtr detachSender(const char *senderID);
+        FakeSenderChannelPtr detachSenderChannel(const char *senderChannelID);
+        FakeReceiverPtr detachReceiver(const char *receiverID);
 
         void expectKind(IMediaStreamTrackTypes::Kinds kind);
 
@@ -1195,16 +1201,17 @@ namespace ortc
                                 );
 
         void expectReceiveChannelUpdate(
-                                        const char *receiverChannelID,
+                                        const char *senderChannelID,
                                         const char *parametersID
                                         );
 
         void expectState(
-                         const char *receiverChannelID,
+                         const char *senderChannelID,
                          ISecureTransportTypes::States state
                          );
 
-        void expectActiveChannel(const char *receiverChannelID);
+        void expectAttachChannel(const char *senderChannelID);
+        void expectDetachChannel(const char *senderChannelID);
 
         void store(
                    const char *packetID,
@@ -1224,22 +1231,20 @@ namespace ortc
         ParametersPtr getParameters(const char *parametersID);
 
         void sendPacket(
-                        const char *senderOrReceiverChannelID,
+                        const char *receiverOrSenderChannelID,
                         const char *packetID
                         );
 
         void expectPacket(
-                          const char *senderOrReceiverChannelID,
+                          const char *receiverOrSenderChannelID,
                           const char *packetID
                           );
-
-        ContributingSourceList getContributingSources() const;
 
       protected:
 
         //---------------------------------------------------------------------
         #pragma mark
-        #pragma mark RTPReceiverTester::IRTPListenerDelegate
+        #pragma mark RTPSenderTester::IRTPListenerDelegate
         #pragma mark
 
         virtual void onRTPListenerUnhandledRTP(
@@ -1252,65 +1257,70 @@ namespace ortc
 
         //---------------------------------------------------------------------
         #pragma mark
-        #pragma mark RTPReceiverTester::IRTPReceiverDelegate
+        #pragma mark RTPSenderTester::IRTPSenderDelegate
         #pragma mark
 
-        virtual void onRTPReceiverError(
-                                        IRTPReceiverPtr receiver,
+        virtual void onRTPSenderError(
+                                        IRTPSenderPtr sender,
                                         ErrorCode errorCode,
                                         String errorReason
                                         ) override;
 
+        virtual void onRTPSenderSSRCConflict(
+                                             IRTPSenderPtr sender,
+                                             IRTPTypes::SSRCType ssrc
+                                             ) override;
+
         //---------------------------------------------------------------------
         #pragma mark
-        #pragma mark RTPReceiverTester => (friend fake listener, sender, receiver channel)
+        #pragma mark RTPSenderTester => (friend fake listener, sender, sender channel)
         #pragma mark
 
         FakeSecureTransportPtr getFakeSecureTransport() const;
 
         void notifyReceivedPacket();
         void notifyReceivedChannelUpdate();
-        void notifyActiveReceiverChannel();
-        void notifyReceiverChannelOfSecureTransportState();
+        void notifyAttachSenderChannel();
+        void notifyDetachSenderChannel();
+        void notifySenderChannelOfSecureTransportState();
 
-        RTPReceiverChannelPtr create(
-                                     RTPReceiverPtr receiver,
-                                     const Parameters &params,
-                                     const RTCPPacketList &packets
-                                     );
+        RTPSenderChannelPtr create(
+                                   RTPSenderPtr sender,
+                                   const Parameters &params
+                                   );
 
         MediaStreamTrackPtr create(IMediaStreamTrackTypes::Kinds kind);
 
       protected:
         //---------------------------------------------------------------------
         #pragma mark
-        #pragma mark RTPReceiverTester => (internal)
+        #pragma mark RTPSenderTester => (internal)
         #pragma mark
 
         Log::Params log(const char *message) const;
 
         FakeICETransportPtr getICETransport() const;
 
-        FakeReceiverChannelPtr getReceiverChannel(const char *receiverID);
-        FakeSenderPtr getSender(const char *senderID);
+        FakeSenderChannelPtr getSenderChannel(const char *senderChannelID);
+        FakeReceiverPtr getReceiver(const char *receiverID);
 
         void expectData(
                         const char *senderOrReceiverID,
                         SecureByteBlockPtr secureBuffer
                         );
         void sendData(
-                      const char *senderOrReceiverChannelID,
+                      const char *receiverOrSenderChannelID,
                       SecureByteBlockPtr secureBuffer
                       );
 
       public:
         //---------------------------------------------------------------------
         #pragma mark
-        #pragma mark RTPReceiverTester => (data)
+        #pragma mark RTPSenderTester => (data)
         #pragma mark
 
         AutoPUID mID;
-        RTPReceiverTesterWeakPtr mThisWeak;
+        RTPSenderTesterWeakPtr mThisWeak;
 
         bool mOverrideFactories {false};
 
@@ -1318,14 +1328,13 @@ namespace ortc
         FakeSecureTransportPtr mDTLSTransport;
 
         FakeMediaStreamTrackPtr mMediaStreamTrack;
-        ReceiverIDList mExpectingActiveChannelsUponMediaTrackCreation;
 
-        IRTPReceiverPtr mReceiver;
+        IRTPSenderPtr mSender;
 
-        RTPReceiverTesterWeakPtr mConnectedTester;
+        RTPSenderTesterWeakPtr mConnectedTester;
 
         IRTPListenerSubscriptionPtr mListenerSubscription;
-        IRTPReceiverSubscriptionPtr mReceiverSubscription;
+        IRTPSenderSubscriptionPtr mSenderSubscription;
 
         Expectations mExpecting;
         Expectations mExpectationsFound;
@@ -1333,7 +1342,7 @@ namespace ortc
         SenderOrReceiverMap mAttached;
         PacketMap mPackets;
 
-        FakeReceiverChannelList mFakeReceiverChannelCreationList;
+        FakeSenderChannelList mFakeSenderChannelCreationList;
 
         UnhandledEventDataList mExpectingUnhandled;
 
