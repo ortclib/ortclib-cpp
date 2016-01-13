@@ -88,3 +88,6 @@ known Issues in android build :
 
 For more information on ORTC, please visit:
 http://ortc.org/
+
+Hookflash provides professional services to aid in the integration or expansion of this Library in your project, contact Hookflash for more information: sales@hookflash.com
+====
