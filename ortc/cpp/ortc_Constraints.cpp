@@ -31,11 +31,13 @@
 
 #include <ortc/internal/types.h>
 #include <ortc/internal/platform.h>
+#include <ortc/internal/ortc_Helper.h>
 
 #include <ortc/IConstraints.h>
 
 #include <openpeer/services/IHelper.h>
 
+#include <zsLib/Numeric.h>
 #include <zsLib/Stringize.h>
 #include <zsLib/Log.h>
 #include <zsLib/XML.h>
@@ -53,6 +55,11 @@ namespace ortc
 
   typedef openpeer::services::Hasher<CryptoPP::SHA1> SHA1Hasher;
 
+  ZS_DECLARE_TYPEDEF_PTR(ortc::internal::Helper, UseHelper)
+
+  using zsLib::Numeric;
+  using zsLib::Log;
+
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
@@ -62,6 +69,11 @@ namespace ortc
   #pragma mark
 
 
+  //-----------------------------------------------------------------------
+  static Log::Params slog(const char *message)
+  {
+    return Log::Params(message, "ortc::IConstraints");
+  }
 
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
@@ -70,6 +82,28 @@ namespace ortc
   #pragma mark
   #pragma mark IConstraints::ConstrainBoolParameters
   #pragma mark
+
+
+  //---------------------------------------------------------------------------
+  IConstraints::ConstrainBoolParameters::ConstrainBoolParameters(ElementPtr elem)
+  {
+    if (!elem) return;
+
+    UseHelper::getElementValue(elem, "ortc::IConstraints::ConstrainBoolParameters", "exact", mExact);
+    UseHelper::getElementValue(elem, "ortc::IConstraints::ConstrainBoolParameters", "ideal", mIdeal);
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IConstraints::ConstrainBoolParameters::createElement(const char *objectName) const
+  {
+    ElementPtr elem = Element::create(objectName);
+
+    UseHelper::adoptElementValue(elem, "exact", mExact);
+    UseHelper::adoptElementValue(elem, "ideal", mIdeal);
+
+    if (!elem->hasChildren()) return ElementPtr();
+    return elem;
+  }
 
   //---------------------------------------------------------------------------
   ElementPtr IConstraints::ConstrainBoolParameters::toDebug() const
@@ -105,7 +139,40 @@ namespace ortc
   #pragma mark IConstraints::ConstrainBool
   #pragma mark
 
+  //---------------------------------------------------------------------------
+  IConstraints::ConstrainBool::ConstrainBool(ElementPtr elem)
+  {
+    if (!elem) return;
 
+    if (elem->getFirstChildElement()) {
+      // treat as params...
+      mParameters = ConstrainBoolParameters(elem);
+      return;
+    }
+
+    {
+      String str = UseServicesHelper::getElementText(elem);
+      if (str.hasData()) {
+        try {
+          mValue = Numeric<decltype(mValue.mType)>(str);
+        } catch(Numeric<decltype(mValue.mType)>::ValueOutOfRange &) {
+          ZS_LOG_WARNING(Debug, slog("value out of range") + ZS_PARAM("value", str))
+        }
+      }
+    }
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IConstraints::ConstrainBool::createElement(const char *objectName) const
+  {
+    if (mParameters.hasValue()) {
+      return mParameters.value().createElement(objectName);
+    }
+
+    if (!mValue.hasValue()) return ElementPtr();
+    return UseServicesHelper::createElementWithNumber(objectName, string(mValue.value()));
+  }
+  
   //---------------------------------------------------------------------------
   ElementPtr IConstraints::ConstrainBool::toDebug() const
   {
@@ -141,6 +208,31 @@ namespace ortc
   #pragma mark IConstraints::ConstrainLongRange
   #pragma mark
 
+  //---------------------------------------------------------------------------
+  IConstraints::ConstrainLongRange::ConstrainLongRange(ElementPtr elem)
+  {
+    if (!elem) return;
+
+    UseHelper::getElementValue(elem, "ortc::IConstraints::ConstrainLongRange", "min", mMin);
+    UseHelper::getElementValue(elem, "ortc::IConstraints::ConstrainLongRange", "max", mMax);
+    UseHelper::getElementValue(elem, "ortc::IConstraints::ConstrainLongRange", "exact", mExact);
+    UseHelper::getElementValue(elem, "ortc::IConstraints::ConstrainLongRange", "ideal", mIdeal);
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IConstraints::ConstrainLongRange::createElement(const char *objectName) const
+  {
+    ElementPtr elem = Element::create(objectName);
+
+    UseHelper::adoptElementValue(elem, "min", mMin);
+    UseHelper::adoptElementValue(elem, "max", mMax);
+    UseHelper::adoptElementValue(elem, "exact", mExact);
+    UseHelper::adoptElementValue(elem, "ideal", mIdeal);
+
+    if (!elem->hasChildren()) return ElementPtr();
+    return elem;
+  }
+  
   //---------------------------------------------------------------------------
   ElementPtr IConstraints::ConstrainLongRange::toDebug() const
   {
@@ -182,6 +274,40 @@ namespace ortc
   #pragma mark
 
   //---------------------------------------------------------------------------
+  IConstraints::ConstrainLong::ConstrainLong(ElementPtr elem)
+  {
+    if (!elem) return;
+
+    if (elem->getFirstChildElement()) {
+      // treat as range...
+      mRange = ConstrainLongRange(elem);
+      return;
+    }
+
+    {
+      String str = UseServicesHelper::getElementText(elem);
+      if (str.hasData()) {
+        try {
+          mValue = Numeric<decltype(mValue.mType)>(str);
+        } catch(Numeric<decltype(mValue.mType)>::ValueOutOfRange &) {
+          ZS_LOG_WARNING(Debug, slog("value out of range") + ZS_PARAM("value", str))
+        }
+      }
+    }
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IConstraints::ConstrainLong::createElement(const char *objectName) const
+  {
+    if (mRange.hasValue()) {
+      return mRange.value().createElement(objectName);
+    }
+
+    if (!mValue.hasValue()) return ElementPtr();
+    return UseServicesHelper::createElementWithNumber(objectName, string(mValue.value()));
+  }
+
+  //---------------------------------------------------------------------------
   ElementPtr IConstraints::ConstrainLong::toDebug() const
   {
     ElementPtr resultEl = Element::create("ortc::IConstraints::ConstrainLong");
@@ -215,6 +341,32 @@ namespace ortc
   #pragma mark
   #pragma mark IConstraints::ConstrainDoubleRange
   #pragma mark
+
+
+  //---------------------------------------------------------------------------
+  IConstraints::ConstrainDoubleRange::ConstrainDoubleRange(ElementPtr elem)
+  {
+    if (!elem) return;
+
+    UseHelper::getElementValue(elem, "ortc::IConstraints::ConstrainDoubleRange", "min", mMin);
+    UseHelper::getElementValue(elem, "ortc::IConstraints::ConstrainDoubleRange", "max", mMax);
+    UseHelper::getElementValue(elem, "ortc::IConstraints::ConstrainDoubleRange", "exact", mExact);
+    UseHelper::getElementValue(elem, "ortc::IConstraints::ConstrainDoubleRange", "ideal", mIdeal);
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IConstraints::ConstrainDoubleRange::createElement(const char *objectName) const
+  {
+    ElementPtr elem = Element::create(objectName);
+
+    UseHelper::adoptElementValue(elem, "min", mMin);
+    UseHelper::adoptElementValue(elem, "max", mMax);
+    UseHelper::adoptElementValue(elem, "exact", mExact);
+    UseHelper::adoptElementValue(elem, "ideal", mIdeal);
+
+    if (!elem->hasChildren()) return ElementPtr();
+    return elem;
+  }
 
   //---------------------------------------------------------------------------
   ElementPtr IConstraints::ConstrainDoubleRange::toDebug() const
@@ -257,6 +409,40 @@ namespace ortc
   #pragma mark
 
   //---------------------------------------------------------------------------
+  IConstraints::ConstrainDouble::ConstrainDouble(ElementPtr elem)
+  {
+    if (!elem) return;
+
+    if (elem->getFirstChildElement()) {
+      // treat as range...
+      mRange = ConstrainDoubleRange(elem);
+      return;
+    }
+
+    {
+      String str = UseServicesHelper::getElementText(elem);
+      if (str.hasData()) {
+        try {
+          mValue = Numeric<decltype(mValue.mType)>(str);
+        } catch(Numeric<decltype(mValue.mType)>::ValueOutOfRange &) {
+          ZS_LOG_WARNING(Debug, slog("value out of range") + ZS_PARAM("value", str))
+        }
+      }
+    }
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IConstraints::ConstrainDouble::createElement(const char *objectName) const
+  {
+    if (mRange.hasValue()) {
+      return mRange.value().createElement(objectName);
+    }
+
+    if (!mValue.hasValue()) return ElementPtr();
+    return UseServicesHelper::createElementWithNumber(objectName, string(mValue.value()));
+  }
+
+  //---------------------------------------------------------------------------
   ElementPtr IConstraints::ConstrainDouble::toDebug() const
   {
     ElementPtr resultEl = Element::create("ortc::IConstraints::ConstrainDouble");
@@ -290,6 +476,63 @@ namespace ortc
   #pragma mark IConstraints::StringOrStringList
   #pragma mark
 
+  //---------------------------------------------------------------------------
+  IConstraints::StringOrStringList::StringOrStringList(
+                                                       ElementPtr elem,
+                                                       const char *objectValueName
+                                                       )
+  {
+    if (!elem) return;
+
+    if (elem->getFirstChildElement()) {      
+      // treat as list...
+      ElementPtr subEl = elem->findFirstChildElement(objectValueName);
+      while (subEl) {
+        String str = UseServicesHelper::getElementTextAndDecode(subEl);
+
+        if (str.hasData()) {
+          if (!mValues.hasValue()) {
+            mValues = StringList();
+          }
+
+          mValues.value().push_back(str);
+        }
+
+        subEl = subEl->findNextSiblingElement(objectValueName);
+      }
+      return;
+    }
+
+    {
+      String str = UseServicesHelper::getElementTextAndDecode(elem);
+      if (str.hasData()) {
+        mValue = str;
+      }
+    }
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IConstraints::StringOrStringList::createElement(
+                                                             const char *objectName,
+                                                             const char *objectValueName
+                                                             ) const
+  {
+    if (mValues.hasValue()) {
+      ElementPtr outerEl = Element::create(objectName);
+
+      for (auto iter = mValues.value().begin(); iter != mValues.value().end(); ++iter) {
+        auto value = (*iter);
+        outerEl->adoptAsLastChild(UseServicesHelper::createElementWithTextAndJSONEncode(objectValueName, value));
+      }
+
+      if (outerEl->hasChildren()) return ElementPtr();
+      return outerEl;
+    }
+
+    if (!mValue.hasValue()) return ElementPtr();
+    return UseServicesHelper::createElementWithNumber(objectName, mValue.value());
+  }
+  
   //---------------------------------------------------------------------------
   ElementPtr IConstraints::StringOrStringList::toDebug() const
   {
@@ -340,6 +583,37 @@ namespace ortc
   #pragma mark
 
   //---------------------------------------------------------------------------
+  IConstraints::ConstrainStringParameters::ConstrainStringParameters(ElementPtr elem)
+  {
+    if (!elem) return;
+
+    ElementPtr exactEl = elem->findFirstChildElement("exact");
+    if (exactEl) {
+      mExact = StringOrStringList(exactEl);
+    }
+
+    ElementPtr idealEl = elem->findFirstChildElement("ideal");
+    if (idealEl) {
+      mIdeal = StringOrStringList(idealEl);
+    }
+  }
+  
+  //---------------------------------------------------------------------------
+  ElementPtr IConstraints::ConstrainStringParameters::createElement(const char *objectName) const
+  {
+    ElementPtr elem = Element::create(objectName);
+
+    if (mExact.hasValue()) {
+      elem->adoptAsLastChild(mExact.value().createElement("exact"));
+    }
+    if (mIdeal.hasValue()) {
+      elem->adoptAsLastChild(mExact.value().createElement("ideal"));
+    }
+    if (!elem->hasChildren()) return ElementPtr();
+    return elem;
+  }
+
+  //---------------------------------------------------------------------------
   ElementPtr IConstraints::ConstrainStringParameters::toDebug() const
   {
     ElementPtr resultEl = Element::create("ortc::IConstraints::ConstrainStringParameters");
@@ -373,6 +647,44 @@ namespace ortc
   #pragma mark IConstraints::ConstraintString
   #pragma mark
 
+  //---------------------------------------------------------------------------
+  IConstraints::ConstrainString::ConstrainString(
+                                                 ElementPtr elem,
+                                                 const char *objectValueName
+                                                 )
+  {
+    if (!elem) return;
+
+    ElementPtr exactEl = elem->findFirstChildElement("exact");
+    ElementPtr idealEl = elem->findFirstChildElement("ideal");
+
+    if ((exactEl) || (idealEl)) {
+      mParameters = ConstrainStringParameters(elem);
+      return;
+    }
+
+    StringOrStringList value(elem, objectValueName);
+    if ((value.mValue.hasValue()) ||
+        (value.mValues.hasValue())) {
+      mValue = value;
+    }
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IConstraints::ConstrainString::createElement(
+                                                          const char *objectName,
+                                                          const char *objectValueName
+                                                          ) const
+  {
+    ElementPtr elem = Element::create(objectName);
+
+    if (mParameters.hasValue()) {
+      return mParameters.value().createElement(objectName);
+    }
+
+    if (!mValue.hasValue()) return ElementPtr();
+    return mValue.value().createElement(objectName, objectValueName);
+  }
 
   //---------------------------------------------------------------------------
   ElementPtr IConstraints::ConstrainString::toDebug() const

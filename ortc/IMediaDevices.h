@@ -68,6 +68,7 @@ namespace ortc
     };
 
     static const char *toString(DeviceKinds kind);
+    static DeviceKinds toDeviceKind(const char *deviceKindStr);
     static Kinds toKind(DeviceKinds kind);
 
     static bool isAudio(DeviceKinds kind);
@@ -88,6 +89,12 @@ namespace ortc
       bool mDeviceID {false};
       bool mGroupID {false};
 
+      SupportedConstraints() {}
+      SupportedConstraints(const SupportedConstraints &op2) {(*this) = op2;}
+      SupportedConstraints(ElementPtr elem);
+
+      ElementPtr createElement(const char *objectName) const;
+
       ElementPtr toDebug() const;
       String hash() const;
     };
@@ -105,6 +112,12 @@ namespace ortc
       String mGroupID;
 
       SupportedConstraints mSupportedConstraints;
+
+      Device() {}
+      Device(const Device &op2) {(*this) = op2;}
+      Device(ElementPtr elem);
+
+      ElementPtr createElement(const char *objectName = "device") const;
 
       ElementPtr toDebug() const;
       String hash() const;
@@ -133,6 +146,12 @@ namespace ortc
                         public Any
     {
       static DeviceListPtr convert(AnyPtr any);
+
+      DeviceList() {}
+      DeviceList(const DeviceList &op2) {(*this) = op2;}
+      DeviceList(ElementPtr elem);
+
+      ElementPtr createElement(const char *objectName = "devices") const;
 
       ElementPtr toDebug() const;
       String hash() const;

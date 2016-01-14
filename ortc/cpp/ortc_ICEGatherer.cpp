@@ -30,6 +30,7 @@
  */
 #include <ortc/internal/ortc_ICEGatherer.h>
 #include <ortc/internal/ortc_ICETransport.h>
+#include <ortc/internal/ortc_Helper.h>
 #include <ortc/internal/ortc_ORTC.h>
 #include <ortc/internal/platform.h>
 
@@ -96,7 +97,10 @@ namespace ortc
   ZS_DECLARE_TYPEDEF_PTR(openpeer::services::ISettings, UseSettings)
   ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IBackOffTimerPattern, UseBackOffTimerPattern)
 
+  ZS_DECLARE_TYPEDEF_PTR(ortc::internal::Helper, UseHelper)
+
   using zsLib::Numeric;
+  using zsLib::Log;
   typedef openpeer::services::Hasher<CryptoPP::SHA1> SHA1Hasher;
 
   ZS_DECLARE_USING_PROXY(zsLib, ISocketDelegate)
@@ -4618,8 +4622,16 @@ namespace ortc
         case IICETypes::CandidateType_Host:   {
           if (ip.isIPv4()) {
             if (0 != (FilterPolicy_NoIPv4Host & policy)) return true;
+
+            if (0 != (FilterPolicy_NoIPv4Private & policy)) {
+              if (ip.isPrivate()) return true;
+            }
           } else {
             if (0 != (FilterPolicy_NoIPv6Host & policy)) return true;
+
+            if (0 != (FilterPolicy_NoIPv6Private & policy)) {
+              if (ip.isPrivate()) return true;
+            }
           }
           break;
         }
@@ -5902,7 +5914,7 @@ namespace ortc
                                               )
     {
       FilterPolicies defaultPolicy = FilterPolicy_None;
-      for (auto iter = options.mInterfacePolicy.begin(); iter != options.mInterfacePolicy.end(); ++iter) {
+      for (auto iter = options.mInterfacePolicies.begin(); iter != options.mInterfacePolicies.end(); ++iter) {
         auto interfacePolicy = (*iter);
         InterfaceTypes interfaceType = toInterfaceType(interfacePolicy.mInterfaceType);
         if (InterfaceType_Unknown == interfaceType) {
@@ -6451,6 +6463,20 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   #pragma mark
+  #pragma mark (helpers)
+  #pragma mark
+
+  //-----------------------------------------------------------------------
+  static Log::Params slog(const char *message)
+  {
+    return Log::Params(message, "ortc::IICEGathererTypes");
+  }
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
   #pragma mark IICEGathererTypes::States
   #pragma mark
 
@@ -6507,11 +6533,13 @@ namespace ortc
           {IICEGathererTypes::FilterPolicy_NoIPv4Srflx,      "NoIPv4Srflx"},
           {IICEGathererTypes::FilterPolicy_NoIPv4Prflx,      "NoIPv4Prflx"},
           {IICEGathererTypes::FilterPolicy_NoIPv4Relay,      "NoIPv4Relay"},
+          {IICEGathererTypes::FilterPolicy_NoIPv4Private,    "NoIPv4Private"},
           {IICEGathererTypes::FilterPolicy_NoIPv4,           "NoIPv4"},
           {IICEGathererTypes::FilterPolicy_NoIPv6Host,       "NoIPv6Host"},
           {IICEGathererTypes::FilterPolicy_NoIPv6Srflx,      "NoIPv6Srflx"},
           {IICEGathererTypes::FilterPolicy_NoIPv6Prflx,      "NoIPv6Prflx"},
           {IICEGathererTypes::FilterPolicy_NoIPv6Relay,      "NoIPv6Relay"},
+          {IICEGathererTypes::FilterPolicy_NoIPv6Private,    "NoIPv6Private"},
           {IICEGathererTypes::FilterPolicy_NoIPv6Tunnel,     "NoIPv6Tunnel"},
           {IICEGathererTypes::FilterPolicy_NoIPv6Permanent,  "NoIPv6Permanent"},
           {IICEGathererTypes::FilterPolicy_NoIPv6,           "NoIPv6"},
@@ -6519,6 +6547,7 @@ namespace ortc
           {IICEGathererTypes::FilterPolicy_NoSrflx,          "NoSrflx"},
           {IICEGathererTypes::FilterPolicy_NoPrflx,          "NoPrflx"},
           {IICEGathererTypes::FilterPolicy_NoRelay,          "NoRelay"},
+          {IICEGathererTypes::FilterPolicy_NoPrivate,        "NoPrivate"},
           {IICEGathererTypes::FilterPolicy_RelayOnly,        "RelayOnly"},
           {IICEGathererTypes::FilterPolicy_NoCandidates,     "NoCandidates"},
           {IICEGathererTypes::FilterPolicy_None,             NULL}
@@ -6596,6 +6625,46 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IICEGathererTypes::InterfacePolicy
+  #pragma mark
+
+  //---------------------------------------------------------------------------
+  IICEGathererTypes::InterfacePolicy::InterfacePolicy(ElementPtr elem)
+  {
+    if (!elem) return;
+
+    UseHelper::getElementValue(elem, "ortc::IICEGathererTypes::InterfacePolicy", "interfaceType", mInterfaceType);
+
+    {
+      String str = UseServicesHelper::getElementText(elem->findFirstChildElement("gatherPolicy"));
+      if (str.hasData()) {
+        try {
+          mGatherPolicy = toPolicy(str);
+        } catch(const InvalidParameters &) {
+          ZS_LOG_WARNING(Debug, slog("gather policy not valid") + ZS_PARAM("value", str))
+        }
+      }
+    }
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IICEGathererTypes::InterfacePolicy::createElement(const char *objectName) const
+  {
+    ElementPtr elem = Element::create(objectName);
+
+    UseHelper::adoptElementValue(elem, "interfaceType", mInterfaceType, false);
+    UseHelper::adoptElementValue(elem, "gatherPolicy", IICEGathererTypes::toString(mGatherPolicy), false);
+
+    if (!elem->hasChildren()) return ElementPtr();
+    
+    return elem;
+  }
+
+  //---------------------------------------------------------------------------
   ElementPtr IICEGathererTypes::InterfacePolicy::toDebug() const
   {
     ElementPtr resultEl = Element::create("ortc::IICEGathererTypes::InterfacePolicy");
@@ -6656,6 +6725,95 @@ namespace ortc
   #pragma mark
 
   //---------------------------------------------------------------------------
+  IICEGathererTypes::Options::Options(ElementPtr elem)
+  {
+    if (!elem) return;
+
+    {
+      String str = UseServicesHelper::getElementText(elem->findFirstChildElement("continuousGathering"));
+      if (str.hasData()) {
+        try {
+          mContinuousGathering = Numeric<decltype(mContinuousGathering)>(str);
+        } catch(Numeric<decltype(mContinuousGathering)>::ValueOutOfRange &) {
+          ZS_LOG_WARNING(Debug, slog("continuous gathering value out of range") + ZS_PARAM("value", str))
+        }
+      }
+    }
+
+    ElementPtr interfacePoliciesEl = elem->findFirstChildElement("interfacePolicies");
+
+    if (interfacePoliciesEl) {
+      ElementPtr interfacePolicyEl = interfacePoliciesEl->findFirstChildElement("interfacePolicy");
+      while (interfacePolicyEl) {
+        InterfacePolicy policy(interfacePolicyEl);
+        mInterfacePolicies.push_back(policy);
+        interfacePolicyEl = interfacePolicyEl->findNextSiblingElement("interfacePolicy");
+      }
+    } else {
+      String gatherPolicy = UseServicesHelper::getElementText(elem->findFirstChildElement("gatherPolicy"));
+      if (gatherPolicy.hasData()) {
+        InterfacePolicy policy;
+        if ("all" == gatherPolicy) {
+          policy.mGatherPolicy = FilterPolicy_None;
+        } else if ("nohost" == gatherPolicy) {
+          policy.mGatherPolicy = FilterPolicy_NoHost;
+        } else if ("relay" == gatherPolicy) {
+          policy.mGatherPolicy = FilterPolicy_RelayOnly;
+        } else if ("public" == gatherPolicy) {
+          policy.mGatherPolicy = FilterPolicy_NoPrivate;
+        }
+        mInterfacePolicies.push_back(policy);
+      }
+    }
+
+    ElementPtr serversEl = elem->findFirstChildElement("iceServers");
+
+    if (serversEl) {
+      ElementPtr serverEl = interfacePoliciesEl->findFirstChildElement("iceServer");
+      while (serverEl) {
+        Server server(serverEl);
+        mICEServers.push_back(server);
+        serverEl = serverEl->findNextSiblingElement("iceServer");
+      }
+    }
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IICEGathererTypes::Options::createElement(const char *objectName) const
+  {
+    ElementPtr elem = Element::create(objectName);
+
+    elem->adoptAsLastChild(UseServicesHelper::createElementWithNumber("continuousGathering",  string(mContinuousGathering)));
+
+    if (mInterfacePolicies.size() > 0) {
+      ElementPtr interfacePoliciesEl = Element::create("interfacePolicies");
+
+      for (auto iter = mInterfacePolicies.begin(); iter != mInterfacePolicies.end(); ++iter)
+      {
+        auto &policy = (*iter);
+
+        interfacePoliciesEl->adoptAsLastChild(policy.createElement());
+      }
+      elem->adoptAsLastChild(interfacePoliciesEl);
+    }
+    if (mICEServers.size() > 0) {
+      ElementPtr iceServersEl = Element::create("iceServers");
+
+      for (auto iter = mICEServers.begin(); iter != mICEServers.end(); ++iter)
+      {
+        auto &server = (*iter);
+
+        iceServersEl->adoptAsLastChild(server.createElement());
+      }
+      elem->adoptAsLastChild(iceServersEl);
+    }
+
+    if (!elem->hasChildren()) return ElementPtr();
+    
+    return elem;
+  }
+
+  //---------------------------------------------------------------------------
   ElementPtr IICEGathererTypes::Options::toDebug() const
   {
     ElementPtr resultEl = Element::create("ortc::IICEGathererTypes::Options");
@@ -6681,7 +6839,7 @@ namespace ortc
     SHA1Hasher hasher;
 
     hasher.update(mContinuousGathering ? "Options:true:policy:" : "Options:false:policy:");
-    for (auto iter = mInterfacePolicy.begin(); iter != mInterfacePolicy.end(); ++iter) {
+    for (auto iter = mInterfacePolicies.begin(); iter != mInterfacePolicies.end(); ++iter) {
       auto policy = (*iter);
       hasher.update(policy.hash());
       hasher.update(":");
@@ -6704,6 +6862,75 @@ namespace ortc
   #pragma mark IICEGathererTypes::Server
   #pragma mark
 
+  //---------------------------------------------------------------------------
+  IICEGathererTypes::Server::Server(ElementPtr elem)
+  {
+    if (!elem) return;
+
+    ElementPtr urlsEl = elem->findFirstChildElement("urls");
+
+    if (urlsEl) {
+      ElementPtr urlEl = urlsEl->findFirstChildElement("url");
+      if (urlEl) {
+        while (urlEl) {
+          mURLs.push_back(UseServicesHelper::getElementTextAndDecode(urlEl));
+          urlEl = urlEl->findNextSiblingElement("iceServer");
+        }
+      } else {
+        mURLs.push_back(UseServicesHelper::getElementTextAndDecode(urlsEl));
+      }
+    }
+
+    mUserName = UseServicesHelper::getElementTextAndDecode(elem->findFirstChildElement("username"));
+    mCredential = UseServicesHelper::getElementTextAndDecode(elem->findFirstChildElement("credential"));
+
+    {
+      String str = UseServicesHelper::getElementText(elem->findFirstChildElement("credentialType"));
+      if (str.hasData()) {
+        try {
+          mCredentialType = IICEGathererTypes::toCredentialType(str);
+        } catch(const InvalidParameters &) {
+          ZS_LOG_WARNING(Debug, slog("credential type is invalid") + ZS_PARAM("value", str))
+        }
+      }
+    }
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IICEGathererTypes::Server::createElement(const char *objectName) const
+  {
+    ElementPtr elem = Element::create(objectName);
+
+    if (mURLs.size() > 0) {
+      if (mURLs.size() > 1) {
+        ElementPtr urlsEl = Element::create("urls");
+
+        for (auto iter = mURLs.begin(); iter != mURLs.end(); ++iter) {
+          auto url = (*iter);
+          urlsEl->adoptAsLastChild(UseServicesHelper::createElementWithTextAndJSONEncode("url", url));
+        }
+
+        elem->adoptAsLastChild(urlsEl);
+      } else {
+        auto url = mURLs.front();
+        elem->adoptAsLastChild(UseServicesHelper::createElementWithTextAndJSONEncode("urls",  url));
+      }
+    }
+
+    if (mUserName.hasData()) {
+      elem->adoptAsLastChild(UseServicesHelper::createElementWithTextAndJSONEncode("username",  mUserName));
+    }
+    if (mCredential.hasData()) {
+      elem->adoptAsLastChild(UseServicesHelper::createElementWithTextAndJSONEncode("credential",  mCredential));
+    }
+
+    elem->adoptAsLastChild(UseServicesHelper::createElementWithText("credentialType", toString(mCredentialType)));
+
+    if (!elem->hasChildren()) return ElementPtr();
+    
+    return elem;
+  }
+  
   //---------------------------------------------------------------------------
   ElementPtr IICEGathererTypes::Server::toDebug() const
   {

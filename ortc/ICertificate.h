@@ -67,6 +67,12 @@ namespace ortc
       String mAlgorithm;
       String mValue;
 
+      Fingerprint() {}
+      Fingerprint(const Fingerprint &op2) {(*this) = op2;}
+      Fingerprint(ElementPtr elem);
+
+      ElementPtr createElement(const char *objectName = "fingerprint") const;
+
       ElementPtr toDebug() const;
       String hash() const;
     };

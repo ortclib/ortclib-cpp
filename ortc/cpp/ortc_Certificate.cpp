@@ -30,6 +30,7 @@
  */
 
 #include <ortc/internal/ortc_Certificate.h>
+#include <ortc/internal/ortc_Helper.h>
 #include <ortc/internal/ortc_ORTC.h>
 #include <ortc/internal/platform.h>
 
@@ -57,6 +58,8 @@ namespace ortc
   ZS_DECLARE_TYPEDEF_PTR(openpeer::services::ISettings, UseSettings)
   ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHelper, UseServicesHelper)
   ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHTTP, UseHTTP)
+
+  ZS_DECLARE_TYPEDEF_PTR(ortc::internal::Helper, UseHelper)
 
   typedef openpeer::services::Hasher<CryptoPP::SHA1> SHA1Hasher;
 
@@ -748,6 +751,27 @@ namespace ortc
   #pragma mark
   #pragma mark ICertificateTypes::Fingerprint
   #pragma mark
+
+  //---------------------------------------------------------------------------
+  ICertificateTypes::Fingerprint::Fingerprint(ElementPtr elem)
+  {
+    if (!elem) return;
+
+    UseHelper::getElementValue(elem, "ortc::ICertificateTypes::Fingerprint", "algorithm", mAlgorithm);
+    UseHelper::getElementValue(elem, "ortc::ICertificateTypes::Fingerprint", "value", mValue);
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr ICertificateTypes::Fingerprint::createElement(const char *objectName) const
+  {
+    ElementPtr elem = Element::create(objectName);
+
+    UseHelper::adoptElementValue(elem, "algorithm", mAlgorithm, false);
+    UseHelper::adoptElementValue(elem, "value", mValue, false);
+
+    if (!elem->hasChildren()) return ElementPtr();
+    return elem;
+  }
 
   //---------------------------------------------------------------------------
   ElementPtr ICertificateTypes::Fingerprint::toDebug() const

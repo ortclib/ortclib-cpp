@@ -108,6 +108,12 @@ namespace ortc
       Roles mRole {Role_Auto};
       FingerprintList mFingerprints;
 
+      Parameters() {}
+      Parameters(const Parameters &op2) {(*this) = op2;}
+      Parameters(ElementPtr elem);
+
+      ElementPtr createElement(const char *objectName) const;
+
       static ParametersPtr convert(AnyPtr any);
       ElementPtr toDebug() const;
       String hash() const;

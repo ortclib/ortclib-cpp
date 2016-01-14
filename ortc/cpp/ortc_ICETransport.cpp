@@ -33,6 +33,7 @@
 #include <ortc/internal/ortc_ICEGatherer.h>
 #include <ortc/internal/ortc_DTLSTransport.h>
 #include <ortc/internal/ortc_ICETransportController.h>
+#include <ortc/internal/ortc_Helper.h>
 #include <ortc/internal/ortc_ORTC.h>
 #include <ortc/internal/platform.h>
 
@@ -40,9 +41,10 @@
 #include <openpeer/services/IHTTP.h>
 #include <openpeer/services/ISettings.h>
 
-#include <zsLib/XML.h>
-#include <zsLib/Stringize.h>
 #include <zsLib/Log.h>
+#include <zsLib/Numeric.h>
+#include <zsLib/Stringize.h>
+#include <zsLib/XML.h>
 
 #include <cryptopp/sha.h>
 
@@ -54,7 +56,12 @@ namespace ortc
   ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHTTP, UseHTTP)
   ZS_DECLARE_TYPEDEF_PTR(openpeer::services::ISettings, UseSettings)
 
+  ZS_DECLARE_TYPEDEF_PTR(ortc::internal::Helper, UseHelper)
+
   typedef openpeer::services::Hasher<CryptoPP::SHA1> SHA1Hasher;
+
+  using zsLib::Numeric;
+  using zsLib::Log;
 
   namespace internal
   {
@@ -4477,6 +4484,20 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   #pragma mark
+  #pragma mark (helpers)
+  #pragma mark
+
+  //-----------------------------------------------------------------------
+  static Log::Params slog(const char *message)
+  {
+    return Log::Params(message, "ortc::IICETransportTypes");
+  }
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
   #pragma mark IICETransportTypes::States
   #pragma mark
 
@@ -4514,8 +4535,49 @@ namespace ortc
   #pragma mark IICETransportTypes::CandidatePair
   #pragma mark
 
+
   //---------------------------------------------------------------------------
-  ElementPtr IICETransport::CandidatePair::toDebug() const
+  IICETransportTypes::CandidatePair::CandidatePair(ElementPtr elem)
+  {
+    if (!elem) return;
+
+//    CandidatePtr mLocal;
+//    CandidatePtr mRemote;
+
+    {
+      ElementPtr local = elem->findFirstChildElement("local");
+      if (local) {
+        mLocal = make_shared<Candidate>(local);
+      }
+    }
+
+    {
+      ElementPtr remote = elem->findFirstChildElement("local");
+      if (remote) {
+        mRemote = make_shared<Candidate>(remote);
+      }
+    }
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IICETransportTypes::CandidatePair::createElement(const char *objectName) const
+  {
+    ElementPtr elem = Element::create(objectName);
+
+    if (mLocal) {
+      elem->adoptAsLastChild(mLocal->createElement("local"));
+    }
+    if (mRemote) {
+      elem->adoptAsLastChild(mRemote->createElement("remote"));
+    }
+
+    if (!elem->hasChildren()) return ElementPtr();
+    
+    return elem;
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IICETransportTypes::CandidatePair::toDebug() const
   {
     ElementPtr resultEl = Element::create("ortc::IICETransport::CandidatePair");
 
@@ -4526,7 +4588,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  String IICETransport::CandidatePair::hash(bool includePriorities) const
+  String IICETransportTypes::CandidatePair::hash(bool includePriorities) const
   {
     SHA1Hasher hasher;
 
@@ -4550,8 +4612,41 @@ namespace ortc
   #pragma mark IICETransportTypes::Options
   #pragma mark
 
+
   //---------------------------------------------------------------------------
-  ElementPtr IICETransport::Options::toDebug() const
+  IICETransportTypes::Options::Options(ElementPtr elem)
+  {
+    if (!elem) return;
+
+    UseHelper::getElementValue(elem, "ortc::IICETransportTypes::Options", "aggressiveIce", mAggressiveICE);
+
+    {
+      String str = UseServicesHelper::getElementText(elem->findFirstChildElement("role"));
+      if (str.hasData()) {
+        try {
+          mRole = toRole(str);
+        } catch(const InvalidParameters &) {
+          ZS_LOG_WARNING(Debug, slog("role not valid") + ZS_PARAM("value", str))
+        }
+      }
+    }
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IICETransportTypes::Options::createElement(const char *objectName) const
+  {
+    ElementPtr elem = Element::create(objectName);
+
+    UseHelper::adoptElementValue(elem, "aggressiveIce", mAggressiveICE);
+    UseHelper::adoptElementValue(elem, "role", IICETypes::toString(mRole), false);
+
+    if (!elem->hasChildren()) return ElementPtr();
+    
+    return elem;
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IICETransportTypes::Options::toDebug() const
   {
     ElementPtr resultEl = Element::create("ortc::IICETransport::Options");
 
@@ -4562,7 +4657,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  String IICETransport::Options::hash() const
+  String IICETransportTypes::Options::hash() const
   {
     SHA1Hasher hasher;
 

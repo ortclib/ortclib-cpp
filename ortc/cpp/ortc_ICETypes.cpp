@@ -32,16 +32,13 @@
 #include <ortc/IICETypes.h>
 #include <ortc/internal/types.h>
 #include <ortc/internal/platform.h>
+#include <ortc/internal/ortc_Helper.h>
 
 #include <openpeer/services/IHelper.h>
-//#include <openpeer/services/IHTTP.h>
-//#include <openpeer/services/ISettings.h>
-//
+
 #include <zsLib/XML.h>
-//#include <zsLib/Numeric.h>
-//
-//#include <regex>
-//
+#include <zsLib/Numeric.h>
+
 #include <cryptopp/sha.h>
 
 
@@ -54,8 +51,20 @@ namespace ortc
 //  ZS_DECLARE_TYPEDEF_PTR(openpeer::services::ISettings, UseSettings)
 //
 //  using zsLib::Numeric;
+
+  ZS_DECLARE_TYPEDEF_PTR(ortc::internal::Helper, UseHelper)
+
   typedef openpeer::services::Hasher<CryptoPP::SHA1> SHA1Hasher;
 
+  using zsLib::Numeric;
+  using zsLib::Log;
+
+
+  //-----------------------------------------------------------------------
+  static Log::Params slog(const char *message)
+  {
+    return Log::Params(message, "ortc::IICETypes");
+  }
 
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
@@ -215,8 +224,113 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   #pragma mark
+  #pragma mark IICETypes::GatherCandidate
+  #pragma mark
+
+  //---------------------------------------------------------------------------
+  IICETypes::GatherCandidatePtr IICETypes::GatherCandidate::create(ElementPtr elem)
+  {
+    if (!elem) return GatherCandidatePtr();
+
+    ElementPtr childEl = elem->getFirstChildElement();
+    ElementPtr completeEl = elem->findFirstChildElement("complete");
+    if ((completeEl) ||
+        (!childEl)) {
+      CandidateCompletePtr pThis(make_shared<CandidateComplete>(elem));
+      return pThis;
+    }
+
+    CandidatePtr pThis(make_shared<Candidate>(elem));
+    return pThis;
+  }
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
   #pragma mark IICETypes::Candidate
   #pragma mark
+
+  //---------------------------------------------------------------------------
+  IICETypes::CandidatePtr IICETypes::Candidate::convert(GatherCandidatePtr candidate)
+  {
+    return ZS_DYNAMIC_PTR_CAST(Candidate, candidate);
+  }
+
+  //---------------------------------------------------------------------------
+  IICETypes::Candidate::Candidate(ElementPtr elem)
+  {
+    if (!elem) return;
+
+    UseHelper::getElementValue(elem, "ortc::IICETypes::Candidate", "interfaceType", mInterfaceType);
+    UseHelper::getElementValue(elem, "ortc::IICETypes::Candidate", "foundation", mFoundation);
+    UseHelper::getElementValue(elem, "ortc::IICETypes::Candidate", "priority", mPriority);
+    UseHelper::getElementValue(elem, "ortc::IICETypes::Candidate", "unfreezePriority", mUnfreezePriority);
+
+
+    {
+      String str = UseServicesHelper::getElementText(elem->findFirstChildElement("protocol"));
+      if (str.hasData()) {
+        try {
+          mProtocol = IICETypes::toProtocol(str);
+        } catch(const InvalidParameters &) {
+          ZS_LOG_WARNING(Debug, slog("protocol value invalid") + ZS_PARAM("value", str))
+        }
+      }
+    }
+
+    UseHelper::getElementValue(elem, "ortc::IICETypes::Candidate", "ip", mIP);
+    UseHelper::getElementValue(elem, "ortc::IICETypes::Candidate", "port", mPort);
+
+    {
+      String str = UseServicesHelper::getElementText(elem->findFirstChildElement("type"));
+      if (str.hasData()) {
+        try {
+          mCandidateType = IICETypes::toCandidateType(str);
+        } catch(const InvalidParameters &) {
+          ZS_LOG_WARNING(Debug, slog("candidate type value invalid") + ZS_PARAM("value", str))
+        }
+      }
+    }
+
+    {
+      String str = UseServicesHelper::getElementText(elem->findFirstChildElement("tcpType"));
+      if (str.hasData()) {
+        try {
+          mTCPType = IICETypes::toTCPCandidateType(str);
+        } catch(const InvalidParameters &) {
+          ZS_LOG_WARNING(Debug, slog("candidate type value invalid") + ZS_PARAM("value", str))
+        }
+      }
+    }
+
+    UseHelper::getElementValue(elem, "ortc::IICETypes::Candidate", "relatedAddress", mRelatedAddress);
+    UseHelper::getElementValue(elem, "ortc::IICETypes::Candidate", "relatedPort", mRelatedPort);
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IICETypes::Candidate::createElement(const char *objectName) const
+  {
+    if (NULL == objectName) objectName = "candidate";
+    ElementPtr elem = Element::create(objectName);
+
+    UseHelper::adoptElementValue(elem, "interfaceType", mInterfaceType, false);
+    UseHelper::adoptElementValue(elem, "foundation", mFoundation, false);
+    UseHelper::adoptElementValue(elem, "priority", mPriority);
+    UseHelper::adoptElementValue(elem, "unfreezePriority", mUnfreezePriority);
+    UseHelper::adoptElementValue(elem, "protocol", IICETypes::toString(mProtocol), false);
+    UseHelper::adoptElementValue(elem, "ip", mIP, false);
+    UseHelper::adoptElementValue(elem, "port", mPort);
+    UseHelper::adoptElementValue(elem, "type", IICETypes::toString(mCandidateType), false);
+    UseHelper::adoptElementValue(elem, "tcpType", IICETypes::toString(mTCPType), false);
+    UseHelper::adoptElementValue(elem, "relatedAddress", mRelatedAddress, false);
+    UseHelper::adoptElementValue(elem, "relatedPort", mRelatedPort);
+
+    if (!elem->hasChildren()) return ElementPtr();
+    
+    return elem;
+  }
 
   //---------------------------------------------------------------------------
   ElementPtr IICETypes::Candidate::toDebug() const
@@ -340,6 +454,34 @@ namespace ortc
   #pragma mark
 
   //---------------------------------------------------------------------------
+  IICETypes::CandidateCompletePtr IICETypes::CandidateComplete::convert(GatherCandidatePtr candidate)
+  {
+    return ZS_DYNAMIC_PTR_CAST(CandidateComplete, candidate);
+  }
+
+  //---------------------------------------------------------------------------
+  IICETypes::CandidateComplete::CandidateComplete(ElementPtr elem)
+  {
+    if (!elem) return;
+
+    UseHelper::getElementValue(elem, "ortc::IICETypes::CandidateComplete", "complete", mComplete);
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IICETypes::CandidateComplete::createElement(const char *objectName) const
+  {
+    if (NULL == objectName) objectName = "candidateComplete";
+
+    ElementPtr elem = Element::create(objectName);
+
+    UseHelper::adoptElementValue(elem, "complete", mComplete);
+
+    if (!elem->hasChildren()) return ElementPtr();
+
+    return elem;
+  }
+  
+  //---------------------------------------------------------------------------
   ElementPtr IICETypes::CandidateComplete::toDebug() const
   {
     ElementPtr resultEl = Element::create("ortc::IICETypes::CandidateComplete");
@@ -364,6 +506,32 @@ namespace ortc
   #pragma mark
   #pragma mark IICETypes::Parameters
   #pragma mark
+
+  //---------------------------------------------------------------------------
+  IICETypes::Parameters::Parameters(ElementPtr elem)
+  {
+    if (!elem) return;
+
+    UseHelper::getElementValue(elem, "ortc::IICETypes::Parameters", "useCandidateFreezePriority", mUseCandidateFreezePriority);
+    UseHelper::getElementValue(elem, "ortc::IICETypes::Parameters", "usernameFragment", mUsernameFragment);
+    UseHelper::getElementValue(elem, "ortc::IICETypes::Parameters", "password", mPassword);
+    UseHelper::getElementValue(elem, "ortc::IICETypes::Parameters", "iceLite", mICELite);
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IICETypes::Parameters::createElement(const char *objectName)
+  {
+    ElementPtr elem = Element::create(objectName);
+
+    UseHelper::adoptElementValue(elem, "useCandidateFreezePriority", mUseCandidateFreezePriority);
+    UseHelper::adoptElementValue(elem, "usernameFragment", mUsernameFragment, false);
+    UseHelper::adoptElementValue(elem, "password", mPassword, false);
+    UseHelper::adoptElementValue(elem, "iceLite", mICELite);
+
+    if (!elem->hasChildren()) return ElementPtr();
+
+    return elem;
+  }
 
   //---------------------------------------------------------------------------
   ElementPtr IICETypes::Parameters::toDebug() const

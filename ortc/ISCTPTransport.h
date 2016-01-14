@@ -60,6 +60,12 @@ namespace ortc
       WORD mMaxUsablePorts {};
       WORD mMaxSessionsPerPort {};
 
+      Capabilities() {}
+      Capabilities(const Capabilities &op2) {(*this) = op2;}
+      Capabilities(ElementPtr elem);
+
+      ElementPtr createElement(const char *objectName) const;
+
       ElementPtr toDebug() const;
       String hash() const;
     };
