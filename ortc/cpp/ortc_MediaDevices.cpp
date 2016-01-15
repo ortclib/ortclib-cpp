@@ -31,6 +31,7 @@
 
 #include <ortc/internal/ortc_MediaDevices.h>
 #include <ortc/internal/ortc_MediaStreamTrack.h>
+#include <ortc/internal/ortc_Helper.h>
 #include <ortc/internal/ortc_ORTC.h>
 #include <ortc/internal/platform.h>
 
@@ -38,6 +39,7 @@
 #include <openpeer/services/IHelper.h>
 #include <openpeer/services/IHTTP.h>
 
+#include <zsLib/Numeric.h>
 #include <zsLib/Stringize.h>
 #include <zsLib/Log.h>
 #include <zsLib/XML.h>
@@ -62,9 +64,14 @@ namespace ortc
   ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHelper, UseServicesHelper)
   ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHTTP, UseHTTP)
 
+  ZS_DECLARE_TYPEDEF_PTR(ortc::internal::Helper, UseHelper)
+
   typedef openpeer::services::Hasher<CryptoPP::SHA1> SHA1Hasher;
 
   using zsLib::SingletonManager;
+
+  using zsLib::Numeric;
+  using zsLib::Log;
 
   namespace internal
   {
@@ -685,6 +692,20 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   #pragma mark
+  #pragma mark (helpers)
+  #pragma mark
+
+  //-----------------------------------------------------------------------
+  static Log::Params slog(const char *message)
+  {
+    return Log::Params(message, "ortc::IMediaDevicesTypes");
+  }
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
   #pragma mark IMediaDevicesTypes
   #pragma mark
 
@@ -698,7 +719,18 @@ namespace ortc
     }
     return "UNDEFINED";
   }
-  
+
+  //---------------------------------------------------------------------------
+  IMediaDevicesTypes::DeviceKinds IMediaDevicesTypes::toDeviceKind(const char *deviceKindStr)
+  {
+    String str(deviceKindStr);
+    for (IMediaDevicesTypes::DeviceKinds index = IMediaDevicesTypes::DeviceKind_First; index <= IMediaDevicesTypes::DeviceKind_Last; index = static_cast<IMediaDevicesTypes::DeviceKinds>(static_cast<std::underlying_type<IMediaDevicesTypes::DeviceKinds>::type>(index) + 1)) {
+      if (0 == str.compareNoCase(IMediaDevicesTypes::toString(index))) return index;
+    }
+    ORTC_THROW_INVALID_PARAMETERS("Invalid parameter value: " + str)
+    return IMediaDevicesTypes::DeviceKind_First;
+  }
+
   //---------------------------------------------------------------------------
   IMediaStreamTrackTypes::Kinds IMediaDevicesTypes::toKind(DeviceKinds kind)
   {
@@ -745,6 +777,49 @@ namespace ortc
   #pragma mark
   #pragma mark IMediaDevicesTypes::SupportedConstraints
   #pragma mark
+
+
+  //---------------------------------------------------------------------------
+  IMediaDevicesTypes::SupportedConstraints::SupportedConstraints(ElementPtr elem)
+  {
+    if (!elem) return;
+
+    UseHelper::getElementValue(elem, "ortc::IMediaDevicesTypes::SupportedConstraints", "width", mWidth);
+    UseHelper::getElementValue(elem, "ortc::IMediaDevicesTypes::SupportedConstraints", "height", mHeight);
+    UseHelper::getElementValue(elem, "ortc::IMediaDevicesTypes::SupportedConstraints", "aspectRatio", mAspectRatio);
+    UseHelper::getElementValue(elem, "ortc::IMediaDevicesTypes::SupportedConstraints", "frameRate", mFrameRate);
+    UseHelper::getElementValue(elem, "ortc::IMediaDevicesTypes::SupportedConstraints", "facingMode", mFacingMode);
+    UseHelper::getElementValue(elem, "ortc::IMediaDevicesTypes::SupportedConstraints", "volume", mVolume);
+    UseHelper::getElementValue(elem, "ortc::IMediaDevicesTypes::SupportedConstraints", "sampleRate", mSampleRate);
+    UseHelper::getElementValue(elem, "ortc::IMediaDevicesTypes::SupportedConstraints", "sampleSize", mSampleSize);
+    UseHelper::getElementValue(elem, "ortc::IMediaDevicesTypes::SupportedConstraints", "echoCancellation", mEchoCancellation);
+    UseHelper::getElementValue(elem, "ortc::IMediaDevicesTypes::SupportedConstraints", "latency", mLatency);
+    UseHelper::getElementValue(elem, "ortc::IMediaDevicesTypes::SupportedConstraints", "deviceId", mDeviceID);
+    UseHelper::getElementValue(elem, "ortc::IMediaDevicesTypes::SupportedConstraints", "groupId", mGroupID);
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IMediaDevicesTypes::SupportedConstraints::createElement(const char *objectName) const
+  {
+    ElementPtr elem = Element::create(objectName);
+
+    UseHelper::adoptElementValue(elem, "width", mWidth);
+    UseHelper::adoptElementValue(elem, "height", mHeight);
+    UseHelper::adoptElementValue(elem, "aspectRatio", mAspectRatio);
+    UseHelper::adoptElementValue(elem, "frameRate", mFrameRate);
+    UseHelper::adoptElementValue(elem, "facingMode", mFacingMode);
+    UseHelper::adoptElementValue(elem, "volume", mVolume);
+    UseHelper::adoptElementValue(elem, "sampleRate", mSampleRate);
+    UseHelper::adoptElementValue(elem, "sampleSize", mSampleSize);
+    UseHelper::adoptElementValue(elem, "echoCancellation", mEchoCancellation);
+    UseHelper::adoptElementValue(elem, "latency", mLatency);
+    UseHelper::adoptElementValue(elem, "deviceId", mDeviceID);
+    UseHelper::adoptElementValue(elem, "groupId", mGroupID);
+
+    if (!elem->hasChildren()) return ElementPtr();
+    
+    return elem;
+  }
 
   //---------------------------------------------------------------------------
   ElementPtr IMediaDevicesTypes::SupportedConstraints::toDebug() const
@@ -804,6 +879,51 @@ namespace ortc
   #pragma mark
   #pragma mark IMediaDevicesTypes::Device
   #pragma mark
+
+
+  //---------------------------------------------------------------------------
+  IMediaDevicesTypes::Device::Device(ElementPtr elem)
+  {
+    if (!elem) return;
+
+    {
+      String str = UseServicesHelper::getElementText(elem->findFirstChildElement("deviceKind"));
+      if (str.hasData()) {
+        try {
+          mKind = IMediaDevicesTypes::toDeviceKind(str);
+        } catch(const InvalidParameters &) {
+          ZS_LOG_WARNING(Debug, slog("priority value out of range") + ZS_PARAM("value", str))
+        }
+      }
+    }
+
+    UseHelper::getElementValue(elem, "ortc::IMediaDevicesTypes::Device", "label", mLabel);
+    UseHelper::getElementValue(elem, "ortc::IMediaDevicesTypes::Device", "deviceId", mDeviceID);
+    UseHelper::getElementValue(elem, "ortc::IMediaDevicesTypes::Device", "groupId", mGroupID);
+
+    ElementPtr supportedConstraintsEl = elem->findFirstChildElement("supportedConstraints");
+    if (supportedConstraintsEl) {
+      mSupportedConstraints = SupportedConstraints(supportedConstraintsEl);
+    }
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IMediaDevicesTypes::Device::createElement(const char *objectName) const
+  {
+    ElementPtr elem = Element::create(objectName);
+
+    UseHelper::adoptElementValue(elem, "deviceKind", IMediaDevicesTypes::toString(mKind), false);
+
+    UseHelper::adoptElementValue(elem, "label", mLabel, false);
+    UseHelper::adoptElementValue(elem, "deviceId", mDeviceID, false);
+    UseHelper::adoptElementValue(elem, "groupId", mGroupID, false);
+
+    elem->adoptAsLastChild(mSupportedConstraints.createElement("supportedConstraints"));
+
+    if (!elem->hasChildren()) return ElementPtr();
+    
+    return elem;
+  }
 
   //---------------------------------------------------------------------------
   ElementPtr IMediaDevicesTypes::Device::toDebug() const
@@ -891,6 +1011,37 @@ namespace ortc
   #pragma mark
   #pragma mark IMediaDevices::DeviceList
   #pragma mark
+
+
+  //---------------------------------------------------------------------------
+  IMediaDevices::DeviceList::DeviceList(ElementPtr elem)
+  {
+    if (!elem) return;
+
+    ElementPtr deviceEl = elem->findFirstChildElement("device");
+    while (deviceEl) {
+      Device device(deviceEl);
+      push_back(device);
+      deviceEl = deviceEl->findNextSiblingElement("device");
+    }
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IMediaDevices::DeviceList::createElement(const char *objectName) const
+  {
+    ElementPtr elem = Element::create(objectName);
+
+    if (size() < 1) return ElementPtr();
+
+    for (auto iter = begin(); iter != end(); ++iter) {
+      auto &device = (*iter);
+      elem->adoptAsLastChild(device.createElement());
+    }
+
+    if (!elem->hasChildren()) return ElementPtr();
+
+    return elem;
+  }
 
   //---------------------------------------------------------------------------
   IMediaDevices::DeviceListPtr IMediaDevices::DeviceList::convert(AnyPtr any)

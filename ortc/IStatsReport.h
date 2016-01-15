@@ -85,6 +85,12 @@ namespace ortc
       String mStatsType;
       String mID;
 
+      Stats() {}
+      Stats(const Stats &op2) {(*this) = op2;}
+      Stats(ElementPtr elem);
+
+      ElementPtr createElement(const char *objectName) const;
+
       static StatsPtr convert(AnyPtr any);
 
       virtual ElementPtr toDebug() const = 0;

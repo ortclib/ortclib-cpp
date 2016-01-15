@@ -10,7 +10,7 @@ This SDK library implementation of the ORTC specification that will enable mobil
 The source code is available under a FreeBSD style license:
 https://github.com/openpeer/ortclib/blob/master/license.txt
 
-The code is under heavy development and written mostly in C++. Mobile wrappers for  Objective-C are currently underway, Java Android will follow.
+This code is under heavy development and written mostly in C++. Mobile wrappers for  Objective-C are currently underway, Java Android will follow.
 
 From your terminal, please clone the "opios" git repository:
 git clone --recursive https://github.com/openpeer/ortc-lib.git
@@ -88,3 +88,7 @@ known Issues in android build :
 
 For more information on ORTC, please visit:
 http://ortc.org/
+
+====
+Hookflash provides professional services to aid in the integration or expansion of this Library in your project, contact Hookflash for more information: sales@hookflash.com
+====

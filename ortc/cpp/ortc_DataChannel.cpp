@@ -31,6 +31,7 @@
 
 #include <ortc/internal/ortc_DataChannel.h>
 #include <ortc/internal/ortc_SCTPTransport.h>
+#include <ortc/internal/ortc_Helper.h>
 #include <ortc/internal/ortc_ORTC.h>
 #include <ortc/internal/platform.h>
 
@@ -38,6 +39,7 @@
 #include <openpeer/services/IHelper.h>
 #include <openpeer/services/IHTTP.h>
 
+#include <zsLib/Numeric.h>
 #include <zsLib/SafeInt.h>
 #include <zsLib/Stringize.h>
 #include <zsLib/Log.h>
@@ -67,6 +69,11 @@ namespace ortc
   typedef CryptoPP::ByteQueue ByteQueue;
 
   ZS_DECLARE_INTERACTION_TEAR_AWAY(IDataChannel, internal::DataChannel::TearAwayData)
+
+  ZS_DECLARE_TYPEDEF_PTR(ortc::internal::Helper, UseHelper)
+
+  using zsLib::Numeric;
+  using zsLib::Log;
 
   namespace internal
   {
@@ -1416,6 +1423,20 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   #pragma mark
+  #pragma mark (helpers)
+  #pragma mark
+
+  //-----------------------------------------------------------------------
+  static Log::Params slog(const char *message)
+  {
+    return Log::Params(message, "ortc::IDataChannelTypes");
+  }
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
   #pragma mark IDataChannelTypes
   #pragma mark
 
@@ -1453,6 +1474,38 @@ namespace ortc
   #pragma mark
   #pragma mark IDataChannelTypes::Parameters
   #pragma mark
+
+  //---------------------------------------------------------------------------
+  IDataChannelTypes::Parameters::Parameters(ElementPtr elem)
+  {
+    if (!elem) return;
+
+    UseHelper::getElementValue(elem, "ortc::IDataChannelTypes::Parameters", "label", mLabel);
+    UseHelper::getElementValue(elem, "ortc::IDataChannelTypes::Parameters", "ordered", mOrdered);
+    UseHelper::getElementValue(elem, "ortc::IDataChannelTypes::Parameters", "maxPacketLifetime", mMaxPacketLifetime);
+    UseHelper::getElementValue(elem, "ortc::IDataChannelTypes::Parameters", "maxRetransmits", mMaxRetransmits);
+    UseHelper::getElementValue(elem, "ortc::IDataChannelTypes::Parameters", "protocol", mProtocol);
+    UseHelper::getElementValue(elem, "ortc::IDataChannelTypes::Parameters", "negotiated", mNegotiated);
+    UseHelper::getElementValue(elem, "ortc::IDataChannelTypes::Parameters", "id", mID);
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IDataChannelTypes::Parameters::createElement(const char *objectName) const
+  {
+    ElementPtr elem = Element::create(objectName);
+
+    UseHelper::adoptElementValue(elem, "label", mLabel, false);
+    UseHelper::adoptElementValue(elem, "ordered", mOrdered);
+    UseHelper::adoptElementValue(elem, "maxPacketLifetime", mMaxPacketLifetime);
+    UseHelper::adoptElementValue(elem, "maxRetransmits", mMaxRetransmits);
+    UseHelper::adoptElementValue(elem, "protocol", mProtocol, false);
+    UseHelper::adoptElementValue(elem, "negotiated", mNegotiated);
+    UseHelper::adoptElementValue(elem, "id", mID);
+
+    if (!elem->hasChildren()) return ElementPtr();
+
+    return elem;
+  }
 
   //---------------------------------------------------------------------------
   ElementPtr IDataChannelTypes::Parameters::toDebug() const

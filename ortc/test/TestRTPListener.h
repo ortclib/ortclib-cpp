@@ -462,7 +462,7 @@ namespace ortc
 
         BufferList mBuffers;
 
-        IMediaStreamTrackTypes::Kinds mKind {};
+        IMediaStreamTrackTypes::Kinds mKind {IMediaStreamTrackTypes::Kind_First};
         UseListenerPtr mListener;
       };
 

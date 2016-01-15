@@ -32,11 +32,13 @@
 #include <ortc/internal/types.h>
 #include <ortc/internal/platform.h>
 #include <ortc/internal/ortc_RTPTypes.h>
+#include <ortc/internal/ortc_Helper.h>
 
 #include <ortc/IRTPTypes.h>
 
 #include <openpeer/services/IHelper.h>
 
+#include <zsLib/Numeric.h>
 #include <zsLib/Stringize.h>
 #include <zsLib/Log.h>
 #include <zsLib/XML.h>
@@ -55,8 +57,12 @@ namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib) }
 namespace ortc
 {
   ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHelper, UseServicesHelper)
+  ZS_DECLARE_TYPEDEF_PTR(ortc::internal::Helper, UseHelper)
 
   typedef openpeer::services::Hasher<CryptoPP::SHA1> SHA1Hasher;
+
+  using zsLib::Numeric;
+  using zsLib::Log;
 
   namespace internal
   {
@@ -1397,6 +1403,19 @@ namespace ortc
 
   } // namespace internal
 
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark (helpers)
+  #pragma mark
+
+  //-----------------------------------------------------------------------
+  static Log::Params slog(const char *message)
+  {
+    return Log::Params(message, "ortc::IRTPTypes");
+  }
 
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
@@ -1437,6 +1456,87 @@ namespace ortc
   #pragma mark
   #pragma mark IRTPTypes::Capabilities
   #pragma mark
+
+
+  //---------------------------------------------------------------------------
+  IRTPTypes::Capabilities::Capabilities(ElementPtr elem)
+  {
+    if (!elem) return;
+
+    {
+      ElementPtr codecsEl = elem->findFirstChildElement("codecs");
+      if (codecsEl) {
+        ElementPtr codecEl = codecsEl->findFirstChildElement("codec");
+        while (codecEl) {
+          CodecCapability codec(codecEl);
+          mCodecs.push_back(codec);
+          codecEl = codecEl->findNextSiblingElement("codec");
+        }
+      }
+    }
+    {
+      ElementPtr headerExtensionsEl = elem->findFirstChildElement("headerExtensions");
+      if (headerExtensionsEl) {
+        ElementPtr headerExtensionEl = headerExtensionsEl->findFirstChildElement("headerExtension");
+        while (headerExtensionEl) {
+          HeaderExtension headerExtension(headerExtensionEl);
+          mHeaderExtensions.push_back(headerExtension);
+          headerExtensionEl = headerExtensionEl->findNextSiblingElement("headerExtension");
+        }
+      }
+    }
+    {
+      ElementPtr fecMechanismsEl = elem->findFirstChildElement("fecMechanisms");
+      if (fecMechanismsEl) {
+        ElementPtr fecMechanismEl = fecMechanismsEl->findFirstChildElement("fecMechanism");
+        while (fecMechanismEl) {
+          FECMechanism fecMechanism(UseServicesHelper::getElementTextAndDecode(fecMechanismEl));
+          mFECMechanisms.push_back(fecMechanism);
+          fecMechanismEl = fecMechanismEl->findNextSiblingElement("fecMechanism");
+        }
+      }
+    }
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IRTPTypes::Capabilities::createElement(const char *objectName) const
+  {
+    ElementPtr elem = Element::create(objectName);
+
+    if (mCodecs.size() > 0) {
+      ElementPtr codecsEl = Element::create("codecs");
+
+      for (auto iter = mCodecs.begin(); iter != mCodecs.end(); ++iter) {
+        auto &codec = (*iter);
+        codecsEl->adoptAsLastChild(codec.createElement("codec"));
+      }
+      elem->adoptAsLastChild(codecsEl);
+    }
+
+    if (mHeaderExtensions.size() > 0) {
+      ElementPtr headerExtensionsEl = Element::create("headerExtensions");
+
+      for (auto iter = mHeaderExtensions.begin(); iter != mHeaderExtensions.end(); ++iter) {
+        auto &headerExtension = (*iter);
+        headerExtensionsEl->adoptAsLastChild(headerExtension.createElement("headerExtension"));
+      }
+      elem->adoptAsLastChild(headerExtensionsEl);
+    }
+
+    if (mFECMechanisms.size() > 0) {
+      ElementPtr fecMechanismsEl = Element::create("fecMechanisms");
+
+      for (auto iter = mFECMechanisms.begin(); iter != mFECMechanisms.end(); ++iter) {
+        auto &fecMechanism = (*iter);
+        fecMechanismsEl->adoptAsLastChild(UseServicesHelper::createElementWithTextAndJSONEncode("fecMechanism", fecMechanism));
+      }
+      elem->adoptAsLastChild(fecMechanismsEl);
+    }
+
+    if (!elem->hasChildren()) return ElementPtr();
+    
+    return elem;
+  }
 
   //---------------------------------------------------------------------------
   ElementPtr IRTPTypes::Capabilities::toDebug() const
@@ -1523,6 +1623,147 @@ namespace ortc
   #pragma mark
 
   //---------------------------------------------------------------------------
+  IRTPTypes::CodecCapability::CodecCapability(ElementPtr elem)
+  {
+    if (!elem) return;
+
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::CodecCapability", "name", mName);
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::CodecCapability", "kind", mKind);
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::CodecCapability", "clockRate", mClockRate);
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::CodecCapability", "preferredPayloadType", mPreferredPayloadType);
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::CodecCapability", "maxptime", mMaxPTime);
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::CodecCapability", "numChannels", mNumChannels);
+
+    {
+      ElementPtr feedbacksEl = elem->findFirstChildElement("rtcpFeedbacks");
+      if (feedbacksEl) {
+        ElementPtr feedbackEl = feedbacksEl->findFirstChildElement("rtcpFeedback");
+        while (feedbackEl) {
+          RTCPFeedback feedback(feedbackEl);
+          mRTCPFeedback.push_back(feedback);
+          feedbackEl = feedbackEl->findNextSiblingElement("rtcpFeedback");
+        }
+      }
+    }
+
+    {
+      ElementPtr parametersEl = elem->findFirstChildElement("parameters");
+      if (parametersEl) {
+        SupportedCodecs supported = toSupportedCodec(mName);
+        switch (supported) {
+          case SupportedCodec_Opus: {
+            mParameters = make_shared<OpusCodecCapabilityParameters>(parametersEl);
+            break;
+          }
+          case SupportedCodec_VP8:    {
+            mParameters = make_shared<VP8CodecCapabilityParameters>(parametersEl);
+            break;
+          }
+          case SupportedCodec_H264:   {
+            mParameters = make_shared<H264CodecCapabilityParameters>(parametersEl);
+            break;
+          }
+          default: break;
+        }
+      }
+    }
+
+    {
+      ElementPtr optionsEl = elem->findFirstChildElement("options");
+      if (optionsEl) {
+        SupportedCodecs supported = toSupportedCodec(mName);
+        switch (supported) {
+          case SupportedCodec_Opus: {
+            mOptions = make_shared<OpusCodecCapabilityOptions>(optionsEl);
+            break;
+          }
+          default: break;
+        }
+      }
+    }
+
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::CodecCapability", "maxTemporalLayers", mMaxTemporalLayers);
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::CodecCapability", "maxSpatialLayers", mMaxSpatialLayers);
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::CodecCapability", "svcMultiStreamSupport", mSVCMultiStreamSupport);
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IRTPTypes::CodecCapability::createElement(const char *objectName) const
+  {
+    ElementPtr elem = Element::create(objectName);
+
+    UseHelper::adoptElementValue(elem, "name", mName, false);
+    UseHelper::adoptElementValue(elem, "kind", mKind, false);
+
+    UseHelper::adoptElementValue(elem, "clockRate", mClockRate);
+    UseHelper::adoptElementValue(elem, "preferredPayloadType", mPreferredPayloadType);
+    UseHelper::adoptElementValue(elem, "maxptime", mMaxPTime);
+    UseHelper::adoptElementValue(elem, "numChannels", mNumChannels);
+
+    if (mRTCPFeedback.size() > 0) {
+      ElementPtr rtcpFeedbacksEl = Element::create("rtcpFeedbacks");
+
+      for (auto iter = mRTCPFeedback.begin(); iter != mRTCPFeedback.end(); ++iter) {
+        auto &value = (*iter);
+        rtcpFeedbacksEl->adoptAsLastChild(value.createElement("rtcpFeedback"));
+      }
+
+      elem->adoptAsLastChild(rtcpFeedbacksEl);
+    }
+
+    if ((mParameters) ||
+        (mOptions)) {
+      SupportedCodecs supported = toSupportedCodec(mName);
+      if (mParameters) {
+        switch (supported) {
+          case SupportedCodec_Opus: {
+            auto codec = OpusCodecCapabilityParameters::convert(mParameters);
+            if (codec) {
+              elem->adoptAsLastChild(codec->createElement("parameters"));
+            }
+            break;
+          }
+          case SupportedCodec_VP8:    {
+            auto codec = VP8CodecCapabilityParameters::convert(mParameters);
+            if (codec) {
+              elem->adoptAsLastChild(codec->createElement("parameters"));
+            }
+            break;
+          }
+          case SupportedCodec_H264:   {
+            auto codec = H264CodecCapabilityParameters::convert(mParameters);
+            if (codec) {
+              elem->adoptAsLastChild(codec->createElement("parameters"));
+            }
+            break;
+          }
+          default: break;
+        }
+      }
+      if (mOptions) {
+        switch (supported) {
+          case SupportedCodec_Opus: {
+            auto codec = OpusCodecCapabilityOptions::convert(mOptions);
+            if (codec) {
+              elem->adoptAsLastChild(codec->createElement("options"));
+            }
+            break;
+          }
+          default: break;
+        }
+      }
+    }
+
+    UseHelper::adoptElementValue(elem, "maxTemporalLayers", mMaxTemporalLayers);
+    UseHelper::adoptElementValue(elem, "maxSpatialLayers", mMaxSpatialLayers);
+    UseHelper::adoptElementValue(elem, "svcMultiStreamSupport", mSVCMultiStreamSupport);
+
+    if (!elem->hasChildren()) return ElementPtr();
+    
+    return elem;
+  }
+
+  //---------------------------------------------------------------------------
   IRTPTypes::CodecCapability::CodecCapability(const CodecCapability &source) :
     mName(source.mName),
     mKind(source.mKind),
@@ -1530,7 +1771,7 @@ namespace ortc
     mPreferredPayloadType(source.mPreferredPayloadType),
     mMaxPTime(source.mMaxPTime),
     mNumChannels(source.mNumChannels),
-    mFeedback(source.mFeedback),
+    mRTCPFeedback(source.mRTCPFeedback),
     mMaxTemporalLayers(source.mMaxTemporalLayers),
     mMaxSpatialLayers(source.mMaxSpatialLayers),
     mSVCMultiStreamSupport(source.mSVCMultiStreamSupport)
@@ -1591,9 +1832,9 @@ namespace ortc
     UseServicesHelper::debugAppend(resultEl, "max ptime", mMaxPTime);
     UseServicesHelper::debugAppend(resultEl, "number of channels", mNumChannels);
 
-    ElementPtr feedbacksEl = Element::create("feedbacks");
+    ElementPtr feedbacksEl = Element::create("rtcpFeedbacks");
 
-    for (auto iter = mFeedback.begin(); iter != mFeedback.end(); ++iter) {
+    for (auto iter = mRTCPFeedback.begin(); iter != mRTCPFeedback.end(); ++iter) {
       auto value = (*iter);
       UseServicesHelper::debugAppend(feedbacksEl, value.toDebug());
     }
@@ -1694,7 +1935,7 @@ namespace ortc
 
     hasher.update("feedback:0e69ea312f56834897bc0c29eb74bf991bee8d86");
 
-    for (auto iter = mFeedback.begin(); iter != mFeedback.end(); ++iter)
+    for (auto iter = mRTCPFeedback.begin(); iter != mRTCPFeedback.end(); ++iter)
     {
       auto value = (*iter);
       hasher.update(":");
@@ -1769,6 +2010,34 @@ namespace ortc
   #pragma mark
 
   //---------------------------------------------------------------------------
+  IRTPTypes::OpusCodecCapabilityOptions::OpusCodecCapabilityOptions(ElementPtr elem)
+  {
+    if (!elem) return;
+
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::OpusCodecCapabilityOptions", "complexity", mComplexity);
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::OpusCodecCapabilityOptions", "signal", mSignal);
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::OpusCodecCapabilityOptions", "application", mApplication);
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::OpusCodecCapabilityOptions", "packetLossPerc", mPacketLossPerc);
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::OpusCodecCapabilityOptions", "PredictionDisabled", mPredictionDisabled);
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IRTPTypes::OpusCodecCapabilityOptions::createElement(const char *objectName) const
+  {
+    ElementPtr elem = Element::create(objectName);
+
+    UseHelper::adoptElementValue(elem, "complexity", mComplexity);
+    UseHelper::adoptElementValue(elem, "signal", mSignal);
+    UseHelper::adoptElementValue(elem, "application", mApplication);
+    UseHelper::adoptElementValue(elem, "packetLossPerc", mPacketLossPerc);
+    UseHelper::adoptElementValue(elem, "predictionDisabled", mPredictionDisabled);
+
+    if (!elem->hasChildren()) return ElementPtr();
+    
+    return elem;
+  }
+
+  //---------------------------------------------------------------------------
   IRTPTypes::OpusCodecCapabilityOptionsPtr IRTPTypes::OpusCodecCapabilityOptions::create(const OpusCodecCapabilityOptions &capability)
   {
     return make_shared<OpusCodecCapabilityOptions>(capability);
@@ -1822,6 +2091,42 @@ namespace ortc
   #pragma mark IRTPTypes::OpusCodecCapabilityParameters
   #pragma mark
 
+  //---------------------------------------------------------------------------
+  IRTPTypes::OpusCodecCapabilityParameters::OpusCodecCapabilityParameters(ElementPtr elem)
+  {
+    if (!elem) return;
+
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::OpusCodecCapabilityParameters", "maxPlaybackRate", mMaxPlaybackRate);
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::OpusCodecCapabilityParameters", "ptime", mPTime);
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::OpusCodecCapabilityParameters", "maxAverageBitrate", mMaxAverageBitrate);
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::OpusCodecCapabilityParameters", "stereo", mStereo);
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::OpusCodecCapabilityParameters", "cbr", mCBR);
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::OpusCodecCapabilityParameters", "useInbandFec", mUseInbandFEC);
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::OpusCodecCapabilityParameters", "useDtx", mUseDTX);
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::OpusCodecCapabilityParameters", "spropMaxCaptureRate", mSPropMaxCaptureRate);
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::OpusCodecCapabilityParameters", "spropStereo", mSPropStereo);
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IRTPTypes::OpusCodecCapabilityParameters::createElement(const char *objectName) const
+  {
+    ElementPtr elem = Element::create(objectName);
+
+    UseHelper::adoptElementValue(elem, "maxPlaybackRate", mMaxPlaybackRate);
+    UseHelper::adoptElementValue(elem, "ptime", mPTime);
+    UseHelper::adoptElementValue(elem, "maxAverageBitrate", mMaxAverageBitrate);
+    UseHelper::adoptElementValue(elem, "stereo", mStereo);
+    UseHelper::adoptElementValue(elem, "cbr", mCBR);
+    UseHelper::adoptElementValue(elem, "useInbandFec", mUseInbandFEC);
+    UseHelper::adoptElementValue(elem, "useDtx", mUseDTX);
+    UseHelper::adoptElementValue(elem, "spropMaxCaptureRate", mSPropMaxCaptureRate);
+    UseHelper::adoptElementValue(elem, "spropStereo", mSPropStereo);
+
+    if (!elem->hasChildren()) return ElementPtr();
+
+    return elem;
+  }
+  
   //---------------------------------------------------------------------------
   IRTPTypes::OpusCodecCapabilityParametersPtr IRTPTypes::OpusCodecCapabilityParameters::create(const OpusCodecCapabilityParameters &capability)
   {
@@ -1891,6 +2196,28 @@ namespace ortc
   #pragma mark
 
   //---------------------------------------------------------------------------
+  IRTPTypes::VP8CodecCapabilityParameters::VP8CodecCapabilityParameters(ElementPtr elem)
+  {
+    if (!elem) return;
+
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::VP8CodecCapabilityParameters", "maxFr", mMaxFT);
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::VP8CodecCapabilityParameters", "maxFs", mMaxFS);
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IRTPTypes::VP8CodecCapabilityParameters::createElement(const char *objectName) const
+  {
+    ElementPtr elem = Element::create(objectName);
+
+    UseHelper::adoptElementValue(elem, "maxFr", mMaxFT);
+    UseHelper::adoptElementValue(elem, "maxFs", mMaxFS);
+
+    if (!elem->hasChildren()) return ElementPtr();
+
+    return elem;
+  }
+
+  //---------------------------------------------------------------------------
   IRTPTypes::VP8CodecCapabilityParametersPtr IRTPTypes::VP8CodecCapabilityParameters::create(const VP8CodecCapabilityParameters &capability)
   {
     return make_shared<VP8CodecCapabilityParameters>(capability);
@@ -1934,6 +2261,69 @@ namespace ortc
   #pragma mark
   #pragma mark IRTPTypes::H264CodecCapabilityParameters
   #pragma mark
+
+  //---------------------------------------------------------------------------
+  IRTPTypes::H264CodecCapabilityParameters::H264CodecCapabilityParameters(ElementPtr elem)
+  {
+    if (!elem) return;
+
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::H264CodecCapabilityParameters", "profileLevelId", mProfileLevelID);
+
+    {
+      ElementPtr packetizationsEl = elem->findFirstChildElement("packetizationModes");
+      if (packetizationsEl) {
+        ElementPtr packetizationEl = packetizationsEl->findFirstChildElement("packetizationMode");
+        while (packetizationEl) {
+          decltype(mPacketizationModes)::value_type value {};
+          String str = UseServicesHelper::getElementText(packetizationEl);
+          try {
+            value = Numeric<decltype(mPacketizationModes)::value_type>(str);
+          } catch(Numeric<decltype(mPacketizationModes)::value_type>::ValueOutOfRange &) {
+            ZS_LOG_WARNING(Debug, slog("packetization mode value out of range") + ZS_PARAM("value", str))
+          }
+          mPacketizationModes.push_back(value);
+          packetizationEl = packetizationEl->findNextSiblingElement("packetizationMode");
+        }
+      }
+    }
+
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::H264CodecCapabilityParameters", "maxMbps", mMaxMBPS);
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::H264CodecCapabilityParameters", "maxSmbps", mMaxSMBPS);
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::H264CodecCapabilityParameters", "maxSmbps", mMaxSMBPS);
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::H264CodecCapabilityParameters", "mMaxFs", mMaxFS);
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::H264CodecCapabilityParameters", "maxCpb", mMaxCPB);
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::H264CodecCapabilityParameters", "maxDpb", mMaxDPB);
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::H264CodecCapabilityParameters", "maxBr", mMaxBR);
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IRTPTypes::H264CodecCapabilityParameters::createElement(const char *objectName) const
+  {
+    ElementPtr elem = Element::create(objectName);
+
+    UseHelper::adoptElementValue(elem, "profileLevelId", mProfileLevelID);
+
+    if (mPacketizationModes.size() > 0) {
+      ElementPtr packetizationsEl = Element::create("packetizationModes");
+      for (auto iter = mPacketizationModes.begin(); iter != mPacketizationModes.end(); ++iter) {
+        auto value = (*iter);
+        UseHelper::adoptElementValue(packetizationsEl, "packetizationMode", value);
+      }
+      elem->adoptAsLastChild(packetizationsEl);
+    }
+
+    UseHelper::adoptElementValue(elem, "maxMbps", mMaxMBPS);
+    UseHelper::adoptElementValue(elem, "maxSmbps", mMaxSMBPS);
+    UseHelper::adoptElementValue(elem, "maxSmbps", mMaxSMBPS);
+    UseHelper::adoptElementValue(elem, "mMaxFs", mMaxFS);
+    UseHelper::adoptElementValue(elem, "maxCpb", mMaxCPB);
+    UseHelper::adoptElementValue(elem, "maxDpb", mMaxDPB);
+    UseHelper::adoptElementValue(elem, "maxBr", mMaxBR);
+
+    if (!elem->hasChildren()) return ElementPtr();
+
+    return elem;
+  }
 
   //---------------------------------------------------------------------------
   IRTPTypes::H264CodecCapabilityParametersPtr IRTPTypes::H264CodecCapabilityParameters::create(const H264CodecCapabilityParameters &capability)
@@ -2015,7 +2405,33 @@ namespace ortc
   #pragma mark
 
   //---------------------------------------------------------------------------
-  ElementPtr IRTPTypes::HeaderExtensions::toDebug() const
+  IRTPTypes::HeaderExtension::HeaderExtension(ElementPtr elem)
+  {
+    if (!elem) return;
+
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::HeaderExtension", "kind", mKind);
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::HeaderExtension", "uri", mURI);
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::HeaderExtension", "preferredId", mPreferredID);
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::HeaderExtension", "preferredEncrypt", mPreferredEncrypt);
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IRTPTypes::HeaderExtension::createElement(const char *objectName) const
+  {
+    ElementPtr elem = Element::create(objectName);
+
+    UseHelper::adoptElementValue(elem, "kind", mKind, false);
+    UseHelper::adoptElementValue(elem, "uri", mURI, false);
+    UseHelper::adoptElementValue(elem, "preferredId", mPreferredID);
+    UseHelper::adoptElementValue(elem, "preferredEncrypt", mPreferredEncrypt);
+
+    if (!elem->hasChildren()) return ElementPtr();
+    
+    return elem;
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IRTPTypes::HeaderExtension::toDebug() const
   {
     ElementPtr resultEl = Element::create("ortc::IRTPTypes::HeaderExtensions");
 
@@ -2028,7 +2444,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  String IRTPTypes::HeaderExtensions::hash() const
+  String IRTPTypes::HeaderExtension::hash() const
   {
     SHA1Hasher hasher;
 
@@ -2053,6 +2469,28 @@ namespace ortc
   #pragma mark
   #pragma mark IRTPTypes::RTCPFeedback
   #pragma mark
+
+  //---------------------------------------------------------------------------
+  IRTPTypes::RTCPFeedback::RTCPFeedback(ElementPtr elem)
+  {
+    if (!elem) return;
+
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::RTCPFeedback", "type", mType);
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::RTCPFeedback", "parameter", mParameter);
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IRTPTypes::RTCPFeedback::createElement(const char *objectName) const
+  {
+    ElementPtr elem = Element::create(objectName);
+
+    UseHelper::adoptElementValue(elem, "type", mType, false);
+    UseHelper::adoptElementValue(elem, "parameter", mParameter, false);
+
+    if (!elem->hasChildren()) return ElementPtr();
+
+    return elem;
+  }
 
   //---------------------------------------------------------------------------
   ElementPtr IRTPTypes::RTCPFeedback::toDebug() const
@@ -2087,6 +2525,32 @@ namespace ortc
   #pragma mark
   #pragma mark IRTPTypes::RTCPParameters
   #pragma mark
+
+  //---------------------------------------------------------------------------
+  IRTPTypes::RTCPParameters::RTCPParameters(ElementPtr elem)
+  {
+    if (!elem) return;
+
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::RTCPParameters", "ssrc", mSSRC);
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::RTCPParameters", "cname", mCName);
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::RTCPParameters", "reducedSize", mReducedSize);
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::RTCPParameters", "mux", mMux);
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IRTPTypes::RTCPParameters::createElement(const char *objectName) const
+  {
+    ElementPtr elem = Element::create(objectName);
+
+    UseHelper::adoptElementValue(elem, "ssrc", mSSRC);
+    UseHelper::adoptElementValue(elem, "cname", mCName, false);
+    UseHelper::adoptElementValue(elem, "reducedSize", mReducedSize);
+    UseHelper::adoptElementValue(elem, "mux", mMux);
+
+    if (!elem->hasChildren()) return ElementPtr();
+    
+    return elem;
+  }
 
   //---------------------------------------------------------------------------
   ElementPtr IRTPTypes::RTCPParameters::toDebug() const
@@ -2127,6 +2591,110 @@ namespace ortc
   #pragma mark
   #pragma mark IRTPTypes::Parameters
   #pragma mark
+
+  //---------------------------------------------------------------------------
+  IRTPTypes::Parameters::Parameters(ElementPtr elem)
+  {
+    if (!elem) return;
+
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::Parameters", "muxId", mMuxID);
+
+    {
+      ElementPtr codecsEl = elem->findFirstChildElement("codecs");
+      if (codecsEl) {
+        ElementPtr codecEl = codecsEl->findFirstChildElement("codec");
+        while (codecEl) {
+          CodecParameters codec(codecEl);
+          mCodecs.push_back(codec);
+          codecEl = codecEl->findNextSiblingElement("codec");
+        }
+      }
+    }
+
+    {
+      ElementPtr headerExtensionsEl = elem->findFirstChildElement("headerExtensions");
+      if (headerExtensionsEl) {
+        ElementPtr headerExtensionEl = headerExtensionsEl->findFirstChildElement("headerExtension");
+        while (headerExtensionEl) {
+          HeaderExtensionParameters ext(headerExtensionEl);
+          mHeaderExtensions.push_back(ext);
+          headerExtensionEl = headerExtensionEl->findNextSiblingElement("headerExtension");
+        }
+      }
+    }
+
+    {
+      ElementPtr encodingsEl = elem->findFirstChildElement("encodings");
+      if (encodingsEl) {
+        ElementPtr encodingEl = encodingsEl->findFirstChildElement("encoding");
+        while (encodingEl) {
+          EncodingParameters encoding(encodingEl);
+          mEncodingParameters.push_back(encoding);
+          encodingEl = encodingEl->findNextSiblingElement("encoding");
+        }
+      }
+    }
+
+    {
+      ElementPtr rtcpParamsEl = elem->findFirstChildElement("rtcp");
+      if (rtcpParamsEl) {
+        mRTCP = RTCPParameters(rtcpParamsEl);
+      }
+    }
+
+    {
+      ElementPtr subEl = elem->findFirstChildElement("degredationPreference");
+      if (subEl) {
+        String str = UseServicesHelper::getElementTextAndDecode(subEl);
+        try {
+          mDegredationPreference = IRTPTypes::toDegredationPreference(str);
+        } catch(const InvalidParameters &) {
+          ZS_LOG_WARNING(Debug, slog("degredation preference is not valid") + ZS_PARAM("value", str))
+        }
+      }
+    }
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IRTPTypes::Parameters::createElement(const char *objectName) const
+  {
+    ElementPtr elem = Element::create(objectName);
+
+    UseHelper::adoptElementValue(elem, "muxId", mMuxID, false);
+
+    if (mCodecs.size() > 0) {
+      ElementPtr codecsEl = Element::create("codecs");
+      for (auto iter = mCodecs.begin(); iter != mCodecs.end(); ++iter) {
+        auto &value = (*iter);
+        codecsEl->adoptAsLastChild(value.createElement("codec"));
+      }
+      elem->adoptAsLastChild(codecsEl);
+    }
+    if (mHeaderExtensions.size() > 0) {
+      ElementPtr headerExtensionsEl = Element::create("headerExtensions");
+      for (auto iter = mHeaderExtensions.begin(); iter != mHeaderExtensions.end(); ++iter) {
+        auto &value = (*iter);
+        headerExtensionsEl->adoptAsLastChild(value.createElement("headerExtension"));
+      }
+      elem->adoptAsLastChild(headerExtensionsEl);
+    }
+    if (mEncodingParameters.size() > 0) {
+      ElementPtr encodingsEl = Element::create("encodings");
+      for (auto iter = mEncodingParameters.begin(); iter != mEncodingParameters.end(); ++iter) {
+        auto &value = (*iter);
+        encodingsEl->adoptAsLastChild(value.createElement("encoding"));
+      }
+      elem->adoptAsLastChild(encodingsEl);
+    }
+
+    elem->adoptAsLastChild(mRTCP.createElement("rtcp"));
+
+    UseHelper::adoptElementValue(elem, IRTPTypes::toString(mDegredationPreference), false);
+
+    if (!elem->hasChildren()) return ElementPtr();
+
+    return elem;
+  }
 
   //---------------------------------------------------------------------------
   ElementPtr IRTPTypes::Parameters::toDebug() const
@@ -2231,6 +2799,138 @@ namespace ortc
   #pragma mark
   #pragma mark IRTPTypes::CodecParameters
   #pragma mark
+
+  //---------------------------------------------------------------------------
+  IRTPTypes::CodecParameters::CodecParameters(ElementPtr elem)
+  {
+    if (!elem) return;
+
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::CodecParameters", "name", mName);
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::CodecParameters", "payloadType", mPayloadType);
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::CodecParameters", "clockRate", mClockRate);
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::CodecParameters", "maxptime", mMaxPTime);
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::CodecParameters", "numChannels", mNumChannels);
+
+    {
+      ElementPtr rtcpFeedbacksEl = elem->findFirstChildElement("rtcpFeedbacks");
+      if (rtcpFeedbacksEl) {
+        ElementPtr rtcpFeedbackEl = rtcpFeedbacksEl->findFirstChildElement("rtcpFeedback");
+        while (rtcpFeedbackEl) {
+          RTCPFeedback feedback(rtcpFeedbackEl);
+          mRTCPFeedback.push_back(feedback);
+          rtcpFeedbackEl = rtcpFeedbackEl->findNextSiblingElement("rtcpFeedback");
+        }
+      }
+    }
+
+    {
+      ElementPtr paramsEl = elem->findFirstChildElement("parameters");
+      if (paramsEl) {
+        SupportedCodecs supported = toSupportedCodec(mName);
+        switch (supported) {
+          case SupportedCodec_Opus: {
+            mParameters = make_shared<OpusCodecParameters>(paramsEl);
+            break;
+          }
+          case SupportedCodec_VP8: {
+            mParameters = make_shared<VP8CodecParameters>(paramsEl);
+            break;
+          }
+          case SupportedCodec_H264: {
+            mParameters = make_shared<H264CodecParameters>(paramsEl);
+            break;
+          }
+          case SupportedCodec_RTX: {
+            mParameters = make_shared<RTXCodecParameters>(paramsEl);
+            break;
+          }
+          case SupportedCodec_RED: {
+            mParameters = make_shared<REDCodecParameters>(paramsEl);
+            break;
+          }
+          case SupportedCodec_FlexFEC: {
+            mParameters = make_shared<FlexFECCodecParameters>(paramsEl);
+            break;
+          }
+          default: break;
+        }
+      }
+    }
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IRTPTypes::CodecParameters::createElement(const char *objectName) const
+  {
+    ElementPtr elem = Element::create(objectName);
+
+    UseHelper::adoptElementValue(elem, "name", mName, false);
+    UseHelper::adoptElementValue(elem, "payloadType", mPayloadType);
+    UseHelper::adoptElementValue(elem, "clockRate", mClockRate);
+    UseHelper::adoptElementValue(elem, "maxptime", mMaxPTime);
+    UseHelper::adoptElementValue(elem, "numChannels", mNumChannels);
+
+    if (mRTCPFeedback.size() > 0) {
+      ElementPtr codecsEl = Element::create("rtcpFeedbacks");
+      for (auto iter = mRTCPFeedback.begin(); iter != mRTCPFeedback.end(); ++iter) {
+        auto &value = (*iter);
+        codecsEl->adoptAsLastChild(value.createElement("rtcpFeedback"));
+      }
+      elem->adoptAsLastChild(codecsEl);
+    }
+
+    if (mParameters) {
+      SupportedCodecs supported = toSupportedCodec(mName);
+      switch (supported) {
+        case SupportedCodec_Opus: {
+          auto params = OpusCodecParameters::convert(mParameters);
+          if (params) {
+            elem->adoptAsLastChild(params->createElement("parameters"));
+          }
+          break;
+        }
+        case SupportedCodec_VP8: {
+          auto params = VP8CodecParameters::convert(mParameters);
+          if (params) {
+            elem->adoptAsLastChild(params->createElement("parameters"));
+          }
+          break;
+        }
+        case SupportedCodec_H264: {
+          auto params = H264CodecParameters::convert(mParameters);
+          if (params) {
+            elem->adoptAsLastChild(params->createElement("parameters"));
+          }
+          break;
+        }
+        case SupportedCodec_RTX: {
+          auto params = RTXCodecParameters::convert(mParameters);
+          if (params) {
+            elem->adoptAsLastChild(params->createElement("parameters"));
+          }
+          break;
+        }
+        case SupportedCodec_RED: {
+          auto params = REDCodecParameters::convert(mParameters);
+          if (params) {
+            elem->adoptAsLastChild(params->createElement("parameters"));
+          }
+          break;
+        }
+        case SupportedCodec_FlexFEC: {
+          auto params = FlexFECCodecParameters::convert(mParameters);
+          if (params) {
+            elem->adoptAsLastChild(params->createElement("parameters"));
+          }
+          break;
+        }
+        default: break;
+      }
+    }
+
+    if (!elem->hasChildren()) return ElementPtr();
+    
+    return elem;
+  }
 
   //---------------------------------------------------------------------------
   IRTPTypes::CodecParameters::CodecParameters(const CodecParameters &source) :
@@ -2503,6 +3203,77 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
+  IRTPTypes::OpusCodecParameters::OpusCodecParameters(ElementPtr elem)
+  {
+    if (!elem) return;
+
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::OpusCodecParameters", "maxPlaybackRate", mMaxPlaybackRate);
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::OpusCodecParameters", "ptime", mPTime);
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::OpusCodecParameters", "maxAverageBitrate", mMaxAverageBitrate);
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::OpusCodecParameters", "cbr", mCBR);
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::OpusCodecParameters", "useInbandFec", mUseInbandFEC);
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::OpusCodecParameters", "useDtx", mUseDTX);
+
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::OpusCodecParameters", "complexity", mComplexity);
+
+    {
+      ElementPtr subEl = elem->findFirstChildElement("signal");
+      if (subEl) {
+        String str = UseServicesHelper::getElementTextAndDecode(subEl);
+        try {
+          mSignal = toSignal(str);
+        } catch(const InvalidParameters &) {
+          ZS_LOG_WARNING(Debug, slog("signal value is not value") + ZS_PARAM("value", str))
+        }
+      }
+    }
+    {
+      ElementPtr subEl = elem->findFirstChildElement("application");
+      if (subEl) {
+        String str = UseServicesHelper::getElementTextAndDecode(subEl);
+        try {
+          mApplication = toApplication(str);
+        } catch(const InvalidParameters &) {
+          ZS_LOG_WARNING(Debug, slog("signal value is not value") + ZS_PARAM("value", str))
+        }
+      }
+    }
+
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::OpusCodecParameters", "packetLossPerc", mPacketLossPerc);
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::OpusCodecParameters", "predictionDisabled", mPredictionDisabled);
+
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::OpusCodecParameters", "spropMaxCaptureRate", mSPropMaxCaptureRate);
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::OpusCodecParameters", "spropStereo", mSPropStereo);
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IRTPTypes::OpusCodecParameters::createElement(const char *objectName) const
+  {
+    ElementPtr elem = Element::create(objectName);
+
+    UseHelper::adoptElementValue(elem, "maxPlaybackRate", mMaxPlaybackRate);
+    UseHelper::adoptElementValue(elem, "ptime", mPTime);
+    UseHelper::adoptElementValue(elem, "maxAverageBitrate", mMaxAverageBitrate);
+    UseHelper::adoptElementValue(elem, "stereo", mStereo);
+    UseHelper::adoptElementValue(elem, "cbr", mCBR);
+    UseHelper::adoptElementValue(elem, "useInbandFec", mUseInbandFEC);
+    UseHelper::adoptElementValue(elem, "UseDtx", mUseDTX);
+
+    UseHelper::adoptElementValue(elem, "complexity", mComplexity);
+    UseHelper::adoptElementValue(elem, "signal", toString(mSignal), false);
+    UseHelper::adoptElementValue(elem, "application", toString(mApplication), false);
+    UseHelper::adoptElementValue(elem, "packetLossPerc", mPacketLossPerc);
+    UseHelper::adoptElementValue(elem, "predictionDisabled", mPredictionDisabled);
+
+    UseHelper::adoptElementValue(elem, "spropMaxCaptureRate", mSPropMaxCaptureRate);
+    UseHelper::adoptElementValue(elem, "spropStereo", mSPropStereo);
+
+    if (!elem->hasChildren()) return ElementPtr();
+    
+    return elem;
+  }
+
+  //---------------------------------------------------------------------------
   IRTPTypes::OpusCodecParametersPtr IRTPTypes::OpusCodecParameters::create(const OpusCodecParameters &capability)
   {
     return make_shared<OpusCodecParameters>(capability);
@@ -2569,6 +3340,26 @@ namespace ortc
   #pragma mark
 
   //---------------------------------------------------------------------------
+  IRTPTypes::RTXCodecParameters::RTXCodecParameters(ElementPtr elem)
+  {
+    if (!elem) return;
+
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::RTXCodecParameters", "rtxTime", mRTXTime);
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IRTPTypes::RTXCodecParameters::createElement(const char *objectName) const
+  {
+    ElementPtr elem = Element::create(objectName);
+
+    UseHelper::adoptElementValue(elem, "rtxTime", mRTXTime);
+
+    if (!elem->hasChildren()) return ElementPtr();
+    
+    return elem;
+  }
+
+  //---------------------------------------------------------------------------
   IRTPTypes::RTXCodecParametersPtr IRTPTypes::RTXCodecParameters::create(const RTXCodecParameters &capability)
   {
     return make_shared<RTXCodecParameters>(capability);
@@ -2609,6 +3400,52 @@ namespace ortc
   #pragma mark
   #pragma mark IRTPTypes::REDCodecParameters
   #pragma mark
+
+
+  //---------------------------------------------------------------------------
+  IRTPTypes::REDCodecParameters::REDCodecParameters(ElementPtr elem)
+  {
+    if (!elem) return;
+
+    {
+      ElementPtr payloadTypesEl = elem->findFirstChildElement("payloadTypes");
+      if (payloadTypesEl) {
+        ElementPtr payloadTypeEl = payloadTypesEl->findFirstChildElement("payloadType");
+        while (payloadTypeEl) {
+          decltype(mPayloadTypes)::value_type value {};
+          String str = UseServicesHelper::getElementText(payloadTypeEl);
+          try {
+            value = Numeric<decltype(mPayloadTypes)::value_type>(str);
+          } catch(Numeric<decltype(mPayloadTypes)::value_type>::ValueOutOfRange &) {
+            ZS_LOG_WARNING(Debug, slog("payload type value out of range") + ZS_PARAM("value", str))
+          }
+          mPayloadTypes.push_back(value);
+          payloadTypeEl = payloadTypeEl->findNextSiblingElement("payloadType");
+        }
+      }
+    }
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IRTPTypes::REDCodecParameters::createElement(const char *objectName) const
+  {
+    ElementPtr elem = Element::create(objectName);
+
+    if (mPayloadTypes.size() > 0) {
+      ElementPtr payloadTypesEl = Element::create("payloadTypes");
+
+      for (auto iter = mPayloadTypes.begin(); iter != mPayloadTypes.end(); ++iter) {
+        auto &value = (*iter);
+        UseHelper::adoptElementValue(payloadTypesEl, "payloadType", value);
+      }
+
+      elem->adoptAsLastChild(payloadTypesEl);
+    }
+
+    if (!elem->hasChildren()) return ElementPtr();
+    
+    return elem;
+  }
 
   //---------------------------------------------------------------------------
   IRTPTypes::REDCodecParametersPtr IRTPTypes::REDCodecParameters::create(const REDCodecParameters &capability)
@@ -2664,6 +3501,43 @@ namespace ortc
   #pragma mark
   #pragma mark IRTPTypes::FlexFECCodecParameters
   #pragma mark
+
+  //---------------------------------------------------------------------------
+  IRTPTypes::FlexFECCodecParameters::FlexFECCodecParameters(ElementPtr elem)
+  {
+    if (!elem) return;
+
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::FlexFECCodecParameters", "rtxTime", mRepairWindow);
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::FlexFECCodecParameters", "l", mL);
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::FlexFECCodecParameters", "d", mD);
+
+    {
+      ElementPtr subEl = elem->findFirstChildElement("toP");
+      if (subEl) {
+        String str = UseServicesHelper::getElementTextAndDecode(subEl);
+        try {
+          mToP = IRTPTypes::FlexFECCodecParameters::toToP(str);
+        } catch(const InvalidParameters &) {
+          ZS_LOG_WARNING(Debug, slog("degredation preference is not valid") + ZS_PARAM("value", str))
+        }
+      }
+    }
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IRTPTypes::FlexFECCodecParameters::createElement(const char *objectName) const
+  {
+    ElementPtr elem = Element::create(objectName);
+
+    UseHelper::adoptElementValue(elem, "repairWindow", mRepairWindow);
+    UseHelper::adoptElementValue(elem, "l", mL);
+    UseHelper::adoptElementValue(elem, "d", mD);
+    UseHelper::adoptElementValue(elem, "toP", string(mToP), false);
+
+    if (!elem->hasChildren()) return ElementPtr();
+
+    return elem;
+  }
 
   //---------------------------------------------------------------------------
   const char *IRTPTypes::FlexFECCodecParameters::toString(ToPs top)
@@ -2743,6 +3617,30 @@ namespace ortc
   #pragma mark
 
   //---------------------------------------------------------------------------
+  IRTPTypes::HeaderExtensionParameters::HeaderExtensionParameters(ElementPtr elem)
+  {
+    if (!elem) return;
+
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::HeaderExtensionParameters", "uri", mURI);
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::HeaderExtensionParameters", "id", mID);
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::HeaderExtensionParameters", "encrypt", mEncrypt);
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IRTPTypes::HeaderExtensionParameters::createElement(const char *objectName) const
+  {
+    ElementPtr elem = Element::create(objectName);
+
+    UseHelper::adoptElementValue(elem, "uri", mURI, false);
+    UseHelper::adoptElementValue(elem, "id", mID);
+    UseHelper::adoptElementValue(elem, "encrypt", mEncrypt);
+
+    if (!elem->hasChildren()) return ElementPtr();
+
+    return elem;
+  }
+
+  //---------------------------------------------------------------------------
   ElementPtr IRTPTypes::HeaderExtensionParameters::toDebug() const
   {
     ElementPtr resultEl = Element::create("ortc::IRTPTypes::HeaderExtensionParameters");
@@ -2780,6 +3678,28 @@ namespace ortc
   #pragma mark
 
   //---------------------------------------------------------------------------
+  IRTPTypes::FECParameters::FECParameters(ElementPtr elem)
+  {
+    if (!elem) return;
+
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::FECParameters", "ssrc", mSSRC);
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::FECParameters", "mechanism", mMechanism);
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IRTPTypes::FECParameters::createElement(const char *objectName) const
+  {
+    ElementPtr elem = Element::create(objectName);
+
+    UseHelper::adoptElementValue(elem, "ssrc", mSSRC);
+    UseHelper::adoptElementValue(elem, "mechanism", mMechanism, false);
+
+    if (!elem->hasChildren()) return ElementPtr();
+
+    return elem;
+  }
+
+  //---------------------------------------------------------------------------
   ElementPtr IRTPTypes::FECParameters::toDebug() const
   {
     ElementPtr resultEl = Element::create("ortc::IRTPTypes::FECParameters");
@@ -2812,6 +3732,28 @@ namespace ortc
   #pragma mark
   #pragma mark IRTPTypes::RTXParameters
   #pragma mark
+
+  //---------------------------------------------------------------------------
+  IRTPTypes::RTXParameters::RTXParameters(ElementPtr elem)
+  {
+    if (!elem) return;
+
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::RTXParameters", "ssrc", mSSRC);
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::RTXParameters", "payloadType", mPayloadType);
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IRTPTypes::RTXParameters::createElement(const char *objectName) const
+  {
+    ElementPtr elem = Element::create(objectName);
+
+    UseHelper::adoptElementValue(elem, "ssrc", mSSRC);
+    UseHelper::adoptElementValue(elem, "payloadType", mPayloadType);
+
+    if (!elem->hasChildren()) return ElementPtr();
+
+    return elem;
+  }
 
   //---------------------------------------------------------------------------
   ElementPtr IRTPTypes::RTXParameters::toDebug() const
@@ -2883,6 +3825,99 @@ namespace ortc
   #pragma mark IRTPTypes::EncodingParameters
   #pragma mark
 
+  //---------------------------------------------------------------------------
+  IRTPTypes::EncodingParameters::EncodingParameters(ElementPtr elem)
+  {
+    if (!elem) return;
+
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::EncodingParameters", "ssrc", mSSRC);
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::EncodingParameters", "codecPayloadType", mCodecPayloadType);
+
+    {
+      ElementPtr subEl = elem->findFirstChildElement("fec");
+      if (subEl) {
+        mFEC = FECParameters(subEl);
+      }
+    }
+    {
+      ElementPtr subEl = elem->findFirstChildElement("rtx");
+      if (subEl) {
+        mRTX = RTXParameters(subEl);
+      }
+    }
+
+    if (mFEC.hasValue()) {
+      elem->adoptAsLastChild(mFEC.value().createElement("fec"));
+    }
+    if (mRTX.hasValue()) {
+      elem->adoptAsLastChild(mRTX.value().createElement("rtx"));
+    }
+
+    {
+      ElementPtr subEl = elem->findFirstChildElement("priority");
+      if (subEl) {
+        String str = UseServicesHelper::getElementTextAndDecode(subEl);
+        try {
+          mPriority = IRTPTypes::toPriorityType(str);
+        } catch(const InvalidParameters &) {
+          ZS_LOG_WARNING(Debug, slog("priority type is not valid") + ZS_PARAM("value", str))
+        }
+      }
+    }
+
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::EncodingParameters", "maxBitrate", mMaxBitrate);
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::EncodingParameters", "minQuality", mMinQuality);
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::EncodingParameters", "active", mActive);
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::EncodingParameters", "encodingId", mEncodingID);
+
+    {
+      ElementPtr dependencyEncodingIDsEl = elem->findFirstChildElement("dependencyEncodingIds");
+      if (dependencyEncodingIDsEl) {
+        ElementPtr dependencyEncodingIDEl = dependencyEncodingIDsEl->findFirstChildElement("dependencyEncodingId");
+        while (dependencyEncodingIDEl) {
+          mDependencyEncodingIDs.push_back(UseServicesHelper::getElementTextAndDecode(dependencyEncodingIDEl));
+          dependencyEncodingIDEl = dependencyEncodingIDEl->findNextSiblingElement("dependencyEncodingId");
+        }
+      }
+    }
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IRTPTypes::EncodingParameters::createElement(const char *objectName) const
+  {
+    ElementPtr elem = Element::create(objectName);
+
+    UseHelper::adoptElementValue(elem, "ssrc", mSSRC);
+    UseHelper::adoptElementValue(elem, "codecPayloadType", mCodecPayloadType);
+
+    if (mFEC.hasValue()) {
+      elem->adoptAsLastChild(mFEC.value().createElement("fec"));
+    }
+    if (mRTX.hasValue()) {
+      elem->adoptAsLastChild(mRTX.value().createElement("rtx"));
+    }
+
+    UseHelper::adoptElementValue(elem, "priority", toString(mPriority));
+    UseHelper::adoptElementValue(elem, "maxBitrate", mMaxBitrate);
+    UseHelper::adoptElementValue(elem, "minQuality", mMinQuality);
+    UseHelper::adoptElementValue(elem, "active", mActive);
+    UseHelper::adoptElementValue(elem, "encodingId", mEncodingID, false);
+
+    if (mDependencyEncodingIDs.size() > 0) {
+      ElementPtr dependencyEncodingIDsEl = Element::create("dependencyEncodingIds");
+
+      for (auto iter = mDependencyEncodingIDs.begin(); iter != mDependencyEncodingIDs.end(); ++iter) {
+        auto value = (*iter);
+        UseHelper::adoptElementValue(dependencyEncodingIDsEl, "dependencyEncodingId", value, false);
+      }
+
+      elem->adoptAsLastChild(dependencyEncodingIDsEl);
+    }
+
+    if (!elem->hasChildren()) return ElementPtr();
+
+    return elem;
+  }
   //---------------------------------------------------------------------------
   ElementPtr IRTPTypes::EncodingParameters::toDebug() const
   {

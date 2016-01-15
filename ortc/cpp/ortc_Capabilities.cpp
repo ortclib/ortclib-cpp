@@ -31,11 +31,13 @@
 
 #include <ortc/internal/types.h>
 #include <ortc/internal/platform.h>
+#include <ortc/internal/ortc_Helper.h>
 
 #include <ortc/ICapabilities.h>
 
 #include <openpeer/services/IHelper.h>
 
+#include <zsLib/Numeric.h>
 #include <zsLib/Stringize.h>
 #include <zsLib/Log.h>
 #include <zsLib/XML.h>
@@ -51,7 +53,18 @@ namespace ortc
   ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHelper, UseServicesHelper)
   ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHTTP, UseHTTP)
 
+  ZS_DECLARE_TYPEDEF_PTR(ortc::internal::Helper, UseHelper)
+
   typedef openpeer::services::Hasher<CryptoPP::SHA1> SHA1Hasher;
+
+  using zsLib::Numeric;
+  using zsLib::Log;
+
+  //-----------------------------------------------------------------------
+  static Log::Params slog(const char *message)
+  {
+    return Log::Params(message, "ortc::ICapabilities");
+  }
 
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
@@ -60,6 +73,48 @@ namespace ortc
   #pragma mark
   #pragma mark ICapabilities::CapabilityBool
   #pragma mark
+
+  //---------------------------------------------------------------------------
+  ICapabilities::CapabilityBool::CapabilityBool(
+                                                ElementPtr elem,
+                                                const char *objectName
+                                                )
+  {
+    if (!elem) return;
+
+    ElementPtr subEl = elem->findFirstChildElement(objectName);
+    while (subEl) {
+
+      String text = UseServicesHelper::getElementText(subEl);
+
+      try {
+        bool value = Numeric<bool>(text);
+        insert(value);
+      } catch(Numeric<bool>::ValueOutOfRange &) {
+        ZS_LOG_WARNING(Debug, slog("value out of range") + ZS_PARAM("value", text))
+      }
+      
+      subEl = subEl->findNextSiblingElement(objectName);
+    }
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr ICapabilities::CapabilityBool::createElement(
+                                                          const char *objectName,
+                                                          const char *objectValueName
+                                                          ) const
+  {
+    ElementPtr outerEl = Element::create(objectName);
+
+    for (auto iter = begin(); iter != end(); ++iter) {
+      auto value = (*iter);
+
+      UseHelper::adoptElementValue(outerEl, objectValueName, value);
+    }
+
+    if (!outerEl->hasChildren()) return ElementPtr();
+    return outerEl;
+  }
 
   //---------------------------------------------------------------------------
   ElementPtr ICapabilities::CapabilityBool::toDebug() const
@@ -99,6 +154,54 @@ namespace ortc
   #pragma mark ICapabilities::CapabilityLong
   #pragma mark
 
+
+  //---------------------------------------------------------------------------
+  ICapabilities::CapabilityLong::CapabilityLong(ElementPtr elem)
+  {
+    if (!elem) return;
+
+    Optional<decltype(mMin)> min;
+    Optional<decltype(mMax)> max;
+
+    UseHelper::getElementValue(elem, "ortc::ICapabilities::CapabilityLong", "min", min);
+    UseHelper::getElementValue(elem, "ortc::ICapabilities::CapabilityLong", "max", min);
+
+    bool found = false;
+
+    if (min.hasValue()) {
+      mMin = min.value();
+      found = true;
+    }
+    if (max.hasValue()) {
+      mMax = max.value();
+      found = true;
+    }
+
+    if (!found) {
+      String str = UseServicesHelper::getElementText(elem);
+      try {
+        mMin = mMax = Numeric<decltype(mMin)>(str);
+      } catch(Numeric<decltype(mMin)>::ValueOutOfRange &) {
+        ZS_LOG_WARNING(Debug, slog("max value out of range") + ZS_PARAM("value", str))
+      }
+    }
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr ICapabilities::CapabilityLong::createElement(const char *objectName) const
+  {
+    if (mMin == mMax) {
+      return UseServicesHelper::createElementWithNumber(objectName, string(mMin));
+    }
+
+    ElementPtr elem = Element::create(objectName);
+
+    UseHelper::adoptElementValue(elem, "min", mMin);
+    UseHelper::adoptElementValue(elem, "max", mMax);
+
+    return elem;
+  }
+
   //---------------------------------------------------------------------------
   ElementPtr ICapabilities::CapabilityLong::toDebug() const
   {
@@ -137,6 +240,52 @@ namespace ortc
   #pragma mark
 
   //---------------------------------------------------------------------------
+  ICapabilities::CapabilityDouble::CapabilityDouble(ElementPtr elem)
+  {
+    if (!elem) return;
+
+    bool found = false;
+
+    Optional<decltype(mMin)> min;
+    Optional<decltype(mMax)> max;
+
+    UseHelper::getElementValue(elem, "ortc::ICapabilities::CapabilityDouble", "min", min);
+    UseHelper::getElementValue(elem, "ortc::ICapabilities::CapabilityDouble", "max", max);
+
+    if (min.hasValue()) {
+      mMin = min.value();
+      found = true;
+    }
+    if (max.hasValue()) {
+      mMax = max.value();
+      found = true;
+    }
+
+    if (!found) {
+      String str = UseServicesHelper::getElementText(elem);
+      try {
+        mMin = mMax = Numeric<decltype(mMin)>(str);
+      } catch(Numeric<decltype(mMin)>::ValueOutOfRange &) {
+        ZS_LOG_WARNING(Debug, slog("max value out of range") + ZS_PARAM("value", str))
+      }
+    }
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr ICapabilities::CapabilityDouble::createElement(const char *objectName) const
+  {
+    if (mMin == mMax) {
+      return UseServicesHelper::createElementWithNumber(objectName, string(mMin));
+    }
+
+    ElementPtr outerEl = Element::create(objectName);
+
+    outerEl->adoptAsLastChild(UseServicesHelper::createElementWithNumber("min", string(mMin)));
+    outerEl->adoptAsLastChild(UseServicesHelper::createElementWithNumber("max", string(mMax)));
+
+    return outerEl;
+  }
+  //---------------------------------------------------------------------------
   ElementPtr ICapabilities::CapabilityDouble::toDebug() const
   {
     ElementPtr resultEl = Element::create("ortc::ICapabilities::CapabilityDouble");
@@ -173,6 +322,46 @@ namespace ortc
   #pragma mark
   #pragma mark ICapabilities::CapabilityString
   #pragma mark
+
+
+  //---------------------------------------------------------------------------
+  ICapabilities::CapabilityString::CapabilityString(
+                                                    ElementPtr elem,
+                                                    const char *objectName
+                                                    )
+  {
+    if (!elem) return;
+
+    ElementPtr subEl = elem->findFirstChildElement(objectName);
+    while (subEl) {
+
+      String text = UseServicesHelper::getElementTextAndDecode(subEl);
+      insert(text);
+
+      subEl = subEl->findNextSiblingElement(objectName);
+    }
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr ICapabilities::CapabilityString::createElement(
+                                                            const char *objectName,
+                                                            const char *objectValueName
+                                                            ) const
+  {
+    ElementPtr outerEl = Element::create(objectName);
+
+    for (auto iter = begin(); iter != end(); ++iter) {
+      auto value = (*iter);
+
+      auto innerEl = UseServicesHelper::createElementWithTextAndJSONEncode(objectValueName, value);
+
+      outerEl->adoptAsLastChild(innerEl);
+    }
+
+    if (!outerEl->hasChildren()) return ElementPtr();
+    return outerEl;
+  }
+  
 
   //---------------------------------------------------------------------------
   ElementPtr ICapabilities::CapabilityString::toDebug() const

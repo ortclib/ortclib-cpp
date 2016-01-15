@@ -35,6 +35,7 @@
 #include <ortc/internal/ortc_RTPSenderChannel.h>
 #include <ortc/internal/ortc_RTPReceiver.h>
 #include <ortc/internal/ortc_RTPReceiverChannel.h>
+#include <ortc/internal/ortc_Helper.h>
 #include <ortc/internal/ortc_ORTC.h>
 #include <ortc/internal/platform.h>
 
@@ -42,6 +43,7 @@
 #include <openpeer/services/IHelper.h>
 #include <openpeer/services/IHTTP.h>
 
+#include <zsLib/Numeric.h>
 #include <zsLib/Stringize.h>
 #include <zsLib/Log.h>
 #include <zsLib/XML.h>
@@ -68,10 +70,15 @@ namespace ortc
   ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHelper, UseServicesHelper)
   ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHTTP, UseHTTP)
 
+  ZS_DECLARE_TYPEDEF_PTR(ortc::internal::Helper, UseHelper)
+
   typedef openpeer::services::Hasher<CryptoPP::SHA1> SHA1Hasher;
 
   using zsLib::SingletonManager;
   using zsLib::DOUBLE;
+
+  using zsLib::Numeric;
+  using zsLib::Log;
 
   namespace internal
   {
@@ -990,6 +997,20 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   #pragma mark
+  #pragma mark (helpers)
+  #pragma mark
+
+  //-----------------------------------------------------------------------
+  static Log::Params slog(const char *message)
+  {
+    return Log::Params(message, "ortc::IMediaStreamTrackTypes");
+  }
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
   #pragma mark IMediaStreamTrackTypes
   #pragma mark
 
@@ -1020,6 +1041,129 @@ namespace ortc
   #pragma mark
   #pragma mark IMediaStreamTrackTypes::Capabilities
   #pragma mark
+
+  //---------------------------------------------------------------------------
+  IMediaStreamTrackTypes::Capabilities::Capabilities(ElementPtr elem)
+  {
+    if (!elem) return;
+
+    {
+      ElementPtr entryEl = elem->findFirstChildElement("width");
+      if (entryEl) {
+        mWidth = CapabilityLong(entryEl);
+      }
+    }
+    {
+      ElementPtr entryEl = elem->findFirstChildElement("height");
+      if (entryEl) {
+        mHeight = CapabilityLong(entryEl);
+      }
+    }
+    {
+      ElementPtr entryEl = elem->findFirstChildElement("aspectRatio");
+      if (entryEl) {
+        mAspectRatio = CapabilityDouble(entryEl);
+      }
+    }
+    {
+      ElementPtr entryEl = elem->findFirstChildElement("frameRate");
+      if (entryEl) {
+        mFrameRate = CapabilityDouble(entryEl);
+      }
+    }
+    {
+      ElementPtr entryEl = elem->findFirstChildElement("facingMode");
+      if (entryEl) {
+        mFacingMode = CapabilityString(entryEl);
+      }
+    }
+    {
+      ElementPtr entryEl = elem->findFirstChildElement("orientation");
+      if (entryEl) {
+        mOrientation = CapabilityString(entryEl);
+      }
+    }
+    {
+      ElementPtr entryEl = elem->findFirstChildElement("volume");
+      if (entryEl) {
+        mVolume = CapabilityDouble(entryEl);
+      }
+    }
+    {
+      ElementPtr entryEl = elem->findFirstChildElement("sampleRate");
+      if (entryEl) {
+        mSampleRate = CapabilityLong(entryEl);
+      }
+    }
+    {
+      ElementPtr entryEl = elem->findFirstChildElement("sampleSize");
+      if (entryEl) {
+        mSampleSize = CapabilityLong(entryEl);
+      }
+    }
+    {
+      ElementPtr entryEl = elem->findFirstChildElement("echoCancellation");
+      if (entryEl) {
+        mEchoCancellation = CapabilityBool(entryEl);
+      }
+    }
+    {
+      ElementPtr entryEl = elem->findFirstChildElement("latency");
+      if (entryEl) {
+        mLatency = CapabilityDouble(entryEl);
+      }
+    }
+
+    UseHelper::getElementValue(elem, "deviceId", "ortc::IMediaStreamTrackTypes::Capabilities", mDeviceID);
+    UseHelper::getElementValue(elem, "groupId", "ortc::IMediaStreamTrackTypes::Capabilities", mGroupID);
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IMediaStreamTrackTypes::Capabilities::createElement(const char *objectName) const
+  {
+    ElementPtr elem = Element::create(objectName);
+
+    if (mWidth.hasValue()) {
+      elem->adoptAsLastChild(mWidth.value().createElement("width"));
+    }
+    if (mHeight.hasValue()) {
+      elem->adoptAsLastChild(mHeight.value().createElement("height"));
+    }
+    if (mAspectRatio.hasValue()) {
+      elem->adoptAsLastChild(mAspectRatio.value().createElement("aspectRatio"));
+    }
+    if (mFrameRate.hasValue()) {
+      elem->adoptAsLastChild(mFrameRate.value().createElement("frameRate"));
+    }
+    if (mFacingMode.hasValue()) {
+      elem->adoptAsLastChild(mFacingMode.value().createElement("facingMode"));
+    }
+    if (mOrientation.hasValue()) {
+      elem->adoptAsLastChild(mOrientation.value().createElement("orientation"));
+    }
+    if (mVolume.hasValue()) {
+      elem->adoptAsLastChild(mVolume.value().createElement("volume"));
+    }
+    if (mSampleRate.hasValue()) {
+      elem->adoptAsLastChild(mSampleRate.value().createElement("sampleRate"));
+    }
+    if (mSampleSize.hasValue()) {
+      elem->adoptAsLastChild(mSampleSize.value().createElement("sampleSize"));
+    }
+    if (mEchoCancellation.hasValue()) {
+      elem->adoptAsLastChild(mEchoCancellation.value().createElement("echoCancellation"));
+    }
+    if (mLatency.hasValue()) {
+      elem->adoptAsLastChild(mLatency.value().createElement("latency"));
+    }
+
+    UseHelper::adoptElementValue(elem, "deviceId", mDeviceID, false);
+    UseHelper::adoptElementValue(elem, "groupId", mGroupID, false);
+
+    if (!elem->hasChildren()) return ElementPtr();
+
+    return elem;
+  }
 
   //---------------------------------------------------------------------------
   IMediaStreamTrackTypes::CapabilitiesPtr IMediaStreamTrackTypes::Capabilities::create()
@@ -1104,6 +1248,50 @@ namespace ortc
   #pragma mark
   #pragma mark IMediaStreamTrackTypes::Settings
   #pragma mark
+
+  //---------------------------------------------------------------------------
+  IMediaStreamTrackTypes::Settings::Settings(ElementPtr elem)
+  {
+    if (!elem) return;
+
+    UseHelper::getElementValue(elem, "ortc::IMediaStreamTrackTypes::Settings", "width", mWidth);
+    UseHelper::getElementValue(elem, "ortc::IMediaStreamTrackTypes::Settings", "height", mHeight);
+    UseHelper::getElementValue(elem, "ortc::IMediaStreamTrackTypes::Settings", "aspectRatio", mAspectRatio);
+    UseHelper::getElementValue(elem, "ortc::IMediaStreamTrackTypes::Settings", "frameRate", mFrameRate);
+    UseHelper::getElementValue(elem, "ortc::IMediaStreamTrackTypes::Settings", "facingMode", mFacingMode);
+    UseHelper::getElementValue(elem, "ortc::IMediaStreamTrackTypes::Settings", "orientation", mOrientation);
+    UseHelper::getElementValue(elem, "ortc::IMediaStreamTrackTypes::Settings", "volume", mVolume);
+    UseHelper::getElementValue(elem, "ortc::IMediaStreamTrackTypes::Settings", "sampleRate", mSampleRate);
+    UseHelper::getElementValue(elem, "ortc::IMediaStreamTrackTypes::Settings", "sampleSize", mSampleSize);
+    UseHelper::getElementValue(elem, "ortc::IMediaStreamTrackTypes::Settings", "echoCancellation", mEchoCancellation);
+    UseHelper::getElementValue(elem, "ortc::IMediaStreamTrackTypes::Settings", "latency", mLatency);
+    UseHelper::getElementValue(elem, "ortc::IMediaStreamTrackTypes::Settings", "deviceId", mDeviceID);
+    UseHelper::getElementValue(elem, "ortc::IMediaStreamTrackTypes::Settings", "groupId", mGroupID);
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IMediaStreamTrackTypes::Settings::createElement(const char *objectName) const
+  {
+    ElementPtr elem = Element::create(objectName);
+
+    UseHelper::adoptElementValue(elem, "width", mWidth);
+    UseHelper::adoptElementValue(elem, "height", mHeight);
+    UseHelper::adoptElementValue(elem, "aspectRatio", mAspectRatio);
+    UseHelper::adoptElementValue(elem, "frameRate", mFrameRate);
+    UseHelper::adoptElementValue(elem, "facingMode", mFacingMode);
+    UseHelper::adoptElementValue(elem, "orientation", mOrientation);
+    UseHelper::adoptElementValue(elem, "volume", mVolume);
+    UseHelper::adoptElementValue(elem, "sampleRate", mSampleRate);
+    UseHelper::adoptElementValue(elem, "sampleSize", mSampleSize);
+    UseHelper::adoptElementValue(elem, "echoCancellation", mEchoCancellation);
+    UseHelper::adoptElementValue(elem, "latency", mLatency);
+    UseHelper::adoptElementValue(elem, "deviceId", mDeviceID);
+    UseHelper::adoptElementValue(elem, "groupId", mGroupID);
+
+    if (!elem->hasChildren()) return ElementPtr();
+
+    return elem;
+  }
 
   //---------------------------------------------------------------------------
   IMediaStreamTrackTypes::SettingsPtr IMediaStreamTrackTypes::Settings::create()
@@ -1196,6 +1384,115 @@ namespace ortc
   #pragma mark
 
   //---------------------------------------------------------------------------
+  IMediaStreamTrackTypes::ConstraintSet::ConstraintSet(ElementPtr elem)
+  {
+    if (!elem) return;
+
+    {
+      ElementPtr entryEl = elem->findFirstChildElement("width");
+      if (entryEl) {
+        mWidth = ConstrainLong(entryEl);
+      }
+    }
+    {
+      ElementPtr entryEl = elem->findFirstChildElement("height");
+      if (entryEl) {
+        mHeight = ConstrainLong(entryEl);
+      }
+    }
+    {
+      ElementPtr entryEl = elem->findFirstChildElement("aspectRatio");
+      if (entryEl) {
+        mAspectRatio = ConstrainDouble(entryEl);
+      }
+    }
+    {
+      ElementPtr entryEl = elem->findFirstChildElement("frameRate");
+      if (entryEl) {
+        mFrameRate = ConstrainDouble(entryEl);
+      }
+    }
+    {
+      ElementPtr entryEl = elem->findFirstChildElement("facingMode");
+      if (entryEl) {
+        mFacingMode = ConstrainString(entryEl);
+      }
+    }
+    {
+      ElementPtr entryEl = elem->findFirstChildElement("orientation");
+      if (entryEl) {
+        mOrientation = ConstrainString(entryEl);
+      }
+    }
+    {
+      ElementPtr entryEl = elem->findFirstChildElement("volume");
+      if (entryEl) {
+        mVolume = ConstrainDouble(entryEl);
+      }
+    }
+    {
+      ElementPtr entryEl = elem->findFirstChildElement("sampleRate");
+      if (entryEl) {
+        mSampleRate = ConstrainLong(entryEl);
+      }
+    }
+    {
+      ElementPtr entryEl = elem->findFirstChildElement("sampleSize");
+      if (entryEl) {
+        mSampleSize = ConstrainLong(entryEl);
+      }
+    }
+    {
+      ElementPtr entryEl = elem->findFirstChildElement("echoCancellation");
+      if (entryEl) {
+        mEchoCancellation = ConstrainBool(entryEl);
+      }
+    }
+    {
+      ElementPtr entryEl = elem->findFirstChildElement("latency");
+      if (entryEl) {
+        mLatency = ConstrainDouble(entryEl);
+      }
+    }
+    {
+      ElementPtr entryEl = elem->findFirstChildElement("deviceId");
+      if (entryEl) {
+        mDeviceID = ConstrainString(entryEl);
+      }
+    }
+    {
+      ElementPtr entryEl = elem->findFirstChildElement("groupId");
+      if (entryEl) {
+        mGroupID = ConstrainString(entryEl);
+      }
+    }
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IMediaStreamTrackTypes::ConstraintSet::createElement(const char *objectName) const
+  {
+    ElementPtr elem = Element::create(objectName);
+
+    elem->adoptAsLastChild(mWidth.createElement("width"));
+    elem->adoptAsLastChild(mHeight.createElement("height"));
+    elem->adoptAsLastChild(mAspectRatio.createElement("aspectRatio"));
+    elem->adoptAsLastChild(mFrameRate.createElement("frameRate"));
+    elem->adoptAsLastChild(mFacingMode.createElement("facingMode"));
+    elem->adoptAsLastChild(mOrientation.createElement("orientation"));
+    elem->adoptAsLastChild(mVolume.createElement("volume"));
+    elem->adoptAsLastChild(mSampleRate.createElement("sampleRate"));
+    elem->adoptAsLastChild(mSampleSize.createElement("sampleSize"));
+    elem->adoptAsLastChild(mEchoCancellation.createElement("echoCancellation"));
+    elem->adoptAsLastChild(mLatency.createElement("latency"));
+    elem->adoptAsLastChild(mDeviceID.createElement("deviceId"));
+    elem->adoptAsLastChild(mGroupID.createElement("groupId"));
+
+    if (!elem->hasChildren()) return ElementPtr();
+
+    return elem;
+  }
+
+  //---------------------------------------------------------------------------
   IMediaStreamTrackTypes::ConstraintSetPtr IMediaStreamTrackTypes::ConstraintSet::create()
   {
     return make_shared<ConstraintSet>();
@@ -1275,6 +1572,48 @@ namespace ortc
   #pragma mark
 
   //---------------------------------------------------------------------------
+  IMediaStreamTrackTypes::TrackConstraints::TrackConstraints(ElementPtr elem)
+  {
+    if (!elem) return;
+
+    ElementPtr constraintSetsEl = elem->findFirstChildElement("constraintSets");
+
+    ElementPtr constraintSetEl;
+    if (constraintSetsEl) {
+      constraintSetEl = constraintSetEl->findFirstChildElement("constraintSet");
+    } else {
+      constraintSetEl = elem->findFirstChildElement("constraintSet");
+    }
+
+    while (constraintSetEl) {
+      mAdvanced.push_back(make_shared<ConstraintSet>(constraintSetEl));
+      constraintSetEl = constraintSetEl->findNextSiblingElement("constraintSet");
+    }
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IMediaStreamTrackTypes::TrackConstraints::createElement(const char *objectName) const
+  {
+    ElementPtr elem = Element::create(objectName);
+
+    ElementPtr constraintSetsEl = Element::create("constraintSets");
+
+    for (auto iter = mAdvanced.begin(); iter != mAdvanced.end(); ++iter) {
+      auto value = (*iter);
+
+      constraintSetsEl->adoptAsLastChild(value->createElement("constraintSet"));
+    }
+
+    if (constraintSetsEl->hasChildren()) {
+      elem->adoptAsLastChild(constraintSetsEl);
+    }
+
+    if (!elem->hasChildren()) return ElementPtr();
+
+    return elem;
+  }
+
+  //---------------------------------------------------------------------------
   IMediaStreamTrackTypes::TrackConstraintsPtr IMediaStreamTrackTypes::TrackConstraints::create()
   {
     return make_shared<TrackConstraints>();
@@ -1341,6 +1680,42 @@ namespace ortc
   #pragma mark
   #pragma mark IMediaStreamTrackTypes::ConstraintSet
   #pragma mark
+
+  //---------------------------------------------------------------------------
+  IMediaStreamTrackTypes::Constraints::Constraints(ElementPtr elem)
+  {
+    if (!elem) return;
+
+    {
+      ElementPtr entryEl = elem->findFirstChildElement("video");
+      if (entryEl) {
+        mVideo = make_shared<TrackConstraints>(entryEl);
+      }
+    }
+    {
+      ElementPtr entryEl = elem->findFirstChildElement("audio");
+      if (entryEl) {
+        mAudio = make_shared<TrackConstraints>(entryEl);
+      }
+    }
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IMediaStreamTrackTypes::Constraints::createElement(const char *objectName) const
+  {
+    ElementPtr elem = Element::create(objectName);
+
+    if (mVideo) {
+      elem->adoptAsLastChild(mVideo->createElement("video"));
+    }
+    if (mAudio) {
+      elem->adoptAsLastChild(mVideo->createElement("audio"));
+    }
+
+    if (!elem->hasChildren()) return ElementPtr();
+    
+    return elem;
+  }
 
   //---------------------------------------------------------------------------
   IMediaStreamTrackTypes::ConstraintsPtr IMediaStreamTrackTypes::Constraints::create()

@@ -710,28 +710,28 @@ namespace ortc
               IRTPTypes::RTCPFeedback feedback;
               feedback.mType = IRTPTypes::toString(KnownFeedbackType_NACK);
               feedback.mParameter = IRTPTypes::toString(KnownFeedbackParameter_Unknown);
-              codec.mFeedback.push_back(feedback);
+              codec.mRTCPFeedback.push_back(feedback);
             }
             // NACK + PLI
             {
               IRTPTypes::RTCPFeedback feedback;
               feedback.mType = IRTPTypes::toString(KnownFeedbackType_NACK);
               feedback.mParameter = IRTPTypes::toString(KnownFeedbackParameter_PLI);
-              codec.mFeedback.push_back(feedback);
+              codec.mRTCPFeedback.push_back(feedback);
             }
             // CCM + FIR
             {
               IRTPTypes::RTCPFeedback feedback;
               feedback.mType = IRTPTypes::toString(KnownFeedbackType_CCM);
               feedback.mParameter = IRTPTypes::toString(KnownFeedbackParameter_FIR);
-              codec.mFeedback.push_back(feedback);
+              codec.mRTCPFeedback.push_back(feedback);
             }
             // CCM + REMB
             {
               IRTPTypes::RTCPFeedback feedback;
               feedback.mType = IRTPTypes::toString(KnownFeedbackType_CCM);
               feedback.mParameter = IRTPTypes::toString(KnownFeedbackParameter_REMB);
-              codec.mFeedback.push_back(feedback);
+              codec.mRTCPFeedback.push_back(feedback);
             }
 
             codec.mClockRate = 90000;
@@ -916,7 +916,7 @@ namespace ortc
       USHORT preference = 0;
 
       for (IRTPTypes::HeaderExtensionURIs index = IRTPTypes::HeaderExtensionURI_First; index <= IRTPTypes::HeaderExtensionURI_Last; index = static_cast<IRTPTypes::HeaderExtensionURIs>(static_cast<std::underlying_type<IRTPTypes::HeaderExtensionURIs>::type>(index) + 1), ++preference) {
-        IRTPTypes::HeaderExtensions ext;
+        IRTPTypes::HeaderExtension ext;
 
         ext.mPreferredID = preference;
 
