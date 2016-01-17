@@ -233,7 +233,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPSenderChannel::notifyTransportState(ISecureTransport::States state)
+    void RTPSenderChannel::notifyTransportState(ISecureTransportTypes::States state)
     {
       // do NOT lock this object here, instead notify self asynchronously
       IRTPSenderChannelAsyncDelegateProxy::create(mThisWeak.lock())->onSecureTransportState(state);

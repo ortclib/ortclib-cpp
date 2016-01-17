@@ -54,6 +54,7 @@ debugostream &getDebugCout()
 typedef openpeer::services::ILogger ILogger;
 
 void doSetup();
+void doTestRTPChannel();
 void doTestRTPReceiver();
 void doTestRTPSender();
 void doTestRTPListener();
@@ -161,6 +162,7 @@ namespace Testing
 
     doSetup();
 
+    TESTING_RUN_TEST_FUNC(doTestRTPChannel)
     TESTING_RUN_TEST_FUNC(doTestRTPSender)
     TESTING_RUN_TEST_FUNC(doTestRTPReceiver)
     TESTING_RUN_TEST_FUNC(doTestRTPListener)
