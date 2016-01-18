@@ -108,7 +108,7 @@ namespace ortc
 
       virtual PUID getID() const = 0;
 
-      virtual void notifyTransportState(ISecureTransport::States state) = 0;
+      virtual void notifyTransportState(ISecureTransportTypes::States state) = 0;
 
       virtual void notifyPackets(RTCPPacketListPtr packets) = 0;
 
@@ -247,7 +247,7 @@ namespace ortc
 
       virtual PUID getID() const override {return mID;}
 
-      virtual void notifyTransportState(ISecureTransport::States state) override;
+      virtual void notifyTransportState(ISecureTransportTypes::States state) override;
 
       virtual void notifyPackets(RTCPPacketListPtr packets) override;
 
