@@ -362,9 +362,9 @@ namespace ortc
                   );
 
     protected:
-      RTPReceiver(Noop) :
+      RTPReceiver(Noop, IMessageQueuePtr queue = IMessageQueuePtr()) :
         Noop(true),
-        MessageQueueAssociator(IMessageQueuePtr()),
+        MessageQueueAssociator(queue),
         SharedRecursiveLock(SharedRecursiveLock::create())
       {}
 

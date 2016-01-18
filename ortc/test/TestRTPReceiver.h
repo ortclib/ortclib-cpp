@@ -917,14 +917,14 @@ namespace ortc
         typedef RTPReceiver::RTCPPacketList RTCPPacketList;
 
       public:
-        FakeSender();
+        FakeSender(IMessageQueuePtr queue);
         ~FakeSender();
 
-        static FakeSenderPtr create();
+        static FakeSenderPtr create(IMessageQueuePtr queue);
 
         //---------------------------------------------------------------------
         #pragma mark
-        #pragma mark FakeSender => IRTPSenderForRTPReceiver
+        #pragma mark FakeSender => IRTPSenderForRTPListener
         #pragma mark
 
         virtual ElementPtr toDebug() const override;
@@ -1269,7 +1269,7 @@ namespace ortc
         FakeSecureTransportPtr getFakeSecureTransport() const;
 
         void notifyReceivedPacket();
-        void notifyReceivedChannelUpdate();
+        void notifyReceiverChannelUpdate();
         void notifyActiveReceiverChannel();
         void notifyReceiverChannelOfSecureTransportState();
 

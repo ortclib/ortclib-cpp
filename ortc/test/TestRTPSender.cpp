@@ -1769,8 +1769,11 @@ namespace ortc
       #pragma mark
 
       //-----------------------------------------------------------------------
-      FakeReceiver::FakeReceiver(IMediaStreamTrackTypes::Kinds kind) :
-        RTPReceiver(Noop(true)),
+      FakeReceiver::FakeReceiver(
+                                 IMessageQueuePtr queue,
+                                 IMediaStreamTrackTypes::Kinds kind
+                                 ) :
+        RTPReceiver(Noop(true), queue),
         mKind(kind)
       {
       }
@@ -1782,9 +1785,12 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      FakeReceiverPtr FakeReceiver::create(IMediaStreamTrackTypes::Kinds kind)
+      FakeReceiverPtr FakeReceiver::create(
+                                           IMessageQueuePtr queue,
+                                           IMediaStreamTrackTypes::Kinds kind
+                                           )
       {
-        FakeReceiverPtr pThis(make_shared<FakeReceiver>(kind));
+        FakeReceiverPtr pThis(make_shared<FakeReceiver>(queue, kind));
         pThis->mThisWeak = pThis;
         return pThis;
       }
@@ -1966,7 +1972,7 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark FakeSender => (internal)
+      #pragma mark FakeReceiver => (internal)
       #pragma mark
 
       //-----------------------------------------------------------------------
@@ -2304,7 +2310,7 @@ namespace ortc
         }
 
         if (!receiver) {
-          receiver = FakeReceiver::create(kind);
+          receiver = FakeReceiver::create(getAssociatedMessageQueue(), kind);
           attach(receiverID, receiver);
         }
 
@@ -2328,7 +2334,7 @@ namespace ortc
         }
 
         if (!receiver) {
-          receiver = FakeReceiver::create(kind);
+          receiver = FakeReceiver::create(getAssociatedMessageQueue(), kind);
           attach(receiverID, receiver);
         }
 
