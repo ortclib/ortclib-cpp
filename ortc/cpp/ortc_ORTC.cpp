@@ -46,6 +46,8 @@ namespace ortc
     ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHelper, UseServicesHelper)
     ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IMessageQueueManager, UseMessageQueueManager)
 
+    void initSubsystems();
+
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -96,6 +98,8 @@ namespace ortc
     ORTC::ORTC(const make_private &) :
       SharedRecursiveLock(SharedRecursiveLock::create())
     {
+      initSubsystems();
+      UseServicesHelper::setup();
       ZS_LOG_DETAIL(log("created"))
     }
 
@@ -137,6 +141,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     ORTCPtr ORTC::singleton()
     {
+      AutoRecursiveLock lock(*UseServicesHelper::getGlobalLock());
       static SingletonLazySharedPtr<ORTC> singleton(ORTC::create());
       ORTCPtr result = singleton.singleton();
       if (!result) {

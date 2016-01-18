@@ -73,6 +73,12 @@ namespace ortc
       Optional<bool> mExact;
       Optional<bool> mIdeal;
 
+      ConstrainBoolParameters() {}
+      ConstrainBoolParameters(const ConstrainBoolParameters &op2) {(*this) = op2;}
+      ConstrainBoolParameters(ElementPtr elem);
+
+      ElementPtr createElement(const char *objectName) const;
+
       ElementPtr toDebug() const;
       String hash() const;
     };
@@ -85,6 +91,12 @@ namespace ortc
     struct ConstrainBool {
       Optional<bool> mValue;
       Optional<ConstrainBoolParameters> mParameters;
+
+      ConstrainBool() {}
+      ConstrainBool(const ConstrainBool &op2) {(*this) = op2;}
+      ConstrainBool(ElementPtr elem);
+
+      ElementPtr createElement(const char *objectName) const;
 
       ElementPtr toDebug() const;
       String hash() const;
@@ -101,6 +113,12 @@ namespace ortc
       Optional<LONG> mExact;
       Optional<LONG> mIdeal;
 
+      ConstrainLongRange() {}
+      ConstrainLongRange(const ConstrainLongRange &op2) {(*this) = op2;}
+      ConstrainLongRange(ElementPtr elem);
+
+      ElementPtr createElement(const char *objectName) const;
+
       ElementPtr toDebug() const;
       String hash() const;
     };
@@ -113,6 +131,12 @@ namespace ortc
     struct ConstrainLong {
       Optional<LONG> mValue;
       Optional<ConstrainLongRange> mRange;
+
+      ConstrainLong() {}
+      ConstrainLong(const ConstrainLong &op2) {(*this) = op2;}
+      ConstrainLong(ElementPtr elem);
+
+      ElementPtr createElement(const char *objectName) const;
 
       ElementPtr toDebug() const;
       String hash() const;
@@ -129,6 +153,12 @@ namespace ortc
       Optional<double> mExact;
       Optional<double> mIdeal;
 
+      ConstrainDoubleRange() {}
+      ConstrainDoubleRange(const ConstrainDoubleRange &op2) {(*this) = op2;}
+      ConstrainDoubleRange(ElementPtr elem);
+
+      ElementPtr createElement(const char *objectName) const;
+
       ElementPtr toDebug() const;
       String hash() const;
     };
@@ -141,6 +171,12 @@ namespace ortc
     struct ConstrainDouble {
       Optional<double> mValue;
       Optional<ConstrainDoubleRange> mRange;
+
+      ConstrainDouble() {}
+      ConstrainDouble(const ConstrainDouble &op2) {(*this) = op2;}
+      ConstrainDouble(ElementPtr elem);
+
+      ElementPtr createElement(const char *objectName) const;
 
       ElementPtr toDebug() const;
       String hash() const;
@@ -155,6 +191,20 @@ namespace ortc
       Optional<String> mValue;
       Optional<StringList> mValues;
 
+      StringOrStringList() {}
+      StringOrStringList(const StringOrStringList &op2) {(*this) = op2;}
+      StringOrStringList(
+                         ElementPtr elem,
+                         const char *objectValueName = "value"
+                         );
+
+      // {"objectName": {"abc"}}
+      // {"objectName": {"objectValueName": ["a","b","c"]}}
+      ElementPtr createElement(
+                               const char *objectName,
+                               const char *objectValueName = "value"
+                               ) const;
+
       ElementPtr toDebug() const;
       String hash() const;
     };
@@ -168,6 +218,12 @@ namespace ortc
       Optional<StringOrStringList> mExact;
       Optional<StringOrStringList> mIdeal;
 
+      ConstrainStringParameters() {}
+      ConstrainStringParameters(const ConstrainStringParameters &op2) {(*this) = op2;}
+      ConstrainStringParameters(ElementPtr elem);
+
+      ElementPtr createElement(const char *objectName) const;
+
       ElementPtr toDebug() const;
       String hash() const;
     };
@@ -180,6 +236,18 @@ namespace ortc
     struct ConstrainString {
       Optional<StringOrStringList> mValue;
       Optional<ConstrainStringParameters> mParameters;
+
+      ConstrainString() {}
+      ConstrainString(const ConstrainString &op2) {(*this) = op2;}
+      ConstrainString(
+                      ElementPtr elem,
+                      const char *objectValueName = "value"
+                      );
+
+      ElementPtr createElement(
+                               const char *objectName,
+                               const char *objectValueName = "value"
+                               ) const;
 
       ElementPtr toDebug() const;
       String hash() const;

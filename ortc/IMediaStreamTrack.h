@@ -107,6 +107,12 @@ namespace ortc
       String                      mDeviceID;
       String                      mGroupID;
 
+      Capabilities() {}
+      Capabilities(const Capabilities &op2) {(*this) = op2;}
+      Capabilities(ElementPtr elem);
+
+      ElementPtr createElement(const char *objectName = "capabilities") const;
+
       static CapabilitiesPtr create();
       static CapabilitiesPtr create(const CapabilitiesPtr &value);
       static CapabilitiesPtr create(const Capabilities &value);
@@ -134,6 +140,12 @@ namespace ortc
       Optional<double>   mLatency;
       Optional<String>   mDeviceID;
       Optional<String>   mGroupID;
+
+      Settings() {}
+      Settings(const Settings &op2) {(*this) = op2;}
+      Settings(ElementPtr elem);
+
+      ElementPtr createElement(const char *objectName = "settings") const;
 
       static SettingsPtr create();
       static SettingsPtr create(const SettingsPtr &value);
@@ -163,6 +175,12 @@ namespace ortc
       ConstrainString   mDeviceID;
       ConstrainString   mGroupID;
 
+      ConstraintSet() {}
+      ConstraintSet(const ConstraintSet &op2) {(*this) = op2;}
+      ConstraintSet(ElementPtr elem);
+
+      ElementPtr createElement(const char *objectName = "constraintSet") const;
+
       static ConstraintSetPtr create();
       static ConstraintSetPtr create(const ConstraintSetPtr &value);
       static ConstraintSetPtr create(const ConstraintSet &value);
@@ -177,6 +195,12 @@ namespace ortc
 
     struct TrackConstraints {
       ConstraintSetList mAdvanced;
+
+      TrackConstraints() {}
+      TrackConstraints(const TrackConstraints &op2) {(*this) = op2;}
+      TrackConstraints(ElementPtr elem);
+
+      ElementPtr createElement(const char *objectName = "trackConstraints") const;
 
       static TrackConstraintsPtr create();
       static TrackConstraintsPtr create(const TrackConstraintsPtr &value);
@@ -193,6 +217,12 @@ namespace ortc
     struct Constraints {
       TrackConstraintsPtr mVideo;
       TrackConstraintsPtr mAudio;
+
+      Constraints() {}
+      Constraints(const Constraints &op2) {(*this) = op2;}
+      Constraints(ElementPtr elem);
+
+      ElementPtr createElement(const char *objectName = "constraints") const;
 
       static ConstraintsPtr create();
       static ConstraintsPtr create(const ConstraintsPtr &value);

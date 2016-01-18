@@ -27,6 +27,9 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\test\TestMediaStreamTrack.h">
       <Filter>ortc\test</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\test\TestRTPSender.h">
+      <Filter>ortc\test</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\test\main.cpp">
@@ -66,6 +69,9 @@
       <Filter>ortc\test</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\test\TestMediaStreamTrack.cpp">
+      <Filter>ortc\test</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\test\TestRTPSender.cpp">
       <Filter>ortc\test</Filter>
     </ClCompile>
   </ItemGroup>

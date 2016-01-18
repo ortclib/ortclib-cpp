@@ -30,6 +30,7 @@
  */
 
 #include <ortc/internal/ortc_StatsReport.h>
+#include <ortc/internal/ortc_Helper.h>
 #include <ortc/internal/ortc_ORTC.h>
 #include <ortc/internal/platform.h>
 
@@ -37,6 +38,7 @@
 #include <openpeer/services/IHelper.h>
 #include <openpeer/services/IHTTP.h>
 
+#include <zsLib/Numeric.h>
 #include <zsLib/Stringize.h>
 #include <zsLib/Log.h>
 #include <zsLib/XML.h>
@@ -58,6 +60,11 @@ namespace ortc
   ZS_DECLARE_TYPEDEF_PTR(openpeer::services::ISettings, UseSettings)
   ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHelper, UseServicesHelper)
   ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHTTP, UseHTTP)
+
+  ZS_DECLARE_TYPEDEF_PTR(ortc::internal::Helper, UseHelper)
+
+  using zsLib::Log;
+  using zsLib::Numeric;
 
   typedef openpeer::services::Hasher<CryptoPP::SHA1> SHA1Hasher;
 
@@ -278,13 +285,65 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   #pragma mark
-  #pragma mark IStatsReportTypes
+  #pragma mark IStatsReportTypes::Stats
   #pragma mark
+
+  //---------------------------------------------------------------------------
+  IStatsReportTypes::Stats::Stats(ElementPtr elem)
+  {
+    if (!elem) return;
+
+    UseHelper::getElementValue(elem, "ortc::IStatsReportTypes::Stats", "timestamp", mTimeStamp);
+    UseHelper::getElementValue(elem, "ortc::IStatsReportTypes::Stats", "statsType", mStatsType);
+    UseHelper::getElementValue(elem, "ortc::IStatsReportTypes::Stats", "id", mID);
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IStatsReportTypes::Stats::createElement(const char *objectName) const
+  {
+    ElementPtr elem = Element::create(objectName);
+
+    UseHelper::adoptElementValue(elem, "timestamp", mTimeStamp);
+    UseHelper::adoptElementValue(elem, "statsType", mStatsType, false);
+    UseHelper::adoptElementValue(elem, "id", mID, false);
+
+    if (!elem->hasChildren()) return ElementPtr();
+
+    return elem;
+  }
 
   //---------------------------------------------------------------------------
   IStatsReportTypes::StatsPtr IStatsReportTypes::Stats::convert(AnyPtr any)
   {
     return ZS_DYNAMIC_PTR_CAST(Stats, any);
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IStatsReportTypes::Stats::toDebug() const
+  {
+    ElementPtr resultEl = Element::create("ortc::IStatsReportTypes::Stats");
+
+    UseServicesHelper::debugAppend(resultEl, "timestamp", mTimeStamp);
+    UseServicesHelper::debugAppend(resultEl, "stats type", mStatsType);
+    UseServicesHelper::debugAppend(resultEl, "id", mID);
+
+    return resultEl;
+  }
+
+  //---------------------------------------------------------------------------
+  String IStatsReportTypes::Stats::hash() const
+  {
+    SHA1Hasher hasher;
+
+    hasher.update("IStatsReportTypes:Stats:");
+
+    hasher.update(mTimeStamp);
+    hasher.update(":");
+    hasher.update(mStatsType);
+    hasher.update(":");
+    hasher.update(mID);
+
+    return hasher.final();
   }
 
   //---------------------------------------------------------------------------

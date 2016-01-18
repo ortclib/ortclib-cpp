@@ -34,6 +34,7 @@
 #include <ortc/internal/ortc_Certificate.h>
 #include <ortc/internal/ortc_RTPListener.h>
 #include <ortc/internal/ortc_SRTPTransport.h>
+#include <ortc/internal/ortc_Helper.h>
 #include <ortc/internal/ortc_ORTC.h>
 #include <ortc/internal/platform.h>
 #include <ortc/ISRTPSDESTransport.h>
@@ -42,6 +43,7 @@
 #include <openpeer/services/IHelper.h>
 #include <openpeer/services/IHTTP.h>
 
+#include <zsLib/Numeric.h>
 #include <zsLib/Stringize.h>
 #include <zsLib/Log.h>
 #include <zsLib/SafeInt.h>
@@ -78,6 +80,11 @@ namespace ortc
 #ifndef RTC_UNUSED
 #define RTC_UNUSED(x) RtcUnused(static_cast<const void*>(&x))
 #endif //RTC_UNUSED
+
+  ZS_DECLARE_TYPEDEF_PTR(ortc::internal::Helper, UseHelper)
+
+  using zsLib::Numeric;
+  using zsLib::Log;
 
   namespace internal
   {
@@ -2889,6 +2896,20 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   #pragma mark
+  #pragma mark (helpers)
+  #pragma mark
+
+  //-----------------------------------------------------------------------
+  static Log::Params slog(const char *message)
+  {
+    return Log::Params(message, "ortc::IDTLSTransportTypes");
+  }
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
   #pragma mark IDTLSTransportTypes::States
   #pragma mark
 
@@ -2957,6 +2978,61 @@ namespace ortc
   #pragma mark
   #pragma mark IDTLSTransportTypes::Parameters
   #pragma mark
+
+  //---------------------------------------------------------------------------
+  IDTLSTransportTypes::Parameters::Parameters(ElementPtr elem)
+  {
+    if (!elem) return;
+
+    {
+      String str = UseServicesHelper::getElementText(elem->findFirstChildElement("role"));
+      if (str.hasData()) {
+        try {
+          mRole = IDTLSTransportTypes::toRole(str);
+        } catch(const InvalidParameters &) {
+          ZS_LOG_WARNING(Debug, slog("role invalid") + ZS_PARAM("value", str))
+        }
+      }
+    }
+
+    {
+      ElementPtr fingerprintsEl = elem->findFirstChildElement("fingerprints");
+      if (fingerprintsEl) {
+        ElementPtr fingerprintEl = fingerprintsEl->findFirstChildElement("fingerprint");
+        while (fingerprintEl) {
+          ICertificate::Fingerprint fingerprint(fingerprintEl);
+
+          mFingerprints.push_back(fingerprint);
+
+          fingerprintEl = fingerprintEl->findNextSiblingElement("fingerprint");
+        }
+      }
+    }
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IDTLSTransportTypes::Parameters::createElement(const char *objectName) const
+  {
+    ElementPtr elem = Element::create(objectName);
+
+    UseHelper::adoptElementValue(elem, "role", IDTLSTransportTypes::toString(mRole));
+
+    if (mFingerprints.size() > 0) {
+      ElementPtr fingerprintsEl = Element::create("fingerprints");
+
+      for (auto iter = mFingerprints.begin(); iter != mFingerprints.end(); ++iter) {
+        auto &fingerprint = (*iter);
+
+        fingerprintsEl->adoptAsLastChild(fingerprint.createElement());
+      }
+
+      elem->adoptAsLastChild(fingerprintsEl);
+    }
+
+    if (!elem->hasChildren()) return ElementPtr();
+    
+    return elem;
+  }
 
   //---------------------------------------------------------------------------
   IDTLSTransportTypes::ParametersPtr IDTLSTransportTypes::Parameters::convert(AnyPtr any)

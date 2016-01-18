@@ -147,6 +147,10 @@ namespace ortc
     //-------------------------------------------------------------------------
     struct GatherCandidate
     {
+      static GatherCandidatePtr create(ElementPtr elem);
+
+      virtual ElementPtr createElement(const char *objectName = NULL) const = 0;
+
       virtual ~GatherCandidate() {} // make polymorphic
     };
 
@@ -168,6 +172,14 @@ namespace ortc
       String            mRelatedAddress;
       WORD              mRelatedPort {};
 
+      static CandidatePtr convert(GatherCandidatePtr candidate);
+
+      Candidate() {}
+      Candidate(const Candidate &op2) {(*this) = op2;}
+      Candidate(ElementPtr elem);
+
+      virtual ElementPtr createElement(const char *objectName = "candidate") const;
+
       ElementPtr toDebug() const;
       String hash(bool includePriorities = true) const;
 
@@ -187,6 +199,14 @@ namespace ortc
     struct CandidateComplete : public GatherCandidate {
       bool mComplete {true};
 
+      static CandidateCompletePtr convert(GatherCandidatePtr candidate);
+
+      CandidateComplete() {}
+      CandidateComplete(const CandidateComplete &op2) {(*this) = op2;}
+      CandidateComplete(ElementPtr elem);
+
+      virtual ElementPtr createElement(const char *objectName = "candidateComplete") const;
+
       ElementPtr toDebug() const;
       String hash() const;
     };
@@ -200,6 +220,13 @@ namespace ortc
       bool mUseCandidateFreezePriority {false};
       String mUsernameFragment;
       String mPassword;
+      bool mICELite {false};
+
+      Parameters() {}
+      Parameters(const Parameters &op2) {(*this) = op2;}
+      Parameters(ElementPtr elem);
+
+      ElementPtr createElement(const char *objectName);
 
       ElementPtr toDebug() const;
       String hash() const;

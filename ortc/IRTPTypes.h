@@ -54,7 +54,7 @@ namespace ortc
     ZS_DECLARE_STRUCT_PTR(OpusCodecCapabilityParameters)
     ZS_DECLARE_STRUCT_PTR(VP8CodecCapabilityParameters)
     ZS_DECLARE_STRUCT_PTR(H264CodecCapabilityParameters)
-    ZS_DECLARE_STRUCT_PTR(HeaderExtensions)
+    ZS_DECLARE_STRUCT_PTR(HeaderExtension)
     ZS_DECLARE_STRUCT_PTR(RTCPFeedback)
     ZS_DECLARE_STRUCT_PTR(Parameters)
     ZS_DECLARE_STRUCT_PTR(CodecParameters)
@@ -71,7 +71,7 @@ namespace ortc
     ZS_DECLARE_STRUCT_PTR(RTXParameters)
 
     ZS_DECLARE_TYPEDEF_PTR(std::list<CodecCapability>, CodecCapabilitiesList)
-    ZS_DECLARE_TYPEDEF_PTR(std::list<HeaderExtensions>, HeaderExtensionsList)
+    ZS_DECLARE_TYPEDEF_PTR(std::list<HeaderExtension>, HeaderExtensionsList)
     ZS_DECLARE_TYPEDEF_PTR(std::list<RTCPFeedback>, RTCPFeedbackList)
     ZS_DECLARE_TYPEDEF_PTR(std::list<CodecParameters>, CodecParametersList)
     ZS_DECLARE_TYPEDEF_PTR(std::list<HeaderExtensionParameters>, HeaderExtensionParametersList)
@@ -114,6 +114,12 @@ namespace ortc
       HeaderExtensionsList  mHeaderExtensions;
       FECMechanismList      mFECMechanisms;
 
+      Capabilities() {}
+      Capabilities(const Capabilities &op2) {(*this) = op2;}
+      Capabilities(ElementPtr elem);
+
+      ElementPtr createElement(const char *objectName = "capabilities") const;
+
       ElementPtr toDebug() const;
       String hash() const;
     };
@@ -130,7 +136,7 @@ namespace ortc
       PayloadType       mPreferredPayloadType {};
       ULONG             mMaxPTime {};
       ULONG             mNumChannels {};
-      RTCPFeedbackList  mFeedback;
+      RTCPFeedbackList  mRTCPFeedback;
       AnyPtr            mParameters;
       AnyPtr            mOptions;
       USHORT            mMaxTemporalLayers {0};
@@ -139,6 +145,10 @@ namespace ortc
 
       CodecCapability() {};
       CodecCapability(const CodecCapability &source);
+      CodecCapability(ElementPtr elem);
+
+      ElementPtr createElement(const char *objectName = "codecCapability") const;
+
       ElementPtr toDebug() const;
       String hash() const;
     };
@@ -156,6 +166,12 @@ namespace ortc
       bool mApplication {};
       bool mPacketLossPerc {};
       bool mPredictionDisabled {};
+
+      OpusCodecCapabilityOptions() {}
+      OpusCodecCapabilityOptions(const OpusCodecCapabilityOptions &op2) {(*this) = op2;}
+      OpusCodecCapabilityOptions(ElementPtr elem);
+
+      ElementPtr createElement(const char *objectName = "codecCapability") const;
 
       static OpusCodecCapabilityOptionsPtr create(const OpusCodecCapabilityOptions &capability);
       static OpusCodecCapabilityOptionsPtr convert(AnyPtr any);
@@ -184,6 +200,12 @@ namespace ortc
       Optional<ULONG> mSPropMaxCaptureRate;
       Optional<bool> mSPropStereo;
 
+      OpusCodecCapabilityParameters() {}
+      OpusCodecCapabilityParameters(const OpusCodecCapabilityParameters &op2) {(*this) = op2;}
+      OpusCodecCapabilityParameters(ElementPtr elem);
+
+      ElementPtr createElement(const char *objectName = "opusCodecCapabilityParameters") const;
+
       static OpusCodecCapabilityParametersPtr create(const OpusCodecCapabilityParameters &capability);
       static OpusCodecCapabilityParametersPtr convert(AnyPtr any);
 
@@ -200,6 +222,12 @@ namespace ortc
     {
       Optional<ULONG> mMaxFT;
       Optional<ULONGLONG> mMaxFS;
+
+      VP8CodecCapabilityParameters() {}
+      VP8CodecCapabilityParameters(const VP8CodecCapabilityParameters &op2) {(*this) = op2;}
+      VP8CodecCapabilityParameters(ElementPtr elem);
+
+      ElementPtr createElement(const char *objectName = "vp8CodecCapabilityParameters") const;
 
       static VP8CodecCapabilityParametersPtr create(const VP8CodecCapabilityParameters &capability);
       static VP8CodecCapabilityParametersPtr convert(AnyPtr any);
@@ -227,6 +255,12 @@ namespace ortc
       Optional<ULONGLONG> mMaxDPB {};
       Optional<ULONGLONG> mMaxBR {};
 
+      H264CodecCapabilityParameters() {}
+      H264CodecCapabilityParameters(const H264CodecCapabilityParameters &op2) {(*this) = op2;}
+      H264CodecCapabilityParameters(ElementPtr elem);
+
+      ElementPtr createElement(const char *objectName = "h264CodecCapabilityParameters") const;
+
       static H264CodecCapabilityParametersPtr create(const H264CodecCapabilityParameters &capability);
       static H264CodecCapabilityParametersPtr convert(AnyPtr any);
 
@@ -239,11 +273,17 @@ namespace ortc
     #pragma mark IRTPTypes::HeaderExtensions
     #pragma mark
 
-    struct HeaderExtensions {
+    struct HeaderExtension {
       String mKind;
       String mURI;
       USHORT mPreferredID {};
       bool   mPreferredEncrypt {false};
+
+      HeaderExtension() {}
+      HeaderExtension(const HeaderExtension &op2) {(*this) = op2;}
+      HeaderExtension(ElementPtr elem);
+
+      ElementPtr createElement(const char *objectName = "headerExtensions") const;
 
       ElementPtr toDebug() const;
       String hash() const;
@@ -257,6 +297,12 @@ namespace ortc
     struct RTCPFeedback {
       String mType;
       String mParameter;
+
+      RTCPFeedback() {}
+      RTCPFeedback(const RTCPFeedback &op2) {(*this) = op2;}
+      RTCPFeedback(ElementPtr elem);
+
+      ElementPtr createElement(const char *objectName = "rtcpFeedback") const;
 
       ElementPtr toDebug() const;
       String hash() const;
@@ -272,6 +318,12 @@ namespace ortc
       String    mCName;
       bool      mReducedSize {false};
       bool      mMux {true};
+
+      RTCPParameters() {}
+      RTCPParameters(const RTCPParameters &op2) {(*this) = op2;}
+      RTCPParameters(ElementPtr elem);
+
+      ElementPtr createElement(const char *objectName = "rtcpParameters") const;
 
       ElementPtr toDebug() const;
       String hash() const;
@@ -302,6 +354,12 @@ namespace ortc
         HashOptions() {}
       };
 
+      Parameters() {}
+      Parameters(const Parameters &op2) {(*this) = op2;}
+      Parameters(ElementPtr elem);
+
+      ElementPtr createElement(const char *objectName) const;
+
       ElementPtr toDebug() const;
       String hash(const HashOptions &options = HashOptions()) const;
     };
@@ -322,6 +380,10 @@ namespace ortc
 
       CodecParameters() {}
       CodecParameters(const CodecParameters &source);
+      CodecParameters(ElementPtr elem);
+
+      ElementPtr createElement(const char *objectName) const;
+
       ElementPtr toDebug() const;
       String hash() const;
     };
@@ -376,6 +438,12 @@ namespace ortc
       Optional<ULONG> mSPropMaxCaptureRate;
       Optional<bool> mSPropStereo;
 
+      OpusCodecParameters() {}
+      OpusCodecParameters(const OpusCodecParameters &op2) {(*this) = op2;}
+      OpusCodecParameters(ElementPtr elem);
+
+      ElementPtr createElement(const char *objectName = "opusCodecParameters") const;
+
       static OpusCodecParametersPtr create(const OpusCodecParameters &capability);
       static OpusCodecParametersPtr convert(AnyPtr any);
 
@@ -409,6 +477,12 @@ namespace ortc
       static RTXCodecParametersPtr create(const RTXCodecParameters &params);
       static RTXCodecParametersPtr convert(AnyPtr any);
 
+      RTXCodecParameters() {}
+      RTXCodecParameters(const RTXCodecParameters &op2) {(*this) = op2;}
+      RTXCodecParameters(ElementPtr elem);
+
+      ElementPtr createElement(const char *objectName = "rtxCodecParameters") const;
+
       ElementPtr toDebug() const;
       String hash() const;
     };
@@ -421,6 +495,12 @@ namespace ortc
     struct REDCodecParameters : public Any
     {
       PayloadTypeList mPayloadTypes;
+
+      REDCodecParameters() {}
+      REDCodecParameters(const REDCodecParameters &op2) {(*this) = op2;}
+      REDCodecParameters(ElementPtr elem);
+
+      ElementPtr createElement(const char *objectName = "redCodecParameters") const;
 
       static REDCodecParametersPtr create(const REDCodecParameters &params);
       static REDCodecParametersPtr convert(AnyPtr any);
@@ -455,6 +535,12 @@ namespace ortc
       Optional<ULONG> mD;
       Optional<ToPs> mToP;
 
+      FlexFECCodecParameters() {}
+      FlexFECCodecParameters(const FlexFECCodecParameters &op2) {(*this) = op2;}
+      FlexFECCodecParameters(ElementPtr elem);
+
+      ElementPtr createElement(const char *objectName = "flexFecCodecParameters") const;
+
       static FlexFECCodecParametersPtr create(const FlexFECCodecParameters &params);
       static FlexFECCodecParametersPtr convert(AnyPtr any);
 
@@ -472,6 +558,12 @@ namespace ortc
       USHORT  mID {};
       bool    mEncrypt {false};
 
+      HeaderExtensionParameters() {}
+      HeaderExtensionParameters(const HeaderExtensionParameters &op2) {(*this) = op2;}
+      HeaderExtensionParameters(ElementPtr elem);
+
+      ElementPtr createElement(const char *objectName = "headerExtensionParameters") const;
+
       ElementPtr toDebug() const;
       String hash() const;
     };
@@ -485,6 +577,12 @@ namespace ortc
       Optional<SSRCType>  mSSRC;
       String              mMechanism;
 
+      FECParameters() {}
+      FECParameters(const FECParameters &op2) {(*this) = op2;}
+      FECParameters(ElementPtr elem);
+
+      ElementPtr createElement(const char *objectName = "fecParameters") const;
+
       ElementPtr toDebug() const;
       String hash() const;
     };
@@ -497,6 +595,12 @@ namespace ortc
     struct RTXParameters {
       Optional<SSRCType>    mSSRC;
       Optional<PayloadType> mPayloadType;
+
+      RTXParameters() {}
+      RTXParameters(const RTXParameters &op2) {(*this) = op2;}
+      RTXParameters(ElementPtr elem);
+
+      ElementPtr createElement(const char *objectName = "rtxParameters") const;
 
       ElementPtr toDebug() const;
       String hash() const;
@@ -539,6 +643,12 @@ namespace ortc
       bool                    mActive {true};
       EncodingID              mEncodingID;
       EncodingIDList          mDependencyEncodingIDs;
+
+      EncodingParameters() {}
+      EncodingParameters(const EncodingParameters &op2) {(*this) = op2;}
+      EncodingParameters(ElementPtr elem);
+
+      ElementPtr createElement(const char *objectName = "encodingParameters") const;
 
       ElementPtr toDebug() const;
       String hash() const;

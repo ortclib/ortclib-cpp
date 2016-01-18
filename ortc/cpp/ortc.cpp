@@ -40,5 +40,10 @@ namespace ortc
 {
   namespace internal
   {
+    void initSubsystems()
+    {
+      ZS_GET_SUBSYSTEM_LOG_LEVEL(ZS_GET_OTHER_SUBSYSTEM(ortc, ortclib));
+      ZS_GET_SUBSYSTEM_LOG_LEVEL(ZS_GET_OTHER_SUBSYSTEM(ortc, ortclib_webrtc));
+    }
   }
 }

@@ -32,7 +32,7 @@
 
 #include <zsLib/MessageQueueThread.h>
 
-#include "TestRTPReceiver.h"
+#include "TestRTPSender.h"
 
 #include <ortc/internal/ortc_RTPPacket.h>
 #include <ortc/internal/ortc_RTCPPacket.h>
@@ -62,16 +62,16 @@ namespace ortc
 {
   namespace test
   {
-    namespace rtpreceiver
+    namespace rtpsender
     {
       ZS_DECLARE_CLASS_PTR(FakeICETransport)
       ZS_DECLARE_CLASS_PTR(FakeSecureTransport)
-      ZS_DECLARE_CLASS_PTR(RTPReceiverTester)
+      ZS_DECLARE_CLASS_PTR(RTPSenderTester)
 
       ZS_DECLARE_TYPEDEF_PTR(ortc::internal::ISecureTransportTypes, ISecureTransportTypes)
       ZS_DECLARE_TYPEDEF_PTR(ortc::internal::ISecureTransport, ISecureTransport)
-      ZS_DECLARE_USING_PTR(ortc::internal, RTPReceiver)
-      ZS_DECLARE_USING_PTR(ortc::internal, RTPReceiverChannel)
+      ZS_DECLARE_USING_PTR(ortc::internal, RTPSender)
+      ZS_DECLARE_USING_PTR(ortc::internal, RTPSenderChannel)
       ZS_DECLARE_USING_PTR(ortc::internal, RTPSender)
       ZS_DECLARE_USING_PTR(ortc::internal, RTPListener)
       ZS_DECLARE_USING_PTR(ortc::internal, MediaStreamTrack)
@@ -185,7 +185,7 @@ namespace ortc
       {
         AutoRecursiveLock lock(*this);
 
-        ElementPtr resultEl = Element::create("ortc::test::rtpreceiver::FakeICETransport");
+        ElementPtr resultEl = Element::create("ortc::test::rtpsender::FakeICETransport");
 
         UseServicesHelper::debugAppend(resultEl, "id", getID());
 
@@ -219,7 +219,7 @@ namespace ortc
           AutoRecursiveLock lock(*this);
           transport = mSecureTransport.lock();
           if (!transport) {
-            ZS_LOG_WARNING(Detail, log("no rtpreceiver transport attached (thus cannot forward received packet)") + ZS_PARAM("buffer", (PTRNUMBER)(buffer->BytePtr())) + ZS_PARAM("buffer size", buffer->SizeInBytes()))
+            ZS_LOG_WARNING(Detail, log("no rtpsender transport attached (thus cannot forward received packet)") + ZS_PARAM("buffer", (PTRNUMBER)(buffer->BytePtr())) + ZS_PARAM("buffer size", buffer->SizeInBytes()))
             return;
           }
 
@@ -275,7 +275,7 @@ namespace ortc
           AutoRecursiveLock lock(*this);
           transport = mSecureTransport.lock();
           if (!transport) {
-            ZS_LOG_WARNING(Detail, log("no rtpreceiver transport attached (thus cannot forward delayed packets)"))
+            ZS_LOG_WARNING(Detail, log("no rtpsender transport attached (thus cannot forward delayed packets)"))
             return;
           }
 
@@ -457,7 +457,7 @@ namespace ortc
       //-----------------------------------------------------------------------
       Log::Params FakeICETransport::log(const char *message) const
       {
-        ElementPtr objectEl = Element::create("ortc::test::rtpreceiver::FakeICETransport");
+        ElementPtr objectEl = Element::create("ortc::test::rtpsender::FakeICETransport");
         UseServicesHelper::debugAppend(objectEl, "id", ICETransport::getID());
         return Log::Params(message, objectEl);
       }
@@ -544,7 +544,7 @@ namespace ortc
       {
         AutoRecursiveLock lock(*this);
 
-        ElementPtr resultEl = Element::create("ortc::test::rtpreceiver::FakeICETransport");
+        ElementPtr resultEl = Element::create("ortc::test::rtpsender::FakeICETransport");
 
         UseServicesHelper::debugAppend(resultEl, "id", getID());
 
@@ -563,7 +563,7 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark FakeSecureTransport => ISecureTransportForRTPReceiver
+      #pragma mark FakeSecureTransport => ISecureTransportForRTPSender
       #pragma mark
 
       //-----------------------------------------------------------------------
@@ -585,7 +585,7 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark FakeSecureTransport => ISecureTransportForRTPReceiver
+      #pragma mark FakeSecureTransport => ISecureTransportForRTPSender
       #pragma mark
 
       //-----------------------------------------------------------------------
@@ -771,7 +771,7 @@ namespace ortc
       //-----------------------------------------------------------------------
       Log::Params FakeSecureTransport::log(const char *message) const
       {
-        ElementPtr objectEl = Element::create("ortc::test::rtpreceiver::FakeSecureTransport");
+        ElementPtr objectEl = Element::create("ortc::test::rtpsender::FakeSecureTransport");
         UseServicesHelper::debugAppend(objectEl, "id", DTLSTransport::getID());
         return Log::Params(message, objectEl);
       }
@@ -898,7 +898,7 @@ namespace ortc
       {
         AutoRecursiveLock lock(*this);
 
-        ElementPtr result = Element::create("ortc::test::rtpreceiver::FakeListener");
+        ElementPtr result = Element::create("ortc::test::rtpsender::FakeListener");
 
         UseServicesHelper::debugAppend(result, "tester", (bool)mTester.lock());
 
@@ -1219,7 +1219,7 @@ namespace ortc
       #pragma mark
 
       //-----------------------------------------------------------------------
-      void FakeListener::setTransport(RTPReceiverTesterPtr tester)
+      void FakeListener::setTransport(RTPSenderTesterPtr tester)
       {
         AutoRecursiveLock lock(*this);
 
@@ -1262,7 +1262,7 @@ namespace ortc
       //-----------------------------------------------------------------------
       Log::Params FakeListener::log(const char *message) const
       {
-        ElementPtr objectEl = Element::create("ortc::test::rtpreceiver::FakeListener");
+        ElementPtr objectEl = Element::create("ortc::test::rtpsender::FakeListener");
         UseServicesHelper::debugAppend(objectEl, "id", FakeListener::getID());
         return Log::Params(message, objectEl);
       }
@@ -1291,21 +1291,21 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark FakeReceiverChannel
+      #pragma mark FakeSenderChannel
       #pragma mark
 
       //-----------------------------------------------------------------------
-      FakeReceiverChannel::FakeReceiverChannel(
-                                               IMessageQueuePtr queue,
-                                               const char *receiverChannelID
-                                               ) :
-        RTPReceiverChannel(Noop(true), queue),
-        mReceiverChannelID(receiverChannelID)
+      FakeSenderChannel::FakeSenderChannel(
+                                           IMessageQueuePtr queue,
+                                           const char *receiverChannelID
+                                           ) :
+        RTPSenderChannel(Noop(true), queue),
+        mSenderChannelID(receiverChannelID)
       {
       }
 
       //-----------------------------------------------------------------------
-      FakeReceiverChannel::~FakeReceiverChannel()
+      FakeSenderChannel::~FakeSenderChannel()
       {
         mThisWeak.reset();
       }
@@ -1315,15 +1315,15 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark FakeReceiverChannel => IRTPReceiverChannelForRTPReceiver
+      #pragma mark FakeSenderChannel => IRTPSenderChannelForRTPSender
       #pragma mark
 
       //-----------------------------------------------------------------------
-      ElementPtr FakeReceiverChannel::toDebug() const
+      ElementPtr FakeSenderChannel::toDebug() const
       {
         AutoRecursiveLock lock(*this);
 
-        ElementPtr result = Element::create("ortc::test::rtpreceiver::FakeReceiverChannel");
+        ElementPtr result = Element::create("ortc::test::rtpsender::FakeSenderChannel");
 
         UseServicesHelper::debugAppend(result, "tester", (bool)mTester.lock());
 
@@ -1333,89 +1333,55 @@ namespace ortc
         UseServicesHelper::debugAppend(result, "expect parameters", mExpectParameters.size());
         UseServicesHelper::debugAppend(result, "expect states", mExpectStates.size());
 
-        auto receiver = mReceiver.lock();
-        UseServicesHelper::debugAppend(result, "receiver", receiver ? receiver->getID() : 0);
+        auto sender = mSender.lock();
+        UseServicesHelper::debugAppend(result, "sender", sender ? sender->getID() : 0);
 
         return result;
       }
 
       //-----------------------------------------------------------------------
-      void FakeReceiverChannel::create(
-                                       RTPReceiverPtr inReceiver,
-                                       const Parameters &params,
-                                       const RTCPPacketList &packets
-                                       )
+      void FakeSenderChannel::create(
+                                     RTPSenderPtr inSender,
+                                     const Parameters &params
+                                     )
       {
-        UseReceiverPtr receiver(inReceiver);
+        UseSenderPtr sender(inSender);
 
-        ZS_LOG_BASIC(log("create called") + ZS_PARAM("receiver", receiver->getID()) + params.toDebug())
+        ZS_LOG_BASIC(log("create called") + ZS_PARAM("receiver", sender->getID()) + params.toDebug())
 
         {
           AutoRecursiveLock lock(*this);
 
-          mReceiver = receiver;
+          mSender = sender;
 
           TESTING_EQUAL(params.hash(), mParameters->hash())
         }
-
-        notifyPackets(make_shared<RTCPPacketList>(packets));
       }
 
       //-----------------------------------------------------------------------
-      void FakeReceiverChannel::notifyTransportState(ISecureTransport::States state)
+      void FakeSenderChannel::notifyTransportState(ISecureTransport::States state)
       {
-        IFakeReceiverChannelAsyncDelegateProxy::create(mThisWeak.lock())->onState(state);
+        IFakeSenderChannelAsyncDelegateProxy::create(mThisWeak.lock())->onState(state);
       }
 
       //-----------------------------------------------------------------------
-      void FakeReceiverChannel::notifyPacket(RTPPacketPtr packet)
+      void FakeSenderChannel::notifyPackets(RTCPPacketListPtr packets)
       {
-        IFakeReceiverChannelAsyncDelegateProxy::create(mThisWeak.lock())->onRTPPacket(packet);
+        IFakeSenderChannelAsyncDelegateProxy::create(mThisWeak.lock())->onRTCPPackets(packets);
       }
 
       //-----------------------------------------------------------------------
-      void FakeReceiverChannel::notifyPackets(RTCPPacketListPtr packets)
+      void FakeSenderChannel::notifyUpdate(const Parameters &params)
       {
-        IFakeReceiverChannelAsyncDelegateProxy::create(mThisWeak.lock())->onRTCPPackets(packets);
+        IFakeSenderChannelAsyncDelegateProxy::create(mThisWeak.lock())->onUpdate(make_shared<Parameters>(params));
       }
 
       //-----------------------------------------------------------------------
-      void FakeReceiverChannel::notifyUpdate(const Parameters &params)
-      {
-        IFakeReceiverChannelAsyncDelegateProxy::create(mThisWeak.lock())->onUpdate(make_shared<Parameters>(params));
-      }
-
-      //-----------------------------------------------------------------------
-      bool FakeReceiverChannel::handlePacket(RTPPacketPtr packet)
+      bool FakeSenderChannel::handlePacket(RTCPPacketPtr packet)
       {
         ZS_LOG_BASIC(log("handle packet") + packet->toDebug())
 
-        RTPReceiverTesterPtr tester;
-
-        {
-          AutoRecursiveLock lock(*this);
-
-          tester = mTester.lock();
-          TESTING_CHECK(tester)
-
-          TESTING_CHECK(mExpectBuffers.size() > 0)
-
-          TESTING_CHECK(0 == UseServicesHelper::compare(*(mExpectBuffers.front()), *(packet->mBuffer)))
-
-          mExpectBuffers.pop_front();
-        }
-        
-        tester->notifyReceivedPacket();
-
-        return true;
-      }
-
-      //-----------------------------------------------------------------------
-      bool FakeReceiverChannel::handlePacket(RTCPPacketPtr packet)
-      {
-        ZS_LOG_BASIC(log("handle packet") + packet->toDebug())
-
-        RTPReceiverTesterPtr tester;
+        RTPSenderTesterPtr tester;
 
         {
           AutoRecursiveLock lock(*this);
@@ -1440,15 +1406,15 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark FakeReceiverChannel => IFakeReceiverChannelAsyncDelegate
+      #pragma mark FakeSenderChannel => IFakeSenderChannelAsyncDelegate
       #pragma mark
 
       //-----------------------------------------------------------------------
-      void FakeReceiverChannel::onState(ISecureTransportTypes::States state)
+      void FakeSenderChannel::onState(ISecureTransportTypes::States state)
       {
         ZS_LOG_BASIC(log("on state") + ZS_PARAM("state", ISecureTransportTypes::toString(state)))
 
-        RTPReceiverTesterPtr tester;
+        RTPSenderTesterPtr tester;
 
         {
           AutoRecursiveLock lock(*this);
@@ -1463,23 +1429,11 @@ namespace ortc
           mExpectStates.pop_front();
         }
 
-        tester->notifyReceiverChannelOfSecureTransportState();
+        tester->notifySenderChannelOfSecureTransportState();
       }
 
       //-----------------------------------------------------------------------
-      void FakeReceiverChannel::onRTPPacket(RTPPacketPtr packet)
-      {
-        handlePacket(packet);
-      }
-
-      //-----------------------------------------------------------------------
-      void FakeReceiverChannel::onRTCPPacket(RTCPPacketPtr packet)
-      {
-        handlePacket(packet);
-      }
-
-      //-----------------------------------------------------------------------
-      void FakeReceiverChannel::onRTCPPackets(RTCPPacketListPtr packets)
+      void FakeSenderChannel::onRTCPPackets(RTCPPacketListPtr packets)
       {
         ZS_LOG_BASIC(log("notified packets") + ZS_PARAM("packets", packets->size()))
 
@@ -1487,13 +1441,13 @@ namespace ortc
           handlePacket(*iter);
         }
       }
-
+      
       //-----------------------------------------------------------------------
-      void FakeReceiverChannel::onUpdate(ParametersPtr params)
+      void FakeSenderChannel::onUpdate(ParametersPtr params)
       {
         ZS_LOG_BASIC(log("on updatae") + params->toDebug())
 
-        RTPReceiverTesterPtr tester;
+        RTPSenderTesterPtr tester;
 
         {
           AutoRecursiveLock lock(*this);
@@ -1516,71 +1470,86 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark FakeReceiverChannel => (friend RTPReceiverTester)
+      #pragma mark FakeSenderChannel => (friend RTPSenderTester)
       #pragma mark
 
       //-----------------------------------------------------------------------
-      FakeReceiverChannelPtr FakeReceiverChannel::create(
-                                                         IMessageQueuePtr queue,
-                                                         const char *receiverChannelID,
-                                                         const Parameters &expectedParams
-                                                         )
+      FakeSenderChannelPtr FakeSenderChannel::create(
+                                                     IMessageQueuePtr queue,
+                                                     const char *receiverChannelID,
+                                                     const Parameters &expectedParams
+                                                     )
       {
-        FakeReceiverChannelPtr pThis(make_shared<FakeReceiverChannel>(queue, receiverChannelID));
+        FakeSenderChannelPtr pThis(make_shared<FakeSenderChannel>(queue, receiverChannelID));
         pThis->mThisWeak = pThis;
         pThis->mParameters = make_shared<Parameters>(expectedParams);
         return pThis;
       }
 
       //-----------------------------------------------------------------------
-      void FakeReceiverChannel::setTransport(RTPReceiverTesterPtr tester)
+      void FakeSenderChannel::setTransport(RTPSenderTesterPtr tester)
       {
         AutoRecursiveLock lock(*this);
         mTester = tester;
       }
 
       //-----------------------------------------------------------------------
-      void FakeReceiverChannel::sendPacket(RTCPPacketPtr packet)
+      void FakeSenderChannel::sendPacket(RTPPacketPtr packet)
       {
-        UseReceiverPtr receiver;
+        UseSenderPtr sender;
 
         {
           AutoRecursiveLock lock(*this);
-          receiver = mReceiver.lock();
+          sender = mSender.lock();
 
-          TESTING_CHECK(receiver)
+          TESTING_CHECK(sender)
         }
 
-        receiver->sendPacket(packet);
+        sender->sendPacket(packet);
+      }
+      
+      //-----------------------------------------------------------------------
+      void FakeSenderChannel::sendPacket(RTCPPacketPtr packet)
+      {
+        UseSenderPtr sender;
+
+        {
+          AutoRecursiveLock lock(*this);
+          sender = mSender.lock();
+
+          TESTING_CHECK(sender)
+        }
+
+        sender->sendPacket(packet);
       }
 
       //-----------------------------------------------------------------------
-      void FakeReceiverChannel::expectState(ISecureTransport::States state)
+      void FakeSenderChannel::expectState(ISecureTransport::States state)
       {
         AutoRecursiveLock lock(*this);
         mExpectStates.push_back(state);
       }
 
       //-----------------------------------------------------------------------
-      void FakeReceiverChannel::expectUpdate(const Parameters &params)
+      void FakeSenderChannel::expectUpdate(const Parameters &params)
       {
         AutoRecursiveLock lock(*this);
         mExpectParameters.push_back(make_shared<Parameters>(params));
       }
 
       //-----------------------------------------------------------------------
-      void FakeReceiverChannel::expectData(SecureByteBlockPtr data)
+      void FakeSenderChannel::expectData(SecureByteBlockPtr data)
       {
         AutoRecursiveLock lock(*this);
         mExpectBuffers.push_back(data);
       }
 
       //-----------------------------------------------------------------------
-      void FakeReceiverChannel::stop()
+      void FakeSenderChannel::stop()
       {
         AutoRecursiveLock lock(*this);
 
-        mReceiver.reset();
+        mSender.reset();
       }
 
       //-----------------------------------------------------------------------
@@ -1588,15 +1557,15 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark FakeReceiverChannel => (internal)
+      #pragma mark FakeSenderChannel => (internal)
       #pragma mark
 
       //-----------------------------------------------------------------------
-      Log::Params FakeReceiverChannel::log(const char *message) const
+      Log::Params FakeSenderChannel::log(const char *message) const
       {
-        ElementPtr objectEl = Element::create("ortc::test::rtpreceiver::FakeReceiverChannel");
-        UseServicesHelper::debugAppend(objectEl, "id", RTPReceiverChannel::getID());
-        UseServicesHelper::debugAppend(objectEl, "channel id", mReceiverChannelID);
+        ElementPtr objectEl = Element::create("ortc::test::rtpsender::FakeSenderChannel");
+        UseServicesHelper::debugAppend(objectEl, "id", RTPSenderChannel::getID());
+        UseServicesHelper::debugAppend(objectEl, "channel id", mSenderChannelID);
         return Log::Params(message, objectEl);
       }
 
@@ -1626,7 +1595,7 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark FakeMediaStreamTrack => IMediaStreamTrackForRTPReceiver
+      #pragma mark FakeMediaStreamTrack => IMediaStreamTrackForRTPSender
       #pragma mark
 
       //-----------------------------------------------------------------------
@@ -1634,16 +1603,17 @@ namespace ortc
       {
         AutoRecursiveLock lock(*this);
 
-        ElementPtr result = Element::create("ortc::test::rtpreceiver::FakeMediaStreamTrack");
+        ElementPtr result = Element::create("ortc::test::rtpsender::FakeMediaStreamTrack");
 
         UseServicesHelper::debugAppend(result, "kind", IMediaStreamTrackTypes::toString(mKind));
 
         UseServicesHelper::debugAppend(result, "tester", (bool)mTester.lock());
 
-        auto receiver = mReceiver.lock();
+        auto receiver = mSender.lock();
         UseServicesHelper::debugAppend(result, "receiver", receiver ? receiver->getID() : 0);
 
-        UseServicesHelper::debugAppend(result, "expect active channel IDs", mExpectActiveChannelIDs.size());
+        UseServicesHelper::debugAppend(result, "expect attach channel IDs", mExpectAttachChannelIDs.size());
+        UseServicesHelper::debugAppend(result, "expect detach channel IDs", mExpectDetachChannelIDs.size());
 
         return result;
       }
@@ -1658,13 +1628,19 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void FakeMediaStreamTrack::notifyActiveReceiverChannel(RTPReceiverChannelPtr inChannel)
+      IMediaStreamTrackTypes::Kinds FakeMediaStreamTrack::kind() const
       {
-        UseReceiverChannelPtr channel(inChannel);
+        return mKind;
+      }
+
+      //-----------------------------------------------------------------------
+      void FakeMediaStreamTrack::notifyAttachSenderChannel(RTPSenderChannelPtr inChannel)
+      {
+        UseSenderChannelPtr channel(inChannel);
 
         ZS_LOG_BASIC(log("notify active receiver channel") + ZS_PARAM("channel", channel ? channel->getID() : 0))
 
-        RTPReceiverTesterPtr tester;
+        RTPSenderTesterPtr tester;
 
         {
           AutoRecursiveLock lock(*this);
@@ -1672,16 +1648,56 @@ namespace ortc
           tester = mTester.lock();
           TESTING_CHECK(tester)
 
-          TESTING_CHECK(mExpectActiveChannelIDs.size() > 0)
+          TESTING_CHECK(mExpectAttachChannelIDs.size() > 0)
 
           auto channelID = (channel ? channel->getID() : 0);
 
-          TESTING_EQUAL(channelID, mExpectActiveChannelIDs.front())
+          TESTING_EQUAL(channelID, mExpectAttachChannelIDs.front())
 
-          mExpectActiveChannelIDs.pop_front();
+          mExpectAttachChannelIDs.pop_front();
+        }
+        
+        tester->notifyAttachSenderChannel();
+      }
+
+      //-----------------------------------------------------------------------
+      void FakeMediaStreamTrack::notifyDetachSenderChannel(RTPSenderChannelPtr inChannel)
+      {
+        UseSenderChannelPtr channel(inChannel);
+
+        ZS_LOG_BASIC(log("notify active receiver channel") + ZS_PARAM("channel", channel ? channel->getID() : 0))
+
+        RTPSenderTesterPtr tester;
+
+        {
+          AutoRecursiveLock lock(*this);
+
+          tester = mTester.lock();
+          TESTING_CHECK(tester)
+
+          TESTING_CHECK(mExpectDetachChannelIDs.size() > 0)
+
+          auto channelID = (channel ? channel->getID() : 0);
+
+          bool found = false;
+
+          for (auto iter = mExpectDetachChannelIDs.begin(); iter != mExpectDetachChannelIDs.end(); ++iter) {
+
+            auto id = (*iter);
+
+            if (channelID != id) continue;
+
+            TESTING_EQUAL(channelID, id)
+
+            mExpectDetachChannelIDs.erase(iter);
+            found = true;
+            break;
+          }
+
+          TESTING_CHECK(found)
         }
 
-        tester->notifyActiveReceiverChannel();
+        tester->notifyDetachSenderChannel();
       }
 
       //-----------------------------------------------------------------------
@@ -1689,7 +1705,7 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark FakeMediaStreamTrack => (friend RTPReceiverTester)
+      #pragma mark FakeMediaStreamTrack => (friend RTPSenderTester)
       #pragma mark
 
       //-----------------------------------------------------------------------
@@ -1704,21 +1720,30 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void FakeMediaStreamTrack::setTransport(RTPReceiverTesterPtr tester)
+      void FakeMediaStreamTrack::setTransport(RTPSenderTesterPtr tester)
       {
         AutoRecursiveLock lock(*this);
         mTester = tester;
       }
 
       //-----------------------------------------------------------------------
-      void FakeMediaStreamTrack::expectActiveChannel(ReceiverChannelID channelID)
+      void FakeMediaStreamTrack::expectAttachChannel(SenderChannelID channelID)
       {
-        ZS_LOG_BASIC(log("expect active channel id") + ZS_PARAM("channel id", channelID))
+        ZS_LOG_BASIC(log("expect attach channel id") + ZS_PARAM("channel id", channelID))
 
         AutoRecursiveLock lock(*this);
-        mExpectActiveChannelIDs.push_back(channelID);
+        mExpectAttachChannelIDs.push_back(channelID);
       }
 
+      //-----------------------------------------------------------------------
+      void FakeMediaStreamTrack::expectDetachChannel(SenderChannelID channelID)
+      {
+        ZS_LOG_BASIC(log("expect detach channel id") + ZS_PARAM("channel id", channelID))
+
+        AutoRecursiveLock lock(*this);
+        mExpectDetachChannelIDs.push_back(channelID);
+      }
+      
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
@@ -1730,7 +1755,7 @@ namespace ortc
       //-----------------------------------------------------------------------
       Log::Params FakeMediaStreamTrack::log(const char *message) const
       {
-        ElementPtr objectEl = Element::create("ortc::test::rtpreceiver::FakeMediaStreamTrack");
+        ElementPtr objectEl = Element::create("ortc::test::rtpsender::FakeMediaStreamTrack");
         UseServicesHelper::debugAppend(objectEl, "id", MediaStreamTrack::getID());
         return Log::Params(message, objectEl);
       }
@@ -1740,25 +1765,26 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark FakeSender
+      #pragma mark FakeReceiver
       #pragma mark
 
       //-----------------------------------------------------------------------
-      FakeSender::FakeSender() :
-        RTPSender(Noop(true))
+      FakeReceiver::FakeReceiver(IMediaStreamTrackTypes::Kinds kind) :
+        RTPReceiver(Noop(true)),
+        mKind(kind)
       {
       }
 
       //-----------------------------------------------------------------------
-      FakeSender::~FakeSender()
+      FakeReceiver::~FakeReceiver()
       {
         mThisWeak.reset();
       }
 
       //-----------------------------------------------------------------------
-      FakeSenderPtr FakeSender::create()
+      FakeReceiverPtr FakeReceiver::create(IMediaStreamTrackTypes::Kinds kind)
       {
-        FakeSenderPtr pThis(make_shared<FakeSender>());
+        FakeReceiverPtr pThis(make_shared<FakeReceiver>(kind));
         pThis->mThisWeak = pThis;
         return pThis;
       }
@@ -1768,15 +1794,15 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark FakeSender => IRTPSenderForRTPReceiver
+      #pragma mark FakeReceiver => IRTPSenderForRTPSender
       #pragma mark
 
       //-----------------------------------------------------------------------
-      ElementPtr FakeSender::toDebug() const
+      ElementPtr FakeReceiver::toDebug() const
       {
         AutoRecursiveLock lock(*this);
 
-        ElementPtr result = Element::create("ortc::test::rtpreceiver::FakeSender");
+        ElementPtr result = Element::create("ortc::test::rtpsender::FakeReceiver");
 
         UseServicesHelper::debugAppend(result, "tester", (bool)mTester.lock());
         UseServicesHelper::debugAppend(result, mParameters ? mParameters->toDebug() : ElementPtr());
@@ -1788,10 +1814,33 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      bool FakeSender::handlePacket(
-                                    IICETypes::Components viaTransport,
-                                    RTCPPacketPtr packet
-                                    )
+      bool FakeReceiver::handlePacket(
+                                      IICETypes::Components viaTransport,
+                                      RTPPacketPtr packet
+                                      )
+      {
+        ZS_LOG_BASIC(log("received RTCP packet") + packet->toDebug())
+
+        AutoRecursiveLock lock(*this);
+
+        TESTING_CHECK(mExpectBuffers.size() > 0)
+
+        TESTING_CHECK(0 == UseServicesHelper::compare(*(mExpectBuffers.front()), *(packet->mBuffer)))
+
+        mExpectBuffers.pop_front();
+
+        auto tester = mTester.lock();
+
+        if (tester) tester->notifyReceivedPacket();
+        
+        return true;
+      }
+
+      //-----------------------------------------------------------------------
+      bool FakeReceiver::handlePacket(
+                                      IICETypes::Components viaTransport,
+                                      RTCPPacketPtr packet
+                                      )
       {
         ZS_LOG_BASIC(log("received RTCP packet") + packet->toDebug())
 
@@ -1815,11 +1864,11 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark FakeSender => (friend RTPReceiverTester)
+      #pragma mark FakeReceiver => (friend RTPSenderTester)
       #pragma mark
 
       //-----------------------------------------------------------------------
-      void FakeSender::setTransport(RTPReceiverTesterPtr tester)
+      void FakeReceiver::setTransport(RTPSenderTesterPtr tester)
       {
         auto secureTransport = (((bool)tester) ? tester->getFakeSecureTransport() : FakeSecureTransportPtr());
         TESTING_CHECK(secureTransport)
@@ -1831,7 +1880,7 @@ namespace ortc
 
         if (mListener) {
           ZS_LOG_BASIC(log("unregistering receiver") + ZS_PARAM("listener", mListener->getID()))
-          mListener->unregisterSender(*this);
+          mListener->unregisterReceiver(*this);
         }
 
         if (secureTransport) {
@@ -1841,7 +1890,7 @@ namespace ortc
             ZS_LOG_BASIC(log("registering receiver") + ZS_PARAM("listener", mListener->getID()) + mParameters->toDebug())
 
             RTCPPacketList packetList;
-            mListener->registerSender(mThisWeak.lock(), *mParameters, packetList);
+            mListener->registerReceiver(mKind, mThisWeak.lock(), *mParameters, &packetList);
 
             for (auto iter = packetList.begin(); iter != packetList.end(); ++iter) {
               // fake this as if it was a received packet
@@ -1855,7 +1904,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void FakeSender::send(const Parameters &parameters)
+      void FakeReceiver::receive(const Parameters &parameters)
       {
         AutoRecursiveLock lock(*this);
 
@@ -1863,7 +1912,7 @@ namespace ortc
 
         if (mListener) {
           RTCPPacketList packetList;
-          mListener->registerSender(mThisWeak.lock(), *mParameters, packetList);
+          mListener->registerReceiver(mKind, mThisWeak.lock(), *mParameters, &packetList);
 
           for (auto iter = packetList.begin(); iter != packetList.end(); ++iter) {
             // fake this as if it was a received packet
@@ -1873,17 +1922,17 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void FakeSender::stop()
+      void FakeReceiver::stop()
       {
         AutoRecursiveLock lock(*this);
 
         if (mListener) {
-          mListener->unregisterSender(*this);
+          mListener->unregisterReceiver(*this);
         }
       }
 
       //-----------------------------------------------------------------------
-      void FakeSender::expectData(SecureByteBlockPtr data)
+      void FakeReceiver::expectData(SecureByteBlockPtr data)
       {
         TESTING_CHECK((bool)data)
 
@@ -1895,7 +1944,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void FakeSender::sendPacket(SecureByteBlockPtr buffer)
+      void FakeReceiver::sendPacket(SecureByteBlockPtr buffer)
       {
         UseSecureTransportPtr transport;
 
@@ -1921,10 +1970,10 @@ namespace ortc
       #pragma mark
 
       //-----------------------------------------------------------------------
-      Log::Params FakeSender::log(const char *message) const
+      Log::Params FakeReceiver::log(const char *message) const
       {
-        ElementPtr objectEl = Element::create("ortc::test::rtpreceiver::FakeSender");
-        UseServicesHelper::debugAppend(objectEl, "id", FakeSender::getID());
+        ElementPtr objectEl = Element::create("ortc::test::rtpsender::FakeReceiver");
+        UseServicesHelper::debugAppend(objectEl, "id", FakeReceiver::getID());
         return Log::Params(message, objectEl);
       }
 
@@ -1934,11 +1983,11 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark RTPReceiverTester::UnhandledEventData
+      #pragma mark RTPSenderTester::UnhandledEventData
       #pragma mark
 
       //-----------------------------------------------------------------------
-      RTPReceiverTester::UnhandledEventData::UnhandledEventData(
+      RTPSenderTester::UnhandledEventData::UnhandledEventData(
                                                                 DWORD ssrc,
                                                                 BYTE pt,
                                                                 const char *mid,
@@ -1952,7 +2001,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      bool RTPReceiverTester::UnhandledEventData::operator==(const UnhandledEventData &op2) const
+      bool RTPSenderTester::UnhandledEventData::operator==(const UnhandledEventData &op2) const
       {
         return ((mSSRC == op2.mSSRC) &&
                 (mPT == op2.mPT) &&
@@ -1965,21 +2014,23 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark RTPReceiverTester::Expectations
+      #pragma mark RTPSenderTester::Expectations
       #pragma mark
 
       //-----------------------------------------------------------------------
-      bool RTPReceiverTester::Expectations::operator==(const Expectations &op2) const
+      bool RTPSenderTester::Expectations::operator==(const Expectations &op2) const
       {
         return (mUnhandled == op2.mUnhandled) &&
 
                (mReceivedPackets == op2.mReceivedPackets) &&
 
                (mError == op2.mError) &&
+               (mSSRCconflict == op2.mSSRCconflict) &&
                (mChannelUpdate == op2.mChannelUpdate) &&
-               (mReceiverChannelOfSecureTransportState == op2.mReceiverChannelOfSecureTransportState) &&
+               (mSenderChannelOfSecureTransportState == op2.mSenderChannelOfSecureTransportState) &&
 
-               (mActiveReceiverChannel == op2.mActiveReceiverChannel) &&
+               (mAttachSenderChannel == op2.mAttachSenderChannel) &&
+               (mDetachSenderChannel == op2.mDetachSenderChannel) &&
 
                (mKind == op2.mKind);
       }
@@ -1989,28 +2040,27 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark RTPReceiverTester::OverrideReceiverChannelFactory
+      #pragma mark RTPSenderTester::OverrideSenderChannelFactory
       #pragma mark
 
       //-----------------------------------------------------------------------
-      RTPReceiverTester::OverrideReceiverChannelFactoryPtr RTPReceiverTester::OverrideReceiverChannelFactory::create(RTPReceiverTesterPtr tester)
+      RTPSenderTester::OverrideSenderChannelFactoryPtr RTPSenderTester::OverrideSenderChannelFactory::create(RTPSenderTesterPtr tester)
       {
-        OverrideReceiverChannelFactoryPtr pThis(make_shared<OverrideReceiverChannelFactory>());
+        OverrideSenderChannelFactoryPtr pThis(make_shared<OverrideSenderChannelFactory>());
         pThis->mTester = tester;
         return pThis;
       }
 
       //-----------------------------------------------------------------------
-      RTPReceiverChannelPtr RTPReceiverTester::OverrideReceiverChannelFactory::create(
-                                                                                      RTPReceiverPtr receiver,
-                                                                                      const Parameters &params,
-                                                                                      const RTCPPacketList &packets
-                                                                                      )
+      RTPSenderChannelPtr RTPSenderTester::OverrideSenderChannelFactory::create(
+                                                                                RTPSenderPtr receiver,
+                                                                                const Parameters &params
+                                                                                )
       {
         auto tester = mTester.lock();
         TESTING_CHECK(tester)
 
-        return tester->create(receiver, params, packets);
+        return tester->create(receiver, params);
       }
 
       //-----------------------------------------------------------------------
@@ -2018,11 +2068,11 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark RTPReceiverTester::OverrideReceiverChannelFactory
+      #pragma mark RTPSenderTester::OverrideSenderChannelFactory
       #pragma mark
 
       //-----------------------------------------------------------------------
-      RTPReceiverTester::OverrideMediaStreamTrackFactoryPtr RTPReceiverTester::OverrideMediaStreamTrackFactory::create(RTPReceiverTesterPtr tester)
+      RTPSenderTester::OverrideMediaStreamTrackFactoryPtr RTPSenderTester::OverrideMediaStreamTrackFactory::create(RTPSenderTesterPtr tester)
       {
         OverrideMediaStreamTrackFactoryPtr pThis(make_shared<OverrideMediaStreamTrackFactory>());
         pThis->mTester = tester;
@@ -2030,7 +2080,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      MediaStreamTrackPtr RTPReceiverTester::OverrideMediaStreamTrackFactory::create(
+      MediaStreamTrackPtr RTPSenderTester::OverrideMediaStreamTrackFactory::create(
                                                                                      IMediaStreamTrackTypes::Kinds kind,
                                                                                      bool remote,
                                                                                      TrackConstraintsPtr constraints
@@ -2041,7 +2091,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      MediaStreamTrackPtr RTPReceiverTester::OverrideMediaStreamTrackFactory::create(IMediaStreamTrackTypes::Kinds kind)
+      MediaStreamTrackPtr RTPSenderTester::OverrideMediaStreamTrackFactory::create(IMediaStreamTrackTypes::Kinds kind)
       {
         auto tester = mTester.lock();
         TESTING_CHECK(tester)
@@ -2054,52 +2104,56 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark RTPReceiverTester
+      #pragma mark RTPSenderTester
       #pragma mark
 
       //-----------------------------------------------------------------------
-      RTPReceiverTesterPtr RTPReceiverTester::create(
-                                                     IMessageQueuePtr queue,
-                                                     bool overrideFactories,
-                                                     Milliseconds packetDelay
-                                                     )
+      RTPSenderTesterPtr RTPSenderTester::create(
+                                                 IMessageQueuePtr queue,
+                                                 IMediaStreamTrackTypes::Kinds kind,
+                                                 bool overrideFactories,
+                                                 Milliseconds packetDelay
+                                                 )
       {
-        RTPReceiverTesterPtr pThis(new RTPReceiverTester(queue, overrideFactories));
+        RTPSenderTesterPtr pThis(new RTPSenderTester(queue, overrideFactories));
         pThis->mThisWeak = pThis;
-        pThis->init(packetDelay);
+        pThis->init(kind, packetDelay);
         return pThis;
       }
 
       //-----------------------------------------------------------------------
-      RTPReceiverTester::RTPReceiverTester(
-                                           IMessageQueuePtr queue,
-                                           bool overrideFactories
-                                           ) :
+      RTPSenderTester::RTPSenderTester(
+                                       IMessageQueuePtr queue,
+                                       bool overrideFactories
+                                       ) :
         SharedRecursiveLock(SharedRecursiveLock::create()),
         MessageQueueAssociator(queue),
         mOverrideFactories(overrideFactories)
       {
-        ZS_LOG_BASIC(log("rtpreceiver tester"))
+        ZS_LOG_BASIC(log("rtpsender tester"))
       }
 
       //-----------------------------------------------------------------------
-      RTPReceiverTester::~RTPReceiverTester()
+      RTPSenderTester::~RTPSenderTester()
       {
-        ZS_LOG_BASIC(log("rtpreceiver tester"))
+        ZS_LOG_BASIC(log("rtpsender tester"))
 
         if (mOverrideFactories) {
-          RTPReceiverChannelFactory::override(RTPReceiverChannelFactoryPtr());
+          RTPSenderChannelFactory::override(RTPSenderChannelFactoryPtr());
           MediaStreamTrackFactory::override(MediaStreamTrackFactoryPtr());
         }
       }
 
       //-----------------------------------------------------------------------
-      void RTPReceiverTester::init(Milliseconds packetDelay)
+      void RTPSenderTester::init(
+                                 IMediaStreamTrackTypes::Kinds kind,
+                                 Milliseconds packetDelay
+                                 )
       {
         AutoRecursiveLock lock(*this);
 
         if (mOverrideFactories) {
-          RTPReceiverChannelFactory::override(OverrideReceiverChannelFactory::create(mThisWeak.lock()));
+          RTPSenderChannelFactory::override(OverrideSenderChannelFactory::create(mThisWeak.lock()));
           MediaStreamTrackFactory::override(OverrideMediaStreamTrackFactory::create(mThisWeak.lock()));
         }
 
@@ -2112,23 +2166,26 @@ namespace ortc
         mListenerSubscription = FakeListener::convert(listener)->subscribe(mThisWeak.lock());
         TESTING_CHECK(mListenerSubscription)
 
-        mReceiver = IRTPReceiver::create(mThisWeak.lock(), mDTLSTransport);
-        TESTING_CHECK(mReceiver)
+        mMediaStreamTrack = FakeMediaStreamTrack::create(getAssociatedMessageQueue(), kind);
+        mMediaStreamTrack->setTransport(mThisWeak.lock());
+
+        mSender = IRTPSender::create(mThisWeak.lock(), mMediaStreamTrack, mDTLSTransport);
+        TESTING_CHECK(mSender)
       }
 
       //-----------------------------------------------------------------------
-      bool RTPReceiverTester::matches()
+      bool RTPSenderTester::matches()
       {
         AutoRecursiveLock lock(*this);
         return mExpectationsFound == mExpecting;
       }
 
       //-----------------------------------------------------------------------
-      void RTPReceiverTester::close()
+      void RTPSenderTester::close()
       {
         AutoRecursiveLock lock(*this);
 
-        mReceiver->stop();
+        mSender->stop();
 
         for (auto iter = mAttached.begin(); iter != mAttached.end(); ++iter) {
           auto receiverChannel = (*iter).second.first.lock();
@@ -2146,23 +2203,23 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void RTPReceiverTester::closeByReset()
+      void RTPSenderTester::closeByReset()
       {
         AutoRecursiveLock lock(*this);
         mICETransport.reset();
         mDTLSTransport.reset();
 
-        mReceiver.reset();
+        mSender.reset();
       }
 
       //-----------------------------------------------------------------------
-      RTPReceiverTester::Expectations RTPReceiverTester::getExpectations() const
+      RTPSenderTester::Expectations RTPSenderTester::getExpectations() const
       {
         return mExpectationsFound;
       }
 
       //-----------------------------------------------------------------------
-      void RTPReceiverTester::state(IICETransport::States newState)
+      void RTPSenderTester::state(IICETransport::States newState)
       {
         FakeICETransportPtr transport;
         {
@@ -2173,7 +2230,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void RTPReceiverTester::state(IDTLSTransport::States newState)
+      void RTPSenderTester::state(IDTLSTransport::States newState)
       {
         FakeSecureTransportPtr transport;
         {
@@ -2184,7 +2241,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void RTPReceiverTester::setClientRole(bool clientRole)
+      void RTPSenderTester::setClientRole(bool clientRole)
       {
         FakeSecureTransportPtr transport;
         {
@@ -2195,7 +2252,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void RTPReceiverTester::connect(RTPReceiverTesterPtr remote)
+      void RTPSenderTester::connect(RTPSenderTesterPtr remote)
       {
         AutoRecursiveLock lock(*this);
         AutoRecursiveLock lock2(*remote);
@@ -2216,74 +2273,90 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void RTPReceiverTester::createReceiverChannel(
-                                                    const char *receiverChannelID,
-                                                    const char *parametersID
-                                                    )
+      void RTPSenderTester::createSenderChannel(
+                                                const char *senderChannelID,
+                                                const char *parametersID
+                                                )
       {
-        FakeReceiverChannelPtr receiverChannel = getReceiverChannel(receiverChannelID);
+        FakeSenderChannelPtr senderChannel = getSenderChannel(senderChannelID);
 
-        if (!receiverChannel) {
+        if (!senderChannel) {
           auto params = getParameters(parametersID);
           TESTING_CHECK(params)
-          receiverChannel = FakeReceiverChannel::create(getAssociatedMessageQueue(), receiverChannelID, *params);
-          attach(receiverChannelID, receiverChannel);
+          senderChannel = FakeSenderChannel::create(getAssociatedMessageQueue(), senderChannelID, *params);
+          attach(senderChannelID, senderChannel);
         }
 
-        TESTING_CHECK(receiverChannel)
+        TESTING_CHECK(senderChannel)
       }
 
       //-----------------------------------------------------------------------
-      void RTPReceiverTester::createSender(const char *senderID)
+      void RTPSenderTester::createReceiver(const char *receiverID)
       {
-        FakeSenderPtr sender = getSender(senderID);
+        FakeReceiverPtr receiver = getReceiver(receiverID);
 
-        if (!sender) {
-          sender = FakeSender::create();
-          attach(senderID, sender);
+        IMediaStreamTrackTypes::Kinds kind {};
+
+        {
+          AutoRecursiveLock lock(*this);
+          TESTING_CHECK((bool)mMediaStreamTrack)
+          kind = mMediaStreamTrack->kind();
         }
 
-        TESTING_CHECK(sender)
+        if (!receiver) {
+          receiver = FakeReceiver::create(kind);
+          attach(receiverID, receiver);
+        }
+
+        TESTING_CHECK(receiver)
       }
 
       //-----------------------------------------------------------------------
-      void RTPReceiverTester::send(
-                                   const char *senderID,
-                                   const char *parametersID
-                                   )
+      void RTPSenderTester::receive(
+                                    const char *receiverID,
+                                    const char *parametersID
+                                    )
       {
-        FakeSenderPtr sender = getSender(senderID);
+        FakeReceiverPtr receiver = getReceiver(receiverID);
 
-        if (!sender) {
-          sender = FakeSender::create();
-          attach(senderID, sender);
+        IMediaStreamTrackTypes::Kinds kind {};
+
+        {
+          AutoRecursiveLock lock(*this);
+          TESTING_CHECK((bool)mMediaStreamTrack)
+          kind = mMediaStreamTrack->kind();
         }
 
-        TESTING_CHECK(sender)
+        if (!receiver) {
+          receiver = FakeReceiver::create(kind);
+          attach(receiverID, receiver);
+        }
+
+        TESTING_CHECK(receiver)
 
         auto params = getParameters(parametersID);
         TESTING_CHECK(params)
 
-        sender->send(*params);
+        receiver->receive(*params);
       }
 
       //-----------------------------------------------------------------------
-      void RTPReceiverTester::receive(const char *parametersID)
+      void RTPSenderTester::send(const char *parametersID)
       {
-        TESTING_CHECK(mReceiver)
+        TESTING_CHECK(mSender)
 
         auto params = getParameters(parametersID);
         TESTING_CHECK(params)
 
-        mReceiver->receive(*params);
+        mSender->send(*params);
       }
 
       //-----------------------------------------------------------------------
-      void RTPReceiverTester::stop(const char *senderOrReceiverID)
+      void RTPSenderTester::stop(const char *senderOrSenderID)
       {
         AutoRecursiveLock lock(*this);
 
-        auto found = mAttached.find(String(senderOrReceiverID));
+        auto found = mAttached.find(String(senderOrSenderID));
         TESTING_CHECK(found != mAttached.end())
 
         auto receiverChannel = (*found).second.first.lock();
@@ -2300,10 +2373,10 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void RTPReceiverTester::attach(
-                                     const char *receiverChannelID,
-                                     FakeReceiverChannelPtr receiverChannel
-                                     )
+      void RTPSenderTester::attach(
+                                   const char *receiverChannelID,
+                                   FakeSenderChannelPtr receiverChannel
+                                   )
       {
         TESTING_CHECK(receiverChannel)
 
@@ -2311,9 +2384,9 @@ namespace ortc
 
         AutoRecursiveLock lock(*this);
 
-        FakeReceiverChannelPtr oldChannel;
+        FakeSenderChannelPtr oldChannel;
 
-        for (auto iter_doNotUse = mFakeReceiverChannelCreationList.begin(); iter_doNotUse != mFakeReceiverChannelCreationList.end(); )
+        for (auto iter_doNotUse = mFakeSenderChannelCreationList.begin(); iter_doNotUse != mFakeSenderChannelCreationList.end(); )
         {
           auto current = iter_doNotUse;
           ++iter_doNotUse;
@@ -2324,56 +2397,56 @@ namespace ortc
 
           oldChannel = (*current).second;
 
-          mFakeReceiverChannelCreationList.erase(current);
+          mFakeSenderChannelCreationList.erase(current);
         }
 
-        mFakeReceiverChannelCreationList.push_back(FakeReceiverChannelPair(receiverChannelIDStr, receiverChannel));
+        mFakeSenderChannelCreationList.push_back(FakeSenderChannelPair(receiverChannelIDStr, receiverChannel));
 
         auto found = mAttached.find(receiverChannelIDStr);
 
         if (found != mAttached.end()) {
-          auto &previousReceiverWeak = (*found).second.first;
-          auto previousReceiver = previousReceiverWeak.lock();
-          if (previousReceiver) {
-            previousReceiver->stop();
-          }
-
-          previousReceiverWeak = receiverChannel;
-          receiverChannel->setTransport(mThisWeak.lock());
-          return;
-        }
-
-        mAttached[receiverChannelIDStr] = FakeReceiverChannelFakeSenderPair(receiverChannel, FakeSenderPtr());
-        receiverChannel->setTransport(mThisWeak.lock());
-      }
-
-      //-----------------------------------------------------------------------
-      void RTPReceiverTester::attach(
-                                     const char *senderID,
-                                     FakeSenderPtr sender
-                                     )
-      {
-        AutoRecursiveLock lock(*this);
-
-        auto found = mAttached.find(String(senderID));
-
-        if (found != mAttached.end()) {
-          auto &previousSender = (*found).second.second;
+          auto &previousSenderWeak = (*found).second.first;
+          auto previousSender = previousSenderWeak.lock();
           if (previousSender) {
             previousSender->stop();
           }
 
-          previousSender = sender;
-          sender->setTransport(mThisWeak.lock());
+          previousSenderWeak = receiverChannel;
+          receiverChannel->setTransport(mThisWeak.lock());
           return;
         }
 
-        mAttached[String(senderID)] = FakeReceiverChannelFakeSenderPair(FakeReceiverChannelPtr(), sender);
-        sender->setTransport(mThisWeak.lock());
+        mAttached[receiverChannelIDStr] = FakeSenderChannelFakeReceiverPair(receiverChannel, FakeReceiverPtr());
+        receiverChannel->setTransport(mThisWeak.lock());
       }
 
       //-----------------------------------------------------------------------
-      FakeReceiverChannelPtr RTPReceiverTester::detachReceiverChannel(const char *receiverChannelID)
+      void RTPSenderTester::attach(
+                                   const char *receiverID,
+                                   FakeReceiverPtr receiver
+                                   )
+      {
+        AutoRecursiveLock lock(*this);
+
+        auto found = mAttached.find(String(receiverID));
+
+        if (found != mAttached.end()) {
+          auto &previousReceiver = (*found).second.second;
+          if (previousReceiver) {
+            previousReceiver->stop();
+          }
+
+          previousReceiver = receiver;
+          receiver->setTransport(mThisWeak.lock());
+          return;
+        }
+
+        mAttached[String(receiverID)] = FakeSenderChannelFakeReceiverPair(FakeSenderChannelPtr(), receiver);
+        receiver->setTransport(mThisWeak.lock());
+      }
+
+      //-----------------------------------------------------------------------
+      FakeSenderChannelPtr RTPSenderTester::detachSenderChannel(const char *receiverChannelID)
       {
         String receiverChannelIDStr(receiverChannelID);
 
@@ -2382,21 +2455,21 @@ namespace ortc
         auto found = mAttached.find(receiverChannelIDStr);
         TESTING_CHECK(found != mAttached.end())
 
-        auto &currentReceiverWeak = (*found).second.first;
+        auto &currentSenderWeak = (*found).second.first;
         auto &currentSender = (*found).second.second;
 
-        FakeReceiverChannelPtr receiverChannel = currentReceiverWeak.lock();
+        FakeSenderChannelPtr receiverChannel = currentSenderWeak.lock();
 
         if (receiverChannel) {
-          receiverChannel->setTransport(RTPReceiverTesterPtr());
+          receiverChannel->setTransport(RTPSenderTesterPtr());
         }
 
-        currentReceiverWeak.reset();
+        currentSenderWeak.reset();
 
         if (!currentSender) mAttached.erase(found);
 
         if (receiverChannel) {
-          for (auto iter_doNotUse = mFakeReceiverChannelCreationList.begin(); iter_doNotUse != mFakeReceiverChannelCreationList.end(); )
+          for (auto iter_doNotUse = mFakeSenderChannelCreationList.begin(); iter_doNotUse != mFakeSenderChannelCreationList.end(); )
           {
             auto current = iter_doNotUse;
             ++iter_doNotUse;
@@ -2405,7 +2478,7 @@ namespace ortc
 
             if (channelID != receiverChannelIDStr) continue;
 
-            mFakeReceiverChannelCreationList.erase(current);
+            mFakeSenderChannelCreationList.erase(current);
           }
         }
 
@@ -2413,42 +2486,42 @@ namespace ortc
       }
       
       //-----------------------------------------------------------------------
-      FakeSenderPtr RTPReceiverTester::detachSender(const char *senderID)
+      FakeReceiverPtr RTPSenderTester::detachReceiver(const char *receiverID)
       {
         AutoRecursiveLock lock(*this);
 
-        auto found = mAttached.find(String(senderID));
+        auto found = mAttached.find(String(receiverID));
         TESTING_CHECK(found != mAttached.end())
 
-        auto &currentReceiver = (*found).second.first;
-        auto &currentSender = (*found).second.second;
+        auto &currentSender = (*found).second.first;
+        auto &currentReceiver = (*found).second.second;
 
-        FakeSenderPtr sender = currentSender;
+        FakeReceiverPtr receiver = currentReceiver;
 
-        if (sender) {
-          sender->setTransport(RTPReceiverTesterPtr());
+        if (receiver) {
+          receiver->setTransport(RTPSenderTesterPtr());
         }
 
-        currentSender.reset();
-        if (!currentReceiver.lock()) mAttached.erase(found);
-        
-        return sender;
+        currentReceiver.reset();
+        if (!currentSender.lock()) mAttached.erase(found);
+
+        return receiver;
       }
 
       //-----------------------------------------------------------------------
-      void RTPReceiverTester::expectKind(IMediaStreamTrackTypes::Kinds kind)
+      void RTPSenderTester::expectKind(IMediaStreamTrackTypes::Kinds kind)
       {
         AutoRecursiveLock lock(*this);
         mExpecting.mKind = kind;
       }
 
       //-----------------------------------------------------------------------
-      void RTPReceiverTester::expectingUnhandled(
-                                                 SSRCType ssrc,
-                                                 PayloadType payloadType,
-                                                 const char *mid,
-                                                 const char *rid
-                                                 )
+      void RTPSenderTester::expectingUnhandled(
+                                               IRTPTypes::SSRCType ssrc,
+                                               PayloadType payloadType,
+                                               const char *mid,
+                                               const char *rid
+                                               )
       {
         AutoRecursiveLock lock(*this);
 
@@ -2457,12 +2530,12 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void RTPReceiverTester::expectReceiveChannelUpdate(
-                                                         const char *receiverChannelID,
-                                                         const char *parametersID
-                                                         )
+      void RTPSenderTester::expectReceiveChannelUpdate(
+                                                       const char *senderChannelID,
+                                                       const char *parametersID
+                                                       )
       {
-        FakeReceiverChannelPtr receiverChannel = getReceiverChannel(receiverChannelID);
+        FakeSenderChannelPtr senderChannel = getSenderChannel(senderChannelID);
 
         ParametersPtr params;
 
@@ -2477,62 +2550,81 @@ namespace ortc
           TESTING_CHECK(params)
         }
 
-        TESTING_CHECK(receiverChannel)
+        TESTING_CHECK(senderChannel)
 
-        receiverChannel->expectUpdate(*params);
+        senderChannel->expectUpdate(*params);
       }
 
       //-----------------------------------------------------------------------
-      void RTPReceiverTester::expectState(
-                                          const char *receiverChannelID,
-                                          ISecureTransportTypes::States state
-                                          )
+      void RTPSenderTester::expectState(
+                                        const char *receiverChannelID,
+                                        ISecureTransportTypes::States state
+                                        )
       {
         {
           AutoRecursiveLock lock(*this);
-          ++mExpecting.mReceiverChannelOfSecureTransportState;
+          ++mExpecting.mSenderChannelOfSecureTransportState;
         }
-        FakeReceiverChannelPtr receiverChannel = getReceiverChannel(receiverChannelID);
+        FakeSenderChannelPtr receiverChannel = getSenderChannel(receiverChannelID);
 
         TESTING_CHECK(receiverChannel)
 
         receiverChannel->expectState(state);
       }
-      
+
       //-----------------------------------------------------------------------
-      void RTPReceiverTester::expectActiveChannel(const char *receiverChannelID)
+      void RTPSenderTester::expectAttachChannel(const char *senderChannelID)
       {
         FakeMediaStreamTrackPtr track;
-        FakeReceiverChannelPtr receiverChannel;
+        FakeSenderChannelPtr senderChannel;
 
         {
           AutoRecursiveLock lock(*this);
-          ++mExpecting.mActiveReceiverChannel;
-
-          if (!mMediaStreamTrack) {
-            mExpectingActiveChannelsUponMediaTrackCreation.push_back(String(receiverChannelID));
-            return;
-          }
+          ++mExpecting.mAttachSenderChannel;
 
           TESTING_CHECK(mMediaStreamTrack)
 
-          if (NULL != receiverChannelID) {
-            receiverChannel = getReceiverChannel(receiverChannelID);
+          if (NULL != senderChannelID) {
+            senderChannel = getSenderChannel(senderChannelID);
 
-            TESTING_CHECK(receiverChannel)
+            TESTING_CHECK(senderChannel)
           }
 
           track = mMediaStreamTrack;
         }
 
-        track->expectActiveChannel(receiverChannel ? receiverChannel->getID() : 0);
+        track->expectAttachChannel(senderChannel ? senderChannel->getID() : 0);
       }
 
       //-----------------------------------------------------------------------
-      void RTPReceiverTester::store(
-                                    const char *packetID,
-                                    RTPPacketPtr packet
-                                    )
+      void RTPSenderTester::expectDetachChannel(const char *senderChannelID)
+      {
+        FakeMediaStreamTrackPtr track;
+        FakeSenderChannelPtr senderChannel;
+
+        {
+          AutoRecursiveLock lock(*this);
+          ++mExpecting.mDetachSenderChannel;
+
+          TESTING_CHECK(mMediaStreamTrack)
+
+          if (NULL != senderChannelID) {
+            senderChannel = getSenderChannel(senderChannelID);
+
+            TESTING_CHECK(senderChannel)
+          }
+
+          track = mMediaStreamTrack;
+        }
+
+        track->expectDetachChannel(senderChannel ? senderChannel->getID() : 0);
+      }
+
+      //-----------------------------------------------------------------------
+      void RTPSenderTester::store(
+                                  const char *packetID,
+                                  RTPPacketPtr packet
+                                  )
       {
         TESTING_CHECK(packet)
         AutoRecursiveLock lock(*this);
@@ -2547,10 +2639,10 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void RTPReceiverTester::store(
-                                    const char *packetID,
-                                    RTCPPacketPtr packet
-                                    )
+      void RTPSenderTester::store(
+                                  const char *packetID,
+                                  RTCPPacketPtr packet
+                                  )
       {
         TESTING_CHECK(packet)
         AutoRecursiveLock lock(*this);
@@ -2565,10 +2657,10 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void RTPReceiverTester::store(
-                                    const char *parametersID,
-                                    const Parameters &params
-                                    )
+      void RTPSenderTester::store(
+                                  const char *parametersID,
+                                  const Parameters &params
+                                  )
       {
         AutoRecursiveLock lock(*this);
 
@@ -2582,7 +2674,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      RTPPacketPtr RTPReceiverTester::getRTPPacket(const char *packetID)
+      RTPPacketPtr RTPSenderTester::getRTPPacket(const char *packetID)
       {
         AutoRecursiveLock lock(*this);
 
@@ -2592,7 +2684,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      RTCPPacketPtr RTPReceiverTester::getRTCPPacket(const char *packetID)
+      RTCPPacketPtr RTPSenderTester::getRTCPPacket(const char *packetID)
       {
         AutoRecursiveLock lock(*this);
 
@@ -2602,7 +2694,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      RTPReceiverTester::ParametersPtr RTPReceiverTester::getParameters(const char *parametersID)
+      RTPSenderTester::ParametersPtr RTPSenderTester::getParameters(const char *parametersID)
       {
         AutoRecursiveLock lock(*this);
 
@@ -2612,10 +2704,10 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void RTPReceiverTester::sendPacket(
-                                         const char *senderOrReceiverChannelID,
-                                         const char *packetID
-                                         )
+      void RTPSenderTester::sendPacket(
+                                       const char *receiverOrSenderChannelID,
+                                       const char *packetID
+                                       )
       {
         RTPPacketPtr rtp;
         RTCPPacketPtr rtcp;
@@ -2629,27 +2721,32 @@ namespace ortc
           rtcp = (*found).second.second;
         }
 
+        {
+          FakeSenderChannelPtr senderChannel = getSenderChannel(receiverOrSenderChannelID);
+          if (senderChannel) {
+            if (rtp) {
+              senderChannel->sendPacket(rtp);
+            }
+            if (rtcp) {
+              senderChannel->sendPacket(rtcp);
+            }
+            return;
+          }
+        }
+
         if (rtp) {
-          sendData(senderOrReceiverChannelID, rtp->buffer());
+          sendData(receiverOrSenderChannelID, rtp->buffer());
         }
         if (rtcp) {
-          {
-            FakeReceiverChannelPtr receiverChannel = getReceiverChannel(senderOrReceiverChannelID);
-            if (receiverChannel) {
-              receiverChannel->sendPacket(rtcp);
-              return;
-            }
-          }
-
-          sendData(senderOrReceiverChannelID, rtcp->buffer());
+          sendData(receiverOrSenderChannelID, rtcp->buffer());
         }
       }
 
       //-----------------------------------------------------------------------
-      void RTPReceiverTester::expectPacket(
-                                           const char *senderOrReceiverID,
-                                           const char *packetID
-                                           )
+      void RTPSenderTester::expectPacket(
+                                         const char *receiverOrSenderChannelID,
+                                         const char *packetID
+                                         )
       {
         RTPPacketPtr rtp;
         RTCPPacketPtr rtcp;
@@ -2666,25 +2763,11 @@ namespace ortc
         }
 
         if (rtp) {
-          expectData(senderOrReceiverID, rtp->buffer());
+          expectData(receiverOrSenderChannelID, rtp->buffer());
         }
         if (rtcp) {
-          expectData(senderOrReceiverID, rtcp->buffer());
+          expectData(receiverOrSenderChannelID, rtcp->buffer());
         }
-      }
-
-      //-----------------------------------------------------------------------
-      RTPReceiverTester::ContributingSourceList RTPReceiverTester::getContributingSources() const
-      {
-        IRTPReceiverPtr receiver;
-        {
-          AutoRecursiveLock lock(*this);
-
-          TESTING_CHECK(mReceiver)
-          receiver = mReceiver;
-        }
-
-        return receiver->getContributingSources();
       }
 
       //-----------------------------------------------------------------------
@@ -2692,17 +2775,17 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark RTPReceiverTester::IRTPReceiverDelegate
+      #pragma mark RTPSenderTester::IRTPSenderDelegate
       #pragma mark
 
       //-----------------------------------------------------------------------
-      void RTPReceiverTester::onRTPListenerUnhandledRTP(
-                                                        IRTPListenerPtr receiver,
-                                                        SSRCType ssrc,
-                                                        PayloadType payloadType,
-                                                        const char *mid,
-                                                        const char *rid
-                                                        )
+      void RTPSenderTester::onRTPListenerUnhandledRTP(
+                                                      IRTPListenerPtr receiver,
+                                                      IRTPTypes::SSRCType ssrc,
+                                                      PayloadType payloadType,
+                                                      const char *mid,
+                                                      const char *rid
+                                                      )
       {
         ZS_LOG_BASIC(log("rtp listener unhandled rtp event") + ZS_PARAM("receiver id", receiver->getID()) + ZS_PARAM("ssrc", ssrc) + ZS_PARAM("payload type", payloadType) + ZS_PARAM("mid", mid) + ZS_PARAM("rid", rid))
 
@@ -2723,38 +2806,50 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark RTPReceiverTester::IRTPReceiverDelegate
+      #pragma mark RTPSenderTester::IRTPSenderDelegate
       #pragma mark
 
       //-----------------------------------------------------------------------
-      void RTPReceiverTester::onRTPReceiverError(
-                                                 IRTPReceiverPtr receiver,
+      void RTPSenderTester::onRTPSenderError(
+                                                 IRTPSenderPtr sender,
                                                  ErrorCode errorCode,
                                                  String errorReason
                                                  )
       {
-        ZS_LOG_BASIC(log("rtp receiver error") + ZS_PARAM("receiver", receiver->getID()) + ZS_PARAM("error code", errorCode) + ZS_PARAM("error reason", errorReason))
+        ZS_LOG_BASIC(log("rtp receiver error") + ZS_PARAM("sender", sender->getID()) + ZS_PARAM("error code", errorCode) + ZS_PARAM("error reason", errorReason))
 
         AutoRecursiveLock lock(*this);
         ++mExpectationsFound.mError;
       }
 
       //-----------------------------------------------------------------------
+      void RTPSenderTester::onRTPSenderSSRCConflict(
+                                                    IRTPSenderPtr sender,
+                                                    IRTPTypes::SSRCType ssrc
+                                                    )
+      {
+        ZS_LOG_BASIC(log("rtp receiver ssrc conflict") + ZS_PARAM("sender", sender->getID()) + ZS_PARAM("ssrc", ssrc))
+
+        AutoRecursiveLock lock(*this);
+        ++mExpectationsFound.mSSRCconflict;
+      }
+
+      //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark RTPReceiverTester => (friend fake sender/receiver)
+      #pragma mark RTPSenderTester => (friend fake sender/receiver)
       #pragma mark
 
       //-----------------------------------------------------------------------
-      FakeSecureTransportPtr RTPReceiverTester::getFakeSecureTransport() const
+      FakeSecureTransportPtr RTPSenderTester::getFakeSecureTransport() const
       {
         return mDTLSTransport;
       }
 
       //-----------------------------------------------------------------------
-      void RTPReceiverTester::notifyReceivedPacket()
+      void RTPSenderTester::notifyReceivedPacket()
       {
         ZS_LOG_BASIC(log("notified received packet"))
 
@@ -2763,7 +2858,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void RTPReceiverTester::notifyReceivedChannelUpdate()
+      void RTPSenderTester::notifyReceivedChannelUpdate()
       {
         ZS_LOG_BASIC(log("notified received channel update"))
 
@@ -2772,47 +2867,55 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void RTPReceiverTester::notifyActiveReceiverChannel()
+      void RTPSenderTester::notifyAttachSenderChannel()
       {
         ZS_LOG_BASIC(log("notified active channel"))
 
         AutoRecursiveLock lock(*this);
-        ++mExpectationsFound.mActiveReceiverChannel;
+        ++mExpectationsFound.mAttachSenderChannel;
       }
 
       //-----------------------------------------------------------------------
-      void RTPReceiverTester::notifyReceiverChannelOfSecureTransportState()
+      void RTPSenderTester::notifyDetachSenderChannel()
+      {
+        ZS_LOG_BASIC(log("notified active channel"))
+
+        AutoRecursiveLock lock(*this);
+        ++mExpectationsFound.mDetachSenderChannel;
+      }
+      
+      //-----------------------------------------------------------------------
+      void RTPSenderTester::notifySenderChannelOfSecureTransportState()
       {
         ZS_LOG_BASIC(log("notified receiver channel of secure transport state"))
 
         AutoRecursiveLock lock(*this);
-        ++mExpectationsFound.mReceiverChannelOfSecureTransportState;
+        ++mExpectationsFound.mSenderChannelOfSecureTransportState;
       }
 
       //-----------------------------------------------------------------------
-      RTPReceiverChannelPtr RTPReceiverTester::create(
-                                                      RTPReceiverPtr receiver,
-                                                      const Parameters &params,
-                                                      const RTCPPacketList &packets
-                                                      )
+      RTPSenderChannelPtr RTPSenderTester::create(
+                                                  RTPSenderPtr sender,
+                                                  const Parameters &params
+                                                  )
       {
         AutoRecursiveLock lock(*this);
 
-        TESTING_CHECK(mFakeReceiverChannelCreationList.size() > 0)
+        TESTING_CHECK(mFakeSenderChannelCreationList.size() > 0)
 
-        FakeReceiverChannelPtr receiverChannel = mFakeReceiverChannelCreationList.front().second;
+        FakeSenderChannelPtr receiverChannel = mFakeSenderChannelCreationList.front().second;
 
         TESTING_CHECK(receiverChannel)
 
-        receiverChannel->create(receiver, params, packets);
+        receiverChannel->create(sender, params);
 
-        mFakeReceiverChannelCreationList.pop_front();
+        mFakeSenderChannelCreationList.pop_front();
 
         return receiverChannel;
       }
 
       //-----------------------------------------------------------------------
-      MediaStreamTrackPtr RTPReceiverTester::create(IMediaStreamTrackTypes::Kinds kind)
+      MediaStreamTrackPtr RTPSenderTester::create(IMediaStreamTrackTypes::Kinds kind)
       {
         FakeMediaStreamTrackPtr track = FakeMediaStreamTrack::create(getAssociatedMessageQueue(), kind);
         track->setTransport(mThisWeak.lock());
@@ -2824,28 +2927,11 @@ namespace ortc
 
           mExpectationsFound.mKind = kind;
           mMediaStreamTrack = track;
-
-          for (auto iter = mExpectingActiveChannelsUponMediaTrackCreation.begin(); iter != mExpectingActiveChannelsUponMediaTrackCreation.end(); ++iter) {
-            auto &receiverChannelID = (*iter);
-
-            FakeReceiverChannelPtr receiverChannel;
-
-            if (receiverChannelID.hasData()) {
-              receiverChannel = getReceiverChannel(receiverChannelID);
-
-              TESTING_CHECK(receiverChannel)
-            }
-
-            track->expectActiveChannel(receiverChannel ? receiverChannel->getID() : 0);
-          }
-
-          mExpectingActiveChannelsUponMediaTrackCreation.clear();
         }
 
         TESTING_CHECK(track)
 
         track->create(kind);
-
         return track;
       }
 
@@ -2854,86 +2940,86 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark RTPReceiverTester => (internal)
+      #pragma mark RTPSenderTester => (internal)
       #pragma mark
 
       //-----------------------------------------------------------------------
-      Log::Params RTPReceiverTester::log(const char *message) const
+      Log::Params RTPSenderTester::log(const char *message) const
       {
-        ElementPtr objectEl = Element::create("ortc::test::rtpreceiver::RTPReceiverTester");
+        ElementPtr objectEl = Element::create("ortc::test::rtpsender::RTPSenderTester");
         UseServicesHelper::debugAppend(objectEl, "id", mID);
         return Log::Params(message, objectEl);
       }
 
       //-----------------------------------------------------------------------
-      FakeICETransportPtr RTPReceiverTester::getICETransport() const
+      FakeICETransportPtr RTPSenderTester::getICETransport() const
       {
         AutoRecursiveLock lock(*this);
         return mICETransport;
       }
 
       //-----------------------------------------------------------------------
-      FakeReceiverChannelPtr RTPReceiverTester::getReceiverChannel(const char *receiverID)
+      FakeSenderChannelPtr RTPSenderTester::getSenderChannel(const char *senderChannelID)
       {
         AutoRecursiveLock lock(*this);
-        auto found = mAttached.find(String(receiverID));
-        if (mAttached.end() == found) return FakeReceiverChannelPtr();
+        auto found = mAttached.find(String(senderChannelID));
+        if (mAttached.end() == found) return FakeSenderChannelPtr();
         return (*found).second.first.lock();
       }
 
       //-----------------------------------------------------------------------
-      FakeSenderPtr RTPReceiverTester::getSender(const char *senderID)
+      FakeReceiverPtr RTPSenderTester::getReceiver(const char *receiverID)
       {
         AutoRecursiveLock lock(*this);
-        auto found = mAttached.find(String(senderID));
-        if (mAttached.end() == found) return FakeSenderPtr();
+        auto found = mAttached.find(String(receiverID));
+        if (mAttached.end() == found) return FakeReceiverPtr();
         return (*found).second.second;
       }
 
       //-----------------------------------------------------------------------
-      void RTPReceiverTester::expectData(
-                                         const char *senderOrReceiverID,
-                                         SecureByteBlockPtr secureBuffer
-                                         )
+      void RTPSenderTester::expectData(
+                                       const char *receiverOrSenderChannelID,
+                                       SecureByteBlockPtr secureBuffer
+                                       )
       {
         {
-          FakeSenderPtr sender = getSender(senderOrReceiverID);
+          FakeReceiverPtr receiver = getReceiver(receiverOrSenderChannelID);
 
-          if (sender) {
-            sender->expectData(secureBuffer);
+          if (receiver) {
+            receiver->expectData(secureBuffer);
           }
         }
 
         {
-          FakeReceiverChannelPtr receiverChannel = getReceiverChannel(senderOrReceiverID);
+          FakeSenderChannelPtr senderChannel = getSenderChannel(receiverOrSenderChannelID);
 
-          if (receiverChannel) {
-            receiverChannel->expectData(secureBuffer);
+          if (senderChannel) {
+            senderChannel->expectData(secureBuffer);
           }
         }
       }
 
       //-----------------------------------------------------------------------
-      void RTPReceiverTester::sendData(
-                                       const char *senderOrReceiverChannelID,
-                                       SecureByteBlockPtr secureBuffer
-                                       )
+      void RTPSenderTester::sendData(
+                                     const char *receiverOrSenderChannelID,
+                                     SecureByteBlockPtr secureBuffer
+                                     )
       {
-        FakeSenderPtr sender = getSender(senderOrReceiverChannelID);
-        TESTING_CHECK(sender)
+        FakeReceiverPtr receiver = getReceiver(receiverOrSenderChannelID);
+        TESTING_CHECK(receiver)
 
-        sender->sendPacket(secureBuffer);
+        receiver->sendPacket(secureBuffer);
       }
     }
   }
 }
 
-ZS_DECLARE_USING_PTR(ortc::test::rtpreceiver, FakeICETransport)
-ZS_DECLARE_USING_PTR(ortc::test::rtpreceiver, RTPReceiverTester)
+ZS_DECLARE_USING_PTR(ortc::test::rtpsender, FakeICETransport)
+ZS_DECLARE_USING_PTR(ortc::test::rtpsender, RTPSenderTester)
 ZS_DECLARE_USING_PTR(ortc, IICETransport)
 ZS_DECLARE_USING_PTR(ortc, IDTLSTransport)
 ZS_DECLARE_USING_PTR(ortc, IDataChannel)
-ZS_DECLARE_USING_PTR(ortc, IRTPReceiver)
+ZS_DECLARE_USING_PTR(ortc, IRTPSender)
 ZS_DECLARE_USING_PTR(ortc, IRTPTypes)
 
 ZS_DECLARE_USING_PTR(ortc::internal, RTPPacket)
@@ -2967,9 +3053,9 @@ static void bogusSleep()
   }
 }
 
-void doTestRTPReceiver()
+void doTestRTPSender()
 {
-  if (!ORTC_TEST_DO_RTP_RECEIVER_TEST) return;
+  if (!ORTC_TEST_DO_RTP_SENDER_TEST) return;
 
   TESTING_INSTALL_LOGGER();
 
@@ -2979,10 +3065,10 @@ void doTestRTPReceiver()
 
   zsLib::MessageQueueThreadPtr thread(zsLib::MessageQueueThread::createBasic());
 
-  RTPReceiverTesterPtr testObject1;
-  RTPReceiverTesterPtr testObject2;
+  RTPSenderTesterPtr testObject1;
+  RTPSenderTesterPtr testObject2;
 
-  TESTING_STDOUT() << "WAITING:      Waiting for RTPReceiver testing to complete (max wait is 180 seconds).\n";
+  TESTING_STDOUT() << "WAITING:      Waiting for RTPSender testing to complete (max wait is 180 seconds).\n";
 
   // check to see if all DNS routines have resolved
   {
@@ -3002,8 +3088,8 @@ void doTestRTPReceiver()
             UseSettings::setUInt("ortc/rtp-receiver/max-age-rtp-packets-in-seconds", 60);
             UseSettings::setUInt("ortc/rtp-receiver/max-age-rtcp-packets-in-seconds", 60);
 
-            testObject1 = RTPReceiverTester::create(thread, true);
-            testObject2 = RTPReceiverTester::create(thread, false);
+            testObject1 = RTPSenderTester::create(thread, IMediaStreamTrackTypes::Kind_Audio, true);
+            testObject2 = RTPSenderTester::create(thread, IMediaStreamTrackTypes::Kind_Audio, false);
 
             TESTING_CHECK(testObject1)
             TESTING_CHECK(testObject2)
@@ -3015,8 +3101,8 @@ void doTestRTPReceiver()
         }
         case TEST_SSRC_ROUTING: {
           {
-            testObject1 = RTPReceiverTester::create(thread, true);
-            testObject2 = RTPReceiverTester::create(thread, false);
+            testObject1 = RTPSenderTester::create(thread, IMediaStreamTrackTypes::Kind_Audio, true);
+            testObject2 = RTPSenderTester::create(thread, IMediaStreamTrackTypes::Kind_Audio, false);
 
             TESTING_CHECK(testObject1)
             TESTING_CHECK(testObject2)
@@ -3057,19 +3143,19 @@ void doTestRTPReceiver()
             switch (step) {
               case 2: {
                 if (testObject1) testObject1->connect(testObject2);
-          //    bogusSleep();
+            //  bogusSleep();
                 break;
               }
               case 3: {
                 if (testObject1) testObject1->state(IICETransport::State_Completed);
                 if (testObject2) testObject2->state(IICETransport::State_Completed);
-          //    bogusSleep();
+            //  bogusSleep();
                 break;
               }
               case 4: {
                 if (testObject1) testObject1->state(IDTLSTransport::State_Validated);
                 if (testObject2) testObject2->state(IDTLSTransport::State_Validated);
-          //    bogusSleep();
+            //  bogusSleep();
                 break;
               }
               case 5: {
@@ -3110,14 +3196,17 @@ void doTestRTPReceiver()
                 break;
               }
               case 6: {
-                testObject1->createReceiverChannel("c1", "params1");
-                testObject1->receive("params1");
+                testObject1->createSenderChannel("c1", "params1");
+                testObject1->expectState("c1", ISecureTransportTypes::State_Connected);
+                testObject1->expectState("c1", ISecureTransportTypes::State_Closed);
+                testObject1->expectAttachChannel("c1");
+                testObject1->send("params1");
           //    bogusSleep();
                 break;
               }
               case 7: {
                 Parameters params;
-                testObject2->send("s1", "params-empty");
+                testObject2->receive("r1", "params-empty");
           //    bogusSleep();
                 break;
               }
@@ -3189,29 +3278,26 @@ void doTestRTPReceiver()
                 break;
               }
               case 9: {
-                testObject1->expectState("c1", ISecureTransportTypes::State_Connected);
-                testObject1->expectState("c1", ISecureTransportTypes::State_Closed);
           //    bogusSleep();
                 break;
               }
               case 10: {
-                testObject1->expectPacket("c1","p1");
-                testObject1->expectPacket("c1","p1");
-                testObject1->expectPacket("c1","p2");
-                testObject1->expectActiveChannel("c1");
+                testObject2->expectPacket("r1","p1");
+                testObject2->expectPacket("r1","p1");
+                testObject2->expectPacket("r1","p2");
           //    bogusSleep();
                 break;
               }
               case 11: {
-                testObject2->sendPacket("s1", "p1");
-                testObject2->sendPacket("s1", "p1");
-                testObject2->sendPacket("s1", "p2");
+                testObject1->sendPacket("c1", "p1");
+                testObject1->sendPacket("c1", "p1");
+                testObject1->sendPacket("c1", "p2");
           //    bogusSleep();
                 break;
               }
               case 12: {
-                testObject1->expectingUnhandled(6, 97, "r2", "c2");
-                testObject2->sendPacket("s1", "p3");
+                testObject2->expectPacket("r1","p3");
+                testObject1->sendPacket("c1", "p3");
           //    bogusSleep();
                 break;
               }
@@ -3224,66 +3310,79 @@ void doTestRTPReceiver()
                 codec.mPayloadType = 97;
 
                 params->mCodecs.push_back(codec);
+
+                EncodingParameters encoding;
+                encoding.mCodecPayloadType = 96;
+                params->mEncodingParameters.push_back(encoding);
+
+                encoding.mCodecPayloadType = 97;
+                params->mEncodingParameters.push_back(encoding);
+
                 testObject1->store("params2", *params);
+
+                auto oldEncodingsList = params->mEncodingParameters;
+
+                {
+                  params->mEncodingParameters = oldEncodingsList;
+                  params->mEncodingParameters.pop_back();
+                  testObject1->store("params2-c2", *params);
+                }
+                {
+                  params->mEncodingParameters = oldEncodingsList;
+                  params->mEncodingParameters.pop_front();
+                  testObject1->store("params2-c3", *params);
+                }
+
           //    bogusSleep();
                 break;
               }
               case 15: {
-                testObject1->createReceiverChannel("c2", "params2");
+                testObject1->createSenderChannel("c2", "params2-c2");
                 testObject1->expectState("c2", ISecureTransportTypes::State_Connected);
                 testObject1->expectState("c2", ISecureTransportTypes::State_Closed);
-                testObject1->expectPacket("c2","p3");
-                testObject1->expectActiveChannel("c2");
-                testObject1->receive("params2");
+                testObject1->createSenderChannel("c3", "params2-c3");
+                testObject1->expectState("c3", ISecureTransportTypes::State_Connected);
+                testObject1->expectState("c3", ISecureTransportTypes::State_Closed);
+                testObject1->expectDetachChannel("c1");
+                testObject1->expectAttachChannel("c2");
+                testObject1->expectAttachChannel("c3");
 
-                auto sources = testObject1->getContributingSources();
-
-                TESTING_EQUAL(sources.size(), 3)
-                TESTING_EQUAL(sources.front().mCSRC, 5);
-                TESTING_EQUAL(sources.front().mAudioLevel, 2);
-                sources.pop_front();
-
-                TESTING_EQUAL(sources.front().mCSRC, 77);
-                TESTING_EQUAL(sources.front().mAudioLevel, 4);
-                sources.pop_front();
-
-                TESTING_EQUAL(sources.front().mCSRC, 88);
-                TESTING_EQUAL(sources.front().mAudioLevel, 15);
-                sources.pop_front();
+                testObject1->send("params2");
 
           //    bogusSleep();
                 break;
               }
               case 20: {
-                testObject1->expectActiveChannel(NULL);
+                testObject1->expectDetachChannel("c2");
+                testObject1->expectDetachChannel("c3");
 
                 if (testObject1) testObject1->close();
                 if (testObject2) testObject1->close();
-                //bogusSleep();
+          //    bogusSleep();
                 break;
               }
               case 21: {
                 if (testObject1) testObject1->state(IDTLSTransport::State_Closed);
                 if (testObject2) testObject2->state(IDTLSTransport::State_Closed);
-                //bogusSleep();
+          //    bogusSleep();
                 break;
               }
               case 22: {
                 if (testObject1) testObject1->state(IICETransport::State_Disconnected);
                 if (testObject2) testObject2->state(IICETransport::State_Disconnected);
-                //bogusSleep();
+          //    bogusSleep();
                 break;
               }
               case 23: {
                 if (testObject1) testObject1->state(IICETransport::State_Closed);
                 if (testObject2) testObject2->state(IICETransport::State_Closed);
-                //bogusSleep();
+          //    bogusSleep();
                 break;
               }
               case 24: {
                 if (testObject1) testObject1->closeByReset();
                 if (testObject2) testObject2->closeByReset();
-                //bogusSleep();
+          //    bogusSleep();
                 break;
               }
               case 25: {
@@ -3472,39 +3571,42 @@ void doTestRTPReceiver()
               case 6: {
                 if (testObject2) testObject2->state(IDTLSTransport::State_Validated);
                 if (testObject1) testObject1->state(IDTLSTransport::State_Validated);
-                testObject2->createSender("s1");
-                testObject2->sendPacket("s1", "p1");
+                testObject2->createReceiver("r1");
+                testObject2->receive("r1", "params-empty");
           //    bogusSleep();
                 break;
               }
               case 10: {
-                testObject1->createReceiverChannel("c1", "params1");
-                testObject1->expectPacket("c1", "p1");
+                testObject1->createSenderChannel("c1", "params1");
                 testObject1->expectState("c1", ISecureTransportTypes::State_Connected);
-                testObject1->expectActiveChannel("c1");
-                testObject1->receive("params1");
+                testObject1->expectAttachChannel("c1");
+                testObject1->send("params1");
+                testObject2->expectPacket("r1", "p1");
+                testObject1->sendPacket("c1", "p1");
           //    bogusSleep();
                 break;
               }
               case 11: {
-                testObject1->expectPacket("c1", "p2");
-                testObject2->sendPacket("s1", "p2");
+                testObject2->expectPacket("r1", "p2");
+                testObject1->sendPacket("c1", "p2");
           //    bogusSleep();
                 break;
               }
               case 12: {
-                testObject1->expectingUnhandled(37, 125, NULL, NULL);
-                testObject1->expectingUnhandled(11, 96, NULL, NULL);
-                testObject2->sendPacket("s1", "p4");  // these should not get routed
-                testObject2->sendPacket("s1", "p5");  // these should not get routed
-                testObject2->sendPacket("s1", "p4");  // these should not get routed
-                testObject2->sendPacket("s1", "p5");  // these should not get routed
+                testObject2->expectPacket("r1", "p4");
+                testObject2->expectPacket("r1", "p5");
+                testObject2->expectPacket("r1", "p4");
+                testObject2->expectPacket("r1", "p5");
+                testObject1->sendPacket("c1", "p4");
+                testObject1->sendPacket("c1", "p5");
+                testObject1->sendPacket("c1", "p4");
+                testObject1->sendPacket("c1", "p5");
           //    bogusSleep();
                 break;
               }
               case 13: {
-                testObject1->expectPacket("c1", "p3");
-                testObject2->sendPacket("s1", "p3");
+                testObject2->expectPacket("r1", "p3");
+                testObject1->sendPacket("c1", "p3");
           //    bogusSleep();
                 break;
               }
@@ -3535,14 +3637,10 @@ void doTestRTPReceiver()
                 break;
               }
               case 15: {
-                testObject1->createReceiverChannel("c2", "params2-c2");
+                testObject1->createSenderChannel("c2", "params2-c2");
                 testObject1->expectState("c2", ISecureTransportTypes::State_Connected);
-                testObject1->expectPacket("c2", "p5");
-                testObject1->expectPacket("c2", "p4");
-                testObject1->expectPacket("c2", "p5");
-                testObject1->expectPacket("c2", "p4");
-                testObject1->expectActiveChannel("c2");
-                testObject1->receive("params2");
+                testObject1->expectAttachChannel("c2");
+                testObject1->send("params2");
           //    bogusSleep();
                 break;
               }
@@ -3572,17 +3670,19 @@ void doTestRTPReceiver()
                   testObject1->store("p6", packet);
                   testObject2->store("p6", packet);
                 }
-                testObject1->createReceiverChannel("c3", "params3-c3");
+                testObject1->createSenderChannel("c3", "params3-c3");
                 testObject1->expectState("c1", ISecureTransportTypes::State_Closed);
                 testObject1->expectState("c3", ISecureTransportTypes::State_Connected);
-                testObject1->receive("params3");
+                testObject1->expectDetachChannel("c1");
+                testObject1->expectAttachChannel("c3");
+                testObject1->send("params3");
           //    bogusSleep();
                 break;
               }
               case 17: {
-                testObject1->expectPacket("c3", "p6");
+                testObject2->expectPacket("r1", "p6");
                 // testObject1->expectActiveChannel("c3");  // no - will not become active because switch lockout
-                testObject2->sendPacket("s1", "p6");
+                testObject1->sendPacket("c3", "p6");
           //    bogusSleep();
                 break;
               }
@@ -3658,20 +3758,20 @@ void doTestRTPReceiver()
                   testObject1->store("p9", packet);
                   testObject2->store("p9", packet);
                 }
-                testObject1->receive("params4");
+                testObject1->createSenderChannel("c4", "params4-c4");
+                testObject1->expectAttachChannel("c4");
+                testObject1->expectState("c4", ISecureTransportTypes::State_Connected);
+                testObject1->send("params4");
           //    bogusSleep();
                 break;
               }
               case 20: {
-                testObject1->createReceiverChannel("c4", "params4-c4");
-                testObject1->expectPacket("c4", "p9");
-                testObject1->expectPacket("c4", "p8");
-                testObject1->expectPacket("c4", "p7");
-                testObject1->expectActiveChannel("c4");
-                testObject1->expectState("c4", ISecureTransportTypes::State_Connected);
-                testObject2->sendPacket("s1", "p9");
-                testObject2->sendPacket("s1", "p8");
-                testObject2->sendPacket("s1", "p7");
+                testObject2->expectPacket("r1", "p9");
+                testObject2->expectPacket("r1", "p8");
+                testObject2->expectPacket("r1", "p7");
+                testObject1->sendPacket("c4", "p9");
+                testObject1->sendPacket("c4", "p8");
+                testObject1->sendPacket("c4", "p7");
           //    bogusSleep();
                 break;
               }
@@ -3722,18 +3822,17 @@ void doTestRTPReceiver()
                   testObject2->store("p11", packet);
                 }
                 testObject1->expectReceiveChannelUpdate("c4", "params5-c4");
-                testObject1->receive("params5");
+                testObject1->send("params5");
           //    bogusSleep();
                 break;
               }
               case 22: {
-                testObject1->createReceiverChannel("c4", "params4-c4");
-                testObject1->expectPacket("c4", "p11");
-                testObject1->expectPacket("c4", "p10");
-                testObject1->expectPacket("c4", "p7");
-                testObject2->sendPacket("s1", "p11");
-                testObject2->sendPacket("s1", "p10");
-                testObject2->sendPacket("s1", "p7");
+                testObject2->expectPacket("r1", "p11");
+                testObject2->expectPacket("r1", "p10");
+                testObject2->expectPacket("r1", "p7");
+                testObject1->sendPacket("c4", "p11");
+                testObject1->sendPacket("c4", "p10");
+                testObject1->sendPacket("c4", "p7");
           //    bogusSleep();
                 break;
               }
@@ -3766,21 +3865,21 @@ void doTestRTPReceiver()
                   testObject2->store("p12", packet);
                 }
                 testObject1->expectState("c4", ISecureTransportTypes::State_Closed);
-                testObject1->expectActiveChannel(NULL);
-                testObject1->receive("params6");
+                testObject1->expectDetachChannel("c4");
+                testObject1->createSenderChannel("c5", "params6-c5");
+                testObject1->expectState("c5", ISecureTransportTypes::State_Connected);
+                testObject1->expectAttachChannel("c5");
+                testObject1->send("params6");
           //    bogusSleep();
                 break;
               }
               case 24: {
-                testObject1->createReceiverChannel("c5", "params6-c5");
-                testObject1->expectState("c5", ISecureTransportTypes::State_Connected);
-                testObject1->expectActiveChannel("c5");
-                testObject1->expectPacket("c5", "p11");
-                testObject1->expectPacket("c5", "p10");
-                testObject1->expectPacket("c5", "p12");
-                testObject2->sendPacket("s1", "p11");
-                testObject2->sendPacket("s1", "p10");
-                testObject2->sendPacket("s1", "p12");
+                testObject2->expectPacket("r1", "p11");
+                testObject2->expectPacket("r1", "p10");
+                testObject2->expectPacket("r1", "p12");
+                testObject1->sendPacket("c5", "p11");
+                testObject1->sendPacket("c5", "p10");
+                testObject1->sendPacket("c5", "p12");
           //    bogusSleep();
                 break;
               }
@@ -3813,17 +3912,17 @@ void doTestRTPReceiver()
                 testObject1->expectReceiveChannelUpdate("c5", "params7-c5");
                 testObject1->expectReceiveChannelUpdate("c2", "params7-c2");
                 testObject1->expectReceiveChannelUpdate("c3", "params7-c3");
-                testObject1->receive("params7");
+                testObject1->send("params7");
           //    bogusSleep();
                 break;
               }
               case 26: {
-                testObject1->expectPacket("c5", "p11");
-                testObject1->expectPacket("c5", "p10");
-                testObject1->expectPacket("c5", "p12");
-                testObject2->sendPacket("s1", "p11");
-                testObject2->sendPacket("s1", "p10");
-                testObject2->sendPacket("s1", "p12");
+                testObject2->expectPacket("r1", "p11");
+                testObject2->expectPacket("r1", "p10");
+                testObject2->expectPacket("r1", "p12");
+                testObject1->sendPacket("c5", "p11");
+                testObject1->sendPacket("c5", "p10");
+                testObject1->sendPacket("c5", "p12");
           //    bogusSleep();
                 break;
               }
@@ -3897,20 +3996,20 @@ void doTestRTPReceiver()
                   testObject1->store("p15", packet);
                   testObject2->store("p15", packet);
                 }
-                testObject1->receive("params8");
+                testObject1->createSenderChannel("c6", "params8-c6");
+                testObject1->expectState("c6", ISecureTransportTypes::State_Connected);
+                testObject1->expectAttachChannel("c6");
+                testObject1->send("params8");
           //    bogusSleep();
                 break;
               }
               case 28: {
-                testObject1->createReceiverChannel("c6", "params8-c6");
-                testObject1->expectState("c6", ISecureTransportTypes::State_Connected);
-                testObject1->expectActiveChannel("c6");
-                testObject1->expectPacket("c6", "p13");
-                testObject1->expectPacket("c6", "p14");
-                testObject1->expectPacket("c6", "p15");
-                testObject2->sendPacket("s1", "p13");
-                testObject2->sendPacket("s1", "p14");
-                testObject2->sendPacket("s1", "p15");
+                testObject2->expectPacket("r1", "p13");
+                testObject2->expectPacket("r1", "p14");
+                testObject2->expectPacket("r1", "p15");
+                testObject1->sendPacket("c6", "p13");
+                testObject1->sendPacket("c6", "p14");
+                testObject1->sendPacket("c6", "p15");
           //    bogusSleep();
                 break;
               }
@@ -4016,22 +4115,27 @@ void doTestRTPReceiver()
                 testObject1->expectReceiveChannelUpdate("c3", "params9-c3");
                 testObject1->expectReceiveChannelUpdate("c5", "params9-c5");
                 testObject1->expectReceiveChannelUpdate("c6", "params9-c6");
-                testObject1->receive("params9");
+                testObject1->createSenderChannel("c7", "params9-c7");
+                testObject1->expectState("c7", ISecureTransportTypes::State_Connected);
+                testObject1->expectAttachChannel("c7");
+                testObject1->send("params9");
           //    bogusSleep();
                 break;
               }
               case 30: {
-                testObject1->createReceiverChannel("c7", "params9-c7");
-                testObject1->expectState("c7", ISecureTransportTypes::State_Connected);
-                testObject1->expectPacket("c7", "p16");
-                testObject2->sendPacket("s1", "p16");
-                testObject1->expectPacket("c2", "p17"); // will latch the "c2" which does not have RTX filled in and "c7" rid does not match (nor does "c2" have an encoding ID)
-                testObject2->sendPacket("s1", "p17");
+                testObject2->expectPacket("r1", "p16");
+                testObject1->sendPacket("c7", "p16");
+                testObject2->expectPacket("r1", "p17"); // will latch the "c2" which does not have RTX filled in and "c7" rid does not match (nor does "c2" have an encoding ID)
+                testObject1->sendPacket("c2", "p17");
           //    bogusSleep();
                 break;
               }
               case 35: {
-                testObject1->expectActiveChannel(NULL);
+                testObject1->expectDetachChannel("c3");
+                testObject1->expectDetachChannel("c2");
+                testObject1->expectDetachChannel("c5");
+                testObject1->expectDetachChannel("c6");
+                testObject1->expectDetachChannel("c7");
                 testObject1->expectState("c2", ISecureTransportTypes::State_Closed);
                 testObject1->expectState("c3", ISecureTransportTypes::State_Closed);
                 testObject1->expectState("c5", ISecureTransportTypes::State_Closed);
@@ -4046,25 +4150,25 @@ void doTestRTPReceiver()
               case 36: {
                 if (testObject1) testObject1->state(IDTLSTransport::State_Closed);
                 if (testObject2) testObject2->state(IDTLSTransport::State_Closed);
-                //bogusSleep();
+          //    bogusSleep();
                 break;
               }
               case 37: {
                 if (testObject1) testObject1->state(IICETransport::State_Disconnected);
                 if (testObject2) testObject2->state(IICETransport::State_Disconnected);
-                //bogusSleep();
+          //    bogusSleep();
                 break;
               }
               case 38: {
                 if (testObject1) testObject1->state(IICETransport::State_Closed);
                 if (testObject2) testObject2->state(IICETransport::State_Closed);
-                //bogusSleep();
+          //    bogusSleep();
                 break;
               }
               case 39: {
                 if (testObject1) testObject1->closeByReset();
                 if (testObject2) testObject2->closeByReset();
-                //bogusSleep();
+          //    bogusSleep();
                 break;
               }
               case 40: {
@@ -4115,7 +4219,7 @@ void doTestRTPReceiver()
     } while (true);
   }
 
-  TESTING_STDOUT() << "WAITING:      All RTPReceiver transports have finished. Waiting for 'bogus' events to process (1 second wait).\n";
+  TESTING_STDOUT() << "WAITING:      All RTPSender transports have finished. Waiting for 'bogus' events to process (1 second wait).\n";
   TESTING_SLEEP(1000)
 
   // wait for shutdown

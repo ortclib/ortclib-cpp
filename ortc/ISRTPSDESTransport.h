@@ -71,6 +71,12 @@ namespace ortc
       KeyParametersList mKeyParams;
       SessionParamList  mSessionParams;
 
+      CryptoParameters() {}
+      CryptoParameters(const CryptoParameters &op2) {(*this) = op2;}
+      CryptoParameters(ElementPtr elem);
+
+      ElementPtr createElement(const char *objectName) const;
+
       ElementPtr toDebug() const;
       String hash() const;
     };
@@ -82,6 +88,12 @@ namespace ortc
 
     struct Parameters {
       CryptoParametersList mCryptoParams;
+
+      Parameters() {}
+      Parameters(const Parameters &op2) {(*this) = op2;}
+      Parameters(ElementPtr elem);
+
+      ElementPtr createElement(const char *objectName) const;
 
       ElementPtr toDebug() const;
       String hash() const;
@@ -98,6 +110,12 @@ namespace ortc
       String  mLifetime;      // must be "2^n" where n is the max number of packets to flow throw the transport
       String  mMKIValue;      // base 10 expressed value of Master Key Identifier (MKI) converted to string
       WORD    mMKILength {};  // number of bytes allocated on each SRTP packet for Master Key Identifier (MKI) [max = 128 bytes]
+
+      KeyParameters() {}
+      KeyParameters(const KeyParameters &op2) {(*this) = op2;}
+      KeyParameters(ElementPtr elem);
+
+      ElementPtr createElement(const char *objectName) const;
 
       ElementPtr toDebug() const;
       String hash() const;

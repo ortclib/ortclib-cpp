@@ -85,18 +85,21 @@ namespace ortc
       FilterPolicy_NoIPv4Srflx         = 0x00000002,
       FilterPolicy_NoIPv4Prflx         = 0x00000004,
       FilterPolicy_NoIPv4Relay         = 0x00000008,
+      FilterPolicy_NoIPv4Private       = 0x00000010,
       FilterPolicy_NoIPv4              = 0x000000FF,
       FilterPolicy_NoIPv6Host          = 0x00000100,
       FilterPolicy_NoIPv6Srflx         = 0x00000200,
       FilterPolicy_NoIPv6Prflx         = 0x00000400,
       FilterPolicy_NoIPv6Relay         = 0x00000800,
-      FilterPolicy_NoIPv6Tunnel        = 0x00001000,
-      FilterPolicy_NoIPv6Permanent     = 0x00002000,
+      FilterPolicy_NoIPv6Private       = 0x00001000,
+      FilterPolicy_NoIPv6Tunnel        = 0x00002000,
+      FilterPolicy_NoIPv6Permanent     = 0x00004000,
       FilterPolicy_NoIPv6              = 0x0000FF00,
       FilterPolicy_NoHost              = (FilterPolicy_NoIPv4Host | FilterPolicy_NoIPv6Host),
       FilterPolicy_NoSrflx             = (FilterPolicy_NoIPv4Srflx | FilterPolicy_NoIPv4Srflx),
       FilterPolicy_NoPrflx             = (FilterPolicy_NoIPv4Prflx | FilterPolicy_NoIPv6Prflx),
       FilterPolicy_NoRelay             = (FilterPolicy_NoIPv4Relay | FilterPolicy_NoIPv6Relay),
+      FilterPolicy_NoPrivate           = (FilterPolicy_NoIPv4Private | FilterPolicy_NoIPv6Private),
       FilterPolicy_RelayOnly           = (FilterPolicy_NoIPv4Host | FilterPolicy_NoSrflx | FilterPolicy_NoPrflx),
       FilterPolicy_NoCandidates        = (0xFFFFFFFF)
     };
@@ -128,8 +131,14 @@ namespace ortc
 
     struct Options {
       bool                mContinuousGathering {true};
-      InterfacePolicyList mInterfacePolicy;
+      InterfacePolicyList mInterfacePolicies;
       ServerList          mICEServers;
+
+      Options() {}
+      Options(const Options &op2) {(*this) = op2;}
+      Options(ElementPtr elem);
+
+      ElementPtr createElement(const char *objectName) const;
 
       ElementPtr toDebug() const;
       String hash() const;
@@ -146,6 +155,12 @@ namespace ortc
       String          mCredential;
       CredentialTypes mCredentialType {CredentialType_Password};
 
+      Server() {}
+      Server(const Server &op2) {(*this) = op2;}
+      Server(ElementPtr elem);
+
+      ElementPtr createElement(const char *objectName = "iceServer") const;
+
       ElementPtr toDebug() const;
       String hash() const;
     };
@@ -158,6 +173,12 @@ namespace ortc
     struct InterfacePolicy {
       String          mInterfaceType;
       FilterPolicies  mGatherPolicy {FilterPolicy_None};
+
+      InterfacePolicy() {}
+      InterfacePolicy(const Server &op2) {(*this) = op2;}
+      InterfacePolicy(ElementPtr elem);
+
+      ElementPtr createElement(const char *objectName = "interfacePolicy") const;
 
       ElementPtr toDebug() const;
       String hash() const;

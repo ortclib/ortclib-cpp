@@ -33,12 +33,14 @@
 #include <ortc/internal/ortc_ICETransport.h>
 #include <ortc/internal/ortc_RTPListener.h>
 #include <ortc/internal/ortc_SRTPTransport.h>
+#include <ortc/internal/ortc_Helper.h>
 #include <ortc/internal/ortc_ORTC.h>
 #include <ortc/internal/platform.h>
 
 #include <openpeer/services/IHelper.h>
 #include <openpeer/services/IHTTP.h>
 
+#include <zsLib/Numeric.h>
 #include <zsLib/Stringize.h>
 #include <zsLib/Log.h>
 #include <zsLib/XML.h>
@@ -51,6 +53,11 @@ namespace ortc
 {
   ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHelper, UseServicesHelper)
   ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHTTP, UseHTTP)
+
+  ZS_DECLARE_TYPEDEF_PTR(ortc::internal::Helper, UseHelper)
+
+  using zsLib::Log;
+  using zsLib::Numeric;
 
   typedef openpeer::services::Hasher<CryptoPP::SHA1> SHA1Hasher;
 
@@ -809,6 +816,70 @@ namespace ortc
   #pragma mark
 
   //---------------------------------------------------------------------------
+  ISRTPSDESTransportTypes::CryptoParameters::CryptoParameters(ElementPtr elem)
+  {
+    if (!elem) return;
+
+    UseHelper::getElementValue(elem, "ortc::ISRTPSDESTransportTypes::CryptoParameters", "tag", mTag);
+    UseHelper::getElementValue(elem, "ortc::ISRTPSDESTransportTypes::CryptoParameters", "cryptoSuite", mCryptoSuite);
+
+    {
+      ElementPtr keyParamsEl = elem->findFirstChildElement("keyParams");
+      if (keyParamsEl) {
+        ElementPtr keyParamEl = keyParamsEl->findFirstChildElement("keyParam");
+        while (keyParamEl) {
+          KeyParameters param(keyParamEl);
+          mKeyParams.push_back(param);
+          keyParamEl = keyParamEl->findNextSiblingElement("keyParam");
+        }
+      }
+    }
+
+    {
+      ElementPtr sessionParamsEl = elem->findFirstChildElement("sessionParams");
+      if (sessionParamsEl) {
+        ElementPtr sessionParamEl = sessionParamsEl->findFirstChildElement("sessionParam");
+        while (sessionParamEl) {
+          mSessionParams.push_back(UseServicesHelper::getElementTextAndDecode(sessionParamEl));
+          sessionParamEl = sessionParamEl->findNextSiblingElement("sessionParam");
+        }
+      }
+    }
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr ISRTPSDESTransportTypes::CryptoParameters::createElement(const char *objectName) const
+  {
+    ElementPtr elem = Element::create(objectName);
+
+    UseHelper::adoptElementValue(elem, "tag", mTag);
+    UseHelper::adoptElementValue(elem, "cryptoSuite", mCryptoSuite, false);
+
+    if (mKeyParams.size() > 0) {
+      ElementPtr keyParamsEl = Element::create("keyParams");
+
+      for (auto iter = mKeyParams.begin(); iter != mKeyParams.end(); ++iter) {
+        auto &value = (*iter);
+        keyParamsEl->adoptAsLastChild(value.createElement("keyParam"));
+      }
+      elem->adoptAsLastChild(keyParamsEl);
+    }
+
+    if (mSessionParams.size() > 0) {
+      ElementPtr sessionParamsEl = Element::create("sessionParams");
+      for (auto iter = mSessionParams.begin(); iter != mSessionParams.end(); ++iter) {
+        auto &value = (*iter);
+        sessionParamsEl->adoptAsLastChild(UseServicesHelper::createElementWithTextAndJSONEncode("sessionParam", value));
+      }
+      elem->adoptAsLastChild(sessionParamsEl);
+    }
+
+    if (!elem->hasChildren()) return ElementPtr();
+
+    return elem;
+  }
+
+  //---------------------------------------------------------------------------
   ElementPtr ISRTPSDESTransportTypes::CryptoParameters::toDebug() const
   {
     ElementPtr resultEl = Element::create("ortc::ISRTPSDESTransportTypes::CryptoParameters");
@@ -886,6 +957,45 @@ namespace ortc
   #pragma mark
 
   //---------------------------------------------------------------------------
+  ISRTPSDESTransportTypes::Parameters::Parameters(ElementPtr elem)
+  {
+    if (!elem) return;
+
+    {
+      ElementPtr cryptoParamsEl = elem->findFirstChildElement("cryptoParams");
+      if (cryptoParamsEl) {
+        ElementPtr cryptoParamEl = cryptoParamsEl->findFirstChildElement("cryptoParam");
+        while (cryptoParamEl) {
+          CryptoParameters param(cryptoParamEl);
+          mCryptoParams.push_back(param);
+          cryptoParamEl = cryptoParamEl->findNextSiblingElement("cryptoParam");
+        }
+      }
+    }
+
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr ISRTPSDESTransportTypes::Parameters::createElement(const char *objectName) const
+  {
+    ElementPtr elem = Element::create(objectName);
+
+    if (mCryptoParams.size() > 0) {
+      ElementPtr cryptoParamsEl = Element::create("cryptoParams");
+
+      for (auto iter = mCryptoParams.begin(); iter != mCryptoParams.end(); ++iter) {
+        auto &value = (*iter);
+        cryptoParamsEl->adoptAsLastChild(value.createElement("cryptoParam"));
+      }
+      elem->adoptAsLastChild(cryptoParamsEl);
+    }
+
+    if (!elem->hasChildren()) return ElementPtr();
+    
+    return elem;
+  }
+
+  //---------------------------------------------------------------------------
   ElementPtr ISRTPSDESTransportTypes::Parameters::toDebug() const
   {
     ElementPtr resultEl = Element::create("ortc::ISRTPSDESTransportTypes::Parameters");
@@ -927,6 +1037,34 @@ namespace ortc
   #pragma mark
   #pragma mark ISRTPSDESTransportTypes::KeyParameters
   #pragma mark
+
+  //---------------------------------------------------------------------------
+  ISRTPSDESTransportTypes::KeyParameters::KeyParameters(ElementPtr elem)
+  {
+    if (!elem) return;
+
+    UseHelper::getElementValue(elem, "ortc::ISRTPSDESTransportTypes::KeyParameters", "keyMethod", mKeyMethod);
+    UseHelper::getElementValue(elem, "ortc::ISRTPSDESTransportTypes::KeyParameters", "keySalt", mKeySalt);
+    UseHelper::getElementValue(elem, "ortc::ISRTPSDESTransportTypes::KeyParameters", "lifetime", mLifetime);
+    UseHelper::getElementValue(elem, "ortc::ISRTPSDESTransportTypes::KeyParameters", "mkiValue", mMKIValue);
+    UseHelper::getElementValue(elem, "ortc::ISRTPSDESTransportTypes::KeyParameters", "mkiLength", mMKILength);
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr ISRTPSDESTransportTypes::KeyParameters::createElement(const char *objectName) const
+  {
+    ElementPtr elem = Element::create(objectName);
+
+    UseHelper::adoptElementValue(elem, "keyMethod", mKeyMethod, false);
+    UseHelper::adoptElementValue(elem, "keySalt", mKeySalt, false);
+    UseHelper::adoptElementValue(elem, "lifetime", mLifetime, false);
+    UseHelper::adoptElementValue(elem, "mkiValue", mMKIValue, false);
+    UseHelper::adoptElementValue(elem, "mkiLength", mMKILength);
+
+    if (!elem->hasChildren()) return ElementPtr();
+    
+    return elem;
+  }
 
   //---------------------------------------------------------------------------
   ElementPtr ISRTPSDESTransportTypes::KeyParameters::toDebug() const

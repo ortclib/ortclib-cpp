@@ -80,6 +80,12 @@ namespace ortc
       bool              mNegotiated {false};
       Optional<USHORT>  mID;
 
+      Parameters() {}
+      Parameters(const Parameters &op2) {(*this) = op2;}
+      Parameters(ElementPtr elem);
+
+      ElementPtr createElement(const char *objectName) const;
+
       ElementPtr toDebug() const;
       String hash() const;
     };

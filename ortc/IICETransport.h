@@ -82,6 +82,12 @@ namespace ortc
       CandidatePtr mLocal;
       CandidatePtr mRemote;
 
+      CandidatePair() {}
+      CandidatePair(const CandidatePair &op2);
+      CandidatePair(ElementPtr elem);
+
+      ElementPtr createElement(const char *objectName = "candidatePair") const;
+
       ElementPtr toDebug() const;
       String hash(bool includePriorities = true) const;
     };
@@ -95,6 +101,12 @@ namespace ortc
     {
       bool mAggressiveICE {false};
       IICETypes::Roles mRole {IICETypes::Role_Controlled};
+
+      Options() {}
+      Options(const Options &op2) {(*this) = op2;}
+      Options(ElementPtr elem);
+
+      ElementPtr createElement(const char *objectName) const;
 
       ElementPtr toDebug() const;
       String hash() const;

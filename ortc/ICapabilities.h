@@ -59,6 +59,19 @@ namespace ortc
 
     struct CapabilityBool : public std::set<bool> {
 
+      CapabilityBool() {}
+      CapabilityBool(const CapabilityBool &op2) {*this = op2;}
+      CapabilityBool(
+                     ElementPtr elem,
+                     const char *objectName = "bool"
+                     );
+
+      // {"objectName": {"objectValueName": [true,false]}}
+      ElementPtr createElement(
+                               const char *objectName,
+                               const char *objectValueName = "bool"
+                               ) const;
+
       ElementPtr toDebug() const;
       String hash() const;
     };
@@ -78,6 +91,13 @@ namespace ortc
                      LONG min,
                      LONG max
                      ) :                    mMin(min), mMax(max) {}
+      CapabilityLong(const CapabilityLong &op2) {*this = op2;}
+
+      // {"objectName": {"min": 0, "max": 0}}
+      CapabilityLong(ElementPtr elem);
+
+      // {"objectName": {"min": 0, "max": 0}}
+      ElementPtr createElement(const char *objectName) const;
 
       ElementPtr toDebug() const;
       String hash() const;
@@ -98,6 +118,13 @@ namespace ortc
                        double min,
                        double max
                        ) :                  mMin(min), mMax(max) {}
+      CapabilityDouble(const CapabilityDouble &op2) {*this = op2;}
+
+      // {"objectName": {"min": 0.0, "max": 0.0}}
+      CapabilityDouble(ElementPtr elem);
+
+      // {"objectName": {"min": 0, "max": 0}}
+      ElementPtr createElement(const char *objectName) const;
 
       ElementPtr toDebug() const;
       String hash() const;
@@ -109,6 +136,19 @@ namespace ortc
     #pragma mark
 
     struct CapabilityString : public std::set<String> {
+
+      CapabilityString() {}
+      CapabilityString(const CapabilityString &op2) {*this = op2;}
+      CapabilityString(
+                       ElementPtr elem,
+                       const char *objectName = "string"
+                       );
+
+      // {"objectName": {"objectValueName": ["a","b","c"]}}
+      ElementPtr createElement(
+                               const char *objectName,
+                               const char *objectValueName = "string"
+                               ) const;
 
       ElementPtr toDebug() const;
       String hash() const;
