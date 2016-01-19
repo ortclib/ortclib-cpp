@@ -402,6 +402,7 @@
 					"DEBUG=1",
 					ORTCLIB_INTERNAL,
 					WEBRTC_POSIX,
+					WEBRTC_INCLUDE_INTERNAL_AUDIO_DEVICE,
 					"$(inherited)",
 				);
 				HEADER_SEARCH_PATHS = (
@@ -433,6 +434,7 @@
 					"NDEBUG=1",
 					ORTCLIB_INTERNAL,
 					WEBRTC_POSIX,
+					WEBRTC_INCLUDE_INTERNAL_AUDIO_DEVICE,
 					"$(inherited)",
 				);
 				HEADER_SEARCH_PATHS = (

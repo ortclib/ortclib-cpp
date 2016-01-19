@@ -51,7 +51,7 @@ int main (int argc, char * const argv[]) {
 
   std::cout << "TEST NOW STARTING...\n\n";
 
-  Testing::runAllTests();
+  Testing::runAllTests(NULL);
   Testing::output();
 
   if (0 != Testing::getGlobalFailedVar()) {

@@ -36,21 +36,22 @@
 
 #include <ortc/internal/ortc_ORTC.h>
 
-#include <ppltasks.h>
-
 #include <zsLib/XML.h>
+
+#include <cmath>
 
 #include "config.h"
 #include "testing.h"
 
 #include <webrtc/base/logging.h>
-#include <webrtc/modules/video_render/windows/video_render_winrt.h>
 #include <webrtc/system_wrappers/interface/trace.h>
 
 namespace ortc { namespace test { ZS_DECLARE_SUBSYSTEM(ortc_test) } }
 
 using zsLib::String;
 using zsLib::ULONG;
+using zsLib::FLOAT;
+using zsLib::SHORT;
 using zsLib::PTRNUMBER;
 using zsLib::IMessageQueue;
 using zsLib::Log;
