@@ -442,7 +442,10 @@ namespace ortc
 
         virtual ElementPtr toDebug() const override;
 
-        virtual void sendVideoFrame(const webrtc::VideoFrame& videoFrame) override;
+        virtual void sendVideoFrame(
+                                    const uint8_t* videoFrame,
+                                    const size_t videoFrameSize
+                                    ) override;
 
         virtual void sendAudioSamples(
                                       const void* audioSamples,

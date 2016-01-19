@@ -17,6 +17,12 @@
 		0031990C1AD36B11000511CC /* ifaddrs-android.cc in Sources */ = {isa = PBXBuildFile; fileRef = 0031990B1AD36B11000511CC /* ifaddrs-android.cc */; };
 		003199D41AD73F20000511CC /* ortc_ICETypes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 003199D31AD73F20000511CC /* ortc_ICETypes.cpp */; };
 		003BB1C01AEBCB6B00748EA9 /* ortc_ICETransportController.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 003BB1BF1AEBCB6B00748EA9 /* ortc_ICETransportController.cpp */; settings = {COMPILER_FLAGS = "-Wno-undefined-bool-conversion"; }; };
+		003C43F21C4DD8C40064D16F /* ortc_RTPReceiverChannelVideo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 003C43F11C4DD8C40064D16F /* ortc_RTPReceiverChannelVideo.cpp */; };
+		003C43F51C4E97EB0064D16F /* ortc_RTPReceiverChannelMediaBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 003C43F41C4E97EB0064D16F /* ortc_RTPReceiverChannelMediaBase.cpp */; };
+		003C43F71C4E9AF50064D16F /* ortc_RTPReceiverChannelAudio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 003C43F61C4E9AF50064D16F /* ortc_RTPReceiverChannelAudio.cpp */; };
+		003C43FA1C4E9C940064D16F /* ortc_RTPSenderChannelVideo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 003C43F91C4E9C940064D16F /* ortc_RTPSenderChannelVideo.cpp */; };
+		003C43FE1C4EA29B0064D16F /* ortc_RTPSenderChannelMediaBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 003C43FD1C4EA29B0064D16F /* ortc_RTPSenderChannelMediaBase.cpp */; };
+		003C44011C4EA40E0064D16F /* ortc_RTPSenderChannelAudio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 003C44001C4EA40E0064D16F /* ortc_RTPSenderChannelAudio.cpp */; };
 		00429A8F1BA7205A00D65AAB /* ortc_RTPPacket.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00429A8E1BA7205A00D65AAB /* ortc_RTPPacket.cpp */; };
 		004B60A11B227E2C00568C22 /* ortc_ICEGathererRouter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 004B60A01B227E2C00568C22 /* ortc_ICEGathererRouter.cpp */; };
 		0051D6BA1B8D02E4003B4A00 /* ortc_SCTPTransportListener.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0051D6B91B8D02E4003B4A00 /* ortc_SCTPTransportListener.cpp */; settings = {COMPILER_FLAGS = "-Wno-undefined-bool-conversion"; }; };
@@ -83,6 +89,18 @@
 		003199D31AD73F20000511CC /* ortc_ICETypes.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_ICETypes.cpp; sourceTree = "<group>"; };
 		003BB1BF1AEBCB6B00748EA9 /* ortc_ICETransportController.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_ICETransportController.cpp; sourceTree = "<group>"; };
 		003BB1C11AEBCB8500748EA9 /* ortc_ICETransportController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ortc_ICETransportController.h; sourceTree = "<group>"; };
+		003C43F01C4DD8A90064D16F /* ortc_RTPReceiverChannelVideo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ortc_RTPReceiverChannelVideo.h; sourceTree = "<group>"; };
+		003C43F11C4DD8C40064D16F /* ortc_RTPReceiverChannelVideo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_RTPReceiverChannelVideo.cpp; sourceTree = "<group>"; };
+		003C43F31C4E86830064D16F /* ortc_RTPReceiverChannelMediaBase.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ortc_RTPReceiverChannelMediaBase.h; sourceTree = "<group>"; };
+		003C43F41C4E97EB0064D16F /* ortc_RTPReceiverChannelMediaBase.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_RTPReceiverChannelMediaBase.cpp; sourceTree = "<group>"; };
+		003C43F61C4E9AF50064D16F /* ortc_RTPReceiverChannelAudio.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_RTPReceiverChannelAudio.cpp; sourceTree = "<group>"; };
+		003C43F81C4E9B030064D16F /* ortc_RTPReceiverChannelAudio.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ortc_RTPReceiverChannelAudio.h; sourceTree = "<group>"; };
+		003C43F91C4E9C940064D16F /* ortc_RTPSenderChannelVideo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_RTPSenderChannelVideo.cpp; sourceTree = "<group>"; };
+		003C43FB1C4E9CA30064D16F /* ortc_RTPSenderChannelVideo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ortc_RTPSenderChannelVideo.h; sourceTree = "<group>"; };
+		003C43FC1C4EA28F0064D16F /* ortc_RTPSenderChannelMediaBase.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ortc_RTPSenderChannelMediaBase.h; sourceTree = "<group>"; };
+		003C43FD1C4EA29B0064D16F /* ortc_RTPSenderChannelMediaBase.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_RTPSenderChannelMediaBase.cpp; sourceTree = "<group>"; };
+		003C43FF1C4EA4020064D16F /* ortc_RTPSenderChannelAudio.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ortc_RTPSenderChannelAudio.h; sourceTree = "<group>"; };
+		003C44001C4EA40E0064D16F /* ortc_RTPSenderChannelAudio.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_RTPSenderChannelAudio.cpp; sourceTree = "<group>"; };
 		00429A8E1BA7205A00D65AAB /* ortc_RTPPacket.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_RTPPacket.cpp; sourceTree = "<group>"; };
 		00429A901BA7206B00D65AAB /* ortc_RTPPacket.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ortc_RTPPacket.h; sourceTree = "<group>"; };
 		004B60A01B227E2C00568C22 /* ortc_ICEGathererRouter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_ICEGathererRouter.cpp; sourceTree = "<group>"; };
@@ -235,8 +253,14 @@
 				00F99B941BAA025B00D2E178 /* ortc_RTCPPacket.cpp */,
 				007B9905185661B1004AC6C0 /* ortc_RTPReceiver.cpp */,
 				0008910C1BD01DB100D3D45D /* ortc_RTPReceiverChannel.cpp */,
+				003C43F41C4E97EB0064D16F /* ortc_RTPReceiverChannelMediaBase.cpp */,
+				003C43F61C4E9AF50064D16F /* ortc_RTPReceiverChannelAudio.cpp */,
+				003C43F11C4DD8C40064D16F /* ortc_RTPReceiverChannelVideo.cpp */,
 				007B99011856398F004AC6C0 /* ortc_RTPSender.cpp */,
 				0008910D1BD01DB100D3D45D /* ortc_RTPSenderChannel.cpp */,
+				003C43FD1C4EA29B0064D16F /* ortc_RTPSenderChannelMediaBase.cpp */,
+				003C44001C4EA40E0064D16F /* ortc_RTPSenderChannelAudio.cpp */,
+				003C43F91C4E9C940064D16F /* ortc_RTPSenderChannelVideo.cpp */,
 				00C295821B46CF6C002C623A /* ortc_RTPTypes.cpp */,
 				000E70831BD3E17700622A01 /* ortc_RTPUtils.cpp */,
 				0019E8701BEFADA5000CD84D /* ortc_StatsReport.cpp */,
@@ -275,8 +299,14 @@
 				00F99B981BAA028700D2E178 /* ortc_RTCPPacket.h */,
 				007B99041856617F004AC6C0 /* ortc_RTPReceiver.h */,
 				000891101BD01DE700D3D45D /* ortc_RTPReceiverChannel.h */,
+				003C43F31C4E86830064D16F /* ortc_RTPReceiverChannelMediaBase.h */,
+				003C43F81C4E9B030064D16F /* ortc_RTPReceiverChannelAudio.h */,
+				003C43F01C4DD8A90064D16F /* ortc_RTPReceiverChannelVideo.h */,
 				007B9903185639B0004AC6C0 /* ortc_RTPSender.h */,
 				000891111BD01DE700D3D45D /* ortc_RTPSenderChannel.h */,
+				003C43FC1C4EA28F0064D16F /* ortc_RTPSenderChannelMediaBase.h */,
+				003C43FF1C4EA4020064D16F /* ortc_RTPSenderChannelAudio.h */,
+				003C43FB1C4E9CA30064D16F /* ortc_RTPSenderChannelVideo.h */,
 				000E70821BD3E01400622A01 /* ortc_RTPTypes.h */,
 				000E70851BD3E1A300622A01 /* ortc_RTPUtils.h */,
 				0019E8721BEFADB7000CD84D /* ortc_StatsReport.h */,
@@ -360,8 +390,10 @@
 				0056EEFE1B13DB2C0035B351 /* ortc_Settings.cpp in Sources */,
 				00961DDE1B44B47F00EEB0F0 /* ortc_Capabilities.cpp in Sources */,
 				00AA4CC01B38CB150073E17B /* ortc_Certificate.cpp in Sources */,
+				003C43FE1C4EA29B0064D16F /* ortc_RTPSenderChannelMediaBase.cpp in Sources */,
 				0008910E1BD01DB100D3D45D /* ortc_RTPReceiverChannel.cpp in Sources */,
 				00C295881B4712E8002C623A /* ortc_DataChannel.cpp in Sources */,
+				003C43F71C4E9AF50064D16F /* ortc_RTPReceiverChannelAudio.cpp in Sources */,
 				00C2958D1B4725F4002C623A /* ortc_DTMFSender.cpp in Sources */,
 				007B98F81855D61C004AC6C0 /* ortc_DTLSTransport.cpp in Sources */,
 				003199081AD0496D000511CC /* ortc_ICEGatherer.cpp in Sources */,
@@ -371,6 +403,7 @@
 				003BB1C01AEBCB6B00748EA9 /* ortc_ICETransportController.cpp in Sources */,
 				0008910F1BD01DB100D3D45D /* ortc_RTPSenderChannel.cpp in Sources */,
 				0019E8711BEFADA5000CD84D /* ortc_StatsReport.cpp in Sources */,
+				003C43FA1C4E9C940064D16F /* ortc_RTPSenderChannelVideo.cpp in Sources */,
 				003199D41AD73F20000511CC /* ortc_ICETypes.cpp in Sources */,
 				00C295921B472E96002C623A /* ortc_Identity.cpp in Sources */,
 				00961DDA1B44554F00EEB0F0 /* ortc_MediaDevices.cpp in Sources */,
@@ -380,11 +413,14 @@
 				007B9906185661B1004AC6C0 /* ortc_RTPReceiver.cpp in Sources */,
 				007B99021856398F004AC6C0 /* ortc_RTPSender.cpp in Sources */,
 				006E838B1B3C7576007740C3 /* ortc_SCTPTransport.cpp in Sources */,
+				003C44011C4EA40E0064D16F /* ortc_RTPSenderChannelAudio.cpp in Sources */,
 				0064C6BC1AFE75C40089571E /* ortc_ISecureTransport.cpp in Sources */,
+				003C43F21C4DD8C40064D16F /* ortc_RTPReceiverChannelVideo.cpp in Sources */,
 				0064C6A51AFBF13B0089571E /* ortc_SRTPSDESTransport.cpp in Sources */,
 				00265E521B3DE72C00D9B45F /* ortc_SRTPTransport.cpp in Sources */,
 				0051D6BA1B8D02E4003B4A00 /* ortc_SCTPTransportListener.cpp in Sources */,
 				00961DDF1B44B47F00EEB0F0 /* ortc_Constraints.cpp in Sources */,
+				003C43F51C4E97EB0064D16F /* ortc_RTPReceiverChannelMediaBase.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

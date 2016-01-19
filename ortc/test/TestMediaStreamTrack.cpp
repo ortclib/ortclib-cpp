@@ -764,14 +764,16 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void FakeSenderChannel::sendVideoFrame(const webrtc::VideoFrame& videoFrame)
+        void FakeSenderChannel::sendVideoFrame(
+                                               const uint8_t* videoFrame,
+                                               const size_t videoFrameSize
+                                               )
       {
         mReceivedVideoFrames++;
         if (mReceivedVideoFrames > 100)
           return;
 
-        TESTING_EQUAL(videoFrame.width(), 640)
-        TESTING_EQUAL(videoFrame.height(), 480)
+        TESTING_EQUAL(videoFrameSize, 640 * 480)
 
         mTester.lock()->notifyReceivedVideoFrame();
         if (mReceivedVideoFrames == 100)
