@@ -42,15 +42,6 @@
 #include <zsLib/MessageQueueAssociator.h>
 #include <zsLib/Timer.h>
 
-#include <webrtc/base/scoped_ptr.h>
-#include <webrtc/modules/utility/interface/process_thread.h>
-#include <webrtc/Transport.h>
-#include <webrtc/video/transport_adapter.h>
-#include <webrtc/video_engine/vie_channel_group.h>
-#include <webrtc/video_send_stream.h>
-#include <webrtc/modules/video_capture/include/video_capture.h>
-
-
 //#define ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE "ortc/sctp/max-message-size"
 
 namespace ortc
@@ -59,9 +50,15 @@ namespace ortc
   {
     ZS_DECLARE_INTERACTION_PTR(IRTPSenderChannelForSettings)
     ZS_DECLARE_INTERACTION_PTR(IRTPSenderChannelForRTPSender)
+    ZS_DECLARE_INTERACTION_PTR(IRTPSenderChannelForRTPSenderChannelMediaBase)
+    ZS_DECLARE_INTERACTION_PTR(IRTPSenderChannelForRTPSenderChannelAudio)
+    ZS_DECLARE_INTERACTION_PTR(IRTPSenderChannelForRTPSenderChannelVideo)
     ZS_DECLARE_INTERACTION_PTR(IRTPSenderChannelForMediaStreamTrack)
 
     ZS_DECLARE_INTERACTION_PTR(IRTPSenderForRTPSenderChannel)
+    ZS_DECLARE_INTERACTION_PTR(IRTPSenderChannelMediaBaseForRTPSenderChannel)
+    ZS_DECLARE_INTERACTION_PTR(IRTPSenderChannelAudioForRTPSenderChannel)
+    ZS_DECLARE_INTERACTION_PTR(IRTPSenderChannelVideoForRTPSenderChannel)
     ZS_DECLARE_INTERACTION_PTR(IMediaStreamTrackForRTPSenderChannel)
 
     ZS_DECLARE_INTERACTION_PROXY(IRTPSenderChannelAsyncDelegate)
@@ -122,6 +119,47 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
+    #pragma mark IRTPSenderChannelForRTPSenderChannelMediaBase
+    #pragma mark
+
+    interaction IRTPSenderChannelForRTPSenderChannelMediaBase
+    {
+      ZS_DECLARE_TYPEDEF_PTR(IRTPSenderChannelForRTPSenderChannelMediaBase, ForRTPSenderChannelMediaBase)
+
+      virtual PUID getID() const = 0;
+    };
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IRTPSenderChannelForRTPSenderChannelAudio
+    #pragma mark
+
+    interaction IRTPSenderChannelForRTPSenderChannelAudio : public IRTPSenderChannelForRTPSenderChannelMediaBase
+    {
+      ZS_DECLARE_TYPEDEF_PTR(IRTPSenderChannelForRTPSenderChannelAudio, ForRTPSenderChannelAudio)
+    };
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IRTPSenderChannelForRTPSenderChannelVideo
+    #pragma mark
+
+    interaction IRTPSenderChannelForRTPSenderChannelVideo : public IRTPSenderChannelForRTPSenderChannelMediaBase
+    {
+      ZS_DECLARE_TYPEDEF_PTR(IRTPSenderChannelForRTPSenderChannelVideo, ForRTPSenderChannelVideo)
+    };
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
     #pragma mark IRTPSenderChannelForMediaStreamTrack
     #pragma mark
 
@@ -168,6 +206,8 @@ namespace ortc
                              public SharedRecursiveLock,
                              public IRTPSenderChannelForSettings,
                              public IRTPSenderChannelForRTPSender,
+                             public IRTPSenderChannelForRTPSenderChannelAudio,
+                             public IRTPSenderChannelForRTPSenderChannelVideo,
                              public IRTPSenderChannelForMediaStreamTrack,
                              public IWakeDelegate,
                              public zsLib::ITimerDelegate,
@@ -181,6 +221,9 @@ namespace ortc
       friend interaction IRTPSenderChannelFactory;
       friend interaction IRTPSenderChannelForSettings;
       friend interaction IRTPSenderChannelForRTPSender;
+      friend interaction IRTPSenderChannelForRTPSenderChannelMediaBase;
+      friend interaction IRTPSenderChannelForRTPSenderChannelAudio;
+      friend interaction IRTPSenderChannelForRTPSenderChannelVideo;
       friend interaction IRTPSenderChannelForMediaStreamTrack;
 
       ZS_DECLARE_TYPEDEF_PTR(IRTPSenderForRTPSenderChannel, UseSender)
@@ -221,6 +264,9 @@ namespace ortc
 
       static RTPSenderChannelPtr convert(ForSettingsPtr object);
       static RTPSenderChannelPtr convert(ForRTPSenderPtr object);
+      static RTPSenderChannelPtr convert(ForRTPSenderChannelMediaBasePtr object);
+      static RTPSenderChannelPtr convert(ForRTPSenderChannelAudioPtr object);
+      static RTPSenderChannelPtr convert(ForRTPSenderChannelVideoPtr object);
       static RTPSenderChannelPtr convert(ForMediaStreamTrackPtr object);
 
 
@@ -246,6 +292,23 @@ namespace ortc
       virtual void notifyUpdate(const Parameters &params) override;
 
       virtual bool handlePacket(RTCPPacketPtr packet) override;
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPSenderChannel => IRTPSenderChannelForRTPSenderChannelMediaBase
+      #pragma mark
+
+      // (duplicate) virtual PUID getID() const = 0;
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPSenderChannel => IRTPSenderChannelForRTPSenderChannelAudio
+      #pragma mark
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPSenderChannel => IRTPSenderChannelForRTPSenderChannelVideo
+      #pragma mark
 
       //-----------------------------------------------------------------------
       #pragma mark

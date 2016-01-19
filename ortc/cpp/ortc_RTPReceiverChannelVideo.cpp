@@ -29,16 +29,12 @@
  
  */
 
-#include <ortc/internal/ortc_RTPSenderChannel.h>
-#include <ortc/internal/ortc_RTPSenderChannelMediaBase.h>
-#include <ortc/internal/ortc_RTPSenderChannelAudio.h>
-#include <ortc/internal/ortc_RTPSenderChannelVideo.h>
-#include <ortc/internal/ortc_RTPSender.h>
-#include <ortc/internal/ortc_DTLSTransport.h>
-#include <ortc/internal/ortc_ISecureTransport.h>
-#include <ortc/internal/ortc_RTPListener.h>
+#include <ortc/internal/ortc_RTPReceiverChannelVideo.h>
+#include <ortc/internal/ortc_RTPReceiverChannel.h>
 #include <ortc/internal/ortc_MediaStreamTrack.h>
+#include <ortc/internal/ortc_RTPPacket.h>
 #include <ortc/internal/ortc_RTCPPacket.h>
+#include <ortc/internal/ortc_Helper.h>
 #include <ortc/internal/ortc_ORTC.h>
 #include <ortc/internal/platform.h>
 
@@ -51,6 +47,11 @@
 #include <zsLib/XML.h>
 
 #include <cryptopp/sha.h>
+
+//#include <webrtc/modules/rtp_rtcp/interface/rtp_header_parser.h>
+//#include <webrtc/modules/rtp_rtcp/source/byte_io.h>
+//#include <webrtc/video/video_receive_stream.h>
+//#include <webrtc/video_renderer.h>
 
 
 #ifdef _DEBUG
@@ -65,6 +66,7 @@ namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib) }
 namespace ortc
 {
   ZS_DECLARE_TYPEDEF_PTR(openpeer::services::ISettings, UseSettings)
+  ZS_DECLARE_TYPEDEF_PTR(ortc::internal::Helper, UseHelper)
   ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHelper, UseServicesHelper)
   ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHTTP, UseHTTP)
 
@@ -90,7 +92,7 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void IRTPSenderChannelForSettings::applyDefaults()
+    void IRTPReceiverChannelVideoForSettings::applyDefaults()
     {
 //      UseSettings::setUInt(ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE, 5*1024);
     }
@@ -100,23 +102,23 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IRTPSenderChannelForRTPSender
+    #pragma mark IRTPReceiverChannelVideoForRTPReceiverChannel
     #pragma mark
 
     //-------------------------------------------------------------------------
-    ElementPtr IRTPSenderChannelForRTPSender::toDebug(ForRTPSenderPtr object)
+    ElementPtr IRTPReceiverChannelVideoForRTPReceiverChannel::toDebug(ForRTPReceiverChannelPtr object)
     {
       if (!object) return ElementPtr();
-      return ZS_DYNAMIC_PTR_CAST(RTPSenderChannel, object)->toDebug();
+      return ZS_DYNAMIC_PTR_CAST(RTPReceiverChannelVideo, object)->toDebug();
     }
 
     //-------------------------------------------------------------------------
-    RTPSenderChannelPtr IRTPSenderChannelForRTPSender::create(
-                                                              RTPSenderPtr sender,
-                                                              const Parameters &params
-                                                              )
+    RTPReceiverChannelVideoPtr IRTPReceiverChannelVideoForRTPReceiverChannel::create(
+                                                                                     RTPReceiverChannelPtr receiverChannel,
+                                                                                     const Parameters &params
+                                                                                     )
     {
-      return internal::IRTPSenderChannelFactory::singleton().create(sender, params);
+      return internal::IRTPReceiverChannelVideoFactory::singleton().create(receiverChannel, params);
     }
 
     //-------------------------------------------------------------------------
@@ -124,26 +126,27 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IRTPSenderChannelForMediaStreamTrack
+    #pragma mark IRTPReceiverChannelVideoForMediaStreamTrack
     #pragma mark
 
     //-------------------------------------------------------------------------
-    ElementPtr IRTPSenderChannelForMediaStreamTrack::toDebug(ForMediaStreamTrackPtr object)
+    ElementPtr IRTPReceiverChannelVideoForMediaStreamTrack::toDebug(ForMediaStreamTrackPtr object)
     {
       if (!object) return ElementPtr();
-      return ZS_DYNAMIC_PTR_CAST(RTPSenderChannel, object)->toDebug();
+      return ZS_DYNAMIC_PTR_CAST(RTPReceiverChannelVideo, object)->toDebug();
     }
+
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark RTPSenderChannel
+    #pragma mark RTPReceiverChannelVideo
     #pragma mark
     
-    //-------------------------------------------------------------------------
-    const char *RTPSenderChannel::toString(States state)
+    //---------------------------------------------------------------------------
+    const char *RTPReceiverChannelVideo::toString(States state)
     {
       switch (state) {
         case State_Pending:       return "pending";
@@ -155,31 +158,31 @@ namespace ortc
     }
     
     //-------------------------------------------------------------------------
-    RTPSenderChannel::RTPSenderChannel(
-                                       const make_private &,
-                                       IMessageQueuePtr queue,
-                                       UseSenderPtr sender,
-                                       const Parameters &params
-                                       ) :
+    RTPReceiverChannelVideo::RTPReceiverChannelVideo(
+                                                     const make_private &,
+                                                     IMessageQueuePtr queue,
+                                                     UseChannelPtr receiverChannel,
+                                                     const Parameters &params
+                                                     ) :
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
-      mSender(sender),
+      mReceiverChannel(receiverChannel),
       mParameters(make_shared<Parameters>(params))
     {
       ZS_LOG_DETAIL(debug("created"))
 
-      ORTC_THROW_INVALID_PARAMETERS_IF(!sender)
+      ORTC_THROW_INVALID_PARAMETERS_IF(!receiverChannel)
     }
 
     //-------------------------------------------------------------------------
-    void RTPSenderChannel::init()
+    void RTPReceiverChannelVideo::init()
     {
       AutoRecursiveLock lock(*this);
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
     }
 
     //-------------------------------------------------------------------------
-    RTPSenderChannel::~RTPSenderChannel()
+    RTPReceiverChannelVideo::~RTPReceiverChannelVideo()
     {
       if (isNoop()) return;
 
@@ -190,97 +193,66 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    RTPSenderChannelPtr RTPSenderChannel::convert(ForSettingsPtr object)
+    RTPReceiverChannelVideoPtr RTPReceiverChannelVideo::convert(ForSettingsPtr object)
     {
-      return ZS_DYNAMIC_PTR_CAST(RTPSenderChannel, object);
+      return ZS_DYNAMIC_PTR_CAST(RTPReceiverChannelVideo, object);
     }
 
     //-------------------------------------------------------------------------
-    RTPSenderChannelPtr RTPSenderChannel::convert(ForRTPSenderPtr object)
+    RTPReceiverChannelVideoPtr RTPReceiverChannelVideo::convert(ForReceiverChannelFromMediaBasePtr object)
     {
-      return ZS_DYNAMIC_PTR_CAST(RTPSenderChannel, object);
+      return ZS_DYNAMIC_PTR_CAST(RTPReceiverChannelVideo, object);
     }
 
     //-------------------------------------------------------------------------
-    RTPSenderChannelPtr RTPSenderChannel::convert(ForRTPSenderChannelMediaBasePtr object)
+    RTPReceiverChannelVideoPtr RTPReceiverChannelVideo::convert(ForRTPReceiverChannelPtr object)
     {
-      return ZS_DYNAMIC_PTR_CAST(RTPSenderChannel, object);
+      return ZS_DYNAMIC_PTR_CAST(RTPReceiverChannelVideo, object);
     }
 
     //-------------------------------------------------------------------------
-    RTPSenderChannelPtr RTPSenderChannel::convert(ForRTPSenderChannelAudioPtr object)
+    RTPReceiverChannelVideoPtr RTPReceiverChannelVideo::convert(ForMediaStreamTrackFromMediaBasePtr object)
     {
-      return ZS_DYNAMIC_PTR_CAST(RTPSenderChannel, object);
+      return ZS_DYNAMIC_PTR_CAST(RTPReceiverChannelVideo, object);
     }
 
     //-------------------------------------------------------------------------
-    RTPSenderChannelPtr RTPSenderChannel::convert(ForRTPSenderChannelVideoPtr object)
+    RTPReceiverChannelVideoPtr RTPReceiverChannelVideo::convert(ForMediaStreamTrackPtr object)
     {
-      return ZS_DYNAMIC_PTR_CAST(RTPSenderChannel, object);
+      return ZS_DYNAMIC_PTR_CAST(RTPReceiverChannelVideo, object);
     }
 
-    //-------------------------------------------------------------------------
-    RTPSenderChannelPtr RTPSenderChannel::convert(ForMediaStreamTrackPtr object)
-    {
-      return ZS_DYNAMIC_PTR_CAST(RTPSenderChannel, object);
-    }
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark RTPSenderChannel => ForRTPSender
+    #pragma mark RTPReceiverChannelVideo => IRTPReceiverChannelMediaBaseForRTPReceiverChannel
     #pragma mark
-    
-    //-------------------------------------------------------------------------
-    ElementPtr RTPSenderChannel::toDebug(RTPSenderChannelPtr transport)
-    {
-      if (!transport) return ElementPtr();
-      return transport->toDebug();
-    }
 
     //-------------------------------------------------------------------------
-    RTPSenderChannelPtr RTPSenderChannel::create(
-                                                 RTPSenderPtr sender,
-                                                 const Parameters &params
-                                                 )
+    bool RTPReceiverChannelVideo::handlePacket(RTPPacketPtr packet)
     {
-      RTPSenderChannelPtr pThis(make_shared<RTPSenderChannel>(make_private {}, IORTCForInternal::queueORTC(), sender, params));
-      pThis->mThisWeak = pThis;
-      pThis->init();
-      return pThis;
-    }
-
-    //-------------------------------------------------------------------------
-    void RTPSenderChannel::notifyTransportState(ISecureTransportTypes::States state)
-    {
-      // do NOT lock this object here, instead notify self asynchronously
-      IRTPSenderChannelAsyncDelegateProxy::create(mThisWeak.lock())->onSecureTransportState(state);
-    }
-
-    //-------------------------------------------------------------------------
-    void RTPSenderChannel::notifyPackets(RTCPPacketListPtr packets)
-    {
-      // do NOT lock this object here, instead notify self asynchronously
-      IRTPSenderChannelAsyncDelegateProxy::create(mThisWeak.lock())->onNotifyPackets(packets);
-    }
-
-    //-------------------------------------------------------------------------
-    void RTPSenderChannel::notifyUpdate(const Parameters &params)
-    {
-      // do NOT lock this object here, instead notify self asynchronously
-      IRTPSenderChannelAsyncDelegateProxy::create(mThisWeak.lock())->onUpdate(make_shared<Parameters>(params));
-    }
-
-    //-------------------------------------------------------------------------
-    bool RTPSenderChannel::handlePacket(RTCPPacketPtr packet)
-    {
-#define TODO 1
-#define TODO 2
       {
         AutoRecursiveLock lock(*this);
+#define TODO 1
+#define TODO 2
       }
+
+      return false;
+    }
+
+    //-------------------------------------------------------------------------
+    bool RTPReceiverChannelVideo::handlePacket(RTCPPacketPtr packet)
+    
+    {
+      {
+        AutoRecursiveLock lock(*this);
+#define TODO 1
+#define TODO 2
+      }
+
       return false;
     }
 
@@ -289,43 +261,31 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark RTPSenderChannel => ForRTPSenderChannelMediaBase
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPSenderChannel => ForRTPSenderChannelAudio
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPSenderChannel => ForRTPSenderChannelVideo
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPSenderChannel => IRTPSenderChannelForMediaStreamTrack
+    #pragma mark RTPReceiverChannelVideo => IRTPReceiverChannelVideoForRTPReceiverChannel
     #pragma mark
     
     //-------------------------------------------------------------------------
+    RTPReceiverChannelVideoPtr RTPReceiverChannelVideo::create(
+                                                               RTPReceiverChannelPtr receiverChannel,
+                                                               const Parameters &params
+                                                               )
+    {
+      RTPReceiverChannelVideoPtr pThis(make_shared<RTPReceiverChannelVideo>(make_private {}, IORTCForInternal::queueORTC(), receiverChannel, params));
+      pThis->mThisWeak = pThis;
+      pThis->init();
+      return pThis;
+    }
+
+    //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark RTPSenderChannel => IWakeDelegate
+    #pragma mark RTPReceiverChannelVideo => IWakeDelegate
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void RTPSenderChannel::onWake()
+    void RTPReceiverChannelVideo::onWake()
     {
       ZS_LOG_DEBUG(log("wake"))
 
@@ -338,11 +298,11 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark RTPSenderChannel => ITimerDelegate
+    #pragma mark RTPReceiverChannelVideo => ITimerDelegate
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void RTPSenderChannel::onTimer(TimerPtr timer)
+    void RTPReceiverChannelVideo::onTimer(TimerPtr timer)
     {
       ZS_LOG_DEBUG(log("timer") + ZS_PARAM("timer id", timer->getID()))
 
@@ -356,85 +316,37 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark RTPSenderChannel => IRTPSenderChannelAsyncDelegate
+    #pragma mark RTPReceiverChannelVideo => IRTPReceiverChannelVideoAsyncDelegate
     #pragma mark
-
-    //-------------------------------------------------------------------------
-    void RTPSenderChannel::onSecureTransportState(ISecureTransport::States state)
-    {
-      ZS_LOG_TRACE(log("notified secure transport state") + ZS_PARAM("state", ISecureTransport::toString(state)))
-
-      AutoRecursiveLock lock(*this);
-
-      mSecureTransportState = state;
-
-      if (ISecureTransport::State_Closed == state) {
-        ZS_LOG_DEBUG(log("secure channel closed (thus shutting down)"))
-        cancel();
-        return;
-      }
-
-#define TODO 1
-#define TODO 2
-    }
-
-    //-------------------------------------------------------------------------
-    void RTPSenderChannel::onNotifyPackets(RTCPPacketListPtr packets)
-    {
-      ZS_LOG_TRACE(log("notified rtcp packets") + ZS_PARAM("packets", packets->size()))
-
-      AutoRecursiveLock lock(*this);
-
-      // WARNING: Do NOT modify the contents of "packets" as the pointer to
-      //          this list could have been sent to multiple receiver channels
-      //          simultaneously. Use COW pattern if needing mutability.
-
-#define TODO 1
-#define TODO 2
-    }
-
-    //-------------------------------------------------------------------------
-    void RTPSenderChannel::onUpdate(ParametersPtr params)
-    {
-      ZS_LOG_TRACE(log("on update") + params->toDebug())
-
-      AutoRecursiveLock lock(*this);
-
-#define TODO 1
-#define TODO 2
-
-      mParameters = params;
-    }
-
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark RTPSenderChannel => (internal)
+    #pragma mark RTPReceiverChannelVideo => (internal)
     #pragma mark
 
     //-------------------------------------------------------------------------
-    Log::Params RTPSenderChannel::log(const char *message) const
+    Log::Params RTPReceiverChannelVideo::log(const char *message) const
     {
-      ElementPtr objectEl = Element::create("ortc::RTPSenderChannel");
+      ElementPtr objectEl = Element::create("ortc::RTPReceiverChannelVideo");
       UseServicesHelper::debugAppend(objectEl, "id", mID);
       return Log::Params(message, objectEl);
     }
 
     //-------------------------------------------------------------------------
-    Log::Params RTPSenderChannel::debug(const char *message) const
+    Log::Params RTPReceiverChannelVideo::debug(const char *message) const
     {
       return Log::Params(message, toDebug());
     }
 
     //-------------------------------------------------------------------------
-    ElementPtr RTPSenderChannel::toDebug() const
+    ElementPtr RTPReceiverChannelVideo::toDebug() const
     {
       AutoRecursiveLock lock(*this);
 
-      ElementPtr resultEl = Element::create("ortc::RTPSenderChannel");
+      ElementPtr resultEl = Element::create("ortc::RTPReceiverChannelVideo");
 
       UseServicesHelper::debugAppend(resultEl, "id", mID);
 
@@ -445,28 +357,26 @@ namespace ortc
       UseServicesHelper::debugAppend(resultEl, "error", mLastError);
       UseServicesHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
 
-      UseServicesHelper::debugAppend(resultEl, "secure transport state", ISecureTransport::toString(mSecureTransportState));
-
-      auto sender = mSender.lock();
-      UseServicesHelper::debugAppend(resultEl, "sender", sender ? sender->getID() : 0);
+      auto receiverChannel = mReceiverChannel.lock();
+      UseServicesHelper::debugAppend(resultEl, "receiver channel", receiverChannel ? receiverChannel->getID() : 0);
 
       return resultEl;
     }
 
     //-------------------------------------------------------------------------
-    bool RTPSenderChannel::isShuttingDown() const
+    bool RTPReceiverChannelVideo::isShuttingDown() const
     {
       return State_ShuttingDown == mCurrentState;
     }
 
     //-------------------------------------------------------------------------
-    bool RTPSenderChannel::isShutdown() const
+    bool RTPReceiverChannelVideo::isShutdown() const
     {
       return State_Shutdown == mCurrentState;
     }
 
     //-------------------------------------------------------------------------
-    void RTPSenderChannel::step()
+    void RTPReceiverChannelVideo::step()
     {
       ZS_LOG_DEBUG(debug("step"))
 
@@ -497,7 +407,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool RTPSenderChannel::stepBogusDoSomething()
+    bool RTPReceiverChannelVideo::stepBogusDoSomething()
     {
       if ( /* step already done */ false ) {
         ZS_LOG_TRACE(log("already completed do something"))
@@ -519,7 +429,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPSenderChannel::cancel()
+    void RTPReceiverChannelVideo::cancel()
     {
       //.......................................................................
       // try to gracefully shutdown
@@ -542,7 +452,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPSenderChannel::setState(States state)
+    void RTPReceiverChannelVideo::setState(States state)
     {
       if (state == mCurrentState) return;
 
@@ -550,14 +460,14 @@ namespace ortc
 
       mCurrentState = state;
 
-//      RTPSenderChannelPtr pThis = mThisWeak.lock();
+//      RTPReceiverChannelVideoPtr pThis = mThisWeak.lock();
 //      if (pThis) {
-//        mSubscriptions.delegate()->onRTPSenderChannelStateChanged(pThis, mCurrentState);
+//        mSubscriptions.delegate()->onRTPReceiverChannelVideoStateChanged(pThis, mCurrentState);
 //      }
     }
 
     //-------------------------------------------------------------------------
-    void RTPSenderChannel::setError(WORD errorCode, const char *inReason)
+    void RTPReceiverChannelVideo::setError(WORD errorCode, const char *inReason)
     {
       String reason(inReason);
       if (reason.isEmpty()) {
@@ -580,25 +490,24 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IRTPSenderChannelFactory
+    #pragma mark IRTPReceiverChannelVideoFactory
     #pragma mark
 
     //-------------------------------------------------------------------------
-    IRTPSenderChannelFactory &IRTPSenderChannelFactory::singleton()
+    IRTPReceiverChannelVideoFactory &IRTPReceiverChannelVideoFactory::singleton()
     {
-      return RTPSenderChannelFactory::singleton();
+      return RTPReceiverChannelVideoFactory::singleton();
     }
 
     //-------------------------------------------------------------------------
-    RTPSenderChannelPtr IRTPSenderChannelFactory::create(
-                                                         RTPSenderPtr sender,
-                                                         const Parameters &params
-                                                         )
+    RTPReceiverChannelVideoPtr IRTPReceiverChannelVideoFactory::create(
+                                                                       RTPReceiverChannelPtr receiverChannel,
+                                                                       const Parameters &params
+                                                                       )
     {
       if (this) {}
-      return internal::RTPSenderChannel::create(sender, params);
+      return internal::RTPReceiverChannelVideo::create(receiverChannel, params);
     }
 
   } // internal namespace
-
 }

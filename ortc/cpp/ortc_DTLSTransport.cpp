@@ -1513,7 +1513,7 @@ namespace ortc
 
     not_ready:
       {
-        ZS_LOG_TRACE(log("dtls is not ready") + toDebug())
+        ZS_LOG_TRACE(debug("not ready"))
         return;
       }
 

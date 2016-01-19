@@ -52,8 +52,14 @@ namespace ortc
     ZS_DECLARE_INTERACTION_PTR(IRTPReceiverChannelForSettings)
     ZS_DECLARE_INTERACTION_PTR(IRTPReceiverChannelForRTPReceiver)
     ZS_DECLARE_INTERACTION_PTR(IRTPReceiverChannelForMediaStreamTrack)
+    ZS_DECLARE_INTERACTION_PTR(IRTPReceiverChannelForRTPReceiverChannelMediaBase)
+    ZS_DECLARE_INTERACTION_PTR(IRTPReceiverChannelForRTPReceiverChannelAudio)
+    ZS_DECLARE_INTERACTION_PTR(IRTPReceiverChannelForRTPReceiverChannelVideo)
 
     ZS_DECLARE_INTERACTION_PTR(IRTPReceiverForRTPReceiverChannel)
+    ZS_DECLARE_INTERACTION_PTR(IRTPReceiverChannelMediaBaseForRTPReceiverChannel)
+    ZS_DECLARE_INTERACTION_PTR(IRTPReceiverChannelAudioForRTPReceiverChannel)
+    ZS_DECLARE_INTERACTION_PTR(IRTPReceiverChannelVideoForRTPReceiverChannel)
     ZS_DECLARE_INTERACTION_PTR(IMediaStreamTrackForRTPReceiverChannel)
 
     ZS_DECLARE_INTERACTION_PROXY(IRTPReceiverChannelAsyncDelegate)
@@ -161,6 +167,48 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
+    #pragma mark IRTPReceiverChannelForRTPReceiverChannelMediaBase
+    #pragma mark
+
+    interaction IRTPReceiverChannelForRTPReceiverChannelMediaBase
+    {
+      ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverChannelForRTPReceiverChannelMediaBase, ForRTPReceiverChannelMediaBase)
+
+      virtual PUID getID() const = 0;
+    };
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IRTPReceiverChannelForRTPReceiverChannelAudio
+    #pragma mark
+
+    interaction IRTPReceiverChannelForRTPReceiverChannelAudio : public IRTPReceiverChannelForRTPReceiverChannelMediaBase
+    {
+      ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverChannelForRTPReceiverChannelAudio, ForRTPReceiverChannelAudio)
+    };
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IRTPReceiverChannelForRTPReceiverChannelVideo
+    #pragma mark
+
+    interaction IRTPReceiverChannelForRTPReceiverChannelVideo : public IRTPReceiverChannelForRTPReceiverChannelMediaBase
+    {
+      ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverChannelForRTPReceiverChannelVideo, ForRTPReceiverChannelVideo)
+    };
+
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
     #pragma mark RTPReceiverChannel
     #pragma mark
     
@@ -170,6 +218,8 @@ namespace ortc
                                public IRTPReceiverChannelForSettings,
                                public IRTPReceiverChannelForRTPReceiver,
                                public IRTPReceiverChannelForMediaStreamTrack,
+                               public IRTPReceiverChannelForRTPReceiverChannelAudio,
+                               public IRTPReceiverChannelForRTPReceiverChannelVideo,
                                public IWakeDelegate,
                                public zsLib::ITimerDelegate,
                                public IRTPReceiverChannelAsyncDelegate
@@ -182,6 +232,9 @@ namespace ortc
       friend interaction IRTPReceiverChannelFactory;
       friend interaction IRTPReceiverChannelForSettings;
       friend interaction IRTPReceiverChannelForRTPReceiver;
+      friend interaction IRTPReceiverChannelForRTPReceiverChannelMediaBase;
+      friend interaction IRTPReceiverChannelForRTPReceiverChannelAudio;
+      friend interaction IRTPReceiverChannelForRTPReceiverChannelVideo;
       friend interaction IRTPReceiverChannelForMediaStreamTrack;
 
       ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverForRTPReceiverChannel, UseReceiver)
@@ -222,6 +275,9 @@ namespace ortc
 
       static RTPReceiverChannelPtr convert(ForSettingsPtr object);
       static RTPReceiverChannelPtr convert(ForRTPReceiverPtr object);
+      static RTPReceiverChannelPtr convert(ForRTPReceiverChannelMediaBasePtr object);
+      static RTPReceiverChannelPtr convert(ForRTPReceiverChannelAudioPtr object);
+      static RTPReceiverChannelPtr convert(ForRTPReceiverChannelVideoPtr object);
       static RTPReceiverChannelPtr convert(ForMediaStreamTrackPtr object);
 
     protected:
@@ -260,6 +316,23 @@ namespace ortc
       // (duplicate) static ElementPtr toDebug(ForMediaStreamTrackPtr object);
 
       // (duplicate) virtual PUID getID() const = 0;
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPReceiverChannel => IRTPReceiverChannelForRTPReceiverChannelMediaBase
+      #pragma mark
+
+      // (duplicate) virtual PUID getID() const = 0;
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPReceiverChannel => IRTPReceiverChannelForRTPReceiverChannelAudio
+      #pragma mark
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPReceiverChannel => IRTPReceiverChannelForRTPReceiverChannelVideo
+      #pragma mark
 
       //-----------------------------------------------------------------------
       #pragma mark

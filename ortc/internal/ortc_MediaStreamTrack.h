@@ -50,8 +50,14 @@ namespace ortc
     ZS_DECLARE_INTERACTION_PTR(IMediaStreamTrackForSettings)
     ZS_DECLARE_INTERACTION_PTR(IMediaStreamTrackForRTPSender)
     ZS_DECLARE_INTERACTION_PTR(IMediaStreamTrackForRTPSenderChannel)
+    ZS_DECLARE_INTERACTION_PTR(IMediaStreamTrackForRTPSenderChannelMediaBase)
+    ZS_DECLARE_INTERACTION_PTR(IMediaStreamTrackForRTPSenderChannelAudio)
+    ZS_DECLARE_INTERACTION_PTR(IMediaStreamTrackForRTPSenderChannelVideo)
     ZS_DECLARE_INTERACTION_PTR(IMediaStreamTrackForRTPReceiver)
     ZS_DECLARE_INTERACTION_PTR(IMediaStreamTrackForRTPReceiverChannel)
+    ZS_DECLARE_INTERACTION_PTR(IMediaStreamTrackForRTPReceiverChannelMediaBase)
+    ZS_DECLARE_INTERACTION_PTR(IMediaStreamTrackForRTPReceiverChannelAudio)
+    ZS_DECLARE_INTERACTION_PTR(IMediaStreamTrackForRTPReceiverChannelVideo)
     ZS_DECLARE_INTERACTION_PTR(IMediaStreamTrackForMediaDevices)
 
     ZS_DECLARE_INTERACTION_PTR(IRTPSenderForMediaStreamTrack)
@@ -122,6 +128,47 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
+    #pragma mark IMediaStreamTrackForRTPSenderChannelMediaBase
+    #pragma mark
+
+    interaction IMediaStreamTrackForRTPSenderChannelMediaBase
+    {
+      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPSenderChannelMediaBase, ForSenderChannelMediaBase)
+
+      virtual PUID getID() const = 0;
+    };
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IMediaStreamTrackForRTPSenderChannelAudio
+    #pragma mark
+
+    interaction IMediaStreamTrackForRTPSenderChannelAudio : public IMediaStreamTrackForRTPSenderChannelMediaBase
+    {
+      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPSenderChannelAudio, ForSenderChannelAudio)
+    };
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IMediaStreamTrackForRTPSenderChannelVideo
+    #pragma mark
+
+    interaction IMediaStreamTrackForRTPSenderChannelVideo : public IMediaStreamTrackForRTPSenderChannelMediaBase
+    {
+      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPSenderChannelVideo, ForSenderChannelVideo)
+    };
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
     #pragma mark IMediaStreamTrackForRTPReceiver
     #pragma mark
 
@@ -153,6 +200,47 @@ namespace ortc
       virtual PUID getID() const = 0;
 
       virtual void renderVideoFrame(const webrtc::VideoFrame& videoFrame) = 0;
+    };
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IMediaStreamTrackForRTPReceiverChannelMediabase
+    #pragma mark
+
+    interaction IMediaStreamTrackForRTPReceiverChannelMediabase
+    {
+      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPReceiverChannelMediabase, ForReceiverChannelMediaBase)
+
+      virtual PUID getID() const = 0;
+    };
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IMediaStreamTrackForRTPReceiverChannelAudio
+    #pragma mark
+
+    interaction IMediaStreamTrackForRTPReceiverChannelAudio : public IMediaStreamTrackForRTPReceiverChannelMediabase
+    {
+      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPReceiverChannelAudio, ForReceiverChannelAudio)
+    };
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IMediaStreamTrackForRTPReceiverChannelVideo
+    #pragma mark
+
+    interaction IMediaStreamTrackForRTPReceiverChannelVideo : public IMediaStreamTrackForRTPReceiverChannelMediabase
+    {
+      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPReceiverChannelVideo, ForReceiverChannelVideo)
     };
 
     //-------------------------------------------------------------------------
@@ -212,8 +300,12 @@ namespace ortc
                              public IMediaStreamTrackForSettings,
                              public IMediaStreamTrackForRTPSender,
                              public IMediaStreamTrackForRTPSenderChannel,
+                             public IMediaStreamTrackForRTPSenderChannelAudio,
+                             public IMediaStreamTrackForRTPSenderChannelVideo,
                              public IMediaStreamTrackForRTPReceiver,
                              public IMediaStreamTrackForRTPReceiverChannel,
+                             public IMediaStreamTrackForRTPReceiverChannelAudio,
+                             public IMediaStreamTrackForRTPReceiverChannelVideo,
                              public IMediaStreamTrackForMediaDevices,
                              public IWakeDelegate,
                              public zsLib::ITimerDelegate,
@@ -228,8 +320,14 @@ namespace ortc
       friend interaction IMediaStreamTrackFactory;
       friend interaction IMediaStreamTrackForSettings;
       friend interaction IMediaStreamTrackForRTPSender;
+      friend interaction IMediaStreamTrackForRTPSenderChannel;
+      friend interaction IMediaStreamTrackForRTPSenderChannelAudio;
+      friend interaction IMediaStreamTrackForRTPSenderChannelVideo;
       friend interaction IMediaStreamTrackForRTPReceiver;
       friend interaction IMediaStreamTrackForRTPReceiverChannel;
+      friend interaction IMediaStreamTrackForRTPReceiverChannelMediaBase;
+      friend interaction IMediaStreamTrackForRTPReceiverChannelAudio;
+      friend interaction IMediaStreamTrackForRTPReceiverChannelVideo;
       friend interaction IMediaStreamTrackForMediaDevices;
       friend interaction IMediaStreamTrackForMediaDevicesChannel;
 
@@ -274,8 +372,14 @@ namespace ortc
       static MediaStreamTrackPtr convert(ForSettingsPtr object);
       static MediaStreamTrackPtr convert(ForSenderPtr object);
       static MediaStreamTrackPtr convert(ForSenderChannelPtr object);
+      static MediaStreamTrackPtr convert(ForSenderChannelMediaBasePtr object);
+      static MediaStreamTrackPtr convert(ForSenderChannelAudioPtr object);
+      static MediaStreamTrackPtr convert(ForSenderChannelVideoPtr object);
       static MediaStreamTrackPtr convert(ForReceiverPtr object);
       static MediaStreamTrackPtr convert(ForReceiverChannelPtr object);
+      static MediaStreamTrackPtr convert(ForReceiverChannelMediaBasePtr object);
+      static MediaStreamTrackPtr convert(ForReceiverChannelAudioPtr object);
+      static MediaStreamTrackPtr convert(ForReceiverChannelVideoPtr object);
       static MediaStreamTrackPtr convert(ForMediaDevicesPtr object);
 
     protected:
@@ -347,6 +451,23 @@ namespace ortc
 
       //-----------------------------------------------------------------------
       #pragma mark
+      #pragma mark MediaStreamTrack => IMediaStreamTrackForRTPSenderChannelMediaBase
+      #pragma mark
+
+      // (duplicate) virtual PUID getID() const = 0;
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark MediaStreamTrack => IMediaStreamTrackForRTPSenderChannelAudio
+      #pragma mark
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark MediaStreamTrack => IMediaStreamTrackForRTPSenderChannelVideo
+      #pragma mark
+
+      //-----------------------------------------------------------------------
+      #pragma mark
       #pragma mark MediaStreamTrack => IMediaStreamTrackForRTPReceiver
       #pragma mark
 
@@ -364,6 +485,23 @@ namespace ortc
       // (duplicate) virtual PUID getID() const = 0;
 
       virtual void renderVideoFrame(const webrtc::VideoFrame& videoFrame) override;
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark MediaStreamTrack => IMediaStreamTrackForRTPReceiverChannelMediaBase
+      #pragma mark
+
+      // (duplicate) virtual PUID getID() const = 0;
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark MediaStreamTrack => IMediaStreamTrackForRTPReceiverChannelAudio
+      #pragma mark
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark MediaStreamTrack => IMediaStreamTrackForRTPReceiverChannelVideo
+      #pragma mark
 
       //-----------------------------------------------------------------------
       #pragma mark

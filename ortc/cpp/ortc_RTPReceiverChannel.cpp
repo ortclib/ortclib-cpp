@@ -30,6 +30,9 @@
  */
 
 #include <ortc/internal/ortc_RTPReceiverChannel.h>
+#include <ortc/internal/ortc_RTPReceiverChannelMediaBase.h>
+#include <ortc/internal/ortc_RTPReceiverChannelAudio.h>
+#include <ortc/internal/ortc_RTPReceiverChannelVideo.h>
 #include <ortc/internal/ortc_RTPReceiver.h>
 #include <ortc/internal/ortc_DTLSTransport.h>
 #include <ortc/internal/ortc_RTPListener.h>
@@ -48,11 +51,6 @@
 #include <zsLib/XML.h>
 
 #include <cryptopp/sha.h>
-
-#include <webrtc/modules/rtp_rtcp/interface/rtp_header_parser.h>
-#include <webrtc/modules/rtp_rtcp/source/byte_io.h>
-#include <webrtc/video/video_receive_stream.h>
-#include <webrtc/video_renderer.h>
 
 
 #ifdef _DEBUG
@@ -206,6 +204,24 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    RTPReceiverChannelPtr RTPReceiverChannel::convert(ForRTPReceiverChannelMediaBasePtr object)
+    {
+      return ZS_DYNAMIC_PTR_CAST(RTPReceiverChannel, object);
+    }
+
+    //-------------------------------------------------------------------------
+    RTPReceiverChannelPtr RTPReceiverChannel::convert(ForRTPReceiverChannelAudioPtr object)
+    {
+      return ZS_DYNAMIC_PTR_CAST(RTPReceiverChannel, object);
+    }
+
+    //-------------------------------------------------------------------------
+    RTPReceiverChannelPtr RTPReceiverChannel::convert(ForRTPReceiverChannelVideoPtr object)
+    {
+      return ZS_DYNAMIC_PTR_CAST(RTPReceiverChannel, object);
+    }
+
+    //-------------------------------------------------------------------------
     RTPReceiverChannelPtr RTPReceiverChannel::convert(ForMediaStreamTrackPtr object)
     {
       return ZS_DYNAMIC_PTR_CAST(RTPReceiverChannel, object);
@@ -292,6 +308,38 @@ namespace ortc
 
       return false;
     }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPReceiverChannel => ForMediaStreamTrack
+    #pragma mark
+    
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPReceiverChannel => ForRTPReceiverChannelMediaBase
+    #pragma mark
+    
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPReceiverChannel => ForRTPReceiverChannelAudio
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPReceiverChannel => ForRTPReceiverChannelVideo
+    #pragma mark
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -468,13 +516,14 @@ namespace ortc
 
     not_ready:
       {
-        ZS_LOG_TRACE(debug("dtls is not ready"))
+        ZS_LOG_TRACE(debug("not ready"))
         return;
       }
 
     ready:
       {
         ZS_LOG_TRACE(log("ready"))
+        setState(State_Ready);
       }
     }
 
