@@ -239,7 +239,11 @@ namespace ortc
 
       ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverForRTPReceiverChannel, UseReceiver)
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPReceiverChannel, UseMediaStreamTrack)
-      
+
+      ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverChannelMediaBaseForRTPReceiverChannel, UseMediaBase)
+      ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverChannelAudioForRTPReceiverChannel, UseAudio)
+      ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverChannelVideoForRTPReceiverChannel, UseVideo)
+
       ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters)
       typedef std::list<RTCPPacketPtr> RTCPPacketList;
       ZS_DECLARE_PTR(RTCPPacketList)
@@ -404,6 +408,10 @@ namespace ortc
       UseReceiverWeakPtr mReceiver;
 
       ParametersPtr mParameters;
+
+      //UseMediaBasePtr mMediaBase; // valid
+      //UseAudioPtr mAudio; // either
+      //UseVideoPtr mVideo; // or valid
     };
 
     //-------------------------------------------------------------------------
