@@ -39,7 +39,11 @@
 #include <ortc/internal/ortc_RTPListener.h>
 #include <ortc/internal/ortc_RTPReceiver.h>
 #include <ortc/internal/ortc_RTPReceiverChannel.h>
+#include <ortc/internal/ortc_RTPReceiverChannelAudio.h>
+#include <ortc/internal/ortc_RTPReceiverChannelVideo.h>
 #include <ortc/internal/ortc_RTPSenderChannel.h>
+#include <ortc/internal/ortc_RTPSenderChannelAudio.h>
+#include <ortc/internal/ortc_RTPSenderChannelVideo.h>
 #include <ortc/internal/ortc_ICETransport.h>
 #include <ortc/internal/ortc_ISecureTransport.h>
 #include <ortc/internal/ortc_DTLSTransport.h>
@@ -147,6 +151,10 @@ namespace ortc
       ZS_DECLARE_CLASS_PTR(FakeSender)
       ZS_DECLARE_CLASS_PTR(FakeReceiver)
       ZS_DECLARE_CLASS_PTR(RTPChannelTester)
+      ZS_DECLARE_CLASS_PTR(FakeReceiverChannelAudio)
+      ZS_DECLARE_CLASS_PTR(FakeReceiverChannelVideo)
+      ZS_DECLARE_CLASS_PTR(FakeSenderChannelAudio)
+      ZS_DECLARE_CLASS_PTR(FakeSenderChannelVideo)
 
       //---------------------------------------------------------------------
       //---------------------------------------------------------------------
@@ -811,7 +819,7 @@ namespace ortc
 
         //---------------------------------------------------------------------
         #pragma mark
-        #pragma mark FakeReceiver => (friend RTPSenderTester)
+        #pragma mark FakeReceiver => (friend RTPChannelTester)
         #pragma mark
 
         void setTransport(RTPChannelTesterPtr tester);
@@ -969,6 +977,370 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       #pragma mark
+      #pragma mark FakeReceiverChannelAudio
+      #pragma mark
+
+      //-----------------------------------------------------------------------
+      class FakeReceiverChannelAudio : public ortc::internal::RTPReceiverChannelAudio
+      {
+      public:
+        ZS_DECLARE_TYPEDEF_PTR(internal::RTPReceiverChannelAudio, RTPReceiverChannelAudio)
+        ZS_DECLARE_TYPEDEF_PTR(internal::RTPReceiverChannel, RTPReceiverChannel)
+
+        ZS_DECLARE_TYPEDEF_PTR(internal::IRTPReceiverChannelForRTPReceiverChannelAudio, UseChannel)
+
+        typedef std::list<SecureByteBlockPtr> BufferList;
+
+      public:
+        FakeReceiverChannelAudio(
+                                 IMessageQueuePtr queue,
+                                 const char *mediaID,
+                                 const Parameters &params
+                                 );
+        ~FakeReceiverChannelAudio();
+
+        static FakeReceiverChannelAudioPtr create(
+                                                  IMessageQueuePtr queue,
+                                                  const char *mediaID,
+                                                  const Parameters &params
+                                                  );
+
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark FakeReceiverChannelAudio => IRTPReceiverChannelMediaBaseForRTPReceiverChannel
+        #pragma mark
+
+        virtual ElementPtr toDebug() const override;
+
+        // (duplicate) virtual PUID getID() const = 0;
+
+        virtual bool handlePacket(RTPPacketPtr packet) override;
+
+        virtual bool handlePacket(RTCPPacketPtr packet) override;
+
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark FakeReceiverChannelAudio => IRTPReceiverChannelAudioForRTPReceiverChannel
+        #pragma mark
+
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark FakeReceiverChannelAudio => (friend RTPChannelTester)
+        #pragma mark
+
+        void setTransport(RTPChannelTesterPtr tester);
+
+        void create(
+                    RTPReceiverChannelPtr receiverChannel,
+                    const Parameters &params
+                    );
+
+        void expectData(SecureByteBlockPtr data);
+
+      protected:
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark FakeReceiverChannelAudio => (internal)
+        #pragma mark
+
+        Log::Params log(const char *message) const;
+
+      protected:
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark FakeReceiverChannelAudio => (data)
+        #pragma mark
+
+        FakeReceiverChannelAudioWeakPtr mThisWeak;
+
+        String mMediaID;
+
+        RTPChannelTesterWeakPtr mTester;
+
+        ParametersPtr mParameters;
+
+        BufferList mExpectBuffers;
+
+        UseChannelWeakPtr mReceiverChannel;
+      };
+
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark FakeReceiverChannelVideo
+      #pragma mark
+
+      //-----------------------------------------------------------------------
+      class FakeReceiverChannelVideo : public ortc::internal::RTPReceiverChannelVideo
+      {
+      public:
+        ZS_DECLARE_TYPEDEF_PTR(internal::RTPReceiverChannelVideo, RTPReceiverChannelVideo)
+        ZS_DECLARE_TYPEDEF_PTR(internal::RTPReceiverChannel, RTPReceiverChannel)
+
+        ZS_DECLARE_TYPEDEF_PTR(internal::IRTPReceiverChannelForRTPReceiverChannelVideo, UseChannel)
+
+        typedef std::list<SecureByteBlockPtr> BufferList;
+
+      public:
+        FakeReceiverChannelVideo(
+                                 IMessageQueuePtr queue,
+                                 const char *mediaID,
+                                 const Parameters &params
+                                 );
+        ~FakeReceiverChannelVideo();
+
+        static FakeReceiverChannelVideoPtr create(
+                                                  IMessageQueuePtr queue,
+                                                  const char *mediaID,
+                                                  const Parameters &params
+                                                  );
+
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark FakeReceiverChannelVideo => IRTPReceiverChannelMediaBaseForRTPReceiverChannel
+        #pragma mark
+
+        virtual ElementPtr toDebug() const override;
+
+        // (duplicate) virtual PUID getID() const = 0;
+
+        virtual bool handlePacket(RTPPacketPtr packet) override;
+
+        virtual bool handlePacket(RTCPPacketPtr packet) override;
+
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark FakeReceiverChannelVideo => IRTPReceiverChannelVideoForRTPReceiverChannel
+        #pragma mark
+
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark FakeReceiverChannelVideo => (friend RTPChannelTester)
+        #pragma mark
+
+        void setTransport(RTPChannelTesterPtr tester);
+
+        void create(
+                    RTPReceiverChannelPtr receiverChannel,
+                    const Parameters &params
+                    );
+
+        void expectData(SecureByteBlockPtr data);
+
+      protected:
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark FakeReceiverChannelVideo => (internal)
+        #pragma mark
+
+        Log::Params log(const char *message) const;
+
+      protected:
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark FakeReceiverChannelVideo => (data)
+        #pragma mark
+
+        FakeReceiverChannelVideoWeakPtr mThisWeak;
+
+        String mMediaID;
+
+        RTPChannelTesterWeakPtr mTester;
+
+        ParametersPtr mParameters;
+
+        BufferList mExpectBuffers;
+
+        UseChannelWeakPtr mReceiverChannel;
+      };
+
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark FakeSenderChannelAudio
+      #pragma mark
+
+      //-----------------------------------------------------------------------
+      class FakeSenderChannelAudio : public ortc::internal::RTPSenderChannelAudio
+      {
+      public:
+        ZS_DECLARE_TYPEDEF_PTR(internal::RTPSenderChannelAudio, RTPSenderChannelAudio)
+        ZS_DECLARE_TYPEDEF_PTR(internal::RTPSenderChannel, RTPSenderChannel)
+
+        ZS_DECLARE_TYPEDEF_PTR(internal::IRTPSenderChannelForRTPSenderChannelAudio, UseChannel)
+
+        typedef std::list<SecureByteBlockPtr> BufferList;
+
+      public:
+        FakeSenderChannelAudio(
+                                 IMessageQueuePtr queue,
+                                 const char *mediaID,
+                                 const Parameters &params
+                                 );
+        ~FakeSenderChannelAudio();
+
+        static FakeSenderChannelAudioPtr create(
+                                                IMessageQueuePtr queue,
+                                                const char *mediaID,
+                                                const Parameters &params
+                                                );
+
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark FakeSenderChannelAudio => IRTPSenderChannelMediaBaseForRTPSenderChannel
+        #pragma mark
+
+        virtual ElementPtr toDebug() const override;
+
+        // (duplicate) virtual PUID getID() const = 0;
+
+        virtual bool handlePacket(RTCPPacketPtr packet) override;
+
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark FakeSenderChannelAudio => IRTPSenderChannelAudioForRTPSenderChannel
+        #pragma mark
+
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark FakeSenderChannelAudio => (friend RTPChannelTester)
+        #pragma mark
+
+        void setTransport(RTPChannelTesterPtr tester);
+
+        void create(
+                    RTPSenderChannelPtr receiverChannel,
+                    const Parameters &params
+                    );
+
+        void expectData(SecureByteBlockPtr data);
+
+      protected:
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark FakeSenderChannelAudio => (internal)
+        #pragma mark
+
+        Log::Params log(const char *message) const;
+
+      protected:
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark FakeSenderChannelAudio => (data)
+        #pragma mark
+
+        FakeSenderChannelAudioWeakPtr mThisWeak;
+
+        String mMediaID;
+
+        RTPChannelTesterWeakPtr mTester;
+
+        ParametersPtr mParameters;
+
+        BufferList mExpectBuffers;
+
+        UseChannelWeakPtr mSenderChannel;
+      };
+
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark FakeSenderChannelVideo
+      #pragma mark
+
+      //-----------------------------------------------------------------------
+      class FakeSenderChannelVideo : public ortc::internal::RTPSenderChannelVideo
+      {
+      public:
+        ZS_DECLARE_TYPEDEF_PTR(internal::RTPSenderChannelVideo, RTPSenderChannelVideo)
+        ZS_DECLARE_TYPEDEF_PTR(internal::RTPSenderChannel, RTPSenderChannel)
+
+        ZS_DECLARE_TYPEDEF_PTR(internal::IRTPSenderChannelForRTPSenderChannelVideo, UseChannel)
+
+        typedef std::list<SecureByteBlockPtr> BufferList;
+
+      public:
+        FakeSenderChannelVideo(
+                                 IMessageQueuePtr queue,
+                                 const char *mediaID,
+                                 const Parameters &params
+                                 );
+        ~FakeSenderChannelVideo();
+
+        static FakeSenderChannelVideoPtr create(
+                                                IMessageQueuePtr queue,
+                                                const char *mediaID,
+                                                const Parameters &params
+                                                );
+
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark FakeSenderChannelVideo => IRTPSenderChannelMediaBaseForRTPSenderChannel
+        #pragma mark
+
+        virtual ElementPtr toDebug() const override;
+
+        // (duplicate) virtual PUID getID() const = 0;
+
+        virtual bool handlePacket(RTCPPacketPtr packet) override;
+
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark FakeSenderChannelVideo => IRTPSenderChannelVideoForRTPSenderChannel
+        #pragma mark
+
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark FakeSenderChannelVideo => (friend RTPChannelTester)
+        #pragma mark
+
+        void setTransport(RTPChannelTesterPtr tester);
+
+        void create(
+                    RTPSenderChannelPtr receiverChannel,
+                    const Parameters &params
+                    );
+
+        void expectData(SecureByteBlockPtr data);
+
+      protected:
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark FakeSenderChannelVideo => (internal)
+        #pragma mark
+
+        Log::Params log(const char *message) const;
+
+      protected:
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark FakeSenderChannelVideo => (data)
+        #pragma mark
+
+        FakeSenderChannelVideoWeakPtr mThisWeak;
+
+        String mMediaID;
+
+        RTPChannelTesterWeakPtr mTester;
+
+        ParametersPtr mParameters;
+
+        BufferList mExpectBuffers;
+
+        UseChannelWeakPtr mSenderChannel;
+      };
+
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
       #pragma mark RTPChannelTester
       #pragma mark
 
@@ -981,6 +1353,10 @@ namespace ortc
       public:
         friend class FakeSender;
         friend class FakeReceiver;
+        friend class FakeReceiverChannelAudio;
+        friend class FakeReceiverChannelVideo;
+        friend class FakeSenderChannelAudio;
+        friend class FakeSenderChannelVideo;
         friend class FakeListener;
         friend class FakeMediaStreamTrack;
 
@@ -989,6 +1365,12 @@ namespace ortc
 
         ZS_DECLARE_TYPEDEF_PTR(internal::RTPReceiverChannel, RTPReceiverChannel)
         ZS_DECLARE_TYPEDEF_PTR(internal::RTPSenderChannel, RTPSenderChannel)
+
+        ZS_DECLARE_TYPEDEF_PTR(internal::RTPReceiverChannelAudio, RTPReceiverChannelAudio)
+        ZS_DECLARE_TYPEDEF_PTR(internal::RTPReceiverChannelVideo, RTPReceiverChannelVideo)
+
+        ZS_DECLARE_TYPEDEF_PTR(internal::RTPSenderChannelAudio, RTPSenderChannelAudio)
+        ZS_DECLARE_TYPEDEF_PTR(internal::RTPSenderChannelVideo, RTPSenderChannelVideo)
 
         ZS_DECLARE_TYPEDEF_PTR(internal::RTPReceiverChannel::RTCPPacketList, RTCPPacketList)
 
@@ -999,6 +1381,24 @@ namespace ortc
 
         ZS_DECLARE_TYPEDEF_PTR(internal::IRTPSenderChannelForRTPSender, UseSenderChannelForSender)
         ZS_DECLARE_TYPEDEF_PTR(internal::IRTPSenderChannelForMediaStreamTrack, UseSenderChannelForTrack)
+
+        ZS_DECLARE_TYPEDEF_PTR(internal::RTPReceiverChannelAudioFactory, RTPReceiverChannelAudioFactory)
+        ZS_DECLARE_TYPEDEF_PTR(internal::RTPReceiverChannelVideoFactory, RTPReceiverChannelVideoFactory)
+
+        ZS_DECLARE_TYPEDEF_PTR(internal::RTPSenderChannelAudioFactory, RTPSenderChannelAudioFactory)
+        ZS_DECLARE_TYPEDEF_PTR(internal::RTPSenderChannelVideoFactory, RTPSenderChannelVideoFactory)
+
+        ZS_DECLARE_CLASS_PTR(OverrideReceiverChannelAudioFactory)
+        ZS_DECLARE_CLASS_PTR(OverrideReceiverChannelVideoFactory)
+
+        ZS_DECLARE_CLASS_PTR(OverrideSenderChannelAudioFactory)
+        ZS_DECLARE_CLASS_PTR(OverrideSenderChannelVideoFactory)
+
+        friend class OverrideReceiverChannelAudioFactory;
+        friend class OverrideSenderChannelVideoFactory;
+
+        friend class OverrideSenderChannelAudioFactory;
+        friend class OverrideReceiverChannelVideoFactory;
 
         typedef String SenderOrReceiverID;
         typedef std::pair<FakeReceiverPtr, FakeSenderPtr> FakeReceiverFakeSenderPair;
@@ -1018,6 +1418,101 @@ namespace ortc
 
         typedef String SenderChannelID;
         typedef std::map<SenderChannelID, RTPSenderChannelPtr> SenderChannelMap;
+
+        typedef String MediaID;
+
+        typedef std::pair<MediaID, FakeReceiverChannelAudioPtr> FakeReceiverChannelAudioPair;
+        typedef std::list<FakeReceiverChannelAudioPair> FakeReceiverChannelAudioList;
+        typedef std::map<MediaID, FakeReceiverChannelAudioWeakPtr> FakeReceiverChannelAudioMap;
+
+        typedef std::pair<MediaID, FakeReceiverChannelVideoPtr> FakeReceiverChannelVideoPair;
+        typedef std::list<FakeReceiverChannelVideoPair> FakeReceiverChannelVideoList;
+        typedef std::map<MediaID, FakeReceiverChannelVideoWeakPtr> FakeReceiverChannelVideoMap;
+
+        typedef std::pair<MediaID, FakeSenderChannelAudioPtr> FakeSenderChannelAudioPair;
+        typedef std::list<FakeSenderChannelAudioPair> FakeSenderChannelAudioList;
+        typedef std::map<MediaID, FakeSenderChannelAudioWeakPtr> FakeSenderChannelAudioMap;
+
+        typedef std::pair<MediaID, FakeSenderChannelVideoPtr> FakeSenderChannelVideoPair;
+        typedef std::list<FakeSenderChannelVideoPair> FakeSenderChannelVideoList;
+        typedef std::map<MediaID, FakeSenderChannelVideoWeakPtr> FakeSenderChannelVideoMap;
+
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark RTPChannelTester::OverrideReceiverChannelAudioFactory
+        #pragma mark
+
+        class OverrideReceiverChannelAudioFactory : public RTPReceiverChannelAudioFactory
+        {
+        public:
+          static OverrideReceiverChannelAudioFactoryPtr create(RTPChannelTesterPtr tester);
+
+          virtual RTPReceiverChannelAudioPtr create(
+                                                    RTPReceiverChannelPtr receiverChannel,
+                                                    const Parameters &params
+                                                    ) override;
+
+        protected:
+          RTPChannelTesterWeakPtr mTester;
+        };
+
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark RTPChannelTester::OverrideReceiverChannelVideoFactory
+        #pragma mark
+
+        class OverrideReceiverChannelVideoFactory : public RTPReceiverChannelVideoFactory
+        {
+        public:
+          static OverrideReceiverChannelVideoFactoryPtr create(RTPChannelTesterPtr tester);
+
+          virtual RTPReceiverChannelVideoPtr create(
+                                                    RTPReceiverChannelPtr receiverChannel,
+                                                    const Parameters &params
+                                                    ) override;
+
+        protected:
+          RTPChannelTesterWeakPtr mTester;
+        };
+
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark RTPChannelTester::OverrideSenderChannelAudioFactory
+        #pragma mark
+
+        class OverrideSenderChannelAudioFactory : public RTPSenderChannelAudioFactory
+        {
+        public:
+          static OverrideSenderChannelAudioFactoryPtr create(RTPChannelTesterPtr tester);
+
+          virtual RTPSenderChannelAudioPtr create(
+                                                    RTPSenderChannelPtr senderChannel,
+                                                    const Parameters &params
+                                                    ) override;
+
+        protected:
+          RTPChannelTesterWeakPtr mTester;
+        };
+
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark RTPChannelTester::OverrideReceiverChannelVideoFactory
+        #pragma mark
+
+        class OverrideSenderChannelVideoFactory : public RTPSenderChannelVideoFactory
+        {
+        public:
+          static OverrideSenderChannelVideoFactoryPtr create(RTPChannelTesterPtr tester);
+
+          virtual RTPSenderChannelVideoPtr create(
+                                                  RTPSenderChannelPtr sender,
+                                                  const Parameters &params
+                                                  ) override;
+
+        protected:
+          RTPChannelTesterWeakPtr mTester;
+        };
+
 
       protected:
         struct make_private {};
@@ -1045,10 +1540,14 @@ namespace ortc
         static RTPChannelTesterPtr create(
                                           IMessageQueuePtr queue,
                                           IMediaStreamTrackTypes::Kinds kind,
+                                          bool overrideFactories,
                                           Milliseconds packetDelay = Milliseconds()
                                           );
 
-        RTPChannelTester(IMessageQueuePtr queue);
+        RTPChannelTester(
+                         IMessageQueuePtr queue,
+                         bool overrideFactories
+                         );
         ~RTPChannelTester();
 
         void init(
@@ -1075,6 +1574,23 @@ namespace ortc
 
         void createReceiver(const char *receiverID);
         void createSender(const char *senderID);
+
+        void createReceiverChannelAudio(
+                                        const char *receiverChannelAudioID,
+                                        const char *parametersID
+                                        );
+        void createReceiverChannelVideo(
+                                        const char *receiverChannelVideoID,
+                                        const char *parametersID
+                                        );
+        void createSenderChannelAudio(
+                                      const char *senderChannelAudioID,
+                                      const char *parametersID
+                                      );
+        void createSenderChannelVideo(
+                                      const char *senderChannelVideoID,
+                                      const char *parametersID
+                                      );
 
         void send(
                   const char *senderID,
@@ -1104,11 +1620,32 @@ namespace ortc
                     const char *senderChannelID,
                     RTPSenderChannelPtr senderChannel
                     );
+        void attach(
+                    const char *receiverChannelAudioID,
+                    FakeReceiverChannelAudioPtr receiverChannelAudio
+                    );
+        void attach(
+                    const char *receiverChannelVideoID,
+                    FakeReceiverChannelVideoPtr receiverChannelVideo
+                    );
+        void attach(
+                    const char *senderChannelAudioID,
+                    FakeSenderChannelAudioPtr senderChannelAudio
+                    );
+        void attach(
+                    const char *senderChannelVideoID,
+                    FakeSenderChannelVideoPtr senderChannelVideo
+                    );
 
         FakeReceiverPtr detachReceiver(const char *receiverID);
         FakeSenderPtr detachSender(const char *senderID);
         RTPReceiverChannelPtr detachReceiverChannel(const char *receiverChannelID);
         RTPSenderChannelPtr detachSenderChannel(const char *senderChannelID);
+
+        FakeReceiverChannelAudioPtr detachReceiverChannelAudio(const char *receiverChannelAudioID);
+        FakeReceiverChannelVideoPtr detachReceiverChannelVideo(const char *receiverChannelVideoID);
+        FakeSenderChannelAudioPtr detachSenderChannelAudio(const char *senderChannelAudioID);
+        FakeSenderChannelVideoPtr detachSenderChannelVideo(const char *senderChannelVideoID);
 
         void store(
                    const char *packetID,
@@ -1270,6 +1807,23 @@ namespace ortc
 
         void notifySenderChannelError();
 
+        FakeReceiverChannelAudioPtr createReceiverChannelAudio(
+                                                               RTPReceiverChannelPtr receiverChannel,
+                                                               const Parameters &params
+                                                               );
+        FakeReceiverChannelVideoPtr createReceiverChannelVideo(
+                                                               RTPReceiverChannelPtr receiverChannel,
+                                                               const Parameters &params
+                                                               );
+        FakeSenderChannelAudioPtr createSenderChannelAudio(
+                                                           RTPSenderChannelPtr senderChannel,
+                                                           const Parameters &params
+                                                           );
+        FakeSenderChannelVideoPtr createSenderChannelVideo(
+                                                           RTPSenderChannelPtr senderChannel,
+                                                           const Parameters &params
+                                                           );
+
       protected:
         //---------------------------------------------------------------------
         #pragma mark
@@ -1284,6 +1838,11 @@ namespace ortc
         FakeSenderPtr getSender(const char *senderID);
         RTPReceiverChannelPtr getReceiverChannel(const char *receiverChannelID);
         RTPSenderChannelPtr getSenderChannel(const char *senderChannelID);
+
+        FakeReceiverChannelAudioPtr getReceiverChannelAudio(const char *receiverChannelAudioID);
+        FakeReceiverChannelVideoPtr getReceiverChannelVideo(const char *receiverChannelVideoID);
+        FakeSenderChannelAudioPtr getSenderChannelAudio(const char *senderChannelAudioID);
+        FakeSenderChannelVideoPtr getSenderChannelVideo(const char *senderChannelVideoID);
 
         void expectData(
                         const char *senderOrReceiverID,
@@ -1309,6 +1868,8 @@ namespace ortc
         AutoPUID mID;
         RTPChannelTesterWeakPtr mThisWeak;
 
+        bool mOverrideFactories {false};
+
         FakeICETransportPtr mICETransport;
         FakeSecureTransportPtr mDTLSTransport;
 
@@ -1329,6 +1890,18 @@ namespace ortc
 
         ReceiverChannelMap mReceiverChannels;
         SenderChannelMap mSenderChannels;
+
+        FakeReceiverChannelAudioList mFakeReceiverChannelAudioCreationList;
+        FakeReceiverChannelVideoList mFakeReceiverChannelVideoCreationList;
+
+        FakeSenderChannelAudioList mFakeSenderChannelAudioCreationList;
+        FakeSenderChannelVideoList mFakeSenderChannelVideoCreationList;
+
+        FakeReceiverChannelAudioMap mAttachedReceiverChannelAudio;
+        FakeReceiverChannelVideoMap mAttachedReceiverChannelVideo;
+
+        FakeSenderChannelAudioMap mAttachedSenderChannelAudio;
+        FakeSenderChannelVideoMap mAttachedSenderChannelVideo;
       };
     }
   }

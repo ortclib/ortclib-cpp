@@ -72,8 +72,12 @@ namespace ortc
       ZS_DECLARE_TYPEDEF_PTR(ortc::internal::ISecureTransport, ISecureTransport)
       ZS_DECLARE_USING_PTR(ortc::internal, RTPReceiver)
       ZS_DECLARE_USING_PTR(ortc::internal, RTPReceiverChannel)
+      ZS_DECLARE_USING_PTR(ortc::internal, RTPReceiverChannelAudio)
+      ZS_DECLARE_USING_PTR(ortc::internal, RTPReceiverChannelVideo)
       ZS_DECLARE_USING_PTR(ortc::internal, RTPSender)
       ZS_DECLARE_USING_PTR(ortc::internal, RTPSenderChannel)
+      ZS_DECLARE_USING_PTR(ortc::internal, RTPSenderChannelAudio)
+      ZS_DECLARE_USING_PTR(ortc::internal, RTPSenderChannelVideo)
       ZS_DECLARE_USING_PTR(ortc::internal, RTPListener)
       ZS_DECLARE_USING_PTR(ortc::internal, MediaStreamTrack)
 
@@ -1984,6 +1988,654 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       #pragma mark
+      #pragma mark FakeReceiverChannelAudio
+      #pragma mark
+
+      //-----------------------------------------------------------------------
+      FakeReceiverChannelAudio::FakeReceiverChannelAudio(
+                                                         IMessageQueuePtr queue,
+                                                         const char *mediaID,
+                                                         const Parameters &params
+                                                         ) :
+        RTPReceiverChannelAudio(Noop(true), queue),
+        mMediaID(mediaID),
+        mParameters(make_shared<Parameters>(params))
+      {
+      }
+
+      //-----------------------------------------------------------------------
+      FakeReceiverChannelAudio::~FakeReceiverChannelAudio()
+      {
+        mThisWeak.reset();
+      }
+
+      //-----------------------------------------------------------------------
+      FakeReceiverChannelAudioPtr FakeReceiverChannelAudio::create(
+                                                                   IMessageQueuePtr queue,
+                                                                   const char *mediaID,
+                                                                   const Parameters &params
+                                                                   )
+      {
+        FakeReceiverChannelAudioPtr pThis(make_shared<FakeReceiverChannelAudio>(queue, mediaID, params));
+        pThis->mThisWeak = pThis;
+        return pThis;
+      }
+
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark FakeReceiverChannelAudio => IRTPReceiverChannelMediaBaseForRTPReceiverChannel
+      #pragma mark
+
+      //-----------------------------------------------------------------------
+      ElementPtr FakeReceiverChannelAudio::toDebug() const
+      {
+        AutoRecursiveLock lock(*this);
+
+        ElementPtr result = Element::create("ortc::test::rtpsender::FakeReceiverChannelAudio");
+
+        UseServicesHelper::debugAppend(result, "media id", mMediaID);
+        UseServicesHelper::debugAppend(result, "tester", (bool)mTester.lock());
+        UseServicesHelper::debugAppend(result, mParameters ? mParameters->toDebug() : ElementPtr());
+        UseServicesHelper::debugAppend(result, "expect buffers", mExpectBuffers.size());
+        auto receiverChannel = mReceiverChannel.lock();
+        UseServicesHelper::debugAppend(result, "receiver channel", receiverChannel ? receiverChannel->getID() : 0);
+
+        return result;
+      }
+
+      //-----------------------------------------------------------------------
+      bool FakeReceiverChannelAudio::handlePacket(RTPPacketPtr packet)
+      {
+        ZS_LOG_BASIC(log("received RTCP packet") + packet->toDebug())
+
+        AutoRecursiveLock lock(*this);
+
+        TESTING_CHECK(mExpectBuffers.size() > 0)
+
+        TESTING_CHECK(0 == UseServicesHelper::compare(*(mExpectBuffers.front()), *(packet->mBuffer)))
+
+        mExpectBuffers.pop_front();
+
+        auto tester = mTester.lock();
+
+        if (tester) tester->notifyReceivedPacket();
+
+        return true;
+      }
+
+      //-----------------------------------------------------------------------
+      bool FakeReceiverChannelAudio::handlePacket(RTCPPacketPtr packet)
+      {
+        ZS_LOG_BASIC(log("received RTCP packet") + packet->toDebug())
+
+        AutoRecursiveLock lock(*this);
+
+        TESTING_CHECK(mExpectBuffers.size() > 0)
+
+        TESTING_CHECK(0 == UseServicesHelper::compare(*(mExpectBuffers.front()), *(packet->mBuffer)))
+
+        mExpectBuffers.pop_front();
+
+        auto tester = mTester.lock();
+
+        if (tester) tester->notifyReceivedPacket();
+
+        return true;
+      }
+
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark FakeReceiverChannelAudio => IRTPReceiverChannelAudioForRTPReceiverChannel
+      #pragma mark
+
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark FakeReceiverChannelAudio => (friend RTPChannelTester)
+      #pragma mark
+
+      //-----------------------------------------------------------------------
+      void FakeReceiverChannelAudio::setTransport(RTPChannelTesterPtr tester)
+      {
+        AutoRecursiveLock lock(*this);
+
+        mTester = tester;
+      }
+
+      //-----------------------------------------------------------------------
+      void FakeReceiverChannelAudio::create(
+                                            RTPReceiverChannelPtr inReceiverChannel,
+                                            const Parameters &params
+                                            )
+      {
+        UseChannelPtr receiverChannel = inReceiverChannel;
+
+        ZS_LOG_BASIC(log("create called") + ZS_PARAM("receiver channel", receiverChannel->getID()) + params.toDebug())
+
+        AutoRecursiveLock lock(*this);
+        mReceiverChannel = receiverChannel;
+
+        TESTING_EQUAL(params.hash(), mParameters->hash())
+      }
+
+      //-----------------------------------------------------------------------
+      void FakeReceiverChannelAudio::expectData(SecureByteBlockPtr data)
+      {
+        TESTING_CHECK((bool)data)
+
+        AutoRecursiveLock lock(*this);
+
+        ZS_LOG_TRACE(log("expecting buffer") + ZS_PARAM("buffer size", data->SizeInBytes()))
+
+        mExpectBuffers.push_back(data);
+      }
+
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark FakeReceiverChannelAudio => (internal)
+      #pragma mark
+
+      //-----------------------------------------------------------------------
+      Log::Params FakeReceiverChannelAudio::log(const char *message) const
+      {
+        ElementPtr objectEl = Element::create("ortc::test::rtpchannel::FakeReceiverChannelAudio");
+        UseServicesHelper::debugAppend(objectEl, "id", FakeReceiverChannelAudio::getID());
+        return Log::Params(message, objectEl);
+      }
+
+
+
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark FakeReceiverChannelVideo
+      #pragma mark
+
+      //-----------------------------------------------------------------------
+      FakeReceiverChannelVideo::FakeReceiverChannelVideo(
+                                                         IMessageQueuePtr queue,
+                                                         const char *mediaID,
+                                                         const Parameters &params
+                                                         ) :
+        RTPReceiverChannelVideo(Noop(true), queue),
+        mMediaID(mediaID),
+        mParameters(make_shared<Parameters>(params))
+      {
+      }
+
+      //-----------------------------------------------------------------------
+      FakeReceiverChannelVideo::~FakeReceiverChannelVideo()
+      {
+        mThisWeak.reset();
+      }
+
+      //-----------------------------------------------------------------------
+      FakeReceiverChannelVideoPtr FakeReceiverChannelVideo::create(
+                                                                   IMessageQueuePtr queue,
+                                                                   const char *mediaID,
+                                                                   const Parameters &params
+                                                                   )
+      {
+        FakeReceiverChannelVideoPtr pThis(make_shared<FakeReceiverChannelVideo>(queue, mediaID, params));
+        pThis->mThisWeak = pThis;
+        return pThis;
+      }
+
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark FakeReceiverChannelVideo => IRTPReceiverChannelMediaBaseForRTPReceiverChannel
+      #pragma mark
+
+      //-----------------------------------------------------------------------
+      ElementPtr FakeReceiverChannelVideo::toDebug() const
+      {
+        AutoRecursiveLock lock(*this);
+
+        ElementPtr result = Element::create("ortc::test::rtpsender::FakeReceiverChannelVideo");
+
+        UseServicesHelper::debugAppend(result, "media id", mMediaID);
+        UseServicesHelper::debugAppend(result, "tester", (bool)mTester.lock());
+        UseServicesHelper::debugAppend(result, mParameters ? mParameters->toDebug() : ElementPtr());
+        UseServicesHelper::debugAppend(result, "expect buffers", mExpectBuffers.size());
+        auto receiverChannel = mReceiverChannel.lock();
+        UseServicesHelper::debugAppend(result, "receiver channel", receiverChannel ? receiverChannel->getID() : 0);
+
+        return result;
+      }
+
+      //-----------------------------------------------------------------------
+      bool FakeReceiverChannelVideo::handlePacket(RTPPacketPtr packet)
+      {
+        ZS_LOG_BASIC(log("received RTCP packet") + packet->toDebug())
+
+        AutoRecursiveLock lock(*this);
+
+        TESTING_CHECK(mExpectBuffers.size() > 0)
+
+        TESTING_CHECK(0 == UseServicesHelper::compare(*(mExpectBuffers.front()), *(packet->mBuffer)))
+
+        mExpectBuffers.pop_front();
+
+        auto tester = mTester.lock();
+
+        if (tester) tester->notifyReceivedPacket();
+
+        return true;
+      }
+
+      //-----------------------------------------------------------------------
+      bool FakeReceiverChannelVideo::handlePacket(RTCPPacketPtr packet)
+      {
+        ZS_LOG_BASIC(log("received RTCP packet") + packet->toDebug())
+
+        AutoRecursiveLock lock(*this);
+
+        TESTING_CHECK(mExpectBuffers.size() > 0)
+
+        TESTING_CHECK(0 == UseServicesHelper::compare(*(mExpectBuffers.front()), *(packet->mBuffer)))
+
+        mExpectBuffers.pop_front();
+
+        auto tester = mTester.lock();
+
+        if (tester) tester->notifyReceivedPacket();
+
+        return true;
+      }
+
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark FakeReceiverChannelVideo => IRTPReceiverChannelVideoForRTPReceiverChannel
+      #pragma mark
+
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark FakeReceiverChannelVideo => (friend RTPChannelTester)
+      #pragma mark
+
+      //-----------------------------------------------------------------------
+      void FakeReceiverChannelVideo::setTransport(RTPChannelTesterPtr tester)
+      {
+        AutoRecursiveLock lock(*this);
+
+        mTester = tester;
+      }
+
+      //-----------------------------------------------------------------------
+      void FakeReceiverChannelVideo::create(
+                                            RTPReceiverChannelPtr inReceiverChannel,
+                                            const Parameters &params
+                                            )
+      {
+        UseChannelPtr receiverChannel = inReceiverChannel;
+
+        ZS_LOG_BASIC(log("create called") + ZS_PARAM("receiver channel", receiverChannel->getID()) + params.toDebug())
+
+        AutoRecursiveLock lock(*this);
+        mReceiverChannel = receiverChannel;
+
+        TESTING_EQUAL(params.hash(), mParameters->hash())
+      }
+
+      //-----------------------------------------------------------------------
+      void FakeReceiverChannelVideo::expectData(SecureByteBlockPtr data)
+      {
+        TESTING_CHECK((bool)data)
+
+        AutoRecursiveLock lock(*this);
+
+        ZS_LOG_TRACE(log("expecting buffer") + ZS_PARAM("buffer size", data->SizeInBytes()))
+
+        mExpectBuffers.push_back(data);
+      }
+
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark FakeReceiverChannelVideo => (internal)
+      #pragma mark
+
+      //-----------------------------------------------------------------------
+      Log::Params FakeReceiverChannelVideo::log(const char *message) const
+      {
+        ElementPtr objectEl = Element::create("ortc::test::rtpchannel::FakeReceiverChannelVideo");
+        UseServicesHelper::debugAppend(objectEl, "id", FakeReceiverChannelVideo::getID());
+        return Log::Params(message, objectEl);
+      }
+
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark FakeSenderChannelAudio
+      #pragma mark
+
+      //-----------------------------------------------------------------------
+      FakeSenderChannelAudio::FakeSenderChannelAudio(
+                                                     IMessageQueuePtr queue,
+                                                     const char *mediaID,
+                                                     const Parameters &params
+                                                     ) :
+        RTPSenderChannelAudio(Noop(true), queue),
+        mMediaID(mediaID),
+        mParameters(make_shared<Parameters>(params))
+      {
+      }
+
+      //-----------------------------------------------------------------------
+      FakeSenderChannelAudio::~FakeSenderChannelAudio()
+      {
+        mThisWeak.reset();
+      }
+
+      //-----------------------------------------------------------------------
+      FakeSenderChannelAudioPtr FakeSenderChannelAudio::create(
+                                                               IMessageQueuePtr queue,
+                                                               const char *mediaID,
+                                                               const Parameters &params
+                                                               )
+      {
+        FakeSenderChannelAudioPtr pThis(make_shared<FakeSenderChannelAudio>(queue, mediaID, params));
+        pThis->mThisWeak = pThis;
+        return pThis;
+      }
+
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark FakeSenderChannelAudio => IRTPSenderChannelMediaBaseForRTPSenderChannel
+      #pragma mark
+
+      //-----------------------------------------------------------------------
+      ElementPtr FakeSenderChannelAudio::toDebug() const
+      {
+        AutoRecursiveLock lock(*this);
+
+        ElementPtr result = Element::create("ortc::test::rtpsender::FakeSenderChannelAudio");
+
+        UseServicesHelper::debugAppend(result, "media id", mMediaID);
+        UseServicesHelper::debugAppend(result, "tester", (bool)mTester.lock());
+        UseServicesHelper::debugAppend(result, mParameters ? mParameters->toDebug() : ElementPtr());
+        UseServicesHelper::debugAppend(result, "expect buffers", mExpectBuffers.size());
+        auto senderChannel = mSenderChannel.lock();
+        UseServicesHelper::debugAppend(result, "sender channel", senderChannel ? senderChannel->getID() : 0);
+
+        return result;
+      }
+
+      //-----------------------------------------------------------------------
+      bool FakeSenderChannelAudio::handlePacket(RTCPPacketPtr packet)
+      {
+        ZS_LOG_BASIC(log("received RTCP packet") + packet->toDebug())
+
+        AutoRecursiveLock lock(*this);
+
+        TESTING_CHECK(mExpectBuffers.size() > 0)
+
+        TESTING_CHECK(0 == UseServicesHelper::compare(*(mExpectBuffers.front()), *(packet->mBuffer)))
+
+        mExpectBuffers.pop_front();
+
+        auto tester = mTester.lock();
+
+        if (tester) tester->notifyReceivedPacket();
+
+        return true;
+      }
+
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark FakeSenderChannelAudio => IRTPSenderChannelAudioForRTPSenderChannel
+      #pragma mark
+
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark FakeSenderChannelAudio => (friend RTPChannelTester)
+      #pragma mark
+
+      //-----------------------------------------------------------------------
+      void FakeSenderChannelAudio::setTransport(RTPChannelTesterPtr tester)
+      {
+        AutoRecursiveLock lock(*this);
+
+        mTester = tester;
+      }
+
+      //-----------------------------------------------------------------------
+      void FakeSenderChannelAudio::create(
+                                          RTPSenderChannelPtr inSenderChannel,
+                                          const Parameters &params
+                                          )
+      {
+        UseChannelPtr senderChannel = inSenderChannel;
+
+        ZS_LOG_BASIC(log("create called") + ZS_PARAM("sender channel", senderChannel->getID()) + params.toDebug())
+
+        AutoRecursiveLock lock(*this);
+        mSenderChannel = senderChannel;
+
+        TESTING_EQUAL(params.hash(), mParameters->hash())
+      }
+
+      //-----------------------------------------------------------------------
+      void FakeSenderChannelAudio::expectData(SecureByteBlockPtr data)
+      {
+        TESTING_CHECK((bool)data)
+
+        AutoRecursiveLock lock(*this);
+
+        ZS_LOG_TRACE(log("expecting buffer") + ZS_PARAM("buffer size", data->SizeInBytes()))
+
+        mExpectBuffers.push_back(data);
+      }
+
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark FakeSenderChannelAudio => (internal)
+      #pragma mark
+
+      //-----------------------------------------------------------------------
+      Log::Params FakeSenderChannelAudio::log(const char *message) const
+      {
+        ElementPtr objectEl = Element::create("ortc::test::rtpchannel::FakeSenderChannelAudio");
+        UseServicesHelper::debugAppend(objectEl, "id", FakeSenderChannelAudio::getID());
+        return Log::Params(message, objectEl);
+      }
+
+
+
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark FakeSenderChannelVideo
+      #pragma mark
+
+      //-----------------------------------------------------------------------
+      FakeSenderChannelVideo::FakeSenderChannelVideo(
+                                                     IMessageQueuePtr queue,
+                                                     const char *mediaID,
+                                                     const Parameters &params
+                                                     ) :
+        RTPSenderChannelVideo(Noop(true), queue),
+        mMediaID(mediaID),
+        mParameters(make_shared<Parameters>(params))
+      {
+      }
+
+      //-----------------------------------------------------------------------
+      FakeSenderChannelVideo::~FakeSenderChannelVideo()
+      {
+        mThisWeak.reset();
+      }
+
+      //-----------------------------------------------------------------------
+      FakeSenderChannelVideoPtr FakeSenderChannelVideo::create(
+                                                               IMessageQueuePtr queue,
+                                                               const char *mediaID,
+                                                               const Parameters &params
+                                                               )
+      {
+        FakeSenderChannelVideoPtr pThis(make_shared<FakeSenderChannelVideo>(queue, mediaID, params));
+        pThis->mThisWeak = pThis;
+        return pThis;
+      }
+
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark FakeSenderChannelVideo => IRTPSenderChannelMediaBaseForRTPSenderChannel
+      #pragma mark
+
+      //-----------------------------------------------------------------------
+      ElementPtr FakeSenderChannelVideo::toDebug() const
+      {
+        AutoRecursiveLock lock(*this);
+
+        ElementPtr result = Element::create("ortc::test::rtpsender::FakeSenderChannelVideo");
+
+        UseServicesHelper::debugAppend(result, "media id", mMediaID);
+        UseServicesHelper::debugAppend(result, "tester", (bool)mTester.lock());
+        UseServicesHelper::debugAppend(result, mParameters ? mParameters->toDebug() : ElementPtr());
+        UseServicesHelper::debugAppend(result, "expect buffers", mExpectBuffers.size());
+        auto senderChannel = mSenderChannel.lock();
+        UseServicesHelper::debugAppend(result, "sender channel", senderChannel ? senderChannel->getID() : 0);
+
+        return result;
+      }
+
+      //-----------------------------------------------------------------------
+      bool FakeSenderChannelVideo::handlePacket(RTCPPacketPtr packet)
+      {
+        ZS_LOG_BASIC(log("received RTCP packet") + packet->toDebug())
+
+        AutoRecursiveLock lock(*this);
+
+        TESTING_CHECK(mExpectBuffers.size() > 0)
+
+        TESTING_CHECK(0 == UseServicesHelper::compare(*(mExpectBuffers.front()), *(packet->mBuffer)))
+
+        mExpectBuffers.pop_front();
+
+        auto tester = mTester.lock();
+
+        if (tester) tester->notifyReceivedPacket();
+
+        return true;
+      }
+
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark FakeSenderChannelVideo => IRTPSenderChannelVideoForRTPSenderChannel
+      #pragma mark
+
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark FakeSenderChannelVideo => (friend RTPChannelTester)
+      #pragma mark
+
+      //-----------------------------------------------------------------------
+      void FakeSenderChannelVideo::setTransport(RTPChannelTesterPtr tester)
+      {
+        AutoRecursiveLock lock(*this);
+
+        mTester = tester;
+      }
+
+      //-----------------------------------------------------------------------
+      void FakeSenderChannelVideo::create(
+                                          RTPSenderChannelPtr inSenderChannel,
+                                          const Parameters &params
+                                          )
+      {
+        UseChannelPtr senderChannel = inSenderChannel;
+
+        ZS_LOG_BASIC(log("create called") + ZS_PARAM("sender channel", senderChannel->getID()) + params.toDebug())
+
+        AutoRecursiveLock lock(*this);
+        mSenderChannel = senderChannel;
+
+        TESTING_EQUAL(params.hash(), mParameters->hash())
+      }
+
+      //-----------------------------------------------------------------------
+      void FakeSenderChannelVideo::expectData(SecureByteBlockPtr data)
+      {
+        TESTING_CHECK((bool)data)
+
+        AutoRecursiveLock lock(*this);
+
+        ZS_LOG_TRACE(log("expecting buffer") + ZS_PARAM("buffer size", data->SizeInBytes()))
+
+        mExpectBuffers.push_back(data);
+      }
+
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark FakeSenderChannelVideo => (internal)
+      #pragma mark
+
+      //-----------------------------------------------------------------------
+      Log::Params FakeSenderChannelVideo::log(const char *message) const
+      {
+        ElementPtr objectEl = Element::create("ortc::test::rtpchannel::FakeSenderChannelVideo");
+        UseServicesHelper::debugAppend(objectEl, "id", FakeSenderChannelVideo::getID());
+        return Log::Params(message, objectEl);
+      }
+
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
       #pragma mark RTPChannelTester::Expectations
       #pragma mark
 
@@ -2001,6 +2653,118 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       #pragma mark
+      #pragma mark RTPChannelTester::OverrideReceiverChannelAudioFactory
+      #pragma mark
+
+      //-----------------------------------------------------------------------
+      RTPChannelTester::OverrideReceiverChannelAudioFactoryPtr RTPChannelTester::OverrideReceiverChannelAudioFactory::create(RTPChannelTesterPtr tester)
+      {
+        OverrideReceiverChannelAudioFactoryPtr pThis(make_shared<OverrideReceiverChannelAudioFactory>());
+        pThis->mTester = tester;
+        return pThis;
+      }
+
+      //-----------------------------------------------------------------------
+      RTPReceiverChannelAudioPtr RTPChannelTester::OverrideReceiverChannelAudioFactory::create(
+                                                                                               RTPReceiverChannelPtr receiverChannel,
+                                                                                               const Parameters &params
+                                                                                               )
+      {
+        auto tester = mTester.lock();
+        TESTING_CHECK(tester)
+
+        return tester->createReceiverChannelAudio(receiverChannel, params);
+      }
+
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPChannelTester::OverrideReceiverChannelVideoFactory
+      #pragma mark
+
+      //-----------------------------------------------------------------------
+      RTPChannelTester::OverrideReceiverChannelVideoFactoryPtr RTPChannelTester::OverrideReceiverChannelVideoFactory::create(RTPChannelTesterPtr tester)
+      {
+        OverrideReceiverChannelVideoFactoryPtr pThis(make_shared<OverrideReceiverChannelVideoFactory>());
+        pThis->mTester = tester;
+        return pThis;
+      }
+
+      //-----------------------------------------------------------------------
+      RTPReceiverChannelVideoPtr RTPChannelTester::OverrideReceiverChannelVideoFactory::create(
+                                                                                               RTPReceiverChannelPtr receiverChannel,
+                                                                                               const Parameters &params
+                                                                                               )
+      {
+        auto tester = mTester.lock();
+        TESTING_CHECK(tester)
+
+        return tester->createReceiverChannelVideo(receiverChannel, params);
+      }
+
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPChannelTester::OverrideSenderChannelAudioFactory
+      #pragma mark
+
+      //-----------------------------------------------------------------------
+      RTPChannelTester::OverrideSenderChannelAudioFactoryPtr RTPChannelTester::OverrideSenderChannelAudioFactory::create(RTPChannelTesterPtr tester)
+      {
+        OverrideSenderChannelAudioFactoryPtr pThis(make_shared<OverrideSenderChannelAudioFactory>());
+        pThis->mTester = tester;
+        return pThis;
+      }
+
+      //-----------------------------------------------------------------------
+      RTPSenderChannelAudioPtr RTPChannelTester::OverrideSenderChannelAudioFactory::create(
+                                                                                           RTPSenderChannelPtr senderChannel,
+                                                                                           const Parameters &params
+                                                                                           )
+      {
+        auto tester = mTester.lock();
+        TESTING_CHECK(tester)
+
+        return tester->createSenderChannelAudio(senderChannel, params);
+      }
+
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPChannelTester::OverrideSenderChannelVideoFactory
+      #pragma mark
+
+      //-----------------------------------------------------------------------
+      RTPChannelTester::OverrideSenderChannelVideoFactoryPtr RTPChannelTester::OverrideSenderChannelVideoFactory::create(RTPChannelTesterPtr tester)
+      {
+        OverrideSenderChannelVideoFactoryPtr pThis(make_shared<OverrideSenderChannelVideoFactory>());
+        pThis->mTester = tester;
+        return pThis;
+      }
+
+      //-----------------------------------------------------------------------
+      RTPSenderChannelVideoPtr RTPChannelTester::OverrideSenderChannelVideoFactory::create(
+                                                                                           RTPSenderChannelPtr senderChannel,
+                                                                                           const Parameters &params
+                                                                                           )
+      {
+        auto tester = mTester.lock();
+        TESTING_CHECK(tester)
+
+        return tester->createSenderChannelVideo(senderChannel, params);
+      }
+
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
       #pragma mark RTPChannelTester
       #pragma mark
 
@@ -2008,19 +2772,24 @@ namespace ortc
       RTPChannelTesterPtr RTPChannelTester::create(
                                                    IMessageQueuePtr queue,
                                                    IMediaStreamTrackTypes::Kinds kind,
+                                                   bool overrideFactories,
                                                    Milliseconds packetDelay
                                                    )
       {
-        RTPChannelTesterPtr pThis(new RTPChannelTester(queue));
+        RTPChannelTesterPtr pThis(new RTPChannelTester(queue, overrideFactories));
         pThis->mThisWeak = pThis;
         pThis->init(kind, packetDelay);
         return pThis;
       }
 
       //-----------------------------------------------------------------------
-      RTPChannelTester::RTPChannelTester(IMessageQueuePtr queue) :
+      RTPChannelTester::RTPChannelTester(
+                                         IMessageQueuePtr queue,
+                                         bool overrideFactories
+                                         ) :
         SharedRecursiveLock(SharedRecursiveLock::create()),
-        MessageQueueAssociator(queue)
+        MessageQueueAssociator(queue),
+        mOverrideFactories(overrideFactories)
       {
         ZS_LOG_BASIC(log("rtpchannel tester"))
       }
@@ -2029,6 +2798,13 @@ namespace ortc
       RTPChannelTester::~RTPChannelTester()
       {
         ZS_LOG_BASIC(log("rtpchannel tester"))
+
+        if (mOverrideFactories) {
+          RTPReceiverChannelAudioFactory::override(RTPReceiverChannelAudioFactoryPtr());
+          RTPReceiverChannelVideoFactory::override(RTPReceiverChannelVideoFactoryPtr());
+          RTPSenderChannelAudioFactory::override(RTPSenderChannelAudioFactoryPtr());
+          RTPSenderChannelVideoFactory::override(RTPSenderChannelVideoFactoryPtr());
+        }
       }
 
       //-----------------------------------------------------------------------
@@ -2038,6 +2814,13 @@ namespace ortc
                                   )
       {
         AutoRecursiveLock lock(*this);
+
+        if (mOverrideFactories) {
+          RTPReceiverChannelAudioFactory::override(OverrideReceiverChannelAudioFactory::create(mThisWeak.lock()));
+          RTPReceiverChannelVideoFactory::override(OverrideReceiverChannelVideoFactory::create(mThisWeak.lock()));
+          RTPSenderChannelAudioFactory::override(OverrideSenderChannelAudioFactory::create(mThisWeak.lock()));
+          RTPSenderChannelVideoFactory::override(OverrideSenderChannelVideoFactory::create(mThisWeak.lock()));
+        }
 
         mICETransport = FakeICETransport::create(getAssociatedMessageQueue(), packetDelay);
         mDTLSTransport = FakeSecureTransport::create(getAssociatedMessageQueue(), mICETransport);
@@ -2189,6 +2972,78 @@ namespace ortc
         }
 
         TESTING_CHECK(sender)
+      }
+
+      //-----------------------------------------------------------------------
+      void RTPChannelTester::createReceiverChannelAudio(
+                                                         const char *receiverChannelAudioID,
+                                                         const char *parametersID
+                                                         )
+      {
+        FakeReceiverChannelAudioPtr receiverChannelAudio = getReceiverChannelAudio(receiverChannelAudioID);
+
+        if (!receiverChannelAudio) {
+          auto params = getParameters(parametersID);
+          TESTING_CHECK(params)
+          receiverChannelAudio = FakeReceiverChannelAudio::create(getAssociatedMessageQueue(), receiverChannelAudioID, *params);
+          attach(receiverChannelAudioID, receiverChannelAudio);
+        }
+
+        TESTING_CHECK(receiverChannelAudio)
+      }
+
+      //-----------------------------------------------------------------------
+      void RTPChannelTester::createReceiverChannelVideo(
+                                                        const char *receiverChannelVideoID,
+                                                        const char *parametersID
+                                                        )
+      {
+        FakeReceiverChannelVideoPtr receiverChannelVideo = getReceiverChannelVideo(receiverChannelVideoID);
+
+        if (!receiverChannelVideo) {
+          auto params = getParameters(parametersID);
+          TESTING_CHECK(params)
+          receiverChannelVideo = FakeReceiverChannelVideo::create(getAssociatedMessageQueue(), receiverChannelVideoID, *params);
+          attach(receiverChannelVideoID, receiverChannelVideo);
+        }
+
+        TESTING_CHECK(receiverChannelVideo)
+      }
+
+      //-----------------------------------------------------------------------
+      void RTPChannelTester::createSenderChannelAudio(
+                                                      const char *senderChannelAudioID,
+                                                      const char *parametersID
+                                                      )
+      {
+        FakeSenderChannelAudioPtr senderChannelAudio = getSenderChannelAudio(senderChannelAudioID);
+
+        if (!senderChannelAudio) {
+          auto params = getParameters(parametersID);
+          TESTING_CHECK(params)
+          senderChannelAudio = FakeSenderChannelAudio::create(getAssociatedMessageQueue(), senderChannelAudioID, *params);
+          attach(senderChannelAudioID, senderChannelAudio);
+        }
+
+        TESTING_CHECK(senderChannelAudio)
+      }
+
+      //-----------------------------------------------------------------------
+      void RTPChannelTester::createSenderChannelVideo(
+                                                      const char *senderChannelVideoID,
+                                                      const char *parametersID
+                                                      )
+      {
+        FakeSenderChannelVideoPtr senderChannelVideo = getSenderChannelVideo(senderChannelVideoID);
+
+        if (!senderChannelVideo) {
+          auto params = getParameters(parametersID);
+          TESTING_CHECK(params)
+          senderChannelVideo = FakeSenderChannelVideo::create(getAssociatedMessageQueue(), senderChannelVideoID, *params);
+          attach(senderChannelVideoID, senderChannelVideo);
+        }
+
+        TESTING_CHECK(senderChannelVideo)
       }
 
       //-----------------------------------------------------------------------
@@ -2377,6 +3232,146 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
+      void RTPChannelTester::attach(
+                                    const char *receiverChannelAudioID,
+                                    FakeReceiverChannelAudioPtr receiverChannelAudio
+                                    )
+      {
+        TESTING_CHECK(receiverChannelAudio)
+
+        String mediaIDStr(receiverChannelAudioID);
+
+        AutoRecursiveLock lock(*this);
+
+        FakeReceiverChannelAudioPtr oldMedia;
+
+        for (auto iter_doNotUse = mFakeReceiverChannelAudioCreationList.begin(); iter_doNotUse != mFakeReceiverChannelAudioCreationList.end(); )
+        {
+          auto current = iter_doNotUse;
+          ++iter_doNotUse;
+
+          auto &mediaID = (*current).first;
+
+          if (mediaID != mediaIDStr) continue;
+
+          oldMedia = (*current).second;
+
+          mFakeReceiverChannelAudioCreationList.erase(current);
+        }
+
+        mFakeReceiverChannelAudioCreationList.push_back(FakeReceiverChannelAudioPair(mediaIDStr, receiverChannelAudio));
+
+        mAttachedReceiverChannelAudio[mediaIDStr] = receiverChannelAudio;
+
+        receiverChannelAudio->setTransport(mThisWeak.lock());
+      }
+
+      //-----------------------------------------------------------------------
+      void RTPChannelTester::attach(
+                                    const char *receiverChannelVideoID,
+                                    FakeReceiverChannelVideoPtr receiverChannelVideo
+                                    )
+      {
+        TESTING_CHECK(receiverChannelVideo)
+
+        String mediaIDStr(receiverChannelVideoID);
+
+        AutoRecursiveLock lock(*this);
+
+        FakeReceiverChannelVideoPtr oldMedia;
+
+        for (auto iter_doNotUse = mFakeReceiverChannelVideoCreationList.begin(); iter_doNotUse != mFakeReceiverChannelVideoCreationList.end(); )
+        {
+          auto current = iter_doNotUse;
+          ++iter_doNotUse;
+
+          auto &mediaID = (*current).first;
+
+          if (mediaID != mediaIDStr) continue;
+
+          oldMedia = (*current).second;
+
+          mFakeReceiverChannelVideoCreationList.erase(current);
+        }
+
+        mFakeReceiverChannelVideoCreationList.push_back(FakeReceiverChannelVideoPair(mediaIDStr, receiverChannelVideo));
+
+        mAttachedReceiverChannelVideo[mediaIDStr] = receiverChannelVideo;
+
+        receiverChannelVideo->setTransport(mThisWeak.lock());
+      }
+
+      //-----------------------------------------------------------------------
+      void RTPChannelTester::attach(
+                                    const char *senderChannelAudioID,
+                                    FakeSenderChannelAudioPtr senderChannelAudio
+                                    )
+      {
+        TESTING_CHECK(senderChannelAudio)
+
+        String mediaIDStr(senderChannelAudioID);
+
+        AutoRecursiveLock lock(*this);
+
+        FakeSenderChannelAudioPtr oldMedia;
+
+        for (auto iter_doNotUse = mFakeSenderChannelAudioCreationList.begin(); iter_doNotUse != mFakeSenderChannelAudioCreationList.end(); )
+        {
+          auto current = iter_doNotUse;
+          ++iter_doNotUse;
+
+          auto &mediaID = (*current).first;
+
+          if (mediaID != mediaIDStr) continue;
+
+          oldMedia = (*current).second;
+
+          mFakeSenderChannelAudioCreationList.erase(current);
+        }
+
+        mFakeSenderChannelAudioCreationList.push_back(FakeSenderChannelAudioPair(mediaIDStr, senderChannelAudio));
+
+        mAttachedSenderChannelAudio[mediaIDStr] = senderChannelAudio;
+
+        senderChannelAudio->setTransport(mThisWeak.lock());
+      }
+
+      //-----------------------------------------------------------------------
+      void RTPChannelTester::attach(
+                                    const char *senderChannelVideoID,
+                                    FakeSenderChannelVideoPtr senderChannelVideo
+                                    )
+      {
+        TESTING_CHECK(senderChannelVideo)
+
+        String mediaIDStr(senderChannelVideoID);
+
+        AutoRecursiveLock lock(*this);
+
+        FakeSenderChannelVideoPtr oldMedia;
+
+        for (auto iter_doNotUse = mFakeSenderChannelVideoCreationList.begin(); iter_doNotUse != mFakeSenderChannelVideoCreationList.end(); )
+        {
+          auto current = iter_doNotUse;
+          ++iter_doNotUse;
+
+          auto &mediaID = (*current).first;
+
+          if (mediaID != mediaIDStr) continue;
+
+          oldMedia = (*current).second;
+
+          mFakeSenderChannelVideoCreationList.erase(current);
+        }
+
+        mFakeSenderChannelVideoCreationList.push_back(FakeSenderChannelVideoPair(mediaIDStr, senderChannelVideo));
+
+        mAttachedSenderChannelVideo[mediaIDStr] = senderChannelVideo;
+
+        senderChannelVideo->setTransport(mThisWeak.lock());
+      }
+
+      //-----------------------------------------------------------------------
       FakeReceiverPtr RTPChannelTester::detachReceiver(const char *receiverID)
       {
         String receiverIDStr(receiverID);
@@ -2459,6 +3454,150 @@ namespace ortc
         return senderChannel;
       }
       
+      //-----------------------------------------------------------------------
+      FakeReceiverChannelAudioPtr RTPChannelTester::detachReceiverChannelAudio(const char *receiverChannelAudioID)
+      {
+        String mediaIDStr(receiverChannelAudioID);
+
+        AutoRecursiveLock lock(*this);
+
+        auto found = mAttachedReceiverChannelAudio.find(mediaIDStr);
+        TESTING_CHECK(found != mAttachedReceiverChannelAudio.end())
+
+        auto &currentMediaWeak = (*found).second;
+        auto currentMedia = (*found).second.lock();
+
+        if (currentMedia) {
+          currentMedia->setTransport(RTPChannelTesterPtr());
+        }
+
+        currentMediaWeak.reset();
+
+        mAttachedReceiverChannelAudio.erase(found);
+
+        for (auto iter_doNotUse = mFakeReceiverChannelAudioCreationList.begin(); iter_doNotUse != mFakeReceiverChannelAudioCreationList.end(); )
+        {
+          auto current = iter_doNotUse;
+          ++iter_doNotUse;
+
+          auto &mediaID = (*current).first;
+
+          if (mediaID != mediaIDStr) continue;
+
+          mFakeReceiverChannelAudioCreationList.erase(current);
+        }
+
+        return currentMedia;
+      }
+
+      //-----------------------------------------------------------------------
+      FakeReceiverChannelVideoPtr RTPChannelTester::detachReceiverChannelVideo(const char *receiverChannelVideoID)
+      {
+        String mediaIDStr(receiverChannelVideoID);
+
+        AutoRecursiveLock lock(*this);
+
+        auto found = mAttachedReceiverChannelVideo.find(mediaIDStr);
+        TESTING_CHECK(found != mAttachedReceiverChannelVideo.end())
+
+        auto &currentMediaWeak = (*found).second;
+        auto currentMedia = (*found).second.lock();
+
+        if (currentMedia) {
+          currentMedia->setTransport(RTPChannelTesterPtr());
+        }
+
+        currentMediaWeak.reset();
+
+        mAttachedReceiverChannelVideo.erase(found);
+
+        for (auto iter_doNotUse = mFakeReceiverChannelVideoCreationList.begin(); iter_doNotUse != mFakeReceiverChannelVideoCreationList.end(); )
+        {
+          auto current = iter_doNotUse;
+          ++iter_doNotUse;
+
+          auto &mediaID = (*current).first;
+
+          if (mediaID != mediaIDStr) continue;
+
+          mFakeReceiverChannelVideoCreationList.erase(current);
+        }
+
+        return currentMedia;
+      }
+
+      //-----------------------------------------------------------------------
+      FakeSenderChannelAudioPtr RTPChannelTester::detachSenderChannelAudio(const char *senderChannelAudioID)
+      {
+        String mediaIDStr(senderChannelAudioID);
+
+        AutoRecursiveLock lock(*this);
+
+        auto found = mAttachedSenderChannelAudio.find(mediaIDStr);
+        TESTING_CHECK(found != mAttachedSenderChannelAudio.end())
+
+        auto &currentMediaWeak = (*found).second;
+        auto currentMedia = (*found).second.lock();
+
+        if (currentMedia) {
+          currentMedia->setTransport(RTPChannelTesterPtr());
+        }
+
+        currentMediaWeak.reset();
+
+        mAttachedSenderChannelAudio.erase(found);
+
+        for (auto iter_doNotUse = mFakeSenderChannelAudioCreationList.begin(); iter_doNotUse != mFakeSenderChannelAudioCreationList.end(); )
+        {
+          auto current = iter_doNotUse;
+          ++iter_doNotUse;
+
+          auto &mediaID = (*current).first;
+
+          if (mediaID != mediaIDStr) continue;
+
+          mFakeSenderChannelAudioCreationList.erase(current);
+        }
+
+        return currentMedia;
+      }
+
+      //-----------------------------------------------------------------------
+      FakeSenderChannelVideoPtr RTPChannelTester::detachSenderChannelVideo(const char *senderChannelVideoID)
+      {
+        String mediaIDStr(senderChannelVideoID);
+
+        AutoRecursiveLock lock(*this);
+
+        auto found = mAttachedSenderChannelVideo.find(mediaIDStr);
+        TESTING_CHECK(found != mAttachedSenderChannelVideo.end())
+
+        auto &currentMediaWeak = (*found).second;
+        auto currentMedia = (*found).second.lock();
+
+        if (currentMedia) {
+          currentMedia->setTransport(RTPChannelTesterPtr());
+        }
+
+        currentMediaWeak.reset();
+
+        mAttachedSenderChannelVideo.erase(found);
+
+        for (auto iter_doNotUse = mFakeSenderChannelVideoCreationList.begin(); iter_doNotUse != mFakeSenderChannelVideoCreationList.end(); )
+        {
+          auto current = iter_doNotUse;
+          ++iter_doNotUse;
+
+          auto &mediaID = (*current).first;
+          
+          if (mediaID != mediaIDStr) continue;
+          
+          mFakeSenderChannelVideoCreationList.erase(current);
+        }
+        
+        return currentMedia;
+      }
+
       //-----------------------------------------------------------------------
       void RTPChannelTester::store(
                                    const char *packetID,
@@ -2873,7 +4012,92 @@ namespace ortc
         AutoRecursiveLock lock(*this);
         ++mExpectationsFound.mSenderChannelError;
       }
-      
+
+      //-----------------------------------------------------------------------
+      FakeReceiverChannelAudioPtr RTPChannelTester::createReceiverChannelAudio(
+                                                                               RTPReceiverChannelPtr receiverChannel,
+                                                                               const Parameters &params
+                                                                               )
+      {
+        AutoRecursiveLock lock(*this);
+
+        TESTING_CHECK(mFakeReceiverChannelAudioCreationList.size() > 0)
+
+        FakeReceiverChannelAudioPtr channelMedia = mFakeReceiverChannelAudioCreationList.front().second;
+
+        TESTING_CHECK(channelMedia)
+
+        channelMedia->create(receiverChannel, params);
+
+        mFakeReceiverChannelAudioCreationList.pop_front();
+
+        return channelMedia;
+      }
+
+      //-----------------------------------------------------------------------
+      FakeReceiverChannelVideoPtr RTPChannelTester::createReceiverChannelVideo(
+                                                                               RTPReceiverChannelPtr receiverChannel,
+                                                                               const Parameters &params
+                                                                               )
+      {
+        AutoRecursiveLock lock(*this);
+
+        TESTING_CHECK(mFakeReceiverChannelVideoCreationList.size() > 0)
+
+        FakeReceiverChannelVideoPtr channelMedia = mFakeReceiverChannelVideoCreationList.front().second;
+
+        TESTING_CHECK(channelMedia)
+
+        channelMedia->create(receiverChannel, params);
+
+        mFakeReceiverChannelVideoCreationList.pop_front();
+
+        return channelMedia;
+      }
+
+      //-----------------------------------------------------------------------
+      FakeSenderChannelAudioPtr RTPChannelTester::createSenderChannelAudio(
+                                                                           RTPSenderChannelPtr senderChannel,
+                                                                           const Parameters &params
+                                                                           )
+      {
+        AutoRecursiveLock lock(*this);
+
+        TESTING_CHECK(mFakeSenderChannelAudioCreationList.size() > 0)
+
+        FakeSenderChannelAudioPtr channelMedia = mFakeSenderChannelAudioCreationList.front().second;
+
+        TESTING_CHECK(channelMedia)
+
+        channelMedia->create(senderChannel, params);
+
+        mFakeSenderChannelAudioCreationList.pop_front();
+
+        return channelMedia;
+      }
+
+      //-----------------------------------------------------------------------
+      FakeSenderChannelVideoPtr RTPChannelTester::createSenderChannelVideo(
+                                                                           RTPSenderChannelPtr senderChannel,
+                                                                           const Parameters &params
+                                                                           )
+      {
+        AutoRecursiveLock lock(*this);
+
+        TESTING_CHECK(mFakeSenderChannelVideoCreationList.size() > 0)
+
+        FakeSenderChannelVideoPtr channelMedia = mFakeSenderChannelVideoCreationList.front().second;
+
+        TESTING_CHECK(channelMedia)
+
+        channelMedia->create(senderChannel, params);
+
+        mFakeSenderChannelVideoCreationList.pop_front();
+
+        return channelMedia;
+      }
+
+
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
@@ -2931,6 +4155,42 @@ namespace ortc
         auto found = mSenderChannels.find(String(senderChannelID));
         if (mSenderChannels.end() == found) return RTPSenderChannelPtr();
         return (*found).second;
+      }
+
+      //-----------------------------------------------------------------------
+      FakeReceiverChannelAudioPtr RTPChannelTester::getReceiverChannelAudio(const char *receiverChannelAudioID)
+      {
+        AutoRecursiveLock lock(*this);
+        auto found = mAttachedReceiverChannelAudio.find(String(receiverChannelAudioID));
+        if (mAttachedReceiverChannelAudio.end() == found) return FakeReceiverChannelAudioPtr();
+        return (*found).second.lock();
+      }
+
+      //-----------------------------------------------------------------------
+      FakeReceiverChannelVideoPtr RTPChannelTester::getReceiverChannelVideo(const char *receiverChannelVideoID)
+      {
+        AutoRecursiveLock lock(*this);
+        auto found = mAttachedReceiverChannelVideo.find(String(receiverChannelVideoID));
+        if (mAttachedReceiverChannelVideo.end() == found) return FakeReceiverChannelVideoPtr();
+        return (*found).second.lock();
+      }
+
+      //-----------------------------------------------------------------------
+      FakeSenderChannelAudioPtr RTPChannelTester::getSenderChannelAudio(const char *senderChannelAudioID)
+      {
+        AutoRecursiveLock lock(*this);
+        auto found = mAttachedSenderChannelAudio.find(String(senderChannelAudioID));
+        if (mAttachedSenderChannelAudio.end() == found) return FakeSenderChannelAudioPtr();
+        return (*found).second.lock();
+      }
+
+      //-----------------------------------------------------------------------
+      FakeSenderChannelVideoPtr RTPChannelTester::getSenderChannelVideo(const char *senderChannelVideoID)
+      {
+        AutoRecursiveLock lock(*this);
+        auto found = mAttachedSenderChannelVideo.find(String(senderChannelVideoID));
+        if (mAttachedSenderChannelVideo.end() == found) return FakeSenderChannelVideoPtr();
+        return (*found).second.lock();
       }
 
       //-----------------------------------------------------------------------
@@ -3067,8 +4327,8 @@ void doTestRTPChannel()
             UseSettings::setUInt("ortc/rtp-receiver/max-age-rtp-packets-in-seconds", 60);
             UseSettings::setUInt("ortc/rtp-receiver/max-age-rtcp-packets-in-seconds", 60);
 
-            testObject1 = RTPChannelTester::create(thread, IMediaStreamTrackTypes::Kind_Audio);
-            testObject2 = RTPChannelTester::create(thread, IMediaStreamTrackTypes::Kind_Audio);
+            testObject1 = RTPChannelTester::create(thread, IMediaStreamTrackTypes::Kind_Audio, true);
+            testObject2 = RTPChannelTester::create(thread, IMediaStreamTrackTypes::Kind_Audio, false);
 
             TESTING_CHECK(testObject1)
             TESTING_CHECK(testObject2)
@@ -3080,8 +4340,8 @@ void doTestRTPChannel()
         }
         case TEST_ADVANCED_ROUTING: {
           {
-            testObject1 = RTPChannelTester::create(thread, IMediaStreamTrackTypes::Kind_Audio);
-            testObject2 = RTPChannelTester::create(thread, IMediaStreamTrackTypes::Kind_Audio);
+            testObject1 = RTPChannelTester::create(thread, IMediaStreamTrackTypes::Kind_Audio, true);
+            testObject2 = RTPChannelTester::create(thread, IMediaStreamTrackTypes::Kind_Audio, false);
 
             TESTING_CHECK(testObject1)
             TESTING_CHECK(testObject2)
