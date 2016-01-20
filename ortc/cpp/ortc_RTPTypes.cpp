@@ -3897,7 +3897,7 @@ namespace ortc
       elem->adoptAsLastChild(mRTX.value().createElement("rtx"));
     }
 
-    UseHelper::adoptElementValue(elem, "priority", toString(mPriority));
+    UseHelper::adoptElementValue(elem, "priority", toString(mPriority), false);
     UseHelper::adoptElementValue(elem, "maxBitrate", mMaxBitrate);
     UseHelper::adoptElementValue(elem, "minQuality", mMinQuality);
     UseHelper::adoptElementValue(elem, "active", mActive);
@@ -3918,6 +3918,7 @@ namespace ortc
 
     return elem;
   }
+
   //---------------------------------------------------------------------------
   ElementPtr IRTPTypes::EncodingParameters::toDebug() const
   {
