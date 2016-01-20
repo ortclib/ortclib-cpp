@@ -243,36 +243,6 @@
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\webrtc\third_party\libvpx\libvpx_intrinsics_avx2_win.vcxproj">
-      <Project>{4aae6027-74ae-73a7-a3cd-9a9ce605f30a}</Project>
-      <Private>false</Private>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\webrtc\third_party\libvpx\libvpx_intrinsics_mmx_win.vcxproj">
-      <Project>{3182cc65-dc02-24d0-f7dc-85f30a9a83e8}</Project>
-      <Private>false</Private>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\webrtc\third_party\libvpx\libvpx_intrinsics_sse2_win.vcxproj">
-      <Project>{7e7c1e43-ed3f-732f-d374-f52c758b0414}</Project>
-      <Private>false</Private>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\webrtc\third_party\libvpx\libvpx_intrinsics_sse4_1_win.vcxproj">
-      <Project>{4dea0aaa-1b35-7d93-d6da-7c54ea51cbf7}</Project>
-      <Private>false</Private>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\webrtc\third_party\libvpx\libvpx_intrinsics_ssse3_win.vcxproj">
-      <Project>{89c0e6b9-7788-a846-b3fb-32d785c4ee0e}</Project>
-      <Private>false</Private>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\webrtc\third_party\libvpx\libvpx_win.vcxproj">
-      <Project>{eb602516-5820-9649-6ed0-ed63d5d477fc}</Project>
-      <Private>false</Private>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\webrtc\third_party\libyuv\libyuv_win.vcxproj">
       <Project>{de813719-cdba-b7d4-9786-e1ea2588fc37}</Project>
       <Private>false</Private>
