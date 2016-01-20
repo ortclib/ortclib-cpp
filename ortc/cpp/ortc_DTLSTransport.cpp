@@ -3015,7 +3015,7 @@ namespace ortc
   {
     ElementPtr elem = Element::create(objectName);
 
-    UseHelper::adoptElementValue(elem, "role", IDTLSTransportTypes::toString(mRole));
+    UseHelper::adoptElementValue(elem, "role", IDTLSTransportTypes::toString(mRole), false);
 
     if (mFingerprints.size() > 0) {
       ElementPtr fingerprintsEl = Element::create("fingerprints");
