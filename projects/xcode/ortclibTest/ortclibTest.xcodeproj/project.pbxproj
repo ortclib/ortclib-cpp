@@ -70,7 +70,6 @@
 		948917C71BC471250011DA02 /* libvpx_intrinsics_sse2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9499DB0A1BC407DA000EA8E9 /* libvpx_intrinsics_sse2.a */; };
 		948917C81BC471250011DA02 /* libvpx_intrinsics_sse4_1.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9499DB0B1BC407DA000EA8E9 /* libvpx_intrinsics_sse4_1.a */; };
 		948917C91BC471250011DA02 /* libvpx_intrinsics_ssse3.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9499DB0C1BC407DA000EA8E9 /* libvpx_intrinsics_ssse3.a */; };
-		948917CA1BC471250011DA02 /* libvpx.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9499DB0D1BC407DA000EA8E9 /* libvpx.a */; };
 		948917CB1BC471250011DA02 /* libwebrtc_common.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9499DB0E1BC407DA000EA8E9 /* libwebrtc_common.a */; };
 		948917CC1BC471250011DA02 /* libwebrtc_h264.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9499DB0F1BC407DA000EA8E9 /* libwebrtc_h264.a */; };
 		948917CD1BC471250011DA02 /* libwebrtc_i420.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9499DB101BC407DA000EA8E9 /* libwebrtc_i420.a */; };
@@ -88,6 +87,7 @@
 		94A4EE0D1B8B489E008473EF /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 94A4EE0C1B8B489E008473EF /* Foundation.framework */; };
 		94A4EE0F1B8B48D3008473EF /* QTKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 94A4EE0E1B8B48D3008473EF /* QTKit.framework */; };
 		94A4EE131B8B492D008473EF /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 94A4EE121B8B492D008473EF /* OpenGL.framework */; };
+		94C1407C1C5148D200E22ADF /* libvpx_new.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 94C1407B1C5148D200E22ADF /* libvpx_new.a */; };
 		94D43CC91B8B413C00B3A66F /* libcryptopp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 00EC10A71B56F453008FC2A0 /* libcryptopp.a */; };
 		E2688C681BCFAF55005C3731 /* librtc_event_log_proto.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E2688C661BCFAF55005C3731 /* librtc_event_log_proto.a */; };
 		E2688C691BCFAF55005C3731 /* librtc_event_log.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E2688C671BCFAF55005C3731 /* librtc_event_log.a */; };
@@ -268,6 +268,7 @@
 		94A4EE0C1B8B489E008473EF /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		94A4EE0E1B8B48D3008473EF /* QTKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QTKit.framework; path = System/Library/Frameworks/QTKit.framework; sourceTree = SDKROOT; };
 		94A4EE121B8B492D008473EF /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
+		94C1407B1C5148D200E22ADF /* libvpx_new.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libvpx_new.a; path = ../../../../webrtc/out_mac/Debug/libvpx_new.a; sourceTree = "<group>"; };
 		94E2B2A21B541BE500582A08 /* ortclib.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = ortclib.xcodeproj; path = ../ortclib/ortclib.xcodeproj; sourceTree = SOURCE_ROOT; };
 		94E2B2AA1B541C2300582A08 /* hfservices.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = hfservices.xcodeproj; path = "../../../../op-services-cpp/projects/xcode/hfservices/hfservices.xcodeproj"; sourceTree = SOURCE_ROOT; };
 		94E2B2B01B541C3D00582A08 /* cryptopp.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = cryptopp.xcodeproj; path = ../../../../cryptopp/projects/xcode/cryptopp/cryptopp.xcodeproj; sourceTree = SOURCE_ROOT; };
@@ -330,6 +331,7 @@
 				948917BD1BC471250011DA02 /* libvideo_capture_module_internal_impl.a in Frameworks */,
 				948917BE1BC471250011DA02 /* libvideo_capture_module.a in Frameworks */,
 				948917BF1BC471250011DA02 /* libvideo_coding_utility.a in Frameworks */,
+				94C1407C1C5148D200E22ADF /* libvpx_new.a in Frameworks */,
 				948917C01BC471250011DA02 /* libvideo_processing_sse2.a in Frameworks */,
 				948917C11BC471250011DA02 /* libvideo_processing.a in Frameworks */,
 				948917C21BC471250011DA02 /* libvideo_render_module_internal_impl.a in Frameworks */,
@@ -340,7 +342,6 @@
 				948917C71BC471250011DA02 /* libvpx_intrinsics_sse2.a in Frameworks */,
 				948917C81BC471250011DA02 /* libvpx_intrinsics_sse4_1.a in Frameworks */,
 				948917C91BC471250011DA02 /* libvpx_intrinsics_ssse3.a in Frameworks */,
-				948917CA1BC471250011DA02 /* libvpx.a in Frameworks */,
 				948917CB1BC471250011DA02 /* libwebrtc_common.a in Frameworks */,
 				948917CC1BC471250011DA02 /* libwebrtc_h264.a in Frameworks */,
 				948917CD1BC471250011DA02 /* libwebrtc_i420.a in Frameworks */,
@@ -484,6 +485,7 @@
 				9499DAF11BC407DA000EA8E9 /* libmetrics_default.a */,
 				9499DAF21BC407DA000EA8E9 /* libneteq.a */,
 				9499DAF31BC407DA000EA8E9 /* libopenmax_dl.a */,
+				94C1407B1C5148D200E22ADF /* libvpx_new.a */,
 				9499DAF41BC407DA000EA8E9 /* libopus.a */,
 				9499DAF51BC407DA000EA8E9 /* libpaced_sender.a */,
 				9499DAF61BC407DA000EA8E9 /* libpcm16b.a */,
