@@ -164,6 +164,12 @@
 		E28AFCD71C4EF74B00BFC33B /* ortc_RTPSenderChannelAudio.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_RTPSenderChannelAudio.cpp; sourceTree = "<group>"; };
 		E28AFCD81C4EF74B00BFC33B /* ortc_RTPSenderChannelMediaBase.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_RTPSenderChannelMediaBase.cpp; sourceTree = "<group>"; };
 		E28AFCD91C4EF74B00BFC33B /* ortc_RTPSenderChannelVideo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_RTPSenderChannelVideo.cpp; sourceTree = "<group>"; };
+		E2A2A6561C4FB1350004345E /* ortc_RTPReceiverChannelAudio.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ortc_RTPReceiverChannelAudio.h; sourceTree = "<group>"; };
+		E2A2A6571C4FB1350004345E /* ortc_RTPReceiverChannelMediaBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ortc_RTPReceiverChannelMediaBase.h; sourceTree = "<group>"; };
+		E2A2A6581C4FB1350004345E /* ortc_RTPReceiverChannelVideo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ortc_RTPReceiverChannelVideo.h; sourceTree = "<group>"; };
+		E2A2A6591C4FB1350004345E /* ortc_RTPSenderChannelAudio.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ortc_RTPSenderChannelAudio.h; sourceTree = "<group>"; };
+		E2A2A65A1C4FB1350004345E /* ortc_RTPSenderChannelMediaBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ortc_RTPSenderChannelMediaBase.h; sourceTree = "<group>"; };
+		E2A2A65B1C4FB1350004345E /* ortc_RTPSenderChannelVideo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ortc_RTPSenderChannelVideo.h; sourceTree = "<group>"; };
 		E2D0493E182C376700343A95 /* license.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = license.txt; path = ../../../license.txt; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -305,8 +311,14 @@
 				00F99B991BAA029500D2E178 /* ortc_RTCPPacket.h */,
 				007B990F1856A1E4004AC6C0 /* ortc_RTPReceiver.h */,
 				004A6E861BD16BC00089677B /* ortc_RTPReceiverChannel.h */,
+				E2A2A6561C4FB1350004345E /* ortc_RTPReceiverChannelAudio.h */,
+				E2A2A6571C4FB1350004345E /* ortc_RTPReceiverChannelMediaBase.h */,
+				E2A2A6581C4FB1350004345E /* ortc_RTPReceiverChannelVideo.h */,
 				007B99101856A1E4004AC6C0 /* ortc_RTPSender.h */,
 				004A6E871BD16BC00089677B /* ortc_RTPSenderChannel.h */,
+				E2A2A6591C4FB1350004345E /* ortc_RTPSenderChannelAudio.h */,
+				E2A2A65A1C4FB1350004345E /* ortc_RTPSenderChannelMediaBase.h */,
+				E2A2A65B1C4FB1350004345E /* ortc_RTPSenderChannelVideo.h */,
 				000E70861BD3FF1E00622A01 /* ortc_RTPTypes.h */,
 				000E70871BD3FF1E00622A01 /* ortc_RTPUtils.h */,
 				006E83871B3C54FA007740C3 /* ortc_SCTPTransport.h */,

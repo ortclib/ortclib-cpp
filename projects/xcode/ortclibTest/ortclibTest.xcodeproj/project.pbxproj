@@ -99,6 +99,8 @@
 		E2973FF21BBC420D0000CDDB /* libudns.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 00EC10A01B56F453008FC2A0 /* libudns.a */; };
 		E2973FF31BBC420D0000CDDB /* libzsLib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5005D8F21B5DCC6A00AFEC07 /* libzsLib.a */; };
 		E2973FF51BBC42BE0000CDDB /* libcurl.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = E2973FF41BBC42BE0000CDDB /* libcurl.tbd */; };
+		E2A2A64C1C4FA5B40004345E /* TestRTPChannelAudio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E2A2A64A1C4FA5B40004345E /* TestRTPChannelAudio.cpp */; };
+		E2A2A6551C4FA5D00004345E /* TestRTPChannelVideo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E2A2A6531C4FA5D00004345E /* TestRTPChannelVideo.cpp */; };
 		E2A4ED691BBB6E0600613063 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E2A4ED681BBB6E0600613063 /* CoreAudio.framework */; };
 		E2A4ED6B1BBB6EF200613063 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E2A4ED6A1BBB6EF200613063 /* AudioToolbox.framework */; };
 		E2C17E3F1BBDD824003CB440 /* libresolv.9.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = E2C17E3E1BBDD824003CB440 /* libresolv.9.tbd */; };
@@ -281,6 +283,10 @@
 		E28AFC871C4EB75100BFC33B /* TestMediaStreamTrack.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TestMediaStreamTrack.cpp; sourceTree = "<group>"; };
 		E28AFC881C4EB75100BFC33B /* TestMediaStreamTrack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestMediaStreamTrack.h; sourceTree = "<group>"; };
 		E2973FF41BBC42BE0000CDDB /* libcurl.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libcurl.tbd; path = usr/lib/libcurl.tbd; sourceTree = SDKROOT; };
+		E2A2A64A1C4FA5B40004345E /* TestRTPChannelAudio.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TestRTPChannelAudio.cpp; sourceTree = "<group>"; };
+		E2A2A64B1C4FA5B40004345E /* TestRTPChannelAudio.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestRTPChannelAudio.h; sourceTree = "<group>"; };
+		E2A2A6531C4FA5D00004345E /* TestRTPChannelVideo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TestRTPChannelVideo.cpp; sourceTree = "<group>"; };
+		E2A2A6541C4FA5D00004345E /* TestRTPChannelVideo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestRTPChannelVideo.h; sourceTree = "<group>"; };
 		E2A4ED681BBB6E0600613063 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
 		E2A4ED6A1BBB6EF200613063 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 		E2C17E3E1BBDD824003CB440 /* libresolv.9.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libresolv.9.tbd; path = usr/lib/libresolv.9.tbd; sourceTree = SDKROOT; };
@@ -434,6 +440,10 @@
 				005547321BDE92120033F91F /* TestRTPReceiver.h */,
 				00E5324A1C4958D200677881 /* TestRTPChannel.cpp */,
 				00E532521C4959F100677881 /* TestRTPChannel.h */,
+				E2A2A64A1C4FA5B40004345E /* TestRTPChannelAudio.cpp */,
+				E2A2A64B1C4FA5B40004345E /* TestRTPChannelAudio.h */,
+				E2A2A6531C4FA5D00004345E /* TestRTPChannelVideo.cpp */,
+				E2A2A6541C4FA5D00004345E /* TestRTPChannelVideo.h */,
 				0097BBC51C15E5F600AC904F /* TestRTPSender.cpp */,
 				0097BBCD1C15E60500AC904F /* TestRTPSender.h */,
 				00AEDD331B9F21180050A0E6 /* TestSCTP.cpp */,
@@ -744,9 +754,11 @@
 				004D7A901BB0368800F5E461 /* TestRTCPPacket.cpp in Sources */,
 				00E5324B1C4958D200677881 /* TestRTPChannel.cpp in Sources */,
 				004B60A71B275AD900568C22 /* TestSetup.cpp in Sources */,
+				E2A2A64C1C4FA5B40004345E /* TestRTPChannelAudio.cpp in Sources */,
 				00429A921BA76FCE00D65AAB /* TestRTPPacket.cpp in Sources */,
 				E28AFC891C4EB75100BFC33B /* TestMediaStreamTrack.cpp in Sources */,
 				00AEDD341B9F21180050A0E6 /* TestSCTP.cpp in Sources */,
+				E2A2A6551C4FA5D00004345E /* TestRTPChannelVideo.cpp in Sources */,
 				0097BBC61C15E5F600AC904F /* TestRTPSender.cpp in Sources */,
 				006A7EA71BB9712300DF0F29 /* TestRTPListener.cpp in Sources */,
 				0055472B1BDE92040033F91F /* TestRTPReceiver.cpp in Sources */,
