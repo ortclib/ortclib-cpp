@@ -112,7 +112,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\..\cryptopp\projects\vs2013\cryptopp\cryptopp.Win32\cryptopp.Win32.vcxproj">
+    <ProjectReference Include="..\..\..\..\..\cryptopp\projects\msvs\cryptopp\cryptopp.Win32\cryptopp.Win32.vcxproj">
       <Project>{f73d1443-6e8d-4b5b-9f0a-cab724692a5a}</Project>
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
@@ -120,7 +120,7 @@
       <LinkLibraryDependencies>true</LinkLibraryDependencies>
       <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\idnkit\projects\vs2013\idnkit\idnkit.Win32\idnkit.Win32.vcxproj">
+    <ProjectReference Include="..\..\..\..\..\idnkit\projects\msvs\idnkit\idnkit.Win32\idnkit.Win32.vcxproj">
       <Project>{ea7f7b95-2bea-43f4-b456-f8d740f9c9c8}</Project>
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
@@ -128,7 +128,7 @@
       <LinkLibraryDependencies>true</LinkLibraryDependencies>
       <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\op-services-cpp\projects\vs2013\hfservices\hfservices.Win32\hfservices.Win32.vcxproj">
+    <ProjectReference Include="..\..\..\..\..\op-services-cpp\projects\msvs\hfservices\hfservices.Win32\hfservices.Win32.vcxproj">
       <Project>{55c55370-b836-41fe-9d17-db2095363dad}</Project>
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
@@ -136,7 +136,7 @@
       <LinkLibraryDependencies>true</LinkLibraryDependencies>
       <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\udns\projects\vs2013\udns\udns.Win32\udns.Win32.vcxproj">
+    <ProjectReference Include="..\..\..\..\..\udns\projects\msvs\udns\udns.Win32\udns.Win32.vcxproj">
       <Project>{356b3bbc-30c4-45fd-9270-1aa6b32ad553}</Project>
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
@@ -345,7 +345,7 @@
     <ProjectReference Include="..\..\..\..\..\webrtc\webrtc\webrtc_common.vcxproj">
       <Project>{4e00d9e2-1f74-8d2e-1878-dcfe215138f5}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\zsLib\projects\vs2013\zsLib\zsLib.Win32\zsLib.Win32.vcxproj">
+    <ProjectReference Include="..\..\..\..\..\zsLib\projects\msvs\zsLib\zsLib.Win32\zsLib.Win32.vcxproj">
       <Project>{d4990072-586d-43e3-9973-51092bd9226f}</Project>
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>

@@ -151,16 +151,16 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\..\cryptopp\projects\vs2013\cryptopp\cryptopp.WindowsPhone\cryptopp.WindowsPhone.vcxproj">
+    <ProjectReference Include="..\..\..\..\..\cryptopp\projects\msvs\cryptopp\cryptopp.WindowsPhone\cryptopp.WindowsPhone.vcxproj">
       <Project>{57718455-f1cd-468c-b888-9c5814bb5f4e}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\idnkit\projects\vs2013\idnkit\idnkit.WindowsPhone\idnkit.WindowsPhone.vcxproj">
+    <ProjectReference Include="..\..\..\..\..\idnkit\projects\msvs\idnkit\idnkit.WindowsPhone\idnkit.WindowsPhone.vcxproj">
       <Project>{9f611411-f4bd-4687-be22-b16af16c62fd}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\op-services-cpp\projects\vs2013\hfservices\hfservices.WindowsPhone\hfservices.WindowsPhone.vcxproj">
+    <ProjectReference Include="..\..\..\..\..\op-services-cpp\projects\msvs\hfservices\hfservices.WindowsPhone\hfservices.WindowsPhone.vcxproj">
       <Project>{0a6ae9cf-97f5-466b-a49b-cedb0c74b0f8}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\udns\projects\vs2013\udns\udns.WindowsPhone\udns.WindowsPhone.vcxproj">
+    <ProjectReference Include="..\..\..\..\..\udns\projects\msvs\udns\udns.WindowsPhone\udns.WindowsPhone.vcxproj">
       <Project>{0cc26e42-e162-478c-8ccb-fc81a7776450}</Project>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\webrtc\third_party\boringssl\boringssl_win_phone.vcxproj">
@@ -627,7 +627,7 @@
       <LinkLibraryDependencies>true</LinkLibraryDependencies>
       <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\zsLib\projects\vs2013\zsLib\zsLib.WindowsPhone\zsLib.WindowsPhone.vcxproj">
+    <ProjectReference Include="..\..\..\..\..\zsLib\projects\msvs\zsLib\zsLib.WindowsPhone\zsLib.WindowsPhone.vcxproj">
       <Project>{869c57f3-67af-4b32-abcb-e42a072e9271}</Project>
     </ProjectReference>
     <ProjectReference Include="..\ortc-lib.WindowsPhone\ortc-lib.WindowsPhone.vcxproj">

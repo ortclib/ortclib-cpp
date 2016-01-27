@@ -1,5 +1,17 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{d9b5ee71-1e35-4d73-bde5-0f7a5caa9e00}</ProjectGuid>
+    <RootNamespace>ortclibTest_Windows_Universal</RootNamespace>
+    <DefaultLanguage>en-US</DefaultLanguage>
+    <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
+    <AppContainerApplication>true</AppContainerApplication>
+    <ApplicationType>Windows Store</ApplicationType>
+    <WindowsTargetPlatformVersion>10.0.10586.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformMinVersion>10.0.10240.0</WindowsTargetPlatformMinVersion>
+    <ApplicationTypeRevision>10.0</ApplicationTypeRevision>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|ARM">
       <Configuration>Debug</Configuration>
@@ -26,53 +38,48 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
-  <PropertyGroup Label="Globals">
-    <ProjectGuid>{5ff4db7c-2406-46e1-a54c-b73b8aeec6a2}</ProjectGuid>
-    <RootNamespace>ortclibTest</RootNamespace>
-    <DefaultLanguage>en-US</DefaultLanguage>
-    <MinimumVisualStudioVersion>12.0</MinimumVisualStudioVersion>
-    <AppContainerApplication>true</AppContainerApplication>
-    <ApplicationType>Windows Store</ApplicationType>
-    <ApplicationTypeRevision>8.1</ApplicationTypeRevision>
-  </PropertyGroup>
-  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
+    <UseDotNetNativeToolchain>true</UseDotNetNativeToolchain>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
+    <UseDotNetNativeToolchain>true</UseDotNetNativeToolchain>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
+    <UseDotNetNativeToolchain>true</UseDotNetNativeToolchain>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
-    <Import Project="..\ortclibTest.Shared\ortclibTest.Shared.vcxitems" Label="Shared" Condition="Exists('..\ortclibTest.Shared\ortclibTest.Shared.vcxitems')" />
-    <Import Project="..\ortclibTest.Shared\ortclibTestUnitTests.vcxitems" Label="Shared" Condition="Exists('..\ortclibTest.Shared\ortclibTestUnitTests.vcxitems')" />
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+    <Import Project="..\ortclibTest.Shared\ortclibTest.Shared.vcxitems" Label="Shared" />
+    <Import Project="..\ortclibTest.Shared\ortclibTestUnitTests.vcxitems" Label="Shared" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -94,30 +101,30 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
-    <PackageCertificateKeyFile>ortclibTest.Windows_TemporaryKey.pfx</PackageCertificateKeyFile>
+    <PackageCertificateKeyFile>ortclibTest.Windows.Universal_TemporaryKey.pfx</PackageCertificateKeyFile>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
     <ClCompile>
       <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
       <DisableSpecificWarnings>4453;28204;4068;4290</DisableSpecificWarnings>
-      <AdditionalIncludeDirectories>$(ProjectDir)\..\..\..\..;$(ProjectDir)\..\..\..\..\..;$(ProjectDir)\..\..\..\..\..\op-services-cpp;$(ProjectDir)\..\..\..\..\..\zsLib;$(ProjectDir)\..\..\..\..\..\webrtc;$(ProjectDir)\..\..\..\..\..\webrtc-deps\boringssl\include;%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\..\..\..\..;$(ProjectDir)\..\..\..\..\..;$(ProjectDir)\..\..\..\..\..\op-services-cpp;$(ProjectDir)\..\..\..\..\..\zsLib;$(ProjectDir)\..\..\..\..\..\webrtc;$(ProjectDir)\..\..\..\..\..\webrtc\third_party\boringssl\src\include;%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory)</AdditionalIncludeDirectories>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PreprocessorDefinitions>WIN32;WINRT;WEBRTC_WIN;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>kernel32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
     <ClCompile>
       <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
       <DisableSpecificWarnings>4453;28204;4068;4290</DisableSpecificWarnings>
-      <AdditionalIncludeDirectories>$(ProjectDir)\..\..\..\..;$(ProjectDir)\..\..\..\..\..;$(ProjectDir)\..\..\..\..\..\op-services-cpp;$(ProjectDir)\..\..\..\..\..\zsLib;$(ProjectDir)\..\..\..\..\..\webrtc;$(ProjectDir)\..\..\..\..\..\webrtc-deps\boringssl\include;%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\..\..\..\..;$(ProjectDir)\..\..\..\..\..;$(ProjectDir)\..\..\..\..\..\op-services-cpp;$(ProjectDir)\..\..\..\..\..\zsLib;$(ProjectDir)\..\..\..\..\..\webrtc;$(ProjectDir)\..\..\..\..\..\webrtc\third_party\boringssl\src\include;%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory)</AdditionalIncludeDirectories>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PreprocessorDefinitions>WIN32;WINRT;WEBRTC_WIN;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>kernel32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -129,8 +136,7 @@
       <PreprocessorDefinitions>WIN32;WINRT;WEBRTC_WIN;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>mfplat.lib;mfuuid.lib;Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(ProjectDir)\..\..\..\..\..\webrtc\build\$(Configuration)\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>kernel32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -142,32 +148,31 @@
       <PreprocessorDefinitions>WIN32;WINRT;WEBRTC_WIN;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>mfplat.lib;mfuuid.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(ProjectDir)\..\..\..\..\..\webrtc\build\$(Configuration)\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>kernel32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
       <DisableSpecificWarnings>4453;28204;4068;4290</DisableSpecificWarnings>
-      <AdditionalIncludeDirectories>$(ProjectDir)\..\..\..\..;$(ProjectDir)\..\..\..\..\..;$(ProjectDir)\..\..\..\..\..\op-services-cpp;$(ProjectDir)\..\..\..\..\..\zsLib;$(ProjectDir)\..\..\..\..\..\webrtc;$(ProjectDir)\..\..\..\..\..\webrtc-deps\boringssl\include;%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\..\..\..\..;$(ProjectDir)\..\..\..\..\..;$(ProjectDir)\..\..\..\..\..\op-services-cpp;$(ProjectDir)\..\..\..\..\..\zsLib;$(ProjectDir)\..\..\..\..\..\webrtc;$(ProjectDir)\..\..\..\..\..\webrtc\third_party\boringssl\src\include;%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory)</AdditionalIncludeDirectories>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PreprocessorDefinitions>WIN32;WINRT;WEBRTC_WIN;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>kernel32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
       <DisableSpecificWarnings>4453;28204;4068;4290</DisableSpecificWarnings>
-      <AdditionalIncludeDirectories>$(ProjectDir)\..\..\..\..;$(ProjectDir)\..\..\..\..\..;$(ProjectDir)\..\..\..\..\..\op-services-cpp;$(ProjectDir)\..\..\..\..\..\zsLib;$(ProjectDir)\..\..\..\..\..\webrtc;$(ProjectDir)\..\..\..\..\..\webrtc-deps\boringssl\include;%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\..\..\..\..;$(ProjectDir)\..\..\..\..\..;$(ProjectDir)\..\..\..\..\..\op-services-cpp;$(ProjectDir)\..\..\..\..\..\zsLib;$(ProjectDir)\..\..\..\..\..\webrtc;$(ProjectDir)\..\..\..\..\..\webrtc\third_party\boringssl\src\include;%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory)</AdditionalIncludeDirectories>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PreprocessorDefinitions>WIN32;WINRT;WEBRTC_WIN;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>kernel32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -184,13 +189,16 @@
     <AppxManifest Include="Package.appxmanifest">
       <SubType>Designer</SubType>
     </AppxManifest>
-    <None Include="ortclibTest.Windows_TemporaryKey.pfx" />
+    <None Include="ortclibTest.Windows.Universal_TemporaryKey.pfx" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="Assets\Logo.scale-100.png" />
-    <Image Include="Assets\SmallLogo.scale-100.png" />
-    <Image Include="Assets\StoreLogo.scale-100.png" />
-    <Image Include="Assets\SplashScreen.scale-100.png" />
+    <Image Include="Assets\LockScreenLogo.scale-200.png" />
+    <Image Include="Assets\SplashScreen.scale-200.png" />
+    <Image Include="Assets\Square150x150Logo.scale-200.png" />
+    <Image Include="Assets\Square44x44Logo.scale-200.png" />
+    <Image Include="Assets\Square44x44Logo.targetsize-24_altform-unplated.png" />
+    <Image Include="Assets\StoreLogo.png" />
+    <Image Include="Assets\Wide310x150Logo.scale-200.png" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MainPage.xaml.cpp">
@@ -198,511 +206,323 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\..\cryptopp\projects\vs2013\cryptopp\cryptopp.Windows\cryptopp.Windows.vcxproj">
-      <Project>{81d2eeec-2d4c-4225-824b-a7de05bb6557}</Project>
+    <ProjectReference Include="..\..\..\..\..\cryptopp\projects\msvs\cryptopp\cryptopp.Windows.Universal\cryptopp.Windows.Universal.vcxproj">
+      <Project>{9b7e08b7-f3eb-418e-b69f-8a655ff913fa}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\idnkit\projects\vs2013\idnkit\idnkit.Windows\idnkit.Windows.vcxproj">
-      <Project>{bfd348b9-016f-43bd-b92f-88da057b8fa8}</Project>
+    <ProjectReference Include="..\..\..\..\..\idnkit\projects\msvs\idnkit\idnkit.Windows.Universal\idnkit.Windows.Universal.vcxproj">
+      <Project>{0b940009-c54f-4932-8d03-03141dcc9a50}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\op-services-cpp\projects\vs2013\hfservices\hfservices.Windows\hfservices.Windows.vcxproj">
-      <Project>{156ee8b0-c403-4262-a55c-54a81dc2c1fc}</Project>
+    <ProjectReference Include="..\..\..\..\..\op-services-cpp\projects\msvs\hfservices\hfservices.Windows.Universal\hfservices.Windows.Universal.vcxproj">
+      <Project>{6ccc9220-9334-4601-821d-5f55bc397003}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\udns\projects\vs2013\udns\udns.Windows\udns.Windows.vcxproj">
-      <Project>{3c9c21f5-54be-4c18-ac96-f28a43ef2844}</Project>
+    <ProjectReference Include="..\..\..\..\..\udns\projects\msvs\udns\udns.Windows.Universal\udns.Windows.Universal.vcxproj">
+      <Project>{577f12ab-3473-4a93-8ee4-eeed2ce5dc61}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\..\webrtc\testing\gtest_win.vcxproj">
+      <Project>{8685b553-2b41-1c1c-1e80-d6a7dfc1ffaa}</Project>
+      <Private>false</Private>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\webrtc\third_party\boringssl\boringssl_win.vcxproj">
       <Project>{faa3af2e-d09e-399d-6a3b-f44e0aa2b7fb}</Project>
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\..\webrtc\third_party\jsoncpp\jsoncpp_win.vcxproj">
+      <Project>{84772c70-a78e-c22b-8fd8-e59dbd95ec5e}</Project>
+      <Private>false</Private>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\webrtc\third_party\libjpeg_turbo\libjpeg_win.vcxproj">
       <Project>{5afbcca4-e15a-96ed-708e-e0ac1fe92db6}</Project>
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\webrtc\third_party\libsrtp\libsrtp_win.vcxproj">
       <Project>{2395856b-126e-06bb-4752-02f8dd47db0f}</Project>
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\webrtc\third_party\libvpx\libvpx_intrinsics_avx2_win.vcxproj">
-      <Project>{4aae6027-74ae-73a7-a3cd-9a9ce605f30a}</Project>
-      <Private>false</Private>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\webrtc\third_party\libvpx\libvpx_intrinsics_mmx_win.vcxproj">
-      <Project>{3182cc65-dc02-24d0-f7dc-85f30a9a83e8}</Project>
-      <Private>false</Private>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\webrtc\third_party\libvpx\libvpx_intrinsics_sse2_win.vcxproj">
-      <Project>{7e7c1e43-ed3f-732f-d374-f52c758b0414}</Project>
-      <Private>false</Private>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\webrtc\third_party\libvpx\libvpx_intrinsics_sse4_1_win.vcxproj">
-      <Project>{4dea0aaa-1b35-7d93-d6da-7c54ea51cbf7}</Project>
-      <Private>false</Private>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\webrtc\third_party\libvpx\libvpx_intrinsics_ssse3_win.vcxproj">
-      <Project>{89c0e6b9-7788-a846-b3fb-32d785c4ee0e}</Project>
-      <Private>false</Private>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\webrtc\third_party\libvpx\libvpx_win.vcxproj">
-      <Project>{eb602516-5820-9649-6ed0-ed63d5d477fc}</Project>
-      <Private>false</Private>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\webrtc\third_party\libyuv\libyuv_win.vcxproj">
       <Project>{de813719-cdba-b7d4-9786-e1ea2588fc37}</Project>
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\webrtc\third_party\openmax_dl\dl\openmax_dl_win.vcxproj">
       <Project>{6bc67f85-9a3e-eeb5-4bb8-fc906f6c3fac}</Project>
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\webrtc\third_party\opus\opus_win.vcxproj">
       <Project>{f6ba436b-bd01-dad6-5098-a9d750b00839}</Project>
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\webrtc\third_party\protobuf\protobuf_lite_win.vcxproj">
       <Project>{1be762e1-b899-37c9-9bbb-800b941d427b}</Project>
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\webrtc\third_party\usrsctp\usrsctplib_win.vcxproj">
       <Project>{a836af04-da07-eafe-9d32-475c4a86d2da}</Project>
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\webrtc\webrtc\base\rtc_base_approved_win.vcxproj">
       <Project>{f013cf0c-8b7e-9dcd-ceda-7dc6006b4520}</Project>
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\..\webrtc\webrtc\base\rtc_base_win.vcxproj">
+      <Project>{a0ae18aa-69e5-86a2-888d-cdd9a0ab3b7b}</Project>
+      <Private>false</Private>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\webrtc\webrtc\common_audio\common_audio_sse2_win.vcxproj">
       <Project>{28e7b7b8-1b0b-a133-ca06-3108048be1f3}</Project>
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\webrtc\webrtc\common_audio\common_audio_win.vcxproj">
       <Project>{03b3febc-6e0a-25c3-3197-e16b35fee8d5}</Project>
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\webrtc\webrtc\common_video\common_video_win.vcxproj">
       <Project>{3c866cd8-7528-c7fa-ec81-fb597be5296a}</Project>
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\webrtc\webrtc\modules\audio_coding_module_win.vcxproj">
       <Project>{64c2a68a-cea5-076a-d451-096a9ca40bd1}</Project>
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\webrtc\webrtc\modules\audio_conference_mixer_win.vcxproj">
       <Project>{05f4fea1-7314-57ca-87c2-108746b37c3c}</Project>
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\webrtc\webrtc\modules\audio_decoder_interface_win.vcxproj">
       <Project>{e1a02cf2-c5e5-f5c8-d2d9-d07e412429b8}</Project>
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\webrtc\webrtc\modules\audio_device_win.vcxproj">
       <Project>{dd3dc734-f955-5ba9-2f0e-81bffe5ef331}</Project>
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\webrtc\webrtc\modules\audio_encoder_interface_win.vcxproj">
       <Project>{941a2f8d-b2ef-d175-3e6e-17f71922f8ee}</Project>
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\webrtc\webrtc\modules\audio_processing_sse2_win.vcxproj">
       <Project>{724e58ef-7339-af7a-7be4-969274a07c2c}</Project>
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\webrtc\webrtc\modules\audio_processing_win.vcxproj">
       <Project>{83a85a66-df48-7804-e47e-2024076422ca}</Project>
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\webrtc\webrtc\modules\bitrate_controller_win.vcxproj">
       <Project>{b7664295-4b64-5fe3-a2eb-492b68a3ec28}</Project>
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\webrtc\webrtc\modules\cng_win.vcxproj">
       <Project>{214a5058-7317-0346-a19f-4b162d758e9d}</Project>
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\webrtc\webrtc\modules\g711_win.vcxproj">
       <Project>{e603ea7a-46fd-0027-60e5-ec9f90b55bef}</Project>
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\webrtc\webrtc\modules\g722_win.vcxproj">
       <Project>{fae49ad9-a2fc-d682-a6db-c8ef882b056e}</Project>
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\webrtc\webrtc\modules\ilbc_win.vcxproj">
       <Project>{fcf17b47-83e5-b921-e3b7-c16030f8f263}</Project>
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\webrtc\webrtc\modules\isac_common_win.vcxproj">
       <Project>{52690743-2bbc-944d-47b6-a88d87104b0c}</Project>
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\webrtc\webrtc\modules\isac_fix_win.vcxproj">
       <Project>{1eeb1b58-a0f6-e11c-352b-e24b5963a61a}</Project>
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\webrtc\webrtc\modules\isac_win.vcxproj">
       <Project>{3489220a-20fb-7028-e415-7492a0dc3f63}</Project>
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\webrtc\webrtc\modules\media_file_win.vcxproj">
       <Project>{89d01133-8e38-ceb7-5602-faaf973d52d3}</Project>
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\webrtc\webrtc\modules\neteq_win.vcxproj">
       <Project>{1fee8e38-03ef-885f-2f4f-3bcb47797669}</Project>
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\webrtc\webrtc\modules\paced_sender_win.vcxproj">
       <Project>{6ed06bb6-dea9-1415-d3a5-0d37f77d2e97}</Project>
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\webrtc\webrtc\modules\pcm16b_win.vcxproj">
       <Project>{5eac32bf-10d8-0d31-bfd4-d5a35d7e7321}</Project>
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\webrtc\webrtc\modules\red_win.vcxproj">
       <Project>{69093ccf-17bd-1e97-b1a0-86bc5465b5f7}</Project>
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\webrtc\webrtc\modules\remote_bitrate_estimator_win.vcxproj">
       <Project>{4e0be709-2907-6dc7-6d8f-bca2dba64b5b}</Project>
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\webrtc\webrtc\modules\rtp_rtcp_win.vcxproj">
       <Project>{2f7d8f36-eceb-a5f7-2dec-c5b15d7c2f50}</Project>
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\webrtc\webrtc\modules\video_capture_module_internal_impl_win.vcxproj">
       <Project>{3be2d264-1ec4-5c41-720c-c1d01435e5b7}</Project>
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\webrtc\webrtc\modules\video_capture_module_win.vcxproj">
       <Project>{8f78f5db-515f-0544-01df-be37e5905743}</Project>
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\webrtc\webrtc\modules\video_coding\codecs\vp8\webrtc_vp8_win.vcxproj">
       <Project>{71fc584e-2e67-0b8a-55dd-d4ec05b1992a}</Project>
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\webrtc\webrtc\modules\video_coding\codecs\vp9\webrtc_vp9_win.vcxproj">
       <Project>{567712c6-0f7e-de23-bde5-62d4c61b9384}</Project>
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\webrtc\webrtc\modules\video_coding\utility\video_coding_utility_win.vcxproj">
       <Project>{dbfe4d0f-23e0-a4e2-e3fb-ad65f004a9ec}</Project>
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\webrtc\webrtc\modules\video_processing_sse2_win.vcxproj">
       <Project>{72978051-61fc-bc8f-27aa-3f93bcf9e59d}</Project>
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\webrtc\webrtc\modules\video_processing_win.vcxproj">
       <Project>{9c23aee2-ae59-8316-940a-e3f04b472c19}</Project>
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\webrtc\webrtc\modules\video_render_module_internal_impl_win.vcxproj">
       <Project>{b5b43cb3-bdff-011b-6472-9d3c49c4af6e}</Project>
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\webrtc\webrtc\modules\video_render_module_win.vcxproj">
       <Project>{e75cb8b7-b49b-c3c1-664c-440620fee81b}</Project>
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\webrtc\webrtc\modules\webrtc_h264_win.vcxproj">
       <Project>{3f587575-cdd1-3ec0-de80-3b8600d4bf55}</Project>
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\webrtc\webrtc\modules\webrtc_i420_win.vcxproj">
       <Project>{1a99598f-d544-a03d-da20-21d85a71010d}</Project>
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\webrtc\webrtc\modules\webrtc_opus_win.vcxproj">
       <Project>{bb1eb10f-5677-64ae-4a7f-59710770ebdf}</Project>
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\webrtc\webrtc\modules\webrtc_utility_win.vcxproj">
       <Project>{c2068263-5fe3-b637-a162-9df90a234038}</Project>
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\webrtc\webrtc\modules\webrtc_video_coding_win.vcxproj">
       <Project>{4d7e7bd3-ce47-a306-b5ac-031cf29c8e58}</Project>
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\..\webrtc\webrtc\rtc_event_log_proto_win.vcxproj">
+      <Project>{1c12d085-c359-40d2-719f-5e963b208115}</Project>
+      <Private>false</Private>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\webrtc\webrtc\rtc_event_log_win.vcxproj">
       <Project>{b315dcfd-e538-67ca-a5f6-a5c1f46c3e12}</Project>
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\webrtc\webrtc\system_wrappers\field_trial_default_win.vcxproj">
       <Project>{2b50adc6-1b90-7e9d-39c9-6ff0543723a3}</Project>
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\webrtc\webrtc\system_wrappers\metrics_default_win.vcxproj">
       <Project>{014c5fbf-545b-073b-9770-969098e59205}</Project>
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\webrtc\webrtc\system_wrappers\system_wrappers_win.vcxproj">
       <Project>{842cc23e-23e9-3698-9b6a-856adf075045}</Project>
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\..\webrtc\webrtc\test\field_trial_win.vcxproj">
+      <Project>{5d7fa098-2d73-0220-3ce5-233b1b00ce10}</Project>
+      <Private>false</Private>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\webrtc\webrtc\voice_engine\voice_engine_win.vcxproj">
       <Project>{f9a0b053-b403-8fcb-405a-6ba9120a8717}</Project>
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\webrtc\webrtc\webrtc_common_win.vcxproj">
       <Project>{9f228764-db77-fcda-f4bd-2e3dead3ea31}</Project>
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\..\webrtc\webrtc\webrtc_win.vcxproj">
       <Project>{0011af4a-6d76-9928-dba8-3ecfde7ffad4}</Project>
       <Private>false</Private>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\zsLib\projects\vs2013\zsLib\zsLib.Windows\zsLib.Windows.vcxproj">
-      <Project>{5df1d5b9-5a44-46ef-a4f9-10c718f31f41}</Project>
+    <ProjectReference Include="..\..\..\..\..\zsLib\projects\msvs\zsLib\zsLib.Windows.Universal\zsLib.Windows.Universal.vcxproj">
+      <Project>{e7265f01-f993-44f6-889c-24a62ab171a0}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\ortc-lib.Windows\ortc-lib.Windows.vcxproj">
-      <Project>{5f43b342-f389-4968-8330-8cd7f5f633b7}</Project>
+    <ProjectReference Include="..\ortc-lib.Windows.Universal\ortc-lib.Windows.Universal.vcxproj">
+      <Project>{f4ef2e27-727c-4cf8-b727-81583b864265}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
