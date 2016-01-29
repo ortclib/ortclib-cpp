@@ -2454,6 +2454,12 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
+  ISctpTransportPtr ISCTPTransport::convert(IDataTransportPtr object)
+  {
+    return internal::SCTPTransport::convert(object);
+  }
+
+  //---------------------------------------------------------------------------
   ISCTPTransportPtr ISCTPTransport::create(
                                            ISCTPTransportDelegatePtr delegate,
                                            IDTLSTransportPtr transport,

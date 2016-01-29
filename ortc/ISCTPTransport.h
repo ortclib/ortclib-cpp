@@ -84,6 +84,8 @@ namespace ortc
   {
     static ElementPtr toDebug(ISCTPTransportPtr transport);
 
+    static ISctpTransportPtr convert(IDataTransportPtr object);
+
     static ISCTPTransportPtr create(
                                     ISCTPTransportDelegatePtr delegate,
                                     IDTLSTransportPtr transport,
