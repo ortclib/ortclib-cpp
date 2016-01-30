@@ -40,14 +40,9 @@
 #include <zsLib/MessageQueueAssociator.h>
 #include <zsLib/Timer.h>
 
-//#include <webrtc/base/scoped_ptr.h>
-//#include <webrtc/modules/utility/interface/process_thread.h>
-//#include <webrtc/Transport.h>
-//#include <webrtc/video/transport_adapter.h>
-//#include <webrtc/video_engine/vie_channel_group.h>
-//#include <webrtc/video_send_stream.h>
-//#include <webrtc/modules/video_capture/include/video_capture.h>
-
+#include <webrtc/transport.h>
+#include <webrtc/modules/utility/include/process_thread.h>
+#include <webrtc/video/video_send_stream.h>
 
 //#define ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE "ortc/sctp/max-message-size"
 
@@ -147,7 +142,8 @@ namespace ortc
                                   public IRTPSenderChannelVideoForMediaStreamTrack,
                                   public IWakeDelegate,
                                   public zsLib::ITimerDelegate,
-                                  public IRTPSenderChannelVideoAsyncDelegate
+                                  public IRTPSenderChannelVideoAsyncDelegate,
+                                  public webrtc::Transport
     {
     protected:
       struct make_private {};
@@ -257,6 +253,19 @@ namespace ortc
       #pragma mark RTPSenderChannelVideo => IRTPSenderChannelVideoAsyncDelegate
       #pragma mark
 
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPSenderChannelVideo => webrtc::Transport
+      #pragma mark
+
+      virtual bool SendRtp(
+                           const uint8_t* packet,
+                           size_t length,
+                           const webrtc::PacketOptions& options
+                           );
+
+      virtual bool SendRtcp(const uint8_t* packet, size_t length);
+
     protected:
       //-----------------------------------------------------------------------
       #pragma mark
@@ -296,6 +305,9 @@ namespace ortc
       UseChannelWeakPtr mSenderChannel;
 
       ParametersPtr mParameters;
+
+      rtc::scoped_ptr<webrtc::ProcessThread> mModuleProcessThread;
+      rtc::scoped_ptr<webrtc::VideoSendStream> mSendStream;
     };
 
     //-------------------------------------------------------------------------

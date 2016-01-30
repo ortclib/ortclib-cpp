@@ -179,6 +179,40 @@ namespace ortc
     {
       AutoRecursiveLock lock(*this);
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
+
+      mModuleProcessThread->Start();
+
+      webrtc::VideoRenderer* renderer = NULL;
+
+      int numCpuCores = 2;
+      webrtc::Transport* transport = this;
+      webrtc::VideoReceiveStream::Config config(this);
+      webrtc::VoiceEngine* voiceEngine = NULL;
+
+      webrtc::VideoCodecType type = webrtc::kVideoCodecVP8;
+      webrtc::VideoDecoder* videoDecoder = webrtc::VideoDecoder::Create(webrtc::VideoDecoder::kVp8);
+      webrtc::VideoReceiveStream::Decoder decoder;
+      decoder.decoder = videoDecoder;
+      decoder.payload_name = "VP8";
+      decoder.payload_type = 100;
+
+      config.rtp.remote_ssrc = 1000;
+      config.rtp.local_ssrc = 1020;
+      config.rtp.rtcp_mode = webrtc::RtcpMode::kReducedSize;
+      config.rtp.remb = true;
+      config.rtp.nack.rtp_history_ms = 1000;
+      config.decoders.push_back(decoder);
+      config.renderer = renderer;
+
+      mReceiveStream = rtc::scoped_ptr<webrtc::VideoReceiveStream>(
+        new webrtc::internal::VideoReceiveStream(
+                                                 numCpuCores,
+                                                 NULL,
+                                                 config,
+                                                 NULL,
+                                                 mModuleProcessThread.get(),
+                                                 NULL
+                                                 ));
     }
 
     //-------------------------------------------------------------------------
@@ -188,6 +222,8 @@ namespace ortc
 
       ZS_LOG_DETAIL(log("destroyed"))
       mThisWeak.reset();
+
+      mModuleProcessThread->Stop();
 
       cancel();
     }
@@ -318,6 +354,28 @@ namespace ortc
     #pragma mark
     #pragma mark RTPReceiverChannelVideo => IRTPReceiverChannelVideoAsyncDelegate
     #pragma mark
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPReceiverChannelVideo => webrtc::Transport
+    #pragma mark
+
+    bool  RTPReceiverChannelVideo::SendRtp(
+                                           const uint8_t* packet,
+                                           size_t length,
+                                           const webrtc::PacketOptions& options
+                                           )
+    {
+      return true;
+    }
+
+    bool  RTPReceiverChannelVideo::SendRtcp(const uint8_t* packet, size_t length)
+    {
+      return true;
+    }
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------

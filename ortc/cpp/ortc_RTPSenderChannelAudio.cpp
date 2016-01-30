@@ -151,6 +151,20 @@ namespace ortc
     {
       AutoRecursiveLock lock(*this);
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
+
+      mVoiceEngine = rtc::scoped_ptr<webrtc::VoiceEngine, VoiceEngineDeleter>(webrtc::VoiceEngine::Create());
+
+      int channel = webrtc::VoEBase::GetInterface(mVoiceEngine.get())->CreateChannel();
+
+      webrtc::AudioSendStream::Config config(this);
+      config.voe_channel_id = channel;
+      config.rtp.ssrc = 1000;
+
+      mSendStream = rtc::scoped_ptr<webrtc::AudioSendStream>(
+          new webrtc::internal::AudioSendStream(
+                                                config,
+                                                mVoiceEngine.get()
+                                                ));
     }
 
     //-------------------------------------------------------------------------
@@ -292,6 +306,27 @@ namespace ortc
     #pragma mark RTPSenderChannelAudio => IRTPSenderChannelAudioAsyncDelegate
     #pragma mark
 
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPSenderChannelAudio => webrtc::Transport
+    #pragma mark
+
+    bool  RTPSenderChannelAudio::SendRtp(
+                                         const uint8_t* packet,
+                                         size_t length,
+                                         const webrtc::PacketOptions& options
+                                         )
+    {
+      return true;
+    }
+
+    bool  RTPSenderChannelAudio::SendRtcp(const uint8_t* packet, size_t length)
+    {
+      return true;
+    }
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------

@@ -46,10 +46,6 @@
 
 #include <cryptopp/sha.h>
 
-//#include <webrtc/modules/rtp_rtcp/interface/rtp_header_parser.h>
-//#include <webrtc/video/video_send_stream.h>
-
-
 #ifdef _DEBUG
 #define ASSERT(x) ZS_THROW_BAD_STATE_IF(!(x))
 #else
@@ -139,7 +135,8 @@ namespace ortc
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
       mSenderChannel(senderChannel),
-      mParameters(make_shared<Parameters>(params))
+      mParameters(make_shared<Parameters>(params)),
+      mModuleProcessThread(webrtc::ProcessThread::Create("RTPSenderChannelVideoThread"))
     {
       ZS_LOG_DETAIL(debug("created"))
 
@@ -151,6 +148,52 @@ namespace ortc
     {
       AutoRecursiveLock lock(*this);
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
+
+      mModuleProcessThread->Start();
+
+      int numCpuCores = 2;
+      webrtc::VideoSendStream::Config config(this);
+      webrtc::VideoEncoderConfig encoderConfig;
+      std::map<uint32_t, webrtc::RtpState> suspendedSSRCs;
+
+      webrtc::VideoCodecType type = webrtc::kVideoCodecVP8;
+      webrtc::VideoEncoder* videoEncoder = webrtc::VideoEncoder::Create(webrtc::VideoEncoder::kVp8);
+
+      config.encoder_settings.encoder = videoEncoder;
+      config.encoder_settings.payload_name = "VP8";
+      config.encoder_settings.payload_type = 100;
+      config.rtp.c_name = "test-cname";
+      config.rtp.nack.rtp_history_ms = 1000;
+      config.rtp.ssrcs.push_back(1000);
+
+      webrtc::VideoStream stream;
+      stream.width = 800;
+      stream.height = 600;
+      stream.max_framerate = 30;
+      stream.min_bitrate_bps = 30000;
+      stream.target_bitrate_bps = 2000000;
+      stream.max_bitrate_bps = 2000000;
+      stream.max_qp = 56;
+      webrtc::VideoCodecVP8 videoCodec = webrtc::VideoEncoder::GetDefaultVp8Settings();
+      videoCodec.automaticResizeOn = true;
+      videoCodec.denoisingOn = true;
+      videoCodec.frameDroppingOn = true;
+
+      encoderConfig.min_transmit_bitrate_bps = 0;
+      encoderConfig.content_type = webrtc::VideoEncoderConfig::ContentType::kRealtimeVideo;
+      encoderConfig.streams.push_back(stream);
+      encoderConfig.encoder_specific_settings = &videoCodec;
+
+      mSendStream = rtc::scoped_ptr<webrtc::VideoSendStream>(
+        new webrtc::internal::VideoSendStream(
+                                              numCpuCores,
+                                              mModuleProcessThread.get(),
+                                              NULL,
+                                              NULL,
+                                              config,
+                                              encoderConfig,
+                                              suspendedSSRCs
+                                              ));
     }
 
     //-------------------------------------------------------------------------
@@ -160,6 +203,8 @@ namespace ortc
 
       ZS_LOG_DETAIL(log("destroyed"))
       mThisWeak.reset();
+
+      mModuleProcessThread->Stop();
 
       cancel();
     }
@@ -292,6 +337,27 @@ namespace ortc
     #pragma mark RTPSenderChannelVideo => IRTPSenderChannelVideoAsyncDelegate
     #pragma mark
 
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPSenderChannelVideo => webrtc::Transport
+    #pragma mark
+
+    bool  RTPSenderChannelVideo::SendRtp(
+                                         const uint8_t* packet,
+                                         size_t length,
+                                         const webrtc::PacketOptions& options
+                                         )
+    {
+      return true;
+    }
+
+    bool  RTPSenderChannelVideo::SendRtcp(const uint8_t* packet, size_t length)
+    {
+      return true;
+    }
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------

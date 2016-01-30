@@ -43,6 +43,9 @@
 #include <zsLib/MessageQueueAssociator.h>
 #include <zsLib/Timer.h>
 
+#include <webrtc/transport.h>
+#include <webrtc/modules/utility/include/process_thread.h>
+#include <webrtc/video/video_receive_stream.h>
 
 //#define ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE "ortc/sctp/max-message-size"
 
@@ -146,7 +149,8 @@ namespace ortc
                                     public IRTPReceiverChannelVideoForMediaStreamTrack,
                                     public IWakeDelegate,
                                     public zsLib::ITimerDelegate,
-                                    public IRTPReceiverChannelVideoAsyncDelegate
+                                    public IRTPReceiverChannelVideoAsyncDelegate,
+                                    public webrtc::Transport
     {
     protected:
       struct make_private {};
@@ -255,6 +259,19 @@ namespace ortc
       #pragma mark RTPReceiverChannelVideo => IRTPReceiverChannelVideoAsyncDelegate
       #pragma mark
 
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPSenderChannelVideo => webrtc::Transport
+      #pragma mark
+
+      virtual bool SendRtp(
+                           const uint8_t* packet,
+                           size_t length,
+                           const webrtc::PacketOptions& options
+                           );
+
+      virtual bool SendRtcp(const uint8_t* packet, size_t length);
+
     protected:
       //-----------------------------------------------------------------------
       #pragma mark
@@ -294,6 +311,9 @@ namespace ortc
       UseChannelWeakPtr mReceiverChannel;
 
       ParametersPtr mParameters;
+
+      rtc::scoped_ptr<webrtc::ProcessThread> mModuleProcessThread;
+      rtc::scoped_ptr<webrtc::VideoReceiveStream> mReceiveStream;
     };
 
     //-------------------------------------------------------------------------

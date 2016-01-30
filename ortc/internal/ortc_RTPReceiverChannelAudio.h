@@ -43,6 +43,8 @@
 #include <zsLib/MessageQueueAssociator.h>
 #include <zsLib/Timer.h>
 
+#include <webrtc/transport.h>
+#include <webrtc/audio/audio_receive_stream.h>
 
 //#define ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE "ortc/sctp/max-message-size"
 
@@ -146,7 +148,8 @@ namespace ortc
                                     public IRTPReceiverChannelAudioForMediaStreamTrack,
                                     public IWakeDelegate,
                                     public zsLib::ITimerDelegate,
-                                    public IRTPReceiverChannelAudioAsyncDelegate
+                                    public IRTPReceiverChannelAudioAsyncDelegate,
+                                    public webrtc::Transport
     {
     protected:
       struct make_private {};
@@ -178,6 +181,13 @@ namespace ortc
         State_Shutdown,
       };
       static const char *toString(States state);
+
+      struct VoiceEngineDeleter {
+        VoiceEngineDeleter() {}
+        inline void operator()(webrtc::VoiceEngine* ptr) const {
+          webrtc::VoiceEngine::Delete(ptr);
+        }
+      };
 
     public:
       RTPReceiverChannelAudio(
@@ -255,6 +265,19 @@ namespace ortc
       #pragma mark RTPReceiverChannelAudio => IRTPReceiverChannelAudioAsyncDelegate
       #pragma mark
 
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPReceiverChannelAudio => webrtc::Transport
+      #pragma mark
+
+      virtual bool SendRtp(
+                           const uint8_t* packet,
+                           size_t length,
+                           const webrtc::PacketOptions& options
+                           );
+
+      virtual bool SendRtcp(const uint8_t* packet, size_t length);
+
     protected:
       //-----------------------------------------------------------------------
       #pragma mark
@@ -294,6 +317,9 @@ namespace ortc
       UseChannelWeakPtr mReceiverChannel;
 
       ParametersPtr mParameters;
+      
+      rtc::scoped_ptr<webrtc::VoiceEngine, VoiceEngineDeleter> mVoiceEngine;
+      rtc::scoped_ptr<webrtc::AudioReceiveStream> mReceiveStream;
     };
 
     //-------------------------------------------------------------------------

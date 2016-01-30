@@ -40,14 +40,8 @@
 #include <zsLib/MessageQueueAssociator.h>
 #include <zsLib/Timer.h>
 
-//#include <webrtc/base/scoped_ptr.h>
-//#include <webrtc/modules/utility/interface/process_thread.h>
-//#include <webrtc/Transport.h>
-//#include <webrtc/video/transport_adapter.h>
-//#include <webrtc/video_engine/vie_channel_group.h>
-//#include <webrtc/video_send_stream.h>
-//#include <webrtc/modules/video_capture/include/video_capture.h>
-
+#include <webrtc/transport.h>
+#include <webrtc/audio/audio_send_stream.h>
 
 //#define ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE "ortc/sctp/max-message-size"
 
@@ -147,7 +141,8 @@ namespace ortc
                                   public IRTPSenderChannelAudioForMediaStreamTrack,
                                   public IWakeDelegate,
                                   public zsLib::ITimerDelegate,
-                                  public IRTPSenderChannelAudioAsyncDelegate
+                                  public IRTPSenderChannelAudioAsyncDelegate,
+                                  public webrtc::Transport
     {
     protected:
       struct make_private {};
@@ -179,6 +174,13 @@ namespace ortc
         State_Shutdown,
       };
       static const char *toString(States state);
+
+      struct VoiceEngineDeleter {
+        VoiceEngineDeleter() {}
+        inline void operator()(webrtc::VoiceEngine* ptr) const {
+          webrtc::VoiceEngine::Delete(ptr);
+        }
+      };
 
     public:
       RTPSenderChannelAudio(
@@ -257,6 +259,19 @@ namespace ortc
       #pragma mark RTPSenderChannelAudio => IRTPSenderChannelAudioAsyncDelegate
       #pragma mark
 
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPSenderChannelAudio => webrtc::Transport
+      #pragma mark
+
+      virtual bool SendRtp(
+                           const uint8_t* packet,
+                           size_t length,
+                           const webrtc::PacketOptions& options
+                           );
+
+      virtual bool SendRtcp(const uint8_t* packet, size_t length);
+
     protected:
       //-----------------------------------------------------------------------
       #pragma mark
@@ -296,6 +311,9 @@ namespace ortc
       UseChannelWeakPtr mSenderChannel;
 
       ParametersPtr mParameters;
+
+      rtc::scoped_ptr<webrtc::VoiceEngine, VoiceEngineDeleter> mVoiceEngine;
+      rtc::scoped_ptr<webrtc::AudioSendStream> mSendStream;
     };
 
     //-------------------------------------------------------------------------

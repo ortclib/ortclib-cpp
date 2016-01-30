@@ -179,6 +179,24 @@ namespace ortc
     {
       AutoRecursiveLock lock(*this);
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
+
+      mVoiceEngine = rtc::scoped_ptr<webrtc::VoiceEngine, VoiceEngineDeleter>(webrtc::VoiceEngine::Create());
+
+      int channel = webrtc::VoEBase::GetInterface(mVoiceEngine.get())->CreateChannel();
+
+      webrtc::AudioReceiveStream::Config config;
+      config.rtp.remote_ssrc = 1000;
+      config.voe_channel_id = channel;
+      config.receive_transport = this;
+      config.rtcp_send_transport = this;
+
+      mReceiveStream = rtc::scoped_ptr<webrtc::AudioReceiveStream>(
+          new webrtc::internal::AudioReceiveStream(
+                                                   NULL,
+                                                   config,
+                                                   mVoiceEngine.get()
+                                                   ));
+
     }
 
     //-------------------------------------------------------------------------
@@ -318,6 +336,28 @@ namespace ortc
     #pragma mark
     #pragma mark RTPReceiverChannelAudio => IRTPReceiverChannelAudioAsyncDelegate
     #pragma mark
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPSenderChannelAudio => webrtc::Transport
+    #pragma mark
+
+    bool  RTPReceiverChannelAudio::SendRtp(
+                                           const uint8_t* packet,
+                                           size_t length,
+                                           const webrtc::PacketOptions& options
+                                           )
+    {
+      return true;
+    }
+
+    bool  RTPReceiverChannelAudio::SendRtcp(const uint8_t* packet, size_t length)
+    {
+      return true;
+    }
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
