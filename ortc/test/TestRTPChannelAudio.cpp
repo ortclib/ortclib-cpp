@@ -86,11 +86,25 @@ namespace ortc
       #pragma mark
       
       //-----------------------------------------------------------------------
-      FakeMediaStreamTrack::FakeMediaStreamTrack(IMessageQueuePtr queue) :
-        MediaStreamTrack(Noop(true), queue)
+      FakeMediaStreamTrack::FakeMediaStreamTrack(
+                                                 IMessageQueuePtr queue,
+                                                 UseReceiverChannelAudioPtr receiverChannelAudio
+                                                 ) :
+        MediaStreamTrack(Noop(true), queue),
+        mReceiverChannelAudio(receiverChannelAudio)
       {
       }
       
+      //-----------------------------------------------------------------------
+      FakeMediaStreamTrack::FakeMediaStreamTrack(
+                                                 IMessageQueuePtr queue,
+                                                 UseSenderChannelAudioPtr senderChannelAudio
+                                                 ) :
+        MediaStreamTrack(Noop(true), queue),
+        mSenderChannelAudio(senderChannelAudio)
+      {
+      }
+
       //-----------------------------------------------------------------------
       FakeMediaStreamTrack::~FakeMediaStreamTrack()
       {
@@ -124,14 +138,25 @@ namespace ortc
       //-----------------------------------------------------------------------
       FakeMediaStreamTrackPtr FakeMediaStreamTrack::create(
                                                            IMessageQueuePtr queue,
-                                                           IMediaStreamTrackTypes::Kinds kind
+                                                           UseReceiverChannelAudioPtr receiverChannelAudio
                                                            )
       {
-        FakeMediaStreamTrackPtr pThis(make_shared<FakeMediaStreamTrack>(queue));
+        FakeMediaStreamTrackPtr pThis(make_shared<FakeMediaStreamTrack>(queue, receiverChannelAudio));
         pThis->mThisWeak = pThis;
         return pThis;
       }
       
+      //-----------------------------------------------------------------------
+      FakeMediaStreamTrackPtr FakeMediaStreamTrack::create(
+                                                           IMessageQueuePtr queue,
+                                                           UseSenderChannelAudioPtr senderChannelAudio
+                                                           )
+      {
+        FakeMediaStreamTrackPtr pThis(make_shared<FakeMediaStreamTrack>(queue, senderChannelAudio));
+        pThis->mThisWeak = pThis;
+        return pThis;
+      }
+
       //-----------------------------------------------------------------------
       void FakeMediaStreamTrack::setTransport(RTPChannelAudioTesterPtr tester)
       {
@@ -181,10 +206,10 @@ namespace ortc
       //-----------------------------------------------------------------------
       FakeReceiverChannel::FakeReceiverChannel(
                                                IMessageQueuePtr queue,
-                                               IMediaStreamTrackTypes::Kinds kind
+                                               const Parameters &params
                                                ) :
         RTPReceiverChannel(Noop(true), queue),
-        mKind(kind)
+        mParameters(make_shared<Parameters>(params))
       {
       }
       
@@ -197,10 +222,10 @@ namespace ortc
       //-----------------------------------------------------------------------
       FakeReceiverChannelPtr FakeReceiverChannel::create(
                                                          IMessageQueuePtr queue,
-                                                         IMediaStreamTrackTypes::Kinds kind
+                                                         const Parameters &params
                                                          )
       {
-        FakeReceiverChannelPtr pThis(make_shared<FakeReceiverChannel>(queue, kind));
+        FakeReceiverChannelPtr pThis(make_shared<FakeReceiverChannel>(queue, params));
         pThis->mThisWeak = pThis;
         return pThis;
       }
@@ -255,7 +280,25 @@ namespace ortc
       #pragma mark
       #pragma mark FakeReceiverChannel => (friend RTPSenderTester)
       #pragma mark
-      
+
+      void FakeReceiverChannel::setTransport(RTPChannelAudioTesterPtr tester)
+      {
+        AutoRecursiveLock lock(*this);
+        mTester = tester;
+      }
+
+      void FakeReceiverChannel::linkChannelAudio(UseReceiverChannelAudioPtr channelAudio)
+      {
+        AutoRecursiveLock lock(*this);
+        mReceiverChannelAudio = channelAudio;
+      }
+
+      void FakeReceiverChannel::linkMediaStreamTrack(UseMediaStreamTrackPtr track)
+      {
+        AutoRecursiveLock lock(*this);
+        mTrack = track;
+      }
+
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
@@ -282,8 +325,12 @@ namespace ortc
       #pragma mark
       
       //-----------------------------------------------------------------------
-      FakeSenderChannel::FakeSenderChannel(IMessageQueuePtr queue) :
-        RTPSenderChannel(Noop(true), queue)
+      FakeSenderChannel::FakeSenderChannel(
+                                           IMessageQueuePtr queue,
+                                           const Parameters &params
+                                           ) :
+        RTPSenderChannel(Noop(true), queue),
+        mParameters(make_shared<Parameters>(params))
       {
       }
       
@@ -294,9 +341,12 @@ namespace ortc
       }
       
       //-----------------------------------------------------------------------
-      FakeSenderChannelPtr FakeSenderChannel::create(IMessageQueuePtr queue)
+      FakeSenderChannelPtr FakeSenderChannel::create(
+                                                     IMessageQueuePtr queue,
+                                                     const Parameters &params
+                                                     )
       {
-        FakeSenderChannelPtr pThis(make_shared<FakeSenderChannel>(queue));
+        FakeSenderChannelPtr pThis(make_shared<FakeSenderChannel>(queue, params));
         pThis->mThisWeak = pThis;
         return pThis;
       }
@@ -360,7 +410,24 @@ namespace ortc
       #pragma mark FakeSenderChannel => (friend RTPChannelTester)
       #pragma mark
 
-      
+      void FakeSenderChannel::setTransport(RTPChannelAudioTesterPtr tester)
+      {
+        AutoRecursiveLock lock(*this);
+        mTester = tester;
+      }
+
+      void FakeSenderChannel::linkChannelAudio(UseSenderChannelAudioPtr channelAudio)
+      {
+        AutoRecursiveLock lock(*this);
+        mSenderChannelAudio = channelAudio;
+      }
+
+      void FakeSenderChannel::linkMediaStreamTrack(UseMediaStreamTrackPtr track)
+      {
+        AutoRecursiveLock lock(*this);
+        mTrack = track;
+      }
+
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
@@ -462,13 +529,12 @@ namespace ortc
       //-----------------------------------------------------------------------
       RTPChannelAudioTesterPtr RTPChannelAudioTester::create(
                                                              IMessageQueuePtr queue,
-                                                             IMediaStreamTrackTypes::Kinds kind,
                                                              bool overrideFactories
                                                              )
       {
         RTPChannelAudioTesterPtr pThis(new RTPChannelAudioTester(queue, overrideFactories));
         pThis->mThisWeak = pThis;
-        pThis->init(kind);
+        pThis->init();
         return pThis;
       }
       
@@ -496,9 +562,7 @@ namespace ortc
       }
       
       //-----------------------------------------------------------------------
-      void RTPChannelAudioTester::init(
-                                       IMediaStreamTrackTypes::Kinds kind
-                                       )
+      void RTPChannelAudioTester::init()
       {
         AutoRecursiveLock lock(*this);
         
@@ -506,9 +570,6 @@ namespace ortc
           RTPReceiverChannelAudioFactory::override(OverrideReceiverChannelAudioFactory::create(mThisWeak.lock()));
           RTPSenderChannelAudioFactory::override(OverrideSenderChannelAudioFactory::create(mThisWeak.lock()));
         }
-        
-        mMediaStreamTrack = FakeMediaStreamTrack::create(getAssociatedMessageQueue(), kind);
-        mMediaStreamTrack->setTransport(mThisWeak.lock());
       }
       
       //-----------------------------------------------------------------------
@@ -549,6 +610,7 @@ namespace ortc
         AutoRecursiveLock lock(*this);
         
         mReceiverAudioChannels.clear();
+        mSenderAudioChannels.clear();
       }
       
       //-----------------------------------------------------------------------
@@ -570,20 +632,17 @@ namespace ortc
       }
       
       //-----------------------------------------------------------------------
-      void RTPChannelAudioTester::createReceiverChannel(const char *receiverChannelID)
+      void RTPChannelAudioTester::createReceiverChannel(
+                                                        const char *receiverChannelID,
+                                                        const char *parametersID
+                                                        )
       {
         FakeReceiverChannelPtr receiverChannel = getReceiverChannel(receiverChannelID);
         
-        IMediaStreamTrackTypes::Kinds kind {};
-        
-        {
-          AutoRecursiveLock lock(*this);
-          TESTING_CHECK((bool)mMediaStreamTrack)
-          kind = mMediaStreamTrack->kind();
-        }
-        
         if (!receiverChannel) {
-          receiverChannel = FakeReceiverChannel::create(getAssociatedMessageQueue(), kind);
+          auto params = getParameters(parametersID);
+          TESTING_CHECK(params)
+          receiverChannel = FakeReceiverChannel::create(getAssociatedMessageQueue(), *params);
           attach(receiverChannelID, receiverChannel);
         }
         
@@ -591,12 +650,17 @@ namespace ortc
       }
       
       //-----------------------------------------------------------------------
-      void RTPChannelAudioTester::createSenderChannel(const char *senderChannelID)
+      void RTPChannelAudioTester::createSenderChannel(
+                                                      const char *senderChannelID,
+                                                      const char *parametersID
+                                                      )
       {
         FakeSenderChannelPtr senderChannel = getSenderChannel(senderChannelID);
         
         if (!senderChannel) {
-          senderChannel = FakeSenderChannel::create(getAssociatedMessageQueue());
+          auto params = getParameters(parametersID);
+          TESTING_CHECK(params)
+          senderChannel = FakeSenderChannel::create(getAssociatedMessageQueue(), *params);
           attach(senderChannelID, senderChannel);
         }
         
@@ -605,6 +669,7 @@ namespace ortc
       
       //-----------------------------------------------------------------------
       void RTPChannelAudioTester::createReceiverChannelAudio(
+                                                             const char *receiverChannelID,
                                                              const char *receiverChannelAudioID,
                                                              const char *parametersID
                                                              )
@@ -614,7 +679,9 @@ namespace ortc
         if (!receiverChannelAudio) {
           auto params = getParameters(parametersID);
           TESTING_CHECK(params)
-          //receiverChannelAudio = RTPReceiverChannelAudio::create(receiverChannelAudioID, *params);
+          FakeReceiverChannelPtr receiverChannel = getReceiverChannel(receiverChannelID);
+          TESTING_CHECK(receiverChannel)
+          receiverChannelAudio = UseReceiverChannelAudioForReceiverChannel::create(receiverChannel, *params);
           attach(receiverChannelAudioID, receiverChannelAudio);
         }
         
@@ -623,6 +690,7 @@ namespace ortc
       
       //-----------------------------------------------------------------------
       void RTPChannelAudioTester::createSenderChannelAudio(
+                                                           const char *senderChannelID,
                                                            const char *senderChannelAudioID,
                                                            const char *parametersID
                                                            )
@@ -632,7 +700,9 @@ namespace ortc
         if (!senderChannelAudio) {
           auto params = getParameters(parametersID);
           TESTING_CHECK(params)
-          //senderChannelAudio = RTPSenderChannelAudio::create(senderChannelAudioID, *params);
+          FakeSenderChannelPtr senderChannel = getSenderChannel(senderChannelID);
+          TESTING_CHECK(senderChannel)
+          senderChannelAudio = UseSenderChannelAudioForSenderChannel::create(senderChannel, *params);
           attach(senderChannelAudioID, senderChannelAudio);
         }
         
@@ -645,19 +715,7 @@ namespace ortc
                                        const char *parametersID
                                        )
       {
-        FakeSenderChannelPtr senderChannel = getSenderChannel(senderChannelID);
-        
-        if (!senderChannel) {
-          senderChannel = FakeSenderChannel::create(getAssociatedMessageQueue());
-          attach(senderChannelID, senderChannel);
-        }
-        
-        TESTING_CHECK(senderChannel)
-        
-        auto params = getParameters(parametersID);
-        TESTING_CHECK(params)
-        
-        //senderChannel->send(*params);
+        AutoRecursiveLock lock(*this);
       }
       
       //-----------------------------------------------------------------------
@@ -666,48 +724,13 @@ namespace ortc
                                           const char *parametersID
                                           )
       {
-        FakeReceiverChannelPtr receiverChannel = getReceiverChannel(receiverChannelID);
-        
-        if (!receiverChannel) {
-          IMediaStreamTrackTypes::Kinds kind {};
-          
-          {
-            AutoRecursiveLock lock(*this);
-            TESTING_CHECK((bool)mMediaStreamTrack)
-            kind = mMediaStreamTrack->kind();
-          }
-          
-          receiverChannel = FakeReceiverChannel::create(getAssociatedMessageQueue(), kind);
-          attach(receiverChannelID, receiverChannel);
-        }
-        
-        TESTING_CHECK(receiverChannel)
-        
-        auto params = getParameters(parametersID);
-        TESTING_CHECK(params)
-        
-        //receiverChannel->receive(*params);
+        AutoRecursiveLock lock(*this);
       }
       
       //-----------------------------------------------------------------------
       void RTPChannelAudioTester::stop(const char *senderOrReceiverChannelID)
       {
         AutoRecursiveLock lock(*this);
-        
-        auto found = mAttached.find(String(senderOrReceiverChannelID));
-        TESTING_CHECK(found != mAttached.end())
-        
-        auto receiverChannel = (*found).second.first;
-        auto senderChannel = (*found).second.second;
-        
-        if (receiverChannel) {
-          //receiverChannel->stop();
-        }
-        if (senderChannel) {
-          //senderChannel->stop();
-        }
-        
-        mAttached.erase(found);
       }
       
       //-----------------------------------------------------------------------
@@ -717,7 +740,25 @@ namespace ortc
                                          )
       {
         TESTING_CHECK(receiverChannel)
-        
+
+        String receiverChannelIDStr(receiverChannelID);
+
+        AutoRecursiveLock lock(*this);
+
+        RTPReceiverChannelPtr oldChannel;
+
+        auto found = mReceiverChannels.find(receiverChannelIDStr);
+
+        if (found != mReceiverChannels.end()) {
+          auto &previousReceiverChannel = (*found).second;
+          if (previousReceiverChannel) {
+          }
+
+          previousReceiverChannel = receiverChannel;
+          return;
+        }
+
+        mReceiverChannels[receiverChannelIDStr] = receiverChannel;
       }
       
       //-----------------------------------------------------------------------
@@ -727,7 +768,25 @@ namespace ortc
                                          )
       {
         TESTING_CHECK(senderChannel)
-        
+
+        String senderChannelIDStr(senderChannelID);
+
+        AutoRecursiveLock lock(*this);
+
+        RTPReceiverChannelPtr oldChannel;
+
+        auto found = mSenderChannels.find(senderChannelIDStr);
+
+        if (found != mSenderChannels.end()) {
+          auto &previousSenderChannel = (*found).second;
+          if (previousSenderChannel) {
+          }
+
+          previousSenderChannel = senderChannel;
+          return;
+        }
+
+        mSenderChannels[senderChannelIDStr] = senderChannel;
       }
       
       //-----------------------------------------------------------------------
@@ -787,37 +846,49 @@ namespace ortc
         
         AutoRecursiveLock lock(*this);
         
-        auto found = mAttached.find(receiverChannelIDStr);
-        TESTING_CHECK(found != mAttached.end())
+        auto foundAttached = mAttached.find(receiverChannelIDStr);
+        TESTING_CHECK(foundAttached != mAttached.end())
         
-        auto &currentReceiverChannel = (*found).second.first;
-        auto &currentSenderChannel = (*found).second.second;
-        
-        FakeReceiverChannelPtr receiverChannel = currentReceiverChannel;
+        auto &currentReceiverChannel = (*foundAttached).second.first;
+        auto &currentSenderChannel = (*foundAttached).second.second;
         
         currentReceiverChannel.reset();
         
-        if (!currentSenderChannel) mAttached.erase(found);
-        
+        if (!currentSenderChannel) mAttached.erase(foundAttached);
+
+        auto foundReceiverChannel = mReceiverChannels.find(receiverChannelIDStr);
+        TESTING_CHECK(foundReceiverChannel != mReceiverChannels.end())
+
+        FakeReceiverChannelPtr receiverChannel = (*foundReceiverChannel).second;
+
+        mReceiverChannels.erase(foundReceiverChannel);
+
         return receiverChannel;
       }
       
       //-----------------------------------------------------------------------
       FakeSenderChannelPtr RTPChannelAudioTester::detachSenderChannel(const char *senderChannelID)
       {
+        String senderChannelIDStr(senderChannelID);
+
         AutoRecursiveLock lock(*this);
         
-        auto found = mAttached.find(String(senderChannelID));
-        TESTING_CHECK(found != mAttached.end())
+        auto foundAttached = mAttached.find(senderChannelIDStr);
+        TESTING_CHECK(foundAttached != mAttached.end())
         
-        auto &currentReceiverChannel = (*found).second.first;
-        auto &currentSenderChannel = (*found).second.second;
-        
-        FakeSenderChannelPtr senderChannel = currentSenderChannel;
+        auto &currentReceiverChannel = (*foundAttached).second.first;
+        auto &currentSenderChannel = (*foundAttached).second.second;
         
         currentSenderChannel.reset();
-        if (!currentReceiverChannel) mAttached.erase(found);
-        
+        if (!currentReceiverChannel) mAttached.erase(foundAttached);
+
+        auto foundSenderChannel = mSenderChannels.find(senderChannelIDStr);
+        TESTING_CHECK(foundSenderChannel != mSenderChannels.end())
+
+        FakeSenderChannelPtr senderChannel = (*foundSenderChannel).second;
+
+        mSenderChannels.erase(foundSenderChannel);
+
         return senderChannel;
       }
       
@@ -894,7 +965,7 @@ namespace ortc
       //-----------------------------------------------------------------------
       void RTPChannelAudioTester::store(
                                         const char *sampleID,
-                                        SamplePtr sample
+                                        RTPSamplePtr sample
                                         )
       {
         TESTING_CHECK(sample)
@@ -906,7 +977,7 @@ namespace ortc
           return;
         }
         
-        mSamples[String(sampleID)] = SamplePair(SamplePtr(), sample);
+        mSamples[String(sampleID)] = SamplePair(RTPSamplePtr(), sample);
       }
 
       //-----------------------------------------------------------------------
@@ -947,12 +1018,12 @@ namespace ortc
       }
       
       //-----------------------------------------------------------------------
-      RTPChannelAudioTester::SamplePtr RTPChannelAudioTester::getSample(const char *sampleID)
+      RTPChannelAudioTester::RTPSamplePtr RTPChannelAudioTester::getSample(const char *sampleID)
       {
         AutoRecursiveLock lock(*this);
         
         auto found = mSamples.find(String(sampleID));
-        if (found == mSamples.end()) return SamplePtr();
+        if (found == mSamples.end()) return RTPSamplePtr();
         return (*found).second.second;
       }
       
@@ -1002,10 +1073,8 @@ namespace ortc
         }
         
         if (rtp) {
-          expectData(senderOrReceiverChannelID, rtp->buffer());
         }
         if (rtcp) {
-          expectData(senderOrReceiverChannelID, rtcp->buffer());
         }
       }
       
@@ -1152,14 +1221,12 @@ namespace ortc
         {
           FakeSenderChannelPtr senderChannel = getSenderChannel(senderOrReceiverChannelID);
           if (senderChannel) {
-            //senderChannel->expectData(secureBuffer);
           }
         }
         
         {
           FakeReceiverChannelPtr receiverChannel = getReceiverChannel(senderOrReceiverChannelID);
           if (receiverChannel) {
-            //receiverChannel->expectData(secureBuffer);
           }
         }
       }
@@ -1267,8 +1334,8 @@ void doTestRTPChannelAudio()
       switch (testNumber) {
         case TEST_BASIC_MEDIA: {
           {
-            testObject1 = RTPChannelAudioTester::create(thread, IMediaStreamTrackTypes::Kind_Audio, true);
-            testObject2 = RTPChannelAudioTester::create(thread, IMediaStreamTrackTypes::Kind_Audio, false);
+            testObject1 = RTPChannelAudioTester::create(thread, true);
+            testObject2 = RTPChannelAudioTester::create(thread, false);
             
             TESTING_CHECK(testObject1)
             TESTING_CHECK(testObject2)
@@ -1277,8 +1344,8 @@ void doTestRTPChannelAudio()
         }
         case TEST_ADVANCED_MEDIA: {
           {
-            testObject1 = RTPChannelAudioTester::create(thread, IMediaStreamTrackTypes::Kind_Audio, true);
-            testObject2 = RTPChannelAudioTester::create(thread, IMediaStreamTrackTypes::Kind_Audio, false);
+            testObject1 = RTPChannelAudioTester::create(thread, true);
+            testObject2 = RTPChannelAudioTester::create(thread, false);
             
             TESTING_CHECK(testObject1)
             TESTING_CHECK(testObject2)

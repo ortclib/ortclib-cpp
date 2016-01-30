@@ -88,9 +88,17 @@ namespace ortc
         
         ZS_DECLARE_TYPEDEF_PTR(internal::ISecureTransport, ISecureTransport)
         ZS_DECLARE_TYPEDEF_PTR(internal::IRTPReceiverChannelAudioForMediaStreamTrack, UseReceiverChannelAudio)
+        ZS_DECLARE_TYPEDEF_PTR(internal::IRTPSenderChannelAudioForMediaStreamTrack, UseSenderChannelAudio)
         
       public:
-        FakeMediaStreamTrack(IMessageQueuePtr queue);
+        FakeMediaStreamTrack(
+                             IMessageQueuePtr queue,
+                             UseReceiverChannelAudioPtr receiverChannelAudio
+                             );
+        FakeMediaStreamTrack(
+                             IMessageQueuePtr queue,
+                             UseSenderChannelAudioPtr senderChannelAudio
+                             );
         ~FakeMediaStreamTrack();
         
         //---------------------------------------------------------------------
@@ -112,9 +120,14 @@ namespace ortc
         
         static FakeMediaStreamTrackPtr create(
                                               IMessageQueuePtr queue,
-                                              IMediaStreamTrackTypes::Kinds kind
+                                              UseReceiverChannelAudioPtr receiverChannelAudio
                                               );
         
+        static FakeMediaStreamTrackPtr create(
+                                              IMessageQueuePtr queue,
+                                              UseSenderChannelAudioPtr senderChannelAudio
+                                              );
+
         void setTransport(RTPChannelAudioTesterPtr tester);
         
       protected:
@@ -138,6 +151,9 @@ namespace ortc
         IMediaStreamTrackTypes::Kinds mKind {IMediaStreamTrackTypes::Kind_Audio};
         
         RTPChannelAudioTesterWeakPtr mTester;
+        
+        UseReceiverChannelAudioWeakPtr mReceiverChannelAudio;
+        UseSenderChannelAudioWeakPtr mSenderChannelAudio;
       };
       
       //-----------------------------------------------------------------------
@@ -159,13 +175,13 @@ namespace ortc
       public:
         FakeReceiverChannel(
                             IMessageQueuePtr queue,
-                            IMediaStreamTrackTypes::Kinds kind
+                            const Parameters &params
                             );
         ~FakeReceiverChannel();
         
         static FakeReceiverChannelPtr create(
                                              IMessageQueuePtr queue,
-                                             IMediaStreamTrackTypes::Kinds kind
+                                             const Parameters &params
                                              );
         
       protected:
@@ -194,7 +210,13 @@ namespace ortc
         #pragma mark
         #pragma mark FakeReceiverChannel => (friend RTPChannelAudioTester)
         #pragma mark
-        
+
+        void setTransport(RTPChannelAudioTesterPtr tester);
+
+        void linkChannelAudio(UseReceiverChannelAudioPtr channelAudio);
+
+        void linkMediaStreamTrack(UseMediaStreamTrackPtr track);
+
       protected:
         //---------------------------------------------------------------------
         #pragma mark
@@ -241,10 +263,16 @@ namespace ortc
         ZS_DECLARE_TYPEDEF_PTR(internal::IMediaStreamTrackForRTPSenderChannelAudio, UseMediaStreamTrack)
         
       public:
-        FakeSenderChannel(IMessageQueuePtr queue);
+        FakeSenderChannel(
+                          IMessageQueuePtr queue,
+                          const Parameters &params
+                          );
         ~FakeSenderChannel();
         
-        static FakeSenderChannelPtr create(IMessageQueuePtr queue);
+        static FakeSenderChannelPtr create(
+                                           IMessageQueuePtr queue,
+                                           const Parameters &params
+                                           );
         
       protected:
         //---------------------------------------------------------------------
@@ -276,7 +304,13 @@ namespace ortc
         #pragma mark
         #pragma mark FakeSenderChannel => (friend RTPChannelTester)
         #pragma mark
-        
+
+        void setTransport(RTPChannelAudioTesterPtr tester);
+
+        void linkChannelAudio(UseSenderChannelAudioPtr channelAudio);
+
+        void linkMediaStreamTrack(UseMediaStreamTrackPtr track);
+
       protected:
         //---------------------------------------------------------------------
         #pragma mark
@@ -300,7 +334,7 @@ namespace ortc
         
         ParametersPtr mParameters;
         
-        UseSenderChannelAudioPtr mRenderChannelAudio;
+        UseSenderChannelAudioPtr mSenderChannelAudio;
         
         UseMediaStreamTrackPtr mTrack;
       };
@@ -322,12 +356,12 @@ namespace ortc
         friend class FakeReceiverChannel;
         friend class FakeSenderChannel;
         
-        struct Sample {
+        struct RTPSample {
           USHORT *mData;
           ULONG mDataLength;
         };
 
-        ZS_DECLARE_TYPEDEF_PTR(Sample, Sample)
+        ZS_DECLARE_TYPEDEF_PTR(RTPSample, RTPSample)
         
         ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters)
         
@@ -337,8 +371,6 @@ namespace ortc
         ZS_DECLARE_TYPEDEF_PTR(internal::RTPReceiverChannelAudio, RTPReceiverChannelAudio)
         
         ZS_DECLARE_TYPEDEF_PTR(internal::RTPSenderChannelAudio, RTPSenderChannelAudio)
-
-        ZS_DECLARE_TYPEDEF_PTR(internal::RTPReceiverChannel::RTCPPacketList, RTCPPacketList)
         
         ZS_DECLARE_TYPEDEF_PTR(internal::MediaStreamTrack, MediaStreamTrack)
         
@@ -367,7 +399,7 @@ namespace ortc
         typedef std::list<PacketID> PacketIDList;
         
         typedef String SampleID;
-        typedef std::pair<SamplePtr, SamplePtr> SamplePair;
+        typedef std::pair<RTPSamplePtr, RTPSamplePtr> SamplePair;
         typedef std::map<SampleID, SamplePair> SampleMap;
         
         typedef std::list<SampleID> SampleIDList;
@@ -378,6 +410,12 @@ namespace ortc
         typedef String SenderOrReceiverChannelID;
         typedef std::pair<FakeReceiverChannelPtr, FakeSenderChannelPtr> FakeReceiverFakeSenderChannelPair;
         typedef std::map<SenderOrReceiverChannelID, FakeReceiverFakeSenderChannelPair> SenderOrReceiverChannelMap;
+
+        typedef String ReceiverChannelID;
+        typedef std::map<ReceiverChannelID, FakeReceiverChannelPtr> FakeReceiverChannelMap;
+
+        typedef String SenderChannelID;
+        typedef std::map<SenderChannelID, FakeSenderChannelPtr> FakeSenderChannelMap;
 
         typedef String ReceiverChannelAudioID;
         typedef std::map<ReceiverChannelAudioID, RTPReceiverChannelAudioPtr> ReceiverChannelAudioMap;
@@ -449,7 +487,6 @@ namespace ortc
         
         static RTPChannelAudioTesterPtr create(
                                                IMessageQueuePtr queue,
-                                               IMediaStreamTrackTypes::Kinds kind,
                                                bool overrideFactories
                                                );
         
@@ -459,9 +496,7 @@ namespace ortc
                               );
         ~RTPChannelAudioTester();
         
-        void init(
-                  IMediaStreamTrackTypes::Kinds kind
-                  );
+        void init();
         
         bool matches();
         
@@ -472,14 +507,22 @@ namespace ortc
         
         void connect(RTPChannelAudioTesterPtr remote);
         
-        void createReceiverChannel(const char *receiverChannelID);
-        void createSenderChannel(const char *senderChannelID);
+        void createReceiverChannel(
+                                   const char *receiverChannelID,
+                                   const char *parametersID
+                                   );
+        void createSenderChannel(
+                                 const char *senderChannelID,
+                                 const char *parametersID
+                                 );
         
         void createReceiverChannelAudio(
+                                        const char *receiverChannelID,
                                         const char *receiverChannelAudioID,
                                         const char *parametersID
                                         );
         void createSenderChannelAudio(
+                                      const char *senderChannelID,
                                       const char *senderChannelAudioID,
                                       const char *parametersID
                                       );
@@ -528,7 +571,7 @@ namespace ortc
                    );
         void store(
                    const char *sampleID,
-                   SamplePtr sample
+                   RTPSamplePtr sample
                    );
         void store(
                    const char *parametersID,
@@ -537,7 +580,7 @@ namespace ortc
         
         RTPPacketPtr getRTPPacket(const char *packetID);
         RTCPPacketPtr getRTCPPacket(const char *packetID);
-        SamplePtr getSample(const char *sampleID);
+        RTPSamplePtr getSample(const char *sampleID);
         ParametersPtr getParameters(const char *parametersID);
         
         void sendPacket(
@@ -648,8 +691,6 @@ namespace ortc
         
         bool mOverrideFactories {false};
         
-        FakeMediaStreamTrackPtr mMediaStreamTrack;
-        
         RTPChannelAudioTesterWeakPtr mConnectedTester;
         
         Expectations mExpecting;
@@ -661,6 +702,8 @@ namespace ortc
         
         ParametersMap mParameters;
         
+        FakeReceiverChannelMap mReceiverChannels;
+        FakeSenderChannelMap mSenderChannels;
         ReceiverChannelAudioMap mReceiverAudioChannels;
         SenderChannelAudioMap mSenderAudioChannels;
       };
