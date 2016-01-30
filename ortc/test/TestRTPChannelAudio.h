@@ -34,14 +34,10 @@
 
 #include <ortc/ISettings.h>
 
-#include <ortc/internal/ortc_RTPReceiver.h>
 #include <ortc/internal/ortc_RTPReceiverChannel.h>
 #include <ortc/internal/ortc_RTPReceiverChannelAudio.h>
-#include <ortc/internal/ortc_RTPReceiverChannelVideo.h>
-#include <ortc/internal/ortc_RTPSender.h>
 #include <ortc/internal/ortc_RTPSenderChannel.h>
 #include <ortc/internal/ortc_RTPSenderChannelAudio.h>
-#include <ortc/internal/ortc_RTPSenderChannelVideo.h>
 #include <ortc/internal/ortc_MediaStreamTrack.h>
 
 #include <openpeer/services/IHelper.h>
