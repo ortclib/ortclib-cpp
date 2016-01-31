@@ -435,7 +435,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void MediaStreamTrack::enabeld(bool enabled)
+    void MediaStreamTrack::enabled(bool enabled)
     {
 #define TODO 1
 #define TODO 2

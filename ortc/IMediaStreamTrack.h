@@ -257,7 +257,7 @@ namespace ortc
     virtual String id() const = 0;
     virtual String label() const = 0;
     virtual bool enabled() const = 0;
-    virtual void enabeld(bool enabled) = 0;
+    virtual void enabled(bool enabled) = 0;
     virtual bool muted() const = 0;
     virtual bool readOnly() const = 0;
     virtual bool remote() const = 0;

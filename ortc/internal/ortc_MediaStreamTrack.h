@@ -409,7 +409,7 @@ namespace ortc
       virtual String id() const override;
       virtual String label() const override;
       virtual bool enabled() const override;
-      virtual void enabeld(bool enabled) override;
+      virtual void enabled(bool enabled) override;
       virtual bool muted() const override;
       virtual bool readOnly() const override;
       virtual bool remote() const override;
