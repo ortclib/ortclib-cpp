@@ -5130,7 +5130,7 @@ namespace ortc
         {
           pos[0] = Chunk::CName::kItemType;
           size_t len = (NULL != item->mValue ? strlen(item->mValue) : 0);
-          pos[1] = len;
+          pos[1] = static_cast<BYTE>(len);
           ASSERT(throwIfGreaterThanBitsAllow(len, 8))
 
           advancePos(pos, remaining, sizeof(WORD));
@@ -5146,7 +5146,7 @@ namespace ortc
         {
           pos[0] = Chunk::Name::kItemType;
           size_t len = (NULL != item->mValue ? strlen(item->mValue) : 0);
-          pos[1] = len;
+          pos[1] = static_cast<BYTE>(len);
           ASSERT(throwIfGreaterThanBitsAllow(len, 8))
 
           advancePos(pos, remaining, sizeof(WORD));
@@ -5162,7 +5162,7 @@ namespace ortc
         {
           pos[0] = Chunk::Email::kItemType;
           size_t len = (NULL != item->mValue ? strlen(item->mValue) : 0);
-          pos[1] = len;
+          pos[1] = static_cast<BYTE>(len);
           ASSERT(throwIfGreaterThanBitsAllow(len, 8))
 
           advancePos(pos, remaining, sizeof(WORD));
@@ -5178,7 +5178,7 @@ namespace ortc
         {
           pos[0] = Chunk::Phone::kItemType;
           size_t len = (NULL != item->mValue ? strlen(item->mValue) : 0);
-          pos[1] = len;
+          pos[1] = static_cast<BYTE>(len);
           ASSERT(throwIfGreaterThanBitsAllow(len, 8))
 
           advancePos(pos, remaining, sizeof(WORD));
@@ -5194,7 +5194,7 @@ namespace ortc
         {
           pos[0] = Chunk::Loc::kItemType;
           size_t len = (NULL != item->mValue ? strlen(item->mValue) : 0);
-          pos[1] = len;
+          pos[1] = static_cast<BYTE>(len);
           ASSERT(throwIfGreaterThanBitsAllow(len, 8))
 
           advancePos(pos, remaining, sizeof(WORD));
@@ -5210,7 +5210,7 @@ namespace ortc
         {
           pos[0] = Chunk::Tool::kItemType;
           size_t len = (NULL != item->mValue ? strlen(item->mValue) : 0);
-          pos[1] = len;
+          pos[1] = static_cast<BYTE>(len);
           ASSERT(throwIfGreaterThanBitsAllow(len, 8))
 
           advancePos(pos, remaining, sizeof(WORD));
@@ -5226,7 +5226,7 @@ namespace ortc
         {
           pos[0] = Chunk::Note::kItemType;
           size_t len = (NULL != item->mValue ? strlen(item->mValue) : 0);
-          pos[1] = len;
+          pos[1] = static_cast<BYTE>(len);
           ASSERT(throwIfGreaterThanBitsAllow(len, 8))
 
           advancePos(pos, remaining, sizeof(WORD));
@@ -5245,13 +5245,13 @@ namespace ortc
           size_t len2 = (NULL != item->mValue ? strlen(item->mValue) : 0);
           size_t len = len1 + len2;
           if (len > 0) ++len;
-          pos[1] = len;
+          pos[1] = static_cast<BYTE>(len);
           ASSERT(throwIfGreaterThanBitsAllow(len, 8))
 
           advancePos(pos, remaining, sizeof(WORD));
 
           if (len > 0) {
-            pos[0] = len1;
+            pos[0] = static_cast<BYTE>(len1);
             advancePos(pos, remaining);
             if (len1 > 0) {
               memcpy(pos, item->prefix(), len1*sizeof(BYTE));
@@ -5269,7 +5269,7 @@ namespace ortc
         {
           pos[0] = Chunk::Mid::kItemType;
           size_t len = (NULL != item->mValue ? strlen(item->mValue) : 0);
-          pos[1] = len;
+          pos[1] = static_cast<BYTE>(len);
           ASSERT(throwIfGreaterThanBitsAllow(len, 8))
 
           advancePos(pos, remaining, sizeof(WORD));
@@ -5285,7 +5285,7 @@ namespace ortc
         {
           pos[0] = item->type();
           size_t len = (NULL != item->mValue ? strlen(item->mValue) : 0);
-          pos[1] = len;
+          pos[1] = static_cast<BYTE>(len);
           ASSERT(throwIfGreaterThanBitsAllow(len, 8))
 
           advancePos(pos, remaining, sizeof(WORD));
@@ -5333,7 +5333,7 @@ namespace ortc
       if (NULL != report->reasonForLeaving()) {
         size_t len = strlen(report->reasonForLeaving());
         if (len > 0) {
-          pos[0] = len;
+          pos[0] = static_cast<BYTE>(len);
           memcpy(&(pos[1]), report->reasonForLeaving(), len*sizeof(BYTE));
           advancePos(pos, remaining, (len*sizeof(BYTE))+sizeof(BYTE));
         }
@@ -5580,7 +5580,7 @@ namespace ortc
 
             auto size = item->vbcmOctetStringSize();
             if (0 != size) {
-              RTPUtils::setBE16(&(pos[6]), size);
+              RTPUtils::setBE16(&(pos[6]), static_cast<WORD>(size));
               memcpy(&(pos[8]), item->vbcmOctetString(), size*sizeof(BYTE));
             }
 
@@ -5606,7 +5606,7 @@ namespace ortc
             DWORD merged = RTCP_PACK_BITS(static_cast<DWORD>(remb->brExp()), 0x3F, 18) |
                            RTCP_PACK_BITS(static_cast<DWORD>(remb->brMantissa()), 0x3FFFF, 0);
             RTPUtils::setBE32(&(pos[4]), merged);
-            pos[4] = remb->numSSRC();
+            pos[4] = static_cast<BYTE>(remb->numSSRC());
             advancePos(pos, remaining, sizeof(DWORD)*2);
 
             auto count = remb->numSSRC();
@@ -5814,7 +5814,7 @@ namespace ortc
         diff = boundarySize(diff);
         ZS_LOG_INSANE(packet_slog("writing XR block") + ZS_PARAM("block type", reportBlock->blockTypeToString()) + ZS_PARAM("block type (number)", reportBlock->blockType()) + ZS_PARAM("block size", diff))
 
-        RTPUtils::setBE16(&(blockStart[2]), (diff/sizeof(DWORD))-1);
+        RTPUtils::setBE16(&(blockStart[2]), static_cast<WORD>((diff/sizeof(DWORD))-1));
       }
     }
 
@@ -5934,7 +5934,7 @@ namespace ortc
         size_t headerSize = ((diff+padding)/sizeof(DWORD))-1;
         ASSERT(throwIfGreaterThanBitsAllow(headerSize, 16))
 
-        RTPUtils::setBE16(&(startOfReport[2]), headerSize);
+        RTPUtils::setBE16(&(startOfReport[2]), static_cast<WORD>(headerSize));
       }
 
       ASSERT(0 == remaining)
