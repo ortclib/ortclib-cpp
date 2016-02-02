@@ -419,6 +419,14 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    String MediaStreamTrack::deviceID() const
+    {
+#define TODO 1
+#define TODO 2
+      return String();
+    }
+
+    //-------------------------------------------------------------------------
     String MediaStreamTrack::label() const
     {
 #define TODO 1
@@ -447,6 +455,13 @@ namespace ortc
 #define TODO 1
 #define TODO 2
       return false;
+    }
+
+    //-------------------------------------------------------------------------
+    void MediaStreamTrack::muted(bool muted)
+    {
+#define TODO 1
+#define TODO 2
     }
 
     //-------------------------------------------------------------------------
@@ -1116,6 +1131,17 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
+  IMediaStreamTrackTypes::Kinds IMediaStreamTrackTypes::toKind(const char *inputStr)
+  {
+    String str(inputStr);
+    for (IMediaStreamTrackTypes::Kinds index = IMediaStreamTrackTypes::Kind_First; index <= IMediaStreamTrackTypes::Kind_Last; index = static_cast<IMediaStreamTrackTypes::Kinds>(static_cast<std::underlying_type<IMediaStreamTrackTypes::Kinds>::type>(index) + 1)) {
+      if (0 == str.compareNoCase(IMediaStreamTrackTypes::toString(index))) return index;
+    }
+    ORTC_THROW_INVALID_PARAMETERS("Invalid parameter value: " + str)
+    return IMediaStreamTrackTypes::Kind_First;
+  }
+
+  //---------------------------------------------------------------------------
   const char *IMediaStreamTrackTypes::toString(States state)
   {
     switch (state) {
@@ -1123,6 +1149,17 @@ namespace ortc
       case State_Ended:   return "ended";
     }
     return "UNDEFINED";
+  }
+
+  //---------------------------------------------------------------------------
+  IMediaStreamTrackTypes::States IMediaStreamTrackTypes::toState(const char *inputStr)
+  {
+    String str(inputStr);
+    for (IMediaStreamTrackTypes::States index = IMediaStreamTrackTypes::State_First; index <= IMediaStreamTrackTypes::State_Last; index = static_cast<IMediaStreamTrackTypes::States>(static_cast<std::underlying_type<IMediaStreamTrackTypes::States>::type>(index) + 1)) {
+      if (0 == str.compareNoCase(IMediaStreamTrackTypes::toString(index))) return index;
+    }
+    ORTC_THROW_INVALID_PARAMETERS("Invalid parameter value: " + str)
+    return IMediaStreamTrackTypes::State_First;
   }
 
   //---------------------------------------------------------------------------

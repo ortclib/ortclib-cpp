@@ -68,6 +68,7 @@ namespace ortc
     };
 
     static const char *toString(Kinds kind);
+    static Kinds toKind(const char *kind);
 
     //-------------------------------------------------------------------------
     #pragma mark
@@ -85,6 +86,7 @@ namespace ortc
     };
 
     static const char *toString(States state);
+    static States toState(const char *state);
 
     //-------------------------------------------------------------------------
     #pragma mark
@@ -255,10 +257,12 @@ namespace ortc
 
     virtual Kinds kind() const = 0;
     virtual String id() const = 0;
+    virtual String deviceID() const = 0;  // created based om which original media device ID (only applicable if created from a device)
     virtual String label() const = 0;
     virtual bool enabled() const = 0;
     virtual void enabled(bool enabled) = 0;
     virtual bool muted() const = 0;
+    virtual void muted(bool muted) = 0;
     virtual bool readOnly() const = 0;
     virtual bool remote() const = 0;
     virtual States readyState() const = 0;
