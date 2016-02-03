@@ -495,15 +495,15 @@ namespace ortc
 
         const UINT sampleRate = 48000;
         const UINT waveFrequency = 5000;
-        const FLOAT pi = 3.14159265;
+        const FLOAT pi = static_cast<FLOAT>(3.14159265);
         const UINT wavePeriodInSamples = sampleRate / waveFrequency;
         SHORT* audioSamplesShort = (SHORT*)audioSamples;
 
-        for (int i = 0; i < numberOfSamples; i++)
+        for (size_t i = 0; i < numberOfSamples; ++i)
         {
           float x = float(i % wavePeriodInSamples) / float(wavePeriodInSamples) * 2 * pi;
-          audioSamplesShort[2 * i + 0] = sin(x) * SHRT_MAX;
-          audioSamplesShort[2 * i + 1] = sin(x) * SHRT_MAX;
+          audioSamplesShort[2 * i + 0] = static_cast<SHORT>(sin(x) * SHRT_MAX);
+          audioSamplesShort[2 * i + 1] = static_cast<SHORT>(sin(x) * SHRT_MAX);
         }
         numberOfSamplesOut = numberOfSamples;
 

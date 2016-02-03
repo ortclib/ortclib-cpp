@@ -1204,7 +1204,7 @@ namespace ortc
         newProfilePos[1] = 0xDE;
       }
 
-      WORD totalDWORDsLength = ((mHeaderExtensionSize - sizeof(DWORD)) / sizeof(DWORD));
+      WORD totalDWORDsLength = static_cast<WORD>(((mHeaderExtensionSize - sizeof(DWORD)) / sizeof(DWORD)));
       newProfilePos[2] = static_cast<BYTE>((totalDWORDsLength & 0xFF00) >> 8);
       newProfilePos[3] = static_cast<BYTE>(totalDWORDsLength & 0xFF);
 
@@ -1224,7 +1224,7 @@ namespace ortc
 
         if (twoByteHeader) {
           pos[0] = current->mID;
-          pos[1] = current->mDataSizeInBytes;
+          pos[1] = static_cast<BYTE>(current->mDataSizeInBytes);
           pos += 2;
         } else {
           pos[0] = ((current->mID) << 4) | ((current->mDataSizeInBytes - 1) & 0xF);

@@ -419,10 +419,12 @@ namespace ortc
 
       virtual Kinds kind() const override;
       virtual String id() const override;
+      virtual String deviceID() const override;
       virtual String label() const override;
       virtual bool enabled() const override;
-      virtual void enabeld(bool enabled) override;
+      virtual void enabled(bool enabled) override;
       virtual bool muted() const override;
+      virtual void muted(bool muted) override;
       virtual bool readOnly() const override;
       virtual bool remote() const override;
       virtual States readyState() const override;

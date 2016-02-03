@@ -96,7 +96,7 @@ namespace ortc
       FilterPolicy_NoIPv6Permanent     = 0x00004000,
       FilterPolicy_NoIPv6              = 0x0000FF00,
       FilterPolicy_NoHost              = (FilterPolicy_NoIPv4Host | FilterPolicy_NoIPv6Host),
-      FilterPolicy_NoSrflx             = (FilterPolicy_NoIPv4Srflx | FilterPolicy_NoIPv4Srflx),
+      FilterPolicy_NoSrflx             = (FilterPolicy_NoIPv4Srflx | FilterPolicy_NoIPv6Srflx),
       FilterPolicy_NoPrflx             = (FilterPolicy_NoIPv4Prflx | FilterPolicy_NoIPv6Prflx),
       FilterPolicy_NoRelay             = (FilterPolicy_NoIPv4Relay | FilterPolicy_NoIPv6Relay),
       FilterPolicy_NoPrivate           = (FilterPolicy_NoIPv4Private | FilterPolicy_NoIPv6Private),
