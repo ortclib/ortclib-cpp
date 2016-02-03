@@ -134,10 +134,11 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <PrecompiledHeader>Use</PrecompiledHeader>
-      <CompileAsWinRT>false</CompileAsWinRT>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <CompileAsWinRT>true</CompileAsWinRT>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>USE_OPENSSL=1;NOMINMAX;WEBRTC_WIN;WEBRTC_INCLUDE_INTERNAL_AUDIO_DEVICE;_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)\..\..\..\..;$(ProjectDir)\..\..\..\..\..\zsLib;$(ProjectDir)\..\..\..\..\..\op-services-cpp;$(ProjectDir)\..\..\..\..\..\webrtc-deps\boringssl\include;$(ProjectDir)\..\..\..\..\..;$(ProjectDir)\..\..\..\..\..\webrtc;$(ProjectDir)\..\..\..\..\..\webrtc\third_party\libsrtp\config;$(ProjectDir)\..\..\..\..\..\webrtc\third_party\libsrtp\srtp\include;$(ProjectDir)\..\..\..\..\..\webrtc\third_party\libsrtp\srtp\crypto\include;$(ProjectDir)\..\..\..\..\..\webrtc\third_party\usrsctp\usrsctplib;$(ProjectDir)\..\..\..\..\..\webrtc\webrtc\voice_engine\include;$(ProjectDir)\..\..\..\..\..\webrtc\webrtc\video_engine\include;$(ProjectDir)\..\..\..\..\..\webrtc\webrtc\modules\video_capture\include;%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -162,10 +163,11 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|arm'">
     <ClCompile>
-      <PrecompiledHeader>Use</PrecompiledHeader>
-      <CompileAsWinRT>false</CompileAsWinRT>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <CompileAsWinRT>true</CompileAsWinRT>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NOMINMAX;WEBRTC_WIN;WEBRTC_INCLUDE_INTERNAL_AUDIO_DEVICE;_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)\..\..\..\..;$(ProjectDir)\..\..\..\..\..\zsLib;$(ProjectDir)\..\..\..\..\..\op-services-cpp;$(ProjectDir)\..\..\..\..\..\webrtc-deps\boringssl\include;$(ProjectDir)\..\..\..\..\..;$(ProjectDir)\..\..\..\..\..\webrtc;$(ProjectDir)\..\..\..\..\..\webrtc\third_party\libsrtp\config;$(ProjectDir)\..\..\..\..\..\webrtc\third_party\libsrtp\srtp\include;$(ProjectDir)\..\..\..\..\..\webrtc\third_party\libsrtp\srtp\crypto\include;$(ProjectDir)\..\..\..\..\..\webrtc\third_party\usrsctp\usrsctplib;$(ProjectDir)\..\..\..\..\..\webrtc\webrtc\voice_engine\include;$(ProjectDir)\..\..\..\..\..\webrtc\webrtc\video_engine\include;$(ProjectDir)\..\..\..\..\..\webrtc\webrtc\modules\video_capture\include;%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -190,10 +192,11 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <PrecompiledHeader>Use</PrecompiledHeader>
-      <CompileAsWinRT>false</CompileAsWinRT>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <CompileAsWinRT>true</CompileAsWinRT>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NOMINMAX;WEBRTC_WIN;WEBRTC_INCLUDE_INTERNAL_AUDIO_DEVICE;_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)\..\..\..\..;$(ProjectDir)\..\..\..\..\..\zsLib;$(ProjectDir)\..\..\..\..\..\op-services-cpp;$(ProjectDir)\..\..\..\..\..\webrtc-deps\boringssl\include;$(ProjectDir)\..\..\..\..\..;$(ProjectDir)\..\..\..\..\..\webrtc;$(ProjectDir)\..\..\..\..\..\webrtc\third_party\libsrtp\config;$(ProjectDir)\..\..\..\..\..\webrtc\third_party\libsrtp\srtp\include;$(ProjectDir)\..\..\..\..\..\webrtc\third_party\libsrtp\srtp\crypto\include;$(ProjectDir)\..\..\..\..\..\webrtc\third_party\usrsctp\usrsctplib;$(ProjectDir)\..\..\..\..\..\webrtc\webrtc\voice_engine\include;$(ProjectDir)\..\..\..\..\..\webrtc\webrtc\video_engine\include;$(ProjectDir)\..\..\..\..\..\webrtc\webrtc\modules\video_capture\include;%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
