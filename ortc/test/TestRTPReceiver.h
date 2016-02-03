@@ -174,6 +174,7 @@ namespace ortc
       ZS_DECLARE_USING_PTR(ortc::internal, RTPPacket)
       ZS_DECLARE_USING_PTR(ortc::internal, RTCPPacket)
       ZS_DECLARE_USING_PTR(ortc::internal, RTPReceiver)
+      ZS_DECLARE_USING_PTR(ortc::internal, MediaStreamTrack)
 
       ZS_DECLARE_CLASS_PTR(FakeICETransport)
       ZS_DECLARE_CLASS_PTR(FakeSecureTransport)
@@ -747,6 +748,7 @@ namespace ortc
 
         void create(
                     RTPReceiverPtr receiver,
+                    MediaStreamTrackPtr track,
                     const Parameters &params,
                     const RTCPPacketList &packets
                     );
@@ -789,7 +791,7 @@ namespace ortc
 
         void setTransport(RTPReceiverTesterPtr tester);
 
-        void sendPacket(RTCPPacketPtr packet);
+        bool sendPacket(RTCPPacketPtr packet);
 
         void expectState(ISecureTransport::States state);
 
@@ -1068,6 +1070,7 @@ namespace ortc
 
           virtual RTPReceiverChannelPtr create(
                                                RTPReceiverPtr receiver,
+                                               MediaStreamTrackPtr track,
                                                const Parameters &params,
                                                const RTCPPacketList &packets
                                                ) override;

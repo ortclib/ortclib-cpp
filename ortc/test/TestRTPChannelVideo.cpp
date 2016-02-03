@@ -481,22 +481,23 @@ namespace ortc
       //-----------------------------------------------------------------------
       RTPReceiverChannelVideoPtr RTPChannelVideoTester::OverrideReceiverChannelVideoFactory::create(
                                                                                                     RTPReceiverChannelPtr receiverChannel,
+                                                                                                    MediaStreamTrackPtr track,
                                                                                                     const Parameters &params
                                                                                                     )
       {
         auto tester = mTester.lock();
         TESTING_CHECK(tester)
 
-        return tester->createReceiverChannelVideo(receiverChannel, params);
+        return tester->createReceiverChannelVideo(receiverChannel, track, params);
       }
 
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-#pragma mark
-#pragma mark RTPChannelVideoTester::OverrideSenderChannelVideoFactory
-#pragma mark
+      #pragma mark
+      #pragma mark RTPChannelVideoTester::OverrideSenderChannelVideoFactory
+      #pragma mark
 
       //-----------------------------------------------------------------------
       RTPChannelVideoTester::OverrideSenderChannelVideoFactoryPtr RTPChannelVideoTester::OverrideSenderChannelVideoFactory::create(RTPChannelVideoTesterPtr tester)
@@ -509,13 +510,14 @@ namespace ortc
       //-----------------------------------------------------------------------
       RTPSenderChannelVideoPtr RTPChannelVideoTester::OverrideSenderChannelVideoFactory::create(
                                                                                                 RTPSenderChannelPtr senderChannel,
+                                                                                                MediaStreamTrackPtr track,
                                                                                                 const Parameters &params
                                                                                                 )
       {
         auto tester = mTester.lock();
         TESTING_CHECK(tester)
 
-        return tester->createSenderChannelVideo(senderChannel, params);
+        return tester->createSenderChannelVideo(senderChannel, track, params);
       }
 
       //-----------------------------------------------------------------------
@@ -681,7 +683,7 @@ namespace ortc
           TESTING_CHECK(params)
           FakeReceiverChannelPtr receiverChannel = getReceiverChannel(receiverChannelID);
           TESTING_CHECK(receiverChannel)
-          receiverChannelVideo = UseReceiverChannelVideoForReceiverChannel::create(receiverChannel, *params);
+          //receiverChannelVideo = UseReceiverChannelVideoForReceiverChannel::create(receiverChannel, track, *params);
           attach(receiverChannelVideoID, receiverChannelVideo);
         }
 
@@ -700,9 +702,9 @@ namespace ortc
         if (!senderChannelVideo) {
           auto params = getParameters(parametersID);
           TESTING_CHECK(params)
-            FakeSenderChannelPtr senderChannel = getSenderChannel(senderChannelID);
+          FakeSenderChannelPtr senderChannel = getSenderChannel(senderChannelID);
           TESTING_CHECK(senderChannel)
-            senderChannelVideo = UseSenderChannelVideoForSenderChannel::create(senderChannel, *params);
+          //senderChannelVideo = UseSenderChannelVideoForSenderChannel::create(senderChannel, track, *params);
           attach(senderChannelVideoID, senderChannelVideo);
         }
 
@@ -1140,6 +1142,7 @@ namespace ortc
       //-----------------------------------------------------------------------
       RTPReceiverChannelVideoPtr RTPChannelVideoTester::createReceiverChannelVideo(
                                                                                    RTPReceiverChannelPtr receiverChannel,
+                                                                                   MediaStreamTrackPtr track,
                                                                                    const Parameters &params
                                                                                    )
       {
@@ -1151,6 +1154,7 @@ namespace ortc
       //-----------------------------------------------------------------------
       RTPSenderChannelVideoPtr RTPChannelVideoTester::createSenderChannelVideo(
                                                                                RTPSenderChannelPtr senderChannel,
+                                                                               MediaStreamTrackPtr track,
                                                                                const Parameters &params
                                                                                )
       {
@@ -1303,9 +1307,9 @@ static void bogusSleep()
   }
 }
 
-void doTestRTPChannelVideo()
+void doTestRTPChannelVideo(void* localSurface, void* remoteSurface)
 {
-  if (!ORTC_TEST_DO_RTP_CHANNEL_AUDIO_TEST) return;
+  if (!ORTC_TEST_DO_RTP_CHANNEL_VIDEO_TEST) return;
 
   TESTING_INSTALL_LOGGER();
 

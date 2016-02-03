@@ -1342,6 +1342,7 @@ namespace ortc
       //-----------------------------------------------------------------------
       void FakeReceiverChannel::create(
                                        RTPReceiverPtr inReceiver,
+                                       MediaStreamTrackPtr track,
                                        const Parameters &params,
                                        const RTCPPacketList &packets
                                        )
@@ -1540,7 +1541,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void FakeReceiverChannel::sendPacket(RTCPPacketPtr packet)
+      bool FakeReceiverChannel::sendPacket(RTCPPacketPtr packet)
       {
         UseReceiverPtr receiver;
 
@@ -1552,6 +1553,8 @@ namespace ortc
         }
 
         receiver->sendPacket(packet);
+
+        return true;
       }
 
       //-----------------------------------------------------------------------
@@ -2003,6 +2006,7 @@ namespace ortc
       //-----------------------------------------------------------------------
       RTPReceiverChannelPtr RTPReceiverTester::OverrideReceiverChannelFactory::create(
                                                                                       RTPReceiverPtr receiver,
+                                                                                      MediaStreamTrackPtr track,
                                                                                       const Parameters &params,
                                                                                       const RTCPPacketList &packets
                                                                                       )
@@ -2804,7 +2808,7 @@ namespace ortc
 
         TESTING_CHECK(receiverChannel)
 
-        receiverChannel->create(receiver, params, packets);
+        receiverChannel->create(receiver, MediaStreamTrackPtr(), params, packets);
 
         mFakeReceiverChannelCreationList.pop_front();
 

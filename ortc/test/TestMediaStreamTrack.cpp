@@ -161,7 +161,7 @@ namespace ortc
 
             mTester.lock()->mLocalAudioMediaStreamTrack = MediaStreamTrack::convert(*trackList->begin());
 
-            mTester.lock()->mVideoSender = FakeSender::create(mTester.lock(), mTester.lock()->mLocalAudioMediaStreamTrack);
+            mTester.lock()->mAudioSender = FakeSender::create(mTester.lock(), mTester.lock()->mLocalAudioMediaStreamTrack);
           }
         }
 
@@ -895,6 +895,7 @@ namespace ortc
       //-----------------------------------------------------------------------
       RTPReceiverChannelPtr MediaStreamTrackTester::OverrideReceiverChannelFactory::create(
                                                                                            RTPReceiverPtr receiver,
+                                                                                           MediaStreamTrackPtr track,
                                                                                            const Parameters &params,
                                                                                            const RTCPPacketList &packets
                                                                                            )
@@ -902,7 +903,7 @@ namespace ortc
         auto tester = mTester.lock();
         TESTING_CHECK(tester)
 
-        return tester->create(receiver, params, packets);
+        return tester->create(receiver, track, params, packets);
       }
 
       //-----------------------------------------------------------------------
@@ -1129,6 +1130,7 @@ namespace ortc
 
       RTPReceiverChannelPtr MediaStreamTrackTester::create(
                                                            RTPReceiverPtr receiver,
+                                                           MediaStreamTrackPtr track,
                                                            const Parameters &params,
                                                            const RTCPPacketList &packets
                                                            )

@@ -550,6 +550,7 @@ namespace ortc
 
           virtual RTPReceiverChannelPtr create(
                                                RTPReceiverPtr receiver,
+                                               MediaStreamTrackPtr track,
                                                const Parameters &params,
                                                const RTCPPacketList &packets
                                                ) override;
@@ -662,6 +663,7 @@ namespace ortc
 
         RTPReceiverChannelPtr create(
                                      RTPReceiverPtr receiver,
+                                     MediaStreamTrackPtr track,
                                      const Parameters &params,
                                      const RTCPPacketList &packets
                                      );

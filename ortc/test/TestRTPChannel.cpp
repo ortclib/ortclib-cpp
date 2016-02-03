@@ -2667,6 +2667,7 @@ namespace ortc
       //-----------------------------------------------------------------------
       RTPReceiverChannelAudioPtr RTPChannelTester::OverrideReceiverChannelAudioFactory::create(
                                                                                                RTPReceiverChannelPtr receiverChannel,
+                                                                                               MediaStreamTrackPtr track,
                                                                                                const Parameters &params
                                                                                                )
       {
@@ -2695,6 +2696,7 @@ namespace ortc
       //-----------------------------------------------------------------------
       RTPReceiverChannelVideoPtr RTPChannelTester::OverrideReceiverChannelVideoFactory::create(
                                                                                                RTPReceiverChannelPtr receiverChannel,
+                                                                                               MediaStreamTrackPtr track,
                                                                                                const Parameters &params
                                                                                                )
       {
@@ -2723,6 +2725,7 @@ namespace ortc
       //-----------------------------------------------------------------------
       RTPSenderChannelAudioPtr RTPChannelTester::OverrideSenderChannelAudioFactory::create(
                                                                                            RTPSenderChannelPtr senderChannel,
+                                                                                           MediaStreamTrackPtr track,
                                                                                            const Parameters &params
                                                                                            )
       {
@@ -2751,6 +2754,7 @@ namespace ortc
       //-----------------------------------------------------------------------
       RTPSenderChannelVideoPtr RTPChannelTester::OverrideSenderChannelVideoFactory::create(
                                                                                            RTPSenderChannelPtr senderChannel,
+                                                                                           MediaStreamTrackPtr track,
                                                                                            const Parameters &params
                                                                                            )
       {
@@ -3762,7 +3766,7 @@ namespace ortc
         auto params = getParameters(parametersID);
         TESTING_CHECK(params)
 
-        auto receiverChannel = UseReceiverChannelForReceiver::create(receiver, *params, packets);
+        auto receiverChannel = UseReceiverChannelForReceiver::create(receiver, MediaStreamTrackPtr(), *params, packets);
 
         receiver->linkChannel(receiverChannel);
 
@@ -3927,7 +3931,7 @@ namespace ortc
         auto params = getParameters(parametersID);
         TESTING_CHECK(params)
 
-        auto senderChannel = UseSenderChannelForSender::create(sender, *params);
+          auto senderChannel = UseSenderChannelForSender::create(sender, MediaStreamTrackPtr(), *params);
 
         sender->linkChannel(senderChannel);
 

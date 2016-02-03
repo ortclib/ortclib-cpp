@@ -150,6 +150,11 @@ namespace ortc
     interaction IMediaStreamTrackForRTPSenderChannelAudio : public IMediaStreamTrackForRTPSenderChannelMediaBase
     {
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPSenderChannelAudio, ForSenderChannelAudio)
+
+      virtual webrtc::AudioDeviceModule* getAudioDeviceModule() = 0;
+
+      virtual void start() = 0;
+      virtual void stop() = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -163,6 +168,8 @@ namespace ortc
     interaction IMediaStreamTrackForRTPSenderChannelVideo : public IMediaStreamTrackForRTPSenderChannelMediaBase
     {
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPSenderChannelVideo, ForSenderChannelVideo)
+
+      virtual webrtc::AudioDeviceModule* getAudioDeviceModule() = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -231,6 +238,11 @@ namespace ortc
     interaction IMediaStreamTrackForRTPReceiverChannelAudio : public IMediaStreamTrackForRTPReceiverChannelMediabase
     {
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPReceiverChannelAudio, ForReceiverChannelAudio)
+
+      virtual webrtc::AudioDeviceModule* getAudioDeviceModule() = 0;
+
+      virtual void start() = 0;
+      virtual void stop() = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -465,6 +477,11 @@ namespace ortc
       #pragma mark MediaStreamTrack => IMediaStreamTrackForRTPSenderChannelAudio
       #pragma mark
 
+      virtual webrtc::AudioDeviceModule* getAudioDeviceModule() override;
+
+      virtual void start() override;
+      // (duplicate) virtual void stop() = 0;
+
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark MediaStreamTrack => IMediaStreamTrackForRTPSenderChannelVideo
@@ -503,6 +520,11 @@ namespace ortc
       #pragma mark
       #pragma mark MediaStreamTrack => IMediaStreamTrackForRTPReceiverChannelAudio
       #pragma mark
+
+      // (duplicate) virtual webrtc::AudioDeviceModule* getAudioDeviceModule() = 0;
+
+      // (duplicate) virtual void start() = 0;
+      // (duplicate) virtual void stop() = 0;
 
       //-----------------------------------------------------------------------
       #pragma mark

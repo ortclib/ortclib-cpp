@@ -38,6 +38,7 @@
 #include <ortc/IICETransport.h>
 #include <ortc/IDTLSTransport.h>
 #include <ortc/IRTPTypes.h>
+#include <ortc/IMediaStreamTrack.h>
 
 #include <openpeer/services/IWakeDelegate.h>
 #include <zsLib/MessageQueueAssociator.h>
@@ -97,6 +98,7 @@ namespace ortc
 
       static RTPReceiverChannelVideoPtr create(
                                                RTPReceiverChannelPtr receiver,
+                                               MediaStreamTrackPtr track,
                                                const Parameters &params
                                                );
     };
@@ -188,6 +190,7 @@ namespace ortc
                               const make_private &,
                               IMessageQueuePtr queue,
                               UseChannelPtr receiverChannel,
+                              UseMediaStreamTrackPtr track,
                               const Parameters &params
                               );
 
@@ -228,6 +231,7 @@ namespace ortc
 
       static RTPReceiverChannelVideoPtr create(
                                                RTPReceiverChannelPtr receiver,
+                                               MediaStreamTrackPtr track,
                                                const Parameters &params
                                                );
 
@@ -312,6 +316,9 @@ namespace ortc
 
       ParametersPtr mParameters;
 
+      Optional<IMediaStreamTrackTypes::Kinds> mKind;
+      UseMediaStreamTrackPtr mTrack;
+
       rtc::scoped_ptr<webrtc::ProcessThread> mModuleProcessThread;
       rtc::scoped_ptr<webrtc::VideoReceiveStream> mReceiveStream;
     };
@@ -332,6 +339,7 @@ namespace ortc
 
       virtual RTPReceiverChannelVideoPtr create(
                                                 RTPReceiverChannelPtr receiverChannel,
+                                                MediaStreamTrackPtr track,
                                                 const Parameters &params
                                                 );
     };

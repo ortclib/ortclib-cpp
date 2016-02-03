@@ -35,6 +35,7 @@
 #include <ortc/internal/ortc_RTPSenderChannelMediaBase.h>
 
 #include <ortc/IRTPTypes.h>
+#include <ortc/IMediaStreamTrack.h>
 
 #include <openpeer/services/IWakeDelegate.h>
 #include <zsLib/MessageQueueAssociator.h>
@@ -96,6 +97,7 @@ namespace ortc
 
       static RTPSenderChannelVideoPtr create(
                                              RTPSenderChannelPtr senderChannel,
+                                             MediaStreamTrackPtr track,
                                              const Parameters &params
                                              );
     };
@@ -181,6 +183,7 @@ namespace ortc
                             const make_private &,
                             IMessageQueuePtr queue,
                             UseChannelPtr senderChannel,
+                            UseMediaStreamTrackPtr track,
                             const Parameters &params
                             );
 
@@ -219,6 +222,7 @@ namespace ortc
 
       static RTPSenderChannelVideoPtr create(
                                              RTPSenderChannelPtr senderChannel,
+                                             MediaStreamTrackPtr track,
                                              const Parameters &params
                                              );
 
@@ -306,6 +310,9 @@ namespace ortc
 
       ParametersPtr mParameters;
 
+      Optional<IMediaStreamTrackTypes::Kinds> mKind;
+      UseMediaStreamTrackPtr mTrack;
+
       rtc::scoped_ptr<webrtc::ProcessThread> mModuleProcessThread;
       rtc::scoped_ptr<webrtc::VideoSendStream> mSendStream;
     };
@@ -326,6 +333,7 @@ namespace ortc
 
       virtual RTPSenderChannelVideoPtr create(
                                               RTPSenderChannelPtr sender,
+                                              MediaStreamTrackPtr track,
                                               const Parameters &params
                                               );
     };

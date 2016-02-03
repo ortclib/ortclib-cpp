@@ -38,6 +38,7 @@
 #include <ortc/IICETransport.h>
 #include <ortc/IDTLSTransport.h>
 #include <ortc/IRTPTypes.h>
+#include <ortc/IMediaStreamTrack.h>
 
 #include <openpeer/services/IWakeDelegate.h>
 #include <zsLib/MessageQueueAssociator.h>
@@ -45,6 +46,9 @@
 
 #include <webrtc/transport.h>
 #include <webrtc/audio/audio_receive_stream.h>
+#include <webrtc/video_engine/call_stats.h>
+#include <webrtc/call/congestion_controller.h>
+#include <webrtc/modules/utility/include/process_thread.h>
 
 //#define ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE "ortc/sctp/max-message-size"
 
@@ -96,8 +100,16 @@ namespace ortc
 
       static RTPReceiverChannelAudioPtr create(
                                                RTPReceiverChannelPtr receiver,
+                                               MediaStreamTrackPtr track,
                                                const Parameters &params
                                                );
+
+      virtual void getAudioSamples(
+                                   const size_t numberOfSamples,
+                                   const uint8_t numberOfChannels,
+                                   const void* audioSamples,
+                                   size_t& numberOfSamplesOut
+                                   ) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -194,6 +206,7 @@ namespace ortc
                               const make_private &,
                               IMessageQueuePtr queue,
                               UseChannelPtr receiverChannel,
+                              UseMediaStreamTrackPtr track,
                               const Parameters &params
                               );
 
@@ -234,8 +247,16 @@ namespace ortc
 
       static RTPReceiverChannelAudioPtr create(
                                                RTPReceiverChannelPtr receiver,
+                                               MediaStreamTrackPtr track,
                                                const Parameters &params
                                                );
+
+      virtual void getAudioSamples(
+                                   const size_t numberOfSamples,
+                                   const uint8_t numberOfChannels,
+                                   const void* audioSamples,
+                                   size_t& numberOfSamplesOut
+                                   ) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -317,9 +338,17 @@ namespace ortc
       UseChannelWeakPtr mReceiverChannel;
 
       ParametersPtr mParameters;
-      
+
+      Optional<IMediaStreamTrackTypes::Kinds> mKind;
+      UseMediaStreamTrackPtr mTrack;
+
+      rtc::scoped_ptr<webrtc::ProcessThread> mModuleProcessThread;
       rtc::scoped_ptr<webrtc::VoiceEngine, VoiceEngineDeleter> mVoiceEngine;
       rtc::scoped_ptr<webrtc::AudioReceiveStream> mReceiveStream;
+      rtc::scoped_ptr<webrtc::CallStats> mCallStats;
+      rtc::scoped_ptr<webrtc::CongestionController> mCongestionController;
+
+      webrtc::AudioDeviceModule* mAudioDeviceModule;
     };
 
     //-------------------------------------------------------------------------
@@ -338,6 +367,7 @@ namespace ortc
 
       virtual RTPReceiverChannelAudioPtr create(
                                                 RTPReceiverChannelPtr receiverChannel,
+                                                MediaStreamTrackPtr track,
                                                 const Parameters &params
                                                 );
     };

@@ -150,7 +150,7 @@ namespace Testing
   void passed();
   void failed();
   void output();
-  void runAllTests(void* videoSurface);
+  void runAllTests(void* videoSurface1, void* videoSurface2);
 }
 
 #define TESTING_INSTALL_LOGGER()                                             \
@@ -190,7 +190,7 @@ namespace Testing
   else                                                              \
   { std::stringstream sv1, sv2; sv1 << (xValue1); sv2 << (xValue2); TESTING_STDOUT() << "PASSED:       " #xValue1 " == " #xValue2 ", V1=" << (sv1.str().c_str()) << ", V2=" << (sv2.str().c_str()) << "\n"; Testing::passed(); }
 
-#define TESTING_RUN_TEST_FUNC(xTestCase) \
+#define TESTING_RUN_TEST_FUNC_0(xTestCase) \
 {                                                               \
   std::cout << "STARTING:     " #xTestCase "\n";                \
   try                                                           \
@@ -204,7 +204,17 @@ namespace Testing
 {                                                               \
   std::cout << "STARTING:     " #xTestCase "\n";                \
   try                                                           \
-  { xTestCase(xValue); }                                              \
+  { xTestCase(xValue); }                                        \
+  catch(...)                                                    \
+  { TESTING_STDOUT() << "***UNCAUGHT EXCEPTION IN***: " #xTestCase "\n"; Testing::failed(); }   \
+  TESTING_STDOUT() << "ENDING:       " #xTestCase "\n\n";              \
+}                                                               \
+
+#define TESTING_RUN_TEST_FUNC_2(xTestCase, xValue1, xValue2) \
+{                                                               \
+  std::cout << "STARTING:     " #xTestCase "\n";                \
+  try                                                           \
+  { xTestCase(xValue1, xValue2); }                              \
   catch(...)                                                    \
   { TESTING_STDOUT() << "***UNCAUGHT EXCEPTION IN***: " #xTestCase "\n"; Testing::failed(); }   \
   TESTING_STDOUT() << "ENDING:       " #xTestCase "\n\n";              \

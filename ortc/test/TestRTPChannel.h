@@ -1449,6 +1449,7 @@ namespace ortc
 
           virtual RTPReceiverChannelAudioPtr create(
                                                     RTPReceiverChannelPtr receiverChannel,
+                                                    MediaStreamTrackPtr track,
                                                     const Parameters &params
                                                     ) override;
 
@@ -1468,6 +1469,7 @@ namespace ortc
 
           virtual RTPReceiverChannelVideoPtr create(
                                                     RTPReceiverChannelPtr receiverChannel,
+                                                    MediaStreamTrackPtr track,
                                                     const Parameters &params
                                                     ) override;
 
@@ -1487,6 +1489,7 @@ namespace ortc
 
           virtual RTPSenderChannelAudioPtr create(
                                                     RTPSenderChannelPtr senderChannel,
+                                                    MediaStreamTrackPtr track,
                                                     const Parameters &params
                                                     ) override;
 
@@ -1506,6 +1509,7 @@ namespace ortc
 
           virtual RTPSenderChannelVideoPtr create(
                                                   RTPSenderChannelPtr sender,
+                                                  MediaStreamTrackPtr track,
                                                   const Parameters &params
                                                   ) override;
 

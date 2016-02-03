@@ -66,6 +66,8 @@ void doTestSRTP();
 void doTestICEGatherer();
 void doTestICETransport();
 void doTestMediaStreamTrack(void* videoSurface);
+void doTestRTPChannelAudio();
+void doTestRTPChannelVideo(void* localSurface, void* remoteSurface);
 
 namespace Testing
 {
@@ -155,7 +157,7 @@ namespace Testing
     }
   }
 
-  void runAllTests(void* videoSurface)
+  void runAllTests(void* videoSurface1, void* videoSurface2)
   {
     srand(static_cast<signed int>(time(NULL)));
 
@@ -163,18 +165,20 @@ namespace Testing
 
     doSetup();
 
-    TESTING_RUN_TEST_FUNC(doTestRTPChannel)
-    TESTING_RUN_TEST_FUNC(doTestRTPSender)
-    TESTING_RUN_TEST_FUNC(doTestRTPReceiver)
-    TESTING_RUN_TEST_FUNC(doTestRTPListener)
-    TESTING_RUN_TEST_FUNC(doTestRTPPacket)
-    TESTING_RUN_TEST_FUNC(doTestRTCPPacket)
-    TESTING_RUN_TEST_FUNC(doTestSCTP)
-    TESTING_RUN_TEST_FUNC(doTestSRTP)
-    TESTING_RUN_TEST_FUNC(doTestDTLS)
-    TESTING_RUN_TEST_FUNC(doTestICEGatherer)
-    TESTING_RUN_TEST_FUNC(doTestICETransport)
-    TESTING_RUN_TEST_FUNC_1(doTestMediaStreamTrack, videoSurface)
+    TESTING_RUN_TEST_FUNC_0(doTestRTPChannel)
+    TESTING_RUN_TEST_FUNC_0(doTestRTPSender)
+    TESTING_RUN_TEST_FUNC_0(doTestRTPReceiver)
+    TESTING_RUN_TEST_FUNC_0(doTestRTPListener)
+    TESTING_RUN_TEST_FUNC_0(doTestRTPPacket)
+    TESTING_RUN_TEST_FUNC_0(doTestRTCPPacket)
+    TESTING_RUN_TEST_FUNC_0(doTestSCTP)
+    TESTING_RUN_TEST_FUNC_0(doTestSRTP)
+    TESTING_RUN_TEST_FUNC_0(doTestDTLS)
+    TESTING_RUN_TEST_FUNC_0(doTestICEGatherer)
+    TESTING_RUN_TEST_FUNC_0(doTestICETransport)
+    TESTING_RUN_TEST_FUNC_1(doTestMediaStreamTrack, videoSurface1)
+    TESTING_RUN_TEST_FUNC_0(doTestRTPChannelAudio)
+    TESTING_RUN_TEST_FUNC_2(doTestRTPChannelVideo, videoSurface1, videoSurface2)
 
     TESTING_UNINSTALL_LOGGER()
   }

@@ -113,11 +113,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     RTPReceiverChannelPtr IRTPReceiverChannelForRTPReceiver::create(
                                                                     RTPReceiverPtr receiver,
+                                                                    MediaStreamTrackPtr track,
                                                                     const Parameters &params,
                                                                     const RTCPPacketList &packets
                                                                     )
     {
-      return internal::IRTPReceiverChannelFactory::singleton().create(receiver, params, packets);
+      return internal::IRTPReceiverChannelFactory::singleton().create(receiver, track, params, packets);
     }
 
     //-------------------------------------------------------------------------
@@ -161,11 +162,13 @@ namespace ortc
                                            const make_private &,
                                            IMessageQueuePtr queue,
                                            UseReceiverPtr receiver,
+                                           UseMediaStreamTrackPtr track,
                                            const Parameters &params
                                            ) :
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
       mReceiver(receiver),
+      mTrack(track),
       mParameters(make_shared<Parameters>(params))
     {
       ZS_LOG_DETAIL(debug("created"))
@@ -246,11 +249,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     RTPReceiverChannelPtr RTPReceiverChannel::create(
                                                      RTPReceiverPtr receiver,
+                                                     MediaStreamTrackPtr track,
                                                      const Parameters &params,
                                                      const RTCPPacketList &packets
                                                      )
     {
-      RTPReceiverChannelPtr pThis(make_shared<RTPReceiverChannel>(make_private {}, IORTCForInternal::queueORTC(), receiver, params));
+      RTPReceiverChannelPtr pThis(make_shared<RTPReceiverChannel>(make_private {}, IORTCForInternal::queueORTC(), receiver, track, params));
       pThis->mThisWeak = pThis;
       pThis->init(packets);
       return pThis;
@@ -333,6 +337,11 @@ namespace ortc
     #pragma mark RTPReceiverChannel => ForRTPReceiverChannelAudio
     #pragma mark
 
+    bool RTPReceiverChannel::sendPacket(RTCPPacketPtr packet)
+    {
+      return false;
+    }
+
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -357,7 +366,6 @@ namespace ortc
                                              size_t& numberOfSamplesOut
                                              )
     {
-
     }
 
     //-------------------------------------------------------------------------
@@ -642,12 +650,13 @@ namespace ortc
     //-------------------------------------------------------------------------
     RTPReceiverChannelPtr IRTPReceiverChannelFactory::create(
                                                              RTPReceiverPtr receiver,
+                                                             MediaStreamTrackPtr track,
                                                              const Parameters &params,
                                                              const RTCPPacketList &packets
                                                              )
     {
       if (this) {}
-      return internal::RTPReceiverChannel::create(receiver, params, packets);
+      return internal::RTPReceiverChannel::create(receiver, track, params, packets);
     }
 
   } // internal namespace

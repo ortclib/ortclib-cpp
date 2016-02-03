@@ -48,12 +48,6 @@
 
 #include <cryptopp/sha.h>
 
-//#include <webrtc/modules/rtp_rtcp/interface/rtp_header_parser.h>
-//#include <webrtc/modules/rtp_rtcp/source/byte_io.h>
-//#include <webrtc/video/video_receive_stream.h>
-//#include <webrtc/video_renderer.h>
-
-
 #ifdef _DEBUG
 #define ASSERT(x) ZS_THROW_BAD_STATE_IF(!(x))
 #else
@@ -115,10 +109,11 @@ namespace ortc
     //-------------------------------------------------------------------------
     RTPReceiverChannelVideoPtr IRTPReceiverChannelVideoForRTPReceiverChannel::create(
                                                                                      RTPReceiverChannelPtr receiverChannel,
+                                                                                     MediaStreamTrackPtr track,
                                                                                      const Parameters &params
                                                                                      )
     {
-      return internal::IRTPReceiverChannelVideoFactory::singleton().create(receiverChannel, params);
+      return internal::IRTPReceiverChannelVideoFactory::singleton().create(receiverChannel, track, params);
     }
 
     //-------------------------------------------------------------------------
@@ -162,11 +157,13 @@ namespace ortc
                                                      const make_private &,
                                                      IMessageQueuePtr queue,
                                                      UseChannelPtr receiverChannel,
+                                                     UseMediaStreamTrackPtr track,
                                                      const Parameters &params
                                                      ) :
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
       mReceiverChannel(receiverChannel),
+      mTrack(track),
       mParameters(make_shared<Parameters>(params))
     {
       ZS_LOG_DETAIL(debug("created"))
@@ -303,10 +300,11 @@ namespace ortc
     //-------------------------------------------------------------------------
     RTPReceiverChannelVideoPtr RTPReceiverChannelVideo::create(
                                                                RTPReceiverChannelPtr receiverChannel,
+                                                               MediaStreamTrackPtr track,
                                                                const Parameters &params
                                                                )
     {
-      RTPReceiverChannelVideoPtr pThis(make_shared<RTPReceiverChannelVideo>(make_private {}, IORTCForInternal::queueORTC(), receiverChannel, params));
+      RTPReceiverChannelVideoPtr pThis(make_shared<RTPReceiverChannelVideo>(make_private {}, IORTCForInternal::queueORTC(), receiverChannel, track, params));
       pThis->mThisWeak = pThis;
       pThis->init();
       return pThis;
@@ -560,11 +558,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     RTPReceiverChannelVideoPtr IRTPReceiverChannelVideoFactory::create(
                                                                        RTPReceiverChannelPtr receiverChannel,
+                                                                       MediaStreamTrackPtr track,
                                                                        const Parameters &params
                                                                        )
     {
       if (this) {}
-      return internal::RTPReceiverChannelVideo::create(receiverChannel, params);
+      return internal::RTPReceiverChannelVideo::create(receiverChannel, track, params);
     }
 
   } // internal namespace

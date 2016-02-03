@@ -32,6 +32,7 @@
 #include <ortc/internal/ortc_RTPSenderChannelAudio.h>
 #include <ortc/internal/ortc_RTPSenderChannel.h>
 #include <ortc/internal/ortc_MediaStreamTrack.h>
+#include <ortc/internal/ortc_RTPPacket.h>
 #include <ortc/internal/ortc_RTCPPacket.h>
 #include <ortc/internal/ortc_ORTC.h>
 #include <ortc/internal/platform.h>
@@ -46,9 +47,9 @@
 
 #include <cryptopp/sha.h>
 
-//#include <webrtc/modules/rtp_rtcp/interface/rtp_header_parser.h>
-//#include <webrtc/video/video_send_stream.h>
-
+#include <webrtc/voice_engine/include/voe_codec.h>
+#include <webrtc/voice_engine/include/voe_rtp_rtcp.h>
+#include <webrtc/voice_engine/include/voe_network.h>
 
 #ifdef _DEBUG
 #define ASSERT(x) ZS_THROW_BAD_STATE_IF(!(x))
@@ -103,10 +104,11 @@ namespace ortc
     //-------------------------------------------------------------------------
     RTPSenderChannelAudioPtr IRTPSenderChannelAudioForRTPSenderChannel::create(
                                                                                RTPSenderChannelPtr senderChannel,
+                                                                               MediaStreamTrackPtr track,
                                                                                const Parameters &params
                                                                                )
     {
-      return internal::IRTPSenderChannelAudioFactory::singleton().create(senderChannel, params);
+      return internal::IRTPSenderChannelAudioFactory::singleton().create(senderChannel, track, params);
     }
 
     //-------------------------------------------------------------------------
@@ -134,11 +136,13 @@ namespace ortc
                                                  const make_private &,
                                                  IMessageQueuePtr queue,
                                                  UseChannelPtr senderChannel,
+                                                 UseMediaStreamTrackPtr track,
                                                  const Parameters &params
                                                  ) :
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
       mSenderChannel(senderChannel),
+      mTrack(track),
       mParameters(make_shared<Parameters>(params))
     {
       ZS_LOG_DETAIL(debug("created"))
@@ -154,7 +158,12 @@ namespace ortc
 
       mVoiceEngine = rtc::scoped_ptr<webrtc::VoiceEngine, VoiceEngineDeleter>(webrtc::VoiceEngine::Create());
 
+      webrtc::VoEBase::GetInterface(mVoiceEngine.get())->Init(mTrack->getAudioDeviceModule());
+
       int channel = webrtc::VoEBase::GetInterface(mVoiceEngine.get())->CreateChannel();
+      webrtc::VoERTP_RTCP::GetInterface(mVoiceEngine.get())->SetRTCPStatus(channel, true);
+      webrtc::VoERTP_RTCP::GetInterface(mVoiceEngine.get())->SetLocalSSRC(channel, 1000);
+      webrtc::VoERTP_RTCP::GetInterface(mVoiceEngine.get())->SetRTCP_CNAME(channel, "test-cname");
 
       webrtc::AudioSendStream::Config config(this);
       config.voe_channel_id = channel;
@@ -165,12 +174,35 @@ namespace ortc
                                                 config,
                                                 mVoiceEngine.get()
                                                 ));
+
+      webrtc::CodecInst opusCodec;
+      int ncodecs = webrtc::VoECodec::GetInterface(mVoiceEngine.get())->NumOfCodecs();
+      for (int i = 0; i < ncodecs; ++i) {
+        webrtc::CodecInst codec;
+        webrtc::VoECodec::GetInterface(mVoiceEngine.get())->GetCodec(i, codec);
+        if (_stricmp(codec.plname, "opus") == 0) {
+          opusCodec = codec;
+          break;
+        }
+      }
+
+      webrtc::VoECodec::GetInterface(mVoiceEngine.get())->SetSendCodec(channel, opusCodec);
+
+      webrtc::VoENetwork::GetInterface(mVoiceEngine.get())->RegisterExternalTransport(channel, *this);
+
+      mTrack->start();
+
+      webrtc::VoEBase::GetInterface(mVoiceEngine.get())->StartSend(channel);
     }
 
     //-------------------------------------------------------------------------
     RTPSenderChannelAudio::~RTPSenderChannelAudio()
     {
       if (isNoop()) return;
+
+      webrtc::VoEBase::GetInterface(mVoiceEngine.get())->StopSend(0);
+
+      mTrack->stop();
 
       ZS_LOG_DETAIL(log("destroyed"))
       mThisWeak.reset();
@@ -219,11 +251,10 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool RTPSenderChannelAudio::handlePacket(RTCPPacketPtr packet)
     {
-#define TODO 1
-#define TODO 2
       {
         AutoRecursiveLock lock(*this);
       }
+      mSendStream->DeliverRtcp(packet->buffer()->data(), packet->buffer()->size());
       return false;
     }
 
@@ -238,13 +269,24 @@ namespace ortc
     //-------------------------------------------------------------------------
     RTPSenderChannelAudioPtr RTPSenderChannelAudio::create(
                                                            RTPSenderChannelPtr senderChannel,
+                                                           MediaStreamTrackPtr track,
                                                            const Parameters &params
                                                            )
     {
-      RTPSenderChannelAudioPtr pThis(make_shared<RTPSenderChannelAudio>(make_private {}, IORTCForInternal::queueORTC(), senderChannel, params));
+      RTPSenderChannelAudioPtr pThis(make_shared<RTPSenderChannelAudio>(make_private {}, IORTCForInternal::queueORTC(), senderChannel, track, params));
       pThis->mThisWeak = pThis;
       pThis->init();
       return pThis;
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPSenderChannelAudio::sendAudioSamples(
+                                                 const void* audioSamples,
+                                                 const size_t numberOfSamples,
+                                                 const uint8_t numberOfChannels
+                                                 )
+    {
+
     }
 
     //-------------------------------------------------------------------------
@@ -252,17 +294,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark RTPSenderChannelAudio => IRTPSenderChannelMediaBaseForMediaStreamTrack
-    #pragma mark
-    
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
     #pragma mark RTPSenderChannelAudio => IRTPSenderChannelAudioForMediaStreamTrack
     #pragma mark
-    
+
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -320,11 +354,13 @@ namespace ortc
                                          const webrtc::PacketOptions& options
                                          )
     {
+      mSenderChannel.lock()->sendPacket(RTPPacket::create(packet, length));
       return true;
     }
 
     bool  RTPSenderChannelAudio::SendRtcp(const uint8_t* packet, size_t length)
     {
+      mSenderChannel.lock()->sendPacket(RTCPPacket::create(packet, length));
       return true;
     }
 
@@ -511,11 +547,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     RTPSenderChannelAudioPtr IRTPSenderChannelAudioFactory::create(
                                                                    RTPSenderChannelPtr senderChannel,
+                                                                   MediaStreamTrackPtr track,
                                                                    const Parameters &params
                                                                    )
     {
       if (this) {}
-      return internal::RTPSenderChannelAudio::create(senderChannel, params);
+      return internal::RTPSenderChannelAudio::create(senderChannel, track, params);
     }
 
   } // internal namespace

@@ -2874,7 +2874,7 @@ namespace ortc
           ChannelHolderPtr channelHolder(make_shared<ChannelHolder>());
           channelHolder->mHolder = mThisWeak.lock();
           channelHolder->mChannelInfo = channelInfo;
-          channelHolder->mChannel = UseChannel::create(mThisWeak.lock(), *(channelInfo->mOriginalParameters), historicalPackets);
+          channelHolder->mChannel = UseChannel::create(mThisWeak.lock(), MediaStreamTrack::convert(mTrack), *(channelInfo->mOriginalParameters), historicalPackets);
           channelHolder->notify(mLastReportedTransportStateToChannels);
 
           channelInfo->mChannelHolder = channelHolder;
@@ -2960,7 +2960,7 @@ namespace ortc
 
       ioChannelHolder->mHolder = mThisWeak.lock();
       ioChannelHolder->mChannelInfo = channelInfo;
-      ioChannelHolder->mChannel = UseChannel::create(mThisWeak.lock(), *(channelInfo->mOriginalParameters), historicalPackets);
+      ioChannelHolder->mChannel = UseChannel::create(mThisWeak.lock(), MediaStreamTrack::convert(mTrack), *(channelInfo->mOriginalParameters), historicalPackets);
       ioChannelHolder->notify(mLastReportedTransportStateToChannels);
 
       channelInfo->mChannelHolder = ioChannelHolder;

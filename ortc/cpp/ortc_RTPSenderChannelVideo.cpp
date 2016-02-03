@@ -46,6 +46,8 @@
 
 #include <cryptopp/sha.h>
 
+#include <webrtc/system_wrappers/include/cpu_info.h>
+
 #ifdef _DEBUG
 #define ASSERT(x) ZS_THROW_BAD_STATE_IF(!(x))
 #else
@@ -99,10 +101,11 @@ namespace ortc
     //-------------------------------------------------------------------------
     RTPSenderChannelVideoPtr IRTPSenderChannelVideoForRTPSenderChannel::create(
                                                                                RTPSenderChannelPtr senderChannel,
+                                                                               MediaStreamTrackPtr track,
                                                                                const Parameters &params
                                                                                )
     {
-      return internal::IRTPSenderChannelVideoFactory::singleton().create(senderChannel, params);
+      return internal::IRTPSenderChannelVideoFactory::singleton().create(senderChannel, track, params);
     }
 
     //-------------------------------------------------------------------------
@@ -130,11 +133,13 @@ namespace ortc
                                                  const make_private &,
                                                  IMessageQueuePtr queue,
                                                  UseChannelPtr senderChannel,
+                                                 UseMediaStreamTrackPtr track,
                                                  const Parameters &params
                                                  ) :
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
       mSenderChannel(senderChannel),
+      mTrack(track),
       mParameters(make_shared<Parameters>(params)),
       mModuleProcessThread(webrtc::ProcessThread::Create("RTPSenderChannelVideoThread"))
     {
@@ -151,7 +156,7 @@ namespace ortc
 
       mModuleProcessThread->Start();
 
-      int numCpuCores = 2;
+      int numCpuCores = webrtc::CpuInfo::DetectNumberOfCores();
       webrtc::VideoSendStream::Config config(this);
       webrtc::VideoEncoderConfig encoderConfig;
       std::map<uint32_t, webrtc::RtpState> suspendedSSRCs;
@@ -269,10 +274,11 @@ namespace ortc
     //-------------------------------------------------------------------------
     RTPSenderChannelVideoPtr RTPSenderChannelVideo::create(
                                                            RTPSenderChannelPtr senderChannel,
+                                                           MediaStreamTrackPtr track,
                                                            const Parameters &params
                                                            )
     {
-      RTPSenderChannelVideoPtr pThis(make_shared<RTPSenderChannelVideo>(make_private {}, IORTCForInternal::queueORTC(), senderChannel, params));
+      RTPSenderChannelVideoPtr pThis(make_shared<RTPSenderChannelVideo>(make_private {}, IORTCForInternal::queueORTC(), senderChannel, track, params));
       pThis->mThisWeak = pThis;
       pThis->init();
       return pThis;
@@ -542,11 +548,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     RTPSenderChannelVideoPtr IRTPSenderChannelVideoFactory::create(
                                                                    RTPSenderChannelPtr senderChannel,
+                                                                   MediaStreamTrackPtr track,
                                                                    const Parameters &params
                                                                    )
     {
       if (this) {}
-      return internal::RTPSenderChannelVideo::create(senderChannel, params);
+      return internal::RTPSenderChannelVideo::create(senderChannel, track, params);
     }
 
   } // internal namespace

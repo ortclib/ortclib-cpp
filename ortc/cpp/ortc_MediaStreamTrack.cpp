@@ -607,6 +607,16 @@ namespace ortc
     #pragma mark MediaStreamTrack => IMediaStreamTrackForRTPSenderChannelAudio
     #pragma mark
 
+    webrtc::AudioDeviceModule* MediaStreamTrack::getAudioDeviceModule()
+    {
+      return mAudioDeviceModule;
+    }
+
+    void MediaStreamTrack::start()
+    {
+
+    }
+
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------

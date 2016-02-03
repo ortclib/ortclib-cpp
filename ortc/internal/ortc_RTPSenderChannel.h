@@ -37,6 +37,7 @@
 #include <ortc/IDTLSTransport.h>
 #include <ortc/IICETransport.h>
 #include <ortc/IRTPTypes.h>
+#include <ortc/IMediaStreamTrack.h>
 
 #include <openpeer/services/IWakeDelegate.h>
 #include <zsLib/MessageQueueAssociator.h>
@@ -100,6 +101,7 @@ namespace ortc
 
       static RTPSenderChannelPtr create(
                                         RTPSenderPtr sender,
+                                        MediaStreamTrackPtr track,
                                         const Parameters &params
                                         );
 
@@ -140,6 +142,10 @@ namespace ortc
     interaction IRTPSenderChannelForRTPSenderChannelAudio : public IRTPSenderChannelForRTPSenderChannelMediaBase
     {
       ZS_DECLARE_TYPEDEF_PTR(IRTPSenderChannelForRTPSenderChannelAudio, ForRTPSenderChannelAudio)
+
+      virtual bool sendPacket(RTPPacketPtr packet) = 0;
+
+      virtual bool sendPacket(RTCPPacketPtr packet) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -171,10 +177,10 @@ namespace ortc
 
       virtual PUID getID() const = 0;
 
-        virtual void sendVideoFrame(
-                                    const uint8_t* videoFrame,
-                                    const size_t videoFrameSize
-                                    ) = 0;
+      virtual void sendVideoFrame(
+                                  const uint8_t* videoFrame,
+                                  const size_t videoFrameSize
+                                  ) = 0;
 
       virtual void sendAudioSamples(
                                     const void* audioSamples,
@@ -262,6 +268,7 @@ namespace ortc
                        const make_private &,
                        IMessageQueuePtr queue,
                        UseSenderPtr sender,
+                       UseMediaStreamTrackPtr track,
                        const Parameters &params
                        );
 
@@ -295,6 +302,7 @@ namespace ortc
 
       static RTPSenderChannelPtr create(
                                         RTPSenderPtr sender,
+                                        MediaStreamTrackPtr track,
                                         const Parameters &params
                                         );
 
@@ -319,6 +327,10 @@ namespace ortc
       #pragma mark
       #pragma mark RTPSenderChannel => IRTPSenderChannelForRTPSenderChannelAudio
       #pragma mark
+
+      virtual bool sendPacket(RTPPacketPtr packet) override;
+
+      virtual bool sendPacket(RTCPPacketPtr packet) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -412,6 +424,9 @@ namespace ortc
 
       ParametersPtr mParameters;
 
+      Optional<IMediaStreamTrackTypes::Kinds> mKind;
+      UseMediaStreamTrackPtr mTrack;
+
       //UseMediaBasePtr mMediaBase; // valid
       //UseAudioPtr mAudio; // either
       //UseVideoPtr mVideo; // or valid
@@ -433,6 +448,7 @@ namespace ortc
 
       virtual RTPSenderChannelPtr create(
                                          RTPSenderPtr sender,
+                                         MediaStreamTrackPtr track,
                                          const Parameters &params
                                          );
     };

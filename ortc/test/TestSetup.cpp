@@ -107,9 +107,9 @@ namespace ortc
         //---------------------------------------------------------------------
         TestSetup()
         {
-          calculateInterfaces_ifaddr();
-          calculateInterfaces_Win32();
-          calculateInterfaces_WinRT();
+          //calculateInterfaces_ifaddr();
+          //calculateInterfaces_Win32();
+          //calculateInterfaces_WinRT();
 
           UseSettings::setUInt("tester/total-host-ips", mTotalHostIPs);
         }

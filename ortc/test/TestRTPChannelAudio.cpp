@@ -44,6 +44,10 @@
 #include "config.h"
 #include "testing.h"
 
+#include <webrtc/base/logging.h>
+#include <webrtc/system_wrappers/include/trace.h>
+#include <webrtc/modules/audio_device/audio_device_impl.h>
+
 namespace ortc { namespace test { ZS_DECLARE_SUBSYSTEM(ortc_test) } }
 
 using zsLib::String;
@@ -53,6 +57,7 @@ using zsLib::IMessageQueue;
 using zsLib::Log;
 using zsLib::AutoPUID;
 using zsLib::AutoRecursiveLock;
+using zsLib::IPromiseResolutionDelegate;
 using namespace zsLib::XML;
 
 ZS_DECLARE_TYPEDEF_PTR(ortc::ISettings, UseSettings)
@@ -76,7 +81,44 @@ namespace ortc
       ZS_DECLARE_USING_PTR(ortc::internal, RTPSenderChannelAudio)
       
       using zsLib::AutoRecursiveLock;
-      
+
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark WebRtcTraceCallback
+      #pragma mark
+
+      class WebRtcTraceCallback : public webrtc::TraceCallback
+      {
+      public:
+
+        virtual void Print(webrtc::TraceLevel level, const char* message, int length)
+        {
+          rtc::LoggingSeverity sev = rtc::LS_VERBOSE;
+          if (level == webrtc::kTraceError || level == webrtc::kTraceCritical)
+            sev = rtc::LS_ERROR;
+          else if (level == webrtc::kTraceWarning)
+            sev = rtc::LS_WARNING;
+          else if (level == webrtc::kTraceStateInfo || level == webrtc::kTraceInfo)
+            sev = rtc::LS_INFO;
+          else if (level == webrtc::kTraceTerseInfo)
+            sev = rtc::LS_INFO;
+
+          // Skip past boilerplate prefix text
+          if (length < 72) {
+            std::string msg(message, length);
+            LOG(LS_ERROR) << "Malformed webrtc log message: ";
+            LOG_V(sev) << msg;
+          }
+          else {
+            std::string msg(message + 71, length - 72);
+            LOG_V(sev) << "webrtc: " << msg;
+          }
+        }
+      };
+
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
@@ -86,23 +128,42 @@ namespace ortc
       #pragma mark
       
       //-----------------------------------------------------------------------
-      FakeMediaStreamTrack::FakeMediaStreamTrack(
-                                                 IMessageQueuePtr queue,
-                                                 UseReceiverChannelAudioPtr receiverChannelAudio
-                                                 ) :
+      FakeMediaStreamTrack::FakeMediaStreamTrack(IMessageQueuePtr queue, bool remote) :
         MediaStreamTrack(Noop(true), queue),
-        mReceiverChannelAudio(receiverChannelAudio)
+        mRemote(remote)
       {
-      }
-      
-      //-----------------------------------------------------------------------
-      FakeMediaStreamTrack::FakeMediaStreamTrack(
-                                                 IMessageQueuePtr queue,
-                                                 UseSenderChannelAudioPtr senderChannelAudio
-                                                 ) :
-        MediaStreamTrack(Noop(true), queue),
-        mSenderChannelAudio(senderChannelAudio)
-      {
+        mAudioDeviceModule =
+          webrtc::AudioDeviceModuleImpl::Create(1, webrtc::AudioDeviceModule::kWindowsWasapiAudio);
+        if (!mAudioDeviceModule) {
+          ZS_LOG_ERROR(Detail, log("cannot create AudioDeviceModule"))
+          return;
+        }
+
+        mAudioDeviceModule->AddRef();
+        mAudioDeviceModule->Init();
+
+        const char* recordingDeviceID = NULL;
+        const char* playoutDeviceID = NULL;
+
+        int numMics = mAudioDeviceModule->RecordingDevices();
+        for (int index = 0; index < numMics; ++index) {
+          char deviceName[webrtc::kAdmMaxDeviceNameSize];
+          char deviceGuid[webrtc::kAdmMaxGuidSize];
+          if (mAudioDeviceModule->RecordingDeviceName(index, deviceName, deviceGuid) != -1) {
+            recordingDeviceID = deviceGuid;
+            break;
+          }
+        }
+
+        int numSpeaks = mAudioDeviceModule->PlayoutDevices();
+        for (int index = 0; index < numSpeaks; ++index) {
+          char deviceName[webrtc::kAdmMaxDeviceNameSize];
+          char deviceGuid[webrtc::kAdmMaxGuidSize];
+          if (mAudioDeviceModule->PlayoutDeviceName(index, deviceName, deviceGuid) != -1) {
+            playoutDeviceID = deviceGuid;
+            break;
+          }
+        }
       }
 
       //-----------------------------------------------------------------------
@@ -110,7 +171,18 @@ namespace ortc
       {
         mThisWeak.reset();
       }
-      
+
+      //-----------------------------------------------------------------------
+      FakeMediaStreamTrackPtr FakeMediaStreamTrack::create(
+                                                           IMessageQueuePtr queue,
+                                                           bool remote
+                                                           )
+      {
+        FakeMediaStreamTrackPtr pThis(make_shared<FakeMediaStreamTrack>(queue, remote));
+        pThis->mThisWeak = pThis;
+        return pThis;
+      }
+
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
@@ -126,7 +198,84 @@ namespace ortc
       #pragma mark
       #pragma mark FakeMediaStreamTrack => IMediaStreamTrackForRTPSenderChannelAudio
       #pragma mark
-      
+
+      webrtc::AudioDeviceModule* FakeMediaStreamTrack::getAudioDeviceModule()
+      {
+        return mAudioDeviceModule;
+      }
+
+      void FakeMediaStreamTrack::start()
+      {
+        AutoRecursiveLock lock(*this);
+        if (!mRemote) {
+          mAudioDeviceModule->SetRecordingDevice(webrtc::AudioDeviceModule::kDefaultCommunicationDevice);
+          mAudioDeviceModule->InitRecording();
+          mAudioDeviceModule->StartRecording();
+        }
+        else {
+          mAudioDeviceModule->SetPlayoutDevice(webrtc::AudioDeviceModule::kDefaultCommunicationDevice);
+          mAudioDeviceModule->InitPlayout();
+          mAudioDeviceModule->StartPlayout();
+        }
+      }
+
+      void FakeMediaStreamTrack::stop()
+      {
+        AutoRecursiveLock lock(*this);
+        if (mAudioDeviceModule) {
+          if (!mRemote)
+            mAudioDeviceModule->StopRecording();
+          else
+            mAudioDeviceModule->StopPlayout();
+          mAudioDeviceModule->RegisterAudioCallback(nullptr);
+          mAudioDeviceModule->Terminate();
+        }
+      }
+
+      //-------------------------------------------------------------------------
+      //-------------------------------------------------------------------------
+      //-------------------------------------------------------------------------
+      //-------------------------------------------------------------------------
+      #pragma mark
+      #pragma mark FakeMediaStreamTrack => webrtc::AudioTransport
+      #pragma mark
+
+      //-------------------------------------------------------------------------
+      int32_t FakeMediaStreamTrack::RecordedDataIsAvailable(
+                                                            const void* audioSamples,
+                                                            const size_t nSamples,
+                                                            const size_t nBytesPerSample,
+                                                            const uint8_t nChannels,
+                                                            const uint32_t samplesPerSec,
+                                                            const uint32_t totalDelayMS,
+                                                            const int32_t clockDrift,
+                                                            const uint32_t currentMicLevel,
+                                                            const bool keyPressed,
+                                                            uint32_t& newMicLevel
+                                                            )
+      {
+        if (mSenderChannel.lock())
+          mSenderChannel.lock()->sendAudioSamples(audioSamples, nSamples, nChannels);
+        return 0;
+      }
+
+      //-------------------------------------------------------------------------
+      int32_t FakeMediaStreamTrack::NeedMorePlayData(
+                                                     const size_t nSamples,
+                                                     const size_t nBytesPerSample,
+                                                     const uint8_t nChannels,
+                                                     const uint32_t samplesPerSec,
+                                                     void* audioSamples,
+                                                     size_t& nSamplesOut,
+                                                     int64_t* elapsed_time_ms,
+                                                     int64_t* ntp_time_ms
+                                                     )
+      {
+        if (mReceiverChannel.lock())
+          mReceiverChannel.lock()->getAudioSamples(nSamples, nChannels, audioSamples, nSamplesOut);
+        return 0;
+      }
+
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
@@ -134,28 +283,6 @@ namespace ortc
       #pragma mark
       #pragma mark FakeMediaStreamTrack => (friend RTPChannelTester)
       #pragma mark
-      
-      //-----------------------------------------------------------------------
-      FakeMediaStreamTrackPtr FakeMediaStreamTrack::create(
-                                                           IMessageQueuePtr queue,
-                                                           UseReceiverChannelAudioPtr receiverChannelAudio
-                                                           )
-      {
-        FakeMediaStreamTrackPtr pThis(make_shared<FakeMediaStreamTrack>(queue, receiverChannelAudio));
-        pThis->mThisWeak = pThis;
-        return pThis;
-      }
-      
-      //-----------------------------------------------------------------------
-      FakeMediaStreamTrackPtr FakeMediaStreamTrack::create(
-                                                           IMessageQueuePtr queue,
-                                                           UseSenderChannelAudioPtr senderChannelAudio
-                                                           )
-      {
-        FakeMediaStreamTrackPtr pThis(make_shared<FakeMediaStreamTrack>(queue, senderChannelAudio));
-        pThis->mThisWeak = pThis;
-        return pThis;
-      }
 
       //-----------------------------------------------------------------------
       void FakeMediaStreamTrack::setTransport(RTPChannelAudioTesterPtr tester)
@@ -163,7 +290,35 @@ namespace ortc
         AutoRecursiveLock lock(*this);
         mTester = tester;
       }
-      
+
+      //-----------------------------------------------------------------------
+      void FakeMediaStreamTrack::linkReceiverChannel(UseReceiverChannelPtr channel)
+      {
+        AutoRecursiveLock lock(*this);
+        mReceiverChannel = channel;
+      }
+
+      //-----------------------------------------------------------------------
+      void FakeMediaStreamTrack::linkSenderChannel(UseSenderChannelPtr channel)
+      {
+        AutoRecursiveLock lock(*this);
+        mSenderChannel = channel;
+      }
+
+      //-----------------------------------------------------------------------
+      void FakeMediaStreamTrack::linkReceiverChannelAudio(UseReceiverChannelAudioPtr channelAudio)
+      {
+        AutoRecursiveLock lock(*this);
+        mReceiverChannelAudio = channelAudio;
+      }
+
+      //-----------------------------------------------------------------------
+      void FakeMediaStreamTrack::linkSenderChannelAudio(UseSenderChannelAudioPtr channelAudio)
+      {
+        AutoRecursiveLock lock(*this);
+        mSenderChannelAudio = channelAudio;
+      }
+
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
@@ -206,10 +361,12 @@ namespace ortc
       //-----------------------------------------------------------------------
       FakeReceiverChannel::FakeReceiverChannel(
                                                IMessageQueuePtr queue,
-                                               const Parameters &params
+                                               const Parameters &params,
+                                               UseMediaStreamTrackPtr track
                                                ) :
         RTPReceiverChannel(Noop(true), queue),
-        mParameters(make_shared<Parameters>(params))
+        mParameters(make_shared<Parameters>(params)),
+        mTrack(track)
       {
       }
       
@@ -222,10 +379,11 @@ namespace ortc
       //-----------------------------------------------------------------------
       FakeReceiverChannelPtr FakeReceiverChannel::create(
                                                          IMessageQueuePtr queue,
-                                                         const Parameters &params
+                                                         const Parameters &params,
+                                                         UseMediaStreamTrackPtr track
                                                          )
       {
-        FakeReceiverChannelPtr pThis(make_shared<FakeReceiverChannel>(queue, params));
+        FakeReceiverChannelPtr pThis(make_shared<FakeReceiverChannel>(queue, params, track));
         pThis->mThisWeak = pThis;
         return pThis;
       }
@@ -237,7 +395,13 @@ namespace ortc
       #pragma mark
       #pragma mark FakeReceiverChannel => IRTPReceiverForRTPReceiverChannelAudio
       #pragma mark
-      
+
+      bool FakeReceiverChannel::sendPacket(RTCPPacketPtr packet)
+      {
+        mTester.lock()->sendToConnectedTester(packet);
+        return true;
+      }
+
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
@@ -270,7 +434,8 @@ namespace ortc
                                                 size_t& numberOfSamplesOut
                                                 )
       {
-        
+        if (mReceiverChannelAudio)
+          mReceiverChannelAudio->getAudioSamples(numberOfSamples, numberOfChannels, audioSamples, numberOfSamplesOut);
       }
       
       //-----------------------------------------------------------------------
@@ -297,6 +462,20 @@ namespace ortc
       {
         AutoRecursiveLock lock(*this);
         mTrack = track;
+      }
+
+      bool FakeReceiverChannel::handlePacket(RTPPacketPtr packet)
+      {
+        if (mReceiverChannelAudio)
+          mReceiverChannelAudio->handlePacket(packet);
+        return true;
+      }
+
+      bool FakeReceiverChannel::handlePacket(RTCPPacketPtr packet)
+      {
+        if (mReceiverChannelAudio)
+          mReceiverChannelAudio->handlePacket(packet);
+        return true;
       }
 
       //-----------------------------------------------------------------------
@@ -327,10 +506,12 @@ namespace ortc
       //-----------------------------------------------------------------------
       FakeSenderChannel::FakeSenderChannel(
                                            IMessageQueuePtr queue,
-                                           const Parameters &params
+                                           const Parameters &params,
+                                           UseMediaStreamTrackPtr track
                                            ) :
         RTPSenderChannel(Noop(true), queue),
-        mParameters(make_shared<Parameters>(params))
+        mParameters(make_shared<Parameters>(params)),
+        mTrack(track)
       {
       }
       
@@ -343,10 +524,11 @@ namespace ortc
       //-----------------------------------------------------------------------
       FakeSenderChannelPtr FakeSenderChannel::create(
                                                      IMessageQueuePtr queue,
-                                                     const Parameters &params
+                                                     const Parameters &params,
+                                                     UseMediaStreamTrackPtr track
                                                      )
       {
-        FakeSenderChannelPtr pThis(make_shared<FakeSenderChannel>(queue, params));
+        FakeSenderChannelPtr pThis(make_shared<FakeSenderChannel>(queue, params, track));
         pThis->mThisWeak = pThis;
         return pThis;
       }
@@ -358,6 +540,19 @@ namespace ortc
       #pragma mark
       #pragma mark FakeSenderChannel => IRTPSenderChannelForRTPSenderChannelAudio
       #pragma mark
+
+      bool FakeSenderChannel::sendPacket(RTPPacketPtr packet)
+      {
+        mTester.lock()->sendToConnectedTester(packet);
+        return true;
+      }
+
+      bool FakeSenderChannel::sendPacket(RTCPPacketPtr packet)
+      {
+        mTester.lock()->sendToConnectedTester(packet);
+        return false;
+      }
+
 
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
@@ -399,7 +594,8 @@ namespace ortc
                                                const uint8_t numberOfChannels
                                                )
       {
-        
+        if (mSenderChannelAudio)
+          mSenderChannelAudio->sendAudioSamples(audioSamples, numberOfSamples, numberOfChannels);
       }
       
       //-----------------------------------------------------------------------
@@ -426,6 +622,13 @@ namespace ortc
       {
         AutoRecursiveLock lock(*this);
         mTrack = track;
+      }
+
+      bool FakeSenderChannel::handlePacket(RTCPPacketPtr packet)
+      {
+        if (mSenderChannelAudio)
+          mSenderChannelAudio->handlePacket(packet);
+        return true;
       }
 
       //-----------------------------------------------------------------------
@@ -481,13 +684,14 @@ namespace ortc
       //-----------------------------------------------------------------------
       RTPReceiverChannelAudioPtr RTPChannelAudioTester::OverrideReceiverChannelAudioFactory::create(
                                                                                                     RTPReceiverChannelPtr receiverChannel,
+                                                                                                    MediaStreamTrackPtr track,
                                                                                                     const Parameters &params
                                                                                                     )
       {
         auto tester = mTester.lock();
         TESTING_CHECK(tester)
         
-        return tester->createReceiverChannelAudio(receiverChannel, params);
+        return tester->createReceiverChannelAudio(receiverChannel, track, params);
       }
       
       //-----------------------------------------------------------------------
@@ -509,13 +713,14 @@ namespace ortc
       //-----------------------------------------------------------------------
       RTPSenderChannelAudioPtr RTPChannelAudioTester::OverrideSenderChannelAudioFactory::create(
                                                                                                 RTPSenderChannelPtr senderChannel,
+                                                                                                MediaStreamTrackPtr track,
                                                                                                 const Parameters &params
                                                                                                 )
       {
         auto tester = mTester.lock();
         TESTING_CHECK(tester)
         
-        return tester->createSenderChannelAudio(senderChannel, params);
+        return tester->createSenderChannelAudio(senderChannel, track, params);
       }
       
       //-----------------------------------------------------------------------
@@ -630,10 +835,28 @@ namespace ortc
         mConnectedTester = remote;
         remote->mConnectedTester = mThisWeak.lock();
       }
-      
+
+      //-----------------------------------------------------------------------
+      void RTPChannelAudioTester::createMediaStreamTrack(
+                                                         const char *trackID,
+                                                         bool remote
+                                                         )
+      {
+        FakeMediaStreamTrackPtr track = getMediaStreamTrack(trackID);
+
+        if (!track) {
+          track = FakeMediaStreamTrack::create(getAssociatedMessageQueue(), remote);
+          track->setTransport(mThisWeak.lock());
+          attach(trackID, track);
+        }
+
+        TESTING_CHECK(track)
+      }
+
       //-----------------------------------------------------------------------
       void RTPChannelAudioTester::createReceiverChannel(
                                                         const char *receiverChannelID,
+                                                        const char *mediaStreamTrackID,
                                                         const char *parametersID
                                                         )
       {
@@ -641,8 +864,14 @@ namespace ortc
         
         if (!receiverChannel) {
           auto params = getParameters(parametersID);
-          TESTING_CHECK(params)
-          receiverChannel = FakeReceiverChannel::create(getAssociatedMessageQueue(), *params);
+          //TESTING_CHECK(params)
+          if (!params)
+            params.swap(ParametersPtr(new Parameters()));
+          auto track = getMediaStreamTrack(mediaStreamTrackID);
+          TESTING_CHECK(track)
+          receiverChannel = FakeReceiverChannel::create(getAssociatedMessageQueue(), *params, track);
+          receiverChannel->setTransport(mThisWeak.lock());
+          track->linkReceiverChannel(receiverChannel);
           attach(receiverChannelID, receiverChannel);
         }
         
@@ -652,6 +881,7 @@ namespace ortc
       //-----------------------------------------------------------------------
       void RTPChannelAudioTester::createSenderChannel(
                                                       const char *senderChannelID,
+                                                      const char *mediaStreamTrackID,
                                                       const char *parametersID
                                                       )
       {
@@ -659,8 +889,14 @@ namespace ortc
         
         if (!senderChannel) {
           auto params = getParameters(parametersID);
-          TESTING_CHECK(params)
-          senderChannel = FakeSenderChannel::create(getAssociatedMessageQueue(), *params);
+          //TESTING_CHECK(params)
+          if (!params)
+            params.swap(ParametersPtr(new Parameters()));
+          auto track = getMediaStreamTrack(mediaStreamTrackID);
+          TESTING_CHECK(track)
+          senderChannel = FakeSenderChannel::create(getAssociatedMessageQueue(), *params, track);
+          senderChannel->setTransport(mThisWeak.lock());
+          track->linkSenderChannel(senderChannel);
           attach(senderChannelID, senderChannel);
         }
         
@@ -671,6 +907,7 @@ namespace ortc
       void RTPChannelAudioTester::createReceiverChannelAudio(
                                                              const char *receiverChannelID,
                                                              const char *receiverChannelAudioID,
+                                                             const char *mediaStreamTrackID,
                                                              const char *parametersID
                                                              )
       {
@@ -678,10 +915,16 @@ namespace ortc
         
         if (!receiverChannelAudio) {
           auto params = getParameters(parametersID);
-          TESTING_CHECK(params)
-          FakeReceiverChannelPtr receiverChannel = getReceiverChannel(receiverChannelID);
+          //TESTING_CHECK(params)
+          if (!params)
+            params.swap(ParametersPtr(new Parameters()));
+          auto receiverChannel = getReceiverChannel(receiverChannelID);
           TESTING_CHECK(receiverChannel)
-          receiverChannelAudio = UseReceiverChannelAudioForReceiverChannel::create(receiverChannel, *params);
+          auto track = getMediaStreamTrack(mediaStreamTrackID);
+          TESTING_CHECK(track)
+          receiverChannelAudio = UseReceiverChannelAudioForReceiverChannel::create(receiverChannel, track, *params);
+          receiverChannel->linkChannelAudio(receiverChannelAudio);
+          track->linkReceiverChannelAudio(receiverChannelAudio);
           attach(receiverChannelAudioID, receiverChannelAudio);
         }
         
@@ -692,6 +935,7 @@ namespace ortc
       void RTPChannelAudioTester::createSenderChannelAudio(
                                                            const char *senderChannelID,
                                                            const char *senderChannelAudioID,
+                                                           const char *mediaStreamTrackID,
                                                            const char *parametersID
                                                            )
       {
@@ -699,10 +943,16 @@ namespace ortc
         
         if (!senderChannelAudio) {
           auto params = getParameters(parametersID);
-          TESTING_CHECK(params)
-          FakeSenderChannelPtr senderChannel = getSenderChannel(senderChannelID);
+          //TESTING_CHECK(params)
+          if (!params)
+            params.swap(ParametersPtr(new Parameters()));
+          auto senderChannel = getSenderChannel(senderChannelID);
           TESTING_CHECK(senderChannel)
-          senderChannelAudio = UseSenderChannelAudioForSenderChannel::create(senderChannel, *params);
+          auto track = getMediaStreamTrack(mediaStreamTrackID);
+          TESTING_CHECK(track)
+          senderChannelAudio = UseSenderChannelAudioForSenderChannel::create(senderChannel, track, *params);
+          senderChannel->linkChannelAudio(senderChannelAudio);
+          track->linkSenderChannelAudio(senderChannelAudio);
           attach(senderChannelAudioID, senderChannelAudio);
         }
         
@@ -732,7 +982,33 @@ namespace ortc
       {
         AutoRecursiveLock lock(*this);
       }
-      
+
+      //-----------------------------------------------------------------------
+      void RTPChannelAudioTester::attach(
+                                         const char *trackID,
+                                         FakeMediaStreamTrackPtr mediaStreamTrack
+                                         )
+      {
+        TESTING_CHECK(mediaStreamTrack)
+
+        String trackIDStr(trackID);
+
+        AutoRecursiveLock lock(*this);
+
+        auto found = mMediaStreamTracks.find(trackIDStr);
+
+        if (found != mMediaStreamTracks.end()) {
+          auto &previousTrack = (*found).second;
+          if (previousTrack) {
+          }
+
+          previousTrack = mediaStreamTrack;
+          return;
+        }
+
+        mMediaStreamTracks[trackIDStr] = mediaStreamTrack;
+      }
+
       //-----------------------------------------------------------------------
       void RTPChannelAudioTester::attach(
                                          const char *receiverChannelID,
@@ -838,7 +1114,24 @@ namespace ortc
         
         mSenderAudioChannels[senderChannelAudioIDStr] = senderChannelAudio;
       }
-      
+
+      //-----------------------------------------------------------------------
+      FakeMediaStreamTrackPtr RTPChannelAudioTester::detachMediaStreamTrack(const char *trackID)
+      {
+        String trackIDStr(trackID);
+
+        AutoRecursiveLock lock(*this);
+
+        auto found = mMediaStreamTracks.find(trackIDStr);
+        TESTING_CHECK(found != mMediaStreamTracks.end())
+
+        FakeMediaStreamTrackPtr track = (*found).second;
+
+        mMediaStreamTracks.erase(found);
+
+        return track;
+      }
+
       //-----------------------------------------------------------------------
       FakeReceiverChannelPtr RTPChannelAudioTester::detachReceiverChannel(const char *receiverChannelID)
       {
@@ -1140,6 +1433,7 @@ namespace ortc
       //-----------------------------------------------------------------------
       RTPReceiverChannelAudioPtr RTPChannelAudioTester::createReceiverChannelAudio(
                                                                                    RTPReceiverChannelPtr receiverChannel,
+                                                                                   MediaStreamTrackPtr track,
                                                                                    const Parameters &params
                                                                                    )
       {
@@ -1151,6 +1445,7 @@ namespace ortc
       //-----------------------------------------------------------------------
       RTPSenderChannelAudioPtr RTPChannelAudioTester::createSenderChannelAudio(
                                                                                RTPSenderChannelPtr senderChannel,
+                                                                               MediaStreamTrackPtr track,
                                                                                const Parameters &params
                                                                                )
       {
@@ -1159,7 +1454,28 @@ namespace ortc
         return RTPSenderChannelAudioPtr();
       }
 
-      
+      //-----------------------------------------------------------------------
+      void RTPChannelAudioTester::sendToConnectedTester(RTPPacketPtr packet)
+      {
+        if (mConnectedTester.lock()->mReceiverChannels.size() != 0) {
+          FakeReceiverChannelPtr receiverChannel = mConnectedTester.lock()->mReceiverChannels.begin()->second;
+          receiverChannel->handlePacket(packet);
+        }
+      }
+
+      //-----------------------------------------------------------------------
+      void RTPChannelAudioTester::sendToConnectedTester(RTCPPacketPtr packet)
+      {
+        if (mConnectedTester.lock()->mSenderChannels.size() != 0) {
+          FakeSenderChannelPtr senderChannel = mConnectedTester.lock()->mSenderChannels.begin()->second;
+          senderChannel->handlePacket(packet);
+        }
+        if (mConnectedTester.lock()->mReceiverChannels.size() != 0) {
+          FakeReceiverChannelPtr receiverChannel = mConnectedTester.lock()->mReceiverChannels.begin()->second;
+          receiverChannel->handlePacket(packet);
+        }
+      }
+
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
@@ -1175,23 +1491,32 @@ namespace ortc
         UseServicesHelper::debugAppend(objectEl, "id", mID);
         return Log::Params(message, objectEl);
       }
-      
+
+      //-----------------------------------------------------------------------
+      FakeMediaStreamTrackPtr RTPChannelAudioTester::getMediaStreamTrack(const char *trackID)
+      {
+        AutoRecursiveLock lock(*this);
+        auto found = mMediaStreamTracks.find(String(trackID));
+        if (mMediaStreamTracks.end() == found) return FakeMediaStreamTrackPtr();
+        return (*found).second;
+      }
+
       //-----------------------------------------------------------------------
       FakeReceiverChannelPtr RTPChannelAudioTester::getReceiverChannel(const char *receiverChannelID)
       {
         AutoRecursiveLock lock(*this);
-        auto found = mAttached.find(String(receiverChannelID));
-        if (mAttached.end() == found) return FakeReceiverChannelPtr();
-        return (*found).second.first;
+        auto found = mReceiverChannels.find(String(receiverChannelID));
+        if (mReceiverChannels.end() == found) return FakeReceiverChannelPtr();
+        return (*found).second;
       }
       
       //-----------------------------------------------------------------------
       FakeSenderChannelPtr RTPChannelAudioTester::getSenderChannel(const char *senderChannelID)
       {
         AutoRecursiveLock lock(*this);
-        auto found = mAttached.find(String(senderChannelID));
-        if (mAttached.end() == found) return FakeSenderChannelPtr();
-        return (*found).second.second;
+        auto found = mSenderChannels.find(String(senderChannelID));
+        if (mSenderChannels.end() == found) return FakeSenderChannelPtr();
+        return (*found).second;
       }
       
       //-----------------------------------------------------------------------
@@ -1292,8 +1617,8 @@ using zsLib::Milliseconds;
 using ortc::SecureByteBlock;
 using ortc::SecureByteBlockPtr;
 
-#define TEST_BASIC_MEDIA 1
-#define TEST_ADVANCED_MEDIA 0
+#define TEST_BASIC_MEDIA 0
+#define TEST_ADVANCED_MEDIA 1
 
 static void bogusSleep()
 {
@@ -1323,7 +1648,15 @@ void doTestRTPChannelAudio()
   {
     ULONG testNumber = 0;
     ULONG maxSteps = 80;
-    
+
+    rtc::LogMessage::LogToDebug(rtc::LS_SENSITIVE);
+
+    webrtc::TraceCallback* traceCallback = new ortc::test::rtpchannelaudio::WebRtcTraceCallback();
+
+    webrtc::Trace::CreateTrace();
+    webrtc::Trace::SetTraceCallback(traceCallback);
+    webrtc::Trace::set_level_filter(webrtc::kTraceAll);
+
     do
     {
       TESTING_STDOUT() << "TESTING       ---------->>>>>>>>>> " << testNumber << " <<<<<<<<<<----------\n";
@@ -1334,7 +1667,7 @@ void doTestRTPChannelAudio()
       switch (testNumber) {
         case TEST_BASIC_MEDIA: {
           {
-            testObject1 = RTPChannelAudioTester::create(thread, true);
+            testObject1 = RTPChannelAudioTester::create(thread, false);
             testObject2 = RTPChannelAudioTester::create(thread, false);
             
             TESTING_CHECK(testObject1)
@@ -1344,7 +1677,7 @@ void doTestRTPChannelAudio()
         }
         case TEST_ADVANCED_MEDIA: {
           {
-            testObject1 = RTPChannelAudioTester::create(thread, true);
+            testObject1 = RTPChannelAudioTester::create(thread, false);
             testObject2 = RTPChannelAudioTester::create(thread, false);
             
             TESTING_CHECK(testObject1)
@@ -1387,10 +1720,18 @@ void doTestRTPChannelAudio()
                 break;
               }
               case 3: {
+                if (testObject1) testObject1->createMediaStreamTrack("lt", false);
+                if (testObject2) testObject2->createMediaStreamTrack("rt", true);
+                if (testObject1) testObject1->createSenderChannel("sc", "lt", "");
+                if (testObject2) testObject2->createReceiverChannel("rc", "rt", "");
+                if (testObject1) testObject1->createSenderChannelAudio("sc", "sca", "lt", "");
+                if (testObject2) testObject2->createReceiverChannelAudio("rc", "rca", "rt", "");
                 //    bogusSleep();
                 break;
               }
               case 4: {
+                if (testObject1) testObject1->send("sc", "");
+                if (testObject2) testObject2->receive("rc", "");
                 //    bogusSleep();
                 break;
               }
@@ -1447,10 +1788,14 @@ void doTestRTPChannelAudio()
                 break;
               }
               case 23: {
+                if (testObject1) testObject1->stop("sc");
+                if (testObject2) testObject2->stop("rc");
                 //bogusSleep();
                 break;
               }
               case 24: {
+                if (testObject1) testObject1->close();
+                if (testObject2) testObject2->close();
                 //bogusSleep();
                 break;
               }
@@ -1632,14 +1977,16 @@ void doTestRTPChannelAudio()
       
       testObject1.reset();
       testObject2.reset();
-      
+
       ++testNumber;
     } while (true);
+
+    delete (ortc::test::rtpchannelaudio::WebRtcTraceCallback*)traceCallback;
   }
   
   TESTING_STDOUT() << "WAITING:      All channels have finished. Waiting for 'bogus' events to process (1 second wait).\n";
   TESTING_SLEEP(1000)
-  
+
   // wait for shutdown
   {
     IMessageQueue::size_type count = 0;

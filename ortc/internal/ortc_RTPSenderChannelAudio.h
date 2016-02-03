@@ -35,6 +35,7 @@
 #include <ortc/internal/ortc_RTPSenderChannelMediaBase.h>
 
 #include <ortc/IRTPTypes.h>
+#include <ortc/IMediaStreamTrack.h>
 
 #include <openpeer/services/IWakeDelegate.h>
 #include <zsLib/MessageQueueAssociator.h>
@@ -95,8 +96,15 @@ namespace ortc
 
       static RTPSenderChannelAudioPtr create(
                                              RTPSenderChannelPtr senderChannel,
+                                             MediaStreamTrackPtr track,
                                              const Parameters &params
                                              );
+
+      virtual void sendAudioSamples(
+                                    const void* audioSamples,
+                                    const size_t numberOfSamples,
+                                    const uint8_t numberOfChannels
+                                    ) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -110,6 +118,12 @@ namespace ortc
     interaction IRTPSenderChannelAudioForMediaStreamTrack : public IRTPSenderChannelMediaBaseForMediaStreamTrack
     {
       ZS_DECLARE_TYPEDEF_PTR(IRTPSenderChannelAudioForMediaStreamTrack, ForMediaStreamTrack)
+
+      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters)
+
+      static ElementPtr toDebug(ForMediaStreamTrackPtr object);
+
+      virtual PUID getID() const = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -187,6 +201,7 @@ namespace ortc
                             const make_private &,
                             IMessageQueuePtr queue,
                             UseChannelPtr senderChannel,
+                            UseMediaStreamTrackPtr track,
                             const Parameters &params
                             );
 
@@ -225,20 +240,24 @@ namespace ortc
 
       static RTPSenderChannelAudioPtr create(
                                              RTPSenderChannelPtr senderChannel,
+                                             MediaStreamTrackPtr track,
                                              const Parameters &params
                                              );
 
-      //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTPSenderChannelAudio => IRTPSenderChannelMediaBaseForMediaStreamTrack
-      #pragma mark
-
-      // (duplicate) virtual PUID getID() const = 0;
+      virtual void sendAudioSamples(
+                                    const void* audioSamples,
+                                    const size_t numberOfSamples,
+                                    const uint8_t numberOfChannels
+                                    ) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark RTPSenderChannelAudio => IRTPSenderChannelAudioForMediaStreamTrack
       #pragma mark
+
+      // (duplicate) static ElementPtr toDebug(ForMediaStreamTrackPtr object);
+
+      // (duplicate) virtual PUID getID() const = 0;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -312,8 +331,13 @@ namespace ortc
 
       ParametersPtr mParameters;
 
+      Optional<IMediaStreamTrackTypes::Kinds> mKind;
+      UseMediaStreamTrackPtr mTrack;
+
       rtc::scoped_ptr<webrtc::VoiceEngine, VoiceEngineDeleter> mVoiceEngine;
       rtc::scoped_ptr<webrtc::AudioSendStream> mSendStream;
+
+      webrtc::AudioDeviceModule* mAudioDeviceModule;
     };
 
     //-------------------------------------------------------------------------
@@ -332,6 +356,7 @@ namespace ortc
 
       virtual RTPSenderChannelAudioPtr create(
                                               RTPSenderChannelPtr sender,
+                                              MediaStreamTrackPtr track,
                                               const Parameters &params
                                               );
     };

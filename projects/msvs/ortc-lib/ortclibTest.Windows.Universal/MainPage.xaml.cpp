@@ -33,12 +33,13 @@ MainPage::MainPage()
 
 void ortclibTest::MainPage::Button_Click(Platform::Object^ sender, Windows::UI::Xaml::RoutedEventArgs^ e)
 {
+  g_windowDispatcher = Window::Current->Dispatcher;
   RunTestButton->IsEnabled = false;
   Concurrency::create_task([this]() {
     TESTING_STDOUT() << "TEST NOW STARTING...\n\n";
 
     IInspectable* videoMediaElement = reinterpret_cast<IInspectable*>(VideoMediaElement);
-    Testing::runAllTests(videoMediaElement);
+    Testing::runAllTests(videoMediaElement, NULL);
     Testing::output();
 
     if (0 != Testing::getGlobalFailedVar()) {
@@ -49,9 +50,4 @@ void ortclibTest::MainPage::Button_Click(Platform::Object^ sender, Windows::UI::
       RunTestButton->IsEnabled = true;
     })));
   });
-}
-
-void ortclibTest::MainPage::Page_Loaded(Platform::Object^ sender, Windows::UI::Xaml::RoutedEventArgs^ e)
-{
-  g_windowDispatcher = Window::Current->Dispatcher;
 }

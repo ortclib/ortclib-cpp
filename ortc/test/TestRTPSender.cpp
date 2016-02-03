@@ -1342,6 +1342,7 @@ namespace ortc
       //-----------------------------------------------------------------------
       void FakeSenderChannel::create(
                                      RTPSenderPtr inSender,
+                                     MediaStreamTrackPtr track,
                                      const Parameters &params
                                      )
       {
@@ -1494,7 +1495,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void FakeSenderChannel::sendPacket(RTPPacketPtr packet)
+      bool FakeSenderChannel::sendPacket(RTPPacketPtr packet)
       {
         UseSenderPtr sender;
 
@@ -1506,10 +1507,12 @@ namespace ortc
         }
 
         sender->sendPacket(packet);
+
+        return true;
       }
       
       //-----------------------------------------------------------------------
-      void FakeSenderChannel::sendPacket(RTCPPacketPtr packet)
+      bool FakeSenderChannel::sendPacket(RTCPPacketPtr packet)
       {
         UseSenderPtr sender;
 
@@ -1521,6 +1524,8 @@ namespace ortc
         }
 
         sender->sendPacket(packet);
+
+        return true;
       }
 
       //-----------------------------------------------------------------------
@@ -2060,6 +2065,7 @@ namespace ortc
       //-----------------------------------------------------------------------
       RTPSenderChannelPtr RTPSenderTester::OverrideSenderChannelFactory::create(
                                                                                 RTPSenderPtr receiver,
+                                                                                MediaStreamTrackPtr track,
                                                                                 const Parameters &params
                                                                                 )
       {
@@ -2913,7 +2919,7 @@ namespace ortc
 
         TESTING_CHECK(receiverChannel)
 
-        receiverChannel->create(sender, params);
+        receiverChannel->create(sender, MediaStreamTrackPtr(), params);
 
         mFakeSenderChannelCreationList.pop_front();
 

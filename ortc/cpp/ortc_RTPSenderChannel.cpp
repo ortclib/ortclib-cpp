@@ -113,10 +113,11 @@ namespace ortc
     //-------------------------------------------------------------------------
     RTPSenderChannelPtr IRTPSenderChannelForRTPSender::create(
                                                               RTPSenderPtr sender,
+                                                              MediaStreamTrackPtr track,
                                                               const Parameters &params
                                                               )
     {
-      return internal::IRTPSenderChannelFactory::singleton().create(sender, params);
+      return internal::IRTPSenderChannelFactory::singleton().create(sender, track, params);
     }
 
     //-------------------------------------------------------------------------
@@ -159,11 +160,13 @@ namespace ortc
                                        const make_private &,
                                        IMessageQueuePtr queue,
                                        UseSenderPtr sender,
+                                       UseMediaStreamTrackPtr track,
                                        const Parameters &params
                                        ) :
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
       mSender(sender),
+      mTrack(track),
       mParameters(make_shared<Parameters>(params))
     {
       ZS_LOG_DETAIL(debug("created"))
@@ -243,10 +246,11 @@ namespace ortc
     //-------------------------------------------------------------------------
     RTPSenderChannelPtr RTPSenderChannel::create(
                                                  RTPSenderPtr sender,
+                                                 MediaStreamTrackPtr track,
                                                  const Parameters &params
                                                  )
     {
-      RTPSenderChannelPtr pThis(make_shared<RTPSenderChannel>(make_private {}, IORTCForInternal::queueORTC(), sender, params));
+      RTPSenderChannelPtr pThis(make_shared<RTPSenderChannel>(make_private {}, IORTCForInternal::queueORTC(), sender, track, params));
       pThis->mThisWeak = pThis;
       pThis->init();
       return pThis;
@@ -299,6 +303,16 @@ namespace ortc
     #pragma mark
     #pragma mark RTPSenderChannel => ForRTPSenderChannelAudio
     #pragma mark
+
+    bool RTPSenderChannel::sendPacket(RTPPacketPtr packet)
+    {
+      return false;
+    }
+
+    bool RTPSenderChannel::sendPacket(RTCPPacketPtr packet)
+    {
+      return false;
+    }
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -610,11 +624,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     RTPSenderChannelPtr IRTPSenderChannelFactory::create(
                                                          RTPSenderPtr sender,
+                                                         MediaStreamTrackPtr track,
                                                          const Parameters &params
                                                          )
     {
       if (this) {}
-      return internal::RTPSenderChannel::create(sender, params);
+      return internal::RTPSenderChannel::create(sender, track, params);
     }
 
   } // internal namespace

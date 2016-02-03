@@ -1189,7 +1189,7 @@ namespace ortc
     {
       ChannelHolderPtr channel(make_shared<ChannelHolder>());
       channel->mHolder = mThisWeak.lock();
-      channel->mChannel = UseChannel::create(mThisWeak.lock(), *newParams);
+      channel->mChannel = UseChannel::create(mThisWeak.lock(), MediaStreamTrack::convert(mTrack), *newParams);
       channel->notify(mLastReportedTransportStateToChannels);
       if (mTrack) {
         mTrack->notifyAttachSenderChannel(RTPSenderChannel::convert(channel->mChannel));

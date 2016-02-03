@@ -48,11 +48,10 @@
 
 #include <cryptopp/sha.h>
 
-//#include <webrtc/modules/rtp_rtcp/interface/rtp_header_parser.h>
-//#include <webrtc/modules/rtp_rtcp/source/byte_io.h>
-//#include <webrtc/video/video_receive_stream.h>
-//#include <webrtc/video_renderer.h>
-
+#include <webrtc/system_wrappers/include/cpu_info.h>
+#include <webrtc/voice_engine/include/voe_codec.h>
+#include <webrtc/voice_engine/include/voe_rtp_rtcp.h>
+#include <webrtc/voice_engine/include/voe_network.h>
 
 #ifdef _DEBUG
 #define ASSERT(x) ZS_THROW_BAD_STATE_IF(!(x))
@@ -115,10 +114,11 @@ namespace ortc
     //-------------------------------------------------------------------------
     RTPReceiverChannelAudioPtr IRTPReceiverChannelAudioForRTPReceiverChannel::create(
                                                                                      RTPReceiverChannelPtr receiverChannel,
+                                                                                     MediaStreamTrackPtr track,
                                                                                      const Parameters &params
                                                                                      )
     {
-      return internal::IRTPReceiverChannelAudioFactory::singleton().create(receiverChannel, params);
+      return internal::IRTPReceiverChannelAudioFactory::singleton().create(receiverChannel, track, params);
     }
 
     //-------------------------------------------------------------------------
@@ -162,12 +162,15 @@ namespace ortc
                                                      const make_private &,
                                                      IMessageQueuePtr queue,
                                                      UseChannelPtr receiverChannel,
+                                                     UseMediaStreamTrackPtr track,
                                                      const Parameters &params
                                                      ) :
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
       mReceiverChannel(receiverChannel),
-      mParameters(make_shared<Parameters>(params))
+      mTrack(track),
+      mParameters(make_shared<Parameters>(params)),
+      mModuleProcessThread(webrtc::ProcessThread::Create("RTPReceiverChannelAudioThread"))
     {
       ZS_LOG_DETAIL(debug("created"))
 
@@ -181,8 +184,25 @@ namespace ortc
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
 
       mVoiceEngine = rtc::scoped_ptr<webrtc::VoiceEngine, VoiceEngineDeleter>(webrtc::VoiceEngine::Create());
+      mCallStats = rtc::scoped_ptr<webrtc::CallStats>(new webrtc::CallStats());
+      mCongestionController = 
+        rtc::scoped_ptr<webrtc::CongestionController>(new webrtc::CongestionController(
+                                                                                       mModuleProcessThread.get(),
+                                                                                       mCallStats.get())
+                                                                                       );
+
+      mModuleProcessThread->Start();
+      mModuleProcessThread->RegisterModule(mCallStats.get());
+
+      webrtc::VoEBase::GetInterface(mVoiceEngine.get())->Init(mTrack->getAudioDeviceModule());
 
       int channel = webrtc::VoEBase::GetInterface(mVoiceEngine.get())->CreateChannel();
+
+      int numCpuCores = webrtc::CpuInfo::DetectNumberOfCores();
+
+      int ncodecs = webrtc::VoECodec::GetInterface(mVoiceEngine.get())->NumOfCodecs();
+      for (int i = 0; i < ncodecs; ++i) {
+      }
 
       webrtc::AudioReceiveStream::Config config;
       config.rtp.remote_ssrc = 1000;
@@ -192,10 +212,16 @@ namespace ortc
 
       mReceiveStream = rtc::scoped_ptr<webrtc::AudioReceiveStream>(
           new webrtc::internal::AudioReceiveStream(
-                                                   NULL,
+                                                   mCongestionController->GetRemoteBitrateEstimator(false),
                                                    config,
                                                    mVoiceEngine.get()
                                                    ));
+
+      webrtc::VoENetwork::GetInterface(mVoiceEngine.get())->RegisterExternalTransport(channel, *this);
+
+      mTrack->start();
+
+      webrtc::VoEBase::GetInterface(mVoiceEngine.get())->StartReceive(channel);
 
     }
 
@@ -203,6 +229,12 @@ namespace ortc
     RTPReceiverChannelAudio::~RTPReceiverChannelAudio()
     {
       if (isNoop()) return;
+
+      webrtc::VoEBase::GetInterface(mVoiceEngine.get())->StopReceive(0);
+
+      mTrack->stop();
+
+      mModuleProcessThread->Stop();
 
       ZS_LOG_DETAIL(log("destroyed"))
       mThisWeak.reset();
@@ -254,10 +286,9 @@ namespace ortc
     {
       {
         AutoRecursiveLock lock(*this);
-#define TODO 1
-#define TODO 2
       }
-
+      webrtc::PacketTime time;
+      mReceiveStream->DeliverRtp(packet->buffer()->data(), packet->buffer()->size(), time);
       return false;
     }
 
@@ -267,10 +298,8 @@ namespace ortc
     {
       {
         AutoRecursiveLock lock(*this);
-#define TODO 1
-#define TODO 2
       }
-
+      mReceiveStream->DeliverRtcp(packet->buffer()->data(), packet->buffer()->size());
       return false;
     }
 
@@ -285,14 +314,33 @@ namespace ortc
     //-------------------------------------------------------------------------
     RTPReceiverChannelAudioPtr RTPReceiverChannelAudio::create(
                                                                RTPReceiverChannelPtr receiverChannel,
+                                                               MediaStreamTrackPtr track,
                                                                const Parameters &params
                                                                )
     {
-      RTPReceiverChannelAudioPtr pThis(make_shared<RTPReceiverChannelAudio>(make_private {}, IORTCForInternal::queueORTC(), receiverChannel, params));
+      RTPReceiverChannelAudioPtr pThis(make_shared<RTPReceiverChannelAudio>(make_private {}, IORTCForInternal::queueORTC(), receiverChannel, track, params));
       pThis->mThisWeak = pThis;
       pThis->init();
       return pThis;
     }
+
+    //-------------------------------------------------------------------------
+    void RTPReceiverChannelAudio::getAudioSamples(
+                                                  const size_t numberOfSamples,
+                                                  const uint8_t numberOfChannels,
+                                                  const void* audioSamples,
+                                                  size_t& numberOfSamplesOut
+                                                  )
+    {
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPReceiverChannelAudio => IRTPReceiverChannelAudioForMediaStreamTrack
+    #pragma mark
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -356,6 +404,7 @@ namespace ortc
 
     bool  RTPReceiverChannelAudio::SendRtcp(const uint8_t* packet, size_t length)
     {
+      mReceiverChannel.lock()->sendPacket(RTCPPacket::create(packet, length));
       return true;
     }
 
@@ -542,11 +591,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     RTPReceiverChannelAudioPtr IRTPReceiverChannelAudioFactory::create(
                                                                        RTPReceiverChannelPtr receiverChannel,
+                                                                       MediaStreamTrackPtr track,
                                                                        const Parameters &params
                                                                        )
     {
       if (this) {}
-      return internal::RTPReceiverChannelAudio::create(receiverChannel, params);
+      return internal::RTPReceiverChannelAudio::create(receiverChannel, track, params);
     }
 
   } // internal namespace

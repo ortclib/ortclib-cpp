@@ -37,6 +37,7 @@
 #include <ortc/IICETransport.h>
 #include <ortc/IDTLSTransport.h>
 #include <ortc/IRTPTypes.h>
+#include <ortc/IMediaStreamTrack.h>
 
 #include <openpeer/services/IWakeDelegate.h>
 #include <zsLib/MessageQueueAssociator.h>
@@ -101,6 +102,7 @@ namespace ortc
 
       static RTPReceiverChannelPtr create(
                                           RTPReceiverPtr receiver,
+                                          MediaStreamTrackPtr track,
                                           const Parameters &params,
                                           const RTCPPacketList &packets
                                           );
@@ -195,6 +197,8 @@ namespace ortc
     interaction IRTPReceiverChannelForRTPReceiverChannelAudio : public IRTPReceiverChannelForRTPReceiverChannelMediaBase
     {
       ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverChannelForRTPReceiverChannelAudio, ForRTPReceiverChannelAudio)
+
+      virtual bool sendPacket(RTCPPacketPtr packet) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -269,6 +273,7 @@ namespace ortc
                          const make_private &,
                          IMessageQueuePtr queue,
                          UseReceiverPtr receiver,
+                         UseMediaStreamTrackPtr track,
                          const Parameters &params
                          );
 
@@ -301,6 +306,7 @@ namespace ortc
 
       static RTPReceiverChannelPtr create(
                                           RTPReceiverPtr receiver,
+                                          MediaStreamTrackPtr track,
                                           const Parameters &params,
                                           const RTCPPacketList &packets
                                           );
@@ -346,6 +352,8 @@ namespace ortc
       #pragma mark
       #pragma mark RTPReceiverChannel => IRTPReceiverChannelForRTPReceiverChannelAudio
       #pragma mark
+
+      virtual bool sendPacket(RTCPPacketPtr packet) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -423,6 +431,9 @@ namespace ortc
 
       ParametersPtr mParameters;
 
+      Optional<IMediaStreamTrackTypes::Kinds> mKind;
+      UseMediaStreamTrackPtr mTrack;
+
       //UseMediaBasePtr mMediaBase; // valid
       //UseAudioPtr mAudio; // either
       //UseVideoPtr mVideo; // or valid
@@ -445,6 +456,7 @@ namespace ortc
 
       virtual RTPReceiverChannelPtr create(
                                            RTPReceiverPtr receiver,
+                                           MediaStreamTrackPtr track,
                                            const Parameters &params,
                                            const RTCPPacketList &packets
                                            );
