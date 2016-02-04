@@ -679,15 +679,6 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void MediaStreamTrack::renderVideoFrame(const webrtc::VideoFrame& videoFrame)
-    {
-      AutoRecursiveLock lock(*this);
-
-      if (mVideoRendererCallback)
-        mVideoRendererCallback->RenderFrame(1, videoFrame);
-    }
-
-    //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -710,6 +701,15 @@ namespace ortc
     #pragma mark
     #pragma mark MediaStreamTrack => IMediaStreamTrackForRTPReceiverChannelVideo
     #pragma mark
+
+    //-------------------------------------------------------------------------
+    void MediaStreamTrack::renderVideoFrame(const webrtc::VideoFrame& videoFrame)
+    {
+      AutoRecursiveLock lock(*this);
+
+      if (mVideoRendererCallback)
+        mVideoRendererCallback->RenderFrame(1, videoFrame);
+    }
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -835,11 +835,11 @@ namespace ortc
       if (mVideoRendererCallback)
         mVideoRendererCallback->RenderFrame(1, videoFrame);
 
-      if (mSenderChannel.lock())
-          mSenderChannel.lock()->sendVideoFrame(
-                                                videoFrame.buffer(webrtc::PlaneType::kYPlane),
-                                                videoFrame.allocated_size(webrtc::PlaneType::kYPlane)
-                                                );
+      //if (mSenderChannel.lock())
+      //    mSenderChannel.lock()->sendVideoFrame(
+      //                                          videoFrame.buffer(webrtc::PlaneType::kYPlane),
+      //                                          videoFrame.allocated_size(webrtc::PlaneType::kYPlane)
+      //                                          );
     }
 
     //-------------------------------------------------------------------------
@@ -870,8 +870,8 @@ namespace ortc
                                                       uint32_t& newMicLevel
                                                       )
     {
-      if (mSenderChannel.lock())
-        mSenderChannel.lock()->sendAudioSamples(audioSamples, nSamples, nChannels);
+      //if (mSenderChannelAudio.lock())
+      //  mSenderChannelAudio.lock()->sendAudioSamples(audioSamples, nSamples, nChannels);
       return 0;
     }
 
@@ -887,8 +887,8 @@ namespace ortc
                                                int64_t* ntp_time_ms
                                                )
     {
-      if (mReceiverChannel.lock())
-        mReceiverChannel.lock()->getAudioSamples(nSamples, nChannels, audioSamples, nSamplesOut);
+      //if (mReceiverChannelAudio.lock())
+      //  mReceiverChannelAudio.lock()->getAudioSamples(nSamples, nChannels, audioSamples, nSamplesOut);
       return 0;
     }
 

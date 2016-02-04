@@ -184,6 +184,8 @@ namespace ortc
       ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverChannelForRTPReceiverChannelMediaBase, ForRTPReceiverChannelMediaBase)
 
       virtual PUID getID() const = 0;
+
+      virtual bool sendPacket(RTCPPacketPtr packet) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -197,8 +199,6 @@ namespace ortc
     interaction IRTPReceiverChannelForRTPReceiverChannelAudio : public IRTPReceiverChannelForRTPReceiverChannelMediaBase
     {
       ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverChannelForRTPReceiverChannelAudio, ForRTPReceiverChannelAudio)
-
-      virtual bool sendPacket(RTCPPacketPtr packet) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -348,12 +348,12 @@ namespace ortc
 
       // (duplicate) virtual PUID getID() const = 0;
 
+      virtual bool sendPacket(RTCPPacketPtr packet) override;
+
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark RTPReceiverChannel => IRTPReceiverChannelForRTPReceiverChannelAudio
       #pragma mark
-
-      virtual bool sendPacket(RTCPPacketPtr packet) override;
 
       //-----------------------------------------------------------------------
       #pragma mark

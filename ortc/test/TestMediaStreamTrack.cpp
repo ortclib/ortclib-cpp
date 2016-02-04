@@ -564,7 +564,7 @@ namespace ortc
           vBuffer += width / 2;
         }
 
-        mTrack->renderVideoFrame(frame);
+        //mTrack->renderVideoFrame(frame);
 
         TESTING_EQUAL(frame.width(), 640)
         TESTING_EQUAL(frame.height(), 480)
@@ -764,39 +764,39 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-        void FakeSenderChannel::sendVideoFrame(
-                                               const uint8_t* videoFrame,
-                                               const size_t videoFrameSize
-                                               )
-      {
-        mReceivedVideoFrames++;
-        if (mReceivedVideoFrames > 100)
-          return;
+      //void FakeSenderChannel::sendVideoFrame(
+      //                                         const uint8_t* videoFrame,
+      //                                         const size_t videoFrameSize
+      //                                         )
+      //{
+      //  mReceivedVideoFrames++;
+      //  if (mReceivedVideoFrames > 100)
+      //    return;
 
-        TESTING_EQUAL(videoFrameSize, 640 * 480)
+      //  TESTING_EQUAL(videoFrameSize, 640 * 480)
 
-        mTester.lock()->notifyReceivedVideoFrame();
-        if (mReceivedVideoFrames == 100)
-          IFakeSenderChannelAsyncDelegateProxy::create(mThisWeak.lock())->onNotifyLocalVideoTrackEvent();
-      }
+      //  mTester.lock()->notifyReceivedVideoFrame();
+      //  if (mReceivedVideoFrames == 100)
+      //    IFakeSenderChannelAsyncDelegateProxy::create(mThisWeak.lock())->onNotifyLocalVideoTrackEvent();
+      //}
 
       //-----------------------------------------------------------------------
-      void FakeSenderChannel::sendAudioSamples(
-                                               const void* audioSamples,
-                                               const size_t numberOfSamples,
-                                               const uint8_t numberOfChannels
-                                               )
-      {
-        mReceivedAudioSamples += numberOfSamples;
-        if (mReceivedAudioSamples > 144000)
-          return;
+      //void FakeSenderChannel::sendAudioSamples(
+      //                                         const void* audioSamples,
+      //                                         const size_t numberOfSamples,
+      //                                         const uint8_t numberOfChannels
+      //                                         )
+      //{
+      //  mReceivedAudioSamples += numberOfSamples;
+      //  if (mReceivedAudioSamples > 144000)
+      //    return;
 
-        TESTING_EQUAL(numberOfSamples, 480)
+      //  TESTING_EQUAL(numberOfSamples, 480)
 
-        mTester.lock()->notifyReceivedAudioSamples(numberOfSamples);
-        if (mReceivedAudioSamples == 144000)
-          mTester.lock()->notifyLocalAudioTrackEvent();
-      }
+      //  mTester.lock()->notifyReceivedAudioSamples(numberOfSamples);
+      //  if (mReceivedAudioSamples == 144000)
+      //    mTester.lock()->notifyLocalAudioTrackEvent();
+      //}
 
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------

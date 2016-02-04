@@ -32,6 +32,7 @@
 #include <ortc/internal/ortc_RTPSenderChannelVideo.h>
 #include <ortc/internal/ortc_RTPSenderChannel.h>
 #include <ortc/internal/ortc_MediaStreamTrack.h>
+#include <ortc/internal/ortc_RTPPacket.h>
 #include <ortc/internal/ortc_RTCPPacket.h>
 #include <ortc/internal/ortc_ORTC.h>
 #include <ortc/internal/platform.h>
@@ -154,6 +155,13 @@ namespace ortc
       AutoRecursiveLock lock(*this);
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
 
+      mCallStats = rtc::scoped_ptr<webrtc::CallStats>(new webrtc::CallStats());
+      mCongestionController =
+        rtc::scoped_ptr<webrtc::CongestionController>(new webrtc::CongestionController(
+          mModuleProcessThread.get(),
+          mCallStats.get())
+          );
+
       mModuleProcessThread->Start();
 
       int numCpuCores = webrtc::CpuInfo::DetectNumberOfCores();
@@ -172,8 +180,8 @@ namespace ortc
       config.rtp.ssrcs.push_back(1000);
 
       webrtc::VideoStream stream;
-      stream.width = 800;
-      stream.height = 600;
+      stream.width = 640;
+      stream.height = 480;
       stream.max_framerate = 30;
       stream.min_bitrate_bps = 30000;
       stream.target_bitrate_bps = 2000000;
@@ -193,8 +201,8 @@ namespace ortc
         new webrtc::internal::VideoSendStream(
                                               numCpuCores,
                                               mModuleProcessThread.get(),
-                                              NULL,
-                                              NULL,
+                                              mCallStats.get(),
+                                              mCongestionController.get(),
                                               config,
                                               encoderConfig,
                                               suspendedSSRCs
@@ -255,12 +263,11 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool RTPSenderChannelVideo::handlePacket(RTCPPacketPtr packet)
     {
-#define TODO 1
-#define TODO 2
       {
         AutoRecursiveLock lock(*this);
       }
-      return false;
+      mSendStream->DeliverRtcp(packet->buffer()->data(), packet->buffer()->size());
+      return true;
     }
 
     //-------------------------------------------------------------------------
@@ -283,14 +290,6 @@ namespace ortc
       pThis->init();
       return pThis;
     }
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPSenderChannelVideo => IRTPSenderChannelMediaBaseForMediaStreamTrack
-    #pragma mark
     
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -299,7 +298,15 @@ namespace ortc
     #pragma mark
     #pragma mark RTPSenderChannelVideo => IRTPSenderChannelVideoForMediaStreamTrack
     #pragma mark
-    
+
+    void RTPSenderChannelVideo::sendVideoFrame(
+                                               const uint8_t* videoFrame,
+                                               const size_t videoFrameSize
+                                               )
+    {
+
+    }
+
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -357,11 +364,13 @@ namespace ortc
                                          const webrtc::PacketOptions& options
                                          )
     {
+      mSenderChannel.lock()->sendPacket(RTPPacket::create(packet, length));
       return true;
     }
 
     bool  RTPSenderChannelVideo::SendRtcp(const uint8_t* packet, size_t length)
     {
+      mSenderChannel.lock()->sendPacket(RTCPPacket::create(packet, length));
       return true;
     }
 

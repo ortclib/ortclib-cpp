@@ -47,6 +47,8 @@
 #include <webrtc/transport.h>
 #include <webrtc/modules/utility/include/process_thread.h>
 #include <webrtc/video/video_receive_stream.h>
+#include <webrtc/video_engine/call_stats.h>
+#include <webrtc/call/congestion_controller.h>
 
 //#define ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE "ortc/sctp/max-message-size"
 
@@ -175,6 +177,20 @@ namespace ortc
       ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters)
       typedef std::list<RTCPPacketPtr> RTCPPacketList;
       ZS_DECLARE_PTR(RTCPPacketList)
+
+      class ReceiverVideoRenderer : public webrtc::VideoRenderer
+      {
+      public:
+        void setMediaStreamTrack(UseMediaStreamTrackPtr videoTrack);
+
+        virtual void RenderFrame(const webrtc::VideoFrame& video_frame,
+          int time_to_render_ms) override;
+
+        virtual bool IsTextureSupported() const override;
+
+      private:
+        UseMediaStreamTrackPtr mVideoTrack;
+      };
 
       enum States
       {
@@ -321,6 +337,9 @@ namespace ortc
 
       rtc::scoped_ptr<webrtc::ProcessThread> mModuleProcessThread;
       rtc::scoped_ptr<webrtc::VideoReceiveStream> mReceiveStream;
+      rtc::scoped_ptr<webrtc::CallStats> mCallStats;
+      rtc::scoped_ptr<webrtc::CongestionController> mCongestionController;
+      ReceiverVideoRenderer mReceiverVideoRenderer;
     };
 
     //-------------------------------------------------------------------------

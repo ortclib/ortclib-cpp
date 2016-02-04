@@ -442,16 +442,16 @@ namespace ortc
 
         virtual ElementPtr toDebug() const override;
 
-        virtual void sendVideoFrame(
-                                    const uint8_t* videoFrame,
-                                    const size_t videoFrameSize
-                                    ) override;
+        //virtual void sendVideoFrame(
+        //                            const uint8_t* videoFrame,
+        //                            const size_t videoFrameSize
+        //                            ) override;
 
-        virtual void sendAudioSamples(
-                                      const void* audioSamples,
-                                      const size_t numberOfSamples,
-                                      const uint8_t numberOfChannels
-                                      ) override;
+        //virtual void sendAudioSamples(
+        //                              const void* audioSamples,
+        //                              const size_t numberOfSamples,
+        //                              const uint8_t numberOfChannels
+        //                              ) override;
       protected:
         //---------------------------------------------------------------------
         #pragma mark

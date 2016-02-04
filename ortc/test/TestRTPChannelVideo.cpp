@@ -44,6 +44,10 @@
 #include "config.h"
 #include "testing.h"
 
+#include <webrtc/base/logging.h>
+#include <webrtc/system_wrappers/include/trace.h>
+#include <webrtc/modules/video_capture/include/video_capture_factory.h>
+
 namespace ortc { namespace test { ZS_DECLARE_SUBSYSTEM(ortc_test) } }
 
 using zsLib::String;
@@ -81,28 +85,119 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
+#pragma mark
+#pragma mark WebRtcTraceCallback
+#pragma mark
+
+      class WebRtcTraceCallback : public webrtc::TraceCallback
+      {
+      public:
+
+        virtual void Print(webrtc::TraceLevel level, const char* message, int length)
+        {
+          rtc::LoggingSeverity sev = rtc::LS_VERBOSE;
+          if (level == webrtc::kTraceError || level == webrtc::kTraceCritical)
+            sev = rtc::LS_ERROR;
+          else if (level == webrtc::kTraceWarning)
+            sev = rtc::LS_WARNING;
+          else if (level == webrtc::kTraceStateInfo || level == webrtc::kTraceInfo)
+            sev = rtc::LS_INFO;
+          else if (level == webrtc::kTraceTerseInfo)
+            sev = rtc::LS_INFO;
+
+          // Skip past boilerplate prefix text
+          if (length < 72) {
+            std::string msg(message, length);
+            LOG(LS_ERROR) << "Malformed webrtc log message: ";
+            LOG_V(sev) << msg;
+          } else {
+            std::string msg(message + 71, length - 72);
+            LOG_V(sev) << "webrtc: " << msg;
+          }
+        }
+      };
+
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark FakeMediaStreamTrack
       #pragma mark
 
       //-----------------------------------------------------------------------
-      FakeMediaStreamTrack::FakeMediaStreamTrack(
-                                                 IMessageQueuePtr queue,
-                                                 UseReceiverChannelVideoPtr receiverChannelVideo
-                                                 ) :
-          MediaStreamTrack(Noop(true), queue),
-          mReceiverChannelVideo(receiverChannelVideo)
+      FakeMediaStreamTrack::FakeMediaStreamTrack(IMessageQueuePtr queue, bool remote) :
+        MediaStreamTrack(Noop(true), queue),
+        mRemote(remote)
       {
-      }
+        if (!mRemote) {
+          webrtc::VideoCaptureModule::DeviceInfo* info = webrtc::VideoCaptureFactory::CreateDeviceInfo(0);
+          if (!info) {
+            return;
+          }
 
-      //-----------------------------------------------------------------------
-      FakeMediaStreamTrack::FakeMediaStreamTrack(
-                                                 IMessageQueuePtr queue,
-                                                 UseSenderChannelVideoPtr senderChannelVideo
-                                                 ) :
-          MediaStreamTrack(Noop(true), queue),
-          mSenderChannelVideo(senderChannelVideo)
-      {
+          String videoDeviceID;
+          int numCams = info->NumberOfDevices();
+          for (int index = 0; index < numCams; ++index) {
+            char deviceName[256];
+            char deviceUniqueId[256];
+            if (info->GetDeviceName(index, deviceName, sizeof(deviceName),
+              deviceUniqueId, sizeof(deviceUniqueId)) != -1) {
+              videoDeviceID = String(deviceUniqueId);
+            }
+          }
+
+          mVideoCaptureModule = webrtc::VideoCaptureFactory::Create(0, videoDeviceID.c_str());
+          if (!mVideoCaptureModule) {
+            return;
+          }
+
+          mVideoCaptureModule->AddRef();
+
+          mVideoCaptureModule->RegisterCaptureDataCallback(*this);
+
+          LONG desiredWidth = 640;
+          LONG desiredHeight = 480;
+          DOUBLE desiredMaxFPS = 30;
+          LONG minWidthDiff = std::numeric_limits<LONG>::max();
+          LONG minHeightDiff = std::numeric_limits<LONG>::max();
+          DOUBLE minFpsDiff = std::numeric_limits<double>::max();
+          webrtc::VideoCaptureCapability bestCap;
+          int32_t numCaps = info->NumberOfCapabilities(videoDeviceID.c_str());
+          for (int32_t i = 0; i < numCaps; ++i) {
+            webrtc::VideoCaptureCapability cap;
+            if (info->GetCapability(videoDeviceID.c_str(), i, cap) != -1) {
+              if (cap.rawType == webrtc::kVideoUnknown)
+                continue;
+              LONG widthDiff = abs((LONG)(cap.width - desiredWidth));
+              LONG heightDiff = abs((LONG)(cap.height - desiredHeight));
+              DOUBLE fpsDiff = abs((DOUBLE)(cap.maxFPS - desiredMaxFPS));
+              if (widthDiff < minWidthDiff) {
+                bestCap = cap;
+                minWidthDiff = widthDiff;
+                minHeightDiff = heightDiff;
+                minFpsDiff = fpsDiff;
+              } else if (widthDiff == minWidthDiff) {
+                if (heightDiff < minHeightDiff) {
+                  bestCap = cap;
+                  minHeightDiff = heightDiff;
+                  minFpsDiff = fpsDiff;
+                } else if (heightDiff == minHeightDiff) {
+                  if (fpsDiff < minFpsDiff) {
+                    bestCap = cap;
+                    minFpsDiff = fpsDiff;
+                  }
+                }
+              }
+            }
+          }
+          delete info;
+
+          if (mVideoCaptureModule->StartCapture(bestCap) != 0) {
+            mVideoCaptureModule->DeRegisterCaptureDataCallback();
+            return;
+          }
+        }
       }
 
       //-----------------------------------------------------------------------
@@ -112,12 +207,72 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
+      FakeMediaStreamTrackPtr FakeMediaStreamTrack::create(
+                                                           IMessageQueuePtr queue,
+                                                           bool remote
+                                                           )
+      {
+        FakeMediaStreamTrackPtr pThis(make_shared<FakeMediaStreamTrack>(queue, remote));
+        pThis->mThisWeak = pThis;
+        return pThis;
+      }
+
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark FakeMediaStreamTrack => IMediaStreamTrack
+      #pragma mark
+
+      //-------------------------------------------------------------------------
+      void FakeMediaStreamTrack::stop()
+      {
+        if (mVideoCaptureModule) {
+          mVideoCaptureModule->StopCapture();
+          mVideoCaptureModule->DeRegisterCaptureDataCallback();
+        }
+
+        if (mVideoRenderModule)
+          mVideoRenderModule->StopRender(1);
+      }
+
+      //-------------------------------------------------------------------------
+      void FakeMediaStreamTrack::setMediaElement(void* element)
+      {
+        AutoRecursiveLock lock(*this);
+
+        mVideoRenderModule = webrtc::VideoRender::CreateVideoRender(1, element, false);
+
+        mVideoRendererCallback = mVideoRenderModule->AddIncomingRenderStream(1, 0, 0.0, 0.0, 1.0, 1.0);
+
+        mVideoRenderModule->StartRender(1);
+      }
+
+      //-------------------------------------------------------------------------
+      //-------------------------------------------------------------------------
+      //-------------------------------------------------------------------------
+      //-------------------------------------------------------------------------
+      #pragma mark
+      #pragma mark FakeMediaStreamTrack => IMediaStreamTrackForRTPReceiverChannel
+      #pragma mark
+
+      //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark FakeMediaStreamTrack => IMediaStreamTrackForRTPReceiverChannelVideo
       #pragma mark
+
+      //-------------------------------------------------------------------------
+      void FakeMediaStreamTrack::renderVideoFrame(const webrtc::VideoFrame& videoFrame)
+      {
+        AutoRecursiveLock lock(*this);
+
+        if (mVideoRendererCallback)
+          mVideoRendererCallback->RenderFrame(1, videoFrame);
+      }
 
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
@@ -126,6 +281,39 @@ namespace ortc
       #pragma mark
       #pragma mark FakeMediaStreamTrack => IMediaStreamTrackForRTPSenderChannelVideo
       #pragma mark
+
+      //-------------------------------------------------------------------------
+      //-------------------------------------------------------------------------
+      //-------------------------------------------------------------------------
+      //-------------------------------------------------------------------------
+      #pragma mark
+      #pragma mark MediaStreamTrack => webrtc::VideoCaptureDataCallback
+      #pragma mark
+
+      //-------------------------------------------------------------------------
+      void FakeMediaStreamTrack::OnIncomingCapturedFrame(const int32_t id, const webrtc::VideoFrame& videoFrame)
+      {
+        AutoRecursiveLock lock(*this);
+
+        if (mVideoRendererCallback)
+          mVideoRendererCallback->RenderFrame(1, videoFrame);
+
+        size_t allocatedSize = videoFrame.allocated_size(webrtc::PlaneType::kYPlane) +
+          videoFrame.allocated_size(webrtc::PlaneType::kUPlane) +
+          videoFrame.allocated_size(webrtc::PlaneType::kVPlane);
+
+        if (mSenderChannelVideo.lock())
+          mSenderChannelVideo.lock()->sendVideoFrame(
+                                                     videoFrame.buffer(webrtc::PlaneType::kYPlane),
+                                                     allocatedSize
+                                                     );
+      }
+
+      //-------------------------------------------------------------------------
+      void FakeMediaStreamTrack::OnCaptureDelayChanged(const int32_t id, const int32_t delay)
+      {
+
+      }
 
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
@@ -136,32 +324,38 @@ namespace ortc
       #pragma mark
 
       //-----------------------------------------------------------------------
-      FakeMediaStreamTrackPtr FakeMediaStreamTrack::create(
-                                                           IMessageQueuePtr queue,
-                                                           UseReceiverChannelVideoPtr receiverChannelVideo
-                                                           )
-      {
-        FakeMediaStreamTrackPtr pThis(make_shared<FakeMediaStreamTrack>(queue, receiverChannelVideo));
-        pThis->mThisWeak = pThis;
-        return pThis;
-      }
-
-      //-----------------------------------------------------------------------
-      FakeMediaStreamTrackPtr FakeMediaStreamTrack::create(
-                                                           IMessageQueuePtr queue,
-                                                           UseSenderChannelVideoPtr senderChannelVideo
-                                                           )
-      {
-        FakeMediaStreamTrackPtr pThis(make_shared<FakeMediaStreamTrack>(queue, senderChannelVideo));
-        pThis->mThisWeak = pThis;
-        return pThis;
-      }
-
-      //-----------------------------------------------------------------------
       void FakeMediaStreamTrack::setTransport(RTPChannelVideoTesterPtr tester)
       {
         AutoRecursiveLock lock(*this);
         mTester = tester;
+      }
+
+      //-----------------------------------------------------------------------
+      void FakeMediaStreamTrack::linkReceiverChannel(UseReceiverChannelPtr channel)
+      {
+        AutoRecursiveLock lock(*this);
+        mReceiverChannel = channel;
+      }
+
+      //-----------------------------------------------------------------------
+      void FakeMediaStreamTrack::linkSenderChannel(UseSenderChannelPtr channel)
+      {
+        AutoRecursiveLock lock(*this);
+        mSenderChannel = channel;
+      }
+
+      //-----------------------------------------------------------------------
+      void FakeMediaStreamTrack::linkReceiverChannelVideo(UseReceiverChannelVideoPtr channelVideo)
+      {
+        AutoRecursiveLock lock(*this);
+        mReceiverChannelVideo = channelVideo;
+      }
+
+      //-----------------------------------------------------------------------
+      void FakeMediaStreamTrack::linkSenderChannelVideo(UseSenderChannelVideoPtr channelVideo)
+      {
+        AutoRecursiveLock lock(*this);
+        mSenderChannelVideo = channelVideo;
       }
 
       //-----------------------------------------------------------------------
@@ -206,10 +400,12 @@ namespace ortc
       //-----------------------------------------------------------------------
       FakeReceiverChannel::FakeReceiverChannel(
                                                IMessageQueuePtr queue,
-                                               const Parameters &params
+                                               const Parameters &params,
+                                               UseMediaStreamTrackPtr track
                                                ) :
           RTPReceiverChannel(Noop(true), queue),
-          mParameters(make_shared<Parameters>(params))
+          mParameters(make_shared<Parameters>(params)),
+          mTrack(track)
       {
       }
 
@@ -222,12 +418,28 @@ namespace ortc
       //-----------------------------------------------------------------------
       FakeReceiverChannelPtr FakeReceiverChannel::create(
                                                          IMessageQueuePtr queue,
-                                                         const Parameters &params
+                                                         const Parameters &params,
+                                                         UseMediaStreamTrackPtr track
                                                          )
       {
-        FakeReceiverChannelPtr pThis(make_shared<FakeReceiverChannel>(queue, params));
+        FakeReceiverChannelPtr pThis(make_shared<FakeReceiverChannel>(queue, params, track));
         pThis->mThisWeak = pThis;
         return pThis;
+      }
+
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark FakeReceiverChannel => IRTPReceiverForRTPReceiverChannelBase
+      #pragma mark
+
+      //-----------------------------------------------------------------------
+      bool FakeReceiverChannel::sendPacket(RTCPPacketPtr packet)
+      {
+        mTester.lock()->sendToConnectedTester(packet);
+        return true;
       }
 
       //-----------------------------------------------------------------------
@@ -281,22 +493,41 @@ namespace ortc
       #pragma mark FakeReceiverChannel => (friend RTPSenderTester)
       #pragma mark
 
+      //-----------------------------------------------------------------------
       void FakeReceiverChannel::setTransport(RTPChannelVideoTesterPtr tester)
       {
         AutoRecursiveLock lock(*this);
         mTester = tester;
       }
 
+      //-----------------------------------------------------------------------
       void FakeReceiverChannel::linkChannelVideo(UseReceiverChannelVideoPtr channelVideo)
       {
         AutoRecursiveLock lock(*this);
         mReceiverChannelVideo = channelVideo;
       }
 
+      //-----------------------------------------------------------------------
       void FakeReceiverChannel::linkMediaStreamTrack(UseMediaStreamTrackPtr track)
       {
         AutoRecursiveLock lock(*this);
         mTrack = track;
+      }
+
+      //-----------------------------------------------------------------------
+      bool FakeReceiverChannel::handlePacket(RTPPacketPtr packet)
+      {
+        if (mReceiverChannelVideo)
+          mReceiverChannelVideo->handlePacket(packet);
+        return true;
+      }
+
+      //-----------------------------------------------------------------------
+      bool FakeReceiverChannel::handlePacket(RTCPPacketPtr packet)
+      {
+        if (mReceiverChannelVideo)
+          mReceiverChannelVideo->handlePacket(packet);
+        return true;
       }
 
       //-----------------------------------------------------------------------
@@ -327,10 +558,12 @@ namespace ortc
       //-----------------------------------------------------------------------
       FakeSenderChannel::FakeSenderChannel(
                                            IMessageQueuePtr queue,
-                                           const Parameters &params
+                                           const Parameters &params,
+                                           UseMediaStreamTrackPtr track
                                            ) :
           RTPSenderChannel(Noop(true), queue),
-          mParameters(make_shared<Parameters>(params))
+          mParameters(make_shared<Parameters>(params)),
+          mTrack(track)
       {
       }
 
@@ -343,12 +576,35 @@ namespace ortc
       //-----------------------------------------------------------------------
       FakeSenderChannelPtr FakeSenderChannel::create(
                                                      IMessageQueuePtr queue,
-                                                     const Parameters &params
+                                                     const Parameters &params,
+                                                     UseMediaStreamTrackPtr track
                                                      )
       {
-        FakeSenderChannelPtr pThis(make_shared<FakeSenderChannel>(queue, params));
+        FakeSenderChannelPtr pThis(make_shared<FakeSenderChannel>(queue, params, track));
         pThis->mThisWeak = pThis;
         return pThis;
+      }
+
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark FakeSenderChannel => IRTPSenderChannelForRTPSenderChannelBase
+      #pragma mark
+
+      //-----------------------------------------------------------------------
+      bool FakeSenderChannel::sendPacket(RTPPacketPtr packet)
+      {
+        mTester.lock()->sendToConnectedTester(packet);
+        return true;
+      }
+
+      //-----------------------------------------------------------------------
+      bool FakeSenderChannel::sendPacket(RTCPPacketPtr packet)
+      {
+        mTester.lock()->sendToConnectedTester(packet);
+        return false;
       }
 
       //-----------------------------------------------------------------------
@@ -384,25 +640,6 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void FakeSenderChannel::sendVideoFrame(
-                                             const uint8_t* videoFrame,
-                                             const size_t videoFrameSize
-                                             )
-      {
-
-      }
-
-      //-----------------------------------------------------------------------
-      void FakeSenderChannel::sendAudioSamples(
-                                               const void* audioSamples,
-                                               const size_t numberOfSamples,
-                                               const uint8_t numberOfChannels
-                                               )
-      {
-
-      }
-
-      //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
@@ -426,6 +663,13 @@ namespace ortc
       {
         AutoRecursiveLock lock(*this);
         mTrack = track;
+      }
+
+      bool FakeSenderChannel::handlePacket(RTCPPacketPtr packet)
+      {
+        if (mSenderChannelVideo)
+          mSenderChannelVideo->handlePacket(packet);
+        return true;
       }
 
       //-----------------------------------------------------------------------
@@ -531,10 +775,11 @@ namespace ortc
       //-----------------------------------------------------------------------
       RTPChannelVideoTesterPtr RTPChannelVideoTester::create(
                                                              IMessageQueuePtr queue,
-                                                             bool overrideFactories
+                                                             bool overrideFactories,
+                                                             void* videoSurface
                                                              )
       {
-        RTPChannelVideoTesterPtr pThis(new RTPChannelVideoTester(queue, overrideFactories));
+        RTPChannelVideoTesterPtr pThis(new RTPChannelVideoTester(queue, overrideFactories, videoSurface));
         pThis->mThisWeak = pThis;
         pThis->init();
         return pThis;
@@ -543,12 +788,14 @@ namespace ortc
       //-----------------------------------------------------------------------
       RTPChannelVideoTester::RTPChannelVideoTester(
                                                    IMessageQueuePtr queue,
-                                                   bool overrideFactories
+                                                   bool overrideFactories,
+                                                   void* videoSurface
                                                    ) :
           SharedRecursiveLock(SharedRecursiveLock::create()),
           MessageQueueAssociator(queue),
-          mOverrideFactories(overrideFactories)
-      {
+          mOverrideFactories(overrideFactories),
+          mVideoSurface(videoSurface)
+        {
         ZS_LOG_BASIC(log("rtpchannelvideo tester"))
       }
 
@@ -629,13 +876,32 @@ namespace ortc
 
         TESTING_CHECK(remote)
 
-          mConnectedTester = remote;
+        mConnectedTester = remote;
         remote->mConnectedTester = mThisWeak.lock();
+      }
+
+      //-----------------------------------------------------------------------
+      void RTPChannelVideoTester::createMediaStreamTrack(
+                                                         const char *trackID,
+                                                         bool remote
+                                                         )
+      {
+        FakeMediaStreamTrackPtr track = getMediaStreamTrack(trackID);
+
+        if (!track) {
+          track = FakeMediaStreamTrack::create(getAssociatedMessageQueue(), remote);
+          track->setMediaElement(mVideoSurface);
+          track->setTransport(mThisWeak.lock());
+          attach(trackID, track);
+        }
+
+        TESTING_CHECK(track)
       }
 
       //-----------------------------------------------------------------------
       void RTPChannelVideoTester::createReceiverChannel(
                                                         const char *receiverChannelID,
+                                                        const char *mediaStreamTrackID,
                                                         const char *parametersID
                                                         )
       {
@@ -643,8 +909,14 @@ namespace ortc
 
         if (!receiverChannel) {
           auto params = getParameters(parametersID);
-          TESTING_CHECK(params)
-            receiverChannel = FakeReceiverChannel::create(getAssociatedMessageQueue(), *params);
+          //TESTING_CHECK(params)
+          if (!params)
+            params.swap(ParametersPtr(new Parameters()));
+          auto track = getMediaStreamTrack(mediaStreamTrackID);
+          TESTING_CHECK(track)
+          receiverChannel = FakeReceiverChannel::create(getAssociatedMessageQueue(), *params, track);
+          receiverChannel->setTransport(mThisWeak.lock());
+          track->linkReceiverChannel(receiverChannel);
           attach(receiverChannelID, receiverChannel);
         }
 
@@ -654,6 +926,7 @@ namespace ortc
       //-----------------------------------------------------------------------
       void RTPChannelVideoTester::createSenderChannel(
                                                       const char *senderChannelID,
+                                                      const char *mediaStreamTrackID,
                                                       const char *parametersID
                                                       )
       {
@@ -661,8 +934,14 @@ namespace ortc
 
         if (!senderChannel) {
           auto params = getParameters(parametersID);
-          TESTING_CHECK(params)
-            senderChannel = FakeSenderChannel::create(getAssociatedMessageQueue(), *params);
+          //TESTING_CHECK(params)
+          if (!params)
+            params.swap(ParametersPtr(new Parameters()));
+          auto track = getMediaStreamTrack(mediaStreamTrackID);
+          TESTING_CHECK(track)
+          senderChannel = FakeSenderChannel::create(getAssociatedMessageQueue(), *params, track);
+          senderChannel->setTransport(mThisWeak.lock());
+          track->linkSenderChannel(senderChannel);
           attach(senderChannelID, senderChannel);
         }
 
@@ -673,6 +952,7 @@ namespace ortc
       void RTPChannelVideoTester::createReceiverChannelVideo(
                                                              const char *receiverChannelID,
                                                              const char *receiverChannelVideoID,
+                                                             const char *mediaStreamTrackID,
                                                              const char *parametersID
                                                              )
       {
@@ -680,10 +960,16 @@ namespace ortc
 
         if (!receiverChannelVideo) {
           auto params = getParameters(parametersID);
-          TESTING_CHECK(params)
-          FakeReceiverChannelPtr receiverChannel = getReceiverChannel(receiverChannelID);
+          //TESTING_CHECK(params)
+          if (!params)
+            params.swap(ParametersPtr(new Parameters()));
+          auto receiverChannel = getReceiverChannel(receiverChannelID);
           TESTING_CHECK(receiverChannel)
-          //receiverChannelVideo = UseReceiverChannelVideoForReceiverChannel::create(receiverChannel, track, *params);
+          auto track = getMediaStreamTrack(mediaStreamTrackID);
+          TESTING_CHECK(track)
+          receiverChannelVideo = UseReceiverChannelVideoForReceiverChannel::create(receiverChannel, track, *params);
+          receiverChannel->linkChannelVideo(receiverChannelVideo);
+          track->linkReceiverChannelVideo(receiverChannelVideo);
           attach(receiverChannelVideoID, receiverChannelVideo);
         }
 
@@ -694,6 +980,7 @@ namespace ortc
       void RTPChannelVideoTester::createSenderChannelVideo(
                                                            const char *senderChannelID,
                                                            const char *senderChannelVideoID,
+                                                           const char *mediaStreamTrackID,
                                                            const char *parametersID
                                                            )
       {
@@ -701,10 +988,16 @@ namespace ortc
 
         if (!senderChannelVideo) {
           auto params = getParameters(parametersID);
-          TESTING_CHECK(params)
-          FakeSenderChannelPtr senderChannel = getSenderChannel(senderChannelID);
+          //TESTING_CHECK(params)
+          if (!params)
+            params.swap(ParametersPtr(new Parameters()));
+          auto senderChannel = getSenderChannel(senderChannelID);
           TESTING_CHECK(senderChannel)
-          //senderChannelVideo = UseSenderChannelVideoForSenderChannel::create(senderChannel, track, *params);
+          auto track = getMediaStreamTrack(mediaStreamTrackID);
+          TESTING_CHECK(track)
+          senderChannelVideo = UseSenderChannelVideoForSenderChannel::create(senderChannel, track, *params);
+          senderChannel->linkChannelVideo(senderChannelVideo);
+          track->linkSenderChannelVideo(senderChannelVideo);
           attach(senderChannelVideoID, senderChannelVideo);
         }
 
@@ -733,6 +1026,32 @@ namespace ortc
       void RTPChannelVideoTester::stop(const char *senderOrReceiverChannelID)
       {
         AutoRecursiveLock lock(*this);
+      }
+
+      //-----------------------------------------------------------------------
+      void RTPChannelVideoTester::attach(
+                                         const char *trackID,
+                                         FakeMediaStreamTrackPtr mediaStreamTrack
+        )
+      {
+        TESTING_CHECK(mediaStreamTrack)
+
+        String trackIDStr(trackID);
+
+        AutoRecursiveLock lock(*this);
+
+        auto found = mMediaStreamTracks.find(trackIDStr);
+
+        if (found != mMediaStreamTracks.end()) {
+          auto &previousTrack = (*found).second;
+          if (previousTrack) {
+          }
+
+          previousTrack = mediaStreamTrack;
+          return;
+        }
+
+        mMediaStreamTracks[trackIDStr] = mediaStreamTrack;
       }
 
       //-----------------------------------------------------------------------
@@ -839,6 +1158,23 @@ namespace ortc
         }
 
         mSenderVideoChannels[senderChannelVideoIDStr] = senderChannelVideo;
+      }
+
+      //-----------------------------------------------------------------------
+      FakeMediaStreamTrackPtr RTPChannelVideoTester::detachMediaStreamTrack(const char *trackID)
+      {
+        String trackIDStr(trackID);
+
+        AutoRecursiveLock lock(*this);
+
+        auto found = mMediaStreamTracks.find(trackIDStr);
+        TESTING_CHECK(found != mMediaStreamTracks.end())
+
+        FakeMediaStreamTrackPtr track = (*found).second;
+
+        mMediaStreamTracks.erase(found);
+
+        return track;
       }
 
       //-----------------------------------------------------------------------
@@ -1163,6 +1499,29 @@ namespace ortc
         return RTPSenderChannelVideoPtr();
       }
 
+      //-----------------------------------------------------------------------
+      void RTPChannelVideoTester::sendToConnectedTester(RTPPacketPtr packet)
+      {
+        if (mConnectedTester.lock()->mReceiverChannels.size() != 0) {
+          FakeReceiverChannelPtr receiverChannel = mConnectedTester.lock()->mReceiverChannels.begin()->second;
+          receiverChannel->handlePacket(packet);
+        }
+      }
+
+      //-----------------------------------------------------------------------
+      void RTPChannelVideoTester::sendToConnectedTester(RTCPPacketPtr packet)
+      {
+        if (mConnectedTester.lock()->mSenderChannels.size() != 0) {
+          FakeSenderChannelPtr senderChannel = mConnectedTester.lock()->mSenderChannels.begin()->second;
+          senderChannel->handlePacket(packet);
+        }
+        if (mConnectedTester.lock()->mReceiverChannels.size() != 0) {
+          FakeReceiverChannelPtr receiverChannel = mConnectedTester.lock()->mReceiverChannels.begin()->second;
+          receiverChannel->handlePacket(packet);
+        }
+      }
+
+
 
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
@@ -1181,21 +1540,30 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
+      FakeMediaStreamTrackPtr RTPChannelVideoTester::getMediaStreamTrack(const char *trackID)
+      {
+        AutoRecursiveLock lock(*this);
+        auto found = mMediaStreamTracks.find(String(trackID));
+        if (mMediaStreamTracks.end() == found) return FakeMediaStreamTrackPtr();
+        return (*found).second;
+      }
+
+      //-----------------------------------------------------------------------
       FakeReceiverChannelPtr RTPChannelVideoTester::getReceiverChannel(const char *receiverChannelID)
       {
         AutoRecursiveLock lock(*this);
-        auto found = mAttached.find(String(receiverChannelID));
-        if (mAttached.end() == found) return FakeReceiverChannelPtr();
-        return (*found).second.first;
+        auto found = mReceiverChannels.find(String(receiverChannelID));
+        if (mReceiverChannels.end() == found) return FakeReceiverChannelPtr();
+        return (*found).second;
       }
 
       //-----------------------------------------------------------------------
       FakeSenderChannelPtr RTPChannelVideoTester::getSenderChannel(const char *senderChannelID)
       {
         AutoRecursiveLock lock(*this);
-        auto found = mAttached.find(String(senderChannelID));
-        if (mAttached.end() == found) return FakeSenderChannelPtr();
-        return (*found).second.second;
+        auto found = mSenderChannels.find(String(senderChannelID));
+        if (mSenderChannels.end() == found) return FakeSenderChannelPtr();
+        return (*found).second;
       }
 
       //-----------------------------------------------------------------------
@@ -1266,7 +1634,7 @@ namespace ortc
         auto found = mPackets.find(String(packetID));
         TESTING_CHECK(found != mPackets.end())
 
-          outRTP = (*found).second.first;
+        outRTP = (*found).second.first;
         outRTCP = (*found).second.second;
       }
     }
@@ -1296,8 +1664,8 @@ using zsLib::Milliseconds;
 using ortc::SecureByteBlock;
 using ortc::SecureByteBlockPtr;
 
-#define TEST_BASIC_MEDIA 1
-#define TEST_ADVANCED_MEDIA 0
+#define TEST_BASIC_MEDIA 0
+#define TEST_ADVANCED_MEDIA 1
 
 static void bogusSleep()
 {
@@ -1328,6 +1696,14 @@ void doTestRTPChannelVideo(void* localSurface, void* remoteSurface)
     ULONG testNumber = 0;
     ULONG maxSteps = 80;
 
+    rtc::LogMessage::LogToDebug(rtc::LS_SENSITIVE);
+
+    webrtc::TraceCallback* traceCallback = new ortc::test::rtpchannelvideo::WebRtcTraceCallback();
+
+    webrtc::Trace::CreateTrace();
+    webrtc::Trace::SetTraceCallback(traceCallback);
+    webrtc::Trace::set_level_filter(webrtc::kTraceAll);
+
     do
     {
       TESTING_STDOUT() << "TESTING       ---------->>>>>>>>>> " << testNumber << " <<<<<<<<<<----------\n";
@@ -1338,21 +1714,21 @@ void doTestRTPChannelVideo(void* localSurface, void* remoteSurface)
       switch (testNumber) {
       case TEST_BASIC_MEDIA: {
         {
-          testObject1 = RTPChannelVideoTester::create(thread, true);
-          testObject2 = RTPChannelVideoTester::create(thread, false);
+          testObject1 = RTPChannelVideoTester::create(thread, false, localSurface);
+          testObject2 = RTPChannelVideoTester::create(thread, false, remoteSurface);
 
           TESTING_CHECK(testObject1)
-            TESTING_CHECK(testObject2)
+          TESTING_CHECK(testObject2)
         }
         break;
       }
       case TEST_ADVANCED_MEDIA: {
         {
-          testObject1 = RTPChannelVideoTester::create(thread, true);
-          testObject2 = RTPChannelVideoTester::create(thread, false);
+          testObject1 = RTPChannelVideoTester::create(thread, false, localSurface);
+          testObject2 = RTPChannelVideoTester::create(thread, false, remoteSurface);
 
           TESTING_CHECK(testObject1)
-            TESTING_CHECK(testObject2)
+          TESTING_CHECK(testObject2)
         }
         break;
       }
@@ -1371,7 +1747,7 @@ void doTestRTPChannelVideo(void* localSurface, void* remoteSurface)
       bool lastStepReached = false;
 
       while ((found < expecting) ||
-        (!lastStepReached))
+             (!lastStepReached))
       {
         TESTING_SLEEP(1000)
         ++step;
@@ -1391,14 +1767,23 @@ void doTestRTPChannelVideo(void* localSurface, void* remoteSurface)
             break;
           }
           case 3: {
+            if (testObject1) testObject1->createMediaStreamTrack("lt", false);
+            if (testObject2) testObject2->createMediaStreamTrack("rt", true);
+            if (testObject1) testObject1->createSenderChannel("sc", "lt", "");
+            if (testObject2) testObject2->createReceiverChannel("rc", "rt", "");
+            if (testObject1) testObject1->createSenderChannelVideo("sc", "sca", "lt", "");
+            if (testObject2) testObject2->createReceiverChannelVideo("rc", "rca", "rt", "");
             //    bogusSleep();
             break;
           }
           case 4: {
+            if (testObject1) testObject1->send("sc", "");
+            if (testObject2) testObject2->receive("rc", "");
             //    bogusSleep();
             break;
           }
           case 5: {
+            TESTING_SLEEP(5000)
             //    bogusSleep();
             break;
           }
@@ -1451,10 +1836,14 @@ void doTestRTPChannelVideo(void* localSurface, void* remoteSurface)
             break;
           }
           case 23: {
+            if (testObject1) testObject1->stop("sc");
+            if (testObject2) testObject2->stop("rc");
             //bogusSleep();
             break;
           }
           case 24: {
+            if (testObject1) testObject1->stop("sc");
+            if (testObject2) testObject2->stop("rc");
             //bogusSleep();
             break;
           }

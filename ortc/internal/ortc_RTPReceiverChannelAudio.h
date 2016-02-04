@@ -103,13 +103,6 @@ namespace ortc
                                                MediaStreamTrackPtr track,
                                                const Parameters &params
                                                );
-
-      virtual void getAudioSamples(
-                                   const size_t numberOfSamples,
-                                   const uint8_t numberOfChannels,
-                                   const void* audioSamples,
-                                   size_t& numberOfSamplesOut
-                                   ) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -129,6 +122,13 @@ namespace ortc
       static ElementPtr toDebug(ForMediaStreamTrackPtr object);
 
       virtual PUID getID() const = 0;
+
+      virtual void getAudioSamples(
+                                   const size_t numberOfSamples,
+                                   const uint8_t numberOfChannels,
+                                   const void* audioSamples,
+                                   size_t& numberOfSamplesOut
+                                   ) = 0;
     };
 
     //-------------------------------------------------------------------------

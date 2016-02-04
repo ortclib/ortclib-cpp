@@ -328,7 +328,12 @@ namespace ortc
     #pragma mark
     #pragma mark RTPReceiverChannel => ForRTPReceiverChannelMediaBase
     #pragma mark
-    
+
+    bool RTPReceiverChannel::sendPacket(RTCPPacketPtr packet)
+    {
+      return false;
+    }
+
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -336,11 +341,6 @@ namespace ortc
     #pragma mark
     #pragma mark RTPReceiverChannel => ForRTPReceiverChannelAudio
     #pragma mark
-
-    bool RTPReceiverChannel::sendPacket(RTCPPacketPtr packet)
-    {
-      return false;
-    }
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------

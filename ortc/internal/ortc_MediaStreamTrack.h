@@ -208,8 +208,6 @@ namespace ortc
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPReceiverChannel, ForReceiverChannel)
 
       virtual PUID getID() const = 0;
-
-      virtual void renderVideoFrame(const webrtc::VideoFrame& videoFrame) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -256,6 +254,8 @@ namespace ortc
     interaction IMediaStreamTrackForRTPReceiverChannelVideo : public IMediaStreamTrackForRTPReceiverChannelMediabase
     {
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPReceiverChannelVideo, ForReceiverChannelVideo)
+
+      virtual void renderVideoFrame(const webrtc::VideoFrame& videoFrame) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -509,8 +509,6 @@ namespace ortc
 
       // (duplicate) virtual PUID getID() const = 0;
 
-      virtual void renderVideoFrame(const webrtc::VideoFrame& videoFrame) override;
-
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark MediaStreamTrack => IMediaStreamTrackForRTPReceiverChannelMediaBase
@@ -532,6 +530,8 @@ namespace ortc
       #pragma mark
       #pragma mark MediaStreamTrack => IMediaStreamTrackForRTPReceiverChannelVideo
       #pragma mark
+
+      virtual void renderVideoFrame(const webrtc::VideoFrame& videoFrame) override;
 
       //-----------------------------------------------------------------------
       #pragma mark

@@ -13,7 +13,10 @@
     		<Run Text="ORTC MediaChannel"/>
         </TextBlock>
         <Border HorizontalAlignment="Left" Height="240" Margin="83,175,0,0" VerticalAlignment="Top" Width="320" BorderBrush="{ThemeResource TextBoxBorderThemeBrush}" BorderThickness="2">
-            <MediaElement x:Name="VideoMediaElement"/>
+            <MediaElement x:Name="LocalVideoMediaElement"/>
+        </Border>
+        <Border HorizontalAlignment="Left" Height="240" Margin="490,175,0,0" VerticalAlignment="Top" Width="320" BorderBrush="{ThemeResource TextBoxBorderThemeBrush}" BorderThickness="2">
+            <MediaElement x:Name="RemoteVideoMediaElement"/>
         </Border>
 
     </Grid>

@@ -129,6 +129,10 @@ namespace ortc
       ZS_DECLARE_TYPEDEF_PTR(IRTPSenderChannelForRTPSenderChannelMediaBase, ForRTPSenderChannelMediaBase)
 
       virtual PUID getID() const = 0;
+
+      virtual bool sendPacket(RTPPacketPtr packet) = 0;
+
+      virtual bool sendPacket(RTCPPacketPtr packet) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -142,10 +146,6 @@ namespace ortc
     interaction IRTPSenderChannelForRTPSenderChannelAudio : public IRTPSenderChannelForRTPSenderChannelMediaBase
     {
       ZS_DECLARE_TYPEDEF_PTR(IRTPSenderChannelForRTPSenderChannelAudio, ForRTPSenderChannelAudio)
-
-      virtual bool sendPacket(RTPPacketPtr packet) = 0;
-
-      virtual bool sendPacket(RTCPPacketPtr packet) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -176,17 +176,6 @@ namespace ortc
       static ElementPtr toDebug(ForMediaStreamTrackPtr object);
 
       virtual PUID getID() const = 0;
-
-      virtual void sendVideoFrame(
-                                  const uint8_t* videoFrame,
-                                  const size_t videoFrameSize
-                                  ) = 0;
-
-      virtual void sendAudioSamples(
-                                    const void* audioSamples,
-                                    const size_t numberOfSamples,
-                                    const uint8_t numberOfChannels
-                                    ) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -323,14 +312,14 @@ namespace ortc
 
       // (duplicate) virtual PUID getID() const = 0;
 
+      virtual bool sendPacket(RTPPacketPtr packet) override;
+
+      virtual bool sendPacket(RTCPPacketPtr packet) override;
+
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark RTPSenderChannel => IRTPSenderChannelForRTPSenderChannelAudio
       #pragma mark
-
-      virtual bool sendPacket(RTPPacketPtr packet) override;
-
-      virtual bool sendPacket(RTCPPacketPtr packet) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -345,17 +334,6 @@ namespace ortc
       // (duplicate) static ElementPtr toDebug(ForMediaStreamTrackPtr receiver);
 
       // (duplicate) virtual PUID getID() const = 0;
-
-      virtual void sendVideoFrame(
-                                  const uint8_t* videoFrame,
-                                  const size_t videoFrameSize
-                                  ) override;
-
-      virtual void sendAudioSamples(
-                                    const void* audioSamples,
-                                    const size_t numberOfSamples,
-                                    const uint8_t numberOfChannels
-                                    ) override;
 
       //-----------------------------------------------------------------------
       #pragma mark

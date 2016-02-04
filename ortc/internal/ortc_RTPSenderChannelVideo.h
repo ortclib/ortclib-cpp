@@ -44,6 +44,8 @@
 #include <webrtc/transport.h>
 #include <webrtc/modules/utility/include/process_thread.h>
 #include <webrtc/video/video_send_stream.h>
+#include <webrtc/video_engine/call_stats.h>
+#include <webrtc/call/congestion_controller.h>
 
 //#define ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE "ortc/sctp/max-message-size"
 
@@ -113,6 +115,17 @@ namespace ortc
     interaction IRTPSenderChannelVideoForMediaStreamTrack : public IRTPSenderChannelMediaBaseForMediaStreamTrack
     {
       ZS_DECLARE_TYPEDEF_PTR(IRTPSenderChannelVideoForMediaStreamTrack, ForMediaStreamTrack)
+
+      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters)
+
+      static ElementPtr toDebug(ForMediaStreamTrackPtr object);
+
+      virtual PUID getID() const = 0;
+
+      virtual void sendVideoFrame(
+                                  const uint8_t* videoFrame,
+                                  const size_t videoFrameSize
+                                  ) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -228,15 +241,17 @@ namespace ortc
 
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark RTPSenderChannelVideo => IRTPSenderChannelMediaBaseForMediaStreamTrack
+      #pragma mark RTPSenderChannelVideo => IRTPSenderChannelVideoForMediaStreamTrack
       #pragma mark
+
+      // (duplicate) static ElementPtr toDebug(ForMediaStreamTrackPtr object);
 
       // (duplicate) virtual PUID getID() const = 0;
 
-      //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTPSenderChannelVideo => IRTPSenderChannelVideoForMediaStreamTrack
-      #pragma mark
+      virtual void sendVideoFrame(
+                                  const uint8_t* videoFrame,
+                                  const size_t videoFrameSize
+                                  ) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -315,6 +330,8 @@ namespace ortc
 
       rtc::scoped_ptr<webrtc::ProcessThread> mModuleProcessThread;
       rtc::scoped_ptr<webrtc::VideoSendStream> mSendStream;
+      rtc::scoped_ptr<webrtc::CallStats> mCallStats;
+      rtc::scoped_ptr<webrtc::CongestionController> mCongestionController;
     };
 
     //-------------------------------------------------------------------------

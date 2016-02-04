@@ -111,8 +111,7 @@ namespace ortc
             std::string msg(message, length);
             LOG(LS_ERROR) << "Malformed webrtc log message: ";
             LOG_V(sev) << msg;
-          }
-          else {
+          } else {
             std::string msg(message + 71, length - 72);
             LOG_V(sev) << "webrtc: " << msg;
           }
@@ -254,8 +253,8 @@ namespace ortc
                                                             uint32_t& newMicLevel
                                                             )
       {
-        if (mSenderChannel.lock())
-          mSenderChannel.lock()->sendAudioSamples(audioSamples, nSamples, nChannels);
+        if (mSenderChannelAudio.lock())
+          mSenderChannelAudio.lock()->sendAudioSamples(audioSamples, nSamples, nChannels);
         return 0;
       }
 
@@ -271,8 +270,8 @@ namespace ortc
                                                      int64_t* ntp_time_ms
                                                      )
       {
-        if (mReceiverChannel.lock())
-          mReceiverChannel.lock()->getAudioSamples(nSamples, nChannels, audioSamples, nSamplesOut);
+        if (mReceiverChannelAudio.lock())
+          mReceiverChannelAudio.lock()->getAudioSamples(nSamples, nChannels, audioSamples, nSamplesOut);
         return 0;
       }
 
@@ -364,9 +363,9 @@ namespace ortc
                                                const Parameters &params,
                                                UseMediaStreamTrackPtr track
                                                ) :
-        RTPReceiverChannel(Noop(true), queue),
-        mParameters(make_shared<Parameters>(params)),
-        mTrack(track)
+          RTPReceiverChannel(Noop(true), queue),
+          mParameters(make_shared<Parameters>(params)),
+          mTrack(track)
       {
       }
       
@@ -387,7 +386,22 @@ namespace ortc
         pThis->mThisWeak = pThis;
         return pThis;
       }
-      
+
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark FakeReceiverChannel => IRTPReceiverForRTPReceiverChannelBase
+      #pragma mark
+
+      //-----------------------------------------------------------------------
+      bool FakeReceiverChannel::sendPacket(RTCPPacketPtr packet)
+      {
+        mTester.lock()->sendToConnectedTester(packet);
+        return true;
+      }
+
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
@@ -395,12 +409,6 @@ namespace ortc
       #pragma mark
       #pragma mark FakeReceiverChannel => IRTPReceiverForRTPReceiverChannelAudio
       #pragma mark
-
-      bool FakeReceiverChannel::sendPacket(RTCPPacketPtr packet)
-      {
-        mTester.lock()->sendToConnectedTester(packet);
-        return true;
-      }
 
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
@@ -427,18 +435,6 @@ namespace ortc
       }
       
       //-----------------------------------------------------------------------
-      void FakeReceiverChannel::getAudioSamples(
-                                                const size_t numberOfSamples,
-                                                const uint8_t numberOfChannels,
-                                                const void* audioSamples,
-                                                size_t& numberOfSamplesOut
-                                                )
-      {
-        if (mReceiverChannelAudio)
-          mReceiverChannelAudio->getAudioSamples(numberOfSamples, numberOfChannels, audioSamples, numberOfSamplesOut);
-      }
-      
-      //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
@@ -446,24 +442,28 @@ namespace ortc
       #pragma mark FakeReceiverChannel => (friend RTPSenderTester)
       #pragma mark
 
+      //-----------------------------------------------------------------------
       void FakeReceiverChannel::setTransport(RTPChannelAudioTesterPtr tester)
       {
         AutoRecursiveLock lock(*this);
         mTester = tester;
       }
 
+      //-----------------------------------------------------------------------
       void FakeReceiverChannel::linkChannelAudio(UseReceiverChannelAudioPtr channelAudio)
       {
         AutoRecursiveLock lock(*this);
         mReceiverChannelAudio = channelAudio;
       }
 
+      //-----------------------------------------------------------------------
       void FakeReceiverChannel::linkMediaStreamTrack(UseMediaStreamTrackPtr track)
       {
         AutoRecursiveLock lock(*this);
         mTrack = track;
       }
 
+      //-----------------------------------------------------------------------
       bool FakeReceiverChannel::handlePacket(RTPPacketPtr packet)
       {
         if (mReceiverChannelAudio)
@@ -471,6 +471,7 @@ namespace ortc
         return true;
       }
 
+      //-----------------------------------------------------------------------
       bool FakeReceiverChannel::handlePacket(RTCPPacketPtr packet)
       {
         if (mReceiverChannelAudio)
@@ -509,9 +510,9 @@ namespace ortc
                                            const Parameters &params,
                                            UseMediaStreamTrackPtr track
                                            ) :
-        RTPSenderChannel(Noop(true), queue),
-        mParameters(make_shared<Parameters>(params)),
-        mTrack(track)
+          RTPSenderChannel(Noop(true), queue),
+          mParameters(make_shared<Parameters>(params)),
+          mTrack(track)
       {
       }
       
@@ -532,7 +533,29 @@ namespace ortc
         pThis->mThisWeak = pThis;
         return pThis;
       }
-      
+
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark FakeSenderChannel => IRTPSenderChannelForRTPSenderChannelBase
+      #pragma mark
+
+      //-----------------------------------------------------------------------
+      bool FakeSenderChannel::sendPacket(RTPPacketPtr packet)
+      {
+        mTester.lock()->sendToConnectedTester(packet);
+        return true;
+      }
+
+      //-----------------------------------------------------------------------
+      bool FakeSenderChannel::sendPacket(RTCPPacketPtr packet)
+      {
+        mTester.lock()->sendToConnectedTester(packet);
+        return false;
+      }
+
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
@@ -540,19 +563,6 @@ namespace ortc
       #pragma mark
       #pragma mark FakeSenderChannel => IRTPSenderChannelForRTPSenderChannelAudio
       #pragma mark
-
-      bool FakeSenderChannel::sendPacket(RTPPacketPtr packet)
-      {
-        mTester.lock()->sendToConnectedTester(packet);
-        return true;
-      }
-
-      bool FakeSenderChannel::sendPacket(RTCPPacketPtr packet)
-      {
-        mTester.lock()->sendToConnectedTester(packet);
-        return false;
-      }
-
 
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
@@ -576,26 +586,6 @@ namespace ortc
         UseServicesHelper::debugAppend(result, mParameters ? mParameters->toDebug() : ElementPtr());
         
         return result;
-      }
-      
-      //-----------------------------------------------------------------------
-      void FakeSenderChannel::sendVideoFrame(
-                                             const uint8_t* videoFrame,
-                                             const size_t videoFrameSize
-                                             )
-      {
-        
-      }
-      
-      //-----------------------------------------------------------------------
-      void FakeSenderChannel::sendAudioSamples(
-                                               const void* audioSamples,
-                                               const size_t numberOfSamples,
-                                               const uint8_t numberOfChannels
-                                               )
-      {
-        if (mSenderChannelAudio)
-          mSenderChannelAudio->sendAudioSamples(audioSamples, numberOfSamples, numberOfChannels);
       }
       
       //-----------------------------------------------------------------------
@@ -1736,6 +1726,7 @@ void doTestRTPChannelAudio()
                 break;
               }
               case 5: {
+                TESTING_SLEEP(5000)
                 //    bogusSleep();
                 break;
               }

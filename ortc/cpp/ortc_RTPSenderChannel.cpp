@@ -296,14 +296,6 @@ namespace ortc
     #pragma mark RTPSenderChannel => ForRTPSenderChannelMediaBase
     #pragma mark
 
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPSenderChannel => ForRTPSenderChannelAudio
-    #pragma mark
-
     bool RTPSenderChannel::sendPacket(RTPPacketPtr packet)
     {
       return false;
@@ -313,6 +305,14 @@ namespace ortc
     {
       return false;
     }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPSenderChannel => ForRTPSenderChannelAudio
+    #pragma mark
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -329,25 +329,6 @@ namespace ortc
     #pragma mark
     #pragma mark RTPSenderChannel => IRTPSenderChannelForMediaStreamTrack
     #pragma mark
-
-    //-------------------------------------------------------------------------
-    void RTPSenderChannel::sendVideoFrame(
-                                          const uint8_t* videoFrame,
-                                          const size_t videoFrameSize
-                                          )
-    {
-
-    }
-
-    //-------------------------------------------------------------------------
-    void RTPSenderChannel::sendAudioSamples(
-                                            const void* audioSamples,
-                                            const size_t numberOfSamples,
-                                            const uint8_t numberOfChannels
-                                            )
-    {
-
-    }
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------

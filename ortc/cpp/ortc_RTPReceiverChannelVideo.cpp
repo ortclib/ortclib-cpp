@@ -48,6 +48,8 @@
 
 #include <cryptopp/sha.h>
 
+#include <webrtc/system_wrappers/include/cpu_info.h>
+
 #ifdef _DEBUG
 #define ASSERT(x) ZS_THROW_BAD_STATE_IF(!(x))
 #else
@@ -89,6 +91,32 @@ namespace ortc
     void IRTPReceiverChannelVideoForSettings::applyDefaults()
     {
 //      UseSettings::setUInt(ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE, 5*1024);
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPReceiverChannelVideo::ReceiverVideoRenderer
+    #pragma mark
+
+    //---------------------------------------------------------------------------
+    void RTPReceiverChannelVideo::ReceiverVideoRenderer::setMediaStreamTrack(UseMediaStreamTrackPtr videoTrack)
+    {
+      mVideoTrack = videoTrack;
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPReceiverChannelVideo::ReceiverVideoRenderer::RenderFrame(const webrtc::VideoFrame& video_frame, int time_to_render_ms)
+    {
+      mVideoTrack->renderVideoFrame(video_frame);
+    }
+
+    //-------------------------------------------------------------------------
+    bool RTPReceiverChannelVideo::ReceiverVideoRenderer::IsTextureSupported() const
+    {
+      return false;
     }
 
     //-------------------------------------------------------------------------
@@ -164,7 +192,8 @@ namespace ortc
       SharedRecursiveLock(SharedRecursiveLock::create()),
       mReceiverChannel(receiverChannel),
       mTrack(track),
-      mParameters(make_shared<Parameters>(params))
+      mParameters(make_shared<Parameters>(params)),
+      mModuleProcessThread(webrtc::ProcessThread::Create("RTPReceiverChannelVideoThread"))
     {
       ZS_LOG_DETAIL(debug("created"))
 
@@ -177,14 +206,21 @@ namespace ortc
       AutoRecursiveLock lock(*this);
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
 
+      mReceiverVideoRenderer.setMediaStreamTrack(mTrack);
+
+      mCallStats = rtc::scoped_ptr<webrtc::CallStats>(new webrtc::CallStats());
+      mCongestionController =
+        rtc::scoped_ptr<webrtc::CongestionController>(new webrtc::CongestionController(
+                                                                                       mModuleProcessThread.get(),
+                                                                                       mCallStats.get())
+                                                                                       );
+
       mModuleProcessThread->Start();
+      mModuleProcessThread->RegisterModule(mCallStats.get());
 
-      webrtc::VideoRenderer* renderer = NULL;
-
-      int numCpuCores = 2;
+      int numCpuCores = webrtc::CpuInfo::DetectNumberOfCores();
       webrtc::Transport* transport = this;
       webrtc::VideoReceiveStream::Config config(this);
-      webrtc::VoiceEngine* voiceEngine = NULL;
 
       webrtc::VideoCodecType type = webrtc::kVideoCodecVP8;
       webrtc::VideoDecoder* videoDecoder = webrtc::VideoDecoder::Create(webrtc::VideoDecoder::kVp8);
@@ -199,16 +235,16 @@ namespace ortc
       config.rtp.remb = true;
       config.rtp.nack.rtp_history_ms = 1000;
       config.decoders.push_back(decoder);
-      config.renderer = renderer;
+      config.renderer = &mReceiverVideoRenderer;
 
       mReceiveStream = rtc::scoped_ptr<webrtc::VideoReceiveStream>(
         new webrtc::internal::VideoReceiveStream(
                                                  numCpuCores,
-                                                 NULL,
+                                                 mCongestionController.get(),
                                                  config,
                                                  NULL,
                                                  mModuleProcessThread.get(),
-                                                 NULL
+                                                 mCallStats.get()
                                                  ));
     }
 
@@ -269,11 +305,10 @@ namespace ortc
     {
       {
         AutoRecursiveLock lock(*this);
-#define TODO 1
-#define TODO 2
       }
-
-      return false;
+      webrtc::PacketTime time;
+      mReceiveStream->DeliverRtp(packet->buffer()->data(), packet->buffer()->size(), time);
+      return true;
     }
 
     //-------------------------------------------------------------------------
@@ -282,11 +317,9 @@ namespace ortc
     {
       {
         AutoRecursiveLock lock(*this);
-#define TODO 1
-#define TODO 2
       }
-
-      return false;
+      mReceiveStream->DeliverRtcp(packet->buffer()->data(), packet->buffer()->size());
+      return true;
     }
 
     //-------------------------------------------------------------------------
@@ -372,6 +405,7 @@ namespace ortc
 
     bool  RTPReceiverChannelVideo::SendRtcp(const uint8_t* packet, size_t length)
     {
+      mReceiverChannel.lock()->sendPacket(RTCPPacket::create(packet, length));
       return true;
     }
 

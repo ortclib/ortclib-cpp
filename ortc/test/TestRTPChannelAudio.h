@@ -232,12 +232,17 @@ namespace ortc
       protected:
         //---------------------------------------------------------------------
         #pragma mark
-        #pragma mark FakeReceiverChannel => IRTPReceiverChannelForRTPReceiverChannelAudio
+        #pragma mark FakeReceiverChannel => IRTPReceiverChannelForRTPReceiverChannelBase
         #pragma mark
-        
+
         // (base handles) virtual PUID getID() const = 0;
 
         virtual bool sendPacket(RTCPPacketPtr packet) override;
+
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark FakeReceiverChannel => IRTPReceiverChannelForRTPReceiverChannelAudio
+        #pragma mark
 
         //---------------------------------------------------------------------
         #pragma mark
@@ -245,13 +250,6 @@ namespace ortc
         #pragma mark
         
         virtual ElementPtr toDebug() const override;
-        
-        virtual void getAudioSamples(
-                                     const size_t numberOfSamples,
-                                     const uint8_t numberOfChannels,
-                                     const void* audioSamples,
-                                     size_t& numberOfSamplesOut
-                                     ) override;
 
         //---------------------------------------------------------------------
         #pragma mark
@@ -332,9 +330,9 @@ namespace ortc
       protected:
         //---------------------------------------------------------------------
         #pragma mark
-        #pragma mark FakeSenderChannel => IRTPSenderChannelForRTPSenderChannelAudio
+        #pragma mark FakeSenderChannel => IRTPSenderChannelForRTPSenderChannelBase
         #pragma mark
-        
+
         // (base handles) virtual PUID getID() const = 0;
 
         virtual bool sendPacket(RTPPacketPtr packet) override;
@@ -343,21 +341,15 @@ namespace ortc
 
         //---------------------------------------------------------------------
         #pragma mark
+        #pragma mark FakeSenderChannel => IRTPSenderChannelForRTPSenderChannelAudio
+        #pragma mark
+
+        //---------------------------------------------------------------------
+        #pragma mark
         #pragma mark FakeSenderChannel => IRTPSenderChannelForMediaStreamTrack
         #pragma mark
         
         virtual ElementPtr toDebug() const override;
-        
-        virtual void sendVideoFrame(
-                                    const uint8_t* videoFrame,
-                                    const size_t videoFrameSize
-                                    ) override;
-        
-        virtual void sendAudioSamples(
-                                      const void* audioSamples,
-                                      const size_t numberOfSamples,
-                                      const uint8_t numberOfChannels
-                                      ) override;
         
         //---------------------------------------------------------------------
         #pragma mark
@@ -580,8 +572,8 @@ namespace ortc
 
         void createReceiverChannel(
                                    const char *receiverChannelID,
-                                   const char *parametersID,
-                                   const char *mediaStreamTrackID
+                                   const char *mediaStreamTrackID,
+                                   const char *parametersID
                                    );
         void createSenderChannel(
                                  const char *senderChannelID,
