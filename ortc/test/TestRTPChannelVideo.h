@@ -347,6 +347,8 @@ namespace ortc
 
         virtual ElementPtr toDebug() const override;
 
+        virtual void sendVideoFrame(const webrtc::VideoFrame& videoFrame) override;
+
         //---------------------------------------------------------------------
         #pragma mark
         #pragma mark FakeSenderChannel => (friend RTPChannelTester)

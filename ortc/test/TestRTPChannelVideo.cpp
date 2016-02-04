@@ -85,9 +85,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-#pragma mark
-#pragma mark WebRtcTraceCallback
-#pragma mark
+      #pragma mark
+      #pragma mark WebRtcTraceCallback
+      #pragma mark
 
       class WebRtcTraceCallback : public webrtc::TraceCallback
       {
@@ -167,7 +167,7 @@ namespace ortc
           for (int32_t i = 0; i < numCaps; ++i) {
             webrtc::VideoCaptureCapability cap;
             if (info->GetCapability(videoDeviceID.c_str(), i, cap) != -1) {
-              if (cap.rawType == webrtc::kVideoUnknown)
+              if (cap.rawType == webrtc::kVideoMJPEG || cap.rawType == webrtc::kVideoUnknown)
                 continue;
               LONG widthDiff = abs((LONG)(cap.width - desiredWidth));
               LONG heightDiff = abs((LONG)(cap.height - desiredHeight));
@@ -298,16 +298,9 @@ namespace ortc
         if (mVideoRendererCallback)
           mVideoRendererCallback->RenderFrame(1, videoFrame);
 
-        size_t allocatedSize = videoFrame.allocated_size(webrtc::PlaneType::kYPlane) +
-          videoFrame.allocated_size(webrtc::PlaneType::kUPlane) +
-          videoFrame.allocated_size(webrtc::PlaneType::kVPlane);
-
         auto senderChannel = mSenderChannel.lock();
         if (senderChannel)
-          senderChannel->sendVideoFrame(
-                                        videoFrame.buffer(webrtc::PlaneType::kYPlane),
-                                        allocatedSize
-                                        );
+          senderChannel->sendVideoFrame(videoFrame);
       }
 
       //-------------------------------------------------------------------------
@@ -638,6 +631,13 @@ namespace ortc
         UseServicesHelper::debugAppend(result, mParameters ? mParameters->toDebug() : ElementPtr());
 
         return result;
+      }
+
+      //-------------------------------------------------------------------------
+      void FakeSenderChannel::sendVideoFrame(const webrtc::VideoFrame& videoFrame)
+      {
+        if (!mSenderChannelVideo) return;
+        mSenderChannelVideo->sendVideoFrame(videoFrame);
       }
 
       //-----------------------------------------------------------------------
@@ -1784,7 +1784,7 @@ void doTestRTPChannelVideo(void* localSurface, void* remoteSurface)
             break;
           }
           case 5: {
-            TESTING_SLEEP(5000)
+            TESTING_SLEEP(500000)
             //    bogusSleep();
             break;
           }

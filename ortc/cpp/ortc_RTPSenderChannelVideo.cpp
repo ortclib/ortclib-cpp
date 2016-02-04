@@ -210,6 +210,8 @@ namespace ortc
                                               encoderConfig,
                                               suspendedSSRCs
                                               ));
+
+      mSendStream->Start();
     }
 
     //-------------------------------------------------------------------------
@@ -219,6 +221,8 @@ namespace ortc
 
       ZS_LOG_DETAIL(log("destroyed"))
       mThisWeak.reset();
+
+      mSendStream->Stop();
 
       mModuleProcessThread->Stop();
 
@@ -314,13 +318,10 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void RTPSenderChannelVideo::sendVideoFrame(
-                                               const uint8_t* videoFrame,
-                                               const size_t videoFrameSize
-                                               )
+    void RTPSenderChannelVideo::sendVideoFrame(const webrtc::VideoFrame& videoFrame)
     {
-#define TODO 1
-#define TODO 2
+      if (!mSendStream) return;
+      mSendStream->Input()->IncomingCapturedFrame(videoFrame);
     }
 
     //-------------------------------------------------------------------------
@@ -446,7 +447,9 @@ namespace ortc
                                                    const webrtc::PacketOptions& options
                                                    )
     {
-      return true;
+      auto outer = mOuter.lock();
+      if (!outer) return false;
+      return outer->SendRtp(packet, length, options);
     }
     
     //-------------------------------------------------------------------------

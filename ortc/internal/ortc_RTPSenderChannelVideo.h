@@ -102,10 +102,7 @@ namespace ortc
                                              MediaStreamTrackPtr track,
                                              const Parameters &params
                                              );
-      virtual void sendVideoFrame(
-                                  const uint8_t* videoFrame,
-                                  const size_t videoFrameSize
-                                  ) = 0;
+      virtual void sendVideoFrame(const webrtc::VideoFrame& videoFrame) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -242,10 +239,7 @@ namespace ortc
                                              const Parameters &params
                                              );
 
-      virtual void sendVideoFrame(
-                                  const uint8_t* videoFrame,
-                                  const size_t videoFrameSize
-                                  ) override;
+      virtual void sendVideoFrame(const webrtc::VideoFrame& videoFrame) override;
       
       //-----------------------------------------------------------------------
       #pragma mark

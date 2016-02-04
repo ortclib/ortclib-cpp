@@ -249,6 +249,8 @@ namespace ortc
                                                  mModuleProcessThread.get(),
                                                  mCallStats.get()
                                                  ));
+
+      mReceiveStream->Start();
     }
 
     //-------------------------------------------------------------------------
@@ -258,6 +260,8 @@ namespace ortc
 
       ZS_LOG_DETAIL(log("destroyed"))
       mThisWeak.reset();
+
+      mReceiveStream->Stop();
 
       mModuleProcessThread->Stop();
 

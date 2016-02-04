@@ -375,13 +375,10 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPSenderChannel::sendVideoFrame(
-                                          const uint8_t* videoFrame,
-                                          const size_t videoFrameSize
-                                          )
+    void RTPSenderChannel::sendVideoFrame(const webrtc::VideoFrame& videoFrame)
     {
       if (!mVideo) return;
-      sendVideoFrame(videoFrame, videoFrameSize);
+      mVideo->sendVideoFrame(videoFrame);
     }
     
     //-------------------------------------------------------------------------

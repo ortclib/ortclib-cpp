@@ -843,10 +843,7 @@ namespace ortc
       
       if (!channel) return;
       
-      channel->sendVideoFrame(
-                              videoFrame.buffer(webrtc::PlaneType::kYPlane),
-                              videoFrame.allocated_size(webrtc::PlaneType::kYPlane)
-                              );
+      channel->sendVideoFrame(videoFrame);
     }
 
     //-------------------------------------------------------------------------
