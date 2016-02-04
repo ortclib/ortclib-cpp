@@ -481,17 +481,17 @@ namespace ortc
       }
 
       //-------------------------------------------------------------------------
-      void FakeReceiverChannel::getAudioSamples(
-                                                const size_t numberOfSamples,
-                                                const uint8_t numberOfChannels,
-                                                const void* audioSamples,
-                                                size_t& numberOfSamplesOut
-                                                )
+      int32_t FakeReceiverChannel::getAudioSamples(
+                                                   const size_t numberOfSamples,
+                                                   const uint8_t numberOfChannels,
+                                                   void* audioSamples,
+                                                   size_t& numberOfSamplesOut
+                                                   )
       {
         mSentAudioSamples += numberOfSamples;
 
         if (mSentAudioSamples > 144000)
-          return;
+          return 0;
 
         const UINT sampleRate = 48000;
         const UINT waveFrequency = 5000;
@@ -512,6 +512,8 @@ namespace ortc
         mTester.lock()->notifySentAudioSamples(numberOfSamples);
         if (mSentAudioSamples == 144000)
           mTester.lock()->notifyRemoteAudioTrackEvent();
+
+        return 0;
       }
 
       //-----------------------------------------------------------------------

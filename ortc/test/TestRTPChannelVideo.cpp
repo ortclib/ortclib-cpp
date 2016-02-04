@@ -302,11 +302,12 @@ namespace ortc
           videoFrame.allocated_size(webrtc::PlaneType::kUPlane) +
           videoFrame.allocated_size(webrtc::PlaneType::kVPlane);
 
-        if (mSenderChannelVideo.lock())
-          mSenderChannelVideo.lock()->sendVideoFrame(
-                                                     videoFrame.buffer(webrtc::PlaneType::kYPlane),
-                                                     allocatedSize
-                                                     );
+        auto senderChannel = mSenderChannel.lock();
+        if (senderChannel)
+          senderChannel->sendVideoFrame(
+                                        videoFrame.buffer(webrtc::PlaneType::kYPlane),
+                                        allocatedSize
+                                        );
       }
 
       //-------------------------------------------------------------------------
@@ -475,14 +476,14 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void FakeReceiverChannel::getAudioSamples(
-                                                const size_t numberOfSamples,
-                                                const uint8_t numberOfChannels,
-                                                const void* audioSamples,
-                                                size_t& numberOfSamplesOut
-                                                )
+      int32_t FakeReceiverChannel::getAudioSamples(
+                                                   const size_t numberOfSamples,
+                                                   const uint8_t numberOfChannels,
+                                                   void* audioSamples,
+                                                   size_t& numberOfSamplesOut
+                                                   )
       {
-
+        return 0;
       }
 
       //-----------------------------------------------------------------------

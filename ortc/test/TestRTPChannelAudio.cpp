@@ -253,8 +253,8 @@ namespace ortc
                                                             uint32_t& newMicLevel
                                                             )
       {
-        if (mSenderChannelAudio.lock())
-          mSenderChannelAudio.lock()->sendAudioSamples(audioSamples, nSamples, nChannels);
+        auto senderChannel = mSenderChannel.lock();
+        if (senderChannel) return senderChannel->sendAudioSamples(audioSamples, nSamples, nChannels);
         return 0;
       }
 
@@ -270,8 +270,8 @@ namespace ortc
                                                      int64_t* ntp_time_ms
                                                      )
       {
-        if (mReceiverChannelAudio.lock())
-          mReceiverChannelAudio.lock()->getAudioSamples(nSamples, nChannels, audioSamples, nSamplesOut);
+        auto receiverChannel = mReceiverChannel.lock();
+        if (receiverChannel) return receiverChannel->getAudioSamples(nSamples, nChannels, audioSamples, nSamplesOut);
         return 0;
       }
 

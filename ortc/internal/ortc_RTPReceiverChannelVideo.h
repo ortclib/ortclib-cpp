@@ -287,13 +287,7 @@ namespace ortc
       #pragma mark
       #pragma mark RTPReceiverChannelVideo => friend Transport
       #pragma mark
-      
-      virtual bool SendRtp(
-                           const uint8_t* packet,
-                           size_t length,
-                           const webrtc::PacketOptions& options
-                           );
-      
+
       virtual bool SendRtcp(const uint8_t* packet, size_t length);
       
     public:

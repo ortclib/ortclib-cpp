@@ -77,7 +77,8 @@ namespace ortc
       #pragma mark
 
         //-----------------------------------------------------------------------
-      class FakeMediaStreamTrack : public ortc::internal::MediaStreamTrack
+      class FakeMediaStreamTrack : public ortc::internal::MediaStreamTrack,
+                                   public webrtc::VideoCaptureDataCallback
       {
       public:
         friend class RTPChannelVideoTester;
@@ -238,12 +239,12 @@ namespace ortc
 
         virtual ElementPtr toDebug() const override;
 
-        virtual void getAudioSamples(
-                                     const size_t numberOfSamples,
-                                     const uint8_t numberOfChannels,
-                                     const void* audioSamples,
-                                     size_t& numberOfSamplesOut
-                                     ) override;
+        virtual int32_t getAudioSamples(
+                                        const size_t numberOfSamples,
+                                        const uint8_t numberOfChannels,
+                                        void* audioSamples,
+                                        size_t& numberOfSamplesOut
+                                        ) override;
 
         //---------------------------------------------------------------------
         #pragma mark
