@@ -180,7 +180,7 @@ namespace ortc
       for (int i = 0; i < ncodecs; ++i) {
         webrtc::CodecInst codec;
         webrtc::VoECodec::GetInterface(mVoiceEngine.get())->GetCodec(i, codec);
-        if (_stricmp(codec.plname, "opus") == 0) {
+        if (0 == String(codec.plname).compareNoCase("opus")) {
           opusCodec = codec;
           break;
         }
