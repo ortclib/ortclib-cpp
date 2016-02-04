@@ -1063,7 +1063,7 @@ namespace ortc
       bool mCreateTCPCandidates {true};
 
       bool mGetLocalIPsNow {true};
-      Seconds mRecheckIPsDuration;
+      Seconds mRecheckIPsDuration {};
       TimerPtr mRecheckIPsTimer;
       HostIPSorter::DataList mPendingHostIPs;
       HostIPSorter::DataList mResolvedHostIPs;
@@ -1103,10 +1103,10 @@ namespace ortc
       Time mWarmUpAfterNewInterfaceBindingUntil;
       TimerPtr mWarmUpAterNewInterfaceBindingTimer;
 
-      Seconds mReflexiveInactivityTime;
+      Seconds mReflexiveInactivityTime {};
       TimerToReflexivePortMap mReflexiveInactivityTimers;
 
-      Seconds mRelayInactivityTime;
+      Seconds mRelayInactivityTime {};
       TimerToRelayPortMap mRelayInactivityTimers;
 
       bool mGatherPassiveTCP {false};
@@ -1116,14 +1116,14 @@ namespace ortc
       size_t mMaxTCPBufferingSizeConnected {};
 
       TimerPtr mCleanUpBufferingTimer;
-      Seconds mMaxBufferingTime;
-      size_t mMaxTotalBuffers;
+      Seconds mMaxBufferingTime {};
+      size_t mMaxTotalBuffers {};
       BufferedPacketList mBufferedPackets;
 
       LocalCandidateRemoteIPRouteMap mQuickSearchRoutes;
       RouteMap mRoutes;
       TimerPtr mCleanUnusedRoutesTimer;
-      Seconds mCleanUnusedRoutesDuration;
+      Seconds mCleanUnusedRoutesDuration {};
 
       bool mTransportsChanged {true};
       bool mTransportsStillNeedsCandidates {true};

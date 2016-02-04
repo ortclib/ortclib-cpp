@@ -883,15 +883,15 @@ namespace ortc
 
       Time mLastReceivedPacket;
       TimerPtr mLastReceivedPacketTimer;
-      Seconds mNoPacketsReceivedRecheckTime;
+      Seconds mNoPacketsReceivedRecheckTime {};
 
-      Seconds mExpireRouteTime;
+      Seconds mExpireRouteTime {};
       TimerPtr mExpireRouteTimer;
       bool mTestLowerPreferenceCandidatePairs {false};
       bool mBlacklistConsent {false};
 
-      Milliseconds mKeepWarmTimeBase;
-      Milliseconds mKeepWarmTimeRandomizedAddTime;
+      Milliseconds mKeepWarmTimeBase {};
+      Milliseconds mKeepWarmTimeRandomizedAddTime {};
 
       PUID mSecureTransportID {0};
       UseSecureTransportWeakPtr mSecureTransport;

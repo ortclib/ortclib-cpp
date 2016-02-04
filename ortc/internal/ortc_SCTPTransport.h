@@ -132,7 +132,7 @@ namespace ortc
 
       WORD                mSessionID {};
       bool                mOrdered {true};
-      Milliseconds        mMaxPacketLifetime;
+      Milliseconds        mMaxPacketLifetime {};
       Optional<DWORD>     mMaxRetransmits;
       SecureByteBlockPtr  mBuffer;
 

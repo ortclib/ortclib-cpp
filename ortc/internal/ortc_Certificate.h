@@ -300,10 +300,10 @@ namespace ortc
       PromiseCertificateHolderPtr mPromise;
       PromiseCertificateHolderWeakPtr mPromiseWeak;
 
-      size_t mKeyLength;
-      size_t mRandomBits;
-      Seconds mLifetime;
-      Seconds mNotBeforeWindow;
+      size_t mKeyLength {};
+      size_t mRandomBits {};
+      Seconds mLifetime {};
+      Seconds mNotBeforeWindow {};
 
       Time mExpires;
 
