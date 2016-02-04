@@ -162,14 +162,15 @@ namespace ortc
 
       mChannel = webrtc::VoEBase::GetInterface(mVoiceEngine.get())->CreateChannel();
       webrtc::VoERTP_RTCP::GetInterface(mVoiceEngine.get())->SetRTCPStatus(mChannel, true);
-      webrtc::VoERTP_RTCP::GetInterface(mVoiceEngine.get())->SetLocalSSRC(mChannel, 1000);
+      webrtc::VoERTP_RTCP::GetInterface(mVoiceEngine.get())->SetLocalSSRC(mChannel, 2000);
       webrtc::VoERTP_RTCP::GetInterface(mVoiceEngine.get())->SetRTCP_CNAME(mChannel, "test-cname");
+      webrtc::VoERTP_RTCP::GetInterface(mVoiceEngine.get())->SetSendAbsoluteSenderTimeStatus(mChannel, true, 1);
 
       mTransport = Transport::create(mThisWeak.lock());
 
       webrtc::AudioSendStream::Config config(mTransport.get());
       config.voe_channel_id = mChannel;
-      config.rtp.ssrc = 1000;
+      config.rtp.ssrc = 2000;
 
       mSendStream = rtc::scoped_ptr<webrtc::AudioSendStream>(
           new webrtc::internal::AudioSendStream(

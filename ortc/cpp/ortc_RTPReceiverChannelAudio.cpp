@@ -197,20 +197,27 @@ namespace ortc
       webrtc::VoEBase::GetInterface(mVoiceEngine.get())->Init(mTrack->getAudioDeviceModule());
 
       mChannel = webrtc::VoEBase::GetInterface(mVoiceEngine.get())->CreateChannel();
+      webrtc::VoERTP_RTCP::GetInterface(mVoiceEngine.get())->SetLocalSSRC(mChannel, 2010);
 
       int numCpuCores = webrtc::CpuInfo::DetectNumberOfCores();
 
-      int ncodecs = webrtc::VoECodec::GetInterface(mVoiceEngine.get())->NumOfCodecs();
-      for (int i = 0; i < ncodecs; ++i) {
-      }
-      
       mTransport = Transport::create(mThisWeak.lock());
 
       webrtc::AudioReceiveStream::Config config;
-      config.rtp.remote_ssrc = 1000;
+      config.rtp.remote_ssrc = 2000;
+      config.rtp.local_ssrc = 2010;
+      config.rtp.extensions.push_back(webrtc::RtpExtension(webrtc::RtpExtension::kAbsSendTime, 1));
       config.voe_channel_id = mChannel;
       config.receive_transport = mTransport.get();
       config.rtcp_send_transport = mTransport.get();
+      config.combined_audio_video_bwe = true;
+
+      int ncodecs = webrtc::VoECodec::GetInterface(mVoiceEngine.get())->NumOfCodecs();
+      for (int i = 0; i < ncodecs; ++i) {
+        webrtc::CodecInst codec;
+        webrtc::VoECodec::GetInterface(mVoiceEngine.get())->GetCodec(i, codec);
+        webrtc::VoECodec::GetInterface(mVoiceEngine.get())->SetRecPayloadType(mChannel, codec);
+      }
 
       mReceiveStream = rtc::scoped_ptr<webrtc::AudioReceiveStream>(
           new webrtc::internal::AudioReceiveStream(
@@ -224,6 +231,7 @@ namespace ortc
       mTrack->start();
 
       webrtc::VoEBase::GetInterface(mVoiceEngine.get())->StartReceive(mChannel);
+      webrtc::VoEBase::GetInterface(mVoiceEngine.get())->StartPlayout(mChannel);
     }
 
     //-------------------------------------------------------------------------
@@ -231,8 +239,9 @@ namespace ortc
     {
       if (isNoop()) return;
 
-      webrtc::VoENetwork::GetInterface(mVoiceEngine.get())->DeRegisterExternalTransport(mChannel);
+      webrtc::VoEBase::GetInterface(mVoiceEngine.get())->StopPlayout(mChannel);
       webrtc::VoEBase::GetInterface(mVoiceEngine.get())->StopReceive(mChannel);
+      webrtc::VoENetwork::GetInterface(mVoiceEngine.get())->DeRegisterExternalTransport(mChannel);
 
       mTrack->stop();
 
@@ -289,8 +298,10 @@ namespace ortc
       {
         AutoRecursiveLock lock(*this);
       }
-      webrtc::PacketTime time;
-      mReceiveStream->DeliverRtp(packet->buffer()->data(), packet->buffer()->size(), time);
+      webrtc::PacketTime time(packet->timestamp(), 0);
+      //mReceiveStream->DeliverRtp(packet->buffer()->data(), packet->buffer()->size(), time);
+      webrtc::VoENetwork::GetInterface(mVoiceEngine.get())->ReceivedRTPPacket(
+        mChannel, packet->buffer()->data(), packet->buffer()->size(), time);
       return true;
     }
 
@@ -301,7 +312,9 @@ namespace ortc
       {
         AutoRecursiveLock lock(*this);
       }
-      mReceiveStream->DeliverRtcp(packet->buffer()->data(), packet->buffer()->size());
+      //mReceiveStream->DeliverRtcp(packet->buffer()->data(), packet->buffer()->size());
+      webrtc::VoENetwork::GetInterface(mVoiceEngine.get())->ReceivedRTCPPacket(
+        mChannel, packet->buffer()->data(), packet->buffer()->size());
       return true;
     }
     
