@@ -3084,7 +3084,7 @@ namespace ortc
             if (!reflexivePort->mSTUNDiscovery) {
               ZS_LOG_DEBUG(log("setting up stun discovery") + server.toDebug())
 
-              Seconds keepAliveTime;
+              Seconds keepAliveTime {};
 
               auto keepAliveInSeconds = UseSettings::getUInt(ORTC_SETTING_GATHERER_DEFAULT_STUN_KEEP_ALIVE_IN_SECONDS);
               if (0 != keepAliveInSeconds) {
