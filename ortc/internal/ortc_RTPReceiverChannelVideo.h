@@ -153,8 +153,7 @@ namespace ortc
                                     public IRTPReceiverChannelVideoForMediaStreamTrack,
                                     public IWakeDelegate,
                                     public zsLib::ITimerDelegate,
-                                    public IRTPReceiverChannelVideoAsyncDelegate,
-                                    public webrtc::Transport
+                                    public IRTPReceiverChannelVideoAsyncDelegate
     {
     protected:
       struct make_private {};
@@ -168,6 +167,9 @@ namespace ortc
       friend interaction IRTPReceiverChannelMediaBaseForMediaStreamTrack;
       friend interaction IRTPReceiverChannelVideoForMediaStreamTrack;
 
+      ZS_DECLARE_CLASS_PTR(Transport)
+      friend class Transport;
+      
       ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverChannelForRTPReceiverChannelVideo, UseChannel)
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPReceiverChannelVideo, UseMediaStreamTrack)
 
@@ -240,6 +242,8 @@ namespace ortc
 
       virtual bool handlePacket(RTCPPacketPtr packet) override;
 
+      virtual void handleUpdate(ParametersPtr params) override;
+
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark RTPReceiverChannelVideo => IRTPReceiverChannelVideoForRTPReceiverChannel
@@ -281,16 +285,59 @@ namespace ortc
 
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark RTPSenderChannelVideo => webrtc::Transport
+      #pragma mark RTPReceiverChannelVideo => friend Transport
       #pragma mark
-
+      
       virtual bool SendRtp(
                            const uint8_t* packet,
                            size_t length,
                            const webrtc::PacketOptions& options
                            );
-
+      
       virtual bool SendRtcp(const uint8_t* packet, size_t length);
+      
+    public:
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPReceiverChannelVideo::Transport
+      #pragma mark
+
+      class Transport : public webrtc::Transport
+      {
+        struct make_private {};
+
+      protected:
+        void init();
+        
+      public:
+        Transport(
+                  const make_private &,
+                  RTPReceiverChannelVideoPtr outer
+                  );
+        
+        ~Transport();
+        
+        static TransportPtr create(RTPReceiverChannelVideoPtr outer);
+        
+      public:
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark RTPReceiverChannelVideo::Transport => webrtc::Transport
+        #pragma mark
+
+        virtual bool SendRtp(
+                             const uint8_t* packet,
+                             size_t length,
+                             const webrtc::PacketOptions& options
+                             ) override;
+
+        virtual bool SendRtcp(const uint8_t* packet, size_t length) override;
+
+      private:
+        TransportWeakPtr mThisWeak;
+        RTPReceiverChannelVideoWeakPtr mOuter;
+      };
+
 
     protected:
       //-----------------------------------------------------------------------
@@ -335,6 +382,8 @@ namespace ortc
       Optional<IMediaStreamTrackTypes::Kinds> mKind;
       UseMediaStreamTrackPtr mTrack;
 
+      TransportPtr mTransport;  // allow lifetime of callback to exist separate from "this" object
+      
       rtc::scoped_ptr<webrtc::ProcessThread> mModuleProcessThread;
       rtc::scoped_ptr<webrtc::VideoReceiveStream> mReceiveStream;
       rtc::scoped_ptr<webrtc::CallStats> mCallStats;

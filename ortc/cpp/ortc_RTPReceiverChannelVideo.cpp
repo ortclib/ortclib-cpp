@@ -219,8 +219,11 @@ namespace ortc
       mModuleProcessThread->RegisterModule(mCallStats.get());
 
       int numCpuCores = webrtc::CpuInfo::DetectNumberOfCores();
-      webrtc::Transport* transport = this;
-      webrtc::VideoReceiveStream::Config config(this);
+
+      mTransport = Transport::create(mThisWeak.lock());
+      
+      webrtc::Transport* transport = mTransport.get();
+      webrtc::VideoReceiveStream::Config config(transport);
 
       webrtc::VideoCodecType type = webrtc::kVideoCodecVP8;
       webrtc::VideoDecoder* videoDecoder = webrtc::VideoDecoder::Create(webrtc::VideoDecoder::kVp8);
@@ -321,6 +324,17 @@ namespace ortc
       mReceiveStream->DeliverRtcp(packet->buffer()->data(), packet->buffer()->size());
       return true;
     }
+    
+    //-------------------------------------------------------------------------
+    void RTPReceiverChannelVideo::handleUpdate(ParametersPtr params)
+    {
+#define TODO_UPDATE_PARAMETERS 1
+#define TODO_UPDATE_PARAMETERS 2
+      {
+        AutoRecursiveLock lock(*this);
+        mParameters = make_shared<Parameters>(*params);
+      }
+    }
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -391,22 +405,78 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark RTPReceiverChannelVideo => webrtc::Transport
+    #pragma mark RTPReceiverChannelVideo => friend Transport
     #pragma mark
 
-    bool  RTPReceiverChannelVideo::SendRtp(
-                                           const uint8_t* packet,
-                                           size_t length,
-                                           const webrtc::PacketOptions& options
-                                           )
+    //-------------------------------------------------------------------------
+    bool  RTPReceiverChannelVideo::SendRtcp(const uint8_t* packet, size_t length)
+    {
+      auto channel = mReceiverChannel.lock();
+      if (!channel) return false;
+      return channel->sendPacket(RTCPPacket::create(packet, length));
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPSenderChannelVideo::Transport
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    RTPReceiverChannelVideo::Transport::Transport(
+                                                  const make_private &,
+                                                  RTPReceiverChannelVideoPtr outer
+                                                  ) :
+      mOuter(outer)
+    {
+    }
+        
+    //-------------------------------------------------------------------------
+    RTPReceiverChannelVideo::Transport::~Transport()
+    {
+      mThisWeak.reset();
+    }
+    
+    //-------------------------------------------------------------------------
+    void RTPReceiverChannelVideo::Transport::init()
+    {
+    }
+    
+    //-------------------------------------------------------------------------
+    RTPReceiverChannelVideo::TransportPtr RTPReceiverChannelVideo::Transport::create(RTPReceiverChannelVideoPtr outer)
+    {
+      TransportPtr pThis(make_shared<Transport>(make_private{}, outer));
+      pThis->mThisWeak = pThis;
+      pThis->init();
+      return pThis;
+    }
+    
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPSenderChannelVideo::Transport => webrtc::Transport
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    bool RTPReceiverChannelVideo::Transport::SendRtp(
+                                                     const uint8_t* packet,
+                                                     size_t length,
+                                                     const webrtc::PacketOptions& options
+                                                     )
     {
       return true;
     }
-
-    bool  RTPReceiverChannelVideo::SendRtcp(const uint8_t* packet, size_t length)
+    
+    //-------------------------------------------------------------------------
+    bool RTPReceiverChannelVideo::Transport::SendRtcp(const uint8_t* packet, size_t length)
     {
-      mReceiverChannel.lock()->sendPacket(RTCPPacket::create(packet, length));
-      return true;
+      auto outer = mOuter.lock();
+      if (!outer) return false;
+      return outer->SendRtcp(packet, length);
     }
 
     //-------------------------------------------------------------------------

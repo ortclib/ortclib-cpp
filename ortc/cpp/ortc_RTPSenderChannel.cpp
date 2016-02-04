@@ -39,6 +39,7 @@
 #include <ortc/internal/ortc_RTPListener.h>
 #include <ortc/internal/ortc_MediaStreamTrack.h>
 #include <ortc/internal/ortc_RTCPPacket.h>
+#include <ortc/internal/ortc_RTPTypes.h>
 #include <ortc/internal/ortc_ORTC.h>
 #include <ortc/internal/platform.h>
 
@@ -178,6 +179,33 @@ namespace ortc
     void RTPSenderChannel::init()
     {
       AutoRecursiveLock lock(*this);
+
+      Optional<IMediaStreamTrackTypes::Kinds> kind = RTPTypesHelper::getCodecsKind(*mParameters);
+      
+      bool found = false;
+      
+      if (kind.hasValue())
+      {
+        switch (kind.value()) {
+          case IMediaStreamTrackTypes::Kind_Audio:
+          {
+            mAudio = UseAudio::create(mThisWeak.lock(), MediaStreamTrack::convert(mTrack), *mParameters);
+            mMediaBase = mAudio;
+            found = true;
+            break;
+          }
+          case IMediaStreamTrackTypes::Kind_Video:
+          {
+            mVideo = UseVideo::create(mThisWeak.lock(), MediaStreamTrack::convert(mTrack), *mParameters);
+            mMediaBase = mVideo;
+            found = true;
+            break;
+          }
+        }
+      }
+      
+      ORTC_THROW_INVALID_PARAMETERS_IF(!found)
+
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
     }
 
@@ -280,12 +308,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool RTPSenderChannel::handlePacket(RTCPPacketPtr packet)
     {
-#define TODO 1
-#define TODO 2
-      {
-        AutoRecursiveLock lock(*this);
-      }
-      return false;
+      return mMediaBase->handlePacket(packet);
     }
 
     //-------------------------------------------------------------------------
@@ -296,14 +319,22 @@ namespace ortc
     #pragma mark RTPSenderChannel => ForRTPSenderChannelMediaBase
     #pragma mark
 
+    //-------------------------------------------------------------------------
     bool RTPSenderChannel::sendPacket(RTPPacketPtr packet)
     {
-      return false;
+      auto sender = mSender.lock();
+      if (!sender) return false;
+      
+      return sender->sendPacket(packet);
     }
 
+    //-------------------------------------------------------------------------
     bool RTPSenderChannel::sendPacket(RTCPPacketPtr packet)
     {
-      return false;
+      auto sender = mSender.lock();
+      if (!sender) return false;
+      
+      return sender->sendPacket(packet);
     }
 
     //-------------------------------------------------------------------------
@@ -330,6 +361,29 @@ namespace ortc
     #pragma mark RTPSenderChannel => IRTPSenderChannelForMediaStreamTrack
     #pragma mark
 
+    //-------------------------------------------------------------------------
+    int32_t RTPSenderChannel::sendAudioSamples(
+                                               const void* audioSamples,
+                                               const size_t numberOfSamples,
+                                               const uint8_t numberOfChannels
+                                               )
+    {
+#define TODO_VERIFY_RESULT 1
+#define TODO_VERIFY_RESULT 2
+      if (!mAudio) return 0;
+      return mAudio->sendAudioSamples(audioSamples, numberOfSamples, numberOfChannels);
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPSenderChannel::sendVideoFrame(
+                                          const uint8_t* videoFrame,
+                                          const size_t videoFrameSize
+                                          )
+    {
+      if (!mVideo) return;
+      sendVideoFrame(videoFrame, videoFrameSize);
+    }
+    
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -412,12 +466,38 @@ namespace ortc
     {
       ZS_LOG_TRACE(log("on update") + params->toDebug())
 
-      AutoRecursiveLock lock(*this);
-
-#define TODO 1
-#define TODO 2
-
-      mParameters = params;
+      UseMediaBasePtr mediaBase;
+      
+      {
+        AutoRecursiveLock lock(*this);
+        
+        mParameters = params;
+        mediaBase = mMediaBase;
+        
+        Optional<IMediaStreamTrackTypes::Kinds> kind = RTPTypesHelper::getCodecsKind(*mParameters);
+        
+        bool found = false;
+        
+        if (kind.hasValue())
+        {
+          switch (kind.value()) {
+            case IMediaStreamTrackTypes::Kind_Audio:
+            {
+              found = (bool)mAudio;
+              break;
+            }
+            case IMediaStreamTrackTypes::Kind_Video:
+            {
+              found = (bool)mVideo;
+              break;
+            }
+          }
+        }
+        
+        ORTC_THROW_INVALID_PARAMETERS_IF(!found)
+      }
+      
+      mediaBase->handleUpdate(params);
     }
 
     //-------------------------------------------------------------------------

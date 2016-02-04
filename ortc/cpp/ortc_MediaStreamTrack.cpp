@@ -157,6 +157,8 @@ namespace ortc
     {
       AutoRecursiveLock lock(*this);
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
+      
+      mTransport = Transport::create(mThisWeak.lock());
 
       if (mKind == Kind_Video && !mRemote) {
         String videoDeviceID = mConstraints->mAdvanced.front()->mDeviceID.mValue.value().mValue.value();
@@ -167,7 +169,7 @@ namespace ortc
 
         mVideoCaptureModule->AddRef();
 
-        mVideoCaptureModule->RegisterCaptureDataCallback(*this);
+        mVideoCaptureModule->RegisterCaptureDataCallback(*mTransport);
 
         webrtc::VideoCaptureModule::DeviceInfo* info = webrtc::VideoCaptureFactory::CreateDeviceInfo(0);
         if (!info) {
@@ -223,7 +225,7 @@ namespace ortc
           return;
         }
         mAudioDeviceModule->AddRef();
-        mAudioDeviceModule->RegisterAudioCallback(this);
+        mAudioDeviceModule->RegisterAudioCallback(mTransport.get());
         mAudioDeviceModule->Init();
         if (!mRemote) {
           mAudioDeviceModule->SetRecordingDevice(webrtc::AudioDeviceModule::kDefaultCommunicationDevice);
@@ -707,8 +709,7 @@ namespace ortc
     {
       AutoRecursiveLock lock(*this);
 
-      if (mVideoRendererCallback)
-        mVideoRendererCallback->RenderFrame(1, videoFrame);
+      if (mVideoRendererCallback) mVideoRendererCallback->RenderFrame(1, videoFrame);
     }
 
     //-------------------------------------------------------------------------
@@ -830,22 +831,29 @@ namespace ortc
     //-------------------------------------------------------------------------
     void MediaStreamTrack::OnIncomingCapturedFrame(const int32_t id, const webrtc::VideoFrame& videoFrame)
     {
-      AutoRecursiveLock lock(*this);
+      UseSenderChannelPtr channel;
+      
+      {
+        AutoRecursiveLock lock(*this);
 
-      if (mVideoRendererCallback)
-        mVideoRendererCallback->RenderFrame(1, videoFrame);
-
-      //if (mSenderChannel.lock())
-      //    mSenderChannel.lock()->sendVideoFrame(
-      //                                          videoFrame.buffer(webrtc::PlaneType::kYPlane),
-      //                                          videoFrame.allocated_size(webrtc::PlaneType::kYPlane)
-      //                                          );
+        if (mVideoRendererCallback) mVideoRendererCallback->RenderFrame(1, videoFrame);
+        
+        channel = mSenderChannel.lock();
+      }
+      
+      if (!channel) return;
+      
+      channel->sendVideoFrame(
+                              videoFrame.buffer(webrtc::PlaneType::kYPlane),
+                              videoFrame.allocated_size(webrtc::PlaneType::kYPlane)
+                              );
     }
 
     //-------------------------------------------------------------------------
     void MediaStreamTrack::OnCaptureDelayChanged(const int32_t id, const int32_t delay)
     {
-
+#define TODO 1
+#define TODO 2
     }
 
     //-------------------------------------------------------------------------
@@ -870,9 +878,17 @@ namespace ortc
                                                       uint32_t& newMicLevel
                                                       )
     {
-      //if (mSenderChannelAudio.lock())
-      //  mSenderChannelAudio.lock()->sendAudioSamples(audioSamples, nSamples, nChannels);
-      return 0;
+      UseSenderChannelPtr channel;
+      {
+        AutoRecursiveLock lock(*this);
+        channel = mSenderChannel.lock();
+      }
+
+#define TODO_VERIFY_RETURN_RESULT 1
+#define TODO_VERIFY_RETURN_RESULT 2
+      if (!channel) return 0;
+      
+      return channel->sendAudioSamples(audioSamples, nSamples, nChannels);
     }
 
     //-------------------------------------------------------------------------
@@ -887,9 +903,149 @@ namespace ortc
                                                int64_t* ntp_time_ms
                                                )
     {
-      //if (mReceiverChannelAudio.lock())
-      //  mReceiverChannelAudio.lock()->getAudioSamples(nSamples, nChannels, audioSamples, nSamplesOut);
-      return 0;
+      nSamplesOut = 0;  // no samples
+      
+      UseReceiverChannelPtr channel;
+      
+      {
+        AutoRecursiveLock lock(*this);
+        channel = mReceiverChannel.lock();
+      }
+      
+#define TODO_VERIFY_RETURN_RESULT 1
+#define TODO_VERIFY_RETURN_RESULT 2
+      if (!channel) return 0;
+      
+      return channel->getAudioSamples(nSamples, nChannels, audioSamples, nSamplesOut);
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark MediaStreamTrack::Transport
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    MediaStreamTrack::Transport::Transport(
+                                           const make_private &,
+                                           MediaStreamTrackPtr outer
+                                           ) :
+      mOuter(outer)
+    {
+    }
+        
+    //-------------------------------------------------------------------------
+    MediaStreamTrack::Transport::~Transport()
+    {
+      mThisWeak.reset();
+    }
+    
+    //-------------------------------------------------------------------------
+    void MediaStreamTrack::Transport::init()
+    {
+    }
+    
+    //-------------------------------------------------------------------------
+    MediaStreamTrack::TransportPtr MediaStreamTrack::Transport::create(MediaStreamTrackPtr outer)
+    {
+      TransportPtr pThis(make_shared<Transport>(make_private{}, outer));
+      pThis->mThisWeak = pThis;
+      pThis->init();
+      return pThis;
+    }
+    
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark MediaStreamTrack::Transport => webrtc::VideoCaptureDataCallback
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    void MediaStreamTrack::Transport::OnIncomingCapturedFrame(const int32_t id, const webrtc::VideoFrame& videoFrame)
+    {
+      auto outer = mOuter.lock();
+      if (!outer) return;
+      return outer->OnIncomingCapturedFrame(id, videoFrame);
+    }
+    
+    //-------------------------------------------------------------------------
+    void MediaStreamTrack::Transport::OnCaptureDelayChanged(const int32_t id, const int32_t delay)
+    {
+      auto outer = mOuter.lock();
+      if (!outer) return;
+      return outer->OnCaptureDelayChanged(id, delay);
+    }
+    
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark MediaStreamTrack::Transport => webrtc::AudioTransport
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    int32_t MediaStreamTrack::Transport::RecordedDataIsAvailable(
+                                                                 const void* audioSamples,
+                                                                 const size_t nSamples,
+                                                                 const size_t nBytesPerSample,
+                                                                 const uint8_t nChannels,
+                                                                 const uint32_t samplesPerSec,
+                                                                 const uint32_t totalDelayMS,
+                                                                 const int32_t clockDrift,
+                                                                 const uint32_t currentMicLevel,
+                                                                 const bool keyPressed,
+                                                                 uint32_t& newMicLevel
+                                                                 )
+    {
+      auto outer = mOuter.lock();
+#define TODO_VERIFY_RESULT 1
+#define TODO_VERIFY_RESULT 2
+      if (!outer) return 0;
+      return outer->RecordedDataIsAvailable(
+                                            audioSamples,
+                                            nSamples,
+                                            nBytesPerSample,
+                                            nChannels,
+                                            samplesPerSec,
+                                            totalDelayMS,
+                                            clockDrift,
+                                            currentMicLevel,
+                                            keyPressed,
+                                            newMicLevel
+                                            );
+    }
+    
+    //-------------------------------------------------------------------------
+    int32_t MediaStreamTrack::Transport::NeedMorePlayData(
+                                                          const size_t nSamples,
+                                                          const size_t nBytesPerSample,
+                                                          const uint8_t nChannels,
+                                                          const uint32_t samplesPerSec,
+                                                          void* audioSamples,
+                                                          size_t& nSamplesOut,
+                                                          int64_t* elapsed_time_ms,
+                                                          int64_t* ntp_time_ms
+                                                          )
+    {
+      auto outer = mOuter.lock();
+#define TODO_VERIFY_RESULT 1
+#define TODO_VERIFY_RESULT 2
+      if (!outer) return 0;
+      return outer->NeedMorePlayData(
+                                     nSamples,
+                                     nBytesPerSample,
+                                     nChannels,
+                                     samplesPerSec,
+                                     audioSamples,
+                                     nSamplesOut,
+                                     elapsed_time_ms,
+                                     ntp_time_ms
+                                     );
     }
 
     //-------------------------------------------------------------------------

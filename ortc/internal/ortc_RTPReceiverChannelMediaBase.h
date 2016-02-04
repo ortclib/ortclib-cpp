@@ -67,6 +67,8 @@ namespace ortc
     {
       ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverChannelMediaBaseForRTPReceiverChannel, ForRTPReceiverChannel)
 
+      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters)
+      
       static ElementPtr toDebug(ForRTPReceiverChannelPtr object);
 
       virtual PUID getID() const = 0;
@@ -74,6 +76,8 @@ namespace ortc
       virtual bool handlePacket(RTPPacketPtr packet) = 0;
 
       virtual bool handlePacket(RTCPPacketPtr packet) = 0;
+      
+      virtual void handleUpdate(ParametersPtr params) = 0;
     };
 
     //-------------------------------------------------------------------------

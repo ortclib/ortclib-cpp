@@ -160,13 +160,15 @@ namespace ortc
 
       webrtc::VoEBase::GetInterface(mVoiceEngine.get())->Init(mTrack->getAudioDeviceModule());
 
-      int channel = webrtc::VoEBase::GetInterface(mVoiceEngine.get())->CreateChannel();
-      webrtc::VoERTP_RTCP::GetInterface(mVoiceEngine.get())->SetRTCPStatus(channel, true);
-      webrtc::VoERTP_RTCP::GetInterface(mVoiceEngine.get())->SetLocalSSRC(channel, 1000);
-      webrtc::VoERTP_RTCP::GetInterface(mVoiceEngine.get())->SetRTCP_CNAME(channel, "test-cname");
+      mChannel = webrtc::VoEBase::GetInterface(mVoiceEngine.get())->CreateChannel();
+      webrtc::VoERTP_RTCP::GetInterface(mVoiceEngine.get())->SetRTCPStatus(mChannel, true);
+      webrtc::VoERTP_RTCP::GetInterface(mVoiceEngine.get())->SetLocalSSRC(mChannel, 1000);
+      webrtc::VoERTP_RTCP::GetInterface(mVoiceEngine.get())->SetRTCP_CNAME(mChannel, "test-cname");
 
-      webrtc::AudioSendStream::Config config(this);
-      config.voe_channel_id = channel;
+      mTransport = Transport::create(mThisWeak.lock());
+
+      webrtc::AudioSendStream::Config config(mTransport.get());
+      config.voe_channel_id = mChannel;
       config.rtp.ssrc = 1000;
 
       mSendStream = rtc::scoped_ptr<webrtc::AudioSendStream>(
@@ -186,13 +188,13 @@ namespace ortc
         }
       }
 
-      webrtc::VoECodec::GetInterface(mVoiceEngine.get())->SetSendCodec(channel, opusCodec);
+      webrtc::VoECodec::GetInterface(mVoiceEngine.get())->SetSendCodec(mChannel, opusCodec);
 
-      webrtc::VoENetwork::GetInterface(mVoiceEngine.get())->RegisterExternalTransport(channel, *this);
+      webrtc::VoENetwork::GetInterface(mVoiceEngine.get())->RegisterExternalTransport(mChannel, *mTransport);
 
       mTrack->start();
 
-      webrtc::VoEBase::GetInterface(mVoiceEngine.get())->StartSend(channel);
+      webrtc::VoEBase::GetInterface(mVoiceEngine.get())->StartSend(mChannel);
     }
 
     //-------------------------------------------------------------------------
@@ -200,6 +202,7 @@ namespace ortc
     {
       if (isNoop()) return;
 
+      webrtc::VoENetwork::GetInterface(mVoiceEngine.get())->DeRegisterExternalTransport(mChannel);
       webrtc::VoEBase::GetInterface(mVoiceEngine.get())->StopSend(0);
 
       mTrack->stop();
@@ -251,11 +254,19 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool RTPSenderChannelAudio::handlePacket(RTCPPacketPtr packet)
     {
-      {
-        AutoRecursiveLock lock(*this);
-      }
       mSendStream->DeliverRtcp(packet->buffer()->data(), packet->buffer()->size());
       return true;
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPSenderChannelAudio::handleUpdate(ParametersPtr params)
+    {
+#define TODO_UPDATE_PARAMETERS 1
+#define TODO_UPDATE_PARAMETERS 2
+      {
+        AutoRecursiveLock lock(*this);
+        mParameters = make_shared<Parameters>(*params);
+      }
     }
 
     //-------------------------------------------------------------------------
@@ -280,22 +291,24 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    int32_t RTPSenderChannelAudio::sendAudioSamples(
+                                                    const void* audioSamples,
+                                                    const size_t numberOfSamples,
+                                                    const uint8_t numberOfChannels
+                                                    )
+    {
+#define TODO_IMPLEMENT_THIS 1
+#define TODO_IMPLEMENT_THIS 2
+      return 0;
+    }
+
+    //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
     #pragma mark RTPSenderChannelAudio => IRTPSenderChannelAudioForMediaStreamTrack
     #pragma mark
-
-    //-------------------------------------------------------------------------
-    void RTPSenderChannelAudio::sendAudioSamples(
-                                                 const void* audioSamples,
-                                                 const size_t numberOfSamples,
-                                                 const uint8_t numberOfChannels
-                                                 )
-    {
-
-    }
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -345,25 +358,94 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark RTPSenderChannelAudio => webrtc::Transport
+    #pragma mark RTPSenderChannelAudio => friend Transport
     #pragma mark
 
-    bool  RTPSenderChannelAudio::SendRtp(
-                                         const uint8_t* packet,
-                                         size_t length,
-                                         const webrtc::PacketOptions& options
-                                         )
+    //-------------------------------------------------------------------------
+    bool RTPSenderChannelAudio::SendRtp(
+                                        const uint8_t* packet,
+                                        size_t length,
+                                        const webrtc::PacketOptions& options
+                                        )
     {
-      mSenderChannel.lock()->sendPacket(RTPPacket::create(packet, length));
-      return true;
+      auto channel = mSenderChannel.lock();
+      if (!channel) return false;
+      return channel->sendPacket(RTPPacket::create(packet, length));
+    }
+    
+    //-------------------------------------------------------------------------
+    bool RTPSenderChannelAudio::SendRtcp(const uint8_t* packet, size_t length)
+    {
+      auto channel = mSenderChannel.lock();
+      if (!channel) return false;
+      return channel->sendPacket(RTCPPacket::create(packet, length));
     }
 
-    bool  RTPSenderChannelAudio::SendRtcp(const uint8_t* packet, size_t length)
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPSenderChannelAudio::Transport
+    #pragma mark
+    
+    //-------------------------------------------------------------------------
+    RTPSenderChannelAudio::Transport::Transport(
+                                                const make_private &,
+                                                RTPSenderChannelAudioPtr outer
+                                                ) :
+      mOuter(outer)
     {
-      mSenderChannel.lock()->sendPacket(RTCPPacket::create(packet, length));
-      return true;
     }
+    
+    //-------------------------------------------------------------------------
+    RTPSenderChannelAudio::Transport::~Transport()
+    {
+      mThisWeak.reset();
+    }
+    
+    //-------------------------------------------------------------------------
+    void RTPSenderChannelAudio::Transport::init()
+    {
+    }
+    
+    //-------------------------------------------------------------------------
+    RTPSenderChannelAudio::TransportPtr RTPSenderChannelAudio::Transport::create(RTPSenderChannelAudioPtr outer)
+    {
+      TransportPtr pThis(make_shared<Transport>(make_private{}, outer));
+      pThis->mThisWeak = pThis;
+      pThis->init();
+      return pThis;
+    }
+    
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPSenderChannelAudio::Transport => webrtc::Transport
+    #pragma mark
 
+    //-------------------------------------------------------------------------
+    bool RTPSenderChannelAudio::Transport::SendRtp(
+                                                   const uint8_t* packet,
+                                                   size_t length,
+                                                   const webrtc::PacketOptions& options
+                                                   )
+    {
+      auto outer = mOuter.lock();
+      if (!outer) return false;
+      return outer->SendRtp(packet, length, options);
+    }
+    
+    //-------------------------------------------------------------------------
+    bool RTPSenderChannelAudio::Transport::SendRtcp(const uint8_t* packet, size_t length)
+    {
+      auto outer = mOuter.lock();
+      if (!outer) return false;
+      return outer->SendRtcp(packet, length);
+    }
+    
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------

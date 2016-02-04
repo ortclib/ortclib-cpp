@@ -324,9 +324,7 @@ namespace ortc
                              public IMediaStreamTrackForMediaDevices,
                              public IWakeDelegate,
                              public zsLib::ITimerDelegate,
-                             public IMediaStreamTrackAsyncDelegate,
-                             public webrtc::VideoCaptureDataCallback,
-                             public webrtc::AudioTransport
+                             public IMediaStreamTrackAsyncDelegate
     {
     protected:
       struct make_private {};
@@ -347,6 +345,9 @@ namespace ortc
       friend interaction IMediaStreamTrackForMediaDevices;
       friend interaction IMediaStreamTrackForMediaDevicesChannel;
 
+      ZS_DECLARE_CLASS_PTR(Transport)
+      friend class Transport;
+      
       ZS_DECLARE_TYPEDEF_PTR(IRTPSenderForMediaStreamTrack, UseSender)
       ZS_DECLARE_TYPEDEF_PTR(IRTPSenderChannelForMediaStreamTrack, UseSenderChannel)
       ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverForMediaStreamTrack, UseReceiver)
@@ -401,7 +402,7 @@ namespace ortc
     protected:
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark ICETransport => IStatsProvider
+      #pragma mark MediaStreamTrack => IStatsProvider
       #pragma mark
 
       virtual PromiseWithStatsReportPtr getStats() const throw(InvalidStateError) override;
@@ -571,16 +572,16 @@ namespace ortc
 
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark MediaStreamTrack => webrtc::VideoCaptureDataCallback
+      #pragma mark MediaStreamTrack => friend Transport (video)
       #pragma mark
 
-      virtual void OnIncomingCapturedFrame(const int32_t id, const webrtc::VideoFrame& videoFrame) override;
+      virtual void OnIncomingCapturedFrame(const int32_t id, const webrtc::VideoFrame& videoFrame);
 
-      virtual void OnCaptureDelayChanged(const int32_t id, const int32_t delay) override;
+      virtual void OnCaptureDelayChanged(const int32_t id, const int32_t delay);
 
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark MediaStreamTrack => webrtc::AudioTransport
+      #pragma mark MediaStreamTrack => friend Transport (audio)
       #pragma mark
 
       virtual int32_t RecordedDataIsAvailable(
@@ -606,6 +607,75 @@ namespace ortc
                                        int64_t* elapsed_time_ms,
                                        int64_t* ntp_time_ms
                                        );
+
+    public:
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark MediaStreamTrack::Transport
+      #pragma mark
+
+      class Transport : public webrtc::VideoCaptureDataCallback,
+                        public webrtc::AudioTransport
+
+      {
+        struct make_private {};
+
+      protected:
+        void init();
+        
+      public:
+        Transport(
+                  const make_private &,
+                  MediaStreamTrackPtr outer
+                  );
+        
+        ~Transport();
+        
+        static TransportPtr create(MediaStreamTrackPtr outer);
+
+      public:
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark MediaStreamTrack::Transport => webrtc::VideoCaptureDataCallback
+        #pragma mark
+
+        virtual void OnIncomingCapturedFrame(const int32_t id, const webrtc::VideoFrame& videoFrame) override;
+        
+        virtual void OnCaptureDelayChanged(const int32_t id, const int32_t delay) override;
+        
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark MediaStreamTrack::Transport => webrtc::AudioTransport
+        #pragma mark
+
+        virtual int32_t RecordedDataIsAvailable(
+                                                const void* audioSamples,
+                                                const size_t nSamples,
+                                                const size_t nBytesPerSample,
+                                                const uint8_t nChannels,
+                                                const uint32_t samplesPerSec,
+                                                const uint32_t totalDelayMS,
+                                                const int32_t clockDrift,
+                                                const uint32_t currentMicLevel,
+                                                const bool keyPressed,
+                                                uint32_t& newMicLevel
+                                                ) override;
+        
+        virtual int32_t NeedMorePlayData(
+                                         const size_t nSamples,
+                                         const size_t nBytesPerSample,
+                                         const uint8_t nChannels,
+                                         const uint32_t samplesPerSec,
+                                         void* audioSamples,
+                                         size_t& nSamplesOut,
+                                         int64_t* elapsed_time_ms,
+                                         int64_t* ntp_time_ms
+                                         ) override;
+
+      private:
+        TransportWeakPtr mThisWeak;
+        MediaStreamTrackWeakPtr mOuter;
+      };
 
     protected:
       //-----------------------------------------------------------------------
@@ -653,6 +723,8 @@ namespace ortc
       UseSenderChannelWeakPtr mSenderChannel;
       UseReceiverWeakPtr mReceiver;
       UseReceiverChannelWeakPtr mReceiverChannel;
+      
+      TransportPtr mTransport;  // keep lifetime of webrtc callback separate from this object
 
       TrackConstraintsPtr mConstraints;
       webrtc::VideoCaptureModule* mVideoCaptureModule;

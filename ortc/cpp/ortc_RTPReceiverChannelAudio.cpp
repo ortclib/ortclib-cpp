@@ -196,19 +196,21 @@ namespace ortc
 
       webrtc::VoEBase::GetInterface(mVoiceEngine.get())->Init(mTrack->getAudioDeviceModule());
 
-      int channel = webrtc::VoEBase::GetInterface(mVoiceEngine.get())->CreateChannel();
+      mChannel = webrtc::VoEBase::GetInterface(mVoiceEngine.get())->CreateChannel();
 
       int numCpuCores = webrtc::CpuInfo::DetectNumberOfCores();
 
       int ncodecs = webrtc::VoECodec::GetInterface(mVoiceEngine.get())->NumOfCodecs();
       for (int i = 0; i < ncodecs; ++i) {
       }
+      
+      mTransport = Transport::create(mThisWeak.lock());
 
       webrtc::AudioReceiveStream::Config config;
       config.rtp.remote_ssrc = 1000;
-      config.voe_channel_id = channel;
-      config.receive_transport = this;
-      config.rtcp_send_transport = this;
+      config.voe_channel_id = mChannel;
+      config.receive_transport = mTransport.get();
+      config.rtcp_send_transport = mTransport.get();
 
       mReceiveStream = rtc::scoped_ptr<webrtc::AudioReceiveStream>(
           new webrtc::internal::AudioReceiveStream(
@@ -217,12 +219,11 @@ namespace ortc
                                                    mVoiceEngine.get()
                                                    ));
 
-      webrtc::VoENetwork::GetInterface(mVoiceEngine.get())->RegisterExternalTransport(channel, *this);
+      webrtc::VoENetwork::GetInterface(mVoiceEngine.get())->RegisterExternalTransport(mChannel, *mTransport);
 
       mTrack->start();
 
-      webrtc::VoEBase::GetInterface(mVoiceEngine.get())->StartReceive(channel);
-
+      webrtc::VoEBase::GetInterface(mVoiceEngine.get())->StartReceive(mChannel);
     }
 
     //-------------------------------------------------------------------------
@@ -230,7 +231,8 @@ namespace ortc
     {
       if (isNoop()) return;
 
-      webrtc::VoEBase::GetInterface(mVoiceEngine.get())->StopReceive(0);
+      webrtc::VoENetwork::GetInterface(mVoiceEngine.get())->DeRegisterExternalTransport(mChannel);
+      webrtc::VoEBase::GetInterface(mVoiceEngine.get())->StopReceive(mChannel);
 
       mTrack->stop();
 
@@ -302,6 +304,18 @@ namespace ortc
       mReceiveStream->DeliverRtcp(packet->buffer()->data(), packet->buffer()->size());
       return true;
     }
+    
+    //-------------------------------------------------------------------------
+    void RTPReceiverChannelAudio::handleUpdate(ParametersPtr params)
+    {
+#define TODO_UPDATE_PARAMETERS 1
+#define TODO_UPDATE_PARAMETERS 2
+      {
+        AutoRecursiveLock lock(*this);
+        mParameters = make_shared<Parameters>(*params);
+      }
+    }
+    
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -325,22 +339,25 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    int32_t RTPReceiverChannelAudio::getAudioSamples(
+                                                     const size_t numberOfSamples,
+                                                     const uint8_t numberOfChannels,
+                                                     void *audioSamples,
+                                                     size_t& numberOfSamplesOut
+                                                     )
+    {
+#define TODO_IMPLEMENT_THIS 1
+#define TODO_IMPLEMENT_THIS 2
+      return 0;
+    }
+    
+    //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
     #pragma mark RTPReceiverChannelAudio => IRTPReceiverChannelAudioForMediaStreamTrack
     #pragma mark
-
-    //-------------------------------------------------------------------------
-    void RTPReceiverChannelAudio::getAudioSamples(
-                                                  const size_t numberOfSamples,
-                                                  const uint8_t numberOfChannels,
-                                                  const void* audioSamples,
-                                                  size_t& numberOfSamplesOut
-                                                  )
-    {
-    }
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -390,22 +407,78 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark RTPSenderChannelAudio => webrtc::Transport
+    #pragma mark RTPSenderChannelAudio => friend Transport
     #pragma mark
 
-    bool  RTPReceiverChannelAudio::SendRtp(
-                                           const uint8_t* packet,
-                                           size_t length,
-                                           const webrtc::PacketOptions& options
-                                           )
+    //-------------------------------------------------------------------------
+    bool RTPReceiverChannelAudio::SendRtcp(const uint8_t* packet, size_t length)
+    {
+      auto channel = mReceiverChannel.lock();
+      if (!channel) return false;
+      return channel->sendPacket(RTCPPacket::create(packet, length));
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPSenderChannelAudio::Transport
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    RTPReceiverChannelAudio::Transport::Transport(
+                                                  const make_private &,
+                                                  RTPReceiverChannelAudioPtr outer
+                                                  ) :
+      mOuter(outer)
+    {
+    }
+        
+    //-------------------------------------------------------------------------
+    RTPReceiverChannelAudio::Transport::~Transport()
+    {
+      mThisWeak.reset();
+    }
+    
+    //-------------------------------------------------------------------------
+    void RTPReceiverChannelAudio::Transport::init()
+    {
+    }
+    
+    //-------------------------------------------------------------------------
+    RTPReceiverChannelAudio::TransportPtr RTPReceiverChannelAudio::Transport::create(RTPReceiverChannelAudioPtr outer)
+    {
+      TransportPtr pThis(make_shared<Transport>(make_private{}, outer));
+      pThis->mThisWeak = pThis;
+      pThis->init();
+      return pThis;
+    }
+    
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPSenderChannelAudio::Transport => webrtc::Transport
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    bool RTPReceiverChannelAudio::Transport::SendRtp(
+                                                     const uint8_t* packet,
+                                                     size_t length,
+                                                     const webrtc::PacketOptions& options
+                                                     )
     {
       return true;
     }
-
-    bool  RTPReceiverChannelAudio::SendRtcp(const uint8_t* packet, size_t length)
+    
+    //-------------------------------------------------------------------------
+    bool RTPReceiverChannelAudio::Transport::SendRtcp(const uint8_t* packet, size_t length)
     {
-      mReceiverChannel.lock()->sendPacket(RTCPPacket::create(packet, length));
-      return true;
+      auto outer = mOuter.lock();
+      if (!outer) return false;
+      return outer->SendRtcp(packet, length);
     }
 
     //-------------------------------------------------------------------------

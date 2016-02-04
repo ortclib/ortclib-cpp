@@ -165,7 +165,10 @@ namespace ortc
       mModuleProcessThread->Start();
 
       int numCpuCores = webrtc::CpuInfo::DetectNumberOfCores();
-      webrtc::VideoSendStream::Config config(this);
+      
+      mTransport = Transport::create(mThisWeak.lock());
+      
+      webrtc::VideoSendStream::Config config(mTransport.get());
       webrtc::VideoEncoderConfig encoderConfig;
       std::map<uint32_t, webrtc::RtpState> suspendedSSRCs;
 
@@ -271,6 +274,17 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    void RTPSenderChannelVideo::handleUpdate(ParametersPtr params)
+    {
+#define TODO_UPDATE_PARAMETERS 1
+#define TODO_UPDATE_PARAMETERS 2
+      {
+        AutoRecursiveLock lock(*this);
+        mParameters = make_shared<Parameters>(*params);
+      }
+    }
+    
+    //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -299,12 +313,14 @@ namespace ortc
     #pragma mark RTPSenderChannelVideo => IRTPSenderChannelVideoForMediaStreamTrack
     #pragma mark
 
+    //-------------------------------------------------------------------------
     void RTPSenderChannelVideo::sendVideoFrame(
                                                const uint8_t* videoFrame,
                                                const size_t videoFrameSize
                                                )
     {
-
+#define TODO 1
+#define TODO 2
     }
 
     //-------------------------------------------------------------------------
@@ -355,25 +371,92 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark RTPSenderChannelVideo => webrtc::Transport
+    #pragma mark RTPSenderChannelVideo => friend Transport
     #pragma mark
 
-    bool  RTPSenderChannelVideo::SendRtp(
-                                         const uint8_t* packet,
-                                         size_t length,
-                                         const webrtc::PacketOptions& options
-                                         )
+    //-------------------------------------------------------------------------
+    bool RTPSenderChannelVideo::SendRtp(
+                                        const uint8_t* packet,
+                                        size_t length,
+                                        const webrtc::PacketOptions& options
+                                        )
     {
-      mSenderChannel.lock()->sendPacket(RTPPacket::create(packet, length));
-      return true;
+      auto channel = mSenderChannel.lock();
+      if (!channel) return false;
+      return channel->sendPacket(RTPPacket::create(packet, length));
     }
 
-    bool  RTPSenderChannelVideo::SendRtcp(const uint8_t* packet, size_t length)
+    //-------------------------------------------------------------------------
+    bool RTPSenderChannelVideo::SendRtcp(const uint8_t* packet, size_t length)
     {
-      mSenderChannel.lock()->sendPacket(RTCPPacket::create(packet, length));
-      return true;
+      auto channel = mSenderChannel.lock();
+      if (!channel) return false;
+      return channel->sendPacket(RTCPPacket::create(packet, length));
     }
 
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPSenderChannelVideo::Transport
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    RTPSenderChannelVideo::Transport::Transport(
+                                                const make_private &,
+                                                RTPSenderChannelVideoPtr outer
+                                                ) :
+      mOuter(outer)
+    {
+    }
+
+    //-------------------------------------------------------------------------
+    RTPSenderChannelVideo::Transport::~Transport()
+    {
+      mThisWeak.reset();
+    }
+    
+    //-------------------------------------------------------------------------
+    void RTPSenderChannelVideo::Transport::init()
+    {
+    }
+    
+    //-------------------------------------------------------------------------
+    RTPSenderChannelVideo::TransportPtr RTPSenderChannelVideo::Transport::create(RTPSenderChannelVideoPtr outer)
+    {
+      TransportPtr pThis(make_shared<Transport>(make_private{}, outer));
+      pThis->mThisWeak = pThis;
+      pThis->init();
+      return pThis;
+    }
+    
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPSenderChannelVideo::Transport => webrtc::Transport
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    bool RTPSenderChannelVideo::Transport::SendRtp(
+                                                   const uint8_t* packet,
+                                                   size_t length,
+                                                   const webrtc::PacketOptions& options
+                                                   )
+    {
+      return true;
+    }
+    
+    //-------------------------------------------------------------------------
+    bool RTPSenderChannelVideo::Transport::SendRtcp(const uint8_t* packet, size_t length)
+    {
+      auto outer = mOuter.lock();
+      if (!outer) return false;
+      return outer->SendRtcp(packet, length);
+    }
+    
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------

@@ -99,6 +99,12 @@ namespace ortc
                                              MediaStreamTrackPtr track,
                                              const Parameters &params
                                              );
+      
+      virtual int32_t sendAudioSamples(
+                                       const void* audioSamples,
+                                       const size_t numberOfSamples,
+                                       const uint8_t numberOfChannels
+                                       ) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -118,12 +124,6 @@ namespace ortc
       static ElementPtr toDebug(ForMediaStreamTrackPtr object);
 
       virtual PUID getID() const = 0;
-
-      virtual void sendAudioSamples(
-                                    const void* audioSamples,
-                                    const size_t numberOfSamples,
-                                    const uint8_t numberOfChannels
-                                    ) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -155,8 +155,7 @@ namespace ortc
                                   public IRTPSenderChannelAudioForMediaStreamTrack,
                                   public IWakeDelegate,
                                   public zsLib::ITimerDelegate,
-                                  public IRTPSenderChannelAudioAsyncDelegate,
-                                  public webrtc::Transport
+                                  public IRTPSenderChannelAudioAsyncDelegate
     {
     protected:
       struct make_private {};
@@ -169,6 +168,9 @@ namespace ortc
       friend interaction IRTPSenderChannelAudioForRTPSenderChannel;
       friend interaction IRTPSenderChannelMediaBaseForMediaStreamTrack;
       friend interaction IRTPSenderChannelAudioForMediaStreamTrack;
+
+      ZS_DECLARE_CLASS_PTR(Transport)
+      friend class Transport;
 
       ZS_DECLARE_TYPEDEF_PTR(IRTPSenderChannelForRTPSenderChannelAudio, UseChannel)
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPSenderChannelAudio, UseMediaStreamTrack)
@@ -233,6 +235,8 @@ namespace ortc
 
       virtual bool handlePacket(RTCPPacketPtr packet) override;
 
+      virtual void handleUpdate(ParametersPtr params) override;
+      
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark RTPSenderChannelAudio => IRTPSenderChannelAudioForRTPSenderChannel
@@ -244,6 +248,12 @@ namespace ortc
                                              const Parameters &params
                                              );
 
+      virtual int32_t sendAudioSamples(
+                                       const void* audioSamples,
+                                       const size_t numberOfSamples,
+                                       const uint8_t numberOfChannels
+                                       ) override;
+      
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark RTPSenderChannelAudio => IRTPSenderChannelAudioForMediaStreamTrack
@@ -252,12 +262,6 @@ namespace ortc
       // (duplicate) static ElementPtr toDebug(ForMediaStreamTrackPtr object);
 
       // (duplicate) virtual PUID getID() const = 0;
-
-      virtual void sendAudioSamples(
-                                    const void* audioSamples,
-                                    const size_t numberOfSamples,
-                                    const uint8_t numberOfChannels
-                                    ) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -280,7 +284,7 @@ namespace ortc
 
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark RTPSenderChannelAudio => webrtc::Transport
+      #pragma mark RTPSenderChannelAudio => friend Transport
       #pragma mark
 
       virtual bool SendRtp(
@@ -290,6 +294,48 @@ namespace ortc
                            );
 
       virtual bool SendRtcp(const uint8_t* packet, size_t length);
+
+    public:
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPSenderChannelAudio::Transport
+      #pragma mark
+
+      class Transport : public webrtc::Transport
+      {
+        struct make_private {};
+
+      protected:
+        void init();
+        
+      public:
+        Transport(
+                  const make_private &,
+                  RTPSenderChannelAudioPtr outer
+                  );
+        
+        ~Transport();
+        
+        static TransportPtr create(RTPSenderChannelAudioPtr outer);
+        
+      public:
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark RTPSenderChannelAudio::Transport => webrtc::Transport
+        #pragma mark
+
+        virtual bool SendRtp(
+                             const uint8_t* packet,
+                             size_t length,
+                             const webrtc::PacketOptions& options
+                             ) override;
+        
+        virtual bool SendRtcp(const uint8_t* packet, size_t length) override;
+        
+      private:
+        TransportWeakPtr mThisWeak;
+        RTPSenderChannelAudioWeakPtr mOuter;
+      };
 
     protected:
       //-----------------------------------------------------------------------
@@ -333,6 +379,9 @@ namespace ortc
 
       Optional<IMediaStreamTrackTypes::Kinds> mKind;
       UseMediaStreamTrackPtr mTrack;
+
+      int mChannel {};
+      TransportPtr mTransport;  // allow lifetime of callback to exist separate from "this" object
 
       rtc::scoped_ptr<webrtc::VoiceEngine, VoiceEngineDeleter> mVoiceEngine;
       rtc::scoped_ptr<webrtc::AudioSendStream> mSendStream;

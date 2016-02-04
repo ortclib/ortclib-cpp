@@ -140,12 +140,12 @@ namespace ortc
 
       virtual PUID getID() const = 0;
 
-      virtual void getAudioSamples(
-                                   const size_t numberOfSamples,
-                                   const uint8_t numberOfChannels,
-                                   const void* audioSamples,
-                                   size_t& numberOfSamplesOut
-                                   ) = 0;
+      virtual int32_t getAudioSamples(
+                                      const size_t numberOfSamples,
+                                      const uint8_t numberOfChannels,
+                                      void* audioSamples,
+                                      size_t& numberOfSamplesOut
+                                      ) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -334,12 +334,12 @@ namespace ortc
 
       // (duplicate) virtual PUID getID() const = 0;
 
-      virtual void getAudioSamples(
-                                   const size_t numberOfSamples,
-                                   const uint8_t numberOfChannels,
-                                   const void* audioSamples,
-                                   size_t& numberOfSamplesOut
-                                   ) override;
+      virtual int32_t getAudioSamples(
+                                      const size_t numberOfSamples,
+                                      const uint8_t numberOfChannels,
+                                      void *audioSamples,
+                                      size_t& numberOfSamplesOut
+                                      ) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -434,9 +434,10 @@ namespace ortc
       Optional<IMediaStreamTrackTypes::Kinds> mKind;
       UseMediaStreamTrackPtr mTrack;
 
-      //UseMediaBasePtr mMediaBase; // valid
-      //UseAudioPtr mAudio; // either
-      //UseVideoPtr mVideo; // or valid
+      // NO lockk is needed:
+      UseMediaBasePtr mMediaBase; // valid
+      UseAudioPtr mAudio; // either
+      UseVideoPtr mVideo; // or valid
     };
 
     //-------------------------------------------------------------------------

@@ -32,6 +32,7 @@
 #pragma once
 
 #include <ortc/internal/types.h>
+#include <ortc/IRTPTypes.h>
 
 //#define ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE "ortc/sctp/max-message-size"
 
@@ -57,11 +58,15 @@ namespace ortc
     {
       ZS_DECLARE_TYPEDEF_PTR(IRTPSenderChannelMediaBaseForRTPSenderChannel, ForRTPSenderChannel)
 
+      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters)
+      
       static ElementPtr toDebug(ForRTPSenderChannelPtr object);
 
       virtual PUID getID() const = 0;
 
       virtual bool handlePacket(RTCPPacketPtr packet) = 0;
+
+      virtual void handleUpdate(ParametersPtr params) = 0;
     };
 
     //-------------------------------------------------------------------------

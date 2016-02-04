@@ -176,6 +176,17 @@ namespace ortc
       static ElementPtr toDebug(ForMediaStreamTrackPtr object);
 
       virtual PUID getID() const = 0;
+
+      virtual int32_t sendAudioSamples(
+                                       const void* audioSamples,
+                                       const size_t numberOfSamples,
+                                       const uint8_t numberOfChannels
+                                       ) = 0;
+      
+      virtual void sendVideoFrame(
+                                  const uint8_t* videoFrame,
+                                  const size_t videoFrameSize
+                                  ) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -335,6 +346,17 @@ namespace ortc
 
       // (duplicate) virtual PUID getID() const = 0;
 
+      virtual int32_t sendAudioSamples(
+                                       const void* audioSamples,
+                                       const size_t numberOfSamples,
+                                       const uint8_t numberOfChannels
+                                       ) override;
+
+      virtual void sendVideoFrame(
+                                  const uint8_t* videoFrame,
+                                  const size_t videoFrameSize
+                                  ) override;
+
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark RTPSenderChannel => IWakeDelegate
@@ -405,9 +427,10 @@ namespace ortc
       Optional<IMediaStreamTrackTypes::Kinds> mKind;
       UseMediaStreamTrackPtr mTrack;
 
-      //UseMediaBasePtr mMediaBase; // valid
-      //UseAudioPtr mAudio; // either
-      //UseVideoPtr mVideo; // or valid
+      // NO lockk is needed:
+      UseMediaBasePtr mMediaBase; // valid
+      UseAudioPtr mAudio; // either
+      UseVideoPtr mVideo; // or valid
     };
 
     //-------------------------------------------------------------------------
