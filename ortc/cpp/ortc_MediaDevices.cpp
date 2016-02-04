@@ -358,6 +358,7 @@ namespace ortc
           Device device;
           device.mKind = DeviceKind_Video;
           device.mDeviceID = deviceUniqueId;
+          device.mLabel = deviceName;
           value->push_back(device);
         }
       }
@@ -382,6 +383,7 @@ namespace ortc
           Device device;
           device.mKind = DeviceKind_AudioInput;
           device.mDeviceID = deviceGuid;
+          device.mLabel = deviceName;
           value->push_back(device);
         }
       }
@@ -394,6 +396,7 @@ namespace ortc
           Device device;
           device.mKind = DeviceKind_AudioOutput;
           device.mDeviceID = deviceGuid;
+          device.mLabel = deviceName;
           value->push_back(device);
         }
       }
