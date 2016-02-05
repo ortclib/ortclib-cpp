@@ -52,6 +52,7 @@ namespace ortc { namespace test { ZS_DECLARE_SUBSYSTEM(ortc_test) } }
 
 using zsLib::String;
 using zsLib::ULONG;
+using zsLib::DOUBLE;
 using zsLib::PTRNUMBER;
 using zsLib::IMessageQueue;
 using zsLib::Log;
@@ -912,7 +913,7 @@ namespace ortc
           auto params = getParameters(parametersID);
           //TESTING_CHECK(params)
           if (!params)
-            params.swap(ParametersPtr(new Parameters()));
+            params.reset(new Parameters());
           auto track = getMediaStreamTrack(mediaStreamTrackID);
           TESTING_CHECK(track)
           receiverChannel = FakeReceiverChannel::create(getAssociatedMessageQueue(), *params, track);
@@ -937,7 +938,7 @@ namespace ortc
           auto params = getParameters(parametersID);
           //TESTING_CHECK(params)
           if (!params)
-            params.swap(ParametersPtr(new Parameters()));
+            params.reset(new Parameters());
           auto track = getMediaStreamTrack(mediaStreamTrackID);
           TESTING_CHECK(track)
           senderChannel = FakeSenderChannel::create(getAssociatedMessageQueue(), *params, track);
@@ -963,7 +964,7 @@ namespace ortc
           auto params = getParameters(parametersID);
           //TESTING_CHECK(params)
           if (!params)
-            params.swap(ParametersPtr(new Parameters()));
+            params.reset(new Parameters());
           auto receiverChannel = getReceiverChannel(receiverChannelID);
           TESTING_CHECK(receiverChannel)
           auto track = getMediaStreamTrack(mediaStreamTrackID);
@@ -991,7 +992,7 @@ namespace ortc
           auto params = getParameters(parametersID);
           //TESTING_CHECK(params)
           if (!params)
-            params.swap(ParametersPtr(new Parameters()));
+            params.reset(new Parameters());
           auto senderChannel = getSenderChannel(senderChannelID);
           TESTING_CHECK(senderChannel)
           auto track = getMediaStreamTrack(mediaStreamTrackID);

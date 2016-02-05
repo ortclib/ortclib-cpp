@@ -52,7 +52,6 @@
 		9451F2CE1BC551CF008CB8D7 /* libvideo_render_module_internal_impl.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9451F29B1BC551CE008CB8D7 /* libvideo_render_module_internal_impl.a */; };
 		9451F2CF1BC551CF008CB8D7 /* libvideo_render_module.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9451F29C1BC551CE008CB8D7 /* libvideo_render_module.a */; };
 		9451F2D01BC551CF008CB8D7 /* libvoice_engine.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9451F29D1BC551CE008CB8D7 /* libvoice_engine.a */; };
-		9451F2D11BC551CF008CB8D7 /* libvpx.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9451F29E1BC551CE008CB8D7 /* libvpx.a */; };
 		9451F2D21BC551CF008CB8D7 /* libwebrtc_common.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9451F29F1BC551CE008CB8D7 /* libwebrtc_common.a */; };
 		9451F2D31BC551CF008CB8D7 /* libwebrtc_h264.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9451F2A01BC551CE008CB8D7 /* libwebrtc_h264.a */; };
 		9451F2D41BC551CF008CB8D7 /* libwebrtc_i420.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9451F2A11BC551CE008CB8D7 /* libwebrtc_i420.a */; };
@@ -62,7 +61,6 @@
 		9451F2D81BC551CF008CB8D7 /* libwebrtc_vp8.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9451F2A51BC551CE008CB8D7 /* libwebrtc_vp8.a */; };
 		9451F2D91BC551CF008CB8D7 /* libwebrtc_vp9.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9451F2A61BC551CE008CB8D7 /* libwebrtc_vp9.a */; };
 		9451F2DA1BC551CF008CB8D7 /* libwebrtc.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9451F2A71BC551CE008CB8D7 /* libwebrtc.a */; };
-		9451F2DB1BC551CF008CB8D7 /* libyuv_neon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9451F2A81BC551CE008CB8D7 /* libyuv_neon.a */; };
 		9451F2DC1BC551CF008CB8D7 /* libyuv.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9451F2A91BC551CE008CB8D7 /* libyuv.a */; };
 		E214EE581BBEBAFC003DDC95 /* ViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = E2F20091184414EF005234CC /* ViewController.mm */; };
 		E214EE691BBEBBE5003DDC95 /* TestDTLS.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E214EE5B1BBEBBE5003DDC95 /* TestDTLS.cpp */; };
@@ -82,6 +80,10 @@
 		E2234CE11845513600F9E2C8 /* MobileCoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E2234CE01845513600F9E2C8 /* MobileCoreServices.framework */; };
 		E2234CE9184552E400F9E2C8 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E2234CE8184552E400F9E2C8 /* AudioToolbox.framework */; };
 		E2234CED184553C400F9E2C8 /* AssetsLibrary.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E2234CEC184553C300F9E2C8 /* AssetsLibrary.framework */; };
+		E24FFF531C652C30007C0E2B /* libvpx_new.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E24FFF521C652C30007C0E2B /* libvpx_new.a */; };
+		E24FFF551C652C48007C0E2B /* librent_a_codec.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E24FFF541C652C48007C0E2B /* librent_a_codec.a */; };
+		E24FFF571C6539FA007C0E2B /* libwebrtc_h264_video_toolbox.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E24FFF561C6539FA007C0E2B /* libwebrtc_h264_video_toolbox.a */; };
+		E24FFF591C653A21007C0E2B /* VideoToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E24FFF581C653A21007C0E2B /* VideoToolbox.framework */; };
 		E2688C8F1BCFCCE3005C3731 /* librtc_event_log.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E2688C8E1BCFCCE3005C3731 /* librtc_event_log.a */; };
 		E2688C911BCFCD00005C3731 /* libisac_common.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E2688C901BCFCD00005C3731 /* libisac_common.a */; };
 		E28AFC981C4EB7A900BFC33B /* TestMediaStreamTrack.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E28AFC901C4EB7A900BFC33B /* TestMediaStreamTrack.cpp */; };
@@ -242,7 +244,6 @@
 		9451F29B1BC551CE008CB8D7 /* libvideo_render_module_internal_impl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libvideo_render_module_internal_impl.a; path = "../../../../webrtc/out_ios/Debug-iphoneos/libvideo_render_module_internal_impl.a"; sourceTree = "<group>"; };
 		9451F29C1BC551CE008CB8D7 /* libvideo_render_module.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libvideo_render_module.a; path = "../../../../webrtc/out_ios/Debug-iphoneos/libvideo_render_module.a"; sourceTree = "<group>"; };
 		9451F29D1BC551CE008CB8D7 /* libvoice_engine.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libvoice_engine.a; path = "../../../../webrtc/out_ios/Debug-iphoneos/libvoice_engine.a"; sourceTree = "<group>"; };
-		9451F29E1BC551CE008CB8D7 /* libvpx.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libvpx.a; path = "../../../../webrtc/out_ios/Debug-iphoneos/libvpx.a"; sourceTree = "<group>"; };
 		9451F29F1BC551CE008CB8D7 /* libwebrtc_common.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libwebrtc_common.a; path = "../../../../webrtc/out_ios/Debug-iphoneos/libwebrtc_common.a"; sourceTree = "<group>"; };
 		9451F2A01BC551CE008CB8D7 /* libwebrtc_h264.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libwebrtc_h264.a; path = "../../../../webrtc/out_ios/Debug-iphoneos/libwebrtc_h264.a"; sourceTree = "<group>"; };
 		9451F2A11BC551CE008CB8D7 /* libwebrtc_i420.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libwebrtc_i420.a; path = "../../../../webrtc/out_ios/Debug-iphoneos/libwebrtc_i420.a"; sourceTree = "<group>"; };
@@ -252,7 +253,6 @@
 		9451F2A51BC551CE008CB8D7 /* libwebrtc_vp8.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libwebrtc_vp8.a; path = "../../../../webrtc/out_ios/Debug-iphoneos/libwebrtc_vp8.a"; sourceTree = "<group>"; };
 		9451F2A61BC551CE008CB8D7 /* libwebrtc_vp9.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libwebrtc_vp9.a; path = "../../../../webrtc/out_ios/Debug-iphoneos/libwebrtc_vp9.a"; sourceTree = "<group>"; };
 		9451F2A71BC551CE008CB8D7 /* libwebrtc.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libwebrtc.a; path = "../../../../webrtc/out_ios/Debug-iphoneos/libwebrtc.a"; sourceTree = "<group>"; };
-		9451F2A81BC551CE008CB8D7 /* libyuv_neon.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libyuv_neon.a; path = "../../../../webrtc/out_ios/Debug-iphoneos/libyuv_neon.a"; sourceTree = "<group>"; };
 		9451F2A91BC551CE008CB8D7 /* libyuv.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libyuv.a; path = "../../../../webrtc/out_ios/Debug-iphoneos/libyuv.a"; sourceTree = "<group>"; };
 		9451F2DD1BC5570E008CB8D7 /* webrtcWrapper_ios.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = webrtcWrapper_ios.xcodeproj; path = ../../../../../ios/projects/xcode/webrtcWrappers/webrtcWrapper_ios/webrtcWrapper_ios.xcodeproj; sourceTree = "<group>"; };
 		E214EE591BBEBBE5003DDC95 /* config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = config.h; sourceTree = "<group>"; };
@@ -280,6 +280,10 @@
 		E2234CE01845513600F9E2C8 /* MobileCoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MobileCoreServices.framework; path = System/Library/Frameworks/MobileCoreServices.framework; sourceTree = SDKROOT; };
 		E2234CE8184552E400F9E2C8 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 		E2234CEC184553C300F9E2C8 /* AssetsLibrary.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AssetsLibrary.framework; path = System/Library/Frameworks/AssetsLibrary.framework; sourceTree = SDKROOT; };
+		E24FFF521C652C30007C0E2B /* libvpx_new.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libvpx_new.a; path = "../../../../webrtc/out_ios/Debug-iphoneos/libvpx_new.a"; sourceTree = "<group>"; };
+		E24FFF541C652C48007C0E2B /* librent_a_codec.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = librent_a_codec.a; path = "../../../../webrtc/out_ios/Debug-iphoneos/librent_a_codec.a"; sourceTree = "<group>"; };
+		E24FFF561C6539FA007C0E2B /* libwebrtc_h264_video_toolbox.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libwebrtc_h264_video_toolbox.a; path = "../../../../webrtc/out_ios/Debug-iphoneos/libwebrtc_h264_video_toolbox.a"; sourceTree = "<group>"; };
+		E24FFF581C653A21007C0E2B /* VideoToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = VideoToolbox.framework; path = System/Library/Frameworks/VideoToolbox.framework; sourceTree = SDKROOT; };
 		E2688C8E1BCFCCE3005C3731 /* librtc_event_log.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = librtc_event_log.a; path = "../../../../webrtc/out_ios/Debug-iphoneos/librtc_event_log.a"; sourceTree = "<group>"; };
 		E2688C901BCFCD00005C3731 /* libisac_common.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libisac_common.a; path = "../../../../webrtc/out_ios/Debug-iphoneos/libisac_common.a"; sourceTree = "<group>"; };
 		E27A76081A40E7D6000A3D5C /* idnkit_ios.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = idnkit_ios.xcodeproj; path = ../../../../idnkit/projects/xcode/idnkit_ios.xcodeproj; sourceTree = "<group>"; };
@@ -319,6 +323,7 @@
 				9451F2AA1BC551CE008CB8D7 /* libaudio_coding_module.a in Frameworks */,
 				9451F2AB1BC551CE008CB8D7 /* libaudio_conference_mixer.a in Frameworks */,
 				9451F2AC1BC551CE008CB8D7 /* libaudio_decoder_interface.a in Frameworks */,
+				E24FFF551C652C48007C0E2B /* librent_a_codec.a in Frameworks */,
 				9451F2AD1BC551CE008CB8D7 /* libaudio_device.a in Frameworks */,
 				9451F2AE1BC551CE008CB8D7 /* libaudio_encoder_interface.a in Frameworks */,
 				9451F2AF1BC551CE008CB8D7 /* libaudio_processing.a in Frameworks */,
@@ -339,6 +344,7 @@
 				9451F2BD1BC551CE008CB8D7 /* libmedia_file.a in Frameworks */,
 				9451F2BE1BC551CE008CB8D7 /* libmetrics_default.a in Frameworks */,
 				9451F2BF1BC551CE008CB8D7 /* libneteq.a in Frameworks */,
+				E24FFF571C6539FA007C0E2B /* libwebrtc_h264_video_toolbox.a in Frameworks */,
 				9451F2C01BC551CE008CB8D7 /* libopus.a in Frameworks */,
 				9451F2C11BC551CE008CB8D7 /* libpaced_sender.a in Frameworks */,
 				9451F2C21BC551CE008CB8D7 /* libpcm16b.a in Frameworks */,
@@ -357,17 +363,16 @@
 				9451F2CE1BC551CF008CB8D7 /* libvideo_render_module_internal_impl.a in Frameworks */,
 				9451F2CF1BC551CF008CB8D7 /* libvideo_render_module.a in Frameworks */,
 				9451F2D01BC551CF008CB8D7 /* libvoice_engine.a in Frameworks */,
-				9451F2D11BC551CF008CB8D7 /* libvpx.a in Frameworks */,
 				9451F2D21BC551CF008CB8D7 /* libwebrtc_common.a in Frameworks */,
 				9451F2D31BC551CF008CB8D7 /* libwebrtc_h264.a in Frameworks */,
 				9451F2D41BC551CF008CB8D7 /* libwebrtc_i420.a in Frameworks */,
 				9451F2D51BC551CF008CB8D7 /* libwebrtc_opus.a in Frameworks */,
+				E24FFF531C652C30007C0E2B /* libvpx_new.a in Frameworks */,
 				9451F2D61BC551CF008CB8D7 /* libwebrtc_utility.a in Frameworks */,
 				9451F2D71BC551CF008CB8D7 /* libwebrtc_video_coding.a in Frameworks */,
 				9451F2D81BC551CF008CB8D7 /* libwebrtc_vp8.a in Frameworks */,
 				9451F2D91BC551CF008CB8D7 /* libwebrtc_vp9.a in Frameworks */,
 				9451F2DA1BC551CF008CB8D7 /* libwebrtc.a in Frameworks */,
-				9451F2DB1BC551CF008CB8D7 /* libyuv_neon.a in Frameworks */,
 				9451F2DC1BC551CF008CB8D7 /* libyuv.a in Frameworks */,
 				E214EEE91BBEF708003DDC95 /* libresolv.tbd in Frameworks */,
 				E214EEC51BBEC13B003DDC95 /* libhfservices_ios.a in Frameworks */,
@@ -378,6 +383,7 @@
 				00D8BF9E18466FD80001A335 /* libortclib_ios.a in Frameworks */,
 				0063EB7B1846665E00A877C3 /* libcurl.a in Frameworks */,
 				E2234CED184553C400F9E2C8 /* AssetsLibrary.framework in Frameworks */,
+				E24FFF591C653A21007C0E2B /* VideoToolbox.framework in Frameworks */,
 				E2234CE9184552E400F9E2C8 /* AudioToolbox.framework in Frameworks */,
 				E2234CE11845513600F9E2C8 /* MobileCoreServices.framework in Frameworks */,
 				E2234CDF1845510000F9E2C8 /* CoreMedia.framework in Frameworks */,
@@ -520,6 +526,7 @@
 				9451F28F1BC551CE008CB8D7 /* libpcm16b.a */,
 				9451F2901BC551CE008CB8D7 /* libred.a */,
 				9451F2911BC551CE008CB8D7 /* libremote_bitrate_estimator.a */,
+				E24FFF541C652C48007C0E2B /* librent_a_codec.a */,
 				9451F2921BC551CE008CB8D7 /* librtc_base_approved.a */,
 				E2688C8E1BCFCCE3005C3731 /* librtc_event_log.a */,
 				9451F2931BC551CE008CB8D7 /* librtp_rtcp.a */,
@@ -533,8 +540,9 @@
 				9451F29B1BC551CE008CB8D7 /* libvideo_render_module_internal_impl.a */,
 				9451F29C1BC551CE008CB8D7 /* libvideo_render_module.a */,
 				9451F29D1BC551CE008CB8D7 /* libvoice_engine.a */,
-				9451F29E1BC551CE008CB8D7 /* libvpx.a */,
+				E24FFF521C652C30007C0E2B /* libvpx_new.a */,
 				9451F29F1BC551CE008CB8D7 /* libwebrtc_common.a */,
+				E24FFF561C6539FA007C0E2B /* libwebrtc_h264_video_toolbox.a */,
 				9451F2A01BC551CE008CB8D7 /* libwebrtc_h264.a */,
 				9451F2A11BC551CE008CB8D7 /* libwebrtc_i420.a */,
 				9451F2A21BC551CE008CB8D7 /* libwebrtc_opus.a */,
@@ -543,9 +551,9 @@
 				9451F2A51BC551CE008CB8D7 /* libwebrtc_vp8.a */,
 				9451F2A61BC551CE008CB8D7 /* libwebrtc_vp9.a */,
 				9451F2A71BC551CE008CB8D7 /* libwebrtc.a */,
-				9451F2A81BC551CE008CB8D7 /* libyuv_neon.a */,
 				9451F2A91BC551CE008CB8D7 /* libyuv.a */,
 				E214EEE81BBEF708003DDC95 /* libresolv.tbd */,
+				E24FFF581C653A21007C0E2B /* VideoToolbox.framework */,
 				E2234CEC184553C300F9E2C8 /* AssetsLibrary.framework */,
 				E2234CE8184552E400F9E2C8 /* AudioToolbox.framework */,
 				E2234CDC1845500E00F9E2C8 /* AVFoundation.framework */,
@@ -889,6 +897,8 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
+					WEBRTC_POSIX,
+					WEBRTC_INCLUDE_INTERNAL_AUDIO_DEVICE,
 					"$(inherited)",
 				);
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -938,7 +948,10 @@
 				ENABLE_NS_ASSERTIONS = NO;
 				FRAMEWORK_SEARCH_PATHS = "";
 				GCC_C_LANGUAGE_STANDARD = gnu99;
-				GCC_PREPROCESSOR_DEFINITIONS = "";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					WEBRTC_POSIX,
+					WEBRTC_INCLUDE_INTERNAL_AUDIO_DEVICE,
+				);
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;

@@ -89,6 +89,7 @@
 		94A4EE131B8B492D008473EF /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 94A4EE121B8B492D008473EF /* OpenGL.framework */; };
 		94C1407C1C5148D200E22ADF /* libvpx_new.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 94C1407B1C5148D200E22ADF /* libvpx_new.a */; };
 		94D43CC91B8B413C00B3A66F /* libcryptopp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 00EC10A71B56F453008FC2A0 /* libcryptopp.a */; };
+		E24FFF511C6526B7007C0E2B /* librent_a_codec.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E24FFF501C6526B7007C0E2B /* librent_a_codec.a */; };
 		E2688C681BCFAF55005C3731 /* librtc_event_log_proto.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E2688C661BCFAF55005C3731 /* librtc_event_log_proto.a */; };
 		E2688C691BCFAF55005C3731 /* librtc_event_log.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E2688C671BCFAF55005C3731 /* librtc_event_log.a */; };
 		E2688C711BCFAF6A005C3731 /* libisac_common.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E2688C701BCFAF6A005C3731 /* libisac_common.a */; };
@@ -252,7 +253,6 @@
 		9499DB0A1BC407DA000EA8E9 /* libvpx_intrinsics_sse2.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libvpx_intrinsics_sse2.a; path = ../../../../webrtc/out_mac/Debug/libvpx_intrinsics_sse2.a; sourceTree = "<group>"; };
 		9499DB0B1BC407DA000EA8E9 /* libvpx_intrinsics_sse4_1.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libvpx_intrinsics_sse4_1.a; path = ../../../../webrtc/out_mac/Debug/libvpx_intrinsics_sse4_1.a; sourceTree = "<group>"; };
 		9499DB0C1BC407DA000EA8E9 /* libvpx_intrinsics_ssse3.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libvpx_intrinsics_ssse3.a; path = ../../../../webrtc/out_mac/Debug/libvpx_intrinsics_ssse3.a; sourceTree = "<group>"; };
-		9499DB0D1BC407DA000EA8E9 /* libvpx.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libvpx.a; path = ../../../../webrtc/out_mac/Debug/libvpx.a; sourceTree = "<group>"; };
 		9499DB0E1BC407DA000EA8E9 /* libwebrtc_common.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libwebrtc_common.a; path = ../../../../webrtc/out_mac/Debug/libwebrtc_common.a; sourceTree = "<group>"; };
 		9499DB0F1BC407DA000EA8E9 /* libwebrtc_h264.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libwebrtc_h264.a; path = ../../../../webrtc/out_mac/Debug/libwebrtc_h264.a; sourceTree = "<group>"; };
 		9499DB101BC407DA000EA8E9 /* libwebrtc_i420.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libwebrtc_i420.a; path = ../../../../webrtc/out_mac/Debug/libwebrtc_i420.a; sourceTree = "<group>"; };
@@ -277,6 +277,7 @@
 		94E2B2B61B541C4800582A08 /* idnkit.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = idnkit.xcodeproj; path = ../../../../idnkit/projects/xcode/idnkit.xcodeproj; sourceTree = SOURCE_ROOT; };
 		94E2B2BC1B541C5800582A08 /* udns.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = udns.xcodeproj; path = ../../../../udns/projects/xcode/udns/udns.xcodeproj; sourceTree = SOURCE_ROOT; };
 		94E2B2C21B541C6C00582A08 /* zsLib.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = zsLib.xcodeproj; path = ../../../../zsLib/projects/xcode/zsLib/zsLib.xcodeproj; sourceTree = SOURCE_ROOT; };
+		E24FFF501C6526B7007C0E2B /* librent_a_codec.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = librent_a_codec.a; path = ../../../../webrtc/out_mac/Debug/librent_a_codec.a; sourceTree = "<group>"; };
 		E2688C661BCFAF55005C3731 /* librtc_event_log_proto.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = librtc_event_log_proto.a; path = ../../../../webrtc/out_mac/Debug/librtc_event_log_proto.a; sourceTree = "<group>"; };
 		E2688C671BCFAF55005C3731 /* librtc_event_log.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = librtc_event_log.a; path = ../../../../webrtc/out_mac/Debug/librtc_event_log.a; sourceTree = "<group>"; };
 		E2688C701BCFAF6A005C3731 /* libisac_common.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libisac_common.a; path = ../../../../webrtc/out_mac/Debug/libisac_common.a; sourceTree = "<group>"; };
@@ -375,6 +376,7 @@
 				94A4EE091B8B4831008473EF /* CoreServices.framework in Frameworks */,
 				94A4EE061B8B4759008473EF /* CoreGraphics.framework in Frameworks */,
 				94A4EE071B8B4759008473EF /* CoreVideo.framework in Frameworks */,
+				E24FFF511C6526B7007C0E2B /* librent_a_codec.a in Frameworks */,
 				E2688C711BCFAF6A005C3731 /* libisac_common.a in Frameworks */,
 				0056EEDB1B13C2A80035B351 /* CoreFoundation.framework in Frameworks */,
 			);
@@ -503,6 +505,7 @@
 				9499DAF81BC407DA000EA8E9 /* libprotobuf_lite.a */,
 				9499DAF91BC407DA000EA8E9 /* libred.a */,
 				9499DAFA1BC407DA000EA8E9 /* libremote_bitrate_estimator.a */,
+				E24FFF501C6526B7007C0E2B /* librent_a_codec.a */,
 				9499DAFB1BC407DA000EA8E9 /* librtc_base_approved.a */,
 				E2688C661BCFAF55005C3731 /* librtc_event_log_proto.a */,
 				E2688C671BCFAF55005C3731 /* librtc_event_log.a */,
@@ -523,7 +526,6 @@
 				9499DB0A1BC407DA000EA8E9 /* libvpx_intrinsics_sse2.a */,
 				9499DB0B1BC407DA000EA8E9 /* libvpx_intrinsics_sse4_1.a */,
 				9499DB0C1BC407DA000EA8E9 /* libvpx_intrinsics_ssse3.a */,
-				9499DB0D1BC407DA000EA8E9 /* libvpx.a */,
 				9499DB0E1BC407DA000EA8E9 /* libwebrtc_common.a */,
 				9499DB0F1BC407DA000EA8E9 /* libwebrtc_h264.a */,
 				9499DB101BC407DA000EA8E9 /* libwebrtc_i420.a */,
@@ -802,6 +804,8 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
+					WEBRTC_POSIX,
+					WEBRTC_INCLUDE_INTERNAL_AUDIO_DEVICE,
 					"$(inherited)",
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
@@ -851,7 +855,11 @@
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_NO_COMMON_BLOCKS = YES;
-				GCC_PREPROCESSOR_DEFINITIONS = "NDEBUG=1";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"NDEBUG=1",
+					WEBRTC_POSIX,
+					WEBRTC_INCLUDE_INTERNAL_AUDIO_DEVICE,
+				);
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;

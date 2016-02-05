@@ -15,7 +15,7 @@
   
   std::cout << "TEST NOW STARTING...\n\n";
   
-  Testing::runAllTests(NULL);
+  Testing::runAllTests(NULL, NULL);
   Testing::output();
   
   if (0 != Testing::getGlobalFailedVar()) {
