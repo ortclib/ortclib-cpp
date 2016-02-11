@@ -193,7 +193,7 @@ namespace ortc
       #pragma mark MessageQueueManager => ISingletonManagerDelegate
       #pragma mark
 
-      virtual void notifySingletonCleanup();
+      virtual void notifySingletonCleanup() override;
 
     protected:
       //-----------------------------------------------------------------------

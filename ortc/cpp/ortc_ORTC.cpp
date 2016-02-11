@@ -100,6 +100,7 @@ namespace ortc
     {
       initSubsystems();
       UseServicesHelper::setup();
+      zsLib::setup();
       ZS_LOG_DETAIL(log("created"))
     }
 
