@@ -1085,7 +1085,7 @@ namespace ortc
             return false;
           }
 
-          CryptoPP::word16 packeSize {static_cast<CryptoPP::word16>(htons(bufferSizeInBytes))};
+          CryptoPP::word16 packeSize {static_cast<CryptoPP::word16>(htons(static_cast<unsigned short>(bufferSizeInBytes)))};
 
           route->mTCPPort->mOutgoingBuffer.Put((const BYTE *)(&packeSize), sizeof(packeSize));
           route->mTCPPort->mOutgoingBuffer.Put(buffer, bufferSizeInBytes);
