@@ -101,7 +101,7 @@ namespace ortc
       FilterPolicy_NoRelay             = (FilterPolicy_NoIPv4Relay | FilterPolicy_NoIPv6Relay),
       FilterPolicy_NoPrivate           = (FilterPolicy_NoIPv4Private | FilterPolicy_NoIPv6Private),
       FilterPolicy_RelayOnly           = (FilterPolicy_NoIPv4Host | FilterPolicy_NoSrflx | FilterPolicy_NoPrflx),
-      FilterPolicy_NoCandidates        = (0xFFFFFFFF)
+      FilterPolicy_NoCandidates        = (0x7FFFFFFF)
     };
 
     static String toString(FilterPolicies policies);
