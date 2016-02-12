@@ -151,9 +151,15 @@ namespace ortc
     static ElementPtr toAlgorithmElement(const char *inAlgorithmIdentifier)
     {
       String algorithmIdentifier(inAlgorithmIdentifier);
+      if (algorithmIdentifier.isEmpty()) goto no_algorithm_specified;
 
-      for (size_t index = 0; ; ++index)
-      {
+      if ('{' == *(algorithmIdentifier.c_str())) {
+        // treat as object
+        algorithmIdentifier = "{\"keygenAlgorithm\":" + algorithmIdentifier + "}";
+        return UseServicesHelper::toJSON(algorithmIdentifier);
+      }
+
+      for (size_t index = 0; ; ++index) {
         String inputKeyName(ORTC_SETTING_CERTIFICATE_MAP_ALGORITHM_IDENTIFIER_INPUT);
         inputKeyName += string(index);
         String outputKeyName(ORTC_SETTING_CERTIFICATE_MAP_ALGORITHM_IDENTIFIER_OUTPUT);
@@ -164,16 +170,17 @@ namespace ortc
 
         if ((input.isEmpty()) &&
             (output.isEmpty())) {
-          break;
+          goto no_algorithm_specified;
         }
 
         if (0 != algorithmIdentifier.compareNoCase(input)) continue;
 
         // found result
         output = "{\"keygenAlgorithm\":" + output + "}";
-
         return UseServicesHelper::toJSON(output);
       }
+
+    no_algorithm_specified: {}
 
       ZS_LOG_WARNING(Detail, slog("no algorithm identifier mapping found in settings"))
       return ElementPtr();
