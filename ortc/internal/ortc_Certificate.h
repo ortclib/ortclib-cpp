@@ -41,10 +41,17 @@
 #include <openssl/evp.h>
 #include <openssl/x509.h>
 
-#define ORTC_SETTING_CERTIFICATE_KEY_LENGTH_IN_BITS "ortc/certificate/key-length-in-bits"
-#define ORTC_SETTING_CERTIFICATE_SERIAL_RANDOM_BITS "ortc/certificate/serial-random-bits"
-#define ORTC_SETTING_CERTIFICATE_LIFETIME_IN_SECONDS  "ortc/certificate/lifetime-in-seconds"
-#define ORTC_SETTING_CERTIFICATE_NOT_BEFORE_WINDOW_IN_SECONDS "ortc/certificate/not-before-window-in-seconds"
+#define ORTC_SETTING_CERTIFICATE_DEFAULT_KEY_NAME "ortc/certificate/default-key-name"
+#define ORTC_SETTING_CERTIFICATE_DEFAULT_HASH "ortc/certificate/default-hash"
+#define ORTC_SETTING_CERTIFICATE_DEFAULT_KEY_NAMED_CURVE "ortc/certificate/default-key-named-curve"
+#define ORTC_SETTING_CERTIFICATE_DEFAULT_KEY_LENGTH_IN_BITS "ortc/certificate/default-key-length-in-bits"
+#define ORTC_SETTING_CERTIFICATE_DEFAULT_SERIAL_RANDOM_BITS "ortc/certificate/default-salt-length-in-bits"
+#define ORTC_SETTING_CERTIFICATE_DEFAULT_PUBLIC_EXPONENT "ortc/certificate/default-public-exponenet"
+#define ORTC_SETTING_CERTIFICATE_DEFAULT_LIFETIME_IN_SECONDS  "ortc/certificate/default-lifetime-in-seconds"
+#define ORTC_SETTING_CERTIFICATE_DEFAULT_NOT_BEFORE_WINDOW_IN_SECONDS "ortc/certificate/default-not-before-window-in-seconds"
+
+#define ORTC_SETTING_CERTIFICATE_MAP_ALGORITHM_IDENTIFIER_INPUT "ortc/certificate/map-algorithm-identifier-input-"
+#define ORTC_SETTING_CERTIFICATE_MAP_ALGORITHM_IDENTIFIER_OUTPUT "ortc/certificate/map-algorithm-identifier-output-"
 
 namespace ortc
 {
@@ -88,7 +95,7 @@ namespace ortc
     interaction ICertificateForDTLSTransport
     {
       ZS_DECLARE_TYPEDEF_PTR(ICertificateForDTLSTransport, ForDTLSTransport)
-      ZS_DECLARE_TYPEDEF_PTR(ICertificateTypes::FingerprintList, FingerprintList)
+      ZS_DECLARE_TYPEDEF_PTR(ICertificateTypes::Fingerprint, Fingerprint)
 
       static ElementPtr toDebug(ForDTLSTransportPtr certificate);
 
@@ -102,7 +109,7 @@ namespace ortc
 
       virtual SecureByteBlockPtr getDigest(const String &algorithm) const = 0;
 
-      virtual FingerprintListPtr fingerprints(const char *algorithm = NULL) const = 0;
+      virtual FingerprintPtr fingerprint() const = 0;
 
       static SecureByteBlockPtr getDigest(
                                           const String &algorithm,
@@ -138,7 +145,7 @@ namespace ortc
       ZS_DECLARE_STRUCT_PTR(PromiseCertificateHolder)
       ZS_DECLARE_CLASS_PTR(Digest)
 
-      ZS_DECLARE_TYPEDEF_PTR(ICertificateTypes::FingerprintList, FingerprintList)
+      ZS_DECLARE_TYPEDEF_PTR(ICertificateTypes::Fingerprint, Fingerprint)
 
       typedef EVP_PKEY * KeyPairType;
       typedef X509 * CertificateObjectType; // not sure of type to use
@@ -147,7 +154,7 @@ namespace ortc
       Certificate(
                   const make_private &,
                   IMessageQueuePtr queue,
-                  AlgorithmIdentifier algorithm
+                  ElementPtr keygenAlgorithm
                   );
 
     protected:
@@ -174,13 +181,13 @@ namespace ortc
 
       static ElementPtr toDebug(CertificatePtr certificate);
 
-      static PromiseWithCertificatePtr generateCertificate(AlgorithmIdentifier algorithm);
+      static PromiseWithCertificatePtr generateCertificate(ElementPtr keygenAlgorithm) throw (NotSupportedError);
 
       virtual PUID getID() const override {return mID;}
 
       virtual Time expires() const override;
 
-      virtual FingerprintListPtr fingerprints(const char *algorithm = NULL) const override;
+      virtual FingerprintPtr fingerprint() const override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -194,7 +201,7 @@ namespace ortc
 
       virtual SecureByteBlockPtr getDigest(const String &algorithm) const override;
 
-      // (duplicate) virtual FingerprintListPtr fingerprints(const char *algorithm = NULL) const override;
+      // (duplicate) virtual FingerprintPtr fingerprint() const override;
 
       static SecureByteBlockPtr getDigest(
                                           const String &algorithm,
@@ -295,13 +302,17 @@ namespace ortc
       AutoPUID mID;
       CertificateWeakPtr mThisWeak;
 
-      AlgorithmIdentifier mAlgorithm;
+      ElementPtr mKeygenAlgorithm;
 
       PromiseCertificateHolderPtr mPromise;
       PromiseCertificateHolderWeakPtr mPromiseWeak;
 
+      String mName;
+      String mNamedCurve;
+      String mHash;
       size_t mKeyLength {};
       size_t mRandomBits {};
+      String mPublicExponentLength;
       Seconds mLifetime {};
       Seconds mNotBeforeWindow {};
 
@@ -323,10 +334,9 @@ namespace ortc
     {
       static ICertificateFactory &singleton();
 
-      typedef ICertificateTypes::AlgorithmIdentifier AlgorithmIdentifier;
       ZS_DECLARE_TYPEDEF_PTR(ICertificateTypes::PromiseWithCertificate, PromiseWithCertificate)
 
-      virtual PromiseWithCertificatePtr generateCertificate(ICertificateTypes::AlgorithmIdentifier algorithm);
+      virtual PromiseWithCertificatePtr generateCertificate(ElementPtr keygenAlgorithm) throw (NotSupportedError);;
     };
 
     class CertificateFactory : public IFactory<ICertificateFactory> {};

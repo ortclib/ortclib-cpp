@@ -87,6 +87,7 @@
 		0031990A1AD36AE8000511CC /* ifaddrs-android.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ifaddrs-android.h"; sourceTree = "<group>"; };
 		0031990B1AD36B11000511CC /* ifaddrs-android.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = "ifaddrs-android.cc"; sourceTree = "<group>"; };
 		003199D31AD73F20000511CC /* ortc_ICETypes.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_ICETypes.cpp; sourceTree = "<group>"; };
+		003443C51C6E23D500B8CB2E /* ortc_Tracing.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ortc_Tracing.h; sourceTree = "<group>"; };
 		003BB1BF1AEBCB6B00748EA9 /* ortc_ICETransportController.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_ICETransportController.cpp; sourceTree = "<group>"; };
 		003BB1C11AEBCB8500748EA9 /* ortc_ICETransportController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ortc_ICETransportController.h; sourceTree = "<group>"; };
 		003C43F01C4DD8A90064D16F /* ortc_RTPReceiverChannelVideo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ortc_RTPReceiverChannelVideo.h; sourceTree = "<group>"; };
@@ -316,6 +317,7 @@
 				00265E541B3DFB8900D9B45F /* ortc_ISRTPTransport.h */,
 				00265E531B3DE73D00D9B45F /* ortc_SRTPTransport.h */,
 				0051D6BB1B8D0300003B4A00 /* ortc_SCTPTransportListener.h */,
+				003443C51C6E23D500B8CB2E /* ortc_Tracing.h */,
 			);
 			path = internal;
 			sourceTree = "<group>";

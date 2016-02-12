@@ -140,11 +140,15 @@ namespace ortc
 
       typedef IDTLSTransport::States States;
 
+      ZS_DECLARE_TYPEDEF_PTR(IDTLSTransportTypes::CertificateList, CertificateList)
+
       ZS_DECLARE_TYPEDEF_PTR(IICETransportForSecureTransport, UseICETransport)
       ZS_DECLARE_TYPEDEF_PTR(ICertificateForDTLSTransport, UseCertificate)
       ZS_DECLARE_TYPEDEF_PTR(ISRTPTransportForSecureTransport, UseSRTPTransport)
       ZS_DECLARE_TYPEDEF_PTR(IRTPListenerForSecureTransport, UseRTPListener)
       ZS_DECLARE_TYPEDEF_PTR(IDataTransportForSecureTransport, UseDataTransport)
+
+      ZS_DECLARE_TYPEDEF_PTR(std::list<UseCertificatePtr>, UseCertificateList)
 
       ZS_DECLARE_CLASS_PTR(Adapter)
 
@@ -161,7 +165,7 @@ namespace ortc
                     IMessageQueuePtr queue,
                     IDTLSTransportDelegatePtr delegate,
                     IICETransportPtr iceTransport,
-                    ICertificatePtr certificate
+                    const CertificateList &certificates
                     );
 
     protected:
@@ -205,7 +209,7 @@ namespace ortc
       static DTLSTransportPtr create(
                                      IDTLSTransportDelegatePtr delegate,
                                      IICETransportPtr iceTransport,
-                                     ICertificatePtr certificate
+                                     const CertificateList &certificate
                                      );
 
       static DTLSTransportPtr convert(IRTPTransportPtr rtpTransport);
@@ -215,7 +219,7 @@ namespace ortc
 
       virtual IDTLSTransportSubscriptionPtr subscribe(IDTLSTransportDelegatePtr delegate) override;
 
-      virtual ICertificatePtr certificate() const override;
+      virtual CertificateListPtr certificates() const override;
       virtual IICETransportPtr transport() const override;
 
       virtual States state() const override;
@@ -727,7 +731,7 @@ namespace ortc
 
       IICETypes::Components mComponent {IICETypes::Component_RTP};
 
-      UseCertificatePtr mCertificate;
+      UseCertificateList mCertificates;
 
       Parameters mLocalParams;
       Parameters mRemoteParams;
@@ -763,12 +767,14 @@ namespace ortc
 
     interaction IDTLSTransportFactory
     {
+      ZS_DECLARE_TYPEDEF_PTR(IDTLSTransportTypes::CertificateList, CertificateList)
+
       static IDTLSTransportFactory &singleton();
 
       virtual DTLSTransportPtr create(
                                       IDTLSTransportDelegatePtr delegate,
                                       IICETransportPtr iceTransport,
-                                      ICertificatePtr certificate
+                                      const CertificateList &certificates
                                       );
     };
 

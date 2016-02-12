@@ -30,6 +30,7 @@
  */
 
 #include <ortc/internal/ortc_ORTC.h>
+#include <ortc/internal/ortc_Tracing.h>
 
 #include <openpeer/services/IHelper.h>
 #include <openpeer/services/IMessageQueueManager.h>
@@ -98,6 +99,8 @@ namespace ortc
     ORTC::ORTC(const make_private &) :
       SharedRecursiveLock(SharedRecursiveLock::create())
     {
+      EventWriteOrtcCreate(__func__, mID);
+
       initSubsystems();
       UseServicesHelper::setup();
       zsLib::setup();
@@ -109,6 +112,8 @@ namespace ortc
     {
       mThisWeak.reset();
       ZS_LOG_DETAIL(log("destroyed"))
+
+      EventWriteOrtcDestroy(__func__, mID);
     }
 
     //-------------------------------------------------------------------------

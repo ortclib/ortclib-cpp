@@ -52,7 +52,6 @@ namespace ortc
   {
     ZS_DECLARE_STRUCT_PTR(Fingerprint)
     ZS_DECLARE_TYPEDEF_PTR(std::list<Fingerprint>, FingerprintList)
-    ZS_DECLARE_TYPEDEF_PTR(String, AlgorithmIdentifier)
 
     typedef PromiseWith<ICertificate> PromiseWithCertificate;
     ZS_DECLARE_PTR(PromiseWithCertificate)
@@ -93,13 +92,14 @@ namespace ortc
 
     static ICertificatePtr convert(AnyPtr any);
 
-    static PromiseWithCertificatePtr generateCertificate(AlgorithmIdentifier algorithm = AlgorithmIdentifier());
+    static PromiseWithCertificatePtr generateCertificate(ElementPtr keygenAlgorithm) throw (NotSupportedError);
+    static PromiseWithCertificatePtr generateCertificate(const char *keygenAlgorithm = NULL) throw (NotSupportedError);
 
     virtual PUID getID() const = 0;
 
     virtual Time expires() const = 0;
 
-    virtual FingerprintListPtr fingerprints(const char *algorithm = NULL) const = 0;
+    virtual FingerprintPtr fingerprint() const = 0;
   };
 
 }

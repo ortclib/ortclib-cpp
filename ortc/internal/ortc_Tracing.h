@@ -1,6 +1,6 @@
 /*
 
- Copyright (c) 2015, Hookflash Inc. / Hookflash Inc.
+ Copyright (c) 2016, Hookflash Inc.
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -26,38 +26,42 @@
  The views and conclusions contained in the software and documentation are those
  of the authors and should not be interpreted as representing official policies,
  either expressed or implied, of the FreeBSD Project.
- 
+
  */
 
 #pragma once
 
 #include <ortc/internal/types.h>
 
-#include <ortc/ortc.h>
-#include <ortc/internal/ortc_ORTC.h>
-#include <ortc/internal/ortc_Helper.h>
-#include <ortc/internal/ortc_Settings.h>
-#include <ortc/internal/ortc_Certificate.h>
-#include <ortc/internal/ortc_DTLSTransport.h>
-#include <ortc/internal/ortc_ICEGatherer.h>
-#include <ortc/internal/ortc_ICEGathererRouter.h>
-#include <ortc/internal/ortc_ICETransport.h>
-#include <ortc/internal/ortc_ICETransportController.h>
-#include <ortc/internal/ortc_MediaDevices.h>
-#include <ortc/internal/ortc_RTPListener.h>
-#include <ortc/internal/ortc_RTPReceiver.h>
-#include <ortc/internal/ortc_RTPReceiverChannel.h>
-#include <ortc/internal/ortc_RTPReceiverChannelMediaBase.h>
-#include <ortc/internal/ortc_RTPReceiverChannelAudio.h>
-#include <ortc/internal/ortc_RTPReceiverChannelVideo.h>
-#include <ortc/internal/ortc_RTPSender.h>
-#include <ortc/internal/ortc_RTPSenderChannel.h>
-#include <ortc/internal/ortc_RTPSenderChannelMediaBase.h>
-#include <ortc/internal/ortc_RTPSenderChannelAudio.h>
-#include <ortc/internal/ortc_RTPSenderChannelVideo.h>
-#include <ortc/internal/ortc_SCTPTransport.h>
-#include <ortc/internal/ortc_ISecureTransport.h>
-#include <ortc/internal/ortc_SRTPSDESTransport.h>
-#include <ortc/internal/ortc_ISRTPTransport.h>
-#include <ortc/internal/ortc_SRTPTransport.h>
-#include <ortc/internal/ortc_Tracing.h>
+
+#ifdef USE_ETW
+#include "ortc_ETWTracing.h"
+#else
+
+// Comment the following line to test inline versions of the same macros to test compilation
+//#define ORTC_USE_NOOP_EVENT_TRACE_MACROS
+
+// NO-OP VERSIONS OF ALL TRACING MACROS
+#ifdef ORTC_USE_NOOP_EVENT_TRACE_MACROS
+
+#define EventWriteOrtcCreate(xStr_Method, xPUID)
+#define EventWriteOrtcDestroy(xStr_Method, xPUID)
+
+
+#else
+
+// duplicate testing compilation methods used to verify compilation when macros get defined
+namespace ortc
+{
+
+inline void EventWriteOrtcCreate(const char *xStr_Method, PUID xPUID) {}
+inline void EventWriteOrtcDestroy(const char *xStr_Method, PUID xPUID) {}
+
+inline void EventWriteOrtcCertificateCreate(const char *xStr_Method, PUID xPUID, const char *xStr_Algorithm, size_t xsize_t_KeyLength, size_t xsize_t_RandomBits, long long xlong_long_LifetimeInSeconds, long long xlong_long_NotBeforeWindowInSeconds, const char *xStr_Expires) {}
+inline void EventWriteOrtcCertificateDestroy(const char *xStr_Method, PUID xPUID) {}
+
+}
+#endif //ndef ORTC_USE_NOOP_EVENT_TRACE_MACROS
+
+#endif //USE_ETW
+

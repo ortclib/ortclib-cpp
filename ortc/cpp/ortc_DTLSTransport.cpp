@@ -342,17 +342,25 @@ namespace ortc
                                  IMessageQueuePtr queue,
                                  IDTLSTransportDelegatePtr originalDelegate,
                                  IICETransportPtr iceTransport,
-                                 ICertificatePtr certificate
+                                 const CertificateList &certificates
                                  ) :
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
       mICETransport(ICETransport::convert(iceTransport)),
       mComponent(mICETransport->component()),
-      mCertificate(Certificate::convert(certificate)),
       mMaxPendingDTLSBuffer(UseSettings::getUInt(ORTC_SETTING_DTLS_TRANSPORT_MAX_PENDING_DTLS_BUFFER)),
       mMaxPendingRTPPackets(UseSettings::getUInt(ORTC_SETTING_DTLS_TRANSPORT_MAX_PENDING_RTP_PACKETS))
     {
       ZS_LOG_DETAIL(debug("created"))
+
+      ORTC_THROW_INVALID_PARAMETERS_IF(mCertificates.size() <  1)
+
+      for (auto iter = certificates.begin(); iter != certificates.end(); ++iter) {
+        auto &cert = (*iter);
+        ORTC_THROW_INVALID_PARAMETERS_IF(!((bool)cert))
+
+        mCertificates.push_back(Certificate::convert(cert));
+      }
 
       if (originalDelegate) {
         mDefaultSubscription = mSubscriptions.subscribe(originalDelegate, IORTCForInternal::queueDelegate());
@@ -388,7 +396,7 @@ namespace ortc
         mDataTransport = UseDataTransport::create(mThisWeak.lock());
 
         mAdapter = make_shared<Adapter>(mThisWeak.lock());
-        mAdapter->setIdentity(mCertificate);
+        mAdapter->setIdentity(mCertificates.front());
 
         std::vector<String> ciphers;
         for (SrtpCipherMapEntry *entry = SrtpCipherMap; entry->internal_name; ++entry) {
@@ -401,10 +409,18 @@ namespace ortc
 
         mICETransportSubscription = transport->subscribe(mThisWeak.lock());
 
-        auto fingerprints = mCertificate->fingerprints();
-        if (fingerprints) {
-          mLocalParams.mFingerprints = (*fingerprints);
+        FingerprintList fingerprints;
+
+        for (auto iter = mCertificates.begin(); iter != mCertificates.end(); ++iter)
+        {
+          auto &cert = (*iter);
+          auto fingerprint = cert->fingerprint();
+          if (!fingerprint) continue;
+
+          fingerprints.push_back(*fingerprint);
         }
+
+        mLocalParams.mFingerprints = fingerprints;
       }
 
       transport->notifyAttached(mID, mThisWeak.lock());
@@ -484,10 +500,10 @@ namespace ortc
     DTLSTransportPtr DTLSTransport::create(
                                            IDTLSTransportDelegatePtr delegate,
                                            IICETransportPtr iceTransport,
-                                           ICertificatePtr certificate
+                                           const CertificateList &certificates
                                            )
     {
-      DTLSTransportPtr pThis(make_shared<DTLSTransport>(make_private {}, IORTCForInternal::queueORTC(), delegate, iceTransport, certificate));
+      DTLSTransportPtr pThis(make_shared<DTLSTransport>(make_private {}, IORTCForInternal::queueORTC(), delegate, iceTransport, certificates));
       pThis->mThisWeak = pThis;
       pThis->init();
       return pThis;
@@ -549,10 +565,18 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    ICertificatePtr DTLSTransport::certificate() const
+    DTLSTransport::CertificateListPtr DTLSTransport::certificates() const
     {
       AutoRecursiveLock lock(*this);
-      return Certificate::convert(mCertificate);
+      CertificateListPtr result(make_shared<CertificateList>());
+
+      for (auto iter = mCertificates.begin(); iter != mCertificates.end(); ++iter) {
+        auto &cert = (*iter);
+
+        result->push_back(Certificate::convert(cert));
+      }
+
+      return result;
     }
 
     //-------------------------------------------------------------------------
@@ -1446,7 +1470,7 @@ namespace ortc
 
       UseServicesHelper::debugAppend(resultEl, "ice transport", mICETransport ? mICETransport->getID() : 0);
 
-      UseServicesHelper::debugAppend(resultEl, "certificate", UseCertificate::toDebug(mCertificate));
+      UseServicesHelper::debugAppend(resultEl, "certificates", mCertificates.size());
 
       UseServicesHelper::debugAppend(resultEl, "local params", mLocalParams.toDebug());
       UseServicesHelper::debugAppend(resultEl, "remote params", mRemoteParams.toDebug());
@@ -2882,11 +2906,11 @@ namespace ortc
     DTLSTransportPtr IDTLSTransportFactory::create(
                                                    IDTLSTransportDelegatePtr delegate,
                                                    IICETransportPtr iceTransport,
-                                                   ICertificatePtr certificate
+                                                   const CertificateList &certificates
                                                    )
     {
       if (this) {}
-      return internal::DTLSTransport::create(delegate, iceTransport, certificate);
+      return internal::DTLSTransport::create(delegate, iceTransport, certificates);
     }
 
   }
@@ -3100,10 +3124,10 @@ namespace ortc
   IDTLSTransportPtr IDTLSTransport::create(
                                            IDTLSTransportDelegatePtr delegate,
                                            IICETransportPtr iceTransport,
-                                           ICertificatePtr certificate
+                                           const CertificateList &certificates
                                            )
   {
-    return internal::IDTLSTransportFactory::singleton().create(delegate, iceTransport, certificate);
+    return internal::IDTLSTransportFactory::singleton().create(delegate, iceTransport, certificates);
   }
 
 

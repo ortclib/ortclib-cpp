@@ -83,6 +83,7 @@ namespace ortc
   typedef zsLib::Exceptions::InvalidUsage InvalidStateError;
   typedef zsLib::Exceptions::InvalidArgument InvalidParameters;
   typedef zsLib::Exceptions::SyntaxError SyntaxError;
+  typedef zsLib::Exceptions::NotImplemented NotSupportedError;
 
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------

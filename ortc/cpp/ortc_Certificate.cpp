@@ -32,16 +32,19 @@
 #include <ortc/internal/ortc_Certificate.h>
 #include <ortc/internal/ortc_Helper.h>
 #include <ortc/internal/ortc_ORTC.h>
+#include <ortc/internal/ortc_Tracing.h>
 #include <ortc/internal/platform.h>
 
 #include <openpeer/services/ISettings.h>
 #include <openpeer/services/IHelper.h>
 #include <openpeer/services/IHTTP.h>
 
+#include <zsLib/Numeric.h>
 #include <zsLib/Stringize.h>
 #include <zsLib/Log.h>
 #include <zsLib/XML.h>
 
+#include <cryptopp/Integer.h>
 #include <cryptopp/sha.h>
 
 #include <openssl/bio.h>
@@ -50,6 +53,8 @@
 #include <openssl/bn.h>
 #include <openssl/rsa.h>
 #include <openssl/crypto.h>
+
+#include <sstream>
 
 namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib) }
 
@@ -60,6 +65,11 @@ namespace ortc
   ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHTTP, UseHTTP)
 
   ZS_DECLARE_TYPEDEF_PTR(ortc::internal::Helper, UseHelper)
+
+  ZS_DECLARE_USING_PTR(zsLib::XML, Document)
+
+  using CryptoPP::Integer;
+  using zsLib::Numeric;
 
   typedef openpeer::services::Hasher<CryptoPP::SHA1> SHA1Hasher;
 
@@ -93,6 +103,82 @@ namespace ortc
     #pragma mark (helpers)
     #pragma mark
 
+    //-----------------------------------------------------------------------
+    static Log::Params slog(const char *message)
+    {
+      return Log::Params(message, "ortc::Certificate");
+    }
+
+
+    //-------------------------------------------------------------------------
+    static String toStringAlgorithm(ElementPtr keygenAlgorithm)
+    {
+      if (!keygenAlgorithm) return String();
+
+      DocumentPtr doc = Document::create();
+
+      ElementPtr clonedEl = keygenAlgorithm->clone()->toElement();
+
+      while (clonedEl->hasChildren()) {
+        auto firstChild = clonedEl->getFirstChild();
+        firstChild->orphan();
+        doc->adoptAsLastChild(firstChild);
+      }
+
+      auto resultJSON = doc->writeAsJSON();
+
+      String result(resultJSON.get());
+
+      return result;
+    }
+
+    //-------------------------------------------------------------------------
+    static const char **getHashAlgorithms()
+    {
+      static const char *algorithms[] = {
+        DIGEST_SHA_256, // put default to use first
+        DIGEST_MD5,
+        DIGEST_SHA_1,
+        DIGEST_SHA_224,
+        DIGEST_SHA_384,
+        DIGEST_SHA_512,
+        NULL
+      };
+      return algorithms;
+    }
+
+    //-------------------------------------------------------------------------
+    static ElementPtr toAlgorithmElement(const char *inAlgorithmIdentifier)
+    {
+      String algorithmIdentifier(inAlgorithmIdentifier);
+
+      for (size_t index = 0; ; ++index)
+      {
+        String inputKeyName(ORTC_SETTING_CERTIFICATE_MAP_ALGORITHM_IDENTIFIER_INPUT);
+        inputKeyName += string(index);
+        String outputKeyName(ORTC_SETTING_CERTIFICATE_MAP_ALGORITHM_IDENTIFIER_OUTPUT);
+        outputKeyName += string(index);
+
+        String input = UseSettings::getString(inputKeyName);
+        String output = UseSettings::getString(outputKeyName);
+
+        if ((input.isEmpty()) &&
+            (output.isEmpty())) {
+          break;
+        }
+
+        if (0 != algorithmIdentifier.compareNoCase(input)) continue;
+
+        // found result
+        output = "{\"keygenAlgorithm\":" + output + "}";
+
+        return UseServicesHelper::toJSON(output);
+      }
+
+      ZS_LOG_WARNING(Detail, slog("no algorithm identifier mapping found in settings"))
+      return ElementPtr();
+    }
+
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -104,19 +190,74 @@ namespace ortc
     //-------------------------------------------------------------------------
     void ICertificateForSettings::applyDefaults()
     {
+      // which algorithm to use by default
+      UseSettings::setString(ORTC_SETTING_CERTIFICATE_DEFAULT_KEY_NAME, "RSASSA-PKCS1-v1_5");
+
+      // what named curved to use by default (for eliptical curves only)
+      UseSettings::setString(ORTC_SETTING_CERTIFICATE_DEFAULT_HASH, "SHA-256");
+
+      // what named curved to use by default (for eliptical curves only)
+      UseSettings::setString(ORTC_SETTING_CERTIFICATE_DEFAULT_KEY_NAMED_CURVE, "");
 
       // Strength of generated keys. Those are RSA.
-      UseSettings::setUInt(ORTC_SETTING_CERTIFICATE_KEY_LENGTH_IN_BITS, 1024);
+      UseSettings::setUInt(ORTC_SETTING_CERTIFICATE_DEFAULT_KEY_LENGTH_IN_BITS, 1024);
 
       // Random bits for certificate serial number
-      UseSettings::setUInt(ORTC_SETTING_CERTIFICATE_SERIAL_RANDOM_BITS, 64);
+      UseSettings::setUInt(ORTC_SETTING_CERTIFICATE_DEFAULT_SERIAL_RANDOM_BITS, 64);
+
+      UseSettings::setString(ORTC_SETTING_CERTIFICATE_DEFAULT_PUBLIC_EXPONENT, "101b");
 
       // Certificate validity lifetime
-      UseSettings::setUInt(ORTC_SETTING_CERTIFICATE_LIFETIME_IN_SECONDS, 60 * 60 * 24 * 30);  // 30 days, arbitrarily
+      UseSettings::setUInt(ORTC_SETTING_CERTIFICATE_DEFAULT_LIFETIME_IN_SECONDS, 60 * 60 * 24 * 30);  // 30 days, arbitrarily
 
       // Certificate validity window.
       // This is to compensate for slightly incorrect system clocks.
-      UseSettings::setUInt(ORTC_SETTING_CERTIFICATE_NOT_BEFORE_WINDOW_IN_SECONDS, 60 * 60 * 24);  // 30 days, arbitrarily
+      UseSettings::setUInt(ORTC_SETTING_CERTIFICATE_DEFAULT_NOT_BEFORE_WINDOW_IN_SECONDS, 60 * 60 * 24);  // 30 days, arbitrarily
+
+      // various mappings to convert from string to JSON encoded version
+      UseSettings::setString(ORTC_SETTING_CERTIFICATE_MAP_ALGORITHM_IDENTIFIER_INPUT "0", "");
+      UseSettings::setString(ORTC_SETTING_CERTIFICATE_MAP_ALGORITHM_IDENTIFIER_OUTPUT "0", "{\"name\":\"RSASSA-PKCS1-v1_5\"},\"modulusLength\":1024,\"hash\":\"SHA-256\"}");
+
+      UseSettings::setString(ORTC_SETTING_CERTIFICATE_MAP_ALGORITHM_IDENTIFIER_INPUT "1", "RSASSA-PKCS1-v1_5");
+      UseSettings::setString(ORTC_SETTING_CERTIFICATE_MAP_ALGORITHM_IDENTIFIER_OUTPUT "1", "{\"name\":\"RSASSA-PKCS1-v1_5\"},\"modulusLength\":1024,\"hash\":\"SHA-256\"}");
+
+      auto algorithms = getHashAlgorithms();
+
+      size_t index = 2; // NOTE: must be +1 of the last manually set input/output mapping
+      for (size_t loop = 0; NULL != algorithms[loop]; ++loop, ++index) {
+        String inputKeyName(ORTC_SETTING_CERTIFICATE_MAP_ALGORITHM_IDENTIFIER_INPUT);
+        inputKeyName += string(index);
+
+        String inputKeyValue = "RSASSA-PKCS1-v1_5|";
+        inputKeyValue += algorithms[loop];
+
+        UseSettings::setString(inputKeyName, inputKeyValue);
+
+        String outputKeyName(ORTC_SETTING_CERTIFICATE_MAP_ALGORITHM_IDENTIFIER_OUTPUT);
+        outputKeyName += string(index);
+
+        String outputKeyValue("{\"name\":\"RSASSA-PKCS1-v1_5\"},\"modulusLength\":1024,\"hash\":\"$HASH$\"}");
+        outputKeyValue.replaceAll("$HASH$", algorithms[loop]);
+
+        UseSettings::setString(outputKeyName, outputKeyValue);
+      }
+
+      for (size_t loop = 0; NULL != algorithms[loop]; ++loop, ++index) {
+        String inputKeyName(ORTC_SETTING_CERTIFICATE_MAP_ALGORITHM_IDENTIFIER_INPUT);
+        inputKeyName += string(index);
+
+        String inputKeyValue(algorithms[loop]);
+
+        UseSettings::setString(inputKeyName, inputKeyValue);
+
+        String outputKeyName(ORTC_SETTING_CERTIFICATE_MAP_ALGORITHM_IDENTIFIER_OUTPUT);
+        outputKeyName += string(index);
+
+        String outputKeyValue("{\"name\":\"RSASSA-PKCS1-v1_5\"},\"modulusLength\":1024,\"hash\":\"$HASH$\"}");
+        outputKeyValue.replaceAll("$HASH$", algorithms[loop]);
+
+        UseSettings::setString(outputKeyName, outputKeyValue);
+      }
     }
 
     //-------------------------------------------------------------------------
@@ -163,20 +304,152 @@ namespace ortc
     Certificate::Certificate(
                              const make_private &,
                              IMessageQueuePtr queue,
-                             AlgorithmIdentifier algorithm
+                             ElementPtr keygenAlgorithm
                              ) :
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
-      mAlgorithm(algorithm),
-      mKeyLength(UseSettings::getUInt(ORTC_SETTING_CERTIFICATE_KEY_LENGTH_IN_BITS)),
-      mRandomBits(UseSettings::getUInt(ORTC_SETTING_CERTIFICATE_SERIAL_RANDOM_BITS)),
-      mLifetime(Seconds(UseSettings::getUInt(ORTC_SETTING_CERTIFICATE_LIFETIME_IN_SECONDS))),
-      mNotBeforeWindow(Seconds(UseSettings::getUInt(ORTC_SETTING_CERTIFICATE_NOT_BEFORE_WINDOW_IN_SECONDS))),
+      mKeygenAlgorithm(keygenAlgorithm ? keygenAlgorithm->clone()->toElement() : ElementPtr()),
+      mName(UseSettings::getString(ORTC_SETTING_CERTIFICATE_DEFAULT_KEY_NAME)),
+      mHash(UseSettings::getString(ORTC_SETTING_CERTIFICATE_DEFAULT_HASH)),
+      mNamedCurve(UseSettings::getString(ORTC_SETTING_CERTIFICATE_DEFAULT_KEY_NAMED_CURVE)),
+      mKeyLength(UseSettings::getUInt(ORTC_SETTING_CERTIFICATE_DEFAULT_KEY_LENGTH_IN_BITS)),
+      mRandomBits(UseSettings::getUInt(ORTC_SETTING_CERTIFICATE_DEFAULT_SERIAL_RANDOM_BITS)),
+      mPublicExponentLength(UseSettings::getString(ORTC_SETTING_CERTIFICATE_DEFAULT_PUBLIC_EXPONENT)),
+      mLifetime(Seconds(UseSettings::getUInt(ORTC_SETTING_CERTIFICATE_DEFAULT_LIFETIME_IN_SECONDS))),
+      mNotBeforeWindow(Seconds(UseSettings::getUInt(ORTC_SETTING_CERTIFICATE_DEFAULT_NOT_BEFORE_WINDOW_IN_SECONDS))),
       mExpires(zsLib::now() + mLifetime)
     {
+      if (mKeygenAlgorithm) {
+        {
+          ElementPtr nameEl = mKeygenAlgorithm->findFirstChildElement("name");
+          if (nameEl) {
+            mName = UseServicesHelper::getElementTextAndDecode(nameEl);
+          }
+        }
+        {
+          ElementPtr hashEl = mKeygenAlgorithm->findFirstChildElement("hash");
+          if (hashEl) {
+            mHash = UseServicesHelper::getElementTextAndDecode(hashEl);
+          }
+        }
+        {
+          ElementPtr namedCurveEl = mKeygenAlgorithm->findFirstChildElement("namedCurve");
+          if (namedCurveEl) {
+            mNamedCurve = UseServicesHelper::getElementTextAndDecode(namedCurveEl);
+          }
+        }
+
+        {
+          ElementPtr modulusLengthEl = mKeygenAlgorithm->findFirstChildElement("modulusLength");
+          if (modulusLengthEl) {
+            String value = UseServicesHelper::getElementText(modulusLengthEl);
+            try {
+              mKeyLength = Numeric<decltype(mKeyLength)>(value);
+            } catch(Numeric<decltype(mKeyLength)>::ValueOutOfRange &) {
+              ZS_LOG_ERROR(Detail, log("key length value out of range") + ZS_PARAM("key length", value))
+            }
+          }
+        }
+
+        {
+          ElementPtr saltLengthEl = mKeygenAlgorithm->findFirstChildElement("saltLength");
+          if (saltLengthEl) {
+            String value = UseServicesHelper::getElementText(saltLengthEl);
+            try {
+              mRandomBits = Numeric<decltype(mKeyLength)>(value);
+            } catch(Numeric<decltype(mRandomBits)>::ValueOutOfRange &) {
+              ZS_LOG_ERROR(Detail, log("salt length value out of range") + ZS_PARAM("salt length", value))
+            }
+          }
+        }
+
+        {
+          ElementPtr publicExponentEl = mKeygenAlgorithm->findFirstChildElement("publicExponent");
+          if (publicExponentEl) {
+            bool foundMoreThanOne = false;
+            String finalPublicExponent;
+
+            while (publicExponentEl) {
+              finalPublicExponent += UseServicesHelper::getElementText(publicExponentEl);
+              publicExponentEl = publicExponentEl->findNextSiblingElement("publicExponent");
+              foundMoreThanOne = foundMoreThanOne || ((bool)publicExponentEl);
+            }
+            if (foundMoreThanOne) {
+              if (finalPublicExponent.hasData()) {
+                finalPublicExponent += "b"; // append binary suffix
+              }
+            }
+
+            Integer big(finalPublicExponent);
+            if (big.IsZero()) {
+              ZS_LOG_ERROR(Detail, log("big integer exponent value failed to convert") + ZS_PARAM("value", finalPublicExponent))
+              ZS_THROW_NOT_IMPLEMENTED("Big integer exponent value failed to convert: " + finalPublicExponent);
+            }
+
+            mPublicExponentLength = finalPublicExponent;
+          }
+        }
+      } else {
+        mKeygenAlgorithm = Element::create("keygenAlgorithm");
+
+        if (mName.hasData()) {
+          mKeygenAlgorithm->adoptAsLastChild(UseServicesHelper::createElementWithTextAndJSONEncode("name", mName));
+        }
+        if (mNamedCurve.hasData()) {
+          mKeygenAlgorithm->adoptAsLastChild(UseServicesHelper::createElementWithTextAndJSONEncode("namedCurve", mNamedCurve));
+        }
+        if (mHash.hasData()) {
+          mKeygenAlgorithm->adoptAsLastChild(UseServicesHelper::createElementWithTextAndJSONEncode("hash", mHash));
+        }
+        if (0 != mKeyLength) {
+          mKeygenAlgorithm->adoptAsLastChild(UseServicesHelper::createElementWithNumber("modulusLength", string(mKeyLength)));
+        }
+        if (0 != mRandomBits) {
+          mKeygenAlgorithm->adoptAsLastChild(UseServicesHelper::createElementWithNumber("saltLength", string(mRandomBits)));
+        }
+
+        if (mPublicExponentLength.hasData()) {
+          Integer big(mPublicExponentLength);
+
+          // convert to big endian binary array
+          auto bits = big.BitCount();
+          if (bits > 0) {
+            for (auto loop = bits - 1, total = bits; total != 0; --loop, --total) {
+              const char *digit = "0";
+              if (big.GetBit(loop)) {
+                digit = "1";
+              }
+              mKeygenAlgorithm->adoptAsLastChild(UseServicesHelper::createElementWithNumber("publicExponent", digit));
+            }
+          }
+        }
+      }
+
+#define TODO_SUPPORT_ELIPTICAL_CURVE 1
+#define TODO_SUPPORT_ELIPTICAL_CURVE 2
+
+      ORTC_THROW_NOT_SUPPORTED_ERROR_IF(0 != mName.compareNoCase("RSASSA-PKCS1-v1_5"))
+      ORTC_THROW_NOT_SUPPORTED_ERROR_IF(mNamedCurve.hasData())  // not supported at this time (sorry)
+
+      {
+        const char **algorithms = getHashAlgorithms();
+
+        bool foundHashAlgorithm = false;
+
+        for (auto loop = 0; NULL != algorithms[loop]; ++loop) {
+          if (0 == mHash.compareNoCase(algorithms[loop])) {
+            foundHashAlgorithm = true;
+            break;
+          }
+        }
+
+        ORTC_THROW_NOT_SUPPORTED_ERROR_IF(!foundHashAlgorithm)
+      }
+
+      EventWriteOrtcCertificateCreate(__func__, mID, toStringAlgorithm(mKeygenAlgorithm), mKeyLength, mRandomBits, mLifetime.count(), mNotBeforeWindow.count(), string(mExpires));
       ZS_LOG_DETAIL(debug("created"))
 
-      ORTC_THROW_INVALID_PARAMETERS_IF(mAlgorithm.hasData())  // we do not understand any algorithm at this time
+      ORTC_THROW_INVALID_PARAMETERS_IF(!((bool)mKeygenAlgorithm))  // we do not understand any algorithm at this time
     }
 
     //-------------------------------------------------------------------------
@@ -201,6 +474,7 @@ namespace ortc
       mThisWeak.reset();
 
       cancel();
+      EventWriteOrtcCertificateDestroy(__func__, mID);
     }
 
     //-------------------------------------------------------------------------
@@ -231,9 +505,9 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    ICertificateTypes::PromiseWithCertificatePtr Certificate::generateCertificate(AlgorithmIdentifier algorithm)
+    ICertificateTypes::PromiseWithCertificatePtr Certificate::generateCertificate(ElementPtr keygenAlgorithm) throw (NotSupportedError)
     {
-      CertificatePtr pThis(make_shared<Certificate>(make_private {}, IORTCForInternal::queueCertificateGeneration(), algorithm));
+      CertificatePtr pThis(make_shared<Certificate>(make_private {}, IORTCForInternal::queueCertificateGeneration(), keygenAlgorithm));
       pThis->mThisWeak = pThis;
       pThis->init();
 
@@ -250,35 +524,25 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    ICertificateTypes::FingerprintListPtr Certificate::fingerprints(const char *inAlgorithm) const
+    ICertificateTypes::FingerprintPtr Certificate::fingerprint() const
     {
-      String algorithm(inAlgorithm);
-
       AutoRecursiveLock lock(*this);
 
-      FingerprintListPtr result(make_shared<FingerprintList>());
+      FingerprintPtr result(make_shared<Fingerprint>());
 
       if (!mCertificate) {
         ZS_LOG_WARNING(Detail, log("no certificate found"))
         return result;
       }
 
-      const char *algorithms[] = {
-        DIGEST_MD5,
-        DIGEST_SHA_1,
-        DIGEST_SHA_224,
-        DIGEST_SHA_256,
-        DIGEST_SHA_384,
-        DIGEST_SHA_512,
-        NULL
-      };
+      const char **algorithms = getHashAlgorithms();
 
       for (auto loop = 0; NULL != algorithms[loop]; ++loop) {
 
-        if (algorithm.hasData()) {
+        if (mHash.hasData()) {
           // filter for a particular fingerprint algorithm only
-          if (0 != algorithm.compareNoCase(algorithms[loop])) {
-            ZS_LOG_INSANE(log("algorithm not a match") + ZS_PARAM("algorithm", algorithm) + ZS_PARAM("found", algorithms[loop]))
+          if (0 != mHash.compareNoCase(algorithms[loop])) {
+            ZS_LOG_INSANE(log("algorithm not a match") + ZS_PARAM("hash", mHash) + ZS_PARAM("found", algorithms[loop]))
             continue;
           }
         }
@@ -297,7 +561,7 @@ namespace ortc
           }
           fingerprint.mValue += output.substr(pos, 2);
         }
-        result->push_back(fingerprint);
+        return result;
       }
 
       return result;
@@ -468,7 +732,13 @@ namespace ortc
 
       UseServicesHelper::debugAppend(resultEl, "id", mID);
 
-      UseServicesHelper::debugAppend(resultEl, "algorithm", mAlgorithm);
+      UseServicesHelper::debugAppend(resultEl, "name", mName);
+      UseServicesHelper::debugAppend(resultEl, "named curve", mNamedCurve);
+      UseServicesHelper::debugAppend(resultEl, "hash", mHash);
+      UseServicesHelper::debugAppend(resultEl, "key length", mKeyLength);
+      UseServicesHelper::debugAppend(resultEl, "random bit", mRandomBits);
+      UseServicesHelper::debugAppend(resultEl, "lifetime", mLifetime);
+      UseServicesHelper::debugAppend(resultEl, "not before window", mNotBeforeWindow);
 
       UseServicesHelper::debugAppend(resultEl, "promise", (bool)mPromise);
       UseServicesHelper::debugAppend(resultEl, "promise weak", (bool)mPromiseWeak.lock());
@@ -508,9 +778,28 @@ namespace ortc
     evp_pkey_st* Certificate::MakeKey()
     {
       ZS_LOG_DEBUG(log("Making key pair"))
-      evp_pkey_st* pkey = EVP_PKEY_new();
       // RSA_generate_key is deprecated. Use _ex version.
-      BIGNUM* exponent = BN_new();
+      BIGNUM* exponent = NULL;
+      if (mPublicExponentLength.hasData()) {
+        Integer value(mPublicExponentLength);
+
+        std::stringstream output;
+
+        output << value;
+
+        String finalInBase10(output.str());
+
+        int result = BN_dec2bn(&exponent, finalInBase10.c_str());
+        if (0 == result) {
+          ZS_LOG_ERROR(Detail, log("failed to convert to BN") + ZS_PARAM("input", finalInBase10))
+          return NULL;
+        }
+        ZS_THROW_INVALID_ASSUMPTION_IF(NULL == exponent)
+      } else {
+       exponent = BN_new();
+      }
+
+      evp_pkey_st* pkey = EVP_PKEY_new();
       RSA* rsa = RSA_new();
       if (!pkey || !exponent || !rsa ||
           !BN_set_word(exponent, 0x10001) ||  // 65537 RSA exponent
@@ -728,10 +1017,10 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    ICertificateFactory::PromiseWithCertificatePtr ICertificateFactory::generateCertificate(AlgorithmIdentifier algorithm)
+    ICertificateFactory::PromiseWithCertificatePtr ICertificateFactory::generateCertificate(ElementPtr keygenAlgorithm) throw (NotSupportedError)
     {
       if (this) {}
-      return internal::Certificate::generateCertificate(algorithm);
+      return internal::Certificate::generateCertificate(keygenAlgorithm);
     }
 
   }
@@ -818,9 +1107,17 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ICertificateTypes::PromiseWithCertificatePtr ICertificate::generateCertificate(AlgorithmIdentifier algorithm)
+  ICertificateTypes::PromiseWithCertificatePtr ICertificate::generateCertificate(ElementPtr algorithm) throw (NotSupportedError)
   {
     return internal::ICertificateFactory::singleton().generateCertificate(algorithm);
+  }
+
+  //---------------------------------------------------------------------------
+  ICertificateTypes::PromiseWithCertificatePtr ICertificate::generateCertificate(const char *algorithmIdentifier) throw (NotSupportedError)
+  {
+    ElementPtr algorithmObjectEl = internal::toAlgorithmElement(algorithmIdentifier);
+    ORTC_THROW_NOT_SUPPORTED_ERROR_IF(!((bool)algorithmObjectEl))
+    return generateCertificate(algorithmObjectEl);
   }
 
 }

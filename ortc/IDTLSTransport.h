@@ -54,6 +54,7 @@ namespace ortc
     ZS_DECLARE_STRUCT_PTR(Parameters)
     ZS_DECLARE_TYPEDEF_PTR(std::list<SecureByteBlock>, SecureByteBlockList)
     ZS_DECLARE_TYPEDEF_PTR(ICertificateTypes::FingerprintList, FingerprintList)
+    ZS_DECLARE_TYPEDEF_PTR(std::list<ICertificatePtr>, CertificateList)
 
     typedef PromiseWith<Parameters> PromiseWithParameters;
     ZS_DECLARE_PTR(PromiseWithParameters)
@@ -141,14 +142,14 @@ namespace ortc
     static IDTLSTransportPtr create(
                                     IDTLSTransportDelegatePtr delegate,
                                     IICETransportPtr iceTransport,
-                                    ICertificatePtr certificate
+                                    const CertificateList &certificates
                                     );
 
     virtual PUID getID() const = 0;
 
     virtual IDTLSTransportSubscriptionPtr subscribe(IDTLSTransportDelegatePtr delegate) = 0;
 
-    virtual ICertificatePtr certificate() const = 0;
+    virtual CertificateListPtr certificates() const = 0;
     virtual IICETransportPtr transport() const = 0;
 
     virtual States state() const = 0;

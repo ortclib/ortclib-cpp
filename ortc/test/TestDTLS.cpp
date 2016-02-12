@@ -593,7 +593,10 @@ namespace ortc
 
           ZS_LOG_BASIC(log("certificate was generated") + ICertificate::toDebug(certificate))
 
-          mDTLS = IDTLSTransport::create(mThisWeak.lock(), mICETransport, certificate);
+          std::list<ICertificatePtr> certificates;
+          certificates.push_back(certificate);
+
+          mDTLS = IDTLSTransport::create(mThisWeak.lock(), mICETransport, certificates);
           mICETransport.reset();
         }
 
