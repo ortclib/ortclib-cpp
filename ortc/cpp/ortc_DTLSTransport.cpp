@@ -353,7 +353,7 @@ namespace ortc
     {
       ZS_LOG_DETAIL(debug("created"))
 
-      ORTC_THROW_INVALID_PARAMETERS_IF(mCertificates.size() <  1)
+      ORTC_THROW_INVALID_PARAMETERS_IF(certificates.size() <  1)
 
       for (auto iter = certificates.begin(); iter != certificates.end(); ++iter) {
         auto &cert = (*iter);
