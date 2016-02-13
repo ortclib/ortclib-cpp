@@ -151,12 +151,12 @@ namespace ortc
     static ElementPtr toAlgorithmElement(const char *inAlgorithmIdentifier)
     {
       String algorithmIdentifier(inAlgorithmIdentifier);
-      if (algorithmIdentifier.isEmpty()) goto no_algorithm_specified;
-
-      if ('{' == *(algorithmIdentifier.c_str())) {
-        // treat as object
-        algorithmIdentifier = "{\"keygenAlgorithm\":" + algorithmIdentifier + "}";
-        return UseServicesHelper::toJSON(algorithmIdentifier);
+      if (!algorithmIdentifier.isEmpty()) {
+        if ('{' == *(algorithmIdentifier.c_str())) {
+          // treat as object
+          algorithmIdentifier = "{\"keygenAlgorithm\":" + algorithmIdentifier + "}";
+          return UseServicesHelper::toJSON(algorithmIdentifier);
+        }
       }
 
       for (size_t index = 0; ; ++index) {
