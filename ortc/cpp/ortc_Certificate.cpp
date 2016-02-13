@@ -223,10 +223,10 @@ namespace ortc
 
       // various mappings to convert from string to JSON encoded version
       UseSettings::setString(ORTC_SETTING_CERTIFICATE_MAP_ALGORITHM_IDENTIFIER_INPUT "0", "");
-      UseSettings::setString(ORTC_SETTING_CERTIFICATE_MAP_ALGORITHM_IDENTIFIER_OUTPUT "0", "{\"name\":\"RSASSA-PKCS1-v1_5\"},\"modulusLength\":1024,\"hash\":\"SHA-256\"}");
+      UseSettings::setString(ORTC_SETTING_CERTIFICATE_MAP_ALGORITHM_IDENTIFIER_OUTPUT "0", "{\"name\":\"RSASSA-PKCS1-v1_5\",\"modulusLength\":1024,\"hash\":\"SHA-256\"}");
 
       UseSettings::setString(ORTC_SETTING_CERTIFICATE_MAP_ALGORITHM_IDENTIFIER_INPUT "1", "RSASSA-PKCS1-v1_5");
-      UseSettings::setString(ORTC_SETTING_CERTIFICATE_MAP_ALGORITHM_IDENTIFIER_OUTPUT "1", "{\"name\":\"RSASSA-PKCS1-v1_5\"},\"modulusLength\":1024,\"hash\":\"SHA-256\"}");
+      UseSettings::setString(ORTC_SETTING_CERTIFICATE_MAP_ALGORITHM_IDENTIFIER_OUTPUT "1", "{\"name\":\"RSASSA-PKCS1-v1_5\",\"modulusLength\":1024,\"hash\":\"SHA-256\"}");
 
       auto algorithms = getHashAlgorithms();
 
@@ -243,7 +243,7 @@ namespace ortc
         String outputKeyName(ORTC_SETTING_CERTIFICATE_MAP_ALGORITHM_IDENTIFIER_OUTPUT);
         outputKeyName += string(index);
 
-        String outputKeyValue("{\"name\":\"RSASSA-PKCS1-v1_5\"},\"modulusLength\":1024,\"hash\":\"$HASH$\"}");
+        String outputKeyValue("{\"name\":\"RSASSA-PKCS1-v1_5\",\"modulusLength\":1024,\"hash\":\"$HASH$\"}");
         outputKeyValue.replaceAll("$HASH$", algorithms[loop]);
 
         UseSettings::setString(outputKeyName, outputKeyValue);
@@ -260,7 +260,7 @@ namespace ortc
         String outputKeyName(ORTC_SETTING_CERTIFICATE_MAP_ALGORITHM_IDENTIFIER_OUTPUT);
         outputKeyName += string(index);
 
-        String outputKeyValue("{\"name\":\"RSASSA-PKCS1-v1_5\"},\"modulusLength\":1024,\"hash\":\"$HASH$\"}");
+        String outputKeyValue("{\"name\":\"RSASSA-PKCS1-v1_5\",\"modulusLength\":1024,\"hash\":\"$HASH$\"}");
         outputKeyValue.replaceAll("$HASH$", algorithms[loop]);
 
         UseSettings::setString(outputKeyName, outputKeyValue);
