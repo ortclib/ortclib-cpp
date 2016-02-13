@@ -36,6 +36,7 @@
 #include <ortc/internal/ortc_SRTPTransport.h>
 #include <ortc/internal/ortc_Helper.h>
 #include <ortc/internal/ortc_ORTC.h>
+#include <ortc/internal/ortc_Tracing.h>
 #include <ortc/internal/platform.h>
 #include <ortc/ISRTPSDESTransport.h>
 
@@ -351,6 +352,10 @@ namespace ortc
       mMaxPendingDTLSBuffer(UseSettings::getUInt(ORTC_SETTING_DTLS_TRANSPORT_MAX_PENDING_DTLS_BUFFER)),
       mMaxPendingRTPPackets(UseSettings::getUInt(ORTC_SETTING_DTLS_TRANSPORT_MAX_PENDING_RTP_PACKETS))
     {
+      ORTC_THROW_INVALID_PARAMETERS_IF(!mICETransport)
+
+      EventWriteOrtcDtlsTransportCreate(__func__, mID, mICETransport->getID(), IICETypes::toString(mComponent), mMaxPendingDTLSBuffer, mMaxPendingRTPPackets, certificates.size());
+
       ZS_LOG_DETAIL(debug("created"))
 
       ORTC_THROW_INVALID_PARAMETERS_IF(certificates.size() <  1)
@@ -400,6 +405,7 @@ namespace ortc
 
         std::vector<String> ciphers;
         for (SrtpCipherMapEntry *entry = SrtpCipherMap; entry->internal_name; ++entry) {
+          EventWriteOrtcDtlsTransportInitizationInstallCipher(__func__, mID, entry->external_name);
           ciphers.push_back(entry->external_name);
         }
 
@@ -417,10 +423,14 @@ namespace ortc
           auto fingerprint = cert->fingerprint();
           if (!fingerprint) continue;
 
+          EventWriteOrtcDtlsTransportInitizationInstallFingerprint(__func__, mID, fingerprint->mAlgorithm, fingerprint->mValue, true);
+
           fingerprints.push_back(*fingerprint);
         }
 
         mLocalParams.mFingerprints = fingerprints;
+
+        EventWriteOrtcDtlsTransportInitization(__func__, mID, transport->getID(), mRTPListener->getID(), ciphers.size(), fingerprints.size());
       }
 
       transport->notifyAttached(mID, mThisWeak.lock());
@@ -437,6 +447,7 @@ namespace ortc
       mThisWeak.reset();
 
       cancel();
+      EventWriteOrtcDtlsTransportDestroy(__func__, mID);
     }
 
     //-------------------------------------------------------------------------
@@ -615,8 +626,8 @@ namespace ortc
     IDTLSTransportTypes::SecureByteBlockListPtr DTLSTransport::getRemoteCertificates() const
     {
       AutoRecursiveLock lock(*this);
-#define TODO_COMPLETE 1
-#define TODO_COMPLETE 2
+#define TODO_COMPLETE_ONCE_ORTC_SPEC_DEFINES_THIS_PROPERLY 1
+#define TODO_COMPLETE_ONCE_ORTC_SPEC_DEFINES_THIS_PROPERLY 2
       return SecureByteBlockListPtr();
     }
 
@@ -626,6 +637,8 @@ namespace ortc
                                                                          InvalidParameters
                                                                          )
     {
+      EventWriteOrtcDtlsTransportStart(__func__, mID, IDTLSTransportTypes::toString(remoteParameters.mRole), remoteParameters.mFingerprints.size());
+
       AutoRecursiveLock lock(*this);
 
       if ((isShuttingDown()) ||
@@ -644,12 +657,14 @@ namespace ortc
         switch (mRemoteParams.mRole) {
           case IDTLSTransportTypes::Role_Auto:  break;
           case IDTLSTransportTypes::Role_Client: {
+            EventWriteOrtcDtlsTransportRoleSet(__func__, mID, IDTLSTransportTypes::toString(mRemoteParams.mRole));
             mFixedRole = true;
             mAdapter->setServerRole();
             mAdapter->startSSLWithPeer();
             break;
           }
           case IDTLSTransportTypes::Role_Server: {
+            EventWriteOrtcDtlsTransportRoleSet(__func__, mID, IDTLSTransportTypes::toString(mRemoteParams.mRole));
             mFixedRole = true;
             mAdapter->startSSLWithPeer();
             break;
@@ -663,6 +678,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     void DTLSTransport::stop()
     {
+      EventWriteOrtcDtlsTransportStop(__func__, mID);
       ZS_LOG_DEBUG(log("stop called"))
 
       AutoRecursiveLock lock(*this);
@@ -693,6 +709,8 @@ namespace ortc
                                    size_t bufferLengthInBytes
                                    )
     {
+      EventWriteOrtcDtlsTransportSendRtpPacket(__func__, mID, zsLib::to_underlying(sendOverICETransport), zsLib::to_underlying(packetType), buffer, bufferLengthInBytes);
+
       ZS_LOG_TRACE(log("sending rtp packet") + ZS_PARAM("length", bufferLengthInBytes))
 
       UseSRTPTransportPtr transport;
@@ -755,6 +773,10 @@ namespace ortc
                                              size_t bufferLengthInBytes
                                              )
     {
+      bool isDTLSPacket = isDtlsPacket(buffer, bufferLengthInBytes);
+
+      EventWriteOrtcDtlsTransportReceivedPacket(__func__, mID, zsLib::to_underlying(viaTransport), isDTLSPacket, buffer, bufferLengthInBytes);
+
       ZS_LOG_TRACE(log("handle receive packet") + ZS_PARAM("length", bufferLengthInBytes))
 
       SecureByteBlockPtr decryptedPacket;
@@ -780,7 +802,7 @@ namespace ortc
 
         ZS_THROW_BAD_STATE_IF(!mAdapter)
 
-        if (isDtlsPacket(buffer, bufferLengthInBytes)) {
+        if (isDTLSPacket) {
           // Sanity check we're not passing junk that
           // just looks like DTLS.
           const BYTE * tmp_data = buffer;
@@ -808,6 +830,7 @@ namespace ortc
           }
 
           if (!mFixedRole) {
+            EventWriteOrtcDtlsTransportRoleSet(__func__, mID, IDTLSTransportTypes::toString(IDTLSTransport::Role_Server));
             mFixedRole = true;
             mAdapter->setServerRole();
             mAdapter->startSSLWithPeer();
@@ -819,8 +842,8 @@ namespace ortc
           int error = 0;
           auto result = mAdapter->read(extractedBuffer, sizeof(extractedBuffer), &read, &error);
 
-#define WARNING_CHECK_IF_MORE_THAN_ONE_SCTP_PACKET_PER_DTLS_PACKT 1
-#define WARNING_CHECK_IF_MORE_THAN_ONE_SCTP_PACKET_PER_DTLS_PACKT 2
+#define WARNING_CHECK_IF_MORE_THAN_ONE_SCTP_PACKET_PER_DTLS_PACKT_IS_POSSIBLE 1
+#define WARNING_CHECK_IF_MORE_THAN_ONE_SCTP_PACKET_PER_DTLS_PACKT_IS_POSSIBLE 2
 
           wakeUpIfNeeded();
 
@@ -860,7 +883,7 @@ namespace ortc
           mPendingIncomingRTP.push(make_shared<SecureByteBlock>(buffer, bufferLengthInBytes));
           if (mPendingIncomingRTP.size() > mMaxPendingRTPPackets) {
             ZS_LOG_WARNING(Debug, log("too many pending rtp packets (thus popping first packet)"))
-              mPendingIncomingRTP.pop();
+            mPendingIncomingRTP.pop();
           }
           return true;
         }
@@ -878,6 +901,8 @@ namespace ortc
 #define WARNING_HANDLE_SRTP_KEY_LIFETIME_EXHAUSTION 1
 #define WARNING_HANDLE_SRTP_KEY_LIFETIME_EXHAUSTION 2
 
+        EventWriteOrtcDtlsTransportForwardingEncryptedPacketToSrtpTransport(__func__, mID, srtpTransport->getID(), zsLib::to_underlying(viaTransport), buffer, bufferLengthInBytes);
+
         ZS_LOG_INSANE(log("forwarding packet to SRTP transport") + ZS_PARAM("srtp transport id", srtpTransport->getID()) + ZS_PARAM("via", IICETypes::toString(viaTransport)) + ZS_PARAM("buffer length", bufferLengthInBytes))
         return srtpTransport->handleReceivedPacket(viaTransport, buffer, bufferLengthInBytes);
       }
@@ -885,6 +910,7 @@ namespace ortc
     handle_data_packet:
       {
         if (decryptedPacket) {
+          EventWriteOrtcDtlsTransportForwardingPacketToDataTransport(__func__, mID, mDataTransport->getID(), zsLib::to_underlying(viaTransport), decryptedPacket->BytePtr(), decryptedPacket->SizeInBytes());
           return mDataTransport->handleDataPacket(decryptedPacket->BytePtr(), decryptedPacket->SizeInBytes());
         }
         ZS_LOG_WARNING(Debug, log("no data packet was decrypted"))
@@ -901,6 +927,9 @@ namespace ortc
                                                  STUNPacketPtr packet
                                                  )
     {
+      EventWriteOrtcDtlsTransportReceivedStunPacket(__func__, mID, zsLib::to_underlying(viaComponent));
+      packet->trace(__func__);
+
       ZS_LOG_TRACE(log("handle receive STUN packet") + packet->toDebug())
 
       {
@@ -946,6 +975,8 @@ namespace ortc
         ASSERT(sendOverICETransport == transport->component())
       }
 
+      EventWriteOrtcDtlsTransportSendEncryptedRtpPacket(__func__, mID, transport->getID(), zsLib::to_underlying(sendOverICETransport), zsLib::to_underlying(packetType), buffer, bufferLengthInBytes);
+
       return transport->sendPacket(buffer, bufferLengthInBytes);
     }
 
@@ -965,8 +996,9 @@ namespace ortc
           ZS_LOG_WARNING(Debug, log("cannot send encrypted packet while shutdown") + ZS_PARAM("packet type", packetType) + ZS_PARAM("buffer length", bufferLengthInBytes))
           return false;
         }
-
       }
+
+      EventWriteOrtcDtlsTransportForwardingPacketToRtpListener(__func__, mID, mRTPListener->getID(), zsLib::to_underlying(viaTransport), zsLib::to_underlying(packetType), buffer, bufferLengthInBytes);
 
       ZS_LOG_INSANE(log("forwarding packet to RTP listener") + ZS_PARAM("rtp listener id", mRTPListener->getID()) + ZS_PARAM("via", IICETypes::toString(viaTransport)) + ZS_PARAM("packet type", IICETypes::toString(packetType)) + ZS_PARAM("buffer length", bufferLengthInBytes))
 
@@ -1055,10 +1087,9 @@ namespace ortc
                                        size_t bufferLengthInBytes
                                        )
     {
-      ZS_LOG_TRACE(log("sending data packet") + ZS_PARAM("length", bufferLengthInBytes))
+      EventWriteOrtcDtlsTransportSendDataPacket(__func__, mID, buffer, bufferLengthInBytes);
 
-      UseICETransportPtr transport;
-      PacketQueue packets;
+      ZS_LOG_TRACE(log("sending data packet") + ZS_PARAM("length", bufferLengthInBytes))
 
       {
         AutoRecursiveLock lock(*this);
@@ -1066,7 +1097,6 @@ namespace ortc
           ZS_LOG_WARNING(Debug, log("no ice transport is attached"))
           return false;
         }
-        transport = mICETransport;
 
         if ((isShutdown()) ||
             (isShuttingDown())) {
@@ -1090,8 +1120,6 @@ namespace ortc
 
         switch (result) {
           case SR_SUCCESS: {
-            packets = mPendingOutgoingDTLS;
-            mPendingOutgoingDTLS = PacketQueue();
             goto send_packets;
           }
           case SR_BLOCK: {
@@ -1113,11 +1141,7 @@ namespace ortc
 
     send_packets:
       {
-        while (packets.size() > 0) {
-          SecureByteBlockPtr packet = packets.front();
-          if (!transport->sendPacket(*packet, packet->SizeInBytes())) return false;
-          packets.pop();
-        }
+        IDTLSTransportAsyncDelegateProxy::create(mThisWeak.lock())->onAdapterSendPacket();
       }
 
       return true;
@@ -1151,6 +1175,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     void DTLSTransport::onTimer(TimerPtr timer)
     {
+      EventWriteOrtcDtlsTransportInternalTimerEventFired(__func__, mID, timer->getID());
       ZS_LOG_DEBUG(log("timer") + ZS_PARAM("timer id", timer->getID()))
 
       AutoRecursiveLock lock(*this);
@@ -1181,6 +1206,7 @@ namespace ortc
           ZS_LOG_WARNING(Debug, log("no ice transport is attached"))
           return;
         }
+
         transport = mICETransport;
 
         packets = mPendingOutgoingDTLS;
@@ -1201,12 +1227,14 @@ namespace ortc
           if (filled + packet->SizeInBytes() > sizeof(fillBuffer)) {
             // cannot fit next packet into fill buffer so data filled thus far
             if (filled > 0) {
+              EventWriteOrtcDtlsTransportForwardDataPacketToIceTransport(__func__, mID, transport->getID(), &(fillBuffer[0]), filled);
               if (!transport->sendPacket(&(fillBuffer[0]), filled)) return;
               filled = 0;
             }
 
             if (packet->SizeInBytes() > sizeof(fillBuffer)) {
               // packet size exceed buffer capacity so send it immediately (anything previous put into fill buffer has been sent already)
+              EventWriteOrtcDtlsTransportForwardDataPacketToIceTransport(__func__, mID, transport->getID(), packet->BytePtr(), packet->SizeInBytes());
               if (!transport->sendPacket(*packet, packet->SizeInBytes())) return;
               continue;
             }
@@ -1218,6 +1246,7 @@ namespace ortc
 
         if (0 != filled) {
           // final push of filled buffer over the wire
+          EventWriteOrtcDtlsTransportForwardDataPacketToIceTransport(__func__, mID, transport->getID(), &(fillBuffer[0]), filled);
           if (!transport->sendPacket(&(fillBuffer[0]), filled)) return;
           filled = 0;
         }
@@ -1254,6 +1283,7 @@ namespace ortc
       while (pendingPackets.size() > 0) {
         auto packet = pendingPackets.front();
 
+        EventWriteOrtcDtlsTransportForwardingEncryptedPacketToSrtpTransport(__func__, mID, srtpTransport->getID(), zsLib::to_underlying(viaTransport), packet->BytePtr(), packet->SizeInBytes());
         bool delivered = srtpTransport->handleReceivedPacket(viaTransport, packet->BytePtr(), packet->SizeInBytes());
         if (!delivered) {
           ZS_LOG_WARNING(Debug, log("failed to process SRTP packet"))
@@ -1287,6 +1317,7 @@ namespace ortc
                                                   IICETransport::States state
                                                   )
     {
+      EventWriteOrtcDtlsTransportInternalIceStateChangeEventFired(__func__, mID, transport->getID(), IICETransportTypes::toString(state));
       ZS_LOG_DEBUG(log("on ice transport state changed"))
 
       AutoRecursiveLock lock(*this);
@@ -1335,6 +1366,7 @@ namespace ortc
                                                          ULONG overallLifetimeRemainingPercentage
                                                          )
     {
+      EventWriteOrtcDtlsTransportInternalSrtpTransportLifetimeRemainingEventFired(__func__, mID, transport->getID(), leastLifetimeRemainingPercentageForAllKeys, overallLifetimeRemainingPercentage);
 #define TODO_IN_FUTURE_WHEN_PERCENT_REMAINING_GETS_TOO_LOW_AS_A_CLIENT_RENEGOTIATE_A_NEW_SRTP_KEY 1
 #define TODO_IN_FUTURE_WHEN_PERCENT_REMAINING_GETS_TOO_LOW_AS_A_CLIENT_RENEGOTIATE_A_NEW_SRTP_KEY 2
     }
@@ -1526,6 +1558,8 @@ namespace ortc
         return;
       }
 
+      EventWriteOrtcDtlsTransportStep(__func__, mID);
+
       // ... other steps here ...
       if (!stepStartSSL()) goto not_ready;
       if (!stepValidate()) goto not_ready;
@@ -1550,6 +1584,8 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool DTLSTransport::stepStartSSL()
     {
+      EventWriteOrtcDtlsTransportStep(__func__, mID);
+
       if (mFixedRole) {
         ZS_LOG_TRACE(log("ssl already started"))
         return true;
@@ -1569,8 +1605,15 @@ namespace ortc
         {
           IICETypes::Roles role = mICETransport->getRole();   // example of how to get the ice role
           switch (role) {
-            case IICETypes::Role_Controlling: mAdapter->setServerRole(); break;
-            case IICETypes::Role_Controlled:  break;
+            case IICETypes::Role_Controlling: {
+              EventWriteOrtcDtlsTransportRoleSet(__func__, mID, IDTLSTransportTypes::toString(IDTLSTransport::Role_Server));
+              mAdapter->setServerRole();
+              break;
+            }
+            case IICETypes::Role_Controlled:  {
+              EventWriteOrtcDtlsTransportRoleSet(__func__, mID, IDTLSTransportTypes::toString(IDTLSTransport::Role_Client));
+              break;
+            }
           }
 
           mFixedRole = true;
@@ -1594,6 +1637,8 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool DTLSTransport::stepValidate()
     {
+      EventWriteOrtcDtlsTransportStep(__func__, mID);
+
       if (Adapter::VALIDATION_NA != mValidation) {
         ZS_LOG_TRACE(log("validation already completed"))
         return true;
@@ -1617,6 +1662,8 @@ namespace ortc
       for (auto iter = mRemoteParams.mFingerprints.begin(); iter != mRemoteParams.mFingerprints.end(); ++iter)
       {
         auto fingerprint = (*iter);
+
+        EventWriteOrtcDtlsTransportInitizationInstallFingerprint(__func__, mID, fingerprint.mAlgorithm, fingerprint.mValue, false);
 
         auto result = mAdapter->setPeerCertificateDigest(fingerprint.mAlgorithm, fingerprint.mValue);
         switch (result) {
@@ -1644,6 +1691,8 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool DTLSTransport::stepFixState()
     {
+      EventWriteOrtcDtlsTransportStep(__func__, mID);
+
       auto state = mAdapter->getState();
       switch (state) {
         case Adapter::SS_OPENING: {
@@ -1673,6 +1722,8 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool DTLSTransport::stepNotifyReady()
     {
+      EventWriteOrtcDtlsTransportStep(__func__, mID);
+
       if (State_Validated != mCurrentState) {
         ZS_LOG_TRACE(log("step notify ready is not validated yet"))
         return true;
@@ -1704,6 +1755,8 @@ namespace ortc
     //-------------------------------------------------------------------------
     void DTLSTransport::cancel()
     {
+      EventWriteOrtcDtlsTransportCancel(__func__, mID);
+
       //.......................................................................
       // try to gracefully shutdown
 
@@ -1745,6 +1798,7 @@ namespace ortc
       ZS_LOG_DETAIL(debug("state changed") + ZS_PARAM("new state", IDTLSTransport::toString(state)) + ZS_PARAM("old state", IDTLSTransport::toString(mCurrentState)))
 
       mCurrentState = state;
+      EventWriteOrtcDtlsTransportStateChangedEventFired(__func__, mID, IDTLSTransportTypes::toString(state));
 
       if (IDTLSTransport::State_Connected == state) {
         setupSRTP();
@@ -1773,6 +1827,8 @@ namespace ortc
         return;
       }
 
+      EventWriteOrtcDtlsTransportErrorEventFired(__func__, mID, errorCode, reason);
+
       mLastError = errorCode;
       mLastErrorReason = reason;
 
@@ -1787,6 +1843,7 @@ namespace ortc
       ZS_LOG_DETAIL(debug("state changed") + ZS_PARAM("new state", ISecureTransportTypes::toString(state)) + ZS_PARAM("old state", ISecureTransportTypes::toString(mSecureTransportState)))
 
       mSecureTransportState = state;
+      EventWriteOrtcDtlsTransportStateChangedEventFired(__func__, mID, ISecureTransportTypes::toString(state));
 
       DTLSTransportPtr pThis = mThisWeak.lock();
       if (pThis) {
@@ -1889,6 +1946,9 @@ namespace ortc
       receivingParams.mKeyParams.push_back(receivingKeyParams);
 
       mSRTPTransport = UseSRTPTransport::create(mThisWeak.lock(), mThisWeak.lock(), sendingParams, receivingParams);
+
+      EventWriteOrtcDtlsTransportSrtpKeyingMaterialSetup(__func__, mID, ((bool)mSRTPTransport) ? mSRTPTransport->getID() : 0, "send", cipher, sendKey->BytePtr(), sendKey->SizeInBytes());
+      EventWriteOrtcDtlsTransportSrtpKeyingMaterialSetup(__func__, mID, ((bool)mSRTPTransport) ? mSRTPTransport->getID() : 0, "receive", cipher, receiveKey->BytePtr(), receiveKey->SizeInBytes());
     }
 
     //-------------------------------------------------------------------------

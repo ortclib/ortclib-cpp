@@ -141,7 +141,7 @@ namespace ortc
       struct OpenPacket
       {
         BYTE mMessageType {ControlMessageType_DataChannelOpen};
-        BYTE mChanelType {};
+        BYTE mChannelType {};
         WORD mPriority {};
         DWORD mReliabilityParameter {};
         WORD mLabelLength {};
@@ -430,6 +430,8 @@ namespace ortc
     void DataChannel::bufferedAmountLowThreshold(size_t value)
     {
       AutoRecursiveLock lock(*this);
+
+      EventWriteOrtcDataChannelBufferedAmountLowThresholdChanged(__func__, mID, value, mBufferedAmountLowThreshold, mOutgoingBufferFillSize, mBufferedAmountLowThresholdFired);
       mBufferedAmountLowThreshold = value;
 
       if (mOutgoingBufferFillSize > mBufferedAmountLowThreshold) {
@@ -454,6 +456,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     void DataChannel::close()
     {
+      EventWriteOrtcDataChannelClose(__func__, mID);
       ZS_LOG_DEBUG(log("close called"))
       AutoRecursiveLock lock(*this);
       cancel();
@@ -462,6 +465,8 @@ namespace ortc
     //-------------------------------------------------------------------------
     void DataChannel::send(const String &data)
     {
+      EventWriteOrtcDataChannelSendString(__func__, mID, data);
+
       AutoRecursiveLock lock(*this);
       if (data.isEmpty()) {
         send(SCTP_PPID_STRING_LAST, NULL, 0);
@@ -473,6 +478,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     void DataChannel::send(const SecureByteBlock &data)
     {
+      EventWriteOrtcDataChannelSendBinary(__func__, mID, data.BytePtr(), data.SizeInBytes());
       AutoRecursiveLock lock(*this);
       send(SCTP_PPID_BINARY_LAST, data.BytePtr(), data.SizeInBytes());
     }
@@ -483,6 +489,7 @@ namespace ortc
                            size_t bufferSizeInBytes
                            )
     {
+      EventWriteOrtcDataChannelSendBinary(__func__, mID, buffer, bufferSizeInBytes);
       ORTC_THROW_INVALID_PARAMETERS_IF((NULL == buffer) && (0 != bufferSizeInBytes))
 
       AutoRecursiveLock lock(*this);
@@ -512,6 +519,8 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool DataChannel::handleSCTPPacket(SCTPPacketIncomingPtr packet)
     {
+      EventWriteOrtcDataChannelSCTPTransportReceivedIncomingPacket(__func__, mID, zsLib::to_underlying(packet->mType), packet->mSessionID, packet->mSequenceNumber, packet->mTimestamp, packet->mFlags, ((bool)packet->mBuffer) ? packet->mBuffer->BytePtr() : NULL, ((bool)packet->mBuffer) ? packet->mBuffer->SizeInBytes() : 0);
+
       // scope: obtain whatever data is required inside lock to process SCTP packet
       {
         AutoRecursiveLock lock(*this);
@@ -588,6 +597,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     void DataChannel::requestShutdown()
     {
+      EventWriteOrtcDataChannelSCTPTransportRequestShutdown(__func__, mID);
       ZS_LOG_TRACE(log("request shutdown"))
       IDataChannelAsyncDelegateProxy::create(mThisWeak.lock())->onRequestShutdown();
     }
@@ -595,6 +605,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     void DataChannel::notifyClosed()
     {
+      EventWriteOrtcDataChannelSCTPTransportRequestNotifyClosed(__func__, mID);
       ZS_LOG_TRACE(log("notify closed"))
       IDataChannelAsyncDelegateProxy::create(mThisWeak.lock())->onNotifiedClosed();
     }
@@ -610,6 +621,8 @@ namespace ortc
     //-------------------------------------------------------------------------
     void DataChannel::onSCTPTransportStateChanged()
     {
+      EventWriteOrtcDataChannelSCTPTransportStateChanged(__func__, mID);
+
       ZS_LOG_TRACE(log("on sctp transport state changed"))
       AutoRecursiveLock lock(*this);
       step();
@@ -681,6 +694,8 @@ namespace ortc
           RejectReasonPtr reason = mSendReady->reason<RejectReason>();
           ZS_THROW_INVALID_ASSUMPTION_IF(!reason)
 
+          EventWriteOrtcDataChannelSCTPTransportSendReadyFailure(__func__, mID, reason->mError, reason->mErrorReason);
+
           ZS_LOG_ERROR(Debug, log("cannot send data") + ZS_PARAM("error", reason->mError) + ZS_PARAM("reason", reason->mErrorReason))
           setError(reason->mError, reason->mErrorReason);
           cancel();
@@ -688,6 +703,7 @@ namespace ortc
         }
       }
 
+      EventWriteOrtcDataChannelSCTPTransportSendReady(__func__, mID);
       stepSendData(); // only the send promise exists so attempt to send data
     }
 
@@ -797,6 +813,8 @@ namespace ortc
         return;
       }
 
+      EventWriteOrtcDataChannelStep(__func__, mID);
+
       // ... other steps here ...
       if (!stepSCTPTransport()) goto not_ready;
       if (!stepIssueConnect()) goto not_ready;
@@ -824,6 +842,8 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool DataChannel::stepSCTPTransport()
     {
+      EventWriteOrtcDataChannelStep(__func__, mID);
+
       auto transport = mDataTransport.lock();
       if (!transport) {
         ZS_LOG_WARNING(Detail, log("sctp is gone (thus must shutdown)"))
@@ -850,6 +870,8 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool DataChannel::stepIssueConnect()
     {
+      EventWriteOrtcDataChannelStep(__func__, mID);
+
       if (mParameters) {
         if (mParameters->mNegotiated) {
           ZS_LOG_TRACE(log("no need to issue connect as channel is negotiated externally"))
@@ -878,6 +900,8 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool DataChannel::stepWaitConnectAck()
     {
+      EventWriteOrtcDataChannelStep(__func__, mID);
+
       if (mParameters) {
         if (mParameters->mNegotiated) {
           ZS_LOG_TRACE(log("no need to wait for ack as channel is negotiated externally"))
@@ -902,6 +926,8 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool DataChannel::stepOpen()
     {
+      EventWriteOrtcDataChannelStep(__func__, mID);
+
       setState(State_Open);
       return true;
     }
@@ -909,6 +935,8 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool DataChannel::stepSendData(bool onlyControlPackets)
     {
+      EventWriteOrtcDataChannelStep(__func__, mID);
+
       if (mSendReady) {
         if (!mSendReady->isResolved()) {
           ZS_LOG_TRACE(log("waiting for send to be ready"))
@@ -949,6 +977,8 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool DataChannel::stepDeliveryIncomingPacket()
     {
+      EventWriteOrtcDataChannelStep(__func__, mID);
+
       if (mSubscriptions.size() < 1) {
         ZS_LOG_TRACE(log("waiting for subscribers"))
         return true;
@@ -977,6 +1007,8 @@ namespace ortc
     //-------------------------------------------------------------------------
     void DataChannel::cancel()
     {
+      EventWriteOrtcDataChannelCancel(__func__, mID);
+
       //.......................................................................
       // try to gracefully shutdown
 
@@ -1033,6 +1065,7 @@ namespace ortc
       ZS_LOG_DETAIL(debug("state changed") + ZS_PARAM("new state", toString(state)) + ZS_PARAM("old state", toString(mCurrentState)))
 
       mCurrentState = state;
+      EventWriteOrtcDataChannelStateChangedEventFired(__func__, mID, toString(state));
 
       DataChannelPtr pThis = mThisWeak.lock();
       if (pThis) {
@@ -1055,6 +1088,8 @@ namespace ortc
 
       mLastError = errorCode;
       mLastErrorReason = reason;
+
+      EventWriteOrtcDataChannelErrorEventFired(__func__, mID, mLastError, mLastErrorReason);
 
       ZS_LOG_WARNING(Detail, debug("error set") + ZS_PARAM("error", mLastError) + ZS_PARAM("reason", mLastErrorReason))
 
@@ -1135,23 +1170,23 @@ namespace ortc
 
       if (mParameters->mOrdered) {
         if (mParameters->mMaxRetransmits.hasValue()) {
-          openPacket.mChanelType = DataChannelOpenMessageChannelType_PARTIAL_RELIABLE_REXMIT;
+          openPacket.mChannelType = DataChannelOpenMessageChannelType_PARTIAL_RELIABLE_REXMIT;
           openPacket.mReliabilityParameter = mParameters->mMaxRetransmits.value();
         } else if (Milliseconds() != mParameters->mMaxPacketLifetime) {
-          openPacket.mChanelType = DataChannelOpenMessageChannelType_PARTIAL_RELIABLE_TIMED;
+          openPacket.mChannelType = DataChannelOpenMessageChannelType_PARTIAL_RELIABLE_TIMED;
           openPacket.mReliabilityParameter = SafeInt<decltype(openPacket.mReliabilityParameter)>(mParameters->mMaxPacketLifetime.count());
         } else {
-          openPacket.mChanelType = DataChannelOpenMessageChannelType_RELIABLE;
+          openPacket.mChannelType = DataChannelOpenMessageChannelType_RELIABLE;
         }
       } else {
         if (mParameters->mMaxRetransmits.hasValue()) {
-          openPacket.mChanelType = DataChannelOpenMessageChannelType_PARTIAL_RELIABLE_REXMIT_UNORDERED;
+          openPacket.mChannelType = DataChannelOpenMessageChannelType_PARTIAL_RELIABLE_REXMIT_UNORDERED;
           openPacket.mReliabilityParameter = mParameters->mMaxRetransmits.value();
         } else if (Milliseconds() != mParameters->mMaxPacketLifetime) {
-          openPacket.mChanelType = DataChannelOpenMessageChannelType_PARTIAL_RELIABLE_TIMED_UNORDERED;
+          openPacket.mChannelType = DataChannelOpenMessageChannelType_PARTIAL_RELIABLE_TIMED_UNORDERED;
           openPacket.mReliabilityParameter = SafeInt<decltype(openPacket.mReliabilityParameter)>(mParameters->mMaxPacketLifetime.count());
         } else {
-          openPacket.mChanelType = DataChannelOpenMessageChannelType_RELIABLE_UNORDERED;
+          openPacket.mChannelType = DataChannelOpenMessageChannelType_RELIABLE_UNORDERED;
         }
       }
       openPacket.mPriority = 0;
@@ -1163,7 +1198,7 @@ namespace ortc
       ByteQueue temp;
 
       temp.Put(openPacket.mMessageType);
-      temp.Put(openPacket.mChanelType);
+      temp.Put(openPacket.mChannelType);
       temp.PutWord16(openPacket.mPriority);
       temp.PutWord32(openPacket.mReliabilityParameter);
       temp.PutWord16(openPacket.mLabelLength);
@@ -1175,7 +1210,9 @@ namespace ortc
         temp.Put((const BYTE *)(openPacket.mProtocol.c_str()), openPacket.mProtocol.length());
       }
 
-      ZS_LOG_TRACE(log("sending open control packet") + ZS_PARAM("open message type", internal::toString(static_cast<DataChannelOpenMessageChannelTypes>(openPacket.mChanelType))) + mParameters->toDebug())
+      EventWriteOrtcDataChannelSendControlOpen(__func__, mID, openPacket.mMessageType, openPacket.mChannelType, openPacket.mPriority, openPacket.mReliabilityParameter, openPacket.mLabelLength, openPacket.mProtocolLength, openPacket.mLabel, openPacket.mProtocol);
+
+      ZS_LOG_TRACE(log("sending open control packet") + ZS_PARAM("open message type", internal::toString(static_cast<DataChannelOpenMessageChannelTypes>(openPacket.mChannelType))) + mParameters->toDebug())
 
       SecureByteBlockPtr buffer(make_shared<SecureByteBlock>(SafeInt<size_t>(temp.CurrentSize())));
 
@@ -1195,6 +1232,8 @@ namespace ortc
     void DataChannel::sendControlAck()
     {
       AckPacket ackPacket;
+
+      EventWriteOrtcDataChannelSendControlAck(__func__, mID, ackPacket.mMessageType);
 
       ByteQueue temp;
       temp.Put(ackPacket.mMessageType);
@@ -1235,6 +1274,8 @@ namespace ortc
         return false;
       }
 
+      EventWriteOrtcDataChannelSCTPTransportDeliverOutgoingPacket(__func__, mID, zsLib::to_underlying(packet->mType), packet->mSessionID, packet->mOrdered, packet->mMaxPacketLifetime.count(), packet->mMaxRetransmits.hasValue(), packet->mMaxRetransmits.value(), ((bool)packet->mBuffer) ? packet->mBuffer->BytePtr() : NULL, ((bool)packet) ? packet->mBuffer->SizeInBytes() : 0);
+
       mSendReady = transport->sendDataNow(packet);
 
       if (mSendReady) {
@@ -1255,7 +1296,7 @@ namespace ortc
         temp.Put(buffer.BytePtr(), buffer.SizeInBytes());
 
         if (temp.Get(openPacket.mMessageType) != sizeof(openPacket.mMessageType)) return false;
-        if (temp.Get(openPacket.mChanelType) != sizeof(openPacket.mChanelType)) return false;
+        if (temp.Get(openPacket.mChannelType) != sizeof(openPacket.mChannelType)) return false;
         if (temp.GetWord16(openPacket.mPriority) != sizeof(openPacket.mPriority)) return false;
         CryptoPP::word32 reliabilityParam {};
         if (temp.GetWord32(reliabilityParam) != sizeof(reliabilityParam)) return false;
@@ -1272,11 +1313,13 @@ namespace ortc
         openPacket.mLabel = UseServicesHelper::convertToString(tempLabel);
         openPacket.mProtocol = UseServicesHelper::convertToString(tempProtocol);
 
+        EventWriteOrtcDataChannelReceivedControlOpen(__func__, mID, mIncoming, openPacket.mMessageType, openPacket.mChannelType, openPacket.mPriority, openPacket.mReliabilityParameter, openPacket.mLabelLength, openPacket.mProtocolLength, openPacket.mLabel, openPacket.mProtocol);
+
         if (mIncoming) {
 
           ParametersPtr params(make_shared<Parameters>());
           params->mID = mSessionID;
-          switch (openPacket.mChanelType) {
+          switch (openPacket.mChannelType) {
             case DataChannelOpenMessageChannelType_RELIABLE:                          {
               params->mOrdered = true;
               break;
@@ -1306,7 +1349,7 @@ namespace ortc
               break;
             }
             default: {
-              ZS_LOG_WARNING(Debug, log("data channel open channel type is not undersood") + ZS_PARAM("channel type", openPacket.mChanelType))
+              ZS_LOG_WARNING(Debug, log("data channel open channel type is not undersood") + ZS_PARAM("channel type", openPacket.mChannelType))
               return false;
             }
           }
@@ -1318,7 +1361,7 @@ namespace ortc
             goto send_ack;
           }
 
-          ZS_LOG_TRACE(log("incoming channel") + ZS_PARAM("open message type", internal::toString(static_cast<DataChannelOpenMessageChannelTypes>(openPacket.mChanelType))) + params->toDebug())
+          ZS_LOG_TRACE(log("incoming channel") + ZS_PARAM("open message type", internal::toString(static_cast<DataChannelOpenMessageChannelTypes>(openPacket.mChannelType))) + params->toDebug())
 
           mParameters = make_shared<Parameters>(*params);
 
@@ -1342,6 +1385,8 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool DataChannel::handleAckPacket(SecureByteBlock &buffer)
     {
+      EventWriteOrtcDataChannelReceivedControlAck(__func__, mID, zsLib::to_underlying(ControlMessageType_DataChannelAck));
+
       if (mIncoming) {
         ZS_LOG_WARNING(Detail, log("received unexpected data channel ack on incoming channel"))
         return false;
@@ -1403,6 +1448,8 @@ namespace ortc
         }
       }
 
+      EventWriteOrtcDataChannelMessageFiredEvent(__func__, mID, zsLib::to_underlying(packet.mType), packet.mSessionID, packet.mSequenceNumber, packet.mTimestamp, packet.mFlags, ((bool)packet.mBuffer) ? packet.mBuffer->BytePtr() : NULL, ((bool)packet.mBuffer) ? packet.mBuffer->SizeInBytes() : 0);
+
       mSubscriptions.delegate()->onDataChannelMessage(mThisWeak.lock(), data);
     }
 
@@ -1411,6 +1458,8 @@ namespace ortc
     {
       if (!packet) return;
       if (!packet->mBuffer) return;
+
+      EventWriteOrtcDataChannelOutgoingBufferPacket(__func__, mID, zsLib::to_underlying(packet->mType), packet->mSessionID, packet->mOrdered, packet->mMaxPacketLifetime.count(), packet->mMaxRetransmits.hasValue(), packet->mMaxRetransmits.value(), packet->mBuffer->BytePtr(), packet->mBuffer->SizeInBytes());
 
       auto previousFillSize = mOutgoingBufferFillSize;
       mOutgoingBufferFillSize += packet->mBuffer->SizeInBytes();
@@ -1428,6 +1477,8 @@ namespace ortc
     {
       if (!packet) return;
       if (!packet->mBuffer) return;
+
+      EventWriteOrtcDataChannelOutgoingBufferPacketDelivered(__func__, mID, zsLib::to_underlying(packet->mType), packet->mSessionID, packet->mOrdered, packet->mMaxPacketLifetime.count(), packet->mMaxRetransmits.hasValue(), packet->mMaxRetransmits.value(), packet->mBuffer->BytePtr(), packet->mBuffer->SizeInBytes());
 
       size_t packetSize = packet->mBuffer->SizeInBytes();
 
@@ -1497,12 +1548,6 @@ namespace ortc
   #pragma mark
   #pragma mark (helpers)
   #pragma mark
-
-  //-----------------------------------------------------------------------
-  static Log::Params slog(const char *message)
-  {
-    return Log::Params(message, "ortc::IDataChannelTypes");
-  }
 
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
