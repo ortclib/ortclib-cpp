@@ -890,16 +890,16 @@ void doTestICETransport()
 
       TESTING_SLEEP(2000)
 
-      switch (step) {
-        default:
+      //switch (step) {
+      //  default:
         {
           if (testGathererObject1) {TESTING_CHECK(testGathererObject1->matches(expectationsGatherer1))}
           if (testGathererObject2) {TESTING_CHECK(testGathererObject2->matches(expectationsGatherer2))}
           if (testTransportObject1) {TESTING_CHECK(testTransportObject1->matches(expectationsTransport1))}
           if (testTransportObject2) {TESTING_CHECK(testTransportObject2->matches(expectationsTransport2))}
-          break;
+      //    break;
         }
-      }
+      //}
       testGathererObject1.reset();
       testGathererObject2.reset();
       testTransportObject1.reset();

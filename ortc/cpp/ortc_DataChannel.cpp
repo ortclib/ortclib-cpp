@@ -1156,9 +1156,9 @@ namespace ortc
       }
       openPacket.mPriority = 0;
       openPacket.mLabel = mParameters->mLabel;
-      openPacket.mLabelLength = mParameters->mLabel.length();
+      openPacket.mLabelLength = static_cast<decltype(openPacket.mLabelLength)>(mParameters->mLabel.length());
       openPacket.mProtocol = mParameters->mProtocol;
-      openPacket.mProtocolLength = mParameters->mProtocol.length();
+      openPacket.mProtocolLength = static_cast<decltype(openPacket.mProtocolLength)>(mParameters->mProtocol.length());
 
       ByteQueue temp;
 

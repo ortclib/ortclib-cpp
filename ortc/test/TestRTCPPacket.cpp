@@ -2513,7 +2513,7 @@ namespace ortc
           size_t count = randomSize(15);
 
           if (0 != count) {
-            result->mReportSpecific = count;
+            result->mReportSpecific = static_cast<decltype(result->mReportSpecific)>(count);
             result->mFirstChunk = new SDES::Chunk[count];
 
             for (size_t index = 0; index < count; ++index)
@@ -2575,7 +2575,7 @@ namespace ortc
               if (shouldPerform(20)) {
                 chunk->mUnknownCount = randomSize(1, shouldPerform(80) ? 1 : randomSize(2, 5));
                 chunk->mFirstUnknown = new Chunk::Unknown[chunk->mUnknownCount];
-                fillSenderReceiverStringItem(random(Chunk::Mid::kItemType+1, 0xFF), chunk->mFirstUnknown, chunk->mUnknownCount, totalItems);
+                fillSenderReceiverStringItem(static_cast<BYTE>(random(Chunk::Mid::kItemType+1, 0xFF)), chunk->mFirstUnknown, chunk->mUnknownCount, totalItems);
               }
 
               ZS_LOG_TRACE(slog("generated SDES chunk complete") + ZS_PARAM("chunk", index))
@@ -2592,7 +2592,7 @@ namespace ortc
           result->mPT = Bye::kPayloadType;
           fillReport(result);
 
-          result->mReportSpecific = randomSize(15);
+          result->mReportSpecific = static_cast<decltype(result->mReportSpecific)>(randomSize(15));
 
           if (0 != result->sc()) {
             result->mSSRCs = new DWORD[result->sc()];
@@ -2621,7 +2621,7 @@ namespace ortc
           result->mPT = App::kPayloadType;
           fillReport(result);
 
-          result->mReportSpecific = random(0, 15);
+          result->mReportSpecific = static_cast<decltype(result->mReportSpecific)>(random(0, 15));
           result->mSSRC = randomDWORD();
 
           String tmp = randomString(sizeof(DWORD));
@@ -2652,7 +2652,7 @@ namespace ortc
             case 1: result->mReportSpecific = TMMBR::kFmt; break;
             case 2: result->mReportSpecific = TMMBN::kFmt; break;
             case 3: {
-              result->mReportSpecific = randomSize(TMMBN::kFmt+1, 0x1F);
+              result->mReportSpecific = static_cast<decltype(result->mReportSpecific)>(randomSize(TMMBN::kFmt+1, 0x1F));
               break;
             }
             default:
@@ -2744,7 +2744,7 @@ namespace ortc
               break;
             }
             case 9: {
-              result->mReportSpecific = randomSize(AFB::kFmt+1, 0x1F);
+              result->mReportSpecific = static_cast<decltype(result->mReportSpecific)>(randomSize(AFB::kFmt+1, 0x1F));
               break;
             }
             default:
@@ -2993,15 +2993,15 @@ namespace ortc
             BYTE type = 0;
 
             switch (randomBuffer[loop]%8) { // using the fixed seed
-              case 0: type = ++(result->mLossRLEReportBlockCount); break;
-              case 1: type = ++(result->mDuplicateRLEReportBlockCount); break;
-              case 2: type = ++(result->mPacketReceiptTimesReportBlockCount); break;
-              case 3: type = ++(result->mReceiverReferenceTimeReportBlockCount); break;
-              case 4: type = ++(result->mDLRRReportBlockCount); break;
-              case 5: type = ++(result->mStatisticsSummaryReportBlockCount); break;
-              case 6: type = ++(result->mVoIPMetricsReportBlockCount); break;
+              case 0: type = static_cast<decltype(type)>(++(result->mLossRLEReportBlockCount)); break;
+              case 1: type = static_cast<decltype(type)>(++(result->mDuplicateRLEReportBlockCount)); break;
+              case 2: type = static_cast<decltype(type)>(++(result->mPacketReceiptTimesReportBlockCount)); break;
+              case 3: type = static_cast<decltype(type)>(++(result->mReceiverReferenceTimeReportBlockCount)); break;
+              case 4: type = static_cast<decltype(type)>(++(result->mDLRRReportBlockCount)); break;
+              case 5: type = static_cast<decltype(type)>(++(result->mStatisticsSummaryReportBlockCount)); break;
+              case 6: type = static_cast<decltype(type)>(++(result->mVoIPMetricsReportBlockCount)); break;
               case 7: {
-                type = ++(result->mUnknownReportBlockCount);
+                type = static_cast<decltype(type)>(++(result->mUnknownReportBlockCount));
                 break;
               }
               default:
@@ -3363,7 +3363,7 @@ namespace ortc
           }
 
           if (shouldPerform(10)) {
-            lastReport->mPadding = randomSize(1, 50);
+            lastReport->mPadding = static_cast<decltype(lastReport->mPadding)>(randomSize(1, 50));
             size_t outputSize = CheckRTCPPcaket::checkOutputSize(lastReport);
             outputSize += static_cast<size_t>(lastReport->mPadding);
             if ((outputSize / sizeof(DWORD)) > 0xFFFF) {

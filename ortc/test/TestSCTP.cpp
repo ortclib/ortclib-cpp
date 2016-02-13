@@ -1870,14 +1870,14 @@ void doTestSCTP()
 
       TESTING_SLEEP(2000)
 
-      switch (testNumber) {
-        default:
+      //switch (testNumber) {
+      //  default:
         {
           if (testSCTPObject1) {TESTING_CHECK(testSCTPObject1->matches(expectationsSCTP1))}
           if (testSCTPObject2) {TESTING_CHECK(testSCTPObject2->matches(expectationsSCTP2))}
-          break;
+      //    break;
         }
-      }
+      //}
 
       testSCTPObject1.reset();
       testSCTPObject2.reset();

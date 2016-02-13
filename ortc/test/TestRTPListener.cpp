@@ -2109,14 +2109,14 @@ void doTestRTPListener()
 
       TESTING_SLEEP(2000)
 
-      switch (testNumber) {
-        default:
+      //switch (testNumber) {
+      //  default:
         {
           if (testObject1) {TESTING_CHECK(testObject1->matches(expectations1))}
           if (testObject2) {TESTING_CHECK(testObject2->matches(expectations2))}
-          break;
+      //    break;
         }
-      }
+      //}
 
       testObject1.reset();
       testObject2.reset();

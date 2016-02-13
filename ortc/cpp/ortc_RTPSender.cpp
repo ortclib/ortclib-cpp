@@ -59,7 +59,11 @@
 
 
 #ifdef _DEBUG
+#ifdef _WIN32
+#define ASSERT(x) {assert(x);}
+#else
 #define ASSERT(x) ZS_THROW_BAD_STATE_IF(!(x))
+#endif //_WIN32
 #else
 #define ASSERT(x)
 #endif //_DEBUG

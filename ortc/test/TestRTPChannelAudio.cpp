@@ -1957,14 +1957,14 @@ void doTestRTPChannelAudio()
       
       TESTING_SLEEP(2000)
       
-      switch (testNumber) {
-        default:
+      //switch (testNumber) {
+      //  default:
         {
           if (testObject1) {TESTING_CHECK(testObject1->matches())}
           if (testObject2) {TESTING_CHECK(testObject2->matches())}
-          break;
+      //    break;
         }
-      }
+      //}
       
       testObject1.reset();
       testObject2.reset();

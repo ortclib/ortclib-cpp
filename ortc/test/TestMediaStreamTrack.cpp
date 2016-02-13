@@ -1411,13 +1411,13 @@ void doTestMediaStreamTrack(void* videoSurface)
 
       TESTING_SLEEP(2000)
 
-      switch (testNumber) {
-        default:
+      //switch (testNumber) {
+      //  default:
         {
           if (testObject) { TESTING_CHECK(testObject->matches(expectations)) }
-          break;
+      //    break;
         }
-      }
+      //}
 
       testObject.reset();
 

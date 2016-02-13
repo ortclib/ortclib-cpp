@@ -1185,14 +1185,14 @@ void doTestSRTP()
 
       TESTING_SLEEP(2000)
 
-      switch (testNumber) {
-        default:
+      //switch (testNumber) {
+      //  default:
         {
           if (testSRTPObject1) {TESTING_CHECK(testSRTPObject1->matches(expectationsDTLS1))}
           if (testSRTPObject2) {TESTING_CHECK(testSRTPObject2->matches(expectationsDTLS2))}
-          break;
+      //    break;
         }
-      }
+      //}
 
       testSRTPObject1.reset();
       testSRTPObject2.reset();
