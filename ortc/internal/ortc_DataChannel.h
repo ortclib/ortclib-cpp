@@ -223,6 +223,8 @@ namespace ortc
       virtual States readyState() const override;
 
       virtual size_t bufferedAmount() const override;
+      virtual size_t bufferedAmountLowThreshold() const override;
+      virtual void bufferedAmountLowThreshold(size_t value) override;
 
       virtual String binaryType() const override;
       virtual void binaryType(const char *str) override;
@@ -337,6 +339,9 @@ namespace ortc
       bool handleAckPacket(SecureByteBlock &buffer);
       void forwardDataPacketAsEvent(const SCTPPacketIncoming &packet);
 
+      void outgoingPacketAdded(SCTPPacketOutgoingPtr packet);
+      void outgoingPacketRemoved(SCTPPacketOutgoingPtr packet);
+
     public:
       //-----------------------------------------------------------------------
       #pragma mark
@@ -381,6 +386,9 @@ namespace ortc
 
       BufferIncomingList mIncomingData;
       BufferOutgoingList mOutgoingData;
+      size_t mOutgoingBufferFillSize {};
+      size_t mBufferedAmountLowThreshold {};
+      bool mBufferedAmountLowThresholdFired {};
 
       PromisePtr mSendReady;
     };
@@ -437,6 +445,8 @@ ZS_DECLARE_TEAR_AWAY_METHOD_CONST_RETURN_0(readyState, States)
 ZS_DECLARE_TEAR_AWAY_METHOD_CONST_RETURN_0(binaryType, String)
 ZS_DECLARE_TEAR_AWAY_METHOD_1(binaryType, const char *)
 ZS_DECLARE_TEAR_AWAY_METHOD_CONST_RETURN_0(bufferedAmount, size_t)
+ZS_DECLARE_TEAR_AWAY_METHOD_CONST_RETURN_0(bufferedAmountLowThreshold, size_t)
+ZS_DECLARE_TEAR_AWAY_METHOD_1(bufferedAmountLowThreshold, size_t)
 ZS_DECLARE_TEAR_AWAY_METHOD_0(close)
 ZS_DECLARE_TEAR_AWAY_METHOD_1(send, const String &)
 ZS_DECLARE_TEAR_AWAY_METHOD_1(send, const SecureByteBlock &)

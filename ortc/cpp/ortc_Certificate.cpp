@@ -453,7 +453,7 @@ namespace ortc
         ORTC_THROW_NOT_SUPPORTED_ERROR_IF(!foundHashAlgorithm)
       }
 
-      EventWriteOrtcCertificateCreate(__func__, mID, toStringAlgorithm(mKeygenAlgorithm), mKeyLength, mRandomBits, mLifetime.count(), mNotBeforeWindow.count(), string(mExpires));
+      EventWriteOrtcCertificateCreate(__func__, mID, toStringAlgorithm(mKeygenAlgorithm), mName, mNamedCurve, mKeyLength, mRandomBits, mPublicExponentLength, mLifetime.count(), mNotBeforeWindow.count(), string(mExpires));
       ZS_LOG_DETAIL(debug("created"))
 
       ORTC_THROW_INVALID_PARAMETERS_IF(!((bool)mKeygenAlgorithm))  // we do not understand any algorithm at this time
@@ -568,6 +568,7 @@ namespace ortc
           }
           fingerprint.mValue += output.substr(pos, 2);
         }
+        EventWriteOrtcCertificateFingerprint(__func__, mID, fingerprint.mAlgorithm, fingerprint.mValue);
         return result;
       }
 
@@ -699,8 +700,10 @@ namespace ortc
         if (promise) {
           if ((pThis) &&
               (certificate)) {
+            EventWriteOrtcCertificateGenerated(__func__, mID, true);
             promise->resolve(pThis);
           } else {
+            EventWriteOrtcCertificateGenerated(__func__, mID, false);
             promise->reject();
           }
         }

@@ -1257,6 +1257,14 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
+      void SCTPTester::onDataChannelBufferedAmountLow(IDataChannelPtr channel)
+      {
+        ZS_LOG_BASIC(log("data channel buffer low event") + ZS_PARAM("channel id", channel->getID()))
+#define TODO_TEST_TO_VERIFY_BUFFER_LOW_EVENT 1
+#define TODO_TEST_TO_VERIFY_BUFFER_LOW_EVENT 2
+      }
+
+      //-----------------------------------------------------------------------
       void SCTPTester::onDataChannelMessage(
                                             IDataChannelPtr channel,
                                             MessageEventDataPtr data

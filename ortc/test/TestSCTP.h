@@ -191,7 +191,7 @@ namespace ortc
         #pragma mark
 
         //---------------------------------------------------------------------
-        virtual void onPacketFromLinkedFakedTransport(SecureByteBlockPtr buffer);
+        virtual void onPacketFromLinkedFakedTransport(SecureByteBlockPtr buffer) override;
 
         //---------------------------------------------------------------------
         #pragma mark
@@ -199,7 +199,7 @@ namespace ortc
         #pragma mark
 
         //---------------------------------------------------------------------
-        virtual void onTimer(TimerPtr timer);
+        virtual void onTimer(TimerPtr timer) override;
 
         //---------------------------------------------------------------------
         #pragma mark
@@ -551,7 +551,7 @@ namespace ortc
         #pragma mark SCTPTester::ISCTPTransportListenerDelegate
         #pragma mark
 
-        virtual void onSCTPTransport(ISCTPTransportPtr transport);
+        virtual void onSCTPTransport(ISCTPTransportPtr transport) override;
 
         //---------------------------------------------------------------------
         #pragma mark
@@ -561,18 +561,20 @@ namespace ortc
         virtual void onDataChannelStateChanged(
                                                IDataChannelPtr channel,
                                                States state
-                                               );
+                                               ) override;
 
         virtual void onDataChannelError(
                                         IDataChannelPtr channel,
                                         ErrorCode errorCode,
                                         String errorReason
-                                        );
+                                        ) override;
+
+        virtual void onDataChannelBufferedAmountLow(IDataChannelPtr channel) override;
 
         virtual void onDataChannelMessage(
                                           IDataChannelPtr channel,
                                           MessageEventDataPtr data
-                                          );
+                                          ) override;
 
       protected:
         //---------------------------------------------------------------------

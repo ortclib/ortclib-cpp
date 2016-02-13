@@ -33,6 +33,7 @@
 #include <ortc/internal/ortc_SCTPTransport.h>
 #include <ortc/internal/ortc_Helper.h>
 #include <ortc/internal/ortc_ORTC.h>
+#include <ortc/internal/ortc_Tracing.h>
 #include <ortc/internal/platform.h>
 
 #include <openpeer/services/ISettings.h>
@@ -248,6 +249,7 @@ namespace ortc
       mIncoming(ORTC_SCTP_INVALID_DATA_CHANNEL_SESSION_ID != sessionID),
       mSessionID(ORTC_SCTP_INVALID_DATA_CHANNEL_SESSION_ID == sessionID ? (params->mID.hasValue() ? params->mID.value() : ORTC_SCTP_INVALID_DATA_CHANNEL_SESSION_ID) : sessionID)
     {
+      EventWriteOrtcDataChannelCreate(__func__, mID, ((bool)transport) ? transport->getID() : 0, ((bool)mParameters) ? UseServicesHelper::toString(mParameters->createElement("params")) : String(), mIncoming, mSessionID);
       ZS_LOG_DETAIL(debug("created"))
 
       mBinaryType = "blob";
@@ -277,6 +279,8 @@ namespace ortc
       mThisWeak.reset();
 
       cancel();
+
+      EventWriteOrtcDataChannelDestroy(__func__, mID);
     }
 
     //-------------------------------------------------------------------------
@@ -371,6 +375,11 @@ namespace ortc
           delegate->onDataChannelError(pThis, mLastError, mLastErrorReason);
         }
 
+        if ((mOutgoingBufferFillSize <= mBufferedAmountLowThreshold) &&
+            (mBufferedAmountLowThresholdFired)) {
+          delegate->onDataChannelBufferedAmountLow(pThis);
+        }
+
         IWakeDelegateProxy::create(pThis)->onWake();
       }
 
@@ -407,16 +416,25 @@ namespace ortc
     size_t DataChannel::bufferedAmount() const
     {
       AutoRecursiveLock lock(*this);
+      return mOutgoingBufferFillSize;
+    }
 
-      size_t total = 0;
+    //-------------------------------------------------------------------------
+    size_t DataChannel::bufferedAmountLowThreshold() const
+    {
+      AutoRecursiveLock lock(*this);
+      return mBufferedAmountLowThreshold;
+    }
 
-      for (auto iter = mOutgoingData.begin(); iter != mOutgoingData.end(); ++iter)
-      {
-        auto buffer = (*iter);
-        total += (buffer->mBuffer ? buffer->mBuffer->SizeInBytes() : 0);
+    //-------------------------------------------------------------------------
+    void DataChannel::bufferedAmountLowThreshold(size_t value)
+    {
+      AutoRecursiveLock lock(*this);
+      mBufferedAmountLowThreshold = value;
+
+      if (mOutgoingBufferFillSize > mBufferedAmountLowThreshold) {
+        mBufferedAmountLowThresholdFired = false;
       }
-
-      return total;
     }
 
     //-------------------------------------------------------------------------
@@ -740,6 +758,9 @@ namespace ortc
 
       UseServicesHelper::debugAppend(resultEl, "incoming data", mIncomingData.size());
       UseServicesHelper::debugAppend(resultEl, "outgoing data", mOutgoingData.size());
+      UseServicesHelper::debugAppend(resultEl, "outgoing buffer fill size", mOutgoingBufferFillSize);
+      UseServicesHelper::debugAppend(resultEl, "buffered amount low threshold", mBufferedAmountLowThreshold);
+      UseServicesHelper::debugAppend(resultEl, "buffered amount low threshold fired", mBufferedAmountLowThresholdFired);
 
       UseServicesHelper::debugAppend(resultEl, "send ready", (bool)mSendReady);
 
@@ -918,6 +939,7 @@ namespace ortc
         }
 
         // consume the buffer as "sent"
+        outgoingPacketRemoved(packet);
         mOutgoingData.erase(current);
       }
 
@@ -985,6 +1007,7 @@ namespace ortc
 
       mIncomingData.clear();
       mOutgoingData.clear();
+      mOutgoingBufferFillSize = 0;
 
       mSubscriptions.clear();
 
@@ -1097,6 +1120,7 @@ namespace ortc
       {
         ZS_LOG_TRACE(log("buffering data") + ZS_PARAM("ppid", internal::toString(ppid)) + ZS_PARAM("length", bufferSizeInBytes))
         mOutgoingData.push_back(packet);
+        outgoingPacketAdded(packet);
       }
 
       return true;
@@ -1163,6 +1187,7 @@ namespace ortc
       packet->mBuffer = buffer;
       if (!deliverOutgoing(packet, false)) {
         mOutgoingData.push_front(packet);
+        outgoingPacketAdded(packet);
       }
     }
 
@@ -1184,6 +1209,7 @@ namespace ortc
       packet->mBuffer = buffer;
       if (!deliverOutgoing(packet, false)) {
         mOutgoingData.push_front(packet);
+        outgoingPacketAdded(packet);
       }
     }
 
@@ -1379,7 +1405,53 @@ namespace ortc
 
       mSubscriptions.delegate()->onDataChannelMessage(mThisWeak.lock(), data);
     }
-    
+
+    //-------------------------------------------------------------------------
+    void DataChannel::outgoingPacketAdded(SCTPPacketOutgoingPtr packet)
+    {
+      if (!packet) return;
+      if (!packet->mBuffer) return;
+
+      auto previousFillSize = mOutgoingBufferFillSize;
+      mOutgoingBufferFillSize += packet->mBuffer->SizeInBytes();
+
+      if (previousFillSize <= mBufferedAmountLowThreshold) {
+        if (mOutgoingBufferFillSize > mBufferedAmountLowThreshold) {
+          // buffer is not "low" anymore
+          mBufferedAmountLowThresholdFired = false;
+        }
+      }
+    }
+
+    //-------------------------------------------------------------------------
+    void DataChannel::outgoingPacketRemoved(SCTPPacketOutgoingPtr packet)
+    {
+      if (!packet) return;
+      if (!packet->mBuffer) return;
+
+      size_t packetSize = packet->mBuffer->SizeInBytes();
+
+      bool previouslyFired = mBufferedAmountLowThresholdFired;
+
+      auto previousFillSize = mOutgoingBufferFillSize;
+      mOutgoingBufferFillSize -= (mOutgoingBufferFillSize >= packetSize ? packetSize : mOutgoingBufferFillSize);
+
+      if (previousFillSize > mBufferedAmountLowThreshold) {
+        if (mOutgoingBufferFillSize <= mBufferedAmountLowThreshold) {
+          mBufferedAmountLowThresholdFired = true;
+
+          if (!previouslyFired) {
+            auto pThis = mThisWeak.lock();
+            if (pThis) {
+              ZS_LOG_TRACE(log("buffer low threshold event") + ZS_PARAM("threshold", mBufferedAmountLowThreshold) + ZS_PARAM("fill size", mOutgoingBufferFillSize))
+              // the threshold low value is now crossed so fire the buffer low event
+              mSubscriptions.delegate()->onDataChannelBufferedAmountLow(pThis);
+            }
+          }
+        }
+      }
+    }
+
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------

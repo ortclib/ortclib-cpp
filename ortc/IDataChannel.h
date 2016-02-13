@@ -120,6 +120,8 @@ namespace ortc
     virtual States readyState() const = 0;
 
     virtual size_t bufferedAmount() const = 0;
+    virtual size_t bufferedAmountLowThreshold() const = 0;
+    virtual void bufferedAmountLowThreshold(size_t value) = 0;
 
     virtual String binaryType() const = 0;
     virtual void binaryType(const char *str) = 0;
@@ -166,6 +168,8 @@ namespace ortc
                                     String errorReason
                                     ) = 0;
 
+    virtual void onDataChannelBufferedAmountLow(IDataChannelPtr channel) = 0;
+
     virtual void onDataChannelMessage(
                                       IDataChannelPtr channel,
                                       MessageEventDataPtr data
@@ -199,6 +203,7 @@ ZS_DECLARE_PROXY_TYPEDEF(ortc::SecureByteBlockPtr, SecureByteBlockPtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IDataChannelDelegate::MessageEventDataPtr, MessageEventDataPtr)
 ZS_DECLARE_PROXY_METHOD_2(onDataChannelStateChanged, IDataChannelPtr, States)
 ZS_DECLARE_PROXY_METHOD_3(onDataChannelError, IDataChannelPtr, ErrorCode, String)
+ZS_DECLARE_PROXY_METHOD_1(onDataChannelBufferedAmountLow, IDataChannelPtr)
 ZS_DECLARE_PROXY_METHOD_2(onDataChannelMessage, IDataChannelPtr, MessageEventDataPtr)
 ZS_DECLARE_PROXY_END()
 
@@ -210,5 +215,6 @@ ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::SecureByteBlockPtr, SecureByteBlock
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IDataChannelDelegate::MessageEventDataPtr, MessageEventDataPtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onDataChannelStateChanged, IDataChannelPtr, States)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_3(onDataChannelError, IDataChannelPtr, ErrorCode, String)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_1(onDataChannelBufferedAmountLow, IDataChannelPtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onDataChannelMessage, IDataChannelPtr, MessageEventDataPtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_END()
