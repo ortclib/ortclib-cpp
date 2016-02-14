@@ -837,6 +837,7 @@ namespace ortc
 
       struct Preference
       {
+        PUID mOuterObjectID {};
         PreferenceTypes mType {PreferenceType_Priority};
         DWORD *mCandidateTypePreferences {NULL};
         DWORD *mProtocolTypePreferences {NULL};
@@ -856,6 +857,7 @@ namespace ortc
         void load();
         void save() const;
 
+        Log::Params log(const char *message) const;
         ElementPtr toDebug() const;
       };
 
