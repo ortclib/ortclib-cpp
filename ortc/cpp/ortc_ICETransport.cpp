@@ -2370,6 +2370,11 @@ namespace ortc
         return true;
       }
 
+      if (State_Completed != mCurrentState) {
+        ZS_LOG_TRACE(log("cannot nominate candidate because state is not completed yet") + ZS_PARAM("state", toString(mCurrentState)))
+        return true;
+      }
+
       if (mUseCandidateRequest) {
         ZS_LOG_DEBUG(log("removing previous use candidate"))
         mUseCandidateRequest->cancel();
@@ -2787,6 +2792,15 @@ namespace ortc
 
       ICETransportPtr pThis = mThisWeak.lock();
       if (pThis) {
+        if (State_Completed == mCurrentState) {
+          if ((!mUseCandidateRoute) &&
+              (!mOptions.mAggressiveICE) &&
+              (IICETypes::Role_Controlling == mOptions.mRole)) {
+            ZS_LOG_TRACE(log("route nominiation is required"))
+            IWakeDelegateProxy::create(pThis)->onWake();
+          }
+        }
+
         mSubscriptions.delegate()->onICETransportStateChange(pThis, mCurrentState);
         if (mGatherer) {
           mGatherer->notifyTransportStateChange(pThis);
@@ -3985,7 +3999,8 @@ namespace ortc
       stunPacket->mPriorityIncluded = true;
       stunPacket->mPriority = route->mCandidatePair->mLocal->mPriority;
       setRole(stunPacket);
-      if (useCandidate) {
+      if ((useCandidate) ||
+          (route == mUseCandidateRoute)) {
         stunPacket->mUseCandidateIncluded = true;
       }
 
