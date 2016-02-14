@@ -796,6 +796,8 @@ namespace ortc
       {
         AutoPUID mID;
 
+        PUID mOuterObjectID {};
+
         RouterRoutePtr mRouterRoute;
 
         Time mLastUsed;
@@ -808,6 +810,7 @@ namespace ortc
         RelayPortPtr mRelayPort;  // send via relay port
         TCPPortPtr mTCPPort;      // send via TCP socket
 
+        void trace(const char *function, const char *message = NULL) const;
         ElementPtr toDebug() const;
       };
 

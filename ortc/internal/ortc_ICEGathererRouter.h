@@ -130,6 +130,7 @@ namespace ortc
         CandidatePtr mLocalCandidate;
         IPAddress mRemoteIP;
 
+        void trace(const char *function, const char *message = NULL) const;
         ElementPtr toDebug() const;
       };
 

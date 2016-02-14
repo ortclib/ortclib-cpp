@@ -167,7 +167,19 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    IStatsReportTypes::StatsPtr StatsReport::getStats(const char *id)
+    IStatsReportTypes::IDListPtr StatsReport::getStatesIDs() const
+    {
+      IDListPtr result(make_shared<IDList>());
+      AutoRecursiveLock lock(*this);
+      for (auto iter = mStats.begin(); iter != mStats.end(); ++iter) {
+        auto &id = (*iter).first;
+        result->push_back(id);
+      }
+      return result;
+    }
+
+    //-------------------------------------------------------------------------
+    IStatsReportTypes::StatsPtr StatsReport::getStats(const char *id) const
     {
       AutoRecursiveLock lock(*this);
 

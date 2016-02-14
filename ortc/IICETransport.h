@@ -150,7 +150,7 @@ namespace ortc
 
     virtual void start(
                        IICEGathererPtr gatherer,
-                       Parameters remoteParameters,
+                       const Parameters &remoteParameters,
                        Optional<Options> options = Optional<Options>()
                        ) throw (InvalidParameters) = 0;
 

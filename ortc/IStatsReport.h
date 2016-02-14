@@ -46,6 +46,7 @@ namespace ortc
   interaction IStatsReportTypes
   {
     ZS_DECLARE_STRUCT_PTR(Stats);
+    ZS_DECLARE_TYPEDEF_PTR(std::list<String>, IDList);
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -114,7 +115,8 @@ namespace ortc
 
     virtual PUID getID() const = 0;
 
-    virtual StatsPtr getStats(const char *id) = 0;
+    virtual IDListPtr getStatesIDs() const = 0;
+    virtual StatsPtr getStats(const char *id) const = 0;
   };
 
 }

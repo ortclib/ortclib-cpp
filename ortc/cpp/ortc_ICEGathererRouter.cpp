@@ -31,6 +31,7 @@
 
 #include <ortc/internal/ortc_ICEGathererRouter.h>
 #include <ortc/internal/ortc_ORTC.h>
+#include <ortc/internal/ortc_Tracing.h>
 #include <ortc/internal/platform.h>
 
 #include <ortc/IICETransport.h>
@@ -63,6 +64,7 @@ namespace ortc
       SharedRecursiveLock(SharedRecursiveLock::create()),
       MessageQueueAssociator(queue)
     {
+      EventWriteOrtcIceGathererRouterCreate(__func__, mID);
       ZS_LOG_BASIC(log("created"))
     }
 
@@ -79,6 +81,7 @@ namespace ortc
       mThisWeak.reset();
       ZS_LOG_BASIC(log("destroyed"))
       cancel();
+      EventWriteOrtcIceGathererRouterDestroy(__func__, mID);
     }
 
     //-------------------------------------------------------------------------
@@ -123,15 +126,19 @@ namespace ortc
         RoutePtr route = (*found).second.lock();
 
         if (route) {
+          EventWriteOrtcIceGathererRouterInternalEvent(__func__, mID, "found", hash, ((bool)localCandidate) ? localCandidate->mIP : String(), ((bool)localCandidate) ? localCandidate->mPort : 0, remoteIP.string());
+          route->trace(__func__, "found");
           ZS_LOG_TRACE(log("route found") + route->toDebug() + ZS_PARAM("create route", createRouteIfNeeded))
           return route;
         }
 
+        EventWriteOrtcIceGathererRouterInternalEvent(__func__, mID, "gone", hash, ((bool)localCandidate) ? localCandidate->mIP : String(), ((bool)localCandidate) ? localCandidate->mPort : 0, remoteIP.string());
         ZS_LOG_WARNING(Debug, log("route was previously found but is now gone") + (localCandidate ? localCandidate->toDebug() : ElementPtr()) + ZS_PARAM("remote ip", remoteIP.string()) + ZS_PARAM("create route", createRouteIfNeeded))
         mRoutes.erase(found);
       }
 
       if (!createRouteIfNeeded) {
+        EventWriteOrtcIceGathererRouterInternalEvent(__func__, mID, "not found", hash, ((bool)localCandidate) ? localCandidate->mIP : String(), ((bool)localCandidate) ? localCandidate->mPort : 0, remoteIP.string());
         ZS_LOG_WARNING(Trace, log("route does not exist") + (localCandidate ? localCandidate->toDebug() : ElementPtr()) + ZS_PARAM("remote ip", remoteIP.string()))
         return RoutePtr();
       }
@@ -139,6 +146,9 @@ namespace ortc
       RoutePtr route(make_shared<Route>());
       route->mLocalCandidate = localCandidate ? make_shared<Candidate>(*localCandidate) : CandidatePtr();
       route->mRemoteIP = remoteIP;
+
+      EventWriteOrtcIceGathererRouterInternalEvent(__func__, mID, "created", hash, ((bool)localCandidate) ? localCandidate->mIP : String(), ((bool)localCandidate) ? localCandidate->mPort : 0, remoteIP.string());
+      route->trace(__func__, "created");
 
       mRoutes[search] = route;
 
@@ -173,11 +183,15 @@ namespace ortc
         auto remoteIP = ((*current).first).second;
 
         if (route) {
+          EventWriteOrtcIceGathererRouterInternalEvent(__func__, mID, "keep", candidateHash, NULL, 0, remoteIP.string());
+          route->trace(__func__, "keep");
           ZS_LOG_TRACE(log("route still in use") + ZS_PARAM("candidate hash", candidateHash) + ZS_PARAM("remote ip", remoteIP.string()))
           continue;
         }
 
+        EventWriteOrtcIceGathererRouterInternalEvent(__func__, mID, "prune", candidateHash, NULL, 0, remoteIP.string());
         ZS_LOG_TRACE(log("pruning route") + ZS_PARAM("candidate hash", candidateHash) + ZS_PARAM("remote ip", remoteIP.string()))
+        mRoutes.erase(current);
       }
     }
 
@@ -229,6 +243,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     void ICEGathererRouter::cancel()
     {
+      EventWriteOrtcIceGathererRouterCancel(__func__, mID);
       if (mTimer) {
         mTimer->cancel();
         mTimer.reset();
@@ -244,6 +259,53 @@ namespace ortc
     #pragma mark
     #pragma mark IICEGathererRouter::Route
     #pragma mark
+
+    //-------------------------------------------------------------------------
+    void ICEGathererRouter::Route::trace(
+                                         const char *function,
+                                         const char *message
+                                         ) const
+    {
+      if (mLocalCandidate) {
+        EventWriteOrtcIceGathererRouterRouteTrace(
+                                                  __func__,
+                                                  function,
+                                                  message,
+                                                  mID,
+                                                  mLocalCandidate->mInterfaceType,
+                                                  mLocalCandidate->mFoundation,
+                                                  mLocalCandidate->mPriority,
+                                                  mLocalCandidate->mUnfreezePriority,
+                                                  IICETypes::toString(mLocalCandidate->mProtocol),
+                                                  mLocalCandidate->mIP,
+                                                  mLocalCandidate->mPort,
+                                                  IICETypes::toString(mLocalCandidate->mCandidateType),
+                                                  IICETypes::toString(mLocalCandidate->mTCPType),
+                                                  mLocalCandidate->mRelatedAddress,
+                                                  mLocalCandidate->mRelatedPort,
+                                                  mRemoteIP.string()
+                                                  );
+      } else {
+        EventWriteOrtcIceGathererRouterRouteTrace(
+                                                  __func__,
+                                                  function,
+                                                  message,
+                                                  mID,
+                                                  NULL,
+                                                  NULL,
+                                                  0,
+                                                  0,
+                                                  NULL,
+                                                  NULL,
+                                                  0,
+                                                  NULL,
+                                                  NULL,
+                                                  NULL,
+                                                  0,
+                                                  mRemoteIP.string()
+                                                  );
+      }
+    }
 
     //-------------------------------------------------------------------------
     ElementPtr ICEGathererRouter::Route::toDebug() const

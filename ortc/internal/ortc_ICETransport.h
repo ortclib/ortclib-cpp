@@ -144,7 +144,7 @@ namespace ortc
       virtual PUID getID() const = 0;
 
       virtual void notifyControllerAttached(ICETransportControllerPtr controller) = 0;
-      virtual void notifyControllerDetached() = 0;
+      virtual void notifyControllerDetached(ICETransportController &controller) = 0;
 
       virtual bool hasCandidatePairFoundation(
                                               const String &localFoundation,
@@ -385,7 +385,7 @@ namespace ortc
 
       virtual void start(
                          IICEGathererPtr gatherer,
-                         Parameters remoteParameters,
+                         const Parameters &remoteParameters,
                          Optional<Options> options = Optional<Options>()
                          ) throw (InvalidParameters) override;
 
@@ -431,7 +431,7 @@ namespace ortc
       // (duplicate) virtual PUID getID() const = 0;
 
       virtual void notifyControllerAttached(ICETransportControllerPtr controller) override;
-      virtual void notifyControllerDetached() override;
+      virtual void notifyControllerDetached(ICETransportController &controller) override;
 
       virtual bool hasCandidatePairFoundation(
                                               const String &localFoundation,
@@ -648,6 +648,8 @@ namespace ortc
         bool isFailed() const {return State_Failed == mState;}
         bool isBlacklisted() const {return State_Blacklisted == mState;}
 
+        void trace(const char *function, const char *message = NULL) const;
+
       protected:
         Log::Params log(const char *message) const;
 
@@ -658,9 +660,11 @@ namespace ortc
       {
         typedef Route::States States;
 
+        PUID mOuterObjectID {};
+
         size_t mStates[Route::State_Last+1];
 
-        RouteStateTracker();
+        RouteStateTracker(PUID outerObjectID);
 
         ElementPtr toDebug() const;
 

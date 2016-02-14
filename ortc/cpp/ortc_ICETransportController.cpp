@@ -396,7 +396,7 @@ namespace ortc
 
         auto transport = (*current).second;
 
-        transport->notifyControllerDetached();
+        transport->notifyControllerDetached(*this);
       }
     }
 

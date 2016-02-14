@@ -147,7 +147,8 @@ namespace ortc
 
       virtual PUID getID() const override {return mID;}
 
-      virtual StatsPtr getStats(const char *id) override;
+      virtual IDListPtr getStatesIDs() const override;
+      virtual StatsPtr getStats(const char *id) const override;
 
       //-----------------------------------------------------------------------
       #pragma mark

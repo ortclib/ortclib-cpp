@@ -453,7 +453,7 @@ namespace ortc
         ORTC_THROW_NOT_SUPPORTED_ERROR_IF(!foundHashAlgorithm)
       }
 
-      EventWriteOrtcCertificateCreate(__func__, mID, toStringAlgorithm(mKeygenAlgorithm), mName, mNamedCurve, mKeyLength, mRandomBits, mPublicExponentLength, mLifetime.count(), mNotBeforeWindow.count(), string(mExpires));
+      EventWriteOrtcCertificateCreate(__func__, mID, toStringAlgorithm(mKeygenAlgorithm), mName, mNamedCurve, mKeyLength, mRandomBits, mPublicExponentLength, mLifetime.count(), mNotBeforeWindow.count(), zsLib::timeSinceEpoch<Seconds>(mExpires).count());
       ZS_LOG_DETAIL(debug("created"))
 
       ORTC_THROW_INVALID_PARAMETERS_IF(!((bool)mKeygenAlgorithm))  // we do not understand any algorithm at this time

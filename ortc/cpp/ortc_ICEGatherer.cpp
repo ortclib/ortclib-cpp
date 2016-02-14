@@ -1028,34 +1028,15 @@ namespace ortc
       }
 
       auto route = (*found).second;
-      ZS_LOG_DEBUG(log("removing route") + route->toDebug())
 
-      EventWriteOrtcIceGathererRemoveRoute(
-                                           __func__,
-                                           mID,
-                                           route->mID,
-                                           route->mLocalCandidate->mInterfaceType,
-                                           route->mLocalCandidate->mFoundation,
-                                           route->mLocalCandidate->mPriority,
-                                           route->mLocalCandidate->mUnfreezePriority,
-                                           IICETypes::toString(route->mLocalCandidate->mProtocol),
-                                           route->mLocalCandidate->mIP,
-                                           route->mLocalCandidate->mPort,
-                                           IICETypes::toString(route->mLocalCandidate->mCandidateType),
-                                           IICETypes::toString(route->mLocalCandidate->mTCPType),
-                                           route->mLocalCandidate->mRelatedAddress,
-                                           route->mLocalCandidate->mRelatedPort,
-                                           ((bool)route->mRouterRoute) ? route->mRouterRoute->mRemoteIP.string() : String(),
-                                           string(route->mLastUsed),
-                                           route->mTransportID,
-                                           ((bool)route->mHostPort) ? route->mHostPort->mID : 0,
-                                           ((bool)route->mRelayPort) ? route->mRelayPort->mID : 0,
-                                           ((bool)route->mTCPPort) ? route->mTCPPort->mID : 0
-                                           );
+      route->trace(__func__, "remove");
+
+      ZS_LOG_DEBUG(log("removing route") + route->toDebug())
 
       mRoutes.erase(found);
 
       auto foundQuick = mQuickSearchRoutes.find(LocalCandidateRemoteIPPair(route->mLocalCandidate, routerRoute->mRemoteIP));
+      EventWriteOrtcIceGathererSearchQuickRoute(__func__, mID, route->mLocalCandidate.get(), routerRoute->mRemoteIP.string(), foundQuick != mQuickSearchRoutes.end());
       if (foundQuick == mQuickSearchRoutes.end()) {
         ZS_LOG_WARNING(Detail, log("quick route is not found") + route->toDebug())
         return;
@@ -5715,6 +5696,7 @@ namespace ortc
       // see if route already exists
       {
         auto found = mQuickSearchRoutes.find(search);
+        EventWriteOrtcIceGathererSearchQuickRoute(__func__, mID, sentFromLocalCandidate.get(), remoteIP.string(), found != mQuickSearchRoutes.end());
         if (found == mQuickSearchRoutes.end()) goto create_new_route;
 
         // found a route mapping
@@ -5746,6 +5728,7 @@ namespace ortc
 
         // install a route
         route = make_shared<Route>();
+        route->mOuterObjectID = mID;
         route->mLastUsed = zsLib::now();
         route->mLocalCandidate = sentFromLocalCandidate;
         route->mTransportID = transport->getID();
@@ -5893,30 +5876,9 @@ namespace ortc
             goto failed_resolve_local_candidate;
           }
 
-          ZS_LOG_TRACE(log("installing route") + route->toDebug())
+          route->trace(__func__, "install route");
 
-          EventWriteOrtcIceGathererInstallRoute(
-                                                __func__,
-                                                mID,
-                                                route->mID,
-                                                route->mLocalCandidate->mInterfaceType,
-                                                route->mLocalCandidate->mFoundation,
-                                                route->mLocalCandidate->mPriority,
-                                                route->mLocalCandidate->mUnfreezePriority,
-                                                IICETypes::toString(route->mLocalCandidate->mProtocol),
-                                                route->mLocalCandidate->mIP,
-                                                route->mLocalCandidate->mPort,
-                                                IICETypes::toString(route->mLocalCandidate->mCandidateType),
-                                                IICETypes::toString(route->mLocalCandidate->mTCPType),
-                                                route->mLocalCandidate->mRelatedAddress,
-                                                route->mLocalCandidate->mRelatedPort,
-                                                ((bool)route->mRouterRoute) ? route->mRouterRoute->mRemoteIP.string() : String(),
-                                                string(route->mLastUsed),
-                                                route->mTransportID,
-                                                ((bool)route->mHostPort) ? route->mHostPort->mID : 0,
-                                                ((bool)route->mRelayPort) ? route->mRelayPort->mID : 0,
-                                                ((bool)route->mTCPPort) ? route->mTCPPort->mID : 0
-                                                );
+          ZS_LOG_TRACE(log("installing route") + route->toDebug())
 
           EventWriteOrtcIceGathererInstallQuickRoute(__func__, mID, search.first.get(), search.second.string(), route->mID);
 
@@ -5973,28 +5935,7 @@ namespace ortc
         auto route = (*current).second;
         if (route->mTransportID != transportID) continue;
 
-        EventWriteOrtcIceGathererRemoveRoute(
-                                             __func__,
-                                             mID,
-                                             route->mID,
-                                             route->mLocalCandidate->mInterfaceType,
-                                             route->mLocalCandidate->mFoundation,
-                                             route->mLocalCandidate->mPriority,
-                                             route->mLocalCandidate->mUnfreezePriority,
-                                             IICETypes::toString(route->mLocalCandidate->mProtocol),
-                                             route->mLocalCandidate->mIP,
-                                             route->mLocalCandidate->mPort,
-                                             IICETypes::toString(route->mLocalCandidate->mCandidateType),
-                                             IICETypes::toString(route->mLocalCandidate->mTCPType),
-                                             route->mLocalCandidate->mRelatedAddress,
-                                             route->mLocalCandidate->mRelatedPort,
-                                             ((bool)route->mRouterRoute) ? route->mRouterRoute->mRemoteIP.string() : String(),
-                                             string(route->mLastUsed),
-                                             route->mTransportID,
-                                             ((bool)route->mHostPort) ? route->mHostPort->mID : 0,
-                                             ((bool)route->mRelayPort) ? route->mRelayPort->mID : 0,
-                                             ((bool)route->mTCPPort) ? route->mTCPPort->mID : 0
-                                             );
+        route->trace(__func__, "remove all related");
 
         ZS_LOG_WARNING(Detail, log("need to remove route because of unbinding previous transport") + route->toDebug())
 
@@ -6556,6 +6497,61 @@ namespace ortc
     #pragma mark
     #pragma mark ICEGatherer::Route
     #pragma mark
+
+    //-------------------------------------------------------------------------
+    void ICEGatherer::Route::trace(const char *function, const char *message) const
+    {
+      if (mLocalCandidate) {
+        EventWriteOrtcIceGathererRouteTrace(
+                                            __func__,
+                                            function,
+                                            message,
+                                            mID,
+                                            mOuterObjectID,
+                                            zsLib::timeSinceEpoch<Milliseconds>(mLastUsed).count(),
+                                            mTransportID,
+                                            mHostPort ? mHostPort->mID : 0,
+                                            mRelayPort ? mRelayPort->mID : 0,
+                                            mTCPPort ? mTCPPort->mID : 0,
+                                            mLocalCandidate->mInterfaceType,
+                                            mLocalCandidate->mFoundation,
+                                            mLocalCandidate->mPriority,
+                                            mLocalCandidate->mUnfreezePriority,
+                                            IICETypes::toString(mLocalCandidate->mProtocol),
+                                            mLocalCandidate->mIP,
+                                            mLocalCandidate->mPort,
+                                            IICETypes::toString(mLocalCandidate->mCandidateType),
+                                            IICETypes::toString(mLocalCandidate->mTCPType),
+                                            mLocalCandidate->mRelatedAddress,
+                                            mLocalCandidate->mRelatedPort
+                                            );
+      } else {
+        EventWriteOrtcIceGathererRouteTrace(
+                                            __func__,
+                                            function,
+                                            message,
+                                            mID,
+                                            mOuterObjectID,
+                                            zsLib::timeSinceEpoch<Milliseconds>(mLastUsed).count(),
+                                            mTransportID,
+                                            mHostPort ? mHostPort->mID : 0,
+                                            mRelayPort ? mRelayPort->mID : 0,
+                                            mTCPPort ? mTCPPort->mID : 0,
+                                            NULL,
+                                            NULL,
+                                            0,
+                                            0,
+                                            NULL,
+                                            NULL,
+                                            0,
+                                            NULL,
+                                            NULL,
+                                            NULL,
+                                            0
+                                            );
+      }
+      if (mRouterRoute) mRouterRoute->trace(function, message);
+    }
 
     //-------------------------------------------------------------------------
     ElementPtr ICEGatherer::Route::toDebug() const
