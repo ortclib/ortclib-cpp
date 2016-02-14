@@ -2406,9 +2406,11 @@ namespace ortc
           continue;
         }
 
-        if (route->mLastReceivedCheck + mExpireRouteTime > now) {
-          ZS_LOG_INSANE(log("have received check (thus do not expire)") + route->toDebug() + ZS_PARAM("expire (s)", mExpireRouteTime))
-          continue;
+        if (Time() != route->mLastReceivedCheck) {
+          if (route->mLastReceivedCheck + mExpireRouteTime > now) {
+            ZS_LOG_INSANE(log("have received check (thus do not expire)") + route->toDebug() + ZS_PARAM("expire (s)", mExpireRouteTime))
+            continue;
+          }
         }
 
         if (route->mLastReceivedResponse + mExpireRouteTime > now) {
@@ -3655,7 +3657,8 @@ namespace ortc
                 setSucceeded(route);
               }
             } else {
-              if ((Time() != route->mLastReceivedCheck) &&
+              if (((Time() != route->mLastReceivedCheck) ||
+                   (mRemoteParameters.mICELite)) &&
                   (Time() != route->mLastReceivedResponse)) {
                 ZS_LOG_DEBUG(log("route is now a success") + route->toDebug())
                 setSucceeded(route);
