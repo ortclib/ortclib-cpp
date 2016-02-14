@@ -2796,7 +2796,7 @@ namespace ortc
           if ((!mUseCandidateRoute) &&
               (!mOptions.mAggressiveICE) &&
               (IICETypes::Role_Controlling == mOptions.mRole)) {
-            ZS_LOG_TRACE(log("route nominiation is required"))
+            ZS_LOG_TRACE(log("route nomination is required"))
             IWakeDelegateProxy::create(pThis)->onWake();
           }
         }
