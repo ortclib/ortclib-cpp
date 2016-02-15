@@ -33,6 +33,7 @@
 
 #include <ortc/internal/types.h>
 #include <ortc/internal/ortc_RTPSenderChannelMediaBase.h>
+#include <ortc/internal/ortc_ISecureTransport.h>
 
 #include <ortc/IRTPTypes.h>
 #include <ortc/IMediaStreamTrack.h>
@@ -171,6 +172,7 @@ namespace ortc
       friend class Transport;
 
       ZS_DECLARE_TYPEDEF_PTR(IRTPSenderChannelForRTPSenderChannelVideo, UseChannel)
+      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPSenderChannelMediaBase, UseBaseMediaStreamTrack)
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPSenderChannelVideo, UseMediaStreamTrack)
 
       ZS_DECLARE_TYPEDEF_PTR(IRTPSenderChannelMediaBaseForRTPSenderChannel, ForRTPSenderChannelFromMediaBase)
@@ -223,6 +225,10 @@ namespace ortc
       #pragma mark
 
       virtual PUID getID() const override {return mID;}
+
+      virtual void onTrackChanged(UseBaseMediaStreamTrackPtr track) override;
+      
+      virtual void notifyTransportState(ISecureTransportTypes::States state) override;
 
       virtual bool handlePacket(RTCPPacketPtr packet) override;
 

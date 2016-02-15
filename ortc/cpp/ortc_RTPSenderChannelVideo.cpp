@@ -155,6 +155,9 @@ namespace ortc
       AutoRecursiveLock lock(*this);
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
 
+#define WARNING_FIX_TRACK_MIGHT_BE_NULL 1
+#define WARNING_FIX_TRACK_MIGHT_BE_NULL 2
+
       mCallStats = rtc::scoped_ptr<webrtc::CallStats>(new webrtc::CallStats());
       mCongestionController =
         rtc::scoped_ptr<webrtc::CongestionController>(new webrtc::CongestionController(
@@ -266,6 +269,22 @@ namespace ortc
     #pragma mark
     #pragma mark RTPSenderChannelVideo => IRTPSenderChannelMediaBaseForRTPSenderChannel
     #pragma mark
+
+    //-------------------------------------------------------------------------
+    void RTPSenderChannelVideo::onTrackChanged(UseBaseMediaStreamTrackPtr track)
+    {
+      AutoRecursiveLock lock(*this);
+      mTrack = MediaStreamTrack::convert(track);  // NOTE: track might be NULL
+#define TODO_HANDLE_CHANGE_IN_TRACK 1
+#define TODO_HANDLE_CHANGE_IN_TRACK 2
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPSenderChannelVideo::notifyTransportState(ISecureTransportTypes::States state)
+    {
+#define TODO_HANDLE_CHANGE_IN_CONNECTIVITY 1
+#define TODO_HANDLE_CHANGE_IN_CONNECTIVITY 2
+    }
 
     //-------------------------------------------------------------------------
     bool RTPSenderChannelVideo::handlePacket(RTCPPacketPtr packet)

@@ -73,6 +73,8 @@ namespace ortc
 
       virtual PUID getID() const = 0;
 
+      virtual void notifyTransportState(ISecureTransportTypes::States state) = 0;
+
       virtual bool handlePacket(RTPPacketPtr packet) = 0;
 
       virtual bool handlePacket(RTCPPacketPtr packet) = 0;

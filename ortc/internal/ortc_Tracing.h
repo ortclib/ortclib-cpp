@@ -423,6 +423,30 @@
 #define EventWriteOrtcRtpSenderInternalDestroyChannelEventFired(xStr_Method, xPUID, xPUID_ChannelObjectID)
 #define EventWriteOrtcRtpSenderInternalChannelGoneEventFired(xStr_Method, xPUID)
 
+#define EventWriteOrtcRtpReceiverChannelCreate(xStr_Method, xPUID, xPUID_ReceiverObjectID, xPUID_TrackID) {}
+#define EventWriteOrtcRtpReceiverChannelDestroy(xStr_Method, xPUID) {}
+
+#define EventWriteOrtcRtpReceiverChannelCreateMediaChannel(xStr_Method, xPUID, xPUID_MediaChannelObjectID, xStr_Kind) {}
+
+#define EventWriteOrtcRtpReceiverChannelDeliverIncomingPacketToMediaChannel(xStr_Method, xPUID, xPUID_MediaChannelObjectID, xUInt_PacketType, xPtr_Buffer, xsize_t_BufferSizeInBytes) {}
+#define EventWriteOrtcRtpReceiverChannelSendOutgoingPacket(xStr_Method, xPUID, xPUID_ReceiverObjectID, xUInt_PacketType, xPtr_Buffer, xsize_t_BufferSizeInBytes) {}
+
+#define EventWriteOrtcRtpReceiverChannelInternalSecureTransportStateChangedEventFired(xStr_Method, xPUID, xStr_State) {}
+
+#define EventWriteOrtcRtpReceiverChannelInternalUpdateEventFired(xStr_Method, xPUID) {}
+
+#define EventWriteOrtcRtpSenderChannelCreate(xStr_Method, xPUID, xPUID_SenderObjectID, xPUID_TrackID) {}
+#define EventWriteOrtcRtpSenderChannelDestroy(xStr_Method, xPUID) {}
+
+#define EventWriteOrtcRtpSenderChannelCreateMediaChannel(xStr_Method, xPUID, xPUID_MediaChannelObjectID, xStr_Kind) {}
+#define EventWriteOrtcRtpSenderChannelChangeTrack(xStr_Method, xPUID, xPUID_MediaChannelObjectID, xPUID_TrackObjectID) {}
+
+#define EventWriteOrtcRtpSenderChannelDeliverIncomingPacketToMediaChannel(xStr_Method, xPUID, xPUID_MediaChannelObjectID, xUInt_PacketType, xPtr_Buffer, xsize_t_BufferSizeInBytes) {}
+#define EventWriteOrtcRtpSenderChannelSendOutgoingPacket(xStr_Method, xPUID, xPUID_SenderObjectID, xUInt_PacketType, xPtr_Buffer, xsize_t_BufferSizeInBytes) {}
+
+#define EventWriteOrtcRtpSenderChannelInternalSecureTransportStateChangedEventFired(xStr_Method, xPUID, xStr_State) {}
+
+#define EventWriteOrtcRtpSenderChannelInternalUpdateEventFired(xStr_Method, xPUID) {}
 
 #else
 
@@ -808,6 +832,32 @@ inline void EventWriteOrtcRtpSenderInternalSecureTransportStateChangedEventFired
 inline void EventWriteOrtcRtpSenderInternalWakeEventFired(const char *xStr_Method, PUID xPUID) {}
 inline void EventWriteOrtcRtpSenderInternalDestroyChannelEventFired(const char *xStr_Method, PUID xPUID, PUID xPUID_ChannelObjectID) {}
 inline void EventWriteOrtcRtpSenderInternalChannelGoneEventFired(const char *xStr_Method, PUID xPUID) {}
+
+
+inline void EventWriteOrtcRtpReceiverChannelCreate(const char *xStr_Method, PUID xPUID, PUID xPUID_ReceiverObjectID, PUID xPUID_TrackID) {}
+inline void EventWriteOrtcRtpReceiverChannelDestroy(const char *xStr_Method, PUID xPUID) {}
+
+inline void EventWriteOrtcRtpReceiverChannelCreateMediaChannel(const char *xStr_Method, PUID xPUID, PUID xPUID_MediaChannelObjectID, const char *xStr_Kind) {}
+
+inline void EventWriteOrtcRtpReceiverChannelDeliverIncomingPacketToMediaChannel(const char *xStr_Method, PUID xPUID, PUID xPUID_MediaChannelObjectID, unsigned int xUInt_PacketType, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
+inline void EventWriteOrtcRtpReceiverChannelSendOutgoingPacket(const char *xStr_Method, PUID xPUID, PUID xPUID_ReceiverObjectID, unsigned int xUInt_PacketType, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
+
+inline void EventWriteOrtcRtpReceiverChannelInternalSecureTransportStateChangedEventFired(const char *xStr_Method, PUID xPUID, const char *xStr_State) {}
+
+inline void EventWriteOrtcRtpReceiverChannelInternalUpdateEventFired(const char *xStr_Method, PUID xPUID) {}
+
+inline void EventWriteOrtcRtpSenderChannelCreate(const char *xStr_Method, PUID xPUID, PUID xPUID_SenderObjectID, PUID xPUID_TrackID) {}
+inline void EventWriteOrtcRtpSenderChannelDestroy(const char *xStr_Method, PUID xPUID) {}
+
+inline void EventWriteOrtcRtpSenderChannelCreateMediaChannel(const char *xStr_Method, PUID xPUID, PUID xPUID_MediaChannelObjectID, const char *xStr_Kind) {}
+inline void EventWriteOrtcRtpSenderChannelChangeTrack(const char *xStr_Method, PUID xPUID, PUID xPUID_MediaChannelObjectID, PUID xPUID_TrackObjectID) {}
+
+inline void EventWriteOrtcRtpSenderChannelDeliverIncomingPacketToMediaChannel(const char *xStr_Method, PUID xPUID, PUID xPUID_MediaChannelObjectID, unsigned int xUInt_PacketType, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
+inline void EventWriteOrtcRtpSenderChannelSendOutgoingPacket(const char *xStr_Method, PUID xPUID, PUID xPUID_SenderObjectID, unsigned int xUInt_PacketType, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
+
+inline void EventWriteOrtcRtpSenderChannelInternalSecureTransportStateChangedEventFired(const char *xStr_Method, PUID xPUID, const char *xStr_State) {}
+
+inline void EventWriteOrtcRtpSenderChannelInternalUpdateEventFired(const char *xStr_Method, PUID xPUID) {}
 
 }
 #endif //ndef ORTC_USE_NOOP_EVENT_TRACE_MACROS

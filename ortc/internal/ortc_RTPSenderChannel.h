@@ -109,6 +109,8 @@ namespace ortc
 
       virtual PUID getID() const = 0;
 
+      virtual void notifyTrackChanged(MediaStreamTrackPtr track) = 0;
+
       virtual void notifyTransportState(ISecureTransportTypes::States state) = 0;
 
       virtual void notifyPackets(RTCPPacketListPtr packets) = 0;
@@ -201,6 +203,10 @@ namespace ortc
       typedef std::list<RTCPPacketPtr> RTCPPacketList;
       ZS_DECLARE_PTR(RTCPPacketList)
       ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters)
+
+      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPSenderChannel, UseMediaStreamTrack)
+
+      virtual void onTrackChanged(UseMediaStreamTrackPtr track) = 0;
 
       virtual void onSecureTransportState(ISecureTransport::States state) = 0;
 
@@ -307,6 +313,8 @@ namespace ortc
 
       virtual PUID getID() const override {return mID;}
 
+      virtual void notifyTrackChanged(MediaStreamTrackPtr track) override;
+
       virtual void notifyTransportState(ISecureTransportTypes::States state) override;
 
       virtual void notifyPackets(RTCPPacketListPtr packets) override;
@@ -371,6 +379,8 @@ namespace ortc
       #pragma mark
       #pragma mark RTPSenderChannel => IRTPSenderChannelAsyncDelegate
       #pragma mark
+
+      virtual void onTrackChanged(UseMediaStreamTrackPtr track) override;
 
       virtual void onSecureTransportState(ISecureTransport::States state) override;
 
@@ -458,6 +468,8 @@ ZS_DECLARE_PROXY_BEGIN(ortc::internal::IRTPSenderChannelAsyncDelegate)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::ISecureTransport::States, States)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::IRTPSenderChannelAsyncDelegate::RTCPPacketListPtr, RTCPPacketListPtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::IRTPSenderChannelAsyncDelegate::ParametersPtr, ParametersPtr)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::IMediaStreamTrackForRTPSenderChannel, UseMediaStreamTrack)
+ZS_DECLARE_PROXY_METHOD_1(onTrackChanged, UseMediaStreamTrackPtr)
 ZS_DECLARE_PROXY_METHOD_1(onSecureTransportState, States)
 ZS_DECLARE_PROXY_METHOD_1(onNotifyPackets, RTCPPacketListPtr)
 ZS_DECLARE_PROXY_METHOD_1(onUpdate, ParametersPtr)

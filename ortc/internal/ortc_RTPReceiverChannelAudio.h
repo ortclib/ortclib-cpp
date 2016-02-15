@@ -238,6 +238,8 @@ namespace ortc
 
       virtual PUID getID() const override {return mID;}
 
+      virtual void notifyTransportState(ISecureTransportTypes::States state) override;
+
       virtual bool handlePacket(RTPPacketPtr packet) override;
 
       virtual bool handlePacket(RTCPPacketPtr packet) override;

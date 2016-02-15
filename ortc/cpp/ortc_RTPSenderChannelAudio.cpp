@@ -158,6 +158,9 @@ namespace ortc
 
       mVoiceEngine = rtc::scoped_ptr<webrtc::VoiceEngine, VoiceEngineDeleter>(webrtc::VoiceEngine::Create());
 
+#define WARNING_FIX_TRACK_MIGHT_BE_NULL 1
+#define WARNING_FIX_TRACK_MIGHT_BE_NULL 2
+
       webrtc::VoEBase::GetInterface(mVoiceEngine.get())->Init(mTrack->getAudioDeviceModule());
 
       mChannel = webrtc::VoEBase::GetInterface(mVoiceEngine.get())->CreateChannel();
@@ -251,6 +254,22 @@ namespace ortc
     #pragma mark
     #pragma mark RTPSenderChannelAudio => IRTPSenderChannelMediaBaseForRTPSenderChannel
     #pragma mark
+
+    //-------------------------------------------------------------------------
+    void RTPSenderChannelAudio::onTrackChanged(UseBaseMediaStreamTrackPtr track)
+    {
+      AutoRecursiveLock lock(*this);
+      mTrack = MediaStreamTrack::convert(track);  // NOTE: track might be NULL
+#define TODO_HANDLE_CHANGE_IN_TRACK 1
+#define TODO_HANDLE_CHANGE_IN_TRACK 2
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPSenderChannelAudio::notifyTransportState(ISecureTransportTypes::States state)
+    {
+#define TODO_HANDLE_CHANGE_IN_CONNECTIVITY 1
+#define TODO_HANDLE_CHANGE_IN_CONNECTIVITY 2
+    }
 
     //-------------------------------------------------------------------------
     bool RTPSenderChannelAudio::handlePacket(RTCPPacketPtr packet)

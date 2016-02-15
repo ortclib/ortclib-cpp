@@ -2956,6 +2956,8 @@ namespace ortc
           channelHolder->mChannel = UseChannel::create(mThisWeak.lock(), MediaStreamTrack::convert(mTrack), *(channelInfo->mOriginalParameters), historicalPackets);
           channelHolder->notify(mLastReportedTransportStateToChannels);
 
+          EventWriteOrtcRtpReceiverCreateChannel(__func__, mID, channelHolder->getID());
+
           channelInfo->mChannelHolder = channelHolder;
 
           // remember the channel (mChannels is using COW pattern)

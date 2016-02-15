@@ -38,9 +38,11 @@
 #include <ortc/internal/ortc_ISecureTransport.h>
 #include <ortc/internal/ortc_RTPListener.h>
 #include <ortc/internal/ortc_MediaStreamTrack.h>
+#include <ortc/internal/ortc_RTPPacket.h>
 #include <ortc/internal/ortc_RTCPPacket.h>
 #include <ortc/internal/ortc_RTPTypes.h>
 #include <ortc/internal/ortc_ORTC.h>
+#include <ortc/internal/ortc_Tracing.h>
 #include <ortc/internal/platform.h>
 
 #include <openpeer/services/ISettings.h>
@@ -173,6 +175,8 @@ namespace ortc
       ZS_LOG_DETAIL(debug("created"))
 
       ORTC_THROW_INVALID_PARAMETERS_IF(!sender)
+
+      EventWriteOrtcRtpSenderChannelCreate(__func__, mID, sender->getID(), ((bool)track) ? track->getID() : 0);
     }
 
     //-------------------------------------------------------------------------
@@ -206,6 +210,8 @@ namespace ortc
       
       ORTC_THROW_INVALID_PARAMETERS_IF(!found)
 
+      EventWriteOrtcRtpSenderChannelCreateMediaChannel(__func__, mID, mMediaBase->getID(), IMediaStreamTrack::toString(kind.value()));
+
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
     }
 
@@ -218,6 +224,7 @@ namespace ortc
       mThisWeak.reset();
 
       cancel();
+      EventWriteOrtcRtpSenderChannelDestroy(__func__, mID);
     }
 
     //-------------------------------------------------------------------------
@@ -285,8 +292,17 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    void RTPSenderChannel::notifyTrackChanged(MediaStreamTrackPtr inTrack)
+    {
+      UseMediaStreamTrackPtr track = inTrack;
+      EventWriteOrtcRtpSenderChannelChangeTrack(__func__, mID, mMediaBase->getID(), ((bool)track) ? track->getID() : 0);
+      IRTPSenderChannelAsyncDelegateProxy::create(mThisWeak.lock())->onTrackChanged(track);
+    }
+
+    //-------------------------------------------------------------------------
     void RTPSenderChannel::notifyTransportState(ISecureTransportTypes::States state)
     {
+      EventWriteOrtcRtpSenderChannelInternalSecureTransportStateChangedEventFired(__func__, mID, ISecureTransportTypes::toString(state));
       // do NOT lock this object here, instead notify self asynchronously
       IRTPSenderChannelAsyncDelegateProxy::create(mThisWeak.lock())->onSecureTransportState(state);
     }
@@ -301,6 +317,8 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPSenderChannel::notifyUpdate(const Parameters &params)
     {
+      EventWriteOrtcRtpSenderChannelInternalUpdateEventFired(__func__, mID);
+
       // do NOT lock this object here, instead notify self asynchronously
       IRTPSenderChannelAsyncDelegateProxy::create(mThisWeak.lock())->onUpdate(make_shared<Parameters>(params));
     }
@@ -308,6 +326,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool RTPSenderChannel::handlePacket(RTCPPacketPtr packet)
     {
+      EventWriteOrtcRtpReceiverChannelDeliverIncomingPacketToMediaChannel(__func__, mID, mMediaBase->getID(), zsLib::to_underlying(IICETypes::Component_RTCP), packet->buffer()->BytePtr(), packet->buffer()->SizeInBytes());
       return mMediaBase->handlePacket(packet);
     }
 
@@ -324,7 +343,9 @@ namespace ortc
     {
       auto sender = mSender.lock();
       if (!sender) return false;
-      
+
+      EventWriteOrtcRtpSenderChannelSendOutgoingPacket(__func__, mID, sender->getID(), zsLib::to_underlying(IICETypes::Component_RTP), packet->buffer()->BytePtr(), packet->buffer()->SizeInBytes());
+
       return sender->sendPacket(packet);
     }
 
@@ -333,7 +354,9 @@ namespace ortc
     {
       auto sender = mSender.lock();
       if (!sender) return false;
-      
+
+      EventWriteOrtcRtpSenderChannelSendOutgoingPacket(__func__, mID, sender->getID(), zsLib::to_underlying(IICETypes::Component_RTCP), packet->buffer()->BytePtr(), packet->buffer()->SizeInBytes());
+
       return sender->sendPacket(packet);
     }
 
@@ -425,22 +448,41 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
+    void RTPSenderChannel::onTrackChanged(UseMediaStreamTrackPtr track)
+    {
+      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPSenderChannelMediaBase, UseBaseMediaStreamTrack)
+      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPSenderChannelAudio, UseAudioMediaStreamTrack)
+      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPSenderChannelVideo, UseVideoMediaStreamTrack)
+
+      switch (mKind.value()) {
+        case IMediaStreamTrackTypes::Kind_Audio: {
+          mMediaBase->onTrackChanged(IMediaStreamTrackForRTPSenderChannelAudioPtr(MediaStreamTrack::convert(track)));
+          break;
+        }
+        case IMediaStreamTrackTypes::Kind_Video: {
+          mMediaBase->onTrackChanged(IMediaStreamTrackForRTPSenderChannelVideoPtr(MediaStreamTrack::convert(track)));
+          break;
+        }
+      }
+    }
+
+    //-------------------------------------------------------------------------
     void RTPSenderChannel::onSecureTransportState(ISecureTransport::States state)
     {
       ZS_LOG_TRACE(log("notified secure transport state") + ZS_PARAM("state", ISecureTransport::toString(state)))
 
-      AutoRecursiveLock lock(*this);
+      {
+        AutoRecursiveLock lock(*this);
 
-      mSecureTransportState = state;
+        mSecureTransportState = state;
 
-      if (ISecureTransport::State_Closed == state) {
-        ZS_LOG_DEBUG(log("secure channel closed (thus shutting down)"))
-        cancel();
-        return;
+        if (ISecureTransport::State_Closed == state) {
+          ZS_LOG_DEBUG(log("secure channel closed (thus shutting down)"))
+          cancel();
+        }
       }
 
-#define TODO 1
-#define TODO 2
+      mMediaBase->notifyTransportState(state);
     }
 
     //-------------------------------------------------------------------------
@@ -448,14 +490,14 @@ namespace ortc
     {
       ZS_LOG_TRACE(log("notified rtcp packets") + ZS_PARAM("packets", packets->size()))
 
-      AutoRecursiveLock lock(*this);
-
       // WARNING: Do NOT modify the contents of "packets" as the pointer to
       //          this list could have been sent to multiple receiver channels
       //          simultaneously. Use COW pattern if needing mutability.
 
-#define TODO 1
-#define TODO 2
+      for (auto iter = packets->begin(); iter != packets->end(); ++iter) {
+        auto packet = (*iter);
+        handlePacket(packet);
+      }
     }
 
     //-------------------------------------------------------------------------
@@ -470,7 +512,7 @@ namespace ortc
         
         mParameters = params;
         mediaBase = mMediaBase;
-        
+
         Optional<IMediaStreamTrackTypes::Kinds> kind = RTPTypesHelper::getCodecsKind(*mParameters);
         
         bool found = false;

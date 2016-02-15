@@ -41,6 +41,7 @@
 #include <ortc/internal/ortc_RTCPPacket.h>
 #include <ortc/internal/ortc_RTPTypes.h>
 #include <ortc/internal/ortc_ORTC.h>
+#include <ortc/internal/ortc_Tracing.h>
 #include <ortc/internal/platform.h>
 
 #include <openpeer/services/ISettings.h>
@@ -172,6 +173,7 @@ namespace ortc
       mTrack(track),
       mParameters(make_shared<Parameters>(params))
     {
+      EventWriteOrtcRtpReceiverChannelCreate(__func__, mID, receiver->getID(), mTrack->getID());
       ZS_LOG_DETAIL(debug("created"))
 
       ORTC_THROW_INVALID_PARAMETERS_IF(!receiver)
@@ -181,7 +183,7 @@ namespace ortc
     void RTPReceiverChannel::init(const RTCPPacketList &packets)
     {
       AutoRecursiveLock lock(*this);
-      
+
       Optional<IMediaStreamTrackTypes::Kinds> kind = RTPTypesHelper::getCodecsKind(*mParameters);
       
       bool found = false;
@@ -208,6 +210,8 @@ namespace ortc
       
       ORTC_THROW_INVALID_PARAMETERS_IF(!found)
 
+      EventWriteOrtcRtpReceiverChannelCreateMediaChannel(__func__, mID, mMediaBase->getID(), IMediaStreamTrack::toString(kind.value()));
+
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
     }
 
@@ -220,6 +224,7 @@ namespace ortc
       mThisWeak.reset();
 
       cancel();
+      EventWriteOrtcRtpReceiverChannelDestroy(__func__, mID);
     }
 
     //-------------------------------------------------------------------------
@@ -291,6 +296,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPReceiverChannel::notifyTransportState(ISecureTransport::States state)
     {
+      EventWriteOrtcRtpReceiverChannelInternalSecureTransportStateChangedEventFired(__func__, mID, ISecureTransportTypes::toString(state));
       // do NOT lock this object here, instead notify self asynchronously
       IRTPReceiverChannelAsyncDelegateProxy::create(mThisWeak.lock())->onSecureTransportState(state);
     }
@@ -312,6 +318,8 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPReceiverChannel::notifyUpdate(const Parameters &params)
     {
+      EventWriteOrtcRtpReceiverChannelInternalUpdateEventFired(__func__, mID);
+
       // do NOT lock this object here, instead notify self asynchronously
       IRTPReceiverChannelAsyncDelegateProxy::create(mThisWeak.lock())->onUpdate(make_shared<Parameters>(params));
     }
@@ -319,12 +327,14 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool RTPReceiverChannel::handlePacket(RTPPacketPtr packet)
     {
+      EventWriteOrtcRtpReceiverChannelDeliverIncomingPacketToMediaChannel(__func__, mID, mMediaBase->getID(), zsLib::to_underlying(IICETypes::Component_RTP), packet->buffer()->BytePtr(), packet->buffer()->SizeInBytes());
       return mMediaBase->handlePacket(packet);
     }
 
     //-------------------------------------------------------------------------
     bool RTPReceiverChannel::handlePacket(RTCPPacketPtr packet)
     {
+      EventWriteOrtcRtpReceiverChannelDeliverIncomingPacketToMediaChannel(__func__, mID, mMediaBase->getID(), zsLib::to_underlying(IICETypes::Component_RTCP), packet->buffer()->BytePtr(), packet->buffer()->SizeInBytes());
       return mMediaBase->handlePacket(packet);
     }
 
@@ -349,6 +359,8 @@ namespace ortc
     {
       auto receiver = mReceiver.lock();
       if (!receiver) return false;
+
+      EventWriteOrtcRtpReceiverChannelSendOutgoingPacket(__func__, mID, receiver->getID(), zsLib::to_underlying(IICETypes::Component_RTCP), packet->buffer()->BytePtr(), packet->buffer()->SizeInBytes());
 
       return receiver->sendPacket(packet);
     }
@@ -425,8 +437,7 @@ namespace ortc
       ZS_LOG_DEBUG(log("timer") + ZS_PARAM("timer id", timer->getID()))
 
       AutoRecursiveLock lock(*this);
-#define TODO 1
-#define TODO 2
+      // NOTE: ADD IF NEEDED...
     }
 
     //-------------------------------------------------------------------------
@@ -442,18 +453,18 @@ namespace ortc
     {
       ZS_LOG_TRACE(log("notified secure transport state") + ZS_PARAM("state", ISecureTransport::toString(state)))
 
-      AutoRecursiveLock lock(*this);
+      {
+        AutoRecursiveLock lock(*this);
 
-      mSecureTransportState = state;
+        mSecureTransportState = state;
 
-      if (ISecureTransport::State_Closed == state) {
-        ZS_LOG_DEBUG(log("secure channel closed (thus shutting down)"))
-        cancel();
-        return;
+        if (ISecureTransport::State_Closed == state) {
+          ZS_LOG_DEBUG(log("secure channel closed (thus shutting down)"))
+          cancel();
+        }
       }
 
-#define TODO 1
-#define TODO 2
+      mMediaBase->notifyTransportState(state);
     }
 
     //-------------------------------------------------------------------------
@@ -468,14 +479,14 @@ namespace ortc
     {
       ZS_LOG_TRACE(log("notified rtcp packets") + ZS_PARAM("packets", packets->size()))
 
-      AutoRecursiveLock lock(*this);
-
       // WARNING: Do NOT modify the contents of "packets" as the pointer to
       //          this list could have been sent to multiple receiver channels
       //          simultaneously. Use COW pattern if needing mutability.
 
-#define TODO 1
-#define TODO 2
+      for (auto iter = packets->begin(); iter != packets->end(); ++iter) {
+        auto packet = (*iter);
+        handlePacket(packet);
+      }
     }
 
     //-------------------------------------------------------------------------

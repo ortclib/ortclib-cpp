@@ -293,6 +293,13 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
+    void RTPReceiverChannelAudio::notifyTransportState(ISecureTransportTypes::States state)
+    {
+#define TODO_HANDLE_CHANGE_IN_CONNECTIVITY 1
+#define TODO_HANDLE_CHANGE_IN_CONNECTIVITY 2
+    }
+
+    //-------------------------------------------------------------------------
     bool RTPReceiverChannelAudio::handlePacket(RTPPacketPtr packet)
     {
       {
