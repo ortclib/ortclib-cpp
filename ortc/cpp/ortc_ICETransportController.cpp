@@ -32,6 +32,7 @@
 #include <ortc/internal/ortc_ICETransportController.h>
 #include <ortc/internal/ortc_ICETransport.h>
 #include <ortc/internal/ortc_ORTC.h>
+#include <ortc/internal/ortc_Tracing.h>
 #include <ortc/internal/platform.h>
 
 #include <openpeer/services/IHelper.h>
@@ -92,6 +93,7 @@ namespace ortc
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create())
     {
+      EventWriteOrtcIceTransportControllerCreate(__func__, mID);
       ZS_LOG_DETAIL(debug("created"))
     }
 
@@ -108,6 +110,7 @@ namespace ortc
       ZS_LOG_DETAIL(log("destroyed"))
       mThisWeak.reset();
       cancel();
+      EventWriteOrtcIceTransportControllerDestroy(__func__, mID);
     }
 
     //-------------------------------------------------------------------------
@@ -198,15 +201,17 @@ namespace ortc
         // now that it's not attached, insert the transport
         if (!index.hasValue()) {
           ZS_LOG_DETAIL(log("adding transport to controller") + UseICETransport::toDebug(transport))
+          EventWriteOrtcIceTransportControllerInternalTransportAttachedEventFired(__func__, mID, transport->getID(), order, false, 0);
           mTransports.push_back(AttachedTransportPair(order, transport));
           goto attached;
         }
 
         size_t loop = 0;
-        auto dest = index.mType;
+        auto dest = index.value();
         for (auto iter = mTransports.begin(); iter != mTransports.end(); ++iter, ++loop) {
           if (loop == dest) {
             ZS_LOG_DETAIL(log("adding transport to controller") + UseICETransport::toDebug(transport) + ZS_PARAM("index", dest))
+            EventWriteOrtcIceTransportControllerInternalTransportAttachedEventFired(__func__, mID, transport->getID(), order, true, index.value());
             mTransports.insert(iter, AttachedTransportPair(order, transport));
             goto attached;
           }
@@ -284,6 +289,8 @@ namespace ortc
 
           if (!compareTransport->hasCandidatePairFoundation(localFoundationStr, remoteFoundationStr, promise)) continue;
 
+          EventWriteOrtcIceTransportControllerWaitUntilUnfrozen(__func__, mID, transport->getID(), localFoundation, remoteFoundation);
+
           ZS_LOG_TRACE(log("freezing candidate based on high priority trasport") + ZS_PARAM("frozen transport", transport->getID()) + ZS_PARAM("frozen against transport id", compareTransport->getID()) + ZS_PARAMIZE(localFoundation) + ZS_PARAMIZE(remoteFoundation))
           return;
         }
@@ -292,6 +299,7 @@ namespace ortc
 
     not_dependent:
       {
+        EventWriteOrtcIceTransportControllerNoNeedToWaitUntilUnfrozen(__func__, mID, transport->getID(), localFoundation, remoteFoundation);
         ZS_LOG_TRACE(log("no transport to feeze against") + ZS_PARAM("transport", transport->getID()) + ZS_PARAMIZE(localFoundation) + ZS_PARAMIZE(remoteFoundation))
         promise->resolve();
       }
@@ -303,6 +311,8 @@ namespace ortc
                                                                      AttachedOrderID detachedOrder
                                                                      )
     {
+      EventWriteOrtcIceTransportControllerInternalTransportDetachedEventFired(__func__, mID, transport->getID(), detachedOrder);
+
       {
         AutoRecursiveLock lock(*this);
 
@@ -336,6 +346,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     void ICETransportController::onWake()
     {
+      EventWriteOrtcIceTransportControllerInternalWakeEventFired(__func__, mID);
       ZS_LOG_DEBUG(log("wake"))
 
       AutoRecursiveLock lock(*this);
@@ -378,12 +389,14 @@ namespace ortc
     void ICETransportController::step()
     {
       ZS_LOG_DEBUG(debug("step"))
-
+      EventWriteOrtcIceTransportControllerStep(__func__, mID);
     }
 
     //-------------------------------------------------------------------------
     void ICETransportController::cancel()
     {
+      EventWriteOrtcIceTransportControllerCancel(__func__, mID);
+
       //.......................................................................
       // try to gracefully shutdown
 

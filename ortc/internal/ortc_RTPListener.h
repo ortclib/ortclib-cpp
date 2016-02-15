@@ -365,7 +365,7 @@ namespace ortc
                   const make_private &,
                   IMessageQueuePtr queue,
                   IRTPListenerDelegatePtr delegate,
-                  IRTPTransportPtr transport
+                  UseRTPTransportPtr transport
                   );
 
     protected:

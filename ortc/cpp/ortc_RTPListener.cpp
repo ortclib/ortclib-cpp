@@ -38,6 +38,7 @@
 #include <ortc/internal/ortc_SRTPSDESTransport.h>
 #include <ortc/internal/ortc_RTPTypes.h>
 #include <ortc/internal/ortc_ORTC.h>
+#include <ortc/internal/ortc_Tracing.h>
 #include <ortc/internal/platform.h>
 
 #include <openpeer/services/ISettings.h>
@@ -389,7 +390,7 @@ namespace ortc
                              const make_private &,
                              IMessageQueuePtr queue,
                              IRTPListenerDelegatePtr originalDelegate,
-                             IRTPTransportPtr transport
+                             UseRTPTransportPtr transport
                              ) :
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
@@ -400,8 +401,22 @@ namespace ortc
       mMaxRTCPPacketAge(UseSettings::getUInt(ORTC_SETTING_RTP_LISTENER_MAX_AGE_RTCP_PACKETS_IN_SECONDS)),
       mReceivers(make_shared<ReceiverObjectMap>()),
       mSenders(make_shared<SenderObjectMap>()),
-      mAmbigousPayloadMappingMinDifference(UseSettings::getUInt(ORTC_SETTING_RTP_LISTENER_ONLY_RESOLVE_AMBIGUOUS_PAYLOAD_MAPPING_IF_ACTIVITY_DIFFERS_IN_MILLISECONDS))
+      mAmbigousPayloadMappingMinDifference(UseSettings::getUInt(ORTC_SETTING_RTP_LISTENER_ONLY_RESOLVE_AMBIGUOUS_PAYLOAD_MAPPING_IF_ACTIVITY_DIFFERS_IN_MILLISECONDS)),
+      mSSRCTableExpires(UseSettings::getUInt(ORTC_SETTING_RTP_LISTENER_SSRC_TIMEOUT_IN_SECONDS)),
+      mUnhanldedEventsExpires(UseSettings::getUInt(ORTC_SETTING_RTP_LISTENER_UNHANDLED_EVENTS_TIMEOUT_IN_SECONDS))
     {
+      EventWriteOrtcRtpListenerCreate(
+                                      __func__,
+                                      mID,
+                                      ((bool)transport) ? transport->getID() : 0,
+                                      mMaxBufferedRTPPackets,
+                                      mMaxRTPPacketAge.count(),
+                                      mMaxBufferedRTCPPackets,
+                                      mAmbigousPayloadMappingMinDifference.count(),
+                                      mSSRCTableExpires.count(),
+                                      mUnhanldedEventsExpires.count()
+                                      );
+
       ZS_LOG_DETAIL(debug("created"))
 
       if (originalDelegate) {
@@ -415,14 +430,12 @@ namespace ortc
       AutoRecursiveLock lock(*this);
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
 
-      mSSRCTableExpires = Seconds(UseSettings::getUInt(ORTC_SETTING_RTP_LISTENER_SSRC_TIMEOUT_IN_SECONDS));
       if (mSSRCTableExpires < Seconds(1)) {
         mSSRCTableExpires = Seconds(1);
       }
 
       mSSRCTableTimer = Timer::create(mThisWeak.lock(), (zsLib::toMilliseconds(mSSRCTableExpires) / 2));
 
-      mUnhanldedEventsExpires = Seconds(UseSettings::getUInt(ORTC_SETTING_RTP_LISTENER_UNHANDLED_EVENTS_TIMEOUT_IN_SECONDS));
       if (mUnhanldedEventsExpires < Seconds(1)) {
         mUnhanldedEventsExpires = Seconds(1);
       }
@@ -437,6 +450,7 @@ namespace ortc
       mThisWeak.reset();
 
       cancel();
+      EventWriteOrtcRtpListenerDestroy(__func__, mID);
     }
 
     //-------------------------------------------------------------------------
@@ -601,6 +615,8 @@ namespace ortc
                                       size_t bufferLengthInBytes
                                       )
     {
+      EventWriteOrtcRtpListenerReceivedIncomingPacket(__func__, mID, zsLib::to_underlying(viaComponent), zsLib::to_underlying(packetType), buffer, bufferLengthInBytes);
+
       bool result = false;
 
       ReceiverInfoPtr receiverInfo;
@@ -642,6 +658,8 @@ namespace ortc
           processSDESMid(*rtcpPacket);
           processSenderReports(*rtcpPacket);
 
+          EventWriteOrtcRtpListenerBufferIncomingPacket(__func__, mID, zsLib::to_underlying(viaComponent), zsLib::to_underlying(packetType), buffer, bufferLengthInBytes);
+
           mBufferedRTCPPackets.push_back(TimeRTCPPacketPair(zsLib::now(), rtcpPacket));
 
           receivers = mReceivers;
@@ -663,6 +681,8 @@ namespace ortc
 
         ASSERT(IICETypes::Component_RTP == viaComponent)
 
+        EventWriteOrtcRtpListenerBufferIncomingPacket(__func__, mID, zsLib::to_underlying(viaComponent), zsLib::to_underlying(packetType), buffer, bufferLengthInBytes);
+
         // provide some modest buffering
         mBufferedRTPPackets.push_back(TimeRTPPacketPair(tick, rtpPacket));
 
@@ -682,6 +702,7 @@ namespace ortc
         }
 
         ZS_LOG_TRACE(log("forwarding RTP packet to receiver") + ZS_PARAM("receiver id", receiver->getID()) + ZS_PARAM("ssrc", rtpPacket->ssrc()))
+        EventWriteOrtcRtpListenerForwardIncomingPacket(__func__, mID, receiver->getID(), zsLib::to_underlying(viaComponent), zsLib::to_underlying(packetType), rtpPacket->buffer()->BytePtr(), rtpPacket->buffer()->SizeInBytes());
         return receiver->handlePacket(viaComponent, rtpPacket);
       }
 
@@ -699,6 +720,7 @@ namespace ortc
           }
 
           ZS_LOG_TRACE(log("forwarding RTCP packet to receiver") + ZS_PARAM("receiver id", receiverID))
+          EventWriteOrtcRtpListenerForwardIncomingPacket(__func__, mID, receiver->getID(), zsLib::to_underlying(viaComponent), zsLib::to_underlying(packetType), rtcpPacket->buffer()->BytePtr(), rtcpPacket->buffer()->SizeInBytes());
           auto success = receiver->handlePacket(viaComponent, rtcpPacket);
           result = result || success;
         }
@@ -713,6 +735,7 @@ namespace ortc
           }
 
           ZS_LOG_TRACE(log("forwarding RTCP packet to sender") + ZS_PARAM("sender id", senderID))
+          EventWriteOrtcRtpListenerForwardIncomingPacket(__func__, mID, sender->getID(), zsLib::to_underlying(viaComponent), zsLib::to_underlying(packetType), rtcpPacket->buffer()->BytePtr(), rtcpPacket->buffer()->SizeInBytes());
           auto success = sender->handlePacket(viaComponent, rtcpPacket);
           result = result || success;
         }
@@ -760,6 +783,8 @@ namespace ortc
       replacementInfo->mKind = kind;
       replacementInfo->mFilledParameters = inParams;
       replacementInfo->mOriginalParameters = inParams;
+
+      EventWriteOrtcRtpListenerRegisterReceiver(__func__, mID, receiverID, replacementInfo->mOrderID, kind.hasValue() ? IMediaStreamTrackTypes::toString(kind.value()) : NULL);
 
       auto found = mReceivers->find(receiverID);
       if (found == mReceivers->end()) {
@@ -859,6 +884,8 @@ namespace ortc
 
       ReceiverID receiverID = inReceiver.getID();
 
+      EventWriteOrtcRtpListenerUnregisterReceiver(__func__, mID, receiverID);
+
       {
         // scope: search existing receiver list
         {
@@ -902,6 +929,7 @@ namespace ortc
 
         ZS_LOG_TRACE(log("removing SSRC mapping to receiver") + ZS_PARAM("ssrc", ssrc) + receiverInfo->toDebug())
 
+        EventWriteOrtcRtpListenerSsrcTableEntryRemoved(__func__, mID, ((bool)ssrcInfo->mReceiverInfo) ? ssrcInfo->mReceiverInfo->mReceiverID : 0, ssrcInfo->mSSRC, zsLib::timeSinceEpoch<Seconds>(ssrcInfo->mLastUsage).count(), ssrcInfo->mMuxID, "receiver removed");
         mSSRCTable.erase(current);
       }
 
@@ -967,6 +995,8 @@ namespace ortc
                                      RTCPPacketList &outPacketList
                                      )
     {
+      EventWriteOrtcRtpListenerRegisterSender(__func__, mID, inSender->getID());
+
       ZS_LOG_TRACE(log("registering RTP sender (for RTCP feedback packets)") + ZS_PARAM("sender", inSender->getID()) + inParams.toDebug())
 
       outPacketList.clear();
@@ -995,6 +1025,8 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPListener::unregisterSender(UseSender &inSender)
     {
+      EventWriteOrtcRtpListenerUnregisterSender(__func__, mID, inSender.getID());
+
       AutoRecursiveLock lock(*this);
 
       SenderID senderID = inSender.getID();
@@ -1037,6 +1069,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPListener::onWake()
     {
+      EventWriteOrtcRtpListenerInternalWakeEventFired(__func__, mID);
       ZS_LOG_DEBUG(log("wake"))
 
       AutoRecursiveLock lock(*this);
@@ -1054,11 +1087,13 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPListener::onTimer(TimerPtr timer)
     {
+      EventWriteOrtcRtpListenerInternalTimerEventFired(__func__, mID, timer->getID(), NULL);
       ZS_LOG_DEBUG(log("timer") + ZS_PARAM("timer id", timer->getID()))
 
       AutoRecursiveLock lock(*this);
 
       if (timer == mSSRCTableTimer) {
+        EventWriteOrtcRtpListenerInternalTimerEventFired(__func__, mID, timer->getID(), "sssrc table timer");
 
         expireRTPPackets();   // might as well expire these too now
         expireRTCPPackets();  // might as well expire these too now
@@ -1081,6 +1116,7 @@ namespace ortc
           if (!(adjustedTick > lastReceived)) continue;
 
           ZS_LOG_TRACE(log("expiring SSRC mapping") + ssrcInfo->toDebug() + ZS_PARAM("adjusted tick", adjustedTick))
+          EventWriteOrtcRtpListenerSsrcTableEntryRemoved(__func__, mID, ((bool)ssrcInfo->mReceiverInfo) ? ssrcInfo->mReceiverInfo->mReceiverID : 0, ssrcInfo->mSSRC, zsLib::timeSinceEpoch<Seconds>(ssrcInfo->mLastUsage).count(), ssrcInfo->mMuxID, "expired");
           mSSRCTable.erase(current);
         }
 
@@ -1088,6 +1124,7 @@ namespace ortc
       }
 
       if (timer == mUnhanldedEventsTimer) {
+        EventWriteOrtcRtpListenerInternalTimerEventFired(__func__, mID, timer->getID(), "unhandled events timer");
 
         auto tick = zsLib::now();
 
@@ -1109,6 +1146,8 @@ namespace ortc
         return;
       }
 
+      EventWriteOrtcRtpListenerInternalTimerEventFired(__func__, mID, timer->getID(), "obsolete");
+
       ZS_LOG_WARNING(Debug, log("notified about obsolete timer (thus ignoring)") + ZS_PARAM("timer id", timer->getID()))
     }
 
@@ -1129,6 +1168,7 @@ namespace ortc
     {
       ZS_LOG_TRACE(log("forwarding previously buffered RTP packet to receiver") + ZS_PARAM("receiver id", receiver->getID()) + ZS_PARAM("via", IICETypes::toString(viaComponent)) + ZS_PARAM("ssrc", packet->ssrc()))
 
+      EventWriteOrtcRtpListenerForwardIncomingPacket(__func__, mID, receiver->getID(), zsLib::to_underlying(viaComponent), zsLib::to_underlying(IICETypes::Component_RTP), packet->buffer()->BytePtr(), packet->buffer()->SizeInBytes());
       receiver->handlePacket(viaComponent, packet);
     }
 
@@ -1211,6 +1251,8 @@ namespace ortc
         return;
       }
 
+      EventWriteOrtcRtpListenerStep(__func__, mID);
+
       // ... other steps here ...
       if (!stepAttemptDelivery()) goto not_ready;
       // ... other steps here ...
@@ -1233,6 +1275,8 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool RTPListener::stepAttemptDelivery()
     {
+      EventWriteOrtcRtpListenerStep(__func__, mID);
+
       if (!mReattemptRTPDelivery) {
         ZS_LOG_TRACE(log("no need to reattempt deliver at this time"))
         return true;
@@ -1281,6 +1325,8 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPListener::cancel()
     {
+      EventWriteOrtcRtpListenerCancel(__func__, mID);
+
       //.......................................................................
       // try to gracefully shutdown
 
@@ -1338,6 +1384,7 @@ namespace ortc
       ZS_LOG_DETAIL(debug("state changed") + ZS_PARAM("new state", toString(state)) + ZS_PARAM("old state", toString(mCurrentState)))
 
       mCurrentState = state;
+      EventWriteOrtcRtpListenerStateChangedEventFired(__func__, mID, toString(mCurrentState));
 
 //      RTPListenerPtr pThis = mThisWeak.lock();
 //      if (pThis) {
@@ -1360,6 +1407,7 @@ namespace ortc
 
       mLastError = errorCode;
       mLastErrorReason = reason;
+      EventWriteOrtcRtpListenerErrorEventFired(__func__, mID, errorCode, reason);
 
       ZS_LOG_WARNING(Detail, debug("error set") + ZS_PARAM("error", mLastError) + ZS_PARAM("reason", mLastErrorReason))
     }
@@ -1370,7 +1418,9 @@ namespace ortc
       auto tick = zsLib::now();
 
       while (mBufferedRTPPackets.size() > 0) {
-        auto packetTime = mBufferedRTPPackets.front().first;
+        auto &info = mBufferedRTPPackets.front();
+        auto &packetTime = info.first;
+        auto &packet = info.second;
 
         {
           if (mBufferedRTPPackets.size() > mMaxBufferedRTPPackets) goto expire_packet;
@@ -1380,6 +1430,7 @@ namespace ortc
 
       expire_packet:
         {
+          EventWriteOrtcRtpListenerDisposeBufferedIncomingPacket(__func__, mID, zsLib::to_underlying(IICETypes::Component_RTP), packet->buffer()->BytePtr(), packet->buffer()->SizeInBytes());
           ZS_LOG_TRACE(log("expiring buffered rtp packet") + ZS_PARAM("tick", tick) + ZS_PARAM("packet time (s)", packetTime) + ZS_PARAM("total", mBufferedRTPPackets.size()))
           mBufferedRTPPackets.pop_front();
         }
@@ -1392,7 +1443,9 @@ namespace ortc
       auto tick = zsLib::now();
 
       while (mBufferedRTCPPackets.size() > 0) {
-        auto packetTime = mBufferedRTCPPackets.front().first;
+        auto &info = mBufferedRTPPackets.front();
+        auto &packetTime = info.first;
+        auto &packet = info.second;
 
         {
           if (mBufferedRTCPPackets.size() > mMaxBufferedRTCPPackets) goto expire_packet;
@@ -1402,6 +1455,7 @@ namespace ortc
 
       expire_packet:
         {
+          EventWriteOrtcRtpListenerDisposeBufferedIncomingPacket(__func__, mID, zsLib::to_underlying(IICETypes::Component_RTCP), packet->buffer()->BytePtr(), packet->buffer()->SizeInBytes());
           ZS_LOG_TRACE(log("expiring buffered rtcp packet") + ZS_PARAM("tick", tick) + ZS_PARAM("packet time (s)", packetTime) + ZS_PARAM("total", mBufferedRTCPPackets.size()))
           mBufferedRTCPPackets.pop_front();
         }
@@ -1430,6 +1484,8 @@ namespace ortc
         extension.mReferences[objectID] = true;
         mRegisteredExtensions[localID] = extension;
 
+        EventWriteOrtcRtpListenerRegisterHeaderExtension(__func__, mID, objectID, IRTPTypes::toString(extension.mHeaderExtensionURI), extension.mLocalID, extension.mEncrypted, extension.mReferences.size());
+
         ZS_LOG_DEBUG(log("registered header extension") + ZS_PARAM("object id", objectID) + extension.toDebug())
         return;
       }
@@ -1444,6 +1500,7 @@ namespace ortc
       ORTC_THROW_INVALID_PARAMETERS_IF(extensionURI != extension.mHeaderExtensionURI)
 
       extension.mReferences[objectID] = true;
+      EventWriteOrtcRtpListenerRegisterHeaderExtension(__func__, mID, objectID, IRTPTypes::toString(extension.mHeaderExtensionURI), extension.mLocalID, extension.mEncrypted, extension.mReferences.size());
 
       ZS_LOG_DEBUG(log("referencing existing header extension") + ZS_PARAM("object id", objectID) + extension.toDebug())
     }
@@ -1463,6 +1520,8 @@ namespace ortc
 
         extension.mReferences.erase(found);
 
+        EventWriteOrtcRtpListenerUnregisterHeaderExtension(__func__, mID, objectID, IRTPTypes::toString(extension.mHeaderExtensionURI), extension.mLocalID, extension.mEncrypted, extension.mReferences.size());
+
         ZS_LOG_DEBUG(log("removing reference to existing header extension") + ZS_PARAM("object id", objectID) + extension.toDebug())
 
         if (extension.mReferences.size() > 0) continue;
@@ -1479,6 +1538,8 @@ namespace ortc
                                   )
     {
       outMuxID = extractMuxID(rtpPacket, outReceiverInfo);
+
+      EventWriteOrtcRtpListenerFindMapping(__func__, mID, outMuxID, rtpPacket.buffer()->BytePtr(), rtpPacket.buffer()->SizeInBytes());
 
       {
         if (outReceiverInfo) goto fill_mux_id;
@@ -1522,6 +1583,8 @@ namespace ortc
 
       String inMuxID = muxID;
       setSSRCUsage(rtpPacket.ssrc(), inMuxID, outReceiverInfo);
+
+      EventWriteOrtcRtpListenerFoundMappingByMuxID(__func__, mID, ((bool)outReceiverInfo) ? outReceiverInfo->mReceiverID : 0, muxID);
       return true;
     }
 
@@ -1585,6 +1648,7 @@ namespace ortc
           // the associated SSRC was found in table thus must route to same receiver
           String inMuxID = muxID;
           setSSRCUsage(rtpPacket.ssrc(), inMuxID, outReceiverInfo);
+          EventWriteOrtcRtpListenerFoundMappingBySsrc(__func__, mID, ((bool)outReceiverInfo) ? outReceiverInfo->mReceiverID : 0, rtpPacket.ssrc());
           return true;
         }
       }
@@ -1779,6 +1843,7 @@ namespace ortc
 
         String inMuxID = muxID;
         setSSRCUsage(rtpPacket.ssrc(), inMuxID, replacementInfo);
+        EventWriteOrtcRtpListenerFoundMappingByPayloadType(__func__, mID, ((bool)outReceiverInfo) ? outReceiverInfo->mReceiverID : 0, rtpPacket.pt());
       }
 
       return true;
@@ -1953,6 +2018,7 @@ namespace ortc
             if (found != mSSRCTable.end()) {
               auto &ssrcInfo = (*found).second;
               ZS_LOG_TRACE(log("removing ssrc table entry due to BYE") + ZS_PARAM("ssrc", byeSSRC) + ssrcInfo->toDebug())
+              EventWriteOrtcRtpListenerSsrcTableEntryRemoved(__func__, mID, ((bool)ssrcInfo->mReceiverInfo) ? ssrcInfo->mReceiverInfo->mReceiverID : 0, ssrcInfo->mSSRC, zsLib::timeSinceEpoch<Seconds>(ssrcInfo->mLastUsage).count(), ssrcInfo->mMuxID, "bye");
               mSSRCTable.erase(found);
             }
           }
@@ -2175,6 +2241,7 @@ namespace ortc
           ioMuxID = ssrcInfo->mMuxID = ioReceiverInfo->mFilledParameters.mMuxID;
         }
         ssrcInfo->mReceiverInfo = ioReceiverInfo;
+        EventWriteOrtcRtpListenerSsrcTableEntryAdded(__func__, mID, ((bool)ioReceiverInfo) ? ioReceiverInfo->mReceiverID : 0, ssrcInfo->mSSRC, zsLib::timeSinceEpoch<Seconds>(ssrcInfo->mLastUsage).count(), ssrcInfo->mMuxID);
         mSSRCTable[ssrc] = ssrcInfo;
         reattemptDelivery();
         return ssrcInfo;
@@ -2199,6 +2266,8 @@ namespace ortc
           }
         }
       }
+
+      EventWriteOrtcRtpListenerSsrcTableEntryUpdated(__func__, mID, ((bool)ssrcInfo->mReceiverInfo) ? ssrcInfo->mReceiverInfo->mReceiverID : 0, ssrcInfo->mSSRC, zsLib::timeSinceEpoch<Seconds>(ssrcInfo->mLastUsage).count(), ssrcInfo->mMuxID);
 
       return ssrcInfo;
     }
@@ -2242,6 +2311,8 @@ namespace ortc
       mUnhandledEvents[unhandled] = tick;
 
       ZS_LOG_TRACE(log("notifying subscribers of unhandled SSRC") + ZS_PARAM("mux id", muxID) + ZS_PARAM("rid", rid) + ZS_PARAM("ssrc", ssrc) + ZS_PARAM("payload type", payloadType) + ZS_PARAM("timer", mUnhanldedEventsTimer ? mUnhanldedEventsTimer->getID() : 0) + ZS_PARAM("tick", tick))
+
+      EventWriteOrtcRtpListenerUnhandledEventFired(__func__, mID, muxID, rid, ssrc, payloadType);
 
       mSubscriptions.delegate()->onRTPListenerUnhandledRTP(mThisWeak.lock(), unhandled.mSSRC, unhandled.mCodecPayloadType, unhandled.mMuxID.c_str(), unhandled.mRID.c_str());
     }

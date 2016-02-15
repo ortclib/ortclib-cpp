@@ -212,7 +212,7 @@
 #define EventWriteOrtcIceGathererTcpSocketPacketReceivedFrom(xStr_Method, xPUID, xStr_FromIP, xPtr_Buffer, xsize_t_BufferSizeInBytes)
 #define EventWriteOrtcIceGathererTcpSocketSentOutgoing(xStr_Method, xPUID, xStr_FromIP, xPtr_Buffer, xsize_t_BufferSizeInBytes)
 
-#define EventWriteOrtcIceGathererRouteTrace(xStr_Method, xStr_CallingMethod, xStr_Message, xGathererRouteObjectID, xPUID_GathererObjectID, xlong_long_LastUsedInMillisecondsSinceEpoch, xPUID_TransportObjectID, xPUID_HostPortObjectID, xPUID_RelayPortObjectID, xPUID_TcpPortObjectID, xStr_LocalInterfaceType, xStr_LocalFoundation, xDWORD_LocalPriority, xDWORD_LocalUnfreezePriority, xStr_LocalProtocol, xStr_LocalIP, xWORD_LocalPort, xStr_LocalCandidateType, xStr_LocalTcpType, xStr_LocalRelatedAddress, xWORD_LocalRelatedPort)
+#define EventWriteOrtcIceGathererRouteTrace(xStr_Method, xStr_CallingMethod, xStr_Message, xGathererRouteObjectID, xPUID_GathererObjectID, xlong_long_LastUsedInMillisecondsSinceEpoch, xPUID_IceTransportObjectID, xPUID_HostPortObjectID, xPUID_RelayPortObjectID, xPUID_TcpPortObjectID, xStr_LocalInterfaceType, xStr_LocalFoundation, xDWORD_LocalPriority, xDWORD_LocalUnfreezePriority, xStr_LocalProtocol, xStr_LocalIP, xWORD_LocalPort, xStr_LocalCandidateType, xStr_LocalTcpType, xStr_LocalRelatedAddress, xWORD_LocalRelatedPort)
 
 #define EventWriteOrtcIceGathererRouterCreate(xStr_Method, xPUID)
 #define EventWriteOrtcIceGathererRouterDestroy(xStr_Method, xPUID)
@@ -221,75 +221,121 @@
 
 #define EventWriteOrtcIceGathererRouterRouteTrace(xStr_Method, xStr_CallingMethod, xStr_Message, xGathererRouterRouteObjectID, xStr_LocalInterfaceType, xStr_LocalFoundation, xDWORD_LocalPriority, xDWORD_LocalUnfreezePriority, xStr_LocalProtocol, xStr_LocalIP, xWORD_LocalPort, xStr_LocalCandidateType, xStr_LocalTcpType, xStr_LocalRelatedAddress, xWORD_LocalRelatedPort, xStr_RemoteIP)
 
-#define EventWriteOrtcIceTransportCreate(xStr_Method, xPUID, xPUID_GathererObjectID, xPUID_GathererRouterObjectID, xlong_long_NoPacketReceivedRecheckTimeInSeconds, xlong_long_ExpireRouteInSeconds, xBool_TestLowerPreferenceCandidatePairs, xBool_BlacklistConsent, xlong_long_KeepWarmTimeBaseInMilliseconds, xlong_long_KeepWarmTimeRandomAddTimeInMilliseconds, xsize_t_MaxBufferedPackets, xQWORD_ConflictResolver) {}
-#define EventWriteOrtcIceTransportDestroy(xStr_Method, xPUID) {}
-#define EventWriteOrtcIceTransportStep(xStr_Method, xPUID) {}
-#define EventWriteOrtcIceTransportCancel(xStr_Method, xPUID) {}
+#define EventWriteOrtcIceTransportCreate(xStr_Method, xPUID, xPUID_GathererObjectID, xPUID_GathererRouterObjectID, xlong_long_NoPacketReceivedRecheckTimeInSeconds, xlong_long_ExpireRouteInSeconds, xBool_TestLowerPreferenceCandidatePairs, xBool_BlacklistConsent, xlong_long_KeepWarmTimeBaseInMilliseconds, xlong_long_KeepWarmTimeRandomAddTimeInMilliseconds, xsize_t_MaxBufferedPackets, xQWORD_ConflictResolver)
+#define EventWriteOrtcIceTransportDestroy(xStr_Method, xPUID)
+#define EventWriteOrtcIceTransportStep(xStr_Method, xPUID)
+#define EventWriteOrtcIceTransportCancel(xStr_Method, xPUID)
 
-#define EventWriteOrtcIceTransportRouteStateTrackerStateCountChange(xStr_Method, xPUID_TransportObjectID, xStr_State, xsize_t_Value) {}
+#define EventWriteOrtcIceTransportRouteStateTrackerStateCountChange(xStr_Method, xPUID_IceTransportObjectID, xStr_State, xsize_t_Value)
 
-#define EventWriteOrtcIceTransportStart(xStr_Method, xPUID, xPUID_GathererObjectID, xBool_RemoteUseCandidateFreezePriority, xStr_RemoteUsernameFragment, xStr_RemotePassword, xBool_IceLite, xStr_RemoteParametersHash, xStr_OldRemoteParametersHash, xBool_HasRemoteUsernameFragment) {}
-#define EventWriteOrtcIceTransportCreateAssociatedTransport(xStr_Method, xPUID, xPUID_AssociatedTransportObjectID) {}
+#define EventWriteOrtcIceTransportStart(xStr_Method, xPUID, xPUID_GathererObjectID, xBool_RemoteUseCandidateFreezePriority, xStr_RemoteUsernameFragment, xStr_RemotePassword, xBool_IceLite, xStr_RemoteParametersHash, xStr_OldRemoteParametersHash, xBool_HasRemoteUsernameFragment)
+#define EventWriteOrtcIceTransportCreateAssociatedTransport(xStr_Method, xPUID, xPUID_AssociatedTransportObjectID)
 
-#define EventWriteOrtcIceTransportAddRemoteCandidate(xStr_Method, xPUID, xStr_Hash, xStr_InterfaceType, xStr_Foundation, xDWORD_Priority, xDWORD_UnfreezePriority, xStr_Protocol, xStr_IP, xWORD_Port, xStr_CandidateType, xStr_TcpType, xStr_RelatedAddress, xWORD_RelatedPort, xBool_PreviouslyAdded) {}
-#define EventWriteOrtcIceTransportAddRemoteCandidateComplete(xStr_Method, xPUID) {}
-#define EventWriteOrtcIceTransportRemoveRemoteCandidate(xStr_Method, xPUID, xStr_Hash, xStr_InterfaceType, xStr_Foundation, xDWORD_Priority, xDWORD_UnfreezePriority, xStr_Protocol, xStr_IP, xWORD_Port, xStr_CandidateType, xStr_TcpType, xStr_RelatedAddress, xWORD_RelatedPort, xBool_WasKnownPreviously) {}
-#define EventWriteOrtcIceTransportRemoveRemoteCandidateComplete(xStr_Method, xPUID) {}
+#define EventWriteOrtcIceTransportAddRemoteCandidate(xStr_Method, xPUID, xStr_Hash, xStr_InterfaceType, xStr_Foundation, xDWORD_Priority, xDWORD_UnfreezePriority, xStr_Protocol, xStr_IP, xWORD_Port, xStr_CandidateType, xStr_TcpType, xStr_RelatedAddress, xWORD_RelatedPort, xBool_PreviouslyAdded)
+#define EventWriteOrtcIceTransportAddRemoteCandidateComplete(xStr_Method, xPUID)
+#define EventWriteOrtcIceTransportRemoveRemoteCandidate(xStr_Method, xPUID, xStr_Hash, xStr_InterfaceType, xStr_Foundation, xDWORD_Priority, xDWORD_UnfreezePriority, xStr_Protocol, xStr_IP, xWORD_Port, xStr_CandidateType, xStr_TcpType, xStr_RelatedAddress, xWORD_RelatedPort, xBool_WasKnownPreviously)
+#define EventWriteOrtcIceTransportRemoveRemoteCandidateComplete(xStr_Method, xPUID)
 
-#define EventWriteOrtcIceTransportKeepWarm(xStr_Method, xPUID, xStr_Reason, xStr_CandidatePairHash, xBool_KeepWarm) {}
+#define EventWriteOrtcIceTransportKeepWarm(xStr_Method, xPUID, xStr_Reason, xStr_CandidatePairHash, xBool_KeepWarm)
 
-#define EventWriteOrtcIceTransportStateChangedEventFired(xStr_Method, xPUID, xStr_State) {}
-#define EventWriteOrtcIceTransportErrorEventFired(xStr_Method, xPUID, xWORD_Error, xStr_State) {}
-#define EventWriteOrtcIceTransportCandidatePairChangedEventFired(xStr_Method, xPUID, xPUID_RouteObjectID) {}
+#define EventWriteOrtcIceTransportStateChangedEventFired(xStr_Method, xPUID, xStr_State)
+#define EventWriteOrtcIceTransportErrorEventFired(xStr_Method, xPUID, xWORD_Error, xStr_State)
+#define EventWriteOrtcIceTransportCandidatePairChangedEventFired(xStr_Method, xPUID, xPUID_RouteObjectID)
 
-#define EventWriteOrtcIceTransportRouteTrace(xStr_Method, xStr_CallingMethod, xStr_Message, xTransportRouteObjectID, xPUID_TransportObjectID, xStr_CandidatePairHash, xStr_LocalInterfaceType, xStr_LocalFoundation, xDWORD_LocalPriority, xDWORD_LocalUnfreezePriority, xStr_LocalProtocol, xStr_LocalIP, xWORD_LocalPort, xStr_LocalCandidateType, xStr_LocalTcpType, xStr_LocalRelatedAddress, xWORD_LocalRelatedPort, xStr_RemoteInterfaceType, xStr_RemoteFoundation, xDWORD_RemotePriority, xDWORD_RemoteUnfreezePriority, xStr_RemoteProtocol, xStr_RemoteIP, xWORD_RemotePort, xStr_RemoteCandidateType, xStr_RemoteTcpType, xStr_RemoteRelatedAddress, xWORD_RemoteRelatedPort, xPUID_GathererRouteObjectID, xQWORD_PendingPriority, xlong_long_LastReceivedCheckTimeInMillisecondsSinceEpoch, xlong_long_LastSentCheckTimeInMillisecondsSinceEpoch, xlong_long_LastReceivedMediaTimeInMillisecondsSinceEpoch, xlong_long_LastReceivedResponseTimeInMillisecondsSinceEpoch, xBool_Prune, xBool_KeepWarm, xPUID_OutgoingCheckStunRequesterObjectID, xPUID_NextKeepWarmTimerObjectID, xBool_FrozenPromise, xsize_t_TotalDependentPromises, xlong_long_LastRoundTripCheckInMillisecondsSinceEpoch, xlong_long_LastRoundTripMeasurementInMilliseconds) {}
+#define EventWriteOrtcIceTransportRouteTrace(xStr_Method, xStr_CallingMethod, xStr_Message, xTransportRouteObjectID, xPUID_IceTransportObjectID, xStr_CandidatePairHash, xStr_LocalInterfaceType, xStr_LocalFoundation, xDWORD_LocalPriority, xDWORD_LocalUnfreezePriority, xStr_LocalProtocol, xStr_LocalIP, xWORD_LocalPort, xStr_LocalCandidateType, xStr_LocalTcpType, xStr_LocalRelatedAddress, xWORD_LocalRelatedPort, xStr_RemoteInterfaceType, xStr_RemoteFoundation, xDWORD_RemotePriority, xDWORD_RemoteUnfreezePriority, xStr_RemoteProtocol, xStr_RemoteIP, xWORD_RemotePort, xStr_RemoteCandidateType, xStr_RemoteTcpType, xStr_RemoteRelatedAddress, xWORD_RemoteRelatedPort, xPUID_GathererRouteObjectID, xQWORD_PendingPriority, xlong_long_LastReceivedCheckTimeInMillisecondsSinceEpoch, xlong_long_LastSentCheckTimeInMillisecondsSinceEpoch, xlong_long_LastReceivedMediaTimeInMillisecondsSinceEpoch, xlong_long_LastReceivedResponseTimeInMillisecondsSinceEpoch, xBool_Prune, xBool_KeepWarm, xPUID_OutgoingCheckStunRequesterObjectID, xPUID_NextKeepWarmTimerObjectID, xBool_FrozenPromise, xsize_t_TotalDependentPromises, xlong_long_LastRoundTripCheckInMillisecondsSinceEpoch, xlong_long_LastRoundTripMeasurementInMilliseconds)
 
-#define EventWriteOrtcIceTransportReceivedPacketFromGatherer(xStr_Method, xPUID, xPUID_RouterRouteObjectID, xPtr_Buffer, xsize_t_BufferSizeInBytes) {}
-#define EventWriteOrtcIceTransportReceivedStunPacketFromGatherer(xStr_Method, xPUID, xPUID_RouterRouteObjectID) {}
-#define EventWriteOrtcIceTransportRetryReceivedStunPacketFromGatherer(xStr_Method, xPUID, xPUID_RouterRouteObjectID) {}
+#define EventWriteOrtcIceTransportReceivedPacketFromGatherer(xStr_Method, xPUID, xPUID_RouterRouteObjectID, xPtr_Buffer, xsize_t_BufferSizeInBytes)
+#define EventWriteOrtcIceTransportReceivedStunPacketFromGatherer(xStr_Method, xPUID, xPUID_RouterRouteObjectID)
+#define EventWriteOrtcIceTransportRetryReceivedStunPacketFromGatherer(xStr_Method, xPUID, xPUID_RouterRouteObjectID)
 
-#define EventWriteOrtcIceTransportBufferingIncomingPacket(xStr_Method, xPUID, xPtr_Buffer, xsize_t_BufferSizeInBytes) {}
-#define EventWriteOrtcIceTransportDisposingBufferedIncomingPacket(xStr_Method, xPUID, xPtr_Buffer, xsize_t_BufferSizeInBytes) {}
-#define EventWriteOrtcIceTransportDeliveringBufferedIncomingPacketToSecureTransport(xStr_Method, xPUID, xPUID_SecureTransportObjectID, xPtr_Buffer, xsize_t_BufferSizeInBytes) {}
+#define EventWriteOrtcIceTransportBufferingIncomingPacket(xStr_Method, xPUID, xPtr_Buffer, xsize_t_BufferSizeInBytes)
+#define EventWriteOrtcIceTransportDisposingBufferedIncomingPacket(xStr_Method, xPUID, xPtr_Buffer, xsize_t_BufferSizeInBytes)
+#define EventWriteOrtcIceTransportDeliveringBufferedIncomingPacketToSecureTransport(xStr_Method, xPUID, xPUID_SecureTransportObjectID, xPtr_Buffer, xsize_t_BufferSizeInBytes)
 
-#define EventWriteOrtcIceTransportDeliveringIncomingPacketToSecureTransport(xStr_Method, xPUID, xPUID_SecureTransportObjectID, xPtr_Buffer, xsize_t_BufferSizeInBytes) {}
-#define EventWriteOrtcIceTransportDeliveringIncomingStunPacketToSecureTransport(xStr_Method, xPUID, xPUID_SecureTransportObjectID) {}
+#define EventWriteOrtcIceTransportDeliveringIncomingPacketToSecureTransport(xStr_Method, xPUID, xPUID_SecureTransportObjectID, xPtr_Buffer, xsize_t_BufferSizeInBytes)
+#define EventWriteOrtcIceTransportDeliveringIncomingStunPacketToSecureTransport(xStr_Method, xPUID, xPUID_SecureTransportObjectID)
 
-#define EventWriteOrtcIceTransportInstallFoundation(xStr_Method, xPUID, xStr_LocalFoundation, xStr_RemoteFoundation, xsize_t_TotalRoutes) {}
-#define EventWriteOrtcIceTransportRemoveFoundation(xStr_Method, xPUID, xStr_LocalFoundation, xStr_RemoteFoundation, xsize_t_TotalRoutes) {}
-#define EventWriteOrtcIceTransportInstallFoundationDependencyFreezePromise(xStr_Method, xPUID, xStr_LocalFoundation, xStr_RemoteFoundation) {}
+#define EventWriteOrtcIceTransportInstallFoundation(xStr_Method, xPUID, xStr_LocalFoundation, xStr_RemoteFoundation, xsize_t_TotalRoutes)
+#define EventWriteOrtcIceTransportRemoveFoundation(xStr_Method, xPUID, xStr_LocalFoundation, xStr_RemoteFoundation, xsize_t_TotalRoutes)
+#define EventWriteOrtcIceTransportInstallFoundationDependencyFreezePromise(xStr_Method, xPUID, xStr_LocalFoundation, xStr_RemoteFoundation)
 
-#define EventWriteOrtcIceTransportSecureTransportSendPacket(xStr_Method, xPUID, xPtr_Buffer, xsize_t_BufferSizeInBytes) {}
-#define EventWriteOrtcIceTransportForwardSecureTransportPacketToGatherer(xStr_Method, xPUID, xPUID_GathererObjectID, xPtr_Buffer, xsize_t_BufferSizeInBytes) {}
+#define EventWriteOrtcIceTransportSecureTransportSendPacket(xStr_Method, xPUID, xPtr_Buffer, xsize_t_BufferSizeInBytes)
+#define EventWriteOrtcIceTransportForwardSecureTransportPacketToGatherer(xStr_Method, xPUID, xPUID_GathererObjectID, xPtr_Buffer, xsize_t_BufferSizeInBytes)
 
-#define EventWriteOrtcIceTransportSendStunPacket(xStr_Method, xPUID, xPUID_GathererObjectID, xPtr_Buffer, xsize_t_BufferSizeInBytes) {}
+#define EventWriteOrtcIceTransportSendStunPacket(xStr_Method, xPUID, xPUID_GathererObjectID, xPtr_Buffer, xsize_t_BufferSizeInBytes)
 
-#define EventWriteOrtcIceTransportInternalControllerAttachedEventFired(xStr_Method, xPUID, xPUID_TransportControllerObjectID) {}
-#define EventWriteOrtcIceTransportInternalControllerDetachedEventFired(xStr_Method, xPUID, xPUID_TransportControllerObjectID) {}
+#define EventWriteOrtcIceTransportInternalControllerAttachedEventFired(xStr_Method, xPUID, xPUID_IceTransportControllerObjectID)
+#define EventWriteOrtcIceTransportInternalControllerDetachedEventFired(xStr_Method, xPUID, xPUID_IceTransportControllerObjectID)
 
-#define EventWriteOrtcIceTransportInternalSecureTransportAttachedEventFired(xStr_Method, xPUID, xPUID_SecureTransportObjectID) {}
-#define EventWriteOrtcIceTransportInternalSecureTransportDetachedEventFired(xStr_Method, xPUID, xPUID_SecureTransportObjectID) {}
+#define EventWriteOrtcIceTransportInternalSecureTransportAttachedEventFired(xStr_Method, xPUID, xPUID_SecureTransportObjectID)
+#define EventWriteOrtcIceTransportInternalSecureTransportDetachedEventFired(xStr_Method, xPUID, xPUID_SecureTransportObjectID)
 
-#define EventWriteOrtcIceTransportInternalWarmRoutesChangedEventFired(xStr_Method, xPUID) {}
-#define EventWriteOrtcIceTransportInternalDeliveryPendingPacketsEventFired(xStr_Method, xPUID) {}
+#define EventWriteOrtcIceTransportInternalWarmRoutesChangedEventFired(xStr_Method, xPUID)
+#define EventWriteOrtcIceTransportInternalDeliveryPendingPacketsEventFired(xStr_Method, xPUID)
 
-#define EventWriteOrtcIceTransportInternalWakeEventFired(xStr_Method, xPUID) {}
-#define EventWriteOrtcIceTransportInternalTimerEventFired(xStr_Method, xPUID, xPUID_TimerID, reason) {}
+#define EventWriteOrtcIceTransportInternalWakeEventFired(xStr_Method, xPUID)
+#define EventWriteOrtcIceTransportInternalTimerEventFired(xStr_Method, xPUID, xPUID_TimerID, xStr_TimerType)
 
-#define EventWriteOrtcIceTransportInternalUnfrozenPromiseEventFired(xStr_Method, xPUID, xPUID_RouteObjectID) {}
+#define EventWriteOrtcIceTransportInternalUnfrozenPromiseEventFired(xStr_Method, xPUID, xPUID_RouteObjectID)
 
-#define EventWriteOrtcIceTransportInternalGathererStateChangedEventFired(xStr_Method, xPUID, xPUID_GathererObjectID, xStr_State) {}
-#define EventWriteOrtcIceTransportInternalGathererAddLocalCandidateEventFired(xStr_Method, xPUID, xPUID_GathererObjectID, xStr_InterfaceType, xStr_Foundation, xDWORD_Priority, xDWORD_UnfreezePriority, xStr_Protocol, xStr_IP, xWORD_Port, xStr_CandidateType, xStr_TcpType, xStr_RelatedAddress, xWORD_RelatedPort) {}
-#define EventWriteOrtcIceTransportInternalGathererAddLocalCandidateCompleteEventFired(xStr_Method, xPUID, xPUID_GathererObjectID) {}
-#define EventWriteOrtcIceTransportInternalGathererRemoveLocalCandidateEventFired(xStr_Method, xPUID, xPUID_GathererObjectID, xStr_InterfaceType, xStr_Foundation, xDWORD_Priority, xDWORD_UnfreezePriority, xStr_Protocol, xStr_IP, xWORD_Port, xStr_CandidateType, xStr_TcpType, xStr_RelatedAddress, xWORD_RelatedPort) {}
+#define EventWriteOrtcIceTransportInternalGathererStateChangedEventFired(xStr_Method, xPUID, xPUID_GathererObjectID, xStr_State)
+#define EventWriteOrtcIceTransportInternalGathererAddLocalCandidateEventFired(xStr_Method, xPUID, xPUID_GathererObjectID, xStr_InterfaceType, xStr_Foundation, xDWORD_Priority, xDWORD_UnfreezePriority, xStr_Protocol, xStr_IP, xWORD_Port, xStr_CandidateType, xStr_TcpType, xStr_RelatedAddress, xWORD_RelatedPort)
+#define EventWriteOrtcIceTransportInternalGathererAddLocalCandidateCompleteEventFired(xStr_Method, xPUID, xPUID_GathererObjectID)
+#define EventWriteOrtcIceTransportInternalGathererRemoveLocalCandidateEventFired(xStr_Method, xPUID, xPUID_GathererObjectID, xStr_InterfaceType, xStr_Foundation, xDWORD_Priority, xDWORD_UnfreezePriority, xStr_Protocol, xStr_IP, xWORD_Port, xStr_CandidateType, xStr_TcpType, xStr_RelatedAddress, xWORD_RelatedPort)
 
-#define EventWriteOrtcIceTransportInternalStunRequesterCreate(xStr_Method, xPUID, xPUID_StunRequesterObjectID) {}
-#define EventWriteOrtcIceTransportInternalStunRequesterSendPacket(xStr_Method, xPUID, xPUID_StunRequesterObjectID, xStr_DestinationIP, xPtr_Buffer, xsize_t_BufferSizeInBytes) {}
-#define EventWriteOrtcIceTransportInternalStunRequesterReceivedResponse(xStr_Method, xPUID, xPUID_StunRequesterObjectID, xStr_FromIP) {}
-#define EventWriteOrtcIceTransportInternalStunRequesterReceivedResponseMismatch(xStr_Method, xPUID, xPUID_StunRequesterObjectID, xStr_FromIP, xStr_ExpectingIP) {}
-#define EventWriteOrtcIceTransportInternalStunRequesterTimedOut(xStr_Method, xPUID, xPUID_StunRequesterObjectID) {}
+#define EventWriteOrtcIceTransportInternalStunRequesterCreate(xStr_Method, xPUID, xPUID_StunRequesterObjectID)
+#define EventWriteOrtcIceTransportInternalStunRequesterSendPacket(xStr_Method, xPUID, xPUID_StunRequesterObjectID, xStr_DestinationIP, xPtr_Buffer, xsize_t_BufferSizeInBytes)
+#define EventWriteOrtcIceTransportInternalStunRequesterReceivedResponse(xStr_Method, xPUID, xPUID_StunRequesterObjectID, xStr_FromIP)
+#define EventWriteOrtcIceTransportInternalStunRequesterReceivedResponseMismatch(xStr_Method, xPUID, xPUID_StunRequesterObjectID, xStr_FromIP, xStr_ExpectingIP)
+#define EventWriteOrtcIceTransportInternalStunRequesterTimedOut(xStr_Method, xPUID, xPUID_StunRequesterObjectID)
 
-#define EventWriteOrtcIceTransportInternalRoleConflictDetectedEventFired(xStr_Method, xPUID, xStr_NewRole, xStr_Reason) {}
+#define EventWriteOrtcIceTransportInternalRoleConflictDetectedEventFired(xStr_Method, xPUID, xStr_NewRole, xStr_Reason)
+
+#define EventWriteOrtcIceTransportControllerCreate(xStr_Method, xPUID)
+#define EventWriteOrtcIceTransportControllerDestroy(xStr_Method, xPUID)
+#define EventWriteOrtcIceTransportControllerCancel(xStr_Method, xPUID)
+#define EventWriteOrtcIceTransportControllerStep(xStr_Method, xPUID)
+
+#define EventWriteOrtcIceTransportControllerInternalWakeEventFired(xStr_Method, xPUID)
+#define EventWriteOrtcIceTransportControllerInternalTransportAttachedEventFired(xStr_Method, xPUID, xPUID_IceTransportObjectID, xsize_t_AttachedOrderID, xBool_HasInsertIndex, xsize_t_InsertIndex)
+#define EventWriteOrtcIceTransportControllerInternalTransportDetachedEventFired(xStr_Method, xPUID, xPUID_IceTransportObjectID, xsize_t_DetachedOrderID)
+
+#define EventWriteOrtcIceTransportControllerWaitUntilUnfrozen(xStr_Method, xPUID, xPUID_IceTransportObjectID, xStr_LocalFoundation, xStr_RemoteFoundation)
+#define EventWriteOrtcIceTransportControllerNoNeedToWaitUntilUnfrozen(xStr_Method, xPUID, xPUID_IceTransportObjectID, xStr_LocalFoundation, xStr_RemoteFoundation)
+
+#define EventWriteOrtcRtpListenerCreate(xStr_Method, xPUID, xPUID_RtpTransport, xsize_t_MaxBufferedRtpPackets, xlong_long_MaxRtpPacketAgeInSeconds, xsize_t_MaxBufferedRtcpPackets, xlong_long_AmbigousPayloadMappingMinDifferenceInMilliseconds, xlong_long_SsrcTableExpiresInSeconds, xlong_long_UnhandledEventsExpiresInSeconds)
+#define EventWriteOrtcRtpListenerDestroy(xStr_Method, xPUID)
+#define EventWriteOrtcRtpListenerCancel(xStr_Method, xPUID)
+#define EventWriteOrtcRtpListenerStep(xStr_Method, xPUID)
+#define EventWriteOrtcRtpListenerFindMapping(xStr_Method, xPUID, xStr_MuxID, xPtr_Buffer, xsize_t_BufferSizeInBytes)
+#define EventWriteOrtcRtpListenerFoundMappingByMuxID(xStr_Method, xPUID, xPUID_RtpReceiverObjectID, xStr_MuxID)
+#define EventWriteOrtcRtpListenerFoundMappingBySsrc(xStr_Method, xPUID, xPUID_RtpReceiverObjectID, xDWORD_Ssrc)
+#define EventWriteOrtcRtpListenerFoundMappingByPayloadType(xStr_Method, xPUID, xPUID_RtpReceiverObjectID, xBYTE_PayloadType)
+
+#define EventWriteOrtcRtpListenerStateChangedEventFired(xStr_Method, xPUID, xStr_State)
+#define EventWriteOrtcRtpListenerErrorEventFired(xStr_Method, xPUID, xWORD_ErrorCode, xStr_ErrorReason)
+#define EventWriteOrtcRtpListenerUnhandledEventFired(xStr_Method, xPUID, xStr_MuxID, xStr_Rid, xDWORD_Ssrc, xBYTE_PayloadType)
+
+#define EventWriteOrtcRtpListenerRegisterHeaderExtension(xStr_Method, xPUID, xPUID_RegisterForObject, xStr_ExtensionURI, xunsigned_short_LocalID, xBool_Encrypted, xsize_t_TotalReferences)
+#define EventWriteOrtcRtpListenerUnregisterHeaderExtension(xStr_Method, xPUID, xPUID_RegisterForObject, xStr_ExtensionURI, xunsigned_short_LocalID, xBool_Encrypted, xsize_t_TotalReferences)
+
+#define EventWriteOrtcRtpListenerReceivedIncomingPacket(xStr_Method, xPUID, xUInt_ViaComponent, xUInt_PacketType, xPtr_Buffer, xsize_t_BufferSizeInBytes)
+#define EventWriteOrtcRtpListenerBufferIncomingPacket(xStr_Method, xPUID, xUInt_ViaComponent, xUInt_PacketType, xPtr_Buffer, xsize_t_BufferSizeInBytes)
+#define EventWriteOrtcRtpListenerForwardIncomingPacket(xStr_Method, xPUID, xPUID_SenderOrReceiverObjectID, xUInt_ViaComponent, xUInt_PacketType, xPtr_Buffer, xsize_t_BufferSizeInBytes)
+#define EventWriteOrtcRtpListenerDisposeBufferedIncomingPacket(xStr_Method, xPUID, xUInt_PacketType, xPtr_Buffer, xsize_t_BufferSizeInBytes)
+
+#define EventWriteOrtcRtpListenerRegisterReceiver(xStr_Method, xPUID, xPUID_RtpReceiverObjectID, xPUID_OrderID, xStr_Kind)
+#define EventWriteOrtcRtpListenerUnregisterReceiver(xStr_Method, xPUID, xPUID_RtpReceiverObjectID)
+
+#define EventWriteOrtcRtpListenerRegisterSender(xStr_Method, xPUID, xPUID_RtpSenderObjectID)
+#define EventWriteOrtcRtpListenerUnregisterSender(xStr_Method, xPUID, xPUID_RtpSenderObjectID)
+
+#define EventWriteOrtcRtpListenerInternalWakeEventFired(xStr_Method, xPUID)
+#define EventWriteOrtcRtpListenerInternalTimerEventFired(xStr_Method, xPUID, xPUID_TimerID, xStr_TimerType)
+
+#define EventWriteOrtcRtpListenerSsrcTableEntryAdded(xStr_Method, xPUID, xPUID_RtpReceiverObjectID, xDWORD_Ssrc, xlong_long_LastUsageSinceEpochInSeconds, xStr_MuxID)
+#define EventWriteOrtcRtpListenerSsrcTableEntryRemoved(xStr_Method, xPUID, xPUID_RtpReceiverObjectID, xDWORD_Ssrc, xlong_long_LastUsageSinceEpochInSeconds, xStr_MuxID, xStr_Reason)
+#define EventWriteOrtcRtpListenerSsrcTableEntryUpdated(xStr_Method, xPUID, xPUID_RtpReceiverObjectID, xDWORD_Ssrc, xlong_long_LastUsageSinceEpochInSeconds, xStr_MuxID)
 
 
 #else
@@ -466,7 +512,7 @@ inline void EventWriteOrtcIceGathererUdpSocketPacketSentTo(const char *xStr_Meth
 inline void EventWriteOrtcIceGathererTcpSocketPacketReceivedFrom(const char *xStr_Method, PUID xPUID, const char *xStr_FromIP, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
 inline void EventWriteOrtcIceGathererTcpSocketSentOutgoing(const char *xStr_Method, PUID xPUID, const char *xStr_FromIP, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
 
-inline void EventWriteOrtcIceGathererRouteTrace(const char *xStr_Method, const char *xStr_CallingMethod, const char *xStr_Message, PUID xGathererRouteObjectID, PUID xPUID_GathererObjectID, long long xlong_long_LastUsedInMillisecondsSinceEpoch, PUID xPUID_TransportObjectID, PUID xPUID_HostPortObjectID, PUID xPUID_RelayPortObjectID, PUID xPUID_TcpPortObjectID, const char *xStr_LocalInterfaceType, const char *xStr_LocalFoundation, DWORD xDWORD_LocalPriority, DWORD xDWORD_LocalUnfreezePriority, const char *xStr_LocalProtocol, const char *xStr_LocalIP, WORD xWORD_LocalPort, const char *xStr_LocalCandidateType, const char *xStr_LocalTcpType, const char *xStr_LocalRelatedAddress, WORD xWORD_LocalRelatedPort) {}
+inline void EventWriteOrtcIceGathererRouteTrace(const char *xStr_Method, const char *xStr_CallingMethod, const char *xStr_Message, PUID xGathererRouteObjectID, PUID xPUID_GathererObjectID, long long xlong_long_LastUsedInMillisecondsSinceEpoch, PUID xPUID_IceTransportObjectID, PUID xPUID_HostPortObjectID, PUID xPUID_RelayPortObjectID, PUID xPUID_TcpPortObjectID, const char *xStr_LocalInterfaceType, const char *xStr_LocalFoundation, DWORD xDWORD_LocalPriority, DWORD xDWORD_LocalUnfreezePriority, const char *xStr_LocalProtocol, const char *xStr_LocalIP, WORD xWORD_LocalPort, const char *xStr_LocalCandidateType, const char *xStr_LocalTcpType, const char *xStr_LocalRelatedAddress, WORD xWORD_LocalRelatedPort) {}
 
 inline void EventWriteOrtcIceGathererRouterCreate(const char *xStr_Method, PUID xPUID) {}
 inline void EventWriteOrtcIceGathererRouterDestroy(const char *xStr_Method, PUID xPUID) {}
@@ -480,7 +526,7 @@ inline void EventWriteOrtcIceTransportDestroy(const char *xStr_Method, PUID xPUI
 inline void EventWriteOrtcIceTransportStep(const char *xStr_Method, PUID xPUID) {}
 inline void EventWriteOrtcIceTransportCancel(const char *xStr_Method, PUID xPUID) {}
 
-inline void EventWriteOrtcIceTransportRouteStateTrackerStateCountChange(const char *xStr_Method, PUID xPUID_TransportObjectID, const char *xStr_State, size_t xsize_t_Value) {}
+inline void EventWriteOrtcIceTransportRouteStateTrackerStateCountChange(const char *xStr_Method, PUID xPUID_IceTransportObjectID, const char *xStr_State, size_t xsize_t_Value) {}
 
 inline void EventWriteOrtcIceTransportStart(const char *xStr_Method, PUID xPUID, PUID xPUID_GathererObjectID, bool xBool_RemoteUseCandidateFreezePriority, const char *xStr_RemoteUsernameFragment, const char *xStr_RemotePassword, bool xBool_IceLite, const char *xStr_RemoteParametersHash, const char *xStr_OldRemoteParametersHash, bool xBool_HasRemoteUsernameFragment) {}
 inline void EventWriteOrtcIceTransportCreateAssociatedTransport(const char *xStr_Method, PUID xPUID, PUID xPUID_AssociatedTransportObjectID) {}
@@ -496,7 +542,7 @@ inline void EventWriteOrtcIceTransportStateChangedEventFired(const char *xStr_Me
 inline void EventWriteOrtcIceTransportErrorEventFired(const char *xStr_Method, PUID xPUID, WORD xWORD_Error, const char *xStr_State) {}
 inline void EventWriteOrtcIceTransportCandidatePairChangedEventFired(const char *xStr_Method, PUID xPUID, PUID xPUID_RouteObjectID) {}
 
-inline void EventWriteOrtcIceTransportRouteTrace(const char *xStr_Method, const char *xStr_CallingMethod, const char *xStr_Message, PUID xTransportRouteObjectID, PUID xPUID_TransportObjectID, const char *xStr_CandidatePairHash, const char *xStr_LocalInterfaceType, const char *xStr_LocalFoundation, DWORD xDWORD_LocalPriority, DWORD xDWORD_LocalUnfreezePriority, const char *xStr_LocalProtocol, const char *xStr_LocalIP, WORD xWORD_LocalPort, const char *xStr_LocalCandidateType, const char *xStr_LocalTcpType, const char *xStr_LocalRelatedAddress, WORD xWORD_LocalRelatedPort, const char *xStr_RemoteInterfaceType, const char *xStr_RemoteFoundation, DWORD xDWORD_RemotePriority, DWORD xDWORD_RemoteUnfreezePriority, const char *xStr_RemoteProtocol, const char *xStr_RemoteIP, WORD xWORD_RemotePort, const char *xStr_RemoteCandidateType, const char *xStr_RemoteTcpType, const char *xStr_RemoteRelatedAddress, WORD xWORD_RemoteRelatedPort, PUID xPUID_GathererRouteObjectID, QWORD xQWORD_PendingPriority, long long xlong_long_LastReceivedCheckTimeInMillisecondsSinceEpoch, long long xlong_long_LastSentCheckTimeInMillisecondsSinceEpoch, long long xlong_long_LastReceivedMediaTimeInMillisecondsSinceEpoch, long long xlong_long_LastReceivedResponseTimeInMillisecondsSinceEpoch, bool xBool_Prune, bool xBool_KeepWarm, PUID xPUID_OutgoingCheckStunRequesterObjectID, PUID xPUID_NextKeepWarmTimerObjectID, bool xBool_FrozenPromise, size_t xsize_t_TotalDependentPromises, long long xlong_long_LastRoundTripCheckInMillisecondsSinceEpoch, long long xlong_long_LastRoundTripMeasurementInMilliseconds) {}
+inline void EventWriteOrtcIceTransportRouteTrace(const char *xStr_Method, const char *xStr_CallingMethod, const char *xStr_Message, PUID xIceTransportRouteObjectID, PUID xPUID_IceTransportObjectID, const char *xStr_CandidatePairHash, const char *xStr_LocalInterfaceType, const char *xStr_LocalFoundation, DWORD xDWORD_LocalPriority, DWORD xDWORD_LocalUnfreezePriority, const char *xStr_LocalProtocol, const char *xStr_LocalIP, WORD xWORD_LocalPort, const char *xStr_LocalCandidateType, const char *xStr_LocalTcpType, const char *xStr_LocalRelatedAddress, WORD xWORD_LocalRelatedPort, const char *xStr_RemoteInterfaceType, const char *xStr_RemoteFoundation, DWORD xDWORD_RemotePriority, DWORD xDWORD_RemoteUnfreezePriority, const char *xStr_RemoteProtocol, const char *xStr_RemoteIP, WORD xWORD_RemotePort, const char *xStr_RemoteCandidateType, const char *xStr_RemoteTcpType, const char *xStr_RemoteRelatedAddress, WORD xWORD_RemoteRelatedPort, PUID xPUID_GathererRouteObjectID, QWORD xQWORD_PendingPriority, long long xlong_long_LastReceivedCheckTimeInMillisecondsSinceEpoch, long long xlong_long_LastSentCheckTimeInMillisecondsSinceEpoch, long long xlong_long_LastReceivedMediaTimeInMillisecondsSinceEpoch, long long xlong_long_LastReceivedResponseTimeInMillisecondsSinceEpoch, bool xBool_Prune, bool xBool_KeepWarm, PUID xPUID_OutgoingCheckStunRequesterObjectID, PUID xPUID_NextKeepWarmTimerObjectID, bool xBool_FrozenPromise, size_t xsize_t_TotalDependentPromises, long long xlong_long_LastRoundTripCheckInMillisecondsSinceEpoch, long long xlong_long_LastRoundTripMeasurementInMilliseconds) {}
 
 inline void EventWriteOrtcIceTransportReceivedPacketFromGatherer(const char *xStr_Method, PUID xPUID, PUID xPUID_RouterRouteObjectID, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
 inline void EventWriteOrtcIceTransportReceivedStunPacketFromGatherer(const char *xStr_Method, PUID xPUID, PUID xPUID_RouterRouteObjectID) {}
@@ -518,8 +564,8 @@ inline void EventWriteOrtcIceTransportForwardSecureTransportPacketToGatherer(con
 
 inline void EventWriteOrtcIceTransportSendStunPacket(const char *xStr_Method, PUID xPUID, PUID xPUID_GathererObjectID, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
 
-inline void EventWriteOrtcIceTransportInternalControllerAttachedEventFired(const char *xStr_Method, PUID xPUID, PUID xPUID_TransportControllerObjectID) {}
-inline void EventWriteOrtcIceTransportInternalControllerDetachedEventFired(const char *xStr_Method, PUID xPUID, PUID xPUID_TransportControllerObjectID) {}
+inline void EventWriteOrtcIceTransportInternalControllerAttachedEventFired(const char *xStr_Method, PUID xPUID, PUID xPUID_IceTransportControllerObjectID) {}
+inline void EventWriteOrtcIceTransportInternalControllerDetachedEventFired(const char *xStr_Method, PUID xPUID, PUID xPUID_IceTransportControllerObjectID) {}
 
 inline void EventWriteOrtcIceTransportInternalSecureTransportAttachedEventFired(const char *xStr_Method, PUID xPUID, PUID xPUID_SecureTransportObjectID) {}
 inline void EventWriteOrtcIceTransportInternalSecureTransportDetachedEventFired(const char *xStr_Method, PUID xPUID, PUID xPUID_SecureTransportObjectID) {}
@@ -528,7 +574,7 @@ inline void EventWriteOrtcIceTransportInternalWarmRoutesChangedEventFired(const 
 inline void EventWriteOrtcIceTransportInternalDeliveryPendingPacketsEventFired(const char *xStr_Method, PUID xPUID) {}
 
 inline void EventWriteOrtcIceTransportInternalWakeEventFired(const char *xStr_Method, PUID xPUID) {}
-inline void EventWriteOrtcIceTransportInternalTimerEventFired(const char *xStr_Method, PUID xPUID, PUID xPUID_TimerID, const char *reason) {}
+inline void EventWriteOrtcIceTransportInternalTimerEventFired(const char *xStr_Method, PUID xPUID, PUID xPUID_TimerID, const char *xStr_TimerType) {}
 
 inline void EventWriteOrtcIceTransportInternalUnfrozenPromiseEventFired(const char *xStr_Method, PUID xPUID, PUID xPUID_RouteObjectID) {}
 
@@ -544,6 +590,52 @@ inline void EventWriteOrtcIceTransportInternalStunRequesterReceivedResponseMisma
 inline void EventWriteOrtcIceTransportInternalStunRequesterTimedOut(const char *xStr_Method, PUID xPUID, PUID xPUID_StunRequesterObjectID) {}
 
 inline void EventWriteOrtcIceTransportInternalRoleConflictDetectedEventFired(const char *xStr_Method, PUID xPUID, const char *xStr_NewRole, const char *xStr_Reason) {}
+
+inline void EventWriteOrtcIceTransportControllerCreate(const char *xStr_Method, PUID xPUID) {}
+inline void EventWriteOrtcIceTransportControllerDestroy(const char *xStr_Method, PUID xPUID) {}
+inline void EventWriteOrtcIceTransportControllerCancel(const char *xStr_Method, PUID xPUID) {}
+inline void EventWriteOrtcIceTransportControllerStep(const char *xStr_Method, PUID xPUID) {}
+
+inline void EventWriteOrtcIceTransportControllerInternalWakeEventFired(const char *xStr_Method, PUID xPUID) {}
+inline void EventWriteOrtcIceTransportControllerInternalTransportAttachedEventFired(const char *xStr_Method, PUID xPUID, PUID xPUID_IceTransportObjectID, size_t xsize_t_AttachedOrderID, bool xBool_HasInsertIndex, size_t xsize_t_InsertIndex) {}
+inline void EventWriteOrtcIceTransportControllerInternalTransportDetachedEventFired(const char *xStr_Method, PUID xPUID, PUID xPUID_IceTransportObjectID, size_t xsize_t_DetachedOrderID) {}
+
+inline void EventWriteOrtcIceTransportControllerWaitUntilUnfrozen(const char *xStr_Method, PUID xPUID, PUID xPUID_IceTransportObjectID, const char *xStr_LocalFoundation, const char *xStr_RemoteFoundation) {}
+inline void EventWriteOrtcIceTransportControllerNoNeedToWaitUntilUnfrozen(const char *xStr_Method, PUID xPUID, PUID xPUID_IceTransportObjectID, const char *xStr_LocalFoundation, const char *xStr_RemoteFoundation) {}
+
+inline void EventWriteOrtcRtpListenerCreate(const char *xStr_Method, PUID xPUID, PUID xPUID_RtpTransport, size_t xsize_t_MaxBufferedRtpPackets, long long xlong_long_MaxRtpPacketAgeInSeconds, size_t xsize_t_MaxBufferedRtcpPackets, long long xlong_long_AmbigousPayloadMappingMinDifferenceInMilliseconds, long long xlong_long_SsrcTableExpiresInSeconds, long long xlong_long_UnhandledEventsExpiresInSeconds) {}
+inline void EventWriteOrtcRtpListenerDestroy(const char *xStr_Method, PUID xPUID) {}
+inline void EventWriteOrtcRtpListenerCancel(const char *xStr_Method, PUID xPUID) {}
+inline void EventWriteOrtcRtpListenerStep(const char *xStr_Method, PUID xPUID) {}
+inline void EventWriteOrtcRtpListenerFindMapping(const char *xStr_Method, PUID xPUID, const char *xStr_MuxID, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
+inline void EventWriteOrtcRtpListenerFoundMappingByMuxID(const char *xStr_Method, PUID xPUID, PUID xPUID_RtpReceiverObjectID, const char *xStr_MuxID) {}
+inline void EventWriteOrtcRtpListenerFoundMappingBySsrc(const char *xStr_Method, PUID xPUID, PUID xPUID_RtpReceiverObjectID, DWORD xDWORD_Ssrc) {}
+inline void EventWriteOrtcRtpListenerFoundMappingByPayloadType(const char *xStr_Method, PUID xPUID, PUID xPUID_RtpReceiverObjectID, BYTE xBYTE_PayloadType) {}
+
+inline void EventWriteOrtcRtpListenerStateChangedEventFired(const char *xStr_Method, PUID xPUID, const char *xStr_State) {}
+inline void EventWriteOrtcRtpListenerErrorEventFired(const char *xStr_Method, PUID xPUID, WORD xWORD_ErrorCode, const char *xStr_ErrorReason) {}
+inline void EventWriteOrtcRtpListenerUnhandledEventFired(const char *xStr_Method, PUID xPUID, const char *xStr_MuxID, const char *xStr_Rid, DWORD xDWORD_Ssrc, BYTE xBYTE_PayloadType) {}
+
+inline void EventWriteOrtcRtpListenerRegisterHeaderExtension(const char *xStr_Method, PUID xPUID, PUID xPUID_RegisterForObject, const char *xStr_ExtensionURI, unsigned short xunsigned_short_LocalID, bool xBool_Encrypted, size_t xsize_t_TotalReferences) {}
+inline void EventWriteOrtcRtpListenerUnregisterHeaderExtension(const char *xStr_Method, PUID xPUID, PUID xPUID_RegisterForObject, const char *xStr_ExtensionURI, unsigned short xunsigned_short_LocalID, bool xBool_Encrypted, size_t xsize_t_TotalReferences) {}
+
+inline void EventWriteOrtcRtpListenerReceivedIncomingPacket(const char *xStr_Method, PUID xPUID, unsigned int xUInt_ViaComponent, unsigned int xUInt_PacketType, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
+inline void EventWriteOrtcRtpListenerBufferIncomingPacket(const char *xStr_Method, PUID xPUID, unsigned int xUInt_ViaComponent, unsigned int xUInt_PacketType, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
+inline void EventWriteOrtcRtpListenerForwardIncomingPacket(const char *xStr_Method, PUID xPUID, PUID xPUID_SenderOrReceiverObjectID, unsigned int xUInt_ViaComponent, unsigned int xUInt_PacketType, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
+inline void EventWriteOrtcRtpListenerDisposeBufferedIncomingPacket(const char *xStr_Method, PUID xPUID, unsigned int xUInt_PacketType, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
+
+inline void EventWriteOrtcRtpListenerRegisterReceiver(const char *xStr_Method, PUID xPUID, PUID xPUID_RtpReceiverObjectID, PUID xPUID_OrderID, const char *xStr_Kind) {}
+inline void EventWriteOrtcRtpListenerUnregisterReceiver(const char *xStr_Method, PUID xPUID, PUID xPUID_RtpReceiverObjectID) {}
+
+inline void EventWriteOrtcRtpListenerRegisterSender(const char *xStr_Method, PUID xPUID, PUID xPUID_RtpSenderObjectID) {}
+inline void EventWriteOrtcRtpListenerUnregisterSender(const char *xStr_Method, PUID xPUID, PUID xPUID_RtpSenderObjectID) {}
+
+inline void EventWriteOrtcRtpListenerInternalWakeEventFired(const char *xStr_Method, PUID xPUID) {}
+inline void EventWriteOrtcRtpListenerInternalTimerEventFired(const char *xStr_Method, PUID xPUID, PUID xPUID_TimerID, const char *xStr_TimerType) {}
+
+inline void EventWriteOrtcRtpListenerSsrcTableEntryAdded(const char *xStr_Method, PUID xPUID, PUID xPUID_RtpReceiverObjectID, DWORD xDWORD_Ssrc, long long xlong_long_LastUsageSinceEpochInSeconds, const char *xStr_MuxID) {}
+inline void EventWriteOrtcRtpListenerSsrcTableEntryRemoved(const char *xStr_Method, PUID xPUID, PUID xPUID_RtpReceiverObjectID, DWORD xDWORD_Ssrc, long long xlong_long_LastUsageSinceEpochInSeconds, const char *xStr_MuxID, const char *xStr_Reason) {}
+inline void EventWriteOrtcRtpListenerSsrcTableEntryUpdated(const char *xStr_Method, PUID xPUID, PUID xPUID_RtpReceiverObjectID, DWORD xDWORD_Ssrc, long long xlong_long_LastUsageSinceEpochInSeconds, const char *xStr_MuxID) {}
 
 }
 #endif //ndef ORTC_USE_NOOP_EVENT_TRACE_MACROS
