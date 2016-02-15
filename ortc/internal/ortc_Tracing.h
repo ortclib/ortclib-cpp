@@ -423,30 +423,87 @@
 #define EventWriteOrtcRtpSenderInternalDestroyChannelEventFired(xStr_Method, xPUID, xPUID_ChannelObjectID)
 #define EventWriteOrtcRtpSenderInternalChannelGoneEventFired(xStr_Method, xPUID)
 
-#define EventWriteOrtcRtpReceiverChannelCreate(xStr_Method, xPUID, xPUID_ReceiverObjectID, xPUID_TrackID) {}
-#define EventWriteOrtcRtpReceiverChannelDestroy(xStr_Method, xPUID) {}
+#define EventWriteOrtcRtpReceiverChannelCreate(xStr_Method, xPUID, xPUID_ReceiverObjectID, xPUID_TrackID)
+#define EventWriteOrtcRtpReceiverChannelDestroy(xStr_Method, xPUID)
 
-#define EventWriteOrtcRtpReceiverChannelCreateMediaChannel(xStr_Method, xPUID, xPUID_MediaChannelObjectID, xStr_Kind) {}
+#define EventWriteOrtcRtpReceiverChannelCreateMediaChannel(xStr_Method, xPUID, xPUID_MediaChannelObjectID, xStr_Kind)
 
-#define EventWriteOrtcRtpReceiverChannelDeliverIncomingPacketToMediaChannel(xStr_Method, xPUID, xPUID_MediaChannelObjectID, xUInt_PacketType, xPtr_Buffer, xsize_t_BufferSizeInBytes) {}
-#define EventWriteOrtcRtpReceiverChannelSendOutgoingPacket(xStr_Method, xPUID, xPUID_ReceiverObjectID, xUInt_PacketType, xPtr_Buffer, xsize_t_BufferSizeInBytes) {}
+#define EventWriteOrtcRtpReceiverChannelDeliverIncomingPacketToMediaChannel(xStr_Method, xPUID, xPUID_MediaChannelObjectID, xUInt_PacketType, xPtr_Buffer, xsize_t_BufferSizeInBytes)
+#define EventWriteOrtcRtpReceiverChannelSendOutgoingPacket(xStr_Method, xPUID, xPUID_ReceiverObjectID, xUInt_PacketType, xPtr_Buffer, xsize_t_BufferSizeInBytes)
 
-#define EventWriteOrtcRtpReceiverChannelInternalSecureTransportStateChangedEventFired(xStr_Method, xPUID, xStr_State) {}
+#define EventWriteOrtcRtpReceiverChannelInternalSecureTransportStateChangedEventFired(xStr_Method, xPUID, xStr_State)
 
-#define EventWriteOrtcRtpReceiverChannelInternalUpdateEventFired(xStr_Method, xPUID) {}
+#define EventWriteOrtcRtpReceiverChannelInternalUpdateEventFired(xStr_Method, xPUID)
 
-#define EventWriteOrtcRtpSenderChannelCreate(xStr_Method, xPUID, xPUID_SenderObjectID, xPUID_TrackID) {}
-#define EventWriteOrtcRtpSenderChannelDestroy(xStr_Method, xPUID) {}
+#define EventWriteOrtcRtpSenderChannelCreate(xStr_Method, xPUID, xPUID_SenderObjectID, xPUID_TrackID)
+#define EventWriteOrtcRtpSenderChannelDestroy(xStr_Method, xPUID)
 
-#define EventWriteOrtcRtpSenderChannelCreateMediaChannel(xStr_Method, xPUID, xPUID_MediaChannelObjectID, xStr_Kind) {}
-#define EventWriteOrtcRtpSenderChannelChangeTrack(xStr_Method, xPUID, xPUID_MediaChannelObjectID, xPUID_TrackObjectID) {}
+#define EventWriteOrtcRtpSenderChannelCreateMediaChannel(xStr_Method, xPUID, xPUID_MediaChannelObjectID, xStr_Kind)
+#define EventWriteOrtcRtpSenderChannelChangeTrack(xStr_Method, xPUID, xPUID_MediaChannelObjectID, xPUID_TrackObjectID)
 
-#define EventWriteOrtcRtpSenderChannelDeliverIncomingPacketToMediaChannel(xStr_Method, xPUID, xPUID_MediaChannelObjectID, xUInt_PacketType, xPtr_Buffer, xsize_t_BufferSizeInBytes) {}
-#define EventWriteOrtcRtpSenderChannelSendOutgoingPacket(xStr_Method, xPUID, xPUID_SenderObjectID, xUInt_PacketType, xPtr_Buffer, xsize_t_BufferSizeInBytes) {}
+#define EventWriteOrtcRtpSenderChannelDeliverIncomingPacketToMediaChannel(xStr_Method, xPUID, xPUID_MediaChannelObjectID, xUInt_PacketType, xPtr_Buffer, xsize_t_BufferSizeInBytes)
+#define EventWriteOrtcRtpSenderChannelSendOutgoingPacket(xStr_Method, xPUID, xPUID_SenderObjectID, xUInt_PacketType, xPtr_Buffer, xsize_t_BufferSizeInBytes)
 
-#define EventWriteOrtcRtpSenderChannelInternalSecureTransportStateChangedEventFired(xStr_Method, xPUID, xStr_State) {}
+#define EventWriteOrtcRtpSenderChannelInternalSecureTransportStateChangedEventFired(xStr_Method, xPUID, xStr_State)
 
-#define EventWriteOrtcRtpSenderChannelInternalUpdateEventFired(xStr_Method, xPUID) {}
+#define EventWriteOrtcRtpSenderChannelInternalUpdateEventFired(xStr_Method, xPUID)
+
+#define EventWriteOrtcSctpInitCreate(xStr_Method, xPUID)
+#define EventWriteOrtcSctpInitDestroy(xStr_Method, xPUID)
+#define EventWriteOrtcSctpInitCancel(xStr_Method, xPUID)
+
+#define EventWriteOrtcSctpTransportCreate(xStr_Method, xPUID, xPUID_SctpTransportListenerObjectID, xsize_t_MaxSessionsPerPort, xBool_Incoming, xWORD_LocalPort, xWORD_RemotePort)
+#define EventWriteOrtcSctpTransportDestroy(xStr_Method, xPUID)
+#define EventWriteOrtcSctpTransportCancel(xStr_Method, xPUID)
+#define EventWriteOrtcSctpTransportStep(xStr_Method, xPUID)
+
+#define EventWriteOrtcSctpTransportStart(xStr_Method, xPUID, xsize_t_RemoteMaxMessageSize, xWORD_RemoteMinPOrt, xWORD_RemoteMaxPort, xWORD_MaxUsablePorts, xWORD_MaxSessionsPerPort)
+#define EventWriteOrtcSctpTransportStop(xStr_Method, xPUID)
+
+#define EventWriteOrtcSctpTransportRegisterNewDataChannel(xStr_Method, xPUID, xPUID_DataChannelObjectID, xWORD_SessionID)
+
+#define EventWriteOrtcSctpTransportDataChannelEventFired(xStr_Method, xPUID, xPUID_DataChannelObjectID)
+#define EventWriteOrtcSctpTransportStateChangedEventFired(xStr_Method, xPUID, xStr_State)
+#define EventWriteOrtcSctpTransportErrorEventFired(xStr_Method, xPUID, xWORD_ErrorCode, xStr_Reason)
+
+#define EventWriteOrtcSctpTransportReceivedIncomingPacket(xStr_Method, xPUID, xWORD_SessionID, xWORD_SequenceNumber, xDWORD_Timestamp, xInt_Flags, xPtr_Buffer, xsize_t_BufferSizeInBytes)
+#define EventWriteOrtcSctpTransportDeliverIncomingPacket(xStr_Method, xPUID, xPUID_DataChannelObjectID, xWORD_SessionID, xWORD_SequenceNumber, xDWORD_Timestamp, xInt_Flags, xPtr_Buffer, xsize_t_BufferSizeInBytes)
+#define EventWriteOrtcSctpTransportSendOutgoingPacket(xStr_Method, xPUID, xWORD_SessionID, xBool_Ordered, xlong_long_MaxPacketLifeTimeInMilliseconds, xBool_HasMaxRetransmits, xDWORD_MaxRetransmits, xPtr_Buffer, xsize_t_BufferSizeInBytes)
+#define EventWriteOrtcSctpTransportShutdownDataChannel(xStr_Method, xPUID, xPUID_DataChannelObjectID, xWORD_SessionID)
+
+#define EventWriteOrtcSctpTransportReceivedIncomingDataPacket(xStr_Method, xPUID, xPtr_Buffer, xsize_t_BufferSizeInBytes)
+#define EventWriteOrtcSctpTransportBufferIncomingDataPacket(xStr_Method, xPUID, xPtr_Buffer, xsize_t_BufferSizeInBytes)
+#define EventWriteOrtcSctpTransportDisposeBufferedIncomingDataPacket(xStr_Method, xPUID, xPtr_Buffer, xsize_t_BufferSizeInBytes)
+#define EventWriteOrtcSctpTransportSendOutgoingDataPacket(xStr_Method, xPUID, xPUID_SecureTransportObjectID, xPtr_Buffer, xsize_t_BufferSizeInBytes)
+
+#define EventWriteOrtcSctpTransportInternalWakeEventFired(xStr_Method, xPUID)
+#define EventWriteOrtcSctpTransportInternalShutdownEventFired(xStr_Method, xPUID)
+#define EventWriteOrtcSctpTransportInternalSecureTransportStateChangedEventFired(xStr_Method, xPUID, xPUID_SecureTransportID, xStr_State)
+
+#define EventWriteOrtcSctpTransportListenerCreate(xStr_Method, xPUID, xsize_t_MaxPorts, xWORD_CurrentAllocationPort, xWORD_MinAllocationPort, xWORD_MaxAllocationPort)
+#define EventWriteOrtcSctpTransportListenerDestroy(xStr_Method, xPUID)
+#define EventWriteOrtcSctpTransportListenerCancel(xStr_Method, xPUID)
+#define EventWriteOrtcSctpTransportListenerStep(xStr_Method, xPUID)
+
+#define EventWriteOrtcSctpTransportListenerListen(xStr_Method, xPUID, xsize_t_RemoteMaxMessageSize, xWORD_MinPort, xWORD_MaxPort, xWORD_MaxUseablePorts, xWORD_MaxSessionsPerPort)
+#define EventWriteOrtcSctpTransportListenerRegisterNewTransport(xStr_Method, xPUID, xPUID_SecureTransportObjectID, xWORD_LocalPort, xWORD_RemotePort)
+
+#define EventWriteOrtcSctpTransportListenerSctpTransportCreatedEventFired(xStr_Method, xPUID, xPUID_SctpTransportObjectID, xWORD_LocalPort, xWORD_RemotePort)
+#define EventWriteOrtcSctpTransportListenerSctpTransportEventFired(xStr_Method, xPUID, xPUID_SctpTransportObjectID, xWORD_LocalPort, xRemotePort)
+#define EventWriteOrtcSctpTransportListenerSctpTransportShutdownEventFired(xStr_Method, xPUID, xPUID_SctpTransportObjectID, xWORD_LocalPort, xWORD_RemotePort)
+
+#define EventWriteOrtcSctpTransportListenerReceivedIncomingDataPacket(xStr_Method, xPUID, xPtr_Buffer, xsize_t_BufferSizeInBytes)
+#define EventWriteOrtcSctpTransportListenerDeliverIncomingDataPacket(xStr_Method, xPUID, xPUID_SctpTransportObjectID, xPtr_Buffer, xsize_t_BufferSizeInBytes)
+
+#define EventWriteOrtcSrtpTransportCreate(xStr_Method, xPUID, xPUID_SecureTransportObjectID)
+#define EventWriteOrtcSrtpTransportDestroy(xStr_Method, xPUID)
+
+#define EventWriteOrtcSrtpTransportInstallKeyingMaterial(xStr_Method, xPUID, xStr_Direction, xStr_KeyMethod, xStr_KeySalt, xStr_Lifetime, xStr_MkiValue, xWORD_MkiLength)
+#define EventWriteOrtcSrtoTransportReceivedIncomingEncryptedPacket(xStr_Method, xPUID, xUInt_ViaComponent, xUInt_PacketType, xPtr_Buffer, xsize_t_BufferSizeInBytes)
+#define EventWriteOrtcSrtoTransportDeliverIncomingDecryptedPacket(xStr_Method, xPUID, xPUID_SecureTransportObjectID, xUInt_ViaComponent, xUInt_PacketType, xPtr_Buffer, xsize_t_BufferSizeInBytes)
+
+#define EventWriteOrtcSrtoTransportSendOutgoingPacketAndEncrypt(xStr_Method, xPUID, xUInt_SendOverComponent, xUInt_PacketType, xPtr_Buffer, xsize_t_BufferSizeInBytes)
+#define EventWriteOrtcSrtoTransportSendOutgoingEncryptedPacketViaSecureTransport(xStr_Method, xPUID, xPUID_SecureTransportObjectID, xUInt_SendOverComponent, xUInt_PacketType, xPtr_Buffer, xsize_t_BufferSizeInBytes)
 
 #else
 
@@ -858,6 +915,63 @@ inline void EventWriteOrtcRtpSenderChannelSendOutgoingPacket(const char *xStr_Me
 inline void EventWriteOrtcRtpSenderChannelInternalSecureTransportStateChangedEventFired(const char *xStr_Method, PUID xPUID, const char *xStr_State) {}
 
 inline void EventWriteOrtcRtpSenderChannelInternalUpdateEventFired(const char *xStr_Method, PUID xPUID) {}
+
+inline void EventWriteOrtcSctpInitCreate(const char *xStr_Method, PUID xPUID) {}
+inline void EventWriteOrtcSctpInitDestroy(const char *xStr_Method, PUID xPUID) {}
+inline void EventWriteOrtcSctpInitCancel(const char *xStr_Method, PUID xPUID) {}
+
+inline void EventWriteOrtcSctpTransportCreate(const char *xStr_Method, PUID xPUID, PUID xPUID_SctpTransportListenerObjectID, size_t xsize_t_MaxSessionsPerPort, bool xBool_Incoming, WORD xWORD_LocalPort, WORD xWORD_RemotePort) {}
+inline void EventWriteOrtcSctpTransportDestroy(const char *xStr_Method, PUID xPUID) {}
+inline void EventWriteOrtcSctpTransportCancel(const char *xStr_Method, PUID xPUID) {}
+inline void EventWriteOrtcSctpTransportStep(const char *xStr_Method, PUID xPUID) {}
+
+inline void EventWriteOrtcSctpTransportStart(const char *xStr_Method, PUID xPUID, size_t xsize_t_RemoteMaxMessageSize, WORD xWORD_RemoteMinPOrt, WORD xWORD_RemoteMaxPort, WORD xWORD_MaxUsablePorts, WORD xWORD_MaxSessionsPerPort) {}
+inline void EventWriteOrtcSctpTransportStop(const char *xStr_Method, PUID xPUID) {}
+
+inline void EventWriteOrtcSctpTransportRegisterNewDataChannel(const char *xStr_Method, PUID xPUID, PUID xPUID_DataChannelObjectID, WORD xWORD_SessionID) {}
+
+inline void EventWriteOrtcSctpTransportDataChannelEventFired(const char *xStr_Method, PUID xPUID, PUID xPUID_DataChannelObjectID) {}
+inline void EventWriteOrtcSctpTransportStateChangedEventFired(const char *xStr_Method, PUID xPUID, const char *xStr_State) {}
+inline void EventWriteOrtcSctpTransportErrorEventFired(const char *xStr_Method, PUID xPUID, WORD xWORD_ErrorCode, const char *xStr_Reason) {}
+
+inline void EventWriteOrtcSctpTransportReceivedIncomingPacket(const char *xStr_Method, PUID xPUID, WORD xWORD_SessionID, WORD xWORD_SequenceNumber, DWORD xDWORD_Timestamp, int xInt_Flags, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
+inline void EventWriteOrtcSctpTransportDeliverIncomingPacket(const char *xStr_Method, PUID xPUID, PUID xPUID_DataChannelObjectID, WORD xWORD_SessionID, WORD xWORD_SequenceNumber, DWORD xDWORD_Timestamp, int xInt_Flags, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
+inline void EventWriteOrtcSctpTransportSendOutgoingPacket(const char *xStr_Method, PUID xPUID, WORD xWORD_SessionID, bool xBool_Ordered, long long xlong_long_MaxPacketLifeTimeInMilliseconds, bool xBool_HasMaxRetransmits, DWORD xDWORD_MaxRetransmits, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
+inline void EventWriteOrtcSctpTransportShutdownDataChannel(const char *xStr_Method, PUID xPUID, PUID xPUID_DataChannelObjectID, WORD xWORD_SessionID) {}
+
+inline void EventWriteOrtcSctpTransportReceivedIncomingDataPacket(const char *xStr_Method, PUID xPUID, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
+inline void EventWriteOrtcSctpTransportBufferIncomingDataPacket(const char *xStr_Method, PUID xPUID, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
+inline void EventWriteOrtcSctpTransportDisposeBufferedIncomingDataPacket(const char *xStr_Method, PUID xPUID, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
+inline void EventWriteOrtcSctpTransportSendOutgoingDataPacket(const char *xStr_Method, PUID xPUID, PUID xPUID_SecureTransportObjectID, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
+
+inline void EventWriteOrtcSctpTransportInternalWakeEventFired(const char *xStr_Method, PUID xPUID) {}
+inline void EventWriteOrtcSctpTransportInternalShutdownEventFired(const char *xStr_Method, PUID xPUID) {}
+inline void EventWriteOrtcSctpTransportInternalSecureTransportStateChangedEventFired(const char *xStr_Method, PUID xPUID, PUID xPUID_SecureTransportID, const char *xStr_State) {}
+
+inline void EventWriteOrtcSctpTransportListenerCreate(const char *xStr_Method, PUID xPUID, size_t xsize_t_MaxPorts, WORD xWORD_CurrentAllocationPort, WORD xWORD_MinAllocationPort, WORD xWORD_MaxAllocationPort) {}
+inline void EventWriteOrtcSctpTransportListenerDestroy(const char *xStr_Method, PUID xPUID) {}
+inline void EventWriteOrtcSctpTransportListenerCancel(const char *xStr_Method, PUID xPUID) {}
+inline void EventWriteOrtcSctpTransportListenerStep(const char *xStr_Method, PUID xPUID) {}
+
+inline void EventWriteOrtcSctpTransportListenerListen(const char *xStr_Method, PUID xPUID, size_t xsize_t_RemoteMaxMessageSize, WORD xWORD_MinPort, WORD xWORD_MaxPort, WORD xWORD_MaxUseablePorts, WORD xWORD_MaxSessionsPerPort) {}
+inline void EventWriteOrtcSctpTransportListenerRegisterNewTransport(const char *xStr_Method, PUID xPUID, PUID xPUID_SecureTransportObjectID, WORD xWORD_LocalPort, WORD xWORD_RemotePort) {}
+
+inline void EventWriteOrtcSctpTransportListenerSctpTransportCreatedEventFired(const char *xStr_Method, PUID xPUID, PUID xPUID_SctpTransportObjectID, WORD xWORD_LocalPort, WORD xWORD_RemotePort) {}
+inline void EventWriteOrtcSctpTransportListenerSctpTransportEventFired(const char *xStr_Method, PUID xPUID, PUID xPUID_SctpTransportObjectID, WORD xWORD_LocalPort, WORD xWORD_RemotePort) {}
+inline void EventWriteOrtcSctpTransportListenerSctpTransportShutdownEventFired(const char *xStr_Method, PUID xPUID, PUID xPUID_SctpTransportObjectID, WORD xWORD_LocalPort, WORD xWORD_RemotePort) {}
+
+inline void EventWriteOrtcSctpTransportListenerReceivedIncomingDataPacket(const char *xStr_Method, PUID xPUID, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
+inline void EventWriteOrtcSctpTransportListenerDeliverIncomingDataPacket(const char *xStr_Method, PUID xPUID, PUID xPUID_SctpTransportObjectID, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
+
+inline void EventWriteOrtcSrtpTransportCreate(const char *xStr_Method, PUID xPUID, PUID xPUID_SecureTransportObjectID) {}
+inline void EventWriteOrtcSrtpTransportDestroy(const char *xStr_Method, PUID xPUID) {}
+
+inline void EventWriteOrtcSrtpTransportInstallKeyingMaterial(const char *xStr_Method, PUID xPUID, const char *xStr_Direction, const char *xStr_KeyMethod, const char *xStr_KeySalt, const char *xStr_Lifetime, const char *xStr_MkiValue, WORD xWORD_MkiLength) {}
+inline void EventWriteOrtcSrtoTransportReceivedIncomingEncryptedPacket(const char *xStr_Method, PUID xPUID, unsigned int xUInt_ViaComponent, unsigned int xUInt_PacketType, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
+inline void EventWriteOrtcSrtoTransportDeliverIncomingDecryptedPacket(const char *xStr_Method, PUID xPUID, PUID xPUID_SecureTransportObjectID, unsigned int xUInt_ViaComponent, unsigned int xUInt_PacketType, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
+
+inline void EventWriteOrtcSrtoTransportSendOutgoingPacketAndEncrypt(const char *xStr_Method, PUID xPUID, unsigned int xUInt_SendOverComponent, unsigned int xUInt_PacketType, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
+inline void EventWriteOrtcSrtoTransportSendOutgoingEncryptedPacketViaSecureTransport(const char *xStr_Method, PUID xPUID, PUID xPUID_SecureTransportObjectID, unsigned int xUInt_SendOverComponent, unsigned int xUInt_PacketType, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
 
 }
 #endif //ndef ORTC_USE_NOOP_EVENT_TRACE_MACROS

@@ -33,6 +33,7 @@
 #include <ortc/internal/ortc_SCTPTransport.h>
 #include <ortc/internal/ortc_DTLSTransport.h>
 #include <ortc/internal/ortc_ORTC.h>
+#include <ortc/internal/ortc_Tracing.h>
 #include <ortc/internal/platform.h>
 
 #include <openpeer/services/ISettings.h>
@@ -251,6 +252,8 @@ namespace ortc
     {
       ORTC_THROW_INVALID_PARAMETERS_IF(!secureTransport)
 
+      EventWriteOrtcSctpTransportListenerCreate(__func__, mID, mMaxPorts, mCurrentAllocationPort, mMinAllocationPort, mMaxAllocationPort);
+
       ZS_LOG_DETAIL(debug("created"))
     }
 
@@ -270,6 +273,7 @@ namespace ortc
       mThisWeak.reset();
 
       cancel();
+      EventWriteOrtcSctpTransportListenerDestroy(__func__, mID);
     }
 
     //-------------------------------------------------------------------------
@@ -336,6 +340,16 @@ namespace ortc
       auto listener = SCTPTransportListener::convert(dataTransport);
       ORTC_THROW_INVALID_STATE_IF(!listener)
 
+      EventWriteOrtcSctpTransportListenerListen(
+                                                __func__,
+                                                listener->getID(),
+                                                remoteCapabilities.mMaxMessageSize,
+                                                remoteCapabilities.mMinPort,
+                                                remoteCapabilities.mMaxPort,
+                                                remoteCapabilities.mMaxUsablePorts,
+                                                remoteCapabilities.mMaxSessionsPerPort
+                                                );
+
       return listener->subscribe(delegate, remoteCapabilities);
     }
 
@@ -399,6 +413,8 @@ namespace ortc
 
             ioLocalPort = localPort;
             ioRemotePort = remotePort;
+
+            EventWriteOrtcSctpTransportListenerRegisterNewTransport(__func__, mID, secureTransport->getID(), ioLocalPort, ioRemotePort);
             ZS_LOG_DEBUG(log("found existing transport") + ZS_PARAM("transport", ioTransport->getID()) + ZS_PARAM("local port", localPort) + ZS_PARAM("remote port", remotePort) + ZS_PARAM("tuple id", tupleID))
             return;
           }
@@ -416,6 +432,7 @@ namespace ortc
           ioLocalPort = localPort;
           ioRemotePort = remotePort;
           mTransports[tupleID] = ioTransport;
+          EventWriteOrtcSctpTransportListenerRegisterNewTransport(__func__, mID, secureTransport->getID(), ioLocalPort, ioRemotePort);
           return;
         }
 
@@ -438,6 +455,7 @@ namespace ortc
 
         DWORD tupleID = UseListenerHelper::createTuple(localPort, remotePort);
 
+        EventWriteOrtcSctpTransportListenerRegisterNewTransport(__func__, mID, secureTransport->getID(), ioLocalPort, ioRemotePort);
         ZS_LOG_DEBUG(log("registered local/remote port pairing") + ZS_PARAM("transport", ioTransport->getID()) + ZS_PARAM("local port", localPort) + ZS_PARAM("remote port", remotePort) + ZS_PARAM("tuple id", tupleID))
 
         mTransports[tupleID] = ioTransport;
@@ -465,6 +483,8 @@ namespace ortc
         return;
       }
 
+      EventWriteOrtcSctpTransportListenerSctpTransportEventFired(__func__, mID, transport->getID(), localPort, remotePort);
+
       ZS_LOG_DEBUG(log("announcing incoming transport") + ZS_PARAM("transport", transport->getID()))
 
       mSubscriptions.delegate()->onSCTPTransport(SCTPTransport::convert(transport));
@@ -479,6 +499,8 @@ namespace ortc
                                                WORD remotePort
                                                )
     {
+      EventWriteOrtcSctpTransportListenerSctpTransportShutdownEventFired(__func__, mID, transport.getID(), localPort, remotePort);
+
       AutoRecursiveLock lock(*this);
 
       if (isShutdown()) {
@@ -538,6 +560,7 @@ namespace ortc
                                                  size_t bufferLengthInBytes
                                                  )
     {
+      EventWriteOrtcSctpTransportListenerReceivedIncomingDataPacket(__func__, mID, buffer, bufferLengthInBytes);
       if (bufferLengthInBytes < sizeof(DWORD)) {
         ZS_LOG_WARNING(Trace, log("packet length is too small to be an SCTP packet"))
         return false;
@@ -563,6 +586,7 @@ namespace ortc
             ZS_LOG_WARNING(Debug, log("unable to create sctp transport"))
             return false;
           }
+          EventWriteOrtcSctpTransportListenerSctpTransportCreatedEventFired(__func__, mID, transport->getID(), localPort, remotePort);
           if (mRemoteCapabilities) {
             transport->start(*mRemoteCapabilities);
           } else {
@@ -576,6 +600,7 @@ namespace ortc
         }
       }
 
+      EventWriteOrtcSctpTransportListenerDeliverIncomingDataPacket(__func__, mID, transport->getID(), buffer, bufferLengthInBytes);
       return transport->handleDataPacket(buffer, bufferLengthInBytes);
     }
 
@@ -695,6 +720,8 @@ namespace ortc
         return;
       }
 
+      EventWriteOrtcSctpTransportListenerStep(__func__, mID);
+
       // ... other steps here ...
       // ... other steps here ...
 
@@ -717,6 +744,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     void SCTPTransportListener::cancel()
     {
+      EventWriteOrtcSctpTransportListenerCancel(__func__, mID);
       //.......................................................................
       // try to gracefully shutdown
 
