@@ -39,7 +39,7 @@
 #else
 
 // Comment the following line to test inline versions of the same macros to test compilation
-//#define ORTC_USE_NOOP_EVENT_TRACE_MACROS
+#define ORTC_USE_NOOP_EVENT_TRACE_MACROS
 
 // NO-OP VERSIONS OF ALL TRACING MACROS
 #ifdef ORTC_USE_NOOP_EVENT_TRACE_MACROS
@@ -337,12 +337,12 @@
 #define EventWriteOrtcRtpListenerSsrcTableEntryRemoved(xStr_Method, xPUID, xPUID_RtpReceiverObjectID, xDWORD_Ssrc, xlong_long_LastUsageSinceEpochInSeconds, xStr_MuxID, xStr_Reason)
 #define EventWriteOrtcRtpListenerSsrcTableEntryUpdated(xStr_Method, xPUID, xPUID_RtpReceiverObjectID, xDWORD_Ssrc, xlong_long_LastUsageSinceEpochInSeconds, xStr_MuxID)
 
-#define EventWriteOrtcRtpReceiverCreate(xStr_Method, xPUID, xsize_t_MaxBufferedRtpPackets, xlong_long_MaxRTPPacketAgeInSeconds, xlong_long_LockAfterSwitchTimeInMilliseconds, xlong_long_AmbigousPayloadMappingMinDifferenceInMilliseconds, xlong_long_SSRCTableExpiresInSeconds, xlong_long_ContributingSourcesExpiry)
+#define EventWriteOrtcRtpReceiverCreate(xStr_Method, xPUID, xPUID_RtpListenerObjectID, xPUID_RtpTransportObjectID, xPUID_RtcpTransportObjectID, xsize_t_MaxBufferedRtpPackets, xlong_long_MaxRTPPacketAgeInSeconds, xlong_long_LockAfterSwitchTimeInMilliseconds, xlong_long_AmbigousPayloadMappingMinDifferenceInMilliseconds, xlong_long_SSRCTableExpiresInSeconds, xlong_long_ContributingSourcesExpiry)
 #define EventWriteOrtcRtpReceiverDestroy(xStr_Method, xPUID)
 #define EventWriteOrtcRtpReceiverStep(xStr_Method, xPUID)
 #define EventWriteOrtcRtpReceiverCancel(xStr_Method, xPUID)
 
-#define EventWriteOrtcRtpReceiverSetTransport(xStr_Method, xPUID, xPUID_RtpTransportObjectID, xPUID_RtcpTransportObjectID)
+#define EventWriteOrtcRtpReceiverSetTransport(xStr_Method, xPUID, xPUID_RtpListenerObjectID, xPUID_RtpTransportObjectID, xPUID_RtcpTransportObjectID)
 
 #define EventWriteOrtcRtpReceiverReportRtcpFeedback(xStr_Method, xStr_Type, xStr_Parameter)
 #define EventWriteOrtcRtpReceiverReportCodec(xStr_Method, xStr_Name, xStr_Kind, xunsigned_long_CodecRate, xBYTE_PreferredPayloadType, xunsigned_long_MaxPTime, xunsigned_long_NumChannels)
@@ -389,6 +389,39 @@
 #define EventWriteOrtcRtpReceiverUnhandledEventFired(xStr_Method, xPUID, xStr_MuxID, xStr_Rid, xDWORD_Ssrc, xBYTE_PayloadType)
 
 #define EventWriteOrtcRtpReceiverTrackActiveChannelChangedEventFired(xStr_Method, xPUID, xPUID_TrackObjectID, xPUID_ChannelObjectID)
+
+#define EventWriteOrtcRtpSenderCreate(xStr_Method, xPUID, xPUID_TrackID, xPUID_RtpListenerObjectID, xPUID_RtpTransportObjectID, xPUID_RtcpTransportObjectID)
+#define EventWriteOrtcRtpSenderDestroy(xStr_Method, xPUID)
+#define EventWriteOrtcRtpSenderCancel(xStr_Method, xPUID)
+
+#define EventWriteOrtcRtpSenderSetTransport(xStr_Method, xPUID, xPUID_RtpListenerObjectID, xPUID_RtpTransportObjectID, xPUID_RtcpTransportObjectID)
+#define EventWriteOrtcRtpSenderSetTrack(xStr_Method, xPUID, xPUID_TrackID, xStr_Kind)
+
+#define EventWriteOrtcRtpSenderAttachTrackSenderChannel(xStr_Method, xPUID, xPUID_TrackID, xPUID_ChannelObjectID)
+#define EventWriteOrtcRtpSenderDetachTrackSenderChannel(xStr_Method, xPUID, xPUID_TrackID, xPUID_ChannelObjectID)
+
+#define EventWriteOrtcRtpSenderSender(xStr_Method, xPUID)
+#define EventWriteOrtcRtpSenderStop(xStr_Method, xPUID)
+
+#define EventWriteOrtcRtpSenderStateChangedEventFired(xStr_Method, xPUID, xStr_State)
+#define EventWriteOrtcRtpSenderErrorEventFired(xStr_Method, xPUID, xWORD_Error, xStr_Reason)
+
+#define EventWriteOrtcRtpSenderAddChannel(xStr_Method, xPUID, xPUID_ChannelID)
+#define EventWriteOrtcRtpSenderUpdateChannel(xStr_Method, xPUID, xPUID_ChannelID)
+#define EventWriteOrtcRtpSenderRemoveChannel(xStr_Method, xPUID, xPUID_ChannelID)
+
+#define EventWriteOrtcRtpSenderIncomingPacket(xStr_Method, xPUID, xUInt_ViaTransport, xUInt_PacketType, xPtr_Buffer, xsize_t_PacketSizeInBytes)
+#define EventWriteOrtcRtpSenderDeliverIncomingPacketToChannel(xStr_Method, xPUID, xPUID_ChannelObjectID, xUInt_ViaTransport, xUInt_PacketType, xPtr_Buffer, xsize_t_PacketSizeInBytes)
+
+#define EventWriteOrtcRtpSenderSendOutgoingPacket(xStr_Method, xPUID, xUInt_ViaTransport, xUInt_PacketType, xPtr_Buffer, xsize_t_PacketSizeInBytes)
+
+#define EventWriteOrtcRtpSenderSsrcConflictEventFired(xStr_Method, xPUID, xPUID_ChannelObjectID, xDWORD_Ssrc, xBool_SelfDestructChannel)
+#define EventWriteOrtcRtpSenderChannelErrorEventFired(xStr_Method, xPUID, xPUID_ChannelObjectID, xWORD_Error, xStr_Reason, xBool_SelfDestructChannel)
+
+#define EventWriteOrtcRtpSenderInternalSecureTransportStateChangedEventFired(xStr_Method, xPUID, xPUID_SecureTransportObjectID, xStr_State)
+#define EventWriteOrtcRtpSenderInternalWakeEventFired(xStr_Method, xPUID)
+#define EventWriteOrtcRtpSenderInternalDestroyChannelEventFired(xStr_Method, xPUID, xPUID_ChannelObjectID)
+#define EventWriteOrtcRtpSenderInternalChannelGoneEventFired(xStr_Method, xPUID)
 
 
 #else
@@ -690,12 +723,12 @@ inline void EventWriteOrtcRtpListenerSsrcTableEntryAdded(const char *xStr_Method
 inline void EventWriteOrtcRtpListenerSsrcTableEntryRemoved(const char *xStr_Method, PUID xPUID, PUID xPUID_RtpReceiverObjectID, DWORD xDWORD_Ssrc, long long xlong_long_LastUsageSinceEpochInSeconds, const char *xStr_MuxID, const char *xStr_Reason) {}
 inline void EventWriteOrtcRtpListenerSsrcTableEntryUpdated(const char *xStr_Method, PUID xPUID, PUID xPUID_RtpReceiverObjectID, DWORD xDWORD_Ssrc, long long xlong_long_LastUsageSinceEpochInSeconds, const char *xStr_MuxID) {}
 
-inline void EventWriteOrtcRtpReceiverCreate(const char *xStr_Method, PUID xPUID, size_t xsize_t_MaxBufferedRtpPackets, long long xlong_long_MaxRTPPacketAgeInSeconds, long long xlong_long_LockAfterSwitchTimeInMilliseconds, long long xlong_long_AmbigousPayloadMappingMinDifferenceInMilliseconds, long long xlong_long_SSRCTableExpiresInSeconds, long long xlong_long_ContributingSourcesExpiry) {}
+inline void EventWriteOrtcRtpReceiverCreate(const char *xStr_Method, PUID xPUID, PUID xPUID_RtpListenerObjectID, PUID xPUID_RtpTransportObjectID, PUID xPUID_RtcpTransportObjectID, size_t xsize_t_MaxBufferedRtpPackets, long long xlong_long_MaxRTPPacketAgeInSeconds, long long xlong_long_LockAfterSwitchTimeInMilliseconds, long long xlong_long_AmbigousPayloadMappingMinDifferenceInMilliseconds, long long xlong_long_SSRCTableExpiresInSeconds, long long xlong_long_ContributingSourcesExpiry) {}
 inline void EventWriteOrtcRtpReceiverDestroy(const char *xStr_Method, PUID xPUID) {}
 inline void EventWriteOrtcRtpReceiverStep(const char *xStr_Method, PUID xPUID) {}
 inline void EventWriteOrtcRtpReceiverCancel(const char *xStr_Method, PUID xPUID) {}
 
-inline void EventWriteOrtcRtpReceiverSetTransport(const char *xStr_Method, PUID xPUID, PUID xPUID_RtpTransportObjectID, PUID xPUID_RtcpTransportObjectID) {}
+inline void EventWriteOrtcRtpReceiverSetTransport(const char *xStr_Method, PUID xPUID, PUID xPUID_RtpListenerObjectID, PUID xPUID_RtpTransportObjectID, PUID xPUID_RtcpTransportObjectID) {}
 
 inline void EventWriteOrtcRtpReceiverReportRtcpFeedback(const char *xStr_Method, const char *xStr_Type, const char *xStr_Parameter) {}
 inline void EventWriteOrtcRtpReceiverReportCodec(const char *xStr_Method, const char *xStr_Name, const char *xStr_Kind, unsigned long xunsigned_long_CodecRate, BYTE xBYTE_PreferredPayloadType, unsigned long xunsigned_long_MaxPTime, unsigned long xunsigned_long_NumChannels) {}
@@ -742,6 +775,39 @@ inline void EventWriteOrtcRtpReceiverCloseChannel(const char *xStr_Method, PUID 
 inline void EventWriteOrtcRtpReceiverUnhandledEventFired(const char *xStr_Method, PUID xPUID, const char *xStr_MuxID, const char *xStr_Rid, DWORD xDWORD_Ssrc, BYTE xBYTE_PayloadType) {}
 
 inline void EventWriteOrtcRtpReceiverTrackActiveChannelChangedEventFired(const char *xStr_Method, PUID xPUID, PUID xPUID_TrackObjectID, PUID xPUID_ChannelObjectID) {}
+
+inline void EventWriteOrtcRtpSenderCreate(const char *xStr_Method, PUID xPUID, PUID xPUID_TrackID, PUID xPUID_RtpListenerObjectID, PUID xPUID_RtpTransportObjectID, PUID xPUID_RtcpTransportObjectID) {}
+inline void EventWriteOrtcRtpSenderDestroy(const char *xStr_Method, PUID xPUID) {}
+inline void EventWriteOrtcRtpSenderCancel(const char *xStr_Method, PUID xPUID) {}
+
+inline void EventWriteOrtcRtpSenderSetTransport(const char *xStr_Method, PUID xPUID, PUID xPUID_RtpListenerObjectID, PUID xPUID_RtpTransportObjectID, PUID xPUID_RtcpTransportObjectID) {}
+inline void EventWriteOrtcRtpSenderSetTrack(const char *xStr_Method, PUID xPUID, PUID xPUID_TrackID, const char *xStr_Kind) {}
+
+inline void EventWriteOrtcRtpSenderAttachTrackSenderChannel(const char *xStr_Method, PUID xPUID, PUID xPUID_TrackID, PUID xPUID_ChannelObjectID) {}
+inline void EventWriteOrtcRtpSenderDetachTrackSenderChannel(const char *xStr_Method, PUID xPUID, PUID xPUID_TrackID, PUID xPUID_ChannelObjectID) {}
+
+inline void EventWriteOrtcRtpSenderSender(const char *xStr_Method, PUID xPUID) {}
+inline void EventWriteOrtcRtpSenderStop(const char *xStr_Method, PUID xPUID) {}
+
+inline void EventWriteOrtcRtpSenderStateChangedEventFired(const char *xStr_Method, PUID xPUID, const char *xStr_State) {}
+inline void EventWriteOrtcRtpSenderErrorEventFired(const char *xStr_Method, PUID xPUID, WORD xWORD_Error, const char *xStr_Reason) {}
+
+inline void EventWriteOrtcRtpSenderAddChannel(const char *xStr_Method, PUID xPUID, PUID xPUID_ChannelID) {}
+inline void EventWriteOrtcRtpSenderUpdateChannel(const char *xStr_Method, PUID xPUID, PUID xPUID_ChannelID) {}
+inline void EventWriteOrtcRtpSenderRemoveChannel(const char *xStr_Method, PUID xPUID, PUID xPUID_ChannelID) {}
+
+inline void EventWriteOrtcRtpSenderIncomingPacket(const char *xStr_Method, PUID xPUID, unsigned int xUInt_ViaTransport, unsigned int xUInt_PacketType, const void *xPtr_Buffer, size_t xsize_t_PacketSizeInBytes) {}
+inline void EventWriteOrtcRtpSenderDeliverIncomingPacketToChannel(const char *xStr_Method, PUID xPUID, PUID xPUID_ChannelObjectID, unsigned int xUInt_ViaTransport, unsigned int xUInt_PacketType, const void *xPtr_Buffer, size_t xsize_t_PacketSizeInBytes) {}
+
+inline void EventWriteOrtcRtpSenderSendOutgoingPacket(const char *xStr_Method, PUID xPUID, unsigned int xUInt_ViaTransport, unsigned int xUInt_PacketType, const void *xPtr_Buffer, size_t xsize_t_PacketSizeInBytes) {}
+
+inline void EventWriteOrtcRtpSenderSsrcConflictEventFired(const char *xStr_Method, PUID xPUID, PUID xPUID_ChannelObjectID, DWORD xDWORD_Ssrc, bool xBool_SelfDestructChannel) {}
+inline void EventWriteOrtcRtpSenderChannelErrorEventFired(const char *xStr_Method, PUID xPUID, PUID xPUID_ChannelObjectID, WORD xWORD_Error, const char *xStr_Reason, bool xBool_SelfDestructChannel) {}
+
+inline void EventWriteOrtcRtpSenderInternalSecureTransportStateChangedEventFired(const char *xStr_Method, PUID xPUID, PUID xPUID_SecureTransportObjectID, const char *xStr_State) {}
+inline void EventWriteOrtcRtpSenderInternalWakeEventFired(const char *xStr_Method, PUID xPUID) {}
+inline void EventWriteOrtcRtpSenderInternalDestroyChannelEventFired(const char *xStr_Method, PUID xPUID, PUID xPUID_ChannelObjectID) {}
+inline void EventWriteOrtcRtpSenderInternalChannelGoneEventFired(const char *xStr_Method, PUID xPUID) {}
 
 }
 #endif //ndef ORTC_USE_NOOP_EVENT_TRACE_MACROS

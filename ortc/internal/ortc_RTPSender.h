@@ -457,12 +457,6 @@ namespace ortc
       void setState(States state);
       void setError(WORD error, const char *reason = NULL);
 
-      bool sendPacket(
-                      IICETypes::Components packetType,
-                      const BYTE *buffer,
-                      size_t bufferSizeInBytes
-                      );
-
       ChannelHolderPtr addChannel(ParametersPtr newParams);
       void updateChannel(
                          ChannelHolderPtr channel,

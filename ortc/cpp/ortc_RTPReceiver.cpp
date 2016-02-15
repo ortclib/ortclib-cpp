@@ -437,9 +437,19 @@ namespace ortc
       mSSRCTableExpires(Seconds(UseSettings::getUInt(ORTC_SETTING_RTP_RECEIVER_SSRC_TIMEOUT_IN_SECONDS))),
       mContributingSourcesExpiry(Seconds(UseSettings::getUInt(ORTC_SETTING_RTP_RECEIVER_CSRC_EXPIRY_TIME_IN_SECONDS)))
     {
+      ZS_LOG_DETAIL(debug("created"))
+
+      mListener = UseListener::getListener(transport);
+      ORTC_THROW_INVALID_PARAMETERS_IF(!mListener)
+
+      UseSecureTransport::getReceivingTransport(transport, rtcpTransport, mReceiveRTPOverTransport, mReceiveRTCPOverTransport, mRTPTransport, mRTCPTransport);
+
       EventWriteOrtcRtpReceiverCreate(
                                       __func__,
                                       mID,
+                                      ((bool)mListener) ? mListener->getID() : 0,
+                                      ((bool)mRTPTransport) ? mRTPTransport->getID() : 0,
+                                      ((bool)mRTCPTransport) ? mRTCPTransport->getID() : 0,
                                       mMaxBufferedRTPPackets,
                                       mMaxRTPPacketAge.count(),
                                       mLockAfterSwitchTime.count(),
@@ -447,12 +457,6 @@ namespace ortc
                                       mSSRCTableExpires.count(),
                                       mContributingSourcesExpiry.count()
                                       );
-      ZS_LOG_DETAIL(debug("created"))
-
-      mListener = UseListener::getListener(transport);
-      ORTC_THROW_INVALID_PARAMETERS_IF(!mListener)
-
-      UseSecureTransport::getReceivingTransport(transport, rtcpTransport, mReceiveRTPOverTransport, mReceiveRTCPOverTransport, mRTPTransport, mRTCPTransport);
     }
 
     //-------------------------------------------------------------------------
@@ -687,7 +691,7 @@ namespace ortc
 
       mRTCPTransportSubscription = mRTCPTransport->subscribe(mThisWeak.lock());
 
-      EventWriteOrtcRtpReceiverSetTransport(__func__, mID, ((bool)mRTPTransport) ? mRTPTransport->getID() : 0, ((bool)mRTCPTransport) ? mRTCPTransport->getID() : 0);
+      EventWriteOrtcRtpReceiverSetTransport(__func__, mID, ((bool)mListener) ? mListener->getID() : 0, ((bool)mRTPTransport) ? mRTPTransport->getID() : 0, ((bool)mRTCPTransport) ? mRTCPTransport->getID() : 0);
 
       notifyChannelsOfTransportState();
     }
