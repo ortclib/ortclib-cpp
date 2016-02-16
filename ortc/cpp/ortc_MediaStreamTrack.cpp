@@ -55,6 +55,8 @@
 #include <cryptopp/sha.h>
 
 #include <limits>
+#include <float.h>
+#include <math.h>
 
 #include <webrtc/modules/video_capture/include/video_capture_factory.h>
 #include <webrtc/modules/audio_device/audio_device_impl.h>
@@ -175,45 +177,124 @@ namespace ortc
         if (!info) {
           return;
         }
-
-        LONG desiredWidth = mConstraints->mAdvanced.front()->mWidth.mValue.value();
-        LONG desiredHeight = mConstraints->mAdvanced.front()->mHeight.mValue.value();
-        DOUBLE desiredMaxFPS = mConstraints->mAdvanced.front()->mFrameRate.mValue.value();
-        LONG minWidthDiff = std::numeric_limits<LONG>::max();
-        LONG minHeightDiff = std::numeric_limits<LONG>::max();
-        DOUBLE minFpsDiff = std::numeric_limits<double>::max();
-        webrtc::VideoCaptureCapability bestCap;
-        int32_t numCaps = info->NumberOfCapabilities(videoDeviceID.c_str());
-        for (int32_t i = 0; i < numCaps; ++i) {
-          webrtc::VideoCaptureCapability cap;
-          if (info->GetCapability(videoDeviceID.c_str(), i, cap) != -1) {
-            if (cap.rawType == webrtc::kVideoMJPEG || cap.rawType == webrtc::kVideoUnknown)
-              continue;
-            LONG widthDiff = abs((LONG)(cap.width - desiredWidth));
-            LONG heightDiff = abs((LONG)(cap.height - desiredHeight));
-            DOUBLE fpsDiff = abs((DOUBLE)(cap.maxFPS - desiredMaxFPS));
-            if (widthDiff < minWidthDiff) {
-              bestCap = cap;
-              minWidthDiff = widthDiff;
-              minHeightDiff = heightDiff;
-              minFpsDiff = fpsDiff;
-            } else if (widthDiff == minWidthDiff) {
-              if (heightDiff < minHeightDiff) {
-                bestCap = cap;
-                minHeightDiff = heightDiff;
-                minFpsDiff = fpsDiff;
-              } else if (heightDiff == minHeightDiff) {
-                if (fpsDiff < minFpsDiff) {
-                  bestCap = cap;
-                  minFpsDiff = fpsDiff;
-                }
-              }
-            }
-          }
+        
+        std::list<VideoCaptureCapabilityWithDistance> capabilityCandidates;
+        int32_t numCapabilities = info->NumberOfCapabilities(videoDeviceID.c_str());
+        for (INT i = 0; i < numCapabilities; ++i) {
+          webrtc::VideoCaptureCapability capability;
+          if (info->GetCapability(videoDeviceID.c_str(), i, capability) == -1)
+            continue;
+          ConstrainLongRange widthRange;
+          ConstrainLongRange heightRange;
+          if (mConstraints->mWidth.mValue.hasValue())
+            widthRange.mIdeal = mConstraints->mWidth.mValue.value();
+          if (mConstraints->mHeight.mValue.hasValue())
+            heightRange.mIdeal = mConstraints->mHeight.mValue.value();
+          if (mConstraints->mWidth.mRange.hasValue())
+            widthRange = mConstraints->mWidth.mRange;
+          if (mConstraints->mHeight.mRange.hasValue())
+            heightRange = mConstraints->mHeight.mRange;
+          FLOAT sizeDistance = calculateSizeDistance(widthRange, heightRange, capability);
+          if (sizeDistance == FLT_MAX)
+            continue;
+          ConstrainDoubleRange frameRateRange;
+          if (mConstraints->mFrameRate.mValue.hasValue())
+            frameRateRange.mIdeal = mConstraints->mFrameRate.mValue.value();
+          if (mConstraints->mFrameRate.mRange.hasValue())
+            frameRateRange = mConstraints->mFrameRate.mRange;
+          FLOAT frameRateDistance = calculateFrameRateDistance(frameRateRange, capability);
+          if (frameRateDistance == FLT_MAX)
+            continue;
+          ConstrainDoubleRange aspectRatioRange;
+          if (mConstraints->mAspectRatio.mValue.hasValue())
+            aspectRatioRange.mIdeal = mConstraints->mAspectRatio.mValue.value();
+          if (mConstraints->mAspectRatio.mRange.hasValue())
+            aspectRatioRange = mConstraints->mAspectRatio.mRange;
+          FLOAT aspectRatioDistance = calculateAspectRatioDistance(aspectRatioRange, capability);
+          if (aspectRatioDistance == FLT_MAX)
+            continue;
+          FLOAT formatDistance = calculateFormatDistance(capability);
+          FLOAT totalDistance = 200.0F * sizeDistance + 20.0F * frameRateDistance + 10.0F * aspectRatioDistance + formatDistance;
+          VideoCaptureCapabilityWithDistance capabilityWithDistance;
+          capabilityWithDistance.mCapability = capability;
+          capabilityWithDistance.mDistance = totalDistance;
+          capabilityCandidates.push_back(capabilityWithDistance);
         }
         delete info;
 
-        if (mVideoCaptureModule->StartCapture(bestCap) != 0) {
+        std::list<VideoCaptureCapabilityWithDistance> advancedCapabilityCandidates;
+        std::list<ConstraintSetPtr>::iterator constraintsIter = mConstraints->mAdvanced.begin();
+        while (constraintsIter != mConstraints->mAdvanced.end()) {
+          std::list<VideoCaptureCapabilityWithDistance>::iterator capabilityCandidatesIter = capabilityCandidates.begin();
+          while (capabilityCandidatesIter != capabilityCandidates.end()) {
+            ConstrainLongRange widthRange;
+            ConstrainLongRange heightRange;
+            if ((*constraintsIter)->mWidth.mValue.hasValue())
+              widthRange.mExact = (*constraintsIter)->mWidth.mValue.value();
+            if ((*constraintsIter)->mHeight.mValue.hasValue())
+              heightRange.mExact = (*constraintsIter)->mHeight.mValue.value();
+            if ((*constraintsIter)->mWidth.mRange.hasValue())
+              widthRange = (*constraintsIter)->mWidth.mRange;
+            if ((*constraintsIter)->mHeight.mRange.hasValue())
+              heightRange = (*constraintsIter)->mHeight.mRange;
+            FLOAT sizeDistance = calculateSizeDistance(widthRange, heightRange, capabilityCandidatesIter->mCapability);
+            if (sizeDistance == FLT_MAX)
+              continue;
+            ConstrainDoubleRange frameRateRange;
+            if ((*constraintsIter)->mFrameRate.mValue.hasValue())
+              frameRateRange.mExact = (*constraintsIter)->mFrameRate.mValue.value();
+            if ((*constraintsIter)->mFrameRate.mRange.hasValue())
+              frameRateRange = (*constraintsIter)->mFrameRate.mRange;
+            FLOAT frameRateDistance = calculateFrameRateDistance(frameRateRange, capabilityCandidatesIter->mCapability);
+            if (frameRateDistance == FLT_MAX)
+              continue;
+            ConstrainDoubleRange aspectRatioRange;
+            if ((*constraintsIter)->mAspectRatio.mValue.hasValue())
+              aspectRatioRange.mExact = (*constraintsIter)->mAspectRatio.mValue.value();
+            if ((*constraintsIter)->mAspectRatio.mRange.hasValue())
+              aspectRatioRange = (*constraintsIter)->mAspectRatio.mRange;
+            FLOAT aspectRatioDistance = calculateAspectRatioDistance(aspectRatioRange, capabilityCandidatesIter->mCapability);
+            if (aspectRatioDistance == FLT_MAX)
+              continue;
+            FLOAT formatDistance = calculateFormatDistance(capabilityCandidatesIter->mCapability);
+            FLOAT totalDistance = 200.0F * sizeDistance + 20.0F * frameRateDistance + 10.0F * aspectRatioDistance + formatDistance;
+            VideoCaptureCapabilityWithDistance capabilityWithDistance;
+            capabilityWithDistance.mCapability = capabilityCandidatesIter->mCapability;
+            capabilityWithDistance.mDistance = totalDistance;
+            advancedCapabilityCandidates.push_back(capabilityWithDistance);
+            capabilityCandidatesIter++;
+          }
+          if (advancedCapabilityCandidates.size() > 0)
+            break;
+          constraintsIter++;
+        }
+        
+        FLOAT bestDistance = FLT_MAX;
+        webrtc::VideoCaptureCapability bestCapability;
+        if (advancedCapabilityCandidates.size() > 0) {
+          std::list<VideoCaptureCapabilityWithDistance>::iterator advancedCapabilityCandidatesIter = advancedCapabilityCandidates.begin();
+          while (advancedCapabilityCandidatesIter != advancedCapabilityCandidates.end()) {
+            if (advancedCapabilityCandidatesIter->mDistance <= bestDistance) {
+              bestDistance = advancedCapabilityCandidatesIter->mDistance;
+              bestCapability = advancedCapabilityCandidatesIter->mCapability;
+            }
+            advancedCapabilityCandidatesIter++;
+          }
+        } else if (advancedCapabilityCandidates.size() > 0) {
+          std::list<VideoCaptureCapabilityWithDistance>::iterator capabilityCandidatesIter = capabilityCandidates.begin();
+          while (capabilityCandidatesIter != capabilityCandidates.end()) {
+            if (capabilityCandidatesIter->mDistance <= bestDistance) {
+              bestDistance = capabilityCandidatesIter->mDistance;
+              bestCapability = capabilityCandidatesIter->mCapability;
+            }
+            capabilityCandidatesIter++;
+          }
+        }
+        
+        if (bestDistance == FLT_MAX)
+          return;
+
+        if (mVideoCaptureModule->StartCapture(bestCapability) != 0) {
           mVideoCaptureModule->DeRegisterCaptureDataCallback();
           return;
         }
@@ -225,7 +306,7 @@ namespace ortc
           return;
         }
         mAudioDeviceModule->AddRef();
-        mAudioDeviceModule->RegisterAudioCallback(mTransport.get());
+        //mAudioDeviceModule->RegisterAudioCallback(mTransport.get());
         mAudioDeviceModule->Init();
         if (!mRemote) {
           mAudioDeviceModule->SetRecordingDevice(webrtc::AudioDeviceModule::kDefaultCommunicationDevice);
@@ -514,7 +595,7 @@ namespace ortc
           mAudioDeviceModule->StopRecording();
         else
           mAudioDeviceModule->StopPlayout();
-        mAudioDeviceModule->RegisterAudioCallback(nullptr);
+        //mAudioDeviceModule->RegisterAudioCallback(nullptr);
         mAudioDeviceModule->Terminate();
       }
     }
@@ -626,6 +707,8 @@ namespace ortc
 
     webrtc::AudioDeviceModule* MediaStreamTrack::getAudioDeviceModule()
     {
+      AutoRecursiveLock lock(*this);
+      
       return mAudioDeviceModule;
     }
 
@@ -1224,7 +1307,106 @@ namespace ortc
 
       ZS_LOG_WARNING(Detail, debug("error set") + ZS_PARAM("error", mLastError) + ZS_PARAM("reason", mLastErrorReason))
     }
+    
+    //-------------------------------------------------------------------------
+    FLOAT MediaStreamTrack::calculateSizeDistance(
+                                                  ConstrainLongRange width,
+                                                  ConstrainLongRange height,
+                                                  webrtc::VideoCaptureCapability capability
+                                                  )
+    {
+      if (width.mMin.hasValue() && width.mMin.value() > capability.width)
+        return FLT_MAX;
+      if (width.mMax.hasValue() && width.mMax.value() < capability.width)
+        return FLT_MAX;
+      if (width.mExact.hasValue() && width.mExact.value() != capability.width)
+        return FLT_MAX;
+      FLOAT withDistance = 0.0F;
+      if (width.mIdeal.hasValue() && width.mIdeal.value() != capability.width) {
+        withDistance = (FLOAT)(abs((int)(capability.width - width.mIdeal.value()))) / (FLOAT)width.mIdeal.value();
+      }
 
+      if (height.mMin.hasValue() && height.mMin.value() > capability.height)
+        return FLT_MAX;
+      if (height.mMax.hasValue() && height.mMax.value() < capability.height)
+        return FLT_MAX;
+      if (height.mExact.hasValue() && height.mExact.value() != capability.height)
+        return FLT_MAX;
+      FLOAT heightDistance = 0.0F;
+      if (height.mIdeal.hasValue() && height.mIdeal.value() != capability.height) {
+        heightDistance = (FLOAT)(abs((int)(capability.height - height.mIdeal.value()))) / (FLOAT)height.mIdeal.value();
+      }
+
+      
+      return withDistance + heightDistance;
+    }
+    
+    //-------------------------------------------------------------------------
+    FLOAT MediaStreamTrack::calculateFrameRateDistance(
+                                                       ConstrainDoubleRange frameRate,
+                                                       webrtc::VideoCaptureCapability capability
+                                                       )
+    {
+      if (frameRate.mMin.hasValue() && frameRate.mMin.value() > (DOUBLE)capability.maxFPS)
+        return FLT_MAX;
+      if (frameRate.mMax.hasValue() && frameRate.mMax.value() < (DOUBLE)capability.maxFPS)
+        return FLT_MAX;
+      if (frameRate.mExact.hasValue() && fabs(frameRate.mExact.value() - (DOUBLE)capability.maxFPS) > 0.01F)
+        return FLT_MAX;
+      FLOAT frameRateDistance = 0.0F;
+      if (frameRate.mIdeal.hasValue() && fabs(frameRate.mExact.value() - (DOUBLE)capability.maxFPS) > 0.01F) {
+        frameRateDistance = (FLOAT)(abs((int)(capability.maxFPS - frameRate.mIdeal.value()))) / (FLOAT)frameRate.mIdeal.value();
+      }
+      
+      return frameRateDistance;
+    }
+    
+    //-------------------------------------------------------------------------
+    FLOAT MediaStreamTrack::calculateAspectRatioDistance(
+                                                         ConstrainDoubleRange aspectRatio,
+                                                         webrtc::VideoCaptureCapability capability
+                                                         )
+    {
+      DOUBLE capabilityAspectRatio = (DOUBLE)capability.width / (DOUBLE)capability.height;
+      
+      if (aspectRatio.mMin.hasValue() && aspectRatio.mMin.value() > capabilityAspectRatio)
+        return FLT_MAX;
+      if (aspectRatio.mMax.hasValue() && aspectRatio.mMax.value() < capabilityAspectRatio)
+        return FLT_MAX;
+      if (aspectRatio.mExact.hasValue() && fabs(aspectRatio.mExact.value() - capabilityAspectRatio) > 0.001F)
+        return FLT_MAX;
+      FLOAT aspectRatioDistance = 0.0F;
+      if (aspectRatio.mIdeal.hasValue() && fabs(aspectRatio.mIdeal.value() - capabilityAspectRatio) > 0.001F) {
+        aspectRatioDistance = (capabilityAspectRatio - aspectRatio.mIdeal.value()) / aspectRatio.mIdeal.value();
+      }
+      
+      return aspectRatioDistance;
+    }
+    
+    //-------------------------------------------------------------------------
+    FLOAT MediaStreamTrack::calculateFormatDistance(webrtc::VideoCaptureCapability capability)
+    {
+      switch (capability.rawType) {
+        case webrtc::kVideoI420:
+        case webrtc::kVideoYV12:
+        case webrtc::kVideoYUY2:
+        case webrtc::kVideoUYVY:
+        case webrtc::kVideoIYUV:
+        case webrtc::kVideoARGB:
+        case webrtc::kVideoRGB24:
+        case webrtc::kVideoRGB565:
+        case webrtc::kVideoARGB4444:
+        case webrtc::kVideoARGB1555:
+        case webrtc::kVideoNV12:
+        case webrtc::kVideoNV21:
+        case webrtc::kVideoBGRA:
+          return 0.0F;
+        case webrtc::kVideoMJPEG:
+          return 1.0F;
+        default:
+          return FLT_MAX;
+      }
+    }
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------

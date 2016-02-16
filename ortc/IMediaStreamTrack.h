@@ -195,7 +195,7 @@ namespace ortc
     #pragma mark IMediaStreamTrackTypes::TrackConstraints
     #pragma mark
 
-    struct TrackConstraints {
+    struct TrackConstraints : public ConstraintSet {
       ConstraintSetList mAdvanced;
 
       TrackConstraints() {}

@@ -67,6 +67,9 @@ namespace ortc
     ZS_DECLARE_INTERACTION_PTR(IRTPReceiverChannelForMediaStreamTrack)
 
     ZS_DECLARE_INTERACTION_PROXY(IMediaStreamTrackAsyncDelegate)
+    
+    using zsLib::FLOAT;
+    using zsLib::INT;
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -357,6 +360,12 @@ namespace ortc
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::Constraints, Constraints)
 
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::Kinds, Kinds)
+      
+      struct VideoCaptureCapabilityWithDistance
+      {
+        webrtc::VideoCaptureCapability mCapability;
+        FLOAT mDistance;
+      };
 
     public:
       MediaStreamTrack(
@@ -698,7 +707,22 @@ namespace ortc
 
       void setState(States state);
       void setError(WORD error, const char *reason = NULL);
-
+      
+      FLOAT calculateSizeDistance(
+                                  ConstrainLongRange width,
+                                  ConstrainLongRange height,
+                                  webrtc::VideoCaptureCapability capability
+                                  );
+      FLOAT calculateFrameRateDistance(
+                                       ConstrainDoubleRange frameRate,
+                                       webrtc::VideoCaptureCapability capability
+                                       );
+      FLOAT calculateAspectRatioDistance(
+                                         ConstrainDoubleRange aspectRatio,
+                                         webrtc::VideoCaptureCapability capability
+                                         );
+      FLOAT calculateFormatDistance(webrtc::VideoCaptureCapability capability);
+ 
     protected:
       //-----------------------------------------------------------------------
       #pragma mark
