@@ -147,7 +147,7 @@ namespace ortc
       mRemote(remote),
       mConstraints(constraints),
       mVideoCaptureModule(NULL),
-      mVideoRenderModule(NULL),
+      //mVideoRenderModule(NULL),
       mVideoRendererCallback(NULL),
       mAudioDeviceModule(NULL)
     {
@@ -587,8 +587,8 @@ namespace ortc
         mVideoCaptureModule->DeRegisterCaptureDataCallback();
       }
 
-      if (mVideoRenderModule)
-        mVideoRenderModule->StopRender(1);
+      //if (mVideoRenderModule)
+      //  mVideoRenderModule->StopRender(1);
 
       if (mAudioDeviceModule) {
         if (!mRemote)
@@ -645,11 +645,10 @@ namespace ortc
       AutoRecursiveLock lock(*this);
 
       if (mKind == Kind_Video) {
-        mVideoRenderModule = webrtc::VideoRender::CreateVideoRender(1, element, false);
-
-        mVideoRendererCallback = mVideoRenderModule->AddIncomingRenderStream(1, 0, 0.0, 0.0, 1.0, 1.0);
-
-        mVideoRenderModule->StartRender(1);
+        //mVideoRenderModule = webrtc::VideoRender::CreateVideoRender(1, element, false);
+        //mVideoRendererCallback = mVideoRenderModule->AddIncomingRenderStream(1, 0, 0.0, 0.0, 1.0, 1.0);
+        //mVideoRenderModule->StartRender(1);
+        mVideoRendererCallback = (webrtc::VideoRenderCallback*)element;
       }
     }
 

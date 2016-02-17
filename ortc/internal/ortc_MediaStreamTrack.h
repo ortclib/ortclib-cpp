@@ -752,7 +752,7 @@ namespace ortc
 
       TrackConstraintsPtr mConstraints;
       webrtc::VideoCaptureModule* mVideoCaptureModule;
-      webrtc::VideoRender* mVideoRenderModule;
+      //webrtc::VideoRender* mVideoRenderModule;
       webrtc::VideoRenderCallback* mVideoRendererCallback;
       webrtc::AudioDeviceModule* mAudioDeviceModule;
     };
