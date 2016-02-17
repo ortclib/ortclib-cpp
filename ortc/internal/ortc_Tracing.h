@@ -499,11 +499,11 @@
 #define EventWriteOrtcSrtpTransportDestroy(xStr_Method, xPUID)
 
 #define EventWriteOrtcSrtpTransportInstallKeyingMaterial(xStr_Method, xPUID, xStr_Direction, xStr_KeyMethod, xStr_KeySalt, xStr_Lifetime, xStr_MkiValue, xWORD_MkiLength)
-#define EventWriteOrtcSrtoTransportReceivedIncomingEncryptedPacket(xStr_Method, xPUID, xUInt_ViaComponent, xUInt_PacketType, xPtr_Buffer, xsize_t_BufferSizeInBytes)
-#define EventWriteOrtcSrtoTransportDeliverIncomingDecryptedPacket(xStr_Method, xPUID, xPUID_SecureTransportObjectID, xUInt_ViaComponent, xUInt_PacketType, xPtr_Buffer, xsize_t_BufferSizeInBytes)
+#define EventWriteOrtcSrtpTransportReceivedIncomingEncryptedPacket(xStr_Method, xPUID, xUInt_ViaComponent, xUInt_PacketType, xPtr_Buffer, xsize_t_BufferSizeInBytes)
+#define EventWriteOrtcSrtpTransportDeliverIncomingDecryptedPacket(xStr_Method, xPUID, xPUID_SecureTransportObjectID, xUInt_ViaComponent, xUInt_PacketType, xPtr_Buffer, xsize_t_BufferSizeInBytes)
 
-#define EventWriteOrtcSrtoTransportSendOutgoingPacketAndEncrypt(xStr_Method, xPUID, xUInt_SendOverComponent, xUInt_PacketType, xPtr_Buffer, xsize_t_BufferSizeInBytes)
-#define EventWriteOrtcSrtoTransportSendOutgoingEncryptedPacketViaSecureTransport(xStr_Method, xPUID, xPUID_SecureTransportObjectID, xUInt_SendOverComponent, xUInt_PacketType, xPtr_Buffer, xsize_t_BufferSizeInBytes)
+#define EventWriteOrtcSrtpTransportSendOutgoingPacketAndEncrypt(xStr_Method, xPUID, xUInt_SendOverComponent, xUInt_PacketType, xPtr_Buffer, xsize_t_BufferSizeInBytes)
+#define EventWriteOrtcSrtpTransportSendOutgoingEncryptedPacketViaSecureTransport(xStr_Method, xPUID, xPUID_SecureTransportObjectID, xUInt_SendOverComponent, xUInt_PacketType, xPtr_Buffer, xsize_t_BufferSizeInBytes)
 
 #else
 
@@ -967,11 +967,11 @@ inline void EventWriteOrtcSrtpTransportCreate(const char *xStr_Method, PUID xPUI
 inline void EventWriteOrtcSrtpTransportDestroy(const char *xStr_Method, PUID xPUID) {}
 
 inline void EventWriteOrtcSrtpTransportInstallKeyingMaterial(const char *xStr_Method, PUID xPUID, const char *xStr_Direction, const char *xStr_KeyMethod, const char *xStr_KeySalt, const char *xStr_Lifetime, const char *xStr_MkiValue, WORD xWORD_MkiLength) {}
-inline void EventWriteOrtcSrtoTransportReceivedIncomingEncryptedPacket(const char *xStr_Method, PUID xPUID, unsigned int xUInt_ViaComponent, unsigned int xUInt_PacketType, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
-inline void EventWriteOrtcSrtoTransportDeliverIncomingDecryptedPacket(const char *xStr_Method, PUID xPUID, PUID xPUID_SecureTransportObjectID, unsigned int xUInt_ViaComponent, unsigned int xUInt_PacketType, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
+inline void EventWriteOrtcSrtpTransportReceivedIncomingEncryptedPacket(const char *xStr_Method, PUID xPUID, unsigned int xUInt_ViaComponent, unsigned int xUInt_PacketType, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
+inline void EventWriteOrtcSrtpTransportDeliverIncomingDecryptedPacket(const char *xStr_Method, PUID xPUID, PUID xPUID_SecureTransportObjectID, unsigned int xUInt_ViaComponent, unsigned int xUInt_PacketType, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
 
-inline void EventWriteOrtcSrtoTransportSendOutgoingPacketAndEncrypt(const char *xStr_Method, PUID xPUID, unsigned int xUInt_SendOverComponent, unsigned int xUInt_PacketType, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
-inline void EventWriteOrtcSrtoTransportSendOutgoingEncryptedPacketViaSecureTransport(const char *xStr_Method, PUID xPUID, PUID xPUID_SecureTransportObjectID, unsigned int xUInt_SendOverComponent, unsigned int xUInt_PacketType, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
+inline void EventWriteOrtcSrtpTransportSendOutgoingPacketAndEncrypt(const char *xStr_Method, PUID xPUID, unsigned int xUInt_SendOverComponent, unsigned int xUInt_PacketType, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
+inline void EventWriteOrtcSrtpTransportSendOutgoingEncryptedPacketViaSecureTransport(const char *xStr_Method, PUID xPUID, PUID xPUID_SecureTransportObjectID, unsigned int xUInt_SendOverComponent, unsigned int xUInt_PacketType, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
 
 }
 #endif //ndef ORTC_USE_NOOP_EVENT_TRACE_MACROS

@@ -149,6 +149,8 @@
 		00DD17C31AE91E02008C3404 /* ifaddrs-android.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ifaddrs-android.h"; sourceTree = "<group>"; };
 		00DD17C41AE91E02008C3404 /* ortc_ICEGatherer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ortc_ICEGatherer.h; sourceTree = "<group>"; };
 		00DD17C51AE91E02008C3404 /* platform.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = platform.h; sourceTree = "<group>"; };
+		00E3EDB41C7401FE0059D006 /* ortc_ETWTracing.man */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = ortc_ETWTracing.man; sourceTree = "<group>"; };
+		00E3EDB51C7401FE0059D006 /* ortc_ETWTracing.wprp */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = ortc_ETWTracing.wprp; sourceTree = "<group>"; };
 		00F99B961BAA027000D2E178 /* ortc_RTCPPacket.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_RTCPPacket.cpp; sourceTree = "<group>"; };
 		00F99B991BAA029500D2E178 /* ortc_RTCPPacket.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ortc_RTCPPacket.h; sourceTree = "<group>"; };
 		E2260E731821628E0084E4A4 /* libortclib_ios.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libortclib_ios.a; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -330,6 +332,8 @@
 				0064C6C21AFE84620089571E /* ortc_ISecureTransport.h */,
 				0064C6C41AFE84620089571E /* ortc_SRTPSDESTransport.h */,
 				003443C61C6E23F300B8CB2E /* ortc_Tracing.h */,
+				00E3EDB41C7401FE0059D006 /* ortc_ETWTracing.man */,
+				00E3EDB51C7401FE0059D006 /* ortc_ETWTracing.wprp */,
 			);
 			path = internal;
 			sourceTree = "<group>";

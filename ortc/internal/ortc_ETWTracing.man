@@ -1,0 +1,100 @@
+<?xml version='1.0' encoding='utf-8' standalone='yes'?>
+
+<instrumentationManifest xmlns="http://schemas.microsoft.com/win/2004/08/events">
+  <instrumentation
+      xmlns:win="http://manifests.microsoft.com/win/2004/08/windows/events"
+      xmlns:xs="http://www.w3.org/2001/XMLSchema"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <events xmlns="http://schemas.microsoft.com/win/2004/08/events">
+
+      <!-- Warning: GUID must match value from wprp otherwise the events will not be captured -->
+      <provider
+          guid="{ad26f2e3-b292-483b-a5de-8349a6aac310}"
+          name="OrtcLib"
+          message="$(string.OrtcLib.ProviderMessage)"
+          symbol="ORTC_SERVICES_PROVIDER_GUID"
+          messageFileName="services_ETWTracing.dll"
+          resourceFileName="services_ETWTracing.dll" >
+        <channels>
+          <channel chid="ol"
+                 name="OrtcLib/Debug"
+                 type="Debug"
+                 symbol="CHANNEL_ORTC_SERVICES_DEBUG"
+                 message="$(string.Channel.OrtcLibDebug)" />
+        </channels>
+        <tasks>
+          <task name="Ortc" symbol="TASK_ORTC" value="1" message="$(string.Task.Ortc)" />
+          <task name="Certificate" symbol="TASK_CERTIFICATE" value="2" message="$(string.Task.Certificate)" />
+          <task name="DataChannel" symbol="TASK_DATACHANNEL" value="3" message="$(string.Task.DataChannel)" />
+          <task name="DtlsTransport" symbol="TASK_DTLS_TRANSPORT" value="4" message="$(string.Task.DtlsTransport)" />
+          <task name="IceGatherer" symbol="TASK_ICE_GATHERER" value="5" message="$(string.Task.IceGatherer)" />
+          <task name="IceGathererRouter" symbol="TASK_ICE_GATHERER_ROUTER" value="6" message="$(string.Task.IceGathererRouter)" />
+          <task name="IceTransport" symbol="TASK_ICE_TRANSPORT" value="7" message="$(string.Task.IceTransport)" />
+          <task name="RtpListener" symbol="TASK_RTP_LISTENER" value="8" message="$(string.Task.RtpListener)" />
+          <task name="RtpReceiver" symbol="TASK_RTP_RECEIVER" value="9" message="$(string.Task.RtpReceiver)" />
+          <task name="RtpSender" symbol="TASK_RTP_SENDER" value="10" message="$(string.Task.RtpSender)" />
+          <task name="SctpInit" symbol="TASK_SCTP_INIT" value="11" message="$(string.Task.SctpInit)" />
+          <task name="SctpTransport" symbol="TASK_SCTP_TRANSPORT" value="12" message="$(string.Task.SctpTransport)" />
+          <task name="SctpTransportListener" symbol="TASK_SCTP_TRANSPORT_LISTENER" value="13" message="$(string.Task.SctpTransportListener)" />
+          <task name="SrtpTransport" symbol="TASK_SRTP_TRANSPORT" value="14" message="$(string.Task.SrtpTransport)" />
+        </tasks>
+        <opcodes>
+          <opcode name="Cancel" symbol="OPCODE_CANCEL" value="101" message="$(string.Opcode.Cancel)" />
+          <opcode name="Event" symbol="OPCODE_EVENT" value="102" message="$(string.Opcode.Event)" />
+          <opcode name="StateEvent" symbol="OPCODE_STATE_EVENT" value="103" message="$(string.Opcode.StateEvent)" />
+          <opcode name="InternalEvent" symbol="OPCODE_INTERNAL_EVENT" value="104" message="$(string.Opcode.InternalEvent)" />
+        </opcodes>
+        <templates>
+          <template tid="T_BasicObject">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+          </template>
+        </templates>
+        <events>
+          <event symbol="OrtcCreate" channel="ol" template="T_BasicObject" task="Stun" opcode="win:Info" value="1001" level="win:Informational" message="$(string.Event.OrtcCreate)" />
+          <event symbol="OrtcDestroy" channel="ol" template="T_BasicObject" task="Stun" opcode="win:Info" value="1002" level="win:Informational" message="$(string.Event.OrtcDestroy)" />
+        </events>
+      </provider>
+
+    </events>
+  </instrumentation>
+  <localization>
+    <resources culture="en-US">
+      <stringTable>
+        <string id="OrtcLib.ProviderMessage" value="OrtcLib Provider"/>
+
+        <string id="level.Critical" value="Critical"/>
+        <string id="level.Error" value="Error"/>
+        <string id="level.Warning" value="Warning"/>
+        <string id="level.Informational" value="Informational"/>
+        <string id="level.Verbose" value="Verbose"/>
+
+        <string id="Channel.OrtcLibDebug" value="OrtcLib Debug Channel"/>
+
+        <string id="Task.Ortc" value="Ortc"/>
+        <string id="Task.Certificate" value="Certificate"/>
+
+        <string id="Task.DataChannel" value="DataChannel"/>
+        <string id="Task.DtlsTransport" value="DtlsTransport"/>
+        <string id="Task.IceGatherer" value="IceGatherer"/>
+        <string id="Task.IceGathererRouter" value="IceGathererRouter"/>
+        <string id="Task.IceTransport" value="IceTransport"/>
+        <string id="Task.RtpListener" value="RtpListener"/>
+        <string id="Task.RtpReceiver" value="RtpReceiver"/>
+        <string id="Task.RtpSender" value="RtpSender"/>
+        <string id="Task.SctpInit" value="SctpInit"/>
+        <string id="Task.SctpTransport" value="SctpTransport"/>
+        <string id="Task.SctpTransportListener" value="SctpTransportListener"/>
+        <string id="Task.SrtpTransport" value="SrtpTransport"/>
+
+        <string id="Opcode.Cancel" value="Cancel"/>
+        <string id="Opcode.Event" value="Event"/>
+        <string id="Opcode.StateEvent" value="StateEvent"/>
+        <string id="Opcode.InternalEvent" value="InternalEvent"/>
+
+        <string id="Event.Bogus" value="Bogus"/>
+
+      </stringTable>
+    </resources>
+  </localization>
+</instrumentationManifest>

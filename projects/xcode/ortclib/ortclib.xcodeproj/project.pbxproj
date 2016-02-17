@@ -154,6 +154,8 @@
 		00D8BFEA1848DC5B0001A335 /* IORTC.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IORTC.h; sourceTree = "<group>"; };
 		00D8BFEB1848DECE0001A335 /* ortc_ORTC.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ortc_ORTC.h; sourceTree = "<group>"; };
 		00D8BFEE1848DF100001A335 /* ortc_Helper.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_Helper.cpp; sourceTree = "<group>"; };
+		00E3EDB21C7401D20059D006 /* ortc_ETWTracing.man */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = ortc_ETWTracing.man; sourceTree = "<group>"; };
+		00E3EDB31C7401D20059D006 /* ortc_ETWTracing.wprp */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = ortc_ETWTracing.wprp; sourceTree = "<group>"; };
 		00EAF8D9182B054C00B8E2CE /* license.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = license.txt; path = ../../../license.txt; sourceTree = "<group>"; };
 		00F99B941BAA025B00D2E178 /* ortc_RTCPPacket.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_RTCPPacket.cpp; sourceTree = "<group>"; };
 		00F99B981BAA028700D2E178 /* ortc_RTCPPacket.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ortc_RTCPPacket.h; sourceTree = "<group>"; };
@@ -318,6 +320,8 @@
 				00265E531B3DE73D00D9B45F /* ortc_SRTPTransport.h */,
 				0051D6BB1B8D0300003B4A00 /* ortc_SCTPTransportListener.h */,
 				003443C51C6E23D500B8CB2E /* ortc_Tracing.h */,
+				00E3EDB21C7401D20059D006 /* ortc_ETWTracing.man */,
+				00E3EDB31C7401D20059D006 /* ortc_ETWTracing.wprp */,
 			);
 			path = internal;
 			sourceTree = "<group>";
