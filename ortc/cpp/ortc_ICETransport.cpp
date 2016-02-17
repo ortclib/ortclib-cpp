@@ -1097,6 +1097,7 @@ namespace ortc
           mBufferedPackets.push(make_shared<SecureByteBlock>(buffer, bufferSizeInBytes));
           while (mBufferedPackets.size() > mMaxBufferedPackets) {
             auto &poppedBuffer = mBufferedPackets.front();
+            (void)poppedBuffer;
             EventWriteOrtcIceTransportDisposingBufferedIncomingPacket(__func__, mID, poppedBuffer->SizeInBytes(), poppedBuffer->BytePtr());
             ZS_LOG_TRACE(log("too many packets in buffered packet list (dropping packet") + ZS_PARAM("max packets", mMaxBufferedPackets) + ZS_PARAM("total packets", mBufferedPackets.size()))
             mBufferedPackets.pop();

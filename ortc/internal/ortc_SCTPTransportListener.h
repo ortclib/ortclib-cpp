@@ -228,7 +228,7 @@ namespace ortc
       #pragma mark SCTPTransport => ISCTPTransportListenerForSCTPTransport
       #pragma mark
 
-      virtual PUID getID() const {return mID;}
+      virtual PUID getID() const override {return mID;}
 
       virtual void registerNewTransport(
                                         IDTLSTransportPtr dtlsTransport,
@@ -275,7 +275,7 @@ namespace ortc
       #pragma mark SCTPTransportListener => IWakeDelegate
       #pragma mark
 
-      virtual void onWake();
+      virtual void onWake() override;
 
     protected:
       //-----------------------------------------------------------------------

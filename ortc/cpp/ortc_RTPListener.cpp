@@ -1421,6 +1421,7 @@ namespace ortc
         auto &info = mBufferedRTPPackets.front();
         auto &packetTime = info.first;
         auto &packet = info.second;
+        (void)packet;
 
         {
           if (mBufferedRTPPackets.size() > mMaxBufferedRTPPackets) goto expire_packet;
@@ -1446,6 +1447,7 @@ namespace ortc
         auto &info = mBufferedRTPPackets.front();
         auto &packetTime = info.first;
         auto &packet = info.second;
+        (void)packet;
 
         {
           if (mBufferedRTCPPackets.size() > mMaxBufferedRTCPPackets) goto expire_packet;
