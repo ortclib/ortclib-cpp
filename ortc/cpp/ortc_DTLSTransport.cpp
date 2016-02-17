@@ -709,7 +709,7 @@ namespace ortc
                                    size_t bufferLengthInBytes
                                    )
     {
-      EventWriteOrtcDtlsTransportSendRtpPacket(__func__, mID, zsLib::to_underlying(sendOverICETransport), zsLib::to_underlying(packetType), buffer, bufferLengthInBytes);
+      EventWriteOrtcDtlsTransportSendRtpPacket(__func__, mID, zsLib::to_underlying(sendOverICETransport), zsLib::to_underlying(packetType), bufferLengthInBytes, buffer);
 
       ZS_LOG_TRACE(log("sending rtp packet") + ZS_PARAM("length", bufferLengthInBytes))
 
@@ -775,7 +775,7 @@ namespace ortc
     {
       bool isDTLSPacket = isDtlsPacket(buffer, bufferLengthInBytes);
 
-      EventWriteOrtcDtlsTransportReceivedPacket(__func__, mID, zsLib::to_underlying(viaTransport), isDTLSPacket, buffer, bufferLengthInBytes);
+      EventWriteOrtcDtlsTransportReceivedPacket(__func__, mID, zsLib::to_underlying(viaTransport), isDTLSPacket, bufferLengthInBytes, buffer);
 
       ZS_LOG_TRACE(log("handle receive packet") + ZS_PARAM("length", bufferLengthInBytes))
 
@@ -901,7 +901,7 @@ namespace ortc
 #define WARNING_HANDLE_SRTP_KEY_LIFETIME_EXHAUSTION 1
 #define WARNING_HANDLE_SRTP_KEY_LIFETIME_EXHAUSTION 2
 
-        EventWriteOrtcDtlsTransportForwardingEncryptedPacketToSrtpTransport(__func__, mID, srtpTransport->getID(), zsLib::to_underlying(viaTransport), buffer, bufferLengthInBytes);
+        EventWriteOrtcDtlsTransportForwardingEncryptedPacketToSrtpTransport(__func__, mID, srtpTransport->getID(), zsLib::to_underlying(viaTransport), bufferLengthInBytes, buffer);
 
         ZS_LOG_INSANE(log("forwarding packet to SRTP transport") + ZS_PARAM("srtp transport id", srtpTransport->getID()) + ZS_PARAM("via", IICETypes::toString(viaTransport)) + ZS_PARAM("buffer length", bufferLengthInBytes))
         return srtpTransport->handleReceivedPacket(viaTransport, buffer, bufferLengthInBytes);
@@ -910,7 +910,7 @@ namespace ortc
     handle_data_packet:
       {
         if (decryptedPacket) {
-          EventWriteOrtcDtlsTransportForwardingPacketToDataTransport(__func__, mID, mDataTransport->getID(), zsLib::to_underlying(viaTransport), decryptedPacket->BytePtr(), decryptedPacket->SizeInBytes());
+          EventWriteOrtcDtlsTransportForwardingPacketToDataTransport(__func__, mID, mDataTransport->getID(), zsLib::to_underlying(viaTransport), decryptedPacket->SizeInBytes(), decryptedPacket->BytePtr());
           return mDataTransport->handleDataPacket(decryptedPacket->BytePtr(), decryptedPacket->SizeInBytes());
         }
         ZS_LOG_WARNING(Debug, log("no data packet was decrypted"))
@@ -975,7 +975,7 @@ namespace ortc
         ASSERT(sendOverICETransport == transport->component())
       }
 
-      EventWriteOrtcDtlsTransportSendEncryptedRtpPacket(__func__, mID, transport->getID(), zsLib::to_underlying(sendOverICETransport), zsLib::to_underlying(packetType), buffer, bufferLengthInBytes);
+      EventWriteOrtcDtlsTransportSendEncryptedRtpPacket(__func__, mID, transport->getID(), zsLib::to_underlying(sendOverICETransport), zsLib::to_underlying(packetType), bufferLengthInBytes, buffer);
 
       return transport->sendPacket(buffer, bufferLengthInBytes);
     }
@@ -998,7 +998,7 @@ namespace ortc
         }
       }
 
-      EventWriteOrtcDtlsTransportForwardingPacketToRtpListener(__func__, mID, mRTPListener->getID(), zsLib::to_underlying(viaTransport), zsLib::to_underlying(packetType), buffer, bufferLengthInBytes);
+      EventWriteOrtcDtlsTransportForwardingPacketToRtpListener(__func__, mID, mRTPListener->getID(), zsLib::to_underlying(viaTransport), zsLib::to_underlying(packetType), bufferLengthInBytes, buffer);
 
       ZS_LOG_INSANE(log("forwarding packet to RTP listener") + ZS_PARAM("rtp listener id", mRTPListener->getID()) + ZS_PARAM("via", IICETypes::toString(viaTransport)) + ZS_PARAM("packet type", IICETypes::toString(packetType)) + ZS_PARAM("buffer length", bufferLengthInBytes))
 
@@ -1087,7 +1087,7 @@ namespace ortc
                                        size_t bufferLengthInBytes
                                        )
     {
-      EventWriteOrtcDtlsTransportSendDataPacket(__func__, mID, buffer, bufferLengthInBytes);
+      EventWriteOrtcDtlsTransportSendDataPacket(__func__, mID, bufferLengthInBytes, buffer);
 
       ZS_LOG_TRACE(log("sending data packet") + ZS_PARAM("length", bufferLengthInBytes))
 
@@ -1227,14 +1227,14 @@ namespace ortc
           if (filled + packet->SizeInBytes() > sizeof(fillBuffer)) {
             // cannot fit next packet into fill buffer so data filled thus far
             if (filled > 0) {
-              EventWriteOrtcDtlsTransportForwardDataPacketToIceTransport(__func__, mID, transport->getID(), &(fillBuffer[0]), filled);
+              EventWriteOrtcDtlsTransportForwardDataPacketToIceTransport(__func__, mID, transport->getID(), filled, &(fillBuffer[0]));
               if (!transport->sendPacket(&(fillBuffer[0]), filled)) return;
               filled = 0;
             }
 
             if (packet->SizeInBytes() > sizeof(fillBuffer)) {
               // packet size exceed buffer capacity so send it immediately (anything previous put into fill buffer has been sent already)
-              EventWriteOrtcDtlsTransportForwardDataPacketToIceTransport(__func__, mID, transport->getID(), packet->BytePtr(), packet->SizeInBytes());
+              EventWriteOrtcDtlsTransportForwardDataPacketToIceTransport(__func__, mID, transport->getID(), packet->SizeInBytes(), packet->BytePtr());
               if (!transport->sendPacket(*packet, packet->SizeInBytes())) return;
               continue;
             }
@@ -1246,7 +1246,7 @@ namespace ortc
 
         if (0 != filled) {
           // final push of filled buffer over the wire
-          EventWriteOrtcDtlsTransportForwardDataPacketToIceTransport(__func__, mID, transport->getID(), &(fillBuffer[0]), filled);
+          EventWriteOrtcDtlsTransportForwardDataPacketToIceTransport(__func__, mID, transport->getID(), filled, &(fillBuffer[0]));
           if (!transport->sendPacket(&(fillBuffer[0]), filled)) return;
           filled = 0;
         }
@@ -1283,7 +1283,7 @@ namespace ortc
       while (pendingPackets.size() > 0) {
         auto packet = pendingPackets.front();
 
-        EventWriteOrtcDtlsTransportForwardingEncryptedPacketToSrtpTransport(__func__, mID, srtpTransport->getID(), zsLib::to_underlying(viaTransport), packet->BytePtr(), packet->SizeInBytes());
+        EventWriteOrtcDtlsTransportForwardingEncryptedPacketToSrtpTransport(__func__, mID, srtpTransport->getID(), zsLib::to_underlying(viaTransport), packet->SizeInBytes(), packet->BytePtr());
         bool delivered = srtpTransport->handleReceivedPacket(viaTransport, packet->BytePtr(), packet->SizeInBytes());
         if (!delivered) {
           ZS_LOG_WARNING(Debug, log("failed to process SRTP packet"))
@@ -1947,8 +1947,8 @@ namespace ortc
 
       mSRTPTransport = UseSRTPTransport::create(mThisWeak.lock(), mThisWeak.lock(), sendingParams, receivingParams);
 
-      EventWriteOrtcDtlsTransportSrtpKeyingMaterialSetup(__func__, mID, ((bool)mSRTPTransport) ? mSRTPTransport->getID() : 0, "send", cipher, sendKey->BytePtr(), sendKey->SizeInBytes());
-      EventWriteOrtcDtlsTransportSrtpKeyingMaterialSetup(__func__, mID, ((bool)mSRTPTransport) ? mSRTPTransport->getID() : 0, "receive", cipher, receiveKey->BytePtr(), receiveKey->SizeInBytes());
+      EventWriteOrtcDtlsTransportSrtpKeyingMaterialSetup(__func__, mID, ((bool)mSRTPTransport) ? mSRTPTransport->getID() : 0, "send", cipher, sendKey->SizeInBytes(), sendKey->BytePtr());
+      EventWriteOrtcDtlsTransportSrtpKeyingMaterialSetup(__func__, mID, ((bool)mSRTPTransport) ? mSRTPTransport->getID() : 0, "receive", cipher, receiveKey->SizeInBytes(), receiveKey->BytePtr());
     }
 
     //-------------------------------------------------------------------------

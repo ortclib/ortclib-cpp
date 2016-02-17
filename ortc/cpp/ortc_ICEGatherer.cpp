@@ -1073,7 +1073,7 @@ namespace ortc
       if (!buffer) return true;
       if (!bufferSizeInBytes) return true;
 
-      EventWriteOrtcIceGathererSendIceTransportPacket(__func__, mID, transport.getID(), routerRoute->mID, buffer, bufferSizeInBytes);
+      EventWriteOrtcIceGathererSendIceTransportPacket(__func__, mID, transport.getID(), routerRoute->mID, bufferSizeInBytes, buffer);
 
       ITURNSocketPtr turn;
       RoutePtr route;
@@ -1105,7 +1105,7 @@ namespace ortc
             ZS_LOG_WARNING(Debug, log("no UDP socket found at this time") + route->toDebug() + ZS_PARAM("buffer size", bufferSizeInBytes))
             goto send_failed;
           }
-          EventWriteOrtcIceGathererSendIceTransportPacketViaUdp(__func__, mID, transport.getID(), routerRoute->mID, route->mHostPort->mID, route->mRouterRoute->mRemoteIP.string(), buffer, bufferSizeInBytes);
+          EventWriteOrtcIceGathererSendIceTransportPacketViaUdp(__func__, mID, transport.getID(), routerRoute->mID, route->mHostPort->mID, route->mRouterRoute->mRemoteIP.string(), bufferSizeInBytes, buffer);
           return sendUDPPacket(route->mHostPort->mBoundUDPSocket, route->mHostPort->mBoundUDPIP, route->mRouterRoute->mRemoteIP, buffer, bufferSizeInBytes);
         }
         if (route->mRelayPort) {
@@ -1133,7 +1133,7 @@ namespace ortc
             return false;
           }
 
-          EventWriteOrtcIceGathererSendIceTransportPacketViaTcp(__func__, mID, transport.getID(), routerRoute->mID, route->mTCPPort->mID, buffer, bufferSizeInBytes);
+          EventWriteOrtcIceGathererSendIceTransportPacketViaTcp(__func__, mID, transport.getID(), routerRoute->mID, route->mTCPPort->mID, bufferSizeInBytes, buffer);
 
           CryptoPP::word16 packeSize {static_cast<CryptoPP::word16>(htons(static_cast<unsigned short>(bufferSizeInBytes)))};
 
@@ -1156,7 +1156,7 @@ namespace ortc
 
       ZS_LOG_INSANE(log("sent packet over TURN"))
 
-      EventWriteOrtcIceGathererSendIceTransportPacketViaTurn(__func__, mID, transport.getID(), routerRoute->mID, turn->getID(), buffer, bufferSizeInBytes);
+      EventWriteOrtcIceGathererSendIceTransportPacketViaTurn(__func__, mID, transport.getID(), routerRoute->mID, turn->getID(), bufferSizeInBytes, buffer);
 
       if (!turn->sendPacket(route->mRouterRoute->mRemoteIP, buffer, bufferSizeInBytes)) {
         AutoRecursiveLock lock(*this);
@@ -1167,7 +1167,7 @@ namespace ortc
       return true;
 
     send_failed: {}
-      EventWriteOrtcIceGathererSendIceTransportPacketFailed(__func__, mID, transport.getID(), routerRoute->mID, buffer, bufferSizeInBytes);
+      EventWriteOrtcIceGathererSendIceTransportPacketFailed(__func__, mID, transport.getID(), routerRoute->mID, bufferSizeInBytes, buffer);
       return false;
     }
 
@@ -1273,7 +1273,7 @@ namespace ortc
 
           ZS_THROW_INVALID_ASSUMPTION_IF(!bufferedPacket->mBuffer)
 
-          EventWriteOrtcIceGathererDeliverIceTransportIncomingPacket(__func__, mID, transport->getID(), route->mID, routerRouteID, true, bufferedPacket->mBuffer->BytePtr(), bufferedPacket->mBuffer->SizeInBytes());
+          EventWriteOrtcIceGathererDeliverIceTransportIncomingPacket(__func__, mID, transport->getID(), route->mID, routerRouteID, true, bufferedPacket->mBuffer->SizeInBytes(), bufferedPacket->mBuffer->BytePtr());
 
           ZS_LOG_TRACE(log("delivering buffered packet") + ZS_PARAM("transport", transport->getID()) + ZS_PARAM("buffer size", bufferedPacket->mBuffer->SizeInBytes()))
           transport->notifyPacket(route->mRouterRoute, *(bufferedPacket->mBuffer), bufferedPacket->mBuffer->SizeInBytes());
@@ -1393,7 +1393,7 @@ namespace ortc
           }
 
           if (buffer->mBuffer) {
-            EventWriteOrtcIceGathererDisposeBufferedIceTransportIncomingPacket(__func__, mID, buffer->mRouterRoute->mID, buffer->mBuffer->BytePtr(), buffer->mBuffer->SizeInBytes());
+            EventWriteOrtcIceGathererDisposeBufferedIceTransportIncomingPacket(__func__, mID, buffer->mRouterRoute->mID, buffer->mBuffer->SizeInBytes(), buffer->mBuffer->BytePtr());
           }
           if (buffer->mSTUNPacket) {
             EventWriteOrtcIceGathererDisposeBufferedIceTransportIncomingStunPacket(__func__, mID, buffer->mRouterRoute->mID);
@@ -1726,7 +1726,7 @@ namespace ortc
     {
       ZS_THROW_INVALID_ARGUMENT_IF(!packet)
 
-      EventWriteOrtcIceGathererInternalStunDiscoverySendPacket(__func__, mID, discovery->getID(), destination.string(), packet->BytePtr(), packet->SizeInBytes());
+      EventWriteOrtcIceGathererInternalStunDiscoverySendPacket(__func__, mID, discovery->getID(), destination.string(), packet->SizeInBytes(), packet->BytePtr());
 
       ZS_LOG_DEBUG(log("stun discovery needs to send packet") + UseSTUNDiscovery::toDebug(discovery) + ZS_PARAM("destination", destination.string()) + ZS_PARAM("packet length", packet->SizeInBytes()))
 
@@ -1833,7 +1833,7 @@ namespace ortc
       ZS_THROW_INVALID_ARGUMENT_IF(!packet)
       ZS_THROW_INVALID_ARGUMENT_IF(0 == packetLengthInBytes)
 
-      EventWriteOrtcIceGathererTurnSocketReceivedPacket(__func__, mID, socket->getID(), packet, packetLengthInBytes);
+      EventWriteOrtcIceGathererTurnSocketReceivedPacket(__func__, mID, socket->getID(), packetLengthInBytes, packet);
 
       STUNPacketPtr stunPacket;
       CandidatePtr localCandidate;
@@ -1930,7 +1930,7 @@ namespace ortc
       ZS_THROW_INVALID_ARGUMENT_IF(!packet)
       ZS_THROW_INVALID_ARGUMENT_IF(0 == packetLengthInBytes)
 
-      EventWriteOrtcIceGathererTurnSocketSendPacket(__func__, mID, socket->getID(), packet, packetLengthInBytes);
+      EventWriteOrtcIceGathererTurnSocketSendPacket(__func__, mID, socket->getID(), packetLengthInBytes, packet);
 
       ZS_LOG_DEBUG(log("turn socket needs to send packet") + UseTURNSocket::toDebug(socket) + ZS_PARAM("destination", destination.string()) + ZS_PARAM("packet length", packetLengthInBytes))
 
@@ -4956,7 +4956,7 @@ namespace ortc
             return false;
           }
 
-          EventWriteOrtcIceGathererUdpSocketPacketReceivedFrom(__func__, mID, fromIP.string(), &(readBuffer[0]), totalRead);
+          EventWriteOrtcIceGathererUdpSocketPacketReceivedFrom(__func__, mID, fromIP.string(), totalRead, &(readBuffer[0]));
 
           ZS_LOG_INSANE(log("receiving incoming packet") + ZS_PARAM("from ip", fromIP.string()) + ZS_PARAM("read", totalRead) + hostPort->toDebug())
 
@@ -5036,7 +5036,7 @@ namespace ortc
 
     found_relay_port:
       {
-        EventWriteOrtcIceGathererUdpSocketPacketForwardingToTurnSocket(__func__, mID, fromIP.string(), ((bool)stunPacket), &(readBuffer[0]), totalRead);
+        EventWriteOrtcIceGathererUdpSocketPacketForwardingToTurnSocket(__func__, mID, fromIP.string(), ((bool)stunPacket), totalRead, &(readBuffer[0]));
 
         if (stunPacket) {
           if (ISTUNRequester::handleSTUNPacket(fromIP, stunPacket)) {
@@ -5144,7 +5144,7 @@ namespace ortc
             // fill packet with incoming data
             tcpPort.mIncomingBuffer.Get(*(packet->mBuffer), packetSize);
 
-            EventWriteOrtcIceGathererTcpSocketPacketReceivedFrom(__func__, mID, tcpPort.mRemoteIP.string(), packet->mBuffer->BytePtr(), packetSize);
+            EventWriteOrtcIceGathererTcpSocketPacketReceivedFrom(__func__, mID, tcpPort.mRemoteIP.string(), packetSize, packet->mBuffer->BytePtr());
 
             packet->mSTUNPacket = STUNPacket::parseIfSTUN(*(packet->mBuffer), packet->mBuffer->SizeInBytes(), STUNPacket::RFC_AllowAll, false, "ortc::ICEGatherer", mID);
 
@@ -5268,7 +5268,7 @@ namespace ortc
             goto finished_write;
           }
 
-          EventWriteOrtcIceGathererTcpSocketSentOutgoing(__func__, mID, tcpPort.mRemoteIP.string(), buffer.BytePtr(), sent);
+          EventWriteOrtcIceGathererTcpSocketSentOutgoing(__func__, mID, tcpPort.mRemoteIP.string(), sent, buffer.BytePtr());
 
           ZS_LOG_INSANE(log("sent TCP data to remote party") + tcpPort.toDebug() + ZS_PARAM("sent", sent))
 
@@ -5523,7 +5523,7 @@ namespace ortc
     found_transport:
       {
         ZS_LOG_DEBUG(log("forwarding data packet to ice transport") + ZS_PARAM("transport", transport->getID()) +  ZS_PARAM("from ip", remoteIP.string()) + ZS_PARAM("size", bufferSizeInBytes))
-        EventWriteOrtcIceGathererDeliverIceTransportIncomingPacket(__func__, mID, transport->getID(), route->mID, routerRoute->mID, false, buffer, bufferSizeInBytes);
+        EventWriteOrtcIceGathererDeliverIceTransportIncomingPacket(__func__, mID, transport->getID(), route->mID, routerRoute->mID, false, bufferSizeInBytes, buffer);
         transport->notifyPacket(routerRoute, buffer, bufferSizeInBytes);
       }
 
@@ -5544,7 +5544,7 @@ namespace ortc
         packet->mRouterRoute = routerRoute;
         packet->mBuffer = UseServicesHelper::convertToBuffer(buffer, bufferSizeInBytes);
 
-        EventWriteOrtcIceGathererBufferIceTransportIncomingPacket(__func__, mID, routerRoute->mID, buffer, bufferSizeInBytes);
+        EventWriteOrtcIceGathererBufferIceTransportIncomingPacket(__func__, mID, routerRoute->mID, bufferSizeInBytes, buffer);
 
         ZS_LOG_TRACE(log("buffering packet until ice transport installed to handle packet") + packet->toDebug())
         mBufferedPackets.push_back(packet);
@@ -5963,7 +5963,7 @@ namespace ortc
         ZS_LOG_INSANE(log("packet sent") + ZS_PARAM("socket", string(socket)) + ZS_PARAM("to", remoteIP.string()) + ZS_PARAM("from", boundIP.string()) + ZS_PARAM("size", bufferSizeInBytes))
 
         if (sent == bufferSizeInBytes) {
-          EventWriteOrtcIceGathererUdpSocketPacketSentTo(__func__, mID, boundIP.string(), remoteIP.string(), buffer, bufferSizeInBytes);
+          EventWriteOrtcIceGathererUdpSocketPacketSentTo(__func__, mID, boundIP.string(), remoteIP.string(), bufferSizeInBytes, buffer);
           return true;
         }
       } catch(Socket::Exceptions::Unspecified &error) {

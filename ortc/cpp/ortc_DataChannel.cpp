@@ -478,7 +478,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     void DataChannel::send(const SecureByteBlock &data)
     {
-      EventWriteOrtcDataChannelSendBinary(__func__, mID, data.BytePtr(), data.SizeInBytes());
+      EventWriteOrtcDataChannelSendBinary(__func__, mID, data.SizeInBytes(), data.BytePtr());
       AutoRecursiveLock lock(*this);
       send(SCTP_PPID_BINARY_LAST, data.BytePtr(), data.SizeInBytes());
     }
@@ -489,7 +489,7 @@ namespace ortc
                            size_t bufferSizeInBytes
                            )
     {
-      EventWriteOrtcDataChannelSendBinary(__func__, mID, buffer, bufferSizeInBytes);
+      EventWriteOrtcDataChannelSendBinary(__func__, mID, bufferSizeInBytes, buffer);
       ORTC_THROW_INVALID_PARAMETERS_IF((NULL == buffer) && (0 != bufferSizeInBytes))
 
       AutoRecursiveLock lock(*this);
@@ -519,7 +519,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool DataChannel::handleSCTPPacket(SCTPPacketIncomingPtr packet)
     {
-      EventWriteOrtcDataChannelSCTPTransportReceivedIncomingPacket(__func__, mID, zsLib::to_underlying(packet->mType), packet->mSessionID, packet->mSequenceNumber, packet->mTimestamp, packet->mFlags, ((bool)packet->mBuffer) ? packet->mBuffer->BytePtr() : NULL, ((bool)packet->mBuffer) ? packet->mBuffer->SizeInBytes() : 0);
+      EventWriteOrtcDataChannelSCTPTransportReceivedIncomingPacket(__func__, mID, zsLib::to_underlying(packet->mType), packet->mSessionID, packet->mSequenceNumber, packet->mTimestamp, packet->mFlags, ((bool)packet->mBuffer) ? packet->mBuffer->SizeInBytes() : 0, ((bool)packet->mBuffer) ? packet->mBuffer->BytePtr() : NULL);
 
       // scope: obtain whatever data is required inside lock to process SCTP packet
       {
@@ -1274,7 +1274,7 @@ namespace ortc
         return false;
       }
 
-      EventWriteOrtcDataChannelSCTPTransportDeliverOutgoingPacket(__func__, mID, zsLib::to_underlying(packet->mType), packet->mSessionID, packet->mOrdered, packet->mMaxPacketLifetime.count(), packet->mMaxRetransmits.hasValue(), packet->mMaxRetransmits.value(), ((bool)packet->mBuffer) ? packet->mBuffer->BytePtr() : NULL, ((bool)packet) ? packet->mBuffer->SizeInBytes() : 0);
+      EventWriteOrtcDataChannelSCTPTransportDeliverOutgoingPacket(__func__, mID, zsLib::to_underlying(packet->mType), packet->mSessionID, packet->mOrdered, packet->mMaxPacketLifetime.count(), packet->mMaxRetransmits.hasValue(), packet->mMaxRetransmits.value(), ((bool)packet) ? packet->mBuffer->SizeInBytes() : 0, ((bool)packet->mBuffer) ? packet->mBuffer->BytePtr() : NULL);
 
       mSendReady = transport->sendDataNow(packet);
 
@@ -1448,7 +1448,7 @@ namespace ortc
         }
       }
 
-      EventWriteOrtcDataChannelMessageFiredEvent(__func__, mID, zsLib::to_underlying(packet.mType), packet.mSessionID, packet.mSequenceNumber, packet.mTimestamp, packet.mFlags, ((bool)packet.mBuffer) ? packet.mBuffer->BytePtr() : NULL, ((bool)packet.mBuffer) ? packet.mBuffer->SizeInBytes() : 0);
+      EventWriteOrtcDataChannelMessageFiredEvent(__func__, mID, zsLib::to_underlying(packet.mType), packet.mSessionID, packet.mSequenceNumber, packet.mTimestamp, packet.mFlags, ((bool)packet.mBuffer) ? packet.mBuffer->SizeInBytes() : 0, ((bool)packet.mBuffer) ? packet.mBuffer->BytePtr() : NULL);
 
       mSubscriptions.delegate()->onDataChannelMessage(mThisWeak.lock(), data);
     }
@@ -1459,7 +1459,7 @@ namespace ortc
       if (!packet) return;
       if (!packet->mBuffer) return;
 
-      EventWriteOrtcDataChannelOutgoingBufferPacket(__func__, mID, zsLib::to_underlying(packet->mType), packet->mSessionID, packet->mOrdered, packet->mMaxPacketLifetime.count(), packet->mMaxRetransmits.hasValue(), packet->mMaxRetransmits.value(), packet->mBuffer->BytePtr(), packet->mBuffer->SizeInBytes());
+      EventWriteOrtcDataChannelOutgoingBufferPacket(__func__, mID, zsLib::to_underlying(packet->mType), packet->mSessionID, packet->mOrdered, packet->mMaxPacketLifetime.count(), packet->mMaxRetransmits.hasValue(), packet->mMaxRetransmits.value(), packet->mBuffer->SizeInBytes(), packet->mBuffer->BytePtr());
 
       auto previousFillSize = mOutgoingBufferFillSize;
       mOutgoingBufferFillSize += packet->mBuffer->SizeInBytes();
@@ -1478,7 +1478,7 @@ namespace ortc
       if (!packet) return;
       if (!packet->mBuffer) return;
 
-      EventWriteOrtcDataChannelOutgoingBufferPacketDelivered(__func__, mID, zsLib::to_underlying(packet->mType), packet->mSessionID, packet->mOrdered, packet->mMaxPacketLifetime.count(), packet->mMaxRetransmits.hasValue(), packet->mMaxRetransmits.value(), packet->mBuffer->BytePtr(), packet->mBuffer->SizeInBytes());
+      EventWriteOrtcDataChannelOutgoingBufferPacketDelivered(__func__, mID, zsLib::to_underlying(packet->mType), packet->mSessionID, packet->mOrdered, packet->mMaxPacketLifetime.count(), packet->mMaxRetransmits.hasValue(), packet->mMaxRetransmits.value(), packet->mBuffer->SizeInBytes(), packet->mBuffer->BytePtr());
 
       size_t packetSize = packet->mBuffer->SizeInBytes();
 

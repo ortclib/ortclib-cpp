@@ -66,24 +66,24 @@
 #define EventWriteOrtcDataChannelBufferedAmountLowThresholdChanged(xStr_Method, xPUID, xsize_t_NewThreshold, xsize_t_mOldThreshold, xsize_t_OutgoingBufferFillSize, xBool_BufferedAmountLowThresholdFired)
 
 #define EventWriteOrtcDataChannelSendString(xStr_Method, xPUID, xStr_Data)
-#define EventWriteOrtcDataChannelSendBinary(xStr_Method, xPUID, xPtr_Buffer, xsize_t_BufferSizeInBytes)
+#define EventWriteOrtcDataChannelSendBinary(xStr_Method, xPUID, xsize_t_BufferSizeInBytes, xPtr_Buffer)
 
-#define EventWriteOrtcDataChannelOutgoingBufferPacket(xStr_Method, xPUID,  xUInt_Type, xWORD_SessionID, xBool_Ordered, xlong_long_MaxPacketLifetimeInMilliseconds, xBool_HasMaxRetransmits, xDWORD_MaxRetransmits, xPtr_Buffer, xsize_t_BufferSizeInBytes)
-#define EventWriteOrtcDataChannelOutgoingBufferPacketDelivered(xStr_Method, xPUID,  xUInt_Type, xWORD_SessionID, xBool_Ordered, xlong_long_MaxPacketLifetimeInMilliseconds, xBool_HasMaxRetransmits, xDWORD_MaxRetransmits, xPtr_Buffer, xsize_t_BufferSizeInBytes)
+#define EventWriteOrtcDataChannelOutgoingBufferPacket(xStr_Method, xPUID,  xUInt_Type, xWORD_SessionID, xBool_Ordered, xlong_long_MaxPacketLifetimeInMilliseconds, xBool_HasMaxRetransmits, xDWORD_MaxRetransmits, xsize_t_BufferSizeInBytes, xPtr_Buffer)
+#define EventWriteOrtcDataChannelOutgoingBufferPacketDelivered(xStr_Method, xPUID,  xUInt_Type, xWORD_SessionID, xBool_Ordered, xlong_long_MaxPacketLifetimeInMilliseconds, xBool_HasMaxRetransmits, xDWORD_MaxRetransmits, xsize_t_BufferSizeInBytes, xPtr_Buffer)
 
 #define EventWriteOrtcDataChannelReceivedControlOpen(xStr_Method, xPUID, xBool_Incoming, xBYTE_MessageType, xBYTE_ChannelType, xWORD_Priority, xDWORD_ReliabilityParameter, xWORD_LabelLength, xWORD_ProtocolLength, xStr_Label, xStr_Protocol)
 #define EventWriteOrtcDataChannelReceivedControlAck(xStr_Method, xPUID, xBYTE_MessageType)
 
-#define EventWriteOrtcDataChannelMessageFiredEvent(xStr_Method, xPUID,  xUInt_Type, xWORD_SessionID, xWORD_SequenceNumber, xDWORD_Timestamp, xInt_Flags, xPtr_Buffer, xsize_t_BufferSizeInBytes)
+#define EventWriteOrtcDataChannelMessageFiredEvent(xStr_Method, xPUID,  xUInt_Type, xWORD_SessionID, xWORD_SequenceNumber, xDWORD_Timestamp, xInt_Flags, xsize_t_BufferSizeInBytes, xPtr_Buffer)
 
-#define EventWriteOrtcDataChannelSCTPTransportDeliverOutgoingPacket(xStr_Method, xPUID,  xUInt_Type, xWORD_SessionID, xBool_Ordered, xlong_long_MaxPacketLifetimeInMilliseconds, xBool_HasMaxRetransmits, xDWORD_MaxRetransmits, xPtr_Buffer, xsize_t_BufferSizeInBytes)
+#define EventWriteOrtcDataChannelSCTPTransportDeliverOutgoingPacket(xStr_Method, xPUID,  xUInt_Type, xWORD_SessionID, xBool_Ordered, xlong_long_MaxPacketLifetimeInMilliseconds, xBool_HasMaxRetransmits, xDWORD_MaxRetransmits, xsize_t_BufferSizeInBytes, xPtr_Buffer)
 
 #define EventWriteOrtcDataChannelSCTPTransportRequestShutdown(xStr_Method, xPUID)
 #define EventWriteOrtcDataChannelSCTPTransportRequestNotifyClosed(xStr_Method, xPUID)
 #define EventWriteOrtcDataChannelSCTPTransportStateChanged(xStr_Method, xPUID)
 #define EventWriteOrtcDataChannelSCTPTransportSendReady(xStr_Method, xPUID)
 #define EventWriteOrtcDataChannelSCTPTransportSendReadyFailure(xStr_Method, xPUID, xWORD_Error, xStr_ErrorReason)
-#define EventWriteOrtcDataChannelSCTPTransportReceivedIncomingPacket(xStr_Method, xPUID,  xUInt_Type, xWORD_SessionID, xWORD_SequenceNumber, xDWORD_Timestamp, xInt_Flags, xPtr_Buffer, xsize_t_BufferSizeInBytes)
+#define EventWriteOrtcDataChannelSCTPTransportReceivedIncomingPacket(xStr_Method, xPUID,  xUInt_Type, xWORD_SessionID, xWORD_SequenceNumber, xDWORD_Timestamp, xInt_Flags, xsize_t_BufferSizeInBytes, xPtr_Buffer)
 
 #define EventWriteOrtcDtlsTransportCreate(xStr_Method, xPUID, xPUID_IceTransport, xStr_Component, xsize_t_MaxPendingDTLSBuffer, xsize_t_MaxPendingRTPPackets, xsize_t_TotalCertificates)
 #define EventWriteOrtcDtlsTransportDestroy(xStr_Method, xPUID)
@@ -99,18 +99,18 @@
 
 #define EventWriteOrtcDtlsTransportRoleSet(xStr_Method, xPUID, xStr_Role)
 
-#define EventWriteOrtcDtlsTransportReceivedPacket(xStr_Method, xPUID, xUInt_ViaTransport, xBool_IsDtlsPacket, xPtr_Buffer, xsize_t_BufferSizeInBytes)
+#define EventWriteOrtcDtlsTransportReceivedPacket(xStr_Method, xPUID, xUInt_ViaTransport, xBool_IsDtlsPacket, xsize_t_BufferSizeInBytes, xPtr_Buffer)
 #define EventWriteOrtcDtlsTransportReceivedStunPacket(xStr_Method, xPUID, xUInt_ViaTransport)
 
-#define EventWriteOrtcDtlsTransportForwardingEncryptedPacketToSrtpTransport(xStr_Method, xPUID, xPUID_SrtpTransportObjectID, xUInt_ViaTransport, xPtr_Buffer, xsize_t_BufferSizeInBytes)
-#define EventWriteOrtcDtlsTransportForwardingPacketToDataTransport(xStr_Method, xPUID, xPUID_DataTransportObjectID, xUInt_ViaTransport, xPtr_Buffer, xsize_t_BufferSizeInBytes)
-#define EventWriteOrtcDtlsTransportForwardingPacketToRtpListener(xStr_Method, xPUID, xPUID_RtpListenerObjectID, xUInt_ViaTransport,  xUInt_PacketType, xPtr_Buffer, xsize_t_BufferSizeInBytes)
+#define EventWriteOrtcDtlsTransportForwardingEncryptedPacketToSrtpTransport(xStr_Method, xPUID, xPUID_SrtpTransportObjectID, xUInt_ViaTransport, xsize_t_BufferSizeInBytes, xPtr_Buffer)
+#define EventWriteOrtcDtlsTransportForwardingPacketToDataTransport(xStr_Method, xPUID, xPUID_DataTransportObjectID, xUInt_ViaTransport, xsize_t_BufferSizeInBytes, xPtr_Buffer)
+#define EventWriteOrtcDtlsTransportForwardingPacketToRtpListener(xStr_Method, xPUID, xPUID_RtpListenerObjectID, xUInt_ViaTransport,  xUInt_PacketType, xsize_t_BufferSizeInBytes, xPtr_Buffer)
 
-#define EventWriteOrtcDtlsTransportSendRtpPacket(xStr_Method, xPUID, xUInt_SendOverComponent, xUInt_PacketType, xPtr_Buffer, xsize_t_BufferSizeInBytes)
-#define EventWriteOrtcDtlsTransportSendDataPacket(xStr_Method, xPUID, xPtr_Buffer, xsize_t_BufferSizeInBytes)
-#define EventWriteOrtcDtlsTransportForwardDataPacketToIceTransport(xStr_Method, xPUID, xPUID_IceTransportObjectID, xPtr_Buffer, xsize_t_BufferSizeInBytes)
+#define EventWriteOrtcDtlsTransportSendRtpPacket(xStr_Method, xPUID, xUInt_SendOverComponent, xUInt_PacketType, xsize_t_BufferSizeInBytes, xPtr_Buffer)
+#define EventWriteOrtcDtlsTransportSendDataPacket(xStr_Method, xPUID, xsize_t_BufferSizeInBytes, xPtr_Buffer)
+#define EventWriteOrtcDtlsTransportForwardDataPacketToIceTransport(xStr_Method, xPUID, xPUID_IceTransportObjectID, xsize_t_BufferSizeInBytes, xPtr_Buffer)
 
-#define EventWriteOrtcDtlsTransportSendEncryptedRtpPacket(xStr_Method, xPUID, xPUID_IceTransportObjectID, xUInt_SendOverComponent, xUInt_PacketType, xPtr_Buffer, xsize_t_BufferSizeInBytes)
+#define EventWriteOrtcDtlsTransportSendEncryptedRtpPacket(xStr_Method, xPUID, xPUID_IceTransportObjectID, xUInt_SendOverComponent, xUInt_PacketType, xsize_t_BufferSizeInBytes, xPtr_Buffer)
 
 #define EventWriteOrtcDtlsTransportInternalTimerEventFired(xStr_Method, xPUID, xPUID_TimerID)
 #define EventWriteOrtcDtlsTransportInternalIceStateChangeEventFired(xStr_Method, xPUID, xPUID_IceTransportObjectID, xStr_State)
@@ -119,7 +119,7 @@
 #define EventWriteOrtcDtlsTransportStateChangedEventFired(xStr_Method, xPUID, xStr_State)
 #define EventWriteOrtcDtlsTransportErrorEventFired(xStr_Method, xPUID, xWORD_Error, xStr_ErrorReason)
 
-#define EventWriteOrtcDtlsTransportSrtpKeyingMaterialSetup(xStr_Method, xPUID, xPUID_SecureTransportObjectID, xStr_Direction, xStr_Cipher, xPtr_KeyingMaterialBuffer, xsize_t_KeyingMaterialBufferSizeInBytes)
+#define EventWriteOrtcDtlsTransportSrtpKeyingMaterialSetup(xStr_Method, xPUID, xPUID_SecureTransportObjectID, xStr_Direction, xStr_Cipher, xsize_t_KeyingMaterialBufferSizeInBytes, xPtr_KeyingMaterialBuffer)
 
 #define EventWriteOrtcIceGathererCreate(xStr_Method, xPUID, xPUID_GethererRouterObjectID, xStr_UsernameFragment, xStr_Password, xBool_CreateTCPCandidates, xBool_ContinousGathering, xsize_t_TotalInterfacePolicies, xsize_t_TotalIceServers, xlong_long_ReflexiveInactivityTimeInSeconds, xlong_long_RelayInactivityTimeInSeoncds, xlong_long_MaxBufferingTimeInSeconds, xlong_long_RecheckIPsInSeconds, xsize_t_MaxTotalBuffers, xsize_t_MaxTCPBufferingSizePendingConnectionInBytes, xsize_t_MaxTCPBufferingSizeConnectedInBytes, xBool_GatherPassiveTCP)
 #define EventWriteOrtcIceGathererDestroy(xStr_Method, xPUID)
@@ -144,25 +144,25 @@
 #define EventWriteOrtcIceGathererInternalIceTransportStateChangedEventFired(xStr_Method, xPUID, xPUID_IceTransportObjectID)
 
 #define EventWriteOrtcIceGathererRemovetAllIceTransportRelatedRoutes(xStr_Method, xPUID, xPUID_IceTransportObjectID)
-#define EventWriteOrtcIceGathererSendIceTransportPacket(xStr_Method, xPUID, xPUID_IceTransportObjectID, xPUID_RouteID, xPtr_Buffer, xsize_t_BufferSizeInBytes)
-#define EventWriteOrtcIceGathererSendIceTransportPacketFailed(xStr_Method, xPUID, xPUID_IceTransportObjectID, xPUID_RouteID, xPtr_Buffer, xsize_t_BufferSizeInBytes)
+#define EventWriteOrtcIceGathererSendIceTransportPacket(xStr_Method, xPUID, xPUID_IceTransportObjectID, xPUID_RouteID, xsize_t_BufferSizeInBytes, xPtr_Buffer)
+#define EventWriteOrtcIceGathererSendIceTransportPacketFailed(xStr_Method, xPUID, xPUID_IceTransportObjectID, xPUID_RouteID, xsize_t_BufferSizeInBytes, xPtr_Buffer)
 
-#define EventWriteOrtcIceGathererSendIceTransportPacketViaUdp(xStr_Method, xPUID, xPUID_IceTransportObjectID, xPUID_RouteID, xPUID_HostPortObjectID, xStr_RemoteIP, xPtr_Buffer, xsize_t_BufferSizeInBytes)
-#define EventWriteOrtcIceGathererSendIceTransportPacketViaTcp(xStr_Method, xPUID, xPUID_IceTransportObjectID, xPUID_RouteID, xPUID_TcpPortObjectID, xPtr_Buffer, xsize_t_BufferSizeInBytes)
-#define EventWriteOrtcIceGathererSendIceTransportPacketViaTurn(xStr_Method, xPUID, xPUID_IceTransportObjectID, xPUID_RouteID, xPUID_TurnObjectID, xPtr_Buffer, xsize_t_BufferSizeInBytes)
+#define EventWriteOrtcIceGathererSendIceTransportPacketViaUdp(xStr_Method, xPUID, xPUID_IceTransportObjectID, xPUID_RouteID, xPUID_HostPortObjectID, xStr_RemoteIP, xsize_t_BufferSizeInBytes, xPtr_Buffer)
+#define EventWriteOrtcIceGathererSendIceTransportPacketViaTcp(xStr_Method, xPUID, xPUID_IceTransportObjectID, xPUID_RouteID, xPUID_TcpPortObjectID, xsize_t_BufferSizeInBytes, xPtr_Buffer)
+#define EventWriteOrtcIceGathererSendIceTransportPacketViaTurn(xStr_Method, xPUID, xPUID_IceTransportObjectID, xPUID_RouteID, xPUID_TurnObjectID, xsize_t_BufferSizeInBytes, xPtr_Buffer)
 
-#define EventWriteOrtcIceGathererDeliverIceTransportIncomingPacket(xStr_Method, xPUID, xPUID_IceTransportObjectID, xPUID_RouteID, xPUID_xRouterRouteID, xBool_WasBuffered, xPtr_Buffer, xsize_t_BufferSizeInBytes)
-#define EventWriteOrtcIceGathererBufferIceTransportIncomingPacket(xStr_Method, xPUID, xPUID_xRouterRouteID, xPtr_Buffer, xsize_t_BufferSizeInBytes)
+#define EventWriteOrtcIceGathererDeliverIceTransportIncomingPacket(xStr_Method, xPUID, xPUID_IceTransportObjectID, xPUID_RouteID, xPUID_xRouterRouteID, xBool_WasBuffered, xsize_t_BufferSizeInBytes, xPtr_Buffer)
+#define EventWriteOrtcIceGathererBufferIceTransportIncomingPacket(xStr_Method, xPUID, xPUID_xRouterRouteID, xsize_t_BufferSizeInBytes, xPtr_Buffer)
 
 #define EventWriteOrtcIceGathererDeliverIceTransportIncomingStunPacket(xStr_Method, xPUID, xPUID_IceTransportObjectID, xPUID_RouteID, xPUID_xRouterRouteID, xBool_WasBuffered)
 #define EventWriteOrtcIceGathererBufferIceTransportIncomingStunPacket(xStr_Method, xPUID, xPUID_xRouterRouteID)
 #define EventWriteOrtcIceGathererErrorIceTransportIncomingStunPacket(xStr_Method, xPUID, xPUID_IceTransportObjectID, xPUID_RouteID, xPUID_xRouterRouteID)
 
-#define EventWriteOrtcIceGathererDisposeBufferedIceTransportIncomingPacket(xStr_Method, xPUID, xPUID_xRouterRouteID, xPtr_Buffer, xsize_t_BufferSizeInBytes)
+#define EventWriteOrtcIceGathererDisposeBufferedIceTransportIncomingPacket(xStr_Method, xPUID, xPUID_xRouterRouteID, xsize_t_BufferSizeInBytes, xPtr_Buffer)
 #define EventWriteOrtcIceGathererDisposeBufferedIceTransportIncomingStunPacket(xStr_Method, xPUID, xPUID_xRouterRouteID)
 
-#define EventWriteOrtcIceGathererTurnSocketReceivedPacket(xStr_Method, xPUID, xPUID_TurnSocketObjectID, xPtr_Buffer, xsize_t_BufferSizeInBytes)
-#define EventWriteOrtcIceGathererTurnSocketSendPacket(xStr_Method, xPUID, xPUID_TurnSocketObjectID, xPtr_Buffer, xsize_t_BufferSizeInBytes)
+#define EventWriteOrtcIceGathererTurnSocketReceivedPacket(xStr_Method, xPUID, xPUID_TurnSocketObjectID, xsize_t_BufferSizeInBytes, xPtr_Buffer)
+#define EventWriteOrtcIceGathererTurnSocketSendPacket(xStr_Method, xPUID, xPUID_TurnSocketObjectID, xsize_t_BufferSizeInBytes, xPtr_Buffer)
 
 #define EventWriteOrtcIceGathererInstallQuickRoute(xStr_Method, xPUID, xPtr_Candidate, xStr_IPAddress, xPUID_RouteID)
 #define EventWriteOrtcIceGathererRemoveQuickRoute(xStr_Method, xPUID, xPtr_Candidate, xStr_IPAddress, xPUID_RouteID)
@@ -179,7 +179,7 @@
 
 #define EventWriteOrtcIceGathererInternalBackOffTimerStateChangedEventFired(xStr_Method, xPUID, xPUID_BackOffTimerObjectID, xStr_State)
 
-#define EventWriteOrtcIceGathererInternalStunDiscoverySendPacket(xStr_Method, xPUID, xPUID_StunDiscoveryObjectID, xStr_DestinationIP, xPtr_Buffer, xsize_t_BufferSizeInBytes)
+#define EventWriteOrtcIceGathererInternalStunDiscoverySendPacket(xStr_Method, xPUID, xPUID_StunDiscoveryObjectID, xStr_DestinationIP, xsize_t_BufferSizeInBytes, xPtr_Buffer)
 #define EventWriteOrtcIceGathererInternalStunDiscoveryCompleteEventFired(xStr_Method, xPUID, xPUID_StunDiscoveryObjectID, xPUID_HostPortObjectID, xStr_MappedIP)
 
 #define EventWriteOrtcIceGathererInternalTurnSocketStateChangeEventFired(xStr_Method, xPUID, xPUID_TurnSocketObjectID, xStr_State)
@@ -205,12 +205,12 @@
 #define EventWriteOrtcIceGathererTcpPortCreate(xStr_Method, xPUID, xPUID_TcpPortObjectID, xStr_RemoteIP)
 #define EventWriteOrtcIceGathererTcpPortDestroy(xStr_Method, xPUID, xPUID_TcpPortObjectID, xStr_RemoteIP)
 
-#define EventWriteOrtcIceGathererUdpSocketPacketReceivedFrom(xStr_Method, xPUID, xStr_FromIP, xPtr_Buffer, xsize_t_BufferSizeInBytes)
-#define EventWriteOrtcIceGathererUdpSocketPacketForwardingToTurnSocket(xStr_Method, xPUID, xStr_FromIP, xBool_IsStun, xPtr_Buffer, xsize_t_BufferSizeInBytes)
-#define EventWriteOrtcIceGathererUdpSocketPacketSentTo(xStr_Method, xPUID, xStr_BoundIP, xStr_ToIP, xPtr_Buffer, xsize_t_BufferSizeInBytes)
+#define EventWriteOrtcIceGathererUdpSocketPacketReceivedFrom(xStr_Method, xPUID, xStr_FromIP, xsize_t_BufferSizeInBytes, xPtr_Buffer)
+#define EventWriteOrtcIceGathererUdpSocketPacketForwardingToTurnSocket(xStr_Method, xPUID, xStr_FromIP, xBool_IsStun, xsize_t_BufferSizeInBytes, xPtr_Buffer)
+#define EventWriteOrtcIceGathererUdpSocketPacketSentTo(xStr_Method, xPUID, xStr_BoundIP, xStr_ToIP, xsize_t_BufferSizeInBytes, xPtr_Buffer)
 
-#define EventWriteOrtcIceGathererTcpSocketPacketReceivedFrom(xStr_Method, xPUID, xStr_FromIP, xPtr_Buffer, xsize_t_BufferSizeInBytes)
-#define EventWriteOrtcIceGathererTcpSocketSentOutgoing(xStr_Method, xPUID, xStr_FromIP, xPtr_Buffer, xsize_t_BufferSizeInBytes)
+#define EventWriteOrtcIceGathererTcpSocketPacketReceivedFrom(xStr_Method, xPUID, xStr_FromIP, xsize_t_BufferSizeInBytes, xPtr_Buffer)
+#define EventWriteOrtcIceGathererTcpSocketSentOutgoing(xStr_Method, xPUID, xStr_FromIP, xsize_t_BufferSizeInBytes, xPtr_Buffer)
 
 #define EventWriteOrtcIceGathererRouteTrace(xStr_Method, xStr_CallingMethod, xStr_Message, xGathererRouteObjectID, xPUID_GathererObjectID, xlong_long_LastUsedInMillisecondsSinceEpoch, xPUID_IceTransportObjectID, xPUID_HostPortObjectID, xPUID_RelayPortObjectID, xPUID_TcpPortObjectID, xStr_LocalInterfaceType, xStr_LocalFoundation, xDWORD_LocalPriority, xDWORD_LocalUnfreezePriority, xStr_LocalProtocol, xStr_LocalIP, xWORD_LocalPort, xStr_LocalCandidateType, xStr_LocalTcpType, xStr_LocalRelatedAddress, xWORD_LocalRelatedPort)
 
@@ -244,25 +244,25 @@
 
 #define EventWriteOrtcIceTransportRouteTrace(xStr_Method, xStr_CallingMethod, xStr_Message, xTransportRouteObjectID, xPUID_IceTransportObjectID, xStr_CandidatePairHash, xStr_LocalInterfaceType, xStr_LocalFoundation, xDWORD_LocalPriority, xDWORD_LocalUnfreezePriority, xStr_LocalProtocol, xStr_LocalIP, xWORD_LocalPort, xStr_LocalCandidateType, xStr_LocalTcpType, xStr_LocalRelatedAddress, xWORD_LocalRelatedPort, xStr_RemoteInterfaceType, xStr_RemoteFoundation, xDWORD_RemotePriority, xDWORD_RemoteUnfreezePriority, xStr_RemoteProtocol, xStr_RemoteIP, xWORD_RemotePort, xStr_RemoteCandidateType, xStr_RemoteTcpType, xStr_RemoteRelatedAddress, xWORD_RemoteRelatedPort, xPUID_GathererRouteObjectID, xQWORD_PendingPriority, xlong_long_LastReceivedCheckTimeInMillisecondsSinceEpoch, xlong_long_LastSentCheckTimeInMillisecondsSinceEpoch, xlong_long_LastReceivedMediaTimeInMillisecondsSinceEpoch, xlong_long_LastReceivedResponseTimeInMillisecondsSinceEpoch, xBool_Prune, xBool_KeepWarm, xPUID_OutgoingCheckStunRequesterObjectID, xPUID_NextKeepWarmTimerObjectID, xBool_FrozenPromise, xsize_t_TotalDependentPromises, xlong_long_LastRoundTripCheckInMillisecondsSinceEpoch, xlong_long_LastRoundTripMeasurementInMilliseconds)
 
-#define EventWriteOrtcIceTransportReceivedPacketFromGatherer(xStr_Method, xPUID, xPUID_RouterRouteObjectID, xPtr_Buffer, xsize_t_BufferSizeInBytes)
+#define EventWriteOrtcIceTransportReceivedPacketFromGatherer(xStr_Method, xPUID, xPUID_RouterRouteObjectID, xsize_t_BufferSizeInBytes, xPtr_Buffer)
 #define EventWriteOrtcIceTransportReceivedStunPacketFromGatherer(xStr_Method, xPUID, xPUID_RouterRouteObjectID)
 #define EventWriteOrtcIceTransportRetryReceivedStunPacketFromGatherer(xStr_Method, xPUID, xPUID_RouterRouteObjectID)
 
-#define EventWriteOrtcIceTransportBufferingIncomingPacket(xStr_Method, xPUID, xPtr_Buffer, xsize_t_BufferSizeInBytes)
-#define EventWriteOrtcIceTransportDisposingBufferedIncomingPacket(xStr_Method, xPUID, xPtr_Buffer, xsize_t_BufferSizeInBytes)
-#define EventWriteOrtcIceTransportDeliveringBufferedIncomingPacketToSecureTransport(xStr_Method, xPUID, xPUID_SecureTransportObjectID, xPtr_Buffer, xsize_t_BufferSizeInBytes)
+#define EventWriteOrtcIceTransportBufferingIncomingPacket(xStr_Method, xPUID, xsize_t_BufferSizeInBytes, xPtr_Buffer)
+#define EventWriteOrtcIceTransportDisposingBufferedIncomingPacket(xStr_Method, xPUID, xsize_t_BufferSizeInBytes, xPtr_Buffer)
+#define EventWriteOrtcIceTransportDeliveringBufferedIncomingPacketToSecureTransport(xStr_Method, xPUID, xPUID_SecureTransportObjectID, xsize_t_BufferSizeInBytes, xPtr_Buffer)
 
-#define EventWriteOrtcIceTransportDeliveringIncomingPacketToSecureTransport(xStr_Method, xPUID, xPUID_SecureTransportObjectID, xPtr_Buffer, xsize_t_BufferSizeInBytes)
+#define EventWriteOrtcIceTransportDeliveringIncomingPacketToSecureTransport(xStr_Method, xPUID, xPUID_SecureTransportObjectID, xsize_t_BufferSizeInBytes, xPtr_Buffer)
 #define EventWriteOrtcIceTransportDeliveringIncomingStunPacketToSecureTransport(xStr_Method, xPUID, xPUID_SecureTransportObjectID)
 
 #define EventWriteOrtcIceTransportInstallFoundation(xStr_Method, xPUID, xStr_LocalFoundation, xStr_RemoteFoundation, xsize_t_TotalRoutes)
 #define EventWriteOrtcIceTransportRemoveFoundation(xStr_Method, xPUID, xStr_LocalFoundation, xStr_RemoteFoundation, xsize_t_TotalRoutes)
 #define EventWriteOrtcIceTransportInstallFoundationDependencyFreezePromise(xStr_Method, xPUID, xStr_LocalFoundation, xStr_RemoteFoundation)
 
-#define EventWriteOrtcIceTransportSecureTransportSendPacket(xStr_Method, xPUID, xPtr_Buffer, xsize_t_BufferSizeInBytes)
-#define EventWriteOrtcIceTransportForwardSecureTransportPacketToGatherer(xStr_Method, xPUID, xPUID_GathererObjectID, xPtr_Buffer, xsize_t_BufferSizeInBytes)
+#define EventWriteOrtcIceTransportSecureTransportSendPacket(xStr_Method, xPUID, xsize_t_BufferSizeInBytes, xPtr_Buffer)
+#define EventWriteOrtcIceTransportForwardSecureTransportPacketToGatherer(xStr_Method, xPUID, xPUID_GathererObjectID, xsize_t_BufferSizeInBytes, xPtr_Buffer)
 
-#define EventWriteOrtcIceTransportSendStunPacket(xStr_Method, xPUID, xPUID_GathererObjectID, xPtr_Buffer, xsize_t_BufferSizeInBytes)
+#define EventWriteOrtcIceTransportSendStunPacket(xStr_Method, xPUID, xPUID_GathererObjectID, xsize_t_BufferSizeInBytes, xPtr_Buffer)
 
 #define EventWriteOrtcIceTransportInternalControllerAttachedEventFired(xStr_Method, xPUID, xPUID_IceTransportControllerObjectID)
 #define EventWriteOrtcIceTransportInternalControllerDetachedEventFired(xStr_Method, xPUID, xPUID_IceTransportControllerObjectID)
@@ -284,7 +284,7 @@
 #define EventWriteOrtcIceTransportInternalGathererRemoveLocalCandidateEventFired(xStr_Method, xPUID, xPUID_GathererObjectID, xStr_InterfaceType, xStr_Foundation, xDWORD_Priority, xDWORD_UnfreezePriority, xStr_Protocol, xStr_IP, xWORD_Port, xStr_CandidateType, xStr_TcpType, xStr_RelatedAddress, xWORD_RelatedPort)
 
 #define EventWriteOrtcIceTransportInternalStunRequesterCreate(xStr_Method, xPUID, xPUID_StunRequesterObjectID)
-#define EventWriteOrtcIceTransportInternalStunRequesterSendPacket(xStr_Method, xPUID, xPUID_StunRequesterObjectID, xStr_DestinationIP, xPtr_Buffer, xsize_t_BufferSizeInBytes)
+#define EventWriteOrtcIceTransportInternalStunRequesterSendPacket(xStr_Method, xPUID, xPUID_StunRequesterObjectID, xStr_DestinationIP, xsize_t_BufferSizeInBytes, xPtr_Buffer)
 #define EventWriteOrtcIceTransportInternalStunRequesterReceivedResponse(xStr_Method, xPUID, xPUID_StunRequesterObjectID, xStr_FromIP)
 #define EventWriteOrtcIceTransportInternalStunRequesterReceivedResponseMismatch(xStr_Method, xPUID, xPUID_StunRequesterObjectID, xStr_FromIP, xStr_ExpectingIP)
 #define EventWriteOrtcIceTransportInternalStunRequesterTimedOut(xStr_Method, xPUID, xPUID_StunRequesterObjectID)
@@ -307,7 +307,7 @@
 #define EventWriteOrtcRtpListenerDestroy(xStr_Method, xPUID)
 #define EventWriteOrtcRtpListenerCancel(xStr_Method, xPUID)
 #define EventWriteOrtcRtpListenerStep(xStr_Method, xPUID)
-#define EventWriteOrtcRtpListenerFindMapping(xStr_Method, xPUID, xStr_MuxID, xPtr_Buffer, xsize_t_BufferSizeInBytes)
+#define EventWriteOrtcRtpListenerFindMapping(xStr_Method, xPUID, xStr_MuxID, xsize_t_BufferSizeInBytes, xPtr_Buffer)
 #define EventWriteOrtcRtpListenerFoundMappingByMuxID(xStr_Method, xPUID, xPUID_RtpReceiverObjectID, xStr_MuxID)
 #define EventWriteOrtcRtpListenerFoundMappingBySsrc(xStr_Method, xPUID, xPUID_RtpReceiverObjectID, xDWORD_Ssrc)
 #define EventWriteOrtcRtpListenerFoundMappingByPayloadType(xStr_Method, xPUID, xPUID_RtpReceiverObjectID, xBYTE_PayloadType)
@@ -319,10 +319,10 @@
 #define EventWriteOrtcRtpListenerRegisterHeaderExtension(xStr_Method, xPUID, xPUID_RegisterForObject, xStr_ExtensionURI, xunsigned_short_LocalID, xBool_Encrypted, xsize_t_TotalReferences)
 #define EventWriteOrtcRtpListenerUnregisterHeaderExtension(xStr_Method, xPUID, xPUID_RegisterForObject, xStr_ExtensionURI, xunsigned_short_LocalID, xBool_Encrypted, xsize_t_TotalReferences)
 
-#define EventWriteOrtcRtpListenerReceivedIncomingPacket(xStr_Method, xPUID, xUInt_ViaComponent, xUInt_PacketType, xPtr_Buffer, xsize_t_BufferSizeInBytes)
-#define EventWriteOrtcRtpListenerBufferIncomingPacket(xStr_Method, xPUID, xUInt_ViaComponent, xUInt_PacketType, xPtr_Buffer, xsize_t_BufferSizeInBytes)
-#define EventWriteOrtcRtpListenerForwardIncomingPacket(xStr_Method, xPUID, xPUID_SenderOrReceiverObjectID, xUInt_ViaComponent, xUInt_PacketType, xPtr_Buffer, xsize_t_BufferSizeInBytes)
-#define EventWriteOrtcRtpListenerDisposeBufferedIncomingPacket(xStr_Method, xPUID, xUInt_PacketType, xPtr_Buffer, xsize_t_BufferSizeInBytes)
+#define EventWriteOrtcRtpListenerReceivedIncomingPacket(xStr_Method, xPUID, xUInt_ViaComponent, xUInt_PacketType, xsize_t_BufferSizeInBytes, xPtr_Buffer)
+#define EventWriteOrtcRtpListenerBufferIncomingPacket(xStr_Method, xPUID, xUInt_ViaComponent, xUInt_PacketType, xsize_t_BufferSizeInBytes, xPtr_Buffer)
+#define EventWriteOrtcRtpListenerForwardIncomingPacket(xStr_Method, xPUID, xPUID_SenderOrReceiverObjectID, xUInt_ViaComponent, xUInt_PacketType, xsize_t_BufferSizeInBytes, xPtr_Buffer)
+#define EventWriteOrtcRtpListenerDisposeBufferedIncomingPacket(xStr_Method, xPUID, xUInt_PacketType, xsize_t_BufferSizeInBytes, xPtr_Buffer)
 
 #define EventWriteOrtcRtpListenerRegisterReceiver(xStr_Method, xPUID, xPUID_RtpReceiverObjectID, xPUID_OrderID, xStr_Kind)
 #define EventWriteOrtcRtpListenerUnregisterReceiver(xStr_Method, xPUID, xPUID_RtpReceiverObjectID)
@@ -359,10 +359,10 @@
 #define EventWriteOrtcRtpReceiverUpdateContributingSource(xStr_Method, xPUID, xDWORD_Csrc)
 #define EventWriteOrtcRtpReceiverRemoveContributingSource(xStr_Method, xPUID, xDWORD_Csrc)
 
-#define EventWriteOrtcRtpReceivedIncomingPacket(xStr_Method, xPUID, xUInt_ViaTransport, xUInt_PacketType, xPtr_Buffer, xsize_t_PacketSizeInBytes)
-#define EventWriteOrtcRtpReceiverDeliverIncomingPacketToChannel(xStr_Method, xPUID, xPUID_ChannelObjectID, xUInt_ViaTransport, xUInt_PacketType, xPtr_Buffer, xsize_t_PacketSizeInBytes)
+#define EventWriteOrtcRtpReceivedIncomingPacket(xStr_Method, xPUID, xUInt_ViaTransport, xUInt_PacketType, xsize_t_PacketSizeInBytes, xPtr_Buffer)
+#define EventWriteOrtcRtpReceiverDeliverIncomingPacketToChannel(xStr_Method, xPUID, xPUID_ChannelObjectID, xUInt_ViaTransport, xUInt_PacketType, xsize_t_PacketSizeInBytes, xPtr_Buffer)
 
-#define EventWriteOrtcRtpReceiverSendOutgoingPacket(xStr_Method, xPUID, xUInt_ViaTransport, xUInt_PacketType, xPtr_Buffer, xsize_t_PacketSizeInBytes)
+#define EventWriteOrtcRtpReceiverSendOutgoingPacket(xStr_Method, xPUID, xUInt_ViaTransport, xUInt_PacketType, xsize_t_PacketSizeInBytes, xPtr_Buffer)
 
 #define EventWriteOrtcRtpReceiverInternalSecureTransportStateChangedEventFired(xStr_Method, xPUID, xStr_State)
 #define EventWriteOrtcRtpReceiverInternalWakeEventFired(xStr_Method, xPUID)
@@ -378,7 +378,7 @@
 #define EventWriteOrtcRtpReceiverSsrcTableEntryRemoved(xStr_Method, xPUID, xPUID_ChannelObjectID, xDWORD_Ssrc, xlong_long_LastUsageSinceEpochInSeconds, xStr_RID, xStr_Reason)
 #define EventWriteOrtcRtpReceiverSsrcTableEntryUpdated(xStr_Method, xPUID, xPUID_ChannelObjectID, xDWORD_Ssrc, xlong_long_LastUsageSinceEpochInSeconds, xStr_RID)
 
-#define EventWriteOrtcRtpReceiverFindMapping(xStr_Method, xPUID, xStr_RID, xPtr_Buffer, xsize_t_BufferSizeInBytes)
+#define EventWriteOrtcRtpReceiverFindMapping(xStr_Method, xPUID, xStr_RID, xsize_t_BufferSizeInBytes, xPtr_Buffer)
 #define EventWriteOrtcRtpReceiverFoundMappingByRID(xStr_Method, xPUID, xPUID_ChannelObjectID, xStr_RID)
 #define EventWriteOrtcRtpReceiverFoundMappingBySsrc(xStr_Method, xPUID, xPUID_ChannelObjectID, xDWORD_Ssrc)
 #define EventWriteOrtcRtpReceiverFoundMappingByPayloadType(xStr_Method, xPUID, xPUID_ChannelObjectID, xBYTE_PayloadType)
@@ -410,10 +410,10 @@
 #define EventWriteOrtcRtpSenderUpdateChannel(xStr_Method, xPUID, xPUID_ChannelID)
 #define EventWriteOrtcRtpSenderRemoveChannel(xStr_Method, xPUID, xPUID_ChannelID)
 
-#define EventWriteOrtcRtpSenderIncomingPacket(xStr_Method, xPUID, xUInt_ViaTransport, xUInt_PacketType, xPtr_Buffer, xsize_t_PacketSizeInBytes)
-#define EventWriteOrtcRtpSenderDeliverIncomingPacketToChannel(xStr_Method, xPUID, xPUID_ChannelObjectID, xUInt_ViaTransport, xUInt_PacketType, xPtr_Buffer, xsize_t_PacketSizeInBytes)
+#define EventWriteOrtcRtpSenderIncomingPacket(xStr_Method, xPUID, xUInt_ViaTransport, xUInt_PacketType, xsize_t_PacketSizeInBytes, xPtr_Buffer)
+#define EventWriteOrtcRtpSenderDeliverIncomingPacketToChannel(xStr_Method, xPUID, xPUID_ChannelObjectID, xUInt_ViaTransport, xUInt_PacketType, xsize_t_PacketSizeInBytes, xPtr_Buffer)
 
-#define EventWriteOrtcRtpSenderSendOutgoingPacket(xStr_Method, xPUID, xUInt_ViaTransport, xUInt_PacketType, xPtr_Buffer, xsize_t_PacketSizeInBytes)
+#define EventWriteOrtcRtpSenderSendOutgoingPacket(xStr_Method, xPUID, xUInt_ViaTransport, xUInt_PacketType, xsize_t_PacketSizeInBytes, xPtr_Buffer)
 
 #define EventWriteOrtcRtpSenderSsrcConflictEventFired(xStr_Method, xPUID, xPUID_ChannelObjectID, xDWORD_Ssrc, xBool_SelfDestructChannel)
 #define EventWriteOrtcRtpSenderChannelErrorEventFired(xStr_Method, xPUID, xPUID_ChannelObjectID, xWORD_Error, xStr_Reason, xBool_SelfDestructChannel)
@@ -428,8 +428,8 @@
 
 #define EventWriteOrtcRtpReceiverChannelCreateMediaChannel(xStr_Method, xPUID, xPUID_MediaChannelObjectID, xStr_Kind)
 
-#define EventWriteOrtcRtpReceiverChannelDeliverIncomingPacketToMediaChannel(xStr_Method, xPUID, xPUID_MediaChannelObjectID, xUInt_PacketType, xPtr_Buffer, xsize_t_BufferSizeInBytes)
-#define EventWriteOrtcRtpReceiverChannelSendOutgoingPacket(xStr_Method, xPUID, xPUID_ReceiverObjectID, xUInt_PacketType, xPtr_Buffer, xsize_t_BufferSizeInBytes)
+#define EventWriteOrtcRtpReceiverChannelDeliverIncomingPacketToMediaChannel(xStr_Method, xPUID, xPUID_MediaChannelObjectID, xUInt_PacketType, xsize_t_BufferSizeInBytes, xPtr_Buffer)
+#define EventWriteOrtcRtpReceiverChannelSendOutgoingPacket(xStr_Method, xPUID, xPUID_ReceiverObjectID, xUInt_PacketType, xsize_t_BufferSizeInBytes, xPtr_Buffer)
 
 #define EventWriteOrtcRtpReceiverChannelInternalSecureTransportStateChangedEventFired(xStr_Method, xPUID, xStr_State)
 
@@ -441,8 +441,8 @@
 #define EventWriteOrtcRtpSenderChannelCreateMediaChannel(xStr_Method, xPUID, xPUID_MediaChannelObjectID, xStr_Kind)
 #define EventWriteOrtcRtpSenderChannelChangeTrack(xStr_Method, xPUID, xPUID_MediaChannelObjectID, xPUID_TrackObjectID)
 
-#define EventWriteOrtcRtpSenderChannelDeliverIncomingPacketToMediaChannel(xStr_Method, xPUID, xPUID_MediaChannelObjectID, xUInt_PacketType, xPtr_Buffer, xsize_t_BufferSizeInBytes)
-#define EventWriteOrtcRtpSenderChannelSendOutgoingPacket(xStr_Method, xPUID, xPUID_SenderObjectID, xUInt_PacketType, xPtr_Buffer, xsize_t_BufferSizeInBytes)
+#define EventWriteOrtcRtpSenderChannelDeliverIncomingPacketToMediaChannel(xStr_Method, xPUID, xPUID_MediaChannelObjectID, xUInt_PacketType, xsize_t_BufferSizeInBytes, xPtr_Buffer)
+#define EventWriteOrtcRtpSenderChannelSendOutgoingPacket(xStr_Method, xPUID, xPUID_SenderObjectID, xUInt_PacketType, xsize_t_BufferSizeInBytes, xPtr_Buffer)
 
 #define EventWriteOrtcRtpSenderChannelInternalSecureTransportStateChangedEventFired(xStr_Method, xPUID, xStr_State)
 
@@ -466,15 +466,15 @@
 #define EventWriteOrtcSctpTransportStateChangedEventFired(xStr_Method, xPUID, xStr_State)
 #define EventWriteOrtcSctpTransportErrorEventFired(xStr_Method, xPUID, xWORD_ErrorCode, xStr_Reason)
 
-#define EventWriteOrtcSctpTransportReceivedIncomingPacket(xStr_Method, xPUID, xWORD_SessionID, xWORD_SequenceNumber, xDWORD_Timestamp, xInt_Flags, xPtr_Buffer, xsize_t_BufferSizeInBytes)
-#define EventWriteOrtcSctpTransportDeliverIncomingPacket(xStr_Method, xPUID, xPUID_DataChannelObjectID, xWORD_SessionID, xWORD_SequenceNumber, xDWORD_Timestamp, xInt_Flags, xPtr_Buffer, xsize_t_BufferSizeInBytes)
-#define EventWriteOrtcSctpTransportSendOutgoingPacket(xStr_Method, xPUID, xWORD_SessionID, xBool_Ordered, xlong_long_MaxPacketLifeTimeInMilliseconds, xBool_HasMaxRetransmits, xDWORD_MaxRetransmits, xPtr_Buffer, xsize_t_BufferSizeInBytes)
+#define EventWriteOrtcSctpTransportReceivedIncomingPacket(xStr_Method, xPUID, xWORD_SessionID, xWORD_SequenceNumber, xDWORD_Timestamp, xInt_Flags, xsize_t_BufferSizeInBytes, xPtr_Buffer)
+#define EventWriteOrtcSctpTransportDeliverIncomingPacket(xStr_Method, xPUID, xPUID_DataChannelObjectID, xWORD_SessionID, xWORD_SequenceNumber, xDWORD_Timestamp, xInt_Flags, xsize_t_BufferSizeInBytes, xPtr_Buffer)
+#define EventWriteOrtcSctpTransportSendOutgoingPacket(xStr_Method, xPUID, xWORD_SessionID, xBool_Ordered, xlong_long_MaxPacketLifeTimeInMilliseconds, xBool_HasMaxRetransmits, xDWORD_MaxRetransmits, xsize_t_BufferSizeInBytes, xPtr_Buffer)
 #define EventWriteOrtcSctpTransportShutdownDataChannel(xStr_Method, xPUID, xPUID_DataChannelObjectID, xWORD_SessionID)
 
-#define EventWriteOrtcSctpTransportReceivedIncomingDataPacket(xStr_Method, xPUID, xPtr_Buffer, xsize_t_BufferSizeInBytes)
-#define EventWriteOrtcSctpTransportBufferIncomingDataPacket(xStr_Method, xPUID, xPtr_Buffer, xsize_t_BufferSizeInBytes)
-#define EventWriteOrtcSctpTransportDisposeBufferedIncomingDataPacket(xStr_Method, xPUID, xPtr_Buffer, xsize_t_BufferSizeInBytes)
-#define EventWriteOrtcSctpTransportSendOutgoingDataPacket(xStr_Method, xPUID, xPUID_SecureTransportObjectID, xPtr_Buffer, xsize_t_BufferSizeInBytes)
+#define EventWriteOrtcSctpTransportReceivedIncomingDataPacket(xStr_Method, xPUID, xsize_t_BufferSizeInBytes, xPtr_Buffer)
+#define EventWriteOrtcSctpTransportBufferIncomingDataPacket(xStr_Method, xPUID, xsize_t_BufferSizeInBytes, xPtr_Buffer)
+#define EventWriteOrtcSctpTransportDisposeBufferedIncomingDataPacket(xStr_Method, xPUID, xsize_t_BufferSizeInBytes, xPtr_Buffer)
+#define EventWriteOrtcSctpTransportSendOutgoingDataPacket(xStr_Method, xPUID, xPUID_SecureTransportObjectID, xsize_t_BufferSizeInBytes, xPtr_Buffer)
 
 #define EventWriteOrtcSctpTransportInternalWakeEventFired(xStr_Method, xPUID)
 #define EventWriteOrtcSctpTransportInternalShutdownEventFired(xStr_Method, xPUID)
@@ -492,18 +492,18 @@
 #define EventWriteOrtcSctpTransportListenerSctpTransportEventFired(xStr_Method, xPUID, xPUID_SctpTransportObjectID, xWORD_LocalPort, xRemotePort)
 #define EventWriteOrtcSctpTransportListenerSctpTransportShutdownEventFired(xStr_Method, xPUID, xPUID_SctpTransportObjectID, xWORD_LocalPort, xWORD_RemotePort)
 
-#define EventWriteOrtcSctpTransportListenerReceivedIncomingDataPacket(xStr_Method, xPUID, xPtr_Buffer, xsize_t_BufferSizeInBytes)
-#define EventWriteOrtcSctpTransportListenerDeliverIncomingDataPacket(xStr_Method, xPUID, xPUID_SctpTransportObjectID, xPtr_Buffer, xsize_t_BufferSizeInBytes)
+#define EventWriteOrtcSctpTransportListenerReceivedIncomingDataPacket(xStr_Method, xPUID, xsize_t_BufferSizeInBytes, xPtr_Buffer)
+#define EventWriteOrtcSctpTransportListenerDeliverIncomingDataPacket(xStr_Method, xPUID, xPUID_SctpTransportObjectID, xsize_t_BufferSizeInBytes, xPtr_Buffer)
 
 #define EventWriteOrtcSrtpTransportCreate(xStr_Method, xPUID, xPUID_SecureTransportObjectID)
 #define EventWriteOrtcSrtpTransportDestroy(xStr_Method, xPUID)
 
 #define EventWriteOrtcSrtpTransportInstallKeyingMaterial(xStr_Method, xPUID, xStr_Direction, xStr_KeyMethod, xStr_KeySalt, xStr_Lifetime, xStr_MkiValue, xWORD_MkiLength)
-#define EventWriteOrtcSrtpTransportReceivedIncomingEncryptedPacket(xStr_Method, xPUID, xUInt_ViaComponent, xUInt_PacketType, xPtr_Buffer, xsize_t_BufferSizeInBytes)
-#define EventWriteOrtcSrtpTransportDeliverIncomingDecryptedPacket(xStr_Method, xPUID, xPUID_SecureTransportObjectID, xUInt_ViaComponent, xUInt_PacketType, xPtr_Buffer, xsize_t_BufferSizeInBytes)
+#define EventWriteOrtcSrtpTransportReceivedIncomingEncryptedPacket(xStr_Method, xPUID, xUInt_ViaComponent, xUInt_PacketType, xsize_t_BufferSizeInBytes, xPtr_Buffer)
+#define EventWriteOrtcSrtpTransportDeliverIncomingDecryptedPacket(xStr_Method, xPUID, xPUID_SecureTransportObjectID, xUInt_ViaComponent, xUInt_PacketType, xsize_t_BufferSizeInBytes, xPtr_Buffer)
 
-#define EventWriteOrtcSrtpTransportSendOutgoingPacketAndEncrypt(xStr_Method, xPUID, xUInt_SendOverComponent, xUInt_PacketType, xPtr_Buffer, xsize_t_BufferSizeInBytes)
-#define EventWriteOrtcSrtpTransportSendOutgoingEncryptedPacketViaSecureTransport(xStr_Method, xPUID, xPUID_SecureTransportObjectID, xUInt_SendOverComponent, xUInt_PacketType, xPtr_Buffer, xsize_t_BufferSizeInBytes)
+#define EventWriteOrtcSrtpTransportSendOutgoingPacketAndEncrypt(xStr_Method, xPUID, xUInt_SendOverComponent, xUInt_PacketType, xsize_t_BufferSizeInBytes, xPtr_Buffer)
+#define EventWriteOrtcSrtpTransportSendOutgoingEncryptedPacketViaSecureTransport(xStr_Method, xPUID, xPUID_SecureTransportObjectID, xUInt_SendOverComponent, xUInt_PacketType, xsize_t_BufferSizeInBytes, xPtr_Buffer)
 
 #else
 
@@ -533,24 +533,24 @@ inline void EventWriteOrtcDataChannelSendControlAck(const char *xStr_Method, PUI
 inline void EventWriteOrtcDataChannelBufferedAmountLowThresholdChanged(const char *xStr_Method, PUID xPUID, size_t xsize_t_NewThreshold, size_t xsize_t_mOldThreshold, size_t xsize_t_OutgoingBufferFillSize, bool xBool_BufferedAmountLowThresholdFired) {}
 
 inline void EventWriteOrtcDataChannelSendString(const char *xStr_Method, PUID xPUID, const char *xStr_Data) {}
-inline void EventWriteOrtcDataChannelSendBinary(const char *xStr_Method, PUID xPUID, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
+inline void EventWriteOrtcDataChannelSendBinary(const char *xStr_Method, PUID xPUID, size_t xsize_t_BufferSizeInBytes, const BYTE *xPtr_Buffer) {}
 
-inline void EventWriteOrtcDataChannelOutgoingBufferPacket(const char *xStr_Method, PUID xPUID, unsigned int xUInt_Type, WORD xWORD_SessionID, bool xBool_Ordered, long long xlong_long_MaxPacketLifetimeInMilliseconds, bool xBool_HasMaxRetransmits, DWORD xDWORD_MaxRetransmits, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
-inline void EventWriteOrtcDataChannelOutgoingBufferPacketDelivered(const char *xStr_Method, PUID xPUID, unsigned int xUInt_Type, WORD xWORD_SessionID, bool xBool_Ordered, long long xlong_long_MaxPacketLifetimeInMilliseconds, bool xBool_HasMaxRetransmits, DWORD xDWORD_MaxRetransmits, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
+inline void EventWriteOrtcDataChannelOutgoingBufferPacket(const char *xStr_Method, PUID xPUID, unsigned int xUInt_Type, WORD xWORD_SessionID, bool xBool_Ordered, long long xlong_long_MaxPacketLifetimeInMilliseconds, bool xBool_HasMaxRetransmits, DWORD xDWORD_MaxRetransmits, size_t xsize_t_BufferSizeInBytes, const BYTE *xPtr_Buffer) {}
+inline void EventWriteOrtcDataChannelOutgoingBufferPacketDelivered(const char *xStr_Method, PUID xPUID, unsigned int xUInt_Type, WORD xWORD_SessionID, bool xBool_Ordered, long long xlong_long_MaxPacketLifetimeInMilliseconds, bool xBool_HasMaxRetransmits, DWORD xDWORD_MaxRetransmits, size_t xsize_t_BufferSizeInBytes, const BYTE *xPtr_Buffer) {}
 
 inline void EventWriteOrtcDataChannelReceivedControlOpen(const char *xStr_Method, PUID xPUID, bool xBool_Incoming, BYTE xBYTE_MessageType, BYTE xBYTE_ChannelType, WORD xWORD_Priority, DWORD xDWORD_ReliabilityParameter, WORD xWORD_LabelLength, WORD xWORD_ProtocolLength, const char *xStr_Label, const char *xStr_Protocol) {}
 inline void EventWriteOrtcDataChannelReceivedControlAck(const char *xStr_Method, PUID xPUID, BYTE xBYTE_MessageType) {}
 
-inline void EventWriteOrtcDataChannelMessageFiredEvent(const char *xStr_Method, PUID xPUID, unsigned int xUInt_Type, WORD xWORD_SessionID, WORD xWORD_SequenceNumber, DWORD xDWORD_Timestamp, int xInt_Flags, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
+inline void EventWriteOrtcDataChannelMessageFiredEvent(const char *xStr_Method, PUID xPUID, unsigned int xUInt_Type, WORD xWORD_SessionID, WORD xWORD_SequenceNumber, DWORD xDWORD_Timestamp, int xInt_Flags, size_t xsize_t_BufferSizeInBytes, const BYTE *xPtr_Buffer) {}
 
-inline void EventWriteOrtcDataChannelSCTPTransportDeliverOutgoingPacket(const char *xStr_Method, PUID xPUID, unsigned int xUInt_Type, WORD xWORD_SessionID, bool xBool_Ordered, long long xlong_long_MaxPacketLifetimeInMilliseconds, bool xBool_HasMaxRetransmits, DWORD xDWORD_MaxRetransmits, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
+inline void EventWriteOrtcDataChannelSCTPTransportDeliverOutgoingPacket(const char *xStr_Method, PUID xPUID, unsigned int xUInt_Type, WORD xWORD_SessionID, bool xBool_Ordered, long long xlong_long_MaxPacketLifetimeInMilliseconds, bool xBool_HasMaxRetransmits, DWORD xDWORD_MaxRetransmits, size_t xsize_t_BufferSizeInBytes, const BYTE *xPtr_Buffer) {}
 
 inline void EventWriteOrtcDataChannelSCTPTransportRequestShutdown(const char *xStr_Method, PUID xPUID) {}
 inline void EventWriteOrtcDataChannelSCTPTransportRequestNotifyClosed(const char *xStr_Method, PUID xPUID) {}
 inline void EventWriteOrtcDataChannelSCTPTransportStateChanged(const char *xStr_Method, PUID xPUID) {}
 inline void EventWriteOrtcDataChannelSCTPTransportSendReady(const char *xStr_Method, PUID xPUID) {}
 inline void EventWriteOrtcDataChannelSCTPTransportSendReadyFailure(const char *xStr_Method, PUID xPUID, WORD xWORD_Error, const char *xStr_ErrorReason) {}
-inline void EventWriteOrtcDataChannelSCTPTransportReceivedIncomingPacket(const char *xStr_Method, PUID xPUID, unsigned int xUInt_Type, WORD xWORD_SessionID, WORD xWORD_SequenceNumber, DWORD xDWORD_Timestamp, int xInt_Flags, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
+inline void EventWriteOrtcDataChannelSCTPTransportReceivedIncomingPacket(const char *xStr_Method, PUID xPUID, unsigned int xUInt_Type, WORD xWORD_SessionID, WORD xWORD_SequenceNumber, DWORD xDWORD_Timestamp, int xInt_Flags, size_t xsize_t_BufferSizeInBytes, const BYTE *xPtr_Buffer) {}
 
 inline void EventWriteOrtcDtlsTransportCreate(const char *xStr_Method, PUID xPUID, PUID xPUID_IceTransport, const char *xStr_Component, size_t xsize_t_MaxPendingDTLSBuffer, size_t xsize_t_MaxPendingRTPPackets, size_t xsize_t_TotalCertificates) {}
 inline void EventWriteOrtcDtlsTransportDestroy(const char *xStr_Method, PUID xPUID) {}
@@ -566,18 +566,18 @@ inline void EventWriteOrtcDtlsTransportStop(const char *xStr_Method, PUID xPUID)
 
 inline void EventWriteOrtcDtlsTransportRoleSet(const char *xStr_Method, PUID xPUID, const char *xStr_Role) {}
 
-inline void EventWriteOrtcDtlsTransportReceivedPacket(const char *xStr_Method, PUID xPUID, unsigned int xUInt_ViaTransport, bool xBool_IsDtlsPacket, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
+inline void EventWriteOrtcDtlsTransportReceivedPacket(const char *xStr_Method, PUID xPUID, unsigned int xUInt_ViaTransport, bool xBool_IsDtlsPacket, size_t xsize_t_BufferSizeInBytes, const BYTE *xPtr_Buffer) {}
 inline void EventWriteOrtcDtlsTransportReceivedStunPacket(const char *xStr_Method, PUID xPUID, unsigned int xUInt_ViaTransport) {}
 
-inline void EventWriteOrtcDtlsTransportForwardingEncryptedPacketToSrtpTransport(const char *xStr_Method, PUID xPUID, PUID xPUID_SrtpTransportObjectID, unsigned int xUInt_ViaTransport, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
-inline void EventWriteOrtcDtlsTransportForwardingPacketToDataTransport(const char *xStr_Method, PUID xPUID, PUID xPUID_DataTransportObjectID, unsigned int xUInt_ViaTransport, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
-inline void EventWriteOrtcDtlsTransportForwardingPacketToRtpListener(const char *xStr_Method, PUID xPUID, PUID xPUID_RtpListenerObjectID, unsigned int xUInt_ViaTransport,  unsigned int xUInt_PacketType, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
+inline void EventWriteOrtcDtlsTransportForwardingEncryptedPacketToSrtpTransport(const char *xStr_Method, PUID xPUID, PUID xPUID_SrtpTransportObjectID, unsigned int xUInt_ViaTransport, size_t xsize_t_BufferSizeInBytes, const BYTE *xPtr_Buffer) {}
+inline void EventWriteOrtcDtlsTransportForwardingPacketToDataTransport(const char *xStr_Method, PUID xPUID, PUID xPUID_DataTransportObjectID, unsigned int xUInt_ViaTransport, size_t xsize_t_BufferSizeInBytes, const BYTE *xPtr_Buffer) {}
+inline void EventWriteOrtcDtlsTransportForwardingPacketToRtpListener(const char *xStr_Method, PUID xPUID, PUID xPUID_RtpListenerObjectID, unsigned int xUInt_ViaTransport,  unsigned int xUInt_PacketType, size_t xsize_t_BufferSizeInBytes, const BYTE *xPtr_Buffer) {}
 
-inline void EventWriteOrtcDtlsTransportSendRtpPacket(const char *xStr_Method, PUID xPUID, unsigned int xUInt_SendOverComponent, unsigned int xUInt_PacketType, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
-inline void EventWriteOrtcDtlsTransportSendDataPacket(const char *xStr_Method, PUID xPUID, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
-inline void EventWriteOrtcDtlsTransportForwardDataPacketToIceTransport(const char *xStr_Method, PUID xPUID, PUID xPUID_IceTransportObjectID, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
+inline void EventWriteOrtcDtlsTransportSendRtpPacket(const char *xStr_Method, PUID xPUID, unsigned int xUInt_SendOverComponent, unsigned int xUInt_PacketType, size_t xsize_t_BufferSizeInBytes, const BYTE *xPtr_Buffer) {}
+inline void EventWriteOrtcDtlsTransportSendDataPacket(const char *xStr_Method, PUID xPUID, size_t xsize_t_BufferSizeInBytes, const BYTE *xPtr_Buffer) {}
+inline void EventWriteOrtcDtlsTransportForwardDataPacketToIceTransport(const char *xStr_Method, PUID xPUID, PUID xPUID_IceTransportObjectID, size_t xsize_t_BufferSizeInBytes, const BYTE *xPtr_Buffer) {}
 
-inline void EventWriteOrtcDtlsTransportSendEncryptedRtpPacket(const char *xStr_Method, PUID xPUID, PUID xPUID_IceTransportObjectID, unsigned int xUInt_SendOverComponent, unsigned int xUInt_PacketType, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
+inline void EventWriteOrtcDtlsTransportSendEncryptedRtpPacket(const char *xStr_Method, PUID xPUID, PUID xPUID_IceTransportObjectID, unsigned int xUInt_SendOverComponent, unsigned int xUInt_PacketType, size_t xsize_t_BufferSizeInBytes, const BYTE *xPtr_Buffer) {}
 
 inline void EventWriteOrtcDtlsTransportInternalTimerEventFired(const char *xStr_Method, PUID xPUID, PUID xPUID_TimerID) {}
 inline void EventWriteOrtcDtlsTransportInternalIceStateChangeEventFired(const char *xStr_Method, PUID xPUID, PUID xPUID_IceTransportObjectID, const char *xStr_State) {}
@@ -586,7 +586,7 @@ inline void EventWriteOrtcDtlsTransportInternalSrtpTransportLifetimeRemainingEve
 inline void EventWriteOrtcDtlsTransportStateChangedEventFired(const char *xStr_Method, PUID xPUID, const char *xStr_State) {}
 inline void EventWriteOrtcDtlsTransportErrorEventFired(const char *xStr_Method, PUID xPUID, WORD xWORD_Error, const char *xStr_ErrorReason) {}
 
-inline void EventWriteOrtcDtlsTransportSrtpKeyingMaterialSetup(const char *xStr_Method, PUID xPUID, PUID xPUID_SecureTransportObjectID, const char *xStr_Direction, const char *xStr_Cipher, const void *xPtr_KeyingMaterialBuffer, size_t xsize_t_KeyingMaterialBufferSizeInBytes) {}
+inline void EventWriteOrtcDtlsTransportSrtpKeyingMaterialSetup(const char *xStr_Method, PUID xPUID, PUID xPUID_SecureTransportObjectID, const char *xStr_Direction, const char *xStr_Cipher, size_t xsize_t_KeyingMaterialBufferSizeInBytes, const BYTE *xPtr_KeyingMaterialBuffer) {}
 
 inline void EventWriteOrtcIceGathererCreate(const char *xStr_Method, PUID xPUID, PUID xPUID_GethererRouterObjectID, const char *xStr_UsernameFragment, const char *xStr_Password, bool xBool_CreateTCPCandidates, bool xBool_ContinousGathering, size_t xsize_t_TotalInterfacePolicies, size_t xsize_t_TotalIceServers, long long xlong_long_ReflexiveInactivityTimeInSeconds, long long xlong_long_RelayInactivityTimeInSeoncds, long long xlong_long_MaxBufferingTimeInSeconds, long long xlong_long_RecheckIPsInSeconds, size_t xsize_t_MaxTotalBuffers, size_t xsize_t_MaxTCPBufferingSizePendingConnectionInBytes, size_t xsize_t_MaxTCPBufferingSizeConnectedInBytes, bool xBool_GatherPassiveTCP) {}
 inline void EventWriteOrtcIceGathererDestroy(const char *xStr_Method, PUID xPUID) {}
@@ -611,25 +611,25 @@ inline void EventWriteOrtcIceGathererRemoveIceTransport(const char *xStr_Method,
 inline void EventWriteOrtcIceGathererInternalIceTransportStateChangedEventFired(const char *xStr_Method, PUID xPUID, PUID xPUID_IceTransportObjectID) {}
 
 inline void EventWriteOrtcIceGathererRemovetAllIceTransportRelatedRoutes(const char *xStr_Method, PUID xPUID, PUID xPUID_IceTransportObjectID) {}
-inline void EventWriteOrtcIceGathererSendIceTransportPacket(const char *xStr_Method, PUID xPUID, PUID xPUID_IceTransportObjectID, PUID xPUID_RouteID, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
-inline void EventWriteOrtcIceGathererSendIceTransportPacketFailed(const char *xStr_Method, PUID xPUID, PUID xPUID_IceTransportObjectID, PUID xPUID_RouteID, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
+inline void EventWriteOrtcIceGathererSendIceTransportPacket(const char *xStr_Method, PUID xPUID, PUID xPUID_IceTransportObjectID, PUID xPUID_RouteID, size_t xsize_t_BufferSizeInBytes, const BYTE *xPtr_Buffer) {}
+inline void EventWriteOrtcIceGathererSendIceTransportPacketFailed(const char *xStr_Method, PUID xPUID, PUID xPUID_IceTransportObjectID, PUID xPUID_RouteID, size_t xsize_t_BufferSizeInBytes, const BYTE *xPtr_Buffer) {}
 
-inline void EventWriteOrtcIceGathererSendIceTransportPacketViaUdp(const char *xStr_Method, PUID xPUID, PUID xPUID_IceTransportObjectID, PUID xPUID_RouteID, PUID xPUID_HostPortObjectID, const char *xStr_RemoteIP, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
-inline void EventWriteOrtcIceGathererSendIceTransportPacketViaTcp(const char *xStr_Method, PUID xPUID, PUID xPUID_IceTransportObjectID, PUID xPUID_RouteID, PUID xPUID_TcpPortObjectID, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
-inline void EventWriteOrtcIceGathererSendIceTransportPacketViaTurn(const char *xStr_Method, PUID xPUID, PUID xPUID_IceTransportObjectID, PUID xPUID_RouteID, PUID xPUID_TurnObjectID, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
+inline void EventWriteOrtcIceGathererSendIceTransportPacketViaUdp(const char *xStr_Method, PUID xPUID, PUID xPUID_IceTransportObjectID, PUID xPUID_RouteID, PUID xPUID_HostPortObjectID, const char *xStr_RemoteIP, size_t xsize_t_BufferSizeInBytes, const BYTE *xPtr_Buffer) {}
+inline void EventWriteOrtcIceGathererSendIceTransportPacketViaTcp(const char *xStr_Method, PUID xPUID, PUID xPUID_IceTransportObjectID, PUID xPUID_RouteID, PUID xPUID_TcpPortObjectID, size_t xsize_t_BufferSizeInBytes, const BYTE *xPtr_Buffer) {}
+inline void EventWriteOrtcIceGathererSendIceTransportPacketViaTurn(const char *xStr_Method, PUID xPUID, PUID xPUID_IceTransportObjectID, PUID xPUID_RouteID, PUID xPUID_TurnObjectID, size_t xsize_t_BufferSizeInBytes, const BYTE *xPtr_Buffer) {}
 
-inline void EventWriteOrtcIceGathererDeliverIceTransportIncomingPacket(const char *xStr_Method, PUID xPUID, PUID xPUID_IceTransportObjectID, PUID xPUID_RouteID, PUID xPUID_xRouterRouteID, bool xBool_WasBuffered, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
-inline void EventWriteOrtcIceGathererBufferIceTransportIncomingPacket(const char *xStr_Method, PUID xPUID, PUID xPUID_xRouterRouteID, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
+inline void EventWriteOrtcIceGathererDeliverIceTransportIncomingPacket(const char *xStr_Method, PUID xPUID, PUID xPUID_IceTransportObjectID, PUID xPUID_RouteID, PUID xPUID_xRouterRouteID, bool xBool_WasBuffered, size_t xsize_t_BufferSizeInBytes, const BYTE *xPtr_Buffer) {}
+inline void EventWriteOrtcIceGathererBufferIceTransportIncomingPacket(const char *xStr_Method, PUID xPUID, PUID xPUID_xRouterRouteID, size_t xsize_t_BufferSizeInBytes, const BYTE *xPtr_Buffer) {}
 
 inline void EventWriteOrtcIceGathererDeliverIceTransportIncomingStunPacket(const char *xStr_Method, PUID xPUID, PUID xPUID_IceTransportObjectID, PUID xPUID_RouteID, PUID xPUID_xRouterRouteID, bool xBool_WasBuffered) {}
 inline void EventWriteOrtcIceGathererBufferIceTransportIncomingStunPacket(const char *xStr_Method, PUID xPUID, PUID xPUID_xRouterRouteID) {}
 inline void EventWriteOrtcIceGathererErrorIceTransportIncomingStunPacket(const char *xStr_Method, PUID xPUID, PUID xPUID_IceTransportObjectID, PUID xPUID_RouteID, PUID xPUID_xRouterRouteID) {}
 
-inline void EventWriteOrtcIceGathererDisposeBufferedIceTransportIncomingPacket(const char *xStr_Method, PUID xPUID, PUID xPUID_xRouterRouteID, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
+inline void EventWriteOrtcIceGathererDisposeBufferedIceTransportIncomingPacket(const char *xStr_Method, PUID xPUID, PUID xPUID_xRouterRouteID, size_t xsize_t_BufferSizeInBytes, const BYTE *xPtr_Buffer) {}
 inline void EventWriteOrtcIceGathererDisposeBufferedIceTransportIncomingStunPacket(const char *xStr_Method, PUID xPUID, PUID xPUID_xRouterRouteID) {}
 
-inline void EventWriteOrtcIceGathererTurnSocketReceivedPacket(const char *xStr_Method, PUID xPUID, PUID xPUID_TurnSocketObjectID, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
-inline void EventWriteOrtcIceGathererTurnSocketSendPacket(const char *xStr_Method, PUID xPUID, PUID xPUID_TurnSocketObjectID, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
+inline void EventWriteOrtcIceGathererTurnSocketReceivedPacket(const char *xStr_Method, PUID xPUID, PUID xPUID_TurnSocketObjectID, size_t xsize_t_BufferSizeInBytes, const BYTE *xPtr_Buffer) {}
+inline void EventWriteOrtcIceGathererTurnSocketSendPacket(const char *xStr_Method, PUID xPUID, PUID xPUID_TurnSocketObjectID, size_t xsize_t_BufferSizeInBytes, const BYTE *xPtr_Buffer) {}
 
 inline void EventWriteOrtcIceGathererInstallQuickRoute(const char *xStr_Method, PUID xPUID, const void *xPtr_Candidate, const char *xStr_IPAddress, PUID xPUID_RouteID) {}
 inline void EventWriteOrtcIceGathererRemoveQuickRoute(const char *xStr_Method, PUID xPUID, const void *xPtr_Candidate, const char *xStr_IPAddress, PUID xPUID_RouteID) {}
@@ -646,7 +646,7 @@ inline void EventWriteOrtcIceGathererInternalSocketExceptionEventFired(const cha
 
 inline void EventWriteOrtcIceGathererInternalBackOffTimerStateChangedEventFired(const char *xStr_Method, PUID xPUID, PUID xPUID_BackOffTimerObjectID, const char *xStr_State) {}
 
-inline void EventWriteOrtcIceGathererInternalStunDiscoverySendPacket(const char *xStr_Method, PUID xPUID, PUID xPUID_StunDiscoveryObjectID, const char *xStr_DestinationIP, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
+inline void EventWriteOrtcIceGathererInternalStunDiscoverySendPacket(const char *xStr_Method, PUID xPUID, PUID xPUID_StunDiscoveryObjectID, const char *xStr_DestinationIP, size_t xsize_t_BufferSizeInBytes, const BYTE *xPtr_Buffer) {}
 inline void EventWriteOrtcIceGathererInternalStunDiscoveryCompleteEventFired(const char *xStr_Method, PUID xPUID, PUID xPUID_StunDiscoveryObjectID, PUID xPUID_HostPortObjectID, const char *xStr_MappedIP) {}
 
 inline void EventWriteOrtcIceGathererInternalTurnSocketStateChangeEventFired(const char *xStr_Method, PUID xPUID, PUID xPUID_TurnSocketObjectID, const char *xStr_State) {}
@@ -672,12 +672,12 @@ inline void EventWriteOrtcIceGathererRelayPortFoundIP(const char *xStr_Method, P
 inline void EventWriteOrtcIceGathererTcpPortCreate(const char *xStr_Method, PUID xPUID, PUID xPUID_TcpPortObjectID, const char *xStr_RemoteIP) {}
 inline void EventWriteOrtcIceGathererTcpPortDestroy(const char *xStr_Method, PUID xPUID, PUID xPUID_TcpPortObjectID, const char *xStr_RemoteIP) {}
 
-inline void EventWriteOrtcIceGathererUdpSocketPacketReceivedFrom(const char *xStr_Method, PUID xPUID, const char *xStr_FromIP, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
-inline void EventWriteOrtcIceGathererUdpSocketPacketForwardingToTurnSocket(const char *xStr_Method, PUID xPUID, const char *xStr_FromIP, bool xBool_IsStun, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
-inline void EventWriteOrtcIceGathererUdpSocketPacketSentTo(const char *xStr_Method, PUID xPUID, const char *xStr_BoundIP, const char *xStr_ToIP, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
+inline void EventWriteOrtcIceGathererUdpSocketPacketReceivedFrom(const char *xStr_Method, PUID xPUID, const char *xStr_FromIP, size_t xsize_t_BufferSizeInBytes, const BYTE *xPtr_Buffer) {}
+inline void EventWriteOrtcIceGathererUdpSocketPacketForwardingToTurnSocket(const char *xStr_Method, PUID xPUID, const char *xStr_FromIP, bool xBool_IsStun, size_t xsize_t_BufferSizeInBytes, const BYTE *xPtr_Buffer) {}
+inline void EventWriteOrtcIceGathererUdpSocketPacketSentTo(const char *xStr_Method, PUID xPUID, const char *xStr_BoundIP, const char *xStr_ToIP, size_t xsize_t_BufferSizeInBytes, const BYTE *xPtr_Buffer) {}
 
-inline void EventWriteOrtcIceGathererTcpSocketPacketReceivedFrom(const char *xStr_Method, PUID xPUID, const char *xStr_FromIP, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
-inline void EventWriteOrtcIceGathererTcpSocketSentOutgoing(const char *xStr_Method, PUID xPUID, const char *xStr_FromIP, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
+inline void EventWriteOrtcIceGathererTcpSocketPacketReceivedFrom(const char *xStr_Method, PUID xPUID, const char *xStr_FromIP, size_t xsize_t_BufferSizeInBytes, const BYTE *xPtr_Buffer) {}
+inline void EventWriteOrtcIceGathererTcpSocketSentOutgoing(const char *xStr_Method, PUID xPUID, const char *xStr_FromIP, size_t xsize_t_BufferSizeInBytes, const BYTE *xPtr_Buffer) {}
 
 inline void EventWriteOrtcIceGathererRouteTrace(const char *xStr_Method, const char *xStr_CallingMethod, const char *xStr_Message, PUID xGathererRouteObjectID, PUID xPUID_GathererObjectID, long long xlong_long_LastUsedInMillisecondsSinceEpoch, PUID xPUID_IceTransportObjectID, PUID xPUID_HostPortObjectID, PUID xPUID_RelayPortObjectID, PUID xPUID_TcpPortObjectID, const char *xStr_LocalInterfaceType, const char *xStr_LocalFoundation, DWORD xDWORD_LocalPriority, DWORD xDWORD_LocalUnfreezePriority, const char *xStr_LocalProtocol, const char *xStr_LocalIP, WORD xWORD_LocalPort, const char *xStr_LocalCandidateType, const char *xStr_LocalTcpType, const char *xStr_LocalRelatedAddress, WORD xWORD_LocalRelatedPort) {}
 
@@ -711,25 +711,25 @@ inline void EventWriteOrtcIceTransportCandidatePairChangedEventFired(const char 
 
 inline void EventWriteOrtcIceTransportRouteTrace(const char *xStr_Method, const char *xStr_CallingMethod, const char *xStr_Message, PUID xIceTransportRouteObjectID, PUID xPUID_IceTransportObjectID, const char *xStr_CandidatePairHash, const char *xStr_LocalInterfaceType, const char *xStr_LocalFoundation, DWORD xDWORD_LocalPriority, DWORD xDWORD_LocalUnfreezePriority, const char *xStr_LocalProtocol, const char *xStr_LocalIP, WORD xWORD_LocalPort, const char *xStr_LocalCandidateType, const char *xStr_LocalTcpType, const char *xStr_LocalRelatedAddress, WORD xWORD_LocalRelatedPort, const char *xStr_RemoteInterfaceType, const char *xStr_RemoteFoundation, DWORD xDWORD_RemotePriority, DWORD xDWORD_RemoteUnfreezePriority, const char *xStr_RemoteProtocol, const char *xStr_RemoteIP, WORD xWORD_RemotePort, const char *xStr_RemoteCandidateType, const char *xStr_RemoteTcpType, const char *xStr_RemoteRelatedAddress, WORD xWORD_RemoteRelatedPort, PUID xPUID_GathererRouteObjectID, QWORD xQWORD_PendingPriority, long long xlong_long_LastReceivedCheckTimeInMillisecondsSinceEpoch, long long xlong_long_LastSentCheckTimeInMillisecondsSinceEpoch, long long xlong_long_LastReceivedMediaTimeInMillisecondsSinceEpoch, long long xlong_long_LastReceivedResponseTimeInMillisecondsSinceEpoch, bool xBool_Prune, bool xBool_KeepWarm, PUID xPUID_OutgoingCheckStunRequesterObjectID, PUID xPUID_NextKeepWarmTimerObjectID, bool xBool_FrozenPromise, size_t xsize_t_TotalDependentPromises, long long xlong_long_LastRoundTripCheckInMillisecondsSinceEpoch, long long xlong_long_LastRoundTripMeasurementInMilliseconds) {}
 
-inline void EventWriteOrtcIceTransportReceivedPacketFromGatherer(const char *xStr_Method, PUID xPUID, PUID xPUID_RouterRouteObjectID, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
+inline void EventWriteOrtcIceTransportReceivedPacketFromGatherer(const char *xStr_Method, PUID xPUID, PUID xPUID_RouterRouteObjectID, size_t xsize_t_BufferSizeInBytes, const BYTE *xPtr_Buffer) {}
 inline void EventWriteOrtcIceTransportReceivedStunPacketFromGatherer(const char *xStr_Method, PUID xPUID, PUID xPUID_RouterRouteObjectID) {}
 inline void EventWriteOrtcIceTransportRetryReceivedStunPacketFromGatherer(const char *xStr_Method, PUID xPUID, PUID xPUID_RouterRouteObjectID) {}
 
-inline void EventWriteOrtcIceTransportBufferingIncomingPacket(const char *xStr_Method, PUID xPUID, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
-inline void EventWriteOrtcIceTransportDisposingBufferedIncomingPacket(const char *xStr_Method, PUID xPUID, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
-inline void EventWriteOrtcIceTransportDeliveringBufferedIncomingPacketToSecureTransport(const char *xStr_Method, PUID xPUID, PUID xPUID_SecureTransportObjectID, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
+inline void EventWriteOrtcIceTransportBufferingIncomingPacket(const char *xStr_Method, PUID xPUID, size_t xsize_t_BufferSizeInBytes, const BYTE *xPtr_Buffer) {}
+inline void EventWriteOrtcIceTransportDisposingBufferedIncomingPacket(const char *xStr_Method, PUID xPUID, size_t xsize_t_BufferSizeInBytes, const BYTE *xPtr_Buffer) {}
+inline void EventWriteOrtcIceTransportDeliveringBufferedIncomingPacketToSecureTransport(const char *xStr_Method, PUID xPUID, PUID xPUID_SecureTransportObjectID, size_t xsize_t_BufferSizeInBytes, const BYTE *xPtr_Buffer) {}
 
-inline void EventWriteOrtcIceTransportDeliveringIncomingPacketToSecureTransport(const char *xStr_Method, PUID xPUID, PUID xPUID_SecureTransportObjectID, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
+inline void EventWriteOrtcIceTransportDeliveringIncomingPacketToSecureTransport(const char *xStr_Method, PUID xPUID, PUID xPUID_SecureTransportObjectID, size_t xsize_t_BufferSizeInBytes, const BYTE *xPtr_Buffer) {}
 inline void EventWriteOrtcIceTransportDeliveringIncomingStunPacketToSecureTransport(const char *xStr_Method, PUID xPUID, PUID xPUID_SecureTransportObjectID) {}
 
 inline void EventWriteOrtcIceTransportInstallFoundation(const char *xStr_Method, PUID xPUID, const char *xStr_LocalFoundation, const char *xStr_RemoteFoundation, size_t xsize_t_TotalRoutes) {}
 inline void EventWriteOrtcIceTransportRemoveFoundation(const char *xStr_Method, PUID xPUID, const char *xStr_LocalFoundation, const char *xStr_RemoteFoundation, size_t xsize_t_TotalRoutes) {}
 inline void EventWriteOrtcIceTransportInstallFoundationDependencyFreezePromise(const char *xStr_Method, PUID xPUID, const char *xStr_LocalFoundation, const char *xStr_RemoteFoundation) {}
 
-inline void EventWriteOrtcIceTransportSecureTransportSendPacket(const char *xStr_Method, PUID xPUID, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
-inline void EventWriteOrtcIceTransportForwardSecureTransportPacketToGatherer(const char *xStr_Method, PUID xPUID, PUID xPUID_GathererObjectID, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
+inline void EventWriteOrtcIceTransportSecureTransportSendPacket(const char *xStr_Method, PUID xPUID, size_t xsize_t_BufferSizeInBytes, const BYTE *xPtr_Buffer) {}
+inline void EventWriteOrtcIceTransportForwardSecureTransportPacketToGatherer(const char *xStr_Method, PUID xPUID, PUID xPUID_GathererObjectID, size_t xsize_t_BufferSizeInBytes, const BYTE *xPtr_Buffer) {}
 
-inline void EventWriteOrtcIceTransportSendStunPacket(const char *xStr_Method, PUID xPUID, PUID xPUID_GathererObjectID, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
+inline void EventWriteOrtcIceTransportSendStunPacket(const char *xStr_Method, PUID xPUID, PUID xPUID_GathererObjectID, size_t xsize_t_BufferSizeInBytes, const BYTE *xPtr_Buffer) {}
 
 inline void EventWriteOrtcIceTransportInternalControllerAttachedEventFired(const char *xStr_Method, PUID xPUID, PUID xPUID_IceTransportControllerObjectID) {}
 inline void EventWriteOrtcIceTransportInternalControllerDetachedEventFired(const char *xStr_Method, PUID xPUID, PUID xPUID_IceTransportControllerObjectID) {}
@@ -751,7 +751,7 @@ inline void EventWriteOrtcIceTransportInternalGathererAddLocalCandidateCompleteE
 inline void EventWriteOrtcIceTransportInternalGathererRemoveLocalCandidateEventFired(const char *xStr_Method, PUID xPUID, PUID xPUID_GathererObjectID, const char *xStr_InterfaceType, const char *xStr_Foundation, DWORD xDWORD_Priority, DWORD xDWORD_UnfreezePriority, const char *xStr_Protocol, const char *xStr_IP, WORD xWORD_Port, const char *xStr_CandidateType, const char *xStr_TcpType, const char *xStr_RelatedAddress, WORD xWORD_RelatedPort) {}
 
 inline void EventWriteOrtcIceTransportInternalStunRequesterCreate(const char *xStr_Method, PUID xPUID, PUID xPUID_StunRequesterObjectID) {}
-inline void EventWriteOrtcIceTransportInternalStunRequesterSendPacket(const char *xStr_Method, PUID xPUID, PUID xPUID_StunRequesterObjectID, const char *xStr_DestinationIP, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
+inline void EventWriteOrtcIceTransportInternalStunRequesterSendPacket(const char *xStr_Method, PUID xPUID, PUID xPUID_StunRequesterObjectID, const char *xStr_DestinationIP, size_t xsize_t_BufferSizeInBytes, const BYTE *xPtr_Buffer) {}
 inline void EventWriteOrtcIceTransportInternalStunRequesterReceivedResponse(const char *xStr_Method, PUID xPUID, PUID xPUID_StunRequesterObjectID, const char *xStr_FromIP) {}
 inline void EventWriteOrtcIceTransportInternalStunRequesterReceivedResponseMismatch(const char *xStr_Method, PUID xPUID, PUID xPUID_StunRequesterObjectID, const char *xStr_FromIP, const char *xStr_ExpectingIP) {}
 inline void EventWriteOrtcIceTransportInternalStunRequesterTimedOut(const char *xStr_Method, PUID xPUID, PUID xPUID_StunRequesterObjectID) {}
@@ -774,7 +774,7 @@ inline void EventWriteOrtcRtpListenerCreate(const char *xStr_Method, PUID xPUID,
 inline void EventWriteOrtcRtpListenerDestroy(const char *xStr_Method, PUID xPUID) {}
 inline void EventWriteOrtcRtpListenerCancel(const char *xStr_Method, PUID xPUID) {}
 inline void EventWriteOrtcRtpListenerStep(const char *xStr_Method, PUID xPUID) {}
-inline void EventWriteOrtcRtpListenerFindMapping(const char *xStr_Method, PUID xPUID, const char *xStr_MuxID, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
+inline void EventWriteOrtcRtpListenerFindMapping(const char *xStr_Method, PUID xPUID, const char *xStr_MuxID, size_t xsize_t_BufferSizeInBytes, const BYTE *xPtr_Buffer) {}
 inline void EventWriteOrtcRtpListenerFoundMappingByMuxID(const char *xStr_Method, PUID xPUID, PUID xPUID_RtpReceiverObjectID, const char *xStr_MuxID) {}
 inline void EventWriteOrtcRtpListenerFoundMappingBySsrc(const char *xStr_Method, PUID xPUID, PUID xPUID_RtpReceiverObjectID, DWORD xDWORD_Ssrc) {}
 inline void EventWriteOrtcRtpListenerFoundMappingByPayloadType(const char *xStr_Method, PUID xPUID, PUID xPUID_RtpReceiverObjectID, BYTE xBYTE_PayloadType) {}
@@ -786,10 +786,10 @@ inline void EventWriteOrtcRtpListenerUnhandledEventFired(const char *xStr_Method
 inline void EventWriteOrtcRtpListenerRegisterHeaderExtension(const char *xStr_Method, PUID xPUID, PUID xPUID_RegisterForObject, const char *xStr_ExtensionURI, unsigned short xunsigned_short_LocalID, bool xBool_Encrypted, size_t xsize_t_TotalReferences) {}
 inline void EventWriteOrtcRtpListenerUnregisterHeaderExtension(const char *xStr_Method, PUID xPUID, PUID xPUID_RegisterForObject, const char *xStr_ExtensionURI, unsigned short xunsigned_short_LocalID, bool xBool_Encrypted, size_t xsize_t_TotalReferences) {}
 
-inline void EventWriteOrtcRtpListenerReceivedIncomingPacket(const char *xStr_Method, PUID xPUID, unsigned int xUInt_ViaComponent, unsigned int xUInt_PacketType, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
-inline void EventWriteOrtcRtpListenerBufferIncomingPacket(const char *xStr_Method, PUID xPUID, unsigned int xUInt_ViaComponent, unsigned int xUInt_PacketType, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
-inline void EventWriteOrtcRtpListenerForwardIncomingPacket(const char *xStr_Method, PUID xPUID, PUID xPUID_SenderOrReceiverObjectID, unsigned int xUInt_ViaComponent, unsigned int xUInt_PacketType, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
-inline void EventWriteOrtcRtpListenerDisposeBufferedIncomingPacket(const char *xStr_Method, PUID xPUID, unsigned int xUInt_PacketType, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
+inline void EventWriteOrtcRtpListenerReceivedIncomingPacket(const char *xStr_Method, PUID xPUID, unsigned int xUInt_ViaComponent, unsigned int xUInt_PacketType, size_t xsize_t_BufferSizeInBytes, const BYTE *xPtr_Buffer) {}
+inline void EventWriteOrtcRtpListenerBufferIncomingPacket(const char *xStr_Method, PUID xPUID, unsigned int xUInt_ViaComponent, unsigned int xUInt_PacketType, size_t xsize_t_BufferSizeInBytes, const BYTE *xPtr_Buffer) {}
+inline void EventWriteOrtcRtpListenerForwardIncomingPacket(const char *xStr_Method, PUID xPUID, PUID xPUID_SenderOrReceiverObjectID, unsigned int xUInt_ViaComponent, unsigned int xUInt_PacketType, size_t xsize_t_BufferSizeInBytes, const BYTE *xPtr_Buffer) {}
+inline void EventWriteOrtcRtpListenerDisposeBufferedIncomingPacket(const char *xStr_Method, PUID xPUID, unsigned int xUInt_PacketType, size_t xsize_t_BufferSizeInBytes, const BYTE *xPtr_Buffer) {}
 
 inline void EventWriteOrtcRtpListenerRegisterReceiver(const char *xStr_Method, PUID xPUID, PUID xPUID_RtpReceiverObjectID, PUID xPUID_OrderID, const char *xStr_Kind) {}
 inline void EventWriteOrtcRtpListenerUnregisterReceiver(const char *xStr_Method, PUID xPUID, PUID xPUID_RtpReceiverObjectID) {}
@@ -826,10 +826,10 @@ inline void EventWriteOrtcRtpReceiverAddContributingSource(const char *xStr_Meth
 inline void EventWriteOrtcRtpReceiverUpdateContributingSource(const char *xStr_Method, PUID xPUID, DWORD xDWORD_Csrc) {}
 inline void EventWriteOrtcRtpReceiverRemoveContributingSource(const char *xStr_Method, PUID xPUID, DWORD xDWORD_Csrc) {}
 
-inline void EventWriteOrtcRtpReceivedIncomingPacket(const char *xStr_Method, PUID xPUID, unsigned int xUInt_ViaTransport, unsigned int xUInt_PacketType, const void *xPtr_Buffer, size_t xsize_t_PacketSizeInBytes) {}
-inline void EventWriteOrtcRtpReceiverDeliverIncomingPacketToChannel(const char *xStr_Method, PUID xPUID, PUID xPUID_ChannelObjectID, unsigned int xUInt_ViaTransport, unsigned int xUInt_PacketType, const void *xPtr_Buffer, size_t xsize_t_PacketSizeInBytes) {}
+inline void EventWriteOrtcRtpReceivedIncomingPacket(const char *xStr_Method, PUID xPUID, unsigned int xUInt_ViaTransport, unsigned int xUInt_PacketType, size_t xsize_t_PacketSizeInBytes, const BYTE *xPtr_Buffer) {}
+inline void EventWriteOrtcRtpReceiverDeliverIncomingPacketToChannel(const char *xStr_Method, PUID xPUID, PUID xPUID_ChannelObjectID, unsigned int xUInt_ViaTransport, unsigned int xUInt_PacketType, size_t xsize_t_PacketSizeInBytes, const BYTE *xPtr_Buffer) {}
 
-inline void EventWriteOrtcRtpReceiverSendOutgoingPacket(const char *xStr_Method, PUID xPUID, unsigned int xUInt_ViaTransport, unsigned int xUInt_PacketType, const void *xPtr_Buffer, size_t xsize_t_PacketSizeInBytes) {}
+inline void EventWriteOrtcRtpReceiverSendOutgoingPacket(const char *xStr_Method, PUID xPUID, unsigned int xUInt_ViaTransport, unsigned int xUInt_PacketType, size_t xsize_t_PacketSizeInBytes, const BYTE *xPtr_Buffer) {}
 
 inline void EventWriteOrtcRtpReceiverInternalSecureTransportStateChangedEventFired(const char *xStr_Method, PUID xPUID, const char *xStr_State) {}
 inline void EventWriteOrtcRtpReceiverInternalWakeEventFired(const char *xStr_Method, PUID xPUID) {}
@@ -845,7 +845,7 @@ inline void EventWriteOrtcRtpReceiverSsrcTableEntryAdded(const char *xStr_Method
 inline void EventWriteOrtcRtpReceiverSsrcTableEntryRemoved(const char *xStr_Method, PUID xPUID, PUID xPUID_ChannelObjectID, DWORD xDWORD_Ssrc, long long xlong_long_LastUsageSinceEpochInSeconds, const char *xStr_RID, const char *xStr_Reason) {}
 inline void EventWriteOrtcRtpReceiverSsrcTableEntryUpdated(const char *xStr_Method, PUID xPUID, PUID xPUID_ChannelObjectID, DWORD xDWORD_Ssrc, long long xlong_long_LastUsageSinceEpochInSeconds, const char *xStr_RID) {}
 
-inline void EventWriteOrtcRtpReceiverFindMapping(const char *xStr_Method, PUID xPUID, const char *xStr_RID, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
+inline void EventWriteOrtcRtpReceiverFindMapping(const char *xStr_Method, PUID xPUID, const char *xStr_RID, size_t xsize_t_BufferSizeInBytes, const BYTE *xPtr_Buffer) {}
 inline void EventWriteOrtcRtpReceiverFoundMappingByRID(const char *xStr_Method, PUID xPUID, PUID xPUID_ChannelObjectID, const char *xStr_RID) {}
 inline void EventWriteOrtcRtpReceiverFoundMappingBySsrc(const char *xStr_Method, PUID xPUID, PUID xPUID_ChannelObjectID, DWORD xDWORD_Ssrc) {}
 inline void EventWriteOrtcRtpReceiverFoundMappingByPayloadType(const char *xStr_Method, PUID xPUID, PUID xPUID_ChannelObjectID, BYTE xBYTE_PayloadType) {}
@@ -877,10 +877,10 @@ inline void EventWriteOrtcRtpSenderAddChannel(const char *xStr_Method, PUID xPUI
 inline void EventWriteOrtcRtpSenderUpdateChannel(const char *xStr_Method, PUID xPUID, PUID xPUID_ChannelID) {}
 inline void EventWriteOrtcRtpSenderRemoveChannel(const char *xStr_Method, PUID xPUID, PUID xPUID_ChannelID) {}
 
-inline void EventWriteOrtcRtpSenderIncomingPacket(const char *xStr_Method, PUID xPUID, unsigned int xUInt_ViaTransport, unsigned int xUInt_PacketType, const void *xPtr_Buffer, size_t xsize_t_PacketSizeInBytes) {}
-inline void EventWriteOrtcRtpSenderDeliverIncomingPacketToChannel(const char *xStr_Method, PUID xPUID, PUID xPUID_ChannelObjectID, unsigned int xUInt_ViaTransport, unsigned int xUInt_PacketType, const void *xPtr_Buffer, size_t xsize_t_PacketSizeInBytes) {}
+inline void EventWriteOrtcRtpSenderIncomingPacket(const char *xStr_Method, PUID xPUID, unsigned int xUInt_ViaTransport, unsigned int xUInt_PacketType, size_t xsize_t_PacketSizeInBytes, const BYTE *xPtr_Buffer) {}
+inline void EventWriteOrtcRtpSenderDeliverIncomingPacketToChannel(const char *xStr_Method, PUID xPUID, PUID xPUID_ChannelObjectID, unsigned int xUInt_ViaTransport, unsigned int xUInt_PacketType, size_t xsize_t_PacketSizeInBytes, const BYTE *xPtr_Buffer) {}
 
-inline void EventWriteOrtcRtpSenderSendOutgoingPacket(const char *xStr_Method, PUID xPUID, unsigned int xUInt_ViaTransport, unsigned int xUInt_PacketType, const void *xPtr_Buffer, size_t xsize_t_PacketSizeInBytes) {}
+inline void EventWriteOrtcRtpSenderSendOutgoingPacket(const char *xStr_Method, PUID xPUID, unsigned int xUInt_ViaTransport, unsigned int xUInt_PacketType, size_t xsize_t_PacketSizeInBytes, const BYTE *xPtr_Buffer) {}
 
 inline void EventWriteOrtcRtpSenderSsrcConflictEventFired(const char *xStr_Method, PUID xPUID, PUID xPUID_ChannelObjectID, DWORD xDWORD_Ssrc, bool xBool_SelfDestructChannel) {}
 inline void EventWriteOrtcRtpSenderChannelErrorEventFired(const char *xStr_Method, PUID xPUID, PUID xPUID_ChannelObjectID, WORD xWORD_Error, const char *xStr_Reason, bool xBool_SelfDestructChannel) {}
@@ -896,8 +896,8 @@ inline void EventWriteOrtcRtpReceiverChannelDestroy(const char *xStr_Method, PUI
 
 inline void EventWriteOrtcRtpReceiverChannelCreateMediaChannel(const char *xStr_Method, PUID xPUID, PUID xPUID_MediaChannelObjectID, const char *xStr_Kind) {}
 
-inline void EventWriteOrtcRtpReceiverChannelDeliverIncomingPacketToMediaChannel(const char *xStr_Method, PUID xPUID, PUID xPUID_MediaChannelObjectID, unsigned int xUInt_PacketType, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
-inline void EventWriteOrtcRtpReceiverChannelSendOutgoingPacket(const char *xStr_Method, PUID xPUID, PUID xPUID_ReceiverObjectID, unsigned int xUInt_PacketType, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
+inline void EventWriteOrtcRtpReceiverChannelDeliverIncomingPacketToMediaChannel(const char *xStr_Method, PUID xPUID, PUID xPUID_MediaChannelObjectID, unsigned int xUInt_PacketType, size_t xsize_t_BufferSizeInBytes, const BYTE *xPtr_Buffer) {}
+inline void EventWriteOrtcRtpReceiverChannelSendOutgoingPacket(const char *xStr_Method, PUID xPUID, PUID xPUID_ReceiverObjectID, unsigned int xUInt_PacketType, size_t xsize_t_BufferSizeInBytes, const BYTE *xPtr_Buffer) {}
 
 inline void EventWriteOrtcRtpReceiverChannelInternalSecureTransportStateChangedEventFired(const char *xStr_Method, PUID xPUID, const char *xStr_State) {}
 
@@ -909,8 +909,8 @@ inline void EventWriteOrtcRtpSenderChannelDestroy(const char *xStr_Method, PUID 
 inline void EventWriteOrtcRtpSenderChannelCreateMediaChannel(const char *xStr_Method, PUID xPUID, PUID xPUID_MediaChannelObjectID, const char *xStr_Kind) {}
 inline void EventWriteOrtcRtpSenderChannelChangeTrack(const char *xStr_Method, PUID xPUID, PUID xPUID_MediaChannelObjectID, PUID xPUID_TrackObjectID) {}
 
-inline void EventWriteOrtcRtpSenderChannelDeliverIncomingPacketToMediaChannel(const char *xStr_Method, PUID xPUID, PUID xPUID_MediaChannelObjectID, unsigned int xUInt_PacketType, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
-inline void EventWriteOrtcRtpSenderChannelSendOutgoingPacket(const char *xStr_Method, PUID xPUID, PUID xPUID_SenderObjectID, unsigned int xUInt_PacketType, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
+inline void EventWriteOrtcRtpSenderChannelDeliverIncomingPacketToMediaChannel(const char *xStr_Method, PUID xPUID, PUID xPUID_MediaChannelObjectID, unsigned int xUInt_PacketType, size_t xsize_t_BufferSizeInBytes, const BYTE *xPtr_Buffer) {}
+inline void EventWriteOrtcRtpSenderChannelSendOutgoingPacket(const char *xStr_Method, PUID xPUID, PUID xPUID_SenderObjectID, unsigned int xUInt_PacketType, size_t xsize_t_BufferSizeInBytes, const BYTE *xPtr_Buffer) {}
 
 inline void EventWriteOrtcRtpSenderChannelInternalSecureTransportStateChangedEventFired(const char *xStr_Method, PUID xPUID, const char *xStr_State) {}
 
@@ -934,15 +934,15 @@ inline void EventWriteOrtcSctpTransportDataChannelEventFired(const char *xStr_Me
 inline void EventWriteOrtcSctpTransportStateChangedEventFired(const char *xStr_Method, PUID xPUID, const char *xStr_State) {}
 inline void EventWriteOrtcSctpTransportErrorEventFired(const char *xStr_Method, PUID xPUID, WORD xWORD_ErrorCode, const char *xStr_Reason) {}
 
-inline void EventWriteOrtcSctpTransportReceivedIncomingPacket(const char *xStr_Method, PUID xPUID, WORD xWORD_SessionID, WORD xWORD_SequenceNumber, DWORD xDWORD_Timestamp, int xInt_Flags, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
-inline void EventWriteOrtcSctpTransportDeliverIncomingPacket(const char *xStr_Method, PUID xPUID, PUID xPUID_DataChannelObjectID, WORD xWORD_SessionID, WORD xWORD_SequenceNumber, DWORD xDWORD_Timestamp, int xInt_Flags, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
-inline void EventWriteOrtcSctpTransportSendOutgoingPacket(const char *xStr_Method, PUID xPUID, WORD xWORD_SessionID, bool xBool_Ordered, long long xlong_long_MaxPacketLifeTimeInMilliseconds, bool xBool_HasMaxRetransmits, DWORD xDWORD_MaxRetransmits, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
+inline void EventWriteOrtcSctpTransportReceivedIncomingPacket(const char *xStr_Method, PUID xPUID, WORD xWORD_SessionID, WORD xWORD_SequenceNumber, DWORD xDWORD_Timestamp, int xInt_Flags, size_t xsize_t_BufferSizeInBytes, const BYTE *xPtr_Buffer) {}
+inline void EventWriteOrtcSctpTransportDeliverIncomingPacket(const char *xStr_Method, PUID xPUID, PUID xPUID_DataChannelObjectID, WORD xWORD_SessionID, WORD xWORD_SequenceNumber, DWORD xDWORD_Timestamp, int xInt_Flags, size_t xsize_t_BufferSizeInBytes, const BYTE *xPtr_Buffer) {}
+inline void EventWriteOrtcSctpTransportSendOutgoingPacket(const char *xStr_Method, PUID xPUID, WORD xWORD_SessionID, bool xBool_Ordered, long long xlong_long_MaxPacketLifeTimeInMilliseconds, bool xBool_HasMaxRetransmits, DWORD xDWORD_MaxRetransmits, size_t xsize_t_BufferSizeInBytes, const BYTE *xPtr_Buffer) {}
 inline void EventWriteOrtcSctpTransportShutdownDataChannel(const char *xStr_Method, PUID xPUID, PUID xPUID_DataChannelObjectID, WORD xWORD_SessionID) {}
 
-inline void EventWriteOrtcSctpTransportReceivedIncomingDataPacket(const char *xStr_Method, PUID xPUID, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
-inline void EventWriteOrtcSctpTransportBufferIncomingDataPacket(const char *xStr_Method, PUID xPUID, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
-inline void EventWriteOrtcSctpTransportDisposeBufferedIncomingDataPacket(const char *xStr_Method, PUID xPUID, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
-inline void EventWriteOrtcSctpTransportSendOutgoingDataPacket(const char *xStr_Method, PUID xPUID, PUID xPUID_SecureTransportObjectID, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
+inline void EventWriteOrtcSctpTransportReceivedIncomingDataPacket(const char *xStr_Method, PUID xPUID, size_t xsize_t_BufferSizeInBytes, const BYTE *xPtr_Buffer) {}
+inline void EventWriteOrtcSctpTransportBufferIncomingDataPacket(const char *xStr_Method, PUID xPUID, size_t xsize_t_BufferSizeInBytes, const BYTE *xPtr_Buffer) {}
+inline void EventWriteOrtcSctpTransportDisposeBufferedIncomingDataPacket(const char *xStr_Method, PUID xPUID, size_t xsize_t_BufferSizeInBytes, const BYTE *xPtr_Buffer) {}
+inline void EventWriteOrtcSctpTransportSendOutgoingDataPacket(const char *xStr_Method, PUID xPUID, PUID xPUID_SecureTransportObjectID, size_t xsize_t_BufferSizeInBytes, const BYTE *xPtr_Buffer) {}
 
 inline void EventWriteOrtcSctpTransportInternalWakeEventFired(const char *xStr_Method, PUID xPUID) {}
 inline void EventWriteOrtcSctpTransportInternalShutdownEventFired(const char *xStr_Method, PUID xPUID) {}
@@ -960,18 +960,18 @@ inline void EventWriteOrtcSctpTransportListenerSctpTransportCreatedEventFired(co
 inline void EventWriteOrtcSctpTransportListenerSctpTransportEventFired(const char *xStr_Method, PUID xPUID, PUID xPUID_SctpTransportObjectID, WORD xWORD_LocalPort, WORD xWORD_RemotePort) {}
 inline void EventWriteOrtcSctpTransportListenerSctpTransportShutdownEventFired(const char *xStr_Method, PUID xPUID, PUID xPUID_SctpTransportObjectID, WORD xWORD_LocalPort, WORD xWORD_RemotePort) {}
 
-inline void EventWriteOrtcSctpTransportListenerReceivedIncomingDataPacket(const char *xStr_Method, PUID xPUID, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
-inline void EventWriteOrtcSctpTransportListenerDeliverIncomingDataPacket(const char *xStr_Method, PUID xPUID, PUID xPUID_SctpTransportObjectID, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
+inline void EventWriteOrtcSctpTransportListenerReceivedIncomingDataPacket(const char *xStr_Method, PUID xPUID, size_t xsize_t_BufferSizeInBytes, const BYTE *xPtr_Buffer) {}
+inline void EventWriteOrtcSctpTransportListenerDeliverIncomingDataPacket(const char *xStr_Method, PUID xPUID, PUID xPUID_SctpTransportObjectID, size_t xsize_t_BufferSizeInBytes, const BYTE *xPtr_Buffer) {}
 
 inline void EventWriteOrtcSrtpTransportCreate(const char *xStr_Method, PUID xPUID, PUID xPUID_SecureTransportObjectID) {}
 inline void EventWriteOrtcSrtpTransportDestroy(const char *xStr_Method, PUID xPUID) {}
 
 inline void EventWriteOrtcSrtpTransportInstallKeyingMaterial(const char *xStr_Method, PUID xPUID, const char *xStr_Direction, const char *xStr_KeyMethod, const char *xStr_KeySalt, const char *xStr_Lifetime, const char *xStr_MkiValue, WORD xWORD_MkiLength) {}
-inline void EventWriteOrtcSrtpTransportReceivedIncomingEncryptedPacket(const char *xStr_Method, PUID xPUID, unsigned int xUInt_ViaComponent, unsigned int xUInt_PacketType, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
-inline void EventWriteOrtcSrtpTransportDeliverIncomingDecryptedPacket(const char *xStr_Method, PUID xPUID, PUID xPUID_SecureTransportObjectID, unsigned int xUInt_ViaComponent, unsigned int xUInt_PacketType, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
+inline void EventWriteOrtcSrtpTransportReceivedIncomingEncryptedPacket(const char *xStr_Method, PUID xPUID, unsigned int xUInt_ViaComponent, unsigned int xUInt_PacketType, size_t xsize_t_BufferSizeInBytes, const BYTE *xPtr_Buffer) {}
+inline void EventWriteOrtcSrtpTransportDeliverIncomingDecryptedPacket(const char *xStr_Method, PUID xPUID, PUID xPUID_SecureTransportObjectID, unsigned int xUInt_ViaComponent, unsigned int xUInt_PacketType, size_t xsize_t_BufferSizeInBytes, const BYTE *xPtr_Buffer) {}
 
-inline void EventWriteOrtcSrtpTransportSendOutgoingPacketAndEncrypt(const char *xStr_Method, PUID xPUID, unsigned int xUInt_SendOverComponent, unsigned int xUInt_PacketType, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
-inline void EventWriteOrtcSrtpTransportSendOutgoingEncryptedPacketViaSecureTransport(const char *xStr_Method, PUID xPUID, PUID xPUID_SecureTransportObjectID, unsigned int xUInt_SendOverComponent, unsigned int xUInt_PacketType, const void *xPtr_Buffer, size_t xsize_t_BufferSizeInBytes) {}
+inline void EventWriteOrtcSrtpTransportSendOutgoingPacketAndEncrypt(const char *xStr_Method, PUID xPUID, unsigned int xUInt_SendOverComponent, unsigned int xUInt_PacketType, size_t xsize_t_BufferSizeInBytes, const BYTE *xPtr_Buffer) {}
+inline void EventWriteOrtcSrtpTransportSendOutgoingEncryptedPacketViaSecureTransport(const char *xStr_Method, PUID xPUID, PUID xPUID_SecureTransportObjectID, unsigned int xUInt_SendOverComponent, unsigned int xUInt_PacketType, size_t xsize_t_BufferSizeInBytes, const BYTE *xPtr_Buffer) {}
 
 }
 #endif //ndef ORTC_USE_NOOP_EVENT_TRACE_MACROS

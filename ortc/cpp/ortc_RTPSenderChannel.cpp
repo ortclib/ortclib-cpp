@@ -326,7 +326,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool RTPSenderChannel::handlePacket(RTCPPacketPtr packet)
     {
-      EventWriteOrtcRtpReceiverChannelDeliverIncomingPacketToMediaChannel(__func__, mID, mMediaBase->getID(), zsLib::to_underlying(IICETypes::Component_RTCP), packet->buffer()->BytePtr(), packet->buffer()->SizeInBytes());
+      EventWriteOrtcRtpSenderChannelDeliverIncomingPacketToMediaChannel(__func__, mID, mMediaBase->getID(), zsLib::to_underlying(IICETypes::Component_RTCP), packet->buffer()->SizeInBytes(), packet->buffer()->BytePtr());
       return mMediaBase->handlePacket(packet);
     }
 
@@ -344,7 +344,7 @@ namespace ortc
       auto sender = mSender.lock();
       if (!sender) return false;
 
-      EventWriteOrtcRtpSenderChannelSendOutgoingPacket(__func__, mID, sender->getID(), zsLib::to_underlying(IICETypes::Component_RTP), packet->buffer()->BytePtr(), packet->buffer()->SizeInBytes());
+      EventWriteOrtcRtpSenderChannelSendOutgoingPacket(__func__, mID, sender->getID(), zsLib::to_underlying(IICETypes::Component_RTP), packet->buffer()->SizeInBytes(), packet->buffer()->BytePtr());
 
       return sender->sendPacket(packet);
     }
@@ -355,7 +355,7 @@ namespace ortc
       auto sender = mSender.lock();
       if (!sender) return false;
 
-      EventWriteOrtcRtpSenderChannelSendOutgoingPacket(__func__, mID, sender->getID(), zsLib::to_underlying(IICETypes::Component_RTCP), packet->buffer()->BytePtr(), packet->buffer()->SizeInBytes());
+      EventWriteOrtcRtpSenderChannelSendOutgoingPacket(__func__, mID, sender->getID(), zsLib::to_underlying(IICETypes::Component_RTCP), packet->buffer()->SizeInBytes(), packet->buffer()->BytePtr());
 
       return sender->sendPacket(packet);
     }

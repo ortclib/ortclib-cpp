@@ -615,7 +615,7 @@ namespace ortc
                                       size_t bufferLengthInBytes
                                       )
     {
-      EventWriteOrtcRtpListenerReceivedIncomingPacket(__func__, mID, zsLib::to_underlying(viaComponent), zsLib::to_underlying(packetType), buffer, bufferLengthInBytes);
+      EventWriteOrtcRtpListenerReceivedIncomingPacket(__func__, mID, zsLib::to_underlying(viaComponent), zsLib::to_underlying(packetType), bufferLengthInBytes, buffer);
 
       bool result = false;
 
@@ -658,7 +658,7 @@ namespace ortc
           processSDESMid(*rtcpPacket);
           processSenderReports(*rtcpPacket);
 
-          EventWriteOrtcRtpListenerBufferIncomingPacket(__func__, mID, zsLib::to_underlying(viaComponent), zsLib::to_underlying(packetType), buffer, bufferLengthInBytes);
+          EventWriteOrtcRtpListenerBufferIncomingPacket(__func__, mID, zsLib::to_underlying(viaComponent), zsLib::to_underlying(packetType), bufferLengthInBytes, buffer);
 
           mBufferedRTCPPackets.push_back(TimeRTCPPacketPair(zsLib::now(), rtcpPacket));
 
@@ -681,7 +681,7 @@ namespace ortc
 
         ASSERT(IICETypes::Component_RTP == viaComponent)
 
-        EventWriteOrtcRtpListenerBufferIncomingPacket(__func__, mID, zsLib::to_underlying(viaComponent), zsLib::to_underlying(packetType), buffer, bufferLengthInBytes);
+        EventWriteOrtcRtpListenerBufferIncomingPacket(__func__, mID, zsLib::to_underlying(viaComponent), zsLib::to_underlying(packetType), bufferLengthInBytes, buffer);
 
         // provide some modest buffering
         mBufferedRTPPackets.push_back(TimeRTPPacketPair(tick, rtpPacket));
@@ -702,7 +702,7 @@ namespace ortc
         }
 
         ZS_LOG_TRACE(log("forwarding RTP packet to receiver") + ZS_PARAM("receiver id", receiver->getID()) + ZS_PARAM("ssrc", rtpPacket->ssrc()))
-        EventWriteOrtcRtpListenerForwardIncomingPacket(__func__, mID, receiver->getID(), zsLib::to_underlying(viaComponent), zsLib::to_underlying(packetType), rtpPacket->buffer()->BytePtr(), rtpPacket->buffer()->SizeInBytes());
+        EventWriteOrtcRtpListenerForwardIncomingPacket(__func__, mID, receiver->getID(), zsLib::to_underlying(viaComponent), zsLib::to_underlying(packetType), rtpPacket->buffer()->SizeInBytes(), rtpPacket->buffer()->BytePtr());
         return receiver->handlePacket(viaComponent, rtpPacket);
       }
 
@@ -720,7 +720,7 @@ namespace ortc
           }
 
           ZS_LOG_TRACE(log("forwarding RTCP packet to receiver") + ZS_PARAM("receiver id", receiverID))
-          EventWriteOrtcRtpListenerForwardIncomingPacket(__func__, mID, receiver->getID(), zsLib::to_underlying(viaComponent), zsLib::to_underlying(packetType), rtcpPacket->buffer()->BytePtr(), rtcpPacket->buffer()->SizeInBytes());
+          EventWriteOrtcRtpListenerForwardIncomingPacket(__func__, mID, receiver->getID(), zsLib::to_underlying(viaComponent), zsLib::to_underlying(packetType), rtcpPacket->buffer()->SizeInBytes(), rtcpPacket->buffer()->BytePtr());
           auto success = receiver->handlePacket(viaComponent, rtcpPacket);
           result = result || success;
         }
@@ -735,7 +735,7 @@ namespace ortc
           }
 
           ZS_LOG_TRACE(log("forwarding RTCP packet to sender") + ZS_PARAM("sender id", senderID))
-          EventWriteOrtcRtpListenerForwardIncomingPacket(__func__, mID, sender->getID(), zsLib::to_underlying(viaComponent), zsLib::to_underlying(packetType), rtcpPacket->buffer()->BytePtr(), rtcpPacket->buffer()->SizeInBytes());
+          EventWriteOrtcRtpListenerForwardIncomingPacket(__func__, mID, sender->getID(), zsLib::to_underlying(viaComponent), zsLib::to_underlying(packetType), rtcpPacket->buffer()->SizeInBytes(), rtcpPacket->buffer()->BytePtr());
           auto success = sender->handlePacket(viaComponent, rtcpPacket);
           result = result || success;
         }
@@ -1168,7 +1168,7 @@ namespace ortc
     {
       ZS_LOG_TRACE(log("forwarding previously buffered RTP packet to receiver") + ZS_PARAM("receiver id", receiver->getID()) + ZS_PARAM("via", IICETypes::toString(viaComponent)) + ZS_PARAM("ssrc", packet->ssrc()))
 
-      EventWriteOrtcRtpListenerForwardIncomingPacket(__func__, mID, receiver->getID(), zsLib::to_underlying(viaComponent), zsLib::to_underlying(IICETypes::Component_RTP), packet->buffer()->BytePtr(), packet->buffer()->SizeInBytes());
+      EventWriteOrtcRtpListenerForwardIncomingPacket(__func__, mID, receiver->getID(), zsLib::to_underlying(viaComponent), zsLib::to_underlying(IICETypes::Component_RTP), packet->buffer()->SizeInBytes(), packet->buffer()->BytePtr());
       receiver->handlePacket(viaComponent, packet);
     }
 
@@ -1430,7 +1430,7 @@ namespace ortc
 
       expire_packet:
         {
-          EventWriteOrtcRtpListenerDisposeBufferedIncomingPacket(__func__, mID, zsLib::to_underlying(IICETypes::Component_RTP), packet->buffer()->BytePtr(), packet->buffer()->SizeInBytes());
+          EventWriteOrtcRtpListenerDisposeBufferedIncomingPacket(__func__, mID, zsLib::to_underlying(IICETypes::Component_RTP), packet->buffer()->SizeInBytes(), packet->buffer()->BytePtr());
           ZS_LOG_TRACE(log("expiring buffered rtp packet") + ZS_PARAM("tick", tick) + ZS_PARAM("packet time (s)", packetTime) + ZS_PARAM("total", mBufferedRTPPackets.size()))
           mBufferedRTPPackets.pop_front();
         }
@@ -1455,7 +1455,7 @@ namespace ortc
 
       expire_packet:
         {
-          EventWriteOrtcRtpListenerDisposeBufferedIncomingPacket(__func__, mID, zsLib::to_underlying(IICETypes::Component_RTCP), packet->buffer()->BytePtr(), packet->buffer()->SizeInBytes());
+          EventWriteOrtcRtpListenerDisposeBufferedIncomingPacket(__func__, mID, zsLib::to_underlying(IICETypes::Component_RTCP), packet->buffer()->SizeInBytes(), packet->buffer()->BytePtr());
           ZS_LOG_TRACE(log("expiring buffered rtcp packet") + ZS_PARAM("tick", tick) + ZS_PARAM("packet time (s)", packetTime) + ZS_PARAM("total", mBufferedRTCPPackets.size()))
           mBufferedRTCPPackets.pop_front();
         }
@@ -1539,7 +1539,7 @@ namespace ortc
     {
       outMuxID = extractMuxID(rtpPacket, outReceiverInfo);
 
-      EventWriteOrtcRtpListenerFindMapping(__func__, mID, outMuxID, rtpPacket.buffer()->BytePtr(), rtpPacket.buffer()->SizeInBytes());
+      EventWriteOrtcRtpListenerFindMapping(__func__, mID, outMuxID, rtpPacket.buffer()->SizeInBytes(), rtpPacket.buffer()->BytePtr());
 
       {
         if (outReceiverInfo) goto fill_mux_id;

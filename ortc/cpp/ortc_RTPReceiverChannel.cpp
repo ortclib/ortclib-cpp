@@ -327,14 +327,14 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool RTPReceiverChannel::handlePacket(RTPPacketPtr packet)
     {
-      EventWriteOrtcRtpReceiverChannelDeliverIncomingPacketToMediaChannel(__func__, mID, mMediaBase->getID(), zsLib::to_underlying(IICETypes::Component_RTP), packet->buffer()->BytePtr(), packet->buffer()->SizeInBytes());
+      EventWriteOrtcRtpReceiverChannelDeliverIncomingPacketToMediaChannel(__func__, mID, mMediaBase->getID(), zsLib::to_underlying(IICETypes::Component_RTP), packet->buffer()->SizeInBytes(), packet->buffer()->BytePtr());
       return mMediaBase->handlePacket(packet);
     }
 
     //-------------------------------------------------------------------------
     bool RTPReceiverChannel::handlePacket(RTCPPacketPtr packet)
     {
-      EventWriteOrtcRtpReceiverChannelDeliverIncomingPacketToMediaChannel(__func__, mID, mMediaBase->getID(), zsLib::to_underlying(IICETypes::Component_RTCP), packet->buffer()->BytePtr(), packet->buffer()->SizeInBytes());
+      EventWriteOrtcRtpReceiverChannelDeliverIncomingPacketToMediaChannel(__func__, mID, mMediaBase->getID(), zsLib::to_underlying(IICETypes::Component_RTCP), packet->buffer()->SizeInBytes(), packet->buffer()->BytePtr());
       return mMediaBase->handlePacket(packet);
     }
 
@@ -360,7 +360,7 @@ namespace ortc
       auto receiver = mReceiver.lock();
       if (!receiver) return false;
 
-      EventWriteOrtcRtpReceiverChannelSendOutgoingPacket(__func__, mID, receiver->getID(), zsLib::to_underlying(IICETypes::Component_RTCP), packet->buffer()->BytePtr(), packet->buffer()->SizeInBytes());
+      EventWriteOrtcRtpReceiverChannelSendOutgoingPacket(__func__, mID, receiver->getID(), zsLib::to_underlying(IICETypes::Component_RTCP), packet->buffer()->SizeInBytes(), packet->buffer()->BytePtr());
 
       return receiver->sendPacket(packet);
     }

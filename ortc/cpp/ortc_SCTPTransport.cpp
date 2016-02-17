@@ -1088,7 +1088,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     PromisePtr SCTPTransport::sendDataNow(SCTPPacketOutgoingPtr packet)
     {
-      EventWriteOrtcSctpTransportSendOutgoingPacket(__func__, mID, packet->mSessionID, packet->mOrdered, packet->mMaxPacketLifetime.count(), packet->mMaxRetransmits.hasValue(), packet->mMaxRetransmits.value(), ((bool)packet->mBuffer) ? packet->mBuffer->BytePtr() : NULL, ((bool)packet->mBuffer) ? packet->mBuffer->SizeInBytes() : 0);
+      EventWriteOrtcSctpTransportSendOutgoingPacket(__func__, mID, packet->mSessionID, packet->mOrdered, packet->mMaxPacketLifetime.count(), packet->mMaxRetransmits.hasValue(), packet->mMaxRetransmits.value(), ((bool)packet->mBuffer) ? packet->mBuffer->SizeInBytes() : 0, ((bool)packet->mBuffer) ? packet->mBuffer->BytePtr() : NULL);
 
       ZS_DECLARE_TYPEDEF_PTR(ISCTPTransportForDataChannel::RejectReason, RejectReason)
       {
@@ -1240,7 +1240,7 @@ namespace ortc
                                          size_t bufferLengthInBytes
                                          )
     {
-      EventWriteOrtcSctpTransportReceivedIncomingDataPacket(__func__, mID, buffer, bufferLengthInBytes);
+      EventWriteOrtcSctpTransportReceivedIncomingDataPacket(__func__, mID, bufferLengthInBytes, buffer);
 
       if (bufferLengthInBytes < sizeof(DWORD)) {
         ZS_LOG_WARNING(Trace, log("packet length is too small to be an SCTP packet"))
@@ -1267,7 +1267,7 @@ namespace ortc
 
       queue_packet:
         {
-          EventWriteOrtcSctpTransportBufferIncomingDataPacket(__func__, mID, buffer, bufferLengthInBytes);
+          EventWriteOrtcSctpTransportBufferIncomingDataPacket(__func__, mID, bufferLengthInBytes, buffer);
           mPendingIncomingBuffers.push(make_shared<SecureByteBlock>(buffer, bufferLengthInBytes));
           return true;
         }
@@ -1309,7 +1309,7 @@ namespace ortc
         return false;
       }
 
-      EventWriteOrtcSctpTransportSendOutgoingDataPacket(__func__, mID, transport->getID(), buffer, bufferLengthInBytes);
+      EventWriteOrtcSctpTransportSendOutgoingDataPacket(__func__, mID, transport->getID(), bufferLengthInBytes, buffer);
       return transport->sendDataPacket(buffer, bufferLengthInBytes);
     }
 
@@ -1359,7 +1359,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     void SCTPTransport::onIncomingPacket(SCTPPacketIncomingPtr packet)
     {
-      EventWriteOrtcSctpTransportReceivedIncomingPacket(__func__, mID, packet->mSessionID, packet->mSequenceNumber, packet->mTimestamp, packet->mFlags, ((bool)packet->mBuffer) ? packet->mBuffer->BytePtr() : NULL, ((bool)packet->mBuffer) ? packet->mBuffer->SizeInBytes() : 0);
+      EventWriteOrtcSctpTransportReceivedIncomingPacket(__func__, mID, packet->mSessionID, packet->mSequenceNumber, packet->mTimestamp, packet->mFlags, ((bool)packet->mBuffer) ? packet->mBuffer->SizeInBytes() : 0, ((bool)packet->mBuffer) ? packet->mBuffer->BytePtr() : NULL);
 
       ZS_LOG_TRACE(log("on incoming packet") + packet->toDebug())
 
@@ -1433,7 +1433,7 @@ namespace ortc
           ZS_LOG_WARNING(Detail, log("data channel is not known (likely already closed)") + packet->toDebug())
           return;
         }
-        EventWriteOrtcSctpTransportDeliverIncomingPacket(__func__, mID, dataChannel->getID(), packet->mSessionID, packet->mSequenceNumber, packet->mTimestamp, packet->mFlags, ((bool)packet->mBuffer) ? packet->mBuffer->BytePtr() : NULL, ((bool)packet->mBuffer) ? packet->mBuffer->SizeInBytes() : 0);
+        EventWriteOrtcSctpTransportDeliverIncomingPacket(__func__, mID, dataChannel->getID(), packet->mSessionID, packet->mSequenceNumber, packet->mTimestamp, packet->mFlags, ((bool)packet->mBuffer) ? packet->mBuffer->SizeInBytes() : 0, ((bool)packet->mBuffer) ? packet->mBuffer->BytePtr() : NULL);
         ZS_LOG_TRACE(log("forwarding to data channel") + ZS_PARAM("data channel", dataChannel->getID()) + packet->toDebug())
         dataChannel->handleSCTPPacket(packet);
       }
@@ -1717,7 +1717,7 @@ namespace ortc
       while (pending.size() > 0) {
         SecureByteBlockPtr buffer = pending.front();
         handleDataPacket(buffer->BytePtr(), buffer->SizeInBytes());
-        EventWriteOrtcSctpTransportDisposeBufferedIncomingDataPacket(__func__, mID, buffer->BytePtr(), buffer->SizeInBytes());
+        EventWriteOrtcSctpTransportDisposeBufferedIncomingDataPacket(__func__, mID, buffer->SizeInBytes(), buffer->BytePtr());
         pending.pop();
       }
 

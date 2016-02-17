@@ -1053,7 +1053,7 @@ namespace ortc
                                     size_t bufferSizeInBytes
                                     )
     {
-      EventWriteOrtcIceTransportReceivedPacketFromGatherer(__func__, mID, routerRoute->mID, buffer, bufferSizeInBytes);
+      EventWriteOrtcIceTransportReceivedPacketFromGatherer(__func__, mID, routerRoute->mID, bufferSizeInBytes, buffer);
 
       UseSecureTransportPtr transport;
 
@@ -1093,11 +1093,11 @@ namespace ortc
         if (mMustBufferPackets) {
           // packets must be buffered
           ZS_LOG_TRACE(log("buffering packet for secure transport") + ZS_PARAM("buffer length", bufferSizeInBytes))
-          EventWriteOrtcIceTransportBufferingIncomingPacket(__func__, mID, buffer, bufferSizeInBytes);
+          EventWriteOrtcIceTransportBufferingIncomingPacket(__func__, mID, bufferSizeInBytes, buffer);
           mBufferedPackets.push(make_shared<SecureByteBlock>(buffer, bufferSizeInBytes));
           while (mBufferedPackets.size() > mMaxBufferedPackets) {
             auto &poppedBuffer = mBufferedPackets.front();
-            EventWriteOrtcIceTransportDisposingBufferedIncomingPacket(__func__, mID, poppedBuffer->BytePtr(), poppedBuffer->SizeInBytes());
+            EventWriteOrtcIceTransportDisposingBufferedIncomingPacket(__func__, mID, poppedBuffer->SizeInBytes(), poppedBuffer->BytePtr());
             ZS_LOG_TRACE(log("too many packets in buffered packet list (dropping packet") + ZS_PARAM("max packets", mMaxBufferedPackets) + ZS_PARAM("total packets", mBufferedPackets.size()))
             mBufferedPackets.pop();
           }
@@ -1109,7 +1109,7 @@ namespace ortc
 
     forward_attached_secure_transport:
       {
-        EventWriteOrtcIceTransportDeliveringIncomingPacketToSecureTransport(__func__, mID, transport->getID(), buffer, bufferSizeInBytes);
+        EventWriteOrtcIceTransportDeliveringIncomingPacketToSecureTransport(__func__, mID, transport->getID(), bufferSizeInBytes, buffer);
         bool handled = transport->handleReceivedPacket(mComponent, buffer, bufferSizeInBytes);
 
         if (!handled) goto forward_old_transport;
@@ -1127,7 +1127,7 @@ namespace ortc
           }
         }
 
-        EventWriteOrtcIceTransportDeliveringIncomingPacketToSecureTransport(__func__, mID, transport->getID(), buffer, bufferSizeInBytes);
+        EventWriteOrtcIceTransportDeliveringIncomingPacketToSecureTransport(__func__, mID, transport->getID(), bufferSizeInBytes, buffer);
         bool handled = transport->handleReceivedPacket(mComponent, buffer, bufferSizeInBytes);
         if (!handled) {
           AutoRecursiveLock lock(*this);
@@ -1340,7 +1340,7 @@ namespace ortc
                                   size_t bufferSizeInBytes
                                   )
     {
-      EventWriteOrtcIceTransportSecureTransportSendPacket(__func__, mID, buffer, bufferSizeInBytes);
+      EventWriteOrtcIceTransportSecureTransportSendPacket(__func__, mID, bufferSizeInBytes, buffer);
 
       UseICEGathererPtr gatherer;
       RouterRoutePtr routerRoute;
@@ -1357,7 +1357,7 @@ namespace ortc
         routerRoute = mActiveRoute->mGathererRoute;
       }
 
-      EventWriteOrtcIceTransportForwardSecureTransportPacketToGatherer(__func__, mID, gatherer->getID(), buffer, bufferSizeInBytes);
+      EventWriteOrtcIceTransportForwardSecureTransportPacketToGatherer(__func__, mID, gatherer->getID(), bufferSizeInBytes, buffer);
       routerRoute->trace(__func__, "gatherer to use this route to send secure packet");
       return gatherer->sendPacket(*this, routerRoute, buffer, bufferSizeInBytes);
     }
@@ -1482,7 +1482,7 @@ namespace ortc
         packets.pop();
 
         {
-          EventWriteOrtcIceTransportDeliveringBufferedIncomingPacketToSecureTransport(__func__, mID, transport->getID(), deliverPacket->BytePtr(), deliverPacket->SizeInBytes());
+          EventWriteOrtcIceTransportDeliveringBufferedIncomingPacketToSecureTransport(__func__, mID, transport->getID(), deliverPacket->SizeInBytes(), deliverPacket->BytePtr());
           bool handled = transport->handleReceivedPacket(mComponent, deliverPacket->BytePtr(), deliverPacket->SizeInBytes());
 
           if (!handled) goto forward_old_transport;
@@ -1501,7 +1501,7 @@ namespace ortc
             goto deliver_next;
           }
 
-          EventWriteOrtcIceTransportDeliveringBufferedIncomingPacketToSecureTransport(__func__, mID, oldTransport->getID(), deliverPacket->BytePtr(), deliverPacket->SizeInBytes());
+          EventWriteOrtcIceTransportDeliveringBufferedIncomingPacketToSecureTransport(__func__, mID, oldTransport->getID(), deliverPacket->SizeInBytes(), deliverPacket->BytePtr());
           bool handled = oldTransport->handleReceivedPacket(mComponent, deliverPacket->BytePtr(), deliverPacket->SizeInBytes());
           if (!handled) {
             AutoRecursiveLock lock(*this);
@@ -1854,7 +1854,7 @@ namespace ortc
                                                  SecureByteBlockPtr packet
                                                  )
     {
-      EventWriteOrtcIceTransportInternalStunRequesterSendPacket(__func__, mID, requester->getID(), destination.string(), packet->BytePtr(), packet->SizeInBytes());
+      EventWriteOrtcIceTransportInternalStunRequesterSendPacket(__func__, mID, requester->getID(), destination.string(), packet->SizeInBytes(), packet->BytePtr());
 
       ZS_THROW_INVALID_ARGUMENT_IF(!packet)
 
@@ -4403,7 +4403,7 @@ namespace ortc
       }
 
       SecureByteBlockPtr packetized = packet->packetize(STUNPacket::RFC_5245_ICE);
-      EventWriteOrtcIceTransportSendStunPacket(__func__, mID, mGatherer->getID(), packetized->BytePtr(), packetized->SizeInBytes());
+      EventWriteOrtcIceTransportSendStunPacket(__func__, mID, mGatherer->getID(), packetized->SizeInBytes(), packetized->BytePtr());
       mGatherer->sendPacket(*this, routerRoute, packetized->BytePtr(), packetized->SizeInBytes());
     }
 
