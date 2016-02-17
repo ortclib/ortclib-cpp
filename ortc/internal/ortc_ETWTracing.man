@@ -51,8 +51,8 @@
           </template>
         </templates>
         <events>
-          <event symbol="OrtcCreate" channel="ol" template="T_BasicObject" task="Stun" opcode="win:Info" value="1001" level="win:Informational" message="$(string.Event.OrtcCreate)" />
-          <event symbol="OrtcDestroy" channel="ol" template="T_BasicObject" task="Stun" opcode="win:Info" value="1002" level="win:Informational" message="$(string.Event.OrtcDestroy)" />
+          <event symbol="OrtcCreate" channel="ol" template="T_BasicObject" task="Ortc" opcode="win:Start" value="1001" level="win:Informational" message="$(string.Event.OrtcCreate)" />
+          <event symbol="OrtcDestroy" channel="ol" template="T_BasicObject" task="Ortc" opcode="win:Stop" value="1002" level="win:Informational" message="$(string.Event.OrtcDestroy)" />
         </events>
       </provider>
 
@@ -92,7 +92,8 @@
         <string id="Opcode.StateEvent" value="StateEvent"/>
         <string id="Opcode.InternalEvent" value="InternalEvent"/>
 
-        <string id="Event.Bogus" value="Bogus"/>
+        <string id="Event.OrtcCreate" value="OrtcCreate"/>
+        <string id="Event.OrtcDestroy" value="OrtcDestroy"/>
 
       </stringTable>
     </resources>

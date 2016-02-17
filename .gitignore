@@ -4,3 +4,4 @@ libs/build
 [dD]ebug/
 [Rr]elease/
 Generated Files/
+ortc/internal/ortc_ETWTracing.h

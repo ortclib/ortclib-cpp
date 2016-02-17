@@ -101,21 +101,27 @@
   <PropertyGroup />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <GenerateManifest>false</GenerateManifest>
+    <CustomBuildBeforeTargets>PreBuildEvent</CustomBuildBeforeTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <GenerateManifest>false</GenerateManifest>
+    <CustomBuildBeforeTargets>PreBuildEvent</CustomBuildBeforeTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
     <GenerateManifest>false</GenerateManifest>
+    <CustomBuildBeforeTargets>PreBuildEvent</CustomBuildBeforeTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
     <GenerateManifest>false</GenerateManifest>
+    <CustomBuildBeforeTargets>PreBuildEvent</CustomBuildBeforeTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <GenerateManifest>false</GenerateManifest>
+    <CustomBuildBeforeTargets>PreBuildEvent</CustomBuildBeforeTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <GenerateManifest>false</GenerateManifest>
+    <CustomBuildBeforeTargets>PreBuildEvent</CustomBuildBeforeTargets>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -131,6 +137,41 @@
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <GenerateWindowsMetadata>false</GenerateWindowsMetadata>
     </Link>
+    <CustomBuildStep>
+      <Command>echo Create manifest header file...
+mc.exe -um -r $(IntermediateOutputPath) -h "$(ProjectDir)..\..\..\..\ortc\internal" "$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWTracing.man"
+echo Create resource file...
+rc.exe $(IntermediateOutputPath)ortc_ETWTracing.rc
+echo Create manifest resource dll...
+echo If compiling to managed code resource DLL use: csc.exe /out:$(IntermediateOutputPath)ortc_ETWTracing.dll /target:library /win32res:$(IntermediateOutputPath)ortc_ETWTracing.res
+link -dll -noentry /MACHINE:$(PlatformTarget) -out:$(IntermediateOutputPath)ortc_ETWTracing.dll $(IntermediateOutputPath)ortc_ETWTracing.res
+echo Copy files to output directory...
+copy $(IntermediateOutputPath)ortc_ETWTracing.dll "$(OutDir)"
+copy "$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWTracing.man" "$(OutDir)"
+copy "$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWTracing.wprp" "$(OutDir)"
+icacls "$(OutDir)ortc_ETWTracing.dll" /grant Users:RX
+echo.
+echo Steps to register manifest file with for Windows Performance Recorder...
+echo.
+echo. 1) Run a command prompt as administrator
+echo.
+echo 2) Change into the output directory, type:
+echo cd "$(OutDir)"
+echo.
+echo 3) To register the manifest, type:
+echo wevtutil.exe im ortc_ETWTracing.man /rf:"$(OutDir)ortc_ETWTracing.dll" /mf:"$(OutDir)ortc_ETWTracing.dll"
+echo.
+echo 4) To unregister the manifest, type:
+echo wevtutil.exe um ortc_ETWTracing.man
+echo.
+</Command>
+    </CustomBuildStep>
+    <CustomBuildStep>
+      <Outputs>$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWTracing.h;$(IntermediateOutputPath)ortc_ETWTracing.rc;$(IntermediateOutputPath)ortc_ETWTracing.res;$(IntermediateOutputPath)ortc_ETWTracing.dll;$(OutDir)ortc_ETWTracing.dll;$(OutDir)ortc_ETWTracing.man;$(OutDir)ortc_ETWTracing.wprp;%(Outputs)</Outputs>
+    </CustomBuildStep>
+    <CustomBuildStep>
+      <Inputs>$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWTracing.man;$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWTracing.wprp;%(Inputs)</Inputs>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -145,6 +186,41 @@
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <GenerateWindowsMetadata>false</GenerateWindowsMetadata>
     </Link>
+    <CustomBuildStep>
+      <Command>echo Create manifest header file...
+mc.exe -um -r $(IntermediateOutputPath) -h "$(ProjectDir)..\..\..\..\ortc\internal" "$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWTracing.man"
+echo Create resource file...
+rc.exe $(IntermediateOutputPath)ortc_ETWTracing.rc
+echo Create manifest resource dll...
+echo If compiling to managed code resource DLL use: csc.exe /out:$(IntermediateOutputPath)ortc_ETWTracing.dll /target:library /win32res:$(IntermediateOutputPath)ortc_ETWTracing.res
+link -dll -noentry /MACHINE:$(PlatformTarget) -out:$(IntermediateOutputPath)ortc_ETWTracing.dll $(IntermediateOutputPath)ortc_ETWTracing.res
+echo Copy files to output directory...
+copy $(IntermediateOutputPath)ortc_ETWTracing.dll "$(OutDir)"
+copy "$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWTracing.man" "$(OutDir)"
+copy "$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWTracing.wprp" "$(OutDir)"
+icacls "$(OutDir)ortc_ETWTracing.dll" /grant Users:RX
+echo.
+echo Steps to register manifest file with for Windows Performance Recorder...
+echo.
+echo. 1) Run a command prompt as administrator
+echo.
+echo 2) Change into the output directory, type:
+echo cd "$(OutDir)"
+echo.
+echo 3) To register the manifest, type:
+echo wevtutil.exe im ortc_ETWTracing.man /rf:"$(OutDir)ortc_ETWTracing.dll" /mf:"$(OutDir)ortc_ETWTracing.dll"
+echo.
+echo 4) To unregister the manifest, type:
+echo wevtutil.exe um ortc_ETWTracing.man
+echo.
+</Command>
+    </CustomBuildStep>
+    <CustomBuildStep>
+      <Outputs>$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWTracing.h;$(IntermediateOutputPath)ortc_ETWTracing.rc;$(IntermediateOutputPath)ortc_ETWTracing.res;$(IntermediateOutputPath)ortc_ETWTracing.dll;$(OutDir)ortc_ETWTracing.dll;$(OutDir)ortc_ETWTracing.man;$(OutDir)ortc_ETWTracing.wprp;%(Outputs)</Outputs>
+    </CustomBuildStep>
+    <CustomBuildStep>
+      <Inputs>$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWTracing.man;$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWTracing.wprp;%(Inputs)</Inputs>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|arm'">
     <ClCompile>
@@ -160,6 +236,41 @@
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <GenerateWindowsMetadata>false</GenerateWindowsMetadata>
     </Link>
+    <CustomBuildStep>
+      <Command>echo Create manifest header file...
+mc.exe -um -r $(IntermediateOutputPath) -h "$(ProjectDir)..\..\..\..\ortc\internal" "$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWTracing.man"
+echo Create resource file...
+rc.exe $(IntermediateOutputPath)ortc_ETWTracing.rc
+echo Create manifest resource dll...
+echo If compiling to managed code resource DLL use: csc.exe /out:$(IntermediateOutputPath)ortc_ETWTracing.dll /target:library /win32res:$(IntermediateOutputPath)ortc_ETWTracing.res
+link -dll -noentry /MACHINE:$(PlatformTarget) -out:$(IntermediateOutputPath)ortc_ETWTracing.dll $(IntermediateOutputPath)ortc_ETWTracing.res
+echo Copy files to output directory...
+copy $(IntermediateOutputPath)ortc_ETWTracing.dll "$(OutDir)"
+copy "$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWTracing.man" "$(OutDir)"
+copy "$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWTracing.wprp" "$(OutDir)"
+icacls "$(OutDir)ortc_ETWTracing.dll" /grant Users:RX
+echo.
+echo Steps to register manifest file with for Windows Performance Recorder...
+echo.
+echo. 1) Run a command prompt as administrator
+echo.
+echo 2) Change into the output directory, type:
+echo cd "$(OutDir)"
+echo.
+echo 3) To register the manifest, type:
+echo wevtutil.exe im ortc_ETWTracing.man /rf:"$(OutDir)ortc_ETWTracing.dll" /mf:"$(OutDir)ortc_ETWTracing.dll"
+echo.
+echo 4) To unregister the manifest, type:
+echo wevtutil.exe um ortc_ETWTracing.man
+echo.
+</Command>
+    </CustomBuildStep>
+    <CustomBuildStep>
+      <Outputs>$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWTracing.h;$(IntermediateOutputPath)ortc_ETWTracing.rc;$(IntermediateOutputPath)ortc_ETWTracing.res;$(IntermediateOutputPath)ortc_ETWTracing.dll;$(OutDir)ortc_ETWTracing.dll;$(OutDir)ortc_ETWTracing.man;$(OutDir)ortc_ETWTracing.wprp;%(Outputs)</Outputs>
+    </CustomBuildStep>
+    <CustomBuildStep>
+      <Inputs>$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWTracing.man;$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWTracing.wprp;%(Inputs)</Inputs>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|arm'">
     <ClCompile>
@@ -174,6 +285,41 @@
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <GenerateWindowsMetadata>false</GenerateWindowsMetadata>
     </Link>
+    <CustomBuildStep>
+      <Command>echo Create manifest header file...
+mc.exe -um -r $(IntermediateOutputPath) -h "$(ProjectDir)..\..\..\..\ortc\internal" "$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWTracing.man"
+echo Create resource file...
+rc.exe $(IntermediateOutputPath)ortc_ETWTracing.rc
+echo Create manifest resource dll...
+echo If compiling to managed code resource DLL use: csc.exe /out:$(IntermediateOutputPath)ortc_ETWTracing.dll /target:library /win32res:$(IntermediateOutputPath)ortc_ETWTracing.res
+link -dll -noentry /MACHINE:$(PlatformTarget) -out:$(IntermediateOutputPath)ortc_ETWTracing.dll $(IntermediateOutputPath)ortc_ETWTracing.res
+echo Copy files to output directory...
+copy $(IntermediateOutputPath)ortc_ETWTracing.dll "$(OutDir)"
+copy "$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWTracing.man" "$(OutDir)"
+copy "$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWTracing.wprp" "$(OutDir)"
+icacls "$(OutDir)ortc_ETWTracing.dll" /grant Users:RX
+echo.
+echo Steps to register manifest file with for Windows Performance Recorder...
+echo.
+echo. 1) Run a command prompt as administrator
+echo.
+echo 2) Change into the output directory, type:
+echo cd "$(OutDir)"
+echo.
+echo 3) To register the manifest, type:
+echo wevtutil.exe im ortc_ETWTracing.man /rf:"$(OutDir)ortc_ETWTracing.dll" /mf:"$(OutDir)ortc_ETWTracing.dll"
+echo.
+echo 4) To unregister the manifest, type:
+echo wevtutil.exe um ortc_ETWTracing.man
+echo.
+</Command>
+    </CustomBuildStep>
+    <CustomBuildStep>
+      <Outputs>$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWTracing.h;$(IntermediateOutputPath)ortc_ETWTracing.rc;$(IntermediateOutputPath)ortc_ETWTracing.res;$(IntermediateOutputPath)ortc_ETWTracing.dll;$(OutDir)ortc_ETWTracing.dll;$(OutDir)ortc_ETWTracing.man;$(OutDir)ortc_ETWTracing.wprp;%(Outputs)</Outputs>
+    </CustomBuildStep>
+    <CustomBuildStep>
+      <Inputs>$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWTracing.man;$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWTracing.wprp;%(Inputs)</Inputs>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -189,6 +335,41 @@
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <GenerateWindowsMetadata>false</GenerateWindowsMetadata>
     </Link>
+    <CustomBuildStep>
+      <Command>echo Create manifest header file...
+mc.exe -um -r $(IntermediateOutputPath) -h "$(ProjectDir)..\..\..\..\ortc\internal" "$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWTracing.man"
+echo Create resource file...
+rc.exe $(IntermediateOutputPath)ortc_ETWTracing.rc
+echo Create manifest resource dll...
+echo If compiling to managed code resource DLL use: csc.exe /out:$(IntermediateOutputPath)ortc_ETWTracing.dll /target:library /win32res:$(IntermediateOutputPath)ortc_ETWTracing.res
+link -dll -noentry /MACHINE:$(PlatformTarget) -out:$(IntermediateOutputPath)ortc_ETWTracing.dll $(IntermediateOutputPath)ortc_ETWTracing.res
+echo Copy files to output directory...
+copy $(IntermediateOutputPath)ortc_ETWTracing.dll "$(OutDir)"
+copy "$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWTracing.man" "$(OutDir)"
+copy "$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWTracing.wprp" "$(OutDir)"
+icacls "$(OutDir)ortc_ETWTracing.dll" /grant Users:RX
+echo.
+echo Steps to register manifest file with for Windows Performance Recorder...
+echo.
+echo. 1) Run a command prompt as administrator
+echo.
+echo 2) Change into the output directory, type:
+echo cd "$(OutDir)"
+echo.
+echo 3) To register the manifest, type:
+echo wevtutil.exe im ortc_ETWTracing.man /rf:"$(OutDir)ortc_ETWTracing.dll" /mf:"$(OutDir)ortc_ETWTracing.dll"
+echo.
+echo 4) To unregister the manifest, type:
+echo wevtutil.exe um ortc_ETWTracing.man
+echo.
+</Command>
+    </CustomBuildStep>
+    <CustomBuildStep>
+      <Outputs>$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWTracing.h;$(IntermediateOutputPath)ortc_ETWTracing.rc;$(IntermediateOutputPath)ortc_ETWTracing.res;$(IntermediateOutputPath)ortc_ETWTracing.dll;$(OutDir)ortc_ETWTracing.dll;$(OutDir)ortc_ETWTracing.man;$(OutDir)ortc_ETWTracing.wprp;%(Outputs)</Outputs>
+    </CustomBuildStep>
+    <CustomBuildStep>
+      <Inputs>$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWTracing.man;$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWTracing.wprp;%(Inputs)</Inputs>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -203,6 +384,41 @@
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <GenerateWindowsMetadata>false</GenerateWindowsMetadata>
     </Link>
+    <CustomBuildStep>
+      <Command>echo Create manifest header file...
+mc.exe -um -r $(IntermediateOutputPath) -h "$(ProjectDir)..\..\..\..\ortc\internal" "$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWTracing.man"
+echo Create resource file...
+rc.exe $(IntermediateOutputPath)ortc_ETWTracing.rc
+echo Create manifest resource dll...
+echo If compiling to managed code resource DLL use: csc.exe /out:$(IntermediateOutputPath)ortc_ETWTracing.dll /target:library /win32res:$(IntermediateOutputPath)ortc_ETWTracing.res
+link -dll -noentry /MACHINE:$(PlatformTarget) -out:$(IntermediateOutputPath)ortc_ETWTracing.dll $(IntermediateOutputPath)ortc_ETWTracing.res
+echo Copy files to output directory...
+copy $(IntermediateOutputPath)ortc_ETWTracing.dll "$(OutDir)"
+copy "$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWTracing.man" "$(OutDir)"
+copy "$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWTracing.wprp" "$(OutDir)"
+icacls "$(OutDir)ortc_ETWTracing.dll" /grant Users:RX
+echo.
+echo Steps to register manifest file with for Windows Performance Recorder...
+echo.
+echo. 1) Run a command prompt as administrator
+echo.
+echo 2) Change into the output directory, type:
+echo cd "$(OutDir)"
+echo.
+echo 3) To register the manifest, type:
+echo wevtutil.exe im ortc_ETWTracing.man /rf:"$(OutDir)ortc_ETWTracing.dll" /mf:"$(OutDir)ortc_ETWTracing.dll"
+echo.
+echo 4) To unregister the manifest, type:
+echo wevtutil.exe um ortc_ETWTracing.man
+echo.
+</Command>
+    </CustomBuildStep>
+    <CustomBuildStep>
+      <Outputs>$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWTracing.h;$(IntermediateOutputPath)ortc_ETWTracing.rc;$(IntermediateOutputPath)ortc_ETWTracing.res;$(IntermediateOutputPath)ortc_ETWTracing.dll;$(OutDir)ortc_ETWTracing.dll;$(OutDir)ortc_ETWTracing.man;$(OutDir)ortc_ETWTracing.wprp;%(Outputs)</Outputs>
+    </CustomBuildStep>
+    <CustomBuildStep>
+      <Inputs>$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWTracing.man;$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWTracing.wprp;%(Inputs)</Inputs>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

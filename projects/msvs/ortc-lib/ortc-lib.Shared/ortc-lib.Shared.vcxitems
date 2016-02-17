@@ -129,4 +129,14 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ortc_SRTPTransport.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ortc_StatsReport.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <Xml Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_ETWTracing.man">
+      <ExcludedFromBuild>false</ExcludedFromBuild>
+      <FileType>Document</FileType>
+    </Xml>
+    <Xml Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_ETWTracing.wprp">
+      <ExcludedFromBuild>false</ExcludedFromBuild>
+      <FileType>Document</FileType>
+    </Xml>
+  </ItemGroup>
 </Project>

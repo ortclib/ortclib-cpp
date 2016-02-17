@@ -336,4 +336,12 @@
       <Filter>ortc\cpp</Filter>
     </ClCompile>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_ETWTracing.man">
+      <Filter>ortc\internal</Filter>
+    </None>
+    <None Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_ETWTracing.wprp">
+      <Filter>ortc\internal</Filter>
+    </None>
+  </ItemGroup>
 </Project>
