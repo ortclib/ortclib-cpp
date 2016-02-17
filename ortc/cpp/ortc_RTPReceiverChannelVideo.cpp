@@ -224,17 +224,32 @@ namespace ortc
       
       webrtc::Transport* transport = mTransport.get();
       webrtc::VideoReceiveStream::Config config(transport);
-
-      webrtc::VideoCodecType type = webrtc::kVideoCodecVP8;
-      webrtc::VideoDecoder* videoDecoder = webrtc::VideoDecoder::Create(webrtc::VideoDecoder::kVp8);
       webrtc::VideoReceiveStream::Decoder decoder;
-      decoder.decoder = videoDecoder;
-      decoder.payload_name = "VP8";
-      decoder.payload_type = 100;
 
-      config.rtp.remote_ssrc = 1000;
-      config.rtp.local_ssrc = 1020;
-      config.rtp.rtcp_mode = webrtc::RtcpMode::kReducedSize;
+      IRTPTypes::CodecParametersList::iterator codecIter = mParameters->mCodecs.begin();
+      while (codecIter != mParameters->mCodecs.end()) {
+        auto supportedCodec = IRTPTypes::toSupportedCodec(codecIter->mName);
+        if (IRTPTypes::SupportedCodec_VP8 == supportedCodec) {
+          webrtc::VideoCodecType type = webrtc::kVideoCodecVP8;
+          webrtc::VideoDecoder* videoDecoder = webrtc::VideoDecoder::Create(webrtc::VideoDecoder::kVp8);
+          decoder.decoder = videoDecoder;
+          decoder.payload_name = codecIter->mName;
+          decoder.payload_type = codecIter->mPayloadType;
+          break;
+        }
+        codecIter++;
+      }
+
+      IRTPTypes::EncodingParametersList::iterator encodingParamIter = mParameters->mEncodingParameters.begin();
+      while (encodingParamIter != mParameters->mEncodingParameters.end()) {
+        if (encodingParamIter->mCodecPayloadType == decoder.payload_type) {
+          config.rtp.remote_ssrc = encodingParamIter->mSSRC;
+        }
+      }
+
+      config.rtp.local_ssrc = mParameters->mRTCP.mSSRC;
+      if (mParameters->mRTCP.mReducedSize)
+        config.rtp.rtcp_mode = webrtc::RtcpMode::kReducedSize;
       config.rtp.remb = true;
       config.rtp.nack.rtp_history_ms = 1000;
       config.decoders.push_back(decoder);

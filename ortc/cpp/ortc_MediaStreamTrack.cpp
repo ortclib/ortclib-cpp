@@ -163,7 +163,7 @@ namespace ortc
       mTransport = Transport::create(mThisWeak.lock());
 
       if (mKind == Kind_Video && !mRemote) {
-        String videoDeviceID = mConstraints->mAdvanced.front()->mDeviceID.mValue.value().mValue.value();
+        String videoDeviceID = mConstraints->mDeviceID.mValue.value().mValue.value();
         mVideoCaptureModule = webrtc::VideoCaptureFactory::Create(0, videoDeviceID.c_str());
         if (!mVideoCaptureModule) {
           return;
