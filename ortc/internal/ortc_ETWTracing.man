@@ -297,84 +297,6 @@
             <data inType="win:UInt64"     name="LeastLifetimeRemainingPercentageForAllKeys" />
             <data inType="win:UInt64"     name="OverallLifetimeRemainingPercentage" />
           </template>
-        </templates>
-        <events>
-          <event symbol="OrtcCreate" channel="ol" template="T_BasicObject" task="Ortc" opcode="win:Start" value="1001" level="win:Informational" message="$(string.Event.OrtcCreate)" />
-          <event symbol="OrtcDestroy" channel="ol" template="T_BasicObject" task="Ortc" opcode="win:Stop" value="1002" level="win:Informational" message="$(string.Event.OrtcDestroy)" />
-
-          <event symbol="OrtcCertificateCreate" channel="ol" template="T_CertificateCreate" task="Certificate" opcode="win:Start" value="1101" level="win:Informational" message="$(string.Event.OrtcCertificateCreate)" />
-          <event symbol="OrtcCertificateDestroy" channel="ol" template="T_BasicObject" task="Certificate" opcode="win:Stop" value="1102" level="win:Informational" message="$(string.Event.OrtcCertificateDestroy)" />
-          <event symbol="OrtcCertificateGeneratedEventFired" channel="ol" template="T_CertificateGeneratedEventFired" task="Certificate" opcode="Event" value="1103" level="win:Informational" message="$(string.Event.OrtcCertificateGeneratedEventFired)" />
-          <event symbol="OrtcCertificateFingerprint" channel="ol" template="T_CertificateFingerprint" task="Certificate" opcode="win:Info" value="1104" level="win:Informational" message="$(string.Event.OrtcCertificateFingerprint)" />
-
-          <event symbol="OrtcDataChannelCreate" channel="ol" template="T_DataChannelCreate" task="DataChannel" opcode="win:Start" value="1201" level="win:Informational" message="$(string.Event.OrtcDataChannelCreate)" />
-          <event symbol="OrtcDataChannelDestroy" channel="ol" template="T_BasicObject" task="DataChannel" opcode="win:Stop" value="1202" level="win:Informational" message="$(string.Event.OrtcDataChannelDestroy)" />
-          <event symbol="OrtcDataChannelClose" channel="ol" template="T_BasicObject" task="DataChannel" opcode="Close" value="1203" level="win:Informational" message="$(string.Event.OrtcDataChannelClose)" />
-          <event symbol="OrtcDataChannelCancel" channel="ol" template="T_BasicObject" task="DataChannel" opcode="Cancel" value="1204" level="win:Informational" message="$(string.Event.OrtcDataChannelCancel)" />
-          <event symbol="OrtcDataChannelStep" channel="ol" template="T_BasicObject" task="DataChannel" opcode="Step" value="1205" level="win:Informational" message="$(string.Event.OrtcDataChannelStep)" />
-          <event symbol="OrtcDataChannelStateChangedEventFired" channel="ol" template="T_BasicWithState" task="DataChannel" opcode="StateEvent" value="1206" level="win:Informational" message="$(string.Event.OrtcDataChannelStateChangedEventFired)" />
-          <event symbol="OrtcDataChannelErrorEventFired" channel="ol" template="T_BasicWithError" task="DataChannel" opcode="ErrorEvent" value="1207" level="win:Informational" message="$(string.Event.OrtcDataChannelErrorEventFired)" />
-
-          <event symbol="OrtcDataChannelSendControlOpen" channel="ol" template="T_DataChannelSendControlOpen" task="DataChannel" opcode="win:Send" value="1208" level="win:Informational" message="$(string.Event.OrtcDataChannelSendControlOpen)" />
-          <event symbol="OrtcDataChannelSendControlAck" channel="ol" template="T_BasicWithMessageType" task="DataChannel" opcode="win:Send" value="1209" level="win:Informational" message="$(string.Event.OrtcDataChannelSendControlAck)" />
-
-          <event symbol="OrtcDataChannelBufferedAmountLowThresholdChanged" channel="ol" template="T_DataChannelBufferedAmountLowThresholdChanged" task="DataChannel" opcode="Event" value="1210" level="win:Informational" message="$(string.Event.OrtcDataChannelBufferedAmountLowThresholdChanged)" />
-
-          <event symbol="OrtcDataChannelSendString" channel="ol" template="T_DataChannelSendString" task="DataChannel" opcode="Send" value="1211" level="win:Informational" message="$(string.Event.OrtcDataChannelSendString)" />
-          <event symbol="OrtcDataChannelSendBinary" channel="ol" template="T_BasicWithBuffer" task="DataChannel" opcode="Send" value="1212" level="win:Informational" message="$(string.Event.OrtcDataChannelSendBinary)" />
-
-          <event symbol="OrtcDataChannelOutgoingBufferPacket" channel="ol" template="T_BasicWithDataChannelPacket" task="DataChannel" opcode="Buffer" value="1213" level="win:Informational" message="$(string.Event.OrtcDataChannelOutgoingBufferPacket)" />
-          <event symbol="OrtcDataChannelOutgoingBufferPacketDelivered" channel="ol" template="T_BasicWithDataChannelPacket" task="DataChannel" opcode="win:Info" value="1214" level="win:Informational" message="$(string.Event.OrtcDataChannelOutgoingBufferPacketDelivered)" />
-
-          <event symbol="OrtcDataChannelReceivedControlOpen" channel="ol" template="T_DataChannelReceivedControlOpen" task="DataChannel" opcode="win:Receive" value="1215" level="win:Informational" message="$(string.Event.OrtcDataChannelReceivedControlOpen)" />
-          <event symbol="OrtcDataChannelReceivedControlAck" channel="ol" template="T_BasicWithMessageType" task="DataChannel" opcode="win:Receive" value="1216" level="win:Informational" message="$(string.Event.OrtcDataChannelReceivedControlAck)" />
-
-          <event symbol="OrtcDataChannelMessageFiredEvent" channel="ol" template="T_BasicWithMessage" task="DataChannel" opcode="Event" value="1217" level="win:Informational" message="$(string.Event.OrtcDataChannelMessageFiredEvent)" />
-
-          <event symbol="OrtcDataChannelSCTPTransportDeliverOutgoingPacket" channel="ol" template="T_BasicWithDataChannelPacket" task="DataChannel" opcode="win:Send" value="1218" level="win:Informational" message="$(string.Event.OrtcDataChannelSCTPTransportDeliverOutgoingPacket)" />
-
-          <event symbol="OrtcDataChannelSCTPTransportRequestShutdown" channel="ol" template="T_BasicObject" task="DataChannel" opcode="Close" value="1219" level="win:Informational" message="$(string.Event.OrtcDataChannelSCTPTransportRequestShutdown)" />
-          <event symbol="OrtcDataChannelSCTPTransportRequestNotifyClosed" channel="ol" template="T_BasicObject" task="DataChannel" opcode="InternalEvent" value="1220" level="win:Informational" message="$(string.Event.OrtcDataChannelSCTPTransportRequestNotifyClosed)" />
-          <event symbol="OrtcDataChannelSCTPTransportStateChanged" channel="ol" template="T_BasicObject" task="DataChannel" opcode="InternalEvent" value="1221" level="win:Informational" message="$(string.Event.OrtcDataChannelSCTPTransportStateChanged)" />
-          <event symbol="OrtcDataChannelSCTPTransportSendReady" channel="ol" template="T_BasicObject" task="DataChannel" opcode="InternalEvent" value="1222" level="win:Informational" message="$(string.Event.OrtcDataChannelSCTPTransportSendReady)" />
-          <event symbol="OrtcDataChannelSCTPTransportSendReadyFailure" channel="ol" template="T_BasicWithError" task="DataChannel" opcode="InternalEvent" value="1223" level="win:Error" message="$(string.Event.OrtcDataChannelSCTPTransportSendReadyFailure)" />
-          <event symbol="OrtcDataChannelSCTPTransportReceivedIncomingPacket" channel="ol" template="T_BasicWithMessage" task="DataChannel" opcode="win:Receive" value="1224" level="win:Informational" message="$(string.Event.OrtcDataChannelSCTPTransportReceivedIncomingPacket)" />
-
-          <event symbol="OrtcDtlsTransportCreate" channel="ol" template="T_DtlsTransportCreate" task="DtlsTransport" opcode="win:Start" value="1301" level="win:Informational" message="$(string.Event.OrtcDtlsTransportCreate)" />
-          <event symbol="OrtcDtlsTransportDestroy" channel="ol" template="T_BasicObject" task="DtlsTransport" opcode="win:Stop" value="1302" level="win:Informational" message="$(string.Event.OrtcDtlsTransportDestroy)" />
-          <event symbol="OrtcDtlsTransportInitialization" channel="ol" template="T_DtlsTransportInitialization" task="DtlsTransport" opcode="Initialization" value="1303" level="win:Informational" message="$(string.Event.OrtcDtlsTransportInitialization)" />
-          <event symbol="OrtcDtlsTransportStep" channel="ol" template="T_BasicObject" task="DtlsTransport" opcode="Step" value="1304" level="win:Informational" message="$(string.Event.OrtcDtlsTransportStep)" />
-          <event symbol="OrtcDtlsTransportCancel" channel="ol" template="T_BasicObject" task="DtlsTransport" opcode="Cancel" value="1305" level="win:Informational" message="$(string.Event.OrtcDtlsTransportCancel)" />
-
-          <event symbol="OrtcDtlsTransportInitializationInstallCipher" channel="ol" template="T_DtlsTransportInitializationInstallCipher" task="DtlsTransport" opcode="Initialization" value="1306" level="win:Informational" message="$(string.Event.OrtcDtlsTransportInitializationInstallCipher)" />
-          <event symbol="OrtcDtlsTransportInitializationInstallFingerprint" channel="ol" template="T_DtlsTransportInitializationInstallFingerprint" task="DtlsTransport" opcode="Initialization" value="1307" level="win:Informational" message="$(string.Event.OrtcDtlsTransportInitializationInstallFingerprint)" />
-
-          <event symbol="OrtcDtlsTransportStart" channel="ol" template="T_DtlsTransportStart" task="DtlsTransport" opcode="win:Start" value="1308" level="win:Informational" message="$(string.Event.OrtcDtlsTransportStart)" />
-          <event symbol="OrtcDtlsTransportStop" channel="ol" template="T_BasicObject" task="DtlsTransport" opcode="win:Stop" value="1309" level="win:Informational" message="$(string.Event.OrtcDtlsTransportStop)" />
-
-          <event symbol="OrtcDtlsTransportRoleSet" channel="ol" template="T_DtlsTransportRoleSet" task="DtlsTransport" opcode="win:Info" value="1310" level="win:Informational" message="$(string.Event.OrtcDtlsTransportRoleSet)" />
-
-          <event symbol="OrtcDtlsTransportReceivedPacket" channel="ol" template="T_DtlsTransportReceivedPacket" task="DtlsTransport" opcode="win:Receive" value="1311" level="win:Informational" message="$(string.Event.OrtcDtlsTransportReceivedPacket)" />
-          <event symbol="OrtcDtlsTransportReceivedStunPacket" channel="ol" template="T_DtlsTransportReceivedStunPacket" task="DtlsTransport" opcode="win:Receive" value="1312" level="win:Informational" message="$(string.Event.OrtcDtlsTransportReceivedStunPacket)" />
-
-          <event symbol="OrtcDtlsTransportForwardingEncryptedPacketToSrtpTransport" channel="ol" template="T_DtlsTransportForwardingEncryptedPacketToSrtpTransport" task="DtlsTransport" opcode="Deliver" value="1313" level="win:Informational" message="$(string.Event.OrtcDtlsTransportForwardingEncryptedPacketToSrtpTransport)" />
-          <event symbol="OrtcDtlsTransportForwardingPacketToDataTransport" channel="ol" template="T_DtlsTransportForwardingPacketToDataTransport" task="DtlsTransport" opcode="Deliver" value="1314" level="win:Informational" message="$(string.Event.OrtcDtlsTransportForwardingPacketToDataTransport)" />
-          <event symbol="OrtcDtlsTransportForwardingPacketToRtpListener" channel="ol" template="T_DtlsTransportForwardingPacketToRtpListener" task="DtlsTransport" opcode="Deliver" value="1315" level="win:Informational" message="$(string.Event.OrtcDtlsTransportForwardingPacketToRtpListener)" />
-
-          <event symbol="OrtcDtlsTransportSendRtpPacket" channel="ol" template="T_BasicSendRtpPacket" task="DtlsTransport" opcode="win:Send" value="1316" level="win:Informational" message="$(string.Event.OrtcDtlsTransportSendRtpPacket)" />
-          <event symbol="OrtcDtlsTransportSendDataPacket" channel="ol" template="T_BasicWithBuffer" task="DtlsTransport" opcode="win:Send" value="1317" level="win:Informational" message="$(string.Event.OrtcDtlsTransportSendDataPacket)" />
-
-          <event symbol="OrtcDtlsTransportForwardDataPacketToIceTransport" channel="ol" template="T_DtlsTransportForwardDataPacketToIceTransport" task="DtlsTransport" opcode="win:Send" value="1318" level="win:Informational" message="$(string.Event.OrtcDtlsTransportSendDataPacket)" />
-          <event symbol="OrtcDtlsTransportSendEncryptedRtpPacket" channel="ol" template="T_DtlsTransportSendEncryptedRtpPacket" task="DtlsTransport" opcode="win:Send" value="1319" level="win:Informational" message="$(string.Event.OrtcDtlsTransportSendEncryptedRtpPacket)" />
-
-          <event symbol="OrtcDtlsTransportInternalTimerEventFired" channel="ol" template="T_BasicWithTimerID" task="DtlsTransport" opcode="InternalEvent" value="1320" level="win:Informational" message="$(string.Event.OrtcDtlsTransportInternalTimerEventFired)" />
-
-          <event symbol="OrtcDtlsTransportInternalIceStateChangeEventFired" channel="ol" template="T_DtlsTransportInternalIceStateChangeEventFired" task="DtlsTransport" opcode="InternalEvent" value="1321" level="win:Informational" message="$(string.Event.OrtcDtlsTransportInternalIceStateChangeEventFired)" />
-          <event symbol="OrtcDtlsTransportInternalSrtpTransportLifetimeRemainingEventFired" channel="ol" template="T_DtlsTransportInternalSrtpTransportLifetimeRemainingEventFired" task="DtlsTransport" opcode="InternalEvent" value="1322" level="win:Informational" message="$(string.Event.OrtcDtlsTransportInternalSrtpTransportLifetimeRemainingEventFired)" />
-
-          <event symbol="OrtcDtlsTransportStateChangedEventFired" channel="ol" template="T_BasicWithState" task="DtlsTransport" opcode="StateEvent" value="1323" level="win:Informational" message="$(string.Event.OrtcDtlsTransportStateChangedEventFired)" />
-          <event symbol="OrtcDtlsTransportErrorEventFired" channel="ol" template="T_BasicWithError" task="DtlsTransport" opcode="ErrorEvent" value="1324" level="win:Informational" message="$(string.Event.OrtcDtlsTransportErrorEventFired)" />
-
           <template tid="T_DtlsTransportSrtpKeyingMaterialSetup">
             <data inType="win:AnsiString" name="Method" />
             <data inType="win:UInt64"     name="ObjectID" />
@@ -1469,7 +1391,83 @@
             <data inType="win:UInt32"     name="BufferSizeInBytes" />
             <data inType="win:Binary"     name="Buffer" length="BufferSizeInBytes" />
           </template>
+        </templates>
+        <events>
+          <event symbol="OrtcCreate" channel="ol" template="T_BasicObject" task="Ortc" opcode="win:Start" value="1001" level="win:Informational" message="$(string.Event.OrtcCreate)" />
+          <event symbol="OrtcDestroy" channel="ol" template="T_BasicObject" task="Ortc" opcode="win:Stop" value="1002" level="win:Informational" message="$(string.Event.OrtcDestroy)" />
 
+          <event symbol="OrtcCertificateCreate" channel="ol" template="T_CertificateCreate" task="Certificate" opcode="win:Start" value="1101" level="win:Informational" message="$(string.Event.OrtcCertificateCreate)" />
+          <event symbol="OrtcCertificateDestroy" channel="ol" template="T_BasicObject" task="Certificate" opcode="win:Stop" value="1102" level="win:Informational" message="$(string.Event.OrtcCertificateDestroy)" />
+          <event symbol="OrtcCertificateGeneratedEventFired" channel="ol" template="T_CertificateGeneratedEventFired" task="Certificate" opcode="Event" value="1103" level="win:Informational" message="$(string.Event.OrtcCertificateGeneratedEventFired)" />
+          <event symbol="OrtcCertificateFingerprint" channel="ol" template="T_CertificateFingerprint" task="Certificate" opcode="win:Info" value="1104" level="win:Informational" message="$(string.Event.OrtcCertificateFingerprint)" />
+
+          <event symbol="OrtcDataChannelCreate" channel="ol" template="T_DataChannelCreate" task="DataChannel" opcode="win:Start" value="1201" level="win:Informational" message="$(string.Event.OrtcDataChannelCreate)" />
+          <event symbol="OrtcDataChannelDestroy" channel="ol" template="T_BasicObject" task="DataChannel" opcode="win:Stop" value="1202" level="win:Informational" message="$(string.Event.OrtcDataChannelDestroy)" />
+          <event symbol="OrtcDataChannelClose" channel="ol" template="T_BasicObject" task="DataChannel" opcode="Close" value="1203" level="win:Informational" message="$(string.Event.OrtcDataChannelClose)" />
+          <event symbol="OrtcDataChannelCancel" channel="ol" template="T_BasicObject" task="DataChannel" opcode="Cancel" value="1204" level="win:Informational" message="$(string.Event.OrtcDataChannelCancel)" />
+          <event symbol="OrtcDataChannelStep" channel="ol" template="T_BasicObject" task="DataChannel" opcode="Step" value="1205" level="win:Informational" message="$(string.Event.OrtcDataChannelStep)" />
+          <event symbol="OrtcDataChannelStateChangedEventFired" channel="ol" template="T_BasicWithState" task="DataChannel" opcode="StateEvent" value="1206" level="win:Informational" message="$(string.Event.OrtcDataChannelStateChangedEventFired)" />
+          <event symbol="OrtcDataChannelErrorEventFired" channel="ol" template="T_BasicWithError" task="DataChannel" opcode="ErrorEvent" value="1207" level="win:Informational" message="$(string.Event.OrtcDataChannelErrorEventFired)" />
+
+          <event symbol="OrtcDataChannelSendControlOpen" channel="ol" template="T_DataChannelSendControlOpen" task="DataChannel" opcode="win:Send" value="1208" level="win:Informational" message="$(string.Event.OrtcDataChannelSendControlOpen)" />
+          <event symbol="OrtcDataChannelSendControlAck" channel="ol" template="T_BasicWithMessageType" task="DataChannel" opcode="win:Send" value="1209" level="win:Informational" message="$(string.Event.OrtcDataChannelSendControlAck)" />
+
+          <event symbol="OrtcDataChannelBufferedAmountLowThresholdChanged" channel="ol" template="T_DataChannelBufferedAmountLowThresholdChanged" task="DataChannel" opcode="Event" value="1210" level="win:Informational" message="$(string.Event.OrtcDataChannelBufferedAmountLowThresholdChanged)" />
+
+          <event symbol="OrtcDataChannelSendString" channel="ol" template="T_DataChannelSendString" task="DataChannel" opcode="Send" value="1211" level="win:Informational" message="$(string.Event.OrtcDataChannelSendString)" />
+          <event symbol="OrtcDataChannelSendBinary" channel="ol" template="T_BasicWithBuffer" task="DataChannel" opcode="Send" value="1212" level="win:Informational" message="$(string.Event.OrtcDataChannelSendBinary)" />
+
+          <event symbol="OrtcDataChannelOutgoingBufferPacket" channel="ol" template="T_BasicWithDataChannelPacket" task="DataChannel" opcode="Buffer" value="1213" level="win:Informational" message="$(string.Event.OrtcDataChannelOutgoingBufferPacket)" />
+          <event symbol="OrtcDataChannelOutgoingBufferPacketDelivered" channel="ol" template="T_BasicWithDataChannelPacket" task="DataChannel" opcode="win:Info" value="1214" level="win:Informational" message="$(string.Event.OrtcDataChannelOutgoingBufferPacketDelivered)" />
+
+          <event symbol="OrtcDataChannelReceivedControlOpen" channel="ol" template="T_DataChannelReceivedControlOpen" task="DataChannel" opcode="win:Receive" value="1215" level="win:Informational" message="$(string.Event.OrtcDataChannelReceivedControlOpen)" />
+          <event symbol="OrtcDataChannelReceivedControlAck" channel="ol" template="T_BasicWithMessageType" task="DataChannel" opcode="win:Receive" value="1216" level="win:Informational" message="$(string.Event.OrtcDataChannelReceivedControlAck)" />
+
+          <event symbol="OrtcDataChannelMessageFiredEvent" channel="ol" template="T_BasicWithMessage" task="DataChannel" opcode="Event" value="1217" level="win:Informational" message="$(string.Event.OrtcDataChannelMessageFiredEvent)" />
+
+          <event symbol="OrtcDataChannelSCTPTransportDeliverOutgoingPacket" channel="ol" template="T_BasicWithDataChannelPacket" task="DataChannel" opcode="win:Send" value="1218" level="win:Informational" message="$(string.Event.OrtcDataChannelSCTPTransportDeliverOutgoingPacket)" />
+
+          <event symbol="OrtcDataChannelSCTPTransportRequestShutdown" channel="ol" template="T_BasicObject" task="DataChannel" opcode="Close" value="1219" level="win:Informational" message="$(string.Event.OrtcDataChannelSCTPTransportRequestShutdown)" />
+          <event symbol="OrtcDataChannelSCTPTransportRequestNotifyClosed" channel="ol" template="T_BasicObject" task="DataChannel" opcode="InternalEvent" value="1220" level="win:Informational" message="$(string.Event.OrtcDataChannelSCTPTransportRequestNotifyClosed)" />
+          <event symbol="OrtcDataChannelSCTPTransportStateChanged" channel="ol" template="T_BasicObject" task="DataChannel" opcode="InternalEvent" value="1221" level="win:Informational" message="$(string.Event.OrtcDataChannelSCTPTransportStateChanged)" />
+          <event symbol="OrtcDataChannelSCTPTransportSendReady" channel="ol" template="T_BasicObject" task="DataChannel" opcode="InternalEvent" value="1222" level="win:Informational" message="$(string.Event.OrtcDataChannelSCTPTransportSendReady)" />
+          <event symbol="OrtcDataChannelSCTPTransportSendReadyFailure" channel="ol" template="T_BasicWithError" task="DataChannel" opcode="InternalEvent" value="1223" level="win:Error" message="$(string.Event.OrtcDataChannelSCTPTransportSendReadyFailure)" />
+          <event symbol="OrtcDataChannelSCTPTransportReceivedIncomingPacket" channel="ol" template="T_BasicWithMessage" task="DataChannel" opcode="win:Receive" value="1224" level="win:Informational" message="$(string.Event.OrtcDataChannelSCTPTransportReceivedIncomingPacket)" />
+
+          <event symbol="OrtcDtlsTransportCreate" channel="ol" template="T_DtlsTransportCreate" task="DtlsTransport" opcode="win:Start" value="1301" level="win:Informational" message="$(string.Event.OrtcDtlsTransportCreate)" />
+          <event symbol="OrtcDtlsTransportDestroy" channel="ol" template="T_BasicObject" task="DtlsTransport" opcode="win:Stop" value="1302" level="win:Informational" message="$(string.Event.OrtcDtlsTransportDestroy)" />
+          <event symbol="OrtcDtlsTransportInitialization" channel="ol" template="T_DtlsTransportInitialization" task="DtlsTransport" opcode="Initialization" value="1303" level="win:Informational" message="$(string.Event.OrtcDtlsTransportInitialization)" />
+          <event symbol="OrtcDtlsTransportStep" channel="ol" template="T_BasicObject" task="DtlsTransport" opcode="Step" value="1304" level="win:Informational" message="$(string.Event.OrtcDtlsTransportStep)" />
+          <event symbol="OrtcDtlsTransportCancel" channel="ol" template="T_BasicObject" task="DtlsTransport" opcode="Cancel" value="1305" level="win:Informational" message="$(string.Event.OrtcDtlsTransportCancel)" />
+
+          <event symbol="OrtcDtlsTransportInitializationInstallCipher" channel="ol" template="T_DtlsTransportInitializationInstallCipher" task="DtlsTransport" opcode="Initialization" value="1306" level="win:Informational" message="$(string.Event.OrtcDtlsTransportInitializationInstallCipher)" />
+          <event symbol="OrtcDtlsTransportInitializationInstallFingerprint" channel="ol" template="T_DtlsTransportInitializationInstallFingerprint" task="DtlsTransport" opcode="Initialization" value="1307" level="win:Informational" message="$(string.Event.OrtcDtlsTransportInitializationInstallFingerprint)" />
+
+          <event symbol="OrtcDtlsTransportStart" channel="ol" template="T_DtlsTransportStart" task="DtlsTransport" opcode="win:Start" value="1308" level="win:Informational" message="$(string.Event.OrtcDtlsTransportStart)" />
+          <event symbol="OrtcDtlsTransportStop" channel="ol" template="T_BasicObject" task="DtlsTransport" opcode="win:Stop" value="1309" level="win:Informational" message="$(string.Event.OrtcDtlsTransportStop)" />
+
+          <event symbol="OrtcDtlsTransportRoleSet" channel="ol" template="T_DtlsTransportRoleSet" task="DtlsTransport" opcode="win:Info" value="1310" level="win:Informational" message="$(string.Event.OrtcDtlsTransportRoleSet)" />
+
+          <event symbol="OrtcDtlsTransportReceivedPacket" channel="ol" template="T_DtlsTransportReceivedPacket" task="DtlsTransport" opcode="win:Receive" value="1311" level="win:Informational" message="$(string.Event.OrtcDtlsTransportReceivedPacket)" />
+          <event symbol="OrtcDtlsTransportReceivedStunPacket" channel="ol" template="T_DtlsTransportReceivedStunPacket" task="DtlsTransport" opcode="win:Receive" value="1312" level="win:Informational" message="$(string.Event.OrtcDtlsTransportReceivedStunPacket)" />
+
+          <event symbol="OrtcDtlsTransportForwardingEncryptedPacketToSrtpTransport" channel="ol" template="T_DtlsTransportForwardingEncryptedPacketToSrtpTransport" task="DtlsTransport" opcode="Deliver" value="1313" level="win:Informational" message="$(string.Event.OrtcDtlsTransportForwardingEncryptedPacketToSrtpTransport)" />
+          <event symbol="OrtcDtlsTransportForwardingPacketToDataTransport" channel="ol" template="T_DtlsTransportForwardingPacketToDataTransport" task="DtlsTransport" opcode="Deliver" value="1314" level="win:Informational" message="$(string.Event.OrtcDtlsTransportForwardingPacketToDataTransport)" />
+          <event symbol="OrtcDtlsTransportForwardingPacketToRtpListener" channel="ol" template="T_DtlsTransportForwardingPacketToRtpListener" task="DtlsTransport" opcode="Deliver" value="1315" level="win:Informational" message="$(string.Event.OrtcDtlsTransportForwardingPacketToRtpListener)" />
+
+          <event symbol="OrtcDtlsTransportSendRtpPacket" channel="ol" template="T_BasicSendRtpPacket" task="DtlsTransport" opcode="win:Send" value="1316" level="win:Informational" message="$(string.Event.OrtcDtlsTransportSendRtpPacket)" />
+          <event symbol="OrtcDtlsTransportSendDataPacket" channel="ol" template="T_BasicWithBuffer" task="DtlsTransport" opcode="win:Send" value="1317" level="win:Informational" message="$(string.Event.OrtcDtlsTransportSendDataPacket)" />
+
+          <event symbol="OrtcDtlsTransportForwardDataPacketToIceTransport" channel="ol" template="T_DtlsTransportForwardDataPacketToIceTransport" task="DtlsTransport" opcode="win:Send" value="1318" level="win:Informational" message="$(string.Event.OrtcDtlsTransportSendDataPacket)" />
+          <event symbol="OrtcDtlsTransportSendEncryptedRtpPacket" channel="ol" template="T_DtlsTransportSendEncryptedRtpPacket" task="DtlsTransport" opcode="win:Send" value="1319" level="win:Informational" message="$(string.Event.OrtcDtlsTransportSendEncryptedRtpPacket)" />
+
+          <event symbol="OrtcDtlsTransportInternalTimerEventFired" channel="ol" template="T_BasicWithTimerID" task="DtlsTransport" opcode="InternalEvent" value="1320" level="win:Informational" message="$(string.Event.OrtcDtlsTransportInternalTimerEventFired)" />
+
+          <event symbol="OrtcDtlsTransportInternalIceStateChangeEventFired" channel="ol" template="T_DtlsTransportInternalIceStateChangeEventFired" task="DtlsTransport" opcode="InternalEvent" value="1321" level="win:Informational" message="$(string.Event.OrtcDtlsTransportInternalIceStateChangeEventFired)" />
+          <event symbol="OrtcDtlsTransportInternalSrtpTransportLifetimeRemainingEventFired" channel="ol" template="T_DtlsTransportInternalSrtpTransportLifetimeRemainingEventFired" task="DtlsTransport" opcode="InternalEvent" value="1322" level="win:Informational" message="$(string.Event.OrtcDtlsTransportInternalSrtpTransportLifetimeRemainingEventFired)" />
+
+          <event symbol="OrtcDtlsTransportStateChangedEventFired" channel="ol" template="T_BasicWithState" task="DtlsTransport" opcode="StateEvent" value="1323" level="win:Informational" message="$(string.Event.OrtcDtlsTransportStateChangedEventFired)" />
+          <event symbol="OrtcDtlsTransportErrorEventFired" channel="ol" template="T_BasicWithError" task="DtlsTransport" opcode="ErrorEvent" value="1324" level="win:Informational" message="$(string.Event.OrtcDtlsTransportErrorEventFired)" />
 
 OrtcDtlsTransportSrtpKeyingMaterialSetup(T_DtlsTransportSrtpKeyingMaterialSetup
 
