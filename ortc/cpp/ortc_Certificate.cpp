@@ -700,10 +700,10 @@ namespace ortc
         if (promise) {
           if ((pThis) &&
               (certificate)) {
-            EventWriteOrtcCertificateGenerated(__func__, mID, true);
+            EventWriteOrtcCertificateGeneratedEventFired(__func__, mID, true);
             promise->resolve(pThis);
           } else {
-            EventWriteOrtcCertificateGenerated(__func__, mID, false);
+            EventWriteOrtcCertificateGeneratedEventFired(__func__, mID, false);
             promise->reject();
           }
         }

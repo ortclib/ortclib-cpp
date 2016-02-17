@@ -405,7 +405,7 @@ namespace ortc
 
         std::vector<String> ciphers;
         for (SrtpCipherMapEntry *entry = SrtpCipherMap; entry->internal_name; ++entry) {
-          EventWriteOrtcDtlsTransportInitizationInstallCipher(__func__, mID, entry->external_name);
+          EventWriteOrtcDtlsTransportInitializationInstallCipher(__func__, mID, entry->external_name);
           ciphers.push_back(entry->external_name);
         }
 
@@ -423,14 +423,14 @@ namespace ortc
           auto fingerprint = cert->fingerprint();
           if (!fingerprint) continue;
 
-          EventWriteOrtcDtlsTransportInitizationInstallFingerprint(__func__, mID, fingerprint->mAlgorithm, fingerprint->mValue, true);
+          EventWriteOrtcDtlsTransportInitializationInstallFingerprint(__func__, mID, fingerprint->mAlgorithm, fingerprint->mValue, true);
 
           fingerprints.push_back(*fingerprint);
         }
 
         mLocalParams.mFingerprints = fingerprints;
 
-        EventWriteOrtcDtlsTransportInitization(__func__, mID, transport->getID(), mRTPListener->getID(), ciphers.size(), fingerprints.size());
+        EventWriteOrtcDtlsTransportInitialization(__func__, mID, transport->getID(), mRTPListener->getID(), ciphers.size(), fingerprints.size());
       }
 
       transport->notifyAttached(mID, mThisWeak.lock());
@@ -1663,7 +1663,7 @@ namespace ortc
       {
         auto fingerprint = (*iter);
 
-        EventWriteOrtcDtlsTransportInitizationInstallFingerprint(__func__, mID, fingerprint.mAlgorithm, fingerprint.mValue, false);
+        EventWriteOrtcDtlsTransportInitializationInstallFingerprint(__func__, mID, fingerprint.mAlgorithm, fingerprint.mValue, false);
 
         auto result = mAdapter->setPeerCertificateDigest(fingerprint.mAlgorithm, fingerprint.mValue);
         switch (result) {

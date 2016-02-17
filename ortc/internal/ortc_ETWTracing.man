@@ -25,34 +25,1839 @@
         <tasks>
           <task name="Ortc" symbol="TASK_ORTC" value="1" message="$(string.Task.Ortc)" />
           <task name="Certificate" symbol="TASK_CERTIFICATE" value="2" message="$(string.Task.Certificate)" />
-          <task name="DataChannel" symbol="TASK_DATACHANNEL" value="3" message="$(string.Task.DataChannel)" />
+          <task name="DataChannel" symbol="TASK_DATACHANNEL" value="3" message="$(string.Task.DataChannel)">
+            <opcodes>
+              <opcode name="Send" symbol="OPCODE_DATA_CHANNEL_SEND" value="101" message="$(string.Opcode.DataChannel.Send)" />
+            </opcodes>
+          </task>
           <task name="DtlsTransport" symbol="TASK_DTLS_TRANSPORT" value="4" message="$(string.Task.DtlsTransport)" />
           <task name="IceGatherer" symbol="TASK_ICE_GATHERER" value="5" message="$(string.Task.IceGatherer)" />
           <task name="IceGathererRouter" symbol="TASK_ICE_GATHERER_ROUTER" value="6" message="$(string.Task.IceGathererRouter)" />
           <task name="IceTransport" symbol="TASK_ICE_TRANSPORT" value="7" message="$(string.Task.IceTransport)" />
           <task name="RtpListener" symbol="TASK_RTP_LISTENER" value="8" message="$(string.Task.RtpListener)" />
           <task name="RtpReceiver" symbol="TASK_RTP_RECEIVER" value="9" message="$(string.Task.RtpReceiver)" />
-          <task name="RtpSender" symbol="TASK_RTP_SENDER" value="10" message="$(string.Task.RtpSender)" />
-          <task name="SctpInit" symbol="TASK_SCTP_INIT" value="11" message="$(string.Task.SctpInit)" />
-          <task name="SctpTransport" symbol="TASK_SCTP_TRANSPORT" value="12" message="$(string.Task.SctpTransport)" />
-          <task name="SctpTransportListener" symbol="TASK_SCTP_TRANSPORT_LISTENER" value="13" message="$(string.Task.SctpTransportListener)" />
-          <task name="SrtpTransport" symbol="TASK_SRTP_TRANSPORT" value="14" message="$(string.Task.SrtpTransport)" />
+          <task name="RtpReceiverChannel" symbol="TASK_RTP_RECEIVER_CHANNEL" value="10" message="$(string.Task.RtpReceiverChannel)" />
+          <task name="RtpSender" symbol="TASK_RTP_SENDER" value="11" message="$(string.Task.RtpSender)" />
+          <task name="RtpSenderChannel" symbol="TASK_RTP_SENDER_CHANNEL" value="12" message="$(string.Task.RtpSenderChannel)" />
+          <task name="SctpInit" symbol="TASK_SCTP_INIT" value="13" message="$(string.Task.SctpInit)" />
+          <task name="SctpTransport" symbol="TASK_SCTP_TRANSPORT" value="14" message="$(string.Task.SctpTransport)" />
+          <task name="SctpTransportListener" symbol="TASK_SCTP_TRANSPORT_LISTENER" value="15" message="$(string.Task.SctpTransportListener)" />
+          <task name="SrtpTransport" symbol="TASK_SRTP_TRANSPORT" value="16" message="$(string.Task.SrtpTransport)" />
         </tasks>
         <opcodes>
-          <opcode name="Cancel" symbol="OPCODE_CANCEL" value="101" message="$(string.Opcode.Cancel)" />
-          <opcode name="Event" symbol="OPCODE_EVENT" value="102" message="$(string.Opcode.Event)" />
-          <opcode name="StateEvent" symbol="OPCODE_STATE_EVENT" value="103" message="$(string.Opcode.StateEvent)" />
-          <opcode name="InternalEvent" symbol="OPCODE_INTERNAL_EVENT" value="104" message="$(string.Opcode.InternalEvent)" />
+          <opcode name="Initialization" symbol="OPCODE_INITIALIZATION" value="101" message="$(string.Opcode.Initialization)" />
+          <opcode name="Cancel" symbol="OPCODE_CANCEL" value="102" message="$(string.Opcode.Cancel)" />
+          <opcode name="Close" symbol="OPCODE_CLOSE" value="103" message="$(string.Opcode.Close)" />
+          <opcode name="Step" symbol="OPCODE_STEP" value="104" message="$(string.Opcode.Step)" />
+          <opcode name="Buffer" symbol="OPCODE_BUFFER" value="105" message="$(string.Opcode.Buffer)" />
+          <opcode name="Dispose" symbol="OPCODE_DISPOSE" value="106" message="$(string.Opcode.Dispose)" />
+          <opcode name="Deliver" symbol="OPCODE_DELIVER" value="107" message="$(string.Opcode.Deliver)" />
+          <opcode name="Event" symbol="OPCODE_EVENT" value="108" message="$(string.Opcode.Event)" />
+          <opcode name="StateEvent" symbol="OPCODE_STATE_EVENT" value="109" message="$(string.Opcode.StateEvent)" />
+          <opcode name="ErrorEvent" symbol="OPCODE_ERROR_EVENT" value="110" message="$(string.Opcode.ErrorEvent)" />
+          <opcode name="InternalEvent" symbol="OPCODE_INTERNAL_EVENT" value="111" message="$(string.Opcode.InternalEvent)" />
         </opcodes>
         <templates>
           <template tid="T_BasicObject">
             <data inType="win:AnsiString" name="Method" />
             <data inType="win:UInt64"     name="ObjectID" />
           </template>
+          <template tid="T_CertificateCreate">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:AnsiString" name="KeyGenAlgorithm" />
+            <data inType="win:AnsiString" name="Name" />
+            <data inType="win:AnsiString" name="NamedCurve" />
+            <data inType="win:UInt64"     name="KeyLength" />
+            <data inType="win:UInt64"     name="RandomBits" />
+            <data inType="win:AnsiString" name="PublicExponenetLength" />
+            <data inType="win:Int64"      name="LifetimeInSeconds" />
+            <data inType="win:Int64"      name="NotBeforeWindowInSeconds" />
+            <data inType="win:Int64"      name="ExpiresInSecondsSinceEpoch" />
+          </template>
+          <template tid="T_CertificateGeneratedEventFired">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:Boolean"    name="Success" />
+          </template>
+          <template tid="T_CertificateFingerprint">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:AnsiString" name="FingerprintAlgorithm" />
+            <data inType="win:AnsiString" name="FingerprintValue" />
+          </template>
+          <template tid="T_DataChannelCreate">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="DataTransportObjectID" />
+            <data inType="win:AnsiString" name="Parameters" />
+            <data inType="win:Boolean"    name="Incoming" />
+            <data inType="win:UInt16"     name="SessionID" />
+          </template>
+          <template tid="T_BasicWithState">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:AnsiString" name="State" />
+          </template>
+          <template tid="T_BasicWithError">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt16"     name="Error" />
+            <data inType="win:AnsiString" name="Reason" />
+          </template>
+          <template tid="T_DataChannelSendControlOpen">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt8"      name="MessageType" />
+            <data inType="win:UInt8"      name="ChannelType" />
+            <data inType="win:UInt16"     name="Priority" />
+            <data inType="win:UInt32"     name="ReliabilityParameter" />
+            <data inType="win:UInt16"     name="LabelLength" />
+            <data inType="win:UInt16"     name="ProtocolLength" />
+            <data inType="win:AnsiString" name="Label" />
+            <data inType="win:AnsiString" name="Protocol" />
+          </template>
+          <template tid="T_BasicWithMessageType">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt8"      name="MessageType" />
+          </template>
+          <template tid="T_DataChannelBufferedAmountLowThresholdChanged">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="NewThreshold" />
+            <data inType="win:UInt64"     name="OldThreshold" />
+            <data inType="win:UInt64"     name="OutgoingBufferFillSize" />
+            <data inType="win:Boolean"    name="BufferedAmountLowThresholdFired" />
+          </template>
+          <template tid="T_DataChannelSendString">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:AnsiString" name="Data" />
+          </template>
+          <template tid="T_BasicWithBuffer">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt32"     name="BufferSizeInBytes" />
+            <data inType="win:Binary"     name="Buffer" length="BufferSizeInBytes" />
+          </template>
+          <template tid="T_BasicWithDataChannelPacket">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="Type" />
+            <data inType="win:UInt16"     name="SessionID" />
+            <data inType="win:Boolean"    name="Ordered" />
+            <data inType="win:Int64"      name="MaxPacketLifetimeInMilliseconds" />
+            <data inType="win:Boolean"    name="HasMaxRetransmits" />
+            <data inType="win:UInt32"     name="MaxRetransmits" />
+            <data inType="win:UInt32"     name="BufferSizeInBytes" />
+            <data inType="win:Binary"     name="Buffer" length="BufferSizeInBytes" />
+          </template>
+          <template tid="T_DataChannelReceivedControlOpen">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:Boolean"    name="Incoming" />
+            <data inType="win:UInt8"      name="MessageType" />
+            <data inType="win:UInt8"      name="ChannelType" />
+            <data inType="win:UInt16"     name="Priority" />
+            <data inType="win:UInt32"     name="ReliabilityParameter" />
+            <data inType="win:UInt16"     name="LabelLength" />
+            <data inType="win:UInt16"     name="ProtocolLength" />
+            <data inType="win:AnsiString" name="Label" />
+            <data inType="win:AnsiString" name="Protocol" />
+          </template>
+          <template tid="T_BasicWithMessage">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="Type" />
+            <data inType="win:UInt16"     name="SessionID" />
+            <data inType="win:UInt16"     name="SequenceNumber" />
+            <data inType="win:UInt32"     name="Timestamp" />
+            <data inType="win:Int64"      name="Flags" />
+            <data inType="win:UInt32"     name="BufferSizeInBytes" />
+            <data inType="win:Binary"     name="Buffer" length="BufferSizeInBytes" />
+          </template>
+          <template tid="T_DtlsTransportCreate">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="IceTransportObjectID" />
+            <data inType="win:AnsiString" name="Component" />
+            <data inType="win:UInt64"     name="MaxPendingDTLSBuffer" />
+            <data inType="win:UInt64"     name="MaxPendingRTPPackets" />
+            <data inType="win:UInt64"     name="TotalCertificates" />
+          </template>
+          <template tid="T_DtlsTransportInitialization">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="IceTransportObjectID" />
+            <data inType="win:UInt64"     name="RtpListenerObjectID" />
+            <data inType="win:UInt64"     name="TotalCiphers" />
+            <data inType="win:UInt64"     name="TotalFingerprints" />
+          </template>
+          <template tid="T_DtlsTransportInitializationInstallCipher">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:AnsiString" name="Cipher" />
+          </template>
+          <template tid="T_DtlsTransportInitializationInstallFingerprint">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:AnsiString" name="Algorithm" />
+            <data inType="win:AnsiString" name="Value" />
+            <data inType="win:Boolean"    name="IsLocal" />
+          </template>
+          <template tid="T_DtlsTransportStart">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:AnsiString" name="Role" />
+            <data inType="win:UInt64"     name="TotalFingerprints" />
+          </template>
+          <template tid="T_DtlsTransportRoleSet">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:AnsiString" name="Role" />
+          </template>
+          <template tid="T_DtlsTransportReceivedPacket">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="ViaTransport" />
+            <data inType="win:Boolean"    name="IsDtlsPacket" />
+            <data inType="win:UInt32"     name="BufferSizeInBytes" />
+            <data inType="win:Binary"     name="Buffer" length="BufferSizeInBytes" />
+          </template>
+          <template tid="T_DtlsTransportReceivedStunPacket">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="ViaTransport" />
+          </template>
+          <template tid="T_DtlsTransportForwardingEncryptedPacketToSrtpTransport">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="SrtpTransportObjectID" />
+            <data inType="win:UInt64"     name="ViaTransport" />
+            <data inType="win:UInt32"     name="BufferSizeInBytes" />
+            <data inType="win:Binary"     name="Buffer" length="BufferSizeInBytes" />
+          </template>
+          <template tid="T_DtlsTransportForwardingPacketToDataTransport">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="DataTransportObjectID" />
+            <data inType="win:UInt64"     name="ViaTransport" />
+            <data inType="win:UInt32"     name="BufferSizeInBytes" />
+            <data inType="win:Binary"     name="Buffer" length="BufferSizeInBytes" />
+          </template>
+          <template tid="T_DtlsTransportForwardingPacketToRtpListener">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="RtpListenerObjectID" />
+            <data inType="win:UInt64"     name="ViaTransport" />
+            <data inType="win:UInt64"     name="PacketType" />
+            <data inType="win:UInt32"     name="BufferSizeInBytes" />
+            <data inType="win:Binary"     name="Buffer" length="BufferSizeInBytes" />
+          </template>
+          <template tid="T_BasicSendRtpPacket">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="SendOverComponent" />
+            <data inType="win:UInt64"     name="xUInt_PacketType" />
+            <data inType="win:UInt32"     name="BufferSizeInBytes" />
+            <data inType="win:Binary"     name="Buffer" length="BufferSizeInBytes" />
+          </template>
+          <template tid="T_DtlsTransportForwardDataPacketToIceTransport">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="IceTransportObjectID" />
+            <data inType="win:UInt32"     name="BufferSizeInBytes" />
+            <data inType="win:Binary"     name="Buffer" length="BufferSizeInBytes" />
+          </template>
+          <template tid="T_DtlsTransportSendEncryptedRtpPacket">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="IceTransportObjectID" />
+            <data inType="win:UInt64"     name="SendOverComponent" />
+            <data inType="win:UInt64"     name="PacketType" />
+            <data inType="win:UInt32"     name="BufferSizeInBytes" />
+            <data inType="win:Binary"     name="Buffer" length="BufferSizeInBytes" />
+          </template>
+          <template tid="T_BasicWithTimerID">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="TimerObjectID" />
+          </template>
+          <template tid="T_DtlsTransportInternalIceStateChangeEventFired">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="IceTransportObjectID" />
+            <data inType="win:AnsiString" name="State" />
+          </template>
+          <template tid="T_DtlsTransportInternalIceStateChangeEventFired">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="SrtpTransportObjectID" />
+            <data inType="win:UInt64"     name="LeastLifetimeRemainingPercentageForAllKeys" />
+            <data inType="win:UInt64"     name="OverallLifetimeRemainingPercentage" />
+          </template>
         </templates>
         <events>
           <event symbol="OrtcCreate" channel="ol" template="T_BasicObject" task="Ortc" opcode="win:Start" value="1001" level="win:Informational" message="$(string.Event.OrtcCreate)" />
           <event symbol="OrtcDestroy" channel="ol" template="T_BasicObject" task="Ortc" opcode="win:Stop" value="1002" level="win:Informational" message="$(string.Event.OrtcDestroy)" />
+
+          <event symbol="OrtcCertificateCreate" channel="ol" template="T_CertificateCreate" task="Certificate" opcode="win:Start" value="1101" level="win:Informational" message="$(string.Event.OrtcCertificateCreate)" />
+          <event symbol="OrtcCertificateDestroy" channel="ol" template="T_BasicObject" task="Certificate" opcode="win:Stop" value="1102" level="win:Informational" message="$(string.Event.OrtcCertificateDestroy)" />
+          <event symbol="OrtcCertificateGeneratedEventFired" channel="ol" template="T_CertificateGeneratedEventFired" task="Certificate" opcode="Event" value="1103" level="win:Informational" message="$(string.Event.OrtcCertificateGeneratedEventFired)" />
+          <event symbol="OrtcCertificateFingerprint" channel="ol" template="T_CertificateFingerprint" task="Certificate" opcode="win:Info" value="1104" level="win:Informational" message="$(string.Event.OrtcCertificateFingerprint)" />
+
+          <event symbol="OrtcDataChannelCreate" channel="ol" template="T_DataChannelCreate" task="DataChannel" opcode="win:Start" value="1201" level="win:Informational" message="$(string.Event.OrtcDataChannelCreate)" />
+          <event symbol="OrtcDataChannelDestroy" channel="ol" template="T_BasicObject" task="DataChannel" opcode="win:Stop" value="1202" level="win:Informational" message="$(string.Event.OrtcDataChannelDestroy)" />
+          <event symbol="OrtcDataChannelClose" channel="ol" template="T_BasicObject" task="DataChannel" opcode="Close" value="1203" level="win:Informational" message="$(string.Event.OrtcDataChannelClose)" />
+          <event symbol="OrtcDataChannelCancel" channel="ol" template="T_BasicObject" task="DataChannel" opcode="Cancel" value="1204" level="win:Informational" message="$(string.Event.OrtcDataChannelCancel)" />
+          <event symbol="OrtcDataChannelStep" channel="ol" template="T_BasicObject" task="DataChannel" opcode="Step" value="1205" level="win:Informational" message="$(string.Event.OrtcDataChannelStep)" />
+          <event symbol="OrtcDataChannelStateChangedEventFired" channel="ol" template="T_BasicWithState" task="DataChannel" opcode="StateEvent" value="1206" level="win:Informational" message="$(string.Event.OrtcDataChannelStateChangedEventFired)" />
+          <event symbol="OrtcDataChannelErrorEventFired" channel="ol" template="T_BasicWithError" task="DataChannel" opcode="ErrorEvent" value="1207" level="win:Informational" message="$(string.Event.OrtcDataChannelErrorEventFired)" />
+
+          <event symbol="OrtcDataChannelSendControlOpen" channel="ol" template="T_DataChannelSendControlOpen" task="DataChannel" opcode="win:Send" value="1208" level="win:Informational" message="$(string.Event.OrtcDataChannelSendControlOpen)" />
+          <event symbol="OrtcDataChannelSendControlAck" channel="ol" template="T_BasicWithMessageType" task="DataChannel" opcode="win:Send" value="1209" level="win:Informational" message="$(string.Event.OrtcDataChannelSendControlAck)" />
+
+          <event symbol="OrtcDataChannelBufferedAmountLowThresholdChanged" channel="ol" template="T_DataChannelBufferedAmountLowThresholdChanged" task="DataChannel" opcode="Event" value="1210" level="win:Informational" message="$(string.Event.OrtcDataChannelBufferedAmountLowThresholdChanged)" />
+
+          <event symbol="OrtcDataChannelSendString" channel="ol" template="T_DataChannelSendString" task="DataChannel" opcode="Send" value="1211" level="win:Informational" message="$(string.Event.OrtcDataChannelSendString)" />
+          <event symbol="OrtcDataChannelSendBinary" channel="ol" template="T_BasicWithBuffer" task="DataChannel" opcode="Send" value="1212" level="win:Informational" message="$(string.Event.OrtcDataChannelSendBinary)" />
+
+          <event symbol="OrtcDataChannelOutgoingBufferPacket" channel="ol" template="T_BasicWithDataChannelPacket" task="DataChannel" opcode="Buffer" value="1213" level="win:Informational" message="$(string.Event.OrtcDataChannelOutgoingBufferPacket)" />
+          <event symbol="OrtcDataChannelOutgoingBufferPacketDelivered" channel="ol" template="T_BasicWithDataChannelPacket" task="DataChannel" opcode="win:Info" value="1214" level="win:Informational" message="$(string.Event.OrtcDataChannelOutgoingBufferPacketDelivered)" />
+
+          <event symbol="OrtcDataChannelReceivedControlOpen" channel="ol" template="T_DataChannelReceivedControlOpen" task="DataChannel" opcode="win:Receive" value="1215" level="win:Informational" message="$(string.Event.OrtcDataChannelReceivedControlOpen)" />
+          <event symbol="OrtcDataChannelReceivedControlAck" channel="ol" template="T_BasicWithMessageType" task="DataChannel" opcode="win:Receive" value="1216" level="win:Informational" message="$(string.Event.OrtcDataChannelReceivedControlAck)" />
+
+          <event symbol="OrtcDataChannelMessageFiredEvent" channel="ol" template="T_BasicWithMessage" task="DataChannel" opcode="Event" value="1217" level="win:Informational" message="$(string.Event.OrtcDataChannelMessageFiredEvent)" />
+
+          <event symbol="OrtcDataChannelSCTPTransportDeliverOutgoingPacket" channel="ol" template="T_BasicWithDataChannelPacket" task="DataChannel" opcode="win:Send" value="1218" level="win:Informational" message="$(string.Event.OrtcDataChannelSCTPTransportDeliverOutgoingPacket)" />
+
+          <event symbol="OrtcDataChannelSCTPTransportRequestShutdown" channel="ol" template="T_BasicObject" task="DataChannel" opcode="Close" value="1219" level="win:Informational" message="$(string.Event.OrtcDataChannelSCTPTransportRequestShutdown)" />
+          <event symbol="OrtcDataChannelSCTPTransportRequestNotifyClosed" channel="ol" template="T_BasicObject" task="DataChannel" opcode="InternalEvent" value="1220" level="win:Informational" message="$(string.Event.OrtcDataChannelSCTPTransportRequestNotifyClosed)" />
+          <event symbol="OrtcDataChannelSCTPTransportStateChanged" channel="ol" template="T_BasicObject" task="DataChannel" opcode="InternalEvent" value="1221" level="win:Informational" message="$(string.Event.OrtcDataChannelSCTPTransportStateChanged)" />
+          <event symbol="OrtcDataChannelSCTPTransportSendReady" channel="ol" template="T_BasicObject" task="DataChannel" opcode="InternalEvent" value="1222" level="win:Informational" message="$(string.Event.OrtcDataChannelSCTPTransportSendReady)" />
+          <event symbol="OrtcDataChannelSCTPTransportSendReadyFailure" channel="ol" template="T_BasicWithError" task="DataChannel" opcode="InternalEvent" value="1223" level="win:Error" message="$(string.Event.OrtcDataChannelSCTPTransportSendReadyFailure)" />
+          <event symbol="OrtcDataChannelSCTPTransportReceivedIncomingPacket" channel="ol" template="T_BasicWithMessage" task="DataChannel" opcode="win:Receive" value="1224" level="win:Informational" message="$(string.Event.OrtcDataChannelSCTPTransportReceivedIncomingPacket)" />
+
+          <event symbol="OrtcDtlsTransportCreate" channel="ol" template="T_DtlsTransportCreate" task="DtlsTransport" opcode="win:Start" value="1301" level="win:Informational" message="$(string.Event.OrtcDtlsTransportCreate)" />
+          <event symbol="OrtcDtlsTransportDestroy" channel="ol" template="T_BasicObject" task="DtlsTransport" opcode="win:Stop" value="1302" level="win:Informational" message="$(string.Event.OrtcDtlsTransportDestroy)" />
+          <event symbol="OrtcDtlsTransportInitialization" channel="ol" template="T_DtlsTransportInitialization" task="DtlsTransport" opcode="Initialization" value="1303" level="win:Informational" message="$(string.Event.OrtcDtlsTransportInitialization)" />
+          <event symbol="OrtcDtlsTransportStep" channel="ol" template="T_BasicObject" task="DtlsTransport" opcode="Step" value="1304" level="win:Informational" message="$(string.Event.OrtcDtlsTransportStep)" />
+          <event symbol="OrtcDtlsTransportCancel" channel="ol" template="T_BasicObject" task="DtlsTransport" opcode="Cancel" value="1305" level="win:Informational" message="$(string.Event.OrtcDtlsTransportCancel)" />
+
+          <event symbol="OrtcDtlsTransportInitializationInstallCipher" channel="ol" template="T_DtlsTransportInitializationInstallCipher" task="DtlsTransport" opcode="Initialization" value="1306" level="win:Informational" message="$(string.Event.OrtcDtlsTransportInitializationInstallCipher)" />
+          <event symbol="OrtcDtlsTransportInitializationInstallFingerprint" channel="ol" template="T_DtlsTransportInitializationInstallFingerprint" task="DtlsTransport" opcode="Initialization" value="1307" level="win:Informational" message="$(string.Event.OrtcDtlsTransportInitializationInstallFingerprint)" />
+
+          <event symbol="OrtcDtlsTransportStart" channel="ol" template="T_DtlsTransportStart" task="DtlsTransport" opcode="win:Start" value="1308" level="win:Informational" message="$(string.Event.OrtcDtlsTransportStart)" />
+          <event symbol="OrtcDtlsTransportStop" channel="ol" template="T_BasicObject" task="DtlsTransport" opcode="win:Stop" value="1309" level="win:Informational" message="$(string.Event.OrtcDtlsTransportStop)" />
+
+          <event symbol="OrtcDtlsTransportRoleSet" channel="ol" template="T_DtlsTransportRoleSet" task="DtlsTransport" opcode="win:Info" value="1310" level="win:Informational" message="$(string.Event.OrtcDtlsTransportRoleSet)" />
+
+          <event symbol="OrtcDtlsTransportReceivedPacket" channel="ol" template="T_DtlsTransportReceivedPacket" task="DtlsTransport" opcode="win:Receive" value="1311" level="win:Informational" message="$(string.Event.OrtcDtlsTransportReceivedPacket)" />
+          <event symbol="OrtcDtlsTransportReceivedStunPacket" channel="ol" template="T_DtlsTransportReceivedStunPacket" task="DtlsTransport" opcode="win:Receive" value="1312" level="win:Informational" message="$(string.Event.OrtcDtlsTransportReceivedStunPacket)" />
+
+          <event symbol="OrtcDtlsTransportForwardingEncryptedPacketToSrtpTransport" channel="ol" template="T_DtlsTransportForwardingEncryptedPacketToSrtpTransport" task="DtlsTransport" opcode="Deliver" value="1313" level="win:Informational" message="$(string.Event.OrtcDtlsTransportForwardingEncryptedPacketToSrtpTransport)" />
+          <event symbol="OrtcDtlsTransportForwardingPacketToDataTransport" channel="ol" template="T_DtlsTransportForwardingPacketToDataTransport" task="DtlsTransport" opcode="Deliver" value="1314" level="win:Informational" message="$(string.Event.OrtcDtlsTransportForwardingPacketToDataTransport)" />
+          <event symbol="OrtcDtlsTransportForwardingPacketToRtpListener" channel="ol" template="T_DtlsTransportForwardingPacketToRtpListener" task="DtlsTransport" opcode="Deliver" value="1315" level="win:Informational" message="$(string.Event.OrtcDtlsTransportForwardingPacketToRtpListener)" />
+
+          <event symbol="OrtcDtlsTransportSendRtpPacket" channel="ol" template="T_BasicSendRtpPacket" task="DtlsTransport" opcode="win:Send" value="1316" level="win:Informational" message="$(string.Event.OrtcDtlsTransportSendRtpPacket)" />
+          <event symbol="OrtcDtlsTransportSendDataPacket" channel="ol" template="T_BasicWithBuffer" task="DtlsTransport" opcode="win:Send" value="1317" level="win:Informational" message="$(string.Event.OrtcDtlsTransportSendDataPacket)" />
+
+          <event symbol="OrtcDtlsTransportForwardDataPacketToIceTransport" channel="ol" template="T_DtlsTransportForwardDataPacketToIceTransport" task="DtlsTransport" opcode="win:Send" value="1318" level="win:Informational" message="$(string.Event.OrtcDtlsTransportSendDataPacket)" />
+          <event symbol="OrtcDtlsTransportSendEncryptedRtpPacket" channel="ol" template="T_DtlsTransportSendEncryptedRtpPacket" task="DtlsTransport" opcode="win:Send" value="1319" level="win:Informational" message="$(string.Event.OrtcDtlsTransportSendEncryptedRtpPacket)" />
+
+          <event symbol="OrtcDtlsTransportInternalTimerEventFired" channel="ol" template="T_BasicWithTimerID" task="DtlsTransport" opcode="InternalEvent" value="1320" level="win:Informational" message="$(string.Event.OrtcDtlsTransportInternalTimerEventFired)" />
+
+          <event symbol="OrtcDtlsTransportInternalIceStateChangeEventFired" channel="ol" template="T_DtlsTransportInternalIceStateChangeEventFired" task="DtlsTransport" opcode="InternalEvent" value="1321" level="win:Informational" message="$(string.Event.OrtcDtlsTransportInternalIceStateChangeEventFired)" />
+          <event symbol="OrtcDtlsTransportInternalSrtpTransportLifetimeRemainingEventFired" channel="ol" template="T_DtlsTransportInternalSrtpTransportLifetimeRemainingEventFired" task="DtlsTransport" opcode="InternalEvent" value="1322" level="win:Informational" message="$(string.Event.OrtcDtlsTransportInternalSrtpTransportLifetimeRemainingEventFired)" />
+
+          <event symbol="OrtcDtlsTransportStateChangedEventFired" channel="ol" template="T_BasicWithState" task="DtlsTransport" opcode="StateEvent" value="1323" level="win:Informational" message="$(string.Event.OrtcDtlsTransportStateChangedEventFired)" />
+          <event symbol="OrtcDtlsTransportErrorEventFired" channel="ol" template="T_BasicWithError" task="DtlsTransport" opcode="ErrorEvent" value="1324" level="win:Informational" message="$(string.Event.OrtcDtlsTransportErrorEventFired)" />
+
+          <template tid="T_DtlsTransportSrtpKeyingMaterialSetup">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="SecureTransportObjectID" />
+            <data inType="win:AnsiString" name="xStr_Direction" />
+            <data inType="win:AnsiString" name="xStr_Cipher" />
+            <data inType="win:UInt32"     name="KeyingMaterialBufferSizeInBytes" />
+            <data inType="win:Binary"     name="KeyingMaterialBuffer" length="KeyingMaterialBufferSizeInBytes" />
+          </template>
+          <template tid="T_IceGathererCreate">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="GethererRouterObjectID" />
+            <data inType="win:AnsiString" name="UsernameFragment" />
+            <data inType="win:AnsiString" name="Password" />
+            <data inType="win:Boolean"    name="CreateTCPCandidates" />
+            <data inType="win:Boolean"    name="ContinousGathering" />
+            <data inType="win:UInt64"     name="TotalInterfacePolicies" />
+            <data inType="win:UInt64"     name="TotalIceServers" />
+            <data inType="win:Int64"      name="ReflexiveInactivityTimeInSeconds" />
+            <data inType="win:Int64"      name="RelayInactivityTimeInSeoncds" />
+            <data inType="win:Int64"      name="MaxBufferingTimeInSeconds" />
+            <data inType="win:Int64"      name="RecheckIPsInSeconds" />
+            <data inType="win:UInt64"     name="MaxTotalBuffers" />
+            <data inType="win:UInt64"     name="MaxTCPBufferingSizePendingConnectionInBytes" />
+            <data inType="win:UInt64"     name="MaxTCPBufferingSizeConnectedInBytes" />
+            <data inType="win:Boolean"    name="GatherPassiveTCP" />
+          </template>
+          <template tid="T_IceGathererCreatedAssociateGatherer">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="AssociatedGathererObjectID" />
+          </template>
+          <template tid="T_IceGathererInitializeInstallInterfaceNameMapping">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:AnsiString" name="InterfaceNameRegularExpresssion" />
+            <data inType="win:AnsiString" name="InterfaceType" />
+            <data inType="win:UInt64"     name="OrderIndex" />
+          </template>
+          <template tid="T_IceGathererInitializeInstallPreference">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:AnsiString" name="PreferenceType" />
+            <data inType="win:AnsiString" name="Preference" />
+            <data inType="win:AnsiString" name="SubPreference" />
+            <data inType="win:UInt32"     name="PreferenceValue" />
+          </template>
+          <template tid="T_IceGathererGather">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:Boolean"    name="ContinuousGathering" />
+            <data inType="win:UInt64"     name="TotalInterfacePolicies" />
+            <data inType="win:UInt64"     name="TotalIceServers" />
+          </template>
+          <template tid="T_BasicWithIceCandidate">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:AnsiString" name="LocalHash" />
+            <data inType="win:AnsiString" name="NotifyHash" />
+            <data inType="win:AnsiString" name="InterfaceType" />
+            <data inType="win:AnsiString" name="Foundation" />
+            <data inType="win:UInt32"     name="Priority" />
+            <data inType="win:UInt32"     name="UnfreezePriority" />
+            <data inType="win:AnsiString" name="Protocol" />
+            <data inType="win:AnsiString" name="IP" />
+            <data inType="win:UInt16"     name="Port" />
+            <data inType="win:AnsiString" name="CandidateType" />
+            <data inType="win:AnsiString" name="TcpType" />
+            <data inType="win:AnsiString" name="RelatedAddress" />
+            <data inType="win:UInt16"     name="RelatedPort" />
+          </template>
+          <template tid="T_IceGathererFilterCandidateEventFired">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="FilterPolicy" />
+            <data inType="win:AnsiString" name="BoundIP" />
+            <data inType="win:AnsiString" name="InterfaceType" />
+            <data inType="win:AnsiString" name="Foundation" />
+            <data inType="win:UInt32"     name="Priority" />
+            <data inType="win:UInt32"     name="UnfreezePriority" />
+            <data inType="win:AnsiString" name="Protocol" />
+            <data inType="win:AnsiString" name="IP" />
+            <data inType="win:UInt16"     name="Port" />
+            <data inType="win:AnsiString" name="CandidateType" />
+            <data inType="win:AnsiString" name="TcpType" />
+            <data inType="win:AnsiString" name="RelatedAddress" />
+            <data inType="win:UInt16"     name="RelatedPort" />
+          </template>
+          <template tid="T_IceGathererInstallIceTransport">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="IceTransportObjectID" />
+            <data inType="win:AnsiString" name="RemoteUsernameFragment" />
+          </template>
+          <template tid="T_BasicWithIceTransport">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="IceTransportObjectID" />
+          </template>
+          <template tid="T_BasicWithRoutedIcePacket">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="IceTransportObjectID" />
+            <data inType="win:UInt64"     name="RouteID" />
+            <data inType="win:UInt32"     name="BufferSizeInBytes" />
+            <data inType="win:Binary"     name="Buffer" length="BufferSizeInBytes" />
+          </template>
+          <template tid="T_IceGathererSendIceTransportPacketViaUdp">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="IceTransportObjectID" />
+            <data inType="win:UInt64"     name="RouteID" />
+            <data inType="win:UInt64"     name="HostPortObjectID" />
+            <data inType="win:AnsiString" name="RemoteIP" />
+            <data inType="win:UInt32"     name="BufferSizeInBytes" />
+            <data inType="win:Binary"     name="Buffer" length="BufferSizeInBytes" />
+          </template>
+          <template tid="T_IceGathererSendIceTransportPacketViaTcp">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="IceTransportObjectID" />
+            <data inType="win:UInt64"     name="RouteID" />
+            <data inType="win:UInt64"     name="TcpPortObjectID" />
+            <data inType="win:UInt32"     name="BufferSizeInBytes" />
+            <data inType="win:Binary"     name="Buffer" length="BufferSizeInBytes" />
+          </template>
+          <template tid="T_IceGathererSendIceTransportPacketViaTurn">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="IceTransportObjectID" />
+            <data inType="win:UInt64"     name="RouteID" />
+            <data inType="win:UInt64"     name="TurnObjectID" />
+            <data inType="win:UInt32"     name="BufferSizeInBytes" />
+            <data inType="win:Binary"     name="Buffer" length="BufferSizeInBytes" />
+          </template>
+          <template tid="T_IceGathererDeliverIceTransportIncomingPacket">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="IceTransportObjectID" />
+            <data inType="win:UInt64"     name="RouteID" />
+            <data inType="win:UInt64"     name="RouterRouteID" />
+            <data inType="win:Boolean"    name="WasBuffered" />
+            <data inType="win:UInt32"     name="BufferSizeInBytes" />
+            <data inType="win:Binary"     name="Buffer" length="BufferSizeInBytes" />
+          </template>
+          <template tid="T_BasicWithRouterRoutePacket">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="RouterRouteID" />
+            <data inType="win:UInt32"     name="BufferSizeInBytes" />
+            <data inType="win:Binary"     name="Buffer" length="BufferSizeInBytes" />
+          </template>
+          <template tid="T_IceGathererDeliverIceTransportIncomingStunPacket">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="IceTransportObjectID" />
+            <data inType="win:UInt64"     name="RouteID" />
+            <data inType="win:UInt64"     name="RouterRouteID" />
+            <data inType="win:Boolean"    name="WasBuffered" />
+          </template>
+          <template tid="T_BasicWithRouterRouteID">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="RouterRouteID" />
+          </template>
+          <template tid="T_BasicWithTurnSocketPacket">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="TurnSocketObjectID" />
+            <data inType="win:UInt32"     name="BufferSizeInBytes" />
+            <data inType="win:Binary"     name="Buffer" length="BufferSizeInBytes" />
+          </template>
+          <template tid="T_BasicWithCandidatePointerIPAndRoute">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:Pointer"    name="Candidate" />
+            <data inType="win:AnsiString" name="IPAddress" />
+            <data inType="win:UInt64"     name="RouteID" />
+          </template>
+          <template tid="T_IceGathererSearchQuickRoute">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:Pointer"    name="Candidate" />
+            <data inType="win:AnsiString" name="IPAddress" />
+            <data inType="win:Boolean"    name="Found" />
+          </template>
+          <template tid="T_IceGathererInternalDnsLoookupCompleteEventFired">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="DnsQueryObjectID" />
+          </template>
+          <template tid="T_IceGathererInternalTimerEventFired">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="TimerObjectID" />
+            <data inType="win:AnsiString" name="TimerType" />
+            <data inType="win:UInt64"     name="RelatedObjectID" />
+          </template>
+          <template tid="T_IceGathererInternalLikelyReflexiveActivityEventFired">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="RouteID" />
+            <data inType="win:UInt64"     name="RouterRouteID" />
+          </template>
+          <template tid="T_BasicWithRelatedObjectID">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="xRelatedObjectID" />
+          </template>
+          <template tid="T_IceGathererInternalBackOffTimerStateChangedEventFired">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="BackOffTimerObjectID" />
+            <data inType="win:AnsiString" name="State" />
+          </template>
+          <template tid="T_IceGathererInternalStunDiscoverySendPacket">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="StunDiscoveryObjectID" />
+            <data inType="win:AnsiString" name="DestinationIP" />
+            <data inType="win:UInt32"     name="BufferSizeInBytes" />
+            <data inType="win:Binary"     name="Buffer" length="BufferSizeInBytes" />
+          </template>
+          <template tid="T_IceGathererInternalStunDiscoveryCompleteEventFired">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="StunDiscoveryObjectID" />
+            <data inType="win:UInt64"     name="HostPortObjectID" />
+            <data inType="win:AnsiString" name="MappedIP" />
+          </template>
+          <template tid="T_IceGathererInternalTurnSocketStateChangeEventFired">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="TurnSocketObjectID" />
+            <data inType="win:AnsiString" name="State" />
+          </template>
+          <template tid="T_IceGathererResolveHostIP">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="DnsQueryObjectID" />
+            <data inType="win:AnsiString" name="HostName" />
+          </template>
+          <template tid="T_IceGathererResolveFoundHostIP">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:AnsiString" name="HostIP" />
+            <data inType="win:AnsiString" name="HostName" />
+            <data inType="win:AnsiString" name="InterfaceName" />
+            <data inType="win:UInt64"     name="AdapterSpecific" />
+          </template>
+          <template tid="T_IceGathererPendingResolveHostIP">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:AnsiString" name="ProfileName" />
+            <data inType="win:AnsiString" name="HostName" />
+            <data inType="win:AnsiString" name="IP" />
+          </template>
+          <template tid="T_BasicWithHostObjectIDAndHostIP">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="HostPortObjectID" />
+            <data inType="win:AnsiString" name="HostIP" />
+          </template>
+          <template tid="T_IceGathererHostPortBind">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="HostPortObjectID" />
+            <data inType="win:AnsiString" name="HostIP" />
+            <data inType="win:AnsiString" name="ProtocolType" />
+            <data inType="win:Boolean"    name="Success" />
+          </template>
+          <template tid="T_IceGathererHostPortClose">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="HostPortObjectID" />
+            <data inType="win:AnsiString" name="HostIP" />
+            <data inType="win:AnsiString" name="ProtocolType" />
+          </template>
+          <template tid="T_BasicWithReflexivePortObjectIDAndServer">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="ReflexivePortObjectID" />
+            <data inType="win:AnsiString" name="Server" />
+          </template>
+          <template tid="T_IceGathererReflexivePortFoundMapped">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="ReflexivePortObjectID" />
+            <data inType="win:AnsiString" name="MappedIP" />
+          </template>
+          <template tid="T_IceGathererRelayPortCreate">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="RelayPortObjectID" />
+            <data inType="win:AnsiString" name="Server" />
+            <data inType="win:AnsiString" name="Username" />
+            <data inType="win:AnsiString" name="Credential" />
+            <data inType="win:AnsiString" name="CredentialType" />
+          </template>
+          <template tid="T_IceGathererRelayPortDestroy">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="RelayPortObjectID" />
+            <data inType="win:AnsiString" name="Server" />
+          </template>
+          <template tid="T_IceGathererRelayPortFoundIP">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="RelayPortObjectID" />
+            <data inType="win:AnsiString" name="CandidateType" />
+            <data inType="win:AnsiString" name="IP" />
+          </template>
+          <template tid="T_BasicWithTcpPortObjectIDAndRemoteIP">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="TcpPortObjectID" />
+            <data inType="win:AnsiString" name="RemoteIP" />
+          </template>
+          <template tid="T_BasicWithFromIPAndBuffer">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:AnsiString" name="FromIP" />
+            <data inType="win:UInt32"     name="BufferSizeInBytes" />
+            <data inType="win:Binary"     name="Buffer" length="BufferSizeInBytes" />
+          </template>
+          <template tid="T_IceGathererUdpSocketPacketForwardingToTurnSocket">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:AnsiString" name="FromIP" />
+            <data inType="win:Boolean"    name="IsStun" />
+            <data inType="win:UInt32"     name="BufferSizeInBytes" />
+            <data inType="win:Binary"     name="Buffer" length="BufferSizeInBytes" />
+          </template>
+          <template tid="T_IceGathererUdpSocketPacketSentTo">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:AnsiString" name="BoundIP" />
+            <data inType="win:AnsiString" name="ToIP" />
+            <data inType="win:UInt32"     name="BufferSizeInBytes" />
+            <data inType="win:Binary"     name="Buffer" length="BufferSizeInBytes" />
+          </template>
+          <template tid="T_IceGathererRouteTrace">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:AnsiString" name="CallingMethod" />
+            <data inType="win:AnsiString" name="Message" />
+            <data inType="win:UInt64"     name="IceGathererRouteID" />
+            <data inType="win:UInt64"     name="IceGathererObjectID" />
+            <data inType="win:Int64"      name="LastUsedInMillisecondsSinceEpoch" />
+            <data inType="win:UInt64"     name="IceTransportObjectID" />
+            <data inType="win:UInt64"     name="HostPortObjectID" />
+            <data inType="win:UInt64"     name="RelayPortObjectID" />
+            <data inType="win:UInt64"     name="TcpPortObjectID" />
+            <data inType="win:AnsiString" name="LocalInterfaceType" />
+            <data inType="win:AnsiString" name="LocalFoundation" />
+            <data inType="win:UInt32"     name="LocalPriority" />
+            <data inType="win:UInt32"     name="LocalUnfreezePriority" />
+            <data inType="win:AnsiString" name="LocalProtocol" />
+            <data inType="win:AnsiString" name="LocalIP" />
+            <data inType="win:UInt16"     name="LocalPort" />
+            <data inType="win:AnsiString" name="LocalCandidateType" />
+            <data inType="win:AnsiString" name="LocalTcpType" />
+            <data inType="win:AnsiString" name="LocalRelatedAddress" />
+            <data inType="win:UInt16"     name="LocalRelatedPort" />
+          </template>
+          <template tid="T_IceGathererRouterInternalEvent">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:AnsiString" name="Event" />
+            <data inType="win:AnsiString" name="CandidateHash" />
+            <data inType="win:AnsiString" name="LocalCandidateIP" />
+            <data inType="win:UInt16"     name="LocalCandidatePort" />
+            <data inType="win:AnsiString" name="RemoteIP" />
+          </template>
+          <template tid="T_IceGathererRouterRouteTrace">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:AnsiString" name="CallingMethod" />
+            <data inType="win:AnsiString" name="Message" />
+            <data inType="win:UInt64"     name="IceGathererRouterRouteID" />
+            <data inType="win:AnsiString" name="LocalInterfaceType" />
+            <data inType="win:AnsiString" name="LocalFoundation" />
+            <data inType="win:UInt32"     name="LocalPriority" />
+            <data inType="win:UInt32"     name="LocalUnfreezePriority" />
+            <data inType="win:AnsiString" name="LocalProtocol" />
+            <data inType="win:AnsiString" name="LocalIP" />
+            <data inType="win:UInt16"     name="LocalPort" />
+            <data inType="win:AnsiString" name="LocalCandidateType" />
+            <data inType="win:AnsiString" name="LocalTcpType" />
+            <data inType="win:AnsiString" name="LocalRelatedAddress" />
+            <data inType="win:UInt16"     name="LocalRelatedPort" />
+            <data inType="win:AnsiString" name="RemoteIP" />
+          </template>
+          <template tid="T_IceTransportCreate">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="IceGathererObjectID" />
+            <data inType="win:UInt64"     name="IceGathererRouterObjectID" />
+            <data inType="win:Int64"      name="NoPacketReceivedRecheckTimeInSeconds" />
+            <data inType="win:Int64"      name="ExpireRouteInSeconds" />
+            <data inType="win:Boolean"    name="TestLowerPreferenceCandidatePairs" />
+            <data inType="win:Boolean"    name="BlacklistConsent" />
+            <data inType="win:Int64"      name="KeepWarmTimeBaseInMilliseconds" />
+            <data inType="win:Int64"      name="KeepWarmTimeRandomAddTimeInMilliseconds" />
+            <data inType="win:UInt64"     name="MaxBufferedPackets" />
+            <data inType="win:UInt64"     name="ConflictResolver" />
+          </template>
+          <template tid="T_IceTransportRouteStateTrackerStateCountChange">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="IceTransportObjectID" />
+            <data inType="win:AnsiString" name="State" />
+            <data inType="win:UInt64"     name="Value" />
+          </template>
+          <template tid="T_IceTransportStart">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="IceGathererObjectID" />
+            <data inType="win:Boolean"    name="RemoteUseCandidateFreezePriority" />
+            <data inType="win:AnsiString" name="RemoteUsernameFragment" />
+            <data inType="win:AnsiString" name="RemotePassword" />
+            <data inType="win:Boolean"    name="IceLite" />
+            <data inType="win:AnsiString" name="RemoteParametersHash" />
+            <data inType="win:AnsiString" name="OldRemoteParametersHash" />
+            <data inType="win:Boolean"    name="HasRemoteUsernameFragment" />
+          </template>
+          <template tid="T_IceTransportStart">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+          </template>
+          <template tid="T_IceTransportCreateAssociatedTransport">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="AssociatedIceTransportObjectID" />
+          </template>
+          <template tid="T_IceTransportAddRemoteCandidate">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:AnsiString" name="Hash" />
+            <data inType="win:AnsiString" name="InterfaceType" />
+            <data inType="win:AnsiString" name="Foundation" />
+            <data inType="win:UInt32"     name="Priority" />
+            <data inType="win:UInt32"     name="UnfreezePriority" />
+            <data inType="win:AnsiString" name="Protocol" />
+            <data inType="win:AnsiString" name="IP" />
+            <data inType="win:UInt16"     name="Port" />
+            <data inType="win:AnsiString" name="CandidateType" />
+            <data inType="win:AnsiString" name="TcpType" />
+            <data inType="win:AnsiString" name="RelatedAddress" />
+            <data inType="win:UInt16"     name="RelatedPort" />
+            <data inType="win:Boolean"    name="PreviouslyAdded" />
+          </template>
+          <template tid="T_IceTransportRemoveRemoteCandidate">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:AnsiString" name="Hash" />
+            <data inType="win:AnsiString" name="InterfaceType" />
+            <data inType="win:AnsiString" name="Foundation" />
+            <data inType="win:UInt32"     name="Priority" />
+            <data inType="win:UInt32"     name="UnfreezePriority" />
+            <data inType="win:AnsiString" name="Protocol" />
+            <data inType="win:AnsiString" name="IP" />
+            <data inType="win:UInt16"     name="Port" />
+            <data inType="win:AnsiString" name="CandidateType" />
+            <data inType="win:AnsiString" name="TcpType" />
+            <data inType="win:AnsiString" name="RelatedAddress" />
+            <data inType="win:UInt16"     name="RelatedPort" />
+            <data inType="win:Boolean"    name="WasKnownPreviously" />
+          </template>
+          <template tid="T_IceTransportKeepWarm">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:AnsiString" name="Reason" />
+            <data inType="win:AnsiString" name="CandidatePairHash" />
+            <data inType="win:Boolean"    name="KeepWarm" />
+          </template>
+          <template tid="T_BasicWithRouteID">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="RouteID" />
+          </template>
+          <template tid="T_IceTransportRouteTrace">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:AnsiString" name="CallingMethod" />
+            <data inType="win:AnsiString" name="Message" />
+            <data inType="win:UInt64"     name="IceTransportRouteID" />
+            <data inType="win:UInt64"     name="IceTransportObjectID" />
+            <data inType="win:AnsiString" name="CandidatePairHash" />
+            <data inType="win:AnsiString" name="LocalInterfaceType" />
+            <data inType="win:AnsiString" name="LocalFoundation" />
+            <data inType="win:UInt32"     name="LocalPriority" />
+            <data inType="win:UInt32"     name="LocalUnfreezePriority" />
+            <data inType="win:AnsiString" name="LocalProtocol" />
+            <data inType="win:AnsiString" name="LocalIP" />
+            <data inType="win:UInt16"     name="LocalPort" />
+            <data inType="win:AnsiString" name="LocalCandidateType" />
+            <data inType="win:AnsiString" name="LocalTcpType" />
+            <data inType="win:AnsiString" name="LocalRelatedAddress" />
+            <data inType="win:UInt16"     name="LocalRelatedPort" />
+            <data inType="win:AnsiString" name="RemoteInterfaceType" />
+            <data inType="win:AnsiString" name="RemoteFoundation" />
+            <data inType="win:UInt32"     name="RemotePriority" />
+            <data inType="win:UInt32"     name="RemoteUnfreezePriority" />
+            <data inType="win:AnsiString" name="RemoteProtocol" />
+            <data inType="win:AnsiString" name="RemoteIP" />
+            <data inType="win:UInt16"     name="RemotePort" />
+            <data inType="win:AnsiString" name="RemoteCandidateType" />
+            <data inType="win:AnsiString" name="RemoteTcpType" />
+            <data inType="win:AnsiString" name="RemoteRelatedAddress" />
+            <data inType="win:UInt16"     name="RemoteRelatedPort" />
+            <data inType="win:UInt64"     name="IceGathererRouteID" />
+            <data inType="win:UInt64"     name="PendingPriority" />
+            <data inType="win:Int64"      name="LastReceivedCheckTimeInMillisecondsSinceEpoch" />
+            <data inType="win:Int64"      name="LastSentCheckTimeInMillisecondsSinceEpoch" />
+            <data inType="win:Int64"      name="LastReceivedMediaTimeInMillisecondsSinceEpoch" />
+            <data inType="win:Int64"      name="LastReceivedResponseTimeInMillisecondsSinceEpoch" />
+            <data inType="win:Boolean"    name="Prune" />
+            <data inType="win:Boolean"    name="KeepWarm" />
+            <data inType="win:UInt64"     name="OutgoingCheckStunRequesterObjectID" />
+            <data inType="win:Boolean"    name="NextKeepWarmTimerObjectID" />
+            <data inType="win:Boolean"    name="FrozenPromise" />
+            <data inType="win:UInt64"     name="TotalDependentPromises" />
+            <data inType="win:Int64"      name="LastRoundTripCheckInMillisecondsSinceEpoch" />
+            <data inType="win:Int64"      name="LastRoundTripMeasurementInMilliseconds" />
+          </template>
+          <template tid="T_IceTransportReceivedPacketFromGatherer">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="RouterRouteID" />
+            <data inType="win:UInt32"     name="BufferSizeInBytes" />
+            <data inType="win:Binary"     name="Buffer" length="BufferSizeInBytes" />
+          </template>
+          <template tid="T_BasicWithSecureTransportObjectIDAndBuffer">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="SecureTransportObjectID" />
+            <data inType="win:UInt32"     name="BufferSizeInBytes" />
+            <data inType="win:Binary"     name="Buffer" length="BufferSizeInBytes" />
+          </template>
+          <template tid="T_BasicWithSecureTransportObjectID">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="SecureTransportObjectID" />
+          </template>
+          <template tid="T_BasicWithWithLocalAndRemoteFoundationAndTotalRoutes">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:AnsiString" name="LocalFoundation" />
+            <data inType="win:AnsiString" name="RemoteFoundation" />
+            <data inType="win:UInt64"     name="TotalRoutes" />
+          </template>
+          <template tid="T_IceTransportInstallFoundationDependencyFreezePromise">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:AnsiString" name="LocalFoundation" />
+            <data inType="win:AnsiString" name="RemoteFoundation" />
+          </template>
+          <template tid="T_BasicWithIceGatherObjectIDAndBuffer">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="IceGathererObjectID" />
+            <data inType="win:UInt32"     name="BufferSizeInBytes" />
+            <data inType="win:Binary"     name="Buffer" length="BufferSizeInBytes" />
+          </template>
+          <template tid="T_BasicWithIceTransportControllerObjectID">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="IceTransportControllerObjectID" />
+          </template>
+          <template tid="T_BasicWithTimerObjectIDAndTimerType">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="TimerObjectID" />
+            <data inType="win:AnsiString" name="TimerType" />
+          </template>
+          <template tid="T_IceTransportInternalGathererStateChangedEventFired">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="IceGathererObjectID" />
+            <data inType="win:AnsiString" name="State" />
+          </template>
+          <template tid="T_BasicWithIceGathererObjectIDAndIceCandidate">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="IceGathererObjectID" />
+            <data inType="win:AnsiString" name="xStr_InterfaceType" />
+            <data inType="win:AnsiString" name="xStr_Foundation" />
+            <data inType="win:UInt32"     name="xDWORD_Priority" />
+            <data inType="win:UInt32"     name="xDWORD_UnfreezePriority" />
+            <data inType="win:AnsiString" name="xStr_Protocol" />
+            <data inType="win:AnsiString" name="xStr_IP" />
+            <data inType="win:UInt16"     name="xWORD_Port" />
+            <data inType="win:AnsiString" name="xStr_CandidateType" />
+            <data inType="win:AnsiString" name="xStr_TcpType" />
+            <data inType="win:AnsiString" name="xStr_RelatedAddress" />
+            <data inType="win:UInt16"     name="xWORD_RelatedPort" />
+          </template>
+          <template tid="T_BasicWithStunRequesterObjectID">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="StunRequesterObjectID" />
+          </template>
+          <template tid="T_IceTransportInternalStunRequesterSendPacket">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="StunRequesterObjectID" />
+            <data inType="win:AnsiString" name="DestinationIP" />
+            <data inType="win:UInt32"     name="BufferSizeInBytes" />
+            <data inType="win:Binary"     name="Buffer" length="BufferSizeInBytes" />
+          </template>
+          <template tid="T_IceTransportInternalStunRequesterReceivedResponse">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="StunRequesterObjectID" />
+            <data inType="win:AnsiString" name="FromIP" />
+          </template>
+          <template tid="T_IceTransportInternalStunRequesterReceivedResponse">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="StunRequesterObjectID" />
+            <data inType="win:AnsiString" name="FromIP" />
+            <data inType="win:AnsiString" name="ExpectingIP" />
+          </template>
+          <template tid="T_IceTransportInternalRoleConflictDetectedEventFired">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:AnsiString" name="NewRole" />
+            <data inType="win:AnsiString" name="Reason" />
+          </template>
+          <template tid="T_IceTransportControllerInternalTransportAttachedEventFired">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="IceTransportObjectID" />
+            <data inType="win:UInt64"     name="AttachedOrderID" />
+            <data inType="win:Boolean"    name="HasInsertIndex" />
+            <data inType="win:UInt64"     name="InsertIndex" />
+          </template>
+          <template tid="T_IceTransportControllerInternalTransportDetachedEventFired">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="IceTransportObjectID" />
+            <data inType="win:UInt64"     name="DetachedOrderID" />
+          </template>
+          <template tid="T_BasicWithIceTransportObjectIDAndLocalAndRemoteFoundation">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="IceTransportObjectID" />
+            <data inType="win:AnsiString" name="LocalFoundation" />
+            <data inType="win:AnsiString" name="RemoteFoundation" />
+          </template>
+          <template tid="T_RtpListenerCreate">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="RtpTransport" />
+            <data inType="win:UInt64"     name="MaxBufferedRtpPackets" />
+            <data inType="win:Int64"      name="MaxRtpPacketAgeInSeconds" />
+            <data inType="win:UInt64"     name="MaxBufferedRtcpPackets" />
+            <data inType="win:Int64"      name="AmbigousPayloadMappingMinDifferenceInMilliseconds" />
+            <data inType="win:Int64"      name="SsrcTableExpiresInSeconds" />
+            <data inType="win:Int64"      name="UnhandledEventsExpiresInSeconds" />
+          </template>
+          <template tid="T_RtpListenerFindMapping">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:AnsiString" name="xStr_MuxID" />
+            <data inType="win:UInt32"     name="BufferSizeInBytes" />
+            <data inType="win:Binary"     name="Buffer" length="BufferSizeInBytes" />
+          </template>
+          <template tid="T_RtpListenerFoundMappingByMuxID">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="RtpReceiverObjectID" />
+            <data inType="win:AnsiString" name="MuxID" />
+          </template>
+          <template tid="T_RtpListenerFoundMappingBySsrc">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="RtpReceiverObjectID" />
+            <data inType="win:UInt32"     name="Ssrc" />
+          </template>
+          <template tid="T_RtpListenerFoundMappingByPayloadType">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="RtpReceiverObjectID" />
+            <data inType="win:UInt8"      name="PayloadType" />
+          </template>
+          <template tid="T_BasicWithUnhandledRtp">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:AnsiString" name="MuxID" />
+            <data inType="win:AnsiString" name="Rid" />
+            <data inType="win:UInt32"     name="Ssrc" />
+            <data inType="win:UInt8"      name="PayloadType" />
+          </template>
+          <template tid="T_BasicWithRegisteredHeaderExtension">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="RegisterForObject" />
+            <data inType="win:AnsiString" name="ExtensionURI" />
+            <data inType="win:UInt16"     name="LocalID" />
+            <data inType="win:Boolean"    name="Encrypted" />
+            <data inType="win:UInt64"     name="TotalReferences" />
+          </template>
+          <template tid="T_BasicWithRtpPacket">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="ViaComponent" />
+            <data inType="win:UInt64"     name="PacketType" />
+            <data inType="win:UInt32"     name="BufferSizeInBytes" />
+            <data inType="win:Binary"     name="Buffer" length="BufferSizeInBytes" />
+          </template>
+          <template tid="T_RtpListenerForwardIncomingPacket">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="RtpSenderOrRtpReceiverObjectID" />
+            <data inType="win:UInt64"     name="ViaComponent" />
+            <data inType="win:UInt64"     name="PacketType" />
+            <data inType="win:UInt32"     name="BufferSizeInBytes" />
+            <data inType="win:Binary"     name="Buffer" length="BufferSizeInBytes" />
+          </template>
+          <template tid="T_RtpListenerDisposeBufferedIncomingPacket">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="PacketType" />
+            <data inType="win:UInt32"     name="BufferSizeInBytes" />
+            <data inType="win:Binary"     name="Buffer" length="BufferSizeInBytes" />
+          </template>
+          <template tid="T_RtpListenerRegisterReceiver">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="RtpReceiverObjectID" />
+            <data inType="win:UInt64"     name="OrderID" />
+            <data inType="win:AnsiString" name="Kind" />
+          </template>
+          <template tid="T_RtpListenerUnregisterReceiver">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="RtpReceiverObjectID" />
+          </template>
+          <template tid="T_BasicWithRtpSenderObjectID">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="RtpSenderObjectID" />
+          </template>
+          <template tid="T_BasicWithRtpReceiverObjectIDAndSsrcTableEntry">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="RtpReceiverObjectID" />
+            <data inType="win:UInt32"     name="Ssrc" />
+            <data inType="win:Int64 "     name="LastUsageSinceEpochInSeconds" />
+            <data inType="win:AnsiString" name="MuxID" />
+          </template>
+          <template tid="T_RtpListenerSsrcTableEntryRemoved">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="RtpReceiverObjectID" />
+            <data inType="win:UInt32"     name="Ssrc" />
+            <data inType="win:Int64 "     name="LastUsageSinceEpochInSeconds" />
+            <data inType="win:AnsiString" name="MuxID" />
+            <data inType="win:AnsiString" name="Reason" />
+          </template>
+          <template tid="T_RtpReceiverCreate">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="RtpListenerObjectID" />
+            <data inType="win:UInt64"     name="RtpTransportObjectID" />
+            <data inType="win:UInt64"     name="RtcpTransportObjectID" />
+            <data inType="win:UInt64"     name="MaxBufferedRtpPackets" />
+            <data inType="win:Int64"      name="MaxRTPPacketAgeInSeconds" />
+            <data inType="win:Int64"      name="LockAfterSwitchTimeInMilliseconds" />
+            <data inType="win:Int64"      name="AmbigousPayloadMappingMinDifferenceInMilliseconds" />
+            <data inType="win:Int64"      name="SSRCTableExpiresInSeconds" />
+            <data inType="win:Int64"      name="ContributingSourcesExpiry" />
+          </template>
+          <template tid="T_BasicWithRtpListenerObjectIDAndRtpRtcpTransportObjectID">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="RtpListenerObjectID" />
+            <data inType="win:UInt64"     name="RtpTransportObjectID" />
+            <data inType="win:UInt64"     name="RtcpTransportObjectID" />
+          </template>
+          <template tid="T_RtpReceiverReportRtcpFeedback">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:AnsiString" name="Type" />
+            <data inType="win:AnsiString" name="Parameter" />
+          </template>
+          <template tid="T_RtpReceiverReportCodec">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:AnsiString" name="Name" />
+            <data inType="win:AnsiString" name="Kind" />
+            <data inType="win:UInt64"     name="CodecRate" />
+            <data inType="win:UInt8"      name="PreferredPayloadType" />
+            <data inType="win:UInt64"     name="MaxPTime" />
+            <data inType="win:UInt64"     name="NumChannels" />
+          </template>
+          <template tid="T_RtpReceiverReportHeaderExtension">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:AnsiString" name="Kind" />
+            <data inType="win:UInt64"     name="Uri" />
+            <data inType="win:UInt16"     name="PreferredID" />
+            <data inType="win:Boolean"    name="PreferredEncrypted" />
+          </template>
+          <template tid="T_BasicWithChannelObjectID">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="ChannelObjectID" />
+          </template>
+          <template tid="T_BasicWithCsrc">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt32"     name="Csrc" />
+          </template>
+          <template tid="T_BasicWithPacket">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="ViaTransport" />
+            <data inType="win:UInt64"     name="PacketType" />
+            <data inType="win:UInt32"     name="PacketSizeInBytes" />
+            <data inType="win:Binary"     name="Buffer" length="PacketSizeInBytes" />
+          </template>
+          <template tid="T_BasicWithChannelObjectIDAndPacket">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="ChannelObjectID" />
+            <data inType="win:UInt64"     name="ViaTransport" />
+            <data inType="win:UInt64"     name="PacketType" />
+            <data inType="win:UInt32"     name="PacketSizeInBytes" />
+            <data inType="win:Binary"     name="Buffer" length="PacketSizeInBytes" />
+          </template>
+          <template tid="T_RtpReceiverRegisterHeaderExtension">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:AnsiString" name="ExtensionURI" />
+            <data inType="win:UInt16"     name="LocalID" />
+            <data inType="win:Boolean"    name="Encrypted" />
+          </template>
+          <template tid="T_BasicWithChannelObjectIDAndSsrcAndRid">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="ChannelObjectID" />
+            <data inType="win:UInt32"     name="Ssrc" />
+            <data inType="win:Int64"      name="LastUsageSinceEpochInSeconds" />
+            <data inType="win:AnsiString" name="Rid" />
+          </template>
+          <template tid="T_RtpReceiverSsrcTableEntryRemoved">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="ChannelObjectID" />
+            <data inType="win:UInt32"     name="Ssrc" />
+            <data inType="win:Int64"      name="LastUsageSinceEpochInSeconds" />
+            <data inType="win:AnsiString" name="Rid" />
+            <data inType="win:AnsiString" name="Reason" />
+          </template>
+          <template tid="T_RtpReceiverFindMapping">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:AnsiString" name="Rid" />
+            <data inType="win:AnsiString" name="Reason" />
+            <data inType="win:UInt32"     name="BufferSizeInBytes" />
+            <data inType="win:Binary"     name="Buffer" length="BufferSizeInBytes" />
+          </template>
+          <template tid="T_RtpReceiverFoundMappingByRid">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="ChannelObjectID" />
+            <data inType="win:AnsiString" name="Rid" />
+          </template>
+          <template tid="T_RtpReceiverFoundMappingBySsrc">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="ChannelObjectID" />
+            <data inType="win:UInt32"     name="Ssrc" />
+          </template>
+          <template tid="T_RtpReceiverFoundMappingByPayloadType">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="ChannelObjectID" />
+            <data inType="win:UInt8"      name="PayloadType" />
+          </template>
+          <template tid="T_RtpReceiverTrackActiveChannelChangedEventFired">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="MediaStreamTrackObjectID" />
+            <data inType="win:UInt64"     name="ChannelObjectID" />
+          </template>
+          <template tid="T_RtpSenderCreate">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="MediaStreamTrackObjectID" />
+            <data inType="win:UInt64"     name="RtpListenerObjectID" />
+            <data inType="win:UInt64"     name="RtpTransportObjectID" />
+            <data inType="win:UInt64"     name="RtcpTransportObjectID" />
+          </template>
+          <template tid="T_BasicWithMediaStreamTrackObjectIDAndChannelObjectID">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="MediaStreamTrackObjectID" />
+            <data inType="win:UInt64"     name="ChannelObjectID" />
+          </template>
+          <template tid="T_RtpSenderSsrcConflictEventFired">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="ChannelObjectID" />
+            <data inType="win:UInt32"     name="Ssrc" />
+            <data inType="win:Boolean"    name="SelfDestructChannel" />
+          </template>
+          <template tid="T_RtpSenderChannelErrorEventFired">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="ChannelObjectID" />
+            <data inType="win:UInt16"     name="Error" />
+            <data inType="win:AnsiString" name="Reason" />
+            <data inType="win:Boolean"    name="SelfDestructChannel" />
+          </template>
+          <template tid="T_RtpSenderSetTrack">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="MediaStreamTrackObjectID" />
+            <data inType="win:AnsiString" name="Kind" />
+          </template>
+          <template tid="T_RtpSenderInternalSecureTransportStateChangedEventFired">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="SecureTransportObjectID" />
+            <data inType="win:AnsiString" name="State" />
+          </template>
+          <template tid="T_RtpReceiverChannelCreate">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="ReceiverObjectID" />
+            <data inType="win:UInt64"     name="MediaStreamTrackObjectID" />
+          </template>
+          <template tid="T_BasicWithMediaChannelObjectIDAndKind">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="MediaChannelObjectID" />
+            <data inType="win:AnsiString" name="xStr_Kind" />
+          </template>
+          <template tid="T_BasicWithMediaChannelObjectIDAndPacketTypeAndBuffer">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="MediaChannelObjectID" />
+            <data inType="win:UInt64"     name="PacketType" />
+            <data inType="win:UInt32"     name="BufferSizeInBytes" />
+            <data inType="win:Binary"     name="Buffer" length="BufferSizeInBytes" />
+          </template>
+          <template tid="T_RtpReceiverChannelSendOutgoingPacket">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="ReceiverObjectID" />
+            <data inType="win:UInt64"     name="PacketType" />
+            <data inType="win:UInt32"     name="BufferSizeInBytes" />
+            <data inType="win:Binary"     name="Buffer" length="BufferSizeInBytes" />
+          </template>
+          <template tid="T_RtpSenderChannelCreate">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="RtpSenderObjectID" />
+            <data inType="win:UInt64"     name="MediaStreamTrackObjectID" />
+          </template>
+          <template tid="T_RtpSenderChannelChangeTrack">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="MediaChannelObjectID" />
+            <data inType="win:UInt64"     name="MediaStreamTrackObjectID" />
+          </template>
+          <template tid="T_RtpSenderChannelSendOutgoingPacket">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="RtpSenderObjectID" />
+            <data inType="win:UInt64"     name="PacketType" />
+            <data inType="win:UInt32"     name="BufferSizeInBytes" />
+            <data inType="win:Binary"     name="Buffer" length="BufferSizeInBytes" />
+          </template>
+          <template tid="T_SctpTransportCreate">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="SctpTransportListenerObjectID" />
+            <data inType="win:UInt64"     name="MaxSessionsPerPort" />
+            <data inType="win:Boolean"    name="Incoming" />
+            <data inType="win:UInt16"     name="LocalPort" />
+            <data inType="win:UInt16"     name="RemotePort" />
+          </template>
+          <template tid="T_SctpTransportStart">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="RemoteMaxMessageSize" />
+            <data inType="win:UInt16"     name="RemoteMinPOrt" />
+            <data inType="win:UInt16"     name="RemoteMaxPort" />
+            <data inType="win:UInt16"     name="MaxUsablePorts" />
+            <data inType="win:UInt16"     name="MaxSessionsPerPort" />
+          </template>
+          <template tid="T_BasicWithDataChannelObjectIDAndSessionID">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="DataChannelObjectID" />
+            <data inType="win:UInt16"     name="SessionID" />
+          </template>
+          <template tid="T_SctpTransportDataChannelEventFired">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="DataChannelObjectID" />
+          </template>
+          <template tid="T_SctpTransportReceivedIncomingPacket">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt16"     name="SessionID" />
+            <data inType="win:UInt16"     name="SequenceNumber" />
+            <data inType="win:UInt32"     name="Timestamp" />
+            <data inType="win:Int64"      name="Flags" />
+            <data inType="win:UInt32"     name="BufferSizeInBytes" />
+            <data inType="win:Binary"     name="Buffer" length="BufferSizeInBytes" />
+          </template>
+          <template tid="T_SctpTransportSendOutgoingPacket">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt16"     name="SessionID" />
+            <data inType="win:Boolean"    name="Ordered" />
+            <data inType="win:Int64"      name="MaxPacketLifeTimeInMilliseconds" />
+            <data inType="win:Boolean"    name="HasMaxRetransmits" />
+            <data inType="win:UInt32"     name="MaxRetransmits" />
+            <data inType="win:UInt32"     name="BufferSizeInBytes" />
+            <data inType="win:Binary"     name="Buffer" length="BufferSizeInBytes" />
+          </template>
+          <template tid="T_SctpTransportInternalSecureTransportStateChangedEventFired">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="SecureTransportID" />
+            <data inType="win:AnsiString" name="State" />
+          </template>
+          <template tid="T_SctpTransportListenerListen">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="RemoteMaxMessageSize" />
+            <data inType="win:UInt32"     name="MinPort" />
+            <data inType="win:UInt16"     name="MaxPort" />
+            <data inType="win:UInt16"     name="MaxUseablePorts" />
+            <data inType="win:UInt16"     name="MaxSessionsPerPort" />
+          </template>
+          <template tid="T_SctpTransportListenerRegisterNewTransport">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="SecureTransportObjectID" />
+            <data inType="win:UInt16"     name="LocalPort" />
+            <data inType="win:UInt16"     name="RemotePort" />
+          </template>
+          <template tid="T_BasicWithSctpTransportObjectIDAndLocalAndRemotePort">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="SctpTransportObjectID" />
+            <data inType="win:UInt16"     name="LocalPort" />
+            <data inType="win:UInt16"     name="RemotePort" />
+          </template>
+          <template tid="T_SctpTransportListenerDeliverIncomingDataPacket">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="SctpTransportObjectID" />
+            <data inType="win:UInt32"     name="BufferSizeInBytes" />
+            <data inType="win:Binary"     name="Buffer" length="BufferSizeInBytes" />
+          </template>
+          <template tid="T_SrtpTransportInstallKeyingMaterial">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:AnsiString" name="Direction" />
+            <data inType="win:AnsiString" name="KeyMethod" />
+            <data inType="win:AnsiString" name="KeySalt" />
+            <data inType="win:AnsiString" name="Lifetime" />
+            <data inType="win:AnsiString" name="MkiValue" />
+            <data inType="win:UInt16"     name="MkiLength" />
+          </template>
+          <template tid="T_SrtpTransportDeliverIncomingDecryptedPacket">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="SecureTransportObjectID" />
+            <data inType="win:UInt64"     name="ViaComponent" />
+            <data inType="win:UInt64"     name="PacketType" />
+            <data inType="win:UInt32"     name="BufferSizeInBytes" />
+            <data inType="win:Binary"     name="Buffer" length="BufferSizeInBytes" />
+          </template>
+          <template tid="T_SrtpTransportSendOutgoingPacketAndEncrypt">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="SendOverComponent" />
+            <data inType="win:UInt64"     name="PacketType" />
+            <data inType="win:UInt32"     name="BufferSizeInBytes" />
+            <data inType="win:Binary"     name="Buffer" length="BufferSizeInBytes" />
+          </template>
+          <template tid="T_SrtpTransportSendOutgoingEncryptedPacketViaSecureTransport">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="SecureTransportObjectID" />
+            <data inType="win:UInt64"     name="SendOverComponent" />
+            <data inType="win:UInt64"     name="PacketType" />
+            <data inType="win:UInt32"     name="BufferSizeInBytes" />
+            <data inType="win:Binary"     name="Buffer" length="BufferSizeInBytes" />
+          </template>
+
+
+OrtcDtlsTransportSrtpKeyingMaterialSetup(T_DtlsTransportSrtpKeyingMaterialSetup
+
+OrtcIceGathererCreate(T_IceGathererCreate
+OrtcIceGathererDestroy(T_BasicObject
+OrtcIceGathererStep(T_BasicObject
+OrtcIceGathererCancel(T_BasicObject
+OrtcIceGathererCreatedAssociateGatherer(T_IceGathererCreatedAssociateGatherer
+
+OrtcIceGathererInitializeInstallInterfaceNameMapping(T_IceGathererInitializeInstallInterfaceNameMapping
+OrtcIceGathererInitializeInstallPreference(T_IceGathererInitializeInstallPreference
+
+OrtcIceGathererGather(T_IceGathererGather
+
+OrtcIceGathererStateChangedEventFired(T_BasicWithState
+OrtcIceGathererErrorEventFired(T_BasicWithError
+
+OrtcIceGathererAddCandidateEventFired(T_BasicWithIceCandidate
+OrtcIceGathererRemoveCandidateEventFired(T_BasicWithIceCandidate
+OrtcIceGathererFilterCandidateEventFired(T_IceGathererFilterCandidateEventFired
+
+OrtcIceGathererInstallIceTransport(T_IceGathererInstallIceTransport
+OrtcIceGathererRemoveIceTransport(T_BasicWithIceTransport
+OrtcIceGathererInternalIceTransportStateChangedEventFired(T_BasicWithIceTransport
+
+OrtcIceGathererRemovetAllIceTransportRelatedRoutes(T_BasicWithIceTransport
+OrtcIceGathererSendIceTransportPacket(T_BasicWithRoutedIcePacket
+OrtcIceGathererSendIceTransportPacketFailed(T_BasicWithRoutedIcePacket
+
+OrtcIceGathererSendIceTransportPacketViaUdp(T_IceGathererSendIceTransportPacketViaUdp
+OrtcIceGathererSendIceTransportPacketViaTcp(T_IceGathererSendIceTransportPacketViaTcp
+OrtcIceGathererSendIceTransportPacketViaTurn(T_IceGathererSendIceTransportPacketViaTurn
+
+OrtcIceGathererDeliverIceTransportIncomingPacket(T_IceGathererDeliverIceTransportIncomingPacket
+OrtcIceGathererBufferIceTransportIncomingPacket(T_BasicWithRouterRoutePacket
+
+OrtcIceGathererDeliverIceTransportIncomingStunPacket(T_IceGathererDeliverIceTransportIncomingStunPacket
+OrtcIceGathererBufferIceTransportIncomingStunPacket(T_BasicWithRouterRouteID
+OrtcIceGathererErrorIceTransportIncomingStunPacket(xStr_Method, xPUID, xPUID_IceTransportObjectID, xPUID_RouteID, xPUID_RouterRouteID)
+
+OrtcIceGathererDisposeBufferedIceTransportIncomingPacket(T_BasicWithRouterRoutePacket
+OrtcIceGathererDisposeBufferedIceTransportIncomingStunPacket(T_BasicWithRouterRouteID
+
+OrtcIceGathererTurnSocketReceivedPacket(T_BasicWithTurnSocketPacket
+OrtcIceGathererTurnSocketSendPacket(T_BasicWithTurnSocketPacket
+
+OrtcIceGathererInstallQuickRoute(T_BasicWithCandidatePointerIPAndRoute
+OrtcIceGathererRemoveQuickRoute(T_BasicWithCandidatePointerIPAndRoute
+OrtcIceGathererSearchQuickRoute(T_IceGathererSearchQuickRoute
+
+OrtcIceGathererInternalWakeEventFired(T_BasicObject
+OrtcIceGathererInternalDnsLoookupCompleteEventFired(T_IceGathererInternalDnsLoookupCompleteEventFired
+OrtcIceGathererInternalTimerEventFired(T_IceGathererInternalTimerEventFired
+OrtcIceGathererInternalLikelyReflexiveActivityEventFired(T_IceGathererInternalLikelyReflexiveActivityEventFired
+
+OrtcIceGathererInternalSocketReadReadyEventFired(T_BasicWithRelatedObjectID
+OrtcIceGathererInternalSocketWriteReadyEventFired(T_BasicWithRelatedObjectID
+OrtcIceGathererInternalSocketExceptionEventFired(T_BasicWithRelatedObjectID
+
+OrtcIceGathererInternalBackOffTimerStateChangedEventFired(T_IceGathererInternalBackOffTimerStateChangedEventFired
+
+OrtcIceGathererInternalStunDiscoverySendPacket(T_IceGathererInternalStunDiscoverySendPacket
+OrtcIceGathererInternalStunDiscoveryCompleteEventFired(T_IceGathererInternalStunDiscoveryCompleteEventFired
+
+OrtcIceGathererInternalTurnSocketStateChangeEventFired(T_IceGathererInternalTurnSocketStateChangeEventFired
+
+OrtcIceGathererResolveHostIP(T_IceGathererResolveHostIP
+OrtcIceGathererResolveFoundHostIP(T_IceGathererResolveFoundHostIP
+
+OrtcIceGathererPendingResolveHostIP(T_IceGathererPendingResolveHostIP
+
+OrtcIceGathererHostPortCreate(T_BasicWithHostObjectIDAndHostIP
+OrtcIceGathererHostPortDestroy(T_BasicWithHostObjectIDAndHostIP
+OrtcIceGathererHostPortBind(T_IceGathererHostPortBind
+OrtcIceGathererHostPortClose(T_IceGathererHostPortClose
+
+OrtcIceGathererReflexivePortCreate(T_BasicWithReflexivePortObjectIDAndServer
+OrtcIceGathererReflexivePortDestroy(T_BasicWithReflexivePortObjectIDAndServer
+OrtcIceGathererReflexivePortFoundMapped(T_IceGathererReflexivePortFoundMapped
+
+OrtcIceGathererRelayPortCreate(T_IceGathererRelayPortCreate
+OrtcIceGathererRelayPortDestroy(T_IceGathererRelayPortDestroy
+OrtcIceGathererRelayPortFoundIP(T_IceGathererRelayPortFoundIP
+
+OrtcIceGathererTcpPortCreate(T_BasicWithTcpPortObjectIDAndRemoteIP
+OrtcIceGathererTcpPortDestroy(T_BasicWithTcpPortObjectIDAndRemoteIP
+
+OrtcIceGathererUdpSocketPacketReceivedFrom(T_BasicWithFromIPAndBuffer
+OrtcIceGathererUdpSocketPacketForwardingToTurnSocket(T_IceGathererUdpSocketPacketForwardingToTurnSocket
+OrtcIceGathererUdpSocketPacketSentTo(T_IceGathererUdpSocketPacketSentTo
+
+OrtcIceGathererTcpSocketPacketReceivedFrom(T_BasicWithFromIPAndBuffer
+OrtcIceGathererTcpSocketSentOutgoing(T_BasicWithFromIPAndBuffer
+
+OrtcIceGathererRouteTrace(T_IceGathererRouteTrace
+
+OrtcIceGathererRouterCreate(T_BasicObject
+OrtcIceGathererRouterDestroy(T_BasicObject
+OrtcIceGathererRouterCancel(T_BasicObject
+OrtcIceGathererRouterInternalEvent(T_IceGathererRouterInternalEvent
+
+OrtcIceGathererRouterRouteTrace(T_IceGathererRouterRouteTrace
+
+OrtcIceTransportCreate(T_IceTransportCreate
+OrtcIceTransportDestroy(T_BasicObject
+OrtcIceTransportStep(T_BasicObject
+OrtcIceTransportCancel(T_BasicObject
+
+OrtcIceTransportRouteStateTrackerStateCountChange(T_IceTransportRouteStateTrackerStateCountChange
+
+OrtcIceTransportStart(T_IceTransportStart
+OrtcIceTransportCreateAssociatedTransport(T_IceTransportCreateAssociatedTransport
+
+OrtcIceTransportAddRemoteCandidate(T_IceTransportAddRemoteCandidate
+OrtcIceTransportAddRemoteCandidateComplete(T_BasicObject
+OrtcIceTransportRemoveRemoteCandidate(T_IceTransportRemoveRemoteCandidate
+OrtcIceTransportRemoveRemoteCandidateComplete(T_BasicObject
+
+OrtcIceTransportKeepWarm(T_IceTransportKeepWarm
+
+OrtcIceTransportStateChangedEventFired(T_BasicWithState
+OrtcIceTransportErrorEventFired(T_BasicWithError
+OrtcIceTransportCandidatePairChangedEventFired(T_BasicWithRouteID
+
+OrtcIceTransportRouteTrace(T_IceTransportRouteTrace
+
+OrtcIceTransportReceivedPacketFromGatherer(T_IceTransportReceivedPacketFromGatherer
+OrtcIceTransportReceivedStunPacketFromGatherer(T_BasicWithRouterRouteID
+OrtcIceTransportRetryReceivedStunPacketFromGatherer(T_BasicWithRouterRouteID
+
+OrtcIceTransportBufferingIncomingPacket(T_BasicWithBuffer
+OrtcIceTransportDisposingBufferedIncomingPacket(T_BasicWithBuffer
+OrtcIceTransportDeliveringBufferedIncomingPacketToSecureTransport(T_BasicWithSecureTransportObjectIDAndBuffer
+
+OrtcIceTransportDeliveringIncomingPacketToSecureTransport(T_BasicWithSecureTransportObjectIDAndBuffer
+OrtcIceTransportDeliveringIncomingStunPacketToSecureTransport(T_BasicWithSecureTransportObjectID
+
+OrtcIceTransportInstallFoundation(T_BasicWithWithLocalAndRemoteFoundationAndTotalRoutes
+OrtcIceTransportRemoveFoundation(T_BasicWithWithLocalAndRemoteFoundationAndTotalRoutes
+OrtcIceTransportInstallFoundationDependencyFreezePromise(T_IceTransportInstallFoundationDependencyFreezePromise
+
+OrtcIceTransportSecureTransportSendPacket(T_BasicWithBuffer
+OrtcIceTransportForwardSecureTransportPacketToGatherer(T_BasicWithIceGatherObjectIDAndBuffer
+
+OrtcIceTransportSendStunPacket(T_BasicWithIceGatherObjectIDAndBuffer
+
+OrtcIceTransportInternalControllerAttachedEventFired(T_BasicWithIceTransportControllerObjectID
+OrtcIceTransportInternalControllerDetachedEventFired(T_BasicWithIceTransportControllerObjectID
+
+OrtcIceTransportInternalSecureTransportAttachedEventFired(T_BasicWithSecureTransportObjectID
+OrtcIceTransportInternalSecureTransportDetachedEventFired(T_BasicWithSecureTransportObjectID
+
+OrtcIceTransportInternalWarmRoutesChangedEventFired(T_BasicObject
+OrtcIceTransportInternalDeliveryPendingPacketsEventFired(T_BasicObject
+
+OrtcIceTransportInternalWakeEventFired(T_BasicObject
+OrtcIceTransportInternalTimerEventFired(T_BasicWithTimerObjectIDAndTimerType
+
+OrtcIceTransportInternalUnfrozenPromiseEventFired(T_BasicWithRouteID
+
+OrtcIceTransportInternalGathererStateChangedEventFired(T_IceTransportInternalGathererStateChangedEventFired
+OrtcIceTransportInternalGathererAddLocalCandidateEventFired(T_BasicWithIceGathererObjectIDAndIceCandidate
+OrtcIceTransportInternalGathererAddLocalCandidateCompleteEventFired(xStr_Method, xPUID, xPUID_IceGathererObjectID)
+OrtcIceTransportInternalGathererRemoveLocalCandidateEventFired(T_BasicWithIceGathererObjectIDAndIceCandidate
+
+OrtcIceTransportInternalStunRequesterCreate(T_BasicWithStunRequesterObjectID
+OrtcIceTransportInternalStunRequesterSendPacket(T_IceTransportInternalStunRequesterSendPacket
+OrtcIceTransportInternalStunRequesterReceivedResponse(T_IceTransportInternalStunRequesterReceivedResponse
+OrtcIceTransportInternalStunRequesterReceivedResponseMismatch(T_IceTransportInternalStunRequesterReceivedResponse
+OrtcIceTransportInternalStunRequesterTimedOut(T_BasicWithStunRequesterObjectID
+
+OrtcIceTransportInternalRoleConflictDetectedEventFired(T_IceTransportInternalRoleConflictDetectedEventFired
+
+OrtcIceTransportControllerCreate(T_BasicObject
+OrtcIceTransportControllerDestroy(T_BasicObject
+OrtcIceTransportControllerCancel(T_BasicObject
+OrtcIceTransportControllerStep(T_BasicObject
+
+OrtcIceTransportControllerInternalWakeEventFired(T_BasicObject
+OrtcIceTransportControllerInternalTransportAttachedEventFired(T_IceTransportControllerInternalTransportAttachedEventFired
+OrtcIceTransportControllerInternalTransportDetachedEventFired(T_IceTransportControllerInternalTransportDetachedEventFired
+
+OrtcIceTransportControllerWaitUntilUnfrozen(T_BasicWithIceTransportObjectIDAndLocalAndRemoteFoundation
+OrtcIceTransportControllerNoNeedToWaitUntilUnfrozen(T_BasicWithIceTransportObjectIDAndLocalAndRemoteFoundation
+
+OrtcRtpListenerCreate(T_RtpListenerCreate
+OrtcRtpListenerDestroy(T_BasicObject
+OrtcRtpListenerCancel(T_BasicObject
+OrtcRtpListenerStep(T_BasicObject
+OrtcRtpListenerFindMapping(T_RtpListenerFindMapping
+OrtcRtpListenerFoundMappingByMuxID(T_RtpListenerFoundMappingByMuxID
+OrtcRtpListenerFoundMappingBySsrc(T_RtpListenerFoundMappingBySsrc
+OrtcRtpListenerFoundMappingByPayloadType(T_RtpListenerFoundMappingByPayloadType
+
+OrtcRtpListenerStateChangedEventFired(T_BasicWithState
+OrtcRtpListenerErrorEventFired(T_BasicWithError
+OrtcRtpListenerUnhandledEventFired(T_BasicWithUnhandledRtp
+
+OrtcRtpListenerRegisterHeaderExtension(T_BasicWithRegisteredHeaderExtension
+OrtcRtpListenerUnregisterHeaderExtension(T_BasicWithRegisteredHeaderExtension
+
+OrtcRtpListenerReceivedIncomingPacket(T_BasicWithRtpPacket
+OrtcRtpListenerBufferIncomingPacket(T_BasicWithRtpPacket
+OrtcRtpListenerForwardIncomingPacket(T_RtpListenerForwardIncomingPacket
+OrtcRtpListenerDisposeBufferedIncomingPacket(T_RtpListenerDisposeBufferedIncomingPacket
+
+OrtcRtpListenerRegisterReceiver(T_RtpListenerRegisterReceiver
+OrtcRtpListenerUnregisterReceiver(T_RtpListenerUnregisterReceiver
+
+OrtcRtpListenerRegisterSender(T_BasicWithRtpSenderObjectID
+OrtcRtpListenerUnregisterSender(T_BasicWithRtpSenderObjectID
+
+OrtcRtpListenerInternalWakeEventFired(T_BasicObject
+OrtcRtpListenerInternalTimerEventFired(T_BasicWithTimerObjectIDAndTimerType
+
+OrtcRtpListenerSsrcTableEntryAdded(T_BasicWithRtpReceiverObjectIDAndSsrcTableEntry
+OrtcRtpListenerSsrcTableEntryRemoved(T_RtpListenerSsrcTableEntryRemoved
+OrtcRtpListenerSsrcTableEntryUpdated(T_BasicWithRtpReceiverObjectIDAndSsrcTableEntry
+
+OrtcRtpReceiverCreate(T_RtpReceiverCreate
+OrtcRtpReceiverDestroy(T_BasicObject
+OrtcRtpReceiverStep(T_BasicObject
+OrtcRtpReceiverCancel(T_BasicObject
+
+OrtcRtpReceiverSetTransport(T_BasicWithRtpListenerObjectIDAndRtpRtcpTransportObjectID
+
+OrtcRtpReceiverReportRtcpFeedback(T_RtpReceiverReportRtcpFeedback
+OrtcRtpReceiverReportCodec(T_RtpReceiverReportCodec
+OrtcRtpReceiverReportHeaderExtension(T_RtpReceiverReportHeaderExtension
+
+OrtcRtpReceiverReceive(xStr_Method, xPUID, xPUID_MediaStreamTrackObjectID)
+OrtcRtpReceiverStop(T_BasicObject
+
+OrtcRtpReceiverAddChannel(T_BasicWithChannelObjectID
+OrtcRtpReceiverUpdateChannel(T_BasicWithChannelObjectID
+OrtcRtpReceiverRemoveChannel(T_BasicWithChannelObjectID
+
+OrtcRtpReceiverAddContributingSource(T_BasicWithCsrc
+OrtcRtpReceiverUpdateContributingSource(T_BasicWithCsrc
+OrtcRtpReceiverRemoveContributingSource(T_BasicWithCsrc
+
+OrtcRtpReceivedIncomingPacket(T_BasicWithPacket
+OrtcRtpReceiverDeliverIncomingPacketToChannel(T_BasicWithChannelObjectIDAndPacket
+
+OrtcRtpReceiverSendOutgoingPacket(T_BasicWithPacket
+
+OrtcRtpReceiverInternalSecureTransportStateChangedEventFired(T_BasicWithState
+OrtcRtpReceiverInternalWakeEventFired(T_BasicObject
+OrtcRtpReceiverInternalTimerEventFired(T_BasicWithTimerID
+OrtcRtpReceiverInternalChannelGoneEventFired(T_BasicObject
+
+OrtcRtpReceiverStateChangedEventFired(T_BasicWithState
+OrtcRtpReceiverErrorEventFired(T_BasicWithError
+
+OrtcRtpReceiverRegisterHeaderExtension(T_RtpReceiverRegisterHeaderExtension
+
+OrtcRtpReceiverSsrcTableEntryAdded(T_BasicWithChannelObjectIDAndSsrcAndRid
+OrtcRtpReceiverSsrcTableEntryRemoved(T_RtpReceiverSsrcTableEntryRemoved
+OrtcRtpReceiverSsrcTableEntryUpdated(T_BasicWithChannelObjectIDAndSsrcAndRid
+
+OrtcRtpReceiverFindMapping(T_RtpReceiverFindMapping
+OrtcRtpReceiverFoundMappingByRid(T_RtpReceiverFoundMappingByRid
+OrtcRtpReceiverFoundMappingBySsrc(T_RtpReceiverFoundMappingBySsrc
+OrtcRtpReceiverFoundMappingByPayloadType(T_RtpReceiverFoundMappingByPayloadType
+
+OrtcRtpReceiverCreateChannelT_BasicWithChannelObjectID
+OrtcRtpReceiverCloseChannel(T_BasicWithChannelObjectID
+
+OrtcRtpReceiverUnhandledEventFired(T_BasicWithUnhandledRtp
+
+OrtcRtpReceiverTrackActiveChannelChangedEventFired(T_RtpReceiverTrackActiveChannelChangedEventFired
+
+OrtcRtpSenderCreate(T_RtpSenderCreate
+OrtcRtpSenderDestroy(T_BasicObject
+OrtcRtpSenderCancel(T_BasicObject
+
+OrtcRtpSenderSetTransport(T_BasicWithRtpListenerObjectIDAndRtpRtcpTransportObjectID
+OrtcRtpSenderSetTrack(T_RtpSenderSetTrack
+
+OrtcRtpSenderAttachTrackSenderChannel(T_BasicWithMediaStreamTrackObjectIDAndChannelObjectID
+OrtcRtpSenderDetachTrackSenderChannel(T_BasicWithMediaStreamTrackObjectIDAndChannelObjectID
+
+OrtcRtpSenderSender(T_BasicObject
+OrtcRtpSenderStop(T_BasicObject
+
+OrtcRtpSenderStateChangedEventFired(T_BasicWithState
+OrtcRtpSenderErrorEventFired(T_BasicWithError
+
+OrtcRtpSenderAddChannel(T_BasicWithChannelObjectID
+OrtcRtpSenderUpdateChannel(T_BasicWithChannelObjectID
+OrtcRtpSenderRemoveChannel(T_BasicWithChannelObjectID
+
+OrtcRtpSenderIncomingPacket(T_BasicWithPacket
+OrtcRtpSenderDeliverIncomingPacketToChannel(T_BasicWithChannelObjectIDAndPacket
+
+OrtcRtpSenderSendOutgoingPacket(T_BasicWithPacket
+
+OrtcRtpSenderSsrcConflictEventFired(T_RtpSenderSsrcConflictEventFired
+OrtcRtpSenderChannelErrorEventFired(T_RtpSenderChannelErrorEventFired
+
+OrtcRtpSenderInternalSecureTransportStateChangedEventFired(T_RtpSenderInternalSecureTransportStateChangedEventFired
+OrtcRtpSenderInternalWakeEventFired(T_BasicObject
+OrtcRtpSenderInternalDestroyChannelEventFired(T_BasicWithChannelObjectID
+OrtcRtpSenderInternalChannelGoneEventFired(T_BasicObject
+
+OrtcRtpReceiverChannelCreate(T_RtpReceiverChannelCreate
+OrtcRtpReceiverChannelDestroy(T_BasicObject
+
+OrtcRtpReceiverChannelCreateMediaChannel(T_BasicWithMediaChannelObjectIDAndKind
+
+OrtcRtpReceiverChannelDeliverIncomingPacketToMediaChannel(T_BasicWithMediaChannelObjectIDAndPacketTypeAndBuffer
+OrtcRtpReceiverChannelSendOutgoingPacket(T_RtpReceiverChannelSendOutgoingPacket
+
+OrtcRtpReceiverChannelInternalSecureTransportStateChangedEventFired(T_BasicWithState
+
+OrtcRtpReceiverChannelInternalUpdateEventFired(T_BasicObject
+
+OrtcRtpSenderChannelCreate(T_RtpSenderChannelCreate
+OrtcRtpSenderChannelDestroy(T_BasicObject
+
+OrtcRtpSenderChannelCreateMediaChannel(T_BasicWithMediaChannelObjectIDAndKind
+OrtcRtpSenderChannelChangeTrack(T_RtpSenderChannelChangeTrack
+
+OrtcRtpSenderChannelDeliverIncomingPacketToMediaChannel(T_BasicWithMediaChannelObjectIDAndPacketTypeAndBuffer
+OrtcRtpSenderChannelSendOutgoingPacket(T_RtpSenderChannelSendOutgoingPacket
+
+OrtcRtpSenderChannelInternalSecureTransportStateChangedEventFired(T_BasicWithState
+
+OrtcRtpSenderChannelInternalUpdateEventFired(T_BasicObject
+
+OrtcSctpInitCreate(T_BasicObject
+OrtcSctpInitDestroy(T_BasicObject
+OrtcSctpInitCancel(T_BasicObject
+
+OrtcSctpTransportCreate(T_SctpTransportCreate
+OrtcSctpTransportDestroy(T_BasicObject
+OrtcSctpTransportCancel(T_BasicObject
+OrtcSctpTransportStep(T_BasicObject
+
+OrtcSctpTransportStart(T_SctpTransportStart
+OrtcSctpTransportStop(T_BasicObject
+
+OrtcSctpTransportRegisterNewDataChannel(T_BasicWithDataChannelObjectIDAndSessionID
+
+OrtcSctpTransportDataChannelEventFired(T_SctpTransportDataChannelEventFired
+OrtcSctpTransportStateChangedEventFired(T_BasicWithState
+OrtcSctpTransportErrorEventFired(T_BasicWithError
+
+OrtcSctpTransportReceivedIncomingPacket(T_SctpTransportReceivedIncomingPacket
+OrtcSctpTransportDeliverIncomingPacket(T_SctpTransportDeliverIncomingPacket
+OrtcSctpTransportSendOutgoingPacket(T_SctpTransportSendOutgoingPacket
+OrtcSctpTransportShutdownDataChannel(T_BasicWithDataChannelObjectIDAndSessionID
+
+OrtcSctpTransportReceivedIncomingDataPacket(T_BasicWithBuffer
+OrtcSctpTransportBufferIncomingDataPacket(T_BasicWithBuffer
+OrtcSctpTransportDisposeBufferedIncomingDataPacket(T_BasicWithBuffer
+OrtcSctpTransportSendOutgoingDataPacket(T_BasicWithSecureTransportObjectIDAndBuffer
+
+OrtcSctpTransportInternalWakeEventFired(T_BasicObject
+OrtcSctpTransportInternalShutdownEventFired(T_BasicObject
+OrtcSctpTransportInternalSecureTransportStateChangedEventFired(T_SctpTransportInternalSecureTransportStateChangedEventFired
+
+OrtcSctpTransportListenerCreate(T_SctpTransportListenerCreate
+OrtcSctpTransportListenerDestroy(T_BasicObject
+OrtcSctpTransportListenerCancel(T_BasicObject
+OrtcSctpTransportListenerStep(T_BasicObject
+
+OrtcSctpTransportListenerListen(T_SctpTransportListenerListen
+OrtcSctpTransportListenerRegisterNewTransport(T_SctpTransportListenerRegisterNewTransport
+
+OrtcSctpTransportListenerSctpTransportCreatedEventFired(T_BasicWithSctpTransportObjectIDAndLocalAndRemotePort
+OrtcSctpTransportListenerSctpTransportEventFired(T_BasicWithSctpTransportObjectIDAndLocalAndRemotePort
+OrtcSctpTransportListenerSctpTransportShutdownEventFired(T_BasicWithSctpTransportObjectIDAndLocalAndRemotePort
+
+OrtcSctpTransportListenerReceivedIncomingDataPacket(T_BasicWithBuffer
+OrtcSctpTransportListenerDeliverIncomingDataPacket(T_SctpTransportListenerDeliverIncomingDataPacket
+
+OrtcSrtpTransportCreate(T_BasicWithSecureTransportObjectID
+OrtcSrtpTransportDestroy(T_BasicObject
+
+OrtcSrtpTransportInstallKeyingMaterial(T_SrtpTransportInstallKeyingMaterial
+OrtcSrtpTransportReceivedIncomingEncryptedPacket(T_BasicWithRtpPacket
+OrtcSrtpTransportDeliverIncomingDecryptedPacket(T_SrtpTransportDeliverIncomingDecryptedPacket
+
+OrtcSrtpTransportSendOutgoingPacketAndEncrypt(T_SrtpTransportSendOutgoingPacketAndEncrypt
+OrtcSrtpTransportSendOutgoingEncryptedPacketViaSecureTransport(T_SrtpTransportSendOutgoingEncryptedPacketViaSecureTransport
+
+
         </events>
       </provider>
 
@@ -61,39 +1866,50 @@
   <localization>
     <resources culture="en-US">
       <stringTable>
-        <string id="OrtcLib.ProviderMessage" value="OrtcLib Provider"/>
+        <string id="OrtcLib.ProviderMessage" value="OrtcLib Provider" />
 
-        <string id="level.Critical" value="Critical"/>
-        <string id="level.Error" value="Error"/>
-        <string id="level.Warning" value="Warning"/>
-        <string id="level.Informational" value="Informational"/>
-        <string id="level.Verbose" value="Verbose"/>
+        <string id="level.Critical" value="Critical" />
+        <string id="level.Error" value="Error" />
+        <string id="level.Warning" value="Warning" />
+        <string id="level.Informational" value="Informational" />
+        <string id="level.Verbose" value="Verbose" />
 
-        <string id="Channel.OrtcLibDebug" value="OrtcLib Debug Channel"/>
+        <string id="Channel.OrtcLibDebug" value="OrtcLib Debug Channel" />
 
-        <string id="Task.Ortc" value="Ortc"/>
-        <string id="Task.Certificate" value="Certificate"/>
+        <string id="Task.Ortc" value="Ortc" />
+        <string id="Task.Certificate" value="Certificate" />
 
-        <string id="Task.DataChannel" value="DataChannel"/>
-        <string id="Task.DtlsTransport" value="DtlsTransport"/>
-        <string id="Task.IceGatherer" value="IceGatherer"/>
-        <string id="Task.IceGathererRouter" value="IceGathererRouter"/>
-        <string id="Task.IceTransport" value="IceTransport"/>
-        <string id="Task.RtpListener" value="RtpListener"/>
-        <string id="Task.RtpReceiver" value="RtpReceiver"/>
-        <string id="Task.RtpSender" value="RtpSender"/>
-        <string id="Task.SctpInit" value="SctpInit"/>
-        <string id="Task.SctpTransport" value="SctpTransport"/>
-        <string id="Task.SctpTransportListener" value="SctpTransportListener"/>
-        <string id="Task.SrtpTransport" value="SrtpTransport"/>
+        <string id="Task.DataChannel" value="DataChannel" />
+        <string id="Task.DtlsTransport" value="DtlsTransport" />
+        <string id="Task.IceGatherer" value="IceGatherer" />
+        <string id="Task.IceGathererRouter" value="IceGathererRouter" />
+        <string id="Task.IceTransport" value="IceTransport" />
+        <string id="Task.RtpListener" value="RtpListener" />
+        <string id="Task.RtpReceiver" value="RtpReceiver" />
+        <string id="Task.RtpReceiverChannel" value="Task.RtpReceiverChannel" />
+        <string id="Task.RtpSender" value="RtpSender" />
+        <string id="Task.RtpSenderChannel" value="RtpSenderChannel" />
+        <string id="Task.SctpInit" value="SctpInit" />
+        <string id="Task.SctpTransport" value="SctpTransport" />
+        <string id="Task.SctpTransportListener" value="SctpTransportListener" />
+        <string id="Task.SrtpTransport" value="SrtpTransport" />
 
-        <string id="Opcode.Cancel" value="Cancel"/>
-        <string id="Opcode.Event" value="Event"/>
-        <string id="Opcode.StateEvent" value="StateEvent"/>
-        <string id="Opcode.InternalEvent" value="InternalEvent"/>
+        <string id="Opcode.Initialization" value="Initialization" />
+        <string id="Opcode.Cancel" value="Cancel" />
+        <string id="Opcode.Close" value="Close" />
+        <string id="Opcode.Step" value="Step" />
+        <string id="Opcode.Buffer" value="Buffer" />
+        <string id="Opcode.Dispose" value="Dispose" />
+        <string id="Opcode.Deliver" value="Deliver" />
+        <string id="Opcode.Event" value="Event" />
+        <string id="Opcode.ErrorEvent" value="ErrorEvent" />
+        <string id="Opcode.StateEvent" value="StateEvent" />
+        <string id="Opcode.InternalEvent" value="InternalEvent" />
 
-        <string id="Event.OrtcCreate" value="OrtcCreate"/>
-        <string id="Event.OrtcDestroy" value="OrtcDestroy"/>
+        <string id="Opcode.DataChannel.Send" value="Send" />
+
+        <string id="Event.OrtcCreate" value="OrtcCreate" />
+        <string id="Event.OrtcDestroy" value="OrtcDestroy" />
 
       </stringTable>
     </resources>

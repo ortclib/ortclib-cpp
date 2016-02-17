@@ -2408,7 +2408,7 @@ namespace ortc
       setSSRCUsage(rtpPacket.ssrc(), inRID, outChannelHolder);
       if (!outChannelInfo) return false;
 
-      EventWriteOrtcRtpReceiverFoundMappingByRID(__func__, mID, ((bool)outChannelHolder) ? outChannelHolder->getID() : 0, rid);
+      EventWriteOrtcRtpReceiverFoundMappingByRid(__func__, mID, ((bool)outChannelHolder) ? outChannelHolder->getID() : 0, rid);
       return true;
     }
 
