@@ -175,33 +175,44 @@ namespace ortc
       webrtc::VideoEncoderConfig encoderConfig;
       std::map<uint32_t, webrtc::RtpState> suspendedSSRCs;
 
-      webrtc::VideoCodecType type = webrtc::kVideoCodecVP8;
-      webrtc::VideoEncoder* videoEncoder = webrtc::VideoEncoder::Create(webrtc::VideoEncoder::kVp8);
+      IRTPTypes::CodecParametersList::iterator codecIter = mParameters->mCodecs.begin();
+      while (codecIter != mParameters->mCodecs.end()) {
+        auto supportedCodec = IRTPTypes::toSupportedCodec(codecIter->mName);
+        if (IRTPTypes::SupportedCodec_VP8 == supportedCodec) {
+          webrtc::VideoCodecType type = webrtc::kVideoCodecVP8;
+          webrtc::VideoEncoder* videoEncoder = webrtc::VideoEncoder::Create(webrtc::VideoEncoder::kVp8);
+          config.encoder_settings.encoder = videoEncoder;
+          config.encoder_settings.payload_name = codecIter->mName;
+          config.encoder_settings.payload_type = codecIter->mPayloadType;
+          webrtc::VideoStream stream;
+          stream.width = 640;
+          stream.height = 480;
+          stream.max_framerate = 30;
+          stream.min_bitrate_bps = 30000;
+          stream.target_bitrate_bps = 2000000;
+          stream.max_bitrate_bps = 2000000;
+          stream.max_qp = 56;
+          webrtc::VideoCodecVP8 videoCodec = webrtc::VideoEncoder::GetDefaultVp8Settings();
+          videoCodec.automaticResizeOn = true;
+          videoCodec.denoisingOn = true;
+          videoCodec.frameDroppingOn = true;
+          encoderConfig.min_transmit_bitrate_bps = 0;
+          encoderConfig.content_type = webrtc::VideoEncoderConfig::ContentType::kRealtimeVideo;
+          encoderConfig.streams.push_back(stream);
+          encoderConfig.encoder_specific_settings = &videoCodec;
+          break;
+        }
+        codecIter++;
+      }
 
-      config.encoder_settings.encoder = videoEncoder;
-      config.encoder_settings.payload_name = "VP8";
-      config.encoder_settings.payload_type = 100;
-      config.rtp.c_name = "test-cname";
+      IRTPTypes::EncodingParametersList::iterator encodingParamIter = mParameters->mEncodingParameters.begin();
+      while (encodingParamIter != mParameters->mEncodingParameters.end()) {
+        if (encodingParamIter->mCodecPayloadType == config.encoder_settings.payload_type) {
+          config.rtp.ssrcs.push_back(encodingParamIter->mSSRC);
+        }
+      }
+
       config.rtp.nack.rtp_history_ms = 1000;
-      config.rtp.ssrcs.push_back(1000);
-
-      webrtc::VideoStream stream;
-      stream.width = 640;
-      stream.height = 480;
-      stream.max_framerate = 30;
-      stream.min_bitrate_bps = 30000;
-      stream.target_bitrate_bps = 2000000;
-      stream.max_bitrate_bps = 2000000;
-      stream.max_qp = 56;
-      webrtc::VideoCodecVP8 videoCodec = webrtc::VideoEncoder::GetDefaultVp8Settings();
-      videoCodec.automaticResizeOn = true;
-      videoCodec.denoisingOn = true;
-      videoCodec.frameDroppingOn = true;
-
-      encoderConfig.min_transmit_bitrate_bps = 0;
-      encoderConfig.content_type = webrtc::VideoEncoderConfig::ContentType::kRealtimeVideo;
-      encoderConfig.streams.push_back(stream);
-      encoderConfig.encoder_specific_settings = &videoCodec;
 
       mSendStream = rtc::scoped_ptr<webrtc::VideoSendStream>(
         new webrtc::internal::VideoSendStream(

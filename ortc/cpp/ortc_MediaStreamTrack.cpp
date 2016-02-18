@@ -147,7 +147,7 @@ namespace ortc
       mRemote(remote),
       mConstraints(constraints),
       mVideoCaptureModule(NULL),
-      mVideoRenderModule(NULL),
+      //mVideoRenderModule(NULL),
       mVideoRendererCallback(NULL),
       mAudioDeviceModule(NULL)
     {
@@ -163,7 +163,7 @@ namespace ortc
       mTransport = Transport::create(mThisWeak.lock());
 
       if (mKind == Kind_Video && !mRemote) {
-        String videoDeviceID = mConstraints->mAdvanced.front()->mDeviceID.mValue.value().mValue.value();
+        String videoDeviceID = mConstraints->mDeviceID.mValue.value().mValue.value();
         mVideoCaptureModule = webrtc::VideoCaptureFactory::Create(0, videoDeviceID.c_str());
         if (!mVideoCaptureModule) {
           return;
@@ -587,8 +587,8 @@ namespace ortc
         mVideoCaptureModule->DeRegisterCaptureDataCallback();
       }
 
-      if (mVideoRenderModule)
-        mVideoRenderModule->StopRender(1);
+      //if (mVideoRenderModule)
+      //  mVideoRenderModule->StopRender(1);
 
       if (mAudioDeviceModule) {
         if (!mRemote)
@@ -645,11 +645,10 @@ namespace ortc
       AutoRecursiveLock lock(*this);
 
       if (mKind == Kind_Video) {
-        mVideoRenderModule = webrtc::VideoRender::CreateVideoRender(1, element, false);
-
-        mVideoRendererCallback = mVideoRenderModule->AddIncomingRenderStream(1, 0, 0.0, 0.0, 1.0, 1.0);
-
-        mVideoRenderModule->StartRender(1);
+        //mVideoRenderModule = webrtc::VideoRender::CreateVideoRender(1, element, false);
+        //mVideoRendererCallback = mVideoRenderModule->AddIncomingRenderStream(1, 0, 0.0, 0.0, 1.0, 1.0);
+        //mVideoRenderModule->StartRender(1);
+        mVideoRendererCallback = (webrtc::VideoRenderCallback*)element;
       }
     }
 
