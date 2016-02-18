@@ -44,6 +44,9 @@
 // NO-OP VERSIONS OF ALL TRACING MACROS
 #ifdef ORTC_USE_NOOP_EVENT_TRACE_MACROS
 
+#define EventRegisterOrtcLib()
+#define EventUnregisterOrtcLib()
+
 #define EventWriteOrtcCreate(xStr_Method, xPUID)
 #define EventWriteOrtcDestroy(xStr_Method, xPUID)
 
@@ -510,6 +513,9 @@
 // duplicate testing compilation methods used to verify compilation when macros get defined
 namespace ortc
 {
+
+inline void EventRegisterOrtcLib() {}
+inline void EventUnregisterOrtcLib() {}
 
 inline void EventWriteOrtcCreate(const char *xStr_Method, PUID xPUID) {}
 inline void EventWriteOrtcDestroy(const char *xStr_Method, PUID xPUID) {}
