@@ -979,7 +979,7 @@ namespace ortc
         }
 
         if (add) {
-          EventWriteOrtcRtpReceiverReportHeaderExtension(__func__, zsLib::to_underlying(ext.mKind, ext.mURI), ext.mPreferredID, ext.mPreferredEncrypt);
+          EventWriteOrtcRtpReceiverReportHeaderExtension(__func__, ext.mKind, ext.mURI, ext.mPreferredID, ext.mPreferredEncrypt);
           result->mHeaderExtensions.push_back(ext);
         }
       }
