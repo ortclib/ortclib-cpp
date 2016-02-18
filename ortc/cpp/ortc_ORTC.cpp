@@ -99,6 +99,7 @@ namespace ortc
     ORTC::ORTC(const make_private &) :
       SharedRecursiveLock(SharedRecursiveLock::create())
     {
+      EventRegisterOrtcLib();
       EventWriteOrtcCreate(__func__, mID);
 
       initSubsystems();
@@ -114,6 +115,7 @@ namespace ortc
       ZS_LOG_DETAIL(log("destroyed"))
 
       EventWriteOrtcDestroy(__func__, mID);
+      EventUnregisterOrtcLib();
     }
 
     //-------------------------------------------------------------------------
