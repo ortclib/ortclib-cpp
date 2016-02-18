@@ -559,7 +559,7 @@ namespace ortc
 
         Fingerprint fingerprint;
         fingerprint.mAlgorithm = algorithms[loop];
-
+		
         String output = UseServicesHelper::convertToHex(*buffer);
 
         for (String::size_type pos = 0; pos < output.size(); pos += 2) {
@@ -569,7 +569,11 @@ namespace ortc
           fingerprint.mValue += output.substr(pos, 2);
         }
         EventWriteOrtcCertificateFingerprint(__func__, mID, fingerprint.mAlgorithm, fingerprint.mValue);
-        return result;
+
+		result->mAlgorithm = fingerprint.mAlgorithm;
+		result->mValue = fingerprint.mValue;
+		
+		return result;
       }
 
       return result;
