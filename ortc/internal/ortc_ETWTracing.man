@@ -12,14 +12,14 @@
           guid="{ad26f2e3-b292-483b-a5de-8349a6aac310}"
           name="OrtcLib"
           message="$(string.OrtcLib.ProviderMessage)"
-          symbol="ORTC_SERVICES_PROVIDER_GUID"
-          messageFileName="services_ETWTracing.dll"
-          resourceFileName="services_ETWTracing.dll" >
+          symbol="ORTC_LIB_PROVIDER_GUID"
+          messageFileName="ortc_ETWTracing.dll"
+          resourceFileName="ortc_ETWTracing.dll">
         <channels>
           <channel chid="ol"
                  name="OrtcLib/Debug"
                  type="Debug"
-                 symbol="CHANNEL_ORTC_SERVICES_DEBUG"
+                 symbol="CHANNEL_ORTC_LIB_DEBUG"
                  message="$(string.Channel.OrtcLibDebug)" />
         </channels>
         <tasks>

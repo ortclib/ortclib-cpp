@@ -945,6 +945,7 @@ namespace ortc
         IRTPTypes::HeaderExtension ext;
 
         ext.mPreferredID = preference;
+        ext.mURI = IRTPTypes::toString(index);
 
         bool add = true;
 

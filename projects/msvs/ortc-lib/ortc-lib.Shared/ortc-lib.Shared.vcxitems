@@ -71,6 +71,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_SRTPSDESTransport.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_SRTPTransport.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_StatsReport.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_Tracing.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\platform.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\types.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\IORTC.h" />
