@@ -1549,6 +1549,7 @@
           <event symbol="OrtcIceGathererGather" channel="ol" template="T_IceGathererGather" task="IceGatherer" opcode="Gather" value="1408" level="win:Informational" message="$(string.Event.OrtcIceGathererGather)" />
 
           <event symbol="OrtcIceGathererStateChangedEventFired" channel="ol" template="T_BasicWithState" task="IceGatherer" opcode="StateEvent" value="1409" level="win:Informational" message="$(string.Event.OrtcIceGathererStateChangedEventFired)" />
+          <event symbol="OrtcIceGathererErrorEventFired" channel="ol" template="T_BasicWithError" task="IceGatherer" opcode="ErrorEvent" value="1409" level="win:Informational" message="$(string.Event.OrtcIceGathererErrorEventFired)" />
 
           <event symbol="OrtcIceGathererAddCandidateEventFired" channel="ol" template="T_BasicWithIceCandidate" task="IceGatherer" opcode="Event" value="1410" level="win:Informational" message="$(string.Event.OrtcIceGathererAddCandidateEventFired)" />
           <event symbol="OrtcIceGathererRemoveCandidateEventFired" channel="ol" template="T_BasicWithIceCandidate" task="IceGatherer" opcode="Event" value="1411" level="win:Informational" message="$(string.Event.OrtcIceGathererRemoveCandidateEventFired)" />
@@ -2066,6 +2067,7 @@
         <string id="Event.OrtcIceGathererInitializeInstallPreference" value="OrtcIceGathererInitializeInstallPreference" />
         <string id="Event.OrtcIceGathererGather" value="OrtcIceGathererGather" />
         <string id="Event.OrtcIceGathererStateChangedEventFired" value="OrtcIceGathererStateChangedEventFired" />
+        <string id="Event.OrtcIceGathererErrorEventFired" value="OrtcIceGathererErrorEventFired" />
         <string id="Event.OrtcIceGathererAddCandidateEventFired" value="OrtcIceGathererAddCandidateEventFired" />
         <string id="Event.OrtcIceGathererRemoveCandidateEventFired" value="OrtcIceGathererRemoveCandidateEventFired" />
         <string id="Event.OrtcIceGathererFilterCandidateEventFired" value="OrtcIceGathererFilterCandidateEventFired" />
