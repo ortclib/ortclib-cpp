@@ -2090,6 +2090,7 @@
         <string id="Event.OrtcIceGathererTurnSocketSendPacket" value="OrtcIceGathererTurnSocketSendPacket" />
         <string id="Event.OrtcIceGathererInstallQuickRoute" value="OrtcIceGathererInstallQuickRoute" />
         <string id="Event.OrtcIceGathererRemoveQuickRoute" value="OrtcIceGathererRemoveQuickRoute" />
+        <string id="Event.OrtcIceGathererSearchQuickRoute" value="Event.OrtcIceGathererSearchQuickRoute" />
         <string id="Event.OrtcIceGathererInternalWakeEventFired" value="OrtcIceGathererInternalWakeEventFired" />
         <string id="Event.OrtcIceGathererInternalDnsLoookupCompleteEventFired" value="OrtcIceGathererInternalDnsLoookupCompleteEventFired" />
         <string id="Event.OrtcIceGathererInternalTimerEventFired" value="OrtcIceGathererInternalTimerEventFired" />
