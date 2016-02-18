@@ -1134,7 +1134,7 @@
           <template tid="T_RtpReceiverReportHeaderExtension">
             <data inType="win:AnsiString" name="Method" />
             <data inType="win:AnsiString" name="Kind" />
-            <data inType="win:UInt64"     name="Uri" />
+            <data inType="win:AnsiString" name="Uri" />
             <data inType="win:UInt16"     name="PreferredID" />
             <data inType="win:Boolean"    name="PreferredEncrypted" />
           </template>
