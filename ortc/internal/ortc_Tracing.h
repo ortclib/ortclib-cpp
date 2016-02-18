@@ -400,7 +400,7 @@
 #define EventWriteOrtcRtpSenderAttachTrackSenderChannel(xStr_Method, xPUID, xPUID_MediaStreamTrackObjectID, xPUID_ChannelObjectID)
 #define EventWriteOrtcRtpSenderDetachTrackSenderChannel(xStr_Method, xPUID, xPUID_MediaStreamTrackObjectID, xPUID_ChannelObjectID)
 
-#define EventWriteOrtcRtpSenderSender(xStr_Method, xPUID)
+#define EventWriteOrtcRtpSenderSend(xStr_Method, xPUID)
 #define EventWriteOrtcRtpSenderStop(xStr_Method, xPUID)
 
 #define EventWriteOrtcRtpSenderStateChangedEventFired(xStr_Method, xPUID, xStr_State)
@@ -416,8 +416,8 @@
 #define EventWriteOrtcRtpSenderSendOutgoingPacket(xStr_Method, xPUID, xUInt_ViaTransport, xUInt_PacketType, xsize_t_PacketSizeInBytes, xPtr_Buffer)
 
 #define EventWriteOrtcRtpSenderSsrcConflictEventFired(xStr_Method, xPUID, xPUID_ChannelObjectID, xDWORD_Ssrc, xBool_SelfDestructChannel)
-#define EventWriteOrtcRtpSenderChannelErrorEventFired(xStr_Method, xPUID, xPUID_ChannelObjectID, xWORD_Error, xStr_Reason, xBool_SelfDestructChannel)
 
+#define EventWriteOrtcRtpSenderInternalChannelErrorEventFired(xStr_Method, xPUID, xPUID_ChannelObjectID, xWORD_Error, xStr_Reason, xBool_SelfDestructChannel)
 #define EventWriteOrtcRtpSenderInternalSecureTransportStateChangedEventFired(xStr_Method, xPUID, xPUID_SecureTransportObjectID, xStr_State)
 #define EventWriteOrtcRtpSenderInternalWakeEventFired(xStr_Method, xPUID)
 #define EventWriteOrtcRtpSenderInternalDestroyChannelEventFired(xStr_Method, xPUID, xPUID_ChannelObjectID)
@@ -867,7 +867,7 @@ inline void EventWriteOrtcRtpSenderSetTrack(const char *xStr_Method, PUID xPUID,
 inline void EventWriteOrtcRtpSenderAttachTrackSenderChannel(const char *xStr_Method, PUID xPUID, PUID xPUID_MediaStreamTrackObjectID, PUID xPUID_ChannelObjectID) {}
 inline void EventWriteOrtcRtpSenderDetachTrackSenderChannel(const char *xStr_Method, PUID xPUID, PUID xPUID_MediaStreamTrackObjectID, PUID xPUID_ChannelObjectID) {}
 
-inline void EventWriteOrtcRtpSenderSender(const char *xStr_Method, PUID xPUID) {}
+inline void EventWriteOrtcRtpSenderSend(const char *xStr_Method, PUID xPUID) {}
 inline void EventWriteOrtcRtpSenderStop(const char *xStr_Method, PUID xPUID) {}
 
 inline void EventWriteOrtcRtpSenderStateChangedEventFired(const char *xStr_Method, PUID xPUID, const char *xStr_State) {}
@@ -883,8 +883,8 @@ inline void EventWriteOrtcRtpSenderDeliverIncomingPacketToChannel(const char *xS
 inline void EventWriteOrtcRtpSenderSendOutgoingPacket(const char *xStr_Method, PUID xPUID, unsigned int xUInt_ViaTransport, unsigned int xUInt_PacketType, size_t xsize_t_PacketSizeInBytes, const BYTE *xPtr_Buffer) {}
 
 inline void EventWriteOrtcRtpSenderSsrcConflictEventFired(const char *xStr_Method, PUID xPUID, PUID xPUID_ChannelObjectID, DWORD xDWORD_Ssrc, bool xBool_SelfDestructChannel) {}
-inline void EventWriteOrtcRtpSenderChannelErrorEventFired(const char *xStr_Method, PUID xPUID, PUID xPUID_ChannelObjectID, WORD xWORD_Error, const char *xStr_Reason, bool xBool_SelfDestructChannel) {}
 
+inline void EventWriteOrtcRtpSenderInternalChannelErrorEventFired(const char *xStr_Method, PUID xPUID, PUID xPUID_ChannelObjectID, WORD xWORD_Error, const char *xStr_Reason, bool xBool_SelfDestructChannel) {}
 inline void EventWriteOrtcRtpSenderInternalSecureTransportStateChangedEventFired(const char *xStr_Method, PUID xPUID, PUID xPUID_SecureTransportObjectID, const char *xStr_State) {}
 inline void EventWriteOrtcRtpSenderInternalWakeEventFired(const char *xStr_Method, PUID xPUID) {}
 inline void EventWriteOrtcRtpSenderInternalDestroyChannelEventFired(const char *xStr_Method, PUID xPUID, PUID xPUID_ChannelObjectID) {}

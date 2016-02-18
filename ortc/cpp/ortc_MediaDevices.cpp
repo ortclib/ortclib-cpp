@@ -265,8 +265,8 @@ namespace ortc
 
         struct BogusSubscription : public IMediaDevicesSubscription {
           virtual PUID getID() const override {return mID;}
-          virtual void cancel() {}
-          virtual void background() {}
+          virtual void cancel() override {}
+          virtual void background() override {}
 
           AutoPUID mID;
         };

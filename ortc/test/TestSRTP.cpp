@@ -253,7 +253,7 @@ namespace ortc
         #pragma mark
 
         //---------------------------------------------------------------------
-        virtual ElementPtr toDebug() const
+        virtual ElementPtr toDebug() const override
         {
           AutoRecursiveLock lock(*this);
 
@@ -552,7 +552,7 @@ namespace ortc
         #pragma mark
 
         //---------------------------------------------------------------------
-        virtual PUID getID() const {return mID;}
+        virtual PUID getID() const override {return mID;}
 
         //---------------------------------------------------------------------
         virtual bool notifyFakeReceivedPacket(

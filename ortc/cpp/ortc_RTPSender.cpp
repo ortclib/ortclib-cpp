@@ -598,7 +598,7 @@ namespace ortc
     {
       typedef RTPTypesHelper::ParametersPtrPairList ParametersPtrPairList;
 
-      EventWriteOrtcRtpSenderSender(__func__, mID);
+      EventWriteOrtcRtpSenderSend(__func__, mID);
 
       ZS_LOG_DEBUG(log("send called") + parameters.toDebug())
 
@@ -889,7 +889,7 @@ namespace ortc
         mSubscriptions.delegate()->onRTPSenderError(mThisWeak.lock(), error, errorReason);
       }
 
-      EventWriteOrtcRtpSenderChannelErrorEventFired(__func__, mID, ((bool)channel) ? channel->getID() : 0, error, errorReason, selfDestruct);
+      EventWriteOrtcRtpSenderInternalChannelErrorEventFired(__func__, mID, ((bool)channel) ? channel->getID() : 0, error, errorReason, selfDestruct);
 
       if ((selfDestruct) &&
           (channel)) {

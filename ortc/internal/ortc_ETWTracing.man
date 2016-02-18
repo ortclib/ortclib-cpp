@@ -31,17 +31,48 @@
             </opcodes>
           </task>
           <task name="DtlsTransport" symbol="TASK_DTLS_TRANSPORT" value="4" message="$(string.Task.DtlsTransport)" />
-          <task name="IceGatherer" symbol="TASK_ICE_GATHERER" value="5" message="$(string.Task.IceGatherer)" />
+          <task name="IceGatherer" symbol="TASK_ICE_GATHERER" value="5" message="$(string.Task.IceGatherer)">
+            <opcodes>
+              <opcode name="CreateAssociated" symbol="OPCODE_ICE_GATHERER_CREATE_ASSOCIATED" value="101" message="$(string.Opcode.IceGatherer.CreateAssociated)" />
+              <opcode name="Gather" symbol="OPCODE_ICE_GATHERER_GATHER" value="102" message="$(string.Opcode.IceGatherer.Gather)" />
+              <opcode name="HostSocketBind" symbol="OPCODE_ICE_GATHERER_HOST_SOCKET_BIND" value="103" message="$(string.Opcode.IceGatherer.HostSocketBind)" />
+              <opcode name="HostSocketClose" symbol="OPCODE_ICE_GATHERER_HOST_SOCKET_CLOSE" value="103" message="$(string.Opcode.IceGatherer.HostSocketClose)" />
+              <opcode name="Found" symbol="OPCODE_ICE_GATHERER_FOUND" value="103" message="$(string.Opcode.IceGatherer.Found)" />
+            </opcodes>
+          </task>
           <task name="IceGathererRouter" symbol="TASK_ICE_GATHERER_ROUTER" value="6" message="$(string.Task.IceGathererRouter)" />
-          <task name="IceTransport" symbol="TASK_ICE_TRANSPORT" value="7" message="$(string.Task.IceTransport)" />
+          <task name="IceTransport" symbol="TASK_ICE_TRANSPORT" value="7" message="$(string.Task.IceTransport)">
+            <opcodes>
+              <opcode name="CreateAssociated" symbol="OPCODE_ICE_TRANSPORT_CREATE_ASSOCIATED" value="101" message="$(string.Opcode.IceTransport.CreateAssociated)" />
+              <opcode name="AddCandidate" symbol="OPCODE_ICE_TRANSPORT_ADD_CANDIDATE" value="101" message="$(string.Opcode.IceTransport.AddCandidate)" />
+              <opcode name="RemoveCandidate" symbol="OPCODE_ICE_TRANSPORT_REMOVE_CANDIDATE" value="101" message="$(string.Opcode.IceTransport.RemoveCandidate)" />
+              <opcode name="SetCandidates" symbol="OPCODE_ICE_TRANSPORT_SET_CANDIDATES" value="101" message="$(string.Opcode.IceTransport.SetCandidates)" />
+              <opcode name="Warm" symbol="OPCODE_ICE_TRANSPORT_WARM" value="101" message="$(string.Opcode.IceTransport.Warm)" />
+            </opcodes>
+          </task>
           <task name="RtpListener" symbol="TASK_RTP_LISTENER" value="8" message="$(string.Task.RtpListener)" />
-          <task name="RtpReceiver" symbol="TASK_RTP_RECEIVER" value="9" message="$(string.Task.RtpReceiver)" />
+          <task name="RtpReceiver" symbol="TASK_RTP_RECEIVER" value="9" message="$(string.Task.RtpReceiver)">
+            <opcodes>
+              <opcode name="SetTransport" symbol="OPCODE_RTP_RECEIVER_SET_TRANSPORT" value="101" message="$(string.Opcode.RtpReceiver.SetTransport)" />
+              <opcode name="Receive" symbol="OPCODE_RTP_RECEIVER_RECEIVE" value="101" message="$(string.Opcode.RtpReceiver.Receive)" />
+            </opcodes>
+          </task>
           <task name="RtpReceiverChannel" symbol="TASK_RTP_RECEIVER_CHANNEL" value="10" message="$(string.Task.RtpReceiverChannel)" />
-          <task name="RtpSender" symbol="TASK_RTP_SENDER" value="11" message="$(string.Task.RtpSender)" />
+          <task name="RtpSender" symbol="TASK_RTP_SENDER" value="11" message="$(string.Task.RtpSender)">
+            <opcodes>
+              <opcode name="SetTransport" symbol="OPCODE_RTP_SENDER_SET_TRANSPORT" value="101" message="$(string.Opcode.RtpSender.SetTransport)" />
+              <opcode name="SetTrack" symbol="OPCODE_RTP_SENDER_SET_TRACK" value="101" message="$(string.Opcode.RtpSender.SetTrack)" />
+              <opcode name="Send" symbol="OPCODE_RTP_SENDER_SEND" value="101" message="$(string.Opcode.RtpSender.Send)" />
+            </opcodes>
+          </task>
           <task name="RtpSenderChannel" symbol="TASK_RTP_SENDER_CHANNEL" value="12" message="$(string.Task.RtpSenderChannel)" />
           <task name="SctpInit" symbol="TASK_SCTP_INIT" value="13" message="$(string.Task.SctpInit)" />
           <task name="SctpTransport" symbol="TASK_SCTP_TRANSPORT" value="14" message="$(string.Task.SctpTransport)" />
-          <task name="SctpTransportListener" symbol="TASK_SCTP_TRANSPORT_LISTENER" value="15" message="$(string.Task.SctpTransportListener)" />
+          <task name="SctpTransportListener" symbol="TASK_SCTP_TRANSPORT_LISTENER" value="15" message="$(string.Task.SctpTransportListener)">
+            <opcodes>
+              <opcode name="SetTransport" symbol="OPCODE_SCTP_TRANSPORT_LISTENER_LISTEN" value="101" message="$(string.Opcode.SctpTransportListener.Listen)" />
+            </opcodes>
+          </task>
           <task name="SrtpTransport" symbol="TASK_SRTP_TRANSPORT" value="16" message="$(string.Task.SrtpTransport)" />
         </tasks>
         <opcodes>
@@ -457,6 +488,13 @@
             <data inType="win:UInt64"     name="RouteID" />
             <data inType="win:UInt64"     name="RouterRouteID" />
             <data inType="win:Boolean"    name="WasBuffered" />
+          </template>
+          <template tid="T_IceGathererErrorIceTransportIncomingStunPacket">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="IceTransportObjectID" />
+            <data inType="win:UInt64"     name="RouteID" />
+            <data inType="win:UInt64"     name="RouterRouteID" />
           </template>
           <template tid="T_BasicWithRouterRouteID">
             <data inType="win:AnsiString" name="Method" />
@@ -892,6 +930,11 @@
             <data inType="win:AnsiString" name="xStr_RelatedAddress" />
             <data inType="win:UInt16"     name="xWORD_RelatedPort" />
           </template>
+          <template tid="T_IceTransportInternalGathererAddLocalCandidateCompleteEventFired">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="IceGathererObjectID" />
+          </template>
           <template tid="T_BasicWithStunRequesterObjectID">
             <data inType="win:AnsiString" name="Method" />
             <data inType="win:UInt64"     name="ObjectID" />
@@ -1097,6 +1140,11 @@
             <data inType="win:UInt16"     name="PreferredID" />
             <data inType="win:Boolean"    name="PreferredEncrypted" />
           </template>
+          <template tid="T_RtpReceiverReceive">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="MediaStreamTrackObjectID" />
+          </template>
           <template tid="T_BasicWithChannelObjectID">
             <data inType="win:AnsiString" name="Method" />
             <data inType="win:UInt64"     name="ObjectID" />
@@ -1201,7 +1249,7 @@
             <data inType="win:UInt32"     name="Ssrc" />
             <data inType="win:Boolean"    name="SelfDestructChannel" />
           </template>
-          <template tid="T_RtpSenderChannelErrorEventFired">
+          <template tid="T_RtpSenderInternalChannelErrorEventFired">
             <data inType="win:AnsiString" name="Method" />
             <data inType="win:UInt64"     name="ObjectID" />
             <data inType="win:UInt64"     name="ChannelObjectID" />
@@ -1407,7 +1455,7 @@
           <event symbol="OrtcDataChannelCancel" channel="ol" template="T_BasicObject" task="DataChannel" opcode="Cancel" value="1204" level="win:Informational" message="$(string.Event.OrtcDataChannelCancel)" />
           <event symbol="OrtcDataChannelStep" channel="ol" template="T_BasicObject" task="DataChannel" opcode="Step" value="1205" level="win:Informational" message="$(string.Event.OrtcDataChannelStep)" />
           <event symbol="OrtcDataChannelStateChangedEventFired" channel="ol" template="T_BasicWithState" task="DataChannel" opcode="StateEvent" value="1206" level="win:Informational" message="$(string.Event.OrtcDataChannelStateChangedEventFired)" />
-          <event symbol="OrtcDataChannelErrorEventFired" channel="ol" template="T_BasicWithError" task="DataChannel" opcode="ErrorEvent" value="1207" level="win:Informational" message="$(string.Event.OrtcDataChannelErrorEventFired)" />
+          <event symbol="OrtcDataChannelErrorEventFired" channel="ol" template="T_BasicWithError" task="DataChannel" opcode="ErrorEvent" value="1207" level="win:Error" message="$(string.Event.OrtcDataChannelErrorEventFired)" />
 
           <event symbol="OrtcDataChannelSendControlOpen" channel="ol" template="T_DataChannelSendControlOpen" task="DataChannel" opcode="win:Send" value="1208" level="win:Informational" message="$(string.Event.OrtcDataChannelSendControlOpen)" />
           <event symbol="OrtcDataChannelSendControlAck" channel="ol" template="T_BasicWithMessageType" task="DataChannel" opcode="win:Send" value="1209" level="win:Informational" message="$(string.Event.OrtcDataChannelSendControlAck)" />
@@ -1458,7 +1506,7 @@
           <event symbol="OrtcDtlsTransportSendRtpPacket" channel="ol" template="T_BasicSendRtpPacket" task="DtlsTransport" opcode="win:Send" value="1316" level="win:Informational" message="$(string.Event.OrtcDtlsTransportSendRtpPacket)" />
           <event symbol="OrtcDtlsTransportSendDataPacket" channel="ol" template="T_BasicWithBuffer" task="DtlsTransport" opcode="win:Send" value="1317" level="win:Informational" message="$(string.Event.OrtcDtlsTransportSendDataPacket)" />
 
-          <event symbol="OrtcDtlsTransportForwardDataPacketToIceTransport" channel="ol" template="T_DtlsTransportForwardDataPacketToIceTransport" task="DtlsTransport" opcode="win:Send" value="1318" level="win:Informational" message="$(string.Event.OrtcDtlsTransportSendDataPacket)" />
+          <event symbol="OrtcDtlsTransportForwardDataPacketToIceTransport" channel="ol" template="T_DtlsTransportForwardDataPacketToIceTransport" task="DtlsTransport" opcode="win:Send" value="1318" level="win:Informational" message="$(string.Event.OrtcDtlsTransportForwardDataPacketToIceTransport)" />
           <event symbol="OrtcDtlsTransportSendEncryptedRtpPacket" channel="ol" template="T_DtlsTransportSendEncryptedRtpPacket" task="DtlsTransport" opcode="win:Send" value="1319" level="win:Informational" message="$(string.Event.OrtcDtlsTransportSendEncryptedRtpPacket)" />
 
           <event symbol="OrtcDtlsTransportInternalTimerEventFired" channel="ol" template="T_BasicWithTimerID" task="DtlsTransport" opcode="InternalEvent" value="1320" level="win:Informational" message="$(string.Event.OrtcDtlsTransportInternalTimerEventFired)" />
@@ -1467,395 +1515,405 @@
           <event symbol="OrtcDtlsTransportInternalSrtpTransportLifetimeRemainingEventFired" channel="ol" template="T_DtlsTransportInternalSrtpTransportLifetimeRemainingEventFired" task="DtlsTransport" opcode="InternalEvent" value="1322" level="win:Informational" message="$(string.Event.OrtcDtlsTransportInternalSrtpTransportLifetimeRemainingEventFired)" />
 
           <event symbol="OrtcDtlsTransportStateChangedEventFired" channel="ol" template="T_BasicWithState" task="DtlsTransport" opcode="StateEvent" value="1323" level="win:Informational" message="$(string.Event.OrtcDtlsTransportStateChangedEventFired)" />
-          <event symbol="OrtcDtlsTransportErrorEventFired" channel="ol" template="T_BasicWithError" task="DtlsTransport" opcode="ErrorEvent" value="1324" level="win:Informational" message="$(string.Event.OrtcDtlsTransportErrorEventFired)" />
+          <event symbol="OrtcDtlsTransportErrorEventFired" channel="ol" template="T_BasicWithError" task="DtlsTransport" opcode="ErrorEvent" value="1324" level="win:Error" message="$(string.Event.OrtcDtlsTransportErrorEventFired)" />
 
-OrtcDtlsTransportSrtpKeyingMaterialSetup(T_DtlsTransportSrtpKeyingMaterialSetup
+          <event symbol="OrtcDtlsTransportSrtpKeyingMaterialSetup" channel="ol" template="T_DtlsTransportSrtpKeyingMaterialSetup" task="DtlsTransport" opcode="win:Info" value="1325" level="win:Informational" message="$(string.Event.OrtcDtlsTransportSrtpKeyingMaterialSetup)" />
 
-OrtcIceGathererCreate(T_IceGathererCreate
-OrtcIceGathererDestroy(T_BasicObject
-OrtcIceGathererStep(T_BasicObject
-OrtcIceGathererCancel(T_BasicObject
-OrtcIceGathererCreatedAssociateGatherer(T_IceGathererCreatedAssociateGatherer
+          <event symbol="OrtcIceGathererCreate" channel="ol" template="T_IceGathererCreate" task="IceGatherer" opcode="win:Start" value="1401" level="win:Informational" message="$(string.Event.OrtcIceGathererCreate)" />
+          <event symbol="OrtcIceGathererDestroy" channel="ol" template="T_BasicObject" task="IceGatherer" opcode="win:Stop" value="1402" level="win:Informational" message="$(string.Event.OrtcIceGathererDestroy)" />
 
-OrtcIceGathererInitializeInstallInterfaceNameMapping(T_IceGathererInitializeInstallInterfaceNameMapping
-OrtcIceGathererInitializeInstallPreference(T_IceGathererInitializeInstallPreference
+          <event symbol="OrtcIceGathererStep" channel="ol" template="T_BasicObject" task="IceGatherer" opcode="Step" value="1403" level="win:Informational" message="$(string.Event.OrtcIceGathererStep)" />
+          <event symbol="OrtcIceGathererCancel" channel="ol" template="T_BasicObject" task="IceGatherer" opcode="Step" value="1404" level="win:Informational" message="$(string.Event.OrtcIceGathererCancel)" />
 
-OrtcIceGathererGather(T_IceGathererGather
+          <event symbol="OrtcIceGathererCreatedAssociateGatherer" channel="ol" template="T_IceGathererCreatedAssociateGatherer" task="IceGatherer" opcode="CeateAssociated" value="1405" level="win:Informational" message="$(string.Event.OrtcIceGathererCreatedAssociateGatherer)" />
 
-OrtcIceGathererStateChangedEventFired(T_BasicWithState
-OrtcIceGathererErrorEventFired(T_BasicWithError
+          <event symbol="OrtcIceGathererInitializeInstallInterfaceNameMapping" channel="ol" template="T_IceGathererInitializeInstallInterfaceNameMapping" task="IceGatherer" opcode="Initialization" value="1406" level="win:Informational" message="$(string.Event.OrtcIceGathererInitializeInstallInterfaceNameMapping)" />
+          <event symbol="OrtcIceGathererInitializeInstallPreference" channel="ol" template="T_IceGathererInitializeInstallPreference" task="IceGatherer" opcode="Initialization" value="1407" level="win:Informational" message="$(string.Event.OrtcIceGathererInitializeInstallPreference)" />
 
-OrtcIceGathererAddCandidateEventFired(T_BasicWithIceCandidate
-OrtcIceGathererRemoveCandidateEventFired(T_BasicWithIceCandidate
-OrtcIceGathererFilterCandidateEventFired(T_IceGathererFilterCandidateEventFired
+          <event symbol="OrtcIceGathererGather" channel="ol" template="T_IceGathererGather" task="IceGatherer" opcode="Gather" value="1408" level="win:Informational" message="$(string.Event.OrtcIceGathererGather)" />
 
-OrtcIceGathererInstallIceTransport(T_IceGathererInstallIceTransport
-OrtcIceGathererRemoveIceTransport(T_BasicWithIceTransport
-OrtcIceGathererInternalIceTransportStateChangedEventFired(T_BasicWithIceTransport
+          <event symbol="OrtcIceGathererStateChangedEventFired" channel="ol" template="T_BasicWithState" task="IceGatherer" opcode="StateEvent" value="1409" level="win:Informational" message="$(string.Event.OrtcIceGathererStateChangedEventFired)" />
 
-OrtcIceGathererRemovetAllIceTransportRelatedRoutes(T_BasicWithIceTransport
-OrtcIceGathererSendIceTransportPacket(T_BasicWithRoutedIcePacket
-OrtcIceGathererSendIceTransportPacketFailed(T_BasicWithRoutedIcePacket
+          <event symbol="OrtcIceGathererAddCandidateEventFired" channel="ol" template="T_BasicWithIceCandidate" task="IceGatherer" opcode="Event" value="1410" level="win:Informational" message="$(string.Event.OrtcIceGathererAddCandidateEventFired)" />
+          <event symbol="OrtcIceGathererRemoveCandidateEventFired" channel="ol" template="T_BasicWithIceCandidate" task="IceGatherer" opcode="Event" value="1411" level="win:Informational" message="$(string.Event.OrtcIceGathererRemoveCandidateEventFired)" />
+          <event symbol="OrtcIceGathererFilterCandidateEventFired" channel="ol" template="T_IceGathererFilterCandidateEventFired" task="IceGatherer" opcode="InternalEvent" value="1412" level="win:Informational" message="$(string.Event.OrtcIceGathererFilterCandidateEventFired)" />
 
-OrtcIceGathererSendIceTransportPacketViaUdp(T_IceGathererSendIceTransportPacketViaUdp
-OrtcIceGathererSendIceTransportPacketViaTcp(T_IceGathererSendIceTransportPacketViaTcp
-OrtcIceGathererSendIceTransportPacketViaTurn(T_IceGathererSendIceTransportPacketViaTurn
+          <event symbol="OrtcIceGathererInstallIceTransport" channel="ol" template="T_IceGathererInstallIceTransport" task="IceGatherer" opcode="win:Info" value="1413" level="win:Informational" message="$(string.Event.OrtcIceGathererInstallIceTransport)" />
+          <event symbol="OrtcIceGathererRemoveIceTransport" channel="ol" template="T_BasicWithIceTransport" task="IceGatherer" opcode="win:Info" value="1414" level="win:Informational" message="$(string.Event.OrtcIceGathererRemoveIceTransport)" />
+          <event symbol="OrtcIceGathererInternalIceTransportStateChangedEventFired" channel="ol" template="T_BasicWithIceTransport" task="IceGatherer" opcode="InternalEvent" value="1415" level="win:Informational" message="$(string.Event.OrtcIceGathererInternalIceTransportStateChangedEventFired)" />
 
-OrtcIceGathererDeliverIceTransportIncomingPacket(T_IceGathererDeliverIceTransportIncomingPacket
-OrtcIceGathererBufferIceTransportIncomingPacket(T_BasicWithRouterRoutePacket
+          <event symbol="OrtcIceGathererRemovetAllIceTransportRelatedRoutes" channel="ol" template="T_BasicWithIceTransport" task="IceGatherer" opcode="win:Info" value="1416" level="win:Informational" message="$(string.Event.OrtcIceGathererRemovetAllIceTransportRelatedRoutes)" />
+          <event symbol="OrtcIceGathererSendIceTransportPacket" channel="ol" template="T_BasicWithRoutedIcePacket" task="IceGatherer" opcode="win:Send" value="1417" level="win:Informational" message="$(string.Event.OrtcIceGathererSendIceTransportPacket)" />
+          <event symbol="OrtcIceGathererSendIceTransportPacketFailed" channel="ol" template="T_BasicWithRoutedIcePacket" task="IceGatherer" opcode="win:Send" value="1418" level="win:Warning" message="$(string.Event.OrtcIceGathererSendIceTransportPacketFailed)" />
 
-OrtcIceGathererDeliverIceTransportIncomingStunPacket(T_IceGathererDeliverIceTransportIncomingStunPacket
-OrtcIceGathererBufferIceTransportIncomingStunPacket(T_BasicWithRouterRouteID
-OrtcIceGathererErrorIceTransportIncomingStunPacket(xStr_Method, xPUID, xPUID_IceTransportObjectID, xPUID_RouteID, xPUID_RouterRouteID)
+          <event symbol="OrtcIceGathererSendIceTransportPacketViaUdp" channel="ol" template="T_IceGathererSendIceTransportPacketViaUdp" task="IceGatherer" opcode="win:Send" value="1419" level="win:Informational" message="$(string.Event.OrtcIceGathererSendIceTransportPacketViaUdp)" />
+          <event symbol="OrtcIceGathererSendIceTransportPacketViaTcp" channel="ol" template="T_IceGathererSendIceTransportPacketViaTcp" task="IceGatherer" opcode="win:Send" value="1420" level="win:Informational" message="$(string.Event.OrtcIceGathererSendIceTransportPacketViaTcp)" />
+          <event symbol="OrtcIceGathererSendIceTransportPacketViaTurn" channel="ol" template="T_IceGathererSendIceTransportPacketViaTurn" task="IceGatherer" opcode="win:Send" value="1421" level="win:Informational" message="$(string.Event.OrtcIceGathererSendIceTransportPacketViaTurn)" />
 
-OrtcIceGathererDisposeBufferedIceTransportIncomingPacket(T_BasicWithRouterRoutePacket
-OrtcIceGathererDisposeBufferedIceTransportIncomingStunPacket(T_BasicWithRouterRouteID
+          <event symbol="OrtcIceGathererDeliverIceTransportIncomingPacket" channel="ol" template="T_IceGathererDeliverIceTransportIncomingPacket" task="IceGatherer" opcode="Deliver" value="1422" level="win:Informational" message="$(string.Event.OrtcIceGathererDeliverIceTransportIncomingPacket)" />
+          <event symbol="OrtcIceGathererBufferIceTransportIncomingPacket" channel="ol" template="T_BasicWithRouterRoutePacket" task="IceGatherer" opcode="Buffer" value="1423" level="win:Informational" message="$(string.Event.OrtcIceGathererBufferIceTransportIncomingPacket)" />
 
-OrtcIceGathererTurnSocketReceivedPacket(T_BasicWithTurnSocketPacket
-OrtcIceGathererTurnSocketSendPacket(T_BasicWithTurnSocketPacket
+          <event symbol="OrtcIceGathererDeliverIceTransportIncomingStunPacket" channel="ol" template="T_IceGathererDeliverIceTransportIncomingStunPacket" task="IceGatherer" opcode="Deliver" value="1424" level="win:Informational" message="$(string.Event.OrtcIceGathererDeliverIceTransportIncomingStunPacket)" />
+          <event symbol="OrtcIceGathererBufferIceTransportIncomingStunPacket" channel="ol" template="T_BasicWithRouterRouteID" task="IceGatherer" opcode="Buffer" value="1425" level="win:Informational" message="$(string.Event.OrtcIceGathererBufferIceTransportIncomingStunPacket)" />
+          <event symbol="OrtcIceGathererErrorIceTransportIncomingStunPacket" channel="ol" template="T_IceGathererErrorIceTransportIncomingStunPacket" task="IceGatherer" opcode="Buffer" value="1426" level="win:Warning" message="$(string.Event.OrtcIceGathererErrorIceTransportIncomingStunPacket)" />
 
-OrtcIceGathererInstallQuickRoute(T_BasicWithCandidatePointerIPAndRoute
-OrtcIceGathererRemoveQuickRoute(T_BasicWithCandidatePointerIPAndRoute
-OrtcIceGathererSearchQuickRoute(T_IceGathererSearchQuickRoute
+          <event symbol="OrtcIceGathererDisposeBufferedIceTransportIncomingPacket" channel="ol" template="T_BasicWithRouterRoutePacket" task="IceGatherer" opcode="Dispose" value="1427" level="win:Warning" message="$(string.Event.OrtcIceGathererDisposeBufferedIceTransportIncomingPacket)" />
+          <event symbol="OrtcIceGathererDisposeBufferedIceTransportIncomingStunPacket" channel="ol" template="T_BasicWithRouterRouteID" task="IceGatherer" opcode="Dispose" value="1428" level="win:Warning" message="$(string.Event.OrtcIceGathererDisposeBufferedIceTransportIncomingStunPacket)" />
 
-OrtcIceGathererInternalWakeEventFired(T_BasicObject
-OrtcIceGathererInternalDnsLoookupCompleteEventFired(T_IceGathererInternalDnsLoookupCompleteEventFired
-OrtcIceGathererInternalTimerEventFired(T_IceGathererInternalTimerEventFired
-OrtcIceGathererInternalLikelyReflexiveActivityEventFired(T_IceGathererInternalLikelyReflexiveActivityEventFired
+          <event symbol="OrtcIceGathererTurnSocketReceivedPacket" channel="ol" template="T_BasicWithTurnSocketPacket" task="IceGatherer" opcode="win:Receive" value="1429" level="win:Informational" message="$(string.Event.OrtcIceGathererTurnSocketReceivedPacket)" />
+          <event symbol="OrtcIceGathererTurnSocketSendPacket" channel="ol" template="T_BasicWithTurnSocketPacket" task="IceGatherer" opcode="win:Receive" value="1430" level="win:Informational" message="$(string.Event.OrtcIceGathererTurnSocketSendPacket)" />
 
-OrtcIceGathererInternalSocketReadReadyEventFired(T_BasicWithRelatedObjectID
-OrtcIceGathererInternalSocketWriteReadyEventFired(T_BasicWithRelatedObjectID
-OrtcIceGathererInternalSocketExceptionEventFired(T_BasicWithRelatedObjectID
+          <event symbol="OrtcIceGathererInstallQuickRoute" channel="ol" template="T_BasicWithCandidatePointerIPAndRoute" task="IceGatherer" opcode="win:Info" value="1431" level="win:Verbose" message="$(string.Event.OrtcIceGathererInstallQuickRoute)" />
+          <event symbol="OrtcIceGathererRemoveQuickRoute" channel="ol" template="T_BasicWithCandidatePointerIPAndRoute" task="IceGatherer" opcode="win:Info" value="1432" level="win:Verbose" message="$(string.Event.OrtcIceGathererRemoveQuickRoute)" />
+          <event symbol="OrtcIceGathererInternalWakeEventFired" channel="ol" template="T_BasicObject" task="IceGatherer" opcode="InternalEvent" value="1433" level="win:Verbose" message="$(string.Event.OrtcIceGathererInternalWakeEventFired)" />
 
-OrtcIceGathererInternalBackOffTimerStateChangedEventFired(T_IceGathererInternalBackOffTimerStateChangedEventFired
+          <event symbol="OrtcIceGathererInternalDnsLoookupCompleteEventFired" channel="ol" template="T_IceGathererInternalDnsLoookupCompleteEventFired" task="IceGatherer" opcode="InternalEvent" value="1434" level="win:Informational" message="$(string.Event.OrtcIceGathererInternalDnsLoookupCompleteEventFired)" />
+          <event symbol="OrtcIceGathererInternalTimerEventFired" channel="ol" template="T_IceGathererInternalTimerEventFired" task="IceGatherer" opcode="InternalEvent" value="1435" level="win:Verbose" message="$(string.Event.OrtcIceGathererInternalTimerEventFired)" />
+          <event symbol="OrtcIceGathererInternalLikelyReflexiveActivityEventFired" channel="ol" template="T_IceGathererInternalLikelyReflexiveActivityEventFired" task="IceGatherer" opcode="InternalEvent" value="1436" level="win:Informational" message="$(string.Event.OrtcIceGathererInternalLikelyReflexiveActivityEventFired)" />
 
-OrtcIceGathererInternalStunDiscoverySendPacket(T_IceGathererInternalStunDiscoverySendPacket
-OrtcIceGathererInternalStunDiscoveryCompleteEventFired(T_IceGathererInternalStunDiscoveryCompleteEventFired
+          <event symbol="OrtcIceGathererInternalSocketReadReadyEventFired" channel="ol" template="T_BasicWithRelatedObjectID" task="IceGatherer" opcode="InternalEvent" value="1437" level="win:Verbose" message="$(string.Event.OrtcIceGathererInternalSocketReadReadyEventFired)" />
+          <event symbol="OrtcIceGathererInternalSocketWriteReadyEventFired" channel="ol" template="T_BasicWithRelatedObjectID" task="IceGatherer" opcode="InternalEvent" value="1438" level="win:Verbose" message="$(string.Event.OrtcIceGathererInternalSocketWriteReadyEventFired)" />
+          <event symbol="OrtcIceGathererInternalSocketExceptionEventFired" channel="ol" template="T_BasicWithRelatedObjectID" task="IceGatherer" opcode="InternalEvent" value="1439" level="win:Verbose" message="$(string.Event.OrtcIceGathererInternalSocketExceptionEventFired)" />
 
-OrtcIceGathererInternalTurnSocketStateChangeEventFired(T_IceGathererInternalTurnSocketStateChangeEventFired
+          <event symbol="OrtcIceGathererInternalBackOffTimerStateChangedEventFired" channel="ol" template="T_IceGathererInternalBackOffTimerStateChangedEventFired" task="IceGatherer" opcode="InternalEvent" value="1440" level="win:Verbose" message="$(string.Event.OrtcIceGathererInternalBackOffTimerStateChangedEventFired)" />
 
-OrtcIceGathererResolveHostIP(T_IceGathererResolveHostIP
-OrtcIceGathererResolveFoundHostIP(T_IceGathererResolveFoundHostIP
+          <event symbol="OrtcIceGathererInternalStunDiscoverySendPacket" channel="ol" template="T_IceGathererInternalStunDiscoverySendPacket" task="IceGatherer" opcode="win:Send" value="1441" level="win:Verbose" message="$(string.Event.OrtcIceGathererInternalStunDiscoverySendPacket)" />
+          <event symbol="OrtcIceGathererInternalStunDiscoveryCompleteEventFired" channel="ol" template="T_IceGathererInternalStunDiscoveryCompleteEventFired" task="IceGatherer" opcode="InternalEvent" value="1442" level="win:Informational" message="$(string.Event.OrtcIceGathererInternalStunDiscoveryCompleteEventFired)" />
 
-OrtcIceGathererPendingResolveHostIP(T_IceGathererPendingResolveHostIP
+          <event symbol="OrtcIceGathererInternalTurnSocketStateChangeEventFired" channel="ol" template="T_IceGathererInternalTurnSocketStateChangeEventFired" task="IceGatherer" opcode="InternalEvent" value="1443" level="win:Informational" message="$(string.Event.OrtcIceGathererInternalTurnSocketStateChangeEventFired)" />
 
-OrtcIceGathererHostPortCreate(T_BasicWithHostObjectIDAndHostIP
-OrtcIceGathererHostPortDestroy(T_BasicWithHostObjectIDAndHostIP
-OrtcIceGathererHostPortBind(T_IceGathererHostPortBind
-OrtcIceGathererHostPortClose(T_IceGathererHostPortClose
+          <event symbol="OrtcIceGathererResolveHostIP" channel="ol" template="T_IceGathererResolveHostIP" task="IceGatherer" opcode="win:Info" value="1444" level="win:Informational" message="$(string.Event.OrtcIceGathererResolveHostIP)" />
+          <event symbol="OrtcIceGathererResolveFoundHostIP" channel="ol" template="T_IceGathererResolveFoundHostIP" task="IceGatherer" opcode="Found" value="1445" level="win:Informational" message="$(string.Event.OrtcIceGathererResolveFoundHostIP)" />
 
-OrtcIceGathererReflexivePortCreate(T_BasicWithReflexivePortObjectIDAndServer
-OrtcIceGathererReflexivePortDestroy(T_BasicWithReflexivePortObjectIDAndServer
-OrtcIceGathererReflexivePortFoundMapped(T_IceGathererReflexivePortFoundMapped
+          <event symbol="OrtcIceGathererPendingResolveHostIP" channel="ol" template="T_IceGathererPendingResolveHostIP" task="IceGatherer" opcode="win:Info" value="1446" level="win:Verbose" message="$(string.Event.OrtcIceGathererPendingResolveHostIP)" />
 
-OrtcIceGathererRelayPortCreate(T_IceGathererRelayPortCreate
-OrtcIceGathererRelayPortDestroy(T_IceGathererRelayPortDestroy
-OrtcIceGathererRelayPortFoundIP(T_IceGathererRelayPortFoundIP
+          <event symbol="OrtcIceGathererHostPortCreate" channel="ol" template="T_BasicWithHostObjectIDAndHostIP" task="IceGatherer" opcode="win:Start" value="1447" level="win:Informational" message="$(string.Event.OrtcIceGathererHostPortCreate)" />
+          <event symbol="OrtcIceGathererHostPortDestroy" channel="ol" template="T_BasicWithHostObjectIDAndHostIP" task="IceGatherer" opcode="win:Stop" value="1448" level="win:Informational" message="$(string.Event.OrtcIceGathererHostPortDestroy)" />
 
-OrtcIceGathererTcpPortCreate(T_BasicWithTcpPortObjectIDAndRemoteIP
-OrtcIceGathererTcpPortDestroy(T_BasicWithTcpPortObjectIDAndRemoteIP
+          <event symbol="OrtcIceGathererHostPortBind" channel="ol" template="T_IceGathererHostPortBind" task="IceGatherer" opcode="HostSocketBind" value="1449" level="win:Informational" message="$(string.Event.OrtcIceGathererHostPortBind)" />
+          <event symbol="OrtcIceGathererHostPortClose" channel="ol" template="T_IceGathererHostPortClose" task="IceGatherer" opcode="HostSocketClose" value="1450" level="win:Informational" message="$(string.Event.OrtcIceGathererHostPortClose)" />
 
-OrtcIceGathererUdpSocketPacketReceivedFrom(T_BasicWithFromIPAndBuffer
-OrtcIceGathererUdpSocketPacketForwardingToTurnSocket(T_IceGathererUdpSocketPacketForwardingToTurnSocket
-OrtcIceGathererUdpSocketPacketSentTo(T_IceGathererUdpSocketPacketSentTo
+          <event symbol="OrtcIceGathererReflexivePortCreate" channel="ol" template="T_BasicWithReflexivePortObjectIDAndServer" task="IceGatherer" opcode="win:Start" value="1451" level="win:Informational" message="$(string.Event.OrtcIceGathererReflexivePortCreate)" />
+          <event symbol="OrtcIceGathererReflexivePortDestroy" channel="ol" template="T_BasicWithReflexivePortObjectIDAndServer" task="IceGatherer" opcode="win:Stop" value="1452" level="win:Informational" message="$(string.Event.OrtcIceGathererReflexivePortDestroy)" />
+          <event symbol="OrtcIceGathererReflexivePortFoundMapped" channel="ol" template="T_IceGathererReflexivePortFoundMapped" task="IceGatherer" opcode="Found" value="1453" level="win:Informational" message="$(string.Event.OrtcIceGathererReflexivePortFoundMapped)" />
 
-OrtcIceGathererTcpSocketPacketReceivedFrom(T_BasicWithFromIPAndBuffer
-OrtcIceGathererTcpSocketSentOutgoing(T_BasicWithFromIPAndBuffer
+          <event symbol="OrtcIceGathererRelayPortCreate" channel="ol" template="T_IceGathererRelayPortCreate" task="IceGatherer" opcode="win:Start" value="1454" level="win:Informational" message="$(string.Event.OrtcIceGathererRelayPortCreate)" />
+          <event symbol="OrtcIceGathererRelayPortDestroy" channel="ol" template="T_IceGathererRelayPortDestroy" task="IceGatherer" opcode="win:Stop" value="1455" level="win:Informational" message="$(string.Event.OrtcIceGathererRelayPortDestroy)" />
+          <event symbol="OrtcIceGathererRelayPortFoundIP" channel="ol" template="T_IceGathererRelayPortFoundIP" task="IceGatherer" opcode="Found" value="1456" level="win:Informational" message="$(string.Event.OrtcIceGathererRelayPortFoundIP)" />
 
-OrtcIceGathererRouteTrace(T_IceGathererRouteTrace
+          <event symbol="OrtcIceGathererTcpPortCreate" channel="ol" template="T_BasicWithTcpPortObjectIDAndRemoteIP" task="IceGatherer" opcode="win:Start" value="1457" level="win:Informational" message="$(string.Event.OrtcIceGathererTcpPortCreate)" />
+          <event symbol="OrtcIceGathererTcpPortDestroy" channel="ol" template="T_BasicWithTcpPortObjectIDAndRemoteIP" task="IceGatherer" opcode="win:Stop" value="1458" level="win:Informational" message="$(string.Event.OrtcIceGathererTcpPortDestroy)" />
 
-OrtcIceGathererRouterCreate(T_BasicObject
-OrtcIceGathererRouterDestroy(T_BasicObject
-OrtcIceGathererRouterCancel(T_BasicObject
-OrtcIceGathererRouterInternalEvent(T_IceGathererRouterInternalEvent
+          <event symbol="OrtcIceGathererUdpSocketPacketReceivedFrom" channel="ol" template="T_BasicWithFromIPAndBuffer" task="IceGatherer" opcode="win:Receive" value="1459" level="win:Verbose" message="$(string.Event.OrtcIceGathererUdpSocketPacketReceivedFrom)" />
+          <event symbol="OrtcIceGathererUdpSocketPacketForwardingToTurnSocket" channel="ol" template="T_IceGathererUdpSocketPacketForwardingToTurnSocket" task="IceGatherer" opcode="Deliver" value="1460" level="win:Verbose" message="$(string.Event.OrtcIceGathererUdpSocketPacketForwardingToTurnSocket)" />
+          <event symbol="OrtcIceGathererUdpSocketPacketSentTo" channel="ol" template="T_IceGathererUdpSocketPacketSentTo" task="IceGatherer" opcode="win:Send" value="1461" level="win:Verbose" message="$(string.Event.OrtcIceGathererUdpSocketPacketSentTo)" />
 
-OrtcIceGathererRouterRouteTrace(T_IceGathererRouterRouteTrace
+          <event symbol="OrtcIceGathererTcpSocketPacketReceivedFrom" channel="ol" template="T_BasicWithFromIPAndBuffer" task="IceGatherer" opcode="win:Receive" value="1462" level="win:Verbose" message="$(string.Event.OrtcIceGathererTcpSocketPacketReceivedFrom)" />
+          <event symbol="OrtcIceGathererTcpSocketSentOutgoing" channel="ol" template="T_BasicWithFromIPAndBuffer" task="IceGatherer" opcode="win:Send" value="1463" level="win:Verbose" message="$(string.Event.OrtcIceGathererTcpSocketSentOutgoing)" />
 
-OrtcIceTransportCreate(T_IceTransportCreate
-OrtcIceTransportDestroy(T_BasicObject
-OrtcIceTransportStep(T_BasicObject
-OrtcIceTransportCancel(T_BasicObject
+          <event symbol="OrtcIceGathererRouteTrace" channel="ol" template="T_IceGathererRouteTrace" task="IceGatherer" opcode="win:Info" value="1464" level="win:Verbose" message="$(string.Event.OrtcIceGathererRouteTrace)" />
 
-OrtcIceTransportRouteStateTrackerStateCountChange(T_IceTransportRouteStateTrackerStateCountChange
+          <event symbol="OrtcIceGathererRouterCreate" channel="ol" template="T_BasicObject" task="IceGathererRouter" opcode="win:Start" value="1501" level="win:Informational" message="$(string.Event.OrtcIceGathererRouterCreate)" />
+          <event symbol="OrtcIceGathererRouterDestroy" channel="ol" template="T_BasicObject" task="IceGathererRouter" opcode="win:Stop" value="1502" level="win:Informational" message="$(string.Event.OrtcIceGathererRouterDestroy)" />
+          <event symbol="OrtcIceGathererRouterCancel" channel="ol" template="T_BasicObject" task="IceGathererRouter" opcode="Cancel" value="1503" level="win:Informational" message="$(string.Event.OrtcIceGathererRouterCancel)" />
+          <event symbol="OrtcIceGathererRouterInternalEvent" channel="ol" template="T_IceGathererRouterInternalEvent" task="IceGathererRouter" opcode="InternalEvent" value="1504" level="win:Verbose" message="$(string.Event.OrtcIceGathererRouterInternalEvent)" />
 
-OrtcIceTransportStart(T_IceTransportStart
-OrtcIceTransportCreateAssociatedTransport(T_IceTransportCreateAssociatedTransport
+          <event symbol="OrtcIceGathererRouterRouteTrace" channel="ol" template="T_IceGathererRouterRouteTrace" task="IceGathererRouter" opcode="win:Info" value="1505" level="win:Verbose" message="$(string.Event.OrtcIceGathererRouterRouteTrace)" />
 
-OrtcIceTransportAddRemoteCandidate(T_IceTransportAddRemoteCandidate
-OrtcIceTransportAddRemoteCandidateComplete(T_BasicObject
-OrtcIceTransportRemoveRemoteCandidate(T_IceTransportRemoveRemoteCandidate
-OrtcIceTransportRemoveRemoteCandidateComplete(T_BasicObject
+          <event symbol="OrtcIceTransportCreate" channel="ol" template="T_IceTransportCreate" task="IceTransport" opcode="win:Start" value="1601" level="win:Informational" message="$(string.Event.OrtcIceTransportCreate)" />
+          <event symbol="OrtcIceTransportDestroy" channel="ol" template="T_BasicObject" task="IceTransport" opcode="win:Stop" value="1602" level="win:Informational" message="$(string.Event.OrtcIceTransportDestroy)" />
+          <event symbol="OrtcIceTransportStep" channel="ol" template="T_BasicObject" task="IceTransport" opcode="Step" value="1603" level="win:Informational" message="$(string.Event.OrtcIceTransportStep)" />
+          <event symbol="OrtcIceTransportCancel" channel="ol" template="T_BasicObject" task="IceTransport" opcode="Cancel" value="1604" level="win:Informational" message="$(string.Event.OrtcIceTransportCancel)" />
 
-OrtcIceTransportKeepWarm(T_IceTransportKeepWarm
+          <event symbol="OrtcIceTransportRouteStateTrackerStateCountChange" channel="ol" template="T_IceTransportRouteStateTrackerStateCountChange" task="IceTransport" opcode="win:Info" value="1605" level="win:Verbose" message="$(string.Event.OrtcIceTransportRouteStateTrackerStateCountChange)" />
 
-OrtcIceTransportStateChangedEventFired(T_BasicWithState
-OrtcIceTransportErrorEventFired(T_BasicWithError
-OrtcIceTransportCandidatePairChangedEventFired(T_BasicWithRouteID
+          <event symbol="OrtcIceTransportStart" channel="ol" template="T_IceTransportStart" task="IceTransport" opcode="win:Start" value="1606" level="win:Informational" message="$(string.Event.OrtcIceTransportStart)" />
+          <event symbol="OrtcIceTransportCreateAssociatedTransport" channel="ol" template="T_IceTransportCreateAssociatedTransport" task="IceTransport" opcode="CreateAssociated" value="1607" level="win:Informational" message="$(string.Event.OrtcIceTransportCreateAssociatedTransport)" />
 
-OrtcIceTransportRouteTrace(T_IceTransportRouteTrace
+          <event symbol="OrtcIceTransportAddRemoteCandidate" channel="ol" template="T_IceTransportAddRemoteCandidate" task="IceTransport" opcode="AddCandidate" value="1608" level="win:Informational" message="$(string.Event.OrtcIceTransportAddRemoteCandidate)" />
+          <event symbol="OrtcIceTransportAddRemoteCandidateComplete" channel="ol" template="T_BasicObject" task="IceTransport" opcode="AddCandidate" value="1609" level="win:Informational" message="$(string.Event.OrtcIceTransportAddRemoteCandidateComplete)" />
+          <event symbol="OrtcIceTransportRemoveRemoteCandidate" channel="ol" template="T_IceTransportRemoveRemoteCandidate" task="IceTransport" opcode="RemoveCandidate" value="1610" level="win:Informational" message="$(string.Event.OrtcIceTransportRemoveRemoteCandidate)" />
+          <event symbol="OrtcIceTransportRemoveRemoteCandidateComplete" channel="ol" template="T_BasicObject" task="IceTransport" opcode="RemoveCandidate" value="1611" level="win:Informational" message="$(string.Event.OrtcIceTransportRemoveRemoteCandidateComplete)" />
 
-OrtcIceTransportReceivedPacketFromGatherer(T_IceTransportReceivedPacketFromGatherer
-OrtcIceTransportReceivedStunPacketFromGatherer(T_BasicWithRouterRouteID
-OrtcIceTransportRetryReceivedStunPacketFromGatherer(T_BasicWithRouterRouteID
+          <event symbol="OrtcIceTransportKeepWarm" channel="ol" template="T_IceTransportKeepWarm" task="IceTransport" opcode="Warm" value="1612" level="win:Informational" message="$(string.Event.OrtcIceTransportKeepWarm)" />
 
-OrtcIceTransportBufferingIncomingPacket(T_BasicWithBuffer
-OrtcIceTransportDisposingBufferedIncomingPacket(T_BasicWithBuffer
-OrtcIceTransportDeliveringBufferedIncomingPacketToSecureTransport(T_BasicWithSecureTransportObjectIDAndBuffer
+          <event symbol="OrtcIceTransportStateChangedEventFired" channel="ol" template="T_BasicWithState" task="IceTransport" opcode="StateEvent" value="1613" level="win:Informational" message="$(string.Event.OrtcIceTransportStateChangedEventFired)" />
+          <event symbol="OrtcIceTransportErrorEventFired" channel="ol" template="T_BasicWithError" task="IceTransport" opcode="ErrorEvent" value="1614" level="win:Error" message="$(string.Event.OrtcIceTransportErrorEventFired)" />
 
-OrtcIceTransportDeliveringIncomingPacketToSecureTransport(T_BasicWithSecureTransportObjectIDAndBuffer
-OrtcIceTransportDeliveringIncomingStunPacketToSecureTransport(T_BasicWithSecureTransportObjectID
+          <event symbol="OrtcIceTransportCandidatePairChangedEventFired" channel="ol" template="T_BasicWithRouteID" task="IceTransport" opcode="Event" value="1615" level="win:Informational" message="$(string.Event.OrtcIceTransportCandidatePairChangedEventFired)" />
 
-OrtcIceTransportInstallFoundation(T_BasicWithWithLocalAndRemoteFoundationAndTotalRoutes
-OrtcIceTransportRemoveFoundation(T_BasicWithWithLocalAndRemoteFoundationAndTotalRoutes
-OrtcIceTransportInstallFoundationDependencyFreezePromise(T_IceTransportInstallFoundationDependencyFreezePromise
+          <event symbol="OrtcIceTransportRouteTrace" channel="ol" template="T_IceTransportRouteTrace" task="IceTransport" opcode="win:Info" value="1616" level="win:Verbose" message="$(string.Event.OrtcIceTransportRouteTrace)" />
 
-OrtcIceTransportSecureTransportSendPacket(T_BasicWithBuffer
-OrtcIceTransportForwardSecureTransportPacketToGatherer(T_BasicWithIceGatherObjectIDAndBuffer
+          <event symbol="OrtcIceTransportReceivedPacketFromGatherer" channel="ol" template="T_IceTransportReceivedPacketFromGatherer" task="IceTransport" opcode="win:Receive" value="1617" level="win:Verbose" message="$(string.Event.OrtcIceTransportReceivedPacketFromGatherer)" />
+          <event symbol="OrtcIceTransportReceivedStunPacketFromGatherer" channel="ol" template="T_BasicWithRouterRouteID" task="IceTransport" opcode="win:Receive" value="1618" level="win:Verbose" message="$(string.Event.OrtcIceTransportReceivedStunPacketFromGatherer)" />
 
-OrtcIceTransportSendStunPacket(T_BasicWithIceGatherObjectIDAndBuffer
+          <event symbol="OrtcIceTransportRetryReceivedStunPacketFromGatherer" channel="ol" template="T_BasicWithRouterRouteID" task="IceTransport" opcode="win:Receive" value="1619" level="win:Verbose" message="$(string.Event.OrtcIceTransportRetryReceivedStunPacketFromGatherer)" />
 
-OrtcIceTransportInternalControllerAttachedEventFired(T_BasicWithIceTransportControllerObjectID
-OrtcIceTransportInternalControllerDetachedEventFired(T_BasicWithIceTransportControllerObjectID
+          <event symbol="OrtcIceTransportBufferingIncomingPacket" channel="ol" template="T_BasicWithBuffer" task="IceTransport" opcode="Buffer" value="1620" level="win:Verbose" message="$(string.Event.OrtcIceTransportBufferingIncomingPacket)" />
+          <event symbol="OrtcIceTransportDisposingBufferedIncomingPacket" channel="ol" template="T_BasicWithBuffer" task="IceTransport" opcode="Dispose" value="1621" level="win:Warning" message="$(string.Event.OrtcIceTransportDisposingBufferedIncomingPacket)" />
+          <event symbol="OrtcIceTransportDeliveringBufferedIncomingPacketToSecureTransport" channel="ol" template="T_BasicWithSecureTransportObjectIDAndBuffer" task="IceTransport" opcode="Deliver" value="1622" level="win:Verbose" message="$(string.Event.OrtcIceTransportDeliveringBufferedIncomingPacketToSecureTransport)" />
 
-OrtcIceTransportInternalSecureTransportAttachedEventFired(T_BasicWithSecureTransportObjectID
-OrtcIceTransportInternalSecureTransportDetachedEventFired(T_BasicWithSecureTransportObjectID
+          <event symbol="OrtcIceTransportDeliveringIncomingPacketToSecureTransport" channel="ol" template="T_BasicWithSecureTransportObjectIDAndBuffer" task="IceTransport" opcode="Deliver" value="1623" level="win:Verbose" message="$(string.Event.OrtcIceTransportDeliveringIncomingPacketToSecureTransport)" />
+          <event symbol="OrtcIceTransportDeliveringIncomingStunPacketToSecureTransport" channel="ol" template="T_BasicWithSecureTransportObjectID" task="IceTransport" opcode="Deliver" value="1624" level="win:Verbose" message="$(string.Event.OrtcIceTransportDeliveringIncomingStunPacketToSecureTransport)" />
 
-OrtcIceTransportInternalWarmRoutesChangedEventFired(T_BasicObject
-OrtcIceTransportInternalDeliveryPendingPacketsEventFired(T_BasicObject
+          <event symbol="OrtcIceTransportInstallFoundation" channel="ol" template="T_BasicWithWithLocalAndRemoteFoundationAndTotalRoutes" task="IceTransport" opcode="win:Info" value="1625" level="win:Informational" message="$(string.Event.OrtcIceTransportInstallFoundation)" />
+          <event symbol="OrtcIceTransportRemoveFoundation" channel="ol" template="T_BasicWithWithLocalAndRemoteFoundationAndTotalRoutes" task="IceTransport" opcode="win:Info" value="1626" level="win:Informational" message="$(string.Event.OrtcIceTransportRemoveFoundation)" />
 
-OrtcIceTransportInternalWakeEventFired(T_BasicObject
-OrtcIceTransportInternalTimerEventFired(T_BasicWithTimerObjectIDAndTimerType
+          <event symbol="OrtcIceTransportInstallFoundationDependencyFreezePromise" channel="ol" template="T_IceTransportInstallFoundationDependencyFreezePromise" task="IceTransport" opcode="win:Info" value="1627" level="win:Verbose" message="$(string.Event.OrtcIceTransportInstallFoundationDependencyFreezePromise)" />
 
-OrtcIceTransportInternalUnfrozenPromiseEventFired(T_BasicWithRouteID
+          <event symbol="OrtcIceTransportSecureTransportSendPacket" channel="ol" template="T_BasicWithBuffer" task="IceTransport" opcode="win:Send" value="1628" level="win:Verbose" message="$(string.Event.OrtcIceTransportSecureTransportSendPacket)" />
 
-OrtcIceTransportInternalGathererStateChangedEventFired(T_IceTransportInternalGathererStateChangedEventFired
-OrtcIceTransportInternalGathererAddLocalCandidateEventFired(T_BasicWithIceGathererObjectIDAndIceCandidate
-OrtcIceTransportInternalGathererAddLocalCandidateCompleteEventFired(xStr_Method, xPUID, xPUID_IceGathererObjectID)
-OrtcIceTransportInternalGathererRemoveLocalCandidateEventFired(T_BasicWithIceGathererObjectIDAndIceCandidate
+          <event symbol="OrtcIceTransportForwardSecureTransportPacketToGatherer" channel="ol" template="T_BasicWithIceGatherObjectIDAndBuffer" task="IceTransport" opcode="win:Send" value="1629" level="win:Verbose" message="$(string.Event.OrtcIceTransportForwardSecureTransportPacketToGatherer)" />
 
-OrtcIceTransportInternalStunRequesterCreate(T_BasicWithStunRequesterObjectID
-OrtcIceTransportInternalStunRequesterSendPacket(T_IceTransportInternalStunRequesterSendPacket
-OrtcIceTransportInternalStunRequesterReceivedResponse(T_IceTransportInternalStunRequesterReceivedResponse
-OrtcIceTransportInternalStunRequesterReceivedResponseMismatch(T_IceTransportInternalStunRequesterReceivedResponse
-OrtcIceTransportInternalStunRequesterTimedOut(T_BasicWithStunRequesterObjectID
+          <event symbol="OrtcIceTransportSendStunPacket" channel="ol" template="T_BasicWithIceGatherObjectIDAndBuffer" task="IceTransport" opcode="win:Send" value="1630" level="win:Verbose" message="$(string.Event.OrtcIceTransportSendStunPacket)" />
 
-OrtcIceTransportInternalRoleConflictDetectedEventFired(T_IceTransportInternalRoleConflictDetectedEventFired
+          <event symbol="OrtcIceTransportInternalControllerAttachedEventFired" channel="ol" template="T_BasicWithIceTransportControllerObjectID" task="IceTransport" opcode="InternalEvent" value="1631" level="win:Informational" message="$(string.Event.OrtcIceTransportInternalControllerAttachedEventFired)" />
+          <event symbol="OrtcIceTransportInternalControllerDetachedEventFired" channel="ol" template="T_BasicWithIceTransportControllerObjectID" task="IceTransport" opcode="InternalEvent" value="1632" level="win:Informational" message="$(string.Event.OrtcIceTransportInternalControllerDetachedEventFired)" />
 
-OrtcIceTransportControllerCreate(T_BasicObject
-OrtcIceTransportControllerDestroy(T_BasicObject
-OrtcIceTransportControllerCancel(T_BasicObject
-OrtcIceTransportControllerStep(T_BasicObject
+          <event symbol="OrtcIceTransportInternalSecureTransportAttachedEventFired" channel="ol" template="T_BasicWithSecureTransportObjectID" task="IceTransport" opcode="InternalEvent" value="1633" level="win:Informational" message="$(string.Event.OrtcIceTransportInternalSecureTransportAttachedEventFired)" />
+          <event symbol="OrtcIceTransportInternalSecureTransportDetachedEventFired" channel="ol" template="T_BasicWithSecureTransportObjectID" task="IceTransport" opcode="InternalEvent" value="1634" level="win:Informational" message="$(string.Event.OrtcIceTransportInternalSecureTransportDetachedEventFired)" />
 
-OrtcIceTransportControllerInternalWakeEventFired(T_BasicObject
-OrtcIceTransportControllerInternalTransportAttachedEventFired(T_IceTransportControllerInternalTransportAttachedEventFired
-OrtcIceTransportControllerInternalTransportDetachedEventFired(T_IceTransportControllerInternalTransportDetachedEventFired
+          <event symbol="OrtcIceTransportInternalWarmRoutesChangedEventFired" channel="ol" template="T_BasicObject" task="IceTransport" opcode="InternalEvent" value="1635" level="win:Informational" message="$(string.Event.OrtcIceTransportInternalWarmRoutesChangedEventFired)" />
+          <event symbol="OrtcIceTransportInternalDeliveryPendingPacketsEventFired" channel="ol" template="T_BasicObject" task="IceTransport" opcode="InternalEvent" value="1636" level="win:Informational" message="$(string.Event.OrtcIceTransportInternalDeliveryPendingPacketsEventFired)" />
 
-OrtcIceTransportControllerWaitUntilUnfrozen(T_BasicWithIceTransportObjectIDAndLocalAndRemoteFoundation
-OrtcIceTransportControllerNoNeedToWaitUntilUnfrozen(T_BasicWithIceTransportObjectIDAndLocalAndRemoteFoundation
+          <event symbol="OrtcIceTransportInternalWakeEventFired" channel="ol" template="T_BasicObject" task="IceTransport" opcode="InternalEvent" value="1637" level="win:Verbose" message="$(string.Event.OrtcIceTransportInternalWakeEventFired)" />
+          <event symbol="OrtcIceTransportInternalTimerEventFired" channel="ol" template="T_BasicWithTimerObjectIDAndTimerType" task="IceTransport" opcode="InternalEvent" value="1638" level="win:Verbose" message="$(string.Event.OrtcIceTransportInternalTimerEventFired)" />
 
-OrtcRtpListenerCreate(T_RtpListenerCreate
-OrtcRtpListenerDestroy(T_BasicObject
-OrtcRtpListenerCancel(T_BasicObject
-OrtcRtpListenerStep(T_BasicObject
-OrtcRtpListenerFindMapping(T_RtpListenerFindMapping
-OrtcRtpListenerFoundMappingByMuxID(T_RtpListenerFoundMappingByMuxID
-OrtcRtpListenerFoundMappingBySsrc(T_RtpListenerFoundMappingBySsrc
-OrtcRtpListenerFoundMappingByPayloadType(T_RtpListenerFoundMappingByPayloadType
+          <event symbol="OrtcIceTransportInternalUnfrozenPromiseEventFired" channel="ol" template="T_BasicWithRouteID" task="IceTransport" opcode="InternalEvent" value="1639" level="win:Verbose" message="$(string.Event.OrtcIceTransportInternalUnfrozenPromiseEventFired)" />
 
-OrtcRtpListenerStateChangedEventFired(T_BasicWithState
-OrtcRtpListenerErrorEventFired(T_BasicWithError
-OrtcRtpListenerUnhandledEventFired(T_BasicWithUnhandledRtp
+          <event symbol="OrtcIceTransportInternalGathererStateChangedEventFired" channel="ol" template="T_IceTransportInternalGathererStateChangedEventFired" task="IceTransport" opcode="InternalEvent" value="1640" level="win:Informational" message="$(string.Event.OrtcIceTransportInternalGathererStateChangedEventFired)" />
+          <event symbol="OrtcIceTransportInternalGathererAddLocalCandidateEventFired" channel="ol" template="T_BasicWithIceGathererObjectIDAndIceCandidate" task="IceTransport" opcode="AddCandidate" value="1641" level="win:Informational" message="$(string.Event.OrtcIceTransportInternalGathererAddLocalCandidateEventFired)" />
+          <event symbol="OrtcIceTransportInternalGathererAddLocalCandidateCompleteEventFired" channel="ol" template="T_IceTransportInternalGathererAddLocalCandidateCompleteEventFired" task="IceTransport" opcode="AddCandidate" value="1642" level="win:Informational" message="$(string.Event.OrtcIceTransportInternalGathererAddLocalCandidateCompleteEventFired)" />
+          <event symbol="OrtcIceTransportInternalGathererRemoveLocalCandidateEventFired" channel="ol" template="T_BasicWithIceGathererObjectIDAndIceCandidate" task="IceTransport" opcode="RemoveCandidate" value="1643" level="win:Informational" message="$(string.Event.OrtcIceTransportInternalGathererRemoveLocalCandidateEventFired)" />
 
-OrtcRtpListenerRegisterHeaderExtension(T_BasicWithRegisteredHeaderExtension
-OrtcRtpListenerUnregisterHeaderExtension(T_BasicWithRegisteredHeaderExtension
 
-OrtcRtpListenerReceivedIncomingPacket(T_BasicWithRtpPacket
-OrtcRtpListenerBufferIncomingPacket(T_BasicWithRtpPacket
-OrtcRtpListenerForwardIncomingPacket(T_RtpListenerForwardIncomingPacket
-OrtcRtpListenerDisposeBufferedIncomingPacket(T_RtpListenerDisposeBufferedIncomingPacket
+          <event symbol="OrtcIceTransportInternalStunRequesterCreate" channel="ol" template="T_BasicWithStunRequesterObjectID" task="IceTransport" opcode="win:Start" value="1644" level="win:Informational" message="$(string.Event.OrtcIceTransportInternalStunRequesterCreate)" />
+          <event symbol="OrtcIceTransportInternalStunRequesterSendPacket" channel="ol" template="T_IceTransportInternalStunRequesterSendPacket" task="IceTransport" opcode="win:Send" value="1645" level="win:Verbose" message="$(string.Event.OrtcIceTransportInternalStunRequesterSendPacket)" />
+          <event symbol="OrtcIceTransportInternalStunRequesterReceivedResponse" channel="ol" template="T_IceTransportInternalStunRequesterReceivedResponse" task="IceTransport" opcode="win:Receive" value="1646" level="win:Verbose" message="$(string.Event.OrtcIceTransportInternalStunRequesterReceivedResponse)" />
+          <event symbol="OrtcIceTransportInternalStunRequesterReceivedResponseMismatch" channel="ol" template="T_IceTransportInternalStunRequesterReceivedResponse" task="IceTransport" opcode="win:Receive" value="1647" level="win:Warning" message="$(string.Event.OrtcIceTransportInternalStunRequesterReceivedResponseMismatch)" />
+          <event symbol="OrtcIceTransportInternalStunRequesterTimedOut" channel="ol" template="T_BasicWithStunRequesterObjectID" task="IceTransport" opcode="win:Receive" value="1648" level="win:Warning" message="$(string.Event.OrtcIceTransportInternalStunRequesterTimedOut)" />
 
-OrtcRtpListenerRegisterReceiver(T_RtpListenerRegisterReceiver
-OrtcRtpListenerUnregisterReceiver(T_RtpListenerUnregisterReceiver
+          <event symbol="OrtcIceTransportInternalRoleConflictDetectedEventFired" channel="ol" template="T_IceTransportInternalRoleConflictDetectedEventFired" task="IceTransport" opcode="InternalEvent" value="1649" level="win:Warning" message="$(string.Event.OrtcIceTransportInternalRoleConflictDetectedEventFired)" />
 
-OrtcRtpListenerRegisterSender(T_BasicWithRtpSenderObjectID
-OrtcRtpListenerUnregisterSender(T_BasicWithRtpSenderObjectID
+          <event symbol="OrtcIceTransportControllerCreate" channel="ol" template="T_BasicObject" task="IceTransportController" opcode="win:Start" value="1701" level="win:Informational" message="$(string.Event.OrtcIceTransportControllerCreate)" />
+          <event symbol="OrtcIceTransportControllerDestroy" channel="ol" template="T_BasicObject" task="IceTransportController" opcode="win:Stop" value="1702" level="win:Informational" message="$(string.Event.OrtcIceTransportControllerDestroy)" />
+          <event symbol="OrtcIceTransportControllerCancel" channel="ol" template="T_BasicObject" task="IceTransportController" opcode="Cancel" value="1703" level="win:Informational" message="$(string.Event.OrtcIceTransportControllerCancel)" />
+          <event symbol="OrtcIceTransportControllerStep" channel="ol" template="T_BasicObject" task="IceTransportController" opcode="Step" value="1704" level="win:Informational" message="$(string.Event.OrtcIceTransportControllerStep)" />
 
-OrtcRtpListenerInternalWakeEventFired(T_BasicObject
-OrtcRtpListenerInternalTimerEventFired(T_BasicWithTimerObjectIDAndTimerType
+          <event symbol="OrtcIceTransportControllerInternalWakeEventFired" channel="ol" template="T_BasicObject" task="IceTransportController" opcode="InternalEvent" value="1705" level="win:Verbose" message="$(string.Event.OrtcIceTransportControllerInternalWakeEventFired)" />
 
-OrtcRtpListenerSsrcTableEntryAdded(T_BasicWithRtpReceiverObjectIDAndSsrcTableEntry
-OrtcRtpListenerSsrcTableEntryRemoved(T_RtpListenerSsrcTableEntryRemoved
-OrtcRtpListenerSsrcTableEntryUpdated(T_BasicWithRtpReceiverObjectIDAndSsrcTableEntry
+          <event symbol="OrtcIceTransportControllerInternalTransportAttachedEventFired" channel="ol" template="T_IceTransportControllerInternalTransportAttachedEventFired" task="IceTransportController" opcode="InternalEvent" value="1706" level="win:Informational" message="$(string.Event.OrtcIceTransportControllerInternalTransportAttachedEventFired)" />
+          <event symbol="OrtcIceTransportControllerInternalTransportDetachedEventFired" channel="ol" template="T_IceTransportControllerInternalTransportDetachedEventFired" task="IceTransportController" opcode="InternalEvent" value="1707" level="win:Informational" message="$(string.Event.OrtcIceTransportControllerInternalTransportDetachedEventFired)" />
 
-OrtcRtpReceiverCreate(T_RtpReceiverCreate
-OrtcRtpReceiverDestroy(T_BasicObject
-OrtcRtpReceiverStep(T_BasicObject
-OrtcRtpReceiverCancel(T_BasicObject
+          <event symbol="OrtcIceTransportControllerWaitUntilUnfrozen" channel="ol" template="T_BasicWithIceTransportObjectIDAndLocalAndRemoteFoundation" task="IceTransportController" opcode="win:Info" value="1708" level="win:Verbose" message="$(string.Event.OrtcIceTransportControllerWaitUntilUnfrozen)" />
+          <event symbol="OrtcIceTransportControllerNoNeedToWaitUntilUnfrozen" channel="ol" template="T_BasicWithIceTransportObjectIDAndLocalAndRemoteFoundation" task="IceTransportController" opcode="win:Info" value="1709" level="win:Verbose" message="$(string.Event.OrtcIceTransportControllerNoNeedToWaitUntilUnfrozen)" />
 
-OrtcRtpReceiverSetTransport(T_BasicWithRtpListenerObjectIDAndRtpRtcpTransportObjectID
+          <event symbol="OrtcRtpListenerCreate" channel="ol" template="T_RtpListenerCreate" task="RtpListener" opcode="win:Start" value="1801" level="win:Informational" message="$(string.Event.OrtcRtpListenerCreate)" />
+          <event symbol="OrtcRtpListenerDestroy" channel="ol" template="T_BasicObject" task="RtpListener" opcode="win:Stop" value="1802" level="win:Informational" message="$(string.Event.OrtcRtpListenerDestroy)" />
+          <event symbol="OrtcRtpListenerCancel" channel="ol" template="T_BasicObject" task="RtpListener" opcode="Cancel" value="1803" level="win:Informational" message="$(string.Event.OrtcRtpListenerCancel)" />
+          <event symbol="OrtcRtpListenerStep" channel="ol" template="T_BasicObject" task="RtpListener" opcode="Step" value="1804" level="win:Informational" message="$(string.Event.OrtcRtpListenerStep)" />
 
-OrtcRtpReceiverReportRtcpFeedback(T_RtpReceiverReportRtcpFeedback
-OrtcRtpReceiverReportCodec(T_RtpReceiverReportCodec
-OrtcRtpReceiverReportHeaderExtension(T_RtpReceiverReportHeaderExtension
+          <event symbol="OrtcRtpListenerFindMapping" channel="ol" template="T_RtpListenerFindMapping" task="RtpListener" opcode="win:Info" value="1805" level="win:Verbose" message="$(string.Event.OrtcRtpListenerFindMapping)" />
+          <event symbol="OrtcRtpListenerFoundMappingByMuxID" channel="ol" template="T_RtpListenerFoundMappingByMuxID" task="RtpListener" opcode="win:Info" value="1806" level="win:Verbose" message="$(string.Event.OrtcRtpListenerFoundMappingByMuxID)" />
+          <event symbol="OrtcRtpListenerFoundMappingBySsrc" channel="ol" template="T_RtpListenerFoundMappingBySsrc" task="RtpListener" opcode="win:Info" value="1807" level="win:Verbose" message="$(string.Event.OrtcRtpListenerFoundMappingBySsrc)" />
+          <event symbol="OrtcRtpListenerFoundMappingByPayloadType" channel="ol" template="T_RtpListenerFoundMappingByPayloadType" task="RtpListener" opcode="win:Info" value="1808" level="win:Verbose" message="$(string.Event.OrtcRtpListenerFoundMappingByPayloadType)" />
 
-OrtcRtpReceiverReceive(xStr_Method, xPUID, xPUID_MediaStreamTrackObjectID)
-OrtcRtpReceiverStop(T_BasicObject
+          <event symbol="OrtcRtpListenerStateChangedEventFired" channel="ol" template="T_BasicWithState" task="RtpListener" opcode="StateEvent" value="1809" level="win:Informational" message="$(string.Event.OrtcRtpListenerStateChangedEventFired)" />
+          <event symbol="OrtcRtpListenerErrorEventFired" channel="ol" template="T_BasicWithError" task="RtpListener" opcode="ErrorEvent" value="1810" level="win:Error" message="$(string.Event.OrtcRtpListenerErrorEventFired)" />
 
-OrtcRtpReceiverAddChannel(T_BasicWithChannelObjectID
-OrtcRtpReceiverUpdateChannel(T_BasicWithChannelObjectID
-OrtcRtpReceiverRemoveChannel(T_BasicWithChannelObjectID
+          <event symbol="OrtcRtpListenerUnhandledEventFired" channel="ol" template="T_BasicWithUnhandledRtp" task="RtpListener" opcode="Event" value="1811" level="win:Informational" message="$(string.Event.OrtcRtpListenerUnhandledEventFired)" />
 
-OrtcRtpReceiverAddContributingSource(T_BasicWithCsrc
-OrtcRtpReceiverUpdateContributingSource(T_BasicWithCsrc
-OrtcRtpReceiverRemoveContributingSource(T_BasicWithCsrc
+          <event symbol="OrtcRtpListenerRegisterHeaderExtension" channel="ol" template="T_BasicWithRegisteredHeaderExtension" task="RtpListener" opcode="Initialization" value="1812" level="win:Informational" message="$(string.Event.OrtcRtpListenerRegisterHeaderExtension)" />
+          <event symbol="OrtcRtpListenerUnregisterHeaderExtension" channel="ol" template="T_BasicWithRegisteredHeaderExtension" task="RtpListener" opcode="win:Info" value="1813" level="win:Informational" message="$(string.Event.OrtcRtpListenerUnregisterHeaderExtension)" />
 
-OrtcRtpReceivedIncomingPacket(T_BasicWithPacket
-OrtcRtpReceiverDeliverIncomingPacketToChannel(T_BasicWithChannelObjectIDAndPacket
+          <event symbol="OrtcRtpListenerReceivedIncomingPacket" channel="ol" template="T_BasicWithRtpPacket" task="RtpListener" opcode="win:Receive" value="1814" level="win:Verbose" message="$(string.Event.OrtcRtpListenerReceivedIncomingPacket)" />
+          <event symbol="OrtcRtpListenerBufferIncomingPacket" channel="ol" template="T_BasicWithRtpPacket" task="RtpListener" opcode="Buffer" value="1815" level="win:Verbose" message="$(string.Event.OrtcRtpListenerBufferIncomingPacket)" />
+          <event symbol="OrtcRtpListenerForwardIncomingPacket" channel="ol" template="T_RtpListenerForwardIncomingPacket" task="RtpListener" opcode="Deliver" value="1816" level="win:Verbose" message="$(string.Event.OrtcRtpListenerForwardIncomingPacket)" />
+          <event symbol="OrtcRtpListenerDisposeBufferedIncomingPacket" channel="ol" template="T_RtpListenerDisposeBufferedIncomingPacket" task="RtpListener" opcode="Dispose" value="1817" level="win:Warning" message="$(string.Event.OrtcRtpListenerDisposeBufferedIncomingPacket)" />
 
-OrtcRtpReceiverSendOutgoingPacket(T_BasicWithPacket
+          <event symbol="OrtcRtpListenerRegisterReceiver" channel="ol" template="T_RtpListenerRegisterReceiver" task="RtpListener" opcode="win:Info" value="1818" level="win:Informational" message="$(string.Event.OrtcRtpListenerRegisterReceiver)" />
+          <event symbol="OrtcRtpListenerUnregisterReceiver" channel="ol" template="T_RtpListenerUnregisterReceiver" task="RtpListener" opcode="win:Info" value="1819" level="win:Informational" message="$(string.Event.OrtcRtpListenerUnregisterReceiver)" />
 
-OrtcRtpReceiverInternalSecureTransportStateChangedEventFired(T_BasicWithState
-OrtcRtpReceiverInternalWakeEventFired(T_BasicObject
-OrtcRtpReceiverInternalTimerEventFired(T_BasicWithTimerID
-OrtcRtpReceiverInternalChannelGoneEventFired(T_BasicObject
+          <event symbol="OrtcRtpListenerRegisterSender" channel="ol" template="T_BasicWithRtpSenderObjectID" task="RtpListener" opcode="win:Info" value="1820" level="win:Informational" message="$(string.Event.OrtcRtpListenerRegisterSender)" />
+          <event symbol="OrtcRtpListenerUnregisterSender" channel="ol" template="T_BasicWithRtpSenderObjectID" task="RtpListener" opcode="win:Info" value="1821" level="win:Informational" message="$(string.Event.OrtcRtpListenerUnregisterSender)" />
 
-OrtcRtpReceiverStateChangedEventFired(T_BasicWithState
-OrtcRtpReceiverErrorEventFired(T_BasicWithError
+          <event symbol="OrtcRtpListenerInternalWakeEventFired" channel="ol" template="T_BasicObject" task="RtpListener" opcode="InternalEvent" value="1822" level="win:Verbose" message="$(string.Event.OrtcRtpListenerInternalWakeEventFired)" />
+          <event symbol="OrtcRtpListenerInternalTimerEventFired" channel="ol" template="T_BasicWithTimerObjectIDAndTimerType" task="RtpListener" opcode="InternalEvent" value="1823" level="win:Verbose" message="$(string.Event.OrtcRtpListenerInternalTimerEventFired)" />
 
-OrtcRtpReceiverRegisterHeaderExtension(T_RtpReceiverRegisterHeaderExtension
+          <event symbol="OrtcRtpListenerSsrcTableEntryAdded" channel="ol" template="T_BasicWithRtpReceiverObjectIDAndSsrcTableEntry" task="RtpListener" opcode="win:Info" value="1824" level="win:Informational" message="$(string.Event.OrtcRtpListenerSsrcTableEntryAdded)" />
+          <event symbol="OrtcRtpListenerSsrcTableEntryRemoved" channel="ol" template="T_RtpListenerSsrcTableEntryRemoved" task="RtpListener" opcode="win:Info" value="1825" level="win:Informational" message="$(string.Event.OrtcRtpListenerSsrcTableEntryRemoved)" />
+          <event symbol="OrtcRtpListenerSsrcTableEntryUpdated" channel="ol" template="T_BasicWithRtpReceiverObjectIDAndSsrcTableEntry" task="RtpListener" opcode="win:Info" value="1826" level="win:Verbose" message="$(string.Event.OrtcRtpListenerSsrcTableEntryUpdated)" />
 
-OrtcRtpReceiverSsrcTableEntryAdded(T_BasicWithChannelObjectIDAndSsrcAndRid
-OrtcRtpReceiverSsrcTableEntryRemoved(T_RtpReceiverSsrcTableEntryRemoved
-OrtcRtpReceiverSsrcTableEntryUpdated(T_BasicWithChannelObjectIDAndSsrcAndRid
+          <event symbol="OrtcRtpReceiverCreate" channel="ol" template="T_RtpReceiverCreate" task="RtpReceiver" opcode="win:Info" value="1901" level="win:Informational" message="$(string.Event.OrtcRtpReceiverCreate)" />
+          <event symbol="OrtcRtpReceiverDestroy" channel="ol" template="T_BasicObject" task="RtpReceiver" opcode="win:Info" value="1902" level="win:Informational" message="$(string.Event.OrtcRtpReceiverDestroy)" />
+          <event symbol="OrtcRtpReceiverStep" channel="ol" template="T_BasicObject" task="RtpReceiver" opcode="Step" value="1903" level="win:Informational" message="$(string.Event.OrtcRtpReceiverStep)" />
+          <event symbol="OrtcRtpReceiverCancel" channel="ol" template="T_BasicObject" task="RtpReceiver" opcode="Cancel" value="1904" level="win:Informational" message="$(string.Event.OrtcRtpReceiverCancel)" />
 
-OrtcRtpReceiverFindMapping(T_RtpReceiverFindMapping
-OrtcRtpReceiverFoundMappingByRid(T_RtpReceiverFoundMappingByRid
-OrtcRtpReceiverFoundMappingBySsrc(T_RtpReceiverFoundMappingBySsrc
-OrtcRtpReceiverFoundMappingByPayloadType(T_RtpReceiverFoundMappingByPayloadType
+          <event symbol="OrtcRtpReceiverSetTransport" channel="ol" template="T_BasicWithRtpListenerObjectIDAndRtpRtcpTransportObjectID" task="RtpReceiver" opcode="SetTransport" value="1905" level="win:Informational" message="$(string.Event.OrtcRtpReceiverSetTransport)" />
 
-OrtcRtpReceiverCreateChannelT_BasicWithChannelObjectID
-OrtcRtpReceiverCloseChannel(T_BasicWithChannelObjectID
+          <event symbol="OrtcRtpReceiverReportRtcpFeedback" channel="ol" template="T_RtpReceiverReportRtcpFeedback" task="RtpReceiver" opcode="win:Info" value="1906" level="win:Informational" message="$(string.Event.OrtcRtpReceiverReportRtcpFeedback)" />
+          <event symbol="OrtcRtpReceiverReportCodec" channel="ol" template="T_RtpReceiverReportCodec" task="RtpReceiver" opcode="win:Info" value="1907" level="win:Informational" message="$(string.Event.OrtcRtpReceiverReportCodec)" />
+          <event symbol="OrtcRtpReceiverReportHeaderExtension" channel="ol" template="T_RtpReceiverReportHeaderExtension" task="RtpReceiver" opcode="win:Info" value="1908" level="win:Informational" message="$(string.Event.OrtcRtpReceiverReportHeaderExtension)" />
 
-OrtcRtpReceiverUnhandledEventFired(T_BasicWithUnhandledRtp
+          <event symbol="OrtcRtpReceiverReceive" channel="ol" template="T_RtpReceiverReceive" task="RtpReceiver" opcode="Receive" value="1909" level="win:Informational" message="$(string.Event.OrtcRtpReceiverReceive)" />
+          <event symbol="OrtcRtpReceiverStop" channel="ol" template="T_BasicObject" task="RtpReceiver" opcode="win:Stop" value="1910" level="win:Informational" message="$(string.Event.OrtcRtpReceiverStop)" />
 
-OrtcRtpReceiverTrackActiveChannelChangedEventFired(T_RtpReceiverTrackActiveChannelChangedEventFired
+          <event symbol="OrtcRtpReceiverAddChannel" channel="ol" template="T_BasicWithChannelObjectID" task="RtpReceiver" opcode="win:Info" value="1911" level="win:Informational" message="$(string.Event.OrtcRtpReceiverAddChannel)" />
+          <event symbol="OrtcRtpReceiverUpdateChannel" channel="ol" template="T_BasicWithChannelObjectID" task="RtpReceiver" opcode="win:Info" value="1912" level="win:Informational" message="$(string.OrtcRtpReceiverUpdateChannel)" />
+          <event symbol="OrtcRtpReceiverRemoveChannel" channel="ol" template="T_BasicWithChannelObjectID" task="RtpReceiver" opcode="win:Info" value="1913" level="win:Informational" message="$(string.OrtcRtpReceiverRemoveChannel)" />
 
-OrtcRtpSenderCreate(T_RtpSenderCreate
-OrtcRtpSenderDestroy(T_BasicObject
-OrtcRtpSenderCancel(T_BasicObject
+          <event symbol="OrtcRtpReceiverAddContributingSource" channel="ol" template="T_BasicWithCsrc" task="RtpReceiver" opcode="win:Info" value="1914" level="win:Informational" message="$(string.Event.OrtcRtpReceiverAddContributingSource)" />
+          <event symbol="OrtcRtpReceiverUpdateContributingSource" channel="ol" template="T_BasicWithCsrc" task="RtpReceiver" opcode="win:Info" value="1915" level="win:Verbose" message="$(string.Event.OrtcRtpReceiverUpdateContributingSource)" />
+          <event symbol="OrtcRtpReceiverRemoveContributingSource" channel="ol" template="T_BasicWithCsrc" task="RtpReceiver" opcode="win:Info" value="1916" level="win:Informational" message="$(string.Event.OrtcRtpReceiverRemoveContributingSource)" />
 
-OrtcRtpSenderSetTransport(T_BasicWithRtpListenerObjectIDAndRtpRtcpTransportObjectID
-OrtcRtpSenderSetTrack(T_RtpSenderSetTrack
+          <event symbol="OrtcRtpReceivedIncomingPacket" channel="ol" template="T_BasicWithPacket" task="RtpReceiver" opcode="win:Receive" value="1917" level="win:Verbose" message="$(string.Event.OrtcRtpReceivedIncomingPacket)" />
+          <event symbol="OrtcRtpReceiverDeliverIncomingPacketToChannel" channel="ol" template="T_BasicWithChannelObjectIDAndPacket" task="RtpReceiver" opcode="Deliver" value="1918" level="win:Verbose" message="$(string.Event.OrtcRtpReceiverDeliverIncomingPacketToChannel)" />
 
-OrtcRtpSenderAttachTrackSenderChannel(T_BasicWithMediaStreamTrackObjectIDAndChannelObjectID
-OrtcRtpSenderDetachTrackSenderChannel(T_BasicWithMediaStreamTrackObjectIDAndChannelObjectID
+          <event symbol="OrtcRtpReceiverSendOutgoingPacket" channel="ol" template="T_BasicWithPacket" task="RtpReceiver" opcode="win:Send" value="1919" level="win:Verbose" message="$(string.Event.OrtcRtpReceiverSendOutgoingPacket)" />
 
-OrtcRtpSenderSender(T_BasicObject
-OrtcRtpSenderStop(T_BasicObject
+          <event symbol="OrtcRtpReceiverInternalSecureTransportStateChangedEventFired" channel="ol" template="T_BasicWithState" task="RtpReceiver" opcode="InternalEvent" value="1920" level="win:Informational" message="$(string.Event.OrtcRtpReceiverInternalSecureTransportStateChangedEventFired)" />
+          <event symbol="OrtcRtpReceiverInternalWakeEventFired" channel="ol" template="T_BasicObject" task="RtpReceiver" opcode="InternalEvent" value="1921" level="win:Verbose" message="$(string.Event.OrtcRtpReceiverInternalWakeEventFired)" />
+          <event symbol="OrtcRtpReceiverInternalTimerEventFired" channel="ol" template="T_BasicWithTimerID" task="RtpReceiver" opcode="InternalEvent" value="1922" level="win:Verbose" message="$(string.Event.OrtcRtpReceiverInternalTimerEventFired)" />
+          <event symbol="OrtcRtpReceiverInternalChannelGoneEventFired" channel="ol" template="T_BasicObject" task="RtpReceiver" opcode="InternalEvent" value="1923" level="win:Informational" message="$(string.Event.OrtcRtpReceiverInternalChannelGoneEventFired)" />
 
-OrtcRtpSenderStateChangedEventFired(T_BasicWithState
-OrtcRtpSenderErrorEventFired(T_BasicWithError
+          <event symbol="OrtcRtpReceiverStateChangedEventFired" channel="ol" template="T_BasicWithState" task="RtpReceiver" opcode="StateEvent" value="1924" level="win:Informational" message="$(string.Event.OrtcRtpReceiverStateChangedEventFired)" />
+          <event symbol="OrtcRtpReceiverErrorEventFired" channel="ol" template="T_BasicWithError" task="RtpReceiver" opcode="ErrorEvent" value="1925" level="win:Error" message="$(string.Event.OrtcRtpReceiverErrorEventFired)" />
 
-OrtcRtpSenderAddChannel(T_BasicWithChannelObjectID
-OrtcRtpSenderUpdateChannel(T_BasicWithChannelObjectID
-OrtcRtpSenderRemoveChannel(T_BasicWithChannelObjectID
+          <event symbol="OrtcRtpReceiverRegisterHeaderExtension" channel="ol" template="T_RtpReceiverRegisterHeaderExtension" task="RtpReceiver" opcode="Initialization" value="1926" level="win:Informational" message="$(string.Event.OrtcRtpReceiverRegisterHeaderExtension)" />
 
-OrtcRtpSenderIncomingPacket(T_BasicWithPacket
-OrtcRtpSenderDeliverIncomingPacketToChannel(T_BasicWithChannelObjectIDAndPacket
+          <event symbol="OrtcRtpReceiverSsrcTableEntryAdded" channel="ol" template="T_BasicWithChannelObjectIDAndSsrcAndRid" task="RtpReceiver" opcode="win:Info" value="1927" level="win:Informational" message="$(string.Event.OrtcRtpReceiverSsrcTableEntryAdded)" />
+          <event symbol="OrtcRtpReceiverSsrcTableEntryRemoved" channel="ol" template="T_RtpReceiverSsrcTableEntryRemoved" task="RtpReceiver" opcode="win:Info" value="1928" level="win:Informational" message="$(string.Event.OrtcRtpReceiverSsrcTableEntryRemoved)" />
+          <event symbol="OrtcRtpReceiverSsrcTableEntryUpdated" channel="ol" template="T_BasicWithChannelObjectIDAndSsrcAndRid" task="RtpReceiver" opcode="win:Info" value="1929" level="win:Verbose" message="$(string.Event.OrtcRtpReceiverSsrcTableEntryUpdated)" />
 
-OrtcRtpSenderSendOutgoingPacket(T_BasicWithPacket
+          <event symbol="OrtcRtpReceiverFindMapping" channel="ol" template="T_RtpReceiverFindMapping" task="RtpReceiver" opcode="win:Info" value="1930" level="win:Verbose" message="$(string.Event.OrtcRtpReceiverFindMapping)" />
+          <event symbol="OrtcRtpReceiverFoundMappingByRid" channel="ol" template="T_RtpReceiverFoundMappingByRid" task="RtpReceiver" opcode="win:Info" value="1931" level="win:Verbose" message="$(string.Event.OrtcRtpReceiverFoundMappingByRid)" />
+          <event symbol="OrtcRtpReceiverFoundMappingBySsrc" channel="ol" template="T_RtpReceiverFoundMappingBySsrc" task="RtpReceiver" opcode="win:Info" value="1932" level="win:Verbose" message="$(string.Event.OrtcRtpReceiverFoundMappingBySsrc)" />
+          <event symbol="OrtcRtpReceiverFoundMappingByPayloadType" channel="ol" template="T_RtpReceiverFoundMappingByPayloadType" task="RtpReceiver" opcode="win:Info" value="1933" level="win:Verbose" message="$(string.Event.OrtcRtpReceiverFoundMappingByPayloadType)" />
 
-OrtcRtpSenderSsrcConflictEventFired(T_RtpSenderSsrcConflictEventFired
-OrtcRtpSenderChannelErrorEventFired(T_RtpSenderChannelErrorEventFired
+          <event symbol="OrtcRtpReceiverCreateChannel" channel="ol" template="T_BasicWithChannelObjectID" task="RtpReceiver" opcode="win:Info" value="1934" level="win:Informational" message="$(string.Event.OrtcRtpReceiverCreateChannel)" />
+          <event symbol="OrtcRtpReceiverCloseChannel" channel="ol" template="T_BasicWithChannelObjectID" task="RtpReceiver" opcode="win:Info" value="1935" level="win:Informational" message="$(string.Event.OrtcRtpReceiverCloseChannel)" />
 
-OrtcRtpSenderInternalSecureTransportStateChangedEventFired(T_RtpSenderInternalSecureTransportStateChangedEventFired
-OrtcRtpSenderInternalWakeEventFired(T_BasicObject
-OrtcRtpSenderInternalDestroyChannelEventFired(T_BasicWithChannelObjectID
-OrtcRtpSenderInternalChannelGoneEventFired(T_BasicObject
+          <event symbol="OrtcRtpReceiverUnhandledEventFired" channel="ol" template="T_BasicWithUnhandledRtp" task="RtpReceiver" opcode="Event" value="1936" level="win:Informational" message="$(string.Event.OrtcRtpReceiverUnhandledEventFired)" />
 
-OrtcRtpReceiverChannelCreate(T_RtpReceiverChannelCreate
-OrtcRtpReceiverChannelDestroy(T_BasicObject
+          <event symbol="OrtcRtpReceiverTrackActiveChannelChangedEventFired" channel="ol" template="T_RtpReceiverTrackActiveChannelChangedEventFired" task="RtpReceiver" opcode="InternalEvent" value="1937" level="win:Informational" message="$(string.Event.OrtcRtpReceiverTrackActiveChannelChangedEventFired)" />
 
-OrtcRtpReceiverChannelCreateMediaChannel(T_BasicWithMediaChannelObjectIDAndKind
+          <event symbol="OrtcRtpSenderCreate" channel="ol" template="T_RtpSenderCreate" task="RtpSender" opcode="win:Start" value="2001" level="win:Informational" message="$(string.Event.OrtcRtpSenderCreate)" />
+          <event symbol="OrtcRtpSenderDestroy" channel="ol" template="T_BasicObject" task="RtpSender" opcode="win:Stop" value="2002" level="win:Informational" message="$(string.Event.OrtcRtpSenderDestroy)" />
+          <event symbol="OrtcRtpSenderCancel" channel="ol" template="T_BasicObject" task="RtpSender" opcode="Cancel" value="2003" level="win:Informational" message="$(string.Event.OrtcRtpSenderCancel)" />
 
-OrtcRtpReceiverChannelDeliverIncomingPacketToMediaChannel(T_BasicWithMediaChannelObjectIDAndPacketTypeAndBuffer
-OrtcRtpReceiverChannelSendOutgoingPacket(T_RtpReceiverChannelSendOutgoingPacket
+          <event symbol="OrtcRtpSenderSetTransport" channel="ol" template="T_BasicWithRtpListenerObjectIDAndRtpRtcpTransportObjectID" task="RtpSender" opcode="SetTransport" value="2004" level="win:Informational" message="$(string.Event.OrtcRtpSenderSetTransport)" />
+          <event symbol="OrtcRtpSenderSetTrack" channel="ol" template="T_RtpSenderSetTrack" task="RtpSender" opcode="SetTrack" value="2005" level="win:Informational" message="$(string.Event.OrtcRtpSenderSetTrack)" />
 
-OrtcRtpReceiverChannelInternalSecureTransportStateChangedEventFired(T_BasicWithState
+          <event symbol="OrtcRtpSenderAttachTrackSenderChannel" channel="ol" template="T_BasicWithMediaStreamTrackObjectIDAndChannelObjectID" task="RtpSender" opcode="win:Info" value="2006" level="win:Informational" message="$(string.Event.OrtcRtpSenderAttachTrackSenderChannel)" />
+          <event symbol="OrtcRtpSenderDetachTrackSenderChannel" channel="ol" template="T_BasicWithMediaStreamTrackObjectIDAndChannelObjectID" task="RtpSender" opcode="win:Info" value="2007" level="win:Informational" message="$(string.Event.OrtcRtpSenderDetachTrackSenderChannel)" />
 
-OrtcRtpReceiverChannelInternalUpdateEventFired(T_BasicObject
+          <event symbol="OrtcRtpSenderSend" channel="ol" template="T_BasicObject" task="RtpSender" opcode="Send" value="2008" level="win:Informational" message="$(string.Event.OrtcRtpSenderSend)" />
+          <event symbol="OrtcRtpSenderStop" channel="ol" template="T_BasicObject" task="RtpSender" opcode="Send" value="2009" level="win:Informational" message="$(string.Event.OrtcRtpSenderStop)" />
 
-OrtcRtpSenderChannelCreate(T_RtpSenderChannelCreate
-OrtcRtpSenderChannelDestroy(T_BasicObject
+          <event symbol="OrtcRtpSenderStateChangedEventFired" channel="ol" template="T_BasicWithState" task="RtpSender" opcode="StateEvent" value="2010" level="win:Informational" message="$(string.OrtcRtpSenderStateChangedEventFired)" />
+          <event symbol="OrtcRtpSenderErrorEventFired" channel="ol" template="T_BasicWithError" task="RtpSender" opcode="ErrorEvent" value="2011" level="win:Error" message="$(string.Event.OrtcRtpSenderErrorEventFired)" />
 
-OrtcRtpSenderChannelCreateMediaChannel(T_BasicWithMediaChannelObjectIDAndKind
-OrtcRtpSenderChannelChangeTrack(T_RtpSenderChannelChangeTrack
+          <event symbol="OrtcRtpSenderAddChannel" channel="ol" template="T_BasicWithChannelObjectID" task="RtpSender" opcode="win:Info" value="2012" level="win:Informational" message="$(string.Event.OrtcRtpSenderAddChannel)" />
+          <event symbol="OrtcRtpSenderUpdateChannel" channel="ol" template="T_BasicWithChannelObjectID" task="RtpSender" opcode="win:Info" value="2013" level="win:Informational" message="$(string.Event.OrtcRtpSenderUpdateChannel)" />
+          <event symbol="OrtcRtpSenderRemoveChannel" channel="ol" template="T_BasicWithChannelObjectID" task="RtpSender" opcode="win:Info" value="2014" level="win:Informational" message="$(string.Event.OrtcRtpSenderRemoveChannel)" />
 
-OrtcRtpSenderChannelDeliverIncomingPacketToMediaChannel(T_BasicWithMediaChannelObjectIDAndPacketTypeAndBuffer
-OrtcRtpSenderChannelSendOutgoingPacket(T_RtpSenderChannelSendOutgoingPacket
+          <event symbol="OrtcRtpSenderIncomingPacket" channel="ol" template="T_BasicWithPacket" task="RtpSender" opcode="win:Receive" value="2015" level="win:Verbose" message="$(string.Event.OrtcRtpSenderIncomingPacket)" />
+          <event symbol="OrtcRtpSenderDeliverIncomingPacketToChannel" channel="ol" template="T_BasicWithChannelObjectIDAndPacket" task="RtpSender" opcode="Deliver" value="2016" level="win:Verbose" message="$(string.Event.OrtcRtpSenderDeliverIncomingPacketToChannel)" />
+          <event symbol="OrtcRtpSenderSendOutgoingPacket" channel="ol" template="T_BasicWithPacket" task="RtpSender" opcode="win:Send" value="2017" level="win:Verbose" message="$(string.Event.OrtcRtpSenderSendOutgoingPacket)" />
 
-OrtcRtpSenderChannelInternalSecureTransportStateChangedEventFired(T_BasicWithState
+          <event symbol="OrtcRtpSenderSsrcConflictEventFired" channel="ol" template="T_RtpSenderSsrcConflictEventFired" task="RtpSender" opcode="Event" value="2018" level="win:Error" message="$(string.Event.OrtcRtpSenderSsrcConflictEventFired)" />
 
-OrtcRtpSenderChannelInternalUpdateEventFired(T_BasicObject
+          <event symbol="OrtcRtpSenderInternalChannelErrorEventFired" channel="ol" template="T_RtpSenderInternalChannelErrorEventFired" task="RtpSender" opcode="InternalEvent" value="2019" level="win:Error" message="$(string.Event.OrtcRtpSenderInternalChannelErrorEventFired)" />
+          <event symbol="OrtcRtpSenderInternalSecureTransportStateChangedEventFired" channel="ol" template="T_RtpSenderInternalSecureTransportStateChangedEventFired" task="RtpSender" opcode="InternalEvent" value="2020" level="win:Informational" message="$(string.Event.OrtcRtpSenderInternalSecureTransportStateChangedEventFired)" />
+          <event symbol="OrtcRtpSenderInternalWakeEventFired" channel="ol" template="T_BasicObject" task="RtpSender" opcode="InternalEvent" value="2021" level="win:Verbose" message="$(string.Event.OrtcRtpSenderInternalWakeEventFired)" />
 
-OrtcSctpInitCreate(T_BasicObject
-OrtcSctpInitDestroy(T_BasicObject
-OrtcSctpInitCancel(T_BasicObject
+          <event symbol="OrtcRtpSenderInternalDestroyChannelEventFired" channel="ol" template="T_BasicWithChannelObjectID" task="RtpSender" opcode="InternalEvent" value="2022" level="win:Informational" message="$(string.Event.OrtcRtpSenderInternalDestroyChannelEventFired)" />
+          <event symbol="OrtcRtpSenderInternalChannelGoneEventFired" channel="ol" template="T_BasicObject" task="RtpSender" opcode="InternalEvent" value="2023" level="win:Informational" message="$(string.Event.OrtcRtpSenderInternalChannelGoneEventFired)" />
 
-OrtcSctpTransportCreate(T_SctpTransportCreate
-OrtcSctpTransportDestroy(T_BasicObject
-OrtcSctpTransportCancel(T_BasicObject
-OrtcSctpTransportStep(T_BasicObject
+          <event symbol="OrtcRtpReceiverChannelCreate" channel="ol" template="T_RtpReceiverChannelCreate" task="RtpReceiverChannel" opcode="win:Start" value="2101" level="win:Informational" message="$(string.Event.OrtcRtpReceiverChannelCreate)" />
+          <event symbol="OrtcRtpReceiverChannelDestroy" channel="ol" template="T_BasicObject" task="RtpReceiverChannel" opcode="win:Stop" value="2102" level="win:Informational" message="$(string.Event.OrtcRtpReceiverChannelDestroy)" />
 
-OrtcSctpTransportStart(T_SctpTransportStart
-OrtcSctpTransportStop(T_BasicObject
+          <event symbol="OrtcRtpReceiverChannelCreateMediaChannel" channel="ol" template="T_BasicWithMediaChannelObjectIDAndKind" task="RtpReceiverChannel" opcode="win:Info" value="2103" level="win:Informational" message="$(string.Event.OrtcRtpReceiverChannelCreateMediaChannel)" />
 
-OrtcSctpTransportRegisterNewDataChannel(T_BasicWithDataChannelObjectIDAndSessionID
+          <event symbol="OrtcRtpReceiverChannelDeliverIncomingPacketToMediaChannel" channel="ol" template="T_BasicWithMediaChannelObjectIDAndPacketTypeAndBuffer" task="RtpReceiverChannel" opcode="Deliver" value="2104" level="win:Verbose" message="$(string.Event.OrtcRtpReceiverChannelDeliverIncomingPacketToMediaChannel)" />
+          <event symbol="OrtcRtpReceiverChannelSendOutgoingPacket" channel="ol" template="T_RtpReceiverChannelSendOutgoingPacket" task="RtpReceiverChannel" opcode="Deliver" value="2105" level="win:Verbose" message="$(string.Event.OrtcRtpReceiverChannelSendOutgoingPacket)" />
 
-OrtcSctpTransportDataChannelEventFired(T_SctpTransportDataChannelEventFired
-OrtcSctpTransportStateChangedEventFired(T_BasicWithState
-OrtcSctpTransportErrorEventFired(T_BasicWithError
+          <event symbol="OrtcRtpReceiverChannelInternalSecureTransportStateChangedEventFired" channel="ol" template="T_BasicWithState" task="RtpReceiverChannel" opcode="InternalEvent" value="2106" level="win:Informational" message="$(string.Event.OrtcRtpReceiverChannelInternalSecureTransportStateChangedEventFired)" />
+          <event symbol="OrtcRtpReceiverChannelInternalUpdateEventFired" channel="ol" template="T_BasicObject" task="RtpReceiverChannel" opcode="InternalEvent" value="2107" level="win:Informational" message="$(string.Event.OrtcRtpReceiverChannelInternalUpdateEventFired)" />
 
-OrtcSctpTransportReceivedIncomingPacket(T_SctpTransportReceivedIncomingPacket
-OrtcSctpTransportDeliverIncomingPacket(T_SctpTransportDeliverIncomingPacket
-OrtcSctpTransportSendOutgoingPacket(T_SctpTransportSendOutgoingPacket
-OrtcSctpTransportShutdownDataChannel(T_BasicWithDataChannelObjectIDAndSessionID
+          <event symbol="OrtcRtpSenderChannelCreate" channel="ol" template="T_RtpSenderChannelCreate" task="RtpSenderChannel" opcode="win:Start" value="2208" level="win:Informational" message="$(string.Event.OrtcRtpSenderChannelCreate)" />
+          <event symbol="OrtcRtpSenderChannelDestroy" channel="ol" template="T_BasicObject" task="RtpSenderChannel" opcode="win:Stop" value="2209" level="win:Informational" message="$(string.Event.OrtcRtpSenderChannelDestroy)" />
 
-OrtcSctpTransportReceivedIncomingDataPacket(T_BasicWithBuffer
-OrtcSctpTransportBufferIncomingDataPacket(T_BasicWithBuffer
-OrtcSctpTransportDisposeBufferedIncomingDataPacket(T_BasicWithBuffer
-OrtcSctpTransportSendOutgoingDataPacket(T_BasicWithSecureTransportObjectIDAndBuffer
+          <event symbol="OrtcRtpSenderChannelCreateMediaChannel" channel="ol" template="T_BasicWithMediaChannelObjectIDAndKind" task="RtpSenderChannel" opcode="win:Info" value="2210" level="win:Informational" message="$(string.Event.OrtcRtpSenderChannelCreateMediaChannel)" />
+          <event symbol="OrtcRtpSenderChannelChangeTrack" channel="ol" template="T_RtpSenderChannelChangeTrack" task="RtpSenderChannel" opcode="win:Info" value="2211" level="win:Informational" message="$(string.Event.OrtcRtpSenderChannelChangeTrack)" />
 
-OrtcSctpTransportInternalWakeEventFired(T_BasicObject
-OrtcSctpTransportInternalShutdownEventFired(T_BasicObject
-OrtcSctpTransportInternalSecureTransportStateChangedEventFired(T_SctpTransportInternalSecureTransportStateChangedEventFired
+          <event symbol="OrtcRtpSenderChannelDeliverIncomingPacketToMediaChannel" channel="ol" template="T_BasicWithMediaChannelObjectIDAndPacketTypeAndBuffer" task="RtpSenderChannel" opcode="Deliver" value="2212" level="win:Verbose" message="$(string.Event.OrtcRtpSenderChannelDeliverIncomingPacketToMediaChannel)" />
+          <event symbol="OrtcRtpSenderChannelSendOutgoingPacket" channel="ol" template="T_RtpSenderChannelSendOutgoingPacket" task="RtpSenderChannel" opcode="win:Send" value="2213" level="win:Verbose" message="$(string.Event.OrtcRtpSenderChannelSendOutgoingPacket)" />
 
-OrtcSctpTransportListenerCreate(T_SctpTransportListenerCreate
-OrtcSctpTransportListenerDestroy(T_BasicObject
-OrtcSctpTransportListenerCancel(T_BasicObject
-OrtcSctpTransportListenerStep(T_BasicObject
+          <event symbol="OrtcRtpSenderChannelInternalSecureTransportStateChangedEventFired" channel="ol" template="T_BasicWithState" task="RtpSenderChannel" opcode="InternalEvent" value="2214" level="win:Informational" message="$(string.Event.OrtcRtpSenderChannelInternalSecureTransportStateChangedEventFired)" />
+          <event symbol="OrtcRtpSenderChannelInternalUpdateEventFired" channel="ol" template="T_BasicObject" task="RtpSenderChannel" opcode="InternalEvent" value="2215" level="win:Informational" message="$(string.Event.OrtcRtpSenderChannelInternalUpdateEventFired)" />
 
-OrtcSctpTransportListenerListen(T_SctpTransportListenerListen
-OrtcSctpTransportListenerRegisterNewTransport(T_SctpTransportListenerRegisterNewTransport
+          <event symbol="OrtcSctpInitCreate" channel="ol" template="T_BasicObject" task="SctpInit" opcode="win:Start" value="2301" level="win:Informational" message="$(string.Event.OrtcSctpInitCreate)" />
+          <event symbol="OrtcSctpInitDestroy" channel="ol" template="T_BasicObject" task="SctpInit" opcode="win:Stop" value="2302" level="win:Informational" message="$(string.Event.OrtcSctpInitDestroy)" />
+          <event symbol="OrtcSctpInitCancel" channel="ol" template="T_BasicObject" task="SctpInit" opcode="Cancel" value="2303" level="win:Informational" message="$(string.Event.OrtcSctpInitCancel)" />
 
-OrtcSctpTransportListenerSctpTransportCreatedEventFired(T_BasicWithSctpTransportObjectIDAndLocalAndRemotePort
-OrtcSctpTransportListenerSctpTransportEventFired(T_BasicWithSctpTransportObjectIDAndLocalAndRemotePort
-OrtcSctpTransportListenerSctpTransportShutdownEventFired(T_BasicWithSctpTransportObjectIDAndLocalAndRemotePort
+          <event symbol="OrtcSctpTransportCreate" channel="ol" template="T_SctpTransport" task="SctpTransport" opcode="win:Start" value="2404" level="win:Informational" message="$(string.Event.OrtcSctpTransportCreate)" />
+          <event symbol="OrtcSctpTransportDestroy" channel="ol" template="T_BasicObject" task="SctpTransport" opcode="win:Stop" value="2405" level="win:Informational" message="$(string.Event.OrtcSctpTransportDestroy)" />
+          <event symbol="OrtcSctpTransportCancel" channel="ol" template="T_BasicObject" task="SctpTransport" opcode="Cancel" value="2406" level="win:Informational" message="$(string.Event.OrtcSctpTransportCancel)" />
+          <event symbol="OrtcSctpTransportStep" channel="ol" template="T_BasicObject" task="SctpTransport" opcode="Step" value="2407" level="win:Informational" message="$(string.Event.OrtcSctpTransportStep)" />
 
-OrtcSctpTransportListenerReceivedIncomingDataPacket(T_BasicWithBuffer
-OrtcSctpTransportListenerDeliverIncomingDataPacket(T_SctpTransportListenerDeliverIncomingDataPacket
+          <event symbol="OrtcSctpTransportStart" channel="ol" template="T_SctpTransportStart" task="SctpTransport" opcode="win:Start" value="2408" level="win:Informational" message="$(string.Event.OrtcSctpTransportStart)" />
+          <event symbol="OrtcSctpTransportStop" channel="ol" template="T_BasicObject" task="SctpTransport" opcode="win:Stop" value="2409" level="win:Informational" message="$(string.Event.OrtcSctpTransportStop)" />
 
-OrtcSrtpTransportCreate(T_BasicWithSecureTransportObjectID
-OrtcSrtpTransportDestroy(T_BasicObject
+          <event symbol="OrtcSctpTransportRegisterNewDataChannel" channel="ol" template="T_BasicWithDataChannelObjectIDAndSessionID" task="SctpTransport" opcode="win:Info" value="2410" level="win:Informational" message="$(string.Event.OrtcSctpTransportRegisterNewDataChannel)" />
 
-OrtcSrtpTransportInstallKeyingMaterial(T_SrtpTransportInstallKeyingMaterial
-OrtcSrtpTransportReceivedIncomingEncryptedPacket(T_BasicWithRtpPacket
-OrtcSrtpTransportDeliverIncomingDecryptedPacket(T_SrtpTransportDeliverIncomingDecryptedPacket
+          <event symbol="OrtcSctpTransportDataChannelEventFired" channel="ol" template="T_SctpTransportDataChannelEventFired" task="SctpTransport" opcode="Event" value="2411" level="win:Informational" message="$(string.Event.OrtcSctpTransportDataChannelEventFired)" />
+          <event symbol="OrtcSctpTransportStateChangedEventFired" channel="ol" template="T_BasicWithState" task="SctpTransport" opcode="StateEvent" value="2412" level="win:Informational" message="$(string.Event.OrtcSctpTransportStateChangedEventFired)" />
+          <event symbol="OrtcSctpTransportErrorEventFired" channel="ol" template="T_BasicWithError" task="SctpTransport" opcode="ErrorEvent" value="2413" level="win:Error" message="$(string.Event.OrtcSctpTransportErrorEventFired)" />
 
-OrtcSrtpTransportSendOutgoingPacketAndEncrypt(T_SrtpTransportSendOutgoingPacketAndEncrypt
-OrtcSrtpTransportSendOutgoingEncryptedPacketViaSecureTransport(T_SrtpTransportSendOutgoingEncryptedPacketViaSecureTransport
+          <event symbol="OrtcSctpTransportReceivedIncomingPacket" channel="ol" template="T_SctpTransportReceivedIncomingPacket" task="SctpTransport" opcode="win:Receive" value="2414" level="win:Verbose" message="$(string.Event.OrtcSctpTransportReceivedIncomingPacket)" />
+          <event symbol="OrtcSctpTransportDeliverIncomingPacket" channel="ol" template="T_SctpTransportDeliverIncomingPacket" task="SctpTransport" opcode="Deliver" value="2415" level="win:Verbose" message="$(string.Event.OrtcSctpTransportDeliverIncomingPacket)" />
 
+          <event symbol="OrtcSctpTransportSendOutgoingPacket" channel="ol" template="T_SctpTransportSendOutgoingPacket" task="SctpTransport" opcode="win:Send" value="2416" level="win:Verbose" message="$(string.Event.OrtcSctpTransportSendOutgoingPacket)" />
 
+          <event symbol="OrtcSctpTransportShutdownDataChannel" channel="ol" template="T_BasicWithDataChannelObjectIDAndSessionID" task="SctpTransport" opcode="win:Informational" value="2417" level="win:Verbose" message="$(string.Event.OrtcSctpTransportShutdownDataChannel)" />
+
+          <event symbol="OrtcSctpTransportReceivedIncomingDataPacket" channel="ol" template="T_BasicWithBuffer" task="SctpTransport" opcode="win:Receive" value="2418" level="win:Verbose" message="$(string.Event.OrtcSctpTransportReceivedIncomingDataPacket)" />
+          <event symbol="OrtcSctpTransportBufferIncomingDataPacket" channel="ol" template="T_BasicWithBuffer" task="SctpTransport" opcode="Buffer" value="2419" level="win:Verbose" message="$(string.Event.OrtcSctpTransportBufferIncomingDataPacket)" />
+          <event symbol="OrtcSctpTransportDisposeBufferedIncomingDataPacket" channel="ol" template="T_BasicWithBuffer" task="SctpTransport" opcode="Dispose" value="2420" level="win:Warning" message="$(string.Event.OrtcSctpTransportDisposeBufferedIncomingDataPacket)" />
+
+          <event symbol="OrtcSctpTransportSendOutgoingDataPacket" channel="ol" template="T_BasicWithSecureTransportObjectIDAndBuffer" task="SctpTransport" opcode="win:Send" value="2421" level="win:Verbose" message="$(string.Event.OrtcSctpTransportSendOutgoingDataPacket)" />
+
+          <event symbol="OrtcSctpTransportInternalWakeEventFired" channel="ol" template="T_BasicObject" task="SctpTransport" opcode="InternalEvent" value="2422" level="win:Informational" message="$(string.Event.OrtcSctpTransportInternalWakeEventFired)" />
+          <event symbol="OrtcSctpTransportInternalShutdownEventFired" channel="ol" template="T_BasicObject" task="SctpTransport" opcode="InternalEvent" value="2423" level="win:Informational" message="$(string.Event.OrtcSctpTransportInternalShutdownEventFired)" />
+          <event symbol="OrtcSctpTransportInternalSecureTransportStateChangedEventFired" channel="ol" template="T_SctpTransportInternalSecureTransportStateChangedEventFired" task="SctpTransport" opcode="InternalEvent" value="2424" level="win:Informational" message="$(string.Event.OrtcSctpTransportInternalSecureTransportStateChangedEventFired)" />
+
+          <event symbol="OrtcSctpTransportListenerCreate" channel="ol" template="T_SctpTransportListenerCreate" task="SctpTransportListener" opcode="win:Start" value="2501" level="win:Informational" message="$(string.Event.OrtcSctpTransportListenerCreate)" />
+          <event symbol="OrtcSctpTransportListenerDestroy" channel="ol" template="T_BasicObject" task="SctpTransportListener" opcode="win:Stop" value="2502" level="win:Informational" message="$(string.Event.OrtcSctpTransportListenerDestroy)" />
+          <event symbol="OrtcSctpTransportListenerCancel" channel="ol" template="T_BasicObject" task="SctpTransportListener" opcode="Cancel" value="2503" level="win:Informational" message="$(string.Event.OrtcSctpTransportListenerCancel)" />
+          <event symbol="OrtcSctpTransportListenerStep" channel="ol" template="T_BasicObject" task="SctpTransportListener" opcode="Step" value="2504" level="win:Informational" message="$(string.Event.OrtcSctpTransportListenerStep)" />
+
+          <event symbol="OrtcSctpTransportListenerListen" channel="ol" template="T_SctpTransportListenerListen" task="SctpTransportListener" opcode="Listen" value="2505" level="win:Informational" message="$(string.Event.OrtcSctpTransportListenerListen)" />
+
+          <event symbol="OrtcSctpTransportListenerRegisterNewTransport" channel="ol" template="T_SctpTransportListenerRegisterNewTransport" task="SctpTransportListener" opcode="win:Info" value="2506" level="win:Informational" message="$(string.Event.OrtcSctpTransportListenerRegisterNewTransport)" />
+
+          <event symbol="OrtcSctpTransportListenerSctpTransportCreatedEventFired" channel="ol" template="T_BasicWithSctpTransportObjectIDAndLocalAndRemotePort" task="SctpTransportListener" opcode="InternalEvent" value="2507" level="win:Informational" message="$(string.Event.OrtcSctpTransportListenerSctpTransportCreatedEventFired)" />
+          <event symbol="OrtcSctpTransportListenerSctpTransportEventFired" channel="ol" template="T_BasicWithSctpTransportObjectIDAndLocalAndRemotePort" task="SctpTransportListener" opcode="InternalEvent" value="2508" level="win:Informational" message="$(string.Event.OrtcSctpTransportListenerSctpTransportEventFired)" />
+          <event symbol="OrtcSctpTransportListenerSctpTransportShutdownEventFired" channel="ol" template="T_BasicWithSctpTransportObjectIDAndLocalAndRemotePort" task="SctpTransportListener" opcode="InternalEvent" value="2509" level="win:Informational" message="$(string.Event.OrtcSctpTransportListenerSctpTransportShutdownEventFired)" />
+
+          <event symbol="OrtcSctpTransportListenerReceivedIncomingDataPacket" channel="ol" template="T_BasicWithBuffer" task="SctpTransportListener" opcode="win:Receive" value="2510" level="win:Informational" message="$(string.Event.OrtcSctpTransportListenerReceivedIncomingDataPacket)" />
+          <event symbol="OrtcSctpTransportListenerDeliverIncomingDataPacket" channel="ol" template="T_SctpTransportListenerDeliverIncomingDataPacket" task="SctpTransportListener" opcode="Deliver" value="2511" level="win:Informational" message="$(string.Event.OrtcSctpTransportListenerDeliverIncomingDataPacket)" />
+
+          <event symbol="OrtcSrtpTransportCreate" channel="ol" template="T_BasicWithSecureTransportObjectID" task="SrtpTransport" opcode="win:Start" value="2601" level="win:Informational" message="$(string.Event.OrtcSrtpTransportCreate)" />
+          <event symbol="OrtcSrtpTransportDestroy" channel="ol" template="T_BasicObject" task="SrtpTransport" opcode="win:Stop" value="2602" level="win:Informational" message="$(string.Event.OrtcSrtpTransportDestroy)" />
+
+          <event symbol="OrtcSrtpTransportInstallKeyingMaterial" channel="ol" template="T_SrtpTransportInstallKeyingMaterial" task="SrtpTransport" opcode="Initialization" value="2603" level="win:Informational" message="$(string.Event.OrtcSrtpTransportInstallKeyingMaterial)" />
+
+          <event symbol="OrtcSrtpTransportReceivedIncomingEncryptedPacket" channel="ol" template="T_BasicWithRtpPacket" task="SrtpTransport" opcode="win:Receive" value="2604" level="win:Verbose" message="$(string.Event.OrtcSrtpTransportReceivedIncomingEncryptedPacket)" />
+          <event symbol="OrtcSrtpTransportDeliverIncomingDecryptedPacket" channel="ol" template="T_SrtpTransportDeliverIncomingDecryptedPacket" task="SrtpTransport" opcode="Deliver" value="2605" level="win:Verbose" message="$(string.Event.OrtcSrtpTransportDeliverIncomingDecryptedPacket)" />
+
+          <event symbol="OrtcSrtpTransportSendOutgoingPacketAndEncrypt" channel="ol" template="T_SrtpTransportSendOutgoingPacketAndEncrypt" task="SrtpTransport" opcode="win:Send" value="2606" level="win:Verbose" message="$(string.Event.OrtcSrtpTransportSendOutgoingPacketAndEncrypt)" />
+          <event symbol="OrtcSrtpTransportSendOutgoingEncryptedPacketViaSecureTransport" channel="ol" template="T_SrtpTransportSendOutgoingEncryptedPacketViaSecureTransport" task="SrtpTransport" opcode="win:Send" value="2607" level="win:Verbose" message="$(string.Event.OrtcSrtpTransportSendOutgoingEncryptedPacketViaSecureTransport)" />
         </events>
       </provider>
 
@@ -1905,10 +1963,364 @@ OrtcSrtpTransportSendOutgoingEncryptedPacketViaSecureTransport(T_SrtpTransportSe
         <string id="Opcode.InternalEvent" value="InternalEvent" />
 
         <string id="Opcode.DataChannel.Send" value="Send" />
+        <string id="Opcode.IceGatherer.CreateAssociated" value="CreateAssoicated" />
+        <string id="Opcode.IceGatherer.Gather" value="Gather" />
+        <string id="Opcode.IceGatherer.HostSocketBind" value="HostSocketBind" />
+        <string id="Opcode.IceGatherer.HostSocketClose" value="HostSocketClose" />
+        <string id="Opcode.IceGatherer.Found" value="Found" />
+        <string id="Opcode.IceTransport.CreateAssociated" value="CreateAssoicated" />
+        <string id="Opcode.IceTransport.AddCandidate" value="AddCandidate" />
+        <string id="Opcode.IceTransport.RemoveCandidate" value="RemoveCandidate" />
+        <string id="Opcode.IceTransport.SetCandidates" value="SetCandidates" />
+        <string id="Opcode.IceTransport.Warm" value="Warm" />
+        <string id="Opcode.RtpReceiver.SetTransport" value="SetTransport" />
+        <string id="Opcode.RtpReceiver.Receive" value="Receive" />
+        <string id="Opcode.RtpSender.SetTransport" value="SetTransport" />
+        <string id="Opcode.RtpSender.SetTrack" value="SetTrack" />
+        <string id="Opcode.RtpSender.Send" value="Send" />
+        <string id="Opcode.SctpTransportListener.Listen" value="Listen" />
 
         <string id="Event.OrtcCreate" value="OrtcCreate" />
         <string id="Event.OrtcDestroy" value="OrtcDestroy" />
 
+        <string id="Event.OrtcCertificateCreate" value="OrtcCertificateCreate" />
+        <string id="Event.OrtcCertificateDestroy" value="OrtcCertificateDestroy" />
+        <string id="Event.OrtcCertificateGeneratedEventFired" value="OrtcCertificateGeneratedEventFired" />
+        <string id="Event.OrtcCertificateFingerprint" value="OrtcCertificateFingerprint" />
+
+        <string id="Event.OrtcDataChannelCreate" value="OrtcDataChannelCreate" />
+        <string id="Event.OrtcDataChannelDestroy" value="OrtcDataChannelDestroy" />
+        <string id="Event.OrtcDataChannelClose" value="OrtcDataChannelClose" />
+        <string id="Event.OrtcDataChannelCancel" value="OrtcDataChannelCancel" />
+        <string id="Event.OrtcDataChannelStep" value="OrtcDataChannelStep" />
+        <string id="Event.OrtcDataChannelStateChangedEventFired" value="OrtcDataChannelStateChangedEventFired" />
+        <string id="Event.OrtcDataChannelErrorEventFired" value="OrtcDataChannelErrorEventFired" />
+        <string id="Event.OrtcDataChannelSendControlOpen" value="OrtcDataChannelSendControlOpen" />
+        <string id="Event.OrtcDataChannelSendControlAck" value="OrtcDataChannelSendControlAck" />
+        <string id="Event.OrtcDataChannelBufferedAmountLowThresholdChanged" value="OrtcDataChannelBufferedAmountLowThresholdChanged" />
+        <string id="Event.OrtcDataChannelSendString" value="OrtcDataChannelSendString" />
+        <string id="Event.OrtcDataChannelSendBinary" value="OrtcDataChannelSendBinary" />
+        <string id="Event.OrtcDataChannelOutgoingBufferPacket" value="OrtcDataChannelOutgoingBufferPacket" />
+        <string id="Event.OrtcDataChannelOutgoingBufferPacketDelivered" value="OrtcDataChannelOutgoingBufferPacketDelivered" />
+        <string id="Event.OrtcDataChannelReceivedControlOpen" value="OrtcDataChannelReceivedControlOpen" />
+        <string id="Event.OrtcDataChannelReceivedControlAck" value="OrtcDataChannelReceivedControlAck" />
+        <string id="Event.OrtcDataChannelMessageFiredEvent" value="OrtcDataChannelMessageFiredEvent" />
+        <string id="Event.OrtcDataChannelSCTPTransportDeliverOutgoingPacket" value="OrtcDataChannelSCTPTransportDeliverOutgoingPacket" />
+        <string id="Event.OrtcDataChannelSCTPTransportRequestShutdown" value="OrtcDataChannelSCTPTransportRequestShutdown" />
+        <string id="Event.OrtcDataChannelSCTPTransportRequestNotifyClosed" value="OrtcDataChannelSCTPTransportRequestNotifyClosed" />
+        <string id="Event.OrtcDataChannelSCTPTransportStateChanged" value="OrtcDataChannelSCTPTransportStateChanged" />
+        <string id="Event.OrtcDataChannelSCTPTransportSendReady" value="OrtcDataChannelSCTPTransportSendReady" />
+        <string id="Event.OrtcDataChannelSCTPTransportSendReadyFailure" value="OrtcDataChannelSCTPTransportSendReadyFailure" />
+        <string id="Event.OrtcDataChannelSCTPTransportReceivedIncomingPacket" value="OrtcDataChannelSCTPTransportReceivedIncomingPacket" />
+
+        <string id="Event.OrtcDtlsTransportCreate" value="OrtcDtlsTransportCreate" />
+        <string id="Event.OrtcDtlsTransportDestroy" value="OrtcDtlsTransportDestroy" />
+        <string id="Event.OrtcDtlsTransportInitialization" value="OrtcDtlsTransportInitialization" />
+        <string id="Event.OrtcDtlsTransportStep" value="OrtcDtlsTransportStep" />
+        <string id="Event.OrtcDtlsTransportCancel" value="OrtcDtlsTransportCancel" />
+        <string id="Event.OrtcDtlsTransportInitializationInstallCipher" value="OrtcDtlsTransportInitializationInstallCipher" />
+        <string id="Event.OrtcDtlsTransportInitializationInstallFingerprint" value="OrtcDtlsTransportInitializationInstallFingerprint" />
+        <string id="Event.OrtcDtlsTransportStart" value="OrtcDtlsTransportStart" />
+        <string id="Event.OrtcDtlsTransportStop" value="OrtcDtlsTransportStop" />
+        <string id="Event.OrtcDtlsTransportRoleSet" value="OrtcDtlsTransportRoleSet" />
+        <string id="Event.OrtcDtlsTransportReceivedPacket" value="OrtcDtlsTransportReceivedPacket" />
+        <string id="Event.OrtcDtlsTransportReceivedStunPacket" value="OrtcDtlsTransportReceivedStunPacket" />
+        <string id="Event.OrtcDtlsTransportForwardingEncryptedPacketToSrtpTransport" value="OrtcDtlsTransportForwardingEncryptedPacketToSrtpTransport" />
+        <string id="Event.OrtcDtlsTransportForwardingPacketToDataTransport" value="OrtcDtlsTransportForwardingPacketToDataTransport" />
+        <string id="Event.OrtcDtlsTransportForwardingPacketToRtpListener" value="OrtcDtlsTransportForwardingPacketToRtpListener" />
+        <string id="Event.OrtcDtlsTransportSendRtpPacket" value="OrtcDtlsTransportSendRtpPacket" />
+        <string id="Event.OrtcDtlsTransportSendDataPacket" value="OrtcDtlsTransportSendDataPacket" />
+        <string id="Event.OrtcDtlsTransportForwardDataPacketToIceTransport" value="OrtcDtlsTransportForwardDataPacketToIceTransport" />
+        <string id="Event.OrtcDtlsTransportSendEncryptedRtpPacket" value="OrtcDtlsTransportSendEncryptedRtpPacket" />
+        <string id="Event.OrtcDtlsTransportInternalTimerEventFired" value="OrtcDtlsTransportInternalTimerEventFired" />
+        <string id="Event.OrtcDtlsTransportInternalIceStateChangeEventFired" value="OrtcDtlsTransportInternalIceStateChangeEventFired" />
+        <string id="Event.OrtcDtlsTransportInternalSrtpTransportLifetimeRemainingEventFired" value="OrtcDtlsTransportInternalSrtpTransportLifetimeRemainingEventFired" />
+        <string id="Event.OrtcDtlsTransportStateChangedEventFired" value="OrtcDtlsTransportStateChangedEventFired" />
+        <string id="Event.OrtcDtlsTransportErrorEventFired" value="OrtcDtlsTransportErrorEventFired" />
+        <string id="Event.OrtcDtlsTransportSrtpKeyingMaterialSetup" value="OrtcDtlsTransportSrtpKeyingMaterialSetup" />
+
+        <string id="Event.OrtcIceGathererCreate" value="OrtcIceGathererCreate" />
+        <string id="Event.OrtcIceGathererDestroy" value="OrtcIceGathererDestroy" />
+        <string id="Event.OrtcIceGathererStep" value="OrtcIceGathererStep" />
+        <string id="Event.OrtcIceGathererCancel" value="OrtcIceGathererCancel" />
+        <string id="Event.OrtcIceGathererCreatedAssociateGatherer" value="OrtcIceGathererCreatedAssociateGatherer" />
+        <string id="Event.OrtcIceGathererInitializeInstallInterfaceNameMapping" value="OrtcIceGathererInitializeInstallInterfaceNameMapping" />
+        <string id="Event.OrtcIceGathererInitializeInstallPreference" value="OrtcIceGathererInitializeInstallPreference" />
+        <string id="Event.OrtcIceGathererGather" value="OrtcIceGathererGather" />
+        <string id="Event.OrtcIceGathererStateChangedEventFired" value="OrtcIceGathererStateChangedEventFired" />
+        <string id="Event.OrtcIceGathererAddCandidateEventFired" value="OrtcIceGathererAddCandidateEventFired" />
+        <string id="Event.OrtcIceGathererRemoveCandidateEventFired" value="OrtcIceGathererRemoveCandidateEventFired" />
+        <string id="Event.OrtcIceGathererFilterCandidateEventFired" value="OrtcIceGathererFilterCandidateEventFired" />
+        <string id="Event.OrtcIceGathererInstallIceTransport" value="OrtcIceGathererInstallIceTransport" />
+        <string id="Event.OrtcIceGathererRemoveIceTransport" value="OrtcIceGathererRemoveIceTransport" />
+        <string id="Event.OrtcIceGathererInternalIceTransportStateChangedEventFired" value="OrtcIceGathererInternalIceTransportStateChangedEventFired" />
+        <string id="Event.OrtcIceGathererRemovetAllIceTransportRelatedRoutes" value="OrtcIceGathererRemovetAllIceTransportRelatedRoutes" />
+        <string id="Event.OrtcIceGathererSendIceTransportPacket" value="OrtcIceGathererSendIceTransportPacket" />
+        <string id="Event.OrtcIceGathererSendIceTransportPacketFailed" value="OrtcIceGathererSendIceTransportPacketFailed" />
+        <string id="Event.OrtcIceGathererSendIceTransportPacketViaUdp" value="OrtcIceGathererSendIceTransportPacketViaUdp" />
+        <string id="Event.OrtcIceGathererSendIceTransportPacketViaTcp" value="OrtcIceGathererSendIceTransportPacketViaTcp" />
+        <string id="Event.OrtcIceGathererSendIceTransportPacketViaTurn" value="OrtcIceGathererSendIceTransportPacketViaTurn" />
+        <string id="Event.OrtcIceGathererDeliverIceTransportIncomingPacket" value="OrtcIceGathererDeliverIceTransportIncomingPacket" />
+        <string id="Event.OrtcIceGathererBufferIceTransportIncomingPacket" value="OrtcIceGathererBufferIceTransportIncomingPacket" />
+        <string id="Event.OrtcIceGathererDeliverIceTransportIncomingStunPacket" value="OrtcIceGathererDeliverIceTransportIncomingStunPacket" />
+        <string id="Event.OrtcIceGathererBufferIceTransportIncomingStunPacket" value="OrtcIceGathererBufferIceTransportIncomingStunPacket" />
+        <string id="Event.OrtcIceGathererErrorIceTransportIncomingStunPacket" value="OrtcIceGathererErrorIceTransportIncomingStunPacket" />
+        <string id="Event.OrtcIceGathererDisposeBufferedIceTransportIncomingPacket" value="OrtcIceGathererDisposeBufferedIceTransportIncomingPacket" />
+        <string id="Event.OrtcIceGathererDisposeBufferedIceTransportIncomingStunPacket" value="OrtcIceGathererDisposeBufferedIceTransportIncomingStunPacket" />
+        <string id="Event.OrtcIceGathererTurnSocketReceivedPacket" value="OrtcIceGathererTurnSocketReceivedPacket" />
+        <string id="Event.OrtcIceGathererTurnSocketSendPacket" value="OrtcIceGathererTurnSocketSendPacket" />
+        <string id="Event.OrtcIceGathererInstallQuickRoute" value="OrtcIceGathererInstallQuickRoute" />
+        <string id="Event.OrtcIceGathererRemoveQuickRoute" value="OrtcIceGathererRemoveQuickRoute" />
+        <string id="Event.OrtcIceGathererInternalWakeEventFired" value="OrtcIceGathererInternalWakeEventFired" />
+        <string id="Event.OrtcIceGathererInternalDnsLoookupCompleteEventFired" value="OrtcIceGathererInternalDnsLoookupCompleteEventFired" />
+        <string id="Event.OrtcIceGathererInternalTimerEventFired" value="OrtcIceGathererInternalTimerEventFired" />
+        <string id="Event.OrtcIceGathererInternalLikelyReflexiveActivityEventFired" value="OrtcIceGathererInternalLikelyReflexiveActivityEventFired" />
+        <string id="Event.OrtcIceGathererInternalSocketReadReadyEventFired" value="OrtcIceGathererInternalSocketReadReadyEventFired" />
+        <string id="Event.OrtcIceGathererInternalSocketWriteReadyEventFired" value="OrtcIceGathererInternalSocketWriteReadyEventFired" />
+        <string id="Event.OrtcIceGathererInternalSocketExceptionEventFired" value="OrtcIceGathererInternalSocketExceptionEventFired" />
+        <string id="Event.OrtcIceGathererInternalBackOffTimerStateChangedEventFired" value="OrtcIceGathererInternalBackOffTimerStateChangedEventFired" />
+        <string id="Event.OrtcIceGathererInternalStunDiscoverySendPacket" value="OrtcIceGathererInternalStunDiscoverySendPacket" />
+        <string id="Event.OrtcIceGathererInternalStunDiscoveryCompleteEventFired" value="OrtcIceGathererInternalStunDiscoveryCompleteEventFired" />
+        <string id="Event.OrtcIceGathererInternalTurnSocketStateChangeEventFired" value="OrtcIceGathererInternalTurnSocketStateChangeEventFired" />
+        <string id="Event.OrtcIceGathererResolveHostIP" value="OrtcIceGathererResolveHostIP" />
+        <string id="Event.OrtcIceGathererResolveFoundHostIP" value="OrtcIceGathererResolveFoundHostIP" />
+        <string id="Event.OrtcIceGathererPendingResolveHostIP" value="OrtcIceGathererPendingResolveHostIP" />
+        <string id="Event.OrtcIceGathererHostPortCreate" value="OrtcIceGathererHostPortCreate" />
+        <string id="Event.OrtcIceGathererHostPortDestroy" value="OrtcIceGathererHostPortDestroy" />
+        <string id="Event.OrtcIceGathererHostPortBind" value="OrtcIceGathererHostPortBind" />
+        <string id="Event.OrtcIceGathererHostPortClose" value="OrtcIceGathererHostPortClose" />
+        <string id="Event.OrtcIceGathererReflexivePortCreate" value="OrtcIceGathererReflexivePortCreate" />
+        <string id="Event.OrtcIceGathererReflexivePortDestroy" value="OrtcIceGathererReflexivePortDestroy" />
+        <string id="Event.OrtcIceGathererReflexivePortFoundMapped" value="OrtcIceGathererReflexivePortFoundMapped" />
+        <string id="Event.OrtcIceGathererRelayPortCreate" value="OrtcIceGathererRelayPortCreate" />
+        <string id="Event.OrtcIceGathererRelayPortDestroy" value="OrtcIceGathererRelayPortDestroy" />
+        <string id="Event.OrtcIceGathererRelayPortFoundIP" value="OrtcIceGathererRelayPortFoundIP" />
+        <string id="Event.OrtcIceGathererTcpPortCreate" value="OrtcIceGathererTcpPortCreate" />
+        <string id="Event.OrtcIceGathererTcpPortDestroy" value="OrtcIceGathererTcpPortDestroy" />
+        <string id="Event.OrtcIceGathererUdpSocketPacketReceivedFrom" value="OrtcIceGathererUdpSocketPacketReceivedFrom" />
+        <string id="Event.OrtcIceGathererUdpSocketPacketForwardingToTurnSocket" value="OrtcIceGathererUdpSocketPacketForwardingToTurnSocket" />
+        <string id="Event.OrtcIceGathererUdpSocketPacketSentTo" value="OrtcIceGathererUdpSocketPacketSentTo" />
+        <string id="Event.OrtcIceGathererTcpSocketPacketReceivedFrom" value="OrtcIceGathererTcpSocketPacketReceivedFrom" />
+        <string id="Event.OrtcIceGathererTcpSocketSentOutgoing" value="OrtcIceGathererTcpSocketSentOutgoing" />
+
+        <string id="Event.OrtcIceGathererRouteTrace" value="OrtcIceGathererRouteTrace" />
+        <string id="Event.OrtcIceGathererRouterCreate" value="OrtcIceGathererRouterCreate" />
+        <string id="Event.OrtcIceGathererRouterDestroy" value="OrtcIceGathererRouterDestroy" />
+        <string id="Event.OrtcIceGathererRouterCancel" value="OrtcIceGathererRouterCancel" />
+        <string id="Event.OrtcIceGathererRouterInternalEvent" value="OrtcIceGathererRouterInternalEvent" />
+        <string id="Event.OrtcIceGathererRouterRouteTrace" value="OrtcIceGathererRouterRouteTrace" />
+
+        <string id="Event.OrtcIceTransportCreate" value="OrtcIceTransportCreate" />
+        <string id="Event.OrtcIceTransportDestroy" value="OrtcIceTransportDestroy" />
+        <string id="Event.OrtcIceTransportStep" value="OrtcIceTransportStep" />
+        <string id="Event.OrtcIceTransportCancel" value="OrtcIceTransportCancel" />
+        <string id="Event.OrtcIceTransportRouteStateTrackerStateCountChange" value="OrtcIceTransportRouteStateTrackerStateCountChange" />
+        <string id="Event.OrtcIceTransportStart" value="OrtcIceTransportStart" />
+        <string id="Event.OrtcIceTransportCreateAssociatedTransport" value="OrtcIceTransportCreateAssociatedTransport" />
+        <string id="Event.OrtcIceTransportAddRemoteCandidate" value="OrtcIceTransportAddRemoteCandidate" />
+        <string id="Event.OrtcIceTransportAddRemoteCandidateComplete" value="OrtcIceTransportAddRemoteCandidateComplete" />
+        <string id="Event.OrtcIceTransportRemoveRemoteCandidate" value="OrtcIceTransportRemoveRemoteCandidate" />
+        <string id="Event.OrtcIceTransportRemoveRemoteCandidateComplete" value="OrtcIceTransportRemoveRemoteCandidateComplete" />
+        <string id="Event.OrtcIceTransportKeepWarm" value="OrtcIceTransportKeepWarm" />
+        <string id="Event.OrtcIceTransportStateChangedEventFired" value="OrtcIceTransportStateChangedEventFired" />
+        <string id="Event.OrtcIceTransportErrorEventFired" value="OrtcIceTransportErrorEventFired" />
+        <string id="Event.OrtcIceTransportCandidatePairChangedEventFired" value="OrtcIceTransportCandidatePairChangedEventFired" />
+        <string id="Event.OrtcIceTransportRouteTrace" value="OrtcIceTransportRouteTrace" />
+        <string id="Event.OrtcIceTransportReceivedPacketFromGatherer" value="OrtcIceTransportReceivedPacketFromGatherer" />
+        <string id="Event.OrtcIceTransportReceivedStunPacketFromGatherer" value="OrtcIceTransportReceivedStunPacketFromGatherer" />
+        <string id="Event.OrtcIceTransportRetryReceivedStunPacketFromGatherer" value="OrtcIceTransportRetryReceivedStunPacketFromGatherer" />
+        <string id="Event.OrtcIceTransportBufferingIncomingPacket" value="OrtcIceTransportBufferingIncomingPacket" />
+        <string id="Event.OrtcIceTransportDisposingBufferedIncomingPacket" value="OrtcIceTransportDisposingBufferedIncomingPacket" />
+        <string id="Event.OrtcIceTransportDeliveringBufferedIncomingPacketToSecureTransport" value="OrtcIceTransportDeliveringBufferedIncomingPacketToSecureTransport" />
+        <string id="Event.OrtcIceTransportDeliveringIncomingPacketToSecureTransport" value="OrtcIceTransportDeliveringIncomingPacketToSecureTransport" />
+        <string id="Event.OrtcIceTransportDeliveringIncomingStunPacketToSecureTransport" value="OrtcIceTransportDeliveringIncomingStunPacketToSecureTransport" />
+        <string id="Event.OrtcIceTransportInstallFoundation" value="OrtcIceTransportInstallFoundation" />
+        <string id="Event.OrtcIceTransportRemoveFoundation" value="OrtcIceTransportRemoveFoundation" />
+        <string id="Event.OrtcIceTransportInstallFoundationDependencyFreezePromise" value="OrtcIceTransportInstallFoundationDependencyFreezePromise" />
+        <string id="Event.OrtcIceTransportSecureTransportSendPacket" value="OrtcIceTransportSecureTransportSendPacket" />
+        <string id="Event.OrtcIceTransportForwardSecureTransportPacketToGatherer" value="OrtcIceTransportForwardSecureTransportPacketToGatherer" />
+        <string id="Event.OrtcIceTransportSendStunPacket" value="OrtcIceTransportSendStunPacket" />
+        <string id="Event.OrtcIceTransportInternalControllerAttachedEventFired" value="OrtcIceTransportInternalControllerAttachedEventFired" />
+        <string id="Event.OrtcIceTransportInternalControllerDetachedEventFired" value="OrtcIceTransportInternalControllerDetachedEventFired" />
+        <string id="Event.OrtcIceTransportInternalSecureTransportAttachedEventFired" value="OrtcIceTransportInternalSecureTransportAttachedEventFired" />
+        <string id="Event.OrtcIceTransportInternalSecureTransportDetachedEventFired" value="OrtcIceTransportInternalSecureTransportDetachedEventFired" />
+        <string id="Event.OrtcIceTransportInternalWarmRoutesChangedEventFired" value="OrtcIceTransportInternalWarmRoutesChangedEventFired" />
+        <string id="Event.OrtcIceTransportInternalDeliveryPendingPacketsEventFired" value="OrtcIceTransportInternalDeliveryPendingPacketsEventFired" />
+        <string id="Event.OrtcIceTransportInternalWakeEventFired" value="OrtcIceTransportInternalWakeEventFired" />
+        <string id="Event.OrtcIceTransportInternalTimerEventFired" value="OrtcIceTransportInternalTimerEventFired" />
+        <string id="Event.OrtcIceTransportInternalUnfrozenPromiseEventFired" value="OrtcIceTransportInternalUnfrozenPromiseEventFired" />
+        <string id="Event.OrtcIceTransportInternalGathererStateChangedEventFired" value="OrtcIceTransportInternalGathererStateChangedEventFired" />
+        <string id="Event.OrtcIceTransportInternalGathererAddLocalCandidateEventFired" value="OrtcIceTransportInternalGathererAddLocalCandidateEventFired" />
+        <string id="Event.OrtcIceTransportInternalGathererAddLocalCandidateCompleteEventFired" value="OrtcIceTransportInternalGathererAddLocalCandidateCompleteEventFired" />
+        <string id="Event.OrtcIceTransportInternalGathererRemoveLocalCandidateEventFired" value="OrtcIceTransportInternalGathererRemoveLocalCandidateEventFired" />
+        <string id="Event.OrtcIceTransportInternalStunRequesterCreate" value="OrtcIceTransportInternalStunRequesterCreate" />
+        <string id="Event.OrtcIceTransportInternalStunRequesterSendPacket" value="OrtcIceTransportInternalStunRequesterSendPacket" />
+        <string id="Event.OrtcIceTransportInternalStunRequesterReceivedResponse" value="OrtcIceTransportInternalStunRequesterReceivedResponse" />
+        <string id="Event.OrtcIceTransportInternalStunRequesterReceivedResponseMismatch" value="OrtcIceTransportInternalStunRequesterReceivedResponseMismatch" />
+        <string id="Event.OrtcIceTransportInternalStunRequesterTimedOut" value="OrtcIceTransportInternalStunRequesterTimedOut" />
+        <string id="Event.OrtcIceTransportInternalRoleConflictDetectedEventFired" value="OrtcIceTransportInternalRoleConflictDetectedEventFired" />
+
+        <string id="Event.OrtcIceTransportControllerCreate" value="OrtcIceTransportControllerCreate" />
+        <string id="Event.OrtcIceTransportControllerDestroy" value="OrtcIceTransportControllerDestroy" />
+        <string id="Event.OrtcIceTransportControllerCancel" value="OrtcIceTransportControllerCancel" />
+        <string id="Event.OrtcIceTransportControllerStep" value="OrtcIceTransportControllerStep" />
+        <string id="Event.OrtcIceTransportControllerInternalWakeEventFired" value="OrtcIceTransportControllerInternalWakeEventFired" />
+        <string id="Event.OrtcIceTransportControllerInternalTransportAttachedEventFired" value="OrtcIceTransportControllerInternalTransportAttachedEventFired" />
+        <string id="Event.OrtcIceTransportControllerInternalTransportDetachedEventFired" value="OrtcIceTransportControllerInternalTransportDetachedEventFired" />
+        <string id="Event.OrtcIceTransportControllerWaitUntilUnfrozen" value="OrtcIceTransportControllerWaitUntilUnfrozen" />
+        <string id="Event.OrtcIceTransportControllerNoNeedToWaitUntilUnfrozen" value="OrtcIceTransportControllerNoNeedToWaitUntilUnfrozen" />
+
+        <string id="Event.OrtcRtpListenerCreate" value="OrtcRtpListenerCreate" />
+        <string id="Event.OrtcRtpListenerDestroy" value="OrtcRtpListenerDestroy" />
+        <string id="Event.OrtcRtpListenerCancel" value="OrtcRtpListenerCancel" />
+        <string id="Event.OrtcRtpListenerStep" value="OrtcRtpListenerStep" />
+        <string id="Event.OrtcRtpListenerFindMapping" value="OrtcRtpListenerFindMapping" />
+        <string id="Event.OrtcRtpListenerFoundMappingByMuxID" value="OrtcRtpListenerFoundMappingByMuxID" />
+        <string id="Event.OrtcRtpListenerFoundMappingBySsrc" value="OrtcRtpListenerFoundMappingBySsrc" />
+        <string id="Event.OrtcRtpListenerFoundMappingByPayloadType" value="OrtcRtpListenerFoundMappingByPayloadType" />
+        <string id="Event.OrtcRtpListenerStateChangedEventFired" value="OrtcRtpListenerStateChangedEventFired" />
+        <string id="Event.OrtcRtpListenerErrorEventFired" value="OrtcRtpListenerErrorEventFired" />
+        <string id="Event.OrtcRtpListenerUnhandledEventFired" value="OrtcRtpListenerUnhandledEventFired" />
+        <string id="Event.OrtcRtpListenerRegisterHeaderExtension" value="OrtcRtpListenerRegisterHeaderExtension" />
+        <string id="Event.OrtcRtpListenerUnregisterHeaderExtension" value="OrtcRtpListenerUnregisterHeaderExtension" />
+        <string id="Event.OrtcRtpListenerReceivedIncomingPacket" value="OrtcRtpListenerReceivedIncomingPacket" />
+        <string id="Event.OrtcRtpListenerBufferIncomingPacket" value="OrtcRtpListenerBufferIncomingPacket" />
+        <string id="Event.OrtcRtpListenerForwardIncomingPacket" value="OrtcRtpListenerForwardIncomingPacket" />
+        <string id="Event.OrtcRtpListenerDisposeBufferedIncomingPacket" value="OrtcRtpListenerDisposeBufferedIncomingPacket" />
+        <string id="Event.OrtcRtpListenerRegisterReceiver" value="OrtcRtpListenerRegisterReceiver" />
+        <string id="Event.OrtcRtpListenerUnregisterReceiver" value="OrtcRtpListenerUnregisterReceiver" />
+        <string id="Event.OrtcRtpListenerRegisterSender" value="OrtcRtpListenerRegisterSender" />
+        <string id="Event.OrtcRtpListenerUnregisterSender" value="OrtcRtpListenerUnregisterSender" />
+        <string id="Event.OrtcRtpListenerInternalWakeEventFired" value="OrtcRtpListenerInternalWakeEventFired" />
+        <string id="Event.OrtcRtpListenerInternalTimerEventFired" value="OrtcRtpListenerInternalTimerEventFired" />
+        <string id="Event.OrtcRtpListenerSsrcTableEntryAdded" value="OrtcRtpListenerSsrcTableEntryAdded" />
+        <string id="Event.OrtcRtpListenerSsrcTableEntryRemoved" value="OrtcRtpListenerSsrcTableEntryRemoved" />
+        <string id="Event.OrtcRtpListenerSsrcTableEntryUpdated" value="OrtcRtpListenerSsrcTableEntryUpdated" />
+
+        <string id="Event.OrtcRtpReceiverCreate" value="OrtcRtpReceiverCreate" />
+        <string id="Event.OrtcRtpReceiverDestroy" value="OrtcRtpReceiverDestroy" />
+        <string id="Event.OrtcRtpReceiverStep" value="OrtcRtpReceiverStep" />
+        <string id="Event.OrtcRtpReceiverCancel" value="OrtcRtpReceiverCancel" />
+        <string id="Event.OrtcRtpReceiverSetTransport" value="OrtcRtpReceiverSetTransport" />
+        <string id="Event.OrtcRtpReceiverReportRtcpFeedback" value="OrtcRtpReceiverReportRtcpFeedback" />
+        <string id="Event.OrtcRtpReceiverReportCodec" value="OrtcRtpReceiverReportCodec" />
+        <string id="Event.OrtcRtpReceiverReportHeaderExtension" value="OrtcRtpReceiverReportHeaderExtension" />
+        <string id="Event.OrtcRtpReceiverReceive" value="OrtcRtpReceiverReceive" />
+        <string id="Event.OrtcRtpReceiverStop" value="OrtcRtpReceiverStop" />
+        <string id="Event.OrtcRtpReceiverAddChannel" value="OrtcRtpReceiverAddChannel" />
+        <string id="Event.OrtcRtpReceiverUpdateChannel" value="OrtcRtpReceiverUpdateChannel" />
+        <string id="Event.OrtcRtpReceiverRemoveChannel" value="OrtcRtpReceiverRemoveChannel" />
+        <string id="Event.OrtcRtpReceiverAddContributingSource" value="OrtcRtpReceiverAddContributingSource" />
+        <string id="Event.OrtcRtpReceiverUpdateContributingSource" value="OrtcRtpReceiverUpdateContributingSource" />
+        <string id="Event.OrtcRtpReceiverRemoveContributingSource" value="OrtcRtpReceiverRemoveContributingSource" />
+        <string id="Event.OrtcRtpReceivedIncomingPacket" value="OrtcRtpReceivedIncomingPacket" />
+        <string id="Event.OrtcRtpReceiverDeliverIncomingPacketToChannel" value="OrtcRtpReceiverDeliverIncomingPacketToChannel" />
+        <string id="Event.OrtcRtpReceiverSendOutgoingPacket" value="OrtcRtpReceiverSendOutgoingPacket" />
+        <string id="Event.OrtcRtpReceiverInternalSecureTransportStateChangedEventFired" value="OrtcRtpReceiverInternalSecureTransportStateChangedEventFired" />
+        <string id="Event.OrtcRtpReceiverInternalWakeEventFired" value="OrtcRtpReceiverInternalWakeEventFired" />
+        <string id="Event.OrtcRtpReceiverInternalTimerEventFired" value="OrtcRtpReceiverInternalTimerEventFired" />
+        <string id="Event.OrtcRtpReceiverInternalChannelGoneEventFired" value="OrtcRtpReceiverInternalChannelGoneEventFired" />
+        <string id="Event.OrtcRtpReceiverStateChangedEventFired" value="OrtcRtpReceiverStateChangedEventFired" />
+        <string id="Event.OrtcRtpReceiverErrorEventFired" value="OrtcRtpReceiverErrorEventFired" />
+        <string id="Event.OrtcRtpReceiverRegisterHeaderExtension" value="OrtcRtpReceiverRegisterHeaderExtension" />
+        <string id="Event.OrtcRtpReceiverSsrcTableEntryAdded" value="OrtcRtpReceiverSsrcTableEntryAdded" />
+        <string id="Event.OrtcRtpReceiverSsrcTableEntryRemoved" value="OrtcRtpReceiverSsrcTableEntryRemoved" />
+        <string id="Event.OrtcRtpReceiverSsrcTableEntryUpdated" value="OrtcRtpReceiverSsrcTableEntryUpdated" />
+        <string id="Event.OrtcRtpReceiverFindMapping" value="OrtcRtpReceiverFindMapping" />
+        <string id="Event.OrtcRtpReceiverFoundMappingByRid" value="OrtcRtpReceiverFoundMappingByRid" />
+        <string id="Event.OrtcRtpReceiverFoundMappingBySsrc" value="OrtcRtpReceiverFoundMappingBySsrc" />
+        <string id="Event.OrtcRtpReceiverFoundMappingByPayloadType" value="OrtcRtpReceiverFoundMappingByPayloadType" />
+        <string id="Event.OrtcRtpReceiverCreateChannel" value="OrtcRtpReceiverCreateChannel" />
+        <string id="Event.OrtcRtpReceiverCloseChannel" value="OrtcRtpReceiverCloseChannel" />
+        <string id="Event.OrtcRtpReceiverUnhandledEventFired" value="OrtcRtpReceiverUnhandledEventFired" />
+        <string id="Event.OrtcRtpReceiverTrackActiveChannelChangedEventFired" value="OrtcRtpReceiverTrackActiveChannelChangedEventFired" />
+
+        <string id="Event.OrtcRtpSenderCreate" value="OrtcRtpSenderCreate" />
+        <string id="Event.OrtcRtpSenderDestroy" value="OrtcRtpSenderDestroy" />
+        <string id="Event.OrtcRtpSenderCancel" value="OrtcRtpSenderCancel" />
+        <string id="Event.OrtcRtpSenderSetTransport" value="OrtcRtpSenderSetTransport" />
+        <string id="Event.OrtcRtpSenderSetTrack" value="OrtcRtpSenderSetTrack" />
+        <string id="Event.OrtcRtpSenderAttachTrackSenderChannel" value="OrtcRtpSenderAttachTrackSenderChannel" />
+        <string id="Event.OrtcRtpSenderDetachTrackSenderChannel" value="OrtcRtpSenderDetachTrackSenderChannel" />
+        <string id="Event.OrtcRtpSenderSend" value="OrtcRtpSenderSend" />
+        <string id="Event.OrtcRtpSenderStop" value="OrtcRtpSenderStop" />
+        <string id="Event.OrtcRtpSenderStateChangedEventFired" value="OrtcRtpSenderStateChangedEventFired" />
+        <string id="Event.OrtcRtpSenderErrorEventFired" value="OrtcRtpSenderErrorEventFired" />
+        <string id="Event.OrtcRtpSenderAddChannel" value="OrtcRtpSenderAddChannel" />
+        <string id="Event.OrtcRtpSenderUpdateChannel" value="OrtcRtpSenderUpdateChannel" />
+        <string id="Event.OrtcRtpSenderRemoveChannel" value="OrtcRtpSenderRemoveChannel" />
+        <string id="Event.OrtcRtpSenderIncomingPacket" value="OrtcRtpSenderIncomingPacket" />
+        <string id="Event.OrtcRtpSenderDeliverIncomingPacketToChannel" value="OrtcRtpSenderDeliverIncomingPacketToChannel" />
+        <string id="Event.OrtcRtpSenderSendOutgoingPacket" value="OrtcRtpSenderSendOutgoingPacket" />
+        <string id="Event.OrtcRtpSenderSsrcConflictEventFired" value="OrtcRtpSenderSsrcConflictEventFired" />
+        <string id="Event.OrtcRtpSenderInternalChannelErrorEventFired" value="OrtcRtpSenderInternalChannelErrorEventFired" />
+        <string id="Event.OrtcRtpSenderInternalSecureTransportStateChangedEventFired" value="OrtcRtpSenderInternalSecureTransportStateChangedEventFired" />
+        <string id="Event.OrtcRtpSenderInternalWakeEventFired" value="OrtcRtpSenderInternalWakeEventFired" />
+        <string id="Event.OrtcRtpSenderInternalDestroyChannelEventFired" value="OrtcRtpSenderInternalDestroyChannelEventFired" />
+        <string id="Event.OrtcRtpSenderInternalChannelGoneEventFired" value="OrtcRtpSenderInternalChannelGoneEventFired" />
+
+        <string id="Event.OrtcRtpReceiverChannelCreate" value="OrtcRtpReceiverChannelCreate" />
+        <string id="Event.OrtcRtpReceiverChannelDestroy" value="OrtcRtpReceiverChannelDestroy" />
+        <string id="Event.OrtcRtpReceiverChannelCreateMediaChannel" value="OrtcRtpReceiverChannelCreateMediaChannel" />
+        <string id="Event.OrtcRtpReceiverChannelDeliverIncomingPacketToMediaChannel" value="OrtcRtpReceiverChannelDeliverIncomingPacketToMediaChannel" />
+        <string id="Event.OrtcRtpReceiverChannelSendOutgoingPacket" value="OrtcRtpReceiverChannelSendOutgoingPacket" />
+        <string id="Event.OrtcRtpReceiverChannelInternalSecureTransportStateChangedEventFired" value="OrtcRtpReceiverChannelInternalSecureTransportStateChangedEventFired" />
+        <string id="Event.OrtcRtpReceiverChannelInternalUpdateEventFired" value="OrtcRtpReceiverChannelInternalUpdateEventFired" />
+
+        <string id="Event.OrtcRtpSenderChannelCreate" value="OrtcRtpSenderChannelCreate" />
+        <string id="Event.OrtcRtpSenderChannelDestroy" value="OrtcRtpSenderChannelDestroy" />
+        <string id="Event.OrtcRtpSenderChannelCreateMediaChannel" value="OrtcRtpSenderChannelCreateMediaChannel" />
+        <string id="Event.OrtcRtpSenderChannelChangeTrack" value="OrtcRtpSenderChannelChangeTrack" />
+        <string id="Event.OrtcRtpSenderChannelDeliverIncomingPacketToMediaChannel" value="OrtcRtpSenderChannelDeliverIncomingPacketToMediaChannel" />
+        <string id="Event.OrtcRtpSenderChannelSendOutgoingPacket" value="OrtcRtpSenderChannelSendOutgoingPacket" />
+        <string id="Event.OrtcRtpSenderChannelInternalSecureTransportStateChangedEventFired" value="OrtcRtpSenderChannelInternalSecureTransportStateChangedEventFired" />
+        <string id="Event.OrtcRtpSenderChannelInternalUpdateEventFired" value="OrtcRtpSenderChannelInternalUpdateEventFired" />
+
+        <string id="Event.OrtcSctpInitCreate" value="OrtcSctpInitCreate" />
+        <string id="Event.OrtcSctpInitDestroy" value="OrtcSctpInitDestroy" />
+        <string id="Event.OrtcSctpInitCancel" value="OrtcSctpInitCancel" />
+
+        <string id="Event.OrtcSctpTransportCreate" value="OrtcSctpTransportCreate" />
+        <string id="Event.OrtcSctpTransportDestroy" value="OrtcSctpTransportDestroy" />
+        <string id="Event.OrtcSctpTransportCancel" value="OrtcSctpTransportCancel" />
+        <string id="Event.OrtcSctpTransportStep" value="OrtcSctpTransportStep" />
+        <string id="Event.OrtcSctpTransportStart" value="OrtcSctpTransportStart" />
+        <string id="Event.OrtcSctpTransportStop" value="OrtcSctpTransportStop" />
+        <string id="Event.OrtcSctpTransportRegisterNewDataChannel" value="OrtcSctpTransportRegisterNewDataChannel" />
+        <string id="Event.OrtcSctpTransportDataChannelEventFired" value="OrtcSctpTransportDataChannelEventFired" />
+        <string id="Event.OrtcSctpTransportStateChangedEventFired" value="OrtcSctpTransportStateChangedEventFired" />
+        <string id="Event.OrtcSctpTransportErrorEventFired" value="OrtcSctpTransportErrorEventFired" />
+        <string id="Event.OrtcSctpTransportReceivedIncomingPacket" value="OrtcSctpTransportReceivedIncomingPacket" />
+        <string id="Event.OrtcSctpTransportDeliverIncomingPacket" value="OrtcSctpTransportDeliverIncomingPacket" />
+        <string id="Event.OrtcSctpTransportSendOutgoingPacket" value="OrtcSctpTransportSendOutgoingPacket" />
+        <string id="Event.OrtcSctpTransportShutdownDataChannel" value="OrtcSctpTransportShutdownDataChannel" />
+        <string id="Event.OrtcSctpTransportReceivedIncomingDataPacket" value="OrtcSctpTransportReceivedIncomingDataPacket" />
+        <string id="Event.OrtcSctpTransportBufferIncomingDataPacket" value="OrtcSctpTransportBufferIncomingDataPacket" />
+        <string id="Event.OrtcSctpTransportDisposeBufferedIncomingDataPacket" value="OrtcSctpTransportDisposeBufferedIncomingDataPacket" />
+        <string id="Event.OrtcSctpTransportSendOutgoingDataPacket" value="OrtcSctpTransportSendOutgoingDataPacket" />
+        <string id="Event.OrtcSctpTransportInternalWakeEventFired" value="OrtcSctpTransportInternalWakeEventFired" />
+        <string id="Event.OrtcSctpTransportInternalShutdownEventFired" value="OrtcSctpTransportInternalShutdownEventFired" />
+        <string id="Event.OrtcSctpTransportInternalSecureTransportStateChangedEventFired" value="OrtcSctpTransportInternalSecureTransportStateChangedEventFired" />
+
+        <string id="Event.OrtcSctpTransportListenerCreate" value="OrtcSctpTransportListenerCreate" />
+        <string id="Event.OrtcSctpTransportListenerDestroy" value="OrtcSctpTransportListenerDestroy" />
+        <string id="Event.OrtcSctpTransportListenerCancel" value="OrtcSctpTransportListenerCancel" />
+        <string id="Event.OrtcSctpTransportListenerStep" value="OrtcSctpTransportListenerStep" />
+        <string id="Event.OrtcSctpTransportListenerListen" value="OrtcSctpTransportListenerListen" />
+        <string id="Event.OrtcSctpTransportListenerRegisterNewTransport" value="OrtcSctpTransportListenerRegisterNewTransport" />
+        <string id="Event.OrtcSctpTransportListenerSctpTransportCreatedEventFired" value="OrtcSctpTransportListenerSctpTransportCreatedEventFired" />
+        <string id="Event.OrtcSctpTransportListenerSctpTransportEventFired" value="OrtcSctpTransportListenerSctpTransportEventFired" />
+        <string id="Event.OrtcSctpTransportListenerSctpTransportShutdownEventFired" value="OrtcSctpTransportListenerSctpTransportShutdownEventFired" />
+        <string id="Event.OrtcSctpTransportListenerReceivedIncomingDataPacket" value="OrtcSctpTransportListenerReceivedIncomingDataPacket" />
+        <string id="Event.OrtcSctpTransportListenerDeliverIncomingDataPacket" value="OrtcSctpTransportListenerDeliverIncomingDataPacket" />
+
+        <string id="Event.OrtcSrtpTransportCreate" value="OrtcSrtpTransportCreate" />
+        <string id="Event.OrtcSrtpTransportDestroy" value="OrtcSrtpTransportDestroy" />
+        <string id="Event.OrtcSrtpTransportInstallKeyingMaterial" value="OrtcSrtpTransportInstallKeyingMaterial" />
+        <string id="Event.OrtcSrtpTransportReceivedIncomingEncryptedPacket" value="OrtcSrtpTransportReceivedIncomingEncryptedPacket" />
+        <string id="Event.OrtcSrtpTransportDeliverIncomingDecryptedPacket" value="OrtcSrtpTransportDeliverIncomingDecryptedPacket" />
+        <string id="Event.OrtcSrtpTransportSendOutgoingPacketAndEncrypt" value="OrtcSrtpTransportSendOutgoingPacketAndEncrypt" />
+        <string id="Event.OrtcSrtpTransportSendOutgoingEncryptedPacketViaSecureTransport" value="OrtcSrtpTransportSendOutgoingEncryptedPacketViaSecureTransport" />
       </stringTable>
     </resources>
   </localization>
