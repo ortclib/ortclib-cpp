@@ -36,57 +36,59 @@
               <opcode name="CreateAssociated" symbol="OPCODE_ICE_GATHERER_CREATE_ASSOCIATED" value="101" message="$(string.Opcode.IceGatherer.CreateAssociated)" />
               <opcode name="Gather" symbol="OPCODE_ICE_GATHERER_GATHER" value="102" message="$(string.Opcode.IceGatherer.Gather)" />
               <opcode name="HostSocketBind" symbol="OPCODE_ICE_GATHERER_HOST_SOCKET_BIND" value="103" message="$(string.Opcode.IceGatherer.HostSocketBind)" />
-              <opcode name="HostSocketClose" symbol="OPCODE_ICE_GATHERER_HOST_SOCKET_CLOSE" value="103" message="$(string.Opcode.IceGatherer.HostSocketClose)" />
-              <opcode name="Found" symbol="OPCODE_ICE_GATHERER_FOUND" value="103" message="$(string.Opcode.IceGatherer.Found)" />
+              <opcode name="HostSocketClose" symbol="OPCODE_ICE_GATHERER_HOST_SOCKET_CLOSE" value="104" message="$(string.Opcode.IceGatherer.HostSocketClose)" />
+              <opcode name="Found" symbol="OPCODE_ICE_GATHERER_FOUND" value="105" message="$(string.Opcode.IceGatherer.Found)" />
             </opcodes>
           </task>
           <task name="IceGathererRouter" symbol="TASK_ICE_GATHERER_ROUTER" value="6" message="$(string.Task.IceGathererRouter)" />
           <task name="IceTransport" symbol="TASK_ICE_TRANSPORT" value="7" message="$(string.Task.IceTransport)">
             <opcodes>
               <opcode name="CreateAssociated" symbol="OPCODE_ICE_TRANSPORT_CREATE_ASSOCIATED" value="101" message="$(string.Opcode.IceTransport.CreateAssociated)" />
-              <opcode name="AddCandidate" symbol="OPCODE_ICE_TRANSPORT_ADD_CANDIDATE" value="101" message="$(string.Opcode.IceTransport.AddCandidate)" />
-              <opcode name="RemoveCandidate" symbol="OPCODE_ICE_TRANSPORT_REMOVE_CANDIDATE" value="101" message="$(string.Opcode.IceTransport.RemoveCandidate)" />
-              <opcode name="SetCandidates" symbol="OPCODE_ICE_TRANSPORT_SET_CANDIDATES" value="101" message="$(string.Opcode.IceTransport.SetCandidates)" />
-              <opcode name="Warm" symbol="OPCODE_ICE_TRANSPORT_WARM" value="101" message="$(string.Opcode.IceTransport.Warm)" />
+              <opcode name="AddCandidate" symbol="OPCODE_ICE_TRANSPORT_ADD_CANDIDATE" value="102" message="$(string.Opcode.IceTransport.AddCandidate)" />
+              <opcode name="RemoveCandidate" symbol="OPCODE_ICE_TRANSPORT_REMOVE_CANDIDATE" value="103" message="$(string.Opcode.IceTransport.RemoveCandidate)" />
+              <opcode name="SetCandidates" symbol="OPCODE_ICE_TRANSPORT_SET_CANDIDATES" value="104" message="$(string.Opcode.IceTransport.SetCandidates)" />
+              <opcode name="Warm" symbol="OPCODE_ICE_TRANSPORT_WARM" value="105" message="$(string.Opcode.IceTransport.Warm)" />
             </opcodes>
           </task>
-          <task name="RtpListener" symbol="TASK_RTP_LISTENER" value="8" message="$(string.Task.RtpListener)" />
-          <task name="RtpReceiver" symbol="TASK_RTP_RECEIVER" value="9" message="$(string.Task.RtpReceiver)">
+          <task name="IceTransportController" symbol="TASK_ICE_TRANSPORT_CONTROLLER" value="8" message="$(string.Task.RtpListener)" />
+          <task name="RtpListener" symbol="TASK_RTP_LISTENER" value="9" message="$(string.Task.RtpListener)" />
+          <task name="RtpReceiver" symbol="TASK_RTP_RECEIVER" value="10" message="$(string.Task.RtpReceiver)">
             <opcodes>
               <opcode name="SetTransport" symbol="OPCODE_RTP_RECEIVER_SET_TRANSPORT" value="101" message="$(string.Opcode.RtpReceiver.SetTransport)" />
-              <opcode name="Receive" symbol="OPCODE_RTP_RECEIVER_RECEIVE" value="101" message="$(string.Opcode.RtpReceiver.Receive)" />
+              <opcode name="Receive" symbol="OPCODE_RTP_RECEIVER_RECEIVE" value="102" message="$(string.Opcode.RtpReceiver.Receive)" />
             </opcodes>
           </task>
-          <task name="RtpReceiverChannel" symbol="TASK_RTP_RECEIVER_CHANNEL" value="10" message="$(string.Task.RtpReceiverChannel)" />
-          <task name="RtpSender" symbol="TASK_RTP_SENDER" value="11" message="$(string.Task.RtpSender)">
+          <task name="RtpReceiverChannel" symbol="TASK_RTP_RECEIVER_CHANNEL" value="11" message="$(string.Task.RtpReceiverChannel)" />
+          <task name="RtpSender" symbol="TASK_RTP_SENDER" value="12" message="$(string.Task.RtpSender)">
             <opcodes>
               <opcode name="SetTransport" symbol="OPCODE_RTP_SENDER_SET_TRANSPORT" value="101" message="$(string.Opcode.RtpSender.SetTransport)" />
-              <opcode name="SetTrack" symbol="OPCODE_RTP_SENDER_SET_TRACK" value="101" message="$(string.Opcode.RtpSender.SetTrack)" />
-              <opcode name="Send" symbol="OPCODE_RTP_SENDER_SEND" value="101" message="$(string.Opcode.RtpSender.Send)" />
+              <opcode name="SetTrack" symbol="OPCODE_RTP_SENDER_SET_TRACK" value="102" message="$(string.Opcode.RtpSender.SetTrack)" />
+              <opcode name="Send" symbol="OPCODE_RTP_SENDER_SEND" value="103" message="$(string.Opcode.RtpSender.Send)" />
             </opcodes>
           </task>
-          <task name="RtpSenderChannel" symbol="TASK_RTP_SENDER_CHANNEL" value="12" message="$(string.Task.RtpSenderChannel)" />
-          <task name="SctpInit" symbol="TASK_SCTP_INIT" value="13" message="$(string.Task.SctpInit)" />
-          <task name="SctpTransport" symbol="TASK_SCTP_TRANSPORT" value="14" message="$(string.Task.SctpTransport)" />
-          <task name="SctpTransportListener" symbol="TASK_SCTP_TRANSPORT_LISTENER" value="15" message="$(string.Task.SctpTransportListener)">
+          <task name="RtpSenderChannel" symbol="TASK_RTP_SENDER_CHANNEL" value="13" message="$(string.Task.RtpSenderChannel)" />
+          <task name="SctpInit" symbol="TASK_SCTP_INIT" value="14" message="$(string.Task.SctpInit)" />
+          <task name="SctpTransport" symbol="TASK_SCTP_TRANSPORT" value="15" message="$(string.Task.SctpTransport)" />
+          <task name="SctpTransportListener" symbol="TASK_SCTP_TRANSPORT_LISTENER" value="16" message="$(string.Task.SctpTransportListener)">
             <opcodes>
-              <opcode name="SetTransport" symbol="OPCODE_SCTP_TRANSPORT_LISTENER_LISTEN" value="101" message="$(string.Opcode.SctpTransportListener.Listen)" />
+              <opcode name="SetTransport" symbol="OPCODE_SCTP_TRANSPORT_LISTENER_SET_TRANSPORT" value="101" message="$(string.Opcode.SctpTransportListener.SetTransport)" />
+              <opcode name="Listen" symbol="OPCODE_SCTP_TRANSPORT_LISTENER_LISTEN" value="102" message="$(string.Opcode.SctpTransportListener.Listen)" />
             </opcodes>
           </task>
-          <task name="SrtpTransport" symbol="TASK_SRTP_TRANSPORT" value="16" message="$(string.Task.SrtpTransport)" />
+          <task name="SrtpTransport" symbol="TASK_SRTP_TRANSPORT" value="17" message="$(string.Task.SrtpTransport)" />
         </tasks>
         <opcodes>
-          <opcode name="Initialization" symbol="OPCODE_INITIALIZATION" value="101" message="$(string.Opcode.Initialization)" />
-          <opcode name="Cancel" symbol="OPCODE_CANCEL" value="102" message="$(string.Opcode.Cancel)" />
-          <opcode name="Close" symbol="OPCODE_CLOSE" value="103" message="$(string.Opcode.Close)" />
-          <opcode name="Step" symbol="OPCODE_STEP" value="104" message="$(string.Opcode.Step)" />
-          <opcode name="Buffer" symbol="OPCODE_BUFFER" value="105" message="$(string.Opcode.Buffer)" />
-          <opcode name="Dispose" symbol="OPCODE_DISPOSE" value="106" message="$(string.Opcode.Dispose)" />
-          <opcode name="Deliver" symbol="OPCODE_DELIVER" value="107" message="$(string.Opcode.Deliver)" />
-          <opcode name="Event" symbol="OPCODE_EVENT" value="108" message="$(string.Opcode.Event)" />
-          <opcode name="StateEvent" symbol="OPCODE_STATE_EVENT" value="109" message="$(string.Opcode.StateEvent)" />
-          <opcode name="ErrorEvent" symbol="OPCODE_ERROR_EVENT" value="110" message="$(string.Opcode.ErrorEvent)" />
-          <opcode name="InternalEvent" symbol="OPCODE_INTERNAL_EVENT" value="111" message="$(string.Opcode.InternalEvent)" />
+          <opcode name="Initialization" symbol="OPCODE_INITIALIZATION" value="201" message="$(string.Opcode.Initialization)" />
+          <opcode name="Cancel" symbol="OPCODE_CANCEL" value="202" message="$(string.Opcode.Cancel)" />
+          <opcode name="Close" symbol="OPCODE_CLOSE" value="203" message="$(string.Opcode.Close)" />
+          <opcode name="Step" symbol="OPCODE_STEP" value="204" message="$(string.Opcode.Step)" />
+          <opcode name="Buffer" symbol="OPCODE_BUFFER" value="205" message="$(string.Opcode.Buffer)" />
+          <opcode name="Dispose" symbol="OPCODE_DISPOSE" value="206" message="$(string.Opcode.Dispose)" />
+          <opcode name="Deliver" symbol="OPCODE_DELIVER" value="207" message="$(string.Opcode.Deliver)" />
+          <opcode name="Event" symbol="OPCODE_EVENT" value="208" message="$(string.Opcode.Event)" />
+          <opcode name="StateEvent" symbol="OPCODE_STATE_EVENT" value="209" message="$(string.Opcode.StateEvent)" />
+          <opcode name="ErrorEvent" symbol="OPCODE_ERROR_EVENT" value="210" message="$(string.Opcode.ErrorEvent)" />
+          <opcode name="InternalEvent" symbol="OPCODE_INTERNAL_EVENT" value="211" message="$(string.Opcode.InternalEvent)" />
         </opcodes>
         <templates>
           <template tid="T_BasicObject">
@@ -321,7 +323,7 @@
             <data inType="win:UInt64"     name="IceTransportObjectID" />
             <data inType="win:AnsiString" name="State" />
           </template>
-          <template tid="T_DtlsTransportInternalIceStateChangeEventFired">
+          <template tid="T_DtlsTransportInternalSrtpTransportLifetimeRemainingEventFired">
             <data inType="win:AnsiString" name="Method" />
             <data inType="win:UInt64"     name="ObjectID" />
             <data inType="win:UInt64"     name="SrtpTransportObjectID" />
@@ -759,10 +761,6 @@
             <data inType="win:AnsiString" name="OldRemoteParametersHash" />
             <data inType="win:Boolean"    name="HasRemoteUsernameFragment" />
           </template>
-          <template tid="T_IceTransportStart">
-            <data inType="win:AnsiString" name="Method" />
-            <data inType="win:UInt64"     name="ObjectID" />
-          </template>
           <template tid="T_IceTransportCreateAssociatedTransport">
             <data inType="win:AnsiString" name="Method" />
             <data inType="win:UInt64"     name="ObjectID" />
@@ -954,7 +952,7 @@
             <data inType="win:UInt64"     name="StunRequesterObjectID" />
             <data inType="win:AnsiString" name="FromIP" />
           </template>
-          <template tid="T_IceTransportInternalStunRequesterReceivedResponse">
+          <template tid="T_IceTransportInternalStunRequesterReceivedResponseMismatch">
             <data inType="win:AnsiString" name="Method" />
             <data inType="win:UInt64"     name="ObjectID" />
             <data inType="win:UInt64"     name="StunRequesterObjectID" />
@@ -1087,7 +1085,7 @@
             <data inType="win:UInt64"     name="ObjectID" />
             <data inType="win:UInt64"     name="RtpReceiverObjectID" />
             <data inType="win:UInt32"     name="Ssrc" />
-            <data inType="win:Int64 "     name="LastUsageSinceEpochInSeconds" />
+            <data inType="win:Int64"      name="LastUsageSinceEpochInSeconds" />
             <data inType="win:AnsiString" name="MuxID" />
           </template>
           <template tid="T_RtpListenerSsrcTableEntryRemoved">
@@ -1095,7 +1093,7 @@
             <data inType="win:UInt64"     name="ObjectID" />
             <data inType="win:UInt64"     name="RtpReceiverObjectID" />
             <data inType="win:UInt32"     name="Ssrc" />
-            <data inType="win:Int64 "     name="LastUsageSinceEpochInSeconds" />
+            <data inType="win:Int64"      name="LastUsageSinceEpochInSeconds" />
             <data inType="win:AnsiString" name="MuxID" />
             <data inType="win:AnsiString" name="Reason" />
           </template>
@@ -1356,6 +1354,17 @@
             <data inType="win:UInt32"     name="BufferSizeInBytes" />
             <data inType="win:Binary"     name="Buffer" length="BufferSizeInBytes" />
           </template>
+          <template tid="T_SctpTransportDeliverIncomingPacket">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="DataChannelObjectID" />
+            <data inType="win:UInt16"     name="SessionID" />
+            <data inType="win:UInt16"     name="SequenceNumber" />
+            <data inType="win:UInt32"     name="Timestamp" />
+            <data inType="win:Int64"      name="Flags" />
+            <data inType="win:UInt32"     name="BufferSizeInBytes" />
+            <data inType="win:Binary"     name="Buffer" length="BufferSizeInBytes" />
+          </template>
           <template tid="T_SctpTransportSendOutgoingPacket">
             <data inType="win:AnsiString" name="Method" />
             <data inType="win:UInt64"     name="ObjectID" />
@@ -1372,6 +1381,14 @@
             <data inType="win:UInt64"     name="ObjectID" />
             <data inType="win:UInt64"     name="SecureTransportID" />
             <data inType="win:AnsiString" name="State" />
+          </template>
+          <template tid="T_SctpTransportListenerCreate">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt64"     name="MaxPorts" />
+            <data inType="win:UInt16"     name="CurrentAllocationPort" />
+            <data inType="win:UInt16"     name="MinAllocationPort" />
+            <data inType="win:UInt16"     name="MaxAllocationPort" />
           </template>
           <template tid="T_SctpTransportListenerListen">
             <data inType="win:AnsiString" name="Method" />
@@ -1525,7 +1542,7 @@
           <event symbol="OrtcIceGathererStep" channel="ol" template="T_BasicObject" task="IceGatherer" opcode="Step" value="1403" level="win:Informational" message="$(string.Event.OrtcIceGathererStep)" />
           <event symbol="OrtcIceGathererCancel" channel="ol" template="T_BasicObject" task="IceGatherer" opcode="Step" value="1404" level="win:Informational" message="$(string.Event.OrtcIceGathererCancel)" />
 
-          <event symbol="OrtcIceGathererCreatedAssociateGatherer" channel="ol" template="T_IceGathererCreatedAssociateGatherer" task="IceGatherer" opcode="CeateAssociated" value="1405" level="win:Informational" message="$(string.Event.OrtcIceGathererCreatedAssociateGatherer)" />
+          <event symbol="OrtcIceGathererCreatedAssociateGatherer" channel="ol" template="T_IceGathererCreatedAssociateGatherer" task="IceGatherer" opcode="CreateAssociated" value="1405" level="win:Informational" message="$(string.Event.OrtcIceGathererCreatedAssociateGatherer)" />
 
           <event symbol="OrtcIceGathererInitializeInstallInterfaceNameMapping" channel="ol" template="T_IceGathererInitializeInstallInterfaceNameMapping" task="IceGatherer" opcode="Initialization" value="1406" level="win:Informational" message="$(string.Event.OrtcIceGathererInitializeInstallInterfaceNameMapping)" />
           <event symbol="OrtcIceGathererInitializeInstallPreference" channel="ol" template="T_IceGathererInitializeInstallPreference" task="IceGatherer" opcode="Initialization" value="1407" level="win:Informational" message="$(string.Event.OrtcIceGathererInitializeInstallPreference)" />
@@ -1690,7 +1707,7 @@
           <event symbol="OrtcIceTransportInternalStunRequesterCreate" channel="ol" template="T_BasicWithStunRequesterObjectID" task="IceTransport" opcode="win:Start" value="1644" level="win:Informational" message="$(string.Event.OrtcIceTransportInternalStunRequesterCreate)" />
           <event symbol="OrtcIceTransportInternalStunRequesterSendPacket" channel="ol" template="T_IceTransportInternalStunRequesterSendPacket" task="IceTransport" opcode="win:Send" value="1645" level="win:Verbose" message="$(string.Event.OrtcIceTransportInternalStunRequesterSendPacket)" />
           <event symbol="OrtcIceTransportInternalStunRequesterReceivedResponse" channel="ol" template="T_IceTransportInternalStunRequesterReceivedResponse" task="IceTransport" opcode="win:Receive" value="1646" level="win:Verbose" message="$(string.Event.OrtcIceTransportInternalStunRequesterReceivedResponse)" />
-          <event symbol="OrtcIceTransportInternalStunRequesterReceivedResponseMismatch" channel="ol" template="T_IceTransportInternalStunRequesterReceivedResponse" task="IceTransport" opcode="win:Receive" value="1647" level="win:Warning" message="$(string.Event.OrtcIceTransportInternalStunRequesterReceivedResponseMismatch)" />
+          <event symbol="OrtcIceTransportInternalStunRequesterReceivedResponseMismatch" channel="ol" template="T_IceTransportInternalStunRequesterReceivedResponseMismatch" task="IceTransport" opcode="win:Receive" value="1647" level="win:Warning" message="$(string.Event.OrtcIceTransportInternalStunRequesterReceivedResponseMismatch)" />
           <event symbol="OrtcIceTransportInternalStunRequesterTimedOut" channel="ol" template="T_BasicWithStunRequesterObjectID" task="IceTransport" opcode="win:Receive" value="1648" level="win:Warning" message="$(string.Event.OrtcIceTransportInternalStunRequesterTimedOut)" />
 
           <event symbol="OrtcIceTransportInternalRoleConflictDetectedEventFired" channel="ol" template="T_IceTransportInternalRoleConflictDetectedEventFired" task="IceTransport" opcode="InternalEvent" value="1649" level="win:Warning" message="$(string.Event.OrtcIceTransportInternalRoleConflictDetectedEventFired)" />
@@ -1759,8 +1776,8 @@
           <event symbol="OrtcRtpReceiverStop" channel="ol" template="T_BasicObject" task="RtpReceiver" opcode="win:Stop" value="1910" level="win:Informational" message="$(string.Event.OrtcRtpReceiverStop)" />
 
           <event symbol="OrtcRtpReceiverAddChannel" channel="ol" template="T_BasicWithChannelObjectID" task="RtpReceiver" opcode="win:Info" value="1911" level="win:Informational" message="$(string.Event.OrtcRtpReceiverAddChannel)" />
-          <event symbol="OrtcRtpReceiverUpdateChannel" channel="ol" template="T_BasicWithChannelObjectID" task="RtpReceiver" opcode="win:Info" value="1912" level="win:Informational" message="$(string.OrtcRtpReceiverUpdateChannel)" />
-          <event symbol="OrtcRtpReceiverRemoveChannel" channel="ol" template="T_BasicWithChannelObjectID" task="RtpReceiver" opcode="win:Info" value="1913" level="win:Informational" message="$(string.OrtcRtpReceiverRemoveChannel)" />
+          <event symbol="OrtcRtpReceiverUpdateChannel" channel="ol" template="T_BasicWithChannelObjectID" task="RtpReceiver" opcode="win:Info" value="1912" level="win:Informational" message="$(string.Event.OrtcRtpReceiverUpdateChannel)" />
+          <event symbol="OrtcRtpReceiverRemoveChannel" channel="ol" template="T_BasicWithChannelObjectID" task="RtpReceiver" opcode="win:Info" value="1913" level="win:Informational" message="$(string.Event.OrtcRtpReceiverRemoveChannel)" />
 
           <event symbol="OrtcRtpReceiverAddContributingSource" channel="ol" template="T_BasicWithCsrc" task="RtpReceiver" opcode="win:Info" value="1914" level="win:Informational" message="$(string.Event.OrtcRtpReceiverAddContributingSource)" />
           <event symbol="OrtcRtpReceiverUpdateContributingSource" channel="ol" template="T_BasicWithCsrc" task="RtpReceiver" opcode="win:Info" value="1915" level="win:Verbose" message="$(string.Event.OrtcRtpReceiverUpdateContributingSource)" />
@@ -1810,7 +1827,7 @@
           <event symbol="OrtcRtpSenderSend" channel="ol" template="T_BasicObject" task="RtpSender" opcode="Send" value="2008" level="win:Informational" message="$(string.Event.OrtcRtpSenderSend)" />
           <event symbol="OrtcRtpSenderStop" channel="ol" template="T_BasicObject" task="RtpSender" opcode="Send" value="2009" level="win:Informational" message="$(string.Event.OrtcRtpSenderStop)" />
 
-          <event symbol="OrtcRtpSenderStateChangedEventFired" channel="ol" template="T_BasicWithState" task="RtpSender" opcode="StateEvent" value="2010" level="win:Informational" message="$(string.OrtcRtpSenderStateChangedEventFired)" />
+          <event symbol="OrtcRtpSenderStateChangedEventFired" channel="ol" template="T_BasicWithState" task="RtpSender" opcode="StateEvent" value="2010" level="win:Informational" message="$(string.Event.OrtcRtpSenderStateChangedEventFired)" />
           <event symbol="OrtcRtpSenderErrorEventFired" channel="ol" template="T_BasicWithError" task="RtpSender" opcode="ErrorEvent" value="2011" level="win:Error" message="$(string.Event.OrtcRtpSenderErrorEventFired)" />
 
           <event symbol="OrtcRtpSenderAddChannel" channel="ol" template="T_BasicWithChannelObjectID" task="RtpSender" opcode="win:Info" value="2012" level="win:Informational" message="$(string.Event.OrtcRtpSenderAddChannel)" />
@@ -1857,7 +1874,7 @@
           <event symbol="OrtcSctpInitDestroy" channel="ol" template="T_BasicObject" task="SctpInit" opcode="win:Stop" value="2302" level="win:Informational" message="$(string.Event.OrtcSctpInitDestroy)" />
           <event symbol="OrtcSctpInitCancel" channel="ol" template="T_BasicObject" task="SctpInit" opcode="Cancel" value="2303" level="win:Informational" message="$(string.Event.OrtcSctpInitCancel)" />
 
-          <event symbol="OrtcSctpTransportCreate" channel="ol" template="T_SctpTransport" task="SctpTransport" opcode="win:Start" value="2404" level="win:Informational" message="$(string.Event.OrtcSctpTransportCreate)" />
+          <event symbol="OrtcSctpTransportCreate" channel="ol" template="T_SctpTransportCreate" task="SctpTransport" opcode="win:Start" value="2404" level="win:Informational" message="$(string.Event.OrtcSctpTransportCreate)" />
           <event symbol="OrtcSctpTransportDestroy" channel="ol" template="T_BasicObject" task="SctpTransport" opcode="win:Stop" value="2405" level="win:Informational" message="$(string.Event.OrtcSctpTransportDestroy)" />
           <event symbol="OrtcSctpTransportCancel" channel="ol" template="T_BasicObject" task="SctpTransport" opcode="Cancel" value="2406" level="win:Informational" message="$(string.Event.OrtcSctpTransportCancel)" />
           <event symbol="OrtcSctpTransportStep" channel="ol" template="T_BasicObject" task="SctpTransport" opcode="Step" value="2407" level="win:Informational" message="$(string.Event.OrtcSctpTransportStep)" />
@@ -1876,7 +1893,7 @@
 
           <event symbol="OrtcSctpTransportSendOutgoingPacket" channel="ol" template="T_SctpTransportSendOutgoingPacket" task="SctpTransport" opcode="win:Send" value="2416" level="win:Verbose" message="$(string.Event.OrtcSctpTransportSendOutgoingPacket)" />
 
-          <event symbol="OrtcSctpTransportShutdownDataChannel" channel="ol" template="T_BasicWithDataChannelObjectIDAndSessionID" task="SctpTransport" opcode="win:Informational" value="2417" level="win:Verbose" message="$(string.Event.OrtcSctpTransportShutdownDataChannel)" />
+          <event symbol="OrtcSctpTransportShutdownDataChannel" channel="ol" template="T_BasicWithDataChannelObjectIDAndSessionID" task="SctpTransport" opcode="win:Info" value="2417" level="win:Verbose" message="$(string.Event.OrtcSctpTransportShutdownDataChannel)" />
 
           <event symbol="OrtcSctpTransportReceivedIncomingDataPacket" channel="ol" template="T_BasicWithBuffer" task="SctpTransport" opcode="win:Receive" value="2418" level="win:Verbose" message="$(string.Event.OrtcSctpTransportReceivedIncomingDataPacket)" />
           <event symbol="OrtcSctpTransportBufferIncomingDataPacket" channel="ol" template="T_BasicWithBuffer" task="SctpTransport" opcode="Buffer" value="2419" level="win:Verbose" message="$(string.Event.OrtcSctpTransportBufferIncomingDataPacket)" />
@@ -1978,6 +1995,7 @@
         <string id="Opcode.RtpSender.SetTransport" value="SetTransport" />
         <string id="Opcode.RtpSender.SetTrack" value="SetTrack" />
         <string id="Opcode.RtpSender.Send" value="Send" />
+        <string id="Opcode.SctpTransportListener.SetTransport" value="SetTransport" />
         <string id="Opcode.SctpTransportListener.Listen" value="Listen" />
 
         <string id="Event.OrtcCreate" value="OrtcCreate" />
