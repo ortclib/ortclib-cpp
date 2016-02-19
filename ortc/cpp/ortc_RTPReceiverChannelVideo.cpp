@@ -205,6 +205,11 @@ namespace ortc
     {
       AutoRecursiveLock lock(*this);
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
+      
+      if (!mTrack) {
+        ZS_LOG_ERROR(Detail, log("MediaStreamTrack is not set during RTPReceiverChannelVideo initialization procedure"))
+        return;
+      }
 
       mReceiverVideoRenderer.setMediaStreamTrack(mTrack);
 
@@ -230,8 +235,19 @@ namespace ortc
       while (codecIter != mParameters->mCodecs.end()) {
         auto supportedCodec = IRTPTypes::toSupportedCodec(codecIter->mName);
         if (IRTPTypes::SupportedCodec_VP8 == supportedCodec) {
-          webrtc::VideoCodecType type = webrtc::kVideoCodecVP8;
           webrtc::VideoDecoder* videoDecoder = webrtc::VideoDecoder::Create(webrtc::VideoDecoder::kVp8);
+          decoder.decoder = videoDecoder;
+          decoder.payload_name = codecIter->mName;
+          decoder.payload_type = codecIter->mPayloadType;
+          break;
+        } else if (IRTPTypes::SupportedCodec_VP9 == supportedCodec) {
+          webrtc::VideoDecoder* videoDecoder = webrtc::VideoDecoder::Create(webrtc::VideoDecoder::kVp9);
+          decoder.decoder = videoDecoder;
+          decoder.payload_name = codecIter->mName;
+          decoder.payload_type = codecIter->mPayloadType;
+          break;
+        } else if (IRTPTypes::SupportedCodec_H264 == supportedCodec) {
+          webrtc::VideoDecoder* videoDecoder = webrtc::VideoDecoder::Create(webrtc::VideoDecoder::kH264);
           decoder.decoder = videoDecoder;
           decoder.payload_name = codecIter->mName;
           decoder.payload_type = codecIter->mPayloadType;
@@ -244,6 +260,7 @@ namespace ortc
       while (encodingParamIter != mParameters->mEncodings.end()) {
         if (encodingParamIter->mCodecPayloadType == decoder.payload_type) {
           config.rtp.remote_ssrc = encodingParamIter->mSSRC;
+          break;
         }
       }
 

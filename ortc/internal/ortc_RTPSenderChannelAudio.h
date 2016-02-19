@@ -363,6 +363,8 @@ namespace ortc
 
       void setState(States state);
       void setError(WORD error, const char *reason = NULL);
+      
+      webrtc::CodecInst getAudioCodec(String payloadName);
 
     protected:
       //-----------------------------------------------------------------------

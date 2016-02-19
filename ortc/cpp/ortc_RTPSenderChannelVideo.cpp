@@ -154,9 +154,11 @@ namespace ortc
     {
       AutoRecursiveLock lock(*this);
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
-
-#define WARNING_FIX_TRACK_MIGHT_BE_NULL 1
-#define WARNING_FIX_TRACK_MIGHT_BE_NULL 2
+      
+      if (!mTrack) {
+        ZS_LOG_ERROR(Detail, log("MediaStreamTrack is not set during RTPSenderChannelVideo initialization procedure"))
+        return;
+      }
 
       mCallStats = rtc::scoped_ptr<webrtc::CallStats>(new webrtc::CallStats());
       mCongestionController =
@@ -179,7 +181,6 @@ namespace ortc
       while (codecIter != mParameters->mCodecs.end()) {
         auto supportedCodec = IRTPTypes::toSupportedCodec(codecIter->mName);
         if (IRTPTypes::SupportedCodec_VP8 == supportedCodec) {
-          webrtc::VideoCodecType type = webrtc::kVideoCodecVP8;
           webrtc::VideoEncoder* videoEncoder = webrtc::VideoEncoder::Create(webrtc::VideoEncoder::kVp8);
           config.encoder_settings.encoder = videoEncoder;
           config.encoder_settings.payload_name = codecIter->mName;
@@ -201,6 +202,46 @@ namespace ortc
           encoderConfig.streams.push_back(stream);
           encoderConfig.encoder_specific_settings = &videoCodec;
           break;
+        } else if (IRTPTypes::SupportedCodec_VP9 == supportedCodec) {
+          webrtc::VideoEncoder* videoEncoder = webrtc::VideoEncoder::Create(webrtc::VideoEncoder::kVp9);
+          config.encoder_settings.encoder = videoEncoder;
+          config.encoder_settings.payload_name = codecIter->mName;
+          config.encoder_settings.payload_type = codecIter->mPayloadType;
+          webrtc::VideoStream stream;
+          stream.width = 640;
+          stream.height = 480;
+          stream.max_framerate = 30;
+          stream.min_bitrate_bps = 30000;
+          stream.target_bitrate_bps = 2000000;
+          stream.max_bitrate_bps = 2000000;
+          stream.max_qp = 56;
+          webrtc::VideoCodecVP9 videoCodec = webrtc::VideoEncoder::GetDefaultVp9Settings();
+          videoCodec.frameDroppingOn = true;
+          encoderConfig.min_transmit_bitrate_bps = 0;
+          encoderConfig.content_type = webrtc::VideoEncoderConfig::ContentType::kRealtimeVideo;
+          encoderConfig.streams.push_back(stream);
+          encoderConfig.encoder_specific_settings = &videoCodec;
+          break;
+        } else if (IRTPTypes::SupportedCodec_H264 == supportedCodec) {
+          webrtc::VideoEncoder* videoEncoder = webrtc::VideoEncoder::Create(webrtc::VideoEncoder::kH264);
+          config.encoder_settings.encoder = videoEncoder;
+          config.encoder_settings.payload_name = codecIter->mName;
+          config.encoder_settings.payload_type = codecIter->mPayloadType;
+          webrtc::VideoStream stream;
+          stream.width = 640;
+          stream.height = 480;
+          stream.max_framerate = 30;
+          stream.min_bitrate_bps = 30000;
+          stream.target_bitrate_bps = 2000000;
+          stream.max_bitrate_bps = 2000000;
+          stream.max_qp = 56;
+          webrtc::VideoCodecH264 videoCodec = webrtc::VideoEncoder::GetDefaultH264Settings();
+          videoCodec.frameDroppingOn = true;
+          encoderConfig.min_transmit_bitrate_bps = 0;
+          encoderConfig.content_type = webrtc::VideoEncoderConfig::ContentType::kRealtimeVideo;
+          encoderConfig.streams.push_back(stream);
+          encoderConfig.encoder_specific_settings = &videoCodec;
+          break;
         }
         codecIter++;
       }
@@ -209,9 +250,12 @@ namespace ortc
       while (encodingParamIter != mParameters->mEncodings.end()) {
         if (encodingParamIter->mCodecPayloadType == config.encoder_settings.payload_type) {
           config.rtp.ssrcs.push_back(encodingParamIter->mSSRC);
+          break;
         }
+        encodingParamIter++;
       }
-
+      
+      config.rtp.c_name = mParameters->mRTCP.mCName;
       config.rtp.nack.rtp_history_ms = 1000;
 
       mSendStream = rtc::scoped_ptr<webrtc::VideoSendStream>(
