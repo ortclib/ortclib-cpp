@@ -204,8 +204,8 @@ namespace ortc
       webrtc::AudioSendStream::Config config(mTransport.get());
       config.voe_channel_id = mChannel;
 
-      IRTPTypes::EncodingParametersList::iterator encodingParamIter = mParameters->mEncodingParameters.begin();
-      while (encodingParamIter != mParameters->mEncodingParameters.end()) {
+      IRTPTypes::EncodingParametersList::iterator encodingParamIter = mParameters->mEncodings.begin();
+      while (encodingParamIter != mParameters->mEncodings.end()) {
         if (encodingParamIter->mCodecPayloadType == codec.pltype) {
           webrtc::VoERTP_RTCP::GetInterface(mVoiceEngine.get())->SetLocalSSRC(mChannel, encodingParamIter->mSSRC);
           config.rtp.ssrc = encodingParamIter->mSSRC;
