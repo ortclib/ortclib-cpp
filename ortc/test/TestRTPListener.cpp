@@ -1930,7 +1930,7 @@ void doTestRTPListener()
 
                 encoding.mSSRC = 7;
 
-                params.mEncodingParameters.push_back(encoding);
+                params.mEncodings.push_back(encoding);
 
                 testObject1->receive("r3", params);
                 testObject1->expectPacket("r3", "p4");
@@ -1944,7 +1944,7 @@ void doTestRTPListener()
 
                 encoding.mSSRC = 9;
 
-                params.mEncodingParameters.push_back(encoding);
+                params.mEncodings.push_back(encoding);
 
                 testObject1->receive("r9", params);
                 testObject1->expectPacket("r9", "p9");

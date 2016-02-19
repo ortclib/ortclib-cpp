@@ -954,8 +954,8 @@ namespace ortc
           mMuxIDToReceivers[inParams.mMuxID] = inReceiver;
         }
 
-        if (inParams.mEncodingParameters.size() > 0) {
-          auto &encoding = inParams.mEncodingParameters.front();
+        if (inParams.mEncodings.size() > 0) {
+          auto &encoding = inParams.mEncodings.front();
           if (encoding.mCodecPayloadType.hasValue()) {
             mPayloadTypesToReceivers[encoding.mCodecPayloadType] = inReceiver;
           }
