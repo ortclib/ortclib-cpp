@@ -700,6 +700,9 @@ namespace ortc
     IRTPReceiverTypes::CapabilitiesPtr RTPReceiver::getCapabilities(Optional<Kinds> kind)
     {
       CapabilitiesPtr result(make_shared<Capabilities>());
+	  String kindStr;
+	  if (kind.hasValue()) 
+		kindStr = IMediaStreamTrackTypes::toString(kind.value());
 
       for (IRTPTypes::SupportedCodecs index = IRTPTypes::SupportedCodec_First; index <= IRTPTypes::SupportedCodec_Last; index = static_cast<IRTPTypes::SupportedCodecs>(static_cast<std::underlying_type<IRTPTypes::SupportedCodecs>::type>(index) + 1)) {
 
@@ -866,15 +869,11 @@ namespace ortc
           }
         }
 
-        if (kind.hasValue()) {
-          String kindStr(IMediaStreamTrackTypes::toString(kind.value()));
-
-          if (codec.mKind.hasData()) {
+        if (codec.mKind.hasData()) {
             if (codec.mKind != kindStr) {
               add = false;
             }
           }
-        }
 
         switch (index) {
           case IRTPTypes::SupportedCodec_Unknown:         break;
@@ -978,6 +977,12 @@ namespace ortc
             break;
           }
         }
+
+		if (ext.mKind.hasData()) {
+			if (ext.mKind != kindStr) {
+				add = false;
+			}
+		}
 
         if (add) {
           EventWriteOrtcRtpReceiverReportHeaderExtension(__func__, ext.mKind, ext.mURI, ext.mPreferredID, ext.mPreferredEncrypt);
