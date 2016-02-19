@@ -156,43 +156,74 @@ namespace ortc
       AutoRecursiveLock lock(*this);
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
 
+      if (!mTrack) {
+        ZS_LOG_ERROR(Detail, log("MediaStreamTrack is not set during RTPSenderChannelAudio initialization procedure"))
+        return;
+      }
+      
+      mTransport = Transport::create(mThisWeak.lock());
+
       mVoiceEngine = rtc::scoped_ptr<webrtc::VoiceEngine, VoiceEngineDeleter>(webrtc::VoiceEngine::Create());
 
-#define WARNING_FIX_TRACK_MIGHT_BE_NULL 1
-#define WARNING_FIX_TRACK_MIGHT_BE_NULL 2
-
       webrtc::VoEBase::GetInterface(mVoiceEngine.get())->Init(mTrack->getAudioDeviceModule());
-
+      
       mChannel = webrtc::VoEBase::GetInterface(mVoiceEngine.get())->CreateChannel();
-      webrtc::VoERTP_RTCP::GetInterface(mVoiceEngine.get())->SetRTCPStatus(mChannel, true);
-      webrtc::VoERTP_RTCP::GetInterface(mVoiceEngine.get())->SetLocalSSRC(mChannel, 2000);
-      webrtc::VoERTP_RTCP::GetInterface(mVoiceEngine.get())->SetRTCP_CNAME(mChannel, "test-cname");
-      webrtc::VoERTP_RTCP::GetInterface(mVoiceEngine.get())->SetSendAbsoluteSenderTimeStatus(mChannel, true, 1);
 
-      mTransport = Transport::create(mThisWeak.lock());
+      webrtc::CodecInst codec;
+      IRTPTypes::CodecParametersList::iterator codecIter = mParameters->mCodecs.begin();
+      while (codecIter != mParameters->mCodecs.end()) {
+        auto supportedCodec = IRTPTypes::toSupportedCodec(codecIter->mName);
+        if (IRTPTypes::SupportedCodec_Opus == supportedCodec) {
+          codec = getAudioCodec(codecIter->mName);
+          webrtc::VoECodec::GetInterface(mVoiceEngine.get())->SetSendCodec(mChannel, codec);
+          break;
+        } else if (IRTPTypes::SupportedCodec_Isac == supportedCodec) {
+          codec = getAudioCodec(codecIter->mName);
+          webrtc::VoECodec::GetInterface(mVoiceEngine.get())->SetSendCodec(mChannel, codec);
+          break;
+        } else if (IRTPTypes::SupportedCodec_G722 == supportedCodec) {
+          codec = getAudioCodec(codecIter->mName);
+          webrtc::VoECodec::GetInterface(mVoiceEngine.get())->SetSendCodec(mChannel, codec);
+          break;
+        } else if (IRTPTypes::SupportedCodec_ILBC == supportedCodec) {
+          codec = getAudioCodec(codecIter->mName);
+          webrtc::VoECodec::GetInterface(mVoiceEngine.get())->SetSendCodec(mChannel, codec);
+          break;
+        } else if (IRTPTypes::SupportedCodec_PCMU == supportedCodec) {
+          codec = getAudioCodec(codecIter->mName);
+          webrtc::VoECodec::GetInterface(mVoiceEngine.get())->SetSendCodec(mChannel, codec);
+          break;
+        } else if (IRTPTypes::SupportedCodec_PCMA == supportedCodec) {
+          codec = getAudioCodec(codecIter->mName);
+          webrtc::VoECodec::GetInterface(mVoiceEngine.get())->SetSendCodec(mChannel, codec);
+          break;
+        }
+        codecIter++;
+      }
 
       webrtc::AudioSendStream::Config config(mTransport.get());
       config.voe_channel_id = mChannel;
-      config.rtp.ssrc = 2000;
+
+      IRTPTypes::EncodingParametersList::iterator encodingParamIter = mParameters->mEncodingParameters.begin();
+      while (encodingParamIter != mParameters->mEncodingParameters.end()) {
+        if (encodingParamIter->mCodecPayloadType == codec.pltype) {
+          webrtc::VoERTP_RTCP::GetInterface(mVoiceEngine.get())->SetLocalSSRC(mChannel, encodingParamIter->mSSRC);
+          config.rtp.ssrc = encodingParamIter->mSSRC;
+          break;
+        }
+        encodingParamIter++;
+      }
+
+      webrtc::VoERTP_RTCP::GetInterface(mVoiceEngine.get())->SetRTCPStatus(mChannel, true);
+      webrtc::VoERTP_RTCP::GetInterface(mVoiceEngine.get())->SetRTCP_CNAME(mChannel, mParameters->mRTCP.mCName);
+      webrtc::VoERTP_RTCP::GetInterface(mVoiceEngine.get())->SetSendAbsoluteSenderTimeStatus(mChannel, true, 1);
+
 
       mSendStream = rtc::scoped_ptr<webrtc::AudioSendStream>(
           new webrtc::internal::AudioSendStream(
                                                 config,
                                                 mVoiceEngine.get()
                                                 ));
-
-      webrtc::CodecInst opusCodec;
-      int ncodecs = webrtc::VoECodec::GetInterface(mVoiceEngine.get())->NumOfCodecs();
-      for (int i = 0; i < ncodecs; ++i) {
-        webrtc::CodecInst codec;
-        webrtc::VoECodec::GetInterface(mVoiceEngine.get())->GetCodec(i, codec);
-        if (0 == String(codec.plname).compareNoCase("opus")) {
-          opusCodec = codec;
-          break;
-        }
-      }
-
-      webrtc::VoECodec::GetInterface(mVoiceEngine.get())->SetSendCodec(mChannel, opusCodec);
 
       webrtc::VoENetwork::GetInterface(mVoiceEngine.get())->RegisterExternalTransport(mChannel, *mTransport);
 
@@ -630,6 +661,22 @@ namespace ortc
       mLastErrorReason = reason;
 
       ZS_LOG_WARNING(Detail, debug("error set") + ZS_PARAM("error", mLastError) + ZS_PARAM("reason", mLastErrorReason))
+    }
+    
+    //-------------------------------------------------------------------------
+    webrtc::CodecInst RTPSenderChannelAudio::getAudioCodec(String payloadName)
+    {
+      webrtc::CodecInst codec;
+      int numOfCodecs = webrtc::VoECodec::GetInterface(mVoiceEngine.get())->NumOfCodecs();
+      for (int i = 0; i < numOfCodecs; ++i) {
+        webrtc::CodecInst currentCodec;
+        webrtc::VoECodec::GetInterface(mVoiceEngine.get())->GetCodec(i, currentCodec);
+        if (0 == String(currentCodec.plname).compareNoCase(payloadName)) {
+          codec = currentCodec;
+          break;
+        }
+      }
+      return codec;
     }
 
     //-------------------------------------------------------------------------
