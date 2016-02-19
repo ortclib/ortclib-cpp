@@ -132,7 +132,11 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ortc_StatsReport.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_ETWTracing.man" />
-    <None Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_ETWTracing.wprp" />
+    <None Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_ETWTracing.man">
+      <ExcludedFromBuild>false</ExcludedFromBuild>
+    </None>
+    <None Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_ETWTracing.wprp">
+      <ExcludedFromBuild>false</ExcludedFromBuild>
+    </None>
   </ItemGroup>
 </Project>
