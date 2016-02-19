@@ -507,6 +507,7 @@
             <data inType="win:AnsiString" name="Method" />
             <data inType="win:UInt64"     name="ObjectID" />
             <data inType="win:UInt64"     name="TurnSocketObjectID" />
+            <data inType="win:AnsiString" name="RemoteIP" />
             <data inType="win:UInt32"     name="BufferSizeInBytes" />
             <data inType="win:Binary"     name="Buffer" length="BufferSizeInBytes" />
           </template>

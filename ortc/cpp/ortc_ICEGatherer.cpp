@@ -1833,7 +1833,7 @@ namespace ortc
       ZS_THROW_INVALID_ARGUMENT_IF(!packet)
       ZS_THROW_INVALID_ARGUMENT_IF(0 == packetLengthInBytes)
 
-      EventWriteOrtcIceGathererTurnSocketReceivedPacket(__func__, mID, socket->getID(), packetLengthInBytes, packet);
+      EventWriteOrtcIceGathererTurnSocketReceivedPacket(__func__, mID, socket->getID(), source.string(), packetLengthInBytes, packet);
 
       STUNPacketPtr stunPacket;
       CandidatePtr localCandidate;
@@ -1930,7 +1930,7 @@ namespace ortc
       ZS_THROW_INVALID_ARGUMENT_IF(!packet)
       ZS_THROW_INVALID_ARGUMENT_IF(0 == packetLengthInBytes)
 
-      EventWriteOrtcIceGathererTurnSocketSendPacket(__func__, mID, socket->getID(), packetLengthInBytes, packet);
+      EventWriteOrtcIceGathererTurnSocketSendPacket(__func__, mID, socket->getID(), destination.string(), packetLengthInBytes, packet);
 
       ZS_LOG_DEBUG(log("turn socket needs to send packet") + UseTURNSocket::toDebug(socket) + ZS_PARAM("destination", destination.string()) + ZS_PARAM("packet length", packetLengthInBytes))
 
@@ -5959,13 +5959,12 @@ namespace ortc
       try {
         bool wouldBlock = false;
 
+        EventWriteOrtcIceGathererUdpSocketPacketSentTo(__func__, mID, boundIP.string(), remoteIP.string(), bufferSizeInBytes, buffer);
+
         auto sent = socket->sendTo(remoteIP, buffer, bufferSizeInBytes, &wouldBlock);
         ZS_LOG_INSANE(log("packet sent") + ZS_PARAM("socket", string(socket)) + ZS_PARAM("to", remoteIP.string()) + ZS_PARAM("from", boundIP.string()) + ZS_PARAM("size", bufferSizeInBytes))
 
-        if (sent == bufferSizeInBytes) {
-          EventWriteOrtcIceGathererUdpSocketPacketSentTo(__func__, mID, boundIP.string(), remoteIP.string(), bufferSizeInBytes, buffer);
-          return true;
-        }
+        if (sent == bufferSizeInBytes) return true;
       } catch(Socket::Exceptions::Unspecified &error) {
         ZS_LOG_ERROR(Debug, log("unable to send packet") + ZS_PARAM("error", error.errorCode()) + ZS_PARAM("to", remoteIP.string()) + ZS_PARAM("from", boundIP.string()))
         return false;

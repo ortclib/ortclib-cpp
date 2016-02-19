@@ -164,8 +164,8 @@
 #define EventWriteOrtcIceGathererDisposeBufferedIceTransportIncomingPacket(xStr_Method, xPUID, xPUID_RouterRouteID, xsize_t_BufferSizeInBytes, xPtr_Buffer)
 #define EventWriteOrtcIceGathererDisposeBufferedIceTransportIncomingStunPacket(xStr_Method, xPUID, xPUID_RouterRouteID)
 
-#define EventWriteOrtcIceGathererTurnSocketReceivedPacket(xStr_Method, xPUID, xPUID_TurnSocketObjectID, xsize_t_BufferSizeInBytes, xPtr_Buffer)
-#define EventWriteOrtcIceGathererTurnSocketSendPacket(xStr_Method, xPUID, xPUID_TurnSocketObjectID, xsize_t_BufferSizeInBytes, xPtr_Buffer)
+#define EventWriteOrtcIceGathererTurnSocketReceivedPacket(xStr_Method, xPUID, xPUID_TurnSocketObjectID, xStr_RemoteIP, xsize_t_BufferSizeInBytes, xPtr_Buffer)
+#define EventWriteOrtcIceGathererTurnSocketSendPacket(xStr_Method, xPUID, xPUID_TurnSocketObjectID, xStr_RemoteIP, xsize_t_BufferSizeInBytes, xPtr_Buffer)
 
 #define EventWriteOrtcIceGathererInstallQuickRoute(xStr_Method, xPUID, xPtr_Candidate, xStr_IPAddress, xPUID_RouteID)
 #define EventWriteOrtcIceGathererRemoveQuickRoute(xStr_Method, xPUID, xPtr_Candidate, xStr_IPAddress, xPUID_RouteID)
@@ -634,8 +634,8 @@ inline void EventWriteOrtcIceGathererErrorIceTransportIncomingStunPacket(const c
 inline void EventWriteOrtcIceGathererDisposeBufferedIceTransportIncomingPacket(const char *xStr_Method, PUID xPUID, PUID xPUID_RouterRouteID, size_t xsize_t_BufferSizeInBytes, const BYTE *xPtr_Buffer) {}
 inline void EventWriteOrtcIceGathererDisposeBufferedIceTransportIncomingStunPacket(const char *xStr_Method, PUID xPUID, PUID xPUID_RouterRouteID) {}
 
-inline void EventWriteOrtcIceGathererTurnSocketReceivedPacket(const char *xStr_Method, PUID xPUID, PUID xPUID_TurnSocketObjectID, size_t xsize_t_BufferSizeInBytes, const BYTE *xPtr_Buffer) {}
-inline void EventWriteOrtcIceGathererTurnSocketSendPacket(const char *xStr_Method, PUID xPUID, PUID xPUID_TurnSocketObjectID, size_t xsize_t_BufferSizeInBytes, const BYTE *xPtr_Buffer) {}
+inline void EventWriteOrtcIceGathererTurnSocketReceivedPacket(const char *xStr_Method, PUID xPUID, PUID xPUID_TurnSocketObjectID, const char *xStr_RemoteIP, size_t xsize_t_BufferSizeInBytes, const BYTE *xPtr_Buffer) {}
+inline void EventWriteOrtcIceGathererTurnSocketSendPacket(const char *xStr_Method, PUID xPUID, PUID xPUID_TurnSocketObjectID, const char *xStr_RemoteIP, size_t xsize_t_BufferSizeInBytes, const BYTE *xPtr_Buffer) {}
 
 inline void EventWriteOrtcIceGathererInstallQuickRoute(const char *xStr_Method, PUID xPUID, const void *xPtr_Candidate, const char *xStr_IPAddress, PUID xPUID_RouteID) {}
 inline void EventWriteOrtcIceGathererRemoveQuickRoute(const char *xStr_Method, PUID xPUID, const void *xPtr_Candidate, const char *xStr_IPAddress, PUID xPUID_RouteID) {}
