@@ -10,7 +10,7 @@
     <!-- Buffer sizes are specified in KB -->
     <EventCollector Id="EventCollector_OrtcLib_Verbose" Name="OrtcLib Event Collector" Private="false" ProcessPrivate="false" Secure="false" Realtime="false">
       <BufferSize Value="1024"/>
-      <Buffers Value="40"/>
+      <Buffers Value="80"/>
     </EventCollector>
 
     <EventCollector Id="EventCollector_OrtcLib_Light" Name="OrtcLib Event Collector" Private="false" ProcessPrivate="false" Secure="false" Realtime="false">
@@ -21,6 +21,8 @@
     <!-- Our custom ETW Provider and its associated GUID -->
     <!-- Warning: GUID must match value from manifest otherwise the events will not be captured -->
     <EventProvider Id="EventProvider_OrtcLib" Name="ad26f2e3-b292-483b-a5de-8349a6aac310" />
+    <EventProvider Id="EventProvider_OrtcServices" Name="48da0f57-3fd5-4f85-a9c2-7075b268ac3f" />
+    <EventProvider Id="EventProvider_zsLib" Name="6586be19-7cf9-44f1-996b-3751e3549ccd" />
 
     <!-- A fully specified .wprp file should have four profiles, with DetailLevel set to Verbose and Light and with Logging Mode set to Memory and File. WPR enforces that the name conforms to <name>Profile.Level.OutputType -->
     <Profile
@@ -34,6 +36,8 @@
         <EventCollectorId Value="EventCollector_OrtcLib_Verbose">
           <EventProviders>
             <EventProviderId Value="EventProvider_OrtcLib"/>
+            <EventProviderId Value="EventProvider_OrtcServices"/>
+            <EventProviderId Value="EventProvider_zsLib"/>
           </EventProviders>
         </EventCollectorId>
       </Collectors>
@@ -50,6 +54,8 @@
         <EventCollectorId Value="EventCollector_OrtcLib_Light">
           <EventProviders>
             <EventProviderId Value="EventProvider_OrtcLib"/>
+            <EventProviderId Value="EventProvider_OrtcServices"/>
+            <EventProviderId Value="EventProvider_zsLib"/>
           </EventProviders>
         </EventCollectorId>
       </Collectors>
