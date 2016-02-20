@@ -215,7 +215,7 @@ namespace ortc
 
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IRTPTypes::VP8CodecCapability
+    #pragma mark IRTPTypes::VP8CodecCapabilityParameters
     #pragma mark
 
     struct VP8CodecCapabilityParameters : public Any
@@ -238,7 +238,7 @@ namespace ortc
 
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IRTPTypes::H264CodecCapability
+    #pragma mark IRTPTypes::H264CodecCapabilityParameters
     #pragma mark
 
     struct H264CodecCapabilityParameters : public Any
@@ -338,7 +338,7 @@ namespace ortc
       String                        mMuxID;
       CodecParametersList           mCodecs;
       HeaderExtensionParametersList mHeaderExtensions;
-      EncodingParametersList        mEncodingParameters;
+      EncodingParametersList        mEncodings;
       RTCPParameters                mRTCP;
       DegradationPreferences        mDegredationPreference {DegradationPreference_Balanced};
 
@@ -640,6 +640,8 @@ namespace ortc
       PriorityTypes           mPriority {PriorityType_Unknown};
       ULONGLONG               mMaxBitrate {};
       double                  mMinQuality {0};
+      double                  mResolutionScale {};
+      double                  mFramerateScale {};
       bool                    mActive {true};
       EncodingID              mEncodingID;
       EncodingIDList          mDependencyEncodingIDs;

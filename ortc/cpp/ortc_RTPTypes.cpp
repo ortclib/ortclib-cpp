@@ -130,7 +130,7 @@ namespace ortc
 
       StreamMap streamMap;
 
-      for (auto iter = params.mEncodingParameters.begin(); iter != params.mEncodingParameters.end(); ++iter)
+      for (auto iter = params.mEncodings.begin(); iter != params.mEncodings.end(); ++iter)
       {
         auto &encoding = (*iter);
         if (encoding.mDependencyEncodingIDs.size() > 0) continue; // skip all that are dependent on other layers
@@ -140,7 +140,7 @@ namespace ortc
         tmpParam->mHeaderExtensions = params.mHeaderExtensions;
         tmpParam->mMuxID = params.mMuxID;
         tmpParam->mRTCP = params.mRTCP;
-        tmpParam->mEncodingParameters.push_back(encoding);
+        tmpParam->mEncodings.push_back(encoding);
 
         outParamsGroupedIntoChannels.push_back(tmpParam);
 
@@ -156,7 +156,7 @@ namespace ortc
         missingEntry = false;
         foundEntry = false;
 
-        for (auto iter = params.mEncodingParameters.begin(); iter != params.mEncodingParameters.end(); ++iter) {
+        for (auto iter = params.mEncodings.begin(); iter != params.mEncodings.end(); ++iter) {
           auto &encoding = (*iter);
 
           if (encoding.mDependencyEncodingIDs.size() < 1) continue;         // skip all that do not have any dependencies
@@ -172,7 +172,7 @@ namespace ortc
             if (foundDependency == streamMap.end()) continue;
 
             ParametersPtr existingParam = (*foundDependency).second;
-            existingParam->mEncodingParameters.push_back(encoding);
+            existingParam->mEncodings.push_back(encoding);
 
             streamMap[encoding.mEncodingID] = existingParam;
             foundEntry = true;
@@ -282,9 +282,9 @@ namespace ortc
 
           auto oldParams = (*currentOld);
 
-          if (oldParams->mEncodingParameters.size() < 1) continue;
+          if (oldParams->mEncodings.size() < 1) continue;
 
-          auto &oldEncodingBase = (*(oldParams->mEncodingParameters.begin()));
+          auto &oldEncodingBase = (*(oldParams->mEncodings.begin()));
           if (oldEncodingBase.mEncodingID.isEmpty()) continue;
 
           auto iterNew_doNotUse = newList.begin();
@@ -301,9 +301,9 @@ namespace ortc
 
             auto newParams = (*currentNew);
 
-            if (newParams->mEncodingParameters.size() < 1) continue;
+            if (newParams->mEncodings.size() < 1) continue;
 
-            auto &newEncodingBase = (*(newParams->mEncodingParameters.begin()));
+            auto &newEncodingBase = (*(newParams->mEncodings.begin()));
 
             if (newEncodingBase.mEncodingID.isEmpty()) continue;
 
@@ -346,9 +346,9 @@ namespace ortc
 
           auto oldParams = (*currentOld);
 
-          if (oldParams->mEncodingParameters.size() < 1) continue;
+          if (oldParams->mEncodings.size() < 1) continue;
 
-          auto &firstOld = oldParams->mEncodingParameters.front();
+          auto &firstOld = oldParams->mEncodings.front();
           if (firstOld.mEncodingID.isEmpty()) continue;
 
           ZS_LOG_TRACE(slog("old parameters did not have an encoding ID match (thus must remove)") + oldParams->toDebug())
@@ -372,9 +372,9 @@ namespace ortc
 
           auto newParams = (*currentNew);
 
-          if (newParams->mEncodingParameters.size() < 1) continue;
+          if (newParams->mEncodings.size() < 1) continue;
 
-          auto &firstNew = newParams->mEncodingParameters.front();
+          auto &firstNew = newParams->mEncodings.front();
           if (firstNew.mEncodingID.isEmpty()) continue;
 
           ZS_LOG_TRACE(slog("new parameters did not have an encoding ID match (thus must add)") + newParams->toDebug())
@@ -444,11 +444,11 @@ namespace ortc
 
             auto newParams = (*currentNew);
 
-            if (oldParams->mEncodingParameters.size() < 1) continue;
-            if (newParams->mEncodingParameters.size() < 1) continue;
+            if (oldParams->mEncodings.size() < 1) continue;
+            if (newParams->mEncodings.size() < 1) continue;
 
-            auto &firstOld = oldParams->mEncodingParameters.front();
-            auto &firstNew = newParams->mEncodingParameters.front();
+            auto &firstOld = oldParams->mEncodings.front();
+            auto &firstNew = newParams->mEncodings.front();
 
             if (!firstOld.mSSRC.hasValue()) continue;
             if (!firstNew.mSSRC.hasValue()) continue;
@@ -480,9 +480,9 @@ namespace ortc
 
           auto oldParams = (*currentOld);
 
-          if (oldParams->mEncodingParameters.size() < 1) continue;
+          if (oldParams->mEncodings.size() < 1) continue;
 
-          auto &firstOld = oldParams->mEncodingParameters.front();
+          auto &firstOld = oldParams->mEncodings.front();
           if (!firstOld.mSSRC.hasValue()) continue;
 
           ZS_LOG_TRACE(slog("old parameters did not have an SSRC match (thus must remove)") + oldParams->toDebug())
@@ -500,9 +500,9 @@ namespace ortc
 
           auto newParams = (*currentNew);
 
-          if (newParams->mEncodingParameters.size() < 1) continue;
+          if (newParams->mEncodings.size() < 1) continue;
 
-          auto &firstNew = newParams->mEncodingParameters.front();
+          auto &firstNew = newParams->mEncodings.front();
           if (!firstNew.mSSRC.hasValue()) continue;
 
           ZS_LOG_TRACE(slog("new parameters did not have an SSRC match (thus must add)") + newParams->toDebug())
@@ -791,8 +791,8 @@ namespace ortc
       }
 
       if (!payloadType.hasValue()) {
-        if (params.mEncodingParameters.size() > 0) {
-          auto &frontEncoding = params.mEncodingParameters.front();
+        if (params.mEncodings.size() > 0) {
+          auto &frontEncoding = params.mEncodings.front();
           if (frontEncoding.mCodecPayloadType.hasValue()) {
             payloadType = frontEncoding.mCodecPayloadType;
           }
@@ -830,14 +830,14 @@ namespace ortc
     {
       outRank = 0;
 
-      if (oldParams.mEncodingParameters.size() < 1) {
-        if (newParams.mEncodingParameters.size() > 0) return false;
+      if (oldParams.mEncodings.size() < 1) {
+        if (newParams.mEncodings.size() > 0) return false;
       }
-      if (newParams.mEncodingParameters.size() < 1) {
-        if (oldParams.mEncodingParameters.size() > 0) return false;
+      if (newParams.mEncodings.size() < 1) {
+        if (oldParams.mEncodings.size() > 0) return false;
       }
 
-      if (oldParams.mEncodingParameters.size() < 1) {
+      if (oldParams.mEncodings.size() < 1) {
         // all codecs must match compatibly
         for (auto iterOldCodec = oldParams.mCodecs.begin(); iterOldCodec != oldParams.mCodecs.end(); ++iterOldCodec) {
           auto &oldCodec = (*iterOldCodec);
@@ -886,11 +886,11 @@ namespace ortc
 
     check_other_properties:
       {
-        if (oldParams.mEncodingParameters.size() > 0) {
-          ASSERT(newParams.mEncodingParameters.size() > 0)
+        if (oldParams.mEncodings.size() > 0) {
+          ASSERT(newParams.mEncodings.size() > 0)
 
-          auto &oldEncoding = oldParams.mEncodingParameters.front();
-          auto &newEncoding = newParams.mEncodingParameters.front();
+          auto &oldEncoding = oldParams.mEncodings.front();
+          auto &newEncoding = newParams.mEncodings.front();
 
           // make sure the rid (if specified) matches
           if (oldEncoding.mEncodingID != newEncoding.mEncodingID) return false; // a non-match on the RID is not the same stream
@@ -901,14 +901,14 @@ namespace ortc
           }
         }
 
-        outRank += (oldParams.mEncodingParameters.size() == newParams.mEncodingParameters.size() ? 1.0f : -0.2f);
+        outRank += (oldParams.mEncodings.size() == newParams.mEncodings.size() ? 1.0f : -0.2f);
 
-        for (auto iterOldEncoding = oldParams.mEncodingParameters.begin(); iterOldEncoding != oldParams.mEncodingParameters.end(); ++iterOldEncoding)
+        for (auto iterOldEncoding = oldParams.mEncodings.begin(); iterOldEncoding != oldParams.mEncodings.end(); ++iterOldEncoding)
         {
           auto &oldEncoding = (*iterOldEncoding);
 
           bool foundLayer = false;
-          for (auto iterNewEncoding = newParams.mEncodingParameters.begin(); iterNewEncoding != newParams.mEncodingParameters.end(); ++iterNewEncoding)
+          for (auto iterNewEncoding = newParams.mEncodings.begin(); iterNewEncoding != newParams.mEncodings.end(); ++iterNewEncoding)
           {
             auto &newEncoding = (*iterNewEncoding);
 
@@ -921,13 +921,13 @@ namespace ortc
           if (!foundLayer) outRank -= 0.2f;
         }
 
-        for (auto iterNewEncoding = newParams.mEncodingParameters.begin(); iterNewEncoding != newParams.mEncodingParameters.end(); ++iterNewEncoding)
+        for (auto iterNewEncoding = newParams.mEncodings.begin(); iterNewEncoding != newParams.mEncodings.end(); ++iterNewEncoding)
         {
           auto &newEncoding = (*iterNewEncoding);
 
           bool foundLayer = false;
 
-          for (auto iterOldEncoding = oldParams.mEncodingParameters.begin(); iterOldEncoding != oldParams.mEncodingParameters.end(); ++iterOldEncoding)
+          for (auto iterOldEncoding = oldParams.mEncodings.begin(); iterOldEncoding != oldParams.mEncodings.end(); ++iterOldEncoding)
           {
             auto &oldEncoding = (*iterOldEncoding);
             if (oldEncoding.mEncodingID != newEncoding.mEncodingID) continue;
@@ -975,8 +975,8 @@ namespace ortc
       }
 
       if (!rtxPayloadType.hasValue()) {
-        if (params.mEncodingParameters.size() > 0) {
-          auto &frontEncoding = params.mEncodingParameters.front();
+        if (params.mEncodings.size() > 0) {
+          auto &frontEncoding = params.mEncodings.front();
           foundEncoding = true;
           if (frontEncoding.mRTX.hasValue()) {
             usesRTX = true;
@@ -1056,8 +1056,8 @@ namespace ortc
       }
 
       if (IRTPTypes::KnownFECMechanism_Unknown == mechanism) {
-        if (params.mEncodingParameters.size() > 0) {
-          auto &frontEncoding = params.mEncodingParameters.front();
+        if (params.mEncodings.size() > 0) {
+          auto &frontEncoding = params.mEncodings.front();
           foundEncoding = true;
           if (frontEncoding.mFEC.hasValue()) {
             usesFEC = true;
@@ -1174,8 +1174,8 @@ namespace ortc
       typedef std::map<String, EncodingParameters *> DependencyMap;
 
       if (!inEncoding) {
-        if (inParams.mEncodingParameters.size() < 1) return NULL;
-        inEncoding = &(*(inParams.mEncodingParameters.begin()));
+        if (inParams.mEncodings.size() < 1) return NULL;
+        inEncoding = &(*(inParams.mEncodings.begin()));
       }
 
       if (inEncoding->mDependencyEncodingIDs.size() < 1) {
@@ -1185,7 +1185,7 @@ namespace ortc
 
       DependencyMap encodings;
 
-      for (auto iter = inParams.mEncodingParameters.begin(); iter != inParams.mEncodingParameters.end(); ++iter)
+      for (auto iter = inParams.mEncodings.begin(); iter != inParams.mEncodings.end(); ++iter)
       {
         auto &encoding = (*iter);
 
@@ -1246,14 +1246,14 @@ namespace ortc
       outSupportedCodec = IRTPTypes::toSupportedCodec(outCodecParameters->mName);
       outCodecKind = IRTPTypes::getCodecKind(outSupportedCodec);
 
-      if (filledParams.mEncodingParameters.size() < 1) {
+      if (filledParams.mEncodings.size() < 1) {
         // "latch all" allows this codec to match all incoming packets
         return NULL;
       }
 
-      (*(filledParams.mEncodingParameters.begin()));
+      (*(filledParams.mEncodings.begin()));
 
-      for (auto encodingIter = filledParams.mEncodingParameters.begin(); encodingIter != filledParams.mEncodingParameters.end(); ++encodingIter) {
+      for (auto encodingIter = filledParams.mEncodings.begin(); encodingIter != filledParams.mEncodings.end(); ++encodingIter) {
 
         auto &encoding = (*encodingIter);
 
@@ -2629,7 +2629,7 @@ namespace ortc
         ElementPtr encodingEl = encodingsEl->findFirstChildElement("encoding");
         while (encodingEl) {
           EncodingParameters encoding(encodingEl);
-          mEncodingParameters.push_back(encoding);
+          mEncodings.push_back(encoding);
           encodingEl = encodingEl->findNextSiblingElement("encoding");
         }
       }
@@ -2678,9 +2678,9 @@ namespace ortc
       }
       elem->adoptAsLastChild(headerExtensionsEl);
     }
-    if (mEncodingParameters.size() > 0) {
+    if (mEncodings.size() > 0) {
       ElementPtr encodingsEl = Element::create("encodings");
-      for (auto iter = mEncodingParameters.begin(); iter != mEncodingParameters.end(); ++iter) {
+      for (auto iter = mEncodings.begin(); iter != mEncodings.end(); ++iter) {
         auto &value = (*iter);
         encodingsEl->adoptAsLastChild(value.createElement("encoding"));
       }
@@ -2721,10 +2721,10 @@ namespace ortc
       UseServicesHelper::debugAppend(resultEl, headersEl);
     }
 
-    if (mEncodingParameters.size() > 0) {
+    if (mEncodings.size() > 0) {
       ElementPtr encodingsEl = Element::create("encodings");
       
-      for (auto iter = mEncodingParameters.begin(); iter != mEncodingParameters.end(); ++iter) {
+      for (auto iter = mEncodings.begin(); iter != mEncodings.end(); ++iter) {
         auto value = (*iter);
         UseServicesHelper::debugAppend(encodingsEl, value.toDebug());
       }
@@ -2771,7 +2771,7 @@ namespace ortc
     if (options.mEncodingParameters) {
       hasher.update("encodings:0e69ea312f56834897bc0c29eb74bf991bee8d86");
 
-      for (auto iter = mEncodingParameters.begin(); iter != mEncodingParameters.end(); ++iter) {
+      for (auto iter = mEncodings.begin(); iter != mEncodings.end(); ++iter) {
         auto value = (*iter);
         hasher.update(":");
         hasher.update(value.hash());
@@ -3867,6 +3867,8 @@ namespace ortc
 
     UseHelper::getElementValue(elem, "ortc::IRTPTypes::EncodingParameters", "maxBitrate", mMaxBitrate);
     UseHelper::getElementValue(elem, "ortc::IRTPTypes::EncodingParameters", "minQuality", mMinQuality);
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::EncodingParameters", "resolutionScale", mResolutionScale);
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::EncodingParameters", "framerateScale", mFramerateScale);
     UseHelper::getElementValue(elem, "ortc::IRTPTypes::EncodingParameters", "active", mActive);
     UseHelper::getElementValue(elem, "ortc::IRTPTypes::EncodingParameters", "encodingId", mEncodingID);
 
@@ -3900,6 +3902,8 @@ namespace ortc
     UseHelper::adoptElementValue(elem, "priority", toString(mPriority), false);
     UseHelper::adoptElementValue(elem, "maxBitrate", mMaxBitrate);
     UseHelper::adoptElementValue(elem, "minQuality", mMinQuality);
+    UseHelper::adoptElementValue(elem, "resolutionScale", mResolutionScale);
+    UseHelper::adoptElementValue(elem, "resolutionScale", mFramerateScale);
     UseHelper::adoptElementValue(elem, "active", mActive);
     UseHelper::adoptElementValue(elem, "encodingId", mEncodingID, false);
 
@@ -3931,6 +3935,8 @@ namespace ortc
     UseServicesHelper::debugAppend(resultEl, "priority", toString(mPriority));
     UseServicesHelper::debugAppend(resultEl, "max bitrate", mMaxBitrate);
     UseServicesHelper::debugAppend(resultEl, "min quality", mMinQuality);
+    UseServicesHelper::debugAppend(resultEl, "resolution scale", mResolutionScale);
+    UseServicesHelper::debugAppend(resultEl, "framerate scale", mFramerateScale);
     UseServicesHelper::debugAppend(resultEl, "active", mActive);
     UseServicesHelper::debugAppend(resultEl, "encoding id", mEncodingID);
 
@@ -3967,6 +3973,10 @@ namespace ortc
     hasher.update(mMaxBitrate);
     hasher.update(":");
     hasher.update(mMinQuality);
+    hasher.update(":");
+    hasher.update(mResolutionScale);
+    hasher.update(":");
+    hasher.update(mFramerateScale);
     hasher.update(":");
     hasher.update(mActive);
     hasher.update(":");

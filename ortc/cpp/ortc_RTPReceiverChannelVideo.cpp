@@ -256,8 +256,8 @@ namespace ortc
         codecIter++;
       }
 
-      IRTPTypes::EncodingParametersList::iterator encodingParamIter = mParameters->mEncodingParameters.begin();
-      while (encodingParamIter != mParameters->mEncodingParameters.end()) {
+      IRTPTypes::EncodingParametersList::iterator encodingParamIter = mParameters->mEncodings.begin();
+      while (encodingParamIter != mParameters->mEncodings.end()) {
         if (encodingParamIter->mCodecPayloadType == decoder.payload_type) {
           config.rtp.remote_ssrc = encodingParamIter->mSSRC;
           break;

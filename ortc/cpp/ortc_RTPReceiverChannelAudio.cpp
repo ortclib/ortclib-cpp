@@ -240,8 +240,8 @@ namespace ortc
       webrtc::AudioReceiveStream::Config config;
       config.voe_channel_id = mChannel;
       
-      IRTPTypes::EncodingParametersList::iterator encodingParamIter = mParameters->mEncodingParameters.begin();
-      while (encodingParamIter != mParameters->mEncodingParameters.end()) {
+      IRTPTypes::EncodingParametersList::iterator encodingParamIter = mParameters->mEncodings.begin();
+      while (encodingParamIter != mParameters->mEncodings.end()) {
         if (encodingParamIter->mCodecPayloadType == codec.pltype) {
           config.rtp.remote_ssrc = encodingParamIter->mSSRC;
           break;

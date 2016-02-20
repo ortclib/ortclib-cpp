@@ -291,7 +291,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool RTPReceiver::ChannelInfo::shouldLatchAll() const
     {
-      if (mOriginalParameters->mEncodingParameters.size() < 1) return true;
+      if (mOriginalParameters->mEncodings.size() < 1) return true;
       return false;
     }
 
@@ -299,7 +299,7 @@ namespace ortc
     String RTPReceiver::ChannelInfo::rid() const
     {
       if (shouldLatchAll()) return String();
-      return mFilledParameters->mEncodingParameters.front().mEncodingID;
+      return mFilledParameters->mEncodings.front().mEncodingID;
     }
 
     //-------------------------------------------------------------------------
@@ -1855,7 +1855,7 @@ namespace ortc
         return;
       }
 
-      auto &encodingParmas = channelInfo->mOriginalParameters->mEncodingParameters.front();
+      auto &encodingParmas = channelInfo->mOriginalParameters->mEncodings.front();
 
       setRIDUsage(encodingParmas.mEncodingID, channelInfo);
 
@@ -1903,7 +1903,7 @@ namespace ortc
           return;
         }
 
-        auto &encodingParmas = channelInfo->mOriginalParameters->mEncodingParameters.front();
+        auto &encodingParmas = channelInfo->mOriginalParameters->mEncodings.front();
 
         setRIDUsage(encodingParmas.mEncodingID, channelInfo);
 
@@ -1924,8 +1924,8 @@ namespace ortc
         return;
       }
 
-      auto &baseOldOriginalEncoding = (*(oldOriginalParams->mEncodingParameters.begin()));
-      auto &baseOldFilledEncoding = (*(oldFilledParams->mEncodingParameters.begin()));
+      auto &baseOldOriginalEncoding = (*(oldOriginalParams->mEncodings.begin()));
+      auto &baseOldFilledEncoding = (*(oldFilledParams->mEncodings.begin()));
 
       if (channelInfo->shouldLatchAll()) {
         ZS_LOG_DEBUG(log("new params now a latch all for all encoding for this channel"))
@@ -1939,8 +1939,8 @@ namespace ortc
         return;
       }
 
-      auto &baseNewOriginalEncoding = (*(newParams->mEncodingParameters.begin()));
-      auto &baseNewFilledEncoding = (*(channelInfo->mFilledParameters->mEncodingParameters.begin()));
+      auto &baseNewOriginalEncoding = (*(newParams->mEncodings.begin()));
+      auto &baseNewFilledEncoding = (*(channelInfo->mFilledParameters->mEncodings.begin()));
 
       ChannelHolderPtr channelHolder = channelInfo->mChannelHolder.lock();
 
@@ -2435,7 +2435,7 @@ namespace ortc
 
         {
           bool first = true;
-          for (auto iterParm = channelInfo->mFilledParameters->mEncodingParameters.begin(); iterParm != channelInfo->mFilledParameters->mEncodingParameters.end(); ++iterParm, first = false)
+          for (auto iterParm = channelInfo->mFilledParameters->mEncodings.begin(); iterParm != channelInfo->mFilledParameters->mEncodings.end(); ++iterParm, first = false)
           {
             EncodingParameters &encoding = (*iterParm);
 
@@ -2680,9 +2680,9 @@ namespace ortc
 
         auto &channelInfo = channelHolder->mChannelInfo;
 
-        ASSERT(channelInfo->mFilledParameters->mEncodingParameters.size() > 0)
+        ASSERT(channelInfo->mFilledParameters->mEncodings.size() > 0)
 
-        auto &filledEncoding = *(channelInfo->mFilledParameters->mEncodingParameters.begin());
+        auto &filledEncoding = *(channelInfo->mFilledParameters->mEncodings.begin());
 
         if (filledEncoding.mEncodingID.hasData()) {
           if (rid.hasData()) {
@@ -2844,9 +2844,9 @@ namespace ortc
 
       if (foundChannelInfo) {
 
-        ASSERT(foundChannelInfo->mFilledParameters->mEncodingParameters.size() > 0)
+        ASSERT(foundChannelInfo->mFilledParameters->mEncodings.size() > 0)
 
-        auto &filledEncoding = *(foundChannelInfo->mFilledParameters->mEncodingParameters.begin());
+        auto &filledEncoding = *(foundChannelInfo->mFilledParameters->mEncodings.begin());
 
         switch (kind) {
           case CodecKind_Unknown:  ASSERT(false) break;
@@ -2948,7 +2948,7 @@ namespace ortc
           encoding.mCodecPayloadType = rtpPacket.pt();
           encoding.mActive = true;
 
-          channelInfo->mFilledParameters->mEncodingParameters.push_back(encoding);
+          channelInfo->mFilledParameters->mEncodings.push_back(encoding);
 
           outChannelInfo = channelInfo;
 
@@ -3000,7 +3000,7 @@ namespace ortc
       if (!rid.hasData()) return true;
 
       if (!ioChannelInfo->shouldLatchAll()) {
-        auto &encoding = ioChannelInfo->mFilledParameters->mEncodingParameters.front();
+        auto &encoding = ioChannelInfo->mFilledParameters->mEncodings.front();
 
         if (encoding.mEncodingID.hasData()) {
           if (rid != encoding.mEncodingID) {
@@ -3106,12 +3106,12 @@ namespace ortc
               // encoding parameters but if this value was auto-filled in
               // those encoding paramters and not set by the application
               // developer and reset those parameters back to the original.
-              auto iterFilledParams = channelInfo->mFilledParameters->mEncodingParameters.begin();
-              auto iterOriginalParams = channelInfo->mOriginalParameters->mEncodingParameters.begin();
+              auto iterFilledParams = channelInfo->mFilledParameters->mEncodings.begin();
+              auto iterOriginalParams = channelInfo->mOriginalParameters->mEncodings.begin();
 
-              for (; iterFilledParams != channelInfo->mFilledParameters->mEncodingParameters.end(); ++iterFilledParams, ++iterOriginalParams)
+              for (; iterFilledParams != channelInfo->mFilledParameters->mEncodings.end(); ++iterFilledParams, ++iterOriginalParams)
               {
-                ASSERT(iterOriginalParams != channelInfo->mOriginalParameters->mEncodingParameters.end())
+                ASSERT(iterOriginalParams != channelInfo->mOriginalParameters->mEncodings.end())
                 EncodingParameters &filledParams = (*iterFilledParams);
                 EncodingParameters &originalEncParams = (*iterOriginalParams);
 
@@ -3224,9 +3224,9 @@ namespace ortc
                                                    )
     {
       ASSERT(channelHolder)
-      ASSERT(channelHolder->mChannelInfo->mFilledParameters->mEncodingParameters.size() > 0)
+      ASSERT(channelHolder->mChannelInfo->mFilledParameters->mEncodings.size() > 0)
 
-      auto &encoding = *(channelHolder->mChannelInfo->mFilledParameters->mEncodingParameters.begin());
+      auto &encoding = *(channelHolder->mChannelInfo->mFilledParameters->mEncodings.begin());
 
       if (!encoding.mActive) {
         ZS_LOG_WARNING(Trace, log("encoding is not active thus do not process information from this channel"))

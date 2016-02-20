@@ -3325,23 +3325,23 @@ void doTestRTPSender()
 
                 EncodingParameters encoding;
                 encoding.mCodecPayloadType = 96;
-                params->mEncodingParameters.push_back(encoding);
+                params->mEncodings.push_back(encoding);
 
                 encoding.mCodecPayloadType = 97;
-                params->mEncodingParameters.push_back(encoding);
+                params->mEncodings.push_back(encoding);
 
                 testObject1->store("params2", *params);
 
-                auto oldEncodingsList = params->mEncodingParameters;
+                auto oldEncodingsList = params->mEncodings;
 
                 {
-                  params->mEncodingParameters = oldEncodingsList;
-                  params->mEncodingParameters.pop_back();
+                  params->mEncodings = oldEncodingsList;
+                  params->mEncodings.pop_back();
                   testObject1->store("params2-c2", *params);
                 }
                 {
-                  params->mEncodingParameters = oldEncodingsList;
-                  params->mEncodingParameters.pop_front();
+                  params->mEncodings = oldEncodingsList;
+                  params->mEncodings.pop_front();
                   testObject1->store("params2-c3", *params);
                 }
 
@@ -3498,7 +3498,7 @@ void doTestRTPSender()
                   fec.mMechanism = IRTPTypes::toString(IRTPTypes::KnownFECMechanism_RED_ULPFEC);
                   encoding.mFEC = fec;
 
-                  params.mEncodingParameters.push_back(encoding);
+                  params.mEncodings.push_back(encoding);
 
                   testObject1->store("params1", params);
                 }
@@ -3636,13 +3636,13 @@ void doTestRTPSender()
                   fec.mMechanism = IRTPTypes::toString(IRTPTypes::KnownFECMechanism_RED_ULPFEC);
                   encoding.mFEC = fec;
 
-                  params->mEncodingParameters.push_back(encoding);
+                  params->mEncodings.push_back(encoding);
 
                   testObject1->store("params2", *params);
                 }
                 {
                   auto params = testObject1->getParameters("params2");
-                  params->mEncodingParameters.pop_front();
+                  params->mEncodings.pop_front();
                   testObject1->store("params2-c2", *params);  // only a single encoding will go to this new channel
                 }
           //    bogusSleep();
@@ -3659,13 +3659,13 @@ void doTestRTPSender()
               case 16: {
                 {
                   auto params = testObject1->getParameters("params2");
-                  auto &encoding = (*(params->mEncodingParameters.begin()));
+                  auto &encoding = (*(params->mEncodings.begin()));
                   encoding.mSSRC = 61;
                   testObject1->store("params3", *params);
                 }
                 {
                   auto params = testObject1->getParameters("params3");
-                  params->mEncodingParameters.pop_back();
+                  params->mEncodings.pop_back();
                   testObject1->store("params3-c3", *params);  // only a single encoding will go to this new channel
                 }
                 {
@@ -3717,14 +3717,14 @@ void doTestRTPSender()
                   fec.mSSRC = 149;
                   encoding.mFEC = fec;
 
-                  params->mEncodingParameters.push_back(encoding);
+                  params->mEncodings.push_back(encoding);
 
                   testObject1->store("params4", *params);
                 }
                 {
                   auto params = testObject1->getParameters("params4");
-                  while (params->mEncodingParameters.size() > 1) {
-                    params->mEncodingParameters.pop_front();
+                  while (params->mEncodings.size() > 1) {
+                    params->mEncodings.pop_front();
                   }
                   testObject1->store("params4-c4", *params);
                 }
@@ -3791,7 +3791,7 @@ void doTestRTPSender()
                 {
                   auto params = testObject1->getParameters("params4");
 
-                  auto &encoding = params->mEncodingParameters.back();
+                  auto &encoding = params->mEncodings.back();
 
                   encoding.mRTX.value().mSSRC = 131;
                   encoding.mFEC.value().mSSRC = 137;
@@ -3800,8 +3800,8 @@ void doTestRTPSender()
                 }
                 {
                   auto params = testObject1->getParameters("params5");
-                  while (params->mEncodingParameters.size() > 1) {
-                    params->mEncodingParameters.pop_front();
+                  while (params->mEncodings.size() > 1) {
+                    params->mEncodings.pop_front();
                   }
                   testObject1->store("params5-c4", *params);
                 }
@@ -3851,14 +3851,14 @@ void doTestRTPSender()
               case 23: {
                 {
                   auto params = testObject1->getParameters("params5");
-                  auto &encoding = params->mEncodingParameters.back();
+                  auto &encoding = params->mEncodings.back();
                   encoding.mCodecPayloadType = 97;
                   testObject1->store("params6", *params);
                 }
                 {
                   auto params = testObject1->getParameters("params6");
-                  while (params->mEncodingParameters.size() > 1) {
-                    params->mEncodingParameters.pop_front();
+                  while (params->mEncodings.size() > 1) {
+                    params->mEncodings.pop_front();
                   }
                   testObject1->store("params6-c5", *params);
                 }
@@ -3903,21 +3903,21 @@ void doTestRTPSender()
                 }
                 {
                   auto params = testObject1->getParameters("params7");
-                  params->mEncodingParameters.pop_front();
-                  params->mEncodingParameters.pop_back();
+                  params->mEncodings.pop_front();
+                  params->mEncodings.pop_back();
                   testObject1->store("params7-c2", *params);
                 }
                 {
                   auto params = testObject1->getParameters("params7");
-                  while (params->mEncodingParameters.size() > 1) {
-                    params->mEncodingParameters.pop_back();
+                  while (params->mEncodings.size() > 1) {
+                    params->mEncodings.pop_back();
                   }
                   testObject1->store("params7-c3", *params);
                 }
                 {
                   auto params = testObject1->getParameters("params7");
-                  while (params->mEncodingParameters.size() > 1) {
-                    params->mEncodingParameters.pop_front();
+                  while (params->mEncodings.size() > 1) {
+                    params->mEncodings.pop_front();
                   }
                   testObject1->store("params7-c5", *params);
                 }
@@ -3955,14 +3955,14 @@ void doTestRTPSender()
                   encoding.mRTX = rtx;
                   encoding.mFEC = fec;
 
-                  params->mEncodingParameters.push_back(encoding);
+                  params->mEncodings.push_back(encoding);
 
                   testObject1->store("params8", *params);
                 }
                 {
                   auto params = testObject1->getParameters("params8");
-                  while (params->mEncodingParameters.size() > 1) {
-                    params->mEncodingParameters.pop_front();
+                  while (params->mEncodings.size() > 1) {
+                    params->mEncodings.pop_front();
                   }
                   testObject1->store("params8-c6", *params);
                 }
@@ -4045,7 +4045,7 @@ void doTestRTPSender()
                   encoding.mRTX = rtx;
                   encoding.mFEC = fec;
 
-                  params->mEncodingParameters.push_back(encoding);
+                  params->mEncodings.push_back(encoding);
 
                   IRTPTypes::HeaderExtensionParameters headerParams;
                   headerParams.mID = 1;
@@ -4065,8 +4065,8 @@ void doTestRTPSender()
                 }
                 {
                   auto params = testObject1->getParameters("params9");
-                  while (params->mEncodingParameters.size() > 1) {
-                    params->mEncodingParameters.pop_front();
+                  while (params->mEncodings.size() > 1) {
+                    params->mEncodings.pop_front();
                   }
                   testObject1->store("params9-c7", *params);
                 }

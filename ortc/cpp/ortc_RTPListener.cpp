@@ -797,13 +797,13 @@ namespace ortc
         auto &existingInfo = (*found).second;
 
         size_t indexExisting = 0;
-        for (auto iterExistingEncoding = existingInfo->mFilledParameters.mEncodingParameters.begin(); iterExistingEncoding != existingInfo->mFilledParameters.mEncodingParameters.begin(); ++iterExistingEncoding, ++indexExisting) {
+        for (auto iterExistingEncoding = existingInfo->mFilledParameters.mEncodings.begin(); iterExistingEncoding != existingInfo->mFilledParameters.mEncodings.begin(); ++iterExistingEncoding, ++indexExisting) {
           auto &existinEncodingInfo = (*iterExistingEncoding);
 
           if (existinEncodingInfo.mEncodingID.hasData()) {
             // scope: search replacement for same encoding ID
             {
-              for (auto iterReplacementEncoding = replacementInfo->mFilledParameters.mEncodingParameters.begin(); iterReplacementEncoding != replacementInfo->mFilledParameters.mEncodingParameters.end(); ++iterReplacementEncoding) {
+              for (auto iterReplacementEncoding = replacementInfo->mFilledParameters.mEncodings.begin(); iterReplacementEncoding != replacementInfo->mFilledParameters.mEncodings.end(); ++iterReplacementEncoding) {
                 auto &replacementEncodingInfo = (*iterReplacementEncoding);
                 if (replacementEncodingInfo.mEncodingID == existinEncodingInfo.mEncodingID) {
                   // these encoding are identical
@@ -822,7 +822,7 @@ namespace ortc
           // scope: lookup by index
           {
             size_t indexReplacement = 0;
-            for (auto iterReplacementEncoding = replacementInfo->mFilledParameters.mEncodingParameters.begin(); iterReplacementEncoding != replacementInfo->mFilledParameters.mEncodingParameters.end(); ++iterReplacementEncoding, ++indexReplacement) {
+            for (auto iterReplacementEncoding = replacementInfo->mFilledParameters.mEncodings.begin(); iterReplacementEncoding != replacementInfo->mFilledParameters.mEncodings.end(); ++iterReplacementEncoding, ++indexReplacement) {
               if (indexExisting != indexReplacement) continue;
 
               auto &replacementEncodingInfo = (*iterReplacementEncoding);
@@ -1616,9 +1616,9 @@ namespace ortc
         // encoding parameters if this value was auto-filled in those encoding
         // paramters or set by the application developer.
         {
-          auto iterParm = info->mFilledParameters.mEncodingParameters.begin();
+          auto iterParm = info->mFilledParameters.mEncodings.begin();
 
-          for (; iterParm != info->mFilledParameters.mEncodingParameters.end(); ++iterParm)
+          for (; iterParm != info->mFilledParameters.mEncodings.end(); ++iterParm)
           {
             EncodingParameters &encParams = (*iterParm);
 
@@ -1689,7 +1689,7 @@ namespace ortc
         EncodingParameters *baseEncoding = NULL;
         auto matchEncoding = RTPTypesHelper::pickEncodingToFill(receiverInfo->mKind, rtpPacket.pt(), receiverInfo->mFilledParameters, codecParams, supportedCodec, codecKind, baseEncoding);
 
-        if (receiverInfo->mFilledParameters.mEncodingParameters.size() < 1) {
+        if (receiverInfo->mFilledParameters.mEncodings.size() < 1) {
           if (!codecParams) {
             ZS_LOG_WARNING(Debug, log("unable to find a codec for packet") + ZS_PARAM("packet ssrc", rtpPacket.ssrc()) + ZS_PARAM("payload type", rtpPacket.pt()) + receiverInfo->mFilledParameters.toDebug())
             return false;
@@ -1779,16 +1779,16 @@ namespace ortc
 
       // scope: fill in SSRC in encoding parameters
       {
-        if (outReceiverInfo->mFilledParameters.mEncodingParameters.size() < 1) goto insert_ssrc_into_table;
+        if (outReceiverInfo->mFilledParameters.mEncodings.size() < 1) goto insert_ssrc_into_table;
 
         replacementInfo = make_shared<ReceiverInfo>(*outReceiverInfo);
 
-        auto encodingIter = outReceiverInfo->mFilledParameters.mEncodingParameters.begin();
-        auto replacementIter = replacementInfo->mFilledParameters.mEncodingParameters.begin();
+        auto encodingIter = outReceiverInfo->mFilledParameters.mEncodings.begin();
+        auto replacementIter = replacementInfo->mFilledParameters.mEncodings.begin();
 
-        for (; encodingIter != outReceiverInfo->mFilledParameters.mEncodingParameters.end(); ++encodingIter, ++replacementIter) {
+        for (; encodingIter != outReceiverInfo->mFilledParameters.mEncodings.end(); ++encodingIter, ++replacementIter) {
 
-          ASSERT(replacementIter != replacementInfo->mFilledParameters.mEncodingParameters.end())
+          ASSERT(replacementIter != replacementInfo->mFilledParameters.mEncodings.end())
 
           auto &encoding = (*encodingIter);
           auto &replaceEncoding = (*encodingIter);
@@ -1985,7 +1985,7 @@ namespace ortc
         reattemptDelivery();
       }
 
-      for (auto iter = receiverInfo->mOriginalParameters.mEncodingParameters.begin(); iter != receiverInfo->mOriginalParameters.mEncodingParameters.end(); ++iter) {
+      for (auto iter = receiverInfo->mOriginalParameters.mEncodings.begin(); iter != receiverInfo->mOriginalParameters.mEncodings.end(); ++iter) {
         auto &encodingInfo = (*iter);
 
         String muxID = receiverInfo->mOriginalParameters.mMuxID;
@@ -2038,12 +2038,12 @@ namespace ortc
               // those encoding paramters and not set by the application
               // developer.
               {
-                auto iterParm = info->mFilledParameters.mEncodingParameters.begin();
-                auto iterOriginalParams = info->mOriginalParameters.mEncodingParameters.begin();
+                auto iterParm = info->mFilledParameters.mEncodings.begin();
+                auto iterOriginalParams = info->mOriginalParameters.mEncodings.begin();
 
-                for (; iterParm != info->mFilledParameters.mEncodingParameters.end(); ++iterParm, ++iterOriginalParams)
+                for (; iterParm != info->mFilledParameters.mEncodings.end(); ++iterParm, ++iterOriginalParams)
                 {
-                  ASSERT(iterOriginalParams != info->mOriginalParameters.mEncodingParameters.end())
+                  ASSERT(iterOriginalParams != info->mOriginalParameters.mEncodings.end())
                   EncodingParameters &encParams = (*iterParm);
                   EncodingParameters &originalEncParams = (*iterOriginalParams);
 
@@ -2077,12 +2077,12 @@ namespace ortc
               {
                 ReceiverInfoPtr replacementInfo(make_shared<ReceiverInfo>(*info));
 
-                auto iterParm = replacementInfo->mFilledParameters.mEncodingParameters.begin();
-                auto iterOriginalParams = replacementInfo->mOriginalParameters.mEncodingParameters.begin();
+                auto iterParm = replacementInfo->mFilledParameters.mEncodings.begin();
+                auto iterOriginalParams = replacementInfo->mOriginalParameters.mEncodings.begin();
 
-                for (; iterParm != info->mFilledParameters.mEncodingParameters.end(); ++iterParm, ++iterOriginalParams)
+                for (; iterParm != info->mFilledParameters.mEncodings.end(); ++iterParm, ++iterOriginalParams)
                 {
-                  ASSERT(iterOriginalParams != info->mOriginalParameters.mEncodingParameters.end())
+                  ASSERT(iterOriginalParams != info->mOriginalParameters.mEncodings.end())
                   EncodingParameters &encParams = (*iterParm);
                   EncodingParameters &originalEncParams = (*iterOriginalParams);
 
