@@ -175,7 +175,7 @@ namespace ortc
       FilterPolicies  mGatherPolicy {FilterPolicy_None};
 
       InterfacePolicy() {}
-      InterfacePolicy(const Server &op2) {(*this) = op2;}
+      InterfacePolicy(const InterfacePolicy &op2) {(*this) = op2;}
       InterfacePolicy(ElementPtr elem);
 
       ElementPtr createElement(const char *objectName = "interfacePolicy") const;
