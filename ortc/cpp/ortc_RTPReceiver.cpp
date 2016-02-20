@@ -700,9 +700,8 @@ namespace ortc
     IRTPReceiverTypes::CapabilitiesPtr RTPReceiver::getCapabilities(Optional<Kinds> kind)
     {
       CapabilitiesPtr result(make_shared<Capabilities>());
-	  String kindStr;
-	  if (kind.hasValue()) 
-		kindStr = IMediaStreamTrackTypes::toString(kind.value());
+      String kindStr;
+      if (kind.hasValue()) kindStr = IMediaStreamTrackTypes::toString(kind.value());
 
       for (IRTPTypes::SupportedCodecs index = IRTPTypes::SupportedCodec_First; index <= IRTPTypes::SupportedCodec_Last; index = static_cast<IRTPTypes::SupportedCodecs>(static_cast<std::underlying_type<IRTPTypes::SupportedCodecs>::type>(index) + 1)) {
 
