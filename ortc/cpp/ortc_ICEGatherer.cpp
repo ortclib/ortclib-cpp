@@ -4944,15 +4944,20 @@ namespace ortc
         AutoRecursiveLock lock(*this);
 
         if (hostPort->mBoundUDPSocket == socket) {
+          bool wouldBlock = false;
           try {
-            totalRead = socket->receiveFrom(fromIP, readBuffer, sizeof(readBuffer));
+            totalRead = socket->receiveFrom(fromIP, readBuffer, sizeof(readBuffer), &wouldBlock);
           } catch(Socket::Exceptions::Unspecified &error) {
             ZS_LOG_WARNING(Debug, log("socket read error") + ZS_PARAM("socket", string(socket)) + ZS_PARAM("error", error.errorCode()))
             return false;
           }
 
           if (0 == totalRead) {
-            ZS_LOG_WARNING(Debug, log("failed to read any data from socket") + ZS_PARAM("socket", string(socket)))
+            if (wouldBlock) {
+              ZS_LOG_INSANE(log("socket read would block") + ZS_PARAM("socket", string(socket)))
+            } else {
+              ZS_LOG_WARNING(Debug, log("failed to read any data from socket") + ZS_PARAM("socket", string(socket)))
+            }
             return false;
           }
 
