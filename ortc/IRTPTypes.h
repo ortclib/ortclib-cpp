@@ -215,7 +215,7 @@ namespace ortc
 
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IRTPTypes::VP8CodecCapability
+    #pragma mark IRTPTypes::VP8CodecCapabilityParameters
     #pragma mark
 
     struct VP8CodecCapabilityParameters : public Any
@@ -238,7 +238,7 @@ namespace ortc
 
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IRTPTypes::H264CodecCapability
+    #pragma mark IRTPTypes::H264CodecCapabilityParameters
     #pragma mark
 
     struct H264CodecCapabilityParameters : public Any
