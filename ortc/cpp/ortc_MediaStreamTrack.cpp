@@ -238,24 +238,30 @@ namespace ortc
             if ((*constraintsIter)->mHeight.mRange.hasValue())
               heightRange = (*constraintsIter)->mHeight.mRange;
             FLOAT sizeDistance = calculateSizeDistance(widthRange, heightRange, capabilityCandidatesIter->mCapability);
-            if (sizeDistance == FLT_MAX)
+            if (sizeDistance == FLT_MAX) {
+              capabilityCandidatesIter++;
               continue;
+            }
             ConstrainDoubleRange frameRateRange;
             if ((*constraintsIter)->mFrameRate.mValue.hasValue())
               frameRateRange.mExact = (*constraintsIter)->mFrameRate.mValue.value();
             if ((*constraintsIter)->mFrameRate.mRange.hasValue())
               frameRateRange = (*constraintsIter)->mFrameRate.mRange;
             FLOAT frameRateDistance = calculateFrameRateDistance(frameRateRange, capabilityCandidatesIter->mCapability);
-            if (frameRateDistance == FLT_MAX)
+            if (frameRateDistance == FLT_MAX) {
+              capabilityCandidatesIter++;
               continue;
+            }
             ConstrainDoubleRange aspectRatioRange;
             if ((*constraintsIter)->mAspectRatio.mValue.hasValue())
               aspectRatioRange.mExact = (*constraintsIter)->mAspectRatio.mValue.value();
             if ((*constraintsIter)->mAspectRatio.mRange.hasValue())
               aspectRatioRange = (*constraintsIter)->mAspectRatio.mRange;
             FLOAT aspectRatioDistance = calculateAspectRatioDistance(aspectRatioRange, capabilityCandidatesIter->mCapability);
-            if (aspectRatioDistance == FLT_MAX)
+            if (aspectRatioDistance == FLT_MAX) {
+              capabilityCandidatesIter++;
               continue;
+            }
             FLOAT formatDistance = calculateFormatDistance(capabilityCandidatesIter->mCapability);
             FLOAT totalDistance = 200.0F * sizeDistance + 20.0F * frameRateDistance + 10.0F * aspectRatioDistance + formatDistance;
             VideoCaptureCapabilityWithDistance capabilityWithDistance;
