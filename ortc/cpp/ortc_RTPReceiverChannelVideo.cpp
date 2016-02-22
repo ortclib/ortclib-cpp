@@ -354,7 +354,8 @@ namespace ortc
         AutoRecursiveLock lock(*this);
       }
       webrtc::PacketTime time;
-      mReceiveStream->DeliverRtp(packet->buffer()->data(), packet->buffer()->size(), time);
+      if (mReceiveStream)
+        mReceiveStream->DeliverRtp(packet->buffer()->data(), packet->buffer()->size(), time);
       return true;
     }
 
@@ -365,7 +366,8 @@ namespace ortc
       {
         AutoRecursiveLock lock(*this);
       }
-      mReceiveStream->DeliverRtcp(packet->buffer()->data(), packet->buffer()->size());
+      if (mReceiveStream)
+        mReceiveStream->DeliverRtcp(packet->buffer()->data(), packet->buffer()->size());
       return true;
     }
     

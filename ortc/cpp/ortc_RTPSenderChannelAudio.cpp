@@ -308,7 +308,11 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool RTPSenderChannelAudio::handlePacket(RTCPPacketPtr packet)
     {
-      mSendStream->DeliverRtcp(packet->buffer()->data(), packet->buffer()->size());
+      {
+        AutoRecursiveLock lock(*this);
+      }
+      if (mSendStream)
+        mSendStream->DeliverRtcp(packet->buffer()->data(), packet->buffer()->size());
       return true;
     }
 

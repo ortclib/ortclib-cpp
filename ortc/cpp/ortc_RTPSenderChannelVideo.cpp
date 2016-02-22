@@ -348,7 +348,8 @@ namespace ortc
       {
         AutoRecursiveLock lock(*this);
       }
-      mSendStream->DeliverRtcp(packet->buffer()->data(), packet->buffer()->size());
+      if (mSendStream)
+        mSendStream->DeliverRtcp(packet->buffer()->data(), packet->buffer()->size());
       return true;
     }
 

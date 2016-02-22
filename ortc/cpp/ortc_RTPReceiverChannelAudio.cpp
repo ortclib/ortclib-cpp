@@ -355,8 +355,10 @@ namespace ortc
       }
       webrtc::PacketTime time(packet->timestamp(), 0);
       //mReceiveStream->DeliverRtp(packet->buffer()->data(), packet->buffer()->size(), time);
-      webrtc::VoENetwork::GetInterface(mVoiceEngine.get())->ReceivedRTPPacket(
-        mChannel, packet->buffer()->data(), packet->buffer()->size(), time);
+      if (mVoiceEngine) {
+        webrtc::VoENetwork::GetInterface(mVoiceEngine.get())->ReceivedRTPPacket(
+          mChannel, packet->buffer()->data(), packet->buffer()->size(), time);
+      }
       return true;
     }
 
@@ -368,8 +370,10 @@ namespace ortc
         AutoRecursiveLock lock(*this);
       }
       //mReceiveStream->DeliverRtcp(packet->buffer()->data(), packet->buffer()->size());
-      webrtc::VoENetwork::GetInterface(mVoiceEngine.get())->ReceivedRTCPPacket(
-        mChannel, packet->buffer()->data(), packet->buffer()->size());
+      if (mVoiceEngine) {
+        webrtc::VoENetwork::GetInterface(mVoiceEngine.get())->ReceivedRTCPPacket(
+          mChannel, packet->buffer()->data(), packet->buffer()->size());
+      }
       return true;
     }
     
