@@ -1444,7 +1444,7 @@ namespace ortc
       auto tick = zsLib::now();
 
       while (mBufferedRTCPPackets.size() > 0) {
-        auto &info = mBufferedRTPPackets.front();
+        auto &info = mBufferedRTCPPackets.front();
         auto &packetTime = info.first;
         auto &packet = info.second;
         (void)packet;
