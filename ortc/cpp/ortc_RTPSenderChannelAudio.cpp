@@ -175,7 +175,6 @@ namespace ortc
         auto supportedCodec = IRTPTypes::toSupportedCodec(codecIter->mName);
         if (IRTPTypes::SupportedCodec_Opus == supportedCodec) {
           codec = getAudioCodec(codecIter->mName);
-          codec.pltype = 111;
           webrtc::VoECodec::GetInterface(mVoiceEngine.get())->SetSendCodec(mChannel, codec);
           break;
         } else if (IRTPTypes::SupportedCodec_Isac == supportedCodec) {

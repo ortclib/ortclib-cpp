@@ -792,7 +792,7 @@ namespace ortc
             break;
           }
           case IRTPTypes::SupportedCodec_Opus:    {
-            codec.mPreferredPayloadType = 111;
+            codec.mPreferredPayloadType = 120;
             codec.mNumChannels = 2;
             codec.mClockRate = 48000;
             break;
