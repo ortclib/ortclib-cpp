@@ -1779,9 +1779,9 @@ namespace ortc
 
       // scope: fill in SSRC in encoding parameters
       {
-        if (outReceiverInfo->mFilledParameters.mEncodings.size() < 1) goto insert_ssrc_into_table;
-
         replacementInfo = make_shared<ReceiverInfo>(*outReceiverInfo);
+
+        if (outReceiverInfo->mFilledParameters.mEncodings.size() < 1) goto insert_ssrc_into_table;
 
         auto encodingIter = outReceiverInfo->mFilledParameters.mEncodings.begin();
         auto replacementIter = replacementInfo->mFilledParameters.mEncodings.begin();
