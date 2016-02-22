@@ -5448,7 +5448,7 @@ namespace ortc
     found_transport:
       {
         ZS_LOG_DEBUG(log("forwarding stun packet to ice transport") + ZS_PARAM("transport", transport->getID()) + ZS_PARAM("from ip", remoteIP.string()) + stunPacket->toDebug())
-        EventWriteOrtcIceGathererDeliverIceTransportIncomingStunPacket(__func__, mID, transport->getID(), route->mID, routerRoute->mID, false);
+        EventWriteOrtcIceGathererDeliverIceTransportIncomingStunPacket(__func__, mID, transport->getID(), ((bool)route) ? route->mID : 0, routerRoute->mID, false);
         stunPacket->trace(__func__);
         transport->notifyPacket(routerRoute, stunPacket);
         return SecureByteBlockPtr();
@@ -5463,10 +5463,9 @@ namespace ortc
         response->mCredentialMechanism = STUNPacket::CredentialMechanisms_ShortTerm;
         fix(response);
 
-        EventWriteOrtcIceGathererErrorIceTransportIncomingStunPacket(__func__, mID, transport->getID(), route->mID, routerRoute->mID);
+        EventWriteOrtcIceGathererErrorIceTransportIncomingStunPacket(__func__, mID, transport->getID(), ((bool)route) ? route->mID : 0, routerRoute->mID);
 
         ZS_LOG_ERROR(Debug, log("candidate password integrity failed") + ZS_PARAM("request", stunPacket->toDebug()) + ZS_PARAM("reply", response->toDebug()))
-
         return response->packetize(STUNPacket::RFC_5245_ICE);
       }
 
