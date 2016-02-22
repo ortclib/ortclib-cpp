@@ -237,10 +237,13 @@ namespace ortc
     {
       if (isNoop()) return;
 
-      webrtc::VoENetwork::GetInterface(mVoiceEngine.get())->DeRegisterExternalTransport(mChannel);
-      webrtc::VoEBase::GetInterface(mVoiceEngine.get())->StopSend(0);
+      if (mVoiceEngine) {
+        webrtc::VoENetwork::GetInterface(mVoiceEngine.get())->DeRegisterExternalTransport(mChannel);
+        webrtc::VoEBase::GetInterface(mVoiceEngine.get())->StopSend(0);
+      }
 
-      mTrack->stop();
+      if (mTrack)
+        mTrack->stop();
 
       ZS_LOG_DETAIL(log("destroyed"))
       mThisWeak.reset();

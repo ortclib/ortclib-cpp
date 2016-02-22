@@ -210,8 +210,7 @@ namespace ortc
           mAudioDeviceModule->SetRecordingDevice(webrtc::AudioDeviceModule::kDefaultCommunicationDevice);
           mAudioDeviceModule->InitRecording();
           mAudioDeviceModule->StartRecording();
-        }
-        else {
+        } else {
           mAudioDeviceModule->SetPlayoutDevice(webrtc::AudioDeviceModule::kDefaultCommunicationDevice);
           mAudioDeviceModule->InitPlayout();
           mAudioDeviceModule->StartPlayout();

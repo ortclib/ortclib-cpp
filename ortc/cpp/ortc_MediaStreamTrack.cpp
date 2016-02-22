@@ -308,15 +308,6 @@ namespace ortc
         mAudioDeviceModule->AddRef();
         //mAudioDeviceModule->RegisterAudioCallback(mTransport.get());
         mAudioDeviceModule->Init();
-        if (!mRemote) {
-          mAudioDeviceModule->SetRecordingDevice(webrtc::AudioDeviceModule::kDefaultCommunicationDevice);
-          mAudioDeviceModule->InitRecording();
-          mAudioDeviceModule->StartRecording();
-        } else {
-          mAudioDeviceModule->SetPlayoutDevice(webrtc::AudioDeviceModule::kDefaultCommunicationDevice);
-          mAudioDeviceModule->InitPlayout();
-          mAudioDeviceModule->StartPlayout();
-        }
       }
     }
 
@@ -713,7 +704,17 @@ namespace ortc
 
     void MediaStreamTrack::start()
     {
-
+      AutoRecursiveLock lock(*this);
+      if (!mRemote) {
+        mAudioDeviceModule->SetRecordingDevice(webrtc::AudioDeviceModule::kDefaultCommunicationDevice);
+        mAudioDeviceModule->InitRecording();
+        mAudioDeviceModule->StartRecording();
+      }
+      else {
+        mAudioDeviceModule->SetPlayoutDevice(webrtc::AudioDeviceModule::kDefaultCommunicationDevice);
+        mAudioDeviceModule->InitPlayout();
+        mAudioDeviceModule->StartPlayout();
+      }
     }
 
     //-------------------------------------------------------------------------

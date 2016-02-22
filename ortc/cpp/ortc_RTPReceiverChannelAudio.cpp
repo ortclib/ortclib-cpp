@@ -284,11 +284,14 @@ namespace ortc
     {
       if (isNoop()) return;
 
-      webrtc::VoEBase::GetInterface(mVoiceEngine.get())->StopPlayout(mChannel);
-      webrtc::VoEBase::GetInterface(mVoiceEngine.get())->StopReceive(mChannel);
-      webrtc::VoENetwork::GetInterface(mVoiceEngine.get())->DeRegisterExternalTransport(mChannel);
+      if (mVoiceEngine) {
+        webrtc::VoEBase::GetInterface(mVoiceEngine.get())->StopPlayout(mChannel);
+        webrtc::VoEBase::GetInterface(mVoiceEngine.get())->StopReceive(mChannel);
+        webrtc::VoENetwork::GetInterface(mVoiceEngine.get())->DeRegisterExternalTransport(mChannel);
+      }
 
-      mTrack->stop();
+      if (mTrack)
+        mTrack->stop();
 
       mModuleProcessThread->Stop();
 

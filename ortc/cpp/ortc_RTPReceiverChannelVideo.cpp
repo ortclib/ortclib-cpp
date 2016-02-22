@@ -293,7 +293,8 @@ namespace ortc
       ZS_LOG_DETAIL(log("destroyed"))
       mThisWeak.reset();
 
-      mReceiveStream->Stop();
+      if (mReceiveStream)
+        mReceiveStream->Stop();
 
       mModuleProcessThread->Stop();
 
