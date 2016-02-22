@@ -5001,7 +5001,12 @@ namespace ortc
             IPAddress localAddress;
 
             try {
-              tcpPort->mSocket = socket->accept(tcpPort->mRemoteIP);
+              bool wouldBlock = false;
+              tcpPort->mSocket = socket->accept(tcpPort->mRemoteIP, &wouldBlock);
+              if (wouldBlock) {
+                ZS_LOG_INSANE(log("no more sockets to accept") + tcpPort->toDebug())
+                return false;
+              }
               localAddress = socket->getLocalAddress();
             } catch(Socket::Exceptions::Unspecified &error) {
               ZS_LOG_WARNING(Detail, log("failed to accept incoming TCP connection") + ZS_PARAM("error", error.errorCode()))
