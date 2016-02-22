@@ -3929,7 +3929,11 @@ namespace ortc
 
       size_t possibleTMMBNs = remaining / (sizeof(DWORD)*2);
 
-      ASSERT(0 != possibleTMMBNs)
+      if (possibleTMMBNs < 1) {
+        report->mFirstTMMBN = NULL;
+        report->mTMMBNCount = 0;
+        return true;
+      }
 
       report->mFirstTMMBN = new (allocateBuffer(alignedSize(sizeof(TMMBN))*possibleTMMBNs)) TMMBN[possibleTMMBNs];
 
