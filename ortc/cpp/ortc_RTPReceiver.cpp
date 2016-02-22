@@ -443,6 +443,7 @@ namespace ortc
       ORTC_THROW_INVALID_PARAMETERS_IF(!mListener)
 
       UseSecureTransport::getReceivingTransport(transport, rtcpTransport, mReceiveRTPOverTransport, mReceiveRTCPOverTransport, mRTPTransport, mRTCPTransport);
+      mSendRTCPOverTransport = mReceiveRTCPOverTransport;
 
       EventWriteOrtcRtpReceiverCreate(
                                       __func__,
@@ -683,6 +684,7 @@ namespace ortc
       }
 
       UseSecureTransport::getReceivingTransport(transport, rtcpTransport, mReceiveRTPOverTransport, mReceiveRTCPOverTransport, mRTPTransport, mRTCPTransport);
+      mSendRTCPOverTransport = mReceiveRTCPOverTransport;
 
       if (mRTCPTransportSubscription) {
         mRTCPTransportSubscription->cancel();
