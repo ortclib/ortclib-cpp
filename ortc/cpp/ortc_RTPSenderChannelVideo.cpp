@@ -254,6 +254,9 @@ namespace ortc
         }
         encodingParamIter++;
       }
+
+      if (config.rtp.ssrcs.size() == 0)
+        config.rtp.ssrcs.push_back(1000);
       
       config.rtp.c_name = mParameters->mRTCP.mCName;
       config.rtp.nack.rtp_history_ms = 1000;
