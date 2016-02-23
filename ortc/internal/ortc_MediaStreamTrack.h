@@ -742,6 +742,7 @@ namespace ortc
 
       Kinds mKind;
       bool mRemote;
+      String mDeviceID;
 
       UseSenderWeakPtr mSender;
       UseSenderChannelWeakPtr mSenderChannel;

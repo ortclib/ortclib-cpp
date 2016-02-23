@@ -163,8 +163,8 @@ namespace ortc
       mTransport = Transport::create(mThisWeak.lock());
 
       if (mKind == Kind_Video && !mRemote) {
-        String videoDeviceID = mConstraints->mAdvanced.front()->mDeviceID.mValue.value().mValue.value();
-        mVideoCaptureModule = webrtc::VideoCaptureFactory::Create(0, videoDeviceID.c_str());
+        mDeviceID = mConstraints->mAdvanced.front()->mDeviceID.mValue.value().mValue.value();
+        mVideoCaptureModule = webrtc::VideoCaptureFactory::Create(0, mDeviceID.c_str());
         if (!mVideoCaptureModule) {
           return;
         }
@@ -179,10 +179,10 @@ namespace ortc
         }
         
         std::list<VideoCaptureCapabilityWithDistance> capabilityCandidates;
-        int32_t numCapabilities = info->NumberOfCapabilities(videoDeviceID.c_str());
+        int32_t numCapabilities = info->NumberOfCapabilities(mDeviceID.c_str());
         for (INT i = 0; i < numCapabilities; ++i) {
           webrtc::VideoCaptureCapability capability;
-          if (info->GetCapability(videoDeviceID.c_str(), i, capability) == -1)
+          if (info->GetCapability(mDeviceID.c_str(), i, capability) == -1)
             continue;
           ConstrainLongRange widthRange;
           ConstrainLongRange heightRange;
@@ -307,6 +307,8 @@ namespace ortc
       } else if (mKind == Kind_Video && mRemote) {
 
       } else if (mKind == Kind_Audio) {
+        if (!mRemote)
+          mDeviceID = mConstraints->mAdvanced.front()->mDeviceID.mValue.value().mValue.value();
         mAudioDeviceModule = webrtc::AudioDeviceModuleImpl::Create(1, webrtc::AudioDeviceModule::kWindowsWasapiAudio);
         if (!mAudioDeviceModule) {
           return;
@@ -501,9 +503,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     String MediaStreamTrack::deviceID() const
     {
-#define TODO 1
-#define TODO 2
-      return String();
+      AutoRecursiveLock lock(*this);
+
+      return mDeviceID;
     }
 
     //-------------------------------------------------------------------------
@@ -579,6 +581,8 @@ namespace ortc
     //-------------------------------------------------------------------------
     void MediaStreamTrack::stop()
     {
+      AutoRecursiveLock lock(*this);
+
       if (mVideoCaptureModule) {
         mVideoCaptureModule->StopCapture();
         mVideoCaptureModule->DeRegisterCaptureDataCallback();
@@ -711,15 +715,16 @@ namespace ortc
     void MediaStreamTrack::start()
     {
       AutoRecursiveLock lock(*this);
-      if (!mRemote) {
-        mAudioDeviceModule->SetRecordingDevice(webrtc::AudioDeviceModule::kDefaultCommunicationDevice);
-        mAudioDeviceModule->InitRecording();
-        mAudioDeviceModule->StartRecording();
-      }
-      else {
-        mAudioDeviceModule->SetPlayoutDevice(webrtc::AudioDeviceModule::kDefaultCommunicationDevice);
-        mAudioDeviceModule->InitPlayout();
-        mAudioDeviceModule->StartPlayout();
+      if (mAudioDeviceModule) {
+        if (!mRemote) {
+          mAudioDeviceModule->SetRecordingDevice(webrtc::AudioDeviceModule::kDefaultCommunicationDevice);
+          mAudioDeviceModule->InitRecording();
+          mAudioDeviceModule->StartRecording();
+        } else {
+          mAudioDeviceModule->SetPlayoutDevice(webrtc::AudioDeviceModule::kDefaultCommunicationDevice);
+          mAudioDeviceModule->InitPlayout();
+          mAudioDeviceModule->StartPlayout();
+        }
       }
     }
 
