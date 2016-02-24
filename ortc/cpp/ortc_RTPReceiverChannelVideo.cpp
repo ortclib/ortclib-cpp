@@ -263,8 +263,12 @@ namespace ortc
           break;
         }
       }
+      if (config.rtp.remote_ssrc == 0)
+        config.rtp.remote_ssrc = 1000;
 
       config.rtp.local_ssrc = mParameters->mRTCP.mSSRC;
+      if (config.rtp.local_ssrc == 0)
+        config.rtp.local_ssrc = 1010;
       if (mParameters->mRTCP.mReducedSize)
         config.rtp.rtcp_mode = webrtc::RtcpMode::kReducedSize;
       config.rtp.remb = true;
