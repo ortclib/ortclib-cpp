@@ -1690,10 +1690,7 @@ namespace ortc
         auto matchEncoding = RTPTypesHelper::pickEncodingToFill(receiverInfo->mKind, rtpPacket.pt(), receiverInfo->mFilledParameters, codecParams, supportedCodec, codecKind, baseEncoding);
 
         if (receiverInfo->mFilledParameters.mEncodings.size() < 1) {
-          if (!codecParams) {
-            ZS_LOG_WARNING(Debug, log("unable to find a codec for packet") + ZS_PARAM("packet ssrc", rtpPacket.ssrc()) + ZS_PARAM("payload type", rtpPacket.pt()) + receiverInfo->mFilledParameters.toDebug())
-            return false;
-          }
+          if (!codecParams) continue;
 
           // special case where this is a "latch all" for the codec
           outReceiverInfo = receiverInfo;
