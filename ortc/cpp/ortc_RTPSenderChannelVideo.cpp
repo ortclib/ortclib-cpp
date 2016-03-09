@@ -254,9 +254,24 @@ namespace ortc
         }
         encodingParamIter++;
       }
-
       if (config.rtp.ssrcs.size() == 0)
         config.rtp.ssrcs.push_back(1000);
+
+      IRTPTypes::HeaderExtensionParametersList::iterator headerExtensionIter = mParameters->mHeaderExtensions.begin();
+      while (headerExtensionIter != mParameters->mHeaderExtensions.end()) {
+        IRTPTypes::HeaderExtensionURIs headerExtensionURI = IRTPTypes::toHeaderExtensionURI(headerExtensionIter->mURI);
+        switch (headerExtensionURI) {
+        case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_TransmissionTimeOffsets:
+        case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_AbsoluteSendTime:
+        case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_3gpp_VideoOrientation:
+        case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_TransportSequenceNumber:
+          config.rtp.extensions.push_back(webrtc::RtpExtension(headerExtensionIter->mURI, headerExtensionIter->mID));
+          break;
+        default:
+          break;
+        }
+        headerExtensionIter++;
+      }
       
       config.rtp.c_name = mParameters->mRTCP.mCName;
       config.rtp.nack.rtp_history_ms = 1000;

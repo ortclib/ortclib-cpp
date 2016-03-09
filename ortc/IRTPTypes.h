@@ -811,7 +811,14 @@ namespace ortc
       HeaderExtensionURI_3gpp_VideoOrientation,                         //  urn:3gpp:video-orientation
       HeaderExtensionURI_3gpp_VideoOrientation6,                        //  urn:3gpp:video-orientation:6
 
-      HeaderExtensionURI_Last = HeaderExtensionURI_3gpp_VideoOrientation6
+      HeaderExtensionURI_TransmissionTimeOffsets,                       // https://tools.ietf.org/html/rfc5450
+                                                                        // urn:ietf:params:rtp-hdrext:toffset
+      
+      HeaderExtensionURI_AbsoluteSendTime,                              // http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time
+
+      HeaderExtensionURI_TransportSequenceNumber,                       // http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions
+
+      HeaderExtensionURI_Last = HeaderExtensionURI_TransportSequenceNumber
     };
 
     static const char *toString(HeaderExtensionURIs extension);         // converts header enum to URN format

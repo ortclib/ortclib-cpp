@@ -265,10 +265,26 @@ namespace ortc
       }
       if (config.rtp.remote_ssrc == 0)
         config.rtp.remote_ssrc = 1000;
-
       config.rtp.local_ssrc = mParameters->mRTCP.mSSRC;
       if (config.rtp.local_ssrc == 0)
         config.rtp.local_ssrc = 1010;
+
+      IRTPTypes::HeaderExtensionParametersList::iterator headerExtensionIter = mParameters->mHeaderExtensions.begin();
+      while (headerExtensionIter != mParameters->mHeaderExtensions.end()) {
+        IRTPTypes::HeaderExtensionURIs headerExtensionURI = IRTPTypes::toHeaderExtensionURI(headerExtensionIter->mURI);
+        switch (headerExtensionURI) {
+        case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_TransmissionTimeOffsets:
+        case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_AbsoluteSendTime:
+        case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_3gpp_VideoOrientation:
+        case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_TransportSequenceNumber:
+          config.rtp.extensions.push_back(webrtc::RtpExtension(headerExtensionIter->mURI, headerExtensionIter->mID));
+          break;
+        default:
+          break;
+        }
+        headerExtensionIter++;
+      }
+
       if (mParameters->mRTCP.mReducedSize)
         config.rtp.rtcp_mode = webrtc::RtcpMode::kReducedSize;
       config.rtp.remb = true;

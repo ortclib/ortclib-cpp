@@ -977,13 +977,24 @@ namespace ortc
             ext.mKind = "video";
             break;
           }
+          case HeaderExtensionURI_TransmissionTimeOffsets: {
+            ext.mKind = "video";
+            break;
+          }
+          case HeaderExtensionURI_AbsoluteSendTime: {
+            break;
+          }
+          case HeaderExtensionURI_TransportSequenceNumber: {
+            ext.mKind = "video";
+            break;
+          }
         }
 
-		if (ext.mKind.hasData()) {
-			if (ext.mKind != kindStr) {
-				add = false;
-			}
-		}
+        if (ext.mKind.hasData()) {
+          if (ext.mKind != kindStr) {
+            add = false;
+          }
+        }
 
         if (add) {
           EventWriteOrtcRtpReceiverReportHeaderExtension(__func__, ext.mKind, ext.mURI, ext.mPreferredID, ext.mPreferredEncrypt);

@@ -249,20 +249,29 @@ namespace ortc
         encodingParamIter++;
       }
 
+      IRTPTypes::HeaderExtensionParametersList::iterator headerExtensionIter = mParameters->mHeaderExtensions.begin();
+      while (headerExtensionIter != mParameters->mHeaderExtensions.end()) {
+        IRTPTypes::HeaderExtensionURIs headerExtensionURI = IRTPTypes::toHeaderExtensionURI(headerExtensionIter->mURI);
+        switch (headerExtensionURI) {
+        case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_ClienttoMixerAudioLevelIndication:
+          webrtc::VoERTP_RTCP::GetInterface(mVoiceEngine.get())->SetReceiveAudioLevelIndicationStatus(mChannel, true, headerExtensionIter->mID);
+          config.rtp.extensions.push_back(webrtc::RtpExtension(headerExtensionIter->mURI, headerExtensionIter->mID));
+          break;
+        case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_AbsoluteSendTime:
+          webrtc::VoERTP_RTCP::GetInterface(mVoiceEngine.get())->SetReceiveAbsoluteSenderTimeStatus(mChannel, true, headerExtensionIter->mID);
+          config.rtp.extensions.push_back(webrtc::RtpExtension(headerExtensionIter->mURI, headerExtensionIter->mID));
+          break;
+        default:
+          break;
+        }
+        headerExtensionIter++;
+      }
+
       webrtc::VoERTP_RTCP::GetInterface(mVoiceEngine.get())->SetLocalSSRC(mChannel, mParameters->mRTCP.mSSRC);
       config.rtp.local_ssrc = mParameters->mRTCP.mSSRC;
-      config.rtp.extensions.push_back(webrtc::RtpExtension(webrtc::RtpExtension::kAbsSendTime, 1));
       config.receive_transport = mTransport.get();
       config.rtcp_send_transport = mTransport.get();
       config.combined_audio_video_bwe = true;
-
-// TODO: Check whether the registration of all available codecs is needed
-//      int ncodecs = webrtc::VoECodec::GetInterface(mVoiceEngine.get())->NumOfCodecs();
-//      for (int i = 0; i < ncodecs; ++i) {
-//        webrtc::CodecInst codec;
-//        webrtc::VoECodec::GetInterface(mVoiceEngine.get())->GetCodec(i, codec);
-//        webrtc::VoECodec::GetInterface(mVoiceEngine.get())->SetRecPayloadType(mChannel, codec);
-//      }
 
       mReceiveStream = rtc::scoped_ptr<webrtc::AudioReceiveStream>(
           new webrtc::internal::AudioReceiveStream(

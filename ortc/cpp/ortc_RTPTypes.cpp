@@ -4398,6 +4398,9 @@ namespace ortc
       case HeaderExtensionURI_RID:                                return "urn:ietf:params:rtp-hdrext:rid";
       case HeaderExtensionURI_3gpp_VideoOrientation:              return "urn:3gpp:video-orientation";
       case HeaderExtensionURI_3gpp_VideoOrientation6:             return "urn:3gpp:video-orientation:6";
+      case HeaderExtensionURI_TransmissionTimeOffsets:            return "urn:ietf:params:rtp-hdrext:toffset";
+      case HeaderExtensionURI_AbsoluteSendTime:                   return "http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time";
+      case HeaderExtensionURI_TransportSequenceNumber:            return "http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions";
     }
 
     return "unknown";

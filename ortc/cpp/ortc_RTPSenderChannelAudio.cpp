@@ -214,10 +214,26 @@ namespace ortc
         encodingParamIter++;
       }
 
+      IRTPTypes::HeaderExtensionParametersList::iterator headerExtensionIter = mParameters->mHeaderExtensions.begin();
+      while (headerExtensionIter != mParameters->mHeaderExtensions.end()) {
+        IRTPTypes::HeaderExtensionURIs headerExtensionURI = IRTPTypes::toHeaderExtensionURI(headerExtensionIter->mURI);
+        switch (headerExtensionURI) {
+        case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_ClienttoMixerAudioLevelIndication:
+          webrtc::VoERTP_RTCP::GetInterface(mVoiceEngine.get())->SetSendAudioLevelIndicationStatus(mChannel, true, headerExtensionIter->mID);
+          config.rtp.extensions.push_back(webrtc::RtpExtension(headerExtensionIter->mURI, headerExtensionIter->mID));
+          break;
+        case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_AbsoluteSendTime:
+          webrtc::VoERTP_RTCP::GetInterface(mVoiceEngine.get())->SetSendAbsoluteSenderTimeStatus(mChannel, true, headerExtensionIter->mID);
+          config.rtp.extensions.push_back(webrtc::RtpExtension(headerExtensionIter->mURI, headerExtensionIter->mID));
+          break;
+        default:
+          break;
+        }
+        headerExtensionIter++;
+      }
+
       webrtc::VoERTP_RTCP::GetInterface(mVoiceEngine.get())->SetRTCPStatus(mChannel, true);
       webrtc::VoERTP_RTCP::GetInterface(mVoiceEngine.get())->SetRTCP_CNAME(mChannel, mParameters->mRTCP.mCName);
-      webrtc::VoERTP_RTCP::GetInterface(mVoiceEngine.get())->SetSendAbsoluteSenderTimeStatus(mChannel, true, 1);
-
 
       mSendStream = rtc::scoped_ptr<webrtc::AudioSendStream>(
           new webrtc::internal::AudioSendStream(
