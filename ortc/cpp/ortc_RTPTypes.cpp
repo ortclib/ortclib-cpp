@@ -4472,6 +4472,7 @@ namespace ortc
       case KnownFeedbackType_TRR_INT:               return "trr-int";
       case KnownFeedbackType_3gpp_roi_arbitrary:    return "3gpp-roi-arbitrary";
       case KnownFeedbackType_3gpp_roi_predefined:   return "3gpp-roi-predefined";
+      case KnownFeedbackType_REMB:                  return "goog-remb";
     }
 
     return "unknown";
@@ -4515,7 +4516,6 @@ namespace ortc
       case KnownFeedbackParameter_TSTR:       return "tstr";
       case KnownFeedbackParameter_VBCM:       return "vbcm";
       case KnownFeedbackParameter_PAUSE:      return "pause";
-      case KnownFeedbackParameter_REMB:       return "goog-remb";
     }
 
     return "unknown";
@@ -4555,7 +4555,6 @@ namespace ortc
         result.insert(KnownFeedbackType_NACK);
         break;
       }
-      case KnownFeedbackParameter_REMB:
       case KnownFeedbackParameter_FIR:
       case KnownFeedbackParameter_TMMBR:
       case KnownFeedbackParameter_TSTR:

@@ -243,6 +243,15 @@ namespace ortc
           encoderConfig.encoder_specific_settings = &videoCodec;
           break;
         }
+        IRTPTypes::RTCPFeedbackList::iterator rtcpFeedbackIter = codecIter->mRTCPFeedback.begin();
+        while (rtcpFeedbackIter != codecIter->mRTCPFeedback.end()) {
+          IRTPTypes::KnownFeedbackTypes feedbackType = IRTPTypes::toKnownFeedbackType(rtcpFeedbackIter->mType);
+          IRTPTypes::KnownFeedbackParameters feedbackParameter = IRTPTypes::toKnownFeedbackParameter(rtcpFeedbackIter->mParameter);
+          if (IRTPTypes::KnownFeedbackType_NACK == feedbackType && IRTPTypes::KnownFeedbackParameter_Unknown == feedbackParameter) {
+            config.rtp.nack.rtp_history_ms = 1000;
+          }
+          rtcpFeedbackIter++;
+        }
         codecIter++;
       }
 
@@ -274,7 +283,6 @@ namespace ortc
       }
       
       config.rtp.c_name = mParameters->mRTCP.mCName;
-      config.rtp.nack.rtp_history_ms = 1000;
 
       mSendStream = rtc::scoped_ptr<webrtc::VideoSendStream>(
         new webrtc::internal::VideoSendStream(

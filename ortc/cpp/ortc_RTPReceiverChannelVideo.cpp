@@ -253,6 +253,17 @@ namespace ortc
           decoder.payload_type = codecIter->mPayloadType;
           break;
         }
+        IRTPTypes::RTCPFeedbackList::iterator rtcpFeedbackIter = codecIter->mRTCPFeedback.begin();
+        while (rtcpFeedbackIter != codecIter->mRTCPFeedback.end()) {
+          IRTPTypes::KnownFeedbackTypes feedbackType = IRTPTypes::toKnownFeedbackType(rtcpFeedbackIter->mType);
+          IRTPTypes::KnownFeedbackParameters feedbackParameter = IRTPTypes::toKnownFeedbackParameter(rtcpFeedbackIter->mParameter);
+          if (IRTPTypes::KnownFeedbackType_NACK == feedbackType && IRTPTypes::KnownFeedbackParameter_Unknown == feedbackParameter) {
+            config.rtp.nack.rtp_history_ms = 1000;
+          } else if (IRTPTypes::KnownFeedbackType_REMB == feedbackType && IRTPTypes::KnownFeedbackParameter_Unknown == feedbackParameter) {
+            config.rtp.remb = true;
+          }
+          rtcpFeedbackIter++;
+        }
         codecIter++;
       }
 
@@ -287,8 +298,6 @@ namespace ortc
 
       if (mParameters->mRTCP.mReducedSize)
         config.rtp.rtcp_mode = webrtc::RtcpMode::kReducedSize;
-      config.rtp.remb = true;
-      config.rtp.nack.rtp_history_ms = 1000;
       config.decoders.push_back(decoder);
       config.renderer = &mReceiverVideoRenderer;
 

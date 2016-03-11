@@ -234,6 +234,15 @@ namespace ortc
           webrtc::VoECodec::GetInterface(mVoiceEngine.get())->SetRecPayloadType(mChannel, codec);
           break;
         }
+        IRTPTypes::RTCPFeedbackList::iterator rtcpFeedbackIter = codecIter->mRTCPFeedback.begin();
+        while (rtcpFeedbackIter != codecIter->mRTCPFeedback.end()) {
+          IRTPTypes::KnownFeedbackTypes feedbackType = IRTPTypes::toKnownFeedbackType(rtcpFeedbackIter->mType);
+          IRTPTypes::KnownFeedbackParameters feedbackParameter = IRTPTypes::toKnownFeedbackParameter(rtcpFeedbackIter->mParameter);
+          if (IRTPTypes::KnownFeedbackType_NACK == feedbackType && IRTPTypes::KnownFeedbackParameter_Unknown == feedbackParameter) {
+            webrtc::VoERTP_RTCP::GetInterface(mVoiceEngine.get())->SetNACKStatus(mChannel, true, 250);
+          }
+          rtcpFeedbackIter++;
+        }
         codecIter++;
       }
 

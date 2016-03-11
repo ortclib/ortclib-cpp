@@ -866,7 +866,10 @@ namespace ortc
       KnownFeedbackType_3gpp_roi_arbitrary,                 // 3gpp-roi-arbitrary
       KnownFeedbackType_3gpp_roi_predefined,                // 3gpp-roi-predefined
 
-      KnownFeedbackType_Last = KnownFeedbackType_3gpp_roi_predefined,
+      // https://tools.ietf.org/html/draft-alvestrand-rmcat-remb-03
+      KnownFeedbackType_REMB,                               // goog-remb
+
+      KnownFeedbackType_Last = KnownFeedbackType_REMB,
     };
 
     typedef std::set<KnownFeedbackTypes> KnownFeedbackTypesSet;
@@ -894,15 +897,14 @@ namespace ortc
       KnownFeedbackParameter_TLLEI,                               // tllei
       KnownFeedbackParameter_PSLEI,                               // pslei
 
-      //http://www.iana.org/assignments/sdp-parameters/sdp-parameters.xhtml#sdp-parameters-19
+      // http://www.iana.org/assignments/sdp-parameters/sdp-parameters.xhtml#sdp-parameters-19
       KnownFeedbackParameter_FIR,                                 // fir
       KnownFeedbackParameter_TMMBR,                               // tmmbr
       KnownFeedbackParameter_TSTR,                                // tstr
       KnownFeedbackParameter_VBCM,                                // vbcm
       KnownFeedbackParameter_PAUSE,                               // pause
-      KnownFeedbackParameter_REMB,                                // goog-remb
 
-      KnownFeedbackParameter_Last = KnownFeedbackParameter_REMB,
+      KnownFeedbackParameter_Last = KnownFeedbackParameter_PAUSE,
     };
 
     static const char *toString(KnownFeedbackParameters parameter);

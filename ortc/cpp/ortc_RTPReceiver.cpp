@@ -720,6 +720,16 @@ namespace ortc
           {
             codec.mNumChannels = 1;
             codec.mKind = IMediaStreamTrack::toString(IMediaStreamTrackTypes::Kind_Audio);
+
+            // generic NACK
+            {
+              IRTPTypes::RTCPFeedback feedback;
+              feedback.mType = IRTPTypes::toString(KnownFeedbackType_NACK);
+              feedback.mParameter = IRTPTypes::toString(KnownFeedbackParameter_Unknown);
+              EventWriteOrtcRtpReceiverReportRtcpFeedback(__func__, feedback.mType, feedback.mParameter);
+              codec.mRTCPFeedback.push_back(feedback);
+            }
+
             break;
           }
           case IRTPTypes::CodecKind_Video:
@@ -734,27 +744,27 @@ namespace ortc
               EventWriteOrtcRtpReceiverReportRtcpFeedback(__func__, feedback.mType, feedback.mParameter);
               codec.mRTCPFeedback.push_back(feedback);
             }
-            // NACK + PLI
+            // NACK + PLI - always enabled in webrtc engine
+            //{
+            //  IRTPTypes::RTCPFeedback feedback;
+            //  feedback.mType = IRTPTypes::toString(KnownFeedbackType_NACK);
+            //  feedback.mParameter = IRTPTypes::toString(KnownFeedbackParameter_PLI);
+            //  EventWriteOrtcRtpReceiverReportRtcpFeedback(__func__, feedback.mType, feedback.mParameter);
+            //  codec.mRTCPFeedback.push_back(feedback);
+            //}
+            // CCM + FIR - cannot be set by webrtc API
+            //{
+            //  IRTPTypes::RTCPFeedback feedback;
+            //  feedback.mType = IRTPTypes::toString(KnownFeedbackType_CCM);
+            //  feedback.mParameter = IRTPTypes::toString(KnownFeedbackParameter_FIR);
+            //  EventWriteOrtcRtpReceiverReportRtcpFeedback(__func__, feedback.mType, feedback.mParameter);
+            //  codec.mRTCPFeedback.push_back(feedback);
+            //}
+            // REMB
             {
               IRTPTypes::RTCPFeedback feedback;
-              feedback.mType = IRTPTypes::toString(KnownFeedbackType_NACK);
-              feedback.mParameter = IRTPTypes::toString(KnownFeedbackParameter_PLI);
-              EventWriteOrtcRtpReceiverReportRtcpFeedback(__func__, feedback.mType, feedback.mParameter);
-              codec.mRTCPFeedback.push_back(feedback);
-            }
-            // CCM + FIR
-            {
-              IRTPTypes::RTCPFeedback feedback;
-              feedback.mType = IRTPTypes::toString(KnownFeedbackType_CCM);
-              feedback.mParameter = IRTPTypes::toString(KnownFeedbackParameter_FIR);
-              EventWriteOrtcRtpReceiverReportRtcpFeedback(__func__, feedback.mType, feedback.mParameter);
-              codec.mRTCPFeedback.push_back(feedback);
-            }
-            // CCM + REMB
-            {
-              IRTPTypes::RTCPFeedback feedback;
-              feedback.mType = IRTPTypes::toString(KnownFeedbackType_CCM);
-              feedback.mParameter = IRTPTypes::toString(KnownFeedbackParameter_REMB);
+              feedback.mType = IRTPTypes::toString(KnownFeedbackType_REMB);
+              feedback.mParameter = IRTPTypes::toString(KnownFeedbackParameter_Unknown);
               EventWriteOrtcRtpReceiverReportRtcpFeedback(__func__, feedback.mType, feedback.mParameter);
               codec.mRTCPFeedback.push_back(feedback);
             }
