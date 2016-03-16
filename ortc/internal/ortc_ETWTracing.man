@@ -52,30 +52,31 @@
           </task>
           <task name="IceTransportController" symbol="TASK_ICE_TRANSPORT_CONTROLLER" value="8" message="$(string.Task.RtpListener)" />
           <task name="RtpListener" symbol="TASK_RTP_LISTENER" value="9" message="$(string.Task.RtpListener)" />
-          <task name="RtpReceiver" symbol="TASK_RTP_RECEIVER" value="10" message="$(string.Task.RtpReceiver)">
+          <task name="RtpMediaEngine" symbol="TASK_RTP_MEDIA_ENGINE" value="10" message="$(string.Task.RtpMediaEngine)" />
+          <task name="RtpReceiver" symbol="TASK_RTP_RECEIVER" value="11" message="$(string.Task.RtpReceiver)">
             <opcodes>
               <opcode name="SetTransport" symbol="OPCODE_RTP_RECEIVER_SET_TRANSPORT" value="101" message="$(string.Opcode.RtpReceiver.SetTransport)" />
               <opcode name="Receive" symbol="OPCODE_RTP_RECEIVER_RECEIVE" value="102" message="$(string.Opcode.RtpReceiver.Receive)" />
             </opcodes>
           </task>
-          <task name="RtpReceiverChannel" symbol="TASK_RTP_RECEIVER_CHANNEL" value="11" message="$(string.Task.RtpReceiverChannel)" />
-          <task name="RtpSender" symbol="TASK_RTP_SENDER" value="12" message="$(string.Task.RtpSender)">
+          <task name="RtpReceiverChannel" symbol="TASK_RTP_RECEIVER_CHANNEL" value="12" message="$(string.Task.RtpReceiverChannel)" />
+          <task name="RtpSender" symbol="TASK_RTP_SENDER" value="13" message="$(string.Task.RtpSender)">
             <opcodes>
               <opcode name="SetTransport" symbol="OPCODE_RTP_SENDER_SET_TRANSPORT" value="101" message="$(string.Opcode.RtpSender.SetTransport)" />
               <opcode name="SetTrack" symbol="OPCODE_RTP_SENDER_SET_TRACK" value="102" message="$(string.Opcode.RtpSender.SetTrack)" />
               <opcode name="Send" symbol="OPCODE_RTP_SENDER_SEND" value="103" message="$(string.Opcode.RtpSender.Send)" />
             </opcodes>
           </task>
-          <task name="RtpSenderChannel" symbol="TASK_RTP_SENDER_CHANNEL" value="13" message="$(string.Task.RtpSenderChannel)" />
-          <task name="SctpInit" symbol="TASK_SCTP_INIT" value="14" message="$(string.Task.SctpInit)" />
-          <task name="SctpTransport" symbol="TASK_SCTP_TRANSPORT" value="15" message="$(string.Task.SctpTransport)" />
-          <task name="SctpTransportListener" symbol="TASK_SCTP_TRANSPORT_LISTENER" value="16" message="$(string.Task.SctpTransportListener)">
+          <task name="RtpSenderChannel" symbol="TASK_RTP_SENDER_CHANNEL" value="14" message="$(string.Task.RtpSenderChannel)" />
+          <task name="SctpInit" symbol="TASK_SCTP_INIT" value="15" message="$(string.Task.SctpInit)" />
+          <task name="SctpTransport" symbol="TASK_SCTP_TRANSPORT" value="16" message="$(string.Task.SctpTransport)" />
+          <task name="SctpTransportListener" symbol="TASK_SCTP_TRANSPORT_LISTENER" value="17" message="$(string.Task.SctpTransportListener)">
             <opcodes>
               <opcode name="SetTransport" symbol="OPCODE_SCTP_TRANSPORT_LISTENER_SET_TRANSPORT" value="101" message="$(string.Opcode.SctpTransportListener.SetTransport)" />
               <opcode name="Listen" symbol="OPCODE_SCTP_TRANSPORT_LISTENER_LISTEN" value="102" message="$(string.Opcode.SctpTransportListener.Listen)" />
             </opcodes>
           </task>
-          <task name="SrtpTransport" symbol="TASK_SRTP_TRANSPORT" value="17" message="$(string.Task.SrtpTransport)" />
+          <task name="SrtpTransport" symbol="TASK_SRTP_TRANSPORT" value="18" message="$(string.Task.SrtpTransport)" />
         </tasks>
         <opcodes>
           <opcode name="Initialization" symbol="OPCODE_INITIALIZATION" value="201" message="$(string.Opcode.Initialization)" />
@@ -1763,8 +1764,8 @@
           <event symbol="OrtcRtpListenerSsrcTableEntryRemoved" channel="ol" template="T_RtpListenerSsrcTableEntryRemoved" task="RtpListener" opcode="win:Info" value="1825" level="win:Informational" message="$(string.Event.OrtcRtpListenerSsrcTableEntryRemoved)" />
           <event symbol="OrtcRtpListenerSsrcTableEntryUpdated" channel="ol" template="T_BasicWithRtpReceiverObjectIDAndSsrcTableEntry" task="RtpListener" opcode="win:Info" value="1826" level="win:Verbose" message="$(string.Event.OrtcRtpListenerSsrcTableEntryUpdated)" />
 
-          <event symbol="OrtcRtpEngineCreate" channel="ol" template="T_BasicObject" task="RtpEngine" opcode="win:Start" value="2701" level="win:Informational" message="$(string.Event.OrtcRtpEngineCreate)" />
-          <event symbol="OrtcRtpEngineDestroy" channel="ol" template="T_BasicObject" task="RtpEngine" opcode="win:Stop" value="2702" level="win:Informational" message="$(string.Event.OrtcRtpEngineDestroy)" />
+          <event symbol="OrtcRtpMediaEngineCreate" channel="ol" template="T_BasicObject" task="RtpMediaEngine" opcode="win:Start" value="2701" level="win:Informational" message="$(string.Event.OrtcRtpMediaEngineCreate)" />
+          <event symbol="OrtcRtpMediaEngineDestroy" channel="ol" template="T_BasicObject" task="RtpMediaEngine" opcode="win:Stop" value="2702" level="win:Informational" message="$(string.Event.OrtcRtpMediaEngineDestroy)" />
 
           <event symbol="OrtcRtpReceiverCreate" channel="ol" template="T_RtpReceiverCreate" task="RtpReceiver" opcode="win:Info" value="1901" level="win:Informational" message="$(string.Event.OrtcRtpReceiverCreate)" />
           <event symbol="OrtcRtpReceiverDestroy" channel="ol" template="T_BasicObject" task="RtpReceiver" opcode="win:Info" value="1902" level="win:Informational" message="$(string.Event.OrtcRtpReceiverDestroy)" />
@@ -1963,6 +1964,7 @@
         <string id="Task.IceGathererRouter" value="IceGathererRouter" />
         <string id="Task.IceTransport" value="IceTransport" />
         <string id="Task.RtpListener" value="RtpListener" />
+        <string id="Task.RtpMediaEngine" value="RtpMediaEngine" />
         <string id="Task.RtpReceiver" value="RtpReceiver" />
         <string id="Task.RtpReceiverChannel" value="Task.RtpReceiverChannel" />
         <string id="Task.RtpSender" value="RtpSender" />
@@ -2222,8 +2224,8 @@
         <string id="Event.OrtcRtpListenerSsrcTableEntryRemoved" value="OrtcRtpListenerSsrcTableEntryRemoved" />
         <string id="Event.OrtcRtpListenerSsrcTableEntryUpdated" value="OrtcRtpListenerSsrcTableEntryUpdated" />
 
-        <string id="Event.OrtcRtpEngineCreate" value="OrtcRtpEngineCreate" />
-        <string id="Event.OrtcRtpEngineDestroy" value="OrtcRtpEngineDestroy" />
+        <string id="Event.OrtcRtpMediaEngineCreate" value="OrtcRtpMediaEngineCreate" />
+        <string id="Event.OrtcRtpMediaEngineDestroy" value="OrtcRtpMediaEngineDestroy" />
 
         <string id="Event.OrtcRtpReceiverCreate" value="OrtcRtpReceiverCreate" />
         <string id="Event.OrtcRtpReceiverDestroy" value="OrtcRtpReceiverDestroy" />

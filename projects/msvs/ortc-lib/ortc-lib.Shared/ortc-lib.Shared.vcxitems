@@ -52,6 +52,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_ORTC.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_RTCPPacket.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_RTPListener.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_RTPMediaEngine.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_RTPPacket.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_RTPReceiver.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_RTPReceiverChannel.h" />
@@ -111,6 +112,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ortc_ORTC.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ortc_RTCPPacket.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ortc_RTPListener.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ortc_RTPMediaEngine.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ortc_RTPPacket.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ortc_RTPReceiver.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ortc_RTPReceiverChannel.cpp" />

@@ -322,7 +322,7 @@ namespace ortc
       SharedRecursiveLock(SharedRecursiveLock::create()),
       mRegistration(registration)
     {
-      EventWriteOrtcRtpEngineCreate(__func__, mID);
+      EventWriteOrtcRtpMediaEngineCreate(__func__, mID);
       ZS_LOG_DETAIL(debug("created"))
     }
 
@@ -342,7 +342,7 @@ namespace ortc
       mThisWeak.reset();
 
       cancel();
-      EventWriteOrtcRtpEngineDestroy(__func__, mID);
+      EventWriteOrtcRtpMediaEngineDestroy(__func__, mID);
     }
 
     //-------------------------------------------------------------------------
