@@ -1101,9 +1101,11 @@
           <template tid="T_RtpReceiverCreate">
             <data inType="win:AnsiString" name="Method" />
             <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:AnsiString" name="Kind" />
             <data inType="win:UInt64"     name="RtpListenerObjectID" />
             <data inType="win:UInt64"     name="RtpTransportObjectID" />
             <data inType="win:UInt64"     name="RtcpTransportObjectID" />
+            <data inType="win:UInt64"     name="MediaStreamTrackObjectID" />
             <data inType="win:UInt64"     name="MaxBufferedRtpPackets" />
             <data inType="win:Int64"      name="MaxRTPPacketAgeInSeconds" />
             <data inType="win:Int64"      name="LockAfterSwitchTimeInMilliseconds" />
