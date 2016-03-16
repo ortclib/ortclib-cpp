@@ -1763,6 +1763,9 @@
           <event symbol="OrtcRtpListenerSsrcTableEntryRemoved" channel="ol" template="T_RtpListenerSsrcTableEntryRemoved" task="RtpListener" opcode="win:Info" value="1825" level="win:Informational" message="$(string.Event.OrtcRtpListenerSsrcTableEntryRemoved)" />
           <event symbol="OrtcRtpListenerSsrcTableEntryUpdated" channel="ol" template="T_BasicWithRtpReceiverObjectIDAndSsrcTableEntry" task="RtpListener" opcode="win:Info" value="1826" level="win:Verbose" message="$(string.Event.OrtcRtpListenerSsrcTableEntryUpdated)" />
 
+          <event symbol="OrtcRtpEngineCreate" channel="ol" template="T_BasicObject" task="RtpEngine" opcode="win:Start" value="2701" level="win:Informational" message="$(string.Event.OrtcRtpEngineCreate)" />
+          <event symbol="OrtcRtpEngineDestroy" channel="ol" template="T_BasicObject" task="RtpEngine" opcode="win:Stop" value="2702" level="win:Informational" message="$(string.Event.OrtcRtpEngineDestroy)" />
+
           <event symbol="OrtcRtpReceiverCreate" channel="ol" template="T_RtpReceiverCreate" task="RtpReceiver" opcode="win:Info" value="1901" level="win:Informational" message="$(string.Event.OrtcRtpReceiverCreate)" />
           <event symbol="OrtcRtpReceiverDestroy" channel="ol" template="T_BasicObject" task="RtpReceiver" opcode="win:Info" value="1902" level="win:Informational" message="$(string.Event.OrtcRtpReceiverDestroy)" />
           <event symbol="OrtcRtpReceiverStep" channel="ol" template="T_BasicObject" task="RtpReceiver" opcode="Step" value="1903" level="win:Informational" message="$(string.Event.OrtcRtpReceiverStep)" />
@@ -2218,6 +2221,9 @@
         <string id="Event.OrtcRtpListenerSsrcTableEntryAdded" value="OrtcRtpListenerSsrcTableEntryAdded" />
         <string id="Event.OrtcRtpListenerSsrcTableEntryRemoved" value="OrtcRtpListenerSsrcTableEntryRemoved" />
         <string id="Event.OrtcRtpListenerSsrcTableEntryUpdated" value="OrtcRtpListenerSsrcTableEntryUpdated" />
+
+        <string id="Event.OrtcRtpEngineCreate" value="OrtcRtpEngineCreate" />
+        <string id="Event.OrtcRtpEngineDestroy" value="OrtcRtpEngineDestroy" />
 
         <string id="Event.OrtcRtpReceiverCreate" value="OrtcRtpReceiverCreate" />
         <string id="Event.OrtcRtpReceiverDestroy" value="OrtcRtpReceiverDestroy" />

@@ -182,12 +182,10 @@ namespace ortc
     {
       AutoRecursiveLock lock(*this);
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
-      
-      if (!mTrack) {
-        ZS_LOG_ERROR(Detail, log("MediaStreamTrack is not set during RTPReceiverChannelAudio initialization procedure"))
-        return;
-      }
-      
+
+#define FIX_ME_MOVE_THIS_AS_POST_MEDIA_ENGINE_READY_STEP 1
+#define FIX_ME_MOVE_THIS_AS_POST_MEDIA_ENGINE_READY_STEP 2
+
       mTransport = Transport::create(mThisWeak.lock());
 
       mVoiceEngine = rtc::scoped_ptr<webrtc::VoiceEngine, VoiceEngineDeleter>(webrtc::VoiceEngine::Create());
@@ -289,6 +287,9 @@ namespace ortc
         webrtc::VoEBase::GetInterface(mVoiceEngine.get())->StopReceive(mChannel);
         webrtc::VoENetwork::GetInterface(mVoiceEngine.get())->DeRegisterExternalTransport(mChannel);
       }
+
+#define FIX_ME_WARNING_NO_TRACK_IS_NOT_STOPPED_JUST_BECAUSE_A_RECEIVER_CHANNEL_IS_DONE 1
+#define FIX_ME_WARNING_NO_TRACK_IS_NOT_STOPPED_JUST_BECAUSE_A_RECEIVER_CHANNEL_IS_DONE 2
 
       if (mTrack)
         mTrack->stop();
@@ -471,6 +472,23 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
+    #pragma mark RTPReceiverChannelAudio => IPromiseSettledDelegate
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    void RTPReceiverChannelAudio::onPromiseSettled(PromisePtr promise)
+    {
+      ZS_LOG_DEBUG(log("promise settled") + ZS_PARAM("promise", promise->getID()))
+
+      AutoRecursiveLock lock(*this);
+      step();
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
     #pragma mark RTPReceiverChannelAudio => IRTPReceiverChannelAudioAsyncDelegate
     #pragma mark
 
@@ -622,7 +640,8 @@ namespace ortc
       }
 
       // ... other steps here ...
-      if (!stepBogusDoSomething()) goto not_ready;
+      if (!stepPromise()) goto not_ready;
+      if (!stepSetup()) goto not_ready;
       // ... other steps here ...
 
       goto ready;
@@ -641,25 +660,50 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool RTPReceiverChannelAudio::stepBogusDoSomething()
+    bool RTPReceiverChannelAudio::stepPromise()
     {
-      if ( /* step already done */ false ) {
-        ZS_LOG_TRACE(log("already completed do something"))
+      if (mMediaEngine) {
+        ZS_LOG_TRACE(log("already setup engine"))
         return true;
       }
 
-      if ( /* cannot do step yet */ false) {
-        ZS_LOG_DEBUG(log("waiting for XYZ to complete before continuing"))
+      if (!mMediaEnginePromise) {
+        mMediaEnginePromise = UseMediaEngine::create();
+      }
+
+      if (!mMediaEngineRegistration) {
+        if (!mMediaEnginePromise->isSettled()) {
+          ZS_LOG_TRACE(log("waiting for media engine promise to resolve"))
+          return false;
+        }
+
+        mMediaEngineRegistration = mMediaEnginePromise->value();
+        if (!mMediaEnginePromise) {
+          ZS_LOG_WARNING(Detail, log("failed to initialize media"))
+          cancel();
+          return false;
+        }
+
+      }
+
+      mMediaEngine = mMediaEngineRegistration->engine<UseMediaEngine>();
+
+      if (!mMediaEngine) {
+        ZS_LOG_WARNING(Detail, log("failed to initialize media"))
+        cancel();
         return false;
       }
 
-      ZS_LOG_DEBUG(log("doing step XYZ"))
-
-      // ....
-#define TODO 1
-#define TODO 2
-
+      ZS_LOG_DEBUG(log("media engine is setup") + ZS_PARAM("engine", mMediaEngine->getID()))
       return true;
+    }
+
+    //-------------------------------------------------------------------------
+    bool RTPReceiverChannelAudio::stepSetup()
+    {
+#define TODO_IMPLEMENT_THIS 1
+#define TODO_IMPLEMENT_THIS 2
+      return false; // NOTE: return true if setup is complete
     }
 
     //-------------------------------------------------------------------------
@@ -669,6 +713,8 @@ namespace ortc
       // try to gracefully shutdown
 
       if (isShutdown()) return;
+
+      setState(State_ShuttingDown);
 
       if (!mGracefulShutdownReference) mGracefulShutdownReference = mThisWeak.lock();
 
@@ -680,6 +726,11 @@ namespace ortc
       // final cleanup
 
       setState(State_Shutdown);
+
+      // cannot hold any more references to the media engine registration or
+      // the media engine itself
+      mMediaEngine.reset();
+      mMediaEngineRegistration.reset();
 
       // make sure to cleanup any final reference to self
       mGracefulShutdownReference.reset();

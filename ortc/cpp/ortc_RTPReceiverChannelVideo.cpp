@@ -646,6 +646,8 @@ namespace ortc
 
       if (isShutdown()) return;
 
+      setState(State_ShuttingDown);
+
       if (!mGracefulShutdownReference) mGracefulShutdownReference = mThisWeak.lock();
 
       if (mGracefulShutdownReference) {
