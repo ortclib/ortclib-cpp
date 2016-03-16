@@ -29,17 +29,17 @@
  
  */
 
-#include <ortc/internal/ortc_RTPReceiverChannel.h>
-#include <ortc/internal/ortc_RTPReceiverChannelMediaBase.h>
-#include <ortc/internal/ortc_RTPReceiverChannelAudio.h>
-#include <ortc/internal/ortc_RTPReceiverChannelVideo.h>
-#include <ortc/internal/ortc_RTPReceiver.h>
-#include <ortc/internal/ortc_DTLSTransport.h>
-#include <ortc/internal/ortc_RTPListener.h>
-#include <ortc/internal/ortc_MediaStreamTrack.h>
-#include <ortc/internal/ortc_RTPPacket.h>
-#include <ortc/internal/ortc_RTCPPacket.h>
-#include <ortc/internal/ortc_RTPTypes.h>
+#include <ortc/internal/ortc_RTPMediaEngine.h>
+//#include <ortc/internal/ortc_RTPMediaEngineMediaBase.h>
+//#include <ortc/internal/ortc_RTPMediaEngineAudio.h>
+//#include <ortc/internal/ortc_RTPMediaEngineVideo.h>
+//#include <ortc/internal/ortc_RTPReceiver.h>
+//#include <ortc/internal/ortc_DTLSTransport.h>
+//#include <ortc/internal/ortc_RTPListener.h>
+//#include <ortc/internal/ortc_MediaStreamTrack.h>
+//#include <ortc/internal/ortc_RTPPacket.h>
+//#include <ortc/internal/ortc_RTCPPacket.h>
+//#include <ortc/internal/ortc_RTPTypes.h>
 #include <ortc/internal/ortc_ORTC.h>
 #include <ortc/internal/ortc_Tracing.h>
 #include <ortc/internal/platform.h>
@@ -49,17 +49,18 @@
 #include <openpeer/services/IHTTP.h>
 
 #include <zsLib/Stringize.h>
+#include <zsLib/Singleton.h>
 #include <zsLib/Log.h>
 #include <zsLib/XML.h>
 
 #include <cryptopp/sha.h>
 
 
-#ifdef _DEBUG
-#define ASSERT(x) ZS_THROW_BAD_STATE_IF(!(x))
-#else
-#define ASSERT(x)
-#endif //_DEBUG
+//#ifdef _DEBUG
+//#define ASSERT(x) ZS_THROW_BAD_STATE_IF(!(x))
+//#else
+//#define ASSERT(x)
+//#endif //_DEBUG
 
 
 namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib) }
@@ -74,6 +75,9 @@ namespace ortc
 
   namespace internal
   {
+    ZS_DECLARE_CLASS_PTR(RTPMediaEngineRegistration)
+    ZS_DECLARE_CLASS_PTR(RTPMediaEngineSingleton)
+
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -82,6 +86,171 @@ namespace ortc
     #pragma mark (helpers)
     #pragma mark
 
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPMediaEngineRegistration
+    #pragma mark
+
+    class RTPMediaEngineRegistration : public IRTPMediaEngineRegistration
+    {
+    protected:
+      struct make_private {};
+    public:
+      //-----------------------------------------------------------------------
+      RTPMediaEngineRegistration(const make_private &)
+      {}
+
+      //-----------------------------------------------------------------------
+      ~RTPMediaEngineRegistration()
+      {
+        mEngine->shutdown();
+        mEngine.reset();
+      }
+
+      //-----------------------------------------------------------------------
+      static RTPMediaEngineRegistrationPtr create()
+      {
+        RTPMediaEngineRegistrationPtr pThis(make_shared<RTPMediaEngineRegistration>(make_private{}));
+        pThis->mThisWeak = pThis;
+        pThis->init();
+        return pThis;
+      }
+
+      //-----------------------------------------------------------------------
+      void init()
+      {
+        mEngine = IRTPMediaEngineFactory::singleton().create(mThisWeak.lock());
+      }
+
+      //-----------------------------------------------------------------------
+      PromiseWithRTPMediaEngineRegistrationPtr notify()
+      {
+        auto promise = PromiseWithRTPMediaEngineRegistration::create(IORTCForInternal::queueDelegate());
+        mEngine->notify(promise);
+        return promise;
+      }
+
+    protected:
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark IRTPMediaEngineRegistration
+      #pragma mark
+
+      virtual RTPMediaEnginePtr getRTPEngine() const {return mEngine;}
+
+    protected:
+      RTPMediaEngineRegistrationWeakPtr mThisWeak;
+      RTPMediaEnginePtr mEngine;
+    };
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPMediaEngineSingleton
+    #pragma mark
+
+    class RTPMediaEngineSingleton : public SharedRecursiveLock,
+                                    public ISingletonManagerDelegate
+    {
+    protected:
+      struct make_private {};
+
+    public:
+      //-----------------------------------------------------------------------
+      RTPMediaEngineSingleton(const make_private &) :
+        SharedRecursiveLock(SharedRecursiveLock::create())
+      {
+      }
+
+      //-----------------------------------------------------------------------
+      static RTPMediaEngineSingletonPtr create()
+      {
+        RTPMediaEngineSingletonPtr pThis(make_shared<RTPMediaEngineSingleton>(make_private{}));
+        return pThis;
+      }
+
+      //-----------------------------------------------------------------------
+      static RTPMediaEngineSingletonPtr singleton()
+      {
+        AutoRecursiveLock lock(*UseServicesHelper::getGlobalLock());
+        static SingletonLazySharedPtr<RTPMediaEngineSingleton> singleton(create());
+        RTPMediaEngineSingletonPtr result = singleton.singleton();
+
+        static zsLib::SingletonManager::Register registerSingleton("openpeer::ortc::RTPMediaEngineSingleton", result);
+
+        if (!result) {
+          ZS_LOG_WARNING(Detail, slog("singleton gone"))
+        }
+
+        return result;
+      }
+
+      //-----------------------------------------------------------------------
+      Log::Params log(const char *message) const
+      {
+        ElementPtr objectEl = Element::create("ortc::RTPMediaEngineSingleton");
+        UseServicesHelper::debugAppend(objectEl, "id", mID);
+        return Log::Params(message, objectEl);
+      }
+
+      //-----------------------------------------------------------------------
+      static Log::Params slog(const char *message)
+      {
+        return Log::Params(message, "ortc::RTPMediaEngineSingleton");
+      }
+
+      //-----------------------------------------------------------------------
+      Log::Params debug(const char *message) const
+      {
+        return Log::Params(message, toDebug());
+      }
+
+      //-----------------------------------------------------------------------
+      virtual ElementPtr toDebug() const
+      {
+        AutoRecursiveLock lock(*this);
+        ElementPtr resultEl = Element::create("ortc::RTPMediaEngineSingleton");
+
+        UseServicesHelper::debugAppend(resultEl, "id", mID);
+
+        return resultEl;
+      }
+
+      //-----------------------------------------------------------------------
+      RTPMediaEngineRegistrationPtr getEngineRegistration()
+      {
+        AutoRecursiveLock lock(*this);
+        auto result = mEngineRegistration.lock();
+        if (!result) {
+          result = RTPMediaEngineRegistration::create();
+          mEngineRegistration = result;
+        }
+        return result;
+      }
+
+    protected:
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark ISingletonManagerDelegate
+      #pragma mark
+
+      virtual void notifySingletonCleanup()
+      {
+        AutoRecursiveLock lock(*this);
+        mEngineRegistration.reset();
+      }
+
+    protected:
+      AutoPUID mID;
+
+      RTPMediaEngineRegistrationWeakPtr mEngineRegistration;
+    };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -92,7 +261,7 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void IRTPReceiverChannelForSettings::applyDefaults()
+    void IRTPMediaEngineForSettings::applyDefaults()
     {
 //      UseSettings::setUInt(ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE, 5*1024);
     }
@@ -102,40 +271,24 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IRTPReceiverChannelForRTPReceiver
+    #pragma mark IRTPMediaEngineForRTPReceiver
     #pragma mark
 
     //-------------------------------------------------------------------------
-    ElementPtr IRTPReceiverChannelForRTPReceiver::toDebug(ForRTPReceiverPtr object)
+    ElementPtr IRTPMediaEngineForRTPReceiverChannelMediaBase::toDebug(ForRTPReceiverChannelMediaBasePtr object)
     {
       if (!object) return ElementPtr();
-      return ZS_DYNAMIC_PTR_CAST(RTPReceiverChannel, object)->toDebug();
+      return ZS_DYNAMIC_PTR_CAST(RTPMediaEngine, object)->toDebug();
     }
 
     //-------------------------------------------------------------------------
-    RTPReceiverChannelPtr IRTPReceiverChannelForRTPReceiver::create(
-                                                                    RTPReceiverPtr receiver,
-                                                                    MediaStreamTrackPtr track,
-                                                                    const Parameters &params,
-                                                                    const RTCPPacketList &packets
-                                                                    )
+    PromiseWithRTPMediaEngineRegistrationPtr IRTPMediaEngineForRTPReceiverChannelMediaBase::create()
     {
-      return internal::IRTPReceiverChannelFactory::singleton().create(receiver, track, params, packets);
-    }
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPReceiverChannelForMediaStreamTrack
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    ElementPtr IRTPReceiverChannelForMediaStreamTrack::toDebug(ForMediaStreamTrackPtr object)
-    {
-      if (!object) return ElementPtr();
-      return ZS_DYNAMIC_PTR_CAST(RTPReceiverChannel, object)->toDebug();
+      auto singleton = RTPMediaEngineSingleton::singleton();
+      if (!singleton) {
+        return PromiseWithRTPMediaEngineRegistration::createRejected(IORTCForInternal::queueDelegate());
+      }
+      return singleton->getEngineRegistration()->notify();
     }
 
 
@@ -144,11 +297,11 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark RTPReceiverChannel
+    #pragma mark RTPMediaEngine
     #pragma mark
     
     //---------------------------------------------------------------------------
-    const char *RTPReceiverChannel::toString(States state)
+    const char *RTPMediaEngine::toString(States state)
     {
       switch (state) {
         case State_Pending:       return "pending";
@@ -160,63 +313,28 @@ namespace ortc
     }
     
     //-------------------------------------------------------------------------
-    RTPReceiverChannel::RTPReceiverChannel(
-                                           const make_private &,
-                                           IMessageQueuePtr queue,
-                                           UseReceiverPtr receiver,
-                                           UseMediaStreamTrackPtr track,
-                                           const Parameters &params
-                                           ) :
+    RTPMediaEngine::RTPMediaEngine(
+                                   const make_private &,
+                                   IMessageQueuePtr queue,
+                                   IRTPMediaEngineRegistrationPtr registration
+                                   ) :
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
-      mReceiver(receiver),
-      mTrack(track),
-      mParameters(make_shared<Parameters>(params))
+      mRegistration(registration)
     {
-      EventWriteOrtcRtpReceiverChannelCreate(__func__, mID, receiver->getID(), mTrack->getID());
+      EventWriteOrtcRtpMediaEngineCreate(__func__, mID);
       ZS_LOG_DETAIL(debug("created"))
-
-      ORTC_THROW_INVALID_PARAMETERS_IF(!receiver)
     }
 
     //-------------------------------------------------------------------------
-    void RTPReceiverChannel::init(const RTCPPacketList &packets)
+    void RTPMediaEngine::init()
     {
       AutoRecursiveLock lock(*this);
-
-      Optional<IMediaStreamTrackTypes::Kinds> kind = RTPTypesHelper::getCodecsKind(*mParameters);
-      
-      bool found = false;
-
-      if (kind.hasValue())
-      {
-        switch (kind.value()) {
-          case IMediaStreamTrackTypes::Kind_Audio:
-          {
-            mAudio = UseAudio::create(mThisWeak.lock(), MediaStreamTrack::convert(mTrack), *mParameters);
-            mMediaBase = mAudio;
-            found = true;
-            break;
-          }
-          case IMediaStreamTrackTypes::Kind_Video:
-          {
-            mVideo = UseVideo::create(mThisWeak.lock(), MediaStreamTrack::convert(mTrack), *mParameters);
-            mMediaBase = mVideo;
-            found = true;
-            break;
-          }
-        }
-      }
-      
-      ORTC_THROW_INVALID_PARAMETERS_IF(!found)
-
-      EventWriteOrtcRtpReceiverChannelCreateMediaChannel(__func__, mID, mMediaBase->getID(), IMediaStreamTrack::toString(kind.value()));
-
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
     }
 
     //-------------------------------------------------------------------------
-    RTPReceiverChannel::~RTPReceiverChannel()
+    RTPMediaEngine::~RTPMediaEngine()
     {
       if (isNoop()) return;
 
@@ -224,43 +342,55 @@ namespace ortc
       mThisWeak.reset();
 
       cancel();
-      EventWriteOrtcRtpReceiverChannelDestroy(__func__, mID);
+      EventWriteOrtcRtpMediaEngineDestroy(__func__, mID);
     }
 
     //-------------------------------------------------------------------------
-    RTPReceiverChannelPtr RTPReceiverChannel::convert(ForSettingsPtr object)
+    RTPMediaEnginePtr RTPMediaEngine::convert(ForSettingsPtr object)
     {
-      return ZS_DYNAMIC_PTR_CAST(RTPReceiverChannel, object);
+      return ZS_DYNAMIC_PTR_CAST(RTPMediaEngine, object);
     }
 
     //-------------------------------------------------------------------------
-    RTPReceiverChannelPtr RTPReceiverChannel::convert(ForRTPReceiverPtr object)
+    RTPMediaEnginePtr RTPMediaEngine::convert(ForRTPReceiverChannelPtr object)
     {
-      return ZS_DYNAMIC_PTR_CAST(RTPReceiverChannel, object);
+      return ZS_DYNAMIC_PTR_CAST(RTPMediaEngine, object);
     }
 
     //-------------------------------------------------------------------------
-    RTPReceiverChannelPtr RTPReceiverChannel::convert(ForRTPReceiverChannelMediaBasePtr object)
+    RTPMediaEnginePtr RTPMediaEngine::convert(ForRTPReceiverChannelMediaBasePtr object)
     {
-      return ZS_DYNAMIC_PTR_CAST(RTPReceiverChannel, object);
+      return ZS_DYNAMIC_PTR_CAST(RTPMediaEngine, object);
     }
 
     //-------------------------------------------------------------------------
-    RTPReceiverChannelPtr RTPReceiverChannel::convert(ForRTPReceiverChannelAudioPtr object)
+    RTPMediaEnginePtr RTPMediaEngine::convert(ForRTPReceiverChannelAudioPtr object)
     {
-      return ZS_DYNAMIC_PTR_CAST(RTPReceiverChannel, object);
+      return ZS_DYNAMIC_PTR_CAST(RTPMediaEngine, object);
     }
 
     //-------------------------------------------------------------------------
-    RTPReceiverChannelPtr RTPReceiverChannel::convert(ForRTPReceiverChannelVideoPtr object)
+    RTPMediaEnginePtr RTPMediaEngine::convert(ForRTPReceiverChannelVideoPtr object)
     {
-      return ZS_DYNAMIC_PTR_CAST(RTPReceiverChannel, object);
+      return ZS_DYNAMIC_PTR_CAST(RTPMediaEngine, object);
     }
 
     //-------------------------------------------------------------------------
-    RTPReceiverChannelPtr RTPReceiverChannel::convert(ForMediaStreamTrackPtr object)
+    RTPMediaEnginePtr RTPMediaEngine::convert(ForRTPSenderChannelMediaBasePtr object)
     {
-      return ZS_DYNAMIC_PTR_CAST(RTPReceiverChannel, object);
+      return ZS_DYNAMIC_PTR_CAST(RTPMediaEngine, object);
+    }
+
+    //-------------------------------------------------------------------------
+    RTPMediaEnginePtr RTPMediaEngine::convert(ForRTPSenderChannelAudioPtr object)
+    {
+      return ZS_DYNAMIC_PTR_CAST(RTPMediaEngine, object);
+    }
+
+    //-------------------------------------------------------------------------
+    RTPMediaEnginePtr RTPMediaEngine::convert(ForRTPSenderChannelVideoPtr object)
+    {
+      return ZS_DYNAMIC_PTR_CAST(RTPMediaEngine, object);
     }
 
 
@@ -269,73 +399,45 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark RTPReceiverChannel => ForRTPReceiver
+    #pragma mark RTPMediaEngine => RTPMediaEngineSingleton/RTPMediaEngineRegistration
     #pragma mark
     
     //-------------------------------------------------------------------------
-    ElementPtr RTPReceiverChannel::toDebug(RTPReceiverChannelPtr transport)
+    RTPMediaEnginePtr RTPMediaEngine::create(IRTPMediaEngineRegistrationPtr registration)
     {
-      if (!transport) return ElementPtr();
-      return transport->toDebug();
-    }
-
-    //-------------------------------------------------------------------------
-    RTPReceiverChannelPtr RTPReceiverChannel::create(
-                                                     RTPReceiverPtr receiver,
-                                                     MediaStreamTrackPtr track,
-                                                     const Parameters &params,
-                                                     const RTCPPacketList &packets
-                                                     )
-    {
-      RTPReceiverChannelPtr pThis(make_shared<RTPReceiverChannel>(make_private {}, IORTCForInternal::queueORTC(), receiver, track, params));
+      RTPMediaEnginePtr pThis(make_shared<RTPMediaEngine>(make_private {}, IORTCForInternal::queueBlockingMediaStartStopThread(), registration));
       pThis->mThisWeak = pThis;
-      pThis->init(packets);
+      pThis->init();
       return pThis;
     }
 
     //-------------------------------------------------------------------------
-    void RTPReceiverChannel::notifyTransportState(ISecureTransport::States state)
+    void RTPMediaEngine::notify(PromiseWithRTPMediaEngineRegistrationPtr promise)
     {
-      EventWriteOrtcRtpReceiverChannelInternalSecureTransportStateChangedEventFired(__func__, mID, ISecureTransportTypes::toString(state));
-      // do NOT lock this object here, instead notify self asynchronously
-      IRTPReceiverChannelAsyncDelegateProxy::create(mThisWeak.lock())->onSecureTransportState(state);
+      IRTPMediaEngineRegistrationPtr registration;
+
+      {
+        AutoRecursiveLock lock(*this);
+        if (isReady()) {
+          registration = mRegistration.lock();
+        }
+        mPendingReady.push_back(promise);
+      }
+
+      if (registration) {
+        promise->resolve(registration);
+      }
     }
 
     //-------------------------------------------------------------------------
-    void RTPReceiverChannel::notifyPacket(RTPPacketPtr packet)
+    void RTPMediaEngine::shutdown()
     {
-      // do NOT lock this object here, instead notify self asynchronously
-      IRTPReceiverChannelAsyncDelegateProxy::create(mThisWeak.lock())->onNotifyPacket(packet);
-    }
+      AutoRecursiveLock lock(*this);
 
-    //-------------------------------------------------------------------------
-    void RTPReceiverChannel::notifyPackets(RTCPPacketListPtr packets)
-    {
-      // do NOT lock this object here, instead notify self asynchronously
-      IRTPReceiverChannelAsyncDelegateProxy::create(mThisWeak.lock())->onNotifyPackets(packets);
-    }
-
-    //-------------------------------------------------------------------------
-    void RTPReceiverChannel::notifyUpdate(const Parameters &params)
-    {
-      EventWriteOrtcRtpReceiverChannelInternalUpdateEventFired(__func__, mID);
-
-      // do NOT lock this object here, instead notify self asynchronously
-      IRTPReceiverChannelAsyncDelegateProxy::create(mThisWeak.lock())->onUpdate(make_shared<Parameters>(params));
-    }
-
-    //-------------------------------------------------------------------------
-    bool RTPReceiverChannel::handlePacket(RTPPacketPtr packet)
-    {
-      EventWriteOrtcRtpReceiverChannelDeliverIncomingPacketToMediaChannel(__func__, mID, mMediaBase->getID(), zsLib::to_underlying(IICETypes::Component_RTP), packet->buffer()->SizeInBytes(), packet->buffer()->BytePtr());
-      return mMediaBase->handlePacket(packet);
-    }
-
-    //-------------------------------------------------------------------------
-    bool RTPReceiverChannel::handlePacket(RTCPPacketPtr packet)
-    {
-      EventWriteOrtcRtpReceiverChannelDeliverIncomingPacketToMediaChannel(__func__, mID, mMediaBase->getID(), zsLib::to_underlying(IICETypes::Component_RTCP), packet->buffer()->SizeInBytes(), packet->buffer()->BytePtr());
-      return mMediaBase->handlePacket(packet);
+      // WARNING: Do NOT call cancel directly as this object must only be
+      // shutdown on the object's media queue.
+      setState(State_ShuttingDown);
+      IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
     }
 
     //-------------------------------------------------------------------------
@@ -343,34 +445,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark RTPReceiverChannel => ForMediaStreamTrack
-    #pragma mark
-    
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPReceiverChannel => ForRTPReceiverChannelMediaBase
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    bool RTPReceiverChannel::sendPacket(RTCPPacketPtr packet)
-    {
-      auto receiver = mReceiver.lock();
-      if (!receiver) return false;
-
-      EventWriteOrtcRtpReceiverChannelSendOutgoingPacket(__func__, mID, receiver->getID(), zsLib::to_underlying(IICETypes::Component_RTCP), packet->buffer()->SizeInBytes(), packet->buffer()->BytePtr());
-
-      return receiver->sendPacket(packet);
-    }
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPReceiverChannel => ForRTPReceiverChannelAudio
+    #pragma mark RTPMediaEngine => IRTPMediaEngineForRTPReceiverChannel
     #pragma mark
 
     //-------------------------------------------------------------------------
@@ -378,7 +453,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark RTPReceiverChannel => ForRTPReceiverChannelVideo
+    #pragma mark RTPMediaEngine => IRTPMediaEngineForRTPReceiverChannelMediaBase
     #pragma mark
 
     //-------------------------------------------------------------------------
@@ -386,36 +461,61 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark RTPReceiverChannel => IRTPReceiverChannelForMediaStreamTrack
+    #pragma mark RTPMediaEngine => IRTPMediaEngineForRTPReceiverChannelAudio
     #pragma mark
-
-    //-------------------------------------------------------------------------
-    int32_t RTPReceiverChannel::getAudioSamples(
-                                                const size_t numberOfSamples,
-                                                const uint8_t numberOfChannels,
-                                                void *audioSamples,
-                                                size_t& numberOfSamplesOut
-                                                )
-    {
-      numberOfSamplesOut = 0; // report no samples available
-
-#define TODO_VERIFY_RETURN_RESULT 1
-#define TODO_VERIFY_RETURN_RESULT 2
-      if (!mAudio) return 0;
-      
-      return mAudio->getAudioSamples(numberOfSamples, numberOfChannels, audioSamples, numberOfSamplesOut);
-    }
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark RTPReceiverChannel => IWakeDelegate
+    #pragma mark RTPMediaEngine => IRTPMediaEngineForRTPReceiverChannelVideo
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void RTPReceiverChannel::onWake()
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPMediaEngine => IRTPMediaEngineForRTPSenderChannel
+    #pragma mark
+
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPMediaEngine => IRTPMediaEngineForRTPSenderChannelMediaBase
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPMediaEngine => IRTPMediaEngineForRTPSenderChannelAudio
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPMediaEngine => IRTPMediaEngineForRTPSenderChannelVideo
+    #pragma mark
+
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPMediaEngine => IWakeDelegate
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::onWake()
     {
       ZS_LOG_DEBUG(log("wake"))
 
@@ -428,11 +528,11 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark RTPReceiverChannel => ITimerDelegate
+    #pragma mark RTPMediaEngine => ITimerDelegate
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void RTPReceiverChannel::onTimer(TimerPtr timer)
+    void RTPMediaEngine::onTimer(TimerPtr timer)
     {
       ZS_LOG_DEBUG(log("timer") + ZS_PARAM("timer id", timer->getID()))
 
@@ -445,117 +545,37 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark RTPReceiverChannel => IRTPReceiverChannelAsyncDelegate
+    #pragma mark RTPMediaEngine => IRTPMediaEngineAsyncDelegate
     #pragma mark
-
-    //-------------------------------------------------------------------------
-    void RTPReceiverChannel::onSecureTransportState(ISecureTransport::States state)
-    {
-      ZS_LOG_TRACE(log("notified secure transport state") + ZS_PARAM("state", ISecureTransport::toString(state)))
-
-      {
-        AutoRecursiveLock lock(*this);
-
-        mSecureTransportState = state;
-
-        if (ISecureTransport::State_Closed == state) {
-          ZS_LOG_DEBUG(log("secure channel closed (thus shutting down)"))
-          cancel();
-        }
-      }
-
-      mMediaBase->notifyTransportState(state);
-    }
-
-    //-------------------------------------------------------------------------
-    void RTPReceiverChannel::onNotifyPacket(RTPPacketPtr packet)
-    {
-      ZS_LOG_TRACE(log("notified rtcp packets") + ZS_PARAM("packet", packet->ssrc()))
-      handlePacket(packet);
-    }
-
-    //-------------------------------------------------------------------------
-    void RTPReceiverChannel::onNotifyPackets(RTCPPacketListPtr packets)
-    {
-      ZS_LOG_TRACE(log("notified rtcp packets") + ZS_PARAM("packets", packets->size()))
-
-      // WARNING: Do NOT modify the contents of "packets" as the pointer to
-      //          this list could have been sent to multiple receiver channels
-      //          simultaneously. Use COW pattern if needing mutability.
-
-      for (auto iter = packets->begin(); iter != packets->end(); ++iter) {
-        auto packet = (*iter);
-        handlePacket(packet);
-      }
-    }
-
-    //-------------------------------------------------------------------------
-    void RTPReceiverChannel::onUpdate(ParametersPtr params)
-    {
-      ZS_LOG_TRACE(log("on update") + params->toDebug())
-      
-      UseMediaBasePtr mediaBase;
-
-      {
-        AutoRecursiveLock lock(*this);
-        
-        mParameters = params;
-        mediaBase = mMediaBase;
-
-        Optional<IMediaStreamTrackTypes::Kinds> kind = RTPTypesHelper::getCodecsKind(*mParameters);
-        
-        bool found = false;
-        
-        if (kind.hasValue())
-        {
-          switch (kind.value()) {
-            case IMediaStreamTrackTypes::Kind_Audio:
-            {
-              found = (bool)mAudio;
-              break;
-            }
-            case IMediaStreamTrackTypes::Kind_Video:
-            {
-              found = (bool)mVideo;
-              break;
-            }
-          }
-        }
-        
-        ORTC_THROW_INVALID_PARAMETERS_IF(!found)
-      }
-
-      mediaBase->handleUpdate(params);
-    }
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark RTPReceiverChannel => (internal)
+    #pragma mark RTPMediaEngine => (internal)
     #pragma mark
 
     //-------------------------------------------------------------------------
-    Log::Params RTPReceiverChannel::log(const char *message) const
+    Log::Params RTPMediaEngine::log(const char *message) const
     {
-      ElementPtr objectEl = Element::create("ortc::RTPReceiverChannel");
+      ElementPtr objectEl = Element::create("ortc::RTPMediaEngine");
       UseServicesHelper::debugAppend(objectEl, "id", mID);
       return Log::Params(message, objectEl);
     }
 
     //-------------------------------------------------------------------------
-    Log::Params RTPReceiverChannel::debug(const char *message) const
+    Log::Params RTPMediaEngine::debug(const char *message) const
     {
       return Log::Params(message, toDebug());
     }
 
     //-------------------------------------------------------------------------
-    ElementPtr RTPReceiverChannel::toDebug() const
+    ElementPtr RTPMediaEngine::toDebug() const
     {
       AutoRecursiveLock lock(*this);
 
-      ElementPtr resultEl = Element::create("ortc::RTPReceiverChannel");
+      ElementPtr resultEl = Element::create("ortc::RTPMediaEngine");
 
       UseServicesHelper::debugAppend(resultEl, "id", mID);
 
@@ -566,28 +586,34 @@ namespace ortc
       UseServicesHelper::debugAppend(resultEl, "error", mLastError);
       UseServicesHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
 
-      UseServicesHelper::debugAppend(resultEl, "secure transport state", ISecureTransport::toString(mSecureTransportState));
+      auto registration = mRegistration.lock();
+      UseServicesHelper::debugAppend(resultEl, "registration", (bool)registration);
 
-      auto receiver = mReceiver.lock();
-      UseServicesHelper::debugAppend(resultEl, "receiver", receiver ? receiver->getID() : 0);
+      UseServicesHelper::debugAppend(resultEl, "pending ready", mPendingReady.size());
 
       return resultEl;
     }
 
     //-------------------------------------------------------------------------
-    bool RTPReceiverChannel::isShuttingDown() const
+    bool RTPMediaEngine::isReady() const
+    {
+      return State_Ready == mCurrentState;
+    }
+
+    //-------------------------------------------------------------------------
+    bool RTPMediaEngine::isShuttingDown() const
     {
       return State_ShuttingDown == mCurrentState;
     }
 
     //-------------------------------------------------------------------------
-    bool RTPReceiverChannel::isShutdown() const
+    bool RTPMediaEngine::isShutdown() const
     {
       return State_Shutdown == mCurrentState;
     }
 
     //-------------------------------------------------------------------------
-    void RTPReceiverChannel::step()
+    void RTPMediaEngine::step()
     {
       ZS_LOG_DEBUG(debug("step"))
 
@@ -599,7 +625,7 @@ namespace ortc
       }
 
       // ... other steps here ...
-      if (!stepBogusDoSomething()) goto not_ready;
+      if (!stepSetup()) goto not_ready;
       // ... other steps here ...
 
       goto ready;
@@ -618,29 +644,21 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool RTPReceiverChannel::stepBogusDoSomething()
+    bool RTPMediaEngine::stepSetup()
     {
-      if ( /* step already done */ false ) {
-        ZS_LOG_TRACE(log("already completed do something"))
+      if (isReady()) {
+        ZS_LOG_TRACE(log("already setup"))
         return true;
       }
 
-      if ( /* cannot do step yet */ false) {
-        ZS_LOG_DEBUG(log("waiting for XYZ to complete before continuing"))
-        return false;
-      }
-
-      ZS_LOG_DEBUG(log("doing step XYZ"))
-
-      // ....
-#define TODO 1
-#define TODO 2
+#define TODO_IMPLEMENT_MEDIA_SETUP 1
+#define TODO_IMPLEMENT_MEDIA_SETUP 2
 
       return true;
     }
 
     //-------------------------------------------------------------------------
-    void RTPReceiverChannel::cancel()
+    void RTPMediaEngine::cancel()
     {
       //.......................................................................
       // try to gracefully shutdown
@@ -652,20 +670,43 @@ namespace ortc
       if (!mGracefulShutdownReference) mGracefulShutdownReference = mThisWeak.lock();
 
       if (mGracefulShutdownReference) {
+        // perform any graceful asynchronous shutdown processes needed and
+        // re-attempt shutdown again later if needed.
+
+#define TODO_IMPLEMENT_MEDIA_GRACEFUL_SHUTDOWN 1
+#define TODO_IMPLEMENT_MEDIA_GRACEFUL_SHUTDOWN 2
 //        return;
       }
 
       //.......................................................................
-      // final cleanup
+      // final cleanup (hard shutdown)
 
       setState(State_Shutdown);
+
+#define TODO_IMPLEMENT_MEDIA_HARD_SHUTDOWN 1
+#define TODO_IMPLEMENT_MEDIA_HARD_SHUTDOWN 2
+
+      // resolve any outstanding promises
+      {
+        auto registration = mRegistration.lock();
+        while (mPendingReady.size() > 0)
+        {
+          auto &front = mPendingReady.front();
+          if (registration) {
+            front->resolve(registration);
+          } else {
+            front->reject();
+          }
+          mPendingReady.pop_front();
+        }
+      }
 
       // make sure to cleanup any final reference to self
       mGracefulShutdownReference.reset();
     }
 
     //-------------------------------------------------------------------------
-    void RTPReceiverChannel::setState(States state)
+    void RTPMediaEngine::setState(States state)
     {
       if (state == mCurrentState) return;
 
@@ -673,14 +714,29 @@ namespace ortc
 
       mCurrentState = state;
 
-//      RTPReceiverChannelPtr pThis = mThisWeak.lock();
+      if (isReady()) {
+        auto registration = mRegistration.lock();
+
+        while (mPendingReady.size() > 0)
+        {
+          auto &front = mPendingReady.front();
+          if (registration) {
+            front->resolve(registration);
+          } else {
+            front->reject();
+          }
+          mPendingReady.pop_front();
+        }
+      }
+
+//      RTPMediaEnginePtr pThis = mThisWeak.lock();
 //      if (pThis) {
-//        mSubscriptions.delegate()->onRTPReceiverChannelStateChanged(pThis, mCurrentState);
+//        mSubscriptions.delegate()->onRTPMediaEngineStateChanged(pThis, mCurrentState);
 //      }
     }
 
     //-------------------------------------------------------------------------
-    void RTPReceiverChannel::setError(WORD errorCode, const char *inReason)
+    void RTPMediaEngine::setError(WORD errorCode, const char *inReason)
     {
       String reason(inReason);
       if (reason.isEmpty()) {
@@ -703,25 +759,20 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IRTPReceiverChannelFactory
+    #pragma mark IRTPMediaEngineFactory
     #pragma mark
 
     //-------------------------------------------------------------------------
-    IRTPReceiverChannelFactory &IRTPReceiverChannelFactory::singleton()
+    IRTPMediaEngineFactory &IRTPMediaEngineFactory::singleton()
     {
-      return RTPReceiverChannelFactory::singleton();
+      return RTPMediaEngineFactory::singleton();
     }
 
     //-------------------------------------------------------------------------
-    RTPReceiverChannelPtr IRTPReceiverChannelFactory::create(
-                                                             RTPReceiverPtr receiver,
-                                                             MediaStreamTrackPtr track,
-                                                             const Parameters &params,
-                                                             const RTCPPacketList &packets
-                                                             )
+    RTPMediaEnginePtr IRTPMediaEngineFactory::create(IRTPMediaEngineRegistrationPtr registration)
     {
       if (this) {}
-      return internal::RTPReceiverChannel::create(receiver, track, params, packets);
+      return internal::RTPMediaEngine::create(registration);
     }
 
   } // internal namespace

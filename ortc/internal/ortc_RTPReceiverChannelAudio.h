@@ -34,6 +34,7 @@
 #include <ortc/internal/types.h>
 #include <ortc/internal/ortc_ISecureTransport.h>
 #include <ortc/internal/ortc_RTPReceiverChannelMediaBase.h>
+#include <ortc/internal/ortc_RTPMediaEngine.h>
 
 #include <ortc/IICETransport.h>
 #include <ortc/IDTLSTransport.h>
@@ -160,6 +161,7 @@ namespace ortc
                                     public IRTPReceiverChannelAudioForMediaStreamTrack,
                                     public IWakeDelegate,
                                     public zsLib::ITimerDelegate,
+                                    public zsLib::IPromiseSettledDelegate,
                                     public IRTPReceiverChannelAudioAsyncDelegate
     {
     protected:
@@ -179,6 +181,7 @@ namespace ortc
 
       ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverChannelForRTPReceiverChannelAudio, UseChannel)
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPReceiverChannelAudio, UseMediaStreamTrack)
+      ZS_DECLARE_TYPEDEF_PTR(IRTPMediaEngineForRTPReceiverChannelAudio, UseMediaEngine)
 
       ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverChannelMediaBaseForRTPReceiverChannel, ForReceiverChannelFromMediaBase)
       ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverChannelMediaBaseForMediaStreamTrack, ForMediaStreamTrackFromMediaBase)
@@ -289,6 +292,13 @@ namespace ortc
 
       //-----------------------------------------------------------------------
       #pragma mark
+      #pragma mark RTPReceiverChannelAudio => IPromiseSettledDelegate
+      #pragma mark
+
+      virtual void onPromiseSettled(PromisePtr promise) override;
+
+      //-----------------------------------------------------------------------
+      #pragma mark
       #pragma mark RTPReceiverChannelAudio => IRTPReceiverChannelAudioAsyncDelegate
       #pragma mark
 
@@ -355,7 +365,8 @@ namespace ortc
       bool isShutdown() const;
 
       void step();
-      bool stepBogusDoSomething();
+      bool stepPromise();
+      bool stepSetup();
 
       void cancel();
 
@@ -382,6 +393,10 @@ namespace ortc
       UseChannelWeakPtr mReceiverChannel;
 
       ParametersPtr mParameters;
+
+      PromiseWithRTPMediaEngineRegistrationPtr mMediaEnginePromise;
+      IRTPMediaEngineRegistrationPtr mMediaEngineRegistration;
+      UseMediaEnginePtr mMediaEngine;
 
       Optional<IMediaStreamTrackTypes::Kinds> mKind;
       UseMediaStreamTrackPtr mTrack;
