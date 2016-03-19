@@ -732,6 +732,7 @@ namespace ortc
           // Only remember WEAK pointer to device so it's possible the example
           // device resource was already destroyed. Thus only setup the device
           // if the object is still alive.
+          deviceResource->notifyReady();
         }
 
         mExamplePendingDeviceResources.pop_front();
