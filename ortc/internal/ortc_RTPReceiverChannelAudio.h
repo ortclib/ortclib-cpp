@@ -394,8 +394,7 @@ namespace ortc
 
       ParametersPtr mParameters;
 
-      PromiseWithRTPMediaEngineRegistrationPtr mMediaEnginePromise;
-      IRTPMediaEngineRegistrationPtr mMediaEngineRegistration;
+      PromiseWithRTPMediaEnginePtr mMediaEnginePromise;
       UseMediaEnginePtr mMediaEngine;
 
       Optional<IMediaStreamTrackTypes::Kinds> mKind;

@@ -126,14 +126,15 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      PromiseWithRTPMediaEngineRegistrationPtr notify()
+      PromiseWithRTPMediaEnginePtr notify()
       {
-        auto promise = PromiseWithRTPMediaEngineRegistration::create(IORTCForInternal::queueDelegate());
+        auto promise = PromiseWithRTPMediaEngine::create(IORTCForInternal::queueDelegate());
+        promise->setReferenceHolder(mThisWeak.lock());
         mEngine->notify(promise);
         return promise;
       }
 
-    protected:
+    public:
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark IRTPMediaEngineRegistration
@@ -282,15 +283,18 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    PromiseWithRTPMediaEngineRegistrationPtr IRTPMediaEngineForRTPReceiverChannelMediaBase::create()
+    PromiseWithRTPMediaEnginePtr IRTPMediaEngineForRTPReceiverChannelMediaBase::create()
     {
-      auto singleton = RTPMediaEngineSingleton::singleton();
-      if (!singleton) {
-        return PromiseWithRTPMediaEngineRegistration::createRejected(IORTCForInternal::queueDelegate());
-      }
-      return singleton->getEngineRegistration()->notify();
+      return RTPMediaEngine::createEnginePromise();
     }
 
+    //-------------------------------------------------------------------------
+    PromiseWithRTPMediaEngineDeviceResourcePtr IRTPMediaEngineForRTPReceiverChannelMediaBase::getDeviceResource(const char *deviceID)
+    {
+      auto singleton = RTPMediaEngineSingleton::singleton();
+      if (!singleton) return PromiseWithRTPMediaEngineDeviceResource::createRejected(IORTCForInternal::queueDelegate());
+      return singleton->getEngineRegistration()->getRTPEngine()->getDeviceResource(deviceID);
+    }
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -393,6 +397,12 @@ namespace ortc
       return ZS_DYNAMIC_PTR_CAST(RTPMediaEngine, object);
     }
 
+    //-------------------------------------------------------------------------
+    RTPMediaEnginePtr RTPMediaEngine::convert(ForDeviceResourcePtr object)
+    {
+      return ZS_DYNAMIC_PTR_CAST(RTPMediaEngine, object);
+    }
+
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -403,6 +413,16 @@ namespace ortc
     #pragma mark
     
     //-------------------------------------------------------------------------
+    PromiseWithRTPMediaEnginePtr RTPMediaEngine::createEnginePromise()
+    {
+      auto singleton = RTPMediaEngineSingleton::singleton();
+      if (!singleton) {
+        return PromiseWithRTPMediaEngine::createRejected(IORTCForInternal::queueDelegate());
+      }
+      return singleton->getEngineRegistration()->notify();
+    }
+
+    //-------------------------------------------------------------------------
     RTPMediaEnginePtr RTPMediaEngine::create(IRTPMediaEngineRegistrationPtr registration)
     {
       RTPMediaEnginePtr pThis(make_shared<RTPMediaEngine>(make_private {}, IORTCForInternal::queueBlockingMediaStartStopThread(), registration));
@@ -412,16 +432,17 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPMediaEngine::notify(PromiseWithRTPMediaEngineRegistrationPtr promise)
+    void RTPMediaEngine::notify(PromiseWithRTPMediaEnginePtr promise)
     {
       IRTPMediaEngineRegistrationPtr registration;
 
       {
         AutoRecursiveLock lock(*this);
-        if (isReady()) {
-          registration = mRegistration.lock();
+        if (!isReady()) {
+          mPendingReady.push_back(promise);
+          return;
         }
-        mPendingReady.push_back(promise);
+        registration = mRegistration.lock();
       }
 
       if (registration) {
@@ -455,6 +476,23 @@ namespace ortc
     #pragma mark
     #pragma mark RTPMediaEngine => IRTPMediaEngineForRTPReceiverChannelMediaBase
     #pragma mark
+
+    //-------------------------------------------------------------------------
+    PromiseWithRTPMediaEngineDeviceResourcePtr RTPMediaEngine::getDeviceResource(const char *deviceID)
+    {
+      DeviceResourcePtr resource = DeviceResource::create(mRegistration.lock(), deviceID);
+
+      {
+        AutoRecursiveLock lock(*this);
+        mExampleDeviceResources[resource->getID()] = resource;
+        mExamplePendingDeviceResources.push_back(resource);
+      }
+
+      // invoke "step" mechanism asynchronously to do something with this resource...
+      IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
+
+      return resource->createPromise<IRTPMediaEngineDeviceResource>();
+    }
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -505,6 +543,32 @@ namespace ortc
     #pragma mark RTPMediaEngine => IRTPMediaEngineForRTPSenderChannelVideo
     #pragma mark
 
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPMediaEngine => IRTPMediaEngineForDeviceResource
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::notifyResourceGone(IRTPMediaEngineDeviceResource &inResource)
+    {
+      DeviceResource &resource = dynamic_cast<DeviceResource &>(inResource);
+
+      PUID resourceID = resource.getID();
+
+      AutoRecursiveLock lock(*this);
+
+      auto found = mExampleDeviceResources.find(resourceID);
+      if (found != mExampleDeviceResources.end()) {
+        mExampleDeviceResources.erase(found);
+      }
+
+      // invoke "step" mechanism again
+      IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
+    }
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -626,6 +690,7 @@ namespace ortc
 
       // ... other steps here ...
       if (!stepSetup()) goto not_ready;
+      if (!stepExampleSetupDeviceResources()) goto not_ready;
       // ... other steps here ...
 
       goto ready;
@@ -653,6 +718,24 @@ namespace ortc
 
 #define TODO_IMPLEMENT_MEDIA_SETUP 1
 #define TODO_IMPLEMENT_MEDIA_SETUP 2
+
+      return true;
+    }
+
+    //-------------------------------------------------------------------------
+    bool RTPMediaEngine::stepExampleSetupDeviceResources()
+    {
+      while (mExamplePendingDeviceResources.size() > 0) {
+        auto deviceResource = mExamplePendingDeviceResources.front().lock();
+
+        if (deviceResource) {
+          // Only remember WEAK pointer to device so it's possible the example
+          // device resource was already destroyed. Thus only setup the device
+          // if the object is still alive.
+        }
+
+        mExamplePendingDeviceResources.pop_front();
+      }
 
       return true;
     }
@@ -752,6 +835,195 @@ namespace ortc
       mLastErrorReason = reason;
 
       ZS_LOG_WARNING(Detail, debug("error set") + ZS_PARAM("error", mLastError) + ZS_PARAM("reason", mLastErrorReason))
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPMediaEngine::DeviceResource
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    RTPMediaEngine::BaseResource::BaseResource(
+                                               const make_private &,
+                                               IMessageQueuePtr queue,
+                                               IRTPMediaEngineRegistrationPtr registration
+                                               ) :
+      SharedRecursiveLock(SharedRecursiveLock::create()),
+      MessageQueueAssociator(queue),
+      mRegistration(registration),
+      mMediaEngine(registration ? registration->getRTPEngine() : RTPMediaEnginePtr())
+    {
+    }
+
+    //-------------------------------------------------------------------------
+    RTPMediaEngine::BaseResource::~BaseResource()
+    {
+      mThisWeak.reset();
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::BaseResource::notifyReady()
+    {
+      {
+        AutoRecursiveLock lock(*this);
+        mNotifiedReady = true;
+      }
+      internalFixState();
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::BaseResource::notifyRejected()
+    {
+      {
+        AutoRecursiveLock lock(*this);
+        mNotifiedRejected = true;
+      }
+      internalFixState();
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPMediaEngine::DeviceResource => (internal)
+    #pragma mark
+
+
+    //-------------------------------------------------------------------------
+    IMessageQueuePtr RTPMediaEngine::BaseResource::delegateQueue()
+    {
+      return IORTCForInternal::queueDelegate();
+    }
+
+    //-------------------------------------------------------------------------
+    PromisePtr RTPMediaEngine::BaseResource::internalSetupPromise(PromisePtr promise)
+    {
+      promise->setReferenceHolder(mThisWeak.lock());
+
+      {
+        AutoRecursiveLock lock(*this);
+        mPendingPromises.push_back(promise);
+      }
+      internalFixState();
+      return promise;
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::BaseResource::internalFixState()
+    {
+      PendingPromiseList promises;
+
+      {
+        AutoRecursiveLock lock(*this);
+
+        {
+          if (mNotifiedRejected) goto prepare_reject_all;
+          if (mNotifiedReady) goto prepare_resolve_all;
+          return;
+        }
+
+      prepare_resolve_all:
+        {
+          promises = mPendingPromises;
+          mPendingPromises.clear();
+          goto resolve_all;
+        }
+
+      prepare_reject_all:
+        {
+          promises = mPendingPromises;
+          mPendingPromises.clear();
+          goto reject_all;
+        }
+      }
+
+    resolve_all:
+      {
+        for (auto iter = promises.begin(); iter != promises.end(); ++iter) {
+          auto &promise = (*iter);
+          promise->resolve(mThisWeak.lock());
+        }
+      }
+
+    reject_all:
+      {
+        for (auto iter = promises.begin(); iter != promises.end(); ++iter) {
+          auto &promise = (*iter);
+          promise->reject();
+        }
+      }
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPMediaEngine::DeviceResource
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    RTPMediaEngine::DeviceResource::DeviceResource(
+                                                   const make_private &priv,
+                                                   IMessageQueuePtr queue,
+                                                   IRTPMediaEngineRegistrationPtr registration,
+                                                   const char *deviceID
+                                                   ) :
+      BaseResource(priv, queue, registration),
+      mDeviceID(deviceID)
+    {
+    }
+
+    //-------------------------------------------------------------------------
+    RTPMediaEngine::DeviceResource::~DeviceResource()
+    {
+      mThisWeak.reset();  // shared pointer to self is no longer valid
+
+      // inform the rtp media engine of this resource no longer being in use
+      UseEnginePtr engine = getEngine<UseEngine>();
+      if (engine) {
+        engine->notifyResourceGone(*this);
+      }
+    }
+
+    //-------------------------------------------------------------------------
+    RTPMediaEngine::DeviceResourcePtr RTPMediaEngine::DeviceResource::create(
+                                                                             IRTPMediaEngineRegistrationPtr registration,
+                                                                             const char *deviceID
+                                                                             )
+    {
+      auto pThis = make_shared<DeviceResource>(make_private{}, IORTCForInternal::queueBlockingMediaStartStopThread(), registration, deviceID);
+      pThis->mThisWeak = pThis;
+      pThis->init();
+      return pThis;
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::DeviceResource::init()
+    {
+      DeviceResourcePtr pThis = getThis<DeviceResource>();  // example of how to get pThis from base class
+#define EXAMPLE_OF_HOW_TO_DO_CUSTOM_RESOURC_SETUP_STEP 1
+#define EXAMPLE_OF_HOW_TO_DO_CUSTOM_RESOURC_SETUP_STEP 2
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPMediaEngine::DeviceResource => IRTPMediaEngineDeviceResource
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    String RTPMediaEngine::DeviceResource::getDeviceID() const
+    {
+#define EXAMPLE_OF_HOW_TO_EXPOSE_API_TO_CONSUMER_OF_RESOURCE 1
+#define EXAMPLE_OF_HOW_TO_EXPOSE_API_TO_CONSUMER_OF_RESOURCE 2
+      return mDeviceID;
     }
 
     //-------------------------------------------------------------------------

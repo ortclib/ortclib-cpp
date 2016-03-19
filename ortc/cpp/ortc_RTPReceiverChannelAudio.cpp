@@ -671,22 +671,12 @@ namespace ortc
         mMediaEnginePromise = UseMediaEngine::create();
       }
 
-      if (!mMediaEngineRegistration) {
-        if (!mMediaEnginePromise->isSettled()) {
-          ZS_LOG_TRACE(log("waiting for media engine promise to resolve"))
-          return false;
-        }
-
-        mMediaEngineRegistration = mMediaEnginePromise->value();
-        if (!mMediaEnginePromise) {
-          ZS_LOG_WARNING(Detail, log("failed to initialize media"))
-          cancel();
-          return false;
-        }
-
+      if (!mMediaEnginePromise->isSettled()) {
+        ZS_LOG_TRACE(log("waiting for media engine promise to resolve"))
+        return false;
       }
 
-      mMediaEngine = mMediaEngineRegistration->engine<UseMediaEngine>();
+      mMediaEngine = mMediaEnginePromise->value();
 
       if (!mMediaEngine) {
         ZS_LOG_WARNING(Detail, log("failed to initialize media"))
@@ -727,10 +717,10 @@ namespace ortc
 
       setState(State_Shutdown);
 
-      // cannot hold any more references to the media engine registration or
+      // cannot hold any more references to the media engine promise or
       // the media engine itself
       mMediaEngine.reset();
-      mMediaEngineRegistration.reset();
+      mMediaEnginePromise.reset();
 
       // make sure to cleanup any final reference to self
       mGracefulShutdownReference.reset();
