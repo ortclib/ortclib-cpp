@@ -492,7 +492,7 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark RTPMediaEngine::DeviceResource
+      #pragma mark RTPMediaEngine::BaseResource
       #pragma mark
 
       class BaseResource : public Any,
@@ -503,7 +503,7 @@ namespace ortc
         struct make_private {};
 
       public:
-        typedef std::list<PromisePtr> PendingPromiseList;
+        typedef std::list<PromiseWeakPtr> PendingPromiseList;
 
       public:
         BaseResource(

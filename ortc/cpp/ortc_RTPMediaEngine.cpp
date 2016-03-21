@@ -945,15 +945,18 @@ namespace ortc
     resolve_all:
       {
         for (auto iter = promises.begin(); iter != promises.end(); ++iter) {
-          auto &promise = (*iter);
+          auto promise = (*iter).lock();
+          if (!promise) continue;
           promise->resolve(mThisWeak.lock());
         }
+        return;
       }
 
     reject_all:
       {
         for (auto iter = promises.begin(); iter != promises.end(); ++iter) {
-          auto &promise = (*iter);
+          auto promise = (*iter).lock();
+          if (!promise) continue;
           promise->reject();
         }
       }
