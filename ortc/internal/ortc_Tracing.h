@@ -340,10 +340,10 @@
 #define EventWriteOrtcRtpListenerSsrcTableEntryRemoved(xStr_Method, xPUID, xPUID_RtpReceiverObjectID, xDWORD_Ssrc, xlong_long_LastUsageSinceEpochInSeconds, xStr_MuxID, xStr_Reason)
 #define EventWriteOrtcRtpListenerSsrcTableEntryUpdated(xStr_Method, xPUID, xPUID_RtpReceiverObjectID, xDWORD_Ssrc, xlong_long_LastUsageSinceEpochInSeconds, xStr_MuxID)
 
-#define EventWriteOrtcRtpEngineCreate(xStr_Method, xPUID)
-#define EventWriteOrtcRtpEngineDestroy(xStr_Method, xPUID)
+#define EventWriteOrtcRtpMediaEngineCreate(xStr_Method, xPUID)
+#define EventWriteOrtcRtpMediaEngineDestroy(xStr_Method, xPUID)
 
-#define EventWriteOrtcRtpReceiverCreate(xStr_Method, xPUID, xPUID_RtpListenerObjectID, xPUID_RtpTransportObjectID, xPUID_RtcpTransportObjectID, xsize_t_MaxBufferedRtpPackets, xlong_long_MaxRTPPacketAgeInSeconds, xlong_long_LockAfterSwitchTimeInMilliseconds, xlong_long_AmbigousPayloadMappingMinDifferenceInMilliseconds, xlong_long_SSRCTableExpiresInSeconds, xlong_long_ContributingSourcesExpiry)
+#define EventWriteOrtcRtpReceiverCreate(xStr_Method, xPUID, xStr_Kind, xPUID_RtpListenerObjectID, xPUID_RtpTransportObjectID, xPUID_RtcpTransportObjectID, xPUID_MediaStreamTrackObjectID, xsize_t_MaxBufferedRtpPackets, xlong_long_MaxRTPPacketAgeInSeconds, xlong_long_LockAfterSwitchTimeInMilliseconds, xlong_long_AmbigousPayloadMappingMinDifferenceInMilliseconds, xlong_long_SSRCTableExpiresInSeconds, xlong_long_ContributingSourcesExpiry)
 #define EventWriteOrtcRtpReceiverDestroy(xStr_Method, xPUID)
 #define EventWriteOrtcRtpReceiverStep(xStr_Method, xPUID)
 #define EventWriteOrtcRtpReceiverCancel(xStr_Method, xPUID)
@@ -813,10 +813,10 @@ inline void EventWriteOrtcRtpListenerSsrcTableEntryAdded(const char *xStr_Method
 inline void EventWriteOrtcRtpListenerSsrcTableEntryRemoved(const char *xStr_Method, PUID xPUID, PUID xPUID_RtpReceiverObjectID, DWORD xDWORD_Ssrc, long long xlong_long_LastUsageSinceEpochInSeconds, const char *xStr_MuxID, const char *xStr_Reason) {}
 inline void EventWriteOrtcRtpListenerSsrcTableEntryUpdated(const char *xStr_Method, PUID xPUID, PUID xPUID_RtpReceiverObjectID, DWORD xDWORD_Ssrc, long long xlong_long_LastUsageSinceEpochInSeconds, const char *xStr_MuxID) {}
 
-inline void EventWriteOrtcRtpEngineCreate(const char *xStr_Method, PUID xPUID) {}
-inline void EventWriteOrtcRtpEngineDestroy(const char *xStr_Method, PUID xPUID) {}
+inline void EventWriteOrtcRtpMediaEngineCreate(const char *xStr_Method, PUID xPUID) {}
+inline void EventWriteOrtcRtpMediaEngineDestroy(const char *xStr_Method, PUID xPUID) {}
 
-inline void EventWriteOrtcRtpReceiverCreate(const char *xStr_Method, PUID xPUID, PUID xPUID_RtpListenerObjectID, PUID xPUID_RtpTransportObjectID, PUID xPUID_RtcpTransportObjectID, size_t xsize_t_MaxBufferedRtpPackets, long long xlong_long_MaxRTPPacketAgeInSeconds, long long xlong_long_LockAfterSwitchTimeInMilliseconds, long long xlong_long_AmbigousPayloadMappingMinDifferenceInMilliseconds, long long xlong_long_SSRCTableExpiresInSeconds, long long xlong_long_ContributingSourcesExpiry) {}
+inline void EventWriteOrtcRtpReceiverCreate(const char *xStr_Method, PUID xPUID, const char *xStr_Kind, PUID xPUID_RtpListenerObjectID, PUID xPUID_RtpTransportObjectID, PUID xPUID_RtcpTransportObjectID, PUID xPUID_MediaStreamTrackObjectID, size_t xsize_t_MaxBufferedRtpPackets, long long xlong_long_MaxRTPPacketAgeInSeconds, long long xlong_long_LockAfterSwitchTimeInMilliseconds, long long xlong_long_AmbigousPayloadMappingMinDifferenceInMilliseconds, long long xlong_long_SSRCTableExpiresInSeconds, long long xlong_long_ContributingSourcesExpiry) {}
 inline void EventWriteOrtcRtpReceiverDestroy(const char *xStr_Method, PUID xPUID) {}
 inline void EventWriteOrtcRtpReceiverStep(const char *xStr_Method, PUID xPUID) {}
 inline void EventWriteOrtcRtpReceiverCancel(const char *xStr_Method, PUID xPUID) {}

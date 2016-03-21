@@ -45,6 +45,7 @@
 #include <ortc/internal/ortc_ICETransportController.h>
 #include <ortc/internal/ortc_MediaDevices.h>
 #include <ortc/internal/ortc_RTPListener.h>
+#include <ortc/internal/ortc_RTPMediaEngine.h>
 #include <ortc/internal/ortc_RTPReceiver.h>
 #include <ortc/internal/ortc_RTPReceiverChannel.h>
 #include <ortc/internal/ortc_RTPReceiverChannelMediaBase.h>

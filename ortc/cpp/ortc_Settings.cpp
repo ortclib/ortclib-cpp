@@ -41,6 +41,7 @@
 #include <ortc/internal/ortc_MediaDevices.h>
 #include <ortc/internal/ortc_MediaStreamTrack.h>
 #include <ortc/internal/ortc_RTPListener.h>
+#include <ortc/internal/ortc_RTPMediaEngine.h>
 #include <ortc/internal/ortc_RTPReceiver.h>
 #include <ortc/internal/ortc_RTPReceiverChannel.h>
 #include <ortc/internal/ortc_RTPReceiverChannelAudio.h>
@@ -169,6 +170,7 @@ namespace ortc
       IMediaDevicesForSettings::applyDefaults();
       IMediaStreamTrackForSettings::applyDefaults();
       IRTPListenerForSettings::applyDefaults();
+      IRTPMediaEngineForSettings::applyDefaults();
       IRTPReceiverForSettings::applyDefaults();
       IRTPReceiverChannelForSettings::applyDefaults();
       IRTPReceiverChannelAudioForSettings::applyDefaults();

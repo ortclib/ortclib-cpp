@@ -1132,6 +1132,7 @@ namespace ortc
 
         static RTPReceiverTesterPtr create(
                                            IMessageQueuePtr queue,
+                                           IMediaStreamTrackTypes::Kinds kind,
                                            bool overrideFactories,
                                            Milliseconds packetDelay = Milliseconds()
                                            );

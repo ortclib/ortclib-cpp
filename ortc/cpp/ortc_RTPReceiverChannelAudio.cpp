@@ -658,7 +658,8 @@ namespace ortc
       }
 
       // ... other steps here ...
-      if (!stepPromise()) goto not_ready;
+      if (!stepPromiseEngine()) goto not_ready;
+      if (!stepPromiseExampleDeviceResource()) goto not_ready;
       if (!stepSetup()) goto not_ready;
       // ... other steps here ...
 
@@ -678,7 +679,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool RTPReceiverChannelAudio::stepPromise()
+    bool RTPReceiverChannelAudio::stepPromiseEngine()
     {
       if (mMediaEngine) {
         ZS_LOG_TRACE(log("already setup engine"))
@@ -689,22 +690,12 @@ namespace ortc
         mMediaEnginePromise = UseMediaEngine::create();
       }
 
-      if (!mMediaEngineRegistration) {
-        if (!mMediaEnginePromise->isSettled()) {
-          ZS_LOG_TRACE(log("waiting for media engine promise to resolve"))
-          return false;
-        }
-
-        mMediaEngineRegistration = mMediaEnginePromise->value();
-        if (!mMediaEnginePromise) {
-          ZS_LOG_WARNING(Detail, log("failed to initialize media"))
-          cancel();
-          return false;
-        }
-
+      if (!mMediaEnginePromise->isSettled()) {
+        ZS_LOG_TRACE(log("waiting for media engine promise to resolve"))
+        return false;
       }
 
-      mMediaEngine = mMediaEngineRegistration->engine<UseMediaEngine>();
+      mMediaEngine = mMediaEnginePromise->value();
 
       if (!mMediaEngine) {
         ZS_LOG_WARNING(Detail, log("failed to initialize media"))
@@ -713,6 +704,35 @@ namespace ortc
       }
 
       ZS_LOG_DEBUG(log("media engine is setup") + ZS_PARAM("engine", mMediaEngine->getID()))
+      return true;
+    }
+
+    //-------------------------------------------------------------------------
+    bool RTPReceiverChannelAudio::stepPromiseExampleDeviceResource()
+    {
+      if (mDeviceResource) {
+        ZS_LOG_TRACE(log("already setup device resource"))
+        return true;
+      }
+
+      if (!mDeviceResourcePromise) {
+        mDeviceResourcePromise = UseMediaEngine::getDeviceResource("camera");
+      }
+
+      if (!mDeviceResourcePromise->isSettled()) {
+        ZS_LOG_TRACE(log("waiting for media device resource promise to resolve"))
+        return false;
+      }
+
+      mDeviceResource = mDeviceResourcePromise->value();
+
+      if (!mDeviceResource) {
+        ZS_LOG_WARNING(Detail, log("failed to initialize device resource"))
+        cancel();
+        return false;
+      }
+
+      ZS_LOG_DEBUG(log("media device is setup") + ZS_PARAM("device", mDeviceResource->getDeviceID()))
       return true;
     }
 
@@ -745,10 +765,10 @@ namespace ortc
 
       setState(State_Shutdown);
 
-      // cannot hold any more references to the media engine registration or
+      // cannot hold any more references to the media engine promise or
       // the media engine itself
       mMediaEngine.reset();
-      mMediaEngineRegistration.reset();
+      mMediaEnginePromise.reset();
 
       // make sure to cleanup any final reference to self
       mGracefulShutdownReference.reset();

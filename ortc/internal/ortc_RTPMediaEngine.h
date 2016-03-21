@@ -52,6 +52,9 @@ namespace ortc
   {
     ZS_DECLARE_INTERACTION_PTR(IRTPMediaEngineRegistration)
 
+    // resource based interfaces
+    ZS_DECLARE_INTERACTION_PTR(IRTPMediaEngineDeviceResource)
+
     ZS_DECLARE_INTERACTION_PTR(IRTPMediaEngineForSettings)
     ZS_DECLARE_INTERACTION_PTR(IRTPMediaEngineForRTPReceiver)
     ZS_DECLARE_INTERACTION_PTR(IRTPMediaEngineForMediaStreamTrack)
@@ -67,7 +70,8 @@ namespace ortc
 
     ZS_DECLARE_INTERACTION_PROXY(IRTPMediaEngineAsyncDelegate)
 
-    ZS_DECLARE_TYPEDEF_PTR(zsLib::PromiseWith<IRTPMediaEngineRegistration>, PromiseWithRTPMediaEngineRegistration)
+    ZS_DECLARE_TYPEDEF_PTR(zsLib::PromiseWith<RTPMediaEngine>, PromiseWithRTPMediaEngine)
+    ZS_DECLARE_TYPEDEF_PTR(zsLib::PromiseWith<IRTPMediaEngineDeviceResource>, PromiseWithRTPMediaEngineDeviceResource)
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -83,6 +87,20 @@ namespace ortc
       std::shared_ptr<data_type> engine() const {return ZS_DYNAMIC_PTR_CAST(data_type, getRTPEngine());}
 
       virtual RTPMediaEnginePtr getRTPEngine() const = 0;
+    };
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IRTPMediaEngineDeviceResource
+    #pragma mark
+
+    interaction IRTPMediaEngineDeviceResource : public Any
+    {
+      virtual PUID getID() const = 0;
+      virtual String getDeviceID() const = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -146,7 +164,9 @@ namespace ortc
 
       ElementPtr toDebug(ForRTPReceiverChannelMediaBasePtr object);
 
-      static PromiseWithRTPMediaEngineRegistrationPtr create();
+      static PromiseWithRTPMediaEnginePtr create();
+
+      static PromiseWithRTPMediaEngineDeviceResourcePtr getDeviceResource(const char *deviceID);
 
       virtual PUID getID() const = 0;
     };
@@ -238,6 +258,22 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
+    #pragma mark IRTPMediaEngineForDeviceResource
+    #pragma mark
+
+    interaction IRTPMediaEngineForDeviceResource
+    {
+      ZS_DECLARE_TYPEDEF_PTR(IRTPMediaEngineForDeviceResource, ForDeviceResource)
+
+      virtual void notifyResourceGone(IRTPMediaEngineDeviceResource &device) = 0;
+    };
+
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
     #pragma mark IRTPMediaEngineAsyncDelegate
     #pragma mark
 
@@ -266,6 +302,7 @@ namespace ortc
                            public IRTPMediaEngineForRTPSenderChannel,
                            public IRTPMediaEngineForRTPSenderChannelAudio,
                            public IRTPMediaEngineForRTPSenderChannelVideo,
+                           public IRTPMediaEngineForDeviceResource,
                            public IWakeDelegate,
                            public zsLib::ITimerDelegate,
                            public IRTPMediaEngineAsyncDelegate
@@ -288,6 +325,10 @@ namespace ortc
       friend interaction IRTPMediaEngineForRTPSenderChannelMediaBase;
       friend interaction IRTPMediaEngineForRTPSenderChannelAudio;
       friend interaction IRTPMediaEngineForRTPSenderChannelVideo;
+      friend interaction IRTPMediaEngineForDeviceResource;
+
+      ZS_DECLARE_CLASS_PTR(BaseResource)
+      ZS_DECLARE_CLASS_PTR(DeviceResource)
 
       enum States
       {
@@ -298,7 +339,10 @@ namespace ortc
       };
       static const char *toString(States state);
 
-      ZS_DECLARE_TYPEDEF_PTR(std::list<PromiseWithRTPMediaEngineRegistrationPtr>, PromiseWithRTPMediaEngineList)
+      ZS_DECLARE_TYPEDEF_PTR(std::list<PromiseWithRTPMediaEnginePtr>, PromiseWithRTPMediaEngineList)
+
+      typedef std::map<PUID, DeviceResourceWeakPtr> DeviceResourceMap;
+      typedef std::list<DeviceResourceWeakPtr> DeviceResourceList;
 
     public:
       RTPMediaEngine(
@@ -327,6 +371,7 @@ namespace ortc
       static RTPMediaEnginePtr convert(ForRTPSenderChannelMediaBasePtr object);
       static RTPMediaEnginePtr convert(ForRTPSenderChannelAudioPtr object);
       static RTPMediaEnginePtr convert(ForRTPSenderChannelVideoPtr object);
+      static RTPMediaEnginePtr convert(ForDeviceResourcePtr object);
 
     protected:
       //-----------------------------------------------------------------------
@@ -334,9 +379,11 @@ namespace ortc
       #pragma mark RTPMediaEngine => RTPMediaEngineRegistration
       #pragma mark
 
+      static PromiseWithRTPMediaEnginePtr createEnginePromise();
+
       static RTPMediaEnginePtr create(IRTPMediaEngineRegistrationPtr registration);
 
-      void notify(PromiseWithRTPMediaEngineRegistrationPtr promise);
+      void notify(PromiseWithRTPMediaEnginePtr promise);
 
       void shutdown();
 
@@ -351,6 +398,8 @@ namespace ortc
       #pragma mark
       #pragma mark RTPMediaEngine => IRTPMediaEngineForRTPReceiverChannelMediaBase
       #pragma mark
+
+      PromiseWithRTPMediaEngineDeviceResourcePtr getDeviceResource(const char *deviceID);
 
       // (duplicate) virtual PUID getID() const = 0;
 
@@ -390,6 +439,13 @@ namespace ortc
 
       //-----------------------------------------------------------------------
       #pragma mark
+      #pragma mark RTPMediaEngine => IRTPMediaEngineForDeviceResource
+      #pragma mark
+
+      virtual void notifyResourceGone(IRTPMediaEngineDeviceResource &resource) override;
+
+      //-----------------------------------------------------------------------
+      #pragma mark
       #pragma mark RTPMediaEngine => IWakeDelegate
       #pragma mark
 
@@ -423,12 +479,124 @@ namespace ortc
 
       void step();
       bool stepSetup();
+      bool stepExampleSetupDeviceResources();
 
       void cancel();
 
       void setState(States state);
       void setError(WORD error, const char *reason = NULL);
 
+    public:
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPMediaEngine::BaseResource
+      #pragma mark
+
+      class BaseResource : public Any,
+                           public SharedRecursiveLock,
+                           public MessageQueueAssociator
+      {
+      protected:
+        struct make_private {};
+
+      public:
+        typedef std::list<PromiseWeakPtr> PendingPromiseList;
+
+      public:
+        BaseResource(
+                     const make_private &,
+                     IMessageQueuePtr queue,
+                     IRTPMediaEngineRegistrationPtr registration
+                     );
+        ~BaseResource();
+
+        void notifyReady();
+        void notifyRejected();
+
+        template <typename data_type>
+        std::shared_ptr<PromiseWith<data_type> > createPromise() {return ZS_DYNAMIC_PTR_CAST(PromiseWith<data_type>, internalSetupPromise(PromiseWith<data_type>::create(delegateQueue())));}
+
+        template <typename self_type>
+        std::shared_ptr<self_type> getThis() const {return ZS_DYNAMIC_PTR_CAST(self_type, mThisWeak.lock());}
+
+        template <typename engine_interface>
+        std::shared_ptr<engine_interface> getEngine() const {return mMediaEngine.lock();}
+
+      protected:
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark RTPMediaEngine::DeviceResource => (internal)
+        #pragma mark
+
+        IMessageQueuePtr delegateQueue();
+        PromisePtr internalSetupPromise(PromisePtr promise);
+        void internalFixState();
+
+      protected:
+        AutoPUID mID;
+        BaseResourceWeakPtr mThisWeak;
+
+        bool mNotifiedReady {false};
+        bool mNotifiedRejected {false};
+        PendingPromiseList mPendingPromises;
+
+        IRTPMediaEngineRegistrationPtr mRegistration;
+        RTPMediaEngineWeakPtr mMediaEngine;
+      };
+
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPMediaEngine::DeviceResource
+      #pragma mark
+
+      class DeviceResource : public IRTPMediaEngineDeviceResource,
+                             public BaseResource
+      {
+      public:
+        ZS_DECLARE_TYPEDEF_PTR(IRTPMediaEngineForDeviceResource, UseEngine)
+
+      public:
+        DeviceResource(
+                       const make_private &,
+                       IMessageQueuePtr queue,
+                       IRTPMediaEngineRegistrationPtr registration,
+                       const char *deviceID
+                       );
+        ~DeviceResource();
+
+        static DeviceResourcePtr create(
+                                        IRTPMediaEngineRegistrationPtr registration,
+                                        const char *deviceID
+                                        );
+
+      protected:
+        void init();
+
+      public:
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark RTPMediaEngine::DeviceResource => RTPMediaEngine
+        #pragma mark
+
+        virtual PUID getID() const {return mID;}
+
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark RTPMediaEngine::DeviceResource => IRTPMediaEngineDeviceResource
+        #pragma mark
+
+        // (duplicate) virtual PUID getID() const;
+        virtual String getDeviceID() const;
+
+      protected:
+        String mDeviceID;
+      };
 
     protected:
       //-----------------------------------------------------------------------
@@ -447,6 +615,9 @@ namespace ortc
 
       IRTPMediaEngineRegistrationWeakPtr mRegistration;
       PromiseWithRTPMediaEngineList mPendingReady;
+
+      DeviceResourceMap mExampleDeviceResources;
+      DeviceResourceList mExamplePendingDeviceResources;
     };
 
     //-------------------------------------------------------------------------
