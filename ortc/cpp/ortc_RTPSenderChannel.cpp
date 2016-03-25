@@ -179,6 +179,8 @@ namespace ortc
 
       ORTC_THROW_INVALID_PARAMETERS_IF(!sender)
 
+      setupTagging();
+
       EventWriteOrtcRtpSenderChannelCreate(__func__, mID, sender->getID(), ((bool)track) ? track->getID() : 0);
     }
 
@@ -210,7 +212,7 @@ namespace ortc
           }
         }
       }
-      
+
       ORTC_THROW_INVALID_PARAMETERS_IF(!found)
 
       EventWriteOrtcRtpSenderChannelCreateMediaChannel(__func__, mID, mMediaBase->getID(), IMediaStreamTrack::toString(kind.value()));
@@ -663,75 +665,9 @@ namespace ortc
       
       {
         AutoRecursiveLock lock(*this);
-        
+
         mParameters = params;
         mediaBase = mMediaBase;
-
-        mMuxHeader.reset();
-        mRIDHeader.reset();
-
-        for (auto iter = params->mHeaderExtensions.begin(); iter != params->mHeaderExtensions.end(); ++iter) {
-          auto &ext = *(iter);
-          switch (IRTPTypes::toHeaderExtensionURI(ext.mURI))
-          {
-            case IRTPTypes::HeaderExtensionURI_MuxID:
-            {
-              mMuxHeader = make_shared<HeaderExtensionParameters>(ext);
-              break;
-            }
-            case IRTPTypes::HeaderExtensionURI_RID:
-            {
-              mRIDHeader = make_shared<HeaderExtensionParameters>(ext);
-              break;
-            }
-            default:
-            {
-              break;
-            }
-          }
-        }
-
-        // The MuxID / RID can only be set if the header extensiosn have been
-        // defined in the parameters.
-        mMuxID.clear();
-        mRID.clear();
-
-        if (mMuxHeader) {
-          mMuxID = mParameters->mMuxID;
-        }
-        if (mRIDHeader) {
-          if (mParameters->mEncodings.size() > 0) {
-            auto &encoding = (mParameters->mEncodings.front());
-            mRID = encoding.mEncodingID;
-          }
-        }
-
-        // Check to see if the header options have changed since last update.
-        // If any changes have occured then the streams that pass through
-        // this mapping must be retagged with the MuxID / RID.
-        {
-          SHA1Hasher hasher;
-          if (mMuxHeader) {
-            hasher.update(mMuxHeader->hash());
-          }
-          hasher.update(":");
-          if (mRIDHeader) {
-            hasher.update(mRIDHeader->hash());
-          }
-          hasher.update(":");
-          hasher.update(mMuxID);
-          hasher.update(":");
-          hasher.update(mRID);
-
-          String hashResult = hasher.final();
-          if (hashResult != mHeaderHash) {
-            mTaggings.clear();
-          }
-          mHeaderHash = hashResult;
-        }
-
-        // Set flag to do tagging if there is a mux id or a rid set.
-        mIsTagging = mMuxID.hasData() || mRID.hasData();
 
         Optional<IMediaStreamTrackTypes::Kinds> kind = RTPTypesHelper::getCodecsKind(*mParameters);
         
@@ -754,6 +690,8 @@ namespace ortc
         }
         
         ORTC_THROW_INVALID_PARAMETERS_IF(!found)
+
+        setupTagging();
       }
       
       mediaBase->handleUpdate(params);
@@ -927,6 +865,76 @@ namespace ortc
       ZS_LOG_WARNING(Detail, debug("error set") + ZS_PARAM("error", mLastError) + ZS_PARAM("reason", mLastErrorReason))
     }
 
+    //-------------------------------------------------------------------------
+    void RTPSenderChannel::setupTagging()
+    {
+      mMuxHeader.reset();
+      mRIDHeader.reset();
+
+      for (auto iter = mParameters->mHeaderExtensions.begin(); iter != mParameters->mHeaderExtensions.end(); ++iter) {
+        auto &ext = *(iter);
+        switch (IRTPTypes::toHeaderExtensionURI(ext.mURI))
+        {
+          case IRTPTypes::HeaderExtensionURI_MuxID:
+          {
+            mMuxHeader = make_shared<HeaderExtensionParameters>(ext);
+            break;
+          }
+          case IRTPTypes::HeaderExtensionURI_RID:
+          {
+            mRIDHeader = make_shared<HeaderExtensionParameters>(ext);
+            break;
+          }
+          default:
+          {
+            break;
+          }
+        }
+      }
+
+      // The MuxID / RID can only be set if the header extensiosn have been
+      // defined in the parameters.
+      mMuxID.clear();
+      mRID.clear();
+
+      if (mMuxHeader) {
+        mMuxID = mParameters->mMuxID;
+      }
+      if (mRIDHeader) {
+        if (mParameters->mEncodings.size() > 0) {
+          auto &encoding = (mParameters->mEncodings.front());
+          mRID = encoding.mEncodingID;
+        }
+      }
+
+      // Check to see if the header options have changed since last update.
+      // If any changes have occured then the streams that pass through
+      // this mapping must be retagged with the MuxID / RID.
+      {
+        SHA1Hasher hasher;
+        if (mMuxHeader) {
+          hasher.update(mMuxHeader->hash());
+        }
+        hasher.update(":");
+        if (mRIDHeader) {
+          hasher.update(mRIDHeader->hash());
+        }
+        hasher.update(":");
+        hasher.update(mMuxID);
+        hasher.update(":");
+        hasher.update(mRID);
+
+        String hashResult = hasher.final();
+        if (hashResult != mHeaderHash) {
+          mTaggings.clear();
+        }
+        mHeaderHash = hashResult;
+      }
+
+      // Set flag to do tagging if there is a mux id or a rid set.
+      mIsTagging = mMuxID.hasData() || mRID.hasData();
+    }
+    
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------

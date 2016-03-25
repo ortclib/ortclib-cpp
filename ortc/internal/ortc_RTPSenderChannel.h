@@ -429,6 +429,8 @@ namespace ortc
       void setState(States state);
       void setError(WORD error, const char *reason = NULL);
 
+      void setupTagging();
+
     protected:
       //-----------------------------------------------------------------------
       #pragma mark
