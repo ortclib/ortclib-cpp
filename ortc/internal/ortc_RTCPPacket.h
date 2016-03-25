@@ -382,7 +382,7 @@ namespace ortc
           struct Mid : public StringItem
           {
             // https://tools.ietf.org/html/draft-ietf-mmusic-sdp-bundle-negotiation-23#section-14.2
-            static const BYTE kItemType = 9;  // TBD
+            static const BYTE kItemType = 12;  // TBD
 
             Mid *next() const                                {return static_cast<Mid *>(mNext);}
 
@@ -397,7 +397,7 @@ namespace ortc
           struct Rid : public StringItem
           {
             // https://tools.ietf.org/html/draft-roach-avtext-rid-02#section-4.1
-            static const BYTE kItemType = 10;  // TBD
+            static const BYTE kItemType = 13;  // TBD
 
             Rid *next() const                                {return static_cast<Rid *>(mNext);}
 
