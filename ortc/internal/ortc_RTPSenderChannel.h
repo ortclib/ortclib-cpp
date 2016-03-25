@@ -33,6 +33,7 @@
 
 #include <ortc/internal/types.h>
 #include <ortc/internal/ortc_ISecureTransport.h>
+#include <ortc/internal/ortc_RTPPacket.h>
 
 #include <ortc/IDTLSTransport.h>
 #include <ortc/IICETransport.h>
@@ -45,7 +46,8 @@
 
 #include <webrtc/video_frame.h>
 
-//#define ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE "ortc/sctp/max-message-size"
+#define ORTC_SETTING_RTP_SENDER_CHANNEL_RETAG_RTP_PACKETS_AFTER_SSRC_NOT_SENT_IN_SECONDS "ortc/rtp-sender-channel/retag-rtp-packets-after-ssrc-not-sent-in-seconds"
+#define ORTC_SETTING_RTP_SENDER_CHANNEL_TAG_MID_RID_IN_RTCP_SDES "ortc/rtp-sender-channel/tag-mid-rid-in-rtcp-sdes"
 
 namespace ortc
 {
@@ -259,6 +261,9 @@ namespace ortc
       typedef std::list<RTCPPacketPtr> RTCPPacketList;
       ZS_DECLARE_PTR(RTCPPacketList)
 
+      typedef IRTPTypes::SSRCType SSRCType;
+      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::HeaderExtensionParameters, HeaderExtensionParameters)
+
       enum States
       {
         State_Pending,
@@ -267,6 +272,21 @@ namespace ortc
         State_Shutdown,
       };
       static const char *toString(States state);
+
+      ZS_DECLARE_STRUCT_PTR(TaggingInfo)
+
+      struct TaggingInfo
+      {
+        SSRCType mSSRC {};
+
+        Time mLastSentPacket {};
+
+        bool mReceiverAck {};
+        WORD mSequenceNumberFirst {};
+        WORD mSequenceNumberLast {};
+      };
+
+      typedef std::map<SSRCType, TaggingInfoPtr> TaggingMap;
 
     public:
       RTPSenderChannel(
@@ -429,6 +449,18 @@ namespace ortc
       UseSenderWeakPtr mSender;
 
       ParametersPtr mParameters;
+
+      // tagging options
+      HeaderExtensionParametersPtr mMuxHeader;
+      HeaderExtensionParametersPtr mRIDHeader;
+      std::atomic<bool> mIsTagging {false};
+      String mMuxID;
+      String mRID;
+      String mHeaderHash;
+
+      Seconds mRetagAfterInSeconds {};
+      bool mTagSDES {false};
+      TaggingMap mTaggings;
 
       Optional<IMediaStreamTrackTypes::Kinds> mKind;
       UseMediaStreamTrackPtr mTrack;

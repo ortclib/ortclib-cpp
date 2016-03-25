@@ -332,6 +332,7 @@ namespace ortc
       RTPPacket(const make_private &);
       ~RTPPacket();
 
+      static RTPPacketPtr create(const RTPPacket &packet);
       static RTPPacketPtr create(const CreationParams &params);
       static RTPPacketPtr create(const BYTE *buffer, size_t bufferLengthInBytes);
       static RTPPacketPtr create(const SecureByteBlock &buffer);
@@ -387,6 +388,7 @@ namespace ortc
                                  HeaderExtension *firstExtension,
                                  bool twoByteHeader
                                  );
+      void generate(const RTPPacket &params);
       void generate(const CreationParams &params);
 
     public:
