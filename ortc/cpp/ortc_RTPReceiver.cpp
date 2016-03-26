@@ -540,7 +540,6 @@ namespace ortc
       return PromiseWithStatsReportPtr();
     }
 
-
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -2633,7 +2632,6 @@ namespace ortc
           case CodecKind_RTX:
           {
             foundEncoding->mRTX.value().mSSRC = rtpPacket.ssrc();
-            foundEncoding->mRTX.value().mPayloadType = rtpPacket.pt();
             goto insert_ssrc_into_table;
           }
           case CodecKind_FEC:
@@ -2872,9 +2870,6 @@ namespace ortc
               filledEncoding.mRTX = rtx;
             }
 
-            if (!filledEncoding.mRTX.value().mPayloadType.hasValue()) {
-              filledEncoding.mRTX.value().mPayloadType = rtpPacket.pt();
-            }
             if (!filledEncoding.mRTX.value().mSSRC.hasValue()) {
               filledEncoding.mRTX.value().mSSRC = rtpPacket.ssrc();
             }

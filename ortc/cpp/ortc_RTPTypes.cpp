@@ -105,6 +105,7 @@ namespace ortc
         }
         UseServicesHelper::debugAppend(resultEl, disallowEl);
       }
+      UseServicesHelper::debugAppend(resultEl, "rtx apt payload", mRTXAptPayloadType);
       UseServicesHelper::debugAppend(resultEl, "disallow multiple matches", mDisallowMultipleMatches);
 
       return resultEl;
@@ -749,6 +750,13 @@ namespace ortc
           }
         }
 
+        if (options.mRTXAptPayloadType.hasValue()) {
+          IRTPTypes::RTXCodecParametersPtr rtxCodecParams = IRTPTypes::RTXCodecParameters::convert(codec.mParameters);
+          if (!rtxCodecParams) continue;
+
+          if (rtxCodecParams->mApt != options.mRTXAptPayloadType.value()) continue;
+        }
+
         if ((options.mDisallowMultipleMatches.hasValue()) &&
             (options.mDisallowMultipleMatches.value())) {
           if (foundCodec) {
@@ -951,48 +959,34 @@ namespace ortc
                                                                         const EncodingParameters *baseEncoding
                                                                         )
     {
-      Optional<PayloadType> rtxPayloadType;
-
       bool foundEncoding = false;
       bool usesRTX = false;
 
-      if ((!rtxPayloadType.hasValue()) &&
-          (encoding)) {
+      Optional<PayloadType> encodingPayloadType;
+
+      if (encoding) {
         foundEncoding = true;
         if (encoding->mRTX.hasValue()) {
           usesRTX = true;
-          rtxPayloadType = encoding->mRTX.value().mPayloadType;
+          encodingPayloadType = encoding->mCodecPayloadType;
         }
       }
 
-      if ((!rtxPayloadType.hasValue()) &&
-          (baseEncoding)) {
+      if (baseEncoding) {
         foundEncoding = true;
         if (baseEncoding->mRTX.hasValue()) {
           usesRTX = true;
-          rtxPayloadType = baseEncoding->mRTX.value().mPayloadType;
-        }
-      }
-
-      if (!rtxPayloadType.hasValue()) {
-        if (params.mEncodings.size() > 0) {
-          auto &frontEncoding = params.mEncodings.front();
-          foundEncoding = true;
-          if (frontEncoding.mRTX.hasValue()) {
-            usesRTX = true;
-            rtxPayloadType = frontEncoding.mRTX.value().mPayloadType;
+          if (!encodingPayloadType.hasValue()) {
+            encodingPayloadType = baseEncoding->mCodecPayloadType;
           }
         }
       }
 
-      if (packetRTXPayloadType.hasValue()) {
-        if (rtxPayloadType.hasValue()) {
-          if (rtxPayloadType.value() != packetRTXPayloadType.value()) {
-            ZS_LOG_INSANE(slog("cannot match RTX codec as RTX payload type specified do not match encoding") + params.toDebug() + ZS_PARAM("encoding", encoding ? encoding->toDebug() : ElementPtr()) + ZS_PARAM("base encoding", baseEncoding ? baseEncoding->toDebug() : ElementPtr()))
-            return NULL;
-          }
-        } else {
-          rtxPayloadType = packetRTXPayloadType;
+      if (params.mEncodings.size() > 0) {
+        auto &frontEncoding = params.mEncodings.front();
+        foundEncoding = true;
+        if (frontEncoding.mRTX.hasValue()) {
+          usesRTX = true;
         }
       }
 
@@ -1002,21 +996,30 @@ namespace ortc
         return NULL;
       }
 
-      auto mainCodec = pickCodec(kind, params, Optional<PayloadType>(), encoding, baseEncoding);
-      if (!mainCodec) return NULL;
+      const CodecParameters *mainCodec = NULL;
+
+      if (encodingPayloadType.hasValue()) {
+        mainCodec = pickCodec(kind, params, encodingPayloadType, encoding, baseEncoding);
+        if (!mainCodec) return NULL;
+      }
 
       FindCodecOptions options;
 
-      options.mPayloadType = rtxPayloadType;
-      options.mClockRate = mainCodec->mClockRate;
+      options.mPayloadType = packetRTXPayloadType;
+      if (mainCodec) {
+        options.mClockRate = mainCodec->mClockRate;
+      }
       options.mMatchClockRateNotSet = true;
       options.mCodecKind = IRTPTypes::CodecKind_RTX;
+      if (mainCodec) {
+        options.mRTXAptPayloadType = mainCodec->mPayloadType;
+      }
       options.mDisallowMultipleMatches = true;
 
       auto foundRTXCodec = findCodec(params, options);
 
       if (!foundRTXCodec) {
-        ZS_LOG_WARNING(Debug, slog("did not find an appropriate RTX codec") + params.toDebug() + ZS_PARAM("encoding", encoding ? encoding->toDebug() : ElementPtr()) + ZS_PARAM("base encoding", baseEncoding ? baseEncoding->toDebug() : ElementPtr()) + options.toDebug())
+        ZS_LOG_WARNING(Trace, slog("did not find an appropriate RTX codec") + params.toDebug() + ZS_PARAM("encoding", encoding ? encoding->toDebug() : ElementPtr()) + ZS_PARAM("base encoding", baseEncoding ? baseEncoding->toDebug() : ElementPtr()) + options.toDebug())
         return NULL;
       }
 
@@ -3344,6 +3347,7 @@ namespace ortc
   {
     if (!elem) return;
 
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::RTXCodecParameters", "apt", mApt);
     UseHelper::getElementValue(elem, "ortc::IRTPTypes::RTXCodecParameters", "rtxTime", mRTXTime);
   }
 
@@ -3352,6 +3356,7 @@ namespace ortc
   {
     ElementPtr elem = Element::create(objectName);
 
+    UseHelper::adoptElementValue(elem, "apt", mApt);
     UseHelper::adoptElementValue(elem, "rtxTime", mRTXTime);
 
     if (!elem->hasChildren()) return ElementPtr();
@@ -3360,9 +3365,9 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IRTPTypes::RTXCodecParametersPtr IRTPTypes::RTXCodecParameters::create(const RTXCodecParameters &capability)
+  IRTPTypes::RTXCodecParametersPtr IRTPTypes::RTXCodecParameters::create(const RTXCodecParameters &params)
   {
-    return make_shared<RTXCodecParameters>(capability);
+    return make_shared<RTXCodecParameters>(params);
   }
 
   //---------------------------------------------------------------------------
@@ -3376,6 +3381,7 @@ namespace ortc
   {
     ElementPtr resultEl = Element::create("ortc::IRTPTypes::RTXCodecParameters");
 
+    UseServicesHelper::debugAppend(resultEl, "apt", mApt);
     UseServicesHelper::debugAppend(resultEl, "rtx time", mRTXTime);
 
     return resultEl;
@@ -3388,6 +3394,7 @@ namespace ortc
 
     hasher.update("ortc::IRTPTypes::RTXCodecParameters:");
 
+    hasher.update(mApt);
     hasher.update(mRTXTime);
 
     return hasher.final();
@@ -3739,7 +3746,6 @@ namespace ortc
     if (!elem) return;
 
     UseHelper::getElementValue(elem, "ortc::IRTPTypes::RTXParameters", "ssrc", mSSRC);
-    UseHelper::getElementValue(elem, "ortc::IRTPTypes::RTXParameters", "payloadType", mPayloadType);
   }
 
   //---------------------------------------------------------------------------
@@ -3748,7 +3754,6 @@ namespace ortc
     ElementPtr elem = Element::create(objectName);
 
     UseHelper::adoptElementValue(elem, "ssrc", mSSRC);
-    UseHelper::adoptElementValue(elem, "payloadType", mPayloadType);
 
     if (!elem->hasChildren()) return ElementPtr();
 
@@ -3761,7 +3766,6 @@ namespace ortc
     ElementPtr resultEl = Element::create("ortc::IRTPTypes::RTXParameters");
 
     UseServicesHelper::debugAppend(resultEl, "ssrc", mSSRC);
-    UseServicesHelper::debugAppend(resultEl, "payload type", mPayloadType);
 
     return resultEl;
   }
@@ -3774,9 +3778,6 @@ namespace ortc
     hasher.update("ortc::IRTPTypes::RTXParameters:");
 
     hasher.update(mSSRC);
-    hasher.update(":");
-    hasher.update(mPayloadType);
-    hasher.update(":");
 
     return hasher.final();
   }

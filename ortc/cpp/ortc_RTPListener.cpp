@@ -1810,7 +1810,6 @@ namespace ortc
             case CodecKind_RTX:
             {
               replaceEncoding.mRTX.value().mSSRC = rtpPacket.ssrc();
-              replaceEncoding.mRTX.value().mPayloadType = rtpPacket.pt();
               goto replace_receiver;
             }
             case CodecKind_FEC:

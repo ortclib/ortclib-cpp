@@ -69,6 +69,7 @@ namespace ortc
         Optional<ULONG> mClockRate;
         Optional<bool> mMatchClockRateNotSet;
         PayloadTypeSet mDisallowedPayloadtypeMatches;
+        Optional<PayloadType> mRTXAptPayloadType;
         Optional<bool> mDisallowMultipleMatches;
 
         ElementPtr toDebug() const;

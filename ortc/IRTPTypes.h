@@ -472,6 +472,7 @@ namespace ortc
 
     struct RTXCodecParameters : public Any
     {
+      PayloadType mApt {};
       Milliseconds mRTXTime {};
 
       static RTXCodecParametersPtr create(const RTXCodecParameters &params);
@@ -594,7 +595,6 @@ namespace ortc
 
     struct RTXParameters {
       Optional<SSRCType>    mSSRC;
-      Optional<PayloadType> mPayloadType;
 
       RTXParameters() {}
       RTXParameters(const RTXParameters &op2) {(*this) = op2;}
