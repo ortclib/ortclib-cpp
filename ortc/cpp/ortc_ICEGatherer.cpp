@@ -799,22 +799,37 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void ICEGatherer::gather(const Options &options)
+    void ICEGatherer::gather(const Optional<Options> &options)
     {
       EventWriteOrtcIceGathererGather(__func__, mID, options.mContinuousGathering, options.mInterfacePolicies.size(), options.mICEServers.size());
       AutoRecursiveLock lock(*this);
 
-      mOptions = options;
-      mOptionsHash = mOptions.hash();
+      if (options.hasValue()) {
+        mOptions = options.value();
+        mOptionsHash = mOptions.hash();
+      }
 
       mGetLocalIPsNow = true; // obtain local IPs again
       mLastBoundHostPortsHostHash.clear();
       mLastReflexiveHostsHash.clear();
       mLastRelayHostsHash.clear();
 
-      if (InternalState_Ready == mCurrentState) {
-        ZS_LOG_DETAIL(log("must initiate gathering again"))
-        setState(InternalState_Gathering);
+      switch (mCurrentState) {
+        case InternalState_Pending:       {
+          setState(InternalState_Gathering);
+          break;
+        }
+        case InternalState_Ready:         {
+          ZS_LOG_DETAIL(log("must initiate gathering again"))
+          setState(InternalState_Gathering);
+          break;
+        }
+        case InternalState_Gathering:
+        case InternalState_ShuttingDown:
+        case InternalState_Shutdown:      {
+          // nothing to do...
+          break;
+        }
       }
 
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
@@ -2141,7 +2156,8 @@ namespace ortc
 
       ZS_LOG_DEBUG(debug("step"))
 
-      if (InternalState_Pending == mCurrentState) setState(InternalState_Gathering);
+      // do not start gathering process until gather is called
+      if (InternalState_Pending == mCurrentState) goto done;
 
       if (!stepRecheckIPTimer()) goto done;
       if (!stepCalculateOptionsHash()) goto done;
