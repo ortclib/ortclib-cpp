@@ -801,13 +801,14 @@ namespace ortc
     //-------------------------------------------------------------------------
     void ICEGatherer::gather(const Optional<Options> &options)
     {
-      EventWriteOrtcIceGathererGather(__func__, mID, options.mContinuousGathering, options.mInterfacePolicies.size(), options.mICEServers.size());
       AutoRecursiveLock lock(*this);
 
       if (options.hasValue()) {
         mOptions = options.value();
         mOptionsHash = mOptions.hash();
       }
+
+      EventWriteOrtcIceGathererGather(__func__, mID, mOptions.mContinuousGathering, mOptions.mInterfacePolicies.size(), mOptions.mICEServers.size());
 
       mGetLocalIPsNow = true; // obtain local IPs again
       mLastBoundHostPortsHostHash.clear();
