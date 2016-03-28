@@ -159,7 +159,6 @@ namespace ortc
       return ZS_DYNAMIC_PTR_CAST(RTPReceiverChannelVideo, object)->toDebug();
     }
 
-
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -193,6 +192,7 @@ namespace ortc
       mReceiverChannel(receiverChannel),
       mTrack(track),
       mParameters(make_shared<Parameters>(params)),
+      mSetupChannelEvent(Event::create()),
       mModuleProcessThread(webrtc::ProcessThread::Create("RTPReceiverChannelVideoThread"))
     {
       ZS_LOG_DETAIL(debug("created"))
@@ -205,113 +205,6 @@ namespace ortc
     {
       AutoRecursiveLock lock(*this);
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
-      
-      if (!mTrack) {
-        ZS_LOG_ERROR(Detail, log("MediaStreamTrack is not set during RTPReceiverChannelVideo initialization procedure"))
-        return;
-      }
-
-      mReceiverVideoRenderer.setMediaStreamTrack(mTrack);
-
-      mCallStats = rtc::scoped_ptr<webrtc::CallStats>(new webrtc::CallStats());
-      mCongestionController =
-        rtc::scoped_ptr<webrtc::CongestionController>(new webrtc::CongestionController(
-                                                                                       mModuleProcessThread.get(),
-                                                                                       mCallStats.get())
-                                                                                       );
-
-      mModuleProcessThread->Start();
-      mModuleProcessThread->RegisterModule(mCallStats.get());
-
-      int numCpuCores = webrtc::CpuInfo::DetectNumberOfCores();
-
-      mTransport = Transport::create(mThisWeak.lock());
-      
-      webrtc::Transport* transport = mTransport.get();
-      webrtc::VideoReceiveStream::Config config(transport);
-      webrtc::VideoReceiveStream::Decoder decoder;
-
-      IRTPTypes::CodecParametersList::iterator codecIter = mParameters->mCodecs.begin();
-      while (codecIter != mParameters->mCodecs.end()) {
-        auto supportedCodec = IRTPTypes::toSupportedCodec(codecIter->mName);
-        if (IRTPTypes::SupportedCodec_VP8 == supportedCodec) {
-          webrtc::VideoDecoder* videoDecoder = webrtc::VideoDecoder::Create(webrtc::VideoDecoder::kVp8);
-          decoder.decoder = videoDecoder;
-          decoder.payload_name = codecIter->mName;
-          decoder.payload_type = codecIter->mPayloadType;
-          break;
-        } else if (IRTPTypes::SupportedCodec_VP9 == supportedCodec) {
-          webrtc::VideoDecoder* videoDecoder = webrtc::VideoDecoder::Create(webrtc::VideoDecoder::kVp9);
-          decoder.decoder = videoDecoder;
-          decoder.payload_name = codecIter->mName;
-          decoder.payload_type = codecIter->mPayloadType;
-          break;
-        } else if (IRTPTypes::SupportedCodec_H264 == supportedCodec) {
-          webrtc::VideoDecoder* videoDecoder = webrtc::VideoDecoder::Create(webrtc::VideoDecoder::kH264);
-          decoder.decoder = videoDecoder;
-          decoder.payload_name = codecIter->mName;
-          decoder.payload_type = codecIter->mPayloadType;
-          break;
-        }
-        IRTPTypes::RTCPFeedbackList::iterator rtcpFeedbackIter = codecIter->mRTCPFeedback.begin();
-        while (rtcpFeedbackIter != codecIter->mRTCPFeedback.end()) {
-          IRTPTypes::KnownFeedbackTypes feedbackType = IRTPTypes::toKnownFeedbackType(rtcpFeedbackIter->mType);
-          IRTPTypes::KnownFeedbackParameters feedbackParameter = IRTPTypes::toKnownFeedbackParameter(rtcpFeedbackIter->mParameter);
-          if (IRTPTypes::KnownFeedbackType_NACK == feedbackType && IRTPTypes::KnownFeedbackParameter_Unknown == feedbackParameter) {
-            config.rtp.nack.rtp_history_ms = 1000;
-          } else if (IRTPTypes::KnownFeedbackType_REMB == feedbackType && IRTPTypes::KnownFeedbackParameter_Unknown == feedbackParameter) {
-            config.rtp.remb = true;
-          }
-          rtcpFeedbackIter++;
-        }
-        codecIter++;
-      }
-
-      IRTPTypes::EncodingParametersList::iterator encodingParamIter = mParameters->mEncodings.begin();
-      while (encodingParamIter != mParameters->mEncodings.end()) {
-        if (encodingParamIter->mCodecPayloadType == decoder.payload_type) {
-          config.rtp.remote_ssrc = encodingParamIter->mSSRC;
-          break;
-        }
-      }
-      if (config.rtp.remote_ssrc == 0)
-        config.rtp.remote_ssrc = 1000;
-      config.rtp.local_ssrc = mParameters->mRTCP.mSSRC;
-      if (config.rtp.local_ssrc == 0)
-        config.rtp.local_ssrc = 1010;
-
-      IRTPTypes::HeaderExtensionParametersList::iterator headerExtensionIter = mParameters->mHeaderExtensions.begin();
-      while (headerExtensionIter != mParameters->mHeaderExtensions.end()) {
-        IRTPTypes::HeaderExtensionURIs headerExtensionURI = IRTPTypes::toHeaderExtensionURI(headerExtensionIter->mURI);
-        switch (headerExtensionURI) {
-        case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_TransmissionTimeOffsets:
-        case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_AbsoluteSendTime:
-        case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_3gpp_VideoOrientation:
-        case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_TransportSequenceNumber:
-          config.rtp.extensions.push_back(webrtc::RtpExtension(headerExtensionIter->mURI, headerExtensionIter->mID));
-          break;
-        default:
-          break;
-        }
-        headerExtensionIter++;
-      }
-
-      if (mParameters->mRTCP.mReducedSize)
-        config.rtp.rtcp_mode = webrtc::RtcpMode::kReducedSize;
-      config.decoders.push_back(decoder);
-      config.renderer = &mReceiverVideoRenderer;
-
-      mReceiveStream = rtc::scoped_ptr<webrtc::VideoReceiveStream>(
-        new webrtc::internal::VideoReceiveStream(
-                                                 numCpuCores,
-                                                 mCongestionController.get(),
-                                                 config,
-                                                 NULL,
-                                                 mModuleProcessThread.get(),
-                                                 mCallStats.get()
-                                                 ));
-
-      mReceiveStream->Start();
     }
 
     //-------------------------------------------------------------------------
@@ -321,11 +214,6 @@ namespace ortc
 
       ZS_LOG_DETAIL(log("destroyed"))
       mThisWeak.reset();
-
-      if (mReceiveStream)
-        mReceiveStream->Stop();
-
-      mModuleProcessThread->Stop();
 
       cancel();
     }
@@ -437,6 +325,136 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
+    #pragma mark RTPReceiverChannelVideo => IRTPReceiverChannelMediaBaseForRTPMediaEngine
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    void RTPReceiverChannelVideo::setupChannel()
+    {
+      AutoRecursiveLock lock(*this);
+
+      if (!mTrack) {
+        ZS_LOG_ERROR(Detail, log("MediaStreamTrack is not set during RTPReceiverChannelVideo initialization procedure"))
+          return;
+      }
+
+      mReceiverVideoRenderer.setMediaStreamTrack(mTrack);
+
+      mCallStats = rtc::scoped_ptr<webrtc::CallStats>(new webrtc::CallStats());
+      mCongestionController =
+        rtc::scoped_ptr<webrtc::CongestionController>(new webrtc::CongestionController(
+          mModuleProcessThread.get(),
+          mCallStats.get())
+          );
+
+      mModuleProcessThread->Start();
+      mModuleProcessThread->RegisterModule(mCallStats.get());
+
+      int numCpuCores = webrtc::CpuInfo::DetectNumberOfCores();
+
+      mTransport = Transport::create(mThisWeak.lock());
+
+      webrtc::Transport* transport = mTransport.get();
+      webrtc::VideoReceiveStream::Config config(transport);
+      webrtc::VideoReceiveStream::Decoder decoder;
+
+      IRTPTypes::CodecParametersList::iterator codecIter = mParameters->mCodecs.begin();
+      while (codecIter != mParameters->mCodecs.end()) {
+        auto supportedCodec = IRTPTypes::toSupportedCodec(codecIter->mName);
+        if (IRTPTypes::SupportedCodec_VP8 == supportedCodec) {
+          webrtc::VideoDecoder* videoDecoder = webrtc::VideoDecoder::Create(webrtc::VideoDecoder::kVp8);
+          decoder.decoder = videoDecoder;
+          decoder.payload_name = codecIter->mName;
+          decoder.payload_type = codecIter->mPayloadType;
+          break;
+        } else if (IRTPTypes::SupportedCodec_VP9 == supportedCodec) {
+          webrtc::VideoDecoder* videoDecoder = webrtc::VideoDecoder::Create(webrtc::VideoDecoder::kVp9);
+          decoder.decoder = videoDecoder;
+          decoder.payload_name = codecIter->mName;
+          decoder.payload_type = codecIter->mPayloadType;
+          break;
+        } else if (IRTPTypes::SupportedCodec_H264 == supportedCodec) {
+          webrtc::VideoDecoder* videoDecoder = webrtc::VideoDecoder::Create(webrtc::VideoDecoder::kH264);
+          decoder.decoder = videoDecoder;
+          decoder.payload_name = codecIter->mName;
+          decoder.payload_type = codecIter->mPayloadType;
+          break;
+        }
+        IRTPTypes::RTCPFeedbackList::iterator rtcpFeedbackIter = codecIter->mRTCPFeedback.begin();
+        while (rtcpFeedbackIter != codecIter->mRTCPFeedback.end()) {
+          IRTPTypes::KnownFeedbackTypes feedbackType = IRTPTypes::toKnownFeedbackType(rtcpFeedbackIter->mType);
+          IRTPTypes::KnownFeedbackParameters feedbackParameter = IRTPTypes::toKnownFeedbackParameter(rtcpFeedbackIter->mParameter);
+          if (IRTPTypes::KnownFeedbackType_NACK == feedbackType && IRTPTypes::KnownFeedbackParameter_Unknown == feedbackParameter) {
+            config.rtp.nack.rtp_history_ms = 1000;
+          } else if (IRTPTypes::KnownFeedbackType_REMB == feedbackType && IRTPTypes::KnownFeedbackParameter_Unknown == feedbackParameter) {
+            config.rtp.remb = true;
+          }
+          rtcpFeedbackIter++;
+        }
+        codecIter++;
+      }
+
+      IRTPTypes::EncodingParametersList::iterator encodingParamIter = mParameters->mEncodings.begin();
+      while (encodingParamIter != mParameters->mEncodings.end()) {
+        if (encodingParamIter->mCodecPayloadType == decoder.payload_type) {
+          config.rtp.remote_ssrc = encodingParamIter->mSSRC;
+          break;
+        }
+      }
+      if (config.rtp.remote_ssrc == 0)
+        config.rtp.remote_ssrc = 1000;
+      config.rtp.local_ssrc = mParameters->mRTCP.mSSRC;
+      if (config.rtp.local_ssrc == 0)
+        config.rtp.local_ssrc = 1010;
+
+      IRTPTypes::HeaderExtensionParametersList::iterator headerExtensionIter = mParameters->mHeaderExtensions.begin();
+      while (headerExtensionIter != mParameters->mHeaderExtensions.end()) {
+        IRTPTypes::HeaderExtensionURIs headerExtensionURI = IRTPTypes::toHeaderExtensionURI(headerExtensionIter->mURI);
+        switch (headerExtensionURI) {
+        case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_TransmissionTimeOffsets:
+        case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_AbsoluteSendTime:
+        case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_3gpp_VideoOrientation:
+        case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_TransportSequenceNumber:
+          config.rtp.extensions.push_back(webrtc::RtpExtension(headerExtensionIter->mURI, headerExtensionIter->mID));
+          break;
+        default:
+          break;
+        }
+        headerExtensionIter++;
+      }
+
+      if (mParameters->mRTCP.mReducedSize)
+        config.rtp.rtcp_mode = webrtc::RtcpMode::kReducedSize;
+      config.decoders.push_back(decoder);
+      config.renderer = &mReceiverVideoRenderer;
+
+      mReceiveStream = rtc::scoped_ptr<webrtc::VideoReceiveStream>(
+        new webrtc::internal::VideoReceiveStream(
+                                                 numCpuCores,
+                                                 mCongestionController.get(),
+                                                 config,
+                                                 NULL,
+                                                 mModuleProcessThread.get(),
+                                                 mCallStats.get()
+                                                 ));
+
+      mReceiveStream->Start();
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPReceiverChannelVideo::closeChannel()
+    {
+      if (mReceiveStream)
+        mReceiveStream->Stop();
+
+      mModuleProcessThread->Stop();
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
     #pragma mark RTPReceiverChannelVideo => IWakeDelegate
     #pragma mark
 
@@ -465,6 +483,28 @@ namespace ortc
       AutoRecursiveLock lock(*this);
 #define TODO 1
 #define TODO 2
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+#pragma mark
+#pragma mark RTPReceiverChannelAudio => IPromiseSettledDelegate
+#pragma mark
+
+    //-------------------------------------------------------------------------
+    void RTPReceiverChannelVideo::onPromiseSettled(PromisePtr promise)
+    {
+      ZS_LOG_DEBUG(log("promise settled") + ZS_PARAM("promise", promise->getID()))
+
+      AutoRecursiveLock lock(*this);
+      step();
+
+      if (ZS_DYNAMIC_PTR_CAST(PromiseWithRTPReceiverChannelMediaBase, promise)) {
+        mSetupChannelEvent->notify();
+        mSetupChannelEvent->reset();
+      }
     }
 
     //-------------------------------------------------------------------------
@@ -623,7 +663,9 @@ namespace ortc
       }
 
       // ... other steps here ...
-      if (!stepBogusDoSomething()) goto not_ready;
+      if (!stepPromiseEngine()) goto not_ready;
+      if (!stepPromiseExampleDeviceResource()) goto not_ready;
+      if (!stepSetup()) goto not_ready;
       // ... other steps here ...
 
       goto ready;
@@ -642,7 +684,65 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool RTPReceiverChannelVideo::stepBogusDoSomething()
+    bool RTPReceiverChannelVideo::stepPromiseEngine()
+    {
+      if (mMediaEngine) {
+        ZS_LOG_TRACE(log("already setup engine"))
+          return true;
+      }
+
+      if (!mMediaEnginePromise) {
+        mMediaEnginePromise = UseMediaEngine::create();
+      }
+
+      if (!mMediaEnginePromise->isSettled()) {
+        ZS_LOG_TRACE(log("waiting for media engine promise to resolve"))
+          return false;
+      }
+
+      mMediaEngine = mMediaEnginePromise->value();
+
+      if (!mMediaEngine) {
+        ZS_LOG_WARNING(Detail, log("failed to initialize media"))
+          cancel();
+        return false;
+      }
+
+      ZS_LOG_DEBUG(log("media engine is setup") + ZS_PARAM("engine", mMediaEngine->getID()))
+        return true;
+    }
+
+    //-------------------------------------------------------------------------
+    bool RTPReceiverChannelVideo::stepPromiseExampleDeviceResource()
+    {
+      if (mDeviceResource) {
+        ZS_LOG_TRACE(log("already setup device resource"))
+          return true;
+      }
+
+      if (!mDeviceResourcePromise) {
+        mDeviceResourcePromise = UseMediaEngine::getDeviceResource("camera");
+      }
+
+      if (!mDeviceResourcePromise->isSettled()) {
+        ZS_LOG_TRACE(log("waiting for media device resource promise to resolve"))
+          return false;
+      }
+
+      mDeviceResource = mDeviceResourcePromise->value();
+
+      if (!mDeviceResource) {
+        ZS_LOG_WARNING(Detail, log("failed to initialize device resource"))
+          cancel();
+        return false;
+      }
+
+      ZS_LOG_DEBUG(log("media device is setup") + ZS_PARAM("device", mDeviceResource->getDeviceID()))
+        return true;
+    }
+
+    //-------------------------------------------------------------------------
+    bool RTPReceiverChannelVideo::stepSetup()
     {
       if ( /* step already done */ false ) {
         ZS_LOG_TRACE(log("already completed do something"))

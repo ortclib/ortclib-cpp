@@ -34,6 +34,7 @@
 #include <ortc/internal/types.h>
 #include <ortc/internal/ortc_ISecureTransport.h>
 #include <ortc/internal/ortc_RTPReceiverChannelMediaBase.h>
+#include <ortc/internal/ortc_RTPMediaEngine.h>
 
 #include <ortc/IICETransport.h>
 #include <ortc/IDTLSTransport.h>
@@ -43,6 +44,7 @@
 #include <openpeer/services/IWakeDelegate.h>
 #include <zsLib/MessageQueueAssociator.h>
 #include <zsLib/Timer.h>
+#include <zsLib/Event.h>
 
 #include <webrtc/transport.h>
 #include <webrtc/modules/utility/include/process_thread.h>
@@ -56,9 +58,12 @@ namespace ortc
 {
   namespace internal
   {
+    ZS_DECLARE_USING_PTR(zsLib, Event)
+
     ZS_DECLARE_INTERACTION_PTR(IRTPReceiverChannelVideoForSettings)
     ZS_DECLARE_INTERACTION_PTR(IRTPReceiverChannelVideoForRTPReceiverChannel)
     ZS_DECLARE_INTERACTION_PTR(IRTPReceiverChannelVideoForMediaStreamTrack)
+    ZS_DECLARE_INTERACTION_PTR(IRTPReceiverChannelVideoForRTPMediaEngine)
 
     ZS_DECLARE_INTERACTION_PTR(IRTPReceiverChannelForRTPReceiverChannelVideo)
     ZS_DECLARE_INTERACTION_PTR(IMediaStreamTrackForRTPReceiverChannelVideo)
@@ -129,6 +134,23 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
+    #pragma mark IRTPSenderChannelAudioForRTPMediaEngine
+    #pragma mark
+
+    interaction IRTPReceiverChannelVideoForRTPMediaEngine : public IRTPReceiverChannelMediaBaseForRTPMediaEngine
+    {
+      ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverChannelVideoForRTPMediaEngine, ForRTPMediaEngine)
+
+      static ElementPtr toDebug(ForRTPMediaEnginePtr object);
+
+      virtual PUID getID() const = 0;
+    };
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
     #pragma mark IRTPReceiverChannelVideoAsyncDelegate
     #pragma mark
 
@@ -151,8 +173,10 @@ namespace ortc
                                     public IRTPReceiverChannelVideoForSettings,
                                     public IRTPReceiverChannelVideoForRTPReceiverChannel,
                                     public IRTPReceiverChannelVideoForMediaStreamTrack,
+                                    public IRTPReceiverChannelVideoForRTPMediaEngine,
                                     public IWakeDelegate,
                                     public zsLib::ITimerDelegate,
+                                    public zsLib::IPromiseSettledDelegate,
                                     public IRTPReceiverChannelVideoAsyncDelegate
     {
     protected:
@@ -166,12 +190,15 @@ namespace ortc
       friend interaction IRTPReceiverChannelVideoForRTPReceiverChannel;
       friend interaction IRTPReceiverChannelMediaBaseForMediaStreamTrack;
       friend interaction IRTPReceiverChannelVideoForMediaStreamTrack;
+      friend interaction IRTPReceiverChannelVideoForRTPMediaEngine;
 
       ZS_DECLARE_CLASS_PTR(Transport)
       friend class Transport;
       
       ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverChannelForRTPReceiverChannelVideo, UseChannel)
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPReceiverChannelVideo, UseMediaStreamTrack)
+      ZS_DECLARE_TYPEDEF_PTR(IRTPMediaEngineForRTPReceiverChannelVideo, UseMediaEngine)
+      ZS_DECLARE_TYPEDEF_PTR(IRTPMediaEngineDeviceResource, UseDeviceResource)
 
       ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverChannelMediaBaseForRTPReceiverChannel, ForReceiverChannelFromMediaBase)
       ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverChannelMediaBaseForMediaStreamTrack, ForMediaStreamTrackFromMediaBase)
@@ -229,6 +256,7 @@ namespace ortc
       static RTPReceiverChannelVideoPtr convert(ForRTPReceiverChannelPtr object);
       static RTPReceiverChannelVideoPtr convert(ForMediaStreamTrackFromMediaBasePtr object);
       static RTPReceiverChannelVideoPtr convert(ForMediaStreamTrackPtr object);
+      static RTPReceiverChannelVideoPtr convert(ForRTPMediaEnginePtr object);
 
     protected:
       //-----------------------------------------------------------------------
@@ -268,6 +296,15 @@ namespace ortc
 
       //-----------------------------------------------------------------------
       #pragma mark
+      #pragma mark RTPReceiverChannelVideo => IRTPReceiverChannelMediaBaseForRTPMediaEngine
+      #pragma mark
+
+      virtual void setupChannel() override;
+
+      virtual void closeChannel() override;
+
+      //-----------------------------------------------------------------------
+      #pragma mark
       #pragma mark RTPReceiverChannelVideo => IWakeDelegate
       #pragma mark
 
@@ -279,6 +316,13 @@ namespace ortc
       #pragma mark
 
       virtual void onTimer(TimerPtr timer) override;
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPReceiverChannelVideo => IPromiseSettledDelegate
+      #pragma mark
+
+      virtual void onPromiseSettled(PromisePtr promise) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -349,7 +393,9 @@ namespace ortc
       bool isShutdown() const;
 
       void step();
-      bool stepBogusDoSomething();
+      bool stepPromiseEngine();
+      bool stepPromiseExampleDeviceResource();
+      bool stepSetup();
 
       void cancel();
 
@@ -375,16 +421,24 @@ namespace ortc
 
       ParametersPtr mParameters;
 
+      PromiseWithRTPMediaEnginePtr mMediaEnginePromise;
+      UseMediaEnginePtr mMediaEngine;
+
+      PromiseWithRTPMediaEngineDeviceResourcePtr mDeviceResourcePromise;
+      UseDeviceResourcePtr mDeviceResource;
+
       Optional<IMediaStreamTrackTypes::Kinds> mKind;
       UseMediaStreamTrackPtr mTrack;
 
       TransportPtr mTransport;  // allow lifetime of callback to exist separate from "this" object
-      
+
       rtc::scoped_ptr<webrtc::ProcessThread> mModuleProcessThread;
       rtc::scoped_ptr<webrtc::VideoReceiveStream> mReceiveStream;
       rtc::scoped_ptr<webrtc::CallStats> mCallStats;
       rtc::scoped_ptr<webrtc::CongestionController> mCongestionController;
       ReceiverVideoRenderer mReceiverVideoRenderer;
+
+      EventPtr mSetupChannelEvent;
     };
 
     //-------------------------------------------------------------------------

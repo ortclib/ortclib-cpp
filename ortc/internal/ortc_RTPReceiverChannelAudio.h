@@ -44,6 +44,7 @@
 #include <openpeer/services/IWakeDelegate.h>
 #include <zsLib/MessageQueueAssociator.h>
 #include <zsLib/Timer.h>
+#include <zsLib/Event.h>
 
 #include <webrtc/transport.h>
 #include <webrtc/audio/audio_receive_stream.h>
@@ -57,9 +58,12 @@ namespace ortc
 {
   namespace internal
   {
+    ZS_DECLARE_USING_PTR(zsLib, Event)
+
     ZS_DECLARE_INTERACTION_PTR(IRTPReceiverChannelAudioForSettings)
     ZS_DECLARE_INTERACTION_PTR(IRTPReceiverChannelAudioForRTPReceiverChannel)
     ZS_DECLARE_INTERACTION_PTR(IRTPReceiverChannelAudioForMediaStreamTrack)
+    ZS_DECLARE_INTERACTION_PTR(IRTPReceiverChannelAudioForRTPMediaEngine)
 
     ZS_DECLARE_INTERACTION_PTR(IRTPReceiverChannelForRTPReceiverChannelAudio)
     ZS_DECLARE_INTERACTION_PTR(IMediaStreamTrackForRTPReceiverChannelAudio)
@@ -137,6 +141,23 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
+    #pragma mark IRTPReceiverChannelAudioForRTPMediaEngine
+    #pragma mark
+
+    interaction IRTPReceiverChannelAudioForRTPMediaEngine : public IRTPReceiverChannelMediaBaseForRTPMediaEngine
+    {
+      ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverChannelAudioForRTPMediaEngine, ForRTPMediaEngine)
+
+      static ElementPtr toDebug(ForRTPMediaEnginePtr object);
+
+      virtual PUID getID() const = 0;
+    };
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
     #pragma mark IRTPReceiverChannelAudioAsyncDelegate
     #pragma mark
 
@@ -159,6 +180,7 @@ namespace ortc
                                     public IRTPReceiverChannelAudioForSettings,
                                     public IRTPReceiverChannelAudioForRTPReceiverChannel,
                                     public IRTPReceiverChannelAudioForMediaStreamTrack,
+                                    public IRTPReceiverChannelAudioForRTPMediaEngine,
                                     public IWakeDelegate,
                                     public zsLib::ITimerDelegate,
                                     public zsLib::IPromiseSettledDelegate,
@@ -175,7 +197,8 @@ namespace ortc
       friend interaction IRTPReceiverChannelAudioForRTPReceiverChannel;
       friend interaction IRTPReceiverChannelMediaBaseForMediaStreamTrack;
       friend interaction IRTPReceiverChannelAudioForMediaStreamTrack;
-      
+      friend interaction IRTPReceiverChannelAudioForRTPMediaEngine;
+
       ZS_DECLARE_CLASS_PTR(Transport)
       friend class Transport;
 
@@ -233,6 +256,7 @@ namespace ortc
       static RTPReceiverChannelAudioPtr convert(ForRTPReceiverChannelPtr object);
       static RTPReceiverChannelAudioPtr convert(ForMediaStreamTrackFromMediaBasePtr object);
       static RTPReceiverChannelAudioPtr convert(ForMediaStreamTrackPtr object);
+      static RTPReceiverChannelAudioPtr convert(ForRTPMediaEnginePtr object);
 
     protected:
       //-----------------------------------------------------------------------
@@ -276,6 +300,15 @@ namespace ortc
       // (duplicate) static ElementPtr toDebug(ForMediaStreamTrackPtr object);
 
       // (duplicate) virtual PUID getID() const = 0;
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPReceiverChannelAudio => IRTPReceiverChannelMediaBaseForRTPMediaEngine
+      #pragma mark
+
+      virtual void setupChannel() override;
+
+      virtual void closeChannel() override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -409,12 +442,13 @@ namespace ortc
       TransportPtr mTransport;  // allow lifetime of callback to exist separate from "this" object
 
       rtc::scoped_ptr<webrtc::ProcessThread> mModuleProcessThread;
-      rtc::scoped_ptr<webrtc::VoiceEngine, VoiceEngineDeleter> mVoiceEngine;
       rtc::scoped_ptr<webrtc::AudioReceiveStream> mReceiveStream;
       rtc::scoped_ptr<webrtc::CallStats> mCallStats;
       rtc::scoped_ptr<webrtc::CongestionController> mCongestionController;
 
       webrtc::AudioDeviceModule* mAudioDeviceModule;
+
+      EventPtr mSetupChannelEvent;
     };
 
     //-------------------------------------------------------------------------

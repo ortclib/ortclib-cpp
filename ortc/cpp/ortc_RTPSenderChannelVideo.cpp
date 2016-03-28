@@ -142,6 +142,7 @@ namespace ortc
       mSenderChannel(senderChannel),
       mTrack(track),
       mParameters(make_shared<Parameters>(params)),
+      mSetupChannelEvent(Event::create()),
       mModuleProcessThread(webrtc::ProcessThread::Create("RTPSenderChannelVideoThread"))
     {
       ZS_LOG_DETAIL(debug("created"))
@@ -152,150 +153,17 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPSenderChannelVideo::init()
     {
-      AutoRecursiveLock lock(*this);
-      IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
-      
-      if (!mTrack) {
-        ZS_LOG_ERROR(Detail, log("MediaStreamTrack is not set during RTPSenderChannelVideo initialization procedure"))
-        return;
+      {
+        AutoRecursiveLock lock(*this);
+        IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
+
+        PromiseWithRTPSenderChannelMediaBasePtr senderChannelPromise = mMediaEngine->setupChannel(mThisWeak.lock());
+        if (senderChannelPromise->isRejected())
+          return;
+        senderChannelPromise->then(mThisWeak.lock());
       }
 
-      mCallStats = rtc::scoped_ptr<webrtc::CallStats>(new webrtc::CallStats());
-      mCongestionController =
-        rtc::scoped_ptr<webrtc::CongestionController>(new webrtc::CongestionController(
-          mModuleProcessThread.get(),
-          mCallStats.get())
-          );
-
-      mModuleProcessThread->Start();
-
-      int numCpuCores = webrtc::CpuInfo::DetectNumberOfCores();
-      
-      mTransport = Transport::create(mThisWeak.lock());
-      
-      webrtc::VideoSendStream::Config config(mTransport.get());
-      webrtc::VideoEncoderConfig encoderConfig;
-      std::map<uint32_t, webrtc::RtpState> suspendedSSRCs;
-
-      IRTPTypes::CodecParametersList::iterator codecIter = mParameters->mCodecs.begin();
-      while (codecIter != mParameters->mCodecs.end()) {
-        auto supportedCodec = IRTPTypes::toSupportedCodec(codecIter->mName);
-        if (IRTPTypes::SupportedCodec_VP8 == supportedCodec) {
-          webrtc::VideoEncoder* videoEncoder = webrtc::VideoEncoder::Create(webrtc::VideoEncoder::kVp8);
-          config.encoder_settings.encoder = videoEncoder;
-          config.encoder_settings.payload_name = codecIter->mName;
-          config.encoder_settings.payload_type = codecIter->mPayloadType;
-          webrtc::VideoStream stream;
-          stream.width = 640;
-          stream.height = 480;
-          stream.max_framerate = 30;
-          stream.min_bitrate_bps = 30000;
-          stream.target_bitrate_bps = 2000000;
-          stream.max_bitrate_bps = 2000000;
-          stream.max_qp = 56;
-          webrtc::VideoCodecVP8 videoCodec = webrtc::VideoEncoder::GetDefaultVp8Settings();
-          videoCodec.automaticResizeOn = true;
-          videoCodec.denoisingOn = true;
-          videoCodec.frameDroppingOn = true;
-          encoderConfig.min_transmit_bitrate_bps = 0;
-          encoderConfig.content_type = webrtc::VideoEncoderConfig::ContentType::kRealtimeVideo;
-          encoderConfig.streams.push_back(stream);
-          encoderConfig.encoder_specific_settings = &videoCodec;
-          break;
-        } else if (IRTPTypes::SupportedCodec_VP9 == supportedCodec) {
-          webrtc::VideoEncoder* videoEncoder = webrtc::VideoEncoder::Create(webrtc::VideoEncoder::kVp9);
-          config.encoder_settings.encoder = videoEncoder;
-          config.encoder_settings.payload_name = codecIter->mName;
-          config.encoder_settings.payload_type = codecIter->mPayloadType;
-          webrtc::VideoStream stream;
-          stream.width = 640;
-          stream.height = 480;
-          stream.max_framerate = 30;
-          stream.min_bitrate_bps = 30000;
-          stream.target_bitrate_bps = 2000000;
-          stream.max_bitrate_bps = 2000000;
-          stream.max_qp = 56;
-          webrtc::VideoCodecVP9 videoCodec = webrtc::VideoEncoder::GetDefaultVp9Settings();
-          videoCodec.frameDroppingOn = true;
-          encoderConfig.min_transmit_bitrate_bps = 0;
-          encoderConfig.content_type = webrtc::VideoEncoderConfig::ContentType::kRealtimeVideo;
-          encoderConfig.streams.push_back(stream);
-          encoderConfig.encoder_specific_settings = &videoCodec;
-          break;
-        } else if (IRTPTypes::SupportedCodec_H264 == supportedCodec) {
-          webrtc::VideoEncoder* videoEncoder = webrtc::VideoEncoder::Create(webrtc::VideoEncoder::kH264);
-          config.encoder_settings.encoder = videoEncoder;
-          config.encoder_settings.payload_name = codecIter->mName;
-          config.encoder_settings.payload_type = codecIter->mPayloadType;
-          webrtc::VideoStream stream;
-          stream.width = 640;
-          stream.height = 480;
-          stream.max_framerate = 30;
-          stream.min_bitrate_bps = 30000;
-          stream.target_bitrate_bps = 2000000;
-          stream.max_bitrate_bps = 2000000;
-          stream.max_qp = 56;
-          webrtc::VideoCodecH264 videoCodec = webrtc::VideoEncoder::GetDefaultH264Settings();
-          videoCodec.frameDroppingOn = true;
-          encoderConfig.min_transmit_bitrate_bps = 0;
-          encoderConfig.content_type = webrtc::VideoEncoderConfig::ContentType::kRealtimeVideo;
-          encoderConfig.streams.push_back(stream);
-          encoderConfig.encoder_specific_settings = &videoCodec;
-          break;
-        }
-        IRTPTypes::RTCPFeedbackList::iterator rtcpFeedbackIter = codecIter->mRTCPFeedback.begin();
-        while (rtcpFeedbackIter != codecIter->mRTCPFeedback.end()) {
-          IRTPTypes::KnownFeedbackTypes feedbackType = IRTPTypes::toKnownFeedbackType(rtcpFeedbackIter->mType);
-          IRTPTypes::KnownFeedbackParameters feedbackParameter = IRTPTypes::toKnownFeedbackParameter(rtcpFeedbackIter->mParameter);
-          if (IRTPTypes::KnownFeedbackType_NACK == feedbackType && IRTPTypes::KnownFeedbackParameter_Unknown == feedbackParameter) {
-            config.rtp.nack.rtp_history_ms = 1000;
-          }
-          rtcpFeedbackIter++;
-        }
-        codecIter++;
-      }
-
-      IRTPTypes::EncodingParametersList::iterator encodingParamIter = mParameters->mEncodings.begin();
-      while (encodingParamIter != mParameters->mEncodings.end()) {
-        if (encodingParamIter->mCodecPayloadType == config.encoder_settings.payload_type) {
-          config.rtp.ssrcs.push_back(encodingParamIter->mSSRC);
-          break;
-        }
-        encodingParamIter++;
-      }
-      if (config.rtp.ssrcs.size() == 0)
-        config.rtp.ssrcs.push_back(1000);
-
-      IRTPTypes::HeaderExtensionParametersList::iterator headerExtensionIter = mParameters->mHeaderExtensions.begin();
-      while (headerExtensionIter != mParameters->mHeaderExtensions.end()) {
-        IRTPTypes::HeaderExtensionURIs headerExtensionURI = IRTPTypes::toHeaderExtensionURI(headerExtensionIter->mURI);
-        switch (headerExtensionURI) {
-        case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_TransmissionTimeOffsets:
-        case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_AbsoluteSendTime:
-        case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_3gpp_VideoOrientation:
-        case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_TransportSequenceNumber:
-          config.rtp.extensions.push_back(webrtc::RtpExtension(headerExtensionIter->mURI, headerExtensionIter->mID));
-          break;
-        default:
-          break;
-        }
-        headerExtensionIter++;
-      }
-      
-      config.rtp.c_name = mParameters->mRTCP.mCName;
-
-      mSendStream = rtc::scoped_ptr<webrtc::VideoSendStream>(
-        new webrtc::internal::VideoSendStream(
-                                              numCpuCores,
-                                              mModuleProcessThread.get(),
-                                              mCallStats.get(),
-                                              mCongestionController.get(),
-                                              config,
-                                              encoderConfig,
-                                              suspendedSSRCs
-                                              ));
-
-      mSendStream->Start();
+      mSetupChannelEvent->wait();
     }
 
     //-------------------------------------------------------------------------
@@ -305,11 +173,6 @@ namespace ortc
 
       ZS_LOG_DETAIL(log("destroyed"))
       mThisWeak.reset();
-
-      if (mSendStream)
-        mSendStream->Stop();
-
-      mModuleProcessThread->Stop();
 
       cancel();
     }
@@ -431,6 +294,171 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
+    #pragma mark RTPSenderChannelVideo => IRTPSenderChannelMediaBaseForRTPMediaEngine
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    void RTPSenderChannelVideo::setupChannel()
+    {
+      AutoRecursiveLock lock(*this);
+
+      if (!mTrack) {
+        ZS_LOG_ERROR(Detail, log("MediaStreamTrack is not set during RTPSenderChannelVideo initialization procedure"))
+          return;
+      }
+
+      mCallStats = rtc::scoped_ptr<webrtc::CallStats>(new webrtc::CallStats());
+      mCongestionController =
+        rtc::scoped_ptr<webrtc::CongestionController>(new webrtc::CongestionController(
+                                                                                       mModuleProcessThread.get(),
+                                                                                       mCallStats.get())
+                                                                                       );
+
+      mModuleProcessThread->Start();
+
+      int numCpuCores = webrtc::CpuInfo::DetectNumberOfCores();
+
+      mTransport = Transport::create(mThisWeak.lock());
+
+      webrtc::VideoSendStream::Config config(mTransport.get());
+      webrtc::VideoEncoderConfig encoderConfig;
+      std::map<uint32_t, webrtc::RtpState> suspendedSSRCs;
+
+      IRTPTypes::CodecParametersList::iterator codecIter = mParameters->mCodecs.begin();
+      while (codecIter != mParameters->mCodecs.end()) {
+        auto supportedCodec = IRTPTypes::toSupportedCodec(codecIter->mName);
+        if (IRTPTypes::SupportedCodec_VP8 == supportedCodec) {
+          webrtc::VideoEncoder* videoEncoder = webrtc::VideoEncoder::Create(webrtc::VideoEncoder::kVp8);
+          config.encoder_settings.encoder = videoEncoder;
+          config.encoder_settings.payload_name = codecIter->mName;
+          config.encoder_settings.payload_type = codecIter->mPayloadType;
+          webrtc::VideoStream stream;
+          stream.width = 640;
+          stream.height = 480;
+          stream.max_framerate = 30;
+          stream.min_bitrate_bps = 30000;
+          stream.target_bitrate_bps = 2000000;
+          stream.max_bitrate_bps = 2000000;
+          stream.max_qp = 56;
+          webrtc::VideoCodecVP8 videoCodec = webrtc::VideoEncoder::GetDefaultVp8Settings();
+          videoCodec.automaticResizeOn = true;
+          videoCodec.denoisingOn = true;
+          videoCodec.frameDroppingOn = true;
+          encoderConfig.min_transmit_bitrate_bps = 0;
+          encoderConfig.content_type = webrtc::VideoEncoderConfig::ContentType::kRealtimeVideo;
+          encoderConfig.streams.push_back(stream);
+          encoderConfig.encoder_specific_settings = &videoCodec;
+          break;
+        } else if (IRTPTypes::SupportedCodec_VP9 == supportedCodec) {
+          webrtc::VideoEncoder* videoEncoder = webrtc::VideoEncoder::Create(webrtc::VideoEncoder::kVp9);
+          config.encoder_settings.encoder = videoEncoder;
+          config.encoder_settings.payload_name = codecIter->mName;
+          config.encoder_settings.payload_type = codecIter->mPayloadType;
+          webrtc::VideoStream stream;
+          stream.width = 640;
+          stream.height = 480;
+          stream.max_framerate = 30;
+          stream.min_bitrate_bps = 30000;
+          stream.target_bitrate_bps = 2000000;
+          stream.max_bitrate_bps = 2000000;
+          stream.max_qp = 56;
+          webrtc::VideoCodecVP9 videoCodec = webrtc::VideoEncoder::GetDefaultVp9Settings();
+          videoCodec.frameDroppingOn = true;
+          encoderConfig.min_transmit_bitrate_bps = 0;
+          encoderConfig.content_type = webrtc::VideoEncoderConfig::ContentType::kRealtimeVideo;
+          encoderConfig.streams.push_back(stream);
+          encoderConfig.encoder_specific_settings = &videoCodec;
+          break;
+        } else if (IRTPTypes::SupportedCodec_H264 == supportedCodec) {
+          webrtc::VideoEncoder* videoEncoder = webrtc::VideoEncoder::Create(webrtc::VideoEncoder::kH264);
+          config.encoder_settings.encoder = videoEncoder;
+          config.encoder_settings.payload_name = codecIter->mName;
+          config.encoder_settings.payload_type = codecIter->mPayloadType;
+          webrtc::VideoStream stream;
+          stream.width = 640;
+          stream.height = 480;
+          stream.max_framerate = 30;
+          stream.min_bitrate_bps = 30000;
+          stream.target_bitrate_bps = 2000000;
+          stream.max_bitrate_bps = 2000000;
+          stream.max_qp = 56;
+          webrtc::VideoCodecH264 videoCodec = webrtc::VideoEncoder::GetDefaultH264Settings();
+          videoCodec.frameDroppingOn = true;
+          encoderConfig.min_transmit_bitrate_bps = 0;
+          encoderConfig.content_type = webrtc::VideoEncoderConfig::ContentType::kRealtimeVideo;
+          encoderConfig.streams.push_back(stream);
+          encoderConfig.encoder_specific_settings = &videoCodec;
+          break;
+        }
+        IRTPTypes::RTCPFeedbackList::iterator rtcpFeedbackIter = codecIter->mRTCPFeedback.begin();
+        while (rtcpFeedbackIter != codecIter->mRTCPFeedback.end()) {
+          IRTPTypes::KnownFeedbackTypes feedbackType = IRTPTypes::toKnownFeedbackType(rtcpFeedbackIter->mType);
+          IRTPTypes::KnownFeedbackParameters feedbackParameter = IRTPTypes::toKnownFeedbackParameter(rtcpFeedbackIter->mParameter);
+          if (IRTPTypes::KnownFeedbackType_NACK == feedbackType && IRTPTypes::KnownFeedbackParameter_Unknown == feedbackParameter) {
+            config.rtp.nack.rtp_history_ms = 1000;
+          }
+          rtcpFeedbackIter++;
+        }
+        codecIter++;
+      }
+
+      IRTPTypes::EncodingParametersList::iterator encodingParamIter = mParameters->mEncodings.begin();
+      while (encodingParamIter != mParameters->mEncodings.end()) {
+        if (encodingParamIter->mCodecPayloadType == config.encoder_settings.payload_type) {
+          config.rtp.ssrcs.push_back(encodingParamIter->mSSRC);
+          break;
+        }
+        encodingParamIter++;
+      }
+      if (config.rtp.ssrcs.size() == 0)
+        config.rtp.ssrcs.push_back(1000);
+
+      IRTPTypes::HeaderExtensionParametersList::iterator headerExtensionIter = mParameters->mHeaderExtensions.begin();
+      while (headerExtensionIter != mParameters->mHeaderExtensions.end()) {
+        IRTPTypes::HeaderExtensionURIs headerExtensionURI = IRTPTypes::toHeaderExtensionURI(headerExtensionIter->mURI);
+        switch (headerExtensionURI) {
+        case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_TransmissionTimeOffsets:
+        case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_AbsoluteSendTime:
+        case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_3gpp_VideoOrientation:
+        case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_TransportSequenceNumber:
+          config.rtp.extensions.push_back(webrtc::RtpExtension(headerExtensionIter->mURI, headerExtensionIter->mID));
+          break;
+        default:
+          break;
+        }
+        headerExtensionIter++;
+      }
+
+      config.rtp.c_name = mParameters->mRTCP.mCName;
+
+      mSendStream = rtc::scoped_ptr<webrtc::VideoSendStream>(
+        new webrtc::internal::VideoSendStream(
+                                              numCpuCores,
+                                              mModuleProcessThread.get(),
+                                              mCallStats.get(),
+                                              mCongestionController.get(),
+                                              config,
+                                              encoderConfig,
+                                              suspendedSSRCs
+                                              ));
+
+      mSendStream->Start();
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPSenderChannelVideo::closeChannel()
+    {
+      if (mSendStream)
+        mSendStream->Stop();
+
+      mModuleProcessThread->Stop();
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
     #pragma mark RTPSenderChannelVideo => IWakeDelegate
     #pragma mark
 
@@ -459,6 +487,28 @@ namespace ortc
       AutoRecursiveLock lock(*this);
 #define TODO 1
 #define TODO 2
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+#pragma mark
+#pragma mark RTPReceiverChannelAudio => IPromiseSettledDelegate
+#pragma mark
+
+    //-------------------------------------------------------------------------
+    void RTPSenderChannelVideo::onPromiseSettled(PromisePtr promise)
+    {
+      ZS_LOG_DEBUG(log("promise settled") + ZS_PARAM("promise", promise->getID()))
+
+      AutoRecursiveLock lock(*this);
+      step();
+
+      if (ZS_DYNAMIC_PTR_CAST(PromiseWithRTPSenderChannelMediaBase, promise)) {
+        mSetupChannelEvent->notify();
+        mSetupChannelEvent->reset();
+      }
     }
 
     //-------------------------------------------------------------------------
@@ -631,7 +681,9 @@ namespace ortc
       }
 
       // ... other steps here ...
-      if (!stepBogusDoSomething()) goto not_ready;
+      if (!stepPromiseEngine()) goto not_ready;
+      if (!stepPromiseExampleDeviceResource()) goto not_ready;
+      if (!stepSetup()) goto not_ready;
       // ... other steps here ...
 
       goto ready;
@@ -650,7 +702,65 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool RTPSenderChannelVideo::stepBogusDoSomething()
+    bool RTPSenderChannelVideo::stepPromiseEngine()
+    {
+      if (mMediaEngine) {
+        ZS_LOG_TRACE(log("already setup engine"))
+          return true;
+      }
+
+      if (!mMediaEnginePromise) {
+        mMediaEnginePromise = UseMediaEngine::create();
+      }
+
+      if (!mMediaEnginePromise->isSettled()) {
+        ZS_LOG_TRACE(log("waiting for media engine promise to resolve"))
+          return false;
+      }
+
+      mMediaEngine = mMediaEnginePromise->value();
+
+      if (!mMediaEngine) {
+        ZS_LOG_WARNING(Detail, log("failed to initialize media"))
+          cancel();
+        return false;
+      }
+
+      ZS_LOG_DEBUG(log("media engine is setup") + ZS_PARAM("engine", mMediaEngine->getID()))
+        return true;
+    }
+
+    //-------------------------------------------------------------------------
+    bool RTPSenderChannelVideo::stepPromiseExampleDeviceResource()
+    {
+      if (mDeviceResource) {
+        ZS_LOG_TRACE(log("already setup device resource"))
+          return true;
+      }
+
+      if (!mDeviceResourcePromise) {
+        mDeviceResourcePromise = UseMediaEngine::getDeviceResource("camera");
+      }
+
+      if (!mDeviceResourcePromise->isSettled()) {
+        ZS_LOG_TRACE(log("waiting for media device resource promise to resolve"))
+          return false;
+      }
+
+      mDeviceResource = mDeviceResourcePromise->value();
+
+      if (!mDeviceResource) {
+        ZS_LOG_WARNING(Detail, log("failed to initialize device resource"))
+          cancel();
+        return false;
+      }
+
+      ZS_LOG_DEBUG(log("media device is setup") + ZS_PARAM("device", mDeviceResource->getDeviceID()))
+        return true;
+    }
+
+    //-------------------------------------------------------------------------
+    bool RTPSenderChannelVideo::stepSetup()
     {
       if ( /* step already done */ false ) {
         ZS_LOG_TRACE(log("already completed do something"))

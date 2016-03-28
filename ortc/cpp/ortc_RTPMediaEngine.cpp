@@ -30,16 +30,11 @@
  */
 
 #include <ortc/internal/ortc_RTPMediaEngine.h>
-//#include <ortc/internal/ortc_RTPMediaEngineMediaBase.h>
-//#include <ortc/internal/ortc_RTPMediaEngineAudio.h>
-//#include <ortc/internal/ortc_RTPMediaEngineVideo.h>
-//#include <ortc/internal/ortc_RTPReceiver.h>
-//#include <ortc/internal/ortc_DTLSTransport.h>
-//#include <ortc/internal/ortc_RTPListener.h>
-//#include <ortc/internal/ortc_MediaStreamTrack.h>
-//#include <ortc/internal/ortc_RTPPacket.h>
-//#include <ortc/internal/ortc_RTCPPacket.h>
-//#include <ortc/internal/ortc_RTPTypes.h>
+#include <ortc/internal/ortc_MediaStreamTrack.h>
+#include <ortc/internal/ortc_RTPReceiverChannelAudio.h>
+#include <ortc/internal/ortc_RTPReceiverChannelVideo.h>
+#include <ortc/internal/ortc_RTPSenderChannelAudio.h>
+#include <ortc/internal/ortc_RTPSenderChannelVideo.h>
 #include <ortc/internal/ortc_ORTC.h>
 #include <ortc/internal/ortc_Tracing.h>
 #include <ortc/internal/platform.h>
@@ -56,11 +51,11 @@
 #include <cryptopp/sha.h>
 
 
-//#ifdef _DEBUG
-//#define ASSERT(x) ZS_THROW_BAD_STATE_IF(!(x))
-//#else
-//#define ASSERT(x)
-//#endif //_DEBUG
+#ifdef _DEBUG
+#define ASSERT(x) ZS_THROW_BAD_STATE_IF(!(x))
+#else
+#define ASSERT(x)
+#endif //_DEBUG
 
 
 namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib) }
@@ -272,7 +267,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IRTPMediaEngineForRTPReceiver
+    #pragma mark IRTPMediaEngineForRTPReceiverChannelMediaBase
     #pragma mark
 
     //-------------------------------------------------------------------------
@@ -295,6 +290,52 @@ namespace ortc
       if (!singleton) return PromiseWithRTPMediaEngineDeviceResource::createRejected(IORTCForInternal::queueDelegate());
       return singleton->getEngineRegistration()->getRTPEngine()->getDeviceResource(deviceID);
     }
+
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IRTPMediaEngineForRTPSenderChannelMediaBase
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    ElementPtr IRTPMediaEngineForRTPSenderChannelMediaBase::toDebug(ForRTPSenderChannelMediaBasePtr object)
+    {
+      if (!object) return ElementPtr();
+      return ZS_DYNAMIC_PTR_CAST(RTPMediaEngine, object)->toDebug();
+    }
+
+    //-------------------------------------------------------------------------
+    PromiseWithRTPMediaEnginePtr IRTPMediaEngineForRTPSenderChannelMediaBase::create()
+    {
+      return RTPMediaEngine::createEnginePromise();
+    }
+
+    //-------------------------------------------------------------------------
+    PromiseWithRTPMediaEngineDeviceResourcePtr IRTPMediaEngineForRTPSenderChannelMediaBase::getDeviceResource(const char *deviceID)
+    {
+      auto singleton = RTPMediaEngineSingleton::singleton();
+      if (!singleton) return PromiseWithRTPMediaEngineDeviceResource::createRejected(IORTCForInternal::queueDelegate());
+      return singleton->getEngineRegistration()->getRTPEngine()->getDeviceResource(deviceID);
+    }
+
+    //-------------------------------------------------------------------------
+    PromiseWithRTPSenderChannelMediaBasePtr IRTPMediaEngineForRTPSenderChannelMediaBase::setupChannel(UseSenderChannelMediaBasePtr channel)
+    {
+      auto singleton = RTPMediaEngineSingleton::singleton();
+      if (!singleton) return PromiseWithRTPSenderChannelMediaBase::createRejected(IORTCForInternal::queueDelegate());
+      return singleton->getEngineRegistration()->getRTPEngine()->setupChannel(channel);
+    }
+
+    //-------------------------------------------------------------------------
+    PromiseWithRTPSenderChannelMediaBasePtr IRTPMediaEngineForRTPSenderChannelMediaBase::closeChannel(UseSenderChannelMediaBasePtr channel)
+    {
+      auto singleton = RTPMediaEngineSingleton::singleton();
+      if (!singleton) return PromiseWithRTPSenderChannelMediaBase::createRejected(IORTCForInternal::queueDelegate());
+      return singleton->getEngineRegistration()->getRTPEngine()->closeChannel(channel);
+    }
+
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -398,6 +439,11 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    RTPMediaEnginePtr RTPMediaEngine::convert(ForMediaStreamTrackPtr object)
+    {
+      return ZS_DYNAMIC_PTR_CAST(RTPMediaEngine, object);
+    }
+
     RTPMediaEnginePtr RTPMediaEngine::convert(ForDeviceResourcePtr object)
     {
       return ZS_DYNAMIC_PTR_CAST(RTPMediaEngine, object);
@@ -495,12 +541,62 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    PromiseWithRTPReceiverChannelMediaBasePtr RTPMediaEngine::setupChannel(UseReceiverChannelMediaBasePtr channel)
+    {
+      auto promise = PromiseWithRTPReceiverChannelMediaBase::create(IORTCForInternal::queueDelegate());
+
+      {
+        AutoRecursiveLock lock(*this);
+        if (ZS_DYNAMIC_PTR_CAST(IRTPReceiverChannelAudioForRTPMediaEngine, channel)) {
+          mPendingReceiverAudioChannels[channel->getID()] = channel;
+          mPendingReceiverAudioChannelPromises[channel->getID()] = promise;
+        } else if (ZS_DYNAMIC_PTR_CAST(IRTPReceiverChannelVideoForRTPMediaEngine, channel)) {
+          mPendingReceiverVideoChannels[channel->getID()] = channel;
+          mPendingReceiverVideoChannelPromises[channel->getID()] = promise;
+        }
+      }
+
+      IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
+
+      return promise;
+    }
+
+    //-------------------------------------------------------------------------
+    PromiseWithRTPReceiverChannelMediaBasePtr RTPMediaEngine::closeChannel(UseReceiverChannelMediaBasePtr channel)
+    {
+      auto promise = PromiseWithRTPReceiverChannelMediaBase::create(IORTCForInternal::queueDelegate());
+
+      {
+        AutoRecursiveLock lock(*this);
+        if (ZS_DYNAMIC_PTR_CAST(IRTPReceiverChannelAudioForRTPMediaEngine, channel)) {
+          mPendingReceiverAudioChannels[channel->getID()] = channel;
+          mPendingReceiverAudioChannelPromises[channel->getID()] = promise;
+        } else if (ZS_DYNAMIC_PTR_CAST(IRTPReceiverChannelVideoForRTPMediaEngine, channel)) {
+          mPendingReceiverVideoChannels[channel->getID()] = channel;
+          mPendingReceiverVideoChannelPromises[channel->getID()] = promise;
+        }
+      }
+
+      IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
+
+      return promise;
+    }
+
+    //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
     #pragma mark RTPMediaEngine => IRTPMediaEngineForRTPReceiverChannelAudio
     #pragma mark
+
+    //-------------------------------------------------------------------------
+    rtc::scoped_ptr<webrtc::VoiceEngine, VoiceEngineDeleter> RTPMediaEngine::getVoiceEngine()
+    {
+      AutoRecursiveLock lock(*this);
+
+      return rtc::scoped_ptr<webrtc::VoiceEngine, VoiceEngineDeleter>(mVoiceEngine.get());
+    }
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -526,6 +622,48 @@ namespace ortc
     #pragma mark
     #pragma mark RTPMediaEngine => IRTPMediaEngineForRTPSenderChannelMediaBase
     #pragma mark
+
+    //-------------------------------------------------------------------------
+    PromiseWithRTPSenderChannelMediaBasePtr RTPMediaEngine::setupChannel(UseSenderChannelMediaBasePtr channel)
+    {
+      auto promise = PromiseWithRTPSenderChannelMediaBase::create(IORTCForInternal::queueDelegate());
+
+      {
+        AutoRecursiveLock lock(*this);
+        if (ZS_DYNAMIC_PTR_CAST(IRTPSenderChannelAudioForRTPMediaEngine, channel)) {
+          mPendingSenderAudioChannels[channel->getID()] = channel;
+          mPendingSenderAudioChannelPromises[channel->getID()] = promise;
+        } else if (ZS_DYNAMIC_PTR_CAST(IRTPSenderChannelVideoForRTPMediaEngine, channel)) {
+          mPendingSenderVideoChannels[channel->getID()] = channel;
+          mPendingSenderVideoChannelPromises[channel->getID()] = promise;
+        }
+      }
+
+      IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
+
+      return promise;
+    }
+
+    //-------------------------------------------------------------------------
+    PromiseWithRTPSenderChannelMediaBasePtr RTPMediaEngine::closeChannel(UseSenderChannelMediaBasePtr channel)
+    {
+      auto promise = PromiseWithRTPSenderChannelMediaBase::create(IORTCForInternal::queueDelegate());
+
+      {
+        AutoRecursiveLock lock(*this);
+        if (ZS_DYNAMIC_PTR_CAST(IRTPSenderChannelAudioForRTPMediaEngine, channel)) {
+          mPendingSenderAudioChannels[channel->getID()] = channel;
+          mPendingSenderAudioChannelPromises[channel->getID()] = promise;
+        } else if (ZS_DYNAMIC_PTR_CAST(IRTPSenderChannelVideoForRTPMediaEngine, channel)) {
+          mPendingSenderVideoChannels[channel->getID()] = channel;
+          mPendingSenderVideoChannelPromises[channel->getID()] = promise;
+        }
+      }
+
+      IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
+
+      return promise;
+    }
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -691,6 +829,8 @@ namespace ortc
       // ... other steps here ...
       if (!stepSetup()) goto not_ready;
       if (!stepExampleSetupDeviceResources()) goto not_ready;
+      if (!stepSetupSenderChannel()) goto not_ready;
+      if (!stepCloseSenderChannel()) goto not_ready;
       // ... other steps here ...
 
       goto ready;
@@ -716,8 +856,7 @@ namespace ortc
         return true;
       }
 
-#define TODO_IMPLEMENT_MEDIA_SETUP 1
-#define TODO_IMPLEMENT_MEDIA_SETUP 2
+      mVoiceEngine = rtc::scoped_ptr<webrtc::VoiceEngine, VoiceEngineDeleter>(webrtc::VoiceEngine::Create());
 
       return true;
     }
@@ -736,6 +875,208 @@ namespace ortc
         }
 
         mExamplePendingDeviceResources.pop_front();
+      }
+
+      return true;
+    }
+
+    //-------------------------------------------------------------------------
+    bool RTPMediaEngine::stepSetupSenderChannel()
+    {
+      ReceiverChannelMap pendingReceiverAudioChannels;
+      PendingPromiseMap pendingReceiverAudioChannelPromises;
+      ReceiverChannelMap pendingReceiverVideoChannels;
+      PendingPromiseMap pendingReceiverVideoChannelPromises;
+      SenderChannelMap pendingSenderAudioChannels;
+      PendingPromiseMap pendingSenderAudioChannelPromises;
+      SenderChannelMap pendingSenderVideoChannels;
+      PendingPromiseMap pendingSenderVideoChannelPromises;
+
+      {
+        AutoRecursiveLock lock(*this);
+
+        pendingReceiverAudioChannels = mPendingReceiverAudioChannels;
+        pendingReceiverAudioChannelPromises = mPendingReceiverAudioChannelPromises;
+        pendingReceiverVideoChannels = mPendingReceiverVideoChannels;
+        pendingReceiverVideoChannelPromises = mPendingReceiverVideoChannelPromises;
+        pendingSenderAudioChannels = mPendingSenderAudioChannels;
+        pendingSenderAudioChannelPromises = mPendingSenderAudioChannelPromises;
+        pendingSenderVideoChannels = mPendingSenderVideoChannels;
+        pendingSenderVideoChannelPromises = mPendingSenderVideoChannelPromises;
+
+        mPendingReceiverAudioChannels.clear();
+        mPendingReceiverAudioChannelPromises.clear();
+        mPendingReceiverVideoChannels.clear();
+        mPendingReceiverVideoChannelPromises.clear();
+        mPendingSenderAudioChannels.clear();
+        mPendingSenderAudioChannelPromises.clear();
+        mPendingSenderVideoChannels.clear();
+        mPendingSenderVideoChannelPromises.clear();
+      }
+
+      ReceiverChannelMap::iterator receiverAudioChannelIter = pendingReceiverAudioChannels.begin();
+      while (receiverAudioChannelIter != pendingReceiverAudioChannels.end()) {
+
+        PUID receiverChannelPUID = receiverAudioChannelIter->first;
+        UseReceiverChannelMediaBasePtr receiverChannel = receiverAudioChannelIter->second.lock();
+
+        if (receiverChannel) {
+          receiverChannel->setupChannel();
+          PromisePtr channelPromise = pendingReceiverAudioChannelPromises[receiverChannelPUID].lock();
+          ASSERT(channelPromise)
+          channelPromise->resolve();
+        }
+
+        receiverAudioChannelIter++;
+      }
+
+      ReceiverChannelMap::iterator receiverVideoChannelIter = pendingReceiverVideoChannels.begin();
+      while (receiverVideoChannelIter != pendingReceiverVideoChannels.end()) {
+
+        PUID receiverChannelPUID = receiverVideoChannelIter->first;
+        UseReceiverChannelMediaBasePtr receiverChannel = receiverVideoChannelIter->second.lock();
+
+        if (receiverChannel) {
+          receiverChannel->setupChannel();
+          PromisePtr channelPromise = pendingReceiverVideoChannelPromises[receiverChannelPUID].lock();
+          ASSERT(channelPromise)
+            channelPromise->resolve();
+        }
+
+        receiverVideoChannelIter++;
+      }
+
+      SenderChannelMap::iterator senderAudioChannelIter = pendingSenderAudioChannels.begin();
+      while (senderAudioChannelIter != pendingSenderAudioChannels.end()) {
+
+        PUID senderChannelPUID = senderAudioChannelIter->first;
+        UseSenderChannelMediaBasePtr senderChannel = senderAudioChannelIter->second.lock();
+
+        if (senderChannel) {
+          senderChannel->setupChannel();
+          PromisePtr channelPromise = pendingSenderAudioChannelPromises[senderChannelPUID].lock();
+          ASSERT(channelPromise)
+            channelPromise->resolve();
+        }
+
+        senderAudioChannelIter++;
+      }
+
+      SenderChannelMap::iterator senderVideoChannelIter = pendingSenderVideoChannels.begin();
+      while (senderVideoChannelIter != pendingSenderVideoChannels.end()) {
+
+        PUID senderChannelPUID = senderVideoChannelIter->first;
+        UseSenderChannelMediaBasePtr senderChannel = senderVideoChannelIter->second.lock();
+
+        if (senderChannel) {
+          senderChannel->setupChannel();
+          PromisePtr channelPromise = pendingSenderVideoChannelPromises[senderChannelPUID].lock();
+          ASSERT(channelPromise)
+            channelPromise->resolve();
+        }
+
+        senderVideoChannelIter++;
+      }
+
+      return true;
+    }
+
+    //-------------------------------------------------------------------------
+    bool RTPMediaEngine::stepCloseSenderChannel()
+    {
+      ReceiverChannelMap pendingReceiverAudioChannels;
+      PendingPromiseMap pendingReceiverAudioChannelPromises;
+      ReceiverChannelMap pendingReceiverVideoChannels;
+      PendingPromiseMap pendingReceiverVideoChannelPromises;
+      SenderChannelMap pendingSenderAudioChannels;
+      PendingPromiseMap pendingSenderAudioChannelPromises;
+      SenderChannelMap pendingSenderVideoChannels;
+      PendingPromiseMap pendingSenderVideoChannelPromises;
+
+      {
+        AutoRecursiveLock lock(*this);
+
+        pendingReceiverAudioChannels = mPendingReceiverAudioChannels;
+        pendingReceiverAudioChannelPromises = mPendingReceiverAudioChannelPromises;
+        pendingReceiverVideoChannels = mPendingReceiverVideoChannels;
+        pendingReceiverVideoChannelPromises = mPendingReceiverVideoChannelPromises;
+        pendingSenderAudioChannels = mPendingSenderAudioChannels;
+        pendingSenderAudioChannelPromises = mPendingSenderAudioChannelPromises;
+        pendingSenderVideoChannels = mPendingSenderVideoChannels;
+        pendingSenderVideoChannelPromises = mPendingSenderVideoChannelPromises;
+
+        mPendingReceiverAudioChannels.clear();
+        mPendingReceiverAudioChannelPromises.clear();
+        mPendingReceiverVideoChannels.clear();
+        mPendingReceiverVideoChannelPromises.clear();
+        mPendingSenderAudioChannels.clear();
+        mPendingSenderAudioChannelPromises.clear();
+        mPendingSenderVideoChannels.clear();
+        mPendingSenderVideoChannelPromises.clear();
+      }
+
+      ReceiverChannelMap::iterator receiverAudioChannelIter = pendingReceiverAudioChannels.begin();
+      while (receiverAudioChannelIter != pendingReceiverAudioChannels.end()) {
+
+        PUID receiverChannelPUID = receiverAudioChannelIter->first;
+        UseReceiverChannelMediaBasePtr receiverChannel = receiverAudioChannelIter->second.lock();
+
+        if (receiverChannel) {
+          receiverChannel->setupChannel();
+          PromisePtr channelPromise = pendingReceiverAudioChannelPromises[receiverChannelPUID].lock();
+          ASSERT(channelPromise)
+            channelPromise->resolve();
+        }
+
+        receiverAudioChannelIter++;
+      }
+
+      ReceiverChannelMap::iterator receiverVideoChannelIter = pendingReceiverVideoChannels.begin();
+      while (receiverVideoChannelIter != pendingReceiverVideoChannels.end()) {
+
+        PUID receiverChannelPUID = receiverVideoChannelIter->first;
+        UseReceiverChannelMediaBasePtr receiverChannel = receiverVideoChannelIter->second.lock();
+
+        if (receiverChannel) {
+          receiverChannel->setupChannel();
+          PromisePtr channelPromise = pendingReceiverVideoChannelPromises[receiverChannelPUID].lock();
+          ASSERT(channelPromise)
+            channelPromise->resolve();
+        }
+
+        receiverVideoChannelIter++;
+      }
+
+      SenderChannelMap::iterator senderAudioChannelIter = pendingSenderAudioChannels.begin();
+      while (senderAudioChannelIter != pendingSenderAudioChannels.end()) {
+
+        PUID senderChannelPUID = senderAudioChannelIter->first;
+        UseSenderChannelMediaBasePtr senderChannel = senderAudioChannelIter->second.lock();
+
+        if (senderChannel) {
+          senderChannel->setupChannel();
+          PromisePtr channelPromise = pendingSenderAudioChannelPromises[senderChannelPUID].lock();
+          ASSERT(channelPromise)
+            channelPromise->resolve();
+        }
+
+        senderAudioChannelIter++;
+      }
+
+      SenderChannelMap::iterator senderVideoChannelIter = pendingSenderVideoChannels.begin();
+      while (senderVideoChannelIter != pendingSenderVideoChannels.end()) {
+
+        PUID senderChannelPUID = senderVideoChannelIter->first;
+        UseSenderChannelMediaBasePtr senderChannel = senderVideoChannelIter->second.lock();
+
+        if (senderChannel) {
+          senderChannel->setupChannel();
+          PromisePtr channelPromise = pendingSenderVideoChannelPromises[senderChannelPUID].lock();
+          ASSERT(channelPromise)
+            channelPromise->resolve();
+        }
+
+        senderVideoChannelIter++;
       }
 
       return true;
