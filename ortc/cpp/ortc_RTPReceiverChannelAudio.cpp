@@ -171,6 +171,7 @@ namespace ortc
       mTrack(track),
       mParameters(make_shared<Parameters>(params)),
       mSetupChannelEvent(Event::create()),
+      mCloseChannelEvent(Event::create()),
       mModuleProcessThread(webrtc::ProcessThread::Create("RTPReceiverChannelAudioThread"))
     {
       ZS_LOG_DETAIL(debug("created"))
@@ -181,14 +182,30 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPReceiverChannelAudio::init()
     {
-      AutoRecursiveLock lock(*this);
-      IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
+      {
+        AutoRecursiveLock lock(*this);
+        IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
+
+        PromiseWithRTPMediaEngineSetupChannelResultPtr receiverChannelPromise = UseMediaEngine::setupChannel(mThisWeak.lock());
+        if (receiverChannelPromise->isRejected())
+          return;
+        receiverChannelPromise->then(mThisWeak.lock());
+      }
+
+      mSetupChannelEvent->wait();
     }
 
     //-------------------------------------------------------------------------
     RTPReceiverChannelAudio::~RTPReceiverChannelAudio()
     {
       if (isNoop()) return;
+
+      PromiseWithRTPMediaEngineCloseChannelResultPtr receiverChannelPromise = UseMediaEngine::closeChannel(mThisWeak.lock());
+      if (receiverChannelPromise->isRejected())
+        return;
+      receiverChannelPromise->then(mThisWeak.lock());
+
+      mCloseChannelEvent->wait();
 
       ZS_LOG_DETAIL(log("destroyed"))
       mThisWeak.reset();
@@ -520,9 +537,12 @@ namespace ortc
       AutoRecursiveLock lock(*this);
       step();
 
-      if (ZS_DYNAMIC_PTR_CAST(PromiseWithRTPReceiverChannelMediaBase, promise)) {
+      if (ZS_DYNAMIC_PTR_CAST(PromiseWithRTPMediaEngineSetupChannelResult, promise)) {
         mSetupChannelEvent->notify();
         mSetupChannelEvent->reset();
+      } else if (ZS_DYNAMIC_PTR_CAST(PromiseWithRTPMediaEngineCloseChannelResult, promise)) {
+        mCloseChannelEvent->notify();
+        mCloseChannelEvent->reset();
       }
     }
 

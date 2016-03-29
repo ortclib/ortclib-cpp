@@ -57,6 +57,9 @@ namespace ortc
     // resource based interfaces
     ZS_DECLARE_INTERACTION_PTR(IRTPMediaEngineDeviceResource)
 
+    ZS_DECLARE_INTERACTION_PTR(IRTPMediaEngineSetupChannelResult)
+    ZS_DECLARE_INTERACTION_PTR(IRTPMediaEngineCloseChannelResult)
+
     ZS_DECLARE_INTERACTION_PTR(IRTPMediaEngineForSettings)
     ZS_DECLARE_INTERACTION_PTR(IRTPMediaEngineForSingleton)
     ZS_DECLARE_INTERACTION_PTR(IRTPMediaEngineForRTPReceiverChannel)
@@ -81,8 +84,8 @@ namespace ortc
 
     ZS_DECLARE_TYPEDEF_PTR(zsLib::PromiseWith<RTPMediaEngine>, PromiseWithRTPMediaEngine)
     ZS_DECLARE_TYPEDEF_PTR(zsLib::PromiseWith<IRTPMediaEngineDeviceResource>, PromiseWithRTPMediaEngineDeviceResource)
-    ZS_DECLARE_TYPEDEF_PTR(zsLib::PromiseWith<IRTPReceiverChannelMediaBaseForRTPMediaEngine>, PromiseWithRTPReceiverChannelMediaBase)
-    ZS_DECLARE_TYPEDEF_PTR(zsLib::PromiseWith<IRTPSenderChannelMediaBaseForRTPMediaEngine>, PromiseWithRTPSenderChannelMediaBase)
+    ZS_DECLARE_TYPEDEF_PTR(zsLib::PromiseWith<IRTPMediaEngineSetupChannelResult>, PromiseWithRTPMediaEngineSetupChannelResult)
+    ZS_DECLARE_TYPEDEF_PTR(zsLib::PromiseWith<IRTPMediaEngineCloseChannelResult>, PromiseWithRTPMediaEngineCloseChannelResult)
 
 
     //-------------------------------------------------------------------------
@@ -128,6 +131,30 @@ namespace ortc
     {
       virtual PUID getID() const = 0;
       virtual String getDeviceID() const = 0;
+    };
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IRTPMediaEngineSetupChannelResult
+    #pragma mark
+
+    interaction IRTPMediaEngineSetupChannelResult : public Any
+    {
+    };
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IRTPMediaEngineCloseChannelResult
+    #pragma mark
+
+    interaction IRTPMediaEngineCloseChannelResult : public Any
+    {
     };
 
     //-------------------------------------------------------------------------
@@ -196,9 +223,9 @@ namespace ortc
 
       static PromiseWithRTPMediaEngineDeviceResourcePtr getDeviceResource(const char *deviceID);
 
-      static PromiseWithRTPSenderChannelMediaBasePtr setupChannel(UseReceiverChannelMediaBasePtr channel);
+      static PromiseWithRTPMediaEngineSetupChannelResultPtr setupChannel(UseReceiverChannelMediaBasePtr channel);
 
-      static PromiseWithRTPSenderChannelMediaBasePtr closeChannel(UseReceiverChannelMediaBasePtr channel);
+      static PromiseWithRTPMediaEngineCloseChannelResultPtr closeChannel(UseReceiverChannelMediaBasePtr channel);
 
       virtual PUID getID() const = 0;
     };
@@ -265,9 +292,9 @@ namespace ortc
 
       static PromiseWithRTPMediaEngineDeviceResourcePtr getDeviceResource(const char *deviceID);
 
-      static PromiseWithRTPSenderChannelMediaBasePtr setupChannel(UseSenderChannelMediaBasePtr channel);
+      static PromiseWithRTPMediaEngineSetupChannelResultPtr setupChannel(UseSenderChannelMediaBasePtr channel);
 
-      static PromiseWithRTPSenderChannelMediaBasePtr closeChannel(UseSenderChannelMediaBasePtr channel);
+      static PromiseWithRTPMediaEngineCloseChannelResultPtr closeChannel(UseSenderChannelMediaBasePtr channel);
 
       virtual PUID getID() const = 0;
     };
@@ -474,9 +501,9 @@ namespace ortc
 
       PromiseWithRTPMediaEngineDeviceResourcePtr getDeviceResource(const char *deviceID);
 
-      PromiseWithRTPReceiverChannelMediaBasePtr setupChannel(UseReceiverChannelMediaBasePtr channel);
+      PromiseWithRTPMediaEngineSetupChannelResultPtr setupChannel(UseReceiverChannelMediaBasePtr channel);
 
-      PromiseWithRTPReceiverChannelMediaBasePtr closeChannel(UseReceiverChannelMediaBasePtr channel);
+      PromiseWithRTPMediaEngineCloseChannelResultPtr closeChannel(UseReceiverChannelMediaBasePtr channel);
 
       // (duplicate) virtual PUID getID() const = 0;
 
@@ -506,9 +533,9 @@ namespace ortc
 
       // (duplicate) PromiseWithRTPMediaEngineDeviceResourcePtr getDeviceResource(const char *deviceID) = 0;
 
-      PromiseWithRTPSenderChannelMediaBasePtr setupChannel(UseSenderChannelMediaBasePtr channel);
+      PromiseWithRTPMediaEngineSetupChannelResultPtr setupChannel(UseSenderChannelMediaBasePtr channel);
 
-      PromiseWithRTPSenderChannelMediaBasePtr closeChannel(UseSenderChannelMediaBasePtr channel);
+      PromiseWithRTPMediaEngineCloseChannelResultPtr closeChannel(UseSenderChannelMediaBasePtr channel);
 
       // (duplicate) virtual PUID getID() const = 0;
 
@@ -687,6 +714,31 @@ namespace ortc
         String mDeviceID;
       };
 
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPMediaEngine::SetupChannelResult
+      #pragma mark
+
+      class SetupChannelResult : public IRTPMediaEngineSetupChannelResult
+      {
+      };
+
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPMediaEngine::SetupChannelResult
+      #pragma mark
+
+      class CloseChannelResult : public IRTPMediaEngineCloseChannelResult
+      {
+      };
+
+
     protected:
       //-----------------------------------------------------------------------
       #pragma mark
@@ -708,14 +760,23 @@ namespace ortc
       DeviceResourceMap mExampleDeviceResources;
       DeviceResourceList mExamplePendingDeviceResources;
 
-      ReceiverChannelMap mPendingReceiverAudioChannels;
-      PendingPromiseMap mPendingReceiverAudioChannelPromises;
-      ReceiverChannelMap mPendingReceiverVideoChannels;
-      PendingPromiseMap mPendingReceiverVideoChannelPromises;
-      SenderChannelMap mPendingSenderAudioChannels;
-      PendingPromiseMap mPendingSenderAudioChannelPromises;
-      SenderChannelMap mPendingSenderVideoChannels;
-      PendingPromiseMap mPendingSenderVideoChannelPromises;
+      ReceiverChannelMap mPendingSetupReceiverAudioChannels;
+      PendingPromiseMap mPendingSetupReceiverAudioChannelPromises;
+      ReceiverChannelMap mPendingSetupReceiverVideoChannels;
+      PendingPromiseMap mPendingSetupReceiverVideoChannelPromises;
+      SenderChannelMap mPendingSetupSenderAudioChannels;
+      PendingPromiseMap mPendingSetupSenderAudioChannelPromises;
+      SenderChannelMap mPendingSetupSenderVideoChannels;
+      PendingPromiseMap mPendingSetupSenderVideoChannelPromises;
+
+      ReceiverChannelMap mPendingCloseReceiverAudioChannels;
+      PendingPromiseMap mPendingCloseReceiverAudioChannelPromises;
+      ReceiverChannelMap mPendingCloseReceiverVideoChannels;
+      PendingPromiseMap mPendingCloseReceiverVideoChannelPromises;
+      SenderChannelMap mPendingCloseSenderAudioChannels;
+      PendingPromiseMap mPendingCloseSenderAudioChannelPromises;
+      SenderChannelMap mPendingCloseSenderVideoChannels;
+      PendingPromiseMap mPendingCloseSenderVideoChannelPromises;
 
       rtc::scoped_ptr<webrtc::VoiceEngine, VoiceEngineDeleter> mVoiceEngine;
     };

@@ -439,6 +439,7 @@ namespace ortc
       ReceiverVideoRenderer mReceiverVideoRenderer;
 
       EventPtr mSetupChannelEvent;
+      EventPtr mCloseChannelEvent;
     };
 
     //-------------------------------------------------------------------------

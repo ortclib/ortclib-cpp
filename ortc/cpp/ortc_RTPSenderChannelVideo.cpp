@@ -143,6 +143,7 @@ namespace ortc
       mTrack(track),
       mParameters(make_shared<Parameters>(params)),
       mSetupChannelEvent(Event::create()),
+      mCloseChannelEvent(Event::create()),
       mModuleProcessThread(webrtc::ProcessThread::Create("RTPSenderChannelVideoThread"))
     {
       ZS_LOG_DETAIL(debug("created"))
@@ -157,7 +158,7 @@ namespace ortc
         AutoRecursiveLock lock(*this);
         IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
 
-        PromiseWithRTPSenderChannelMediaBasePtr senderChannelPromise = mMediaEngine->setupChannel(mThisWeak.lock());
+        PromiseWithRTPMediaEngineSetupChannelResultPtr senderChannelPromise = UseMediaEngine::setupChannel(mThisWeak.lock());
         if (senderChannelPromise->isRejected())
           return;
         senderChannelPromise->then(mThisWeak.lock());
@@ -170,6 +171,13 @@ namespace ortc
     RTPSenderChannelVideo::~RTPSenderChannelVideo()
     {
       if (isNoop()) return;
+
+      PromiseWithRTPMediaEngineCloseChannelResultPtr senderChannelPromise = UseMediaEngine::closeChannel(mThisWeak.lock());
+      if (senderChannelPromise->isRejected())
+        return;
+      senderChannelPromise->then(mThisWeak.lock());
+
+      mCloseChannelEvent->wait();
 
       ZS_LOG_DETAIL(log("destroyed"))
       mThisWeak.reset();
@@ -505,9 +513,12 @@ namespace ortc
       AutoRecursiveLock lock(*this);
       step();
 
-      if (ZS_DYNAMIC_PTR_CAST(PromiseWithRTPSenderChannelMediaBase, promise)) {
+      if (ZS_DYNAMIC_PTR_CAST(PromiseWithRTPMediaEngineSetupChannelResult, promise)) {
         mSetupChannelEvent->notify();
         mSetupChannelEvent->reset();
+      } else if (ZS_DYNAMIC_PTR_CAST(PromiseWithRTPMediaEngineCloseChannelResult, promise)) {
+        mCloseChannelEvent->notify();
+        mCloseChannelEvent->reset();
       }
     }
 

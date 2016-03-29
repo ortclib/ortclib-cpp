@@ -433,6 +433,7 @@ namespace ortc
       rtc::scoped_ptr<webrtc::CongestionController> mCongestionController;
 
       EventPtr mSetupChannelEvent;
+      EventPtr mCloseChannelEvent;
     };
 
     //-------------------------------------------------------------------------

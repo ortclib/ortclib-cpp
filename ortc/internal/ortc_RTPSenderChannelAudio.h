@@ -441,6 +441,7 @@ namespace ortc
       webrtc::AudioDeviceModule* mAudioDeviceModule;
 
       EventPtr mSetupChannelEvent;
+      EventPtr mCloseChannelEvent;
     };
 
     //-------------------------------------------------------------------------
