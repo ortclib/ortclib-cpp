@@ -45,10 +45,6 @@
 #include <zsLib/Event.h>
 
 #include <webrtc/transport.h>
-#include <webrtc/modules/utility/include/process_thread.h>
-#include <webrtc/video/video_send_stream.h>
-#include <webrtc/video_engine/call_stats.h>
-#include <webrtc/call/congestion_controller.h>
 
 //#define ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE "ortc/sctp/max-message-size"
 
@@ -201,6 +197,7 @@ namespace ortc
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPSenderChannelVideo, UseMediaStreamTrack)
       ZS_DECLARE_TYPEDEF_PTR(IRTPMediaEngineForRTPSenderChannelAudio, UseMediaEngine)
       ZS_DECLARE_TYPEDEF_PTR(IRTPMediaEngineDeviceResource, UseDeviceResource)
+      ZS_DECLARE_TYPEDEF_PTR(IRTPMediaEngineVideoSenderChannelResource, UseChannelResource)
 
       ZS_DECLARE_TYPEDEF_PTR(IRTPSenderChannelMediaBaseForRTPSenderChannel, ForRTPSenderChannelFromMediaBase)
       ZS_DECLARE_TYPEDEF_PTR(IRTPSenderChannelMediaBaseForMediaStreamTrack, ForMediaStreamTrackFromMediaBase)
@@ -390,7 +387,7 @@ namespace ortc
       void step();
       bool stepPromiseEngine();
       bool stepPromiseExampleDeviceResource();
-      bool stepSetup();
+      bool stepSetupChannel();
 
       void cancel();
 
@@ -422,18 +419,15 @@ namespace ortc
       PromiseWithRTPMediaEngineDeviceResourcePtr mDeviceResourcePromise;
       UseDeviceResourcePtr mDeviceResource;
 
+      PromiseWithRTPMediaEngineChannelResourcePtr mSetupChannelPromise;
+      UseChannelResourcePtr mChannelResource;
+
+      PromisePtr mCloseChannelPromise;
+
       Optional<IMediaStreamTrackTypes::Kinds> mKind;
       UseMediaStreamTrackPtr mTrack;
 
       TransportPtr mTransport;  // allow lifetime of callback to exist separate from "this" object
-
-      rtc::scoped_ptr<webrtc::ProcessThread> mModuleProcessThread;
-      rtc::scoped_ptr<webrtc::VideoSendStream> mSendStream;
-      rtc::scoped_ptr<webrtc::CallStats> mCallStats;
-      rtc::scoped_ptr<webrtc::CongestionController> mCongestionController;
-
-      EventPtr mSetupChannelEvent;
-      EventPtr mCloseChannelEvent;
     };
 
     //-------------------------------------------------------------------------

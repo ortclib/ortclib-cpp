@@ -47,10 +47,6 @@
 #include <zsLib/Event.h>
 
 #include <webrtc/transport.h>
-#include <webrtc/modules/utility/include/process_thread.h>
-#include <webrtc/video/video_receive_stream.h>
-#include <webrtc/video_engine/call_stats.h>
-#include <webrtc/call/congestion_controller.h>
 
 //#define ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE "ortc/sctp/max-message-size"
 
@@ -199,6 +195,7 @@ namespace ortc
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPReceiverChannelVideo, UseMediaStreamTrack)
       ZS_DECLARE_TYPEDEF_PTR(IRTPMediaEngineForRTPReceiverChannelVideo, UseMediaEngine)
       ZS_DECLARE_TYPEDEF_PTR(IRTPMediaEngineDeviceResource, UseDeviceResource)
+      ZS_DECLARE_TYPEDEF_PTR(IRTPMediaEngineVideoReceiverChannelResource, UseChannelResource)
 
       ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverChannelMediaBaseForRTPReceiverChannel, ForReceiverChannelFromMediaBase)
       ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverChannelMediaBaseForMediaStreamTrack, ForMediaStreamTrackFromMediaBase)
@@ -206,20 +203,6 @@ namespace ortc
       ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters)
       typedef std::list<RTCPPacketPtr> RTCPPacketList;
       ZS_DECLARE_PTR(RTCPPacketList)
-
-      class ReceiverVideoRenderer : public webrtc::VideoRenderer
-      {
-      public:
-        void setMediaStreamTrack(UseMediaStreamTrackPtr videoTrack);
-
-        virtual void RenderFrame(const webrtc::VideoFrame& video_frame,
-          int time_to_render_ms) override;
-
-        virtual bool IsTextureSupported() const override;
-
-      private:
-        UseMediaStreamTrackPtr mVideoTrack;
-      };
 
       enum States
       {
@@ -395,7 +378,7 @@ namespace ortc
       void step();
       bool stepPromiseEngine();
       bool stepPromiseExampleDeviceResource();
-      bool stepSetup();
+      bool stepSetupChannel();
 
       void cancel();
 
@@ -427,19 +410,15 @@ namespace ortc
       PromiseWithRTPMediaEngineDeviceResourcePtr mDeviceResourcePromise;
       UseDeviceResourcePtr mDeviceResource;
 
+      PromiseWithRTPMediaEngineChannelResourcePtr mSetupChannelPromise;
+      UseChannelResourcePtr mChannelResource;
+
+      PromisePtr mCloseChannelPromise;
+
       Optional<IMediaStreamTrackTypes::Kinds> mKind;
       UseMediaStreamTrackPtr mTrack;
 
       TransportPtr mTransport;  // allow lifetime of callback to exist separate from "this" object
-
-      rtc::scoped_ptr<webrtc::ProcessThread> mModuleProcessThread;
-      rtc::scoped_ptr<webrtc::VideoReceiveStream> mReceiveStream;
-      rtc::scoped_ptr<webrtc::CallStats> mCallStats;
-      rtc::scoped_ptr<webrtc::CongestionController> mCongestionController;
-      ReceiverVideoRenderer mReceiverVideoRenderer;
-
-      EventPtr mSetupChannelEvent;
-      EventPtr mCloseChannelEvent;
     };
 
     //-------------------------------------------------------------------------

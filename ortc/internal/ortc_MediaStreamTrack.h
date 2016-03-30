@@ -292,6 +292,8 @@ namespace ortc
 
       virtual void start() = 0;
       virtual void stop() = 0;
+
+      virtual void renderVideoFrame(const webrtc::VideoFrame& videoFrame) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -567,6 +569,8 @@ namespace ortc
 
       virtual void start() override;
       // (duplicate) virtual void stop() = 0;
+
+      // (duplicate) virtual void renderVideoFrame(const webrtc::VideoFrame& videoFrame) = 0;
 
       //-----------------------------------------------------------------------
       #pragma mark

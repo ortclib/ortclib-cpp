@@ -44,7 +44,13 @@
 #include <zsLib/Timer.h>
 
 #include "webrtc/base/scoped_ptr.h"
-#include "webrtc/voice_engine/include/voe_base.h"
+#include <webrtc/audio/audio_send_stream.h>
+#include <webrtc/audio/audio_receive_stream.h>
+#include <webrtc/video/video_send_stream.h>
+#include <webrtc/video/video_receive_stream.h>
+#include <webrtc/video_engine/call_stats.h>
+#include <webrtc/call/congestion_controller.h>
+#include <webrtc/modules/utility/include/process_thread.h>
 
 //#define ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE "ortc/sctp/max-message-size"
 
@@ -56,9 +62,7 @@ namespace ortc
 
     // resource based interfaces
     ZS_DECLARE_INTERACTION_PTR(IRTPMediaEngineDeviceResource)
-
-    ZS_DECLARE_INTERACTION_PTR(IRTPMediaEngineSetupChannelResult)
-    ZS_DECLARE_INTERACTION_PTR(IRTPMediaEngineCloseChannelResult)
+    ZS_DECLARE_INTERACTION_PTR(IRTPMediaEngineChannelResource)
 
     ZS_DECLARE_INTERACTION_PTR(IRTPMediaEngineForSettings)
     ZS_DECLARE_INTERACTION_PTR(IRTPMediaEngineForSingleton)
@@ -84,8 +88,7 @@ namespace ortc
 
     ZS_DECLARE_TYPEDEF_PTR(zsLib::PromiseWith<RTPMediaEngine>, PromiseWithRTPMediaEngine)
     ZS_DECLARE_TYPEDEF_PTR(zsLib::PromiseWith<IRTPMediaEngineDeviceResource>, PromiseWithRTPMediaEngineDeviceResource)
-    ZS_DECLARE_TYPEDEF_PTR(zsLib::PromiseWith<IRTPMediaEngineSetupChannelResult>, PromiseWithRTPMediaEngineSetupChannelResult)
-    ZS_DECLARE_TYPEDEF_PTR(zsLib::PromiseWith<IRTPMediaEngineCloseChannelResult>, PromiseWithRTPMediaEngineCloseChannelResult)
+    ZS_DECLARE_TYPEDEF_PTR(zsLib::PromiseWith<IRTPMediaEngineChannelResource>, PromiseWithRTPMediaEngineChannelResource)
 
 
     //-------------------------------------------------------------------------
@@ -138,11 +141,13 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IRTPMediaEngineSetupChannelResult
+    #pragma mark IRTPMediaEngineChannelResource
     #pragma mark
 
-    interaction IRTPMediaEngineSetupChannelResult : public Any
+    interaction IRTPMediaEngineChannelResource : public Any
     {
+      virtual PUID getID() const = 0;
+      virtual String getChannelID() const = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -150,11 +155,51 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IRTPMediaEngineCloseChannelResult
+    #pragma mark IRTPMediaEngineAudioReceiverChannelResource
     #pragma mark
 
-    interaction IRTPMediaEngineCloseChannelResult : public Any
+    interaction IRTPMediaEngineAudioReceiverChannelResource : public IRTPMediaEngineChannelResource
     {
+      virtual int getChannel() = 0;
+    };
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IRTPMediaEngineAudioSenderChannelResource
+    #pragma mark
+
+    interaction IRTPMediaEngineAudioSenderChannelResource : public IRTPMediaEngineChannelResource
+    {
+      virtual rtc::scoped_ptr<webrtc::AudioSendStream> getStream() = 0;
+    };
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IRTPMediaEngineVideoReceiverChannelResource
+    #pragma mark
+
+    interaction IRTPMediaEngineVideoReceiverChannelResource : public IRTPMediaEngineChannelResource
+    {
+      virtual rtc::scoped_ptr<webrtc::VideoReceiveStream> getStream() = 0;
+    };
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IRTPMediaEngineVideoSenderChannelResource
+    #pragma mark
+
+    interaction IRTPMediaEngineVideoSenderChannelResource : public IRTPMediaEngineChannelResource
+    {
+      virtual rtc::scoped_ptr<webrtc::VideoSendStream> getStream() = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -216,6 +261,8 @@ namespace ortc
     {
       ZS_DECLARE_TYPEDEF_PTR(IRTPMediaEngineForRTPReceiverChannelMediaBase, ForRTPReceiverChannelMediaBase)
       ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverChannelMediaBaseForRTPMediaEngine, UseReceiverChannelMediaBase)
+      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters)
+      ZS_DECLARE_TYPEDEF_PTR(webrtc::Transport, Transport)
 
       ElementPtr toDebug(ForRTPReceiverChannelMediaBasePtr object);
 
@@ -223,9 +270,14 @@ namespace ortc
 
       static PromiseWithRTPMediaEngineDeviceResourcePtr getDeviceResource(const char *deviceID);
 
-      static PromiseWithRTPMediaEngineSetupChannelResultPtr setupChannel(UseReceiverChannelMediaBasePtr channel);
+      static PromiseWithRTPMediaEngineChannelResourcePtr setupChannel(
+                                                                      UseReceiverChannelMediaBasePtr channel,
+                                                                      TransportPtr transport,
+                                                                      MediaStreamTrackPtr track,
+                                                                      ParametersPtr parameters
+                                                                      );
 
-      static PromiseWithRTPMediaEngineCloseChannelResultPtr closeChannel(UseReceiverChannelMediaBasePtr channel);
+      static PromisePtr closeChannel(UseReceiverChannelMediaBase &channel);
 
       virtual PUID getID() const = 0;
     };
@@ -285,6 +337,8 @@ namespace ortc
     {
       ZS_DECLARE_TYPEDEF_PTR(IRTPMediaEngineForRTPSenderChannelMediaBase, ForRTPSenderChannelMediaBase)
       ZS_DECLARE_TYPEDEF_PTR(IRTPSenderChannelMediaBaseForRTPMediaEngine, UseSenderChannelMediaBase)
+      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters)
+      ZS_DECLARE_TYPEDEF_PTR(webrtc::Transport, Transport)
 
       ElementPtr toDebug(ForRTPSenderChannelMediaBasePtr object);
 
@@ -292,9 +346,14 @@ namespace ortc
 
       static PromiseWithRTPMediaEngineDeviceResourcePtr getDeviceResource(const char *deviceID);
 
-      static PromiseWithRTPMediaEngineSetupChannelResultPtr setupChannel(UseSenderChannelMediaBasePtr channel);
+      static PromiseWithRTPMediaEngineChannelResourcePtr setupChannel(
+                                                                      UseSenderChannelMediaBasePtr channel,
+                                                                      TransportPtr transport,
+                                                                      MediaStreamTrackPtr track,
+                                                                      ParametersPtr parameters
+                                                                      );
 
-      static PromiseWithRTPMediaEngineCloseChannelResultPtr closeChannel(UseSenderChannelMediaBasePtr channel);
+      static PromisePtr closeChannel(UseSenderChannelMediaBase &channel);
 
       virtual PUID getID() const = 0;
     };
@@ -357,6 +416,21 @@ namespace ortc
       virtual void notifyResourceGone(IRTPMediaEngineDeviceResource &device) = 0;
     };
 
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IRTPMediaEngineForChannelResource
+    #pragma mark
+
+    interaction IRTPMediaEngineForChannelResource
+    {
+      ZS_DECLARE_TYPEDEF_PTR(IRTPMediaEngineForChannelResource, ForChannelResource)
+
+      virtual void notifyResourceGone(IRTPMediaEngineChannelResource &channel) = 0;
+    };
+
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -380,7 +454,8 @@ namespace ortc
     #pragma mark RTPMediaEngine
     #pragma mark
     
-    class RTPMediaEngine : public Noop,
+    class RTPMediaEngine : public Any,
+                           public Noop,
                            public MessageQueueAssociator,
                            public SharedRecursiveLock,
                            public IRTPMediaEngineForSettings,
@@ -393,6 +468,7 @@ namespace ortc
                            public IRTPMediaEngineForRTPSenderChannelVideo,
                            public IRTPMediaEngineForMediaStreamTrack,
                            public IRTPMediaEngineForDeviceResource,
+                           public IRTPMediaEngineForChannelResource,
                            public IWakeDelegate,
                            public zsLib::ITimerDelegate,
                            public IRTPMediaEngineAsyncDelegate
@@ -417,14 +493,20 @@ namespace ortc
       friend interaction IRTPMediaEngineForRTPSenderChannelVideo;
       friend interaction IRTPMediaEngineForMediaStreamTrack;
       friend interaction IRTPMediaEngineForDeviceResource;
+      friend interaction IRTPMediaEngineForChannelResource;
 
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPMediaEngine, UseMediaStreamTrack)
-      ZS_DECLARE_TYPEDEF_PTR(IRTPSenderChannelAudioForRTPMediaEngine, UseChannelAudio)
 
       ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters)
 
+      ZS_DECLARE_TYPEDEF_PTR(webrtc::Transport, Transport)
+
       ZS_DECLARE_CLASS_PTR(BaseResource)
       ZS_DECLARE_CLASS_PTR(DeviceResource)
+      ZS_DECLARE_CLASS_PTR(AudioReceiverChannelResource)
+      ZS_DECLARE_CLASS_PTR(AudioSenderChannelResource)
+      ZS_DECLARE_CLASS_PTR(VideoReceiverChannelResource)
+      ZS_DECLARE_CLASS_PTR(VideoSenderChannelResource)
 
       enum States
       {
@@ -439,6 +521,8 @@ namespace ortc
 
       typedef std::map<PUID, DeviceResourceWeakPtr> DeviceResourceMap;
       typedef std::list<DeviceResourceWeakPtr> DeviceResourceList;
+      typedef std::map<PUID, IRTPMediaEngineChannelResourceWeakPtr> ChannelResourceMap;
+      typedef std::list<IRTPMediaEngineChannelResourceWeakPtr> ChannelResourceList;
       typedef std::map<PUID, PromiseWeakPtr> PendingPromiseMap;
       typedef std::map<PUID, UseReceiverChannelMediaBaseWeakPtr> ReceiverChannelMap;
       typedef std::map<PUID, UseSenderChannelMediaBaseWeakPtr> SenderChannelMap;
@@ -501,9 +585,14 @@ namespace ortc
 
       PromiseWithRTPMediaEngineDeviceResourcePtr getDeviceResource(const char *deviceID);
 
-      PromiseWithRTPMediaEngineSetupChannelResultPtr setupChannel(UseReceiverChannelMediaBasePtr channel);
+      PromiseWithRTPMediaEngineChannelResourcePtr setupChannel(
+                                                               UseReceiverChannelMediaBasePtr channel,
+                                                               TransportPtr transport,
+                                                               MediaStreamTrackPtr track,
+                                                               ParametersPtr parameters
+                                                               );
 
-      PromiseWithRTPMediaEngineCloseChannelResultPtr closeChannel(UseReceiverChannelMediaBasePtr channel);
+      PromisePtr closeChannel(UseReceiverChannelMediaBase &channel);
 
       // (duplicate) virtual PUID getID() const = 0;
 
@@ -533,9 +622,14 @@ namespace ortc
 
       // (duplicate) PromiseWithRTPMediaEngineDeviceResourcePtr getDeviceResource(const char *deviceID) = 0;
 
-      PromiseWithRTPMediaEngineSetupChannelResultPtr setupChannel(UseSenderChannelMediaBasePtr channel);
+      PromiseWithRTPMediaEngineChannelResourcePtr setupChannel(
+                                                               UseSenderChannelMediaBasePtr channel,
+                                                               TransportPtr transport,
+                                                               MediaStreamTrackPtr track,
+                                                               ParametersPtr parameters
+                                                               );
 
-      PromiseWithRTPMediaEngineCloseChannelResultPtr closeChannel(UseSenderChannelMediaBasePtr channel);
+      PromisePtr closeChannel(UseSenderChannelMediaBase &channel);
 
       // (duplicate) virtual PUID getID() const = 0;
 
@@ -557,6 +651,13 @@ namespace ortc
       #pragma mark
 
       virtual void notifyResourceGone(IRTPMediaEngineDeviceResource &resource) override;
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPMediaEngine => IRTPMediaEngineForChannelResource
+      #pragma mark
+
+      virtual void notifyResourceGone(IRTPMediaEngineChannelResource &resource) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -719,11 +820,77 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark RTPMediaEngine::SetupChannelResult
+      #pragma mark RTPMediaEngine::AudioReceiverChannelResource
       #pragma mark
 
-      class SetupChannelResult : public IRTPMediaEngineSetupChannelResult
+      class AudioReceiverChannelResource : public IRTPMediaEngineAudioReceiverChannelResource,
+                                           public BaseResource
       {
+      public:
+        ZS_DECLARE_TYPEDEF_PTR(IRTPMediaEngineForChannelResource, UseEngine)
+
+      public:
+        AudioReceiverChannelResource(
+                                     const make_private &,
+                                     IMessageQueuePtr queue,
+                                     IRTPMediaEngineRegistrationPtr registration,
+                                     TransportPtr transport,
+                                     MediaStreamTrackPtr track,
+                                     ParametersPtr parameters
+                                     );
+        ~AudioReceiverChannelResource();
+
+        static AudioReceiverChannelResourcePtr create(
+                                                      IRTPMediaEngineRegistrationPtr registration,
+                                                      TransportPtr transport,
+                                                      MediaStreamTrackPtr track,
+                                                      ParametersPtr parameters
+                                                      );
+
+      protected:
+        void init();
+
+      public:
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark RTPMediaEngine::AudioReceiverChannelResource => IRTPMediaEngineChannelResource
+        #pragma mark
+
+        virtual PUID getID() const { return mID; }
+        virtual String getChannelID() const;
+
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark RTPMediaEngine::AudioReceiverChannelResource => IRTPMediaEngineAudioReceiverChannelResource
+        #pragma mark
+
+        virtual int getChannel() override;
+
+      protected:
+        //-----------------------------------------------------------------------
+        #pragma mark
+        #pragma mark RTPMediaEngine::AudioReceiverChannelResource => (internal)
+        #pragma mark
+
+        webrtc::CodecInst getAudioCodec(String payloadName);
+
+      protected:
+        String mChannelID;
+
+        int mChannel{};
+
+        TransportPtr mTransport;
+
+        UseMediaStreamTrackPtr mTrack;
+
+        ParametersPtr mParameters;
+
+        rtc::scoped_ptr<webrtc::ProcessThread> mModuleProcessThread;
+        rtc::scoped_ptr<webrtc::AudioReceiveStream> mReceiveStream;
+        rtc::scoped_ptr<webrtc::CallStats> mCallStats;
+        rtc::scoped_ptr<webrtc::CongestionController> mCongestionController;
+
+        webrtc::AudioDeviceModule* mAudioDeviceModule;
       };
 
       //-----------------------------------------------------------------------
@@ -731,13 +898,224 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark RTPMediaEngine::SetupChannelResult
+      #pragma mark RTPMediaEngine::AudioSenderChannelResource
       #pragma mark
 
-      class CloseChannelResult : public IRTPMediaEngineCloseChannelResult
+      class AudioSenderChannelResource : public IRTPMediaEngineAudioSenderChannelResource,
+                                         public BaseResource
       {
+      public:
+        ZS_DECLARE_TYPEDEF_PTR(IRTPMediaEngineForChannelResource, UseEngine)
+
+      public:
+        AudioSenderChannelResource(
+                                   const make_private &,
+                                   IMessageQueuePtr queue,
+                                   IRTPMediaEngineRegistrationPtr registration,
+                                   TransportPtr transport,
+                                   MediaStreamTrackPtr track,
+                                   ParametersPtr parameters
+                                   );
+        ~AudioSenderChannelResource();
+
+        static AudioSenderChannelResourcePtr create(
+                                                    IRTPMediaEngineRegistrationPtr registration,
+                                                    TransportPtr transport,
+                                                    MediaStreamTrackPtr track,
+                                                    ParametersPtr parameters
+                                                    );
+
+      protected:
+        void init();
+
+      public:
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark RTPMediaEngine::AudioSenderChannelResource => IRTPMediaEngineChannelResource
+        #pragma mark
+
+        virtual PUID getID() const { return mID; }
+        virtual String getChannelID() const;
+
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark RTPMediaEngine::AudioSenderChannelResource => IRTPMediaEngineAudioSenderChannelResource
+        #pragma mark
+
+        virtual rtc::scoped_ptr<webrtc::AudioSendStream> getStream() override;
+
+      protected:
+        //-----------------------------------------------------------------------
+        #pragma mark
+        #pragma mark RTPMediaEngine::AudioSenderChannelResource => (internal)
+        #pragma mark
+
+        webrtc::CodecInst getAudioCodec(String payloadName);
+
+      protected:
+        String mChannelID;
+
+        int mChannel{};
+
+        TransportPtr mTransport;
+
+        UseMediaStreamTrackPtr mTrack;
+
+        ParametersPtr mParameters;
+
+        rtc::scoped_ptr<webrtc::AudioSendStream> mSendStream;
+
+        webrtc::AudioDeviceModule* mAudioDeviceModule;
       };
 
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPMediaEngine::VideoReceiverChannelResource
+      #pragma mark
+
+      class VideoReceiverChannelResource : public IRTPMediaEngineVideoReceiverChannelResource,
+                                           public BaseResource
+      {
+      public:
+        ZS_DECLARE_TYPEDEF_PTR(IRTPMediaEngineForChannelResource, UseEngine)
+
+        class ReceiverVideoRenderer : public webrtc::VideoRenderer
+        {
+        public:
+          void setMediaStreamTrack(UseMediaStreamTrackPtr videoTrack);
+
+          virtual void RenderFrame(
+                                   const webrtc::VideoFrame& video_frame,
+                                   int time_to_render_ms
+                                   ) override;
+
+          virtual bool IsTextureSupported() const override;
+
+        private:
+          UseMediaStreamTrackPtr mVideoTrack;
+        };
+
+      public:
+        VideoReceiverChannelResource(
+                                     const make_private &,
+                                     IMessageQueuePtr queue,
+                                     IRTPMediaEngineRegistrationPtr registration,
+                                     TransportPtr transport,
+                                     MediaStreamTrackPtr track,
+                                     ParametersPtr parameters
+                                     );
+        ~VideoReceiverChannelResource();
+
+        static VideoReceiverChannelResourcePtr create(
+                                                      IRTPMediaEngineRegistrationPtr registration,
+                                                      TransportPtr transport,
+                                                      MediaStreamTrackPtr track,
+                                                      ParametersPtr parameters
+                                                      );
+
+      protected:
+        void init();
+
+      public:
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark RTPMediaEngine::VideoReceiverChannelResource => IRTPMediaEngineChannelResource
+        #pragma mark
+
+        virtual PUID getID() const { return mID; }
+        virtual String getChannelID() const;
+
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark RTPMediaEngine::VideoReceiverChannelResource => IRTPMediaEngineVideoReceiverChannelResource
+        #pragma mark
+
+        virtual rtc::scoped_ptr<webrtc::VideoReceiveStream> getStream() override;
+
+      protected:
+        String mChannelID;
+
+        TransportPtr mTransport;
+
+        UseMediaStreamTrackPtr mTrack;
+
+        ParametersPtr mParameters;
+
+        rtc::scoped_ptr<webrtc::ProcessThread> mModuleProcessThread;
+        rtc::scoped_ptr<webrtc::VideoReceiveStream> mReceiveStream;
+        rtc::scoped_ptr<webrtc::CallStats> mCallStats;
+        rtc::scoped_ptr<webrtc::CongestionController> mCongestionController;
+        ReceiverVideoRenderer mReceiverVideoRenderer;
+      };
+
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPMediaEngine::VideoSenderChannelResource
+      #pragma mark
+
+      class VideoSenderChannelResource : public IRTPMediaEngineVideoSenderChannelResource,
+                                         public BaseResource
+      {
+      public:
+        ZS_DECLARE_TYPEDEF_PTR(IRTPMediaEngineForChannelResource, UseEngine)
+
+      public:
+        VideoSenderChannelResource(
+                                   const make_private &,
+                                   IMessageQueuePtr queue,
+                                   IRTPMediaEngineRegistrationPtr registration,
+                                   TransportPtr transport,
+                                   MediaStreamTrackPtr track,
+                                   ParametersPtr parameters
+                                   );
+        ~VideoSenderChannelResource();
+
+        static VideoSenderChannelResourcePtr create(
+                                                    IRTPMediaEngineRegistrationPtr registration,
+                                                    TransportPtr transport,
+                                                    MediaStreamTrackPtr track,
+                                                    ParametersPtr parameters
+                                                    );
+
+      protected:
+        void init();
+
+      public:
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark RTPMediaEngine::VideoSenderChannelResource => IRTPMediaEngineChannelResource
+        #pragma mark
+
+        virtual PUID getID() const { return mID; }
+        virtual String getChannelID() const;
+
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark RTPMediaEngine::VideoSenderChannelResource => IRTPMediaEngineVideoSenderChannelResource
+        #pragma mark
+
+        virtual rtc::scoped_ptr<webrtc::VideoSendStream> getStream() override;
+
+      protected:
+        String mChannelID;
+
+        TransportPtr mTransport;
+
+        UseMediaStreamTrackPtr mTrack;
+
+        ParametersPtr mParameters;
+
+        rtc::scoped_ptr<webrtc::ProcessThread> mModuleProcessThread;
+        rtc::scoped_ptr<webrtc::VideoSendStream> mSendStream;
+        rtc::scoped_ptr<webrtc::CallStats> mCallStats;
+        rtc::scoped_ptr<webrtc::CongestionController> mCongestionController;
+      };
 
     protected:
       //-----------------------------------------------------------------------
@@ -759,6 +1137,9 @@ namespace ortc
 
       DeviceResourceMap mExampleDeviceResources;
       DeviceResourceList mExamplePendingDeviceResources;
+
+      ChannelResourceMap mChannelResources;
+      ChannelResourceList mPendingChannelResources;
 
       ReceiverChannelMap mPendingSetupReceiverAudioChannels;
       PendingPromiseMap mPendingSetupReceiverAudioChannelPromises;
