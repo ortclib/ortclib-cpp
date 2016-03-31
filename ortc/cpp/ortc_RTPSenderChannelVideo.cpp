@@ -289,7 +289,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPSenderChannelVideo::sendVideoFrame(const webrtc::VideoFrame& videoFrame)
     {
-      if (!mChannelResource->getStream()) return;
+      if (!mChannelResource) return;
       mChannelResource->getStream()->Input()->IncomingCapturedFrame(videoFrame);
     }
 
@@ -309,7 +309,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPSenderChannelVideo::closeChannel()
     {
-      if (mChannelResource->getStream())
+      if (mChannelResource)
         mChannelResource->getStream()->Stop();
 
       //mModuleProcessThread->Stop();

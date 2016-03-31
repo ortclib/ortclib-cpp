@@ -148,6 +148,7 @@ namespace ortc
     {
       virtual PUID getID() const = 0;
       virtual String getChannelID() const = 0;
+      virtual void setupChannel() = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -521,11 +522,8 @@ namespace ortc
 
       typedef std::map<PUID, DeviceResourceWeakPtr> DeviceResourceMap;
       typedef std::list<DeviceResourceWeakPtr> DeviceResourceList;
-      typedef std::map<PUID, IRTPMediaEngineChannelResourceWeakPtr> ChannelResourceMap;
-      typedef std::list<IRTPMediaEngineChannelResourceWeakPtr> ChannelResourceList;
-      typedef std::map<PUID, PromiseWeakPtr> PendingPromiseMap;
-      typedef std::map<PUID, UseReceiverChannelMediaBaseWeakPtr> ReceiverChannelMap;
-      typedef std::map<PUID, UseSenderChannelMediaBaseWeakPtr> SenderChannelMap;
+      typedef std::map<PUID, BaseResourceWeakPtr> ChannelResourceMap;
+      typedef std::list<BaseResourceWeakPtr> ChannelResourceList;
 
     public:
       RTPMediaEngine(
@@ -827,6 +825,8 @@ namespace ortc
                                            public BaseResource
       {
       public:
+        friend class RTPMediaEngine;
+
         ZS_DECLARE_TYPEDEF_PTR(IRTPMediaEngineForChannelResource, UseEngine)
 
       public:
@@ -869,6 +869,13 @@ namespace ortc
       protected:
         //-----------------------------------------------------------------------
         #pragma mark
+        #pragma mark RTPMediaEngine::AudioReceiverChannelResource => friend RTPMediaEngine
+        #pragma mark
+
+        virtual void setupChannel();
+
+        //-----------------------------------------------------------------------
+        #pragma mark
         #pragma mark RTPMediaEngine::AudioReceiverChannelResource => (internal)
         #pragma mark
 
@@ -905,6 +912,8 @@ namespace ortc
                                          public BaseResource
       {
       public:
+        friend class RTPMediaEngine;
+
         ZS_DECLARE_TYPEDEF_PTR(IRTPMediaEngineForChannelResource, UseEngine)
 
       public:
@@ -947,6 +956,13 @@ namespace ortc
       protected:
         //-----------------------------------------------------------------------
         #pragma mark
+        #pragma mark RTPMediaEngine::AudioSenderChannelResource => friend RTPMediaEngine
+        #pragma mark
+
+        virtual void setupChannel();
+
+        //-----------------------------------------------------------------------
+        #pragma mark
         #pragma mark RTPMediaEngine::AudioSenderChannelResource => (internal)
         #pragma mark
 
@@ -980,6 +996,8 @@ namespace ortc
                                            public BaseResource
       {
       public:
+        friend class RTPMediaEngine;
+
         ZS_DECLARE_TYPEDEF_PTR(IRTPMediaEngineForChannelResource, UseEngine)
 
         class ReceiverVideoRenderer : public webrtc::VideoRenderer
@@ -1035,6 +1053,13 @@ namespace ortc
 
         virtual rtc::scoped_ptr<webrtc::VideoReceiveStream> getStream() override;
 
+        //-----------------------------------------------------------------------
+        #pragma mark
+        #pragma mark RTPMediaEngine::VideoReceiverChannelResource => friend RTPMediaEngine
+        #pragma mark
+
+        virtual void setupChannel();
+
       protected:
         String mChannelID;
 
@@ -1063,6 +1088,8 @@ namespace ortc
                                          public BaseResource
       {
       public:
+        friend class RTPMediaEngine;
+
         ZS_DECLARE_TYPEDEF_PTR(IRTPMediaEngineForChannelResource, UseEngine)
 
       public:
@@ -1102,6 +1129,13 @@ namespace ortc
 
         virtual rtc::scoped_ptr<webrtc::VideoSendStream> getStream() override;
 
+        //-----------------------------------------------------------------------
+        #pragma mark
+        #pragma mark RTPMediaEngine::VideoReceiverChannelResource => friend RTPMediaEngine
+        #pragma mark
+
+        virtual void setupChannel();
+
       protected:
         String mChannelID;
 
@@ -1139,25 +1173,8 @@ namespace ortc
       DeviceResourceList mExamplePendingDeviceResources;
 
       ChannelResourceMap mChannelResources;
-      ChannelResourceList mPendingChannelResources;
-
-      ReceiverChannelMap mPendingSetupReceiverAudioChannels;
-      PendingPromiseMap mPendingSetupReceiverAudioChannelPromises;
-      ReceiverChannelMap mPendingSetupReceiverVideoChannels;
-      PendingPromiseMap mPendingSetupReceiverVideoChannelPromises;
-      SenderChannelMap mPendingSetupSenderAudioChannels;
-      PendingPromiseMap mPendingSetupSenderAudioChannelPromises;
-      SenderChannelMap mPendingSetupSenderVideoChannels;
-      PendingPromiseMap mPendingSetupSenderVideoChannelPromises;
-
-      ReceiverChannelMap mPendingCloseReceiverAudioChannels;
-      PendingPromiseMap mPendingCloseReceiverAudioChannelPromises;
-      ReceiverChannelMap mPendingCloseReceiverVideoChannels;
-      PendingPromiseMap mPendingCloseReceiverVideoChannelPromises;
-      SenderChannelMap mPendingCloseSenderAudioChannels;
-      PendingPromiseMap mPendingCloseSenderAudioChannelPromises;
-      SenderChannelMap mPendingCloseSenderVideoChannels;
-      PendingPromiseMap mPendingCloseSenderVideoChannelPromises;
+      ChannelResourceList mPendingSetupChannelResources;
+      ChannelResourceList mPendingCloseChannelResources;
 
       rtc::scoped_ptr<webrtc::VoiceEngine, VoiceEngineDeleter> mVoiceEngine;
     };
