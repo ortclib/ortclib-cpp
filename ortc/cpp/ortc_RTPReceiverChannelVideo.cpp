@@ -619,7 +619,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool RTPReceiverChannelVideo::stepSetupChannel()
     {
-      if (mTransport) {
+      if (mChannelResource) {
         ZS_LOG_TRACE(log("already setup channel"))
         return true;
       }

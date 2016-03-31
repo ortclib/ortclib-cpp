@@ -260,8 +260,8 @@ namespace ortc
       }
       webrtc::PacketTime time(packet->timestamp(), 0);
       //mReceiveStream->DeliverRtp(packet->buffer()->data(), packet->buffer()->size(), time);
-      if (mMediaEngine->getVoiceEngine().get()) {
-        webrtc::VoENetwork::GetInterface(mMediaEngine->getVoiceEngine().get())->ReceivedRTPPacket(
+      if (mMediaEngine && mMediaEngine->getVoiceEngine() && mChannelResource) {
+        webrtc::VoENetwork::GetInterface(mMediaEngine->getVoiceEngine())->ReceivedRTPPacket(
           mChannelResource->getChannel(), packet->buffer()->data(), packet->buffer()->size(), time);
       }
       return true;
@@ -275,8 +275,8 @@ namespace ortc
         AutoRecursiveLock lock(*this);
       }
       //mReceiveStream->DeliverRtcp(packet->buffer()->data(), packet->buffer()->size());
-      if (mMediaEngine->getVoiceEngine().get()) {
-        webrtc::VoENetwork::GetInterface(mMediaEngine->getVoiceEngine().get())->ReceivedRTCPPacket(
+      if (mMediaEngine && mMediaEngine->getVoiceEngine() && mChannelResource) {
+        webrtc::VoENetwork::GetInterface(mMediaEngine->getVoiceEngine())->ReceivedRTCPPacket(
           mChannelResource->getChannel(), packet->buffer()->data(), packet->buffer()->size());
       }
       return true;
@@ -352,10 +352,10 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPReceiverChannelAudio::closeChannel()
     {
-      if (mMediaEngine->getVoiceEngine().get()) {
-        //webrtc::VoEBase::GetInterface(mMediaEngine->getVoiceEngine().get())->StopPlayout(mChannel);
-        //webrtc::VoEBase::GetInterface(mMediaEngine->getVoiceEngine().get())->StopReceive(mChannel);
-        //webrtc::VoENetwork::GetInterface(mMediaEngine->getVoiceEngine().get())->DeRegisterExternalTransport(mChannel);
+      if (mMediaEngine->getVoiceEngine()) {
+        //webrtc::VoEBase::GetInterface(mMediaEngine->getVoiceEngine())->StopPlayout(mChannel);
+        //webrtc::VoEBase::GetInterface(mMediaEngine->getVoiceEngine())->StopReceive(mChannel);
+        //webrtc::VoENetwork::GetInterface(mMediaEngine->getVoiceEngine())->DeRegisterExternalTransport(mChannel);
       }
 
 #define FIX_ME_WARNING_NO_TRACK_IS_NOT_STOPPED_JUST_BECAUSE_A_RECEIVER_CHANNEL_IS_DONE 1
@@ -659,7 +659,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool RTPReceiverChannelAudio::stepSetupChannel()
     {
-      if (mTransport) {
+      if (mChannelResource) {
         ZS_LOG_TRACE(log("already setup channel"))
         return true;
       }

@@ -318,8 +318,8 @@ namespace ortc
     void RTPSenderChannelAudio::closeChannel()
     {
       if (mMediaEngine->getVoiceEngine()) {
-        //webrtc::VoENetwork::GetInterface(mMediaEngine->getVoiceEngine().get())->DeRegisterExternalTransport(mChannel);
-        //webrtc::VoEBase::GetInterface(mMediaEngine->getVoiceEngine().get())->StopSend(0);
+        //webrtc::VoENetwork::GetInterface(mMediaEngine->getVoiceEngine())->DeRegisterExternalTransport(mChannel);
+        //webrtc::VoEBase::GetInterface(mMediaEngine->getVoiceEngine())->StopSend(0);
       }
 
       if (mTrack)
@@ -632,7 +632,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool RTPSenderChannelAudio::stepSetupChannel()
     {
-      if (mTransport) {
+      if (mChannelResource) {
         ZS_LOG_TRACE(log("already setup channel"))
         return true;
       }

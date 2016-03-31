@@ -174,7 +174,7 @@ namespace ortc
 
     interaction IRTPMediaEngineAudioSenderChannelResource : public IRTPMediaEngineChannelResource
     {
-      virtual rtc::scoped_ptr<webrtc::AudioSendStream> getStream() = 0;
+      virtual webrtc::AudioSendStream *getStream() = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -187,7 +187,7 @@ namespace ortc
 
     interaction IRTPMediaEngineVideoReceiverChannelResource : public IRTPMediaEngineChannelResource
     {
-      virtual rtc::scoped_ptr<webrtc::VideoReceiveStream> getStream() = 0;
+      virtual webrtc::VideoReceiveStream *getStream() = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -200,7 +200,7 @@ namespace ortc
 
     interaction IRTPMediaEngineVideoSenderChannelResource : public IRTPMediaEngineChannelResource
     {
-      virtual rtc::scoped_ptr<webrtc::VideoSendStream> getStream() = 0;
+      virtual webrtc::VideoSendStream *getStream() = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -295,7 +295,7 @@ namespace ortc
     {
       ZS_DECLARE_TYPEDEF_PTR(IRTPMediaEngineForRTPReceiverChannelAudio, ForRTPReceiverChannelAudio)
 
-      virtual rtc::scoped_ptr<webrtc::VoiceEngine, VoiceEngineDeleter> getVoiceEngine() = 0;
+      virtual webrtc::VoiceEngine *getVoiceEngine() = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -371,7 +371,7 @@ namespace ortc
     {
       ZS_DECLARE_TYPEDEF_PTR(IRTPMediaEngineForRTPSenderChannelAudio, ForRTPSenderChannelAudio)
 
-      virtual rtc::scoped_ptr<webrtc::VoiceEngine, VoiceEngineDeleter> getVoiceEngine() = 0;
+      virtual webrtc::VoiceEngine *getVoiceEngine() = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -599,7 +599,7 @@ namespace ortc
       #pragma mark RTPMediaEngine => IRTPMediaEngineForRTPReceiverChannelAudio
       #pragma mark
 
-      virtual rtc::scoped_ptr<webrtc::VoiceEngine, VoiceEngineDeleter> getVoiceEngine() override;
+      webrtc::VoiceEngine *getVoiceEngine() override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -951,7 +951,7 @@ namespace ortc
         #pragma mark RTPMediaEngine::AudioSenderChannelResource => IRTPMediaEngineAudioSenderChannelResource
         #pragma mark
 
-        virtual rtc::scoped_ptr<webrtc::AudioSendStream> getStream() override;
+        virtual webrtc::AudioSendStream *getStream() override;
 
       protected:
         //-----------------------------------------------------------------------
@@ -1051,7 +1051,7 @@ namespace ortc
         #pragma mark RTPMediaEngine::VideoReceiverChannelResource => IRTPMediaEngineVideoReceiverChannelResource
         #pragma mark
 
-        virtual rtc::scoped_ptr<webrtc::VideoReceiveStream> getStream() override;
+        virtual webrtc::VideoReceiveStream *getStream() override;
 
         //-----------------------------------------------------------------------
         #pragma mark
@@ -1127,7 +1127,7 @@ namespace ortc
         #pragma mark RTPMediaEngine::VideoSenderChannelResource => IRTPMediaEngineVideoSenderChannelResource
         #pragma mark
 
-        virtual rtc::scoped_ptr<webrtc::VideoSendStream> getStream() override;
+        virtual webrtc::VideoSendStream *getStream() override;
 
         //-----------------------------------------------------------------------
         #pragma mark
