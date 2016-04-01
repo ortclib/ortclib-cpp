@@ -909,17 +909,17 @@ namespace ortc
 
             // RTX
           case IRTPTypes::SupportedCodec_RTX:     {
-            codec.mPreferredPayloadType = 115;
+            codec.mPreferredPayloadType = 117;
             break;
           }
 
             // FEC
           case IRTPTypes::SupportedCodec_RED:     {
-            codec.mPreferredPayloadType = 116;
+            codec.mPreferredPayloadType = 115;
             break;
           }
           case IRTPTypes::SupportedCodec_ULPFEC:  {
-            codec.mPreferredPayloadType = 117;
+            codec.mPreferredPayloadType = 116;
             break;
           }
           case IRTPTypes::SupportedCodec_FlexFEC: {
@@ -977,7 +977,31 @@ namespace ortc
           case IRTPTypes::SupportedCodec_H264:            break;
 
             // RTX
-          case IRTPTypes::SupportedCodec_RTX:             break;
+          case IRTPTypes::SupportedCodec_RTX:             {
+            RTXCodecCapabilityParameters rtxParams;
+            rtxParams.mRTXTime = Milliseconds(3000);
+            rtxParams.mApt = 100;
+            codec.mParameters = RTXCodecCapabilityParameters::create(rtxParams);
+
+            if (add) {
+              EventWriteOrtcRtpReceiverReportCodec(__func__, codec.mName, codec.mKind, codec.mClockRate, codec.mPreferredPayloadType, codec.mMaxPTime, codec.mNumChannels);
+              result->mCodecs.push_back(codec);
+            }
+
+            ++codec.mPreferredPayloadType;          // 118
+            rtxParams.mApt = 99;
+            codec.mParameters = RTXCodecCapabilityParameters::create(rtxParams);
+            if (add) {
+              EventWriteOrtcRtpReceiverReportCodec(__func__, codec.mName, codec.mKind, codec.mClockRate, codec.mPreferredPayloadType, codec.mMaxPTime, codec.mNumChannels);
+              result->mCodecs.push_back(codec);
+            }
+
+            ++codec.mPreferredPayloadType;          // 119
+            rtxParams.mApt = 98;
+            codec.mParameters = RTXCodecCapabilityParameters::create(rtxParams);
+
+            break;
+          }
 
             // FEC
           case IRTPTypes::SupportedCodec_RED:             break;

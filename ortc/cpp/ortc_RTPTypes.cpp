@@ -2170,6 +2170,10 @@ namespace ortc
             mParameters = make_shared<H264CodecCapabilityParameters>(parametersEl);
             break;
           }
+          case SupportedCodec_RTX:   {
+            mParameters = make_shared<RTXCodecCapabilityParameters>(parametersEl);
+            break;
+          }
           default: break;
         }
       }
@@ -2244,6 +2248,13 @@ namespace ortc
             }
             break;
           }
+          case SupportedCodec_RTX:   {
+            auto codec = RTXCodecCapabilityParameters::convert(mParameters);
+            if (codec) {
+              elem->adoptAsLastChild(codec->createElement("parameters"));
+            }
+            break;
+          }
           default: break;
         }
       }
@@ -2306,6 +2317,13 @@ namespace ortc
             auto codec = H264CodecCapabilityParameters::convert(source.mParameters);
             if (codec) {
               mParameters = H264CodecCapabilityParameters::create(*codec);
+            }
+            break;
+          }
+          case SupportedCodec_RTX:   {
+            auto codec = RTXCodecCapabilityParameters::convert(source.mParameters);
+            if (codec) {
+              mParameters = RTXCodecCapabilityParameters::create(*codec);
             }
             break;
           }
@@ -2375,6 +2393,14 @@ namespace ortc
           }
           case SupportedCodec_H264:   {
             auto codec = H264CodecCapabilityParameters::convert(mParameters);
+            if (codec) {
+              UseServicesHelper::debugAppend(resultEl, codec->toDebug());
+              found = true;
+            }
+            break;
+          }
+          case SupportedCodec_RTX:   {
+            auto codec = RTXCodecCapabilityParameters::convert(mParameters);
             if (codec) {
               UseServicesHelper::debugAppend(resultEl, codec->toDebug());
               found = true;
@@ -2471,6 +2497,11 @@ namespace ortc
           }
           case SupportedCodec_H264:   {
             auto codec = H264CodecCapabilityParameters::convert(mParameters);
+            if (codec) hasher.update(codec->hash());
+            break;
+          }
+          case SupportedCodec_RTX:   {
+            auto codec = RTXCodecCapabilityParameters::convert(mParameters);
             if (codec) hasher.update(codec->hash());
             break;
           }
@@ -2899,6 +2930,72 @@ namespace ortc
     hasher.update(mMaxDPB);
     hasher.update(":");
     hasher.update(mMaxBR);
+
+    return hasher.final();
+  }
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IRTPTypes::RTXCodecCapabilityParameters
+  #pragma mark
+
+  //---------------------------------------------------------------------------
+  IRTPTypes::RTXCodecCapabilityParameters::RTXCodecCapabilityParameters(ElementPtr elem)
+  {
+    if (!elem) return;
+
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::RTXCodecCapabilityParameters", "apt", mApt);
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::RTXCodecCapabilityParameters", "rtxTime", mRTXTime);
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IRTPTypes::RTXCodecCapabilityParameters::createElement(const char *objectName) const
+  {
+    ElementPtr elem = Element::create(objectName);
+
+    UseHelper::adoptElementValue(elem, "apt", mApt);
+    UseHelper::adoptElementValue(elem, "rtxTime", mRTXTime);
+
+    if (!elem->hasChildren()) return ElementPtr();
+    
+    return elem;
+  }
+
+  //---------------------------------------------------------------------------
+  IRTPTypes::RTXCodecParametersPtr IRTPTypes::RTXCodecCapabilityParameters::create(const RTXCodecParameters &params)
+  {
+    return make_shared<RTXCodecParameters>(params);
+  }
+
+  //---------------------------------------------------------------------------
+  IRTPTypes::RTXCodecParametersPtr IRTPTypes::RTXCodecCapabilityParameters::convert(AnyPtr any)
+  {
+    return ZS_DYNAMIC_PTR_CAST(RTXCodecParameters, any);
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IRTPTypes::RTXCodecCapabilityParameters::toDebug() const
+  {
+    ElementPtr resultEl = Element::create("ortc::IRTPTypes::RTXCodecCapabilityParameters");
+
+    UseServicesHelper::debugAppend(resultEl, "apt", mApt);
+    UseServicesHelper::debugAppend(resultEl, "rtx time", mRTXTime);
+
+    return resultEl;
+  }
+
+  //---------------------------------------------------------------------------
+  String IRTPTypes::RTXCodecCapabilityParameters::hash() const
+  {
+    SHA1Hasher hasher;
+
+    hasher.update("ortc::IRTPTypes::RTXCodecCapabilityParameters:");
+
+    hasher.update(mApt);
+    hasher.update(mRTXTime);
 
     return hasher.final();
   }
@@ -3837,72 +3934,6 @@ namespace ortc
     return hasher.final();
   }
 
-
-  //---------------------------------------------------------------------------
-  //---------------------------------------------------------------------------
-  //---------------------------------------------------------------------------
-  //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IRTPTypes::RTXCodecParameters
-  #pragma mark
-
-  //---------------------------------------------------------------------------
-  IRTPTypes::RTXCodecParameters::RTXCodecParameters(ElementPtr elem)
-  {
-    if (!elem) return;
-
-    UseHelper::getElementValue(elem, "ortc::IRTPTypes::RTXCodecParameters", "apt", mApt);
-    UseHelper::getElementValue(elem, "ortc::IRTPTypes::RTXCodecParameters", "rtxTime", mRTXTime);
-  }
-
-  //---------------------------------------------------------------------------
-  ElementPtr IRTPTypes::RTXCodecParameters::createElement(const char *objectName) const
-  {
-    ElementPtr elem = Element::create(objectName);
-
-    UseHelper::adoptElementValue(elem, "apt", mApt);
-    UseHelper::adoptElementValue(elem, "rtxTime", mRTXTime);
-
-    if (!elem->hasChildren()) return ElementPtr();
-    
-    return elem;
-  }
-
-  //---------------------------------------------------------------------------
-  IRTPTypes::RTXCodecParametersPtr IRTPTypes::RTXCodecParameters::create(const RTXCodecParameters &params)
-  {
-    return make_shared<RTXCodecParameters>(params);
-  }
-
-  //---------------------------------------------------------------------------
-  IRTPTypes::RTXCodecParametersPtr IRTPTypes::RTXCodecParameters::convert(AnyPtr any)
-  {
-    return ZS_DYNAMIC_PTR_CAST(RTXCodecParameters, any);
-  }
-
-  //---------------------------------------------------------------------------
-  ElementPtr IRTPTypes::RTXCodecParameters::toDebug() const
-  {
-    ElementPtr resultEl = Element::create("ortc::IRTPTypes::RTXCodecParameters");
-
-    UseServicesHelper::debugAppend(resultEl, "apt", mApt);
-    UseServicesHelper::debugAppend(resultEl, "rtx time", mRTXTime);
-
-    return resultEl;
-  }
-
-  //---------------------------------------------------------------------------
-  String IRTPTypes::RTXCodecParameters::hash() const
-  {
-    SHA1Hasher hasher;
-
-    hasher.update("ortc::IRTPTypes::RTXCodecParameters:");
-
-    hasher.update(mApt);
-    hasher.update(mRTXTime);
-
-    return hasher.final();
-  }
 
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------

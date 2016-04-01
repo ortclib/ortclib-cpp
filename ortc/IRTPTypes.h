@@ -54,6 +54,7 @@ namespace ortc
     ZS_DECLARE_STRUCT_PTR(OpusCodecCapabilityParameters)
     ZS_DECLARE_STRUCT_PTR(VP8CodecCapabilityParameters)
     ZS_DECLARE_STRUCT_PTR(H264CodecCapabilityParameters)
+    ZS_DECLARE_STRUCT_PTR(RTXCodecCapabilityParameters)
     ZS_DECLARE_STRUCT_PTR(HeaderExtension)
     ZS_DECLARE_STRUCT_PTR(RTCPFeedback)
     ZS_DECLARE_STRUCT_PTR(Parameters)
@@ -61,7 +62,7 @@ namespace ortc
     ZS_DECLARE_STRUCT_PTR(OpusCodecParameters)
     ZS_DECLARE_TYPEDEF_PTR(VP8CodecCapabilityParameters, VP8CodecParameters)
     ZS_DECLARE_TYPEDEF_PTR(H264CodecCapabilityParameters, H264CodecParameters)
-    ZS_DECLARE_STRUCT_PTR(RTXCodecParameters)
+    ZS_DECLARE_TYPEDEF_PTR(RTXCodecCapabilityParameters, RTXCodecParameters)
     ZS_DECLARE_STRUCT_PTR(REDCodecParameters)
     ZS_DECLARE_STRUCT_PTR(FlexFECCodecParameters)
     ZS_DECLARE_STRUCT_PTR(HeaderExtensionParameters)
@@ -270,6 +271,29 @@ namespace ortc
 
     //-------------------------------------------------------------------------
     #pragma mark
+    #pragma mark IRTPTypes::RTXCodecCapabilityParameters
+    #pragma mark
+
+    struct RTXCodecCapabilityParameters : public Any
+    {
+      PayloadType mApt {};
+      Milliseconds mRTXTime {};
+
+      static RTXCodecCapabilityParametersPtr create(const RTXCodecCapabilityParameters &params);
+      static RTXCodecCapabilityParametersPtr convert(AnyPtr any);
+
+      RTXCodecCapabilityParameters() {}
+      RTXCodecCapabilityParameters(const RTXCodecParameters &op2) {(*this) = op2;}
+      RTXCodecCapabilityParameters(ElementPtr elem);
+
+      ElementPtr createElement(const char *objectName = "rtxCodecCapabilityParameters") const;
+
+      ElementPtr toDebug() const;
+      String hash() const;
+    };
+
+    //-------------------------------------------------------------------------
+    #pragma mark
     #pragma mark IRTPTypes::HeaderExtensions
     #pragma mark
 
@@ -470,23 +494,7 @@ namespace ortc
     #pragma mark IRTPTypes::RTXCodecParameters
     #pragma mark
 
-    struct RTXCodecParameters : public Any
-    {
-      PayloadType mApt {};
-      Milliseconds mRTXTime {};
-
-      static RTXCodecParametersPtr create(const RTXCodecParameters &params);
-      static RTXCodecParametersPtr convert(AnyPtr any);
-
-      RTXCodecParameters() {}
-      RTXCodecParameters(const RTXCodecParameters &op2) {(*this) = op2;}
-      RTXCodecParameters(ElementPtr elem);
-
-      ElementPtr createElement(const char *objectName = "rtxCodecParameters") const;
-
-      ElementPtr toDebug() const;
-      String hash() const;
-    };
+    // see RTXCodecCapabilityParameters
 
     //-------------------------------------------------------------------------
     #pragma mark
