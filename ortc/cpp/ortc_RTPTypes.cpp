@@ -218,7 +218,7 @@ namespace ortc
 
             for (auto iterApt = params.mCodecs.begin(); iterApt != params.mCodecs.end(); ++iterApt)
             {
-              auto &aptCodecInfo = (*iter);
+              auto &aptCodecInfo = (*iterApt);
               if (aptCodecInfo.mPayloadType != rtxParams->mApt) continue;
 
               foundAptCodec = true;

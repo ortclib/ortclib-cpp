@@ -1126,7 +1126,7 @@ namespace ortc
             // FEC
             case SupportedCodec_RED:
             {
-              info.mCodecType = CodecType_RTX;
+              info.mCodecType = CodecType_RED;
               break;
             }
             case SupportedCodec_ULPFEC:
@@ -2697,7 +2697,6 @@ namespace ortc
                                                   )
     {
       EncodingParameters *foundEncoding = NULL;
-      IRTPTypes::CodecKinds foundCodecKind {};
 
       Time lastMatchUsageTime {};
 
@@ -2741,16 +2740,16 @@ namespace ortc
             case CodecKind_AudioSupplemental:
             case CodecKind_Video:
             case CodecKind_AV:
-            case CodecKind_Data:    break;
+            case CodecKind_Data:
+            case CodecKind_FEC:     break;
 
-            case CodecKind_RTX:
-            case CodecKind_FEC:     {
-
+            case CodecKind_RTX:     {
               auto ssrc = baseEncoding->mSSRC.value();
+              auto baseRoutingPayload = getMediaCodecRoutingPayload(baseEncoding->mCodecPayloadType.value());
 
-              auto foundSSRC = mSSRCRoutingPayloadTable.find(SSRCRoutingPair(ssrc, routingPayload));
+              auto foundSSRC = mSSRCRoutingPayloadTable.find(SSRCRoutingPair(ssrc, baseRoutingPayload));
               if (foundSSRC == mSSRCRoutingPayloadTable.end()) {
-                ZS_LOG_WARNING(Trace, log("catch not match encoding as master SSRC was not active recently") + channelInfo->toDebug())
+                ZS_LOG_WARNING(Trace, log("catch not match encoding as master SSRC was not active recently") + ZS_PARAM("ssrc", ssrc) + ZS_PARAM("base routing payload", baseRoutingPayload) + channelInfo->toDebug())
                 continue;
               }
 
@@ -2782,13 +2781,12 @@ namespace ortc
                 foundEncoding = matchEncoding;
               } else {
                 ZS_LOG_TRACE(log("found likely match") + channelInfo->toDebug() + ssrcInfo->toDebug())
-                
+
                 lastMatchUsageTime = ssrcInfo->mLastUsage;
                 outChannelInfo = channelInfo;
                 foundEncoding = matchEncoding;
               }
-
-              continue;
+              break;
             }
           }
 
@@ -2807,7 +2805,7 @@ namespace ortc
       {
         ASSERT(foundEncoding)
 
-        switch (foundCodecKind) {
+        switch (decodedCodec.mDepth[0].mCodecKind) {
           case CodecKind_Unknown:  ASSERT(false) break;
           case CodecKind_Audio:
           case CodecKind_Video:
@@ -2846,7 +2844,7 @@ namespace ortc
 
   insert_ssrc_into_table:
       {
-        ZS_LOG_DEBUG(log("creating a new SSRC entry in SSRC table (based on payload type matching)") + outChannelInfo->toDebug())
+        ZS_LOG_DEBUG(log("creating a new SSRC entry in SSRC table (based on payload type matching)") + ZS_PARAM("routing payload", routingPayload) + outChannelInfo->toDebug())
 
         String inRID = rid;
         setSSRCUsage(rtpPacket.ssrc(), routingPayload, inRID, outChannelHolder);
