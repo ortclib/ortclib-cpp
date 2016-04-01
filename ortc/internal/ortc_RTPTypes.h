@@ -36,6 +36,8 @@
 #include <ortc/IMediaStreamTrack.h>
 #include <ortc/IRTPTypes.h>
 
+#define ORTC_INTERNAL_RTPTYPESHELPER_MAX_CODEC_DEPTH (4)
+
 namespace ortc
 {
   namespace internal
@@ -70,11 +72,40 @@ namespace ortc
         Optional<bool> mMatchClockRateNotSet;
         PayloadTypeSet mDisallowedPayloadtypeMatches;
         Optional<PayloadType> mRTXAptPayloadType;
+        Optional<PayloadTypeSet> mREDCodecPayloadTypes;
+        Optional<bool> mAllowREDMatchEmptyList;
+
         Optional<bool> mDisallowMultipleMatches;
 
         ElementPtr toDebug() const;
       };
+
+      struct DecodedCodecInfo
+      {
+        struct DepthInfo
+        {
+          const CodecParameters *mCodecParameters {};
+          IRTPTypes::SupportedCodecs mSupportedCodec {IRTPTypes::SupportedCodec_Unknown};
+          IRTPTypes::CodecKinds mCodecKind {IRTPTypes::CodecKind_Unknown};
+
+          DepthInfo() {}
+          DepthInfo(const DepthInfo &info) {(*this) = info;}
+          ElementPtr toDebug() const;
+        };
+
+        size_t mFilledDepth {};
+        DepthInfo mDepth[ORTC_INTERNAL_RTPTYPESHELPER_MAX_CODEC_DEPTH];
+
+        DecodedCodecInfo() {}
+        DecodedCodecInfo(const DecodedCodecInfo &info) {(*this) = info;}
+        ElementPtr toDebug() const;
+      };
       
+
+      static void validateCodecParameters(
+                                          const Parameters &params,
+                                          Optional<IMediaStreamTrackTypes::Kinds> &ioKind
+                                          ) throw (InvalidParameters);
 
       static void splitParamsIntoChannels(
                                           const Parameters &params,
@@ -122,22 +153,6 @@ namespace ortc
                                   float &outRank
                                   );
 
-      static const CodecParameters *pickRTXCodec(
-                                                 Optional<IMediaStreamTrackTypes::Kinds> kind,
-                                                 const Parameters &params,
-                                                 Optional<PayloadType> packetRTXPayloadType = Optional<PayloadType>(),
-                                                 const EncodingParameters *encoding = NULL,
-                                                 const EncodingParameters *baseEncoding = NULL
-                                                 );
-
-      static const CodecParameters *pickFECCodec(
-                                                 Optional<IMediaStreamTrackTypes::Kinds> kind,
-                                                 const Parameters &params,
-                                                 Optional<PayloadType> packetFECPayloadType = Optional<PayloadType>(),
-                                                 const EncodingParameters *encoding = NULL,
-                                                 const EncodingParameters *baseEncoding = NULL
-                                                 );
-
       static EncodingParameters *findEncodingBase(
                                                   Parameters &inParams,
                                                   EncodingParameters *inEncoding
@@ -145,15 +160,40 @@ namespace ortc
 
       static EncodingParameters *pickEncodingToFill(
                                                     Optional<IMediaStreamTrackTypes::Kinds> kind,
-                                                    PayloadType packetPayloadType,
+                                                    const RTPPacket &packet,
                                                     Parameters &filledParams,
-                                                    const CodecParameters * &outCodecParameters,
-                                                    IRTPTypes::SupportedCodecs &outSupportedCodec,
-                                                    IRTPTypes::CodecKinds &outCodecKind,
+                                                    const DecodedCodecInfo &decodedCodec,
                                                     EncodingParameters * &outBaseEncoding
                                                     );
 
       static Optional<IMediaStreamTrackTypes::Kinds> getCodecsKind(const Parameters &params);
+
+
+      static bool decodePacketCodecs(
+                                     Optional<IMediaStreamTrackTypes::Kinds> &ioKind,
+                                     const RTPPacket &packet,
+                                     const Parameters &params,
+                                     DecodedCodecInfo &decodedCodecInfo
+                                     );
+
+      static void getRTXCodecPayload(
+                                     const BYTE *packetPayload,
+                                     size_t packetPayloadSizeInBytes,
+                                     const BYTE * &outInnterPayload,
+                                     size_t &outInnerPayloadSizeBytes
+                                     );
+
+      static Optional<PayloadType> getRedCodecPayload(
+                                                      const BYTE *packetPayload,
+                                                      size_t packetPayloadSizeInBytes,
+                                                      const BYTE * &outInnterPayload,
+                                                      size_t &outInnerPayloadSizeBytes
+                                                      );
+
+      static Optional<PayloadType> getFecRecoveryPayloadType(
+                                                             const BYTE *packetPayload,
+                                                             size_t packetPayloadSizeInBytes
+                                                             );
 
       static Log::Params slog(const char *message);
     };

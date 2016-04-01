@@ -377,9 +377,9 @@
 
 #define EventWriteOrtcRtpReceiverRegisterHeaderExtension(xStr_Method, xPUID, xStr_ExtensionURI, xunsigned_short_LocalID, xBool_Encrypted)
 
-#define EventWriteOrtcRtpReceiverSsrcTableEntryAdded(xStr_Method, xPUID, xPUID_ChannelObjectID, xDWORD_Ssrc, xlong_long_LastUsageSinceEpochInSeconds, xStr_Rid)
-#define EventWriteOrtcRtpReceiverSsrcTableEntryRemoved(xStr_Method, xPUID, xPUID_ChannelObjectID, xDWORD_Ssrc, xlong_long_LastUsageSinceEpochInSeconds, xStr_Rid, xStr_Reason)
-#define EventWriteOrtcRtpReceiverSsrcTableEntryUpdated(xStr_Method, xPUID, xPUID_ChannelObjectID, xDWORD_Ssrc, xlong_long_LastUsageSinceEpochInSeconds, xStr_Rid)
+#define EventWriteOrtcRtpReceiverSsrcTableEntryAdded(xStr_Method, xPUID, xPUID_ChannelObjectID, xDWORD_Ssrc, xDWORD_RoutingPayload, xlong_long_LastUsageSinceEpochInSeconds, xStr_Rid)
+#define EventWriteOrtcRtpReceiverSsrcTableEntryRemoved(xStr_Method, xPUID, xPUID_ChannelObjectID, xDWORD_Ssrc, xDWORD_RoutingPayload, xlong_long_LastUsageSinceEpochInSeconds, xStr_Rid, xStr_Reason)
+#define EventWriteOrtcRtpReceiverSsrcTableEntryUpdated(xStr_Method, xPUID, xPUID_ChannelObjectID, xDWORD_Ssrc, xDWORD_RoutingPayload, xlong_long_LastUsageSinceEpochInSeconds, xStr_Rid)
 
 #define EventWriteOrtcRtpReceiverFindMapping(xStr_Method, xPUID, xStr_Rid, xsize_t_BufferSizeInBytes, xPtr_Buffer)
 #define EventWriteOrtcRtpReceiverFoundMappingByRid(xStr_Method, xPUID, xPUID_ChannelObjectID, xStr_Rid)
@@ -847,9 +847,9 @@ inline void EventWriteOrtcRtpReceiverErrorEventFired(const char *xStr_Method, PU
 
 inline void EventWriteOrtcRtpReceiverRegisterHeaderExtension(const char *xStr_Method, PUID xPUID, const char *xStr_ExtensionURI, unsigned short xunsigned_short_LocalID, bool xBool_Encrypted) {}
 
-inline void EventWriteOrtcRtpReceiverSsrcTableEntryAdded(const char *xStr_Method, PUID xPUID, PUID xPUID_ChannelObjectID, DWORD xDWORD_Ssrc, long long xlong_long_LastUsageSinceEpochInSeconds, const char *xStr_Rid) {}
-inline void EventWriteOrtcRtpReceiverSsrcTableEntryRemoved(const char *xStr_Method, PUID xPUID, PUID xPUID_ChannelObjectID, DWORD xDWORD_Ssrc, long long xlong_long_LastUsageSinceEpochInSeconds, const char *xStr_Rid, const char *xStr_Reason) {}
-inline void EventWriteOrtcRtpReceiverSsrcTableEntryUpdated(const char *xStr_Method, PUID xPUID, PUID xPUID_ChannelObjectID, DWORD xDWORD_Ssrc, long long xlong_long_LastUsageSinceEpochInSeconds, const char *xStr_Rid) {}
+inline void EventWriteOrtcRtpReceiverSsrcTableEntryAdded(const char *xStr_Method, PUID xPUID, PUID xPUID_ChannelObjectID, DWORD xDWORD_Ssrc, DWORD xDWORD_RoutingPayload, long long xlong_long_LastUsageSinceEpochInSeconds, const char *xStr_Rid) {}
+inline void EventWriteOrtcRtpReceiverSsrcTableEntryRemoved(const char *xStr_Method, PUID xPUID, PUID xPUID_ChannelObjectID, DWORD xDWORD_Ssrc, DWORD xDWORD_RoutingPayload, long long xlong_long_LastUsageSinceEpochInSeconds, const char *xStr_Rid, const char *xStr_Reason) {}
+inline void EventWriteOrtcRtpReceiverSsrcTableEntryUpdated(const char *xStr_Method, PUID xPUID, PUID xPUID_ChannelObjectID, DWORD xDWORD_Ssrc, DWORD xDWORD_RoutingPayload, long long xlong_long_LastUsageSinceEpochInSeconds, const char *xStr_Rid) {}
 
 inline void EventWriteOrtcRtpReceiverFindMapping(const char *xStr_Method, PUID xPUID, const char *xStr_Rid, size_t xsize_t_BufferSizeInBytes, const BYTE *xPtr_Buffer) {}
 inline void EventWriteOrtcRtpReceiverFoundMappingByRid(const char *xStr_Method, PUID xPUID, PUID xPUID_ChannelObjectID, const char *xStr_Rid) {}

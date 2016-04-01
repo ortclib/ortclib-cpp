@@ -604,7 +604,8 @@ namespace ortc
 
       AutoRecursiveLock lock(*this);
 
-      Optional<IMediaStreamTrackTypes::Kinds> foundKind = RTPTypesHelper::getCodecsKind(parameters);
+      Optional<IMediaStreamTrackTypes::Kinds> foundKind;
+      RTPTypesHelper::validateCodecParameters(parameters, foundKind);
 
       ORTC_THROW_INVALID_PARAMETERS_IF(!foundKind.hasValue()) // only one media kind is allowed to be specified to a sender
 
