@@ -212,6 +212,12 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    RTPSenderChannelVideoPtr RTPSenderChannelVideo::convert(ForRTPMediaEnginePtr object)
+    {
+      return ZS_DYNAMIC_PTR_CAST(RTPSenderChannelVideo, object);
+    }
+
+    //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -300,20 +306,6 @@ namespace ortc
     #pragma mark
     #pragma mark RTPSenderChannelVideo => IRTPSenderChannelMediaBaseForRTPMediaEngine
     #pragma mark
-
-    //-------------------------------------------------------------------------
-    void RTPSenderChannelVideo::setupChannel()
-    {
-    }
-
-    //-------------------------------------------------------------------------
-    void RTPSenderChannelVideo::closeChannel()
-    {
-      if (mChannelResource)
-        mChannelResource->getStream()->Stop();
-
-      //mModuleProcessThread->Stop();
-    }
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -543,6 +535,7 @@ namespace ortc
       if (!stepPromiseEngine()) goto not_ready;
       if (!stepPromiseExampleDeviceResource()) goto not_ready;
       if (!stepSetupChannel()) goto not_ready;
+      if (!stepCloseChannel()) goto not_ready;
       // ... other steps here ...
 
       goto ready;
@@ -606,6 +599,12 @@ namespace ortc
           return false;
       }
 
+      if (mSetupChannelPromise->isRejected()) {
+        ZS_LOG_WARNING(Debug, log("media engine rejected device setup"))
+        cancel();
+        return false;
+      }
+
       mDeviceResource = mDeviceResourcePromise->value();
 
       if (!mDeviceResource) {
@@ -622,7 +621,7 @@ namespace ortc
     bool RTPSenderChannelVideo::stepSetupChannel()
     {
       if (mChannelResource) {
-        ZS_LOG_TRACE(log("already setup channel"))
+        ZS_LOG_TRACE(log("already setup channel resource"))
         return true;
       }
 
@@ -639,6 +638,40 @@ namespace ortc
 
       mChannelResource = ZS_DYNAMIC_PTR_CAST(UseChannelResource, mSetupChannelPromise->value());
 
+      if (!mChannelResource) {
+        ZS_LOG_WARNING(Detail, log("failed to initialize channel resource"))
+        cancel();
+        return false;
+      }
+
+      ZS_LOG_DEBUG(log("media channel is setup") + ZS_PARAM("channel", mChannelResource->getChannelID()))
+
+      return true;
+    }
+
+    //-------------------------------------------------------------------------
+    bool RTPSenderChannelVideo::stepCloseChannel()
+    {
+      if (!mCloseChannelPromise) {
+        ZS_LOG_TRACE(log("waiting for close channel promise"))
+        return true;
+      }
+
+      if (!mSetupChannelPromise->isSettled()) {
+        ZS_LOG_TRACE(log("waiting for close channel promise to be set up"))
+        return false;
+      }
+
+      if (mSetupChannelPromise->isRejected()) {
+        ZS_LOG_WARNING(Debug, log("media engine rejected channel close"))
+        cancel();
+        return false;
+      }
+
+      ZS_LOG_DEBUG(log("media channel is closed") + ZS_PARAM("channel", mChannelResource->getChannelID()))
+
+      cancel();
+
       return true;
     }
 
@@ -654,8 +687,14 @@ namespace ortc
 
       if (!mGracefulShutdownReference) mGracefulShutdownReference = mThisWeak.lock();
 
+      if (!mCloseChannelPromise) {
+        mCloseChannelPromise = UseMediaEngine::closeChannel(*this);
+        mCloseChannelPromise->thenWeak(mGracefulShutdownReference);
+      }
+
       if (mGracefulShutdownReference) {
-//        return;
+        if (!mCloseChannelPromise->isSettled())
+          return;
       }
 
       //.......................................................................

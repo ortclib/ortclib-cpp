@@ -282,9 +282,9 @@ namespace ortc
       #pragma mark RTPReceiverChannelVideo => IRTPReceiverChannelMediaBaseForRTPMediaEngine
       #pragma mark
 
-      virtual void setupChannel() override;
+      // (duplicate) static ElementPtr toDebug(ForRTPMediaEnginePtr object);
 
-      virtual void closeChannel() override;
+      // (duplicate) virtual PUID getID() const = 0;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -379,6 +379,7 @@ namespace ortc
       bool stepPromiseEngine();
       bool stepPromiseExampleDeviceResource();
       bool stepSetupChannel();
+      bool stepCloseChannel();
 
       void cancel();
 

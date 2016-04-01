@@ -601,7 +601,7 @@ namespace ortc
                                                                                           parameters
                                                                                           );
           promise = resource->createPromise<IRTPMediaEngineChannelResource>();
-          mChannelResources[resource->getID()] = resource;
+          mChannelResources[channel->getID()] = resource;
           mPendingSetupChannelResources.push_back(resource);
         } else if (ZS_DYNAMIC_PTR_CAST(IRTPReceiverChannelVideoForRTPMediaEngine, channel)) {
           VideoReceiverChannelResourcePtr resource = VideoReceiverChannelResource::create(
@@ -611,7 +611,7 @@ namespace ortc
                                                                                           parameters
                                                                                           );
           promise = resource->createPromise<IRTPMediaEngineChannelResource>();
-          mChannelResources[resource->getID()] = resource;
+          mChannelResources[channel->getID()] = resource;
           mPendingSetupChannelResources.push_back(resource);
         }
       }
@@ -628,8 +628,18 @@ namespace ortc
 
       {
         AutoRecursiveLock lock(*this);
-        if (ZS_DYNAMIC_PTR_CAST(IRTPReceiverChannelAudioForRTPMediaEngine, UseReceiverChannelMediaBasePtr(&channel))) {
-        } else if (ZS_DYNAMIC_PTR_CAST(IRTPReceiverChannelVideoForRTPMediaEngine, UseReceiverChannelMediaBasePtr(&channel))) {
+        IRTPReceiverChannelAudioForRTPMediaEngine *receiverChannel = dynamic_cast<IRTPReceiverChannelAudioForRTPMediaEngine *>(&channel);
+
+        if (dynamic_cast<IRTPReceiverChannelAudioForRTPMediaEngine *>(&channel)) {
+          AudioReceiverChannelResourcePtr resource = ZS_DYNAMIC_PTR_CAST(AudioReceiverChannelResource, mChannelResources[channel.getID()].lock());
+          if (!resource) return Promise::createRejected();
+          promise = resource->createPromise();
+          mPendingCloseChannelResources.push_back(resource);
+        } else if (dynamic_cast<IRTPReceiverChannelVideoForRTPMediaEngine *>(&channel)) {
+          VideoReceiverChannelResourcePtr resource = ZS_DYNAMIC_PTR_CAST(VideoReceiverChannelResource, mChannelResources[channel.getID()].lock());
+          if (!resource) return Promise::createRejected();
+          promise = resource->createPromise();
+          mPendingCloseChannelResources.push_back(resource);
         }
       }
 
@@ -726,8 +736,17 @@ namespace ortc
 
       {
         AutoRecursiveLock lock(*this);
-        if (ZS_DYNAMIC_PTR_CAST(IRTPSenderChannelAudioForRTPMediaEngine, UseSenderChannelMediaBasePtr(&channel))) {
-        } else if (ZS_DYNAMIC_PTR_CAST(IRTPSenderChannelVideoForRTPMediaEngine, UseSenderChannelMediaBasePtr(&channel))) {
+          
+        if (dynamic_cast<IRTPSenderChannelAudioForRTPMediaEngine *>(&channel)) {
+          AudioSenderChannelResourcePtr resource = ZS_DYNAMIC_PTR_CAST(AudioSenderChannelResource, mChannelResources[channel.getID()].lock());
+          if (!resource) return Promise::createRejected();
+          promise = resource->createPromise();
+          mPendingCloseChannelResources.push_back(resource);
+        } else if (dynamic_cast<IRTPSenderChannelVideoForRTPMediaEngine *>(&channel)) {
+          VideoSenderChannelResourcePtr resource = ZS_DYNAMIC_PTR_CAST(VideoSenderChannelResource, mChannelResources[channel.getID()].lock());
+          if (!resource) return Promise::createRejected();
+          promise = resource->createPromise();
+          mPendingCloseChannelResources.push_back(resource);
         }
       }
 
@@ -931,8 +950,8 @@ namespace ortc
       // ... other steps here ...
       if (!stepSetup()) goto not_ready;
       if (!stepExampleSetupDeviceResources()) goto not_ready;
-      if (!stepSetupSenderChannel()) goto not_ready;
-      if (!stepCloseSenderChannel()) goto not_ready;
+      if (!stepSetupChannels()) goto not_ready;
+      if (!stepCloseChannels()) goto not_ready;
       // ... other steps here ...
 
       goto ready;
@@ -983,7 +1002,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool RTPMediaEngine::stepSetupSenderChannel()
+    bool RTPMediaEngine::stepSetupChannels()
     {
       while (mPendingSetupChannelResources.size() > 0) {
         auto channelResource = mPendingSetupChannelResources.front().lock();
@@ -1012,7 +1031,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool RTPMediaEngine::stepCloseSenderChannel()
+    bool RTPMediaEngine::stepCloseChannels()
     {
       while (mPendingCloseChannelResources.size() > 0) {
         auto channelResource = mPendingCloseChannelResources.front().lock();
@@ -1020,12 +1039,16 @@ namespace ortc
         if (channelResource) {
           if (ZS_DYNAMIC_PTR_CAST(AudioReceiverChannelResource, channelResource)) {
             AudioReceiverChannelResourcePtr receiverChannelResource = ZS_DYNAMIC_PTR_CAST(AudioReceiverChannelResource, channelResource);
+            receiverChannelResource->closeChannel();
           } else if (ZS_DYNAMIC_PTR_CAST(AudioSenderChannelResource, channelResource)) {
             AudioSenderChannelResourcePtr senderChannelResource = ZS_DYNAMIC_PTR_CAST(AudioSenderChannelResource, channelResource);
+            senderChannelResource->closeChannel();
           } else if (ZS_DYNAMIC_PTR_CAST(VideoReceiverChannelResource, channelResource)) {
             VideoReceiverChannelResourcePtr receiverChannelResource = ZS_DYNAMIC_PTR_CAST(VideoReceiverChannelResource, channelResource);
+            receiverChannelResource->closeChannel();
           } else if (ZS_DYNAMIC_PTR_CAST(VideoSenderChannelResource, channelResource)) {
             VideoSenderChannelResourcePtr senderChannelResource = ZS_DYNAMIC_PTR_CAST(VideoSenderChannelResource, channelResource);
+            senderChannelResource->closeChannel();
           }
           channelResource->notifyReady();
         }
@@ -1537,6 +1560,29 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    void RTPMediaEngine::AudioReceiverChannelResource::closeChannel()
+    {
+      if (mMediaEngine.lock()->getVoiceEngine()) {
+        webrtc::VoEBase::GetInterface(mMediaEngine.lock()->getVoiceEngine())->StopPlayout(mChannel);
+        webrtc::VoEBase::GetInterface(mMediaEngine.lock()->getVoiceEngine())->StopReceive(mChannel);
+        webrtc::VoENetwork::GetInterface(mMediaEngine.lock()->getVoiceEngine())->DeRegisterExternalTransport(mChannel);
+      }
+
+#define FIX_ME_WARNING_NO_TRACK_IS_NOT_STOPPED_JUST_BECAUSE_A_RECEIVER_CHANNEL_IS_DONE 1
+#define FIX_ME_WARNING_NO_TRACK_IS_NOT_STOPPED_JUST_BECAUSE_A_RECEIVER_CHANNEL_IS_DONE 2
+
+      if (mTrack)
+        mTrack->stop();
+
+      mModuleProcessThread->Stop();
+
+      mModuleProcessThread.reset();
+      mReceiveStream.reset();
+      mCallStats.reset();
+      mCongestionController.reset();
+    }
+
+    //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -1753,6 +1799,20 @@ namespace ortc
       mTrack->start();
 
       webrtc::VoEBase::GetInterface(mMediaEngine.lock()->getVoiceEngine())->StartSend(mChannel);
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::AudioSenderChannelResource::closeChannel()
+    {
+      if (mMediaEngine.lock()->getVoiceEngine()) {
+        webrtc::VoENetwork::GetInterface(mMediaEngine.lock()->getVoiceEngine())->DeRegisterExternalTransport(mChannel);
+        webrtc::VoEBase::GetInterface(mMediaEngine.lock()->getVoiceEngine())->StopSend(0);
+      }
+
+      if (mTrack)
+        mTrack->stop();
+
+      mSendStream.reset();
     }
 
     //-------------------------------------------------------------------------
@@ -2012,6 +2072,20 @@ namespace ortc
       mReceiveStream->Start();
     }
 
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::VideoReceiverChannelResource::closeChannel()
+    {
+      if (mReceiveStream)
+        mReceiveStream->Stop();
+
+      mModuleProcessThread->Stop();
+
+      mModuleProcessThread.reset();
+      mReceiveStream.reset();
+      mCallStats.reset();
+      mCongestionController.reset();
+    }
+
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -2251,6 +2325,20 @@ namespace ortc
                                               ));
 
       mSendStream->Start();
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::VideoSenderChannelResource::closeChannel()
+    {
+      if (mSendStream)
+        mSendStream->Stop();
+
+      mModuleProcessThread->Stop();
+
+      mModuleProcessThread.reset();
+      mSendStream.reset();
+      mCallStats.reset();
+      mCongestionController.reset();
     }
 
 

@@ -108,9 +108,6 @@ namespace ortc
       static ElementPtr toDebug(ForRTPMediaEnginePtr object);
 
       virtual PUID getID() const = 0;
-
-      virtual void setupChannel() = 0;
-      virtual void closeChannel() = 0;
     };
   }
 }
