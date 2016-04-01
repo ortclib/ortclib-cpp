@@ -2292,7 +2292,7 @@ namespace ortc
           }
         }
 
-        EventWriteOrtcRtpReceiverSsrcTableEntryAdded(__func__, mID, ((bool)ssrcInfo->mChannelHolder) ? ssrcInfo->mChannelHolder->getID() : 0, ssrcInfo->mSSRC, ssrc->mRoutingPayload, zsLib::timeSinceEpoch<Seconds>(ssrcInfo->mLastUsage).count(), ssrcInfo->mRID);
+        EventWriteOrtcRtpReceiverSsrcTableEntryAdded(__func__, mID, ((bool)ssrcInfo->mChannelHolder) ? ssrcInfo->mChannelHolder->getID() : 0, ssrcInfo->mSSRC, ssrcInfo->mRoutingPayload, zsLib::timeSinceEpoch<Seconds>(ssrcInfo->mLastUsage).count(), ssrcInfo->mRID);
 
         mSSRCRoutingPayloadTable[routingPair] = ssrcInfo;
         reattemptDelivery();
