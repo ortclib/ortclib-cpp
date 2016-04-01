@@ -55,6 +55,7 @@ namespace ortc
     ZS_DECLARE_STRUCT_PTR(VP8CodecCapabilityParameters)
     ZS_DECLARE_STRUCT_PTR(H264CodecCapabilityParameters)
     ZS_DECLARE_STRUCT_PTR(RTXCodecCapabilityParameters)
+    ZS_DECLARE_STRUCT_PTR(FlexFECCodecCapabilityParameters)
     ZS_DECLARE_STRUCT_PTR(HeaderExtension)
     ZS_DECLARE_STRUCT_PTR(RTCPFeedback)
     ZS_DECLARE_STRUCT_PTR(Parameters)
@@ -63,8 +64,8 @@ namespace ortc
     ZS_DECLARE_TYPEDEF_PTR(VP8CodecCapabilityParameters, VP8CodecParameters)
     ZS_DECLARE_TYPEDEF_PTR(H264CodecCapabilityParameters, H264CodecParameters)
     ZS_DECLARE_TYPEDEF_PTR(RTXCodecCapabilityParameters, RTXCodecParameters)
+    ZS_DECLARE_TYPEDEF_PTR(FlexFECCodecCapabilityParameters, FlexFECCodecParameters)
     ZS_DECLARE_STRUCT_PTR(REDCodecParameters)
-    ZS_DECLARE_STRUCT_PTR(FlexFECCodecParameters)
     ZS_DECLARE_STRUCT_PTR(HeaderExtensionParameters)
     ZS_DECLARE_STRUCT_PTR(EncodingParameters)
     ZS_DECLARE_STRUCT_PTR(RTCPParameters)
@@ -138,8 +139,8 @@ namespace ortc
       ULONG             mMaxPTime {};
       ULONG             mNumChannels {};
       RTCPFeedbackList  mRTCPFeedback;
-      AnyPtr            mParameters;
-      AnyPtr            mOptions;
+      AnyPtr            mParameters;              // OpusCodecCapabilityParameters, VP8CodecCapabilityParameters, H264CodecCapabilityParameters, RTXCodecCapabilityParameters, FlexFECCodecCapabilityParameters
+      AnyPtr            mOptions;                 // OpusCodecCapabilityOptions
       USHORT            mMaxTemporalLayers {0};
       USHORT            mMaxSpatialLayers {0};
       bool              mSVCMultiStreamSupport {};
@@ -287,6 +288,45 @@ namespace ortc
       RTXCodecCapabilityParameters(ElementPtr elem);
 
       ElementPtr createElement(const char *objectName = "rtxCodecCapabilityParameters") const;
+
+      ElementPtr toDebug() const;
+      String hash() const;
+    };
+
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IRTPTypes::FlexFECCodecCapabilityParameters
+    #pragma mark
+
+    struct FlexFECCodecCapabilityParameters : public Any
+    {
+      enum ToPs {
+        ToP_First                           = 0,
+
+        ToP_1DInterleavedFEC                = ToP_First,  // 1d-interleaved-fec
+        ToP_1DNonInterleavedFEC             = 1,          // 1d-non-interleaved-fec
+        ToP_2DParityFEEC                    = 2,          // 2d-parity-fec
+        ToP_Reserved                        = 3,
+
+        ToP_Last = ToP_Reserved,
+      };
+      static const char *toString(ToPs top);
+      static ToPs toToP(const char *top);
+
+      Microseconds mRepairWindow {};
+
+      Optional<ULONG> mL;
+      Optional<ULONG> mD;
+      Optional<ToPs> mToP;
+
+      FlexFECCodecCapabilityParameters() {}
+      FlexFECCodecCapabilityParameters(const FlexFECCodecCapabilityParameters &op2) {(*this) = op2;}
+      FlexFECCodecCapabilityParameters(ElementPtr elem);
+
+      ElementPtr createElement(const char *objectName = "flexFecCodecParameters") const;
+
+      static FlexFECCodecCapabilityParametersPtr create(const FlexFECCodecCapabilityParameters &params);
+      static FlexFECCodecCapabilityParametersPtr convert(AnyPtr any);
 
       ElementPtr toDebug() const;
       String hash() const;
@@ -513,45 +553,6 @@ namespace ortc
 
       static REDCodecParametersPtr create(const REDCodecParameters &params);
       static REDCodecParametersPtr convert(AnyPtr any);
-
-      ElementPtr toDebug() const;
-      String hash() const;
-    };
-
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPTypes::FlexFECCodecParameters
-    #pragma mark
-
-    struct FlexFECCodecParameters : public Any
-    {
-      enum ToPs {
-        ToP_First                           = 0,
-
-        ToP_1DInterleavedFEC                = ToP_First,  // 1d-interleaved-fec
-        ToP_1DNonInterleavedFEC             = 1,          // 1d-non-interleaved-fec
-        ToP_2DParityFEEC                    = 2,          // 2d-parity-fec
-        ToP_Reserved                        = 3,
-
-        ToP_Last = ToP_Reserved,
-      };
-      static const char *toString(ToPs top);
-      static ToPs toToP(const char *top);
-
-      Microseconds mRepairWindow {};
-
-      Optional<ULONG> mL;
-      Optional<ULONG> mD;
-      Optional<ToPs> mToP;
-
-      FlexFECCodecParameters() {}
-      FlexFECCodecParameters(const FlexFECCodecParameters &op2) {(*this) = op2;}
-      FlexFECCodecParameters(ElementPtr elem);
-
-      ElementPtr createElement(const char *objectName = "flexFecCodecParameters") const;
-
-      static FlexFECCodecParametersPtr create(const FlexFECCodecParameters &params);
-      static FlexFECCodecParametersPtr convert(AnyPtr any);
 
       ElementPtr toDebug() const;
       String hash() const;

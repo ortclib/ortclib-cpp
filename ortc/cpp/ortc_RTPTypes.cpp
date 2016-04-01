@@ -2174,6 +2174,10 @@ namespace ortc
             mParameters = make_shared<RTXCodecCapabilityParameters>(parametersEl);
             break;
           }
+          case SupportedCodec_FlexFEC:   {
+            mParameters = make_shared<FlexFECCodecCapabilityParameters>(parametersEl);
+            break;
+          }
           default: break;
         }
       }
@@ -2255,6 +2259,13 @@ namespace ortc
             }
             break;
           }
+          case SupportedCodec_FlexFEC:   {
+            auto codec = FlexFECCodecCapabilityParameters::convert(mParameters);
+            if (codec) {
+              elem->adoptAsLastChild(codec->createElement("parameters"));
+            }
+            break;
+          }
           default: break;
         }
       }
@@ -2324,6 +2335,13 @@ namespace ortc
             auto codec = RTXCodecCapabilityParameters::convert(source.mParameters);
             if (codec) {
               mParameters = RTXCodecCapabilityParameters::create(*codec);
+            }
+            break;
+          }
+          case SupportedCodec_FlexFEC:   {
+            auto codec = FlexFECCodecCapabilityParameters::convert(source.mParameters);
+            if (codec) {
+              mParameters = FlexFECCodecCapabilityParameters::create(*codec);
             }
             break;
           }
@@ -2401,6 +2419,14 @@ namespace ortc
           }
           case SupportedCodec_RTX:   {
             auto codec = RTXCodecCapabilityParameters::convert(mParameters);
+            if (codec) {
+              UseServicesHelper::debugAppend(resultEl, codec->toDebug());
+              found = true;
+            }
+            break;
+          }
+          case SupportedCodec_FlexFEC:   {
+            auto codec = FlexFECCodecCapabilityParameters::convert(mParameters);
             if (codec) {
               UseServicesHelper::debugAppend(resultEl, codec->toDebug());
               found = true;
@@ -2502,6 +2528,11 @@ namespace ortc
           }
           case SupportedCodec_RTX:   {
             auto codec = RTXCodecCapabilityParameters::convert(mParameters);
+            if (codec) hasher.update(codec->hash());
+            break;
+          }
+          case SupportedCodec_FlexFEC:   {
+            auto codec = FlexFECCodecCapabilityParameters::convert(mParameters);
             if (codec) hasher.update(codec->hash());
             break;
           }
@@ -2999,6 +3030,120 @@ namespace ortc
 
     return hasher.final();
   }
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IRTPTypes::FlexFECCodecCapabilityParameters
+  #pragma mark
+
+  //---------------------------------------------------------------------------
+  IRTPTypes::FlexFECCodecCapabilityParameters::FlexFECCodecCapabilityParameters(ElementPtr elem)
+  {
+    if (!elem) return;
+
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::FlexFECCodecCapabilityParameters", "rtxTime", mRepairWindow);
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::FlexFECCodecCapabilityParameters", "l", mL);
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::FlexFECCodecCapabilityParameters", "d", mD);
+
+    {
+      ElementPtr subEl = elem->findFirstChildElement("toP");
+      if (subEl) {
+        String str = UseServicesHelper::getElementTextAndDecode(subEl);
+        try {
+          mToP = IRTPTypes::FlexFECCodecParameters::toToP(str);
+        } catch(const InvalidParameters &) {
+          ZS_LOG_WARNING(Debug, slog("degredation preference is not valid") + ZS_PARAM("value", str))
+        }
+      }
+    }
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IRTPTypes::FlexFECCodecCapabilityParameters::createElement(const char *objectName) const
+  {
+    ElementPtr elem = Element::create(objectName);
+
+    UseHelper::adoptElementValue(elem, "repairWindow", mRepairWindow);
+    UseHelper::adoptElementValue(elem, "l", mL);
+    UseHelper::adoptElementValue(elem, "d", mD);
+    UseHelper::adoptElementValue(elem, "toP", string(mToP), false);
+
+    if (!elem->hasChildren()) return ElementPtr();
+
+    return elem;
+  }
+
+  //---------------------------------------------------------------------------
+  const char *IRTPTypes::FlexFECCodecCapabilityParameters::toString(ToPs top)
+  {
+    switch (top) {
+      case ToP_1DInterleavedFEC:      return "1d-interleaved-fec";
+      case ToP_1DNonInterleavedFEC:   return "1d-non-interleaved-fec";
+      case ToP_2DParityFEEC:          return "2d-parity-fec";
+      case ToP_Reserved:              return "reserved";
+    }
+
+    return "unknown";
+  }
+
+  //---------------------------------------------------------------------------
+  IRTPTypes::FlexFECCodecCapabilityParameters::ToPs IRTPTypes::FlexFECCodecCapabilityParameters::toToP(const char *top)
+  {
+    String topStr(top);
+
+    for (ToPs index = ToP_First; index <= ToP_Last; index = static_cast<ToPs>(static_cast<std::underlying_type<ToPs>::type>(index) + 1)) {
+      if (topStr == IRTPTypes::FlexFECCodecCapabilityParameters::toString(index)) return index;
+    }
+
+    return ToP_Reserved;
+  }
+
+  //---------------------------------------------------------------------------
+  IRTPTypes::FlexFECCodecCapabilityParametersPtr IRTPTypes::FlexFECCodecCapabilityParameters::create(const FlexFECCodecParameters &capability)
+  {
+    return make_shared<FlexFECCodecParameters>(capability);
+  }
+
+  //---------------------------------------------------------------------------
+  IRTPTypes::FlexFECCodecCapabilityParametersPtr IRTPTypes::FlexFECCodecCapabilityParameters::convert(AnyPtr any)
+  {
+    return ZS_DYNAMIC_PTR_CAST(FlexFECCodecCapabilityParameters, any);
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IRTPTypes::FlexFECCodecCapabilityParameters::toDebug() const
+  {
+    ElementPtr resultEl = Element::create("ortc::IRTPTypes::FlexFECCodecCapabilityParameters");
+
+    UseServicesHelper::debugAppend(resultEl, "repair window", mRepairWindow);
+    UseServicesHelper::debugAppend(resultEl, "L", mL);
+    UseServicesHelper::debugAppend(resultEl, "D", mD);
+    UseServicesHelper::debugAppend(resultEl, "ToP", mToP.hasValue() ? toString(mToP.value()) : (const char *)NULL);
+
+    return resultEl;
+  }
+
+  //---------------------------------------------------------------------------
+  String IRTPTypes::FlexFECCodecCapabilityParameters::hash() const
+  {
+    SHA1Hasher hasher;
+
+    hasher.update("ortc::IRTPTypes::FlexFECCodecCapabilityParameters:");
+
+    hasher.update(mRepairWindow);
+    hasher.update(":");
+    hasher.update(mL);
+    hasher.update(":");
+    hasher.update(mD);
+    hasher.update(":");
+    hasher.update(mToP);
+
+    return hasher.final();
+  }
+
 
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
@@ -4035,120 +4180,6 @@ namespace ortc
 
     return hasher.final();
   }
-
-  //---------------------------------------------------------------------------
-  //---------------------------------------------------------------------------
-  //---------------------------------------------------------------------------
-  //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IRTPTypes::FlexFECCodecParameters
-  #pragma mark
-
-  //---------------------------------------------------------------------------
-  IRTPTypes::FlexFECCodecParameters::FlexFECCodecParameters(ElementPtr elem)
-  {
-    if (!elem) return;
-
-    UseHelper::getElementValue(elem, "ortc::IRTPTypes::FlexFECCodecParameters", "rtxTime", mRepairWindow);
-    UseHelper::getElementValue(elem, "ortc::IRTPTypes::FlexFECCodecParameters", "l", mL);
-    UseHelper::getElementValue(elem, "ortc::IRTPTypes::FlexFECCodecParameters", "d", mD);
-
-    {
-      ElementPtr subEl = elem->findFirstChildElement("toP");
-      if (subEl) {
-        String str = UseServicesHelper::getElementTextAndDecode(subEl);
-        try {
-          mToP = IRTPTypes::FlexFECCodecParameters::toToP(str);
-        } catch(const InvalidParameters &) {
-          ZS_LOG_WARNING(Debug, slog("degredation preference is not valid") + ZS_PARAM("value", str))
-        }
-      }
-    }
-  }
-
-  //---------------------------------------------------------------------------
-  ElementPtr IRTPTypes::FlexFECCodecParameters::createElement(const char *objectName) const
-  {
-    ElementPtr elem = Element::create(objectName);
-
-    UseHelper::adoptElementValue(elem, "repairWindow", mRepairWindow);
-    UseHelper::adoptElementValue(elem, "l", mL);
-    UseHelper::adoptElementValue(elem, "d", mD);
-    UseHelper::adoptElementValue(elem, "toP", string(mToP), false);
-
-    if (!elem->hasChildren()) return ElementPtr();
-
-    return elem;
-  }
-
-  //---------------------------------------------------------------------------
-  const char *IRTPTypes::FlexFECCodecParameters::toString(ToPs top)
-  {
-    switch (top) {
-      case ToP_1DInterleavedFEC:      return "1d-interleaved-fec";
-      case ToP_1DNonInterleavedFEC:   return "1d-non-interleaved-fec";
-      case ToP_2DParityFEEC:          return "2d-parity-fec";
-      case ToP_Reserved:              return "reserved";
-    }
-
-    return "unknown";
-  }
-
-  //---------------------------------------------------------------------------
-  IRTPTypes::FlexFECCodecParameters::ToPs IRTPTypes::FlexFECCodecParameters::toToP(const char *top)
-  {
-    String topStr(top);
-
-    for (ToPs index = ToP_First; index <= ToP_Last; index = static_cast<ToPs>(static_cast<std::underlying_type<ToPs>::type>(index) + 1)) {
-      if (topStr == IRTPTypes::FlexFECCodecParameters::toString(index)) return index;
-    }
-
-    return ToP_Reserved;
-  }
-
-  //---------------------------------------------------------------------------
-  IRTPTypes::FlexFECCodecParametersPtr IRTPTypes::FlexFECCodecParameters::create(const FlexFECCodecParameters &capability)
-  {
-    return make_shared<FlexFECCodecParameters>(capability);
-  }
-
-  //---------------------------------------------------------------------------
-  IRTPTypes::FlexFECCodecParametersPtr IRTPTypes::FlexFECCodecParameters::convert(AnyPtr any)
-  {
-    return ZS_DYNAMIC_PTR_CAST(FlexFECCodecParameters, any);
-  }
-
-  //---------------------------------------------------------------------------
-  ElementPtr IRTPTypes::FlexFECCodecParameters::toDebug() const
-  {
-    ElementPtr resultEl = Element::create("ortc::IRTPTypes::FlexFECCodecParameters");
-
-    UseServicesHelper::debugAppend(resultEl, "repair window", mRepairWindow);
-    UseServicesHelper::debugAppend(resultEl, "L", mL);
-    UseServicesHelper::debugAppend(resultEl, "D", mD);
-    UseServicesHelper::debugAppend(resultEl, "ToP", mToP.hasValue() ? toString(mToP.value()) : (const char *)NULL);
-
-    return resultEl;
-  }
-
-  //---------------------------------------------------------------------------
-  String IRTPTypes::FlexFECCodecParameters::hash() const
-  {
-    SHA1Hasher hasher;
-
-    hasher.update("ortc::IRTPTypes::FlexFECCodecParameters:");
-
-    hasher.update(mRepairWindow);
-    hasher.update(":");
-    hasher.update(mL);
-    hasher.update(":");
-    hasher.update(mD);
-    hasher.update(":");
-    hasher.update(mToP);
-
-    return hasher.final();
-  }
-
 
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
