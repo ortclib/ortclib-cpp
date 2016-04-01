@@ -382,11 +382,26 @@ namespace ortc
           struct Mid : public StringItem
           {
             // https://tools.ietf.org/html/draft-ietf-mmusic-sdp-bundle-negotiation-23#section-14.2
-            static const BYTE kItemType = 9;  // TBD
+            static const BYTE kItemType = 12;  // TBD
 
             Mid *next() const                                {return static_cast<Mid *>(mNext);}
 
             const char *mid() const                          {return value();}
+          };
+
+          //-------------------------------------------------------------------
+          #pragma mark
+          #pragma mark RTCPPacket::SDES::Chunk::Rid
+          #pragma mark
+
+          struct Rid : public StringItem
+          {
+            // https://tools.ietf.org/html/draft-roach-avtext-rid-02#section-4.1
+            static const BYTE kItemType = 13;  // TBD
+
+            Rid *next() const                                {return static_cast<Rid *>(mNext);}
+
+            const char *rid() const                          {return value();}
           };
 
           //-------------------------------------------------------------------
@@ -409,6 +424,7 @@ namespace ortc
           Note *firstNote() const                             {return mFirstNote;}
           Priv *firstPriv() const                             {return mFirstPriv;}
           Mid *firstMid() const                               {return mFirstMid;}
+          Rid *firstRid() const                               {return mFirstRid;}
           Unknown *firstUnknown() const                       {return mFirstUnknown;}
 
           size_t cNameCount() const                           {return mCNameCount;}
@@ -420,6 +436,7 @@ namespace ortc
           size_t noteCount() const                            {return mNoteCount;}
           size_t privCount() const                            {return mPrivCount;}
           size_t midCount() const                             {return mMidCount;}
+          size_t ridCount() const                             {return mRidCount;}
           size_t unknownCount() const                         {return mUnknownCount;}
 
           CName *cNameAtIndex(size_t index) const;
@@ -431,6 +448,7 @@ namespace ortc
           Note *noteAtIndex(size_t index) const;
           Priv *privAtIndex(size_t index) const;
           Mid *midAtIndex(size_t index) const;
+          Rid *ridAtIndex(size_t index) const;
           Unknown *unknownAtIndex(size_t index) const;
 
         public:
@@ -449,6 +467,7 @@ namespace ortc
           size_t mNoteCount {};
           size_t mPrivCount {};
           size_t mMidCount {};
+          size_t mRidCount {};
           size_t mUnknownCount {};
 
           CName *mFirstCName {};
@@ -460,6 +479,7 @@ namespace ortc
           Note *mFirstNote {};
           Priv *mFirstPriv {};
           Mid *mFirstMid {};
+          Rid *mFirstRid {};
           Unknown *mFirstUnknown {};
         };
 

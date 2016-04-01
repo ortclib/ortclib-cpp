@@ -34,6 +34,7 @@
 #include <ortc/internal/types.h>
 #include <ortc/internal/ortc_RTPSenderChannelMediaBase.h>
 #include <ortc/internal/ortc_ISecureTransport.h>
+#include <ortc/internal/ortc_RTPMediaEngine.h>
 
 #include <ortc/IRTPTypes.h>
 #include <ortc/IMediaStreamTrack.h>
@@ -41,12 +42,9 @@
 #include <openpeer/services/IWakeDelegate.h>
 #include <zsLib/MessageQueueAssociator.h>
 #include <zsLib/Timer.h>
+#include <zsLib/Event.h>
 
 #include <webrtc/transport.h>
-#include <webrtc/modules/utility/include/process_thread.h>
-#include <webrtc/video/video_send_stream.h>
-#include <webrtc/video_engine/call_stats.h>
-#include <webrtc/call/congestion_controller.h>
 
 //#define ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE "ortc/sctp/max-message-size"
 
@@ -54,11 +52,14 @@ namespace ortc
 {
   namespace internal
   {
+    ZS_DECLARE_USING_PTR(zsLib, Event)
+
     ZS_DECLARE_INTERACTION_PTR(IRTPSenderChannelVideoForSettings)
     ZS_DECLARE_INTERACTION_PTR(IRTPSenderChannelMediaBaseForRTPSenderChannel)
     ZS_DECLARE_INTERACTION_PTR(IRTPSenderChannelVideoForRTPSenderChannel)
     ZS_DECLARE_INTERACTION_PTR(IRTPSenderChannelMediaBaseForMediaStreamTrack)
     ZS_DECLARE_INTERACTION_PTR(IRTPSenderChannelVideoForMediaStreamTrack)
+    ZS_DECLARE_INTERACTION_PTR(IRTPSenderChannelVideoForRTPMediaEngine)
 
     ZS_DECLARE_INTERACTION_PTR(IRTPSenderChannelForRTPSenderChannelMediaBase)
     ZS_DECLARE_INTERACTION_PTR(IRTPSenderChannelForRTPSenderChannelVideo)
@@ -130,6 +131,23 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
+    #pragma mark IRTPSenderChannelAudioForRTPMediaEngine
+    #pragma mark
+
+    interaction IRTPSenderChannelVideoForRTPMediaEngine : public IRTPSenderChannelMediaBaseForRTPMediaEngine
+    {
+      ZS_DECLARE_TYPEDEF_PTR(IRTPSenderChannelVideoForRTPMediaEngine, ForRTPMediaEngine)
+
+      static ElementPtr toDebug(ForRTPMediaEnginePtr object);
+
+      virtual PUID getID() const = 0;
+    };
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
     #pragma mark IRTPSenderChannelVideoAsyncDelegate
     #pragma mark
 
@@ -152,8 +170,10 @@ namespace ortc
                                   public IRTPSenderChannelVideoForSettings,
                                   public IRTPSenderChannelVideoForRTPSenderChannel,
                                   public IRTPSenderChannelVideoForMediaStreamTrack,
+                                  public IRTPSenderChannelVideoForRTPMediaEngine,
                                   public IWakeDelegate,
                                   public zsLib::ITimerDelegate,
+                                  public zsLib::IPromiseSettledDelegate,
                                   public IRTPSenderChannelVideoAsyncDelegate
     {
     protected:
@@ -167,6 +187,7 @@ namespace ortc
       friend interaction IRTPSenderChannelVideoForRTPSenderChannel;
       friend interaction IRTPSenderChannelMediaBaseForMediaStreamTrack;
       friend interaction IRTPSenderChannelVideoForMediaStreamTrack;
+      friend interaction IRTPSenderChannelVideoForRTPMediaEngine;
 
       ZS_DECLARE_CLASS_PTR(Transport)
       friend class Transport;
@@ -174,6 +195,9 @@ namespace ortc
       ZS_DECLARE_TYPEDEF_PTR(IRTPSenderChannelForRTPSenderChannelVideo, UseChannel)
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPSenderChannelMediaBase, UseBaseMediaStreamTrack)
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPSenderChannelVideo, UseMediaStreamTrack)
+      ZS_DECLARE_TYPEDEF_PTR(IRTPMediaEngineForRTPSenderChannelAudio, UseMediaEngine)
+      ZS_DECLARE_TYPEDEF_PTR(IRTPMediaEngineDeviceResource, UseDeviceResource)
+      ZS_DECLARE_TYPEDEF_PTR(IRTPMediaEngineVideoSenderChannelResource, UseChannelResource)
 
       ZS_DECLARE_TYPEDEF_PTR(IRTPSenderChannelMediaBaseForRTPSenderChannel, ForRTPSenderChannelFromMediaBase)
       ZS_DECLARE_TYPEDEF_PTR(IRTPSenderChannelMediaBaseForMediaStreamTrack, ForMediaStreamTrackFromMediaBase)
@@ -217,6 +241,7 @@ namespace ortc
       static RTPSenderChannelVideoPtr convert(ForRTPSenderChannelPtr object);
       static RTPSenderChannelVideoPtr convert(ForMediaStreamTrackFromMediaBasePtr object);
       static RTPSenderChannelVideoPtr convert(ForMediaStreamTrackPtr object);
+      static RTPSenderChannelVideoPtr convert(ForRTPMediaEnginePtr object);
 
     protected:
       //-----------------------------------------------------------------------
@@ -258,6 +283,15 @@ namespace ortc
 
       //-----------------------------------------------------------------------
       #pragma mark
+      #pragma mark RTPSenderChannelVideo => IRTPSenderChannelMediaBaseForRTPMediaEngine
+      #pragma mark
+
+      virtual void setupChannel() override;
+
+      virtual void closeChannel() override;
+
+      //-----------------------------------------------------------------------
+      #pragma mark
       #pragma mark RTPSenderChannelVideo => IWakeDelegate
       #pragma mark
 
@@ -269,6 +303,13 @@ namespace ortc
       #pragma mark
 
       virtual void onTimer(TimerPtr timer) override;
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPSenderChannelVideo => IPromiseSettledDelegate
+      #pragma mark
+
+      virtual void onPromiseSettled(PromisePtr promise) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -344,7 +385,9 @@ namespace ortc
       bool isShutdown() const;
 
       void step();
-      bool stepBogusDoSomething();
+      bool stepPromiseEngine();
+      bool stepPromiseExampleDeviceResource();
+      bool stepSetupChannel();
 
       void cancel();
 
@@ -370,15 +413,21 @@ namespace ortc
 
       ParametersPtr mParameters;
 
+      PromiseWithRTPMediaEnginePtr mMediaEnginePromise;
+      UseMediaEnginePtr mMediaEngine;
+
+      PromiseWithRTPMediaEngineDeviceResourcePtr mDeviceResourcePromise;
+      UseDeviceResourcePtr mDeviceResource;
+
+      PromiseWithRTPMediaEngineChannelResourcePtr mSetupChannelPromise;
+      UseChannelResourcePtr mChannelResource;
+
+      PromisePtr mCloseChannelPromise;
+
       Optional<IMediaStreamTrackTypes::Kinds> mKind;
       UseMediaStreamTrackPtr mTrack;
 
       TransportPtr mTransport;  // allow lifetime of callback to exist separate from "this" object
-      
-      rtc::scoped_ptr<webrtc::ProcessThread> mModuleProcessThread;
-      rtc::scoped_ptr<webrtc::VideoSendStream> mSendStream;
-      rtc::scoped_ptr<webrtc::CallStats> mCallStats;
-      rtc::scoped_ptr<webrtc::CongestionController> mCongestionController;
     };
 
     //-------------------------------------------------------------------------

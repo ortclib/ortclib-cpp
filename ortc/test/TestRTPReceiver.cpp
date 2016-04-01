@@ -2064,12 +2064,14 @@ namespace ortc
       //-----------------------------------------------------------------------
       RTPReceiverTesterPtr RTPReceiverTester::create(
                                                      IMessageQueuePtr queue,
+                                                     IMediaStreamTrackTypes::Kinds kind,
                                                      bool overrideFactories,
                                                      Milliseconds packetDelay
                                                      )
       {
         RTPReceiverTesterPtr pThis(new RTPReceiverTester(queue, overrideFactories));
         pThis->mThisWeak = pThis;
+        pThis->mExpecting.mKind = kind;
         pThis->init(packetDelay);
         return pThis;
       }
@@ -2116,7 +2118,7 @@ namespace ortc
         mListenerSubscription = FakeListener::convert(listener)->subscribe(mThisWeak.lock());
         TESTING_CHECK(mListenerSubscription)
 
-        mReceiver = IRTPReceiver::create(mThisWeak.lock(), mDTLSTransport);
+        mReceiver = IRTPReceiver::create(mThisWeak.lock(), mExpecting.mKind, mDTLSTransport);
         TESTING_CHECK(mReceiver)
       }
 
@@ -3006,8 +3008,8 @@ void doTestRTPReceiver()
             UseSettings::setUInt("ortc/rtp-receiver/max-age-rtp-packets-in-seconds", 60);
             UseSettings::setUInt("ortc/rtp-receiver/max-age-rtcp-packets-in-seconds", 60);
 
-            testObject1 = RTPReceiverTester::create(thread, true);
-            testObject2 = RTPReceiverTester::create(thread, false);
+            testObject1 = RTPReceiverTester::create(thread, IMediaStreamTrackTypes::Kind_Audio, true);
+            testObject2 = RTPReceiverTester::create(thread, IMediaStreamTrackTypes::Kind_Audio, false);
 
             TESTING_CHECK(testObject1)
             TESTING_CHECK(testObject2)
@@ -3019,8 +3021,8 @@ void doTestRTPReceiver()
         }
         case TEST_SSRC_ROUTING: {
           {
-            testObject1 = RTPReceiverTester::create(thread, true);
-            testObject2 = RTPReceiverTester::create(thread, false);
+            testObject1 = RTPReceiverTester::create(thread, IMediaStreamTrackTypes::Kind_Audio, true);
+            testObject2 = RTPReceiverTester::create(thread, IMediaStreamTrackTypes::Kind_Audio, false);
 
             TESTING_CHECK(testObject1)
             TESTING_CHECK(testObject2)

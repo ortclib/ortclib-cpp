@@ -141,8 +141,7 @@ namespace ortc
       SharedRecursiveLock(SharedRecursiveLock::create()),
       mSenderChannel(senderChannel),
       mTrack(track),
-      mParameters(make_shared<Parameters>(params)),
-      mModuleProcessThread(webrtc::ProcessThread::Create("RTPSenderChannelVideoThread"))
+      mParameters(make_shared<Parameters>(params))
     {
       ZS_LOG_DETAIL(debug("created"))
 
@@ -152,127 +151,23 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPSenderChannelVideo::init()
     {
-      AutoRecursiveLock lock(*this);
+      TransportPtr transport = Transport::create(mThisWeak.lock());
+
+      PromiseWithRTPMediaEngineChannelResourcePtr setupChannelPromise = UseMediaEngine::setupChannel(
+                                                                                                     mThisWeak.lock(),
+                                                                                                     transport,
+                                                                                                     MediaStreamTrack::convert(mTrack),
+                                                                                                     mParameters
+                                                                                                     );
+      {
+        AutoRecursiveLock lock(*this);
+        mSetupChannelPromise = setupChannelPromise;
+        mTransport = transport;
+      }
+
+      setupChannelPromise->thenWeak(mThisWeak.lock());
+
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
-      
-      if (!mTrack) {
-        ZS_LOG_ERROR(Detail, log("MediaStreamTrack is not set during RTPSenderChannelVideo initialization procedure"))
-        return;
-      }
-
-      mCallStats = rtc::scoped_ptr<webrtc::CallStats>(new webrtc::CallStats());
-      mCongestionController =
-        rtc::scoped_ptr<webrtc::CongestionController>(new webrtc::CongestionController(
-          mModuleProcessThread.get(),
-          mCallStats.get())
-          );
-
-      mModuleProcessThread->Start();
-
-      int numCpuCores = webrtc::CpuInfo::DetectNumberOfCores();
-      
-      mTransport = Transport::create(mThisWeak.lock());
-      
-      webrtc::VideoSendStream::Config config(mTransport.get());
-      webrtc::VideoEncoderConfig encoderConfig;
-      std::map<uint32_t, webrtc::RtpState> suspendedSSRCs;
-
-      IRTPTypes::CodecParametersList::iterator codecIter = mParameters->mCodecs.begin();
-      while (codecIter != mParameters->mCodecs.end()) {
-        auto supportedCodec = IRTPTypes::toSupportedCodec(codecIter->mName);
-        if (IRTPTypes::SupportedCodec_VP8 == supportedCodec) {
-          webrtc::VideoEncoder* videoEncoder = webrtc::VideoEncoder::Create(webrtc::VideoEncoder::kVp8);
-          config.encoder_settings.encoder = videoEncoder;
-          config.encoder_settings.payload_name = codecIter->mName;
-          config.encoder_settings.payload_type = codecIter->mPayloadType;
-          webrtc::VideoStream stream;
-          stream.width = 640;
-          stream.height = 480;
-          stream.max_framerate = 30;
-          stream.min_bitrate_bps = 30000;
-          stream.target_bitrate_bps = 2000000;
-          stream.max_bitrate_bps = 2000000;
-          stream.max_qp = 56;
-          webrtc::VideoCodecVP8 videoCodec = webrtc::VideoEncoder::GetDefaultVp8Settings();
-          videoCodec.automaticResizeOn = true;
-          videoCodec.denoisingOn = true;
-          videoCodec.frameDroppingOn = true;
-          encoderConfig.min_transmit_bitrate_bps = 0;
-          encoderConfig.content_type = webrtc::VideoEncoderConfig::ContentType::kRealtimeVideo;
-          encoderConfig.streams.push_back(stream);
-          encoderConfig.encoder_specific_settings = &videoCodec;
-          break;
-        } else if (IRTPTypes::SupportedCodec_VP9 == supportedCodec) {
-          webrtc::VideoEncoder* videoEncoder = webrtc::VideoEncoder::Create(webrtc::VideoEncoder::kVp9);
-          config.encoder_settings.encoder = videoEncoder;
-          config.encoder_settings.payload_name = codecIter->mName;
-          config.encoder_settings.payload_type = codecIter->mPayloadType;
-          webrtc::VideoStream stream;
-          stream.width = 640;
-          stream.height = 480;
-          stream.max_framerate = 30;
-          stream.min_bitrate_bps = 30000;
-          stream.target_bitrate_bps = 2000000;
-          stream.max_bitrate_bps = 2000000;
-          stream.max_qp = 56;
-          webrtc::VideoCodecVP9 videoCodec = webrtc::VideoEncoder::GetDefaultVp9Settings();
-          videoCodec.frameDroppingOn = true;
-          encoderConfig.min_transmit_bitrate_bps = 0;
-          encoderConfig.content_type = webrtc::VideoEncoderConfig::ContentType::kRealtimeVideo;
-          encoderConfig.streams.push_back(stream);
-          encoderConfig.encoder_specific_settings = &videoCodec;
-          break;
-        } else if (IRTPTypes::SupportedCodec_H264 == supportedCodec) {
-          webrtc::VideoEncoder* videoEncoder = webrtc::VideoEncoder::Create(webrtc::VideoEncoder::kH264);
-          config.encoder_settings.encoder = videoEncoder;
-          config.encoder_settings.payload_name = codecIter->mName;
-          config.encoder_settings.payload_type = codecIter->mPayloadType;
-          webrtc::VideoStream stream;
-          stream.width = 640;
-          stream.height = 480;
-          stream.max_framerate = 30;
-          stream.min_bitrate_bps = 30000;
-          stream.target_bitrate_bps = 2000000;
-          stream.max_bitrate_bps = 2000000;
-          stream.max_qp = 56;
-          webrtc::VideoCodecH264 videoCodec = webrtc::VideoEncoder::GetDefaultH264Settings();
-          videoCodec.frameDroppingOn = true;
-          encoderConfig.min_transmit_bitrate_bps = 0;
-          encoderConfig.content_type = webrtc::VideoEncoderConfig::ContentType::kRealtimeVideo;
-          encoderConfig.streams.push_back(stream);
-          encoderConfig.encoder_specific_settings = &videoCodec;
-          break;
-        }
-        codecIter++;
-      }
-
-      IRTPTypes::EncodingParametersList::iterator encodingParamIter = mParameters->mEncodings.begin();
-      while (encodingParamIter != mParameters->mEncodings.end()) {
-        if (encodingParamIter->mCodecPayloadType == config.encoder_settings.payload_type) {
-          config.rtp.ssrcs.push_back(encodingParamIter->mSSRC);
-          break;
-        }
-        encodingParamIter++;
-      }
-
-      if (config.rtp.ssrcs.size() == 0)
-        config.rtp.ssrcs.push_back(1000);
-      
-      config.rtp.c_name = mParameters->mRTCP.mCName;
-      config.rtp.nack.rtp_history_ms = 1000;
-
-      mSendStream = rtc::scoped_ptr<webrtc::VideoSendStream>(
-        new webrtc::internal::VideoSendStream(
-                                              numCpuCores,
-                                              mModuleProcessThread.get(),
-                                              mCallStats.get(),
-                                              mCongestionController.get(),
-                                              config,
-                                              encoderConfig,
-                                              suspendedSSRCs
-                                              ));
-
-      mSendStream->Start();
     }
 
     //-------------------------------------------------------------------------
@@ -282,11 +177,6 @@ namespace ortc
 
       ZS_LOG_DETAIL(log("destroyed"))
       mThisWeak.reset();
-
-      if (mSendStream)
-        mSendStream->Stop();
-
-      mModuleProcessThread->Stop();
 
       cancel();
     }
@@ -351,8 +241,8 @@ namespace ortc
       {
         AutoRecursiveLock lock(*this);
       }
-      if (mSendStream)
-        mSendStream->DeliverRtcp(packet->buffer()->data(), packet->buffer()->size());
+      if (mChannelResource)
+        mChannelResource->getStream()->DeliverRtcp(packet->buffer()->data(), packet->buffer()->size());
       return true;
     }
 
@@ -399,8 +289,30 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPSenderChannelVideo::sendVideoFrame(const webrtc::VideoFrame& videoFrame)
     {
-      if (!mSendStream) return;
-      mSendStream->Input()->IncomingCapturedFrame(videoFrame);
+      if (!mChannelResource) return;
+      mChannelResource->getStream()->Input()->IncomingCapturedFrame(videoFrame);
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPSenderChannelVideo => IRTPSenderChannelMediaBaseForRTPMediaEngine
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    void RTPSenderChannelVideo::setupChannel()
+    {
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPSenderChannelVideo::closeChannel()
+    {
+      if (mChannelResource)
+        mChannelResource->getStream()->Stop();
+
+      //mModuleProcessThread->Stop();
     }
 
     //-------------------------------------------------------------------------
@@ -436,6 +348,26 @@ namespace ortc
       AutoRecursiveLock lock(*this);
 #define TODO 1
 #define TODO 2
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+#pragma mark
+#pragma mark RTPReceiverChannelAudio => IPromiseSettledDelegate
+#pragma mark
+
+    //-------------------------------------------------------------------------
+    void RTPSenderChannelVideo::onPromiseSettled(PromisePtr promise)
+    {
+      ZS_LOG_DEBUG(log("promise settled") + ZS_PARAM("promise", promise->getID()))
+
+      AutoRecursiveLock lock(*this);
+      step();
+
+      if (ZS_DYNAMIC_PTR_CAST(PromiseWithRTPMediaEngineChannelResource, promise)) {
+      }
     }
 
     //-------------------------------------------------------------------------
@@ -608,7 +540,9 @@ namespace ortc
       }
 
       // ... other steps here ...
-      if (!stepBogusDoSomething()) goto not_ready;
+      if (!stepPromiseEngine()) goto not_ready;
+      if (!stepPromiseExampleDeviceResource()) goto not_ready;
+      if (!stepSetupChannel()) goto not_ready;
       // ... other steps here ...
 
       goto ready;
@@ -627,23 +561,83 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool RTPSenderChannelVideo::stepBogusDoSomething()
+    bool RTPSenderChannelVideo::stepPromiseEngine()
     {
-      if ( /* step already done */ false ) {
-        ZS_LOG_TRACE(log("already completed do something"))
-        return true;
+      if (mMediaEngine) {
+        ZS_LOG_TRACE(log("already setup engine"))
+          return true;
       }
 
-      if ( /* cannot do step yet */ false) {
-        ZS_LOG_DEBUG(log("waiting for XYZ to complete before continuing"))
+      if (!mMediaEnginePromise) {
+        mMediaEnginePromise = UseMediaEngine::create();
+      }
+
+      if (!mMediaEnginePromise->isSettled()) {
+        ZS_LOG_TRACE(log("waiting for media engine promise to resolve"))
+          return false;
+      }
+
+      mMediaEngine = mMediaEnginePromise->value();
+
+      if (!mMediaEngine) {
+        ZS_LOG_WARNING(Detail, log("failed to initialize media"))
+          cancel();
         return false;
       }
 
-      ZS_LOG_DEBUG(log("doing step XYZ"))
+      ZS_LOG_DEBUG(log("media engine is setup") + ZS_PARAM("engine", mMediaEngine->getID()))
+        return true;
+    }
 
-      // ....
-#define TODO 1
-#define TODO 2
+    //-------------------------------------------------------------------------
+    bool RTPSenderChannelVideo::stepPromiseExampleDeviceResource()
+    {
+      if (mDeviceResource) {
+        ZS_LOG_TRACE(log("already setup device resource"))
+          return true;
+      }
+
+      if (!mDeviceResourcePromise) {
+        mDeviceResourcePromise = UseMediaEngine::getDeviceResource("camera");
+      }
+
+      if (!mDeviceResourcePromise->isSettled()) {
+        ZS_LOG_TRACE(log("waiting for media device resource promise to resolve"))
+          return false;
+      }
+
+      mDeviceResource = mDeviceResourcePromise->value();
+
+      if (!mDeviceResource) {
+        ZS_LOG_WARNING(Detail, log("failed to initialize device resource"))
+          cancel();
+        return false;
+      }
+
+      ZS_LOG_DEBUG(log("media device is setup") + ZS_PARAM("device", mDeviceResource->getDeviceID()))
+        return true;
+    }
+
+    //-------------------------------------------------------------------------
+    bool RTPSenderChannelVideo::stepSetupChannel()
+    {
+      if (mChannelResource) {
+        ZS_LOG_TRACE(log("already setup channel"))
+        return true;
+      }
+
+      if (!mSetupChannelPromise->isSettled()) {
+        ZS_LOG_TRACE(log("waiting for setup channel promise to be set up"))
+        return false;
+      }
+
+      if (mSetupChannelPromise->isRejected()) {
+        ZS_LOG_WARNING(Debug, log("media engine rejected channel setup"))
+        cancel();
+        return false;
+      }
+
+      mChannelResource = ZS_DYNAMIC_PTR_CAST(UseChannelResource, mSetupChannelPromise->value());
 
       return true;
     }
@@ -655,6 +649,8 @@ namespace ortc
       // try to gracefully shutdown
 
       if (isShutdown()) return;
+
+      setState(State_ShuttingDown);
 
       if (!mGracefulShutdownReference) mGracefulShutdownReference = mThisWeak.lock();
 

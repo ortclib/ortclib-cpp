@@ -95,7 +95,8 @@ namespace ortc
     //-------------------------------------------------------------------------
     void IRTPSenderChannelForSettings::applyDefaults()
     {
-//      UseSettings::setUInt(ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE, 5*1024);
+      UseSettings::setUInt(ORTC_SETTING_RTP_SENDER_CHANNEL_RETAG_RTP_PACKETS_AFTER_SSRC_NOT_SENT_IN_SECONDS, 5);
+      UseSettings::setBool(ORTC_SETTING_RTP_SENDER_CHANNEL_TAG_MID_RID_IN_RTCP_SDES, true);
     }
 
     //-------------------------------------------------------------------------
@@ -170,11 +171,15 @@ namespace ortc
       SharedRecursiveLock(SharedRecursiveLock::create()),
       mSender(sender),
       mTrack(track),
-      mParameters(make_shared<Parameters>(params))
+      mParameters(make_shared<Parameters>(params)),
+      mRetagAfterInSeconds(Seconds(UseSettings::getUInt(ORTC_SETTING_RTP_SENDER_CHANNEL_RETAG_RTP_PACKETS_AFTER_SSRC_NOT_SENT_IN_SECONDS))),
+      mTagSDES(UseSettings::getBool(ORTC_SETTING_RTP_SENDER_CHANNEL_TAG_MID_RID_IN_RTCP_SDES))
     {
       ZS_LOG_DETAIL(debug("created"))
 
       ORTC_THROW_INVALID_PARAMETERS_IF(!sender)
+
+      setupTagging();
 
       EventWriteOrtcRtpSenderChannelCreate(__func__, mID, sender->getID(), ((bool)track) ? track->getID() : 0);
     }
@@ -207,7 +212,7 @@ namespace ortc
           }
         }
       }
-      
+
       ORTC_THROW_INVALID_PARAMETERS_IF(!found)
 
       EventWriteOrtcRtpSenderChannelCreateMediaChannel(__func__, mID, mMediaBase->getID(), IMediaStreamTrack::toString(kind.value()));
@@ -327,6 +332,45 @@ namespace ortc
     bool RTPSenderChannel::handlePacket(RTCPPacketPtr packet)
     {
       EventWriteOrtcRtpSenderChannelDeliverIncomingPacketToMediaChannel(__func__, mID, mMediaBase->getID(), zsLib::to_underlying(IICETypes::Component_RTCP), packet->buffer()->SizeInBytes(), packet->buffer()->BytePtr());
+
+      if (mIsTagging)
+      {
+        for (auto rr = packet->firstReceiverReport(); NULL != rr; rr = rr->nextReceiverReport())
+        {
+          AutoRecursiveLock lock(*this);
+
+          for (auto rb = rr->firstReportBlock(); NULL != rb; rb = rb->next())
+          {
+            auto ssrc = rb->ssrc();
+
+            auto found = mTaggings.find(ssrc);
+            if (found == mTaggings.end()) continue;
+
+            auto &entry = (*found).second;
+
+            if (entry->mReceiverAck) continue;
+
+            DWORD sequenceNumber = (0xFFFF & rb->extendedHighestSequenceNumberReceived());
+
+            DWORD sequenceFirst = entry->mSequenceNumberFirst;
+            DWORD sequenceLast = entry->mSequenceNumberLast;
+
+            if (sequenceLast < sequenceFirst) {
+              sequenceLast = (0x10000 | sequenceLast);
+            }
+
+            if (sequenceNumber < sequenceFirst) {
+              sequenceNumber = (0x10000 | sequenceNumber);;
+            }
+
+            if ((sequenceNumber >= sequenceFirst) &&
+                (sequenceNumber <= sequenceLast)) {
+              entry->mReceiverAck = true;
+            }
+          }
+        }
+      }
+
       return mMediaBase->handlePacket(packet);
     }
 
@@ -344,6 +388,60 @@ namespace ortc
       auto sender = mSender.lock();
       if (!sender) return false;
 
+      if (mIsTagging)
+      {
+        Time tick = zsLib::now();
+
+        AutoRecursiveLock lock(*this);
+
+        TaggingInfoPtr tagInfo;
+
+        auto found = mTaggings.find(packet->ssrc());
+        if (found == mTaggings.end()) {
+          tagInfo = make_shared<TaggingInfo>();
+          mTaggings[packet->ssrc()] = tagInfo;
+        }
+
+        if (tagInfo->mLastSentPacket + mRetagAfterInSeconds < tick) {
+          tagInfo->mReceiverAck = false;
+          tagInfo->mSequenceNumberFirst = packet->sequenceNumber();
+        }
+        tagInfo->mLastSentPacket = tick;
+        if (!tagInfo->mReceiverAck) {
+          tagInfo->mSequenceNumberLast = packet->sequenceNumber();
+
+          auto oldHeaderExtensions = packet->mHeaderExtensions; // remember old pointer temporarily
+
+          RTPPacket::StringHeaderExtension muxHeader(mMuxHeader ? mMuxHeader->mID : 0, mMuxID.c_str());
+          RTPPacket::StringHeaderExtension ridHeader(mRIDHeader ? mRIDHeader->mID : 0, mRID.c_str());
+
+          // Re-point extenion headers in RTP packet to first point to MuxID or
+          // RID or both.
+          if (mMuxID.hasData()) {
+            if (mRID.hasData()) {
+              muxHeader.mNext = &ridHeader;
+              ridHeader.mNext = oldHeaderExtensions;
+              packet->mHeaderExtensions = &muxHeader;
+            } else {
+              muxHeader.mNext = oldHeaderExtensions;
+              packet->mHeaderExtensions = &muxHeader;
+            }
+          } else {
+            ridHeader.mNext = oldHeaderExtensions;
+            packet->mHeaderExtensions = &ridHeader;
+          }
+
+          RTPPacketPtr newPacket = RTPPacket::create(*packet);
+
+          // Put back old pointer to prevent crash during free of old packet.
+          packet->mHeaderExtensions = oldHeaderExtensions;
+
+          // Replace old packet with new packet that will have additional
+          // extension headers.
+          packet = newPacket;
+        }
+      }
+
       EventWriteOrtcRtpSenderChannelSendOutgoingPacket(__func__, mID, sender->getID(), zsLib::to_underlying(IICETypes::Component_RTP), packet->buffer()->SizeInBytes(), packet->buffer()->BytePtr());
 
       return sender->sendPacket(packet);
@@ -356,6 +454,64 @@ namespace ortc
       if (!sender) return false;
 
       EventWriteOrtcRtpSenderChannelSendOutgoingPacket(__func__, mID, sender->getID(), zsLib::to_underlying(IICETypes::Component_RTCP), packet->buffer()->SizeInBytes(), packet->buffer()->BytePtr());
+
+      if ((mIsTagging) &&
+          (mTagSDES))
+      {
+        String muxID;
+        String rid;
+
+        {
+          AutoRecursiveLock lock(*this);
+          muxID = mMuxID;
+          mRID = rid;
+        }
+
+        //RTCPPacket::SDES::Chunk::Mid
+        RTCPPacket::SDES::Chunk::Mid midItem;
+        RTCPPacket::SDES::Chunk::Rid ridItem;
+
+        midItem.mValue = muxID.c_str();
+        ridItem.mValue = rid.c_str();
+
+        // Insert the MID/RID SDES entries onto the RTCP packets.
+        for (auto sdes = packet->firstSDES(); NULL != sdes; sdes = sdes->nextSDES())
+        {
+          for (auto chunk = sdes->firstChunk(); NULL != chunk; chunk = chunk->next())
+          {
+            ASSERT(NULL == chunk->firstMid())
+            ASSERT(NULL == chunk->firstRid())
+            if (muxID.hasData()) {
+              chunk->mMidCount = 1;
+              chunk->mFirstMid = &midItem;
+            }
+            if (rid.hasData()) {
+              chunk->mRidCount = 1;
+              chunk->mFirstRid = &ridItem;
+            }
+          }
+        }
+
+        RTCPPacketPtr newPacket(RTCPPacket::create(packet->first()));
+
+        // Reset the MID/RID SDES entries to NULL on the RTCP packets to
+        // prevent the packet destruction from attempting to free the faked
+        // inserted entries.
+        for (auto sdes = packet->firstSDES(); NULL != sdes; sdes = sdes->nextSDES())
+        {
+          for (auto chunk = sdes->firstChunk(); NULL != chunk; chunk = chunk->next())
+          {
+            chunk->mMidCount = 0;
+            chunk->mFirstMid = NULL;
+            chunk->mRidCount = 0;
+            chunk->mFirstRid = NULL;
+          }
+        }
+
+        // Replace the old packet with the new packet that contains the
+        // additional SDES mid/rid entries.
+        packet = newPacket;
+      }
 
       return sender->sendPacket(packet);
     }
@@ -509,7 +665,7 @@ namespace ortc
       
       {
         AutoRecursiveLock lock(*this);
-        
+
         mParameters = params;
         mediaBase = mMediaBase;
 
@@ -534,6 +690,8 @@ namespace ortc
         }
         
         ORTC_THROW_INVALID_PARAMETERS_IF(!found)
+
+        setupTagging();
       }
       
       mediaBase->handleUpdate(params);
@@ -707,6 +865,76 @@ namespace ortc
       ZS_LOG_WARNING(Detail, debug("error set") + ZS_PARAM("error", mLastError) + ZS_PARAM("reason", mLastErrorReason))
     }
 
+    //-------------------------------------------------------------------------
+    void RTPSenderChannel::setupTagging()
+    {
+      mMuxHeader.reset();
+      mRIDHeader.reset();
+
+      for (auto iter = mParameters->mHeaderExtensions.begin(); iter != mParameters->mHeaderExtensions.end(); ++iter) {
+        auto &ext = *(iter);
+        switch (IRTPTypes::toHeaderExtensionURI(ext.mURI))
+        {
+          case IRTPTypes::HeaderExtensionURI_MuxID:
+          {
+            mMuxHeader = make_shared<HeaderExtensionParameters>(ext);
+            break;
+          }
+          case IRTPTypes::HeaderExtensionURI_RID:
+          {
+            mRIDHeader = make_shared<HeaderExtensionParameters>(ext);
+            break;
+          }
+          default:
+          {
+            break;
+          }
+        }
+      }
+
+      // The MuxID / RID can only be set if the header extensiosn have been
+      // defined in the parameters.
+      mMuxID.clear();
+      mRID.clear();
+
+      if (mMuxHeader) {
+        mMuxID = mParameters->mMuxID;
+      }
+      if (mRIDHeader) {
+        if (mParameters->mEncodings.size() > 0) {
+          auto &encoding = (mParameters->mEncodings.front());
+          mRID = encoding.mEncodingID;
+        }
+      }
+
+      // Check to see if the header options have changed since last update.
+      // If any changes have occured then the streams that pass through
+      // this mapping must be retagged with the MuxID / RID.
+      {
+        SHA1Hasher hasher;
+        if (mMuxHeader) {
+          hasher.update(mMuxHeader->hash());
+        }
+        hasher.update(":");
+        if (mRIDHeader) {
+          hasher.update(mRIDHeader->hash());
+        }
+        hasher.update(":");
+        hasher.update(mMuxID);
+        hasher.update(":");
+        hasher.update(mRID);
+
+        String hashResult = hasher.final();
+        if (hashResult != mHeaderHash) {
+          mTaggings.clear();
+        }
+        mHeaderHash = hashResult;
+      }
+
+      // Set flag to do tagging if there is a mux id or a rid set.
+      mIsTagging = mMuxID.hasData() || mRID.hasData();
+    }
+    
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------

@@ -48,9 +48,6 @@
 
 #include <cryptopp/sha.h>
 
-#include <webrtc/system_wrappers/include/cpu_info.h>
-#include <webrtc/voice_engine/include/voe_codec.h>
-#include <webrtc/voice_engine/include/voe_rtp_rtcp.h>
 #include <webrtc/voice_engine/include/voe_network.h>
 
 #ifdef _DEBUG
@@ -169,8 +166,7 @@ namespace ortc
       SharedRecursiveLock(SharedRecursiveLock::create()),
       mReceiverChannel(receiverChannel),
       mTrack(track),
-      mParameters(make_shared<Parameters>(params)),
-      mModuleProcessThread(webrtc::ProcessThread::Create("RTPReceiverChannelAudioThread"))
+      mParameters(make_shared<Parameters>(params))
     {
       ZS_LOG_DETAIL(debug("created"))
 
@@ -180,120 +176,29 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPReceiverChannelAudio::init()
     {
-      AutoRecursiveLock lock(*this);
+      TransportPtr transport = Transport::create(mThisWeak.lock());
+
+      PromiseWithRTPMediaEngineChannelResourcePtr setupChannelPromise = UseMediaEngine::setupChannel(
+                                                                                                      mThisWeak.lock(),
+                                                                                                      transport,
+                                                                                                      MediaStreamTrack::convert(mTrack),
+                                                                                                      mParameters
+                                                                                                      );
+      {
+        AutoRecursiveLock lock(*this);
+        mSetupChannelPromise = setupChannelPromise;
+        mTransport = transport;
+      }
+
+      setupChannelPromise->thenWeak(mThisWeak.lock());
+
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
-      
-      if (!mTrack) {
-        ZS_LOG_ERROR(Detail, log("MediaStreamTrack is not set during RTPReceiverChannelAudio initialization procedure"))
-        return;
-      }
-      
-      mTransport = Transport::create(mThisWeak.lock());
-
-      mVoiceEngine = rtc::scoped_ptr<webrtc::VoiceEngine, VoiceEngineDeleter>(webrtc::VoiceEngine::Create());
-      mCallStats = rtc::scoped_ptr<webrtc::CallStats>(new webrtc::CallStats());
-      mCongestionController = 
-        rtc::scoped_ptr<webrtc::CongestionController>(new webrtc::CongestionController(
-                                                                                       mModuleProcessThread.get(),
-                                                                                       mCallStats.get())
-                                                                                       );
-
-      mModuleProcessThread->Start();
-      mModuleProcessThread->RegisterModule(mCallStats.get());
-
-      webrtc::VoEBase::GetInterface(mVoiceEngine.get())->Init(mTrack->getAudioDeviceModule());
-
-      mChannel = webrtc::VoEBase::GetInterface(mVoiceEngine.get())->CreateChannel();
-      
-      webrtc::CodecInst codec;
-      IRTPTypes::CodecParametersList::iterator codecIter = mParameters->mCodecs.begin();
-      while (codecIter != mParameters->mCodecs.end()) {
-        auto supportedCodec = IRTPTypes::toSupportedCodec(codecIter->mName);
-        if (IRTPTypes::SupportedCodec_Opus == supportedCodec) {
-          codec = getAudioCodec(codecIter->mName);
-          webrtc::VoECodec::GetInterface(mVoiceEngine.get())->SetRecPayloadType(mChannel, codec);
-          break;
-        } else if (IRTPTypes::SupportedCodec_Isac == supportedCodec) {
-          codec = getAudioCodec(codecIter->mName);
-          webrtc::VoECodec::GetInterface(mVoiceEngine.get())->SetRecPayloadType(mChannel, codec);
-          break;
-        } else if (IRTPTypes::SupportedCodec_G722 == supportedCodec) {
-          codec = getAudioCodec(codecIter->mName);
-          webrtc::VoECodec::GetInterface(mVoiceEngine.get())->SetRecPayloadType(mChannel, codec);
-          break;
-        } else if (IRTPTypes::SupportedCodec_ILBC == supportedCodec) {
-          codec = getAudioCodec(codecIter->mName);
-          webrtc::VoECodec::GetInterface(mVoiceEngine.get())->SetRecPayloadType(mChannel, codec);
-          break;
-        } else if (IRTPTypes::SupportedCodec_PCMU == supportedCodec) {
-          codec = getAudioCodec(codecIter->mName);
-          webrtc::VoECodec::GetInterface(mVoiceEngine.get())->SetRecPayloadType(mChannel, codec);
-          break;
-        } else if (IRTPTypes::SupportedCodec_PCMA == supportedCodec) {
-          codec = getAudioCodec(codecIter->mName);
-          webrtc::VoECodec::GetInterface(mVoiceEngine.get())->SetRecPayloadType(mChannel, codec);
-          break;
-        }
-        codecIter++;
-      }
-
-      webrtc::AudioReceiveStream::Config config;
-      config.voe_channel_id = mChannel;
-      
-      IRTPTypes::EncodingParametersList::iterator encodingParamIter = mParameters->mEncodings.begin();
-      while (encodingParamIter != mParameters->mEncodings.end()) {
-        if (encodingParamIter->mCodecPayloadType == codec.pltype) {
-          config.rtp.remote_ssrc = encodingParamIter->mSSRC;
-          break;
-        }
-        encodingParamIter++;
-      }
-
-      webrtc::VoERTP_RTCP::GetInterface(mVoiceEngine.get())->SetLocalSSRC(mChannel, mParameters->mRTCP.mSSRC);
-      config.rtp.local_ssrc = mParameters->mRTCP.mSSRC;
-      config.rtp.extensions.push_back(webrtc::RtpExtension(webrtc::RtpExtension::kAbsSendTime, 1));
-      config.receive_transport = mTransport.get();
-      config.rtcp_send_transport = mTransport.get();
-      config.combined_audio_video_bwe = true;
-
-// TODO: Check whether the registration of all available codecs is needed
-//      int ncodecs = webrtc::VoECodec::GetInterface(mVoiceEngine.get())->NumOfCodecs();
-//      for (int i = 0; i < ncodecs; ++i) {
-//        webrtc::CodecInst codec;
-//        webrtc::VoECodec::GetInterface(mVoiceEngine.get())->GetCodec(i, codec);
-//        webrtc::VoECodec::GetInterface(mVoiceEngine.get())->SetRecPayloadType(mChannel, codec);
-//      }
-
-      mReceiveStream = rtc::scoped_ptr<webrtc::AudioReceiveStream>(
-          new webrtc::internal::AudioReceiveStream(
-                                                   mCongestionController->GetRemoteBitrateEstimator(false),
-                                                   config,
-                                                   mVoiceEngine.get()
-                                                   ));
-
-      webrtc::VoENetwork::GetInterface(mVoiceEngine.get())->RegisterExternalTransport(mChannel, *mTransport);
-
-      mTrack->start();
-
-      webrtc::VoEBase::GetInterface(mVoiceEngine.get())->StartReceive(mChannel);
-      webrtc::VoEBase::GetInterface(mVoiceEngine.get())->StartPlayout(mChannel);
     }
 
     //-------------------------------------------------------------------------
     RTPReceiverChannelAudio::~RTPReceiverChannelAudio()
     {
       if (isNoop()) return;
-
-      if (mVoiceEngine) {
-        webrtc::VoEBase::GetInterface(mVoiceEngine.get())->StopPlayout(mChannel);
-        webrtc::VoEBase::GetInterface(mVoiceEngine.get())->StopReceive(mChannel);
-        webrtc::VoENetwork::GetInterface(mVoiceEngine.get())->DeRegisterExternalTransport(mChannel);
-      }
-
-      if (mTrack)
-        mTrack->stop();
-
-      mModuleProcessThread->Stop();
 
       ZS_LOG_DETAIL(log("destroyed"))
       mThisWeak.reset();
@@ -355,9 +260,9 @@ namespace ortc
       }
       webrtc::PacketTime time(packet->timestamp(), 0);
       //mReceiveStream->DeliverRtp(packet->buffer()->data(), packet->buffer()->size(), time);
-      if (mVoiceEngine) {
-        webrtc::VoENetwork::GetInterface(mVoiceEngine.get())->ReceivedRTPPacket(
-          mChannel, packet->buffer()->data(), packet->buffer()->size(), time);
+      if (mMediaEngine && mMediaEngine->getVoiceEngine() && mChannelResource) {
+        webrtc::VoENetwork::GetInterface(mMediaEngine->getVoiceEngine())->ReceivedRTPPacket(
+          mChannelResource->getChannel(), packet->buffer()->data(), packet->buffer()->size(), time);
       }
       return true;
     }
@@ -370,9 +275,9 @@ namespace ortc
         AutoRecursiveLock lock(*this);
       }
       //mReceiveStream->DeliverRtcp(packet->buffer()->data(), packet->buffer()->size());
-      if (mVoiceEngine) {
-        webrtc::VoENetwork::GetInterface(mVoiceEngine.get())->ReceivedRTCPPacket(
-          mChannel, packet->buffer()->data(), packet->buffer()->size());
+      if (mMediaEngine && mMediaEngine->getVoiceEngine() && mChannelResource) {
+        webrtc::VoENetwork::GetInterface(mMediaEngine->getVoiceEngine())->ReceivedRTCPPacket(
+          mChannelResource->getChannel(), packet->buffer()->data(), packet->buffer()->size());
       }
       return true;
     }
@@ -436,6 +341,37 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
+    #pragma mark RTPReceiverChannelAudio => IRTPReceiverChannelMediaBaseForRTPMediaEngine
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    void RTPReceiverChannelAudio::setupChannel()
+    {
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPReceiverChannelAudio::closeChannel()
+    {
+      if (mMediaEngine->getVoiceEngine()) {
+        //webrtc::VoEBase::GetInterface(mMediaEngine->getVoiceEngine())->StopPlayout(mChannel);
+        //webrtc::VoEBase::GetInterface(mMediaEngine->getVoiceEngine())->StopReceive(mChannel);
+        //webrtc::VoENetwork::GetInterface(mMediaEngine->getVoiceEngine())->DeRegisterExternalTransport(mChannel);
+      }
+
+#define FIX_ME_WARNING_NO_TRACK_IS_NOT_STOPPED_JUST_BECAUSE_A_RECEIVER_CHANNEL_IS_DONE 1
+#define FIX_ME_WARNING_NO_TRACK_IS_NOT_STOPPED_JUST_BECAUSE_A_RECEIVER_CHANNEL_IS_DONE 2
+
+      if (mTrack)
+        mTrack->stop();
+
+      //mModuleProcessThread->Stop();
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
     #pragma mark RTPReceiverChannelAudio => IWakeDelegate
     #pragma mark
 
@@ -464,6 +400,26 @@ namespace ortc
       AutoRecursiveLock lock(*this);
 #define TODO 1
 #define TODO 2
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPReceiverChannelAudio => IPromiseSettledDelegate
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    void RTPReceiverChannelAudio::onPromiseSettled(PromisePtr promise)
+    {
+      ZS_LOG_DEBUG(log("promise settled") + ZS_PARAM("promise", promise->getID()))
+
+      AutoRecursiveLock lock(*this);
+      step();
+
+      if (ZS_DYNAMIC_PTR_CAST(PromiseWithRTPMediaEngineChannelResource, promise)) {
+      }
     }
 
     //-------------------------------------------------------------------------
@@ -622,7 +578,9 @@ namespace ortc
       }
 
       // ... other steps here ...
-      if (!stepBogusDoSomething()) goto not_ready;
+      if (!stepPromiseEngine()) goto not_ready;
+      if (!stepPromiseExampleDeviceResource()) goto not_ready;
+      if (!stepSetupChannel()) goto not_ready;
       // ... other steps here ...
 
       goto ready;
@@ -641,23 +599,83 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool RTPReceiverChannelAudio::stepBogusDoSomething()
+    bool RTPReceiverChannelAudio::stepPromiseEngine()
     {
-      if ( /* step already done */ false ) {
-        ZS_LOG_TRACE(log("already completed do something"))
+      if (mMediaEngine) {
+        ZS_LOG_TRACE(log("already setup engine"))
         return true;
       }
 
-      if ( /* cannot do step yet */ false) {
-        ZS_LOG_DEBUG(log("waiting for XYZ to complete before continuing"))
+      if (!mMediaEnginePromise) {
+        mMediaEnginePromise = UseMediaEngine::create();
+      }
+
+      if (!mMediaEnginePromise->isSettled()) {
+        ZS_LOG_TRACE(log("waiting for media engine promise to resolve"))
         return false;
       }
 
-      ZS_LOG_DEBUG(log("doing step XYZ"))
+      mMediaEngine = mMediaEnginePromise->value();
 
-      // ....
-#define TODO 1
-#define TODO 2
+      if (!mMediaEngine) {
+        ZS_LOG_WARNING(Detail, log("failed to initialize media"))
+        cancel();
+        return false;
+      }
+
+      ZS_LOG_DEBUG(log("media engine is setup") + ZS_PARAM("engine", mMediaEngine->getID()))
+      return true;
+    }
+
+    //-------------------------------------------------------------------------
+    bool RTPReceiverChannelAudio::stepPromiseExampleDeviceResource()
+    {
+      if (mDeviceResource) {
+        ZS_LOG_TRACE(log("already setup device resource"))
+        return true;
+      }
+
+      if (!mDeviceResourcePromise) {
+        mDeviceResourcePromise = UseMediaEngine::getDeviceResource("camera");
+      }
+
+      if (!mDeviceResourcePromise->isSettled()) {
+        ZS_LOG_TRACE(log("waiting for media device resource promise to resolve"))
+        return false;
+      }
+
+      mDeviceResource = mDeviceResourcePromise->value();
+
+      if (!mDeviceResource) {
+        ZS_LOG_WARNING(Detail, log("failed to initialize device resource"))
+        cancel();
+        return false;
+      }
+
+      ZS_LOG_DEBUG(log("media device is setup") + ZS_PARAM("device", mDeviceResource->getDeviceID()))
+      return true;
+    }
+
+    //-------------------------------------------------------------------------
+    bool RTPReceiverChannelAudio::stepSetupChannel()
+    {
+      if (mChannelResource) {
+        ZS_LOG_TRACE(log("already setup channel"))
+        return true;
+      }
+
+      if (!mSetupChannelPromise->isSettled()) {
+        ZS_LOG_TRACE(log("waiting for setup channel promise to be set up"))
+        return false;
+      }
+
+      if (mSetupChannelPromise->isRejected()) {
+        ZS_LOG_WARNING(Debug, log("media engine rejected channel setup"))
+        cancel();
+        return false;
+      }
+
+      mChannelResource = ZS_DYNAMIC_PTR_CAST(UseChannelResource, mSetupChannelPromise->value());
 
       return true;
     }
@@ -670,6 +688,8 @@ namespace ortc
 
       if (isShutdown()) return;
 
+      setState(State_ShuttingDown);
+
       if (!mGracefulShutdownReference) mGracefulShutdownReference = mThisWeak.lock();
 
       if (mGracefulShutdownReference) {
@@ -680,6 +700,11 @@ namespace ortc
       // final cleanup
 
       setState(State_Shutdown);
+
+      // cannot hold any more references to the media engine promise or
+      // the media engine itself
+      mMediaEngine.reset();
+      mMediaEnginePromise.reset();
 
       // make sure to cleanup any final reference to self
       mGracefulShutdownReference.reset();
@@ -717,22 +742,6 @@ namespace ortc
       mLastErrorReason = reason;
 
       ZS_LOG_WARNING(Detail, debug("error set") + ZS_PARAM("error", mLastError) + ZS_PARAM("reason", mLastErrorReason))
-    }
-    
-    //-------------------------------------------------------------------------
-    webrtc::CodecInst RTPReceiverChannelAudio::getAudioCodec(String payloadName)
-    {
-      webrtc::CodecInst codec;
-      int numOfCodecs = webrtc::VoECodec::GetInterface(mVoiceEngine.get())->NumOfCodecs();
-      for (int i = 0; i < numOfCodecs; ++i) {
-        webrtc::CodecInst currentCodec;
-        webrtc::VoECodec::GetInterface(mVoiceEngine.get())->GetCodec(i, currentCodec);
-        if (0 == String(currentCodec.plname).compareNoCase(payloadName)) {
-          codec = currentCodec;
-          break;
-        }
-      }
-      return codec;
     }
 
     //-------------------------------------------------------------------------

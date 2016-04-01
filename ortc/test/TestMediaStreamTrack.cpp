@@ -868,6 +868,7 @@ namespace ortc
       //-----------------------------------------------------------------------
       RTPReceiverPtr MediaStreamTrackTester::OverrideReceiverFactory::create(
                                                                              IRTPReceiverDelegatePtr delegate,
+                                                                             IMediaStreamTrackTypes::Kinds kind,
                                                                              IRTPTransportPtr transport,
                                                                              IRTCPTransportPtr rtcpTransport
                                                                              )
@@ -875,7 +876,7 @@ namespace ortc
         auto tester = mTester.lock();
         TESTING_CHECK(tester)
 
-        return tester->create(delegate, transport, rtcpTransport);
+        return tester->create(delegate, kind, transport, rtcpTransport);
       }
 
       //-----------------------------------------------------------------------
@@ -1115,6 +1116,7 @@ namespace ortc
 
       RTPReceiverPtr MediaStreamTrackTester::create(
                                                     IRTPReceiverDelegatePtr delegate,
+                                                    IMediaStreamTrackTypes::Kinds kind,
                                                     IRTPTransportPtr transport,
                                                     IRTCPTransportPtr rtcpTransport
                                                     )

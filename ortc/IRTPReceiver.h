@@ -86,6 +86,7 @@ namespace ortc
 
     static IRTPReceiverPtr create(
                                   IRTPReceiverDelegatePtr delegate,
+                                  Kinds kind,
                                   IRTPTransportPtr transport,
                                   IRTCPTransportPtr rtcpTransport = IRTCPTransportPtr()
                                   );

@@ -399,6 +399,7 @@ namespace ortc
                   const make_private &,
                   IMessageQueuePtr queue,
                   IRTPReceiverDelegatePtr delegate,
+                  Kinds kind,
                   IRTPTransportPtr transport,
                   IRTCPTransportPtr rtcpTransport = IRTCPTransportPtr()
                   );
@@ -438,6 +439,7 @@ namespace ortc
 
       static RTPReceiverPtr create(
                                    IRTPReceiverDelegatePtr delegate,
+                                   Kinds kind,
                                    IRTPTransportPtr transport,
                                    IRTCPTransportPtr rtcpTransport = IRTCPTransportPtr()
                                    );
@@ -805,6 +807,7 @@ namespace ortc
 
       virtual RTPReceiverPtr create(
                                     IRTPReceiverDelegatePtr delegate,
+                                    Kinds kind,
                                     IRTPTransportPtr transport,
                                     IRTCPTransportPtr rtcpTransport = IRTCPTransportPtr()
                                     );

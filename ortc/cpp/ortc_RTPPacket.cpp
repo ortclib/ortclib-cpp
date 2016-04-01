@@ -131,7 +131,6 @@ namespace ortc
         outSizeInBytes += (sizeof(DWORD) - modulas);
       }
     }
-    
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -692,6 +691,14 @@ namespace ortc
         delete [] mHeaderExtensions;
         mHeaderExtensions = NULL;
       }
+    }
+
+    //-------------------------------------------------------------------------
+    RTPPacketPtr RTPPacket::create(const RTPPacket &packet)
+    {
+      RTPPacketPtr pThis(make_shared<RTPPacket>(make_private{}));
+      pThis->generate(packet);
+      return pThis;
     }
 
     //-------------------------------------------------------------------------
@@ -1260,6 +1267,42 @@ namespace ortc
         mHeaderExtensions = NULL;
       }
       mHeaderExtensions = newExtensions;
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPPacket::generate(const RTPPacket &packet)
+    {
+      CreationParams params;
+
+      params.mVersion = packet.version();
+      params.mPadding = packet.padding();
+      params.mM = packet.m();
+      params.mPT = packet.pt();
+      params.mSequenceNumber = packet.sequenceNumber();
+      params.mTimestamp = packet.timestamp();
+      params.mSSRC = packet.ssrc();
+
+      params.mCC = packet.cc();
+      params.mCC = (static_cast<BYTE>(packet.cc()) & 0xF);
+
+      DWORD tmpCCList[0xF];
+      if (params.mCC > 0) {
+        for (decltype(params.mCC) index = 0; index < params.mCC; ++index) {
+          tmpCCList[index] = packet.getCSRC(index);
+        }
+        params.mCSRCList = &(tmpCCList[0]);
+      }
+
+      params.mPayload = packet.payload();
+      params.mPayloadSize = packet.payloadSize();
+      params.mFirstHeaderExtension = packet.firstHeaderExtension();
+      params.mHeaderExtensionAppBits = packet.headerExtensionAppBits();
+
+      params.mHeaderExtensionPrepaddedSize = packet.headerExtensionPrepaddedSize();
+      params.mHeaderExtensionStopParsePos = packet.headerExtensionParseStopped();
+      params.mHeaderExtensionStopParseSize = packet.headerExtensionParseStoppedSize();
+
+      generate(params);
     }
 
     //-------------------------------------------------------------------------

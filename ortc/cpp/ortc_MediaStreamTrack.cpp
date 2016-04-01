@@ -705,29 +705,6 @@ namespace ortc
     #pragma mark MediaStreamTrack => IMediaStreamTrackForRTPSenderChannelAudio
     #pragma mark
 
-    webrtc::AudioDeviceModule* MediaStreamTrack::getAudioDeviceModule()
-    {
-      AutoRecursiveLock lock(*this);
-      
-      return mAudioDeviceModule;
-    }
-
-    void MediaStreamTrack::start()
-    {
-      AutoRecursiveLock lock(*this);
-      if (mAudioDeviceModule) {
-        if (!mRemote) {
-          mAudioDeviceModule->SetRecordingDevice(webrtc::AudioDeviceModule::kDefaultCommunicationDevice);
-          mAudioDeviceModule->InitRecording();
-          mAudioDeviceModule->StartRecording();
-        } else {
-          mAudioDeviceModule->SetPlayoutDevice(webrtc::AudioDeviceModule::kDefaultCommunicationDevice);
-          mAudioDeviceModule->InitPlayout();
-          mAudioDeviceModule->StartPlayout();
-        }
-      }
-    }
-
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -804,6 +781,45 @@ namespace ortc
       AutoRecursiveLock lock(*this);
 
       if (mVideoRendererCallback) mVideoRendererCallback->RenderFrame(1, videoFrame);
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark MediaStreamTrack => IMediaStreamTrackForMediaDevices
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark MediaStreamTrack => IMediaStreamTrackForMediaEngine
+    #pragma mark
+
+    webrtc::AudioDeviceModule* MediaStreamTrack::getAudioDeviceModule()
+    {
+      AutoRecursiveLock lock(*this);
+
+      return mAudioDeviceModule;
+    }
+
+    void MediaStreamTrack::start()
+    {
+      AutoRecursiveLock lock(*this);
+      if (mAudioDeviceModule) {
+        if (!mRemote) {
+          mAudioDeviceModule->SetRecordingDevice(webrtc::AudioDeviceModule::kDefaultCommunicationDevice);
+          mAudioDeviceModule->InitRecording();
+          mAudioDeviceModule->StartRecording();
+        } else {
+          mAudioDeviceModule->SetPlayoutDevice(webrtc::AudioDeviceModule::kDefaultCommunicationDevice);
+          mAudioDeviceModule->InitPlayout();
+          mAudioDeviceModule->StartPlayout();
+        }
+      }
     }
 
     //-------------------------------------------------------------------------

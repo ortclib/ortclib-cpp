@@ -474,11 +474,13 @@ namespace ortc
                              const make_private &,
                              IMessageQueuePtr queue,
                              IRTPReceiverDelegatePtr delegate,
+                             Kinds kind,
                              IRTPTransportPtr transport,
                              IRTCPTransportPtr rtcpTransport
                              ) :
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
+      mKind(kind),
       mChannels(make_shared<ChannelWeakMap>()),
       mMaxBufferedRTPPackets(SafeInt<decltype(mMaxBufferedRTPPackets)>(UseSettings::getUInt(ORTC_SETTING_RTP_RECEIVER_MAX_RTP_PACKETS_IN_BUFFER))),
       mMaxRTPPacketAge(UseSettings::getUInt(ORTC_SETTING_RTP_RECEIVER_MAX_AGE_RTP_PACKETS_IN_SECONDS)),
@@ -495,12 +497,20 @@ namespace ortc
       UseSecureTransport::getReceivingTransport(transport, rtcpTransport, mReceiveRTPOverTransport, mReceiveRTCPOverTransport, mRTPTransport, mRTCPTransport);
       mSendRTCPOverTransport = mReceiveRTCPOverTransport;
 
+      ZS_LOG_DEBUG(log("creating media stream track") + ZS_PARAM("kind", IMediaStreamTrack::toString(mKind)))
+      
+      mTrack = UseMediaStreamTrack::create(mKind);
+
+      ZS_LOG_DEBUG(log("created media stream track") + ZS_PARAM("kind", IMediaStreamTrack::toString(mKind)) + ZS_PARAM("track", mTrack ? mTrack->getID() : 0))
+      
       EventWriteOrtcRtpReceiverCreate(
                                       __func__,
                                       mID,
+                                      IMediaStreamTrackTypes::toString(kind),
                                       ((bool)mListener) ? mListener->getID() : 0,
                                       ((bool)mRTPTransport) ? mRTPTransport->getID() : 0,
                                       ((bool)mRTCPTransport) ? mRTCPTransport->getID() : 0,
+                                      ((bool)mTrack) ? mTrack->getID() : 0,
                                       mMaxBufferedRTPPackets,
                                       mMaxRTPPacketAge.count(),
                                       mLockAfterSwitchTime.count(),
@@ -608,11 +618,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     RTPReceiverPtr RTPReceiver::create(
                                        IRTPReceiverDelegatePtr delegate,
+                                       Kinds kind,
                                        IRTPTransportPtr transport,
                                        IRTCPTransportPtr rtcpTransport
                                        )
     {
-      RTPReceiverPtr pThis(make_shared<RTPReceiver>(make_private {}, IORTCForInternal::queueORTC(), delegate, transport, rtcpTransport));
+      RTPReceiverPtr pThis(make_shared<RTPReceiver>(make_private {}, IORTCForInternal::queueORTC(), delegate, kind, transport, rtcpTransport));
       pThis->mThisWeak = pThis;
       pThis->init();
       return pThis;
@@ -769,6 +780,16 @@ namespace ortc
           {
             codec.mNumChannels = 1;
             codec.mKind = IMediaStreamTrack::toString(IMediaStreamTrackTypes::Kind_Audio);
+
+            // generic NACK
+            {
+              IRTPTypes::RTCPFeedback feedback;
+              feedback.mType = IRTPTypes::toString(KnownFeedbackType_NACK);
+              feedback.mParameter = IRTPTypes::toString(KnownFeedbackParameter_Unknown);
+              EventWriteOrtcRtpReceiverReportRtcpFeedback(__func__, feedback.mType, feedback.mParameter);
+              codec.mRTCPFeedback.push_back(feedback);
+            }
+
             break;
           }
           case IRTPTypes::CodecKind_Video:
@@ -783,27 +804,27 @@ namespace ortc
               EventWriteOrtcRtpReceiverReportRtcpFeedback(__func__, feedback.mType, feedback.mParameter);
               codec.mRTCPFeedback.push_back(feedback);
             }
-            // NACK + PLI
+            // NACK + PLI - always enabled in webrtc engine
+            //{
+            //  IRTPTypes::RTCPFeedback feedback;
+            //  feedback.mType = IRTPTypes::toString(KnownFeedbackType_NACK);
+            //  feedback.mParameter = IRTPTypes::toString(KnownFeedbackParameter_PLI);
+            //  EventWriteOrtcRtpReceiverReportRtcpFeedback(__func__, feedback.mType, feedback.mParameter);
+            //  codec.mRTCPFeedback.push_back(feedback);
+            //}
+            // CCM + FIR - cannot be set by webrtc API
+            //{
+            //  IRTPTypes::RTCPFeedback feedback;
+            //  feedback.mType = IRTPTypes::toString(KnownFeedbackType_CCM);
+            //  feedback.mParameter = IRTPTypes::toString(KnownFeedbackParameter_FIR);
+            //  EventWriteOrtcRtpReceiverReportRtcpFeedback(__func__, feedback.mType, feedback.mParameter);
+            //  codec.mRTCPFeedback.push_back(feedback);
+            //}
+            // REMB
             {
               IRTPTypes::RTCPFeedback feedback;
-              feedback.mType = IRTPTypes::toString(KnownFeedbackType_NACK);
-              feedback.mParameter = IRTPTypes::toString(KnownFeedbackParameter_PLI);
-              EventWriteOrtcRtpReceiverReportRtcpFeedback(__func__, feedback.mType, feedback.mParameter);
-              codec.mRTCPFeedback.push_back(feedback);
-            }
-            // CCM + FIR
-            {
-              IRTPTypes::RTCPFeedback feedback;
-              feedback.mType = IRTPTypes::toString(KnownFeedbackType_CCM);
-              feedback.mParameter = IRTPTypes::toString(KnownFeedbackParameter_FIR);
-              EventWriteOrtcRtpReceiverReportRtcpFeedback(__func__, feedback.mType, feedback.mParameter);
-              codec.mRTCPFeedback.push_back(feedback);
-            }
-            // CCM + REMB
-            {
-              IRTPTypes::RTCPFeedback feedback;
-              feedback.mType = IRTPTypes::toString(KnownFeedbackType_CCM);
-              feedback.mParameter = IRTPTypes::toString(KnownFeedbackParameter_REMB);
+              feedback.mType = IRTPTypes::toString(KnownFeedbackType_REMB);
+              feedback.mParameter = IRTPTypes::toString(KnownFeedbackParameter_Unknown);
               EventWriteOrtcRtpReceiverReportRtcpFeedback(__func__, feedback.mType, feedback.mParameter);
               codec.mRTCPFeedback.push_back(feedback);
             }
@@ -1026,6 +1047,17 @@ namespace ortc
             ext.mKind = "video";
             break;
           }
+          case HeaderExtensionURI_TransmissionTimeOffsets: {
+            ext.mKind = "video";
+            break;
+          }
+          case HeaderExtensionURI_AbsoluteSendTime: {
+            break;
+          }
+          case HeaderExtensionURI_TransportSequenceNumber: {
+            ext.mKind = "video";
+            break;
+          }
         }
 
         if (ext.mKind.hasData()) {
@@ -1068,16 +1100,7 @@ namespace ortc
 
       ORTC_THROW_INVALID_PARAMETERS_IF(!foundKind.hasValue())
 
-      if (!mTrack) {
-        ZS_LOG_DEBUG(log("creating media stream track") + ZS_PARAM("kind", IMediaStreamTrack::toString(foundKind.value())))
-
-        mKind = foundKind;
-        mTrack = UseMediaStreamTrack::create(foundKind.value());
-
-        ZS_LOG_DEBUG(log("created media stream track") + ZS_PARAM("kind", IMediaStreamTrack::toString(foundKind.value())) + ZS_PARAM("track", mTrack ? mTrack->getID() : 0))
-      } else {
-        ORTC_THROW_INVALID_PARAMETERS_IF(foundKind.value() != mKind)
-      }
+      ORTC_THROW_INVALID_PARAMETERS_IF(foundKind.value() != mKind)
 
       EventWriteOrtcRtpReceiverReceive(__func__, mID, mTrack->getID());
 
@@ -3981,12 +4004,13 @@ namespace ortc
     //-------------------------------------------------------------------------
     RTPReceiverPtr IRTPReceiverFactory::create(
                                                IRTPReceiverDelegatePtr delegate,
+                                               Kinds kind,
                                                IRTPTransportPtr transport,
                                                IRTCPTransportPtr rtcpTransport
                                                )
     {
       if (this) {}
-      return internal::RTPReceiver::create(delegate, transport, rtcpTransport);
+      return internal::RTPReceiver::create(delegate, kind, transport, rtcpTransport);
     }
 
     //-------------------------------------------------------------------------
@@ -4050,11 +4074,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   IRTPReceiverPtr IRTPReceiver::create(
                                        IRTPReceiverDelegatePtr delegate,
+                                       Kinds kind,
                                        IRTPTransportPtr transport,
                                        IRTCPTransportPtr rtcpTransport
                                        )
   {
-    return internal::IRTPReceiverFactory::singleton().create(delegate, transport, rtcpTransport);
+    return internal::IRTPReceiverFactory::singleton().create(delegate, kind, transport, rtcpTransport);
   }
 
   //---------------------------------------------------------------------------

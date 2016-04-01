@@ -530,6 +530,7 @@ namespace ortc
 
           virtual RTPReceiverPtr create(
                                         IRTPReceiverDelegatePtr delegate,
+                                        IMediaStreamTrackTypes::Kinds kind,
                                         IRTPTransportPtr transport,
                                         IRTCPTransportPtr rtcpTransport = IRTCPTransportPtr()
                                         ) override;
@@ -652,6 +653,7 @@ namespace ortc
 
         RTPReceiverPtr create(
                               IRTPReceiverDelegatePtr delegate,
+                              IMediaStreamTrackTypes::Kinds kind,
                               IRTPTransportPtr transport,
                               IRTCPTransportPtr rtcpTransport
                               );

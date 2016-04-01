@@ -93,5 +93,24 @@ namespace ortc
       virtual PUID getID() const = 0;
     };
 
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IRTPSenderChannelMediaBaseForRTPMediaEngine
+    #pragma mark
+
+    interaction IRTPSenderChannelMediaBaseForRTPMediaEngine
+    {
+      ZS_DECLARE_TYPEDEF_PTR(IRTPSenderChannelMediaBaseForRTPMediaEngine, ForRTPMediaEngine)
+
+      static ElementPtr toDebug(ForRTPMediaEnginePtr object);
+
+      virtual PUID getID() const = 0;
+
+      virtual void setupChannel() = 0;
+      virtual void closeChannel() = 0;
+    };
   }
 }

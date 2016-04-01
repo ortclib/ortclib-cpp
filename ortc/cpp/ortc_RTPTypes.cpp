@@ -4903,6 +4903,9 @@ namespace ortc
       case HeaderExtensionURI_RID:                                return "urn:ietf:params:rtp-hdrext:rid";
       case HeaderExtensionURI_3gpp_VideoOrientation:              return "urn:3gpp:video-orientation";
       case HeaderExtensionURI_3gpp_VideoOrientation6:             return "urn:3gpp:video-orientation:6";
+      case HeaderExtensionURI_TransmissionTimeOffsets:            return "urn:ietf:params:rtp-hdrext:toffset";
+      case HeaderExtensionURI_AbsoluteSendTime:                   return "http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time";
+      case HeaderExtensionURI_TransportSequenceNumber:            return "http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions";
     }
 
     return "unknown";
@@ -4974,6 +4977,7 @@ namespace ortc
       case KnownFeedbackType_TRR_INT:               return "trr-int";
       case KnownFeedbackType_3gpp_roi_arbitrary:    return "3gpp-roi-arbitrary";
       case KnownFeedbackType_3gpp_roi_predefined:   return "3gpp-roi-predefined";
+      case KnownFeedbackType_REMB:                  return "goog-remb";
     }
 
     return "unknown";
@@ -5017,7 +5021,6 @@ namespace ortc
       case KnownFeedbackParameter_TSTR:       return "tstr";
       case KnownFeedbackParameter_VBCM:       return "vbcm";
       case KnownFeedbackParameter_PAUSE:      return "pause";
-      case KnownFeedbackParameter_REMB:       return "goog-remb";
     }
 
     return "unknown";
@@ -5057,7 +5060,6 @@ namespace ortc
         result.insert(KnownFeedbackType_NACK);
         break;
       }
-      case KnownFeedbackParameter_REMB:
       case KnownFeedbackParameter_FIR:
       case KnownFeedbackParameter_TMMBR:
       case KnownFeedbackParameter_TSTR:

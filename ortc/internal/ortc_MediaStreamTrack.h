@@ -281,6 +281,26 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
+    #pragma mark IMediaStreamTrackForRTPMediaEngine
+    #pragma mark
+
+    interaction IMediaStreamTrackForRTPMediaEngine
+    {
+      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPMediaEngine, ForMediaEngine)
+
+      virtual webrtc::AudioDeviceModule* getAudioDeviceModule() = 0;
+
+      virtual void start() = 0;
+      virtual void stop() = 0;
+
+      virtual void renderVideoFrame(const webrtc::VideoFrame& videoFrame) = 0;
+    };
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
     #pragma mark IMediaStreamTrackAsyncDelegate
     #pragma mark
 
@@ -325,6 +345,7 @@ namespace ortc
                              public IMediaStreamTrackForRTPReceiverChannelAudio,
                              public IMediaStreamTrackForRTPReceiverChannelVideo,
                              public IMediaStreamTrackForMediaDevices,
+                             public IMediaStreamTrackForRTPMediaEngine,
                              public IWakeDelegate,
                              public zsLib::ITimerDelegate,
                              public IMediaStreamTrackAsyncDelegate
@@ -346,7 +367,7 @@ namespace ortc
       friend interaction IMediaStreamTrackForRTPReceiverChannelAudio;
       friend interaction IMediaStreamTrackForRTPReceiverChannelVideo;
       friend interaction IMediaStreamTrackForMediaDevices;
-      friend interaction IMediaStreamTrackForMediaDevicesChannel;
+      friend interaction IMediaStreamTrackForRTPMediaEngine;
 
       ZS_DECLARE_CLASS_PTR(Transport)
       friend class Transport;
@@ -407,6 +428,7 @@ namespace ortc
       static MediaStreamTrackPtr convert(ForReceiverChannelAudioPtr object);
       static MediaStreamTrackPtr convert(ForReceiverChannelVideoPtr object);
       static MediaStreamTrackPtr convert(ForMediaDevicesPtr object);
+      static MediaStreamTrackPtr convert(ForMediaEnginePtr object);
 
     protected:
       //-----------------------------------------------------------------------
@@ -489,11 +511,6 @@ namespace ortc
       #pragma mark MediaStreamTrack => IMediaStreamTrackForRTPSenderChannelAudio
       #pragma mark
 
-      virtual webrtc::AudioDeviceModule* getAudioDeviceModule() override;
-
-      virtual void start() override;
-      // (duplicate) virtual void stop() = 0;
-
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark MediaStreamTrack => IMediaStreamTrackForRTPSenderChannelVideo
@@ -531,11 +548,6 @@ namespace ortc
       #pragma mark MediaStreamTrack => IMediaStreamTrackForRTPReceiverChannelAudio
       #pragma mark
 
-      // (duplicate) virtual webrtc::AudioDeviceModule* getAudioDeviceModule() = 0;
-
-      // (duplicate) virtual void start() = 0;
-      // (duplicate) virtual void stop() = 0;
-
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark MediaStreamTrack => IMediaStreamTrackForRTPReceiverChannelVideo
@@ -547,6 +559,18 @@ namespace ortc
       #pragma mark
       #pragma mark MediaStreamTrack => IMediaStreamTrackForMediaDevices
       #pragma mark
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark MediaStreamTrack => IMediaStreamTrackForMediaEngine
+      #pragma mark
+
+      virtual webrtc::AudioDeviceModule* getAudioDeviceModule() override;
+
+      virtual void start() override;
+      // (duplicate) virtual void stop() = 0;
+
+      // (duplicate) virtual void renderVideoFrame(const webrtc::VideoFrame& videoFrame) = 0;
 
       //-----------------------------------------------------------------------
       #pragma mark

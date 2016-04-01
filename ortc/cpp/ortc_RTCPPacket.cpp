@@ -219,6 +219,7 @@ namespace ortc
         case Note::kItemType:   return "Note";
         case Priv::kItemType:   return "Priv";
         case Mid::kItemType:    return "Mid";
+        case Rid::kItemType:    return "Rid";
         default: {
           break;
         }
@@ -295,6 +296,13 @@ namespace ortc
     {
       ASSERT(index < mMidCount)
       return &(mFirstMid[index]);
+    }
+
+    //-------------------------------------------------------------------------
+    RTCPPacket::SDES::Chunk::Rid *RTCPPacket::SDES::Chunk::ridAtIndex(size_t index) const
+    {
+      ASSERT(index < mRidCount)
+      return &(mFirstRid[index]);
     }
 
     //-------------------------------------------------------------------------
@@ -1235,6 +1243,8 @@ namespace ortc
           UseServicesHelper::debugAppend(chunkEl, "tool count", chunk->toolCount());
           UseServicesHelper::debugAppend(chunkEl, "note count", chunk->noteCount());
           UseServicesHelper::debugAppend(chunkEl, "priv count", chunk->privCount());
+          UseServicesHelper::debugAppend(chunkEl, "mid count", chunk->midCount());
+          UseServicesHelper::debugAppend(chunkEl, "rid count", chunk->ridCount());
           UseServicesHelper::debugAppend(chunkEl, "unknown count", chunk->unknownCount());
 
           UseServicesHelper::debugAppend(chunkEl, internal::toDebug("cnames", "cname", chunk->firstCName()));
@@ -1246,6 +1256,7 @@ namespace ortc
           UseServicesHelper::debugAppend(chunkEl, internal::toDebug("notes", "note", chunk->firstNote()));
           UseServicesHelper::debugAppend(chunkEl, internal::toDebug("privs", "priv", chunk->firstPriv()));
           UseServicesHelper::debugAppend(chunkEl, internal::toDebug("mid", "mid", chunk->firstMid()));
+          UseServicesHelper::debugAppend(chunkEl, internal::toDebug("rid", "rid", chunk->firstRid()));
           UseServicesHelper::debugAppend(chunkEl, internal::toDebug("unknowns", "unknown", chunk->firstUnknown()));
 
           UseServicesHelper::debugAppend(chunksEl, chunkEl);
@@ -2233,6 +2244,7 @@ namespace ortc
               break;
             }
             case SDES::Chunk::Mid::kItemType:  mAllocationSize += alignedSize(sizeof(SDES::Chunk::Mid)); break;
+            case SDES::Chunk::Rid::kItemType:  mAllocationSize += alignedSize(sizeof(SDES::Chunk::Rid)); break;
             default:
             {
               mAllocationSize += alignedSize(sizeof(SDES::Chunk::Unknown));
@@ -3152,6 +3164,7 @@ namespace ortc
             case SDES::Chunk::Note::kItemType:  ++(chunk->mNoteCount); break;
             case SDES::Chunk::Priv::kItemType:  ++(chunk->mPrivCount); break;
             case SDES::Chunk::Mid::kItemType:   ++(chunk->mMidCount); break;
+            case SDES::Chunk::Rid::kItemType:   ++(chunk->mRidCount); break;
             default:
             {
               ++(chunk->mUnknownCount);
@@ -3192,6 +3205,9 @@ namespace ortc
         if (0 != chunk->mMidCount) {
           chunk->mFirstMid = new (allocateBuffer(alignedSize(sizeof(SDES::Chunk::Mid))*(chunk->mMidCount))) SDES::Chunk::Mid[chunk->mMidCount];
         }
+        if (0 != chunk->mRidCount) {
+          chunk->mFirstRid = new (allocateBuffer(alignedSize(sizeof(SDES::Chunk::Rid))*(chunk->mRidCount))) SDES::Chunk::Rid[chunk->mRidCount];
+        }
         if (0 != chunk->mUnknownCount) {
           chunk->mFirstUnknown = new (allocateBuffer(alignedSize(sizeof(SDES::Chunk::Unknown))*(chunk->mUnknownCount))) SDES::Chunk::Unknown[chunk->mUnknownCount];
         }
@@ -3205,6 +3221,7 @@ namespace ortc
         chunk->mNoteCount = 0;
         chunk->mPrivCount = 0;
         chunk->mMidCount = 0;
+        chunk->mRidCount = 0;
         chunk->mUnknownCount = 0;
 
         // start over and now parse
@@ -3334,6 +3351,14 @@ namespace ortc
                 (&(chunk->mFirstMid[chunk->mMidCount-1]))->mNext = item;
               }
               ++(chunk->mMidCount);
+              break;
+            }
+            case SDES::Chunk::Rid::kItemType:  {
+              item = &(chunk->mFirstRid[chunk->mRidCount]);
+              if (0 != chunk->mRidCount) {
+                (&(chunk->mFirstRid[chunk->mRidCount-1]))->mNext = item;
+              }
+              ++(chunk->mRidCount);
               break;
             }
             default:
@@ -4650,6 +4675,14 @@ namespace ortc
           ZS_LOG_INSANE(packet_slog("get packet SDES Mid size") + ZS_PARAM("chunk", chunkCount) + ZS_PARAM("len", len) + ZS_PARAM("value", (NULL != item->mValue ? item->mValue : NULL)))
         }
 
+        for (auto *item = chunk->firstRid(); NULL != item; item = item->next())
+        {
+          chunkSize += (sizeof(BYTE)*2);
+          size_t len = (NULL != item->mValue ? strlen(item->mValue) : 0);
+          throwIfGreaterThanBitsAllow(len, 8);
+          chunkSize += ((sizeof(BYTE))*len);
+          ZS_LOG_INSANE(packet_slog("get packet SDES Rid size") + ZS_PARAM("chunk", chunkCount) + ZS_PARAM("len", len) + ZS_PARAM("value", (NULL != item->mValue ? item->mValue : NULL)))
+        }
         for (auto *item = chunk->firstUnknown(); NULL != item; item = item->next())
         {
           chunkSize += (sizeof(BYTE)*2);
@@ -5283,6 +5316,22 @@ namespace ortc
             advancePos(pos, remaining, len*sizeof(BYTE));
           }
           ZS_LOG_INSANE(packet_slog("writing SDES Mid report") + ZS_PARAM("chunk", chunkCount) + ZS_PARAM("len", len) + ZS_PARAM("value", (NULL != item->mValue ? item->mValue : NULL)))
+        }
+
+        for (auto *item = chunk->firstRid(); NULL != item; item = item->next())
+        {
+          pos[0] = Chunk::Rid::kItemType;
+          size_t len = (NULL != item->mValue ? strlen(item->mValue) : 0);
+          pos[1] = static_cast<BYTE>(len);
+          ASSERT(throwIfGreaterThanBitsAllow(len, 8))
+
+          advancePos(pos, remaining, sizeof(WORD));
+
+          if (len > 0) {
+            memcpy(pos, item->value(), len*sizeof(BYTE));
+            advancePos(pos, remaining, len*sizeof(BYTE));
+          }
+          ZS_LOG_INSANE(packet_slog("writing SDES Rid report") + ZS_PARAM("chunk", chunkCount) + ZS_PARAM("len", len) + ZS_PARAM("value", (NULL != item->mValue ? item->mValue : NULL)))
         }
 
         for (auto *item = chunk->firstUnknown(); NULL != item; item = item->next())
