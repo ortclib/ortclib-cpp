@@ -63,6 +63,7 @@ namespace ortc
     // resource based interfaces
     ZS_DECLARE_INTERACTION_PTR(IRTPMediaEngineDeviceResource)
     ZS_DECLARE_INTERACTION_PTR(IRTPMediaEngineChannelResource)
+    ZS_DECLARE_INTERACTION_PTR(IChannelResourceForRTPMediaEngine)
 
     ZS_DECLARE_INTERACTION_PTR(IRTPMediaEngineForSettings)
     ZS_DECLARE_INTERACTION_PTR(IRTPMediaEngineForSingleton)
@@ -149,6 +150,19 @@ namespace ortc
       virtual PUID getID() const = 0;
 
       virtual PromisePtr shutdown() = 0;
+    };
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IChannelResourceForRTPMediaEngine
+    #pragma mark
+
+    interaction IChannelResourceForRTPMediaEngine
+    {
+      virtual PUID getID() const = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -428,7 +442,7 @@ namespace ortc
     {
       ZS_DECLARE_TYPEDEF_PTR(IRTPMediaEngineForChannelResource, ForChannelResource)
 
-      virtual void notifyResourceGone(IRTPMediaEngineChannelResource &channel) = 0;
+      virtual void notifyResourceGone(IChannelResourceForRTPMediaEngine &channel) = 0;
     };
 
 
@@ -651,7 +665,7 @@ namespace ortc
       #pragma mark RTPMediaEngine => IRTPMediaEngineForChannelResource
       #pragma mark
 
-      virtual void notifyResourceGone(IRTPMediaEngineChannelResource &resource) override;
+      virtual void notifyResourceGone(IChannelResourceForRTPMediaEngine &resource) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -828,7 +842,7 @@ namespace ortc
       #pragma mark
 
       class ChannelResource : public BaseResource,
-                              public IRTPMediaEngineChannelResource
+                              public IChannelResourceForRTPMediaEngine
       {
         typedef std::list<PromisePtr> PromiseList;
 

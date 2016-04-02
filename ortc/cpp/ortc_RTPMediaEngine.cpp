@@ -737,7 +737,7 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void RTPMediaEngine::notifyResourceGone(IRTPMediaEngineChannelResource &inResource)
+    void RTPMediaEngine::notifyResourceGone(IChannelResourceForRTPMediaEngine &inResource)
     {
       PUID resourceID = inResource.getID();
 
