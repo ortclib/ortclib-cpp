@@ -261,31 +261,28 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool RTPReceiverChannelAudio::handlePacket(RTPPacketPtr packet)
     {
+      UseChannelResourcePtr channelResource;
+
       {
         AutoRecursiveLock lock(*this);
+        channelResource = mChannelResource;
       }
-      webrtc::PacketTime time(packet->timestamp(), 0);
-      //mReceiveStream->DeliverRtp(packet->buffer()->data(), packet->buffer()->size(), time);
-      if (mMediaEngine && mMediaEngine->getVoiceEngine() && mChannelResource) {
-        webrtc::VoENetwork::GetInterface(mMediaEngine->getVoiceEngine())->ReceivedRTPPacket(
-          mChannelResource->getChannel(), packet->buffer()->data(), packet->buffer()->size(), time);
-      }
-      return true;
+
+      if (!channelResource) return true;
+      return channelResource->handlePacket(*packet);
     }
 
     //-------------------------------------------------------------------------
     bool RTPReceiverChannelAudio::handlePacket(RTCPPacketPtr packet)
-    
     {
+      UseChannelResourcePtr channelResource;
       {
         AutoRecursiveLock lock(*this);
+        channelResource = mChannelResource;
       }
-      //mReceiveStream->DeliverRtcp(packet->buffer()->data(), packet->buffer()->size());
-      if (mMediaEngine && mMediaEngine->getVoiceEngine() && mChannelResource) {
-        webrtc::VoENetwork::GetInterface(mMediaEngine->getVoiceEngine())->ReceivedRTCPPacket(
-          mChannelResource->getChannel(), packet->buffer()->data(), packet->buffer()->size());
-      }
-      return true;
+
+      if (!channelResource) return true;
+      return channelResource->handlePacket(*packet);
     }
     
     //-------------------------------------------------------------------------
@@ -561,10 +558,7 @@ namespace ortc
       }
 
       // ... other steps here ...
-      if (!stepPromiseEngine()) goto not_ready;
-      if (!stepPromiseExampleDeviceResource()) goto not_ready;
       if (!stepSetupChannel()) goto not_ready;
-      if (!stepCloseChannel()) goto not_ready;
       // ... other steps here ...
 
       goto ready;
@@ -580,70 +574,6 @@ namespace ortc
         ZS_LOG_TRACE(log("ready"))
         setState(State_Ready);
       }
-    }
-
-    //-------------------------------------------------------------------------
-    bool RTPReceiverChannelAudio::stepPromiseEngine()
-    {
-      if (mMediaEngine) {
-        ZS_LOG_TRACE(log("already setup engine"))
-        return true;
-      }
-
-      if (!mMediaEnginePromise) {
-        mMediaEnginePromise = UseMediaEngine::create();
-      }
-
-      if (!mMediaEnginePromise->isSettled()) {
-        ZS_LOG_TRACE(log("waiting for media engine promise to resolve"))
-        return false;
-      }
-
-      mMediaEngine = mMediaEnginePromise->value();
-
-      if (!mMediaEngine) {
-        ZS_LOG_WARNING(Detail, log("failed to initialize media"))
-        cancel();
-        return false;
-      }
-
-      ZS_LOG_DEBUG(log("media engine is setup") + ZS_PARAM("engine", mMediaEngine->getID()))
-      return true;
-    }
-
-    //-------------------------------------------------------------------------
-    bool RTPReceiverChannelAudio::stepPromiseExampleDeviceResource()
-    {
-      if (mDeviceResource) {
-        ZS_LOG_TRACE(log("already setup device resource"))
-        return true;
-      }
-
-      if (!mDeviceResourcePromise) {
-        mDeviceResourcePromise = UseMediaEngine::getDeviceResource("camera");
-      }
-
-      if (!mDeviceResourcePromise->isSettled()) {
-        ZS_LOG_TRACE(log("waiting for media device resource promise to resolve"))
-        return false;
-      }
-
-      if (mSetupChannelPromise->isRejected()) {
-        ZS_LOG_WARNING(Debug, log("media engine rejected device setup"))
-        cancel();
-        return false;
-      }
-
-      mDeviceResource = mDeviceResourcePromise->value();
-
-      if (!mDeviceResource) {
-        ZS_LOG_WARNING(Detail, log("failed to initialize device resource"))
-        cancel();
-        return false;
-      }
-
-      ZS_LOG_DEBUG(log("media device is setup") + ZS_PARAM("device", mDeviceResource->getDeviceID()))
-      return true;
     }
 
     //-------------------------------------------------------------------------
@@ -673,34 +603,7 @@ namespace ortc
         return false;
       }
 
-      ZS_LOG_DEBUG(log("media channel is setup") + ZS_PARAM("channel", mChannelResource->getChannelID()))
-
-      return true;
-    }
-
-    //-------------------------------------------------------------------------
-    bool RTPReceiverChannelAudio::stepCloseChannel()
-    {
-      if (!mCloseChannelPromise) {
-        ZS_LOG_TRACE(log("waiting for close channel promise"))
-        return true;
-      }
-
-      if (!mSetupChannelPromise->isSettled()) {
-        ZS_LOG_TRACE(log("waiting for close channel promise to be set up"))
-        return false;
-      }
-
-      if (mSetupChannelPromise->isRejected()) {
-        ZS_LOG_WARNING(Debug, log("media engine rejected channel close"))
-        cancel();
-        return false;
-      }
-
-      ZS_LOG_DEBUG(log("media channel is closed") + ZS_PARAM("channel", mChannelResource->getChannelID()))
-
-      cancel();
-
+      ZS_LOG_DEBUG(log("media channel is setup") + ZS_PARAM("channel", mChannelResource->getID()))
       return true;
     }
 
@@ -717,13 +620,19 @@ namespace ortc
       if (!mGracefulShutdownReference) mGracefulShutdownReference = mThisWeak.lock();
 
       if (!mCloseChannelPromise) {
-        mCloseChannelPromise = UseMediaEngine::closeChannel(*this);
-        mCloseChannelPromise->thenWeak(mGracefulShutdownReference);
+        if (mChannelResource) {
+          mCloseChannelPromise = mChannelResource->shutdown();
+          mCloseChannelPromise->thenWeak(mGracefulShutdownReference);
+        }
       }
 
       if (mGracefulShutdownReference) {
-        if (!mCloseChannelPromise->isSettled())
-          return;
+        if (mCloseChannelPromise) {
+          if (!mCloseChannelPromise->isSettled()) {
+            ZS_LOG_DEBUG(log("waiting for close channel promise"))
+            return;
+          }
+        }
       }
 
       //.......................................................................
@@ -731,10 +640,10 @@ namespace ortc
 
       setState(State_Shutdown);
 
-      // cannot hold any more references to the media engine promise or
-      // the media engine itself
-      mMediaEngine.reset();
-      mMediaEnginePromise.reset();
+      mSetupChannelPromise.reset();
+
+      mChannelResource.reset();
+      mCloseChannelPromise.reset();
 
       // make sure to cleanup any final reference to self
       mGracefulShutdownReference.reset();

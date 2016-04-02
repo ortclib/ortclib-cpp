@@ -396,10 +396,7 @@ namespace ortc
       bool isShutdown() const;
 
       void step();
-      bool stepPromiseEngine();
-      bool stepPromiseExampleDeviceResource();
       bool stepSetupChannel();
-      bool stepCloseChannel();
 
       void cancel();
 
@@ -424,12 +421,6 @@ namespace ortc
       UseChannelWeakPtr mReceiverChannel;
 
       ParametersPtr mParameters;
-
-      PromiseWithRTPMediaEnginePtr mMediaEnginePromise;
-      UseMediaEnginePtr mMediaEngine;
-
-      PromiseWithRTPMediaEngineDeviceResourcePtr mDeviceResourcePromise;
-      UseDeviceResourcePtr mDeviceResource;
 
       PromiseWithRTPMediaEngineChannelResourcePtr mSetupChannelPromise;
       UseChannelResourcePtr mChannelResource;
