@@ -148,7 +148,6 @@ namespace ortc
     {
       virtual PUID getID() const = 0;
       virtual String getChannelID() const = 0;
-      virtual void setupChannel() = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -693,8 +692,8 @@ namespace ortc
       void step();
       bool stepSetup();
       bool stepExampleSetupDeviceResources();
-      bool stepSetupSenderChannel();
-      bool stepCloseSenderChannel();
+      bool stepSetupChannels();
+      bool stepCloseChannels();
 
       void cancel();
 
@@ -730,6 +729,8 @@ namespace ortc
 
         void notifyReady();
         void notifyRejected();
+
+        std::shared_ptr<Promise> createPromise() { return internalSetupPromise(Promise::create(delegateQueue())); }
 
         template <typename data_type>
         std::shared_ptr<PromiseWith<data_type> > createPromise() {return ZS_DYNAMIC_PTR_CAST(PromiseWith<data_type>, internalSetupPromise(PromiseWith<data_type>::create(delegateQueue())));}
@@ -873,6 +874,7 @@ namespace ortc
         #pragma mark
 
         virtual void setupChannel();
+        virtual void closeChannel();
 
         //-----------------------------------------------------------------------
         #pragma mark
@@ -960,6 +962,7 @@ namespace ortc
         #pragma mark
 
         virtual void setupChannel();
+        virtual void closeChannel();
 
         //-----------------------------------------------------------------------
         #pragma mark
@@ -1059,6 +1062,7 @@ namespace ortc
         #pragma mark
 
         virtual void setupChannel();
+        virtual void closeChannel();
 
       protected:
         String mChannelID;
@@ -1135,6 +1139,7 @@ namespace ortc
         #pragma mark
 
         virtual void setupChannel();
+        virtual void closeChannel();
 
       protected:
         String mChannelID;

@@ -236,6 +236,12 @@ namespace ortc
       return ZS_DYNAMIC_PTR_CAST(RTPReceiverChannelAudio, object);
     }
 
+    //-------------------------------------------------------------------------
+    RTPReceiverChannelAudioPtr RTPReceiverChannelAudio::convert(ForRTPMediaEnginePtr object)
+    {
+      return ZS_DYNAMIC_PTR_CAST(RTPReceiverChannelAudio, object);
+    }
+
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -343,29 +349,6 @@ namespace ortc
     #pragma mark
     #pragma mark RTPReceiverChannelAudio => IRTPReceiverChannelMediaBaseForRTPMediaEngine
     #pragma mark
-
-    //-------------------------------------------------------------------------
-    void RTPReceiverChannelAudio::setupChannel()
-    {
-    }
-
-    //-------------------------------------------------------------------------
-    void RTPReceiverChannelAudio::closeChannel()
-    {
-      if (mMediaEngine->getVoiceEngine()) {
-        //webrtc::VoEBase::GetInterface(mMediaEngine->getVoiceEngine())->StopPlayout(mChannel);
-        //webrtc::VoEBase::GetInterface(mMediaEngine->getVoiceEngine())->StopReceive(mChannel);
-        //webrtc::VoENetwork::GetInterface(mMediaEngine->getVoiceEngine())->DeRegisterExternalTransport(mChannel);
-      }
-
-#define FIX_ME_WARNING_NO_TRACK_IS_NOT_STOPPED_JUST_BECAUSE_A_RECEIVER_CHANNEL_IS_DONE 1
-#define FIX_ME_WARNING_NO_TRACK_IS_NOT_STOPPED_JUST_BECAUSE_A_RECEIVER_CHANNEL_IS_DONE 2
-
-      if (mTrack)
-        mTrack->stop();
-
-      //mModuleProcessThread->Stop();
-    }
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -581,6 +564,7 @@ namespace ortc
       if (!stepPromiseEngine()) goto not_ready;
       if (!stepPromiseExampleDeviceResource()) goto not_ready;
       if (!stepSetupChannel()) goto not_ready;
+      if (!stepCloseChannel()) goto not_ready;
       // ... other steps here ...
 
       goto ready;
@@ -644,6 +628,12 @@ namespace ortc
         return false;
       }
 
+      if (mSetupChannelPromise->isRejected()) {
+        ZS_LOG_WARNING(Debug, log("media engine rejected device setup"))
+        cancel();
+        return false;
+      }
+
       mDeviceResource = mDeviceResourcePromise->value();
 
       if (!mDeviceResource) {
@@ -660,7 +650,7 @@ namespace ortc
     bool RTPReceiverChannelAudio::stepSetupChannel()
     {
       if (mChannelResource) {
-        ZS_LOG_TRACE(log("already setup channel"))
+        ZS_LOG_TRACE(log("already setup channel resource"))
         return true;
       }
 
@@ -677,6 +667,40 @@ namespace ortc
 
       mChannelResource = ZS_DYNAMIC_PTR_CAST(UseChannelResource, mSetupChannelPromise->value());
 
+      if (!mChannelResource) {
+        ZS_LOG_WARNING(Detail, log("failed to initialize channel resource"))
+        cancel();
+        return false;
+      }
+
+      ZS_LOG_DEBUG(log("media channel is setup") + ZS_PARAM("channel", mChannelResource->getChannelID()))
+
+      return true;
+    }
+
+    //-------------------------------------------------------------------------
+    bool RTPReceiverChannelAudio::stepCloseChannel()
+    {
+      if (!mCloseChannelPromise) {
+        ZS_LOG_TRACE(log("waiting for close channel promise"))
+        return true;
+      }
+
+      if (!mSetupChannelPromise->isSettled()) {
+        ZS_LOG_TRACE(log("waiting for close channel promise to be set up"))
+        return false;
+      }
+
+      if (mSetupChannelPromise->isRejected()) {
+        ZS_LOG_WARNING(Debug, log("media engine rejected channel close"))
+        cancel();
+        return false;
+      }
+
+      ZS_LOG_DEBUG(log("media channel is closed") + ZS_PARAM("channel", mChannelResource->getChannelID()))
+
+      cancel();
+
       return true;
     }
 
@@ -692,8 +716,14 @@ namespace ortc
 
       if (!mGracefulShutdownReference) mGracefulShutdownReference = mThisWeak.lock();
 
+      if (!mCloseChannelPromise) {
+        mCloseChannelPromise = UseMediaEngine::closeChannel(*this);
+        mCloseChannelPromise->thenWeak(mGracefulShutdownReference);
+      }
+
       if (mGracefulShutdownReference) {
-//        return;
+        if (!mCloseChannelPromise->isSettled())
+          return;
       }
 
       //.......................................................................
