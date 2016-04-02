@@ -258,24 +258,30 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool RTPReceiverChannelVideo::handlePacket(RTPPacketPtr packet)
     {
+      UseChannelResourcePtr channelResource;
       {
         AutoRecursiveLock lock(*this);
+        channelResource = mChannelResource;
       }
+
       webrtc::PacketTime time;
-      if (mChannelResource)
-        mChannelResource->getStream()->DeliverRtp(packet->buffer()->data(), packet->buffer()->size(), time);
+      if (!channelResource) return true;
+      channelResource->getStream()->DeliverRtp(packet->buffer()->data(), packet->buffer()->size(), time);
       return true;
     }
 
     //-------------------------------------------------------------------------
     bool RTPReceiverChannelVideo::handlePacket(RTCPPacketPtr packet)
-    
     {
+      UseChannelResourcePtr channelResource;
+
       {
         AutoRecursiveLock lock(*this);
+        channelResource = mChannelResource;
       }
-      if (mChannelResource)
-        mChannelResource->getStream()->DeliverRtcp(packet->buffer()->data(), packet->buffer()->size());
+      if (!channelResource) return true;
+
+      channelResource->getStream()->DeliverRtcp(packet->buffer()->data(), packet->buffer()->size());
       return true;
     }
     

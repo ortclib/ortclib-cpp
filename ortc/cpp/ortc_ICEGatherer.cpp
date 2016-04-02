@@ -5483,6 +5483,7 @@ namespace ortc
         EventWriteOrtcIceGathererErrorIceTransportIncomingStunPacket(__func__, mID, transport ? transport->getID() : 0, ((bool)route) ? route->mID : 0, routerRoute ? routerRoute->mID : 0);
 
         ZS_LOG_ERROR(Debug, log("candidate password integrity failed") + ZS_PARAM("request", stunPacket->toDebug()) + ZS_PARAM("reply", response->toDebug()))
+        response->trace(__func__);
         return response->packetize(STUNPacket::RFC_5245_ICE);
       }
 

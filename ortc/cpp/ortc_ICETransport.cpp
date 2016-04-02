@@ -4405,6 +4405,7 @@ namespace ortc
 
       SecureByteBlockPtr packetized = packet->packetize(STUNPacket::RFC_5245_ICE);
       EventWriteOrtcIceTransportSendStunPacket(__func__, mID, mGatherer->getID(), packetized->SizeInBytes(), packetized->BytePtr());
+      packet->trace(__func__);
       mGatherer->sendPacket(*this, routerRoute, packetized->BytePtr(), packetized->SizeInBytes());
     }
 
