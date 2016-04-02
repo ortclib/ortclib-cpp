@@ -323,8 +323,8 @@ namespace ortc
       String mapping = UseServicesHelper::toString(rootEl);
 
       UseSettings::setString(ORTC_SETTING_GATHERER_INTERFACE_NAME_MAPPING, mapping);
-      UseSettings::setUInt(ORTC_SETTING_GATHERER_USERNAME_FRAG_LENGTH, (24*8)/5); // must be at least 24 bits
-      UseSettings::setUInt(ORTC_SETTING_GATHERER_PASSWORD_LENGTH, (128*8)/5);     // must be at least 128 bits
+      UseSettings::setUInt(ORTC_SETTING_GATHERER_USERNAME_FRAG_LENGTH, 24/5); // must be at least 24 bits
+      UseSettings::setUInt(ORTC_SETTING_GATHERER_PASSWORD_LENGTH, 128/5);     // must be at least 128 bits
 
       UseSettings::setBool(ORTC_SETTING_GATHERER_CREATE_TCP_CANDIDATES, true);
 
@@ -5434,6 +5434,7 @@ namespace ortc
 
           if (!stunPacket->isValidMessageIntegrity(mPassword)) {
             ZS_LOG_WARNING(Debug, log("stun packet does pass message integrity") + ZS_PARAM("password", mPassword) + stunPacket->toDebug())
+            stunPacket->isValidMessageIntegrity(mPassword);
             goto stun_failed_validation;
           }
 

@@ -4312,6 +4312,7 @@ namespace ortc
       }
 
       STUNPacketPtr stunPacket = STUNPacket::createRequest(STUNPacket::Method_Binding);
+      stunPacket->mFingerprintIncluded = true;
       stunPacket->mPriorityIncluded = true;
       stunPacket->mPriority = route->mCandidatePair->mLocal->mPriority;
       setRole(stunPacket);
