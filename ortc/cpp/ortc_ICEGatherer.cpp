@@ -5434,7 +5434,6 @@ namespace ortc
 
           if (!stunPacket->isValidMessageIntegrity(mPassword)) {
             ZS_LOG_WARNING(Debug, log("stun packet does pass message integrity") + ZS_PARAM("password", mPassword) + stunPacket->toDebug())
-            stunPacket->isValidMessageIntegrity(mPassword);
             goto stun_failed_validation;
           }
 
