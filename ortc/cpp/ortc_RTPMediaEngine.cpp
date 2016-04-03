@@ -35,6 +35,8 @@
 #include <ortc/internal/ortc_RTPReceiverChannelVideo.h>
 #include <ortc/internal/ortc_RTPSenderChannelAudio.h>
 #include <ortc/internal/ortc_RTPSenderChannelVideo.h>
+#include <ortc/internal/ortc_RTPPacket.h>
+#include <ortc/internal/ortc_RTCPPacket.h>
 #include <ortc/internal/ortc_ORTC.h>
 #include <ortc/internal/ortc_Tracing.h>
 #include <ortc/internal/platform.h>
@@ -128,7 +130,7 @@ namespace ortc
       //-----------------------------------------------------------------------
       PromiseWithRTPMediaEnginePtr notify()
       {
-        auto promise = PromiseWithRTPMediaEngine::create(IORTCForInternal::queueDelegate());
+        auto promise = PromiseWithRTPMediaEngine::create(IORTCForInternal::queueORTC());
         promise->setReferenceHolder(mThisWeak.lock());
         mEngine->notify(promise);
         return promise;
@@ -292,7 +294,7 @@ namespace ortc
     PromiseWithRTPMediaEngineDeviceResourcePtr IRTPMediaEngineForRTPReceiverChannelMediaBase::getDeviceResource(const char *deviceID)
     {
       auto singleton = RTPMediaEngineSingleton::singleton();
-      if (!singleton) return PromiseWithRTPMediaEngineDeviceResource::createRejected(IORTCForInternal::queueDelegate());
+      if (!singleton) return PromiseWithRTPMediaEngineDeviceResource::createRejected(IORTCForInternal::queueORTC());
       return singleton->getEngineRegistration()->getRTPEngine()->getDeviceResource(deviceID);
     }
 
@@ -305,7 +307,7 @@ namespace ortc
                                                                                                             )
     {
       auto singleton = RTPMediaEngineSingleton::singleton();
-      if (!singleton) return PromiseWithRTPMediaEngineChannelResource::createRejected(IORTCForInternal::queueDelegate());
+      if (!singleton) return PromiseWithRTPMediaEngineChannelResource::createRejected(IORTCForInternal::queueORTC());
       return singleton->getEngineRegistration()->getRTPEngine()->setupChannel(
                                                                               channel,
                                                                               transport,
@@ -313,15 +315,6 @@ namespace ortc
                                                                               parameters
                                                                               );
     }
-
-    //-------------------------------------------------------------------------
-    PromisePtr IRTPMediaEngineForRTPReceiverChannelMediaBase::closeChannel(UseReceiverChannelMediaBase &channel)
-    {
-      auto singleton = RTPMediaEngineSingleton::singleton();
-      if (!singleton) return Promise::createRejected(IORTCForInternal::queueDelegate());
-      return singleton->getEngineRegistration()->getRTPEngine()->closeChannel(channel);
-    }
-
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -347,7 +340,7 @@ namespace ortc
     PromiseWithRTPMediaEngineDeviceResourcePtr IRTPMediaEngineForRTPSenderChannelMediaBase::getDeviceResource(const char *deviceID)
     {
       auto singleton = RTPMediaEngineSingleton::singleton();
-      if (!singleton) return PromiseWithRTPMediaEngineDeviceResource::createRejected(IORTCForInternal::queueDelegate());
+      if (!singleton) return PromiseWithRTPMediaEngineDeviceResource::createRejected(IORTCForInternal::queueORTC());
       return singleton->getEngineRegistration()->getRTPEngine()->getDeviceResource(deviceID);
     }
 
@@ -360,7 +353,7 @@ namespace ortc
                                                                                                           )
     {
       auto singleton = RTPMediaEngineSingleton::singleton();
-      if (!singleton) return PromiseWithRTPMediaEngineChannelResource::createRejected(IORTCForInternal::queueDelegate());
+      if (!singleton) return PromiseWithRTPMediaEngineChannelResource::createRejected(IORTCForInternal::queueORTC());
       return singleton->getEngineRegistration()->getRTPEngine()->setupChannel(
                                                                               channel,
                                                                               transport,
@@ -368,15 +361,6 @@ namespace ortc
                                                                               parameters
                                                                               );
     }
-
-    //-------------------------------------------------------------------------
-    PromisePtr IRTPMediaEngineForRTPSenderChannelMediaBase::closeChannel(UseSenderChannelMediaBase &channel)
-    {
-      auto singleton = RTPMediaEngineSingleton::singleton();
-      if (!singleton) return Promise::createRejected(IORTCForInternal::queueDelegate());
-      return singleton->getEngineRegistration()->getRTPEngine()->closeChannel(channel);
-    }
-
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -504,7 +488,7 @@ namespace ortc
     {
       auto singleton = RTPMediaEngineSingleton::singleton();
       if (!singleton) {
-        return PromiseWithRTPMediaEngine::createRejected(IORTCForInternal::queueDelegate());
+        return PromiseWithRTPMediaEngine::createRejected(IORTCForInternal::queueORTC());
       }
       return singleton->getEngineRegistration()->notify();
     }
@@ -601,7 +585,7 @@ namespace ortc
                                                                                           parameters
                                                                                           );
           promise = resource->createPromise<IRTPMediaEngineChannelResource>();
-          mChannelResources[resource->getID()] = resource;
+          mChannelResources[channel->getID()] = resource;
           mPendingSetupChannelResources.push_back(resource);
         } else if (ZS_DYNAMIC_PTR_CAST(IRTPReceiverChannelVideoForRTPMediaEngine, channel)) {
           VideoReceiverChannelResourcePtr resource = VideoReceiverChannelResource::create(
@@ -611,25 +595,8 @@ namespace ortc
                                                                                           parameters
                                                                                           );
           promise = resource->createPromise<IRTPMediaEngineChannelResource>();
-          mChannelResources[resource->getID()] = resource;
+          mChannelResources[channel->getID()] = resource;
           mPendingSetupChannelResources.push_back(resource);
-        }
-      }
-
-      IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
-
-      return promise;
-    }
-
-    //-------------------------------------------------------------------------
-    PromisePtr RTPMediaEngine::closeChannel(UseReceiverChannelMediaBase &channel)
-    {
-      auto promise = Promise::create(IORTCForInternal::queueDelegate());
-
-      {
-        AutoRecursiveLock lock(*this);
-        if (ZS_DYNAMIC_PTR_CAST(IRTPReceiverChannelAudioForRTPMediaEngine, UseReceiverChannelMediaBasePtr(&channel))) {
-        } else if (ZS_DYNAMIC_PTR_CAST(IRTPReceiverChannelVideoForRTPMediaEngine, UseReceiverChannelMediaBasePtr(&channel))) {
         }
       }
 
@@ -650,7 +617,6 @@ namespace ortc
     webrtc::VoiceEngine *RTPMediaEngine::getVoiceEngine()
     {
       AutoRecursiveLock lock(*this);
-
       return mVoiceEngine.get();
     }
 
@@ -692,42 +658,25 @@ namespace ortc
       {
         AutoRecursiveLock lock(*this);
         if (ZS_DYNAMIC_PTR_CAST(IRTPSenderChannelAudioForRTPMediaEngine, channel)) {
-          AudioSenderChannelResourcePtr resource = AudioSenderChannelResource::create(
-                                                                                      mRegistration.lock(),
-                                                                                      transport,
-                                                                                      track,
-                                                                                      parameters
-                                                                                      );
+          ChannelResourcePtr resource = AudioSenderChannelResource::create(
+                                                                           mRegistration.lock(),
+                                                                           transport,
+                                                                           track,
+                                                                           parameters
+                                                                           );
           promise = resource->createPromise<IRTPMediaEngineChannelResource>();
           mChannelResources[resource->getID()] = resource;
           mPendingSetupChannelResources.push_back(resource);
         } else if (ZS_DYNAMIC_PTR_CAST(IRTPSenderChannelVideoForRTPMediaEngine, channel)) {
-          VideoSenderChannelResourcePtr resource = VideoSenderChannelResource::create(
-                                                                                      mRegistration.lock(),
-                                                                                      transport,
-                                                                                      track,
-                                                                                      parameters
-                                                                                      );
+          ChannelResourcePtr resource = VideoSenderChannelResource::create(
+                                                                           mRegistration.lock(),
+                                                                           transport,
+                                                                           track,
+                                                                           parameters
+                                                                           );
           promise = resource->createPromise<IRTPMediaEngineChannelResource>();
           mChannelResources[resource->getID()] = resource;
           mPendingSetupChannelResources.push_back(resource);
-        }
-      }
-
-      IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
-
-      return promise;
-    }
-
-    //-------------------------------------------------------------------------
-    PromisePtr RTPMediaEngine::closeChannel(UseSenderChannelMediaBase &channel)
-    {
-      auto promise = Promise::create(IORTCForInternal::queueDelegate());
-
-      {
-        AutoRecursiveLock lock(*this);
-        if (ZS_DYNAMIC_PTR_CAST(IRTPSenderChannelAudioForRTPMediaEngine, UseSenderChannelMediaBasePtr(&channel))) {
-        } else if (ZS_DYNAMIC_PTR_CAST(IRTPSenderChannelVideoForRTPMediaEngine, UseSenderChannelMediaBasePtr(&channel))) {
         }
       }
 
@@ -788,7 +737,7 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void RTPMediaEngine::notifyResourceGone(IRTPMediaEngineChannelResource &inResource)
+    void RTPMediaEngine::notifyResourceGone(IChannelResourceForRTPMediaEngine &inResource)
     {
       PUID resourceID = inResource.getID();
 
@@ -844,6 +793,24 @@ namespace ortc
     #pragma mark
     #pragma mark RTPMediaEngine => IRTPMediaEngineAsyncDelegate
     #pragma mark
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPMediaEngine => (friend ChannelResource)
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::shutdownChannelResource(ChannelResourcePtr channelResource)
+    {
+      {
+        AutoRecursiveLock lock(*this);
+        mPendingCloseChannelResources.push_back(channelResource);
+      }
+      IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
+    }
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -924,15 +891,15 @@ namespace ortc
       if ((isShuttingDown()) ||
           (isShutdown())) {
         ZS_LOG_DEBUG(debug("step forwarding to cancel"))
-        cancel();
+        stepCancel();
         return;
       }
 
       // ... other steps here ...
       if (!stepSetup()) goto not_ready;
       if (!stepExampleSetupDeviceResources()) goto not_ready;
-      if (!stepSetupSenderChannel()) goto not_ready;
-      if (!stepCloseSenderChannel()) goto not_ready;
+      if (!stepSetupChannels()) goto not_ready;
+      if (!stepCloseChannels()) goto not_ready;
       // ... other steps here ...
 
       goto ready;
@@ -973,7 +940,7 @@ namespace ortc
           // Only remember WEAK pointer to device so it's possible the example
           // device resource was already destroyed. Thus only setup the device
           // if the object is still alive.
-          deviceResource->notifyReady();
+          deviceResource->notifyPromisesResolve();
         }
 
         mExamplePendingDeviceResources.pop_front();
@@ -983,27 +950,12 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool RTPMediaEngine::stepSetupSenderChannel()
+    bool RTPMediaEngine::stepSetupChannels()
     {
       while (mPendingSetupChannelResources.size() > 0) {
-        auto channelResource = mPendingSetupChannelResources.front().lock();
+        auto channelResource = mPendingSetupChannelResources.front();
 
-        if (channelResource) {
-          if (ZS_DYNAMIC_PTR_CAST(AudioReceiverChannelResource, channelResource)) {
-            AudioReceiverChannelResourcePtr receiverChannelResource = ZS_DYNAMIC_PTR_CAST(AudioReceiverChannelResource, channelResource);
-            receiverChannelResource->setupChannel();
-          } else if (ZS_DYNAMIC_PTR_CAST(AudioSenderChannelResource, channelResource)) {
-            AudioSenderChannelResourcePtr senderChannelResource = ZS_DYNAMIC_PTR_CAST(AudioSenderChannelResource, channelResource);
-            senderChannelResource->setupChannel();
-          } else if (ZS_DYNAMIC_PTR_CAST(VideoReceiverChannelResource, channelResource)) {
-            VideoReceiverChannelResourcePtr receiverChannelResource = ZS_DYNAMIC_PTR_CAST(VideoReceiverChannelResource, channelResource);
-            receiverChannelResource->setupChannel();
-          } else if (ZS_DYNAMIC_PTR_CAST(VideoSenderChannelResource, channelResource)) {
-            VideoSenderChannelResourcePtr senderChannelResource = ZS_DYNAMIC_PTR_CAST(VideoSenderChannelResource, channelResource);
-            senderChannelResource->setupChannel();
-          }
-          channelResource->notifyReady();
-        }
+        channelResource->notifySetup();
 
         mPendingSetupChannelResources.pop_front();
       }
@@ -1012,24 +964,13 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool RTPMediaEngine::stepCloseSenderChannel()
+    bool RTPMediaEngine::stepCloseChannels()
     {
       while (mPendingCloseChannelResources.size() > 0) {
-        auto channelResource = mPendingCloseChannelResources.front().lock();
+        auto channelResource = mPendingCloseChannelResources.front();
 
-        if (channelResource) {
-          if (ZS_DYNAMIC_PTR_CAST(AudioReceiverChannelResource, channelResource)) {
-            AudioReceiverChannelResourcePtr receiverChannelResource = ZS_DYNAMIC_PTR_CAST(AudioReceiverChannelResource, channelResource);
-          } else if (ZS_DYNAMIC_PTR_CAST(AudioSenderChannelResource, channelResource)) {
-            AudioSenderChannelResourcePtr senderChannelResource = ZS_DYNAMIC_PTR_CAST(AudioSenderChannelResource, channelResource);
-          } else if (ZS_DYNAMIC_PTR_CAST(VideoReceiverChannelResource, channelResource)) {
-            VideoReceiverChannelResourcePtr receiverChannelResource = ZS_DYNAMIC_PTR_CAST(VideoReceiverChannelResource, channelResource);
-          } else if (ZS_DYNAMIC_PTR_CAST(VideoSenderChannelResource, channelResource)) {
-            VideoSenderChannelResourcePtr senderChannelResource = ZS_DYNAMIC_PTR_CAST(VideoSenderChannelResource, channelResource);
-          }
-          channelResource->notifyReady();
-        }
-
+        channelResource->notifyShutdown();
+        
         mPendingCloseChannelResources.pop_front();
       }
 
@@ -1047,6 +988,15 @@ namespace ortc
       setState(State_ShuttingDown);
 
       if (!mGracefulShutdownReference) mGracefulShutdownReference = mThisWeak.lock();
+
+      {
+        for (auto iter = mPendingSetupChannelResources.begin(); iter != mPendingSetupChannelResources.end(); ++iter)
+        {
+          auto channelResource = (*iter);
+          channelResource->notifyPromisesReject();
+        }
+        mPendingSetupChannelResources.clear();
+      }
 
       if (mGracefulShutdownReference) {
         // perform any graceful asynchronous shutdown processes needed and
@@ -1082,6 +1032,30 @@ namespace ortc
 
       // make sure to cleanup any final reference to self
       mGracefulShutdownReference.reset();
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::stepCancel()
+    {
+      {
+        for (auto iter = mPendingCloseChannelResources.begin(); iter != mPendingCloseChannelResources.end(); ++iter)
+        {
+          auto channelResource = (*iter);
+          channelResource->notifyShutdown();
+        }
+        mPendingCloseChannelResources.clear();
+      }
+
+      {
+        for (auto iter = mChannelResources.begin(); iter != mChannelResources.end(); ++iter)
+        {
+          auto channelResource = (*iter).second.lock();
+          channelResource->notifyShutdown();
+        }
+
+        mChannelResources.clear();
+      }
+      cancel();
     }
 
     //-------------------------------------------------------------------------
@@ -1138,7 +1112,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark RTPMediaEngine::DeviceResource
+    #pragma mark RTPMediaEngine::BaseResource
     #pragma mark
 
     //-------------------------------------------------------------------------
@@ -1161,7 +1135,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPMediaEngine::BaseResource::notifyReady()
+    void RTPMediaEngine::BaseResource::notifyPromisesResolve()
     {
       {
         AutoRecursiveLock lock(*this);
@@ -1171,7 +1145,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPMediaEngine::BaseResource::notifyRejected()
+    void RTPMediaEngine::BaseResource::notifyPromisesReject()
     {
       {
         AutoRecursiveLock lock(*this);
@@ -1185,14 +1159,14 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark RTPMediaEngine::DeviceResource => (internal)
+    #pragma mark RTPMediaEngine::BaseResource => (internal)
     #pragma mark
 
 
     //-------------------------------------------------------------------------
     IMessageQueuePtr RTPMediaEngine::BaseResource::delegateQueue()
     {
-      return IORTCForInternal::queueDelegate();
+      return IORTCForInternal::queueORTC();
     }
 
     //-------------------------------------------------------------------------
@@ -1331,6 +1305,94 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
+    #pragma mark RTPMediaEngine::ChannelResource
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    RTPMediaEngine::ChannelResource::~ChannelResource()
+    {
+      mThisWeak.reset();
+      UseEnginePtr engine = getEngine<UseEngine>();
+      if (engine) {
+        engine->notifyResourceGone(*this);
+      }
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPMediaEngine::ChannelResource => IRTPMediaEngineChannelResource
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    PromisePtr RTPMediaEngine::ChannelResource::shutdown()
+    {
+      PromisePtr promise = getShutdownPromise();
+      if (isShutdown()) return promise;
+      if (mShuttingDown) return promise;
+
+      mShuttingDown = true;
+
+      auto outer = mMediaEngine.lock();
+      if (outer) {
+        outer->shutdownChannelResource(ZS_DYNAMIC_PTR_CAST(ChannelResource, mThisWeak.lock()));
+      } else {
+        notifyShutdown();
+      }
+      return promise;
+    }
+    
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPMediaEngine::ChannelResource => (internal friend derived)
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::ChannelResource::notifyPromisesShutdown()
+    {
+      AutoRecursiveLock lock(*this);
+
+      mShutdown = true;
+      mShuttingDown = false;
+
+      for (auto iter = mShutdownPromises.begin(); iter != mShutdownPromises.end(); ++iter)
+      {
+        auto promise = (*iter);
+        promise->resolve();
+      }
+      mShutdownPromises.clear();
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPMediaEngine::ChannelResource => (internal)
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    PromisePtr RTPMediaEngine::ChannelResource::getShutdownPromise()
+    {
+      if (isShutdown()) {
+        return Promise::createResolved(delegateQueue());
+      }
+      PromisePtr promise = Promise::create(delegateQueue());
+      mShutdownPromises.push_back(promise);
+      return promise;
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
     #pragma mark RTPMediaEngine::AudioReceiverChannelResource
     #pragma mark
 
@@ -1343,7 +1405,7 @@ namespace ortc
                                                                                MediaStreamTrackPtr track,
                                                                                ParametersPtr parameters
                                                                                ) :
-      BaseResource(priv, queue, registration),
+      ChannelResource(priv, queue, registration),
       mTransport(transport),
       mTrack(track),
       mParameters(parameters)
@@ -1354,12 +1416,6 @@ namespace ortc
     RTPMediaEngine::AudioReceiverChannelResource::~AudioReceiverChannelResource()
     {
       mThisWeak.reset();  // shared pointer to self is no longer valid
-
-                          // inform the rtp media engine of this resource no longer being in use
-      UseEnginePtr engine = getEngine<UseEngine>();
-      if (engine) {
-        engine->notifyResourceGone(*this);
-      }
     }
 
     //-------------------------------------------------------------------------
@@ -1397,12 +1453,6 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    String RTPMediaEngine::AudioReceiverChannelResource::getChannelID() const
-    {
-      return mChannelID;
-    }
-
-    //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -1411,10 +1461,31 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    int RTPMediaEngine::AudioReceiverChannelResource::getChannel()
+    bool RTPMediaEngine::AudioReceiverChannelResource::handlePacket(const RTPPacket &packet)
     {
-      AutoRecursiveLock lock(*this);
-      return mChannel;
+      webrtc::PacketTime time(packet.timestamp(), 0);
+
+      auto engine = mMediaEngine.lock();
+      if (!engine) return false;
+
+      auto voiceEngine = engine->getVoiceEngine();
+      if (!voiceEngine) return false;
+
+      webrtc::VoENetwork::GetInterface(voiceEngine)->ReceivedRTPPacket(getChannel(), packet.ptr(), packet.size(), time);
+      return true;
+    }
+
+    //-------------------------------------------------------------------------
+    bool RTPMediaEngine::AudioReceiverChannelResource::handlePacket(const RTCPPacket &packet)
+    {
+      auto engine = mMediaEngine.lock();
+      if (!engine) return false;
+
+      auto voiceEngine = engine->getVoiceEngine();
+      if (!voiceEngine) return false;
+
+      webrtc::VoENetwork::GetInterface(voiceEngine)->ReceivedRTCPPacket(getChannel(), packet.ptr(), packet.size());
+      return true;
     }
 
     //-------------------------------------------------------------------------
@@ -1426,8 +1497,22 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void RTPMediaEngine::AudioReceiverChannelResource::setupChannel()
+    void RTPMediaEngine::AudioReceiverChannelResource::notifySetup()
     {
+      AutoRecursiveLock lock(*this);
+
+      auto engine = mMediaEngine.lock();
+      if (!engine) {
+        notifyPromisesReject();
+        return;
+      }
+
+      auto voiceEngine = engine->getVoiceEngine();
+      if (NULL == voiceEngine) {
+        notifyPromisesReject();
+        return;
+      }
+
       mModuleProcessThread = webrtc::ProcessThread::Create("AudioReceiverChannelResourceThread");
 
       mCallStats = rtc::scoped_ptr<webrtc::CallStats>(new webrtc::CallStats());
@@ -1440,37 +1525,37 @@ namespace ortc
       mModuleProcessThread->Start();
       mModuleProcessThread->RegisterModule(mCallStats.get());
 
-      webrtc::VoEBase::GetInterface(mMediaEngine.lock()->getVoiceEngine())->Init(mTrack->getAudioDeviceModule());
+      webrtc::VoEBase::GetInterface(voiceEngine)->Init(mTrack->getAudioDeviceModule());
 
-      mChannel = webrtc::VoEBase::GetInterface(mMediaEngine.lock()->getVoiceEngine())->CreateChannel();
+      mChannel = webrtc::VoEBase::GetInterface(voiceEngine)->CreateChannel();
 
       webrtc::CodecInst codec;
       IRTPTypes::CodecParametersList::iterator codecIter = mParameters->mCodecs.begin();
       while (codecIter != mParameters->mCodecs.end()) {
         auto supportedCodec = IRTPTypes::toSupportedCodec(codecIter->mName);
         if (IRTPTypes::SupportedCodec_Opus == supportedCodec) {
-          codec = getAudioCodec(codecIter->mName);
-          webrtc::VoECodec::GetInterface(mMediaEngine.lock()->getVoiceEngine())->SetRecPayloadType(mChannel, codec);
+          codec = getAudioCodec(voiceEngine, codecIter->mName);
+          webrtc::VoECodec::GetInterface(voiceEngine)->SetRecPayloadType(mChannel, codec);
           break;
         } else if (IRTPTypes::SupportedCodec_Isac == supportedCodec) {
-          codec = getAudioCodec(codecIter->mName);
-          webrtc::VoECodec::GetInterface(mMediaEngine.lock()->getVoiceEngine())->SetRecPayloadType(mChannel, codec);
+          codec = getAudioCodec(voiceEngine, codecIter->mName);
+          webrtc::VoECodec::GetInterface(voiceEngine)->SetRecPayloadType(mChannel, codec);
           break;
         } else if (IRTPTypes::SupportedCodec_G722 == supportedCodec) {
-          codec = getAudioCodec(codecIter->mName);
-          webrtc::VoECodec::GetInterface(mMediaEngine.lock()->getVoiceEngine())->SetRecPayloadType(mChannel, codec);
+          codec = getAudioCodec(voiceEngine, codecIter->mName);
+          webrtc::VoECodec::GetInterface(voiceEngine)->SetRecPayloadType(mChannel, codec);
           break;
         } else if (IRTPTypes::SupportedCodec_ILBC == supportedCodec) {
-          codec = getAudioCodec(codecIter->mName);
-          webrtc::VoECodec::GetInterface(mMediaEngine.lock()->getVoiceEngine())->SetRecPayloadType(mChannel, codec);
+          codec = getAudioCodec(voiceEngine, codecIter->mName);
+          webrtc::VoECodec::GetInterface(voiceEngine)->SetRecPayloadType(mChannel, codec);
           break;
         } else if (IRTPTypes::SupportedCodec_PCMU == supportedCodec) {
-          codec = getAudioCodec(codecIter->mName);
-          webrtc::VoECodec::GetInterface(mMediaEngine.lock()->getVoiceEngine())->SetRecPayloadType(mChannel, codec);
+          codec = getAudioCodec(voiceEngine, codecIter->mName);
+          webrtc::VoECodec::GetInterface(voiceEngine)->SetRecPayloadType(mChannel, codec);
           break;
         } else if (IRTPTypes::SupportedCodec_PCMA == supportedCodec) {
-          codec = getAudioCodec(codecIter->mName);
-          webrtc::VoECodec::GetInterface(mMediaEngine.lock()->getVoiceEngine())->SetRecPayloadType(mChannel, codec);
+          codec = getAudioCodec(voiceEngine, codecIter->mName);
+          webrtc::VoECodec::GetInterface(voiceEngine)->SetRecPayloadType(mChannel, codec);
           break;
         }
         IRTPTypes::RTCPFeedbackList::iterator rtcpFeedbackIter = codecIter->mRTCPFeedback.begin();
@@ -1478,7 +1563,7 @@ namespace ortc
           IRTPTypes::KnownFeedbackTypes feedbackType = IRTPTypes::toKnownFeedbackType(rtcpFeedbackIter->mType);
           IRTPTypes::KnownFeedbackParameters feedbackParameter = IRTPTypes::toKnownFeedbackParameter(rtcpFeedbackIter->mParameter);
           if (IRTPTypes::KnownFeedbackType_NACK == feedbackType && IRTPTypes::KnownFeedbackParameter_Unknown == feedbackParameter) {
-            webrtc::VoERTP_RTCP::GetInterface(mMediaEngine.lock()->getVoiceEngine())->SetNACKStatus(mChannel, true, 250);
+            webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetNACKStatus(mChannel, true, 250);
           }
           rtcpFeedbackIter++;
         }
@@ -1502,11 +1587,11 @@ namespace ortc
         IRTPTypes::HeaderExtensionURIs headerExtensionURI = IRTPTypes::toHeaderExtensionURI(headerExtensionIter->mURI);
         switch (headerExtensionURI) {
         case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_ClienttoMixerAudioLevelIndication:
-          webrtc::VoERTP_RTCP::GetInterface(mMediaEngine.lock()->getVoiceEngine())->SetReceiveAudioLevelIndicationStatus(mChannel, true, headerExtensionIter->mID);
+          webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetReceiveAudioLevelIndicationStatus(mChannel, true, headerExtensionIter->mID);
           config.rtp.extensions.push_back(webrtc::RtpExtension(headerExtensionIter->mURI, headerExtensionIter->mID));
           break;
         case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_AbsoluteSendTime:
-          webrtc::VoERTP_RTCP::GetInterface(mMediaEngine.lock()->getVoiceEngine())->SetReceiveAbsoluteSenderTimeStatus(mChannel, true, headerExtensionIter->mID);
+          webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetReceiveAbsoluteSenderTimeStatus(mChannel, true, headerExtensionIter->mID);
           config.rtp.extensions.push_back(webrtc::RtpExtension(headerExtensionIter->mURI, headerExtensionIter->mID));
           break;
         default:
@@ -1515,7 +1600,7 @@ namespace ortc
         headerExtensionIter++;
       }
 
-      webrtc::VoERTP_RTCP::GetInterface(mMediaEngine.lock()->getVoiceEngine())->SetLocalSSRC(mChannel, mParameters->mRTCP.mSSRC);
+      webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetLocalSSRC(mChannel, mParameters->mRTCP.mSSRC);
       config.rtp.local_ssrc = mParameters->mRTCP.mSSRC;
       config.receive_transport = mTransport.get();
       config.rtcp_send_transport = mTransport.get();
@@ -1525,15 +1610,49 @@ namespace ortc
         new webrtc::internal::AudioReceiveStream(
                                                  mCongestionController->GetRemoteBitrateEstimator(false),
                                                  config,
-                                                 mMediaEngine.lock()->getVoiceEngine()
+                                                 voiceEngine
                                                  ));
 
-      webrtc::VoENetwork::GetInterface(mMediaEngine.lock()->getVoiceEngine())->RegisterExternalTransport(mChannel, *mTransport);
+      webrtc::VoENetwork::GetInterface(voiceEngine)->RegisterExternalTransport(mChannel, *mTransport);
 
       mTrack->start();
 
-      webrtc::VoEBase::GetInterface(mMediaEngine.lock()->getVoiceEngine())->StartReceive(mChannel);
-      webrtc::VoEBase::GetInterface(mMediaEngine.lock()->getVoiceEngine())->StartPlayout(mChannel);
+      webrtc::VoEBase::GetInterface(voiceEngine)->StartReceive(mChannel);
+      webrtc::VoEBase::GetInterface(voiceEngine)->StartPlayout(mChannel);
+
+      notifyPromisesResolve();
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::AudioReceiverChannelResource::notifyShutdown()
+    {
+      AutoRecursiveLock lock(*this);
+
+      auto outer = mMediaEngine.lock();
+
+      if (outer) {
+        auto voiceEngine = outer->getVoiceEngine();
+        if (voiceEngine) {
+          webrtc::VoEBase::GetInterface(voiceEngine)->StopPlayout(mChannel);
+          webrtc::VoEBase::GetInterface(voiceEngine)->StopReceive(mChannel);
+          webrtc::VoENetwork::GetInterface(voiceEngine)->DeRegisterExternalTransport(mChannel);
+        }
+      }
+
+#define FIX_ME_WARNING_NO_TRACK_IS_NOT_STOPPED_JUST_BECAUSE_A_RECEIVER_CHANNEL_IS_DONE 1
+#define FIX_ME_WARNING_NO_TRACK_IS_NOT_STOPPED_JUST_BECAUSE_A_RECEIVER_CHANNEL_IS_DONE 2
+
+      if (mTrack)
+        mTrack->stop();
+
+      mModuleProcessThread->Stop();
+
+      mModuleProcessThread.reset();
+      mReceiveStream.reset();
+      mCallStats.reset();
+      mCongestionController.reset();
+
+      notifyPromisesShutdown();
     }
 
     //-------------------------------------------------------------------------
@@ -1545,18 +1664,29 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    webrtc::CodecInst RTPMediaEngine::AudioReceiverChannelResource::getAudioCodec(String payloadName)
+    int RTPMediaEngine::AudioReceiverChannelResource::getChannel() const
+    {
+      AutoRecursiveLock lock(*this);
+      return mChannel;
+    }
+
+    //-------------------------------------------------------------------------
+    webrtc::CodecInst RTPMediaEngine::AudioReceiverChannelResource::getAudioCodec(
+                                                                                  webrtc::VoiceEngine *voiceEngine,
+                                                                                  String payloadName
+                                                                                  )
     {
       webrtc::CodecInst codec;
-      int numOfCodecs = webrtc::VoECodec::GetInterface(mMediaEngine.lock()->getVoiceEngine())->NumOfCodecs();
+      int numOfCodecs = webrtc::VoECodec::GetInterface(voiceEngine)->NumOfCodecs();
       for (int i = 0; i < numOfCodecs; ++i) {
         webrtc::CodecInst currentCodec;
-        webrtc::VoECodec::GetInterface(mMediaEngine.lock()->getVoiceEngine())->GetCodec(i, currentCodec);
+        webrtc::VoECodec::GetInterface(voiceEngine)->GetCodec(i, currentCodec);
         if (0 == String(currentCodec.plname).compareNoCase(payloadName)) {
           codec = currentCodec;
           break;
         }
       }
+
       return codec;
     }
 
@@ -1578,7 +1708,7 @@ namespace ortc
                                                                            MediaStreamTrackPtr track,
                                                                            ParametersPtr parameters
                                                                            ) :
-      BaseResource(priv, queue, registration),
+      ChannelResource(priv, queue, registration),
       mTransport(transport),
       mTrack(track),
       mParameters(parameters)
@@ -1589,12 +1719,6 @@ namespace ortc
     RTPMediaEngine::AudioSenderChannelResource::~AudioSenderChannelResource()
     {
       mThisWeak.reset();  // shared pointer to self is no longer valid
-
-                          // inform the rtp media engine of this resource no longer being in use
-      UseEnginePtr engine = getEngine<UseEngine>();
-      if (engine) {
-        engine->notifyResourceGone(*this);
-      }
     }
 
     //-------------------------------------------------------------------------
@@ -1632,12 +1756,6 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    String RTPMediaEngine::AudioSenderChannelResource::getChannelID() const
-    {
-      return mChannelID;
-    }
-
-    //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -1646,12 +1764,25 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    webrtc::AudioSendStream *RTPMediaEngine::AudioSenderChannelResource::getStream()
+    bool RTPMediaEngine::AudioSenderChannelResource::handlePacket(const RTCPPacket &packet)
     {
-      AutoRecursiveLock lock(*this);
-      return mSendStream.get();
-    }
 
+      webrtc::AudioSendStream *stream = NULL;
+
+      {
+        AutoRecursiveLock lock(*this);
+
+        stream = mSendStream.get();
+        if (NULL == stream) return false;
+
+        ++mAccessFromNonLockedMethods;
+      }
+
+      bool result = stream->DeliverRtcp(packet.ptr(), packet.size());
+      --mAccessFromNonLockedMethods;
+      return result;
+    }
+    
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -1661,39 +1792,53 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void RTPMediaEngine::AudioSenderChannelResource::setupChannel()
+    void RTPMediaEngine::AudioSenderChannelResource::notifySetup()
     {
-      webrtc::VoEBase::GetInterface(mMediaEngine.lock()->getVoiceEngine())->Init(mTrack->getAudioDeviceModule());
+      AutoRecursiveLock lock(*this);
 
-      mChannel = webrtc::VoEBase::GetInterface(mMediaEngine.lock()->getVoiceEngine())->CreateChannel();
+      auto engine = mMediaEngine.lock();
+      if (!engine) {
+        notifyPromisesReject();
+        return;
+      }
+
+      auto voiceEngine = engine->getVoiceEngine();
+      if (!voiceEngine) {
+        notifyPromisesReject();
+        return;
+      }
+
+      webrtc::VoEBase::GetInterface(voiceEngine)->Init(mTrack->getAudioDeviceModule());
+
+      mChannel = webrtc::VoEBase::GetInterface(voiceEngine)->CreateChannel();
 
       webrtc::CodecInst codec;
       IRTPTypes::CodecParametersList::iterator codecIter = mParameters->mCodecs.begin();
       while (codecIter != mParameters->mCodecs.end()) {
         auto supportedCodec = IRTPTypes::toSupportedCodec(codecIter->mName);
         if (IRTPTypes::SupportedCodec_Opus == supportedCodec) {
-          codec = getAudioCodec(codecIter->mName);
-          webrtc::VoECodec::GetInterface(mMediaEngine.lock()->getVoiceEngine())->SetSendCodec(mChannel, codec);
+          codec = getAudioCodec(voiceEngine, codecIter->mName);
+          webrtc::VoECodec::GetInterface(voiceEngine)->SetSendCodec(mChannel, codec);
           break;
         } else if (IRTPTypes::SupportedCodec_Isac == supportedCodec) {
-          codec = getAudioCodec(codecIter->mName);
-          webrtc::VoECodec::GetInterface(mMediaEngine.lock()->getVoiceEngine())->SetSendCodec(mChannel, codec);
+          codec = getAudioCodec(voiceEngine, codecIter->mName);
+          webrtc::VoECodec::GetInterface(voiceEngine)->SetSendCodec(mChannel, codec);
           break;
         } else if (IRTPTypes::SupportedCodec_G722 == supportedCodec) {
-          codec = getAudioCodec(codecIter->mName);
-          webrtc::VoECodec::GetInterface(mMediaEngine.lock()->getVoiceEngine())->SetSendCodec(mChannel, codec);
+          codec = getAudioCodec(voiceEngine, codecIter->mName);
+          webrtc::VoECodec::GetInterface(voiceEngine)->SetSendCodec(mChannel, codec);
           break;
         } else if (IRTPTypes::SupportedCodec_ILBC == supportedCodec) {
-          codec = getAudioCodec(codecIter->mName);
-          webrtc::VoECodec::GetInterface(mMediaEngine.lock()->getVoiceEngine())->SetSendCodec(mChannel, codec);
+          codec = getAudioCodec(voiceEngine, codecIter->mName);
+          webrtc::VoECodec::GetInterface(voiceEngine)->SetSendCodec(mChannel, codec);
           break;
         } else if (IRTPTypes::SupportedCodec_PCMU == supportedCodec) {
-          codec = getAudioCodec(codecIter->mName);
-          webrtc::VoECodec::GetInterface(mMediaEngine.lock()->getVoiceEngine())->SetSendCodec(mChannel, codec);
+          codec = getAudioCodec(voiceEngine, codecIter->mName);
+          webrtc::VoECodec::GetInterface(voiceEngine)->SetSendCodec(mChannel, codec);
           break;
         } else if (IRTPTypes::SupportedCodec_PCMA == supportedCodec) {
-          codec = getAudioCodec(codecIter->mName);
-          webrtc::VoECodec::GetInterface(mMediaEngine.lock()->getVoiceEngine())->SetSendCodec(mChannel, codec);
+          codec = getAudioCodec(voiceEngine, codecIter->mName);
+          webrtc::VoECodec::GetInterface(voiceEngine)->SetSendCodec(mChannel, codec);
           break;
         }
         IRTPTypes::RTCPFeedbackList::iterator rtcpFeedbackIter = codecIter->mRTCPFeedback.begin();
@@ -1701,7 +1846,7 @@ namespace ortc
           IRTPTypes::KnownFeedbackTypes feedbackType = IRTPTypes::toKnownFeedbackType(rtcpFeedbackIter->mType);
           IRTPTypes::KnownFeedbackParameters feedbackParameter = IRTPTypes::toKnownFeedbackParameter(rtcpFeedbackIter->mParameter);
           if (IRTPTypes::KnownFeedbackType_NACK == feedbackType && IRTPTypes::KnownFeedbackParameter_Unknown == feedbackParameter) {
-            webrtc::VoERTP_RTCP::GetInterface(mMediaEngine.lock()->getVoiceEngine())->SetNACKStatus(mChannel, true, 250);
+            webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetNACKStatus(mChannel, true, 250);
           }
           rtcpFeedbackIter++;
         }
@@ -1714,7 +1859,7 @@ namespace ortc
       IRTPTypes::EncodingParametersList::iterator encodingParamIter = mParameters->mEncodings.begin();
       while (encodingParamIter != mParameters->mEncodings.end()) {
         if (encodingParamIter->mCodecPayloadType == codec.pltype) {
-          webrtc::VoERTP_RTCP::GetInterface(mMediaEngine.lock()->getVoiceEngine())->SetLocalSSRC(mChannel, encodingParamIter->mSSRC);
+          webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetLocalSSRC(mChannel, encodingParamIter->mSSRC);
           config.rtp.ssrc = encodingParamIter->mSSRC;
           break;
         }
@@ -1726,11 +1871,11 @@ namespace ortc
         IRTPTypes::HeaderExtensionURIs headerExtensionURI = IRTPTypes::toHeaderExtensionURI(headerExtensionIter->mURI);
         switch (headerExtensionURI) {
         case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_ClienttoMixerAudioLevelIndication:
-          webrtc::VoERTP_RTCP::GetInterface(mMediaEngine.lock()->getVoiceEngine())->SetSendAudioLevelIndicationStatus(mChannel, true, headerExtensionIter->mID);
+          webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetSendAudioLevelIndicationStatus(mChannel, true, headerExtensionIter->mID);
           config.rtp.extensions.push_back(webrtc::RtpExtension(headerExtensionIter->mURI, headerExtensionIter->mID));
           break;
         case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_AbsoluteSendTime:
-          webrtc::VoERTP_RTCP::GetInterface(mMediaEngine.lock()->getVoiceEngine())->SetSendAbsoluteSenderTimeStatus(mChannel, true, headerExtensionIter->mID);
+          webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetSendAbsoluteSenderTimeStatus(mChannel, true, headerExtensionIter->mID);
           config.rtp.extensions.push_back(webrtc::RtpExtension(headerExtensionIter->mURI, headerExtensionIter->mID));
           break;
         default:
@@ -1739,20 +1884,51 @@ namespace ortc
         headerExtensionIter++;
       }
 
-      webrtc::VoERTP_RTCP::GetInterface(mMediaEngine.lock()->getVoiceEngine())->SetRTCPStatus(mChannel, true);
-      webrtc::VoERTP_RTCP::GetInterface(mMediaEngine.lock()->getVoiceEngine())->SetRTCP_CNAME(mChannel, mParameters->mRTCP.mCName);
+      webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetRTCPStatus(mChannel, true);
+      webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetRTCP_CNAME(mChannel, mParameters->mRTCP.mCName);
 
       mSendStream = rtc::scoped_ptr<webrtc::AudioSendStream>(
         new webrtc::internal::AudioSendStream(
                                               config,
-                                              mMediaEngine.lock()->getVoiceEngine()
+                                              voiceEngine
                                               ));
 
-      webrtc::VoENetwork::GetInterface(mMediaEngine.lock()->getVoiceEngine())->RegisterExternalTransport(mChannel, *mTransport);
+      webrtc::VoENetwork::GetInterface(voiceEngine)->RegisterExternalTransport(mChannel, *mTransport);
 
       mTrack->start();
 
-      webrtc::VoEBase::GetInterface(mMediaEngine.lock()->getVoiceEngine())->StartSend(mChannel);
+      webrtc::VoEBase::GetInterface(voiceEngine)->StartSend(mChannel);
+
+      notifyPromisesResolve();
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::AudioSenderChannelResource::notifyShutdown()
+    {
+      // rare race condition that can happen so
+      while (mAccessFromNonLockedMethods > 0)
+      {
+        // NOTE: very temporary lock so should clear itself out fast
+        std::this_thread::yield();
+      }
+
+      AutoRecursiveLock lock(*this);
+
+      auto engine = mMediaEngine.lock();
+      if (engine) {
+        auto voiceEngine = engine->getVoiceEngine();
+        if (voiceEngine) {
+          webrtc::VoENetwork::GetInterface(voiceEngine)->DeRegisterExternalTransport(mChannel);
+          webrtc::VoEBase::GetInterface(voiceEngine)->StopSend(0);
+        }
+      }
+
+      if (mTrack)
+        mTrack->stop();
+
+      mSendStream.reset();
+
+      notifyPromisesShutdown();
     }
 
     //-------------------------------------------------------------------------
@@ -1764,13 +1940,16 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    webrtc::CodecInst RTPMediaEngine::AudioSenderChannelResource::getAudioCodec(String payloadName)
+    webrtc::CodecInst RTPMediaEngine::AudioSenderChannelResource::getAudioCodec(
+                                                                                webrtc::VoiceEngine *voiceEngine,
+                                                                                String payloadName
+                                                                                )
     {
       webrtc::CodecInst codec;
-      int numOfCodecs = webrtc::VoECodec::GetInterface(mMediaEngine.lock()->getVoiceEngine())->NumOfCodecs();
+      int numOfCodecs = webrtc::VoECodec::GetInterface(voiceEngine)->NumOfCodecs();
       for (int i = 0; i < numOfCodecs; ++i) {
         webrtc::CodecInst currentCodec;
-        webrtc::VoECodec::GetInterface(mMediaEngine.lock()->getVoiceEngine())->GetCodec(i, currentCodec);
+        webrtc::VoECodec::GetInterface(voiceEngine)->GetCodec(i, currentCodec);
         if (0 == String(currentCodec.plname).compareNoCase(payloadName)) {
           codec = currentCodec;
           break;
@@ -1823,7 +2002,7 @@ namespace ortc
                                                                                MediaStreamTrackPtr track,
                                                                                ParametersPtr parameters
                                                                                ) :
-      BaseResource(priv, queue, registration),
+      ChannelResource(priv, queue, registration),
       mTransport(transport),
       mTrack(track),
       mParameters(parameters)
@@ -1834,12 +2013,6 @@ namespace ortc
     RTPMediaEngine::VideoReceiverChannelResource::~VideoReceiverChannelResource()
     {
       mThisWeak.reset();  // shared pointer to self is no longer valid
-
-                          // inform the rtp media engine of this resource no longer being in use
-      UseEnginePtr engine = getEngine<UseEngine>();
-      if (engine) {
-        engine->notifyResourceGone(*this);
-      }
     }
 
     //-------------------------------------------------------------------------
@@ -1877,12 +2050,6 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    String RTPMediaEngine::VideoReceiverChannelResource::getChannelID() const
-    {
-      return mChannelID;
-    }
-
-    //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -1891,10 +2058,42 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    webrtc::VideoReceiveStream *RTPMediaEngine::VideoReceiverChannelResource::getStream()
+    bool RTPMediaEngine::VideoReceiverChannelResource::handlePacket(const RTPPacket &packet)
     {
-      AutoRecursiveLock lock(*this);
-      return mReceiveStream.get();
+      webrtc::VideoReceiveStream *stream = NULL;
+
+      {
+        AutoRecursiveLock lock(*this);
+
+        stream = mReceiveStream.get();
+        if (NULL == stream) return false;
+
+        ++mAccessFromNonLockedMethods;
+      }
+
+      webrtc::PacketTime time(packet.timestamp(), 0);
+      bool result = stream->DeliverRtp(packet.ptr(), packet.size(), time);
+      --mAccessFromNonLockedMethods;
+      return result;
+    }
+
+    //-------------------------------------------------------------------------
+    bool RTPMediaEngine::VideoReceiverChannelResource::handlePacket(const RTCPPacket &packet)
+    {
+      webrtc::VideoReceiveStream *stream = NULL;
+
+      {
+        AutoRecursiveLock lock(*this);
+
+        stream = mReceiveStream.get();
+        if (NULL == stream) return false;
+
+        ++mAccessFromNonLockedMethods;
+      }
+
+      bool result = stream->DeliverRtcp(packet.ptr(), packet.size());
+      --mAccessFromNonLockedMethods;
+      return result;
     }
 
     //-------------------------------------------------------------------------
@@ -1906,8 +2105,10 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void RTPMediaEngine::VideoReceiverChannelResource::setupChannel()
+    void RTPMediaEngine::VideoReceiverChannelResource::notifySetup()
     {
+      AutoRecursiveLock lock(*this);
+
       mModuleProcessThread = webrtc::ProcessThread::Create("VideoReceiverChannelResourceThread");
 
       mReceiverVideoRenderer.setMediaStreamTrack(mTrack);
@@ -2010,6 +2211,33 @@ namespace ortc
                                                  ));
 
       mReceiveStream->Start();
+
+      notifyPromisesResolve();
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::VideoReceiverChannelResource::notifyShutdown()
+    {
+      // rare race condition that can happen so
+      while (mAccessFromNonLockedMethods > 0)
+      {
+        // NOTE: very temporary lock so should clear itself out fast
+        std::this_thread::yield();
+      }
+
+      AutoRecursiveLock lock(*this);
+
+      if (mReceiveStream)
+        mReceiveStream->Stop();
+
+      mModuleProcessThread->Stop();
+
+      mModuleProcessThread.reset();
+      mReceiveStream.reset();
+      mCallStats.reset();
+      mCongestionController.reset();
+
+      notifyPromisesShutdown();
     }
 
 
@@ -2030,7 +2258,7 @@ namespace ortc
                                                                            MediaStreamTrackPtr track,
                                                                            ParametersPtr parameters
                                                                            ) :
-      BaseResource(priv, queue, registration),
+      ChannelResource(priv, queue, registration),
       mTransport(transport),
       mTrack(track),
       mParameters(parameters)
@@ -2041,12 +2269,6 @@ namespace ortc
     RTPMediaEngine::VideoSenderChannelResource::~VideoSenderChannelResource()
     {
       mThisWeak.reset();  // shared pointer to self is no longer valid
-
-                          // inform the rtp media engine of this resource no longer being in use
-      UseEnginePtr engine = getEngine<UseEngine>();
-      if (engine) {
-        engine->notifyResourceGone(*this);
-      }
     }
 
     //-------------------------------------------------------------------------
@@ -2084,12 +2306,6 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    String RTPMediaEngine::VideoSenderChannelResource::getChannelID() const
-    {
-      return mChannelID;
-    }
-
-    //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -2098,10 +2314,40 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    webrtc::VideoSendStream *RTPMediaEngine::VideoSenderChannelResource::getStream()
+    bool RTPMediaEngine::VideoSenderChannelResource::handlePacket(const RTCPPacket &packet)
     {
-      AutoRecursiveLock lock(*this);
-      return mSendStream.get();
+      webrtc::VideoSendStream *stream = NULL;
+
+      {
+        AutoRecursiveLock lock(*this);
+
+        stream = mSendStream.get();
+        if (NULL == stream) return false;
+
+        ++mAccessFromNonLockedMethods;
+      }
+
+      bool result = stream->DeliverRtcp(packet.ptr(), packet.size());
+      --mAccessFromNonLockedMethods;
+      return result;
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::VideoSenderChannelResource::sendVideoFrame(const webrtc::VideoFrame& videoFrame)
+    {
+      webrtc::VideoSendStream *stream = NULL;
+
+      {
+        AutoRecursiveLock lock(*this);
+
+        stream = mSendStream.get();
+        if (NULL == stream) return;
+
+        ++mAccessFromNonLockedMethods;
+      }
+
+      stream->Input()->IncomingCapturedFrame(videoFrame);
+      --mAccessFromNonLockedMethods;
     }
 
     //-------------------------------------------------------------------------
@@ -2113,8 +2359,10 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void RTPMediaEngine::VideoSenderChannelResource::setupChannel()
+    void RTPMediaEngine::VideoSenderChannelResource::notifySetup()
     {
+      AutoRecursiveLock lock(*this);
+
       mModuleProcessThread = webrtc::ProcessThread::Create("VideoSenderChannelResourceThread");
 
       mCallStats = rtc::scoped_ptr<webrtc::CallStats>(new webrtc::CallStats());
@@ -2251,6 +2499,33 @@ namespace ortc
                                               ));
 
       mSendStream->Start();
+
+      notifyPromisesResolve();
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::VideoSenderChannelResource::notifyShutdown()
+    {
+      // rare race condition that can happen so
+      while (mAccessFromNonLockedMethods > 0)
+      {
+        // NOTE: very temporary lock so should clear itself out fast
+        std::this_thread::yield();
+      }
+
+      AutoRecursiveLock lock(*this);
+
+      if (mSendStream)
+        mSendStream->Stop();
+
+      mModuleProcessThread->Stop();
+
+      mModuleProcessThread.reset();
+      mSendStream.reset();
+      mCallStats.reset();
+      mCongestionController.reset();
+
+      notifyPromisesShutdown();
     }
 
 

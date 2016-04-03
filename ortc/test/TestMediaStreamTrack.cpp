@@ -1293,7 +1293,7 @@ static void bogusSleep()
 
 void doTestMediaStreamTrack(void* videoSurface)
 {
-  if (!ORTC_TEST_DO_RTP_RECEIVER_TEST) return;
+  if (!ORTC_TEST_DO_RTP_MEDIA_STREAM_TRACK_TEST) return;
 
   TESTING_INSTALL_LOGGER();
 

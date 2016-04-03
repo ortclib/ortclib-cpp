@@ -215,7 +215,7 @@ namespace ortc
 
     virtual IICEGathererPtr createAssociatedGatherer(IICEGathererDelegatePtr delegate) throw(InvalidStateError) = 0;
 
-    virtual void gather(const Options &options) = 0;
+    virtual void gather(const Optional<Options> &options = Optional<Options>()) = 0;
 
     virtual void close() = 0;
   };

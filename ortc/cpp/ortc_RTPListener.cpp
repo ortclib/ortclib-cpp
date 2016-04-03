@@ -1666,7 +1666,7 @@ namespace ortc
                                                   )
     {
       EncodingParameters *foundEncoding = NULL;
-      CodecKinds foundCodecKind = CodecKind_Unknown;
+      RTPTypesHelper::DecodedCodecInfo foundDecodedCodec;
 
       Time lastMatchUsageTime {};
 
@@ -1682,16 +1682,14 @@ namespace ortc
           }
         }
 
-        const CodecParameters *codecParams = NULL;
-        IRTPTypes::SupportedCodecs supportedCodec {};
-        IRTPTypes::CodecKinds codecKind {};
+        Optional<IMediaStreamTrack::Kinds> kind;
+        RTPTypesHelper::DecodedCodecInfo decodedCodec;
+        if (!RTPTypesHelper::decodePacketCodecs(kind, rtpPacket, receiverInfo->mFilledParameters, decodedCodec)) continue;
 
         EncodingParameters *baseEncoding = NULL;
-        auto matchEncoding = RTPTypesHelper::pickEncodingToFill(receiverInfo->mKind, rtpPacket.pt(), receiverInfo->mFilledParameters, codecParams, supportedCodec, codecKind, baseEncoding);
+        auto matchEncoding = RTPTypesHelper::pickEncodingToFill(receiverInfo->mKind, rtpPacket, receiverInfo->mFilledParameters, decodedCodec, baseEncoding);
 
         if (receiverInfo->mFilledParameters.mEncodings.size() < 1) {
-          if (!codecParams) continue;
-
           // special case where this is a "latch all" for the codec
           outReceiverInfo = receiverInfo;
           goto found_receiver;
@@ -1701,7 +1699,7 @@ namespace ortc
         ASSERT(NULL != baseEncoding)  // has to always have a base
 
         {
-          switch (codecKind) {
+          switch (decodedCodec.mDepth[0].mCodecKind) {
             case CodecKind_Unknown:  ASSERT(false) break;
             case CodecKind_Audio:
             case CodecKind_AudioSupplemental:
@@ -1746,14 +1744,14 @@ namespace ortc
                 lastMatchUsageTime = ssrcInfo->mLastUsage;
                 outReceiverInfo = receiverInfo;
                 foundEncoding = matchEncoding;
-                foundCodecKind = codecKind;
+                foundDecodedCodec = decodedCodec;
               } else {
                 ZS_LOG_TRACE(log("found likely match") + receiverInfo->toDebug() + ssrcInfo->toDebug())
 
                 lastMatchUsageTime = ssrcInfo->mLastUsage;
                 outReceiverInfo = receiverInfo;
                 foundEncoding = matchEncoding;
-                foundCodecKind = codecKind;
+                foundDecodedCodec = decodedCodec;
               }
               continue;
             }
@@ -1792,7 +1790,7 @@ namespace ortc
 
           if ((&encoding) != foundEncoding) continue; // this is not the encoding you are searching for...
 
-          switch (foundCodecKind) {
+          switch (foundDecodedCodec.mDepth[0].mCodecKind) {
             case CodecKind_Unknown:  ASSERT(false) break;
             case CodecKind_Audio:
             case CodecKind_Video:
@@ -1810,12 +1808,19 @@ namespace ortc
             case CodecKind_RTX:
             {
               replaceEncoding.mRTX.value().mSSRC = rtpPacket.ssrc();
-              replaceEncoding.mRTX.value().mPayloadType = rtpPacket.pt();
               goto replace_receiver;
             }
             case CodecKind_FEC:
             {
               replaceEncoding.mFEC.value().mSSRC = rtpPacket.ssrc();
+              if (!replaceEncoding.mSSRC.hasValue()) {
+                replaceEncoding.mSSRC.value() = rtpPacket.ssrc();
+              }
+              if (!replaceEncoding.mCodecPayloadType.hasValue()) {
+                if (IRTPTypes::CodecKind_AudioSupplemental != foundDecodedCodec.mDepth[foundDecodedCodec.mFilledDepth].mCodecKind) {
+                  replaceEncoding.mCodecPayloadType = foundDecodedCodec.mDepth[foundDecodedCodec.mFilledDepth].mCodecParameters->mPayloadType;
+                }
+              }
               goto replace_receiver;
             }
           }

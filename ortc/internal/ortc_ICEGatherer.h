@@ -394,7 +394,7 @@ namespace ortc
 
       virtual IICEGathererPtr createAssociatedGatherer(IICEGathererDelegatePtr delegate) throw(InvalidStateError) override;
 
-      virtual void gather(const Options &options) override;
+      virtual void gather(const Optional<Options> &options = Optional<Options>()) override;
 
       virtual void close() override;
 

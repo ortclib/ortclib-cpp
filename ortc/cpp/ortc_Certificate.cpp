@@ -561,6 +561,7 @@ namespace ortc
         fingerprint.mAlgorithm = algorithms[loop];
 		
         String output = UseServicesHelper::convertToHex(*buffer);
+        output.toUpper();
 
         for (String::size_type pos = 0; pos < output.size(); pos += 2) {
           if (fingerprint.mValue.hasData()) {

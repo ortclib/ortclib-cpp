@@ -1181,11 +1181,12 @@
             <data inType="win:UInt16"     name="LocalID" />
             <data inType="win:Boolean"    name="Encrypted" />
           </template>
-          <template tid="T_BasicWithChannelObjectIDAndSsrcAndRid">
+          <template tid="T_BasicWithChannelObjectIDAndSsrcAndRoutingPayloadAndRid">
             <data inType="win:AnsiString" name="Method" />
             <data inType="win:UInt64"     name="ObjectID" />
             <data inType="win:UInt64"     name="ChannelObjectID" />
             <data inType="win:UInt32"     name="Ssrc" />
+            <data inType="win:UInt32"     name="RoutingPayload" />
             <data inType="win:Int64"      name="LastUsageSinceEpochInSeconds" />
             <data inType="win:AnsiString" name="Rid" />
           </template>
@@ -1194,6 +1195,7 @@
             <data inType="win:UInt64"     name="ObjectID" />
             <data inType="win:UInt64"     name="ChannelObjectID" />
             <data inType="win:UInt32"     name="Ssrc" />
+            <data inType="win:UInt32"     name="RoutingPayload" />
             <data inType="win:Int64"      name="LastUsageSinceEpochInSeconds" />
             <data inType="win:AnsiString" name="Rid" />
             <data inType="win:AnsiString" name="Reason" />
@@ -1806,9 +1808,9 @@
 
           <event symbol="OrtcRtpReceiverRegisterHeaderExtension" channel="ol" template="T_RtpReceiverRegisterHeaderExtension" task="RtpReceiver" opcode="Initialization" value="1926" level="win:Informational" message="$(string.Event.OrtcRtpReceiverRegisterHeaderExtension)" />
 
-          <event symbol="OrtcRtpReceiverSsrcTableEntryAdded" channel="ol" template="T_BasicWithChannelObjectIDAndSsrcAndRid" task="RtpReceiver" opcode="win:Info" value="1927" level="win:Informational" message="$(string.Event.OrtcRtpReceiverSsrcTableEntryAdded)" />
+          <event symbol="OrtcRtpReceiverSsrcTableEntryAdded" channel="ol" template="T_BasicWithChannelObjectIDAndSsrcAndRoutingPayloadAndRid" task="RtpReceiver" opcode="win:Info" value="1927" level="win:Informational" message="$(string.Event.OrtcRtpReceiverSsrcTableEntryAdded)" />
           <event symbol="OrtcRtpReceiverSsrcTableEntryRemoved" channel="ol" template="T_RtpReceiverSsrcTableEntryRemoved" task="RtpReceiver" opcode="win:Info" value="1928" level="win:Informational" message="$(string.Event.OrtcRtpReceiverSsrcTableEntryRemoved)" />
-          <event symbol="OrtcRtpReceiverSsrcTableEntryUpdated" channel="ol" template="T_BasicWithChannelObjectIDAndSsrcAndRid" task="RtpReceiver" opcode="win:Info" value="1929" level="win:Verbose" message="$(string.Event.OrtcRtpReceiverSsrcTableEntryUpdated)" />
+          <event symbol="OrtcRtpReceiverSsrcTableEntryUpdated" channel="ol" template="T_BasicWithChannelObjectIDAndSsrcAndRoutingPayloadAndRid" task="RtpReceiver" opcode="win:Info" value="1929" level="win:Verbose" message="$(string.Event.OrtcRtpReceiverSsrcTableEntryUpdated)" />
 
           <event symbol="OrtcRtpReceiverFindMapping" channel="ol" template="T_RtpReceiverFindMapping" task="RtpReceiver" opcode="win:Info" value="1930" level="win:Verbose" message="$(string.Event.OrtcRtpReceiverFindMapping)" />
           <event symbol="OrtcRtpReceiverFoundMappingByRid" channel="ol" template="T_RtpReceiverFoundMappingByRid" task="RtpReceiver" opcode="win:Info" value="1931" level="win:Verbose" message="$(string.Event.OrtcRtpReceiverFoundMappingByRid)" />

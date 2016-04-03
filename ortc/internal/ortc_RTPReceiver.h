@@ -33,6 +33,7 @@
 
 #include <ortc/internal/types.h>
 #include <ortc/internal/ortc_ISecureTransport.h>
+#include <ortc/internal/ortc_RTPTypes.h>
 
 #include <ortc/IICETransport.h>
 #include <ortc/IRTPReceiver.h>
@@ -205,8 +206,25 @@ namespace ortc
       ZS_DECLARE_STRUCT_PTR(ChannelHolder)
       ZS_DECLARE_STRUCT_PTR(ChannelInfo)
       ZS_DECLARE_STRUCT_PTR(SSRCInfo)
+      ZS_DECLARE_STRUCT_PTR(CodecInfo)
 
       friend ChannelHolder;
+
+      enum CodecTypes
+      {
+        CodecType_First,
+
+        CodecType_Normal = CodecType_First,
+        CodecType_RED,
+        CodecType_ULPFEC,
+        CodecType_FlexFEC,
+        CodecType_RTX,
+
+        CodecType_Last = CodecType_RTX,
+      };
+
+      static const char *toString(CodecTypes codecType);
+      static CodecTypes toCodecType(const char *type);
 
       typedef IRTPTypes::SSRCType SSRCType;
       typedef std::list<RTCPPacketPtr> RTCPPacketList;
@@ -224,8 +242,11 @@ namespace ortc
       typedef std::map<ChannelID, ChannelHolderWeakPtr> ChannelWeakMap;
       ZS_DECLARE_PTR(ChannelWeakMap)
 
-      typedef std::map<SSRCType, SSRCInfoPtr> SSRCMap;
-      typedef std::map<SSRCType, SSRCInfoWeakPtr> SSRCWeakMap;
+      typedef DWORD RoutingPayloadType;
+
+      typedef std::pair<SSRCType, RoutingPayloadType> SSRCRoutingPair;
+      typedef std::map<SSRCRoutingPair, SSRCInfoPtr> SSRCRoutingMap;
+      typedef std::map<SSRCRoutingPair, SSRCInfoWeakPtr> SSRCRoutingWeakMap;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -290,7 +311,7 @@ namespace ortc
         ParametersPtr mFilledParameters;
 
         ChannelHolderWeakPtr mChannelHolder;  // NOTE: might be null if channel is not created yet (or previously destoyed)
-        SSRCMap mRegisteredSSRCs;
+        SSRCRoutingMap mRegisteredSSRCs;
 
         bool shouldLatchAll() const;
         String rid() const;
@@ -298,7 +319,10 @@ namespace ortc
         void registerHolder(ChannelHolderPtr channelHolder);
 
         SSRCInfoPtr registerSSRCUsage(SSRCInfoPtr ssrcInfo);
-        void unregisterSSRCUsage(SSRCType ssrc);
+        void unregisterSSRCUsage(
+                                 SSRCType ssrc,
+                                 RoutingPayloadType routingPayload
+                                 );
 
         ElementPtr toDebug() const;
       };
@@ -328,6 +352,7 @@ namespace ortc
       struct SSRCInfo
       {
         SSRCType mSSRC {};
+        RoutingPayloadType mRoutingPayload {};
         String mRID;
         Time mLastUsage;
 
@@ -337,6 +362,23 @@ namespace ortc
 
         ElementPtr toDebug() const;
       };
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPReceiver::CodecInfo
+      #pragma mark
+
+      struct CodecInfo
+      {
+        PayloadType mPayloadType {};
+        CodecTypes mCodecType {CodecType_First};
+        CodecInfo *mOriginalCodec {};  // used for rtx to point to original codec
+        IRTPTypes::CodecParameters *mOriginalCodecParams {};
+
+        ElementPtr toDebug() const;
+      };
+
+      typedef std::map<PayloadType, CodecInfo> CodecInfoMap;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -537,6 +579,7 @@ namespace ortc
 
       SSRCInfoPtr setSSRCUsage(
                                SSRCType ssrc,
+                               RoutingPayloadType routingPayload,
                                String &ioRID,
                                ChannelHolderPtr &ioChannelHolder
                                );
@@ -547,6 +590,12 @@ namespace ortc
                        );
 
       void registerSSRCUsage(SSRCInfoPtr ssrcInfo);
+
+      void registerUsage(
+                         const IRTPTypes::EncodingParameters &encodingParams,
+                         ChannelInfoPtr channelInfo,
+                         ChannelHolderPtr &ioChannelHolder
+                         );
 
       void reattemptDelivery();
       void expireRTPPackets();
@@ -561,6 +610,7 @@ namespace ortc
                        );
 
       String extractRID(
+                        RoutingPayloadType routingPayload,
                         const RTPPacket &rtpPacket,
                         ChannelHolderPtr &outChannelHolder
                         );
@@ -568,7 +618,8 @@ namespace ortc
       String extractMuxID(const RTPPacket &rtpPacket);
 
       bool findMappingUsingRID(
-                               const String &muridxID,
+                               const String &ridID,
+                               RoutingPayloadType routingPayload,
                                const RTPPacket &rtpPacket,
                                ChannelInfoPtr &outChannelInfo,
                                ChannelHolderPtr &outChannelHolder
@@ -576,6 +627,7 @@ namespace ortc
 
       bool findMappingUsingSSRCInEncodingParams(
                                                 const String &rid,
+                                                RoutingPayloadType routingPayload,
                                                 const RTPPacket &rtpPacket,
                                                 ChannelInfoPtr &outChannelInfo,
                                                 ChannelHolderPtr &outChannelHolder
@@ -583,15 +635,16 @@ namespace ortc
 
       bool findMappingUsingPayloadType(
                                        const String &rid,
+                                       RoutingPayloadType routingPayload,
                                        const RTPPacket &rtpPacket,
                                        ChannelInfoPtr &outChannelInfo,
                                        ChannelHolderPtr &outChannelHolder
                                        );
 
       bool findBestExistingLatchAllOrCreateNew(
-                                               CodecKinds kind,
-                                               const CodecParameters &codec,
+                                               const RTPTypesHelper::DecodedCodecInfo &decodedCodec,
                                                const String &rid,
+                                               RoutingPayloadType routingPayload,
                                                const RTPPacket &rtpPacket,
                                                ChannelInfoPtr &outChannelInfo,
                                                ChannelHolderPtr &outChannelHolder
@@ -604,6 +657,7 @@ namespace ortc
 
       void createChannel(
                          SSRCType ssrc,
+                         RoutingPayloadType routingPayload,
                          const String &rid,
                          ChannelInfoPtr channelInfo,
                          ChannelHolderPtr &ioChannelHolder
@@ -632,6 +686,39 @@ namespace ortc
 
       void resetActiveReceiverChannel();
 
+      Optional<RoutingPayloadType> decodeREDRoutingPayloadType(
+                                                               const BYTE *buffer,
+                                                               size_t bufferSizeInBytes
+                                                               );
+
+      Optional<RoutingPayloadType> decodeFECPayloadType(
+                                                        const BYTE *buffer,
+                                                        size_t bufferSizeInBytes
+                                                        );
+
+      Optional<RoutingPayloadType> getRoutingPayloadType(const RTPPacket &rtpPacket);
+
+      Optional<RoutingPayloadType> getRoutingPayload(const RTPTypesHelper::DecodedCodecInfo &decodedCodec);
+
+      RoutingPayloadType getMediaCodecRoutingPayload(PayloadType originalPayload);
+
+      void getFECMediaCodecRoutingPayload(
+                                          PayloadType originalPayload,
+                                          IRTPTypes::KnownFECMechanisms mechanism,
+                                          Optional<RoutingPayloadType> &resultFECv1,
+                                          Optional<RoutingPayloadType> &resultFECv2,
+                                          PayloadType *outPayloadTypeFECv1 = NULL,
+                                          PayloadType *outPayloadTypeFECv2 = NULL
+                                          );
+
+      Optional<RoutingPayloadType> getRtxMediaCodecRoutingPayload(PayloadType originalPayload);
+      void getRtxFECMediaCodecRoutingPayload(
+                                             PayloadType originalPayload,
+                                             IRTPTypes::KnownFECMechanisms mechanism,
+                                             Optional<RoutingPayloadType> &resultFECv1,
+                                             Optional<RoutingPayloadType> &resultFECv2
+                                             );
+
     protected:
       //-----------------------------------------------------------------------
       #pragma mark
@@ -654,7 +741,8 @@ namespace ortc
       UseMediaStreamTrackPtr mTrack;
 
       ParametersPtr mParameters;
-      
+      CodecInfoMap mCodecInfos;
+
       UseListenerPtr mListener;
 
       UseSecureTransportPtr mRTPTransport;
@@ -677,8 +765,8 @@ namespace ortc
 
       HeaderExtensionMap mRegisteredExtensions;
 
-      SSRCMap mSSRCTable;
-      SSRCWeakMap mRegisteredSSRCs;
+      SSRCRoutingMap mSSRCRoutingPayloadTable;
+      SSRCRoutingWeakMap mRegisteredSSRCRoutingPayloads;
 
       RIDToChannelMap mRIDTable;
 

@@ -32,6 +32,8 @@
 #include <ortc/internal/types.h>
 #include <ortc/internal/platform.h>
 #include <ortc/internal/ortc_RTPTypes.h>
+#include <ortc/internal/ortc_RTPUtils.h>
+#include <ortc/internal/ortc_RTPPacket.h>
 #include <ortc/internal/ortc_Helper.h>
 
 #include <ortc/IRTPTypes.h>
@@ -105,11 +107,60 @@ namespace ortc
         }
         UseServicesHelper::debugAppend(resultEl, disallowEl);
       }
+      UseServicesHelper::debugAppend(resultEl, "rtx apt payload", mRTXAptPayloadType);
       UseServicesHelper::debugAppend(resultEl, "disallow multiple matches", mDisallowMultipleMatches);
 
       return resultEl;
     }
 
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPTypesHelper::DecodedCodecInfo
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    ElementPtr RTPTypesHelper::DecodedCodecInfo::toDebug() const
+    {
+      ElementPtr resultEl = Element::create("ortc::RTPTypesHelper::DecodedCodecInfo");
+
+      ElementPtr depthInfosEl = Element::create("depthInfos");
+
+      for (size_t index = 0; index < ORTC_INTERNAL_RTPTYPESHELPER_MAX_CODEC_DEPTH; ++index)
+      {
+        auto &depthInfo = mDepth[index];
+
+        UseServicesHelper::debugAppend(depthInfosEl, depthInfo.toDebug());
+      }
+
+      if (depthInfosEl->hasChildren()) {
+        UseServicesHelper::debugAppend(depthInfosEl, depthInfosEl);
+      }
+
+      return resultEl;
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPTypesHelper::DecodedCodecInfo::DepthInfo
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    ElementPtr RTPTypesHelper::DecodedCodecInfo::DepthInfo::toDebug() const
+    {
+      if (NULL == mCodecParameters) return ElementPtr();
+
+      ElementPtr resultEl = Element::create("ortc::RTPTypesHelper::DecodedCodecInfo:DepthInfo");
+      UseServicesHelper::debugAppend(resultEl, "codec", mCodecParameters->toDebug());
+      UseServicesHelper::debugAppend(resultEl, "supported codec", IRTPTypes::toString(mSupportedCodec));
+      UseServicesHelper::debugAppend(resultEl, "codec kind", IRTPTypes::toString(mCodecKind));
+      return resultEl;
+    }
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -118,6 +169,264 @@ namespace ortc
     #pragma mark
     #pragma mark RTPTypesHelper
     #pragma mark
+
+    //-------------------------------------------------------------------------
+    void RTPTypesHelper::validateCodecParameters(
+                                                 const Parameters &params,
+                                                 Optional<IMediaStreamTrackTypes::Kinds> &ioKind
+                                                 ) throw (InvalidParameters)
+    {
+      for (auto iter = params.mCodecs.begin(); iter != params.mCodecs.end(); ++iter)
+      {
+        auto &codecInfo = (*iter);
+
+        IRTPTypes::SupportedCodecs supported = IRTPTypes::toSupportedCodec(codecInfo.mName);
+        IRTPTypes::CodecKinds codecKind = IRTPTypes::getCodecKind(supported);
+
+        ORTC_THROW_INVALID_PARAMETERS_IF((IRTPTypes::SupportedCodec_Unknown == supported) ||
+                                         (IRTPTypes::CodecKind_Unknown == codecKind))
+
+        switch (codecKind) {
+          case IRTPTypes::CodecKind_Unknown: break;
+          case IRTPTypes::CodecKind_Audio:
+          case IRTPTypes::CodecKind_AudioSupplemental:
+          {
+            if (ioKind.hasValue()) {
+              ORTC_THROW_INVALID_PARAMETERS_IF(IMediaStreamTrackTypes::Kind_Audio != ioKind.value())
+            }
+            ioKind = IMediaStreamTrackTypes::Kind_Audio;
+            break;
+          }
+          case IRTPTypes::CodecKind_Video:
+          {
+            if (ioKind.hasValue()) {
+              ORTC_THROW_INVALID_PARAMETERS_IF(IMediaStreamTrackTypes::Kind_Video != ioKind.value())
+            }
+            ioKind = IMediaStreamTrackTypes::Kind_Video;
+            break;
+          }
+          case IRTPTypes::CodecKind_AV:
+          {
+            break;
+          }
+          case IRTPTypes::CodecKind_RTX:
+          {
+            IRTPTypes::RTXCodecParametersPtr rtxParams = IRTPTypes::RTXCodecParameters::convert(codecInfo.mParameters);
+            ORTC_THROW_INVALID_PARAMETERS_IF(!rtxParams)
+
+            bool foundAptCodec = false;
+
+            for (auto iterApt = params.mCodecs.begin(); iterApt != params.mCodecs.end(); ++iterApt)
+            {
+              auto &aptCodecInfo = (*iterApt);
+              if (aptCodecInfo.mPayloadType != rtxParams->mApt) continue;
+
+              foundAptCodec = true;
+
+              IRTPTypes::SupportedCodecs aptSupported = IRTPTypes::toSupportedCodec(aptCodecInfo.mName);
+              IRTPTypes::CodecKinds aptCodecKind = IRTPTypes::getCodecKind(aptSupported);
+
+              ORTC_THROW_INVALID_PARAMETERS_IF((IRTPTypes::SupportedCodec_Unknown == aptSupported) ||
+                                               (IRTPTypes::CodecKind_Unknown == aptCodecKind))
+
+              ORTC_THROW_INVALID_PARAMETERS_IF(IRTPTypes::CodecKind_RTX == aptCodecKind)
+
+              if (codecInfo.mClockRate.hasValue()) {
+                if (aptCodecInfo.mClockRate.hasValue()) {
+                  ORTC_THROW_INVALID_PARAMETERS_IF(codecInfo.mClockRate.value() != aptCodecInfo.mClockRate.value())
+                }
+              }
+              break;
+            }
+            ORTC_THROW_INVALID_PARAMETERS_IF(!foundAptCodec)
+            break;
+          }
+          case IRTPTypes::CodecKind_Data: break;
+          case IRTPTypes::CodecKind_FEC:
+          {
+            switch (supported) {
+              case IRTPTypes::SupportedCodec_RED:
+              {
+                IRTPTypes::REDCodecParametersPtr redParams = IRTPTypes::REDCodecParameters::convert(codecInfo.mParameters);
+
+                if (redParams) {
+                  for (auto iterRedPayloads = redParams->mPayloadTypes.begin(); iterRedPayloads != redParams->mPayloadTypes.end(); ++iterRedPayloads)
+                  {
+                    auto &payloadType = (*iterRedPayloads);
+
+                    bool foundRedPayload = false;
+                    for (auto redIter = params.mCodecs.begin(); redIter != params.mCodecs.end(); ++redIter)
+                    {
+                      auto &codecRed = (*redIter);
+                      if (payloadType != codecRed.mPayloadType) continue;
+
+                      IRTPTypes::SupportedCodecs redSupported = IRTPTypes::toSupportedCodec(codecRed.mName);
+                      ORTC_THROW_INVALID_PARAMETERS_IF((IRTPTypes::SupportedCodec_Unknown == redSupported) ||
+                                                       (IRTPTypes::SupportedCodec_RED == redSupported) ||
+                                                       (IRTPTypes::SupportedCodec_RTX == redSupported))
+
+                      if (codecInfo.mClockRate.hasValue()) {
+                        if (codecRed.mClockRate.hasValue()) {
+                          ORTC_THROW_INVALID_PARAMETERS_IF(codecInfo.mClockRate.value() != codecRed.mClockRate.value())
+                        }
+                      }
+                      foundRedPayload = true;
+                    }
+
+                    ORTC_THROW_INVALID_PARAMETERS_IF(!foundRedPayload)
+                  }
+                }
+                break;
+              }
+              case IRTPTypes::SupportedCodec_ULPFEC:
+              {
+                break;
+              }
+              case IRTPTypes::SupportedCodec_FlexFEC:
+              {
+                IRTPTypes::FlexFECCodecParametersPtr flexFECParams = IRTPTypes::FlexFECCodecParameters::convert(codecInfo.mParameters);
+                break;
+              }
+              default:
+              {
+                ORTC_THROW_INVALID_PARAMETERS(String("FEC codec type is not understood: ") + IRTPTypes::toString(supported))
+                break;
+              }
+            }
+          }
+        }
+      }
+
+      for (auto iter = params.mEncodings.begin(); iter != params.mEncodings.end(); ++iter)
+      {
+        auto &encoding = (*iter);
+
+        bool supportMRST = false;
+
+        Optional<PayloadType> payload = encoding.mCodecPayloadType;
+        Optional<ULONG> clockRate;
+
+        if (encoding.mCodecPayloadType.hasValue())
+        {
+          FindCodecOptions options;
+          options.mPayloadType = encoding.mCodecPayloadType.value();
+          auto foundCodec = findCodec(params, options);
+          ORTC_THROW_INVALID_PARAMETERS_IF(NULL == foundCodec)
+
+          clockRate = foundCodec->mClockRate;
+
+          auto supportedCodec = IRTPTypes::toSupportedCodec(foundCodec->mName);
+          auto codecKind = IRTPTypes::getCodecKind(supportedCodec);
+
+          supportMRST = IRTPTypes::isMRSTCodec(supportedCodec);
+
+          switch (codecKind) {
+            case IRTPTypes::CodecKind_Unknown:            ORTC_THROW_INVALID_PARAMETERS("illegal codec")
+            case IRTPTypes::CodecKind_Audio:
+            case IRTPTypes::CodecKind_AudioSupplemental:
+            case IRTPTypes::CodecKind_Video:
+            case IRTPTypes::CodecKind_AV:                 break;
+            case IRTPTypes::CodecKind_Data:
+            case IRTPTypes::CodecKind_RTX:                ORTC_THROW_INVALID_PARAMETERS("RTX codec cannot be the main encoding payload type, enabled RTX parameters instead")
+            case IRTPTypes::CodecKind_FEC:                ORTC_THROW_INVALID_PARAMETERS("FEC codec cannot be the main encoding payload type, enable FEC parameters instead")
+          }
+        }
+
+        auto baseEncoding = findEncodingBase(const_cast<Parameters &>(params), &(const_cast<EncodingParameters &>(encoding)));
+        ORTC_THROW_INVALID_PARAMETERS_IF(NULL == baseEncoding)
+        if (baseEncoding != &(encoding))
+        {
+          payload = baseEncoding->mCodecPayloadType;
+
+          if (baseEncoding->mCodecPayloadType.hasValue()) {
+            if (encoding.mCodecPayloadType.hasValue()) {
+              // cannot change codecs from base to dependency
+              ORTC_THROW_INVALID_PARAMETERS_IF(baseEncoding->mCodecPayloadType.value() != encoding.mCodecPayloadType.value())
+            }
+            FindCodecOptions options;
+            options.mPayloadType = baseEncoding->mCodecPayloadType.value();
+
+            auto foundBaseCodec = findCodec(params, options);
+            ORTC_THROW_INVALID_PARAMETERS_IF(NULL == foundBaseCodec)
+
+            auto supportedCodec = IRTPTypes::toSupportedCodec(foundBaseCodec->mName);
+            supportMRST = IRTPTypes::isMRSTCodec(supportedCodec);
+
+            clockRate = foundBaseCodec->mClockRate;
+          } else {
+            // cannot have a codec on dependency but then have none on the base
+            ORTC_THROW_INVALID_PARAMETERS_IF(encoding.mCodecPayloadType.hasValue())
+          }
+
+          if (encoding.mSSRC.hasValue())
+          {
+            // cannot have an SSRC on dependency if base doesn't have an SSRC
+            ORTC_THROW_INVALID_PARAMETERS_IF(!baseEncoding->mSSRC.hasValue())
+
+            if (encoding.mSSRC.value() != baseEncoding->mSSRC.value())
+            {
+              // only can change SSRC if an MRST codec
+              ORTC_THROW_INVALID_PARAMETERS_IF(!supportMRST)
+            }
+          }
+        }
+
+        if (encoding.mRTX.hasValue())
+        {
+          FindCodecOptions options;
+          options.mCodecKind = IRTPTypes::CodecKind_RTX;
+          options.mRTXAptPayloadType = payload;
+          options.mClockRate = clockRate;
+          options.mMatchClockRateNotSet = true;
+
+          auto foundCodec = RTPTypesHelper::findCodec(params, options);
+          ORTC_THROW_INVALID_PARAMETERS_IF(NULL == foundCodec)
+        }
+
+        if (encoding.mFEC.hasValue())
+        {
+          auto mechanism = IRTPTypes::toKnownFECMechanism(encoding.mFEC.value().mMechanism);
+          switch (mechanism) {
+            case IRTPTypes::KnownFECMechanism_Unknown:    ORTC_THROW_INVALID_PARAMETERS("unknown FEC mechanism")
+            case IRTPTypes::KnownFECMechanism_RED:        ORTC_THROW_INVALID_PARAMETERS("RED is not a supported FEC mechanism")
+            case IRTPTypes::KnownFECMechanism_RED_ULPFEC:
+            {
+              {
+                FindCodecOptions options;
+                options.mSupportedCodec = IRTPTypes::SupportedCodec_RED;
+                options.mClockRate = clockRate;
+                options.mMatchClockRateNotSet = true;
+                options.mAllowREDMatchEmptyList = true;
+
+                auto foundCodec = findCodec(params, options);
+                ORTC_THROW_INVALID_PARAMETERS_IF(!foundCodec)
+              }
+              {
+                FindCodecOptions options;
+                options.mSupportedCodec = IRTPTypes::SupportedCodec_ULPFEC;
+                options.mClockRate = clockRate;
+                options.mMatchClockRateNotSet = true;
+
+                auto foundCodec = findCodec(params, options);
+                ORTC_THROW_INVALID_PARAMETERS_IF(!foundCodec)
+              }
+              break;
+            }
+            case IRTPTypes::KnownFECMechanism_FlexFEC:
+            {
+              FindCodecOptions options;
+              options.mSupportedCodec = IRTPTypes::SupportedCodec_FlexFEC;
+              options.mClockRate = clockRate;
+              options.mMatchClockRateNotSet = true;
+
+              auto foundCodec = findCodec(params, options);
+              ORTC_THROW_INVALID_PARAMETERS_IF(!foundCodec)
+            }
+          }
+        }
+      }
+
+    }
 
     //-------------------------------------------------------------------------
     void RTPTypesHelper::splitParamsIntoChannels(
@@ -664,9 +973,14 @@ namespace ortc
                                                                      )
     {
       const CodecParameters *foundCodec = NULL;
+      const CodecParameters *preferredCodec = NULL;
+
+      size_t preferredLevel = 0;
 
       for (auto iter = params.mCodecs.begin(); iter != params.mCodecs.end(); ++iter) {
         auto &codec = (*iter);
+
+        size_t matchLevel = 0;
 
         IRTPTypes::SupportedCodecs supported = IRTPTypes::SupportedCodec_Unknown;
         IRTPTypes::CodecKinds codecKind = IRTPTypes::CodecKind_Unknown;
@@ -708,6 +1022,7 @@ namespace ortc
         if (options.mClockRate.hasValue()) {
           if (codec.mClockRate.hasValue()) {
             if (codec.mClockRate.value() != options.mClockRate.value()) continue;
+            ++matchLevel;
           } else {
             if (options.mMatchClockRateNotSet.hasValue()) {
               if (!options.mMatchClockRateNotSet.value()) continue;
@@ -749,6 +1064,51 @@ namespace ortc
           }
         }
 
+        if (options.mREDCodecPayloadTypes.hasValue()) {
+          IRTPTypes::REDCodecParametersPtr redCodecParams = IRTPTypes::REDCodecParameters::convert(codec.mParameters);
+          if (redCodecParams) {
+            if (redCodecParams->mPayloadTypes.size() > 0) {
+              auto &redPayloadTypes = options.mREDCodecPayloadTypes.value();
+
+              auto iter1 = redPayloadTypes.begin();
+              auto iter2 = redCodecParams->mPayloadTypes.begin();
+
+              bool allMatched = true;
+
+              for (; iter1 != redPayloadTypes.end() && iter2 != redCodecParams->mPayloadTypes.end(); ++iter1, ++iter2)
+              {
+                auto pt1 = (*iter1);
+                auto pt2 = (*iter2);
+                if (pt1 == pt2) continue;
+
+                allMatched = false;
+                break;
+              }
+
+              if (!allMatched) continue;
+
+              if ((iter1 != redPayloadTypes.end()) ||
+                  (iter2 != redCodecParams->mPayloadTypes.end())) continue;
+
+              matchLevel += 2;
+            } else {
+              if (!options.mAllowREDMatchEmptyList.hasValue()) continue;
+              if (!options.mAllowREDMatchEmptyList.value()) continue;
+            }
+          } else {
+            if (!options.mAllowREDMatchEmptyList.hasValue()) continue;
+            if (!options.mAllowREDMatchEmptyList.value()) continue;
+          }
+        }
+
+        if (options.mRTXAptPayloadType.hasValue()) {
+          IRTPTypes::RTXCodecParametersPtr rtxCodecParams = IRTPTypes::RTXCodecParameters::convert(codec.mParameters);
+          if (!rtxCodecParams) continue;
+
+          if (rtxCodecParams->mApt != options.mRTXAptPayloadType.value()) continue;
+          matchLevel += 2;
+        }
+
         if ((options.mDisallowMultipleMatches.hasValue()) &&
             (options.mDisallowMultipleMatches.value())) {
           if (foundCodec) {
@@ -756,11 +1116,15 @@ namespace ortc
             return NULL;
           }
           foundCodec = &codec;
+          if (matchLevel > preferredLevel) {
+            preferredCodec = foundCodec;
+          }
         } else {
           return &codec;
         }
       }
 
+      if (preferredCodec) return preferredCodec;
       return foundCodec;
     }
 
@@ -943,229 +1307,6 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    const RTPTypesHelper::CodecParameters *RTPTypesHelper::pickRTXCodec(
-                                                                        Optional<IMediaStreamTrackTypes::Kinds> kind,
-                                                                        const Parameters &params,
-                                                                        Optional<PayloadType> packetRTXPayloadType,
-                                                                        const EncodingParameters *encoding,
-                                                                        const EncodingParameters *baseEncoding
-                                                                        )
-    {
-      Optional<PayloadType> rtxPayloadType;
-
-      bool foundEncoding = false;
-      bool usesRTX = false;
-
-      if ((!rtxPayloadType.hasValue()) &&
-          (encoding)) {
-        foundEncoding = true;
-        if (encoding->mRTX.hasValue()) {
-          usesRTX = true;
-          rtxPayloadType = encoding->mRTX.value().mPayloadType;
-        }
-      }
-
-      if ((!rtxPayloadType.hasValue()) &&
-          (baseEncoding)) {
-        foundEncoding = true;
-        if (baseEncoding->mRTX.hasValue()) {
-          usesRTX = true;
-          rtxPayloadType = baseEncoding->mRTX.value().mPayloadType;
-        }
-      }
-
-      if (!rtxPayloadType.hasValue()) {
-        if (params.mEncodings.size() > 0) {
-          auto &frontEncoding = params.mEncodings.front();
-          foundEncoding = true;
-          if (frontEncoding.mRTX.hasValue()) {
-            usesRTX = true;
-            rtxPayloadType = frontEncoding.mRTX.value().mPayloadType;
-          }
-        }
-      }
-
-      if (packetRTXPayloadType.hasValue()) {
-        if (rtxPayloadType.hasValue()) {
-          if (rtxPayloadType.value() != packetRTXPayloadType.value()) {
-            ZS_LOG_INSANE(slog("cannot match RTX codec as RTX payload type specified do not match encoding") + params.toDebug() + ZS_PARAM("encoding", encoding ? encoding->toDebug() : ElementPtr()) + ZS_PARAM("base encoding", baseEncoding ? baseEncoding->toDebug() : ElementPtr()))
-            return NULL;
-          }
-        } else {
-          rtxPayloadType = packetRTXPayloadType;
-        }
-      }
-
-      if ((!usesRTX) &&
-          (foundEncoding)) {
-        ZS_LOG_INSANE(slog("encoding is not using RTX") + params.toDebug() + ZS_PARAM("encoding", encoding ? encoding->toDebug() : ElementPtr()) + ZS_PARAM("base encoding", baseEncoding ? baseEncoding->toDebug() : ElementPtr()))
-        return NULL;
-      }
-
-      auto mainCodec = pickCodec(kind, params, Optional<PayloadType>(), encoding, baseEncoding);
-      if (!mainCodec) return NULL;
-
-      FindCodecOptions options;
-
-      options.mPayloadType = rtxPayloadType;
-      options.mClockRate = mainCodec->mClockRate;
-      options.mMatchClockRateNotSet = true;
-      options.mCodecKind = IRTPTypes::CodecKind_RTX;
-      options.mDisallowMultipleMatches = true;
-
-      auto foundRTXCodec = findCodec(params, options);
-
-      if (!foundRTXCodec) {
-        ZS_LOG_WARNING(Debug, slog("did not find an appropriate RTX codec") + params.toDebug() + ZS_PARAM("encoding", encoding ? encoding->toDebug() : ElementPtr()) + ZS_PARAM("base encoding", baseEncoding ? baseEncoding->toDebug() : ElementPtr()) + options.toDebug())
-        return NULL;
-      }
-
-      ZS_LOG_TRACE(slog("found RTX codec") + foundRTXCodec->toDebug() + params.toDebug() + ZS_PARAM("encoding", encoding ? encoding->toDebug() : ElementPtr()) + ZS_PARAM("base encoding", baseEncoding ? baseEncoding->toDebug() : ElementPtr()) + options.toDebug())
-      return foundRTXCodec;
-    }
-
-    //-------------------------------------------------------------------------
-    const RTPTypesHelper::CodecParameters *RTPTypesHelper::pickFECCodec(
-                                                                        Optional<IMediaStreamTrackTypes::Kinds> kind,
-                                                                        const Parameters &params,
-                                                                        Optional<PayloadType> packetFECPayloadType,
-                                                                        const EncodingParameters *encoding,
-                                                                        const EncodingParameters *baseEncoding
-                                                                        )
-    {
-      IRTPTypes::KnownFECMechanisms mechanism = IRTPTypes::KnownFECMechanism_Unknown;
-
-      bool foundEncoding = false;
-      bool usesFEC = false;
-
-      if (NULL != encoding) {
-        foundEncoding = true;
-        if (encoding->mFEC.hasValue()) {
-          usesFEC = true;
-          mechanism = IRTPTypes::toKnownFECMechanism(encoding->mFEC.value().mMechanism);
-        }
-      }
-
-      if ((IRTPTypes::KnownFECMechanism_Unknown == mechanism) &&
-          (baseEncoding)) {
-        foundEncoding = true;
-        if (baseEncoding->mFEC.hasValue()) {
-          usesFEC = true;
-          mechanism = IRTPTypes::toKnownFECMechanism(baseEncoding->mFEC.value().mMechanism);
-        }
-      }
-
-      if (IRTPTypes::KnownFECMechanism_Unknown == mechanism) {
-        if (params.mEncodings.size() > 0) {
-          auto &frontEncoding = params.mEncodings.front();
-          foundEncoding = true;
-          if (frontEncoding.mFEC.hasValue()) {
-            usesFEC = true;
-            mechanism = IRTPTypes::toKnownFECMechanism(frontEncoding.mFEC.value().mMechanism);
-          }
-        }
-      }
-
-      if ((!usesFEC) &&
-          (foundEncoding)) {
-        ZS_LOG_INSANE(slog("encoding is not using FEC") + params.toDebug() + ZS_PARAM("encoding", encoding ? encoding->toDebug() : ElementPtr()) + ZS_PARAM("base encoding", baseEncoding ? baseEncoding->toDebug() : ElementPtr()))
-        return NULL;
-      }
-
-      auto mainCodec = pickCodec(kind, params, Optional<PayloadType>(), encoding, baseEncoding);
-      if (!mainCodec) return NULL;
-
-      FindCodecOptions options;
-      options.mCodecKind = IRTPTypes::CodecKind_FEC;
-      options.mClockRate = mainCodec->mClockRate;
-      options.mMatchClockRateNotSet = true;
-
-      switch (mechanism) {
-        case IRTPTypes::KnownFECMechanism_Unknown:      {
-          ZS_LOG_WARNING(Trace, slog("FEC mechanism is not known") + params.toDebug() + ZS_PARAM("encoding", encoding ? encoding->toDebug() : ElementPtr()) + ZS_PARAM("base encoding", baseEncoding ? baseEncoding->toDebug() : ElementPtr()))
-          return NULL;
-        }
-        case IRTPTypes::KnownFECMechanism_RED:          {
-          options.mSupportedCodec = IRTPTypes::SupportedCodec_RED;
-          options.mDisallowMultipleMatches = true;
-          break;
-        }
-        case IRTPTypes::KnownFECMechanism_RED_ULPFEC:   {
-          options.mSupportedCodec = IRTPTypes::SupportedCodec_RED;
-          break;
-        }
-        case IRTPTypes::KnownFECMechanism_FlexFEC:      {
-          options.mSupportedCodec = IRTPTypes::SupportedCodec_FlexFEC;
-          options.mDisallowMultipleMatches = true;
-          break;
-        }
-      }
-
-      const CodecParameters *foundFECCodec = NULL;
-      const CodecParameters *oldFECMatch = NULL;
-
-      while (true) {
-        foundFECCodec = findCodec(params, options);
-        if (!foundFECCodec) break;
-
-        if (IRTPTypes::KnownFECMechanism_RED_ULPFEC != mechanism) break;
-
-        if (!foundFECCodec->mParameters) {
-          options.mDisallowedPayloadtypeMatches.insert(foundFECCodec->mPayloadType);
-          continue;                               // RED+ULPFEC requires finding ULPFEC codec
-        }
-
-        auto redCodecParams = IRTPTypes::REDCodecParameters::convert(foundFECCodec->mParameters);
-        if (!redCodecParams) {
-          options.mDisallowedPayloadtypeMatches.insert(foundFECCodec->mPayloadType);
-          continue;                                          // must specify codec embedding for RED
-        }
-
-        bool foundULP = false;
-
-        for (auto iterRed = redCodecParams->mPayloadTypes.begin(); iterRed != redCodecParams->mPayloadTypes.end(); ++iterRed) {
-          auto redPayloadType = (*iterRed);
-
-          FindCodecOptions ulpOptions;
-
-          ulpOptions.mSupportedCodec = IRTPTypes::SupportedCodec_ULPFEC;
-          ulpOptions.mPayloadType = redPayloadType;
-          ulpOptions.mClockRate = mainCodec->mClockRate;
-          ulpOptions.mMatchClockRateNotSet = true;
-
-          auto foundULPCodec = findCodec(params, ulpOptions);
-          if (!foundULPCodec) continue;
-
-          foundULP = true;
-          break;
-        }
-
-        if (!foundULP) {
-          options.mDisallowedPayloadtypeMatches.insert(foundFECCodec->mPayloadType);
-          continue;
-        }
-
-        if (oldFECMatch) {
-          ZS_LOG_WARNING(Detail, slog("FEC payload to use is ambiguous") + ZS_PARAM("found", foundFECCodec->toDebug()) + ZS_PARAM("previously found", oldFECMatch->toDebug()))
-          return NULL;
-        }
-
-        oldFECMatch = foundFECCodec;
-        options.mDisallowedPayloadtypeMatches.insert(foundFECCodec->mPayloadType);
-      }
-
-      if (oldFECMatch) foundFECCodec = oldFECMatch;
-
-      if (!foundFECCodec) {
-        ZS_LOG_WARNING(Debug, slog("did not find an appropriate FEC codec") + params.toDebug() + ZS_PARAM("encoding", encoding ? encoding->toDebug() : ElementPtr()) + ZS_PARAM("base encoding", baseEncoding ? baseEncoding->toDebug() : ElementPtr()))
-        return NULL;
-      }
-
-      ZS_LOG_TRACE(slog("found FEC codec") + foundFECCodec->toDebug() + params.toDebug() + ZS_PARAM("encoding", encoding ? encoding->toDebug() : ElementPtr()) + ZS_PARAM("base encoding", baseEncoding ? baseEncoding->toDebug() : ElementPtr()))
-      return foundFECCodec;
-    }
-
-    //-------------------------------------------------------------------------
     RTPTypesHelper::EncodingParameters *RTPTypesHelper::findEncodingBase(
                                                                          Parameters &inParams,
                                                                          EncodingParameters *inEncoding
@@ -1203,9 +1344,9 @@ namespace ortc
         EncodingParameters *encoding = check->second;
         pending.erase(check);
 
-        if (encoding->mDependencyEncodingIDs.size() < 1) {
-          return encoding;
-        }
+        if (encoding->mDependencyEncodingIDs.size() < 1) return encoding;
+
+        previouslyChecked[check->first] = check->second;
 
         for (auto iter = encoding->mDependencyEncodingIDs.begin(); iter != encoding->mDependencyEncodingIDs.end(); ++iter) {
           auto &dependencyID = (*iter);
@@ -1219,32 +1360,55 @@ namespace ortc
         }
       }
 
-      return inEncoding;
+      return NULL;
+    }
+
+    //-------------------------------------------------------------------------
+    static bool verifyFECKnownMechanism(
+                                        const IRTPTypes::EncodingParameters &encoding,
+                                        IRTPTypes::SupportedCodecs supportedCodec
+                                        )
+    {
+      if (!encoding.mFEC.hasValue()) return false;
+
+      if (encoding.mFEC.value().mMechanism.isEmpty()) {
+        // This is not leegally normally but the latch all capability needs to
+        // be able to specify an unknown mechansim. As such, an empty string
+        // is used to signify the capability of using any FEC mechanism (which
+        // cannot be specified by a user of the API externally).
+        return true;
+      }
+
+      IRTPTypes::KnownFECMechanisms knownMechanism = IRTPTypes::toKnownFECMechanism(encoding.mFEC.value().mMechanism);
+      switch (knownMechanism)
+      {
+        case IRTPTypes::KnownFECMechanism_Unknown:    break;
+        case IRTPTypes::KnownFECMechanism_RED:        break;
+        case IRTPTypes::KnownFECMechanism_RED_ULPFEC:
+        {
+          if (IRTPTypes::SupportedCodec_RED != supportedCodec) break;
+          return true;
+        }
+        case IRTPTypes::KnownFECMechanism_FlexFEC:
+        {
+          if (IRTPTypes::SupportedCodec_FlexFEC != supportedCodec) break;
+          return true;
+        }
+      }
+
+      return false;
     }
 
     //-------------------------------------------------------------------------
     RTPTypesHelper::EncodingParameters *RTPTypesHelper::pickEncodingToFill(
                                                                            Optional<IMediaStreamTrackTypes::Kinds> kind,
-                                                                           PayloadType packetPayloadType,
+                                                                           const RTPPacket &packet,
                                                                            Parameters &filledParams,
-                                                                           const CodecParameters * &outCodecParameters,
-                                                                           IRTPTypes::SupportedCodecs &outSupportedCodec,
-                                                                           IRTPTypes::CodecKinds &outCodecKind,
+                                                                           const DecodedCodecInfo &decodedCodec,
                                                                            EncodingParameters * &outBaseEncoding
                                                                            )
     {
-      outSupportedCodec = IRTPTypes::SupportedCodec_Unknown;
-      outCodecKind = IRTPTypes::CodecKind_Unknown;
       outBaseEncoding = NULL;
-
-      outCodecParameters = RTPTypesHelper::pickCodec(kind, filledParams, packetPayloadType);
-      if (NULL == outCodecParameters) {
-        ZS_LOG_INSANE(slog("cannot match because codec is not found in parameters") + filledParams.toDebug() + ZS_PARAM("packet payload type", packetPayloadType) + ZS_PARAM("kind", kind.hasValue() ? IMediaStreamTrackTypes::toString(kind.value()) : (const char *)NULL))
-        return NULL;
-      }
-
-      outSupportedCodec = IRTPTypes::toSupportedCodec(outCodecParameters->mName);
-      outCodecKind = IRTPTypes::getCodecKind(outSupportedCodec);
 
       if (filledParams.mEncodings.size() < 1) {
         // "latch all" allows this codec to match all incoming packets
@@ -1260,11 +1424,17 @@ namespace ortc
         EncodingParameters &baseEncoding = *(RTPTypesHelper::findEncodingBase(filledParams, &encoding));
 
         const CodecParameters *baseCodec = NULL;
+        IRTPTypes::SupportedCodecs baseSupportedCodec = IRTPTypes::SupportedCodec_Unknown;
+        IRTPTypes::CodecKinds baseCodecKind = IRTPTypes::CodecKind_Unknown;
         if (baseEncoding.mCodecPayloadType.hasValue()) {
           baseCodec = RTPTypesHelper::pickCodec(kind, filledParams);
+          if (baseCodec) {
+            baseSupportedCodec = IRTPTypes::toSupportedCodec(baseCodec->mName);
+            baseCodecKind = IRTPTypes::getCodecKind(baseSupportedCodec);
+          }
         }
 
-        switch (outCodecKind) {
+        switch (decodedCodec.mDepth[0].mCodecKind) {
           case IRTPTypes::CodecKind_Unknown:  ASSERT(false) break;
           case IRTPTypes::CodecKind_Audio:
           case IRTPTypes::CodecKind_Video:
@@ -1272,14 +1442,24 @@ namespace ortc
           case IRTPTypes::CodecKind_Data:
           {
             if (baseCodec) {
-              if (baseCodec->mPayloadType != packetPayloadType) goto not_possible_match;
+              if (baseCodec->mPayloadType != packet.pt()) goto not_possible_match;
             }
 
-            if (baseEncoding.mSSRC.hasValue()) {
-              if (!IRTPTypes::isMRSTCodec(outSupportedCodec)) goto not_possible_match;
+            if (encoding.mCodecPayloadType.hasValue()) {
+              if (encoding.mCodecPayloadType.value() != packet.pt()) goto not_possible_match;
             }
 
-            if (encoding.mSSRC.hasValue()) goto not_possible_layer_match;
+            if (encoding.mSSRC.hasValue()) {
+              if (encoding.mSSRC.value() != packet.ssrc()) goto not_possible_match;
+            }
+            
+            if (&baseEncoding != &encoding) {
+              if (!baseEncoding.mSSRC.hasValue()) goto not_possible_match;
+
+              if (packet.ssrc() != baseEncoding.mSSRC.value()) {
+                if (!IRTPTypes::isMRSTCodec(decodedCodec.mDepth[0].mSupportedCodec)) goto not_possible_match;
+              }
+            }
 
             outBaseEncoding = &baseEncoding;
             return &encoding;
@@ -1287,10 +1467,15 @@ namespace ortc
           case IRTPTypes::CodecKind_AudioSupplemental:
           {
             if (!baseCodec) goto not_possible_match;
+            if (&baseEncoding != &encoding) goto not_possible_match;
+
+            if (!encoding.mSSRC.hasValue()) goto not_possible_match;
+
+            if (encoding.mSSRC.value() != packet.ssrc()) goto not_possible_match;
 
             if (baseCodec->mClockRate.hasValue()) {
-              if (outCodecParameters->mClockRate.hasValue()) {  // NOTE: will allow match if supplemental codec does not have a clock rate specified at all
-                if (baseCodec->mClockRate.value() != outCodecParameters->mClockRate.value()) goto not_possible_match;
+              if (decodedCodec.mDepth[0].mCodecParameters->mClockRate.hasValue()) {  // NOTE: will allow match if supplemental codec does not have a clock rate specified at all
+                if (baseCodec->mClockRate.value() != decodedCodec.mDepth[0].mCodecParameters->mClockRate.value()) goto not_possible_match;
               }
             }
 
@@ -1299,52 +1484,114 @@ namespace ortc
           }
           case IRTPTypes::CodecKind_RTX:    {
             if (!baseCodec) goto not_possible_match;
-
             if (!baseEncoding.mSSRC.hasValue()) goto not_possible_match;
+            if (!baseEncoding.mCodecPayloadType.hasValue()) goto not_possible_match;
 
-            if ((baseEncoding.mRTX.hasValue()) &&
-                (baseEncoding.mRTX.value().mSSRC.hasValue())) {
-              if (!IRTPTypes::isMRSTCodec(outSupportedCodec)) goto not_possible_match;
+            if (!encoding.mRTX.hasValue()) goto not_possible_match;
+
+            if (encoding.mRTX.value().mSSRC.hasValue()) {
+              if (encoding.mRTX.value().mSSRC.value() != packet.ssrc()) goto not_possible_match;
             }
 
-            if ((encoding.mRTX.hasValue()) &&
-                (encoding.mRTX.value().mSSRC.hasValue())) goto not_possible_layer_match;
+            // not possible to switch codec and still match
+            switch (decodedCodec.mDepth[decodedCodec.mFilledDepth].mCodecKind)
+            {
+              case IRTPTypes::CodecKind_Audio:
+              case IRTPTypes::CodecKind_Video:
+              case IRTPTypes::CodecKind_AV:
+              case IRTPTypes::CodecKind_Data:
+              {
+                if (baseEncoding.mCodecPayloadType.value() != decodedCodec.mDepth[decodedCodec.mFilledDepth].mCodecParameters->mPayloadType) goto not_possible_match;
+                break;
+              }
+              case IRTPTypes::CodecKind_AudioSupplemental:
+              {
+                if ((baseCodecKind != IRTPTypes::CodecKind_Audio) &&
+                    (baseCodecKind != IRTPTypes::CodecKind_AV)) goto not_possible_match;
+                break;
+              }
+              case IRTPTypes::CodecKind_Unknown:
+              case IRTPTypes::CodecKind_RTX:
+              case IRTPTypes::CodecKind_FEC:
+              {
+                goto not_possible_match;
+              }
+            }
 
-            auto foundRTXCodec = RTPTypesHelper::pickRTXCodec(kind, filledParams, packetPayloadType, &encoding, &baseEncoding);
-            if (!foundRTXCodec) goto not_possible_layer_match;
+            for (size_t depth = 0; depth < ORTC_INTERNAL_RTPTYPESHELPER_MAX_CODEC_DEPTH; ++depth)
+            {
+              if (IRTPTypes::CodecKind_FEC != decodedCodec.mDepth[depth].mCodecKind) continue;
+              if (!encoding.mFEC.hasValue()) goto not_possible_match;
+              if (!verifyFECKnownMechanism(encoding, decodedCodec.mDepth[depth].mSupportedCodec)) goto not_possible_match;
+            }
+
+            if (&baseEncoding != &encoding) {
+              if (IRTPTypes::CodecKind_AudioSupplemental == decodedCodec.mDepth[decodedCodec.mFilledDepth].mCodecKind) goto not_possible_match;
+
+              if (baseEncoding.mRTX.value().mSSRC.value() != packet.ssrc()) {
+                if (!IRTPTypes::isMRSTCodec(baseSupportedCodec)) goto not_possible_match;
+              }
+            }
 
             outBaseEncoding = &baseEncoding;
             return &encoding;
           }
           case IRTPTypes::CodecKind_FEC:    {
-            if (!baseCodec) goto not_possible_match;
+            if (!encoding.mFEC.hasValue()) goto not_possible_match;
 
-            if (!baseEncoding.mSSRC.hasValue()) goto not_possible_match;
-
-            if ((baseEncoding.mFEC.hasValue()) &&
-                (baseEncoding.mFEC.value().mSSRC.hasValue())) {
-              if (!IRTPTypes::isMRSTCodec(outSupportedCodec)) goto not_possible_match;
+            if (encoding.mFEC.value().mSSRC.hasValue()) {
+              if (encoding.mFEC.value().mSSRC.value() != packet.mSSRC) goto not_possible_match;
             }
 
-            if ((encoding.mFEC.hasValue()) &&
-                (encoding.mFEC.value().mSSRC.hasValue())) goto not_possible_layer_match;
+            if (!verifyFECKnownMechanism(encoding, decodedCodec.mDepth[0].mSupportedCodec)) goto not_possible_match;
 
-            auto foundFECCodec = RTPTypesHelper::pickFECCodec(kind, filledParams, packetPayloadType, &encoding, &baseEncoding);
-            if (!foundFECCodec) goto not_possible_layer_match;
+            if (baseEncoding.mCodecPayloadType.hasValue())
+            {
+              switch (decodedCodec.mDepth[decodedCodec.mFilledDepth].mCodecKind)
+              {
+                case IRTPTypes::CodecKind_Audio:
+                case IRTPTypes::CodecKind_Video:
+                case IRTPTypes::CodecKind_AV:
+                case IRTPTypes::CodecKind_Data:
+                {
+                  if (baseEncoding.mCodecPayloadType.value() != decodedCodec.mDepth[decodedCodec.mFilledDepth].mCodecParameters->mPayloadType) goto not_possible_match;
+                  break;
+                }
+                case IRTPTypes::CodecKind_AudioSupplemental:
+                {
+                  if ((baseCodecKind != IRTPTypes::CodecKind_Audio) &&
+                      (baseCodecKind != IRTPTypes::CodecKind_AV)) goto not_possible_match;
+
+                  if (&baseEncoding != &encoding) goto not_possible_match;
+                  break;
+                }
+                case IRTPTypes::CodecKind_Unknown:
+                case IRTPTypes::CodecKind_RTX:
+                case IRTPTypes::CodecKind_FEC:
+                {
+                  goto not_possible_match;
+                }
+              }
+            }
+
+            if (baseEncoding.mFEC.value().mSSRC.hasValue())
+            {
+              if (baseEncoding.mFEC.value().mSSRC.value() != packet.ssrc()) {
+                if (!IRTPTypes::isMRSTCodec(decodedCodec.mDepth[decodedCodec.mFilledDepth].mSupportedCodec)) goto not_possible_match;
+              }
+            }
+
+            if (!baseCodec) goto not_possible_match;
+            if (!baseEncoding.mSSRC.hasValue()) goto not_possible_match;
 
             outBaseEncoding = &baseEncoding;
             return &encoding;
           }
         }
 
-      not_possible_layer_match: {}
+      not_possible_match: {}
       }
 
-    not_possible_match: {}
-
-      outCodecParameters = NULL;
-      outSupportedCodec = IRTPTypes::SupportedCodec_Unknown;
-      outCodecKind = IRTPTypes::CodecKind_Unknown;
       outBaseEncoding = NULL;
       return NULL;
     }
@@ -1394,6 +1641,266 @@ namespace ortc
       return foundKind;
     }
 
+    //-------------------------------------------------------------------------
+    static bool checkDecodedKind(
+                                 Optional<IMediaStreamTrackTypes::Kinds> &ioKind,
+                                 IMediaStreamTrackTypes::Kinds foundKind
+                                 )
+    {
+      if (ioKind.hasValue()) {
+        if (ioKind.value() != foundKind) {
+          ZS_LOG_WARNING(Trace, RTPTypesHelper::slog("packet type mismatch") + ZS_PARAM("expecting", IMediaStreamTrackTypes::toString(ioKind.value())) + ZS_PARAM("found", IMediaStreamTrackTypes::toString(foundKind)))
+          return false;
+        }
+        return true;
+      }
+      ioKind = foundKind;
+      return true;
+    }
+
+    //-------------------------------------------------------------------------
+    bool RTPTypesHelper::decodePacketCodecs(
+                                            Optional<IMediaStreamTrackTypes::Kinds> &ioKind,
+                                            const RTPPacket &packet,
+                                            const Parameters &params,
+                                            DecodedCodecInfo &decodedCodecInfo
+                                            )
+    {
+      decodedCodecInfo.mFilledDepth = 0;
+
+      size_t &nextDepth = decodedCodecInfo.mFilledDepth;
+
+      decodedCodecInfo.mDepth[nextDepth].mCodecParameters = RTPTypesHelper::pickCodec(ioKind, params, packet.pt());
+      if (NULL == decodedCodecInfo.mDepth[nextDepth].mCodecParameters) {
+        ZS_LOG_WARNING(Trace, slog("cannot decode because codec is not found in parameters") + params.toDebug() + ZS_PARAM("packet payload type", packet.pt()) + ZS_PARAM("kind", ioKind.hasValue() ? IMediaStreamTrackTypes::toString(ioKind.value()) : (const char *)NULL))
+        return false;
+      }
+
+      decodedCodecInfo.mDepth[nextDepth].mSupportedCodec = IRTPTypes::toSupportedCodec(decodedCodecInfo.mDepth[nextDepth].mCodecParameters->mName);
+      decodedCodecInfo.mDepth[nextDepth].mCodecKind = IRTPTypes::getCodecKind(decodedCodecInfo.mDepth[nextDepth].mSupportedCodec);
+
+      switch (decodedCodecInfo.mDepth[nextDepth].mCodecKind) {
+        case IRTPTypes::CodecKind_Unknown:
+        {
+          ASSERT(false);
+          return false;
+        }
+        case IRTPTypes::CodecKind_Audio:              return checkDecodedKind(ioKind, IMediaStreamTrackTypes::Kind_Audio);
+        case IRTPTypes::CodecKind_AudioSupplemental:  return checkDecodedKind(ioKind, IMediaStreamTrackTypes::Kind_Audio);
+        case IRTPTypes::CodecKind_Video:              return checkDecodedKind(ioKind, IMediaStreamTrackTypes::Kind_Video);
+        case IRTPTypes::CodecKind_AV:                 return true;
+        case IRTPTypes::CodecKind_Data:               return true;
+        case IRTPTypes::CodecKind_RTX:                break;
+        case IRTPTypes::CodecKind_FEC:                break;
+      }
+
+
+      const BYTE *innerPayload {};
+      size_t innerPayloadSize {};
+
+      if (IRTPTypes::CodecKind_RTX == decodedCodecInfo.mDepth[nextDepth].mCodecKind) {
+        IRTPTypes::RTXCodecParametersPtr rtxParams = IRTPTypes::RTXCodecParameters::convert(decodedCodecInfo.mDepth[nextDepth].mCodecParameters->mParameters);
+        if (!rtxParams) {
+          ZS_LOG_WARNING(Trace, slog("cannot decode because apt is not set on RTX parameters") + params.toDebug() + ZS_PARAM("packet payload type", packet.pt()) + ZS_PARAM("kind", ioKind.hasValue() ? IMediaStreamTrackTypes::toString(ioKind.value()) : (const char *)NULL))
+          return false;
+        }
+
+        ++nextDepth;
+
+        FindCodecOptions options;
+        options.mPayloadType = rtxParams->mApt;
+        decodedCodecInfo.mDepth[nextDepth].mCodecParameters = findCodec(params, options);
+        if (NULL == decodedCodecInfo.mDepth[nextDepth].mCodecParameters) {
+          ZS_LOG_WARNING(Debug, slog("cannot find decoded RTX") + params.toDebug() + rtxParams->toDebug())
+          return false;
+        }
+
+        decodedCodecInfo.mDepth[nextDepth].mSupportedCodec = IRTPTypes::toSupportedCodec(decodedCodecInfo.mDepth[nextDepth].mCodecParameters->mName);
+        decodedCodecInfo.mDepth[nextDepth].mCodecKind = IRTPTypes::getCodecKind(decodedCodecInfo.mDepth[nextDepth].mSupportedCodec);
+
+        getRTXCodecPayload(packet.payload(), packet.payloadSize(), innerPayload, innerPayloadSize);
+
+        switch (decodedCodecInfo.mDepth[nextDepth].mCodecKind) {
+          case IRTPTypes::CodecKind_Unknown:            ASSERT(false); return false;
+          case IRTPTypes::CodecKind_Audio:              return checkDecodedKind(ioKind, IMediaStreamTrackTypes::Kind_Audio);
+          case IRTPTypes::CodecKind_AudioSupplemental:  return checkDecodedKind(ioKind, IMediaStreamTrackTypes::Kind_Audio);
+          case IRTPTypes::CodecKind_Video:              return checkDecodedKind(ioKind, IMediaStreamTrackTypes::Kind_Video);
+          case IRTPTypes::CodecKind_AV:                 return true;
+          case IRTPTypes::CodecKind_Data:               return true;
+          case IRTPTypes::CodecKind_RTX:                ASSERT(false); return false;
+          case IRTPTypes::CodecKind_FEC:                break;
+        }
+      } else {
+        innerPayload = packet.payload();
+        innerPayloadSize = packet.payloadSize();
+      }
+
+      switch (decodedCodecInfo.mDepth[nextDepth].mSupportedCodec)
+      {
+        case IRTPTypes::SupportedCodec_RED:
+        {
+          auto redInnerCodecPayloadType = getRedCodecPayload(innerPayload, innerPayloadSize, innerPayload, innerPayloadSize);
+          if (!redInnerCodecPayloadType.hasValue()) {
+            ZS_LOG_WARNING(Trace, slog("cannot extract RED codec payload information") + decodedCodecInfo.toDebug())
+            return false;
+          }
+
+          ++nextDepth;
+
+          FindCodecOptions options;
+          options.mPayloadType = redInnerCodecPayloadType;
+
+          decodedCodecInfo.mDepth[nextDepth].mCodecParameters = findCodec(params, options);
+
+          if (NULL == decodedCodecInfo.mDepth[nextDepth].mCodecParameters) {
+            ZS_LOG_WARNING(Trace, slog("RED codec type was not understood") + decodedCodecInfo.toDebug())
+            return false;
+          }
+
+          decodedCodecInfo.mDepth[nextDepth].mSupportedCodec = IRTPTypes::toSupportedCodec(decodedCodecInfo.mDepth[nextDepth].mCodecParameters->mName);
+          decodedCodecInfo.mDepth[nextDepth].mCodecKind = IRTPTypes::getCodecKind(decodedCodecInfo.mDepth[nextDepth].mSupportedCodec);
+
+          switch (decodedCodecInfo.mDepth[nextDepth].mCodecKind) {
+            case IRTPTypes::CodecKind_Unknown:            {
+              ZS_LOG_WARNING(Trace, slog("RED codec type was not understood") + decodedCodecInfo.toDebug())
+              return false;
+            }
+            case IRTPTypes::CodecKind_Audio:              return checkDecodedKind(ioKind, IMediaStreamTrackTypes::Kind_Audio);
+            case IRTPTypes::CodecKind_AudioSupplemental:  return checkDecodedKind(ioKind, IMediaStreamTrackTypes::Kind_Audio);
+            case IRTPTypes::CodecKind_Video:              return checkDecodedKind(ioKind, IMediaStreamTrackTypes::Kind_Video);
+            case IRTPTypes::CodecKind_AV:                 return true;
+            case IRTPTypes::CodecKind_Data:               return true;
+            case IRTPTypes::CodecKind_RTX:                {
+              ZS_LOG_WARNING(Trace, slog("RED codec type containing RTX codec is not supported") + decodedCodecInfo.toDebug())
+              return false;
+            }
+            case IRTPTypes::CodecKind_FEC:                break;
+          }
+          if (IRTPTypes::SupportedCodec_ULPFEC != decodedCodecInfo.mDepth[nextDepth].mSupportedCodec) {
+            ZS_LOG_WARNING(Trace, slog("RED codec type containing FEC codec that is not ULPFEC is not supported") + decodedCodecInfo.toDebug())
+            return false;
+          }
+          ++nextDepth;
+          break;
+        }
+        case IRTPTypes::SupportedCodec_ULPFEC:
+        {
+          ZS_LOG_WARNING(Trace, slog("only RED+ULPFEC is supported") + decodedCodecInfo.mDepth[nextDepth].toDebug())
+          return false;
+        }
+        case IRTPTypes::SupportedCodec_FlexFEC:
+        {
+          ++nextDepth;
+          goto decode_recovery_packet;
+        }
+        default:
+        {
+          ASSERT(false);
+          return false;
+        }
+      }
+
+    decode_recovery_packet:
+      {
+        auto fecRecoveryPayloadType = getFecRecoveryPayloadType(innerPayload, innerPayloadSize);
+        if (!fecRecoveryPayloadType.hasValue()) {
+          ZS_LOG_WARNING(Trace, slog("FEC recovery codec type was not understood") + decodedCodecInfo.toDebug())
+          return false;
+        }
+
+        FindCodecOptions options;
+        options.mPayloadType = fecRecoveryPayloadType;
+
+        decodedCodecInfo.mDepth[nextDepth].mCodecParameters = findCodec(params, options);
+
+        if (NULL == decodedCodecInfo.mDepth[nextDepth].mCodecParameters) {
+          ZS_LOG_WARNING(Trace, slog("Recovery codec type was not understood") + decodedCodecInfo.toDebug())
+          return false;
+        }
+
+        decodedCodecInfo.mDepth[nextDepth].mSupportedCodec = IRTPTypes::toSupportedCodec(decodedCodecInfo.mDepth[nextDepth].mCodecParameters->mName);
+        decodedCodecInfo.mDepth[nextDepth].mCodecKind = IRTPTypes::getCodecKind(decodedCodecInfo.mDepth[nextDepth].mSupportedCodec);
+
+        switch (decodedCodecInfo.mDepth[nextDepth].mCodecKind) {
+          case IRTPTypes::CodecKind_Unknown:            {
+            ZS_LOG_WARNING(Trace, slog("Recovery codec type was not understood") + decodedCodecInfo.toDebug())
+            return false;
+          }
+          case IRTPTypes::CodecKind_Audio:              return checkDecodedKind(ioKind, IMediaStreamTrackTypes::Kind_Audio);
+          case IRTPTypes::CodecKind_AudioSupplemental:  return checkDecodedKind(ioKind, IMediaStreamTrackTypes::Kind_Audio);
+          case IRTPTypes::CodecKind_Video:              return checkDecodedKind(ioKind, IMediaStreamTrackTypes::Kind_Video);
+          case IRTPTypes::CodecKind_AV:                 return true;
+          case IRTPTypes::CodecKind_Data:               return true;
+          case IRTPTypes::CodecKind_RTX:                {
+            ZS_LOG_WARNING(Trace, slog("Recovery codec type containing RTX codec is not supported") + decodedCodecInfo.toDebug())
+            return false;
+          }
+          case IRTPTypes::CodecKind_FEC:                {
+            ZS_LOG_WARNING(Trace, slog("Recovery codec type containing another recovery codec is not supported") + decodedCodecInfo.toDebug())
+            return false;
+          }
+        }
+      }
+      
+      return true;
+    }
+    
+    //-------------------------------------------------------------------------
+    void RTPTypesHelper::getRTXCodecPayload(
+                                            const BYTE *packetPayload,
+                                            size_t packetPayloadSizeInBytes,
+                                            const BYTE * &outInnterPayload,
+                                            size_t &outInnerPayloadSizeBytes
+                                            )
+    {
+      if (packetPayloadSizeInBytes < sizeof(WORD)) {
+        outInnterPayload = packetPayload + packetPayloadSizeInBytes;
+        outInnerPayloadSizeBytes = 0;
+        return;
+      }
+
+      outInnterPayload = &(packetPayload[sizeof(WORD)]);
+      outInnerPayloadSizeBytes = packetPayloadSizeInBytes - sizeof(WORD);
+    }
+
+    //-------------------------------------------------------------------------
+    Optional<IRTPTypes::PayloadType> RTPTypesHelper::getRedCodecPayload(
+                                                                        const BYTE *packetPayload,
+                                                                        size_t packetPayloadSizeInBytes,
+                                                                        const BYTE * &outInnterPayload,
+                                                                        size_t &outInnerPayloadSizeBytes
+                                                                        )
+    {
+      Optional<IRTPTypes::PayloadType> result;
+      if (NULL == packetPayload) return result;
+      if (sizeof(DWORD) > packetPayloadSizeInBytes) return result;
+
+      result = static_cast<PayloadType>(0x7F & packetPayload[0]);
+
+      outInnerPayloadSizeBytes = static_cast<size_t>(RTPUtils::getBE16(&(packetPayload[2])));
+
+      if (outInnerPayloadSizeBytes + sizeof(DWORD) > packetPayloadSizeInBytes) {
+        outInnerPayloadSizeBytes = packetPayloadSizeInBytes - sizeof(DWORD);
+      }
+
+      outInnterPayload = &(packetPayload[sizeof(DWORD)]);
+      return result;
+    }
+
+    //-------------------------------------------------------------------------
+    Optional<IRTPTypes::PayloadType> RTPTypesHelper::getFecRecoveryPayloadType(
+                                                                               const BYTE *packetPayload,
+                                                                               size_t packetPayloadSizeInBytes
+                                                                               )
+    {
+      Optional<IRTPTypes::PayloadType> result;
+      if (NULL == packetPayload) return result;
+      if (sizeof(WORD) > packetPayloadSizeInBytes) return result;
+
+      result = static_cast<PayloadType>(0x7F & packetPayload[1]);
+      return result;
+    }
+    
     //-------------------------------------------------------------------------
     Log::Params RTPTypesHelper::slog(const char *message)
     {
@@ -1663,6 +2170,14 @@ namespace ortc
             mParameters = make_shared<H264CodecCapabilityParameters>(parametersEl);
             break;
           }
+          case SupportedCodec_RTX:   {
+            mParameters = make_shared<RTXCodecCapabilityParameters>(parametersEl);
+            break;
+          }
+          case SupportedCodec_FlexFEC:   {
+            mParameters = make_shared<FlexFECCodecCapabilityParameters>(parametersEl);
+            break;
+          }
           default: break;
         }
       }
@@ -1737,6 +2252,20 @@ namespace ortc
             }
             break;
           }
+          case SupportedCodec_RTX:   {
+            auto codec = RTXCodecCapabilityParameters::convert(mParameters);
+            if (codec) {
+              elem->adoptAsLastChild(codec->createElement("parameters"));
+            }
+            break;
+          }
+          case SupportedCodec_FlexFEC:   {
+            auto codec = FlexFECCodecCapabilityParameters::convert(mParameters);
+            if (codec) {
+              elem->adoptAsLastChild(codec->createElement("parameters"));
+            }
+            break;
+          }
           default: break;
         }
       }
@@ -1799,6 +2328,20 @@ namespace ortc
             auto codec = H264CodecCapabilityParameters::convert(source.mParameters);
             if (codec) {
               mParameters = H264CodecCapabilityParameters::create(*codec);
+            }
+            break;
+          }
+          case SupportedCodec_RTX:   {
+            auto codec = RTXCodecCapabilityParameters::convert(source.mParameters);
+            if (codec) {
+              mParameters = RTXCodecCapabilityParameters::create(*codec);
+            }
+            break;
+          }
+          case SupportedCodec_FlexFEC:   {
+            auto codec = FlexFECCodecCapabilityParameters::convert(source.mParameters);
+            if (codec) {
+              mParameters = FlexFECCodecCapabilityParameters::create(*codec);
             }
             break;
           }
@@ -1868,6 +2411,22 @@ namespace ortc
           }
           case SupportedCodec_H264:   {
             auto codec = H264CodecCapabilityParameters::convert(mParameters);
+            if (codec) {
+              UseServicesHelper::debugAppend(resultEl, codec->toDebug());
+              found = true;
+            }
+            break;
+          }
+          case SupportedCodec_RTX:   {
+            auto codec = RTXCodecCapabilityParameters::convert(mParameters);
+            if (codec) {
+              UseServicesHelper::debugAppend(resultEl, codec->toDebug());
+              found = true;
+            }
+            break;
+          }
+          case SupportedCodec_FlexFEC:   {
+            auto codec = FlexFECCodecCapabilityParameters::convert(mParameters);
             if (codec) {
               UseServicesHelper::debugAppend(resultEl, codec->toDebug());
               found = true;
@@ -1964,6 +2523,16 @@ namespace ortc
           }
           case SupportedCodec_H264:   {
             auto codec = H264CodecCapabilityParameters::convert(mParameters);
+            if (codec) hasher.update(codec->hash());
+            break;
+          }
+          case SupportedCodec_RTX:   {
+            auto codec = RTXCodecCapabilityParameters::convert(mParameters);
+            if (codec) hasher.update(codec->hash());
+            break;
+          }
+          case SupportedCodec_FlexFEC:   {
+            auto codec = FlexFECCodecCapabilityParameters::convert(mParameters);
             if (codec) hasher.update(codec->hash());
             break;
           }
@@ -2395,6 +2964,186 @@ namespace ortc
 
     return hasher.final();
   }
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IRTPTypes::RTXCodecCapabilityParameters
+  #pragma mark
+
+  //---------------------------------------------------------------------------
+  IRTPTypes::RTXCodecCapabilityParameters::RTXCodecCapabilityParameters(ElementPtr elem)
+  {
+    if (!elem) return;
+
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::RTXCodecCapabilityParameters", "apt", mApt);
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::RTXCodecCapabilityParameters", "rtxTime", mRTXTime);
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IRTPTypes::RTXCodecCapabilityParameters::createElement(const char *objectName) const
+  {
+    ElementPtr elem = Element::create(objectName);
+
+    UseHelper::adoptElementValue(elem, "apt", mApt);
+    UseHelper::adoptElementValue(elem, "rtxTime", mRTXTime);
+
+    if (!elem->hasChildren()) return ElementPtr();
+    
+    return elem;
+  }
+
+  //---------------------------------------------------------------------------
+  IRTPTypes::RTXCodecParametersPtr IRTPTypes::RTXCodecCapabilityParameters::create(const RTXCodecParameters &params)
+  {
+    return make_shared<RTXCodecParameters>(params);
+  }
+
+  //---------------------------------------------------------------------------
+  IRTPTypes::RTXCodecParametersPtr IRTPTypes::RTXCodecCapabilityParameters::convert(AnyPtr any)
+  {
+    return ZS_DYNAMIC_PTR_CAST(RTXCodecParameters, any);
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IRTPTypes::RTXCodecCapabilityParameters::toDebug() const
+  {
+    ElementPtr resultEl = Element::create("ortc::IRTPTypes::RTXCodecCapabilityParameters");
+
+    UseServicesHelper::debugAppend(resultEl, "apt", mApt);
+    UseServicesHelper::debugAppend(resultEl, "rtx time", mRTXTime);
+
+    return resultEl;
+  }
+
+  //---------------------------------------------------------------------------
+  String IRTPTypes::RTXCodecCapabilityParameters::hash() const
+  {
+    SHA1Hasher hasher;
+
+    hasher.update("ortc::IRTPTypes::RTXCodecCapabilityParameters:");
+
+    hasher.update(mApt);
+    hasher.update(mRTXTime);
+
+    return hasher.final();
+  }
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IRTPTypes::FlexFECCodecCapabilityParameters
+  #pragma mark
+
+  //---------------------------------------------------------------------------
+  IRTPTypes::FlexFECCodecCapabilityParameters::FlexFECCodecCapabilityParameters(ElementPtr elem)
+  {
+    if (!elem) return;
+
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::FlexFECCodecCapabilityParameters", "rtxTime", mRepairWindow);
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::FlexFECCodecCapabilityParameters", "l", mL);
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::FlexFECCodecCapabilityParameters", "d", mD);
+
+    {
+      ElementPtr subEl = elem->findFirstChildElement("toP");
+      if (subEl) {
+        String str = UseServicesHelper::getElementTextAndDecode(subEl);
+        try {
+          mToP = IRTPTypes::FlexFECCodecParameters::toToP(str);
+        } catch(const InvalidParameters &) {
+          ZS_LOG_WARNING(Debug, slog("degredation preference is not valid") + ZS_PARAM("value", str))
+        }
+      }
+    }
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IRTPTypes::FlexFECCodecCapabilityParameters::createElement(const char *objectName) const
+  {
+    ElementPtr elem = Element::create(objectName);
+
+    UseHelper::adoptElementValue(elem, "repairWindow", mRepairWindow);
+    UseHelper::adoptElementValue(elem, "l", mL);
+    UseHelper::adoptElementValue(elem, "d", mD);
+    UseHelper::adoptElementValue(elem, "toP", string(mToP), false);
+
+    if (!elem->hasChildren()) return ElementPtr();
+
+    return elem;
+  }
+
+  //---------------------------------------------------------------------------
+  const char *IRTPTypes::FlexFECCodecCapabilityParameters::toString(ToPs top)
+  {
+    switch (top) {
+      case ToP_1DInterleavedFEC:      return "1d-interleaved-fec";
+      case ToP_1DNonInterleavedFEC:   return "1d-non-interleaved-fec";
+      case ToP_2DParityFEEC:          return "2d-parity-fec";
+      case ToP_Reserved:              return "reserved";
+    }
+
+    return "unknown";
+  }
+
+  //---------------------------------------------------------------------------
+  IRTPTypes::FlexFECCodecCapabilityParameters::ToPs IRTPTypes::FlexFECCodecCapabilityParameters::toToP(const char *top)
+  {
+    String topStr(top);
+
+    for (ToPs index = ToP_First; index <= ToP_Last; index = static_cast<ToPs>(static_cast<std::underlying_type<ToPs>::type>(index) + 1)) {
+      if (topStr == IRTPTypes::FlexFECCodecCapabilityParameters::toString(index)) return index;
+    }
+
+    return ToP_Reserved;
+  }
+
+  //---------------------------------------------------------------------------
+  IRTPTypes::FlexFECCodecCapabilityParametersPtr IRTPTypes::FlexFECCodecCapabilityParameters::create(const FlexFECCodecParameters &capability)
+  {
+    return make_shared<FlexFECCodecParameters>(capability);
+  }
+
+  //---------------------------------------------------------------------------
+  IRTPTypes::FlexFECCodecCapabilityParametersPtr IRTPTypes::FlexFECCodecCapabilityParameters::convert(AnyPtr any)
+  {
+    return ZS_DYNAMIC_PTR_CAST(FlexFECCodecCapabilityParameters, any);
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IRTPTypes::FlexFECCodecCapabilityParameters::toDebug() const
+  {
+    ElementPtr resultEl = Element::create("ortc::IRTPTypes::FlexFECCodecCapabilityParameters");
+
+    UseServicesHelper::debugAppend(resultEl, "repair window", mRepairWindow);
+    UseServicesHelper::debugAppend(resultEl, "L", mL);
+    UseServicesHelper::debugAppend(resultEl, "D", mD);
+    UseServicesHelper::debugAppend(resultEl, "ToP", mToP.hasValue() ? toString(mToP.value()) : (const char *)NULL);
+
+    return resultEl;
+  }
+
+  //---------------------------------------------------------------------------
+  String IRTPTypes::FlexFECCodecCapabilityParameters::hash() const
+  {
+    SHA1Hasher hasher;
+
+    hasher.update("ortc::IRTPTypes::FlexFECCodecCapabilityParameters:");
+
+    hasher.update(mRepairWindow);
+    hasher.update(":");
+    hasher.update(mL);
+    hasher.update(":");
+    hasher.update(mD);
+    hasher.update(":");
+    hasher.update(mToP);
+
+    return hasher.final();
+  }
+
 
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
@@ -3336,68 +4085,6 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   #pragma mark
-  #pragma mark IRTPTypes::RTXCodecParameters
-  #pragma mark
-
-  //---------------------------------------------------------------------------
-  IRTPTypes::RTXCodecParameters::RTXCodecParameters(ElementPtr elem)
-  {
-    if (!elem) return;
-
-    UseHelper::getElementValue(elem, "ortc::IRTPTypes::RTXCodecParameters", "rtxTime", mRTXTime);
-  }
-
-  //---------------------------------------------------------------------------
-  ElementPtr IRTPTypes::RTXCodecParameters::createElement(const char *objectName) const
-  {
-    ElementPtr elem = Element::create(objectName);
-
-    UseHelper::adoptElementValue(elem, "rtxTime", mRTXTime);
-
-    if (!elem->hasChildren()) return ElementPtr();
-    
-    return elem;
-  }
-
-  //---------------------------------------------------------------------------
-  IRTPTypes::RTXCodecParametersPtr IRTPTypes::RTXCodecParameters::create(const RTXCodecParameters &capability)
-  {
-    return make_shared<RTXCodecParameters>(capability);
-  }
-
-  //---------------------------------------------------------------------------
-  IRTPTypes::RTXCodecParametersPtr IRTPTypes::RTXCodecParameters::convert(AnyPtr any)
-  {
-    return ZS_DYNAMIC_PTR_CAST(RTXCodecParameters, any);
-  }
-
-  //---------------------------------------------------------------------------
-  ElementPtr IRTPTypes::RTXCodecParameters::toDebug() const
-  {
-    ElementPtr resultEl = Element::create("ortc::IRTPTypes::RTXCodecParameters");
-
-    UseServicesHelper::debugAppend(resultEl, "rtx time", mRTXTime);
-
-    return resultEl;
-  }
-
-  //---------------------------------------------------------------------------
-  String IRTPTypes::RTXCodecParameters::hash() const
-  {
-    SHA1Hasher hasher;
-
-    hasher.update("ortc::IRTPTypes::RTXCodecParameters:");
-
-    hasher.update(mRTXTime);
-
-    return hasher.final();
-  }
-
-  //---------------------------------------------------------------------------
-  //---------------------------------------------------------------------------
-  //---------------------------------------------------------------------------
-  //---------------------------------------------------------------------------
-  #pragma mark
   #pragma mark IRTPTypes::REDCodecParameters
   #pragma mark
 
@@ -3493,120 +4180,6 @@ namespace ortc
 
     return hasher.final();
   }
-
-  //---------------------------------------------------------------------------
-  //---------------------------------------------------------------------------
-  //---------------------------------------------------------------------------
-  //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IRTPTypes::FlexFECCodecParameters
-  #pragma mark
-
-  //---------------------------------------------------------------------------
-  IRTPTypes::FlexFECCodecParameters::FlexFECCodecParameters(ElementPtr elem)
-  {
-    if (!elem) return;
-
-    UseHelper::getElementValue(elem, "ortc::IRTPTypes::FlexFECCodecParameters", "rtxTime", mRepairWindow);
-    UseHelper::getElementValue(elem, "ortc::IRTPTypes::FlexFECCodecParameters", "l", mL);
-    UseHelper::getElementValue(elem, "ortc::IRTPTypes::FlexFECCodecParameters", "d", mD);
-
-    {
-      ElementPtr subEl = elem->findFirstChildElement("toP");
-      if (subEl) {
-        String str = UseServicesHelper::getElementTextAndDecode(subEl);
-        try {
-          mToP = IRTPTypes::FlexFECCodecParameters::toToP(str);
-        } catch(const InvalidParameters &) {
-          ZS_LOG_WARNING(Debug, slog("degredation preference is not valid") + ZS_PARAM("value", str))
-        }
-      }
-    }
-  }
-
-  //---------------------------------------------------------------------------
-  ElementPtr IRTPTypes::FlexFECCodecParameters::createElement(const char *objectName) const
-  {
-    ElementPtr elem = Element::create(objectName);
-
-    UseHelper::adoptElementValue(elem, "repairWindow", mRepairWindow);
-    UseHelper::adoptElementValue(elem, "l", mL);
-    UseHelper::adoptElementValue(elem, "d", mD);
-    UseHelper::adoptElementValue(elem, "toP", string(mToP), false);
-
-    if (!elem->hasChildren()) return ElementPtr();
-
-    return elem;
-  }
-
-  //---------------------------------------------------------------------------
-  const char *IRTPTypes::FlexFECCodecParameters::toString(ToPs top)
-  {
-    switch (top) {
-      case ToP_1DInterleavedFEC:      return "1d-interleaved-fec";
-      case ToP_1DNonInterleavedFEC:   return "1d-non-interleaved-fec";
-      case ToP_2DParityFEEC:          return "2d-parity-fec";
-      case ToP_Reserved:              return "reserved";
-    }
-
-    return "unknown";
-  }
-
-  //---------------------------------------------------------------------------
-  IRTPTypes::FlexFECCodecParameters::ToPs IRTPTypes::FlexFECCodecParameters::toToP(const char *top)
-  {
-    String topStr(top);
-
-    for (ToPs index = ToP_First; index <= ToP_Last; index = static_cast<ToPs>(static_cast<std::underlying_type<ToPs>::type>(index) + 1)) {
-      if (topStr == IRTPTypes::FlexFECCodecParameters::toString(index)) return index;
-    }
-
-    return ToP_Reserved;
-  }
-
-  //---------------------------------------------------------------------------
-  IRTPTypes::FlexFECCodecParametersPtr IRTPTypes::FlexFECCodecParameters::create(const FlexFECCodecParameters &capability)
-  {
-    return make_shared<FlexFECCodecParameters>(capability);
-  }
-
-  //---------------------------------------------------------------------------
-  IRTPTypes::FlexFECCodecParametersPtr IRTPTypes::FlexFECCodecParameters::convert(AnyPtr any)
-  {
-    return ZS_DYNAMIC_PTR_CAST(FlexFECCodecParameters, any);
-  }
-
-  //---------------------------------------------------------------------------
-  ElementPtr IRTPTypes::FlexFECCodecParameters::toDebug() const
-  {
-    ElementPtr resultEl = Element::create("ortc::IRTPTypes::FlexFECCodecParameters");
-
-    UseServicesHelper::debugAppend(resultEl, "repair window", mRepairWindow);
-    UseServicesHelper::debugAppend(resultEl, "L", mL);
-    UseServicesHelper::debugAppend(resultEl, "D", mD);
-    UseServicesHelper::debugAppend(resultEl, "ToP", mToP.hasValue() ? toString(mToP.value()) : (const char *)NULL);
-
-    return resultEl;
-  }
-
-  //---------------------------------------------------------------------------
-  String IRTPTypes::FlexFECCodecParameters::hash() const
-  {
-    SHA1Hasher hasher;
-
-    hasher.update("ortc::IRTPTypes::FlexFECCodecParameters:");
-
-    hasher.update(mRepairWindow);
-    hasher.update(":");
-    hasher.update(mL);
-    hasher.update(":");
-    hasher.update(mD);
-    hasher.update(":");
-    hasher.update(mToP);
-
-    return hasher.final();
-  }
-
 
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
@@ -3739,7 +4312,6 @@ namespace ortc
     if (!elem) return;
 
     UseHelper::getElementValue(elem, "ortc::IRTPTypes::RTXParameters", "ssrc", mSSRC);
-    UseHelper::getElementValue(elem, "ortc::IRTPTypes::RTXParameters", "payloadType", mPayloadType);
   }
 
   //---------------------------------------------------------------------------
@@ -3748,7 +4320,6 @@ namespace ortc
     ElementPtr elem = Element::create(objectName);
 
     UseHelper::adoptElementValue(elem, "ssrc", mSSRC);
-    UseHelper::adoptElementValue(elem, "payloadType", mPayloadType);
 
     if (!elem->hasChildren()) return ElementPtr();
 
@@ -3761,7 +4332,6 @@ namespace ortc
     ElementPtr resultEl = Element::create("ortc::IRTPTypes::RTXParameters");
 
     UseServicesHelper::debugAppend(resultEl, "ssrc", mSSRC);
-    UseServicesHelper::debugAppend(resultEl, "payload type", mPayloadType);
 
     return resultEl;
   }
@@ -3774,9 +4344,6 @@ namespace ortc
     hasher.update("ortc::IRTPTypes::RTXParameters:");
 
     hasher.update(mSSRC);
-    hasher.update(":");
-    hasher.update(mPayloadType);
-    hasher.update(":");
 
     return hasher.final();
   }

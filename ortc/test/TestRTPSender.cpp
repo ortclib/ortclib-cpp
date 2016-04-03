@@ -3448,12 +3448,14 @@ void doTestRTPSender()
                   codec.mName = IRTPTypes::toString(IRTPTypes::SupportedCodec_RTX);
                   codec.mClockRate = 90000;
                   codec.mPayloadType = 120;
+                  rtxCodecParams.mApt = 97;
                   codec.mParameters = IRTPTypes::RTXCodecParameters::create(rtxCodecParams);
                   params.mCodecs.push_back(codec);  // not used
 
                   codec.mName = IRTPTypes::toString(IRTPTypes::SupportedCodec_RTX);
                   codec.mClockRate = 48000;
                   codec.mPayloadType = 121;
+                  rtxCodecParams.mApt = 96;
                   codec.mParameters = IRTPTypes::RTXCodecParameters::create(rtxCodecParams);
                   params.mCodecs.push_back(codec);
 
@@ -3490,7 +3492,6 @@ void doTestRTPSender()
 
                   RTXParameters rtx;
                   rtx.mSSRC = 23;
-                  rtx.mPayloadType = 121;
                   encoding.mRTX = rtx;
 
                   FECParameters fec;
@@ -3629,7 +3630,6 @@ void doTestRTPSender()
                   encoding.mCodecPayloadType = 96;
 
                   RTXParameters rtx;
-                  rtx.mPayloadType = 121;
                   encoding.mRTX = rtx;
 
                   FECParameters fec;
@@ -3708,7 +3708,6 @@ void doTestRTPSender()
                   encoding.mSSRC = 79;
 
                   RTXParameters rtx;
-                  rtx.mPayloadType = 121;
                   rtx.mSSRC = 151;
                   encoding.mRTX = rtx;
 
@@ -3947,7 +3946,6 @@ void doTestRTPSender()
                   encoding.mCodecPayloadType = 96;
 
                   RTXParameters rtx;
-                  rtx.mPayloadType = 121;
 
                   FECParameters fec;
                   fec.mMechanism = IRTPTypes::toString(IRTPTypes::KnownFECMechanism_RED_ULPFEC);
@@ -4035,7 +4033,6 @@ void doTestRTPSender()
                   encoding.mSSRC = 229;
 
                   RTXParameters rtx;
-                  rtx.mPayloadType = 121;
                   rtx.mSSRC = 233;
 
                   FECParameters fec;

@@ -323,8 +323,8 @@ namespace ortc
       String mapping = UseServicesHelper::toString(rootEl);
 
       UseSettings::setString(ORTC_SETTING_GATHERER_INTERFACE_NAME_MAPPING, mapping);
-      UseSettings::setUInt(ORTC_SETTING_GATHERER_USERNAME_FRAG_LENGTH, (24*8)/5); // must be at least 24 bits
-      UseSettings::setUInt(ORTC_SETTING_GATHERER_PASSWORD_LENGTH, (128*8)/5);     // must be at least 128 bits
+      UseSettings::setUInt(ORTC_SETTING_GATHERER_USERNAME_FRAG_LENGTH, 80/5); // must be at least 80 bits
+      UseSettings::setUInt(ORTC_SETTING_GATHERER_PASSWORD_LENGTH, 128/5);     // must be at least 128 bits
 
       UseSettings::setBool(ORTC_SETTING_GATHERER_CREATE_TCP_CANDIDATES, true);
 
@@ -799,22 +799,38 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void ICEGatherer::gather(const Options &options)
+    void ICEGatherer::gather(const Optional<Options> &options)
     {
-      EventWriteOrtcIceGathererGather(__func__, mID, options.mContinuousGathering, options.mInterfacePolicies.size(), options.mICEServers.size());
       AutoRecursiveLock lock(*this);
 
-      mOptions = options;
-      mOptionsHash = mOptions.hash();
+      if (options.hasValue()) {
+        mOptions = options.value();
+        mOptionsHash = mOptions.hash();
+      }
+
+      EventWriteOrtcIceGathererGather(__func__, mID, mOptions.mContinuousGathering, mOptions.mInterfacePolicies.size(), mOptions.mICEServers.size());
 
       mGetLocalIPsNow = true; // obtain local IPs again
       mLastBoundHostPortsHostHash.clear();
       mLastReflexiveHostsHash.clear();
       mLastRelayHostsHash.clear();
 
-      if (InternalState_Ready == mCurrentState) {
-        ZS_LOG_DETAIL(log("must initiate gathering again"))
-        setState(InternalState_Gathering);
+      switch (mCurrentState) {
+        case InternalState_Pending:       {
+          setState(InternalState_Gathering);
+          break;
+        }
+        case InternalState_Ready:         {
+          ZS_LOG_DETAIL(log("must initiate gathering again"))
+          setState(InternalState_Gathering);
+          break;
+        }
+        case InternalState_Gathering:
+        case InternalState_ShuttingDown:
+        case InternalState_Shutdown:      {
+          // nothing to do...
+          break;
+        }
       }
 
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
@@ -2141,7 +2157,8 @@ namespace ortc
 
       ZS_LOG_DEBUG(debug("step"))
 
-      if (InternalState_Pending == mCurrentState) setState(InternalState_Gathering);
+      // do not start gathering process until gather is called
+      if (InternalState_Pending == mCurrentState) goto done;
 
       if (!stepRecheckIPTimer()) goto done;
       if (!stepCalculateOptionsHash()) goto done;
@@ -5466,6 +5483,7 @@ namespace ortc
         EventWriteOrtcIceGathererErrorIceTransportIncomingStunPacket(__func__, mID, transport ? transport->getID() : 0, ((bool)route) ? route->mID : 0, routerRoute ? routerRoute->mID : 0);
 
         ZS_LOG_ERROR(Debug, log("candidate password integrity failed") + ZS_PARAM("request", stunPacket->toDebug()) + ZS_PARAM("reply", response->toDebug()))
+        response->trace(__func__);
         return response->packetize(STUNPacket::RFC_5245_ICE);
       }
 
