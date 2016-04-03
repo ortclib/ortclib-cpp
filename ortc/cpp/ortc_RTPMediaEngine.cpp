@@ -1645,12 +1645,13 @@ namespace ortc
       if (mTrack)
         mTrack->stop();
 
+      mModuleProcessThread->DeRegisterModule(mCallStats.get());
       mModuleProcessThread->Stop();
 
-      mModuleProcessThread.reset();
       mReceiveStream.reset();
-      mCallStats.reset();
       mCongestionController.reset();
+      mCallStats.reset();
+      mModuleProcessThread.reset();
 
       notifyPromisesShutdown();
     }
@@ -1919,7 +1920,7 @@ namespace ortc
         auto voiceEngine = engine->getVoiceEngine();
         if (voiceEngine) {
           webrtc::VoENetwork::GetInterface(voiceEngine)->DeRegisterExternalTransport(mChannel);
-          webrtc::VoEBase::GetInterface(voiceEngine)->StopSend(0);
+          webrtc::VoEBase::GetInterface(voiceEngine)->StopSend(mChannel);
         }
       }
 
@@ -2230,12 +2231,13 @@ namespace ortc
       if (mReceiveStream)
         mReceiveStream->Stop();
 
+      mModuleProcessThread->DeRegisterModule(mCallStats.get());
       mModuleProcessThread->Stop();
 
-      mModuleProcessThread.reset();
       mReceiveStream.reset();
-      mCallStats.reset();
       mCongestionController.reset();
+      mCallStats.reset();
+      mModuleProcessThread.reset();
 
       notifyPromisesShutdown();
     }
@@ -2373,6 +2375,7 @@ namespace ortc
                                                                                        );
 
       mModuleProcessThread->Start();
+      mModuleProcessThread->RegisterModule(mCallStats.get());
 
       int numCpuCores = webrtc::CpuInfo::DetectNumberOfCores();
 
@@ -2518,12 +2521,13 @@ namespace ortc
       if (mSendStream)
         mSendStream->Stop();
 
+      mModuleProcessThread->DeRegisterModule(mCallStats.get());
       mModuleProcessThread->Stop();
 
-      mModuleProcessThread.reset();
       mSendStream.reset();
-      mCallStats.reset();
       mCongestionController.reset();
+      mCallStats.reset();
+      mModuleProcessThread.reset();
 
       notifyPromisesShutdown();
     }
