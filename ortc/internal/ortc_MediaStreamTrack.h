@@ -290,6 +290,8 @@ namespace ortc
 
       virtual webrtc::AudioDeviceModule* getAudioDeviceModule() = 0;
 
+      virtual IMediaStreamTrackTypes::SettingsPtr getSettings() const = 0;
+
       virtual void start() = 0;
       virtual void stop() = 0;
 
@@ -567,6 +569,8 @@ namespace ortc
 
       virtual webrtc::AudioDeviceModule* getAudioDeviceModule() override;
 
+      // (duplicate) virtual IMediaStreamTrackTypes::SettingsPtr getSettings() const = 0;
+
       virtual void start() override;
       // (duplicate) virtual void stop() = 0;
 
@@ -775,7 +779,10 @@ namespace ortc
       
       TransportPtr mTransport;  // keep lifetime of webrtc callback separate from this object
 
+      CapabilitiesPtr mCapabilities;
       TrackConstraintsPtr mConstraints;
+      SettingsPtr mSettings;
+
       webrtc::VideoCaptureModule* mVideoCaptureModule;
       //webrtc::VideoRender* mVideoRenderModule;
       webrtc::VideoRenderCallback* mVideoRendererCallback;

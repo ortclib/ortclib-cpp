@@ -2379,6 +2379,17 @@ namespace ortc
 
       int numCpuCores = webrtc::CpuInfo::DetectNumberOfCores();
 
+      size_t width = 640;
+      size_t height = 480;
+      int maxFramerate = 15;
+      IMediaStreamTrack::SettingsPtr trackSettings = mTrack->getSettings();
+      if (trackSettings->mWidth.hasValue())
+        width = trackSettings->mWidth.value();
+      if (trackSettings->mHeight.hasValue())
+        height = trackSettings->mHeight.value();
+      if (trackSettings->mFrameRate.hasValue())
+        maxFramerate = trackSettings->mFrameRate.value();
+
       webrtc::VideoSendStream::Config config(mTransport.get());
       webrtc::VideoEncoderConfig encoderConfig;
       std::map<uint32_t, webrtc::RtpState> suspendedSSRCs;
@@ -2392,9 +2403,9 @@ namespace ortc
           config.encoder_settings.payload_name = codecIter->mName;
           config.encoder_settings.payload_type = codecIter->mPayloadType;
           webrtc::VideoStream stream;
-          stream.width = 640;
-          stream.height = 480;
-          stream.max_framerate = 30;
+          stream.width = width;
+          stream.height = height;
+          stream.max_framerate = maxFramerate;
           stream.min_bitrate_bps = 30000;
           stream.target_bitrate_bps = 2000000;
           stream.max_bitrate_bps = 2000000;
@@ -2414,9 +2425,9 @@ namespace ortc
           config.encoder_settings.payload_name = codecIter->mName;
           config.encoder_settings.payload_type = codecIter->mPayloadType;
           webrtc::VideoStream stream;
-          stream.width = 640;
-          stream.height = 480;
-          stream.max_framerate = 30;
+          stream.width = width;
+          stream.height = height;
+          stream.max_framerate = maxFramerate;
           stream.min_bitrate_bps = 30000;
           stream.target_bitrate_bps = 2000000;
           stream.max_bitrate_bps = 2000000;
@@ -2434,9 +2445,9 @@ namespace ortc
           config.encoder_settings.payload_name = codecIter->mName;
           config.encoder_settings.payload_type = codecIter->mPayloadType;
           webrtc::VideoStream stream;
-          stream.width = 640;
-          stream.height = 480;
-          stream.max_framerate = 30;
+          stream.width = width;
+          stream.height = height;
+          stream.max_framerate = maxFramerate;
           stream.min_bitrate_bps = 30000;
           stream.target_bitrate_bps = 2000000;
           stream.max_bitrate_bps = 2000000;

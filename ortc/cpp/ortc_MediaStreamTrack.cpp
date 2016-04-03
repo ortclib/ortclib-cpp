@@ -158,8 +158,11 @@ namespace ortc
     void MediaStreamTrack::init()
     {
       AutoRecursiveLock lock(*this);
-      IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
-      
+
+      mCapabilities = make_shared<Capabilities>();
+
+      mSettings = make_shared<Settings>();
+
       mTransport = Transport::create(mThisWeak.lock());
 
       if (mKind == Kind_Video && !mRemote) {
@@ -300,6 +303,11 @@ namespace ortc
         if (bestDistance == FLT_MAX)
           return;
 
+        mSettings->mWidth = bestCapability.width;
+        mSettings->mHeight = bestCapability.height;
+        mSettings->mFrameRate = bestCapability.maxFPS;
+        mSettings->mDeviceID = mDeviceID;
+
         if (mVideoCaptureModule->StartCapture(bestCapability) != 0) {
           mVideoCaptureModule->DeRegisterCaptureDataCallback();
           return;
@@ -316,7 +324,11 @@ namespace ortc
         mAudioDeviceModule->AddRef();
         //mAudioDeviceModule->RegisterAudioCallback(mTransport.get());
         mAudioDeviceModule->Init();
+
+        mSettings->mDeviceID = mDeviceID;
       }
+
+      IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
     }
 
     //-------------------------------------------------------------------------
@@ -417,6 +429,12 @@ namespace ortc
 
     //-------------------------------------------------------------------------
     MediaStreamTrackPtr MediaStreamTrack::convert(ForMediaDevicesPtr object)
+    {
+      return ZS_DYNAMIC_PTR_CAST(MediaStreamTrack, object);
+    }
+
+    //-------------------------------------------------------------------------
+    MediaStreamTrackPtr MediaStreamTrack::convert(ForMediaEnginePtr object)
     {
       return ZS_DYNAMIC_PTR_CAST(MediaStreamTrack, object);
     }
@@ -604,28 +622,23 @@ namespace ortc
     //-------------------------------------------------------------------------
     IMediaStreamTrackTypes::CapabilitiesPtr MediaStreamTrack::getCapabilities() const
     {
-      CapabilitiesPtr result(make_shared<Capabilities>());
-#define TODO 1
-#define TODO 2
-      return result;
+      return mCapabilities;
     }
 
     //-------------------------------------------------------------------------
     IMediaStreamTrackTypes::TrackConstraintsPtr MediaStreamTrack::getConstraints() const
     {
-      auto result = TrackConstraints::create();
-#define TODO 1
-#define TODO 2
-      return result;
+      AutoRecursiveLock lock(*this);
+
+      return mConstraints;
     }
 
     //-------------------------------------------------------------------------
     IMediaStreamTrackTypes::SettingsPtr MediaStreamTrack::getSettings() const
     {
-      SettingsPtr result(make_shared<Settings>());
-#define TODO 1
-#define TODO 2
-      return result;
+      AutoRecursiveLock lock(*this);
+
+      return mSettings;
     }
 
     //-------------------------------------------------------------------------
