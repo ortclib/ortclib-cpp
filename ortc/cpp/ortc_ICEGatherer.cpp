@@ -323,7 +323,7 @@ namespace ortc
       String mapping = UseServicesHelper::toString(rootEl);
 
       UseSettings::setString(ORTC_SETTING_GATHERER_INTERFACE_NAME_MAPPING, mapping);
-      UseSettings::setUInt(ORTC_SETTING_GATHERER_USERNAME_FRAG_LENGTH, 24/5); // must be at least 24 bits
+      UseSettings::setUInt(ORTC_SETTING_GATHERER_USERNAME_FRAG_LENGTH, 80/5); // must be at least 80 bits
       UseSettings::setUInt(ORTC_SETTING_GATHERER_PASSWORD_LENGTH, 128/5);     // must be at least 128 bits
 
       UseSettings::setBool(ORTC_SETTING_GATHERER_CREATE_TCP_CANDIDATES, true);
