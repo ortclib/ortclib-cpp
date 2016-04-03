@@ -1288,6 +1288,7 @@ namespace ortc
         if (!delivered) {
           ZS_LOG_WARNING(Debug, log("failed to process SRTP packet"))
         }
+        pendingPackets.pop();
       }
 
       {
