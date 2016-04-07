@@ -1536,28 +1536,32 @@ namespace ortc
         if (IRTPTypes::SupportedCodec_Opus == supportedCodec) {
           codec = getAudioCodec(voiceEngine, codecIter->mName);
           webrtc::VoECodec::GetInterface(voiceEngine)->SetRecPayloadType(mChannel, codec);
-          break;
+          goto set_rtcp_feedback;
         } else if (IRTPTypes::SupportedCodec_Isac == supportedCodec) {
           codec = getAudioCodec(voiceEngine, codecIter->mName);
           webrtc::VoECodec::GetInterface(voiceEngine)->SetRecPayloadType(mChannel, codec);
-          break;
+          goto set_rtcp_feedback;
         } else if (IRTPTypes::SupportedCodec_G722 == supportedCodec) {
           codec = getAudioCodec(voiceEngine, codecIter->mName);
           webrtc::VoECodec::GetInterface(voiceEngine)->SetRecPayloadType(mChannel, codec);
-          break;
+          goto set_rtcp_feedback;
         } else if (IRTPTypes::SupportedCodec_ILBC == supportedCodec) {
           codec = getAudioCodec(voiceEngine, codecIter->mName);
           webrtc::VoECodec::GetInterface(voiceEngine)->SetRecPayloadType(mChannel, codec);
-          break;
+          goto set_rtcp_feedback;
         } else if (IRTPTypes::SupportedCodec_PCMU == supportedCodec) {
           codec = getAudioCodec(voiceEngine, codecIter->mName);
           webrtc::VoECodec::GetInterface(voiceEngine)->SetRecPayloadType(mChannel, codec);
-          break;
+          goto set_rtcp_feedback;
         } else if (IRTPTypes::SupportedCodec_PCMA == supportedCodec) {
           codec = getAudioCodec(voiceEngine, codecIter->mName);
           webrtc::VoECodec::GetInterface(voiceEngine)->SetRecPayloadType(mChannel, codec);
-          break;
+          goto set_rtcp_feedback;
         }
+        codecIter++;
+        continue;
+
+      set_rtcp_feedback:
         IRTPTypes::RTCPFeedbackList::iterator rtcpFeedbackIter = codecIter->mRTCPFeedback.begin();
         while (rtcpFeedbackIter != codecIter->mRTCPFeedback.end()) {
           IRTPTypes::KnownFeedbackTypes feedbackType = IRTPTypes::toKnownFeedbackType(rtcpFeedbackIter->mType);
@@ -1567,7 +1571,7 @@ namespace ortc
           }
           rtcpFeedbackIter++;
         }
-        codecIter++;
+        break;
       }
 
       webrtc::AudioReceiveStream::Config config;
@@ -1575,12 +1579,21 @@ namespace ortc
 
       IRTPTypes::EncodingParametersList::iterator encodingParamIter = mParameters->mEncodings.begin();
       while (encodingParamIter != mParameters->mEncodings.end()) {
-        if (encodingParamIter->mCodecPayloadType == codec.pltype) {
-          config.rtp.remote_ssrc = encodingParamIter->mSSRC;
-          break;
+        if (encodingParamIter->mCodecPayloadType.hasValue()) {
+          if (encodingParamIter->mCodecPayloadType == codec.pltype && encodingParamIter->mSSRC.hasValue()) {
+            config.rtp.remote_ssrc = encodingParamIter->mSSRC;
+            break;
+          }
+        } else {
+          if (encodingParamIter->mSSRC.hasValue()) {
+            config.rtp.remote_ssrc = encodingParamIter->mSSRC;
+            break;
+          }
         }
         encodingParamIter++;
       }
+      if (config.rtp.remote_ssrc == 0)
+        config.rtp.remote_ssrc = 1;
 
       IRTPTypes::HeaderExtensionParametersList::iterator headerExtensionIter = mParameters->mHeaderExtensions.begin();
       while (headerExtensionIter != mParameters->mHeaderExtensions.end()) {
@@ -1820,28 +1833,32 @@ namespace ortc
         if (IRTPTypes::SupportedCodec_Opus == supportedCodec) {
           codec = getAudioCodec(voiceEngine, codecIter->mName);
           webrtc::VoECodec::GetInterface(voiceEngine)->SetSendCodec(mChannel, codec);
-          break;
+          goto set_rtcp_feedback;
         } else if (IRTPTypes::SupportedCodec_Isac == supportedCodec) {
           codec = getAudioCodec(voiceEngine, codecIter->mName);
           webrtc::VoECodec::GetInterface(voiceEngine)->SetSendCodec(mChannel, codec);
-          break;
+          goto set_rtcp_feedback;
         } else if (IRTPTypes::SupportedCodec_G722 == supportedCodec) {
           codec = getAudioCodec(voiceEngine, codecIter->mName);
           webrtc::VoECodec::GetInterface(voiceEngine)->SetSendCodec(mChannel, codec);
-          break;
+          goto set_rtcp_feedback;
         } else if (IRTPTypes::SupportedCodec_ILBC == supportedCodec) {
           codec = getAudioCodec(voiceEngine, codecIter->mName);
           webrtc::VoECodec::GetInterface(voiceEngine)->SetSendCodec(mChannel, codec);
-          break;
+          goto set_rtcp_feedback;
         } else if (IRTPTypes::SupportedCodec_PCMU == supportedCodec) {
           codec = getAudioCodec(voiceEngine, codecIter->mName);
           webrtc::VoECodec::GetInterface(voiceEngine)->SetSendCodec(mChannel, codec);
-          break;
+          goto set_rtcp_feedback;
         } else if (IRTPTypes::SupportedCodec_PCMA == supportedCodec) {
           codec = getAudioCodec(voiceEngine, codecIter->mName);
           webrtc::VoECodec::GetInterface(voiceEngine)->SetSendCodec(mChannel, codec);
-          break;
+          goto set_rtcp_feedback;
         }
+        codecIter++;
+        continue;
+
+      set_rtcp_feedback:
         IRTPTypes::RTCPFeedbackList::iterator rtcpFeedbackIter = codecIter->mRTCPFeedback.begin();
         while (rtcpFeedbackIter != codecIter->mRTCPFeedback.end()) {
           IRTPTypes::KnownFeedbackTypes feedbackType = IRTPTypes::toKnownFeedbackType(rtcpFeedbackIter->mType);
@@ -1851,7 +1868,7 @@ namespace ortc
           }
           rtcpFeedbackIter++;
         }
-        codecIter++;
+        break;
       }
 
       webrtc::AudioSendStream::Config config(mTransport.get());
@@ -1859,12 +1876,24 @@ namespace ortc
 
       IRTPTypes::EncodingParametersList::iterator encodingParamIter = mParameters->mEncodings.begin();
       while (encodingParamIter != mParameters->mEncodings.end()) {
-        if (encodingParamIter->mCodecPayloadType == codec.pltype) {
-          webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetLocalSSRC(mChannel, encodingParamIter->mSSRC);
-          config.rtp.ssrc = encodingParamIter->mSSRC;
-          break;
+        if (encodingParamIter->mCodecPayloadType.hasValue()) {
+          if (encodingParamIter->mCodecPayloadType == codec.pltype && encodingParamIter->mSSRC.hasValue()) {
+            webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetLocalSSRC(mChannel, encodingParamIter->mSSRC);
+            config.rtp.ssrc = encodingParamIter->mSSRC;
+            break;
+          }
+        } else {
+          if (encodingParamIter->mSSRC.hasValue()) {
+            webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetLocalSSRC(mChannel, encodingParamIter->mSSRC);
+            config.rtp.ssrc = encodingParamIter->mSSRC;
+            break;
+          }
         }
         encodingParamIter++;
+      }
+      if (config.rtp.ssrc == 0) {
+        webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetLocalSSRC(mChannel, 1);
+        config.rtp.ssrc = 1;
       }
 
       IRTPTypes::HeaderExtensionParametersList::iterator headerExtensionIter = mParameters->mHeaderExtensions.begin();
@@ -2138,20 +2167,24 @@ namespace ortc
           decoder.decoder = videoDecoder;
           decoder.payload_name = codecIter->mName;
           decoder.payload_type = codecIter->mPayloadType;
-          break;
+          goto set_rtcp_feedback;
         } else if (IRTPTypes::SupportedCodec_VP9 == supportedCodec) {
           webrtc::VideoDecoder* videoDecoder = webrtc::VideoDecoder::Create(webrtc::VideoDecoder::kVp9);
           decoder.decoder = videoDecoder;
           decoder.payload_name = codecIter->mName;
           decoder.payload_type = codecIter->mPayloadType;
-          break;
+          goto set_rtcp_feedback;
         } else if (IRTPTypes::SupportedCodec_H264 == supportedCodec) {
           webrtc::VideoDecoder* videoDecoder = webrtc::VideoDecoder::Create(webrtc::VideoDecoder::kH264);
           decoder.decoder = videoDecoder;
           decoder.payload_name = codecIter->mName;
           decoder.payload_type = codecIter->mPayloadType;
-          break;
+          goto set_rtcp_feedback;
         }
+        codecIter++;
+        continue;
+
+      set_rtcp_feedback:
         IRTPTypes::RTCPFeedbackList::iterator rtcpFeedbackIter = codecIter->mRTCPFeedback.begin();
         while (rtcpFeedbackIter != codecIter->mRTCPFeedback.end()) {
           IRTPTypes::KnownFeedbackTypes feedbackType = IRTPTypes::toKnownFeedbackType(rtcpFeedbackIter->mType);
@@ -2164,21 +2197,27 @@ namespace ortc
           }
           rtcpFeedbackIter++;
         }
-        codecIter++;
+        break;
       }
 
       IRTPTypes::EncodingParametersList::iterator encodingParamIter = mParameters->mEncodings.begin();
       while (encodingParamIter != mParameters->mEncodings.end()) {
-        if (encodingParamIter->mCodecPayloadType == decoder.payload_type) {
-          config.rtp.remote_ssrc = encodingParamIter->mSSRC;
-          break;
+        if (encodingParamIter->mCodecPayloadType.hasValue()) {
+          if (encodingParamIter->mCodecPayloadType == decoder.payload_type && encodingParamIter->mSSRC.hasValue()) {
+            config.rtp.remote_ssrc = encodingParamIter->mSSRC;
+            break;
+          }
+        } else {
+          if (encodingParamIter->mSSRC.hasValue()) {
+            config.rtp.remote_ssrc = encodingParamIter->mSSRC;
+            break;
+          }
         }
+        encodingParamIter++;
       }
       if (config.rtp.remote_ssrc == 0)
-        config.rtp.remote_ssrc = 1000;
+        config.rtp.remote_ssrc = 2;
       config.rtp.local_ssrc = mParameters->mRTCP.mSSRC;
-      if (config.rtp.local_ssrc == 0)
-        config.rtp.local_ssrc = 1010;
 
       IRTPTypes::HeaderExtensionParametersList::iterator headerExtensionIter = mParameters->mHeaderExtensions.begin();
       while (headerExtensionIter != mParameters->mHeaderExtensions.end()) {
@@ -2418,7 +2457,7 @@ namespace ortc
           encoderConfig.content_type = webrtc::VideoEncoderConfig::ContentType::kRealtimeVideo;
           encoderConfig.streams.push_back(stream);
           encoderConfig.encoder_specific_settings = &videoCodec;
-          break;
+          goto set_rtcp_feedback;
         } else if (IRTPTypes::SupportedCodec_VP9 == supportedCodec) {
           webrtc::VideoEncoder* videoEncoder = webrtc::VideoEncoder::Create(webrtc::VideoEncoder::kVp9);
           config.encoder_settings.encoder = videoEncoder;
@@ -2438,7 +2477,7 @@ namespace ortc
           encoderConfig.content_type = webrtc::VideoEncoderConfig::ContentType::kRealtimeVideo;
           encoderConfig.streams.push_back(stream);
           encoderConfig.encoder_specific_settings = &videoCodec;
-          break;
+          goto set_rtcp_feedback;
         } else if (IRTPTypes::SupportedCodec_H264 == supportedCodec) {
           webrtc::VideoEncoder* videoEncoder = webrtc::VideoEncoder::Create(webrtc::VideoEncoder::kH264);
           config.encoder_settings.encoder = videoEncoder;
@@ -2458,8 +2497,12 @@ namespace ortc
           encoderConfig.content_type = webrtc::VideoEncoderConfig::ContentType::kRealtimeVideo;
           encoderConfig.streams.push_back(stream);
           encoderConfig.encoder_specific_settings = &videoCodec;
-          break;
+          goto set_rtcp_feedback;
         }
+        codecIter++;
+        continue;
+
+      set_rtcp_feedback:
         IRTPTypes::RTCPFeedbackList::iterator rtcpFeedbackIter = codecIter->mRTCPFeedback.begin();
         while (rtcpFeedbackIter != codecIter->mRTCPFeedback.end()) {
           IRTPTypes::KnownFeedbackTypes feedbackType = IRTPTypes::toKnownFeedbackType(rtcpFeedbackIter->mType);
@@ -2469,19 +2512,26 @@ namespace ortc
           }
           rtcpFeedbackIter++;
         }
-        codecIter++;
+        break;
       }
 
       IRTPTypes::EncodingParametersList::iterator encodingParamIter = mParameters->mEncodings.begin();
       while (encodingParamIter != mParameters->mEncodings.end()) {
-        if (encodingParamIter->mCodecPayloadType == config.encoder_settings.payload_type) {
-          config.rtp.ssrcs.push_back(encodingParamIter->mSSRC);
-          break;
+        if (encodingParamIter->mCodecPayloadType.hasValue()) {
+          if (encodingParamIter->mCodecPayloadType == config.encoder_settings.payload_type && encodingParamIter->mSSRC.hasValue()) {
+            config.rtp.ssrcs.push_back(encodingParamIter->mSSRC);
+            break;
+          }
+        } else {
+          if (encodingParamIter->mSSRC.hasValue()) {
+            config.rtp.ssrcs.push_back(encodingParamIter->mSSRC);
+            break;
+          }
         }
         encodingParamIter++;
       }
       if (config.rtp.ssrcs.size() == 0)
-        config.rtp.ssrcs.push_back(1000);
+        config.rtp.ssrcs.push_back(2);
 
       IRTPTypes::HeaderExtensionParametersList::iterator headerExtensionIter = mParameters->mHeaderExtensions.begin();
       while (headerExtensionIter != mParameters->mHeaderExtensions.end()) {
