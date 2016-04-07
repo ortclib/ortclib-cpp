@@ -773,6 +773,10 @@ namespace ortc
           AutoLock lock(usedKeys[loop]->mSRTPSessionLock);
           int err = (component == IICETypes::Component_RTP ? srtp_unprotect(usedKeys[loop]->mSRTPSession, decryptedBuffer->BytePtr(), &out_len) :
                                                              srtp_unprotect_rtcp(usedKeys[loop]->mSRTPSession, decryptedBuffer->BytePtr(), &out_len));
+          if (err == err_status_replay_fail) {
+            return true;
+          }
+
           if (err != err_status_ok) {
             ZS_LOG_WARNING(Trace, log("cannot use current keying material, trying with next key") + usedKeys[loop]->toDebug())
             continue;
