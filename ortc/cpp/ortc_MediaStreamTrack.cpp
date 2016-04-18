@@ -147,6 +147,7 @@ namespace ortc
       mRemote(remote),
       mConstraints(constraints),
       mVideoCaptureModule(NULL),
+      mH264Rendering(false),
       //mVideoRenderModule(NULL),
       mVideoRendererCallback(NULL),
       mAudioDeviceModule(NULL)
@@ -654,7 +655,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void MediaStreamTrack::setMediaElement(void* element)
+    void MediaStreamTrack::setVideoRenderCallback(void* callback)
     {
       AutoRecursiveLock lock(*this);
 
@@ -662,8 +663,24 @@ namespace ortc
         //mVideoRenderModule = webrtc::VideoRender::CreateVideoRender(1, element, false);
         //mVideoRendererCallback = mVideoRenderModule->AddIncomingRenderStream(1, 0, 0.0, 0.0, 1.0, 1.0);
         //mVideoRenderModule->StartRender(1);
-        mVideoRendererCallback = (webrtc::VideoRenderCallback*)element;
+        mVideoRendererCallback = (webrtc::VideoRenderCallback*)callback;
       }
+    }
+
+    //-------------------------------------------------------------------------
+    void MediaStreamTrack::setH264Rendering(bool h264Rendering)
+    {
+      AutoRecursiveLock lock(*this);
+
+      mH264Rendering = h264Rendering;
+    }
+
+    //-------------------------------------------------------------------------
+    bool MediaStreamTrack::isH264Rendering()
+    {
+      AutoRecursiveLock lock(*this);
+
+      return mH264Rendering;
     }
 
     //-------------------------------------------------------------------------

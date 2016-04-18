@@ -106,7 +106,7 @@ namespace ortc
 
         virtual void stop() override;
 
-        virtual void setMediaElement(void* element) override;
+        virtual void setVideoRenderCallback(void* callback) override;
 
         //-----------------------------------------------------------------------
         #pragma mark

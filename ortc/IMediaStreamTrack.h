@@ -277,7 +277,9 @@ namespace ortc
 
     virtual PromisePtr applyConstraints(const TrackConstraints &constraints) = 0;
 
-    virtual void setMediaElement(void* element) = 0;
+    virtual void setVideoRenderCallback(void* callback) = 0;
+    virtual void setH264Rendering(bool h264Rendering) = 0;
+    virtual bool isH264Rendering() = 0;
   };
 
   //-------------------------------------------------------------------------

@@ -196,6 +196,9 @@ namespace ortc
       virtual void setReceiver(IRTPReceiverPtr receiver) = 0;
 
       virtual void notifyActiveReceiverChannel(RTPReceiverChannelPtr channel) = 0;
+
+      virtual void setH264Rendering(bool h264Rendering) = 0;
+      virtual bool isH264Rendering() = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -473,7 +476,9 @@ namespace ortc
 
       virtual PromisePtr applyConstraints(const TrackConstraints &constraints) override;
 
-      virtual void setMediaElement(void* element) override;
+      virtual void setVideoRenderCallback(void* callback) override;
+      virtual void setH264Rendering(bool h264Rendering) override;
+      virtual bool isH264Rendering() override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -530,6 +535,9 @@ namespace ortc
       virtual void setReceiver(IRTPReceiverPtr receiver) override;
 
       virtual void notifyActiveReceiverChannel(RTPReceiverChannelPtr channel) override;
+
+      // (duplicate) virtual void setH264Rendering(bool h264Rendering) = 0;
+      // (duplicate) virtual bool isH264Rendering() = 0;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -771,6 +779,7 @@ namespace ortc
       Kinds mKind;
       bool mRemote;
       String mDeviceID;
+      bool mH264Rendering;
 
       UseSenderWeakPtr mSender;
       UseSenderChannelWeakPtr mSenderChannel;

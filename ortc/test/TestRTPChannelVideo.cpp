@@ -239,11 +239,11 @@ namespace ortc
       }
 
       //-------------------------------------------------------------------------
-      void FakeMediaStreamTrack::setMediaElement(void* element)
+      void FakeMediaStreamTrack::setVideoRenderCallback(void* callback)
       {
         AutoRecursiveLock lock(*this);
 
-        mVideoRenderModule = webrtc::VideoRender::CreateVideoRender(1, element, false);
+        mVideoRenderModule = webrtc::VideoRender::CreateVideoRender(1, callback, false);
 
         mVideoRendererCallback = mVideoRenderModule->AddIncomingRenderStream(1, 0, 0.0, 0.0, 1.0, 1.0);
 
@@ -892,7 +892,7 @@ namespace ortc
 
         if (!track) {
           track = FakeMediaStreamTrack::create(getAssociatedMessageQueue(), remote);
-          track->setMediaElement(mVideoSurface);
+          track->setVideoRenderCallback(mVideoSurface);
           track->setTransport(mThisWeak.lock());
           attach(trackID, track);
         }
