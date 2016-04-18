@@ -54,6 +54,7 @@ namespace ortc
     ZS_DECLARE_STRUCT_PTR(ConstraintSet)
     ZS_DECLARE_STRUCT_PTR(TrackConstraints)
     ZS_DECLARE_STRUCT_PTR(Constraints)
+    ZS_DECLARE_STRUCT_PTR(OverconstrainedError)
 
     ZS_DECLARE_TYPEDEF_PTR(std::list<ConstraintSetPtr>, ConstraintSetList)
 
@@ -236,6 +237,15 @@ namespace ortc
       String hash() const;
     };
 
+    struct OverconstrainedError : public Any {
+      String mName;
+      String mConstraint;
+      String mMessage;
+
+      OverconstrainedError() : mName("OverconstrainedError") {}
+      OverconstrainedError(const OverconstrainedError &op2) { *this = (op2); }
+    };
+
   };
 
   //---------------------------------------------------------------------------
@@ -292,6 +302,8 @@ namespace ortc
 
   interaction IMediaStreamTrackDelegate
   {
+    ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::OverconstrainedError, OverconstrainedError)
+
     virtual void onMediaStreamTrackMute(
                                         IMediaStreamTrackPtr track,
                                         bool isMuted
@@ -300,8 +312,7 @@ namespace ortc
     virtual void onMediaStreamTrackEnded(IMediaStreamTrackPtr track) = 0;
     virtual void onMediaStreamTrackOverConstrained(
                                                    IMediaStreamTrackPtr track,
-                                                   const char *constraint,
-                                                   const char *message
+                                                   OverconstrainedErrorPtr error
                                                    ) = 0;
   };
   
@@ -325,14 +336,16 @@ namespace ortc
 
 ZS_DECLARE_PROXY_BEGIN(ortc::IMediaStreamTrackDelegate)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IMediaStreamTrackPtr, IMediaStreamTrackPtr)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::IMediaStreamTrackTypes::OverconstrainedErrorPtr, OverconstrainedErrorPtr)
 ZS_DECLARE_PROXY_METHOD_2(onMediaStreamTrackMute, IMediaStreamTrackPtr, bool)
 ZS_DECLARE_PROXY_METHOD_1(onMediaStreamTrackEnded, IMediaStreamTrackPtr)
-ZS_DECLARE_PROXY_METHOD_3(onMediaStreamTrackOverConstrained, IMediaStreamTrackPtr, const char *, const char *)
+ZS_DECLARE_PROXY_METHOD_2(onMediaStreamTrackOverConstrained, IMediaStreamTrackPtr, OverconstrainedErrorPtr)
 ZS_DECLARE_PROXY_END()
 
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_BEGIN(ortc::IMediaStreamTrackDelegate, ortc::IMediaStreamTrackSubscription)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IMediaStreamTrackPtr, IMediaStreamTrackPtr)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IMediaStreamTrackTypes::OverconstrainedErrorPtr, OverconstrainedErrorPtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onMediaStreamTrackMute, IMediaStreamTrackPtr, bool)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_1(onMediaStreamTrackEnded, IMediaStreamTrackPtr)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_3(onMediaStreamTrackOverConstrained, IMediaStreamTrackPtr, const char *, const char *)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onMediaStreamTrackOverConstrained, IMediaStreamTrackPtr, OverconstrainedErrorPtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_END()

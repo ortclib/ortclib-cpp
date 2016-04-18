@@ -646,8 +646,7 @@ namespace ortc
         virtual void onMediaStreamTrackEnded(IMediaStreamTrackPtr track) override;
         virtual void onMediaStreamTrackOverConstrained(
                                                        IMediaStreamTrackPtr track,
-                                                       const char *constraint,
-                                                       const char *message
+                                                       OverconstrainedErrorPtr error
                                                        ) override;
 
         //---------------------------------------------------------------------

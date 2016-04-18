@@ -35,6 +35,7 @@
 #include <zsLib/IPAddress.h>
 #include <zsLib/Promise.h>
 #include <openpeer/services/types.h>
+#include <zsLib/String.h>
 
 namespace ortc
 {
@@ -70,6 +71,12 @@ namespace ortc
 
   ZS_DECLARE_USING_PTR(zsLib, Any)
   ZS_DECLARE_USING_PTR(zsLib, Promise)
+
+  struct ErrorAny : public Any
+  {
+    String mName;
+    String mReason;
+  };
 
   using openpeer::services::SharedRecursiveLock;
   using openpeer::services::LockedValue;
