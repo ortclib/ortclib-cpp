@@ -184,6 +184,9 @@ echo.
     <CustomBuildStep>
       <Inputs>$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWTracing.man;$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWTracing.wprp;%(Inputs)</Inputs>
     </CustomBuildStep>
+    <Lib>
+      <AdditionalOptions>/IGNORE:4264,4221 %(AdditionalOptions)</AdditionalOptions>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -233,6 +236,9 @@ echo.
     <CustomBuildStep>
       <Inputs>$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWTracing.man;$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWTracing.wprp;%(Inputs)</Inputs>
     </CustomBuildStep>
+    <Lib>
+      <AdditionalOptions>/IGNORE:4264,4221 %(AdditionalOptions)</AdditionalOptions>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|arm'">
     <ClCompile>
@@ -283,6 +289,9 @@ echo.
     <CustomBuildStep>
       <Inputs>$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWTracing.man;$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWTracing.wprp;%(Inputs)</Inputs>
     </CustomBuildStep>
+    <Lib>
+      <AdditionalOptions>/IGNORE:4264,4221 %(AdditionalOptions)</AdditionalOptions>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|arm'">
     <ClCompile>
@@ -332,6 +341,9 @@ echo.
     <CustomBuildStep>
       <Inputs>$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWTracing.man;$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWTracing.wprp;%(Inputs)</Inputs>
     </CustomBuildStep>
+    <Lib>
+      <AdditionalOptions>/IGNORE:4264,4221 %(AdditionalOptions)</AdditionalOptions>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -382,6 +394,9 @@ echo.
     <CustomBuildStep>
       <Inputs>$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWTracing.man;$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWTracing.wprp;%(Inputs)</Inputs>
     </CustomBuildStep>
+    <Lib>
+      <AdditionalOptions>/IGNORE:4264,4221 %(AdditionalOptions)</AdditionalOptions>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -431,6 +446,9 @@ echo.
     <CustomBuildStep>
       <Inputs>$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWTracing.man;$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWTracing.wprp;%(Inputs)</Inputs>
     </CustomBuildStep>
+    <Lib>
+      <AdditionalOptions>/IGNORE:4264,4221 %(AdditionalOptions)</AdditionalOptions>
+    </Lib>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
