@@ -62,9 +62,9 @@ namespace ortc
 
       DeviceKind_AudioInput = DeviceKind_First,
       DeviceKind_AudioOutput,
-      DeviceKind_Video,
+      DeviceKind_VideoInput,
 
-      DeviceKind_Last = DeviceKind_Video,
+      DeviceKind_Last = DeviceKind_VideoInput,
     };
 
     static const char *toString(DeviceKinds kind);

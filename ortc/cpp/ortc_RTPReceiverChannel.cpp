@@ -48,9 +48,11 @@
 #include <openpeer/services/IHelper.h>
 #include <openpeer/services/IHTTP.h>
 
+#include <zsLib/SafeInt.h>
 #include <zsLib/Stringize.h>
 #include <zsLib/Log.h>
 #include <zsLib/XML.h>
+
 
 #include <cryptopp/sha.h>
 
@@ -327,14 +329,14 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool RTPReceiverChannel::handlePacket(RTPPacketPtr packet)
     {
-      EventWriteOrtcRtpReceiverChannelDeliverIncomingPacketToMediaChannel(__func__, mID, mMediaBase->getID(), zsLib::to_underlying(IICETypes::Component_RTP), packet->buffer()->SizeInBytes(), packet->buffer()->BytePtr());
+      EventWriteOrtcRtpReceiverChannelDeliverIncomingPacketToMediaChannel(__func__, mID, mMediaBase->getID(), zsLib::to_underlying(IICETypes::Component_RTP), SafeInt<unsigned int>(packet->buffer()->SizeInBytes()), packet->buffer()->BytePtr());
       return mMediaBase->handlePacket(packet);
     }
 
     //-------------------------------------------------------------------------
     bool RTPReceiverChannel::handlePacket(RTCPPacketPtr packet)
     {
-      EventWriteOrtcRtpReceiverChannelDeliverIncomingPacketToMediaChannel(__func__, mID, mMediaBase->getID(), zsLib::to_underlying(IICETypes::Component_RTCP), packet->buffer()->SizeInBytes(), packet->buffer()->BytePtr());
+      EventWriteOrtcRtpReceiverChannelDeliverIncomingPacketToMediaChannel(__func__, mID, mMediaBase->getID(), zsLib::to_underlying(IICETypes::Component_RTCP), SafeInt<unsigned int>(packet->buffer()->SizeInBytes()), packet->buffer()->BytePtr());
       return mMediaBase->handlePacket(packet);
     }
 
@@ -360,7 +362,7 @@ namespace ortc
       auto receiver = mReceiver.lock();
       if (!receiver) return false;
 
-      EventWriteOrtcRtpReceiverChannelSendOutgoingPacket(__func__, mID, receiver->getID(), zsLib::to_underlying(IICETypes::Component_RTCP), packet->buffer()->SizeInBytes(), packet->buffer()->BytePtr());
+      EventWriteOrtcRtpReceiverChannelSendOutgoingPacket(__func__, mID, receiver->getID(), zsLib::to_underlying(IICETypes::Component_RTCP), SafeInt<unsigned int>(packet->buffer()->SizeInBytes()), packet->buffer()->BytePtr());
 
       return receiver->sendPacket(packet);
     }

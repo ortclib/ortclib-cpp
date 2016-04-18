@@ -48,6 +48,7 @@ namespace ortc
   interaction IICETransportTypes : public IICETypes
   {
     ZS_DECLARE_STRUCT_PTR(CandidatePair)
+    ZS_DECLARE_STRUCT_PTR(Options)
 
     //-------------------------------------------------------------------------
     #pragma mark

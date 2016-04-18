@@ -34,6 +34,7 @@
 #include <ortc/types.h>
 
 #include <list>
+#include <zsLib/types.h>
 
 namespace ortc
 {
@@ -47,8 +48,8 @@ namespace ortc
   
   interaction IConstraints
   {
-    ZS_DECLARE_STRUCT_PTR(ConstrainBool)
-    ZS_DECLARE_STRUCT_PTR(ConstrainBoolParameters)
+    ZS_DECLARE_STRUCT_PTR(ConstrainBoolean)
+    ZS_DECLARE_STRUCT_PTR(ConstrainBooleanParameters)
     ZS_DECLARE_STRUCT_PTR(ConstrainLong)
     ZS_DECLARE_STRUCT_PTR(ConstrainLongRange)
     ZS_DECLARE_STRUCT_PTR(ConstrainDouble)
@@ -66,16 +67,16 @@ namespace ortc
 
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IConstraints::ConstrainBoolParameters
+    #pragma mark IConstraints::ConstrainBooleanParameters
     #pragma mark
 
-    struct ConstrainBoolParameters {
+    struct ConstrainBooleanParameters {
       Optional<bool> mExact;
       Optional<bool> mIdeal;
 
-      ConstrainBoolParameters() {}
-      ConstrainBoolParameters(const ConstrainBoolParameters &op2) {(*this) = op2;}
-      ConstrainBoolParameters(ElementPtr elem);
+      ConstrainBooleanParameters() {}
+      ConstrainBooleanParameters(const ConstrainBooleanParameters &op2) {(*this) = op2;}
+      ConstrainBooleanParameters(ElementPtr elem);
 
       ElementPtr createElement(const char *objectName) const;
 
@@ -85,16 +86,16 @@ namespace ortc
 
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IConstraints::ConstrainBool
+    #pragma mark IConstraints::ConstrainBoolean
     #pragma mark
 
-    struct ConstrainBool {
+    struct ConstrainBoolean {
       Optional<bool> mValue;
-      Optional<ConstrainBoolParameters> mParameters;
+      Optional<ConstrainBooleanParameters> mParameters;
 
-      ConstrainBool() {}
-      ConstrainBool(const ConstrainBool &op2) {(*this) = op2;}
-      ConstrainBool(ElementPtr elem);
+      ConstrainBoolean() {}
+      ConstrainBoolean(const ConstrainBoolean &op2) {(*this) = op2;}
+      ConstrainBoolean(ElementPtr elem);
 
       ElementPtr createElement(const char *objectName) const;
 

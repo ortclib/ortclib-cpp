@@ -221,7 +221,7 @@ namespace ortc
             {
               ZS_LOG_DEBUG(log("device") + iter->toDebug())
               
-              if (iter->mKind == IMediaDevicesTypes::DeviceKinds::DeviceKind_Video)
+              if (iter->mKind == IMediaDevicesTypes::DeviceKinds::DeviceKind_VideoInput)
               {
                 device = *iter;
               }

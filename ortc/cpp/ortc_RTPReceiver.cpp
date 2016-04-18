@@ -1377,7 +1377,7 @@ namespace ortc
                                    RTPPacketPtr packet
                                    )
     {
-      EventWriteOrtcRtpReceivedIncomingPacket(__func__, mID, zsLib::to_underlying(viaTransport), zsLib::to_underlying(IICETypes::Component_RTP), packet->buffer()->SizeInBytes(), packet->buffer()->BytePtr());
+      EventWriteOrtcRtpReceivedIncomingPacket(__func__, mID, zsLib::to_underlying(viaTransport), zsLib::to_underlying(IICETypes::Component_RTP), SafeInt<unsigned int>(packet->buffer()->SizeInBytes()), packet->buffer()->BytePtr());
 
       ZS_LOG_TRACE(log("received packet") + ZS_PARAM("via", IICETypes::toString(viaTransport)) + packet->toDebug())
 
@@ -1418,7 +1418,7 @@ namespace ortc
     process_rtp:
       {
         ZS_LOG_TRACE(log("forwarding RTP packet to channel") + ZS_PARAM("channel id", channelHolder->getID()) + ZS_PARAM("ssrc", packet->ssrc()))
-        EventWriteOrtcRtpReceiverDeliverIncomingPacketToChannel(__func__, mID, channelHolder->getID(), zsLib::to_underlying(viaTransport), zsLib::to_underlying(IICETypes::Component_RTP), packet->buffer()->SizeInBytes(), packet->buffer()->BytePtr());
+        EventWriteOrtcRtpReceiverDeliverIncomingPacketToChannel(__func__, mID, channelHolder->getID(), zsLib::to_underlying(viaTransport), zsLib::to_underlying(IICETypes::Component_RTP), SafeInt<unsigned int>(packet->buffer()->SizeInBytes()), packet->buffer()->BytePtr());
         return channelHolder->handle(packet);
       }
 
@@ -1455,7 +1455,7 @@ namespace ortc
           continue;
         }
 
-        EventWriteOrtcRtpReceiverDeliverIncomingPacketToChannel(__func__, mID, channelHolder->getID(), zsLib::to_underlying(viaTransport), zsLib::to_underlying(IICETypes::Component_RTCP), packet->buffer()->SizeInBytes(), packet->buffer()->BytePtr());
+        EventWriteOrtcRtpReceiverDeliverIncomingPacketToChannel(__func__, mID, channelHolder->getID(), zsLib::to_underlying(viaTransport), zsLib::to_underlying(IICETypes::Component_RTCP), SafeInt<unsigned int>(packet->buffer()->SizeInBytes()), packet->buffer()->BytePtr());
         auto channelResult = channelHolder->handle(packet);
         result = result || channelResult;
       }
@@ -1499,7 +1499,7 @@ namespace ortc
 
       ZS_LOG_TRACE(log("sending rtcp packet over secure transport") + ZS_PARAM("size", packet->size()))
 
-      EventWriteOrtcRtpReceiverSendOutgoingPacket(__func__, mID, zsLib::to_underlying(mSendRTCPOverTransport), zsLib::to_underlying(IICETypes::Component_RTCP), packet->buffer()->SizeInBytes(), packet->buffer()->BytePtr());
+      EventWriteOrtcRtpReceiverSendOutgoingPacket(__func__, mID, zsLib::to_underlying(mSendRTCPOverTransport), zsLib::to_underlying(IICETypes::Component_RTCP), SafeInt<unsigned int>(packet->buffer()->SizeInBytes()), packet->buffer()->BytePtr());
       return rtcpTransport->sendPacket(mSendRTCPOverTransport, IICETypes::Component_RTCP, packet->ptr(), packet->size());
     }
 
@@ -2541,7 +2541,7 @@ namespace ortc
 
       outRID = extractRID(routingPayload, rtpPacket, outChannelHolder);
 
-      EventWriteOrtcRtpReceiverFindMapping(__func__, mID, outRID, rtpPacket.buffer()->SizeInBytes(), rtpPacket.buffer()->BytePtr());
+      EventWriteOrtcRtpReceiverFindMapping(__func__, mID, outRID, SafeInt<unsigned int>(rtpPacket.buffer()->SizeInBytes()), rtpPacket.buffer()->BytePtr());
 
       {
         if (outChannelHolder) goto fill_rid;

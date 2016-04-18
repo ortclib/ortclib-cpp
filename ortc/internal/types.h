@@ -90,15 +90,6 @@ namespace ortc
     ZS_DECLARE_USING_PROXY(zsLib, IPromiseDelegate)
 
     using openpeer::services::IFactory;
-#define ORTC_THROW_INVALID_STATE(xMessage) ZS_THROW_INVALID_USAGE(xMessage)
-#define ORTC_THROW_INVALID_PARAMETERS(xMessage) ZS_THROW_INVALID_ARGUMENT(xMessage)
-#define ORTC_THROW_SYNTAX_ERROR(xMessage) ZS_THROW_CUSTOM(SyntaxError, xMessage)
-#define ORTC_THROW_NOT_SUPPORTED_ERRROR(xMessage) ZS_THROW_NOT_IMPLEMENTED(xMessage)
-
-#define ORTC_THROW_INVALID_STATE_IF(xExpression) ZS_THROW_INVALID_USAGE_IF(xExpression)
-#define ORTC_THROW_INVALID_PARAMETERS_IF(xExpression) ZS_THROW_INVALID_ARGUMENT_IF(xExpression)
-#define ORTC_THROW_SYNTAX_ERROR_IF(xExpression) ZS_THROW_CUSTOM_IF(SyntaxError, xExpression)
-#define ORTC_THROW_NOT_SUPPORTED_ERROR_IF(xExpression) ZS_THROW_NOT_IMPLEMENTED_IF(xExpression)
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------

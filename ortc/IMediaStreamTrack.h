@@ -103,8 +103,9 @@ namespace ortc
       Optional<CapabilityDouble>  mVolume;
       Optional<CapabilityLong>    mSampleRate;
       Optional<CapabilityLong>    mSampleSize;
-      Optional<CapabilityBool>    mEchoCancellation;
+      Optional<CapabilityBoolean> mEchoCancellation;
       Optional<CapabilityDouble>  mLatency;
+      Optional<CapabilityLong>    mChannelCount;
 
       String                      mDeviceID;
       String                      mGroupID;
@@ -140,6 +141,7 @@ namespace ortc
       Optional<LONG>     mSampleSize;
       Optional<bool>     mEchoCancellation;
       Optional<double>   mLatency;
+      Optional<LONG>     mChannelCount;
       Optional<String>   mDeviceID;
       Optional<String>   mGroupID;
 
@@ -172,8 +174,9 @@ namespace ortc
       ConstrainDouble   mVolume;
       ConstrainLong     mSampleRate;
       ConstrainLong     mSampleSize;
-      ConstrainBool     mEchoCancellation;
+      ConstrainBoolean  mEchoCancellation;
       ConstrainDouble   mLatency;
+      ConstrainLong     mChannelCount;
       ConstrainString   mDeviceID;
       ConstrainString   mGroupID;
 

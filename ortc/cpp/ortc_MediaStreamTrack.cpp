@@ -1617,13 +1617,19 @@ namespace ortc
     {
       ElementPtr entryEl = elem->findFirstChildElement("echoCancellation");
       if (entryEl) {
-        mEchoCancellation = CapabilityBool(entryEl);
+        mEchoCancellation = CapabilityBoolean(entryEl);
       }
     }
     {
       ElementPtr entryEl = elem->findFirstChildElement("latency");
       if (entryEl) {
         mLatency = CapabilityDouble(entryEl);
+      }
+    }
+    {
+      ElementPtr entryEl = elem->findFirstChildElement("channelCount");
+      if (entryEl) {
+        mChannelCount = CapabilityLong(entryEl);
       }
     }
 
@@ -1668,6 +1674,9 @@ namespace ortc
     }
     if (mLatency.hasValue()) {
       elem->adoptAsLastChild(mLatency.value().createElement("latency"));
+    }
+    if (mChannelCount.hasValue()) {
+      elem->adoptAsLastChild(mChannelCount.value().createElement("channelCount"));
     }
 
     UseHelper::adoptElementValue(elem, "deviceId", mDeviceID, false);
@@ -1717,6 +1726,7 @@ namespace ortc
     UseServicesHelper::debugAppend(resultEl, "sample rate", mSampleRate.hasValue() ? mSampleRate.value().toDebug() : ElementPtr());
     UseServicesHelper::debugAppend(resultEl, "echo cancellation", mEchoCancellation.hasValue() ? mEchoCancellation.value().toDebug() : ElementPtr());
     UseServicesHelper::debugAppend(resultEl, "latency", mLatency.hasValue() ? mLatency.value().toDebug() : ElementPtr());
+    UseServicesHelper::debugAppend(resultEl, "channel acount", mChannelCount.hasValue() ? mChannelCount.value().toDebug() : ElementPtr());
     UseServicesHelper::debugAppend(resultEl, "device id", mDeviceID);
     UseServicesHelper::debugAppend(resultEl, "group id", mGroupID);
 
@@ -1746,6 +1756,8 @@ namespace ortc
     hasher.update(mEchoCancellation.hasValue() ? mEchoCancellation.value().hash()  : String());
     hasher.update(":");
     hasher.update(mLatency.hasValue() ? mLatency.value().hash()  : String());
+    hasher.update(":");
+    hasher.update(mChannelCount.hasValue() ? mChannelCount.value().hash() : String());
     hasher.update(":");
     hasher.update(mDeviceID);
     hasher.update(":");
@@ -1778,6 +1790,7 @@ namespace ortc
     UseHelper::getElementValue(elem, "ortc::IMediaStreamTrackTypes::Settings", "sampleSize", mSampleSize);
     UseHelper::getElementValue(elem, "ortc::IMediaStreamTrackTypes::Settings", "echoCancellation", mEchoCancellation);
     UseHelper::getElementValue(elem, "ortc::IMediaStreamTrackTypes::Settings", "latency", mLatency);
+    UseHelper::getElementValue(elem, "ortc::IMediaStreamTrackTypes::Settings", "channelCount", mChannelCount);
     UseHelper::getElementValue(elem, "ortc::IMediaStreamTrackTypes::Settings", "deviceId", mDeviceID);
     UseHelper::getElementValue(elem, "ortc::IMediaStreamTrackTypes::Settings", "groupId", mGroupID);
   }
@@ -1798,6 +1811,7 @@ namespace ortc
     UseHelper::adoptElementValue(elem, "sampleSize", mSampleSize);
     UseHelper::adoptElementValue(elem, "echoCancellation", mEchoCancellation);
     UseHelper::adoptElementValue(elem, "latency", mLatency);
+    UseHelper::adoptElementValue(elem, "channelCount", mChannelCount);
     UseHelper::adoptElementValue(elem, "deviceId", mDeviceID);
     UseHelper::adoptElementValue(elem, "groupId", mGroupID);
 
@@ -1846,6 +1860,8 @@ namespace ortc
     UseServicesHelper::debugAppend(resultEl, "sample rate", mSampleRate);
     UseServicesHelper::debugAppend(resultEl, "sample size", mSampleSize);
     UseServicesHelper::debugAppend(resultEl, "echo cancellation", mEchoCancellation);
+    UseServicesHelper::debugAppend(resultEl, "latency", mLatency);
+    UseServicesHelper::debugAppend(resultEl, "channel count", mChannelCount);
     UseServicesHelper::debugAppend(resultEl, "device id", mDeviceID);
     UseServicesHelper::debugAppend(resultEl, "group id", mGroupID);
 
@@ -1880,6 +1896,8 @@ namespace ortc
     hasher.update(mEchoCancellation);
     hasher.update(":");
     hasher.update(mLatency);
+    hasher.update(":");
+    hasher.update(mChannelCount);
     hasher.update(":");
     hasher.update(mDeviceID, "bogus99255cc407eaf6f82b33a94ab86f588581df9000");
     hasher.update(":");
@@ -1958,13 +1976,19 @@ namespace ortc
     {
       ElementPtr entryEl = elem->findFirstChildElement("echoCancellation");
       if (entryEl) {
-        mEchoCancellation = ConstrainBool(entryEl);
+        mEchoCancellation = ConstrainBoolean(entryEl);
       }
     }
     {
       ElementPtr entryEl = elem->findFirstChildElement("latency");
       if (entryEl) {
         mLatency = ConstrainDouble(entryEl);
+      }
+    }
+    {
+      ElementPtr entryEl = elem->findFirstChildElement("channelCount");
+      if (entryEl) {
+        mChannelCount = ConstrainLong(entryEl);
       }
     }
     {
@@ -1997,6 +2021,7 @@ namespace ortc
     elem->adoptAsLastChild(mSampleSize.createElement("sampleSize"));
     elem->adoptAsLastChild(mEchoCancellation.createElement("echoCancellation"));
     elem->adoptAsLastChild(mLatency.createElement("latency"));
+    elem->adoptAsLastChild(mChannelCount.createElement("channelCount"));
     elem->adoptAsLastChild(mDeviceID.createElement("deviceId"));
     elem->adoptAsLastChild(mGroupID.createElement("groupId"));
 
@@ -2038,6 +2063,7 @@ namespace ortc
     UseServicesHelper::debugAppend(resultEl, "sample rate", mSampleRate.toDebug());
     UseServicesHelper::debugAppend(resultEl, "echo cancellation", mEchoCancellation.toDebug());
     UseServicesHelper::debugAppend(resultEl, "latency", mLatency.toDebug());
+    UseServicesHelper::debugAppend(resultEl, "channel count", mChannelCount.toDebug());
     UseServicesHelper::debugAppend(resultEl, "device id", mDeviceID.toDebug());
     UseServicesHelper::debugAppend(resultEl, "group id", mGroupID.toDebug());
 
@@ -2068,6 +2094,8 @@ namespace ortc
     hasher.update(mEchoCancellation.hash());
     hasher.update(":");
     hasher.update(mLatency.hash());
+    hasher.update(":");
+    hasher.update(mChannelCount.hash());
     hasher.update(":");
     hasher.update(mDeviceID.hash());
     hasher.update(":");
