@@ -1101,9 +1101,12 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void MediaStreamTrackTester::onMediaStreamTrackOverConstrained(IMediaStreamTrackPtr track)
+      void MediaStreamTrackTester::onMediaStreamTrackOverConstrained(
+                                                                     IMediaStreamTrackPtr track,
+                                                                     const char *constraint,
+                                                                     const char *message
+                                                                     )
       {
-
       }
 
       //-----------------------------------------------------------------------

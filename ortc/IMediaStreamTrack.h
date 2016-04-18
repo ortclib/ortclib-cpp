@@ -266,7 +266,6 @@ namespace ortc
     virtual void enabled(bool enabled) = 0;
     virtual bool muted() const = 0;
     virtual void muted(bool muted) = 0;
-    virtual bool readOnly() const = 0;
     virtual bool remote() const = 0;
     virtual States readyState() const = 0;
 
@@ -299,7 +298,11 @@ namespace ortc
                                         ) = 0;
 
     virtual void onMediaStreamTrackEnded(IMediaStreamTrackPtr track) = 0;
-    virtual void onMediaStreamTrackOverConstrained(IMediaStreamTrackPtr track) = 0;
+    virtual void onMediaStreamTrackOverConstrained(
+                                                   IMediaStreamTrackPtr track,
+                                                   const char *constraint,
+                                                   const char *message
+                                                   ) = 0;
   };
   
   //---------------------------------------------------------------------------
@@ -324,12 +327,12 @@ ZS_DECLARE_PROXY_BEGIN(ortc::IMediaStreamTrackDelegate)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IMediaStreamTrackPtr, IMediaStreamTrackPtr)
 ZS_DECLARE_PROXY_METHOD_2(onMediaStreamTrackMute, IMediaStreamTrackPtr, bool)
 ZS_DECLARE_PROXY_METHOD_1(onMediaStreamTrackEnded, IMediaStreamTrackPtr)
-ZS_DECLARE_PROXY_METHOD_1(onMediaStreamTrackOverConstrained, IMediaStreamTrackPtr)
+ZS_DECLARE_PROXY_METHOD_3(onMediaStreamTrackOverConstrained, IMediaStreamTrackPtr, const char *, const char *)
 ZS_DECLARE_PROXY_END()
 
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_BEGIN(ortc::IMediaStreamTrackDelegate, ortc::IMediaStreamTrackSubscription)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IMediaStreamTrackPtr, IMediaStreamTrackPtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onMediaStreamTrackMute, IMediaStreamTrackPtr, bool)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_1(onMediaStreamTrackEnded, IMediaStreamTrackPtr)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_1(onMediaStreamTrackOverConstrained, IMediaStreamTrackPtr)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_3(onMediaStreamTrackOverConstrained, IMediaStreamTrackPtr, const char *, const char *)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_END()

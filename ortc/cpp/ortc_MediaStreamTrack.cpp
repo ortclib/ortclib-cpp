@@ -565,14 +565,6 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool MediaStreamTrack::readOnly() const
-    {
-#define TODO 1
-#define TODO 2
-      return false;
-    }
-
-    //-------------------------------------------------------------------------
     bool MediaStreamTrack::remote() const
     {
       AutoRecursiveLock lock(*this);
