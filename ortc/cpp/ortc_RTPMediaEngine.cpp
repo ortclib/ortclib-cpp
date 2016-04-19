@@ -56,8 +56,9 @@
 #include <webrtc/voice_engine/include/voe_rtp_rtcp.h>
 #include <webrtc/voice_engine/include/voe_network.h>
 #include <webrtc/system_wrappers/include/cpu_info.h>
+#ifdef WINRT
 #include <third_party/h264_winrt/h264_winrt_factory.h>
-
+#endif
 
 #ifdef _DEBUG
 #define ASSERT(x) ZS_THROW_BAD_STATE_IF(!(x))
@@ -2176,13 +2177,18 @@ namespace ortc
           decoder.payload_type = codecIter->mPayloadType;
           goto set_rtcp_feedback;
         } else if (IRTPTypes::SupportedCodec_H264 == supportedCodec) {
-        //webrtc::VideoDecoder* videoDecoder = webrtc::VideoDecoder::Create(webrtc::VideoDecoder::kH264);
+#ifndef WINRT
+          webrtc::VideoDecoder* videoDecoder = webrtc::VideoDecoder::Create(webrtc::VideoDecoder::kH264);
+#else
           cricket::WebRtcVideoDecoderFactory* decoderFactory = new webrtc::H264WinRTDecoderFactory();
           webrtc::VideoDecoder* videoDecoder = decoderFactory->CreateVideoDecoder(webrtc::VideoCodecType::kVideoCodecH264);
+#endif
           decoder.decoder = videoDecoder;
           decoder.payload_name = codecIter->mName;
           decoder.payload_type = codecIter->mPayloadType;
+#ifdef WINRT
           delete decoderFactory;
+#endif
           goto set_rtcp_feedback;
         }
         codecIter++;
@@ -2483,9 +2489,12 @@ namespace ortc
           encoderConfig.encoder_specific_settings = &videoCodec;
           goto set_rtcp_feedback;
         } else if (IRTPTypes::SupportedCodec_H264 == supportedCodec) {
-          //webrtc::VideoEncoder* videoEncoder = webrtc::VideoEncoder::Create(webrtc::VideoEncoder::kH264);
+#ifndef WINRT
+          webrtc::VideoEncoder* videoEncoder = webrtc::VideoEncoder::Create(webrtc::VideoEncoder::kH264);
+#else
           cricket::WebRtcVideoEncoderFactory* encoderFactory = new webrtc::H264WinRTEncoderFactory();
           webrtc::VideoEncoder* videoEncoder = encoderFactory->CreateVideoEncoder(webrtc::VideoCodecType::kVideoCodecH264);
+#endif
           config.encoder_settings.encoder = videoEncoder;
           config.encoder_settings.payload_name = codecIter->mName;
           config.encoder_settings.payload_type = codecIter->mPayloadType;
@@ -2503,7 +2512,9 @@ namespace ortc
           encoderConfig.content_type = webrtc::VideoEncoderConfig::ContentType::kRealtimeVideo;
           encoderConfig.streams.push_back(stream);
           encoderConfig.encoder_specific_settings = &videoCodec;
+#ifdef WINRT
           delete encoderFactory;
+#endif
           goto set_rtcp_feedback;
         }
         codecIter++;
