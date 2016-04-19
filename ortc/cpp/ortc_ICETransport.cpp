@@ -1826,8 +1826,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     void ICETransport::onICEGathererError(
                                           IICEGathererPtr inGatherer,
-                                          ErrorCode errorCode,
-                                          String errorReason
+                                          ErrorEventPtr errorEvent
                                           )
     {
       UseICEGathererPtr gatherer = ICEGatherer::convert(inGatherer);
@@ -1835,11 +1834,11 @@ namespace ortc
       AutoRecursiveLock lock(*this);
 
       if (gatherer != mGatherer) {
-        ZS_LOG_WARNING(Debug, log("notified about error on non-associated gatherer") + ZS_PARAM("gatherer", gatherer->getID()) + ZS_PARAMIZE(errorCode) + ZS_PARAMIZE(errorReason))
+        ZS_LOG_WARNING(Debug, log("notified about error on non-associated gatherer") + ZS_PARAM("gatherer", gatherer->getID()) + errorEvent->toDebug())
         return;
       }
 
-      ZS_LOG_WARNING(Detail, log("notified gatherer has encountered an error") + ZS_PARAMIZE(errorCode) + ZS_PARAMIZE(errorReason))
+      ZS_LOG_WARNING(Detail, log("notified gatherer has encountered an error") + errorEvent->toDebug())
     }
 
     //-------------------------------------------------------------------------

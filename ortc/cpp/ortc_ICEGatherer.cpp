@@ -4042,7 +4042,7 @@ namespace ortc
 
       auto pThis = mThisWeak.lock();
       if (pThis) {
-        mSubscriptions.delegate()->onICEGathererError(mThisWeak.lock(), mLastError, mLastErrorReason);
+        //mSubscriptions.delegate()->onICEGathererError(mThisWeak.lock(), mLastError, mLastErrorReason);
       }
     }
     
@@ -7030,69 +7030,6 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   #pragma mark
-  #pragma mark IICEGathererTypes::InterfacePolicy
-  #pragma mark
-
-  //---------------------------------------------------------------------------
-  IICEGathererTypes::InterfacePolicy::InterfacePolicy(ElementPtr elem)
-  {
-    if (!elem) return;
-
-    UseHelper::getElementValue(elem, "ortc::IICEGathererTypes::InterfacePolicy", "interfaceType", mInterfaceType);
-
-    {
-      String str = UseServicesHelper::getElementText(elem->findFirstChildElement("gatherPolicy"));
-      if (str.hasData()) {
-        try {
-          mGatherPolicy = toPolicy(str);
-        } catch(const InvalidParameters &) {
-          ZS_LOG_WARNING(Debug, slog("gather policy not valid") + ZS_PARAM("value", str))
-        }
-      }
-    }
-  }
-
-  //---------------------------------------------------------------------------
-  ElementPtr IICEGathererTypes::InterfacePolicy::createElement(const char *objectName) const
-  {
-    ElementPtr elem = Element::create(objectName);
-
-    UseHelper::adoptElementValue(elem, "interfaceType", mInterfaceType, false);
-    UseHelper::adoptElementValue(elem, "gatherPolicy", IICEGathererTypes::toString(mGatherPolicy), false);
-
-    if (!elem->hasChildren()) return ElementPtr();
-    
-    return elem;
-  }
-
-  //---------------------------------------------------------------------------
-  ElementPtr IICEGathererTypes::InterfacePolicy::toDebug() const
-  {
-    ElementPtr resultEl = Element::create("ortc::IICEGathererTypes::InterfacePolicy");
-
-    UseServicesHelper::debugAppend(resultEl, "interface type", mInterfaceType);
-    UseServicesHelper::debugAppend(resultEl, "gather policy", toString(mGatherPolicy));
-
-    return resultEl;
-  }
-
-  //---------------------------------------------------------------------------
-  String IICEGathererTypes::InterfacePolicy::hash() const
-  {
-    SHA1Hasher hasher;
-
-    hasher.update("InterfacePolicy:");
-    hasher.update(mInterfaceType);
-    hasher.update(":");
-    hasher.update(toString(mGatherPolicy));
-    return hasher.final();
-  }
-  
-  //---------------------------------------------------------------------------
-  //---------------------------------------------------------------------------
-  //---------------------------------------------------------------------------
-  //---------------------------------------------------------------------------
-  #pragma mark
   #pragma mark IICEGathererTypes::CredentialType
   #pragma mark
 
@@ -7374,7 +7311,150 @@ namespace ortc
 
     return hasher.final();
   }
-  
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IICEGathererTypes::InterfacePolicy
+  #pragma mark
+
+  //---------------------------------------------------------------------------
+  IICEGathererTypes::InterfacePolicy::InterfacePolicy(ElementPtr elem)
+  {
+    if (!elem) return;
+
+    UseHelper::getElementValue(elem, "ortc::IICEGathererTypes::InterfacePolicy", "interfaceType", mInterfaceType);
+
+    {
+      String str = UseServicesHelper::getElementText(elem->findFirstChildElement("gatherPolicy"));
+      if (str.hasData()) {
+        try {
+          mGatherPolicy = toPolicy(str);
+        }
+        catch (const InvalidParameters &) {
+          ZS_LOG_WARNING(Debug, slog("gather policy not valid") + ZS_PARAM("value", str))
+        }
+      }
+    }
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IICEGathererTypes::InterfacePolicy::createElement(const char *objectName) const
+  {
+    ElementPtr elem = Element::create(objectName);
+
+    UseHelper::adoptElementValue(elem, "interfaceType", mInterfaceType, false);
+    UseHelper::adoptElementValue(elem, "gatherPolicy", IICEGathererTypes::toString(mGatherPolicy), false);
+
+    if (!elem->hasChildren()) return ElementPtr();
+
+    return elem;
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IICEGathererTypes::InterfacePolicy::toDebug() const
+  {
+    ElementPtr resultEl = Element::create("ortc::IICEGathererTypes::InterfacePolicy");
+
+    UseServicesHelper::debugAppend(resultEl, "interface type", mInterfaceType);
+    UseServicesHelper::debugAppend(resultEl, "gather policy", toString(mGatherPolicy));
+
+    return resultEl;
+  }
+
+  //---------------------------------------------------------------------------
+  String IICEGathererTypes::InterfacePolicy::hash() const
+  {
+    SHA1Hasher hasher;
+
+    hasher.update("InterfacePolicy:");
+    hasher.update(mInterfaceType);
+    hasher.update(":");
+    hasher.update(toString(mGatherPolicy));
+    return hasher.final();
+  }
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IICEGathererTypes::ErrorEvent
+  #pragma mark
+
+  //---------------------------------------------------------------------------
+  IICEGathererTypes::ErrorEvent::ErrorEvent(ElementPtr elem)
+  {
+    if (!elem) return;
+
+    {
+      ElementPtr candidateEl = elem->findFirstChildElement("hostCandidate");
+      if (candidateEl) {
+        CandidatePtr candidate = make_shared<Candidate>(candidateEl);
+        if (!candidate->ip().isEmpty()) {
+          mHostCandidate = candidate;
+        }
+      }
+    }
+
+    UseHelper::getElementValue(elem, "ortc::ErrorEvent", "url", mURL);
+    UseHelper::getElementValue(elem, "ortc::ErrorEvent", "errorCode", mErrorCode);
+    UseHelper::getElementValue(elem, "ortc::ErrorEvent", "errorText", mErrorText);
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IICEGathererTypes::ErrorEvent::createElement(const char *objectName) const
+  {
+    ElementPtr elem = Element::create(objectName);
+
+    if (mHostCandidate) {
+      elem->adoptAsLastChild(mHostCandidate->createElement("hostCandidate"));
+    }
+    UseHelper::adoptElementValue(elem, "url", mURL, false);
+    if (0 != mErrorCode) {
+      UseHelper::adoptElementValue(elem, "errorCode", mErrorCode);
+    }
+    UseHelper::adoptElementValue(elem, "errorText", mErrorText, false);
+
+    if (!elem->hasChildren()) return ElementPtr();
+
+    return elem;
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IICEGathererTypes::ErrorEvent::toDebug() const
+  {
+    ElementPtr resultEl = Element::create("ortc::IICEGathererTypes::ErrorEvent");
+
+    UseServicesHelper::debugAppend(resultEl, "host candidate", mHostCandidate ? mHostCandidate->toDebug() : ElementPtr());
+    UseServicesHelper::debugAppend(resultEl, "url", mURL);
+    UseServicesHelper::debugAppend(resultEl, "error code", mErrorCode);
+    UseServicesHelper::debugAppend(resultEl, "error reason", mErrorText);
+
+    return resultEl;
+  }
+
+  //---------------------------------------------------------------------------
+  String IICEGathererTypes::ErrorEvent::hash() const
+  {
+    SHA1Hasher hasher;
+
+    hasher.update("ErrorEvent:");
+    if (mHostCandidate) {
+      hasher.update(mHostCandidate->hash());
+    }
+    hasher.update(":");
+    hasher.update(mURL);
+    hasher.update(":");
+    hasher.update(mErrorCode);
+    hasher.update(":");
+    hasher.update(mErrorText);
+    return hasher.final();
+  }
+
+
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
