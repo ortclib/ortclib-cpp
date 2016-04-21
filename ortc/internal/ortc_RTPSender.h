@@ -126,12 +126,6 @@ namespace ortc
                                   bool selfDestruct
                                   ) = 0;
 
-      virtual void notifyError(
-                               UseChannelPtr channel,
-                               IRTPSenderDelegate::ErrorCode error,
-                               const char *errorReason,
-                               bool selfDestruct
-                               ) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -232,9 +226,6 @@ namespace ortc
       ZS_DECLARE_TYPEDEF_PTR(std::list<ParametersPtr>, ParametersPtrList)
 
       typedef std::list<IRTPTypes::SSRCType> SSRCList;
-
-      typedef std::pair<IRTPSenderDelegate::ErrorCode, String> ErrorPair;
-      typedef std::list<ErrorPair> ErrorList;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -344,7 +335,7 @@ namespace ortc
 
       static CapabilitiesPtr getCapabilities(Optional<Kinds> kind);
 
-      virtual void send(const Parameters &parameters) override;
+      virtual PromisePtr send(const Parameters &parameters) override;
       virtual void stop() override;
 
 
@@ -379,13 +370,6 @@ namespace ortc
                                   IRTPTypes::SSRCType ssrc,
                                   bool selfDestruct
                                   ) override;
-
-      virtual void notifyError(
-                               UseChannelPtr channel,
-                               IRTPSenderDelegate::ErrorCode error,
-                               const char *errorReason,
-                               bool selfDestruct
-                               ) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -506,7 +490,6 @@ namespace ortc
       ParametersToChannelHolderMapPtr mChannels;  // using COW pattern
 
       SSRCList mConflicts;
-      ErrorList mErrors;
     };
 
     //-------------------------------------------------------------------------

@@ -106,7 +106,7 @@ namespace ortc
 
     static CapabilitiesPtr getCapabilities(Optional<Kinds> kind = Optional<Kinds>());
 
-    virtual void receive(const Parameters &parameters) = 0;
+    virtual PromisePtr receive(const Parameters &parameters) = 0;
     virtual void stop() = 0;
 
     virtual ContributingSourceList getContributingSources() const = 0;
@@ -124,13 +124,7 @@ namespace ortc
 
   interaction IRTPReceiverDelegate
   {
-    typedef WORD ErrorCode;
-
-    virtual void onRTPReceiverError(
-                                    IRTPReceiverPtr receiver,
-                                    ErrorCode errorCode,
-                                    String errorReason
-                                    ) = 0;
+    virtual ~IRTPReceiverDelegate() {}
   };
 
   //---------------------------------------------------------------------------
@@ -154,12 +148,8 @@ namespace ortc
 
 ZS_DECLARE_PROXY_BEGIN(ortc::IRTPReceiverDelegate)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IRTPReceiverPtr, IRTPReceiverPtr)
-ZS_DECLARE_PROXY_TYPEDEF(ortc::IRTPReceiverDelegate::ErrorCode, ErrorCode)
-ZS_DECLARE_PROXY_METHOD_3(onRTPReceiverError, IRTPReceiverPtr, ErrorCode, String)
 ZS_DECLARE_PROXY_END()
 
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_BEGIN(ortc::IRTPReceiverDelegate, ortc::IRTPReceiverSubscription)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IRTPReceiverPtr, IRTPReceiverPtr)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IRTPReceiverDelegate::ErrorCode, ErrorCode)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_3(onRTPReceiverError, IRTPReceiverPtr, ErrorCode, String)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_END()

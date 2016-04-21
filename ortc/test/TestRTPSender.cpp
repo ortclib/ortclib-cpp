@@ -1915,7 +1915,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void FakeReceiver::receive(const Parameters &parameters)
+      PromisePtr FakeReceiver::receive(const Parameters &parameters)
       {
         AutoRecursiveLock lock(*this);
 
@@ -1930,6 +1930,7 @@ namespace ortc
             handlePacket(IICETypes::Component_RTP, *iter);
           }
         }
+        return Promise::createResolved(getAssociatedMessageQueue());
       }
 
       //-----------------------------------------------------------------------
@@ -2820,19 +2821,6 @@ namespace ortc
       #pragma mark
       #pragma mark RTPSenderTester::IRTPSenderDelegate
       #pragma mark
-
-      //-----------------------------------------------------------------------
-      void RTPSenderTester::onRTPSenderError(
-                                                 IRTPSenderPtr sender,
-                                                 ErrorCode errorCode,
-                                                 String errorReason
-                                                 )
-      {
-        ZS_LOG_BASIC(log("rtp receiver error") + ZS_PARAM("sender", sender->getID()) + ZS_PARAM("error code", errorCode) + ZS_PARAM("error reason", errorReason))
-
-        AutoRecursiveLock lock(*this);
-        ++mExpectationsFound.mError;
-      }
 
       //-----------------------------------------------------------------------
       void RTPSenderTester::onRTPSenderSSRCConflict(

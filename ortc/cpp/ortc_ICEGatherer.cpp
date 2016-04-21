@@ -754,7 +754,7 @@ namespace ortc
     IICEGatherer::ParametersPtr ICEGatherer::getLocalParameters() const
     {
       ParametersPtr result(make_shared<Parameters>());
-      result->mUseCandidateFreezePriority = true;
+      result->mUseUnfreezePriority = true;
       result->mUsernameFragment = mUsernameFrag;
       result->mPassword = mPassword;
       return result;

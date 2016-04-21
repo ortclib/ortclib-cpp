@@ -459,7 +459,7 @@ namespace ortc
 
       static CapabilitiesPtr getCapabilities(Optional<Kinds> kind);
 
-      virtual void receive(const Parameters &parameters) override;
+      virtual PromisePtr receive(const Parameters &parameters) override;
       virtual void stop() override;
 
       virtual ContributingSourceList getContributingSources() const override;

@@ -512,7 +512,7 @@ namespace ortc
   {
     if (!elem) return;
 
-    UseHelper::getElementValue(elem, "ortc::IICETypes::Parameters", "useCandidateFreezePriority", mUseCandidateFreezePriority);
+    UseHelper::getElementValue(elem, "ortc::IICETypes::Parameters", "useUnfreezePriority", mUseUnfreezePriority);
     UseHelper::getElementValue(elem, "ortc::IICETypes::Parameters", "usernameFragment", mUsernameFragment);
     UseHelper::getElementValue(elem, "ortc::IICETypes::Parameters", "password", mPassword);
     UseHelper::getElementValue(elem, "ortc::IICETypes::Parameters", "iceLite", mICELite);
@@ -523,7 +523,7 @@ namespace ortc
   {
     ElementPtr elem = Element::create(objectName);
 
-    UseHelper::adoptElementValue(elem, "useCandidateFreezePriority", mUseCandidateFreezePriority);
+    UseHelper::adoptElementValue(elem, "useCandidateFreezePriority", mUseUnfreezePriority);
     UseHelper::adoptElementValue(elem, "usernameFragment", mUsernameFragment, false);
     UseHelper::adoptElementValue(elem, "password", mPassword, false);
     UseHelper::adoptElementValue(elem, "iceLite", mICELite);
@@ -538,7 +538,7 @@ namespace ortc
   {
     ElementPtr resultEl = Element::create("ortc::IICETypes::Parameters");
 
-    UseServicesHelper::debugAppend(resultEl, "use candidate freeze priority", mUseCandidateFreezePriority);
+    UseServicesHelper::debugAppend(resultEl, "use unfreeze priority", mUseUnfreezePriority);
     UseServicesHelper::debugAppend(resultEl, "username fragment", mUsernameFragment);
     UseServicesHelper::debugAppend(resultEl, "password", mPassword);
 
@@ -550,7 +550,7 @@ namespace ortc
   {
     SHA1Hasher hasher;
 
-    hasher.update(mUseCandidateFreezePriority ? "Parameters:true:" : "Parameters:false:");
+    hasher.update(mUseUnfreezePriority ? "Parameters:true:" : "Parameters:false:");
     hasher.update(mUsernameFragment);
     hasher.update(":");
     hasher.update(mPassword);

@@ -826,7 +826,7 @@ namespace ortc
 
         void linkChannel(RTPReceiverChannelPtr channel);
 
-        virtual void receive(const Parameters &parameters) override;
+        virtual PromisePtr receive(const Parameters &parameters) override;
         virtual void stop() override;
 
         void expectData(SecureByteBlockPtr data);
@@ -920,13 +920,6 @@ namespace ortc
                                     bool selfDestruct
                                     ) override;
 
-        virtual void notifyError(
-                                 UseChannelPtr channel,
-                                 IRTPSenderDelegate::ErrorCode error,
-                                 const char *errorReason,
-                                 bool selfDestruct
-                                 ) override;
-
         //---------------------------------------------------------------------
         #pragma mark
         #pragma mark FakeSender => (friend RTPChannelTester)
@@ -936,7 +929,7 @@ namespace ortc
 
         void linkChannel(RTPSenderChannelPtr channel);
 
-        virtual void send(const Parameters &parameters) override;
+        virtual PromisePtr send(const Parameters &parameters) override;
         virtual void stop() override;
 
         void expectData(SecureByteBlockPtr data);
@@ -1530,7 +1523,6 @@ namespace ortc
 
           // sender channel related
           ULONG mSenderChannelConflict {0};
-          ULONG mSenderChannelError {0};
 
           bool operator==(const Expectations &op2) const;
         };
@@ -1792,12 +1784,6 @@ namespace ortc
         #pragma mark RTPChannelTester::IRTPReceiverDelegate
         #pragma mark
 
-        virtual void onRTPReceiverError(
-                                        IRTPReceiverPtr receiver,
-                                        ErrorCode errorCode,
-                                        String errorReason
-                                        ) override;
-
         //---------------------------------------------------------------------
         #pragma mark
         #pragma mark RTPChannelTester => (friend fake listener, sender, receiver channel)
@@ -1808,8 +1794,6 @@ namespace ortc
         void notifyReceivedPacket();
 
         void notifySenderChannelConflict();
-
-        void notifySenderChannelError();
 
         FakeReceiverChannelAudioPtr createReceiverChannelAudio(
                                                                RTPReceiverChannelPtr receiverChannel,

@@ -644,9 +644,6 @@ namespace ortc
       if (delegate) {
         RTPReceiverPtr pThis = mThisWeak.lock();
 
-        if (0 != mLastError) {
-          mSubscriptions.delegate()->onRTPReceiverError(pThis, mLastError, mLastErrorReason);
-        }
       }
 
       if (isShutdown()) {
@@ -1110,9 +1107,11 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPReceiver::receive(const Parameters &inParameters)
+    PromisePtr RTPReceiver::receive(const Parameters &inParameters)
     {
       typedef RTPTypesHelper::ParametersPtrPairList ParametersPtrPairList;
+
+      PromisePtr promise = Promise::create(IORTCForInternal::queueDelegate());
 
       auto parameters = make_shared<Parameters>(inParameters);
 
@@ -1223,7 +1222,8 @@ namespace ortc
         auto previousHash = mParameters->hash();
         if (hash == previousHash) {
           ZS_LOG_TRACE(log("receive has not changed (noop)"))
-          return;
+          promise->resolve();
+          return promise;
         }
 
         bool oldShouldLatchAll = shouldLatchAll();
@@ -1329,6 +1329,9 @@ namespace ortc
       mListener->registerReceiver(mKind, mThisWeak.lock(), *mParameters);
 
       registerHeaderExtensions(*mParameters);
+
+      promise->resolve();
+      return promise;
     }
 
     //-------------------------------------------------------------------------

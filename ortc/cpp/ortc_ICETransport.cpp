@@ -486,7 +486,7 @@ namespace ortc
                                       __func__,
                                       mID,
                                       ((bool)inGatherer) ? inGatherer->getID() : 0,
-                                      remoteParameters.mUseCandidateFreezePriority,
+                                      remoteParameters.mUseUnfreezePriority,
                                       remoteParameters.mUsernameFragment,
                                       remoteParameters.mPassword,
                                       remoteParameters.mICELite,
@@ -3625,7 +3625,7 @@ namespace ortc
         route->mLastReceivedResponse = Time();  // need to recheck thus no response receieved
 
         // NOTE: reversing priority value so largest value becomes smallest value
-        auto priority = (getMaxQWORD() ^ route->getActivationPriority(IICETypes::Role_Controlling == mOptions.mRole, mRemoteParameters.mUseCandidateFreezePriority));
+        auto priority = (getMaxQWORD() ^ route->getActivationPriority(IICETypes::Role_Controlling == mOptions.mRole, mRemoteParameters.mUseUnfreezePriority));
 
         auto found = mPendingActivation.find(priority);
         while (found != mPendingActivation.end()) {

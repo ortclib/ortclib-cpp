@@ -817,7 +817,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void FakeReceiver::receive(const Parameters &parameters)
+      PromisePtr FakeReceiver::receive(const Parameters &parameters)
       {
         AutoRecursiveLock lock(*this);
 
@@ -832,6 +832,7 @@ namespace ortc
             handlePacket(IICETypes::Component_RTP, *iter);
           }
         }
+        return Promise::createResolved(getAssociatedMessageQueue());
       }
 
       //-----------------------------------------------------------------------
@@ -981,7 +982,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void FakeSender::send(const Parameters &parameters)
+      PromisePtr FakeSender::send(const Parameters &parameters)
       {
         AutoRecursiveLock lock(*this);
 
@@ -996,6 +997,7 @@ namespace ortc
             handlePacket(IICETypes::Component_RTP, *iter);
           }
         }
+        return Promise::createResolved(getAssociatedMessageQueue());
       }
 
       //-----------------------------------------------------------------------

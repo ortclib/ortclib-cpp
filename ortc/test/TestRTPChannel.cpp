@@ -1573,23 +1573,6 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void FakeSender::notifyError(
-                                   UseChannelPtr channel,
-                                   IRTPSenderDelegate::ErrorCode error,
-                                   const char *errorReason,
-                                   bool selfDestruct
-                                   )
-      {
-        RTPChannelTesterPtr tester;
-        {
-          AutoRecursiveLock lock(*this);
-          tester = mTester.lock();
-          TESTING_CHECK(tester)
-        }
-        tester->notifySenderChannelError();
-      }
-
-      //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
@@ -1641,7 +1624,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void FakeSender::send(const Parameters &parameters)
+      PromisePtr FakeSender::send(const Parameters &parameters)
       {
         AutoRecursiveLock lock(*this);
 
@@ -1656,6 +1639,7 @@ namespace ortc
             handlePacket(IICETypes::Component_RTP, *iter);
           }
         }
+        return Promise::createResolved(getAssociatedMessageQueue());
       }
 
       //-----------------------------------------------------------------------
@@ -1910,7 +1894,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void FakeReceiver::receive(const Parameters &parameters)
+      PromisePtr FakeReceiver::receive(const Parameters &parameters)
       {
         AutoRecursiveLock lock(*this);
 
@@ -1925,6 +1909,7 @@ namespace ortc
             handlePacket(IICETypes::Component_RTP, *iter);
           }
         }
+        return Promise::createResolved(getAssociatedMessageQueue());
       }
 
       //-----------------------------------------------------------------------
@@ -2643,9 +2628,7 @@ namespace ortc
       bool RTPChannelTester::Expectations::operator==(const Expectations &op2) const
       {
         return (mReceivedPackets == op2.mReceivedPackets) &&
-
-               (mSenderChannelConflict == op2.mSenderChannelConflict) &&
-               (mSenderChannelError == op2.mSenderChannelError);
+               (mSenderChannelConflict == op2.mSenderChannelConflict);
       }
 
       //-----------------------------------------------------------------------
@@ -3966,15 +3949,6 @@ namespace ortc
       #pragma mark RTPChannelTester::IRTPReceiverDelegate
       #pragma mark
 
-      //-----------------------------------------------------------------------
-      void RTPChannelTester::onRTPReceiverError(
-                                                IRTPReceiverPtr receiver,
-                                                ErrorCode errorCode,
-                                                String errorReason
-                                                )
-      {
-        // ignored - not called
-      }
 
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
@@ -4006,15 +3980,6 @@ namespace ortc
 
         AutoRecursiveLock lock(*this);
         ++mExpectationsFound.mSenderChannelConflict;
-      }
-
-      //-----------------------------------------------------------------------
-      void RTPChannelTester::notifySenderChannelError()
-      {
-        ZS_LOG_BASIC(log("notified sender channel error"))
-
-        AutoRecursiveLock lock(*this);
-        ++mExpectationsFound.mSenderChannelError;
       }
 
       //-----------------------------------------------------------------------

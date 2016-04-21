@@ -419,13 +419,6 @@ namespace ortc
 
           delegate->onRTPSenderSSRCConflict(pThis, ssrc);
         }
-
-        for (auto iter = mErrors.begin(); iter != mErrors.end(); ++iter) {
-          auto &errorPair = (*iter);
-
-          delegate->onRTPSenderError(pThis, errorPair.first, errorPair.second);
-        }
-        mErrors.clear();
       }
 
       if (isShutdown()) {
@@ -596,9 +589,11 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPSender::send(const Parameters &parameters)
+    PromisePtr RTPSender::send(const Parameters &parameters)
     {
       typedef RTPTypesHelper::ParametersPtrPairList ParametersPtrPairList;
+
+      PromisePtr promise = Promise::create(IORTCForInternal::queueDelegate());
 
       EventWriteOrtcRtpSenderSend(__func__, mID);
 
@@ -622,7 +617,8 @@ namespace ortc
         auto previousHash = mParameters->hash();
         if (hash == previousHash) {
           ZS_LOG_TRACE(log("send parameters have not changed (noop)") + parameters.toDebug())
-          return;
+          promise->resolve();
+          return promise;
         }
 
         ParametersPtrList oldGroupedParams = mParametersGroupedIntoChannels;
@@ -723,6 +719,9 @@ namespace ortc
 
       RTCPPacketList historicalRTCPPackets;
       mListener->registerSender(mThisWeak.lock(), *mParameters, historicalRTCPPackets);
+
+      promise->resolve();
+      return promise;
     }
 
     //-------------------------------------------------------------------------
@@ -867,32 +866,6 @@ namespace ortc
       EventWriteOrtcRtpSenderSsrcConflictEventFired(__func__, mID, ((bool)channel) ? channel->getID() : 0, ssrc, selfDestruct);
 
       mSubscriptions.delegate()->onRTPSenderSSRCConflict(mThisWeak.lock(), ssrc);
-
-      if ((selfDestruct) &&
-          (channel)) {
-        IRTPSenderAsyncDelegateProxy::create(mThisWeak.lock())->onDestroyChannel(channel);
-      }
-    }
-
-    //-------------------------------------------------------------------------
-    void RTPSender::notifyError(
-                                UseChannelPtr channel,
-                                IRTPSenderDelegate::ErrorCode error,
-                                const char *errorReason,
-                                bool selfDestruct
-                                )
-    {
-      ZS_LOG_DEBUG(log("notify channel error") + ZS_PARAM("channel", channel ? channel->getID() : 0) + ZS_PARAM("error", error) + ZS_PARAM("error reason", errorReason) + ZS_PARAM("self destruct", selfDestruct))
-
-      AutoRecursiveLock lock(*this);
-
-      if (mSubscriptions.size() < 1) {
-        mErrors.push_back(ErrorPair(error, String(errorReason)));
-      } else {
-        mSubscriptions.delegate()->onRTPSenderError(mThisWeak.lock(), error, errorReason);
-      }
-
-      EventWriteOrtcRtpSenderInternalChannelErrorEventFired(__func__, mID, ((bool)channel) ? channel->getID() : 0, error, errorReason, selfDestruct);
 
       if ((selfDestruct) &&
           (channel)) {
@@ -1079,7 +1052,6 @@ namespace ortc
       UseServicesHelper::debugAppend(resultEl, "channels", mChannels->size());
 
       UseServicesHelper::debugAppend(resultEl, "conflicts", mConflicts.size());
-      UseServicesHelper::debugAppend(resultEl, "errors", mErrors.size());
 
       return resultEl;
     }
