@@ -361,9 +361,9 @@
 #define EventWriteOrtcRtpReceiverUpdateChannel(xStr_Method, xPUID, xPUID_ChannelObjectID)
 #define EventWriteOrtcRtpReceiverRemoveChannel(xStr_Method, xPUID, xPUID_ChannelObjectID)
 
-#define EventWriteOrtcRtpReceiverAddContributingSource(xStr_Method, xPUID, xDWORD_Csrc)
-#define EventWriteOrtcRtpReceiverUpdateContributingSource(xStr_Method, xPUID, xDWORD_Csrc)
-#define EventWriteOrtcRtpReceiverRemoveContributingSource(xStr_Method, xPUID, xDWORD_Csrc)
+#define EventWriteOrtcRtpReceiverAddContributingSource(xStr_Method, xPUID, xDWORD_Csrc, xBYTE_AudioLevel, xbool_VoiceActivityFlag)
+#define EventWriteOrtcRtpReceiverUpdateContributingSource(xStr_Method, xPUID, xDWORD_Csrc, xBYTE_AudioLevel, xbool_VoiceActivityFlag)
+#define EventWriteOrtcRtpReceiverRemoveContributingSource(xStr_Method, xPUID, xDWORD_Csrc, xBYTE_AudioLevel, xbool_VoiceActivityFlag)
 
 #define EventWriteOrtcRtpReceivedIncomingPacket(xStr_Method, xPUID, xUInt_ViaTransport, xUInt_PacketType, xsize_t_PacketSizeInBytes, xPtr_Buffer)
 #define EventWriteOrtcRtpReceiverDeliverIncomingPacketToChannel(xStr_Method, xPUID, xPUID_ChannelObjectID, xUInt_ViaTransport, xUInt_PacketType, xsize_t_PacketSizeInBytes, xPtr_Buffer)
@@ -834,9 +834,9 @@ inline void EventWriteOrtcRtpReceiverAddChannel(const char *xStr_Method, PUID xP
 inline void EventWriteOrtcRtpReceiverUpdateChannel(const char *xStr_Method, PUID xPUID, PUID xPUID_ChannelObjectID) {}
 inline void EventWriteOrtcRtpReceiverRemoveChannel(const char *xStr_Method, PUID xPUID, PUID xPUID_ChannelObjectID) {}
 
-inline void EventWriteOrtcRtpReceiverAddContributingSource(const char *xStr_Method, PUID xPUID, DWORD xDWORD_Csrc) {}
-inline void EventWriteOrtcRtpReceiverUpdateContributingSource(const char *xStr_Method, PUID xPUID, DWORD xDWORD_Csrc) {}
-inline void EventWriteOrtcRtpReceiverRemoveContributingSource(const char *xStr_Method, PUID xPUID, DWORD xDWORD_Csrc) {}
+inline void EventWriteOrtcRtpReceiverAddContributingSource(const char *xStr_Method, PUID xPUID, DWORD xDWORD_Csrc, BYTE xBYTE_AudioLevel, bool xbool_VoiceActivityFlag) {}
+inline void EventWriteOrtcRtpReceiverUpdateContributingSource(const char *xStr_Method, PUID xPUID, DWORD xDWORD_Csrc, BYTE xBYTE_AudioLevel, bool xbool_VoiceActivityFlag) {}
+inline void EventWriteOrtcRtpReceiverRemoveContributingSource(const char *xStr_Method, PUID xPUID, DWORD xDWORD_Csrc, BYTE xBYTE_AudioLevel, bool xbool_VoiceActivityFlag) {}
 
 inline void EventWriteOrtcRtpReceivedIncomingPacket(const char *xStr_Method, PUID xPUID, unsigned int xUInt_ViaTransport, unsigned int xUInt_PacketType, size_t xsize_t_PacketSizeInBytes, const BYTE *xPtr_Buffer) {}
 inline void EventWriteOrtcRtpReceiverDeliverIncomingPacketToChannel(const char *xStr_Method, PUID xPUID, PUID xPUID_ChannelObjectID, unsigned int xUInt_ViaTransport, unsigned int xUInt_PacketType, size_t xsize_t_PacketSizeInBytes, const BYTE *xPtr_Buffer) {}

@@ -1615,7 +1615,7 @@ namespace ortc
 
           ZS_LOG_TRACE(log("expiring contributing source") + source.toDebug())
 
-          EventWriteOrtcRtpReceiverUpdateContributingSource(__func__, mID, source.mCSRC);
+          EventWriteOrtcRtpReceiverRemoveContributingSource(__func__, mID, source.mCSRC, source.mAudioLevel, source.mVoiceActivityFlag);
           mContributingSources.erase(current);
         }
         return;
@@ -3552,14 +3552,15 @@ namespace ortc
           case IRTPTypes::HeaderExtensionURI_ClienttoMixerAudioLevelIndication:   {
             RTPPacket::ClientToMixerExtension levelExt(*ext);
             auto level = levelExt.level();
-            setContributingSource(rtpPacket.ssrc(), level);
+            auto voiceActivity = levelExt.voiceActivity();
+            setContributingSource(rtpPacket.ssrc(), level, voiceActivity);
             break;
           }
           case IRTPTypes::HeaderExtensionURI_MixertoClientAudioLevelIndication:   {
             RTPPacket::MixerToClientExtension levelExt(*ext);
             for (size_t index = 0; (index < levelExt.levelsCount()) && (index < rtpPacket.cc()); ++index) {
               auto level = levelExt.level(index);
-              setContributingSource(rtpPacket.getCSRC(index) , level);
+              setContributingSource(rtpPacket.getCSRC(index) , level, false);
             }
             break;
           }
@@ -3573,7 +3574,8 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPReceiver::setContributingSource(
                                             SSRCType csrc,
-                                            BYTE level
+                                            BYTE level,
+                                            bool voiceActivityFlag
                                             )
     {
       auto found = mContributingSources.find(csrc);
@@ -3582,8 +3584,9 @@ namespace ortc
         source.mCSRC = csrc;
         source.mTimestamp = zsLib::now();
         source.mAudioLevel = level;
+        source.mVoiceActivityFlag = voiceActivityFlag;
         mContributingSources[csrc] = source;
-        EventWriteOrtcRtpReceiverAddContributingSource(__func__, mID, csrc);
+        EventWriteOrtcRtpReceiverAddContributingSource(__func__, mID, csrc, level, voiceActivityFlag);
         return;
       }
 
@@ -3591,7 +3594,8 @@ namespace ortc
 
       source.mTimestamp = zsLib::now();
       source.mAudioLevel = level;
-      EventWriteOrtcRtpReceiverUpdateContributingSource(__func__, mID, csrc);
+      source.mVoiceActivityFlag = voiceActivityFlag;
+      EventWriteOrtcRtpReceiverUpdateContributingSource(__func__, mID, csrc, level, voiceActivityFlag);
     }
 
     //-------------------------------------------------------------------------

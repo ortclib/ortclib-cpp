@@ -65,6 +65,7 @@ namespace ortc
       Time      mTimestamp {};
       SSRCType  mCSRC {};
       BYTE      mAudioLevel {};
+      bool      mVoiceActivityFlag {};
 
       ElementPtr toDebug() const;
       String hash() const;

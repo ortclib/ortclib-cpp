@@ -676,7 +676,8 @@ namespace ortc
       void extractCSRCs(const RTPPacket &rtpPacket);
       void setContributingSource(
                                  SSRCType csrc,
-                                 BYTE level
+                                 BYTE level,
+                                 bool voiceActivityFlag
                                  );
 
       void postFindMappingProcessPacket(
