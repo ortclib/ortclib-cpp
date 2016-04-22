@@ -1181,6 +1181,12 @@ namespace ortc
       public:
         friend class RTPMediaEngine;
 
+        union VideoEncoderSettings {
+          webrtc::VideoCodecVP8 vp8;
+          webrtc::VideoCodecVP9 vp9;
+          webrtc::VideoCodecH264 h264;
+        };
+
       public:
         VideoSenderChannelResource(
                                    const make_private &,
@@ -1241,6 +1247,7 @@ namespace ortc
         rtc::scoped_ptr<webrtc::VideoSendStream> mSendStream;
         rtc::scoped_ptr<webrtc::CallStats> mCallStats;
         rtc::scoped_ptr<webrtc::CongestionController> mCongestionController;
+        VideoEncoderSettings mVideoEncoderSettings;
       };
 
     protected:

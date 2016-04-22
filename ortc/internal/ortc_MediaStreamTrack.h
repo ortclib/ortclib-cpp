@@ -776,10 +776,10 @@ namespace ortc
       WORD mLastError {};
       String mLastErrorReason;
 
-      Kinds mKind;
-      bool mRemote;
+      Kinds mKind {Kind_First};
+      bool mRemote {false};
       String mDeviceID;
-      bool mH264Rendering;
+      bool mH264Rendering {false};
 
       UseSenderWeakPtr mSender;
       UseSenderChannelWeakPtr mSenderChannel;
@@ -792,10 +792,9 @@ namespace ortc
       TrackConstraintsPtr mConstraints;
       SettingsPtr mSettings;
 
-      webrtc::VideoCaptureModule* mVideoCaptureModule;
-      //webrtc::VideoRender* mVideoRenderModule;
-      webrtc::VideoRenderCallback* mVideoRendererCallback;
-      webrtc::AudioDeviceModule* mAudioDeviceModule;
+      webrtc::VideoCaptureModule* mVideoCaptureModule {NULL};
+      webrtc::VideoRenderCallback* mVideoRendererCallback {NULL};
+      webrtc::AudioDeviceModule* mAudioDeviceModule {NULL};
     };
 
     //-------------------------------------------------------------------------

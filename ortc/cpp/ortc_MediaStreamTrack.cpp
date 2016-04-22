@@ -145,12 +145,7 @@ namespace ortc
       SharedRecursiveLock(SharedRecursiveLock::create()),
       mKind(kind),
       mRemote(remote),
-      mConstraints(constraints),
-      mVideoCaptureModule(NULL),
-      mH264Rendering(false),
-      //mVideoRenderModule(NULL),
-      mVideoRendererCallback(NULL),
-      mAudioDeviceModule(NULL)
+      mConstraints(constraints)
     {
       ZS_LOG_DETAIL(debug("created"))
     }
@@ -607,9 +602,6 @@ namespace ortc
         mVideoCaptureModule->DeRegisterCaptureDataCallback();
       }
 
-      //if (mVideoRenderModule)
-      //  mVideoRenderModule->StopRender(1);
-
       if (mAudioDeviceModule) {
         if (!mRemote)
           mAudioDeviceModule->StopRecording();
@@ -659,12 +651,8 @@ namespace ortc
     {
       AutoRecursiveLock lock(*this);
 
-      if (mKind == Kind_Video) {
-        //mVideoRenderModule = webrtc::VideoRender::CreateVideoRender(1, element, false);
-        //mVideoRendererCallback = mVideoRenderModule->AddIncomingRenderStream(1, 0, 0.0, 0.0, 1.0, 1.0);
-        //mVideoRenderModule->StartRender(1);
+      if (mKind == Kind_Video)
         mVideoRendererCallback = (webrtc::VideoRenderCallback*)callback;
-      }
     }
 
     //-------------------------------------------------------------------------

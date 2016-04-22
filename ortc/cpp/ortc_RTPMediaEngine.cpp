@@ -1532,46 +1532,43 @@ namespace ortc
       mChannel = webrtc::VoEBase::GetInterface(voiceEngine)->CreateChannel();
 
       webrtc::CodecInst codec;
-      IRTPTypes::CodecParametersList::iterator codecIter = mParameters->mCodecs.begin();
-      while (codecIter != mParameters->mCodecs.end()) {
+      for (auto codecIter = mParameters->mCodecs.begin(); codecIter != mParameters->mCodecs.end(); codecIter++) {
         auto supportedCodec = IRTPTypes::toSupportedCodec(codecIter->mName);
-        if (IRTPTypes::SupportedCodec_Opus == supportedCodec) {
-          codec = getAudioCodec(voiceEngine, codecIter->mName);
-          webrtc::VoECodec::GetInterface(voiceEngine)->SetRecPayloadType(mChannel, codec);
-          goto set_rtcp_feedback;
-        } else if (IRTPTypes::SupportedCodec_Isac == supportedCodec) {
-          codec = getAudioCodec(voiceEngine, codecIter->mName);
-          webrtc::VoECodec::GetInterface(voiceEngine)->SetRecPayloadType(mChannel, codec);
-          goto set_rtcp_feedback;
-        } else if (IRTPTypes::SupportedCodec_G722 == supportedCodec) {
-          codec = getAudioCodec(voiceEngine, codecIter->mName);
-          webrtc::VoECodec::GetInterface(voiceEngine)->SetRecPayloadType(mChannel, codec);
-          goto set_rtcp_feedback;
-        } else if (IRTPTypes::SupportedCodec_ILBC == supportedCodec) {
-          codec = getAudioCodec(voiceEngine, codecIter->mName);
-          webrtc::VoECodec::GetInterface(voiceEngine)->SetRecPayloadType(mChannel, codec);
-          goto set_rtcp_feedback;
-        } else if (IRTPTypes::SupportedCodec_PCMU == supportedCodec) {
-          codec = getAudioCodec(voiceEngine, codecIter->mName);
-          webrtc::VoECodec::GetInterface(voiceEngine)->SetRecPayloadType(mChannel, codec);
-          goto set_rtcp_feedback;
-        } else if (IRTPTypes::SupportedCodec_PCMA == supportedCodec) {
-          codec = getAudioCodec(voiceEngine, codecIter->mName);
-          webrtc::VoECodec::GetInterface(voiceEngine)->SetRecPayloadType(mChannel, codec);
-          goto set_rtcp_feedback;
+        switch (supportedCodec) {
+          case IRTPTypes::SupportedCodec_Opus:
+            codec = getAudioCodec(voiceEngine, codecIter->mName);
+            webrtc::VoECodec::GetInterface(voiceEngine)->SetRecPayloadType(mChannel, codec);
+            goto set_rtcp_feedback;
+          case IRTPTypes::SupportedCodec_Isac:
+            codec = getAudioCodec(voiceEngine, codecIter->mName);
+            webrtc::VoECodec::GetInterface(voiceEngine)->SetRecPayloadType(mChannel, codec);
+            goto set_rtcp_feedback;
+          case IRTPTypes::SupportedCodec_G722:
+            codec = getAudioCodec(voiceEngine, codecIter->mName);
+            webrtc::VoECodec::GetInterface(voiceEngine)->SetRecPayloadType(mChannel, codec);
+            goto set_rtcp_feedback;
+          case IRTPTypes::SupportedCodec_ILBC:
+            codec = getAudioCodec(voiceEngine, codecIter->mName);
+            webrtc::VoECodec::GetInterface(voiceEngine)->SetRecPayloadType(mChannel, codec);
+            goto set_rtcp_feedback;
+          case IRTPTypes::SupportedCodec_PCMU:
+            codec = getAudioCodec(voiceEngine, codecIter->mName);
+            webrtc::VoECodec::GetInterface(voiceEngine)->SetRecPayloadType(mChannel, codec);
+            goto set_rtcp_feedback;
+          case IRTPTypes::SupportedCodec_PCMA:
+            codec = getAudioCodec(voiceEngine, codecIter->mName);
+            webrtc::VoECodec::GetInterface(voiceEngine)->SetRecPayloadType(mChannel, codec);
+            goto set_rtcp_feedback;
         }
-        codecIter++;
         continue;
 
       set_rtcp_feedback:
-        IRTPTypes::RTCPFeedbackList::iterator rtcpFeedbackIter = codecIter->mRTCPFeedback.begin();
-        while (rtcpFeedbackIter != codecIter->mRTCPFeedback.end()) {
+        for (auto rtcpFeedbackIter = codecIter->mRTCPFeedback.begin(); rtcpFeedbackIter != codecIter->mRTCPFeedback.end(); rtcpFeedbackIter++) {
           IRTPTypes::KnownFeedbackTypes feedbackType = IRTPTypes::toKnownFeedbackType(rtcpFeedbackIter->mType);
           IRTPTypes::KnownFeedbackParameters feedbackParameter = IRTPTypes::toKnownFeedbackParameter(rtcpFeedbackIter->mParameter);
           if (IRTPTypes::KnownFeedbackType_NACK == feedbackType && IRTPTypes::KnownFeedbackParameter_Unknown == feedbackParameter) {
             webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetNACKStatus(mChannel, true, 250);
           }
-          rtcpFeedbackIter++;
         }
         break;
       }
@@ -1579,8 +1576,7 @@ namespace ortc
       webrtc::AudioReceiveStream::Config config;
       config.voe_channel_id = mChannel;
 
-      IRTPTypes::EncodingParametersList::iterator encodingParamIter = mParameters->mEncodings.begin();
-      while (encodingParamIter != mParameters->mEncodings.end()) {
+      for (auto encodingParamIter = mParameters->mEncodings.begin(); encodingParamIter != mParameters->mEncodings.end(); encodingParamIter++) {
         if (encodingParamIter->mCodecPayloadType.hasValue()) {
           if (encodingParamIter->mCodecPayloadType == codec.pltype && encodingParamIter->mSSRC.hasValue()) {
             config.rtp.remote_ssrc = encodingParamIter->mSSRC;
@@ -1592,27 +1588,24 @@ namespace ortc
             break;
           }
         }
-        encodingParamIter++;
       }
       if (config.rtp.remote_ssrc == 0)
         config.rtp.remote_ssrc = 1;
 
-      IRTPTypes::HeaderExtensionParametersList::iterator headerExtensionIter = mParameters->mHeaderExtensions.begin();
-      while (headerExtensionIter != mParameters->mHeaderExtensions.end()) {
+      for (auto headerExtensionIter = mParameters->mHeaderExtensions.begin(); headerExtensionIter != mParameters->mHeaderExtensions.end(); headerExtensionIter++) {
         IRTPTypes::HeaderExtensionURIs headerExtensionURI = IRTPTypes::toHeaderExtensionURI(headerExtensionIter->mURI);
         switch (headerExtensionURI) {
-        case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_ClienttoMixerAudioLevelIndication:
-          webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetReceiveAudioLevelIndicationStatus(mChannel, true, headerExtensionIter->mID);
-          config.rtp.extensions.push_back(webrtc::RtpExtension(headerExtensionIter->mURI, headerExtensionIter->mID));
-          break;
-        case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_AbsoluteSendTime:
-          webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetReceiveAbsoluteSenderTimeStatus(mChannel, true, headerExtensionIter->mID);
-          config.rtp.extensions.push_back(webrtc::RtpExtension(headerExtensionIter->mURI, headerExtensionIter->mID));
-          break;
-        default:
-          break;
+          case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_ClienttoMixerAudioLevelIndication:
+            webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetReceiveAudioLevelIndicationStatus(mChannel, true, headerExtensionIter->mID);
+            config.rtp.extensions.push_back(webrtc::RtpExtension(headerExtensionIter->mURI, headerExtensionIter->mID));
+            break;
+          case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_AbsoluteSendTime:
+            webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetReceiveAbsoluteSenderTimeStatus(mChannel, true, headerExtensionIter->mID);
+            config.rtp.extensions.push_back(webrtc::RtpExtension(headerExtensionIter->mURI, headerExtensionIter->mID));
+            break;
+          default:
+            break;
         }
-        headerExtensionIter++;
       }
 
       webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetLocalSSRC(mChannel, mParameters->mRTCP.mSSRC);
@@ -1829,55 +1822,51 @@ namespace ortc
       mChannel = webrtc::VoEBase::GetInterface(voiceEngine)->CreateChannel();
 
       webrtc::CodecInst codec;
-      IRTPTypes::CodecParametersList::iterator codecIter = mParameters->mCodecs.begin();
-      while (codecIter != mParameters->mCodecs.end()) {
+      for (auto codecIter = mParameters->mCodecs.begin(); codecIter != mParameters->mCodecs.end(); codecIter++) {
         auto supportedCodec = IRTPTypes::toSupportedCodec(codecIter->mName);
-        if (IRTPTypes::SupportedCodec_Opus == supportedCodec) {
-          codec = getAudioCodec(voiceEngine, codecIter->mName);
-          webrtc::VoECodec::GetInterface(voiceEngine)->SetSendCodec(mChannel, codec);
-          goto set_rtcp_feedback;
-        } else if (IRTPTypes::SupportedCodec_Isac == supportedCodec) {
-          codec = getAudioCodec(voiceEngine, codecIter->mName);
-          webrtc::VoECodec::GetInterface(voiceEngine)->SetSendCodec(mChannel, codec);
-          goto set_rtcp_feedback;
-        } else if (IRTPTypes::SupportedCodec_G722 == supportedCodec) {
-          codec = getAudioCodec(voiceEngine, codecIter->mName);
-          webrtc::VoECodec::GetInterface(voiceEngine)->SetSendCodec(mChannel, codec);
-          goto set_rtcp_feedback;
-        } else if (IRTPTypes::SupportedCodec_ILBC == supportedCodec) {
-          codec = getAudioCodec(voiceEngine, codecIter->mName);
-          webrtc::VoECodec::GetInterface(voiceEngine)->SetSendCodec(mChannel, codec);
-          goto set_rtcp_feedback;
-        } else if (IRTPTypes::SupportedCodec_PCMU == supportedCodec) {
-          codec = getAudioCodec(voiceEngine, codecIter->mName);
-          webrtc::VoECodec::GetInterface(voiceEngine)->SetSendCodec(mChannel, codec);
-          goto set_rtcp_feedback;
-        } else if (IRTPTypes::SupportedCodec_PCMA == supportedCodec) {
-          codec = getAudioCodec(voiceEngine, codecIter->mName);
-          webrtc::VoECodec::GetInterface(voiceEngine)->SetSendCodec(mChannel, codec);
-          goto set_rtcp_feedback;
+        switch (supportedCodec) {
+          case IRTPTypes::SupportedCodec_Opus:
+            codec = getAudioCodec(voiceEngine, codecIter->mName);
+            webrtc::VoECodec::GetInterface(voiceEngine)->SetSendCodec(mChannel, codec);
+            goto set_rtcp_feedback;
+          case IRTPTypes::SupportedCodec_Isac:
+            codec = getAudioCodec(voiceEngine, codecIter->mName);
+            webrtc::VoECodec::GetInterface(voiceEngine)->SetSendCodec(mChannel, codec);
+            goto set_rtcp_feedback;
+          case IRTPTypes::SupportedCodec_G722:
+            codec = getAudioCodec(voiceEngine, codecIter->mName);
+            webrtc::VoECodec::GetInterface(voiceEngine)->SetSendCodec(mChannel, codec);
+            goto set_rtcp_feedback;
+          case IRTPTypes::SupportedCodec_ILBC:
+            codec = getAudioCodec(voiceEngine, codecIter->mName);
+            webrtc::VoECodec::GetInterface(voiceEngine)->SetSendCodec(mChannel, codec);
+            goto set_rtcp_feedback;
+          case IRTPTypes::SupportedCodec_PCMU:
+            codec = getAudioCodec(voiceEngine, codecIter->mName);
+            webrtc::VoECodec::GetInterface(voiceEngine)->SetSendCodec(mChannel, codec);
+            goto set_rtcp_feedback;
+          case IRTPTypes::SupportedCodec_PCMA:
+            codec = getAudioCodec(voiceEngine, codecIter->mName);
+            webrtc::VoECodec::GetInterface(voiceEngine)->SetSendCodec(mChannel, codec);
+            goto set_rtcp_feedback;
         }
-        codecIter++;
         continue;
 
       set_rtcp_feedback:
-        IRTPTypes::RTCPFeedbackList::iterator rtcpFeedbackIter = codecIter->mRTCPFeedback.begin();
-        while (rtcpFeedbackIter != codecIter->mRTCPFeedback.end()) {
+        for (auto rtcpFeedbackIter = codecIter->mRTCPFeedback.begin(); rtcpFeedbackIter != codecIter->mRTCPFeedback.end(); rtcpFeedbackIter++) {
           IRTPTypes::KnownFeedbackTypes feedbackType = IRTPTypes::toKnownFeedbackType(rtcpFeedbackIter->mType);
           IRTPTypes::KnownFeedbackParameters feedbackParameter = IRTPTypes::toKnownFeedbackParameter(rtcpFeedbackIter->mParameter);
           if (IRTPTypes::KnownFeedbackType_NACK == feedbackType && IRTPTypes::KnownFeedbackParameter_Unknown == feedbackParameter) {
             webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetNACKStatus(mChannel, true, 250);
           }
-          rtcpFeedbackIter++;
         }
         break;
       }
 
       webrtc::AudioSendStream::Config config(mTransport.get());
       config.voe_channel_id = mChannel;
-
-      IRTPTypes::EncodingParametersList::iterator encodingParamIter = mParameters->mEncodings.begin();
-      while (encodingParamIter != mParameters->mEncodings.end()) {
+      
+      for (auto encodingParamIter = mParameters->mEncodings.begin(); encodingParamIter != mParameters->mEncodings.end(); encodingParamIter++) {
         if (encodingParamIter->mCodecPayloadType.hasValue()) {
           if (encodingParamIter->mCodecPayloadType == codec.pltype && encodingParamIter->mSSRC.hasValue()) {
             webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetLocalSSRC(mChannel, encodingParamIter->mSSRC);
@@ -1891,29 +1880,26 @@ namespace ortc
             break;
           }
         }
-        encodingParamIter++;
       }
       if (config.rtp.ssrc == 0) {
         webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetLocalSSRC(mChannel, 1);
         config.rtp.ssrc = 1;
       }
 
-      IRTPTypes::HeaderExtensionParametersList::iterator headerExtensionIter = mParameters->mHeaderExtensions.begin();
-      while (headerExtensionIter != mParameters->mHeaderExtensions.end()) {
+      for (auto headerExtensionIter = mParameters->mHeaderExtensions.begin(); headerExtensionIter != mParameters->mHeaderExtensions.end(); headerExtensionIter++) {
         IRTPTypes::HeaderExtensionURIs headerExtensionURI = IRTPTypes::toHeaderExtensionURI(headerExtensionIter->mURI);
         switch (headerExtensionURI) {
-        case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_ClienttoMixerAudioLevelIndication:
-          webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetSendAudioLevelIndicationStatus(mChannel, true, headerExtensionIter->mID);
-          config.rtp.extensions.push_back(webrtc::RtpExtension(headerExtensionIter->mURI, headerExtensionIter->mID));
-          break;
-        case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_AbsoluteSendTime:
-          webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetSendAbsoluteSenderTimeStatus(mChannel, true, headerExtensionIter->mID);
-          config.rtp.extensions.push_back(webrtc::RtpExtension(headerExtensionIter->mURI, headerExtensionIter->mID));
-          break;
-        default:
-          break;
+          case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_ClienttoMixerAudioLevelIndication:
+            webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetSendAudioLevelIndicationStatus(mChannel, true, headerExtensionIter->mID);
+            config.rtp.extensions.push_back(webrtc::RtpExtension(headerExtensionIter->mURI, headerExtensionIter->mID));
+            break;
+          case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_AbsoluteSendTime:
+            webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetSendAbsoluteSenderTimeStatus(mChannel, true, headerExtensionIter->mID);
+            config.rtp.extensions.push_back(webrtc::RtpExtension(headerExtensionIter->mURI, headerExtensionIter->mID));
+            break;
+          default:
+            break;
         }
-        headerExtensionIter++;
       }
 
       webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetRTCPStatus(mChannel, true);
@@ -2161,57 +2147,55 @@ namespace ortc
       webrtc::VideoReceiveStream::Config config(transport);
       webrtc::VideoReceiveStream::Decoder decoder;
 
-      IRTPTypes::CodecParametersList::iterator codecIter = mParameters->mCodecs.begin();
-      while (codecIter != mParameters->mCodecs.end()) {
+      for (auto codecIter = mParameters->mCodecs.begin(); codecIter != mParameters->mCodecs.end(); ++codecIter) {
         auto supportedCodec = IRTPTypes::toSupportedCodec(codecIter->mName);
-        if (IRTPTypes::SupportedCodec_VP8 == supportedCodec) {
-          webrtc::VideoDecoder* videoDecoder = webrtc::VideoDecoder::Create(webrtc::VideoDecoder::kVp8);
-          decoder.decoder = videoDecoder;
-          decoder.payload_name = codecIter->mName;
-          decoder.payload_type = codecIter->mPayloadType;
-          goto set_rtcp_feedback;
-        } else if (IRTPTypes::SupportedCodec_VP9 == supportedCodec) {
-          webrtc::VideoDecoder* videoDecoder = webrtc::VideoDecoder::Create(webrtc::VideoDecoder::kVp9);
-          decoder.decoder = videoDecoder;
-          decoder.payload_name = codecIter->mName;
-          decoder.payload_type = codecIter->mPayloadType;
-          goto set_rtcp_feedback;
-        } else if (IRTPTypes::SupportedCodec_H264 == supportedCodec) {
+        switch (IRTPTypes::SupportedCodec_VP8 == supportedCodec) {
+          case IRTPTypes::SupportedCodec_VP8:
+          {
+            webrtc::VideoDecoder* videoDecoder = webrtc::VideoDecoder::Create(webrtc::VideoDecoder::kVp8);
+            decoder.decoder = videoDecoder;
+            decoder.payload_name = codecIter->mName;
+            decoder.payload_type = codecIter->mPayloadType;
+            goto set_rtcp_feedback;
+          }
+          case IRTPTypes::SupportedCodec_VP9:
+          {
+            webrtc::VideoDecoder* videoDecoder = webrtc::VideoDecoder::Create(webrtc::VideoDecoder::kVp9);
+            decoder.decoder = videoDecoder;
+            decoder.payload_name = codecIter->mName;
+            decoder.payload_type = codecIter->mPayloadType;
+            goto set_rtcp_feedback;
+          }
+          case IRTPTypes::SupportedCodec_H264:
+          {
 #ifndef WINRT
-          webrtc::VideoDecoder* videoDecoder = webrtc::VideoDecoder::Create(webrtc::VideoDecoder::kH264);
+            webrtc::VideoDecoder* videoDecoder = webrtc::VideoDecoder::Create(webrtc::VideoDecoder::kH264);
 #else
-          cricket::WebRtcVideoDecoderFactory* decoderFactory = new webrtc::H264WinRTDecoderFactory();
-          webrtc::VideoDecoder* videoDecoder = decoderFactory->CreateVideoDecoder(webrtc::VideoCodecType::kVideoCodecH264);
+            std::unique_ptr<cricket::WebRtcVideoDecoderFactory> decoderFactory = std::make_unique<webrtc::H264WinRTDecoderFactory>();
+            webrtc::VideoDecoder* videoDecoder = decoderFactory->CreateVideoDecoder(webrtc::VideoCodecType::kVideoCodecH264);
 #endif
-          decoder.decoder = videoDecoder;
-          decoder.payload_name = codecIter->mName;
-          decoder.payload_type = codecIter->mPayloadType;
-#ifdef WINRT
-          delete decoderFactory;
-#endif
-          goto set_rtcp_feedback;
+            decoder.decoder = videoDecoder;
+            decoder.payload_name = codecIter->mName;
+            decoder.payload_type = codecIter->mPayloadType;
+            goto set_rtcp_feedback;
+          }
         }
-        codecIter++;
         continue;
 
       set_rtcp_feedback:
-        IRTPTypes::RTCPFeedbackList::iterator rtcpFeedbackIter = codecIter->mRTCPFeedback.begin();
-        while (rtcpFeedbackIter != codecIter->mRTCPFeedback.end()) {
+        for (auto rtcpFeedbackIter = codecIter->mRTCPFeedback.begin(); rtcpFeedbackIter != codecIter->mRTCPFeedback.end(); rtcpFeedbackIter++) {
           IRTPTypes::KnownFeedbackTypes feedbackType = IRTPTypes::toKnownFeedbackType(rtcpFeedbackIter->mType);
           IRTPTypes::KnownFeedbackParameters feedbackParameter = IRTPTypes::toKnownFeedbackParameter(rtcpFeedbackIter->mParameter);
           if (IRTPTypes::KnownFeedbackType_NACK == feedbackType && IRTPTypes::KnownFeedbackParameter_Unknown == feedbackParameter) {
             config.rtp.nack.rtp_history_ms = 1000;
-          }
-          else if (IRTPTypes::KnownFeedbackType_REMB == feedbackType && IRTPTypes::KnownFeedbackParameter_Unknown == feedbackParameter) {
+          } else if (IRTPTypes::KnownFeedbackType_REMB == feedbackType && IRTPTypes::KnownFeedbackParameter_Unknown == feedbackParameter) {
             config.rtp.remb = true;
           }
-          rtcpFeedbackIter++;
         }
         break;
       }
 
-      IRTPTypes::EncodingParametersList::iterator encodingParamIter = mParameters->mEncodings.begin();
-      while (encodingParamIter != mParameters->mEncodings.end()) {
+      for (auto encodingParamIter = mParameters->mEncodings.begin(); encodingParamIter != mParameters->mEncodings.end(); encodingParamIter++) {
         if (encodingParamIter->mCodecPayloadType.hasValue()) {
           if (encodingParamIter->mCodecPayloadType == decoder.payload_type && encodingParamIter->mSSRC.hasValue()) {
             config.rtp.remote_ssrc = encodingParamIter->mSSRC;
@@ -2223,26 +2207,23 @@ namespace ortc
             break;
           }
         }
-        encodingParamIter++;
       }
       if (config.rtp.remote_ssrc == 0)
         config.rtp.remote_ssrc = 2;
       config.rtp.local_ssrc = mParameters->mRTCP.mSSRC;
 
-      IRTPTypes::HeaderExtensionParametersList::iterator headerExtensionIter = mParameters->mHeaderExtensions.begin();
-      while (headerExtensionIter != mParameters->mHeaderExtensions.end()) {
+      for (auto headerExtensionIter = mParameters->mHeaderExtensions.begin(); headerExtensionIter != mParameters->mHeaderExtensions.end(); headerExtensionIter++) {
         IRTPTypes::HeaderExtensionURIs headerExtensionURI = IRTPTypes::toHeaderExtensionURI(headerExtensionIter->mURI);
         switch (headerExtensionURI) {
-        case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_TransmissionTimeOffsets:
-        case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_AbsoluteSendTime:
-        case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_3gpp_VideoOrientation:
-        case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_TransportSequenceNumber:
-          config.rtp.extensions.push_back(webrtc::RtpExtension(headerExtensionIter->mURI, headerExtensionIter->mID));
-          break;
-        default:
-          break;
+          case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_TransmissionTimeOffsets:
+          case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_AbsoluteSendTime:
+          case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_3gpp_VideoOrientation:
+          case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_TransportSequenceNumber:
+            config.rtp.extensions.push_back(webrtc::RtpExtension(headerExtensionIter->mURI, headerExtensionIter->mID));
+            break;
+          default:
+            break;
         }
-        headerExtensionIter++;
       }
 
       if (mParameters->mRTCP.mReducedSize)
@@ -2443,98 +2424,97 @@ namespace ortc
       webrtc::VideoEncoderConfig encoderConfig;
       std::map<uint32_t, webrtc::RtpState> suspendedSSRCs;
 
-      IRTPTypes::CodecParametersList::iterator codecIter = mParameters->mCodecs.begin();
-      while (codecIter != mParameters->mCodecs.end()) {
+      for (auto codecIter = mParameters->mCodecs.begin(); codecIter != mParameters->mCodecs.end(); codecIter++) {
         auto supportedCodec = IRTPTypes::toSupportedCodec(codecIter->mName);
-        if (IRTPTypes::SupportedCodec_VP8 == supportedCodec) {
-          webrtc::VideoEncoder* videoEncoder = webrtc::VideoEncoder::Create(webrtc::VideoEncoder::kVp8);
-          config.encoder_settings.encoder = videoEncoder;
-          config.encoder_settings.payload_name = codecIter->mName;
-          config.encoder_settings.payload_type = codecIter->mPayloadType;
-          webrtc::VideoStream stream;
-          stream.width = width;
-          stream.height = height;
-          stream.max_framerate = maxFramerate;
-          stream.min_bitrate_bps = 30000;
-          stream.target_bitrate_bps = 2000000;
-          stream.max_bitrate_bps = 2000000;
-          stream.max_qp = 56;
-          webrtc::VideoCodecVP8 videoCodec = webrtc::VideoEncoder::GetDefaultVp8Settings();
-          videoCodec.automaticResizeOn = true;
-          videoCodec.denoisingOn = true;
-          videoCodec.frameDroppingOn = true;
-          encoderConfig.min_transmit_bitrate_bps = 0;
-          encoderConfig.content_type = webrtc::VideoEncoderConfig::ContentType::kRealtimeVideo;
-          encoderConfig.streams.push_back(stream);
-          encoderConfig.encoder_specific_settings = &videoCodec;
-          goto set_rtcp_feedback;
-        } else if (IRTPTypes::SupportedCodec_VP9 == supportedCodec) {
-          webrtc::VideoEncoder* videoEncoder = webrtc::VideoEncoder::Create(webrtc::VideoEncoder::kVp9);
-          config.encoder_settings.encoder = videoEncoder;
-          config.encoder_settings.payload_name = codecIter->mName;
-          config.encoder_settings.payload_type = codecIter->mPayloadType;
-          webrtc::VideoStream stream;
-          stream.width = width;
-          stream.height = height;
-          stream.max_framerate = maxFramerate;
-          stream.min_bitrate_bps = 30000;
-          stream.target_bitrate_bps = 2000000;
-          stream.max_bitrate_bps = 2000000;
-          stream.max_qp = 56;
-          webrtc::VideoCodecVP9 videoCodec = webrtc::VideoEncoder::GetDefaultVp9Settings();
-          videoCodec.frameDroppingOn = true;
-          encoderConfig.min_transmit_bitrate_bps = 0;
-          encoderConfig.content_type = webrtc::VideoEncoderConfig::ContentType::kRealtimeVideo;
-          encoderConfig.streams.push_back(stream);
-          encoderConfig.encoder_specific_settings = &videoCodec;
-          goto set_rtcp_feedback;
-        } else if (IRTPTypes::SupportedCodec_H264 == supportedCodec) {
+        switch (supportedCodec) {
+          case IRTPTypes::SupportedCodec_VP8:
+          {
+            webrtc::VideoEncoder* videoEncoder = webrtc::VideoEncoder::Create(webrtc::VideoEncoder::kVp8);
+            config.encoder_settings.encoder = videoEncoder;
+            config.encoder_settings.payload_name = codecIter->mName;
+            config.encoder_settings.payload_type = codecIter->mPayloadType;
+            webrtc::VideoStream stream;
+            stream.width = width;
+            stream.height = height;
+            stream.max_framerate = maxFramerate;
+            stream.min_bitrate_bps = 30000;
+            stream.target_bitrate_bps = 2000000;
+            stream.max_bitrate_bps = 2000000;
+            stream.max_qp = 56;
+            mVideoEncoderSettings.vp8 = webrtc::VideoEncoder::GetDefaultVp8Settings();
+            mVideoEncoderSettings.vp8.automaticResizeOn = true;
+            mVideoEncoderSettings.vp8.denoisingOn = true;
+            mVideoEncoderSettings.vp8.frameDroppingOn = true;
+            encoderConfig.min_transmit_bitrate_bps = 0;
+            encoderConfig.content_type = webrtc::VideoEncoderConfig::ContentType::kRealtimeVideo;
+            encoderConfig.streams.push_back(stream);
+            encoderConfig.encoder_specific_settings = &mVideoEncoderSettings.vp8;
+            goto set_rtcp_feedback;
+          }
+          case IRTPTypes::SupportedCodec_VP9:
+          {
+            webrtc::VideoEncoder* videoEncoder = webrtc::VideoEncoder::Create(webrtc::VideoEncoder::kVp9);
+            config.encoder_settings.encoder = videoEncoder;
+            config.encoder_settings.payload_name = codecIter->mName;
+            config.encoder_settings.payload_type = codecIter->mPayloadType;
+            webrtc::VideoStream stream;
+            stream.width = width;
+            stream.height = height;
+            stream.max_framerate = maxFramerate;
+            stream.min_bitrate_bps = 30000;
+            stream.target_bitrate_bps = 2000000;
+            stream.max_bitrate_bps = 2000000;
+            stream.max_qp = 56;
+            mVideoEncoderSettings.vp9 = webrtc::VideoEncoder::GetDefaultVp9Settings();
+            mVideoEncoderSettings.vp9.frameDroppingOn = true;
+            encoderConfig.min_transmit_bitrate_bps = 0;
+            encoderConfig.content_type = webrtc::VideoEncoderConfig::ContentType::kRealtimeVideo;
+            encoderConfig.streams.push_back(stream);
+            encoderConfig.encoder_specific_settings = &mVideoEncoderSettings.vp9;
+            goto set_rtcp_feedback;
+          }
+          case IRTPTypes::SupportedCodec_H264:
+          {
 #ifndef WINRT
-          webrtc::VideoEncoder* videoEncoder = webrtc::VideoEncoder::Create(webrtc::VideoEncoder::kH264);
+            webrtc::VideoEncoder* videoEncoder = webrtc::VideoEncoder::Create(webrtc::VideoEncoder::kH264);
 #else
-          cricket::WebRtcVideoEncoderFactory* encoderFactory = new webrtc::H264WinRTEncoderFactory();
-          webrtc::VideoEncoder* videoEncoder = encoderFactory->CreateVideoEncoder(webrtc::VideoCodecType::kVideoCodecH264);
+            std::unique_ptr<cricket::WebRtcVideoEncoderFactory> encoderFactory = std::make_unique<webrtc::H264WinRTEncoderFactory>();
+            webrtc::VideoEncoder* videoEncoder = encoderFactory->CreateVideoEncoder(webrtc::VideoCodecType::kVideoCodecH264);
 #endif
-          config.encoder_settings.encoder = videoEncoder;
-          config.encoder_settings.payload_name = codecIter->mName;
-          config.encoder_settings.payload_type = codecIter->mPayloadType;
-          webrtc::VideoStream stream;
-          stream.width = width;
-          stream.height = height;
-          stream.max_framerate = maxFramerate;
-          stream.min_bitrate_bps = 30000;
-          stream.target_bitrate_bps = 2000000;
-          stream.max_bitrate_bps = 2000000;
-          stream.max_qp = 56;
-          webrtc::VideoCodecH264 videoCodec = webrtc::VideoEncoder::GetDefaultH264Settings();
-          videoCodec.frameDroppingOn = true;
-          encoderConfig.min_transmit_bitrate_bps = 0;
-          encoderConfig.content_type = webrtc::VideoEncoderConfig::ContentType::kRealtimeVideo;
-          encoderConfig.streams.push_back(stream);
-          encoderConfig.encoder_specific_settings = &videoCodec;
-#ifdef WINRT
-          delete encoderFactory;
-#endif
-          goto set_rtcp_feedback;
+            config.encoder_settings.encoder = videoEncoder;
+            config.encoder_settings.payload_name = codecIter->mName;
+            config.encoder_settings.payload_type = codecIter->mPayloadType;
+            webrtc::VideoStream stream;
+            stream.width = width;
+            stream.height = height;
+            stream.max_framerate = maxFramerate;
+            stream.min_bitrate_bps = 30000;
+            stream.target_bitrate_bps = 2000000;
+            stream.max_bitrate_bps = 2000000;
+            stream.max_qp = 56;
+            mVideoEncoderSettings.h264 = webrtc::VideoEncoder::GetDefaultH264Settings();
+            mVideoEncoderSettings.h264.frameDroppingOn = true;
+            encoderConfig.min_transmit_bitrate_bps = 0;
+            encoderConfig.content_type = webrtc::VideoEncoderConfig::ContentType::kRealtimeVideo;
+            encoderConfig.streams.push_back(stream);
+            encoderConfig.encoder_specific_settings = &mVideoEncoderSettings.h264;
+            goto set_rtcp_feedback;
+          }
         }
-        codecIter++;
         continue;
 
       set_rtcp_feedback:
-        IRTPTypes::RTCPFeedbackList::iterator rtcpFeedbackIter = codecIter->mRTCPFeedback.begin();
-        while (rtcpFeedbackIter != codecIter->mRTCPFeedback.end()) {
+        for (auto rtcpFeedbackIter = codecIter->mRTCPFeedback.begin(); rtcpFeedbackIter != codecIter->mRTCPFeedback.end(); rtcpFeedbackIter++) {
           IRTPTypes::KnownFeedbackTypes feedbackType = IRTPTypes::toKnownFeedbackType(rtcpFeedbackIter->mType);
           IRTPTypes::KnownFeedbackParameters feedbackParameter = IRTPTypes::toKnownFeedbackParameter(rtcpFeedbackIter->mParameter);
           if (IRTPTypes::KnownFeedbackType_NACK == feedbackType && IRTPTypes::KnownFeedbackParameter_Unknown == feedbackParameter) {
             config.rtp.nack.rtp_history_ms = 1000;
           }
-          rtcpFeedbackIter++;
         }
         break;
       }
 
-      IRTPTypes::EncodingParametersList::iterator encodingParamIter = mParameters->mEncodings.begin();
-      while (encodingParamIter != mParameters->mEncodings.end()) {
+      for (auto encodingParamIter = mParameters->mEncodings.begin(); encodingParamIter != mParameters->mEncodings.end(); encodingParamIter++) {
         if (encodingParamIter->mCodecPayloadType.hasValue()) {
           if (encodingParamIter->mCodecPayloadType == config.encoder_settings.payload_type && encodingParamIter->mSSRC.hasValue()) {
             config.rtp.ssrcs.push_back(encodingParamIter->mSSRC);
@@ -2546,25 +2526,22 @@ namespace ortc
             break;
           }
         }
-        encodingParamIter++;
       }
       if (config.rtp.ssrcs.size() == 0)
         config.rtp.ssrcs.push_back(2);
 
-      IRTPTypes::HeaderExtensionParametersList::iterator headerExtensionIter = mParameters->mHeaderExtensions.begin();
-      while (headerExtensionIter != mParameters->mHeaderExtensions.end()) {
+      for (auto headerExtensionIter = mParameters->mHeaderExtensions.begin(); headerExtensionIter != mParameters->mHeaderExtensions.end(); headerExtensionIter++) {
         IRTPTypes::HeaderExtensionURIs headerExtensionURI = IRTPTypes::toHeaderExtensionURI(headerExtensionIter->mURI);
         switch (headerExtensionURI) {
-        case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_TransmissionTimeOffsets:
-        case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_AbsoluteSendTime:
-        case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_3gpp_VideoOrientation:
-        case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_TransportSequenceNumber:
-          config.rtp.extensions.push_back(webrtc::RtpExtension(headerExtensionIter->mURI, headerExtensionIter->mID));
-          break;
-        default:
-          break;
+          case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_TransmissionTimeOffsets:
+          case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_AbsoluteSendTime:
+          case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_3gpp_VideoOrientation:
+          case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_TransportSequenceNumber:
+            config.rtp.extensions.push_back(webrtc::RtpExtension(headerExtensionIter->mURI, headerExtensionIter->mID));
+            break;
+          default:
+            break;
         }
-        headerExtensionIter++;
       }
 
       config.rtp.c_name = mParameters->mRTCP.mCName;
