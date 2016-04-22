@@ -1434,7 +1434,7 @@ namespace ortc
                                    RTCPPacketPtr packet
                                    )
     {
-      EventWriteOrtcRtpReceivedIncomingPacket(__func__, mID, zsLib::to_underlying(viaTransport), zsLib::to_underlying(IICETypes::Component_RTCP), packet->buffer()->SizeInBytes(), packet->buffer()->BytePtr());
+      EventWriteOrtcRtpReceivedIncomingPacket(__func__, mID, zsLib::to_underlying(viaTransport), zsLib::to_underlying(IICETypes::Component_RTCP), SafeInt<unsigned int>(packet->buffer()->SizeInBytes()), packet->buffer()->BytePtr());
 
       ZS_LOG_TRACE(log("received packet") + ZS_PARAM("via", IICETypes::toString(viaTransport)) + packet->toDebug())
 
@@ -1615,7 +1615,7 @@ namespace ortc
 
           ZS_LOG_TRACE(log("expiring contributing source") + source.toDebug())
 
-          EventWriteOrtcRtpReceiverRemoveContributingSource(__func__, mID, source.mCSRC, source.mAudioLevel, source.mVoiceActivityFlag);
+          EventWriteOrtcRtpReceiverRemoveContributingSource(__func__, mID, source.mCSRC, source.mAudioLevel, source.mVoiceActivityFlag.hasValue() ? source.mVoiceActivityFlag.value() : false);
           mContributingSources.erase(current);
         }
         return;
@@ -3552,7 +3552,7 @@ namespace ortc
           case IRTPTypes::HeaderExtensionURI_ClienttoMixerAudioLevelIndication:   {
             RTPPacket::ClientToMixerExtension levelExt(*ext);
             auto level = levelExt.level();
-            auto voiceActivity = levelExt.voiceActivity();
+            Optional<bool> voiceActivity(levelExt.voiceActivity());
             setContributingSource(rtpPacket.ssrc(), level, voiceActivity);
             break;
           }
@@ -3560,7 +3560,8 @@ namespace ortc
             RTPPacket::MixerToClientExtension levelExt(*ext);
             for (size_t index = 0; (index < levelExt.levelsCount()) && (index < rtpPacket.cc()); ++index) {
               auto level = levelExt.level(index);
-              setContributingSource(rtpPacket.getCSRC(index) , level, false);
+              Optional<bool> voiceActivity {};
+              setContributingSource(rtpPacket.getCSRC(index) , level, voiceActivity);
             }
             break;
           }
@@ -3575,7 +3576,7 @@ namespace ortc
     void RTPReceiver::setContributingSource(
                                             SSRCType csrc,
                                             BYTE level,
-                                            bool voiceActivityFlag
+                                            const Optional<bool> &voiceActivityFlag
                                             )
     {
       auto found = mContributingSources.find(csrc);
@@ -3586,7 +3587,7 @@ namespace ortc
         source.mAudioLevel = level;
         source.mVoiceActivityFlag = voiceActivityFlag;
         mContributingSources[csrc] = source;
-        EventWriteOrtcRtpReceiverAddContributingSource(__func__, mID, csrc, level, voiceActivityFlag);
+        EventWriteOrtcRtpReceiverAddContributingSource(__func__, mID, csrc, level, voiceActivityFlag.hasValue() ? voiceActivityFlag.value() : false);
         return;
       }
 
@@ -3595,7 +3596,7 @@ namespace ortc
       source.mTimestamp = zsLib::now();
       source.mAudioLevel = level;
       source.mVoiceActivityFlag = voiceActivityFlag;
-      EventWriteOrtcRtpReceiverUpdateContributingSource(__func__, mID, csrc, level, voiceActivityFlag);
+      EventWriteOrtcRtpReceiverUpdateContributingSource(__func__, mID, csrc, level, voiceActivityFlag.hasValue() ? voiceActivityFlag.value() : false);
     }
 
     //-------------------------------------------------------------------------

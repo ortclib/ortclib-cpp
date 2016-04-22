@@ -62,10 +62,10 @@ namespace ortc
     #pragma mark
 
     struct ContributingSource {
-      Time      mTimestamp {};
-      SSRCType  mCSRC {};
-      BYTE      mAudioLevel {};
-      bool      mVoiceActivityFlag {};
+      Time           mTimestamp {};
+      SSRCType       mCSRC {};
+      BYTE           mAudioLevel {};
+      Optional<bool> mVoiceActivityFlag {};
 
       ElementPtr toDebug() const;
       String hash() const;

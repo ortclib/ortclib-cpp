@@ -677,7 +677,7 @@ namespace ortc
       void setContributingSource(
                                  SSRCType csrc,
                                  BYTE level,
-                                 bool voiceActivityFlag
+                                 const Optional<bool> &voiceActivityFlag
                                  );
 
       void postFindMappingProcessPacket(
