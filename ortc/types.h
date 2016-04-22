@@ -72,8 +72,13 @@ namespace ortc
   ZS_DECLARE_USING_PTR(zsLib, Any)
   ZS_DECLARE_USING_PTR(zsLib, Promise)
 
+  ZS_DECLARE_STRUCT_PTR(ErrorAny)
+
   struct ErrorAny : public Any
   {
+    typedef WORD ErrorCode;
+
+    ErrorCode mErrorCode {};
     String mName;
     String mReason;
   };

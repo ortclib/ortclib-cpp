@@ -1544,7 +1544,8 @@ namespace ortc
     bool DTLSTransport::isShutdown() const
     {
       if (mGracefulShutdownReference) return false;
-      return IDTLSTransport::State_Closed == mCurrentState;
+      return ((IDTLSTransportTypes::State_Closed == mCurrentState) ||
+              (IDTLSTransportTypes::State_Failed == mCurrentState));
     }
 
     //-------------------------------------------------------------------------
@@ -1697,20 +1698,32 @@ namespace ortc
       auto state = mAdapter->getState();
       switch (state) {
         case Adapter::SS_OPENING: {
-          setState(IDTLSTransport::State_Connecting);
+          setState(IDTLSTransportTypes::State_Connecting);
           break;
         }
         case Adapter::SS_OPEN: {
           // ensure all the previous states in the state machine have occured before immediately jumping into final state
-          if (IDTLSTransport::State_New == mCurrentState) setState(IDTLSTransport::State_Connecting);
-          if (IDTLSTransport::State_Connecting == mCurrentState) setState(IDTLSTransport::State_Connected);
-          if (Adapter::VALIDATION_PASSED == mValidation) {
-            setState(IDTLSTransport::State_Validated);
-            return true;
+          if (IDTLSTransportTypes::State_New == mCurrentState) setState(IDTLSTransportTypes::State_Connecting);
+          switch (mValidation)
+          {
+            case Adapter::VALIDATION_NA:      break;
+            case Adapter::VALIDATION_PASSED:
+            {
+              setState(IDTLSTransportTypes::State_Connected);
+              return true;
+            }
+            case Adapter::VALIDATION_FAILED:
+            {
+              ZS_LOG_WARNING(Debug, log("ssl validation failed"))
+              setState(IDTLSTransportTypes::State_Failed);
+              cancel();
+              return false;
+            }
           }
           break;
         }
-        default: {
+        default:
+        {
           ZS_LOG_WARNING(Debug, log("ssl connection was closed"))
           cancel();
           break;
@@ -1725,7 +1738,7 @@ namespace ortc
     {
       EventWriteOrtcDtlsTransportStep(__func__, mID);
 
-      if (State_Validated != mCurrentState) {
+      if (IDTLSTransportTypes::State_Connected != mCurrentState) {
         ZS_LOG_TRACE(log("step notify ready is not validated yet"))
         return true;
       }
@@ -1773,7 +1786,7 @@ namespace ortc
       //.......................................................................
       // final cleanup
 
-      setState(IDTLSTransport::State_Closed);
+      setState(IDTLSTransportTypes::State_Closed);
 
       mAdapter->close();
 
@@ -1795,17 +1808,26 @@ namespace ortc
     void DTLSTransport::setState(IDTLSTransportTypes::States state)
     {
       if (state == mCurrentState) return;
+      switch (mCurrentState)
+      {
+        case IDTLSTransportTypes::State_Closed:
+        case IDTLSTransportTypes::State_Failed: {
+          ZS_LOG_TRACE(log("already in final state (cannot be changed)"))
+          return;
+        }
+        default: break;
+      }
 
       ZS_LOG_DETAIL(debug("state changed") + ZS_PARAM("new state", IDTLSTransport::toString(state)) + ZS_PARAM("old state", IDTLSTransport::toString(mCurrentState)))
 
       mCurrentState = state;
       EventWriteOrtcDtlsTransportStateChangedEventFired(__func__, mID, IDTLSTransportTypes::toString(state));
 
-      if (IDTLSTransport::State_Connected == state) {
+      if (IDTLSTransportTypes::State_Connected == state) {
         setupSRTP();
       }
 
-      if (State_Validated == state) {
+      if (IDTLSTransportTypes::State_Connected == state) {
         IDTLSTransportAsyncDelegateProxy::create(mThisWeak.lock())->onDeliverPendingIncomingRTP();
       }
 
@@ -1862,18 +1884,17 @@ namespace ortc
         }
         case IDTLSTransportTypes::State_Connecting: {
           if (Adapter::SS_OPENING == mAdapter->getState()) return;
+          if (Adapter::SS_OPEN == mAdapter->getState()) {
+            if (mRemoteParams.mFingerprints.size() < 1) return;
+          }
           break;
         }
         case IDTLSTransportTypes::State_Connected:  {
           if (Adapter::SS_OPEN == mAdapter->getState()) return;
-          if (mRemoteParams.mFingerprints.size() < 1) return;
           break;
         }
-        case IDTLSTransportTypes::State_Validated:  {
-          if (Adapter::SS_OPEN == mAdapter->getState()) return;
-          break;
-        }
-        case IDTLSTransportTypes::State_Closed:     return;
+        case IDTLSTransportTypes::State_Closed:     
+        case IDTLSTransportTypes::State_Failed: return;
       }
 
       ZS_LOG_TRACE(log("need to wake up to adjust state"))
@@ -3005,8 +3026,8 @@ namespace ortc
       case State_New:           return "new";
       case State_Connecting:    return "connecting";
       case State_Connected:     return "connected";
-      case State_Validated:     return "validated";
       case State_Closed:        return "closed";
+      case State_Failed:        return "failed";
     }
     return "UNDEFINED";
   }
