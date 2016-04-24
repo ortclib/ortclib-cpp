@@ -351,7 +351,7 @@
 #define EventWriteOrtcRtpReceiverSetTransport(xStr_Method, xPUID, xPUID_RtpListenerObjectID, xPUID_RtpTransportObjectID, xPUID_RtcpTransportObjectID)
 
 #define EventWriteOrtcRtpReceiverReportRtcpFeedback(xStr_Method, xStr_Type, xStr_Parameter)
-#define EventWriteOrtcRtpReceiverReportCodec(xStr_Method, xStr_Name, xStr_Kind, xunsigned_long_CodecRate, xBYTE_PreferredPayloadType, xunsigned_long_MaxPTime, xunsigned_long_NumChannels)
+#define EventWriteOrtcRtpReceiverReportCodec(xStr_Method, xStr_Name, xStr_Kind, xunsigned_long_CodecRate, xBYTE_PreferredPayloadType, xunsigned_long_PTime, xunsigned_long_MaxPTime, xunsigned_long_NumChannels)
 #define EventWriteOrtcRtpReceiverReportHeaderExtension(xStr_Method, xStr_Kind, xStr_Uri, xUShort_PreferredID, xBool_PreferredEncrypted)
 
 #define EventWriteOrtcRtpReceiverReceive(xStr_Method, xPUID, xPUID_MediaStreamTrackObjectID)
@@ -824,7 +824,7 @@ inline void EventWriteOrtcRtpReceiverCancel(const char *xStr_Method, PUID xPUID)
 inline void EventWriteOrtcRtpReceiverSetTransport(const char *xStr_Method, PUID xPUID, PUID xPUID_RtpListenerObjectID, PUID xPUID_RtpTransportObjectID, PUID xPUID_RtcpTransportObjectID) {}
 
 inline void EventWriteOrtcRtpReceiverReportRtcpFeedback(const char *xStr_Method, const char *xStr_Type, const char *xStr_Parameter) {}
-inline void EventWriteOrtcRtpReceiverReportCodec(const char *xStr_Method, const char *xStr_Name, const char *xStr_Kind, unsigned long xunsigned_long_CodecRate, BYTE xBYTE_PreferredPayloadType, unsigned long xunsigned_long_MaxPTime, unsigned long xunsigned_long_NumChannels) {}
+inline void EventWriteOrtcRtpReceiverReportCodec(const char *xStr_Method, const char *xStr_Name, const char *xStr_Kind, unsigned long xunsigned_long_CodecRate, BYTE xBYTE_PreferredPayloadType, unsigned long xunsigned_long_PTime, unsigned long xunsigned_long_MaxPTime, unsigned long xunsigned_long_NumChannels) {}
 inline void EventWriteOrtcRtpReceiverReportHeaderExtension(const char *xStr_Method, const char *xStr_Kind, const char *xStr_Uri, unsigned short xUShort_PreferredID, bool xBool_PreferredEncrypted) {}
 
 inline void EventWriteOrtcRtpReceiverReceive(const char *xStr_Method, PUID xPUID, PUID xPUID_MediaStreamTrackObjectID) {}

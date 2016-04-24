@@ -767,7 +767,7 @@ namespace ortc
         CodecCapability codec;
 
         codec.mName = IRTPTypes::toString(index);
-        codec.mMaxPTime = 60;
+        codec.mMaxPTime = Milliseconds(60);
 
         switch (IRTPTypes::getCodecKind(index)) {
 
@@ -876,7 +876,7 @@ namespace ortc
           case IRTPTypes::SupportedCodec_ILBC:    {
             codec.mPreferredPayloadType = 102;
             codec.mClockRate = 16000;
-            codec.mMaxPTime = 30;
+            codec.mMaxPTime = Milliseconds(30);
             break;
           }
           case IRTPTypes::SupportedCodec_PCMU:    {
@@ -890,7 +890,7 @@ namespace ortc
             break;
           }
 
-            // video codecs
+          // video codecs
           case IRTPTypes::SupportedCodec_VP8:     {
             codec.mPreferredPayloadType = 100;
             break;
@@ -948,7 +948,7 @@ namespace ortc
           case IRTPTypes::SupportedCodec_Opus:            break;
           case IRTPTypes::SupportedCodec_Isac:            {
             if (add) {
-              EventWriteOrtcRtpReceiverReportCodec(__func__, codec.mName, codec.mKind, codec.mClockRate, codec.mPreferredPayloadType, codec.mMaxPTime, codec.mNumChannels);
+              EventWriteOrtcRtpReceiverReportCodec(__func__, codec.mName, codec.mKind, codec.mClockRate, codec.mPreferredPayloadType, codec.mPTime.count(), codec.mMaxPTime.count(), codec.mNumChannels.value());
               result->mCodecs.push_back(codec);
             }
             codec.mClockRate = 16000;
@@ -958,7 +958,7 @@ namespace ortc
           case IRTPTypes::SupportedCodec_G722:            break;
           case IRTPTypes::SupportedCodec_ILBC:            {
             if (add) {
-              EventWriteOrtcRtpReceiverReportCodec(__func__, codec.mName, codec.mKind, codec.mClockRate, codec.mPreferredPayloadType, codec.mMaxPTime, codec.mNumChannels);
+              EventWriteOrtcRtpReceiverReportCodec(__func__, codec.mName, codec.mKind, codec.mClockRate, codec.mPreferredPayloadType, codec.mPTime.count(), codec.mMaxPTime.count(), codec.mNumChannels.value());
               result->mCodecs.push_back(codec);
             }
             codec.mPreferredPayloadType = 101;
@@ -981,7 +981,7 @@ namespace ortc
             codec.mParameters = RTXCodecCapabilityParameters::create(rtxParams);
 
             if (add) {
-              EventWriteOrtcRtpReceiverReportCodec(__func__, codec.mName, codec.mKind, codec.mClockRate, codec.mPreferredPayloadType, codec.mMaxPTime, codec.mNumChannels);
+              EventWriteOrtcRtpReceiverReportCodec(__func__, codec.mName, codec.mKind, codec.mClockRate, codec.mPreferredPayloadType, codec.mPTime.count(), codec.mMaxPTime.count(), codec.mNumChannels.value());
               result->mCodecs.push_back(codec);
             }
 
@@ -989,7 +989,7 @@ namespace ortc
             rtxParams.mApt = 99;
             codec.mParameters = RTXCodecCapabilityParameters::create(rtxParams);
             if (add) {
-              EventWriteOrtcRtpReceiverReportCodec(__func__, codec.mName, codec.mKind, codec.mClockRate, codec.mPreferredPayloadType, codec.mMaxPTime, codec.mNumChannels);
+              EventWriteOrtcRtpReceiverReportCodec(__func__, codec.mName, codec.mKind, codec.mClockRate, codec.mPreferredPayloadType, codec.mPTime.count(), codec.mMaxPTime.count(), codec.mNumChannels.value());
               result->mCodecs.push_back(codec);
             }
 
@@ -1007,13 +1007,13 @@ namespace ortc
 
           case IRTPTypes::SupportedCodec_CN:              {
             if (add) {
-              EventWriteOrtcRtpReceiverReportCodec(__func__, codec.mName, codec.mKind, codec.mClockRate, codec.mPreferredPayloadType, codec.mMaxPTime, codec.mNumChannels);
+              EventWriteOrtcRtpReceiverReportCodec(__func__, codec.mName, codec.mKind, codec.mClockRate, codec.mPreferredPayloadType, codec.mPTime.count(), codec.mMaxPTime.count(), codec.mNumChannels.value());
               result->mCodecs.push_back(codec);
             }
             codec.mClockRate = 16000;
             codec.mPreferredPayloadType = 105;
             if (add) {
-              EventWriteOrtcRtpReceiverReportCodec(__func__, codec.mName, codec.mKind, codec.mClockRate, codec.mPreferredPayloadType, codec.mMaxPTime, codec.mNumChannels);
+              EventWriteOrtcRtpReceiverReportCodec(__func__, codec.mName, codec.mKind, codec.mClockRate, codec.mPreferredPayloadType, codec.mPTime.count(), codec.mMaxPTime.count(), codec.mNumChannels.value());
               result->mCodecs.push_back(codec);
             }
             codec.mPreferredPayloadType = 13;
@@ -1025,7 +1025,7 @@ namespace ortc
         }
 
         if (add) {
-          EventWriteOrtcRtpReceiverReportCodec(__func__, codec.mName, codec.mKind, codec.mClockRate, codec.mPreferredPayloadType, codec.mMaxPTime, codec.mNumChannels);
+          EventWriteOrtcRtpReceiverReportCodec(__func__, codec.mName, codec.mKind, codec.mClockRate, codec.mPreferredPayloadType, codec.mPTime.count(), codec.mMaxPTime.count(), codec.mNumChannels.value());
           result->mCodecs.push_back(codec);
         }
       }
@@ -4004,14 +4004,14 @@ namespace ortc
       findOptions.mMatchClockRateNotSet = true;
 
       if (resultFECv1.hasValue()) {
-        findOptions.mRTXAptPayloadType = resultFECv1;
+        findOptions.mRTXAptPayloadType = payloadTypeFECv1;
         auto *foundRTXCodec = RTPTypesHelper::findCodec(*mParameters, findOptions);
         if (NULL == foundRTXCodec) return;
 
         resultFECv1 = (static_cast<RoutingPayloadType>(foundRTXCodec->mPayloadType) << 24) | resultFECv1.value();
       }
       if (resultFECv2.hasValue()) {
-        findOptions.mRTXAptPayloadType = resultFECv2;
+        findOptions.mRTXAptPayloadType = payloadTypeFECv2;
         auto *foundRTXCodec = RTPTypesHelper::findCodec(*mParameters, findOptions);
         if (NULL == foundRTXCodec) return;
 
@@ -4071,6 +4071,7 @@ namespace ortc
     UseServicesHelper::debugAppend(resultEl, "timestamp", mTimestamp);
     UseServicesHelper::debugAppend(resultEl, "csrc", mCSRC);
     UseServicesHelper::debugAppend(resultEl, "audio level", mAudioLevel);
+    UseServicesHelper::debugAppend(resultEl, "voice activity flag", mVoiceActivityFlag);
 
     return resultEl;
   }
@@ -4086,6 +4087,8 @@ namespace ortc
     hasher.update(mCSRC);
     hasher.update(":");
     hasher.update(mAudioLevel);
+    hasher.update(":");
+    hasher.update(mVoiceActivityFlag);
     return hasher.final();
   }
 

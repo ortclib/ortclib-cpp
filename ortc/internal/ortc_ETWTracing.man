@@ -1132,6 +1132,7 @@
             <data inType="win:AnsiString" name="Kind" />
             <data inType="win:UInt64"     name="CodecRate" />
             <data inType="win:UInt8"      name="PreferredPayloadType" />
+            <data inType="win:UInt64"     name="PTime" />
             <data inType="win:UInt64"     name="MaxPTime" />
             <data inType="win:UInt64"     name="NumChannels" />
           </template>

@@ -136,8 +136,9 @@ namespace ortc
       String            mKind;
       ULONG             mClockRate {};
       PayloadType       mPreferredPayloadType {};
-      ULONG             mMaxPTime {};
-      ULONG             mNumChannels {};
+      Milliseconds      mPTime{};
+      Milliseconds      mMaxPTime {};
+      Optional<ULONG>   mNumChannels {};
       RTCPFeedbackList  mRTCPFeedback;
       AnyPtr            mParameters;              // OpusCodecCapabilityParameters, VP8CodecCapabilityParameters, H264CodecCapabilityParameters, RTXCodecCapabilityParameters, FlexFECCodecCapabilityParameters
       AnyPtr            mOptions;                 // OpusCodecCapabilityOptions
@@ -162,12 +163,36 @@ namespace ortc
 
     struct OpusCodecCapabilityOptions : public Any
     {
+      enum Signals {
+        Signal_First,
+
+        Signal_Auto = Signal_First,
+        Signal_Music,
+        Signal_Voice,
+
+        Signal_Last = Signal_Voice
+      };
+      static const char *toString(Signals signal);
+      static Signals toSignal(const char *signal);
+
+      enum Applications {
+        Application_First,
+
+        Application_VoIP = Application_First,
+        Application_Audio,
+        Application_LowDelay,
+
+        Application_Last = Application_LowDelay
+      };
+      static const char *toString(Applications application);
+      static Applications toApplication(const char *application);
+
       // sender capabilities
-      bool mComplexity {};
-      bool mSignal {};
-      bool mApplication {};
-      bool mPacketLossPerc {};
-      bool mPredictionDisabled {};
+      Optional<ULONG> mComplexity;
+      Optional<Signals> mSignal;
+      Optional<Applications> mApplication;
+      Optional<ULONG> mPacketLossPerc;
+      Optional<bool> mPredictionDisabled;
 
       OpusCodecCapabilityOptions() {}
       OpusCodecCapabilityOptions(const OpusCodecCapabilityOptions &op2) {(*this) = op2;}
@@ -191,7 +216,6 @@ namespace ortc
     {
       // receiver capability parameters
       Optional<ULONG> mMaxPlaybackRate;
-      Optional<ULONG> mPTime;
       Optional<ULONG> mMaxAverageBitrate;
       Optional<bool> mStereo;
       Optional<bool> mCBR;
@@ -222,7 +246,7 @@ namespace ortc
 
     struct VP8CodecCapabilityParameters : public Any
     {
-      Optional<ULONG> mMaxFT;
+      Optional<ULONG> mMaxFR;
       Optional<ULONGLONG> mMaxFS;
 
       VP8CodecCapabilityParameters() {}
@@ -437,8 +461,9 @@ namespace ortc
       String            mName;
       PayloadType       mPayloadType {};
       Optional<ULONG>   mClockRate;
-      ULONG             mMaxPTime {};
-      ULONG             mNumChannels {};
+      Milliseconds      mPTime {};
+      Milliseconds      mMaxPTime {};
+      Optional<ULONG>   mNumChannels {};
       RTCPFeedbackList  mRTCPFeedback;
       AnyPtr            mParameters;  // see OpusCodecParameters, RTXCodecParameters, REDCodecParameters, FlexFECCodecParameters for definitions
 
@@ -459,33 +484,11 @@ namespace ortc
 
     struct OpusCodecParameters : public Any
     {
-      enum Signals {
-        Signal_First,
-
-        Signal_Auto   = Signal_First,
-        Signal_Music,
-        Signal_Voice,
-
-        Signal_Last   = Signal_Voice
-      };
-      static const char *toString(Signals signal);
-      static Signals toSignal(const char *signal);
-
-      enum Applications {
-        Application_First,
-
-        Application_VoIP      = Application_First,
-        Application_Audio,
-        Application_LowDelay,
-
-        Application_Last      = Application_LowDelay
-      };
-      static const char *toString(Applications application);
-      static Applications toApplication(const char *application);
+      typedef OpusCodecCapabilityOptions::Signals Signals;
+      typedef OpusCodecCapabilityOptions::Applications Applications;
 
       // sedner parameters
       Optional<ULONG> mMaxPlaybackRate;
-      Optional<ULONG> mPTime;
       Optional<ULONG> mMaxAverageBitrate;
       Optional<bool> mStereo;
       Optional<bool> mCBR;
@@ -647,10 +650,10 @@ namespace ortc
       Optional<FECParameters> mFEC;
       Optional<RTXParameters> mRTX;
       PriorityTypes           mPriority {PriorityType_Unknown};
-      ULONGLONG               mMaxBitrate {};
-      double                  mMinQuality {0};
-      double                  mResolutionScale {};
-      double                  mFramerateScale {};
+      Optional<ULONGLONG>     mMaxBitrate {};
+      Optional<double>        mMinQuality {0};
+      Optional<double>        mResolutionScale {};
+      Optional<double>        mFramerateScale {};
       bool                    mActive {true};
       EncodingID              mEncodingID;
       EncodingIDList          mDependencyEncodingIDs;
