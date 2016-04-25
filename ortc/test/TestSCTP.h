@@ -471,6 +471,11 @@ namespace ortc
           // transport
           ULONG mTransportIncoming {0};
 
+          ULONG mTransportStateNew {0};
+          ULONG mTransportStateConnecting {0};
+          ULONG mTransportStateConnected {0};
+          ULONG mTransportStateClosed {0};
+
           bool operator==(const Expectations &op2) const;
         };
 
@@ -546,6 +551,11 @@ namespace ortc
                                                 IDataChannelPtr channel
                                                 ) override;
 
+        virtual void onSCTPTransportStateChange(
+                                                ISCTPTransportPtr transport,
+                                                ISCTPTransportTypes::States state
+                                                ) override;
+
         //---------------------------------------------------------------------
         #pragma mark
         #pragma mark SCTPTester::ISCTPTransportListenerDelegate
@@ -558,10 +568,10 @@ namespace ortc
         #pragma mark SCTPTester::IDataChannelDelegate
         #pragma mark
 
-        virtual void onDataChannelStateChanged(
-                                               IDataChannelPtr channel,
-                                               States state
-                                               ) override;
+        virtual void onDataChannelStateChange(
+                                              IDataChannelPtr channel,
+                                              IDataChannelTypes::States state
+                                              ) override;
 
         virtual void onDataChannelError(
                                         IDataChannelPtr channel,

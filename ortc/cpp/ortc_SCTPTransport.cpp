@@ -630,16 +630,34 @@ namespace ortc
     #pragma mark
     
     //---------------------------------------------------------------------------
-    const char *SCTPTransport::toString(States state)
+    const char *SCTPTransport::toString(InternalStates state)
     {
       switch (state) {
-        case State_Pending:       return "pending";
-        case State_Ready:         return "ready";
-        case State_Disconnected:  return "disconnected";
-        case State_ShuttingDown:  return "shutting down";
-        case State_Shutdown:      return "shutdown";
+        case InternalState_New:                     return "new";
+        case InternalState_Connecting:              return "connecting";
+        case InternalState_ConnectingDisrupted:     return "connecting disrupted";
+        case InternalState_Ready:                   return "ready";
+        case InternalState_Disconnected:            return "disconnected";
+        case InternalState_ShuttingDown:            return "shutting down";
+        case InternalState_Shutdown:                return "shutdown";
       }
       return "UNDEFINED";
+    }
+
+    //-------------------------------------------------------------------------
+    ISCTPTransportTypes::States SCTPTransport::toState(InternalStates state)
+    {
+      switch (state) {
+        case InternalState_New:                   return ISCTPTransportTypes::State_New;
+        case InternalState_Connecting:            return ISCTPTransportTypes::State_Connecting;
+        case InternalState_ConnectingDisrupted:   return ISCTPTransportTypes::State_Connecting;
+        case InternalState_Ready:                 return ISCTPTransportTypes::State_Connected;
+        case InternalState_Disconnected:          return ISCTPTransportTypes::State_Connected;
+        case InternalState_ShuttingDown:          return ISCTPTransportTypes::State_Closed;
+        case InternalState_Shutdown:              return ISCTPTransportTypes::State_Closed;
+      }
+      ZS_THROW_NOT_IMPLEMENTED(String("state is not implemented:") + toString(state))
+      return ISCTPTransportTypes::State_Closed;
     }
 
     //-------------------------------------------------------------------------
@@ -829,6 +847,13 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    ISCTPTransportTypes::States SCTPTransport::state() const
+    {
+      AutoRecursiveLock lock(*this);
+      return mLastReportedState;
+    }
+
+    //-------------------------------------------------------------------------
     IDTLSTransportPtr SCTPTransport::transport() const
     {
       return DTLSTransport::convert(mSecureTransport.lock());
@@ -910,6 +935,10 @@ namespace ortc
           // should be guarenteed.
           auto dataChannel = (*iter).second;
           delegate->onSCTPTransportDataChannel(mThisWeak.lock(), DataChannel::convert(dataChannel));
+        }
+
+        if (State_New != mLastReportedState) {
+          delegate->onSCTPTransportStateChange(pThis, mLastReportedState);
         }
       }
 
@@ -1036,7 +1065,7 @@ namespace ortc
       if (delegate) {
         SCTPTransportPtr pThis = mThisWeak.lock();
 
-        if (State_Pending != mCurrentState) {
+        if (InternalState_New != mCurrentState) {
           delegate->onSCTPTransportStateChanged();
         }
       }
@@ -1051,7 +1080,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool SCTPTransport::isReady() const
     {
-      return State_Ready == mCurrentState;
+      return InternalState_Ready == mCurrentState;
     }
 
     //-------------------------------------------------------------------------
@@ -1100,7 +1129,7 @@ namespace ortc
           return Promise::createRejected(RejectReason::create(UseHTTP::HTTPStatusCode_ClientClosedRequest, "cannot send during shutdown"), IORTCForInternal::queueORTC());
         }
 
-        if (State_Ready != mCurrentState) goto waiting_to_send;
+        if (InternalState_Ready != mCurrentState) goto waiting_to_send;
         if (!mWriteReady) goto waiting_to_send;
 
         if (packet->mBuffer) {
@@ -1565,13 +1594,13 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool SCTPTransport::isShuttingDown() const
     {
-      return State_ShuttingDown == mCurrentState;
+      return InternalState_ShuttingDown == mCurrentState;
     }
 
     //-------------------------------------------------------------------------
     bool SCTPTransport::isShutdown() const
     {
-      return State_Shutdown == mCurrentState;
+      return InternalState_Shutdown == mCurrentState;
     }
 
     //-------------------------------------------------------------------------
@@ -1608,7 +1637,7 @@ namespace ortc
     ready:
       {
         ZS_LOG_TRACE(log("SCTP is ready"))
-        setState(State_Ready);
+        setState(InternalState_Ready);
       }
     }
 
@@ -1623,6 +1652,9 @@ namespace ortc
       }
 
       ZS_LOG_TRACE(log("start is called"))
+      if (InternalState_New == mCurrentState) {
+        setState(InternalState_Connecting);
+      }
       return true;
     }
 
@@ -1651,7 +1683,29 @@ namespace ortc
         }
         case ISecureTransportTypes::State_Disconnected:
         {
-          setState(State_Disconnected);
+          switch (mCurrentState)
+          {
+            case InternalState_New:
+            case InternalState_Connecting:
+            case InternalState_ConnectingDisrupted:
+            {
+              setState(InternalState_ConnectingDisrupted);
+              break;
+            }
+            case InternalState_Ready:
+            case InternalState_Disconnected:
+            {
+              setState(InternalState_Disconnected);
+              break;
+            }
+            case InternalState_ShuttingDown:
+            case InternalState_Shutdown:
+            {
+              ZS_LOG_WARNING(Trace, log("already shutting down"))
+              cancel();
+              return false;
+            }
+          }
           return false;
         }
         case ISecureTransportTypes::State_Closed:
@@ -1815,7 +1869,7 @@ namespace ortc
 
       if (!mGracefulShutdownReference) mGracefulShutdownReference = mThisWeak.lock();
 
-      setState(State_ShuttingDown);
+      setState(InternalState_ShuttingDown);
 
       if (mGracefulShutdownReference) {
 
@@ -1892,7 +1946,7 @@ namespace ortc
       //.......................................................................
       // final cleanup
 
-      setState(State_Shutdown);
+      setState(InternalState_Shutdown);
 
       mSubscriptions.clear();
       mDataChannelSubscriptions.clear();
@@ -1953,7 +2007,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void SCTPTransport::setState(States state)
+    void SCTPTransport::setState(InternalStates state)
     {
       if (state == mCurrentState) return;
 
@@ -1963,10 +2017,15 @@ namespace ortc
       EventWriteOrtcSctpTransportStateChangedEventFired(__func__, mID, toString(state));
       mDataChannelSubscriptions.delegate()->onSCTPTransportStateChanged();
 
-//      SCTPTransportPtr pThis = mThisWeak.lock();
-//      if (pThis) {
-//        mSubscriptions.delegate()->onSCTPTransportStateChanged(pThis, mCurrentState);
-//      }
+      auto newState = toState(mCurrentState);
+      if (newState != mLastReportedState)
+      {
+        mLastReportedState = newState;
+        SCTPTransportPtr pThis = mThisWeak.lock();
+        if (pThis) {
+          mSubscriptions.delegate()->onSCTPTransportStateChange(pThis, mLastReportedState);
+        }
+      }
     }
 
     //-------------------------------------------------------------------------
@@ -2495,6 +2554,26 @@ namespace ortc
     hasher.update(":");
     hasher.update(mMaxSessionsPerPort);
     return hasher.final();
+  }
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark ISCTPTransportTypes
+  #pragma mark
+
+  //---------------------------------------------------------------------------
+  const char *ISCTPTransportTypes::toString(States state)
+  {
+    switch (state) {
+    case State_New:           return "new";
+    case State_Connecting:    return "connecting";
+    case State_Connected:     return "connected";
+    case State_Closed:        return "close";
+    }
+    return "UNDEFINED";
   }
 
   //---------------------------------------------------------------------------

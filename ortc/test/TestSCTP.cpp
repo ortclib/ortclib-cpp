@@ -40,6 +40,7 @@
 
 #include "config.h"
 #include "testing.h"
+#include <datetimeapi.h>
 
 namespace ortc { namespace test { ZS_DECLARE_SUBSYSTEM(ortc_test) } }
 
@@ -919,7 +920,12 @@ namespace ortc
 
                (mError == op2.mError) &&
 
-               (mTransportIncoming == op2.mTransportIncoming);
+               (mTransportIncoming == op2.mTransportIncoming) &&
+
+               (mTransportStateNew == op2.mTransportStateNew) &&
+               (mTransportStateConnecting == op2.mTransportStateConnecting) &&
+               (mTransportStateConnected == op2.mTransportStateConnected) &&
+               (mTransportStateClosed == op2.mTransportStateClosed);
       }
 
       //-----------------------------------------------------------------------
@@ -1189,6 +1195,24 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
+      void SCTPTester::onSCTPTransportStateChange(
+                                                  ISCTPTransportPtr transport,
+                                                  ISCTPTransportTypes::States state
+                                                  )
+      {
+        ZS_LOG_BASIC(log("on sctptransport change") + ZS_PARAM("state", ISCTPTransportTypes::toString(state)))
+
+        AutoRecursiveLock lock(*this);
+        switch (state)
+        {
+          case ISCTPTransportTypes::State_New:          ++mExpectations.mTransportStateNew;
+          case ISCTPTransportTypes::State_Connecting:   ++mExpectations.mTransportStateConnecting;
+          case ISCTPTransportTypes::State_Connected:    ++mExpectations.mTransportStateConnected;
+          case ISCTPTransportTypes::State_Closed:       ++mExpectations.mTransportStateClosed;
+        }
+      }
+
+      //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
@@ -1222,10 +1246,10 @@ namespace ortc
       #pragma mark
 
       //-----------------------------------------------------------------------
-      void SCTPTester::onDataChannelStateChanged(
-                                                 IDataChannelPtr channel,
-                                                 States state
-                                                 )
+      void SCTPTester::onDataChannelStateChange(
+                                                IDataChannelPtr channel,
+                                                IDataChannelTypes::States state
+                                                )
       {
         AutoRecursiveLock lock(*this);
 

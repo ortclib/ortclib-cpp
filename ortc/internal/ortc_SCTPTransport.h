@@ -363,15 +363,22 @@ namespace ortc
 
       typedef std::queue<SecureByteBlockPtr> BufferQueue;
 
-      enum States
+      enum InternalStates
       {
-        State_Pending,
-        State_Ready,
-        State_Disconnected,
-        State_ShuttingDown,
-        State_Shutdown,
+        InternalState_First,
+
+        InternalState_New                   = InternalState_First,
+        InternalState_Connecting,
+        InternalState_ConnectingDisrupted,
+        InternalState_Ready,
+        InternalState_Disconnected,
+        InternalState_ShuttingDown,
+        InternalState_Shutdown,
+
+        InternalState_Last                  = InternalState_Shutdown,
       };
-      static const char *toString(States state);
+      static const char *toString(InternalStates state);
+      ISCTPTransportTypes::States toState(InternalStates state);
 
     public:
       SCTPTransport(
@@ -426,6 +433,7 @@ namespace ortc
       virtual PUID getID() const override {return mID;}
 
       virtual IDTLSTransportPtr transport() const override;
+      virtual ISCTPTransportTypes::States state() const override;
 
       virtual WORD port() const override;
 
@@ -560,7 +568,7 @@ namespace ortc
 
       void cancel();
 
-      void setState(States state);
+      void setState(InternalStates state);
       void setError(WORD error, const char *reason = NULL);
 
       bool openConnectSCTPSocket();
@@ -608,7 +616,8 @@ namespace ortc
 
       ISCTPTransportForDataChannelDelegateSubscriptions mDataChannelSubscriptions;
 
-      std::atomic<States> mCurrentState {State_Pending};
+      std::atomic<InternalStates> mCurrentState {InternalState_First};
+      ISCTPTransportTypes::States mLastReportedState {ISCTPTransportTypes::State_First};
 
       WORD mLastError {};
       String mLastErrorReason;
@@ -695,13 +704,15 @@ ZS_DECLARE_TEAR_AWAY_TYPEDEF(ortc::ISCTPTransportTypes::Capabilities, Capabiliti
 ZS_DECLARE_TEAR_AWAY_TYPEDEF(ortc::IDTLSTransportPtr, IDTLSTransportPtr)
 ZS_DECLARE_TEAR_AWAY_TYPEDEF(ortc::IStatsProvider::PromiseWithStatsReportPtr, PromiseWithStatsReportPtr)
 ZS_DECLARE_TEAR_AWAY_TYPEDEF(ortc::InvalidStateError, InvalidStateError)
-  // NOTE: custom tear away forward
+ZS_DECLARE_TEAR_AWAY_TYPEDEF(ortc::ISCTPTransportTypes::States, States)
+// NOTE: custom tear away forward
   virtual PromiseWithStatsReportPtr getStats() const throw(InvalidStateError)
   {
     return getDelegate()->getStats();
   }
 ZS_DECLARE_TEAR_AWAY_METHOD_CONST_RETURN_0(getID, PUID)
 ZS_DECLARE_TEAR_AWAY_METHOD_CONST_RETURN_0(transport, IDTLSTransportPtr)
+ZS_DECLARE_TEAR_AWAY_METHOD_CONST_RETURN_0(state, States)
 ZS_DECLARE_TEAR_AWAY_METHOD_CONST_RETURN_0(port, WORD)
 ZS_DECLARE_TEAR_AWAY_METHOD_CONST_RETURN_0(localPort, WORD)
 ZS_DECLARE_TEAR_AWAY_METHOD_CONST_RETURN_0(remotePort, WORD)

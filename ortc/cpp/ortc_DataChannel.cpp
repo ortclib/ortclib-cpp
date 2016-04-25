@@ -368,7 +368,7 @@ namespace ortc
         DataChannelPtr pThis = mThisWeak.lock();
 
         if (State_Connecting != mCurrentState) {
-          delegate->onDataChannelStateChanged(pThis, mCurrentState);
+          delegate->onDataChannelStateChange(pThis, mCurrentState);
         }
 
         if (0 != mLastError) {
@@ -1072,7 +1072,7 @@ namespace ortc
 
       DataChannelPtr pThis = mThisWeak.lock();
       if (pThis) {
-        mSubscriptions.delegate()->onDataChannelStateChanged(pThis, mCurrentState);
+        mSubscriptions.delegate()->onDataChannelStateChange(pThis, mCurrentState);
       }
     }
 
