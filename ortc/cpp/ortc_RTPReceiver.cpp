@@ -948,7 +948,7 @@ namespace ortc
           case IRTPTypes::SupportedCodec_Opus:            break;
           case IRTPTypes::SupportedCodec_Isac:            {
             if (add) {
-              EventWriteOrtcRtpReceiverReportCodec(__func__, codec.mName, codec.mKind, codec.mClockRate, codec.mPreferredPayloadType, codec.mPTime.count(), codec.mMaxPTime.count(), codec.mNumChannels.value());
+              EventWriteOrtcRtpReceiverReportCodec(__func__, codec.mName, codec.mKind, codec.mClockRate.value(), codec.mPreferredPayloadType, codec.mPTime.count(), codec.mMaxPTime.count(), codec.mNumChannels.value());
               result->mCodecs.push_back(codec);
             }
             codec.mClockRate = 16000;
@@ -958,7 +958,7 @@ namespace ortc
           case IRTPTypes::SupportedCodec_G722:            break;
           case IRTPTypes::SupportedCodec_ILBC:            {
             if (add) {
-              EventWriteOrtcRtpReceiverReportCodec(__func__, codec.mName, codec.mKind, codec.mClockRate, codec.mPreferredPayloadType, codec.mPTime.count(), codec.mMaxPTime.count(), codec.mNumChannels.value());
+              EventWriteOrtcRtpReceiverReportCodec(__func__, codec.mName, codec.mKind, codec.mClockRate.value(), codec.mPreferredPayloadType, codec.mPTime.count(), codec.mMaxPTime.count(), codec.mNumChannels.value());
               result->mCodecs.push_back(codec);
             }
             codec.mPreferredPayloadType = 101;
@@ -981,7 +981,7 @@ namespace ortc
             codec.mParameters = RTXCodecCapabilityParameters::create(rtxParams);
 
             if (add) {
-              EventWriteOrtcRtpReceiverReportCodec(__func__, codec.mName, codec.mKind, codec.mClockRate, codec.mPreferredPayloadType, codec.mPTime.count(), codec.mMaxPTime.count(), codec.mNumChannels.value());
+              EventWriteOrtcRtpReceiverReportCodec(__func__, codec.mName, codec.mKind, codec.mClockRate.value(), codec.mPreferredPayloadType, codec.mPTime.count(), codec.mMaxPTime.count(), codec.mNumChannels.value());
               result->mCodecs.push_back(codec);
             }
 
@@ -989,7 +989,7 @@ namespace ortc
             rtxParams.mApt = 99;
             codec.mParameters = RTXCodecCapabilityParameters::create(rtxParams);
             if (add) {
-              EventWriteOrtcRtpReceiverReportCodec(__func__, codec.mName, codec.mKind, codec.mClockRate, codec.mPreferredPayloadType, codec.mPTime.count(), codec.mMaxPTime.count(), codec.mNumChannels.value());
+              EventWriteOrtcRtpReceiverReportCodec(__func__, codec.mName, codec.mKind, codec.mClockRate.value(), codec.mPreferredPayloadType, codec.mPTime.count(), codec.mMaxPTime.count(), codec.mNumChannels.value());
               result->mCodecs.push_back(codec);
             }
 
@@ -1007,13 +1007,13 @@ namespace ortc
 
           case IRTPTypes::SupportedCodec_CN:              {
             if (add) {
-              EventWriteOrtcRtpReceiverReportCodec(__func__, codec.mName, codec.mKind, codec.mClockRate, codec.mPreferredPayloadType, codec.mPTime.count(), codec.mMaxPTime.count(), codec.mNumChannels.value());
+              EventWriteOrtcRtpReceiverReportCodec(__func__, codec.mName, codec.mKind, codec.mClockRate.value(), codec.mPreferredPayloadType, codec.mPTime.count(), codec.mMaxPTime.count(), codec.mNumChannels.value());
               result->mCodecs.push_back(codec);
             }
             codec.mClockRate = 16000;
             codec.mPreferredPayloadType = 105;
             if (add) {
-              EventWriteOrtcRtpReceiverReportCodec(__func__, codec.mName, codec.mKind, codec.mClockRate, codec.mPreferredPayloadType, codec.mPTime.count(), codec.mMaxPTime.count(), codec.mNumChannels.value());
+              EventWriteOrtcRtpReceiverReportCodec(__func__, codec.mName, codec.mKind, codec.mClockRate.value(), codec.mPreferredPayloadType, codec.mPTime.count(), codec.mMaxPTime.count(), codec.mNumChannels.value());
               result->mCodecs.push_back(codec);
             }
             codec.mPreferredPayloadType = 13;
@@ -1025,7 +1025,7 @@ namespace ortc
         }
 
         if (add) {
-          EventWriteOrtcRtpReceiverReportCodec(__func__, codec.mName, codec.mKind, codec.mClockRate, codec.mPreferredPayloadType, codec.mPTime.count(), codec.mMaxPTime.count(), codec.mNumChannels.value());
+          EventWriteOrtcRtpReceiverReportCodec(__func__, codec.mName, codec.mKind, codec.mClockRate.value(), codec.mPreferredPayloadType, codec.mPTime.count(), codec.mMaxPTime.count(), codec.mNumChannels.value());
           result->mCodecs.push_back(codec);
         }
       }

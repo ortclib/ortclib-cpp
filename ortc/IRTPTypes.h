@@ -134,7 +134,7 @@ namespace ortc
     struct CodecCapability {
       String            mName;
       String            mKind;
-      ULONG             mClockRate {};
+      Optional<ULONG>   mClockRate {};
       PayloadType       mPreferredPayloadType {};
       Milliseconds      mPTime{};
       Milliseconds      mMaxPTime {};
@@ -460,7 +460,7 @@ namespace ortc
     struct CodecParameters {
       String            mName;
       PayloadType       mPayloadType {};
-      Optional<ULONG>   mClockRate;
+      Optional<ULONG>   mClockRate {};
       Milliseconds      mPTime {};
       Milliseconds      mMaxPTime {};
       Optional<ULONG>   mNumChannels {};
