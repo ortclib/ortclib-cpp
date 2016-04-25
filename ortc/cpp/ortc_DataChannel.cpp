@@ -372,7 +372,10 @@ namespace ortc
         }
 
         if (0 != mLastError) {
-          delegate->onDataChannelError(pThis, mLastError, mLastErrorReason);
+          ErrorAnyPtr error(make_shared<ErrorAny>());
+          error->mErrorCode = mLastError;
+          error->mReason = mLastErrorReason;
+          delegate->onDataChannelError(pThis, error);
         }
 
         if ((mOutgoingBufferFillSize <= mBufferedAmountLowThreshold) &&
@@ -1095,7 +1098,10 @@ namespace ortc
 
       DataChannelPtr pThis = mThisWeak.lock();
       if (pThis) {
-        mSubscriptions.delegate()->onDataChannelError(mThisWeak.lock(), mLastError, mLastErrorReason);
+        ErrorAnyPtr error(make_shared<ErrorAny>());
+        error->mErrorCode = mLastError;
+        error->mReason = mLastErrorReason;
+        mSubscriptions.delegate()->onDataChannelError(mThisWeak.lock(), error);
       }
     }
 

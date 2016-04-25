@@ -565,8 +565,7 @@ namespace ortc
 
         virtual void onDataChannelError(
                                         IDataChannelPtr channel,
-                                        ErrorCode errorCode,
-                                        String errorReason
+                                        ErrorAnyPtr error
                                         ) override;
 
         virtual void onDataChannelBufferedAmountLow(IDataChannelPtr channel) override;

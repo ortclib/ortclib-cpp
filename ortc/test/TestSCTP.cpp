@@ -1253,11 +1253,10 @@ namespace ortc
       //-----------------------------------------------------------------------
       void SCTPTester::onDataChannelError(
                                           IDataChannelPtr channel,
-                                          ErrorCode errorCode,
-                                          String errorReason
+                                          ErrorAnyPtr error
                                           )
       {
-        ZS_LOG_ERROR(Basic, log("data channel error") + ZS_PARAM("channel", channel->getID()) + ZS_PARAM("error code", errorCode) + ZS_PARAM("reason", errorReason))
+        ZS_LOG_ERROR(Basic, log("data channel error") + ZS_PARAM("channel", channel->getID()) + ZS_PARAM("error code", error->mErrorCode) + ZS_PARAM("reason", error->mReason))
         AutoRecursiveLock lock(*this);
         ++mExpectations.mError;
       }
