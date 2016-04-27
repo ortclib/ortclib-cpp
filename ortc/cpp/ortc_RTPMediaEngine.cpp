@@ -1531,9 +1531,12 @@ namespace ortc
 
       mChannel = webrtc::VoEBase::GetInterface(voiceEngine)->CreateChannel();
 
+      bool audioCodecSet = false;
       webrtc::CodecInst codec;
       for (auto codecIter = mParameters->mCodecs.begin(); codecIter != mParameters->mCodecs.end(); codecIter++) {
         auto supportedCodec = IRTPTypes::toSupportedCodec(codecIter->mName);
+        if (IRTPTypes::getCodecKind(supportedCodec) == IRTPTypes::CodecKind_Audio && audioCodecSet)
+          continue;
         switch (supportedCodec) {
           case IRTPTypes::SupportedCodec_Opus:
             codec = getAudioCodec(voiceEngine, codecIter->mName);
@@ -1559,6 +1562,9 @@ namespace ortc
             codec = getAudioCodec(voiceEngine, codecIter->mName);
             webrtc::VoECodec::GetInterface(voiceEngine)->SetRecPayloadType(mChannel, codec);
             goto set_rtcp_feedback;
+          case IRTPTypes::SupportedCodec_RED:
+            webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetREDStatus(mChannel, true, codecIter->mPayloadType);
+            break;
         }
         continue;
 
@@ -1570,23 +1576,22 @@ namespace ortc
             webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetNACKStatus(mChannel, true, 250);
           }
         }
-        break;
+        audioCodecSet = true;
       }
 
       webrtc::AudioReceiveStream::Config config;
       config.voe_channel_id = mChannel;
 
       for (auto encodingParamIter = mParameters->mEncodings.begin(); encodingParamIter != mParameters->mEncodings.end(); encodingParamIter++) {
-        if (encodingParamIter->mCodecPayloadType.hasValue()) {
-          if (encodingParamIter->mCodecPayloadType == codec.pltype && encodingParamIter->mSSRC.hasValue()) {
+        IRTPTypes::PayloadType codecPayloadType;
+        if (encodingParamIter->mCodecPayloadType.hasValue())
+          codecPayloadType = encodingParamIter->mCodecPayloadType;
+        else
+          codecPayloadType = codec.pltype;
+
+        if (codecPayloadType == codec.pltype) {
+          if (encodingParamIter->mSSRC.hasValue())
             config.rtp.remote_ssrc = encodingParamIter->mSSRC;
-            break;
-          }
-        } else {
-          if (encodingParamIter->mSSRC.hasValue()) {
-            config.rtp.remote_ssrc = encodingParamIter->mSSRC;
-            break;
-          }
         }
       }
       if (config.rtp.remote_ssrc == 0)
@@ -1821,9 +1826,12 @@ namespace ortc
 
       mChannel = webrtc::VoEBase::GetInterface(voiceEngine)->CreateChannel();
 
+      bool audioCodecSet = false;
       webrtc::CodecInst codec;
       for (auto codecIter = mParameters->mCodecs.begin(); codecIter != mParameters->mCodecs.end(); codecIter++) {
         auto supportedCodec = IRTPTypes::toSupportedCodec(codecIter->mName);
+        if (IRTPTypes::getCodecKind(supportedCodec) == IRTPTypes::CodecKind_Audio && audioCodecSet)
+          continue;
         switch (supportedCodec) {
           case IRTPTypes::SupportedCodec_Opus:
             codec = getAudioCodec(voiceEngine, codecIter->mName);
@@ -1849,6 +1857,9 @@ namespace ortc
             codec = getAudioCodec(voiceEngine, codecIter->mName);
             webrtc::VoECodec::GetInterface(voiceEngine)->SetSendCodec(mChannel, codec);
             goto set_rtcp_feedback;
+          case IRTPTypes::SupportedCodec_RED:
+            webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetREDStatus(mChannel, true, codecIter->mPayloadType);
+            break;
         }
         continue;
 
@@ -1860,24 +1871,23 @@ namespace ortc
             webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetNACKStatus(mChannel, true, 250);
           }
         }
-        break;
+        audioCodecSet = true;
       }
 
       webrtc::AudioSendStream::Config config(mTransport.get());
       config.voe_channel_id = mChannel;
       
       for (auto encodingParamIter = mParameters->mEncodings.begin(); encodingParamIter != mParameters->mEncodings.end(); encodingParamIter++) {
-        if (encodingParamIter->mCodecPayloadType.hasValue()) {
-          if (encodingParamIter->mCodecPayloadType == codec.pltype && encodingParamIter->mSSRC.hasValue()) {
-            webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetLocalSSRC(mChannel, encodingParamIter->mSSRC);
-            config.rtp.ssrc = encodingParamIter->mSSRC;
-            break;
-          }
-        } else {
+        IRTPTypes::PayloadType codecPayloadType;
+        if (encodingParamIter->mCodecPayloadType.hasValue())
+          codecPayloadType = encodingParamIter->mCodecPayloadType;
+        else
+          codecPayloadType = codec.pltype;
+
+        if (codecPayloadType == codec.pltype) {
           if (encodingParamIter->mSSRC.hasValue()) {
             webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetLocalSSRC(mChannel, encodingParamIter->mSSRC);
             config.rtp.ssrc = encodingParamIter->mSSRC;
-            break;
           }
         }
       }
@@ -2146,10 +2156,14 @@ namespace ortc
       webrtc::Transport* transport = mTransport.get();
       webrtc::VideoReceiveStream::Config config(transport);
       webrtc::VideoReceiveStream::Decoder decoder;
+      std::vector<IRTPTypes::PayloadType> rtxPayloadTypes;
 
+      bool videoCodecSet = false;
       for (auto codecIter = mParameters->mCodecs.begin(); codecIter != mParameters->mCodecs.end(); ++codecIter) {
         auto supportedCodec = IRTPTypes::toSupportedCodec(codecIter->mName);
-        switch (IRTPTypes::SupportedCodec_VP8 == supportedCodec) {
+        if (IRTPTypes::getCodecKind(supportedCodec) == IRTPTypes::CodecKind_Audio && videoCodecSet)
+          continue;
+        switch (supportedCodec) {
           case IRTPTypes::SupportedCodec_VP8:
           {
             webrtc::VideoDecoder* videoDecoder = webrtc::VideoDecoder::Create(webrtc::VideoDecoder::kVp8);
@@ -2179,6 +2193,25 @@ namespace ortc
             decoder.payload_type = codecIter->mPayloadType;
             goto set_rtcp_feedback;
           }
+          case IRTPTypes::SupportedCodec_RTX:
+          {
+            rtxPayloadTypes.push_back(codecIter->mPayloadType);
+            break;
+          }
+          case IRTPTypes::SupportedCodec_RED:
+          {
+            config.rtp.fec.red_payload_type = codecIter->mPayloadType;
+            break;
+          }
+          case IRTPTypes::SupportedCodec_ULPFEC:
+          {
+            config.rtp.fec.ulpfec_payload_type = codecIter->mPayloadType;
+            break;
+          }
+          case IRTPTypes::SupportedCodec_FlexFEC:
+          {
+            break;
+          }
         }
         continue;
 
@@ -2192,19 +2225,26 @@ namespace ortc
             config.rtp.remb = true;
           }
         }
-        break;
+        videoCodecSet = true;
       }
 
       for (auto encodingParamIter = mParameters->mEncodings.begin(); encodingParamIter != mParameters->mEncodings.end(); encodingParamIter++) {
-        if (encodingParamIter->mCodecPayloadType.hasValue()) {
-          if (encodingParamIter->mCodecPayloadType == decoder.payload_type && encodingParamIter->mSSRC.hasValue()) {
+        IRTPTypes::PayloadType codecPayloadType;
+        if (encodingParamIter->mCodecPayloadType.hasValue())
+          codecPayloadType = encodingParamIter->mCodecPayloadType;
+        else
+          codecPayloadType = decoder.payload_type;
+
+        if (codecPayloadType == decoder.payload_type) {
+          if (encodingParamIter->mSSRC.hasValue())
             config.rtp.remote_ssrc = encodingParamIter->mSSRC;
-            break;
-          }
-        } else {
-          if (encodingParamIter->mSSRC.hasValue()) {
-            config.rtp.remote_ssrc = encodingParamIter->mSSRC;
-            break;
+          if (encodingParamIter->mRTX.hasValue()) {
+            IRTPTypes::RTXParameters rtxEncodingParam = encodingParamIter->mRTX;
+            webrtc::VideoReceiveStream::Config::Rtp::Rtx rtx;
+            rtx.payload_type = rtxPayloadTypes.front();
+            if (rtxEncodingParam.mSSRC.hasValue())
+              rtx.ssrc = rtxEncodingParam.mSSRC;
+            config.rtp.rtx[codecPayloadType] = rtx;
           }
         }
       }
@@ -2422,10 +2462,25 @@ namespace ortc
 
       webrtc::VideoSendStream::Config config(mTransport.get());
       webrtc::VideoEncoderConfig encoderConfig;
+      webrtc::VideoStream stream;
       std::map<uint32_t, webrtc::RtpState> suspendedSSRCs;
 
+      stream.width = width;
+      stream.height = height;
+      stream.max_framerate = maxFramerate;
+      stream.min_bitrate_bps = 30000;
+      stream.target_bitrate_bps = 2000000;
+      stream.max_bitrate_bps = 2000000;
+      stream.max_qp = 56;
+
+      encoderConfig.min_transmit_bitrate_bps = 0;
+      encoderConfig.content_type = webrtc::VideoEncoderConfig::ContentType::kRealtimeVideo;
+
+      bool videoCodecSet = false;
       for (auto codecIter = mParameters->mCodecs.begin(); codecIter != mParameters->mCodecs.end(); codecIter++) {
         auto supportedCodec = IRTPTypes::toSupportedCodec(codecIter->mName);
+        if (IRTPTypes::getCodecKind(supportedCodec) == IRTPTypes::CodecKind_Audio && videoCodecSet)
+          continue;
         switch (supportedCodec) {
           case IRTPTypes::SupportedCodec_VP8:
           {
@@ -2433,22 +2488,11 @@ namespace ortc
             config.encoder_settings.encoder = videoEncoder;
             config.encoder_settings.payload_name = codecIter->mName;
             config.encoder_settings.payload_type = codecIter->mPayloadType;
-            webrtc::VideoStream stream;
-            stream.width = width;
-            stream.height = height;
-            stream.max_framerate = maxFramerate;
-            stream.min_bitrate_bps = 30000;
-            stream.target_bitrate_bps = 2000000;
-            stream.max_bitrate_bps = 2000000;
-            stream.max_qp = 56;
-            mVideoEncoderSettings.vp8 = webrtc::VideoEncoder::GetDefaultVp8Settings();
-            mVideoEncoderSettings.vp8.automaticResizeOn = true;
-            mVideoEncoderSettings.vp8.denoisingOn = true;
-            mVideoEncoderSettings.vp8.frameDroppingOn = true;
-            encoderConfig.min_transmit_bitrate_bps = 0;
-            encoderConfig.content_type = webrtc::VideoEncoderConfig::ContentType::kRealtimeVideo;
-            encoderConfig.streams.push_back(stream);
-            encoderConfig.encoder_specific_settings = &mVideoEncoderSettings.vp8;
+            mVideoEncoderSettings.mVp8 = webrtc::VideoEncoder::GetDefaultVp8Settings();
+            mVideoEncoderSettings.mVp8.automaticResizeOn = true;
+            mVideoEncoderSettings.mVp8.denoisingOn = true;
+            mVideoEncoderSettings.mVp8.frameDroppingOn = true;
+            encoderConfig.encoder_specific_settings = &mVideoEncoderSettings.mVp8;
             goto set_rtcp_feedback;
           }
           case IRTPTypes::SupportedCodec_VP9:
@@ -2457,20 +2501,9 @@ namespace ortc
             config.encoder_settings.encoder = videoEncoder;
             config.encoder_settings.payload_name = codecIter->mName;
             config.encoder_settings.payload_type = codecIter->mPayloadType;
-            webrtc::VideoStream stream;
-            stream.width = width;
-            stream.height = height;
-            stream.max_framerate = maxFramerate;
-            stream.min_bitrate_bps = 30000;
-            stream.target_bitrate_bps = 2000000;
-            stream.max_bitrate_bps = 2000000;
-            stream.max_qp = 56;
-            mVideoEncoderSettings.vp9 = webrtc::VideoEncoder::GetDefaultVp9Settings();
-            mVideoEncoderSettings.vp9.frameDroppingOn = true;
-            encoderConfig.min_transmit_bitrate_bps = 0;
-            encoderConfig.content_type = webrtc::VideoEncoderConfig::ContentType::kRealtimeVideo;
-            encoderConfig.streams.push_back(stream);
-            encoderConfig.encoder_specific_settings = &mVideoEncoderSettings.vp9;
+            mVideoEncoderSettings.mVp9 = webrtc::VideoEncoder::GetDefaultVp9Settings();
+            mVideoEncoderSettings.mVp9.frameDroppingOn = true;
+            encoderConfig.encoder_specific_settings = &mVideoEncoderSettings.mVp9;
             goto set_rtcp_feedback;
           }
           case IRTPTypes::SupportedCodec_H264:
@@ -2484,21 +2517,29 @@ namespace ortc
             config.encoder_settings.encoder = videoEncoder;
             config.encoder_settings.payload_name = codecIter->mName;
             config.encoder_settings.payload_type = codecIter->mPayloadType;
-            webrtc::VideoStream stream;
-            stream.width = width;
-            stream.height = height;
-            stream.max_framerate = maxFramerate;
-            stream.min_bitrate_bps = 30000;
-            stream.target_bitrate_bps = 2000000;
-            stream.max_bitrate_bps = 2000000;
-            stream.max_qp = 56;
-            mVideoEncoderSettings.h264 = webrtc::VideoEncoder::GetDefaultH264Settings();
-            mVideoEncoderSettings.h264.frameDroppingOn = true;
-            encoderConfig.min_transmit_bitrate_bps = 0;
-            encoderConfig.content_type = webrtc::VideoEncoderConfig::ContentType::kRealtimeVideo;
-            encoderConfig.streams.push_back(stream);
-            encoderConfig.encoder_specific_settings = &mVideoEncoderSettings.h264;
+            mVideoEncoderSettings.mH264 = webrtc::VideoEncoder::GetDefaultH264Settings();
+            mVideoEncoderSettings.mH264.frameDroppingOn = true;
+            encoderConfig.encoder_specific_settings = &mVideoEncoderSettings.mH264;
             goto set_rtcp_feedback;
+          }
+          case IRTPTypes::SupportedCodec_RTX:
+          {
+            config.rtp.rtx.payload_type = codecIter->mPayloadType;
+            break;
+          }
+          case IRTPTypes::SupportedCodec_RED:
+          {
+            config.rtp.fec.red_payload_type = codecIter->mPayloadType;
+            break;
+          }
+          case IRTPTypes::SupportedCodec_ULPFEC:
+          {
+            config.rtp.fec.ulpfec_payload_type = codecIter->mPayloadType;
+            break;
+          }
+          case IRTPTypes::SupportedCodec_FlexFEC:
+          {
+            break;
           }
         }
         continue;
@@ -2511,19 +2552,23 @@ namespace ortc
             config.rtp.nack.rtp_history_ms = 1000;
           }
         }
-        break;
+        videoCodecSet = true;
       }
 
       for (auto encodingParamIter = mParameters->mEncodings.begin(); encodingParamIter != mParameters->mEncodings.end(); encodingParamIter++) {
-        if (encodingParamIter->mCodecPayloadType.hasValue()) {
-          if (encodingParamIter->mCodecPayloadType == config.encoder_settings.payload_type && encodingParamIter->mSSRC.hasValue()) {
+        IRTPTypes::PayloadType codecPayloadType;
+        if (encodingParamIter->mCodecPayloadType.hasValue())
+          codecPayloadType = encodingParamIter->mCodecPayloadType;
+        else
+          codecPayloadType = config.encoder_settings.payload_type;
+
+        if (codecPayloadType == config.encoder_settings.payload_type) {
+          if (encodingParamIter->mSSRC.hasValue())
             config.rtp.ssrcs.push_back(encodingParamIter->mSSRC);
-            break;
-          }
-        } else {
-          if (encodingParamIter->mSSRC.hasValue()) {
-            config.rtp.ssrcs.push_back(encodingParamIter->mSSRC);
-            break;
+          if (encodingParamIter->mRTX.hasValue()) {
+            IRTPTypes::RTXParameters rtx = encodingParamIter->mRTX;
+            if (rtx.mSSRC.hasValue())
+              config.rtp.rtx.ssrcs.push_back(rtx.mSSRC);
           }
         }
       }
@@ -2545,6 +2590,8 @@ namespace ortc
       }
 
       config.rtp.c_name = mParameters->mRTCP.mCName;
+
+      encoderConfig.streams.push_back(stream);
 
       mSendStream = rtc::scoped_ptr<webrtc::VideoSendStream>(
         new webrtc::internal::VideoSendStream(

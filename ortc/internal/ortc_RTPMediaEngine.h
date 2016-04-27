@@ -1182,9 +1182,9 @@ namespace ortc
         friend class RTPMediaEngine;
 
         union VideoEncoderSettings {
-          webrtc::VideoCodecVP8 vp8;
-          webrtc::VideoCodecVP9 vp9;
-          webrtc::VideoCodecH264 h264;
+          webrtc::VideoCodecVP8 mVp8;
+          webrtc::VideoCodecVP9 mVp9;
+          webrtc::VideoCodecH264 mH264;
         };
 
       public:
