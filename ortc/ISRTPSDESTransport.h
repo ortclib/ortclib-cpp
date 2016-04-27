@@ -37,6 +37,7 @@
 #include <zsLib/Exception.h>
 
 #include <list>
+#include <zsLib/internal/types.h>
 
 namespace ortc
 {
@@ -177,8 +178,7 @@ namespace ortc
 
     virtual void onSRTPSDESTransportError(
                                           ISRTPSDESTransportPtr transport,
-                                          ErrorCode errorCode,
-                                          String errorReason
+                                          ErrorAnyPtr errorCode
                                           ) = 0;
   };
 
@@ -202,14 +202,14 @@ namespace ortc
 
 ZS_DECLARE_PROXY_BEGIN(ortc::ISRTPSDESTransportDelegate)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::ISRTPSDESTransportPtr, ISRTPSDESTransportPtr)
-ZS_DECLARE_PROXY_TYPEDEF(ortc::ISRTPSDESTransportDelegate::ErrorCode, ErrorCode)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::ErrorAnyPtr, ErrorAnyPtr)
 ZS_DECLARE_PROXY_METHOD_3(onSRTPSDESTransportLifetimeRemaining, ISRTPSDESTransportPtr, ULONG, ULONG)
-ZS_DECLARE_PROXY_METHOD_3(onSRTPSDESTransportError, ISRTPSDESTransportPtr, ErrorCode, String)
+ZS_DECLARE_PROXY_METHOD_2(onSRTPSDESTransportError, ISRTPSDESTransportPtr, ErrorAnyPtr)
 ZS_DECLARE_PROXY_END()
 
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_BEGIN(ortc::ISRTPSDESTransportDelegate, ortc::ISRTPSDESTransportSubscription)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::ISRTPSDESTransportPtr, ISRTPSDESTransportPtr)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::ISRTPSDESTransportDelegate::ErrorCode, ErrorCode)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::ErrorAnyPtr, ErrorAnyPtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_3(onSRTPSDESTransportLifetimeRemaining, ISRTPSDESTransportPtr, ULONG, ULONG)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_3(onSRTPSDESTransportError, ISRTPSDESTransportPtr, ErrorCode, String)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onSRTPSDESTransportError, ISRTPSDESTransportPtr, ErrorAnyPtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_END()

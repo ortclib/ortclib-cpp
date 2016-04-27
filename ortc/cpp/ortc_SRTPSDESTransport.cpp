@@ -737,7 +737,10 @@ namespace ortc
 
       auto pThis = mThisWeak.lock();
       if (pThis) {
-        mSubscriptions.delegate()->onSRTPSDESTransportError(mThisWeak.lock(), mLastError, mLastErrorReason);
+        ErrorAnyPtr error(make_shared<ErrorAny>());
+        error->mErrorCode = mLastError;
+        error->mReason = mLastErrorReason;
+        mSubscriptions.delegate()->onSRTPSDESTransportError(mThisWeak.lock(), error);
       }
 
       ZS_LOG_WARNING(Detail, debug("error set") + ZS_PARAM("error", mLastError) + ZS_PARAM("reason", mLastErrorReason))
@@ -787,17 +790,23 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    ISRTPSDESTransportFactory::ParametersPtr ISRTPSDESTransportFactory::getLocalParameters()
+    {
+      if (this) {}
+      return internal::SRTPSDESTransport::getLocalParameters();
+    }
+
+    //-------------------------------------------------------------------------
     SRTPSDESTransportPtr ISRTPSDESTransportFactory::create(
-                                                           ISRTPSDESTransportDelegatePtr delegate,
-                                                           IICETransportPtr iceTransport,
-                                                           const CryptoParameters &encryptParameters,
-                                                           const CryptoParameters &decryptParameters
-                                                           )
+      ISRTPSDESTransportDelegatePtr delegate,
+      IICETransportPtr iceTransport,
+      const CryptoParameters &encryptParameters,
+      const CryptoParameters &decryptParameters
+      )
     {
       if (this) {}
       return internal::SRTPSDESTransport::create(delegate, iceTransport, encryptParameters, decryptParameters);
     }
-
   }
 
   //---------------------------------------------------------------------------
@@ -1132,4 +1141,8 @@ namespace ortc
     return internal::ISRTPSDESTransportFactory::singleton().create(delegate, iceTransport, encryptParameters, decryptParameters);
   }
 
+  ISRTPSDESTransport::ParametersPtr ISRTPSDESTransport::getLocalParameters()
+  {
+    return internal::ISRTPSDESTransportFactory::singleton().getLocalParameters();
+  }
 }

@@ -410,6 +410,7 @@ namespace ortc
     interaction ISRTPSDESTransportFactory
     {
       typedef ISRTPSDESTransportTypes::CryptoParameters CryptoParameters;
+      typedef ISRTPSDESTransportTypes::ParametersPtr ParametersPtr;
 
       static ISRTPSDESTransportFactory &singleton();
 
@@ -419,6 +420,8 @@ namespace ortc
                                           const CryptoParameters &encryptParameters,
                                           const CryptoParameters &decryptParameters
                                           );
+
+      virtual ParametersPtr getLocalParameters();
     };
 
     class SRTPSDESTransportFactory : public IFactory<ISRTPSDESTransportFactory> {};
