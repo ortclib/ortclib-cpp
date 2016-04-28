@@ -292,7 +292,8 @@ namespace ortc
                                                                       UseReceiverChannelMediaBasePtr channel,
                                                                       TransportPtr transport,
                                                                       MediaStreamTrackPtr track,
-                                                                      ParametersPtr parameters
+                                                                      ParametersPtr parameters,
+                                                                      RTPPacketPtr packet
                                                                       );
 
       virtual PUID getID() const = 0;
@@ -601,7 +602,8 @@ namespace ortc
                                                                UseReceiverChannelMediaBasePtr channel,
                                                                TransportPtr transport,
                                                                MediaStreamTrackPtr track,
-                                                               ParametersPtr parameters
+                                                               ParametersPtr parameters,
+                                                               RTPPacketPtr packet
                                                                );
 
       // (duplicate) virtual PUID getID() const = 0;
@@ -919,7 +921,8 @@ namespace ortc
                                      IRTPMediaEngineRegistrationPtr registration,
                                      TransportPtr transport,
                                      MediaStreamTrackPtr track,
-                                     ParametersPtr parameters
+                                     ParametersPtr parameters,
+                                     RTPPacketPtr packet
                                      );
         virtual ~AudioReceiverChannelResource();
 
@@ -927,7 +930,8 @@ namespace ortc
                                                       IRTPMediaEngineRegistrationPtr registration,
                                                       TransportPtr transport,
                                                       MediaStreamTrackPtr track,
-                                                      ParametersPtr parameters
+                                                      ParametersPtr parameters,
+                                                      RTPPacketPtr packet
                                                       );
 
       protected:
@@ -979,6 +983,8 @@ namespace ortc
         UseMediaStreamTrackPtr mTrack;
 
         ParametersPtr mParameters;
+
+        RTPPacketPtr mInitPacket;
 
         rtc::scoped_ptr<webrtc::ProcessThread> mModuleProcessThread;
         rtc::scoped_ptr<webrtc::AudioReceiveStream> mReceiveStream;
@@ -1112,7 +1118,8 @@ namespace ortc
                                      IRTPMediaEngineRegistrationPtr registration,
                                      TransportPtr transport,
                                      MediaStreamTrackPtr track,
-                                     ParametersPtr parameters
+                                     ParametersPtr parameters,
+                                     RTPPacketPtr packet
                                      );
         virtual ~VideoReceiverChannelResource();
 
@@ -1120,7 +1127,8 @@ namespace ortc
                                                       IRTPMediaEngineRegistrationPtr registration,
                                                       TransportPtr transport,
                                                       MediaStreamTrackPtr track,
-                                                      ParametersPtr parameters
+                                                      ParametersPtr parameters,
+                                                      RTPPacketPtr packet
                                                       );
 
       protected:
@@ -1159,6 +1167,8 @@ namespace ortc
         UseMediaStreamTrackPtr mTrack;
 
         ParametersPtr mParameters;
+
+        RTPPacketPtr mInitPacket;
 
         rtc::scoped_ptr<webrtc::ProcessThread> mModuleProcessThread;
         rtc::scoped_ptr<webrtc::VideoReceiveStream> mReceiveStream;

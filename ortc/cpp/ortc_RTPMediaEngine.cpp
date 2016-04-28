@@ -49,6 +49,7 @@
 #include <zsLib/Singleton.h>
 #include <zsLib/Log.h>
 #include <zsLib/XML.h>
+#include <zsLib/SafeInt.h>
 
 #include <cryptopp/sha.h>
 
@@ -305,7 +306,8 @@ namespace ortc
                                                                                                             UseReceiverChannelMediaBasePtr channel,
                                                                                                             TransportPtr transport,
                                                                                                             MediaStreamTrackPtr track,
-                                                                                                            ParametersPtr parameters
+                                                                                                            ParametersPtr parameters,
+                                                                                                            RTPPacketPtr packet
                                                                                                             )
     {
       auto singleton = RTPMediaEngineSingleton::singleton();
@@ -314,7 +316,8 @@ namespace ortc
                                                                               channel,
                                                                               transport,
                                                                               track,
-                                                                              parameters
+                                                                              parameters,
+                                                                              packet
                                                                               );
     }
 
@@ -572,7 +575,8 @@ namespace ortc
                                                                              UseReceiverChannelMediaBasePtr channel,
                                                                              TransportPtr transport,
                                                                              MediaStreamTrackPtr track,
-                                                                             ParametersPtr parameters
+                                                                             ParametersPtr parameters,
+                                                                             RTPPacketPtr packet
                                                                              )
     {
        PromiseWithRTPMediaEngineChannelResourcePtr promise;
@@ -584,7 +588,8 @@ namespace ortc
                                                                                           mRegistration.lock(),
                                                                                           transport,
                                                                                           track,
-                                                                                          parameters
+                                                                                          parameters,
+                                                                                          packet
                                                                                           );
           promise = resource->createPromise<IRTPMediaEngineChannelResource>();
           mChannelResources[channel->getID()] = resource;
@@ -594,7 +599,8 @@ namespace ortc
                                                                                           mRegistration.lock(),
                                                                                           transport,
                                                                                           track,
-                                                                                          parameters
+                                                                                          parameters,
+                                                                                          packet
                                                                                           );
           promise = resource->createPromise<IRTPMediaEngineChannelResource>();
           mChannelResources[channel->getID()] = resource;
@@ -1405,12 +1411,14 @@ namespace ortc
                                                                                IRTPMediaEngineRegistrationPtr registration,
                                                                                TransportPtr transport,
                                                                                MediaStreamTrackPtr track,
-                                                                               ParametersPtr parameters
+                                                                               ParametersPtr parameters,
+                                                                               RTPPacketPtr packet
                                                                                ) :
       ChannelResource(priv, queue, registration),
       mTransport(transport),
       mTrack(track),
-      mParameters(parameters)
+      mParameters(parameters),
+      mInitPacket(packet)
     {
     }
 
@@ -1425,7 +1433,8 @@ namespace ortc
                                                                                                          IRTPMediaEngineRegistrationPtr registration,
                                                                                                          TransportPtr transport,
                                                                                                          MediaStreamTrackPtr track,
-                                                                                                         ParametersPtr parameters
+                                                                                                         ParametersPtr parameters,
+                                                                                                         RTPPacketPtr packet  
                                                                                                          )
     {
       auto pThis = make_shared<AudioReceiverChannelResource>(
@@ -1434,7 +1443,8 @@ namespace ortc
                                                              registration,
                                                              transport,
                                                              track,
-                                                             parameters
+                                                             parameters,
+                                                             packet
                                                              );
       pThis->mThisWeak = pThis;
       pThis->init();
@@ -1590,12 +1600,19 @@ namespace ortc
           codecPayloadType = codec.pltype;
 
         if (codecPayloadType == codec.pltype) {
+          uint32_t ssrc = 0;
           if (encodingParamIter->mSSRC.hasValue())
-            config.rtp.remote_ssrc = encodingParamIter->mSSRC;
+            ssrc = encodingParamIter->mSSRC;
+          if (encodingParamIter->mFEC.hasValue()) {
+            IRTPTypes::FECParameters fec = encodingParamIter->mFEC;
+            if (fec.mSSRC.hasValue())
+              ssrc = fec.mSSRC;
+          }
+          config.rtp.remote_ssrc = ssrc;
         }
       }
       if (config.rtp.remote_ssrc == 0)
-        config.rtp.remote_ssrc = 1;
+        config.rtp.remote_ssrc = mInitPacket->ssrc();
 
       for (auto headerExtensionIter = mParameters->mHeaderExtensions.begin(); headerExtensionIter != mParameters->mHeaderExtensions.end(); headerExtensionIter++) {
         IRTPTypes::HeaderExtensionURIs headerExtensionURI = IRTPTypes::toHeaderExtensionURI(headerExtensionIter->mURI);
@@ -1885,15 +1902,24 @@ namespace ortc
           codecPayloadType = codec.pltype;
 
         if (codecPayloadType == codec.pltype) {
+          uint32_t ssrc = 0;
           if (encodingParamIter->mSSRC.hasValue()) {
-            webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetLocalSSRC(mChannel, encodingParamIter->mSSRC);
-            config.rtp.ssrc = encodingParamIter->mSSRC;
+            ssrc = encodingParamIter->mSSRC;
           }
+          if (encodingParamIter->mFEC.hasValue()) {
+            IRTPTypes::FECParameters fec = encodingParamIter->mFEC;
+            if (fec.mSSRC.hasValue()) {
+              ssrc = fec.mSSRC;
+            }
+          }
+          webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetLocalSSRC(mChannel, ssrc);
+          config.rtp.ssrc = ssrc;
         }
       }
       if (config.rtp.ssrc == 0) {
-        webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetLocalSSRC(mChannel, 1);
-        config.rtp.ssrc = 1;
+        uint32_t ssrc = SafeInt<uint32>(openpeer::services::IHelper::random(1, 0xFFFFFFFF));
+        webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetLocalSSRC(mChannel, ssrc);
+        config.rtp.ssrc = ssrc;
       }
 
       for (auto headerExtensionIter = mParameters->mHeaderExtensions.begin(); headerExtensionIter != mParameters->mHeaderExtensions.end(); headerExtensionIter++) {
@@ -2028,12 +2054,14 @@ namespace ortc
                                                                                IRTPMediaEngineRegistrationPtr registration,
                                                                                TransportPtr transport,
                                                                                MediaStreamTrackPtr track,
-                                                                               ParametersPtr parameters
+                                                                               ParametersPtr parameters,
+                                                                               RTPPacketPtr packet
                                                                                ) :
       ChannelResource(priv, queue, registration),
       mTransport(transport),
       mTrack(track),
-      mParameters(parameters)
+      mParameters(parameters),
+      mInitPacket(packet)
     {
     }
 
@@ -2048,7 +2076,8 @@ namespace ortc
                                                                                                          IRTPMediaEngineRegistrationPtr registration,
                                                                                                          TransportPtr transport,
                                                                                                          MediaStreamTrackPtr track,
-                                                                                                         ParametersPtr parameters
+                                                                                                         ParametersPtr parameters,
+                                                                                                         RTPPacketPtr packet
                                                                                                          )
     {
       auto pThis = make_shared<VideoReceiverChannelResource>(
@@ -2057,7 +2086,8 @@ namespace ortc
                                                              registration,
                                                              transport,
                                                              track,
-                                                             parameters
+                                                             parameters,
+                                                             packet
                                                              );
       pThis->mThisWeak = pThis;
       pThis->init();
@@ -2236,8 +2266,16 @@ namespace ortc
           codecPayloadType = decoder.payload_type;
 
         if (codecPayloadType == decoder.payload_type) {
+          uint32_t ssrc = 0;
           if (encodingParamIter->mSSRC.hasValue())
-            config.rtp.remote_ssrc = encodingParamIter->mSSRC;
+            ssrc = encodingParamIter->mSSRC;
+          if (encodingParamIter->mFEC.hasValue()) {
+            IRTPTypes::FECParameters fec = encodingParamIter->mFEC;
+            if (fec.mSSRC.hasValue()) {
+              ssrc = encodingParamIter->mSSRC;
+            }
+          }
+          config.rtp.remote_ssrc = ssrc;
           if (encodingParamIter->mRTX.hasValue()) {
             IRTPTypes::RTXParameters rtxEncodingParam = encodingParamIter->mRTX;
             webrtc::VideoReceiveStream::Config::Rtp::Rtx rtx;
@@ -2249,7 +2287,7 @@ namespace ortc
         }
       }
       if (config.rtp.remote_ssrc == 0)
-        config.rtp.remote_ssrc = 2;
+        config.rtp.remote_ssrc = mInitPacket->ssrc();
       config.rtp.local_ssrc = mParameters->mRTCP.mSSRC;
 
       for (auto headerExtensionIter = mParameters->mHeaderExtensions.begin(); headerExtensionIter != mParameters->mHeaderExtensions.end(); headerExtensionIter++) {
@@ -2563,8 +2601,17 @@ namespace ortc
           codecPayloadType = config.encoder_settings.payload_type;
 
         if (codecPayloadType == config.encoder_settings.payload_type) {
+          uint32_t ssrc = 0;
           if (encodingParamIter->mSSRC.hasValue())
-            config.rtp.ssrcs.push_back(encodingParamIter->mSSRC);
+            ssrc = encodingParamIter->mSSRC;
+          if (encodingParamIter->mFEC.hasValue()) {
+            IRTPTypes::FECParameters fec = encodingParamIter->mFEC;
+            if (fec.mSSRC.hasValue()) {
+              ssrc = encodingParamIter->mSSRC;
+            }
+          }
+          if (ssrc != 0)
+            config.rtp.ssrcs.push_back(ssrc);
           if (encodingParamIter->mRTX.hasValue()) {
             IRTPTypes::RTXParameters rtx = encodingParamIter->mRTX;
             if (rtx.mSSRC.hasValue())
@@ -2573,7 +2620,7 @@ namespace ortc
         }
       }
       if (config.rtp.ssrcs.size() == 0)
-        config.rtp.ssrcs.push_back(2);
+        config.rtp.ssrcs.push_back(SafeInt<uint32>(openpeer::services::IHelper::random(1, 0xFFFFFFFF)));
 
       for (auto headerExtensionIter = mParameters->mHeaderExtensions.begin(); headerExtensionIter != mParameters->mHeaderExtensions.end(); headerExtensionIter++) {
         IRTPTypes::HeaderExtensionURIs headerExtensionURI = IRTPTypes::toHeaderExtensionURI(headerExtensionIter->mURI);
