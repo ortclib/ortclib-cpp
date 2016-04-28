@@ -67,6 +67,7 @@
 #define ASSERT(x)
 #endif //_DEBUG
 
+//#define ENABLE_SENSITIVE_WEBRTC_LOG
 
 namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib) }
 
@@ -395,7 +396,8 @@ namespace ortc
                                    ) :
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
-      mRegistration(registration)
+      mRegistration(registration),
+      mTraceCallback(new WebRtcTraceCallback())
     {
       EventWriteOrtcRtpMediaEngineCreate(__func__, mID);
       ZS_LOG_DETAIL(debug("created"))
@@ -405,6 +407,14 @@ namespace ortc
     void RTPMediaEngine::init()
     {
       AutoRecursiveLock lock(*this);
+
+#ifdef ENABLE_SENSITIVE_WEBRTC_LOG
+      rtc::LogMessage::LogToDebug(rtc::LS_SENSITIVE);
+      webrtc::Trace::CreateTrace();
+      webrtc::Trace::SetTraceCallback(mTraceCallback.get());
+      webrtc::Trace::set_level_filter(webrtc::kTraceAll);
+#endif
+
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
     }
 
@@ -1113,6 +1123,38 @@ namespace ortc
       mLastErrorReason = reason;
 
       ZS_LOG_WARNING(Detail, debug("error set") + ZS_PARAM("error", mLastError) + ZS_PARAM("reason", mLastErrorReason))
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPMediaEngine::WebRtcTraceCallback
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::WebRtcTraceCallback::Print(webrtc::TraceLevel level, const char* message, int length)
+    {
+      rtc::LoggingSeverity sev = rtc::LS_VERBOSE;
+      if (level == webrtc::kTraceError || level == webrtc::kTraceCritical)
+        sev = rtc::LS_ERROR;
+      else if (level == webrtc::kTraceWarning)
+        sev = rtc::LS_WARNING;
+      else if (level == webrtc::kTraceStateInfo || level == webrtc::kTraceInfo)
+        sev = rtc::LS_INFO;
+      else if (level == webrtc::kTraceTerseInfo)
+        sev = rtc::LS_INFO;
+
+      // Skip past boilerplate prefix text
+      if (length < 72) {
+        std::string msg(message, length);
+        LOG(LS_ERROR) << "Malformed webrtc log message: ";
+        LOG_V(sev) << msg;
+      } else {
+        std::string msg(message + 71, length - 72);
+        LOG_V(sev) << "webrtc: " << msg;
+      }
     }
 
     //-------------------------------------------------------------------------

@@ -44,6 +44,8 @@
 #include <zsLib/Timer.h>
 
 #include "webrtc/base/scoped_ptr.h"
+#include <webrtc/base/logging.h>
+#include <webrtc/system_wrappers/include/trace.h>
 #include <webrtc/audio/audio_send_stream.h>
 #include <webrtc/audio/audio_receive_stream.h>
 #include <webrtc/video/video_send_stream.h>
@@ -90,7 +92,6 @@ namespace ortc
     ZS_DECLARE_TYPEDEF_PTR(zsLib::PromiseWith<RTPMediaEngine>, PromiseWithRTPMediaEngine)
     ZS_DECLARE_TYPEDEF_PTR(zsLib::PromiseWith<IRTPMediaEngineDeviceResource>, PromiseWithRTPMediaEngineDeviceResource)
     ZS_DECLARE_TYPEDEF_PTR(zsLib::PromiseWith<IRTPMediaEngineChannelResource>, PromiseWithRTPMediaEngineChannelResource)
-
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -727,6 +728,20 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       #pragma mark
+      #pragma mark RTPMediaEngine::WebRtcTraceCallback
+      #pragma mark
+
+      class WebRtcTraceCallback : public webrtc::TraceCallback
+      {
+      public:
+        virtual void Print(webrtc::TraceLevel level, const char* message, int length);
+      };
+
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
       #pragma mark RTPMediaEngine::BaseResource
       #pragma mark
 
@@ -1286,6 +1301,8 @@ namespace ortc
       ChannelResourceList mPendingCloseChannelResources;
 
       rtc::scoped_ptr<webrtc::VoiceEngine, VoiceEngineDeleter> mVoiceEngine;
+
+      rtc::scoped_ptr<WebRtcTraceCallback> mTraceCallback;
     };
 
     //-------------------------------------------------------------------------
