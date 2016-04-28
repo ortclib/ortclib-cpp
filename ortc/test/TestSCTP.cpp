@@ -40,7 +40,7 @@
 
 #include "config.h"
 #include "testing.h"
-#include <datetimeapi.h>
+#include <zsLib/date.h>
 
 namespace ortc { namespace test { ZS_DECLARE_SUBSYSTEM(ortc_test) } }
 

@@ -1807,8 +1807,10 @@ namespace ortc
     //-------------------------------------------------------------------------
     void DTLSTransport::setState(IDTLSTransportTypes::States state)
     {
-      if (state == mCurrentState) return;
-      switch (mCurrentState)
+      IDTLSTransportTypes::States currentState = mCurrentState;
+
+      if (state == currentState) return;
+      switch (currentState)
       {
         case IDTLSTransportTypes::State_Closed:
         case IDTLSTransportTypes::State_Failed: {
@@ -1818,7 +1820,7 @@ namespace ortc
         default: break;
       }
 
-      ZS_LOG_DETAIL(debug("state changed") + ZS_PARAM("new state", IDTLSTransport::toString(state)) + ZS_PARAM("old state", IDTLSTransport::toString(mCurrentState)))
+      ZS_LOG_DETAIL(debug("state changed") + ZS_PARAM("new state", IDTLSTransport::toString(state)) + ZS_PARAM("old state", IDTLSTransport::toString(currentState)))
 
       mCurrentState = state;
       EventWriteOrtcDtlsTransportStateChangedEventFired(__func__, mID, IDTLSTransportTypes::toString(state));

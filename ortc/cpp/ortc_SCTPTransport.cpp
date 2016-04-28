@@ -1683,7 +1683,8 @@ namespace ortc
         }
         case ISecureTransportTypes::State_Disconnected:
         {
-          switch (mCurrentState)
+          InternalStates currentState = mCurrentState;
+          switch (currentState)
           {
             case InternalState_New:
             case InternalState_Connecting:
