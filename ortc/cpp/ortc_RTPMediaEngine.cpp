@@ -1409,7 +1409,9 @@ namespace ortc
       ChannelResource(priv, queue, registration),
       mTransport(transport),
       mTrack(track),
-      mParameters(parameters)
+      mParameters(parameters),
+      mClock(webrtc::Clock::GetRealTimeClock()),
+      mRemb(mClock.get())
     {
     }
 
@@ -1494,6 +1496,36 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
+    #pragma mark RTPMediaEngine::AudioReceiverChannelResource => webrtc::BitrateObserver
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::AudioReceiverChannelResource::OnNetworkChanged(uint32_t targetBitrateBps, uint8_t fractionLoss, int64_t rttMs)
+    {
+      AutoRecursiveLock lock(*this);
+
+      uint32_t allocated_bitrate_bps = mBitrateAllocator->OnNetworkChanged(
+                                                                           targetBitrateBps,
+                                                                           fractionLoss,
+                                                                           rttMs
+                                                                           );
+
+      int padUpToBitrateBps = 0;
+      uint32_t pacerBitrateBps = targetBitrateBps;
+
+      if (mCongestionController)
+        mCongestionController->UpdatePacerBitrate(
+                                                  targetBitrateBps / 1000,
+                                                  webrtc::PacedSender::kDefaultPaceMultiplier * pacerBitrateBps / 1000,
+                                                  padUpToBitrateBps / 1000
+                                                  );
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
     #pragma mark RTPMediaEngine::AudioReceiverChannelResource => friend RTPMediaEngine
     #pragma mark
 
@@ -1516,12 +1548,18 @@ namespace ortc
 
       mModuleProcessThread = webrtc::ProcessThread::Create("AudioReceiverChannelResourceThread");
 
-      mCallStats = rtc::scoped_ptr<webrtc::CallStats>(new webrtc::CallStats());
+      webrtc::AudioState::Config audioStateConfig;
+      audioStateConfig.voice_engine = voiceEngine;
+      mAudioState = rtc::scoped_refptr<webrtc::AudioState>(webrtc::AudioState::Create(audioStateConfig));
+
+      mBitrateAllocator = rtc::scoped_ptr<webrtc::BitrateAllocator>(new webrtc::BitrateAllocator());
+      mCallStats = rtc::scoped_ptr<webrtc::CallStats>(new webrtc::CallStats(mClock.get()));
       mCongestionController =
         rtc::scoped_ptr<webrtc::CongestionController>(new webrtc::CongestionController(
-                                                                                       mModuleProcessThread.get(),
-                                                                                       mCallStats.get())
-                                                                                       );
+                                                                                       mClock.get(),
+                                                                                       this,
+                                                                                       &mRemb
+                                                                                       ));
 
       mModuleProcessThread->Start();
       mModuleProcessThread->RegisterModule(mCallStats.get());
@@ -1618,13 +1656,12 @@ namespace ortc
       config.rtp.local_ssrc = mParameters->mRTCP.mSSRC;
       config.receive_transport = mTransport.get();
       config.rtcp_send_transport = mTransport.get();
-      config.combined_audio_video_bwe = true;
 
       mReceiveStream = rtc::scoped_ptr<webrtc::AudioReceiveStream>(
         new webrtc::internal::AudioReceiveStream(
-                                                 mCongestionController->GetRemoteBitrateEstimator(false),
+                                                 mCongestionController.get(),
                                                  config,
-                                                 voiceEngine
+                                                 mAudioState
                                                  ));
 
       webrtc::VoENetwork::GetInterface(voiceEngine)->RegisterExternalTransport(mChannel, *mTransport);
@@ -1726,7 +1763,9 @@ namespace ortc
       ChannelResource(priv, queue, registration),
       mTransport(transport),
       mTrack(track),
-      mParameters(parameters)
+      mParameters(parameters),
+      mClock(webrtc::Clock::GetRealTimeClock()),
+      mRemb(mClock.get())
     {
     }
 
@@ -1797,7 +1836,37 @@ namespace ortc
       --mAccessFromNonLockedMethods;
       return result;
     }
-    
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPMediaEngine::AudioSenderChannelResource => webrtc::BitrateObserver
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::AudioSenderChannelResource::OnNetworkChanged(uint32_t targetBitrateBps, uint8_t fractionLoss, int64_t rttMs)
+    {
+      AutoRecursiveLock lock(*this);
+
+      uint32_t allocated_bitrate_bps = mBitrateAllocator->OnNetworkChanged(
+                                                                           targetBitrateBps,
+                                                                           fractionLoss,
+                                                                           rttMs
+                                                                           );
+
+      int padUpToBitrateBps = 0;
+      uint32_t pacerBitrateBps = targetBitrateBps;
+
+      if (mCongestionController)
+        mCongestionController->UpdatePacerBitrate(
+                                                  targetBitrateBps / 1000,
+                                                  webrtc::PacedSender::kDefaultPaceMultiplier * pacerBitrateBps / 1000,
+                                                  padUpToBitrateBps / 1000
+                                                  );
+    }
+
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -1822,6 +1891,18 @@ namespace ortc
         notifyPromisesReject();
         return;
       }
+
+      webrtc::AudioState::Config audioStateConfig;
+      audioStateConfig.voice_engine = voiceEngine;
+      mAudioState = rtc::scoped_refptr<webrtc::AudioState>(webrtc::AudioState::Create(audioStateConfig));
+
+      mBitrateAllocator = rtc::scoped_ptr<webrtc::BitrateAllocator>(new webrtc::BitrateAllocator());
+      mCongestionController =
+        rtc::scoped_ptr<webrtc::CongestionController>(new webrtc::CongestionController(
+                                                                                       mClock.get(),
+                                                                                       this,
+                                                                                       &mRemb
+                                                                                       ));
 
       webrtc::VoEBase::GetInterface(voiceEngine)->Init(mTrack->getAudioDeviceModule());
 
@@ -1921,7 +2002,8 @@ namespace ortc
       mSendStream = rtc::scoped_ptr<webrtc::AudioSendStream>(
         new webrtc::internal::AudioSendStream(
                                               config,
-                                              voiceEngine
+                                              mAudioState,
+                                              mCongestionController.get()
                                               ));
 
       webrtc::VoENetwork::GetInterface(voiceEngine)->RegisterExternalTransport(mChannel, *mTransport);
@@ -2036,7 +2118,9 @@ namespace ortc
       ChannelResource(priv, queue, registration),
       mTransport(transport),
       mTrack(track),
-      mParameters(parameters)
+      mParameters(parameters),
+      mClock(webrtc::Clock::GetRealTimeClock()),
+      mRemb(mClock.get())
     {
     }
 
@@ -2132,6 +2216,36 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
+    #pragma mark RTPMediaEngine::VideoReceiverChannelResource => webrtc::BitrateObserver
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::VideoReceiverChannelResource::OnNetworkChanged(uint32_t targetBitrateBps, uint8_t fractionLoss, int64_t rttMs)
+    {
+      AutoRecursiveLock lock(*this);
+
+      uint32_t allocated_bitrate_bps = mBitrateAllocator->OnNetworkChanged(
+        targetBitrateBps,
+        fractionLoss,
+        rttMs
+        );
+
+      int padUpToBitrateBps = 0;
+      uint32_t pacerBitrateBps = targetBitrateBps;
+
+      if (mCongestionController)
+        mCongestionController->UpdatePacerBitrate(
+                                                  targetBitrateBps / 1000,
+                                                  webrtc::PacedSender::kDefaultPaceMultiplier * pacerBitrateBps / 1000,
+                                                  padUpToBitrateBps / 1000
+                                                  );
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
     #pragma mark RTPMediaEngine::VideoReceiverChannelResource => friend RTPMediaEngine
     #pragma mark
 
@@ -2144,12 +2258,14 @@ namespace ortc
 
       mReceiverVideoRenderer.setMediaStreamTrack(mTrack);
 
-      mCallStats = rtc::scoped_ptr<webrtc::CallStats>(new webrtc::CallStats());
+      mBitrateAllocator = rtc::scoped_ptr<webrtc::BitrateAllocator>(new webrtc::BitrateAllocator());
+      mCallStats = rtc::scoped_ptr<webrtc::CallStats>(new webrtc::CallStats(mClock.get()));
       mCongestionController =
         rtc::scoped_ptr<webrtc::CongestionController>(new webrtc::CongestionController(
-                                                                                       mModuleProcessThread.get(),
-                                                                                       mCallStats.get())
-                                                                                       );
+                                                                                       mClock.get(),
+                                                                                       this,
+                                                                                       &mRemb
+                                                                                       ));
 
       mModuleProcessThread->Start();
       mModuleProcessThread->RegisterModule(mCallStats.get());
@@ -2248,7 +2364,8 @@ namespace ortc
                                                  config,
                                                  NULL,
                                                  mModuleProcessThread.get(),
-                                                 mCallStats.get()
+                                                 mCallStats.get(),
+                                                 &mRemb
                                                  ));
 
       mReceiveStream->Start();
@@ -2303,7 +2420,9 @@ namespace ortc
       ChannelResource(priv, queue, registration),
       mTransport(transport),
       mTrack(track),
-      mParameters(parameters)
+      mParameters(parameters),
+      mClock(webrtc::Clock::GetRealTimeClock()),
+      mRemb(mClock.get())
     {
     }
 
@@ -2397,6 +2516,38 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
+    #pragma mark RTPMediaEngine::VideoSenderChannelResource => webrtc::BitrateObserver
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::VideoSenderChannelResource::OnNetworkChanged(uint32_t targetBitrateBps, uint8_t fractionLoss, int64_t rttMs)
+    {
+      AutoRecursiveLock lock(*this);
+
+      uint32_t allocated_bitrate_bps = mBitrateAllocator->OnNetworkChanged(
+                                                                           targetBitrateBps,
+                                                                           fractionLoss,
+                                                                           rttMs
+                                                                           );
+
+      int padUpToBitrateBps = 0;
+      if (mSendStream)
+        padUpToBitrateBps = dynamic_cast<webrtc::internal::VideoSendStream *>(mSendStream.get())->GetPaddingNeededBps();
+      uint32_t pacerBitrateBps = targetBitrateBps;
+
+      if (mCongestionController)
+        mCongestionController->UpdatePacerBitrate(
+                                                  targetBitrateBps / 1000,
+                                                  webrtc::PacedSender::kDefaultPaceMultiplier * pacerBitrateBps / 1000,
+                                                  padUpToBitrateBps / 1000
+                                                  );
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
     #pragma mark RTPMediaEngine::VideoSenderChannelResource => friend RTPMediaEngine
     #pragma mark
 
@@ -2407,12 +2558,14 @@ namespace ortc
 
       mModuleProcessThread = webrtc::ProcessThread::Create("VideoSenderChannelResourceThread");
 
-      mCallStats = rtc::scoped_ptr<webrtc::CallStats>(new webrtc::CallStats());
+      mBitrateAllocator = rtc::scoped_ptr<webrtc::BitrateAllocator>(new webrtc::BitrateAllocator());
+      mCallStats = rtc::scoped_ptr<webrtc::CallStats>(new webrtc::CallStats(mClock.get()));
       mCongestionController =
         rtc::scoped_ptr<webrtc::CongestionController>(new webrtc::CongestionController(
-                                                                                       mModuleProcessThread.get(),
-                                                                                       mCallStats.get())
-                                                                                       );
+                                                                                       mClock.get(),
+                                                                                       this,
+                                                                                       &mRemb
+                                                                                       ));
 
       mModuleProcessThread->Start();
       mModuleProcessThread->RegisterModule(mCallStats.get());
@@ -2558,6 +2711,8 @@ namespace ortc
                                               mModuleProcessThread.get(),
                                               mCallStats.get(),
                                               mCongestionController.get(),
+                                              &mRemb,
+                                              mBitrateAllocator.get(),
                                               config,
                                               encoderConfig,
                                               suspendedSSRCs

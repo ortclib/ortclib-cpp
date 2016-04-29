@@ -58,7 +58,7 @@
 #include <float.h>
 #include <math.h>
 
-#include <webrtc/modules/video_capture/include/video_capture_factory.h>
+#include <webrtc/modules/video_capture/video_capture_factory.h>
 #include <webrtc/modules/audio_device/audio_device_impl.h>
 
 #ifdef _DEBUG
@@ -1113,7 +1113,7 @@ namespace ortc
                                                                  const void* audioSamples,
                                                                  const size_t nSamples,
                                                                  const size_t nBytesPerSample,
-                                                                 const uint8_t nChannels,
+                                                                 const size_t nChannels,
                                                                  const uint32_t samplesPerSec,
                                                                  const uint32_t totalDelayMS,
                                                                  const int32_t clockDrift,
@@ -1144,7 +1144,7 @@ namespace ortc
     int32_t MediaStreamTrack::Transport::NeedMorePlayData(
                                                           const size_t nSamples,
                                                           const size_t nBytesPerSample,
-                                                          const uint8_t nChannels,
+                                                          const size_t nChannels,
                                                           const uint32_t samplesPerSec,
                                                           void* audioSamples,
                                                           size_t& nSamplesOut,

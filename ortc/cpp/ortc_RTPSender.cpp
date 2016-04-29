@@ -55,9 +55,6 @@
 
 #include <cryptopp/sha.h>
 
-#include <webrtc/modules/rtp_rtcp/interface/rtp_header_parser.h>
-#include <webrtc/video/video_send_stream.h>
-
 
 #ifdef _DEBUG
 #ifdef _WIN32

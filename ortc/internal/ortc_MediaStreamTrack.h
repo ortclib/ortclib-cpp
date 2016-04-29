@@ -689,7 +689,7 @@ namespace ortc
                                                 const void* audioSamples,
                                                 const size_t nSamples,
                                                 const size_t nBytesPerSample,
-                                                const uint8_t nChannels,
+                                                const size_t nChannels,
                                                 const uint32_t samplesPerSec,
                                                 const uint32_t totalDelayMS,
                                                 const int32_t clockDrift,
@@ -701,7 +701,7 @@ namespace ortc
         virtual int32_t NeedMorePlayData(
                                          const size_t nSamples,
                                          const size_t nBytesPerSample,
-                                         const uint8_t nChannels,
+                                         const size_t nChannels,
                                          const uint32_t samplesPerSec,
                                          void* audioSamples,
                                          size_t& nSamplesOut,

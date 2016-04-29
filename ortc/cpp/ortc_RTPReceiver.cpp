@@ -54,11 +54,6 @@
 
 #include <cryptopp/sha.h>
 
-#include <webrtc/modules/rtp_rtcp/interface/rtp_header_parser.h>
-#include <webrtc/modules/rtp_rtcp/source/byte_io.h>
-#include <webrtc/video/video_receive_stream.h>
-#include <webrtc/video_renderer.h>
-
 
 #ifdef _DEBUG
 #define ASSERT(x) ZS_THROW_BAD_STATE_IF(!(x))

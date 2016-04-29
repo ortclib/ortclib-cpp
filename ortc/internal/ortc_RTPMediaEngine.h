@@ -51,7 +51,8 @@
 #include <webrtc/video/call_stats.h>
 #include <webrtc/modules/congestion_controller/include/congestion_controller.h>
 #include <webrtc/modules/utility/include/process_thread.h>
-
+#include <webrtc/voice_engine/include/voe_base.h>
+#include <webrtc/video/vie_remb.h>
 //#define ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE "ortc/sctp/max-message-size"
 
 namespace ortc
@@ -907,7 +908,8 @@ namespace ortc
       #pragma mark
 
       class AudioReceiverChannelResource : public IRTPMediaEngineAudioReceiverChannelResource,
-                                           public ChannelResource
+                                           public ChannelResource,
+                                           public webrtc::BitrateObserver
       {
       public:
         friend class RTPMediaEngine;
@@ -951,6 +953,13 @@ namespace ortc
         virtual bool handlePacket(const RTPPacket &packet) override;
         virtual bool handlePacket(const RTCPPacket &packet) override;
 
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark RTPMediaEngine::AudioReceiverChannelResource => webrtc::BitrateObserver
+        #pragma mark
+
+        virtual void OnNetworkChanged(uint32_t targetBitrateBps, uint8_t fractionLoss, int64_t rttMs) override;
+
       protected:
         //-----------------------------------------------------------------------
         #pragma mark
@@ -982,8 +991,12 @@ namespace ortc
 
         rtc::scoped_ptr<webrtc::ProcessThread> mModuleProcessThread;
         rtc::scoped_ptr<webrtc::AudioReceiveStream> mReceiveStream;
+        rtc::scoped_ptr<webrtc::Clock> mClock;
+        webrtc::VieRemb mRemb;
+        rtc::scoped_refptr<webrtc::AudioState> mAudioState;
         rtc::scoped_ptr<webrtc::CallStats> mCallStats;
         rtc::scoped_ptr<webrtc::CongestionController> mCongestionController;
+        rtc::scoped_ptr<webrtc::BitrateAllocator> mBitrateAllocator;
 
         webrtc::AudioDeviceModule* mAudioDeviceModule;
       };
@@ -997,7 +1010,8 @@ namespace ortc
       #pragma mark
 
       class AudioSenderChannelResource : public IRTPMediaEngineAudioSenderChannelResource,
-                                         public ChannelResource
+                                         public ChannelResource,
+                                         public webrtc::BitrateObserver
       {
       public:
         friend class RTPMediaEngine;
@@ -1040,6 +1054,13 @@ namespace ortc
 
         virtual bool handlePacket(const RTCPPacket &packet) override;
 
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark RTPMediaEngine::AudioSenderChannelResource => webrtc::BitrateObserver
+        #pragma mark
+
+        virtual void OnNetworkChanged(uint32_t targetBitrateBps, uint8_t fractionLoss, int64_t rttMs) override;
+
       protected:
         //-----------------------------------------------------------------------
         #pragma mark
@@ -1071,6 +1092,11 @@ namespace ortc
         ParametersPtr mParameters;
 
         rtc::scoped_ptr<webrtc::AudioSendStream> mSendStream;
+        rtc::scoped_ptr<webrtc::Clock> mClock;
+        webrtc::VieRemb mRemb;
+        rtc::scoped_refptr<webrtc::AudioState> mAudioState;
+        rtc::scoped_ptr<webrtc::CongestionController> mCongestionController;
+        rtc::scoped_ptr<webrtc::BitrateAllocator> mBitrateAllocator;
 
         webrtc::AudioDeviceModule* mAudioDeviceModule;
       };
@@ -1084,7 +1110,8 @@ namespace ortc
       #pragma mark
 
       class VideoReceiverChannelResource : public IRTPMediaEngineVideoReceiverChannelResource,
-                                           public ChannelResource
+                                           public ChannelResource,
+                                           public webrtc::BitrateObserver
       {
       public:
         friend class RTPMediaEngine;
@@ -1151,6 +1178,13 @@ namespace ortc
         virtual void notifySetup() override;
         virtual void notifyShutdown() override;
 
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark RTPMediaEngine::VideoReceiverChannelResource => webrtc::BitrateObserver
+        #pragma mark
+
+        virtual void OnNetworkChanged(uint32_t targetBitrateBps, uint8_t fractionLoss, int64_t rttMs) override;
+
       protected:
         std::atomic<size_t> mAccessFromNonLockedMethods {};
 
@@ -1162,8 +1196,11 @@ namespace ortc
 
         rtc::scoped_ptr<webrtc::ProcessThread> mModuleProcessThread;
         rtc::scoped_ptr<webrtc::VideoReceiveStream> mReceiveStream;
+        rtc::scoped_ptr<webrtc::Clock> mClock;
+        webrtc::VieRemb mRemb;
         rtc::scoped_ptr<webrtc::CallStats> mCallStats;
         rtc::scoped_ptr<webrtc::CongestionController> mCongestionController;
+        rtc::scoped_ptr<webrtc::BitrateAllocator> mBitrateAllocator;
         ReceiverVideoRenderer mReceiverVideoRenderer;
       };
 
@@ -1176,7 +1213,8 @@ namespace ortc
       #pragma mark
 
       class VideoSenderChannelResource : public IRTPMediaEngineVideoSenderChannelResource,
-                                         public ChannelResource
+                                         public ChannelResource,
+                                         public webrtc::BitrateObserver
       {
       public:
         friend class RTPMediaEngine;
@@ -1222,11 +1260,18 @@ namespace ortc
 
         //-----------------------------------------------------------------------
         #pragma mark
-        #pragma mark RTPMediaEngine::VideoReceiverChannelResource => friend RTPMediaEngine
+        #pragma mark RTPMediaEngine::VideoSenderChannelResource => friend RTPMediaEngine
         #pragma mark
 
         virtual void notifySetup() override;
         virtual void notifyShutdown() override;
+
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark RTPMediaEngine::VideoSenderChannelResource => webrtc::BitrateObserver
+        #pragma mark
+
+        virtual void OnNetworkChanged(uint32_t targetBitrateBps, uint8_t fractionLoss, int64_t rttMs) override;
 
       protected:
         std::atomic<size_t> mAccessFromNonLockedMethods {};
@@ -1239,8 +1284,11 @@ namespace ortc
 
         rtc::scoped_ptr<webrtc::ProcessThread> mModuleProcessThread;
         rtc::scoped_ptr<webrtc::VideoSendStream> mSendStream;
+        rtc::scoped_ptr<webrtc::Clock> mClock;
+        webrtc::VieRemb mRemb;
         rtc::scoped_ptr<webrtc::CallStats> mCallStats;
         rtc::scoped_ptr<webrtc::CongestionController> mCongestionController;
+        rtc::scoped_ptr<webrtc::BitrateAllocator> mBitrateAllocator;
       };
 
     protected:
