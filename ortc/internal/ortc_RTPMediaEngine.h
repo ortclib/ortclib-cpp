@@ -48,8 +48,8 @@
 #include <webrtc/audio/audio_receive_stream.h>
 #include <webrtc/video/video_send_stream.h>
 #include <webrtc/video/video_receive_stream.h>
-#include <webrtc/video_engine/call_stats.h>
-#include <webrtc/call/congestion_controller.h>
+#include <webrtc/video/call_stats.h>
+#include <webrtc/modules/congestion_controller/include/congestion_controller.h>
 #include <webrtc/modules/utility/include/process_thread.h>
 
 //#define ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE "ortc/sctp/max-message-size"

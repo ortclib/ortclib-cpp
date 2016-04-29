@@ -56,6 +56,7 @@
 #include <webrtc/voice_engine/include/voe_rtp_rtcp.h>
 #include <webrtc/voice_engine/include/voe_network.h>
 #include <webrtc/system_wrappers/include/cpu_info.h>
+#include <webrtc/webrtc/base/scoped_ptr.h>
 
 
 #ifdef _DEBUG

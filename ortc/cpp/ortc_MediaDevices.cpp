@@ -46,7 +46,7 @@
 
 #include <cryptopp/sha.h>
 
-#include <webrtc/modules/video_capture/include/video_capture_factory.h>
+#include <webrtc/modules/video_capture/video_capture_factory.h>
 #include <webrtc/modules/audio_device/audio_device_impl.h>
 
 #ifdef _DEBUG

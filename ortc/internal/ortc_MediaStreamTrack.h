@@ -40,8 +40,8 @@
 #include <zsLib/Timer.h>
 
 #include <webrtc/video_frame.h>
-#include <webrtc/modules/video_capture/include/video_capture.h>
-#include <webrtc/modules/video_render/include/video_render.h>
+#include <webrtc/modules/video_capture/video_capture.h>
+#include <webrtc/modules/video_render/video_render.h>
 #include <webrtc/modules/audio_device/include/audio_device.h>
 
 namespace ortc
