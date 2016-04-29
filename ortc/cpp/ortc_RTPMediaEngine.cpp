@@ -1653,8 +1653,10 @@ namespace ortc
           config.rtp.remote_ssrc = ssrc;
         }
       }
-      if (config.rtp.remote_ssrc == 0)
+      if (config.rtp.remote_ssrc == 0) {
         config.rtp.remote_ssrc = mInitPacket->ssrc();
+        mInitPacket.reset();
+      }
 
       for (auto headerExtensionIter = mParameters->mHeaderExtensions.begin(); headerExtensionIter != mParameters->mHeaderExtensions.end(); headerExtensionIter++) {
         IRTPTypes::HeaderExtensionURIs headerExtensionURI = IRTPTypes::toHeaderExtensionURI(headerExtensionIter->mURI);
@@ -2328,8 +2330,10 @@ namespace ortc
           }
         }
       }
-      if (config.rtp.remote_ssrc == 0)
+      if (config.rtp.remote_ssrc == 0) {
         config.rtp.remote_ssrc = mInitPacket->ssrc();
+        mInitPacket.reset();
+      }
       config.rtp.local_ssrc = mParameters->mRTCP.mSSRC;
 
       for (auto headerExtensionIter = mParameters->mHeaderExtensions.begin(); headerExtensionIter != mParameters->mHeaderExtensions.end(); headerExtensionIter++) {
