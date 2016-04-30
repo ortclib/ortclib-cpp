@@ -46,7 +46,7 @@
 
 #include <webrtc/base/logging.h>
 #include <webrtc/system_wrappers/include/trace.h>
-#include <webrtc/modules/video_capture/include/video_capture_factory.h>
+#include <webrtc/modules/video_capture/video_capture_factory.h>
 
 namespace ortc { namespace test { ZS_DECLARE_SUBSYSTEM(ortc_test) } }
 
