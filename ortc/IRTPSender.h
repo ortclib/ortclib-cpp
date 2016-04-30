@@ -95,7 +95,7 @@ namespace ortc
 
     static CapabilitiesPtr getCapabilities(Optional<Kinds> kind = Optional<Kinds>());
 
-    virtual void send(const Parameters &parameters) = 0;
+    virtual PromisePtr send(const Parameters &parameters) = 0;
     virtual void stop() = 0;
   };
 
@@ -110,13 +110,6 @@ namespace ortc
   interaction IRTPSenderDelegate
   {
     ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::SSRCType, SSRCType)
-    typedef WORD ErrorCode;
-
-    virtual void onRTPSenderError(
-                                  IRTPSenderPtr sender,
-                                  ErrorCode errorCode,
-                                  String errorReason
-                                  ) = 0;
 
     virtual void onRTPSenderSSRCConflict(
                                          IRTPSenderPtr sender,
@@ -145,16 +138,12 @@ namespace ortc
 
 ZS_DECLARE_PROXY_BEGIN(ortc::IRTPSenderDelegate)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IRTPSenderPtr, IRTPSenderPtr)
-ZS_DECLARE_PROXY_TYPEDEF(ortc::IRTPSenderDelegate::ErrorCode, ErrorCode)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IRTPSenderDelegate::SSRCType, SSRCType)
-ZS_DECLARE_PROXY_METHOD_3(onRTPSenderError, IRTPSenderPtr, ErrorCode, String)
 ZS_DECLARE_PROXY_METHOD_2(onRTPSenderSSRCConflict, IRTPSenderPtr, SSRCType)
 ZS_DECLARE_PROXY_END()
 
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_BEGIN(ortc::IRTPSenderDelegate, ortc::IRTPSenderSubscription)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IRTPSenderPtr, IRTPSenderPtr)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IRTPSenderDelegate::ErrorCode, ErrorCode)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IRTPSenderDelegate::SSRCType, SSRCType)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_3(onRTPSenderError, IRTPSenderPtr, ErrorCode, String)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onRTPSenderSSRCConflict, IRTPSenderPtr, SSRCType)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_END()

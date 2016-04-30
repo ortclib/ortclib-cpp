@@ -951,7 +951,7 @@ namespace ortc
 
         void setTransport(RTPSenderTesterPtr tester);
 
-        virtual void receive(const Parameters &parameters) override;
+        virtual PromisePtr receive(const Parameters &parameters) override;
         virtual void stop() override;
 
         void expectData(SecureByteBlockPtr data);
@@ -1267,12 +1267,6 @@ namespace ortc
         #pragma mark
         #pragma mark RTPSenderTester::IRTPSenderDelegate
         #pragma mark
-
-        virtual void onRTPSenderError(
-                                        IRTPSenderPtr sender,
-                                        ErrorCode errorCode,
-                                        String errorReason
-                                        ) override;
 
         virtual void onRTPSenderSSRCConflict(
                                              IRTPSenderPtr sender,

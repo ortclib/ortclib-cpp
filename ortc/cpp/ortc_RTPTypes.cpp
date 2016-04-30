@@ -46,6 +46,7 @@
 #include <zsLib/XML.h>
 
 #include <cryptopp/sha.h>
+#include <ortc/types.h>
 
 #ifdef _DEBUG
 #define ASSERT(x) ZS_THROW_BAD_STATE_IF(!(x))
@@ -917,7 +918,7 @@ namespace ortc
     {
       auto supportedCodec = IRTPTypes::toSupportedCodec(oldCodec.mName);
 
-      bool checkMaxPTime = false;
+      bool checkPTime = false;
       bool checkNumChannels = true;
 
       // do codec specific compatibility test(s)
@@ -926,12 +927,17 @@ namespace ortc
         {
           break;
         }
-        case IRTPTypes::SupportedCodec_Opus:              break;
-        case IRTPTypes::SupportedCodec_Isac:              break;
-        case IRTPTypes::SupportedCodec_G722:              break;
-        case IRTPTypes::SupportedCodec_ILBC:              break;
-        case IRTPTypes::SupportedCodec_PCMU:              break;
-        case IRTPTypes::SupportedCodec_PCMA:              break;
+        case IRTPTypes::SupportedCodec_Opus:              
+        case IRTPTypes::SupportedCodec_Isac:              
+        case IRTPTypes::SupportedCodec_G722:              
+        case IRTPTypes::SupportedCodec_ILBC:              
+        case IRTPTypes::SupportedCodec_PCMU:              
+        case IRTPTypes::SupportedCodec_PCMA:              
+        {
+          checkPTime = true;
+          checkNumChannels = true;
+          break;
+        }
 
           // video codecs
         case IRTPTypes::SupportedCodec_VP8:               break;
@@ -951,15 +957,28 @@ namespace ortc
         case IRTPTypes::SupportedCodec_TelephoneEvent:    break;
       }
 
-      if (checkMaxPTime) {
+      if (checkPTime) {
+        if (oldCodec.mPTime != newCodec.mPTime) return false;             // not compatible
         if (oldCodec.mMaxPTime != newCodec.mMaxPTime) return false;       // not compatible
       } else {
-        ioRank += (oldCodec.mMaxPTime == newCodec.mMaxPTime ? 0.01f : -0.01f);
+        if ((Milliseconds() != oldCodec.mPTime) ||
+            (Milliseconds() != newCodec.mPTime)) {
+          ioRank += (oldCodec.mPTime == newCodec.mPTime ? 0.01f : -0.01f);
+        }
+        if ((Milliseconds() != oldCodec.mMaxPTime) ||
+            (Milliseconds() != newCodec.mMaxPTime)) {
+          ioRank += (oldCodec.mMaxPTime == newCodec.mMaxPTime ? 0.01f : -0.01f);
+        }
       }
       if (checkNumChannels) {
-        if (oldCodec.mNumChannels != newCodec.mNumChannels) return false; // not compatible
-
-        ioRank += (oldCodec.mNumChannels == newCodec.mNumChannels ? 0.01f : -0.01f);
+        if (oldCodec.mNumChannels.hasValue()) {
+          if (!newCodec.mNumChannels.hasValue()) return false;            // not compatible
+          if (oldCodec.mNumChannels.value() != newCodec.mNumChannels.value()) return false; // not compatible
+          ioRank += (oldCodec.mNumChannels == newCodec.mNumChannels ? 0.02f : -0.02f);
+        } else {
+          if (newCodec.mNumChannels.hasValue()) return false;             // not compatible
+          ioRank += (oldCodec.mNumChannels == newCodec.mNumChannels ? 0.01f : -0.01f);
+        }
       }
 
       ioRank += 0.1f;
@@ -2138,6 +2157,7 @@ namespace ortc
     UseHelper::getElementValue(elem, "ortc::IRTPTypes::CodecCapability", "kind", mKind);
     UseHelper::getElementValue(elem, "ortc::IRTPTypes::CodecCapability", "clockRate", mClockRate);
     UseHelper::getElementValue(elem, "ortc::IRTPTypes::CodecCapability", "preferredPayloadType", mPreferredPayloadType);
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::CodecCapability", "ptime", mPTime);
     UseHelper::getElementValue(elem, "ortc::IRTPTypes::CodecCapability", "maxptime", mMaxPTime);
     UseHelper::getElementValue(elem, "ortc::IRTPTypes::CodecCapability", "numChannels", mNumChannels);
 
@@ -2212,7 +2232,12 @@ namespace ortc
 
     UseHelper::adoptElementValue(elem, "clockRate", mClockRate);
     UseHelper::adoptElementValue(elem, "preferredPayloadType", mPreferredPayloadType);
-    UseHelper::adoptElementValue(elem, "maxptime", mMaxPTime);
+    if (Milliseconds() != mPTime) {
+      UseHelper::adoptElementValue(elem, "ptime", mPTime.count());
+    }
+    if (Milliseconds() != mMaxPTime) {
+      UseHelper::adoptElementValue(elem, "maxptime", mMaxPTime.count());
+    }
     UseHelper::adoptElementValue(elem, "numChannels", mNumChannels);
 
     if (mRTCPFeedback.size() > 0) {
@@ -2298,6 +2323,7 @@ namespace ortc
     mKind(source.mKind),
     mClockRate(source.mClockRate),
     mPreferredPayloadType(source.mPreferredPayloadType),
+    mPTime(source.mPTime),
     mMaxPTime(source.mMaxPTime),
     mNumChannels(source.mNumChannels),
     mRTCPFeedback(source.mRTCPFeedback),
@@ -2372,6 +2398,7 @@ namespace ortc
     UseServicesHelper::debugAppend(resultEl, "kind", mKind);
     UseServicesHelper::debugAppend(resultEl, "clock rate", mClockRate);
     UseServicesHelper::debugAppend(resultEl, "preferred payload type", mPreferredPayloadType);
+    UseServicesHelper::debugAppend(resultEl, "ptime", mPTime);
     UseServicesHelper::debugAppend(resultEl, "max ptime", mMaxPTime);
     UseServicesHelper::debugAppend(resultEl, "number of channels", mNumChannels);
 
@@ -2488,6 +2515,8 @@ namespace ortc
     hasher.update(":");
     hasher.update(mPreferredPayloadType);
     hasher.update(":");
+    hasher.update(mPTime);
+    hasher.update(":");
     hasher.update(mMaxPTime);
     hasher.update(":");
     hasher.update(mNumChannels);
@@ -2579,13 +2608,83 @@ namespace ortc
   #pragma mark
 
   //---------------------------------------------------------------------------
+  const char *IRTPTypes::OpusCodecCapabilityOptions::toString(Signals signal)
+  {
+    switch (signal) {
+      case Signal_Auto:         return "auto";
+      case Signal_Music:        return "music";
+      case Signal_Voice:        return "voice";
+    }
+
+    return "unknown";
+  }
+
+  //---------------------------------------------------------------------------
+  IRTPTypes::OpusCodecParameters::Signals IRTPTypes::OpusCodecCapabilityOptions::toSignal(const char *signal)
+  {
+    String signalStr(signal);
+    if (signalStr.isEmpty()) return Signal_Auto;
+
+    for (Signals index = Signal_First; index <= Signal_Last; index = static_cast<Signals>(static_cast<std::underlying_type<Signals>::type>(index) + 1)) {
+      if (0 == signalStr.compareNoCase(IRTPTypes::OpusCodecCapabilityOptions::toString(index))) return index;
+    }
+
+    ORTC_THROW_INVALID_PARAMETERS((String("unknown signal: ") + signal).c_str())
+  }
+
+  //---------------------------------------------------------------------------
+  const char *IRTPTypes::OpusCodecCapabilityOptions::toString(Applications application)
+  {
+    switch (application) {
+      case Application_VoIP:      return "voip";
+      case Application_Audio:     return "audio";
+      case Application_LowDelay:  return "lowdelay";
+    }
+
+    return "unknown";
+  }
+
+  //---------------------------------------------------------------------------
+  IRTPTypes::OpusCodecParameters::Applications IRTPTypes::OpusCodecCapabilityOptions::toApplication(const char *application)
+  {
+    String applicationStr(application);
+    if (applicationStr.isEmpty()) return Application_VoIP;
+
+    for (Applications index = Application_First; index <= Application_Last; index = static_cast<Applications>(static_cast<std::underlying_type<Applications>::type>(index) + 1)) {
+      if (0 == applicationStr.compareNoCase(IRTPTypes::OpusCodecCapabilityOptions::toString(index))) return index;
+    }
+
+    ORTC_THROW_INVALID_PARAMETERS((String("unknown application: ") + applicationStr).c_str())
+  }
+
+  //---------------------------------------------------------------------------
   IRTPTypes::OpusCodecCapabilityOptions::OpusCodecCapabilityOptions(ElementPtr elem)
   {
     if (!elem) return;
 
     UseHelper::getElementValue(elem, "ortc::IRTPTypes::OpusCodecCapabilityOptions", "complexity", mComplexity);
-    UseHelper::getElementValue(elem, "ortc::IRTPTypes::OpusCodecCapabilityOptions", "signal", mSignal);
-    UseHelper::getElementValue(elem, "ortc::IRTPTypes::OpusCodecCapabilityOptions", "application", mApplication);
+    {
+      String value;
+      UseHelper::getElementValue(elem, "ortc::IRTPTypes::OpusCodecCapabilityOptions", "signal", value);
+      if (value.hasData()) {
+        try {
+          mSignal = toSignal(value);
+        } catch (const InvalidParameters &) {
+          ZS_LOG_WARNING(Debug, slog("unknown opus signal") + ZS_PARAM("value", value))
+        }
+      }
+    }
+    {
+      String value;
+      UseHelper::getElementValue(elem, "ortc::IRTPTypes::OpusCodecCapabilityOptions", "application", value);
+      if (value.hasData()) {
+        try {
+          mApplication = toApplication(value);
+        } catch (const InvalidParameters &) {
+          ZS_LOG_WARNING(Debug, slog("unknown opus appliation") + ZS_PARAM("value", value))
+        }
+      }
+    }
     UseHelper::getElementValue(elem, "ortc::IRTPTypes::OpusCodecCapabilityOptions", "packetLossPerc", mPacketLossPerc);
     UseHelper::getElementValue(elem, "ortc::IRTPTypes::OpusCodecCapabilityOptions", "PredictionDisabled", mPredictionDisabled);
   }
@@ -2596,6 +2695,12 @@ namespace ortc
     ElementPtr elem = Element::create(objectName);
 
     UseHelper::adoptElementValue(elem, "complexity", mComplexity);
+    if (mSignal.hasValue()) {
+      UseHelper::adoptElementValue(elem, "signal", OpusCodecCapabilityOptions::toString(mSignal.value()), false);
+    }
+    if (mApplication.hasValue()) {
+      UseHelper::adoptElementValue(elem, "application", OpusCodecCapabilityOptions::toString(mApplication.value()), false);
+    }
     UseHelper::adoptElementValue(elem, "signal", mSignal);
     UseHelper::adoptElementValue(elem, "application", mApplication);
     UseHelper::adoptElementValue(elem, "packetLossPerc", mPacketLossPerc);
@@ -2624,8 +2729,8 @@ namespace ortc
     ElementPtr resultEl = Element::create("ortc::IRTPTypes::OpusCodecCapabilityOptions");
 
     UseServicesHelper::debugAppend(resultEl, "complexity", mComplexity);
-    UseServicesHelper::debugAppend(resultEl, "signal", mSignal);
-    UseServicesHelper::debugAppend(resultEl, "application", mApplication);
+    UseServicesHelper::debugAppend(resultEl, "signal", mSignal.hasValue() ? OpusCodecCapabilityOptions::toString(mSignal.value()) : (const char *)NULL);
+    UseServicesHelper::debugAppend(resultEl, "application", mApplication.hasValue() ? OpusCodecCapabilityOptions::toString(mApplication.value()) : (const char *)NULL);
     UseServicesHelper::debugAppend(resultEl, "packet loss percentage", mPacketLossPerc);
     UseServicesHelper::debugAppend(resultEl, "prediction disabled", mPredictionDisabled);
 
@@ -2666,7 +2771,6 @@ namespace ortc
     if (!elem) return;
 
     UseHelper::getElementValue(elem, "ortc::IRTPTypes::OpusCodecCapabilityParameters", "maxPlaybackRate", mMaxPlaybackRate);
-    UseHelper::getElementValue(elem, "ortc::IRTPTypes::OpusCodecCapabilityParameters", "ptime", mPTime);
     UseHelper::getElementValue(elem, "ortc::IRTPTypes::OpusCodecCapabilityParameters", "maxAverageBitrate", mMaxAverageBitrate);
     UseHelper::getElementValue(elem, "ortc::IRTPTypes::OpusCodecCapabilityParameters", "stereo", mStereo);
     UseHelper::getElementValue(elem, "ortc::IRTPTypes::OpusCodecCapabilityParameters", "cbr", mCBR);
@@ -2682,7 +2786,6 @@ namespace ortc
     ElementPtr elem = Element::create(objectName);
 
     UseHelper::adoptElementValue(elem, "maxPlaybackRate", mMaxPlaybackRate);
-    UseHelper::adoptElementValue(elem, "ptime", mPTime);
     UseHelper::adoptElementValue(elem, "maxAverageBitrate", mMaxAverageBitrate);
     UseHelper::adoptElementValue(elem, "stereo", mStereo);
     UseHelper::adoptElementValue(elem, "cbr", mCBR);
@@ -2714,7 +2817,6 @@ namespace ortc
     ElementPtr resultEl = Element::create("ortc::IRTPTypes::OpusCodecCapabilityParameters");
 
     UseServicesHelper::debugAppend(resultEl, "max playback rate", mMaxPlaybackRate);
-    UseServicesHelper::debugAppend(resultEl, "ptime", mPTime);
     UseServicesHelper::debugAppend(resultEl, "max average bitrate", mMaxAverageBitrate);
     UseServicesHelper::debugAppend(resultEl, "stereo", mStereo);
     UseServicesHelper::debugAppend(resultEl, "cbr", mCBR);
@@ -2735,8 +2837,6 @@ namespace ortc
     hasher.update("ortc::IRTPTypes::OpusCodecCapabilityParameters:");
 
     hasher.update(mMaxPlaybackRate);
-    hasher.update(":");
-    hasher.update(mPTime);
     hasher.update(":");
     hasher.update(mMaxAverageBitrate);
     hasher.update(":");
@@ -2769,7 +2869,7 @@ namespace ortc
   {
     if (!elem) return;
 
-    UseHelper::getElementValue(elem, "ortc::IRTPTypes::VP8CodecCapabilityParameters", "maxFr", mMaxFT);
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::VP8CodecCapabilityParameters", "maxFr", mMaxFR);
     UseHelper::getElementValue(elem, "ortc::IRTPTypes::VP8CodecCapabilityParameters", "maxFs", mMaxFS);
   }
 
@@ -2778,7 +2878,7 @@ namespace ortc
   {
     ElementPtr elem = Element::create(objectName);
 
-    UseHelper::adoptElementValue(elem, "maxFr", mMaxFT);
+    UseHelper::adoptElementValue(elem, "maxFr", mMaxFR);
     UseHelper::adoptElementValue(elem, "maxFs", mMaxFS);
 
     if (!elem->hasChildren()) return ElementPtr();
@@ -2803,7 +2903,7 @@ namespace ortc
   {
     ElementPtr resultEl = Element::create("ortc::IRTPTypes::VP8CodecCapabilityParameters");
 
-    UseServicesHelper::debugAppend(resultEl, "max ft", mMaxFT);
+    UseServicesHelper::debugAppend(resultEl, "max ft", mMaxFR);
     UseServicesHelper::debugAppend(resultEl, "max fs", mMaxFS);
 
     return resultEl;
@@ -2816,7 +2916,8 @@ namespace ortc
 
     hasher.update("ortc::IRTPTypes::VP8CodecCapabilityParameters:");
 
-    hasher.update(mMaxFT);
+
+    hasher.update(mMaxFR);
     hasher.update(":");
     hasher.update(mMaxFS);
 
@@ -3557,6 +3658,7 @@ namespace ortc
     UseHelper::getElementValue(elem, "ortc::IRTPTypes::CodecParameters", "name", mName);
     UseHelper::getElementValue(elem, "ortc::IRTPTypes::CodecParameters", "payloadType", mPayloadType);
     UseHelper::getElementValue(elem, "ortc::IRTPTypes::CodecParameters", "clockRate", mClockRate);
+    UseHelper::getElementValue(elem, "ortc::IRTPTypes::CodecParameters", "ptime", mPTime);
     UseHelper::getElementValue(elem, "ortc::IRTPTypes::CodecParameters", "maxptime", mMaxPTime);
     UseHelper::getElementValue(elem, "ortc::IRTPTypes::CodecParameters", "numChannels", mNumChannels);
 
@@ -3615,7 +3717,12 @@ namespace ortc
     UseHelper::adoptElementValue(elem, "name", mName, false);
     UseHelper::adoptElementValue(elem, "payloadType", mPayloadType);
     UseHelper::adoptElementValue(elem, "clockRate", mClockRate);
-    UseHelper::adoptElementValue(elem, "maxptime", mMaxPTime);
+    if (Milliseconds() != mPTime) {
+      UseHelper::adoptElementValue(elem, "ptime", mPTime);
+    }
+    if (Milliseconds() != mMaxPTime) {
+      UseHelper::adoptElementValue(elem, "maxptime", mMaxPTime);
+    }
     UseHelper::adoptElementValue(elem, "numChannels", mNumChannels);
 
     if (mRTCPFeedback.size() > 0) {
@@ -3686,6 +3793,7 @@ namespace ortc
     mName(source.mName),
     mPayloadType(source.mPayloadType),
     mClockRate(source.mClockRate),
+    mPTime(source.mPTime),
     mMaxPTime(source.mMaxPTime),
     mNumChannels(source.mNumChannels),
     mRTCPFeedback(source.mRTCPFeedback)
@@ -3748,6 +3856,7 @@ namespace ortc
     UseServicesHelper::debugAppend(resultEl, "name", mName);
     UseServicesHelper::debugAppend(resultEl, "payload type", mPayloadType);
     UseServicesHelper::debugAppend(resultEl, "clock rate", mClockRate);
+    UseServicesHelper::debugAppend(resultEl, "ptime", mPTime);
     UseServicesHelper::debugAppend(resultEl, "max ptime", mMaxPTime);
     UseServicesHelper::debugAppend(resultEl, "number of channels", mNumChannels);
 
@@ -3838,6 +3947,8 @@ namespace ortc
     hasher.update(":");
     hasher.update(mClockRate);
     hasher.update(":");
+    hasher.update(mPTime);
+    hasher.update(":");
     hasher.update(mMaxPTime);
     hasher.update(":");
     hasher.update(mNumChannels);
@@ -3904,60 +4015,11 @@ namespace ortc
   #pragma mark
 
   //---------------------------------------------------------------------------
-  const char *IRTPTypes::OpusCodecParameters::toString(Signals signal)
-  {
-    switch (signal) {
-      case Signal_Auto:         return "auto";
-      case Signal_Music:        return "music";
-      case Signal_Voice:        return "voice";
-    }
-
-    return "unknown";
-  }
-
-  //---------------------------------------------------------------------------
-  IRTPTypes::OpusCodecParameters::Signals IRTPTypes::OpusCodecParameters::toSignal(const char *signal)
-  {
-    String signalStr(signal);
-
-    for (Signals index = Signal_First; index <= Signal_Last; index = static_cast<Signals>(static_cast<std::underlying_type<Signals>::type>(index) + 1)) {
-      if (signalStr == IRTPTypes::OpusCodecParameters::toString(index)) return index;
-    }
-
-    return Signal_Auto;
-  }
-
-  //---------------------------------------------------------------------------
-  const char *IRTPTypes::OpusCodecParameters::toString(Applications application)
-  {
-    switch (application) {
-      case Application_VoIP:      return "voip";
-      case Application_Audio:     return "audio";
-      case Application_LowDelay:  return "lowdelay";
-    }
-
-    return "unknown";
-  }
-
-  //---------------------------------------------------------------------------
-  IRTPTypes::OpusCodecParameters::Applications IRTPTypes::OpusCodecParameters::toApplication(const char *application)
-  {
-    String applicationStr(application);
-
-    for (Applications index = Application_First; index <= Application_Last; index = static_cast<Applications>(static_cast<std::underlying_type<Applications>::type>(index) + 1)) {
-      if (applicationStr == IRTPTypes::OpusCodecParameters::toString(index)) return index;
-    }
-
-    return Application_VoIP;
-  }
-
-  //---------------------------------------------------------------------------
   IRTPTypes::OpusCodecParameters::OpusCodecParameters(ElementPtr elem)
   {
     if (!elem) return;
 
     UseHelper::getElementValue(elem, "ortc::IRTPTypes::OpusCodecParameters", "maxPlaybackRate", mMaxPlaybackRate);
-    UseHelper::getElementValue(elem, "ortc::IRTPTypes::OpusCodecParameters", "ptime", mPTime);
     UseHelper::getElementValue(elem, "ortc::IRTPTypes::OpusCodecParameters", "maxAverageBitrate", mMaxAverageBitrate);
     UseHelper::getElementValue(elem, "ortc::IRTPTypes::OpusCodecParameters", "cbr", mCBR);
     UseHelper::getElementValue(elem, "ortc::IRTPTypes::OpusCodecParameters", "useInbandFec", mUseInbandFEC);
@@ -3970,7 +4032,7 @@ namespace ortc
       if (subEl) {
         String str = UseServicesHelper::getElementTextAndDecode(subEl);
         try {
-          mSignal = toSignal(str);
+          mSignal = OpusCodecCapabilityOptions::toSignal(str);
         } catch(const InvalidParameters &) {
           ZS_LOG_WARNING(Debug, slog("signal value is not value") + ZS_PARAM("value", str))
         }
@@ -3981,7 +4043,7 @@ namespace ortc
       if (subEl) {
         String str = UseServicesHelper::getElementTextAndDecode(subEl);
         try {
-          mApplication = toApplication(str);
+          mApplication = OpusCodecCapabilityOptions::toApplication(str);
         } catch(const InvalidParameters &) {
           ZS_LOG_WARNING(Debug, slog("signal value is not value") + ZS_PARAM("value", str))
         }
@@ -4001,7 +4063,6 @@ namespace ortc
     ElementPtr elem = Element::create(objectName);
 
     UseHelper::adoptElementValue(elem, "maxPlaybackRate", mMaxPlaybackRate);
-    UseHelper::adoptElementValue(elem, "ptime", mPTime);
     UseHelper::adoptElementValue(elem, "maxAverageBitrate", mMaxAverageBitrate);
     UseHelper::adoptElementValue(elem, "stereo", mStereo);
     UseHelper::adoptElementValue(elem, "cbr", mCBR);
@@ -4009,8 +4070,8 @@ namespace ortc
     UseHelper::adoptElementValue(elem, "UseDtx", mUseDTX);
 
     UseHelper::adoptElementValue(elem, "complexity", mComplexity);
-    UseHelper::adoptElementValue(elem, "signal", toString(mSignal), false);
-    UseHelper::adoptElementValue(elem, "application", toString(mApplication), false);
+    UseHelper::adoptElementValue(elem, "signal", OpusCodecCapabilityOptions::toString(mSignal), false);
+    UseHelper::adoptElementValue(elem, "application", OpusCodecCapabilityOptions::toString(mApplication), false);
     UseHelper::adoptElementValue(elem, "packetLossPerc", mPacketLossPerc);
     UseHelper::adoptElementValue(elem, "predictionDisabled", mPredictionDisabled);
 
@@ -4040,7 +4101,6 @@ namespace ortc
     ElementPtr resultEl = Element::create("ortc::IRTPTypes::OpusCodecParameters");
 
     UseServicesHelper::debugAppend(resultEl, "max playback rate", mMaxPlaybackRate);
-    UseServicesHelper::debugAppend(resultEl, "ptime", mPTime);
     UseServicesHelper::debugAppend(resultEl, "max average bitrate", mMaxAverageBitrate);
     UseServicesHelper::debugAppend(resultEl, "stereo", mStereo);
     UseServicesHelper::debugAppend(resultEl, "cbr", mCBR);
@@ -4048,8 +4108,8 @@ namespace ortc
     UseServicesHelper::debugAppend(resultEl, "use dtx", mUseDTX);
 
     UseServicesHelper::debugAppend(resultEl, "complexity", mComplexity);
-    UseServicesHelper::debugAppend(resultEl, "signal", mSignal.hasValue() ? toString(mSignal.value()) : (const char *)NULL);
-    UseServicesHelper::debugAppend(resultEl, "application", mApplication.hasValue() ? toString(mApplication.value()) : (const char *)NULL);
+    UseServicesHelper::debugAppend(resultEl, "signal", mSignal.hasValue() ? OpusCodecCapabilityOptions::toString(mSignal.value()) : (const char *)NULL);
+    UseServicesHelper::debugAppend(resultEl, "application", mApplication.hasValue() ? OpusCodecCapabilityOptions::toString(mApplication.value()) : (const char *)NULL);
     UseServicesHelper::debugAppend(resultEl, "packet loss percentage", mPacketLossPerc);
     UseServicesHelper::debugAppend(resultEl, "prediction disabled", mPredictionDisabled);
 

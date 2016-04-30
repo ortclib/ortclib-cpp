@@ -548,8 +548,7 @@ namespace ortc
 
       virtual void onICEGathererError(
                                       IICEGathererPtr gatherer,
-                                      ErrorCode errorCode,
-                                      String errorReason
+                                      ErrorEventPtr errorEvent
                                       ) override;
 
       //-----------------------------------------------------------------------

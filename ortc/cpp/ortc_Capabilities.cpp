@@ -75,10 +75,10 @@ namespace ortc
   #pragma mark
 
   //---------------------------------------------------------------------------
-  ICapabilities::CapabilityBool::CapabilityBool(
-                                                ElementPtr elem,
-                                                const char *objectName
-                                                )
+  ICapabilities::CapabilityBoolean::CapabilityBoolean(
+                                                      ElementPtr elem,
+                                                      const char *objectName
+                                                      )
   {
     if (!elem) return;
 
@@ -99,9 +99,9 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr ICapabilities::CapabilityBool::createElement(
-                                                          const char *objectName,
-                                                          const char *objectValueName
+  ElementPtr ICapabilities::CapabilityBoolean::createElement(
+                                                             const char *objectName,
+                                                             const char *objectValueName
                                                           ) const
   {
     ElementPtr outerEl = Element::create(objectName);
@@ -117,9 +117,9 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr ICapabilities::CapabilityBool::toDebug() const
+  ElementPtr ICapabilities::CapabilityBoolean::toDebug() const
   {
-    ElementPtr resultEl = Element::create("ortc::ICapabilities::CapabilityBool");
+    ElementPtr resultEl = Element::create("ortc::ICapabilities::CapabilityBoolean");
 
     for (auto iter = begin(); iter != end(); ++iter)
     {
@@ -131,11 +131,11 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  String ICapabilities::CapabilityBool::hash() const
+  String ICapabilities::CapabilityBoolean::hash() const
   {
     SHA1Hasher hasher;
 
-    hasher.update("ortc::ICapabilities::CapabilityBool:");
+    hasher.update("ortc::ICapabilities::CapabilityBoolean:");
 
     for (auto iter = begin(); iter != end(); ++iter)
     {

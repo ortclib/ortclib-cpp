@@ -466,7 +466,7 @@ namespace ortc
 
       IICETypes::Components component() const;
 
-      bool isValidated() const {return IDTLSTransportTypes::State_Validated == mCurrentState;}
+      bool isValidated() const {return IDTLSTransportTypes::State_Connected == mCurrentState;}
 
       bool isShuttingDown() const;
       bool isShutdown() const;

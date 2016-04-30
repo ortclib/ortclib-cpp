@@ -639,9 +639,6 @@ namespace ortc
       if (delegate) {
         RTPReceiverPtr pThis = mThisWeak.lock();
 
-        if (0 != mLastError) {
-          mSubscriptions.delegate()->onRTPReceiverError(pThis, mLastError, mLastErrorReason);
-        }
       }
 
       if (isShutdown()) {
@@ -765,7 +762,7 @@ namespace ortc
         CodecCapability codec;
 
         codec.mName = IRTPTypes::toString(index);
-        codec.mMaxPTime = 60;
+        codec.mMaxPTime = Milliseconds(60);
 
         switch (IRTPTypes::getCodecKind(index)) {
 
@@ -874,7 +871,7 @@ namespace ortc
           case IRTPTypes::SupportedCodec_ILBC:    {
             codec.mPreferredPayloadType = 102;
             codec.mClockRate = 16000;
-            codec.mMaxPTime = 30;
+            codec.mMaxPTime = Milliseconds(30);
             break;
           }
           case IRTPTypes::SupportedCodec_PCMU:    {
@@ -888,7 +885,7 @@ namespace ortc
             break;
           }
 
-            // video codecs
+          // video codecs
           case IRTPTypes::SupportedCodec_VP8:     {
             codec.mPreferredPayloadType = 100;
             break;
@@ -946,7 +943,7 @@ namespace ortc
           case IRTPTypes::SupportedCodec_Opus:            break;
           case IRTPTypes::SupportedCodec_Isac:            {
             if (add) {
-              EventWriteOrtcRtpReceiverReportCodec(__func__, codec.mName, codec.mKind, codec.mClockRate, codec.mPreferredPayloadType, codec.mMaxPTime, codec.mNumChannels);
+              EventWriteOrtcRtpReceiverReportCodec(__func__, codec.mName, codec.mKind, codec.mClockRate.value(), codec.mPreferredPayloadType, codec.mPTime.count(), codec.mMaxPTime.count(), codec.mNumChannels.value());
               result->mCodecs.push_back(codec);
             }
             codec.mClockRate = 16000;
@@ -956,7 +953,7 @@ namespace ortc
           case IRTPTypes::SupportedCodec_G722:            break;
           case IRTPTypes::SupportedCodec_ILBC:            {
             if (add) {
-              EventWriteOrtcRtpReceiverReportCodec(__func__, codec.mName, codec.mKind, codec.mClockRate, codec.mPreferredPayloadType, codec.mMaxPTime, codec.mNumChannels);
+              EventWriteOrtcRtpReceiverReportCodec(__func__, codec.mName, codec.mKind, codec.mClockRate.value(), codec.mPreferredPayloadType, codec.mPTime.count(), codec.mMaxPTime.count(), codec.mNumChannels.value());
               result->mCodecs.push_back(codec);
             }
             codec.mPreferredPayloadType = 101;
@@ -979,7 +976,7 @@ namespace ortc
             codec.mParameters = RTXCodecCapabilityParameters::create(rtxParams);
 
             if (add) {
-              EventWriteOrtcRtpReceiverReportCodec(__func__, codec.mName, codec.mKind, codec.mClockRate, codec.mPreferredPayloadType, codec.mMaxPTime, codec.mNumChannels);
+              EventWriteOrtcRtpReceiverReportCodec(__func__, codec.mName, codec.mKind, codec.mClockRate.value(), codec.mPreferredPayloadType, codec.mPTime.count(), codec.mMaxPTime.count(), codec.mNumChannels.value());
               result->mCodecs.push_back(codec);
             }
 
@@ -987,7 +984,7 @@ namespace ortc
             rtxParams.mApt = 99;
             codec.mParameters = RTXCodecCapabilityParameters::create(rtxParams);
             if (add) {
-              EventWriteOrtcRtpReceiverReportCodec(__func__, codec.mName, codec.mKind, codec.mClockRate, codec.mPreferredPayloadType, codec.mMaxPTime, codec.mNumChannels);
+              EventWriteOrtcRtpReceiverReportCodec(__func__, codec.mName, codec.mKind, codec.mClockRate.value(), codec.mPreferredPayloadType, codec.mPTime.count(), codec.mMaxPTime.count(), codec.mNumChannels.value());
               result->mCodecs.push_back(codec);
             }
 
@@ -1005,13 +1002,13 @@ namespace ortc
 
           case IRTPTypes::SupportedCodec_CN:              {
             if (add) {
-              EventWriteOrtcRtpReceiverReportCodec(__func__, codec.mName, codec.mKind, codec.mClockRate, codec.mPreferredPayloadType, codec.mMaxPTime, codec.mNumChannels);
+              EventWriteOrtcRtpReceiverReportCodec(__func__, codec.mName, codec.mKind, codec.mClockRate.value(), codec.mPreferredPayloadType, codec.mPTime.count(), codec.mMaxPTime.count(), codec.mNumChannels.value());
               result->mCodecs.push_back(codec);
             }
             codec.mClockRate = 16000;
             codec.mPreferredPayloadType = 105;
             if (add) {
-              EventWriteOrtcRtpReceiverReportCodec(__func__, codec.mName, codec.mKind, codec.mClockRate, codec.mPreferredPayloadType, codec.mMaxPTime, codec.mNumChannels);
+              EventWriteOrtcRtpReceiverReportCodec(__func__, codec.mName, codec.mKind, codec.mClockRate.value(), codec.mPreferredPayloadType, codec.mPTime.count(), codec.mMaxPTime.count(), codec.mNumChannels.value());
               result->mCodecs.push_back(codec);
             }
             codec.mPreferredPayloadType = 13;
@@ -1023,7 +1020,7 @@ namespace ortc
         }
 
         if (add) {
-          EventWriteOrtcRtpReceiverReportCodec(__func__, codec.mName, codec.mKind, codec.mClockRate, codec.mPreferredPayloadType, codec.mMaxPTime, codec.mNumChannels);
+          EventWriteOrtcRtpReceiverReportCodec(__func__, codec.mName, codec.mKind, codec.mClockRate.value(), codec.mPreferredPayloadType, codec.mPTime.count(), codec.mMaxPTime.count(), codec.mNumChannels.value());
           result->mCodecs.push_back(codec);
         }
       }
@@ -1105,9 +1102,11 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPReceiver::receive(const Parameters &inParameters)
+    PromisePtr RTPReceiver::receive(const Parameters &inParameters)
     {
       typedef RTPTypesHelper::ParametersPtrPairList ParametersPtrPairList;
+
+      PromisePtr promise = Promise::create(IORTCForInternal::queueDelegate());
 
       auto parameters = make_shared<Parameters>(inParameters);
 
@@ -1218,7 +1217,8 @@ namespace ortc
         auto previousHash = mParameters->hash();
         if (hash == previousHash) {
           ZS_LOG_TRACE(log("receive has not changed (noop)"))
-          return;
+          promise->resolve();
+          return promise;
         }
 
         bool oldShouldLatchAll = shouldLatchAll();
@@ -1324,6 +1324,9 @@ namespace ortc
       mListener->registerReceiver(mKind, mThisWeak.lock(), *mParameters);
 
       registerHeaderExtensions(*mParameters);
+
+      promise->resolve();
+      return promise;
     }
 
     //-------------------------------------------------------------------------
@@ -1372,7 +1375,7 @@ namespace ortc
                                    RTPPacketPtr packet
                                    )
     {
-      EventWriteOrtcRtpReceivedIncomingPacket(__func__, mID, zsLib::to_underlying(viaTransport), zsLib::to_underlying(IICETypes::Component_RTP), packet->buffer()->SizeInBytes(), packet->buffer()->BytePtr());
+      EventWriteOrtcRtpReceivedIncomingPacket(__func__, mID, zsLib::to_underlying(viaTransport), zsLib::to_underlying(IICETypes::Component_RTP), SafeInt<unsigned int>(packet->buffer()->SizeInBytes()), packet->buffer()->BytePtr());
 
       ZS_LOG_TRACE(log("received packet") + ZS_PARAM("via", IICETypes::toString(viaTransport)) + packet->toDebug())
 
@@ -1413,7 +1416,7 @@ namespace ortc
     process_rtp:
       {
         ZS_LOG_TRACE(log("forwarding RTP packet to channel") + ZS_PARAM("channel id", channelHolder->getID()) + ZS_PARAM("ssrc", packet->ssrc()))
-        EventWriteOrtcRtpReceiverDeliverIncomingPacketToChannel(__func__, mID, channelHolder->getID(), zsLib::to_underlying(viaTransport), zsLib::to_underlying(IICETypes::Component_RTP), packet->buffer()->SizeInBytes(), packet->buffer()->BytePtr());
+        EventWriteOrtcRtpReceiverDeliverIncomingPacketToChannel(__func__, mID, channelHolder->getID(), zsLib::to_underlying(viaTransport), zsLib::to_underlying(IICETypes::Component_RTP), SafeInt<unsigned int>(packet->buffer()->SizeInBytes()), packet->buffer()->BytePtr());
         return channelHolder->handle(packet);
       }
 
@@ -1426,7 +1429,7 @@ namespace ortc
                                    RTCPPacketPtr packet
                                    )
     {
-      EventWriteOrtcRtpReceivedIncomingPacket(__func__, mID, zsLib::to_underlying(viaTransport), zsLib::to_underlying(IICETypes::Component_RTCP), packet->buffer()->SizeInBytes(), packet->buffer()->BytePtr());
+      EventWriteOrtcRtpReceivedIncomingPacket(__func__, mID, zsLib::to_underlying(viaTransport), zsLib::to_underlying(IICETypes::Component_RTCP), SafeInt<unsigned int>(packet->buffer()->SizeInBytes()), packet->buffer()->BytePtr());
 
       ZS_LOG_TRACE(log("received packet") + ZS_PARAM("via", IICETypes::toString(viaTransport)) + packet->toDebug())
 
@@ -1450,7 +1453,7 @@ namespace ortc
           continue;
         }
 
-        EventWriteOrtcRtpReceiverDeliverIncomingPacketToChannel(__func__, mID, channelHolder->getID(), zsLib::to_underlying(viaTransport), zsLib::to_underlying(IICETypes::Component_RTCP), packet->buffer()->SizeInBytes(), packet->buffer()->BytePtr());
+        EventWriteOrtcRtpReceiverDeliverIncomingPacketToChannel(__func__, mID, channelHolder->getID(), zsLib::to_underlying(viaTransport), zsLib::to_underlying(IICETypes::Component_RTCP), SafeInt<unsigned int>(packet->buffer()->SizeInBytes()), packet->buffer()->BytePtr());
         auto channelResult = channelHolder->handle(packet);
         result = result || channelResult;
       }
@@ -1494,7 +1497,7 @@ namespace ortc
 
       ZS_LOG_TRACE(log("sending rtcp packet over secure transport") + ZS_PARAM("size", packet->size()))
 
-      EventWriteOrtcRtpReceiverSendOutgoingPacket(__func__, mID, zsLib::to_underlying(mSendRTCPOverTransport), zsLib::to_underlying(IICETypes::Component_RTCP), packet->buffer()->SizeInBytes(), packet->buffer()->BytePtr());
+      EventWriteOrtcRtpReceiverSendOutgoingPacket(__func__, mID, zsLib::to_underlying(mSendRTCPOverTransport), zsLib::to_underlying(IICETypes::Component_RTCP), SafeInt<unsigned int>(packet->buffer()->SizeInBytes()), packet->buffer()->BytePtr());
       return rtcpTransport->sendPacket(mSendRTCPOverTransport, IICETypes::Component_RTCP, packet->ptr(), packet->size());
     }
 
@@ -1607,7 +1610,7 @@ namespace ortc
 
           ZS_LOG_TRACE(log("expiring contributing source") + source.toDebug())
 
-          EventWriteOrtcRtpReceiverUpdateContributingSource(__func__, mID, source.mCSRC);
+          EventWriteOrtcRtpReceiverRemoveContributingSource(__func__, mID, source.mCSRC, source.mAudioLevel, source.mVoiceActivityFlag.hasValue() ? source.mVoiceActivityFlag.value() : false);
           mContributingSources.erase(current);
         }
         return;
@@ -2536,7 +2539,7 @@ namespace ortc
 
       outRID = extractRID(routingPayload, rtpPacket, outChannelHolder);
 
-      EventWriteOrtcRtpReceiverFindMapping(__func__, mID, outRID, rtpPacket.buffer()->SizeInBytes(), rtpPacket.buffer()->BytePtr());
+      EventWriteOrtcRtpReceiverFindMapping(__func__, mID, outRID, SafeInt<unsigned int>(rtpPacket.buffer()->SizeInBytes()), rtpPacket.buffer()->BytePtr());
 
       {
         if (outChannelHolder) goto fill_rid;
@@ -3544,14 +3547,16 @@ namespace ortc
           case IRTPTypes::HeaderExtensionURI_ClienttoMixerAudioLevelIndication:   {
             RTPPacket::ClientToMixerExtension levelExt(*ext);
             auto level = levelExt.level();
-            setContributingSource(rtpPacket.ssrc(), level);
+            Optional<bool> voiceActivity(levelExt.voiceActivity());
+            setContributingSource(rtpPacket.ssrc(), level, voiceActivity);
             break;
           }
           case IRTPTypes::HeaderExtensionURI_MixertoClientAudioLevelIndication:   {
             RTPPacket::MixerToClientExtension levelExt(*ext);
             for (size_t index = 0; (index < levelExt.levelsCount()) && (index < rtpPacket.cc()); ++index) {
               auto level = levelExt.level(index);
-              setContributingSource(rtpPacket.getCSRC(index) , level);
+              Optional<bool> voiceActivity {};
+              setContributingSource(rtpPacket.getCSRC(index) , level, voiceActivity);
             }
             break;
           }
@@ -3565,7 +3570,8 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPReceiver::setContributingSource(
                                             SSRCType csrc,
-                                            BYTE level
+                                            BYTE level,
+                                            const Optional<bool> &voiceActivityFlag
                                             )
     {
       auto found = mContributingSources.find(csrc);
@@ -3574,8 +3580,9 @@ namespace ortc
         source.mCSRC = csrc;
         source.mTimestamp = zsLib::now();
         source.mAudioLevel = level;
+        source.mVoiceActivityFlag = voiceActivityFlag;
         mContributingSources[csrc] = source;
-        EventWriteOrtcRtpReceiverAddContributingSource(__func__, mID, csrc);
+        EventWriteOrtcRtpReceiverAddContributingSource(__func__, mID, csrc, level, voiceActivityFlag.hasValue() ? voiceActivityFlag.value() : false);
         return;
       }
 
@@ -3583,7 +3590,8 @@ namespace ortc
 
       source.mTimestamp = zsLib::now();
       source.mAudioLevel = level;
-      EventWriteOrtcRtpReceiverUpdateContributingSource(__func__, mID, csrc);
+      source.mVoiceActivityFlag = voiceActivityFlag;
+      EventWriteOrtcRtpReceiverUpdateContributingSource(__func__, mID, csrc, level, voiceActivityFlag.hasValue() ? voiceActivityFlag.value() : false);
     }
 
     //-------------------------------------------------------------------------
@@ -3991,14 +3999,14 @@ namespace ortc
       findOptions.mMatchClockRateNotSet = true;
 
       if (resultFECv1.hasValue()) {
-        findOptions.mRTXAptPayloadType = resultFECv1;
+        findOptions.mRTXAptPayloadType = payloadTypeFECv1;
         auto *foundRTXCodec = RTPTypesHelper::findCodec(*mParameters, findOptions);
         if (NULL == foundRTXCodec) return;
 
         resultFECv1 = (static_cast<RoutingPayloadType>(foundRTXCodec->mPayloadType) << 24) | resultFECv1.value();
       }
       if (resultFECv2.hasValue()) {
-        findOptions.mRTXAptPayloadType = resultFECv2;
+        findOptions.mRTXAptPayloadType = payloadTypeFECv2;
         auto *foundRTXCodec = RTPTypesHelper::findCodec(*mParameters, findOptions);
         if (NULL == foundRTXCodec) return;
 
@@ -4058,6 +4066,7 @@ namespace ortc
     UseServicesHelper::debugAppend(resultEl, "timestamp", mTimestamp);
     UseServicesHelper::debugAppend(resultEl, "csrc", mCSRC);
     UseServicesHelper::debugAppend(resultEl, "audio level", mAudioLevel);
+    UseServicesHelper::debugAppend(resultEl, "voice activity flag", mVoiceActivityFlag);
 
     return resultEl;
   }
@@ -4073,6 +4082,8 @@ namespace ortc
     hasher.update(mCSRC);
     hasher.update(":");
     hasher.update(mAudioLevel);
+    hasher.update(":");
+    hasher.update(mVoiceActivityFlag);
     return hasher.final();
   }
 

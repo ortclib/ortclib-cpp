@@ -634,7 +634,7 @@ namespace ortc
       SecureByteBlockPtr decryptedBuffer;
       IICETypes::Components component = (RTPUtils::isRTCPPacketType(buffer, bufferLengthInBytes) ? IICETypes::Component_RTCP : IICETypes::Component_RTP);
 
-      EventWriteOrtcSrtpTransportReceivedIncomingEncryptedPacket(__func__, mID, zsLib::to_underlying(viaTransport), zsLib::to_underlying(component), bufferLengthInBytes, buffer);
+      EventWriteOrtcSrtpTransportReceivedIncomingEncryptedPacket(__func__, mID, zsLib::to_underlying(viaTransport), zsLib::to_underlying(component), SafeInt<unsigned int>(bufferLengthInBytes), buffer);
 
       size_t popSize = 0;
       enum UsedKeys {
@@ -840,7 +840,7 @@ namespace ortc
                                    size_t bufferLengthInBytes
                                    )
     {
-      EventWriteOrtcSrtpTransportSendOutgoingPacketAndEncrypt(__func__, mID, zsLib::to_underlying(sendOverICETransport), zsLib::to_underlying(packetType), bufferLengthInBytes, buffer);
+      EventWriteOrtcSrtpTransportSendOutgoingPacketAndEncrypt(__func__, mID, zsLib::to_underlying(sendOverICETransport), zsLib::to_underlying(packetType), SafeInt<unsigned int>(bufferLengthInBytes), buffer);
 
       UseSecureTransportPtr transport;
       KeyingMaterialPtr keyingMaterial;
@@ -941,7 +941,7 @@ namespace ortc
       ASSERT(out_len <= SafeInt<decltype(out_len)>(encryptedBuffer->SizeInBytes()))
 
       // do NOT call this method from within a lock
-      EventWriteOrtcSrtpTransportSendOutgoingEncryptedPacketViaSecureTransport(__func__, mID, transport->getID(), zsLib::to_underlying(sendOverICETransport), zsLib::to_underlying(packetType), bufferLengthInBytes, buffer);
+      EventWriteOrtcSrtpTransportSendOutgoingEncryptedPacketViaSecureTransport(__func__, mID, transport->getID(), zsLib::to_underlying(sendOverICETransport), zsLib::to_underlying(packetType), SafeInt<unsigned int>(bufferLengthInBytes), buffer);
       return transport->sendEncryptedPacket(sendOverICETransport, packetType, encryptedBuffer->BytePtr(), encryptedBuffer->SizeInBytes());
     }
 
@@ -1079,12 +1079,12 @@ namespace ortc
       bool changed = false;
 
       if (remainingForKey < mLastRemainingLeastKeyPercentageReported) {
-        mLastRemainingLeastKeyPercentageReported = remainingForKey;
+        mLastRemainingLeastKeyPercentageReported = SafeInt<decltype(mLastRemainingLeastKeyPercentageReported)>(remainingForKey);
         changed = true;
       }
 
       if (remainingDirection < mLastRemainingOverallPercentageReported) {
-        mLastRemainingOverallPercentageReported = remainingDirection;
+        mLastRemainingOverallPercentageReported = SafeInt<decltype(mLastRemainingOverallPercentageReported)>(remainingDirection);
         changed = true;
       }
 

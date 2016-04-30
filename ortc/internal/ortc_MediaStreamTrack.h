@@ -459,7 +459,6 @@ namespace ortc
       virtual void enabled(bool enabled) override;
       virtual bool muted() const override;
       virtual void muted(bool muted) override;
-      virtual bool readOnly() const override;
       virtual bool remote() const override;
       virtual States readyState() const override;
 

@@ -1132,6 +1132,7 @@
             <data inType="win:AnsiString" name="Kind" />
             <data inType="win:UInt64"     name="CodecRate" />
             <data inType="win:UInt8"      name="PreferredPayloadType" />
+            <data inType="win:UInt64"     name="PTime" />
             <data inType="win:UInt64"     name="MaxPTime" />
             <data inType="win:UInt64"     name="NumChannels" />
           </template>
@@ -1152,10 +1153,12 @@
             <data inType="win:UInt64"     name="ObjectID" />
             <data inType="win:UInt64"     name="ChannelObjectID" />
           </template>
-          <template tid="T_BasicWithCsrc">
+          <template tid="T_BasicWithCsrcAndVoice">
             <data inType="win:AnsiString" name="Method" />
             <data inType="win:UInt64"     name="ObjectID" />
             <data inType="win:UInt32"     name="Csrc" />
+            <data inType="win:UInt8"      name="AudioLevel" />
+            <data inType="win:Boolean"    name="VoiceActivityFlag" />
           </template>
           <template tid="T_BasicWithPacket">
             <data inType="win:AnsiString" name="Method" />
@@ -1789,9 +1792,9 @@
           <event symbol="OrtcRtpReceiverUpdateChannel" channel="ol" template="T_BasicWithChannelObjectID" task="RtpReceiver" opcode="win:Info" value="1912" level="win:Informational" message="$(string.Event.OrtcRtpReceiverUpdateChannel)" />
           <event symbol="OrtcRtpReceiverRemoveChannel" channel="ol" template="T_BasicWithChannelObjectID" task="RtpReceiver" opcode="win:Info" value="1913" level="win:Informational" message="$(string.Event.OrtcRtpReceiverRemoveChannel)" />
 
-          <event symbol="OrtcRtpReceiverAddContributingSource" channel="ol" template="T_BasicWithCsrc" task="RtpReceiver" opcode="win:Info" value="1914" level="win:Informational" message="$(string.Event.OrtcRtpReceiverAddContributingSource)" />
-          <event symbol="OrtcRtpReceiverUpdateContributingSource" channel="ol" template="T_BasicWithCsrc" task="RtpReceiver" opcode="win:Info" value="1915" level="win:Verbose" message="$(string.Event.OrtcRtpReceiverUpdateContributingSource)" />
-          <event symbol="OrtcRtpReceiverRemoveContributingSource" channel="ol" template="T_BasicWithCsrc" task="RtpReceiver" opcode="win:Info" value="1916" level="win:Informational" message="$(string.Event.OrtcRtpReceiverRemoveContributingSource)" />
+          <event symbol="OrtcRtpReceiverAddContributingSource" channel="ol" template="T_BasicWithCsrcAndVoice" task="RtpReceiver" opcode="win:Info" value="1914" level="win:Informational" message="$(string.Event.OrtcRtpReceiverAddContributingSource)" />
+          <event symbol="OrtcRtpReceiverUpdateContributingSource" channel="ol" template="T_BasicWithCsrcAndVoice" task="RtpReceiver" opcode="win:Info" value="1915" level="win:Verbose" message="$(string.Event.OrtcRtpReceiverUpdateContributingSource)" />
+          <event symbol="OrtcRtpReceiverRemoveContributingSource" channel="ol" template="T_BasicWithCsrcAndVoice" task="RtpReceiver" opcode="win:Info" value="1916" level="win:Informational" message="$(string.Event.OrtcRtpReceiverRemoveContributingSource)" />
 
           <event symbol="OrtcRtpReceivedIncomingPacket" channel="ol" template="T_BasicWithPacket" task="RtpReceiver" opcode="win:Receive" value="1917" level="win:Verbose" message="$(string.Event.OrtcRtpReceivedIncomingPacket)" />
           <event symbol="OrtcRtpReceiverDeliverIncomingPacketToChannel" channel="ol" template="T_BasicWithChannelObjectIDAndPacket" task="RtpReceiver" opcode="Deliver" value="1918" level="win:Verbose" message="$(string.Event.OrtcRtpReceiverDeliverIncomingPacketToChannel)" />

@@ -635,7 +635,7 @@ namespace ortc
 
         {
           AutoRecursiveLock lock(*this);
-          if (State_Validated != mCurrentState) {
+          if (IDTLSTransportTypes::State_Connected != mCurrentState) {
             ZS_LOG_WARNING(Detail, log("cannot send packet when not in validated state"))
             return false;
           }
@@ -727,7 +727,7 @@ namespace ortc
         {
           AutoRecursiveLock lock(*this);
 
-          if (State_Validated != mCurrentState) {
+          if (IDTLSTransportTypes::State_Connected != mCurrentState) {
             ZS_LOG_WARNING(Detail, log("dropping incoming packet to simulate non validated state"))
             return false;
           }
@@ -756,6 +756,10 @@ namespace ortc
       {
         if (state == mCurrentState) return;
 
+        if (isShutdown()) {
+          ZS_LOG_DETAIL(log("already shutdown"))
+          return;
+        }
         ZS_LOG_DETAIL(log("state changed") + ZS_PARAM("new state", IDTLSTransport::toString(state)) + ZS_PARAM("old state", IDTLSTransport::toString(mCurrentState)))
 
         mCurrentState = state;
@@ -765,7 +769,8 @@ namespace ortc
       //-----------------------------------------------------------------------
       bool FakeSecureTransport::isShutdown()
       {
-        return IDTLSTransport::State_Closed == mCurrentState;
+        return ((IDTLSTransportTypes::State_Closed == mCurrentState) ||
+                (IDTLSTransportTypes::State_Failed == mCurrentState));
       }
 
       //-----------------------------------------------------------------------
@@ -820,10 +825,10 @@ namespace ortc
           case IICETransportTypes::State_Failed:        {
             switch (state()) {
               case IDTLSTransportTypes::State_New:        return ISecureTransportTypes::State_Pending;
-              case IDTLSTransportTypes::State_Connecting:
-              case IDTLSTransportTypes::State_Connected:  return ISecureTransportTypes::State_Pending;
-              case IDTLSTransportTypes::State_Validated:  return ISecureTransportTypes::State_Disconnected;
+              case IDTLSTransportTypes::State_Connecting: return ISecureTransportTypes::State_Pending;
+              case IDTLSTransportTypes::State_Connected:  return ISecureTransportTypes::State_Disconnected;
               case IDTLSTransportTypes::State_Closed:     return ISecureTransportTypes::State_Closed;
+              case IDTLSTransportTypes::State_Failed:     return ISecureTransportTypes::State_Closed;
             }
             break;
           }
@@ -833,9 +838,9 @@ namespace ortc
         switch (state()) {
           case IDTLSTransportTypes::State_New:        return ISecureTransportTypes::State_Pending;
           case IDTLSTransportTypes::State_Connecting: return ISecureTransportTypes::State_Pending;
-          case IDTLSTransportTypes::State_Connected:  return ISecureTransportTypes::State_Pending;
-          case IDTLSTransportTypes::State_Validated:  return ISecureTransportTypes::State_Connected;
+          case IDTLSTransportTypes::State_Connected:  return ISecureTransportTypes::State_Connected;
           case IDTLSTransportTypes::State_Closed:     return ISecureTransportTypes::State_Closed;
+          case IDTLSTransportTypes::State_Failed:     return ISecureTransportTypes::State_Closed;
         }
 
         return ISecureTransportTypes::State_Closed;
@@ -1915,7 +1920,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void FakeReceiver::receive(const Parameters &parameters)
+      PromisePtr FakeReceiver::receive(const Parameters &parameters)
       {
         AutoRecursiveLock lock(*this);
 
@@ -1930,6 +1935,7 @@ namespace ortc
             handlePacket(IICETypes::Component_RTP, *iter);
           }
         }
+        return Promise::createResolved(getAssociatedMessageQueue());
       }
 
       //-----------------------------------------------------------------------
@@ -2822,19 +2828,6 @@ namespace ortc
       #pragma mark
 
       //-----------------------------------------------------------------------
-      void RTPSenderTester::onRTPSenderError(
-                                                 IRTPSenderPtr sender,
-                                                 ErrorCode errorCode,
-                                                 String errorReason
-                                                 )
-      {
-        ZS_LOG_BASIC(log("rtp receiver error") + ZS_PARAM("sender", sender->getID()) + ZS_PARAM("error code", errorCode) + ZS_PARAM("error reason", errorReason))
-
-        AutoRecursiveLock lock(*this);
-        ++mExpectationsFound.mError;
-      }
-
-      //-----------------------------------------------------------------------
       void RTPSenderTester::onRTPSenderSSRCConflict(
                                                     IRTPSenderPtr sender,
                                                     IRTPTypes::SSRCType ssrc
@@ -3030,6 +3023,7 @@ ZS_DECLARE_USING_PTR(ortc::test::rtpsender, FakeICETransport)
 ZS_DECLARE_USING_PTR(ortc::test::rtpsender, RTPSenderTester)
 ZS_DECLARE_USING_PTR(ortc, IICETransport)
 ZS_DECLARE_USING_PTR(ortc, IDTLSTransport)
+using ortc::IDTLSTransportTypes;
 ZS_DECLARE_USING_PTR(ortc, IDataChannel)
 ZS_DECLARE_USING_PTR(ortc, IRTPSender)
 ZS_DECLARE_USING_PTR(ortc, IRTPTypes)
@@ -3165,8 +3159,8 @@ void doTestRTPSender()
                 break;
               }
               case 4: {
-                if (testObject1) testObject1->state(IDTLSTransport::State_Validated);
-                if (testObject2) testObject2->state(IDTLSTransport::State_Validated);
+                if (testObject1) testObject1->state(IDTLSTransportTypes::State_Connected);
+                if (testObject2) testObject2->state(IDTLSTransportTypes::State_Connected);
             //  bogusSleep();
                 break;
               }
@@ -3374,8 +3368,8 @@ void doTestRTPSender()
                 break;
               }
               case 21: {
-                if (testObject1) testObject1->state(IDTLSTransport::State_Closed);
-                if (testObject2) testObject2->state(IDTLSTransport::State_Closed);
+                if (testObject1) testObject1->state(IDTLSTransportTypes::State_Closed);
+                if (testObject2) testObject2->state(IDTLSTransportTypes::State_Closed);
           //    bogusSleep();
                 break;
               }
@@ -3582,8 +3576,8 @@ void doTestRTPSender()
                 break;
               }
               case 6: {
-                if (testObject2) testObject2->state(IDTLSTransport::State_Validated);
-                if (testObject1) testObject1->state(IDTLSTransport::State_Validated);
+                if (testObject2) testObject2->state(IDTLSTransportTypes::State_Connected);
+                if (testObject1) testObject1->state(IDTLSTransportTypes::State_Connected);
                 testObject2->createReceiver("r1");
                 testObject2->receive("r1", "params-empty");
           //    bogusSleep();
@@ -4157,8 +4151,8 @@ void doTestRTPSender()
                 break;
               }
               case 36: {
-                if (testObject1) testObject1->state(IDTLSTransport::State_Closed);
-                if (testObject2) testObject2->state(IDTLSTransport::State_Closed);
+                if (testObject1) testObject1->state(IDTLSTransportTypes::State_Closed);
+                if (testObject2) testObject2->state(IDTLSTransportTypes::State_Closed);
           //    bogusSleep();
                 break;
               }

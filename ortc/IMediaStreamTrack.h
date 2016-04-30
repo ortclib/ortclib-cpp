@@ -54,6 +54,7 @@ namespace ortc
     ZS_DECLARE_STRUCT_PTR(ConstraintSet)
     ZS_DECLARE_STRUCT_PTR(TrackConstraints)
     ZS_DECLARE_STRUCT_PTR(Constraints)
+    ZS_DECLARE_STRUCT_PTR(OverconstrainedError)
 
     ZS_DECLARE_TYPEDEF_PTR(std::list<ConstraintSetPtr>, ConstraintSetList)
 
@@ -103,8 +104,9 @@ namespace ortc
       Optional<CapabilityDouble>  mVolume;
       Optional<CapabilityLong>    mSampleRate;
       Optional<CapabilityLong>    mSampleSize;
-      Optional<CapabilityBool>    mEchoCancellation;
+      Optional<CapabilityBoolean> mEchoCancellation;
       Optional<CapabilityDouble>  mLatency;
+      Optional<CapabilityLong>    mChannelCount;
 
       String                      mDeviceID;
       String                      mGroupID;
@@ -140,6 +142,7 @@ namespace ortc
       Optional<LONG>     mSampleSize;
       Optional<bool>     mEchoCancellation;
       Optional<double>   mLatency;
+      Optional<LONG>     mChannelCount;
       Optional<String>   mDeviceID;
       Optional<String>   mGroupID;
 
@@ -172,8 +175,9 @@ namespace ortc
       ConstrainDouble   mVolume;
       ConstrainLong     mSampleRate;
       ConstrainLong     mSampleSize;
-      ConstrainBool     mEchoCancellation;
+      ConstrainBoolean  mEchoCancellation;
       ConstrainDouble   mLatency;
+      ConstrainLong     mChannelCount;
       ConstrainString   mDeviceID;
       ConstrainString   mGroupID;
 
@@ -233,6 +237,15 @@ namespace ortc
       String hash() const;
     };
 
+    struct OverconstrainedError : public Any {
+      String mName;
+      String mConstraint;
+      String mMessage;
+
+      OverconstrainedError() : mName("OverconstrainedError") {}
+      OverconstrainedError(const OverconstrainedError &op2) { *this = (op2); }
+    };
+
   };
 
   //---------------------------------------------------------------------------
@@ -263,7 +276,6 @@ namespace ortc
     virtual void enabled(bool enabled) = 0;
     virtual bool muted() const = 0;
     virtual void muted(bool muted) = 0;
-    virtual bool readOnly() const = 0;
     virtual bool remote() const = 0;
     virtual States readyState() const = 0;
 
@@ -290,13 +302,18 @@ namespace ortc
 
   interaction IMediaStreamTrackDelegate
   {
+    ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::OverconstrainedError, OverconstrainedError)
+
     virtual void onMediaStreamTrackMute(
                                         IMediaStreamTrackPtr track,
                                         bool isMuted
                                         ) = 0;
 
     virtual void onMediaStreamTrackEnded(IMediaStreamTrackPtr track) = 0;
-    virtual void onMediaStreamTrackOverConstrained(IMediaStreamTrackPtr track) = 0;
+    virtual void onMediaStreamTrackOverConstrained(
+                                                   IMediaStreamTrackPtr track,
+                                                   OverconstrainedErrorPtr error
+                                                   ) = 0;
   };
   
   //---------------------------------------------------------------------------
@@ -319,14 +336,16 @@ namespace ortc
 
 ZS_DECLARE_PROXY_BEGIN(ortc::IMediaStreamTrackDelegate)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IMediaStreamTrackPtr, IMediaStreamTrackPtr)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::IMediaStreamTrackTypes::OverconstrainedErrorPtr, OverconstrainedErrorPtr)
 ZS_DECLARE_PROXY_METHOD_2(onMediaStreamTrackMute, IMediaStreamTrackPtr, bool)
 ZS_DECLARE_PROXY_METHOD_1(onMediaStreamTrackEnded, IMediaStreamTrackPtr)
-ZS_DECLARE_PROXY_METHOD_1(onMediaStreamTrackOverConstrained, IMediaStreamTrackPtr)
+ZS_DECLARE_PROXY_METHOD_2(onMediaStreamTrackOverConstrained, IMediaStreamTrackPtr, OverconstrainedErrorPtr)
 ZS_DECLARE_PROXY_END()
 
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_BEGIN(ortc::IMediaStreamTrackDelegate, ortc::IMediaStreamTrackSubscription)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IMediaStreamTrackPtr, IMediaStreamTrackPtr)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IMediaStreamTrackTypes::OverconstrainedErrorPtr, OverconstrainedErrorPtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onMediaStreamTrackMute, IMediaStreamTrackPtr, bool)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_1(onMediaStreamTrackEnded, IMediaStreamTrackPtr)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_1(onMediaStreamTrackOverConstrained, IMediaStreamTrackPtr)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onMediaStreamTrackOverConstrained, IMediaStreamTrackPtr, OverconstrainedErrorPtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_END()

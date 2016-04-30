@@ -49,6 +49,7 @@
 #include <openpeer/services/IHelper.h>
 #include <openpeer/services/IHTTP.h>
 
+#include <zsLib/SafeInt.h>
 #include <zsLib/Stringize.h>
 #include <zsLib/Log.h>
 #include <zsLib/XML.h>
@@ -331,7 +332,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool RTPSenderChannel::handlePacket(RTCPPacketPtr packet)
     {
-      EventWriteOrtcRtpSenderChannelDeliverIncomingPacketToMediaChannel(__func__, mID, mMediaBase->getID(), zsLib::to_underlying(IICETypes::Component_RTCP), packet->buffer()->SizeInBytes(), packet->buffer()->BytePtr());
+      EventWriteOrtcRtpSenderChannelDeliverIncomingPacketToMediaChannel(__func__, mID, mMediaBase->getID(), zsLib::to_underlying(IICETypes::Component_RTCP), SafeInt<unsigned int>(packet->buffer()->SizeInBytes()), packet->buffer()->BytePtr());
 
       if (mIsTagging)
       {
@@ -442,7 +443,7 @@ namespace ortc
         }
       }
 
-      EventWriteOrtcRtpSenderChannelSendOutgoingPacket(__func__, mID, sender->getID(), zsLib::to_underlying(IICETypes::Component_RTP), packet->buffer()->SizeInBytes(), packet->buffer()->BytePtr());
+      EventWriteOrtcRtpSenderChannelSendOutgoingPacket(__func__, mID, sender->getID(), zsLib::to_underlying(IICETypes::Component_RTP), SafeInt<unsigned int>(packet->buffer()->SizeInBytes()), packet->buffer()->BytePtr());
 
       return sender->sendPacket(packet);
     }
@@ -453,7 +454,7 @@ namespace ortc
       auto sender = mSender.lock();
       if (!sender) return false;
 
-      EventWriteOrtcRtpSenderChannelSendOutgoingPacket(__func__, mID, sender->getID(), zsLib::to_underlying(IICETypes::Component_RTCP), packet->buffer()->SizeInBytes(), packet->buffer()->BytePtr());
+      EventWriteOrtcRtpSenderChannelSendOutgoingPacket(__func__, mID, sender->getID(), zsLib::to_underlying(IICETypes::Component_RTCP), SafeInt<unsigned int>(packet->buffer()->SizeInBytes()), packet->buffer()->BytePtr());
 
       if ((mIsTagging) &&
           (mTagSDES))

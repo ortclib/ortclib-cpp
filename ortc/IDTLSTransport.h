@@ -71,10 +71,10 @@ namespace ortc
       State_New         = State_First,
       State_Connecting,
       State_Connected,
-      State_Validated,
       State_Closed,
+      State_Failed,
 
-      State_Last        = State_Closed,
+      State_Last        = State_Failed,
     };
 
     static const char *toString(States state);
@@ -177,8 +177,6 @@ namespace ortc
 
   interaction IDTLSTransportDelegate
   {
-    typedef WORD ErrorCode;
-
     virtual void onDTLSTransportStateChange(
                                             IDTLSTransportPtr transport,
                                             IDTLSTransport::States state
@@ -186,8 +184,7 @@ namespace ortc
 
     virtual void onDTLSTransportError(
                                       IDTLSTransportPtr transport,
-                                      ErrorCode errorCode,
-                                      String errorReason
+                                      ErrorAnyPtr error
                                       ) = 0;
   };
 
@@ -212,15 +209,15 @@ namespace ortc
 ZS_DECLARE_PROXY_BEGIN(ortc::IDTLSTransportDelegate)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IDTLSTransportPtr, IDTLSTransportPtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IDTLSTransport::States, States)
-ZS_DECLARE_PROXY_TYPEDEF(ortc::IDTLSTransportDelegate::ErrorCode, ErrorCode)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::ErrorAnyPtr, ErrorAnyPtr)
 ZS_DECLARE_PROXY_METHOD_2(onDTLSTransportStateChange, IDTLSTransportPtr, States)
-ZS_DECLARE_PROXY_METHOD_3(onDTLSTransportError, IDTLSTransportPtr, ErrorCode, String)
+ZS_DECLARE_PROXY_METHOD_2(onDTLSTransportError, IDTLSTransportPtr, ErrorAnyPtr)
 ZS_DECLARE_PROXY_END()
 
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_BEGIN(ortc::IDTLSTransportDelegate, ortc::IDTLSTransportSubscription)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IDTLSTransportPtr, IDTLSTransportPtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IDTLSTransport::States, States)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IDTLSTransportDelegate::ErrorCode, ErrorCode)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::ErrorAnyPtr, ErrorAnyPtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onDTLSTransportStateChange, IDTLSTransportPtr, States)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_3(onDTLSTransportError, IDTLSTransportPtr, ErrorCode, String)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onDTLSTransportError, IDTLSTransportPtr, ErrorAnyPtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_END()

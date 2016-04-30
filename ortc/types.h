@@ -35,6 +35,7 @@
 #include <zsLib/IPAddress.h>
 #include <zsLib/Promise.h>
 #include <openpeer/services/types.h>
+#include <zsLib/String.h>
 
 namespace ortc
 {
@@ -71,6 +72,17 @@ namespace ortc
   ZS_DECLARE_USING_PTR(zsLib, Any)
   ZS_DECLARE_USING_PTR(zsLib, Promise)
 
+  ZS_DECLARE_STRUCT_PTR(ErrorAny)
+
+  struct ErrorAny : public Any
+  {
+    typedef WORD ErrorCode;
+
+    ErrorCode mErrorCode {};
+    String mName;
+    String mReason;
+  };
+
   using openpeer::services::SharedRecursiveLock;
   using openpeer::services::LockedValue;
 
@@ -84,6 +96,16 @@ namespace ortc
   typedef zsLib::Exceptions::InvalidArgument InvalidParameters;
   typedef zsLib::Exceptions::SyntaxError SyntaxError;
   typedef zsLib::Exceptions::NotImplemented NotSupportedError;
+
+#define ORTC_THROW_INVALID_STATE(xMessage) ZS_THROW_INVALID_USAGE(xMessage)
+#define ORTC_THROW_INVALID_PARAMETERS(xMessage) ZS_THROW_INVALID_ARGUMENT(xMessage)
+#define ORTC_THROW_SYNTAX_ERROR(xMessage) ZS_THROW_CUSTOM(SyntaxError, xMessage)
+#define ORTC_THROW_NOT_SUPPORTED_ERRROR(xMessage) ZS_THROW_NOT_IMPLEMENTED(xMessage)
+
+#define ORTC_THROW_INVALID_STATE_IF(xExpression) ZS_THROW_INVALID_USAGE_IF(xExpression)
+#define ORTC_THROW_INVALID_PARAMETERS_IF(xExpression) ZS_THROW_INVALID_ARGUMENT_IF(xExpression)
+#define ORTC_THROW_SYNTAX_ERROR_IF(xExpression) ZS_THROW_CUSTOM_IF(SyntaxError, xExpression)
+#define ORTC_THROW_NOT_SUPPORTED_ERROR_IF(xExpression) ZS_THROW_NOT_IMPLEMENTED_IF(xExpression)
 
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
@@ -167,6 +189,7 @@ namespace ortc
   #pragma mark
 
 #ifndef ORTCLIB_INTERNAL
+#if 0
   ZS_DECLARE_TYPEDEF_PTR(IDTLSTransport, IDtlsTransport)
   ZS_DECLARE_TYPEDEF_PTR(IDTMFSender, IDtmfSender)
   ZS_DECLARE_TYPEDEF_PTR(IORTC, IOrtc)
@@ -200,5 +223,6 @@ namespace ortc
   ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverSubscription, IRtpReceiverSubscription)
   ZS_DECLARE_TYPEDEF_PTR(ISCTPTransportSubscription, ISctpTransportSubscription)
   ZS_DECLARE_TYPEDEF_PTR(ISRTPSDESTransportSubscription, ISrtpSdesTransportSubscription)
+#endif //0
 #endif //ORTCLIB_INTERNAL
 }

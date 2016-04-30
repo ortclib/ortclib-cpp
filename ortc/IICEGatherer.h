@@ -50,6 +50,7 @@ namespace ortc
     ZS_DECLARE_STRUCT_PTR(Options)
     ZS_DECLARE_STRUCT_PTR(Server)
     ZS_DECLARE_STRUCT_PTR(InterfacePolicy)
+    ZS_DECLARE_STRUCT_PTR(ErrorEvent)
 
     ZS_DECLARE_TYPEDEF_PTR(std::list<String>, StringList)
     ZS_DECLARE_TYPEDEF_PTR(std::list<Server>, ServerList)
@@ -183,6 +184,29 @@ namespace ortc
       ElementPtr toDebug() const;
       String hash() const;
     };
+
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IICEGathererTypes::ErrorEvent
+    #pragma mark
+
+    struct ErrorEvent {
+      typedef WORD ErrorCode;
+
+      CandidatePtr    mHostCandidate;
+      String          mURL;
+      ErrorCode       mErrorCode;
+      String          mErrorText;
+
+      ErrorEvent() {}
+      ErrorEvent(const ErrorEvent &op2) { (*this) = op2; }
+      ErrorEvent(ElementPtr elem);
+
+      ElementPtr createElement(const char *objectName = "errorEvent") const;
+
+      ElementPtr toDebug() const;
+      String hash() const;
+    };
   };
 
   //---------------------------------------------------------------------------
@@ -232,7 +256,7 @@ namespace ortc
   {
     ZS_DECLARE_TYPEDEF_PTR(IICETypes::Candidate, Candidate)
     ZS_DECLARE_TYPEDEF_PTR(IICETypes::CandidateComplete, CandidateComplete)
-    typedef WORD ErrorCode;
+    ZS_DECLARE_TYPEDEF_PTR(IICEGathererTypes::ErrorEvent, ErrorEvent)
 
     virtual void onICEGathererStateChange(
                                           IICEGathererPtr gatherer,
@@ -256,8 +280,7 @@ namespace ortc
 
     virtual void onICEGathererError(
                                      IICEGathererPtr gatherer,
-                                     ErrorCode errorCode,
-                                     String errorReason
+                                     ErrorEventPtr errorEvent
                                      ) = 0;
   };
 
@@ -284,12 +307,12 @@ ZS_DECLARE_PROXY_TYPEDEF(ortc::IICEGathererPtr, IICEGathererPtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IICEGatherer::States, States)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IICEGathererDelegate::CandidatePtr, CandidatePtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IICEGathererDelegate::CandidateCompletePtr, CandidateCompletePtr)
-ZS_DECLARE_PROXY_TYPEDEF(ortc::IICEGathererDelegate::ErrorCode, ErrorCode)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::IICEGathererTypes::ErrorEventPtr, ErrorEventPtr)
 ZS_DECLARE_PROXY_METHOD_2(onICEGathererStateChange, IICEGathererPtr, States)
 ZS_DECLARE_PROXY_METHOD_2(onICEGathererLocalCandidate, IICEGathererPtr, CandidatePtr)
 ZS_DECLARE_PROXY_METHOD_2(onICEGathererLocalCandidateComplete, IICEGathererPtr, CandidateCompletePtr)
 ZS_DECLARE_PROXY_METHOD_2(onICEGathererLocalCandidateGone, IICEGathererPtr, CandidatePtr)
-ZS_DECLARE_PROXY_METHOD_3(onICEGathererError, IICEGathererPtr, ErrorCode, String)
+ZS_DECLARE_PROXY_METHOD_2(onICEGathererError, IICEGathererPtr, ErrorEventPtr)
 ZS_DECLARE_PROXY_END()
 
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_BEGIN(ortc::IICEGathererDelegate, ortc::IICEGathererSubscription)
@@ -297,10 +320,10 @@ ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IICEGathererPtr, IICEGathererPtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IICEGatherer::States, States)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IICEGathererDelegate::CandidatePtr, CandidatePtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IICEGathererDelegate::CandidateCompletePtr, CandidateCompletePtr)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IICEGathererDelegate::ErrorCode, ErrorCode)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IICEGathererTypes::ErrorEventPtr, ErrorEventPtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onICEGathererStateChange, IICEGathererPtr, States)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onICEGathererLocalCandidate, IICEGathererPtr, CandidatePtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onICEGathererLocalCandidateComplete, IICEGathererPtr, CandidateCompletePtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onICEGathererLocalCandidateGone, IICEGathererPtr, CandidatePtr)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_3(onICEGathererError, IICEGathererPtr, ErrorCode, String)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onICEGathererError, IICEGathererPtr, ErrorEventPtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_END()

@@ -53,6 +53,8 @@
 #include <zsLib/Log.h>
 #include <zsLib/XML.h>
 
+#include <zsLib/SafeInt.h>
+
 #include <cryptopp/sha.h>
 
 
@@ -414,13 +416,6 @@ namespace ortc
 
           delegate->onRTPSenderSSRCConflict(pThis, ssrc);
         }
-
-        for (auto iter = mErrors.begin(); iter != mErrors.end(); ++iter) {
-          auto &errorPair = (*iter);
-
-          delegate->onRTPSenderError(pThis, errorPair.first, errorPair.second);
-        }
-        mErrors.clear();
       }
 
       if (isShutdown()) {
@@ -591,9 +586,11 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPSender::send(const Parameters &parameters)
+    PromisePtr RTPSender::send(const Parameters &parameters)
     {
       typedef RTPTypesHelper::ParametersPtrPairList ParametersPtrPairList;
+
+      PromisePtr promise = Promise::create(IORTCForInternal::queueDelegate());
 
       EventWriteOrtcRtpSenderSend(__func__, mID);
 
@@ -617,7 +614,8 @@ namespace ortc
         auto previousHash = mParameters->hash();
         if (hash == previousHash) {
           ZS_LOG_TRACE(log("send parameters have not changed (noop)") + parameters.toDebug())
-          return;
+          promise->resolve();
+          return promise;
         }
 
         ParametersPtrList oldGroupedParams = mParametersGroupedIntoChannels;
@@ -718,6 +716,9 @@ namespace ortc
 
       RTCPPacketList historicalRTCPPackets;
       mListener->registerSender(mThisWeak.lock(), *mParameters, historicalRTCPPackets);
+
+      promise->resolve();
+      return promise;
     }
 
     //-------------------------------------------------------------------------
@@ -745,7 +746,7 @@ namespace ortc
                                  RTCPPacketPtr packet
                                  )
     {
-      EventWriteOrtcRtpSenderIncomingPacket(__func__, mID, zsLib::to_underlying(viaTransport), zsLib::to_underlying(IICETypes::Component_RTCP), packet->buffer()->SizeInBytes(), packet->buffer()->BytePtr());
+      EventWriteOrtcRtpSenderIncomingPacket(__func__, mID, zsLib::to_underlying(viaTransport), zsLib::to_underlying(IICETypes::Component_RTCP), SafeInt<unsigned int>(packet->buffer()->SizeInBytes()), packet->buffer()->BytePtr());
 
       ZS_LOG_TRACE(log("received packet") + ZS_PARAM("via", IICETypes::toString(viaTransport)) + packet->toDebug())
 
@@ -761,7 +762,7 @@ namespace ortc
       {
         auto channel = (*iter).second;
 
-        EventWriteOrtcRtpSenderDeliverIncomingPacketToChannel(__func__, mID, channel->getID(), zsLib::to_underlying(viaTransport), zsLib::to_underlying(IICETypes::Component_RTCP), packet->buffer()->SizeInBytes(), packet->buffer()->BytePtr());
+        EventWriteOrtcRtpSenderDeliverIncomingPacketToChannel(__func__, mID, channel->getID(), zsLib::to_underlying(viaTransport), zsLib::to_underlying(IICETypes::Component_RTCP), SafeInt<unsigned int>(packet->buffer()->SizeInBytes()), packet->buffer()->BytePtr());
 
         auto channelResult = channel->handle(packet);
         result = result || channelResult;
@@ -801,7 +802,7 @@ namespace ortc
 
       ZS_LOG_TRACE(log("sending rtp packet over secure transport") + ZS_PARAM("size", packet->size()))
 
-      EventWriteOrtcRtpSenderSendOutgoingPacket(__func__, mID, zsLib::to_underlying(mSendRTPOverTransport), zsLib::to_underlying(IICETypes::Component_RTP), packet->buffer()->SizeInBytes(), packet->buffer()->BytePtr());
+      EventWriteOrtcRtpSenderSendOutgoingPacket(__func__, mID, zsLib::to_underlying(mSendRTPOverTransport), zsLib::to_underlying(IICETypes::Component_RTP), SafeInt<unsigned int>(packet->buffer()->SizeInBytes()), packet->buffer()->BytePtr());
 
       return rtpTransport->sendPacket(mSendRTPOverTransport, IICETypes::Component_RTP, packet->ptr(), packet->size());
     }
@@ -829,7 +830,7 @@ namespace ortc
 
       ZS_LOG_TRACE(log("sending rtcp packet over secure transport") + ZS_PARAM("size", packet->size()))
 
-      EventWriteOrtcRtpSenderSendOutgoingPacket(__func__, mID, zsLib::to_underlying(mSendRTCPOverTransport), zsLib::to_underlying(IICETypes::Component_RTCP), packet->buffer()->SizeInBytes(), packet->buffer()->BytePtr());
+      EventWriteOrtcRtpSenderSendOutgoingPacket(__func__, mID, zsLib::to_underlying(mSendRTCPOverTransport), zsLib::to_underlying(IICETypes::Component_RTCP), SafeInt<unsigned int>(packet->buffer()->SizeInBytes()), packet->buffer()->BytePtr());
 
       return rtcpTransport->sendPacket(mSendRTCPOverTransport, IICETypes::Component_RTCP, packet->ptr(), packet->size());
     }
@@ -862,32 +863,6 @@ namespace ortc
       EventWriteOrtcRtpSenderSsrcConflictEventFired(__func__, mID, ((bool)channel) ? channel->getID() : 0, ssrc, selfDestruct);
 
       mSubscriptions.delegate()->onRTPSenderSSRCConflict(mThisWeak.lock(), ssrc);
-
-      if ((selfDestruct) &&
-          (channel)) {
-        IRTPSenderAsyncDelegateProxy::create(mThisWeak.lock())->onDestroyChannel(channel);
-      }
-    }
-
-    //-------------------------------------------------------------------------
-    void RTPSender::notifyError(
-                                UseChannelPtr channel,
-                                IRTPSenderDelegate::ErrorCode error,
-                                const char *errorReason,
-                                bool selfDestruct
-                                )
-    {
-      ZS_LOG_DEBUG(log("notify channel error") + ZS_PARAM("channel", channel ? channel->getID() : 0) + ZS_PARAM("error", error) + ZS_PARAM("error reason", errorReason) + ZS_PARAM("self destruct", selfDestruct))
-
-      AutoRecursiveLock lock(*this);
-
-      if (mSubscriptions.size() < 1) {
-        mErrors.push_back(ErrorPair(error, String(errorReason)));
-      } else {
-        mSubscriptions.delegate()->onRTPSenderError(mThisWeak.lock(), error, errorReason);
-      }
-
-      EventWriteOrtcRtpSenderInternalChannelErrorEventFired(__func__, mID, ((bool)channel) ? channel->getID() : 0, error, errorReason, selfDestruct);
 
       if ((selfDestruct) &&
           (channel)) {
@@ -1074,7 +1049,6 @@ namespace ortc
       UseServicesHelper::debugAppend(resultEl, "channels", mChannels->size());
 
       UseServicesHelper::debugAppend(resultEl, "conflicts", mConflicts.size());
-      UseServicesHelper::debugAppend(resultEl, "errors", mErrors.size());
 
       return resultEl;
     }

@@ -47,24 +47,24 @@ namespace ortc
   
   interaction ICapabilities
   {
-    ZS_DECLARE_STRUCT_PTR(CapabilityBool)
+    ZS_DECLARE_STRUCT_PTR(CapabilityBoolean)
     ZS_DECLARE_STRUCT_PTR(CapabilityLong)
     ZS_DECLARE_STRUCT_PTR(CapabilityDouble)
     ZS_DECLARE_STRUCT_PTR(CapabilityString)
 
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark ICapabilities::CapabilityBool
+    #pragma mark ICapabilities::CapabilityBoolean
     #pragma mark
 
-    struct CapabilityBool : public std::set<bool> {
+    struct CapabilityBoolean : public std::set<bool> {
 
-      CapabilityBool() {}
-      CapabilityBool(const CapabilityBool &op2) {*this = op2;}
-      CapabilityBool(
-                     ElementPtr elem,
-                     const char *objectName = "bool"
-                     );
+      CapabilityBoolean() {}
+      CapabilityBoolean(const CapabilityBoolean &op2) {*this = op2;}
+      CapabilityBoolean(
+                        ElementPtr elem,
+                        const char *objectName = "bool"
+                        );
 
       // {"objectName": {"objectValueName": [true,false]}}
       ElementPtr createElement(

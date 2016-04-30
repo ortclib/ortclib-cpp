@@ -560,7 +560,7 @@ namespace ortc
                                                  size_t bufferLengthInBytes
                                                  )
     {
-      EventWriteOrtcSctpTransportListenerReceivedIncomingDataPacket(__func__, mID, bufferLengthInBytes, buffer);
+      EventWriteOrtcSctpTransportListenerReceivedIncomingDataPacket(__func__, mID, SafeInt<unsigned int>(bufferLengthInBytes), buffer);
       if (bufferLengthInBytes < sizeof(DWORD)) {
         ZS_LOG_WARNING(Trace, log("packet length is too small to be an SCTP packet"))
         return false;
@@ -600,7 +600,7 @@ namespace ortc
         }
       }
 
-      EventWriteOrtcSctpTransportListenerDeliverIncomingDataPacket(__func__, mID, transport->getID(), bufferLengthInBytes, buffer);
+      EventWriteOrtcSctpTransportListenerDeliverIncomingDataPacket(__func__, mID, transport->getID(), SafeInt<unsigned int>(bufferLengthInBytes), buffer);
       return transport->handleDataPacket(buffer, bufferLengthInBytes);
     }
 

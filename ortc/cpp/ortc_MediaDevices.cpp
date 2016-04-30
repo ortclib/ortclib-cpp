@@ -356,7 +356,7 @@ namespace ortc
         if (info->GetDeviceName(index, deviceName, sizeof(deviceName),
           deviceUniqueId, sizeof(deviceUniqueId)) != -1) {
           Device device;
-          device.mKind = DeviceKind_Video;
+          device.mKind = DeviceKind_VideoInput;
           device.mDeviceID = deviceUniqueId;
           device.mLabel = deviceName;
           value->push_back(device);
@@ -716,9 +716,9 @@ namespace ortc
   const char *IMediaDevicesTypes::toString(DeviceKinds kind)
   {
     switch (kind) {
-      case DeviceKind_AudioInput:   return "audio in";
-      case DeviceKind_AudioOutput:  return "audio out";
-      case DeviceKind_Video:        return "video";
+      case DeviceKind_AudioInput:   return "audioinput";
+      case DeviceKind_AudioOutput:  return "audiooutput";
+      case DeviceKind_VideoInput:   return "videoinput";
     }
     return "UNDEFINED";
   }
@@ -740,7 +740,7 @@ namespace ortc
     switch (kind) {
       case DeviceKind_AudioInput:   return Kind_Audio;
       case DeviceKind_AudioOutput:  return Kind_Audio;
-      case DeviceKind_Video:        return Kind_Video;
+      case DeviceKind_VideoInput:   return Kind_Video;
     }
 
     ASSERT(false)
@@ -753,7 +753,7 @@ namespace ortc
     switch (kind) {
       case DeviceKind_AudioInput:   return true;
       case DeviceKind_AudioOutput:  return true;
-      case DeviceKind_Video:        return false;
+      case DeviceKind_VideoInput:   return false;
     }
 
     ASSERT(false)
@@ -766,7 +766,7 @@ namespace ortc
     switch (kind) {
       case DeviceKind_AudioInput:   return false;
       case DeviceKind_AudioOutput:  return false;
-      case DeviceKind_Video:        return true;
+      case DeviceKind_VideoInput:   return true;
     }
 
     ASSERT(false)

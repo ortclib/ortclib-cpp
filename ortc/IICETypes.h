@@ -217,7 +217,7 @@ namespace ortc
     #pragma mark
 
     struct Parameters {
-      bool mUseCandidateFreezePriority {false};
+      bool mUseUnfreezePriority {false};
       String mUsernameFragment;
       String mPassword;
       bool mICELite {false};

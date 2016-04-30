@@ -423,8 +423,8 @@ namespace ortc
           ULONG mStateNew {0};
           ULONG mStateConnecting {0};
           ULONG mStateConnected {0};
-          ULONG mStateValidated {0};
           ULONG mStateClosed {0};
+          ULONG mStateFailed {0};
 
           ULONG mError {0};
 
@@ -434,7 +434,7 @@ namespace ortc
             return (mStateNew == op2.mStateNew) &&
                    (mStateConnecting == op2.mStateConnecting) &&
                    (mStateConnected == op2.mStateConnected) &&
-                   (mStateValidated == op2.mStateValidated) &&
+                   (mStateFailed == op2.mStateFailed) &&
                    (mStateClosed == op2.mStateClosed) &&
 
                    (mError == op2.mError);
@@ -549,19 +549,18 @@ namespace ortc
           ZS_LOG_BASIC(log("dtls transport state changed") + ZS_PARAM("transport", transport->getID()) + ZS_PARAM("state", IDTLSTransport::toString(state)))
 
           switch (state) {
-            case IDTLSTransport::State_New:         ++mExpectations.mStateNew; break;
-            case IDTLSTransport::State_Connecting:  ++mExpectations.mStateConnecting; break;
-            case IDTLSTransport::State_Connected:   ++mExpectations.mStateConnected; break;
-            case IDTLSTransport::State_Validated:   ++mExpectations.mStateValidated; break;
-            case IDTLSTransport::State_Closed:      ++mExpectations.mStateClosed; break;
+            case IDTLSTransportTypes::State_New:         ++mExpectations.mStateNew; break;
+            case IDTLSTransportTypes::State_Connecting:  ++mExpectations.mStateConnecting; break;
+            case IDTLSTransportTypes::State_Connected:   ++mExpectations.mStateConnected; break;
+            case IDTLSTransportTypes::State_Closed:      ++mExpectations.mStateClosed; break;
+            case IDTLSTransportTypes::State_Failed:      ++mExpectations.mStateFailed; break;
           }
         }
 
         //---------------------------------------------------------------------
         virtual void onDTLSTransportError(
                                           IDTLSTransportPtr transport,
-                                          ErrorCode errorCode,
-                                          String errorReason
+                                          ErrorAnyPtr error
                                           ) override
         {
           TESTING_CHECK(transport)
@@ -692,8 +691,8 @@ void doTestDTLS()
       expectationsDTLS1.mStateNew = 0;
       expectationsDTLS1.mStateConnecting = 1;
       expectationsDTLS1.mStateConnected = 1;
-      expectationsDTLS1.mStateValidated = 1;
       expectationsDTLS1.mStateClosed = 1;
+      expectationsDTLS1.mStateFailed = 0;
 
       expectationsDTLS2 = expectationsDTLS1;
 

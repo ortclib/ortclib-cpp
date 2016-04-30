@@ -368,11 +368,14 @@ namespace ortc
         DataChannelPtr pThis = mThisWeak.lock();
 
         if (State_Connecting != mCurrentState) {
-          delegate->onDataChannelStateChanged(pThis, mCurrentState);
+          delegate->onDataChannelStateChange(pThis, mCurrentState);
         }
 
         if (0 != mLastError) {
-          delegate->onDataChannelError(pThis, mLastError, mLastErrorReason);
+          ErrorAnyPtr error(make_shared<ErrorAny>());
+          error->mErrorCode = mLastError;
+          error->mReason = mLastErrorReason;
+          delegate->onDataChannelError(pThis, error);
         }
 
         if ((mOutgoingBufferFillSize <= mBufferedAmountLowThreshold) &&
@@ -478,7 +481,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     void DataChannel::send(const SecureByteBlock &data)
     {
-      EventWriteOrtcDataChannelSendBinary(__func__, mID, data.SizeInBytes(), data.BytePtr());
+      EventWriteOrtcDataChannelSendBinary(__func__, mID, SafeInt<unsigned int>(data.SizeInBytes()), data.BytePtr());
       AutoRecursiveLock lock(*this);
       send(SCTP_PPID_BINARY_LAST, data.BytePtr(), data.SizeInBytes());
     }
@@ -489,7 +492,7 @@ namespace ortc
                            size_t bufferSizeInBytes
                            )
     {
-      EventWriteOrtcDataChannelSendBinary(__func__, mID, bufferSizeInBytes, buffer);
+      EventWriteOrtcDataChannelSendBinary(__func__, mID, SafeInt<unsigned int>(bufferSizeInBytes), buffer);
       ORTC_THROW_INVALID_PARAMETERS_IF((NULL == buffer) && (0 != bufferSizeInBytes))
 
       AutoRecursiveLock lock(*this);
@@ -519,7 +522,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool DataChannel::handleSCTPPacket(SCTPPacketIncomingPtr packet)
     {
-      EventWriteOrtcDataChannelSCTPTransportReceivedIncomingPacket(__func__, mID, zsLib::to_underlying(packet->mType), packet->mSessionID, packet->mSequenceNumber, packet->mTimestamp, packet->mFlags, ((bool)packet->mBuffer) ? packet->mBuffer->SizeInBytes() : 0, ((bool)packet->mBuffer) ? packet->mBuffer->BytePtr() : NULL);
+      EventWriteOrtcDataChannelSCTPTransportReceivedIncomingPacket(__func__, mID, zsLib::to_underlying(packet->mType), packet->mSessionID, packet->mSequenceNumber, packet->mTimestamp, packet->mFlags, ((bool)packet->mBuffer) ? SafeInt<unsigned int>(packet->mBuffer->SizeInBytes()) : 0, ((bool)packet->mBuffer) ? packet->mBuffer->BytePtr() : NULL);
 
       // scope: obtain whatever data is required inside lock to process SCTP packet
       {
@@ -1069,7 +1072,7 @@ namespace ortc
 
       DataChannelPtr pThis = mThisWeak.lock();
       if (pThis) {
-        mSubscriptions.delegate()->onDataChannelStateChanged(pThis, mCurrentState);
+        mSubscriptions.delegate()->onDataChannelStateChange(pThis, mCurrentState);
       }
     }
 
@@ -1095,7 +1098,10 @@ namespace ortc
 
       DataChannelPtr pThis = mThisWeak.lock();
       if (pThis) {
-        mSubscriptions.delegate()->onDataChannelError(mThisWeak.lock(), mLastError, mLastErrorReason);
+        ErrorAnyPtr error(make_shared<ErrorAny>());
+        error->mErrorCode = mLastError;
+        error->mReason = mLastErrorReason;
+        mSubscriptions.delegate()->onDataChannelError(mThisWeak.lock(), error);
       }
     }
 
@@ -1274,7 +1280,7 @@ namespace ortc
         return false;
       }
 
-      EventWriteOrtcDataChannelSCTPTransportDeliverOutgoingPacket(__func__, mID, zsLib::to_underlying(packet->mType), packet->mSessionID, packet->mOrdered, packet->mMaxPacketLifetime.count(), packet->mMaxRetransmits.hasValue(), packet->mMaxRetransmits.value(), ((bool)packet) ? packet->mBuffer->SizeInBytes() : 0, ((bool)packet->mBuffer) ? packet->mBuffer->BytePtr() : NULL);
+      EventWriteOrtcDataChannelSCTPTransportDeliverOutgoingPacket(__func__, mID, zsLib::to_underlying(packet->mType), packet->mSessionID, packet->mOrdered, packet->mMaxPacketLifetime.count(), packet->mMaxRetransmits.hasValue(), packet->mMaxRetransmits.value(), ((bool)packet) ? SafeInt<unsigned int>(packet->mBuffer->SizeInBytes()) : 0, ((bool)packet->mBuffer) ? packet->mBuffer->BytePtr() : NULL);
 
       mSendReady = transport->sendDataNow(packet);
 
@@ -1448,7 +1454,7 @@ namespace ortc
         }
       }
 
-      EventWriteOrtcDataChannelMessageFiredEvent(__func__, mID, zsLib::to_underlying(packet.mType), packet.mSessionID, packet.mSequenceNumber, packet.mTimestamp, packet.mFlags, ((bool)packet.mBuffer) ? packet.mBuffer->SizeInBytes() : 0, ((bool)packet.mBuffer) ? packet.mBuffer->BytePtr() : NULL);
+      EventWriteOrtcDataChannelMessageFiredEvent(__func__, mID, zsLib::to_underlying(packet.mType), packet.mSessionID, packet.mSequenceNumber, packet.mTimestamp, packet.mFlags, ((bool)packet.mBuffer) ? SafeInt<unsigned int>(packet.mBuffer->SizeInBytes()) : 0, ((bool)packet.mBuffer) ? packet.mBuffer->BytePtr() : NULL);
 
       mSubscriptions.delegate()->onDataChannelMessage(mThisWeak.lock(), data);
     }
@@ -1459,7 +1465,7 @@ namespace ortc
       if (!packet) return;
       if (!packet->mBuffer) return;
 
-      EventWriteOrtcDataChannelOutgoingBufferPacket(__func__, mID, zsLib::to_underlying(packet->mType), packet->mSessionID, packet->mOrdered, packet->mMaxPacketLifetime.count(), packet->mMaxRetransmits.hasValue(), packet->mMaxRetransmits.value(), packet->mBuffer->SizeInBytes(), packet->mBuffer->BytePtr());
+      EventWriteOrtcDataChannelOutgoingBufferPacket(__func__, mID, zsLib::to_underlying(packet->mType), packet->mSessionID, packet->mOrdered, packet->mMaxPacketLifetime.count(), packet->mMaxRetransmits.hasValue(), packet->mMaxRetransmits.value(), SafeInt<unsigned int>(packet->mBuffer->SizeInBytes()), packet->mBuffer->BytePtr());
 
       auto previousFillSize = mOutgoingBufferFillSize;
       mOutgoingBufferFillSize += packet->mBuffer->SizeInBytes();
@@ -1478,7 +1484,7 @@ namespace ortc
       if (!packet) return;
       if (!packet->mBuffer) return;
 
-      EventWriteOrtcDataChannelOutgoingBufferPacketDelivered(__func__, mID, zsLib::to_underlying(packet->mType), packet->mSessionID, packet->mOrdered, packet->mMaxPacketLifetime.count(), packet->mMaxRetransmits.hasValue(), packet->mMaxRetransmits.value(), packet->mBuffer->SizeInBytes(), packet->mBuffer->BytePtr());
+      EventWriteOrtcDataChannelOutgoingBufferPacketDelivered(__func__, mID, zsLib::to_underlying(packet->mType), packet->mSessionID, packet->mOrdered, packet->mMaxPacketLifetime.count(), packet->mMaxRetransmits.hasValue(), packet->mMaxRetransmits.value(), SafeInt<unsigned int>(packet->mBuffer->SizeInBytes()), packet->mBuffer->BytePtr());
 
       size_t packetSize = packet->mBuffer->SizeInBytes();
 
@@ -1577,7 +1583,7 @@ namespace ortc
     String str(state);
 
     for (IDataChannelTypes::States index = IDataChannelTypes::State_First; index <= IDataChannelTypes::State_Last; index = static_cast<IDataChannelTypes::States>(static_cast<std::underlying_type<IDataChannelTypes::States>::type>(index) + 1)) {
-      if (str == IDataChannelTypes::toString(index)) return index;
+      if (0 == str.compareNoCase(IDataChannelTypes::toString(index))) return index;
     }
 
     ORTC_THROW_INVALID_PARAMETERS("Invalid parameter value: " + str)

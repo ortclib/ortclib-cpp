@@ -48,6 +48,20 @@ namespace ortc
   {
     ZS_DECLARE_STRUCT_PTR(Capabilities)
 
+    enum States
+    {
+      State_First,
+
+      State_New           = State_First,
+      State_Connecting,
+      State_Connected,
+      State_Closed,
+
+      State_Last          = State_Closed,
+    };
+
+    static const char *toString(States state);
+
     //-------------------------------------------------------------------------
     #pragma mark
     #pragma mark ISCTPTransportTypes::Capabilities
@@ -104,6 +118,7 @@ namespace ortc
     static CapabilitiesPtr getCapabilities();
 
     virtual IDTLSTransportPtr transport() const = 0;
+    virtual States state() const = 0;
 
     virtual WORD port() const = 0;
 
@@ -126,6 +141,12 @@ namespace ortc
 
   interaction ISCTPTransportDelegate
   {
+    typedef ISCTPTransportTypes::States States;
+
+    virtual void onSCTPTransportStateChange(
+                                            ISCTPTransportPtr transport,
+                                            States state
+                                            ) = 0;
     virtual void onSCTPTransportDataChannel(
                                             ISCTPTransportPtr transport,
                                             IDataChannelPtr channel
@@ -185,12 +206,14 @@ namespace ortc
 ZS_DECLARE_PROXY_BEGIN(ortc::ISCTPTransportDelegate)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::ISCTPTransportPtr, ISCTPTransportPtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IDataChannelPtr, IDataChannelPtr)
+ZS_DECLARE_PROXY_METHOD_2(onSCTPTransportStateChange, ISCTPTransportPtr, States)
 ZS_DECLARE_PROXY_METHOD_2(onSCTPTransportDataChannel, ISCTPTransportPtr, IDataChannelPtr)
 ZS_DECLARE_PROXY_END()
 
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_BEGIN(ortc::ISCTPTransportDelegate, ortc::ISCTPTransportSubscription)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::ISCTPTransportPtr, ISCTPTransportPtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IDataChannelPtr, IDataChannelPtr)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onSCTPTransportStateChange, ISCTPTransportPtr, States)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onSCTPTransportDataChannel, ISCTPTransportPtr, IDataChannelPtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_END()
 

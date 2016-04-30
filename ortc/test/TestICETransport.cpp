@@ -302,11 +302,10 @@ namespace ortc
         //---------------------------------------------------------------------
         virtual void onICEGathererError(
                                         IICEGathererPtr gatherer,
-                                        ErrorCode errorCode,
-                                        String errorReason
+                                        ErrorEventPtr errorEvent
                                         ) override
         {
-          ZS_LOG_ERROR(Basic, log("gatherer error") + IICEGatherer::toDebug(gatherer) + ZS_PARAM("error", errorCode) + ZS_PARAM("reason", errorReason))
+          ZS_LOG_ERROR(Basic, log("gatherer error") + IICEGatherer::toDebug(gatherer) + errorEvent->toDebug())
 
           AutoRecursiveLock lock(*this);
 
@@ -604,11 +603,10 @@ namespace ortc
         //---------------------------------------------------------------------
         virtual void onICEGathererError(
                                         IICEGathererPtr gatherer,
-                                        ErrorCode errorCode,
-                                        String errorReason
+                                        ErrorEventPtr errorEvent
                                         ) override
         {
-          ZS_LOG_ERROR(Basic, log("remote gatherer error") + IICEGatherer::toDebug(gatherer) + ZS_PARAM("error", errorCode) + ZS_PARAM("reason", errorReason))
+          ZS_LOG_ERROR(Basic, log("remote gatherer error") + IICEGatherer::toDebug(gatherer) + errorEvent->toDebug())
         }
 
       public:

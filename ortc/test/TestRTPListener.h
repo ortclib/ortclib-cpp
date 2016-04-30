@@ -441,7 +441,7 @@ namespace ortc
 
         void expectData(SecureByteBlockPtr data);
 
-        virtual void receive(const Parameters &parameters) override;
+        virtual PromisePtr receive(const Parameters &parameters) override;
 
         virtual void stop() override;
 
@@ -511,7 +511,7 @@ namespace ortc
 
         void setTransport(RTPListenerTesterPtr tester);
 
-        virtual void send(const Parameters &parameters) override;
+        virtual PromisePtr send(const Parameters &parameters) override;
         virtual void stop() override;
 
         void expectData(SecureByteBlockPtr data);

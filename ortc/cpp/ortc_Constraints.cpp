@@ -80,21 +80,21 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   #pragma mark
-  #pragma mark IConstraints::ConstrainBoolParameters
+  #pragma mark IConstraints::ConstrainBooleanParameters
   #pragma mark
 
 
   //---------------------------------------------------------------------------
-  IConstraints::ConstrainBoolParameters::ConstrainBoolParameters(ElementPtr elem)
+  IConstraints::ConstrainBooleanParameters::ConstrainBooleanParameters(ElementPtr elem)
   {
     if (!elem) return;
 
-    UseHelper::getElementValue(elem, "ortc::IConstraints::ConstrainBoolParameters", "exact", mExact);
-    UseHelper::getElementValue(elem, "ortc::IConstraints::ConstrainBoolParameters", "ideal", mIdeal);
+    UseHelper::getElementValue(elem, "ortc::IConstraints::ConstrainBooleanParameters", "exact", mExact);
+    UseHelper::getElementValue(elem, "ortc::IConstraints::ConstrainBooleanParameters", "ideal", mIdeal);
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IConstraints::ConstrainBoolParameters::createElement(const char *objectName) const
+  ElementPtr IConstraints::ConstrainBooleanParameters::createElement(const char *objectName) const
   {
     ElementPtr elem = Element::create(objectName);
 
@@ -106,9 +106,9 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IConstraints::ConstrainBoolParameters::toDebug() const
+  ElementPtr IConstraints::ConstrainBooleanParameters::toDebug() const
   {
-    ElementPtr resultEl = Element::create("ortc::IConstraints::ConstrainBoolParameters");
+    ElementPtr resultEl = Element::create("ortc::IConstraints::ConstrainBooleanParameters");
 
     UseServicesHelper::debugAppend(resultEl, "exact", mExact);
     UseServicesHelper::debugAppend(resultEl, "ideal", mIdeal);
@@ -117,11 +117,11 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  String IConstraints::ConstrainBoolParameters::hash() const
+  String IConstraints::ConstrainBooleanParameters::hash() const
   {
     SHA1Hasher hasher;
 
-    hasher.update("ortc::IConstraints::ConstrainBoolParameters:");
+    hasher.update("ortc::IConstraints::ConstrainBooleanParameters:");
 
     hasher.update(mExact);
     hasher.update(":");
@@ -140,13 +140,13 @@ namespace ortc
   #pragma mark
 
   //---------------------------------------------------------------------------
-  IConstraints::ConstrainBool::ConstrainBool(ElementPtr elem)
+  IConstraints::ConstrainBoolean::ConstrainBoolean(ElementPtr elem)
   {
     if (!elem) return;
 
     if (elem->getFirstChildElement()) {
       // treat as params...
-      mParameters = ConstrainBoolParameters(elem);
+      mParameters = ConstrainBooleanParameters(elem);
       return;
     }
 
@@ -163,7 +163,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IConstraints::ConstrainBool::createElement(const char *objectName) const
+  ElementPtr IConstraints::ConstrainBoolean::createElement(const char *objectName) const
   {
     if (mParameters.hasValue()) {
       return mParameters.value().createElement(objectName);
@@ -174,9 +174,9 @@ namespace ortc
   }
   
   //---------------------------------------------------------------------------
-  ElementPtr IConstraints::ConstrainBool::toDebug() const
+  ElementPtr IConstraints::ConstrainBoolean::toDebug() const
   {
-    ElementPtr resultEl = Element::create("ortc::IConstraints::ConstrainBool");
+    ElementPtr resultEl = Element::create("ortc::IConstraints::ConstrainBoolean");
 
     UseServicesHelper::debugAppend(resultEl, "value", mValue.hasValue() ? ((mValue.value()) ? "true" : "false") : "");
     UseServicesHelper::debugAppend(resultEl, mParameters.hasValue() ? mParameters.value().toDebug() : ElementPtr());
@@ -185,11 +185,11 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  String IConstraints::ConstrainBool::hash() const
+  String IConstraints::ConstrainBoolean::hash() const
   {
     SHA1Hasher hasher;
 
-    hasher.update("ortc::IConstraints::ConstrainBool:");
+    hasher.update("ortc::IConstraints::ConstrainBoolean:");
 
     hasher.update(mValue);
     hasher.update(":");

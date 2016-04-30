@@ -640,7 +640,7 @@ namespace ortc
 
         {
           AutoRecursiveLock lock(*this);
-          if (State_Validated != mCurrentState) {
+          if (IDTLSTransportTypes::State_Connected != mCurrentState) {
             ZS_LOG_WARNING(Detail, log("cannot send packet when not in validated state"))
             return false;
           }
@@ -732,7 +732,7 @@ namespace ortc
         {
           AutoRecursiveLock lock(*this);
 
-          if (State_Validated != mCurrentState) {
+          if (IDTLSTransportTypes::State_Connected != mCurrentState) {
             ZS_LOG_WARNING(Detail, log("dropping incoming packet to simulate non validated state"))
             return false;
           }
@@ -761,6 +761,11 @@ namespace ortc
       {
         if (state == mCurrentState) return;
 
+        if (isShutdown()) {
+          ZS_LOG_DETAIL(log("already shutdown"))
+          return;
+        }
+
         ZS_LOG_DETAIL(log("state changed") + ZS_PARAM("new state", IDTLSTransport::toString(state)) + ZS_PARAM("old state", IDTLSTransport::toString(mCurrentState)))
 
         mCurrentState = state;
@@ -770,7 +775,8 @@ namespace ortc
       //-----------------------------------------------------------------------
       bool FakeSecureTransport::isShutdown()
       {
-        return IDTLSTransport::State_Closed == mCurrentState;
+        return ((IDTLSTransportTypes::State_Closed == mCurrentState) ||
+                (IDTLSTransportTypes::State_Failed == mCurrentState));
       }
 
       //-----------------------------------------------------------------------
@@ -784,7 +790,7 @@ namespace ortc
       //-----------------------------------------------------------------------
       void FakeSecureTransport::cancel()
       {
-        setState(IDTLSTransport::State_Closed);
+        setState(IDTLSTransportTypes::State_Closed);
 
         mICETransport->detachSecure(*this);
       }
@@ -825,10 +831,10 @@ namespace ortc
           case IICETransportTypes::State_Failed:        {
             switch (state()) {
               case IDTLSTransportTypes::State_New:        return ISecureTransportTypes::State_Pending;
-              case IDTLSTransportTypes::State_Connecting:
-              case IDTLSTransportTypes::State_Connected:  return ISecureTransportTypes::State_Pending;
-              case IDTLSTransportTypes::State_Validated:  return ISecureTransportTypes::State_Disconnected;
+              case IDTLSTransportTypes::State_Connecting: return ISecureTransportTypes::State_Pending;
+              case IDTLSTransportTypes::State_Connected:  return ISecureTransportTypes::State_Disconnected;
               case IDTLSTransportTypes::State_Closed:     return ISecureTransportTypes::State_Closed;
+              case IDTLSTransportTypes::State_Failed:     return ISecureTransportTypes::State_Closed;
             }
             break;
           }
@@ -838,9 +844,9 @@ namespace ortc
         switch (state()) {
           case IDTLSTransportTypes::State_New:        return ISecureTransportTypes::State_Pending;
           case IDTLSTransportTypes::State_Connecting: return ISecureTransportTypes::State_Pending;
-          case IDTLSTransportTypes::State_Connected:  return ISecureTransportTypes::State_Pending;
-          case IDTLSTransportTypes::State_Validated:  return ISecureTransportTypes::State_Connected;
+          case IDTLSTransportTypes::State_Connected:  return ISecureTransportTypes::State_Connected;
           case IDTLSTransportTypes::State_Closed:     return ISecureTransportTypes::State_Closed;
+          case IDTLSTransportTypes::State_Failed:     return ISecureTransportTypes::State_Closed;
         }
 
         return ISecureTransportTypes::State_Closed;
@@ -1573,23 +1579,6 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void FakeSender::notifyError(
-                                   UseChannelPtr channel,
-                                   IRTPSenderDelegate::ErrorCode error,
-                                   const char *errorReason,
-                                   bool selfDestruct
-                                   )
-      {
-        RTPChannelTesterPtr tester;
-        {
-          AutoRecursiveLock lock(*this);
-          tester = mTester.lock();
-          TESTING_CHECK(tester)
-        }
-        tester->notifySenderChannelError();
-      }
-
-      //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
@@ -1641,7 +1630,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void FakeSender::send(const Parameters &parameters)
+      PromisePtr FakeSender::send(const Parameters &parameters)
       {
         AutoRecursiveLock lock(*this);
 
@@ -1656,6 +1645,7 @@ namespace ortc
             handlePacket(IICETypes::Component_RTP, *iter);
           }
         }
+        return Promise::createResolved(getAssociatedMessageQueue());
       }
 
       //-----------------------------------------------------------------------
@@ -1910,7 +1900,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void FakeReceiver::receive(const Parameters &parameters)
+      PromisePtr FakeReceiver::receive(const Parameters &parameters)
       {
         AutoRecursiveLock lock(*this);
 
@@ -1925,6 +1915,7 @@ namespace ortc
             handlePacket(IICETypes::Component_RTP, *iter);
           }
         }
+        return Promise::createResolved(getAssociatedMessageQueue());
       }
 
       //-----------------------------------------------------------------------
@@ -2643,9 +2634,7 @@ namespace ortc
       bool RTPChannelTester::Expectations::operator==(const Expectations &op2) const
       {
         return (mReceivedPackets == op2.mReceivedPackets) &&
-
-               (mSenderChannelConflict == op2.mSenderChannelConflict) &&
-               (mSenderChannelError == op2.mSenderChannelError);
+               (mSenderChannelConflict == op2.mSenderChannelConflict);
       }
 
       //-----------------------------------------------------------------------
@@ -3966,15 +3955,6 @@ namespace ortc
       #pragma mark RTPChannelTester::IRTPReceiverDelegate
       #pragma mark
 
-      //-----------------------------------------------------------------------
-      void RTPChannelTester::onRTPReceiverError(
-                                                IRTPReceiverPtr receiver,
-                                                ErrorCode errorCode,
-                                                String errorReason
-                                                )
-      {
-        // ignored - not called
-      }
 
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
@@ -4006,15 +3986,6 @@ namespace ortc
 
         AutoRecursiveLock lock(*this);
         ++mExpectationsFound.mSenderChannelConflict;
-      }
-
-      //-----------------------------------------------------------------------
-      void RTPChannelTester::notifySenderChannelError()
-      {
-        ZS_LOG_BASIC(log("notified sender channel error"))
-
-        AutoRecursiveLock lock(*this);
-        ++mExpectationsFound.mSenderChannelError;
       }
 
       //-----------------------------------------------------------------------
@@ -4260,6 +4231,7 @@ namespace ortc
 ZS_DECLARE_USING_PTR(ortc::test::rtpchannel, FakeICETransport)
 ZS_DECLARE_USING_PTR(ortc::test::rtpchannel, RTPChannelTester)
 ZS_DECLARE_USING_PTR(ortc, IICETransport)
+using ortc::IDTLSTransportTypes;
 ZS_DECLARE_USING_PTR(ortc, IDTLSTransport)
 ZS_DECLARE_USING_PTR(ortc, IDataChannel)
 ZS_DECLARE_USING_PTR(ortc, IRTPReceiver)
@@ -4396,8 +4368,8 @@ void doTestRTPChannel()
                 break;
               }
               case 4: {
-                if (testObject1) testObject1->state(IDTLSTransport::State_Validated);
-                if (testObject2) testObject2->state(IDTLSTransport::State_Validated);
+                if (testObject1) testObject1->state(IDTLSTransportTypes::State_Connected);
+                if (testObject2) testObject2->state(IDTLSTransportTypes::State_Connected);
           //    bogusSleep();
                 break;
               }
@@ -4446,8 +4418,8 @@ void doTestRTPChannel()
                 break;
               }
               case 21: {
-                if (testObject1) testObject1->state(IDTLSTransport::State_Closed);
-                if (testObject2) testObject2->state(IDTLSTransport::State_Closed);
+                if (testObject1) testObject1->state(IDTLSTransportTypes::State_Closed);
+                if (testObject2) testObject2->state(IDTLSTransportTypes::State_Closed);
                 //bogusSleep();
                 break;
               }
@@ -4503,8 +4475,8 @@ void doTestRTPChannel()
                 break;
               }
               case 6: {
-                if (testObject2) testObject2->state(IDTLSTransport::State_Validated);
-                if (testObject1) testObject1->state(IDTLSTransport::State_Validated);
+                if (testObject2) testObject2->state(IDTLSTransportTypes::State_Connected);
+                if (testObject1) testObject1->state(IDTLSTransportTypes::State_Connected);
           //    bogusSleep();
                 break;
               }
@@ -4595,8 +4567,8 @@ void doTestRTPChannel()
                 break;
               }
               case 36: {
-                if (testObject1) testObject1->state(IDTLSTransport::State_Closed);
-                if (testObject2) testObject2->state(IDTLSTransport::State_Closed);
+                if (testObject1) testObject1->state(IDTLSTransportTypes::State_Closed);
+                if (testObject2) testObject2->state(IDTLSTransportTypes::State_Closed);
                 //bogusSleep();
                 break;
               }

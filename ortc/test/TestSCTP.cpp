@@ -40,6 +40,7 @@
 
 #include "config.h"
 #include "testing.h"
+#include <zsLib/date.h>
 
 namespace ortc { namespace test { ZS_DECLARE_SUBSYSTEM(ortc_test) } }
 
@@ -676,7 +677,7 @@ namespace ortc
 
         {
           AutoRecursiveLock lock(*this);
-          if (State_Validated != mCurrentState) {
+          if (IDTLSTransportTypes::State_Connected != mCurrentState) {
             ZS_LOG_WARNING(Detail, log("cannot send packet when not in validated state"))
             return false;
           }
@@ -715,7 +716,7 @@ namespace ortc
         {
           AutoRecursiveLock lock(*this);
 
-          if (State_Validated != mCurrentState) {
+          if (IDTLSTransportTypes::State_Connected != mCurrentState) {
             ZS_LOG_WARNING(Detail, log("dropping incoming packet to simulate non validated state"))
             return false;
           }
@@ -811,6 +812,11 @@ namespace ortc
       {
         if (state == mSecureTransportState) return;
 
+        if (isShutdown()) {
+          ZS_LOG_TRACE(log("already closed"))
+          return;
+        }
+
         ZS_LOG_DETAIL(log("secure state changed") + ZS_PARAM("new state", ISecureTransport::toString(state)) + ZS_PARAM("old state", ISecureTransport::toString(mSecureTransportState)))
 
         mSecureTransportState = state;
@@ -826,7 +832,8 @@ namespace ortc
       //-----------------------------------------------------------------------
       bool FakeSecureTransport::isShutdown()
       {
-        return IDTLSTransport::State_Closed == mCurrentState;
+        return ((IDTLSTransportTypes::State_Closed == mCurrentState) ||
+                (IDTLSTransportTypes::State_Failed == mCurrentState));
       }
 
       //-----------------------------------------------------------------------
@@ -843,12 +850,11 @@ namespace ortc
         switch (mCurrentState) {
           case IDTLSTransportTypes::State_New:
           case IDTLSTransportTypes::State_Connecting:
-          case IDTLSTransportTypes::State_Connected:
           {
             ZS_LOG_TRACE(log("transport not ready yet"))
             break;
           }
-          case IDTLSTransportTypes::State_Validated:
+          case IDTLSTransportTypes::State_Connected:
           {
             switch (mICETransportState) {
               case IICETransportTypes::State_Connected:
@@ -870,6 +876,7 @@ namespace ortc
             break;
           }
           case IDTLSTransportTypes::State_Closed:
+          case IDTLSTransportTypes::State_Failed:
           {
             ZS_LOG_TRACE(log("transport closed"))
             setState(ISecureTransportTypes::State_Closed);
@@ -881,7 +888,7 @@ namespace ortc
       //-----------------------------------------------------------------------
       void FakeSecureTransport::cancel()
       {
-        setState(IDTLSTransport::State_Closed);
+        setState(IDTLSTransportTypes::State_Closed);
         setState(ISecureTransportTypes::State_Closed);
 
         if (mICETransportSubscription) {
@@ -913,7 +920,12 @@ namespace ortc
 
                (mError == op2.mError) &&
 
-               (mTransportIncoming == op2.mTransportIncoming);
+               (mTransportIncoming == op2.mTransportIncoming) &&
+
+               (mTransportStateNew == op2.mTransportStateNew) &&
+               (mTransportStateConnecting == op2.mTransportStateConnecting) &&
+               (mTransportStateConnected == op2.mTransportStateConnected) &&
+               (mTransportStateClosed == op2.mTransportStateClosed);
       }
 
       //-----------------------------------------------------------------------
@@ -1183,6 +1195,24 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
+      void SCTPTester::onSCTPTransportStateChange(
+                                                  ISCTPTransportPtr transport,
+                                                  ISCTPTransportTypes::States state
+                                                  )
+      {
+        ZS_LOG_BASIC(log("on sctptransport change") + ZS_PARAM("state", ISCTPTransportTypes::toString(state)))
+
+        AutoRecursiveLock lock(*this);
+        switch (state)
+        {
+          case ISCTPTransportTypes::State_New:          ++mExpectations.mTransportStateNew;
+          case ISCTPTransportTypes::State_Connecting:   ++mExpectations.mTransportStateConnecting;
+          case ISCTPTransportTypes::State_Connected:    ++mExpectations.mTransportStateConnected;
+          case ISCTPTransportTypes::State_Closed:       ++mExpectations.mTransportStateClosed;
+        }
+      }
+
+      //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
@@ -1216,10 +1246,10 @@ namespace ortc
       #pragma mark
 
       //-----------------------------------------------------------------------
-      void SCTPTester::onDataChannelStateChanged(
-                                                 IDataChannelPtr channel,
-                                                 States state
-                                                 )
+      void SCTPTester::onDataChannelStateChange(
+                                                IDataChannelPtr channel,
+                                                IDataChannelTypes::States state
+                                                )
       {
         AutoRecursiveLock lock(*this);
 
@@ -1247,11 +1277,10 @@ namespace ortc
       //-----------------------------------------------------------------------
       void SCTPTester::onDataChannelError(
                                           IDataChannelPtr channel,
-                                          ErrorCode errorCode,
-                                          String errorReason
+                                          ErrorAnyPtr error
                                           )
       {
-        ZS_LOG_ERROR(Basic, log("data channel error") + ZS_PARAM("channel", channel->getID()) + ZS_PARAM("error code", errorCode) + ZS_PARAM("reason", errorReason))
+        ZS_LOG_ERROR(Basic, log("data channel error") + ZS_PARAM("channel", channel->getID()) + ZS_PARAM("error code", error->mErrorCode) + ZS_PARAM("reason", error->mReason))
         AutoRecursiveLock lock(*this);
         ++mExpectations.mError;
       }
@@ -1389,6 +1418,7 @@ ZS_DECLARE_USING_PTR(ortc::test::sctp, FakeICETransport)
 ZS_DECLARE_USING_PTR(ortc::test::sctp, SCTPTester)
 ZS_DECLARE_USING_PTR(ortc, IICETransport)
 ZS_DECLARE_USING_PTR(ortc, IDTLSTransport)
+using ortc::IDTLSTransportTypes;
 ZS_DECLARE_USING_PTR(ortc, IDataChannel)
 ZS_DECLARE_USING_PTR(ortc, ISCTPTransport)
 
@@ -1554,20 +1584,18 @@ void doTestSCTP()
                 break;
               }
               case 7: {
-                if (testSCTPObject1) testSCTPObject1->state(IDTLSTransport::State_Connecting);
-                if (testSCTPObject2) testSCTPObject2->state(IDTLSTransport::State_Connecting);
+                if (testSCTPObject1) testSCTPObject1->state(IDTLSTransportTypes::State_Connecting);
+                if (testSCTPObject2) testSCTPObject2->state(IDTLSTransportTypes::State_Connecting);
                 //bogusSleep();
                 break;
               }
               case 10: {
-                if (testSCTPObject1) testSCTPObject1->state(IDTLSTransport::State_Connected);
-                if (testSCTPObject2) testSCTPObject2->state(IDTLSTransport::State_Connected);
                 //bogusSleep();
                 break;
               }
               case 11: {
-                if (testSCTPObject1) testSCTPObject1->state(IDTLSTransport::State_Validated);
-                if (testSCTPObject2) testSCTPObject2->state(IDTLSTransport::State_Validated);
+                if (testSCTPObject1) testSCTPObject1->state(IDTLSTransportTypes::State_Connected);
+                if (testSCTPObject2) testSCTPObject2->state(IDTLSTransportTypes::State_Connected);
                 //bogusSleep();
                 break;
               }
@@ -1601,8 +1629,8 @@ void doTestSCTP()
                 break;
               }
               case 46: {
-                if (testSCTPObject1) testSCTPObject1->state(IDTLSTransport::State_Closed);
-                if (testSCTPObject2) testSCTPObject2->state(IDTLSTransport::State_Closed);
+                if (testSCTPObject1) testSCTPObject1->state(IDTLSTransportTypes::State_Closed);
+                if (testSCTPObject2) testSCTPObject2->state(IDTLSTransportTypes::State_Closed);
                 //bogusSleep();
                 break;
               }
@@ -1654,20 +1682,18 @@ void doTestSCTP()
                 break;
               }
               case 7: {
-                if (testSCTPObject1) testSCTPObject1->state(IDTLSTransport::State_Connecting);
-                if (testSCTPObject2) testSCTPObject2->state(IDTLSTransport::State_Connecting);
+                if (testSCTPObject1) testSCTPObject1->state(IDTLSTransportTypes::State_Connecting);
+                if (testSCTPObject2) testSCTPObject2->state(IDTLSTransportTypes::State_Connecting);
                 //bogusSleep();
                 break;
               }
               case 10: {
-                if (testSCTPObject1) testSCTPObject1->state(IDTLSTransport::State_Connected);
-                if (testSCTPObject2) testSCTPObject2->state(IDTLSTransport::State_Connected);
                 //bogusSleep();
                 break;
               }
               case 11: {
-                if (testSCTPObject1) testSCTPObject1->state(IDTLSTransport::State_Validated);
-                if (testSCTPObject2) testSCTPObject2->state(IDTLSTransport::State_Validated);
+                if (testSCTPObject1) testSCTPObject1->state(IDTLSTransportTypes::State_Connected);
+                if (testSCTPObject2) testSCTPObject2->state(IDTLSTransportTypes::State_Connected);
                 //bogusSleep();
                 break;
               }
@@ -1706,8 +1732,8 @@ void doTestSCTP()
                 break;
               }
               case 46: {
-                if (testSCTPObject1) testSCTPObject1->state(IDTLSTransport::State_Closed);
-                if (testSCTPObject2) testSCTPObject2->state(IDTLSTransport::State_Closed);
+                if (testSCTPObject1) testSCTPObject1->state(IDTLSTransportTypes::State_Closed);
+                if (testSCTPObject2) testSCTPObject2->state(IDTLSTransportTypes::State_Closed);
                 //bogusSleep();
                 break;
               }
@@ -1766,20 +1792,18 @@ void doTestSCTP()
                 break;
               }
               case 7: {
-                if (testSCTPObject1) testSCTPObject1->state(IDTLSTransport::State_Connecting);
-                if (testSCTPObject2) testSCTPObject2->state(IDTLSTransport::State_Connecting);
+                if (testSCTPObject1) testSCTPObject1->state(IDTLSTransportTypes::State_Connecting);
+                if (testSCTPObject2) testSCTPObject2->state(IDTLSTransportTypes::State_Connecting);
                 //bogusSleep();
                 break;
               }
               case 10: {
-                if (testSCTPObject1) testSCTPObject1->state(IDTLSTransport::State_Connected);
-                if (testSCTPObject2) testSCTPObject2->state(IDTLSTransport::State_Connected);
                 //bogusSleep();
                 break;
               }
               case 11: {
-                if (testSCTPObject1) testSCTPObject1->state(IDTLSTransport::State_Validated);
-                if (testSCTPObject2) testSCTPObject2->state(IDTLSTransport::State_Validated);
+                if (testSCTPObject1) testSCTPObject1->state(IDTLSTransportTypes::State_Connected);
+                if (testSCTPObject2) testSCTPObject2->state(IDTLSTransportTypes::State_Connected);
                 //bogusSleep();
                 break;
               }
@@ -1821,8 +1845,8 @@ void doTestSCTP()
                 break;
               }
               case 46: {
-                if (testSCTPObject1) testSCTPObject1->state(IDTLSTransport::State_Closed);
-                if (testSCTPObject2) testSCTPObject2->state(IDTLSTransport::State_Closed);
+                if (testSCTPObject1) testSCTPObject1->state(IDTLSTransportTypes::State_Closed);
+                if (testSCTPObject2) testSCTPObject2->state(IDTLSTransportTypes::State_Closed);
                 //bogusSleep();
                 break;
               }
