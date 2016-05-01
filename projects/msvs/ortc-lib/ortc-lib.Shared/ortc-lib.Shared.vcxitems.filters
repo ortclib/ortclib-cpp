@@ -10,6 +10,15 @@
     <Filter Include="ortc\internal">
       <UniqueIdentifier>{6d3836d3-0f32-4630-af9f-84ba4956d11d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ortc\adapter">
+      <UniqueIdentifier>{891d3239-4658-4941-8c8b-c6f04935e981}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ortc\adapter\cpp">
+      <UniqueIdentifier>{e2e39297-67de-4285-9a9e-2bc164652d22}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ortc\adapter\internal">
+      <UniqueIdentifier>{f17fb194-0df4-4c67-aec0-98a3525d1d69}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\ICapabilities.h">
@@ -222,6 +231,36 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_RTPMediaEngine.h">
       <Filter>ortc\internal</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\adapter\IHelper.h">
+      <Filter>ortc\adapter</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\adapter\internal\ortc_adapter_Helper.h">
+      <Filter>ortc\adapter\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\adapter\ISessionDescription.h">
+      <Filter>ortc\adapter</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\adapter\internal\ortc_adapter_SessionDescription.h">
+      <Filter>ortc\adapter\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\adapter\IPeerSessionDescriptionManager.h">
+      <Filter>ortc\adapter</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\adapter\types.h">
+      <Filter>ortc\adapter</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\adapter\internal\types.h">
+      <Filter>ortc\adapter\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\adapter\adapter.h">
+      <Filter>ortc\adapter</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\adapter\internal\ortc_adapter_adapter.h">
+      <Filter>ortc\adapter\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\adapter\internal\ortc_adapter_PeerSessionDescriptionManager.h">
+      <Filter>ortc\adapter\internal</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ifaddrs-android.cc">
@@ -346,6 +385,18 @@
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ortc_RTPMediaEngine.cpp">
       <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\adapter\cpp\ortc_adapter_Helper.cpp">
+      <Filter>ortc\adapter\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\adapter\cpp\ortc_adapter_SessionDescription.cpp">
+      <Filter>ortc\adapter\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\adapter\cpp\ortc_adapter_adapter.cpp">
+      <Filter>ortc\adapter\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\adapter\cpp\ortc_adapter_PeerSessionDescriptionManager.cpp">
+      <Filter>ortc\adapter\cpp</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

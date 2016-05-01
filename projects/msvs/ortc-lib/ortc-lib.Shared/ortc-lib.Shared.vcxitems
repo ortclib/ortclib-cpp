@@ -17,6 +17,16 @@
     <ProjectCapability Include="SourceItemsFromImports" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\adapter\adapter.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\adapter\IHelper.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\adapter\internal\ortc_adapter_adapter.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\adapter\internal\ortc_adapter_PeerSessionDescriptionManager.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\adapter\internal\ortc_adapter_SessionDescription.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\adapter\internal\ortc_adapter_Helper.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\adapter\internal\types.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\adapter\ISessionDescription.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\adapter\IPeerSessionDescriptionManager.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\adapter\types.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\ICapabilities.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\ICertificate.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\IConstraints.h" />
@@ -89,6 +99,10 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\types.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\adapter\cpp\ortc_adapter_adapter.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\adapter\cpp\ortc_adapter_Helper.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\adapter\cpp\ortc_adapter_PeerSessionDescriptionManager.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\adapter\cpp\ortc_adapter_SessionDescription.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ifaddrs-android.cc">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
