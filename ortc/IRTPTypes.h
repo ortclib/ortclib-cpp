@@ -828,7 +828,7 @@ namespace ortc
       
       HeaderExtensionURI_AbsoluteSendTime,                              // http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time
 
-      HeaderExtensionURI_TransportSequenceNumber,                       // http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions
+      HeaderExtensionURI_TransportSequenceNumber,                       // http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01
 
       HeaderExtensionURI_Last = HeaderExtensionURI_TransportSequenceNumber
     };

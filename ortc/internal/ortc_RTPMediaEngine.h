@@ -312,8 +312,9 @@ namespace ortc
     interaction IRTPMediaEngineForRTPReceiverChannelAudio : public IRTPMediaEngineForRTPReceiverChannelMediaBase
     {
       ZS_DECLARE_TYPEDEF_PTR(IRTPMediaEngineForRTPReceiverChannelAudio, ForRTPReceiverChannelAudio)
-
+      
       virtual webrtc::VoiceEngine *getVoiceEngine() = 0;
+      virtual rtc::scoped_refptr<webrtc::AudioState> getAudioState() = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -388,6 +389,7 @@ namespace ortc
       ZS_DECLARE_TYPEDEF_PTR(IRTPMediaEngineForRTPSenderChannelAudio, ForRTPSenderChannelAudio)
 
       virtual webrtc::VoiceEngine *getVoiceEngine() = 0;
+      virtual rtc::scoped_refptr<webrtc::AudioState> getAudioState() = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -615,7 +617,9 @@ namespace ortc
       #pragma mark RTPMediaEngine => IRTPMediaEngineForRTPReceiverChannelAudio
       #pragma mark
 
-      webrtc::VoiceEngine *getVoiceEngine() override;
+      virtual webrtc::VoiceEngine *getVoiceEngine() override;
+
+      virtual rtc::scoped_refptr<webrtc::AudioState> getAudioState() override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -650,7 +654,9 @@ namespace ortc
       #pragma mark RTPMediaEngine => IRTPMediaEngineForRTPSenderChannelAudio
       #pragma mark
 
-      // (duplicate) virtual rtc::scoped_ptr<webrtc::VoiceEngine, VoiceEngineDeleter> getVoiceEngine() = 0;
+      // (duplicate) virtual webrtc::VoiceEngine *getVoiceEngine() = 0;
+
+      // (duplicate) virtual rtc::scoped_refptr<webrtc::AudioState> getAudioState() = 0;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -1014,7 +1020,6 @@ namespace ortc
         rtc::scoped_ptr<webrtc::AudioReceiveStream> mReceiveStream;
         rtc::scoped_ptr<webrtc::Clock> mClock;
         webrtc::VieRemb mRemb;
-        rtc::scoped_refptr<webrtc::AudioState> mAudioState;
         rtc::scoped_ptr<webrtc::CallStats> mCallStats;
         rtc::scoped_ptr<webrtc::CongestionController> mCongestionController;
         rtc::scoped_ptr<webrtc::BitrateAllocator> mBitrateAllocator;
@@ -1115,7 +1120,6 @@ namespace ortc
         rtc::scoped_ptr<webrtc::AudioSendStream> mSendStream;
         rtc::scoped_ptr<webrtc::Clock> mClock;
         webrtc::VieRemb mRemb;
-        rtc::scoped_refptr<webrtc::AudioState> mAudioState;
         rtc::scoped_ptr<webrtc::CongestionController> mCongestionController;
         rtc::scoped_ptr<webrtc::BitrateAllocator> mBitrateAllocator;
 
@@ -1348,6 +1352,7 @@ namespace ortc
       ChannelResourceList mPendingSetupChannelResources;
       ChannelResourceList mPendingCloseChannelResources;
 
+      rtc::scoped_refptr<webrtc::AudioState> mAudioState;
       rtc::scoped_ptr<webrtc::VoiceEngine, VoiceEngineDeleter> mVoiceEngine;
 
       rtc::scoped_ptr<WebRtcTraceCallback> mTraceCallback;

@@ -640,6 +640,13 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    rtc::scoped_refptr<webrtc::AudioState> RTPMediaEngine::getAudioState()
+    {
+      AutoRecursiveLock lock(*this);
+      return mAudioState;
+    }
+
+    //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -945,6 +952,10 @@ namespace ortc
       }
 
       mVoiceEngine = rtc::scoped_ptr<webrtc::VoiceEngine, VoiceEngineDeleter>(webrtc::VoiceEngine::Create());
+
+      webrtc::AudioState::Config audioStateConfig;
+      audioStateConfig.voice_engine = mVoiceEngine.get();
+      mAudioState = rtc::scoped_refptr<webrtc::AudioState>(webrtc::AudioState::Create(audioStateConfig));
 
       return true;
     }
@@ -1600,11 +1611,9 @@ namespace ortc
         return;
       }
 
-      mModuleProcessThread = webrtc::ProcessThread::Create("AudioReceiverChannelResourceThread");
+      auto audioState = engine->getAudioState();
 
-      webrtc::AudioState::Config audioStateConfig;
-      audioStateConfig.voice_engine = voiceEngine;
-      mAudioState = rtc::scoped_refptr<webrtc::AudioState>(webrtc::AudioState::Create(audioStateConfig));
+      mModuleProcessThread = webrtc::ProcessThread::Create("AudioReceiverChannelResourceThread");
 
       mBitrateAllocator = rtc::scoped_ptr<webrtc::BitrateAllocator>(new webrtc::BitrateAllocator());
       mCallStats = rtc::scoped_ptr<webrtc::CallStats>(new webrtc::CallStats(mClock.get()));
@@ -1722,7 +1731,7 @@ namespace ortc
         new webrtc::internal::AudioReceiveStream(
                                                  mCongestionController.get(),
                                                  config,
-                                                 mAudioState
+                                                 audioState
                                                  ));
 
       webrtc::VoENetwork::GetInterface(voiceEngine)->RegisterExternalTransport(mChannel, *mTransport);
@@ -1953,9 +1962,7 @@ namespace ortc
         return;
       }
 
-      webrtc::AudioState::Config audioStateConfig;
-      audioStateConfig.voice_engine = voiceEngine;
-      mAudioState = rtc::scoped_refptr<webrtc::AudioState>(webrtc::AudioState::Create(audioStateConfig));
+      auto audioState = engine->getAudioState();
 
       mBitrateAllocator = rtc::scoped_ptr<webrtc::BitrateAllocator>(new webrtc::BitrateAllocator());
       mCongestionController =
@@ -2070,7 +2077,7 @@ namespace ortc
       mSendStream = rtc::scoped_ptr<webrtc::AudioSendStream>(
         new webrtc::internal::AudioSendStream(
                                               config,
-                                              mAudioState,
+                                              audioState,
                                               mCongestionController.get()
                                               ));
 
