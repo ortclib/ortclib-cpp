@@ -173,21 +173,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPReceiverChannelVideo::init()
     {
-      TransportPtr transport = Transport::create(mThisWeak.lock());
+      AutoRecursiveLock lock(*this);
 
-      PromiseWithRTPMediaEngineChannelResourcePtr setupChannelPromise = UseMediaEngine::setupChannel(
-                                                                                                     mThisWeak.lock(),
-        transport,
-                                                                                                     MediaStreamTrack::convert(mTrack),
-                                                                                                     mParameters
-                                                                                                     );
-      {
-        AutoRecursiveLock lock(*this);
-        mSetupChannelPromise = setupChannelPromise;
-        mTransport = transport;
-      }
-
-      setupChannelPromise->thenWeak(mThisWeak.lock());
+      mTransport = Transport::create(mThisWeak.lock());
 
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
     }
@@ -262,7 +250,20 @@ namespace ortc
 
       {
         AutoRecursiveLock lock(*this);
+        if (isShuttingDown() || isShutdown())
+          return false;
         channelResource = mChannelResource;
+        bool shouldQueue = false;
+        if (!channelResource)
+          shouldQueue = true;
+        if (mQueuedRTP.size() > 0)
+          shouldQueue = true;
+        if (shouldQueue) {
+          mQueuedRTP.push(packet);
+          if (1 == mQueuedRTP.size())
+            IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
+          return true;
+        }
       }
 
       if (!channelResource) return false;
@@ -273,9 +274,12 @@ namespace ortc
     bool RTPReceiverChannelVideo::handlePacket(RTCPPacketPtr packet)
     {
       UseChannelResourcePtr channelResource;
-
       {
         AutoRecursiveLock lock(*this);
+        if (mQueuedRTP.size() > 0) {
+          mQueuedRTCP.push(packet);
+          return true;
+        }
         channelResource = mChannelResource;
       }
 
@@ -387,6 +391,37 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
+    void RTPReceiverChannelVideo::onReceiverChannelVideoDeliverPackets()
+    {
+      RTPPacketQueue rtpPackets;
+      RTCPPacketQueue rtcpPackets;
+      UseChannelResourcePtr channelResource;
+      {
+        AutoRecursiveLock lock(*this);
+        rtpPackets = mQueuedRTP;
+        rtcpPackets = mQueuedRTCP;
+        mQueuedRTP = RTPPacketQueue();
+        mQueuedRTCP = RTCPPacketQueue();
+        channelResource = mChannelResource;
+      }
+
+      if (!channelResource)
+        return;
+
+      while (rtpPackets.size() > 0) {
+        auto packet = rtpPackets.front();
+        channelResource->handlePacket(*packet);
+        rtpPackets.pop();
+      }
+
+      while (rtcpPackets.size() > 0) {
+        auto packet = rtcpPackets.front();
+        channelResource->handlePacket(*packet);
+        rtcpPackets.pop();
+      }
+    }
+
+    //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -395,7 +430,7 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    bool  RTPReceiverChannelVideo::SendRtcp(const uint8_t* packet, size_t length)
+    bool RTPReceiverChannelVideo::SendRtcp(const uint8_t* packet, size_t length)
     {
       auto channel = mReceiverChannel.lock();
       if (!channel) return false;
@@ -534,6 +569,7 @@ namespace ortc
       }
 
       // ... other steps here ...
+      if (!stepChannelPromise()) goto not_ready;
       if (!stepSetupChannel()) goto not_ready;
       // ... other steps here ...
 
@@ -550,6 +586,34 @@ namespace ortc
         ZS_LOG_TRACE(log("ready"))
         setState(State_Ready);
       }
+    }
+
+    //-------------------------------------------------------------------------
+    bool RTPReceiverChannelVideo::stepChannelPromise()
+    {
+      if (mSetupChannelPromise) {
+        ZS_LOG_TRACE(log("already setup channel promise"))
+        return true;
+      }
+
+      if (mQueuedRTP.size() < 1) {
+        ZS_LOG_TRACE(log("cannot setup channel promise until first packet is received"))
+        return false;
+      }
+
+      auto packet = mQueuedRTP.front();
+
+      mSetupChannelPromise = UseMediaEngine::setupChannel(
+                                                          mThisWeak.lock(),
+                                                          mTransport,
+                                                          MediaStreamTrack::convert(mTrack),
+                                                          mParameters,
+                                                          packet
+                                                          );
+
+      mSetupChannelPromise->thenWeak(mThisWeak.lock());
+
+      return true;
     }
 
     //-------------------------------------------------------------------------
@@ -581,6 +645,8 @@ namespace ortc
 
       ZS_LOG_DEBUG(log("media channel is setup") + ZS_PARAM("channel", mChannelResource->getID()))
 
+      IRTPReceiverChannelVideoAsyncDelegateProxy::create(mThisWeak.lock())->onReceiverChannelVideoDeliverPackets();
+
       return true;
     }
 
@@ -593,6 +659,9 @@ namespace ortc
       if (isShutdown()) return;
 
       setState(State_ShuttingDown);
+
+      mQueuedRTP = RTPPacketQueue();
+      mQueuedRTCP = RTCPPacketQueue();
 
       if (!mGracefulShutdownReference) mGracefulShutdownReference = mThisWeak.lock();
 

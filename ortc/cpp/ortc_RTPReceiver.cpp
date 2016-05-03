@@ -1212,6 +1212,27 @@ namespace ortc
         }
       }
 
+      // if H264 is first listed video codec, mark track for H264 rendering
+      for (auto iter = parameters->mCodecs.begin(); iter != parameters->mCodecs.end(); ++iter)
+      {
+        auto &codec = (*iter);
+
+        switch (IRTPTypes::toSupportedCodec(codec.mName))
+        {
+          case SupportedCodec_VP8:
+          case SupportedCodec_VP9:
+            mTrack->setH264Rendering(false);
+            goto end_codec_loop;
+          case SupportedCodec_H264:
+            mTrack->setH264Rendering(true);
+            goto end_codec_loop;
+        }
+        continue;
+
+      end_codec_loop:
+        break;
+      }
+
       if (mParameters) {
         auto hash = parameters->hash();
         auto previousHash = mParameters->hash();

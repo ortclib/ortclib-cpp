@@ -152,7 +152,7 @@ namespace ortc
 
     interaction IRTPReceiverChannelVideoAsyncDelegate
     {
-      virtual ~IRTPReceiverChannelVideoAsyncDelegate() {}
+      virtual void onReceiverChannelVideoDeliverPackets() = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -203,6 +203,8 @@ namespace ortc
       ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters)
       typedef std::list<RTCPPacketPtr> RTCPPacketList;
       ZS_DECLARE_PTR(RTCPPacketList)
+      typedef std::queue<RTPPacketPtr> RTPPacketQueue;
+      typedef std::queue<RTCPPacketPtr> RTCPPacketQueue;
 
       enum States
       {
@@ -312,6 +314,8 @@ namespace ortc
       #pragma mark RTPReceiverChannelVideo => IRTPReceiverChannelVideoAsyncDelegate
       #pragma mark
 
+      virtual void onReceiverChannelVideoDeliverPackets() override;
+
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark RTPReceiverChannelVideo => friend Transport
@@ -376,6 +380,7 @@ namespace ortc
       bool isShutdown() const;
 
       void step();
+      bool stepChannelPromise();
       bool stepSetupChannel();
 
       void cancel();
@@ -411,6 +416,9 @@ namespace ortc
       UseMediaStreamTrackPtr mTrack;
 
       TransportPtr mTransport;  // allow lifetime of callback to exist separate from "this" object
+
+      RTPPacketQueue mQueuedRTP;
+      RTCPPacketQueue mQueuedRTCP;
     };
 
     //-------------------------------------------------------------------------
@@ -439,4 +447,5 @@ namespace ortc
 }
 
 ZS_DECLARE_PROXY_BEGIN(ortc::internal::IRTPReceiverChannelVideoAsyncDelegate)
+ZS_DECLARE_PROXY_METHOD_0(onReceiverChannelVideoDeliverPackets)
 ZS_DECLARE_PROXY_END()
