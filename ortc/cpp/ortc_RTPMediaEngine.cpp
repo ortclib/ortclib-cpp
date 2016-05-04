@@ -1165,7 +1165,20 @@ namespace ortc
         LOG_V(sev) << msg;
       } else {
         std::string msg(message + 71, length - 72);
-        LOG_V(sev) << "webrtc: " << msg;
+        switch (sev) {
+        case rtc::LS_VERBOSE:
+          LOG_V(sev) << "webrtc - verbose: " << msg;
+          break;
+        case rtc::LS_ERROR:
+          LOG_V(sev) << "webrtc - error: " << msg;
+          break;
+        case rtc::LS_WARNING:
+          LOG_V(sev) << "webrtc - warning: " << msg;
+          break;
+        case rtc::LS_INFO:
+          LOG_V(sev) << "webrtc - info: " << msg;
+          break;
+        }
       }
     }
 
@@ -1613,7 +1626,8 @@ namespace ortc
 
       auto audioState = engine->getAudioState();
 
-      mModuleProcessThread = webrtc::ProcessThread::Create("AudioReceiverChannelResourceThread");
+      mModuleProcessThread = webrtc::ProcessThread::Create("AudioReceiverChannelResourceModuleProcessThread");
+      mPacerThread = webrtc::ProcessThread::Create("AudioReceiverChannelResourcePacerThread");
 
       mBitrateAllocator = rtc::scoped_ptr<webrtc::BitrateAllocator>(new webrtc::BitrateAllocator());
       mCallStats = rtc::scoped_ptr<webrtc::CallStats>(new webrtc::CallStats(mClock.get()));
@@ -1626,6 +1640,10 @@ namespace ortc
 
       mModuleProcessThread->Start();
       mModuleProcessThread->RegisterModule(mCallStats.get());
+      mModuleProcessThread->RegisterModule(mCongestionController.get());
+      mPacerThread->RegisterModule(mCongestionController->pacer());
+      mPacerThread->RegisterModule(mCongestionController->GetRemoteBitrateEstimator(true));
+      mPacerThread->Start();
 
       webrtc::VoEBase::GetInterface(voiceEngine)->Init(mTrack->getAudioDeviceModule());
 
@@ -1766,13 +1784,20 @@ namespace ortc
       if (mTrack)
         mTrack->stop();
 
+      mPacerThread->Stop();
+      mPacerThread->DeRegisterModule(mCongestionController->pacer());
+      mPacerThread->DeRegisterModule(mCongestionController->GetRemoteBitrateEstimator(true));
+      mModuleProcessThread->DeRegisterModule(mCongestionController.get());
       mModuleProcessThread->DeRegisterModule(mCallStats.get());
       mModuleProcessThread->Stop();
 
       mReceiveStream.reset();
       mCongestionController.reset();
       mCallStats.reset();
+      mBitrateAllocator.reset();
+      mClock.reset();
       mModuleProcessThread.reset();
+      mPacerThread.reset();
 
       notifyPromisesShutdown();
     }
@@ -1964,6 +1989,9 @@ namespace ortc
 
       auto audioState = engine->getAudioState();
 
+      mModuleProcessThread = webrtc::ProcessThread::Create("AudioSenderChannelResourceModuleProcessThread");
+      mPacerThread = webrtc::ProcessThread::Create("AudioSenderChannelResourcePacerThread");
+
       mBitrateAllocator = rtc::scoped_ptr<webrtc::BitrateAllocator>(new webrtc::BitrateAllocator());
       mCongestionController =
         rtc::scoped_ptr<webrtc::CongestionController>(new webrtc::CongestionController(
@@ -1971,6 +1999,12 @@ namespace ortc
                                                                                        this,
                                                                                        &mRemb
                                                                                        ));
+
+      mModuleProcessThread->Start();
+      mModuleProcessThread->RegisterModule(mCongestionController.get());
+      mPacerThread->RegisterModule(mCongestionController->pacer());
+      mPacerThread->RegisterModule(mCongestionController->GetRemoteBitrateEstimator(true));
+      mPacerThread->Start();
 
       webrtc::VoEBase::GetInterface(voiceEngine)->Init(mTrack->getAudioDeviceModule());
 
@@ -2114,7 +2148,18 @@ namespace ortc
       if (mTrack)
         mTrack->stop();
 
+      mPacerThread->Stop();
+      mPacerThread->DeRegisterModule(mCongestionController->pacer());
+      mPacerThread->DeRegisterModule(mCongestionController->GetRemoteBitrateEstimator(true));
+      mModuleProcessThread->DeRegisterModule(mCongestionController.get());
+      mModuleProcessThread->Stop();
+
       mSendStream.reset();
+      mCongestionController.reset();
+      mBitrateAllocator.reset();
+      mClock.reset();
+      mModuleProcessThread.reset();
+      mPacerThread.reset();
 
       notifyPromisesShutdown();
     }
@@ -2304,10 +2349,10 @@ namespace ortc
       AutoRecursiveLock lock(*this);
 
       uint32_t allocated_bitrate_bps = mBitrateAllocator->OnNetworkChanged(
-        targetBitrateBps,
-        fractionLoss,
-        rttMs
-        );
+                                                                           targetBitrateBps,
+                                                                           fractionLoss,
+                                                                           rttMs
+                                                                           );
 
       int padUpToBitrateBps = 0;
       uint32_t pacerBitrateBps = targetBitrateBps;
@@ -2333,7 +2378,8 @@ namespace ortc
     {
       AutoRecursiveLock lock(*this);
 
-      mModuleProcessThread = webrtc::ProcessThread::Create("VideoReceiverChannelResourceThread");
+      mModuleProcessThread = webrtc::ProcessThread::Create("VideoReceiverChannelResourceModuleProcessThread");
+      mPacerThread = webrtc::ProcessThread::Create("VideoReceiverChannelResourcePacerThread");
 
       mReceiverVideoRenderer.setMediaStreamTrack(mTrack);
 
@@ -2348,6 +2394,10 @@ namespace ortc
 
       mModuleProcessThread->Start();
       mModuleProcessThread->RegisterModule(mCallStats.get());
+      mModuleProcessThread->RegisterModule(mCongestionController.get());
+      mPacerThread->RegisterModule(mCongestionController->pacer());
+      mPacerThread->RegisterModule(mCongestionController->GetRemoteBitrateEstimator(true));
+      mPacerThread->Start();
 
       int numCpuCores = webrtc::CpuInfo::DetectNumberOfCores();
 
@@ -2510,13 +2560,20 @@ namespace ortc
       if (mReceiveStream)
         mReceiveStream->Stop();
 
+      mPacerThread->Stop();
+      mPacerThread->DeRegisterModule(mCongestionController->pacer());
+      mPacerThread->DeRegisterModule(mCongestionController->GetRemoteBitrateEstimator(true));
+      mModuleProcessThread->DeRegisterModule(mCongestionController.get());
       mModuleProcessThread->DeRegisterModule(mCallStats.get());
       mModuleProcessThread->Stop();
 
       mReceiveStream.reset();
       mCongestionController.reset();
       mCallStats.reset();
+      mBitrateAllocator.reset();
+      mClock.reset();
       mModuleProcessThread.reset();
+      mPacerThread.reset();
 
       notifyPromisesShutdown();
     }
@@ -2654,7 +2711,7 @@ namespace ortc
 
       int padUpToBitrateBps = 0;
       if (mSendStream)
-        padUpToBitrateBps = dynamic_cast<webrtc::internal::VideoSendStream *>(mSendStream.get())->GetPaddingNeededBps();
+        padUpToBitrateBps = static_cast<webrtc::internal::VideoSendStream *>(mSendStream.get())->GetPaddingNeededBps();
       uint32_t pacerBitrateBps = targetBitrateBps;
 
       if (mCongestionController)
@@ -2678,7 +2735,8 @@ namespace ortc
     {
       AutoRecursiveLock lock(*this);
 
-      mModuleProcessThread = webrtc::ProcessThread::Create("VideoSenderChannelResourceThread");
+      mModuleProcessThread = webrtc::ProcessThread::Create("VideoSenderChannelResourceModuleProcessThread");
+      mPacerThread = webrtc::ProcessThread::Create("VideoSenderChannelResourcePacerThread");
 
       mBitrateAllocator = rtc::scoped_ptr<webrtc::BitrateAllocator>(new webrtc::BitrateAllocator());
       mCallStats = rtc::scoped_ptr<webrtc::CallStats>(new webrtc::CallStats(mClock.get()));
@@ -2691,6 +2749,10 @@ namespace ortc
 
       mModuleProcessThread->Start();
       mModuleProcessThread->RegisterModule(mCallStats.get());
+      mModuleProcessThread->RegisterModule(mCongestionController.get());
+      mPacerThread->RegisterModule(mCongestionController->pacer());
+      mPacerThread->RegisterModule(mCongestionController->GetRemoteBitrateEstimator(true));
+      mPacerThread->Start();
 
       int numCpuCores = webrtc::CpuInfo::DetectNumberOfCores();
 
@@ -2880,13 +2942,21 @@ namespace ortc
       if (mSendStream)
         mSendStream->Stop();
 
+
+      mPacerThread->Stop();
+      mPacerThread->DeRegisterModule(mCongestionController->pacer());
+      mPacerThread->DeRegisterModule(mCongestionController->GetRemoteBitrateEstimator(true));
+      mModuleProcessThread->DeRegisterModule(mCongestionController.get());
       mModuleProcessThread->DeRegisterModule(mCallStats.get());
       mModuleProcessThread->Stop();
 
       mSendStream.reset();
       mCongestionController.reset();
       mCallStats.reset();
+      mBitrateAllocator.reset();
+      mClock.reset();
       mModuleProcessThread.reset();
+      mPacerThread.reset();
 
       notifyPromisesShutdown();
     }

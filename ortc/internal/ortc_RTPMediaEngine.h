@@ -1017,6 +1017,7 @@ namespace ortc
         RTPPacketPtr mInitPacket;
 
         rtc::scoped_ptr<webrtc::ProcessThread> mModuleProcessThread;
+        rtc::scoped_ptr<webrtc::ProcessThread> mPacerThread;
         rtc::scoped_ptr<webrtc::AudioReceiveStream> mReceiveStream;
         rtc::scoped_ptr<webrtc::Clock> mClock;
         webrtc::VieRemb mRemb;
@@ -1117,6 +1118,8 @@ namespace ortc
 
         ParametersPtr mParameters;
 
+        rtc::scoped_ptr<webrtc::ProcessThread> mModuleProcessThread;
+        rtc::scoped_ptr<webrtc::ProcessThread> mPacerThread;
         rtc::scoped_ptr<webrtc::AudioSendStream> mSendStream;
         rtc::scoped_ptr<webrtc::Clock> mClock;
         webrtc::VieRemb mRemb;
@@ -1224,6 +1227,7 @@ namespace ortc
         RTPPacketPtr mInitPacket;
 
         rtc::scoped_ptr<webrtc::ProcessThread> mModuleProcessThread;
+        rtc::scoped_ptr<webrtc::ProcessThread> mPacerThread;
         rtc::scoped_ptr<webrtc::VideoReceiveStream> mReceiveStream;
         rtc::scoped_ptr<webrtc::Clock> mClock;
         webrtc::VieRemb mRemb;
@@ -1318,6 +1322,7 @@ namespace ortc
         ParametersPtr mParameters;
 
         rtc::scoped_ptr<webrtc::ProcessThread> mModuleProcessThread;
+        rtc::scoped_ptr<webrtc::ProcessThread> mPacerThread;
         rtc::scoped_ptr<webrtc::VideoSendStream> mSendStream;
         rtc::scoped_ptr<webrtc::Clock> mClock;
         webrtc::VieRemb mRemb;
