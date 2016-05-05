@@ -145,11 +145,7 @@ namespace ortc
       SharedRecursiveLock(SharedRecursiveLock::create()),
       mKind(kind),
       mRemote(remote),
-      mConstraints(constraints),
-      mVideoCaptureModule(NULL),
-      //mVideoRenderModule(NULL),
-      mVideoRendererCallback(NULL),
-      mAudioDeviceModule(NULL)
+      mConstraints(constraints)
     {
       ZS_LOG_DETAIL(debug("created"))
     }
@@ -598,9 +594,6 @@ namespace ortc
         mVideoCaptureModule->DeRegisterCaptureDataCallback();
       }
 
-      //if (mVideoRenderModule)
-      //  mVideoRenderModule->StopRender(1);
-
       if (mAudioDeviceModule) {
         if (!mRemote)
           mAudioDeviceModule->StopRecording();
@@ -646,16 +639,28 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void MediaStreamTrack::setMediaElement(void* element)
+    void MediaStreamTrack::setVideoRenderCallback(void* callback)
     {
       AutoRecursiveLock lock(*this);
 
-      if (mKind == Kind_Video) {
-        //mVideoRenderModule = webrtc::VideoRender::CreateVideoRender(1, element, false);
-        //mVideoRendererCallback = mVideoRenderModule->AddIncomingRenderStream(1, 0, 0.0, 0.0, 1.0, 1.0);
-        //mVideoRenderModule->StartRender(1);
-        mVideoRendererCallback = (webrtc::VideoRenderCallback*)element;
-      }
+      if (mKind == Kind_Video)
+        mVideoRendererCallback = (webrtc::VideoRenderCallback*)callback;
+    }
+
+    //-------------------------------------------------------------------------
+    void MediaStreamTrack::setH264Rendering(bool h264Rendering)
+    {
+      AutoRecursiveLock lock(*this);
+
+      mH264Rendering = h264Rendering;
+    }
+
+    //-------------------------------------------------------------------------
+    bool MediaStreamTrack::isH264Rendering()
+    {
+      AutoRecursiveLock lock(*this);
+
+      return mH264Rendering;
     }
 
     //-------------------------------------------------------------------------

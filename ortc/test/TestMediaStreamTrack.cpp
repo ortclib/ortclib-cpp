@@ -149,7 +149,7 @@ namespace ortc
 
             ZS_LOG_DEBUG(log("getUserMedia promise resolved for video") + IMediaStreamTrack::toDebug(mTester.lock()->mLocalVideoMediaStreamTrack))
               
-            IMediaStreamTrackPtr(mTester.lock()->mLocalVideoMediaStreamTrack)->setMediaElement(mTester.lock()->mVideoSurface);
+            IMediaStreamTrackPtr(mTester.lock()->mLocalVideoMediaStreamTrack)->setVideoRenderCallback(mTester.lock()->mVideoSurface);
 
             mTester.lock()->mVideoSender = FakeSender::create(mTester.lock(), mTester.lock()->mLocalVideoMediaStreamTrack);
           }
@@ -1006,7 +1006,7 @@ namespace ortc
         mVideoReceiver = FakeReceiver::create(mThisWeak.lock(), IMediaStreamTrackTypes::Kinds::Kind_Video);
 
         mRemoteVideoMediaStreamTrack = MediaStreamTrack::convert(mVideoReceiver->track());
-        IMediaStreamTrackPtr(mRemoteVideoMediaStreamTrack)->setMediaElement(mVideoSurface);
+        IMediaStreamTrackPtr(mRemoteVideoMediaStreamTrack)->setVideoRenderCallback(mVideoSurface);
 
         mRemoteVideoTrackEvent->wait();
         if (mRemoteVideoMediaStreamTrack)

@@ -44,6 +44,8 @@
 #include <zsLib/Timer.h>
 
 #include "webrtc/base/scoped_ptr.h"
+#include <webrtc/base/logging.h>
+#include <webrtc/system_wrappers/include/trace.h>
 #include <webrtc/audio/audio_send_stream.h>
 #include <webrtc/audio/audio_receive_stream.h>
 #include <webrtc/video/video_send_stream.h>
@@ -91,7 +93,6 @@ namespace ortc
     ZS_DECLARE_TYPEDEF_PTR(zsLib::PromiseWith<RTPMediaEngine>, PromiseWithRTPMediaEngine)
     ZS_DECLARE_TYPEDEF_PTR(zsLib::PromiseWith<IRTPMediaEngineDeviceResource>, PromiseWithRTPMediaEngineDeviceResource)
     ZS_DECLARE_TYPEDEF_PTR(zsLib::PromiseWith<IRTPMediaEngineChannelResource>, PromiseWithRTPMediaEngineChannelResource)
-
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -293,7 +294,8 @@ namespace ortc
                                                                       UseReceiverChannelMediaBasePtr channel,
                                                                       TransportPtr transport,
                                                                       MediaStreamTrackPtr track,
-                                                                      ParametersPtr parameters
+                                                                      ParametersPtr parameters,
+                                                                      RTPPacketPtr packet
                                                                       );
 
       virtual PUID getID() const = 0;
@@ -310,8 +312,9 @@ namespace ortc
     interaction IRTPMediaEngineForRTPReceiverChannelAudio : public IRTPMediaEngineForRTPReceiverChannelMediaBase
     {
       ZS_DECLARE_TYPEDEF_PTR(IRTPMediaEngineForRTPReceiverChannelAudio, ForRTPReceiverChannelAudio)
-
+      
       virtual webrtc::VoiceEngine *getVoiceEngine() = 0;
+      virtual rtc::scoped_refptr<webrtc::AudioState> getAudioState() = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -386,6 +389,7 @@ namespace ortc
       ZS_DECLARE_TYPEDEF_PTR(IRTPMediaEngineForRTPSenderChannelAudio, ForRTPSenderChannelAudio)
 
       virtual webrtc::VoiceEngine *getVoiceEngine() = 0;
+      virtual rtc::scoped_refptr<webrtc::AudioState> getAudioState() = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -602,7 +606,8 @@ namespace ortc
                                                                UseReceiverChannelMediaBasePtr channel,
                                                                TransportPtr transport,
                                                                MediaStreamTrackPtr track,
-                                                               ParametersPtr parameters
+                                                               ParametersPtr parameters,
+                                                               RTPPacketPtr packet
                                                                );
 
       // (duplicate) virtual PUID getID() const = 0;
@@ -612,7 +617,9 @@ namespace ortc
       #pragma mark RTPMediaEngine => IRTPMediaEngineForRTPReceiverChannelAudio
       #pragma mark
 
-      webrtc::VoiceEngine *getVoiceEngine() override;
+      virtual webrtc::VoiceEngine *getVoiceEngine() override;
+
+      virtual rtc::scoped_refptr<webrtc::AudioState> getAudioState() override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -647,7 +654,9 @@ namespace ortc
       #pragma mark RTPMediaEngine => IRTPMediaEngineForRTPSenderChannelAudio
       #pragma mark
 
-      // (duplicate) virtual rtc::scoped_ptr<webrtc::VoiceEngine, VoiceEngineDeleter> getVoiceEngine() = 0;
+      // (duplicate) virtual webrtc::VoiceEngine *getVoiceEngine() = 0;
+
+      // (duplicate) virtual rtc::scoped_refptr<webrtc::AudioState> getAudioState() = 0;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -721,6 +730,20 @@ namespace ortc
       void setError(WORD error, const char *reason = NULL);
 
     public:
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPMediaEngine::WebRtcTraceCallback
+      #pragma mark
+
+      class WebRtcTraceCallback : public webrtc::TraceCallback
+      {
+      public:
+        virtual void Print(webrtc::TraceLevel level, const char* message, int length);
+      };
+
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
@@ -921,7 +944,8 @@ namespace ortc
                                      IRTPMediaEngineRegistrationPtr registration,
                                      TransportPtr transport,
                                      MediaStreamTrackPtr track,
-                                     ParametersPtr parameters
+                                     ParametersPtr parameters,
+                                     RTPPacketPtr packet
                                      );
         virtual ~AudioReceiverChannelResource();
 
@@ -929,7 +953,8 @@ namespace ortc
                                                       IRTPMediaEngineRegistrationPtr registration,
                                                       TransportPtr transport,
                                                       MediaStreamTrackPtr track,
-                                                      ParametersPtr parameters
+                                                      ParametersPtr parameters,
+                                                      RTPPacketPtr packet
                                                       );
 
       protected:
@@ -989,11 +1014,13 @@ namespace ortc
 
         ParametersPtr mParameters;
 
+        RTPPacketPtr mInitPacket;
+
         rtc::scoped_ptr<webrtc::ProcessThread> mModuleProcessThread;
+        rtc::scoped_ptr<webrtc::ProcessThread> mPacerThread;
         rtc::scoped_ptr<webrtc::AudioReceiveStream> mReceiveStream;
         rtc::scoped_ptr<webrtc::Clock> mClock;
         webrtc::VieRemb mRemb;
-        rtc::scoped_refptr<webrtc::AudioState> mAudioState;
         rtc::scoped_ptr<webrtc::CallStats> mCallStats;
         rtc::scoped_ptr<webrtc::CongestionController> mCongestionController;
         rtc::scoped_ptr<webrtc::BitrateAllocator> mBitrateAllocator;
@@ -1091,10 +1118,11 @@ namespace ortc
 
         ParametersPtr mParameters;
 
+        rtc::scoped_ptr<webrtc::ProcessThread> mModuleProcessThread;
+        rtc::scoped_ptr<webrtc::ProcessThread> mPacerThread;
         rtc::scoped_ptr<webrtc::AudioSendStream> mSendStream;
         rtc::scoped_ptr<webrtc::Clock> mClock;
         webrtc::VieRemb mRemb;
-        rtc::scoped_refptr<webrtc::AudioState> mAudioState;
         rtc::scoped_ptr<webrtc::CongestionController> mCongestionController;
         rtc::scoped_ptr<webrtc::BitrateAllocator> mBitrateAllocator;
 
@@ -1139,7 +1167,8 @@ namespace ortc
                                      IRTPMediaEngineRegistrationPtr registration,
                                      TransportPtr transport,
                                      MediaStreamTrackPtr track,
-                                     ParametersPtr parameters
+                                     ParametersPtr parameters,
+                                     RTPPacketPtr packet
                                      );
         virtual ~VideoReceiverChannelResource();
 
@@ -1147,7 +1176,8 @@ namespace ortc
                                                       IRTPMediaEngineRegistrationPtr registration,
                                                       TransportPtr transport,
                                                       MediaStreamTrackPtr track,
-                                                      ParametersPtr parameters
+                                                      ParametersPtr parameters,
+                                                      RTPPacketPtr packet
                                                       );
 
       protected:
@@ -1194,7 +1224,10 @@ namespace ortc
 
         ParametersPtr mParameters;
 
+        RTPPacketPtr mInitPacket;
+
         rtc::scoped_ptr<webrtc::ProcessThread> mModuleProcessThread;
+        rtc::scoped_ptr<webrtc::ProcessThread> mPacerThread;
         rtc::scoped_ptr<webrtc::VideoReceiveStream> mReceiveStream;
         rtc::scoped_ptr<webrtc::Clock> mClock;
         webrtc::VieRemb mRemb;
@@ -1218,6 +1251,12 @@ namespace ortc
       {
       public:
         friend class RTPMediaEngine;
+
+        union VideoEncoderSettings {
+          webrtc::VideoCodecVP8 mVp8;
+          webrtc::VideoCodecVP9 mVp9;
+          webrtc::VideoCodecH264 mH264;
+        };
 
       public:
         VideoSenderChannelResource(
@@ -1283,12 +1322,14 @@ namespace ortc
         ParametersPtr mParameters;
 
         rtc::scoped_ptr<webrtc::ProcessThread> mModuleProcessThread;
+        rtc::scoped_ptr<webrtc::ProcessThread> mPacerThread;
         rtc::scoped_ptr<webrtc::VideoSendStream> mSendStream;
         rtc::scoped_ptr<webrtc::Clock> mClock;
         webrtc::VieRemb mRemb;
         rtc::scoped_ptr<webrtc::CallStats> mCallStats;
         rtc::scoped_ptr<webrtc::CongestionController> mCongestionController;
         rtc::scoped_ptr<webrtc::BitrateAllocator> mBitrateAllocator;
+        VideoEncoderSettings mVideoEncoderSettings;
       };
 
     protected:
@@ -1316,7 +1357,10 @@ namespace ortc
       ChannelResourceList mPendingSetupChannelResources;
       ChannelResourceList mPendingCloseChannelResources;
 
+      rtc::scoped_refptr<webrtc::AudioState> mAudioState;
       rtc::scoped_ptr<webrtc::VoiceEngine, VoiceEngineDeleter> mVoiceEngine;
+
+      rtc::scoped_ptr<WebRtcTraceCallback> mTraceCallback;
     };
 
     //-------------------------------------------------------------------------

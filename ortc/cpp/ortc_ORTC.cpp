@@ -196,7 +196,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     IMessageQueuePtr ORTC::queueORTC() const
     {
-      return UseMessageQueueManager::getThreadPoolQueue(ORTC_QUEUE_MAIN_THREAD_NAME);
+      return UseMessageQueueManager::getMessageQueue(ORTC_QUEUE_MAIN_THREAD_NAME);
     }
 
     //-------------------------------------------------------------------------
