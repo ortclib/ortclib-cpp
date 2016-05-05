@@ -29,11 +29,11 @@
  
  */
 
-#pragma once
+#include <ortc/adapter/internal/ortc_adapter_PeerConnection.h>
 
+#include <zsLib/Log.h>
 
-#include <ortc/internal/types.h>
-#include <ortc/adapter/IPeerSessionDescriptionManager.h>
+namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib); }
 
 namespace ortc
 {
@@ -41,19 +41,37 @@ namespace ortc
   {
     namespace internal
     {
-      //-------------------------------------------------------------------------
-      //-------------------------------------------------------------------------
-      //-------------------------------------------------------------------------
-      //-------------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark PeerSessionDescriptionManager
+      #pragma mark PeerConnection
       #pragma mark
 
-      class PeerSessionDescriptionManager : public IPeerSessionDescriptionManager
-      {
-      public:
-      };
+    }  // namespace internal
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark PeerConnection
+    #pragma mark
+
+    IPeerConnectionPtr IPeerConnection::create(
+                                               IPeerConnectionDelegatePtr delegate,
+                                               const Optional<Configuration> &configuration
+                                               )
+    {
+      return IPeerConnectionPtr();
     }
-  }
-}
 
+    IPeerConnection::ServerListPtr IPeerConnection::getDefaultIceServers()
+    {
+      return ServerListPtr();
+    }
+
+
+  } // namespace adapter
+} // namespace ortc

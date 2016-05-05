@@ -26,25 +26,34 @@
  The views and conclusions contained in the software and documentation are those
  of the authors and should not be interpreted as representing official policies,
  either expressed or implied, of the FreeBSD Project.
-
+ 
  */
 
 #pragma once
 
-#include <ortc/types.h>
+
+#include <ortc/internal/types.h>
+#include <ortc/adapter/IPeerConnection.h>
 
 namespace ortc
 {
   namespace adapter
   {
-    ZS_DECLARE_INTERACTION_PTR(IMediaStream);
-    ZS_DECLARE_INTERACTION_PTR(ISessionDescription);
-    ZS_DECLARE_INTERACTION_PTR(IPeerConnection);
+    namespace internal
+    {
+      //-------------------------------------------------------------------------
+      //-------------------------------------------------------------------------
+      //-------------------------------------------------------------------------
+      //-------------------------------------------------------------------------
+      #pragma mark
+      #pragma mark PeerConnection
+      #pragma mark
 
-    ZS_DECLARE_INTERACTION_PROXY(IMediaStreamDelegate);
-    ZS_DECLARE_INTERACTION_PROXY(IPeerConnectionDelegate);
-
-    ZS_DECLARE_INTERACTION_PROXY_SUBSCRIPTION(IMediaStreamSubscription, IMediaStreamDelegate);
-    ZS_DECLARE_INTERACTION_PROXY_SUBSCRIPTION(IPeerConnectionSubscription, IPeerConnectionDelegate);
+      class PeerConnection : public IPeerConnection
+      {
+      public:
+      };
+    }
   }
 }
+

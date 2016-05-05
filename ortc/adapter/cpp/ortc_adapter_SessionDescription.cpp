@@ -34,13 +34,13 @@
 
 //#include <openpeer/services/IHelper.h>
 //
-//#include <zsLib/Log.h>
+#include <zsLib/Log.h>
 //#include <zsLib/Numeric.h>
 //#include <zsLib/Stringize.h>
 //#include <zsLib/XML.h>
 
 
-namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib) }
+namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib); }
 
 namespace ortc
 {
@@ -48,14 +48,64 @@ namespace ortc
   {
     namespace internal
     {
-      //---------------------------------------------------------------------------
-      //---------------------------------------------------------------------------
-      //---------------------------------------------------------------------------
-      //---------------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark SessionDescription
       #pragma mark
 
     }  // namespace internal
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark ISessionDescription
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    ISessionDescriptionTypes::ICECandidatePtr ISessionDescriptionTypes::ICECandidate::create(ElementPtr candidateEl)
+    {
+      return ICECandidatePtr();
+    }
+    //-------------------------------------------------------------------------
+    ISessionDescriptionTypes::ICECandidatePtr ISessionDescriptionTypes::ICECandidate::createFromSDP(const char *string)
+    {
+      return ICECandidatePtr();
+    }
+
+    //-------------------------------------------------------------------------
+    String ISessionDescriptionTypes::ICECandidate::toSDP() const
+    {
+      return String();
+    }
+
+    //-------------------------------------------------------------------------
+    ElementPtr ISessionDescriptionTypes::ICECandidate::toJSON() const
+    {
+      return ElementPtr();
+    }
+
+    //-------------------------------------------------------------------------
+    ISessionDescriptionPtr ISessionDescription::create(
+                                                       SignalingTypes type,
+                                                       const char *description
+                                                       )
+    {
+      return ISessionDescriptionPtr();
+    }
+
+    //-------------------------------------------------------------------------
+    ISessionDescriptionPtr ISessionDescription::create(
+                                                       SignalingTypes type,
+                                                       const Description &description
+                                                       )
+    {
+      return ISessionDescriptionPtr();
+    }
+
   } // namespace adapter
 } // namespace ortc

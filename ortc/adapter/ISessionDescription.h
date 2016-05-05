@@ -37,6 +37,7 @@
 #include <ortc/IDTLSTransport.h>
 #include <ortc/IMediaStreamTrack.h>
 #include <ortc/ISRTPSDESTransport.h>
+#include <ortc/ISCTPTransport.h>
 
 #include <map>
 #include <set>
@@ -45,41 +46,58 @@ namespace ortc
 {
   namespace adapter
   {
-    //---------------------------------------------------------------------------
-    //---------------------------------------------------------------------------
-    //---------------------------------------------------------------------------
-    //---------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
     #pragma mark
     #pragma mark ISessionDescriptionTypes
     #pragma mark
 
     interaction ISessionDescriptionTypes
     {
-      ZS_DECLARE_STRUCT_PTR(Description)
-      ZS_DECLARE_STRUCT_PTR(Origin)
-      ZS_DECLARE_STRUCT_PTR(ConnectionData)
-      ZS_DECLARE_STRUCT_PTR(Transport)
-      ZS_DECLARE_STRUCT_PTR(MediaLine)
-      ZS_DECLARE_STRUCT_PTR(MediaStreamTrack)
-      ZS_DECLARE_TYPEDEF_PTR(IICETypes::Parameters, TransportParameters)
-      ZS_DECLARE_TYPEDEF_PTR(IDTLSTransport::Parameters, DTLSParameters)
-      ZS_DECLARE_TYPEDEF_PTR(ISRTPSDESTransport::Parameters, SRTPSDESParameters)
-      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Capabilities, RTPCapabilities)
-      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::ParametersPtr, RTPParameters)
+      ZS_DECLARE_STRUCT_PTR(Description);
+      ZS_DECLARE_STRUCT_PTR(ConnectionData);
+      ZS_DECLARE_STRUCT_PTR(Transport);
+      ZS_DECLARE_STRUCT_PTR(MediaLine);
+      ZS_DECLARE_STRUCT_PTR(RTPMediaLine);
+      ZS_DECLARE_STRUCT_PTR(SCTPMediaLine);
+      ZS_DECLARE_STRUCT_PTR(RTPSender);
+      ZS_DECLARE_STRUCT_PTR(ICECandidate);
+      ZS_DECLARE_TYPEDEF_PTR(IICETypes::Parameters, ICETransportParameters);
+      ZS_DECLARE_TYPEDEF_PTR(IDTLSTransport::Parameters, DTLSParameters);
+      ZS_DECLARE_TYPEDEF_PTR(ISRTPSDESTransport::Parameters, SRTPSDESParameters);
+      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Capabilities, RTPCapabilities);
+      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, RTPParameters);
+      ZS_DECLARE_TYPEDEF_PTR(ISCTPTransport::Capabilities, SCTPCapabilities);
+      ZS_DECLARE_TYPEDEF_PTR(std::list<ICECandidatePtr>, ICECandidateList);
 
-      typedef String MediaStreamTrackID;
-      typedef std::map<MediaStreamTrackID, MediaStreamTrackPtr> MediaStreamTrackMap;
+      typedef String SignalingDescription;
 
       typedef String MediaStreamID;
       typedef std::set<MediaStreamID> MediaStreamSet;
 
       typedef String TransportID;
-      typedef std::map<TransportID, TransportPtr> TransportMap;
-
       typedef String MediaLineID;
-      typedef std::map<MediaLineID, MediaLine> MediaLineMap;
+      typedef String SenderID;
 
-      typedef String BundleID;
+      ZS_DECLARE_TYPEDEF_PTR(std::list<TransportPtr>, TransportList);
+      ZS_DECLARE_TYPEDEF_PTR(std::list<RTPMediaLinePtr>, RTPMediaList);
+      ZS_DECLARE_TYPEDEF_PTR(std::list<SCTPMediaLinePtr>, SCTPMediaList);
+      ZS_DECLARE_TYPEDEF_PTR(std::list<RTPSenderPtr>, RTPSenderList);
+
+      enum SignalingTypes
+      {
+        SignalingType_Auto,
+        SignalingType_JSON,
+        SignalingType_SDPOffer,
+        SignalingType_SDPPreanswer,
+        SignalingType_SDPAnswer,
+        SignalingType_SDPRollback,
+      };
+
+      static const char *toString(SignalingTypes type);
+      static SignalingTypes toSignalingType(const char *type);
 
       enum MediaTypes
       {
@@ -95,125 +113,162 @@ namespace ortc
         MediaType_Last = MediaType_Application,
       };
 
-      struct Origin
+      static const char *toString(MediaTypes mediaType);
+      static MediaTypes toMediaType(const char *mediaType);
+      static Optional<IMediaStreamTrackTypes::Kinds> toMediaStreamTrackKind(MediaTypes mediaType);
+
+      enum MediaDirections
       {
-        String mUsername;
-        String mSessionID;
-        ULONGLONG mSessionVersion;
-        String mNetType;
-        String AddrType;
-        String mUnicastAddress;
+        MediaDirection_Inactive,
+        MediaDirection_SendOnly,
+        MediaDirection_ReceiveOnly,
+        MediaDirection_SendReceive,
       };
+
+      static const char *toString(MediaDirections mediaDirection);
+      static MediaDirections toMediaDirection(const char *mediaDirection);
 
       struct ConnectionData
       {
-        String mNetType;
-        String mAddrType;
-        String mConnectionAddress;
-      };
-
-      struct Transport
-      {
-        TransportID mID;
-        TransportParameters mIceParameters;
-        DTLSParametersPtr mDTLSParameters;
-        SRTPSDESParametersPtr mSRTPSDESParameters;
-      };
-
-      struct MediaLine
-      {
-        ZS_DECLARE_STRUCT_PTR(Details)
+        ZS_DECLARE_STRUCT_PTR(Details);
 
         struct Details
         {
           Optional<WORD> mPort;
-          Optional<WORD> mRTCPPort;
-
-          ConnectionDataPtr mConnectionData;      // optional; can be null;
-          ConnectionDataPtr mRTCPConnectionData;  // optiona; can be null;
-
-          String mTransportProtocol;
+          String mNetType;
+          String mAddrType;
+          String mConnectionAddress;
         };
 
-        static Optional<IMediaStreamTrackTypes::Kinds> toMediaStreamTrackKind(const char *mediaType);
+        DetailsPtr mRTP;
+        DetailsPtr mRTCP;
+      };
 
-        MediaTypes mMediaType {MediaType_Unknown};
-        String mMediaTypeUnknown;
+      struct Transport
+      {
+        ZS_DECLARE_STRUCT_PTR(Parameters);
 
-        BundleID mBundleID;                 // all media lines that can be bundled must share the same bundle ID
-        DetailsPtr mDetails;                // optional; can be null;
+        struct Parameters
+        {          
+          ICETransportParametersPtr mICEParameters;
+          DTLSParametersPtr mDTLSParameters;
+          SRTPSDESParametersPtr mSRTPSDESParameters;
+          ICECandidateList mICECandidates;
+          bool mEndOfCandidates {false};
+        };
+
+        TransportID mID;
+        ParametersPtr mRTP;
+        ParametersPtr mRTCP;
+      };
+
+      struct MediaLine : public Any
+      {
+        ZS_DECLARE_STRUCT_PTR(Details);
+
+        struct Details
+        {
+          Optional<size_t> mInternalIndex;
+          String mProtocol;
+
+          ConnectionDataPtr mConnectionData;      // optional; can be null;
+        };
+
+        MediaLineID mID;
+        TransportID mTransportID;
+
+        String mMediaType;
+        DetailsPtr mDetails;
+      };
+
+      struct RTPMediaLine : public MediaLine
+      {
+        MediaDirections mMediaDirection {MediaDirection_SendReceive};
         RTPCapabilitiesPtr mCapabilities;
-
-        TransportPtr mRTPTransport;
-        TransportPtr mRTCPTransport;        // optional; can be null;
       };
 
-      struct Description
+      struct SCTPMediaLine : public MediaLine
       {
-        OriginPtr mOrigin;                  // optional; can be null;
-        String mSessionName;
-        ConnectionDataPtr mConnectionData;  // optional; can be null;
-
-        TransportMap mTransports;
-        MediaLineMap mMediaLines;
-
-        MediaStreamTrackMap mSendingTracks;
+        SCTPCapabilitiesPtr mCapabilities;
+        Optional<WORD> mPort;
       };
 
-      struct MediaTrack
+      struct RTPSender
       {
-        MediaStreamTrackID mID;
-        TransportPtr mRTPTransport;
+        ZS_DECLARE_STRUCT_PTR(Details);
+
+        struct Details
+        {
+          Optional<size_t> mInternalRTPMediaLineIndex;
+        };
+
+        SenderID mID;
+        DetailsPtr mDetails;
+        MediaLineID mRTPMediaLineID;
         RTPParametersPtr mParameters;
         MediaStreamSet mMediaStreams;
       };
 
+      struct ICECandidate
+      {
+        String mMid;
+        Optional<size_t> mMLineIndex;
+        IICETypes::Components mComponent {IICETypes::Component_RTP};
+        IICETypes::GatherCandidatePtr mCandidate;
+
+        static ICECandidatePtr create(ElementPtr candidateEl);
+        static ICECandidatePtr createFromSDP(const char *string);
+        String toSDP() const;
+        ElementPtr toJSON() const;
+      };
+
+      struct Description
+      {
+        ZS_DECLARE_STRUCT_PTR(Details);
+
+        struct Details
+        {
+          String mUsername {"-"};
+          ULONGLONG mSessionID {};
+          ULONGLONG mSessionVersion {};
+          ConnectionData::DetailsPtr mUnicaseAddress;
+          String mSessionName;
+          QWORD mStartTime {};
+          QWORD mEndTime {};
+          ConnectionDataPtr mConnectionData;  // optional; can be null;
+        };
+
+        DetailsPtr mDetails;                // optional; can be null;
+
+        TransportList mTransports;
+        RTPMediaList mRTPMediaLines;
+        SCTPMediaList mSCTPMediaLines;
+        RTPSenderList mRTPSenders;
+      };
     };
 
-    //---------------------------------------------------------------------------
-    //---------------------------------------------------------------------------
-    //---------------------------------------------------------------------------
-    //---------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
     #pragma mark
     #pragma mark ISessionDescription
     #pragma mark
 
     interface ISessionDescription : public ISessionDescriptionTypes
     {
-      ZS_DECLARE_STRUCT_PTR(ParserOptions)
-      ZS_DECLARE_STRUCT_PTR(GeneratorOptions)
+      static ISessionDescriptionPtr create(
+                                           SignalingTypes type,
+                                           const char *description
+                                           );
+      static ISessionDescriptionPtr create(
+                                           SignalingTypes type,
+                                           const Description &description
+                                           );
 
-      enum Modes
-      {
-        Mode_SDP,
-        Mode_JSON,
-      };
-
-      struct ParserOptions
-      {
-        Optional<Modes> mMode;
-
-        ParserOptions() {}
-      };
-
-      struct GeneratorOptions
-      {
-        Modes mMode {Mode_JSON};
-
-        GeneratorOptions() {}
-      };
-
-      static DescriptionPtr parse(
-                                  const char *description,
-                                  const ParserOptions &options
-                                  );
-
-      static String generate(
-                             const Description &description,
-                             const GeneratorOptions &options
-                             );
-
-      virtual ~ISessionDescription() {}
+      virtual SignalingTypes type() const = 0;
+      virtual DescriptionPtr description() const = 0;
+      virtual SignalingDescription formattedDescription() const = 0;
     };
   }
 }

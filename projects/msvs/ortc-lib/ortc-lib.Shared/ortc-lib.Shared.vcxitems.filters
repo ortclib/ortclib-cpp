@@ -243,9 +243,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\adapter\internal\ortc_adapter_SessionDescription.h">
       <Filter>ortc\adapter\internal</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\adapter\IPeerSessionDescriptionManager.h">
-      <Filter>ortc\adapter</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\adapter\types.h">
       <Filter>ortc\adapter</Filter>
     </ClInclude>
@@ -258,7 +255,16 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\adapter\internal\ortc_adapter_adapter.h">
       <Filter>ortc\adapter\internal</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\adapter\internal\ortc_adapter_PeerSessionDescriptionManager.h">
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\adapter\IPeerConnection.h">
+      <Filter>ortc\adapter</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\adapter\internal\ortc_adapter_PeerConnection.h">
+      <Filter>ortc\adapter\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\adapter\IMediaStream.h">
+      <Filter>ortc\adapter</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\adapter\internal\ortc_adapter_MediaStream.h">
       <Filter>ortc\adapter\internal</Filter>
     </ClInclude>
   </ItemGroup>
@@ -395,7 +401,10 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\adapter\cpp\ortc_adapter_adapter.cpp">
       <Filter>ortc\adapter\cpp</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\adapter\cpp\ortc_adapter_PeerSessionDescriptionManager.cpp">
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\adapter\cpp\ortc_adapter_PeerConnection.cpp">
+      <Filter>ortc\adapter\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\adapter\cpp\ortc_adapter_MediaStream.cpp">
       <Filter>ortc\adapter\cpp</Filter>
     </ClCompile>
   </ItemGroup>

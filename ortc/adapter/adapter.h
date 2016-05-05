@@ -33,5 +33,6 @@
 
 #include <ortc/adapter/types.h>
 
+#include <ortc/adapter/IMediaStream.h>
 #include <ortc/adapter/ISessionDescription.h>
-#include <ortc/adapter/IPeerSessionDescriptionManager.h>
+#include <ortc/adapter/IPeerConnection.h>

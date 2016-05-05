@@ -52,9 +52,9 @@ namespace ortc
       #pragma mark (forwards)
       #pragma mark
 
-      ZS_DECLARE_CLASS_PTR(Helper)
-      ZS_DECLARE_CLASS_PTR(SessionDescription)
-      ZS_DECLARE_CLASS_PTR(PeerSessionDescriptionManager)
+      ZS_DECLARE_CLASS_PTR(Helper);
+      ZS_DECLARE_CLASS_PTR(SessionDescription);
+      ZS_DECLARE_CLASS_PTR(PeerConnection);
     }
   }
 }

@@ -49,14 +49,14 @@ namespace ortc
   interaction IMediaStreamTrackTypes : public ICapabilities,
                                        public IConstraints
   {
-    ZS_DECLARE_STRUCT_PTR(Capabilities)
-    ZS_DECLARE_STRUCT_PTR(Settings)
-    ZS_DECLARE_STRUCT_PTR(ConstraintSet)
-    ZS_DECLARE_STRUCT_PTR(TrackConstraints)
-    ZS_DECLARE_STRUCT_PTR(Constraints)
-    ZS_DECLARE_STRUCT_PTR(OverconstrainedError)
+    ZS_DECLARE_STRUCT_PTR(Capabilities);
+    ZS_DECLARE_STRUCT_PTR(Settings);
+    ZS_DECLARE_STRUCT_PTR(ConstraintSet);
+    ZS_DECLARE_STRUCT_PTR(TrackConstraints);
+    ZS_DECLARE_STRUCT_PTR(Constraints);
+    ZS_DECLARE_STRUCT_PTR(OverconstrainedError);
 
-    ZS_DECLARE_TYPEDEF_PTR(std::list<ConstraintSetPtr>, ConstraintSetList)
+    ZS_DECLARE_TYPEDEF_PTR(std::list<ConstraintSetPtr>, ConstraintSetList);
 
     enum Kinds
     {
@@ -302,7 +302,7 @@ namespace ortc
 
   interaction IMediaStreamTrackDelegate
   {
-    ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::OverconstrainedError, OverconstrainedError)
+    ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::OverconstrainedError, OverconstrainedError);
 
     virtual void onMediaStreamTrackMute(
                                         IMediaStreamTrackPtr track,

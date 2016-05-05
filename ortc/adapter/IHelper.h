@@ -32,6 +32,7 @@
 #pragma once
 
 #include <ortc/adapter/types.h>
+#include <ortc/IRTPTypes.h>
 
 namespace ortc
 {
@@ -47,6 +48,11 @@ namespace ortc
 
     interaction IHelper
     {
+      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Capabilities, RTPCapabilities);
+      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, RTPParameters);
+
+      static RTPParametersPtr capabilitiesToParameters(const RTPCapabilities &capabilities);
+      static RTPCapabilitiesPtr parametersToCapabilities(const RTPParameters &parameters);
     };
   }
 }

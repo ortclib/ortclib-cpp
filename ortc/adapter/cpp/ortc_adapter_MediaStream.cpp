@@ -29,11 +29,11 @@
  
  */
 
+#include <ortc/adapter/internal/ortc_adapter_MediaStream.h>
 
-#include <ortc/adapter/internal/ortc_adapter_PeerSessionDescriptionManager.h>
+#include <zsLib/Log.h>
 
-
-namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib) }
+namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib); }
 
 namespace ortc
 {
@@ -41,14 +41,41 @@ namespace ortc
   {
     namespace internal
     {
-      //---------------------------------------------------------------------------
-      //---------------------------------------------------------------------------
-      //---------------------------------------------------------------------------
-      //---------------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark PeerSessionDescriptionManager
+      #pragma mark MediaStream
       #pragma mark
 
     }  // namespace internal
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark MediaStream
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    IMediaStreamPtr IMediaStream::create(
+                                         IMediaStreamDelegatePtr delegate,
+                                         IMediaStreamPtr stream
+                                         )
+    {
+      return IMediaStreamPtr();
+    }
+
+    //-------------------------------------------------------------------------
+    IMediaStreamPtr IMediaStream::create(
+                                         IMediaStreamDelegatePtr delegate,
+                                         const MediaStreamTrackList &tracks
+                                         )
+    {
+      return IMediaStreamPtr();
+    }
+
   } // namespace adapter
 } // namespace ortc
