@@ -171,7 +171,8 @@ namespace ortc
           Optional<size_t> mInternalIndex;
           String mProtocol;
 
-          ConnectionDataPtr mConnectionData;      // optional; can be null;
+          ConnectionDataPtr mConnectionData;
+          MediaDirections mMediaDirection {MediaDirection_SendReceive};
         };
 
         MediaLineID mID;
@@ -183,7 +184,6 @@ namespace ortc
 
       struct RTPMediaLine : public MediaLine
       {
-        MediaDirections mMediaDirection {MediaDirection_SendReceive};
         RTPCapabilitiesPtr mCapabilities;
       };
 
