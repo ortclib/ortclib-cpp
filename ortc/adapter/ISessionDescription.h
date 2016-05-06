@@ -184,7 +184,8 @@ namespace ortc
 
       struct RTPMediaLine : public MediaLine
       {
-        RTPCapabilitiesPtr mCapabilities;
+        RTPCapabilitiesPtr mSenderCapabilities;
+        RTPCapabilitiesPtr mReceiverCapabilities;
       };
 
       struct SCTPMediaLine : public MediaLine
