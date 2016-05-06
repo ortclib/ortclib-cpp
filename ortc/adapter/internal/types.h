@@ -32,17 +32,29 @@
 #pragma once
 
 #include <ortc/adapter/types.h>
+
 #include <openpeer/services/types.h>
 #include <openpeer/services/IFactory.h>
 
+#include <zsLib/Log.h>
+#include <zsLib/MessageQueueAssociator.h>
+
 namespace ortc
 {
-  namespace internal
+  namespace adapter
   {
-    namespace adapter
+    namespace internal
     {
+      using zsLib::Noop;
+      using zsLib::MessageQueueAssociator;
+
+      using zsLib::Log;
+      using zsLib::AutoPUID;
+      using zsLib::AutoRecursiveLock;
 
       using openpeer::services::IFactory;
+
+      using openpeer::services::SharedRecursiveLock;
 
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
@@ -53,6 +65,7 @@ namespace ortc
       #pragma mark
 
       ZS_DECLARE_CLASS_PTR(Helper);
+      ZS_DECLARE_CLASS_PTR(MediaStream);
       ZS_DECLARE_CLASS_PTR(SessionDescription);
       ZS_DECLARE_CLASS_PTR(PeerConnection);
     }

@@ -70,6 +70,8 @@ namespace ortc
                                     const MediaStreamTrackList &tracks
                                     );
 
+      static ElementPtr toDebug(IMediaStreamPtr stream);
+
       virtual IMediaStreamSubscriptionPtr subscribe(IMediaStreamDelegatePtr delegate) = 0;
 
       virtual String id() const = 0;
@@ -78,7 +80,7 @@ namespace ortc
       virtual MediaStreamTrackListPtr getAudioTracks() const = 0;
       virtual MediaStreamTrackListPtr getVideoTracks() const = 0;
       virtual MediaStreamTrackListPtr getTracks() const = 0;
-      virtual IMediaStreamTrackPtr getTrackByID(const char *id) const;
+      virtual IMediaStreamTrackPtr getTrackByID(const char *id) const = 0;
 
       virtual void addTrack(IMediaStreamTrackPtr track) = 0;
       virtual void removeTrack(IMediaStreamTrackPtr track) = 0;

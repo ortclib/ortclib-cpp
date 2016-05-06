@@ -195,7 +195,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     IDTMFSenderSubscriptionPtr DTMFSender::subscribe(IDTMFSenderDelegatePtr originalDelegate)
     {
-      ZS_LOG_DETAIL(log("subscribing to transport state"))
+      ZS_LOG_DETAIL(log("subscribing to dtmf sender"));
 
       AutoRecursiveLock lock(*this);
       if (!originalDelegate) return mDefaultSubscription;

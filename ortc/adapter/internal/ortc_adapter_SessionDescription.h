@@ -32,7 +32,7 @@
 #pragma once
 
 
-#include <ortc/internal/types.h>
+#include <ortc/adapter/internal/types.h>
 #include <ortc/adapter/ISessionDescription.h>
 
 namespace ortc

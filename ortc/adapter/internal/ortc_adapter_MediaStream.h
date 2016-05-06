@@ -32,28 +32,173 @@
 #pragma once
 
 
-#include <ortc/internal/types.h>
+#include <ortc/adapter/internal/types.h>
 #include <ortc/adapter/IMediaStream.h>
 
 namespace ortc
 {
+  namespace internal
+  {
+    ZS_DECLARE_INTERACTION_PTR(IMediaStreamTrackForMediaStream);
+  } // namespace internal
+
   namespace adapter
   {
     namespace internal
     {
-      //-------------------------------------------------------------------------
-      //-------------------------------------------------------------------------
-      //-------------------------------------------------------------------------
-      //-------------------------------------------------------------------------
-      #pragma mark
-      #pragma mark IMediaStream
-      #pragma mark
+      ZS_DECLARE_INTERACTION_PTR(IMediaStreamForPeerConnection);
 
-      class MediaStream : public IMediaStream
+      interaction IMediaStreamForPeerConnection
       {
-      public:
-      };
-    }
-  }
-}
+        ZS_DECLARE_TYPEDEF_PTR(IMediaStreamForPeerConnection, ForPeerConnection);
 
+        virtual void notifyAddTrack(IMediaStreamTrackPtr track) = 0;
+        virtual void notifyRemoveTrack(IMediaStreamTrackPtr track) = 0;
+      };
+
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark MediaStream
+      #pragma mark
+
+      class MediaStream : public Noop,
+                          public MessageQueueAssociator,
+                          public SharedRecursiveLock,
+                          public IMediaStream,
+                          public IMediaStreamForPeerConnection
+      {
+      protected:
+        struct make_private {};
+
+        friend interaction IMediaStreamFactory;
+        friend interaction IMediaStream;
+        friend interaction IMediaStreamForPeerConnection;
+
+        ZS_DECLARE_TYPEDEF_PTR(ortc::internal::IMediaStreamTrackForMediaStream, UseMediaStreamTrack);
+        ZS_DECLARE_TYPEDEF_PTR(std::list<UseMediaStreamTrackPtr>, UseMediaStreamTrackList);
+
+      public:
+        MediaStream(
+                    const make_private &,
+                    IMessageQueuePtr queue,
+                    IMediaStreamDelegatePtr delegate,
+                    const UseMediaStreamTrackList &tracks
+                    );
+
+        static MediaStreamPtr convert(IMediaStreamPtr object);
+        static MediaStreamPtr convert(ForPeerConnectionPtr object);
+
+      protected:
+        MediaStream(Noop) :
+          Noop(true),
+          MessageQueueAssociator(IMessageQueuePtr()),
+          SharedRecursiveLock(SharedRecursiveLock::create())
+        {}
+
+        void init();
+
+        //---------------------------------------------------------------------
+        //---------------------------------------------------------------------
+        //---------------------------------------------------------------------
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark MediaStream => IMediaStream
+        #pragma mark
+
+        static ElementPtr toDebug(IMediaStreamPtr object);
+
+        static MediaStreamPtr create(
+                                     IMediaStreamDelegatePtr delegate,
+                                     IMediaStreamPtr stream
+                                     );
+        static MediaStreamPtr create(
+                                     IMediaStreamDelegatePtr delegate,
+                                     const MediaStreamTrackList &tracks
+                                     );
+
+        virtual IMediaStreamSubscriptionPtr subscribe(IMediaStreamDelegatePtr delegate) override;
+
+        virtual String id() const override;
+        virtual bool active() const override;
+
+        virtual MediaStreamTrackListPtr getAudioTracks() const override;
+        virtual MediaStreamTrackListPtr getVideoTracks() const override;
+        virtual MediaStreamTrackListPtr getTracks() const override;
+        virtual IMediaStreamTrackPtr getTrackByID(const char *id) const override;
+
+        virtual void addTrack(IMediaStreamTrackPtr track) override;
+        virtual void removeTrack(IMediaStreamTrackPtr track) override;
+
+        virtual IMediaStreamPtr clone() const override;
+
+        //---------------------------------------------------------------------
+        //---------------------------------------------------------------------
+        //---------------------------------------------------------------------
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark MediaStream => ForPeerConnection
+        #pragma mark
+
+        virtual void notifyAddTrack(IMediaStreamTrackPtr track) override;
+        virtual void notifyRemoveTrack(IMediaStreamTrackPtr track) override;
+
+      protected:
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark MediaStream => (internal)
+        #pragma mark
+
+        Log::Params log(const char *message) const;
+        Log::Params debug(const char *message) const;
+        virtual ElementPtr toDebug() const;
+
+        bool isShutdown() const { return false; }
+
+      protected:
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark MediaStream => (data)
+        #pragma mark
+
+        AutoPUID mID;
+        String mMSID;
+        MediaStreamWeakPtr mThisWeak;
+        //MediaStreamPtr mGracefulShutdownReference;
+
+        IMediaStreamDelegateSubscriptions mSubscriptions;
+        IMediaStreamSubscriptionPtr mDefaultSubscription;
+
+        UseMediaStreamTrackList mTracks;
+      };
+
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark IMediaStreamFactory
+      #pragma mark
+
+      interaction IMediaStreamFactory
+      {
+        static IMediaStreamFactory &singleton();
+        typedef IMediaStreamTypes::MediaStreamTrackList MediaStreamTrackList;
+
+        virtual MediaStreamPtr create(
+                                      IMediaStreamDelegatePtr delegate,
+                                      IMediaStreamPtr stream
+                                      );
+        virtual MediaStreamPtr create(
+                                      IMediaStreamDelegatePtr delegate,
+                                      const MediaStreamTrackList &tracks
+                                      );
+      };
+
+      class MediaStreamFactory : public IFactory<IMediaStreamFactory> {};
+
+    } // namespace internal
+  } // namespace adapter
+} // namespace ortc
