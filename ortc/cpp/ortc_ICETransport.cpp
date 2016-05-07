@@ -4989,12 +4989,7 @@ namespace ortc
   //---------------------------------------------------------------------------
   ElementPtr IICETransportTypes::CandidatePair::toDebug() const
   {
-    ElementPtr resultEl = Element::create("ortc::IICETransport::CandidatePair");
-
-    UseServicesHelper::debugAppend(resultEl, "local", mLocal ? mLocal->toDebug() : ElementPtr());
-    UseServicesHelper::debugAppend(resultEl, "remote", mRemote ? mRemote->toDebug() : ElementPtr());
-
-    return resultEl;
+    return createElement("ortc::IICETransport::CandidatePair");
   }
 
   //---------------------------------------------------------------------------
@@ -5058,12 +5053,7 @@ namespace ortc
   //---------------------------------------------------------------------------
   ElementPtr IICETransportTypes::Options::toDebug() const
   {
-    ElementPtr resultEl = Element::create("ortc::IICETransport::Options");
-
-    UseServicesHelper::debugAppend(resultEl, "aggressive ice", mAggressiveICE);
-    UseServicesHelper::debugAppend(resultEl, "role", IICETypes::toString(mRole));
-
-    return resultEl;
+    return createElement("ortc::IICETransport::Options");
   }
 
   //---------------------------------------------------------------------------

@@ -2512,6 +2512,8 @@ namespace ortc
   //---------------------------------------------------------------------------
   ElementPtr ISCTPTransportTypes::Capabilities::createElement(const char *objectName) const
   {
+    if (!objectName) objectName = "capabilities";
+
     ElementPtr elem = Element::create(objectName);
 
     UseHelper::adoptElementValue(elem, "maxMessageSize", mMaxMessageSize);
@@ -2528,15 +2530,7 @@ namespace ortc
   //---------------------------------------------------------------------------
   ElementPtr ISCTPTransportTypes::Capabilities::toDebug() const
   {
-    ElementPtr resultEl = Element::create("ortc::ISCTPTransportTypes::Capabilities");
-
-    UseServicesHelper::debugAppend(resultEl, "max message size", mMaxMessageSize);
-    UseServicesHelper::debugAppend(resultEl, "min port", mMinPort);
-    UseServicesHelper::debugAppend(resultEl, "max port", mMaxPort);
-    UseServicesHelper::debugAppend(resultEl, "max useable", mMaxUsablePorts);
-    UseServicesHelper::debugAppend(resultEl, "max sessions per port", mMaxSessionsPerPort);
-
-    return resultEl;
+    return createElement("ortc::ISCTPTransportTypes::Capabilities");
   }
 
   //---------------------------------------------------------------------------

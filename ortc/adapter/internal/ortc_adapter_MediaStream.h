@@ -166,7 +166,7 @@ namespace ortc
         AutoPUID mID;
         String mMSID;
         MediaStreamWeakPtr mThisWeak;
-        //MediaStreamPtr mGracefulShutdownReference;
+        //MediaStreamPtr mGracefulShutdownReference; // this is intentionally commented because graceful shutdown is not needed (yet, maybe never)
 
         IMediaStreamDelegateSubscriptions mSubscriptions;
         IMediaStreamSubscriptionPtr mDefaultSubscription;

@@ -892,33 +892,7 @@ namespace ortc
   //---------------------------------------------------------------------------
   ElementPtr ISRTPSDESTransportTypes::CryptoParameters::toDebug() const
   {
-    ElementPtr resultEl = Element::create("ortc::ISRTPSDESTransportTypes::CryptoParameters");
-
-    UseServicesHelper::debugAppend(resultEl, "tag", mTag);
-    UseServicesHelper::debugAppend(resultEl, "crypto suite", mCryptoSuite);
-
-    {
-      ElementPtr listEl = Element::create("keyParams");
-
-      for (auto iter = mKeyParams.begin(); iter != mKeyParams.end(); ++iter) {
-        auto keyParam = (*iter);
-        ElementPtr keyParamEl = keyParam.toDebug();
-        UseServicesHelper::debugAppend(listEl, keyParamEl);
-      }
-      UseServicesHelper::debugAppend(resultEl, listEl);
-    }
-
-    {
-      ElementPtr listEl = Element::create("sessionParams");
-
-      for (auto iter = mSessionParams.begin(); iter != mSessionParams.end(); ++iter) {
-        auto sessionParam = (*iter);
-        UseServicesHelper::debugAppend(listEl, "param", sessionParam);
-      }
-      UseServicesHelper::debugAppend(resultEl, listEl);
-    }
-
-    return resultEl;
+    return createElement("ortc::ISRTPSDESTransportTypes::CryptoParameters");
   }
 
   //---------------------------------------------------------------------------
@@ -1008,17 +982,7 @@ namespace ortc
   //---------------------------------------------------------------------------
   ElementPtr ISRTPSDESTransportTypes::Parameters::toDebug() const
   {
-    ElementPtr resultEl = Element::create("ortc::ISRTPSDESTransportTypes::Parameters");
-
-    {
-      for (auto iter = mCryptoParams.begin(); iter != mCryptoParams.end(); ++iter) {
-        auto cryptoParam = (*iter);
-        ElementPtr cryptoParamEl = cryptoParam.toDebug();
-        UseServicesHelper::debugAppend(resultEl, cryptoParamEl);
-      }
-    }
-
-    return resultEl;
+    return createElement("ortc::ISRTPSDESTransportTypes::Parameters");
   }
 
   //---------------------------------------------------------------------------
@@ -1079,15 +1043,7 @@ namespace ortc
   //---------------------------------------------------------------------------
   ElementPtr ISRTPSDESTransportTypes::KeyParameters::toDebug() const
   {
-    ElementPtr resultEl = Element::create("ortc::ISRTPSDESTransportTypes::KeyParameters");
-
-    UseServicesHelper::debugAppend(resultEl, "key method", mKeyMethod);
-    UseServicesHelper::debugAppend(resultEl, "key salt", mKeySalt);
-    UseServicesHelper::debugAppend(resultEl, "lifetime", mLifetime);
-    UseServicesHelper::debugAppend(resultEl, "mki value", mMKIValue);
-    UseServicesHelper::debugAppend(resultEl, "mki length", mMKILength);
-
-    return resultEl;
+    return createElement("ortc::ISRTPSDESTransportTypes::KeyParameters");
   }
 
   //---------------------------------------------------------------------------

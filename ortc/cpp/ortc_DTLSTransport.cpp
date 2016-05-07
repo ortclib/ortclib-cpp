@@ -3151,12 +3151,7 @@ namespace ortc
   //---------------------------------------------------------------------------
   ElementPtr IDTLSTransportTypes::Parameters::toDebug() const
   {
-    ElementPtr resultEl = Element::create("ortc::IDTLSTransportTypes::Parameters");
-
-    UseServicesHelper::debugAppend(resultEl, "role", toString(mRole));
-    UseServicesHelper::debugAppend(resultEl, "fingerprints", mFingerprints.size());
-
-    return resultEl;
+    return createElement("ortc::IDTLSTransportTypes::Parameters");
   }
 
   //---------------------------------------------------------------------------

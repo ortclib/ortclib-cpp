@@ -2067,40 +2067,7 @@ namespace ortc
   //---------------------------------------------------------------------------
   ElementPtr IRTPTypes::Capabilities::toDebug() const
   {
-    ElementPtr resultEl = Element::create("ortc::IRTPTypes::Capabilities");
-
-    ElementPtr codecsEl = Element::create("codecs");
-    ElementPtr headersEl = Element::create("headers");
-    ElementPtr fecMechanismsEl = Element::create("fec mechanisms");
-
-    for (auto iter = mCodecs.begin(); iter != mCodecs.end(); ++iter)
-    {
-      auto value = (*iter);
-      UseServicesHelper::debugAppend(codecsEl, value.toDebug());
-    }
-    if (codecsEl->hasChildren()) {
-      UseServicesHelper::debugAppend(resultEl, codecsEl);
-    }
-
-    for (auto iter = mHeaderExtensions.begin(); iter != mHeaderExtensions.end(); ++iter)
-    {
-      auto value = (*iter);
-      UseServicesHelper::debugAppend(headersEl, value.toDebug());
-    }
-    if (headersEl->hasChildren()) {
-      UseServicesHelper::debugAppend(resultEl, headersEl);
-    }
-
-    for (auto iter = mFECMechanisms.begin(); iter != mFECMechanisms.end(); ++iter)
-    {
-      auto value = (*iter);
-      UseServicesHelper::debugAppend(fecMechanismsEl, "fec mechanism", value);
-    }
-    if (fecMechanismsEl->hasChildren()) {
-      UseServicesHelper::debugAppend(resultEl,  fecMechanismsEl);
-    }
-
-    return resultEl;
+    return createElement("ortc::IRTPTypes::Capabilities");
   }
 
   //---------------------------------------------------------------------------
@@ -2392,112 +2359,7 @@ namespace ortc
   //---------------------------------------------------------------------------
   ElementPtr IRTPTypes::CodecCapability::toDebug() const
   {
-    ElementPtr resultEl = Element::create("ortc::IRTPTypes::CodecCapability");
-
-    UseServicesHelper::debugAppend(resultEl, "name", mName);
-    UseServicesHelper::debugAppend(resultEl, "kind", mKind);
-    UseServicesHelper::debugAppend(resultEl, "clock rate", mClockRate);
-    UseServicesHelper::debugAppend(resultEl, "preferred payload type", mPreferredPayloadType);
-    UseServicesHelper::debugAppend(resultEl, "ptime", mPTime);
-    UseServicesHelper::debugAppend(resultEl, "max ptime", mMaxPTime);
-    UseServicesHelper::debugAppend(resultEl, "number of channels", mNumChannels);
-
-    ElementPtr feedbacksEl = Element::create("rtcpFeedbacks");
-
-    for (auto iter = mRTCPFeedback.begin(); iter != mRTCPFeedback.end(); ++iter) {
-      auto value = (*iter);
-      UseServicesHelper::debugAppend(feedbacksEl, value.toDebug());
-    }
-    if (feedbacksEl->hasChildren()) {
-      UseServicesHelper::debugAppend(resultEl, feedbacksEl);
-    }
-
-    SupportedCodecs supported = toSupportedCodec(mName);
-
-    // scope: output params
-    {
-      bool found = false;
-
-      if (mParameters) {
-        switch (supported) {
-          case SupportedCodec_Opus: {
-            auto codec = OpusCodecCapabilityParameters::convert(mParameters);
-            if (codec) {
-              UseServicesHelper::debugAppend(resultEl, codec->toDebug());
-              found = true;
-            }
-            break;
-          }
-          case SupportedCodec_VP8:    {
-            auto codec = VP8CodecCapabilityParameters::convert(mParameters);
-            if (codec) {
-              UseServicesHelper::debugAppend(resultEl, codec->toDebug());
-              found = true;
-            }
-            break;
-          }
-          case SupportedCodec_H264:   {
-            auto codec = H264CodecCapabilityParameters::convert(mParameters);
-            if (codec) {
-              UseServicesHelper::debugAppend(resultEl, codec->toDebug());
-              found = true;
-            }
-            break;
-          }
-          case SupportedCodec_RTX:   {
-            auto codec = RTXCodecCapabilityParameters::convert(mParameters);
-            if (codec) {
-              UseServicesHelper::debugAppend(resultEl, codec->toDebug());
-              found = true;
-            }
-            break;
-          }
-          case SupportedCodec_FlexFEC:   {
-            auto codec = FlexFECCodecCapabilityParameters::convert(mParameters);
-            if (codec) {
-              UseServicesHelper::debugAppend(resultEl, codec->toDebug());
-              found = true;
-            }
-            break;
-          }
-          default: break;
-        }
-      }
-
-      if (!found) {
-        UseServicesHelper::debugAppend(resultEl, "parameters", (bool)mParameters);
-      }
-    }
-
-    // scope: output options
-    {
-      bool found = false;
-
-      if (mOptions) {
-        switch (supported) {
-          case SupportedCodec_Opus: {
-            auto codec = OpusCodecCapabilityOptions::convert(mOptions);
-            if (codec) {
-              UseServicesHelper::debugAppend(resultEl, codec->toDebug());
-              found = true;
-            }
-            break;
-          }
-          default: break;
-        }
-      }
-
-      if (!found) {
-        UseServicesHelper::debugAppend(resultEl, "options", (bool)mOptions);
-      }
-    }
-
-    UseServicesHelper::debugAppend(resultEl, "max temporal layers", mMaxTemporalLayers);
-    UseServicesHelper::debugAppend(resultEl, "max spatial layers", mMaxSpatialLayers);
-
-    UseServicesHelper::debugAppend(resultEl, "svc multistream support", mSVCMultiStreamSupport);
-
-    return resultEl;
+    return createElement("ortc::IRTPTypes::CodecCapability");
   }
 
   //---------------------------------------------------------------------------
@@ -2726,15 +2588,7 @@ namespace ortc
   //---------------------------------------------------------------------------
   ElementPtr IRTPTypes::OpusCodecCapabilityOptions::toDebug() const
   {
-    ElementPtr resultEl = Element::create("ortc::IRTPTypes::OpusCodecCapabilityOptions");
-
-    UseServicesHelper::debugAppend(resultEl, "complexity", mComplexity);
-    UseServicesHelper::debugAppend(resultEl, "signal", mSignal.hasValue() ? OpusCodecCapabilityOptions::toString(mSignal.value()) : (const char *)NULL);
-    UseServicesHelper::debugAppend(resultEl, "application", mApplication.hasValue() ? OpusCodecCapabilityOptions::toString(mApplication.value()) : (const char *)NULL);
-    UseServicesHelper::debugAppend(resultEl, "packet loss percentage", mPacketLossPerc);
-    UseServicesHelper::debugAppend(resultEl, "prediction disabled", mPredictionDisabled);
-
-    return resultEl;
+    return createElement("ortc::IRTPTypes::OpusCodecCapabilityOptions");
   }
 
   //---------------------------------------------------------------------------
@@ -2814,19 +2668,7 @@ namespace ortc
   //---------------------------------------------------------------------------
   ElementPtr IRTPTypes::OpusCodecCapabilityParameters::toDebug() const
   {
-    ElementPtr resultEl = Element::create("ortc::IRTPTypes::OpusCodecCapabilityParameters");
-
-    UseServicesHelper::debugAppend(resultEl, "max playback rate", mMaxPlaybackRate);
-    UseServicesHelper::debugAppend(resultEl, "max average bitrate", mMaxAverageBitrate);
-    UseServicesHelper::debugAppend(resultEl, "stereo", mStereo);
-    UseServicesHelper::debugAppend(resultEl, "cbr", mCBR);
-    UseServicesHelper::debugAppend(resultEl, "use inband fec", mUseInbandFEC);
-    UseServicesHelper::debugAppend(resultEl, "use dtx", mUseDTX);
-
-    UseServicesHelper::debugAppend(resultEl, "sprop max capture rate", mSPropMaxCaptureRate);
-    UseServicesHelper::debugAppend(resultEl, "sprop stereo", mSPropStereo);
-
-    return resultEl;
+    return createElement("ortc::IRTPTypes::OpusCodecCapabilityParameters");
   }
 
   //---------------------------------------------------------------------------
@@ -2901,12 +2743,7 @@ namespace ortc
   //---------------------------------------------------------------------------
   ElementPtr IRTPTypes::VP8CodecCapabilityParameters::toDebug() const
   {
-    ElementPtr resultEl = Element::create("ortc::IRTPTypes::VP8CodecCapabilityParameters");
-
-    UseServicesHelper::debugAppend(resultEl, "max ft", mMaxFR);
-    UseServicesHelper::debugAppend(resultEl, "max fs", mMaxFS);
-
-    return resultEl;
+    return createElement("ortc::IRTPTypes::VP8CodecCapabilityParameters");
   }
 
   //---------------------------------------------------------------------------
@@ -3010,27 +2847,7 @@ namespace ortc
   //---------------------------------------------------------------------------
   ElementPtr IRTPTypes::H264CodecCapabilityParameters::toDebug() const
   {
-    ElementPtr resultEl = Element::create("ortc::IRTPTypes::H264CodecCapabilityParameters");
-
-    UseServicesHelper::debugAppend(resultEl, "profile level id", mProfileLevelID);
-
-    if (mPacketizationModes.size() > 0) {
-      ElementPtr packetizationModesEl = Element::create("packetization modes");
-      for (auto iter = mPacketizationModes.begin(); iter != mPacketizationModes.end(); ++iter) {
-        auto &mode = (*iter);
-        UseServicesHelper::debugAppend(packetizationModesEl, "packetization mode", mode);
-      }
-      UseServicesHelper::debugAppend(resultEl, packetizationModesEl);
-    }
-
-    UseServicesHelper::debugAppend(resultEl, "max mbps", mMaxMBPS);
-    UseServicesHelper::debugAppend(resultEl, "max smbps", mMaxSMBPS);
-    UseServicesHelper::debugAppend(resultEl, "max fs", mMaxFS);
-    UseServicesHelper::debugAppend(resultEl, "max cpb", mMaxCPB);
-    UseServicesHelper::debugAppend(resultEl, "max dpb", mMaxDPB);
-    UseServicesHelper::debugAppend(resultEl, "max br", mMaxBR);
-
-    return resultEl;
+    return createElement("ortc::IRTPTypes::H264CodecCapabilityParameters");
   }
 
   //---------------------------------------------------------------------------
@@ -3111,12 +2928,7 @@ namespace ortc
   //---------------------------------------------------------------------------
   ElementPtr IRTPTypes::RTXCodecCapabilityParameters::toDebug() const
   {
-    ElementPtr resultEl = Element::create("ortc::IRTPTypes::RTXCodecCapabilityParameters");
-
-    UseServicesHelper::debugAppend(resultEl, "apt", mApt);
-    UseServicesHelper::debugAppend(resultEl, "rtx time", mRTXTime);
-
-    return resultEl;
+    return createElement("ortc::IRTPTypes::RTXCodecCapabilityParameters");
   }
 
   //---------------------------------------------------------------------------
@@ -3217,14 +3029,7 @@ namespace ortc
   //---------------------------------------------------------------------------
   ElementPtr IRTPTypes::FlexFECCodecCapabilityParameters::toDebug() const
   {
-    ElementPtr resultEl = Element::create("ortc::IRTPTypes::FlexFECCodecCapabilityParameters");
-
-    UseServicesHelper::debugAppend(resultEl, "repair window", mRepairWindow);
-    UseServicesHelper::debugAppend(resultEl, "L", mL);
-    UseServicesHelper::debugAppend(resultEl, "D", mD);
-    UseServicesHelper::debugAppend(resultEl, "ToP", mToP.hasValue() ? toString(mToP.value()) : (const char *)NULL);
-
-    return resultEl;
+    return createElement("ortc::IRTPTypes::FlexFECCodecCapabilityParameters");
   }
 
   //---------------------------------------------------------------------------
@@ -3283,14 +3088,7 @@ namespace ortc
   //---------------------------------------------------------------------------
   ElementPtr IRTPTypes::HeaderExtension::toDebug() const
   {
-    ElementPtr resultEl = Element::create("ortc::IRTPTypes::HeaderExtensions");
-
-    UseServicesHelper::debugAppend(resultEl, "kind", mKind);
-    UseServicesHelper::debugAppend(resultEl, "uri", mURI);
-    UseServicesHelper::debugAppend(resultEl, "preferred id", mPreferredID);
-    UseServicesHelper::debugAppend(resultEl, "prefer encrypt", mPreferredEncrypt);
-
-    return resultEl;
+   return createElement("ortc::IRTPTypes::HeaderExtensions");
   }
 
   //---------------------------------------------------------------------------
@@ -3345,12 +3143,7 @@ namespace ortc
   //---------------------------------------------------------------------------
   ElementPtr IRTPTypes::RTCPFeedback::toDebug() const
   {
-    ElementPtr resultEl = Element::create("ortc::IRTPTypes::RTCPFeedback");
-
-    UseServicesHelper::debugAppend(resultEl, "type", mType);
-    UseServicesHelper::debugAppend(resultEl, "parameter", mParameter);
-
-    return resultEl;
+    return createElement("ortc::IRTPTypes::RTCPFeedback");
   }
 
   //---------------------------------------------------------------------------
@@ -3405,14 +3198,7 @@ namespace ortc
   //---------------------------------------------------------------------------
   ElementPtr IRTPTypes::RTCPParameters::toDebug() const
   {
-    ElementPtr resultEl = Element::create("ortc::IRTPTypes::RTCPParameters");
-
-    UseServicesHelper::debugAppend(resultEl, "ssrc", mSSRC);
-    UseServicesHelper::debugAppend(resultEl, "cname", mCName);
-    UseServicesHelper::debugAppend(resultEl, "reduced size", mReducedSize);
-    UseServicesHelper::debugAppend(resultEl, "mux", mMux);
-
-    return resultEl;
+    return createElement("ortc::IRTPTypes::RTCPParameters");
   }
 
   //---------------------------------------------------------------------------
@@ -3549,42 +3335,7 @@ namespace ortc
   //---------------------------------------------------------------------------
   ElementPtr IRTPTypes::Parameters::toDebug() const
   {
-    ElementPtr resultEl = Element::create("ortc::IRTPTypes::Parameters");
-
-    UseServicesHelper::debugAppend(resultEl, "ssrc", mMuxID);
-
-    if (mCodecs.size() > 0) {
-      ElementPtr codecsEl = Element::create("codecs");
-      for (auto iter = mCodecs.begin(); iter != mCodecs.end(); ++iter) {
-        auto value = (*iter);
-        UseServicesHelper::debugAppend(codecsEl, value.toDebug());
-      }
-      UseServicesHelper::debugAppend(resultEl, codecsEl);
-    }
-
-    if (mHeaderExtensions.size() > 0) {
-      ElementPtr headersEl = Element::create("headers");
-      for (auto iter = mHeaderExtensions.begin(); iter != mHeaderExtensions.end(); ++iter) {
-        auto value = (*iter);
-        UseServicesHelper::debugAppend(headersEl, value.toDebug());
-      }
-      UseServicesHelper::debugAppend(resultEl, headersEl);
-    }
-
-    if (mEncodings.size() > 0) {
-      ElementPtr encodingsEl = Element::create("encodings");
-      
-      for (auto iter = mEncodings.begin(); iter != mEncodings.end(); ++iter) {
-        auto value = (*iter);
-        UseServicesHelper::debugAppend(encodingsEl, value.toDebug());
-      }
-      UseServicesHelper::debugAppend(resultEl, encodingsEl);
-    }
-
-    UseServicesHelper::debugAppend(resultEl, "rtcp params", mRTCP.toDebug());
-    UseServicesHelper::debugAppend(resultEl, "delegration preference", toString(mDegredationPreference));
-
-    return resultEl;
+    return createElement("ortc::IRTPTypes::Parameters");
   }
 
   //---------------------------------------------------------------------------
@@ -3851,87 +3602,7 @@ namespace ortc
   //---------------------------------------------------------------------------
   ElementPtr IRTPTypes::CodecParameters::toDebug() const
   {
-    ElementPtr resultEl = Element::create("ortc::IRTPTypes::CodecParameters");
-
-    UseServicesHelper::debugAppend(resultEl, "name", mName);
-    UseServicesHelper::debugAppend(resultEl, "payload type", mPayloadType);
-    UseServicesHelper::debugAppend(resultEl, "clock rate", mClockRate);
-    UseServicesHelper::debugAppend(resultEl, "ptime", mPTime);
-    UseServicesHelper::debugAppend(resultEl, "max ptime", mMaxPTime);
-    UseServicesHelper::debugAppend(resultEl, "number of channels", mNumChannels);
-
-    if (mRTCPFeedback.size() > 0) {
-      ElementPtr feedbacksEl = Element::create("feedbacks");
-      for (auto iter = mRTCPFeedback.begin(); iter != mRTCPFeedback.end(); ++iter) {
-        auto value = (*iter);
-        UseServicesHelper::debugAppend(feedbacksEl, value.toDebug());
-      }
-      UseServicesHelper::debugAppend(resultEl, feedbacksEl);
-    }
-
-    SupportedCodecs supported = toSupportedCodec(mName);
-
-    bool found = false;
-
-    if (mParameters) {
-      switch (supported) {
-        case SupportedCodec_Opus: {
-          auto codec = OpusCodecParameters::convert(mParameters);
-          if (codec) {
-            found = true;
-            UseServicesHelper::debugAppend(resultEl, codec->toDebug());
-          }
-          break;
-        }
-        case SupportedCodec_VP8: {
-          auto codec = VP8CodecParameters::convert(mParameters);
-          if (codec) {
-            found = true;
-            UseServicesHelper::debugAppend(resultEl, codec->toDebug());
-          }
-          break;
-        }
-        case SupportedCodec_H264: {
-          auto codec = H264CodecParameters::convert(mParameters);
-          if (codec) {
-            found = true;
-            UseServicesHelper::debugAppend(resultEl, codec->toDebug());
-          }
-          break;
-        }
-        case SupportedCodec_RTX: {
-          auto codec = RTXCodecParameters::convert(mParameters);
-          if (codec) {
-            found = true;
-            UseServicesHelper::debugAppend(resultEl, codec->toDebug());
-          }
-          break;
-        }
-        case SupportedCodec_RED: {
-          auto codec = REDCodecParameters::convert(mParameters);
-          if (codec) {
-            found = true;
-            UseServicesHelper::debugAppend(resultEl, codec->toDebug());
-          }
-          break;
-        }
-        case SupportedCodec_FlexFEC: {
-          auto codec = FlexFECCodecParameters::convert(mParameters);
-          if (codec) {
-            found = true;
-            UseServicesHelper::debugAppend(resultEl, codec->toDebug());
-          }
-          break;
-        }
-        default: break;
-      }
-    }
-
-    if (!found) {
-      UseServicesHelper::debugAppend(resultEl, "parameters", (bool)mParameters);
-    }
-
-    return resultEl;
+    return createElement("ortc::IRTPTypes::CodecParameters");
   }
 
   //---------------------------------------------------------------------------
@@ -4098,25 +3769,7 @@ namespace ortc
   //---------------------------------------------------------------------------
   ElementPtr IRTPTypes::OpusCodecParameters::toDebug() const
   {
-    ElementPtr resultEl = Element::create("ortc::IRTPTypes::OpusCodecParameters");
-
-    UseServicesHelper::debugAppend(resultEl, "max playback rate", mMaxPlaybackRate);
-    UseServicesHelper::debugAppend(resultEl, "max average bitrate", mMaxAverageBitrate);
-    UseServicesHelper::debugAppend(resultEl, "stereo", mStereo);
-    UseServicesHelper::debugAppend(resultEl, "cbr", mCBR);
-    UseServicesHelper::debugAppend(resultEl, "use inband fec", mUseInbandFEC);
-    UseServicesHelper::debugAppend(resultEl, "use dtx", mUseDTX);
-
-    UseServicesHelper::debugAppend(resultEl, "complexity", mComplexity);
-    UseServicesHelper::debugAppend(resultEl, "signal", mSignal.hasValue() ? OpusCodecCapabilityOptions::toString(mSignal.value()) : (const char *)NULL);
-    UseServicesHelper::debugAppend(resultEl, "application", mApplication.hasValue() ? OpusCodecCapabilityOptions::toString(mApplication.value()) : (const char *)NULL);
-    UseServicesHelper::debugAppend(resultEl, "packet loss percentage", mPacketLossPerc);
-    UseServicesHelper::debugAppend(resultEl, "prediction disabled", mPredictionDisabled);
-
-    UseServicesHelper::debugAppend(resultEl, "sprop max capture rate", mSPropMaxCaptureRate);
-    UseServicesHelper::debugAppend(resultEl, "sprop stereo", mSPropStereo);
-
-    return resultEl;
+    return createElement("ortc::IRTPTypes::OpusCodecParameters");
   }
 
   //---------------------------------------------------------------------------
@@ -4209,18 +3862,7 @@ namespace ortc
   //---------------------------------------------------------------------------
   ElementPtr IRTPTypes::REDCodecParameters::toDebug() const
   {
-    ElementPtr resultEl = Element::create("ortc::IRTPTypes::REDCodecParameters");
-
-    if (mPayloadTypes.size()) {
-      ElementPtr payloadTypesEl = Element::create("payload types");
-      for (auto iter = mPayloadTypes.begin(); iter != mPayloadTypes.end(); ++iter) {
-        auto payloadType = (*iter);
-        UseServicesHelper::debugAppend(payloadTypesEl, "payload type", payloadType);
-      }
-      UseServicesHelper::debugAppend(resultEl, payloadTypesEl);
-    }
-
-    return resultEl;
+    return createElement("ortc::IRTPTypes::REDCodecParameters");
   }
 
   //---------------------------------------------------------------------------
@@ -4276,13 +3918,7 @@ namespace ortc
   //---------------------------------------------------------------------------
   ElementPtr IRTPTypes::HeaderExtensionParameters::toDebug() const
   {
-    ElementPtr resultEl = Element::create("ortc::IRTPTypes::HeaderExtensionParameters");
-
-    UseServicesHelper::debugAppend(resultEl, "uri", mURI);
-    UseServicesHelper::debugAppend(resultEl, "id", mID);
-    UseServicesHelper::debugAppend(resultEl, "encrypt", mEncrypt);
-
-    return resultEl;
+    return createElement("ortc::IRTPTypes::HeaderExtensionParameters");
   }
 
   //---------------------------------------------------------------------------
@@ -4335,12 +3971,7 @@ namespace ortc
   //---------------------------------------------------------------------------
   ElementPtr IRTPTypes::FECParameters::toDebug() const
   {
-    ElementPtr resultEl = Element::create("ortc::IRTPTypes::FECParameters");
-
-    UseServicesHelper::debugAppend(resultEl, "ssrc", mSSRC);
-    UseServicesHelper::debugAppend(resultEl, "mechanism", mMechanism);
-
-    return resultEl;
+    return createElement("ortc::IRTPTypes::FECParameters");
   }
 
   //---------------------------------------------------------------------------
@@ -4389,11 +4020,7 @@ namespace ortc
   //---------------------------------------------------------------------------
   ElementPtr IRTPTypes::RTXParameters::toDebug() const
   {
-    ElementPtr resultEl = Element::create("ortc::IRTPTypes::RTXParameters");
-
-    UseServicesHelper::debugAppend(resultEl, "ssrc", mSSRC);
-
-    return resultEl;
+    return createElement("ortc::IRTPTypes::RTXParameters");
   }
 
   //---------------------------------------------------------------------------
@@ -4553,31 +4180,7 @@ namespace ortc
   //---------------------------------------------------------------------------
   ElementPtr IRTPTypes::EncodingParameters::toDebug() const
   {
-    ElementPtr resultEl = Element::create("ortc::IRTPTypes::EncodingParameters");
-
-    UseServicesHelper::debugAppend(resultEl, "ssrc", mSSRC);
-    UseServicesHelper::debugAppend(resultEl, "codec payload type", mCodecPayloadType);
-    UseServicesHelper::debugAppend(resultEl, "fec", mFEC.hasValue() ? mFEC.value().toDebug() : ElementPtr());
-    UseServicesHelper::debugAppend(resultEl, "rtx", mRTX.hasValue() ? mRTX.value().toDebug() : ElementPtr());
-    UseServicesHelper::debugAppend(resultEl, "priority", toString(mPriority));
-    UseServicesHelper::debugAppend(resultEl, "max bitrate", mMaxBitrate);
-    UseServicesHelper::debugAppend(resultEl, "min quality", mMinQuality);
-    UseServicesHelper::debugAppend(resultEl, "resolution scale", mResolutionScale);
-    UseServicesHelper::debugAppend(resultEl, "framerate scale", mFramerateScale);
-    UseServicesHelper::debugAppend(resultEl, "active", mActive);
-    UseServicesHelper::debugAppend(resultEl, "encoding id", mEncodingID);
-
-    if (mDependencyEncodingIDs.size() > 0) {
-      ElementPtr depedenciesEl = Element::create("dependency encoding ids");
-
-      for (auto iter = mDependencyEncodingIDs.begin(); iter != mDependencyEncodingIDs.end(); ++iter) {
-        auto value = (*iter);
-        UseServicesHelper::debugAppend(depedenciesEl, "dependency encoding id", value);
-      }
-      UseServicesHelper::debugAppend(resultEl, depedenciesEl);
-    }
-
-    return resultEl;
+   return createElement("ortc::IRTPTypes::EncodingParameters");
   }
 
   //---------------------------------------------------------------------------

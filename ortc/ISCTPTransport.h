@@ -76,8 +76,9 @@ namespace ortc
 
       Capabilities() {}
       Capabilities(const Capabilities &op2) {(*this) = op2;}
-      Capabilities(ElementPtr elem);
+      Capabilities(ElementPtr rootEl);
 
+      static CapabilitiesPtr create(ElementPtr rootEl) { if (!rootEl) return CapabilitiesPtr(); return make_shared<Capabilities>(rootEl); }
       ElementPtr createElement(const char *objectName) const;
 
       ElementPtr toDebug() const;

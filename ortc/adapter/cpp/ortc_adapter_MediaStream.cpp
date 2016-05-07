@@ -320,6 +320,7 @@ namespace ortc
 
           if (compareTrack->id() != track->id()) continue;
           mTracks.erase(current);
+          break;
         }
       }
       
@@ -411,6 +412,12 @@ namespace ortc
       #pragma mark
 
       //-------------------------------------------------------------------------
+      IMediaStreamFactory &IMediaStreamFactory::singleton()
+      {
+        return IMediaStreamFactory::singleton();
+      }
+
+      //-------------------------------------------------------------------------
       MediaStreamPtr IMediaStreamFactory::create(
                                                  IMediaStreamDelegatePtr delegate,
                                                  IMediaStreamPtr stream
@@ -452,7 +459,7 @@ namespace ortc
                                          IMediaStreamPtr stream
                                          )
     {
-      return IMediaStreamPtr();
+      return internal::IMediaStreamFactory::singleton().create(delegate, stream);
     }
 
     //-------------------------------------------------------------------------
@@ -461,7 +468,7 @@ namespace ortc
                                          const MediaStreamTrackList &tracks
                                          )
     {
-      return IMediaStreamPtr();
+      return internal::IMediaStreamFactory::singleton().create(delegate, tracks);
     }
 
   } // namespace adapter

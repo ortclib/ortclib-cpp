@@ -28,6 +28,7 @@
  either expressed or implied, of the FreeBSD Project.
  
  */
+
 #include <ortc/internal/ortc_ICEGatherer.h>
 #include <ortc/internal/ortc_ICETransport.h>
 #include <ortc/internal/ortc_Helper.h>
@@ -6327,9 +6328,9 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    ElementPtr ICEGatherer::HostIPSorter::InterfaceNameMappingInfo::createElement() const
+    ElementPtr ICEGatherer::HostIPSorter::InterfaceNameMappingInfo::createElement(const char *objectName) const
     {
-      ElementPtr rootEl = Element::create("interface");
+      ElementPtr rootEl = Element::create(objectName);
 
       if (mInterfaceNameRegularExpression.hasData()) {
         rootEl->adoptAsLastChild(UseServicesHelper::createElementWithTextAndJSONEncode("nameRegEx", mInterfaceNameRegularExpression));
@@ -6354,13 +6355,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     ElementPtr ICEGatherer::HostIPSorter::InterfaceNameMappingInfo::toDebug() const
     {
-      ElementPtr resultEl = Element::create("ortc::ICEGatherer::HostIPSorter::InterfaceNameMappingInfo");
-
-      UseServicesHelper::debugAppend(resultEl, "interface name regex", mInterfaceNameRegularExpression);
-      UseServicesHelper::debugAppend(resultEl, "type", toString(mInterfaceType));
-      UseServicesHelper::debugAppend(resultEl, "order", mOrderIndex);
-
-      return resultEl;
+      return createElement("ortc::ICEGatherer::HostIPSorter::InterfaceNameMappingInfo");
     }
 
     //-------------------------------------------------------------------------
@@ -7154,21 +7149,7 @@ namespace ortc
   //---------------------------------------------------------------------------
   ElementPtr IICEGathererTypes::Options::toDebug() const
   {
-    ElementPtr resultEl = Element::create("ortc::IICEGathererTypes::Options");
-
-    UseServicesHelper::debugAppend(resultEl, "continuous gathering", mContinuousGathering);
-
-    if (mICEServers.size() > 0) {
-      ElementPtr serversEl = Element::create("servers");
-
-      for (auto iter = mICEServers.begin(); iter != mICEServers.end(); ++iter) {
-        auto server = (*iter);
-        UseServicesHelper::debugAppend(serversEl, server.toDebug());
-      }
-      UseServicesHelper::debugAppend(resultEl, serversEl);
-    }
-
-    return resultEl;
+    return createElement("ortc::IICEGathererTypes::Options");
   }
 
   //---------------------------------------------------------------------------
@@ -7272,23 +7253,7 @@ namespace ortc
   //---------------------------------------------------------------------------
   ElementPtr IICEGathererTypes::Server::toDebug() const
   {
-    ElementPtr resultEl = Element::create("ortc::IICEGathererTypes::Server");
-
-    if (mURLs.size() > 0) {
-      ElementPtr urlsEl = Element::create("urls");
-
-      for (auto iter = mURLs.begin(); iter != mURLs.end(); ++iter) {
-        auto url = (*iter);
-        UseServicesHelper::debugAppend(urlsEl, "url", url);
-      }
-      UseServicesHelper::debugAppend(resultEl, urlsEl);
-    }
-
-    UseServicesHelper::debugAppend(resultEl, "username", mUserName);
-    UseServicesHelper::debugAppend(resultEl, "credential", mCredential);
-    UseServicesHelper::debugAppend(resultEl, "credential type", toString(mCredentialType));
-
-    return resultEl;
+    return createElement("ortc::IICEGathererTypes::Server");
   }
 
   //---------------------------------------------------------------------------
@@ -7356,12 +7321,7 @@ namespace ortc
   //---------------------------------------------------------------------------
   ElementPtr IICEGathererTypes::InterfacePolicy::toDebug() const
   {
-    ElementPtr resultEl = Element::create("ortc::IICEGathererTypes::InterfacePolicy");
-
-    UseServicesHelper::debugAppend(resultEl, "interface type", mInterfaceType);
-    UseServicesHelper::debugAppend(resultEl, "gather policy", toString(mGatherPolicy));
-
-    return resultEl;
+    return createElement("ortc::IICEGathererTypes::InterfacePolicy");
   }
 
   //---------------------------------------------------------------------------
@@ -7426,14 +7386,7 @@ namespace ortc
   //---------------------------------------------------------------------------
   ElementPtr IICEGathererTypes::ErrorEvent::toDebug() const
   {
-    ElementPtr resultEl = Element::create("ortc::IICEGathererTypes::ErrorEvent");
-
-    UseServicesHelper::debugAppend(resultEl, "host candidate", mHostCandidate ? mHostCandidate->toDebug() : ElementPtr());
-    UseServicesHelper::debugAppend(resultEl, "url", mURL);
-    UseServicesHelper::debugAppend(resultEl, "error code", mErrorCode);
-    UseServicesHelper::debugAppend(resultEl, "error reason", mErrorText);
-
-    return resultEl;
+    return createElement("ortc::IICEGathererTypes::ErrorEvent");
   }
 
   //---------------------------------------------------------------------------

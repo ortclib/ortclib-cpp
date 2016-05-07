@@ -70,7 +70,7 @@ namespace ortc
       ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Capabilities, RTPCapabilities);
       ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, RTPParameters);
       ZS_DECLARE_TYPEDEF_PTR(ISCTPTransport::Capabilities, SCTPCapabilities);
-      ZS_DECLARE_TYPEDEF_PTR(std::list<ICECandidatePtr>, ICECandidateList);
+      ZS_DECLARE_TYPEDEF_PTR(std::list<IICETypes::CandidatePtr>, ICECandidateList);
 
       typedef String SignalingDescription;
 
@@ -88,12 +88,15 @@ namespace ortc
 
       enum SignalingTypes
       {
-        SignalingType_Auto,
-        SignalingType_JSON,
+        SignalingType_First,
+
+        SignalingType_JSON = SignalingType_First,
         SignalingType_SDPOffer,
         SignalingType_SDPPreanswer,
         SignalingType_SDPAnswer,
         SignalingType_SDPRollback,
+
+        SignalingType_Last = SignalingType_SDPRollback,
       };
 
       static const char *toString(SignalingTypes type);
@@ -119,10 +122,14 @@ namespace ortc
 
       enum MediaDirections
       {
-        MediaDirection_Inactive,
+        MediaDirection_First,
+
+        MediaDirection_SendReceive = MediaDirection_First,
         MediaDirection_SendOnly,
         MediaDirection_ReceiveOnly,
-        MediaDirection_SendReceive,
+        MediaDirection_Inactive,
+
+        MediaDirection_Last = MediaDirection_Inactive,
       };
 
       static const char *toString(MediaDirections mediaDirection);
@@ -138,10 +145,30 @@ namespace ortc
           String mNetType;
           String mAddrType;
           String mConnectionAddress;
+
+          Details() {}
+          Details(const Details &op2) { (*this) = op2; }
+          Details(ElementPtr rootEl);
+
+          static DetailsPtr create(ElementPtr rootEl) { if (!rootEl) return DetailsPtr(); return make_shared<Details>(rootEl); }
+          ElementPtr createElement(const char *objectName = "details") const;
+
+          ElementPtr toDebug() const;
+          String hash() const;
         };
 
         DetailsPtr mRTP;
         DetailsPtr mRTCP;
+
+        ConnectionData() {}
+        ConnectionData(const ConnectionData &op2);
+        ConnectionData(ElementPtr);
+
+        static ConnectionDataPtr create(ElementPtr rootEl) { if (!rootEl) return ConnectionDataPtr(); return make_shared<ConnectionData>(rootEl); }
+        ElementPtr createElement(const char *objectName = "connectionData") const;
+
+        ElementPtr toDebug() const;
+        String hash() const;
       };
 
       struct Transport
@@ -155,11 +182,31 @@ namespace ortc
           SRTPSDESParametersPtr mSRTPSDESParameters;
           ICECandidateList mICECandidates;
           bool mEndOfCandidates {false};
+
+          Parameters() {}
+          Parameters(const Parameters &op2);
+          Parameters(ElementPtr rootEl);
+
+          static ParametersPtr create(ElementPtr rootEl) { if (!rootEl) return ParametersPtr(); return make_shared<Parameters>(rootEl); }
+          ElementPtr createElement(const char *objectName) const;
+
+          ElementPtr toDebug() const;
+          String hash() const;
         };
 
         TransportID mID;
         ParametersPtr mRTP;
         ParametersPtr mRTCP;
+
+        Transport() {}
+        Transport(const Transport &op2);
+        Transport(ElementPtr rootEl);
+
+        static TransportPtr create(ElementPtr rootEl) { if (!rootEl) return TransportPtr(); return make_shared<Transport>(rootEl); }
+        ElementPtr createElement(const char *objectName = "transport") const;
+
+        ElementPtr toDebug() const;
+        String hash() const;
       };
 
       struct MediaLine : public Any
@@ -173,6 +220,16 @@ namespace ortc
 
           ConnectionDataPtr mConnectionData;
           MediaDirections mMediaDirection {MediaDirection_SendReceive};
+
+          Details() {}
+          Details(const Details &op2);
+          Details(ElementPtr rootEl);
+
+          static DetailsPtr create(ElementPtr rootEl) { if (!rootEl) return DetailsPtr(); return make_shared<Details>(rootEl); }
+          ElementPtr createElement(const char *objectName = "details") const;
+
+          ElementPtr toDebug() const;
+          String hash() const;
         };
 
         MediaLineID mID;
@@ -180,18 +237,47 @@ namespace ortc
 
         String mMediaType;
         DetailsPtr mDetails;
+
+      protected:
+        MediaLine() {}
+        MediaLine(const MediaLine &op2);
+        MediaLine(ElementPtr rootEl);
+
+        ElementPtr createElement(const char *objectName) const;
+        ElementPtr toDebug() const;
+        String hash() const;
       };
 
       struct RTPMediaLine : public MediaLine
       {
         RTPCapabilitiesPtr mSenderCapabilities;
         RTPCapabilitiesPtr mReceiverCapabilities;
+
+        RTPMediaLine() {}
+        RTPMediaLine(const RTPMediaLine &op2);
+        RTPMediaLine(ElementPtr rootEl);
+
+        static RTPMediaLinePtr create(ElementPtr rootEl) { if (!rootEl) return RTPMediaLinePtr(); return make_shared<RTPMediaLine>(); }
+        ElementPtr createElement(const char *objectName = "rtpMediaLine") const;
+
+        ElementPtr toDebug() const;
+        String hash() const;
       };
 
       struct SCTPMediaLine : public MediaLine
       {
         SCTPCapabilitiesPtr mCapabilities;
         Optional<WORD> mPort;
+
+        SCTPMediaLine() {}
+        SCTPMediaLine(const SCTPMediaLine &op2);
+        SCTPMediaLine(ElementPtr rootEl);
+
+        static SCTPMediaLinePtr create(ElementPtr rootEl) { if (!rootEl) return SCTPMediaLinePtr(); return make_shared<SCTPMediaLine>(rootEl); }
+        ElementPtr createElement(const char *objectName = "sctpMediaLine") const;
+
+        ElementPtr toDebug() const;
+        String hash() const;
       };
 
       struct RTPSender
@@ -201,13 +287,33 @@ namespace ortc
         struct Details
         {
           Optional<size_t> mInternalRTPMediaLineIndex;
+
+          Details() {}
+          Details(const Details &op2);
+          Details(ElementPtr rootEl);
+
+          static DetailsPtr create(ElementPtr rootEl) { if (!rootEl) return DetailsPtr(); return make_shared<Details>(rootEl); }
+          ElementPtr createElement(const char *objectName = "details") const;
+
+          ElementPtr toDebug() const;
+          String hash() const;
         };
 
         SenderID mID;
         DetailsPtr mDetails;
         MediaLineID mRTPMediaLineID;
         RTPParametersPtr mParameters;
-        MediaStreamSet mMediaStreams;
+        MediaStreamSet mMediaStreamIDs;
+
+        RTPSender() {}
+        RTPSender(const RTPSender &op2);
+        RTPSender(ElementPtr rootEL);
+
+        static RTPSenderPtr create(ElementPtr rootEl) { if (!rootEl) return RTPSenderPtr(); return make_shared<RTPSender>(rootEl); }
+        ElementPtr createElement(const char *objectName = "rtpSender") const;
+
+        ElementPtr toDebug() const;
+        String hash() const;
       };
 
       struct ICECandidate
@@ -217,9 +323,19 @@ namespace ortc
         IICETypes::Components mComponent {IICETypes::Component_RTP};
         IICETypes::GatherCandidatePtr mCandidate;
 
-        static ICECandidatePtr create(ElementPtr candidateEl);
+        ICECandidate() {}
+        ICECandidate(const ICECandidate &op2);
+
+        static ICECandidatePtr create(ElementPtr rootEl);
+        ElementPtr createElement(const char *objectName = "iceCandidate") const;
+
+        ElementPtr toDebug() const;
+        String hash() const;
+
+        static ICECandidatePtr createFromSDP(ElementPtr rootEl);
         static ICECandidatePtr createFromSDP(const char *string);
-        String toSDP() const;
+        String getCandidateSDP() const;
+        ElementPtr toSDP() const;
         ElementPtr toJSON() const;
       };
 
@@ -237,6 +353,16 @@ namespace ortc
           QWORD mStartTime {};
           QWORD mEndTime {};
           ConnectionDataPtr mConnectionData;  // optional; can be null;
+
+          Details() {}
+          Details(const Details &op2);
+          Details(ElementPtr rootEl);
+
+          static DetailsPtr create(ElementPtr rootEl) { if (!rootEl) return DetailsPtr(); return make_shared<Details>(rootEl); }
+          ElementPtr createElement(const char *objectName = "details") const;
+
+          ElementPtr toDebug() const;
+          String hash() const;
         };
 
         DetailsPtr mDetails;                // optional; can be null;
@@ -245,6 +371,16 @@ namespace ortc
         RTPMediaList mRTPMediaLines;
         SCTPMediaList mSCTPMediaLines;
         RTPSenderList mRTPSenders;
+
+        Description() {}
+        Description(const Description &op2);
+        Description(ElementPtr rootEl);
+
+        static DescriptionPtr create(ElementPtr rootEl) { if (!rootEl) return DescriptionPtr(); return make_shared<Description>(rootEl); }
+        ElementPtr createElement(const char *objectName = "session") const;
+
+        ElementPtr toDebug() const;
+        String hash() const;
       };
     };
 

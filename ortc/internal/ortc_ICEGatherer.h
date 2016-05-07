@@ -584,7 +584,7 @@ namespace ortc
 
           static InterfaceNameMappingInfo create(ElementPtr el);
 
-          ElementPtr createElement() const;
+          ElementPtr createElement(const char *objectName = "interface") const;
           bool hasData() const;
 
           ElementPtr toDebug() const;

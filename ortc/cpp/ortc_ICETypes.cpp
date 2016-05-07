@@ -46,13 +46,9 @@ namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib) }
 
 namespace ortc
 {
-  ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHelper, UseServicesHelper)
-//  ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHTTP, UseHTTP)
-//  ZS_DECLARE_TYPEDEF_PTR(openpeer::services::ISettings, UseSettings)
-//
-//  using zsLib::Numeric;
+  ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHelper, UseServicesHelper);
 
-  ZS_DECLARE_TYPEDEF_PTR(ortc::internal::Helper, UseHelper)
+  ZS_DECLARE_TYPEDEF_PTR(ortc::internal::Helper, UseHelper);
 
   typedef openpeer::services::Hasher<CryptoPP::SHA1> SHA1Hasher;
 
@@ -335,23 +331,7 @@ namespace ortc
   //---------------------------------------------------------------------------
   ElementPtr IICETypes::Candidate::toDebug() const
   {
-    ElementPtr resultEl = Element::create("ortc::IICETypes::Candidate");
-
-    UseServicesHelper::debugAppend(resultEl, "interface type", mInterfaceType);
-    UseServicesHelper::debugAppend(resultEl, "foundation", mFoundation);
-    UseServicesHelper::debugAppend(resultEl, "priority", mPriority);
-    UseServicesHelper::debugAppend(resultEl, "unfreeze priority", mUnfreezePriority);
-    UseServicesHelper::debugAppend(resultEl, "protocol", toString(mProtocol));
-    UseServicesHelper::debugAppend(resultEl, "ip", mIP);
-    UseServicesHelper::debugAppend(resultEl, "port", mPort);
-    UseServicesHelper::debugAppend(resultEl, "candidate type", toString(mCandidateType));
-    if (Protocol_TCP == mProtocol) {
-      UseServicesHelper::debugAppend(resultEl, "tcp type", toString(mTCPType));
-    }
-    UseServicesHelper::debugAppend(resultEl, "related address", mRelatedAddress);
-    UseServicesHelper::debugAppend(resultEl, "related port", mRelatedPort);
-
-    return resultEl;
+    return createElement("ortc::IICETypes::Candidate");
   }
 
   //---------------------------------------------------------------------------
@@ -484,8 +464,7 @@ namespace ortc
   //---------------------------------------------------------------------------
   ElementPtr IICETypes::CandidateComplete::toDebug() const
   {
-    ElementPtr resultEl = Element::create("ortc::IICETypes::CandidateComplete");
-    return resultEl;
+    return createElement("ortc::IICETypes::CandidateComplete");
   }
 
   //---------------------------------------------------------------------------
@@ -519,7 +498,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IICETypes::Parameters::createElement(const char *objectName)
+  ElementPtr IICETypes::Parameters::createElement(const char *objectName) const
   {
     ElementPtr elem = Element::create(objectName);
 
@@ -536,13 +515,7 @@ namespace ortc
   //---------------------------------------------------------------------------
   ElementPtr IICETypes::Parameters::toDebug() const
   {
-    ElementPtr resultEl = Element::create("ortc::IICETypes::Parameters");
-
-    UseServicesHelper::debugAppend(resultEl, "use unfreeze priority", mUseUnfreezePriority);
-    UseServicesHelper::debugAppend(resultEl, "username fragment", mUsernameFragment);
-    UseServicesHelper::debugAppend(resultEl, "password", mPassword);
-
-    return resultEl;
+    return createElement("ortc::IICETypes::Parameters");
   }
 
   //---------------------------------------------------------------------------

@@ -753,6 +753,48 @@ namespace ortc
     //-------------------------------------------------------------------------
     IRTPReceiverTypes::CapabilitiesPtr RTPReceiver::getCapabilities(Optional<Kinds> kind)
     {
+#define TODO_EXPOSE_THESE_CAPABILITIES 1
+#define TODO_EXPOSE_THESE_CAPABILITIES 2
+      //AudioReceiverChannel
+      //HeaderExtensionURI_ClienttoMixerAudioLevelIndication - ietf:params:rtp-hdrext:ssrc-audio-level
+      //HeaderExtensionURI_AbsoluteSendTime - http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time
+      //
+      //AudioSenderChannel
+      //HeaderExtensionURI_ClienttoMixerAudioLevelIndication - ietf:params:rtp-hdrext:ssrc-audio-level
+      //HeaderExtensionURI_AbsoluteSendTime - http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time
+      //
+      //VideoReceiverChannel
+      //HeaderExtensionURI_TransmissionTimeOffsets - ietf:params:rtp-hdrext:toffset
+      //HeaderExtensionURI_AbsoluteSendTime - http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time
+      //HeaderExtensionURI_3gpp_VideoOrientation - 3gpp:video-orientation
+      //HeaderExtensionURI_TransportSequenceNumber - http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01
+      //
+      //VideoSenderChannel
+      //HeaderExtensionURI_TransmissionTimeOffsets - ietf:params:rtp-hdrext:toffset
+      //HeaderExtensionURI_AbsoluteSendTime - http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time
+      //HeaderExtensionURI_3gpp_VideoOrientation - 3gpp:video-orientation
+      //HeaderExtensionURI_TransportSequenceNumber - http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01
+
+      //kRtcpReport - always on
+      //kRtcpSr - always on
+      //kRtcpRr - always on
+      //kRtcpSdes - always on
+      //kRtcpBye - always on
+      //kRtcpPli - always on, video only
+      //kRtcpNack - set on/off by user
+      //kRtcpFir - never used
+      //kRtcpTmmbr - never used, video only
+      //kRtcpTmmbn - intenally controlled, video only
+      //kRtcpSrReq - never used
+      //kRtcpXrVoipMetric - never used, RTCP XR
+      //kRtcpApp - never used
+      //kRtcpSli - always on, video only
+      //kRtcpRpsi - always on, video only
+      //kRtcpRemb - set on/off by user, video only
+      //kRtcpTransmissionTimeOffset - never used
+      //kRtcpXrReceiverReferenceTime - set on/off by user, video only, RTCP XR
+      //kRtcpXrDlrrReportBlock - internally controlled, video only, RTCP XR
+      //kRtcpTransportFeedback - never used
       CapabilitiesPtr result(make_shared<Capabilities>());
       String kindStr;
       if (kind.hasValue()) kindStr = IMediaStreamTrackTypes::toString(kind.value());

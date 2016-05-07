@@ -32,20 +32,30 @@
 
 #include <ortc/adapter/internal/ortc_adapter_SessionDescription.h>
 
-//#include <openpeer/services/IHelper.h>
-//
+#include <ortc/internal/ortc_Helper.h>
+
+#include <openpeer/services/IHelper.h>
+
 #include <zsLib/Log.h>
 //#include <zsLib/Numeric.h>
-//#include <zsLib/Stringize.h>
-//#include <zsLib/XML.h>
+#include <zsLib/Stringize.h>
+#include <zsLib/XML.h>
 
+#include <cryptopp/sha.h>
 
-namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib); }
+namespace ortc { namespace adapter { ZS_DECLARE_SUBSYSTEM(ortclib_adapter) } }
 
 namespace ortc
 {
   namespace adapter
   {
+    using zsLib::Stringize;
+
+    ZS_DECLARE_TYPEDEF_PTR(ortc::internal::Helper, UseHelper);
+    ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHelper, UseServicesHelper);
+
+    typedef openpeer::services::Hasher<CryptoPP::SHA1> SHA1Hasher;
+
     namespace internal
     {
       //-----------------------------------------------------------------------
@@ -56,7 +66,1327 @@ namespace ortc
       #pragma mark SessionDescription
       #pragma mark
 
+      //-----------------------------------------------------------------------
+      static Log::Params slog(const char *message)
+      {
+        return Log::Params(message, "ortc::adapter::ISessionDescriptionTypes");
+      }
+
     }  // namespace internal
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark ISessionDescriptionTypes
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    const char *ISessionDescriptionTypes::toString(SignalingTypes type)
+    {
+      switch (type)
+      {
+      case SignalingType_JSON:          return "json";
+      case SignalingType_SDPOffer:      return "offer";
+      case SignalingType_SDPPreanswer:  return "preanswer";
+      case SignalingType_SDPAnswer:     return "answer";
+      case SignalingType_SDPRollback:   return "rollback";
+      }
+      ORTC_THROW_NOT_SUPPORTED_ERRROR("unknown signaling type");
+    }
+
+    //-------------------------------------------------------------------------
+    ISessionDescriptionTypes::SignalingTypes ISessionDescriptionTypes::toSignalingType(const char *type)
+    {
+      String str(type);
+      for (SignalingTypes index = SignalingType_First; index <= SignalingType_Last; index = static_cast<SignalingTypes>(static_cast<std::underlying_type<SignalingTypes>::type>(index) + 1)) {
+        if (0 == str.compareNoCase(toString(index))) return index;
+      }
+
+      ORTC_THROW_INVALID_PARAMETERS("Invalid parameter value: " + str)
+    }
+
+    //-------------------------------------------------------------------------
+    const char *ISessionDescriptionTypes::toString(MediaTypes mediaType)
+    {
+      switch (mediaType)
+      {
+        case MediaType_Unknown:     return "";
+        case MediaType_Audio:       return "audio";
+        case MediaType_Video:       return "video";
+        case MediaType_Text:        return "text";
+        case MediaType_Application: return "application";
+      }
+      ORTC_THROW_NOT_SUPPORTED_ERRROR("unknown media type");
+    }
+
+    //-------------------------------------------------------------------------
+    ISessionDescriptionTypes::MediaTypes ISessionDescriptionTypes::toMediaType(const char *mediaType)
+    {
+      String str(mediaType);
+      for (MediaTypes index = MediaType_First; index <= MediaType_Last; index = static_cast<MediaTypes>(static_cast<std::underlying_type<MediaTypes>::type>(index) + 1)) {
+        if (0 == str.compareNoCase(toString(index))) return index;
+      }
+      return MediaType_Unknown;
+    }
+
+    //-------------------------------------------------------------------------
+    Optional<IMediaStreamTrackTypes::Kinds> ISessionDescriptionTypes::toMediaStreamTrackKind(MediaTypes mediaType)
+    {
+      switch (mediaType)
+      {
+        case MediaType_Unknown:     break;
+        case MediaType_Audio:       return IMediaStreamTrackTypes::Kind_Audio;
+        case MediaType_Video:       return IMediaStreamTrackTypes::Kind_Video;
+        case MediaType_Text:        break;
+        case MediaType_Application: break;
+      }
+      return Optional<IMediaStreamTrackTypes::Kinds>();
+    }
+
+    //-------------------------------------------------------------------------
+    const char *ISessionDescriptionTypes::toString(MediaDirections mediaDirection)
+    {
+      switch (mediaDirection)
+      {
+        case MediaDirection_SendReceive:  return "sendrecv";
+        case MediaDirection_SendOnly:     return "sendonly";
+        case MediaDirection_ReceiveOnly:  return "recvonly";
+        case MediaDirection_Inactive:     return "inactive";
+      }
+      ORTC_THROW_NOT_SUPPORTED_ERRROR("unknown media direction");
+    }
+
+    //-------------------------------------------------------------------------
+    ISessionDescriptionTypes::MediaDirections ISessionDescriptionTypes::toMediaDirection(const char *mediaDirection)
+    {
+      String str(mediaDirection);
+      for (MediaDirections index = MediaDirection_First; index <= MediaDirection_Last; index = static_cast<MediaDirections>(static_cast<std::underlying_type<MediaDirections>::type>(index) + 1)) {
+        if (0 == str.compareNoCase(toString(index))) return index;
+      }
+
+      ORTC_THROW_INVALID_PARAMETERS("Invalid parameter value: " + str)
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark ISessionDescriptionTypes::ConnectionData
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    ISessionDescriptionTypes::ConnectionData::ConnectionData(const ConnectionData &op2)
+    {
+      mRTP = (op2.mRTP ? make_shared<Details>(*op2.mRTP) : DetailsPtr());
+      mRTCP = (op2.mRTCP ? make_shared<Details>(*op2.mRTCP) : DetailsPtr());
+    }
+
+    //-------------------------------------------------------------------------
+    ISessionDescriptionTypes::ConnectionData::ConnectionData(ElementPtr rootEl)
+    {
+      mRTP = Details::create(rootEl->findFirstChildElement("rtp"));
+      mRTCP = Details::create(rootEl->findFirstChildElement("rtcp"));
+    }
+
+    //-------------------------------------------------------------------------
+    ElementPtr ISessionDescriptionTypes::ConnectionData::createElement(const char *objectName) const
+    {
+      ElementPtr rootEl = Element::create(objectName);
+
+      rootEl->adoptAsLastChild(mRTP ? mRTP->createElement("rtp") : ElementPtr());
+      rootEl->adoptAsLastChild(mRTCP ? mRTCP->createElement("rtcp") : ElementPtr());
+
+      if (!rootEl->hasChildren()) return ElementPtr();
+
+      return rootEl;
+    }
+
+    //-------------------------------------------------------------------------
+    ElementPtr ISessionDescriptionTypes::ConnectionData::toDebug() const
+    {
+      return createElement("ortc::adapter::ISessionDescriptionTypes::ConnectionData");
+    }
+
+    //-------------------------------------------------------------------------
+    String ISessionDescriptionTypes::ConnectionData::hash() const
+    {
+      SHA1Hasher hasher;
+
+      hasher.update("adapter::ISessionDescriptionTypes::ConnectionData:");
+
+      hasher.update(mRTP ? mRTP->hash() : String());
+      hasher.update(":");
+      hasher.update(mRTCP ? mRTCP->hash() : String());
+      hasher.update(":end");
+
+      return hasher.final();
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark ISessionDescriptionTypes::ConnectionData::Details
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    ISessionDescriptionTypes::ConnectionData::Details::Details(ElementPtr rootEl)
+    {
+      UseHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::ConnectionData::Details", "port", mPort);
+      UseHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::ConnectionData::Details", "netType", mNetType);
+      UseHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::ConnectionData::Details", "addrType", mAddrType);
+      UseHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::ConnectionData::Details", "connectionAddress", mConnectionAddress);
+    }
+
+    //-------------------------------------------------------------------------
+    ElementPtr ISessionDescriptionTypes::ConnectionData::Details::createElement(const char *objectName) const
+    {
+      ElementPtr rootEl = Element::create(objectName);
+
+      UseHelper::adoptElementValue(rootEl, "port", mPort);
+      UseHelper::adoptElementValue(rootEl, "netType", mNetType, false);
+      UseHelper::adoptElementValue(rootEl, "addrType", mAddrType, false);
+      UseHelper::adoptElementValue(rootEl, "connectionAddress", mConnectionAddress, false);
+
+      if (!rootEl->hasChildren()) return ElementPtr();
+
+      return rootEl;
+    }
+
+    //-------------------------------------------------------------------------
+    ElementPtr ISessionDescriptionTypes::ConnectionData::Details::toDebug() const
+    {
+      return createElement("ortc::adapter::ISessionDescriptionTypes::ConnectionData::Details");
+    }
+
+    //-------------------------------------------------------------------------
+    String ISessionDescriptionTypes::ConnectionData::Details::hash() const
+    {
+      SHA1Hasher hasher;
+
+      hasher.update("adapter::ISessionDescriptionTypes::ConnectionData:Details:");
+
+      hasher.update(mPort);
+      hasher.update(":");
+      hasher.update(mNetType);
+      hasher.update(":");
+      hasher.update(mAddrType);
+      hasher.update(":");
+      hasher.update(mConnectionAddress);
+      hasher.update(":end");
+
+      return hasher.final();
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark ISessionDescriptionTypes::Transport
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    ISessionDescriptionTypes::Transport::Transport(const Transport &op2) :
+      mID(op2.mID)
+    {
+      mRTP = (op2.mRTP ? make_shared<Parameters>(*op2.mRTP) : ParametersPtr());
+      mRTCP = (op2.mRTCP ? make_shared<Parameters>(*op2.mRTCP) : ParametersPtr());
+    }
+
+    //-------------------------------------------------------------------------
+    ISessionDescriptionTypes::Transport::Transport(ElementPtr rootEl)
+    {
+      UseHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::Transport", "id", mID);
+      mRTP = Parameters::create(rootEl->findFirstChildElement("rtp"));
+      mRTCP = Parameters::create(rootEl->findFirstChildElement("rtcp"));
+    }
+
+    //-------------------------------------------------------------------------
+    ElementPtr ISessionDescriptionTypes::Transport::createElement(const char *objectName) const
+    {
+      ElementPtr rootEl = Element::create(objectName);
+
+      UseHelper::adoptElementValue(rootEl, "id", mID, false);
+      rootEl->adoptAsLastChild(mRTP ? mRTP->createElement("rtp") : ElementPtr());
+      rootEl->adoptAsLastChild(mRTCP ? mRTCP->createElement("rtcp") : ElementPtr());
+
+      if (!rootEl->hasChildren()) return ElementPtr();
+
+      return rootEl;
+    }
+
+    //-------------------------------------------------------------------------
+    ElementPtr ISessionDescriptionTypes::Transport::toDebug() const
+    {
+      return createElement("ortc::adapter::ISessionDescriptionTypes::Transport");
+    }
+
+    //-------------------------------------------------------------------------
+    String ISessionDescriptionTypes::Transport::hash() const
+    {
+      SHA1Hasher hasher;
+
+      hasher.update("adapter::ISessionDescriptionTypes::Transport:");
+
+      hasher.update(mID);
+      hasher.update(":");
+      hasher.update(mRTP ? mRTP->hash() : String());
+      hasher.update(":");
+      hasher.update(mRTCP ? mRTCP->hash() : String());
+      hasher.update(":end");
+
+      return hasher.final();
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark ISessionDescriptionTypes::Transport::Parameters
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    ISessionDescriptionTypes::Transport::Parameters::Parameters(const Parameters &op2) :
+      mEndOfCandidates(op2.mEndOfCandidates)
+    {
+      mICEParameters = (op2.mICEParameters ? make_shared<ICETransportParameters>(*op2.mICEParameters) : ICETransportParametersPtr());
+      mDTLSParameters = (op2.mDTLSParameters ? make_shared<DTLSParameters>(*op2.mDTLSParameters) : DTLSParametersPtr());
+      mSRTPSDESParameters = (op2.mSRTPSDESParameters ? make_shared<SRTPSDESParameters>(*op2.mSRTPSDESParameters) : SRTPSDESParametersPtr());
+
+      for (auto iter = op2.mICECandidates.begin(); iter != op2.mICECandidates.end(); ++iter) {
+        auto candidate = (*iter);
+        if (!candidate) continue;
+
+        mICECandidates.push_back(make_shared<IICETypes::Candidate>(*candidate));
+      }
+    }
+
+    //-------------------------------------------------------------------------
+    ISessionDescriptionTypes::Transport::Parameters::Parameters(ElementPtr rootEl)
+    {
+      if (!rootEl) return;
+
+      mICEParameters = ICETransportParameters::create(rootEl->findFirstChildElement("iceParameters"));
+      mDTLSParameters = DTLSParameters::create(rootEl->findFirstChildElement("iceParameters"));
+      mSRTPSDESParameters = SRTPSDESParameters::create(rootEl->findFirstChildElement("srtpSdesParameters"));
+
+      ElementPtr candidatesEl = rootEl->findFirstChildElement("candidates");
+      if (candidatesEl) {
+        ElementPtr candidateEl = rootEl->findFirstChildElement("candidate");
+        while (candidateEl) {
+          auto candidate = IICETypes::Candidate::convert(IICETypes::Candidate::create(candidateEl));
+          candidateEl = candidateEl->findNextSiblingElement("candidate");
+          if (!candidate) continue;
+          mICECandidates.push_back(candidate);
+        }
+        ElementPtr completeEl = candidatesEl->findFirstChildElement("candidateComplete");
+        if (!completeEl) {
+          completeEl = candidatesEl->findFirstChildElement("complete");
+        }
+        auto complete = IICETypes::CandidateComplete::convert(IICETypes::CandidateComplete::create(completeEl));
+        if (complete) {
+          mEndOfCandidates = complete->mComplete;
+        }
+      }
+      UseHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::Transport::Parameters", "endOfCandidates", mEndOfCandidates);
+    }
+
+    //-------------------------------------------------------------------------
+    ElementPtr ISessionDescriptionTypes::Transport::Parameters::createElement(const char *objectName) const
+    {
+      ElementPtr rootEl = Element::create(objectName);
+
+      rootEl->adoptAsLastChild(mICEParameters ? mICEParameters->createElement("iceParameters") : ElementPtr());
+      rootEl->adoptAsLastChild(mDTLSParameters ? mDTLSParameters->createElement("dtlsParameters") : ElementPtr());
+      rootEl->adoptAsLastChild(mSRTPSDESParameters ? mSRTPSDESParameters->createElement("srtpSdesParameters") : ElementPtr());
+
+      ElementPtr iceCandidatesEl = Element::create("candidates");
+      for (auto iter = mICECandidates.begin(); iter != mICECandidates.end(); ++iter) {
+        auto candidate = (*iter);
+        if (!candidate) continue;
+        iceCandidatesEl->adoptAsLastChild(candidate->createElement());
+      }
+      if (mEndOfCandidates) {
+        auto complete = make_shared<IICETypes::CandidateComplete>();
+        iceCandidatesEl->adoptAsLastChild(complete->createElement());
+      }
+      if (iceCandidatesEl->hasChildren()) {
+        rootEl->adoptAsLastChild(iceCandidatesEl);
+      }
+      if (mEndOfCandidates) {
+        UseHelper::adoptElementValue(rootEl, "endOfCandidates", mEndOfCandidates);
+      }
+
+      if (!rootEl->hasChildren()) return ElementPtr();
+
+      return rootEl;
+    }
+
+    //-------------------------------------------------------------------------
+    ElementPtr ISessionDescriptionTypes::Transport::Parameters::toDebug() const
+    {
+      return createElement("ortc::adapter::ISessionDescriptionTypes::Transport:Parameters");
+    }
+
+    //-------------------------------------------------------------------------
+    String ISessionDescriptionTypes::Transport::Parameters::hash() const
+    {
+      SHA1Hasher hasher;
+
+      hasher.update("adapter::ISessionDescriptionTypes::Transport:Parameters:");
+
+      hasher.update(mICEParameters ? mICEParameters->hash() : String());
+      hasher.update(":");
+      hasher.update(mDTLSParameters ? mDTLSParameters->hash() : String());
+      hasher.update(":");
+      hasher.update(mSRTPSDESParameters ? mSRTPSDESParameters->hash() : String());
+      hasher.update(":iceCandidates:e5b06c5ff5eedd9f3708345a612fac9dac682a42:");
+      for (auto iter = mICECandidates.begin(); iter != mICECandidates.end(); ++iter) {
+        auto candidate = (*iter);
+        if (!candidate) continue;
+        hasher.update(candidate->hash());
+        hasher.update(":");
+      }
+      hasher.update(mEndOfCandidates);
+      hasher.update(":end");
+
+      return hasher.final();
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark ISessionDescriptionTypes::MediaLine
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    ISessionDescriptionTypes::MediaLine::MediaLine(const MediaLine &op2) :
+      mID(op2.mID),
+      mTransportID(op2.mTransportID),
+      mMediaType(op2.mMediaType)
+    {
+      mDetails = (op2.mDetails ? make_shared<Details>(*op2.mDetails) : DetailsPtr());
+    }
+
+    //-------------------------------------------------------------------------
+    ISessionDescriptionTypes::MediaLine::MediaLine(ElementPtr rootEl)
+    {
+      if (!rootEl) return;
+
+      UseHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::MediaLine", "id", mID);
+      UseHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::MediaLine", "transportId", mTransportID);
+      UseHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::MediaLine", "mediaType", mMediaType);
+      mDetails = Details::create(rootEl->findFirstChildElement("details"));
+    }
+
+    //-------------------------------------------------------------------------
+    ElementPtr ISessionDescriptionTypes::MediaLine::createElement(const char *objectName) const
+    {
+      ElementPtr rootEl = Element::create(objectName);
+
+      UseHelper::adoptElementValue(rootEl, "id", mID, false);
+      UseHelper::adoptElementValue(rootEl, "transportId", mTransportID, false);
+      UseHelper::adoptElementValue(rootEl, "mediaType", mMediaType, false);
+      rootEl->adoptAsLastChild(mDetails ? mDetails->createElement() : ElementPtr());
+
+      if (!rootEl->hasChildren()) return ElementPtr();
+
+      return rootEl;
+    }
+
+    //-------------------------------------------------------------------------
+    ElementPtr ISessionDescriptionTypes::MediaLine::toDebug() const
+    {
+      return createElement("ortc::adapter::ISessionDescriptionTypes::MediaLine");
+    }
+
+    //-------------------------------------------------------------------------
+    String ISessionDescriptionTypes::MediaLine::hash() const
+    {
+      SHA1Hasher hasher;
+
+      hasher.update("adapter::ISessionDescriptionTypes::MediaLine:");
+
+      hasher.update(mID);
+      hasher.update(":");
+      hasher.update(mTransportID);
+      hasher.update(":");
+      hasher.update(mMediaType);
+      hasher.update(":");
+      hasher.update(mDetails ? mDetails->hash() : String());
+      hasher.update(":end");
+
+      return hasher.final();
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark ISessionDescriptionTypes::MediaLine::Details
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    ISessionDescriptionTypes::MediaLine::Details::Details(const Details &op2) :
+      mInternalIndex(op2.mInternalIndex),
+      mProtocol(op2.mProtocol),
+      mMediaDirection(op2.mMediaDirection)
+    {
+      mConnectionData = (op2.mConnectionData ? make_shared<ConnectionData>(*op2.mConnectionData) : ConnectionDataPtr());
+    }
+
+    //-------------------------------------------------------------------------
+    ISessionDescriptionTypes::MediaLine::Details::Details(ElementPtr rootEl)
+    {
+      if (!rootEl) return;
+
+      UseHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::MediaLine::Details", "index", mInternalIndex);
+      UseHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::MediaLine::Details", "protocol", mProtocol);
+      String directionStr;
+      UseHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::MediaLine::Details", "direction", directionStr);
+      if (directionStr.hasData()) {
+        try {
+          mMediaDirection = toMediaDirection(directionStr);
+        } catch (const InvalidParameters &) {
+          ZS_LOG_WARNING(Debug, internal::slog("invalid direction") + ZS_PARAM("direction", directionStr))
+        }
+      }
+      mConnectionData = ConnectionData::create(rootEl->findFirstChildElement("connectinData"));
+    }
+
+    //-------------------------------------------------------------------------
+    ElementPtr ISessionDescriptionTypes::MediaLine::Details::createElement(const char *objectName) const
+    {
+      ElementPtr rootEl = Element::create(objectName);
+
+      UseHelper::adoptElementValue(rootEl, "index", mInternalIndex);
+      UseHelper::adoptElementValue(rootEl, "protocol", mProtocol, false);
+      UseHelper::adoptElementValue(rootEl, "direction", toString(mMediaDirection), false);
+      rootEl->adoptAsLastChild(mConnectionData ? mConnectionData->createElement() : ElementPtr());
+
+      if (!rootEl->hasChildren()) return ElementPtr();
+
+      return rootEl;
+    }
+
+    //-------------------------------------------------------------------------
+    ElementPtr ISessionDescriptionTypes::MediaLine::Details::toDebug() const
+    {
+      return createElement("ortc::adapter::ISessionDescriptionTypes::MediaLine::Details");
+    }
+
+    //-------------------------------------------------------------------------
+    String ISessionDescriptionTypes::MediaLine::Details::hash() const
+    {
+      SHA1Hasher hasher;
+
+      hasher.update("adapter::ISessionDescriptionTypes::MediaLine:Details:");
+
+      hasher.update(mInternalIndex);
+      hasher.update(":");
+      hasher.update(mProtocol);
+      hasher.update(":");
+      hasher.update(toString(mMediaDirection));
+      hasher.update(":");
+      hasher.update(mConnectionData ? mConnectionData->hash() : String());
+      hasher.update(":end");
+
+      return hasher.final();
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark ISessionDescriptionTypes::RTPMediaLine
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    ISessionDescriptionTypes::RTPMediaLine::RTPMediaLine(const RTPMediaLine &op2) :
+      MediaLine(op2)
+    {
+      mSenderCapabilities = (op2.mSenderCapabilities ? make_shared<RTPCapabilities>(*op2.mSenderCapabilities) : RTPCapabilitiesPtr());
+      mReceiverCapabilities = (op2.mSenderCapabilities ? make_shared<RTPCapabilities>(*op2.mReceiverCapabilities) : RTPCapabilitiesPtr());
+    }
+
+    //-------------------------------------------------------------------------
+    ISessionDescriptionTypes::RTPMediaLine::RTPMediaLine(ElementPtr rootEl) :
+      MediaLine(rootEl)
+    {
+      mSenderCapabilities = RTPCapabilities::create(rootEl->findFirstChildElement("senderCapabilities"));
+      mReceiverCapabilities = RTPCapabilities::create(rootEl->findFirstChildElement("receiverCapabilities"));
+    }
+
+    //-------------------------------------------------------------------------
+    ElementPtr ISessionDescriptionTypes::RTPMediaLine::createElement(const char *objectName) const
+    {
+      if (!objectName) objectName = "rtpMediaLine";
+
+      ElementPtr rootEl = MediaLine::createElement(objectName);
+
+      rootEl->adoptAsLastChild(mSenderCapabilities ? mSenderCapabilities->createElement("senderCapabilities") : ElementPtr());
+      rootEl->adoptAsLastChild(mReceiverCapabilities ? mReceiverCapabilities->createElement("receiverCapabilities") : ElementPtr());
+
+      if (!rootEl->hasChildren()) return ElementPtr();
+
+      return rootEl;
+    }
+
+    //-------------------------------------------------------------------------
+    ElementPtr ISessionDescriptionTypes::RTPMediaLine::toDebug() const
+    {
+      return createElement("ortc::adapter::ISessionDescriptionTypes::RTPMediaLine");
+    }
+
+    //-------------------------------------------------------------------------
+    String ISessionDescriptionTypes::RTPMediaLine::hash() const
+    {
+      SHA1Hasher hasher;
+
+      hasher.update("adapter::ISessionDescriptionTypes::RTPMediaLine:");
+
+      hasher.update(MediaLine::hash());
+      hasher.update(":");
+      hasher.update(mSenderCapabilities ? mSenderCapabilities->hash() : String());
+      hasher.update(":");
+      hasher.update(mReceiverCapabilities ? mReceiverCapabilities->hash() : String());
+      hasher.update(":end");
+
+      return hasher.final();
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark ISessionDescriptionTypes::SCTPMediaLine
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    ISessionDescriptionTypes::SCTPMediaLine::SCTPMediaLine(const SCTPMediaLine &op2) :
+      MediaLine(op2),
+      mPort(op2.mPort)
+    {
+      mCapabilities = (op2.mDetails ? make_shared<SCTPCapabilities>(*op2.mCapabilities) : SCTPCapabilitiesPtr());
+    }
+
+    //-------------------------------------------------------------------------
+    ISessionDescriptionTypes::SCTPMediaLine::SCTPMediaLine(ElementPtr rootEl) :
+      MediaLine(rootEl)
+    {
+      if (!rootEl) return;
+
+      mCapabilities = SCTPCapabilities::create(rootEl->findFirstChildElement("capabilities"));
+      UseHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::SCTPMediaLine", "port", mPort);
+    }
+
+    //-------------------------------------------------------------------------
+    ElementPtr ISessionDescriptionTypes::SCTPMediaLine::createElement(const char *objectName) const
+    {
+      if (!objectName) objectName = "sctpMediaLine";
+
+      ElementPtr rootEl = MediaLine::createElement(objectName);
+
+      rootEl->adoptAsLastChild(mCapabilities ? mCapabilities->createElement("capabilities") : ElementPtr());
+      UseHelper::adoptElementValue(rootEl, "port", mPort);
+
+      if (!rootEl->hasChildren()) return ElementPtr();
+
+      return rootEl;
+    }
+
+    //-------------------------------------------------------------------------
+    ElementPtr ISessionDescriptionTypes::SCTPMediaLine::toDebug() const
+    {
+      return createElement("ortc::adapter::ISessionDescriptionTypes::SCTPMediaLine");
+    }
+
+    //-------------------------------------------------------------------------
+    String ISessionDescriptionTypes::SCTPMediaLine::hash() const
+    {
+      SHA1Hasher hasher;
+
+      hasher.update("adapter::ISessionDescriptionTypes::SCTPMediaLine:");
+
+      hasher.update(MediaLine::hash());
+      hasher.update(":");
+      hasher.update(mCapabilities ? mCapabilities->hash() : String());
+      hasher.update(":");
+      hasher.update(mPort);
+      hasher.update(":end");
+
+      return hasher.final();
+    }
+    
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark ISessionDescriptionTypes::RTPSender
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    ISessionDescriptionTypes::RTPSender::RTPSender(const RTPSender &op2) :
+      mID(op2.mID),
+      mRTPMediaLineID(op2.mRTPMediaLineID),
+      mMediaStreamIDs(op2.mMediaStreamIDs)
+    {
+      mDetails = (op2.mDetails ? make_shared<Details>(*op2.mDetails) : DetailsPtr());
+      mParameters = (op2.mParameters ? (make_shared<RTPParameters>(*op2.mParameters)) : RTPParametersPtr());
+    }
+
+    //-------------------------------------------------------------------------
+    ISessionDescriptionTypes::RTPSender::RTPSender(ElementPtr rootEl)
+    {
+      if (!rootEl) return;
+
+      UseHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::RTPSender", "id", mID);
+      mDetails = Details::create(rootEl->findFirstChildElement("details"));
+      UseHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::RTPSender", "rtpMediaLineId", mRTPMediaLineID);
+      mParameters = RTPParameters::create(rootEl->findFirstChildElement("rtpParameters"));
+
+      // scope: get media stream IDs
+      {
+        ElementPtr mediaStreamIDsEl = rootEl->findFirstChildElement("mediaSteamIds");
+        if (mediaStreamIDsEl) {
+          ElementPtr mediaStreamIDEl = mediaStreamIDsEl->findFirstChildElement("mediaStreamId");
+          while (mediaStreamIDEl)
+          {
+            String mediaStreamID = UseServicesHelper::getElementTextAndDecode(mediaStreamIDEl);
+            mediaStreamIDEl = mediaStreamIDEl->findNextSiblingElement("mediaStreamId");
+            if (mediaStreamID.isEmpty()) continue;
+            mMediaStreamIDs.insert(mediaStreamID);
+          }
+        }
+      }
+    }
+
+    //-------------------------------------------------------------------------
+    ElementPtr ISessionDescriptionTypes::RTPSender::createElement(const char *objectName) const
+    {
+      if (!objectName) objectName = "rtpSender";
+
+      ElementPtr rootEl = Element::create(objectName);
+
+      UseHelper::adoptElementValue(rootEl, "id", mID, false);
+      if (mDetails) {
+        rootEl->adoptAsLastChild(mDetails->createElement());
+      }
+      UseHelper::adoptElementValue(rootEl, "rtpMediaLineId", mRTPMediaLineID, false);
+      if (mParameters) {
+        rootEl->adoptAsLastChild(mParameters->createElement("rtpParameters"));
+      }
+
+      if (mMediaStreamIDs.size() > 0) {
+        ElementPtr mediaStreamIDsEl = Element::create("mediaSteamIds");
+        for (auto iter = mMediaStreamIDs.begin(); iter != mMediaStreamIDs.end(); ++iter)
+        {
+          auto streamID = (*iter);
+          UseHelper::adoptElementValue(mediaStreamIDsEl, "mediaSteamIds", streamID, false);
+        }
+        if (mediaStreamIDsEl->hasChildren()) {
+          rootEl->adoptAsLastChild(mediaStreamIDsEl);
+        }
+      }
+
+      if (!rootEl->hasChildren()) return ElementPtr();
+
+      return rootEl;
+    }
+
+    //-------------------------------------------------------------------------
+    ElementPtr ISessionDescriptionTypes::RTPSender::toDebug() const
+    {
+      return createElement("ortc::adapter::ISessionDescriptionTypes::RTPSender");
+    }
+
+    //-------------------------------------------------------------------------
+    String ISessionDescriptionTypes::RTPSender::hash() const
+    {
+      SHA1Hasher hasher;
+
+      hasher.update("adapter::ISessionDescriptionTypes::RTPSender:");
+
+      hasher.update(mID);
+      hasher.update(":");
+      hasher.update(mDetails ? mDetails->hash() : String());
+      hasher.update(":");
+      hasher.update(mRTPMediaLineID);
+      hasher.update(":");
+      hasher.update(mParameters ? mParameters->hash() : String());
+      hasher.update(":mediaStreamIds:c67e2347f3017b042808a99de9e935a17409226c");
+
+      for (auto iter = mMediaStreamIDs.begin(); iter != mMediaStreamIDs.end(); ++iter)
+      {
+        auto streamID = (*iter);
+        hasher.update(streamID);
+        hasher.update(":");
+      }
+      hasher.update(":end");
+
+      return hasher.final();
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark ISessionDescriptionTypes::RTPSender::Details
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    ISessionDescriptionTypes::RTPSender::Details::Details(const Details &op2) :
+      mInternalRTPMediaLineIndex(op2.mInternalRTPMediaLineIndex)
+    {
+    }
+
+    //-------------------------------------------------------------------------
+    ISessionDescriptionTypes::RTPSender::Details::Details(ElementPtr rootEl)
+    {
+      if (!rootEl) return;
+
+      UseHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::RTPSender::Details", "index", mInternalRTPMediaLineIndex);
+    }
+
+    //-------------------------------------------------------------------------
+    ElementPtr ISessionDescriptionTypes::RTPSender::Details::createElement(const char *objectName) const
+    {
+      if (!objectName) objectName = "details";
+
+      ElementPtr rootEl = Element::create(objectName);
+
+      UseHelper::adoptElementValue(rootEl, "index", mInternalRTPMediaLineIndex);
+
+      if (!rootEl->hasChildren()) return ElementPtr();
+
+      return rootEl;
+    }
+
+    //-------------------------------------------------------------------------
+    ElementPtr ISessionDescriptionTypes::RTPSender::Details::toDebug() const
+    {
+      return createElement("ortc::adapter::ISessionDescriptionTypes::RTPSender::Details");
+    }
+
+    //-------------------------------------------------------------------------
+    String ISessionDescriptionTypes::RTPSender::Details::hash() const
+    {
+      SHA1Hasher hasher;
+
+      hasher.update("adapter::ISessionDescriptionTypes::RTPSender:Details:");
+
+      hasher.update(mInternalRTPMediaLineIndex);
+
+      hasher.update(":end");
+
+      return hasher.final();
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark ISessionDescriptionTypes::ICECandidate
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    ISessionDescriptionTypes::ICECandidate::ICECandidate(const ICECandidate &op2) :
+      mMid(op2.mMid),
+      mMLineIndex(op2.mMLineIndex),
+      mComponent(op2.mComponent)
+    {
+      if (op2.mCandidate) {
+        {
+          auto iceCandidate = IICETypes::Candidate::convert(op2.mCandidate);
+          if (iceCandidate) {
+            mCandidate = make_shared<IICETypes::Candidate>(*iceCandidate);
+          }
+        }
+        {
+          auto iceCandidate = IICETypes::CandidateComplete::convert(op2.mCandidate);
+          if (iceCandidate) {
+            mCandidate = make_shared<IICETypes::CandidateComplete>(*iceCandidate);
+          }
+        }
+      }
+    }
+
+    //-------------------------------------------------------------------------
+    ISessionDescriptionTypes::ICECandidatePtr ISessionDescriptionTypes::ICECandidate::create(ElementPtr rootEl)
+    {
+      if (!rootEl) return ICECandidatePtr();
+
+      auto result = make_shared<ICECandidate>();
+
+      UseHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::ICECandidate", "mid", result->mMid);
+      UseHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::ICECandidate", "index", result->mMLineIndex);
+
+      {
+        String componentStr;
+        UseHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::ICECandidate", "componenet", componentStr);
+        if (componentStr.hasData()) {
+          try {
+            result->mComponent = IICETypes::toComponent(componentStr);
+          }
+          catch (const InvalidParameters &) {
+            ZS_LOG_WARNING(Debug, internal::slog("ice component was not understood") + ZS_PARAM("component", componentStr))
+          }
+        }
+      }
+
+      bool isComplete = false;
+
+      ElementPtr candidateEl = rootEl->findFirstChildElement("candidate");
+      if (!candidateEl) {
+        candidateEl = rootEl->findFirstChildElement("candidateComplete");
+        isComplete = true;
+      }
+      else {
+        candidateEl = rootEl->findFirstChildElement("complete");
+        isComplete = true;
+      }
+
+      if (!candidateEl) return ICECandidatePtr();
+
+      if (isComplete) {
+        result->mCandidate = IICETypes::CandidateComplete::create(candidateEl);
+        return result;
+      }
+
+      result->mCandidate = IICETypes::Candidate::create(candidateEl);
+      return result;
+    }
+
+    //-------------------------------------------------------------------------
+    ElementPtr ISessionDescriptionTypes::ICECandidate::createElement(const char *objectName) const
+    {
+      if (!objectName) objectName = "iceCandidate";
+
+      ElementPtr candidateEl;
+
+      {
+        auto iceCandidate = IICETypes::Candidate::convert(mCandidate);
+        if (iceCandidate) {
+          candidateEl = iceCandidate->createElement();
+        }
+      }
+      {
+        auto iceCandidate = IICETypes::CandidateComplete::convert(mCandidate);
+        if (iceCandidate) {
+          candidateEl = iceCandidate->createElement();
+        }
+      }
+
+      if (!candidateEl) return ElementPtr();
+
+      ElementPtr rootEl = Element::create(objectName);
+
+      UseHelper::adoptElementValue(rootEl, "mid", mMid, false);
+      UseHelper::adoptElementValue(rootEl, "index", mMLineIndex);
+      UseHelper::adoptElementValue(rootEl, "componenet", IICETypes::toString(mComponent), true);
+      rootEl->adoptAsLastChild(candidateEl);
+      return rootEl;
+    }
+
+    //-------------------------------------------------------------------------
+    ElementPtr ISessionDescriptionTypes::ICECandidate::toDebug() const
+    {
+      return createElement("ortc::adapter::ISessionDescriptionTypes::ICECandidate");
+    }
+
+    //-------------------------------------------------------------------------
+    String ISessionDescriptionTypes::ICECandidate::hash() const
+    {
+      SHA1Hasher hasher;
+
+      hasher.update("adapter::ISessionDescriptionTypes::ICECandidate:");
+
+      hasher.update(mMid);
+      hasher.update(":");
+      hasher.update(mMLineIndex);
+      hasher.update(":");
+      hasher.update(IICETypes::toString(mComponent));
+      hasher.update(":");
+
+      {
+        auto iceCandidate = IICETypes::Candidate::convert(mCandidate);
+        if (iceCandidate) {
+          hasher.update(iceCandidate->hash());
+        }
+      }
+      hasher.update(":");
+      {
+        auto iceCandidate = IICETypes::CandidateComplete::convert(mCandidate);
+        if (iceCandidate) {
+          hasher.update(iceCandidate->hash());
+        }
+      }
+
+      hasher.update(":end");
+      return hasher.final();
+    }
+
+    //-------------------------------------------------------------------------
+    ISessionDescriptionTypes::ICECandidatePtr ISessionDescriptionTypes::ICECandidate::createFromSDP(ElementPtr rootEl)
+    {
+#define TODO 1
+#define TODO 2
+      return ICECandidatePtr();
+    }
+
+    //-------------------------------------------------------------------------
+    ISessionDescriptionTypes::ICECandidatePtr ISessionDescriptionTypes::ICECandidate::createFromSDP(const char *string)
+    {
+#define TODO 1
+#define TODO 2
+      return ICECandidatePtr();
+    }
+
+    //-------------------------------------------------------------------------
+    String ISessionDescriptionTypes::ICECandidate::getCandidateSDP() const
+    {
+#define TODO 1
+#define TODO 2
+      return String();
+    }
+
+    //-------------------------------------------------------------------------
+    ElementPtr ISessionDescriptionTypes::ICECandidate::toSDP() const
+    {
+      return createElement();
+    }
+
+    //-------------------------------------------------------------------------
+    ElementPtr ISessionDescriptionTypes::ICECandidate::toJSON() const
+    {
+      return createElement();
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark ISessionDescriptionTypes::Description
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    ISessionDescriptionTypes::Description::Description(const Description &op2) :
+      mDetails(op2.mDetails ? make_shared<Details>(*op2.mDetails) : DetailsPtr())
+    {
+      for (auto iter = op2.mTransports.begin(); iter != op2.mTransports.end(); ++iter)
+      {
+        auto transport = (*iter);
+        if (!transport) continue;
+        mTransports.push_back(make_shared<Transport>(*transport));
+      }
+      for (auto iter = op2.mRTPMediaLines.begin(); iter != op2.mRTPMediaLines.end(); ++iter)
+      {
+        auto mediaLine = (*iter);
+        if (!mediaLine) continue;
+        mRTPMediaLines.push_back(make_shared<RTPMediaLine>(*mediaLine));
+      }
+      for (auto iter = op2.mSCTPMediaLines.begin(); iter != op2.mSCTPMediaLines.end(); ++iter)
+      {
+        auto mediaLine = (*iter);
+        if (!mediaLine) continue;
+        mSCTPMediaLines.push_back(make_shared<SCTPMediaLine>(*mediaLine));
+      }
+      for (auto iter = op2.mRTPSenders.begin(); iter != op2.mRTPSenders.end(); ++iter)
+      {
+        auto rtpSender = (*iter);
+        if (!rtpSender) continue;
+        mRTPSenders.push_back(make_shared<RTPSender>(*rtpSender));
+      }
+    }
+
+    //-------------------------------------------------------------------------
+    ISessionDescriptionTypes::Description::Description(ElementPtr rootEl)
+    {
+      if (!rootEl) return;
+
+      mDetails = Details::create(rootEl->findFirstChildElement("details"));
+
+      // scope: check for transports
+      {
+        ElementPtr transportsEl = rootEl->findFirstChildElement("transports");
+        if (transportsEl) {
+          ElementPtr transportEl = transportsEl->findFirstChildElement("transport");
+          while (transportEl) {
+            auto transport = Transport::create(transportEl);
+            transportEl = transportEl->findNextSiblingElement("transport");
+
+            if (!transport) continue;
+            mTransports.push_back(transport);
+          }
+        }
+      }
+
+      // scope: check for rtp media lines
+      {
+        ElementPtr mediaLinesEl = rootEl->findFirstChildElement("rtpMediaLines");
+        if (mediaLinesEl) {
+          ElementPtr mediaLineEl = mediaLinesEl->findFirstChildElement("rtpMediaLine");
+          while (mediaLineEl) {
+            auto mediaLine = RTPMediaLine::create(mediaLineEl);
+            mediaLineEl = mediaLineEl->findNextSiblingElement("rtpMediaLine");
+
+            if (!mediaLine) continue;
+            mRTPMediaLines.push_back(mediaLine);
+          }
+        }
+      }
+
+      // scope: check for sctp media lines
+      {
+        ElementPtr mediaLinesEl = rootEl->findFirstChildElement("sctpMediaLines");
+        if (mediaLinesEl) {
+          ElementPtr mediaLineEl = mediaLinesEl->findFirstChildElement("sctpMediaLine");
+          while (mediaLineEl) {
+            auto mediaLine = SCTPMediaLine::create(mediaLineEl);
+            mediaLineEl = mediaLineEl->findNextSiblingElement("sctpMediaLine");
+
+            if (!mediaLine) continue;
+            mSCTPMediaLines.push_back(mediaLine);
+          }
+        }
+      }
+
+      // scope: check for rtp senders
+      {
+        ElementPtr rtpSendersEl = rootEl->findFirstChildElement("rtpSenders");
+        if (rtpSendersEl) {
+          ElementPtr rtpSenderEl = rtpSendersEl->findFirstChildElement("rtpSender");
+          while (rtpSenderEl) {
+            auto rtpSender = RTPSender::create(rtpSenderEl);
+            rtpSenderEl = rtpSenderEl->findNextSiblingElement("rtpSender");
+
+            if (!rtpSender) continue;
+            mRTPSenders.push_back(rtpSender);
+          }
+        }
+      }
+    }
+
+    //-------------------------------------------------------------------------
+    ElementPtr ISessionDescriptionTypes::Description::createElement(const char *objectName) const
+    {
+      if (!objectName) objectName = "session";
+
+      ElementPtr rootEl = Element::create(objectName);
+
+      if (mDetails) {
+        rootEl->adoptAsLastChild(mDetails->createElement());
+      }
+
+      if (mTransports.size() > 0) {
+        ElementPtr transportsEl = Element::create("transports");
+        for (auto iter = mTransports.begin(); iter != mTransports.end(); ++iter)
+        {
+          auto transport = (*iter);
+          if (!transport) continue;
+          transportsEl->adoptAsLastChild(transport->createElement());
+        }
+        rootEl->adoptAsLastChild(transportsEl);
+      }
+
+      if (mRTPMediaLines.size() > 0) {
+        ElementPtr mediaLinesEl = Element::create("rtpMediaLines");
+        for (auto iter = mRTPMediaLines.begin(); iter != mRTPMediaLines.end(); ++iter)
+        {
+          auto mediaLine = (*iter);
+          if (!mediaLine) continue;
+          mediaLinesEl->adoptAsLastChild(mediaLine->createElement());
+        }
+        rootEl->adoptAsLastChild(mediaLinesEl);
+      }
+      if (mSCTPMediaLines.size() > 0) {
+        ElementPtr mediaLinesEl = Element::create("sctpMediaLines");
+        for (auto iter = mSCTPMediaLines.begin(); iter != mSCTPMediaLines.end(); ++iter)
+        {
+          auto mediaLine = (*iter);
+          if (!mediaLine) continue;
+          mediaLinesEl->adoptAsLastChild(mediaLine->createElement());
+        }
+        rootEl->adoptAsLastChild(mediaLinesEl);
+      }
+      if (mRTPSenders.size() > 0) {
+        ElementPtr rtpSendersEl = Element::create("rtpSenders");
+        for (auto iter = mRTPSenders.begin(); iter != mRTPSenders.end(); ++iter)
+        {
+          auto rtpSender = (*iter);
+          if (!rtpSender) continue;
+          rtpSendersEl->adoptAsLastChild(rtpSender->createElement());
+        }
+        rootEl->adoptAsLastChild(rtpSendersEl);
+      }
+
+      if (!rootEl->hasChildren()) return ElementPtr();
+
+      return rootEl;
+    }
+
+    //-------------------------------------------------------------------------
+    ElementPtr ISessionDescriptionTypes::Description::toDebug() const
+    {
+      return createElement("ortc::adapter::ISessionDescriptionTypes::Description");
+    }
+
+    //-------------------------------------------------------------------------
+    String ISessionDescriptionTypes::Description::hash() const
+    {
+      SHA1Hasher hasher;
+
+      hasher.update("adapter::ISessionDescriptionTypes::Description:");
+
+      hasher.update(mDetails ? mDetails->hash() : String());
+
+      hasher.update(":transports:436e7244e8d2c773ff7827e40ab1775cfc898a36:");
+
+      for (auto iter = mTransports.begin(); iter != mTransports.end(); ++iter)
+      {
+        auto transport = (*iter);
+        if (!transport) continue;
+        hasher.update(transport->hash());
+        hasher.update(":");
+      }
+      hasher.update(":rtpMediaLines:b45495b53fe9e894816a794e959e475d68a31d0e:");
+      for (auto iter = mRTPMediaLines.begin(); iter != mRTPMediaLines.end(); ++iter)
+      {
+        auto mediaLine = (*iter);
+        if (!mediaLine) continue;
+        hasher.update(mediaLine->hash());
+        hasher.update(":");
+      }
+      hasher.update(":sctpMediaLines:d62607480f61c36891f6b97a55623d83fff0749c:");
+      for (auto iter = mSCTPMediaLines.begin(); iter != mSCTPMediaLines.end(); ++iter)
+      {
+        auto mediaLine = (*iter);
+        if (!mediaLine) continue;
+        hasher.update(mediaLine->hash());
+        hasher.update(":");
+      }
+      hasher.update(":rtpSenders:02a37fd161e55bdb384517cecb6f8c52ca5fa113:");
+      for (auto iter = mRTPSenders.begin(); iter != mRTPSenders.end(); ++iter)
+      {
+        auto sender = (*iter);
+        if (!sender) continue;
+        hasher.update(sender->hash());
+        hasher.update(":");
+      }
+      hasher.update(":end");
+
+      return hasher.final();
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark ISessionDescriptionTypes::Description::Details
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    ISessionDescriptionTypes::Description::Description::Details::Details(const Details &op2) :
+      mUsername(op2.mUsername),
+      mSessionVersion(op2.mSessionVersion),
+      mUnicaseAddress(op2.mUnicaseAddress ? make_shared<ConnectionData::Details>(*op2.mUnicaseAddress) : ConnectionData::DetailsPtr()),
+      mSessionName(op2.mSessionName),
+      mStartTime(op2.mStartTime),
+      mEndTime(op2.mEndTime),
+      mConnectionData(op2.mConnectionData ? make_shared<ConnectionData>(*op2.mConnectionData) : ConnectionDataPtr())
+    {
+    }
+
+    //-------------------------------------------------------------------------
+    ISessionDescriptionTypes::Description::Details::Details(ElementPtr rootEl)
+    {
+      UseHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::Description::Details", "username", mUsername);
+      UseHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::Description::Details", "id", mSessionID);
+      UseHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::Description::Details", "version", mSessionVersion);
+      mUnicaseAddress = ConnectionData::Details::create(rootEl->findFirstChildElement("unicastAddress"));
+      UseHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::Description::Details", "name", mSessionName);
+      UseHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::Description::Details", "startTime", mStartTime);
+      UseHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::Description::Details", "endTime", mEndTime);
+      mConnectionData = ConnectionData::create(rootEl->findFirstChildElement("connectionData"));
+    }
+
+    //-------------------------------------------------------------------------
+    ElementPtr ISessionDescriptionTypes::Description::Details::createElement(const char *objectName) const
+    {
+      if (!objectName) objectName = "details";
+
+      ElementPtr rootEl = Element::create(objectName);
+
+      UseHelper::adoptElementValue(rootEl, "username", mUsername, false);
+      UseHelper::adoptElementValue(rootEl, "id", mSessionID);
+      UseHelper::adoptElementValue(rootEl, "version", mSessionVersion);
+      if (mUnicaseAddress) {
+        rootEl->adoptAsLastChild(mUnicaseAddress->createElement("unicastAddress"));
+      }
+      UseHelper::adoptElementValue(rootEl, "name", mSessionName, false);
+      UseHelper::adoptElementValue(rootEl, "startTime", mStartTime);
+      UseHelper::adoptElementValue(rootEl, "endTime", mEndTime);
+      if (rootEl) {
+        rootEl->adoptAsLastChild(mUnicaseAddress->createElement());
+      }
+
+      if (!rootEl->hasChildren()) return ElementPtr();
+
+      return rootEl;
+    }
+
+    //-------------------------------------------------------------------------
+    ElementPtr ISessionDescriptionTypes::Description::Details::toDebug() const
+    {
+      return createElement("ortc::adapter::ISessionDescriptionTypes::Description::Details");
+    }
+
+    //-------------------------------------------------------------------------
+    String ISessionDescriptionTypes::Description::Details::hash() const
+    {
+      SHA1Hasher hasher;
+
+      hasher.update("adapter::ISessionDescriptionTypes::Description:Details:");
+
+      hasher.update(mUsername);
+      hasher.update(":");
+      hasher.update(mSessionID);
+      hasher.update(":");
+      hasher.update(mSessionVersion);
+      hasher.update(":");
+      if (mUnicaseAddress) {
+        hasher.update(mUnicaseAddress->hash());
+      }
+      hasher.update(":");
+      hasher.update(mSessionName);
+      hasher.update(":");
+      hasher.update(mStartTime);
+      hasher.update(":");
+      hasher.update(mEndTime);
+      hasher.update(":");
+      if (mConnectionData) {
+        hasher.update(mConnectionData->hash());
+      }
+      hasher.update(":end");
+
+      return hasher.final();
+    }
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -67,45 +1397,24 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    ISessionDescriptionTypes::ICECandidatePtr ISessionDescriptionTypes::ICECandidate::create(ElementPtr candidateEl)
-    {
-      return ICECandidatePtr();
-    }
-    //-------------------------------------------------------------------------
-    ISessionDescriptionTypes::ICECandidatePtr ISessionDescriptionTypes::ICECandidate::createFromSDP(const char *string)
-    {
-      return ICECandidatePtr();
-    }
-
-    //-------------------------------------------------------------------------
-    String ISessionDescriptionTypes::ICECandidate::toSDP() const
-    {
-      return String();
-    }
-
-    //-------------------------------------------------------------------------
-    ElementPtr ISessionDescriptionTypes::ICECandidate::toJSON() const
-    {
-      return ElementPtr();
-    }
-
-    //-------------------------------------------------------------------------
     ISessionDescriptionPtr ISessionDescription::create(
-                                                       SignalingTypes type,
-                                                       const char *description
-                                                       )
+      SignalingTypes type,
+      const char *description
+      )
     {
       return ISessionDescriptionPtr();
     }
 
     //-------------------------------------------------------------------------
     ISessionDescriptionPtr ISessionDescription::create(
-                                                       SignalingTypes type,
-                                                       const Description &description
-                                                       )
+      SignalingTypes type,
+      const Description &description
+      )
     {
       return ISessionDescriptionPtr();
     }
+
+
 
   } // namespace adapter
 } // namespace ortc

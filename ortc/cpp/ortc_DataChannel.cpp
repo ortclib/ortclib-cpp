@@ -1633,17 +1633,7 @@ namespace ortc
   //---------------------------------------------------------------------------
   ElementPtr IDataChannelTypes::Parameters::toDebug() const
   {
-    ElementPtr resultEl = Element::create("ortc::IDataChannelTypes::Parameters");
-
-    UseServicesHelper::debugAppend(resultEl, "label", mLabel);
-    UseServicesHelper::debugAppend(resultEl, "ordered", mOrdered);
-    UseServicesHelper::debugAppend(resultEl, "max packet lifetime", mMaxPacketLifetime);
-    UseServicesHelper::debugAppend(resultEl, "max retransmits", mMaxRetransmits);
-    UseServicesHelper::debugAppend(resultEl, "protocol", mProtocol);
-    UseServicesHelper::debugAppend(resultEl, "negotiated", mNegotiated);
-    UseServicesHelper::debugAppend(resultEl, "id", mID);
-
-    return resultEl;
+    return createElement("ortc::IDataChannelTypes::Parameters");
   }
 
   //---------------------------------------------------------------------------

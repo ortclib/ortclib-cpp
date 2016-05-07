@@ -92,8 +92,9 @@ namespace ortc
 
       Parameters() {}
       Parameters(const Parameters &op2) {(*this) = op2;}
-      Parameters(ElementPtr elem);
+      Parameters(ElementPtr rootEl);
 
+      static ParametersPtr create(ElementPtr rootEl) { if (!rootEl) return ParametersPtr(); return make_shared<Parameters>(rootEl); }
       ElementPtr createElement(const char *objectName) const;
 
       ElementPtr toDebug() const;

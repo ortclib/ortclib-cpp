@@ -125,7 +125,7 @@ namespace ortc
       {
         IICEGathererTypes::OptionsPtr mGatherOptions;
 
-        SignalingTypes mSignalingType {ISessionDescription::SignalingType_Auto};
+        SignalingTypes mSignalingType {ISessionDescription::SignalingType_First};
 
         BundlePolicies mBundlePolicy;
         RTCPMuxPolicies mRTCPMuxPolicy;
