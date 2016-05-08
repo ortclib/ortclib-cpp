@@ -415,6 +415,65 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
+      const char *ISDPTypes::toString(Locations location)
+      {
+        ZS_THROW_NOT_IMPLEMENTED("temp");
+      }
+
+      //-----------------------------------------------------------------------
+      ISDPTypes::Locations ISDPTypes::toLocation(const char *location)
+      {
+        ZS_THROW_NOT_IMPLEMENTED("temp");
+      }
+
+      //-----------------------------------------------------------------------
+      const char *ISDPTypes::toString(Directions location)
+      {
+        ZS_THROW_NOT_IMPLEMENTED("temp");
+      }
+
+      //-----------------------------------------------------------------------
+      ISDPTypes::Directions ISDPTypes::toDirection(const char *location)
+      {
+        ZS_THROW_NOT_IMPLEMENTED("temp");
+      }
+
+      //-----------------------------------------------------------------------
+      bool ISDPTypes::isValid(
+                              Directions direction,
+                              bool allowNone,
+                              bool allowSend,
+                              bool allowReceive,
+                              bool allowSendReceive
+                              )
+      {
+        ZS_THROW_NOT_IMPLEMENTED("temp");
+      }
+
+
+      //-----------------------------------------------------------------------
+      const char *ISDPTypes::toString(RTPDirectionContexts context)
+      {
+        ZS_THROW_NOT_IMPLEMENTED("temp");
+      }
+
+      //-----------------------------------------------------------------------
+      ISDPTypes::RTPDirectionContexts ISDPTypes::toRTPDirectionContext(const char *location)
+      {
+        ZS_THROW_NOT_IMPLEMENTED("temp");
+      }
+
+      //-----------------------------------------------------------------------
+      bool ISDPTypes::isApplicable(
+                                   RTPDirectionContexts context,
+                                   Locations location,
+                                   Directions direction
+                                   )
+      {
+        ZS_THROW_NOT_IMPLEMENTED("temp");
+      }
+
+      //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
@@ -780,13 +839,26 @@ namespace ortc
           ORTC_THROW_INVALID_PARAMETERS("entry id value out of range: " + entrySplit[0]);
         }
         if (entrySplit.size() > 1) {
-          mDirection = entrySplit[1];
+          mDirection = toDirection(entrySplit[1]);
+          ORTC_THROW_INVALID_PARAMETERS_IF(!isValid(mDirection, false, true, true, true));
+        } else {
+          mDirection = Direction_SendReceive;
         }
 
         mURI = split[1];
         if (split.size() > 2) {
           mExtensionAttributes = split[2];
         }
+      }
+
+      //-----------------------------------------------------------------------
+      ISDPTypes::AMediaDirectionLine::AMediaDirectionLine(MLinePtr mline, const char *value) :
+        AMediaLine(mline)
+      {
+        String str(value);
+        str.trim();
+        mDirection = toDirection(str);
+        ORTC_THROW_INVALID_PARAMETERS_IF(!isValid(mDirection, true, true, true, true));
       }
 
       //-----------------------------------------------------------------------
@@ -987,7 +1059,8 @@ namespace ortc
         ORTC_THROW_INVALID_PARAMETERS_IF(split.size() < 3);
 
         mID = split[0];
-        mDirection = split[1];
+        mDirection = toDirection(split[1]);
+        ORTC_THROW_INVALID_PARAMETERS_IF(!isValid(mDirection, false, true, true, false));
 
         UseServicesHelper::SplitMap ridParamSplit;
         UseServicesHelper::split(split[2], ridParamSplit, ";");
@@ -1046,7 +1119,8 @@ namespace ortc
         for (size_t index = 0; index < split.size(); ++index)
         {
           SCValue scValue;
-          scValue.mDirection = split[index];
+          scValue.mDirection = toDirection(split[index]);
+          ORTC_THROW_INVALID_PARAMETERS_IF(!isValid(scValue.mDirection, false, true, true, false));
 
           UseServicesHelper::SplitMap altListSplit;
           UseServicesHelper::split(split[index+1], altListSplit, ";");
@@ -1360,10 +1434,10 @@ namespace ortc
             case Attribute_Setup:             info.mLineValue = make_shared<ASetupLine>(currentMLine, info.mValue); break;
             case Attribute_MID:               info.mLineValue = make_shared<AMIDLine>(currentMLine, info.mValue); break;
             case Attribute_Extmap:            info.mLineValue = make_shared<AExtmapLine>(currentMLine, info.mValue); break;
-            case Attribute_SendRecv:          info.mLineValue = make_shared<AMediaDirectionLine>(toString(info.mAttribute), currentMLine); break;
-            case Attribute_SendOnly:          info.mLineValue = make_shared<AMediaDirectionLine>(toString(info.mAttribute), currentMLine); break;
-            case Attribute_RecvOnly:          info.mLineValue = make_shared<AMediaDirectionLine>(toString(info.mAttribute), currentMLine); break;
-            case Attribute_Inactive:          info.mLineValue = make_shared<AMediaDirectionLine>(toString(info.mAttribute), currentMLine); break;
+            case Attribute_SendRecv:          info.mLineValue = make_shared<AMediaDirectionLine>(currentMLine, toString(info.mAttribute)); break;
+            case Attribute_SendOnly:          info.mLineValue = make_shared<AMediaDirectionLine>(currentMLine, toString(info.mAttribute)); break;
+            case Attribute_RecvOnly:          info.mLineValue = make_shared<AMediaDirectionLine>(currentMLine, toString(info.mAttribute)); break;
+            case Attribute_Inactive:          info.mLineValue = make_shared<AMediaDirectionLine>(currentMLine, toString(info.mAttribute)); break;
             case Attribute_RTPMap:            info.mLineValue = make_shared<ARTPMapLine>(currentMLine, info.mValue); break;
             case Attirbute_FMTP:              info.mLineValue = make_shared<AFMTPLine>(currentMLine, currentSourceLine, info.mValue); break;
             case Attribute_RTCP:              info.mLineValue = make_shared<ARTCPLine>(currentMLine, info.mValue); break;

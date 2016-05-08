@@ -206,7 +206,7 @@ namespace ortc
       virtual IPeerConnectionSubscriptionPtr subscribe(IPeerConnectionDelegatePtr delegate) = 0;
 
       virtual PromiseWithDescriptionPtr createOffer(const Optional<OfferOptions> &configuration = Optional<OfferOptions>()) = 0;
-      virtual PromiseWithDescriptionPtr createAnswer(const Optional<OfferOptions> &configuration = Optional<OfferOptions>()) = 0;
+      virtual PromiseWithDescriptionPtr createAnswer(const Optional<AnswerOptions> &configuration = Optional<AnswerOptions>()) = 0;
 
       virtual PromiseWithDescriptionPtr createCapabilities(const Optional<CapabilityOptions> &configuration = Optional<CapabilityOptions>()) = 0;
 

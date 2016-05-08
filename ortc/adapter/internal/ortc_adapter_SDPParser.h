@@ -211,6 +211,58 @@ namespace ortc
                                      Attributes attribute
                                      );
 
+        
+        enum Locations
+        {
+          Location_First,
+
+          Location_Local = Location_First,
+          Location_Remote,
+
+          Location_Last = Location_Remote,
+        };
+
+        static const char *toString(Locations location);
+        static Locations toLocation(const char *location);
+
+        enum Directions
+        {
+          Direction_None        = 0x00,
+          Direction_Send        = 0x01,
+          Direction_Receive     = 0x02,
+
+          Direction_SendReceive = Direction_Send | Direction_Receive,
+        };
+
+        static const char *toString(Directions location);
+        static Directions toDirection(const char *location);
+        static bool isValid(
+                            Directions direction,
+                            bool allowNone,
+                            bool allowSend,
+                            bool allowReceive,
+                            bool allowSendReceive
+                            );
+
+        enum RTPDirectionContexts
+        {
+          RTPDirectionContext_Neither   = 0x00,
+
+          RTPDirectionContext_Sender    = 0x01,
+          RTPDirectionContext_Receiver  = 0x02,
+
+          RTPDirectionContext_Transceiver = RTPDirectionContext_Sender | RTPDirectionContext_Receiver,
+        };
+
+        static const char *toString(RTPDirectionContexts context);
+        static RTPDirectionContexts toRTPDirectionContext(const char *location);
+
+        static bool isApplicable(
+                                 RTPDirectionContexts context,
+                                 Locations location,
+                                 Directions direction
+                                 );
+
         //---------------------------------------------------------------------
         //---------------------------------------------------------------------
         //---------------------------------------------------------------------
@@ -274,7 +326,7 @@ namespace ortc
           // media level flags
           Optional<bool> mBundleOnly;
           Optional<bool> mEndOfCandidates;
-          Optional<const char *> mMediaDirection;
+          Optional<Directions> mMediaDirection;
           Optional<bool> mRTCPMux;
           Optional<bool> mRTCPRSize;
 
@@ -447,7 +499,7 @@ namespace ortc
         struct AExtmapLine : public AMediaLine
         {
           WORD mID {};
-          String mDirection;
+          Directions mDirection {Direction_None};
           String mURI;
           String mExtensionAttributes;
 
@@ -456,11 +508,9 @@ namespace ortc
 
         struct AMediaDirectionLine : public AMediaLine
         {
-          String mDirection;
+          Directions mDirection {Direction_None};
 
-          AMediaDirectionLine(const char *direction, MLinePtr mline) :
-            AMediaLine(mline),
-            mDirection(direction) {}
+          AMediaDirectionLine(MLinePtr mline, const char *value);
         };
 
         struct ARTPMapLine : public AMediaLine
@@ -545,7 +595,7 @@ namespace ortc
           typedef std::list<RIDParam> RIDParamList;
 
           String mID;
-          String mDirection;
+          Directions mDirection {Direction_None};
           PayloadTypeList mPayloadTypes;
           RIDParamList mParams;
 
@@ -564,7 +614,7 @@ namespace ortc
 
           struct SCValue
           {
-            String mDirection;
+            Directions mDirection {Direction_None};
             AltSCIDList mAltSCIDs;
           };
           typedef std::list<SCValue> SCValueList;
@@ -605,7 +655,7 @@ namespace ortc
           std::unique_ptr<char[]> mRawBuffer;
 
           // attribute values
-          Optional<const char *> mMediaDirection;
+          Optional<Directions> mMediaDirection;
 
           // attribute flags
           Optional<bool> mICELite;
