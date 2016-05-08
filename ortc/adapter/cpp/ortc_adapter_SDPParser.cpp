@@ -270,7 +270,7 @@ namespace ortc
           case Attribute_RTCP:              break;
           case Attribute_RTCPMux:           return true;
           case Attribute_RTCPFB:            break;
-          case Attribute_RTCPRSize:          return true;
+          case Attribute_RTCPRSize:         return true;
           case Attribute_PTime:             break;
           case Attribute_MaxPTime:          break;
           case Attribute_SSRC:              break;
@@ -313,7 +313,7 @@ namespace ortc
       //-----------------------------------------------------------------------
       ISDPTypes::AttributeLevels ISDPTypes::toAttributeLevel(const char *level)
       {
-        AttributeLevels checkLevels[] =
+        AttributeLevels check[] =
         {
           AttributeLevel_Session,
           AttributeLevel_Media,
@@ -325,8 +325,8 @@ namespace ortc
           AttributeLevel_None,
         };
         String str(level);
-        for (size_t index = 0; AttributeLevel_None != checkLevels[index]; ++index) {
-          if (0 == str.compareNoCase(toString(checkLevels[index]))) return checkLevels[index];
+        for (size_t index = 0; AttributeLevel_None != check[index]; ++index) {
+          if (0 == str.compareNoCase(toString(check[index]))) return check[index];
         }
 
         ORTC_THROW_INVALID_PARAMETERS("Invalid parameter value: " + str);
@@ -417,25 +417,57 @@ namespace ortc
       //-----------------------------------------------------------------------
       const char *ISDPTypes::toString(Locations location)
       {
-        ZS_THROW_NOT_IMPLEMENTED("temp");
+        switch (location)
+        {
+          case Location_Local:  return "local";
+          case Location_Remote: return "remote";
+        }
+        ORTC_THROW_NOT_SUPPORTED_ERRROR("unknown location");
       }
 
       //-----------------------------------------------------------------------
       ISDPTypes::Locations ISDPTypes::toLocation(const char *location)
       {
-        ZS_THROW_NOT_IMPLEMENTED("temp");
+        String str(location);
+        for (Locations index = Location_First; index <= Location_Last; index = static_cast<Locations>(static_cast<std::underlying_type<Locations>::type>(index) + 1)) {
+          if (0 == str.compare(toString(index))) return index;
+        }
+        ORTC_THROW_NOT_SUPPORTED_ERRROR("unknown location");
       }
 
       //-----------------------------------------------------------------------
-      const char *ISDPTypes::toString(Directions location)
+      const char *ISDPTypes::toString(Directions direction)
       {
-        ZS_THROW_NOT_IMPLEMENTED("temp");
+        switch (direction)
+        {
+          case Direction_None:        return "inactive";
+          case Direction_Send:        return "send";
+          case Direction_Receive:     return "recv";
+          case Direction_SendReceive: return "sendrecv";
+        }
+
+        ORTC_THROW_NOT_SUPPORTED_ERRROR("unknown direction");
       }
 
       //-----------------------------------------------------------------------
-      ISDPTypes::Directions ISDPTypes::toDirection(const char *location)
+      ISDPTypes::Directions ISDPTypes::toDirection(const char *direction)
       {
-        ZS_THROW_NOT_IMPLEMENTED("temp");
+        Directions check[] =
+        {
+          Direction_Send,
+          Direction_Receive,
+          Direction_SendReceive,
+          Direction_None
+        };
+
+        String str(direction);
+        if (str.isEmpty()) return Direction_None;
+
+        for (size_t index = 0; index <= (sizeof(check)/sizeof(check[0])); ++index) {
+          if (0 == str.compareNoCase(toString(check[index]))) return check[index];
+        }
+
+        ORTC_THROW_INVALID_PARAMETERS("Invalid parameter value: " + str);
       }
 
       //-----------------------------------------------------------------------
@@ -447,30 +479,83 @@ namespace ortc
                               bool allowSendReceive
                               )
       {
-        ZS_THROW_NOT_IMPLEMENTED("temp");
+        if ((!allowNone) &&
+            (Direction_None == direction)) return false;
+        if ((!allowSend) &&
+            (Direction_Send == direction)) return false;
+        if ((!allowReceive) &&
+            (Direction_Receive == direction)) return false;
+        if ((!allowSendReceive) &&
+            (Direction_SendReceive == direction)) return false;
+        return true;
       }
 
-
       //-----------------------------------------------------------------------
-      const char *ISDPTypes::toString(RTPDirectionContexts context)
+      const char *ISDPTypes::toString(ActorRoles actor)
       {
-        ZS_THROW_NOT_IMPLEMENTED("temp");
+        switch (actor)
+        {
+          case ActorRole_Sender:      return "sender";
+          case ActorRole_Receiver:    return "receiver";
+          case ActorRole_Transceiver: return "transceiver";
+        }
+        ORTC_THROW_NOT_SUPPORTED_ERRROR("unknown actor role");
       }
 
       //-----------------------------------------------------------------------
-      ISDPTypes::RTPDirectionContexts ISDPTypes::toRTPDirectionContext(const char *location)
+      ISDPTypes::ActorRoles ISDPTypes::toActorRole(const char *actor)
       {
-        ZS_THROW_NOT_IMPLEMENTED("temp");
+        ActorRoles check[] =
+        {
+          ActorRole_Sender,
+          ActorRole_Receiver,
+          ActorRole_Transceiver
+        };
+
+        String str(actor);
+
+        for (size_t index = 0; index <= (sizeof(check) / sizeof(check[0])); ++index) {
+          if (0 == str.compareNoCase(toString(check[index]))) return check[index];
+        }
+
+        ORTC_THROW_INVALID_PARAMETERS("Invalid parameter value: " + str);
       }
 
       //-----------------------------------------------------------------------
       bool ISDPTypes::isApplicable(
-                                   RTPDirectionContexts context,
+                                   ActorRoles actor,
                                    Locations location,
                                    Directions direction
                                    )
       {
-        ZS_THROW_NOT_IMPLEMENTED("temp");
+        switch (actor)
+        {
+          case ActorRole_Sender:
+          {
+            switch (location)
+            {
+              case Location_Local:  return (0 != (Direction_Send & direction));
+              case Location_Remote: return (0 != (Direction_Receive & direction));
+            }
+          }
+          case ActorRole_Receiver:
+          {
+            switch (location)
+            {
+              case Location_Local:  return (0 != (Direction_Receive & direction));
+              case Location_Remote: return (0 != (Direction_Send & direction));
+            }
+          }
+          case ActorRole_Transceiver:
+          {
+            switch (location)
+            {
+              case Location_Local:  return (0 != (Direction_SendReceive & direction));
+              case Location_Remote: return (0 != (Direction_SendReceive & direction));
+            }
+          }
+        }
+        ORTC_THROW_NOT_SUPPORTED_ERRROR("role / location was not found");
       }
 
       //-----------------------------------------------------------------------

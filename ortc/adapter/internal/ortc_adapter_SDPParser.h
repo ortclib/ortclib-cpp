@@ -234,8 +234,8 @@ namespace ortc
           Direction_SendReceive = Direction_Send | Direction_Receive,
         };
 
-        static const char *toString(Directions location);
-        static Directions toDirection(const char *location);
+        static const char *toString(Directions direction);
+        static Directions toDirection(const char *direction);
         static bool isValid(
                             Directions direction,
                             bool allowNone,
@@ -244,21 +244,18 @@ namespace ortc
                             bool allowSendReceive
                             );
 
-        enum RTPDirectionContexts
+        enum ActorRoles
         {
-          RTPDirectionContext_Neither   = 0x00,
-
-          RTPDirectionContext_Sender    = 0x01,
-          RTPDirectionContext_Receiver  = 0x02,
-
-          RTPDirectionContext_Transceiver = RTPDirectionContext_Sender | RTPDirectionContext_Receiver,
+          ActorRole_Sender      = 0x01,
+          ActorRole_Receiver    = 0x02,
+          ActorRole_Transceiver = ActorRole_Sender | ActorRole_Receiver,
         };
 
-        static const char *toString(RTPDirectionContexts context);
-        static RTPDirectionContexts toRTPDirectionContext(const char *location);
+        static const char *toString(ActorRoles actor);
+        static ActorRoles toActorRole(const char *actor);
 
         static bool isApplicable(
-                                 RTPDirectionContexts context,
+                                 ActorRoles actor,
                                  Locations location,
                                  Directions direction
                                  );
