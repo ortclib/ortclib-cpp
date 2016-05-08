@@ -31,6 +31,7 @@
 
 
 #include <ortc/adapter/internal/ortc_adapter_SessionDescription.h>
+#include <ortc/adapter/internal/ortc_adapter_SDPParser.h>
 
 #include <ortc/internal/ortc_Helper.h>
 
@@ -63,7 +64,7 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark SessionDescription
+      #pragma mark Helpers
       #pragma mark
 
       //-----------------------------------------------------------------------

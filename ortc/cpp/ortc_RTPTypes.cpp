@@ -2785,7 +2785,7 @@ namespace ortc
           String str = UseServicesHelper::getElementText(packetizationEl);
           try {
             value = Numeric<decltype(mPacketizationModes)::value_type>(str);
-          } catch(Numeric<decltype(mPacketizationModes)::value_type>::ValueOutOfRange &) {
+          } catch(const Numeric<decltype(mPacketizationModes)::value_type>::ValueOutOfRange &) {
             ZS_LOG_WARNING(Debug, slog("packetization mode value out of range") + ZS_PARAM("value", str))
           }
           mPacketizationModes.push_back(value);
@@ -3816,7 +3816,7 @@ namespace ortc
           String str = UseServicesHelper::getElementText(payloadTypeEl);
           try {
             value = Numeric<decltype(mPayloadTypes)::value_type>(str);
-          } catch(Numeric<decltype(mPayloadTypes)::value_type>::ValueOutOfRange &) {
+          } catch(const Numeric<decltype(mPayloadTypes)::value_type>::ValueOutOfRange &) {
             ZS_LOG_WARNING(Debug, slog("payload type value out of range") + ZS_PARAM("value", str))
           }
           mPayloadTypes.push_back(value);

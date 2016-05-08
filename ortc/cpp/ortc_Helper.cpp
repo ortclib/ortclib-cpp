@@ -93,7 +93,7 @@ namespace ortc
       if (str.hasData()) {
         try {
           outValue = Numeric<bool>(str);
-        } catch(Numeric<bool>::ValueOutOfRange &) {
+        } catch(const Numeric<bool>::ValueOutOfRange &) {
           ZS_LOG_WARNING(Debug, slog(logObjectName, (String(subElementName) + "value out of range").c_str()) + ZS_PARAM("value", str))
         }
       }
@@ -112,7 +112,7 @@ namespace ortc
       if (str.hasData()) {
         try {
           outValue = Numeric<CHAR>(str);
-        } catch(Numeric<CHAR>::ValueOutOfRange &) {
+        } catch(const Numeric<CHAR>::ValueOutOfRange &) {
           ZS_LOG_WARNING(Debug, slog(logObjectName, (String(subElementName) + "value out of range").c_str()) + ZS_PARAM("value", str))
         }
       }
@@ -131,7 +131,7 @@ namespace ortc
       if (str.hasData()) {
         try {
           outValue = Numeric<UCHAR>(str);
-        } catch(Numeric<UCHAR>::ValueOutOfRange &) {
+        } catch(const Numeric<UCHAR>::ValueOutOfRange &) {
           ZS_LOG_WARNING(Debug, slog(logObjectName, (String(subElementName) + "value out of range").c_str()) + ZS_PARAM("value", str))
         }
       }
@@ -150,7 +150,7 @@ namespace ortc
       if (str.hasData()) {
         try {
           outValue = Numeric<SHORT>(str);
-        } catch(Numeric<SHORT>::ValueOutOfRange &) {
+        } catch(const Numeric<SHORT>::ValueOutOfRange &) {
           ZS_LOG_WARNING(Debug, slog(logObjectName, (String(subElementName) + "value out of range").c_str()) + ZS_PARAM("value", str))
         }
       }
@@ -169,7 +169,7 @@ namespace ortc
       if (str.hasData()) {
         try {
           outValue = Numeric<USHORT>(str);
-        } catch(Numeric<USHORT>::ValueOutOfRange &) {
+        } catch(const Numeric<USHORT>::ValueOutOfRange &) {
           ZS_LOG_WARNING(Debug, slog(logObjectName, (String(subElementName) + "value out of range").c_str()) + ZS_PARAM("value", str))
         }
       }
@@ -188,7 +188,7 @@ namespace ortc
       if (str.hasData()) {
         try {
           outValue = Numeric<LONG>(str);
-        } catch(Numeric<LONG>::ValueOutOfRange &) {
+        } catch(const Numeric<LONG>::ValueOutOfRange &) {
           ZS_LOG_WARNING(Debug, slog(logObjectName, (String(subElementName) + "value out of range").c_str()) + ZS_PARAM("value", str))
         }
       }
@@ -207,7 +207,7 @@ namespace ortc
       if (str.hasData()) {
         try {
           outValue = Numeric<ULONG>(str);
-        } catch(Numeric<ULONG>::ValueOutOfRange &) {
+        } catch(const Numeric<ULONG>::ValueOutOfRange &) {
           ZS_LOG_WARNING(Debug, slog(logObjectName, (String(subElementName) + "value out of range").c_str()) + ZS_PARAM("value", str))
         }
       }
@@ -226,7 +226,7 @@ namespace ortc
       if (str.hasData()) {
         try {
           outValue = Numeric<LONGLONG>(str);
-        } catch(Numeric<LONGLONG>::ValueOutOfRange &) {
+        } catch(const Numeric<LONGLONG>::ValueOutOfRange &) {
           ZS_LOG_WARNING(Debug, slog(logObjectName, (String(subElementName) + "value out of range").c_str()) + ZS_PARAM("value", str))
         }
       }
@@ -245,7 +245,7 @@ namespace ortc
       if (str.hasData()) {
         try {
           outValue = Numeric<ULONGLONG>(str);
-        } catch(Numeric<ULONGLONG>::ValueOutOfRange &) {
+        } catch(const Numeric<ULONGLONG>::ValueOutOfRange &) {
           ZS_LOG_WARNING(Debug, slog(logObjectName, (String(subElementName) + "value out of range").c_str()) + ZS_PARAM("value", str))
         }
       }
@@ -263,7 +263,7 @@ namespace ortc
       if (str.hasData()) {
         try {
           outValue = Numeric<INT>(str);
-        } catch(Numeric<INT>::ValueOutOfRange &) {
+        } catch(const Numeric<INT>::ValueOutOfRange &) {
           ZS_LOG_WARNING(Debug, slog(logObjectName, (String(subElementName) + "value out of range").c_str()) + ZS_PARAM("value", str))
         }
       }
@@ -282,7 +282,7 @@ namespace ortc
       if (str.hasData()) {
         try {
           outValue = Numeric<UINT>(str);
-        } catch(Numeric<UINT>::ValueOutOfRange &) {
+        } catch(const Numeric<UINT>::ValueOutOfRange &) {
           ZS_LOG_WARNING(Debug, slog(logObjectName, (String(subElementName) + "value out of range").c_str()) + ZS_PARAM("value", str))
         }
       }
@@ -301,7 +301,7 @@ namespace ortc
       if (str.hasData()) {
         try {
           outValue = Numeric<FLOAT>(str);
-        } catch(Numeric<FLOAT>::ValueOutOfRange &) {
+        } catch(const Numeric<FLOAT>::ValueOutOfRange &) {
           ZS_LOG_WARNING(Debug, slog(logObjectName, (String(subElementName) + "value out of range").c_str()) + ZS_PARAM("value", str))
         }
       }
@@ -320,7 +320,7 @@ namespace ortc
       if (str.hasData()) {
         try {
           outValue = Numeric<DOUBLE>(str);
-        } catch(Numeric<DOUBLE>::ValueOutOfRange &) {
+        } catch(const Numeric<DOUBLE>::ValueOutOfRange &) {
           ZS_LOG_WARNING(Debug, slog(logObjectName, (String(subElementName) + "value out of range").c_str()) + ZS_PARAM("value", str))
         }
       }
@@ -351,7 +351,7 @@ namespace ortc
       if (str.hasData()) {
         try {
           outValue = Numeric<Time>(str);
-        } catch(Numeric<Time>::ValueOutOfRange &) {
+        } catch(const Numeric<Time>::ValueOutOfRange &) {
           ZS_LOG_WARNING(Debug, slog(logObjectName, (String(subElementName) + "value out of range").c_str()) + ZS_PARAM("value", str))
         }
       }
@@ -370,7 +370,7 @@ namespace ortc
       if (str.hasData()) {
         try {
           outValue = Numeric<Milliseconds>(str);
-        } catch(Numeric<Milliseconds>::ValueOutOfRange &) {
+        } catch(const Numeric<Milliseconds>::ValueOutOfRange &) {
           ZS_LOG_WARNING(Debug, slog(logObjectName, (String(subElementName) + "value out of range").c_str()) + ZS_PARAM("value", str))
         }
       }
@@ -389,7 +389,7 @@ namespace ortc
       if (str.hasData()) {
         try {
           outValue = Numeric<Microseconds>(str);
-        } catch(Numeric<Microseconds>::ValueOutOfRange &) {
+        } catch(const Numeric<Microseconds>::ValueOutOfRange &) {
           ZS_LOG_WARNING(Debug, slog(logObjectName, (String(subElementName) + "value out of range").c_str()) + ZS_PARAM("value", str))
         }
       }
@@ -408,7 +408,7 @@ namespace ortc
       if (str.hasData()) {
         try {
           outValue = Numeric<decltype(outValue.mType)>(str);
-        } catch(Numeric<decltype(outValue.mType)>::ValueOutOfRange &) {
+        } catch(const Numeric<decltype(outValue.mType)>::ValueOutOfRange &) {
           ZS_LOG_WARNING(Debug, slog(logObjectName, (String(subElementName) + "value out of range").c_str()) + ZS_PARAM("value", str))
         }
       }
@@ -427,7 +427,7 @@ namespace ortc
       if (str.hasData()) {
         try {
           outValue = Numeric<decltype(outValue.mType)>(str);
-        } catch(Numeric<decltype(outValue.mType)>::ValueOutOfRange &) {
+        } catch(const Numeric<decltype(outValue.mType)>::ValueOutOfRange &) {
           ZS_LOG_WARNING(Debug, slog(logObjectName, (String(subElementName) + "value out of range").c_str()) + ZS_PARAM("value", str))
         }
       }
@@ -446,7 +446,7 @@ namespace ortc
       if (str.hasData()) {
         try {
           outValue = Numeric<decltype(outValue.mType)>(str);
-        } catch(Numeric<decltype(outValue.mType)>::ValueOutOfRange &) {
+        } catch(const Numeric<decltype(outValue.mType)>::ValueOutOfRange &) {
           ZS_LOG_WARNING(Debug, slog(logObjectName, (String(subElementName) + "value out of range").c_str()) + ZS_PARAM("value", str))
         }
       }
@@ -465,7 +465,7 @@ namespace ortc
       if (str.hasData()) {
         try {
           outValue = Numeric<decltype(outValue.mType)>(str);
-        } catch(Numeric<decltype(outValue.mType)>::ValueOutOfRange &) {
+        } catch(const Numeric<decltype(outValue.mType)>::ValueOutOfRange &) {
           ZS_LOG_WARNING(Debug, slog(logObjectName, (String(subElementName) + "value out of range").c_str()) + ZS_PARAM("value", str))
         }
       }
@@ -484,7 +484,7 @@ namespace ortc
       if (str.hasData()) {
         try {
           outValue = Numeric<decltype(outValue.mType)>(str);
-        } catch(Numeric<decltype(outValue.mType)>::ValueOutOfRange &) {
+        } catch(const Numeric<decltype(outValue.mType)>::ValueOutOfRange &) {
           ZS_LOG_WARNING(Debug, slog(logObjectName, (String(subElementName) + "value out of range").c_str()) + ZS_PARAM("value", str))
         }
       }
@@ -503,7 +503,7 @@ namespace ortc
       if (str.hasData()) {
         try {
           outValue = Numeric<decltype(outValue.mType)>(str);
-        } catch(Numeric<decltype(outValue.mType)>::ValueOutOfRange &) {
+        } catch(const Numeric<decltype(outValue.mType)>::ValueOutOfRange &) {
           ZS_LOG_WARNING(Debug, slog(logObjectName, (String(subElementName) + "value out of range").c_str()) + ZS_PARAM("value", str))
         }
       }
@@ -522,7 +522,7 @@ namespace ortc
       if (str.hasData()) {
         try {
           outValue = Numeric<decltype(outValue.mType)>(str);
-        } catch(Numeric<decltype(outValue.mType)>::ValueOutOfRange &) {
+        } catch(const Numeric<decltype(outValue.mType)>::ValueOutOfRange &) {
           ZS_LOG_WARNING(Debug, slog(logObjectName, (String(subElementName) + "value out of range").c_str()) + ZS_PARAM("value", str))
         }
       }
@@ -541,7 +541,7 @@ namespace ortc
       if (str.hasData()) {
         try {
           outValue = Numeric<decltype(outValue.mType)>(str);
-        } catch(Numeric<decltype(outValue.mType)>::ValueOutOfRange &) {
+        } catch(const Numeric<decltype(outValue.mType)>::ValueOutOfRange &) {
           ZS_LOG_WARNING(Debug, slog(logObjectName, (String(subElementName) + "value out of range").c_str()) + ZS_PARAM("value", str))
         }
       }
@@ -560,7 +560,7 @@ namespace ortc
       if (str.hasData()) {
         try {
           outValue = Numeric<decltype(outValue.mType)>(str);
-        } catch(Numeric<decltype(outValue.mType)>::ValueOutOfRange &) {
+        } catch(const Numeric<decltype(outValue.mType)>::ValueOutOfRange &) {
           ZS_LOG_WARNING(Debug, slog(logObjectName, (String(subElementName) + "value out of range").c_str()) + ZS_PARAM("value", str))
         }
       }
@@ -579,7 +579,7 @@ namespace ortc
       if (str.hasData()) {
         try {
           outValue = Numeric<decltype(outValue.mType)>(str);
-        } catch(Numeric<decltype(outValue.mType)>::ValueOutOfRange &) {
+        } catch(const Numeric<decltype(outValue.mType)>::ValueOutOfRange &) {
           ZS_LOG_WARNING(Debug, slog(logObjectName, (String(subElementName) + "value out of range").c_str()) + ZS_PARAM("value", str))
         }
       }
@@ -598,7 +598,7 @@ namespace ortc
       if (str.hasData()) {
         try {
           outValue = Numeric<decltype(outValue.mType)>(str);
-        } catch(Numeric<decltype(outValue.mType)>::ValueOutOfRange &) {
+        } catch(const Numeric<decltype(outValue.mType)>::ValueOutOfRange &) {
           ZS_LOG_WARNING(Debug, slog(logObjectName, (String(subElementName) + "value out of range").c_str()) + ZS_PARAM("value", str))
         }
       }
@@ -617,7 +617,7 @@ namespace ortc
       if (str.hasData()) {
         try {
           outValue = Numeric<decltype(outValue.mType)>(str);
-        } catch(Numeric<decltype(outValue.mType)>::ValueOutOfRange &) {
+        } catch(const Numeric<decltype(outValue.mType)>::ValueOutOfRange &) {
           ZS_LOG_WARNING(Debug, slog(logObjectName, (String(subElementName) + "value out of range").c_str()) + ZS_PARAM("value", str))
         }
       }
@@ -636,7 +636,7 @@ namespace ortc
       if (str.hasData()) {
         try {
           outValue = Numeric<decltype(outValue.mType)>(str);
-        } catch(Numeric<decltype(outValue.mType)>::ValueOutOfRange &) {
+        } catch(const Numeric<decltype(outValue.mType)>::ValueOutOfRange &) {
           ZS_LOG_WARNING(Debug, slog(logObjectName, (String(subElementName) + "value out of range").c_str()) + ZS_PARAM("value", str))
         }
       }
@@ -670,7 +670,7 @@ namespace ortc
       if (str.hasData()) {
         try {
           outValue = Numeric<Time>(str);
-        } catch(Numeric<Time>::ValueOutOfRange &) {
+        } catch(const Numeric<Time>::ValueOutOfRange &) {
           ZS_LOG_WARNING(Debug, slog(logObjectName, (String(subElementName) + "value out of range").c_str()) + ZS_PARAM("value", str))
         }
       }
@@ -689,7 +689,7 @@ namespace ortc
       if (str.hasData()) {
         try {
           outValue = Numeric<Milliseconds>(str);
-        } catch(Numeric<Milliseconds>::ValueOutOfRange &) {
+        } catch(const Numeric<Milliseconds>::ValueOutOfRange &) {
           ZS_LOG_WARNING(Debug, slog(logObjectName, (String(subElementName) + "value out of range").c_str()) + ZS_PARAM("value", str))
         }
       }
@@ -708,7 +708,7 @@ namespace ortc
       if (str.hasData()) {
         try {
           outValue = Numeric<Microseconds>(str);
-        } catch(Numeric<Microseconds>::ValueOutOfRange &) {
+        } catch(const Numeric<Microseconds>::ValueOutOfRange &) {
           ZS_LOG_WARNING(Debug, slog(logObjectName, (String(subElementName) + "value out of range").c_str()) + ZS_PARAM("value", str))
         }
       }

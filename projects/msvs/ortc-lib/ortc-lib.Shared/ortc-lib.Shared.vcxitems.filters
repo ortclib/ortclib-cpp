@@ -267,6 +267,9 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\adapter\internal\ortc_adapter_MediaStream.h">
       <Filter>ortc\adapter\internal</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\adapter\internal\ortc_adapter_SDPParser.h">
+      <Filter>ortc\adapter\internal</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ifaddrs-android.cc">
@@ -405,6 +408,9 @@
       <Filter>ortc\adapter\cpp</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\adapter\cpp\ortc_adapter_MediaStream.cpp">
+      <Filter>ortc\adapter\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\adapter\cpp\ortc_adapter_SDPParser.cpp">
       <Filter>ortc\adapter\cpp</Filter>
     </ClCompile>
   </ItemGroup>

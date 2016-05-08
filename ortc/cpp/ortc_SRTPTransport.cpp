@@ -1109,7 +1109,7 @@ namespace ortc
       if (splitValues.size() < 2) {
         try {
           return Numeric<size_t>(lifetime);
-        } catch(Numeric<size_t>::ValueOutOfRange &) {
+        } catch(const Numeric<size_t>::ValueOutOfRange &) {
           ZS_LOG_WARNING(Detail, slog("lifetime value out of range") + ZS_PARAM("lifetime", lifetime))
           ORTC_THROW_INVALID_PARAMETERS("unable to parse lifetime: " + lifetime)
         }
@@ -1126,7 +1126,7 @@ namespace ortc
       try {
         base = Numeric<size_t>(splitValues[0]);
         exponent = Numeric<size_t>(splitValues[1]);
-      } catch (Numeric<size_t>::ValueOutOfRange &) {
+      } catch(const Numeric<size_t>::ValueOutOfRange &) {
         ZS_LOG_ERROR(Detail, slog("unable to parse lifetime") + ZS_PARAM("lifetime", lifetime))
         ORTC_THROW_INVALID_PARAMETERS("unable to parse lifetime:" + lifetime)
       }

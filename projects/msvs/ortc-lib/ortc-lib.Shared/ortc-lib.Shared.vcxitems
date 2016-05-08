@@ -23,6 +23,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\adapter\internal\ortc_adapter_adapter.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\adapter\internal\ortc_adapter_MediaStream.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\adapter\internal\ortc_adapter_PeerConnection.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\adapter\internal\ortc_adapter_SDPParser.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\adapter\internal\ortc_adapter_SessionDescription.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\adapter\internal\ortc_adapter_Helper.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\adapter\internal\types.h" />
@@ -105,6 +106,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\adapter\cpp\ortc_adapter_Helper.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\adapter\cpp\ortc_adapter_MediaStream.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\adapter\cpp\ortc_adapter_PeerConnection.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\adapter\cpp\ortc_adapter_SDPParser.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\adapter\cpp\ortc_adapter_SessionDescription.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ifaddrs-android.cc">
       <ExcludedFromBuild>true</ExcludedFromBuild>

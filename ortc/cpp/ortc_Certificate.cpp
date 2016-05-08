@@ -352,7 +352,7 @@ namespace ortc
             String value = UseServicesHelper::getElementText(modulusLengthEl);
             try {
               mKeyLength = Numeric<decltype(mKeyLength)>(value);
-            } catch(Numeric<decltype(mKeyLength)>::ValueOutOfRange &) {
+            } catch(const Numeric<decltype(mKeyLength)>::ValueOutOfRange &) {
               ZS_LOG_ERROR(Detail, log("key length value out of range") + ZS_PARAM("key length", value))
             }
           }
@@ -364,7 +364,7 @@ namespace ortc
             String value = UseServicesHelper::getElementText(saltLengthEl);
             try {
               mRandomBits = Numeric<decltype(mKeyLength)>(value);
-            } catch(Numeric<decltype(mRandomBits)>::ValueOutOfRange &) {
+            } catch(const Numeric<decltype(mRandomBits)>::ValueOutOfRange &) {
               ZS_LOG_ERROR(Detail, log("salt length value out of range") + ZS_PARAM("salt length", value))
             }
           }

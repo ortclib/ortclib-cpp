@@ -36,5 +36,6 @@ either expressed or implied, of the FreeBSD Project.
 
 #include <ortc/adapter/internal/ortc_adapter_Helper.h>
 #include <ortc/adapter/internal/ortc_adapter_MediaStream.h>
+#include <ortc/adapter/internal/ortc_adapter_SDPParser.h>
 #include <ortc/adapter/internal/ortc_adapter_SessionDescription.h>
 #include <ortc/adapter/internal/ortc_adapter_PeerConnection.h>

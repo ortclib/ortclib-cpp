@@ -155,7 +155,7 @@ namespace ortc
       if (str.hasData()) {
         try {
           mValue = Numeric<decltype(mValue.mType)>(str);
-        } catch(Numeric<decltype(mValue.mType)>::ValueOutOfRange &) {
+        } catch(const Numeric<decltype(mValue.mType)>::ValueOutOfRange &) {
           ZS_LOG_WARNING(Debug, slog("value out of range") + ZS_PARAM("value", str))
         }
       }
@@ -289,7 +289,7 @@ namespace ortc
       if (str.hasData()) {
         try {
           mValue = Numeric<decltype(mValue.mType)>(str);
-        } catch(Numeric<decltype(mValue.mType)>::ValueOutOfRange &) {
+        } catch(const Numeric<decltype(mValue.mType)>::ValueOutOfRange &) {
           ZS_LOG_WARNING(Debug, slog("value out of range") + ZS_PARAM("value", str))
         }
       }
@@ -424,7 +424,7 @@ namespace ortc
       if (str.hasData()) {
         try {
           mValue = Numeric<decltype(mValue.mType)>(str);
-        } catch(Numeric<decltype(mValue.mType)>::ValueOutOfRange &) {
+        } catch(const Numeric<decltype(mValue.mType)>::ValueOutOfRange &) {
           ZS_LOG_WARNING(Debug, slog("value out of range") + ZS_PARAM("value", str))
         }
       }

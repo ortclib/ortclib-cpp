@@ -90,7 +90,7 @@ namespace ortc
       try {
         bool value = Numeric<bool>(text);
         insert(value);
-      } catch(Numeric<bool>::ValueOutOfRange &) {
+      } catch(const Numeric<bool>::ValueOutOfRange &) {
         ZS_LOG_WARNING(Debug, slog("value out of range") + ZS_PARAM("value", text))
       }
       
@@ -181,7 +181,7 @@ namespace ortc
       String str = UseServicesHelper::getElementText(elem);
       try {
         mMin = mMax = Numeric<decltype(mMin)>(str);
-      } catch(Numeric<decltype(mMin)>::ValueOutOfRange &) {
+      } catch(const Numeric<decltype(mMin)>::ValueOutOfRange &) {
         ZS_LOG_WARNING(Debug, slog("max value out of range") + ZS_PARAM("value", str))
       }
     }
@@ -265,7 +265,7 @@ namespace ortc
       String str = UseServicesHelper::getElementText(elem);
       try {
         mMin = mMax = Numeric<decltype(mMin)>(str);
-      } catch(Numeric<decltype(mMin)>::ValueOutOfRange &) {
+      } catch(const Numeric<decltype(mMin)>::ValueOutOfRange &) {
         ZS_LOG_WARNING(Debug, slog("max value out of range") + ZS_PARAM("value", str))
       }
     }

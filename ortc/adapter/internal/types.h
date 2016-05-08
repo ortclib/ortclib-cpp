@@ -64,10 +64,14 @@ namespace ortc
       #pragma mark (forwards)
       #pragma mark
 
+      ZS_DECLARE_INTERACTION_PTR(ISDPParser);
+
       ZS_DECLARE_CLASS_PTR(Helper);
       ZS_DECLARE_CLASS_PTR(MediaStream);
+      ZS_DECLARE_CLASS_PTR(SDPParser);
       ZS_DECLARE_CLASS_PTR(SessionDescription);
       ZS_DECLARE_CLASS_PTR(PeerConnection);
-    }
-  }
-}
+
+    } // namespace internal
+  } // namespace adapter
+} // namespace ortc

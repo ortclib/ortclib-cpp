@@ -6173,7 +6173,7 @@ namespace ortc
           try {
             ioData.mIndex = Numeric<decltype(ioData.mIndex)>(numStr);
             goto number_found;
-          } catch(Numeric<decltype(ioData.mIndex)>::ValueOutOfRange &) {
+          } catch(const Numeric<decltype(ioData.mIndex)>::ValueOutOfRange &) {
             ZS_LOG_WARNING(Detail, slog("number failed to convert") + ZS_PARAM("number", numStr) + ioData.toDebug())
           }
         }
@@ -6320,7 +6320,7 @@ namespace ortc
       String order = UseServicesHelper::getElementText(el->findFirstChildElement("order"));
       try {
         info.mOrderIndex = Numeric<decltype(info.mOrderIndex)>(order);
-      } catch(Numeric<decltype(info.mOrderIndex)>::ValueOutOfRange &) {
+      } catch(const Numeric<decltype(info.mOrderIndex)>::ValueOutOfRange &) {
         ZS_LOG_WARNING(Detail, slog("failed to convert expression") + ZS_PARAMIZE(order))
       }
 
@@ -7067,7 +7067,7 @@ namespace ortc
       if (str.hasData()) {
         try {
           mContinuousGathering = Numeric<decltype(mContinuousGathering)>(str);
-        } catch(Numeric<decltype(mContinuousGathering)>::ValueOutOfRange &) {
+        } catch(const Numeric<decltype(mContinuousGathering)>::ValueOutOfRange &) {
           ZS_LOG_WARNING(Debug, slog("continuous gathering value out of range") + ZS_PARAM("value", str))
         }
       }
