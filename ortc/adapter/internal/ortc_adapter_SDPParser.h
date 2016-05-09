@@ -61,6 +61,9 @@ namespace ortc
         typedef std::list<SSRCType> SSRCList;
         typedef std::list<PayloadType> PayloadTypeList;
 
+        typedef std::pair<String, String> KeyValuePair;
+        typedef std::list<KeyValuePair> KeyValueList;
+
         ZS_DECLARE_TYPEDEF_PTR(std::list<String>, StringList);
 
         ZS_DECLARE_STRUCT_PTR(LineTypeInfo);
@@ -100,6 +103,7 @@ namespace ortc
         ZS_DECLARE_STRUCT_PTR(ASimulcastLine);
         ZS_DECLARE_STRUCT_PTR(ARIDLine);
         ZS_DECLARE_STRUCT_PTR(ASCTPPortLine);
+        ZS_DECLARE_STRUCT_PTR(AMaxMessageSizeLine);
 
         ZS_DECLARE_TYPEDEF_PTR(std::list<LineTypeInfo>, LineTypeInfoList);
         ZS_DECLARE_TYPEDEF_PTR(std::list<BLinePtr>, BLineList);
@@ -117,7 +121,6 @@ namespace ortc
         ZS_DECLARE_TYPEDEF_PTR(std::list<ASSRCLinePtr>, ASSRCLineList);
         ZS_DECLARE_TYPEDEF_PTR(std::list<ASSRCGroupLinePtr>, ASSRCGroupLineList);
         ZS_DECLARE_TYPEDEF_PTR(std::list<ARIDLinePtr>, ARIDLineList);
-        ZS_DECLARE_TYPEDEF_PTR(std::list<ASCTPPortLinePtr>, ASCTPPortLineList);
 
         enum LineTypes
         {
@@ -175,8 +178,9 @@ namespace ortc
           Attribute_Simulcast,
           Attribute_RID,
           Attribute_SCTPPort,
+          Attribute_MaxMessageSize,
 
-          Attribute_Last = Attribute_SCTPPort,
+          Attribute_Last = Attribute_MaxMessageSize,
         };
 
         static const char *toString(Attributes attribute);
@@ -262,6 +266,21 @@ namespace ortc
                                  Directions direction
                                  );
 
+        enum ProtocolTypes
+        {
+          ProtocolType_First,
+
+          ProtocolType_Unknown = ProtocolType_First,
+
+          ProtocolType_RTP,
+          ProtocolType_SCTP,
+
+          ProtocolType_Last = ProtocolType_SCTP,
+        };
+
+        static const char *toString(ProtocolTypes proto);
+        static ProtocolTypes toProtocolType(const char *proto);
+
         //---------------------------------------------------------------------
         //---------------------------------------------------------------------
         //---------------------------------------------------------------------
@@ -332,7 +351,8 @@ namespace ortc
           String mMedia;
           ULONGLONG mPort {};
           ULONGLONG mInteger {};
-          String mProto;
+          ProtocolTypes mProto {ProtocolType_Unknown};
+          String mProtoStr;
           StringList mFmts;
 
           // media level values
@@ -345,6 +365,8 @@ namespace ortc
           APTimeLinePtr mAPTimeLine;
           AMaxPTimeLinePtr mAMaxPTimeLine;
           ASimulcastLinePtr mASimulcastLine;
+          ASCTPPortLinePtr mASCTPPortLine;
+          AMaxMessageSizeLinePtr mAMaxMessageSize;
 
           BLineList mBLines;
           AMSIDLineList mAMSIDLines;
@@ -358,7 +380,6 @@ namespace ortc
           ASSRCLineList mASSRCLines;
           ASSRCGroupLineList mASSRCGroupLines;
           ARIDLineList mARIDLines;
-          ASCTPPortLineList mASCTPPortLines;
 
           MLine(const char *value);
         };
@@ -519,6 +540,7 @@ namespace ortc
           ULONG mClockRate {};
           Optional<ULONG> mEncodingParameters;
 
+          ARTPMapLine(const Noop &) : AMediaLine(nullptr) {}
           ARTPMapLine(MLinePtr mline, const char *value);
         };
 
@@ -554,14 +576,14 @@ namespace ortc
 
         struct APTimeLine : public AMediaLine
         {
-          Milliseconds mPTime;
+          Milliseconds mPTime {};
 
           APTimeLine(MLinePtr mline, const char *value);
         };
 
         struct AMaxPTimeLine : public AMediaLine
         {
-          Milliseconds mMaxPTime;
+          Milliseconds mMaxPTime {};
 
           AMaxPTimeLine(MLinePtr mline, const char *value);
         };
@@ -628,6 +650,12 @@ namespace ortc
           WORD mPort {};
 
           ASCTPPortLine(MLinePtr mline, const char *value);
+        };
+        struct AMaxMessageSizeLine : public AMediaLine
+        {
+          size_t mMaxMessageSize {};
+
+          AMaxMessageSizeLine(MLinePtr mline, const char *value);
         };
 
 
@@ -700,21 +728,31 @@ namespace ortc
         static void processMediaLevelValues(SDP &sdp);
         static void processSourceLevelValues(SDP &sdp);
 
-        static void createTransports(
-                                     const SDP &sdp,
-                                     Description &ioDescription
-                                     );
         static void createDescriptionDetails(
                                              const SDP &sdp,
                                              Description &ioDescription
                                              );
+        static void createTransports(
+                                     const SDP &sdp,
+                                     Description &ioDescription
+                                     );
+        static void createRTPMediaLines(
+                                        Locations location,
+                                        const SDP &sdp,
+                                        Description &ioDescription
+                                        );
+        static void createSCTPMediaLines(
+                                         Locations location,
+                                         const SDP &sdp,
+                                         Description &ioDescription
+                                         );
 
       public:
         static SDPPtr parse(const char *blob);
 
         static DescriptionPtr createDescription(
-                                                const SDP &sdp,
-                                                Locations location
+                                                Locations location,
+                                                const SDP &sdp
                                                 );
       };
     }

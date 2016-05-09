@@ -216,6 +216,8 @@ namespace ortc
         struct Details
         {
           Optional<size_t> mInternalIndex;
+          String mPrivateTransportID;
+
           String mProtocol;
 
           ConnectionDataPtr mConnectionData;

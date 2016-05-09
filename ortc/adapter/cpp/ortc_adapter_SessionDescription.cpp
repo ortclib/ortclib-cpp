@@ -306,7 +306,7 @@ namespace ortc
       mRTP = Parameters::create(rootEl->findFirstChildElement("rtp"));
       mRTCP = Parameters::create(rootEl->findFirstChildElement("rtcp"));
     }
-
+    
     //-------------------------------------------------------------------------
     ElementPtr ISessionDescriptionTypes::Transport::createElement(const char *objectName) const
     {
@@ -539,6 +539,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     ISessionDescriptionTypes::MediaLine::Details::Details(const Details &op2) :
       mInternalIndex(op2.mInternalIndex),
+      mPrivateTransportID(op2.mPrivateTransportID),
       mProtocol(op2.mProtocol),
       mMediaDirection(op2.mMediaDirection)
     {
@@ -551,6 +552,7 @@ namespace ortc
       if (!rootEl) return;
 
       UseHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::MediaLine::Details", "index", mInternalIndex);
+      UseHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::MediaLine::Details", "privateTransportId", mPrivateTransportID);
       UseHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::MediaLine::Details", "protocol", mProtocol);
       String directionStr;
       UseHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::MediaLine::Details", "direction", directionStr);
@@ -570,6 +572,7 @@ namespace ortc
       ElementPtr rootEl = Element::create(objectName);
 
       UseHelper::adoptElementValue(rootEl, "index", mInternalIndex);
+      UseHelper::adoptElementValue(rootEl, "privateTransportId", mPrivateTransportID, false);
       UseHelper::adoptElementValue(rootEl, "protocol", mProtocol, false);
       UseHelper::adoptElementValue(rootEl, "direction", toString(mMediaDirection), false);
       rootEl->adoptAsLastChild(mConnectionData ? mConnectionData->createElement() : ElementPtr());
@@ -593,6 +596,8 @@ namespace ortc
       hasher.update("adapter::ISessionDescriptionTypes::MediaLine:Details:");
 
       hasher.update(mInternalIndex);
+      hasher.update(":");
+      hasher.update(mPrivateTransportID);
       hasher.update(":");
       hasher.update(mProtocol);
       hasher.update(":");

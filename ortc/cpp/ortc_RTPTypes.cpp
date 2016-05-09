@@ -44,6 +44,7 @@
 #include <zsLib/Stringize.h>
 #include <zsLib/Log.h>
 #include <zsLib/XML.h>
+#include <zsLib/SafeInt.h>
 
 #include <cryptopp/sha.h>
 #include <ortc/types.h>
@@ -3015,6 +3016,22 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
+  IRTPTypes::FlexFECCodecCapabilityParameters::ToPs IRTPTypes::FlexFECCodecCapabilityParameters::toToP(ULONG value)
+  {
+    ToPs result = static_cast<ToPs>((std::underlying_type<ToPs>::type)(SafeInt<std::underlying_type<ToPs>::type>(value)));
+
+    switch (value)
+    {
+      case ToP_1DInterleavedFEC:      return result;
+      case ToP_1DNonInterleavedFEC:   return result;
+      case ToP_2DParityFEEC:          return result;
+      case ToP_Reserved:              return result;
+    }
+
+    ORTC_THROW_INVALID_PARAMETERS("ToP is not supported: " + string(value));
+  }
+
+  //---------------------------------------------------------------------------
   IRTPTypes::FlexFECCodecCapabilityParametersPtr IRTPTypes::FlexFECCodecCapabilityParameters::create(const FlexFECCodecParameters &capability)
   {
     return make_shared<FlexFECCodecParameters>(capability);
@@ -4310,6 +4327,161 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
+  bool IRTPTypes::hasCapabilityOptions(SupportedCodecs codec)
+  {
+    switch (codec) {
+      case SupportedCodec_Unknown:            return false;
+
+      case SupportedCodec_Opus:               return true;
+      case SupportedCodec_Isac:               return false;
+      case SupportedCodec_G722:               return false;
+      case SupportedCodec_ILBC:               return false;
+      case SupportedCodec_PCMU:               return false;
+      case SupportedCodec_PCMA:               return false;
+
+      case SupportedCodec_VP8:                return false;
+      case SupportedCodec_VP9:                return false;
+      case SupportedCodec_H264:               return false;
+
+      case SupportedCodec_RTX:                return false;
+
+      case SupportedCodec_RED:                return false;
+      case SupportedCodec_ULPFEC:             return false;
+      case SupportedCodec_FlexFEC:            return false;
+
+      case SupportedCodec_CN:                 return false;
+        
+      case SupportedCodec_TelephoneEvent:     return false;
+    }
+
+    ORTC_THROW_NOT_SUPPORTED_ERRROR("missing definition for supported codec");
+  }
+
+  //---------------------------------------------------------------------------
+  bool IRTPTypes::hasCapabilityParameters(SupportedCodecs codec)
+  {
+    switch (codec) {
+      case SupportedCodec_Unknown:            return false;
+
+      case SupportedCodec_Opus:               return true;
+      case SupportedCodec_Isac:               return false;
+      case SupportedCodec_G722:               return false;
+      case SupportedCodec_ILBC:               return false;
+      case SupportedCodec_PCMU:               return false;
+      case SupportedCodec_PCMA:               return false;
+
+      case SupportedCodec_VP8:                return true;
+      case SupportedCodec_VP9:                return false;
+      case SupportedCodec_H264:               return true;
+
+      case SupportedCodec_RTX:                return true;
+
+      case SupportedCodec_RED:                return false;
+      case SupportedCodec_ULPFEC:             return false;
+      case SupportedCodec_FlexFEC:            return true;
+
+      case SupportedCodec_CN:                 return false;
+        
+      case SupportedCodec_TelephoneEvent:     return false;
+    }
+
+    ORTC_THROW_NOT_SUPPORTED_ERRROR("missing definition for supported codec");
+  }
+
+  //---------------------------------------------------------------------------
+  bool IRTPTypes::hasParameters(SupportedCodecs codec)
+  {
+    switch (codec) {
+      case SupportedCodec_Unknown:            return false;
+
+      case SupportedCodec_Opus:               return true;
+      case SupportedCodec_Isac:               return false;
+      case SupportedCodec_G722:               return false;
+      case SupportedCodec_ILBC:               return false;
+      case SupportedCodec_PCMU:               return false;
+      case SupportedCodec_PCMA:               return false;
+
+      case SupportedCodec_VP8:                return true;
+      case SupportedCodec_VP9:                return false;
+      case SupportedCodec_H264:               return true;
+
+      case SupportedCodec_RTX:                return true;
+
+      case SupportedCodec_RED:                return true;
+      case SupportedCodec_ULPFEC:             return false;
+      case SupportedCodec_FlexFEC:            return true;
+
+      case SupportedCodec_CN:                 return false;
+        
+      case SupportedCodec_TelephoneEvent:     return false;
+    }
+
+    ORTC_THROW_NOT_SUPPORTED_ERRROR("missing definition for supported codec");
+  }
+
+  //---------------------------------------------------------------------------
+  bool IRTPTypes::requiresCapabilityParameters(SupportedCodecs codec)
+  {
+    switch (codec) {
+      case SupportedCodec_Unknown:            return false;
+
+      case SupportedCodec_Opus:               return false;
+      case SupportedCodec_Isac:               return false;
+      case SupportedCodec_G722:               return false;
+      case SupportedCodec_ILBC:               return false;
+      case SupportedCodec_PCMU:               return false;
+      case SupportedCodec_PCMA:               return false;
+
+      case SupportedCodec_VP8:                return false;
+      case SupportedCodec_VP9:                return false;
+      case SupportedCodec_H264:               return false;
+
+      case SupportedCodec_RTX:                return true;
+
+      case SupportedCodec_RED:                return false;
+      case SupportedCodec_ULPFEC:             return false;
+      case SupportedCodec_FlexFEC:            return true;
+
+      case SupportedCodec_CN:                 return false;
+
+      case SupportedCodec_TelephoneEvent:     return false;
+    }
+
+    ORTC_THROW_NOT_SUPPORTED_ERRROR("missing definition for supported codec");
+  }
+
+  //---------------------------------------------------------------------------
+  bool IRTPTypes::requiresParameters(SupportedCodecs codec)
+  {
+    switch (codec) {
+      case SupportedCodec_Unknown:            return false;
+
+      case SupportedCodec_Opus:               return false;
+      case SupportedCodec_Isac:               return false;
+      case SupportedCodec_G722:               return false;
+      case SupportedCodec_ILBC:               return false;
+      case SupportedCodec_PCMU:               return false;
+      case SupportedCodec_PCMA:               return false;
+
+      case SupportedCodec_VP8:                return false;
+      case SupportedCodec_VP9:                return false;
+      case SupportedCodec_H264:               return false;
+
+      case SupportedCodec_RTX:                return true;
+
+      case SupportedCodec_RED:                return false;
+      case SupportedCodec_ULPFEC:             return false;
+      case SupportedCodec_FlexFEC:            return true;
+
+      case SupportedCodec_CN:                 return false;
+
+      case SupportedCodec_TelephoneEvent:     return false;
+    }
+
+    ORTC_THROW_NOT_SUPPORTED_ERRROR("missing definition for supported codec");
+  }
+
+  //---------------------------------------------------------------------------
   IRTPTypes::CodecKinds IRTPTypes::getCodecKind(SupportedCodecs codec)
   {
     switch (codec) {
@@ -4449,6 +4621,47 @@ namespace ortc
 
     return "unknown";
   }
+
+  //---------------------------------------------------------------------------
+  IRTPTypes::ReservedCodecPayloadTypes IRTPTypes::toReservedCodec(PayloadType pt)
+  {
+    auto result = static_cast<ReservedCodecPayloadTypes>(pt);
+
+    switch (result) {
+      case ReservedCodecPayloadType_Unknown:      break;
+      case ReservedCodecPayloadType_PCMU_8000:    return result;
+
+      case ReservedCodecPayloadType_GSM_8000:     return result;
+      case ReservedCodecPayloadType_G723_8000:    return result;
+      case ReservedCodecPayloadType_DVI4_8000:    return result;
+      case ReservedCodecPayloadType_DVI4_16000:   return result;
+      case ReservedCodecPayloadType_LPC_8000:     return result;
+      case ReservedCodecPayloadType_PCMA_8000:    return result;
+      case ReservedCodecPayloadType_G722_8000:    return result;
+      case ReservedCodecPayloadType_L16_44100_2:  return result;
+      case ReservedCodecPayloadType_L16_44100_1:  return result;
+      case ReservedCodecPayloadType_QCELP_8000:   return result;
+      case ReservedCodecPayloadType_CN_8000:      return result;
+      case ReservedCodecPayloadType_MPA_90000:    return result;
+      case ReservedCodecPayloadType_G728_8000:    return result;
+      case ReservedCodecPayloadType_DVI4_11025:   return result;
+      case ReservedCodecPayloadType_DVI4_22050:   return result;
+      case ReservedCodecPayloadType_G729_8000:    return result;
+
+      case ReservedCodecPayloadType_CelB_90000:   return result;
+      case ReservedCodecPayloadType_JPEG_90000:   return result;
+
+      case ReservedCodecPayloadType_nv_90000:     return result;
+
+      case ReservedCodecPayloadType_H261_90000:   return result;
+      case ReservedCodecPayloadType_MPV_90000:    return result;
+      case ReservedCodecPayloadType_MP2T_90000:   return result;
+      case ReservedCodecPayloadType_H263_90000:   return result;
+    }
+
+    return ReservedCodecPayloadType_Unknown;
+  }
+
 
   //---------------------------------------------------------------------------
   IRTPTypes::ReservedCodecPayloadTypes IRTPTypes::toReservedCodec(const char *encodingName)

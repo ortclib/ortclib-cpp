@@ -137,7 +137,7 @@ namespace ortc
       String            mKind;
       Optional<ULONG>   mClockRate {};
       PayloadType       mPreferredPayloadType {};
-      Milliseconds      mPTime{};
+      Milliseconds      mPTime {};
       Milliseconds      mMaxPTime {};
       Optional<ULONG>   mNumChannels {};
       RTCPFeedbackList  mRTCPFeedback;
@@ -337,6 +337,7 @@ namespace ortc
       };
       static const char *toString(ToPs top);
       static ToPs toToP(const char *top);
+      static ToPs toToP(ULONG value);
 
       Microseconds mRepairWindow {};
 
@@ -739,6 +740,11 @@ namespace ortc
 
     static const char *toString(SupportedCodecs codec);
     static SupportedCodecs toSupportedCodec(const char *codec);
+    static bool hasCapabilityOptions(SupportedCodecs codec);
+    static bool hasCapabilityParameters(SupportedCodecs codec);
+    static bool hasParameters(SupportedCodecs codec);
+    static bool requiresCapabilityParameters(SupportedCodecs codec);
+    static bool requiresParameters(SupportedCodecs codec);
 
     static CodecKinds getCodecKind(SupportedCodecs codec);
     static bool isSRSTCodec(SupportedCodecs codec); // Single RTP streams Single Transport
@@ -790,6 +796,7 @@ namespace ortc
     };
 
     static const char *toString(ReservedCodecPayloadTypes reservedCodec);
+    static ReservedCodecPayloadTypes toReservedCodec(PayloadType pt);
     static ReservedCodecPayloadTypes toReservedCodec(const char *encodingName);
 
     static ULONG getDefaultClockRate(ReservedCodecPayloadTypes reservedCodec);
