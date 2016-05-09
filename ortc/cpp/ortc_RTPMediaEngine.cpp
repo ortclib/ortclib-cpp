@@ -1701,6 +1701,9 @@ namespace ortc
       config.voe_channel_id = mChannel;
 
       for (auto encodingParamIter = mParameters->mEncodings.begin(); encodingParamIter != mParameters->mEncodings.end(); encodingParamIter++) {
+        if (!encodingParamIter->mActive)
+          continue;
+
         IRTPTypes::PayloadType codecPayloadType;
         if (encodingParamIter->mCodecPayloadType.hasValue())
           codecPayloadType = encodingParamIter->mCodecPayloadType;
@@ -2062,6 +2065,9 @@ namespace ortc
       config.voe_channel_id = mChannel;
       
       for (auto encodingParamIter = mParameters->mEncodings.begin(); encodingParamIter != mParameters->mEncodings.end(); encodingParamIter++) {
+        if (!encodingParamIter->mActive)
+          continue;
+
         IRTPTypes::PayloadType codecPayloadType;
         if (encodingParamIter->mCodecPayloadType.hasValue())
           codecPayloadType = encodingParamIter->mCodecPayloadType;
@@ -2477,6 +2483,9 @@ namespace ortc
       }
 
       for (auto encodingParamIter = mParameters->mEncodings.begin(); encodingParamIter != mParameters->mEncodings.end(); encodingParamIter++) {
+        if (!encodingParamIter->mActive)
+          continue;
+
         IRTPTypes::PayloadType codecPayloadType;
         if (encodingParamIter->mCodecPayloadType.hasValue())
           codecPayloadType = encodingParamIter->mCodecPayloadType;
@@ -2756,29 +2765,20 @@ namespace ortc
 
       int numCpuCores = webrtc::CpuInfo::DetectNumberOfCores();
 
-      size_t width = 640;
-      size_t height = 480;
-      int maxFramerate = 15;
+      size_t sourceWidth = 640;
+      size_t sourceHeight = 480;
+      int sourceMaxFramerate = 15;
       IMediaStreamTrack::SettingsPtr trackSettings = mTrack->getSettings();
       if (trackSettings->mWidth.hasValue())
-        width = trackSettings->mWidth.value();
+        sourceWidth = trackSettings->mWidth.value();
       if (trackSettings->mHeight.hasValue())
-        height = trackSettings->mHeight.value();
+        sourceHeight = trackSettings->mHeight.value();
       if (trackSettings->mFrameRate.hasValue())
-        maxFramerate = trackSettings->mFrameRate.value();
+        sourceMaxFramerate = trackSettings->mFrameRate.value();
 
       webrtc::VideoSendStream::Config config(mTransport.get());
       webrtc::VideoEncoderConfig encoderConfig;
-      webrtc::VideoStream stream;
       std::map<uint32_t, webrtc::RtpState> suspendedSSRCs;
-
-      stream.width = width;
-      stream.height = height;
-      stream.max_framerate = maxFramerate;
-      stream.min_bitrate_bps = 30000;
-      stream.target_bitrate_bps = 2000000;
-      stream.max_bitrate_bps = 2000000;
-      stream.max_qp = 56;
 
       encoderConfig.min_transmit_bitrate_bps = 0;
       encoderConfig.content_type = webrtc::VideoEncoderConfig::ContentType::kRealtimeVideo;
@@ -2863,6 +2863,9 @@ namespace ortc
       }
 
       for (auto encodingParamIter = mParameters->mEncodings.begin(); encodingParamIter != mParameters->mEncodings.end(); encodingParamIter++) {
+        if (!encodingParamIter->mActive)
+          continue;
+
         IRTPTypes::PayloadType codecPayloadType;
         if (encodingParamIter->mCodecPayloadType.hasValue())
           codecPayloadType = encodingParamIter->mCodecPayloadType;
@@ -2879,17 +2882,39 @@ namespace ortc
               ssrc = encodingParamIter->mSSRC;
             }
           }
-          if (ssrc != 0)
-            config.rtp.ssrcs.push_back(ssrc);
+          if (ssrc == 0)
+            ssrc = SafeInt<uint32>(openpeer::services::IHelper::random(1, 0xFFFFFFFF));
+          config.rtp.ssrcs.push_back(ssrc);
           if (encodingParamIter->mRTX.hasValue()) {
             IRTPTypes::RTXParameters rtx = encodingParamIter->mRTX;
             if (rtx.mSSRC.hasValue())
               config.rtp.rtx.ssrcs.push_back(rtx.mSSRC);
           }
+          webrtc::VideoStream stream;
+          stream.width = encodingParamIter->mResolutionScale.hasValue() ? sourceWidth / encodingParamIter->mResolutionScale : sourceWidth;
+          stream.height = encodingParamIter->mResolutionScale.hasValue() ? sourceHeight / encodingParamIter->mResolutionScale : sourceHeight;
+          stream.max_framerate = encodingParamIter->mFramerateScale.hasValue() ? sourceMaxFramerate / encodingParamIter->mResolutionScale : sourceMaxFramerate;
+          stream.min_bitrate_bps = 30000;
+          stream.max_bitrate_bps = encodingParamIter->mMaxBitrate.hasValue() ? encodingParamIter->mMaxBitrate : 2000000;
+          stream.target_bitrate_bps = stream.max_bitrate_bps;
+          stream.max_qp = 56;
+          encoderConfig.streams.push_back(stream);
         }
       }
-      if (config.rtp.ssrcs.size() == 0)
+      if (encoderConfig.streams.size() == 0) {
         config.rtp.ssrcs.push_back(SafeInt<uint32>(openpeer::services::IHelper::random(1, 0xFFFFFFFF)));
+        webrtc::VideoStream stream;
+        stream.width = sourceWidth;
+        stream.height = sourceHeight;
+        stream.max_framerate = sourceMaxFramerate;
+        stream.min_bitrate_bps = 30000;
+        stream.max_bitrate_bps = 2000000;
+        stream.target_bitrate_bps = stream.max_bitrate_bps;
+        stream.max_qp = 56;
+        encoderConfig.streams.push_back(stream);
+      }
+      if (encoderConfig.streams.size() > 1)
+        mVideoEncoderSettings.mVp8.automaticResizeOn = false;
 
       for (auto headerExtensionIter = mParameters->mHeaderExtensions.begin(); headerExtensionIter != mParameters->mHeaderExtensions.end(); headerExtensionIter++) {
         IRTPTypes::HeaderExtensionURIs headerExtensionURI = IRTPTypes::toHeaderExtensionURI(headerExtensionIter->mURI);
@@ -2906,8 +2931,6 @@ namespace ortc
       }
 
       config.rtp.c_name = mParameters->mRTCP.mCName;
-
-      encoderConfig.streams.push_back(stream);
 
       mSendStream = rtc::scoped_ptr<webrtc::VideoSendStream>(
         new webrtc::internal::VideoSendStream(
@@ -2941,7 +2964,6 @@ namespace ortc
 
       if (mSendStream)
         mSendStream->Stop();
-
 
       mPacerThread->Stop();
       mPacerThread->DeRegisterModule(mCongestionController->pacer());
