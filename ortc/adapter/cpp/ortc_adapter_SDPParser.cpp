@@ -41,6 +41,7 @@
 #include <zsLib/Numeric.h>
 #include <zsLib/Stringize.h>
 #include <zsLib/XML.h>
+#include <zsLib/SafeInt.h>
 
 #include <cryptopp/sha.h>
 
@@ -109,8 +110,8 @@ namespace ortc
       ISDPTypes::LineTypes ISDPTypes::toLineType(const char *type)
       {
         String str(type);
-
-        LineTypes checkLines[] = {
+        
+        static LineTypes checkLines[] = {
           LineType_v_Version,
           LineType_o_Origin,
           LineType_s_SessionName,
@@ -313,7 +314,7 @@ namespace ortc
       //-----------------------------------------------------------------------
       ISDPTypes::AttributeLevels ISDPTypes::toAttributeLevel(const char *level)
       {
-        AttributeLevels check[] =
+        static AttributeLevels check[] =
         {
           AttributeLevel_Session,
           AttributeLevel_Media,
@@ -452,7 +453,7 @@ namespace ortc
       //-----------------------------------------------------------------------
       ISDPTypes::Directions ISDPTypes::toDirection(const char *direction)
       {
-        Directions check[] =
+        static Directions check[] =
         {
           Direction_Send,
           Direction_Receive,
@@ -505,7 +506,7 @@ namespace ortc
       //-----------------------------------------------------------------------
       ISDPTypes::ActorRoles ISDPTypes::toActorRole(const char *actor)
       {
-        ActorRoles check[] =
+        static ActorRoles check[] =
         {
           ActorRole_Sender,
           ActorRole_Receiver,
@@ -2036,6 +2037,278 @@ namespace ortc
         processSourceLevelValues(*sdp);
 
         return sdp;
+      }
+
+
+      //-----------------------------------------------------------------------
+      void SDPParser::createDescriptionDetails(
+        const SDP &sdp,
+        Description &ioDescription
+        )
+      {
+        bool needsDetails = ((bool)sdp.mOLine) ||
+          ((bool)sdp.mSLine) ||
+          ((bool)sdp.mTLine) ||
+          ((bool)sdp.mCLine) ||
+          ((bool)sdp.mCLine);
+
+        if (!needsDetails) return;
+
+        auto details = make_shared<Description::Details>();
+        ioDescription.mDetails = details;
+
+        details->mUsername = ((bool)sdp.mOLine) ? sdp.mOLine->mUsername : String();
+        details->mSessionID = ((bool)sdp.mOLine) ? sdp.mOLine->mSessionID : 0;
+        details->mSessionVersion = ((bool)sdp.mOLine) ? sdp.mOLine->mSessionVersion : 0;
+        details->mSessionName = ((bool)sdp.mSLine) ? sdp.mSLine->mSessionName : String();
+        details->mStartTime = ((bool)sdp.mTLine) ? sdp.mTLine->mStartTime : 0;
+        details->mEndTime = ((bool)sdp.mTLine) ? sdp.mTLine->mEndTime : 0;
+
+        bool needUnicastAddress = ((bool)sdp.mOLine);
+        if (needUnicastAddress) {
+          auto unicast = make_shared<ISessionDescriptionTypes::ConnectionData::Details>();
+
+          unicast->mNetType = ((bool)sdp.mOLine) ? sdp.mOLine->mNetType : String();
+          unicast->mAddrType = ((bool)sdp.mOLine) ? sdp.mOLine->mAddrType : String();
+          unicast->mConnectionAddress = ((bool)sdp.mOLine) ? sdp.mOLine->mUnicastAddress : String();
+
+          details->mUnicaseAddress = unicast;
+        }
+
+        bool needConnectionData = ((bool)sdp.mCLine);
+        if (needConnectionData) {
+          auto connectionData = make_shared<ISessionDescriptionTypes::ConnectionData>();
+          connectionData->mRTP = make_shared<ISessionDescriptionTypes::ConnectionData::Details>();
+
+          connectionData->mRTP->mNetType = ((bool)sdp.mCLine) ? sdp.mCLine->mNetType : String();
+          connectionData->mRTP->mAddrType = ((bool)sdp.mCLine) ? sdp.mCLine->mAddrType : String();
+          connectionData->mRTP->mConnectionAddress = ((bool)sdp.mCLine) ? sdp.mCLine->mConnectionAddress : String();
+
+          details->mConnectionData = connectionData;
+        }
+      }
+
+      //-----------------------------------------------------------------------
+      static IDTLSTransportTypes::Roles toDtlsRole(const char *setup)
+      {
+        String str(setup);
+
+        static const char *checkSetup[] =
+        {
+          "active",
+          "passive",
+          "actpass",
+          "holdconn"
+        };
+        static IDTLSTransportTypes::Roles resultRole[] =
+        {
+          IDTLSTransportTypes::Role_Client,
+          IDTLSTransportTypes::Role_Server,
+          IDTLSTransportTypes::Role_Auto,
+          IDTLSTransportTypes::Role_Auto
+        };
+
+        for (size_t index = 0; index <= (sizeof(resultRole) / sizeof(resultRole[0])); ++index) {
+          if (0 == str.compareNoCase(checkSetup[index])) return resultRole[index];
+        }
+        return IDTLSTransportTypes::Role_Auto;
+      }
+
+      //-----------------------------------------------------------------------
+      static void convertCrypto(
+                                const ISDPTypes::ACryptoLineList &inCryptoLines,
+                                ISRTPSDESTransportTypes::Parameters &outCrypto
+                                )
+      {
+        for (auto iter = inCryptoLines.begin(); iter != inCryptoLines.end(); ++iter) {
+          auto &acrypto = *(*iter);
+
+          ISRTPSDESTransportTypes::CryptoParameters cryptoParams;
+          cryptoParams.mTag = SafeInt<decltype(cryptoParams.mTag)>(acrypto.mTag);
+          cryptoParams.mCryptoSuite = acrypto.mCryptoSuite;
+
+          for (auto iterKeyParms = acrypto.mKeyParams.begin(); iterKeyParms != acrypto.mKeyParams.end(); ++iterKeyParms) {
+            auto &akeyParam = (*iterKeyParms);
+            ISRTPSDESTransportTypes::KeyParameters keyParams;
+            keyParams.mKeyMethod = akeyParam.first;
+
+            UseServicesHelper::SplitMap keyInfoSplit;
+            UseServicesHelper::split(akeyParam.second, keyInfoSplit, "|");
+            UseServicesHelper::splitTrim(keyInfoSplit);
+            UseServicesHelper::splitPruneEmpty(keyInfoSplit);
+            ORTC_THROW_INVALID_PARAMETERS_IF(keyInfoSplit.size() < 1);
+
+            keyParams.mKeySalt = keyInfoSplit[0];
+            if (keyInfoSplit.size() > 1) {
+              keyParams.mLifetime = keyInfoSplit[1];
+            }
+            if (keyInfoSplit.size() > 2) {
+              UseServicesHelper::SplitMap mkiSplit;
+              UseServicesHelper::split(keyInfoSplit[2], mkiSplit, "|");
+              UseServicesHelper::splitTrim(mkiSplit);
+              UseServicesHelper::splitPruneEmpty(mkiSplit);
+              ORTC_THROW_INVALID_PARAMETERS_IF(mkiSplit.size() < 2);
+
+              keyParams.mMKIValue = mkiSplit[0];
+              try {
+                keyParams.mMKILength = Numeric<decltype(keyParams.mMKILength)>(mkiSplit[1]);
+              }
+              catch (const Numeric<decltype(keyParams.mMKILength)>::ValueOutOfRange &) {
+                ORTC_THROW_INVALID_PARAMETERS("mki length value is out of range: " + mkiSplit[1]);
+              }
+            }
+
+            cryptoParams.mKeyParams.push_back(keyParams);
+          }
+
+          for (auto iterSessionParms = acrypto.mSessionParams.begin(); iterSessionParms != acrypto.mSessionParams.end(); ++iterSessionParms) {
+            auto &asessionParam = (*iterSessionParms);
+            cryptoParams.mSessionParams.push_back(asessionParam);
+          }
+
+          outCrypto.mCryptoParams.push_back(cryptoParams);
+        }
+      }
+
+      //-----------------------------------------------------------------------
+      static void convertDTLSFingerprints(
+                                          const ISDPTypes::AFingerprintLineList &inFingerprintLines,
+                                          IDTLSTransportTypes::Parameters &outParameters
+                                          )
+      {
+
+        for (auto iter = inFingerprintLines.begin(); iter != inFingerprintLines.end(); ++iter) {
+          auto &afingerprint = *(*iter);
+          ICertificateTypes::Fingerprint certFingerprint;
+          certFingerprint.mAlgorithm = afingerprint.mHashFunc;
+          certFingerprint.mValue = afingerprint.mFingerprint;
+          outParameters.mFingerprints.push_back(certFingerprint);
+        }
+      }
+
+      //-----------------------------------------------------------------------
+      static void convertCandidates(
+                                    const ISDPTypes::ACandidateLineList &inCandidateLines,
+                                    ISessionDescriptionTypes::ICECandidateList &outRTPCandidates,
+                                    ISessionDescriptionTypes::Transport::ParametersPtr &ioRTCPTransport
+                                    )
+      {
+        for (auto iter = inCandidateLines.begin(); iter != inCandidateLines.end(); ++iter)
+        {
+          auto &acandidate = *(*iter);
+
+          auto candidate = make_shared<IICETypes::Candidate>();
+
+          candidate->mFoundation = acandidate.mFoundation;
+          candidate->mPriority = acandidate.mPriority;
+          candidate->mProtocol = IICETypes::toProtocol(acandidate.mTransport);
+          candidate->mIP = acandidate.mConnectionAddress;
+          candidate->mPort = acandidate.mPort;
+          candidate->mCandidateType = IICETypes::toCandidateType(acandidate.mCandidateType);
+          candidate->mRelatedAddress = acandidate.mRelAddr;
+          candidate->mRelatedPort = acandidate.mRelPort;
+
+          for (auto iterExt = acandidate.mExtensionPairs.begin(); iterExt != acandidate.mExtensionPairs.end(); ++iterExt) {
+            auto &extName = (*iterExt).first;
+            auto &extValue = (*iterExt).second;
+
+            if (0 == extName.compareNoCase("tcptype")) {
+              candidate->mTCPType = IICETypes::toTCPCandidateType(extValue);
+              continue;
+            }
+            if (0 == extName.compareNoCase("unfreezepriority")) {
+              try {
+                candidate->mUnfreezePriority = Numeric<decltype(candidate->mUnfreezePriority)>(extValue);
+              } catch (const Numeric<decltype(candidate->mUnfreezePriority)>::ValueOutOfRange &) {
+                ORTC_THROW_INVALID_PARAMETERS("unfreeze priority is out of range: " + extValue);
+              }
+              continue;
+            }
+            if (0 == extName.compareNoCase("interfacetype")) {
+              candidate->mInterfaceType = extValue;
+              continue;
+            }
+          }
+
+          if (0 == acandidate.mComponentID) {
+            outRTPCandidates.push_back(candidate);
+          } else {
+            if (!ioRTCPTransport) {
+              ioRTCPTransport = make_shared<ISessionDescriptionTypes::Transport::Parameters>();
+            }
+            ioRTCPTransport->mICECandidates.push_back(candidate);
+          }
+        }
+      }
+
+      //-----------------------------------------------------------------------
+      void SDPParser::createTransports(
+                                       const SDP &sdp,
+                                       Description &ioDescription
+                                       )
+      {
+        size_t index = 0;
+
+        for (auto iter = sdp.mMLines.begin(); iter != sdp.mMLines.end(); ++iter, ++index)
+        {
+          auto &mline = *(*iter);
+
+          if (!mline.mAICEUFragLine) continue;  // no ice transport = no transport
+
+          auto transport = make_shared<ISessionDescriptionTypes::Transport>();
+          transport->mRTP = make_shared<ISessionDescriptionTypes::Transport::Parameters>();
+
+          bool requireRTCP = (mline.mRTCPMux.hasValue() ? (!mline.mRTCPMux.value()) : true);
+          if (requireRTCP) {
+            transport->mRTCP = make_shared<ISessionDescriptionTypes::Transport::Parameters>();
+          }
+
+          transport->mRTP->mICEParameters = make_shared<IICETypes::Parameters>();
+          transport->mRTP->mICEParameters->mUsernameFragment = ((bool)mline.mAICEUFragLine) ? mline.mAICEUFragLine->mICEUFrag : String();
+          transport->mRTP->mICEParameters->mPassword = ((bool)mline.mAICEPwdLine) ? mline.mAICEPwdLine->mICEPwd : String();
+          transport->mRTP->mICEParameters->mICELite = sdp.mICELite.hasValue() ? sdp.mICELite.value() : false;
+
+          if (mline.mAFingerprintLines.size() > 0) {
+            transport->mRTP->mDTLSParameters = make_shared<IDTLSTransportTypes::Parameters>();
+            transport->mRTP->mDTLSParameters->mRole = ((bool)mline.mASetupLine) ? toDtlsRole(mline.mASetupLine->mSetup) : IDTLSTransportTypes::Role_Auto;
+            convertDTLSFingerprints(mline.mAFingerprintLines, *(transport->mRTP->mDTLSParameters));
+          }
+
+          if (mline.mACryptoLines.size() > 0) {
+            transport->mRTP->mSRTPSDESParameters = make_shared<ISRTPSDESTransportTypes::Parameters>();
+            convertCrypto(mline.mACryptoLines, *transport->mRTP->mSRTPSDESParameters);
+          }
+
+          convertCandidates(mline.mACandidateLines, transport->mRTP->mICECandidates, transport->mRTCP);
+
+          if ((mline.mEndOfCandidates.hasValue()) &&
+              (mline.mEndOfCandidates.value())) {
+            transport->mRTP->mEndOfCandidates = true;
+            if (transport->mRTCP) {
+              transport->mRTCP->mEndOfCandidates = true;
+            }
+          }
+
+          if (mline.mAMIDLine) {
+            transport->mID = mline.mAMIDLine->mMID;
+          } else {
+            transport->mID = UseServicesHelper::convertToHex(*UseServicesHelper::hash(string(index)));
+          }
+        }
+      }
+
+      //-----------------------------------------------------------------------
+      ISDPTypes::DescriptionPtr SDPParser::createDescription(
+                                                             const SDP &sdp,
+                                                             Locations location
+                                                             )
+      {
+        DescriptionPtr result(make_shared<Description>());
+
+        createDescriptionDetails(sdp, *result);
+        createTransports(sdp, *result);
+
+        return result;
       }
 
     }  // namespace internal

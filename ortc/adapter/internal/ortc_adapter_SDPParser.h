@@ -53,6 +53,8 @@ namespace ortc
 
       interaction ISDPTypes
       {
+        ZS_DECLARE_TYPEDEF_PTR(ISessionDescriptionTypes::Description, Description);
+
         typedef BYTE PayloadType;
         typedef DWORD SSRCType;
 
@@ -698,8 +700,22 @@ namespace ortc
         static void processMediaLevelValues(SDP &sdp);
         static void processSourceLevelValues(SDP &sdp);
 
+        static void createTransports(
+                                     const SDP &sdp,
+                                     Description &ioDescription
+                                     );
+        static void createDescriptionDetails(
+                                             const SDP &sdp,
+                                             Description &ioDescription
+                                             );
+
       public:
         static SDPPtr parse(const char *blob);
+
+        static DescriptionPtr createDescription(
+                                                const SDP &sdp,
+                                                Locations location
+                                                );
       };
     }
   }
