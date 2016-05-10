@@ -35,25 +35,112 @@
 #include <ortc/adapter/internal/types.h>
 #include <ortc/adapter/ISessionDescription.h>
 
+#include <ortc/adapter/ISessionDescription.h>
+
+#include <ortc/adapter/internal/ortc_adapter_SDPParser.h>
+
 namespace ortc
 {
   namespace adapter
   {
     namespace internal
     {
-      //-------------------------------------------------------------------------
-      //-------------------------------------------------------------------------
-      //-------------------------------------------------------------------------
-      //-------------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark SessionDescriptionParser
+      #pragma mark SessionDescription
       #pragma mark
 
-      class SessionDescription : public ISessionDescription
+      class SessionDescription : public SharedRecursiveLock,
+                                 public ISessionDescription
       {
-      public:
+      protected:
+        struct make_private {};
 
+        void init();
+
+      public:
+        SessionDescription(
+                           const make_private &,
+                           SignalingTypes type,
+                           const char *descriptionStr,
+                           const Description *description
+                           );
+
+        static SessionDescriptionPtr convert(ISessionDescriptionPtr object);
+
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark SessionDescription => ISessionDescription
+        #pragma mark
+
+        static ElementPtr toDebug(ISessionDescriptionPtr object);
+
+        static SessionDescriptionPtr create(
+                                            SignalingTypes type,
+                                            const char *description
+                                            );
+        static SessionDescriptionPtr create(
+                                            SignalingTypes type,
+                                            const Description &description
+                                            );
+
+        virtual SignalingTypes type() const override;
+        virtual DescriptionPtr description() const override;
+        virtual SignalingDescription formattedDescription() const override;
+
+      protected:
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark SessionDescription => (internal)
+        #pragma mark
+
+        virtual ElementPtr toDebug() const;
+
+      protected:
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark SessionDescription => (data)
+        #pragma mark
+
+        AutoPUID mID;
+        SessionDescriptionWeakPtr mThisWeak;
+
+        SignalingTypes mType {SignalingType_JSON};
+        mutable bool mConverted {false};
+        mutable DescriptionPtr mDescription;
+        mutable SignalingDescription mFormattedString;
+        mutable ISDPTypes::SDPPtr mSDP;
       };
+
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark IMediaStreamFactory
+      #pragma mark
+
+      interaction ISessionDescriptionFactory
+      {
+        typedef ISessionDescriptionTypes::SignalingTypes SignalingTypes;
+        ZS_DECLARE_TYPEDEF_PTR(ISessionDescriptionTypes::Description, Description);
+
+        static ISessionDescriptionFactory &singleton();
+
+        virtual SessionDescriptionPtr create(
+                                             SignalingTypes type,
+                                             const char *description
+                                             );
+        virtual SessionDescriptionPtr create(
+                                             SignalingTypes type,
+                                             const Description &description
+                                             );
+      };
+
+      class SessionDescriptionFactory : public IFactory<ISessionDescriptionFactory> {};
     }
   }
 }

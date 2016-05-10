@@ -73,6 +73,198 @@ namespace ortc
         return Log::Params(message, "ortc::adapter::ISessionDescriptionTypes");
       }
 
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark SessionDescription
+      #pragma mark
+
+      //-----------------------------------------------------------------------
+      SessionDescription::SessionDescription(
+                                             const make_private &,
+                                             SignalingTypes type,
+                                             const char *descriptionStr,
+                                             const Description *description
+                                             ) :
+        SharedRecursiveLock(SharedRecursiveLock::create()),
+        mType(type),
+        mDescription(description ? make_shared<Description>(*description) : DescriptionPtr()),
+        mFormattedString(descriptionStr)
+      {
+      }
+
+      //-----------------------------------------------------------------------
+      void SessionDescription::init()
+      {
+      }
+
+      //-----------------------------------------------------------------------
+      SessionDescriptionPtr SessionDescription::convert(ISessionDescriptionPtr object)
+      {
+        return ZS_DYNAMIC_PTR_CAST(SessionDescription, object);
+      }
+
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark SessionDescription => ISessionDescription
+      #pragma mark
+
+      //-----------------------------------------------------------------------
+      ElementPtr SessionDescription::toDebug(ISessionDescriptionPtr object)
+      {
+        if (!object) return ElementPtr();
+        return convert(object)->toDebug();
+      }
+
+      //-----------------------------------------------------------------------
+      SessionDescriptionPtr SessionDescription::create(
+                                                       SignalingTypes type,
+                                                       const char *description
+                                                       )
+      {
+        auto pThis(make_shared<SessionDescription>(make_private{}, type, description, nullptr));
+        pThis->mThisWeak = pThis;
+        pThis->init();
+        return pThis;
+      }
+
+      //-----------------------------------------------------------------------
+      SessionDescriptionPtr SessionDescription::create(
+                                                       SignalingTypes type,
+                                                       const Description &description
+                                                       )
+      {
+        auto pThis(make_shared<SessionDescription>(make_private{}, type, nullptr, &description));
+        pThis->mThisWeak = pThis;
+        pThis->init();
+        return pThis;
+      }
+
+      //-----------------------------------------------------------------------
+      ISessionDescriptionTypes::SignalingTypes SessionDescription::type() const
+      {
+        return mType;
+      }
+
+      //-----------------------------------------------------------------------
+      ISessionDescriptionTypes::DescriptionPtr SessionDescription::description() const
+      {
+        AutoRecursiveLock lock(*this);
+
+        if (!mDescription) {
+          // only attempt to convert once (failures will not attempt again)
+          if (mConverted) return mDescription;
+          mConverted = true;
+
+          switch (mType) {
+            case SignalingType_JSON: {
+              auto rootEl = UseServicesHelper::toJSON(mFormattedString);
+              mDescription = ISessionDescriptionTypes::Description::create(rootEl);
+              break;
+            }
+            case SignalingType_SDPOffer:
+            case SignalingType_SDPPreanswer:
+            case SignalingType_SDPAnswer:
+            case SignalingType_SDPRollback: {
+              mSDP = SDPParser::parse(mFormattedString);
+              if (mSDP) {
+                mDescription = SDPParser::createDescription(ISDPTypes::Location_Local, *mSDP);
+              }
+              break;
+            }
+          }
+        }
+        return mDescription;
+      }
+
+      //-----------------------------------------------------------------------
+      ISessionDescriptionTypes::SignalingDescription SessionDescription::formattedDescription() const
+      {
+        AutoRecursiveLock lock(*this);
+        if (mFormattedString.isEmpty()) {
+          if (mConverted) return SignalingDescription();
+          mConverted = true;
+          switch (mType) {
+            case SignalingType_JSON: {
+              if (!mDescription) return SignalingDescription();
+
+              ElementPtr rootEl = mDescription->createElement();
+              if (!rootEl) return SignalingDescription();
+
+              mFormattedString = UseServicesHelper::toString(rootEl);
+              break;
+            }
+            case SignalingType_SDPOffer:
+            case SignalingType_SDPPreanswer:
+            case SignalingType_SDPAnswer:
+            case SignalingType_SDPRollback: {
+              if (!mSDP) {
+                if (!mDescription) return SignalingDescription();
+                mSDP = SDPParser::createSDP(ISDPTypes::Location_Local, *mDescription);
+                if (!mSDP) return SignalingDescription();
+              }
+              mFormattedString = SDPParser::generate(*mSDP);
+              break;
+            }
+          }
+        }
+
+        return mFormattedString;
+      }
+
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark SessionDescription => (internal)
+      #pragma mark
+
+      //-----------------------------------------------------------------------
+      ElementPtr SessionDescription::toDebug() const
+      {
+        return ElementPtr();
+      }
+
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark IMediaStreamFactory
+      #pragma mark
+
+      //-----------------------------------------------------------------------
+      ISessionDescriptionFactory &ISessionDescriptionFactory::singleton()
+      {
+        return SessionDescriptionFactory::singleton();
+      }
+
+      //-----------------------------------------------------------------------
+      SessionDescriptionPtr ISessionDescriptionFactory::create(
+                                                               SignalingTypes type,
+                                                               const char *description
+                                                               )
+      {
+        if (this) {}
+        return internal::SessionDescription::create(type, description);
+      }
+
+      //-----------------------------------------------------------------------
+      SessionDescriptionPtr ISessionDescriptionFactory::create(
+                                                               SignalingTypes type,
+                                                               const Description &description
+                                                               )
+      {
+        if (this) {}
+        return internal::SessionDescription::create(type, description);
+      }
+
     }  // namespace internal
 
     //-------------------------------------------------------------------------

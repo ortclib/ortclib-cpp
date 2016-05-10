@@ -31,11 +31,8 @@
 
 #pragma once
 
-
 #include <ortc/adapter/internal/types.h>
 #include <ortc/adapter/ISessionDescription.h>
-
-#include <ortc/adapter/internal/ortc_adapter_SDPParser.h>
 
 namespace ortc
 {
@@ -755,7 +752,12 @@ namespace ortc
 
       public:
         static SDPPtr parse(const char *blob);
+        static String generate(const SDP &sdp);
 
+        static SDPPtr createSDP(
+                                Locations location,
+                                const Description &description
+                                );
         static DescriptionPtr createDescription(
                                                 Locations location,
                                                 const SDP &sdp

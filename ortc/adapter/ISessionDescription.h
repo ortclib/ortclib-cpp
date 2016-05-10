@@ -406,6 +406,8 @@ namespace ortc
                                            const Description &description
                                            );
 
+      static ElementPtr toDebug(ISessionDescriptionPtr object);
+
       virtual SignalingTypes type() const = 0;
       virtual DescriptionPtr description() const = 0;
       virtual SignalingDescription formattedDescription() const = 0;

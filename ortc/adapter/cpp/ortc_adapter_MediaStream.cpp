@@ -414,7 +414,7 @@ namespace ortc
       //-------------------------------------------------------------------------
       IMediaStreamFactory &IMediaStreamFactory::singleton()
       {
-        return IMediaStreamFactory::singleton();
+        return MediaStreamFactory::singleton();
       }
 
       //-------------------------------------------------------------------------

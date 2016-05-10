@@ -2120,36 +2120,6 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      ISDPTypes::SDPPtr SDPParser::parse(const char *blob)
-      {
-        if (!blob) return SDPPtr();
-
-        SDPPtr sdp(make_shared<SDP>());
-
-        sdp->mOriginal = String(blob);
-        std::unique_ptr<char[]> rawBuffer(new char[sdp->mOriginal.length()]);
-        sdp->mRawBuffer = std::move(rawBuffer);
-
-        memcpy(sdp->mRawBuffer.get(), blob, sdp->mOriginal.length());
-
-        try {
-          parseLines(*sdp);
-          parseAttributes(*sdp);
-          validateAttributeLevels(*sdp);
-          parseLinesDetails(*sdp);
-          processFlagAttributes(*sdp);
-          processSessionLevelValues(*sdp);
-          processMediaLevelValues(*sdp);
-          processSourceLevelValues(*sdp);
-        } catch (const SafeIntException &e) {
-          ORTC_THROW_INVALID_PARAMETERS("value found out of legal value range" + string(e.m_code));
-        }
-
-        return sdp;
-      }
-
-
-      //-----------------------------------------------------------------------
       void SDPParser::createDescriptionDetails(
         const SDP &sdp,
         Description &ioDescription
@@ -3079,8 +3049,7 @@ namespace ortc
                 IRTPTypes::PayloadType redFormatPayloadType = Numeric<IRTPTypes::PayloadType>(redFormatPayloadTypeStr);
                 if (nullptr == redParameters) redParameters = make_shared<IRTPTypes::REDCodecParameters>();
                 redParameters->mPayloadTypes.push_back(redFormatPayloadType);
-              }
-              catch (const Numeric<ISDPTypes::PayloadType>::ValueOutOfRange &) {
+              } catch (const Numeric<ISDPTypes::PayloadType>::ValueOutOfRange &) {
                 ORTC_THROW_INVALID_PARAMETERS("RED payload specific format is not valid: " + combinedREDFormat);
               }
             }
@@ -3229,6 +3198,51 @@ namespace ortc
 
           ioDescription.mRTPSenders.push_back(sender);
         }
+      }
+
+
+      //-----------------------------------------------------------------------
+      ISDPTypes::SDPPtr SDPParser::parse(const char *blob)
+      {
+        if (!blob) return SDPPtr();
+
+        SDPPtr sdp(make_shared<SDP>());
+
+        sdp->mOriginal = String(blob);
+        std::unique_ptr<char[]> rawBuffer(new char[sdp->mOriginal.length()]);
+        sdp->mRawBuffer = std::move(rawBuffer);
+
+        memcpy(sdp->mRawBuffer.get(), blob, sdp->mOriginal.length());
+
+        try {
+          parseLines(*sdp);
+          parseAttributes(*sdp);
+          validateAttributeLevels(*sdp);
+          parseLinesDetails(*sdp);
+          processFlagAttributes(*sdp);
+          processSessionLevelValues(*sdp);
+          processMediaLevelValues(*sdp);
+          processSourceLevelValues(*sdp);
+        } catch (const SafeIntException &e) {
+          ORTC_THROW_INVALID_PARAMETERS("value found out of legal value range" + string(e.m_code));
+        }
+
+        return sdp;
+      }
+
+      //-----------------------------------------------------------------------
+      String SDPParser::generate(const SDP &sdp)
+      {
+        return String();
+      }
+
+      //-----------------------------------------------------------------------
+      ISDPTypes::SDPPtr SDPParser::createSDP(
+                                             Locations location,
+                                             const Description &description
+                                             )
+      {
+        return SDPPtr();
       }
 
       //-----------------------------------------------------------------------
