@@ -51,8 +51,61 @@ namespace ortc
       ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Capabilities, RTPCapabilities);
       ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, RTPParameters);
 
+      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::CodecCapability, RTPCodecCapability);
+      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::CodecCapabilitiesList, RTPCodecCapabilitiesList);
+      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::CodecParameters, RTPCodecParameters);
+      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::CodecParametersList, RTPCodecParametersList);
+
+      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::OpusCodecCapabilityParameters, RTPOpusCodecCapabilityParameters);
+      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::VP8CodecCapabilityParameters, RTPVP8CodecCapabilityParameters);
+      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::H264CodecCapabilityParameters, RTPH264CodecCapabilityParameters);
+      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::RTXCodecCapabilityParameters, RTPRTXCodecCapabilityParameters);
+      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::FlexFECCodecCapabilityParameters, RTPFlexFECCodecCapabilityParameters);
+
+      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::OpusCodecParameters, RTPOpusCodecParameters);
+      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::VP8CodecParameters, RTPVP8CodecParameters);
+      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::H264CodecParameters, RTPH264CodecParameters);
+      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::RTXCodecParameters, RTPRTXCodecParameters);
+      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::REDCodecParameters, RTPREDCodecParameters);
+      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::FlexFECCodecParameters, RTPFlexFECCodecParameters);
+
+      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::HeaderExtensionsList, RTPHeaderExtensionsList);
+      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::HeaderExtensionParametersList, RTPHeaderExtensionParametersList);
+
+      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::HeaderExtension, RTPHeaderExtension);
+      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::HeaderExtensionParameters, RTPHeaderExtensionParameters);
+
+      typedef IRTPTypes::CodecKinds RTPCodecKinds;
+
       static RTPParametersPtr capabilitiesToParameters(const RTPCapabilities &capabilities);
       static RTPCapabilitiesPtr parametersToCapabilities(const RTPParameters &parameters);
+
+      static RTPCodecParametersListPtr capabilitiesToParameters(const RTPCodecCapabilitiesList &capabiliites);
+      static RTPCodecCapabilitiesListPtr parametersToCapabilities(const RTPCodecParametersList &parameters);
+
+      static RTPCodecParametersPtr capabilitiesToParameters(const RTPCodecCapability &capabilities);
+      static RTPCodecCapabilityPtr parametersToCapabilities(const RTPCodecParameters &parameters);
+
+      static RTPOpusCodecParametersPtr opusCodecCapabilityParametersToParameters(const RTPOpusCodecCapabilityParameters &capabilityParameters);
+      static RTPOpusCodecCapabilityParametersPtr opusCodecParametersToCapabilityParameters(const RTPOpusCodecParameters &parameters);
+
+      static RTPVP8CodecParametersPtr vp8CodecCapabilityParametersToParameters(const RTPVP8CodecCapabilityParameters &capabilityParameters);
+      static RTPVP8CodecCapabilityParametersPtr vp8CodecParametersToCapabilityParameters(const RTPVP8CodecParameters &parameters);
+
+      static RTPH264CodecParametersPtr h264CodecCapabilityParametersToParameters(const RTPH264CodecCapabilityParameters &capabilityParameters);
+      static RTPH264CodecCapabilityParametersPtr h264CodecParametersToCapabilityParameters(const RTPH264CodecParameters &parameters);
+
+      static RTPRTXCodecParametersPtr rtxCodecCapabilityParametersToParameters(const RTPRTXCodecCapabilityParameters &capabilityParameters);
+      static RTPRTXCodecCapabilityParametersPtr rtxCodecParametersToCapabilityParameters(const RTPRTXCodecParameters &parameters);
+
+      static RTPFlexFECCodecParametersPtr flexFECCodecCapabilityParametersToParameters(const RTPFlexFECCodecCapabilityParameters &capabilityParameters);
+      static RTPFlexFECCodecCapabilityParametersPtr flexFECCodecParametersToCapabilityParameters(const RTPFlexFECCodecParameters &parameters);
+
+      static RTPHeaderExtensionParametersListPtr capabilitiesToParameters(const RTPHeaderExtensionsList &capabilities);
+      static RTPHeaderExtensionsListPtr parametersToCapabilities(const RTPHeaderExtensionParametersList &parameters);
+
+      static RTPHeaderExtensionParametersPtr capabilitiesToParameters(const RTPHeaderExtension &capabilities);
+      static RTPHeaderExtensionPtr parametersToCapabilities(const RTPHeaderExtensionParameters &parameters);
     };
   }
 }

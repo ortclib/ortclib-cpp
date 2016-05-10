@@ -303,6 +303,11 @@ namespace ortc
                                          MediaStreamTrackEventPtr event
                                          ) = 0;
 
+      virtual void onPeerConnectionTrackGone(
+                                             IPeerConnectionPtr connection,
+                                             MediaStreamTrackEventPtr event
+                                             ) = 0;
+
       virtual void onPeerConnectionDataChannel(
                                                IPeerConnectionPtr connection,
                                                IDataChannelPtr dataChannel
@@ -346,6 +351,7 @@ ZS_DECLARE_PROXY_METHOD_2(onPeerConnectionIceGatheringStateChange, IPeerConnecti
 ZS_DECLARE_PROXY_METHOD_2(onPeerConnectionIceConnectionStateChange, IPeerConnectionPtr, ICEConnectionStates)
 ZS_DECLARE_PROXY_METHOD_2(onPeerConnectionConnectionStateChange, IPeerConnectionPtr, PeerConnectionStates)
 ZS_DECLARE_PROXY_METHOD_2(onPeerConnectionTrack, IPeerConnectionPtr, MediaStreamTrackEventPtr)
+ZS_DECLARE_PROXY_METHOD_2(onPeerConnectionTrackGone, IPeerConnectionPtr, MediaStreamTrackEventPtr)
 ZS_DECLARE_PROXY_METHOD_2(onPeerConnectionDataChannel, IPeerConnectionPtr, IDataChannelPtr)
 ZS_DECLARE_PROXY_END()
 
@@ -367,5 +373,6 @@ ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onPeerConnectionIceGatheringStateChange,
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onPeerConnectionIceConnectionStateChange, IPeerConnectionPtr, ICEConnectionStates)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onPeerConnectionConnectionStateChange, IPeerConnectionPtr, PeerConnectionStates)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onPeerConnectionTrack, IPeerConnectionPtr, MediaStreamTrackEventPtr)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onPeerConnectionTrackGone, IPeerConnectionPtr, MediaStreamTrackEventPtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onPeerConnectionDataChannel, IPeerConnectionPtr, IDataChannelPtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_END()

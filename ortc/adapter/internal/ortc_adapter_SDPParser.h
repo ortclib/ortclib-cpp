@@ -747,6 +747,12 @@ namespace ortc
                                          Description &ioDescription
                                          );
 
+        static void createRTPSenderLines(
+                                         Locations location,
+                                         const SDP &sdp,
+                                         Description &ioDescription
+                                         );
+
       public:
         static SDPPtr parse(const char *blob);
 

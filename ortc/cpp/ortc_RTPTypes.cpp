@@ -4846,7 +4846,7 @@ namespace ortc
       case HeaderExtensionURI_TransportSequenceNumber:            return "http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01";
     }
 
-    return "unknown";
+    ORTC_THROW_NOT_SUPPORTED_ERRROR("header extension uri is not known");
   }
 
   //---------------------------------------------------------------------------
@@ -4860,6 +4860,27 @@ namespace ortc
 
     return HeaderExtensionURI_Unknown;
   }
+
+  //---------------------------------------------------------------------------
+  String IRTPTypes::toKind(HeaderExtensionURIs extension)
+  {
+    switch (extension) {
+      case HeaderExtensionURI_Unknown:                            return "";
+      case HeaderExtensionURI_MuxID:                              return "";
+      case HeaderExtensionURI_ClienttoMixerAudioLevelIndication:  return toString(CodecKind_Audio);
+      case HeaderExtensionURI_MixertoClientAudioLevelIndication:  return toString(CodecKind_Audio);
+      case HeaderExtensionURI_FrameMarking:                       return toString(CodecKind_Video);
+      case HeaderExtensionURI_RID:                                return "";
+      case HeaderExtensionURI_3gpp_VideoOrientation:              return toString(CodecKind_Video);
+      case HeaderExtensionURI_3gpp_VideoOrientation6:             return toString(CodecKind_Video);
+      case HeaderExtensionURI_TransmissionTimeOffsets:            return "";
+      case HeaderExtensionURI_AbsoluteSendTime:                   return "";
+      case HeaderExtensionURI_TransportSequenceNumber:            return "";
+    }
+
+    ORTC_THROW_NOT_SUPPORTED_ERRROR("header extension uri is not known");
+  }
+
 
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------

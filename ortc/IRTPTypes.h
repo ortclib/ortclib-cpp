@@ -490,7 +490,7 @@ namespace ortc
       typedef OpusCodecCapabilityOptions::Signals Signals;
       typedef OpusCodecCapabilityOptions::Applications Applications;
 
-      // sedner parameters
+      // sender parameters
       Optional<ULONG> mMaxPlaybackRate;
       Optional<ULONG> mMaxAverageBitrate;
       Optional<bool> mStereo;
@@ -844,7 +844,7 @@ namespace ortc
 
     static const char *toString(HeaderExtensionURIs extension);         // converts header enum to URN format
     static HeaderExtensionURIs toHeaderExtensionURI(const char *uri);
-
+    static String toKind(HeaderExtensionURIs extension);                // returns "audio", "video" or "" for both
 
     //-------------------------------------------------------------------------
     #pragma mark

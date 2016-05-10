@@ -32,6 +32,7 @@
 
 #include <ortc/adapter/internal/ortc_adapter_SDPParser.h>
 #include <ortc/adapter/internal/ortc_adapter_SessionDescription.h>
+#include <ortc/adapter/internal/ortc_adapter_Helper.h>
 
 #include <ortc/internal/ortc_Helper.h>
 
@@ -61,6 +62,8 @@ namespace ortc
     ZS_DECLARE_TYPEDEF_PTR(ortc::internal::Helper, UseHelper);
     ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHelper, UseServicesHelper);
 
+    ZS_DECLARE_TYPEDEF_PTR(ortc::adapter::IHelper, UseAdapterHelper);
+
     typedef openpeer::services::Hasher<CryptoPP::SHA1> SHA1Hasher;
 
     namespace internal
@@ -80,10 +83,28 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      static String createTransportIdFromIndex(size_t index)
+      static String createTransportIDFromIndex(size_t index)
       {
         SHA1Hasher hasher;
         hasher.update("transport_index:");
+        hasher.update(index);
+        return hasher.final();
+      }
+
+      //-----------------------------------------------------------------------
+      static String createMediaLineIDFromIndex(size_t index)
+      {
+        SHA1Hasher hasher;
+        hasher.update("media_line_index:");
+        hasher.update(index);
+        return hasher.final();
+      }
+
+      //-----------------------------------------------------------------------
+      static String createSenderIDFromIndex(size_t index)
+      {
+        SHA1Hasher hasher;
+        hasher.update("sender_index:");
         hasher.update(index);
         return hasher.final();
       }
@@ -2380,7 +2401,7 @@ namespace ortc
           if (mline.mAMIDLine) {
             transport->mID = mline.mAMIDLine->mMID;
           } else {
-            transport->mID = createTransportIdFromIndex(index);
+            transport->mID = createTransportIDFromIndex(index);
           }
         }
       }
@@ -2462,7 +2483,8 @@ namespace ortc
             if (foundBundleID.hasData()) break;
           }
         } else {
-          searchForTransportID = createTransportIdFromIndex(index);
+          mediaLine.mID = createMediaLineIDFromIndex(index);
+          searchForTransportID = createTransportIDFromIndex(index);
         }
 
         for (auto iter = description.mTransports.begin(); iter != description.mTransports.end(); ++iter) {
@@ -2989,6 +3011,8 @@ namespace ortc
           mediaLine->mReceiverCapabilities = make_shared<IRTPTypes::Capabilities>();
 
           fillCapabilities(location, sdp, mline, ioDescription, *mediaLine, *mediaLine->mSenderCapabilities, *mediaLine->mReceiverCapabilities);
+
+          ioDescription.mRTPMediaLines.push_back(mediaLine);
         }
       }
 
@@ -3022,6 +3046,102 @@ namespace ortc
           }
 
           mediaLine->mCapabilities->mMaxMessageSize = SafeInt<decltype(mediaLine->mCapabilities->mMaxMessageSize)>(mline.mAMaxMessageSize ? mline.mAMaxMessageSize->mMaxMessageSize : 0xFFFF);
+
+          ioDescription.mSCTPMediaLines.push_back(mediaLine);
+        }
+      }
+
+      //-----------------------------------------------------------------------
+      void SDPParser::createRTPSenderLines(
+                                           Locations location,
+                                           const SDP &sdp,
+                                           Description &ioDescription
+                                           )
+      {
+        size_t index = 0;
+
+        for (auto iter = sdp.mMLines.begin(); iter != sdp.mMLines.end(); ++iter, ++index)
+        {
+          auto &mline = *(*iter);
+
+          if (ProtocolType_RTP != mline.mProto) continue;
+
+          if (mline.mMediaDirection.hasValue()) {
+            if (!isApplicable(ActorRole_Sender, Location_Local, mline.mMediaDirection.value())) continue;
+          }
+
+          auto sender = make_shared<ISessionDescriptionTypes::RTPSender>();
+          sender->mDetails = make_shared<ISessionDescription::RTPSender::Details>();
+          sender->mDetails->mInternalRTPMediaLineIndex = index;
+
+          String mid = (mline.mAMIDLine ? mline.mAMIDLine->mMID : String());
+
+          sender->mID = mid.isEmpty() ? createSenderIDFromIndex(index) : mid;
+          sender->mRTPMediaLineID = mid.isEmpty() ? createMediaLineIDFromIndex(index) : mid;
+
+          ISessionDescriptionTypes::RTPMediaLinePtr foundMediaLine;
+
+          for (auto iterMedia = ioDescription.mRTPMediaLines.begin(); iterMedia != ioDescription.mRTPMediaLines.end(); ++iterMedia) {
+            auto &mediaLine = (*iterMedia);
+
+            if (mediaLine->mID == sender->mRTPMediaLineID) continue;
+            foundMediaLine = mediaLine;
+            break;
+          }
+
+          if (!foundMediaLine) {
+            ZS_LOG_WARNING(Debug, internal::slog("did not find associated media line") + ZS_PARAM("media line id", sender->mRTPMediaLineID));
+            continue;
+          }
+
+          sender->mParameters = UseAdapterHelper::capabilitiesToParameters(*foundMediaLine->mSenderCapabilities);
+
+          sender->mParameters->mMuxID = mid;
+          sender->mParameters->mRTCP.mMux = (mline.mRTCPMux.hasValue() ? mline.mRTCPMux.value() : false);
+          sender->mParameters->mRTCP.mReducedSize = (mline.mRTCPRSize.hasValue() ? mline.mRTCPRSize.value() : false);
+
+#define TODO_FIX_FOR_SIMULCAST_SDP_WHEN_SPECIFICATION_IS_MORE_SETTLED 1
+#define TODO_FIX_FOR_SIMULCAST_SDP_WHEN_SPECIFICATION_IS_MORE_SETTLED 2
+
+          IRTPTypes::EncodingParameters encoding;
+
+          for (auto iterSSRC = mline.mASSRCLines.begin(); iterSSRC != mline.mASSRCLines.end(); ++iterSSRC) {
+            auto &ssrc = *(*iterSSRC);
+            if (0 != ssrc.mAttribute.compareNoCase("cname")) continue;
+            ORTC_THROW_INVALID_PARAMETERS_IF(ssrc.mAttributeValues.size() < 1);
+            sender->mParameters->mRTCP.mCName = ssrc.mAttributeValues.front();
+            encoding.mSSRC = ssrc.mSSRC;
+            break;
+          }
+
+          for (auto iterSSRC = mline.mASSRCGroupLines.begin(); iterSSRC != mline.mASSRCGroupLines.end(); ++iterSSRC) {
+            auto &ssrc = *(*iterSSRC);
+            if (0 != ssrc.mSemantics.compareNoCase("FID")) continue;
+            ORTC_THROW_INVALID_PARAMETERS_IF(ssrc.mSSRCs.size() < 2);
+            if (!encoding.mSSRC.hasValue()) encoding.mSSRC = ssrc.mSSRCs.front();
+            encoding.mRTX = IRTPTypes::RTXParameters();
+            encoding.mRTX.value().mSSRC = (*(++(ssrc.mSSRCs.begin())));
+            break;
+          }
+
+          for (auto iterSSRC = mline.mASSRCGroupLines.begin(); iterSSRC != mline.mASSRCGroupLines.end(); ++iterSSRC) {
+            auto &ssrc = *(*iterSSRC);
+            if (0 != ssrc.mSemantics.compareNoCase("FEC-FR")) continue;
+            ORTC_THROW_INVALID_PARAMETERS_IF(ssrc.mSSRCs.size() < 2);
+            if (!encoding.mSSRC.hasValue()) encoding.mSSRC = ssrc.mSSRCs.front();
+            encoding.mFEC = IRTPTypes::FECParameters();
+            encoding.mFEC.value().mSSRC = (*(++(ssrc.mSSRCs.begin())));
+
+            auto &mechanisms = foundMediaLine->mSenderCapabilities->mFECMechanisms;
+            if (mechanisms.size() > 0) {
+              encoding.mFEC.value().mMechanism = mechanisms.front();
+            }
+            break;
+          }
+
+          sender->mParameters->mEncodings.push_back(encoding);
+
+          ioDescription.mRTPSenders.push_back(sender);
         }
       }
 
