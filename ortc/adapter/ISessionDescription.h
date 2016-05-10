@@ -305,6 +305,7 @@ namespace ortc
         DetailsPtr mDetails;
         MediaLineID mRTPMediaLineID;
         RTPParametersPtr mParameters;
+        String mMediaStreamTrackID;
         MediaStreamSet mMediaStreamIDs;
 
         RTPSender() {}

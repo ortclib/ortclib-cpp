@@ -3052,6 +3052,90 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
+      static void fillREDFormatParameters(
+                                          const ISDPTypes::MLine &mline,
+                                          IRTPTypes::Parameters &parameters
+                                          )
+      {
+        String redStr(IRTPTypes::toString(IRTPTypes::SupportedCodec_RED));
+        for (auto iterCodec = parameters.mCodecs.begin(); iterCodec != parameters.mCodecs.end(); ++iterCodec) {
+          auto &codec = (*iterCodec);
+          if (0 != codec.mName.compareNoCase(redStr)) continue;
+
+          IRTPTypes::REDCodecParametersPtr redParameters;
+
+          auto redPayloadType = codec.mPayloadType;
+          for (auto iterFormats = mline.mAFMTPLines.begin(); iterFormats != mline.mAFMTPLines.end(); ++iterFormats) {
+            auto &format = *(*iterFormats);
+            if (format.mFormat != redPayloadType) continue;
+            String combinedREDFormat = UseServicesHelper::combine(format.mFormatSpecific, "/");
+            UseServicesHelper::SplitMap redSplit;
+            UseServicesHelper::split(combinedREDFormat, redSplit, "/");
+            UseServicesHelper::splitTrim(redSplit);
+            UseServicesHelper::splitPruneEmpty(redSplit);
+            for (auto iterRED = redSplit.begin(); iterRED != redSplit.end(); ++iterRED) {
+              auto &redFormatPayloadTypeStr = (*iterRED).second;
+              try {
+                IRTPTypes::PayloadType redFormatPayloadType = Numeric<IRTPTypes::PayloadType>(redFormatPayloadTypeStr);
+                if (nullptr == redParameters) redParameters = make_shared<IRTPTypes::REDCodecParameters>();
+                redParameters->mPayloadTypes.push_back(redFormatPayloadType);
+              }
+              catch (const Numeric<ISDPTypes::PayloadType>::ValueOutOfRange &) {
+                ORTC_THROW_INVALID_PARAMETERS("RED payload specific format is not valid: " + combinedREDFormat);
+              }
+            }
+            break;
+          }
+
+          codec.mParameters = redParameters;
+        }
+      }
+
+      //-----------------------------------------------------------------------
+      static void fillStreamIDs(
+                                const ISDPTypes::SDP &sdp,
+                                const ISDPTypes::MLine &mline,
+                                ISessionDescriptionTypes::RTPSender &sender
+                                )
+      {
+        // scope: first check for MSID lines
+        {
+          for (auto iter = mline.mAMSIDLines.begin(); iter != mline.mAMSIDLines.end(); ++iter) {
+            auto msidLine = *(*iter);
+            if (sender.mMediaStreamTrackID.isEmpty()) {
+              sender.mMediaStreamTrackID = msidLine.mAppData;
+            }
+            if (msidLine.mID.hasData()) {
+              sender.mMediaStreamIDs.insert(msidLine.mID);
+            }
+          }
+
+          if (sender.mMediaStreamIDs.size() > 0) return;
+        }
+
+        // scope: check the a=ssrc lines
+        {
+          for (auto iter = mline.mASSRCLines.begin(); iter != mline.mASSRCLines.end(); ++iter) {
+            auto &ssrcLine = *(*iter);
+            if (0 != ssrcLine.mAttribute.compareNoCase("msid")) continue;
+
+            if (ssrcLine.mAFMTPLines.size() < 2) continue;
+
+            auto &id = ssrcLine.mAttributeValues.front();
+            auto &appData = *(++(ssrcLine.mAttributeValues.begin()));
+
+            if (sender.mMediaStreamTrackID.isEmpty()) {
+              sender.mMediaStreamTrackID = appData;
+            }
+            if (id.hasData()) {
+              sender.mMediaStreamIDs.insert(id);
+            }
+          }
+        }
+
+      }
+
+      //-----------------------------------------------------------------------
       void SDPParser::createRTPSenderLines(
                                            Locations location,
                                            const SDP &sdp,
@@ -3099,6 +3183,8 @@ namespace ortc
           sender->mParameters->mMuxID = mid;
           sender->mParameters->mRTCP.mMux = (mline.mRTCPMux.hasValue() ? mline.mRTCPMux.value() : false);
           sender->mParameters->mRTCP.mReducedSize = (mline.mRTCPRSize.hasValue() ? mline.mRTCPRSize.value() : false);
+          fillREDFormatParameters(mline, *sender->mParameters);
+          fillStreamIDs(sdp, mline, *sender);
 
 #define TODO_FIX_FOR_SIMULCAST_SDP_WHEN_SPECIFICATION_IS_MORE_SETTLED 1
 #define TODO_FIX_FOR_SIMULCAST_SDP_WHEN_SPECIFICATION_IS_MORE_SETTLED 2
