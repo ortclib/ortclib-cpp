@@ -205,7 +205,8 @@ namespace ortc
             case SignalingType_SDPRollback: {
               if (!mSDP) {
                 if (!mDescription) return SignalingDescription();
-                mSDP = SDPParser::createSDP(ISDPTypes::Location_Local, *mDescription);
+                SDPParser::GeneratorOptions options;
+                mSDP = SDPParser::createSDP(options, *mDescription);
                 if (!mSDP) return SignalingDescription();
               }
               mFormattedString = SDPParser::generate(*mSDP);

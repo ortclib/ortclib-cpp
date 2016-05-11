@@ -61,6 +61,10 @@ namespace ortc
         typedef std::pair<String, String> KeyValuePair;
         typedef std::list<KeyValuePair> KeyValueList;
 
+        typedef String BundleID;
+        typedef std::set<BundleID> BundledSet;
+        typedef std::map<BundleID, BundledSet> BundleMap;
+
         ZS_DECLARE_TYPEDEF_PTR(std::list<String>, StringList);
 
         ZS_DECLARE_STRUCT_PTR(LineTypeInfo);
@@ -303,21 +307,27 @@ namespace ortc
 
         struct OLine : public LineValue
         {
-          String mUsername{ "-" };
+          String mUsername {"-"};
           ULONGLONG mSessionID {};
           ULONGLONG mSessionVersion {};
           String mNetType;
           String mAddrType;
           String mUnicastAddress;
 
+          OLine(const Noop &) {}
           OLine(const char *value);
+          String toString() const;
+          static String toString(const OLinePtr &line) { if (!line) return String(); return line->toString(); }
         };
 
         struct SLine : public LineValue
         {
           String mSessionName;
 
+          SLine(const Noop &) {}
           SLine(const char *value);
+          String toString() const { return mSessionName.hasData() ? mSessionName : String("-"); }
+          static String toString(const SLinePtr &line) { if (!line) return String("-"); return line->toString(); }
         };
 
         struct BLine : public MediaLine
@@ -333,24 +343,28 @@ namespace ortc
           QWORD mStartTime {};
           QWORD mEndTime {};
 
+          TLine(const Noop &) {}
           TLine(const char *value);
+          String toString() const { return string(mStartTime) + " " + string(mEndTime); }
+          static String toString(const TLinePtr &line) { if (!line) return String(); return line->toString(); }
         };
 
         struct MLine : public LineValue
         {
-          // media level flags
-          Optional<bool> mBundleOnly;
-          Optional<bool> mEndOfCandidates;
-          Optional<Directions> mMediaDirection;
-          Optional<bool> mRTCPMux;
-          Optional<bool> mRTCPRSize;
-
+          // data
           String mMedia;
           ULONGLONG mPort {};
           ULONGLONG mInteger {};
           ProtocolTypes mProto {ProtocolType_Unknown};
           String mProtoStr;
           StringList mFmts;
+
+          // media level flags
+          Optional<bool> mBundleOnly;
+          Optional<bool> mEndOfCandidates;
+          Optional<Directions> mMediaDirection;
+          Optional<bool> mRTCPMux;
+          Optional<bool> mRTCPRSize;
 
           // media level values
           CLinePtr mCLine;
@@ -378,7 +392,10 @@ namespace ortc
           ASSRCGroupLineList mASSRCGroupLines;
           ARIDLineList mARIDLines;
 
+          MLine(const Noop &) {}
           MLine(const char *value);
+          String toString() const;
+          static String toString(const MLinePtr &line) { if (!line) return String(); return line->toString(); }
         };
 
         struct CLine : public MediaLine
@@ -387,7 +404,10 @@ namespace ortc
           String mAddrType;
           String mConnectionAddress;
 
+          CLine(const Noop &) : MediaLine(nullptr) {}
           CLine(MLinePtr mline, const char *value);
+          String toString() const;
+          static String toString(const CLinePtr &line) { if (!line) return String(); return line->toString(); }
         };
 
         //---------------------------------------------------------------------
@@ -416,7 +436,10 @@ namespace ortc
           String mSemantic;
           StringList mIdentificationTags;
 
+          AGroupLine(const Noop &) {}
           AGroupLine(const char *value);
+          String toString() const;
+          static String toString(const AGroupLinePtr &line) { if (!line) return String(); return line->toString(); }
         };
 
         struct AMSIDLine : public AMediaLine
@@ -424,7 +447,10 @@ namespace ortc
           String mID;
           String mAppData;
 
+          AMSIDLine(const Noop &) : AMediaLine(nullptr) {}
           AMSIDLine(MLinePtr mline, const char *value);
+          String toString() const;
+          static String toString(const AMSIDLinePtr &line) { if (!line) return String(); return line->toString(); }
         };
 
         struct AMSIDSemanticLine : public AGroupLine
@@ -436,21 +462,30 @@ namespace ortc
         {
           String mICEUFrag;
 
+          AICEUFragLine(const Noop &) : AMediaLine(nullptr) {}
           AICEUFragLine(MLinePtr mline, const char *value);
+          String toString() const { return "ice-ufrag:" + mICEUFrag; }
+          static String toString(const AICEUFragLinePtr &line) { if (!line) return String(); return line->toString(); }
         };
 
         struct AICEPwdLine : public AMediaLine
         {
           String mICEPwd;
 
+          AICEPwdLine(const Noop &) : AMediaLine(nullptr) {}
           AICEPwdLine(MLinePtr mline, const char *value);
+          String toString() const { return "ice-pwd:" + mICEPwd; }
+          static String toString(const AICEPwdLinePtr &line) { if (!line) return String(); return line->toString(); }
         };
 
         struct AICEOptionsLine : public ALine
         {
           StringList mTags;
 
+          AICEOptionsLine(const Noop &) {}
           AICEOptionsLine(const char *value);
+          String toString() const;
+          static String toString(const AICEOptionsLinePtr &line) { if (!line) return String(); return line->toString(); }
         };
 
         struct ACandidateLine : public AMediaLine
@@ -473,7 +508,10 @@ namespace ortc
 
           ExtensionPairList mExtensionPairs;
 
+          ACandidateLine(const Noop &) : AMediaLine(nullptr) {}
           ACandidateLine(MLinePtr mline, const char *value);
+          String toString() const;
+          static String toString(const ACandidateLinePtr &line) { if (!line) return String(); return line->toString(); }
         };
 
         struct AFingerprintLine : public AMediaLine
@@ -481,7 +519,10 @@ namespace ortc
           String mHashFunc;
           String mFingerprint;
 
+          AFingerprintLine(const Noop &) : AMediaLine(nullptr) {}
           AFingerprintLine(MLinePtr mline, const char *value);
+          String toString() const;
+          static String toString(const AFingerprintLinePtr &line) { if (!line) return String(); return line->toString(); }
         };
 
         struct ACryptoLine : public AMediaLine
@@ -496,21 +537,30 @@ namespace ortc
           KeyParamList mKeyParams;
           StringList mSessionParams;
 
+          ACryptoLine(const Noop &) : AMediaLine(nullptr) {}
           ACryptoLine(MLinePtr mline, const char *value);
+          String toString() const;
+          static String toString(const ACryptoLinePtr &line) { if (!line) return String(); return line->toString(); }
         };
 
         struct ASetupLine : public AMediaLine
         {
           String mSetup;
 
+          ASetupLine(const Noop &) : AMediaLine(nullptr) {}
           ASetupLine(MLinePtr mline, const char *value);
+          String toString() const { return "setup:" + mSetup; }
+          static String toString(const ASetupLinePtr &line) { if (!line) return String(); return line->toString(); }
         };
 
         struct AMIDLine : public AMediaLine
         {
           String mMID;
 
+          AMIDLine(const Noop &) : AMediaLine(nullptr) {}
           AMIDLine(MLinePtr mline, const char *value);
+          String toString() const { return "mid:" + mMID; }
+          static String toString(const AMIDLinePtr &line) { if (!line) return String(); return line->toString(); }
         };
 
         struct AExtmapLine : public AMediaLine
@@ -520,7 +570,10 @@ namespace ortc
           String mURI;
           String mExtensionAttributes;
 
+          AExtmapLine(const Noop &) : AMediaLine(nullptr) {}
           AExtmapLine(MLinePtr mline, const char *value);
+          String toString() const;
+          static String toString(const AExtmapLinePtr &line) { if (!line) return String(); return line->toString(); }
         };
 
         struct AMediaDirectionLine : public AMediaLine
@@ -539,6 +592,8 @@ namespace ortc
 
           ARTPMapLine(const Noop &) : AMediaLine(nullptr) {}
           ARTPMapLine(MLinePtr mline, const char *value);
+          String toString() const;
+          static String toString(const ARTPMapLinePtr &line) { if (!line) return String(); return line->toString(); }
         };
 
         struct AFMTPLine : public AMediaLine
@@ -548,7 +603,10 @@ namespace ortc
           PayloadType mFormat {};
           StringList mFormatSpecific;
 
+          AFMTPLine(const Noop &) : AMediaLine(nullptr) {}
           AFMTPLine(MLinePtr mline, ASSRCLinePtr sourceLine, const char *value);
+          String toString() const;
+          static String toString(const AFMTPLinePtr &line) { if (!line) return String(); return line->toString(); }
         };
 
         struct ARTCPLine : public AMediaLine
@@ -558,7 +616,10 @@ namespace ortc
           String mAddrType;
           String mConnectionAddress;
 
+          ARTCPLine(const Noop &) : AMediaLine(nullptr) {}
           ARTCPLine(MLinePtr mline, const char *value);
+          String toString() const;
+          static String toString(const ARTCPLinePtr &line) { if (!line) return String(); return line->toString(); }
         };
 
         struct ARTCPFBLine : public AMediaLine
@@ -568,21 +629,30 @@ namespace ortc
           String mParam1;
           String mParam2;
 
+          ARTCPFBLine(const Noop &) : AMediaLine(nullptr) {}
           ARTCPFBLine(MLinePtr mline, const char *value);
+          String toString() const;
+          static String toString(const ARTCPFBLinePtr &line) { if (!line) return String(); return line->toString(); }
         };
 
         struct APTimeLine : public AMediaLine
         {
           Milliseconds mPTime {};
 
+          APTimeLine(const Noop &) : AMediaLine(nullptr) {}
           APTimeLine(MLinePtr mline, const char *value);
+          String toString() const { return "ptime:" + string(mPTime.count()); }
+          static String toString(const APTimeLinePtr &line) { if (!line) return String(); return line->toString(); }
         };
 
         struct AMaxPTimeLine : public AMediaLine
         {
           Milliseconds mMaxPTime {};
 
+          AMaxPTimeLine(const Noop &) : AMediaLine(nullptr) {}
           AMaxPTimeLine(MLinePtr mline, const char *value);
+          String toString() const { return "maxptime:" + string(mMaxPTime.count()); }
+          static String toString(const AMaxPTimeLinePtr &line) { if (!line) return String(); return line->toString(); }
         };
 
         struct ASSRCLine : public AMediaLine
@@ -594,7 +664,10 @@ namespace ortc
 
           AFMTPLineList mAFMTPLines;
 
+          ASSRCLine(const Noop &) : AMediaLine(nullptr) {}
           ASSRCLine(MLinePtr mline, const char *value);
+          String toString() const;
+          static String toString(const ASSRCLinePtr &line) { if (!line) return String(); return line->toString(); }
         };
 
         struct ASSRCGroupLine : public AMediaLine
@@ -602,7 +675,10 @@ namespace ortc
           String mSemantics;
           SSRCList mSSRCs;
 
+          ASSRCGroupLine(const Noop &) : AMediaLine(nullptr) {}
           ASSRCGroupLine(MLinePtr mline, const char *value);
+          String toString() const;
+          static String toString(const ASSRCGroupLinePtr &line) { if (!line) return String(); return line->toString(); }
         };
 
         struct ARIDLine : public AMediaLine
@@ -617,7 +693,10 @@ namespace ortc
           PayloadTypeList mPayloadTypes;
           RIDParamList mParams;
 
+          ARIDLine(const Noop &) : AMediaLine(nullptr) {}
           ARIDLine(MLinePtr mline, const char *value);
+          String toString() const;
+          static String toString(const ARIDLinePtr &line) { if (!line) return String(); return line->toString(); }
         };
 
         struct ASimulcastLine : public AMediaLine
@@ -646,15 +725,20 @@ namespace ortc
         {
           WORD mPort {};
 
+          ASCTPPortLine(const Noop &) : AMediaLine(nullptr) {}
           ASCTPPortLine(MLinePtr mline, const char *value);
+          String toString() const { return "sctp-port:" +string(mPort); }
+          static String toString(const ASCTPPortLinePtr &line) { if (!line) return String(); return line->toString(); }
         };
         struct AMaxMessageSizeLine : public AMediaLine
         {
           size_t mMaxMessageSize {};
 
+          AMaxMessageSizeLine(const Noop &) : AMediaLine(nullptr) {}
           AMaxMessageSizeLine(MLinePtr mline, const char *value);
+          String toString() const { return "max-message-size:" + string(mMaxMessageSize); }
+          static String toString(const AMaxMessageSizeLinePtr &line) { if (!line) return String(); return line->toString(); }
         };
-
 
         //---------------------------------------------------------------------
         //---------------------------------------------------------------------
@@ -715,6 +799,13 @@ namespace ortc
 
       class SDPParser : public ISDPTypes
       {
+      public:
+        struct GeneratorOptions
+        {
+          Locations mLocation {Location_Local};
+          bool mBundleOnly {false};
+        };
+
       protected:
         static void parseLines(SDP &sdp);
         static void parseAttributes(SDP &sdp);
@@ -750,12 +841,32 @@ namespace ortc
                                          Description &ioDescription
                                          );
 
+        static void createSDPSessionLevel(
+                                          const GeneratorOptions &options,
+                                          const Description &description,
+                                          SDP &ioSDP
+                                          );
+        static void createSDPMediaLevel(
+                                        const GeneratorOptions &options,
+                                        const Description &description,
+                                        SDP &ioSDP
+                                        );
+
+        static void generateSessionLevel(
+                                         const SDP &sdp,
+                                         String &ioResult
+                                         );
+        static void generateMediaLevel(
+                                       const SDP &sdp,
+                                       String &ioResult
+                                       );
+
       public:
         static SDPPtr parse(const char *blob);
         static String generate(const SDP &sdp);
 
         static SDPPtr createSDP(
-                                Locations location,
+                                const GeneratorOptions &options,
                                 const Description &description
                                 );
         static DescriptionPtr createDescription(
