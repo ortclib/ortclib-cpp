@@ -1418,7 +1418,14 @@ namespace ortc
       }
       return promise;
     }
-    
+
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::ChannelResource::notifyTransportState(ISecureTransportTypes::States state)
+    {
+      ChannelResourcePtr thisChannelResource = ZS_DYNAMIC_PTR_CAST(ChannelResource, mThisWeak.lock());
+      IRTPMediaEngineChannelResourceAsyncDelegateProxy::create(thisChannelResource)->onSecureTransportState(state);
+    }
+
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -1532,6 +1539,38 @@ namespace ortc
     #pragma mark
     #pragma mark RTPMediaEngine::AudioReceiverChannelResource => IRTPMediaEngineChannelResource
     #pragma mark
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPMediaEngine::AudioReceiverChannelResource => IRTPMediaEngineChannelResourceAsyncDelegate
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::AudioReceiverChannelResource::onSecureTransportState(ISecureTransport::States state)
+    {
+      AutoRecursiveLock lock(*this);
+
+      if (state == mTransportState) return;
+
+      auto engine = mMediaEngine.lock();
+      if (!engine) return;
+
+      auto voiceEngine = engine->getVoiceEngine();
+      if (!voiceEngine) return;
+
+      ISecureTransport::States previousState = mTransportState;
+      mTransportState = state;
+      if (state == ISecureTransport::State_Connected) {
+        webrtc::VoEBase::GetInterface(voiceEngine)->StartReceive(mChannel);
+        webrtc::VoEBase::GetInterface(voiceEngine)->StartPlayout(mChannel);
+      } else if (previousState == ISecureTransport::State_Connected) {
+        webrtc::VoEBase::GetInterface(voiceEngine)->StopPlayout(mChannel);
+        webrtc::VoEBase::GetInterface(voiceEngine)->StopReceive(mChannel);
+      }
+    }
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -1761,8 +1800,10 @@ namespace ortc
 
       mTrack->start();
 
-      webrtc::VoEBase::GetInterface(voiceEngine)->StartReceive(mChannel);
-      webrtc::VoEBase::GetInterface(voiceEngine)->StartPlayout(mChannel);
+      if (mTransportState == ISecureTransport::State_Connected) {
+        webrtc::VoEBase::GetInterface(voiceEngine)->StartReceive(mChannel);
+        webrtc::VoEBase::GetInterface(voiceEngine)->StartPlayout(mChannel);
+      }
 
       notifyPromisesResolve();
     }
@@ -1777,8 +1818,10 @@ namespace ortc
       if (outer) {
         auto voiceEngine = outer->getVoiceEngine();
         if (voiceEngine) {
-          webrtc::VoEBase::GetInterface(voiceEngine)->StopPlayout(mChannel);
-          webrtc::VoEBase::GetInterface(voiceEngine)->StopReceive(mChannel);
+          if (mTransportState == ISecureTransport::State_Connected) {
+            webrtc::VoEBase::GetInterface(voiceEngine)->StopPlayout(mChannel);
+            webrtc::VoEBase::GetInterface(voiceEngine)->StopReceive(mChannel);
+          }
           webrtc::VoENetwork::GetInterface(voiceEngine)->DeRegisterExternalTransport(mChannel);
         }
       }
@@ -1910,6 +1953,32 @@ namespace ortc
     #pragma mark
     #pragma mark RTPMediaEngine::AudioSenderChannelResource => IRTPMediaEngineChannelResource
     #pragma mark
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPMediaEngine::AudioSenderChannelResource => IRTPMediaEngineChannelResourceAsyncDelegate
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::AudioSenderChannelResource::onSecureTransportState(ISecureTransport::States state)
+    {
+      auto engine = mMediaEngine.lock();
+      if (!engine) return;
+
+      auto voiceEngine = engine->getVoiceEngine();
+      if (!voiceEngine) return;
+
+      ISecureTransport::States previousState = mTransportState;
+      mTransportState = state;
+      if (state == ISecureTransport::State_Connected) {
+        webrtc::VoEBase::GetInterface(voiceEngine)->StartSend(mChannel);
+      } else if (previousState == ISecureTransport::State_Connected) {
+        webrtc::VoEBase::GetInterface(voiceEngine)->StopSend(mChannel);
+      }
+    }
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -2129,7 +2198,8 @@ namespace ortc
 
       mTrack->start();
 
-      webrtc::VoEBase::GetInterface(voiceEngine)->StartSend(mChannel);
+      if (mTransportState == ISecureTransport::State_Connected)
+        webrtc::VoEBase::GetInterface(voiceEngine)->StartSend(mChannel);
 
       notifyPromisesResolve();
     }
@@ -2150,10 +2220,14 @@ namespace ortc
       if (engine) {
         auto voiceEngine = engine->getVoiceEngine();
         if (voiceEngine) {
+          if (mTransportState == ISecureTransport::State_Connected)
+            webrtc::VoEBase::GetInterface(voiceEngine)->StopSend(mChannel);
           webrtc::VoENetwork::GetInterface(voiceEngine)->DeRegisterExternalTransport(mChannel);
-          webrtc::VoEBase::GetInterface(voiceEngine)->StopSend(mChannel);
         }
       }
+
+#define FIX_ME_WARNING_NO_TRACK_IS_NOT_STOPPED_JUST_BECAUSE_A_RECEIVER_CHANNEL_IS_DONE 1
+#define FIX_ME_WARNING_NO_TRACK_IS_NOT_STOPPED_JUST_BECAUSE_A_RECEIVER_CHANNEL_IS_DONE 2
 
       if (mTrack)
         mTrack->stop();
@@ -2297,6 +2371,32 @@ namespace ortc
     #pragma mark
     #pragma mark RTPMediaEngine::VideoReceiverChannelResource => IRTPMediaEngineChannelResource
     #pragma mark
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPMediaEngine::VideoReceiverChannelResource => IRTPMediaEngineChannelResourceAsyncDelegate
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::VideoReceiverChannelResource::onSecureTransportState(ISecureTransport::States state)
+    {
+      AutoRecursiveLock lock(*this);
+
+      if (state == mTransportState) return;
+
+      ISecureTransport::States previousState = mTransportState;
+      mTransportState = state;
+
+      if (!mReceiveStream) return;
+
+      if (state == ISecureTransport::State_Connected)
+        mReceiveStream->Start();
+      else if (previousState == ISecureTransport::State_Connected)
+        mReceiveStream->Stop();
+    }
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -2555,7 +2655,8 @@ namespace ortc
                                                  &mRemb
                                                  ));
 
-      mReceiveStream->Start();
+      if (mTransportState == ISecureTransport::State_Connected)
+        mReceiveStream->Start();
 
       notifyPromisesResolve();
     }
@@ -2572,7 +2673,7 @@ namespace ortc
 
       AutoRecursiveLock lock(*this);
 
-      if (mReceiveStream)
+      if (mReceiveStream && mTransportState == ISecureTransport::State_Connected)
         mReceiveStream->Stop();
 
       mPacerThread->Stop();
@@ -2661,6 +2762,32 @@ namespace ortc
     #pragma mark
     #pragma mark RTPMediaEngine::VideoSenderChannelResource => IRTPMediaEngineChannelResource
     #pragma mark
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPMediaEngine::VideoSenderChannelResource => IRTPMediaEngineChannelResourceAsyncDelegate
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::VideoSenderChannelResource::onSecureTransportState(ISecureTransport::States state)
+    {
+      AutoRecursiveLock lock(*this);
+
+      if (state == mTransportState) return;
+
+      ISecureTransport::States previousState = mTransportState;
+      mTransportState = state;
+      
+      if (!mSendStream) return;
+
+      if (state == ISecureTransport::State_Connected)
+        mSendStream->Start();
+      else if (previousState == ISecureTransport::State_Connected)
+        mSendStream->Stop();
+    }
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -2960,7 +3087,8 @@ namespace ortc
                                               suspendedSSRCs
                                               ));
 
-      mSendStream->Start();
+      if (mTransportState == ISecureTransport::State_Connected)
+        mSendStream->Start();
 
       notifyPromisesResolve();
     }
@@ -2977,7 +3105,7 @@ namespace ortc
 
       AutoRecursiveLock lock(*this);
 
-      if (mSendStream)
+      if (mSendStream && mTransportState == ISecureTransport::State_Connected)
         mSendStream->Stop();
 
       mPacerThread->Stop();

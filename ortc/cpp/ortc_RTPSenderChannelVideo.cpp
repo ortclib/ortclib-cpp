@@ -237,8 +237,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPSenderChannelVideo::notifyTransportState(ISecureTransportTypes::States state)
     {
-#define TODO_HANDLE_CHANGE_IN_CONNECTIVITY 1
-#define TODO_HANDLE_CHANGE_IN_CONNECTIVITY 2
+      IRTPSenderChannelVideoAsyncDelegateProxy::create(mThisWeak.lock())->onSecureTransportState(state);
     }
 
     //-------------------------------------------------------------------------
@@ -355,9 +354,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-#pragma mark
-#pragma mark RTPReceiverChannelAudio => IPromiseSettledDelegate
-#pragma mark
+    #pragma mark
+    #pragma mark RTPSenderChannelVideo => IPromiseSettledDelegate
+    #pragma mark
 
     //-------------------------------------------------------------------------
     void RTPSenderChannelVideo::onPromiseSettled(PromisePtr promise)
@@ -366,9 +365,6 @@ namespace ortc
 
       AutoRecursiveLock lock(*this);
       step();
-
-      if (ZS_DYNAMIC_PTR_CAST(PromiseWithRTPMediaEngineChannelResource, promise)) {
-      }
     }
 
     //-------------------------------------------------------------------------
@@ -378,6 +374,19 @@ namespace ortc
     #pragma mark
     #pragma mark RTPSenderChannelVideo => IRTPSenderChannelVideoAsyncDelegate
     #pragma mark
+
+    //-------------------------------------------------------------------------
+    void RTPSenderChannelVideo::onSecureTransportState(ISecureTransport::States state)
+    {
+      ZS_LOG_TRACE(log("notified secure transport state") + ZS_PARAM("state", ISecureTransport::toString(state)))
+
+      AutoRecursiveLock lock(*this);
+
+      mTransportState = state;
+
+      if (mChannelResource)
+        mChannelResource->notifyTransportState(state);
+    }
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -587,6 +596,9 @@ namespace ortc
       }
 
       ZS_LOG_DEBUG(log("media channel is setup") + ZS_PARAM("channel", mChannelResource->getID()))
+
+      mChannelResource->notifyTransportState(mTransportState);
+
       return true;
     }
 

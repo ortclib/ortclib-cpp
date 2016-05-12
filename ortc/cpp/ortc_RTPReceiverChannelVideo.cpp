@@ -239,8 +239,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPReceiverChannelVideo::notifyTransportState(ISecureTransportTypes::States state)
     {
-#define TODO_HANDLE_CHANGE_IN_CONNECTIVITY 1
-#define TODO_HANDLE_CHANGE_IN_CONNECTIVITY 2
+      IRTPReceiverChannelVideoAsyncDelegateProxy::create(mThisWeak.lock())->onSecureTransportState(state);
     }
 
     //-------------------------------------------------------------------------
@@ -366,9 +365,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-#pragma mark
-#pragma mark RTPReceiverChannelAudio => IPromiseSettledDelegate
-#pragma mark
+    #pragma mark
+    #pragma mark RTPReceiverChannelVideo => IPromiseSettledDelegate
+    #pragma mark
 
     //-------------------------------------------------------------------------
     void RTPReceiverChannelVideo::onPromiseSettled(PromisePtr promise)
@@ -422,6 +421,19 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    void RTPReceiverChannelVideo::onSecureTransportState(ISecureTransport::States state)
+    {
+      ZS_LOG_TRACE(log("notified secure transport state") + ZS_PARAM("state", ISecureTransport::toString(state)))
+
+      AutoRecursiveLock lock(*this);
+
+      mTransportState = state;
+
+      if (mChannelResource)
+        mChannelResource->notifyTransportState(state);
+    }
+
+    //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -442,7 +454,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark RTPSenderChannelVideo::Transport
+    #pragma mark RTPReceiverChannelVideo::Transport
     #pragma mark
 
     //-------------------------------------------------------------------------
@@ -479,7 +491,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark RTPSenderChannelVideo::Transport => webrtc::Transport
+    #pragma mark RTPReceiverChannelVideo::Transport => webrtc::Transport
     #pragma mark
 
     //-------------------------------------------------------------------------
@@ -646,6 +658,8 @@ namespace ortc
       ZS_LOG_DEBUG(log("media channel is setup") + ZS_PARAM("channel", mChannelResource->getID()))
 
       IRTPReceiverChannelVideoAsyncDelegateProxy::create(mThisWeak.lock())->onReceiverChannelVideoDeliverPackets();
+
+      mChannelResource->notifyTransportState(mTransportState);
 
       return true;
     }
