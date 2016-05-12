@@ -213,6 +213,7 @@ namespace ortc
     #pragma mark IRTPTypes::OpusCodecCapabilityParameters
     #pragma mark
 
+    // https://tools.ietf.org/html/rfc7587#section-6.1
     struct OpusCodecCapabilityParameters : public Any
     {
       // receiver capability parameters
@@ -245,6 +246,7 @@ namespace ortc
     #pragma mark IRTPTypes::VP8CodecCapabilityParameters
     #pragma mark
 
+    // https://tools.ietf.org/html/rfc7741#section-6.1
     struct VP8CodecCapabilityParameters : public Any
     {
       Optional<ULONG> mMaxFR;
@@ -268,6 +270,7 @@ namespace ortc
     #pragma mark IRTPTypes::H264CodecCapabilityParameters
     #pragma mark
 
+    // https://tools.ietf.org/html/rfc7742#section-6.2
     struct H264CodecCapabilityParameters : public Any
     {
       typedef std::list<USHORT>  PacketizationModeList;
@@ -300,6 +303,7 @@ namespace ortc
     #pragma mark IRTPTypes::RTXCodecCapabilityParameters
     #pragma mark
 
+    // https://tools.ietf.org/html/rfc4588#section-8.1
     struct RTXCodecCapabilityParameters : public Any
     {
       PayloadType mApt {};
@@ -323,6 +327,7 @@ namespace ortc
     #pragma mark IRTPTypes::FlexFECCodecCapabilityParameters
     #pragma mark
 
+    // https://tools.ietf.org/html/draft-ietf-payload-flexible-fec-scheme-02
     struct FlexFECCodecCapabilityParameters : public Any
     {
       enum ToPs {

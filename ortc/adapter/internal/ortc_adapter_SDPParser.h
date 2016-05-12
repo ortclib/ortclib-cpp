@@ -298,6 +298,7 @@ namespace ortc
           MediaLine(MLinePtr mline) : mMLine(mline) {}
         };
 
+        // https://tools.ietf.org/html/rfc4566#section-5.1
         struct VLine : public LineValue
         {
           ULONGLONG mVersion {};
@@ -305,6 +306,7 @@ namespace ortc
           VLine(const char *value);
         };
 
+        // https://tools.ietf.org/html/rfc4566#section-5.2
         struct OLine : public LineValue
         {
           String mUsername {"-"};
@@ -320,6 +322,7 @@ namespace ortc
           static String toString(const OLinePtr &line) { if (!line) return String(); return line->toString(); }
         };
 
+        // https://tools.ietf.org/html/rfc4566#section-5.3
         struct SLine : public LineValue
         {
           String mSessionName;
@@ -330,6 +333,7 @@ namespace ortc
           static String toString(const SLinePtr &line) { if (!line) return String("-"); return line->toString(); }
         };
 
+        // https://tools.ietf.org/html/rfc4566#section-5.8
         struct BLine : public MediaLine
         {
           String mBWType;
@@ -338,6 +342,7 @@ namespace ortc
           BLine(MLinePtr mline, const char *value);
         };
 
+        // https://tools.ietf.org/html/rfc4566#section-5.9
         struct TLine : public LineValue
         {
           QWORD mStartTime {};
@@ -349,6 +354,7 @@ namespace ortc
           static String toString(const TLinePtr &line) { if (!line) return String(); return line->toString(); }
         };
 
+        // https://tools.ietf.org/html/rfc4566#section-5.14
         struct MLine : public LineValue
         {
           // data
@@ -398,6 +404,7 @@ namespace ortc
           static String toString(const MLinePtr &line) { if (!line) return String(); return line->toString(); }
         };
 
+        // https://tools.ietf.org/html/rfc4566#section-5.7
         struct CLine : public MediaLine
         {
           String mNetType;
@@ -415,6 +422,7 @@ namespace ortc
         //---------------------------------------------------------------------
         //---------------------------------------------------------------------
 
+        // https://tools.ietf.org/html/rfc4566#section-5.13
         struct ALine : public LineValue
         {
         };
@@ -431,6 +439,7 @@ namespace ortc
           AMediaFlagLine(MLinePtr mline) : AMediaLine(mline) {}
         };
 
+        // https://tools.ietf.org/html/rfc5888#section-5
         struct AGroupLine : public ALine
         {
           String mSemantic;
@@ -442,6 +451,7 @@ namespace ortc
           static String toString(const AGroupLinePtr &line) { if (!line) return String(); return line->toString(); }
         };
 
+        // https://tools.ietf.org/html/draft-ietf-mmusic-msid-13#section-2
         struct AMSIDLine : public AMediaLine
         {
           String mID;
@@ -453,11 +463,14 @@ namespace ortc
           static String toString(const AMSIDLinePtr &line) { if (!line) return String(); return line->toString(); }
         };
 
+        // https://tools.ietf.org/html/draft-ietf-mmusic-msid-13#appendix-B.5
+        // a=msid-semantic: WMS CESG4hDt2y4kkEizBkB4vbj7GQpC6hF7XTLR
         struct AMSIDSemanticLine : public AGroupLine
         {
           AMSIDSemanticLine(const char *value) : AGroupLine(value) {}
         };
 
+        // https://tools.ietf.org/html/rfc5245#section-15.4
         struct AICEUFragLine : public AMediaLine
         {
           String mICEUFrag;
@@ -468,6 +481,7 @@ namespace ortc
           static String toString(const AICEUFragLinePtr &line) { if (!line) return String(); return line->toString(); }
         };
 
+        // https://tools.ietf.org/html/rfc5245#section-15.4
         struct AICEPwdLine : public AMediaLine
         {
           String mICEPwd;
@@ -478,6 +492,7 @@ namespace ortc
           static String toString(const AICEPwdLinePtr &line) { if (!line) return String(); return line->toString(); }
         };
 
+        // https://tools.ietf.org/html/rfc5245#section-15.5
         struct AICEOptionsLine : public ALine
         {
           StringList mTags;
@@ -488,6 +503,7 @@ namespace ortc
           static String toString(const AICEOptionsLinePtr &line) { if (!line) return String(); return line->toString(); }
         };
 
+        // https://tools.ietf.org/html/rfc5245#section-15.1
         struct ACandidateLine : public AMediaLine
         {
           typedef String ExtensionAttName;
@@ -514,6 +530,7 @@ namespace ortc
           static String toString(const ACandidateLinePtr &line) { if (!line) return String(); return line->toString(); }
         };
 
+        // https://tools.ietf.org/html/rfc4572#section-5
         struct AFingerprintLine : public AMediaLine
         {
           String mHashFunc;
@@ -525,6 +542,7 @@ namespace ortc
           static String toString(const AFingerprintLinePtr &line) { if (!line) return String(); return line->toString(); }
         };
 
+        // https://tools.ietf.org/html/rfc4568#section-9.1
         struct ACryptoLine : public AMediaLine
         {
           typedef String KeyMethod;
@@ -543,6 +561,8 @@ namespace ortc
           static String toString(const ACryptoLinePtr &line) { if (!line) return String(); return line->toString(); }
         };
 
+        // https://tools.ietf.org/html/rfc4145#section-4
+        // https://tools.ietf.org/html/rfc5763#section-5
         struct ASetupLine : public AMediaLine
         {
           String mSetup;
@@ -553,6 +573,7 @@ namespace ortc
           static String toString(const ASetupLinePtr &line) { if (!line) return String(); return line->toString(); }
         };
 
+        // https://tools.ietf.org/html/rfc5888#section-9.1
         struct AMIDLine : public AMediaLine
         {
           String mMID;
@@ -563,6 +584,7 @@ namespace ortc
           static String toString(const AMIDLinePtr &line) { if (!line) return String(); return line->toString(); }
         };
 
+        // https://tools.ietf.org/html/rfc5285#section-7
         struct AExtmapLine : public AMediaLine
         {
           WORD mID {};
@@ -576,6 +598,7 @@ namespace ortc
           static String toString(const AExtmapLinePtr &line) { if (!line) return String(); return line->toString(); }
         };
 
+        // https://tools.ietf.org/html/rfc4566#section-6
         struct AMediaDirectionLine : public AMediaLine
         {
           Directions mDirection {Direction_None};
@@ -583,6 +606,7 @@ namespace ortc
           AMediaDirectionLine(MLinePtr mline, const char *value);
         };
 
+        // https://tools.ietf.org/html/rfc4566#section-6
         struct ARTPMapLine : public AMediaLine
         {
           PayloadType mPayloadType {};
@@ -596,6 +620,8 @@ namespace ortc
           static String toString(const ARTPMapLinePtr &line) { if (!line) return String(); return line->toString(); }
         };
 
+        // https://tools.ietf.org/html/rfc4566#section-6
+        // https://tools.ietf.org/html/rfc4566#section-9
         struct AFMTPLine : public AMediaLine
         {
           ASSRCLinePtr mSourceLine;
@@ -609,6 +635,7 @@ namespace ortc
           static String toString(const AFMTPLinePtr &line) { if (!line) return String(); return line->toString(); }
         };
 
+        // https://tools.ietf.org/html/rfc3605#section-2.1
         struct ARTCPLine : public AMediaLine
         {
           WORD mPort {};
@@ -622,6 +649,7 @@ namespace ortc
           static String toString(const ARTCPLinePtr &line) { if (!line) return String(); return line->toString(); }
         };
 
+        // https://tools.ietf.org/html/rfc4585#section-4.2
         struct ARTCPFBLine : public AMediaLine
         {
           Optional<PayloadType> mPayloadType;  // if not set, then applies to all
@@ -635,6 +663,7 @@ namespace ortc
           static String toString(const ARTCPFBLinePtr &line) { if (!line) return String(); return line->toString(); }
         };
 
+        // https://tools.ietf.org/html/rfc4566#section-6
         struct APTimeLine : public AMediaLine
         {
           Milliseconds mPTime {};
@@ -645,6 +674,7 @@ namespace ortc
           static String toString(const APTimeLinePtr &line) { if (!line) return String(); return line->toString(); }
         };
 
+        // https://tools.ietf.org/html/rfc4566#section-6
         struct AMaxPTimeLine : public AMediaLine
         {
           Milliseconds mMaxPTime {};
@@ -655,6 +685,7 @@ namespace ortc
           static String toString(const AMaxPTimeLinePtr &line) { if (!line) return String(); return line->toString(); }
         };
 
+        // https://tools.ietf.org/html/rfc5576#section-4.1
         struct ASSRCLine : public AMediaLine
         {
           SSRCType mSSRC {};
@@ -670,6 +701,7 @@ namespace ortc
           static String toString(const ASSRCLinePtr &line) { if (!line) return String(); return line->toString(); }
         };
 
+        // https://tools.ietf.org/html/rfc5576#section-4.2
         struct ASSRCGroupLine : public AMediaLine
         {
           String mSemantics;
@@ -681,6 +713,7 @@ namespace ortc
           static String toString(const ASSRCGroupLinePtr &line) { if (!line) return String(); return line->toString(); }
         };
 
+        // https://tools.ietf.org/html/draft-ietf-mmusic-rid-05#section-10
         struct ARIDLine : public AMediaLine
         {
           typedef String RIDParamKey;
@@ -699,6 +732,7 @@ namespace ortc
           static String toString(const ARIDLinePtr &line) { if (!line) return String(); return line->toString(); }
         };
 
+        // https://tools.ietf.org/html/draft-ietf-mmusic-sdp-simulcast-04#section-6.1
         struct ASimulcastLine : public AMediaLine
         {
           struct SCID
@@ -721,6 +755,7 @@ namespace ortc
           ASimulcastLine(MLinePtr mline, const char *value);
         };
 
+        // https://tools.ietf.org/html/draft-ietf-mmusic-sctp-sdp-16#section-5.2
         struct ASCTPPortLine : public AMediaLine
         {
           WORD mPort {};
@@ -730,6 +765,8 @@ namespace ortc
           String toString() const { return "sctp-port:" +string(mPort); }
           static String toString(const ASCTPPortLinePtr &line) { if (!line) return String(); return line->toString(); }
         };
+
+        // https://tools.ietf.org/html/draft-ietf-mmusic-sctp-sdp-16#section-6.2
         struct AMaxMessageSizeLine : public AMediaLine
         {
           size_t mMaxMessageSize {};
