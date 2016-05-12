@@ -131,7 +131,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IRTPSenderChannelAudioForRTPMediaEngine
+    #pragma mark IRTPSenderChannelVideoForRTPMediaEngine
     #pragma mark
 
     interaction IRTPSenderChannelVideoForRTPMediaEngine : public IRTPSenderChannelMediaBaseForRTPMediaEngine
@@ -153,7 +153,7 @@ namespace ortc
 
     interaction IRTPSenderChannelVideoAsyncDelegate
     {
-      virtual ~IRTPSenderChannelVideoAsyncDelegate() {}
+      virtual void onSecureTransportState(ISecureTransport::States state) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -316,6 +316,8 @@ namespace ortc
       #pragma mark RTPSenderChannelVideo => IRTPSenderChannelVideoAsyncDelegate
       #pragma mark
 
+      virtual void onSecureTransportState(ISecureTransport::States state) override;
+
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark RTPSenderChannelVideo => friend Transport
@@ -420,6 +422,7 @@ namespace ortc
       UseMediaStreamTrackPtr mTrack;
 
       TransportPtr mTransport;  // allow lifetime of callback to exist separate from "this" object
+      std::atomic<ISecureTransport::States> mTransportState { ISecureTransport::State_Pending };
     };
 
     //-------------------------------------------------------------------------
@@ -448,4 +451,6 @@ namespace ortc
 }
 
 ZS_DECLARE_PROXY_BEGIN(ortc::internal::IRTPSenderChannelVideoAsyncDelegate)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::ISecureTransport::States, States)
+ZS_DECLARE_PROXY_METHOD_1(onSecureTransportState, States)
 ZS_DECLARE_PROXY_END()

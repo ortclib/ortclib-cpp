@@ -66,6 +66,7 @@ namespace ortc
     // resource based interfaces
     ZS_DECLARE_INTERACTION_PTR(IRTPMediaEngineDeviceResource)
     ZS_DECLARE_INTERACTION_PTR(IRTPMediaEngineChannelResource)
+    ZS_DECLARE_INTERACTION_PROXY(IRTPMediaEngineChannelResourceAsyncDelegate)
     ZS_DECLARE_INTERACTION_PTR(IChannelResourceForRTPMediaEngine)
 
     ZS_DECLARE_INTERACTION_PTR(IRTPMediaEngineForSettings)
@@ -152,6 +153,22 @@ namespace ortc
       virtual PUID getID() const = 0;
 
       virtual PromisePtr shutdown() = 0;
+
+      virtual void notifyTransportState(ISecureTransportTypes::States state) = 0;
+    };
+
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IRTPMediaEngineChannelResourceAsyncDelegate
+    #pragma mark
+
+    interaction IRTPMediaEngineChannelResourceAsyncDelegate
+    {
+      virtual void onSecureTransportState(ISecureTransport::States state) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -857,6 +874,7 @@ namespace ortc
         String mDeviceID;
       };
 
+      
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
@@ -866,7 +884,8 @@ namespace ortc
       #pragma mark
 
       class ChannelResource : public BaseResource,
-                              public IChannelResourceForRTPMediaEngine
+                              public IChannelResourceForRTPMediaEngine,
+                              public IRTPMediaEngineChannelResourceAsyncDelegate
       {
         typedef std::list<PromisePtr> PromiseList;
 
@@ -888,6 +907,7 @@ namespace ortc
 
         virtual PUID getID() const { return mID; }
         virtual PromisePtr shutdown();
+        virtual void notifyTransportState(ISecureTransportTypes::States state);
 
         //---------------------------------------------------------------------
         #pragma mark
@@ -970,6 +990,15 @@ namespace ortc
 
         virtual PromisePtr shutdown() override {return ChannelResource::shutdown();}
 
+        virtual void notifyTransportState(ISecureTransportTypes::States state) override { return ChannelResource::notifyTransportState(state); }
+
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark RTPMediaEngine::AudioReceiverChannelResource => IRTPMediaEngineChannelResourceAsyncDelegate
+        #pragma mark
+
+        virtual void onSecureTransportState(ISecureTransport::States state) override;
+
         //---------------------------------------------------------------------
         #pragma mark
         #pragma mark RTPMediaEngine::AudioReceiverChannelResource => IRTPMediaEngineAudioReceiverChannelResource
@@ -1009,6 +1038,7 @@ namespace ortc
         int mChannel{};
 
         TransportPtr mTransport;
+        std::atomic<ISecureTransport::States> mTransportState { ISecureTransport::State_Pending };
 
         UseMediaStreamTrackPtr mTrack;
 
@@ -1074,6 +1104,15 @@ namespace ortc
 
         virtual PromisePtr shutdown() override {return ChannelResource::shutdown();}
 
+        virtual void notifyTransportState(ISecureTransportTypes::States state) override { return ChannelResource::notifyTransportState(state); }
+
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark RTPMediaEngine::AudioSenderChannelResource => IRTPMediaEngineChannelResourceAsyncDelegate
+        #pragma mark
+
+        virtual void onSecureTransportState(ISecureTransport::States state) override;
+
         //---------------------------------------------------------------------
         #pragma mark
         #pragma mark RTPMediaEngine::AudioSenderChannelResource => IRTPMediaEngineAudioSenderChannelResource
@@ -1113,6 +1152,7 @@ namespace ortc
         int mChannel{};
 
         TransportPtr mTransport;
+        std::atomic<ISecureTransport::States> mTransportState { ISecureTransport::State_Pending };
 
         UseMediaStreamTrackPtr mTrack;
 
@@ -1190,7 +1230,17 @@ namespace ortc
         #pragma mark
 
         virtual PUID getID() const override {return ChannelResource::getID();}
+
         virtual PromisePtr shutdown() override {return ChannelResource::shutdown();}
+
+        virtual void notifyTransportState(ISecureTransportTypes::States state) override { return ChannelResource::notifyTransportState(state); }
+
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark RTPMediaEngine::VideoReceiverChannelResource => IRTPMediaEngineChannelResourceAsyncDelegate
+        #pragma mark
+
+        virtual void onSecureTransportState(ISecureTransport::States state) override;
 
         //---------------------------------------------------------------------
         #pragma mark
@@ -1219,6 +1269,7 @@ namespace ortc
         std::atomic<size_t> mAccessFromNonLockedMethods {};
 
         TransportPtr mTransport;
+        std::atomic<ISecureTransport::States> mTransportState { ISecureTransport::State_Pending };
 
         UseMediaStreamTrackPtr mTrack;
 
@@ -1289,6 +1340,15 @@ namespace ortc
 
         virtual PromisePtr shutdown() override {return ChannelResource::shutdown();}
 
+        virtual void notifyTransportState(ISecureTransportTypes::States state) override { return ChannelResource::notifyTransportState(state); }
+
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark RTPMediaEngine::VideoSenderChannelResource => IRTPMediaEngineChannelResourceAsyncDelegate
+        #pragma mark
+
+        virtual void onSecureTransportState(ISecureTransport::States state) override;
+
         //---------------------------------------------------------------------
         #pragma mark
         #pragma mark RTPMediaEngine::VideoSenderChannelResource => IRTPMediaEngineVideoSenderChannelResource
@@ -1316,6 +1376,7 @@ namespace ortc
         std::atomic<size_t> mAccessFromNonLockedMethods {};
 
         TransportPtr mTransport;
+        std::atomic<ISecureTransport::States> mTransportState { ISecureTransport::State_Pending };
 
         UseMediaStreamTrackPtr mTrack;
 
@@ -1382,14 +1443,10 @@ namespace ortc
   }
 }
 
-ZS_DECLARE_PROXY_BEGIN(ortc::internal::IRTPMediaEngineAsyncDelegate)
-//ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::ISecureTransport::States, States)
-//ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::IRTPMediaEngineAsyncDelegate::RTCPPacketListPtr, RTCPPacketListPtr)
-//ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::RTPPacketPtr, RTPPacketPtr)
-//ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::IRTPMediaEngineAsyncDelegate::ParametersPtr, ParametersPtr)
-//ZS_DECLARE_PROXY_METHOD_1(onSecureTransportState, States)
-//ZS_DECLARE_PROXY_METHOD_1(onNotifyPacket, RTPPacketPtr)
-//ZS_DECLARE_PROXY_METHOD_1(onNotifyPackets, RTCPPacketListPtr)
-//ZS_DECLARE_PROXY_METHOD_1(onUpdate, ParametersPtr)
+ZS_DECLARE_PROXY_BEGIN(ortc::internal::IRTPMediaEngineChannelResourceAsyncDelegate)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::ISecureTransport::States, States)
+ZS_DECLARE_PROXY_METHOD_1(onSecureTransportState, States)
 ZS_DECLARE_PROXY_END()
 
+ZS_DECLARE_PROXY_BEGIN(ortc::internal::IRTPMediaEngineAsyncDelegate)
+ZS_DECLARE_PROXY_END()

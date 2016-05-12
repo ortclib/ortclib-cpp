@@ -242,8 +242,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPReceiverChannelAudio::notifyTransportState(ISecureTransportTypes::States state)
     {
-#define TODO_HANDLE_CHANGE_IN_CONNECTIVITY 1
-#define TODO_HANDLE_CHANGE_IN_CONNECTIVITY 2
+      IRTPReceiverChannelAudioAsyncDelegateProxy::create(mThisWeak.lock())->onSecureTransportState(state);
     }
 
     //-------------------------------------------------------------------------
@@ -447,11 +446,24 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    void RTPReceiverChannelAudio::onSecureTransportState(ISecureTransport::States state)
+    {
+      ZS_LOG_TRACE(log("notified secure transport state") + ZS_PARAM("state", ISecureTransport::toString(state)))
+
+      AutoRecursiveLock lock(*this);
+
+      mTransportState = state;
+
+      if (mChannelResource)
+        mChannelResource->notifyTransportState(state);
+    }
+
+    //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark RTPSenderChannelAudio => friend Transport
+    #pragma mark RTPReceiverChannelAudio => friend Transport
     #pragma mark
 
     //-------------------------------------------------------------------------
@@ -467,7 +479,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark RTPSenderChannelAudio::Transport
+    #pragma mark RTPReceiverChannelAudio::Transport
     #pragma mark
 
     //-------------------------------------------------------------------------
@@ -504,7 +516,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark RTPSenderChannelAudio::Transport => webrtc::Transport
+    #pragma mark RTPReceiverChannelAudio::Transport => webrtc::Transport
     #pragma mark
 
     //-------------------------------------------------------------------------
@@ -671,6 +683,8 @@ namespace ortc
       ZS_LOG_DEBUG(log("media channel is setup") + ZS_PARAM("channel", mChannelResource->getID()))
 
       IRTPReceiverChannelAudioAsyncDelegateProxy::create(mThisWeak.lock())->onReceiverChannelAudioDeliverPackets();
+
+      mChannelResource->notifyTransportState(mTransportState);
 
       return true;
     }
