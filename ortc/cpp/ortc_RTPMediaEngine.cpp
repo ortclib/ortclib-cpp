@@ -1638,12 +1638,7 @@ namespace ortc
                                                                                        &mRemb
                                                                                        ));
 
-      mModuleProcessThread->Start();
-      mModuleProcessThread->RegisterModule(mCallStats.get());
-      mModuleProcessThread->RegisterModule(mCongestionController.get());
-      mPacerThread->RegisterModule(mCongestionController->pacer());
-      mPacerThread->RegisterModule(mCongestionController->GetRemoteBitrateEstimator(true));
-      mPacerThread->Start();
+      mCallStats->RegisterStatsObserver(mCongestionController.get());
 
       webrtc::VoEBase::GetInterface(voiceEngine)->Init(mTrack->getAudioDeviceModule());
 
@@ -1748,6 +1743,13 @@ namespace ortc
       config.receive_transport = mTransport.get();
       config.rtcp_send_transport = mTransport.get();
 
+      mModuleProcessThread->Start();
+      mModuleProcessThread->RegisterModule(mCallStats.get());
+      mModuleProcessThread->RegisterModule(mCongestionController.get());
+      mPacerThread->RegisterModule(mCongestionController->pacer());
+      mPacerThread->RegisterModule(mCongestionController->GetRemoteBitrateEstimator(true));
+      mPacerThread->Start();
+
       mReceiveStream = rtc::scoped_ptr<webrtc::AudioReceiveStream>(
         new webrtc::internal::AudioReceiveStream(
                                                  mCongestionController.get(),
@@ -1793,6 +1795,8 @@ namespace ortc
       mModuleProcessThread->DeRegisterModule(mCongestionController.get());
       mModuleProcessThread->DeRegisterModule(mCallStats.get());
       mModuleProcessThread->Stop();
+
+      mCallStats->DeregisterStatsObserver(mCongestionController.get());
 
       mReceiveStream.reset();
       mCongestionController.reset();
@@ -2003,12 +2007,6 @@ namespace ortc
                                                                                        &mRemb
                                                                                        ));
 
-      mModuleProcessThread->Start();
-      mModuleProcessThread->RegisterModule(mCongestionController.get());
-      mPacerThread->RegisterModule(mCongestionController->pacer());
-      mPacerThread->RegisterModule(mCongestionController->GetRemoteBitrateEstimator(true));
-      mPacerThread->Start();
-
       webrtc::VoEBase::GetInterface(voiceEngine)->Init(mTrack->getAudioDeviceModule());
 
       mChannel = webrtc::VoEBase::GetInterface(voiceEngine)->CreateChannel();
@@ -2113,6 +2111,12 @@ namespace ortc
 
       webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetRTCPStatus(mChannel, true);
       webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetRTCP_CNAME(mChannel, mParameters->mRTCP.mCName);
+
+      mModuleProcessThread->Start();
+      mModuleProcessThread->RegisterModule(mCongestionController.get());
+      mPacerThread->RegisterModule(mCongestionController->pacer());
+      mPacerThread->RegisterModule(mCongestionController->GetRemoteBitrateEstimator(true));
+      mPacerThread->Start();
 
       mSendStream = rtc::scoped_ptr<webrtc::AudioSendStream>(
         new webrtc::internal::AudioSendStream(
@@ -2398,12 +2402,7 @@ namespace ortc
                                                                                        &mRemb
                                                                                        ));
 
-      mModuleProcessThread->Start();
-      mModuleProcessThread->RegisterModule(mCallStats.get());
-      mModuleProcessThread->RegisterModule(mCongestionController.get());
-      mPacerThread->RegisterModule(mCongestionController->pacer());
-      mPacerThread->RegisterModule(mCongestionController->GetRemoteBitrateEstimator(true));
-      mPacerThread->Start();
+      mCallStats->RegisterStatsObserver(mCongestionController.get());
 
       int numCpuCores = webrtc::CpuInfo::DetectNumberOfCores();
 
@@ -2538,6 +2537,13 @@ namespace ortc
       config.decoders.push_back(decoder);
       config.renderer = &mReceiverVideoRenderer;
 
+      mModuleProcessThread->Start();
+      mModuleProcessThread->RegisterModule(mCallStats.get());
+      mModuleProcessThread->RegisterModule(mCongestionController.get());
+      mPacerThread->RegisterModule(mCongestionController->pacer());
+      mPacerThread->RegisterModule(mCongestionController->GetRemoteBitrateEstimator(true));
+      mPacerThread->Start();
+
       mReceiveStream = rtc::scoped_ptr<webrtc::VideoReceiveStream>(
         new webrtc::internal::VideoReceiveStream(
                                                  numCpuCores,
@@ -2575,6 +2581,8 @@ namespace ortc
       mModuleProcessThread->DeRegisterModule(mCongestionController.get());
       mModuleProcessThread->DeRegisterModule(mCallStats.get());
       mModuleProcessThread->Stop();
+
+      mCallStats->DeregisterStatsObserver(mCongestionController.get());
 
       mReceiveStream.reset();
       mCongestionController.reset();
@@ -2756,12 +2764,7 @@ namespace ortc
                                                                                        &mRemb
                                                                                        ));
 
-      mModuleProcessThread->Start();
-      mModuleProcessThread->RegisterModule(mCallStats.get());
-      mModuleProcessThread->RegisterModule(mCongestionController.get());
-      mPacerThread->RegisterModule(mCongestionController->pacer());
-      mPacerThread->RegisterModule(mCongestionController->GetRemoteBitrateEstimator(true));
-      mPacerThread->Start();
+      mCallStats->RegisterStatsObserver(mCongestionController.get());
 
       int numCpuCores = webrtc::CpuInfo::DetectNumberOfCores();
 
@@ -2862,6 +2865,7 @@ namespace ortc
         videoCodecSet = true;
       }
 
+      int totalMaxBitrate = 0;
       for (auto encodingParamIter = mParameters->mEncodings.begin(); encodingParamIter != mParameters->mEncodings.end(); encodingParamIter++) {
         if (!encodingParamIter->mActive)
           continue;
@@ -2899,6 +2903,7 @@ namespace ortc
           stream.target_bitrate_bps = stream.max_bitrate_bps;
           stream.max_qp = 56;
           encoderConfig.streams.push_back(stream);
+          totalMaxBitrate += stream.max_bitrate_bps;
         }
       }
       if (encoderConfig.streams.size() == 0) {
@@ -2912,6 +2917,7 @@ namespace ortc
         stream.target_bitrate_bps = stream.max_bitrate_bps;
         stream.max_qp = 56;
         encoderConfig.streams.push_back(stream);
+        totalMaxBitrate = stream.max_bitrate_bps;
       }
       if (encoderConfig.streams.size() > 1)
         mVideoEncoderSettings.mVp8.automaticResizeOn = false;
@@ -2931,6 +2937,15 @@ namespace ortc
       }
 
       config.rtp.c_name = mParameters->mRTCP.mCName;
+
+      mCongestionController->SetBweBitrates(0, -1, totalMaxBitrate);
+
+      mModuleProcessThread->Start();
+      mModuleProcessThread->RegisterModule(mCallStats.get());
+      mModuleProcessThread->RegisterModule(mCongestionController.get());
+      mPacerThread->RegisterModule(mCongestionController->pacer());
+      mPacerThread->RegisterModule(mCongestionController->GetRemoteBitrateEstimator(true));
+      mPacerThread->Start();
 
       mSendStream = rtc::scoped_ptr<webrtc::VideoSendStream>(
         new webrtc::internal::VideoSendStream(
@@ -2971,6 +2986,8 @@ namespace ortc
       mModuleProcessThread->DeRegisterModule(mCongestionController.get());
       mModuleProcessThread->DeRegisterModule(mCallStats.get());
       mModuleProcessThread->Stop();
+
+      mCallStats->DeregisterStatsObserver(mCongestionController.get());
 
       mSendStream.reset();
       mCongestionController.reset();
