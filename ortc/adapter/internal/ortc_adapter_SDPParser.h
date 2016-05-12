@@ -627,6 +627,7 @@ namespace ortc
           ASSRCLinePtr mSourceLine;
 
           PayloadType mFormat {};
+          String mFormatStr;
           StringList mFormatSpecific;
 
           AFMTPLine(const Noop &) : AMediaLine(nullptr) {}
@@ -910,6 +911,15 @@ namespace ortc
                                                 Locations location,
                                                 const SDP &sdp
                                                 );
+
+        static String getCandidateSDP(
+                                      const IICETypes::Candidate &candidate,
+                                      WORD componentID
+                                      );
+        static IICETypes::GatherCandidatePtr getCandidateFromSDP(
+                                                                 const char *candidate,
+                                                                 WORD &outComponentID
+                                                                 );
       };
     }
   }

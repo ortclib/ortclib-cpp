@@ -881,6 +881,18 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
+      String ISDPTypes::CLine::toString() const
+      {
+        String result;
+        result.append(mNetType.hasData() ? mNetType : String("IN"));
+        result.append(" ");
+        result.append(mAddrType.hasData() ? mAddrType : String("IP4"));
+        result.append(" ");
+        result.append(mConnectionAddress.hasData() ? mConnectionAddress : String("0.0.0.0"));
+        return result;
+      }
+
+      //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
@@ -993,7 +1005,7 @@ namespace ortc
         UseServicesHelper::splitPruneEmpty(split);
         ORTC_THROW_INVALID_PARAMETERS_IF(split.size() < 8);
 
-        if (split.size() > 10) {
+        if (split.size() > 8) {
           ORTC_THROW_INVALID_PARAMETERS_IF(0 != split.size() % 2);
         }
 
@@ -1018,21 +1030,24 @@ namespace ortc
         mTyp = split[6];
         ORTC_THROW_INVALID_PARAMETERS_IF(0 != mTyp.compareNoCase("typ"));
         mCandidateType = split[7];
-        if (split.size() > 8) {
-          mRelAddr = split[9];
-        }
-        if (split.size() > 9) {
-          try {
-            mRelPort = Numeric<decltype(mRelPort.mType)>(split[9]);
-          } catch (const Numeric<decltype(mRelPort.mType)>::ValueOutOfRange &) {
-            ORTC_THROW_INVALID_PARAMETERS("rel port value out of range: " + split[9]);
-          }
-        }
 
-        if (split.size() > 10) {
+        if (split.size() > 8) {
           for (auto index = 10; index < split.size(); index += 2)
           {
             ExtensionPair value(split[index], split[index + 1]);
+            if (0 == value.first.compareNoCase("raddr")) {
+              mRelAddr = value.second;
+              continue;
+            }
+            if (0 == value.first.compareNoCase("rport")) {
+              try {
+                mRelPort = Numeric<decltype(mRelPort.mType)>(value.second);
+              } catch (const Numeric<decltype(mRelPort.mType)>::ValueOutOfRange &) {
+                ORTC_THROW_INVALID_PARAMETERS("rel port value out of range: " + split[9]);
+              }
+              continue;
+            }
+
             mExtensionPairs.push_back(value);
           }
         }
@@ -1339,17 +1354,19 @@ namespace ortc
         UseServicesHelper::split(String(value), split, " ");
         UseServicesHelper::splitTrim(split);
         UseServicesHelper::splitPruneEmpty(split);
-        ORTC_THROW_INVALID_PARAMETERS_IF(2 != split.size());
+        ORTC_THROW_INVALID_PARAMETERS_IF(split.size() < 1);
 
-        try {
-          mFormat = Numeric<decltype(mFormat)>(split[0]);
-        } catch (const Numeric<decltype(mFormat)>::ValueOutOfRange &) {
-          ORTC_THROW_INVALID_PARAMETERS("payload type value out of range: " + split[0]);
+        mFormatStr = split[0];
+        if (isdigit(mFormatStr[0])) {
+          try {
+            mFormat = Numeric<decltype(mFormat)>(split[0]);
+          } catch (const Numeric<decltype(mFormat)>::ValueOutOfRange &) {
+            ORTC_THROW_INVALID_PARAMETERS("payload type value out of range: " + split[0]);
+          }
         }
 
-        for (auto iter = split.begin(); iter != split.end(); ++iter) {
-          auto &value = (*iter).second;
-          mFormatSpecific.push_back(value);
+        for (size_t index = 1; index < split.size(); ++index) {
+          mFormatSpecific.push_back(split[index]);
         }
       }
 
@@ -1360,12 +1377,14 @@ namespace ortc
         if (mFormatSpecific.size() < 1) return result;
 
         result.append("fmtp:");
-        result.append(string(mFormat));
-        result.append(" ");
+        if (mFormatStr.hasData()) {
+          result.append(mFormatStr);
+        } else {
+          result.append(string(mFormat));
+        }
         result.append(UseServicesHelper::combine(mFormatSpecific, " "));
         return result;
       }
-
 
       //-----------------------------------------------------------------------
       ISDPTypes::ARTCPLine::ARTCPLine(MLinePtr mline, const char *value) :
@@ -2660,6 +2679,46 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
+      static IICETypes::CandidatePtr convertCandidate(const ISDPTypes::ACandidateLine &acandidate)
+      {
+        auto candidate = make_shared<IICETypes::Candidate>();
+
+        candidate->mFoundation = acandidate.mFoundation;
+        candidate->mPriority = acandidate.mPriority;
+        candidate->mProtocol = IICETypes::toProtocol(acandidate.mTransport);
+        candidate->mIP = acandidate.mConnectionAddress;
+        candidate->mPort = acandidate.mPort;
+        candidate->mCandidateType = IICETypes::toCandidateType(acandidate.mCandidateType);
+        candidate->mRelatedAddress = acandidate.mRelAddr;
+        candidate->mRelatedPort = acandidate.mRelPort;
+
+        for (auto iterExt = acandidate.mExtensionPairs.begin(); iterExt != acandidate.mExtensionPairs.end(); ++iterExt) {
+          auto &extName = (*iterExt).first;
+          auto &extValue = (*iterExt).second;
+
+          if (0 == extName.compareNoCase("tcptype")) {
+            candidate->mTCPType = IICETypes::toTCPCandidateType(extValue);
+            continue;
+          }
+          if (0 == extName.compareNoCase("unfreezepriority")) {
+            try {
+              candidate->mUnfreezePriority = Numeric<decltype(candidate->mUnfreezePriority)>(extValue);
+            }
+            catch (const Numeric<decltype(candidate->mUnfreezePriority)>::ValueOutOfRange &) {
+              ORTC_THROW_INVALID_PARAMETERS("unfreeze priority is out of range: " + extValue);
+            }
+            continue;
+          }
+          if (0 == extName.compareNoCase("interfacetype")) {
+            candidate->mInterfaceType = extValue;
+            continue;
+          }
+        }
+
+        return candidate;
+      }
+
+      //-----------------------------------------------------------------------
       static void convertCandidates(
                                     const ISDPTypes::ACandidateLineList &inCandidateLines,
                                     ISessionDescriptionTypes::ICECandidateList &outRTPCandidates,
@@ -2669,39 +2728,7 @@ namespace ortc
         for (auto iter = inCandidateLines.begin(); iter != inCandidateLines.end(); ++iter)
         {
           auto &acandidate = *(*iter);
-
-          auto candidate = make_shared<IICETypes::Candidate>();
-
-          candidate->mFoundation = acandidate.mFoundation;
-          candidate->mPriority = acandidate.mPriority;
-          candidate->mProtocol = IICETypes::toProtocol(acandidate.mTransport);
-          candidate->mIP = acandidate.mConnectionAddress;
-          candidate->mPort = acandidate.mPort;
-          candidate->mCandidateType = IICETypes::toCandidateType(acandidate.mCandidateType);
-          candidate->mRelatedAddress = acandidate.mRelAddr;
-          candidate->mRelatedPort = acandidate.mRelPort;
-
-          for (auto iterExt = acandidate.mExtensionPairs.begin(); iterExt != acandidate.mExtensionPairs.end(); ++iterExt) {
-            auto &extName = (*iterExt).first;
-            auto &extValue = (*iterExt).second;
-
-            if (0 == extName.compareNoCase("tcptype")) {
-              candidate->mTCPType = IICETypes::toTCPCandidateType(extValue);
-              continue;
-            }
-            if (0 == extName.compareNoCase("unfreezepriority")) {
-              try {
-                candidate->mUnfreezePriority = Numeric<decltype(candidate->mUnfreezePriority)>(extValue);
-              } catch (const Numeric<decltype(candidate->mUnfreezePriority)>::ValueOutOfRange &) {
-                ORTC_THROW_INVALID_PARAMETERS("unfreeze priority is out of range: " + extValue);
-              }
-              continue;
-            }
-            if (0 == extName.compareNoCase("interfacetype")) {
-              candidate->mInterfaceType = extValue;
-              continue;
-            }
-          }
+          auto candidate = convertCandidate(acandidate);
 
           if (0 == acandidate.mComponentID) {
             outRTPCandidates.push_back(candidate);
@@ -3826,6 +3853,81 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
+      static ISDPTypes::ACandidateLinePtr fillCandidate(
+                                                        const IICETypes::Candidate &candidate,
+                                                        WORD component
+                                                        )
+      {
+        auto aCandidate = make_shared<ISDPTypes::ACandidateLine>(Noop{});
+        aCandidate->mFoundation = candidate.mFoundation;
+        aCandidate->mComponentID = component;
+        aCandidate->mTransport = IICETypes::toString(candidate.mProtocol);
+        aCandidate->mPriority = candidate.mPriority;
+        aCandidate->mConnectionAddress = candidate.mIP;
+        aCandidate->mPort = candidate.mPort;
+        aCandidate->mCandidateType = IICETypes::toString(candidate.mCandidateType);
+        aCandidate->mRelAddr = candidate.mRelatedAddress;
+        aCandidate->mRelPort = candidate.mRelatedPort;
+
+        if (IICETypes::Protocol_TCP == candidate.mProtocol) {
+          aCandidate->mExtensionPairs.push_back(ISDPTypes::ACandidateLine::ExtensionPair("tcptype", IICETypes::toString(candidate.mTCPType)));
+        }
+
+        if (0 != candidate.mUnfreezePriority) {
+          aCandidate->mExtensionPairs.push_back(ISDPTypes::ACandidateLine::ExtensionPair("unfreezepriority", string(candidate.mUnfreezePriority)));
+        }
+        if (candidate.mInterfaceType.hasData()) {
+          aCandidate->mExtensionPairs.push_back(ISDPTypes::ACandidateLine::ExtensionPair("interfacetype", candidate.mInterfaceType));
+        }
+        return aCandidate;
+      }
+
+      //-----------------------------------------------------------------------
+      static void fillCandidates(
+                                 const ISessionDescriptionTypes::MediaLine &mediaLine,
+                                 const ISessionDescriptionTypes::Transport &transport,
+                                 ISDPTypes::MLine &ioMLine,
+                                 const ISessionDescriptionTypes::ICECandidateList &candidates,
+                                 WORD component
+                                 )
+      {
+        auto &mline = ioMLine;
+
+        for (auto iter = candidates.begin(); iter != candidates.end(); ++iter) {
+          auto &candidate = *(*iter);
+          mline.mACandidateLines.push_back(fillCandidate(candidate, component));
+        }
+      }
+
+      //-----------------------------------------------------------------------
+      static void fillCandidates(
+                                 const ISessionDescriptionTypes::MediaLine &mediaLine,
+                                 const ISessionDescriptionTypes::Transport &transport,
+                                 ISDPTypes::MLine &ioMLine
+                                 )
+      {
+        auto &mline = ioMLine;
+
+        // figure out if the end of candidates flag needs to be set
+        if (transport.mRTP) {
+          if (transport.mRTCP) {
+            if ((transport.mRTP->mEndOfCandidates) &&
+                (transport.mRTCP->mEndOfCandidates)) {
+              mline.mEndOfCandidates = true;
+            }
+          } else {
+            if (transport.mRTP->mEndOfCandidates) {
+              mline.mEndOfCandidates = true;
+            }
+          }
+        }
+
+        // fill in candidates for RTP/RTCP
+        if (transport.mRTP) fillCandidates(mediaLine, transport, mline, transport.mRTP->mICECandidates, 0);
+        if (transport.mRTCP) fillCandidates(mediaLine, transport, mline, transport.mRTCP->mICECandidates, 1);
+      }
+
+      //-----------------------------------------------------------------------
       void fillMediaLine(
                          const SDPParser::GeneratorOptions &options,
                          const ISessionDescriptionTypes::Description &description,
@@ -3842,17 +3944,12 @@ namespace ortc
         ISessionDescriptionTypes::TransportPtr transport;
         figureOutBundle(description, mediaLine, result, transport);
 
-        if (!transport) {
-          if (transport->mRTP) {
-            if (transport->mRTP->mEndOfCandidates) mline.mEndOfCandidates = transport->mRTP->mEndOfCandidates;
-          }
-          if (transport->mRTCP) {
-            if (transport->mRTCP->mEndOfCandidates) {
-              if (!mline.mEndOfCandidates.hasValue()) mline.mEndOfCandidates = transport->mRTCP->mEndOfCandidates;
-            }
-          }
+        if (transport) {
+          fillCandidates(mediaLine, *transport, mline);
         } else {
-          mline.mBundleOnly = true;
+          if (options.mBundleOnly) {
+            mline.mBundleOnly = true;
+          }
         }
 
         mline.mMediaDirection = ISDPTypes::toDirection(ISessionDescription::toString(mediaLine.mDetails->mMediaDirection));
@@ -3929,6 +4026,7 @@ namespace ortc
               auto &candidate = *(*iter);
               if (IICETypes::CandidateType_Host != candidate.mCandidateType) continue;
               mline.mARTCPLine->mPort = candidate.mPort;
+              break;
             }
           }
         }
@@ -4174,6 +4272,39 @@ namespace ortc
           }
         }
       }
+      
+      //-----------------------------------------------------------------------
+      static void addCNAME(
+                           ISDPTypes::MLine &mline,
+                           ISDPTypes::SSRCType ssrc,
+                           const String &cname
+                           )
+      {
+        if (!cname.hasData()) return;
+
+        auto ssrcRTCP = make_shared<ISDPTypes::ASSRCLine>(Noop{});
+        ssrcRTCP->mSSRC = ssrc;
+        ssrcRTCP->mAttribute = "cname";
+        ssrcRTCP->mAttributeValues.push_back(cname);
+        mline.mASSRCLines.push_back(ssrcRTCP);
+      }
+
+      //-----------------------------------------------------------------------
+      static void addSSRCGroup(
+                              ISDPTypes::MLine &mline,
+                              const char *groupSemantic,
+                              ISDPTypes::SSRCType mainSSRC,
+                              ISDPTypes::SSRCType relatedSSRC,
+                              const String &cname
+                              )
+      {
+        auto ssrcFID = make_shared<ISDPTypes::ASSRCGroupLine>(Noop{});
+        ssrcFID->mSemantics = String(groupSemantic);
+        ssrcFID->mSSRCs.push_back(mainSSRC);
+        ssrcFID->mSSRCs.push_back(relatedSSRC);
+        mline.mASSRCGroupLines.push_back(ssrcFID);
+        addCNAME(mline, relatedSSRC, cname);
+      }
 
       //-----------------------------------------------------------------------
       void SDPParser::createSDPMediaLevel(
@@ -4216,13 +4347,90 @@ namespace ortc
                 result.mMLines.push_back(mline);
                 fillMediaLine(options, description, mediaLine, result, *mline);
                 fillRTPMediaLine(options, description, mediaLine, result, *mline);
+
+                if (mediaLine.mReceiverCapabilities) {
+                  for (auto iterCodec = mediaLine.mReceiverCapabilities->mCodecs.begin(); iterCodec != mediaLine.mReceiverCapabilities->mCodecs.end(); ++iterCodec) {
+                    auto &codec = (*iterCodec);
+                    for (auto iterFB = codec.mRTCPFeedback.begin(); iterFB != codec.mRTCPFeedback.end(); ++iterFB) {
+                      auto &fb = (*iterFB);
+                      auto aFB = make_shared<ISDPTypes::ARTCPFBLine>(Noop{});
+                      aFB->mPayloadType = codec.mPreferredPayloadType;
+                      aFB->mID = fb.mType;
+                      aFB->mParam1 = fb.mParameter;
+                      mline->mARTCPFBLines.push_back(aFB);
+                    }
+                  }
+
+                  for (auto iterHeaderExt = mediaLine.mReceiverCapabilities->mHeaderExtensions.begin(); iterHeaderExt != mediaLine.mReceiverCapabilities->mHeaderExtensions.end(); ++iterHeaderExt) {
+                    auto &headerExt = (*iterHeaderExt);
+                    auto aExt = make_shared<ISDPTypes::AExtmapLine>(Noop{});
+                    aExt->mURI = headerExt.mURI;
+                    aExt->mDirection = ISDPTypes::Direction_SendReceive;
+                    aExt->mID = headerExt.mPreferredID;
+                    mline->mAExtmapLines.push_back(aExt);
+                  }
+                }
+
                 for (auto iterSender = description.mRTPSenders.begin(); iterSender != description.mRTPSenders.end(); ++iterSender) {
                   auto &sender = *(*iterSender);
-                  // HERE
+                  if (!sender.mParameters) continue;
+                  if (sender.mParameters->mEncodings.size() < 1) continue;
+                  auto &encoding = *(sender.mParameters->mEncodings.begin());
+                  if (!encoding.mSSRC.mHasValue) continue;
+
+                  addCNAME(*mline, encoding.mSSRC.value(), sender.mParameters->mRTCP.mCName);
+
+                  auto aMSLabel = make_shared<ISDPTypes::ASSRCLine>(Noop{});
+                  aMSLabel->mAttribute = "mslabel";
+
+                  if (sender.mMediaStreamTrackID.hasData()) {
+                    if (sender.mMediaStreamIDs.size() > 0) {
+                      for (auto iterMSID = sender.mMediaStreamIDs.begin(); iterMSID != sender.mMediaStreamIDs.end(); ++iterMSID) {
+                        auto &msid = (*iterMSID);
+                        auto ssrcMSID = make_shared<ISDPTypes::ASSRCLine>(Noop{});
+                        auto aMSID = make_shared<ISDPTypes::AMSIDLine>(Noop{});
+                        ssrcMSID->mSSRC = encoding.mSSRC.value();
+                        ssrcMSID->mAttribute = "msid";
+                        ssrcMSID->mAttributeValues.push_back(msid);
+                        ssrcMSID->mAttributeValues.push_back(sender.mMediaStreamTrackID);
+                        aMSID->mID = msid;
+                        aMSID->mAppData = sender.mMediaStreamTrackID;
+
+                        aMSLabel->mAttributeValues.push_back(msid);
+
+                        mline->mASSRCLines.push_back(ssrcMSID);
+                        mline->mAMSIDLines.push_back(aMSID);
+                      }
+                    }
+
+#define NOTE_THIS_IS_FOR_LEGACY_REMOVE_WHEN_POSSIBLE 1
+#define NOTE_THIS_IS_FOR_LEGACY_REMOVE_WHEN_POSSIBLE 2
+
+                    // NOTE: LEGACY SUPPORT ONLY
+                    auto ssrcLabel = make_shared<ISDPTypes::ASSRCLine>(Noop{});
+                    ssrcLabel->mSSRC = encoding.mSSRC.value();
+                    ssrcLabel->mAttribute = "label";
+                    ssrcLabel->mAttributeValues.push_back(sender.mMediaStreamTrackID);
+                    mline->mASSRCLines.push_back(ssrcLabel);
+                    if (aMSLabel->mAttributeValues.size() > 0) {
+                      mline->mASSRCLines.push_back(aMSLabel);
+                    }
+                  }
+                  if (encoding.mRTX.hasValue()) {
+                    if (encoding.mRTX.value().mSSRC.hasValue()) {
+                      addSSRCGroup(*mline, "FID", encoding.mSSRC.value(), encoding.mRTX.value().mSSRC.value(), sender.mParameters->mRTCP.mCName);
+                    }
+                  }
+                  if (encoding.mFEC.hasValue()) {
+                    if (encoding.mFEC.value().mSSRC.hasValue()) {
+                      addSSRCGroup(*mline, "FEC-FR", encoding.mSSRC.value(), encoding.mFEC.value().mSSRC.value(), sender.mParameters->mRTCP.mCName);
+                    }
+                  }
                 }
                 goto found;
               }
             }
+
             // scope: check sctp media lines for entry
             {
               for (auto iter = description.mSCTPMediaLines.begin(); iter != description.mSCTPMediaLines.end(); ++iter) {
@@ -4240,6 +4448,10 @@ namespace ortc
                   maxMessageSize->mMaxMessageSize = mediaLine.mCapabilities->mMaxMessageSize;
                   mline->mASCTPPortLine = sctpPort;
                   mline->mAMaxMessageSize = maxMessageSize;
+                  auto format = make_shared<ISDPTypes::AFMTPLine>(Noop{});
+                  format->mFormatStr = "webrtc-datachannel";
+                  format->mFormatSpecific.push_back(String("max-message-size") + string(mediaLine.mCapabilities->mMaxMessageSize));
+                  mline->mAFMTPLines.push_back(format);
                 }
                 goto found;
               }
@@ -4250,11 +4462,15 @@ namespace ortc
         not_found:
           {
             auto mline = make_shared<ISDPTypes::MLine>(Noop{});
-            mline->mMedia = "unused";
+            mline->mMedia = "application";
             mline->mPort = 0;
-            mline->mProto = ISDPTypes::ProtocolType_RTP;
-            mline->mProtoStr = ISDPTypes::toString(mline->mProto);
-            mline->mFmts.push_back("0");
+            mline->mProto = ISDPTypes::ProtocolType_Unknown;
+            mline->mProtoStr = "UDP/UNKNOWN";
+            mline->mFmts.push_back("unknown");
+            auto format = make_shared<ISDPTypes::AFMTPLine>(Noop{});
+            format->mFormatStr = "unknown";
+            format->mFormatSpecific.push_back(String("unknown=0"));
+            mline->mAFMTPLines.push_back(format);
             continue;
           }
 
@@ -4264,7 +4480,6 @@ namespace ortc
         }
       }
 
-      
       //-----------------------------------------------------------------------
       void SDPParser::generateSessionLevel(
                                            const SDP &sdp,
@@ -4275,11 +4490,31 @@ namespace ortc
         appendLine(ioResult, 'o', ISDPTypes::OLine::toString(sdp.mOLine));
         appendLine(ioResult, 's', ISDPTypes::SLine::toString(sdp.mSLine));
         appendLine(ioResult, 't', ISDPTypes::TLine::toString(sdp.mTLine));
+        appendLine(ioResult, 'c', ISDPTypes::CLine::toString(sdp.mCLine));
+
+        if (sdp.mMediaDirection.hasValue()) {
+          appendLine(ioResult, 'a', ISDPTypes::toString(sdp.mMediaDirection.value()));
+        }
+
+        if ((sdp.mICELite.hasValue()) &&
+            (sdp.mICELite.value())) {
+          appendLine(ioResult, 'a', "ice-lite");
+        }
+
+        appendLine(ioResult, 'a', ISDPTypes::AICEUFragLine::toString(sdp.mAICEUFragLine));
+        appendLine(ioResult, 'a', ISDPTypes::AICEPwdLine::toString(sdp.mAICEPwdLine));
+        appendLine(ioResult, 'a', ISDPTypes::AICEOptionsLine::toString(sdp.mAICEOptionsLine));
+        appendLine(ioResult, 'a', ISDPTypes::ASetupLine::toString(sdp.mASetupLine));
 
         for (auto iter = sdp.mAGroupLines.begin(); iter != sdp.mAGroupLines.end(); ++iter) {
           auto &group = *(*iter);
           appendLine(ioResult, 'a', group.toString());
         }
+        for (auto iter = sdp.mAMSIDSemanticLines.begin(); iter != sdp.mAMSIDSemanticLines.end(); ++iter) {
+          auto &msidSemantic = *(*iter);
+          appendLine(ioResult, 'a', msidSemantic.toString());
+        }
+
       }
 
       //-----------------------------------------------------------------------
@@ -4291,11 +4526,84 @@ namespace ortc
         for (auto iter = sdp.mMLines.begin(); iter != sdp.mMLines.end(); ++iter) {
           auto mline = *(*iter);
           appendLine(ioResult, 'm', mline.toString());
-        }
 
-        for (auto iter = sdp.mAGroupLines.begin(); iter != sdp.mAGroupLines.end(); ++iter) {
-          auto &group = *(*iter);
-          appendLine(ioResult, 'a', group.toString());
+          appendLine(ioResult, 'c', ISDPTypes::CLine::toString(mline.mCLine));
+          if ((mline.mBundleOnly.hasValue()) &&
+              (mline.mBundleOnly.value())) {
+            appendLine(ioResult, 'a', "bundle-only");
+          }
+          appendLine(ioResult, 'a', ISDPTypes::AICEUFragLine::toString(mline.mAICEUFragLine));
+          appendLine(ioResult, 'a', ISDPTypes::AICEPwdLine::toString(mline.mAICEPwdLine));
+          appendLine(ioResult, 'a', ISDPTypes::ASetupLine::toString(mline.mASetupLine));
+          appendLine(ioResult, 'a', ISDPTypes::AMIDLine::toString(mline.mAMIDLine));
+          appendLine(ioResult, 'a', ISDPTypes::ARTCPLine::toString(mline.mARTCPLine));
+          appendLine(ioResult, 'a', ISDPTypes::APTimeLine::toString(mline.mAPTimeLine));
+          appendLine(ioResult, 'a', ISDPTypes::AMaxPTimeLine::toString(mline.mAMaxPTimeLine));
+          //appendLine(ioResult, 'a', ISDPTypes::ASimulcastLine::toString(mline.mASimulcastLine));
+          appendLine(ioResult, 'a', ISDPTypes::ASCTPPortLine::toString(mline.mASCTPPortLine));
+          appendLine(ioResult, 'a', ISDPTypes::AMaxMessageSizeLine::toString(mline.mAMaxMessageSize));
+
+          if (mline.mMediaDirection.hasValue()) {
+            appendLine(ioResult, 'a', ISDPTypes::toString(mline.mMediaDirection.value()));
+          }
+          if ((mline.mRTCPMux.hasValue()) &&
+              (mline.mRTCPMux.value())) {
+            appendLine(ioResult, 'a', "rtcp-mux");
+          }
+          if ((mline.mRTCPRSize.hasValue()) &&
+              (mline.mRTCPRSize.value())) {
+            appendLine(ioResult, 'a', "rtcp-rsize");
+          }
+
+          for (auto iterSub = mline.mAMSIDLines.begin(); iterSub != mline.mAMSIDLines.end(); ++iterSub) {
+            auto &msid = *(*iterSub);
+            appendLine(ioResult, 'a', msid.toString());
+          }
+          for (auto iterSub = mline.mAFingerprintLines.begin(); iterSub != mline.mAFingerprintLines.end(); ++iterSub) {
+            auto &fingerprint = *(*iterSub);
+            appendLine(ioResult, 'a', fingerprint.toString());
+          }
+          for (auto iterSub = mline.mACryptoLines.begin(); iterSub != mline.mACryptoLines.end(); ++iterSub) {
+            auto &crypto = *(*iterSub);
+            appendLine(ioResult, 'a', crypto.toString());
+          }
+          for (auto iterSub = mline.mAExtmapLines.begin(); iterSub != mline.mAExtmapLines.end(); ++iterSub) {
+            auto &extmap = *(*iterSub);
+            appendLine(ioResult, 'a', extmap.toString());
+          }
+          for (auto iterSub = mline.mARTPMapLines.begin(); iterSub != mline.mARTPMapLines.end(); ++iterSub) {
+            auto &rtpmap = *(*iterSub);
+            appendLine(ioResult, 'a', rtpmap.toString());
+          }
+          for (auto iterSub = mline.mAFMTPLines.begin(); iterSub != mline.mAFMTPLines.end(); ++iterSub) {
+            auto &fmtp = *(*iterSub);
+            appendLine(ioResult, 'a', fmtp.toString());
+          }
+          for (auto iterSub = mline.mACandidateLines.begin(); iterSub != mline.mACandidateLines.end(); ++iterSub) {
+            auto &candidate = *(*iterSub);
+            appendLine(ioResult, 'a', candidate.toString());
+          }
+          if ((mline.mEndOfCandidates.hasValue()) &&
+              (mline.mEndOfCandidates.value())) {
+            appendLine(ioResult, 'a', "end-of-candidates");
+          }
+
+          for (auto iterSub = mline.mARIDLines.begin(); iterSub != mline.mARIDLines.end(); ++iterSub) {
+            auto &rid = *(*iterSub);
+            appendLine(ioResult, 'a', rid.toString());
+          }
+          for (auto iterSub = mline.mASSRCLines.begin(); iterSub != mline.mASSRCLines.end(); ++iterSub) {
+            auto &ssrc = *(*iterSub);
+            appendLine(ioResult, 'a', ssrc.toString());
+            for (auto iterSSrcSub = ssrc.mAFMTPLines.begin(); iterSSrcSub != ssrc.mAFMTPLines.end(); ++iterSSrcSub) {
+              auto &ssrcFmtp = *(*iterSSrcSub);
+              appendLine(ioResult, 'a', ssrcFmtp.toString());
+            }
+          }
+          for (auto iterSub = mline.mASSRCGroupLines.begin(); iterSub != mline.mASSRCGroupLines.end(); ++iterSub) {
+            auto &ssrcGroup = *(*iterSub);
+            appendLine(ioResult, 'a', ssrcGroup.toString());
+          }
         }
       }
 
@@ -4346,6 +4654,67 @@ namespace ortc
           createSCTPMediaLines(location, sdp, *result);
         } catch (const SafeIntException &e) {
           ORTC_THROW_INVALID_PARAMETERS("value found out of legal value range" + string(e.m_code));
+        }
+
+        return result;
+      }
+
+      //-----------------------------------------------------------------------
+      String SDPParser::getCandidateSDP(
+                                        const IICETypes::Candidate &candidate,
+                                        WORD componentID
+                                        )
+      {
+        auto result = internal::fillCandidate(candidate, componentID);
+        if (!result) {
+          ZS_LOG_WARNING(Debug, internal::slog("unable to convert candidate to string") + candidate.toDebug());
+          return String();
+        }
+        return result->toString();
+      }
+
+      //-----------------------------------------------------------------------
+      IICETypes::GatherCandidatePtr SDPParser::getCandidateFromSDP(
+                                                                   const char *candidate,
+                                                                   WORD &outComponentID
+                                                                   )
+      {
+        String str(candidate);
+
+        {
+          String prefix = str.substr(0, strlen("a="));
+          if (0 == prefix.compareNoCase("a=")) {
+            str = str.substr(strlen("a="));
+            str.trim();
+          }
+        }
+
+        if (0 == str.compareNoCase("end-of-candidates")) {
+          auto result = make_shared<IICETypes::CandidateComplete>();
+          result->mComplete = true;
+          return result;
+        }
+
+        IICETypes::CandidatePtr result;
+
+        {
+          String prefix = str.substr(0, strlen("candidate:"));
+          if (0 == prefix.compareNoCase("candidate:")) {
+            str = str.substr(strlen("candidate:"));
+            str.trim();
+          }
+        }
+
+        try {
+          auto aCandidate = make_shared<ACandidateLine>(nullptr, str);
+          result = internal::convertCandidate(*aCandidate);
+          outComponentID = aCandidate->mComponentID;
+        } catch (const SafeIntException &e) {
+          ZS_LOG_WARNING(Debug, internal::slog("unable to convert to candidate") + ZS_PARAM("candidate", str) + ZS_PARAM("e", e.m_code));
+          return result;
+        } catch(const InvalidParameters &) {
+          ZS_LOG_WARNING(Debug, internal::slog("unable to convert to candidate") + ZS_PARAM("candidate", str));
+          return result;
         }
 
         return result;

@@ -336,7 +336,7 @@ namespace ortc
         String hash() const;
 
         static ICECandidatePtr createFromSDP(ElementPtr rootEl);
-        static ICECandidatePtr createFromSDP(const char *string);
+        static ICECandidatePtr createFromSDP(const char *value);
         String getCandidateSDP() const;
         ElementPtr toSDP() const;
         ElementPtr toJSON() const;

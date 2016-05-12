@@ -1242,24 +1242,45 @@ namespace ortc
     //-------------------------------------------------------------------------
     ISessionDescriptionTypes::ICECandidatePtr ISessionDescriptionTypes::ICECandidate::createFromSDP(ElementPtr rootEl)
     {
-#define TODO 1
-#define TODO 2
-      return ICECandidatePtr();
+      return create(rootEl);
     }
 
     //-------------------------------------------------------------------------
-    ISessionDescriptionTypes::ICECandidatePtr ISessionDescriptionTypes::ICECandidate::createFromSDP(const char *string)
+    ISessionDescriptionTypes::ICECandidatePtr ISessionDescriptionTypes::ICECandidate::createFromSDP(const char *value)
     {
-#define TODO 1
-#define TODO 2
-      return ICECandidatePtr();
+      String str(value);
+
+      auto result = make_shared<ICECandidate>();
+      WORD componentID = 0;
+      auto candidate = internal::SDPParser::getCandidateFromSDP(value, componentID);
+      result->mCandidate = candidate;
+      switch (componentID) {
+        case 0: result->mComponent = IICETypes::Component_RTP; break;
+        case 1: result->mComponent = IICETypes::Component_RTCP; break;
+        default: {
+          ORTC_THROW_INVALID_PARAMETERS("component was not understood: " + string(componentID));
+          break;
+        }
+      }
+      return result;
     }
 
     //-------------------------------------------------------------------------
     String ISessionDescriptionTypes::ICECandidate::getCandidateSDP() const
     {
-#define TODO 1
-#define TODO 2
+      {
+        auto candidateComplete = ZS_DYNAMIC_PTR_CAST(IICETypes::CandidateComplete, mCandidate);
+        if (candidateComplete) {
+          return String("a=end-of-candidates");
+        }
+      }
+
+      {
+        auto candidate = ZS_DYNAMIC_PTR_CAST(IICETypes::Candidate, mCandidate);
+        if (candidate) {
+          return internal::SDPParser::getCandidateSDP(*candidate, mComponent);
+        }
+      }
       return String();
     }
 
