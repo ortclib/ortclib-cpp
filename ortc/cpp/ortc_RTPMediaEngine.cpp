@@ -1689,30 +1689,19 @@ namespace ortc
         auto supportedCodec = IRTPTypes::toSupportedCodec(codecIter->mName);
         if (IRTPTypes::getCodecKind(supportedCodec) == IRTPTypes::CodecKind_Audio && audioCodecSet)
           continue;
+        codec = getAudioCodec(voiceEngine, codecIter->mName);
+        if (codecIter->mPTime != Milliseconds::zero())
+          codec.pacsize = (codec.plfreq / 1000) * codecIter->mPTime.count();
+        if (codecIter->mNumChannels.hasValue())
+          codec.channels = codecIter->mNumChannels;
+        webrtc::VoECodec::GetInterface(voiceEngine)->SetRecPayloadType(mChannel, codec);
         switch (supportedCodec) {
           case IRTPTypes::SupportedCodec_Opus:
-            codec = getAudioCodec(voiceEngine, codecIter->mName);
-            webrtc::VoECodec::GetInterface(voiceEngine)->SetRecPayloadType(mChannel, codec);
-            goto set_rtcp_feedback;
           case IRTPTypes::SupportedCodec_Isac:
-            codec = getAudioCodec(voiceEngine, codecIter->mName);
-            webrtc::VoECodec::GetInterface(voiceEngine)->SetRecPayloadType(mChannel, codec);
-            goto set_rtcp_feedback;
           case IRTPTypes::SupportedCodec_G722:
-            codec = getAudioCodec(voiceEngine, codecIter->mName);
-            webrtc::VoECodec::GetInterface(voiceEngine)->SetRecPayloadType(mChannel, codec);
-            goto set_rtcp_feedback;
           case IRTPTypes::SupportedCodec_ILBC:
-            codec = getAudioCodec(voiceEngine, codecIter->mName);
-            webrtc::VoECodec::GetInterface(voiceEngine)->SetRecPayloadType(mChannel, codec);
-            goto set_rtcp_feedback;
           case IRTPTypes::SupportedCodec_PCMU:
-            codec = getAudioCodec(voiceEngine, codecIter->mName);
-            webrtc::VoECodec::GetInterface(voiceEngine)->SetRecPayloadType(mChannel, codec);
-            goto set_rtcp_feedback;
           case IRTPTypes::SupportedCodec_PCMA:
-            codec = getAudioCodec(voiceEngine, codecIter->mName);
-            webrtc::VoECodec::GetInterface(voiceEngine)->SetRecPayloadType(mChannel, codec);
             goto set_rtcp_feedback;
           case IRTPTypes::SupportedCodec_RED:
             webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetREDStatus(mChannel, true, codecIter->mPayloadType);
@@ -2086,30 +2075,19 @@ namespace ortc
         auto supportedCodec = IRTPTypes::toSupportedCodec(codecIter->mName);
         if (IRTPTypes::getCodecKind(supportedCodec) == IRTPTypes::CodecKind_Audio && audioCodecSet)
           continue;
+        codec = getAudioCodec(voiceEngine, codecIter->mName);
+        if (codecIter->mPTime != Milliseconds::zero())
+          codec.pacsize = (codec.plfreq / 1000) * codecIter->mPTime.count();
+        if (codecIter->mNumChannels.hasValue())
+          codec.channels = codecIter->mNumChannels;
+        webrtc::VoECodec::GetInterface(voiceEngine)->SetSendCodec(mChannel, codec);
         switch (supportedCodec) {
           case IRTPTypes::SupportedCodec_Opus:
-            codec = getAudioCodec(voiceEngine, codecIter->mName);
-            webrtc::VoECodec::GetInterface(voiceEngine)->SetSendCodec(mChannel, codec);
-            goto set_rtcp_feedback;
           case IRTPTypes::SupportedCodec_Isac:
-            codec = getAudioCodec(voiceEngine, codecIter->mName);
-            webrtc::VoECodec::GetInterface(voiceEngine)->SetSendCodec(mChannel, codec);
-            goto set_rtcp_feedback;
           case IRTPTypes::SupportedCodec_G722:
-            codec = getAudioCodec(voiceEngine, codecIter->mName);
-            webrtc::VoECodec::GetInterface(voiceEngine)->SetSendCodec(mChannel, codec);
-            goto set_rtcp_feedback;
           case IRTPTypes::SupportedCodec_ILBC:
-            codec = getAudioCodec(voiceEngine, codecIter->mName);
-            webrtc::VoECodec::GetInterface(voiceEngine)->SetSendCodec(mChannel, codec);
-            goto set_rtcp_feedback;
           case IRTPTypes::SupportedCodec_PCMU:
-            codec = getAudioCodec(voiceEngine, codecIter->mName);
-            webrtc::VoECodec::GetInterface(voiceEngine)->SetSendCodec(mChannel, codec);
-            goto set_rtcp_feedback;
           case IRTPTypes::SupportedCodec_PCMA:
-            codec = getAudioCodec(voiceEngine, codecIter->mName);
-            webrtc::VoECodec::GetInterface(voiceEngine)->SetSendCodec(mChannel, codec);
             goto set_rtcp_feedback;
           case IRTPTypes::SupportedCodec_RED:
             webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetREDStatus(mChannel, true, codecIter->mPayloadType);
