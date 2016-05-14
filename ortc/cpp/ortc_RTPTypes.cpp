@@ -3246,6 +3246,31 @@ namespace ortc
   #pragma mark
 
   //---------------------------------------------------------------------------
+  IRTPTypes::Parameters::Parameters(const Parameters &op2) :
+    mMuxID(op2.mMuxID),
+    mCodecs(op2.mCodecs),
+    mHeaderExtensions(op2.mHeaderExtensions),
+    mEncodings(op2.mEncodings),
+    mRTCP(op2.mRTCP),
+    mDegredationPreference(op2.mDegredationPreference)
+  {
+  }
+
+  //---------------------------------------------------------------------------
+  IRTPTypes::Parameters &IRTPTypes::Parameters::operator=(const Parameters &op2)
+  {
+    if (this == (&op2)) return *this;
+
+    mMuxID = op2.mMuxID;
+    mCodecs = op2.mCodecs;
+    mHeaderExtensions = op2.mHeaderExtensions;
+    mRTCP = op2.mRTCP;
+    mDegredationPreference = op2.mDegredationPreference;
+
+    return *this;
+  }
+
+  //---------------------------------------------------------------------------
   IRTPTypes::Parameters::Parameters(ElementPtr elem)
   {
     if (!elem) return;

@@ -390,7 +390,7 @@ namespace ortc
       {
         AutoRecursiveLock lock(*this);
 
-        ElementPtr resultEl = Element::create("ortc::MediaStreamTrack");
+        ElementPtr resultEl = Element::create("ortc::adapter::MediaStreamTrack");
 
         UseServicesHelper::debugAppend(resultEl, "id", mID);
         UseServicesHelper::debugAppend(resultEl, "msid", mID);

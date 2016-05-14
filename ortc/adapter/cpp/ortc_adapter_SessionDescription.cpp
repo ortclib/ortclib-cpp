@@ -44,6 +44,10 @@
 
 #include <cryptopp/sha.h>
 
+#ifdef _MSC_VER
+#pragma warning(3 : 4062)
+#endif //_MSC_VER
+
 namespace ortc { namespace adapter { ZS_DECLARE_SUBSYSTEM(ortclib_adapter) } }
 
 namespace ortc
@@ -229,7 +233,20 @@ namespace ortc
       //-----------------------------------------------------------------------
       ElementPtr SessionDescription::toDebug() const
       {
-        return ElementPtr();
+        ElementPtr resultEl = Element::create("ortc::adapter::internal::SessionDescription");
+
+        UseServicesHelper::debugAppend(resultEl, "id", mID);
+
+        UseServicesHelper::debugAppend(resultEl, "type", ISessionDescriptionTypes::toString(mType));
+
+        UseServicesHelper::debugAppend(resultEl, "converted", mConverted);
+        UseServicesHelper::debugAppend(resultEl, mDescription ? mDescription->toDebug() : ElementPtr());
+
+        UseServicesHelper::debugAppend(resultEl, "formatted", mFormattedString);
+
+        UseServicesHelper::debugAppend(resultEl, "sdp", (bool)mSDP);
+
+        return resultEl;
       }
 
       //-----------------------------------------------------------------------
@@ -1618,23 +1635,27 @@ namespace ortc
 
     //-------------------------------------------------------------------------
     ISessionDescriptionPtr ISessionDescription::create(
-      SignalingTypes type,
-      const char *description
-      )
+                                                       SignalingTypes type,
+                                                       const char *description
+                                                       )
     {
-      return ISessionDescriptionPtr();
+      return internal::ISessionDescriptionFactory::singleton().create(type, description);
     }
 
     //-------------------------------------------------------------------------
     ISessionDescriptionPtr ISessionDescription::create(
-      SignalingTypes type,
-      const Description &description
-      )
+                                                       SignalingTypes type,
+                                                       const Description &description
+                                                       )
     {
-      return ISessionDescriptionPtr();
+      return internal::ISessionDescriptionFactory::singleton().create(type, description);
     }
 
-
+    //-------------------------------------------------------------------------
+    ElementPtr ISessionDescription::toDebug(ISessionDescriptionPtr object)
+    {
+      return internal::SessionDescription::toDebug(object);
+    }
 
   } // namespace adapter
 } // namespace ortc

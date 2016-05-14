@@ -119,6 +119,8 @@ namespace ortc
                                      const MediaStreamTrackList &tracks
                                      );
 
+        virtual PUID getID() const override { return mID; }
+
         virtual IMediaStreamSubscriptionPtr subscribe(IMediaStreamDelegatePtr delegate) override;
 
         virtual String id() const override;

@@ -340,11 +340,20 @@ namespace ortc
       typedef CryptoPP::ByteQueue ByteQueue;
 
     public:
+      struct ConstructorOptions
+      {
+        IMessageQueuePtr mQueue;
+        IICEGathererDelegatePtr mDelegate;
+        Options mOptions;
+        String mUsernameFragment;
+        String mPassword;
+        IICETypes::Components mComponent {Component_RTP};
+        ICEGathererPtr mRTPGatherer;
+      };
+
       ICEGatherer(
                   const make_private &,
-                  IMessageQueuePtr queue,
-                  IICEGathererDelegatePtr delegate,
-                  const Options &options
+                  const ConstructorOptions &options
                   );
 
     protected:

@@ -63,7 +63,6 @@ namespace ortc
       ZS_DECLARE_STRUCT_PTR(AnswerOptions);
       ZS_DECLARE_STRUCT_PTR(CapabilityOptions);
       ZS_DECLARE_STRUCT_PTR(MediaStreamTrackConfiguration);
-      ZS_DECLARE_STRUCT_PTR(MediaStreamConfiguration);
       ZS_DECLARE_STRUCT_PTR(ICECandidateErrorEvent);
       ZS_DECLARE_STRUCT_PTR(MediaStreamTrackEvent);
        
@@ -79,87 +78,122 @@ namespace ortc
 
       enum BundlePolicies
       {
-        BundlePolicy_Balanced,
+        BundlePolicy_First,
+
+        BundlePolicy_Balanced = BundlePolicy_First,
         BundlePolity_MaxCompat,
         BundlePolicy_MaxBundle,
+
+        BundlePolicy_Last = BundlePolicy_MaxBundle,
       };
 
       static const char *toString(BundlePolicies policy);
-      static BundlePolicies toBundlePolicy(const char *policy);
 
       enum RTCPMuxPolicies
       {
-        RTCPMuxPolicy_Negotiated,
+        RTCPMuxPolicy_First,
+
+        RTCPMuxPolicy_Negotiated = RTCPMuxPolicy_First,
         RTCPMuxPolicy_Require,
+
+        RTCPMuxPolicy_Last = RTCPMuxPolicy_Require,
       };
 
       static const char *toString(RTCPMuxPolicies policy);
-      static RTCPMuxPolicies toRTCPMuxPolicy(const char *policy);
+
+      enum SignalingModes
+      {
+        SignalingMode_First,
+
+        SignalingMode_JSON = SignalingMode_First,
+        SignalingMode_SDP,
+
+        SignalingMode_Last = SignalingMode_SDP,
+      };
+
+      static const char *toString(SignalingModes mode);
+      static SignalingModes toSignalingMode(const char *mode);
+      static bool isCompatible(
+                               SignalingModes mode,
+                               ISessionDescriptionTypes::SignalingTypes signalingType
+                               );
 
       enum SignalingStates
       {
-        SignalingState_Stable,
+        SignalingState_First,
+
+        SignalingState_Stable = SignalingState_First,
         SignalingState_HaveLocalOffer,
         SignalingState_HaveRemoteOffer,
         SignalingState_HaveLocalPranswer,
         SignalingState_HaveRemotePranswer,
         SignalingState_Closed,
+
+        SignalingState_Last = SignalingState_Closed,
       };
 
       static const char *toString(SignalingStates state);
-      static SignalingStates toSignalingState(const char *state);
 
       enum PeerConnectionStates
       {
-        PeerConnectionState_New,
+        PeerConnectionState_First,
+
+        PeerConnectionState_New = PeerConnectionState_First,
         PeerConnectionState_Connecting,
         PeerConnectionState_Connected,
         PeerConnectionState_Disconnected,
         PeerConnectionState_Failed,
+
+        PeerConnectionState_Last = PeerConnectionState_Failed,
       };
 
       static const char *toString(PeerConnectionStates state);
-      static PeerConnectionStates toConnectionState(const char *state);
 
       struct Configuration
       {
         IICEGathererTypes::OptionsPtr mGatherOptions;
 
-        SignalingTypes mSignalingType {ISessionDescription::SignalingType_First};
+        SignalingModes mSignalingMode {IPeerConnectionTypes::SignalingMode_First};
+        bool mNegotiateSRTPSDES {false};
 
         BundlePolicies mBundlePolicy;
         RTCPMuxPolicies mRTCPMuxPolicy;
         CertificateList mCertificates;
 
-        IRTPTypes::CapabilitiesPtr mCodecPreferences;
+        Configuration() {}
+        Configuration(const Configuration &op2);
+        ElementPtr toDebug() const;
       };
 
       struct OfferAnswerOptions
       {
         bool mVoiceActivityDetection {true};
+
+        ElementPtr toDebug() const;
       };
 
       struct OfferOptions : public OfferAnswerOptions
       {
         bool mICERestart {false};
+
+        ElementPtr toDebug() const;
       };
 
       struct AnswerOptions : public OfferAnswerOptions
       {
+        ElementPtr toDebug() const;
       };
 
       struct CapabilityOptions : public OfferAnswerOptions
       {
+        ElementPtr toDebug() const;
       };
 
       struct MediaStreamTrackConfiguration
       {
         IRTPTypes::ParametersPtr mParameters;
-      };
 
-      struct MediaStreamConfiguration
-      {
-        RTPParametersList mParameters;
+        ElementPtr toDebug() const;
       };
 
       struct ICECandidateErrorEvent
@@ -175,6 +209,8 @@ namespace ortc
         String                mURL;
         Optional<ErrorCode>   mErrorCode;
         String                mErrorText;
+
+        ElementPtr toDebug() const;
       };
 
       struct MediaStreamTrackEvent
@@ -184,6 +220,8 @@ namespace ortc
         IRTPReceiverPtr mReceiver;
         IMediaStreamTrackPtr mTrack;
         MediaStreamList mMediaStreams;
+
+        ElementPtr toDebug() const;
       };
 
     };
@@ -210,8 +248,7 @@ namespace ortc
 
       virtual PromiseWithDescriptionPtr createCapabilities(const Optional<CapabilityOptions> &configuration = Optional<CapabilityOptions>()) = 0;
 
-      virtual PromiseWithDescriptionPtr getLocalDescription() = 0;
-      virtual PromiseWithDescriptionPtr setLocalDescription(ISessionDescriptionPtr description) = 0;
+      virtual PromisePtr setLocalDescription(ISessionDescriptionPtr description) = 0;
 
       virtual ISessionDescriptionPtr localDescription() const = 0;
       virtual ISessionDescriptionPtr currentDescription() const = 0;
@@ -221,7 +258,7 @@ namespace ortc
       virtual ISessionDescriptionPtr remoteDescription() const = 0;
       virtual ISessionDescriptionPtr currentRemoteDescription() const = 0;
       virtual ISessionDescriptionPtr pendingRemoteDescription() const = 0;
-      virtual void addIceCandidate(const ICECandidate &candidate) = 0;
+      virtual void addICECandidate(const ICECandidate &candidate) = 0;
 
       virtual SignalingStates signalingState() const = 0;
       virtual ICEGatheringStates iceGatheringState() const = 0;
@@ -286,11 +323,11 @@ namespace ortc
                                                         IPeerConnectionPtr connection,
                                                         SignalingStates state
                                                         ) = 0;
-      virtual void onPeerConnectionIceGatheringStateChange(
+      virtual void onPeerConnectionICEGatheringStateChange(
                                                            IPeerConnectionPtr connection,
                                                            ICEGatheringStates state
                                                            ) = 0;
-      virtual void onPeerConnectionIceConnectionStateChange(
+      virtual void onPeerConnectionICEConnectionStateChange(
                                                             IPeerConnectionPtr connection,
                                                             ICEConnectionStates state
                                                             ) = 0;
@@ -347,8 +384,8 @@ ZS_DECLARE_PROXY_METHOD_1(onPeerConnectionNegotiationNeeded, IPeerConnectionPtr)
 ZS_DECLARE_PROXY_METHOD_3(onPeerConnectionIceCandidate, IPeerConnectionPtr, ICECandidatePtr, const char *)
 ZS_DECLARE_PROXY_METHOD_2(onPeerConnectionIceCandidateError, IPeerConnectionPtr, ICECandidateErrorEventPtr)
 ZS_DECLARE_PROXY_METHOD_2(onPeerConnectionSignalingStateChange, IPeerConnectionPtr, SignalingStates)
-ZS_DECLARE_PROXY_METHOD_2(onPeerConnectionIceGatheringStateChange, IPeerConnectionPtr, ICEGatheringStates)
-ZS_DECLARE_PROXY_METHOD_2(onPeerConnectionIceConnectionStateChange, IPeerConnectionPtr, ICEConnectionStates)
+ZS_DECLARE_PROXY_METHOD_2(onPeerConnectionICEGatheringStateChange, IPeerConnectionPtr, ICEGatheringStates)
+ZS_DECLARE_PROXY_METHOD_2(onPeerConnectionICEConnectionStateChange, IPeerConnectionPtr, ICEConnectionStates)
 ZS_DECLARE_PROXY_METHOD_2(onPeerConnectionConnectionStateChange, IPeerConnectionPtr, PeerConnectionStates)
 ZS_DECLARE_PROXY_METHOD_2(onPeerConnectionTrack, IPeerConnectionPtr, MediaStreamTrackEventPtr)
 ZS_DECLARE_PROXY_METHOD_2(onPeerConnectionTrackGone, IPeerConnectionPtr, MediaStreamTrackEventPtr)
@@ -369,8 +406,8 @@ ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_1(onPeerConnectionNegotiationNeeded, IPeer
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_3(onPeerConnectionIceCandidate, IPeerConnectionPtr, ICECandidatePtr, const char *)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onPeerConnectionIceCandidateError, IPeerConnectionPtr, ICECandidateErrorEventPtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onPeerConnectionSignalingStateChange, IPeerConnectionPtr, SignalingStates)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onPeerConnectionIceGatheringStateChange, IPeerConnectionPtr, ICEGatheringStates)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onPeerConnectionIceConnectionStateChange, IPeerConnectionPtr, ICEConnectionStates)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onPeerConnectionICEGatheringStateChange, IPeerConnectionPtr, ICEGatheringStates)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onPeerConnectionICEConnectionStateChange, IPeerConnectionPtr, ICEConnectionStates)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onPeerConnectionConnectionStateChange, IPeerConnectionPtr, PeerConnectionStates)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onPeerConnectionTrack, IPeerConnectionPtr, MediaStreamTrackEventPtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onPeerConnectionTrackGone, IPeerConnectionPtr, MediaStreamTrackEventPtr)

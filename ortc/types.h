@@ -81,6 +81,15 @@ namespace ortc
     ErrorCode mErrorCode {};
     String mName;
     String mReason;
+
+    ErrorAny() {}
+
+    ErrorAny(WORD errorCode, const char *reason, const char *name = NULL) :
+      mErrorCode(errorCode),
+      mReason(reason),
+      mName(name) {}
+
+    static ErrorAnyPtr create(WORD errorCode, const char *reason, const char *name = NULL) { return make_shared<ErrorAny>(errorCode, reason, name); }
   };
 
   using openpeer::services::SharedRecursiveLock;

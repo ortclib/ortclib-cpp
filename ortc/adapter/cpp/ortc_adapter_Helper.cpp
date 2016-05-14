@@ -59,6 +59,17 @@ namespace ortc
     }  // namespace internal
 
     //-------------------------------------------------------------------------
+    const char *IHelper::toString(IDPreferences pref)
+    {
+      switch (pref)
+      {
+        case IDPreference_Local:  return "local";
+        case IDPreference_Remote: return "remote";
+      }
+      return "unknown";
+    }
+
+    //-------------------------------------------------------------------------
     IHelper::RTPParametersPtr IHelper::capabilitiesToParameters(const RTPCapabilities &capabilities)
     {
       auto result = make_shared<RTPParameters>();
@@ -493,6 +504,429 @@ namespace ortc
 
       return result;
     }
+
+    //-------------------------------------------------------------------------
+    IHelper::RTPCapabilitiesPtr IHelper::createUnion(
+                                                     const RTPCapabilities &localCapabilities,
+                                                     const RTPCapabilities &remoteCapabilities,
+                                                     IDPreferences preference
+                                                     )
+    {
+      auto result = make_shared<RTPCapabilities>();
+      result->mCodecs = *createUnion(localCapabilities.mCodecs, remoteCapabilities.mCodecs, preference);
+      result->mHeaderExtensions = *createUnion(localCapabilities.mHeaderExtensions, remoteCapabilities.mHeaderExtensions, preference);
+      result->mFECMechanisms = *createUnion(localCapabilities.mFECMechanisms, remoteCapabilities.mFECMechanisms, preference);
+      return result;
+    }
+
+    //-------------------------------------------------------------------------
+    static const IRTPTypes::CodecCapability *findCodecByPayloadType(
+                                                                    const IRTPTypes::CodecCapabilitiesList &codecs,
+                                                                    IRTPTypes::PayloadType payloadType
+                                                                    )
+    {
+      for (auto iter = codecs.begin(); iter != codecs.end(); ++iter) {
+        auto &codec = (*iter);
+        if (payloadType != codec.mPreferredPayloadType) continue;
+        return &codec;
+      }
+
+      return nullptr;
+    }
+
+    //-------------------------------------------------------------------------
+    static bool isMatch(
+                        const IRTPTypes::CodecCapability &primaryCodec,
+                        const IRTPTypes::CodecCapability &secondaryCodec,
+                        bool &outExact
+                        )
+    {
+      outExact = true;
+
+      if (0 != primaryCodec.mName.compareNoCase(secondaryCodec.mName)) return false;
+
+      if (primaryCodec.mClockRate.hasValue()) {
+        if (secondaryCodec.mClockRate.hasValue()) {
+          if (primaryCodec.mClockRate.value() != secondaryCodec.mClockRate.value()) return false;
+          return true;
+        } else {
+          outExact = false;
+        }
+      } else {
+        if (secondaryCodec.mClockRate.hasValue()) outExact = false;
+      }
+
+      if (primaryCodec.mNumChannels.hasValue()) {
+        if (secondaryCodec.mNumChannels.hasValue()) {
+          if (primaryCodec.mNumChannels.value() != secondaryCodec.mNumChannels.value()) return false;
+          outExact = false;
+        }
+      } else {
+        if (secondaryCodec.mNumChannels.hasValue()) outExact = false;
+      }
+      return true;
+    }
+
+    //-------------------------------------------------------------------------
+    IHelper::RTPCodecCapabilitiesListPtr IHelper::createUnion(
+                                                              const RTPCodecCapabilitiesList &local,
+                                                              const RTPCodecCapabilitiesList &remote,
+                                                              IDPreferences preference
+                                                              )
+    {
+      auto result = make_shared<RTPCodecCapabilitiesList>();
+
+      auto &primaryList = (useLocal(preference) ? local : remote);
+      auto &secondaryList = (useLocal(preference) ? remote : local);
+
+      // codec ordering matters thus we need to use the primary/secondary list to ensure the correct ordering ends up being the result
+      for (auto iterPrimary = primaryList.begin(); iterPrimary != primaryList.end(); ++iterPrimary) {
+        auto &primaryCodec = (*iterPrimary);
+
+        auto supportedType = IRTPTypes::toSupportedCodec(primaryCodec.mName);
+
+        const RTPCodecCapability *foundSecondaryExact = nullptr;
+        const RTPCodecCapability *foundSecondaryInexact = nullptr;
+
+        bool isRTX = false;
+
+        for (auto iterSecondary = secondaryList.begin(); iterSecondary != secondaryList.end(); ++iterSecondary) {
+          auto &secondaryCodec = (*iterSecondary);
+          bool exact = true;
+
+          // scope: find a remote matching codec
+          {
+            if (!isMatch(primaryCodec, secondaryCodec, exact)) goto not_a_match;
+
+            switch (supportedType) {
+              case IRTPTypes::SupportedCodec_Unknown: goto not_a_match;
+
+              // audio codecs
+              case IRTPTypes::SupportedCodec_Opus:            break;
+              case IRTPTypes::SupportedCodec_Isac:            break;
+              case IRTPTypes::SupportedCodec_G722:            break;
+              case IRTPTypes::SupportedCodec_ILBC:            break;
+              case IRTPTypes::SupportedCodec_PCMU:            break;
+              case IRTPTypes::SupportedCodec_PCMA:            break;
+
+              // video codecs
+              case IRTPTypes::SupportedCodec_VP8:             break;
+              case IRTPTypes::SupportedCodec_VP9:             break;
+              case IRTPTypes::SupportedCodec_H264:            break;
+
+              // RTX
+              case IRTPTypes::SupportedCodec_RTX:             {
+                isRTX = true;
+
+                auto primaryParams = ZS_DYNAMIC_PTR_CAST(IRTPTypes::RTXCodecCapabilityParameters, primaryCodec.mParameters);
+                auto secondaryParams = ZS_DYNAMIC_PTR_CAST(IRTPTypes::RTXCodecCapabilityParameters, secondaryCodec.mParameters);
+                if ((!primaryParams) ||
+                    (!secondaryParams)) goto not_a_match;
+
+                auto primaryRTXedCodec = findCodecByPayloadType(primaryList, primaryParams->mApt);
+                auto secondaryRTXedCodec = findCodecByPayloadType(secondaryList, secondaryParams->mApt);
+                if ((!primaryRTXedCodec) ||
+                    (!secondaryRTXedCodec)) goto not_a_match;
+
+                bool exactRTXed = true;
+                if (!isMatch(*primaryRTXedCodec, *secondaryRTXedCodec, exactRTXed)) goto not_a_match;
+                if (!exactRTXed) exact = exactRTXed;
+                break;
+              }
+
+              // FEC
+              case IRTPTypes::SupportedCodec_RED:             break;
+              case IRTPTypes::SupportedCodec_ULPFEC:          break;
+              case IRTPTypes::SupportedCodec_FlexFEC:         break;
+
+              case IRTPTypes::SupportedCodec_CN:              break;
+
+              case IRTPTypes::SupportedCodec_TelephoneEvent:  break;
+            }
+
+            goto match_found;
+          }
+
+        match_found:
+          {
+            if (exact) {
+              foundSecondaryExact = &secondaryCodec;
+              break;
+            }
+            foundSecondaryInexact = &secondaryCodec;
+            continue;
+          }
+
+        not_a_match:
+          {
+            continue;
+          }
+        }
+
+        if (foundSecondaryExact) {
+          foundSecondaryInexact = foundSecondaryExact;
+        } else {
+          foundSecondaryExact = foundSecondaryInexact;
+        }
+        if (!foundSecondaryExact) continue;
+
+        auto &localCodec = useLocal(preference) ? primaryCodec : *foundSecondaryExact;
+        auto &remoteCodec = useLocal(preference) ? *foundSecondaryExact : primaryCodec;
+
+        // still copy from the local codec (not the remote)
+        IRTPTypes::CodecCapability temp(localCodec);
+        temp.mRTCPFeedback = *createUnion(localCodec.mRTCPFeedback, remoteCodec.mRTCPFeedback, preference);
+        if (useRemote(preference)) {
+          temp.mPreferredPayloadType = foundSecondaryExact->mPreferredPayloadType;
+          if (isRTX) {
+            temp.mParameters = remoteCodec.mParameters; // a copy will be made
+          }
+          result->push_back(temp);
+        } else {
+          result->push_back(temp);
+        }
+      }
+      return result;
+    }
+
+    //-------------------------------------------------------------------------
+    IHelper::RTPHeaderExtensionsListPtr IHelper::createUnion(
+                                                             const RTPHeaderExtensionsList &local,
+                                                             const RTPHeaderExtensionsList &remote,
+                                                             IDPreferences preference
+                                                             )
+    {
+      auto result = make_shared<RTPHeaderExtensionsList>();
+      for (auto iterLocal = local.begin(); iterLocal != local.end(); ++iterLocal) {
+        auto &localExt = (*iterLocal);
+
+        for (auto iterRemote = remote.begin(); iterRemote != remote.end(); ++iterRemote) {
+          auto &remoteExt = (*iterRemote);
+
+          if (0 != localExt.mURI.compareNoCase(remoteExt.mURI)) continue;
+
+          RTPHeaderExtension newExt(useLocal(preference) ? localExt : remoteExt);
+          result->push_back(newExt);
+          break;
+        }
+      }
+      return result;
+    }
+
+    //-------------------------------------------------------------------------
+    IHelper::RTPFECMechanismListPtr IHelper::createUnion(
+                                                         const RTPFECMechanismList &local,
+                                                         const RTPFECMechanismList &remote,
+                                                         IDPreferences preference
+                                                         )
+    {
+      auto result = make_shared<RTPFECMechanismList>();
+      for (auto iterLocal = local.begin(); iterLocal != local.end(); ++iterLocal) {
+        auto &localMechanism = (*iterLocal);
+
+        for (auto iterRemote = remote.begin(); iterRemote != remote.end(); ++iterRemote) {
+          auto &remoteMechanism = (*iterRemote);
+
+          if (0 != localMechanism.compareNoCase(remoteMechanism)) continue;
+
+          RTPFECMechanism newMechanism(useLocal(preference) ? localMechanism : remoteMechanism);
+          result->push_back(newMechanism);
+          break;
+        }
+      }
+      return result;
+    }
+
+    //-------------------------------------------------------------------------
+    IHelper::RTPRTCPFeedbackListPtr IHelper::createUnion(
+                                                         const RTPRTCPFeedbackList &local,
+                                                         const RTPRTCPFeedbackList &remote,
+                                                         IDPreferences preference
+                                                         )
+    {
+      auto result = make_shared<RTPRTCPFeedbackList>();
+      for (auto iterLocal = local.begin(); iterLocal != local.end(); ++iterLocal) {
+        auto &localFeedback = (*iterLocal);
+
+        for (auto iterRemote = remote.begin(); iterRemote != remote.end(); ++iterRemote) {
+          auto &remoteFeedback = (*iterRemote);
+
+          if (0 != localFeedback.mType.compareNoCase(remoteFeedback.mType)) continue;
+          if (0 != remoteFeedback.mType.compareNoCase(remoteFeedback.mType)) continue;
+
+          RTPRTCPFeedback newFeedback(useLocal(preference) ? localFeedback : remoteFeedback);
+          result->push_back(newFeedback);
+          break;
+        }
+      }
+      return result;
+    }
+
+    //-------------------------------------------------------------------------
+    IHelper::RTPParametersPtr IHelper::filterParameters(
+                                                        const RTPParameters &parameters,
+                                                        const RTPCapabilities &capabilities
+                                                        )
+    {
+      auto result = make_shared<RTPParameters>(parameters);
+
+      return result;
+    }
+
+    //-------------------------------------------------------------------------
+    static bool isMatch(
+                        const IRTPTypes::CodecParameters &primaryCodec,
+                        const IRTPTypes::CodecCapability &secondaryCodec,
+                        bool &outExact
+                        )
+    {
+      outExact = true;
+
+      if (0 != primaryCodec.mName.compareNoCase(secondaryCodec.mName)) return false;
+
+      if (primaryCodec.mClockRate.hasValue()) {
+        if (secondaryCodec.mClockRate.hasValue()) {
+          if (primaryCodec.mClockRate.value() != secondaryCodec.mClockRate.value()) return false;
+          return true;
+        } else {
+          outExact = false;
+        }
+      } else {
+        if (secondaryCodec.mClockRate.hasValue()) outExact = false;
+      }
+
+      if (primaryCodec.mNumChannels.hasValue()) {
+        if (secondaryCodec.mNumChannels.hasValue()) {
+          if (primaryCodec.mNumChannels.value() != secondaryCodec.mNumChannels.value()) return false;
+          outExact = false;
+        }
+      } else {
+        if (secondaryCodec.mNumChannels.hasValue()) outExact = false;
+      }
+      return true;
+    }
+
+    //-------------------------------------------------------------------------
+    static const IRTPTypes::CodecParameters *findCodecByPayloadType(
+                                                                    const IRTPTypes::CodecParametersList &codecs,
+                                                                    IRTPTypes::PayloadType payloadType
+                                                                    )
+    {
+      for (auto iter = codecs.begin(); iter != codecs.end(); ++iter) {
+        auto &codec = (*iter);
+        if (payloadType != codec.mPayloadType) continue;
+        return &codec;
+      }
+
+      return nullptr;
+    }
+
+    //-------------------------------------------------------------------------
+    IHelper::RTPCodecParametersListPtr IHelper::filterParameters(
+                                                                 const RTPCodecParametersList &codecParameters,
+                                                                 const RTPCodecCapabilitiesList &codecCapabilities
+                                                                 )
+    {
+      auto result = make_shared<RTPCodecParametersList>();
+
+      for (auto iterCodecParams = codecParameters.begin(); iterCodecParams != codecParameters.end(); ++iterCodecParams) {
+        auto &codecParam = (*iterCodecParams);
+
+        auto supportedType = IRTPTypes::toSupportedCodec(codecParam.mName);
+
+        const RTPCodecCapability *foundSecondaryExact = nullptr;
+        const RTPCodecCapability *foundSecondaryInexact = nullptr;
+
+        bool isRTX = false;
+
+        for (auto iterCodecCaps = codecCapabilities.begin(); iterCodecCaps != codecCapabilities.end(); ++iterCodecCaps) {
+          auto &codecCap = (*iterCodecCaps);
+          bool exact = true;
+
+          // scope: find a remote matching codec
+          {
+            if (!isMatch(codecParam, codecCap, exact)) goto not_a_match;
+
+            switch (supportedType) {
+              case IRTPTypes::SupportedCodec_Unknown: goto not_a_match;
+
+              // audio codecs
+              case IRTPTypes::SupportedCodec_Opus:            break;
+              case IRTPTypes::SupportedCodec_Isac:            break;
+              case IRTPTypes::SupportedCodec_G722:            break;
+              case IRTPTypes::SupportedCodec_ILBC:            break;
+              case IRTPTypes::SupportedCodec_PCMU:            break;
+              case IRTPTypes::SupportedCodec_PCMA:            break;
+
+              // video codecs
+              case IRTPTypes::SupportedCodec_VP8:             break;
+              case IRTPTypes::SupportedCodec_VP9:             break;
+              case IRTPTypes::SupportedCodec_H264:            break;
+
+              // RTX
+              case IRTPTypes::SupportedCodec_RTX:             {
+                isRTX = true;
+
+                auto primaryParams = ZS_DYNAMIC_PTR_CAST(IRTPTypes::RTXCodecCapabilityParameters, codecParam.mParameters);
+                auto secondaryParams = ZS_DYNAMIC_PTR_CAST(IRTPTypes::RTXCodecParameters, codecCap.mParameters);
+                if ((!primaryParams) ||
+                    (!secondaryParams)) goto not_a_match;
+
+                auto primaryRTXedCodec = findCodecByPayloadType(codecParameters, primaryParams->mApt);
+                auto secondaryRTXedCodec = findCodecByPayloadType(codecCapabilities, secondaryParams->mApt);
+                if ((!primaryRTXedCodec) ||
+                    (!secondaryRTXedCodec)) goto not_a_match;
+
+                bool exactRTXed = true;
+                if (!isMatch(*primaryRTXedCodec, *secondaryRTXedCodec, exactRTXed)) goto not_a_match;
+                if (!exactRTXed) exact = exactRTXed;
+                break;
+              }
+
+              // FEC
+              case IRTPTypes::SupportedCodec_RED:             break;
+              case IRTPTypes::SupportedCodec_ULPFEC:          break;
+              case IRTPTypes::SupportedCodec_FlexFEC:         break;
+
+              case IRTPTypes::SupportedCodec_CN:              break;
+
+              case IRTPTypes::SupportedCodec_TelephoneEvent:  break;
+            }
+
+            goto match_found;
+          }
+
+        match_found:
+          {
+            if (exact) {
+              foundSecondaryExact = &codecCap;
+              break;
+            }
+            foundSecondaryInexact = &codecCap;
+            continue;
+          }
+
+        not_a_match:
+          {
+            continue;
+          }
+        }
+
+        if (foundSecondaryExact) {
+          foundSecondaryInexact = foundSecondaryExact;
+        } else {
+          foundSecondaryExact = foundSecondaryInexact;
+        }
+        if (!foundSecondaryExact) continue;
+
+        IRTPTypes::CodecParameters temp(codecParam);
+        temp.mRTCPFeedback = *createUnion(codecParam.mRTCPFeedback, foundSecondaryExact->mRTCPFeedback, IDPreference_Local);
+        result->push_back(temp);
+      }
+
+      return result;
+    }
+
 
   } // namespace adapter
 } // namespace ortc

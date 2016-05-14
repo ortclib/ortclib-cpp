@@ -218,7 +218,6 @@ namespace ortc
                                      Attributes attribute
                                      );
 
-        
         enum Locations
         {
           Location_First,

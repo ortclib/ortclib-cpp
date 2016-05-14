@@ -72,6 +72,8 @@ namespace ortc
 
       static ElementPtr toDebug(IMediaStreamPtr stream);
 
+      virtual PUID getID() const = 0;
+
       virtual IMediaStreamSubscriptionPtr subscribe(IMediaStreamDelegatePtr delegate) = 0;
 
       virtual String id() const = 0;

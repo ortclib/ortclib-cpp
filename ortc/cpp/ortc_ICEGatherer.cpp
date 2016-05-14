@@ -514,21 +514,21 @@ namespace ortc
       }
       return PreferenceType_Priority;
     }
-    
+
     //-------------------------------------------------------------------------
     ICEGatherer::ICEGatherer(
                              const make_private &,
-                             IMessageQueuePtr queue,
-                             IICEGathererDelegatePtr originalDelegate,
-                             const Options &options
+                             const ConstructorOptions &options
                              ) :
       SharedRecursiveLock(SharedRecursiveLock::create()),
-      MessageQueueAssociator(queue),
+      MessageQueueAssociator(options.mQueue),
       mGathererRouter(ICEGathererRouter::create()),
-      mUsernameFrag(UseServicesHelper::randomString(UseSettings::getUInt(ORTC_SETTING_GATHERER_USERNAME_FRAG_LENGTH))),
-      mPassword(UseServicesHelper::randomString(UseSettings::getUInt(ORTC_SETTING_GATHERER_PASSWORD_LENGTH))),
+      mUsernameFrag(options.mUsernameFragment.hasData() ? options.mUsernameFragment : UseServicesHelper::randomString(UseSettings::getUInt(ORTC_SETTING_GATHERER_USERNAME_FRAG_LENGTH))),
+      mPassword(options.mPassword.hasData() ? options.mPassword : UseServicesHelper::randomString(UseSettings::getUInt(ORTC_SETTING_GATHERER_PASSWORD_LENGTH))),
       mCreateTCPCandidates(UseSettings::getBool(ORTC_SETTING_GATHERER_CREATE_TCP_CANDIDATES)),
-      mOptions(options),
+      mOptions(options.mOptions),
+      mComponent(options.mComponent),
+      mRTPGatherer(options.mRTPGatherer),
       mReflexiveInactivityTime(Seconds(UseSettings::getUInt(ORTC_SETTING_GATHERER_REFLEXIVE_INACTIVITY_TIMEOUT_IN_SECONDS))),
       mRelayInactivityTime(Seconds(UseSettings::getUInt(ORTC_SETTING_GATHERER_RELAY_INACTIVITY_TIMEOUT_IN_SECONDS))),
       mMaxBufferingTime(Seconds(UseSettings::getUInt(ORTC_SETTING_GATHERER_MAX_INCOMING_PACKET_BUFFERING_TIME_IN_SECONDS))),
@@ -591,8 +591,8 @@ namespace ortc
         }
       }
 
-      if (originalDelegate) {
-        mDefaultSubscription = mSubscriptions.subscribe(originalDelegate, IORTCForInternal::queueDelegate());
+      if (options.mDelegate) {
+        mDefaultSubscription = mSubscriptions.subscribe(options.mDelegate, IORTCForInternal::queueDelegate());
       }
     }
 
@@ -682,7 +682,12 @@ namespace ortc
                                        const Options &options
                                        )
     {
-      ICEGathererPtr pThis(make_shared<ICEGatherer>(make_private {}, IORTCForInternal::queueORTC(), delegate, options));
+      ConstructorOptions creationOptions;
+      creationOptions.mQueue = IORTCForInternal::queueORTC();
+      creationOptions.mDelegate = delegate;
+      creationOptions.mOptions = options;
+
+      ICEGathererPtr pThis(make_shared<ICEGatherer>(make_private {}, creationOptions));
       pThis->mThisWeak = pThis;
       pThis->init();
       return pThis;
@@ -788,10 +793,17 @@ namespace ortc
 
         ORTC_THROW_INVALID_STATE_IF(mRTCPGatherer.lock())
 
-        pThis = make_shared<ICEGatherer>(make_private {}, IORTCForInternal::queueORTC(), delegate, mOptions);
+        ConstructorOptions creationOptions;
+        creationOptions.mQueue = IORTCForInternal::queueORTC();
+        creationOptions.mDelegate = delegate;
+        creationOptions.mOptions = mOptions;
+        creationOptions.mUsernameFragment = mUsernameFrag;
+        creationOptions.mPassword = mPassword;
+        creationOptions.mComponent = Component_RTCP;
+        creationOptions.mRTPGatherer = mThisWeak.lock();
+
+        pThis = make_shared<ICEGatherer>(make_private {}, creationOptions);
         pThis->mThisWeak = pThis;
-        pThis->mComponent = Component_RTCP;
-        pThis->mRTPGatherer = mThisWeak.lock();
         mRTCPGatherer = pThis;
 
         EventWriteOrtcIceGathererCreatedAssociateGatherer(__func__, mID, pThis->getID());

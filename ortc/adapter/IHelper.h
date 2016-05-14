@@ -74,8 +74,32 @@ namespace ortc
 
       ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::HeaderExtension, RTPHeaderExtension);
       ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::HeaderExtensionParameters, RTPHeaderExtensionParameters);
+      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::HeaderExtensionsList, RTPHeaderExtensionsList);
+
+      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::FECMechanism, RTPFECMechanism);
+      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::FECMechanismList, RTPFECMechanismList);
+
+      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::RTCPFeedback, RTPRTCPFeedback);
+      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::RTCPFeedbackList, RTPRTCPFeedbackList);
+
+      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::CodecParametersList, RTPCodecParametersList);
 
       typedef IRTPTypes::CodecKinds RTPCodecKinds;
+
+      enum IDPreferences
+      {
+        IDPreference_Local,
+        IDPreference_Remote,
+      };
+
+      static const char *toString(IDPreferences pref);
+      static bool useLocal(IDPreferences pref) { return pref == IDPreference_Local; }
+      static bool useRemote(IDPreferences pref) { return pref == IDPreference_Remote; }
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark Capabilities / parameter conversion
+      #pragma mark
 
       static RTPParametersPtr capabilitiesToParameters(const RTPCapabilities &capabilities);
       static RTPCapabilitiesPtr parametersToCapabilities(const RTPParameters &parameters);
@@ -106,6 +130,56 @@ namespace ortc
 
       static RTPHeaderExtensionParametersPtr capabilitiesToParameters(const RTPHeaderExtension &capabilities);
       static RTPHeaderExtensionPtr parametersToCapabilities(const RTPHeaderExtensionParameters &parameters);
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark Negotiation (unions)
+      #pragma mark
+
+      static RTPCapabilitiesPtr createUnion(
+                                            const RTPCapabilities &localCapabilities,
+                                            const RTPCapabilities &remoteCapabilities,
+                                            IDPreferences preference
+                                            );
+
+      static RTPCodecCapabilitiesListPtr createUnion(
+                                                     const RTPCodecCapabilitiesList &local,
+                                                     const RTPCodecCapabilitiesList &remote,
+                                                     IDPreferences preference
+                                                     );
+
+      static RTPHeaderExtensionsListPtr createUnion(
+                                                    const RTPHeaderExtensionsList &local,
+                                                    const RTPHeaderExtensionsList &remote,
+                                                    IDPreferences preference
+                                                    );
+
+      static RTPFECMechanismListPtr createUnion(
+                                                const RTPFECMechanismList &local,
+                                                const RTPFECMechanismList &remote,
+                                                IDPreferences preference
+                                                );
+
+      static RTPRTCPFeedbackListPtr createUnion(
+                                                const RTPRTCPFeedbackList &local,
+                                                const RTPRTCPFeedbackList &remote,
+                                                IDPreferences preference
+                                                );
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark Negotiation (filter)
+      #pragma mark
+
+      static RTPParametersPtr filterParameters(
+                                               const RTPParameters &parameters,
+                                               const RTPCapabilities &capabilities
+                                               );
+
+      static RTPCodecParametersListPtr filterParameters(
+                                                        const RTPCodecParametersList &codecParameters,
+                                                        const RTPCodecCapabilitiesList &codecCapabilities
+                                                        );
     };
   }
 }

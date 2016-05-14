@@ -187,6 +187,8 @@ namespace ortc
           Parameters(const Parameters &op2);
           Parameters(ElementPtr rootEl);
 
+          Parameters &operator=(const Parameters &op2) = delete;
+
           static ParametersPtr create(ElementPtr rootEl) { if (!rootEl) return ParametersPtr(); return make_shared<Parameters>(rootEl); }
           ElementPtr createElement(const char *objectName) const;
 
@@ -201,6 +203,8 @@ namespace ortc
         Transport() {}
         Transport(const Transport &op2);
         Transport(ElementPtr rootEl);
+
+        Transport &operator=(const Transport &op2) = delete;
 
         static TransportPtr create(ElementPtr rootEl) { if (!rootEl) return TransportPtr(); return make_shared<Transport>(rootEl); }
         ElementPtr createElement(const char *objectName = "transport") const;
@@ -227,6 +231,8 @@ namespace ortc
           Details(const Details &op2);
           Details(ElementPtr rootEl);
 
+          Details &operator=(const Details &op2) = delete;
+
           static DetailsPtr create(ElementPtr rootEl) { if (!rootEl) return DetailsPtr(); return make_shared<Details>(rootEl); }
           ElementPtr createElement(const char *objectName = "details") const;
 
@@ -245,6 +251,8 @@ namespace ortc
         MediaLine(const MediaLine &op2);
         MediaLine(ElementPtr rootEl);
 
+        MediaLine &operator=(const MediaLine &op2) = delete;
+
         ElementPtr createElement(const char *objectName) const;
         ElementPtr toDebug() const;
         String hash() const;
@@ -258,6 +266,8 @@ namespace ortc
         RTPMediaLine() {}
         RTPMediaLine(const RTPMediaLine &op2);
         RTPMediaLine(ElementPtr rootEl);
+
+        RTPMediaLine &operator=(const RTPMediaLine &op2) = delete;
 
         static RTPMediaLinePtr create(ElementPtr rootEl) { if (!rootEl) return RTPMediaLinePtr(); return make_shared<RTPMediaLine>(); }
         ElementPtr createElement(const char *objectName = "rtpMediaLine") const;
@@ -274,6 +284,8 @@ namespace ortc
         SCTPMediaLine() {}
         SCTPMediaLine(const SCTPMediaLine &op2);
         SCTPMediaLine(ElementPtr rootEl);
+
+        SCTPMediaLine &operator=(const SCTPMediaLine &op2) = delete;
 
         static SCTPMediaLinePtr create(ElementPtr rootEl) { if (!rootEl) return SCTPMediaLinePtr(); return make_shared<SCTPMediaLine>(rootEl); }
         ElementPtr createElement(const char *objectName = "sctpMediaLine") const;
@@ -294,6 +306,8 @@ namespace ortc
           Details(const Details &op2);
           Details(ElementPtr rootEl);
 
+          Details &operator=(const Details &op2) = delete;
+
           static DetailsPtr create(ElementPtr rootEl) { if (!rootEl) return DetailsPtr(); return make_shared<Details>(rootEl); }
           ElementPtr createElement(const char *objectName = "details") const;
 
@@ -312,6 +326,8 @@ namespace ortc
         RTPSender(const RTPSender &op2);
         RTPSender(ElementPtr rootEL);
 
+        RTPSender &operator=(const RTPSender &op2) = delete;
+
         static RTPSenderPtr create(ElementPtr rootEl) { if (!rootEl) return RTPSenderPtr(); return make_shared<RTPSender>(rootEl); }
         ElementPtr createElement(const char *objectName = "rtpSender") const;
 
@@ -328,6 +344,8 @@ namespace ortc
 
         ICECandidate() {}
         ICECandidate(const ICECandidate &op2);
+
+        ICECandidate &operator=(const ICECandidate &op2) = delete;
 
         static ICECandidatePtr create(ElementPtr rootEl);
         ElementPtr createElement(const char *objectName = "iceCandidate") const;
@@ -361,6 +379,8 @@ namespace ortc
           Details(const Details &op2);
           Details(ElementPtr rootEl);
 
+          Details &operator=(const Details &op2) = delete;
+
           static DetailsPtr create(ElementPtr rootEl) { if (!rootEl) return DetailsPtr(); return make_shared<Details>(rootEl); }
           ElementPtr createElement(const char *objectName = "details") const;
 
@@ -378,6 +398,8 @@ namespace ortc
         Description() {}
         Description(const Description &op2);
         Description(ElementPtr rootEl);
+
+        Description &operator=(const Description &op2) = delete;
 
         static DescriptionPtr create(ElementPtr rootEl) { if (!rootEl) return DescriptionPtr(); return make_shared<Description>(rootEl); }
         ElementPtr createElement(const char *objectName = "session") const;

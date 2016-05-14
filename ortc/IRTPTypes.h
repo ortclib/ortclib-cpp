@@ -151,6 +151,8 @@ namespace ortc
       CodecCapability(const CodecCapability &source);
       CodecCapability(ElementPtr elem);
 
+      CodecCapability &operator=(const CodecCapability &op2) = delete;
+
       ElementPtr createElement(const char *objectName = "codecCapability") const;
 
       ElementPtr toDebug() const;
@@ -450,8 +452,10 @@ namespace ortc
       };
 
       Parameters() {}
-      Parameters(const Parameters &op2) {(*this) = op2;}
+      Parameters(const Parameters &op2);
       Parameters(ElementPtr rootEl);
+
+      Parameters &operator=(const Parameters &op2);
 
       static ParametersPtr create(ElementPtr rootEl) { if (!rootEl) return ParametersPtr(); return make_shared<Parameters>(rootEl); }
       ElementPtr createElement(const char *objectName) const;
@@ -478,6 +482,8 @@ namespace ortc
       CodecParameters() {}
       CodecParameters(const CodecParameters &source);
       CodecParameters(ElementPtr elem);
+
+      CodecParameters &operator=(const CodecParameters &op2) = delete;
 
       ElementPtr createElement(const char *objectName) const;
 
