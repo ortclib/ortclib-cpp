@@ -56,8 +56,10 @@
 #include <webrtc/voice_engine/include/voe_codec.h>
 #include <webrtc/voice_engine/include/voe_rtp_rtcp.h>
 #include <webrtc/voice_engine/include/voe_network.h>
+#include <webrtc/voice_engine/include/voe_hardware.h>
 #include <webrtc/system_wrappers/include/cpu_info.h>
 #include <webrtc/webrtc/base/scoped_ptr.h>
+#include <webrtc/webrtc/voice_engine/include/voe_audio_processing.h>
 #ifdef WINRT
 #include <third_party/h264_winrt/h264_winrt_factory.h>
 #endif
@@ -953,9 +955,38 @@ namespace ortc
 
       mVoiceEngine = rtc::scoped_ptr<webrtc::VoiceEngine, VoiceEngineDeleter>(webrtc::VoiceEngine::Create());
 
+      webrtc::VoEBase::GetInterface(mVoiceEngine.get())->Init();
+
       webrtc::AudioState::Config audioStateConfig;
       audioStateConfig.voice_engine = mVoiceEngine.get();
       mAudioState = rtc::scoped_refptr<webrtc::AudioState>(webrtc::AudioState::Create(audioStateConfig));
+
+      webrtc::EcModes ecMode = webrtc::kEcConference;
+      webrtc::AecmModes aecmMode = webrtc::kAecmSpeakerphone;
+      webrtc::AgcModes agcMode = webrtc::kAgcAdaptiveAnalog;
+      webrtc::NsModes nsMode = webrtc::kNsHighSuppression;
+#if defined(WEBRTC_ARCH_ARM) && defined(WINRT)
+      ecMode = webrtc::kEcAecm;
+#endif
+
+      if (webrtc::VoEHardware::GetInterface(mVoiceEngine.get())->BuiltInAECIsAvailable())
+        webrtc::VoEHardware::GetInterface(mVoiceEngine.get())->EnableBuiltInAEC(true);
+      webrtc::VoEAudioProcessing::GetInterface(mVoiceEngine.get())->SetEcStatus(true, ecMode);
+#if !defined(WEBRTC_ARCH_ARM) || !defined(WINRT)
+      webrtc::VoEAudioProcessing::GetInterface(mVoiceEngine.get())->SetEcMetricsStatus(true);
+#endif
+      if (ecMode == webrtc::kEcAecm)
+        webrtc::VoEAudioProcessing::GetInterface(mVoiceEngine.get())->SetAecmMode(aecmMode);
+
+      if (webrtc::VoEHardware::GetInterface(mVoiceEngine.get())->BuiltInAGCIsAvailable())
+        webrtc::VoEHardware::GetInterface(mVoiceEngine.get())->EnableBuiltInAGC(true);
+      webrtc::VoEAudioProcessing::GetInterface(mVoiceEngine.get())->SetAgcStatus(true, agcMode);
+
+      if (webrtc::VoEHardware::GetInterface(mVoiceEngine.get())->BuiltInNSIsAvailable())
+        webrtc::VoEHardware::GetInterface(mVoiceEngine.get())->EnableBuiltInNS(true);
+      webrtc::VoEAudioProcessing::GetInterface(mVoiceEngine.get())->SetNsStatus(true, nsMode);
+
+      webrtc::VoEAudioProcessing::GetInterface(mVoiceEngine.get())->EnableHighPassFilter(true);
 
       return true;
     }
@@ -1679,8 +1710,6 @@ namespace ortc
 
       mCallStats->RegisterStatsObserver(mCongestionController.get());
 
-      webrtc::VoEBase::GetInterface(voiceEngine)->Init(mTrack->getAudioDeviceModule());
-
       mChannel = webrtc::VoEBase::GetInterface(voiceEngine)->CreateChannel();
 
       bool audioCodecSet = false;
@@ -2065,7 +2094,6 @@ namespace ortc
                                                                                        &mRemb
                                                                                        ));
 
-      webrtc::VoEBase::GetInterface(voiceEngine)->Init(mTrack->getAudioDeviceModule());
 
       mChannel = webrtc::VoEBase::GetInterface(voiceEngine)->CreateChannel();
 
