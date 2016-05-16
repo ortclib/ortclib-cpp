@@ -30,6 +30,7 @@
  */
 
 #include <ortc/adapter/internal/ortc_adapter_PeerConnection.h>
+#include <ortc/adapter/internal/ortc_adapter_MediaStream.h>
 
 #include <ortc/internal/ortc_ORTC.h>
 #include <ortc/IRTPSender.h>
@@ -37,6 +38,7 @@
 #include <ortc/IMediaStreamTrack.h>
 
 #include <ortc/adapter/IMediaStream.h>
+#include <ortc/adapter/IHelper.h>
 
 #include <openpeer/services/IHelper.h>
 #include <openpeer/services/IHTTP.h>
@@ -56,6 +58,7 @@ namespace ortc
   {
     ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHelper, UseServicesHelper);
     ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHTTP, UseHTTP);
+    ZS_DECLARE_TYPEDEF_PTR(adapter::IHelper, UseAdapterHelper);
 
     namespace internal
     {
@@ -76,7 +79,6 @@ namespace ortc
 
         UseServicesHelper::debugAppend(resultEl, "ice gatherer", mGatherer ? mGatherer->getID() : 0);
         UseServicesHelper::debugAppend(resultEl, "ice transort", mTransport ? mTransport->getID() : 0);
-        UseServicesHelper::debugAppend(resultEl, "candidates", mCandidates.size());
         UseServicesHelper::debugAppend(resultEl, "end of candidates", mRTPEndOfCandidates);
         UseServicesHelper::debugAppend(resultEl, "dtls transport", mDTLSTransport ? mDTLSTransport->getID() : 0);
         UseServicesHelper::debugAppend(resultEl, "srtp/sdes transport", mSRTPSDESTransport ? mSRTPSDESTransport->getID() : 0);
@@ -127,7 +129,8 @@ namespace ortc
 
         UseServicesHelper::debugAppend(resultEl, "id", mID);
         UseServicesHelper::debugAppend(resultEl, "mline index", mLineIndex);
-        UseServicesHelper::debugAppend(resultEl, "transport id", mTransportID);
+        UseServicesHelper::debugAppend(resultEl, "bundled transport id", mBundledTransportID);
+        UseServicesHelper::debugAppend(resultEl, "private transport id", mPrivateTransportID);
         UseServicesHelper::debugAppend(resultEl, "negotiation state", PeerConnection::toString(mNegotiationState));
 
         return resultEl;
@@ -146,6 +149,13 @@ namespace ortc
       {
         ElementPtr resultEl = MediaLineInfo::toDebug();
         resultEl->setValue("ortc::adapter::PeerConnection::RTPMediaLineInfo");
+
+        UseServicesHelper::debugAppend(resultEl, "media type", mMediaType);
+        UseServicesHelper::debugAppend(resultEl, "id preference", UseAdapterHelper::toString(mIDPreference));
+        UseServicesHelper::debugAppend(resultEl, "local sender capabilities", mLocalSenderCapabilities ? mLocalSenderCapabilities->toDebug() : ElementPtr());
+        UseServicesHelper::debugAppend(resultEl, "local receiver capabilities", mLocalReceiverCapabilities ? mLocalReceiverCapabilities->toDebug() : ElementPtr());
+        UseServicesHelper::debugAppend(resultEl, "remote sender capabilities", mRemoteSenderCapabilities ? mRemoteSenderCapabilities->toDebug() : ElementPtr());
+        UseServicesHelper::debugAppend(resultEl, "remote receiver capabilities", mRemoteReceiverCapabilities ? mRemoteReceiverCapabilities->toDebug() : ElementPtr());
 
         return resultEl;
       }
@@ -182,6 +192,7 @@ namespace ortc
 
         UseServicesHelper::debugAppend(resultEl, "id", mID);
         UseServicesHelper::debugAppend(resultEl, "media line id", mMediaLineID);
+        UseServicesHelper::debugAppend(resultEl, mConfiguration ? mConfiguration->toDebug() : ElementPtr());
         UseServicesHelper::debugAppend(resultEl, "track id", mTrack ? mTrack->getID() : 0);
         UseServicesHelper::debugAppend(resultEl, "media streams", mMediaStreams.size());
         UseServicesHelper::debugAppend(resultEl, "negotiate state", PeerConnection::toString(mNegotiationState));
@@ -249,6 +260,48 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       #pragma mark
+      #pragma mark PeerConnection::PendingAddTrack
+      #pragma mark
+
+      //-----------------------------------------------------------------------
+      ElementPtr PeerConnection::PendingAddTrack::toDebug() const
+      {
+        ElementPtr resultEl = Element::create("ortc::adapter::PeerConnection::PendingAddTrack");
+
+        UseServicesHelper::debugAppend(resultEl, "promise", (bool)mPromise);
+
+        UseServicesHelper::debugAppend(resultEl, "track id", mTrack ? mTrack->getID() : 0);
+        UseServicesHelper::debugAppend(resultEl, "media streams", mMediaStreams.size());
+        UseServicesHelper::debugAppend(resultEl, mConfiguration ? mConfiguration->toDebug() : ElementPtr());
+
+        return resultEl;
+      }
+
+
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark PeerConnection::PendingAddDataChannel
+      #pragma mark
+
+      //-----------------------------------------------------------------------
+      ElementPtr PeerConnection::PendingAddDataChannel::toDebug() const
+      {
+        ElementPtr resultEl = Element::create("ortc::adapter::PeerConnection::PendingAddDataChannel");
+
+        UseServicesHelper::debugAppend(resultEl, "promise", (bool)mPromise);
+        UseServicesHelper::debugAppend(resultEl, mParameters ? mParameters->toDebug() : ElementPtr());
+
+        return resultEl;
+      }
+
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
       #pragma mark PeerConnection
       #pragma mark
 
@@ -262,6 +315,9 @@ namespace ortc
         SharedRecursiveLock(SharedRecursiveLock::create()),
         MessageQueueAssociator(queue)
       {
+        if (configuration.hasValue()) {
+          mConfiguration = configuration.value();
+        }
         ZS_LOG_DEBUG(log("created"));
       }
 
@@ -276,6 +332,12 @@ namespace ortc
       //-----------------------------------------------------------------------
       void PeerConnection::init()
       {
+        AutoRecursiveLock lock(*this);
+
+        for (size_t index = 0; index < mConfiguration.mICECandidatePoolSize; ++index) {
+          addToTransportPool();
+        }
+
         wake();
       }
 
@@ -616,6 +678,17 @@ namespace ortc
       //-----------------------------------------------------------------------
       void PeerConnection::setConfiguration(const Configuration &configuration)
       {
+        AutoRecursiveLock lock(*this);
+
+        Configuration oldConfiguration(mConfiguration);
+
+        mConfiguration = configuration;
+        if (mConfiguration.mCertificates.size() < 1) {
+          mConfiguration.mCertificates = oldConfiguration.mCertificates;
+        }
+
+#define TODO_SET_CONFIGURATION 1
+#define TODO_SET_CONFIGURATION 2
       }
 
       //-----------------------------------------------------------------------
@@ -630,43 +703,150 @@ namespace ortc
       //-----------------------------------------------------------------------
       IPeerConnectionTypes::SenderListPtr PeerConnection::getSenders() const
       {
-        return SenderListPtr();
+        auto result = make_shared<SenderList>();
+
+        AutoRecursiveLock lock(*this);
+
+        if (isStopped()) {
+          ZS_LOG_WARNING(Debug, log("attempting to get senders while shutdown / shutting down"));
+          return result;
+        }
+
+        for (auto iter = mSenders.begin(); iter != mSenders.end(); ++iter) {
+          auto &senderInfo = ((*iter).second);
+
+          auto sender = senderInfo->mSender;
+          if (!sender) continue;
+
+          result->push_back(sender);
+        }
+
+        ZS_LOG_TRACE(log("total senders returned") + ZS_PARAM("total", result->size()));
+
+        return result;
       }
 
       //-----------------------------------------------------------------------
       IPeerConnectionTypes::ReceiverListPtr PeerConnection::getReceivers() const
       {
-        return ReceiverListPtr();
+        auto result = make_shared<ReceiverList>();
+
+        AutoRecursiveLock lock(*this);
+
+        if (isStopped()) {
+          ZS_LOG_WARNING(Debug, log("attempting to get receivers while shutdown / shutting down"));
+          return result;
+        }
+
+        for (auto iter = mReceiver.begin(); iter != mReceiver.end(); ++iter) {
+          auto &receiverInfo = ((*iter).second);
+
+          auto receiver = receiverInfo->mReceiver;
+          if (!receiver) continue;
+
+          result->push_back(receiver);
+        }
+
+        ZS_LOG_TRACE(log("total receivers returned") + ZS_PARAM("total", result->size()));
+
+        return result;
       }
 
       //-----------------------------------------------------------------------
-      IRTPSenderPtr PeerConnection::addTrack(
-                                             IMediaStreamTrackPtr track,
-                                             const MediaStreamTrackConfiguration &configuration
-                                             )
+      IPeerConnectionTypes::PromiseWithSenderPtr PeerConnection::addTrack(
+                                                                          IMediaStreamTrackPtr track,
+                                                                          const MediaStreamTrackConfiguration &inConfiguration
+                                                                          )
       {
-        return IRTPSenderPtr();
+        MediaStreamList mediaStreams;
+        return addTrack(track, mediaStreams, inConfiguration);
       }
 
       //-----------------------------------------------------------------------
-      IRTPSenderPtr PeerConnection::addTrack(
-                                             IMediaStreamTrackPtr track,
-                                             const MediaStreamList &mediaStreams,
-                                             const MediaStreamTrackConfiguration &configuration
-                                             )
+      IPeerConnectionTypes::PromiseWithSenderPtr PeerConnection::addTrack(
+                                                                          IMediaStreamTrackPtr track,
+                                                                          const MediaStreamList &mediaStreams,
+                                                                          const MediaStreamTrackConfiguration &inConfiguration
+                                                                          )
       {
-        return IRTPSenderPtr();
+        ORTC_THROW_INVALID_PARAMETERS_IF(!track);
+
+        auto configuration = make_shared<MediaStreamTrackConfiguration>(inConfiguration);
+
+        AutoRecursiveLock lock(*this);
+
+        if (isStopped()) {
+          ZS_LOG_WARNING(Debug, log("cannot add track when peer connection is closed"));
+          return PromiseWithSender::createRejected(ErrorAny::create(UseHTTP::HTTPStatusCode_Gone, "peer connection is already closed"), UseORTC::queueDelegate());
+        }
+
+        if (IMediaStreamTrackTypes::State_Ended == track->readyState()) {
+          ZS_LOG_WARNING(Debug, log("cannot add track that has already ended"));
+          return PromiseWithSender::createRejected(ErrorAny::create(UseHTTP::HTTPStatusCode_PreconditionFailed, "media stream track has already ended"), UseORTC::queueDelegate());
+        }
+
+        auto pending = make_shared<PendingAddTrack>();
+
+        pending->mPromise = PromiseWithSender::create(UseORTC::queueDelegate());
+        pending->mConfiguration = configuration;
+        pending->mTrack = track;
+
+        for (auto iter = mediaStreams.begin(); iter != mediaStreams.end(); ++iter) {
+          auto &stream = (*iter);
+          ORTC_THROW_INVALID_PARAMETERS_IF(!stream);
+          pending->mMediaStreams.push_back(MediaStream::convert(stream));
+        }
+
+        mPendingAddTracks.push_back(pending);
+
+        ZS_LOG_DEBUG(log("will attempt to add track") + pending->toDebug());
+
+        wake();
+
+        return pending->mPromise;
       }
 
       //-----------------------------------------------------------------------
       void PeerConnection::removeTrack(IRTPSenderPtr sender)
       {
+        ORTC_THROW_INVALID_PARAMETERS_IF(!sender);
+
+        AutoRecursiveLock lock(*this);
+        if (isStopped()) {
+          ZS_LOG_WARNING(Debug, log("attempting to remove track during shutdown (thus ignoring request)"));
+          return;
+        }
+
+        ZS_LOG_DEBUG(log("will remove track") + ZS_PARAM("sender id", sender->getID()));
+
+        mPendingRemoveTracks.push_back(sender);
+        wake();
       }
 
       //-----------------------------------------------------------------------
-      IDataChannelPtr PeerConnection::createDataChannel(const IDataChannelTypes::Parameters &parameters)
+      IPeerConnectionTypes::PromiseWithDataChannelPtr PeerConnection::createDataChannel(const IDataChannelTypes::Parameters &inParameters)
       {
-        return IDataChannelPtr();
+        auto parameters = make_shared<IDataChannelTypes::Parameters>(inParameters);
+
+        AutoRecursiveLock lock(*this);
+
+        if (isStopped()) {
+          ZS_LOG_WARNING(Debug, log("cannot add track when peer connection is closed"));
+          return PromiseWithDataChannel::createRejected(ErrorAny::create(UseHTTP::HTTPStatusCode_Gone, "peer connection is already closed"), UseORTC::queueDelegate());
+        }
+
+        auto pending = make_shared<PendingAddDataChannel>();
+
+        pending->mPromise = PromiseWithDataChannel::create(UseORTC::queueDelegate());
+        pending->mParameters = parameters;
+
+        mPendingAddDataChannels.push_back(pending);
+
+        ZS_LOG_DEBUG(log("will attempt to add data cahnnel") + pending->toDebug());
+
+        wake();
+
+        return pending->mPromise;
       }
 
       //-----------------------------------------------------------------------
@@ -811,7 +991,7 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark PeerConnection => IRTPListener
+      #pragma mark PeerConnection => IRTPListenerDelegate
       #pragma mark
 
       //-----------------------------------------------------------------------
@@ -825,6 +1005,23 @@ namespace ortc
       {
       }
 
+
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark PeerConnection => IRTPSenderDelegate
+      #pragma mark
+
+      //-----------------------------------------------------------------------
+      void PeerConnection::onRTPSenderSSRCConflict(
+                                                   IRTPSenderPtr sender,
+                                                   SSRCType ssrc
+                                                   )
+      {
+        ZS_LOG_ERROR(Basic, log("SSRC conflict detected") + ZS_PARAM("sender", sender->getID()) + ZS_PARAM("ssrc", ssrc));
+      }
 
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
@@ -888,6 +1085,23 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       #pragma mark
+      #pragma mark PeerConnection => IPromiseSettledDelegate
+      #pragma mark
+
+      //-----------------------------------------------------------------------
+      void PeerConnection::onPromiseSettled(PromisePtr promise)
+      {
+        ZS_LOG_DEBUG("promise settled");
+
+        AutoRecursiveLock lock(*this);
+        step();
+      }
+
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
       #pragma mark PeerConnection => (internal)
       #pragma mark
 
@@ -935,6 +1149,9 @@ namespace ortc
         UseServicesHelper::debugAppend(resultEl, "pending remote description", ISessionDescription::toDebug(mPendingRemoteDescription));
 
         UseServicesHelper::debugAppend(resultEl, "pending methods", mPendingMethods.size());
+        UseServicesHelper::debugAppend(resultEl, "pending add tracks", mPendingAddTracks.size());
+        UseServicesHelper::debugAppend(resultEl, "pending remove tracks", mPendingRemoveTracks.size());
+        UseServicesHelper::debugAppend(resultEl, "pending add data channels", mPendingAddDataChannels.size());
 
         UseServicesHelper::debugAppend(resultEl, "transports", mTransports.size());
         UseServicesHelper::debugAppend(resultEl, "rtp medias", mRTPMedias.size());
@@ -943,6 +1160,8 @@ namespace ortc
         UseServicesHelper::debugAppend(resultEl, "receivers", mReceiver.size());
 
         UseServicesHelper::debugAppend(resultEl, "pending remote candidates", mPendingRemoteCandidates.size());
+
+        UseServicesHelper::debugAppend(resultEl, "pending transport pool", mTransportPool.size());
 
         return resultEl;
       }
@@ -975,11 +1194,35 @@ namespace ortc
 
         if (!mGracefulShutdownReference) mGracefulShutdownReference = mThisWeak.lock();
 
-
-
         setState(InternalState_Shutdown);
 
+#define TODO_CANCEL 1
+#define TODO_CANCEL 2
+
         mGracefulShutdownReference.reset();
+      }
+
+      //-----------------------------------------------------------------------
+      void PeerConnection::setError(WORD errorCode, const char *errorReason)
+      {
+        String errorReasonStr(errorReason);
+        if (isStopped()) {
+          ZS_LOG_WARNING(Trace, log("cannot set error while already stopped") + ZS_PARAM("error", errorCode) + ZS_PARAM("reason", errorReasonStr));
+          return;
+        }
+
+        if (0 != errorCode) {
+          ZS_LOG_WARNING(Trace, log("cannot set error as error was already set") + ZS_PARAM("error", errorCode) + ZS_PARAM("reason", errorReasonStr));
+          return;
+        }
+
+        mErrorCode = errorCode;
+        if (errorReasonStr.isEmpty()) {
+          errorReasonStr = UseHTTP::toString(UseHTTP::toStatusCode(errorCode));
+        }
+        mErrorReason = errorReasonStr;
+
+        ZS_LOG_ERROR(Debug, log("error set") + ZS_PARAM("error", mErrorCode) + ZS_PARAM("reason", mErrorReason));
       }
 
       //-----------------------------------------------------------------------
@@ -994,7 +1237,12 @@ namespace ortc
         ZS_LOG_DEBUG(debug("step"));
 
         // steps
+        if (!stepCertificates()) return;
         if (!stepProcessPendingRemoteCandidates()) return;
+#define TODO_STEP 1
+#define TODO_STEP 2
+        if (!stepAddTracks()) return;
+        if (!stepFinalizeSenders()) return;
 
         goto ready;
 
@@ -1002,6 +1250,52 @@ namespace ortc
         {
           setState(InternalState_Ready);
         }
+      }
+
+      //-----------------------------------------------------------------------
+      bool PeerConnection::stepCertificates()
+      {
+        ZS_LOG_TRACE(log("step - certificates"));
+
+        if (!mConfiguration.mCertificates.size() > 0) {
+          ZS_LOG_TRACE(log("already have certificates"));
+          return true;
+        }
+
+        if (!mCertificatePromise) {
+          mCertificatePromise = ICertificate::generateCertificate();
+          if (!mCertificatePromise) {
+            setError(UseHTTP::HTTPStatusCode_CertError, "unable to generate a certificate");
+            cancel();
+            return false;
+          }
+
+          mCertificatePromise->thenWeak(mThisWeak.lock());
+        }
+
+        if (!mCertificatePromise->isSettled()) {
+          setError(UseHTTP::HTTPStatusCode_CertError, "certificate promise is not settled");
+          cancel();
+          return false;
+        }
+
+        if (mCertificatePromise->isRejected()) {
+          setError(UseHTTP::HTTPStatusCode_CertError, "certificate promise was rejected");
+          cancel();
+          return false;
+        }
+
+        auto certificate = mCertificatePromise->value();
+        if (!certificate) {
+          setError(UseHTTP::HTTPStatusCode_CertError, "certificate promise was resolved but no promise was returned");
+          cancel();
+          return false;
+        }
+
+        mConfiguration.mCertificates.push_back(certificate);
+
+        mCertificatePromise.reset();
+        return true;
       }
 
       //-----------------------------------------------------------------------
@@ -1025,9 +1319,12 @@ namespace ortc
 
           for (auto iter = mRTPMedias.begin(); iter != mRTPMedias.end(); ++iter) {
             auto &mediaLine = *((*iter).second);
+            if (!mediaLine.mLineIndex.hasValue()) continue;
             if (mediaLine.mLineIndex != candidate->mMLineIndex.value()) continue;
 
-            auto found = mTransports.find(mediaLine.mTransportID);
+            String transportID(mediaLine.mPrivateTransportID.hasData() ? mediaLine.mPrivateTransportID : mediaLine.mBundledTransportID);
+
+            auto found = mTransports.find(transportID);
             if (found == mTransports.end()) goto not_found;
             addCandidateToTransport(*((*found).second), candidate);
             goto found;
@@ -1035,9 +1332,12 @@ namespace ortc
 
           for (auto iter = mSCTPMedias.begin(); iter != mSCTPMedias.end(); ++iter) {
             auto &mediaLine = *((*iter).second);
+            if (!mediaLine.mLineIndex.hasValue()) continue;
             if (mediaLine.mLineIndex != candidate->mMLineIndex.value()) continue;
 
-            auto found = mTransports.find(mediaLine.mTransportID);
+            String transportID(mediaLine.mPrivateTransportID.hasData() ? mediaLine.mPrivateTransportID : mediaLine.mBundledTransportID);
+
+            auto found = mTransports.find(transportID);
             if (found == mTransports.end()) goto not_found;
             addCandidateToTransport(*((*found).second), candidate);
             goto found;
@@ -1049,6 +1349,294 @@ namespace ortc
           }
         found: {}
         }
+        return true;
+      }
+
+      //-----------------------------------------------------------------------
+      bool PeerConnection::stepAddTracks()
+      {
+        typedef std::set<TransportID> TransportIDSet;
+
+        ZS_LOG_TRACE(log("step - process add track"));
+
+        while (mPendingAddTracks.size() > 0)
+        {
+          PendingAddTrackPtr pending = mPendingAddTracks.front();
+          mPendingAddTracks.pop_front();
+
+          bool alreadyPrivateTransport {false};
+          TransportIDSet compatibleTransports;
+          TransportIDSet disallowedTransports;
+
+          String useMediaLineID;
+
+          // find a compatible media line
+          for (auto iter = mRTPMedias.begin(); iter != mRTPMedias.end(); ++iter)
+          {
+            auto &mediaLine = *((*iter).second);
+            useMediaLineID = mediaLine.mID;
+
+            // scope: check to see if media line is compatible with pending track
+            {
+              // track of same kind, see if it's compatible
+              switch (mConfiguration.mBundlePolicy) {
+                case IPeerConnectionTypes::BundlePolicy_MaxCompat:
+                case IPeerConnectionTypes::BundlePolicy_MaxBundle: {
+                  if (0 != mediaLine.mMediaType.compareNoCase(IMediaStreamTrackTypes::toString(pending->mTrack->kind()))) goto possible_bundle_but_not_a_match;
+                  break;
+                }
+                
+                case IPeerConnectionTypes::BundlePolicy_Balanced: {
+                  if (0 != mediaLine.mMediaType.compareNoCase(IMediaStreamTrackTypes::toString(pending->mTrack->kind()))) goto not_compatible;
+                  break;
+                }
+              }
+
+              if (pending->mConfiguration->mCapabilities) {
+                switch (mediaLine.mIDPreference) {
+                  case UseAdapterHelper::IDPreference_Local: {
+                    if (!UseAdapterHelper::isCompatible(*(mediaLine.mLocalSenderCapabilities), *(pending->mConfiguration->mCapabilities))) goto not_compatible;
+                    break;
+                  }
+                  case UseAdapterHelper::IDPreference_Remote: {
+                    ZS_THROW_INVALID_ASSUMPTION_IF(!mediaLine.mRemoteReceiverCapabilities);
+
+                    // filter to the remote capabilities and ensure it's compatible
+                    auto senderUnion = UseAdapterHelper::createUnion(*(pending->mConfiguration->mCapabilities), (*(mediaLine.mRemoteReceiverCapabilities)), UseAdapterHelper::IDPreference_Remote);
+                    ZS_THROW_INVALID_ASSUMPTION_IF(!senderUnion);
+
+                    if (!UseAdapterHelper::isCompatible(*(mediaLine.mRemoteReceiverCapabilities), *senderUnion)) goto not_compatible;
+                    if (!UseAdapterHelper::hasSupportedMediaCodec(*senderUnion)) goto not_compatible;
+
+                    break;
+                  }
+                }
+              }
+
+              if (pending->mConfiguration->mParameters) {
+                switch (mediaLine.mIDPreference) {
+                  case UseAdapterHelper::IDPreference_Local: {
+                    if (!UseAdapterHelper::isCompatible(*(mediaLine.mLocalSenderCapabilities), *(pending->mConfiguration->mParameters))) goto not_compatible;
+                    break;
+                  }
+                  case UseAdapterHelper::IDPreference_Remote: {
+                    ZS_THROW_INVALID_ASSUMPTION_IF(!mediaLine.mRemoteReceiverCapabilities);
+
+                    // filter to the remote capabilities and ensure it's compatible
+                    auto filteredParameters = UseAdapterHelper::filterParameters(*(pending->mConfiguration->mParameters), (*(mediaLine.mRemoteReceiverCapabilities)));
+                    ZS_THROW_INVALID_ASSUMPTION_IF(!filteredParameters);
+
+                    if (!UseAdapterHelper::isCompatible(*(mediaLine.mRemoteReceiverCapabilities), *filteredParameters)) goto not_compatible;
+                    if (!UseAdapterHelper::hasSupportedMediaCodec(*filteredParameters)) goto not_compatible;
+
+                    break;
+                  }
+                }
+              }
+              switch (mConfiguration.mSignalingMode)
+              {
+                case IPeerConnectionTypes::SignalingMode_JSON:  break;
+                case IPeerConnectionTypes::SignalingMode_SDP:   goto possible_bundle_but_not_a_match;
+              }
+              goto match;
+            }
+
+          possible_bundle_but_not_a_match:
+            {
+              auto found = disallowedTransports.find(mediaLine.mBundledTransportID);
+              if (found != disallowedTransports.end()) continue;
+              compatibleTransports.insert(mediaLine.mBundledTransportID);
+              continue;
+            }
+
+          not_compatible:
+            {
+              disallowedTransports.insert(mediaLine.mBundledTransportID);
+              auto found = compatibleTransports.find(mediaLine.mBundledTransportID);
+              if (found != compatibleTransports.end()) {
+                // not allowed to bundle on this transport 
+                compatibleTransports.erase(found);
+              }
+              continue;
+            }
+          }
+
+          if (compatibleTransports.size() > 0) goto found_compatible;
+          goto none_compatible;
+
+        none_compatible:
+          {
+            alreadyPrivateTransport = true;
+
+            auto transportInfo = getTransportFromPool();
+            String transportID = transportInfo->mID;
+            compatibleTransports.insert(transportID);
+
+            goto found_compatible;
+          }
+
+        found_compatible:
+          {
+            auto first = compatibleTransports.begin();
+            ZS_THROW_INVALID_ASSUMPTION_IF(first == compatibleTransports.end());
+
+            auto bundledTransportID = (*first);
+            auto mediaLine = make_shared<RTPMediaLineInfo>();
+            mediaLine->mMediaType = IMediaStreamTrackTypes::toString(pending->mTrack->kind());
+            mediaLine->mBundledTransportID = bundledTransportID;
+            mediaLine->mIDPreference = UseAdapterHelper::IDPreference_Local;
+            mediaLine->mLocalSenderCapabilities = pending->mConfiguration->mCapabilities ? pending->mConfiguration->mCapabilities : IRTPSender::getCapabilities(pending->mTrack->kind());
+            mediaLine->mLocalReceiverCapabilities = pending->mConfiguration->mCapabilities ? pending->mConfiguration->mCapabilities : IRTPReceiver::getCapabilities(pending->mTrack->kind());
+
+            if (!alreadyPrivateTransport) {
+              if (IPeerConnectionTypes::BundlePolicy_MaxCompat == mConfiguration.mBundlePolicy) {
+                auto privateTransport = getTransportFromPool();
+                mediaLine->mPrivateTransportID = privateTransport->mID;
+              }
+            }
+
+            switch (mConfiguration.mSignalingMode) {
+              case IPeerConnectionTypes::SignalingMode_JSON:  {
+                mediaLine->mID = registerNewID();
+                break;
+              }
+              case IPeerConnectionTypes::SignalingMode_SDP:   {
+                // with SDP media ID and transport ID must share a common ID (unless it's bundled)
+                if (alreadyPrivateTransport) {
+                  mediaLine->mID = registerIDUsage(bundledTransportID);
+                } else if (mediaLine->mPrivateTransportID.hasData()) {
+                  mediaLine->mID = registerIDUsage(mediaLine->mPrivateTransportID);
+                } else {
+                  mediaLine->mID = registerNewID(3);
+                }
+                break;
+              }
+            }
+
+            mRTPMedias[mediaLine->mID] = mediaLine;
+            useMediaLineID = mediaLine->mID;
+            goto match;
+          }
+
+        match:
+          {
+            auto senderInfo = make_shared<SenderInfo>();
+            senderInfo->mMediaLineID = useMediaLineID;
+
+            // With SDP, the sender and the media line must share the same ID,
+            // but JSON signaling uses a unique ID for the sender.
+            switch (mConfiguration.mSignalingMode) {
+              case IPeerConnectionTypes::SignalingMode_JSON:  senderInfo->mID = registerNewID(); break;
+              case IPeerConnectionTypes::SignalingMode_SDP:   senderInfo->mID = registerIDUsage(useMediaLineID); break;
+            }
+
+            senderInfo->mConfiguration = pending->mConfiguration;
+            senderInfo->mTrack = pending->mTrack;
+            senderInfo->mMediaStreams = pending->mMediaStreams;
+            senderInfo->mPromise = pending->mPromise;
+
+            mSenders[senderInfo->mID] = senderInfo;
+
+            notifyNegotiationNeeded();  // need to signal this to the remote party before it will be started
+            continue;
+          }
+        }
+
+        return true;
+      }
+
+      //-----------------------------------------------------------------------
+      bool PeerConnection::stepFinalizeSenders()
+      {
+        ZS_LOG_TRACE("step - finalize senders");
+
+        for (auto iter_doNotUse = mSenders.begin(); iter_doNotUse != mSenders.end(); ) {
+
+          auto current = iter_doNotUse;
+          ++iter_doNotUse;
+
+          auto &senderInfo = ((*current).second);
+          if (!senderInfo->mPromise) continue;
+
+          WORD error = UseHTTP::HTTPStatusCode_Conflict;
+          const char *reason = NULL;
+
+          // scope: see if the sender can be resolved
+          {
+            auto foundMediaLine = mRTPMedias.find(senderInfo->mMediaLineID);
+            if (foundMediaLine == mRTPMedias.end()) {
+              reason = "media line associated with sender is not present (thus removing sender)";
+              goto remove_sender;
+            }
+            
+            auto &mediaLine = (*foundMediaLine).second;
+
+            auto foundTransport = mTransports.find(mediaLine->mBundledTransportID);
+            if (foundTransport == mTransports.end()) {
+              reason = "transport associated with media line is not present (thus removing sender)";
+              goto remove_sender;
+            }
+
+            auto &transport = (*foundTransport).second;
+            if (NegotiationState_Agreed != transport->mNegotiationState) {
+              ZS_LOG_TRACE(log("still waiting for negotiation of transport to complete") + transport->toDebug());
+              continue;
+            }
+
+            ZS_THROW_INVALID_ASSUMPTION_IF(!mediaLine->mLocalSenderCapabilities);
+            ZS_THROW_INVALID_ASSUMPTION_IF(!mediaLine->mRemoteReceiverCapabilities);
+
+            auto capsUnion = UseAdapterHelper::createUnion(*mediaLine->mLocalSenderCapabilities, *mediaLine->mRemoteReceiverCapabilities, mediaLine->mIDPreference);
+            auto parameters = senderInfo->mConfiguration->mParameters ? senderInfo->mConfiguration->mParameters : UseAdapterHelper::capabilitiesToParameters(*capsUnion);
+            if (!UseAdapterHelper::isCompatible(*capsUnion, *parameters)) {
+              reason = "sender is not compatible with remote party (thus removing)";
+              ZS_LOG_WARNING(Debug, log(reason) + capsUnion->toDebug() + parameters->toDebug());
+              goto remove_sender;
+            }
+
+            if (!UseAdapterHelper::hasSupportedMediaCodec(*parameters)) {
+              reason = "sender is not compatible with remote party (thus removing)";
+              ZS_LOG_WARNING(Debug, log(reason) + capsUnion->toDebug() + parameters->toDebug());
+              goto remove_sender;
+            }
+
+            if (transport->mRTP.mDTLSTransport) {
+              senderInfo->mSender = IRTPSender::create(mThisWeak.lock(), senderInfo->mTrack, transport->mRTP.mDTLSTransport, transport->mRTCP.mDTLSTransport);
+            } else {
+              senderInfo->mSender = IRTPSender::create(mThisWeak.lock(), senderInfo->mTrack, transport->mRTP.mSRTPSDESTransport, transport->mRTCP.mTransport);
+            }
+
+            if (!senderInfo->mSender) {
+              reason = "sender was not created";
+              error = UseHTTP::HTTPStatusCode_NoContent;
+              goto remove_sender;
+            }
+
+            ZS_LOG_DEBUG(log("sender created") + ZS_PARAM("sender id", senderInfo->mSender->getID()) + parameters->toDebug());
+
+            try {
+              senderInfo->mSender->send(*parameters);
+            } catch (const InvalidParameters &) {
+              reason = "sender.send() caused InvalidParameters exception";
+              goto remove_sender;
+            } catch (const InvalidStateError &) {
+              reason = "sender.send() caused InvalidState exception";
+              goto remove_sender;
+            }
+            senderInfo->mPromise->resolve(senderInfo->mSender);
+          }
+
+        remove_sender:
+          {
+            ZS_LOG_WARNING(Detail, log(reason) + senderInfo->toDebug());
+            senderInfo->mPromise->reject(ErrorAny::create(error, reason));
+            unregisterID(senderInfo->mID);
+            mSenders.erase(current);
+            // ensure unlinked transports / media lines get removed
+            wake();
+          }
+        }
+
         return true;
       }
 
@@ -1134,12 +1722,12 @@ namespace ortc
             return;
           }
 
-          if (IICETypes::Component_RTP == candidate->mComponent) {
+          if (IICETypes::Component_RTP == candidate->mCandidate->mComponent) {
             if (!transport.mRTP.mTransport) goto not_found;
             transport.mRTP.mTransport->addRemoteCandidate(*(candidate->mCandidate));
             return;
           }
-          if (IICETypes::Component_RTCP == candidate->mComponent) {
+          if (IICETypes::Component_RTCP == candidate->mCandidate->mComponent) {
             if (!transport.mRTCP.mTransport) goto not_found;
             transport.mRTCP.mTransport->addRemoteCandidate(*(candidate->mCandidate));
             return;
@@ -1150,6 +1738,96 @@ namespace ortc
         {
           ZS_LOG_WARNING(Debug, log("component transport for added candidate was not found") + candidate->toDebug() + transport.toDebug());
         }
+      }
+
+      //-----------------------------------------------------------------------
+      PeerConnection::TransportInfoPtr PeerConnection::getTransportFromPool()
+      {
+        if (mTransportPool.size() < 1) {
+          addToTransportPool();
+        }
+
+        TransportInfoPtr transport = mTransportPool.front();
+        mTransportPool.pop_front();
+
+        transport->mID = registerNewID();
+        mTransports[transport->mID] = transport;
+        return transport;
+      }
+
+      //-----------------------------------------------------------------------
+      void PeerConnection::addToTransportPool()
+      {
+        TransportInfoPtr info(make_shared<TransportInfo>());
+
+        IICEGatherer::Options emptyOptions;
+        info->mRTP.mGatherer = IICEGatherer::create(mThisWeak.lock(), mConfiguration.mGatherOptions ? (*(mConfiguration.mGatherOptions)) : emptyOptions);
+        info->mRTP.mTransport = IICETransport::create(mThisWeak.lock(), info->mRTP.mGatherer);
+
+        if (IPeerConnectionTypes::RTCPMuxPolicy_Negotiated == mConfiguration.mRTCPMuxPolicy) {
+          info->mRTCP.mGatherer = info->mRTP.mGatherer->createAssociatedGatherer(mThisWeak.lock());
+          info->mRTCP.mTransport = info->mRTCP.mTransport->createAssociatedTransport(mThisWeak.lock());
+        }
+
+        mTransportPool.push_back(info);
+      }
+
+      //-----------------------------------------------------------------------
+      String PeerConnection::registerNewID(size_t length)
+      {
+        size_t tries = 0;
+
+        String result;
+        
+        while (true)
+        {
+          ++tries;
+          if (tries % 10 == 0) ++length;
+
+          result = UseServicesHelper::randomString(length);
+          result.toLower();
+
+          auto found = mExistingIDs.find(result);
+          if (found != mExistingIDs.end()) continue;
+
+          break;
+        }
+
+        mExistingIDs[result] = 1;
+        return result;
+      }
+
+      //-----------------------------------------------------------------------
+      String PeerConnection::registerIDUsage(const char *idStr)
+      {
+        String str(idStr);
+
+        auto found = mExistingIDs.find(str);
+        if (found == mExistingIDs.end()) {
+          mExistingIDs[str] = 1;
+          return str;
+        }
+
+        auto &total = (*found).second;
+        ++total;
+        return str;
+      }
+
+      //-----------------------------------------------------------------------
+      void PeerConnection::unregisterID(const char *idStr)
+      {
+        String str(idStr);
+
+        auto found = mExistingIDs.find(str);
+        if (found == mExistingIDs.end()) return;
+
+        auto &total = (*found).second;
+        if (total > 1) {
+          --total;
+          return;
+        }
+
+        mExistingIDs.erase(found);
       }
 
       //-----------------------------------------------------------------------
@@ -1199,9 +1877,9 @@ namespace ortc
     {
       switch (policy)
       {
-        case IPeerConnectionTypes::BundlePolicy_Balanced: return "balanced";
-        case IPeerConnectionTypes::BundlePolity_MaxCompat: return "max-compat";
-        case IPeerConnectionTypes::BundlePolicy_MaxBundle: return "max-bundle";
+        case IPeerConnectionTypes::BundlePolicy_Balanced:   return "balanced";
+        case IPeerConnectionTypes::BundlePolicy_MaxCompat:  return "max-compat";
+        case IPeerConnectionTypes::BundlePolicy_MaxBundle:  return "max-bundle";
       }
       return "unknown";
     }
@@ -1313,6 +1991,8 @@ namespace ortc
       UseServicesHelper::debugAppend(resultEl, "negotiate SRTP SDES", mNegotiateSRTPSDES);
       UseServicesHelper::debugAppend(resultEl, "bundle policy", IPeerConnectionTypes::toString(mBundlePolicy));
       UseServicesHelper::debugAppend(resultEl, "rtcp policy", IPeerConnectionTypes::toString(mRTCPMuxPolicy));
+      UseServicesHelper::debugAppend(resultEl, "ice candidate pool size", mICECandidatePoolSize);
+
       UseServicesHelper::debugAppend(resultEl, "certificates", mCertificates.size());
 
       return resultEl;
@@ -1392,12 +2072,29 @@ namespace ortc
     #pragma mark IPeerConnectionTypes::MediaStreamTrackConfiguration
     #pragma mark
 
+
+    //-------------------------------------------------------------------------
+    IPeerConnectionTypes::MediaStreamTrackConfiguration::MediaStreamTrackConfiguration(const MediaStreamTrackConfiguration &op2) :
+      mCapabilities(op2.mCapabilities ? make_shared<IRTPTypes::Capabilities>(*op2.mCapabilities) : IRTPTypes::CapabilitiesPtr()),
+      mParameters(op2.mParameters ? make_shared<IRTPTypes::Parameters>(*op2.mParameters) : IRTPTypes::ParametersPtr())
+    {
+    }
+
     //-------------------------------------------------------------------------
     ElementPtr IPeerConnectionTypes::MediaStreamTrackConfiguration::toDebug() const
     {
       ElementPtr resultEl = Element::create("ortc::adapter::IPeerConnectionTypes::MediaStreamTrackConfiguration");
+      UseServicesHelper::debugAppend(resultEl, mCapabilities ? mCapabilities->toDebug() : ElementPtr());
       UseServicesHelper::debugAppend(resultEl, mParameters ? mParameters->toDebug() : ElementPtr());
       return resultEl;
+    }
+
+    //-------------------------------------------------------------------------
+    IPeerConnectionTypes::MediaStreamTrackConfiguration &IPeerConnectionTypes::MediaStreamTrackConfiguration::operator=(const MediaStreamTrackConfiguration &op2)
+    {
+      mCapabilities = op2.mCapabilities ? make_shared<IRTPTypes::Capabilities>(*op2.mCapabilities) : IRTPTypes::CapabilitiesPtr();
+      mParameters = op2.mParameters ? make_shared<IRTPTypes::Parameters>(*op2.mParameters) : IRTPTypes::ParametersPtr();
+      return *this;
     }
 
     //-------------------------------------------------------------------------

@@ -393,11 +393,11 @@ namespace ortc
 
       virtual ParametersPtr getRemoteParameters() const override;
 
-      virtual IICETransportPtr createAssociatedTransport() throw (InvalidStateError) override;
+      virtual IICETransportPtr createAssociatedTransport(IICETransportDelegatePtr delegate) throw (InvalidStateError) override;
 
-      virtual void addRemoteCandidate(const GatherCandidate &remoteCandidate) throw (InvalidStateError) override;
-      virtual void setRemoteCandidates(const CandidateList &remoteCandidates) throw (InvalidStateError) override;
-      virtual void removeRemoteCandidate(const GatherCandidate &remoteCandidate) throw (InvalidStateError) override;
+      virtual void addRemoteCandidate(const GatherCandidate &remoteCandidate) throw (InvalidStateError, InvalidParameters) override;
+      virtual void setRemoteCandidates(const CandidateList &remoteCandidates) throw (InvalidStateError, InvalidParameters) override;
+      virtual void removeRemoteCandidate(const GatherCandidate &remoteCandidate) throw (InvalidStateError, InvalidParameters) override;
 
       virtual void keepWarm(
                             const CandidatePair &candidatePair,

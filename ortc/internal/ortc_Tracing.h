@@ -138,9 +138,9 @@
 #define EventWriteOrtcIceGathererStateChangedEventFired(xStr_Method, xPUID, xStr_State)
 #define EventWriteOrtcIceGathererErrorEventFired(xStr_Method, xPUID, xWORD_Error, xStr_Reason)
 
-#define EventWriteOrtcIceGathererAddCandidateEventFired(xStr_Method, xPUID, xStr_LocalHash, xStr_NotifyHash, xStr_InterfaceType, xStr_Foundation, xDWORD_Priority, xDWORD_UnfreezePriority, xStr_Protocol, xStr_IP, xWORD_Port, xStr_CandidateType, xStr_TcpType, xStr_RelatedAddress, xWORD_RelatedPort)
-#define EventWriteOrtcIceGathererRemoveCandidateEventFired(xStr_Method, xPUID, xStr_LocalHash, xStr_NotifyHash, xStr_InterfaceType, xStr_Foundation, xDWORD_Priority, xDWORD_UnfreezePriority, xStr_Protocol, xStr_IP, xWORD_Port, xStr_CandidateType, xStr_TcpType, xStr_RelatedAddress, xWORD_RelatedPort)
-#define EventWriteOrtcIceGathererFilterCandidateEventFired(xStr_Method, xPUID, xUInt_FilterPolicy, xStr_BoundIP, xStr_InterfaceType, xStr_Foundation, xDWORD_Priority, xDWORD_UnfreezePriority, xStr_Protocol, xStr_IP, xWORD_Port, xStr_CandidateType, xStr_TcpType, xStr_RelatedAddress, xWORD_RelatedPort)
+#define EventWriteOrtcIceGathererAddCandidateEventFired(xStr_Method, xPUID, xStr_LocalHash, xStr_NotifyHash, xStr_InterfaceType, xStr_Foundation, xWORD_Component, xDWORD_Priority, xDWORD_UnfreezePriority, xStr_Protocol, xStr_IP, xWORD_Port, xStr_CandidateType, xStr_TcpType, xStr_RelatedAddress, xWORD_RelatedPort)
+#define EventWriteOrtcIceGathererRemoveCandidateEventFired(xStr_Method, xPUID, xStr_LocalHash, xStr_NotifyHash, xStr_InterfaceType, xStr_Foundation, xWORD_Component, xDWORD_Priority, xDWORD_UnfreezePriority, xStr_Protocol, xStr_IP, xWORD_Port, xStr_CandidateType, xStr_TcpType, xStr_RelatedAddress, xWORD_RelatedPort)
+#define EventWriteOrtcIceGathererFilterCandidateEventFired(xStr_Method, xPUID, xUInt_FilterPolicy, xStr_BoundIP, xStr_InterfaceType, xStr_Foundation, xWORD_Component, xDWORD_Priority, xDWORD_UnfreezePriority, xStr_Protocol, xStr_IP, xWORD_Port, xStr_CandidateType, xStr_TcpType, xStr_RelatedAddress, xWORD_RelatedPort)
 
 #define EventWriteOrtcIceGathererInstallIceTransport(xStr_Method, xPUID, xPUID_IceTransportObjectID, xStr_RemoteUsernameFragment)
 #define EventWriteOrtcIceGathererRemoveIceTransport(xStr_Method, xPUID, xPUID_IceTransportObjectID)
@@ -234,10 +234,10 @@
 #define EventWriteOrtcIceTransportStart(xStr_Method, xPUID, xPUID_IceGathererObjectID, xBool_RemoteUseCandidateFreezePriority, xStr_RemoteUsernameFragment, xStr_RemotePassword, xBool_IceLite, xStr_RemoteParametersHash, xStr_OldRemoteParametersHash, xBool_HasRemoteUsernameFragment)
 #define EventWriteOrtcIceTransportCreateAssociatedTransport(xStr_Method, xPUID, xPUID_AssociatedTransportObjectID)
 
-#define EventWriteOrtcIceTransportAddRemoteCandidate(xStr_Method, xPUID, xStr_Hash, xStr_InterfaceType, xStr_Foundation, xDWORD_Priority, xDWORD_UnfreezePriority, xStr_Protocol, xStr_IP, xWORD_Port, xStr_CandidateType, xStr_TcpType, xStr_RelatedAddress, xWORD_RelatedPort, xBool_PreviouslyAdded)
-#define EventWriteOrtcIceTransportAddRemoteCandidateComplete(xStr_Method, xPUID)
-#define EventWriteOrtcIceTransportRemoveRemoteCandidate(xStr_Method, xPUID, xStr_Hash, xStr_InterfaceType, xStr_Foundation, xDWORD_Priority, xDWORD_UnfreezePriority, xStr_Protocol, xStr_IP, xWORD_Port, xStr_CandidateType, xStr_TcpType, xStr_RelatedAddress, xWORD_RelatedPort, xBool_WasKnownPreviously)
-#define EventWriteOrtcIceTransportRemoveRemoteCandidateComplete(xStr_Method, xPUID)
+#define EventWriteOrtcIceTransportAddRemoteCandidate(xStr_Method, xPUID, xStr_Hash, xStr_InterfaceType, xStr_Foundation, xWORD_Component, xDWORD_Priority, xDWORD_UnfreezePriority, xStr_Protocol, xStr_IP, xWORD_Port, xStr_CandidateType, xStr_TcpType, xStr_RelatedAddress, xWORD_RelatedPort, xBool_PreviouslyAdded)
+#define EventWriteOrtcIceTransportAddRemoteCandidateComplete(xStr_Method, xPUID, xWORD_Component)
+#define EventWriteOrtcIceTransportRemoveRemoteCandidate(xStr_Method, xPUID, xStr_Hash, xStr_InterfaceType, xStr_Foundation, xWORD_Component, xDWORD_Priority, xDWORD_UnfreezePriority, xStr_Protocol, xStr_IP, xWORD_Port, xStr_CandidateType, xStr_TcpType, xStr_RelatedAddress, xWORD_RelatedPort, xBool_WasKnownPreviously)
+#define EventWriteOrtcIceTransportRemoveRemoteCandidateComplete(xStr_Method, xPUID, xWORD_Component)
 
 #define EventWriteOrtcIceTransportKeepWarm(xStr_Method, xPUID, xStr_Reason, xStr_CandidatePairHash, xBool_KeepWarm)
 
@@ -283,7 +283,7 @@
 
 #define EventWriteOrtcIceTransportInternalGathererStateChangedEventFired(xStr_Method, xPUID, xPUID_IceGathererObjectID, xStr_State)
 #define EventWriteOrtcIceTransportInternalGathererAddLocalCandidateEventFired(xStr_Method, xPUID, xPUID_IceGathererObjectID, xStr_InterfaceType, xStr_Foundation, xDWORD_Priority, xDWORD_UnfreezePriority, xStr_Protocol, xStr_IP, xWORD_Port, xStr_CandidateType, xStr_TcpType, xStr_RelatedAddress, xWORD_RelatedPort)
-#define EventWriteOrtcIceTransportInternalGathererAddLocalCandidateCompleteEventFired(xStr_Method, xPUID, xPUID_IceGathererObjectID)
+#define EventWriteOrtcIceTransportInternalGathererAddLocalCandidateCompleteEventFired(xStr_Method, xPUID, xPUID_IceGathererObjectID, WORD xWORD_Component)
 #define EventWriteOrtcIceTransportInternalGathererRemoveLocalCandidateEventFired(xStr_Method, xPUID, xPUID_IceGathererObjectID, xStr_InterfaceType, xStr_Foundation, xDWORD_Priority, xDWORD_UnfreezePriority, xStr_Protocol, xStr_IP, xWORD_Port, xStr_CandidateType, xStr_TcpType, xStr_RelatedAddress, xWORD_RelatedPort)
 
 #define EventWriteOrtcIceTransportInternalStunRequesterCreate(xStr_Method, xPUID, xPUID_StunRequesterObjectID)
@@ -611,9 +611,9 @@ inline void EventWriteOrtcIceGathererGather(const char *xStr_Method, PUID xPUID,
 inline void EventWriteOrtcIceGathererStateChangedEventFired(const char *xStr_Method, PUID xPUID, const char *xStr_State) {}
 inline void EventWriteOrtcIceGathererErrorEventFired(const char *xStr_Method, PUID xPUID, WORD xWORD_Error, const char *xStr_Reason) {}
 
-inline void EventWriteOrtcIceGathererAddCandidateEventFired(const char *xStr_Method, PUID xPUID, const char *xStr_LocalHash, const char *xStr_NotifyHash, const char *xStr_InterfaceType, const char *xStr_Foundation, DWORD xDWORD_Priority, DWORD xDWORD_UnfreezePriority, const char *xStr_Protocol, const char *xStr_IP, WORD xWORD_Port, const char *xStr_CandidateType, const char *xStr_TcpType, const char *xStr_RelatedAddress, WORD xWORD_RelatedPort) {}
-inline void EventWriteOrtcIceGathererRemoveCandidateEventFired(const char *xStr_Method, PUID xPUID, const char *xStr_LocalHash, const char *xStr_NotifyHash, const char *xStr_InterfaceType, const char *xStr_Foundation, DWORD xDWORD_Priority, DWORD xDWORD_UnfreezePriority, const char *xStr_Protocol, const char *xStr_IP, WORD xWORD_Port, const char *xStr_CandidateType, const char *xStr_TcpType, const char *xStr_RelatedAddress, WORD xWORD_RelatedPort) {}
-inline void EventWriteOrtcIceGathererFilterCandidateEventFired(const char *xStr_Method, PUID xPUID, unsigned int xUInt_FilterPolicy, const char *xStr_BoundIP, const char *xStr_InterfaceType, const char *xStr_Foundation, DWORD xDWORD_Priority, DWORD xDWORD_UnfreezePriority, const char *xStr_Protocol, const char *xStr_IP, WORD xWORD_Port, const char *xStr_CandidateType, const char *xStr_TcpType, const char *xStr_RelatedAddress, WORD xWORD_RelatedPort) {}
+inline void EventWriteOrtcIceGathererAddCandidateEventFired(const char *xStr_Method, PUID xPUID, const char *xStr_LocalHash, const char *xStr_NotifyHash, const char *xStr_InterfaceType, const char *xStr_Foundation, WORD xWORD_Component, DWORD xDWORD_Priority, DWORD xDWORD_UnfreezePriority, const char *xStr_Protocol, const char *xStr_IP, WORD xWORD_Port, const char *xStr_CandidateType, const char *xStr_TcpType, const char *xStr_RelatedAddress, WORD xWORD_RelatedPort) {}
+inline void EventWriteOrtcIceGathererRemoveCandidateEventFired(const char *xStr_Method, PUID xPUID, const char *xStr_LocalHash, const char *xStr_NotifyHash, const char *xStr_InterfaceType, const char *xStr_Foundation, WORD xWORD_Component, DWORD xDWORD_Priority, DWORD xDWORD_UnfreezePriority, const char *xStr_Protocol, const char *xStr_IP, WORD xWORD_Port, const char *xStr_CandidateType, const char *xStr_TcpType, const char *xStr_RelatedAddress, WORD xWORD_RelatedPort) {}
+inline void EventWriteOrtcIceGathererFilterCandidateEventFired(const char *xStr_Method, PUID xPUID, unsigned int xUInt_FilterPolicy, const char *xStr_BoundIP, const char *xStr_InterfaceType, const char *xStr_Foundation, WORD xWORD_Component, DWORD xDWORD_Priority, DWORD xDWORD_UnfreezePriority, const char *xStr_Protocol, const char *xStr_IP, WORD xWORD_Port, const char *xStr_CandidateType, const char *xStr_TcpType, const char *xStr_RelatedAddress, WORD xWORD_RelatedPort) {}
 
 inline void EventWriteOrtcIceGathererInstallIceTransport(const char *xStr_Method, PUID xPUID, PUID xPUID_IceTransportObjectID, const char *xStr_RemoteUsernameFragment) {}
 inline void EventWriteOrtcIceGathererRemoveIceTransport(const char *xStr_Method, PUID xPUID, PUID xPUID_IceTransportObjectID) {}
@@ -707,10 +707,10 @@ inline void EventWriteOrtcIceTransportRouteStateTrackerStateCountChange(const ch
 inline void EventWriteOrtcIceTransportStart(const char *xStr_Method, PUID xPUID, PUID xPUID_IceGathererObjectID, bool xBool_RemoteUseCandidateFreezePriority, const char *xStr_RemoteUsernameFragment, const char *xStr_RemotePassword, bool xBool_IceLite, const char *xStr_RemoteParametersHash, const char *xStr_OldRemoteParametersHash, bool xBool_HasRemoteUsernameFragment) {}
 inline void EventWriteOrtcIceTransportCreateAssociatedTransport(const char *xStr_Method, PUID xPUID, PUID xPUID_AssociatedTransportObjectID) {}
 
-inline void EventWriteOrtcIceTransportAddRemoteCandidate(const char *xStr_Method, PUID xPUID, const char *xStr_Hash, const char *xStr_InterfaceType, const char *xStr_Foundation, DWORD xDWORD_Priority, DWORD xDWORD_UnfreezePriority, const char *xStr_Protocol, const char *xStr_IP, WORD xWORD_Port, const char *xStr_CandidateType, const char *xStr_TcpType, const char *xStr_RelatedAddress, WORD xWORD_RelatedPort, bool xBool_PreviouslyAdded) {}
-inline void EventWriteOrtcIceTransportAddRemoteCandidateComplete(const char *xStr_Method, PUID xPUID) {}
-inline void EventWriteOrtcIceTransportRemoveRemoteCandidate(const char *xStr_Method, PUID xPUID, const char *xStr_Hash, const char *xStr_InterfaceType, const char *xStr_Foundation, DWORD xDWORD_Priority, DWORD xDWORD_UnfreezePriority, const char *xStr_Protocol, const char *xStr_IP, WORD xWORD_Port, const char *xStr_CandidateType, const char *xStr_TcpType, const char *xStr_RelatedAddress, WORD xWORD_RelatedPort, bool xBool_WasKnownPreviously) {}
-inline void EventWriteOrtcIceTransportRemoveRemoteCandidateComplete(const char *xStr_Method, PUID xPUID) {}
+inline void EventWriteOrtcIceTransportAddRemoteCandidate(const char *xStr_Method, PUID xPUID, const char *xStr_Hash, const char *xStr_InterfaceType, const char *xStr_Foundation, WORD xWORD_Component, DWORD xDWORD_Priority, DWORD xDWORD_UnfreezePriority, const char *xStr_Protocol, const char *xStr_IP, WORD xWORD_Port, const char *xStr_CandidateType, const char *xStr_TcpType, const char *xStr_RelatedAddress, WORD xWORD_RelatedPort, bool xBool_PreviouslyAdded) {}
+inline void EventWriteOrtcIceTransportAddRemoteCandidateComplete(const char *xStr_Method, PUID xPUID, WORD xWROD_Componenet) {}
+inline void EventWriteOrtcIceTransportRemoveRemoteCandidate(const char *xStr_Method, PUID xPUID, const char *xStr_Hash, const char *xStr_InterfaceType, const char *xStr_Foundation, WORD xWORD_Component, DWORD xDWORD_Priority, DWORD xDWORD_UnfreezePriority, const char *xStr_Protocol, const char *xStr_IP, WORD xWORD_Port, const char *xStr_CandidateType, const char *xStr_TcpType, const char *xStr_RelatedAddress, WORD xWORD_RelatedPort, bool xBool_WasKnownPreviously) {}
+inline void EventWriteOrtcIceTransportRemoveRemoteCandidateComplete(const char *xStr_Method, PUID xPUID, WORD xWORD_Component) {}
 
 inline void EventWriteOrtcIceTransportKeepWarm(const char *xStr_Method, PUID xPUID, const char *xStr_Reason, const char *xStr_CandidatePairHash, bool xBool_KeepWarm) {}
 
@@ -756,7 +756,7 @@ inline void EventWriteOrtcIceTransportInternalUnfrozenPromiseEventFired(const ch
 
 inline void EventWriteOrtcIceTransportInternalGathererStateChangedEventFired(const char *xStr_Method, PUID xPUID, PUID xPUID_IceGathererObjectID, const char *xStr_State) {}
 inline void EventWriteOrtcIceTransportInternalGathererAddLocalCandidateEventFired(const char *xStr_Method, PUID xPUID, PUID xPUID_IceGathererObjectID, const char *xStr_InterfaceType, const char *xStr_Foundation, DWORD xDWORD_Priority, DWORD xDWORD_UnfreezePriority, const char *xStr_Protocol, const char *xStr_IP, WORD xWORD_Port, const char *xStr_CandidateType, const char *xStr_TcpType, const char *xStr_RelatedAddress, WORD xWORD_RelatedPort) {}
-inline void EventWriteOrtcIceTransportInternalGathererAddLocalCandidateCompleteEventFired(const char *xStr_Method, PUID xPUID, PUID xPUID_IceGathererObjectID) {}
+inline void EventWriteOrtcIceTransportInternalGathererAddLocalCandidateCompleteEventFired(const char *xStr_Method, PUID xPUID, PUID xPUID_IceGathererObjectID, WORD xWORD_Componeent) {}
 inline void EventWriteOrtcIceTransportInternalGathererRemoveLocalCandidateEventFired(const char *xStr_Method, PUID xPUID, PUID xPUID_IceGathererObjectID, const char *xStr_InterfaceType, const char *xStr_Foundation, DWORD xDWORD_Priority, DWORD xDWORD_UnfreezePriority, const char *xStr_Protocol, const char *xStr_IP, WORD xWORD_Port, const char *xStr_CandidateType, const char *xStr_TcpType, const char *xStr_RelatedAddress, WORD xWORD_RelatedPort) {}
 
 inline void EventWriteOrtcIceTransportInternalStunRequesterCreate(const char *xStr_Method, PUID xPUID, PUID xPUID_StunRequesterObjectID) {}

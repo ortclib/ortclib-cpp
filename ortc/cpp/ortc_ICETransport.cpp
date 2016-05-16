@@ -568,7 +568,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    IICETransportPtr ICETransport::createAssociatedTransport() throw (InvalidStateError)
+    IICETransportPtr ICETransport::createAssociatedTransport(IICETransportDelegatePtr delegate) throw (InvalidStateError)
     {
       ICETransportPtr pThis;
       UseSecureTransportPtr secureTransport;
@@ -584,10 +584,10 @@ namespace ortc
         if (mGatherer) {
           rtcpGatherer = mGatherer->getRTCPGatherer();
           ORTC_THROW_INVALID_PARAMETERS_IF(Component_RTCP != rtcpGatherer->component())
-          ORTC_THROW_INVALID_PARAMETERS_IF(IICEGatherer::State_Complete == rtcpGatherer->state())
+          ORTC_THROW_INVALID_PARAMETERS_IF(IICEGatherer::State_Closed == rtcpGatherer->state())
         }
 
-        pThis = make_shared<ICETransport>(make_private {}, IORTCForInternal::queueORTC(), IICETransportDelegatePtr(), rtcpGatherer);
+        pThis = make_shared<ICETransport>(make_private {}, IORTCForInternal::queueORTC(), delegate, rtcpGatherer);
         pThis->mThisWeak.lock();
         pThis->mRTPTransport = mThisWeak.lock();
         mRTCPTransport = pThis;
@@ -607,11 +607,11 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void ICETransport::addRemoteCandidate(const GatherCandidate &remoteCandidate) throw (InvalidStateError)
+    void ICETransport::addRemoteCandidate(const GatherCandidate &remoteCandidate) throw (InvalidStateError, InvalidParameters)
     {
       AutoRecursiveLock lock(*this);
 
-      ORTC_THROW_INVALID_STATE_IF(isShuttingDown() || isShutdown())
+      ORTC_THROW_INVALID_STATE_IF(isShuttingDown() || isShutdown());
 
       {
         const Candidate *tempCandidate = dynamic_cast<const IICETypes::Candidate *>(&remoteCandidate);
@@ -619,12 +619,15 @@ namespace ortc
           auto hash = tempCandidate->hash();
           auto found = mRemoteCandidates.find(hash);
 
+          ORTC_THROW_INVALID_PARAMETERS_IF(mComponent != tempCandidate->mComponent);
+
           EventWriteOrtcIceTransportAddRemoteCandidate(
                                                        __func__,
                                                        mID,
                                                        hash,
                                                        tempCandidate->mInterfaceType,
                                                        tempCandidate->mFoundation,
+                                                       tempCandidate->mComponent,
                                                        tempCandidate->mPriority,
                                                        tempCandidate->mUnfreezePriority,
                                                        IICETypes::toString(tempCandidate->mProtocol),
@@ -656,7 +659,8 @@ namespace ortc
 
         const CandidateComplete *tempCandidateComplete = dynamic_cast<const IICETypes::CandidateComplete *>(&remoteCandidate);
         if (tempCandidateComplete) {
-          EventWriteOrtcIceTransportAddRemoteCandidateComplete(__func__, mID);
+          EventWriteOrtcIceTransportAddRemoteCandidateComplete(__func__, mID, tempCandidateComplete->mComponent);
+          ORTC_THROW_INVALID_PARAMETERS_IF(tempCandidateComplete->mComponent != mComponent);
           if (!mRemoteCandidatesComplete) {
             ZS_LOG_DEBUG(log("end of remote candidates indicated"))
             mRemoteCandidatesComplete = true;
@@ -681,7 +685,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void ICETransport::setRemoteCandidates(const CandidateList &remoteCandidates) throw (InvalidStateError)
+    void ICETransport::setRemoteCandidates(const CandidateList &remoteCandidates) throw (InvalidStateError, InvalidParameters)
     {
       AutoRecursiveLock lock(*this);
 
@@ -698,6 +702,8 @@ namespace ortc
 
         CandidatePtr candidate(make_shared<Candidate>(tempCandidate));
         auto hash = candidate->hash();
+
+        ORTC_THROW_INVALID_PARAMETERS_IF(mComponent != candidate->mComponent);
 
         foundCandidates[hash] = candidate;
       }
@@ -721,6 +727,7 @@ namespace ortc
                                                         hash,
                                                         candidate->mInterfaceType,
                                                         candidate->mFoundation,
+                                                        candidate->mComponent,
                                                         candidate->mPriority,
                                                         candidate->mUnfreezePriority,
                                                         IICETypes::toString(candidate->mProtocol),
@@ -749,6 +756,7 @@ namespace ortc
                                                      hash,
                                                      candidate->mInterfaceType,
                                                      candidate->mFoundation,
+                                                     candidate->mComponent,
                                                      candidate->mPriority,
                                                      candidate->mUnfreezePriority,
                                                      IICETypes::toString(candidate->mProtocol),
@@ -783,7 +791,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void ICETransport::removeRemoteCandidate(const GatherCandidate &remoteCandidate) throw (InvalidStateError)
+    void ICETransport::removeRemoteCandidate(const GatherCandidate &remoteCandidate) throw (InvalidStateError, InvalidParameters)
     {
       AutoRecursiveLock lock(*this);
 
@@ -795,12 +803,15 @@ namespace ortc
           auto hash = tempCandidate->hash();
           auto found = mRemoteCandidates.find(hash);
 
+          ORTC_THROW_INVALID_PARAMETERS_IF(tempCandidate->mComponent != mComponent);
+
           EventWriteOrtcIceTransportRemoveRemoteCandidate(
                                                           __func__,
                                                           mID,
                                                           hash,
                                                           tempCandidate->mInterfaceType,
                                                           tempCandidate->mFoundation,
+                                                          tempCandidate->mComponent,
                                                           tempCandidate->mPriority,
                                                           tempCandidate->mUnfreezePriority,
                                                           IICETypes::toString(tempCandidate->mProtocol),
@@ -826,7 +837,8 @@ namespace ortc
 
         const CandidateComplete *tempCandidateComplete = dynamic_cast<const IICETypes::CandidateComplete *>(&remoteCandidate);
         if (tempCandidateComplete) {
-          EventWriteOrtcIceTransportRemoveRemoteCandidateComplete(__func__, mID);
+          EventWriteOrtcIceTransportRemoveRemoteCandidateComplete(__func__, mID, tempCandidateComplete->mComponent);
+          ORTC_THROW_INVALID_PARAMETERS_IF(tempCandidateComplete->mComponent != mComponent);
           if (mRemoteCandidatesComplete) {
             ZS_LOG_DEBUG(log("end of remote candidates no longer indicated"))
             mRemoteCandidatesComplete = false;
@@ -1752,7 +1764,9 @@ namespace ortc
     {
       UseICEGathererPtr gatherer = ICEGatherer::convert(inGatherer);
 
-      EventWriteOrtcIceTransportInternalGathererAddLocalCandidateCompleteEventFired(__func__, mID, gatherer->getID());
+      EventWriteOrtcIceTransportInternalGathererAddLocalCandidateCompleteEventFired(__func__, mID, gatherer->getID(), candidate->mComponent);
+
+      ZS_THROW_INVALID_ASSUMPTION_IF(candidate->mComponent != mComponent);
 
       AutoRecursiveLock lock(*this);
 

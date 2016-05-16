@@ -56,6 +56,8 @@ namespace ortc
 
       using openpeer::services::SharedRecursiveLock;
 
+      using zsLib::IPromiseSettledDelegate;
+
       ZS_DECLARE_USING_PROXY(openpeer::services, IWakeDelegate)
 
       //-----------------------------------------------------------------------

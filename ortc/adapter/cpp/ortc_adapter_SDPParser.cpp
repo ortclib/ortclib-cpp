@@ -1012,6 +1012,10 @@ namespace ortc
         mFoundation = split[0];
         try {
           mComponentID = Numeric<decltype(mComponentID)>(split[1]);
+          if (!((mComponentID >= IICETypes::Component_First) &&
+                (mComponentID <= IICETypes::Component_Last))) {
+            ORTC_THROW_INVALID_PARAMETERS("component id value out of range: " + split[1]);
+          }
         } catch (const Numeric<decltype(mComponentID)>::ValueOutOfRange &) {
           ORTC_THROW_INVALID_PARAMETERS("component id value out of range: " + split[1]);
         }
@@ -2684,6 +2688,11 @@ namespace ortc
         auto candidate = make_shared<IICETypes::Candidate>();
 
         candidate->mFoundation = acandidate.mFoundation;
+        candidate->mComponent = static_cast<decltype(candidate->mComponent)>(static_cast<std::underlying_type<decltype(candidate->mComponent)>::type>(SafeInt<std::underlying_type<decltype(candidate->mComponent)>::type>(acandidate.mComponentID)));
+        if (!((candidate->mComponent >= IICETypes::Component_First) &&
+              (candidate->mComponent <= IICETypes::Component_Last))) {
+          ORTC_THROW_INVALID_PARAMETERS("component is out of range: " + string(acandidate.mComponentID));
+        }
         candidate->mPriority = acandidate.mPriority;
         candidate->mProtocol = IICETypes::toProtocol(acandidate.mTransport);
         candidate->mIP = acandidate.mConnectionAddress;
@@ -3853,14 +3862,11 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      static ISDPTypes::ACandidateLinePtr fillCandidate(
-                                                        const IICETypes::Candidate &candidate,
-                                                        WORD component
-                                                        )
+      static ISDPTypes::ACandidateLinePtr fillCandidate(const IICETypes::Candidate &candidate)
       {
         auto aCandidate = make_shared<ISDPTypes::ACandidateLine>(Noop{});
         aCandidate->mFoundation = candidate.mFoundation;
-        aCandidate->mComponentID = component;
+        aCandidate->mComponentID = SafeInt<decltype(aCandidate->mComponentID)>(static_cast<std::underlying_type<decltype(candidate.mComponent)>::type>(candidate.mComponent));
         aCandidate->mTransport = IICETypes::toString(candidate.mProtocol);
         aCandidate->mPriority = candidate.mPriority;
         aCandidate->mConnectionAddress = candidate.mIP;
@@ -3887,15 +3893,14 @@ namespace ortc
                                  const ISessionDescriptionTypes::MediaLine &mediaLine,
                                  const ISessionDescriptionTypes::Transport &transport,
                                  ISDPTypes::MLine &ioMLine,
-                                 const ISessionDescriptionTypes::ICECandidateList &candidates,
-                                 WORD component
+                                 const ISessionDescriptionTypes::ICECandidateList &candidates
                                  )
       {
         auto &mline = ioMLine;
 
         for (auto iter = candidates.begin(); iter != candidates.end(); ++iter) {
           auto &candidate = *(*iter);
-          mline.mACandidateLines.push_back(fillCandidate(candidate, component));
+          mline.mACandidateLines.push_back(fillCandidate(candidate));
         }
       }
 
@@ -3923,8 +3928,8 @@ namespace ortc
         }
 
         // fill in candidates for RTP/RTCP
-        if (transport.mRTP) fillCandidates(mediaLine, transport, mline, transport.mRTP->mICECandidates, 0);
-        if (transport.mRTCP) fillCandidates(mediaLine, transport, mline, transport.mRTCP->mICECandidates, 1);
+        if (transport.mRTP) fillCandidates(mediaLine, transport, mline, transport.mRTP->mICECandidates);
+        if (transport.mRTCP) fillCandidates(mediaLine, transport, mline, transport.mRTCP->mICECandidates);
       }
 
       //-----------------------------------------------------------------------
@@ -4660,12 +4665,9 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      String SDPParser::getCandidateSDP(
-                                        const IICETypes::Candidate &candidate,
-                                        WORD componentID
-                                        )
+      String SDPParser::getCandidateSDP(const IICETypes::Candidate &candidate)
       {
-        auto result = internal::fillCandidate(candidate, componentID);
+        auto result = internal::fillCandidate(candidate);
         if (!result) {
           ZS_LOG_WARNING(Debug, internal::slog("unable to convert candidate to string") + candidate.toDebug());
           return String();
@@ -4674,10 +4676,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      IICETypes::GatherCandidatePtr SDPParser::getCandidateFromSDP(
-                                                                   const char *candidate,
-                                                                   WORD &outComponentID
-                                                                   )
+      IICETypes::GatherCandidatePtr SDPParser::getCandidateFromSDP(const char *candidate)
       {
         String str(candidate);
 
@@ -4708,7 +4707,6 @@ namespace ortc
         try {
           auto aCandidate = make_shared<ACandidateLine>(nullptr, str);
           result = internal::convertCandidate(*aCandidate);
-          outComponentID = aCandidate->mComponentID;
         } catch (const SafeIntException &e) {
           ZS_LOG_WARNING(Debug, internal::slog("unable to convert to candidate") + ZS_PARAM("candidate", str) + ZS_PARAM("e", e.m_code));
           return result;

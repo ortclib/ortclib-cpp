@@ -99,7 +99,8 @@ namespace ortc
   #pragma mark IDataChannel
   #pragma mark
   
-  interaction IDataChannel : public IDataChannelTypes
+  interaction IDataChannel : public Any,
+                             public IDataChannelTypes
   {
     static ElementPtr toDebug(IDataChannelPtr channel);
 

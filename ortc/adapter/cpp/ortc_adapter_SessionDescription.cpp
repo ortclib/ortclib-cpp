@@ -1122,8 +1122,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     ISessionDescriptionTypes::ICECandidate::ICECandidate(const ICECandidate &op2) :
       mMid(op2.mMid),
-      mMLineIndex(op2.mMLineIndex),
-      mComponent(op2.mComponent)
+      mMLineIndex(op2.mMLineIndex)
     {
       if (op2.mCandidate) {
         {
@@ -1150,19 +1149,6 @@ namespace ortc
 
       UseHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::ICECandidate", "mid", result->mMid);
       UseHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::ICECandidate", "index", result->mMLineIndex);
-
-      {
-        String componentStr;
-        UseHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::ICECandidate", "componenet", componentStr);
-        if (componentStr.hasData()) {
-          try {
-            result->mComponent = IICETypes::toComponent(componentStr);
-          }
-          catch (const InvalidParameters &) {
-            ZS_LOG_WARNING(Debug, internal::slog("ice component was not understood") + ZS_PARAM("component", componentStr))
-          }
-        }
-      }
 
       bool isComplete = false;
 
@@ -1213,7 +1199,6 @@ namespace ortc
 
       UseHelper::adoptElementValue(rootEl, "mid", mMid, false);
       UseHelper::adoptElementValue(rootEl, "index", mMLineIndex);
-      UseHelper::adoptElementValue(rootEl, "componenet", IICETypes::toString(mComponent), true);
       rootEl->adoptAsLastChild(candidateEl);
       return rootEl;
     }
@@ -1234,8 +1219,6 @@ namespace ortc
       hasher.update(mMid);
       hasher.update(":");
       hasher.update(mMLineIndex);
-      hasher.update(":");
-      hasher.update(IICETypes::toString(mComponent));
       hasher.update(":");
 
       {
@@ -1268,17 +1251,8 @@ namespace ortc
       String str(value);
 
       auto result = make_shared<ICECandidate>();
-      WORD componentID = 0;
-      auto candidate = internal::SDPParser::getCandidateFromSDP(value, componentID);
+      auto candidate = internal::SDPParser::getCandidateFromSDP(value);
       result->mCandidate = candidate;
-      switch (componentID) {
-        case 0: result->mComponent = IICETypes::Component_RTP; break;
-        case 1: result->mComponent = IICETypes::Component_RTCP; break;
-        default: {
-          ORTC_THROW_INVALID_PARAMETERS("component was not understood: " + string(componentID));
-          break;
-        }
-      }
       return result;
     }
 
@@ -1295,7 +1269,7 @@ namespace ortc
       {
         auto candidate = ZS_DYNAMIC_PTR_CAST(IICETypes::Candidate, mCandidate);
         if (candidate) {
-          return internal::SDPParser::getCandidateSDP(*candidate, mComponent);
+          return internal::SDPParser::getCandidateSDP(*candidate);
         }
       }
       return String();

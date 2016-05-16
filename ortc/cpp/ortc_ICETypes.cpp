@@ -261,6 +261,25 @@ namespace ortc
 
     UseHelper::getElementValue(elem, "ortc::IICETypes::Candidate", "interfaceType", mInterfaceType);
     UseHelper::getElementValue(elem, "ortc::IICETypes::Candidate", "foundation", mFoundation);
+
+    {
+      String str = UseServicesHelper::getElementText(elem->findFirstChildElement("component"));
+      if (str.hasData()) {
+        try {
+          std::underlying_type<decltype(mComponent)>::type converted = Numeric<std::underlying_type<decltype(mComponent)>::type>(str);
+          IICETypes::Components component = static_cast<decltype(mComponent)>(converted);
+          if ((component >= IICETypes::Component_First) ||
+              (component <= IICETypes::Component_Last)) {
+            mComponent = component;
+          } else {
+            ZS_LOG_WARNING(Debug, slog("component value invalid") + ZS_PARAM("value", str))
+          }
+        } catch(const Numeric<std::underlying_type<decltype(mComponent)>::type>::ValueOutOfRange &) {
+          ZS_LOG_WARNING(Debug, slog("component value invalid") + ZS_PARAM("value", str))
+        }
+      }
+    }
+
     UseHelper::getElementValue(elem, "ortc::IICETypes::Candidate", "priority", mPriority);
     UseHelper::getElementValue(elem, "ortc::IICETypes::Candidate", "unfreezePriority", mUnfreezePriority);
 
@@ -313,6 +332,7 @@ namespace ortc
 
     UseHelper::adoptElementValue(elem, "interfaceType", mInterfaceType, false);
     UseHelper::adoptElementValue(elem, "foundation", mFoundation, false);
+    UseHelper::adoptElementValue(elem, "component", static_cast<std::underlying_type<IICETypes::Components>::type>(mComponent));
     UseHelper::adoptElementValue(elem, "priority", mPriority);
     UseHelper::adoptElementValue(elem, "unfreezePriority", mUnfreezePriority);
     UseHelper::adoptElementValue(elem, "protocol", IICETypes::toString(mProtocol), false);
@@ -343,6 +363,8 @@ namespace ortc
     hasher.update(mInterfaceType);
     hasher.update(":");
     hasher.update(mFoundation);
+    hasher.update(":");
+    hasher.update(static_cast<std::underlying_type<decltype(mComponent)>::type>(mComponent));
     hasher.update(":");
     if (includePriorities) {
       hasher.update(mPriority);
@@ -444,6 +466,24 @@ namespace ortc
   {
     if (!elem) return;
 
+    {
+      String str = UseServicesHelper::getElementText(elem->findFirstChildElement("component"));
+      if (str.hasData()) {
+        try {
+          std::underlying_type<decltype(mComponent)>::type converted = Numeric<std::underlying_type<decltype(mComponent)>::type>(str);
+          IICETypes::Components component = static_cast<decltype(mComponent)>(converted);
+          if ((component >= IICETypes::Component_First) ||
+              (component <= IICETypes::Component_Last)) {
+            mComponent = component;
+          } else {
+            ZS_LOG_WARNING(Debug, slog("component value invalid") + ZS_PARAM("value", str))
+          }
+        } catch (const Numeric<std::underlying_type<decltype(mComponent)>::type>::ValueOutOfRange &) {
+          ZS_LOG_WARNING(Debug, slog("component value invalid") + ZS_PARAM("value", str))
+        }
+      }
+    }
+
     UseHelper::getElementValue(elem, "ortc::IICETypes::CandidateComplete", "complete", mComplete);
   }
 
@@ -454,6 +494,7 @@ namespace ortc
 
     ElementPtr elem = Element::create(objectName);
 
+    UseHelper::adoptElementValue(elem, "component", static_cast<std::underlying_type<decltype(mComponent)>::type>(mComponent));
     UseHelper::adoptElementValue(elem, "complete", mComplete);
 
     if (!elem->hasChildren()) return ElementPtr();
@@ -473,6 +514,8 @@ namespace ortc
     SHA1Hasher hasher;
 
     hasher.update("IICETypes::CandidateComplete:");
+    hasher.update(static_cast<std::underlying_type<decltype(mComponent)>::type>(mComponent));
+    hasher.update(":");
     hasher.update(mComplete);
 
     return hasher.final();

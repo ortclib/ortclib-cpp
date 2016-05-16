@@ -67,6 +67,8 @@ namespace ortc
       ZS_DECLARE_STRUCT_PTR(MediaStreamTrackEvent);
        
       ZS_DECLARE_TYPEDEF_PTR(PromiseWith<ISessionDescription>, PromiseWithDescription);
+      ZS_DECLARE_TYPEDEF_PTR(PromiseWith<IRTPSender>, PromiseWithSender);
+      ZS_DECLARE_TYPEDEF_PTR(PromiseWith<IDataChannel>, PromiseWithDataChannel);
       ZS_DECLARE_TYPEDEF_PTR(std::list<ICertificatePtr>, CertificateList);
       ZS_DECLARE_TYPEDEF_PTR(std::list<IRTPSenderPtr>, SenderList);
       ZS_DECLARE_TYPEDEF_PTR(std::list<IRTPReceiverPtr>, ReceiverList);
@@ -81,7 +83,7 @@ namespace ortc
         BundlePolicy_First,
 
         BundlePolicy_Balanced = BundlePolicy_First,
-        BundlePolity_MaxCompat,
+        BundlePolicy_MaxCompat,
         BundlePolicy_MaxBundle,
 
         BundlePolicy_Last = BundlePolicy_MaxBundle,
@@ -159,6 +161,7 @@ namespace ortc
         BundlePolicies mBundlePolicy;
         RTCPMuxPolicies mRTCPMuxPolicy;
         CertificateList mCertificates;
+        size_t mICECandidatePoolSize {};
 
         Configuration() {}
         Configuration(const Configuration &op2);
@@ -191,7 +194,13 @@ namespace ortc
 
       struct MediaStreamTrackConfiguration
       {
+        IRTPTypes::CapabilitiesPtr mCapabilities;
         IRTPTypes::ParametersPtr mParameters;
+
+        MediaStreamTrackConfiguration() {}
+        MediaStreamTrackConfiguration(const MediaStreamTrackConfiguration &op2);
+
+        MediaStreamTrackConfiguration &operator=(const MediaStreamTrackConfiguration &op2);
 
         ElementPtr toDebug() const;
       };
@@ -275,19 +284,19 @@ namespace ortc
 
       virtual SenderListPtr getSenders() const = 0;
       virtual ReceiverListPtr getReceivers() const = 0;
-      virtual IRTPSenderPtr addTrack(
-                                     IMediaStreamTrackPtr track,
-                                     const MediaStreamTrackConfiguration &configuration = MediaStreamTrackConfiguration()
-                                     ) = 0;
-      virtual IRTPSenderPtr addTrack(
-                                     IMediaStreamTrackPtr track,
-                                     const MediaStreamList &mediaStreams,
-                                     const MediaStreamTrackConfiguration &configuration = MediaStreamTrackConfiguration()
-                                     ) = 0;
+      virtual PromiseWithSenderPtr addTrack(
+                                            IMediaStreamTrackPtr track,
+                                            const MediaStreamTrackConfiguration &configuration = MediaStreamTrackConfiguration()
+                                            ) = 0;
+      virtual PromiseWithSenderPtr addTrack(
+                                            IMediaStreamTrackPtr track,
+                                            const MediaStreamList &mediaStreams,
+                                            const MediaStreamTrackConfiguration &configuration = MediaStreamTrackConfiguration()
+                                            ) = 0;
 
       virtual void removeTrack(IRTPSenderPtr sender) = 0;
 
-      virtual IDataChannelPtr createDataChannel(const IDataChannelTypes::Parameters &parameters) = 0;
+      virtual PromiseWithDataChannelPtr createDataChannel(const IDataChannelTypes::Parameters &parameters) = 0;
     };
 
     //-------------------------------------------------------------------------

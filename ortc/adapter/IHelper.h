@@ -38,10 +38,10 @@ namespace ortc
 {
   namespace adapter
   {
-    //---------------------------------------------------------------------------
-    //---------------------------------------------------------------------------
-    //---------------------------------------------------------------------------
-    //---------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
     #pragma mark
     #pragma mark IHelper
     #pragma mark
@@ -88,8 +88,12 @@ namespace ortc
 
       enum IDPreferences
       {
-        IDPreference_Local,
+        IDPreference_First,
+
+        IDPreference_Local = IDPreference_First,
         IDPreference_Remote,
+
+        IDPreference_Last = IDPreference_Remote,
       };
 
       static const char *toString(IDPreferences pref);
@@ -98,7 +102,7 @@ namespace ortc
 
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark Capabilities / parameter conversion
+      #pragma mark Negotiation (conversion)
       #pragma mark
 
       static RTPParametersPtr capabilitiesToParameters(const RTPCapabilities &capabilities);
@@ -180,6 +184,24 @@ namespace ortc
                                                         const RTPCodecParametersList &codecParameters,
                                                         const RTPCodecCapabilitiesList &codecCapabilities
                                                         );
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark Negotiation (validation)
+      #pragma mark
+
+      static bool isCompatible(
+                               const RTPCapabilities &capabilities,
+                               const RTPParameters &parameters
+                               );
+
+      static bool isCompatible(
+                               const RTPCapabilities &existingCapabilities,
+                               const RTPCapabilities &proposedCapabilities
+                               );
+
+      static bool hasSupportedMediaCodec(const RTPCapabilities &capabilities);
+      static bool hasSupportedMediaCodec(const RTPParameters &parameters);
     };
   }
 }

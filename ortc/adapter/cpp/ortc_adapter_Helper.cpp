@@ -70,6 +70,14 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark Negotiation (conversion)
+    #pragma mark
+
+    //-------------------------------------------------------------------------
     IHelper::RTPParametersPtr IHelper::capabilitiesToParameters(const RTPCapabilities &capabilities)
     {
       auto result = make_shared<RTPParameters>();
@@ -506,6 +514,14 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark Negotiation (unions)
+    #pragma mark
+
+    //-------------------------------------------------------------------------
     IHelper::RTPCapabilitiesPtr IHelper::createUnion(
                                                      const RTPCapabilities &localCapabilities,
                                                      const RTPCapabilities &remoteCapabilities,
@@ -528,6 +544,21 @@ namespace ortc
       for (auto iter = codecs.begin(); iter != codecs.end(); ++iter) {
         auto &codec = (*iter);
         if (payloadType != codec.mPreferredPayloadType) continue;
+        return &codec;
+      }
+
+      return nullptr;
+    }
+
+    //-------------------------------------------------------------------------
+    static const IRTPTypes::CodecParameters *findCodecByPayloadType(
+                                                                    const IRTPTypes::CodecParametersList &codecs,
+                                                                    IRTPTypes::PayloadType payloadType
+                                                                    )
+    {
+      for (auto iter = codecs.begin(); iter != codecs.end(); ++iter) {
+        auto &codec = (*iter);
+        if (payloadType != codec.mPayloadType) continue;
         return &codec;
       }
 
@@ -568,6 +599,205 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    static bool isMatch(
+                        const IRTPTypes::CodecParameters &primaryCodec,
+                        const IRTPTypes::CodecCapability &secondaryCodec,
+                        bool &outExact
+                        )
+    {
+      outExact = true;
+
+      {
+        if (0 != primaryCodec.mName.compareNoCase(secondaryCodec.mName)) goto not_a_match;
+
+        if (primaryCodec.mClockRate.hasValue()) {
+          if (secondaryCodec.mClockRate.hasValue()) {
+            if (primaryCodec.mClockRate.value() != secondaryCodec.mClockRate.value()) goto not_a_match;
+          } else {
+            outExact = false;
+          }
+        } else {
+          if (secondaryCodec.mClockRate.hasValue()) outExact = false;
+        }
+
+        if (primaryCodec.mNumChannels.hasValue()) {
+          if (secondaryCodec.mNumChannels.hasValue()) {
+            if (primaryCodec.mNumChannels.value() != secondaryCodec.mNumChannels.value()) goto not_a_match;
+            outExact = false;
+          }
+        } else {
+          if (secondaryCodec.mNumChannels.hasValue()) outExact = false;
+        }
+        goto match;
+      }
+
+    not_a_match:
+      {
+        outExact = false;
+        return false;
+      }
+    match: {}
+
+      return true;
+    }
+
+    //-------------------------------------------------------------------------
+    static bool isMatch(
+                        const IRTPTypes::CodecCapability &primaryCodec,
+                        const IRTPTypes::CodecCapability &secondaryCodec,
+                        const IRTPTypes::CodecCapabilitiesList &primaryList,
+                        const IRTPTypes::CodecCapabilitiesList &secondaryList,
+                        bool &outExact,
+                        bool &outIsRTX
+                        )
+    {
+      outIsRTX = false;
+      outExact = false;
+
+      {
+        if (!isMatch(primaryCodec, secondaryCodec, outExact)) goto not_a_match;
+
+        auto supportedType = IRTPTypes::toSupportedCodec(primaryCodec.mName);
+      
+        switch (supportedType) {
+          case IRTPTypes::SupportedCodec_Unknown:         goto not_a_match;
+
+          // audio codecs
+          case IRTPTypes::SupportedCodec_Opus:            break;
+          case IRTPTypes::SupportedCodec_Isac:            break;
+          case IRTPTypes::SupportedCodec_G722:            break;
+          case IRTPTypes::SupportedCodec_ILBC:            break;
+          case IRTPTypes::SupportedCodec_PCMU:            break;
+          case IRTPTypes::SupportedCodec_PCMA:            break;
+
+          // video codecs
+          case IRTPTypes::SupportedCodec_VP8:             break;
+          case IRTPTypes::SupportedCodec_VP9:             break;
+          case IRTPTypes::SupportedCodec_H264:            break;
+
+          // RTX
+          case IRTPTypes::SupportedCodec_RTX:             {
+            outIsRTX = true;
+
+            auto primaryParams = ZS_DYNAMIC_PTR_CAST(IRTPTypes::RTXCodecCapabilityParameters, primaryCodec.mParameters);
+            auto secondaryParams = ZS_DYNAMIC_PTR_CAST(IRTPTypes::RTXCodecCapabilityParameters, secondaryCodec.mParameters);
+            if ((!primaryParams) ||
+                (!secondaryParams)) goto not_a_match;
+
+            auto primaryRTXedCodec = findCodecByPayloadType(primaryList, primaryParams->mApt);
+            auto secondaryRTXedCodec = findCodecByPayloadType(secondaryList, secondaryParams->mApt);
+            if ((!primaryRTXedCodec) ||
+                (!secondaryRTXedCodec)) goto not_a_match;
+
+            bool exactRTXed = true;
+            if (!isMatch(*primaryRTXedCodec, *secondaryRTXedCodec, exactRTXed)) goto not_a_match;
+            if (!exactRTXed) outExact = exactRTXed;
+            break;
+          }
+
+          // FEC
+          case IRTPTypes::SupportedCodec_RED:             break;
+          case IRTPTypes::SupportedCodec_ULPFEC:          break;
+          case IRTPTypes::SupportedCodec_FlexFEC:         break;
+
+          case IRTPTypes::SupportedCodec_CN:              break;
+
+          case IRTPTypes::SupportedCodec_TelephoneEvent:  break;
+        }
+        goto match;
+      }
+
+    not_a_match:
+      {
+        outIsRTX = false;
+        outExact = false;
+        return false;
+      }
+
+    match: {}
+
+      return true;
+    }
+
+    //-------------------------------------------------------------------------
+    static bool isMatch(
+                        const IRTPTypes::CodecParameters &primaryCodec,
+                        const IRTPTypes::CodecCapability &secondaryCodec,
+                        const IRTPTypes::CodecParametersList &primaryList,
+                        const IRTPTypes::CodecCapabilitiesList &secondaryList,
+                        bool &outExact,
+                        bool &outIsRTX
+                        )
+    {
+      outIsRTX = false;
+      outExact = false;
+
+      {
+        if (!isMatch(primaryCodec, secondaryCodec, outExact)) goto not_a_match;
+
+        auto supportedType = IRTPTypes::toSupportedCodec(primaryCodec.mName);
+      
+        switch (supportedType) {
+          case IRTPTypes::SupportedCodec_Unknown:         goto not_a_match;
+
+          // audio codecs
+          case IRTPTypes::SupportedCodec_Opus:            break;
+          case IRTPTypes::SupportedCodec_Isac:            break;
+          case IRTPTypes::SupportedCodec_G722:            break;
+          case IRTPTypes::SupportedCodec_ILBC:            break;
+          case IRTPTypes::SupportedCodec_PCMU:            break;
+          case IRTPTypes::SupportedCodec_PCMA:            break;
+
+          // video codecs
+          case IRTPTypes::SupportedCodec_VP8:             break;
+          case IRTPTypes::SupportedCodec_VP9:             break;
+          case IRTPTypes::SupportedCodec_H264:            break;
+
+          // RTX
+          case IRTPTypes::SupportedCodec_RTX:             {
+            outIsRTX = true;
+
+            auto primaryParams = ZS_DYNAMIC_PTR_CAST(IRTPTypes::RTXCodecCapabilityParameters, primaryCodec.mParameters);
+            auto secondaryParams = ZS_DYNAMIC_PTR_CAST(IRTPTypes::RTXCodecCapabilityParameters, secondaryCodec.mParameters);
+            if ((!primaryParams) ||
+                (!secondaryParams)) goto not_a_match;
+
+            auto primaryRTXedCodec = findCodecByPayloadType(primaryList, primaryParams->mApt);
+            auto secondaryRTXedCodec = findCodecByPayloadType(secondaryList, secondaryParams->mApt);
+            if ((!primaryRTXedCodec) ||
+                (!secondaryRTXedCodec)) goto not_a_match;
+
+            bool exactRTXed = true;
+            if (!isMatch(*primaryRTXedCodec, *secondaryRTXedCodec, exactRTXed)) goto not_a_match;
+            if (!exactRTXed) outExact = exactRTXed;
+            break;
+          }
+
+          // FEC
+          case IRTPTypes::SupportedCodec_RED:             break;
+          case IRTPTypes::SupportedCodec_ULPFEC:          break;
+          case IRTPTypes::SupportedCodec_FlexFEC:         break;
+
+          case IRTPTypes::SupportedCodec_CN:              break;
+
+          case IRTPTypes::SupportedCodec_TelephoneEvent:  break;
+        }
+        goto match;
+      }
+
+    not_a_match:
+      {
+        outIsRTX = false;
+        outExact = false;
+        return false;
+      }
+
+    match: {}
+
+      return true;
+    }
+
+    //-------------------------------------------------------------------------
     IHelper::RTPCodecCapabilitiesListPtr IHelper::createUnion(
                                                               const RTPCodecCapabilitiesList &local,
                                                               const RTPCodecCapabilitiesList &remote,
@@ -596,54 +826,7 @@ namespace ortc
 
           // scope: find a remote matching codec
           {
-            if (!isMatch(primaryCodec, secondaryCodec, exact)) goto not_a_match;
-
-            switch (supportedType) {
-              case IRTPTypes::SupportedCodec_Unknown: goto not_a_match;
-
-              // audio codecs
-              case IRTPTypes::SupportedCodec_Opus:            break;
-              case IRTPTypes::SupportedCodec_Isac:            break;
-              case IRTPTypes::SupportedCodec_G722:            break;
-              case IRTPTypes::SupportedCodec_ILBC:            break;
-              case IRTPTypes::SupportedCodec_PCMU:            break;
-              case IRTPTypes::SupportedCodec_PCMA:            break;
-
-              // video codecs
-              case IRTPTypes::SupportedCodec_VP8:             break;
-              case IRTPTypes::SupportedCodec_VP9:             break;
-              case IRTPTypes::SupportedCodec_H264:            break;
-
-              // RTX
-              case IRTPTypes::SupportedCodec_RTX:             {
-                isRTX = true;
-
-                auto primaryParams = ZS_DYNAMIC_PTR_CAST(IRTPTypes::RTXCodecCapabilityParameters, primaryCodec.mParameters);
-                auto secondaryParams = ZS_DYNAMIC_PTR_CAST(IRTPTypes::RTXCodecCapabilityParameters, secondaryCodec.mParameters);
-                if ((!primaryParams) ||
-                    (!secondaryParams)) goto not_a_match;
-
-                auto primaryRTXedCodec = findCodecByPayloadType(primaryList, primaryParams->mApt);
-                auto secondaryRTXedCodec = findCodecByPayloadType(secondaryList, secondaryParams->mApt);
-                if ((!primaryRTXedCodec) ||
-                    (!secondaryRTXedCodec)) goto not_a_match;
-
-                bool exactRTXed = true;
-                if (!isMatch(*primaryRTXedCodec, *secondaryRTXedCodec, exactRTXed)) goto not_a_match;
-                if (!exactRTXed) exact = exactRTXed;
-                break;
-              }
-
-              // FEC
-              case IRTPTypes::SupportedCodec_RED:             break;
-              case IRTPTypes::SupportedCodec_ULPFEC:          break;
-              case IRTPTypes::SupportedCodec_FlexFEC:         break;
-
-              case IRTPTypes::SupportedCodec_CN:              break;
-
-              case IRTPTypes::SupportedCodec_TelephoneEvent:  break;
-            }
-
+            if (!isMatch(primaryCodec, secondaryCodec, primaryList, secondaryList, exact, isRTX)) goto not_a_match;
             goto match_found;
           }
 
@@ -762,6 +945,15 @@ namespace ortc
       return result;
     }
 
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark Negotiation (filter)
+    #pragma mark
+
     //-------------------------------------------------------------------------
     IHelper::RTPParametersPtr IHelper::filterParameters(
                                                         const RTPParameters &parameters,
@@ -771,54 +963,6 @@ namespace ortc
       auto result = make_shared<RTPParameters>(parameters);
 
       return result;
-    }
-
-    //-------------------------------------------------------------------------
-    static bool isMatch(
-                        const IRTPTypes::CodecParameters &primaryCodec,
-                        const IRTPTypes::CodecCapability &secondaryCodec,
-                        bool &outExact
-                        )
-    {
-      outExact = true;
-
-      if (0 != primaryCodec.mName.compareNoCase(secondaryCodec.mName)) return false;
-
-      if (primaryCodec.mClockRate.hasValue()) {
-        if (secondaryCodec.mClockRate.hasValue()) {
-          if (primaryCodec.mClockRate.value() != secondaryCodec.mClockRate.value()) return false;
-          return true;
-        } else {
-          outExact = false;
-        }
-      } else {
-        if (secondaryCodec.mClockRate.hasValue()) outExact = false;
-      }
-
-      if (primaryCodec.mNumChannels.hasValue()) {
-        if (secondaryCodec.mNumChannels.hasValue()) {
-          if (primaryCodec.mNumChannels.value() != secondaryCodec.mNumChannels.value()) return false;
-          outExact = false;
-        }
-      } else {
-        if (secondaryCodec.mNumChannels.hasValue()) outExact = false;
-      }
-      return true;
-    }
-
-    //-------------------------------------------------------------------------
-    static const IRTPTypes::CodecParameters *findCodecByPayloadType(
-                                                                    const IRTPTypes::CodecParametersList &codecs,
-                                                                    IRTPTypes::PayloadType payloadType
-                                                                    )
-    {
-      for (auto iter = codecs.begin(); iter != codecs.end(); ++iter) {
-        auto &codec = (*iter);
-        if (payloadType != codec.mPayloadType) continue;
-        return &codec;
-      }
-
-      return nullptr;
     }
 
     //-------------------------------------------------------------------------
@@ -845,54 +989,7 @@ namespace ortc
 
           // scope: find a remote matching codec
           {
-            if (!isMatch(codecParam, codecCap, exact)) goto not_a_match;
-
-            switch (supportedType) {
-              case IRTPTypes::SupportedCodec_Unknown: goto not_a_match;
-
-              // audio codecs
-              case IRTPTypes::SupportedCodec_Opus:            break;
-              case IRTPTypes::SupportedCodec_Isac:            break;
-              case IRTPTypes::SupportedCodec_G722:            break;
-              case IRTPTypes::SupportedCodec_ILBC:            break;
-              case IRTPTypes::SupportedCodec_PCMU:            break;
-              case IRTPTypes::SupportedCodec_PCMA:            break;
-
-              // video codecs
-              case IRTPTypes::SupportedCodec_VP8:             break;
-              case IRTPTypes::SupportedCodec_VP9:             break;
-              case IRTPTypes::SupportedCodec_H264:            break;
-
-              // RTX
-              case IRTPTypes::SupportedCodec_RTX:             {
-                isRTX = true;
-
-                auto primaryParams = ZS_DYNAMIC_PTR_CAST(IRTPTypes::RTXCodecCapabilityParameters, codecParam.mParameters);
-                auto secondaryParams = ZS_DYNAMIC_PTR_CAST(IRTPTypes::RTXCodecParameters, codecCap.mParameters);
-                if ((!primaryParams) ||
-                    (!secondaryParams)) goto not_a_match;
-
-                auto primaryRTXedCodec = findCodecByPayloadType(codecParameters, primaryParams->mApt);
-                auto secondaryRTXedCodec = findCodecByPayloadType(codecCapabilities, secondaryParams->mApt);
-                if ((!primaryRTXedCodec) ||
-                    (!secondaryRTXedCodec)) goto not_a_match;
-
-                bool exactRTXed = true;
-                if (!isMatch(*primaryRTXedCodec, *secondaryRTXedCodec, exactRTXed)) goto not_a_match;
-                if (!exactRTXed) exact = exactRTXed;
-                break;
-              }
-
-              // FEC
-              case IRTPTypes::SupportedCodec_RED:             break;
-              case IRTPTypes::SupportedCodec_ULPFEC:          break;
-              case IRTPTypes::SupportedCodec_FlexFEC:         break;
-
-              case IRTPTypes::SupportedCodec_CN:              break;
-
-              case IRTPTypes::SupportedCodec_TelephoneEvent:  break;
-            }
-
+            if (!isMatch(codecParam, codecCap, codecParameters, codecCapabilities, exact, isRTX)) goto not_a_match;
             goto match_found;
           }
 
@@ -927,6 +1024,153 @@ namespace ortc
       return result;
     }
 
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark Negotiation (validation)
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    bool IHelper::isCompatible(
+                               const RTPCapabilities &capabilities,
+                               const RTPParameters &parameters
+                               )
+    {
+      for (auto iterOuter = parameters.mCodecs.begin(); iterOuter != parameters.mCodecs.end(); ++iterOuter) {
+        auto &codecOuter = *(iterOuter);
+
+        bool foundMatch = false;
+
+        for (auto iterInner = capabilities.mCodecs.begin(); iterInner != capabilities.mCodecs.end(); ++iterInner) {
+          auto &codecInner = *(iterInner);
+
+          bool exact = false;
+          bool isRTX = false;
+
+          if (codecOuter.mPayloadType != codecInner.mPreferredPayloadType) continue;
+          if (!isMatch(codecOuter, codecInner, parameters.mCodecs, capabilities.mCodecs, exact, isRTX)) return false;
+
+          foundMatch = true;
+          break;
+        }
+        if (!foundMatch) return false;
+      }
+
+      for (auto iterOuter = parameters.mHeaderExtensions.begin(); iterOuter != parameters.mHeaderExtensions.end(); ++iterOuter) {
+        auto &extOuter = (*iterOuter);
+
+        bool foundMatch = false;
+
+        for (auto iterInner = capabilities.mHeaderExtensions.begin(); iterInner != capabilities.mHeaderExtensions.end(); ++iterInner) {
+          auto &extInner = *(iterInner);
+
+          if (extOuter.mID != extInner.mPreferredID) continue;
+          if (0 != extOuter.mURI.compareNoCase(extInner.mURI)) continue;
+
+          foundMatch = true;
+          break;
+        }
+        if (!foundMatch) return false;
+      }
+
+      for (auto iter = parameters.mEncodings.begin(); iter != parameters.mEncodings.end(); ++iter) {
+        auto &encoding = (*iter);
+        if (!encoding.mCodecPayloadType.hasValue()) continue;
+
+        if (!findCodecByPayloadType(capabilities.mCodecs, encoding.mCodecPayloadType.value())) return false;
+      }
+
+      return true;
+    }
+
+    //-------------------------------------------------------------------------
+    bool IHelper::isCompatible(
+                               const RTPCapabilities &existingCapabilities,
+                               const RTPCapabilities &proposedCapabilities
+                               )
+    {
+      for (auto iterOuter = proposedCapabilities.mCodecs.begin(); iterOuter != proposedCapabilities.mCodecs.end(); ++iterOuter) {
+        auto &codecOuter = *(iterOuter);
+
+        bool foundMatch = false;
+
+        for (auto iterInner = existingCapabilities.mCodecs.begin(); iterInner != existingCapabilities.mCodecs.end(); ++iterInner) {
+          auto &codecInner = *(iterInner);
+
+          bool exact = false;
+          bool isRTX = false;
+
+          if (codecOuter.mPreferredPayloadType != codecInner.mPreferredPayloadType) continue;
+          if (!isMatch(codecOuter, codecInner, proposedCapabilities.mCodecs, existingCapabilities.mCodecs, exact, isRTX)) return false;
+
+          foundMatch = true;
+          break;
+        }
+        if (!foundMatch) return false;
+      }
+
+      for (auto iterOuter = existingCapabilities.mHeaderExtensions.begin(); iterOuter != existingCapabilities.mHeaderExtensions.end(); ++iterOuter) {
+        auto &extOuter = (*iterOuter);
+
+        bool foundMatch = false;
+
+        for (auto iterInner = proposedCapabilities.mHeaderExtensions.begin(); iterInner != proposedCapabilities.mHeaderExtensions.end(); ++iterInner) {
+          auto &extInner = *(iterInner);
+
+          if (extOuter.mPreferredID != extInner.mPreferredID) continue;
+          if (0 != extOuter.mURI.compareNoCase(extInner.mURI)) return false;
+
+          foundMatch = true;
+          break;
+        }
+        if (!foundMatch) return false;
+      }
+
+      return true;
+    }
+
+    //-------------------------------------------------------------------------
+    static bool isMediaCodec(const String &codecName)
+    {
+      auto supportedCodec = IRTPTypes::toSupportedCodec(codecName);
+      auto codecKind = IRTPTypes::getCodecKind(supportedCodec);
+
+      switch (codecKind) {
+        case IRTPTypes::CodecKind_Audio:
+        case IRTPTypes::CodecKind_Video:
+        case IRTPTypes::CodecKind_AV:                 return true;
+
+        case IRTPTypes::CodecKind_Unknown:
+        case IRTPTypes::CodecKind_RTX:
+        case IRTPTypes::CodecKind_FEC:
+        case IRTPTypes::CodecKind_AudioSupplemental: 
+        case IRTPTypes::CodecKind_Data:               break;
+      }
+
+      return false;
+    }
+
+    //-------------------------------------------------------------------------
+    bool IHelper::hasSupportedMediaCodec(const RTPCapabilities &capabilities)
+    {
+      for (auto iterOuter = capabilities.mCodecs.begin(); iterOuter != capabilities.mCodecs.end(); ++iterOuter) {
+        auto &codec = *(iterOuter);
+        if (isMediaCodec(codec.mName)) return true;
+      }
+      return false;
+    }
+
+    //-------------------------------------------------------------------------
+    bool IHelper::hasSupportedMediaCodec(const RTPParameters &parameters)
+    {
+      for (auto iterOuter = parameters.mCodecs.begin(); iterOuter != parameters.mCodecs.end(); ++iterOuter) {
+        auto &codec = *(iterOuter);
+        if (isMediaCodec(codec.mName)) return true;
+      }
+      return false;
+    }
 
   } // namespace adapter
 } // namespace ortc

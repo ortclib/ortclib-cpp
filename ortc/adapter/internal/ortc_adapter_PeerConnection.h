@@ -35,8 +35,10 @@
 #include <ortc/adapter/internal/types.h>
 
 #include <ortc/adapter/IPeerConnection.h>
+#include <ortc/adapter/IHelper.h>
 
 #include <ortc/IRTPListener.h>
+#include <ortc/IRTPSender.h>
 
 #include <openpeer/services/IWakeDelegate.h>
 
@@ -65,36 +67,19 @@ namespace ortc
                              public IDTLSTransportDelegate,
                              public ISRTPSDESTransportDelegate,
                              public IRTPListenerDelegate,
+                             public IRTPSenderDelegate,
                              public ISCTPTransportDelegate,
                              public ISCTPTransportListenerDelegate,
-                             public IWakeDelegate
+                             public IWakeDelegate,
+                             public IPromiseSettledDelegate
       {
       protected:
         struct make_private {};
 
+      public:
         friend interaction IPeerConnectionFactory;
 
-      public:
-        PeerConnection(
-                       const make_private &,
-                       IMessageQueuePtr queue,
-                       IPeerConnectionDelegatePtr delegate,
-                       const Optional<Configuration> &configuration
-                       );
-
-        ~PeerConnection();
-
-      public:
-        PeerConnection(
-                       const Noop &,
-                       IMessageQueuePtr queue
-                       ) :
-          SharedRecursiveLock(SharedRecursiveLock::create()),
-          MessageQueueAssociator(queue) {}
-
-        void init();
-
-        static PeerConnectionPtr convert(IPeerConnectionPtr object);
+        typedef IRTPTypes::SSRCType SSRCType;
 
         enum InternalStates
         {
@@ -114,8 +99,8 @@ namespace ortc
         {
           NegotiationState_First,
 
-          NegotiationState_Agreed = NegotiationState_First,
-          NegotiationState_PendingOffer,
+          NegotiationState_PendingOffer = NegotiationState_First,
+          NegotiationState_Agreed,
           NegotiationState_LocalOffered,
           NegotiationState_RemoteOffered,
           NegotiationState_Rejected,
@@ -152,6 +137,8 @@ namespace ortc
         ZS_DECLARE_STRUCT_PTR(SenderInfo);
         ZS_DECLARE_STRUCT_PTR(ReceiverInfo);
         ZS_DECLARE_STRUCT_PTR(PendingMethod);
+        ZS_DECLARE_STRUCT_PTR(PendingAddTrack);
+        ZS_DECLARE_STRUCT_PTR(PendingAddDataChannel);
 
         ZS_DECLARE_TYPEDEF_PTR(IMediaStreamForPeerConnection, UseMediaStream);
         ZS_DECLARE_TYPEDEF_PTR(std::list<UseMediaStreamPtr>, UseMediaStreamList);
@@ -162,7 +149,6 @@ namespace ortc
           {
             IICEGathererPtr mGatherer;
             IICETransportPtr mTransport;
-            IICETypes::CandidateList mCandidates;
             bool mRTPEndOfCandidates {false};
 
             IDTLSTransportPtr mDTLSTransport;
@@ -186,9 +172,10 @@ namespace ortc
         struct MediaLineInfo
         {
           MediaLineID mID;
-          size_t mLineIndex {};
+          Optional<size_t> mLineIndex;
 
-          String mTransportID;
+          String mBundledTransportID;
+          String mPrivateTransportID;
 
           NegotiationStates mNegotiationState {NegotiationState_First};
 
@@ -197,6 +184,14 @@ namespace ortc
 
         struct RTPMediaLineInfo : public MediaLineInfo
         {
+          String mMediaType;
+
+          IHelper::IDPreferences mIDPreference {IHelper::IDPreference_First};
+          IRTPTypes::CapabilitiesPtr mLocalSenderCapabilities;
+          IRTPTypes::CapabilitiesPtr mLocalReceiverCapabilities;
+          IRTPTypes::CapabilitiesPtr mRemoteSenderCapabilities;
+          IRTPTypes::CapabilitiesPtr mRemoteReceiverCapabilities;
+
           ElementPtr toDebug() const;
         };
 
@@ -210,10 +205,12 @@ namespace ortc
           SenderID mID;
           MediaLineID mMediaLineID;
 
+          MediaStreamTrackConfigurationPtr mConfiguration;
           IMediaStreamTrackPtr mTrack;
           UseMediaStreamList mMediaStreams;
 
           NegotiationStates mNegotiationState {NegotiationState_First};
+          PromiseWithSenderPtr mPromise;
 
           IRTPSenderPtr mSender;
 
@@ -254,13 +251,58 @@ namespace ortc
           ElementPtr toDebug() const;
         };
 
+        struct PendingAddTrack
+        {
+          PromiseWithSenderPtr mPromise;
+          IMediaStreamTrackPtr mTrack;
+          UseMediaStreamList mMediaStreams;
+          MediaStreamTrackConfigurationPtr mConfiguration;
+
+          ElementPtr toDebug() const;
+        };
+
+        struct PendingAddDataChannel
+        {
+          PromiseWithDataChannelPtr mPromise;
+          IDataChannelTypes::ParametersPtr mParameters;
+
+          ElementPtr toDebug() const;
+        };
+
         typedef std::map<TransportID, TransportInfoPtr> TransportInfoMap;
+        typedef std::list<TransportInfoPtr> TransportList;
         typedef std::map<MediaLineID, RTPMediaLineInfoPtr> RTPMediaLineInfoMap;
         typedef std::map<MediaLineID, SCTPMediaLineInfoPtr> SCTPMediaLineInfoMap;
         typedef std::map<SenderID, SenderInfoPtr> SenderInfoMap;
         typedef std::map<ReceiverID, ReceiverInfoPtr> ReceiverInfoMap;
         typedef std::list<ICECandidatePtr> CandidateList;
         typedef std::list<PendingMethodPtr> PendingMethodList;
+        typedef std::list<PendingAddTrackPtr> PendingAddTrackList;
+        typedef std::list<IRTPSenderPtr> SenderList;
+        typedef std::list<PendingAddDataChannelPtr> PendingAddDataChannelList;
+        typedef std::map<String, size_t> IDMap;
+
+      public:
+        PeerConnection(
+                       const make_private &,
+                       IMessageQueuePtr queue,
+                       IPeerConnectionDelegatePtr delegate,
+                       const Optional<Configuration> &configuration
+                       );
+
+        ~PeerConnection();
+
+      public:
+        PeerConnection(
+                       const Noop &,
+                       IMessageQueuePtr queue
+                       ) :
+          SharedRecursiveLock(SharedRecursiveLock::create()),
+          MessageQueueAssociator(queue) {}
+
+        void init();
+
+        static PeerConnectionPtr convert(IPeerConnectionPtr object);
 
       protected:
         //---------------------------------------------------------------------
@@ -307,19 +349,19 @@ namespace ortc
 
         virtual SenderListPtr getSenders() const override;
         virtual ReceiverListPtr getReceivers() const override;
-        virtual IRTPSenderPtr addTrack(
-                                       IMediaStreamTrackPtr track,
-                                       const MediaStreamTrackConfiguration &configuration = MediaStreamTrackConfiguration()
-                                       ) override;
-        virtual IRTPSenderPtr addTrack(
-                                       IMediaStreamTrackPtr track,
-                                       const MediaStreamList &mediaStreams,
-                                       const MediaStreamTrackConfiguration &configuration = MediaStreamTrackConfiguration()
-                                       ) override;
+        virtual PromiseWithSenderPtr addTrack(
+                                              IMediaStreamTrackPtr track,
+                                              const MediaStreamTrackConfiguration &configuration = MediaStreamTrackConfiguration()
+                                              ) override;
+        virtual PromiseWithSenderPtr addTrack(
+                                              IMediaStreamTrackPtr track,
+                                              const MediaStreamList &mediaStreams,
+                                              const MediaStreamTrackConfiguration &configuration = MediaStreamTrackConfiguration()
+                                              ) override;
 
         virtual void removeTrack(IRTPSenderPtr sender) override;
 
-        virtual IDataChannelPtr createDataChannel(const IDataChannelTypes::Parameters &parameters) override;
+        virtual PromiseWithDataChannelPtr createDataChannel(const IDataChannelTypes::Parameters &parameters) override;
 
         //---------------------------------------------------------------------
         #pragma mark
@@ -409,7 +451,7 @@ namespace ortc
 
         //---------------------------------------------------------------------
         #pragma mark
-        #pragma mark PeerConnection => IRTPListener
+        #pragma mark PeerConnection => IRTPListenerDelegate
         #pragma mark
 
         virtual void onRTPListenerUnhandledRTP(
@@ -420,6 +462,15 @@ namespace ortc
                                                const char *rid
                                                ) override;
 
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark PeerConnection => IRTPSenderDelegate
+        #pragma mark
+
+        virtual void onRTPSenderSSRCConflict(
+                                             IRTPSenderPtr sender,
+                                             SSRCType ssrc
+                                             ) override;
 
         //---------------------------------------------------------------------
         #pragma mark
@@ -449,6 +500,13 @@ namespace ortc
 
         virtual void onWake() override;
 
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark PeerConnection => IPromiseSettledDelegate
+        #pragma mark
+
+        virtual void onPromiseSettled(PromisePtr promise) override;
+
       protected:
         //---------------------------------------------------------------------
         #pragma mark
@@ -467,9 +525,13 @@ namespace ortc
         void notifyNegotiationNeeded();
 
         void cancel();
+        void setError(WORD errorCode, const char *errorReason = NULL);
 
         void step();
+        bool stepCertificates();
         bool stepProcessPendingRemoteCandidates();
+        bool stepAddTracks();
+        bool stepFinalizeSenders();
 
         void setState(InternalStates state);
         void setState(SignalingStates state);
@@ -481,6 +543,13 @@ namespace ortc
                                      TransportInfo &transport,
                                      ICECandidatePtr candidate
                                      );
+
+        TransportInfoPtr getTransportFromPool();
+        void addToTransportPool();
+
+        String registerNewID(size_t length = 3);
+        String registerIDUsage(const char *idStr);
+        void unregisterID(const char *idStr);
 
       protected:
         //---------------------------------------------------------------------
@@ -498,6 +567,8 @@ namespace ortc
         Configuration mConfiguration;
 
         InternalStates mState {InternalState_Pending};
+        WORD mErrorCode {};
+        String mErrorReason;
 
         SignalingStates mLastSignalingState {SignalingState_First};
         ICEGatheringStates mLastICEGatheringStates {IICEGathererTypes::State_First};
@@ -514,6 +585,9 @@ namespace ortc
         ISessionDescriptionPtr mPendingRemoteDescription;
 
         PendingMethodList mPendingMethods;
+        PendingAddTrackList mPendingAddTracks;
+        SenderList mPendingRemoveTracks;
+        PendingAddDataChannelList mPendingAddDataChannels;
 
         TransportInfoMap mTransports;
         RTPMediaLineInfoMap mRTPMedias;
@@ -522,6 +596,13 @@ namespace ortc
         ReceiverInfoMap mReceiver;
 
         CandidateList mPendingRemoteCandidates;
+
+        TransportList mTransportPool;
+
+        IDMap mExistingIDs;
+
+        // step certificates
+        ICertificateTypes::PromiseWithCertificatePtr mCertificatePromise;
       };
 
       //-----------------------------------------------------------------------

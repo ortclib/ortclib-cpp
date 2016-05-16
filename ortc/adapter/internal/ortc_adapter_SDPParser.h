@@ -911,14 +911,8 @@ namespace ortc
                                                 const SDP &sdp
                                                 );
 
-        static String getCandidateSDP(
-                                      const IICETypes::Candidate &candidate,
-                                      WORD componentID
-                                      );
-        static IICETypes::GatherCandidatePtr getCandidateFromSDP(
-                                                                 const char *candidate,
-                                                                 WORD &outComponentID
-                                                                 );
+        static String getCandidateSDP(const IICETypes::Candidate &candidate);
+        static IICETypes::GatherCandidatePtr getCandidateFromSDP(const char *candidate);
       };
     }
   }

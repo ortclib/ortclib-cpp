@@ -724,6 +724,7 @@ namespace ortc
 
         if (State_Complete == currentState) {
           CandidateCompletePtr complete(make_shared<CandidateComplete>());
+          complete->mComponent = mComponent;
           delegate->onICEGathererLocalCandidateComplete(pThis, complete);
         }
 
@@ -4031,6 +4032,7 @@ namespace ortc
 
         if (IICEGatherer::State_Complete == newState) {
           CandidateCompletePtr complete(make_shared<CandidateComplete>());
+          complete->mComponent = mComponent;
           mSubscriptions.delegate()->onICEGathererLocalCandidateComplete(pThis, complete);
         }
 
@@ -4640,6 +4642,7 @@ namespace ortc
       candidate->mPort = boundIP.getPort();
       candidate->mCandidateType = candidateType;
       candidate->mFoundation = candidate->foundation();
+      candidate->mComponent = mComponent;
 
       WORD localPreference = 0;
 
@@ -4700,6 +4703,7 @@ namespace ortc
       candidate->mRelatedAddress = relatedIP.string(false);
       candidate->mRelatedPort = relatedIP.getPort();
       candidate->mFoundation = candidate->foundation(serverURL, baseIP.string(false));
+      candidate->mComponent = mComponent;
 
       WORD localPreference = 0;
 
@@ -4753,6 +4757,7 @@ namespace ortc
                                                            ip.string(),
                                                            candidate->mInterfaceType,
                                                            candidate->mFoundation,
+                                                           candidate->mComponent,
                                                            candidate->mPriority,
                                                            candidate->mUnfreezePriority,
                                                            IICETypes::toString(candidate->mProtocol),
@@ -4791,6 +4796,7 @@ namespace ortc
                                                       notifyHash,
                                                       candidate->mInterfaceType,
                                                       candidate->mFoundation,
+                                                      candidate->mComponent,
                                                       candidate->mPriority,
                                                       candidate->mUnfreezePriority,
                                                       IICETypes::toString(candidate->mProtocol),
@@ -4841,6 +4847,7 @@ namespace ortc
                                                          notifyHash,
                                                          candidate->mInterfaceType,
                                                          candidate->mFoundation,
+                                                         candidate->mComponent,
                                                          candidate->mPriority,
                                                          candidate->mUnfreezePriority,
                                                          IICETypes::toString(candidate->mProtocol),

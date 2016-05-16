@@ -147,11 +147,19 @@ namespace ortc
     //-------------------------------------------------------------------------
     struct GatherCandidate
     {
+      Components  mComponent {Component_RTP};
+
       static GatherCandidatePtr create(ElementPtr elem);
 
       virtual ElementPtr createElement(const char *objectName = NULL) const = 0;
 
       virtual ~GatherCandidate() {} // make polymorphic
+
+    protected:
+      GatherCandidate() {}
+      GatherCandidate(const GatherCandidate &op2) :
+        mComponent(op2.mComponent)
+      {}
     };
 
     //-------------------------------------------------------------------------
@@ -197,7 +205,7 @@ namespace ortc
     #pragma mark
 
     struct CandidateComplete : public GatherCandidate {
-      bool mComplete {true};
+      bool        mComplete {true};
 
       static CandidateCompletePtr convert(GatherCandidatePtr candidate);
 

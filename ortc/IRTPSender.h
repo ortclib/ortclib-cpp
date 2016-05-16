@@ -65,8 +65,9 @@ namespace ortc
   #pragma mark
   #pragma mark IRTPSender
   #pragma mark
-  
-  interaction IRTPSender : public IRTPSenderTypes,
+
+  interaction IRTPSender : public Any,
+                           public IRTPSenderTypes,
                            public IStatsProvider
   {
     static ElementPtr toDebug(IRTPSenderPtr sender);

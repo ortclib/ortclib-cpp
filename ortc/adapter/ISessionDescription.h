@@ -339,7 +339,6 @@ namespace ortc
       {
         String mMid;
         Optional<size_t> mMLineIndex;
-        IICETypes::Components mComponent {IICETypes::Component_RTP};
         IICETypes::GatherCandidatePtr mCandidate;
 
         ICECandidate() {}

@@ -96,6 +96,11 @@
             <data inType="win:AnsiString" name="Method" />
             <data inType="win:UInt64"     name="ObjectID" />
           </template>
+          <template tid="T_BasicObjectAndComponent">
+            <data inType="win:AnsiString" name="Method" />
+            <data inType="win:UInt64"     name="ObjectID" />
+            <data inType="win:UInt16"     name="Component" />
+          </template>
           <template tid="T_CertificateCreate">
             <data inType="win:AnsiString" name="Method" />
             <data inType="win:UInt64"     name="ObjectID" />
@@ -393,6 +398,7 @@
             <data inType="win:AnsiString" name="NotifyHash" />
             <data inType="win:AnsiString" name="InterfaceType" />
             <data inType="win:AnsiString" name="Foundation" />
+            <data inType="win:UInt16"     name="Component" />
             <data inType="win:UInt32"     name="Priority" />
             <data inType="win:UInt32"     name="UnfreezePriority" />
             <data inType="win:AnsiString" name="Protocol" />
@@ -410,6 +416,7 @@
             <data inType="win:AnsiString" name="BoundIP" />
             <data inType="win:AnsiString" name="InterfaceType" />
             <data inType="win:AnsiString" name="Foundation" />
+            <data inType="win:UInt16"     name="Component" />
             <data inType="win:UInt32"     name="Priority" />
             <data inType="win:UInt32"     name="UnfreezePriority" />
             <data inType="win:AnsiString" name="Protocol" />
@@ -774,6 +781,7 @@
             <data inType="win:AnsiString" name="Hash" />
             <data inType="win:AnsiString" name="InterfaceType" />
             <data inType="win:AnsiString" name="Foundation" />
+            <data inType="win:UInt16"     name="Component" />
             <data inType="win:UInt32"     name="Priority" />
             <data inType="win:UInt32"     name="UnfreezePriority" />
             <data inType="win:AnsiString" name="Protocol" />
@@ -791,6 +799,7 @@
             <data inType="win:AnsiString" name="Hash" />
             <data inType="win:AnsiString" name="InterfaceType" />
             <data inType="win:AnsiString" name="Foundation" />
+            <data inType="win:UInt16"     name="Component" />
             <data inType="win:UInt32"     name="Priority" />
             <data inType="win:UInt32"     name="UnfreezePriority" />
             <data inType="win:AnsiString" name="Protocol" />
@@ -934,6 +943,7 @@
             <data inType="win:AnsiString" name="Method" />
             <data inType="win:UInt64"     name="ObjectID" />
             <data inType="win:UInt64"     name="IceGathererObjectID" />
+            <data inType="win:UInt16"     name="Component" />
           </template>
           <template tid="T_BasicWithStunRequesterObjectID">
             <data inType="win:AnsiString" name="Method" />
@@ -1658,9 +1668,9 @@
           <event symbol="OrtcIceTransportCreateAssociatedTransport" channel="ol" template="T_IceTransportCreateAssociatedTransport" task="IceTransport" opcode="CreateAssociated" value="1607" level="win:Informational" message="$(string.Event.OrtcIceTransportCreateAssociatedTransport)" />
 
           <event symbol="OrtcIceTransportAddRemoteCandidate" channel="ol" template="T_IceTransportAddRemoteCandidate" task="IceTransport" opcode="AddCandidate" value="1608" level="win:Informational" message="$(string.Event.OrtcIceTransportAddRemoteCandidate)" />
-          <event symbol="OrtcIceTransportAddRemoteCandidateComplete" channel="ol" template="T_BasicObject" task="IceTransport" opcode="AddCandidate" value="1609" level="win:Informational" message="$(string.Event.OrtcIceTransportAddRemoteCandidateComplete)" />
+          <event symbol="OrtcIceTransportAddRemoteCandidateComplete" channel="ol" template="T_BasicObjectAndComponent" task="IceTransport" opcode="AddCandidate" value="1609" level="win:Informational" message="$(string.Event.OrtcIceTransportAddRemoteCandidateComplete)" />
           <event symbol="OrtcIceTransportRemoveRemoteCandidate" channel="ol" template="T_IceTransportRemoveRemoteCandidate" task="IceTransport" opcode="RemoveCandidate" value="1610" level="win:Informational" message="$(string.Event.OrtcIceTransportRemoveRemoteCandidate)" />
-          <event symbol="OrtcIceTransportRemoveRemoteCandidateComplete" channel="ol" template="T_BasicObject" task="IceTransport" opcode="RemoveCandidate" value="1611" level="win:Informational" message="$(string.Event.OrtcIceTransportRemoveRemoteCandidateComplete)" />
+          <event symbol="OrtcIceTransportRemoveRemoteCandidateComplete" channel="ol" template="T_BasicObjectAndComponent" task="IceTransport" opcode="RemoveCandidate" value="1611" level="win:Informational" message="$(string.Event.OrtcIceTransportRemoveRemoteCandidateComplete)" />
 
           <event symbol="OrtcIceTransportKeepWarm" channel="ol" template="T_IceTransportKeepWarm" task="IceTransport" opcode="Warm" value="1612" level="win:Informational" message="$(string.Event.OrtcIceTransportKeepWarm)" />
 
@@ -1712,7 +1722,6 @@
           <event symbol="OrtcIceTransportInternalGathererAddLocalCandidateEventFired" channel="ol" template="T_BasicWithIceGathererObjectIDAndIceCandidate" task="IceTransport" opcode="AddCandidate" value="1641" level="win:Informational" message="$(string.Event.OrtcIceTransportInternalGathererAddLocalCandidateEventFired)" />
           <event symbol="OrtcIceTransportInternalGathererAddLocalCandidateCompleteEventFired" channel="ol" template="T_IceTransportInternalGathererAddLocalCandidateCompleteEventFired" task="IceTransport" opcode="AddCandidate" value="1642" level="win:Informational" message="$(string.Event.OrtcIceTransportInternalGathererAddLocalCandidateCompleteEventFired)" />
           <event symbol="OrtcIceTransportInternalGathererRemoveLocalCandidateEventFired" channel="ol" template="T_BasicWithIceGathererObjectIDAndIceCandidate" task="IceTransport" opcode="RemoveCandidate" value="1643" level="win:Informational" message="$(string.Event.OrtcIceTransportInternalGathererRemoveLocalCandidateEventFired)" />
-
 
           <event symbol="OrtcIceTransportInternalStunRequesterCreate" channel="ol" template="T_BasicWithStunRequesterObjectID" task="IceTransport" opcode="win:Start" value="1644" level="win:Informational" message="$(string.Event.OrtcIceTransportInternalStunRequesterCreate)" />
           <event symbol="OrtcIceTransportInternalStunRequesterSendPacket" channel="ol" template="T_IceTransportInternalStunRequesterSendPacket" task="IceTransport" opcode="win:Send" value="1645" level="win:Verbose" message="$(string.Event.OrtcIceTransportInternalStunRequesterSendPacket)" />
