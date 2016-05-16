@@ -172,7 +172,7 @@ namespace ortc
               break;
             }
             case SignalingType_SDPOffer:
-            case SignalingType_SDPPreanswer:
+            case SignalingType_SDPPranswer:
             case SignalingType_SDPAnswer:
             case SignalingType_SDPRollback: {
               mSDP = SDPParser::parse(mFormattedString);
@@ -204,7 +204,7 @@ namespace ortc
               break;
             }
             case SignalingType_SDPOffer:
-            case SignalingType_SDPPreanswer:
+            case SignalingType_SDPPranswer:
             case SignalingType_SDPAnswer:
             case SignalingType_SDPRollback: {
               if (!mSDP) {
@@ -300,7 +300,7 @@ namespace ortc
       {
       case SignalingType_JSON:          return "json";
       case SignalingType_SDPOffer:      return "offer";
-      case SignalingType_SDPPreanswer:  return "preanswer";
+      case SignalingType_SDPPranswer:   return "pranswer";
       case SignalingType_SDPAnswer:     return "answer";
       case SignalingType_SDPRollback:   return "rollback";
       }

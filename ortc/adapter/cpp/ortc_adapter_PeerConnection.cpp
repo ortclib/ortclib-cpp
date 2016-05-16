@@ -461,6 +461,20 @@ namespace ortc
           return PromiseWithDescription::createRejected(ErrorAny::create(UseHTTP::HTTPStatusCode_Gone, "peer connection is already closed"), UseORTC::queueDelegate());
         }
 
+        switch (mConfiguration.mSignalingMode) {
+          case IPeerConnectionTypes::SignalingMode_JSON: {
+
+            Optional<CapabilityOptions> options;
+            if (configuration.hasValue()) {
+              options = CapabilityOptions();
+              options.value().mVoiceActivityDetection = configuration.value().mVoiceActivityDetection;
+            }
+
+            return createCapabilities(options);
+          }
+          case IPeerConnectionTypes::SignalingMode_SDP:   break;
+        }
+
         auto promise = PromiseWithDescription::create(UseORTC::queueDelegate());
 
         auto pending = make_shared<PendingMethod>(PendingMethod_CreateOffer, promise);
@@ -483,6 +497,20 @@ namespace ortc
         if (isStopped()) {
           ZS_LOG_WARNING(Debug, log("rejecting create answer since already closed"));
           return PromiseWithDescription::createRejected(ErrorAny::create(UseHTTP::HTTPStatusCode_Gone, "peer connection is already closed"), UseORTC::queueDelegate());
+        }
+
+        switch (mConfiguration.mSignalingMode) {
+          case IPeerConnectionTypes::SignalingMode_JSON: {
+
+            Optional<CapabilityOptions> options;
+            if (configuration.hasValue()) {
+              options = CapabilityOptions();
+              options.value().mVoiceActivityDetection = configuration.value().mVoiceActivityDetection;
+            }
+
+            return createCapabilities(options);
+          }
+          case IPeerConnectionTypes::SignalingMode_SDP:   break;
         }
 
         auto promise = PromiseWithDescription::create(UseORTC::queueDelegate());
@@ -533,6 +561,31 @@ namespace ortc
           return PromiseWithDescription::createRejected(ErrorAny::create(UseHTTP::HTTPStatusCode_Gone, "peer connection is already closed"), UseORTC::queueDelegate());
         }
 
+        switch (mConfiguration.mSignalingMode) {
+          case IPeerConnectionTypes::SignalingMode_JSON: {
+            if (ISessionDescriptionTypes::SignalingType_JSON != description->type()) {
+              ZS_LOG_WARNING(Debug, log("rejecting local description (sent in SDP but expecting JSON)"));
+              return Promise::createRejected(ErrorAny::create(UseHTTP::HTTPStatusCode_Conflict, "expecting JSON but received SDP (mixing JSON/SDP signaling in same connection)"), UseORTC::queueDelegate());
+            }
+            break;
+          }
+          case IPeerConnectionTypes::SignalingMode_SDP: {
+            switch (description->type()) {
+              case ISessionDescriptionTypes::SignalingType_JSON: {
+                ZS_LOG_WARNING(Debug, log("rejecting local description (as signaling is mixing JSON/SDP)"));
+                return Promise::createRejected(ErrorAny::create(UseHTTP::HTTPStatusCode_Conflict, "expecting SDP but received JSON (mixing JSON/SDP signaling in same connection)"), UseORTC::queueDelegate());
+              }
+              case ISessionDescriptionTypes::SignalingType_SDPOffer: 
+              case ISessionDescriptionTypes::SignalingType_SDPPranswer: 
+              case ISessionDescriptionTypes::SignalingType_SDPAnswer:
+              case ISessionDescriptionTypes::SignalingType_SDPRollback:
+              {
+                break;
+              }
+            }
+          }
+        }
+
         auto promise = PromiseWithDescription::create(UseORTC::queueDelegate());
 
         auto pending = make_shared<PendingMethod>(PendingMethod_SetLocalDescription, promise);
@@ -572,11 +625,38 @@ namespace ortc
       //-----------------------------------------------------------------------
       PromisePtr PeerConnection::setRemoteDescription(ISessionDescriptionPtr description)
       {
+        ORTC_THROW_INVALID_PARAMETERS_IF(!description);
+
         AutoRecursiveLock lock(*this);
 
         if (isStopped()) {
-          ZS_LOG_WARNING(Debug, log("rejecting remote description since already closed"));
+          ZS_LOG_WARNING(Debug, log("rejecting remote description (since already closed)"));
           return Promise::createRejected(ErrorAny::create(UseHTTP::HTTPStatusCode_Gone, "peer connection is already closed"), UseORTC::queueDelegate());
+        }
+
+        switch (mConfiguration.mSignalingMode) {
+          case IPeerConnectionTypes::SignalingMode_JSON: {
+            if (ISessionDescriptionTypes::SignalingType_JSON != description->type()) {
+              ZS_LOG_WARNING(Debug, log("rejecting remote description (sent in SDP but expecting JSON)"));
+              return Promise::createRejected(ErrorAny::create(UseHTTP::HTTPStatusCode_Conflict, "expecting JSON but received SDP (mixing JSON/SDP signaling in same connection)"), UseORTC::queueDelegate());
+            }
+            break;
+          }
+          case IPeerConnectionTypes::SignalingMode_SDP: {
+            switch (description->type()) {
+              case ISessionDescriptionTypes::SignalingType_JSON: {
+                ZS_LOG_WARNING(Debug, log("rejecting remote description (as signaling is mixing JSON/SDP)"));
+                return Promise::createRejected(ErrorAny::create(UseHTTP::HTTPStatusCode_Conflict, "expecting SDP but received JSON (mixing JSON/SDP signaling in same connection)"), UseORTC::queueDelegate());
+              }
+              case ISessionDescriptionTypes::SignalingType_SDPOffer: 
+              case ISessionDescriptionTypes::SignalingType_SDPPranswer: 
+              case ISessionDescriptionTypes::SignalingType_SDPAnswer:
+              case ISessionDescriptionTypes::SignalingType_SDPRollback:
+              {
+                break;
+              }
+            }
+          }
         }
 
         auto promise = Promise::create(UseORTC::queueDelegate());
@@ -1238,10 +1318,11 @@ namespace ortc
 
         // steps
         if (!stepCertificates()) return;
+        if (!stepAddTracks()) return;
+        if (!stepCreateOffer()) return;
         if (!stepProcessPendingRemoteCandidates()) return;
 #define TODO_STEP 1
 #define TODO_STEP 2
-        if (!stepAddTracks()) return;
         if (!stepFinalizeSenders()) return;
 
         goto ready;
@@ -1295,60 +1376,6 @@ namespace ortc
         mConfiguration.mCertificates.push_back(certificate);
 
         mCertificatePromise.reset();
-        return true;
-      }
-
-      //-----------------------------------------------------------------------
-      bool PeerConnection::stepProcessPendingRemoteCandidates()
-      {
-        ZS_LOG_TRACE(log("step - process pending remote candidates"));
-
-        while (mPendingRemoteCandidates.size() > 0) {
-
-          ICECandidatePtr candidate = mPendingRemoteCandidates.front();
-          mPendingRemoteCandidates.pop_front();
-
-          if (candidate->mMid.hasData()) {
-            auto found = mTransports.find(candidate->mMid);
-            if (found == mTransports.end()) goto not_found;
-            addCandidateToTransport(*((*found).second), candidate);
-            goto found;
-          }
-
-          if (!candidate->mMLineIndex.hasValue()) goto not_found;
-
-          for (auto iter = mRTPMedias.begin(); iter != mRTPMedias.end(); ++iter) {
-            auto &mediaLine = *((*iter).second);
-            if (!mediaLine.mLineIndex.hasValue()) continue;
-            if (mediaLine.mLineIndex != candidate->mMLineIndex.value()) continue;
-
-            String transportID(mediaLine.mPrivateTransportID.hasData() ? mediaLine.mPrivateTransportID : mediaLine.mBundledTransportID);
-
-            auto found = mTransports.find(transportID);
-            if (found == mTransports.end()) goto not_found;
-            addCandidateToTransport(*((*found).second), candidate);
-            goto found;
-          }
-
-          for (auto iter = mSCTPMedias.begin(); iter != mSCTPMedias.end(); ++iter) {
-            auto &mediaLine = *((*iter).second);
-            if (!mediaLine.mLineIndex.hasValue()) continue;
-            if (mediaLine.mLineIndex != candidate->mMLineIndex.value()) continue;
-
-            String transportID(mediaLine.mPrivateTransportID.hasData() ? mediaLine.mPrivateTransportID : mediaLine.mBundledTransportID);
-
-            auto found = mTransports.find(transportID);
-            if (found == mTransports.end()) goto not_found;
-            addCandidateToTransport(*((*found).second), candidate);
-            goto found;
-          }
-
-        not_found:
-          {
-            ZS_LOG_WARNING(Debug, log("no transport found for candidate") + candidate->toDebug());
-          }
-        found: {}
-        }
         return true;
       }
 
@@ -1542,6 +1569,192 @@ namespace ortc
           }
         }
 
+        return true;
+      }
+
+      //-----------------------------------------------------------------------
+      bool PeerConnection::stepProcessRemote()
+      {
+        ZS_LOG_TRACE(log("step - process remote"));
+
+        if (mPendingMethods.size() < 1) {
+          ZS_LOG_TRACE(log("skipping step to proces remote (no pending methods)"));
+          return true;
+        }
+
+        PendingMethodPtr pending = mPendingMethods.front();
+        if (PendingMethod_SetRemoteDescription != pending->mMethod) {
+          ZS_LOG_TRACE(log("sipping process remote as pending method is not setting a remote description"));
+          return true;
+        }
+
+        switch (mLastSignalingState) {
+          case IPeerConnectionTypes::SignalingState_WaitingLocalOffer:
+          case IPeerConnectionTypes::SignalingState_WaitingLocalAnswer:
+          case IPeerConnectionTypes::SignalingState_HaveLocalPranswer:
+          case IPeerConnectionTypes::SignalingState_HaveRemoteOffer:      {
+            ZS_LOG_WARNING(Debug, log("cannot accept remote description (as in wrong signaling state)") + ZS_PARAM("signaling state", IPeerConnectionTypes::toString(mLastSignalingState)) + pending->toDebug());
+            pending->mPromise->reject(ErrorAny::create(UseHTTP::HTTPStatusCode_Conflict, "received SetRemoteDescription (but signaling state does not match)"));
+            wake();
+            return false;
+          }
+          case IPeerConnectionTypes::SignalingState_Stable:
+          {
+            // always in stable state with JSON
+            switch (pending->mSessionDescription->type()) {
+              case ISessionDescriptionTypes::SignalingType_JSON:
+              case ISessionDescriptionTypes::SignalingType_SDPOffer:    
+              {
+                break;
+              }
+              case ISessionDescriptionTypes::SignalingType_SDPPranswer:
+              case ISessionDescriptionTypes::SignalingType_SDPAnswer:
+              {
+                ZS_LOG_WARNING(Debug, log("cannot accept remote description (not legal signaling type in Stable state)") + pending->toDebug());
+                pending->mPromise->reject(ErrorAny::create(UseHTTP::HTTPStatusCode_Conflict, "received SetRemoteDescription (but signaling type not legal)"));
+                wake();
+                return false;
+              }
+              case ISessionDescriptionTypes::SignalingType_SDPRollback:
+              {
+                ZS_THROW_NOT_IMPLEMENTED("rollback not implemented at this time");
+              }
+            }
+            break;
+          }
+          case IPeerConnectionTypes::SignalingState_HaveLocalOffer:   
+          case IPeerConnectionTypes::SignalingState_HaveRemotePranswer:
+          {
+            switch (pending->mSessionDescription->type()) {
+              case ISessionDescriptionTypes::SignalingType_SDPPranswer:
+              case ISessionDescriptionTypes::SignalingType_SDPAnswer:
+              {
+                break;
+              }
+              case ISessionDescriptionTypes::SignalingType_SDPOffer:
+              case ISessionDescriptionTypes::SignalingType_JSON:
+              {
+                ZS_LOG_WARNING(Debug, log("cannot accept remote description (not legal signaling type in HaveLocalOffer state)") + pending->toDebug());
+                pending->mPromise->reject(ErrorAny::create(UseHTTP::HTTPStatusCode_Conflict, "received SetRemoteDescription (but signaling type not legal)"));
+                wake();
+                return false;
+              }
+              case ISessionDescriptionTypes::SignalingType_SDPRollback:
+              {
+                ZS_THROW_NOT_IMPLEMENTED("rollback not implemented at this time");
+              }
+            }
+            break;
+          }
+          case IPeerConnectionTypes::SignalingState_Closed:               break;  // will not happen
+        }
+
+        mPendingMethods.pop_front();
+
+        return true;
+      }
+
+      //-----------------------------------------------------------------------
+      bool PeerConnection::stepCreateOffer()
+      {
+        ZS_LOG_TRACE(log("step - create offer"));
+
+        switch (mLastSignalingState) {
+          case IPeerConnectionTypes::SignalingState_Stable:                 break;
+          case IPeerConnectionTypes::SignalingState_WaitingLocalOffer:
+          case IPeerConnectionTypes::SignalingState_HaveLocalOffer:
+          case IPeerConnectionTypes::SignalingState_HaveRemoteOffer:        
+          case IPeerConnectionTypes::SignalingState_WaitingLocalAnswer:
+          case IPeerConnectionTypes::SignalingState_HaveLocalPranswer:
+          case IPeerConnectionTypes::SignalingState_HaveRemotePranswer:
+          case IPeerConnectionTypes::SignalingState_Closed: 
+          {
+            ZS_LOG_TRACE(log("skipping step to create an offer (in wrong signaling state)"));
+            break;
+          }
+        }
+
+        if (mPendingMethods.size() < 1) {
+          ZS_LOG_TRACE(log("skipping step to creeate offer (no pending methods)"));
+          return true;
+        }
+
+        PendingMethodPtr pending = mPendingMethods.front();
+        mPendingMethods.pop_front();
+
+        switch (pending->mMethod) {
+          case PendingMethod_CreateOffer:
+          case PendingMethod_CreateAnswer:
+          case PendingMethod_CreateCapabilities:
+          case PendingMethod_SetLocalDescription:
+          case PendingMethod_SetRemoteDescription:  
+          {
+            break;
+          }
+        }
+
+        switch (mConfiguration.mSignalingMode) {
+          case IPeerConnectionTypes::SignalingMode_JSON: {
+            
+            break;
+          }
+        }
+
+
+        return true;
+      }
+
+      //-----------------------------------------------------------------------
+      bool PeerConnection::stepProcessPendingRemoteCandidates()
+      {
+        ZS_LOG_TRACE(log("step - process pending remote candidates"));
+
+        while (mPendingRemoteCandidates.size() > 0) {
+
+          ICECandidatePtr candidate = mPendingRemoteCandidates.front();
+          mPendingRemoteCandidates.pop_front();
+
+          if (candidate->mMid.hasData()) {
+            auto found = mTransports.find(candidate->mMid);
+            if (found == mTransports.end()) goto not_found;
+            addCandidateToTransport(*((*found).second), candidate);
+            goto found;
+          }
+
+          if (!candidate->mMLineIndex.hasValue()) goto not_found;
+
+          for (auto iter = mRTPMedias.begin(); iter != mRTPMedias.end(); ++iter) {
+            auto &mediaLine = *((*iter).second);
+            if (!mediaLine.mLineIndex.hasValue()) continue;
+            if (mediaLine.mLineIndex != candidate->mMLineIndex.value()) continue;
+
+            String transportID(mediaLine.mPrivateTransportID.hasData() ? mediaLine.mPrivateTransportID : mediaLine.mBundledTransportID);
+
+            auto found = mTransports.find(transportID);
+            if (found == mTransports.end()) goto not_found;
+            addCandidateToTransport(*((*found).second), candidate);
+            goto found;
+          }
+
+          for (auto iter = mSCTPMedias.begin(); iter != mSCTPMedias.end(); ++iter) {
+            auto &mediaLine = *((*iter).second);
+            if (!mediaLine.mLineIndex.hasValue()) continue;
+            if (mediaLine.mLineIndex != candidate->mMLineIndex.value()) continue;
+
+            String transportID(mediaLine.mPrivateTransportID.hasData() ? mediaLine.mPrivateTransportID : mediaLine.mBundledTransportID);
+
+            auto found = mTransports.find(transportID);
+            if (found == mTransports.end()) goto not_found;
+            addCandidateToTransport(*((*found).second), candidate);
+            goto found;
+          }
+
+        not_found:
+          {
+            ZS_LOG_WARNING(Debug, log("no transport found for candidate") + candidate->toDebug());
+          }
+        found: {}
+        }
         return true;
       }
 
@@ -1927,7 +2140,7 @@ namespace ortc
       {
         case ISessionDescriptionTypes::SignalingType_JSON:            return IPeerConnectionTypes::SignalingMode_JSON == mode;
         case ISessionDescriptionTypes::SignalingType_SDPOffer:
-        case ISessionDescriptionTypes::SignalingType_SDPPreanswer:
+        case ISessionDescriptionTypes::SignalingType_SDPPranswer:
         case ISessionDescriptionTypes::SignalingType_SDPAnswer:
         case ISessionDescriptionTypes::SignalingType_SDPRollback:     return IPeerConnectionTypes::SignalingMode_SDP == mode;
       }
@@ -1940,8 +2153,10 @@ namespace ortc
       switch (state)
       {
         case IPeerConnectionTypes::SignalingState_Stable:             return "stable";
+        case IPeerConnectionTypes::SignalingState_WaitingLocalOffer:  return "waiting-local-offer";
         case IPeerConnectionTypes::SignalingState_HaveLocalOffer:     return "have-local-offer";
         case IPeerConnectionTypes::SignalingState_HaveRemoteOffer:    return "have-remote-offer";
+        case IPeerConnectionTypes::SignalingState_WaitingLocalAnswer: return "waiting-local-answer";
         case IPeerConnectionTypes::SignalingState_HaveLocalPranswer:  return "have-local-pranswer";
         case IPeerConnectionTypes::SignalingState_HaveRemotePranswer: return "have-remote-pranswer";
         case IPeerConnectionTypes::SignalingState_Closed:             return "closed";

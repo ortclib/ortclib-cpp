@@ -92,7 +92,7 @@ namespace ortc
 
         SignalingType_JSON = SignalingType_First,
         SignalingType_SDPOffer,
-        SignalingType_SDPPreanswer,
+        SignalingType_SDPPranswer,
         SignalingType_SDPAnswer,
         SignalingType_SDPRollback,
 

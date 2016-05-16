@@ -529,6 +529,8 @@ namespace ortc
 
         void step();
         bool stepCertificates();
+        bool stepProcessRemote();
+        bool stepCreateOffer();
         bool stepProcessPendingRemoteCandidates();
         bool stepAddTracks();
         bool stepFinalizeSenders();
