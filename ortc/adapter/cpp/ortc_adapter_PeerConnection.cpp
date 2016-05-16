@@ -1651,6 +1651,14 @@ namespace ortc
 
         mPendingMethods.pop_front();
 
+        auto description = pending->mSessionDescription->description();
+        if (!description) {
+          ZS_LOG_WARNING(Debug, log("cannot accept remote description (as remote description is not valid)") + ZS_PARAM("signaling state", IPeerConnectionTypes::toString(mLastSignalingState)) + pending->toDebug());
+          pending->mPromise->reject(ErrorAny::create(UseHTTP::HTTPStatusCode_BadRequest, "received SetRemoteDescription but it does not appear to be valid"));
+          wake();
+          return false;
+        }
+
         return true;
       }
 
