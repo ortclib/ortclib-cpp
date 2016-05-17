@@ -125,10 +125,8 @@ namespace ortc
         SignalingState_First,
 
         SignalingState_Stable = SignalingState_First,
-        SignalingState_WaitingLocalOffer,
         SignalingState_HaveLocalOffer,
         SignalingState_HaveRemoteOffer,
-        SignalingState_WaitingLocalAnswer,
         SignalingState_HaveLocalPranswer,
         SignalingState_HaveRemotePranswer,
         SignalingState_Closed,

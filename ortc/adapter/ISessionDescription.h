@@ -429,6 +429,8 @@ namespace ortc
 
       static ElementPtr toDebug(ISessionDescriptionPtr object);
 
+      virtual PUID getID() const = 0;
+
       virtual SignalingTypes type() const = 0;
       virtual DescriptionPtr description() const = 0;
       virtual SignalingDescription formattedDescription() const = 0;

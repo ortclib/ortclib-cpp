@@ -76,7 +76,7 @@ namespace ortc
 
     enum Components
     {
-      Component_First,
+      Component_First = 1,
 
       Component_RTP = Component_First,
       Component_RTCP,

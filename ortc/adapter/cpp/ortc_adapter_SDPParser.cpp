@@ -1361,7 +1361,7 @@ namespace ortc
         ORTC_THROW_INVALID_PARAMETERS_IF(split.size() < 1);
 
         mFormatStr = split[0];
-        if (isdigit(mFormatStr[0])) {
+        if (isdigit((mFormatStr.c_str())[0])) {
           try {
             mFormat = Numeric<decltype(mFormat)>(split[0]);
           } catch (const Numeric<decltype(mFormat)>::ValueOutOfRange &) {
@@ -1729,7 +1729,7 @@ namespace ortc
 
               SCID scid;
 
-              if ('~' == scidValue[0]) {
+              if ('~' == (scidValue.c_str())[0]) {
                 scid.mPaused = true;
                 scid.mRID = scidValue.substr(1);
               } else {

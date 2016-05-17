@@ -153,8 +153,7 @@ namespace ortc
 
             IDTLSTransportPtr mDTLSTransport;
             ISRTPSDESTransportPtr mSRTPSDESTransport;
-
-            ISCTPTransportPtr mSCTPTransport;
+            ISRTPSDESTransportTypes::ParametersPtr mSRTPSDESParameters;
 
             ElementPtr toDebug() const;
           };
@@ -197,6 +196,8 @@ namespace ortc
 
         struct SCTPMediaLineInfo : public MediaLineInfo
         {
+          ISCTPTransportPtr mSCTPTransport;
+
           ElementPtr toDebug() const;
         };
 
@@ -530,6 +531,9 @@ namespace ortc
         void step();
         bool stepCertificates();
         bool stepProcessRemote();
+        bool stepProcessRemoteTransport(ISessionDescriptionTypes::DescriptionPtr description);
+        bool stepProcessRemoteRTPMediaLines(ISessionDescriptionTypes::DescriptionPtr description);
+        bool stepProcessRemoteRTPSenders(ISessionDescriptionTypes::DescriptionPtr description);
         bool stepCreateOffer();
         bool stepProcessPendingRemoteCandidates();
         bool stepAddTracks();
@@ -546,12 +550,21 @@ namespace ortc
                                      ICECandidatePtr candidate
                                      );
 
-        TransportInfoPtr getTransportFromPool();
+        TransportInfoPtr getTransportFromPool(const char *useID = NULL);
         void addToTransportPool();
 
         String registerNewID(size_t length = 3);
         String registerIDUsage(const char *idStr);
         void unregisterID(const char *idStr);
+
+        void flushLocalPending(ISessionDescriptionPtr description);
+        void flushRemotePending(ISessionDescriptionPtr description);
+        void close(TransportInfo &transportInfo);
+        void close(TransportInfo::Details &details);
+        void close(RTPMediaLineInfo &mediaLineInfo);
+        void close(SCTPMediaLineInfo &mediaLineInfo);
+        void close(SenderInfo &senderInfo);
+        void close(ReceiverInfo &receiverInfo);
 
       protected:
         //---------------------------------------------------------------------
@@ -595,7 +608,7 @@ namespace ortc
         RTPMediaLineInfoMap mRTPMedias;
         SCTPMediaLineInfoMap mSCTPMedias;
         SenderInfoMap mSenders;
-        ReceiverInfoMap mReceiver;
+        ReceiverInfoMap mReceivers;
 
         CandidateList mPendingRemoteCandidates;
 

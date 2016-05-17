@@ -82,7 +82,6 @@ namespace ortc
         UseServicesHelper::debugAppend(resultEl, "end of candidates", mRTPEndOfCandidates);
         UseServicesHelper::debugAppend(resultEl, "dtls transport", mDTLSTransport ? mDTLSTransport->getID() : 0);
         UseServicesHelper::debugAppend(resultEl, "srtp/sdes transport", mSRTPSDESTransport ? mSRTPSDESTransport->getID() : 0);
-        UseServicesHelper::debugAppend(resultEl, "sctp transport", mSCTPTransport ? mSCTPTransport->getID() : 0);
 
         return resultEl;
       }
@@ -173,6 +172,8 @@ namespace ortc
       {
         ElementPtr resultEl = MediaLineInfo::toDebug();
         resultEl->setValue("ortc::adapter::PeerConnection::SCTPMediaLineInfo");
+
+        UseServicesHelper::debugAppend(resultEl, "sctp transport", mSCTPTransport ? mSCTPTransport->getID() : 0);
 
         return resultEl;
       }
@@ -591,6 +592,7 @@ namespace ortc
         auto pending = make_shared<PendingMethod>(PendingMethod_SetLocalDescription, promise);
 
         pending->mSessionDescription = description;
+        mPendingLocalDescription = description;
 
         mPendingMethods.push_back(pending);
 
@@ -664,6 +666,7 @@ namespace ortc
         auto pending = make_shared<PendingMethod>(PendingMethod_SetRemoteDescription, promise);
 
         pending->mSessionDescription = description;
+        mPendingRemoteDescription = description;
 
         mPendingMethods.push_back(pending);
 
@@ -818,7 +821,7 @@ namespace ortc
           return result;
         }
 
-        for (auto iter = mReceiver.begin(); iter != mReceiver.end(); ++iter) {
+        for (auto iter = mReceivers.begin(); iter != mReceivers.end(); ++iter) {
           auto &receiverInfo = ((*iter).second);
 
           auto receiver = receiverInfo->mReceiver;
@@ -1237,7 +1240,7 @@ namespace ortc
         UseServicesHelper::debugAppend(resultEl, "rtp medias", mRTPMedias.size());
         UseServicesHelper::debugAppend(resultEl, "sctp medias", mSCTPMedias.size());
         UseServicesHelper::debugAppend(resultEl, "senders", mSenders.size());
-        UseServicesHelper::debugAppend(resultEl, "receivers", mReceiver.size());
+        UseServicesHelper::debugAppend(resultEl, "receivers", mReceivers.size());
 
         UseServicesHelper::debugAppend(resultEl, "pending remote candidates", mPendingRemoteCandidates.size());
 
@@ -1338,7 +1341,7 @@ namespace ortc
       {
         ZS_LOG_TRACE(log("step - certificates"));
 
-        if (!mConfiguration.mCertificates.size() > 0) {
+        if (mConfiguration.mCertificates.size() > 0) {
           ZS_LOG_TRACE(log("already have certificates"));
           return true;
         }
@@ -1584,15 +1587,14 @@ namespace ortc
 
         PendingMethodPtr pending = mPendingMethods.front();
         if (PendingMethod_SetRemoteDescription != pending->mMethod) {
-          ZS_LOG_TRACE(log("sipping process remote as pending method is not setting a remote description"));
+          ZS_LOG_TRACE(log("skipping process remote as pending method is not setting a remote description"));
           return true;
         }
 
         switch (mLastSignalingState) {
-          case IPeerConnectionTypes::SignalingState_WaitingLocalOffer:
-          case IPeerConnectionTypes::SignalingState_WaitingLocalAnswer:
           case IPeerConnectionTypes::SignalingState_HaveLocalPranswer:
           case IPeerConnectionTypes::SignalingState_HaveRemoteOffer:      {
+            flushRemotePending(pending->mSessionDescription);
             ZS_LOG_WARNING(Debug, log("cannot accept remote description (as in wrong signaling state)") + ZS_PARAM("signaling state", IPeerConnectionTypes::toString(mLastSignalingState)) + pending->toDebug());
             pending->mPromise->reject(ErrorAny::create(UseHTTP::HTTPStatusCode_Conflict, "received SetRemoteDescription (but signaling state does not match)"));
             wake();
@@ -1610,6 +1612,7 @@ namespace ortc
               case ISessionDescriptionTypes::SignalingType_SDPPranswer:
               case ISessionDescriptionTypes::SignalingType_SDPAnswer:
               {
+                flushRemotePending(pending->mSessionDescription);
                 ZS_LOG_WARNING(Debug, log("cannot accept remote description (not legal signaling type in Stable state)") + pending->toDebug());
                 pending->mPromise->reject(ErrorAny::create(UseHTTP::HTTPStatusCode_Conflict, "received SetRemoteDescription (but signaling type not legal)"));
                 wake();
@@ -1634,6 +1637,7 @@ namespace ortc
               case ISessionDescriptionTypes::SignalingType_SDPOffer:
               case ISessionDescriptionTypes::SignalingType_JSON:
               {
+                flushRemotePending(pending->mSessionDescription);
                 ZS_LOG_WARNING(Debug, log("cannot accept remote description (not legal signaling type in HaveLocalOffer state)") + pending->toDebug());
                 pending->mPromise->reject(ErrorAny::create(UseHTTP::HTTPStatusCode_Conflict, "received SetRemoteDescription (but signaling type not legal)"));
                 wake();
@@ -1653,12 +1657,354 @@ namespace ortc
 
         auto description = pending->mSessionDescription->description();
         if (!description) {
+          flushRemotePending(pending->mSessionDescription);
           ZS_LOG_WARNING(Debug, log("cannot accept remote description (as remote description is not valid)") + ZS_PARAM("signaling state", IPeerConnectionTypes::toString(mLastSignalingState)) + pending->toDebug());
           pending->mPromise->reject(ErrorAny::create(UseHTTP::HTTPStatusCode_BadRequest, "received SetRemoteDescription but it does not appear to be valid"));
           wake();
           return false;
         }
 
+        bool result = true;
+
+        result = stepProcessRemoteTransport(description) && (result);
+        result = stepProcessRemoteRTPMediaLines(description) && (result);
+        result = stepProcessRemoteRTPSenders(description) && (result);
+
+        return result;
+      }
+
+      //-----------------------------------------------------------------------
+      bool PeerConnection::stepProcessRemoteTransport(ISessionDescriptionTypes::DescriptionPtr description)
+      {
+        for (auto iter = description->mTransports.begin(); iter != description->mTransports.end(); ++iter) {
+          auto &transport = *(*iter);
+
+          TransportInfoPtr transportInfo;
+
+          {
+            // find the transport
+            {
+              auto found = mTransports.find(transport.mID);
+              if (found == mTransports.end()) {
+                // no matching local transport, create one
+                transportInfo = getTransportFromPool(transport.mID);
+                transportInfo->mNegotiationState = NegotiationState_RemoteOffered;
+              } else {
+                transportInfo = (*found).second;
+              }
+            }
+
+            ZS_THROW_INVALID_ASSUMPTION_IF(!transportInfo);
+
+            if (transportInfo->mNegotiationState) {
+              ZS_LOG_WARNING(Debug, log("transport was already rejected") + transportInfo->toDebug());
+              goto reject_transport;
+            }
+
+            if (!transport.mRTP) {
+              ZS_LOG_WARNING(Debug, log("transport is missing rtp parameters") + transport.toDebug());
+              goto reject_transport;
+            }
+
+            if (!transport.mRTP->mICEParameters) {
+              ZS_LOG_WARNING(Debug, log("transport is missing ice parameters") + transport.toDebug());
+              goto reject_transport;
+            }
+
+            if (!transportInfo->mRTP.mGatherer) {
+              ZS_LOG_WARNING(Debug, log("transport info is missing ice gatherer") + transportInfo->toDebug());
+              goto reject_transport;
+            }
+            if (!transportInfo->mRTP.mTransport) {
+              ZS_LOG_WARNING(Debug, log("transport info is missing ice transport") + transportInfo->toDebug());
+              goto reject_transport;
+            }
+
+            IICETransportTypes::Options options;
+            options.mAggressiveICE = true;
+
+            bool hasRTPICE = true;
+            bool hasRTCPICE = hasRTPICE && transport.mRTCP && (transportInfo->mRTCP.mTransport);
+            auto useRTCPICEParams = hasRTCPICE ? (bool(transport.mRTCP->mICEParameters) ? transport.mRTCP->mICEParameters : transport.mRTP->mICEParameters) : IICETransportTypes::ParametersPtr();
+
+            bool hasRTPDTLS = bool(transport.mRTP->mDTLSParameters);
+            bool hasRTCPDTLS = hasRTCPICE && hasRTPDTLS && bool(transport.mRTCP);
+            auto useRTCPDTLSParams = hasRTCPDTLS ? (transport.mRTCP->mDTLSParameters ? transport.mRTCP->mDTLSParameters : transport.mRTP->mDTLSParameters) : IDTLSTransportTypes::ParametersPtr();
+
+            bool hasRTPSRTP = (!hasRTPDTLS) && bool(transport.mRTP->mSRTPSDESParameters) && (transport.mRTP->mSRTPSDESParameters->mCryptoParams.size() > 0);
+
+            if ((!hasRTPDTLS) && (!hasRTPSRTP)) {
+              ZS_LOG_WARNING(Debug, log("transport / info is missing secure transport") + transport.toDebug() + transportInfo->toDebug());
+              goto reject_transport;
+            }
+
+            switch (transportInfo->mNegotiationState)
+            {
+              case NegotiationState_PendingOffer:
+              case NegotiationState_LocalOffered:     options.mRole = IICETypes::Role_Controlling; break;
+              case NegotiationState_RemoteOffered:    options.mRole = IICETypes::Role_Controlled;  break;
+              case NegotiationState_Agreed:           break;
+              case NegotiationState_Rejected:         break;  // will not happen
+            }
+
+            // scope: setup ICE
+            {
+              transportInfo->mRTP.mTransport->start(transportInfo->mRTP.mGatherer, *(transport.mRTP->mICEParameters), options);
+              if (hasRTCPICE) {
+                transportInfo->mRTCP.mTransport->start(transportInfo->mRTCP.mGatherer, *useRTCPICEParams, options);
+              } else {
+                if (transportInfo->mRTCP.mTransport) {
+                  transportInfo->mRTCP.mTransport->stop();
+                  transportInfo->mRTCP.mTransport.reset();
+                }
+                if (transportInfo->mRTCP.mGatherer) {
+                  transportInfo->mRTCP.mGatherer->close();
+                  transportInfo->mRTCP.mGatherer.reset();
+                }
+              }
+            }
+
+            // scope: setup DTLS
+            {
+              if (hasRTPDTLS) {
+                if (!(transportInfo->mRTP.mDTLSTransport)) {
+                  transportInfo->mRTP.mDTLSTransport = IDTLSTransport::create(mThisWeak.lock(), transportInfo->mRTP.mTransport, mConfiguration.mCertificates);
+                }
+                transportInfo->mRTP.mDTLSTransport->start(*(transport.mRTP->mDTLSParameters));
+              } else {
+                if (transportInfo->mRTP.mDTLSTransport) {
+                  transportInfo->mRTP.mDTLSTransport->stop();
+                  transportInfo->mRTP.mDTLSTransport.reset();
+                }
+              }
+              if (hasRTCPDTLS) {
+                if (!(transportInfo->mRTCP.mDTLSTransport)) {
+                  transportInfo->mRTCP.mDTLSTransport = IDTLSTransport::create(mThisWeak.lock(), transportInfo->mRTCP.mTransport, mConfiguration.mCertificates);
+                }
+                transportInfo->mRTCP.mDTLSTransport->start(*useRTCPDTLSParams);
+              } else {
+                if (transportInfo->mRTCP.mDTLSTransport) {
+                  transportInfo->mRTCP.mDTLSTransport->stop();
+                  transportInfo->mRTCP.mDTLSTransport.reset();
+                }
+              }
+            }
+
+            // scope: setup SRTP/SDES
+            {
+              if (hasRTPSRTP) {
+                if (!(transportInfo->mRTP.mSRTPSDESTransport)) {
+                  ZS_THROW_INVALID_ASSUMPTION_IF(!transportInfo->mRTP.mSRTPSDESParameters);
+                  ZS_THROW_INVALID_ASSUMPTION_IF(transportInfo->mRTP.mSRTPSDESParameters->mCryptoParams.size() < 1);
+
+                  auto &encodeCryptoParams = *(transportInfo->mRTP.mSRTPSDESParameters->mCryptoParams.begin());
+                  auto &decodeCryptoParams = *(transport.mRTP->mSRTPSDESParameters->mCryptoParams.begin());
+                  transportInfo->mRTP.mSRTPSDESTransport = ISRTPSDESTransport::create(mThisWeak.lock(), transportInfo->mRTP.mTransport, encodeCryptoParams, decodeCryptoParams);
+                }
+              } else {
+                if (transportInfo->mRTP.mSRTPSDESTransport) {
+                  transportInfo->mRTP.mSRTPSDESTransport->stop();
+                  transportInfo->mRTP.mSRTPSDESTransport.reset();
+                }
+              }
+            }
+          }
+
+        reject_transport:
+          {
+            if (!transportInfo) continue;
+            close(*transportInfo);
+            continue;
+          }
+
+        accept_transport:
+          {
+            switch (transportInfo->mNegotiationState)
+            {
+              case NegotiationState_PendingOffer:
+              case NegotiationState_LocalOffered:     transportInfo->mNegotiationState = NegotiationState_Agreed; break;
+
+              case NegotiationState_RemoteOffered:    notifyNegotiationNeeded(); break;
+              case NegotiationState_Agreed:           break;
+              case NegotiationState_Rejected:         break;  // will not happen
+            }
+
+          }
+        }
+
+        return true;
+      }
+
+      //-----------------------------------------------------------------------
+      bool PeerConnection::stepProcessRemoteRTPMediaLines(ISessionDescriptionTypes::DescriptionPtr description)
+      {
+        for (auto iter = description->mRTPMediaLines.begin(); iter != description->mRTPMediaLines.end(); ++iter)
+        {
+          auto &mediaLine = *(*iter);
+
+          RTPMediaLineInfoPtr mediaLineInfo;
+
+          // scope prepare media line
+          {
+            // scope: find the media line
+            {
+              if (mediaLine.mID.hasData()) {
+                auto found = mRTPMedias.find(mediaLine.mID);
+                if (found != mRTPMedias.end()) {
+                  mediaLineInfo = (*found).second;
+                }
+              } else {
+                if (mediaLine.mDetails) {
+                  if (mediaLine.mDetails->mInternalIndex.hasValue()) {
+                    for (auto iterSearchByIndex = mRTPMedias.begin(); iterSearchByIndex != mRTPMedias.end(); ++iterSearchByIndex) {
+                      auto &checkMediaLineInfo = (*iterSearchByIndex).second;
+                      if (!checkMediaLineInfo->mLineIndex.hasValue()) continue;
+                      if (checkMediaLineInfo->mLineIndex.value() != mediaLine.mDetails->mInternalIndex.value()) continue;
+
+#define THIS_IS_LEGACY_APPROACH_TO_MATCH_MEDIA_LINES 1
+#define THIS_IS_LEGACY_APPROACH_TO_MATCH_MEDIA_LINES 2
+
+                      ZS_LOG_WARNING(Trace, log("found media line by index") + checkMediaLineInfo->toDebug());
+                      mediaLineInfo = checkMediaLineInfo;
+                      break;
+                    }
+                  }
+                }
+              }
+
+              if (!mediaLineInfo) {
+                mediaLineInfo = make_shared<RTPMediaLineInfo>();
+                mediaLineInfo->mID = mediaLine.mID.hasData() ? registerIDUsage(mediaLine.mID) : registerNewID();
+                mediaLineInfo->mLineIndex = mediaLine.mDetails ? mediaLine.mDetails->mInternalIndex : Optional<size_t>();
+                mediaLineInfo->mNegotiationState = NegotiationState_RemoteOffered;
+                mediaLineInfo->mIDPreference = UseAdapterHelper::IDPreference_Remote;
+                mRTPMedias[mediaLineInfo->mID] = mediaLineInfo;
+              }
+            }
+
+            if (NegotiationState_Rejected == mediaLineInfo->mNegotiationState) {
+              ZS_LOG_WARNING(Debug, log("media line previously rejected") + mediaLineInfo->toDebug());
+              goto reject_media_line;
+            }
+
+            if (mediaLineInfo->mMediaType.hasData()) {
+              if (0 != mediaLineInfo->mMediaType.compareNoCase(mediaLine.mMediaType)) {
+                ZS_LOG_WARNING(Detail, log("media line cannot change type"));
+                goto reject_media_line;
+              }
+            }
+
+            if ((!mediaLineInfo->mRemoteSenderCapabilities) ||
+                (!mediaLineInfo->mRemoteReceiverCapabilities)) {
+              ZS_LOG_WARNING(Detail, log("media line is missing remote capabilities") + mediaLine.toDebug());
+              goto reject_media_line;
+            }
+
+            mediaLineInfo->mMediaType = mediaLine.mMediaType;
+            mediaLineInfo->mBundledTransportID = mediaLine.mTransportID;
+            mediaLineInfo->mPrivateTransportID = mediaLine.mDetails ? mediaLine.mDetails->mPrivateTransportID : String();
+            mediaLineInfo->mRemoteSenderCapabilities = make_shared<IRTPTypes::Capabilities>(*mediaLine.mSenderCapabilities);
+            mediaLineInfo->mRemoteReceiverCapabilities = make_shared<IRTPTypes::Capabilities>(*mediaLine.mReceiverCapabilities);
+            mediaLineInfo->mBundledTransportID = mediaLine.mTransportID;
+            mediaLineInfo->mPrivateTransportID = mediaLine.mDetails ? mediaLine.mDetails->mPrivateTransportID : String();
+
+            bool foundTransport = false;
+            if (mediaLineInfo->mBundledTransportID.hasData()) {
+              auto found = mTransports.find(mediaLineInfo->mBundledTransportID);
+              if (found != mTransports.end()) {
+                auto &transport = *((*found).second);
+                if (NegotiationState_Rejected != transport.mNegotiationState) foundTransport = true;
+              }
+            }
+            if (mediaLineInfo->mPrivateTransportID.hasData()) {
+              auto found = mTransports.find(mediaLineInfo->mPrivateTransportID);
+              if (found != mTransports.end()) {
+                auto &transport = *((*found).second);
+                if (NegotiationState_Rejected != transport.mNegotiationState) foundTransport = true;
+              }
+            }
+
+            if (!foundTransport) {
+              ZS_LOG_WARNING(Detail, log("did not found any transport for media line"));
+              goto reject_media_line;
+            }
+
+            mediaLineInfo->mLocalReceiverCapabilities = UseAdapterHelper::createUnion(mediaLineInfo->mLocalReceiverCapabilities ? (*mediaLineInfo->mLocalReceiverCapabilities) : (*IRTPReceiver::getCapabilities(IMediaStreamTrack::toKind(mediaLine.mMediaType))), *mediaLineInfo->mRemoteSenderCapabilities, mediaLineInfo->mIDPreference);
+            mediaLineInfo->mLocalSenderCapabilities = UseAdapterHelper::createUnion(mediaLineInfo->mLocalSenderCapabilities ? (*mediaLineInfo->mLocalSenderCapabilities) : (*IRTPSender::getCapabilities(IMediaStreamTrack::toKind(mediaLine.mMediaType))), *mediaLineInfo->mRemoteSenderCapabilities, mediaLineInfo->mIDPreference);
+
+            if (!UseAdapterHelper::hasSupportedMediaCodec(*mediaLineInfo->mLocalReceiverCapabilities)) {
+              ZS_LOG_WARNING(Detail, log("no supported media codec found") + mediaLineInfo->toDebug());
+              goto reject_media_line;
+            }
+
+            goto accept_media_line;
+          }
+
+        reject_media_line:
+          {
+            if (!mediaLineInfo) continue;
+            close(*mediaLineInfo);
+            continue;
+          }
+
+        accept_media_line:
+          {
+            switch (mediaLineInfo->mNegotiationState) {
+              case NegotiationState_PendingOffer:                                         // offered, now agreed
+              case NegotiationState_LocalOffered:     {                                   // offered, now agreed
+                mediaLineInfo->mNegotiationState = NegotiationState_Agreed;
+                break;
+              }
+              case NegotiationState_Agreed:           break;                              // no change needed
+              case NegotiationState_RemoteOffered:    notifyNegotiationNeeded(); break;   // requires an offer/answer be done
+              case NegotiationState_Rejected:         break;                              // not possible
+            }
+            continue;
+          }
+        }
+
+        return true;
+      }
+
+      //-----------------------------------------------------------------------
+      bool PeerConnection::stepProcessRemoteRTPSenders(ISessionDescriptionTypes::DescriptionPtr description)
+      {
+        for (auto iter = description->mRTPSenders.begin(); iter != description->mRTPSenders.end(); ++iter) {
+          auto &sender = *(*iter);
+
+          ReceiverInfoPtr receiverInfo;
+
+          // 
+          {
+            // scope: find receiver
+            {
+              auto found = mReceivers.find(sender.mID);
+            }
+
+          reject_receiver:
+            {
+              if (!receiverInfo) continue;
+              close(*receiverInfo);
+              continue;
+            }
+
+          accept_receiver:
+            {
+              switch (receiverInfo->mNegotiationState) {
+                case NegotiationState_PendingOffer:     break;                              // not possible
+                case NegotiationState_LocalOffered:     break;                              // not possible
+                case NegotiationState_RemoteOffered:    {                                   // offered, now agreed
+                  receiverInfo->mNegotiationState = NegotiationState_Agreed;
+                  break;
+                }
+                case NegotiationState_Agreed:           break;                              // no change needed
+                case NegotiationState_Rejected:         break;                              // not possible
+              }
+              continue;
+            }
+          }
+
+        }
         return true;
       }
 
@@ -1669,10 +2015,8 @@ namespace ortc
 
         switch (mLastSignalingState) {
           case IPeerConnectionTypes::SignalingState_Stable:                 break;
-          case IPeerConnectionTypes::SignalingState_WaitingLocalOffer:
-          case IPeerConnectionTypes::SignalingState_HaveLocalOffer:
           case IPeerConnectionTypes::SignalingState_HaveRemoteOffer:        
-          case IPeerConnectionTypes::SignalingState_WaitingLocalAnswer:
+          case IPeerConnectionTypes::SignalingState_HaveLocalOffer:
           case IPeerConnectionTypes::SignalingState_HaveLocalPranswer:
           case IPeerConnectionTypes::SignalingState_HaveRemotePranswer:
           case IPeerConnectionTypes::SignalingState_Closed: 
@@ -1702,8 +2046,9 @@ namespace ortc
         }
 
         switch (mConfiguration.mSignalingMode) {
-          case IPeerConnectionTypes::SignalingMode_JSON: {
-            
+          case IPeerConnectionTypes::SignalingMode_JSON:
+          case IPeerConnectionTypes::SignalingMode_SDP:
+          {
             break;
           }
         }
@@ -1962,8 +2307,10 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      PeerConnection::TransportInfoPtr PeerConnection::getTransportFromPool()
+      PeerConnection::TransportInfoPtr PeerConnection::getTransportFromPool(const char *useID)
       {
+        String useIDStr(useID);
+
         if (mTransportPool.size() < 1) {
           addToTransportPool();
         }
@@ -1971,7 +2318,7 @@ namespace ortc
         TransportInfoPtr transport = mTransportPool.front();
         mTransportPool.pop_front();
 
-        transport->mID = registerNewID();
+        transport->mID = useIDStr.hasData() ? registerIDUsage(useID) : registerNewID();
         mTransports[transport->mID] = transport;
         return transport;
       }
@@ -1989,6 +2336,8 @@ namespace ortc
           info->mRTCP.mGatherer = info->mRTP.mGatherer->createAssociatedGatherer(mThisWeak.lock());
           info->mRTCP.mTransport = info->mRTCP.mTransport->createAssociatedTransport(mThisWeak.lock());
         }
+
+        info->mRTP.mSRTPSDESParameters = ISRTPSDESTransport::getLocalParameters();
 
         mTransportPool.push_back(info);
       }
@@ -2049,6 +2398,91 @@ namespace ortc
         }
 
         mExistingIDs.erase(found);
+      }
+
+      //-----------------------------------------------------------------------
+      void PeerConnection::flushLocalPending(ISessionDescriptionPtr description)
+      {
+        if (!mPendingLocalDescription) return;
+        if (!description) return;
+
+        if (mPendingLocalDescription->getID() != description->getID()) return;
+        mPendingLocalDescription.reset();
+      }
+
+      //-----------------------------------------------------------------------
+      void PeerConnection::flushRemotePending(ISessionDescriptionPtr description)
+      {
+        if (!mPendingRemoteDescription) return;
+        if (!description) return;
+
+        if (mPendingRemoteDescription->getID() != description->getID()) return;
+        mPendingRemoteDescription.reset();
+      }
+
+      //-----------------------------------------------------------------------
+      void PeerConnection::close(TransportInfo &transportInfo)
+      {
+        close(transportInfo.mRTCP);
+        close(transportInfo.mRTP);
+        transportInfo.mNegotiationState = NegotiationState_Rejected;
+      }
+
+      //-----------------------------------------------------------------------
+      void PeerConnection::close(TransportInfo::Details &details)
+      {
+        if (details.mSRTPSDESTransport) {
+          details.mSRTPSDESTransport->stop();
+          details.mSRTPSDESTransport.reset();
+        }
+        if (details.mDTLSTransport) {
+          details.mDTLSTransport->stop();
+          details.mDTLSTransport.reset();
+        }
+        if (details.mTransport) {
+          details.mTransport->stop();
+          details.mTransport.reset();
+        }
+        if (details.mGatherer) {
+          details.mGatherer->close();
+          details.mGatherer.reset();
+        }
+      }
+
+      //-----------------------------------------------------------------------
+      void PeerConnection::close(RTPMediaLineInfo &mediaLineInfo)
+      {
+        mediaLineInfo.mNegotiationState = NegotiationState_Rejected;
+      }
+
+      //-----------------------------------------------------------------------
+      void PeerConnection::close(SCTPMediaLineInfo &mediaLineInfo)
+      {
+        if (mediaLineInfo.mSCTPTransport) {
+          mediaLineInfo.mSCTPTransport->stop();
+          mediaLineInfo.mSCTPTransport.reset();
+        }
+        mediaLineInfo.mNegotiationState = NegotiationState_Rejected;
+      }
+
+      //-----------------------------------------------------------------------
+      void PeerConnection::close(SenderInfo &senderInfo)
+      {
+        if (senderInfo.mSender) {
+          senderInfo.mSender->stop();
+          senderInfo.mSender.reset();
+        }
+        senderInfo.mNegotiationState = NegotiationState_Rejected;
+      }
+
+      //-----------------------------------------------------------------------
+      void PeerConnection::close(ReceiverInfo &receiverInfo)
+      {
+        if (receiverInfo.mReceiver) {
+          receiverInfo.mReceiver->stop();
+          receiverInfo.mReceiver.reset();
+        }
+        receiverInfo.mNegotiationState = NegotiationState_Rejected;
       }
 
       //-----------------------------------------------------------------------
@@ -2161,10 +2595,8 @@ namespace ortc
       switch (state)
       {
         case IPeerConnectionTypes::SignalingState_Stable:             return "stable";
-        case IPeerConnectionTypes::SignalingState_WaitingLocalOffer:  return "waiting-local-offer";
         case IPeerConnectionTypes::SignalingState_HaveLocalOffer:     return "have-local-offer";
         case IPeerConnectionTypes::SignalingState_HaveRemoteOffer:    return "have-remote-offer";
-        case IPeerConnectionTypes::SignalingState_WaitingLocalAnswer: return "waiting-local-answer";
         case IPeerConnectionTypes::SignalingState_HaveLocalPranswer:  return "have-local-pranswer";
         case IPeerConnectionTypes::SignalingState_HaveRemotePranswer: return "have-remote-pranswer";
         case IPeerConnectionTypes::SignalingState_Closed:             return "closed";

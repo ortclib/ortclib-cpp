@@ -87,6 +87,8 @@ namespace ortc
                                             const Description &description
                                             );
 
+        virtual PUID getID() const override { return mID; }
+
         virtual SignalingTypes type() const override;
         virtual DescriptionPtr description() const override;
         virtual SignalingDescription formattedDescription() const override;
