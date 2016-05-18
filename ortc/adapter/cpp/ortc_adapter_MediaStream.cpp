@@ -61,6 +61,10 @@ namespace ortc
       #pragma mark IMediaStreamForPeerConnection
       #pragma mark
 
+      IMediaStreamForPeerConnection::ForPeerConnectionPtr IMediaStreamForPeerConnection::create(const char *id)
+      {
+        return internal::IMediaStreamFactory::singleton().create(id);
+      }
 
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
@@ -75,11 +79,12 @@ namespace ortc
                                const make_private &,
                                IMessageQueuePtr queue,
                                IMediaStreamDelegatePtr delegate,
-                               const UseMediaStreamTrackList &tracks
+                               const UseMediaStreamTrackList &tracks,
+                               const char *id
                                ) :
         MessageQueueAssociator(queue),
         SharedRecursiveLock(SharedRecursiveLock::create()),
-        mMSID(UseServicesHelper::randomString(36)),
+        mMSID(NULL == id ? UseServicesHelper::randomString(36) : String(id)),
         mTracks(tracks)
       {
         std::set<String> ids;
@@ -293,6 +298,13 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
+      size_t MediaStream::size() const
+      {
+        AutoRecursiveLock lock(*this);
+        return mTracks.size();
+      }
+
+      //-----------------------------------------------------------------------
       void MediaStream::addTrack(IMediaStreamTrackPtr track)
       {
         ORTC_THROW_INVALID_PARAMETERS_IF(!track);
@@ -339,6 +351,16 @@ namespace ortc
       #pragma mark
       #pragma mark MediaStream => ForPeerConnection
       #pragma mark
+
+
+      //-----------------------------------------------------------------------
+      MediaStreamPtr MediaStream::create(const char *id)
+      {
+        MediaStreamPtr pThis(make_shared<MediaStream>(make_private{}, UseORTC::queueORTC(), IMediaStreamDelegatePtr(), UseMediaStreamTrackList(), id));
+        pThis->mThisWeak = pThis;
+        pThis->init();
+        return pThis;
+      }
 
       //-----------------------------------------------------------------------
       void MediaStream::notifyAddTrack(IMediaStreamTrackPtr track)
@@ -435,6 +457,13 @@ namespace ortc
       {
         if (this) {}
         return internal::MediaStream::create(delegate, tracks);
+      }
+
+      //-------------------------------------------------------------------------
+      MediaStreamPtr IMediaStreamFactory::create(const char *id)
+      {
+        if (this) {}
+        return internal::MediaStream::create(id);
       }
 
     }  // namespace internal

@@ -874,11 +874,7 @@ namespace ortc
         pending->mConfiguration = configuration;
         pending->mTrack = track;
 
-        for (auto iter = mediaStreams.begin(); iter != mediaStreams.end(); ++iter) {
-          auto &stream = (*iter);
-          ORTC_THROW_INVALID_PARAMETERS_IF(!stream);
-          pending->mMediaStreams.push_back(MediaStream::convert(stream));
-        }
+        pending->mMediaStreams = *convertToMap(mediaStreams);
 
         mPendingAddTracks.push_back(pending);
 
@@ -1321,8 +1317,10 @@ namespace ortc
 
         // steps
         if (!stepCertificates()) return;
+        if (!stepProcessRemote()) return;
+        if (!stepProcessLocal()) return;
         if (!stepAddTracks()) return;
-        if (!stepCreateOffer()) return;
+        if (!stepCreateOfferOrAnswer()) return;
         if (!stepProcessPendingRemoteCandidates()) return;
 #define TODO_STEP 1
 #define TODO_STEP 2
@@ -1383,199 +1381,6 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      bool PeerConnection::stepAddTracks()
-      {
-        typedef std::set<TransportID> TransportIDSet;
-
-        ZS_LOG_TRACE(log("step - process add track"));
-
-        while (mPendingAddTracks.size() > 0)
-        {
-          PendingAddTrackPtr pending = mPendingAddTracks.front();
-          mPendingAddTracks.pop_front();
-
-          bool alreadyPrivateTransport {false};
-          TransportIDSet compatibleTransports;
-          TransportIDSet disallowedTransports;
-
-          String useMediaLineID;
-
-          // find a compatible media line
-          for (auto iter = mRTPMedias.begin(); iter != mRTPMedias.end(); ++iter)
-          {
-            auto &mediaLine = *((*iter).second);
-            useMediaLineID = mediaLine.mID;
-
-            // scope: check to see if media line is compatible with pending track
-            {
-              // track of same kind, see if it's compatible
-              switch (mConfiguration.mBundlePolicy) {
-                case IPeerConnectionTypes::BundlePolicy_MaxCompat:
-                case IPeerConnectionTypes::BundlePolicy_MaxBundle: {
-                  if (0 != mediaLine.mMediaType.compareNoCase(IMediaStreamTrackTypes::toString(pending->mTrack->kind()))) goto possible_bundle_but_not_a_match;
-                  break;
-                }
-                
-                case IPeerConnectionTypes::BundlePolicy_Balanced: {
-                  if (0 != mediaLine.mMediaType.compareNoCase(IMediaStreamTrackTypes::toString(pending->mTrack->kind()))) goto not_compatible;
-                  break;
-                }
-              }
-
-              if (pending->mConfiguration->mCapabilities) {
-                switch (mediaLine.mIDPreference) {
-                  case UseAdapterHelper::IDPreference_Local: {
-                    if (!UseAdapterHelper::isCompatible(*(mediaLine.mLocalSenderCapabilities), *(pending->mConfiguration->mCapabilities))) goto not_compatible;
-                    break;
-                  }
-                  case UseAdapterHelper::IDPreference_Remote: {
-                    ZS_THROW_INVALID_ASSUMPTION_IF(!mediaLine.mRemoteReceiverCapabilities);
-
-                    // filter to the remote capabilities and ensure it's compatible
-                    auto senderUnion = UseAdapterHelper::createUnion(*(pending->mConfiguration->mCapabilities), (*(mediaLine.mRemoteReceiverCapabilities)), UseAdapterHelper::IDPreference_Remote);
-                    ZS_THROW_INVALID_ASSUMPTION_IF(!senderUnion);
-
-                    if (!UseAdapterHelper::isCompatible(*(mediaLine.mRemoteReceiverCapabilities), *senderUnion)) goto not_compatible;
-                    if (!UseAdapterHelper::hasSupportedMediaCodec(*senderUnion)) goto not_compatible;
-
-                    break;
-                  }
-                }
-              }
-
-              if (pending->mConfiguration->mParameters) {
-                switch (mediaLine.mIDPreference) {
-                  case UseAdapterHelper::IDPreference_Local: {
-                    if (!UseAdapterHelper::isCompatible(*(mediaLine.mLocalSenderCapabilities), *(pending->mConfiguration->mParameters))) goto not_compatible;
-                    break;
-                  }
-                  case UseAdapterHelper::IDPreference_Remote: {
-                    ZS_THROW_INVALID_ASSUMPTION_IF(!mediaLine.mRemoteReceiverCapabilities);
-
-                    // filter to the remote capabilities and ensure it's compatible
-                    auto filteredParameters = UseAdapterHelper::filterParameters(*(pending->mConfiguration->mParameters), (*(mediaLine.mRemoteReceiverCapabilities)));
-                    ZS_THROW_INVALID_ASSUMPTION_IF(!filteredParameters);
-
-                    if (!UseAdapterHelper::isCompatible(*(mediaLine.mRemoteReceiverCapabilities), *filteredParameters)) goto not_compatible;
-                    if (!UseAdapterHelper::hasSupportedMediaCodec(*filteredParameters)) goto not_compatible;
-
-                    break;
-                  }
-                }
-              }
-              switch (mConfiguration.mSignalingMode)
-              {
-                case IPeerConnectionTypes::SignalingMode_JSON:  break;
-                case IPeerConnectionTypes::SignalingMode_SDP:   goto possible_bundle_but_not_a_match;
-              }
-              goto match;
-            }
-
-          possible_bundle_but_not_a_match:
-            {
-              auto found = disallowedTransports.find(mediaLine.mBundledTransportID);
-              if (found != disallowedTransports.end()) continue;
-              compatibleTransports.insert(mediaLine.mBundledTransportID);
-              continue;
-            }
-
-          not_compatible:
-            {
-              disallowedTransports.insert(mediaLine.mBundledTransportID);
-              auto found = compatibleTransports.find(mediaLine.mBundledTransportID);
-              if (found != compatibleTransports.end()) {
-                // not allowed to bundle on this transport 
-                compatibleTransports.erase(found);
-              }
-              continue;
-            }
-          }
-
-          if (compatibleTransports.size() > 0) goto found_compatible;
-          goto none_compatible;
-
-        none_compatible:
-          {
-            alreadyPrivateTransport = true;
-
-            auto transportInfo = getTransportFromPool();
-            String transportID = transportInfo->mID;
-            compatibleTransports.insert(transportID);
-
-            goto found_compatible;
-          }
-
-        found_compatible:
-          {
-            auto first = compatibleTransports.begin();
-            ZS_THROW_INVALID_ASSUMPTION_IF(first == compatibleTransports.end());
-
-            auto bundledTransportID = (*first);
-            auto mediaLine = make_shared<RTPMediaLineInfo>();
-            mediaLine->mMediaType = IMediaStreamTrackTypes::toString(pending->mTrack->kind());
-            mediaLine->mBundledTransportID = bundledTransportID;
-            mediaLine->mIDPreference = UseAdapterHelper::IDPreference_Local;
-            mediaLine->mLocalSenderCapabilities = pending->mConfiguration->mCapabilities ? pending->mConfiguration->mCapabilities : IRTPSender::getCapabilities(pending->mTrack->kind());
-            mediaLine->mLocalReceiverCapabilities = pending->mConfiguration->mCapabilities ? pending->mConfiguration->mCapabilities : IRTPReceiver::getCapabilities(pending->mTrack->kind());
-
-            if (!alreadyPrivateTransport) {
-              if (IPeerConnectionTypes::BundlePolicy_MaxCompat == mConfiguration.mBundlePolicy) {
-                auto privateTransport = getTransportFromPool();
-                mediaLine->mPrivateTransportID = privateTransport->mID;
-              }
-            }
-
-            switch (mConfiguration.mSignalingMode) {
-              case IPeerConnectionTypes::SignalingMode_JSON:  {
-                mediaLine->mID = registerNewID();
-                break;
-              }
-              case IPeerConnectionTypes::SignalingMode_SDP:   {
-                // with SDP media ID and transport ID must share a common ID (unless it's bundled)
-                if (alreadyPrivateTransport) {
-                  mediaLine->mID = registerIDUsage(bundledTransportID);
-                } else if (mediaLine->mPrivateTransportID.hasData()) {
-                  mediaLine->mID = registerIDUsage(mediaLine->mPrivateTransportID);
-                } else {
-                  mediaLine->mID = registerNewID(3);
-                }
-                break;
-              }
-            }
-
-            mRTPMedias[mediaLine->mID] = mediaLine;
-            useMediaLineID = mediaLine->mID;
-            goto match;
-          }
-
-        match:
-          {
-            auto senderInfo = make_shared<SenderInfo>();
-            senderInfo->mMediaLineID = useMediaLineID;
-
-            // With SDP, the sender and the media line must share the same ID,
-            // but JSON signaling uses a unique ID for the sender.
-            switch (mConfiguration.mSignalingMode) {
-              case IPeerConnectionTypes::SignalingMode_JSON:  senderInfo->mID = registerNewID(); break;
-              case IPeerConnectionTypes::SignalingMode_SDP:   senderInfo->mID = registerIDUsage(useMediaLineID); break;
-            }
-
-            senderInfo->mConfiguration = pending->mConfiguration;
-            senderInfo->mTrack = pending->mTrack;
-            senderInfo->mMediaStreams = pending->mMediaStreams;
-            senderInfo->mPromise = pending->mPromise;
-
-            mSenders[senderInfo->mID] = senderInfo;
-
-            notifyNegotiationNeeded();  // need to signal this to the remote party before it will be started
-            continue;
-          }
-        }
-
-        return true;
-      }
-
-      //-----------------------------------------------------------------------
       bool PeerConnection::stepProcessRemote()
       {
         ZS_LOG_TRACE(log("step - process remote"));
@@ -1591,6 +1396,19 @@ namespace ortc
           return true;
         }
 
+        mPendingMethods.pop_front();
+
+        auto description = pending->mSessionDescription->description();
+        if (!description) {
+          flushRemotePending(pending->mSessionDescription);
+          ZS_LOG_WARNING(Debug, log("cannot accept remote description (as remote description is not valid)") + ZS_PARAM("signaling state", IPeerConnectionTypes::toString(mLastSignalingState)) + pending->toDebug());
+          pending->mPromise->reject(ErrorAny::create(UseHTTP::HTTPStatusCode_BadRequest, "received SetRemoteDescription but it does not appear to be valid"));
+          wake();
+          return false;
+        }
+
+        auto nextSignalingState = mLastSignalingState;
+
         switch (mLastSignalingState) {
           case IPeerConnectionTypes::SignalingState_HaveLocalPranswer:
           case IPeerConnectionTypes::SignalingState_HaveRemoteOffer:      {
@@ -1604,11 +1422,8 @@ namespace ortc
           {
             // always in stable state with JSON
             switch (pending->mSessionDescription->type()) {
-              case ISessionDescriptionTypes::SignalingType_JSON:
-              case ISessionDescriptionTypes::SignalingType_SDPOffer:    
-              {
-                break;
-              }
+              case ISessionDescriptionTypes::SignalingType_JSON:        nextSignalingState = SignalingState_Stable; break;
+              case ISessionDescriptionTypes::SignalingType_SDPOffer:    nextSignalingState = SignalingState_HaveRemoteOffer; break;
               case ISessionDescriptionTypes::SignalingType_SDPPranswer:
               case ISessionDescriptionTypes::SignalingType_SDPAnswer:
               {
@@ -1629,11 +1444,8 @@ namespace ortc
           case IPeerConnectionTypes::SignalingState_HaveRemotePranswer:
           {
             switch (pending->mSessionDescription->type()) {
-              case ISessionDescriptionTypes::SignalingType_SDPPranswer:
-              case ISessionDescriptionTypes::SignalingType_SDPAnswer:
-              {
-                break;
-              }
+              case ISessionDescriptionTypes::SignalingType_SDPPranswer: nextSignalingState = SignalingState_HaveRemotePranswer; break;
+              case ISessionDescriptionTypes::SignalingType_SDPAnswer:   nextSignalingState = SignalingState_Stable; break;
               case ISessionDescriptionTypes::SignalingType_SDPOffer:
               case ISessionDescriptionTypes::SignalingType_JSON:
               {
@@ -1653,24 +1465,21 @@ namespace ortc
           case IPeerConnectionTypes::SignalingState_Closed:               break;  // will not happen
         }
 
-        mPendingMethods.pop_front();
-
-        auto description = pending->mSessionDescription->description();
-        if (!description) {
-          flushRemotePending(pending->mSessionDescription);
-          ZS_LOG_WARNING(Debug, log("cannot accept remote description (as remote description is not valid)") + ZS_PARAM("signaling state", IPeerConnectionTypes::toString(mLastSignalingState)) + pending->toDebug());
-          pending->mPromise->reject(ErrorAny::create(UseHTTP::HTTPStatusCode_BadRequest, "received SetRemoteDescription but it does not appear to be valid"));
-          wake();
-          return false;
-        }
-
         bool result = true;
 
         result = stepProcessRemoteTransport(description) && (result);
         result = stepProcessRemoteRTPMediaLines(description) && (result);
         result = stepProcessRemoteRTPSenders(description) && (result);
+        result = stepProcessRemoteSCTPTransport(description) && (result);
 
-        return result;
+        ZS_LOG_DETAIL(log("processed remote description") + pending->toDebug());
+
+        mRemoteDescription = pending->mSessionDescription;
+        flushRemotePending(pending->mSessionDescription);
+        setState(nextSignalingState);
+
+        onWake(); // redo step
+        return false;
       }
 
       //-----------------------------------------------------------------------
@@ -1723,6 +1532,11 @@ namespace ortc
             IICETransportTypes::Options options;
             options.mAggressiveICE = true;
 
+            bool useRTCPMux = (IPeerConnectionTypes::RTCPMuxPolicy_Require == mConfiguration.mRTCPMuxPolicy);
+            if (useRTCPMux) {
+              useRTCPMux = useRTCPMux || transport.mUseMux;
+            }
+
             bool hasRTPICE = true;
             bool hasRTCPICE = hasRTPICE && transport.mRTCP && (transportInfo->mRTCP.mTransport);
             auto useRTCPICEParams = hasRTCPICE ? (bool(transport.mRTCP->mICEParameters) ? transport.mRTCP->mICEParameters : transport.mRTP->mICEParameters) : IICETransportTypes::ParametersPtr();
@@ -1736,6 +1550,11 @@ namespace ortc
             if ((!hasRTPDTLS) && (!hasRTPSRTP)) {
               ZS_LOG_WARNING(Debug, log("transport / info is missing secure transport") + transport.toDebug() + transportInfo->toDebug());
               goto reject_transport;
+            }
+
+            if (useRTCPMux) {
+              hasRTCPICE = false;
+              hasRTCPDTLS = false;
             }
 
             switch (transportInfo->mNegotiationState)
@@ -1974,6 +1793,7 @@ namespace ortc
           auto &sender = *(*iter);
 
           ReceiverInfoPtr receiverInfo;
+          bool eventReceiver = false;
 
           // prepare receivers
           {
@@ -2071,9 +1891,60 @@ namespace ortc
                                                              transportInfo->mRTP.mDTLSTransport ? IRTPTransportPtr(transportInfo->mRTP.mDTLSTransport) : IRTPTransportPtr(transportInfo->mRTP.mSRTPSDESTransport),
                                                              transportInfo->mRTP.mDTLSTransport ? IRTCPTransportPtr(transportInfo->mRTCP.mDTLSTransport) : IRTCPTransportPtr(transportInfo->mRTCP.mTransport)
                                                              );
+              eventReceiver = true;
             }
 
             receiverInfo->mReceiver->receive(*filteredParams);
+
+            auto existingSet = convertToSet(receiverInfo->mMediaStreams);
+
+            MediaStreamSet added;
+            MediaStreamSet removed;
+
+            calculateDelta(*existingSet, sender.mMediaStreamIDs, added, removed);
+
+            for (auto iter = added.begin(); iter != added.end(); ++iter) {
+              auto &id = (*iter);
+
+              UseMediaStreamPtr stream;
+
+              auto found = mMediaStreams.find(id);
+              if (found == mMediaStreams.end()) {
+                stream = UseMediaStream::create(id);
+                mMediaStreams[id] = stream;
+              } else {
+                stream = (*found).second;
+              }
+
+              receiverInfo->mMediaStreams[id] = stream;
+
+              stream->notifyAddTrack(receiverInfo->mReceiver->track());
+            }
+
+            for (auto iter = removed.begin(); iter != removed.end(); ++iter) {
+              auto &id = (*iter);
+
+              UseMediaStreamPtr stream;
+
+              {
+                auto found = mMediaStreams.find(id);
+                if (found != mMediaStreams.end()) {
+                  stream = (*found).second;
+                }
+              }
+              {
+                auto found = receiverInfo->mMediaStreams.find(id);
+                if (found != receiverInfo->mMediaStreams.end()) {
+                  stream = (*found).second;
+                  receiverInfo->mMediaStreams.erase(found);
+                }
+              }
+              if (stream) {
+                stream->notifyRemoveTrack(receiverInfo->mReceiver->track());
+              }
+            }
+
+            purgeNonReferencedAndEmptyStreams();
             goto accept_sender;
           }
 
@@ -2096,6 +1967,14 @@ namespace ortc
               case NegotiationState_Agreed:           break;                              // no change needed
               case NegotiationState_Rejected:         break;                              // not possible
             }
+            if (eventReceiver) {
+              ZS_LOG_DEBUG(log("new receiver created"));
+              MediaStreamTrackEventPtr evt(make_shared<MediaStreamTrackEvent>());
+              evt->mReceiver = receiverInfo->mReceiver;
+              evt->mTrack = evt->mReceiver->track();
+              evt->mMediaStreams = *convertToList(receiverInfo->mMediaStreams);
+              mSubscriptions.delegate()->onPeerConnectionTrack(mThisWeak.lock(), evt);
+            }
             continue;
           }
 
@@ -2104,22 +1983,641 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      bool PeerConnection::stepCreateOffer()
+      bool PeerConnection::stepProcessRemoteSCTPTransport(ISessionDescriptionTypes::DescriptionPtr description)
       {
-        ZS_LOG_TRACE(log("step - create offer"));
+#define TODO_LATER 1
+#define TODO_LATER 2
+        return true;
+      }
+
+      //-----------------------------------------------------------------------
+      bool PeerConnection::stepProcessLocal()
+      {
+        ZS_LOG_TRACE(log("step - process local"));
+
+        if (mPendingMethods.size() < 1) {
+          ZS_LOG_TRACE(log("skipping step to proces local (no pending methods)"));
+          return true;
+        }
+
+        PendingMethodPtr pending = mPendingMethods.front();
+        if (PendingMethod_SetLocalDescription != pending->mMethod) {
+          ZS_LOG_TRACE(log("skipping process local as pending method is not setting a remote description"));
+          return true;
+        }
+
+        mPendingMethods.pop_front();
+
+        auto description = pending->mSessionDescription->description();
+        if (!description) {
+          flushLocalPending(pending->mSessionDescription);
+          ZS_LOG_WARNING(Debug, log("cannot accept remote description (as remote description is not valid)") + ZS_PARAM("signaling state", IPeerConnectionTypes::toString(mLastSignalingState)) + pending->toDebug());
+          pending->mPromise->reject(ErrorAny::create(UseHTTP::HTTPStatusCode_BadRequest, "received SetRemoteDescription but it does not appear to be valid"));
+          wake();
+          return false;
+        }
+
+        auto nextSignalingState = mLastSignalingState;
 
         switch (mLastSignalingState) {
-          case IPeerConnectionTypes::SignalingState_Stable:                 break;
-          case IPeerConnectionTypes::SignalingState_HaveRemoteOffer:        
-          case IPeerConnectionTypes::SignalingState_HaveLocalOffer:
-          case IPeerConnectionTypes::SignalingState_HaveLocalPranswer:
           case IPeerConnectionTypes::SignalingState_HaveRemotePranswer:
-          case IPeerConnectionTypes::SignalingState_Closed: 
+          case IPeerConnectionTypes::SignalingState_HaveLocalOffer:      {
+            flushLocalPending(pending->mSessionDescription);
+            ZS_LOG_WARNING(Debug, log("cannot accept local description (as in wrong signaling state)") + ZS_PARAM("signaling state", IPeerConnectionTypes::toString(mLastSignalingState)) + pending->toDebug());
+            pending->mPromise->reject(ErrorAny::create(UseHTTP::HTTPStatusCode_Conflict, "received SetRemoteDescription (but signaling state does not match)"));
+            wake();
+            return false;
+          }
+          case IPeerConnectionTypes::SignalingState_Stable:
           {
-            ZS_LOG_TRACE(log("skipping step to create an offer (in wrong signaling state)"));
+            // always in stable state with JSON
+            switch (pending->mSessionDescription->type()) {
+            case ISessionDescriptionTypes::SignalingType_JSON:            nextSignalingState = SignalingState_Stable; break;
+              case ISessionDescriptionTypes::SignalingType_SDPOffer:      nextSignalingState = SignalingState_HaveLocalOffer; break;
+              case ISessionDescriptionTypes::SignalingType_SDPPranswer:
+              case ISessionDescriptionTypes::SignalingType_SDPAnswer:
+              {
+                flushLocalPending(pending->mSessionDescription);
+                ZS_LOG_WARNING(Debug, log("cannot accept local description (not legal signaling type in Stable state)") + pending->toDebug());
+                pending->mPromise->reject(ErrorAny::create(UseHTTP::HTTPStatusCode_Conflict, "received SetRemoteDescription (but signaling type not legal)"));
+                wake();
+                return false;
+              }
+              case ISessionDescriptionTypes::SignalingType_SDPRollback:
+              {
+                ZS_THROW_NOT_IMPLEMENTED("rollback not implemented at this time");
+              }
+            }
             break;
           }
+          case IPeerConnectionTypes::SignalingState_HaveRemoteOffer:
+          case IPeerConnectionTypes::SignalingState_HaveLocalPranswer:
+          {
+            switch (pending->mSessionDescription->type()) {
+              case ISessionDescriptionTypes::SignalingType_SDPPranswer: nextSignalingState = SignalingState_HaveLocalPranswer; break;
+              case ISessionDescriptionTypes::SignalingType_SDPAnswer:   nextSignalingState = SignalingState_Stable; break;
+              case ISessionDescriptionTypes::SignalingType_SDPOffer:
+              case ISessionDescriptionTypes::SignalingType_JSON:
+              {
+                flushLocalPending(pending->mSessionDescription);
+                ZS_LOG_WARNING(Debug, log("cannot accept local description (not legal signaling type in HaveRemoteOffer/HaveLocalPreanswer state)") + pending->toDebug());
+                pending->mPromise->reject(ErrorAny::create(UseHTTP::HTTPStatusCode_Conflict, "received SetRemoteDescription (but signaling type not legal)"));
+                wake();
+                return false;
+              }
+              case ISessionDescriptionTypes::SignalingType_SDPRollback:
+              {
+                ZS_THROW_NOT_IMPLEMENTED("rollback not implemented at this time");
+              }
+            }
+            break;
+          }
+          case IPeerConnectionTypes::SignalingState_Closed:               break;  // will not happen
         }
+
+        bool result = true;
+
+        result = stepProcessLocalTransport(description) && (result);
+        result = stepProcessLocalRTPMediaLines(description) && (result);
+        result = stepProcessLocalRTPSenders(description) && (result);
+        result = stepProcessLocalSCTPTransport(description) && (result);
+
+        ZS_LOG_DETAIL(log("processed local description") + pending->toDebug());
+
+        mLocalDescription = pending->mSessionDescription;
+        flushLocalPending(pending->mSessionDescription);
+        setState(nextSignalingState);
+
+        onWake(); // redo step
+        return false;
+      }
+
+      //-----------------------------------------------------------------------
+      bool PeerConnection::stepProcessLocalTransport(ISessionDescriptionTypes::DescriptionPtr description)
+      {
+        for (auto iter = description->mTransports.begin(); iter != description->mTransports.end(); ++iter) {
+          auto &transport = *(*iter);
+
+          TransportInfoPtr transportInfo;
+
+          {
+            // find the transport
+            {
+              auto found = mTransports.find(transport.mID);
+              if (found == mTransports.end()) {
+                // no matching local transport, create one
+                transportInfo = getTransportFromPool(transport.mID);
+                transportInfo->mNegotiationState = NegotiationState_RemoteOffered;
+              } else {
+                transportInfo = (*found).second;
+              }
+            }
+
+            ZS_THROW_INVALID_ASSUMPTION_IF(!transportInfo);
+
+            if (transportInfo->mNegotiationState) {
+              ZS_LOG_WARNING(Debug, log("transport was already rejected") + transportInfo->toDebug());
+              goto reject_transport;
+            }
+
+            if (!transportInfo->mRTP.mGatherer) {
+              ZS_LOG_WARNING(Debug, log("transport info is missing ice gatherer") + transportInfo->toDebug());
+              goto reject_transport;
+            }
+            if (!transportInfo->mRTP.mTransport) {
+              ZS_LOG_WARNING(Debug, log("transport info is missing ice transport") + transportInfo->toDebug());
+              goto reject_transport;
+            }
+
+            if (NegotiationState_RemoteOffered == transportInfo->mNegotiationState) {
+              if (transport.mUseMux) {
+                if (transportInfo->mRTCP.mDTLSTransport) {
+                  transportInfo->mRTCP.mDTLSTransport->stop();
+                  transportInfo->mRTCP.mDTLSTransport.reset();
+                }
+                if (transportInfo->mRTCP.mTransport) {
+                  transportInfo->mRTCP.mTransport->stop();
+                  transportInfo->mRTCP.mTransport.reset();
+                }
+                if (transportInfo->mRTCP.mGatherer) {
+                  transportInfo->mRTCP.mGatherer->close();
+                  transportInfo->mRTCP.mGatherer.reset();
+                }
+              }
+            }
+
+            goto accept_transport;
+          }
+
+        reject_transport:
+          {
+            if (!transportInfo) continue;
+            close(*transportInfo);
+            continue;
+          }
+
+        accept_transport:
+          {
+            switch (transportInfo->mNegotiationState)
+            {
+              case NegotiationState_PendingOffer:     transportInfo->mNegotiationState = NegotiationState_LocalOffered; break;
+              case NegotiationState_LocalOffered:     break;
+
+              case NegotiationState_RemoteOffered:    transportInfo->mNegotiationState = NegotiationState_Agreed; break;
+              case NegotiationState_Agreed:           break;
+              case NegotiationState_Rejected:         break;  // will not happen
+            }
+
+          }
+        }
+
+        return true;
+      }
+
+      //-----------------------------------------------------------------------
+      bool PeerConnection::stepProcessLocalRTPMediaLines(ISessionDescriptionTypes::DescriptionPtr description)
+      {
+        for (auto iter = description->mRTPMediaLines.begin(); iter != description->mRTPMediaLines.end(); ++iter)
+        {
+          auto &mediaLine = *(*iter);
+
+          RTPMediaLineInfoPtr mediaLineInfo;
+
+          // scope prepare media line
+          {
+            // scope: find the media line
+            {
+              if (mediaLine.mID.hasData()) {
+                auto found = mRTPMedias.find(mediaLine.mID);
+                if (found != mRTPMedias.end()) {
+                  mediaLineInfo = (*found).second;
+                }
+              } else {
+                if (mediaLine.mDetails) {
+                  if (mediaLine.mDetails->mInternalIndex.hasValue()) {
+                    for (auto iterSearchByIndex = mRTPMedias.begin(); iterSearchByIndex != mRTPMedias.end(); ++iterSearchByIndex) {
+                      auto &checkMediaLineInfo = (*iterSearchByIndex).second;
+                      if (!checkMediaLineInfo->mLineIndex.hasValue()) continue;
+                      if (checkMediaLineInfo->mLineIndex.value() != mediaLine.mDetails->mInternalIndex.value()) continue;
+
+#define THIS_IS_LEGACY_APPROACH_TO_MATCH_MEDIA_LINES 1
+#define THIS_IS_LEGACY_APPROACH_TO_MATCH_MEDIA_LINES 2
+
+                      ZS_LOG_WARNING(Trace, log("found media line by index") + checkMediaLineInfo->toDebug());
+                      mediaLineInfo = checkMediaLineInfo;
+                      break;
+                    }
+                  }
+                }
+              }
+
+              if (!mediaLineInfo) {
+                ZS_LOG_WARNING(Debug, log("media line was not found (thus reject it)") + mediaLineInfo->toDebug());
+                goto reject_media_line;
+              }
+            }
+
+            if (NegotiationState_Rejected == mediaLineInfo->mNegotiationState) {
+              ZS_LOG_WARNING(Debug, log("media line previously rejected") + mediaLineInfo->toDebug());
+              goto reject_media_line;
+            }
+
+            if (mediaLineInfo->mMediaType.hasData()) {
+              if (0 != mediaLineInfo->mMediaType.compareNoCase(mediaLine.mMediaType)) {
+                ZS_LOG_WARNING(Detail, log("media line cannot change type"));
+                goto reject_media_line;
+              }
+            }
+
+            goto accept_media_line;
+          }
+
+        reject_media_line:
+          {
+            if (!mediaLineInfo) continue;
+            close(*mediaLineInfo);
+            continue;
+          }
+
+        accept_media_line:
+          {
+            switch (mediaLineInfo->mNegotiationState) {
+              case NegotiationState_PendingOffer:     mediaLineInfo->mNegotiationState = NegotiationState_LocalOffered; break;
+              case NegotiationState_LocalOffered:     break;
+              case NegotiationState_Agreed:           break;                              
+              case NegotiationState_RemoteOffered:    mediaLineInfo->mNegotiationState = NegotiationState_Agreed; break;
+              case NegotiationState_Rejected:         break;                              
+            }
+            continue;
+          }
+        }
+
+        return true;
+      }
+
+      //-----------------------------------------------------------------------
+      bool PeerConnection::stepProcessLocalRTPSenders(ISessionDescriptionTypes::DescriptionPtr description)
+      {
+        for (auto iter = description->mRTPSenders.begin(); iter != description->mRTPSenders.end(); ++iter) {
+          auto &sender = *(*iter);
+
+          SenderInfoPtr senderInfo;
+
+          // prepare receivers
+          {
+            // scope: find receiver
+            {
+              if (!sender.mID.hasData()) goto reject_sender;
+
+              auto found = mSenders.find(sender.mID);
+              if (found != mSenders.end()) {
+                senderInfo = (*found).second;
+              }
+            }
+
+            if (!senderInfo) {
+              ZS_LOG_WARNING(Debug, log("local sender was not found") + sender.toDebug());
+              goto reject_sender;
+            }
+
+            if (NegotiationState_Rejected == senderInfo->mNegotiationState) {
+              ZS_LOG_WARNING(Debug, log("already rejected local sender") + sender.toDebug());
+              goto reject_sender;
+            }
+
+            RTPMediaLineInfoPtr mediaLine;
+
+            {
+              auto found = mRTPMedias.find(senderInfo->mMediaLineID);
+              if (found != mRTPMedias.end()) mediaLine = (*found).second;
+            }
+
+            if (!mediaLine) {
+              ZS_LOG_WARNING(Detail, log("did not find associated media line"));
+              goto reject_sender;
+            }
+
+            if (NegotiationState_Rejected == mediaLine->mNegotiationState) {
+              ZS_LOG_WARNING(Detail, log("media line was rejected thus local sender must be rejected") + sender.toDebug() + mediaLine->toDebug());
+              goto reject_sender;
+            }
+
+            TransportInfoPtr transportInfo;
+
+            {
+              auto found = mTransports.find(mediaLine->mBundledTransportID);
+              if (found != mTransports.end()) transportInfo = (*found).second;
+
+              if ((!transportInfo) &&
+                  (mediaLine->mPrivateTransportID.hasData())) {
+                found = mTransports.find(mediaLine->mPrivateTransportID);
+                if (found != mTransports.end()) transportInfo = (*found).second;
+              }
+            }
+
+            if (!transportInfo) {
+              ZS_LOG_WARNING(Detail, log("did not find associated transport"));
+              goto reject_sender;
+            }
+
+            if (NegotiationState_Rejected == transportInfo->mNegotiationState) {
+              ZS_LOG_WARNING(Detail, log("transport was rejected thus local sender must be rejected") + sender.toDebug() + transportInfo->toDebug());
+              goto reject_sender;
+            }
+
+            if (!mediaLine->mRemoteReceiverCapabilities) {
+              ZS_LOG_DEBUG(log("waiting for remote party to accept media line to be able to start sending"));
+              goto accept_sender;
+            }
+
+            if ((!mediaLine->mRemoteReceiverCapabilities) ||
+                (!mediaLine->mLocalSenderCapabilities)) {
+              ZS_LOG_WARNING(Detail, log("media line is missing capabilities") + mediaLine->toDebug());
+              goto reject_sender;
+            }
+
+            auto unionCaps = UseAdapterHelper::createUnion(*(mediaLine->mLocalSenderCapabilities), *(mediaLine->mRemoteReceiverCapabilities), mediaLine->mIDPreference);
+            if (!UseAdapterHelper::hasSupportedMediaCodec(*unionCaps)) {
+              ZS_LOG_WARNING(Detail, log("union of remote sender / local receiver capabilities does not produce via codec match") + unionCaps->toDebug() + mediaLine->toDebug());
+              goto reject_sender;
+            }
+
+            if (!sender.mParameters) {
+              ZS_LOG_WARNING(Detail, log("sender parameters are missing") + sender.toDebug());
+              goto reject_sender;
+            }
+
+            auto filteredParams = UseAdapterHelper::filterParameters(*sender.mParameters, *unionCaps);
+            if ((!UseAdapterHelper::isCompatible(*unionCaps, *filteredParams)) ||
+                (!UseAdapterHelper::hasSupportedMediaCodec(*filteredParams))) {
+              ZS_LOG_WARNING(Detail, log("sender parameters or capabililties are not compatible or has no supported codec") + filteredParams->toDebug() + unionCaps->toDebug() + mediaLine->toDebug() + sender.toDebug());
+              goto reject_sender;
+            }
+
+            if (!senderInfo->mSender) {
+              ZS_LOG_WARNING(Detail, log("sender is missing") + senderInfo->toDebug());
+              goto reject_sender;
+            }
+
+            senderInfo->mSender->send(*filteredParams);
+            goto accept_sender;
+          }
+
+        reject_sender:
+          {
+            if (!senderInfo) continue;
+            close(*senderInfo);
+            continue;
+          }
+
+        accept_sender:
+          {
+            switch (senderInfo->mNegotiationState) {
+              case NegotiationState_PendingOffer:     senderInfo->mNegotiationState = NegotiationState_LocalOffered;  break;
+              case NegotiationState_LocalOffered:     break;
+              case NegotiationState_RemoteOffered:    senderInfo->mNegotiationState = NegotiationState_Agreed; break;
+              case NegotiationState_Agreed:           break;
+              case NegotiationState_Rejected:         break;
+            }
+            continue;
+          }
+        }
+        return true;
+      }
+
+      //-----------------------------------------------------------------------
+      bool PeerConnection::stepProcessLocalSCTPTransport(ISessionDescriptionTypes::DescriptionPtr description)
+      {
+#define TODO_LATER 1
+#define TODO_LATER 2
+        return true;
+      }
+
+      //-----------------------------------------------------------------------
+      bool PeerConnection::stepAddTracks()
+      {
+        typedef std::set<TransportID> TransportIDSet;
+
+        ZS_LOG_TRACE(log("step - process add track"));
+
+        while (mPendingAddTracks.size() > 0)
+        {
+          PendingAddTrackPtr pending = mPendingAddTracks.front();
+          mPendingAddTracks.pop_front();
+
+          bool alreadyPrivateTransport {false};
+          TransportIDSet compatibleTransports;
+          TransportIDSet disallowedTransports;
+
+          String useMediaLineID;
+
+          // find a compatible media line
+          for (auto iter = mRTPMedias.begin(); iter != mRTPMedias.end(); ++iter)
+          {
+            auto &mediaLine = *((*iter).second);
+            useMediaLineID = mediaLine.mID;
+
+            // scope: check to see if media line is compatible with pending track
+            {
+              // track of same kind, see if it's compatible
+              switch (mConfiguration.mBundlePolicy) {
+                case IPeerConnectionTypes::BundlePolicy_MaxCompat:
+                case IPeerConnectionTypes::BundlePolicy_MaxBundle: {
+                  if (0 != mediaLine.mMediaType.compareNoCase(IMediaStreamTrackTypes::toString(pending->mTrack->kind()))) goto possible_bundle_but_not_a_match;
+                  break;
+                }
+                
+                case IPeerConnectionTypes::BundlePolicy_Balanced: {
+                  if (0 != mediaLine.mMediaType.compareNoCase(IMediaStreamTrackTypes::toString(pending->mTrack->kind()))) goto not_compatible;
+                  break;
+                }
+              }
+
+              if (pending->mConfiguration->mCapabilities) {
+                switch (mediaLine.mIDPreference) {
+                  case UseAdapterHelper::IDPreference_Local: {
+                    if (!UseAdapterHelper::isCompatible(*(mediaLine.mLocalSenderCapabilities), *(pending->mConfiguration->mCapabilities))) goto not_compatible;
+                    break;
+                  }
+                  case UseAdapterHelper::IDPreference_Remote: {
+                    ZS_THROW_INVALID_ASSUMPTION_IF(!mediaLine.mRemoteReceiverCapabilities);
+
+                    // filter to the remote capabilities and ensure it's compatible
+                    auto senderUnion = UseAdapterHelper::createUnion(*(pending->mConfiguration->mCapabilities), (*(mediaLine.mRemoteReceiverCapabilities)), UseAdapterHelper::IDPreference_Remote);
+                    ZS_THROW_INVALID_ASSUMPTION_IF(!senderUnion);
+
+                    if (!UseAdapterHelper::isCompatible(*(mediaLine.mRemoteReceiverCapabilities), *senderUnion)) goto not_compatible;
+                    if (!UseAdapterHelper::hasSupportedMediaCodec(*senderUnion)) goto not_compatible;
+
+                    break;
+                  }
+                }
+              }
+
+              if (pending->mConfiguration->mParameters) {
+                switch (mediaLine.mIDPreference) {
+                  case UseAdapterHelper::IDPreference_Local: {
+                    if (!UseAdapterHelper::isCompatible(*(mediaLine.mLocalSenderCapabilities), *(pending->mConfiguration->mParameters))) goto not_compatible;
+                    break;
+                  }
+                  case UseAdapterHelper::IDPreference_Remote: {
+                    ZS_THROW_INVALID_ASSUMPTION_IF(!mediaLine.mRemoteReceiverCapabilities);
+
+                    // filter to the remote capabilities and ensure it's compatible
+                    auto filteredParameters = UseAdapterHelper::filterParameters(*(pending->mConfiguration->mParameters), (*(mediaLine.mRemoteReceiverCapabilities)));
+                    ZS_THROW_INVALID_ASSUMPTION_IF(!filteredParameters);
+
+                    if (!UseAdapterHelper::isCompatible(*(mediaLine.mRemoteReceiverCapabilities), *filteredParameters)) goto not_compatible;
+                    if (!UseAdapterHelper::hasSupportedMediaCodec(*filteredParameters)) goto not_compatible;
+
+                    break;
+                  }
+                }
+              }
+              switch (mConfiguration.mSignalingMode)
+              {
+                case IPeerConnectionTypes::SignalingMode_JSON:  break;
+                case IPeerConnectionTypes::SignalingMode_SDP:   goto possible_bundle_but_not_a_match;
+              }
+              goto match;
+            }
+
+          possible_bundle_but_not_a_match:
+            {
+              auto found = disallowedTransports.find(mediaLine.mBundledTransportID);
+              if (found != disallowedTransports.end()) continue;
+              compatibleTransports.insert(mediaLine.mBundledTransportID);
+              continue;
+            }
+
+          not_compatible:
+            {
+              disallowedTransports.insert(mediaLine.mBundledTransportID);
+              auto found = compatibleTransports.find(mediaLine.mBundledTransportID);
+              if (found != compatibleTransports.end()) {
+                // not allowed to bundle on this transport 
+                compatibleTransports.erase(found);
+              }
+              continue;
+            }
+          }
+
+          if (compatibleTransports.size() > 0) goto found_compatible;
+          goto none_compatible;
+
+        none_compatible:
+          {
+            alreadyPrivateTransport = true;
+
+            auto transportInfo = getTransportFromPool();
+            String transportID = transportInfo->mID;
+            compatibleTransports.insert(transportID);
+
+            goto found_compatible;
+          }
+
+        found_compatible:
+          {
+            auto first = compatibleTransports.begin();
+            ZS_THROW_INVALID_ASSUMPTION_IF(first == compatibleTransports.end());
+
+            auto bundledTransportID = (*first);
+            auto mediaLine = make_shared<RTPMediaLineInfo>();
+            mediaLine->mMediaType = IMediaStreamTrackTypes::toString(pending->mTrack->kind());
+            mediaLine->mBundledTransportID = bundledTransportID;
+            mediaLine->mIDPreference = UseAdapterHelper::IDPreference_Local;
+            mediaLine->mLocalSenderCapabilities = pending->mConfiguration->mCapabilities ? pending->mConfiguration->mCapabilities : IRTPSender::getCapabilities(pending->mTrack->kind());
+            mediaLine->mLocalReceiverCapabilities = pending->mConfiguration->mCapabilities ? pending->mConfiguration->mCapabilities : IRTPReceiver::getCapabilities(pending->mTrack->kind());
+
+            if (!alreadyPrivateTransport) {
+              if (IPeerConnectionTypes::BundlePolicy_MaxCompat == mConfiguration.mBundlePolicy) {
+                auto privateTransport = getTransportFromPool();
+                mediaLine->mPrivateTransportID = privateTransport->mID;
+              }
+            }
+
+            switch (mConfiguration.mSignalingMode) {
+              case IPeerConnectionTypes::SignalingMode_JSON:  {
+                mediaLine->mID = registerNewID();
+                break;
+              }
+              case IPeerConnectionTypes::SignalingMode_SDP:   {
+                // with SDP media ID and transport ID must share a common ID (unless it's bundled)
+                if (alreadyPrivateTransport) {
+                  mediaLine->mID = registerIDUsage(bundledTransportID);
+                } else if (mediaLine->mPrivateTransportID.hasData()) {
+                  mediaLine->mID = registerIDUsage(mediaLine->mPrivateTransportID);
+                } else {
+                  mediaLine->mID = registerNewID(3);
+                }
+                break;
+              }
+            }
+
+            mRTPMedias[mediaLine->mID] = mediaLine;
+            useMediaLineID = mediaLine->mID;
+            goto match;
+          }
+
+        match:
+          {
+            auto senderInfo = make_shared<SenderInfo>();
+            senderInfo->mMediaLineID = useMediaLineID;
+
+            RTPMediaLineInfoPtr mediaLine;
+
+            // find media line
+            {
+              auto found = mRTPMedias.find(useMediaLineID);
+              if (found != mRTPMedias.end()) {
+                mediaLine = (*found).second;
+              }
+            }
+
+            ZS_THROW_INVALID_ASSUMPTION_IF(!mediaLine);
+
+            // With SDP, the sender and the media line must share the same ID,
+            // but JSON signaling uses a unique ID for the sender.
+            switch (mConfiguration.mSignalingMode) {
+              case IPeerConnectionTypes::SignalingMode_JSON:  senderInfo->mID = registerNewID(); break;
+              case IPeerConnectionTypes::SignalingMode_SDP:   senderInfo->mID = registerIDUsage(useMediaLineID); break;
+            }
+
+            senderInfo->mConfiguration = pending->mConfiguration;
+            senderInfo->mTrack = pending->mTrack;
+            senderInfo->mMediaStreams = pending->mMediaStreams;
+            senderInfo->mPromise = pending->mPromise;
+
+            IRTPTypes::CapabilitiesPtr useCaps;
+
+            if (mediaLine->mRemoteReceiverCapabilities) {
+              useCaps = UseAdapterHelper::createUnion(*(mediaLine->mLocalSenderCapabilities), *(mediaLine->mRemoteReceiverCapabilities), mediaLine->mIDPreference);
+              senderInfo->mParameters = UseAdapterHelper::capabilitiesToParameters(*useCaps);
+            } else {
+              useCaps = mediaLine->mLocalSenderCapabilities;
+            }
+            if (senderInfo->mConfiguration->mParameters) {
+              senderInfo->mParameters = UseAdapterHelper::filterParameters(*senderInfo->mConfiguration->mParameters, *useCaps);
+            } else {
+              senderInfo->mParameters = UseAdapterHelper::capabilitiesToParameters(*(mediaLine->mLocalSenderCapabilities));
+            }
+            UseAdapterHelper::fillParameters(*(senderInfo->mParameters), *useCaps);
+            senderInfo->mParameters->mMuxID = senderInfo->mID;
+
+            mSenders[senderInfo->mID] = senderInfo;
+
+            notifyNegotiationNeeded();  // need to signal this to the remote party before it will be started
+            continue;
+          }
+        }
+
+        return true;
+      }
+
+      //-----------------------------------------------------------------------
+      bool PeerConnection::stepCreateOfferOrAnswer()
+      {
+        ZS_LOG_TRACE(log("step - create offer"));
 
         if (mPendingMethods.size() < 1) {
           ZS_LOG_TRACE(log("skipping step to creeate offer (no pending methods)"));
@@ -2127,27 +2625,131 @@ namespace ortc
         }
 
         PendingMethodPtr pending = mPendingMethods.front();
-        mPendingMethods.pop_front();
+
+        ISessionDescriptionTypes::SignalingTypes type {ISessionDescriptionTypes::SignalingType_First};
+
+        bool isSDP = true;
+        ULONGLONG version = 0;
 
         switch (pending->mMethod) {
-          case PendingMethod_CreateOffer:
-          case PendingMethod_CreateAnswer:
-          case PendingMethod_CreateCapabilities:
+          case PendingMethod_CreateOffer:         type = ISessionDescriptionTypes::SignalingType_SDPOffer; isSDP = false; version = 1; break;
+          case PendingMethod_CreateAnswer:        type = ISessionDescriptionTypes::SignalingType_SDPAnswer; break;
+          case PendingMethod_CreateCapabilities:  type = ISessionDescriptionTypes::SignalingType_JSON; break;
           case PendingMethod_SetLocalDescription:
           case PendingMethod_SetRemoteDescription:  
           {
-            break;
+            ZS_LOG_TRACE(log("pending is not related to offer/answer creation"));
+            return true;
           }
         }
 
-        switch (mConfiguration.mSignalingMode) {
-          case IPeerConnectionTypes::SignalingMode_JSON:
-          case IPeerConnectionTypes::SignalingMode_SDP:
-          {
-            break;
+        mPendingMethods.pop_front();
+
+        auto description = make_shared<ISessionDescription::Description>();
+        auto remoteDescription = mRemoteDescription ? mRemoteDescription->description() : ISessionDescription::DescriptionPtr();
+        if (isSDP) {
+          description->mDetails = make_shared<ISessionDescription::Description::Details>();
+          if ((remoteDescription) && (remoteDescription->mDetails)) {
+            description->mDetails->mSessionID = remoteDescription->mDetails->mSessionID;
+            description->mDetails->mSessionVersion = remoteDescription->mDetails->mSessionVersion + version;
+            description->mDetails->mSessionName = remoteDescription->mDetails->mSessionName;
+            description->mDetails->mStartTime = remoteDescription->mDetails->mStartTime;
+            description->mDetails->mEndTime = remoteDescription->mDetails->mEndTime;
+          } else {
+            auto buffer = UseServicesHelper::random(sizeof(description->mDetails->mSessionID));
+            memcpy(&(description->mDetails->mSessionID), buffer->BytePtr(), buffer->SizeInBytes());
+            description->mDetails->mSessionVersion = 1;
+          }
+          description->mDetails->mUnicaseAddress = make_shared<ISessionDescription::ConnectionData::Details>();
+          description->mDetails->mUnicaseAddress->mNetType = "IN";
+          description->mDetails->mUnicaseAddress->mAddrType = "IP4";
+          description->mDetails->mUnicaseAddress->mConnectionAddress = "127.0.0.1";
+        }
+
+        for (auto iter = mTransports.begin(); iter != mTransports.end(); ++iter) {
+          auto &transportInfo = ((*iter).second);
+          if (NegotiationState_Rejected == transportInfo->mNegotiationState) continue;
+
+          auto transport = make_shared<ISessionDescriptionTypes::Transport>();
+          transport->mRTP = make_shared<ISessionDescriptionTypes::Transport::Parameters>();
+          if (transportInfo->mRTCP.mGatherer) {
+            transport->mRTCP = make_shared<ISessionDescriptionTypes::Transport::Parameters>();
+          }
+
+          transport->mID = transportInfo->mID;
+          transport->mRTP->mICEParameters = transportInfo->mRTP.mGatherer->getLocalParameters();
+          transport->mRTP->mDTLSParameters = transportInfo->mRTP.mDTLSTransport ? transportInfo->mRTP.mDTLSTransport->getLocalParameters() : ISessionDescriptionTypes::DTLSParametersPtr();
+          transport->mRTP->mSRTPSDESParameters = transportInfo->mRTP.mSRTPSDESParameters ? transportInfo->mRTP.mSRTPSDESParameters : ISessionDescriptionTypes::SRTPSDESParametersPtr();
+
+          // always get end of candidates state before candidates
+          transport->mRTP->mEndOfCandidates = (IICEGathererTypes::State_Complete == transportInfo->mRTP.mGatherer->state());
+          transport->mRTP->mICECandidates = *convertCandidateList(*(transportInfo->mRTP.mGatherer->getLocalCandidates()));
+
+          if ((transportInfo->mRTCP.mGatherer) &&
+              (transportInfo->mRTCP.mTransport)) {
+            transport->mRTCP = make_shared<ISessionDescription::Transport::Parameters>();
+
+            // always get end of candidates state before candidates
+            transport->mRTP->mEndOfCandidates = (IICEGathererTypes::State_Complete == transportInfo->mRTCP.mGatherer->state());
+            transport->mRTP->mICECandidates = *convertCandidateList(*(transportInfo->mRTCP.mGatherer->getLocalCandidates()));
+          }
+          transport->mUseMux = true;
+
+          description->mTransports.push_back(transport);
+        }
+
+        for (auto iter = mRTPMedias.begin(); iter != mRTPMedias.end(); ++iter) {
+          auto &mediaInfo = ((*iter).second);
+          if (NegotiationState_Rejected == mediaInfo->mNegotiationState) continue;
+
+          auto mediaLine = make_shared<ISessionDescriptionTypes::RTPMediaLine>();
+          mediaLine->mID = mediaInfo->mID;
+          mediaLine->mTransportID = mediaInfo->mBundledTransportID;
+          mediaLine->mMediaType = mediaInfo->mMediaType;
+          if ((isSDP) ||
+              (mediaInfo->mPrivateTransportID.hasData())) {
+            mediaLine->mDetails = make_shared<ISessionDescriptionTypes::RTPMediaLine::Details>();
+            mediaLine->mDetails->mPrivateTransportID = mediaInfo->mPrivateTransportID;
+            if (isSDP) {
+              mediaLine->mDetails->mInternalIndex = mediaInfo->mLineIndex;
+              mediaLine->mDetails->mProtocol = "UDP/TLS/RTP/SAVPF";
+              mediaLine->mDetails->mConnectionData = make_shared<ISessionDescriptionTypes::ConnectionData>();
+              mediaLine->mDetails->mConnectionData->mRTP = make_shared<ISessionDescriptionTypes::ConnectionData::Details>();
+              mediaLine->mDetails->mConnectionData->mRTCP = make_shared<ISessionDescriptionTypes::ConnectionData::Details>();
+              mediaLine->mDetails->mConnectionData->mRTP->mNetType = mediaLine->mDetails->mConnectionData->mRTCP->mNetType = "IN";
+              mediaLine->mDetails->mConnectionData->mRTP->mAddrType = mediaLine->mDetails->mConnectionData->mRTCP->mAddrType = "IP4";
+              mediaLine->mDetails->mConnectionData->mRTP->mConnectionAddress = mediaLine->mDetails->mConnectionData->mRTCP->mConnectionAddress = "0.0.0.0";
+#define TODO_FILL_WITH_CANDIDATE_INFO_LATER 1
+#define TODO_FILL_WITH_CANDIDATE_INFO_LATER 2
+            }
+          }
+          mediaLine->mSenderCapabilities = make_shared<ISessionDescriptionTypes::RTPCapabilities>(*mediaInfo->mLocalSenderCapabilities);
+          mediaLine->mReceiverCapabilities = make_shared<ISessionDescriptionTypes::RTPCapabilities>(*mediaInfo->mLocalReceiverCapabilities);
+        }
+
+        for (auto iter = mSenders.begin(); iter != mSenders.end(); ++iter) {
+          auto &senderInfo = ((*iter).second);
+          if (NegotiationState_Rejected == senderInfo->mNegotiationState) continue;
+
+          auto sender = make_shared<ISessionDescriptionTypes::RTPSender>();
+          sender->mID = senderInfo->mID;
+          if (isSDP) {
+            sender->mDetails = make_shared<ISessionDescriptionTypes::RTPSender::Details>();
+            //sender->mDetails->mInternalRTPMediaLineIndex
+          }
+          sender->mRTPMediaLineID = senderInfo->mMediaLineID;
+          sender->mParameters = make_shared<IRTPTypes::Parameters>(*senderInfo->mParameters);
+          sender->mMediaStreamTrackID = senderInfo->mTrack->id();
+          
+          for (auto iterStream = senderInfo->mMediaStreams.begin(); iterStream != senderInfo->mMediaStreams.end(); ++iterStream) {
+            auto &stream = (*iterStream).second;
+            sender->mMediaStreamIDs.insert(stream->id());
           }
         }
 
+        auto sessionDescription = ISessionDescription::create(type, *description);
+
+        pending->mPromise->resolve(sessionDescription);
 
         return true;
       }
@@ -2574,11 +3176,109 @@ namespace ortc
       void PeerConnection::close(ReceiverInfo &receiverInfo)
       {
         if (receiverInfo.mReceiver) {
+          for (auto iter = receiverInfo.mMediaStreams.begin(); iter != receiverInfo.mMediaStreams.end(); ++iter) {
+            auto &useStream = (*iter).second;
+            useStream->notifyRemoveTrack(receiverInfo.mReceiver->track());
+          }
           receiverInfo.mReceiver->stop();
           receiverInfo.mReceiver.reset();
         }
         receiverInfo.mNegotiationState = NegotiationState_Rejected;
+        purgeNonReferencedAndEmptyStreams();
       }
+
+      //-----------------------------------------------------------------------
+      void PeerConnection::purgeNonReferencedAndEmptyStreams()
+      {
+        for (auto iter_doNotUse = mMediaStreams.begin(); iter_doNotUse != mMediaStreams.end(); ) {
+          auto current = iter_doNotUse;
+          ++iter_doNotUse;
+
+          auto &stream = (*current).second;
+          if (stream->size() > 0) continue;
+
+          if (!stream.unique()) continue;
+
+          mMediaStreams.erase(current);
+        }
+      }
+
+      //-----------------------------------------------------------------------
+      IPeerConnectionTypes::MediaStreamListPtr PeerConnection::convertToList(const UseMediaStreamMap &useStreams)
+      {
+        auto result = make_shared<MediaStreamList>();
+        for (auto iter = useStreams.begin(); iter != useStreams.end(); ++iter) {
+          IMediaStreamPtr stream = MediaStream::convert((*iter).second);
+          if (!stream) continue;
+          result->push_back(stream);
+        }
+        return result;
+      }
+
+      //-----------------------------------------------------------------------
+      PeerConnection::UseMediaStreamMapPtr PeerConnection::convertToMap(const MediaStreamList &mediaStreams)
+      {
+        auto result = make_shared<UseMediaStreamMap>();
+        for (auto iter = mediaStreams.begin(); iter != mediaStreams.end(); ++iter) {
+          UseMediaStreamPtr mediaStream = MediaStream::convert(*iter);
+          if (!mediaStream) continue;
+          (*result)[mediaStream->id()] = mediaStream;
+        }
+        return result;
+      }
+
+      //-----------------------------------------------------------------------
+      IPeerConnectionTypes::MediaStreamSetPtr PeerConnection::convertToSet(const UseMediaStreamMap &useStreams)
+      {
+        auto result = make_shared<MediaStreamSet>();
+
+        for (auto iter = useStreams.begin(); iter != useStreams.end(); ++iter) {
+          UseMediaStreamPtr mediaStream = (*iter).second;
+          if (!mediaStream) continue;
+          (*result).insert(mediaStream->id());
+        }
+
+        return result;
+      }
+
+      //-----------------------------------------------------------------------
+      ISessionDescriptionTypes::ICECandidateListPtr PeerConnection::convertCandidateList(IICETypes::CandidateList &source)
+      {
+        auto result = make_shared<ISessionDescriptionTypes::ICECandidateList>();
+
+        for (auto iter = source.begin(); iter != source.end(); ++iter) {
+          auto &candidate = (*iter);
+          result->push_back(make_shared<IICETypes::Candidate>(candidate));
+        }
+        return result;
+      }
+
+      //-----------------------------------------------------------------------
+      void PeerConnection::calculateDelta(
+                                          const MediaStreamSet &existingSet,
+                                          const MediaStreamSet &newSet,
+                                          MediaStreamSet &outAdded,
+                                          MediaStreamSet &outRemoved
+                                          )
+      
+      {
+        outAdded.clear();
+        outRemoved.clear();
+
+        for (auto iter = existingSet.begin(); iter != existingSet.end(); ++iter) {
+          auto &id = (*iter);
+
+          auto found = newSet.find(id);
+          if (found == newSet.end()) outRemoved.insert(id);
+        }
+        for (auto iter = newSet.begin(); iter != newSet.end(); ++iter) {
+          auto &id = (*iter);
+
+          auto found = existingSet.find(id);
+          if (found == existingSet.end()) outAdded.insert(id);
+        }
+      }
+
 
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------

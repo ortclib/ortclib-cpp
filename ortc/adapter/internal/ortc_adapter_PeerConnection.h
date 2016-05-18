@@ -131,6 +131,7 @@ namespace ortc
         typedef String MediaLineID;
         typedef String SenderID;
         typedef String ReceiverID;
+        typedef String MediaStreamID;
 
         ZS_DECLARE_STRUCT_PTR(TransportInfo);
         ZS_DECLARE_STRUCT_PTR(MediaLineInfo);
@@ -144,6 +145,9 @@ namespace ortc
 
         ZS_DECLARE_TYPEDEF_PTR(IMediaStreamForPeerConnection, UseMediaStream);
         ZS_DECLARE_TYPEDEF_PTR(std::list<UseMediaStreamPtr>, UseMediaStreamList);
+        typedef std::map<MediaStreamID, UseMediaStreamPtr> UseMediaStreamMap;
+        ZS_DECLARE_PTR(UseMediaStreamMap);
+        ZS_DECLARE_TYPEDEF_PTR(ISessionDescriptionTypes::MediaStreamSet, MediaStreamSet);
 
         struct TransportInfo
         {
@@ -210,12 +214,13 @@ namespace ortc
 
           MediaStreamTrackConfigurationPtr mConfiguration;
           IMediaStreamTrackPtr mTrack;
-          UseMediaStreamList mMediaStreams;
+          UseMediaStreamMap mMediaStreams;
 
           NegotiationStates mNegotiationState {NegotiationState_First};
           PromiseWithSenderPtr mPromise;
 
           IRTPSenderPtr mSender;
+          IRTPTypes::ParametersPtr mParameters;
 
           ElementPtr toDebug() const;
         };
@@ -228,7 +233,7 @@ namespace ortc
           NegotiationStates mNegotiationState {NegotiationState_First};
 
           IRTPReceiverPtr mReceiver;
-          UseMediaStreamList mMediaStreams;
+          UseMediaStreamMap mMediaStreams;
 
           ElementPtr toDebug() const;
         };
@@ -258,7 +263,7 @@ namespace ortc
         {
           PromiseWithSenderPtr mPromise;
           IMediaStreamTrackPtr mTrack;
-          UseMediaStreamList mMediaStreams;
+          UseMediaStreamMap mMediaStreams;
           MediaStreamTrackConfigurationPtr mConfiguration;
 
           ElementPtr toDebug() const;
@@ -541,7 +546,13 @@ namespace ortc
         bool stepProcessRemoteTransport(ISessionDescriptionTypes::DescriptionPtr description);
         bool stepProcessRemoteRTPMediaLines(ISessionDescriptionTypes::DescriptionPtr description);
         bool stepProcessRemoteRTPSenders(ISessionDescriptionTypes::DescriptionPtr description);
-        bool stepCreateOffer();
+        bool stepProcessRemoteSCTPTransport(ISessionDescriptionTypes::DescriptionPtr description);
+        bool stepProcessLocal();
+        bool stepProcessLocalTransport(ISessionDescriptionTypes::DescriptionPtr description);
+        bool stepProcessLocalRTPMediaLines(ISessionDescriptionTypes::DescriptionPtr description);
+        bool stepProcessLocalRTPSenders(ISessionDescriptionTypes::DescriptionPtr description);
+        bool stepProcessLocalSCTPTransport(ISessionDescriptionTypes::DescriptionPtr description);
+        bool stepCreateOfferOrAnswer();
         bool stepProcessPendingRemoteCandidates();
         bool stepAddTracks();
         bool stepFinalizeSenders();
@@ -572,6 +583,19 @@ namespace ortc
         void close(SCTPMediaLineInfo &mediaLineInfo);
         void close(SenderInfo &senderInfo);
         void close(ReceiverInfo &receiverInfo);
+
+        void purgeNonReferencedAndEmptyStreams();
+
+        static MediaStreamListPtr convertToList(const UseMediaStreamMap &useStreams);
+        static UseMediaStreamMapPtr convertToMap(const MediaStreamList &mediaStreams);
+        static MediaStreamSetPtr convertToSet(const UseMediaStreamMap &useStreams);
+        static ISessionDescriptionTypes::ICECandidateListPtr convertCandidateList(IICETypes::CandidateList &source);
+        static void calculateDelta(
+                                   const MediaStreamSet &existingSet,
+                                   const MediaStreamSet &newSet,
+                                   MediaStreamSet &outAdded,
+                                   MediaStreamSet &outRemoved
+                                   );
 
       protected:
         //---------------------------------------------------------------------
@@ -616,6 +640,8 @@ namespace ortc
         SCTPMediaLineInfoMap mSCTPMedias;
         SenderInfoMap mSenders;
         ReceiverInfoMap mReceivers;
+
+        UseMediaStreamMap mMediaStreams;
 
         CandidateList mPendingRemoteCandidates;
 

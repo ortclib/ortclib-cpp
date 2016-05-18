@@ -515,6 +515,7 @@ namespace ortc
       UseHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::Transport", "id", mID);
       mRTP = Parameters::create(rootEl->findFirstChildElement("rtp"));
       mRTCP = Parameters::create(rootEl->findFirstChildElement("rtcp"));
+      UseHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::Transport", "useMux", mUseMux);
     }
     
     //-------------------------------------------------------------------------
@@ -525,6 +526,8 @@ namespace ortc
       UseHelper::adoptElementValue(rootEl, "id", mID, false);
       rootEl->adoptAsLastChild(mRTP ? mRTP->createElement("rtp") : ElementPtr());
       rootEl->adoptAsLastChild(mRTCP ? mRTCP->createElement("rtcp") : ElementPtr());
+      rootEl->adoptAsLastChild(mRTCP ? mRTCP->createElement("rtcp") : ElementPtr());
+      UseHelper::adoptElementValue(rootEl, "useMux", mUseMux);
 
       if (!rootEl->hasChildren()) return ElementPtr();
 
@@ -549,6 +552,8 @@ namespace ortc
       hasher.update(mRTP ? mRTP->hash() : String());
       hasher.update(":");
       hasher.update(mRTCP ? mRTCP->hash() : String());
+      hasher.update(":");
+      hasher.update(mUseMux);
       hasher.update(":end");
 
       return hasher.final();

@@ -52,6 +52,12 @@ namespace ortc
       {
         ZS_DECLARE_TYPEDEF_PTR(IMediaStreamForPeerConnection, ForPeerConnection);
 
+        static ForPeerConnectionPtr create(const char *id);
+
+        virtual String id() const = 0;
+
+        virtual size_t size() const = 0;
+
         virtual void notifyAddTrack(IMediaStreamTrackPtr track) = 0;
         virtual void notifyRemoveTrack(IMediaStreamTrackPtr track) = 0;
       };
@@ -85,7 +91,8 @@ namespace ortc
                     const make_private &,
                     IMessageQueuePtr queue,
                     IMediaStreamDelegatePtr delegate,
-                    const UseMediaStreamTrackList &tracks
+                    const UseMediaStreamTrackList &tracks,
+                    const char *id = NULL
                     );
 
         static MediaStreamPtr convert(IMediaStreamPtr object);
@@ -130,6 +137,7 @@ namespace ortc
         virtual MediaStreamTrackListPtr getVideoTracks() const override;
         virtual MediaStreamTrackListPtr getTracks() const override;
         virtual IMediaStreamTrackPtr getTrackByID(const char *id) const override;
+        virtual size_t size() const override;
 
         virtual void addTrack(IMediaStreamTrackPtr track) override;
         virtual void removeTrack(IMediaStreamTrackPtr track) override;
@@ -143,6 +151,12 @@ namespace ortc
         #pragma mark
         #pragma mark MediaStream => ForPeerConnection
         #pragma mark
+
+        static MediaStreamPtr create(const char *id);
+
+        // (duplicate) virtual String id() const = 0;
+
+        // (duplicate) virtual size_t size() const = 0;
 
         virtual void notifyAddTrack(IMediaStreamTrackPtr track) override;
         virtual void notifyRemoveTrack(IMediaStreamTrackPtr track) override;
@@ -197,6 +211,7 @@ namespace ortc
                                       IMediaStreamDelegatePtr delegate,
                                       const MediaStreamTrackList &tracks
                                       );
+        virtual MediaStreamPtr create(const char *id);
       };
 
       class MediaStreamFactory : public IFactory<IMediaStreamFactory> {};

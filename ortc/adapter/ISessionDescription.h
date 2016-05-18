@@ -199,6 +199,7 @@ namespace ortc
         TransportID mID;
         ParametersPtr mRTP;
         ParametersPtr mRTCP;
+        bool mUseMux {true};
 
         Transport() {}
         Transport(const Transport &op2);
@@ -416,7 +417,8 @@ namespace ortc
     #pragma mark ISessionDescription
     #pragma mark
 
-    interface ISessionDescription : public ISessionDescriptionTypes
+    interface ISessionDescription : public ISessionDescriptionTypes,
+                                    public Any
     {
       static ISessionDescriptionPtr create(
                                            SignalingTypes type,

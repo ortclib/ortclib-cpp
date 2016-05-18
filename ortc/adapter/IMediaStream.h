@@ -83,6 +83,7 @@ namespace ortc
       virtual MediaStreamTrackListPtr getVideoTracks() const = 0;
       virtual MediaStreamTrackListPtr getTracks() const = 0;
       virtual IMediaStreamTrackPtr getTrackByID(const char *id) const = 0;
+      virtual size_t size() const = 0;
 
       virtual void addTrack(IMediaStreamTrackPtr track) = 0;
       virtual void removeTrack(IMediaStreamTrackPtr track) = 0;

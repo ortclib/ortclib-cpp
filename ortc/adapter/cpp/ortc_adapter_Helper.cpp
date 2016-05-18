@@ -32,11 +32,11 @@
 
 #include <ortc/adapter/internal/ortc_adapter_Helper.h>
 
-//#include <openpeer/services/IHelper.h>
+#include <openpeer/services/IHelper.h>
 //
 //#include <zsLib/Log.h>
 //#include <zsLib/Numeric.h>
-//#include <zsLib/Stringize.h>
+#include <zsLib/Stringize.h>
 //#include <zsLib/XML.h>
 
 
@@ -46,6 +46,8 @@ namespace ortc
 {
   namespace adapter
   {
+    ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHelper, UseServicesHelper);
+
     namespace internal
     {
       //-----------------------------------------------------------------------
@@ -67,6 +69,15 @@ namespace ortc
         case IDPreference_Remote: return "remote";
       }
       return "unknown";
+    }
+
+    //-------------------------------------------------------------------------
+    IRTPTypes::SSRCType IHelper::getRandomSSRC()
+    {
+      auto random = UseServicesHelper::random(sizeof(IRTPTypes::SSRCType));
+      IRTPTypes::SSRCType tempSSRC{};
+      memcpy(&tempSSRC, random->BytePtr(), random->SizeInBytes());
+      return tempSSRC;
     }
 
     //-------------------------------------------------------------------------
@@ -1170,6 +1181,75 @@ namespace ortc
         if (isMediaCodec(codec.mName)) return true;
       }
       return false;
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark Negotiation (fill)
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    void IHelper::fillParameters(
+                                 RTPParameters &parameters,
+                                 const RTPCapabilities &capabilities
+                                 )
+    {
+      if (!parameters.mRTCP.mCName.hasData()) {
+        parameters.mRTCP.mCName = string(zsLib::createUUID());
+        parameters.mRTCP.mReducedSize = true;
+        parameters.mRTCP.mMux = true;
+      }
+
+      if (parameters.mEncodings.size() < 1) {
+        IRTPTypes::EncodingParameters encoding;
+        encoding.mActive = true;
+        encoding.mSSRC = getRandomSSRC();
+
+        for (auto iter = parameters.mCodecs.begin(); iter != parameters.mCodecs.end(); ++iter) {
+          auto supportedCodec = IRTPTypes::toSupportedCodec((*iter).mName);
+          auto supportedKind = IRTPTypes::getCodecKind(supportedCodec);
+
+          switch (supportedKind) {
+            case IRTPTypes::CodecKind_Unknown:
+
+            case IRTPTypes::CodecKind_Audio:
+            case IRTPTypes::CodecKind_Video:
+            case IRTPTypes::CodecKind_AV:
+            case IRTPTypes::CodecKind_AudioSupplemental:
+            case IRTPTypes::CodecKind_Data:                 break;
+
+            case IRTPTypes::CodecKind_RTX: {
+              auto random = UseServicesHelper::random(sizeof(IRTPTypes::SSRCType));
+              IRTPTypes::SSRCType tempSSRC{};
+              memcpy(&tempSSRC, random->BytePtr(), random->SizeInBytes());
+
+              {
+                encoding.mRTX = IRTPTypes::RTXParameters();
+                IRTPTypes::SSRCType tempSSRC{};
+                memcpy(&tempSSRC, random->BytePtr(), random->SizeInBytes());
+                encoding.mRTX.value().mSSRC = getRandomSSRC();
+              }
+              break;
+            }
+            case IRTPTypes::CodecKind_FEC: {
+              if (IRTPTypes::SupportedCodec_ULPFEC == supportedCodec) {
+                for (auto iterFEC = capabilities.mFECMechanisms.begin(); iterFEC != capabilities.mFECMechanisms.end(); ++iterFEC) {
+                  auto &mechanism = (*iterFEC);
+                  if (IRTPTypes::KnownFECMechanism_RED_ULPFEC != IRTPTypes::toKnownFECMechanism(mechanism)) continue;
+                  encoding.mFEC = IRTPTypes::FECParameters();
+                  encoding.mFEC.value().mMechanism = mechanism;
+                  encoding.mFEC.value().mSSRC = getRandomSSRC();
+                  break;
+                }
+              }
+            }
+          }
+        }
+        parameters.mEncodings.push_back(encoding);
+      }
     }
 
   } // namespace adapter

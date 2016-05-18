@@ -99,6 +99,7 @@ namespace ortc
       static const char *toString(IDPreferences pref);
       static bool useLocal(IDPreferences pref) { return pref == IDPreference_Local; }
       static bool useRemote(IDPreferences pref) { return pref == IDPreference_Remote; }
+      static IRTPTypes::SSRCType getRandomSSRC();
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -202,6 +203,16 @@ namespace ortc
 
       static bool hasSupportedMediaCodec(const RTPCapabilities &capabilities);
       static bool hasSupportedMediaCodec(const RTPParameters &parameters);
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark Negotiation (fill)
+      #pragma mark
+
+      static void fillParameters(
+                                 RTPParameters &ioParameters,
+                                 const RTPCapabilities &capabilities
+                                 );
     };
   }
 }
