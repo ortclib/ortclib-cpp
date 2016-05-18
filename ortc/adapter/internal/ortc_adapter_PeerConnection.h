@@ -39,6 +39,7 @@
 
 #include <ortc/IRTPListener.h>
 #include <ortc/IRTPSender.h>
+#include <ortc/IRTPReceiver.h>
 
 #include <openpeer/services/IWakeDelegate.h>
 
@@ -68,6 +69,7 @@ namespace ortc
                              public ISRTPSDESTransportDelegate,
                              public IRTPListenerDelegate,
                              public IRTPSenderDelegate,
+                             public IRTPReceiverDelegate,
                              public ISCTPTransportDelegate,
                              public ISCTPTransportListenerDelegate,
                              public IWakeDelegate,
@@ -472,6 +474,11 @@ namespace ortc
                                              IRTPSenderPtr sender,
                                              SSRCType ssrc
                                              ) override;
+
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark PeerConnection => IRTPReceiverDelegate
+        #pragma mark
 
         //---------------------------------------------------------------------
         #pragma mark

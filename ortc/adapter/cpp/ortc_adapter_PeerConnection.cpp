@@ -1808,6 +1808,7 @@ namespace ortc
                 }
               }
             }
+            goto accept_transport;
           }
 
         reject_transport:
@@ -1974,34 +1975,128 @@ namespace ortc
 
           ReceiverInfoPtr receiverInfo;
 
-          // 
+          // prepare receivers
           {
             // scope: find receiver
             {
+              if (!sender.mID.hasData()) goto reject_sender;
+
               auto found = mReceivers.find(sender.mID);
-            }
-
-          reject_receiver:
-            {
-              if (!receiverInfo) continue;
-              close(*receiverInfo);
-              continue;
-            }
-
-          accept_receiver:
-            {
-              switch (receiverInfo->mNegotiationState) {
-                case NegotiationState_PendingOffer:     break;                              // not possible
-                case NegotiationState_LocalOffered:     break;                              // not possible
-                case NegotiationState_RemoteOffered:    {                                   // offered, now agreed
-                  receiverInfo->mNegotiationState = NegotiationState_Agreed;
-                  break;
-                }
-                case NegotiationState_Agreed:           break;                              // no change needed
-                case NegotiationState_Rejected:         break;                              // not possible
+              if (found != mReceivers.end()) {
+                receiverInfo = (*found).second;
               }
-              continue;
             }
+
+            if (!receiverInfo) {
+              receiverInfo = make_shared<ReceiverInfo>();
+              receiverInfo->mID = registerIDUsage(sender.mID);
+              receiverInfo->mMediaLineID = sender.mMediaStreamTrackID;
+              receiverInfo->mNegotiationState = NegotiationState_RemoteOffered;
+              mReceivers[receiverInfo->mID] = receiverInfo;
+            }
+
+            if (NegotiationState_Rejected == receiverInfo->mNegotiationState) {
+              ZS_LOG_WARNING(Debug, log("already rejected remote sender") + sender.toDebug());
+              goto reject_sender;
+            }
+
+            RTPMediaLineInfoPtr mediaLine;
+
+            {
+              auto found = mRTPMedias.find(receiverInfo->mMediaLineID);
+              if (found != mRTPMedias.end()) mediaLine = (*found).second;
+            }
+
+            if (!mediaLine) {
+              ZS_LOG_WARNING(Detail, log("did not find associated media line"));
+              goto reject_sender;
+            }
+
+            if (NegotiationState_Rejected == mediaLine->mNegotiationState) {
+              ZS_LOG_WARNING(Detail, log("media line was rejected thus remote sender must be rejected") + sender.toDebug() + mediaLine->toDebug());
+              goto reject_sender;
+            }
+
+            TransportInfoPtr transportInfo;
+
+            {
+              auto found = mTransports.find(mediaLine->mBundledTransportID);
+              if (found != mTransports.end()) transportInfo = (*found).second;
+
+              if ((!transportInfo) &&
+                  (mediaLine->mPrivateTransportID.hasData())) {
+                found = mTransports.find(mediaLine->mPrivateTransportID);
+                if (found != mTransports.end()) transportInfo = (*found).second;
+              }
+            }
+
+            if (!transportInfo) {
+              ZS_LOG_WARNING(Detail, log("did not find associated transport"));
+              goto reject_sender;
+            }
+
+            if (NegotiationState_Rejected == transportInfo->mNegotiationState) {
+              ZS_LOG_WARNING(Detail, log("transport was rejected thus remote sender must be rejected") + sender.toDebug() + transportInfo->toDebug());
+              goto reject_sender;
+            }
+
+            if ((!mediaLine->mLocalReceiverCapabilities) ||
+                (!mediaLine->mRemoteSenderCapabilities)) {
+              ZS_LOG_WARNING(Detail, log("media line is missing capabilities") + mediaLine->toDebug());
+              goto reject_sender;
+            }
+
+            if (!sender.mParameters) {
+              ZS_LOG_WARNING(Detail, log("sender is missing parameters") + sender.toDebug());
+              goto reject_sender;
+            }
+
+            auto unionCaps = UseAdapterHelper::createUnion(*(mediaLine->mLocalReceiverCapabilities), *(mediaLine->mRemoteSenderCapabilities), mediaLine->mIDPreference);
+            if (!UseAdapterHelper::hasSupportedMediaCodec(*unionCaps)) {
+              ZS_LOG_WARNING(Detail, log("union of remote sender / local receiver capabilities does not produce via codec match") + unionCaps->toDebug() + mediaLine->toDebug());
+              goto reject_sender;
+            }
+
+            auto filteredParams = UseAdapterHelper::filterParameters(*sender.mParameters, *unionCaps);
+            if ((!UseAdapterHelper::isCompatible(*unionCaps, *filteredParams)) ||
+                (!UseAdapterHelper::hasSupportedMediaCodec(*filteredParams))) {
+              ZS_LOG_WARNING(Detail, log("sender parameters or capabililties are not compatible or has no supported codec") + filteredParams->toDebug() + unionCaps->toDebug() + mediaLine->toDebug());
+              goto reject_sender;
+            }
+
+            if (!receiverInfo->mReceiver) {
+              receiverInfo->mReceiver = IRTPReceiver::create(
+                                                             mThisWeak.lock(),
+                                                             IMediaStreamTrackTypes::toKind(mediaLine->mMediaType),
+                                                             transportInfo->mRTP.mDTLSTransport ? IRTPTransportPtr(transportInfo->mRTP.mDTLSTransport) : IRTPTransportPtr(transportInfo->mRTP.mSRTPSDESTransport),
+                                                             transportInfo->mRTP.mDTLSTransport ? IRTCPTransportPtr(transportInfo->mRTCP.mDTLSTransport) : IRTCPTransportPtr(transportInfo->mRTCP.mTransport)
+                                                             );
+            }
+
+            receiverInfo->mReceiver->receive(*filteredParams);
+            goto accept_sender;
+          }
+
+        reject_sender:
+          {
+            if (!receiverInfo) continue;
+            close(*receiverInfo);
+            continue;
+          }
+
+        accept_sender:
+          {
+            switch (receiverInfo->mNegotiationState) {
+              case NegotiationState_PendingOffer:     break;                              // not possible
+              case NegotiationState_LocalOffered:     break;                              // not possible
+              case NegotiationState_RemoteOffered:    {                                   // offered, now agreed
+                receiverInfo->mNegotiationState = NegotiationState_Agreed;
+                break;
+              }
+              case NegotiationState_Agreed:           break;                              // no change needed
+              case NegotiationState_Rejected:         break;                              // not possible
+            }
+            continue;
           }
 
         }
