@@ -2833,9 +2833,9 @@ namespace ortc
         ULONGLONG version = 0;
 
         switch (pending->mMethod) {
-          case PendingMethod_CreateOffer:         type = ISessionDescriptionTypes::SignalingType_SDPOffer; isSDP = false; version = 1; break;
+          case PendingMethod_CreateOffer:         type = ISessionDescriptionTypes::SignalingType_SDPOffer; version = 1; break;
           case PendingMethod_CreateAnswer:        type = ISessionDescriptionTypes::SignalingType_SDPAnswer; break;
-          case PendingMethod_CreateCapabilities:  type = ISessionDescriptionTypes::SignalingType_JSON; break;
+          case PendingMethod_CreateCapabilities:  type = ISessionDescriptionTypes::SignalingType_JSON; isSDP = false; break;
           case PendingMethod_SetLocalDescription:
           case PendingMethod_SetRemoteDescription:  
           {
