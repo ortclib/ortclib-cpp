@@ -942,6 +942,10 @@ namespace ortc
                                                     IICEGatherer::States state
                                                     )
       {
+        ZS_LOG_TRACE(log("on ice gatherer state change") + ZS_PARAM("gatherer id", gatherer->getID()) + ZS_PARAM("state", IICEGathererTypes::toString(state)));
+
+        AutoRecursiveLock lock(*this);
+        step();
       }
 
       //-----------------------------------------------------------------------
@@ -950,6 +954,36 @@ namespace ortc
                                                        CandidatePtr candidate
                                                        )
       {
+        ZS_LOG_TRACE(log("on ice gatherer candidate") + ZS_PARAM("gatherer id", gatherer->getID()) + candidate->toDebug());
+
+        AutoRecursiveLock lock(*this);
+
+        for (auto iter = mTransports.begin(); iter != mTransports.end(); ++iter) {
+          auto &transportInfo = (*iter).second;
+          if ((transportInfo->mRTP.mGatherer) &&
+              (transportInfo->mRTP.mGatherer->getID() == gatherer->getID())) {
+            goto fire_candidate;
+          }
+          if ((transportInfo->mRTCP.mGatherer) &&
+              (transportInfo->mRTCP.mGatherer->getID() == gatherer->getID())) {
+            goto fire_candidate;
+          }
+
+          goto skip;
+
+        skip:
+          {
+            continue;
+          }
+
+        fire_candidate:
+          {
+            auto midCandidate = make_shared<IPeerConnectionTypes::ICECandidate>();
+            midCandidate->mMid = transportInfo->mID;
+            midCandidate->mCandidate = candidate;
+            mSubscriptions.delegate()->onPeerConnectionIceCandidate(mThisWeak.lock(), midCandidate, "");
+          }
+        }
       }
 
       //-----------------------------------------------------------------------
@@ -958,6 +992,36 @@ namespace ortc
                                                                CandidateCompletePtr candidate
                                                                )
       {
+        ZS_LOG_TRACE(log("on ice gatherer candidate complete") + ZS_PARAM("gatherer id", gatherer->getID()) + candidate->toDebug());
+
+        AutoRecursiveLock lock(*this);
+
+        for (auto iter = mTransports.begin(); iter != mTransports.end(); ++iter) {
+          auto &transportInfo = (*iter).second;
+          if ((transportInfo->mRTP.mGatherer) &&
+            (transportInfo->mRTP.mGatherer->getID() == gatherer->getID())) {
+            goto fire_candidate;
+          }
+          if ((transportInfo->mRTCP.mGatherer) &&
+            (transportInfo->mRTCP.mGatherer->getID() == gatherer->getID())) {
+            goto fire_candidate;
+          }
+
+          goto skip;
+
+        skip:
+          {
+            continue;
+          }
+
+        fire_candidate:
+          {
+            auto midCandidate = make_shared<IPeerConnectionTypes::ICECandidate>();
+            midCandidate->mMid = transportInfo->mID;
+            midCandidate->mCandidate = candidate;
+            mSubscriptions.delegate()->onPeerConnectionIceCandidate(mThisWeak.lock(), midCandidate, "");
+          }
+        }
       }
 
       //-----------------------------------------------------------------------
@@ -966,6 +1030,7 @@ namespace ortc
                                                            CandidatePtr candidate
                                                            )
       {
+        // ignored
       }
 
       //-----------------------------------------------------------------------
@@ -974,6 +1039,7 @@ namespace ortc
                                               ErrorEventPtr errorEvent
                                               )
       {
+        // ignored
       }
 
       //-----------------------------------------------------------------------
@@ -990,6 +1056,10 @@ namespace ortc
                                                      IICETransport::States state
                                                      )
       {
+        ZS_LOG_TRACE(log("on ice transport state change") + ZS_PARAM("transport id", transport->getID()) + ZS_PARAM("state", IICETransportTypes::toString(state)));
+
+        AutoRecursiveLock lock(*this);
+        step();
       }
 
       //-----------------------------------------------------------------------
@@ -1030,6 +1100,10 @@ namespace ortc
                                                       IDTLSTransport::States state
                                                       )
       {
+        ZS_LOG_TRACE(log("on dtls transport state change") + ZS_PARAM("transport id", transport->getID()) + ZS_PARAM("state", IDTLSTransportTypes::toString(state)));
+
+        AutoRecursiveLock lock(*this);
+        step();
       }
 
       //-----------------------------------------------------------------------
@@ -1038,6 +1112,7 @@ namespace ortc
                                                 ErrorAnyPtr error
                                                 )
       {
+        // ignored
       }
 
       //-----------------------------------------------------------------------
@@ -1055,6 +1130,7 @@ namespace ortc
                                                                 ULONG overallLifetimeRemainingPercentage
                                                                 )
       {
+        // ignored
       }
 
       //-----------------------------------------------------------------------
@@ -1063,6 +1139,7 @@ namespace ortc
                                                     ErrorAnyPtr errorCode
                                                     )
       {
+        // ignored
       }
 
       //-----------------------------------------------------------------------
@@ -1082,6 +1159,7 @@ namespace ortc
                                                      const char *rid
                                                      )
       {
+        ZS_LOG_TRACE(log("on rtp listener unhandled") + ZS_PARAM("listener id", listener->getID()) + ZS_PARAM("ssrc", ssrc) + ZS_PARAM("payload", payloadType) + ZS_PARAM("mid", mid) + ZS_PARAM("rid", rid));
       }
 
 
@@ -1116,6 +1194,10 @@ namespace ortc
                                                       States state
                                                       )
       {
+        ZS_LOG_TRACE(log("on sctp transport state change") + ZS_PARAM("transport id", transport->getID()) + ZS_PARAM("state", ISCTPTransportTypes::toString(state)));
+
+        AutoRecursiveLock lock(*this);
+        step();
       }
 
       //-----------------------------------------------------------------------
@@ -1124,6 +1206,7 @@ namespace ortc
                                                       IDataChannelPtr channel
                                                       )
       {
+        ZS_LOG_TRACE(log("on sctp transport") + ZS_PARAM("transport id", transport->getID()) + ZS_PARAM("channel id", channel->getID()));
       }
 
 
@@ -1138,6 +1221,7 @@ namespace ortc
       //-----------------------------------------------------------------------
       void PeerConnection::onSCTPTransport(ISCTPTransportPtr transport)
       {
+        ZS_LOG_TRACE(log("on sctp transport listener") + ZS_PARAM("transport id", transport->getID()));
       }
 
       //-----------------------------------------------------------------------
@@ -1722,6 +1806,29 @@ namespace ortc
                 }
               }
 
+              for (auto iterCan = transport.mRTP->mICECandidates.begin(); iterCan != transport.mRTP->mICECandidates.end(); ++iterCan) {
+                auto &candidate = *(*iterCan);
+                transportInfo->mRTP.mTransport->addRemoteCandidate(candidate);
+              }
+
+              if (transport.mRTP->mEndOfCandidates) {
+                auto candidateComplete = make_shared<IICETypes::CandidateComplete>();
+                transportInfo->mRTP.mTransport->addRemoteCandidate(*candidateComplete);
+              }
+
+              if ((transport.mRTCP) &&
+                  (transportInfo->mRTCP.mTransport)) {
+                for (auto iterCan = transport.mRTCP->mICECandidates.begin(); iterCan != transport.mRTCP->mICECandidates.end(); ++iterCan) {
+                  auto &candidate = *(*iterCan);
+                  transportInfo->mRTCP.mTransport->addRemoteCandidate(candidate);
+                }
+                if (transport.mRTCP->mEndOfCandidates) {
+                  auto candidateComplete = make_shared<IICETypes::CandidateComplete>();
+                  candidateComplete->mComponent = IICETypes::Component_RTCP;
+                  transportInfo->mRTCP.mTransport->addRemoteCandidate(*candidateComplete);
+                }
+              }
+
             } catch (const InvalidParameters &) {
               ZS_LOG_WARNING(Debug, log("invalid parameters when calling sender.send()"));
               goto reject_transport;
@@ -1775,23 +1882,6 @@ namespace ortc
                 auto found = mRTPMedias.find(mediaLine.mID);
                 if (found != mRTPMedias.end()) {
                   mediaLineInfo = (*found).second;
-                }
-              } else {
-                if (mediaLine.mDetails) {
-                  if (mediaLine.mDetails->mInternalIndex.hasValue()) {
-                    for (auto iterSearchByIndex = mRTPMedias.begin(); iterSearchByIndex != mRTPMedias.end(); ++iterSearchByIndex) {
-                      auto &checkMediaLineInfo = (*iterSearchByIndex).second;
-                      if (!checkMediaLineInfo->mLineIndex.hasValue()) continue;
-                      if (checkMediaLineInfo->mLineIndex.value() != mediaLine.mDetails->mInternalIndex.value()) continue;
-
-#define THIS_IS_LEGACY_APPROACH_TO_MATCH_MEDIA_LINES 1
-#define THIS_IS_LEGACY_APPROACH_TO_MATCH_MEDIA_LINES 2
-
-                      ZS_LOG_WARNING(Trace, log("found media line by index") + checkMediaLineInfo->toDebug());
-                      mediaLineInfo = checkMediaLineInfo;
-                      break;
-                    }
-                  }
                 }
               }
 
@@ -2304,23 +2394,6 @@ namespace ortc
                 if (found != mRTPMedias.end()) {
                   mediaLineInfo = (*found).second;
                 }
-              } else {
-                if (mediaLine.mDetails) {
-                  if (mediaLine.mDetails->mInternalIndex.hasValue()) {
-                    for (auto iterSearchByIndex = mRTPMedias.begin(); iterSearchByIndex != mRTPMedias.end(); ++iterSearchByIndex) {
-                      auto &checkMediaLineInfo = (*iterSearchByIndex).second;
-                      if (!checkMediaLineInfo->mLineIndex.hasValue()) continue;
-                      if (checkMediaLineInfo->mLineIndex.value() != mediaLine.mDetails->mInternalIndex.value()) continue;
-
-#define THIS_IS_LEGACY_APPROACH_TO_MATCH_MEDIA_LINES 1
-#define THIS_IS_LEGACY_APPROACH_TO_MATCH_MEDIA_LINES 2
-
-                      ZS_LOG_WARNING(Trace, log("found media line by index") + checkMediaLineInfo->toDebug());
-                      mediaLineInfo = checkMediaLineInfo;
-                      break;
-                    }
-                  }
-                }
               }
 
               if (!mediaLineInfo) {
@@ -2649,6 +2722,7 @@ namespace ortc
             auto mediaLine = make_shared<RTPMediaLineInfo>();
             mediaLine->mMediaType = IMediaStreamTrackTypes::toString(pending->mTrack->kind());
             mediaLine->mBundledTransportID = bundledTransportID;
+            mediaLine->mLineIndex = getNextHighestMLineIndex();
             mediaLine->mIDPreference = UseAdapterHelper::IDPreference_Local;
             mediaLine->mLocalSenderCapabilities = pending->mConfiguration->mCapabilities ? pending->mConfiguration->mCapabilities : IRTPSender::getCapabilities(pending->mTrack->kind());
             mediaLine->mLocalReceiverCapabilities = pending->mConfiguration->mCapabilities ? pending->mConfiguration->mCapabilities : IRTPReceiver::getCapabilities(pending->mTrack->kind());
@@ -3617,6 +3691,47 @@ namespace ortc
 
           mMediaStreams.erase(current);
         }
+      }
+
+      //-----------------------------------------------------------------------
+      Optional<size_t> PeerConnection::getNextHighestMLineIndex() const
+      {
+        Optional<size_t> result;
+
+        if (IPeerConnectionTypes::SignalingMode_JSON == mConfiguration.mSignalingMode) return result;
+
+        for (auto iter = mRTPMedias.begin(); iter != mRTPMedias.end(); ++iter) {
+          auto &mediaLine = (*iter).second;
+
+          if (!result.hasValue()) {
+            result = mediaLine->mLineIndex;
+            continue;
+          }
+
+          if (!mediaLine->mLineIndex.hasValue()) continue;
+
+          if (mediaLine->mLineIndex.value() <= result.value()) continue;
+
+          result = mediaLine->mLineIndex;
+        }
+
+        for (auto iter = mSCTPMedias.begin(); iter != mSCTPMedias.end(); ++iter) {
+          auto &mediaLine = (*iter).second;
+
+          if (!result.hasValue()) {
+            result = mediaLine->mLineIndex;
+            continue;
+          }
+
+          if (!mediaLine->mLineIndex.hasValue()) continue;
+
+          if (mediaLine->mLineIndex.value() <= result.value()) continue;
+
+          result = mediaLine->mLineIndex;
+        }
+
+        if (!result.hasValue()) return static_cast<size_t>(0);
+        return static_cast<size_t>(result.value() + 1);
       }
 
       //-----------------------------------------------------------------------

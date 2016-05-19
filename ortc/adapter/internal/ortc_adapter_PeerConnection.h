@@ -591,6 +591,7 @@ namespace ortc
         void close(PendingAddDataChannel &pending);
 
         void purgeNonReferencedAndEmptyStreams();
+        Optional<size_t> getNextHighestMLineIndex() const;
 
         static MediaStreamListPtr convertToList(const UseMediaStreamMap &useStreams);
         static UseMediaStreamMapPtr convertToMap(const MediaStreamList &mediaStreams);
