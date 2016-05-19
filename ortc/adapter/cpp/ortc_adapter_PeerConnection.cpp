@@ -2309,13 +2309,14 @@ namespace ortc
             // find the transport
             {
               auto found = mTransports.find(transport.mID);
-              if (found == mTransports.end()) {
-                // no matching local transport, create one
-                transportInfo = getTransportFromPool(transport.mID);
-                transportInfo->mNegotiationState = NegotiationState_RemoteOffered;
-              } else {
+              if (found != mTransports.end()) {
                 transportInfo = (*found).second;
               }
+            }
+
+            if (!transportInfo) {
+              ZS_LOG_WARNING(Debug, log("transport was not created") + transportInfo->toDebug());
+              goto reject_transport;
             }
 
             ZS_THROW_INVALID_ASSUMPTION_IF(!transportInfo);
