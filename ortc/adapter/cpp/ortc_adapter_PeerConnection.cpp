@@ -2293,6 +2293,12 @@ namespace ortc
         flushLocalPending(pending->mSessionDescription);
         setState(nextSignalingState);
 
+        if (pending->mPromise) {
+          pending->mPromise->resolve();
+          pending->mPromise.reset();
+        }
+        close(*pending);
+
         onWake(); // redo step
         return false;
       }
