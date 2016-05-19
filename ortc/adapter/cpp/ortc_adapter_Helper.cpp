@@ -1199,6 +1199,7 @@ namespace ortc
     {
       if (!parameters.mRTCP.mCName.hasData()) {
         parameters.mRTCP.mCName = string(zsLib::createUUID());
+        parameters.mRTCP.mCName.replaceAll("-","");
         parameters.mRTCP.mReducedSize = true;
         parameters.mRTCP.mMux = true;
       }
