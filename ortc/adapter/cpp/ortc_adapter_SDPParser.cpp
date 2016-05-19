@@ -3641,10 +3641,11 @@ namespace ortc
         SDPPtr sdp(make_shared<SDP>());
 
         sdp->mOriginal = String(blob);
-        std::unique_ptr<char[]> rawBuffer(new char[sdp->mOriginal.length()]);
+        std::unique_ptr<char[]> rawBuffer(new char[sdp->mOriginal.length()+1]);
         sdp->mRawBuffer = std::move(rawBuffer);
 
-        memcpy(sdp->mRawBuffer.get(), blob, sdp->mOriginal.length());
+        memset(sdp->mRawBuffer.get(), 0, sizeof(char)*(sdp->mOriginal.length()+1));
+        memcpy(sdp->mRawBuffer.get(), blob, sizeof(char)*(sdp->mOriginal.length()));
 
         try {
           parseLines(*sdp);
@@ -3664,9 +3665,9 @@ namespace ortc
 
       //-----------------------------------------------------------------------
       void appendToBundle(
-        ISDPTypes::BundleMap &ioBundle,
-        const ISessionDescription::MediaLine &mediaLine
-        )
+                          ISDPTypes::BundleMap &ioBundle,
+                          const ISessionDescription::MediaLine &mediaLine
+                          )
       {
         if (mediaLine.mID.isEmpty()) return;
         if (mediaLine.mTransportID.isEmpty()) return;
