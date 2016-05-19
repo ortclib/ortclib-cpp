@@ -298,11 +298,11 @@ namespace ortc
     {
       switch (type)
       {
-      case SignalingType_JSON:          return "json";
-      case SignalingType_SDPOffer:      return "offer";
-      case SignalingType_SDPPranswer:   return "pranswer";
-      case SignalingType_SDPAnswer:     return "answer";
-      case SignalingType_SDPRollback:   return "rollback";
+        case SignalingType_JSON:          return "json";
+        case SignalingType_SDPOffer:      return "offer";
+        case SignalingType_SDPPranswer:   return "pranswer";
+        case SignalingType_SDPAnswer:     return "answer";
+        case SignalingType_SDPRollback:   return "rollback";
       }
       ORTC_THROW_NOT_SUPPORTED_ERRROR("unknown signaling type");
     }
