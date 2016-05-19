@@ -1341,6 +1341,7 @@ namespace ortc
         result.append(string(mPayloadType));
         result.append(" ");
         result.append(mEncodingName.hasData() ? mEncodingName : String("unknown"));
+        result.append("/");
         result.append(string(mClockRate));
         if (mEncodingParameters.hasValue()) {
           result.append(" ");
