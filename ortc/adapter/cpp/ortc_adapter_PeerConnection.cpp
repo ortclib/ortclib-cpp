@@ -1527,8 +1527,7 @@ namespace ortc
         }
 
         if (!mCertificatePromise->isSettled()) {
-          setError(UseHTTP::HTTPStatusCode_CertError, "certificate promise is not settled");
-          cancel();
+          ZS_LOG_TRACE(log("certificate promise is not settled yet"));
           return false;
         }
 
