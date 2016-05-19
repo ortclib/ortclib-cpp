@@ -2863,6 +2863,7 @@ namespace ortc
             auto buffer = UseServicesHelper::random(sizeof(description->mDetails->mSessionID));
             memcpy(&(description->mDetails->mSessionID), buffer->BytePtr(), buffer->SizeInBytes());
             description->mDetails->mSessionVersion = 1;
+            description->mDetails->mSessionName = "-";
           }
           description->mDetails->mUnicaseAddress = make_shared<ISessionDescription::ConnectionData::Details>();
           description->mDetails->mUnicaseAddress->mNetType = "IN";
