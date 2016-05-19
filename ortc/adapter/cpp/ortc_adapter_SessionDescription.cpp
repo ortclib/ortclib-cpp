@@ -1520,6 +1520,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     ISessionDescriptionTypes::Description::Description::Details::Details(const Details &op2) :
       mUsername(op2.mUsername),
+      mSessionID(op2.mSessionID),
       mSessionVersion(op2.mSessionVersion),
       mUnicaseAddress(op2.mUnicaseAddress ? make_shared<ConnectionData::Details>(*op2.mUnicaseAddress) : ConnectionData::DetailsPtr()),
       mSessionName(op2.mSessionName),
