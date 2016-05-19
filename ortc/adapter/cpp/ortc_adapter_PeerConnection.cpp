@@ -3827,8 +3827,8 @@ namespace ortc
         {
           IDTLSTransportPtr transport;
           switch (component) {
-            case IICETypes::Component_RTP:  transport = transportInfo.mRTP.mDTLSTransport;
-            case IICETypes::Component_RTCP: transport = transportInfo.mRTCP.mDTLSTransport;
+            case IICETypes::Component_RTP:  transport = transportInfo.mRTP.mDTLSTransport; break;
+            case IICETypes::Component_RTCP: transport = transportInfo.mRTCP.mDTLSTransport; break;
           }
           if (transport) return transport->getLocalParameters();
         }
