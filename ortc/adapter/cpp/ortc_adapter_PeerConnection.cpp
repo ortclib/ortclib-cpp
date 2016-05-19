@@ -2929,6 +2929,8 @@ namespace ortc
           }
           mediaLine->mSenderCapabilities = make_shared<ISessionDescriptionTypes::RTPCapabilities>(*mediaInfo->mLocalSenderCapabilities);
           mediaLine->mReceiverCapabilities = make_shared<ISessionDescriptionTypes::RTPCapabilities>(*mediaInfo->mLocalReceiverCapabilities);
+
+          description->mRTPMediaLines.push_back(mediaLine);
         }
 
         for (auto iter = mSenders.begin(); iter != mSenders.end(); ++iter) {
@@ -2949,6 +2951,7 @@ namespace ortc
             auto &stream = (*iterStream).second;
             sender->mMediaStreamIDs.insert(stream->id());
           }
+          description->mRTPSenders.push_back(sender);
         }
 
         auto sessionDescription = ISessionDescription::create(type, *description);
