@@ -1269,16 +1269,8 @@ namespace ortc
             case IRTPTypes::CodecKind_Data:                 break;
 
             case IRTPTypes::CodecKind_RTX: {
-              auto random = UseServicesHelper::random(sizeof(IRTPTypes::SSRCType));
-              IRTPTypes::SSRCType tempSSRC{};
-              memcpy(&tempSSRC, random->BytePtr(), random->SizeInBytes());
-
-              {
-                encoding.mRTX = IRTPTypes::RTXParameters();
-                IRTPTypes::SSRCType tempSSRC{};
-                memcpy(&tempSSRC, random->BytePtr(), random->SizeInBytes());
-                encoding.mRTX.value().mSSRC = getRandomSSRC();
-              }
+              encoding.mRTX = IRTPTypes::RTXParameters();
+              encoding.mRTX.value().mSSRC = getRandomSSRC();
               break;
             }
             case IRTPTypes::CodecKind_FEC: {
