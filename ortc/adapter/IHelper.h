@@ -75,6 +75,7 @@ namespace ortc
       ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::HeaderExtension, RTPHeaderExtension);
       ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::HeaderExtensionParameters, RTPHeaderExtensionParameters);
       ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::HeaderExtensionsList, RTPHeaderExtensionsList);
+      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::HeaderExtensionParametersList, RTPHeaderExtensionParametersList);
 
       ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::FECMechanism, RTPFECMechanism);
       ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::FECMechanismList, RTPFECMechanismList);
@@ -185,6 +186,11 @@ namespace ortc
                                                         const RTPCodecParametersList &codecParameters,
                                                         const RTPCodecCapabilitiesList &codecCapabilities
                                                         );
+
+      static RTPHeaderExtensionParametersListPtr filterParameters(
+                                                                  const RTPHeaderExtensionParametersList &headerParameters,
+                                                                  const RTPHeaderExtensionsList &headerCapabilities
+                                                                  );
 
       //-----------------------------------------------------------------------
       #pragma mark

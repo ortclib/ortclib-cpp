@@ -973,6 +973,9 @@ namespace ortc
     {
       auto result = make_shared<RTPParameters>(parameters);
 
+      result->mCodecs = *filterParameters(parameters.mCodecs, capabilities.mCodecs);
+      result->mHeaderExtensions = *filterParameters(parameters.mHeaderExtensions, capabilities.mHeaderExtensions);
+
       return result;
     }
 
@@ -1034,6 +1037,35 @@ namespace ortc
 
       return result;
     }
+
+    //-------------------------------------------------------------------------
+    IHelper::RTPHeaderExtensionParametersListPtr IHelper::filterParameters(
+                                                                           const RTPHeaderExtensionParametersList &headerParameters,
+                                                                           const RTPHeaderExtensionsList &headerCapabilities
+                                                                           )
+    {
+      auto result = make_shared<RTPHeaderExtensionParametersList>();
+
+      for (auto iterParams = headerParameters.begin(); iterParams != headerParameters.end(); ++iterParams) {
+        auto &headerParam = (*iterParams);
+
+        bool found = false;
+
+        for (auto iterCaps = headerCapabilities.begin(); iterCaps != headerCapabilities.end(); ++iterCaps) {
+          auto &headerCap = (*iterCaps);
+
+          if (0 != headerParam.mURI.compareNoCase(headerCap.mURI)) continue;
+          found = true;
+          break;
+        }
+        if (!found) continue;
+
+        result->push_back(headerParam);
+      }
+
+      return result;
+    }
+
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
