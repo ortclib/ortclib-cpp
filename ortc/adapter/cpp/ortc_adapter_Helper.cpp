@@ -601,6 +601,7 @@ namespace ortc
       if (primaryCodec.mNumChannels.hasValue()) {
         if (secondaryCodec.mNumChannels.hasValue()) {
           if (primaryCodec.mNumChannels.value() != secondaryCodec.mNumChannels.value()) return false;
+        } else {
           outExact = false;
         }
       } else {
@@ -634,6 +635,7 @@ namespace ortc
         if (primaryCodec.mNumChannels.hasValue()) {
           if (secondaryCodec.mNumChannels.hasValue()) {
             if (primaryCodec.mNumChannels.value() != secondaryCodec.mNumChannels.value()) goto not_a_match;
+          } else {
             outExact = false;
           }
         } else {
