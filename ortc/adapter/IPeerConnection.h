@@ -145,8 +145,9 @@ namespace ortc
         PeerConnectionState_Connected,
         PeerConnectionState_Disconnected,
         PeerConnectionState_Failed,
+        PeerConnectionState_Closed,
 
-        PeerConnectionState_Last = PeerConnectionState_Failed,
+        PeerConnectionState_Last = PeerConnectionState_Closed,
       };
 
       static const char *toString(PeerConnectionStates state);

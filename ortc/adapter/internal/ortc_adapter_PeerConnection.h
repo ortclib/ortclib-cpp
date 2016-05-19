@@ -556,6 +556,8 @@ namespace ortc
         bool stepProcessPendingRemoteCandidates();
         bool stepAddTracks();
         bool stepFinalizeSenders();
+        bool stepFixGathererState();
+        bool stepFixTransportState();
 
         void setState(InternalStates state);
         void setState(SignalingStates state);
@@ -583,6 +585,10 @@ namespace ortc
         void close(SCTPMediaLineInfo &mediaLineInfo);
         void close(SenderInfo &senderInfo);
         void close(ReceiverInfo &receiverInfo);
+
+        void close(PendingMethod &pending);
+        void close(PendingAddTrack &pending);
+        void close(PendingAddDataChannel &pending);
 
         void purgeNonReferencedAndEmptyStreams();
 
@@ -642,7 +648,6 @@ namespace ortc
         ReceiverInfoMap mReceivers;
 
         UseMediaStreamMap mMediaStreams;
-
         CandidateList mPendingRemoteCandidates;
 
         TransportList mTransportPool;

@@ -1256,6 +1256,8 @@ namespace ortc
       //-----------------------------------------------------------------------
       void PeerConnection::notifyNegotiationNeeded()
       {
+        if (isStopped()) return;
+
         if (mNegotiationNeeded) return;
         mNegotiationNeeded = true;
         mSubscriptions.delegate()->onPeerConnectionNegotiationNeeded(mThisWeak.lock());
@@ -1271,9 +1273,94 @@ namespace ortc
 
         setState(InternalState_ShuttingDown);
 
+        setState(IICEGathererTypes::State_Complete);
+        setState(IICETransportTypes::State_Closed);
+        setState(IPeerConnectionTypes::PeerConnectionState_Closed);
+
         if (!mGracefulShutdownReference) mGracefulShutdownReference = mThisWeak.lock();
 
+        for (auto iter = mPendingMethods.begin(); iter != mPendingMethods.end(); ++iter) {
+          auto &pending = (*iter);
+
+          close(*pending);
+        }
+
+        for (auto iter = mPendingAddTracks.begin(); iter != mPendingAddTracks.end(); ++iter) {
+          auto &pending = (*iter);
+
+          close(*pending);
+        }
+
+        for (auto iter = mPendingAddDataChannels.begin(); iter != mPendingAddDataChannels.end(); ++iter) {
+          auto &pending = (*iter);
+
+          close(*pending);
+        }
+
+        for (auto iter = mReceivers.begin(); iter != mReceivers.end(); ++iter) {
+          auto &receiverInfo = (*iter).second;
+
+          close(*receiverInfo);
+        }
+
+        for (auto iter = mSenders.begin(); iter != mSenders.end(); ++iter) {
+          auto &senderInfo = (*iter).second;
+
+          close(*senderInfo);
+        }
+
+        for (auto iter = mSCTPMedias.begin(); iter != mSCTPMedias.end(); ++iter) {
+          auto &mediaInfo = (*iter).second;
+
+          close(*mediaInfo);
+        }
+
+        for (auto iter = mRTPMedias.begin(); iter != mRTPMedias.end(); ++iter) {
+          auto &mediaInfo = (*iter).second;
+
+          close(*mediaInfo);
+        }
+
+        for (auto iter = mTransports.begin(); iter != mTransports.end(); ++iter) {
+          auto &transportInfo = (*iter).second;
+
+          close(*transportInfo);
+        }
+
+        for (auto iter = mTransportPool.begin(); iter != mTransportPool.end(); ++iter) {
+          auto &transportInfo = (*iter);
+
+          close(*transportInfo);
+        }
+
+        mLocalDescription.reset();
+        mPendingLocalDescription.reset();
+
+        mRemoteDescription.reset();
+        mPendingRemoteDescription.reset();
+
+        mPendingMethods.clear();
+        mPendingAddTracks.clear();
+        mPendingRemoveTracks.clear();
+        mPendingAddDataChannels.clear();
+
+        mTransports.clear();
+        mRTPMedias.clear();
+        mSCTPMedias.clear();
+        mSenders.clear();
+        mReceivers.clear();
+
+        mMediaStreams.clear();
+        mPendingRemoteCandidates.clear();
+
+        mTransportPool.clear();
+
+        mExistingIDs.clear();
+
+        mCertificatePromise.reset();
+
         setState(InternalState_Shutdown);
+
 
 #define TODO_CANCEL 1
 #define TODO_CANCEL 2
@@ -1322,9 +1409,9 @@ namespace ortc
         if (!stepAddTracks()) return;
         if (!stepCreateOfferOrAnswer()) return;
         if (!stepProcessPendingRemoteCandidates()) return;
-#define TODO_STEP 1
-#define TODO_STEP 2
         if (!stepFinalizeSenders()) return;
+        if (!stepFixGathererState()) return;
+        if (!stepFixTransportState()) return;
 
         goto ready;
 
@@ -1478,6 +1565,12 @@ namespace ortc
         flushRemotePending(pending->mSessionDescription);
         setState(nextSignalingState);
 
+        if (pending->mPromise) {
+          pending->mPromise->resolve();
+          pending->mPromise.reset();
+        }
+        close(*pending);
+
         onWake(); // redo step
         return false;
       }
@@ -1566,67 +1659,77 @@ namespace ortc
               case NegotiationState_Rejected:         break;  // will not happen
             }
 
-            // scope: setup ICE
-            {
-              transportInfo->mRTP.mTransport->start(transportInfo->mRTP.mGatherer, *(transport.mRTP->mICEParameters), options);
-              if (hasRTCPICE) {
-                transportInfo->mRTCP.mTransport->start(transportInfo->mRTCP.mGatherer, *useRTCPICEParams, options);
-              } else {
-                if (transportInfo->mRTCP.mTransport) {
-                  transportInfo->mRTCP.mTransport->stop();
-                  transportInfo->mRTCP.mTransport.reset();
-                }
-                if (transportInfo->mRTCP.mGatherer) {
-                  transportInfo->mRTCP.mGatherer->close();
-                  transportInfo->mRTCP.mGatherer.reset();
+            try {
+              // scope: setup ICE
+              {
+                transportInfo->mRTP.mTransport->start(transportInfo->mRTP.mGatherer, *(transport.mRTP->mICEParameters), options);
+                if (hasRTCPICE) {
+                  transportInfo->mRTCP.mTransport->start(transportInfo->mRTCP.mGatherer, *useRTCPICEParams, options);
+                } else {
+                  if (transportInfo->mRTCP.mTransport) {
+                    transportInfo->mRTCP.mTransport->stop();
+                    transportInfo->mRTCP.mTransport.reset();
+                  }
+                  if (transportInfo->mRTCP.mGatherer) {
+                    transportInfo->mRTCP.mGatherer->close();
+                    transportInfo->mRTCP.mGatherer.reset();
+                  }
                 }
               }
+
+              // scope: setup DTLS
+              {
+                if (hasRTPDTLS) {
+                  if (!(transportInfo->mRTP.mDTLSTransport)) {
+                    transportInfo->mRTP.mDTLSTransport = IDTLSTransport::create(mThisWeak.lock(), transportInfo->mRTP.mTransport, mConfiguration.mCertificates);
+                  }
+                  transportInfo->mRTP.mDTLSTransport->start(*(transport.mRTP->mDTLSParameters));
+                } else {
+                  if (transportInfo->mRTP.mDTLSTransport) {
+                    transportInfo->mRTP.mDTLSTransport->stop();
+                    transportInfo->mRTP.mDTLSTransport.reset();
+                  }
+                }
+                if (hasRTCPDTLS) {
+                  if (!(transportInfo->mRTCP.mDTLSTransport)) {
+                    transportInfo->mRTCP.mDTLSTransport = IDTLSTransport::create(mThisWeak.lock(), transportInfo->mRTCP.mTransport, mConfiguration.mCertificates);
+                  }
+                  transportInfo->mRTCP.mDTLSTransport->start(*useRTCPDTLSParams);
+                } else {
+                  if (transportInfo->mRTCP.mDTLSTransport) {
+                    transportInfo->mRTCP.mDTLSTransport->stop();
+                    transportInfo->mRTCP.mDTLSTransport.reset();
+                  }
+                }
+              }
+
+              // scope: setup SRTP/SDES
+              {
+                if (hasRTPSRTP) {
+                  if (!(transportInfo->mRTP.mSRTPSDESTransport)) {
+                    ZS_THROW_INVALID_ASSUMPTION_IF(!transportInfo->mRTP.mSRTPSDESParameters);
+                    ZS_THROW_INVALID_ASSUMPTION_IF(transportInfo->mRTP.mSRTPSDESParameters->mCryptoParams.size() < 1);
+
+                    auto &encodeCryptoParams = *(transportInfo->mRTP.mSRTPSDESParameters->mCryptoParams.begin());
+                    auto &decodeCryptoParams = *(transport.mRTP->mSRTPSDESParameters->mCryptoParams.begin());
+                    transportInfo->mRTP.mSRTPSDESTransport = ISRTPSDESTransport::create(mThisWeak.lock(), transportInfo->mRTP.mTransport, encodeCryptoParams, decodeCryptoParams);
+                  }
+                } else {
+                  if (transportInfo->mRTP.mSRTPSDESTransport) {
+                    transportInfo->mRTP.mSRTPSDESTransport->stop();
+                    transportInfo->mRTP.mSRTPSDESTransport.reset();
+                  }
+                }
+              }
+
+            } catch (const InvalidParameters &) {
+              ZS_LOG_WARNING(Debug, log("invalid parameters when calling sender.send()"));
+              goto reject_transport;
+            } catch (const InvalidStateError &) {
+              ZS_LOG_WARNING(Debug, log("invalid state when calling sender.send()"));
+              goto reject_transport;
             }
 
-            // scope: setup DTLS
-            {
-              if (hasRTPDTLS) {
-                if (!(transportInfo->mRTP.mDTLSTransport)) {
-                  transportInfo->mRTP.mDTLSTransport = IDTLSTransport::create(mThisWeak.lock(), transportInfo->mRTP.mTransport, mConfiguration.mCertificates);
-                }
-                transportInfo->mRTP.mDTLSTransport->start(*(transport.mRTP->mDTLSParameters));
-              } else {
-                if (transportInfo->mRTP.mDTLSTransport) {
-                  transportInfo->mRTP.mDTLSTransport->stop();
-                  transportInfo->mRTP.mDTLSTransport.reset();
-                }
-              }
-              if (hasRTCPDTLS) {
-                if (!(transportInfo->mRTCP.mDTLSTransport)) {
-                  transportInfo->mRTCP.mDTLSTransport = IDTLSTransport::create(mThisWeak.lock(), transportInfo->mRTCP.mTransport, mConfiguration.mCertificates);
-                }
-                transportInfo->mRTCP.mDTLSTransport->start(*useRTCPDTLSParams);
-              } else {
-                if (transportInfo->mRTCP.mDTLSTransport) {
-                  transportInfo->mRTCP.mDTLSTransport->stop();
-                  transportInfo->mRTCP.mDTLSTransport.reset();
-                }
-              }
-            }
-
-            // scope: setup SRTP/SDES
-            {
-              if (hasRTPSRTP) {
-                if (!(transportInfo->mRTP.mSRTPSDESTransport)) {
-                  ZS_THROW_INVALID_ASSUMPTION_IF(!transportInfo->mRTP.mSRTPSDESParameters);
-                  ZS_THROW_INVALID_ASSUMPTION_IF(transportInfo->mRTP.mSRTPSDESParameters->mCryptoParams.size() < 1);
-
-                  auto &encodeCryptoParams = *(transportInfo->mRTP.mSRTPSDESParameters->mCryptoParams.begin());
-                  auto &decodeCryptoParams = *(transport.mRTP->mSRTPSDESParameters->mCryptoParams.begin());
-                  transportInfo->mRTP.mSRTPSDESTransport = ISRTPSDESTransport::create(mThisWeak.lock(), transportInfo->mRTP.mTransport, encodeCryptoParams, decodeCryptoParams);
-                }
-              } else {
-                if (transportInfo->mRTP.mSRTPSDESTransport) {
-                  transportInfo->mRTP.mSRTPSDESTransport->stop();
-                  transportInfo->mRTP.mSRTPSDESTransport.reset();
-                }
-              }
-            }
             goto accept_transport;
           }
 
@@ -1894,7 +1997,16 @@ namespace ortc
               eventReceiver = true;
             }
 
-            receiverInfo->mReceiver->receive(*filteredParams);
+            try {
+              receiverInfo->mReceiver->receive(*filteredParams);
+            } catch (const InvalidParameters &) {
+              ZS_LOG_WARNING(Debug, log("invalid parameters when calling receiver.receive()"));
+              goto reject_sender;
+            } catch (const InvalidStateError &) {
+              ZS_LOG_WARNING(Debug, log("invalid state when calling receiver.receive()"));
+              goto reject_sender;
+            }
+
 
             auto existingSet = convertToSet(receiverInfo->mMediaStreams);
 
@@ -2359,7 +2471,19 @@ namespace ortc
               goto reject_sender;
             }
 
-            senderInfo->mSender->send(*filteredParams);
+            try {
+              senderInfo->mSender->send(*filteredParams);
+            } catch (const InvalidParameters &) {
+              ZS_LOG_WARNING(Debug, log("invalid parameters when calling sender.send()"));
+              goto reject_sender;
+            } catch (const InvalidStateError &) {
+              ZS_LOG_WARNING(Debug, log("invalid state when calling sender.send()"));
+              goto reject_sender;
+            }
+            if (senderInfo->mPromise) {
+              senderInfo->mPromise->resolve();
+              senderInfo->mPromise.reset();
+            }
             goto accept_sender;
           }
 
@@ -2587,6 +2711,7 @@ namespace ortc
             senderInfo->mTrack = pending->mTrack;
             senderInfo->mMediaStreams = pending->mMediaStreams;
             senderInfo->mPromise = pending->mPromise;
+            pending->mPromise.reset();
 
             IRTPTypes::CapabilitiesPtr useCaps;
 
@@ -2607,6 +2732,7 @@ namespace ortc
             mSenders[senderInfo->mID] = senderInfo;
 
             notifyNegotiationNeeded();  // need to signal this to the remote party before it will be started
+            close(*pending);
             continue;
           }
         }
@@ -2750,8 +2876,12 @@ namespace ortc
         auto sessionDescription = ISessionDescription::create(type, *description);
 
         pending->mPromise->resolve(sessionDescription);
+        pending->mPromise.reset();
 
-        return true;
+        close(*pending);
+
+        onWake();
+        return false;
       }
 
       //-----------------------------------------------------------------------
@@ -2850,18 +2980,20 @@ namespace ortc
             ZS_THROW_INVALID_ASSUMPTION_IF(!mediaLine->mRemoteReceiverCapabilities);
 
             auto capsUnion = UseAdapterHelper::createUnion(*mediaLine->mLocalSenderCapabilities, *mediaLine->mRemoteReceiverCapabilities, mediaLine->mIDPreference);
-            auto parameters = senderInfo->mConfiguration->mParameters ? senderInfo->mConfiguration->mParameters : UseAdapterHelper::capabilitiesToParameters(*capsUnion);
-            if (!UseAdapterHelper::isCompatible(*capsUnion, *parameters)) {
+            senderInfo->mParameters = senderInfo->mConfiguration->mParameters ? senderInfo->mConfiguration->mParameters : UseAdapterHelper::capabilitiesToParameters(*capsUnion);
+            if (!UseAdapterHelper::isCompatible(*capsUnion, *(senderInfo->mParameters))) {
               reason = "sender is not compatible with remote party (thus removing)";
-              ZS_LOG_WARNING(Debug, log(reason) + capsUnion->toDebug() + parameters->toDebug());
+              ZS_LOG_WARNING(Debug, log(reason) + capsUnion->toDebug() + senderInfo->mParameters->toDebug());
               goto remove_sender;
             }
 
-            if (!UseAdapterHelper::hasSupportedMediaCodec(*parameters)) {
+            if (!UseAdapterHelper::hasSupportedMediaCodec(*(senderInfo->mParameters))) {
               reason = "sender is not compatible with remote party (thus removing)";
-              ZS_LOG_WARNING(Debug, log(reason) + capsUnion->toDebug() + parameters->toDebug());
+              ZS_LOG_WARNING(Debug, log(reason) + capsUnion->toDebug() + senderInfo->mParameters->toDebug());
               goto remove_sender;
             }
+
+            UseAdapterHelper::fillParameters(*(senderInfo->mParameters), *capsUnion);
 
             if (transport->mRTP.mDTLSTransport) {
               senderInfo->mSender = IRTPSender::create(mThisWeak.lock(), senderInfo->mTrack, transport->mRTP.mDTLSTransport, transport->mRTCP.mDTLSTransport);
@@ -2875,10 +3007,10 @@ namespace ortc
               goto remove_sender;
             }
 
-            ZS_LOG_DEBUG(log("sender created") + ZS_PARAM("sender id", senderInfo->mSender->getID()) + parameters->toDebug());
+            ZS_LOG_DEBUG(log("sender created") + ZS_PARAM("sender id", senderInfo->mSender->getID()) + senderInfo->mParameters->toDebug());
 
             try {
-              senderInfo->mSender->send(*parameters);
+              senderInfo->mSender->send(*(senderInfo->mParameters));
             } catch (const InvalidParameters &) {
               reason = "sender.send() caused InvalidParameters exception";
               goto remove_sender;
@@ -2887,16 +3019,262 @@ namespace ortc
               goto remove_sender;
             }
             senderInfo->mPromise->resolve(senderInfo->mSender);
+            senderInfo->mPromise.reset();
           }
 
         remove_sender:
           {
             ZS_LOG_WARNING(Detail, log(reason) + senderInfo->toDebug());
             senderInfo->mPromise->reject(ErrorAny::create(error, reason));
+            close(*senderInfo);
             unregisterID(senderInfo->mID);
             mSenders.erase(current);
             // ensure unlinked transports / media lines get removed
             wake();
+          }
+        }
+
+        return true;
+      }
+
+      //-----------------------------------------------------------------------
+      static void figureOutState(
+                                 Optional<IICEGathererTypes::States> &ioState,
+                                 IICEGathererPtr gatherer
+                                 )
+      {
+        if (!gatherer) return;
+
+        auto state = gatherer->state();
+        if (!ioState.hasValue()) {
+          ioState = state;
+          return;
+        }
+
+        switch (state) {
+          case IICEGathererTypes::State_New:        break;
+          case IICEGathererTypes::State_Gathering:  ioState = state; break;
+          case IICEGathererTypes::State_Complete: 
+          case IICEGathererTypes::State_Closed:     {
+            switch (ioState.value()) {
+              case IICEGathererTypes::State_Gathering:  return;
+              case IICEGathererTypes::State_Complete:   
+              case IICEGathererTypes::State_Closed:     {
+                ioState = IICEGathererTypes::State_Complete;
+                break;
+              }
+            }
+          }
+        }
+      }
+
+      //-----------------------------------------------------------------------
+      bool PeerConnection::stepFixGathererState()
+      {
+        ZS_LOG_TRACE("step - fix gatherer state");
+
+        Optional<IICEGathererTypes::States> state;
+
+        for (auto iter = mTransports.begin(); iter != mTransports.end(); ++iter) {
+          auto &transportInfo = (*iter).second;
+
+          figureOutState(state, transportInfo->mRTP.mGatherer);
+          figureOutState(state, transportInfo->mRTCP.mGatherer);
+        }
+
+        if (!state.hasValue()) {
+          ZS_LOG_TRACE(log("state has not changed"));
+          return true;
+        }
+
+        ZS_LOG_TRACE(log("ice gatherer state is now") + ZS_PARAM("state", IICEGathererTypes::toString(state.value())));
+        setState(state.value());
+
+        return true;
+      }
+
+      //-----------------------------------------------------------------------
+      static void figureOutState(
+                                 size_t *stateArray,
+                                 IICETransportPtr transport
+                                 )
+      {
+        if (!transport) return;
+
+        auto state = transport->state();
+        ++(stateArray[state]);
+      }
+
+      //-----------------------------------------------------------------------
+      static void figureOutState(
+                                 size_t *stateArray,
+                                 IDTLSTransportPtr transport
+                                 )
+      {
+        if (!transport) return;
+
+        auto state = transport->state();
+        ++(stateArray[state]);
+      }
+
+      //-----------------------------------------------------------------------
+      static void figureOutState(
+                                 size_t *stateArray,
+                                 ISRTPSDESTransportPtr transport
+                                 )
+      {
+        if (!transport) return;
+
+        auto state = IDTLSTransportTypes::State_Connected;
+        ++(stateArray[state]);
+      }
+
+      //-----------------------------------------------------------------------
+      bool PeerConnection::stepFixTransportState()
+      {
+        ZS_LOG_TRACE("step - fix gatherer state");
+
+        size_t iceTransportStateCount[IICETransportTypes::State_Last + 1] = {};
+        size_t dtlsTranportStateCount[IDTLSTransportTypes::State_Last + 1] = {};
+
+        for (auto iter = mTransports.begin(); iter != mTransports.end(); ++iter) {
+          auto &transportInfo = (*iter).second;
+
+          figureOutState(iceTransportStateCount, transportInfo->mRTP.mTransport);
+          figureOutState(iceTransportStateCount, transportInfo->mRTCP.mTransport);
+          figureOutState(dtlsTranportStateCount, transportInfo->mRTP.mDTLSTransport);
+          figureOutState(dtlsTranportStateCount, transportInfo->mRTCP.mDTLSTransport);
+          figureOutState(dtlsTranportStateCount, transportInfo->mRTP.mSRTPSDESTransport);
+        }
+
+        // scope: figure out ice transport state
+        {
+          Optional<IICETransportTypes::States> iceTransportState;
+
+          if ((iceTransportStateCount[IICETransportTypes::State_New] > 0) &&
+              (0 == iceTransportStateCount[IICETransportTypes::State_Checking]) &&
+              (0 == iceTransportStateCount[IICETransportTypes::State_Failed]) &&
+              (0 == iceTransportStateCount[IICETransportTypes::State_Disconnected])) {
+            iceTransportState = IICETransportTypes::State_New;
+          }
+
+          if ((iceTransportStateCount[IICETransportTypes::State_Checking] > 0) &&
+              (0 == iceTransportStateCount[IICETransportTypes::State_Disconnected]) &&
+              (0 == iceTransportStateCount[IICETransportTypes::State_Failed]) &&
+              (0 == iceTransportStateCount[IICETransportTypes::State_Disconnected])) {
+            iceTransportState = IICETransportTypes::State_Checking;
+          }
+
+          if ((0 == iceTransportStateCount[IICETransportTypes::State_New] > 0) &&
+              (0 == iceTransportStateCount[IICETransportTypes::State_Checking]) &&
+              (iceTransportStateCount[IICETransportTypes::State_Connected] > 0) &&
+              (0 == iceTransportStateCount[IICETransportTypes::State_Disconnected]) &&
+              (0 == iceTransportStateCount[IICETransportTypes::State_Failed])) {
+            iceTransportState = IICETransportTypes::State_Connected;
+          }
+
+          if ((0 == iceTransportStateCount[IICETransportTypes::State_New]) &&
+              (0 == iceTransportStateCount[IICETransportTypes::State_Checking]) &&
+              (0 == iceTransportStateCount[IICETransportTypes::State_Connected]) &&
+              (iceTransportStateCount[IICETransportTypes::State_Completed] > 0) &&
+              (0 == iceTransportStateCount[IICETransportTypes::State_Disconnected]) &&
+              (0 == iceTransportStateCount[IICETransportTypes::State_Failed])) {
+            iceTransportState = IICETransportTypes::State_Completed;
+          }
+
+          if (iceTransportStateCount[IICETransportTypes::State_Failed] > 0) {
+            iceTransportState = IICETransportTypes::State_Failed;
+          }
+
+          if ((iceTransportStateCount[IICETransportTypes::State_Disconnected] > 0) &&
+              (0 == iceTransportStateCount[IICETransportTypes::State_Failed])) {
+            iceTransportState = IICETransportTypes::State_Disconnected;
+          }
+
+          if ((0 == iceTransportStateCount[IICETransportTypes::State_New]) &&
+              (0 == iceTransportStateCount[IICETransportTypes::State_Checking]) &&
+              (0 == iceTransportStateCount[IICETransportTypes::State_Connected]) &&
+              (0 == iceTransportStateCount[IICETransportTypes::State_Completed]) &&
+              (0 == iceTransportStateCount[IICETransportTypes::State_Disconnected]) &&
+              (0 == iceTransportStateCount[IICETransportTypes::State_Failed]) &&
+              (iceTransportStateCount[IICETransportTypes::State_Closed] > 0)) {
+            iceTransportState = IICETransportTypes::State_Closed;
+          }
+
+          if (iceTransportState.hasValue()) {
+            ZS_LOG_TRACE(log("ice connection state is now") + ZS_PARAM("state", IICETransportTypes::toString(iceTransportState.value())));
+            setState(iceTransportState.value());
+          }
+        }
+
+        // scope: figure out peer connection state
+        {
+          Optional<IPeerConnectionTypes::PeerConnectionStates> peerConnectionState;
+
+          if (((iceTransportStateCount[IICETransportTypes::State_New] > 0) ||
+               (dtlsTranportStateCount[IDTLSTransportTypes::State_New] > 0)) &&
+              (0 == iceTransportStateCount[IICETransportTypes::State_Checking]) &&
+              (0 == dtlsTranportStateCount[IDTLSTransportTypes::State_Connecting]) &&
+              (0 == iceTransportStateCount[IICETransportTypes::State_Connected]) &&
+              (0 == dtlsTranportStateCount[IDTLSTransportTypes::State_Connected]) &&
+              (0 == iceTransportStateCount[IICETransportTypes::State_Completed]) &&
+              (0 == iceTransportStateCount[IICETransportTypes::State_Failed]) &&
+              (0 == dtlsTranportStateCount[IDTLSTransportTypes::State_Failed]) &&
+              (0 == iceTransportStateCount[IICETransportTypes::State_Disconnected])) {
+            peerConnectionState = IPeerConnectionTypes::PeerConnectionState_New;
+          }
+
+          if ((0 == iceTransportStateCount[IICETransportTypes::State_New]) &&
+              (0 == dtlsTranportStateCount[IDTLSTransportTypes::State_New]) &&
+              (0 == iceTransportStateCount[IICETransportTypes::State_Checking]) &&
+              (0 == dtlsTranportStateCount[IDTLSTransportTypes::State_Connecting]) &&
+              (0 == iceTransportStateCount[IICETransportTypes::State_Connected]) &&
+              (0 == dtlsTranportStateCount[IDTLSTransportTypes::State_Connected]) &&
+              (0 == iceTransportStateCount[IICETransportTypes::State_Completed]) &&
+              (0 == iceTransportStateCount[IICETransportTypes::State_Failed]) &&
+              (0 == dtlsTranportStateCount[IDTLSTransportTypes::State_Failed]) &&
+              (0 == iceTransportStateCount[IICETransportTypes::State_Disconnected]) &&
+              ((0 > iceTransportStateCount[IICETransportTypes::State_Closed]) ||
+               (0 > dtlsTranportStateCount[IDTLSTransportTypes::State_Closed]))) {
+            peerConnectionState = IPeerConnectionTypes::PeerConnectionState_New;
+          }
+
+          if (((iceTransportStateCount[IICETransportTypes::State_Checking] > 0) ||
+               (dtlsTranportStateCount[IDTLSTransportTypes::State_Connecting] > 0)) &&
+              (0 == iceTransportStateCount[IICETransportTypes::State_Failed]) &&
+              (0 == dtlsTranportStateCount[IDTLSTransportTypes::State_Failed])) {
+            peerConnectionState = IPeerConnectionTypes::PeerConnectionState_Connecting;
+          }
+
+          if ((0 == iceTransportStateCount[IICETransportTypes::State_New]) &&
+              (0 == dtlsTranportStateCount[IDTLSTransportTypes::State_New]) &&
+              (0 == iceTransportStateCount[IICETransportTypes::State_Checking]) &&
+              (0 == dtlsTranportStateCount[IDTLSTransportTypes::State_Connecting]) &&
+              ((iceTransportStateCount[IICETransportTypes::State_Connected] > 0) ||
+               (dtlsTranportStateCount[IDTLSTransportTypes::State_Connected] > 0) ||
+               (iceTransportStateCount[IICETransportTypes::State_Completed] > 0)) &&
+              (0 == iceTransportStateCount[IICETransportTypes::State_Failed]) &&
+              (0 == dtlsTranportStateCount[IDTLSTransportTypes::State_Failed]) &&
+              (0 == iceTransportStateCount[IICETransportTypes::State_Disconnected])) {
+            peerConnectionState = IPeerConnectionTypes::PeerConnectionState_Connected;
+          }
+
+          if ((0 == iceTransportStateCount[IICETransportTypes::State_Checking]) &&
+              (0 == dtlsTranportStateCount[IDTLSTransportTypes::State_Connecting]) &&
+              (0 == iceTransportStateCount[IICETransportTypes::State_Failed]) &&
+              (0 == dtlsTranportStateCount[IDTLSTransportTypes::State_Failed]) &&
+              (iceTransportStateCount[IICETransportTypes::State_Disconnected] > 0)) {
+            peerConnectionState = IPeerConnectionTypes::PeerConnectionState_Disconnected;
+          }
+
+          if ((iceTransportStateCount[IICETransportTypes::State_Failed] > 0) ||
+              (dtlsTranportStateCount[IDTLSTransportTypes::State_Failed] > 0)) {
+            peerConnectionState = IPeerConnectionTypes::PeerConnectionState_Failed;
+          }
+
+          if (peerConnectionState.hasValue()) {
+            ZS_LOG_TRACE(log("peer connection state is now") + ZS_PARAM("state", IPeerConnectionTypes::toString(peerConnectionState.value())));
+            setState(peerConnectionState.value());
           }
         }
 
@@ -3165,6 +3543,10 @@ namespace ortc
       //-----------------------------------------------------------------------
       void PeerConnection::close(SenderInfo &senderInfo)
       {
+        if (senderInfo.mPromise) {
+          senderInfo.mPromise->reject(ErrorAny::create(UseHTTP::HTTPStatusCode_Gone, "connection is closing"));
+          senderInfo.mPromise.reset();
+        }
         if (senderInfo.mSender) {
           senderInfo.mSender->stop();
           senderInfo.mSender.reset();
@@ -3180,11 +3562,45 @@ namespace ortc
             auto &useStream = (*iter).second;
             useStream->notifyRemoveTrack(receiverInfo.mReceiver->track());
           }
+
+          auto evt = make_shared<MediaStreamTrackEvent>();
+          evt->mReceiver = receiverInfo.mReceiver;
+          evt->mTrack = receiverInfo.mReceiver->track();
+
+          mSubscriptions.delegate()->onPeerConnectionTrackGone(mThisWeak.lock(), evt);
+
           receiverInfo.mReceiver->stop();
           receiverInfo.mReceiver.reset();
         }
         receiverInfo.mNegotiationState = NegotiationState_Rejected;
         purgeNonReferencedAndEmptyStreams();
+      }
+
+      //-----------------------------------------------------------------------
+      void PeerConnection::close(PendingMethod &pending)
+      {
+        if (pending.mPromise) {
+          pending.mPromise->reject(ErrorAny::create(UseHTTP::HTTPStatusCode_Gone, "connection is closing"));
+          pending.mPromise.reset();
+        }
+      }
+
+      //-----------------------------------------------------------------------
+      void PeerConnection::close(PendingAddTrack &pending)
+      {
+        if (pending.mPromise) {
+          pending.mPromise->reject(ErrorAny::create(UseHTTP::HTTPStatusCode_Gone, "connection is closing"));
+          pending.mPromise.reset();
+        }
+      }
+
+      //-----------------------------------------------------------------------
+      void PeerConnection::close(PendingAddDataChannel &pending)
+      {
+        if (pending.mPromise) {
+          pending.mPromise->reject(ErrorAny::create(UseHTTP::HTTPStatusCode_Gone, "connection is closing"));
+          pending.mPromise.reset();
+        }
       }
 
       //-----------------------------------------------------------------------
@@ -3409,6 +3825,7 @@ namespace ortc
         case IPeerConnectionTypes::PeerConnectionState_Connected:     return "connected";
         case IPeerConnectionTypes::PeerConnectionState_Disconnected:  return "disconnected";
         case IPeerConnectionTypes::PeerConnectionState_Failed:        return "failed";
+        case IPeerConnectionTypes::PeerConnectionState_Closed:        return "closed";
       }
       return "unknown";
     }
