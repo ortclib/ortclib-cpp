@@ -170,6 +170,7 @@ namespace ortc
 
           Details mRTP;
           Details mRTCP;
+          CertificateList mCertificates;
 
           ElementPtr toDebug() const;
         };
@@ -603,6 +604,11 @@ namespace ortc
                                    MediaStreamSet &outAdded,
                                    MediaStreamSet &outRemoved
                                    );
+
+        static IDTLSTransportTypes::ParametersPtr getDTLSParameters(
+                                                                    const TransportInfo &transportInfo,
+                                                                    IICETypes::Components component
+                                                                    );
 
       protected:
         //---------------------------------------------------------------------

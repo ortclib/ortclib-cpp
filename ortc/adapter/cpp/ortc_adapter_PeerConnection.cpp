@@ -110,6 +110,8 @@ namespace ortc
           resultEl->adoptAsLastChild(rtcpEl);
         }
 
+        UseServicesHelper::debugAppend(resultEl, "certificates", mCertificates.size());
+
         return resultEl;
       }
 
@@ -1766,7 +1768,7 @@ namespace ortc
               {
                 if (hasRTPDTLS) {
                   if (!(transportInfo->mRTP.mDTLSTransport)) {
-                    transportInfo->mRTP.mDTLSTransport = IDTLSTransport::create(mThisWeak.lock(), transportInfo->mRTP.mTransport, mConfiguration.mCertificates);
+                    transportInfo->mRTP.mDTLSTransport = IDTLSTransport::create(mThisWeak.lock(), transportInfo->mRTP.mTransport, transportInfo->mCertificates);
                   }
                   transportInfo->mRTP.mDTLSTransport->start(*(transport.mRTP->mDTLSParameters));
                 } else {
@@ -1777,7 +1779,7 @@ namespace ortc
                 }
                 if (hasRTCPDTLS) {
                   if (!(transportInfo->mRTCP.mDTLSTransport)) {
-                    transportInfo->mRTCP.mDTLSTransport = IDTLSTransport::create(mThisWeak.lock(), transportInfo->mRTCP.mTransport, mConfiguration.mCertificates);
+                    transportInfo->mRTCP.mDTLSTransport = IDTLSTransport::create(mThisWeak.lock(), transportInfo->mRTCP.mTransport, transportInfo->mCertificates);
                   }
                   transportInfo->mRTCP.mDTLSTransport->start(*useRTCPDTLSParams);
                 } else {
@@ -2879,7 +2881,7 @@ namespace ortc
 
           transport->mID = transportInfo->mID;
           transport->mRTP->mICEParameters = transportInfo->mRTP.mGatherer->getLocalParameters();
-          transport->mRTP->mDTLSParameters = transportInfo->mRTP.mDTLSTransport ? transportInfo->mRTP.mDTLSTransport->getLocalParameters() : ISessionDescriptionTypes::DTLSParametersPtr();
+          transport->mRTP->mDTLSParameters = getDTLSParameters(*transportInfo, IICETypes::Component_RTP);
           transport->mRTP->mSRTPSDESParameters = transportInfo->mRTP.mSRTPSDESParameters ? transportInfo->mRTP.mSRTPSDESParameters : ISessionDescriptionTypes::SRTPSDESParametersPtr();
 
           // always get end of candidates state before candidates
@@ -3132,6 +3134,7 @@ namespace ortc
           case IICEGathererTypes::State_Complete: 
           case IICEGathererTypes::State_Closed:     {
             switch (ioState.value()) {
+              case IICEGathererTypes::State_New:        return;
               case IICEGathererTypes::State_Gathering:  return;
               case IICEGathererTypes::State_Complete:   
               case IICEGathererTypes::State_Closed:     {
@@ -3469,6 +3472,8 @@ namespace ortc
         mTransportPool.pop_front();
 
         transport->mID = useIDStr.hasData() ? registerIDUsage(useID) : registerNewID();
+        transport->mCertificates = mConfiguration.mCertificates;
+
         mTransports[transport->mID] = transport;
         return transport;
       }
@@ -3810,6 +3815,32 @@ namespace ortc
           auto found = existingSet.find(id);
           if (found == existingSet.end()) outAdded.insert(id);
         }
+      }
+
+      //-----------------------------------------------------------------------
+      IDTLSTransportTypes::ParametersPtr PeerConnection::getDTLSParameters(
+                                                                           const TransportInfo &transportInfo,
+                                                                           IICETypes::Components component
+                                                                           )
+      {
+        // scope: get parameters from active dtls transport
+        {
+          IDTLSTransportPtr transport;
+          switch (component) {
+            case IICETypes::Component_RTP:  transport = transportInfo.mRTP.mDTLSTransport;
+            case IICETypes::Component_RTCP: transport = transportInfo.mRTCP.mDTLSTransport;
+          }
+          if (transport) return transport->getLocalParameters();
+        }
+
+        auto result = make_shared<IDTLSTransportTypes::Parameters>();
+        
+        for (auto iter = transportInfo.mCertificates.begin(); iter != transportInfo.mCertificates.end(); ++iter) {
+          auto &certificate = (*iter);
+          result->mFingerprints.push_back(*certificate->fingerprint());
+        }
+
+        return result;
       }
 
 
