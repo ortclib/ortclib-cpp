@@ -976,6 +976,20 @@ namespace ortc
       result->mCodecs = *filterParameters(parameters.mCodecs, capabilities.mCodecs);
       result->mHeaderExtensions = *filterParameters(parameters.mHeaderExtensions, capabilities.mHeaderExtensions);
 
+      for (auto iter = result->mEncodings.begin(); iter != result->mEncodings.end(); ++iter) {
+        auto &encoding = (*iter);
+        if (!encoding.mCodecPayloadType.hasValue()) continue;
+
+        auto found = findCodecByPayloadType(result->mCodecs, encoding.mCodecPayloadType);
+        if (found) continue;
+
+        // disallow codec payload type being used that is no longer present
+        encoding.mCodecPayloadType = Optional<IRTPTypes::PayloadType>();
+
+#define TODO_FILTER_RTX_FEC 1
+#define TODO_FILTER_RTX_FEC 2
+      }
+
       return result;
     }
 
