@@ -1387,6 +1387,7 @@ namespace ortc
         } else {
           result.append(string(mFormat));
         }
+        result.append(" ");
         result.append(UseServicesHelper::combine(mFormatSpecific, " "));
         return result;
       }
