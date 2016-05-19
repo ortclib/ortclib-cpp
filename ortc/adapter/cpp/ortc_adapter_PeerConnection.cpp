@@ -1497,6 +1497,8 @@ namespace ortc
         if (!stepFixGathererState()) return;
         if (!stepFixTransportState()) return;
 
+        if (IPeerConnectionTypes::PeerConnectionState_Connected != mLastPeerConnectionState) return;
+
         goto ready;
 
       ready:
