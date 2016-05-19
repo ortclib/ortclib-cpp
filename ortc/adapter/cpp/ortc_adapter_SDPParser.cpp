@@ -3832,7 +3832,7 @@ namespace ortc
           outAnnounceTransport = transport;
         }
 
-        if (mediaLine.mDetails->mPrivateTransportID.hasData()) return;
+        if (searchTransport.hasData()) return;
 
         ORTC_THROW_INVALID_PARAMETERS_IF(!mediaLine.mDetails->mInternalIndex.hasValue());
 
