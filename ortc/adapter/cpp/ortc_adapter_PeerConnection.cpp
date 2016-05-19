@@ -2237,7 +2237,7 @@ namespace ortc
           {
             // always in stable state with JSON
             switch (pending->mSessionDescription->type()) {
-            case ISessionDescriptionTypes::SignalingType_JSON:            nextSignalingState = SignalingState_Stable; break;
+              case ISessionDescriptionTypes::SignalingType_JSON:          nextSignalingState = SignalingState_Stable; break;
               case ISessionDescriptionTypes::SignalingType_SDPOffer:      nextSignalingState = SignalingState_HaveLocalOffer; break;
               case ISessionDescriptionTypes::SignalingType_SDPPranswer:
               case ISessionDescriptionTypes::SignalingType_SDPAnswer:
