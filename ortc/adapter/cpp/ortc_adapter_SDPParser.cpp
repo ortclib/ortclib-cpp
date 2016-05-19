@@ -3993,9 +3993,9 @@ namespace ortc
               mline.mASetupLine = make_shared<ISDPTypes::ASetupLine>(Noop{});
               auto role = transport->mRTP->mDTLSParameters->mRole;
               switch (role) {
-                case IDTLSTransportTypes::Role_Auto: mline.mASetupLine->mSetup = "actpass";
-                case IDTLSTransportTypes::Role_Client: mline.mASetupLine->mSetup = "active";
-                case IDTLSTransportTypes::Role_Server: mline.mASetupLine->mSetup = "passive";
+                case IDTLSTransportTypes::Role_Auto: mline.mASetupLine->mSetup = "actpass"; break;
+                case IDTLSTransportTypes::Role_Client: mline.mASetupLine->mSetup = "active"; break;
+                case IDTLSTransportTypes::Role_Server: mline.mASetupLine->mSetup = "passive"; break;
               }
             }
             if (transport->mRTP->mSRTPSDESParameters) {
