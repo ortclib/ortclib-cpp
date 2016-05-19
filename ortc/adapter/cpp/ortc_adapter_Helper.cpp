@@ -946,7 +946,7 @@ namespace ortc
           auto &remoteFeedback = (*iterRemote);
 
           if (0 != localFeedback.mType.compareNoCase(remoteFeedback.mType)) continue;
-          if (0 != remoteFeedback.mType.compareNoCase(remoteFeedback.mType)) continue;
+          if (0 != localFeedback.mParameter.compareNoCase(remoteFeedback.mParameter)) continue;
 
           RTPRTCPFeedback newFeedback(useLocal(preference) ? localFeedback : remoteFeedback);
           result->push_back(newFeedback);
