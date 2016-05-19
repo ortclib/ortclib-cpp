@@ -3828,7 +3828,7 @@ namespace ortc
 
         for (auto iter = description.mTransports.begin(); iter != description.mTransports.end(); ++iter) {
           auto transport = (*iter);
-          if (transport->mID != mediaLine.mDetails->mPrivateTransportID) continue;
+          if (transport->mID != searchTransport) continue;
           outAnnounceTransport = transport;
         }
 
