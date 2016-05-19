@@ -1685,7 +1685,7 @@ namespace ortc
 
             ZS_THROW_INVALID_ASSUMPTION_IF(!transportInfo);
 
-            if (transportInfo->mNegotiationState) {
+            if (NegotiationState_Rejected == transportInfo->mNegotiationState) {
               ZS_LOG_WARNING(Debug, log("transport was already rejected") + transportInfo->toDebug());
               goto reject_transport;
             }
@@ -2321,7 +2321,7 @@ namespace ortc
 
             ZS_THROW_INVALID_ASSUMPTION_IF(!transportInfo);
 
-            if (transportInfo->mNegotiationState) {
+            if (NegotiationState_Rejected == transportInfo->mNegotiationState) {
               ZS_LOG_WARNING(Debug, log("transport was already rejected") + transportInfo->toDebug());
               goto reject_transport;
             }
