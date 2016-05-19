@@ -3480,6 +3480,7 @@ namespace ortc
 
         IICEGatherer::Options emptyOptions;
         info->mRTP.mGatherer = IICEGatherer::create(mThisWeak.lock(), mConfiguration.mGatherOptions ? (*(mConfiguration.mGatherOptions)) : emptyOptions);
+        info->mRTP.mGatherer->gather();
         info->mRTP.mTransport = IICETransport::create(mThisWeak.lock(), info->mRTP.mGatherer);
 
         if (IPeerConnectionTypes::RTCPMuxPolicy_Negotiated == mConfiguration.mRTCPMuxPolicy) {
