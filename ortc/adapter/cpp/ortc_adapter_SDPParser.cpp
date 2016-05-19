@@ -4237,7 +4237,7 @@ namespace ortc
           Milliseconds maxPTime {};
           bool ignorePTime = false;
 
-          for (auto iter = mediaLine.mReceiverCapabilities->mCodecs.begin(); iter != mediaLine.mReceiverCapabilities->mCodecs.end(); iter) {
+          for (auto iter = mediaLine.mReceiverCapabilities->mCodecs.begin(); iter != mediaLine.mReceiverCapabilities->mCodecs.end(); ++iter) {
             auto &codec = (*iter);
             auto rtpmap = make_shared<ISDPTypes::ARTPMapLine>(Noop{});
             rtpmap->mPayloadType = codec.mPreferredPayloadType;
@@ -4269,7 +4269,7 @@ namespace ortc
             }
           }
           if ((!ignorePTime) &&
-            (Milliseconds() != ptime)) {
+              (Milliseconds() != ptime)) {
             mline.mAPTimeLine = make_shared<ISDPTypes::APTimeLine>(Noop{});
           }
           if (Milliseconds() != maxPTime) {
