@@ -102,11 +102,23 @@ namespace ortc
           }
           mTracks.erase(current);
         }
+
+        mDefaultSubscription = mSubscriptions.subscribe(delegate, UseORTC::queueDelegate());
+
+        ZS_LOG_DEBUG(log("created"));
       }
 
       //-------------------------------------------------------------------------
       void MediaStream::init()
       {
+      }
+
+      //-------------------------------------------------------------------------
+      MediaStream::~MediaStream()
+      {
+        mThisWeak.reset();
+
+        ZS_LOG_DEBUG(log("destroyed"));
       }
 
       //-------------------------------------------------------------------------

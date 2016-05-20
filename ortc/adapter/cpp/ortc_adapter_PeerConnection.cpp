@@ -322,6 +322,9 @@ namespace ortc
         if (configuration.hasValue()) {
           mConfiguration = configuration.value();
         }
+
+        mDefaultSubscription = mSubscriptions.subscribe(delegate, UseORTC::queueDelegate());
+
         ZS_LOG_DEBUG(log("created"));
       }
 

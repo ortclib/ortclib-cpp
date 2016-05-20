@@ -95,6 +95,8 @@ namespace ortc
                     const char *id = NULL
                     );
 
+        ~MediaStream();
+
         static MediaStreamPtr convert(IMediaStreamPtr object);
         static MediaStreamPtr convert(ForPeerConnectionPtr object);
 
