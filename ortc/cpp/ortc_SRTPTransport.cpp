@@ -152,6 +152,7 @@ namespace ortc
 
       {
         CryptoParameters crypto;
+        crypto.mTag = 1;
         crypto.mCryptoSuite = CS_AES_CM_128_HMAC_SHA1_80;
 
         KeyParameters key;
@@ -165,6 +166,7 @@ namespace ortc
       }
       {
         CryptoParameters crypto;
+        crypto.mTag = 2;
         crypto.mCryptoSuite = CS_AES_CM_128_HMAC_SHA1_32;
 
         KeyParameters key;
