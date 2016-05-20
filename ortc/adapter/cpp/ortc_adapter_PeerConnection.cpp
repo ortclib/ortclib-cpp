@@ -2544,15 +2544,15 @@ namespace ortc
               goto reject_sender;
             }
 
+            if (!senderInfo->mSender) {
+              ZS_LOG_TRACE(log("sender is not ready to start sending yet") + senderInfo->toDebug());
+              goto accept_sender;
+            }
+
             auto filteredParams = UseAdapterHelper::filterParameters(*sender.mParameters, *unionCaps);
             if ((!UseAdapterHelper::isCompatible(*unionCaps, *filteredParams)) ||
                 (!UseAdapterHelper::hasSupportedMediaCodec(*filteredParams))) {
               ZS_LOG_WARNING(Detail, log("sender parameters or capabililties are not compatible or has no supported codec") + filteredParams->toDebug() + unionCaps->toDebug() + mediaLine->toDebug() + sender.toDebug());
-              goto reject_sender;
-            }
-
-            if (!senderInfo->mSender) {
-              ZS_LOG_WARNING(Detail, log("sender is missing") + senderInfo->toDebug());
               goto reject_sender;
             }
 
