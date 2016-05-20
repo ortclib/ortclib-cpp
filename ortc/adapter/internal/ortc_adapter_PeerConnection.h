@@ -230,6 +230,7 @@ namespace ortc
         {
           ReceiverID mID;
           MediaLineID mMediaLineID;
+          String mMediaStreamTrackID;
 
           NegotiationStates mNegotiationState {NegotiationState_First};
 

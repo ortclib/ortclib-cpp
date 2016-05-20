@@ -219,6 +219,7 @@ namespace ortc
 
         UseServicesHelper::debugAppend(resultEl, "id", mID);
         UseServicesHelper::debugAppend(resultEl, "media line id", mMediaLineID);
+        UseServicesHelper::debugAppend(resultEl, "media stream track id", mMediaStreamTrackID);
         UseServicesHelper::debugAppend(resultEl, "negotiate state", PeerConnection::toString(mNegotiationState));
         UseServicesHelper::debugAppend(resultEl, "rtp receiver id", mReceiver ? mReceiver->getID() : 0);
         UseServicesHelper::debugAppend(resultEl, "media streams", mMediaStreams.size());
@@ -2006,7 +2007,8 @@ namespace ortc
             if (!receiverInfo) {
               receiverInfo = make_shared<ReceiverInfo>();
               receiverInfo->mID = registerIDUsage(sender.mID);
-              receiverInfo->mMediaLineID = sender.mMediaStreamTrackID;
+              receiverInfo->mMediaLineID = sender.mID;
+              receiverInfo->mMediaStreamTrackID = sender.mMediaStreamTrackID;
               receiverInfo->mNegotiationState = NegotiationState_RemoteOffered;
               mReceivers[receiverInfo->mID] = receiverInfo;
             }
