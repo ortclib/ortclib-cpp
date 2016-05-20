@@ -1348,7 +1348,7 @@ namespace ortc
         result.append("/");
         result.append(string(mClockRate));
         if (mEncodingParameters.hasValue()) {
-          result.append(" ");
+          result.append("/");
           result.append(string(mEncodingParameters.value()));
         }
         return result;
