@@ -2686,8 +2686,19 @@ namespace ortc
               switch (mConfiguration.mSignalingMode)
               {
                 case IPeerConnectionTypes::SignalingMode_JSON:  break;
-                case IPeerConnectionTypes::SignalingMode_SDP:   goto possible_bundle_but_not_a_match;
+                case IPeerConnectionTypes::SignalingMode_SDP:   goto check_if_no_others_senders_using;
               }
+              goto match;
+            }
+
+          check_if_no_others_senders_using:
+            {
+              for (auto iterSender = mSenders.begin(); iterSender != mSenders.end(); ++iterSender) {
+                auto &sender = *((*iterSender).second);
+                if (sender.mMediaLineID == mediaLine.mID) goto possible_bundle_but_not_a_match;
+              }
+
+              ZS_LOG_DEBUG(log("found no other senders using this media line (thus re-using)") + mediaLine.toDebug());
               goto match;
             }
 
