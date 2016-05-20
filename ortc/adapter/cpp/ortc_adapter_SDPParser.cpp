@@ -3580,7 +3580,7 @@ namespace ortc
           for (auto iterMedia = ioDescription.mRTPMediaLines.begin(); iterMedia != ioDescription.mRTPMediaLines.end(); ++iterMedia) {
             auto &mediaLine = (*iterMedia);
 
-            if (mediaLine->mID == sender->mRTPMediaLineID) continue;
+            if (mediaLine->mID != sender->mRTPMediaLineID) continue;
             foundMediaLine = mediaLine;
             break;
           }
