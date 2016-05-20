@@ -2145,8 +2145,8 @@ namespace ortc
             {
               case Attribute_BundleOnly:        flag->mMLine->mBundleOnly = true; goto remove_line;
               case Attribute_EndOfCandidates:   flag->mMLine->mEndOfCandidates = true; goto remove_line;
-              case Attribute_RTCPMux:           flag->mMLine->mRTCPMux = true; break; goto remove_line;
-              case Attribute_RTCPRSize:         flag->mMLine->mRTCPRSize = true; break; goto remove_line;
+              case Attribute_RTCPMux:           flag->mMLine->mRTCPMux = true; goto remove_line;
+              case Attribute_RTCPRSize:         flag->mMLine->mRTCPRSize = true; goto remove_line;
               default:                          break;
             }
           }
