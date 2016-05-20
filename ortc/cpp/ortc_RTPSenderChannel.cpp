@@ -695,7 +695,7 @@ namespace ortc
         setupTagging();
       }
       
-      mediaBase->handleUpdate(params);
+      mediaBase->notifyUpdate(params);
     }
 
     //-------------------------------------------------------------------------

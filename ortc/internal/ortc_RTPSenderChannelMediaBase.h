@@ -71,9 +71,9 @@ namespace ortc
 
       virtual void notifyTransportState(ISecureTransportTypes::States state) = 0;
 
-      virtual bool handlePacket(RTCPPacketPtr packet) = 0;
+      virtual void notifyUpdate(ParametersPtr params) = 0;
 
-      virtual void handleUpdate(ParametersPtr params) = 0;
+      virtual bool handlePacket(RTCPPacketPtr packet) = 0;
     };
 
     //-------------------------------------------------------------------------

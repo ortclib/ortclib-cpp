@@ -243,6 +243,12 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    void RTPReceiverChannelVideo::notifyUpdate(ParametersPtr params)
+    {
+      IRTPReceiverChannelVideoAsyncDelegateProxy::create(mThisWeak.lock())->onUpdate(params);
+    }
+
+    //-------------------------------------------------------------------------
     bool RTPReceiverChannelVideo::handlePacket(RTPPacketPtr packet)
     {
       UseChannelResourcePtr channelResource;
@@ -284,17 +290,6 @@ namespace ortc
 
       if (!channelResource) return false;
       return channelResource->handlePacket(*packet);
-    }
-    
-    //-------------------------------------------------------------------------
-    void RTPReceiverChannelVideo::handleUpdate(ParametersPtr params)
-    {
-#define TODO_UPDATE_PARAMETERS 1
-#define TODO_UPDATE_PARAMETERS 2
-      {
-        AutoRecursiveLock lock(*this);
-        mParameters = make_shared<Parameters>(*params);
-      }
     }
 
     //-------------------------------------------------------------------------
@@ -431,6 +426,22 @@ namespace ortc
 
       if (mChannelResource)
         mChannelResource->notifyTransportState(state);
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPReceiverChannelVideo::onUpdate(ParametersPtr params)
+    {
+      ZS_LOG_TRACE(log("on update") + params->toDebug())
+
+      UseChannelResourcePtr channelResource;
+      {
+        AutoRecursiveLock lock(*this);
+        mParameters = make_shared<Parameters>(*params);
+        channelResource = mChannelResource;
+      }
+
+      if (channelResource)
+        channelResource->notifyUpdate(params);
     }
 
     //-------------------------------------------------------------------------
