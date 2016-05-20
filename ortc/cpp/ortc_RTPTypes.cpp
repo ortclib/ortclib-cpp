@@ -379,7 +379,9 @@ namespace ortc
           options.mCodecKind = IRTPTypes::CodecKind_RTX;
           options.mRTXAptPayloadType = payload;
           options.mClockRate = clockRate;
-          options.mMatchClockRateNotSet = true;
+          if (options.mClockRate.hasValue()) {
+            options.mMatchClockRateNotSet = true;
+          }
 
           auto foundCodec = RTPTypesHelper::findCodec(params, options);
           ORTC_THROW_INVALID_PARAMETERS_IF(NULL == foundCodec)
