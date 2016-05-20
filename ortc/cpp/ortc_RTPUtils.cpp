@@ -420,9 +420,9 @@ namespace ortc
 
     //-------------------------------------------------------------------------
     Time RTPUtils::ntpToTime(
-                           DWORD ntpMS,
-                           DWORD ntpLS
-                           )
+                             DWORD ntpMS,
+                             DWORD ntpLS
+                             )
     {
       // 0x3B9ACA00ULL = 1,000,000,000 (microsoeconds)
       // 0xFFFFFFFFULL = 2^32

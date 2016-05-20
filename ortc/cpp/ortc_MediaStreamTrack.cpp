@@ -143,6 +143,7 @@ namespace ortc
                                        ) :
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
+      mTrackID(string(zsLib::createUUID())),
       mKind(kind),
       mRemote(remote),
       mConstraints(constraints)
@@ -515,9 +516,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     String MediaStreamTrack::id() const
     {
-#define TODO 1
-#define TODO 2
-      return String();
+      return mTrackID;
     }
 
     //-------------------------------------------------------------------------

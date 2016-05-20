@@ -4394,6 +4394,9 @@ namespace ortc
 
                 for (auto iterSender = description.mRTPSenders.begin(); iterSender != description.mRTPSenders.end(); ++iterSender) {
                   auto &sender = *(*iterSender);
+
+                  if (sender.mRTPMediaLineID != mediaLine.mID)  continue; // do not output for wrong media line
+
                   if (!sender.mParameters) continue;
                   if (sender.mParameters->mEncodings.size() < 1) continue;
                   auto &encoding = *(sender.mParameters->mEncodings.begin());
