@@ -861,6 +861,7 @@ namespace ortc
           result.append("/");
           result.append(string(mInteger));
         }
+        result.append(" ");
         result.append(mProtoStr);
         result.append(UseServicesHelper::combine(mFmts, " "));
         return result;
