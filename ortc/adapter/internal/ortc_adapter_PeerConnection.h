@@ -595,6 +595,8 @@ namespace ortc
         void purgeNonReferencedAndEmptyStreams();
         Optional<size_t> getNextHighestMLineIndex() const;
 
+        void moveAddedTracksToPending();
+
         static MediaStreamListPtr convertToList(const UseMediaStreamMap &useStreams);
         static UseMediaStreamMapPtr convertToMap(const MediaStreamList &mediaStreams);
         static MediaStreamSetPtr convertToSet(const UseMediaStreamMap &useStreams);
@@ -645,6 +647,7 @@ namespace ortc
         ISessionDescriptionPtr mPendingRemoteDescription;
 
         PendingMethodList mPendingMethods;
+        PendingAddTrackList mAddedPendingAddTracks;
         PendingAddTrackList mPendingAddTracks;
         SenderList mPendingRemoveTracks;
         PendingAddDataChannelList mPendingAddDataChannels;

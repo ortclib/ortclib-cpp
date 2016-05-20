@@ -485,6 +485,7 @@ namespace ortc
 
         pending->mOfferOptions = configuration;
 
+        moveAddedTracksToPending();
         mPendingMethods.push_back(pending);
 
         ZS_LOG_DEBUG(log("create offer") + (configuration.hasValue() ? configuration.value().toDebug() : ElementPtr()));
@@ -523,6 +524,7 @@ namespace ortc
 
         pending->mAnswerOptions = configuration;
 
+        moveAddedTracksToPending();
         mPendingMethods.push_back(pending);
 
         ZS_LOG_DEBUG(log("create answer") + (configuration.hasValue() ? configuration.value().toDebug() : ElementPtr()));
@@ -547,6 +549,7 @@ namespace ortc
 
         pending->mCapabilityOptions = configuration;
 
+        moveAddedTracksToPending();
         mPendingMethods.push_back(pending);
 
         ZS_LOG_DEBUG(log("create capabilities") + (configuration.hasValue() ? configuration.value().toDebug() : ElementPtr()));
@@ -879,7 +882,8 @@ namespace ortc
 
         pending->mMediaStreams = *convertToMap(mediaStreams);
 
-        mPendingAddTracks.push_back(pending);
+        mAddedPendingAddTracks.push_back(pending);
+        notifyNegotiationNeeded();
 
         ZS_LOG_DEBUG(log("will attempt to add track") + pending->toDebug());
 
@@ -1372,6 +1376,8 @@ namespace ortc
           close(*pending);
         }
 
+        moveAddedTracksToPending();
+
         for (auto iter = mPendingAddTracks.begin(); iter != mPendingAddTracks.end(); ++iter) {
           auto &pending = (*iter);
 
@@ -1427,6 +1433,7 @@ namespace ortc
         mPendingRemoteDescription.reset();
 
         mPendingMethods.clear();
+        mAddedPendingAddTracks.clear();
         mPendingAddTracks.clear();
         mPendingRemoveTracks.clear();
         mPendingAddDataChannels.clear();
@@ -3768,6 +3775,16 @@ namespace ortc
 
         if (!result.hasValue()) return static_cast<size_t>(0);
         return static_cast<size_t>(result.value() + 1);
+      }
+
+      //-----------------------------------------------------------------------
+      void PeerConnection::moveAddedTracksToPending()
+      {
+        for (auto iter = mAddedPendingAddTracks.begin(); iter != mAddedPendingAddTracks.end(); ++iter) {
+          auto &pending = (*iter);
+          mPendingAddTracks.push_back(pending);
+        }
+        mAddedPendingAddTracks.clear();
       }
 
       //-----------------------------------------------------------------------
