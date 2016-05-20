@@ -4406,6 +4406,7 @@ namespace ortc
 
                   auto aMSLabel = make_shared<ISDPTypes::ASSRCLine>(Noop{});
                   aMSLabel->mAttribute = "mslabel";
+                  aMSLabel->mSSRC = encoding.mSSRC.value();
 
                   if (sender.mMediaStreamTrackID.hasData()) {
                     if (sender.mMediaStreamIDs.size() > 0) {
