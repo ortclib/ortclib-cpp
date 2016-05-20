@@ -863,6 +863,7 @@ namespace ortc
         }
         result.append(" ");
         result.append(mProtoStr);
+        result.append(" ");
         result.append(UseServicesHelper::combine(mFmts, " "));
         return result;
       }
