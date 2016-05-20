@@ -3121,6 +3121,7 @@ namespace ortc
             }
             senderInfo->mPromise->resolve(senderInfo->mSender);
             senderInfo->mPromise.reset();
+            goto next;
           }
 
         remove_sender:
@@ -3132,6 +3133,10 @@ namespace ortc
             mSenders.erase(current);
             // ensure unlinked transports / media lines get removed
             wake();
+          }
+
+        next:
+          {
           }
         }
 
