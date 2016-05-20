@@ -527,7 +527,7 @@ namespace ortc
         ORTC_THROW_INVALID_PARAMETERS_IF(!found)
       }
 
-      mediaBase->handleUpdate(params);
+      mediaBase->notifyUpdate(params);
     }
 
     //-------------------------------------------------------------------------

@@ -159,8 +159,11 @@ namespace ortc
 
     interaction IRTPReceiverChannelAudioAsyncDelegate
     {
+      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters)
+
       virtual void onReceiverChannelAudioDeliverPackets() = 0;
       virtual void onSecureTransportState(ISecureTransport::States state) = 0;
+      virtual void onUpdate(ParametersPtr params) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -268,11 +271,11 @@ namespace ortc
 
       virtual void notifyTransportState(ISecureTransportTypes::States state) override;
 
+      virtual void notifyUpdate(ParametersPtr params) override;
+
       virtual bool handlePacket(RTPPacketPtr packet) override;
 
       virtual bool handlePacket(RTCPPacketPtr packet) override;
-
-      virtual void handleUpdate(ParametersPtr params) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -339,6 +342,8 @@ namespace ortc
       virtual void onReceiverChannelAudioDeliverPackets() override;
 
       virtual void onSecureTransportState(ISecureTransport::States state) override;
+
+      virtual void onUpdate(ParametersPtr params) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -474,4 +479,5 @@ ZS_DECLARE_PROXY_BEGIN(ortc::internal::IRTPReceiverChannelAudioAsyncDelegate)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::ISecureTransport::States, States)
 ZS_DECLARE_PROXY_METHOD_0(onReceiverChannelAudioDeliverPackets)
 ZS_DECLARE_PROXY_METHOD_1(onSecureTransportState, States)
+ZS_DECLARE_PROXY_METHOD_1(onUpdate, ParametersPtr)
 ZS_DECLARE_PROXY_END()

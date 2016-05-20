@@ -94,6 +94,9 @@ namespace ortc
     ZS_DECLARE_TYPEDEF_PTR(zsLib::PromiseWith<RTPMediaEngine>, PromiseWithRTPMediaEngine)
     ZS_DECLARE_TYPEDEF_PTR(zsLib::PromiseWith<IRTPMediaEngineDeviceResource>, PromiseWithRTPMediaEngineDeviceResource)
     ZS_DECLARE_TYPEDEF_PTR(zsLib::PromiseWith<IRTPMediaEngineChannelResource>, PromiseWithRTPMediaEngineChannelResource)
+    
+    ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters)
+
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -155,6 +158,8 @@ namespace ortc
       virtual PromisePtr shutdown() = 0;
 
       virtual void notifyTransportState(ISecureTransportTypes::States state) = 0;
+
+      virtual void notifyUpdate(ParametersPtr params) = 0;
     };
 
 
@@ -168,7 +173,10 @@ namespace ortc
 
     interaction IRTPMediaEngineChannelResourceAsyncDelegate
     {
+      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters)
+
       virtual void onSecureTransportState(ISecureTransport::States state) = 0;
+      virtual void onUpdate(ParametersPtr params) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -298,7 +306,6 @@ namespace ortc
     {
       ZS_DECLARE_TYPEDEF_PTR(IRTPMediaEngineForRTPReceiverChannelMediaBase, ForRTPReceiverChannelMediaBase)
       ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverChannelMediaBaseForRTPMediaEngine, UseReceiverChannelMediaBase)
-      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters)
       ZS_DECLARE_TYPEDEF_PTR(webrtc::Transport, Transport)
 
       ElementPtr toDebug(ForRTPReceiverChannelMediaBasePtr object);
@@ -374,7 +381,6 @@ namespace ortc
     {
       ZS_DECLARE_TYPEDEF_PTR(IRTPMediaEngineForRTPSenderChannelMediaBase, ForRTPSenderChannelMediaBase)
       ZS_DECLARE_TYPEDEF_PTR(IRTPSenderChannelMediaBaseForRTPMediaEngine, UseSenderChannelMediaBase)
-      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters)
       ZS_DECLARE_TYPEDEF_PTR(webrtc::Transport, Transport)
 
       ElementPtr toDebug(ForRTPSenderChannelMediaBasePtr object);
@@ -532,8 +538,6 @@ namespace ortc
       friend interaction IRTPMediaEngineForChannelResource;
 
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPMediaEngine, UseMediaStreamTrack)
-
-      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters)
 
       ZS_DECLARE_TYPEDEF_PTR(webrtc::Transport, Transport)
 
@@ -908,6 +912,7 @@ namespace ortc
         virtual PUID getID() const { return mID; }
         virtual PromisePtr shutdown();
         virtual void notifyTransportState(ISecureTransportTypes::States state);
+        virtual void notifyUpdate(ParametersPtr params);
 
         //---------------------------------------------------------------------
         #pragma mark
@@ -992,12 +997,16 @@ namespace ortc
 
         virtual void notifyTransportState(ISecureTransportTypes::States state) override { return ChannelResource::notifyTransportState(state); }
 
+        virtual void notifyUpdate(ParametersPtr params) override { return ChannelResource::notifyUpdate(params); }
+
         //---------------------------------------------------------------------
         #pragma mark
         #pragma mark RTPMediaEngine::AudioReceiverChannelResource => IRTPMediaEngineChannelResourceAsyncDelegate
         #pragma mark
 
         virtual void onSecureTransportState(ISecureTransport::States state) override;
+
+        virtual void onUpdate(ParametersPtr params) override;
 
         //---------------------------------------------------------------------
         #pragma mark
@@ -1106,12 +1115,16 @@ namespace ortc
 
         virtual void notifyTransportState(ISecureTransportTypes::States state) override { return ChannelResource::notifyTransportState(state); }
 
+        virtual void notifyUpdate(ParametersPtr params) override { return ChannelResource::notifyUpdate(params); }
+
         //---------------------------------------------------------------------
         #pragma mark
         #pragma mark RTPMediaEngine::AudioSenderChannelResource => IRTPMediaEngineChannelResourceAsyncDelegate
         #pragma mark
 
         virtual void onSecureTransportState(ISecureTransport::States state) override;
+
+        virtual void onUpdate(ParametersPtr params) override;
 
         //---------------------------------------------------------------------
         #pragma mark
@@ -1235,12 +1248,16 @@ namespace ortc
 
         virtual void notifyTransportState(ISecureTransportTypes::States state) override { return ChannelResource::notifyTransportState(state); }
 
+        virtual void notifyUpdate(ParametersPtr params) override { return ChannelResource::notifyUpdate(params); }
+
         //---------------------------------------------------------------------
         #pragma mark
         #pragma mark RTPMediaEngine::VideoReceiverChannelResource => IRTPMediaEngineChannelResourceAsyncDelegate
         #pragma mark
 
         virtual void onSecureTransportState(ISecureTransport::States state) override;
+
+        virtual void onUpdate(ParametersPtr params) override;
 
         //---------------------------------------------------------------------
         #pragma mark
@@ -1342,12 +1359,16 @@ namespace ortc
 
         virtual void notifyTransportState(ISecureTransportTypes::States state) override { return ChannelResource::notifyTransportState(state); }
 
+        virtual void notifyUpdate(ParametersPtr params) override { return ChannelResource::notifyUpdate(params); }
+
         //---------------------------------------------------------------------
         #pragma mark
         #pragma mark RTPMediaEngine::VideoSenderChannelResource => IRTPMediaEngineChannelResourceAsyncDelegate
         #pragma mark
 
         virtual void onSecureTransportState(ISecureTransport::States state) override;
+
+        virtual void onUpdate(ParametersPtr params) override;
 
         //---------------------------------------------------------------------
         #pragma mark
@@ -1446,6 +1467,7 @@ namespace ortc
 ZS_DECLARE_PROXY_BEGIN(ortc::internal::IRTPMediaEngineChannelResourceAsyncDelegate)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::ISecureTransport::States, States)
 ZS_DECLARE_PROXY_METHOD_1(onSecureTransportState, States)
+ZS_DECLARE_PROXY_METHOD_1(onUpdate, ParametersPtr)
 ZS_DECLARE_PROXY_END()
 
 ZS_DECLARE_PROXY_BEGIN(ortc::internal::IRTPMediaEngineAsyncDelegate)

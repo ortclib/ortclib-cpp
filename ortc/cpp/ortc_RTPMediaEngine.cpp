@@ -1453,8 +1453,15 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPMediaEngine::ChannelResource::notifyTransportState(ISecureTransportTypes::States state)
     {
-      ChannelResourcePtr thisChannelResource = ZS_DYNAMIC_PTR_CAST(ChannelResource, mThisWeak.lock());
-      IRTPMediaEngineChannelResourceAsyncDelegateProxy::create(thisChannelResource)->onSecureTransportState(state);
+      auto pThis = ZS_DYNAMIC_PTR_CAST(ChannelResource, mThisWeak.lock());
+      IRTPMediaEngineChannelResourceAsyncDelegateProxy::create(pThis)->onSecureTransportState(state);
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::ChannelResource::notifyUpdate(ParametersPtr param)
+    {
+      auto pThis = ZS_DYNAMIC_PTR_CAST(ChannelResource, mThisWeak.lock());
+      IRTPMediaEngineChannelResourceAsyncDelegateProxy::create(pThis)->onUpdate(param);
     }
 
 
@@ -1594,12 +1601,49 @@ namespace ortc
 
       ISecureTransport::States previousState = mTransportState;
       mTransportState = state;
-      if (state == ISecureTransport::State_Connected) {
-        webrtc::VoEBase::GetInterface(voiceEngine)->StartReceive(mChannel);
-        webrtc::VoEBase::GetInterface(voiceEngine)->StartPlayout(mChannel);
-      } else if (previousState == ISecureTransport::State_Connected) {
-        webrtc::VoEBase::GetInterface(voiceEngine)->StopPlayout(mChannel);
-        webrtc::VoEBase::GetInterface(voiceEngine)->StopReceive(mChannel);
+      if (mParameters && (mParameters->mEncodings.size() == 0 ||
+        (mParameters->mEncodings.size() > 0 && mParameters->mEncodings.begin()->mActive))) {
+        if (state == ISecureTransport::State_Connected) {
+          webrtc::VoEBase::GetInterface(voiceEngine)->StartReceive(mChannel);
+          webrtc::VoEBase::GetInterface(voiceEngine)->StartPlayout(mChannel);
+        } else if (previousState == ISecureTransport::State_Connected) {
+          webrtc::VoEBase::GetInterface(voiceEngine)->StopPlayout(mChannel);
+          webrtc::VoEBase::GetInterface(voiceEngine)->StopReceive(mChannel);
+        }
+      }
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::AudioReceiverChannelResource::onUpdate(ParametersPtr params)
+    {
+      AutoRecursiveLock lock(*this);
+
+      auto engine = mMediaEngine.lock();
+      if (!engine) return;
+
+      auto voiceEngine = engine->getVoiceEngine();
+      if (!voiceEngine) return;
+
+      ParametersPtr previousParams = mParameters;
+      mParameters = params;
+      bool previousActive = false;
+      bool currentActive = false;
+      if (previousParams->mEncodings.size() == 0 ||
+        (previousParams->mEncodings.size() > 0 && previousParams->mEncodings.begin()->mActive)) {
+        previousActive = true;
+      }
+      if (params->mEncodings.size() == 0 ||
+        (params->mEncodings.size() > 0 && params->mEncodings.begin()->mActive)) {
+        currentActive = true;
+      }
+      if (mTransportState == ISecureTransport::State_Connected) {
+        if (!previousActive && currentActive) {
+          webrtc::VoEBase::GetInterface(voiceEngine)->StartReceive(mChannel);
+          webrtc::VoEBase::GetInterface(voiceEngine)->StartPlayout(mChannel);
+        } else if (previousActive && !currentActive) {
+          webrtc::VoEBase::GetInterface(voiceEngine)->StopPlayout(mChannel);
+          webrtc::VoEBase::GetInterface(voiceEngine)->StopReceive(mChannel);
+        }
       }
     }
 
@@ -1991,10 +2035,45 @@ namespace ortc
 
       ISecureTransport::States previousState = mTransportState;
       mTransportState = state;
-      if (state == ISecureTransport::State_Connected) {
-        webrtc::VoEBase::GetInterface(voiceEngine)->StartSend(mChannel);
-      } else if (previousState == ISecureTransport::State_Connected) {
-        webrtc::VoEBase::GetInterface(voiceEngine)->StopSend(mChannel);
+      if (mParameters && (mParameters->mEncodings.size() == 0 ||
+        (mParameters->mEncodings.size() > 0 && mParameters->mEncodings.begin()->mActive))) {
+        if (state == ISecureTransport::State_Connected) {
+          webrtc::VoEBase::GetInterface(voiceEngine)->StartSend(mChannel);
+        } else if (previousState == ISecureTransport::State_Connected) {
+          webrtc::VoEBase::GetInterface(voiceEngine)->StopSend(mChannel);
+        }
+      }
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::AudioSenderChannelResource::onUpdate(ParametersPtr params)
+    {
+      AutoRecursiveLock lock(*this);
+
+      auto engine = mMediaEngine.lock();
+      if (!engine) return;
+
+      auto voiceEngine = engine->getVoiceEngine();
+      if (!voiceEngine) return;
+
+      ParametersPtr previousParams = mParameters;
+      mParameters = params;
+      bool previousActive = false;
+      bool currentActive = false;
+      if (previousParams->mEncodings.size() == 0 ||
+        (previousParams->mEncodings.size() > 0 && previousParams->mEncodings.begin()->mActive)) {
+        previousActive = true;
+      }
+      if (params->mEncodings.size() == 0 ||
+        (params->mEncodings.size() > 0 && params->mEncodings.begin()->mActive)) {
+        currentActive = true;
+      }
+      if (mTransportState == ISecureTransport::State_Connected) {
+        if (!previousActive && currentActive) {
+          webrtc::VoEBase::GetInterface(voiceEngine)->StartSend(mChannel);
+        } else if (previousActive && !currentActive) {
+          webrtc::VoEBase::GetInterface(voiceEngine)->StopSend(mChannel);
+        }
       }
     }
 
@@ -2398,10 +2477,47 @@ namespace ortc
 
       if (!mReceiveStream) return;
 
-      if (state == ISecureTransport::State_Connected)
-        mReceiveStream->Start();
-      else if (previousState == ISecureTransport::State_Connected)
-        mReceiveStream->Stop();
+      if (mParameters && (mParameters->mEncodings.size() == 0 ||
+        (mParameters->mEncodings.size() > 0 && mParameters->mEncodings.begin()->mActive))) {
+        if (state == ISecureTransport::State_Connected)
+          mReceiveStream->Start();
+        else if (previousState == ISecureTransport::State_Connected)
+          mReceiveStream->Stop();
+      }
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::VideoReceiverChannelResource::onUpdate(ParametersPtr params)
+    {
+      AutoRecursiveLock lock(*this);
+
+      auto engine = mMediaEngine.lock();
+      if (!engine) return;
+
+      auto voiceEngine = engine->getVoiceEngine();
+      if (!voiceEngine) return;
+
+      ParametersPtr previousParams = mParameters;
+      mParameters = params;
+
+      if (!mReceiveStream) return;
+
+      bool previousActive = false;
+      bool currentActive = false;
+      if (previousParams->mEncodings.size() == 0 ||
+        (previousParams->mEncodings.size() > 0 && previousParams->mEncodings.begin()->mActive)) {
+        previousActive = true;
+      }
+      if (params->mEncodings.size() == 0 ||
+        (params->mEncodings.size() > 0 && params->mEncodings.begin()->mActive)) {
+        currentActive = true;
+      }
+      if (mTransportState == ISecureTransport::State_Connected) {
+        if (!previousActive && currentActive)
+          mReceiveStream->Start();
+        else if (previousActive && !currentActive)
+          mReceiveStream->Stop();
+      }
     }
 
     //-------------------------------------------------------------------------
@@ -2789,10 +2905,47 @@ namespace ortc
       
       if (!mSendStream) return;
 
-      if (state == ISecureTransport::State_Connected)
-        mSendStream->Start();
-      else if (previousState == ISecureTransport::State_Connected)
-        mSendStream->Stop();
+      if (mParameters && (mParameters->mEncodings.size() == 0 ||
+        (mParameters->mEncodings.size() > 0 && mParameters->mEncodings.begin()->mActive))) {
+        if (state == ISecureTransport::State_Connected)
+          mSendStream->Start();
+        else if (previousState == ISecureTransport::State_Connected)
+          mSendStream->Stop();
+      }
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::VideoSenderChannelResource::onUpdate(ParametersPtr params)
+    {
+      AutoRecursiveLock lock(*this);
+
+      auto engine = mMediaEngine.lock();
+      if (!engine) return;
+
+      auto voiceEngine = engine->getVoiceEngine();
+      if (!voiceEngine) return;
+
+      ParametersPtr previousParams = mParameters;
+      mParameters = params;
+
+      if (!mSendStream) return;
+
+      bool previousActive = false;
+      bool currentActive = false;
+      if (previousParams->mEncodings.size() == 0 ||
+        (previousParams->mEncodings.size() > 0 && previousParams->mEncodings.begin()->mActive)) {
+        previousActive = true;
+      }
+      if (params->mEncodings.size() == 0 ||
+        (params->mEncodings.size() > 0 && params->mEncodings.begin()->mActive)) {
+        currentActive = true;
+      }
+      if (mTransportState == ISecureTransport::State_Connected) {
+        if (!previousActive && currentActive)
+          mSendStream->Start();
+        else if (previousActive && !currentActive)
+          mSendStream->Stop();
+      }
     }
 
     //-------------------------------------------------------------------------
