@@ -1890,7 +1890,7 @@ namespace ortc
 
           // make sure the value is either present or missing depending on the
           // attribute type
-          if (info.mValue) {
+          if (attributeValue) {
             ORTC_THROW_INVALID_PARAMETERS_IF(requiresEmptyValue(info.mAttribute));
           } else {
             ORTC_THROW_INVALID_PARAMETERS_IF(requiresValue(info.mAttribute));
