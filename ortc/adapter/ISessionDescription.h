@@ -355,8 +355,7 @@ namespace ortc
 
         static ICECandidatePtr createFromSDP(ElementPtr rootEl);
         static ICECandidatePtr createFromSDP(const char *value);
-        String getCandidateSDP() const;
-        ElementPtr toSDP() const;
+        String toSDP() const;
         ElementPtr toJSON() const;
       };
 

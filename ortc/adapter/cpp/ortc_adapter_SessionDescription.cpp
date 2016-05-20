@@ -1250,12 +1250,6 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    ISessionDescriptionTypes::ICECandidatePtr ISessionDescriptionTypes::ICECandidate::createFromSDP(ElementPtr rootEl)
-    {
-      return create(rootEl);
-    }
-
-    //-------------------------------------------------------------------------
     ISessionDescriptionTypes::ICECandidatePtr ISessionDescriptionTypes::ICECandidate::createFromSDP(const char *value)
     {
       String str(value);
@@ -1267,7 +1261,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    String ISessionDescriptionTypes::ICECandidate::getCandidateSDP() const
+    String ISessionDescriptionTypes::ICECandidate::toSDP() const
     {
       {
         auto candidateComplete = ZS_DYNAMIC_PTR_CAST(IICETypes::CandidateComplete, mCandidate);
@@ -1283,12 +1277,6 @@ namespace ortc
         }
       }
       return String();
-    }
-
-    //-------------------------------------------------------------------------
-    ElementPtr ISessionDescriptionTypes::ICECandidate::toSDP() const
-    {
-      return createElement();
     }
 
     //-------------------------------------------------------------------------
