@@ -2943,7 +2943,7 @@ namespace ortc
           auto &keyValue = (*iter).second;
 
           UseServicesHelper::SplitMap keyValueSplit;
-          UseServicesHelper::split(params, keyValueSplit, "=");
+          UseServicesHelper::split(keyValue, keyValueSplit, "=");
           UseServicesHelper::splitTrim(keyValueSplit);
           UseServicesHelper::splitPruneEmpty(keyValueSplit);
           ORTC_THROW_INVALID_PARAMETERS_IF(keyValueSplit.size() < 1);
