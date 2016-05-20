@@ -1885,6 +1885,7 @@ namespace ortc
           }
 
           info.mAttribute = toAttribute(attributeName);
+          info.mValue = attributeValue;
           if (Attribute_Unknown == info.mAttribute) {
             ZS_LOG_WARNING(Trace, slog("attribute is not understood") + ZS_PARAM("attribute name", attributeName) + ZS_PARAM("attribute value", attributeValue))
             continue;
@@ -1892,7 +1893,7 @@ namespace ortc
 
           // make sure the value is either present or missing depending on the
           // attribute type
-          if (attributeValue) {
+          if (info.mValue) {
             ORTC_THROW_INVALID_PARAMETERS_IF(requiresEmptyValue(info.mAttribute));
           } else {
             ORTC_THROW_INVALID_PARAMETERS_IF(requiresValue(info.mAttribute));
