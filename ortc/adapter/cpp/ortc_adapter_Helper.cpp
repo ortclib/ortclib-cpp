@@ -590,7 +590,6 @@ namespace ortc
       if (primaryCodec.mClockRate.hasValue()) {
         if (secondaryCodec.mClockRate.hasValue()) {
           if (primaryCodec.mClockRate.value() != secondaryCodec.mClockRate.value()) return false;
-          return true;
         } else {
           outExact = false;
         }
