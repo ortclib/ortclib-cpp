@@ -1894,8 +1894,6 @@ namespace ortc
                 mediaLineInfo->mLineIndex = mediaLine.mDetails ? mediaLine.mDetails->mInternalIndex : Optional<size_t>();
                 mediaLineInfo->mNegotiationState = NegotiationState_RemoteOffered;
                 mediaLineInfo->mIDPreference = UseAdapterHelper::IDPreference_Remote;
-                mediaLineInfo->mRemoteReceiverCapabilities = mediaLine.mReceiverCapabilities;
-                mediaLineInfo->mRemoteSenderCapabilities = mediaLine.mSenderCapabilities;
                 mRTPMedias[mediaLineInfo->mID] = mediaLineInfo;
               }
             }
@@ -1912,12 +1910,6 @@ namespace ortc
               }
             }
 
-            if ((!mediaLineInfo->mRemoteSenderCapabilities) ||
-                (!mediaLineInfo->mRemoteReceiverCapabilities)) {
-              ZS_LOG_WARNING(Detail, log("media line is missing remote capabilities") + mediaLine.toDebug());
-              goto reject_media_line;
-            }
-
             mediaLineInfo->mMediaType = mediaLine.mMediaType;
             mediaLineInfo->mBundledTransportID = mediaLine.mTransportID;
             mediaLineInfo->mPrivateTransportID = mediaLine.mDetails ? mediaLine.mDetails->mPrivateTransportID : String();
@@ -1925,6 +1917,12 @@ namespace ortc
             mediaLineInfo->mRemoteReceiverCapabilities = make_shared<IRTPTypes::Capabilities>(*mediaLine.mReceiverCapabilities);
             mediaLineInfo->mBundledTransportID = mediaLine.mTransportID;
             mediaLineInfo->mPrivateTransportID = mediaLine.mDetails ? mediaLine.mDetails->mPrivateTransportID : String();
+
+            if ((!mediaLineInfo->mRemoteSenderCapabilities) ||
+                (!mediaLineInfo->mRemoteReceiverCapabilities)) {
+              ZS_LOG_WARNING(Detail, log("media line is missing remote capabilities") + mediaLine.toDebug());
+              goto reject_media_line;
+            }
 
             bool foundTransport = false;
             if (mediaLineInfo->mBundledTransportID.hasData()) {
