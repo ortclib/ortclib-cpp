@@ -4022,7 +4022,7 @@ namespace ortc
 
                   UseServicesHelper::SplitMap splitsMKI;
                   splitsMKI[0] = keyParam.mMKIValue;
-                  splitsMKI[1] = (0 == keyParam.mMKILength ? string(keyParam.mMKILength) : String());
+                  splitsMKI[1] = (0 != keyParam.mMKILength ? string(keyParam.mMKILength) : String());
                   UseServicesHelper::splitPruneEmpty(splitsMKI);
 
                   UseServicesHelper::SplitMap splits;
