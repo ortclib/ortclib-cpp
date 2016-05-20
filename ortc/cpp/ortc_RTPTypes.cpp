@@ -399,7 +399,9 @@ namespace ortc
                 FindCodecOptions options;
                 options.mSupportedCodec = IRTPTypes::SupportedCodec_RED;
                 options.mClockRate = clockRate;
-                options.mMatchClockRateNotSet = true;
+                if (options.mClockRate.hasValue()) {
+                  options.mMatchClockRateNotSet = true;
+                }
                 options.mAllowREDMatchEmptyList = true;
 
                 auto foundCodec = findCodec(params, options);
