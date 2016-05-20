@@ -1718,7 +1718,7 @@ namespace ortc
             }
 
             bool hasRTPICE = true;
-            bool hasRTCPICE = hasRTPICE && transport.mRTCP && (transportInfo->mRTCP.mTransport);
+            bool hasRTCPICE = hasRTPICE && transport.mRTCP;
             auto useRTCPICEParams = hasRTCPICE ? (bool(transport.mRTCP->mICEParameters) ? transport.mRTCP->mICEParameters : transport.mRTP->mICEParameters) : IICETransportTypes::ParametersPtr();
 
             bool hasRTPDTLS = bool(transport.mRTP->mDTLSParameters);
