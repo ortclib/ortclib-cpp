@@ -844,7 +844,7 @@ namespace ortc
           }
         }
 
-        for (size_t index = 4; index < split.size(); ++index)
+        for (size_t index = 3; index < split.size(); ++index)
         {
           mFmts.push_back(split[index]);
         }
