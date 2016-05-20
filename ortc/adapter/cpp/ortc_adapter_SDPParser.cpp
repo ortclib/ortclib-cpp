@@ -4284,9 +4284,11 @@ namespace ortc
           if ((!ignorePTime) &&
               (Milliseconds() != ptime)) {
             mline.mAPTimeLine = make_shared<ISDPTypes::APTimeLine>(Noop{});
+            mline.mAPTimeLine->mPTime = ptime;
           }
           if (Milliseconds() != maxPTime) {
             mline.mAMaxPTimeLine = make_shared<ISDPTypes::AMaxPTimeLine>(Noop{});
+            mline.mAMaxPTimeLine->mMaxPTime = maxPTime;
           }
         }
       }
