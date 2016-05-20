@@ -2661,8 +2661,7 @@ namespace ortc
               keyParams.mMKIValue = mkiSplit[0];
               try {
                 keyParams.mMKILength = Numeric<decltype(keyParams.mMKILength)>(mkiSplit[1]);
-              }
-              catch (const Numeric<decltype(keyParams.mMKILength)>::ValueOutOfRange &) {
+              } catch (const Numeric<decltype(keyParams.mMKILength)>::ValueOutOfRange &) {
                 ORTC_THROW_INVALID_PARAMETERS("mki length value is out of range: " + mkiSplit[1]);
               }
             }
@@ -4023,7 +4022,7 @@ namespace ortc
 
                   UseServicesHelper::SplitMap splitsMKI;
                   splitsMKI[0] = keyParam.mMKIValue;
-                  splitsMKI[1] = string(keyParam.mMKILength);
+                  splitsMKI[1] = (0 == keyParam.mMKILength ? string(keyParam.mMKILength) : String());
                   UseServicesHelper::splitPruneEmpty(splitsMKI);
 
                   UseServicesHelper::SplitMap splits;
