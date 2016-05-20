@@ -962,6 +962,7 @@ namespace ortc
     ISessionDescriptionTypes::RTPSender::RTPSender(const RTPSender &op2) :
       mID(op2.mID),
       mRTPMediaLineID(op2.mRTPMediaLineID),
+      mMediaStreamTrackID(op2.mMediaStreamTrackID),
       mMediaStreamIDs(op2.mMediaStreamIDs)
     {
       mDetails = (op2.mDetails ? make_shared<Details>(*op2.mDetails) : DetailsPtr());
@@ -977,6 +978,7 @@ namespace ortc
       mDetails = Details::create(rootEl->findFirstChildElement("details"));
       UseHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::RTPSender", "rtpMediaLineId", mRTPMediaLineID);
       mParameters = RTPParameters::create(rootEl->findFirstChildElement("rtpParameters"));
+      UseHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::RTPSender", "mediaStreamTrackId", mMediaStreamTrackID);
 
       // scope: get media stream IDs
       {
@@ -1009,6 +1011,7 @@ namespace ortc
       if (mParameters) {
         rootEl->adoptAsLastChild(mParameters->createElement("rtpParameters"));
       }
+      UseHelper::adoptElementValue(rootEl, "mediaStreamTrackId", mMediaStreamTrackID, false);
 
       if (mMediaStreamIDs.size() > 0) {
         ElementPtr mediaStreamIDsEl = Element::create("mediaSteamIds");
@@ -1045,6 +1048,8 @@ namespace ortc
       hasher.update(mDetails ? mDetails->hash() : String());
       hasher.update(":");
       hasher.update(mRTPMediaLineID);
+      hasher.update(":");
+      hasher.update(mMediaStreamTrackID);
       hasher.update(":");
       hasher.update(mParameters ? mParameters->hash() : String());
       hasher.update(":mediaStreamIds:c67e2347f3017b042808a99de9e935a17409226c");
