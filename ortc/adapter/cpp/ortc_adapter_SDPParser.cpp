@@ -1318,19 +1318,21 @@ namespace ortc
         UseServicesHelper::split(split[1], encodingSplit, "/");
         UseServicesHelper::splitTrim(encodingSplit);
         UseServicesHelper::splitPruneEmpty(encodingSplit);
-        ORTC_THROW_INVALID_PARAMETERS_IF(encodingSplit.size() < 1);
+        ORTC_THROW_INVALID_PARAMETERS_IF(encodingSplit.size() < 2);
+
+        mEncodingName = encodingSplit[0];
 
         try {
-          mClockRate = Numeric<decltype(mClockRate)>(encodingSplit[0]);
+          mClockRate = Numeric<decltype(mClockRate)>(encodingSplit[1]);
         } catch (const Numeric<decltype(mClockRate)>::ValueOutOfRange &) {
-          ORTC_THROW_INVALID_PARAMETERS("clock rate value out of range: " + split[0]);
+          ORTC_THROW_INVALID_PARAMETERS("clock rate value out of range: " + encodingSplit[1]);
         }
 
-        if (encodingSplit.size() > 1) {
+        if (encodingSplit.size() > 2) {
           try {
-            mEncodingParameters = Numeric<decltype(mEncodingParameters.mType)>(encodingSplit[1]);
+            mEncodingParameters = Numeric<decltype(mEncodingParameters.mType)>(encodingSplit[2]);
           } catch (const Numeric<decltype(mEncodingParameters.mType)>::ValueOutOfRange &) {
-            ORTC_THROW_INVALID_PARAMETERS("clock rate value out of range: " + encodingSplit[1]);
+            ORTC_THROW_INVALID_PARAMETERS("clock rate value out of range: " + encodingSplit[2]);
           }
         }
       }
