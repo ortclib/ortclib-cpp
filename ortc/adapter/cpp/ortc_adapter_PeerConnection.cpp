@@ -1894,6 +1894,8 @@ namespace ortc
                 mediaLineInfo->mLineIndex = mediaLine.mDetails ? mediaLine.mDetails->mInternalIndex : Optional<size_t>();
                 mediaLineInfo->mNegotiationState = NegotiationState_RemoteOffered;
                 mediaLineInfo->mIDPreference = UseAdapterHelper::IDPreference_Remote;
+                mediaLineInfo->mRemoteReceiverCapabilities = mediaLine.mReceiverCapabilities;
+                mediaLineInfo->mRemoteSenderCapabilities = mediaLine.mSenderCapabilities;
                 mRTPMedias[mediaLineInfo->mID] = mediaLineInfo;
               }
             }
