@@ -1808,6 +1808,13 @@ namespace ortc
             continue;
           }
 
+          ++pos;
+          if ('=' != *pos) {
+            ++pos;
+            continue;
+          }
+          ++pos;
+
           LineTypeInfo info;
           info.mLineType = lineType;
           info.mValue = pos;
