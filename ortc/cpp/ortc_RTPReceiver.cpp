@@ -907,6 +907,7 @@ namespace ortc
             break;
           }
           case IRTPTypes::SupportedCodec_G722:    {
+            codec.mPreferredPayloadType = 107;
             codec.mClockRate = 16000;
             break;
           }
