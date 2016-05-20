@@ -4673,6 +4673,7 @@ namespace ortc
           createTransports(sdp, *result);
           createRTPMediaLines(location, sdp, *result);
           createSCTPMediaLines(location, sdp, *result);
+          createRTPSenderLines(location, sdp, *result);
         } catch (const SafeIntException &e) {
           ORTC_THROW_INVALID_PARAMETERS("value found out of legal value range" + string(e.m_code));
         }
