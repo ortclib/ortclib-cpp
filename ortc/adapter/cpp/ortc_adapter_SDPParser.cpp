@@ -2815,6 +2815,7 @@ namespace ortc
           } else {
             transport->mID = createTransportIDFromIndex(index);
           }
+          ioDescription.mTransports.push_back(transport);
         }
       }
 
