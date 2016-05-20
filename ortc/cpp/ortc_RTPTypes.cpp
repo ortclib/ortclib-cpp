@@ -411,7 +411,9 @@ namespace ortc
                 FindCodecOptions options;
                 options.mSupportedCodec = IRTPTypes::SupportedCodec_ULPFEC;
                 options.mClockRate = clockRate;
-                options.mMatchClockRateNotSet = true;
+                if (options.mClockRate.hasValue()) {
+                  options.mMatchClockRateNotSet = true;
+                }
 
                 auto foundCodec = findCodec(params, options);
                 ORTC_THROW_INVALID_PARAMETERS_IF(!foundCodec)
@@ -4969,7 +4971,8 @@ namespace ortc
       case KnownFECMechanism_FlexFEC:       return "flexfec";
     }
 
-    return "unknown";  }
+    return "unknown";  
+  }
 
   //---------------------------------------------------------------------------
   IRTPTypes::KnownFECMechanisms IRTPTypes::toKnownFECMechanism(const char *mechanism)

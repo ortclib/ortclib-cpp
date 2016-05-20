@@ -2551,9 +2551,9 @@ namespace ortc
 
       //-----------------------------------------------------------------------
       void SDPParser::createDescriptionDetails(
-        const SDP &sdp,
-        Description &ioDescription
-        )
+                                               const SDP &sdp,
+                                               Description &ioDescription
+                                               )
       {
         bool needsDetails = ((bool)sdp.mOLine) ||
           ((bool)sdp.mSLine) ||
