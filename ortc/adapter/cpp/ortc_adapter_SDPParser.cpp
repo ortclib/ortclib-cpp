@@ -2118,7 +2118,6 @@ namespace ortc
                   ORTC_THROW_INVALID_PARAMETERS_IF(sdp.mMediaDirection.hasValue());
                   sdp.mMediaDirection = direction->mDirection;
                 }
-                sdp.mLineInfos.erase(current);
                 goto remove_line;;
               }
               case Attribute_RTPMap:            continue;
