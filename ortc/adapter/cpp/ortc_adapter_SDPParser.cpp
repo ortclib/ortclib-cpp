@@ -3294,6 +3294,7 @@ namespace ortc
           if (!rtpMap) {
             auto reservedType = IRTPTypes::toReservedCodec(pt);
             auto supportedType = IRTPTypes::toSupportedCodec(reservedType);
+            auto codecKind = IRTPTypes::getCodecKind(supportedType);
 
             if (IRTPTypes::SupportedCodec_Unknown == supportedType) {
               ZS_LOG_WARNING(Debug, internal::slog("codec payload type is not understood") + ZS_PARAM("payload type", pt));
@@ -3304,6 +3305,7 @@ namespace ortc
             rtpMap->mPayloadType = pt;
             rtpMap->mEncodingName = IRTPTypes::toString(supportedType);
             rtpMap->mClockRate = IRTPTypes::getDefaultClockRate(reservedType);
+            rtpMap->mEncodingParameters = IRTPTypes::getDefaultNumberOfChannels(reservedType);
           }
 
           auto supportedType = IRTPTypes::toSupportedCodec(rtpMap->mEncodingName);
@@ -3328,9 +3330,7 @@ namespace ortc
           codecCapability->mClockRate = rtpMap->mClockRate;
           codecCapability->mPreferredPayloadType = pt;
           codecCapability->mPTime = ptime;
-          if (IRTPTypes::CodecKind_Audio == codecKind) {
-            codecCapability->mNumChannels = rtpMap->mEncodingParameters;
-          }
+          codecCapability->mNumChannels = rtpMap->mEncodingParameters;
           if (format) {
             fillCodecFormatSpecific(supportedType, *codecCapability, *format);
           }

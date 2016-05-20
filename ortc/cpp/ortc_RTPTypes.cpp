@@ -4771,6 +4771,46 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
+  Optional<ULONG> IRTPTypes::getDefaultNumberOfChannels(ReservedCodecPayloadTypes reservedCodec)
+  {
+    Optional<ULONG> result;
+
+    switch (reservedCodec) {
+      case ReservedCodecPayloadType_Unknown:      break;
+      case ReservedCodecPayloadType_PCMU_8000:    result = 1; break;
+
+      case ReservedCodecPayloadType_GSM_8000:     result = 1; break;
+      case ReservedCodecPayloadType_G723_8000:    result = 1; break;
+      case ReservedCodecPayloadType_DVI4_8000:    result = 1; break;
+      case ReservedCodecPayloadType_DVI4_16000:   result = 1; break;
+      case ReservedCodecPayloadType_LPC_8000:     result = 1; break;
+      case ReservedCodecPayloadType_PCMA_8000:    result = 1; break;
+      case ReservedCodecPayloadType_G722_8000:    result = 1; break;
+      case ReservedCodecPayloadType_L16_44100_2:  result = 2; break;
+      case ReservedCodecPayloadType_L16_44100_1:  result = 1; break;
+      case ReservedCodecPayloadType_QCELP_8000:   result = 1; break;
+      case ReservedCodecPayloadType_CN_8000:      result = 1; break;
+      case ReservedCodecPayloadType_MPA_90000:    break;
+      case ReservedCodecPayloadType_G728_8000:    result = 1; break;
+      case ReservedCodecPayloadType_DVI4_11025:   result = 1; break;
+      case ReservedCodecPayloadType_DVI4_22050:   result = 1; break;
+      case ReservedCodecPayloadType_G729_8000:    result = 1; break;
+
+      case ReservedCodecPayloadType_CelB_90000:   break;
+      case ReservedCodecPayloadType_JPEG_90000:   break;
+
+      case ReservedCodecPayloadType_nv_90000:     break;
+
+      case ReservedCodecPayloadType_H261_90000:   break;
+      case ReservedCodecPayloadType_MPV_90000:    break;
+      case ReservedCodecPayloadType_MP2T_90000:   break;
+      case ReservedCodecPayloadType_H263_90000:   break;
+    }
+
+    return result;
+  }
+
+  //---------------------------------------------------------------------------
   IRTPTypes::CodecKinds IRTPTypes::getCodecKind(ReservedCodecPayloadTypes reservedCodec)
   {
     switch (reservedCodec) {

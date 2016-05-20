@@ -811,6 +811,7 @@ namespace ortc
     static ReservedCodecPayloadTypes toReservedCodec(const char *encodingName);
 
     static ULONG getDefaultClockRate(ReservedCodecPayloadTypes reservedCodec);
+    static Optional<ULONG> getDefaultNumberOfChannels(ReservedCodecPayloadTypes reservedCodec);
 
     static CodecKinds getCodecKind(ReservedCodecPayloadTypes reservedCodec);
     static SupportedCodecs toSupportedCodec(ReservedCodecPayloadTypes reservedCodec);
