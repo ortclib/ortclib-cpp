@@ -815,14 +815,14 @@ namespace ortc
             codec.mNumChannels = 1;
             codec.mKind = IMediaStreamTrack::toString(IMediaStreamTrackTypes::Kind_Audio);
 
-            // generic NACK
-            {
-              IRTPTypes::RTCPFeedback feedback;
-              feedback.mType = IRTPTypes::toString(KnownFeedbackType_NACK);
-              feedback.mParameter = IRTPTypes::toString(KnownFeedbackParameter_Unknown);
-              EventWriteOrtcRtpReceiverReportRtcpFeedback(__func__, feedback.mType, feedback.mParameter);
-              codec.mRTCPFeedback.push_back(feedback);
-            }
+            // generic NACK - not using for audio
+            //{
+            //  IRTPTypes::RTCPFeedback feedback;
+            //  feedback.mType = IRTPTypes::toString(KnownFeedbackType_NACK);
+            //  feedback.mParameter = IRTPTypes::toString(KnownFeedbackParameter_Unknown);
+            //  EventWriteOrtcRtpReceiverReportRtcpFeedback(__func__, feedback.mType, feedback.mParameter);
+            //  codec.mRTCPFeedback.push_back(feedback);
+            //}
 
             break;
           }

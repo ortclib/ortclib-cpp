@@ -3373,7 +3373,7 @@ namespace ortc
 
     elem->adoptAsLastChild(mRTCP.createElement("rtcp"));
 
-    UseHelper::adoptElementValue(elem, IRTPTypes::toString(mDegredationPreference), false);
+    UseHelper::adoptElementValue(elem, "degredationPreference", IRTPTypes::toString(mDegredationPreference), false);
 
     if (!elem->hasChildren()) return ElementPtr();
 
