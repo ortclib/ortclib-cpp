@@ -31,6 +31,7 @@
 
 #include <ortc/internal/ortc_ORTC.h>
 #include <ortc/internal/ortc_Tracing.h>
+#include <ortc/internal/ortc_RTPMediaEngine.h>
 
 #include <openpeer/services/IHelper.h>
 #include <openpeer/services/IMessageQueueManager.h>
@@ -183,8 +184,7 @@ namespace ortc
         mNTPServerTime = value;
       }
       auto totalMilliseconds = value.count();
-#define TODO_MOSA 1
-#define TODO_MOSA 1
+      IRTPMediaEngineForORTC::ntpServerTime(value);
     }
 
 

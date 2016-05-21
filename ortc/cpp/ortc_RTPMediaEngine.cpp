@@ -53,6 +53,7 @@
 
 #include <cryptopp/sha.h>
 
+#include <webrtc/base/timeutils.h>
 #include <webrtc/voice_engine/include/voe_codec.h>
 #include <webrtc/voice_engine/include/voe_rtp_rtcp.h>
 #include <webrtc/voice_engine/include/voe_network.h>
@@ -267,7 +268,21 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IICETransportForSettings
+    #pragma mark IRTPMediaEngineForORTC
+    #pragma mark
+
+    void IRTPMediaEngineForORTC::ntpServerTime(const Milliseconds &value)
+    {
+      auto singleton = RTPMediaEngineSingleton::singleton();
+      return singleton->getEngineRegistration()->getRTPEngine()->ntpServerTime(value);
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IRTPMediaEngineForSettings
     #pragma mark
 
     //-------------------------------------------------------------------------
@@ -548,6 +563,20 @@ namespace ortc
       // shutdown on the object's media queue.
       setState(State_ShuttingDown);
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPMediaEngine => IRTPMediaEngineForORTC
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::ntpServerTime(const Milliseconds &value)
+    {
+      rtc::SyncWithNtp(value.count());
     }
 
     //-------------------------------------------------------------------------
@@ -1800,7 +1829,7 @@ namespace ortc
         if (!encodingParamIter->mActive)
           continue;
 
-        IRTPTypes::PayloadType codecPayloadType;
+        IRTPTypes::PayloadType codecPayloadType {};
         if (encodingParamIter->mCodecPayloadType.hasValue())
           codecPayloadType = encodingParamIter->mCodecPayloadType;
         else
@@ -2220,7 +2249,7 @@ namespace ortc
         if (!encodingParamIter->mActive)
           continue;
 
-        IRTPTypes::PayloadType codecPayloadType;
+        IRTPTypes::PayloadType codecPayloadType {};
         if (encodingParamIter->mCodecPayloadType.hasValue())
           codecPayloadType = encodingParamIter->mCodecPayloadType;
         else
@@ -2707,7 +2736,7 @@ namespace ortc
         if (!encodingParamIter->mActive)
           continue;
 
-        IRTPTypes::PayloadType codecPayloadType;
+        IRTPTypes::PayloadType codecPayloadType {};
         if (encodingParamIter->mCodecPayloadType.hasValue())
           codecPayloadType = encodingParamIter->mCodecPayloadType;
         else
@@ -3156,7 +3185,7 @@ namespace ortc
         if (!encodingParamIter->mActive)
           continue;
 
-        IRTPTypes::PayloadType codecPayloadType;
+        IRTPTypes::PayloadType codecPayloadType {};
         if (encodingParamIter->mCodecPayloadType.hasValue())
           codecPayloadType = encodingParamIter->mCodecPayloadType;
         else
