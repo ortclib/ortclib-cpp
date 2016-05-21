@@ -589,7 +589,7 @@ namespace ortc
       if (!rootEl) return;
 
       mICEParameters = ICETransportParameters::create(rootEl->findFirstChildElement("iceParameters"));
-      mDTLSParameters = DTLSParameters::create(rootEl->findFirstChildElement("iceParameters"));
+      mDTLSParameters = DTLSParameters::create(rootEl->findFirstChildElement("dtlsParameters"));
       mSRTPSDESParameters = SRTPSDESParameters::create(rootEl->findFirstChildElement("srtpSdesParameters"));
 
       ElementPtr candidatesEl = rootEl->findFirstChildElement("candidates");
