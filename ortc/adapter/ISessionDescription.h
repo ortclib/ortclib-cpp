@@ -270,7 +270,7 @@ namespace ortc
 
         RTPMediaLine &operator=(const RTPMediaLine &op2) = delete;
 
-        static RTPMediaLinePtr create(ElementPtr rootEl) { if (!rootEl) return RTPMediaLinePtr(); return make_shared<RTPMediaLine>(); }
+        static RTPMediaLinePtr create(ElementPtr rootEl) { if (!rootEl) return RTPMediaLinePtr(); return make_shared<RTPMediaLine>(rootEl); }
         ElementPtr createElement(const char *objectName = "rtpMediaLine") const;
 
         ElementPtr toDebug() const;
