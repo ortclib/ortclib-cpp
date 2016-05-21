@@ -4604,6 +4604,10 @@ namespace ortc
             auto &fmtp = *(*iterSub);
             appendLine(ioResult, 'a', fmtp.toString());
           }
+          for (auto iterSub = mline.mARTCPFBLines.begin(); iterSub != mline.mARTCPFBLines.end(); ++iterSub) {
+            auto &fmtp = *(*iterSub);
+            appendLine(ioResult, 'a', fmtp.toString());
+          }
           for (auto iterSub = mline.mACandidateLines.begin(); iterSub != mline.mACandidateLines.end(); ++iterSub) {
             auto &candidate = *(*iterSub);
             appendLine(ioResult, 'a', candidate.toString());
