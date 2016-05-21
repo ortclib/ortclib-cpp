@@ -70,6 +70,7 @@ namespace ortc
     ZS_DECLARE_INTERACTION_PROXY(IRTPMediaEngineChannelResourceAsyncDelegate)
     ZS_DECLARE_INTERACTION_PTR(IChannelResourceForRTPMediaEngine)
 
+    ZS_DECLARE_INTERACTION_PTR(IRTPMediaEngineForORTC)
     ZS_DECLARE_INTERACTION_PTR(IRTPMediaEngineForSettings)
     ZS_DECLARE_INTERACTION_PTR(IRTPMediaEngineForSingleton)
     ZS_DECLARE_INTERACTION_PTR(IRTPMediaEngineForRTPReceiverChannel)
@@ -252,6 +253,19 @@ namespace ortc
     {
       virtual bool handlePacket(const RTCPPacket &packet) = 0;
       virtual void sendVideoFrame(const webrtc::VideoFrame& videoFrame) = 0;
+    };
+
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IRTPMediaEngineForORTC
+    #pragma mark
+
+    interaction IRTPMediaEngineForORTC
+    {
+      static void ntpServerTime(const Milliseconds &value);
     };
 
     //-------------------------------------------------------------------------
@@ -507,6 +521,7 @@ namespace ortc
                            public Noop,
                            public MessageQueueAssociator,
                            public SharedRecursiveLock,
+                           public IRTPMediaEngineForORTC,
                            public IRTPMediaEngineForSettings,
                            public IRTPMediaEngineForSingleton,
                            public IRTPMediaEngineForRTPReceiverChannel,
@@ -530,6 +545,7 @@ namespace ortc
 
       friend interaction IRTPMediaEngine;
       friend interaction IRTPMediaEngineFactory;
+      friend interaction IRTPMediaEngineForORTC;
       friend interaction IRTPMediaEngineForSettings;
       friend interaction IRTPMediaEngineForSingleton;
       friend interaction IRTPMediaEngineForRTPReceiverChannel;
@@ -615,6 +631,13 @@ namespace ortc
       void notify(PromiseWithRTPMediaEnginePtr promise);
 
       void shutdown();
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPMediaEngine => IRTPMediaEngineForORTC
+      #pragma mark
+
+      void ntpServerTime(const Milliseconds &value);
 
       //-----------------------------------------------------------------------
       #pragma mark
