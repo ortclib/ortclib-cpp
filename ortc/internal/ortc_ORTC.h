@@ -104,6 +104,9 @@ namespace ortc
 
       virtual void setup(IMessageQueuePtr defaultDelegateMessageQueue);
 
+      virtual Milliseconds ntpServerTime() const;
+      virtual void ntpServerTime(const Milliseconds &value);
+
       //---------------------------------------------------------------------
       #pragma mark
       #pragma mark ORTC => IORTCForInternal
@@ -136,6 +139,8 @@ namespace ortc
       mutable IMessageQueuePtr mDelegateQueue;
       mutable IMessageQueuePtr mBlockingMediaStartStopThread;
       mutable IMessageQueuePtr mCertificateGeneration;
+
+      Milliseconds mNTPServerTime {};
     };
   }
 }

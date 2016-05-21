@@ -47,6 +47,9 @@ namespace ortc
   {
     static void setup(IMessageQueuePtr defaultDelegateMessageQueue);
 
+    static Milliseconds ntpServerTime();
+    static void ntpServerTime(const Milliseconds &value);
+
     virtual ~IORTC() {} // make polymorphic
   };
 }

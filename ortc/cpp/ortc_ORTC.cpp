@@ -169,6 +169,26 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    Milliseconds ORTC::ntpServerTime() const
+    {
+      AutoRecursiveLock(*this);
+      return mNTPServerTime;
+    }
+
+    //-------------------------------------------------------------------------
+    void ORTC::ntpServerTime(const Milliseconds &value)
+    {
+      {
+        AutoRecursiveLock(*this);
+        mNTPServerTime = value;
+      }
+      auto totalMilliseconds = value.count();
+#define TODO_MOSA 1
+#define TODO_MOSA 1
+    }
+
+
+    //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -258,4 +278,21 @@ namespace ortc
     if (!singleton) return;
     singleton->setup(defaultDelegateMessageQueue);
   }
+
+  //-------------------------------------------------------------------------
+  Milliseconds IORTC::ntpServerTime()
+  {
+    auto singleton = internal::ORTC::singleton();
+    if (!singleton) return Milliseconds();
+    return singleton->ntpServerTime();
+  }
+
+  //-------------------------------------------------------------------------
+  void IORTC::ntpServerTime(const Milliseconds &value)
+  {
+    auto singleton = internal::ORTC::singleton();
+    if (!singleton) return;
+    singleton->ntpServerTime(value);
+  }
+
 }
