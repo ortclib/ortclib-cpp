@@ -2017,7 +2017,7 @@ namespace ortc
             if (!receiverInfo) {
               receiverInfo = make_shared<ReceiverInfo>();
               receiverInfo->mID = registerIDUsage(sender.mID);
-              receiverInfo->mMediaLineID = sender.mID;
+              receiverInfo->mMediaLineID = sender.mRTPMediaLineID;
               receiverInfo->mMediaStreamTrackID = sender.mMediaStreamTrackID;
               receiverInfo->mNegotiationState = NegotiationState_RemoteOffered;
               mReceivers[receiverInfo->mID] = receiverInfo;

@@ -2201,6 +2201,11 @@ namespace ortc
   {
     ElementPtr elem = Element::create(objectName);
 
+    Optional<IMediaStreamTrackTypes::Kinds> kind;
+    if (mKind.hasData()) {
+      kind = IMediaStreamTrackTypes::toKind(mKind);
+    }
+
     UseHelper::adoptElementValue(elem, "name", mName, false);
     UseHelper::adoptElementValue(elem, "kind", mKind, false);
 
@@ -2282,9 +2287,15 @@ namespace ortc
       }
     }
 
-    UseHelper::adoptElementValue(elem, "maxTemporalLayers", mMaxTemporalLayers);
-    UseHelper::adoptElementValue(elem, "maxSpatialLayers", mMaxSpatialLayers);
-    UseHelper::adoptElementValue(elem, "svcMultiStreamSupport", mSVCMultiStreamSupport);
+    if (kind.hasValue()) {
+      if (IMediaStreamTrackTypes::Kind_Video == kind.value()) {
+        UseHelper::adoptElementValue(elem, "maxTemporalLayers", mMaxTemporalLayers);
+        UseHelper::adoptElementValue(elem, "maxSpatialLayers", mMaxSpatialLayers);
+        if (mSVCMultiStreamSupport) {
+          UseHelper::adoptElementValue(elem, "svcMultiStreamSupport", mSVCMultiStreamSupport);
+        }
+      }
+    }
 
     if (!elem->hasChildren()) return ElementPtr();
     
