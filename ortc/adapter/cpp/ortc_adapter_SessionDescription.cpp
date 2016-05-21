@@ -1164,12 +1164,11 @@ namespace ortc
 
       ElementPtr candidateEl = rootEl->findFirstChildElement("candidate");
       if (!candidateEl) {
+        isComplete = true;
         candidateEl = rootEl->findFirstChildElement("candidateComplete");
-        isComplete = true;
-      }
-      else {
-        candidateEl = rootEl->findFirstChildElement("complete");
-        isComplete = true;
+        if (!candidateEl) {
+          candidateEl = rootEl->findFirstChildElement("complete");
+        }
       }
 
       if (!candidateEl) return ICECandidatePtr();
