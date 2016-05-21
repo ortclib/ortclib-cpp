@@ -104,7 +104,7 @@ namespace ortc
                                              MediaStreamTrackPtr track,
                                              const Parameters &params
                                              );
-      
+
       virtual int32_t sendAudioSamples(
                                        const void* audioSamples,
                                        const size_t numberOfSamples,
@@ -158,7 +158,7 @@ namespace ortc
 
     interaction IRTPSenderChannelAudioAsyncDelegate
     {
-      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters)
+      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters);
 
       virtual void onSecureTransportState(ISecureTransport::States state) = 0;
       virtual void onUpdate(ParametersPtr params) = 0;
@@ -200,19 +200,20 @@ namespace ortc
       ZS_DECLARE_CLASS_PTR(Transport)
       friend class Transport;
 
-      ZS_DECLARE_TYPEDEF_PTR(IRTPSenderChannelForRTPSenderChannelAudio, UseChannel)
-      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPSenderChannelMediaBase, UseBaseMediaStreamTrack)
-      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPSenderChannelAudio, UseMediaStreamTrack)
-      ZS_DECLARE_TYPEDEF_PTR(IRTPMediaEngineForRTPSenderChannelAudio, UseMediaEngine)
-      ZS_DECLARE_TYPEDEF_PTR(IRTPMediaEngineDeviceResource, UseDeviceResource)
-      ZS_DECLARE_TYPEDEF_PTR(IRTPMediaEngineAudioSenderChannelResource, UseChannelResource)
+      ZS_DECLARE_TYPEDEF_PTR(IRTPSenderChannelForRTPSenderChannelAudio, UseChannel);
+      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPSenderChannelMediaBase, UseBaseMediaStreamTrack);
+      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPSenderChannelAudio, UseMediaStreamTrack);
+      ZS_DECLARE_TYPEDEF_PTR(IRTPMediaEngineForRTPSenderChannelAudio, UseMediaEngine);
+      ZS_DECLARE_TYPEDEF_PTR(IRTPMediaEngineDeviceResource, UseDeviceResource);
+      ZS_DECLARE_TYPEDEF_PTR(IRTPMediaEngineAudioSenderChannelResource, UseChannelResource);
 
-      ZS_DECLARE_TYPEDEF_PTR(IRTPSenderChannelMediaBaseForRTPSenderChannel, ForRTPSenderChannelFromMediaBase)
-      ZS_DECLARE_TYPEDEF_PTR(IRTPSenderChannelMediaBaseForMediaStreamTrack, ForMediaStreamTrackFromMediaBase)
+      ZS_DECLARE_TYPEDEF_PTR(IRTPSenderChannelMediaBaseForRTPSenderChannel, ForRTPSenderChannelFromMediaBase);
+      ZS_DECLARE_TYPEDEF_PTR(IRTPSenderChannelMediaBaseForMediaStreamTrack, ForMediaStreamTrackFromMediaBase);
 
-      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters)
+      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters);
       typedef std::list<RTCPPacketPtr> RTCPPacketList;
-      ZS_DECLARE_PTR(RTCPPacketList)
+      ZS_DECLARE_PTR(RTCPPacketList);
+      ZS_DECLARE_TYPEDEF_PTR(IStatsProviderTypes::PromiseWithStatsReport, PromiseWithStatsReport);
 
       enum States
       {
@@ -267,6 +268,8 @@ namespace ortc
 
       virtual bool handlePacket(RTCPPacketPtr packet) override;
       
+      virtual void requestStats(PromiseWithStatsReportPtr promise) override;
+
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark RTPSenderChannelAudio => IRTPSenderChannelAudioForRTPSenderChannel

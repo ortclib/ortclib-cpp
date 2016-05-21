@@ -45,6 +45,7 @@ namespace ortc
   
   interaction IStatsProviderTypes
   {
+    ZS_DECLARE_TYPEDEF_PTR(PromiseWith<IStatsReport>, PromiseWithStatsReport);
   };
 
   //---------------------------------------------------------------------------
@@ -57,8 +58,6 @@ namespace ortc
   
   interaction IStatsProvider : public IStatsProviderTypes
   {
-    ZS_DECLARE_TYPEDEF_PTR(PromiseWith<IStatsReport>, PromiseWithStatsReport)
-
     virtual PromiseWithStatsReportPtr getStats() const throw(InvalidStateError) = 0;
   };
 

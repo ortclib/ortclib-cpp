@@ -37,6 +37,7 @@
 #include <ortc/IICETransport.h>
 #include <ortc/IDTLSTransport.h>
 #include <ortc/IRTPTypes.h>
+#include <ortc/IStatsProvider.h>
 
 #include <openpeer/services/IWakeDelegate.h>
 #include <zsLib/MessageQueueAssociator.h>
@@ -65,10 +66,11 @@ namespace ortc
 
     interaction IRTPReceiverChannelMediaBaseForRTPReceiverChannel
     {
-      ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverChannelMediaBaseForRTPReceiverChannel, ForRTPReceiverChannel)
+      ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverChannelMediaBaseForRTPReceiverChannel, ForRTPReceiverChannel);
 
-      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters)
-      
+      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters);
+      ZS_DECLARE_TYPEDEF_PTR(IStatsProviderTypes::PromiseWithStatsReport, PromiseWithStatsReport);
+
       static ElementPtr toDebug(ForRTPReceiverChannelPtr object);
 
       virtual PUID getID() const = 0;
@@ -80,6 +82,8 @@ namespace ortc
       virtual bool handlePacket(RTPPacketPtr packet) = 0;
 
       virtual bool handlePacket(RTCPPacketPtr packet) = 0;
+
+      virtual void requestStats(PromiseWithStatsReportPtr promise) = 0;
     };
 
     //-------------------------------------------------------------------------

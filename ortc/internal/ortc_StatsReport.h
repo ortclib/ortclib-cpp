@@ -34,6 +34,7 @@
 #include <ortc/internal/types.h>
 
 #include <ortc/IStatsReport.h>
+#include <ortc/IStatsProvider.h>
 
 #include <openpeer/services/IWakeDelegate.h>
 
@@ -76,14 +77,22 @@ namespace ortc
 
     interaction IStatsReportForInternal
     {
-      ZS_DECLARE_TYPEDEF_PTR(IStatsReportForInternal, ForInternal)
+      ZS_DECLARE_TYPEDEF_PTR(IStatsReportForInternal, ForInternal);
 
-      ZS_DECLARE_TYPEDEF_PTR(IStatsReportTypes::Stats, Stats)
+      ZS_DECLARE_TYPEDEF_PTR(IStatsReportTypes::Stats, Stats);
+
+      ZS_DECLARE_TYPEDEF_PTR(IStatsProviderTypes::PromiseWithStatsReport, PromiseWithStatsReport);
+      ZS_DECLARE_TYPEDEF_PTR(std::list<PromiseWithStatsReportPtr>, PromiseWithStatsReportList);
 
       typedef String StatID;
       typedef std::map<StatID, StatsPtr> StatMap;
 
       static StatsReportPtr create(const StatMap &stats);
+
+      static PromiseWithStatsReportPtr collectReports(
+                                                      const PromiseWithStatsReportList &promises,
+                                                      PromiseWithStatsReportPtr previouslyCreatedPromiseToResolve = PromiseWithStatsReportPtr()
+                                                      );
 
       virtual ~IStatsReportForInternal() {}
     };
@@ -101,7 +110,8 @@ namespace ortc
                         public SharedRecursiveLock,
                         public IStatsReport,
                         public IStatsReportForSettings,
-                        public IStatsReportForInternal
+                        public IStatsReportForInternal,
+                        public IPromiseSettledDelegate
     {
     protected:
       struct make_private {};
@@ -112,6 +122,11 @@ namespace ortc
       friend interaction IStatsReportForSettings;
 
       ZS_DECLARE_TYPEDEF_PTR(IStatsReportTypes::Stats, Stats)
+
+      ZS_DECLARE_TYPEDEF_PTR(IStatsProviderTypes::PromiseWithStatsReport, PromiseWithStatsReport);
+      ZS_DECLARE_TYPEDEF_PTR(std::list<PromiseWithStatsReportPtr>, PromiseWithStatsReportList);
+
+      typedef std::map<PUID, PromiseWithStatsReportPtr> PromiseWithStatsReportMap;
 
     public:
       StatsReport(
@@ -128,6 +143,11 @@ namespace ortc
       {}
 
       void init();
+
+      void init(
+                PromiseWithStatsReportPtr resolvePromise,
+                const PromiseWithStatsReportList &promises
+                );
 
     public:
       virtual ~StatsReport();
@@ -157,6 +177,18 @@ namespace ortc
 
       static StatsReportPtr create(const StatMap &stats);
 
+      static PromiseWithStatsReportPtr collectReports(
+                                                      const PromiseWithStatsReportList &promises,
+                                                      PromiseWithStatsReportPtr previouslyCreatedPromiseToResolve = PromiseWithStatsReportPtr()
+                                                      );
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark StatsReport => IPromiseSettledDelegate
+      #pragma mark
+
+      virtual void onPromiseSettled(PromisePtr promise) override;
+
     protected:
       //-----------------------------------------------------------------------
       #pragma mark
@@ -179,6 +211,9 @@ namespace ortc
       AutoPUID mID;
       StatsReportWeakPtr mThisWeak;
 
+      PromiseWithStatsReportWeakPtr mResolvePromise;
+      PromiseWithStatsReportMap mPendingResolution;
+
       StatMap mStats;
     };
 
@@ -192,11 +227,18 @@ namespace ortc
 
     interaction IStatsReportFactory
     {
-      ZS_DECLARE_TYPEDEF_PTR(IStatsReportForInternal::StatMap, StatMap)
+      ZS_DECLARE_TYPEDEF_PTR(IStatsReportForInternal::StatMap, StatMap);
+      ZS_DECLARE_TYPEDEF_PTR(IStatsProviderTypes::PromiseWithStatsReport, PromiseWithStatsReport);
+      ZS_DECLARE_TYPEDEF_PTR(std::list<PromiseWithStatsReportPtr>, PromiseWithStatsReportList);
 
       static IStatsReportFactory &singleton();
 
       virtual StatsReportPtr create(const StatMap &stats);
+
+      virtual PromiseWithStatsReportPtr collectReports(
+                                                       const PromiseWithStatsReportList &promises,
+                                                       PromiseWithStatsReportPtr previouslyCreatedPromiseToResolve = PromiseWithStatsReportPtr()
+                                                       );
     };
 
     class StatsReportFactory : public IFactory<IStatsReportFactory> {};

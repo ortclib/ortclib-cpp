@@ -40,6 +40,7 @@
 #include <ortc/internal/ortc_RTPTypes.h>
 #include <ortc/internal/ortc_SRTPSDESTransport.h>
 #include <ortc/internal/ortc_ORTC.h>
+#include <ortc/internal/ortc_StatsReport.h>
 #include <ortc/internal/ortc_Tracing.h>
 #include <ortc/internal/platform.h>
 
@@ -74,6 +75,8 @@ namespace ortc
 
   namespace internal
   {
+    ZS_DECLARE_TYPEDEF_PTR(IStatsReportForInternal, UseStatsReport);
+
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -282,6 +285,12 @@ namespace ortc
     {
       if (ISecureTransport::State_Closed == mLastReportedState) return false;
       return mChannel->handlePacket(packet);
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPReceiver::ChannelHolder::requestStats(PromiseWithStatsReportPtr promise)
+    {
+      return mChannel->requestStats(promise);
     }
 
     //-------------------------------------------------------------------------
@@ -590,9 +599,27 @@ namespace ortc
     //-------------------------------------------------------------------------
     IStatsProvider::PromiseWithStatsReportPtr RTPReceiver::getStats() const throw(InvalidStateError)
     {
-#define TODO_COMPLETE 1
-#define TODO_COMPLETE 2
-      return PromiseWithStatsReportPtr();
+      ChannelWeakMapPtr channels;
+
+      UseStatsReport::PromiseWithStatsReportList promises;
+
+      {
+        AutoRecursiveLock lock(*this);
+        channels = mChannels; // obtain pointer to COW list while inside a lock
+      }
+
+      bool result = false;
+      for (auto iter = channels->begin(); iter != channels->end(); ++iter)
+      {
+        auto channel = (*iter).second.lock();
+        if (!channel) continue;
+
+        auto channelPromise = PromiseWithStatsReport::create(IORTCForInternal::queueORTC());
+        channel->requestStats(channelPromise);
+        promises.push_back(channelPromise);
+      }
+
+      return UseStatsReport::collectReports(promises);
     }
 
     //-------------------------------------------------------------------------

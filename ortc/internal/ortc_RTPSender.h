@@ -37,6 +37,7 @@
 #include <ortc/IRTPSender.h>
 #include <ortc/IDTLSTransport.h>
 #include <ortc/IICETransport.h>
+#include <ortc/IStatsReport.h>
 
 #include <openpeer/services/IWakeDelegate.h>
 #include <zsLib/MessageQueueAssociator.h>
@@ -210,10 +211,12 @@ namespace ortc
       friend interaction IRTPSenderForDTMFSender;
       friend interaction IRTPSenderForMediaStreamTrack;
 
-      ZS_DECLARE_TYPEDEF_PTR(ISecureTransportForRTPSender, UseSecureTransport)
-      ZS_DECLARE_TYPEDEF_PTR(IRTPListenerForRTPSender, UseListener)
-      ZS_DECLARE_TYPEDEF_PTR(IRTPSenderChannelForRTPSender, UseChannel)
-      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPSender, UseMediaStreamTrack)
+      ZS_DECLARE_TYPEDEF_PTR(ISecureTransportForRTPSender, UseSecureTransport);
+      ZS_DECLARE_TYPEDEF_PTR(IRTPListenerForRTPSender, UseListener);
+      ZS_DECLARE_TYPEDEF_PTR(IRTPSenderChannelForRTPSender, UseChannel);
+      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPSender, UseMediaStreamTrack);
+
+      ZS_DECLARE_TYPEDEF_PTR(IStatsProviderTypes::PromiseWithStatsReport, PromiseWithStatsReport);
 
       typedef std::list<RTCPPacketPtr> RTCPPacketList;
       ZS_DECLARE_PTR(RTCPPacketList)
@@ -249,6 +252,8 @@ namespace ortc
         void update(const Parameters &params);
 
         bool handle(RTCPPacketPtr packet);
+
+        void requestStats(PromiseWithStatsReportPtr promise);
 
         ElementPtr toDebug() const;
       };
@@ -295,7 +300,6 @@ namespace ortc
       static RTPSenderPtr convert(ForRTPSenderChannelPtr object);
       static RTPSenderPtr convert(ForDTMFSenderPtr object);
       static RTPSenderPtr convert(ForMediaStreamTrackPtr object);
-
 
     protected:
       //-----------------------------------------------------------------------

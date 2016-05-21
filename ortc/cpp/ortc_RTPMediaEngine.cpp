@@ -38,8 +38,11 @@
 #include <ortc/internal/ortc_RTPPacket.h>
 #include <ortc/internal/ortc_RTCPPacket.h>
 #include <ortc/internal/ortc_ORTC.h>
+#include <ortc/internal/ortc_StatsReport.h>
 #include <ortc/internal/ortc_Tracing.h>
 #include <ortc/internal/platform.h>
+
+#include <ortc/IStatsReport.h>
 
 #include <openpeer/services/ISettings.h>
 #include <openpeer/services/IHelper.h>
@@ -76,16 +79,17 @@ namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib) }
 
 namespace ortc
 {
-  ZS_DECLARE_TYPEDEF_PTR(openpeer::services::ISettings, UseSettings)
-  ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHelper, UseServicesHelper)
-  ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHTTP, UseHTTP)
+  ZS_DECLARE_TYPEDEF_PTR(openpeer::services::ISettings, UseSettings);
+  ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHelper, UseServicesHelper);
+  ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHTTP, UseHTTP);
 
   typedef openpeer::services::Hasher<CryptoPP::SHA1> SHA1Hasher;
 
   namespace internal
   {
-    ZS_DECLARE_CLASS_PTR(RTPMediaEngineRegistration)
-    ZS_DECLARE_CLASS_PTR(RTPMediaEngineSingleton)
+    ZS_DECLARE_CLASS_PTR(RTPMediaEngineRegistration);
+    ZS_DECLARE_CLASS_PTR(RTPMediaEngineSingleton);
+    ZS_DECLARE_TYPEDEF_PTR(IStatsReportForInternal, UseStatsReport);
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -1464,6 +1468,12 @@ namespace ortc
       IRTPMediaEngineChannelResourceAsyncDelegateProxy::create(pThis)->onUpdate(param);
     }
 
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::ChannelResource::requestStats(PromiseWithStatsReportPtr promise)
+    {
+      auto pThis = ZS_DYNAMIC_PTR_CAST(ChannelResource, mThisWeak.lock());
+      IRTPMediaEngineChannelResourceAsyncDelegateProxy::create(pThis)->onProvideStats(promise);
+    }
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -1645,6 +1655,23 @@ namespace ortc
           webrtc::VoEBase::GetInterface(voiceEngine)->StopReceive(mChannel);
         }
       }
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::AudioReceiverChannelResource::onProvideStats(PromiseWithStatsReportPtr promise)
+    {
+      UseStatsReport::StatMap stats;
+
+      auto report = make_shared<IStatsReport::OutboundRTPStreamStats>();
+
+      report->mID = string(zsLib::createUUID());
+
+#define TODO_MOSA 1
+#define TODO_MOSA 2
+
+      stats[report->mID] = report;
+
+      promise->resolve(UseStatsReport::create(stats));
     }
 
     //-------------------------------------------------------------------------
@@ -2075,6 +2102,23 @@ namespace ortc
           webrtc::VoEBase::GetInterface(voiceEngine)->StopSend(mChannel);
         }
       }
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::AudioSenderChannelResource::onProvideStats(PromiseWithStatsReportPtr promise)
+    {
+      UseStatsReport::StatMap stats;
+
+      auto report = make_shared<IStatsReport::InboundRTPStreamStats>();
+
+      report->mID = string(zsLib::createUUID());
+
+      stats[report->mID] = report;
+
+#define TODO_MOSA 1
+#define TODO_MOSA 2
+
+      promise->resolve(UseStatsReport::create(stats));
     }
 
     //-------------------------------------------------------------------------
@@ -2521,6 +2565,23 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    void RTPMediaEngine::VideoReceiverChannelResource::onProvideStats(PromiseWithStatsReportPtr promise)
+    {
+      UseStatsReport::StatMap stats;
+
+      auto report = make_shared<IStatsReport::InboundRTPStreamStats>();
+
+      report->mID = string(zsLib::createUUID());
+
+      stats[report->mID] = report;
+
+#define TODO_MOSA 1
+#define TODO_MOSA 2
+
+      promise->resolve(UseStatsReport::create(stats));
+    }
+
+    //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -2946,6 +3007,23 @@ namespace ortc
         else if (previousActive && !currentActive)
           mSendStream->Stop();
       }
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::VideoSenderChannelResource::onProvideStats(PromiseWithStatsReportPtr promise)
+    {
+      UseStatsReport::StatMap stats;
+
+      auto report = make_shared<IStatsReport::OutboundRTPStreamStats>();
+
+      report->mID = string(zsLib::createUUID());
+
+      stats[report->mID] = report;
+
+#define TODO_MOSA 1
+#define TODO_MOSA 2
+
+      promise->resolve(UseStatsReport::create(stats));
     }
 
     //-------------------------------------------------------------------------

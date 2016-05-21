@@ -294,7 +294,22 @@ namespace ortc
       if (!channelResource) return false;
       return channelResource->handlePacket(*packet);
     }
-    
+
+    //-------------------------------------------------------------------------
+    void RTPReceiverChannelAudio::requestStats(PromiseWithStatsReportPtr promise)
+    {
+      UseChannelResourcePtr channelResource;
+      {
+        AutoRecursiveLock lock(*this);
+        channelResource = mChannelResource;
+      }
+
+      if (!channelResource) {
+        promise->reject();
+        return;
+      }
+      return channelResource->requestStats(promise);
+    }
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------

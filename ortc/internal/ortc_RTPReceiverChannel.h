@@ -38,6 +38,7 @@
 #include <ortc/IDTLSTransport.h>
 #include <ortc/IRTPTypes.h>
 #include <ortc/IMediaStreamTrack.h>
+#include <ortc/IStatsProvider.h>
 
 #include <openpeer/services/IWakeDelegate.h>
 #include <zsLib/MessageQueueAssociator.h>
@@ -92,11 +93,12 @@ namespace ortc
 
     interaction IRTPReceiverChannelForRTPReceiver
     {
-      ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverChannelForRTPReceiver, ForRTPReceiver)
+      ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverChannelForRTPReceiver, ForRTPReceiver);
 
-      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters)
+      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters);
       typedef std::list<RTCPPacketPtr> RTCPPacketList;
-      ZS_DECLARE_PTR(RTCPPacketList)
+      ZS_DECLARE_PTR(RTCPPacketList);
+      ZS_DECLARE_TYPEDEF_PTR(IStatsProviderTypes::PromiseWithStatsReport, PromiseWithStatsReport);
 
       static ElementPtr toDebug(ForRTPReceiverPtr object);
 
@@ -120,6 +122,8 @@ namespace ortc
       virtual bool handlePacket(RTPPacketPtr packet) = 0;
 
       virtual bool handlePacket(RTCPPacketPtr packet) = 0;
+
+      virtual void requestStats(PromiseWithStatsReportPtr promise) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -325,6 +329,8 @@ namespace ortc
 
       virtual bool handlePacket(RTCPPacketPtr packet) override;
 
+      virtual void requestStats(PromiseWithStatsReportPtr promise) override;
+
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark RTPReceiverChannel => IRTPReceiverChannelForMediaStreamTrack
@@ -401,7 +407,6 @@ namespace ortc
       bool isShutdown() const;
 
       void step();
-      bool stepBogusDoSomething();
 
       void cancel();
 

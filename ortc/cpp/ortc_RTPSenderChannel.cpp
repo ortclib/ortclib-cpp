@@ -330,6 +330,21 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    void RTPSenderChannel::requestStats(PromiseWithStatsReportPtr promise)
+    {
+      ZS_LOG_TRACE(log("on provide stats") + ZS_PARAM("promise", promise->getID()));
+
+      UseMediaBasePtr mediaBase;
+
+      {
+        AutoRecursiveLock lock(*this);
+        mediaBase = mMediaBase;
+      }
+
+      mediaBase->requestStats(promise);
+    }
+
+    //-------------------------------------------------------------------------
     bool RTPSenderChannel::handlePacket(RTCPPacketPtr packet)
     {
       EventWriteOrtcRtpSenderChannelDeliverIncomingPacketToMediaChannel(__func__, mID, mMediaBase->getID(), zsLib::to_underlying(IICETypes::Component_RTCP), SafeInt<unsigned int>(packet->buffer()->SizeInBytes()), packet->buffer()->BytePtr());
@@ -689,7 +704,7 @@ namespace ortc
             }
           }
         }
-        
+
         ORTC_THROW_INVALID_PARAMETERS_IF(!found)
 
         setupTagging();
@@ -769,44 +784,15 @@ namespace ortc
       }
 
       // ... other steps here ...
-      if (!stepBogusDoSomething()) goto not_ready;
       // ... other steps here ...
 
       goto ready;
-
-    not_ready:
-      {
-        ZS_LOG_TRACE(debug("not ready"))
-        return;
-      }
 
     ready:
       {
         ZS_LOG_TRACE(log("ready"))
         setState(State_Ready);
       }
-    }
-
-    //-------------------------------------------------------------------------
-    bool RTPSenderChannel::stepBogusDoSomething()
-    {
-      if ( /* step already done */ false ) {
-        ZS_LOG_TRACE(log("already completed do something"))
-        return true;
-      }
-
-      if ( /* cannot do step yet */ false) {
-        ZS_LOG_DEBUG(log("waiting for XYZ to complete before continuing"))
-        return false;
-      }
-
-      ZS_LOG_DEBUG(log("doing step XYZ"))
-
-      // ....
-#define TODO 1
-#define TODO 2
-
-      return true;
     }
 
     //-------------------------------------------------------------------------

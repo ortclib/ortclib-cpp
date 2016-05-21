@@ -35,6 +35,7 @@
 #include <ortc/internal/ortc_ISecureTransport.h>
 
 #include <ortc/IRTPTypes.h>
+#include <ortc/IStatsProvider.h>
 
 //#define ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE "ortc/sctp/max-message-size"
 
@@ -58,10 +59,12 @@ namespace ortc
 
     interaction IRTPSenderChannelMediaBaseForRTPSenderChannel
     {
-      ZS_DECLARE_TYPEDEF_PTR(IRTPSenderChannelMediaBaseForRTPSenderChannel, ForRTPSenderChannel)
+      ZS_DECLARE_TYPEDEF_PTR(IRTPSenderChannelMediaBaseForRTPSenderChannel, ForRTPSenderChannel);
 
-      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters)
-      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPSenderChannelMediaBase, UseBaseMediaStreamTrack)
+      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters);
+      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPSenderChannelMediaBase, UseBaseMediaStreamTrack);
+
+      ZS_DECLARE_TYPEDEF_PTR(IStatsProvider::PromiseWithStatsReport, PromiseWithStatsReport);
 
       static ElementPtr toDebug(ForRTPSenderChannelPtr object);
 
@@ -74,6 +77,8 @@ namespace ortc
       virtual void notifyUpdate(ParametersPtr params) = 0;
 
       virtual bool handlePacket(RTCPPacketPtr packet) = 0;
+
+      virtual void requestStats(PromiseWithStatsReportPtr promise) = 0;
     };
 
     //-------------------------------------------------------------------------

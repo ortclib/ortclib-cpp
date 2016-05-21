@@ -104,6 +104,29 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
+    #pragma mark IStatsReportForInternal
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    StatsReportPtr IStatsReportForInternal::create(const StatMap &stats)
+    {
+      return IStatsReportFactory::singleton().create(stats);
+    }
+
+    //-------------------------------------------------------------------------
+    IStatsReportForInternal::PromiseWithStatsReportPtr IStatsReportForInternal::collectReports(
+                                                                                               const PromiseWithStatsReportList &promises,
+                                                                                               PromiseWithStatsReportPtr previouslyCreatedPromiseToResolve
+                                                                                               )
+    {
+      return IStatsReportFactory::singleton().collectReports(promises, previouslyCreatedPromiseToResolve);
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
     #pragma mark StatsReport
     #pragma mark
     
@@ -125,7 +148,37 @@ namespace ortc
     //-------------------------------------------------------------------------
     void StatsReport::init()
     {
-      //AutoRecursiveLock lock(*this);
+    }
+
+    //-------------------------------------------------------------------------
+    void StatsReport::init(
+                           PromiseWithStatsReportPtr resolvePromise,
+                           const PromiseWithStatsReportList &promises
+                           )
+    {
+      bool resolveNow = false;
+      auto pThis = mThisWeak.lock();
+
+      {
+        AutoRecursiveLock lock(*this);
+
+        mResolvePromise = resolvePromise;
+
+        for (auto iter = promises.begin(); iter != promises.end(); ++iter) {
+          auto &promise = (*iter);
+          if (!promise) continue;
+
+          mPendingResolution[promise->getID()] = promise;
+          promise->thenWeak(pThis);
+        }
+
+        resolveNow = (mPendingResolution.size() < 1);
+      }
+
+      if (resolveNow) {
+        ZS_LOG_TRACE(log("resolving immediately (as no collected promises are needing to be resolved)"));
+        resolvePromise->resolve(pThis);
+      }
     }
 
     //-------------------------------------------------------------------------
@@ -213,6 +266,70 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    StatsReport::PromiseWithStatsReportPtr StatsReport::collectReports(
+                                                                       const PromiseWithStatsReportList &promises,
+                                                                       PromiseWithStatsReportPtr previouslyCreatedPromiseToResolve
+                                                                       )
+    {
+      StatsReportPtr pThis(make_shared<StatsReport>(make_private{}, IORTCForInternal::queueORTC(), StatMap()));
+      pThis->mThisWeak = pThis;
+      if (!previouslyCreatedPromiseToResolve) {
+        previouslyCreatedPromiseToResolve = PromiseWithStatsReport::create(IORTCForInternal::queueDelegate());
+      }
+      pThis->init(previouslyCreatedPromiseToResolve, promises);
+      previouslyCreatedPromiseToResolve->setReferenceHolder(pThis);
+      return previouslyCreatedPromiseToResolve;
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark StatsReport => IPromiseSettledDelegate
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    void StatsReport::onPromiseSettled(PromisePtr promise)
+    {
+      if (!promise) return;
+
+      PromiseWithStatsReportPtr resolve;
+
+      {
+        AutoRecursiveLock lock(*this);
+        
+        auto found = mPendingResolution.find(promise->getID());
+        if (found == mPendingResolution.end()) return;
+
+        PromiseWithStatsReportPtr resolvedPromise = (*found).second;
+        mPendingResolution.erase(found);
+
+        IStatsReportPtr report = resolvedPromise->value();
+
+        if (report) {
+          auto ids = report->getStatesIDs();
+          if (ids) {
+            for (auto iter = ids->begin(); iter != ids->end(); ++iter) {
+              auto &id = (*iter);
+              auto stat = report->getStats(id);
+              if (!stat) continue;
+              mStats[id] = stat;
+            }
+          }
+        }
+
+        if (mPendingResolution.size() < 1) resolve = mResolvePromise.lock();
+      }
+
+      if (!resolve) return;
+
+      ZS_LOG_TRACE(log("all promises are resolved"));
+
+      resolve->resolve(mThisWeak.lock());
+    }
+
+    //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -242,6 +359,9 @@ namespace ortc
       ElementPtr resultEl = Element::create("ortc::StatsReport");
 
       UseServicesHelper::debugAppend(resultEl, "id", mID);
+
+      UseServicesHelper::debugAppend(resultEl, "resolve promise", (bool)mResolvePromise.lock());
+      UseServicesHelper::debugAppend(resultEl, "pending resolution", mPendingResolution.size());
 
       UseServicesHelper::debugAppend(resultEl, "stat size", mStats.size());
 
@@ -293,6 +413,16 @@ namespace ortc
     {
       if (this) {}
       return internal::StatsReport::create(stats);
+    }
+
+    //-------------------------------------------------------------------------
+    IStatsReportFactory::PromiseWithStatsReportPtr IStatsReportFactory::collectReports(
+                                                                                       const PromiseWithStatsReportList &promises,
+                                                                                       PromiseWithStatsReportPtr previouslyCreatedPromiseToResolve
+                                                                                       )
+    {
+      if (this) {}
+      return internal::StatsReport::collectReports(promises, previouslyCreatedPromiseToResolve);
     }
 
   } // internal namespace

@@ -39,6 +39,7 @@
 #include <ortc/IRTPReceiver.h>
 #include <ortc/IDTLSTransport.h>
 #include <ortc/IMediaStreamTrack.h>
+#include <ortc/IStatsProvider.h>
 
 #include <openpeer/services/IWakeDelegate.h>
 #include <zsLib/MessageQueueAssociator.h>
@@ -197,16 +198,17 @@ namespace ortc
       friend interaction IRTPReceiverForRTPReceiverChannel;
       friend interaction IRTPReceiverForMediaStreamTrack;
 
-      ZS_DECLARE_TYPEDEF_PTR(ISecureTransportForRTPReceiver, UseSecureTransport)
-      ZS_DECLARE_TYPEDEF_PTR(IRTPListenerForRTPReceiver, UseListener)
-      ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverChannelForRTPReceiver, UseChannel)
-      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPReceiver, UseMediaStreamTrack)
+      ZS_DECLARE_TYPEDEF_PTR(ISecureTransportForRTPReceiver, UseSecureTransport);
+      ZS_DECLARE_TYPEDEF_PTR(IRTPListenerForRTPReceiver, UseListener);
+      ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverChannelForRTPReceiver, UseChannel);
+      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPReceiver, UseMediaStreamTrack);
+      ZS_DECLARE_TYPEDEF_PTR(IStatsProviderTypes::PromiseWithStatsReport, PromiseWithStatsReport);
 
-      ZS_DECLARE_STRUCT_PTR(RegisteredHeaderExtension)
-      ZS_DECLARE_STRUCT_PTR(ChannelHolder)
-      ZS_DECLARE_STRUCT_PTR(ChannelInfo)
-      ZS_DECLARE_STRUCT_PTR(SSRCInfo)
-      ZS_DECLARE_STRUCT_PTR(CodecInfo)
+      ZS_DECLARE_STRUCT_PTR(RegisteredHeaderExtension);
+      ZS_DECLARE_STRUCT_PTR(ChannelHolder);
+      ZS_DECLARE_STRUCT_PTR(ChannelInfo);
+      ZS_DECLARE_STRUCT_PTR(SSRCInfo);
+      ZS_DECLARE_STRUCT_PTR(CodecInfo);
 
       friend ChannelHolder;
 
@@ -294,6 +296,8 @@ namespace ortc
 
         bool handle(RTPPacketPtr packet);
         bool handle(RTCPPacketPtr packet);
+
+        void requestStats(PromiseWithStatsReportPtr promise);
 
         ElementPtr toDebug() const;
       };

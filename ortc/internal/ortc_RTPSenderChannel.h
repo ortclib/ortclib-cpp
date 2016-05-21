@@ -39,6 +39,7 @@
 #include <ortc/IICETransport.h>
 #include <ortc/IRTPTypes.h>
 #include <ortc/IMediaStreamTrack.h>
+#include <ortc/IStatsProvider.h>
 
 #include <openpeer/services/IWakeDelegate.h>
 #include <zsLib/MessageQueueAssociator.h>
@@ -95,11 +96,13 @@ namespace ortc
 
     interaction IRTPSenderChannelForRTPSender
     {
-      ZS_DECLARE_TYPEDEF_PTR(IRTPSenderChannelForRTPSender, ForRTPSender)
+      ZS_DECLARE_TYPEDEF_PTR(IRTPSenderChannelForRTPSender, ForRTPSender);
 
-      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters)
+      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters);
       typedef std::list<RTCPPacketPtr> RTCPPacketList;
-      ZS_DECLARE_PTR(RTCPPacketList)
+      ZS_DECLARE_PTR(RTCPPacketList);
+
+      ZS_DECLARE_TYPEDEF_PTR(IStatsProviderTypes::PromiseWithStatsReport, PromiseWithStatsReport);
 
       static ElementPtr toDebug(ForRTPSenderPtr object);
 
@@ -120,6 +123,8 @@ namespace ortc
       virtual void notifyUpdate(const Parameters &params) = 0;
 
       virtual bool handlePacket(RTCPPacketPtr packet) = 0;
+
+      virtual void requestStats(PromiseWithStatsReportPtr promise) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -203,10 +208,10 @@ namespace ortc
     interaction IRTPSenderChannelAsyncDelegate
     {
       typedef std::list<RTCPPacketPtr> RTCPPacketList;
-      ZS_DECLARE_PTR(RTCPPacketList)
-      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters)
+      ZS_DECLARE_PTR(RTCPPacketList);
+      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters);
 
-      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPSenderChannel, UseMediaStreamTrack)
+      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPSenderChannel, UseMediaStreamTrack);
 
       virtual void onTrackChanged(UseMediaStreamTrackPtr track) = 0;
 
@@ -250,16 +255,17 @@ namespace ortc
       friend interaction IRTPSenderChannelForRTPSenderChannelVideo;
       friend interaction IRTPSenderChannelForMediaStreamTrack;
 
-      ZS_DECLARE_TYPEDEF_PTR(IRTPSenderForRTPSenderChannel, UseSender)
-      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPSenderChannel, UseMediaStreamTrack)
+      ZS_DECLARE_TYPEDEF_PTR(IRTPSenderForRTPSenderChannel, UseSender);
+      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPSenderChannel, UseMediaStreamTrack);
 
-      ZS_DECLARE_TYPEDEF_PTR(IRTPSenderChannelMediaBaseForRTPSenderChannel, UseMediaBase)
-      ZS_DECLARE_TYPEDEF_PTR(IRTPSenderChannelAudioForRTPSenderChannel, UseAudio)
-      ZS_DECLARE_TYPEDEF_PTR(IRTPSenderChannelVideoForRTPSenderChannel, UseVideo)
+      ZS_DECLARE_TYPEDEF_PTR(IRTPSenderChannelMediaBaseForRTPSenderChannel, UseMediaBase);
+      ZS_DECLARE_TYPEDEF_PTR(IRTPSenderChannelAudioForRTPSenderChannel, UseAudio);
+      ZS_DECLARE_TYPEDEF_PTR(IRTPSenderChannelVideoForRTPSenderChannel, UseVideo);
 
       ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters)
       typedef std::list<RTCPPacketPtr> RTCPPacketList;
-      ZS_DECLARE_PTR(RTCPPacketList)
+      ZS_DECLARE_PTR(RTCPPacketList);
+      ZS_DECLARE_TYPEDEF_PTR(IStatsProviderTypes::PromiseWithStatsReport, PromiseWithStatsReport);
 
       typedef IRTPTypes::SSRCType SSRCType;
       ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::HeaderExtensionParameters, HeaderExtensionParameters)
@@ -343,6 +349,8 @@ namespace ortc
 
       virtual bool handlePacket(RTCPPacketPtr packet) override;
 
+      virtual void requestStats(PromiseWithStatsReportPtr promise) override;
+
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark RTPSenderChannel => IRTPSenderChannelForRTPSenderChannelMediaBase
@@ -422,7 +430,6 @@ namespace ortc
       bool isShutdown() const;
 
       void step();
-      bool stepBogusDoSomething();
 
       void cancel();
 
@@ -503,6 +510,7 @@ ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::ISecureTransport::States, States)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::IRTPSenderChannelAsyncDelegate::RTCPPacketListPtr, RTCPPacketListPtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::IRTPSenderChannelAsyncDelegate::ParametersPtr, ParametersPtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::IMediaStreamTrackForRTPSenderChannel, UseMediaStreamTrack)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::IStatsProviderTypes::PromiseWithStatsReportPtr, PromiseWithStatsReportPtr)
 ZS_DECLARE_PROXY_METHOD_1(onTrackChanged, UseMediaStreamTrackPtr)
 ZS_DECLARE_PROXY_METHOD_1(onSecureTransportState, States)
 ZS_DECLARE_PROXY_METHOD_1(onNotifyPackets, RTCPPacketListPtr)

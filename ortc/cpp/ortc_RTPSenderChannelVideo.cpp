@@ -258,7 +258,24 @@ namespace ortc
       if (!channelResource) return true;
       return channelResource->handlePacket(*packet);
     }
-    
+
+    //-------------------------------------------------------------------------
+    void RTPSenderChannelVideo::requestStats(PromiseWithStatsReportPtr promise)
+    {
+      UseChannelResourcePtr channelResource;
+
+      {
+        AutoRecursiveLock lock(*this);
+        channelResource = mChannelResource;
+      }
+
+      if (!channelResource) {
+        promise->reject();
+        return;
+      }
+      return channelResource->requestStats(promise);
+    }
+
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------

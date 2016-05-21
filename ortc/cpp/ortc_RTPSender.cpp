@@ -40,6 +40,7 @@
 #include <ortc/internal/ortc_RTCPPacket.h>
 #include <ortc/internal/ortc_RTPTypes.h>
 #include <ortc/internal/ortc_ORTC.h>
+#include <ortc/internal/ortc_StatsReport.h>
 #include <ortc/internal/ortc_Tracing.h>
 #include <ortc/internal/platform.h>
 
@@ -81,6 +82,8 @@ namespace ortc
 
   namespace internal
   {
+    ZS_DECLARE_TYPEDEF_PTR(IStatsReportForInternal, UseStatsReport);
+
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -228,6 +231,12 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    void RTPSender::ChannelHolder::requestStats(PromiseWithStatsReportPtr promise)
+    {
+      return mChannel->requestStats(promise);
+    }
+
+    //-------------------------------------------------------------------------
     ElementPtr RTPSender::ChannelHolder::toDebug() const
     {
       ElementPtr resultEl = Element::create("ortc::RTPSender::ChannelHolder");
@@ -359,11 +368,27 @@ namespace ortc
     //-------------------------------------------------------------------------
     IStatsProvider::PromiseWithStatsReportPtr RTPSender::getStats() const throw(InvalidStateError)
     {
-#define TODO_COMPLETE 1
-#define TODO_COMPLETE 2
-      return PromiseWithStatsReportPtr();
-    }
+      ParametersToChannelHolderMapPtr channels;
 
+      UseStatsReport::PromiseWithStatsReportList promises;
+
+      {
+        AutoRecursiveLock lock(*this);
+        channels = mChannels; // obtain pointer to COW list while inside a lock
+      }
+
+      bool result = false;
+      for (auto iter = channels->begin(); iter != channels->end(); ++iter)
+      {
+        auto channel = (*iter).second;
+
+        auto channelPromise = PromiseWithStatsReport::create(IORTCForInternal::queueORTC());
+        channel->requestStats(channelPromise);
+        promises.push_back(channelPromise);
+      }
+
+      return UseStatsReport::collectReports(promises);
+    }
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------

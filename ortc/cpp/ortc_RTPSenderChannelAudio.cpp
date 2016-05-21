@@ -35,6 +35,7 @@
 #include <ortc/internal/ortc_RTPPacket.h>
 #include <ortc/internal/ortc_RTCPPacket.h>
 #include <ortc/internal/ortc_ORTC.h>
+#include <ortc/internal/ortc_StatsReport.h>
 #include <ortc/internal/platform.h>
 
 #include <openpeer/services/ISettings.h>
@@ -58,14 +59,16 @@ namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib) }
 
 namespace ortc
 {
-  ZS_DECLARE_TYPEDEF_PTR(openpeer::services::ISettings, UseSettings)
-  ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHelper, UseServicesHelper)
-  ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHTTP, UseHTTP)
+  ZS_DECLARE_TYPEDEF_PTR(openpeer::services::ISettings, UseSettings);
+  ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHelper, UseServicesHelper);
+  ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHTTP, UseHTTP);
 
   typedef openpeer::services::Hasher<CryptoPP::SHA1> SHA1Hasher;
 
   namespace internal
   {
+    ZS_DECLARE_TYPEDEF_PTR(IStatsReportForInternal, UseStatsReport);
+
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -255,6 +258,23 @@ namespace ortc
 
       if (!channelResource) return false;
       return channelResource->handlePacket(*packet);
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPSenderChannelAudio::requestStats(PromiseWithStatsReportPtr promise)
+    {
+      UseChannelResourcePtr channelResource;
+
+      {
+        AutoRecursiveLock lock(*this);
+        channelResource = mChannelResource;
+      }
+
+      if (!channelResource) {
+        promise->reject();
+        return;
+      }
+      return channelResource->requestStats(promise);
     }
 
     //-------------------------------------------------------------------------

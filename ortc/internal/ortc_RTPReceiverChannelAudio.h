@@ -277,6 +277,8 @@ namespace ortc
 
       virtual bool handlePacket(RTCPPacketPtr packet) override;
 
+      virtual void requestStats(PromiseWithStatsReportPtr promise) override;
+
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark RTPReceiverChannelAudio => IRTPReceiverChannelAudioForRTPReceiverChannel

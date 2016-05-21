@@ -341,6 +341,12 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    void RTPReceiverChannel::requestStats(PromiseWithStatsReportPtr promise)
+    {
+      return mMediaBase->requestStats(promise);
+    }
+
+    //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -601,44 +607,15 @@ namespace ortc
       }
 
       // ... other steps here ...
-      if (!stepBogusDoSomething()) goto not_ready;
       // ... other steps here ...
 
       goto ready;
-
-    not_ready:
-      {
-        ZS_LOG_TRACE(debug("not ready"))
-        return;
-      }
 
     ready:
       {
         ZS_LOG_TRACE(log("ready"))
         setState(State_Ready);
       }
-    }
-
-    //-------------------------------------------------------------------------
-    bool RTPReceiverChannel::stepBogusDoSomething()
-    {
-      if ( /* step already done */ false ) {
-        ZS_LOG_TRACE(log("already completed do something"))
-        return true;
-      }
-
-      if ( /* cannot do step yet */ false) {
-        ZS_LOG_DEBUG(log("waiting for XYZ to complete before continuing"))
-        return false;
-      }
-
-      ZS_LOG_DEBUG(log("doing step XYZ"))
-
-      // ....
-#define TODO 1
-#define TODO 2
-
-      return true;
     }
 
     //-------------------------------------------------------------------------

@@ -261,7 +261,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IStatsReportTypes::InboundRTPStreamStats
+    #pragma mark IStatsReportTypes::OutboundRTPStreamStats
     #pragma mark
 
     struct OutboundRTPStreamStats : public RTPStreamStats
