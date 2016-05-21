@@ -1018,7 +1018,7 @@ namespace ortc
         for (auto iter = mMediaStreamIDs.begin(); iter != mMediaStreamIDs.end(); ++iter)
         {
           auto streamID = (*iter);
-          UseHelper::adoptElementValue(mediaStreamIDsEl, "mediaSteamIds", streamID, false);
+          UseHelper::adoptElementValue(mediaStreamIDsEl, "mediaSteamId", streamID, false);
         }
         if (mediaStreamIDsEl->hasChildren()) {
           rootEl->adoptAsLastChild(mediaStreamIDsEl);
