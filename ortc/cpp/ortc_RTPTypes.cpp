@@ -3531,7 +3531,7 @@ namespace ortc
       UseHelper::adoptElementValue(elem, "ptime", mPTime);
     }
     if (Milliseconds() != mMaxPTime) {
-      UseHelper::adoptElementValue(elem, "maxptime", mMaxPTime);
+      UseHelper::adoptElementValue(elem, "maxptime", mMaxPTime.count());
     }
     UseHelper::adoptElementValue(elem, "numChannels", mNumChannels);
 
