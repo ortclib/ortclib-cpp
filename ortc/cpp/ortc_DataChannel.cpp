@@ -1578,7 +1578,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IDataChannelTypes::States IDataChannelTypes::toState(const char *state) throw (InvalidParameters)
+  Optional<IDataChannelTypes::States> IDataChannelTypes::toState(const char *state)
   {
     String str(state);
 
@@ -1586,8 +1586,7 @@ namespace ortc
       if (0 == str.compareNoCase(IDataChannelTypes::toString(index))) return index;
     }
 
-    ORTC_THROW_INVALID_PARAMETERS("Invalid parameter value: " + str)
-    return State_First;
+    return Optional<IDataChannelTypes::States>();
   }
   
   //---------------------------------------------------------------------------

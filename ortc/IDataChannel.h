@@ -64,7 +64,7 @@ namespace ortc
     };
 
     static const char *toString(States state);
-    static States toState(const char *state) throw (InvalidParameters);
+    static Optional<States> toState(const char *state);
 
     //-------------------------------------------------------------------------
     #pragma mark

@@ -269,7 +269,7 @@ namespace ortc
       unsigned long       mPacketsSent {};
       unsigned long long  mBytesSent {};
       double              mTargetBitrate {};
-      double              mToundTripTime {};
+      double              mRoundTripTime {};
 
       OutboundRTPStreamStats() {}
       OutboundRTPStreamStats(const OutboundRTPStreamStats &op2);
@@ -326,11 +326,11 @@ namespace ortc
 
     struct MediaStreamStats : public Stats
     {
-      String      mStreamIDs;
+      String      mStreamID;
       StringList  mTrackIDs;
 
       MediaStreamStats() {}
-      MediaStreamStats(const SCTPTransportStats &op2);
+      MediaStreamStats(const MediaStreamStats &op2);
       MediaStreamStats(ElementPtr rootEl);
 
       static MediaStreamStatsPtr create(ElementPtr rootEl);
@@ -631,9 +631,9 @@ namespace ortc
       CertificateStats(const CertificateStats &op2);
       CertificateStats(ElementPtr rootEl);
 
-      static ICECandidatePairStatsPtr create(ElementPtr rootEl);
+      static CertificateStatsPtr create(ElementPtr rootEl);
 
-      static ICECandidatePairStatsPtr convert(AnyPtr any);
+      static CertificateStatsPtr convert(AnyPtr any);
 
       virtual ElementPtr createElement(const char *objectName = "certificate") const;
 

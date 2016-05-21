@@ -78,6 +78,12 @@ namespace ortc
     #pragma mark (helpers)
     #pragma mark
 
+    //-------------------------------------------------------------------------
+    static Log::Params slog(const char *message)
+    {
+      ElementPtr objectEl = Element::create("ortc::StatsReport");
+      return Log::Params(message, objectEl);
+    }
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -677,7 +683,6 @@ namespace ortc
 
     return hasher.final();
   }
-
   
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
@@ -729,7 +734,7 @@ namespace ortc
   {
     ElementPtr rootEl = RTPStreamStats::createElement(objectName);
 
-    UseHelper::adoptElementValue(rootEl, "oacketsReceived", mPacketsReceived);
+    UseHelper::adoptElementValue(rootEl, "packetsReceived", mPacketsReceived);
     UseHelper::adoptElementValue(rootEl, "bytesReceived", mBytesReceived);
     UseHelper::adoptElementValue(rootEl, "packetsLost", mPacketsLost);
     UseHelper::adoptElementValue(rootEl, "jitter", mJitter);
@@ -764,6 +769,1190 @@ namespace ortc
     hasher.update(mJitter);
     hasher.update(":");
     hasher.update(mFractionLost);
+    hasher.update(":");
+
+    return hasher.final();
+  }
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IStatsReportTypes::OutboundRTPStreamStats
+  #pragma mark
+
+  //---------------------------------------------------------------------------
+  IStatsReportTypes::OutboundRTPStreamStats::OutboundRTPStreamStats(const OutboundRTPStreamStats &op2) :
+    RTPStreamStats(op2),
+    mPacketsSent(op2.mPacketsSent),
+    mBytesSent(op2.mBytesSent),
+    mTargetBitrate(op2.mTargetBitrate),
+    mRoundTripTime(op2.mRoundTripTime)
+  {
+  }
+
+  //---------------------------------------------------------------------------
+  IStatsReportTypes::OutboundRTPStreamStats::OutboundRTPStreamStats(ElementPtr rootEl) :
+    RTPStreamStats(rootEl)
+  {
+    if (!rootEl) return;
+
+    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::OutboundRTPStreamStats", "packetsSent", mPacketsSent);
+    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::OutboundRTPStreamStats", "bytesSent", mBytesSent);
+    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::OutboundRTPStreamStats", "targetBitrate", mTargetBitrate);
+    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::OutboundRTPStreamStats", "roundTripTime", mRoundTripTime);
+  }
+
+  //---------------------------------------------------------------------------
+  IStatsReportTypes::OutboundRTPStreamStatsPtr IStatsReportTypes::OutboundRTPStreamStats::create(ElementPtr rootEl)
+  {
+    if (!rootEl) return OutboundRTPStreamStatsPtr();
+    return make_shared<OutboundRTPStreamStats>(rootEl);
+  }
+
+  //---------------------------------------------------------------------------
+  IStatsReportTypes::OutboundRTPStreamStatsPtr IStatsReportTypes::OutboundRTPStreamStats::convert(AnyPtr any)
+  {
+    return ZS_DYNAMIC_PTR_CAST(OutboundRTPStreamStats, any);
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IStatsReportTypes::OutboundRTPStreamStats::createElement(const char *objectName) const
+  {
+    ElementPtr rootEl = RTPStreamStats::createElement(objectName);
+
+    UseHelper::adoptElementValue(rootEl, "packetsSent", mPacketsSent);
+    UseHelper::adoptElementValue(rootEl, "bytesSent", mBytesSent);
+    UseHelper::adoptElementValue(rootEl, "targetBitrate", mTargetBitrate);
+    UseHelper::adoptElementValue(rootEl, "roundTripTime", mRoundTripTime);
+
+    if (!rootEl->hasChildren()) return ElementPtr();
+
+    return rootEl;
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IStatsReportTypes::OutboundRTPStreamStats::toDebug() const
+  {
+    return Element::create("ortc::IStatsReportTypes::OutboundRTPStreamStats");
+  }
+
+  //---------------------------------------------------------------------------
+  String IStatsReportTypes::OutboundRTPStreamStats::hash() const
+  {
+    SHA1Hasher hasher;
+
+    hasher.update("IStatsReportTypes:OutboundRTPStreamStats:");
+
+    hasher.update(RTPStreamStats::hash());
+
+    hasher.update(mPacketsSent);
+    hasher.update(":");
+    hasher.update(mBytesSent);
+    hasher.update(":");
+    hasher.update(mTargetBitrate);
+    hasher.update(":");
+    hasher.update(mRoundTripTime);
+
+    return hasher.final();
+  }
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IStatsReportTypes::SCTPTransportStats
+  #pragma mark
+
+  //---------------------------------------------------------------------------
+  IStatsReportTypes::SCTPTransportStats::SCTPTransportStats(const SCTPTransportStats &op2) :
+    Stats(op2),
+    mDataChannelsOpened(op2.mDataChannelsOpened),
+    mDataChannelsClosed(op2.mDataChannelsClosed)
+  {
+  }
+
+  //---------------------------------------------------------------------------
+  IStatsReportTypes::SCTPTransportStats::SCTPTransportStats(ElementPtr rootEl) :
+    Stats(rootEl)
+  {
+    if (!rootEl) return;
+
+    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::SCTPTransportStats", "dataChannelsOpened", mDataChannelsOpened);
+    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::SCTPTransportStats", "dataChannelsClosed", mDataChannelsClosed);
+  }
+
+  //---------------------------------------------------------------------------
+  IStatsReportTypes::SCTPTransportStatsPtr IStatsReportTypes::SCTPTransportStats::create(ElementPtr rootEl)
+  {
+    if (!rootEl) return SCTPTransportStatsPtr();
+    return make_shared<SCTPTransportStats>(rootEl);
+  }
+
+  //---------------------------------------------------------------------------
+  IStatsReportTypes::SCTPTransportStatsPtr IStatsReportTypes::SCTPTransportStats::convert(AnyPtr any)
+  {
+    return ZS_DYNAMIC_PTR_CAST(SCTPTransportStats, any);
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IStatsReportTypes::SCTPTransportStats::createElement(const char *objectName) const
+  {
+    ElementPtr rootEl = Stats::createElement(objectName);
+
+    UseHelper::adoptElementValue(rootEl, "dataChannelsOpened", mDataChannelsOpened);
+    UseHelper::adoptElementValue(rootEl, "dataChannelsClosed", mDataChannelsClosed);
+
+    if (!rootEl->hasChildren()) return ElementPtr();
+
+    return rootEl;
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IStatsReportTypes::SCTPTransportStats::toDebug() const
+  {
+    return Element::create("ortc::IStatsReportTypes::SCTPTransportStats");
+  }
+
+  //---------------------------------------------------------------------------
+  String IStatsReportTypes::SCTPTransportStats::hash() const
+  {
+    SHA1Hasher hasher;
+
+    hasher.update("IStatsReportTypes:SCTPTransportStats:");
+
+    hasher.update(Stats::hash());
+
+    hasher.update(mDataChannelsOpened);
+    hasher.update(":");
+    hasher.update(mDataChannelsClosed);
+
+    return hasher.final();
+  }
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IStatsReportTypes::MediaStreamStats
+  #pragma mark
+
+  //---------------------------------------------------------------------------
+  IStatsReportTypes::MediaStreamStats::MediaStreamStats(const MediaStreamStats &op2) :
+    Stats(op2),
+    mStreamID(op2.mStreamID),
+    mTrackIDs(op2.mTrackIDs)
+  {
+  }
+
+  //---------------------------------------------------------------------------
+  IStatsReportTypes::MediaStreamStats::MediaStreamStats(ElementPtr rootEl) :
+    Stats(rootEl)
+  {
+    if (!rootEl) return;
+
+    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::SCTPTransportStats", "dataChannelsOpened", mStreamID);
+
+    {
+      ElementPtr trackIDsEl = rootEl->findFirstChildElement("trackIds");
+      if (trackIDsEl) {
+        ElementPtr trackIDEl = trackIDsEl->findFirstChildElement("trackId");
+        while (trackIDEl) {
+          String value = UseServicesHelper::getElementTextAndDecode(trackIDEl);
+          trackIDEl = trackIDEl->findNextSiblingElement("trackId");
+
+          if (value.isEmpty()) continue;
+          mTrackIDs.push_front(value);
+        }
+      }
+    }
+  }
+
+  //---------------------------------------------------------------------------
+  IStatsReportTypes::MediaStreamStatsPtr IStatsReportTypes::MediaStreamStats::create(ElementPtr rootEl)
+  {
+    if (!rootEl) return MediaStreamStatsPtr();
+    return make_shared<MediaStreamStats>(rootEl);
+  }
+
+  //---------------------------------------------------------------------------
+  IStatsReportTypes::MediaStreamStatsPtr IStatsReportTypes::MediaStreamStats::convert(AnyPtr any)
+  {
+    return ZS_DYNAMIC_PTR_CAST(MediaStreamStats, any);
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IStatsReportTypes::MediaStreamStats::createElement(const char *objectName) const
+  {
+    ElementPtr rootEl = Stats::createElement(objectName);
+
+    UseHelper::adoptElementValue(rootEl, "streamId", mStreamID, false);
+
+    if (mTrackIDs.size() > 0) {
+      ElementPtr trackIDsEl = Element::create("trackIds");
+      for (auto iter = mTrackIDs.begin(); iter != mTrackIDs.end(); ++iter) {
+        auto &value = *(iter);
+        UseHelper::adoptElementValue(trackIDsEl, "trackId", value, false);
+      }
+      if (trackIDsEl->hasChildren()) {
+        rootEl->adoptAsLastChild(trackIDsEl);
+      }
+    }
+
+    if (!rootEl->hasChildren()) return ElementPtr();
+
+    return rootEl;
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IStatsReportTypes::MediaStreamStats::toDebug() const
+  {
+    return Element::create("ortc::IStatsReportTypes::MediaStreamStats");
+  }
+
+  //---------------------------------------------------------------------------
+  String IStatsReportTypes::MediaStreamStats::hash() const
+  {
+    SHA1Hasher hasher;
+
+    hasher.update("IStatsReportTypes:MediaStreamStats:");
+
+    hasher.update(Stats::hash());
+
+    hasher.update(mStreamID);
+    hasher.update(":tracks:c94ff2e0568fae77366ca8824b1e22852f6933ae");
+
+    for (auto iter = mTrackIDs.begin(); iter != mTrackIDs.end(); ++iter) {
+      auto &value = (*iter);
+      hasher.update(":");
+      hasher.update(value);
+    }
+    hasher.update(":tracks");
+
+    return hasher.final();
+  }
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IStatsReportTypes::MediaStreamTrackStats
+  #pragma mark
+
+  //---------------------------------------------------------------------------
+  IStatsReportTypes::MediaStreamTrackStats::MediaStreamTrackStats(const MediaStreamTrackStats &op2) :
+    Stats(op2),
+    mTrackID(op2.mTrackID),
+    mRemoteSource(op2.mRemoteSource),
+    mSSRCIDs(op2.mSSRCIDs),
+    mFrameWidth(op2.mFrameWidth),
+    mFrameHeight(op2.mFrameHeight),
+    mFramesPerSecond(op2.mFramesPerSecond),
+    mFramesSent(op2.mFramesSent),
+    mFramesReceived(op2.mFramesReceived),
+    mFramesDecoded(op2.mFramesDecoded),
+    mFramesDropped(op2.mFramesDropped),
+    mFramesCorrupted(op2.mFramesCorrupted),
+    mAudioLevel(op2.mAudioLevel),
+    mEchoReturnLoss(op2.mEchoReturnLoss),
+    mEchoReturnLossEnhancement(op2.mEchoReturnLossEnhancement)
+  {
+  }
+
+  //---------------------------------------------------------------------------
+  IStatsReportTypes::MediaStreamTrackStats::MediaStreamTrackStats(ElementPtr rootEl) :
+    Stats(rootEl)
+  {
+    if (!rootEl) return;
+
+    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::MediaStreamTrackStats", "trackId", mTrackID);
+    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::MediaStreamTrackStats", "remoteSource", mRemoteSource);
+
+    {
+      ElementPtr trackIDsEl = rootEl->findFirstChildElement("ssrcIds");
+      if (trackIDsEl) {
+        ElementPtr trackIDEl = trackIDsEl->findFirstChildElement("ssrcId");
+        while (trackIDEl) {
+          String value = UseServicesHelper::getElementText(trackIDEl);
+          trackIDEl = trackIDEl->findNextSiblingElement("ssrcId");
+          if (value.isEmpty()) continue;
+          try {
+            //HERE
+            SSRCType ssrcId = Numeric<SSRCType>(value);
+            mSSRCIDs.push_front(ssrcId);
+          } catch (const Numeric<SSRCType>::ValueOutOfRange &) {
+            ZS_LOG_WARNING(Debug, internal::slog("ssrc value out of range") + ZS_PARAM("value", value));
+          }
+        }
+      }
+    }
+
+    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::MediaStreamTrackStats", "frameWidth", mFrameWidth);
+    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::MediaStreamTrackStats", "frameHeight", mFrameHeight);
+    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::MediaStreamTrackStats", "framesPerSecond", mFramesPerSecond);
+    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::MediaStreamTrackStats", "framesSent", mFramesSent);
+    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::MediaStreamTrackStats", "framesReceived", mFramesReceived);
+    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::MediaStreamTrackStats", "framesDecoded", mFramesDecoded);
+    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::MediaStreamTrackStats", "framesCorrupted", mFramesCorrupted);
+    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::MediaStreamTrackStats", "audioLevel", mAudioLevel);
+    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::MediaStreamTrackStats", "echoReturnLoss", mEchoReturnLoss);
+    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::MediaStreamTrackStats", "echoReturnLossEnhancement", mEchoReturnLossEnhancement);
+  }
+
+  //---------------------------------------------------------------------------
+  IStatsReportTypes::MediaStreamTrackStatsPtr IStatsReportTypes::MediaStreamTrackStats::create(ElementPtr rootEl)
+  {
+    if (!rootEl) return MediaStreamTrackStatsPtr();
+    return make_shared<MediaStreamTrackStats>(rootEl);
+  }
+
+  //---------------------------------------------------------------------------
+  IStatsReportTypes::MediaStreamTrackStatsPtr IStatsReportTypes::MediaStreamTrackStats::convert(AnyPtr any)
+  {
+    return ZS_DYNAMIC_PTR_CAST(MediaStreamTrackStats, any);
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IStatsReportTypes::MediaStreamTrackStats::createElement(const char *objectName) const
+  {
+    ElementPtr rootEl = Stats::createElement(objectName);
+
+    UseHelper::adoptElementValue(rootEl, "trackId", mTrackID, false);
+    UseHelper::adoptElementValue(rootEl, "remoteSource", mRemoteSource);
+
+    if (mSSRCIDs.size() > 0) {
+      ElementPtr ssrcIDsEl = Element::create("ssrcIds");
+      for (auto iter = mSSRCIDs.begin(); iter != mSSRCIDs.end(); ++iter) {
+        auto &value = *(iter);
+        UseHelper::adoptElementValue(ssrcIDsEl, "ssrcId", value);
+      }
+      if (ssrcIDsEl->hasChildren()) {
+        rootEl->adoptAsLastChild(ssrcIDsEl);
+      }
+    }
+
+    UseHelper::adoptElementValue(rootEl, "frameWidth", mFrameWidth);
+    UseHelper::adoptElementValue(rootEl, "frameHeight", mFrameHeight);
+    UseHelper::adoptElementValue(rootEl, "framesPerSecond", mFramesPerSecond);
+    UseHelper::adoptElementValue(rootEl, "framesSent", mFramesSent);
+    UseHelper::adoptElementValue(rootEl, "framesReceived", mFramesReceived);
+    UseHelper::adoptElementValue(rootEl, "framesDecoded", mFramesDecoded);
+    UseHelper::adoptElementValue(rootEl, "framesDropped", mFramesDropped);
+    UseHelper::adoptElementValue(rootEl, "framesCorrupted", mFramesCorrupted);
+    UseHelper::adoptElementValue(rootEl, "audioLevel", mAudioLevel);
+    UseHelper::adoptElementValue(rootEl, "echoReturnLoss", mEchoReturnLoss);
+    UseHelper::adoptElementValue(rootEl, "echoReturnLossEnhancement", mEchoReturnLossEnhancement);
+
+    if (!rootEl->hasChildren()) return ElementPtr();
+
+    return rootEl;
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IStatsReportTypes::MediaStreamTrackStats::toDebug() const
+  {
+    return Element::create("ortc::IStatsReportTypes::MediaStreamTrackStats");
+  }
+
+  //---------------------------------------------------------------------------
+  String IStatsReportTypes::MediaStreamTrackStats::hash() const
+  {
+    SHA1Hasher hasher;
+
+    hasher.update("IStatsReportTypes:MediaStreamTrackStats:");
+
+    hasher.update(Stats::hash());
+
+    hasher.update(mTrackID);
+    hasher.update(":");
+    hasher.update(mRemoteSource);
+
+    hasher.update(":ssrcs:4a2f24cc4bfc91dbd040942775fb3818851495c7");
+
+    for (auto iter = mSSRCIDs.begin(); iter != mSSRCIDs.end(); ++iter) {
+      auto &value = (*iter);
+      hasher.update(":");
+      hasher.update(value);
+    }
+    hasher.update(":ssrcs:");
+    hasher.update(mFrameWidth);
+    hasher.update(":");
+    hasher.update(mFrameHeight);
+    hasher.update(":");
+    hasher.update(mFramesPerSecond);
+    hasher.update(":");
+    hasher.update(mFramesSent);
+    hasher.update(":");
+    hasher.update(mFramesReceived);
+    hasher.update(":");
+    hasher.update(mFramesDecoded);
+    hasher.update(":");
+    hasher.update(mFramesDropped);
+    hasher.update(":");
+    hasher.update(mFramesCorrupted);
+    hasher.update(":");
+    hasher.update(mAudioLevel);
+    hasher.update(":");
+    hasher.update(mEchoReturnLoss);
+    hasher.update(":");
+    hasher.update(mEchoReturnLossEnhancement);
+
+    return hasher.final();
+  }
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IStatsReportTypes::DataChannelStats
+  #pragma mark
+
+  //---------------------------------------------------------------------------
+  IStatsReportTypes::DataChannelStats::DataChannelStats(const DataChannelStats &op2) :
+    Stats(op2),
+    mLabel(op2.mLabel),
+    mProtocol(op2.mProtocol),
+    mDatachannelID(op2.mDatachannelID),
+    mState(op2.mState),
+    mMessagesSent(op2.mMessagesSent),
+    mBytesSent(op2.mBytesSent),
+    mMessagesReceived(op2.mMessagesReceived),
+    mBytesReceived(op2.mBytesReceived)
+  {
+  }
+
+  //---------------------------------------------------------------------------
+  IStatsReportTypes::DataChannelStats::DataChannelStats(ElementPtr rootEl) :
+    Stats(rootEl)
+  {
+    if (!rootEl) return;
+
+    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::DataChannelStats", "label", mLabel);
+    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::DataChannelStats", "protocol", mProtocol);
+    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::DataChannelStats", "datachannelId", mDatachannelID);
+
+    {
+      String str;
+      UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::DataChannelStats", "state", str);
+      if (str.hasData()) {
+        mState = IDataChannelTypes::toState(str);
+      }
+    }
+
+    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::DataChannelStats", "messagesSent", mMessagesSent);
+    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::DataChannelStats", "bytesSent", mBytesSent);
+    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::DataChannelStats", "messagesReceived", mMessagesReceived);
+    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::DataChannelStats", "bytesReceived", mBytesReceived);
+  }
+
+  //---------------------------------------------------------------------------
+  IStatsReportTypes::DataChannelStatsPtr IStatsReportTypes::DataChannelStats::create(ElementPtr rootEl)
+  {
+    if (!rootEl) return DataChannelStatsPtr();
+    return make_shared<DataChannelStats>(rootEl);
+  }
+
+  //---------------------------------------------------------------------------
+  IStatsReportTypes::DataChannelStatsPtr IStatsReportTypes::DataChannelStats::convert(AnyPtr any)
+  {
+    return ZS_DYNAMIC_PTR_CAST(DataChannelStats, any);
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IStatsReportTypes::DataChannelStats::createElement(const char *objectName) const
+  {
+    ElementPtr rootEl = Stats::createElement(objectName);
+
+    UseHelper::adoptElementValue(rootEl, "label", mLabel, false);
+    UseHelper::adoptElementValue(rootEl, "protocol", mProtocol, false);
+    UseHelper::adoptElementValue(rootEl, "datachannelId", mDatachannelID);
+    UseHelper::adoptElementValue(rootEl, "state", IDataChannelTypes::toString(mState), false);
+    UseHelper::adoptElementValue(rootEl, "messagesSent", mMessagesSent);
+    UseHelper::adoptElementValue(rootEl, "bytesSent", mBytesSent);
+    UseHelper::adoptElementValue(rootEl, "messagesReceived", mMessagesReceived);
+    UseHelper::adoptElementValue(rootEl, "bytesReceived", mBytesReceived);
+
+    if (!rootEl->hasChildren()) return ElementPtr();
+
+    return rootEl;
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IStatsReportTypes::DataChannelStats::toDebug() const
+  {
+    return Element::create("ortc::IStatsReportTypes::DataChannelStats");
+  }
+
+  //---------------------------------------------------------------------------
+  String IStatsReportTypes::DataChannelStats::hash() const
+  {
+    SHA1Hasher hasher;
+
+    hasher.update("IStatsReportTypes:DataChannelStats:");
+
+    hasher.update(Stats::hash());
+
+    hasher.update(mLabel);
+    hasher.update(":");
+    hasher.update(mProtocol);
+    hasher.update(":");
+    hasher.update(mDatachannelID);
+    hasher.update(":");
+    hasher.update(IDataChannelTypes::toString(mState));
+    hasher.update(":");
+    hasher.update(mMessagesSent);
+    hasher.update(":");
+    hasher.update(mBytesSent);
+    hasher.update(":");
+    hasher.update(mMessagesReceived);
+    hasher.update(":");
+    hasher.update(mBytesReceived);
+    hasher.update(":");
+
+    return hasher.final();
+  }
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IStatsReportTypes::ICEGathererStats
+  #pragma mark
+
+  //---------------------------------------------------------------------------
+  IStatsReportTypes::ICEGathererStats::ICEGathererStats(const ICEGathererStats &op2) :
+    Stats(op2),
+    mBytesSent(op2.mBytesSent),
+    mBytesReceived(op2.mBytesReceived),
+    mRTCPGathererStatsID(op2.mRTCPGathererStatsID)
+  {
+  }
+
+  //---------------------------------------------------------------------------
+  IStatsReportTypes::ICEGathererStats::ICEGathererStats(ElementPtr rootEl) :
+    Stats(rootEl)
+  {
+    if (!rootEl) return;
+
+    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICEGathererStats", "bytesSent", mBytesSent);
+    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICEGathererStats", "bytesReceived", mBytesReceived);
+    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICEGathererStats", "rtcpGathererStatsId", mRTCPGathererStatsID);
+  }
+
+  //---------------------------------------------------------------------------
+  IStatsReportTypes::ICEGathererStatsPtr IStatsReportTypes::ICEGathererStats::create(ElementPtr rootEl)
+  {
+    if (!rootEl) return ICEGathererStatsPtr();
+    return make_shared<ICEGathererStats>(rootEl);
+  }
+
+  //---------------------------------------------------------------------------
+  IStatsReportTypes::ICEGathererStatsPtr IStatsReportTypes::ICEGathererStats::convert(AnyPtr any)
+  {
+    return ZS_DYNAMIC_PTR_CAST(ICEGathererStats, any);
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IStatsReportTypes::ICEGathererStats::createElement(const char *objectName) const
+  {
+    ElementPtr rootEl = Stats::createElement(objectName);
+
+    UseHelper::adoptElementValue(rootEl, "bytesSent", mBytesSent);
+    UseHelper::adoptElementValue(rootEl, "bytesReceived", mBytesReceived);
+    UseHelper::adoptElementValue(rootEl, "rtcpGathererStatsId", mRTCPGathererStatsID, false);
+
+    if (!rootEl->hasChildren()) return ElementPtr();
+
+    return rootEl;
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IStatsReportTypes::ICEGathererStats::toDebug() const
+  {
+    return Element::create("ortc::IStatsReportTypes::ICEGathererStats");
+  }
+
+  //---------------------------------------------------------------------------
+  String IStatsReportTypes::ICEGathererStats::hash() const
+  {
+    SHA1Hasher hasher;
+
+    hasher.update("IStatsReportTypes:ICEGathererStats:");
+
+    hasher.update(Stats::hash());
+
+    hasher.update(mBytesSent);
+    hasher.update(":");
+    hasher.update(mBytesReceived);
+    hasher.update(":");
+    hasher.update(mRTCPGathererStatsID);
+    hasher.update(":");
+
+    return hasher.final();
+  }
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IStatsReportTypes::ICETransportStats
+  #pragma mark
+
+  //---------------------------------------------------------------------------
+  IStatsReportTypes::ICETransportStats::ICETransportStats(const ICETransportStats &op2) :
+    Stats(op2),
+    mBytesSent(op2.mBytesSent),
+    mBytesReceived(op2.mBytesReceived),
+    mRTCPTransportStatsID(op2.mRTCPTransportStatsID),
+    mActiveConnection(op2.mActiveConnection),
+    mSelectedCandidatePairID(op2.mSelectedCandidatePairID)
+  {
+  }
+
+  //---------------------------------------------------------------------------
+  IStatsReportTypes::ICETransportStats::ICETransportStats(ElementPtr rootEl) :
+    Stats(rootEl)
+  {
+    if (!rootEl) return;
+
+    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICETransportStats", "bytesSent", mBytesSent);
+    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICETransportStats", "bytesReceived", mBytesReceived);
+    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICETransportStats", "rtcpTransportStatsId", mRTCPTransportStatsID);
+    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICETransportStats", "activeConnection", mActiveConnection);
+    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICETransportStats", "selectedCandidatePairId", mSelectedCandidatePairID);
+  }
+
+  //---------------------------------------------------------------------------
+  IStatsReportTypes::ICETransportStatsPtr IStatsReportTypes::ICETransportStats::create(ElementPtr rootEl)
+  {
+    if (!rootEl) return ICETransportStatsPtr();
+    return make_shared<ICETransportStats>(rootEl);
+  }
+
+  //---------------------------------------------------------------------------
+  IStatsReportTypes::ICETransportStatsPtr IStatsReportTypes::ICETransportStats::convert(AnyPtr any)
+  {
+    return ZS_DYNAMIC_PTR_CAST(ICETransportStats, any);
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IStatsReportTypes::ICETransportStats::createElement(const char *objectName) const
+  {
+    ElementPtr rootEl = Stats::createElement(objectName);
+
+    UseHelper::adoptElementValue(rootEl, "bytesSent", mBytesSent);
+    UseHelper::adoptElementValue(rootEl, "bytesReceived", mBytesReceived);
+    UseHelper::adoptElementValue(rootEl, "rtcpTransportStatsId", mRTCPTransportStatsID, false);
+    UseHelper::adoptElementValue(rootEl, "activeConnection", mActiveConnection);
+    UseHelper::adoptElementValue(rootEl, "selectedCandidatePairId", mSelectedCandidatePairID, false);
+
+    if (!rootEl->hasChildren()) return ElementPtr();
+
+    return rootEl;
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IStatsReportTypes::ICETransportStats::toDebug() const
+  {
+    return Element::create("ortc::IStatsReportTypes::ICETransportStats");
+  }
+
+  //---------------------------------------------------------------------------
+  String IStatsReportTypes::ICETransportStats::hash() const
+  {
+    SHA1Hasher hasher;
+
+    hasher.update("IStatsReportTypes:ICETransportStats:");
+
+    hasher.update(Stats::hash());
+
+    hasher.update(mBytesSent);
+    hasher.update(":");
+    hasher.update(mBytesReceived);
+    hasher.update(":");
+    hasher.update(mRTCPTransportStatsID);
+    hasher.update(":");
+    hasher.update(mActiveConnection);
+    hasher.update(":");
+    hasher.update(mSelectedCandidatePairID);
+    hasher.update(":");
+
+    return hasher.final();
+  }
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IStatsReportTypes::DTLSTransportStats
+  #pragma mark
+
+  //---------------------------------------------------------------------------
+  IStatsReportTypes::DTLSTransportStats::DTLSTransportStats(const DTLSTransportStats &op2) :
+    Stats(op2),
+    mLocalCertificateID(op2.mLocalCertificateID),
+    mRemoteCertificateID(op2.mRemoteCertificateID)
+  {
+  }
+
+  //---------------------------------------------------------------------------
+  IStatsReportTypes::DTLSTransportStats::DTLSTransportStats(ElementPtr rootEl) :
+    Stats(rootEl)
+  {
+    if (!rootEl) return;
+
+    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::DTLSTransportStats", "localCertificateId", mLocalCertificateID);
+    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::DTLSTransportStats", "remoteCertificateId", mRemoteCertificateID);
+  }
+
+  //---------------------------------------------------------------------------
+  IStatsReportTypes::DTLSTransportStatsPtr IStatsReportTypes::DTLSTransportStats::create(ElementPtr rootEl)
+  {
+    if (!rootEl) return DTLSTransportStatsPtr();
+    return make_shared<DTLSTransportStats>(rootEl);
+  }
+
+  //---------------------------------------------------------------------------
+  IStatsReportTypes::DTLSTransportStatsPtr IStatsReportTypes::DTLSTransportStats::convert(AnyPtr any)
+  {
+    return ZS_DYNAMIC_PTR_CAST(DTLSTransportStats, any);
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IStatsReportTypes::DTLSTransportStats::createElement(const char *objectName) const
+  {
+    ElementPtr rootEl = Stats::createElement(objectName);
+
+    UseHelper::adoptElementValue(rootEl, "localCertificateId", mLocalCertificateID, false);
+    UseHelper::adoptElementValue(rootEl, "remoteCertificateId", mRemoteCertificateID, false);
+
+    if (!rootEl->hasChildren()) return ElementPtr();
+
+    return rootEl;
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IStatsReportTypes::DTLSTransportStats::toDebug() const
+  {
+    return Element::create("ortc::IStatsReportTypes::DTLSTransportStats");
+  }
+
+  //---------------------------------------------------------------------------
+  String IStatsReportTypes::DTLSTransportStats::hash() const
+  {
+    SHA1Hasher hasher;
+
+    hasher.update("IStatsReportTypes:DTLSTransportStats:");
+
+    hasher.update(Stats::hash());
+
+    hasher.update(mLocalCertificateID);
+    hasher.update(":");
+    hasher.update(mRemoteCertificateID);
+    hasher.update(":");
+
+    return hasher.final();
+  }
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IStatsReportTypes::SRTPTransportStats
+  #pragma mark
+
+  //---------------------------------------------------------------------------
+  IStatsReportTypes::SRTPTransportStats::SRTPTransportStats(const SRTPTransportStats &op2) :
+    Stats(op2)
+  {
+  }
+
+  //---------------------------------------------------------------------------
+  IStatsReportTypes::SRTPTransportStats::SRTPTransportStats(ElementPtr rootEl) :
+    Stats(rootEl)
+  {
+    if (!rootEl) return;
+  }
+
+  //---------------------------------------------------------------------------
+  IStatsReportTypes::SRTPTransportStatsPtr IStatsReportTypes::SRTPTransportStats::create(ElementPtr rootEl)
+  {
+    if (!rootEl) return SRTPTransportStatsPtr();
+    return make_shared<SRTPTransportStats>(rootEl);
+  }
+
+  //---------------------------------------------------------------------------
+  IStatsReportTypes::SRTPTransportStatsPtr IStatsReportTypes::SRTPTransportStats::convert(AnyPtr any)
+  {
+    return ZS_DYNAMIC_PTR_CAST(SRTPTransportStats, any);
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IStatsReportTypes::SRTPTransportStats::createElement(const char *objectName) const
+  {
+    ElementPtr rootEl = Stats::createElement(objectName);
+
+    if (!rootEl->hasChildren()) return ElementPtr();
+
+    return rootEl;
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IStatsReportTypes::SRTPTransportStats::toDebug() const
+  {
+    return Element::create("ortc::IStatsReportTypes::SRTPTransportStats");
+  }
+
+  //---------------------------------------------------------------------------
+  String IStatsReportTypes::SRTPTransportStats::hash() const
+  {
+    SHA1Hasher hasher;
+
+    hasher.update("IStatsReportTypes:SRTPTransportStats:");
+
+    hasher.update(Stats::hash());
+
+    hasher.update(":");
+
+    return hasher.final();
+  }
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IStatsReportTypes::ICECandidateAttributes
+  #pragma mark
+
+  //---------------------------------------------------------------------------
+  IStatsReportTypes::ICECandidateAttributes::ICECandidateAttributes(const ICECandidateAttributes &op2) :
+    Stats(op2),
+    mIPAddress(op2.mIPAddress),
+    mPortNumber(op2.mPortNumber),
+    mTransport(op2.mTransport),
+    mCandidateType(op2.mCandidateType),
+    mPriority(op2.mPriority),
+    mAddressSourceURL(op2.mAddressSourceURL)
+  {
+  }
+
+  //---------------------------------------------------------------------------
+  IStatsReportTypes::ICECandidateAttributes::ICECandidateAttributes(ElementPtr rootEl) :
+    Stats(rootEl)
+  {
+    if (!rootEl) return;
+
+    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICECandidateAttributes", "ipAddress", mIPAddress);
+    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICECandidateAttributes", "portNumber", mPortNumber);
+    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICECandidateAttributes", "transport", mTransport);
+
+    {
+      String str;
+      UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICECandidateAttributes", "candidateType", str);
+      if (str.hasData()) {
+        try {
+          mCandidateType = IICETypes::toCandidateType(str);
+        } catch (const InvalidParameters &) {
+          ZS_LOG_WARNING(Debug, internal::slog("candidate type is not value") + ZS_PARAM("type", str));
+        }
+      }
+    }
+
+    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICECandidateAttributes", "priority", mPriority);
+    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICECandidateAttributes", "addressSourceUrl", mAddressSourceURL);
+  }
+
+  //---------------------------------------------------------------------------
+  IStatsReportTypes::ICECandidateAttributesPtr IStatsReportTypes::ICECandidateAttributes::create(ElementPtr rootEl)
+  {
+    if (!rootEl) return ICECandidateAttributesPtr();
+    return make_shared<ICECandidateAttributes>(rootEl);
+  }
+
+  //---------------------------------------------------------------------------
+  IStatsReportTypes::ICECandidateAttributesPtr IStatsReportTypes::ICECandidateAttributes::convert(AnyPtr any)
+  {
+    return ZS_DYNAMIC_PTR_CAST(ICECandidateAttributes, any);
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IStatsReportTypes::ICECandidateAttributes::createElement(const char *objectName) const
+  {
+    ElementPtr rootEl = Stats::createElement(objectName);
+
+    UseHelper::adoptElementValue(rootEl, "ipAddress", mIPAddress, false);
+    UseHelper::adoptElementValue(rootEl, "portNumber", mPortNumber);
+    UseHelper::adoptElementValue(rootEl, "transport", mTransport, false);
+    UseHelper::adoptElementValue(rootEl, "candidateType", IICETypes::toString(mCandidateType), false);
+    UseHelper::adoptElementValue(rootEl, "priority", mPriority);
+    UseHelper::adoptElementValue(rootEl, "addressSourceUrl", mAddressSourceURL, false);
+
+    if (!rootEl->hasChildren()) return ElementPtr();
+
+    return rootEl;
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IStatsReportTypes::ICECandidateAttributes::toDebug() const
+  {
+    return Element::create("ortc::IStatsReportTypes::ICECandidateAttributes");
+  }
+
+  //---------------------------------------------------------------------------
+  String IStatsReportTypes::ICECandidateAttributes::hash() const
+  {
+    SHA1Hasher hasher;
+
+    hasher.update("IStatsReportTypes:ICECandidateAttributes:");
+
+    hasher.update(Stats::hash());
+
+    hasher.update(mIPAddress);
+    hasher.update(":");
+    hasher.update(mPortNumber);
+    hasher.update(":");
+    hasher.update(mTransport);
+    hasher.update(":");
+    hasher.update(IICETypes::toString(mCandidateType));
+    hasher.update(":");
+    hasher.update(mPriority);
+    hasher.update(":");
+    hasher.update(mAddressSourceURL);
+    hasher.update(":");
+
+    return hasher.final();
+  }
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IStatsReportTypes::ICECandidatePairStats
+  #pragma mark
+
+  //---------------------------------------------------------------------------
+  IStatsReportTypes::ICECandidatePairStats::ICECandidatePairStats(const ICECandidatePairStats &op2) :
+    Stats(op2),
+    mTransportID(op2.mTransportID),
+    mLocalCandidateID(op2.mLocalCandidateID),
+    mRemoteCandidateID(op2.mRemoteCandidateID),
+    mState(op2.mState),
+    mPriority(op2.mPriority),
+    mNominated(op2.mNominated),
+    mWritable(op2.mWritable),
+    mReadable(op2.mReadable),
+    mBytesSent(op2.mBytesSent),
+    mBytesReceived(op2.mBytesReceived),
+    mRoundTripTime(op2.mRoundTripTime),
+    mAvailableOutgoingBitrate(op2.mAvailableOutgoingBitrate),
+    mAvailableIncomingBitrate(op2.mAvailableIncomingBitrate)
+  {
+  }
+
+  //---------------------------------------------------------------------------
+  IStatsReportTypes::ICECandidatePairStats::ICECandidatePairStats(ElementPtr rootEl) :
+    Stats(rootEl)
+  {
+    if (!rootEl) return;
+
+    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICECandidatePairStats", "transportId", mTransportID);
+    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICECandidatePairStats", "localCandidateId", mLocalCandidateID);
+    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICECandidatePairStats", "remoteCandidateId", mRemoteCandidateID);
+
+    {
+      String str;
+      UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICECandidatePairStats", "state", str);
+      if (str.hasData()) {
+        try {
+          mState = IStatsReportTypes::toCandidatePairState(str);
+        } catch (const InvalidParameters &) {
+          ZS_LOG_WARNING(Debug, internal::slog("candidate pair state is not value") + ZS_PARAM("type", str));
+        }
+      }
+    }
+
+    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICECandidatePairStats", "priority", mPriority);
+    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICECandidatePairStats", "nominated", mNominated);
+    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICECandidatePairStats", "writable", mWritable);
+    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICECandidatePairStats", "readable", mReadable);
+    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICECandidatePairStats", "bytesSent", mBytesSent);
+    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICECandidatePairStats", "bytesReceived", mBytesReceived);
+    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICECandidatePairStats", "roundTripTime", mRoundTripTime);
+    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICECandidatePairStats", "availableOutgoingBitrate", mAvailableOutgoingBitrate);
+    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICECandidatePairStats", "availableIncomingBitrate", mAvailableIncomingBitrate);
+  }
+
+  //---------------------------------------------------------------------------
+  IStatsReportTypes::ICECandidatePairStatsPtr IStatsReportTypes::ICECandidatePairStats::create(ElementPtr rootEl)
+  {
+    if (!rootEl) return ICECandidatePairStatsPtr();
+    return make_shared<ICECandidatePairStats>(rootEl);
+  }
+
+  //---------------------------------------------------------------------------
+  IStatsReportTypes::ICECandidatePairStatsPtr IStatsReportTypes::ICECandidatePairStats::convert(AnyPtr any)
+  {
+    return ZS_DYNAMIC_PTR_CAST(ICECandidatePairStats, any);
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IStatsReportTypes::ICECandidatePairStats::createElement(const char *objectName) const
+  {
+    ElementPtr rootEl = Stats::createElement(objectName);
+
+    UseHelper::adoptElementValue(rootEl, "transportId", mTransportID, false);
+    UseHelper::adoptElementValue(rootEl, "localCandidateId", mLocalCandidateID, false);
+    UseHelper::adoptElementValue(rootEl, "remoteCandidateId", mRemoteCandidateID, false);
+    UseHelper::adoptElementValue(rootEl, "state", IStatsReportTypes::toString(mState), false);
+    UseHelper::adoptElementValue(rootEl, "priority", mPriority);
+    UseHelper::adoptElementValue(rootEl, "nominated", mNominated);
+    UseHelper::adoptElementValue(rootEl, "writable", mWritable);
+    UseHelper::adoptElementValue(rootEl, "readable", mReadable);
+    UseHelper::adoptElementValue(rootEl, "bytesSent", mBytesSent);
+    UseHelper::adoptElementValue(rootEl, "bytesReceived", mBytesReceived);
+    UseHelper::adoptElementValue(rootEl, "roundTripTime", mRoundTripTime);
+    UseHelper::adoptElementValue(rootEl, "availableOutgoingBitrate", mAvailableOutgoingBitrate);
+    UseHelper::adoptElementValue(rootEl, "availableIncomingBitrate", mAvailableIncomingBitrate);
+
+    if (!rootEl->hasChildren()) return ElementPtr();
+
+    return rootEl;
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IStatsReportTypes::ICECandidatePairStats::toDebug() const
+  {
+    return Element::create("ortc::IStatsReportTypes::ICECandidatePairStats");
+  }
+
+  //---------------------------------------------------------------------------
+  String IStatsReportTypes::ICECandidatePairStats::hash() const
+  {
+    SHA1Hasher hasher;
+
+    hasher.update("IStatsReportTypes:ICECandidatePairStats:");
+
+    hasher.update(Stats::hash());
+
+    hasher.update(mTransportID);
+    hasher.update(":");
+    hasher.update(mLocalCandidateID);
+    hasher.update(":");
+    hasher.update(mRemoteCandidateID);
+    hasher.update(":");
+    hasher.update(IStatsReportTypes::toString(mState));
+    hasher.update(":");
+    hasher.update(mPriority);
+    hasher.update(":");
+    hasher.update(mNominated);
+    hasher.update(":");
+    hasher.update(mWritable);
+    hasher.update(":");
+    hasher.update(mReadable);
+    hasher.update(":");
+    hasher.update(mBytesSent);
+    hasher.update(":");
+    hasher.update(mRoundTripTime);
+    hasher.update(":");
+    hasher.update(mAvailableOutgoingBitrate);
+    hasher.update(":");
+    hasher.update(mAvailableIncomingBitrate);
+    hasher.update(":");
+
+    return hasher.final();
+  }
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IStatsReportTypes::CertificateStats
+  #pragma mark
+
+  //---------------------------------------------------------------------------
+  IStatsReportTypes::CertificateStats::CertificateStats(const CertificateStats &op2) :
+    Stats(op2),
+    mFingerprint(op2.mFingerprint),
+    mFingerprintAlgorithm(op2.mFingerprintAlgorithm),
+    mBase64Certificate(op2.mBase64Certificate),
+    mIssuerCertificateID(op2.mIssuerCertificateID)
+  {
+  }
+
+  //---------------------------------------------------------------------------
+  IStatsReportTypes::CertificateStats::CertificateStats(ElementPtr rootEl) :
+    Stats(rootEl)
+  {
+    if (!rootEl) return;
+
+    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::CertificateStats", "fingerprint", mFingerprint);
+    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::CertificateStats", "fingerprintAlgorithm", mFingerprintAlgorithm);
+    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::CertificateStats", "base64Certificate", mBase64Certificate);
+    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::CertificateStats", "issuerCertificateID", mIssuerCertificateID);
+  }
+
+  //---------------------------------------------------------------------------
+  IStatsReportTypes::CertificateStatsPtr IStatsReportTypes::CertificateStats::create(ElementPtr rootEl)
+  {
+    if (!rootEl) return CertificateStatsPtr();
+    return make_shared<CertificateStats>(rootEl);
+  }
+
+  //---------------------------------------------------------------------------
+  IStatsReportTypes::CertificateStatsPtr IStatsReportTypes::CertificateStats::convert(AnyPtr any)
+  {
+    return ZS_DYNAMIC_PTR_CAST(CertificateStats, any);
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IStatsReportTypes::CertificateStats::createElement(const char *objectName) const
+  {
+    ElementPtr rootEl = Stats::createElement(objectName);
+
+    UseHelper::adoptElementValue(rootEl, "fingerprint", mFingerprint, false);
+    UseHelper::adoptElementValue(rootEl, "fingerprintAlgorithm", mFingerprintAlgorithm, false);
+    UseHelper::adoptElementValue(rootEl, "base64Certificate", mBase64Certificate, false);
+    UseHelper::adoptElementValue(rootEl, "issuerCertificateID", mIssuerCertificateID, false);
+
+    if (!rootEl->hasChildren()) return ElementPtr();
+
+    return rootEl;
+  }
+
+  //---------------------------------------------------------------------------
+  ElementPtr IStatsReportTypes::CertificateStats::toDebug() const
+  {
+    return Element::create("ortc::IStatsReportTypes::CertificateStats");
+  }
+
+  //---------------------------------------------------------------------------
+  String IStatsReportTypes::CertificateStats::hash() const
+  {
+    SHA1Hasher hasher;
+
+    hasher.update("IStatsReportTypes:CertificateStats:");
+
+    hasher.update(Stats::hash());
+
+    hasher.update(mFingerprint);
+    hasher.update(":");
+    hasher.update(mFingerprintAlgorithm);
+    hasher.update(":");
+    hasher.update(mBase64Certificate);
+    hasher.update(":");
+    hasher.update(mIssuerCertificateID);
     hasher.update(":");
 
     return hasher.final();
