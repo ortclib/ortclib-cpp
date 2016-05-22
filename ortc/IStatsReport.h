@@ -363,7 +363,7 @@ namespace ortc
     struct MediaStreamTrackStats : public Stats
     {
       String          mTrackID;
-      boolean         mRemoteSource {};
+      bool            mRemoteSource {};
       SSRCTypeList    mSSRCIDs;
       unsigned long   mFrameWidth {};
       unsigned long   mFrameHeight {};
