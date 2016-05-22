@@ -501,7 +501,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  bool IStatsReportTypes::StatsTypeSet::hasStatType(StatsTypes type)
+  bool IStatsReportTypes::StatsTypeSet::hasStatType(StatsTypes type) const
   {
     if (size() < 1) return true;
 
@@ -1779,7 +1779,7 @@ namespace ortc
     Stats(op2),
     mIPAddress(op2.mIPAddress),
     mPortNumber(op2.mPortNumber),
-    mTransport(op2.mTransport),
+    mTransportID(op2.mTransportID),
     mCandidateType(op2.mCandidateType),
     mPriority(op2.mPriority),
     mAddressSourceURL(op2.mAddressSourceURL)
@@ -1794,7 +1794,7 @@ namespace ortc
 
     UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICECandidateAttributes", "ipAddress", mIPAddress);
     UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICECandidateAttributes", "portNumber", mPortNumber);
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICECandidateAttributes", "transport", mTransport);
+    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICECandidateAttributes", "transport", mTransportID);
 
     {
       String str;
@@ -1832,7 +1832,7 @@ namespace ortc
 
     UseHelper::adoptElementValue(rootEl, "ipAddress", mIPAddress, false);
     UseHelper::adoptElementValue(rootEl, "portNumber", mPortNumber);
-    UseHelper::adoptElementValue(rootEl, "transport", mTransport, false);
+    UseHelper::adoptElementValue(rootEl, "transport", mTransportID, false);
     UseHelper::adoptElementValue(rootEl, "candidateType", IICETypes::toString(mCandidateType), false);
     UseHelper::adoptElementValue(rootEl, "priority", mPriority);
     UseHelper::adoptElementValue(rootEl, "addressSourceUrl", mAddressSourceURL, false);
@@ -1861,7 +1861,7 @@ namespace ortc
     hasher.update(":");
     hasher.update(mPortNumber);
     hasher.update(":");
-    hasher.update(mTransport);
+    hasher.update(mTransportID);
     hasher.update(":");
     hasher.update(IICETypes::toString(mCandidateType));
     hasher.update(":");

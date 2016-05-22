@@ -111,7 +111,7 @@ namespace ortc
 
     struct StatsTypeSet : public std::set<IStatsReportTypes::StatsTypes>
     {
-      bool hasStatType(StatsTypes stat);
+      bool hasStatType(StatsTypes stat) const;
     };
 
     enum StatsICECandidatePairStates
@@ -558,7 +558,7 @@ namespace ortc
     {
       String                  mIPAddress;
       unsigned long           mPortNumber {};
-      String                  mTransport;
+      String                  mTransportID;
       StatsICECandidateTypes  mCandidateType {IICETypes::CandidateType_First};
       unsigned long           mPriority {};
       String                  mAddressSourceURL;
