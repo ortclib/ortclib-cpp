@@ -306,7 +306,7 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    IStatsProvider::PromiseWithStatsReportPtr ICETransport::getStats() const throw(InvalidStateError)
+    IStatsProvider::PromiseWithStatsReportPtr ICETransport::getStats(const StatsTypeSet &stats) const throw(InvalidStateError)
     {
       AutoRecursiveLock lock(*this);
       ORTC_THROW_INVALID_STATE_IF(isShutdown() || isShuttingDown())

@@ -597,7 +597,7 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    IStatsProvider::PromiseWithStatsReportPtr RTPReceiver::getStats() const throw(InvalidStateError)
+    IStatsProvider::PromiseWithStatsReportPtr RTPReceiver::getStats(const StatsTypeSet &stats) const throw(InvalidStateError)
     {
       ChannelWeakMapPtr channels;
 

@@ -501,6 +501,14 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
+  bool IStatsReportTypes::StatsTypeSet::hasStatType(StatsTypes type)
+  {
+    auto found = find(type);
+    if (found == end()) return false;
+    return true;
+  }
+
+  //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
@@ -510,13 +518,13 @@ namespace ortc
 
   //---------------------------------------------------------------------------
   IStatsReportTypes::Stats::Stats() :
-    mTimeStamp(zsLib::now())
+    mTimestamp(zsLib::now())
   {
   }
 
   //---------------------------------------------------------------------------
   IStatsReportTypes::Stats::Stats(const Stats &op2) :
-    mTimeStamp(op2.mTimeStamp),
+    mTimestamp(op2.mTimestamp),
     mStatsType(op2.mStatsType),
     mID(op2.mID)
   {
@@ -527,7 +535,7 @@ namespace ortc
   {
     if (!rootEl) return;
 
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::Stats", "timestamp", mTimeStamp);
+    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::Stats", "timestamp", mTimestamp);
     UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::Stats", "statsType", mStatsType);
     UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::Stats", "id", mID);
   }
@@ -574,7 +582,7 @@ namespace ortc
   {
     ElementPtr rootEl = Element::create(objectName);
 
-    UseHelper::adoptElementValue(rootEl, "timestamp", mTimeStamp);
+    UseHelper::adoptElementValue(rootEl, "timestamp", mTimestamp);
     UseHelper::adoptElementValue(rootEl, "statsType", mStatsType, false);
     UseHelper::adoptElementValue(rootEl, "id", mID, false);
 
@@ -596,7 +604,7 @@ namespace ortc
 
     hasher.update("IStatsReportTypes:Stats:");
 
-    hasher.update(mTimeStamp);
+    hasher.update(mTimestamp);
     hasher.update(":");
     hasher.update(mStatsType);
     hasher.update(":");

@@ -32,6 +32,9 @@
 #pragma once
 
 #include <ortc/types.h>
+#include <ortc/IStatsReport.h>
+
+#include <set>
 
 namespace ortc
 {
@@ -46,6 +49,7 @@ namespace ortc
   interaction IStatsProviderTypes
   {
     ZS_DECLARE_TYPEDEF_PTR(PromiseWith<IStatsReport>, PromiseWithStatsReport);
+    ZS_DECLARE_TYPEDEF_PTR(IStatsReport::StatsTypeSet, StatsTypeSet);
   };
 
   //---------------------------------------------------------------------------
@@ -58,7 +62,7 @@ namespace ortc
   
   interaction IStatsProvider : public IStatsProviderTypes
   {
-    virtual PromiseWithStatsReportPtr getStats() const throw(InvalidStateError) = 0;
+    virtual PromiseWithStatsReportPtr getStats(const StatsTypeSet &stats = StatsTypeSet()) const throw(InvalidStateError) = 0;
   };
 
 }

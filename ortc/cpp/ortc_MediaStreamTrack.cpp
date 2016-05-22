@@ -451,7 +451,7 @@ namespace ortc
     #pragma mark
     
     //-------------------------------------------------------------------------
-    IStatsProvider::PromiseWithStatsReportPtr MediaStreamTrack::getStats() const throw(InvalidStateError)
+    IStatsProvider::PromiseWithStatsReportPtr MediaStreamTrack::getStats(const StatsTypeSet &stats) const throw(InvalidStateError)
     {
       AutoRecursiveLock lock(*this);
       ORTC_THROW_INVALID_STATE_IF(isShutdown() || isShuttingDown())

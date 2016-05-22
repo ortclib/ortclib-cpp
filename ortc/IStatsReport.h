@@ -54,6 +54,8 @@ namespace ortc
     typedef IICETypes::CandidateTypes StatsICECandidateTypes;
     typedef std::list<String> StringList;
 
+    ZS_DECLARE_STRUCT_PTR(StatsTypeSet);
+
     ZS_DECLARE_STRUCT_PTR(Stats);
     ZS_DECLARE_STRUCT_PTR(RTPStreamStats);
     ZS_DECLARE_STRUCT_PTR(Codec);
@@ -107,6 +109,11 @@ namespace ortc
     static Optional<StatsTypes> toStatsType(const char *type);
     static const char *toString(StatsTypes type);
 
+    struct StatsTypeSet : public std::set<IStatsReportTypes::StatsTypes>
+    {
+      bool hasStatType(StatsTypes stat);
+    };
+
     enum StatsICECandidatePairStates
     {
       StatsICECandidatePairState_First,
@@ -134,7 +141,7 @@ namespace ortc
 
     struct Stats : public Any
     {
-      Time      mTimeStamp;
+      Time      mTimestamp;
       String    mStatsType;
       String    mID;
 

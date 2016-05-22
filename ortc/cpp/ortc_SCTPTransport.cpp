@@ -761,7 +761,7 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    IStatsProvider::PromiseWithStatsReportPtr SCTPTransport::getStats() const throw(InvalidStateError)
+    IStatsProvider::PromiseWithStatsReportPtr SCTPTransport::getStats(const StatsTypeSet &stats) const throw(InvalidStateError)
     {
 #define TODO_COMPLETE 1
 #define TODO_COMPLETE 2

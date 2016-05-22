@@ -651,7 +651,7 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    ICEGatherer::PromiseWithStatsReportPtr ICEGatherer::getStats() const throw(InvalidStateError)
+    ICEGatherer::PromiseWithStatsReportPtr ICEGatherer::getStats(const StatsTypeSet &stats) const throw(InvalidStateError)
     {
       AutoRecursiveLock lock(*this);
       ORTC_THROW_INVALID_STATE_IF(isShutdown() || isShuttingDown())

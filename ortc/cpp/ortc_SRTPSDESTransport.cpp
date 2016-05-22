@@ -95,7 +95,7 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    IStatsProvider::PromiseWithStatsReportPtr SRTPSDESTransport::getStats() const throw(InvalidStateError)
+    IStatsProvider::PromiseWithStatsReportPtr SRTPSDESTransport::getStats(const StatsTypeSet &stats) const throw(InvalidStateError)
     {
 #define TODO_COMPLETE 1
 #define TODO_COMPLETE 2

@@ -432,7 +432,7 @@ namespace ortc
       #pragma mark RTPReceiver => IStatsProvider
       #pragma mark
 
-      virtual PromiseWithStatsReportPtr getStats() const throw(InvalidStateError) override;
+      virtual PromiseWithStatsReportPtr getStats(const StatsTypeSet &stats = StatsTypeSet()) const throw(InvalidStateError) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
