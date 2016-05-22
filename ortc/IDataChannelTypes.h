@@ -32,11 +32,6 @@
 #pragma once
 
 #include <ortc/types.h>
-#include <ortc/IStatsProvider.h>
-
-#include <zsLib/Exception.h>
-
-#include <list>
 
 namespace ortc
 {
@@ -45,62 +40,54 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   #pragma mark
-  #pragma mark IDTLSTransportTypes
+  #pragma mark IDataChannelTypes
   #pragma mark
   
-  interaction ICertificateTypes
+  interaction IDataChannelTypes
   {
-    ZS_DECLARE_STRUCT_PTR(Fingerprint)
-    ZS_DECLARE_TYPEDEF_PTR(std::list<Fingerprint>, FingerprintList)
-
-    typedef PromiseWith<ICertificate> PromiseWithCertificate;
-    ZS_DECLARE_PTR(PromiseWithCertificate)
+    ZS_DECLARE_STRUCT_PTR(Parameters)
 
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark Fingerprint
+    #pragma mark IDataChannelTypes::States
     #pragma mark
 
-    struct Fingerprint
-    {
-      String mAlgorithm;
-      String mValue;
+    enum States {
+      State_First,
 
-      Fingerprint() {}
-      Fingerprint(const Fingerprint &op2) {(*this) = op2;}
-      Fingerprint(ElementPtr elem);
+      State_Connecting    = State_First,
+      State_Open,
+      State_Closing,
+      State_Closed,
 
-      ElementPtr createElement(const char *objectName = "fingerprint") const;
+      State_Last          = State_Closed,
+    };
+
+    static const char *toString(States state);
+    static Optional<States> toState(const char *state);
+
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IDataChannelTypes::Parameters
+    #pragma mark
+
+    struct Parameters {
+      String            mLabel;
+      bool              mOrdered {true};
+      Milliseconds      mMaxPacketLifetime {};
+      Optional<DWORD>   mMaxRetransmits;
+      String            mProtocol;
+      bool              mNegotiated {false};
+      Optional<USHORT>  mID;
+
+      Parameters() {}
+      Parameters(const Parameters &op2) {(*this) = op2;}
+      Parameters(ElementPtr elem);
+
+      ElementPtr createElement(const char *objectName) const;
 
       ElementPtr toDebug() const;
       String hash() const;
     };
   };
-
-  //---------------------------------------------------------------------------
-  //---------------------------------------------------------------------------
-  //---------------------------------------------------------------------------
-  //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IDTLSTransport
-  #pragma mark
-
-  interaction ICertificate : public ICertificateTypes,
-                             public IStatsProvider,
-                             public Any
-  {
-    static ElementPtr toDebug(ICertificatePtr certificate);
-
-    static ICertificatePtr convert(AnyPtr any);
-
-    static PromiseWithCertificatePtr generateCertificate(ElementPtr keygenAlgorithm) throw (NotSupportedError);
-    static PromiseWithCertificatePtr generateCertificate(const char *keygenAlgorithm = NULL) throw (NotSupportedError);
-
-    virtual PUID getID() const = 0;
-
-    virtual Time expires() const = 0;
-
-    virtual FingerprintPtr fingerprint() const = 0;
-  };
-
 }

@@ -641,13 +641,34 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
+    #pragma mark Certificate => IStatsProvider
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    Certificate::PromiseWithStatsReportPtr Certificate::getStats(const StatsTypeSet &stats) const throw(InvalidStateError)
+    {
+      AutoRecursiveLock lock(*this);
+
+      PromiseWithStatsReportPtr promise = PromiseWithStatsReport::create(IORTCForInternal::queueDelegate());
+      mPendingStats.push_back(promise);
+      IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
+      return promise;
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
     #pragma mark Certificate => IWakeDelegate
     #pragma mark
 
     //-------------------------------------------------------------------------
     void Certificate::onWake()
     {
-      ZS_LOG_DEBUG(log("wake"))
+      ZS_LOG_DEBUG(log("wake"));
+
+      if (resolveStatPromises()) return;
 
       PromiseCertificateHolderPtr promise;
       CertificatePtr pThis;
@@ -787,6 +808,24 @@ namespace ortc
 
       mPromise.reset();
       mPromiseWeak.reset();
+    }
+
+    //-------------------------------------------------------------------------
+    bool Certificate::resolveStatPromises()
+    {
+      PromiseWithStatsReportPtr promise;
+
+      {
+        AutoRecursiveLock lock(*this);
+        if (mPendingStats.size() < 1) return false;
+
+        PromiseWithStatsReportPtr promise = mPendingStats.front();
+        mPendingStats.pop_front();
+      }
+
+      // no stats at this time
+      promise->reject();
+      return true;
     }
 
     //-------------------------------------------------------------------------

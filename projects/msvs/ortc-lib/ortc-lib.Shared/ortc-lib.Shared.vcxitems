@@ -34,6 +34,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\ICertificate.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\IConstraints.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\IDataChannel.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\IDataChannelTypes.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\IDataTransport.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\IDTLSTransport.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\IDTMFSender.h" />

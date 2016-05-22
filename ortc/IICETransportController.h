@@ -34,6 +34,8 @@
 #include <ortc/types.h>
 #include <ortc/IICETypes.h>
 
+#include <ortc/IStatsProvider.h>
+
 namespace ortc
 {
   //---------------------------------------------------------------------------
@@ -57,7 +59,8 @@ namespace ortc
   #pragma mark IICETransportController
   #pragma mark
 
-  interaction IICETransportController : public IICETransportControllerTypes
+  interaction IICETransportController : public IICETransportControllerTypes,
+                                        public IStatsProvider
   {
     static ElementPtr toDebug(IICETransportControllerPtr controller);
 

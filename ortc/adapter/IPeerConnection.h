@@ -244,7 +244,8 @@ namespace ortc
     #pragma mark IPeerConnection
     #pragma mark
 
-    interface IPeerConnection : public IPeerConnectionTypes
+    interface IPeerConnection : public IPeerConnectionTypes,
+                                public IStatsProvider
     {
       static IPeerConnectionPtr create(
                                        IPeerConnectionDelegatePtr delegate,

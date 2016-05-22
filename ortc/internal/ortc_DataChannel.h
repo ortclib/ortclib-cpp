@@ -240,6 +240,13 @@ namespace ortc
 
       //-----------------------------------------------------------------------
       #pragma mark
+      #pragma mark DataChannel => IStatsProvider
+      #pragma mark
+
+      virtual PromiseWithStatsReportPtr getStats(const StatsTypeSet &stats = StatsTypeSet()) const throw(InvalidStateError) override;
+
+      //-----------------------------------------------------------------------
+      #pragma mark
       #pragma mark DataChannel => IDataChannelForSCTPTransport
       #pragma mark
 
@@ -429,6 +436,9 @@ namespace ortc
 
 
 ZS_DECLARE_TEAR_AWAY_BEGIN(ortc::IDataChannel, ortc::internal::DataChannel::TearAwayData)
+ZS_DECLARE_TEAR_AWAY_TYPEDEF(ortc::IStatsProvider::PromiseWithStatsReportPtr, PromiseWithStatsReportPtr)
+ZS_DECLARE_TEAR_AWAY_TYPEDEF(ortc::IStatsProvider::StatsTypeSet, StatsTypeSet)
+ZS_DECLARE_TEAR_AWAY_TYPEDEF(ortc::InvalidStateError, InvalidStateError)
 ZS_DECLARE_TEAR_AWAY_TYPEDEF(ortc::IDataChannelSubscriptionPtr, IDataChannelSubscriptionPtr)
 ZS_DECLARE_TEAR_AWAY_TYPEDEF(ortc::IDataChannelDelegatePtr, IDataChannelDelegatePtr)
 ZS_DECLARE_TEAR_AWAY_TYPEDEF(ortc::IDataTransportPtr, IDataTransportPtr)
@@ -437,6 +447,11 @@ ZS_DECLARE_TEAR_AWAY_TYPEDEF(ortc::IDataChannelTypes::States, States)
 ZS_DECLARE_TEAR_AWAY_TYPEDEF(ortc::SecureByteBlock, SecureByteBlock)
 ZS_DECLARE_TEAR_AWAY_TYPEDEF(zsLib::String, String)
 ZS_DECLARE_TEAR_AWAY_TYPEDEF(zsLib::BYTE, BYTE)
+  // NOTE: custom tear away forward
+  virtual PromiseWithStatsReportPtr getStats(const StatsTypeSet &stats = StatsTypeSet()) const throw(InvalidStateError)
+  {
+    return getDelegate()->getStats(stats);
+  }
 ZS_DECLARE_TEAR_AWAY_METHOD_CONST_RETURN_0(getID, PUID)
 ZS_DECLARE_TEAR_AWAY_METHOD_RETURN_1(subscribe, IDataChannelSubscriptionPtr, IDataChannelDelegatePtr)
 ZS_DECLARE_TEAR_AWAY_METHOD_CONST_RETURN_0(transport, IDataTransportPtr)

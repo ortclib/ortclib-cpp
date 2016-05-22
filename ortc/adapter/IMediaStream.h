@@ -32,6 +32,7 @@
 #pragma once
 
 #include <ortc/adapter/types.h>
+#include <ortc/IStatsProvider.h>
 
 namespace ortc
 {
@@ -59,7 +60,8 @@ namespace ortc
     #pragma mark IMediaStream
     #pragma mark
 
-    interface IMediaStream : public IMediaStreamTypes
+    interface IMediaStream : public IMediaStreamTypes,
+                             public IStatsProvider
     {
       static IMediaStreamPtr create(
                                     IMediaStreamDelegatePtr delegate,

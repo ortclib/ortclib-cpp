@@ -375,6 +375,13 @@ namespace ortc
 
         //---------------------------------------------------------------------
         #pragma mark
+        #pragma mark PeerConnection => IStatsProvider
+        #pragma mark
+
+        virtual PromiseWithStatsReportPtr getStats(const StatsTypeSet &stats = StatsTypeSet()) const throw(InvalidStateError) override;
+
+        //---------------------------------------------------------------------
+        #pragma mark
         #pragma mark PeerConnection => IICEGathererDelegate
         #pragma mark
 

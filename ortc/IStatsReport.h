@@ -34,7 +34,7 @@
 #include <ortc/types.h>
 #include <ortc/IICETypes.h>
 #include <ortc/IRTPTypes.h>
-#include <ortc/IDataChannel.h>
+#include <ortc/IDataChannelTypes.h>
 
 namespace ortc
 {

@@ -175,6 +175,13 @@ namespace ortc
 
       //-----------------------------------------------------------------------
       #pragma mark
+      #pragma mark ICETransportController => IStatsProvider
+      #pragma mark
+
+      virtual PromiseWithStatsReportPtr getStats(const StatsTypeSet &stats = StatsTypeSet()) const throw(InvalidStateError) override;
+
+      //-----------------------------------------------------------------------
+      #pragma mark
       #pragma mark ICETransportController => IICETransportControllerForICETransport
       #pragma mark
 

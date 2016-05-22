@@ -151,6 +151,16 @@ namespace ortc
         //---------------------------------------------------------------------
         //---------------------------------------------------------------------
         #pragma mark
+        #pragma mark MediaStream => IStatsProvider
+        #pragma mark
+
+        virtual PromiseWithStatsReportPtr getStats(const StatsTypeSet &stats = StatsTypeSet()) const throw(InvalidStateError) override;
+
+        //---------------------------------------------------------------------
+        //---------------------------------------------------------------------
+        //---------------------------------------------------------------------
+        //---------------------------------------------------------------------
+        #pragma mark
         #pragma mark MediaStream => ForPeerConnection
         #pragma mark
 

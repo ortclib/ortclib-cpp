@@ -142,10 +142,12 @@ namespace ortc
       friend interaction ICertificateForSettings;
       friend interaction ICertificateForDTLSTransport;
 
-      ZS_DECLARE_STRUCT_PTR(PromiseCertificateHolder)
-      ZS_DECLARE_CLASS_PTR(Digest)
+      ZS_DECLARE_STRUCT_PTR(PromiseCertificateHolder);
+      ZS_DECLARE_CLASS_PTR(Digest);
 
-      ZS_DECLARE_TYPEDEF_PTR(ICertificateTypes::Fingerprint, Fingerprint)
+      ZS_DECLARE_TYPEDEF_PTR(ICertificateTypes::Fingerprint, Fingerprint);
+
+      ZS_DECLARE_TYPEDEF_PTR(std::list<PromiseWithStatsReportPtr>, PromiseWithStatsReportList);
 
       typedef EVP_PKEY * KeyPairType;
       typedef X509 * CertificateObjectType; // not sure of type to use
@@ -207,6 +209,13 @@ namespace ortc
                                           const String &algorithm,
                                           CertificateObjectType certificate
                                           );
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark Certificate => IStatsProvider
+      #pragma mark
+
+      virtual PromiseWithStatsReportPtr getStats(const StatsTypeSet &stats = StatsTypeSet()) const throw(InvalidStateError) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -289,6 +298,7 @@ namespace ortc
       virtual ElementPtr toDebug() const;
 
       void cancel();
+      bool resolveStatPromises();
 
       evp_pkey_st* MakeKey();
       X509* MakeCertificate(EVP_PKEY* pkey);
@@ -320,6 +330,8 @@ namespace ortc
 
       KeyPairType mKeyPair;
       CertificateObjectType mCertificate;
+
+      mutable PromiseWithStatsReportList mPendingStats;
     };
 
     //-------------------------------------------------------------------------

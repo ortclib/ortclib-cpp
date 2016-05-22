@@ -33,6 +33,7 @@
 #include <ortc/internal/ortc_ICETransport.h>
 #include <ortc/internal/ortc_ORTC.h>
 #include <ortc/internal/ortc_Tracing.h>
+#include <ortc/internal/ortc_StatsReport.h>
 #include <ortc/internal/platform.h>
 
 #include <openpeer/services/IHelper.h>
@@ -48,8 +49,9 @@ namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib) }
 
 namespace ortc
 {
-  ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHelper, UseServicesHelper)
-  ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHTTP, UseHTTP)
+  ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHelper, UseServicesHelper);
+  ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHTTP, UseHTTP);
+  ZS_DECLARE_TYPEDEF_PTR(internal::IStatsReportForInternal, UseStatsReport);
 
   typedef openpeer::services::Hasher<CryptoPP::SHA1> SHA1Hasher;
 
@@ -224,6 +226,36 @@ namespace ortc
       {
         transport->notifyControllerAttached(mThisWeak.lock());
       }
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark ICETransportController => IStatsProvider
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    ICETransportController::PromiseWithStatsReportPtr ICETransportController::getStats(const StatsTypeSet &stats) const throw(InvalidStateError)
+    {
+      UseStatsReport::PromiseWithStatsReportList promises;
+
+      {
+        AutoRecursiveLock lock(*this);
+        for (auto iter = mTransports.begin(); iter != mTransports.end(); ++iter) {
+          IICETransportPtr transport = ICETransport::convert((*iter).second);
+
+          try {
+            auto promise = transport->getStats(stats);
+            promises.push_back(promise);
+          } catch (const InvalidStateError &) {
+            ZS_LOG_WARNING(Trace, log("invalid state execption"));
+          }
+        }
+      }
+
+      return UseStatsReport::collectReports(promises);
     }
 
     //-------------------------------------------------------------------------

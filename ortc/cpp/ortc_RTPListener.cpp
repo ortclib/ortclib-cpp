@@ -595,6 +595,22 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
+    #pragma mark RTPListener => IStatsProvider
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    RTPListener::PromiseWithStatsReportPtr RTPListener::getStats(const StatsTypeSet &stats) const throw(InvalidStateError)
+    {
+#define TODO 1
+#define TODO 2
+      return PromiseWithStatsReport::createRejected(IORTCForInternal::queueDelegate());
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
     #pragma mark RTPListener => IRTPListenerForSecureTransport
     #pragma mark
 

@@ -508,6 +508,22 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
+    DataChannel::PromiseWithStatsReportPtr DataChannel::getStats(const StatsTypeSet &stats) const throw(InvalidStateError)
+    {
+#define TODO 1
+#define TODO 2
+      return PromiseWithStatsReport::createRejected(IORTCForInternal::queueDelegate());
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark DataChannel => IDataChannelForSCTPTransport
+    #pragma mark
+
+    //-------------------------------------------------------------------------
     DataChannel::ForDataTransportPtr DataChannel::create(
                                                          UseDataTransportPtr transport,
                                                          WORD sessionID

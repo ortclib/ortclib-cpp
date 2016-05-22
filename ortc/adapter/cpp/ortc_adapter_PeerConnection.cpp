@@ -939,6 +939,14 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
+      PeerConnection::PromiseWithStatsReportPtr PeerConnection::getStats(const StatsTypeSet &stats) const throw(InvalidStateError)
+      {
+#define TODO 1
+#define TODO 2
+        return PromiseWithStatsReport::createRejected(UseORTC::queueDelegate());
+      }
+
+      //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------

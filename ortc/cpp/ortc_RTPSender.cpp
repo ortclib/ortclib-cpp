@@ -1107,12 +1107,6 @@ namespace ortc
 
       goto ready;
 
-    not_ready:
-      {
-        ZS_LOG_TRACE(debug("not ready"))
-        return;
-      }
-
     ready:
       {
         ZS_LOG_TRACE(log("ready"))

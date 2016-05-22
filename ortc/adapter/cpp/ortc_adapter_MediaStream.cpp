@@ -32,6 +32,7 @@
 #include <ortc/adapter/internal/ortc_adapter_MediaStream.h>
 
 #include <ortc/internal/ortc_MediaStreamTrack.h>
+#include <ortc/internal/ortc_StatsReport.h>
 
 #include <ortc/internal/ortc_ORTC.h>
 
@@ -52,6 +53,7 @@ namespace ortc
       ZS_DECLARE_TYPEDEF_PTR(ortc::internal::IORTCForInternal, UseORTC);
 
       ZS_DECLARE_USING_PTR(ortc::internal, MediaStreamTrack);
+      ZS_DECLARE_TYPEDEF_PTR(ortc::internal::IStatsReportForInternal, UseStatsReport);
 
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
@@ -364,6 +366,35 @@ namespace ortc
       #pragma mark MediaStream => ForPeerConnection
       #pragma mark
 
+      //-----------------------------------------------------------------------
+      MediaStream::PromiseWithStatsReportPtr MediaStream::getStats(const StatsTypeSet &stats) const throw(InvalidStateError)
+      {
+        UseStatsReport::PromiseWithStatsReportList promises;
+
+        {
+          AutoRecursiveLock lock(*this);
+          for (auto iter = mTracks.begin(); iter != mTracks.end(); ++iter) {
+            IMediaStreamTrackPtr track = MediaStreamTrack::convert(*iter);
+
+            try {
+              auto promise = track->getStats(stats);
+              promises.push_back(promise);
+            } catch (const InvalidStateError &) {
+              ZS_LOG_WARNING(Trace, log("invalid state execption"));
+            }
+          }
+        }
+
+        return UseStatsReport::collectReports(promises);
+      }
+
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark MediaStream => ForPeerConnection
+      #pragma mark
 
       //-----------------------------------------------------------------------
       MediaStreamPtr MediaStream::create(const char *id)

@@ -61,12 +61,12 @@ namespace ortc
     ZS_DECLARE_INTERACTION_PTR(IMediaStreamTrackForRTPReceiverChannelVideo);
     ZS_DECLARE_INTERACTION_PTR(IMediaStreamTrackForMediaDevices);
 
-    ZS_DECLARE_INTERACTION_PTR(IRTPSenderForMediaStreamTrack)
-    ZS_DECLARE_INTERACTION_PTR(IRTPSenderChannelForMediaStreamTrack)
-    ZS_DECLARE_INTERACTION_PTR(IRTPReceiverForMediaStreamTrack)
-    ZS_DECLARE_INTERACTION_PTR(IRTPReceiverChannelForMediaStreamTrack)
+    ZS_DECLARE_INTERACTION_PTR(IRTPSenderForMediaStreamTrack);
+    ZS_DECLARE_INTERACTION_PTR(IRTPSenderChannelForMediaStreamTrack);
+    ZS_DECLARE_INTERACTION_PTR(IRTPReceiverForMediaStreamTrack);
+    ZS_DECLARE_INTERACTION_PTR(IRTPReceiverChannelForMediaStreamTrack);
 
-    ZS_DECLARE_INTERACTION_PROXY(IMediaStreamTrackAsyncDelegate)
+    ZS_DECLARE_INTERACTION_PROXY(IMediaStreamTrackAsyncDelegate);
     
     using zsLib::FLOAT;
     using zsLib::INT;

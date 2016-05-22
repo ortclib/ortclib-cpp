@@ -32,65 +32,11 @@
 #pragma once
 
 #include <ortc/types.h>
+#include <ortc/IDataChannelTypes.h>
+#include <ortc/IStatsProvider.h>
 
 namespace ortc
 {
-  //---------------------------------------------------------------------------
-  //---------------------------------------------------------------------------
-  //---------------------------------------------------------------------------
-  //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IDataChannelTypes
-  #pragma mark
-  
-  interaction IDataChannelTypes
-  {
-    ZS_DECLARE_STRUCT_PTR(Parameters)
-
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IDataChannelTypes::States
-    #pragma mark
-
-    enum States {
-      State_First,
-
-      State_Connecting    = State_First,
-      State_Open,
-      State_Closing,
-      State_Closed,
-
-      State_Last          = State_Closed,
-    };
-
-    static const char *toString(States state);
-    static Optional<States> toState(const char *state);
-
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IDataChannelTypes::Parameters
-    #pragma mark
-
-    struct Parameters {
-      String            mLabel;
-      bool              mOrdered {true};
-      Milliseconds      mMaxPacketLifetime {};
-      Optional<DWORD>   mMaxRetransmits;
-      String            mProtocol;
-      bool              mNegotiated {false};
-      Optional<USHORT>  mID;
-
-      Parameters() {}
-      Parameters(const Parameters &op2) {(*this) = op2;}
-      Parameters(ElementPtr elem);
-
-      ElementPtr createElement(const char *objectName) const;
-
-      ElementPtr toDebug() const;
-      String hash() const;
-    };
-  };
-
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
@@ -100,7 +46,8 @@ namespace ortc
   #pragma mark
   
   interaction IDataChannel : public Any,
-                             public IDataChannelTypes
+                             public IDataChannelTypes,
+                             public IStatsProvider
   {
     static ElementPtr toDebug(IDataChannelPtr channel);
 

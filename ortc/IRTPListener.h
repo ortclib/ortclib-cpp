@@ -33,6 +33,7 @@
 
 #include <ortc/types.h>
 #include <ortc/IRTPTypes.h>
+#include <ortc/IStatsProvider.h>
 
 namespace ortc
 {
@@ -56,7 +57,8 @@ namespace ortc
   #pragma mark IRTPListener
   #pragma mark
   
-  interaction IRTPListener : public IRTPListenerTypes
+  interaction IRTPListener : public IRTPListenerTypes,
+                             public IStatsProvider
   {
     static ElementPtr toDebug(IRTPListenerPtr listener);
 

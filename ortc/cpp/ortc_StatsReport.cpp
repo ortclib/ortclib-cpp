@@ -503,6 +503,8 @@ namespace ortc
   //---------------------------------------------------------------------------
   bool IStatsReportTypes::StatsTypeSet::hasStatType(StatsTypes type)
   {
+    if (size() < 1) return true;
+
     auto found = find(type);
     if (found == end()) return false;
     return true;
