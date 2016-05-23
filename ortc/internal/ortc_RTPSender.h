@@ -253,7 +253,7 @@ namespace ortc
 
         bool handle(RTCPPacketPtr packet);
 
-        void requestStats(PromiseWithStatsReportPtr promise);
+        void requestStats(PromiseWithStatsReportPtr promise, const StatsTypeSet &stats);
 
         ElementPtr toDebug() const;
       };

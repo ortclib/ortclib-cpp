@@ -330,7 +330,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPSenderChannel::requestStats(PromiseWithStatsReportPtr promise)
+    void RTPSenderChannel::requestStats(PromiseWithStatsReportPtr promise, const StatsTypeSet &stats)
     {
       ZS_LOG_TRACE(log("on provide stats") + ZS_PARAM("promise", promise->getID()));
 
@@ -341,7 +341,7 @@ namespace ortc
         mediaBase = mMediaBase;
       }
 
-      mediaBase->requestStats(promise);
+      mediaBase->requestStats(promise, stats);
     }
 
     //-------------------------------------------------------------------------

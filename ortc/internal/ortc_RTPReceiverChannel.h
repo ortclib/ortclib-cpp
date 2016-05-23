@@ -99,6 +99,7 @@ namespace ortc
       typedef std::list<RTCPPacketPtr> RTCPPacketList;
       ZS_DECLARE_PTR(RTCPPacketList);
       ZS_DECLARE_TYPEDEF_PTR(IStatsProviderTypes::PromiseWithStatsReport, PromiseWithStatsReport);
+      ZS_DECLARE_TYPEDEF_PTR(IStatsReportTypes::StatsTypeSet, StatsTypeSet)
 
       static ElementPtr toDebug(ForRTPReceiverPtr object);
 
@@ -123,7 +124,7 @@ namespace ortc
 
       virtual bool handlePacket(RTCPPacketPtr packet) = 0;
 
-      virtual void requestStats(PromiseWithStatsReportPtr promise) = 0;
+      virtual void requestStats(PromiseWithStatsReportPtr promise, const StatsTypeSet &stats) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -329,7 +330,7 @@ namespace ortc
 
       virtual bool handlePacket(RTCPPacketPtr packet) override;
 
-      virtual void requestStats(PromiseWithStatsReportPtr promise) override;
+      virtual void requestStats(PromiseWithStatsReportPtr promise, const StatsTypeSet &stats) override;
 
       //-----------------------------------------------------------------------
       #pragma mark

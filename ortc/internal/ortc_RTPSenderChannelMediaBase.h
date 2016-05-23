@@ -65,6 +65,7 @@ namespace ortc
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPSenderChannelMediaBase, UseBaseMediaStreamTrack);
 
       ZS_DECLARE_TYPEDEF_PTR(IStatsProvider::PromiseWithStatsReport, PromiseWithStatsReport);
+      ZS_DECLARE_TYPEDEF_PTR(IStatsReportTypes::StatsTypeSet, StatsTypeSet)
 
       static ElementPtr toDebug(ForRTPSenderChannelPtr object);
 
@@ -78,7 +79,7 @@ namespace ortc
 
       virtual bool handlePacket(RTCPPacketPtr packet) = 0;
 
-      virtual void requestStats(PromiseWithStatsReportPtr promise) = 0;
+      virtual void requestStats(PromiseWithStatsReportPtr promise, const StatsTypeSet &stats) = 0;
     };
 
     //-------------------------------------------------------------------------

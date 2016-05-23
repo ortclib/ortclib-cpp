@@ -70,6 +70,7 @@ namespace ortc
 
       ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters);
       ZS_DECLARE_TYPEDEF_PTR(IStatsProviderTypes::PromiseWithStatsReport, PromiseWithStatsReport);
+      ZS_DECLARE_TYPEDEF_PTR(IStatsReportTypes::StatsTypeSet, StatsTypeSet)
 
       static ElementPtr toDebug(ForRTPReceiverChannelPtr object);
 
@@ -83,7 +84,7 @@ namespace ortc
 
       virtual bool handlePacket(RTCPPacketPtr packet) = 0;
 
-      virtual void requestStats(PromiseWithStatsReportPtr promise) = 0;
+      virtual void requestStats(PromiseWithStatsReportPtr promise, const StatsTypeSet &stats) = 0;
     };
 
     //-------------------------------------------------------------------------

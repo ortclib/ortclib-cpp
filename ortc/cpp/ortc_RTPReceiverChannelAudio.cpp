@@ -296,7 +296,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPReceiverChannelAudio::requestStats(PromiseWithStatsReportPtr promise)
+    void RTPReceiverChannelAudio::requestStats(PromiseWithStatsReportPtr promise, const StatsTypeSet &stats)
     {
       UseChannelResourcePtr channelResource;
       {
@@ -308,7 +308,7 @@ namespace ortc
         promise->reject();
         return;
       }
-      return channelResource->requestStats(promise);
+      return channelResource->requestStats(promise, stats);
     }
 
     //-------------------------------------------------------------------------

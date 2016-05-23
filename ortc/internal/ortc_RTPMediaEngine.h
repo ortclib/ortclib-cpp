@@ -156,6 +156,7 @@ namespace ortc
     interaction IRTPMediaEngineChannelResource : public Any
     {
       ZS_DECLARE_TYPEDEF_PTR(IStatsProviderTypes::PromiseWithStatsReport, PromiseWithStatsReport);
+      ZS_DECLARE_TYPEDEF_PTR(IStatsReportTypes::StatsTypeSet, StatsTypeSet)
 
       virtual PUID getID() const = 0;
 
@@ -165,7 +166,7 @@ namespace ortc
 
       virtual void notifyUpdate(ParametersPtr params) = 0;
 
-      virtual void requestStats(PromiseWithStatsReportPtr promise) = 0;
+      virtual void requestStats(PromiseWithStatsReportPtr promise, const StatsTypeSet &stats) = 0;
     };
 
 
@@ -181,10 +182,11 @@ namespace ortc
     {
       ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters);
       ZS_DECLARE_TYPEDEF_PTR(IStatsProviderTypes::PromiseWithStatsReport, PromiseWithStatsReport);
+      ZS_DECLARE_TYPEDEF_PTR(IStatsReportTypes::StatsTypeSet, StatsTypeSet)
 
       virtual void onSecureTransportState(ISecureTransport::States state) = 0;
       virtual void onUpdate(ParametersPtr params) = 0;
-      virtual void onProvideStats(PromiseWithStatsReportPtr promise) = 0;
+      virtual void onProvideStats(PromiseWithStatsReportPtr promise, IStatsReportTypes::StatsTypeSet stats) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -925,6 +927,7 @@ namespace ortc
 
         ZS_DECLARE_TYPEDEF_PTR(IRTPMediaEngineForChannelResource, UseEngine);
         ZS_DECLARE_TYPEDEF_PTR(IStatsProviderTypes::PromiseWithStatsReport, PromiseWithStatsReport);
+        ZS_DECLARE_TYPEDEF_PTR(IStatsReportTypes::StatsTypeSet, StatsTypeSet)
 
       public:
         ChannelResource(
@@ -944,7 +947,7 @@ namespace ortc
         virtual PromisePtr shutdown();
         virtual void notifyTransportState(ISecureTransportTypes::States state);
         virtual void notifyUpdate(ParametersPtr params);
-        virtual void requestStats(PromiseWithStatsReportPtr promise);
+        virtual void requestStats(PromiseWithStatsReportPtr promise, const StatsTypeSet &stats);
 
         //---------------------------------------------------------------------
         #pragma mark
@@ -995,6 +998,7 @@ namespace ortc
         friend class RTPMediaEngine;
 
         ZS_DECLARE_TYPEDEF_PTR(IStatsProviderTypes::PromiseWithStatsReport, PromiseWithStatsReport);
+        ZS_DECLARE_TYPEDEF_PTR(IStatsReportTypes::StatsTypeSet, StatsTypeSet)
 
       public:
         AudioReceiverChannelResource(
@@ -1033,7 +1037,7 @@ namespace ortc
 
         virtual void notifyUpdate(ParametersPtr params) override { return ChannelResource::notifyUpdate(params); }
 
-        virtual void requestStats(PromiseWithStatsReportPtr promise) override { return ChannelResource::requestStats(promise); }
+        virtual void requestStats(PromiseWithStatsReportPtr promise, const StatsTypeSet &stats) override { return ChannelResource::requestStats(promise, stats); }
 
         //---------------------------------------------------------------------
         #pragma mark
@@ -1044,7 +1048,7 @@ namespace ortc
 
         virtual void onUpdate(ParametersPtr params) override;
 
-        virtual void onProvideStats(PromiseWithStatsReportPtr promise) override;
+        virtual void onProvideStats(PromiseWithStatsReportPtr promise, IStatsReportTypes::StatsTypeSet stats) override;
 
         //---------------------------------------------------------------------
         #pragma mark
@@ -1121,6 +1125,7 @@ namespace ortc
         friend class RTPMediaEngine;
 
         ZS_DECLARE_TYPEDEF_PTR(IStatsProviderTypes::PromiseWithStatsReport, PromiseWithStatsReport);
+        ZS_DECLARE_TYPEDEF_PTR(IStatsReportTypes::StatsTypeSet, StatsTypeSet)
 
       public:
         AudioSenderChannelResource(
@@ -1157,7 +1162,7 @@ namespace ortc
 
         virtual void notifyUpdate(ParametersPtr params) override { return ChannelResource::notifyUpdate(params); }
 
-        virtual void requestStats(PromiseWithStatsReportPtr promise) override { return ChannelResource::requestStats(promise); }
+        virtual void requestStats(PromiseWithStatsReportPtr promise, const StatsTypeSet &stats) override { return ChannelResource::requestStats(promise, stats); }
 
         //---------------------------------------------------------------------
         #pragma mark
@@ -1168,7 +1173,7 @@ namespace ortc
 
         virtual void onUpdate(ParametersPtr params) override;
 
-        virtual void onProvideStats(PromiseWithStatsReportPtr promise) override;
+        virtual void onProvideStats(PromiseWithStatsReportPtr promise, IStatsReportTypes::StatsTypeSet stats) override;
 
         //---------------------------------------------------------------------
         #pragma mark
@@ -1242,6 +1247,7 @@ namespace ortc
         friend class RTPMediaEngine;
 
         ZS_DECLARE_TYPEDEF_PTR(IStatsProviderTypes::PromiseWithStatsReport, PromiseWithStatsReport);
+        ZS_DECLARE_TYPEDEF_PTR(IStatsReportTypes::StatsTypeSet, StatsTypeSet)
 
         class ReceiverVideoRenderer : public webrtc::VideoRenderer
         {
@@ -1296,7 +1302,7 @@ namespace ortc
 
         virtual void notifyUpdate(ParametersPtr params) override { return ChannelResource::notifyUpdate(params); }
 
-        virtual void requestStats(PromiseWithStatsReportPtr promise) override { return ChannelResource::requestStats(promise); }
+        virtual void requestStats(PromiseWithStatsReportPtr promise, const StatsTypeSet &stats) override { return ChannelResource::requestStats(promise, stats); }
 
         //---------------------------------------------------------------------
         #pragma mark
@@ -1307,7 +1313,7 @@ namespace ortc
 
         virtual void onUpdate(ParametersPtr params) override;
 
-        virtual void onProvideStats(PromiseWithStatsReportPtr promise) override;
+        virtual void onProvideStats(PromiseWithStatsReportPtr promise, IStatsReportTypes::StatsTypeSet stats) override;
 
         //---------------------------------------------------------------------
         #pragma mark
@@ -1371,6 +1377,7 @@ namespace ortc
         friend class RTPMediaEngine;
 
         ZS_DECLARE_TYPEDEF_PTR(IStatsProviderTypes::PromiseWithStatsReport, PromiseWithStatsReport);
+        ZS_DECLARE_TYPEDEF_PTR(IStatsReportTypes::StatsTypeSet, StatsTypeSet)
 
         union VideoEncoderSettings {
           webrtc::VideoCodecVP8 mVp8;
@@ -1413,7 +1420,7 @@ namespace ortc
 
         virtual void notifyUpdate(ParametersPtr params) override { return ChannelResource::notifyUpdate(params); }
 
-        virtual void requestStats(PromiseWithStatsReportPtr promise) override { return ChannelResource::requestStats(promise); }
+        virtual void requestStats(PromiseWithStatsReportPtr promise, const StatsTypeSet &stats) override { return ChannelResource::requestStats(promise, stats); }
 
         //---------------------------------------------------------------------
         #pragma mark
@@ -1424,7 +1431,7 @@ namespace ortc
 
         virtual void onUpdate(ParametersPtr params) override;
 
-        virtual void onProvideStats(PromiseWithStatsReportPtr promise) override;
+        virtual void onProvideStats(PromiseWithStatsReportPtr promise, IStatsReportTypes::StatsTypeSet stats) override;
 
         //---------------------------------------------------------------------
         #pragma mark
@@ -1523,9 +1530,10 @@ namespace ortc
 ZS_DECLARE_PROXY_BEGIN(ortc::internal::IRTPMediaEngineChannelResourceAsyncDelegate)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::ISecureTransport::States, States)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IStatsProviderTypes::PromiseWithStatsReportPtr, PromiseWithStatsReportPtr)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::IStatsReportTypes::StatsTypeSet, StatsTypeSet)
 ZS_DECLARE_PROXY_METHOD_1(onSecureTransportState, States)
 ZS_DECLARE_PROXY_METHOD_1(onUpdate, ParametersPtr)
-ZS_DECLARE_PROXY_METHOD_1(onProvideStats, PromiseWithStatsReportPtr)
+ZS_DECLARE_PROXY_METHOD_2(onProvideStats, PromiseWithStatsReportPtr, StatsTypeSet)
 ZS_DECLARE_PROXY_END()
 
 ZS_DECLARE_PROXY_BEGIN(ortc::internal::IRTPMediaEngineAsyncDelegate)
