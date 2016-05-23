@@ -263,7 +263,7 @@ namespace ortc
 
       virtual bool handlePacket(RTCPPacketPtr packet) override;
 
-      virtual void requestStats(PromiseWithStatsReportPtr promise) override;
+      virtual void requestStats(PromiseWithStatsReportPtr promise, const StatsTypeSet &stats) override;
 
       //-----------------------------------------------------------------------
       #pragma mark

@@ -103,6 +103,7 @@ namespace ortc
       ZS_DECLARE_PTR(RTCPPacketList);
 
       ZS_DECLARE_TYPEDEF_PTR(IStatsProviderTypes::PromiseWithStatsReport, PromiseWithStatsReport);
+      ZS_DECLARE_TYPEDEF_PTR(IStatsReportTypes::StatsTypeSet, StatsTypeSet)
 
       static ElementPtr toDebug(ForRTPSenderPtr object);
 
@@ -124,7 +125,7 @@ namespace ortc
 
       virtual bool handlePacket(RTCPPacketPtr packet) = 0;
 
-      virtual void requestStats(PromiseWithStatsReportPtr promise) = 0;
+      virtual void requestStats(PromiseWithStatsReportPtr promise, const StatsTypeSet &stats) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -265,7 +266,6 @@ namespace ortc
       ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters)
       typedef std::list<RTCPPacketPtr> RTCPPacketList;
       ZS_DECLARE_PTR(RTCPPacketList);
-      ZS_DECLARE_TYPEDEF_PTR(IStatsProviderTypes::PromiseWithStatsReport, PromiseWithStatsReport);
 
       typedef IRTPTypes::SSRCType SSRCType;
       ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::HeaderExtensionParameters, HeaderExtensionParameters)
@@ -349,7 +349,7 @@ namespace ortc
 
       virtual bool handlePacket(RTCPPacketPtr packet) override;
 
-      virtual void requestStats(PromiseWithStatsReportPtr promise) override;
+      virtual void requestStats(PromiseWithStatsReportPtr promise, const StatsTypeSet &stats) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -510,7 +510,6 @@ ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::ISecureTransport::States, States)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::IRTPSenderChannelAsyncDelegate::RTCPPacketListPtr, RTCPPacketListPtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::IRTPSenderChannelAsyncDelegate::ParametersPtr, ParametersPtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::IMediaStreamTrackForRTPSenderChannel, UseMediaStreamTrack)
-ZS_DECLARE_PROXY_TYPEDEF(ortc::IStatsProviderTypes::PromiseWithStatsReportPtr, PromiseWithStatsReportPtr)
 ZS_DECLARE_PROXY_METHOD_1(onTrackChanged, UseMediaStreamTrackPtr)
 ZS_DECLARE_PROXY_METHOD_1(onSecureTransportState, States)
 ZS_DECLARE_PROXY_METHOD_1(onNotifyPackets, RTCPPacketListPtr)

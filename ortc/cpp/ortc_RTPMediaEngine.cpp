@@ -1498,10 +1498,10 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPMediaEngine::ChannelResource::requestStats(PromiseWithStatsReportPtr promise)
+    void RTPMediaEngine::ChannelResource::requestStats(PromiseWithStatsReportPtr promise, const StatsTypeSet &stats)
     {
       auto pThis = ZS_DYNAMIC_PTR_CAST(ChannelResource, mThisWeak.lock());
-      IRTPMediaEngineChannelResourceAsyncDelegateProxy::create(pThis)->onProvideStats(promise);
+      IRTPMediaEngineChannelResourceAsyncDelegateProxy::create(pThis)->onProvideStats(promise, stats);
     }
 
     //-------------------------------------------------------------------------
@@ -1687,16 +1687,24 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPMediaEngine::AudioReceiverChannelResource::onProvideStats(PromiseWithStatsReportPtr promise)
+    void RTPMediaEngine::AudioReceiverChannelResource::onProvideStats(PromiseWithStatsReportPtr promise, IStatsReportTypes::StatsTypeSet stats1)
     {
       UseStatsReport::StatMap stats;
 
-      auto report = make_shared<IStatsReport::OutboundRTPStreamStats>();
+      auto report = make_shared<IStatsReport::InboundRTPStreamStats>();
 
       report->mID = string(zsLib::createUUID());
 
-#define TODO_MOSA 1
-#define TODO_MOSA 2
+      webrtc::AudioReceiveStream::Stats receiveStreamStats = mReceiveStream->GetStats();
+
+      report->mSSRC = receiveStreamStats.remote_ssrc;
+      report->mMediaType = "audio";
+      report->mCodecID = receiveStreamStats.codec_name;
+      report->mPacketsReceived = receiveStreamStats.packets_rcvd;
+      report->mBytesReceived = receiveStreamStats.bytes_rcvd;
+      report->mPacketsLost = receiveStreamStats.packets_lost;
+      report->mJitter = receiveStreamStats.jitter_ms;
+      report->mFractionLost = receiveStreamStats.fraction_lost;
 
       stats[report->mID] = report;
 
@@ -2134,18 +2142,25 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPMediaEngine::AudioSenderChannelResource::onProvideStats(PromiseWithStatsReportPtr promise)
+    void RTPMediaEngine::AudioSenderChannelResource::onProvideStats(PromiseWithStatsReportPtr promise, IStatsReportTypes::StatsTypeSet stats1)
     {
       UseStatsReport::StatMap stats;
 
-      auto report = make_shared<IStatsReport::InboundRTPStreamStats>();
+      auto report = make_shared<IStatsReport::OutboundRTPStreamStats>();
 
       report->mID = string(zsLib::createUUID());
 
-      stats[report->mID] = report;
+      webrtc::AudioSendStream::Stats sendStreamStats = mSendStream->GetStats();
 
-#define TODO_MOSA 1
-#define TODO_MOSA 2
+      report->mSSRC = sendStreamStats.local_ssrc;
+      report->mMediaType = "audio";
+      report->mCodecID = sendStreamStats.codec_name;
+      report->mPacketsSent = sendStreamStats.packets_sent;
+      report->mBytesSent = sendStreamStats.bytes_sent;
+      //report->mTargetBitrate = mCongestionController->GetRemoteBitrateEstimator()->GetStats(null);
+      report->mRoundTripTime = sendStreamStats.rtt_ms;
+
+      stats[report->mID] = report;
 
       promise->resolve(UseStatsReport::create(stats));
     }
@@ -2594,7 +2609,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPMediaEngine::VideoReceiverChannelResource::onProvideStats(PromiseWithStatsReportPtr promise)
+    void RTPMediaEngine::VideoReceiverChannelResource::onProvideStats(PromiseWithStatsReportPtr promise, IStatsReportTypes::StatsTypeSet stats1)
     {
       UseStatsReport::StatMap stats;
 
@@ -2602,10 +2617,22 @@ namespace ortc
 
       report->mID = string(zsLib::createUUID());
 
-      stats[report->mID] = report;
+      webrtc::VideoReceiveStream::Stats receiveStreamStats = mReceiveStream->GetStats();
 
-#define TODO_MOSA 1
-#define TODO_MOSA 2
+      report->mSSRC = receiveStreamStats.ssrc;
+      report->mMediaType = "video";
+      report->mFIRCount = receiveStreamStats.rtcp_packet_type_counts.fir_packets;
+      report->mPLICount = receiveStreamStats.rtcp_packet_type_counts.pli_packets;
+      report->mNACKCount = receiveStreamStats.rtcp_packet_type_counts.nack_packets;
+      report->mPacketsReceived = receiveStreamStats.rtp_stats.transmitted.packets;
+      report->mBytesReceived = receiveStreamStats.rtp_stats.transmitted.header_bytes +
+        receiveStreamStats.rtp_stats.transmitted.payload_bytes +
+        receiveStreamStats.rtp_stats.transmitted.padding_bytes;
+      report->mPacketsLost = receiveStreamStats.rtp_stats.retransmitted.packets;
+      report->mJitter = receiveStreamStats.rtcp_stats.jitter;
+      report->mFractionLost = receiveStreamStats.rtcp_stats.fraction_lost;
+
+      stats[report->mID] = report;
 
       promise->resolve(UseStatsReport::create(stats));
     }
@@ -3039,18 +3066,36 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPMediaEngine::VideoSenderChannelResource::onProvideStats(PromiseWithStatsReportPtr promise)
+    void RTPMediaEngine::VideoSenderChannelResource::onProvideStats(PromiseWithStatsReportPtr promise, IStatsReportTypes::StatsTypeSet stats1)
     {
       UseStatsReport::StatMap stats;
 
-      auto report = make_shared<IStatsReport::OutboundRTPStreamStats>();
+      webrtc::VideoSendStream::Stats sendStreamStats = mSendStream->GetStats();
 
-      report->mID = string(zsLib::createUUID());
+      auto statsIter = sendStreamStats.substreams.begin();
 
-      stats[report->mID] = report;
+      while (statsIter != sendStreamStats.substreams.end()) {
 
-#define TODO_MOSA 1
-#define TODO_MOSA 2
+        auto report = make_shared<IStatsReport::OutboundRTPStreamStats>();
+
+        report->mID = string(zsLib::createUUID());
+
+        report->mSSRC = (*statsIter).first;
+        report->mMediaType = "video";
+        report->mFIRCount = (*statsIter).second.rtcp_packet_type_counts.fir_packets;
+        report->mPLICount = (*statsIter).second.rtcp_packet_type_counts.pli_packets;
+        report->mNACKCount = (*statsIter).second.rtcp_packet_type_counts.nack_packets;
+        report->mPacketsSent = (*statsIter).second.rtp_stats.transmitted.packets;
+        report->mBytesSent = (*statsIter).second.rtp_stats.transmitted.header_bytes +
+          (*statsIter).second.rtp_stats.transmitted.payload_bytes +
+          (*statsIter).second.rtp_stats.transmitted.padding_bytes;
+        report->mTargetBitrate = sendStreamStats.target_media_bitrate_bps;
+        //report->mRoundTripTime = (*statsIter).second.rtcp_stats.;
+
+        stats[report->mID] = report;
+
+        statsIter++;
+      }
 
       promise->resolve(UseStatsReport::create(stats));
     }

@@ -231,9 +231,9 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPSender::ChannelHolder::requestStats(PromiseWithStatsReportPtr promise)
+    void RTPSender::ChannelHolder::requestStats(PromiseWithStatsReportPtr promise, const StatsTypeSet &stats)
     {
-      return mChannel->requestStats(promise);
+      return mChannel->requestStats(promise, stats);
     }
 
     //-------------------------------------------------------------------------
@@ -383,7 +383,7 @@ namespace ortc
         auto channel = (*iter).second;
 
         auto channelPromise = PromiseWithStatsReport::create(IORTCForInternal::queueORTC());
-        channel->requestStats(channelPromise);
+        channel->requestStats(channelPromise, stats);
         promises.push_back(channelPromise);
       }
 

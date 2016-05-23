@@ -270,9 +270,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\adapter\internal\ortc_adapter_SDPParser.h">
       <Filter>ortc\adapter\internal</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\IDataChannelTypes.h">
-      <Filter>ortc</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ifaddrs-android.cc">

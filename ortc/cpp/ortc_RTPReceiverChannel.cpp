@@ -341,9 +341,9 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPReceiverChannel::requestStats(PromiseWithStatsReportPtr promise)
+    void RTPReceiverChannel::requestStats(PromiseWithStatsReportPtr promise, const StatsTypeSet &stats)
     {
-      return mMediaBase->requestStats(promise);
+      return mMediaBase->requestStats(promise, stats);
     }
 
     //-------------------------------------------------------------------------
