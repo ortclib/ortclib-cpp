@@ -143,7 +143,7 @@ namespace ortc
                                        ) :
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
-      mTrackID(string(zsLib::createUUID())),
+      mTrackID(String(IMediaStreamTrackTypes::toString(kind)) + "_label_" + string(zsLib::createUUID())),
       mKind(kind),
       mRemote(remote),
       mConstraints(constraints)
