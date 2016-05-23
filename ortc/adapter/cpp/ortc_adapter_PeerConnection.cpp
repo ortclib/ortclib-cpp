@@ -3259,7 +3259,12 @@ namespace ortc
             ZS_THROW_INVALID_ASSUMPTION_IF(!mediaLine->mRemoteReceiverCapabilities);
 
             auto capsUnion = UseAdapterHelper::createUnion(*mediaLine->mLocalSenderCapabilities, *mediaLine->mRemoteReceiverCapabilities, mediaLine->mIDPreference);
-            senderInfo->mParameters = senderInfo->mConfiguration->mParameters ? senderInfo->mConfiguration->mParameters : UseAdapterHelper::capabilitiesToParameters(*capsUnion);
+            if (!senderInfo->mParameters) {
+              senderInfo->mParameters = senderInfo->mConfiguration->mParameters ? senderInfo->mConfiguration->mParameters : UseAdapterHelper::capabilitiesToParameters(*capsUnion);
+            } else {
+              senderInfo->mParameters = UseAdapterHelper::filterParameters(*(senderInfo->mParameters), *capsUnion);
+            }
+
             if (!UseAdapterHelper::isCompatible(*capsUnion, *(senderInfo->mParameters))) {
               reason = "sender is not compatible with remote party (thus removing)";
               ZS_LOG_WARNING(Debug, log(reason) + capsUnion->toDebug() + senderInfo->mParameters->toDebug());
