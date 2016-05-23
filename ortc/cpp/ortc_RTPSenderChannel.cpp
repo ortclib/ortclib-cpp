@@ -416,6 +416,8 @@ namespace ortc
         if (found == mTaggings.end()) {
           tagInfo = make_shared<TaggingInfo>();
           mTaggings[packet->ssrc()] = tagInfo;
+        } else {
+          tagInfo = (*found).second;
         }
 
         if (tagInfo->mLastSentPacket + mRetagAfterInSeconds < tick) {
