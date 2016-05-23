@@ -1852,10 +1852,10 @@ namespace ortc
               }
 
             } catch (const InvalidParameters &) {
-              ZS_LOG_WARNING(Debug, log("invalid parameters when calling sender.send()"));
+              ZS_LOG_WARNING(Debug, log("invalid parameters exception caught"));
               goto reject_transport;
             } catch (const InvalidStateError &) {
-              ZS_LOG_WARNING(Debug, log("invalid state when calling sender.send()"));
+              ZS_LOG_WARNING(Debug, log("invalid state exception caught"));
               goto reject_transport;
             }
 
