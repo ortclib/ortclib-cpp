@@ -3281,6 +3281,7 @@ namespace ortc
     mMuxID = op2.mMuxID;
     mCodecs = op2.mCodecs;
     mHeaderExtensions = op2.mHeaderExtensions;
+    mEncodings = op2.mEncodings;
     mRTCP = op2.mRTCP;
     mDegredationPreference = op2.mDegredationPreference;
 
