@@ -4767,7 +4767,6 @@ namespace ortc
         case TMMBN::kFmt:
         {
           auto count = fm->tmmbnCount();
-          throwIfLessThan(count, 1);
           result += ((sizeof(DWORD)*2)*(count));
           break;
         }
