@@ -414,7 +414,7 @@ namespace ortc
       #pragma mark SCTPTransport => IStatsProvider
       #pragma mark
 
-      virtual PromiseWithStatsReportPtr getStats(const StatsTypeSet &stats = StatsTypeSet()) const throw(InvalidStateError) override;
+      virtual PromiseWithStatsReportPtr getStats(const StatsTypeSet &stats = StatsTypeSet()) const override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -706,11 +706,7 @@ ZS_DECLARE_TEAR_AWAY_TYPEDEF(ortc::ISCTPTransportDelegatePtr, ISCTPTransportDele
 ZS_DECLARE_TEAR_AWAY_TYPEDEF(ortc::ISCTPTransportTypes::Capabilities, Capabilities)
 ZS_DECLARE_TEAR_AWAY_TYPEDEF(ortc::IDTLSTransportPtr, IDTLSTransportPtr)
 ZS_DECLARE_TEAR_AWAY_TYPEDEF(ortc::ISCTPTransportTypes::States, States)
-// NOTE: custom tear away forward
-  virtual PromiseWithStatsReportPtr getStats(const StatsTypeSet &stats = StatsTypeSet()) const throw(InvalidStateError)
-  {
-    return getDelegate()->getStats(stats);
-  }
+ZS_DECLARE_TEAR_AWAY_METHOD_CONST_RETURN_1(getStats, PromiseWithStatsReportPtr, const StatsTypeSet &)
 ZS_DECLARE_TEAR_AWAY_METHOD_CONST_RETURN_0(getID, PUID)
 ZS_DECLARE_TEAR_AWAY_METHOD_CONST_RETURN_0(transport, IDTLSTransportPtr)
 ZS_DECLARE_TEAR_AWAY_METHOD_CONST_RETURN_0(state, States)

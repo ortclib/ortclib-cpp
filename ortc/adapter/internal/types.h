@@ -76,6 +76,8 @@ namespace ortc
       ZS_DECLARE_CLASS_PTR(SessionDescription);
       ZS_DECLARE_CLASS_PTR(PeerConnection);
 
+      ZS_DECLARE_INTERACTION_PROXY(IPeerConnectionAsyncDelegate);
+
     } // namespace internal
   } // namespace adapter
 } // namespace ortc

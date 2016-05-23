@@ -508,7 +508,7 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    DataChannel::PromiseWithStatsReportPtr DataChannel::getStats(const StatsTypeSet &stats) const throw(InvalidStateError)
+    DataChannel::PromiseWithStatsReportPtr DataChannel::getStats(const StatsTypeSet &stats) const
     {
 #define TODO 1
 #define TODO 2

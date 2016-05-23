@@ -645,8 +645,11 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    Certificate::PromiseWithStatsReportPtr Certificate::getStats(const StatsTypeSet &stats) const throw(InvalidStateError)
+    Certificate::PromiseWithStatsReportPtr Certificate::getStats(const StatsTypeSet &stats) const
     {
+      if (!stats.hasStatType(IStatsReportTypes::StatsType_Certificate)) {
+        return PromiseWithStatsReport::createRejected(IORTCForInternal::queueDelegate());
+      }
       AutoRecursiveLock lock(*this);
 
       PromiseWithStatsReportPtr promise = PromiseWithStatsReport::create(IORTCForInternal::queueDelegate());

@@ -366,7 +366,7 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    IStatsProvider::PromiseWithStatsReportPtr RTPSender::getStats(const StatsTypeSet &stats) const throw(InvalidStateError)
+    IStatsProvider::PromiseWithStatsReportPtr RTPSender::getStats(const StatsTypeSet &stats) const
     {
       ParametersToChannelHolderMapPtr channels;
 

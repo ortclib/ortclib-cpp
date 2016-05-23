@@ -34,6 +34,8 @@
 
 #include <ortc/adapter/internal/types.h>
 
+#include <ortc/internal/ortc_StatsReport.h>
+
 #include <ortc/adapter/IPeerConnection.h>
 #include <ortc/adapter/IHelper.h>
 
@@ -56,6 +58,22 @@ namespace ortc
       //-------------------------------------------------------------------------
       //-------------------------------------------------------------------------
       #pragma mark
+      #pragma mark IPeerConnectionAsyncDelegate
+      #pragma mark
+
+      interaction IPeerConnectionAsyncDelegate
+      {
+        ZS_DECLARE_TYPEDEF_PTR(IStatsProviderTypes::PromiseWithStatsReportPtr, PromiseWithStatsReportPtr);
+        ZS_DECLARE_TYPEDEF_PTR(IStatsProviderTypes::StatsTypeSet, StatsTypeSet);
+
+        virtual void onProvideStats(PromiseWithStatsReportPtr promise, StatsTypeSet stats) = 0;
+      };
+
+      //-------------------------------------------------------------------------
+      //-------------------------------------------------------------------------
+      //-------------------------------------------------------------------------
+      //-------------------------------------------------------------------------
+      #pragma mark
       #pragma mark PeerConnection
       #pragma mark
 
@@ -63,6 +81,7 @@ namespace ortc
                              public MessageQueueAssociator,
                              public SharedRecursiveLock,
                              public IPeerConnection,
+                             public IPeerConnectionAsyncDelegate,
                              public IICEGathererDelegate,
                              public IICETransportDelegate,
                              public IDTLSTransportDelegate,
@@ -148,6 +167,10 @@ namespace ortc
         typedef std::map<MediaStreamID, UseMediaStreamPtr> UseMediaStreamMap;
         ZS_DECLARE_PTR(UseMediaStreamMap);
         ZS_DECLARE_TYPEDEF_PTR(ISessionDescriptionTypes::MediaStreamSet, MediaStreamSet);
+
+        ZS_DECLARE_TYPEDEF_PTR(ortc::internal::IStatsReportForInternal, UseStatsReport);
+        ZS_DECLARE_TYPEDEF_PTR(IStatsProviderTypes::PromiseWithStatsReportPtr, PromiseWithStatsReportPtr);
+        ZS_DECLARE_TYPEDEF_PTR(IStatsProviderTypes::StatsTypeSet, StatsTypeSet);
 
         struct TransportInfo
         {
@@ -291,6 +314,11 @@ namespace ortc
         typedef std::list<IRTPSenderPtr> SenderList;
         typedef std::list<PendingAddDataChannelPtr> PendingAddDataChannelList;
         typedef std::map<String, size_t> IDMap;
+        typedef PUID PromiseID;
+        typedef PromiseWithStatsReportPtr StatsCollectionPromisePtr;
+        typedef PromiseWithStatsReportPtr ReolveStatsPromisePtr;
+        typedef std::pair<StatsCollectionPromisePtr, ReolveStatsPromisePtr> CollectionPromisePair;
+        typedef std::map<PromiseID, CollectionPromisePair> StatsPromiseMap;
 
       public:
         PeerConnection(
@@ -378,7 +406,14 @@ namespace ortc
         #pragma mark PeerConnection => IStatsProvider
         #pragma mark
 
-        virtual PromiseWithStatsReportPtr getStats(const StatsTypeSet &stats = StatsTypeSet()) const throw(InvalidStateError) override;
+        virtual PromiseWithStatsReportPtr getStats(const StatsTypeSet &stats = StatsTypeSet()) const override;
+
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark PeerConnection => IPeerConnectionAsyncDelegate
+        #pragma mark
+
+        virtual void onProvideStats(PromiseWithStatsReportPtr promise, StatsTypeSet stats) override;
 
         //---------------------------------------------------------------------
         #pragma mark
@@ -603,6 +638,10 @@ namespace ortc
         Optional<size_t> getNextHighestMLineIndex() const;
 
         void moveAddedTracksToPending();
+        void processStats(
+                          PromiseWithStatsReportPtr collectionPromise,
+                          PromiseWithStatsReportPtr resolvePromise
+                          );
 
         static MediaStreamListPtr convertToList(const UseMediaStreamMap &useStreams);
         static UseMediaStreamMapPtr convertToMap(const MediaStreamList &mediaStreams);
@@ -674,6 +713,9 @@ namespace ortc
 
         // step certificates
         ICertificateTypes::PromiseWithCertificatePtr mCertificatePromise;
+
+        // post process the stats
+        StatsPromiseMap mPendingStatPromises;
       };
 
       //-----------------------------------------------------------------------
@@ -704,3 +746,11 @@ namespace ortc
     }
   }
 }
+
+
+ZS_DECLARE_PROXY_BEGIN(ortc::adapter::internal::IPeerConnectionAsyncDelegate)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::IStatsProviderTypes::PromiseWithStatsReportPtr, PromiseWithStatsReportPtr)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::IStatsProviderTypes::StatsTypeSet, StatsTypeSet)
+ZS_DECLARE_PROXY_METHOD_2(onProvideStats, PromiseWithStatsReportPtr, StatsTypeSet)
+ZS_DECLARE_PROXY_END()
+

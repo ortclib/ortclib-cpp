@@ -158,6 +158,8 @@ namespace ortc
       virtual ElementPtr toDebug() const;
       virtual String hash() const;
 
+      virtual void eventTrace() {}
+
       Stats &operator=(const Stats &op2) = delete;
     };
 

@@ -599,7 +599,7 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    RTPListener::PromiseWithStatsReportPtr RTPListener::getStats(const StatsTypeSet &stats) const throw(InvalidStateError)
+    RTPListener::PromiseWithStatsReportPtr RTPListener::getStats(const StatsTypeSet &stats) const
     {
 #define TODO 1
 #define TODO 2

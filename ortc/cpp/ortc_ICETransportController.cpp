@@ -237,7 +237,7 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    ICETransportController::PromiseWithStatsReportPtr ICETransportController::getStats(const StatsTypeSet &stats) const throw(InvalidStateError)
+    ICETransportController::PromiseWithStatsReportPtr ICETransportController::getStats(const StatsTypeSet &stats) const
     {
       UseStatsReport::PromiseWithStatsReportList promises;
 
@@ -246,12 +246,8 @@ namespace ortc
         for (auto iter = mTransports.begin(); iter != mTransports.end(); ++iter) {
           IICETransportPtr transport = ICETransport::convert((*iter).second);
 
-          try {
-            auto promise = transport->getStats(stats);
-            promises.push_back(promise);
-          } catch (const InvalidStateError &) {
-            ZS_LOG_WARNING(Trace, log("invalid state execption"));
-          }
+          auto promise = transport->getStats(stats);
+          promises.push_back(promise);
         }
       }
 

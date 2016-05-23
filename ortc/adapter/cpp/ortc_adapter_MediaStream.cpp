@@ -367,7 +367,7 @@ namespace ortc
       #pragma mark
 
       //-----------------------------------------------------------------------
-      MediaStream::PromiseWithStatsReportPtr MediaStream::getStats(const StatsTypeSet &stats) const throw(InvalidStateError)
+      MediaStream::PromiseWithStatsReportPtr MediaStream::getStats(const StatsTypeSet &stats) const
       {
         UseStatsReport::PromiseWithStatsReportList promises;
 
@@ -376,12 +376,8 @@ namespace ortc
           for (auto iter = mTracks.begin(); iter != mTracks.end(); ++iter) {
             IMediaStreamTrackPtr track = MediaStreamTrack::convert(*iter);
 
-            try {
-              auto promise = track->getStats(stats);
-              promises.push_back(promise);
-            } catch (const InvalidStateError &) {
-              ZS_LOG_WARNING(Trace, log("invalid state execption"));
-            }
+            auto promise = track->getStats(stats);
+            promises.push_back(promise);
           }
         }
 

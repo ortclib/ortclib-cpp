@@ -33,6 +33,7 @@
 #include <ortc/adapter/internal/ortc_adapter_MediaStream.h>
 
 #include <ortc/internal/ortc_ORTC.h>
+
 #include <ortc/IRTPSender.h>
 #include <ortc/IRTPReceiver.h>
 #include <ortc/IMediaStreamTrack.h>
@@ -939,11 +940,134 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      PeerConnection::PromiseWithStatsReportPtr PeerConnection::getStats(const StatsTypeSet &stats) const throw(InvalidStateError)
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark PeerConnection => IStatsProvider
+      #pragma mark
+
+      //-----------------------------------------------------------------------
+      PeerConnection::PromiseWithStatsReportPtr PeerConnection::getStats(const StatsTypeSet &stats) const
       {
-#define TODO 1
-#define TODO 2
-        return PromiseWithStatsReport::createRejected(UseORTC::queueDelegate());
+        auto promise = PromiseWithStatsReport::create(UseORTC::queueDelegate());
+
+        IPeerConnectionAsyncDelegateProxy::create(mThisWeak.lock())->onProvideStats(promise, stats);
+
+        return promise;
+      }
+
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark PeerConnection => IPeerConnectionAsyncDelegate
+      #pragma mark
+
+      //-----------------------------------------------------------------------
+      void PeerConnection::onProvideStats(PromiseWithStatsReportPtr promise, StatsTypeSet stats)
+      {
+        AutoRecursiveLock lock(*this);
+
+        UseStatsReport::PromiseWithStatsReportList promises;
+
+        bool hasTransportCandidateRelated = stats.hasStatType(IStatsReportTypes::StatsType_CandidatePair) ||
+                                            stats.hasStatType(IStatsReportTypes::StatsType_LocalCandidate) ||
+                                            stats.hasStatType(IStatsReportTypes::StatsType_RemoteCandidate);
+
+        StatsTypeSet onlyStreamSet;
+        onlyStreamSet.insert(IStatsReport::StatsType_Stream);
+
+        for (auto iter = mTransports.begin(); iter != mTransports.end(); ++iter) {
+          auto &info = *((*iter).second);
+
+          if ((stats.hasStatType(IStatsReportTypes::StatsType_ICEGatherer)) ||
+              (stats.hasStatType(IStatsReportTypes::StatsType_Candidate))) {
+            if (info.mRTP.mGatherer) {
+              promises.push_back(info.mRTP.mGatherer->getStats(stats));
+            }
+            if (info.mRTCP.mGatherer) {
+              promises.push_back(info.mRTCP.mGatherer->getStats(stats));
+            }
+          }
+          if ((stats.hasStatType(IStatsReportTypes::StatsType_ICETransport)) ||
+              (hasTransportCandidateRelated)) {
+            if (info.mRTP.mTransport) {
+              promises.push_back(info.mRTP.mTransport->getStats(stats));
+            }
+            if (info.mRTCP.mTransport) {
+              promises.push_back(info.mRTCP.mTransport->getStats(stats));
+            }
+          }
+          if ((stats.hasStatType(IStatsReportTypes::StatsType_DTLSTransport)) ||
+              (stats.hasStatType(IStatsReportTypes::StatsType_Certificate))) {
+            if (info.mRTP.mDTLSTransport) {
+              promises.push_back(info.mRTP.mDTLSTransport->getStats(stats));
+            }
+            if (info.mRTCP.mDTLSTransport) {
+              promises.push_back(info.mRTCP.mDTLSTransport->getStats(stats));
+            }
+          }
+          if (stats.hasStatType(IStatsReportTypes::StatsType_SRTPTransport)) {
+            if (info.mRTP.mSRTPSDESTransport) {
+              promises.push_back(info.mRTP.mSRTPSDESTransport->getStats(stats));
+            }
+          }
+        }
+
+        for (auto iter = mSCTPMedias.begin(); iter != mSCTPMedias.end(); ++iter) {
+          auto &info = *((*iter).second);
+
+          if (stats.hasStatType(IStatsReportTypes::StatsType_SCTPTransport)) {
+            if (info.mSCTPTransport) {
+              promises.push_back(info.mSCTPTransport->getStats(stats));
+            }
+          }
+        }
+
+        for (auto iter = mSenders.begin(); iter != mSenders.end(); ++iter) {
+          auto &info = *((*iter).second);
+
+          if (stats.hasStatType(IStatsReportTypes::StatsType_Track)) {
+            if (info.mTrack) {
+              promises.push_back(info.mTrack->getStats(stats));
+            }
+          }
+          if (stats.hasStatType(IStatsReportTypes::StatsType_OutboundRTP)) {
+            if (info.mSender) {
+              promises.push_back(info.mSender->getStats(stats));
+            }
+          }
+          if (stats.hasStatType(IStatsReportTypes::StatsType_Stream)) {
+            for (auto iterStream = info.mMediaStreams.begin(); iterStream != info.mMediaStreams.end(); ++iterStream) {
+              IMediaStreamPtr stream = MediaStream::convert((*iterStream).second);
+              promises.push_back(stream->getStats(onlyStreamSet));
+            }
+          }
+        }
+
+        for (auto iter = mReceivers.begin(); iter != mReceivers.end(); ++iter) {
+          auto &info = *((*iter).second);
+
+          if (stats.hasStatType(IStatsReportTypes::StatsType_InboundRTP)) {
+            if (info.mReceiver) {
+              promises.push_back(info.mReceiver->getStats(stats));
+            }
+          }
+          if (stats.hasStatType(IStatsReportTypes::StatsType_Stream)) {
+            for (auto iterStream = info.mMediaStreams.begin(); iterStream != info.mMediaStreams.end(); ++iterStream) {
+              IMediaStreamPtr stream = MediaStream::convert((*iterStream).second);
+              promises.push_back(stream->getStats(onlyStreamSet));
+            }
+          }
+        }
+
+        auto collecionPromise = UseStatsReport::collectReports(promises);
+
+        mPendingStatPromises[collecionPromise->getID()] = CollectionPromisePair(collecionPromise, promise);
+
+        collecionPromise->thenWeak(mThisWeak.lock());
       }
 
       //-----------------------------------------------------------------------
@@ -1274,8 +1398,33 @@ namespace ortc
       {
         ZS_LOG_DEBUG("promise settled");
 
-        AutoRecursiveLock lock(*this);
-        step();
+        PromiseWithStatsReportPtr resolvePromise;
+        PromiseWithStatsReportPtr collectionPromise;
+
+        // handle promise
+        {
+          AutoRecursiveLock lock(*this);
+
+          // check if stats promise
+          {
+            auto found = mPendingStatPromises.find(promise->getID());
+            if (found != mPendingStatPromises.end()) {
+              collectionPromise = (*found).second.first;
+              resolvePromise = (*found).second.second;
+              mPendingStatPromises.erase(found);
+              goto process_stats;
+            }
+          }
+
+          step();
+          return;
+        }
+
+      process_stats:
+        {
+          // intentionally process outside of lock
+          processStats(collectionPromise, resolvePromise);
+        }
       }
 
       //-----------------------------------------------------------------------
@@ -1315,6 +1464,8 @@ namespace ortc
         UseServicesHelper::debugAppend(resultEl, mConfiguration.toDebug());
 
         UseServicesHelper::debugAppend(resultEl, "state", toString(mState));
+        UseServicesHelper::debugAppend(resultEl, "error code", mErrorCode);
+        UseServicesHelper::debugAppend(resultEl, "error reason", mErrorReason);
 
         UseServicesHelper::debugAppend(resultEl, "signaling state", IPeerConnectionTypes::toString(mLastSignalingState));
         UseServicesHelper::debugAppend(resultEl, "ice gathering state", IICEGathererTypes::toString(mLastICEGatheringStates));
@@ -1322,6 +1473,7 @@ namespace ortc
         UseServicesHelper::debugAppend(resultEl, "peer connection state", IPeerConnectionTypes::toString(mLastPeerConnectionState));
 
         UseServicesHelper::debugAppend(resultEl, "wake called", bool(mWakeCalled));
+        UseServicesHelper::debugAppend(resultEl, "negotiation needed", mNegotiationNeeded);
 
         UseServicesHelper::debugAppend(resultEl, "local description", ISessionDescription::toDebug(mLocalDescription));
         UseServicesHelper::debugAppend(resultEl, "pending local description", ISessionDescription::toDebug(mPendingLocalDescription));
@@ -1330,6 +1482,7 @@ namespace ortc
         UseServicesHelper::debugAppend(resultEl, "pending remote description", ISessionDescription::toDebug(mPendingRemoteDescription));
 
         UseServicesHelper::debugAppend(resultEl, "pending methods", mPendingMethods.size());
+        UseServicesHelper::debugAppend(resultEl, "added pending add tracks", mAddedPendingAddTracks.size());
         UseServicesHelper::debugAppend(resultEl, "pending add tracks", mPendingAddTracks.size());
         UseServicesHelper::debugAppend(resultEl, "pending remove tracks", mPendingRemoveTracks.size());
         UseServicesHelper::debugAppend(resultEl, "pending add data channels", mPendingAddDataChannels.size());
@@ -1340,9 +1493,16 @@ namespace ortc
         UseServicesHelper::debugAppend(resultEl, "senders", mSenders.size());
         UseServicesHelper::debugAppend(resultEl, "receivers", mReceivers.size());
 
+        UseServicesHelper::debugAppend(resultEl, "media streams", mMediaStreams.size());
         UseServicesHelper::debugAppend(resultEl, "pending remote candidates", mPendingRemoteCandidates.size());
 
         UseServicesHelper::debugAppend(resultEl, "pending transport pool", mTransportPool.size());
+
+        UseServicesHelper::debugAppend(resultEl, "existing ids", mExistingIDs.size());
+
+        UseServicesHelper::debugAppend(resultEl, "certificate promise", bool(mCertificatePromise));
+
+        UseServicesHelper::debugAppend(resultEl, "pending stat promises", mPendingStatPromises.size());
 
         return resultEl;
       }
@@ -3796,6 +3956,42 @@ namespace ortc
           mPendingAddTracks.push_back(pending);
         }
         mAddedPendingAddTracks.clear();
+      }
+
+      //-----------------------------------------------------------------------
+      void PeerConnection::processStats(
+                                        PromiseWithStatsReportPtr collectionPromise,
+                                        PromiseWithStatsReportPtr resolvePromise
+                                        )
+      {
+        IStatsReportPtr report;
+
+        // scope: go through the reports
+        {
+          report = collectionPromise->value();
+          if (!report) goto done;
+
+          auto ids = report->getStatesIDs();
+          if (!ids) goto done;
+
+          for (auto iter = ids->begin(); iter != ids->end(); ++iter) {
+            auto &id = (*iter);
+
+            auto stats = report->getStats(id);
+            if (!stats) continue;
+
+            stats->eventTrace();
+          }
+        }
+
+      done:
+        {
+          if (report) {
+            resolvePromise->resolve(report);
+          } else {
+            resolvePromise->reject();
+          }
+        }
       }
 
       //-----------------------------------------------------------------------

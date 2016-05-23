@@ -62,7 +62,7 @@ namespace ortc
   
   interaction IStatsProvider : public IStatsProviderTypes
   {
-    virtual PromiseWithStatsReportPtr getStats(const StatsTypeSet &stats = StatsTypeSet()) const throw(InvalidStateError) = 0;
+    virtual PromiseWithStatsReportPtr getStats(const StatsTypeSet &stats = StatsTypeSet()) const = 0;
   };
 
 }

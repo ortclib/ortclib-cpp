@@ -451,10 +451,14 @@ namespace ortc
     #pragma mark
     
     //-------------------------------------------------------------------------
-    IStatsProvider::PromiseWithStatsReportPtr MediaStreamTrack::getStats(const StatsTypeSet &stats) const throw(InvalidStateError)
+    IStatsProvider::PromiseWithStatsReportPtr MediaStreamTrack::getStats(const StatsTypeSet &stats) const
     {
       AutoRecursiveLock lock(*this);
-      ORTC_THROW_INVALID_STATE_IF(isShutdown() || isShuttingDown())
+      if ((isShutdown()) ||
+          (isShuttingDown())) {
+        ZS_LOG_WARNING(Debug, log("can not fetch stats while shutdown / shutting down"));
+        return PromiseWithStatsReport::createRejected(IORTCForInternal::queueDelegate());
+      }
 
       PromiseWithStatsReportPtr promise = PromiseWithStatsReport::create(IORTCForInternal::queueDelegate());
       IMediaStreamTrackAsyncDelegateProxy::create(mThisWeak.lock())->onResolveStatsPromise(promise);

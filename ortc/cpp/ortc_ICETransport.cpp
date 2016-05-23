@@ -306,10 +306,14 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    IStatsProvider::PromiseWithStatsReportPtr ICETransport::getStats(const StatsTypeSet &stats) const throw(InvalidStateError)
+    IStatsProvider::PromiseWithStatsReportPtr ICETransport::getStats(const StatsTypeSet &stats) const
     {
       AutoRecursiveLock lock(*this);
-      ORTC_THROW_INVALID_STATE_IF(isShutdown() || isShuttingDown())
+      if ((isShutdown()) ||
+          (isShuttingDown())) {
+        ZS_LOG_WARNING(Debug, log("cannot collect stats while shutdown / shutting down"));
+        return PromiseWithStatsReport::createRejected(IORTCForInternal::queueDelegate());
+      }
 
       PromiseWithStatsReportPtr promise = PromiseWithStatsReport::create(IORTCForInternal::queueDelegate());
       IICETransportAsyncDelegateProxy::create(mThisWeak.lock())->onResolveStatsPromise(promise);

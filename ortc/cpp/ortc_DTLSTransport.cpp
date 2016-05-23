@@ -321,12 +321,11 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    IStatsProvider::PromiseWithStatsReportPtr DTLSTransport::getStats(const StatsTypeSet &stats) const throw(InvalidStateError)
+    IStatsProvider::PromiseWithStatsReportPtr DTLSTransport::getStats(const StatsTypeSet &stats) const
     {
-      ZS_THROW_NOT_IMPLEMENTED("not implemented yet (sorry)")
 #define TODO_COMPLETE 1
 #define TODO_COMPLETE 2
-      return PromiseWithStatsReportPtr();
+      return PromiseWithStatsReport::createRejected(IORTCForInternal::queueDelegate());
     }
 
     //-------------------------------------------------------------------------

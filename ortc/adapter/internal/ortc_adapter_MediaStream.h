@@ -154,7 +154,7 @@ namespace ortc
         #pragma mark MediaStream => IStatsProvider
         #pragma mark
 
-        virtual PromiseWithStatsReportPtr getStats(const StatsTypeSet &stats = StatsTypeSet()) const throw(InvalidStateError) override;
+        virtual PromiseWithStatsReportPtr getStats(const StatsTypeSet &stats = StatsTypeSet()) const override;
 
         //---------------------------------------------------------------------
         //---------------------------------------------------------------------
