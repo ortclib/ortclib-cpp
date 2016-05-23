@@ -2753,7 +2753,7 @@ namespace ortc
       bool videoCodecSet = false;
       for (auto codecIter = mParameters->mCodecs.begin(); codecIter != mParameters->mCodecs.end(); ++codecIter) {
         auto supportedCodec = IRTPTypes::toSupportedCodec(codecIter->mName);
-        if (IRTPTypes::getCodecKind(supportedCodec) == IRTPTypes::CodecKind_Audio && videoCodecSet)
+        if (IRTPTypes::getCodecKind(supportedCodec) == IRTPTypes::CodecKind_Video && videoCodecSet)
           continue;
         switch (supportedCodec) {
           case IRTPTypes::SupportedCodec_VP8:
@@ -3227,7 +3227,7 @@ namespace ortc
       bool videoCodecSet = false;
       for (auto codecIter = mParameters->mCodecs.begin(); codecIter != mParameters->mCodecs.end(); codecIter++) {
         auto supportedCodec = IRTPTypes::toSupportedCodec(codecIter->mName);
-        if (IRTPTypes::getCodecKind(supportedCodec) == IRTPTypes::CodecKind_Audio && videoCodecSet)
+        if (IRTPTypes::getCodecKind(supportedCodec) == IRTPTypes::CodecKind_Video && videoCodecSet)
           continue;
         switch (supportedCodec) {
           case IRTPTypes::SupportedCodec_VP8:
