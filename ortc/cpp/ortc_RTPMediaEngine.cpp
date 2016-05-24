@@ -1571,7 +1571,7 @@ namespace ortc
       mParameters(parameters),
       mInitPacket(packet),
       mClock(webrtc::Clock::GetRealTimeClock()),
-      mRemb(mClock.get())
+      mRemb(mClock)
     {
     }
 
@@ -1808,10 +1808,10 @@ namespace ortc
       mPacerThread = webrtc::ProcessThread::Create("AudioReceiverChannelResourcePacerThread");
 
       mBitrateAllocator = rtc::scoped_ptr<webrtc::BitrateAllocator>(new webrtc::BitrateAllocator());
-      mCallStats = rtc::scoped_ptr<webrtc::CallStats>(new webrtc::CallStats(mClock.get()));
+      mCallStats = rtc::scoped_ptr<webrtc::CallStats>(new webrtc::CallStats(mClock));
       mCongestionController =
         rtc::scoped_ptr<webrtc::CongestionController>(new webrtc::CongestionController(
-                                                                                       mClock.get(),
+                                                                                       mClock,
                                                                                        this,
                                                                                        &mRemb
                                                                                        ));
@@ -1974,7 +1974,6 @@ namespace ortc
       mCongestionController.reset();
       mCallStats.reset();
       mBitrateAllocator.reset();
-      mClock.reset();
       mModuleProcessThread.reset();
       mPacerThread.reset();
 
@@ -2039,7 +2038,7 @@ namespace ortc
       mTrack(track),
       mParameters(parameters),
       mClock(webrtc::Clock::GetRealTimeClock()),
-      mRemb(mClock.get())
+      mRemb(mClock)
     {
     }
 
@@ -2259,7 +2258,7 @@ namespace ortc
       mBitrateAllocator = rtc::scoped_ptr<webrtc::BitrateAllocator>(new webrtc::BitrateAllocator());
       mCongestionController =
         rtc::scoped_ptr<webrtc::CongestionController>(new webrtc::CongestionController(
-                                                                                       mClock.get(),
+                                                                                       mClock,
                                                                                        this,
                                                                                        &mRemb
                                                                                        ));
@@ -2417,7 +2416,6 @@ namespace ortc
       mSendStream.reset();
       mCongestionController.reset();
       mBitrateAllocator.reset();
-      mClock.reset();
       mModuleProcessThread.reset();
       mPacerThread.reset();
 
@@ -2502,7 +2500,7 @@ namespace ortc
       mParameters(parameters),
       mInitPacket(packet),
       mClock(webrtc::Clock::GetRealTimeClock()),
-      mRemb(mClock.get())
+      mRemb(mClock)
     {
     }
 
@@ -2736,10 +2734,10 @@ namespace ortc
       mReceiverVideoRenderer.setMediaStreamTrack(mTrack);
 
       mBitrateAllocator = rtc::scoped_ptr<webrtc::BitrateAllocator>(new webrtc::BitrateAllocator());
-      mCallStats = rtc::scoped_ptr<webrtc::CallStats>(new webrtc::CallStats(mClock.get()));
+      mCallStats = rtc::scoped_ptr<webrtc::CallStats>(new webrtc::CallStats(mClock));
       mCongestionController =
         rtc::scoped_ptr<webrtc::CongestionController>(new webrtc::CongestionController(
-                                                                                       mClock.get(),
+                                                                                       mClock,
                                                                                        this,
                                                                                        &mRemb
                                                                                        ));
@@ -2934,7 +2932,6 @@ namespace ortc
       mCongestionController.reset();
       mCallStats.reset();
       mBitrateAllocator.reset();
-      mClock.reset();
       mModuleProcessThread.reset();
       mPacerThread.reset();
 
@@ -2964,7 +2961,7 @@ namespace ortc
       mTrack(track),
       mParameters(parameters),
       mClock(webrtc::Clock::GetRealTimeClock()),
-      mRemb(mClock.get())
+      mRemb(mClock)
     {
     }
 
@@ -3200,10 +3197,10 @@ namespace ortc
       mPacerThread = webrtc::ProcessThread::Create("VideoSenderChannelResourcePacerThread");
 
       mBitrateAllocator = rtc::scoped_ptr<webrtc::BitrateAllocator>(new webrtc::BitrateAllocator());
-      mCallStats = rtc::scoped_ptr<webrtc::CallStats>(new webrtc::CallStats(mClock.get()));
+      mCallStats = rtc::scoped_ptr<webrtc::CallStats>(new webrtc::CallStats(mClock));
       mCongestionController =
         rtc::scoped_ptr<webrtc::CongestionController>(new webrtc::CongestionController(
-                                                                                       mClock.get(),
+                                                                                       mClock,
                                                                                        this,
                                                                                        &mRemb
                                                                                        ));
@@ -3438,7 +3435,6 @@ namespace ortc
       mCongestionController.reset();
       mCallStats.reset();
       mBitrateAllocator.reset();
-      mClock.reset();
       mModuleProcessThread.reset();
       mPacerThread.reset();
 

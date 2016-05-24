@@ -1100,13 +1100,13 @@ namespace ortc
         rtc::scoped_ptr<webrtc::ProcessThread> mModuleProcessThread;
         rtc::scoped_ptr<webrtc::ProcessThread> mPacerThread;
         rtc::scoped_ptr<webrtc::AudioReceiveStream> mReceiveStream;
-        rtc::scoped_ptr<webrtc::Clock> mClock;
+        webrtc::Clock *mClock;
         webrtc::VieRemb mRemb;
         rtc::scoped_ptr<webrtc::CallStats> mCallStats;
         rtc::scoped_ptr<webrtc::CongestionController> mCongestionController;
         rtc::scoped_ptr<webrtc::BitrateAllocator> mBitrateAllocator;
 
-        webrtc::AudioDeviceModule* mAudioDeviceModule;
+        webrtc::AudioDeviceModule *mAudioDeviceModule;
       };
 
       //-----------------------------------------------------------------------
@@ -1223,12 +1223,12 @@ namespace ortc
         rtc::scoped_ptr<webrtc::ProcessThread> mModuleProcessThread;
         rtc::scoped_ptr<webrtc::ProcessThread> mPacerThread;
         rtc::scoped_ptr<webrtc::AudioSendStream> mSendStream;
-        rtc::scoped_ptr<webrtc::Clock> mClock;
+        webrtc::Clock *mClock;
         webrtc::VieRemb mRemb;
         rtc::scoped_ptr<webrtc::CongestionController> mCongestionController;
         rtc::scoped_ptr<webrtc::BitrateAllocator> mBitrateAllocator;
 
-        webrtc::AudioDeviceModule* mAudioDeviceModule;
+        webrtc::AudioDeviceModule *mAudioDeviceModule;
       };
 
       //-----------------------------------------------------------------------
@@ -1353,7 +1353,7 @@ namespace ortc
         rtc::scoped_ptr<webrtc::ProcessThread> mModuleProcessThread;
         rtc::scoped_ptr<webrtc::ProcessThread> mPacerThread;
         rtc::scoped_ptr<webrtc::VideoReceiveStream> mReceiveStream;
-        rtc::scoped_ptr<webrtc::Clock> mClock;
+        webrtc::Clock *mClock;
         webrtc::VieRemb mRemb;
         rtc::scoped_ptr<webrtc::CallStats> mCallStats;
         rtc::scoped_ptr<webrtc::CongestionController> mCongestionController;
@@ -1469,7 +1469,7 @@ namespace ortc
         rtc::scoped_ptr<webrtc::ProcessThread> mModuleProcessThread;
         rtc::scoped_ptr<webrtc::ProcessThread> mPacerThread;
         rtc::scoped_ptr<webrtc::VideoSendStream> mSendStream;
-        rtc::scoped_ptr<webrtc::Clock> mClock;
+        webrtc::Clock *mClock;
         webrtc::VieRemb mRemb;
         rtc::scoped_ptr<webrtc::CallStats> mCallStats;
         rtc::scoped_ptr<webrtc::CongestionController> mCongestionController;
