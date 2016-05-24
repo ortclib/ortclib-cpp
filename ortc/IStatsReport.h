@@ -248,6 +248,7 @@ namespace ortc
       unsigned long       mPacketsLost {};
       double              mJitter {};
       double              mFractionLost {};
+      Milliseconds        mEndToEndDelay {};
 
       InboundRTPStreamStats() {}
       InboundRTPStreamStats(const InboundRTPStreamStats &op2);

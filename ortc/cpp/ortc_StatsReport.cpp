@@ -551,21 +551,21 @@ namespace ortc
     switch (type)
     {
       case StatsType_InboundRTP:      return InboundRTPStreamStats::create(rootEl);
-      case StatsType_OutboundRTP:     return StatsPtr();
+      case StatsType_OutboundRTP:     return OutboundRTPStreamStats::create(rootEl);
       case StatsType_Codec:           return Codec::create(rootEl);
-      case StatsType_SCTPTransport:   return StatsPtr();
-      case StatsType_DataChannel:     return StatsPtr();
-      case StatsType_Stream:          return StatsPtr();
-      case StatsType_Track:           return StatsPtr();
-      case StatsType_ICEGatherer:     return StatsPtr();
-      case StatsType_ICETransport:    return StatsPtr();
-      case StatsType_DTLSTransport:   return StatsPtr();
-      case StatsType_SRTPTransport:   return StatsPtr();
-      case StatsType_Certificate:     return StatsPtr();
-      case StatsType_Candidate:       return StatsPtr();
-      case StatsType_CandidatePair:   return StatsPtr();
-      case StatsType_LocalCandidate:  return StatsPtr();
-      case StatsType_RemoteCandidate: return StatsPtr();
+      case StatsType_SCTPTransport:   return SCTPTransportStats::create(rootEl);
+      case StatsType_DataChannel:     return DataChannelStats::create(rootEl);
+      case StatsType_Stream:          return MediaStreamStats::create(rootEl);
+      case StatsType_Track:           return MediaStreamTrackStats::create(rootEl);
+      case StatsType_ICEGatherer:     return ICEGathererStats::create(rootEl);
+      case StatsType_ICETransport:    return ICETransportStats::create(rootEl);
+      case StatsType_DTLSTransport:   return DTLSTransportStats::create(rootEl);
+      case StatsType_SRTPTransport:   return SRTPTransportStats::create(rootEl);
+      case StatsType_Certificate:     return CertificateStats::create(rootEl);
+      case StatsType_Candidate:       return ICECandidateAttributes::create(rootEl);
+      case StatsType_CandidatePair:   return ICECandidatePairStats::create(rootEl);
+      case StatsType_LocalCandidate:  return ICECandidateAttributes::create(rootEl);
+      case StatsType_RemoteCandidate: return ICECandidateAttributes::create(rootEl);
     }
 
     return StatsPtr();
@@ -837,7 +837,8 @@ namespace ortc
     mBytesReceived(op2.mBytesReceived),
     mPacketsLost(op2.mPacketsLost),
     mJitter(op2.mJitter),
-    mFractionLost(op2.mFractionLost)
+    mFractionLost(op2.mFractionLost),
+    mEndToEndDelay(op2.mEndToEndDelay)
   {
   }
 
@@ -852,6 +853,7 @@ namespace ortc
     UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::InboundRTPStreamStats", "packetsLost", mPacketsLost);
     UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::InboundRTPStreamStats", "jitter", mJitter);
     UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::InboundRTPStreamStats", "fractionLost", mFractionLost);
+    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::InboundRTPStreamStats", "endToEndDelay", mEndToEndDelay);
   }
 
   //---------------------------------------------------------------------------
@@ -877,6 +879,7 @@ namespace ortc
     UseHelper::adoptElementValue(rootEl, "packetsLost", mPacketsLost);
     UseHelper::adoptElementValue(rootEl, "jitter", mJitter);
     UseHelper::adoptElementValue(rootEl, "fractionLost", mFractionLost);
+    UseHelper::adoptElementValue(rootEl, "endToEndDelay", mEndToEndDelay);
 
     if (!rootEl->hasChildren()) return ElementPtr();
 
@@ -907,6 +910,8 @@ namespace ortc
     hasher.update(mJitter);
     hasher.update(":");
     hasher.update(mFractionLost);
+    hasher.update(":");
+    hasher.update(mEndToEndDelay);
     hasher.update(":");
 
     return hasher.final();
