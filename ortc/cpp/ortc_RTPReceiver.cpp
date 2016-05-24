@@ -599,6 +599,10 @@ namespace ortc
     //-------------------------------------------------------------------------
     IStatsProvider::PromiseWithStatsReportPtr RTPReceiver::getStats(const StatsTypeSet &stats) const
     {
+      if (!stats.hasStatType(IStatsReportTypes::StatsType_InboundRTP)) {
+        return PromiseWithStatsReport::createRejected(IORTCForInternal::queueDelegate());
+      }
+
       ChannelWeakMapPtr channels;
 
       UseStatsReport::PromiseWithStatsReportList promises;

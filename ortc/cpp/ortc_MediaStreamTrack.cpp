@@ -453,7 +453,11 @@ namespace ortc
     //-------------------------------------------------------------------------
     IStatsProvider::PromiseWithStatsReportPtr MediaStreamTrack::getStats(const StatsTypeSet &stats) const
     {
+      if (!stats.hasStatType(IStatsReportTypes::StatsType_Track)) {
+        return PromiseWithStatsReport::createRejected(IORTCForInternal::queueDelegate());
+      }
       AutoRecursiveLock lock(*this);
+
       if ((isShutdown()) ||
           (isShuttingDown())) {
         ZS_LOG_WARNING(Debug, log("can not fetch stats while shutdown / shutting down"));
@@ -904,6 +908,7 @@ namespace ortc
     {
 #define TODO_COMPLETE 1
 #define TODO_COMPLETE 2
+      promise->reject();
     }
 
     //-------------------------------------------------------------------------

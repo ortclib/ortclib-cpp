@@ -510,6 +510,10 @@ namespace ortc
     //-------------------------------------------------------------------------
     DataChannel::PromiseWithStatsReportPtr DataChannel::getStats(const StatsTypeSet &stats) const
     {
+      if (!stats.hasStatType(IStatsReportTypes::StatsType_DataChannel)) {
+        return PromiseWithStatsReport::createRejected(IORTCForInternal::queueDelegate());
+      }
+
 #define TODO 1
 #define TODO 2
       return PromiseWithStatsReport::createRejected(IORTCForInternal::queueDelegate());

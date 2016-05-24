@@ -308,7 +308,14 @@ namespace ortc
     //-------------------------------------------------------------------------
     IStatsProvider::PromiseWithStatsReportPtr ICETransport::getStats(const StatsTypeSet &stats) const
     {
+      if ((!stats.hasStatType(IStatsReportTypes::StatsType_ICETransport)) &&
+          (!stats.hasStatType(IStatsReportTypes::StatsType_LocalCandidate)) &&
+          (!stats.hasStatType(IStatsReportTypes::StatsType_RemoteCandidate)) &&
+          (!stats.hasStatType(IStatsReportTypes::StatsType_CandidatePair))) {
+        return PromiseWithStatsReport::createRejected(IORTCForInternal::queueDelegate());
+      }
       AutoRecursiveLock lock(*this);
+
       if ((isShutdown()) ||
           (isShuttingDown())) {
         ZS_LOG_WARNING(Debug, log("cannot collect stats while shutdown / shutting down"));
@@ -1394,6 +1401,7 @@ namespace ortc
     {
 #define TODO_COMPLETE 1
 #define TODO_COMPLETE 2
+      promise->reject();
     }
 
     //-------------------------------------------------------------------------

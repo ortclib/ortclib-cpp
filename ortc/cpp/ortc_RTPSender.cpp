@@ -368,6 +368,10 @@ namespace ortc
     //-------------------------------------------------------------------------
     IStatsProvider::PromiseWithStatsReportPtr RTPSender::getStats(const StatsTypeSet &stats) const
     {
+      if (!stats.hasStatType(IStatsReportTypes::StatsType_OutboundRTP)) {
+        return PromiseWithStatsReport::createRejected(IORTCForInternal::queueDelegate());
+      }
+
       ParametersToChannelHolderMapPtr channels;
 
       UseStatsReport::PromiseWithStatsReportList promises;

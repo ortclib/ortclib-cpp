@@ -1063,6 +1063,11 @@ namespace ortc
           }
         }
 
+        if (promises.size() < 1) {
+          promise->resolve(UseStatsReport::create(UseStatsReport::StatMap()));
+          return;
+        }
+
         auto collecionPromise = UseStatsReport::collectReports(promises);
 
         mPendingStatPromises[collecionPromise->getID()] = CollectionPromisePair(collecionPromise, promise);

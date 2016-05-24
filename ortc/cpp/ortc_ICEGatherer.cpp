@@ -653,6 +653,11 @@ namespace ortc
     //-------------------------------------------------------------------------
     ICEGatherer::PromiseWithStatsReportPtr ICEGatherer::getStats(const StatsTypeSet &stats) const
     {
+      if ((!stats.hasStatType(IStatsReportTypes::StatsType_ICEGatherer)) &&
+          (!stats.hasStatType(IStatsReportTypes::StatsType_Candidate))) {
+        return PromiseWithStatsReport::createRejected(IORTCForInternal::queueDelegate());
+      }
+
       AutoRecursiveLock lock(*this);
       if ((isShutdown()) ||
           (isShuttingDown())) {
@@ -1318,7 +1323,6 @@ namespace ortc
       }
     }
 
-
     //-------------------------------------------------------------------------
     void ICEGatherer::onResolveStatsPromise(IStatsProvider::PromiseWithStatsReportPtr promise)
     {
@@ -1332,6 +1336,7 @@ namespace ortc
 
 #define TODO_RESOLVE_STATS_PROMISE_WHEN_STATS_ARE_DEFINED 1
 #define TODO_RESOLVE_STATS_PROMISE_WHEN_STATS_ARE_DEFINED 2
+      promise->reject();
     }
 
     //-------------------------------------------------------------------------

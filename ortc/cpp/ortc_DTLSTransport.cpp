@@ -323,6 +323,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     IStatsProvider::PromiseWithStatsReportPtr DTLSTransport::getStats(const StatsTypeSet &stats) const
     {
+      if (!stats.hasStatType(IStatsReportTypes::StatsType_DTLSTransport)) {
+        return PromiseWithStatsReport::createRejected(IORTCForInternal::queueDelegate());
+      }
 #define TODO_COMPLETE 1
 #define TODO_COMPLETE 2
       return PromiseWithStatsReport::createRejected(IORTCForInternal::queueDelegate());

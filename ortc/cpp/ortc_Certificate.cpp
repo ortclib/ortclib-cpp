@@ -826,6 +826,9 @@ namespace ortc
         mPendingStats.pop_front();
       }
 
+#define TODO_DEFINE_STATS 1
+#define TODO_DEFINE_STATS 2
+
       // no stats at this time
       promise->reject();
       return true;
