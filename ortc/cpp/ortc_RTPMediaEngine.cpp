@@ -1903,8 +1903,11 @@ namespace ortc
         }
       }
 
-      webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetLocalSSRC(mChannel, mParameters->mRTCP.mSSRC);
-      config.rtp.local_ssrc = mParameters->mRTCP.mSSRC;
+      uint32_t localSSRC = mParameters->mRTCP.mSSRC;
+      if (localSSRC == 0)
+        localSSRC = 1;
+      webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetLocalSSRC(mChannel, localSSRC);
+      config.rtp.local_ssrc = localSSRC;
       config.receive_transport = mTransport.get();
       config.rtcp_send_transport = mTransport.get();
 
@@ -2753,7 +2756,7 @@ namespace ortc
       bool videoCodecSet = false;
       for (auto codecIter = mParameters->mCodecs.begin(); codecIter != mParameters->mCodecs.end(); ++codecIter) {
         auto supportedCodec = IRTPTypes::toSupportedCodec(codecIter->mName);
-        if (IRTPTypes::getCodecKind(supportedCodec) == IRTPTypes::CodecKind_Audio && videoCodecSet)
+        if (IRTPTypes::getCodecKind(supportedCodec) == IRTPTypes::CodecKind_Video && videoCodecSet)
           continue;
         switch (supportedCodec) {
           case IRTPTypes::SupportedCodec_VP8:
@@ -2855,7 +2858,10 @@ namespace ortc
         config.rtp.remote_ssrc = mInitPacket->ssrc();
         mInitPacket.reset();
       }
-      config.rtp.local_ssrc = mParameters->mRTCP.mSSRC;
+      uint32_t localSSRC = mParameters->mRTCP.mSSRC;
+      if (localSSRC == 0)
+        localSSRC = 1;
+      config.rtp.local_ssrc = localSSRC;
 
       for (auto headerExtensionIter = mParameters->mHeaderExtensions.begin(); headerExtensionIter != mParameters->mHeaderExtensions.end(); headerExtensionIter++) {
         IRTPTypes::HeaderExtensionURIs headerExtensionURI = IRTPTypes::toHeaderExtensionURI(headerExtensionIter->mURI);
@@ -3227,7 +3233,7 @@ namespace ortc
       bool videoCodecSet = false;
       for (auto codecIter = mParameters->mCodecs.begin(); codecIter != mParameters->mCodecs.end(); codecIter++) {
         auto supportedCodec = IRTPTypes::toSupportedCodec(codecIter->mName);
-        if (IRTPTypes::getCodecKind(supportedCodec) == IRTPTypes::CodecKind_Audio && videoCodecSet)
+        if (IRTPTypes::getCodecKind(supportedCodec) == IRTPTypes::CodecKind_Video && videoCodecSet)
           continue;
         switch (supportedCodec) {
           case IRTPTypes::SupportedCodec_VP8:
