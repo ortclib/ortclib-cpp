@@ -141,8 +141,6 @@ namespace ortc
       mStats(stats)
     {
       ZS_LOG_DETAIL(debug("created"))
-
-      ZS_THROW_NOT_IMPLEMENTED("identity API in specification is not ready")
     }
 
     //-------------------------------------------------------------------------
