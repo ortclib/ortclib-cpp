@@ -36,6 +36,7 @@
 
 #ifdef USE_ETW
 #include "ortc_ETWTracing.h"
+#include "ortc_ETWStatsReport.h"
 #else
 
 // Comment the following line to test inline versions of the same macros to test compilation

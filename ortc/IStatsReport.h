@@ -158,9 +158,12 @@ namespace ortc
       virtual ElementPtr toDebug() const;
       virtual String hash() const;
 
-      virtual void eventTrace() {}
+      virtual void eventTrace() const;
 
       Stats &operator=(const Stats &op2) = delete;
+
+    protected:
+      virtual void eventTrace(double timestamp) const;
     };
 
     //-------------------------------------------------------------------------
@@ -199,6 +202,9 @@ namespace ortc
       virtual String hash() const override;
 
       RTPStreamStats &operator=(const RTPStreamStats &op2) = delete;
+
+    protected:
+      virtual void eventTrace(double timestamp) const;
     };
 
     //-------------------------------------------------------------------------
@@ -231,6 +237,9 @@ namespace ortc
       virtual String hash() const override;
 
       Codec &operator=(const Codec &op2) = delete;
+
+    protected:
+      virtual void eventTrace(double timestamp) const;
     };
 
     //-------------------------------------------------------------------------
@@ -264,6 +273,9 @@ namespace ortc
       virtual String hash() const override;
 
       InboundRTPStreamStats &operator=(const InboundRTPStreamStats &op2) = delete;
+
+    protected:
+      virtual void eventTrace(double timestamp) const;
     };
 
     //-------------------------------------------------------------------------
@@ -295,6 +307,9 @@ namespace ortc
       virtual String hash() const override;
 
       OutboundRTPStreamStats &operator=(const OutboundRTPStreamStats &op2) = delete;
+
+    protected:
+      virtual void eventTrace(double timestamp) const;
     };
 
     //-------------------------------------------------------------------------
@@ -324,6 +339,9 @@ namespace ortc
       virtual String hash() const override;
 
       SCTPTransportStats &operator=(const SCTPTransportStats &op2) = delete;
+
+    protected:
+      virtual void eventTrace(double timestamp) const;
     };
 
     //-------------------------------------------------------------------------
@@ -353,6 +371,9 @@ namespace ortc
       virtual String hash() const override;
 
       MediaStreamStats &operator=(const MediaStreamStats &op2) = delete;
+
+    protected:
+      virtual void eventTrace(double timestamp) const;
     };
 
     //-------------------------------------------------------------------------
@@ -394,6 +415,9 @@ namespace ortc
       virtual String hash() const override;
 
       MediaStreamTrackStats &operator=(const MediaStreamStats &op2) = delete;
+
+    protected:
+      virtual void eventTrace(double timestamp) const;
     };
 
     //-------------------------------------------------------------------------
@@ -429,6 +453,9 @@ namespace ortc
       virtual String hash() const override;
 
       DataChannelStats &operator=(const DataChannelStats &op2) = delete;
+
+    protected:
+      virtual void eventTrace(double timestamp) const;
     };
 
     //-------------------------------------------------------------------------
@@ -459,6 +486,9 @@ namespace ortc
       virtual String hash() const override;
 
       ICEGathererStats &operator=(const ICEGathererStats &op2) = delete;
+
+    protected:
+      virtual void eventTrace(double timestamp) const;
     };
 
 
@@ -492,6 +522,9 @@ namespace ortc
       virtual String hash() const override;
 
       ICETransportStats &operator=(const ICETransportStats &op2) = delete;
+
+    protected:
+      virtual void eventTrace(double timestamp) const;
     };
 
     //-------------------------------------------------------------------------
@@ -521,6 +554,9 @@ namespace ortc
       virtual String hash() const override;
 
       DTLSTransportStats &operator=(const DTLSTransportStats &op2) = delete;
+
+    protected:
+      virtual void eventTrace(double timestamp) const;
     };
 
     //-------------------------------------------------------------------------
@@ -547,6 +583,9 @@ namespace ortc
       virtual String hash() const override;
 
       SRTPTransportStats &operator=(const SRTPTransportStats &op2) = delete;
+
+    protected:
+      virtual void eventTrace(double timestamp) const;
     };
 
     //-------------------------------------------------------------------------
@@ -581,6 +620,9 @@ namespace ortc
       virtual String hash() const override;
 
       ICECandidateAttributes &operator=(const ICECandidateAttributes &op2) = delete;
+
+    protected:
+      virtual void eventTrace(double timestamp) const;
     };
 
     //-------------------------------------------------------------------------
@@ -621,6 +663,9 @@ namespace ortc
       virtual String hash() const override;
 
       ICECandidatePairStats &operator=(const ICECandidatePairStats &op2) = delete;
+
+    protected:
+      virtual void eventTrace(double timestamp) const;
     };
 
     //-------------------------------------------------------------------------
@@ -652,6 +697,9 @@ namespace ortc
       virtual String hash() const override;
 
       CertificateStats &operator=(const CertificateStats &op2) = delete;
+
+    protected:
+      virtual void eventTrace(double timestamp) const;
     };
 
   };

@@ -32,6 +32,7 @@
 #include <ortc/internal/ortc_StatsReport.h>
 #include <ortc/internal/ortc_Helper.h>
 #include <ortc/internal/ortc_ORTC.h>
+#include <ortc/internal/ortc_Tracing.h>
 #include <ortc/internal/platform.h>
 
 #include <openpeer/services/ISettings.h>
@@ -42,6 +43,8 @@
 #include <zsLib/Stringize.h>
 #include <zsLib/Log.h>
 #include <zsLib/XML.h>
+#include <zsLib/date.h>
+#include <zsLib/SafeInt.h>
 
 #include <cryptopp/sha.h>
 
@@ -52,6 +55,7 @@
 #define ASSERT(x)
 #endif //_DEBUG
 
+using namespace date;
 
 namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib) }
 
@@ -83,6 +87,46 @@ namespace ortc
     {
       ElementPtr objectEl = Element::create("ortc::StatsReport");
       return Log::Params(message, objectEl);
+    }
+
+    static double getTimestamp(const Time &originalTimestamp)
+    {
+      // Time since 1970-01-01T00:00:00Z in milliseconds.
+      auto t = day_point(jan / 1 / 1601);
+
+      auto diff = originalTimestamp - t;
+      auto milli = zsLib::toMilliseconds(diff);
+      return double(milli.count());
+    }
+
+    //-------------------------------------------------------------------------
+    static void reportInt32(const char *reportID, double timestamp, const char *statName, int32 value)
+    {
+      EventWriteOrtcStatsReportInt32(reportID, timestamp, statName, value);
+    }
+
+    //-------------------------------------------------------------------------
+    static void reportInt64(const char *reportID, double timestamp, const char *statName, int64 value)
+    {
+      EventWriteOrtcStatsReportInt32(reportID, timestamp, statName, value);
+    }
+
+    //-------------------------------------------------------------------------
+    static void reportFloat(const char *reportID, double timestamp, const char *statName, float value)
+    {
+      EventWriteOrtcStatsReportInt32(reportID, timestamp, statName, value);
+    }
+
+    //-------------------------------------------------------------------------
+    static void reportBool(const char *reportID, double timestamp, const char *statName, bool value)
+    {
+      EventWriteOrtcStatsReportBool(reportID, timestamp, statName, value);
+    }
+
+    //-------------------------------------------------------------------------
+    static void reportString(const char *reportID, double timestamp, const char *statName, const char *value)
+    {
+      EventWriteOrtcStatsReportString(reportID, timestamp, statName, value);
     }
 
     //-------------------------------------------------------------------------
@@ -614,6 +658,18 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
+  void IStatsReportTypes::Stats::eventTrace() const
+  {
+    eventTrace(internal::getTimestamp(mTimestamp));
+  }
+
+  //---------------------------------------------------------------------------
+  void IStatsReportTypes::Stats::eventTrace(double timestamp) const
+  {
+    internal::reportString(mID, timestamp, "statsType", mStatsType);
+  }
+
+  //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
@@ -733,6 +789,26 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
+  void IStatsReportTypes::RTPStreamStats::eventTrace(double timestamp) const
+  {
+    Stats::eventTrace(timestamp);
+
+    if (mSSRC.hasValue()) {
+      internal::reportInt32(mID, timestamp, "ssrc", static_cast<int32>(mSSRC.value()));
+    }
+    internal::reportString(mID, timestamp, "associatedStatId", mAssociatedStatID);
+    internal::reportBool(mID, timestamp, "isRemote", mIsRemote);
+    internal::reportString(mID, timestamp, "mediaType", mMediaType);
+    internal::reportString(mID, timestamp, "mediaTrackId", mMediaTrackID);
+    internal::reportString(mID, timestamp, "transportId", mTransportID);
+    internal::reportString(mID, timestamp, "codecId", mCodecID);
+    internal::reportInt32(mID, timestamp, "firCount", SafeInt<int32>(mFIRCount));
+    internal::reportInt32(mID, timestamp, "pliCount", SafeInt<int32>(mPLICount));
+    internal::reportInt32(mID, timestamp, "nackCount", SafeInt<int32>(mNACKCount));
+    internal::reportInt32(mID, timestamp, "sliCount", SafeInt<int32>(mSLICount));
+  }
+
+  //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
@@ -821,7 +897,23 @@ namespace ortc
 
     return hasher.final();
   }
-  
+
+  //---------------------------------------------------------------------------
+  void IStatsReportTypes::Codec::eventTrace(double timestamp) const
+  {
+    Stats::eventTrace(timestamp);
+
+    if (mPayloadType.hasValue()) {
+      internal::reportInt32(mID, timestamp, "payloadType", SafeInt<int32>(mPayloadType.value()));
+    }
+    internal::reportString(mID, timestamp, "codec", mCodec);
+    internal::reportInt32(mID, timestamp, "clockRate", SafeInt<int32>(mClockRate));
+    if (mChannels.hasValue()) {
+      internal::reportInt32(mID, timestamp, "channels", SafeInt<int32>(mChannels.value()));
+    }
+    internal::reportString(mID, timestamp, "parameters", mParameters);
+  }
+
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
@@ -918,6 +1010,19 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
+  void IStatsReportTypes::InboundRTPStreamStats::eventTrace(double timestamp) const
+  {
+    RTPStreamStats::eventTrace(timestamp);
+
+    internal::reportInt32(mID, timestamp, "packetsReceived", SafeInt<int32>(mPacketsReceived));
+    internal::reportInt64(mID, timestamp, "bytesReceived", SafeInt<int64>(mBytesReceived));
+    internal::reportInt32(mID, timestamp, "packetsLost", SafeInt<int32>(mPacketsLost));
+    internal::reportFloat(mID, timestamp, "jitter", static_cast<float>(mJitter));
+    internal::reportFloat(mID, timestamp, "fractionLost", static_cast<float>(mFractionLost));
+    internal::reportInt64(mID, timestamp, "endToEndDelay", SafeInt<int64>(mEndToEndDelay.count()));
+  }
+
+  //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
@@ -1002,6 +1107,18 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
+  void IStatsReportTypes::OutboundRTPStreamStats::eventTrace(double timestamp) const
+  {
+    RTPStreamStats::eventTrace(timestamp);
+
+    internal::reportInt32(mID, timestamp, "packetsSent", SafeInt<int32>(mPacketsSent));
+    internal::reportInt64(mID, timestamp, "bytesSent", SafeInt<int64>(mBytesSent));
+    internal::reportFloat(mID, timestamp, "targetBitrate", static_cast<float>(mTargetBitrate));
+    internal::reportFloat(mID, timestamp, "toundTripTime", static_cast<float>(mRoundTripTime));
+  }
+
+
+  //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
@@ -1074,6 +1191,16 @@ namespace ortc
 
     return hasher.final();
   }
+
+  //---------------------------------------------------------------------------
+  void IStatsReportTypes::SCTPTransportStats::eventTrace(double timestamp) const
+  {
+    Stats::eventTrace(timestamp);
+
+    internal::reportInt32(mID, timestamp, "dataChannelsOpen", SafeInt<int32>(mDataChannelsOpened));
+    internal::reportInt32(mID, timestamp, "dataChannelsClosed", SafeInt<int32>(mDataChannelsClosed));
+  }
+
 
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
@@ -1176,6 +1303,20 @@ namespace ortc
     hasher.update(":tracks");
 
     return hasher.final();
+  }
+
+  //---------------------------------------------------------------------------
+  void IStatsReportTypes::MediaStreamStats::eventTrace(double timestamp) const
+  {
+    Stats::eventTrace(timestamp);
+
+    internal::reportString(mID, timestamp, "streamId", mStreamID);
+    internal::reportInt32(mID, timestamp, "tracks", SafeInt<int32>(mTrackIDs.size()));
+    unsigned long index = 0;
+    for (auto iter = mTrackIDs.begin(); iter != mTrackIDs.end(); ++iter, ++index) {
+      auto &trackID = (*iter);
+      internal::reportString(mID, timestamp, (String("trackId") + string(index)).c_str(), mStreamID);
+    }
   }
 
   //---------------------------------------------------------------------------
@@ -1348,6 +1489,33 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
+  void IStatsReportTypes::MediaStreamTrackStats::eventTrace(double timestamp) const
+  {
+    Stats::eventTrace(timestamp);
+
+    internal::reportString(mID, timestamp, "trackId", mTrackID);
+    internal::reportBool(mID, timestamp, "remoteSource", mRemoteSource);
+    internal::reportInt32(mID, timestamp, "ssrcs", SafeInt<int32>(mSSRCIDs.size()));
+    unsigned long index = 0;
+    for (auto iter = mSSRCIDs.begin(); iter != mSSRCIDs.end(); ++iter, ++index) {
+      auto &ssrcID = (*iter);
+      internal::reportInt32(mID, timestamp, (String("ssrcId") + string(index)).c_str(), static_cast<int32>(ssrcID));
+    }
+    internal::reportInt32(mID, timestamp, "frameWidth", SafeInt<int32>(mFrameWidth));
+    internal::reportInt32(mID, timestamp, "frameHeight", SafeInt<int32>(mFrameHeight));
+    internal::reportFloat(mID, timestamp, "framesPerSecond", static_cast<float>(mFramesPerSecond));
+    internal::reportInt32(mID, timestamp, "framesSent", SafeInt<int32>(mFramesSent));
+    internal::reportInt32(mID, timestamp, "framesReceived", SafeInt<int32>(mFramesReceived));
+    internal::reportInt32(mID, timestamp, "framesDecoded", SafeInt<int32>(mFramesDecoded));
+    internal::reportInt32(mID, timestamp, "framesDropped", SafeInt<int32>(mFramesDropped));
+    internal::reportInt32(mID, timestamp, "framesCorrupted", SafeInt<int32>(mFramesCorrupted));
+    internal::reportFloat(mID, timestamp, "audioLevel", static_cast<float>(mAudioLevel));
+    internal::reportFloat(mID, timestamp, "echoReturnLoss", static_cast<float>(mEchoReturnLoss));
+    internal::reportFloat(mID, timestamp, "echoReturnLossEnhancement", static_cast<float>(mEchoReturnLossEnhancement));
+  }
+
+
+  //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
@@ -1461,6 +1629,21 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
+  void IStatsReportTypes::DataChannelStats::eventTrace(double timestamp) const
+  {
+    Stats::eventTrace(timestamp);
+
+    internal::reportString(mID, timestamp, "label", mLabel);
+    internal::reportString(mID, timestamp, "protocol", mProtocol);
+    internal::reportInt32(mID, timestamp, "dataChannelId", SafeInt<int32>(mDataChannelID));
+    internal::reportString(mID, timestamp, "state", IDataChannelTypes::toString(mState));
+    internal::reportInt32(mID, timestamp, "messagesSent", SafeInt<int32>(mMessagesSent));
+    internal::reportInt64(mID, timestamp, "bytesSent", SafeInt<int64>(mBytesSent));
+    internal::reportInt32(mID, timestamp, "messagesReceived", SafeInt<int32>(mMessagesReceived));
+    internal::reportInt64(mID, timestamp, "bytesReceived", SafeInt<int64>(mBytesReceived));
+  }
+
+  //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
@@ -1539,6 +1722,17 @@ namespace ortc
 
     return hasher.final();
   }
+
+  //---------------------------------------------------------------------------
+  void IStatsReportTypes::ICEGathererStats::eventTrace(double timestamp) const
+  {
+    Stats::eventTrace(timestamp);
+
+    internal::reportInt64(mID, timestamp, "bytesSent", SafeInt<int64>(mBytesSent));
+    internal::reportInt64(mID, timestamp, "bytesSent", SafeInt<int64>(mBytesReceived));
+    internal::reportString(mID, timestamp, "rtcpGathererStatsId", mRTCPGathererStatsID);
+  }
+
 
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
@@ -1631,6 +1825,19 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
+  void IStatsReportTypes::ICETransportStats::eventTrace(double timestamp) const
+  {
+    Stats::eventTrace(timestamp);
+
+    internal::reportInt64(mID, timestamp, "bytesSent", SafeInt<int64>(mBytesSent));
+    internal::reportInt64(mID, timestamp, "bytesSent", SafeInt<int64>(mBytesReceived));
+    internal::reportString(mID, timestamp, "rtcpTransportStatsId", mRTCPTransportStatsID);
+    internal::reportBool(mID, timestamp, "activeConnection", mActiveConnection);
+    internal::reportString(mID, timestamp, "selectedCandidatePairId", mSelectedCandidatePairID);
+  }
+
+
+  //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
@@ -1706,6 +1913,16 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
+  void IStatsReportTypes::DTLSTransportStats::eventTrace(double timestamp) const
+  {
+    Stats::eventTrace(timestamp);
+
+    internal::reportString(mID, timestamp, "localCertificateId", mLocalCertificateID);
+    internal::reportString(mID, timestamp, "remoteCertificateId", mRemoteCertificateID);
+  }
+
+
+  //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
@@ -1768,6 +1985,13 @@ namespace ortc
 
     return hasher.final();
   }
+
+  //---------------------------------------------------------------------------
+  void IStatsReportTypes::SRTPTransportStats::eventTrace(double timestamp) const
+  {
+    Stats::eventTrace(timestamp);
+  }
+
 
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
@@ -1879,6 +2103,20 @@ namespace ortc
     hasher.update(":");
 
     return hasher.final();
+  }
+
+  //---------------------------------------------------------------------------
+  void IStatsReportTypes::ICECandidateAttributes::eventTrace(double timestamp) const
+  {
+    Stats::eventTrace(timestamp);
+
+    internal::reportString(mID, timestamp, "relatedId", mRelatedID);
+    internal::reportString(mID, timestamp, "ipAddress", mIPAddress);
+    internal::reportInt32(mID, timestamp, "portNumber", SafeInt<int32>(mPortNumber));
+    internal::reportString(mID, timestamp, "transport", mTransport);
+    internal::reportString(mID, timestamp, "candidateType", IICETypes::toString(mCandidateType));
+    internal::reportInt32(mID, timestamp, "priority", static_cast<int32>(mPriority));
+    internal::reportString(mID, timestamp, "addressSourceUrl", mAddressSourceURL);
   }
 
   //---------------------------------------------------------------------------
@@ -2022,6 +2260,26 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
+  void IStatsReportTypes::ICECandidatePairStats::eventTrace(double timestamp) const
+  {
+    Stats::eventTrace(timestamp);
+
+    internal::reportString(mID, timestamp, "transportId", mTransportID);
+    internal::reportString(mID, timestamp, "localCandidateId", mLocalCandidateID);
+    internal::reportString(mID, timestamp, "remoteCandidateId", mRemoteCandidateID);
+    internal::reportString(mID, timestamp, "state", IStatsReportTypes::toString(mState));
+    internal::reportInt64(mID, timestamp, "priority", static_cast<int64>(mPriority));
+    internal::reportBool(mID, timestamp, "nominated", mNominated);
+    internal::reportBool(mID, timestamp, "writable", mWritable);
+    internal::reportBool(mID, timestamp, "readable", mReadable);
+    internal::reportInt64(mID, timestamp, "bytesSent", SafeInt<int64>(mBytesSent));
+    internal::reportInt64(mID, timestamp, "bytesReceived", SafeInt<int64>(mBytesReceived));
+    internal::reportFloat(mID, timestamp, "roundTripTime", static_cast<float>(mRoundTripTime));
+    internal::reportFloat(mID, timestamp, "availableOutgoingBitrate", static_cast<float>(mAvailableOutgoingBitrate));
+    internal::reportFloat(mID, timestamp, "availableIncomingBitrate", static_cast<float>(mAvailableIncomingBitrate));
+  }
+
+  //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
@@ -2104,6 +2362,17 @@ namespace ortc
     hasher.update(":");
 
     return hasher.final();
+  }
+
+  //---------------------------------------------------------------------------
+  void IStatsReportTypes::CertificateStats::eventTrace(double timestamp) const
+  {
+    Stats::eventTrace(timestamp);
+
+    internal::reportString(mID, timestamp, "fingerprint", mFingerprint);
+    internal::reportString(mID, timestamp, "fingerprintAlgorithm", mFingerprintAlgorithm);
+    internal::reportString(mID, timestamp, "base64Certificate", mBase64Certificate);
+    internal::reportString(mID, timestamp, "issuerCertificateId", mIssuerCertificateID);
   }
 
   //---------------------------------------------------------------------------

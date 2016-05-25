@@ -273,6 +273,9 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\IDataChannelTypes.h">
       <Filter>ortc</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_ETWStatsReport.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ifaddrs-android.cc">
@@ -422,6 +425,12 @@
       <Filter>ortc\internal</Filter>
     </None>
     <None Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_ETWTracing.wprp">
+      <Filter>ortc\internal</Filter>
+    </None>
+    <None Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_ETWStatsReport.man">
+      <Filter>ortc\internal</Filter>
+    </None>
+    <None Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_ETWStatsReport.wprp">
       <Filter>ortc\internal</Filter>
     </None>
   </ItemGroup>

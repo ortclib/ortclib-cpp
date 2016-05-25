@@ -1,0 +1,77 @@
+<?xml version='1.0' encoding='utf-8' standalone='yes'?>
+<!-- adpted from original source: https://needleinathreadstack.wordpress.com/2014/02/27/writing-a-very-simple-wpr-profile/ -->
+<WindowsPerformanceRecorder
+  Author="Hookflash Inc"
+  Comments="OrtcLib Stats Report Custom Provider Profile"
+  Version="1.0">
+  
+  <Profiles>
+
+    <!-- Buffer sizes are specified in KB -->
+    <EventCollector Id="EventCollector_OrtcLib_StatsReport_Verbose" Name="OrtcLib Stats Report Event Collector" Private="false" ProcessPrivate="false" Secure="false" Realtime="false">
+      <BufferSize Value="1024"/>
+      <Buffers Value="80"/>
+    </EventCollector>
+
+    <EventCollector Id="EventCollector_OrtcLib_StatsReport_Light" Name="OrtcLib Stats Report Event Collector" Private="false" ProcessPrivate="false" Secure="false" Realtime="false">
+      <BufferSize Value="128"/>
+      <Buffers Value="40"/>
+    </EventCollector>
+
+    <!-- Our custom ETW Provider and its associated GUID -->
+    <!-- Warning: GUID must match value from manifest otherwise the events will not be captured -->
+    <EventProvider Id="EventProvider_OrtcLib_StatsReport" Name="bda496d1-3663-4a3e-b012-662ff5dccd62" />
+
+    <!-- A fully specified .wprp file should have four profiles, with DetailLevel set to Verbose and Light and with Logging Mode set to Memory and File. WPR enforces that the name conforms to <name>Profile.Level.OutputType -->
+    <Profile
+      Id="OrtcLibStatsReportProfile.Verbose.File"
+      LoggingMode="File"
+      Name="OrtcLibStatsReportProfile"
+      DetailLevel="Verbose"
+      Description="OrtcLib Stats Report Provider for Diagnostic trace">
+      <Collectors>
+        <!-- EventCollectorId must match the EventCollector ID specified above -->
+        <EventCollectorId Value="EventCollector_OrtcLib_StatsReport_Verbose">
+          <EventProviders>
+            <EventProviderId Value="EventProvider_OrtcLib_StatsReport"/>
+          </EventProviders>
+        </EventCollectorId>
+      </Collectors>
+    </Profile>
+
+    <Profile
+      Id="OrtcLibStatsReportProfile.Light.File"
+      LoggingMode="File"
+      Name="OrtcLibStatsReportProfile"
+      DetailLevel="Light"
+      Description="OrtcLib Stats Report Provider for Diagnostic trace">
+      <Collectors>
+        <!-- EventCollectorId must match the EventCollector ID specified above -->
+        <EventCollectorId Value="EventCollector_OrtcLib_Light">
+          <EventProviders>
+            <EventProviderId Value="EventProvider_OrtcLib_StatsReport"/>
+          </EventProviders>
+        </EventCollectorId>
+      </Collectors>
+    </Profile>
+
+    <!-- Now we can just subclass our base profile to get the other (mostly redundant) configurations -->
+    <Profile
+      Id="OrtcLibStatsReportProfile.Verbose.Memory"
+      LoggingMode="Memory"
+      Name="OrtcLibProfile"
+      DetailLevel="Verbose"
+      Description="OrtcLib Stats Report Provider for Diagnostic trace"
+      Base="OrtcLibStatsReportProfile.Verbose.File"/>
+
+    <Profile
+      Id="OrtcLibStatsReportProfile.Light.Memory"
+      LoggingMode="Memory"
+      Name="OrtcLibStatsReportProfile"
+      DetailLevel="Light"
+      Description="OrtcLib Stats Report Provider for Diagnostic trace"
+      Base="OrtcLibStatsReportProfile.Light.File"/>
+
+  </Profiles>
+
+</WindowsPerformanceRecorder>

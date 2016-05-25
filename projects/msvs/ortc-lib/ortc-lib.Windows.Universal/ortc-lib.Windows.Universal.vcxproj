@@ -152,16 +152,24 @@
     <CustomBuildStep>
       <Command>echo Create manifest header file...
 mc.exe -um -r $(IntermediateOutputPath) -h "$(ProjectDir)..\..\..\..\ortc\internal" "$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWTracing.man"
+mc.exe -um -r $(IntermediateOutputPath) -h "$(ProjectDir)..\..\..\..\ortc\internal" "$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWStatsReport.man"
 echo Create resource file...
 rc.exe $(IntermediateOutputPath)ortc_ETWTracing.rc
+rc.exe $(IntermediateOutputPath)ortc_ETWStatsReport.rc
 echo Create manifest resource dll...
 echo If compiling to managed code resource DLL use: csc.exe /out:$(IntermediateOutputPath)ortc_ETWTracing.dll /target:library /win32res:$(IntermediateOutputPath)ortc_ETWTracing.res
+echo If compiling to managed code resource DLL use: csc.exe /out:$(IntermediateOutputPath)ortc_ETWStatsReport.dll /target:library /win32res:$(IntermediateOutputPath)ortc_ETWStatsReport.res
 link -dll -noentry /MACHINE:$(PlatformTarget) -out:$(IntermediateOutputPath)ortc_ETWTracing.dll $(IntermediateOutputPath)ortc_ETWTracing.res
+link -dll -noentry /MACHINE:$(PlatformTarget) -out:$(IntermediateOutputPath)ortc_ETWStatsReport.dll $(IntermediateOutputPath)ortc_ETWStatsReport.res
 echo Copy files to output directory...
 copy $(IntermediateOutputPath)ortc_ETWTracing.dll "$(OutDir)"
+copy $(IntermediateOutputPath)ortc_ETWStatsReport.dll "$(OutDir)"
 copy "$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWTracing.man" "$(OutDir)"
+copy "$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWStatsReport.man" "$(OutDir)"
 copy "$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWTracing.wprp" "$(OutDir)"
+copy "$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWStatsReport.wprp" "$(OutDir)"
 icacls "$(OutDir)ortc_ETWTracing.dll" /grant Users:RX
+icacls "$(OutDir)ortc_ETWStatsReport.dll" /grant Users:RX
 echo.
 echo Steps to register manifest file with for Windows Performance Recorder...
 echo.
@@ -172,9 +180,11 @@ echo cd "$(OutDir)"
 echo.
 echo 3) To register the manifest, type:
 echo wevtutil.exe im ortc_ETWTracing.man /rf:"$(OutDir)ortc_ETWTracing.dll" /mf:"$(OutDir)ortc_ETWTracing.dll"
+echo wevtutil.exe im ortc_ETWStatsReport.man /rf:"$(OutDir)ortc_ETWStatsReport.dll" /mf:"$(OutDir)ortc_ETWStatsReport.dll"
 echo.
 echo 4) To unregister the manifest, type:
 echo wevtutil.exe um ortc_ETWTracing.man
+echo wevtutil.exe um ortc_ETWStatsReport.man
 echo.
 </Command>
     </CustomBuildStep>
@@ -204,16 +214,24 @@ echo.
     <CustomBuildStep>
       <Command>echo Create manifest header file...
 mc.exe -um -r $(IntermediateOutputPath) -h "$(ProjectDir)..\..\..\..\ortc\internal" "$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWTracing.man"
+mc.exe -um -r $(IntermediateOutputPath) -h "$(ProjectDir)..\..\..\..\ortc\internal" "$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWStatsReport.man"
 echo Create resource file...
 rc.exe $(IntermediateOutputPath)ortc_ETWTracing.rc
+rc.exe $(IntermediateOutputPath)ortc_ETWStatsReport.rc
 echo Create manifest resource dll...
 echo If compiling to managed code resource DLL use: csc.exe /out:$(IntermediateOutputPath)ortc_ETWTracing.dll /target:library /win32res:$(IntermediateOutputPath)ortc_ETWTracing.res
+echo If compiling to managed code resource DLL use: csc.exe /out:$(IntermediateOutputPath)ortc_ETWStatsReport.dll /target:library /win32res:$(IntermediateOutputPath)ortc_ETWStatsReport.res
 link -dll -noentry /MACHINE:$(PlatformTarget) -out:$(IntermediateOutputPath)ortc_ETWTracing.dll $(IntermediateOutputPath)ortc_ETWTracing.res
+link -dll -noentry /MACHINE:$(PlatformTarget) -out:$(IntermediateOutputPath)ortc_ETWStatsReport.dll $(IntermediateOutputPath)ortc_ETWStatsReport.res
 echo Copy files to output directory...
 copy $(IntermediateOutputPath)ortc_ETWTracing.dll "$(OutDir)"
+copy $(IntermediateOutputPath)ortc_ETWStatsReport.dll "$(OutDir)"
 copy "$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWTracing.man" "$(OutDir)"
+copy "$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWStatsReport.man" "$(OutDir)"
 copy "$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWTracing.wprp" "$(OutDir)"
+copy "$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWStatsReport.wprp" "$(OutDir)"
 icacls "$(OutDir)ortc_ETWTracing.dll" /grant Users:RX
+icacls "$(OutDir)ortc_ETWStatsReport.dll" /grant Users:RX
 echo.
 echo Steps to register manifest file with for Windows Performance Recorder...
 echo.
@@ -224,9 +242,11 @@ echo cd "$(OutDir)"
 echo.
 echo 3) To register the manifest, type:
 echo wevtutil.exe im ortc_ETWTracing.man /rf:"$(OutDir)ortc_ETWTracing.dll" /mf:"$(OutDir)ortc_ETWTracing.dll"
+echo wevtutil.exe im ortc_ETWStatsReport.man /rf:"$(OutDir)ortc_ETWStatsReport.dll" /mf:"$(OutDir)ortc_ETWStatsReport.dll"
 echo.
 echo 4) To unregister the manifest, type:
 echo wevtutil.exe um ortc_ETWTracing.man
+echo wevtutil.exe um ortc_ETWStatsReport.man
 echo.
 </Command>
     </CustomBuildStep>
@@ -257,16 +277,24 @@ echo.
     <CustomBuildStep>
       <Command>echo Create manifest header file...
 mc.exe -um -r $(IntermediateOutputPath) -h "$(ProjectDir)..\..\..\..\ortc\internal" "$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWTracing.man"
+mc.exe -um -r $(IntermediateOutputPath) -h "$(ProjectDir)..\..\..\..\ortc\internal" "$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWStatsReport.man"
 echo Create resource file...
 rc.exe $(IntermediateOutputPath)ortc_ETWTracing.rc
+rc.exe $(IntermediateOutputPath)ortc_ETWStatsReport.rc
 echo Create manifest resource dll...
 echo If compiling to managed code resource DLL use: csc.exe /out:$(IntermediateOutputPath)ortc_ETWTracing.dll /target:library /win32res:$(IntermediateOutputPath)ortc_ETWTracing.res
+echo If compiling to managed code resource DLL use: csc.exe /out:$(IntermediateOutputPath)ortc_ETWStatsReport.dll /target:library /win32res:$(IntermediateOutputPath)ortc_ETWStatsReport.res
 link -dll -noentry /MACHINE:$(PlatformTarget) -out:$(IntermediateOutputPath)ortc_ETWTracing.dll $(IntermediateOutputPath)ortc_ETWTracing.res
+link -dll -noentry /MACHINE:$(PlatformTarget) -out:$(IntermediateOutputPath)ortc_ETWStatsReport.dll $(IntermediateOutputPath)ortc_ETWStatsReport.res
 echo Copy files to output directory...
 copy $(IntermediateOutputPath)ortc_ETWTracing.dll "$(OutDir)"
+copy $(IntermediateOutputPath)ortc_ETWStatsReport.dll "$(OutDir)"
 copy "$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWTracing.man" "$(OutDir)"
+copy "$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWStatsReport.man" "$(OutDir)"
 copy "$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWTracing.wprp" "$(OutDir)"
+copy "$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWStatsReport.wprp" "$(OutDir)"
 icacls "$(OutDir)ortc_ETWTracing.dll" /grant Users:RX
+icacls "$(OutDir)ortc_ETWStatsReport.dll" /grant Users:RX
 echo.
 echo Steps to register manifest file with for Windows Performance Recorder...
 echo.
@@ -277,9 +305,11 @@ echo cd "$(OutDir)"
 echo.
 echo 3) To register the manifest, type:
 echo wevtutil.exe im ortc_ETWTracing.man /rf:"$(OutDir)ortc_ETWTracing.dll" /mf:"$(OutDir)ortc_ETWTracing.dll"
+echo wevtutil.exe im ortc_ETWStatsReport.man /rf:"$(OutDir)ortc_ETWStatsReport.dll" /mf:"$(OutDir)ortc_ETWStatsReport.dll"
 echo.
 echo 4) To unregister the manifest, type:
 echo wevtutil.exe um ortc_ETWTracing.man
+echo wevtutil.exe um ortc_ETWStatsReport.man
 echo.
 </Command>
     </CustomBuildStep>
@@ -309,16 +339,24 @@ echo.
     <CustomBuildStep>
       <Command>echo Create manifest header file...
 mc.exe -um -r $(IntermediateOutputPath) -h "$(ProjectDir)..\..\..\..\ortc\internal" "$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWTracing.man"
+mc.exe -um -r $(IntermediateOutputPath) -h "$(ProjectDir)..\..\..\..\ortc\internal" "$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWStatsReport.man"
 echo Create resource file...
 rc.exe $(IntermediateOutputPath)ortc_ETWTracing.rc
+rc.exe $(IntermediateOutputPath)ortc_ETWStatsReport.rc
 echo Create manifest resource dll...
 echo If compiling to managed code resource DLL use: csc.exe /out:$(IntermediateOutputPath)ortc_ETWTracing.dll /target:library /win32res:$(IntermediateOutputPath)ortc_ETWTracing.res
+echo If compiling to managed code resource DLL use: csc.exe /out:$(IntermediateOutputPath)ortc_ETWStatsReport.dll /target:library /win32res:$(IntermediateOutputPath)ortc_ETWStatsReport.res
 link -dll -noentry /MACHINE:$(PlatformTarget) -out:$(IntermediateOutputPath)ortc_ETWTracing.dll $(IntermediateOutputPath)ortc_ETWTracing.res
+link -dll -noentry /MACHINE:$(PlatformTarget) -out:$(IntermediateOutputPath)ortc_ETWStatsReport.dll $(IntermediateOutputPath)ortc_ETWStatsReport.res
 echo Copy files to output directory...
 copy $(IntermediateOutputPath)ortc_ETWTracing.dll "$(OutDir)"
+copy $(IntermediateOutputPath)ortc_ETWStatsReport.dll "$(OutDir)"
 copy "$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWTracing.man" "$(OutDir)"
+copy "$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWStatsReport.man" "$(OutDir)"
 copy "$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWTracing.wprp" "$(OutDir)"
+copy "$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWStatsReport.wprp" "$(OutDir)"
 icacls "$(OutDir)ortc_ETWTracing.dll" /grant Users:RX
+icacls "$(OutDir)ortc_ETWStatsReport.dll" /grant Users:RX
 echo.
 echo Steps to register manifest file with for Windows Performance Recorder...
 echo.
@@ -329,9 +367,11 @@ echo cd "$(OutDir)"
 echo.
 echo 3) To register the manifest, type:
 echo wevtutil.exe im ortc_ETWTracing.man /rf:"$(OutDir)ortc_ETWTracing.dll" /mf:"$(OutDir)ortc_ETWTracing.dll"
+echo wevtutil.exe im ortc_ETWStatsReport.man /rf:"$(OutDir)ortc_ETWStatsReport.dll" /mf:"$(OutDir)ortc_ETWStatsReport.dll"
 echo.
 echo 4) To unregister the manifest, type:
 echo wevtutil.exe um ortc_ETWTracing.man
+echo wevtutil.exe um ortc_ETWStatsReport.man
 echo.
 </Command>
     </CustomBuildStep>
@@ -362,16 +402,24 @@ echo.
     <CustomBuildStep>
       <Command>echo Create manifest header file...
 mc.exe -um -r $(IntermediateOutputPath) -h "$(ProjectDir)..\..\..\..\ortc\internal" "$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWTracing.man"
+mc.exe -um -r $(IntermediateOutputPath) -h "$(ProjectDir)..\..\..\..\ortc\internal" "$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWStatsReport.man"
 echo Create resource file...
 rc.exe $(IntermediateOutputPath)ortc_ETWTracing.rc
+rc.exe $(IntermediateOutputPath)ortc_ETWStatsReport.rc
 echo Create manifest resource dll...
 echo If compiling to managed code resource DLL use: csc.exe /out:$(IntermediateOutputPath)ortc_ETWTracing.dll /target:library /win32res:$(IntermediateOutputPath)ortc_ETWTracing.res
+echo If compiling to managed code resource DLL use: csc.exe /out:$(IntermediateOutputPath)ortc_ETWStatsReport.dll /target:library /win32res:$(IntermediateOutputPath)ortc_ETWStatsReport.res
 link -dll -noentry /MACHINE:$(PlatformTarget) -out:$(IntermediateOutputPath)ortc_ETWTracing.dll $(IntermediateOutputPath)ortc_ETWTracing.res
+link -dll -noentry /MACHINE:$(PlatformTarget) -out:$(IntermediateOutputPath)ortc_ETWStatsReport.dll $(IntermediateOutputPath)ortc_ETWStatsReport.res
 echo Copy files to output directory...
 copy $(IntermediateOutputPath)ortc_ETWTracing.dll "$(OutDir)"
+copy $(IntermediateOutputPath)ortc_ETWStatsReport.dll "$(OutDir)"
 copy "$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWTracing.man" "$(OutDir)"
+copy "$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWStatsReport.man" "$(OutDir)"
 copy "$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWTracing.wprp" "$(OutDir)"
+copy "$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWStatsReport.wprp" "$(OutDir)"
 icacls "$(OutDir)ortc_ETWTracing.dll" /grant Users:RX
+icacls "$(OutDir)ortc_ETWStatsReport.dll" /grant Users:RX
 echo.
 echo Steps to register manifest file with for Windows Performance Recorder...
 echo.
@@ -382,9 +430,11 @@ echo cd "$(OutDir)"
 echo.
 echo 3) To register the manifest, type:
 echo wevtutil.exe im ortc_ETWTracing.man /rf:"$(OutDir)ortc_ETWTracing.dll" /mf:"$(OutDir)ortc_ETWTracing.dll"
+echo wevtutil.exe im ortc_ETWStatsReport.man /rf:"$(OutDir)ortc_ETWStatsReport.dll" /mf:"$(OutDir)ortc_ETWStatsReport.dll"
 echo.
 echo 4) To unregister the manifest, type:
 echo wevtutil.exe um ortc_ETWTracing.man
+echo wevtutil.exe um ortc_ETWStatsReport.man
 echo.
 </Command>
     </CustomBuildStep>
@@ -414,16 +464,24 @@ echo.
     <CustomBuildStep>
       <Command>echo Create manifest header file...
 mc.exe -um -r $(IntermediateOutputPath) -h "$(ProjectDir)..\..\..\..\ortc\internal" "$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWTracing.man"
+mc.exe -um -r $(IntermediateOutputPath) -h "$(ProjectDir)..\..\..\..\ortc\internal" "$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWStatsReport.man"
 echo Create resource file...
 rc.exe $(IntermediateOutputPath)ortc_ETWTracing.rc
+rc.exe $(IntermediateOutputPath)ortc_ETWStatsReport.rc
 echo Create manifest resource dll...
 echo If compiling to managed code resource DLL use: csc.exe /out:$(IntermediateOutputPath)ortc_ETWTracing.dll /target:library /win32res:$(IntermediateOutputPath)ortc_ETWTracing.res
+echo If compiling to managed code resource DLL use: csc.exe /out:$(IntermediateOutputPath)ortc_ETWStatsReport.dll /target:library /win32res:$(IntermediateOutputPath)ortc_ETWStatsReport.res
 link -dll -noentry /MACHINE:$(PlatformTarget) -out:$(IntermediateOutputPath)ortc_ETWTracing.dll $(IntermediateOutputPath)ortc_ETWTracing.res
+link -dll -noentry /MACHINE:$(PlatformTarget) -out:$(IntermediateOutputPath)ortc_ETWStatsReport.dll $(IntermediateOutputPath)ortc_ETWStatsReport.res
 echo Copy files to output directory...
 copy $(IntermediateOutputPath)ortc_ETWTracing.dll "$(OutDir)"
+copy $(IntermediateOutputPath)ortc_ETWStatsReport.dll "$(OutDir)"
 copy "$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWTracing.man" "$(OutDir)"
+copy "$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWStatsReport.man" "$(OutDir)"
 copy "$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWTracing.wprp" "$(OutDir)"
+copy "$(ProjectDir)..\..\..\..\ortc\internal\ortc_ETWStatsReport.wprp" "$(OutDir)"
 icacls "$(OutDir)ortc_ETWTracing.dll" /grant Users:RX
+icacls "$(OutDir)ortc_ETWStatsReport.dll" /grant Users:RX
 echo.
 echo Steps to register manifest file with for Windows Performance Recorder...
 echo.
@@ -434,9 +492,11 @@ echo cd "$(OutDir)"
 echo.
 echo 3) To register the manifest, type:
 echo wevtutil.exe im ortc_ETWTracing.man /rf:"$(OutDir)ortc_ETWTracing.dll" /mf:"$(OutDir)ortc_ETWTracing.dll"
+echo wevtutil.exe im ortc_ETWStatsReport.man /rf:"$(OutDir)ortc_ETWStatsReport.dll" /mf:"$(OutDir)ortc_ETWStatsReport.dll"
 echo.
 echo 4) To unregister the manifest, type:
 echo wevtutil.exe um ortc_ETWTracing.man
+echo wevtutil.exe um ortc_ETWStatsReport.man
 echo.
 </Command>
     </CustomBuildStep>
