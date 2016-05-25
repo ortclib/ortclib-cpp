@@ -638,7 +638,7 @@ namespace ortc
                                                                                           packet
                                                                                           );
           promise = resource->createPromise<IRTPMediaEngineChannelResource>();
-          mChannelResources[channel->getID()] = resource;
+          mChannelResources[resource->getID()] = resource;
           mPendingSetupChannelResources.push_back(resource);
         } else if (ZS_DYNAMIC_PTR_CAST(IRTPReceiverChannelVideoForRTPMediaEngine, channel)) {
           VideoReceiverChannelResourcePtr resource = VideoReceiverChannelResource::create(
@@ -649,7 +649,7 @@ namespace ortc
                                                                                           packet
                                                                                           );
           promise = resource->createPromise<IRTPMediaEngineChannelResource>();
-          mChannelResources[channel->getID()] = resource;
+          mChannelResources[resource->getID()] = resource;
           mPendingSetupChannelResources.push_back(resource);
         }
       }
