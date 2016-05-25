@@ -408,7 +408,7 @@ namespace ortc
     {
       String                    mLabel;
       String                    mProtocol;
-      long                      mDatachannelID {};
+      long                      mDataChannelID {};
       IDataChannelTypes::States mState {IDataChannelTypes::State_First};
       unsigned long             mMessagesSent {};
       unsigned long long        mBytesSent {};
@@ -559,9 +559,10 @@ namespace ortc
 
     struct ICECandidateAttributes : public Stats
     {
+      String                  mRelatedID;
       String                  mIPAddress;
       unsigned long           mPortNumber {};
-      String                  mTransportID;
+      String                  mTransport;
       StatsICECandidateTypes  mCandidateType {IICETypes::CandidateType_First};
       unsigned long           mPriority {};
       String                  mAddressSourceURL;

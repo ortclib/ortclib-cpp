@@ -1360,7 +1360,7 @@ namespace ortc
     Stats(op2),
     mLabel(op2.mLabel),
     mProtocol(op2.mProtocol),
-    mDatachannelID(op2.mDatachannelID),
+    mDataChannelID(op2.mDataChannelID),
     mState(op2.mState),
     mMessagesSent(op2.mMessagesSent),
     mBytesSent(op2.mBytesSent),
@@ -1377,7 +1377,7 @@ namespace ortc
 
     UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::DataChannelStats", "label", mLabel);
     UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::DataChannelStats", "protocol", mProtocol);
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::DataChannelStats", "datachannelId", mDatachannelID);
+    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::DataChannelStats", "datachannelId", mDataChannelID);
 
     {
       String str;
@@ -1413,7 +1413,7 @@ namespace ortc
 
     UseHelper::adoptElementValue(rootEl, "label", mLabel, false);
     UseHelper::adoptElementValue(rootEl, "protocol", mProtocol, false);
-    UseHelper::adoptElementValue(rootEl, "datachannelId", mDatachannelID);
+    UseHelper::adoptElementValue(rootEl, "datachannelId", mDataChannelID);
     UseHelper::adoptElementValue(rootEl, "state", IDataChannelTypes::toString(mState), false);
     UseHelper::adoptElementValue(rootEl, "messagesSent", mMessagesSent);
     UseHelper::adoptElementValue(rootEl, "bytesSent", mBytesSent);
@@ -1444,7 +1444,7 @@ namespace ortc
     hasher.update(":");
     hasher.update(mProtocol);
     hasher.update(":");
-    hasher.update(mDatachannelID);
+    hasher.update(mDataChannelID);
     hasher.update(":");
     hasher.update(IDataChannelTypes::toString(mState));
     hasher.update(":");
@@ -1780,9 +1780,10 @@ namespace ortc
   //---------------------------------------------------------------------------
   IStatsReportTypes::ICECandidateAttributes::ICECandidateAttributes(const ICECandidateAttributes &op2) :
     Stats(op2),
+    mRelatedID(op2.mRelatedID),
     mIPAddress(op2.mIPAddress),
     mPortNumber(op2.mPortNumber),
-    mTransportID(op2.mTransportID),
+    mTransport(op2.mTransport),
     mCandidateType(op2.mCandidateType),
     mPriority(op2.mPriority),
     mAddressSourceURL(op2.mAddressSourceURL)
@@ -1795,9 +1796,10 @@ namespace ortc
   {
     if (!rootEl) return;
 
+    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICECandidateAttributes", "relatedId", mRelatedID);
     UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICECandidateAttributes", "ipAddress", mIPAddress);
     UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICECandidateAttributes", "portNumber", mPortNumber);
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICECandidateAttributes", "transport", mTransportID);
+    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICECandidateAttributes", "transport", mTransport);
 
     {
       String str;
@@ -1833,9 +1835,10 @@ namespace ortc
   {
     ElementPtr rootEl = Stats::createElement(objectName);
 
+    UseHelper::adoptElementValue(rootEl, "relatedId", mRelatedID, false);
     UseHelper::adoptElementValue(rootEl, "ipAddress", mIPAddress, false);
     UseHelper::adoptElementValue(rootEl, "portNumber", mPortNumber);
-    UseHelper::adoptElementValue(rootEl, "transport", mTransportID, false);
+    UseHelper::adoptElementValue(rootEl, "transport", mTransport, false);
     UseHelper::adoptElementValue(rootEl, "candidateType", IICETypes::toString(mCandidateType), false);
     UseHelper::adoptElementValue(rootEl, "priority", mPriority);
     UseHelper::adoptElementValue(rootEl, "addressSourceUrl", mAddressSourceURL, false);
@@ -1860,11 +1863,13 @@ namespace ortc
 
     hasher.update(Stats::hash());
 
+    hasher.update(mRelatedID);
+    hasher.update(":");
     hasher.update(mIPAddress);
     hasher.update(":");
     hasher.update(mPortNumber);
     hasher.update(":");
-    hasher.update(mTransportID);
+    hasher.update(mTransport);
     hasher.update(":");
     hasher.update(IICETypes::toString(mCandidateType));
     hasher.update(":");
