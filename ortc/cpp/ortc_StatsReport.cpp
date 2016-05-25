@@ -1020,6 +1020,12 @@ namespace ortc
     internal::reportFloat(mID, timestamp, "jitter", static_cast<float>(mJitter));
     internal::reportFloat(mID, timestamp, "fractionLost", static_cast<float>(mFractionLost));
     internal::reportInt64(mID, timestamp, "endToEndDelay", SafeInt<int64>(mEndToEndDelay.count()));
+#ifndef ORTC_EXCLUDE_WEBRTC_COMPATIBILITY_STATS
+    internal::reportInt64(mID, timestamp, "winrtEndToEndDelayMs", SafeInt<int64>(mEndToEndDelay.count()));
+    internal::reportInt32(mID, timestamp, "googFirsReceived", SafeInt<int32>(mFIRCount));
+    internal::reportInt32(mID, timestamp, "googPlisReceived", SafeInt<int32>(mPLICount));
+    internal::reportInt32(mID, timestamp, "googNacksReceived", SafeInt<int32>(mNACKCount));
+#endif //ndef ORTC_EXCLUDE_WEBRTC_COMPATIBILITY_STATS
   }
 
   //---------------------------------------------------------------------------
@@ -1114,7 +1120,13 @@ namespace ortc
     internal::reportInt32(mID, timestamp, "packetsSent", SafeInt<int32>(mPacketsSent));
     internal::reportInt64(mID, timestamp, "bytesSent", SafeInt<int64>(mBytesSent));
     internal::reportFloat(mID, timestamp, "targetBitrate", static_cast<float>(mTargetBitrate));
-    internal::reportFloat(mID, timestamp, "toundTripTime", static_cast<float>(mRoundTripTime));
+    internal::reportFloat(mID, timestamp, "roundTripTime", static_cast<float>(mRoundTripTime));
+#ifndef ORTC_EXCLUDE_WEBRTC_COMPATIBILITY_STATS
+    internal::reportFloat(mID, timestamp, "googRtt", static_cast<float>(mRoundTripTime));
+    internal::reportInt32(mID, timestamp, "googFirsSent", SafeInt<int32>(mFIRCount));
+    internal::reportInt32(mID, timestamp, "googPlisSent", SafeInt<int32>(mPLICount));
+    internal::reportInt32(mID, timestamp, "googNacksSent", SafeInt<int32>(mNACKCount));
+#endif //ORTC_EXCLUDE_WEBRTC_COMPATIBILITY_STATS
   }
 
 
@@ -1512,6 +1524,20 @@ namespace ortc
     internal::reportFloat(mID, timestamp, "audioLevel", static_cast<float>(mAudioLevel));
     internal::reportFloat(mID, timestamp, "echoReturnLoss", static_cast<float>(mEchoReturnLoss));
     internal::reportFloat(mID, timestamp, "echoReturnLossEnhancement", static_cast<float>(mEchoReturnLossEnhancement));
+
+#ifndef ORTC_EXCLUDE_WEBRTC_COMPATIBILITY_STATS
+    if (mRemoteSource) {
+      internal::reportFloat(mID, timestamp, "googFrameHeightReceived", static_cast<float>(mFrameWidth));
+      internal::reportFloat(mID, timestamp, "googFrameWidthReceived", static_cast<float>(mFrameHeight));
+      internal::reportInt32(mID, timestamp, "googFrameRateReceived", SafeInt<int32>(mFramesPerSecond));
+      internal::reportFloat(mID, timestamp, "audioOutputLevel", static_cast<float>(mAudioLevel));
+    } else {
+      internal::reportFloat(mID, timestamp, "googFrameWidthSent", static_cast<float>(mFrameWidth));
+      internal::reportFloat(mID, timestamp, "googFrameHeightSent", static_cast<float>(mFrameHeight));
+      internal::reportInt32(mID, timestamp, "googFrameRateSent", SafeInt<int32>(mFramesPerSecond));
+      internal::reportFloat(mID, timestamp, "audioInputLevel", static_cast<float>(mAudioLevel));
+    }
+#endif //ORTC_EXCLUDE_WEBRTC_COMPATIBILITY_STATS
   }
 
 
