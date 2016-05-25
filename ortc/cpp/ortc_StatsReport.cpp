@@ -108,13 +108,13 @@ namespace ortc
     //-------------------------------------------------------------------------
     static void reportInt64(const char *reportID, double timestamp, const char *statName, int64 value)
     {
-      EventWriteOrtcStatsReportInt32(reportID, timestamp, statName, value);
+      EventWriteOrtcStatsReportInt64(reportID, timestamp, statName, value);
     }
 
     //-------------------------------------------------------------------------
     static void reportFloat(const char *reportID, double timestamp, const char *statName, float value)
     {
-      EventWriteOrtcStatsReportInt32(reportID, timestamp, statName, value);
+      EventWriteOrtcStatsReportFloat(reportID, timestamp, statName, value);
     }
 
     //-------------------------------------------------------------------------
@@ -794,7 +794,7 @@ namespace ortc
     Stats::eventTrace(timestamp);
 
     if (mSSRC.hasValue()) {
-      internal::reportInt32(mID, timestamp, "ssrc", static_cast<int32>(mSSRC.value()));
+      internal::reportInt64(mID, timestamp, "ssrc", SafeInt<int64>(mSSRC.value()));
     }
     internal::reportString(mID, timestamp, "associatedStatId", mAssociatedStatID);
     internal::reportBool(mID, timestamp, "isRemote", mIsRemote);
@@ -1499,7 +1499,7 @@ namespace ortc
     unsigned long index = 0;
     for (auto iter = mSSRCIDs.begin(); iter != mSSRCIDs.end(); ++iter, ++index) {
       auto &ssrcID = (*iter);
-      internal::reportInt32(mID, timestamp, (String("ssrcId") + string(index)).c_str(), static_cast<int32>(ssrcID));
+      internal::reportInt64(mID, timestamp, (String("ssrcId") + string(index)).c_str(), SafeInt<int64>(ssrcID));
     }
     internal::reportInt32(mID, timestamp, "frameWidth", SafeInt<int32>(mFrameWidth));
     internal::reportInt32(mID, timestamp, "frameHeight", SafeInt<int32>(mFrameHeight));
@@ -2115,7 +2115,7 @@ namespace ortc
     internal::reportInt32(mID, timestamp, "portNumber", SafeInt<int32>(mPortNumber));
     internal::reportString(mID, timestamp, "transport", mTransport);
     internal::reportString(mID, timestamp, "candidateType", IICETypes::toString(mCandidateType));
-    internal::reportInt32(mID, timestamp, "priority", static_cast<int32>(mPriority));
+    internal::reportInt64(mID, timestamp, "priority", SafeInt<int64>(mPriority));
     internal::reportString(mID, timestamp, "addressSourceUrl", mAddressSourceURL);
   }
 
