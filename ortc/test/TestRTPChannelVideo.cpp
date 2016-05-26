@@ -239,11 +239,13 @@ namespace ortc
       }
 
       //-------------------------------------------------------------------------
-      void FakeMediaStreamTrack::setVideoRenderCallback(void* callback)
+      void FakeMediaStreamTrack::setVideoRenderCallback(IMediaStreamTrackRenderCallbackPtr callback)
       {
         AutoRecursiveLock lock(*this);
 
-        mVideoRenderModule = webrtc::VideoRender::CreateVideoRender(1, callback, false);
+#define WARNING_THIS_HAS_CHANGED 1
+#define WARNING_THIS_HAS_CHANGED 2
+        mVideoRenderModule = webrtc::VideoRender::CreateVideoRender(1, nullptr, false);
 
         mVideoRendererCallback = mVideoRenderModule->AddIncomingRenderStream(1, 0, 0.0, 0.0, 1.0, 1.0);
 
@@ -892,7 +894,13 @@ namespace ortc
 
         if (!track) {
           track = FakeMediaStreamTrack::create(getAssociatedMessageQueue(), remote);
+
+#define WARNING_THIS_HAS_CHANGED 1
+#define WARNING_THIS_HAS_CHANGED 2
+
+#if 0
           track->setVideoRenderCallback(mVideoSurface);
+#endif //0
           track->setTransport(mThisWeak.lock());
           attach(trackID, track);
         }

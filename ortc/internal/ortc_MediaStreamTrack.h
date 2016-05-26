@@ -500,7 +500,7 @@ namespace ortc
 
       virtual PromisePtr applyConstraints(const TrackConstraints &constraints) override;
 
-      virtual void setVideoRenderCallback(void* callback) override;
+      virtual void setVideoRenderCallback(IMediaStreamTrackRenderCallbackPtr callback) override;
       virtual void setH264Rendering(bool h264Rendering) override;
       virtual bool isH264Rendering() override;
 
@@ -829,6 +829,7 @@ namespace ortc
 
       webrtc::VideoCaptureModule* mVideoCaptureModule {NULL};
       webrtc::VideoRenderCallback* mVideoRendererCallback {NULL};
+      IMediaStreamTrackRenderCallbackPtr mVideoRenderCallbackReferenceHolder;
       webrtc::AudioDeviceModule* mAudioDeviceModule {NULL};
     };
 

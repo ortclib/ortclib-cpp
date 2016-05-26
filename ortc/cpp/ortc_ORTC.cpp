@@ -77,6 +77,12 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    IMessageQueuePtr IORTCForInternal::queuePacket()
+    {
+      return (ORTC::singleton())->queuePacket();
+    }
+
+    //-------------------------------------------------------------------------
     IMessageQueuePtr IORTCForInternal::queueBlockingMediaStartStopThread()
     {
       return (ORTC::singleton())->queueBlockingMediaStartStopThread();
@@ -219,7 +225,26 @@ namespace ortc
     //-------------------------------------------------------------------------
     IMessageQueuePtr ORTC::queueORTC() const
     {
-      return UseMessageQueueManager::getMessageQueue(ORTC_QUEUE_MAIN_THREAD_NAME);
+      AutoRecursiveLock lock(*this);
+      if (!mORTCQueue) {
+        mORTCQueue = UseMessageQueueManager::getThreadPoolQueue(ORTC_QUEUE_MAIN_THREAD_NAME);
+      }
+      return mORTCQueue;
+    }
+
+    //-------------------------------------------------------------------------
+    IMessageQueuePtr ORTC::queuePacket() const
+    {
+      AutoRecursiveLock lock(*this);
+
+      size_t index = mNextPacketQueueThread % ORTC_QUEUE_TOTAL_PACKET_THREADS;
+
+      if (!mPacketQueues[index]) {
+        mPacketQueues[index] = UseMessageQueueManager::getMessageQueue((String(ORTC_QUEUE_PACKET_THREAD_NAME) + string(index)).c_str());
+      }
+
+      ++mNextPacketQueueThread;
+      return mPacketQueues[index];
     }
 
     //-------------------------------------------------------------------------
