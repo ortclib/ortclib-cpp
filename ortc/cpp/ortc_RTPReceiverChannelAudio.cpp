@@ -411,9 +411,6 @@ namespace ortc
 
       AutoRecursiveLock lock(*this);
       step();
-
-      if (ZS_DYNAMIC_PTR_CAST(PromiseWithRTPMediaEngineChannelResource, promise)) {
-      }
     }
 
     //-------------------------------------------------------------------------
@@ -654,7 +651,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool RTPReceiverChannelAudio::stepChannelPromise()
     {
-      if (mSetupChannelPromise) {
+      if (mChannelResourceLifetimeHolderPromise) {
         ZS_LOG_TRACE(log("already setup channel promise"))
           return true;
       }
@@ -666,7 +663,7 @@ namespace ortc
 
       auto packet = mQueuedRTP.front();
 
-      mSetupChannelPromise = UseMediaEngine::setupChannel(
+      mChannelResourceLifetimeHolderPromise = UseMediaEngine::setupChannel(
                                                           mThisWeak.lock(),
                                                           mTransport,
                                                           MediaStreamTrack::convert(mTrack),
@@ -674,7 +671,7 @@ namespace ortc
                                                           packet
                                                           );
 
-      mSetupChannelPromise->thenWeak(mThisWeak.lock());
+      mChannelResourceLifetimeHolderPromise->thenWeak(mThisWeak.lock());
 
       return true;
     }
@@ -687,18 +684,18 @@ namespace ortc
         return true;
       }
 
-      if (!mSetupChannelPromise->isSettled()) {
+      if (!mChannelResourceLifetimeHolderPromise->isSettled()) {
         ZS_LOG_TRACE(log("waiting for setup channel promise to be set up"))
         return false;
       }
 
-      if (mSetupChannelPromise->isRejected()) {
+      if (mChannelResourceLifetimeHolderPromise->isRejected()) {
         ZS_LOG_WARNING(Debug, log("media engine rejected channel setup"))
         cancel();
         return false;
       }
 
-      mChannelResource = ZS_DYNAMIC_PTR_CAST(UseChannelResource, mSetupChannelPromise->value());
+      mChannelResource = ZS_DYNAMIC_PTR_CAST(UseChannelResource, mChannelResourceLifetimeHolderPromise->value());
 
       if (!mChannelResource) {
         ZS_LOG_WARNING(Detail, log("failed to initialize channel resource"))
@@ -751,7 +748,7 @@ namespace ortc
 
       setState(State_Shutdown);
 
-      mSetupChannelPromise.reset();
+      mChannelResourceLifetimeHolderPromise.reset();
 
       mChannelResource.reset();
       mCloseChannelPromise.reset();

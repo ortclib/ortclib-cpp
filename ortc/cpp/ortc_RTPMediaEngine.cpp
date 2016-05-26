@@ -1310,7 +1310,8 @@ namespace ortc
     //-------------------------------------------------------------------------
     PromisePtr RTPMediaEngine::BaseResource::internalSetupPromise(PromisePtr promise)
     {
-      promise->setReferenceHolder(mThisWeak.lock());
+      auto lifetime = make_shared<LifetimeHolder>(mThisWeak.lock());
+      promise->setReferenceHolder(lifetime);
 
       {
         AutoRecursiveLock lock(*this);
@@ -1462,6 +1463,16 @@ namespace ortc
       UseEnginePtr engine = getEngine<UseEngine>();
       if (engine) {
         engine->notifyResourceGone(*this);
+      }
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::ChannelResource::lifetimeHolderGone()
+    {
+      auto shutdownPromise = shutdown();
+      if (shutdownPromise) {
+        // don't really care about result
+        shutdownPromise->background();
       }
     }
 

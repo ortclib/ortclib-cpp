@@ -835,6 +835,16 @@ namespace ortc
       public:
         typedef std::list<PromiseWeakPtr> PendingPromiseList;
 
+        ZS_DECLARE_STRUCT_PTR(LifetimeHolder);
+
+        struct LifetimeHolder : public Any
+        {
+          BaseResourcePtr mResource;
+
+          LifetimeHolder(BaseResourcePtr resource) : mResource(resource) {}
+          virtual ~LifetimeHolder() { if (!mResource) return; mResource->lifetimeHolderGone(); }
+        };
+
       public:
         BaseResource(
                      const make_private &,
@@ -856,6 +866,8 @@ namespace ortc
 
         template <typename engine_interface>
         std::shared_ptr<engine_interface> getEngine() const {return mMediaEngine.lock();}
+
+        virtual void lifetimeHolderGone() {}
 
       protected:
         //---------------------------------------------------------------------
@@ -956,6 +968,8 @@ namespace ortc
                         );
 
         virtual ~ChannelResource();
+
+        virtual void lifetimeHolderGone();
 
         //---------------------------------------------------------------------
         #pragma mark

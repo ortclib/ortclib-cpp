@@ -161,7 +161,7 @@ namespace ortc
                                                                                                      );
       {
         AutoRecursiveLock lock(*this);
-        mSetupChannelPromise = setupChannelPromise;
+        mChannelResourceLifetimeHolderPromise = setupChannelPromise;
         mTransport = transport;
       }
 
@@ -604,18 +604,18 @@ namespace ortc
         return true;
       }
 
-      if (!mSetupChannelPromise->isSettled()) {
+      if (!mChannelResourceLifetimeHolderPromise->isSettled()) {
         ZS_LOG_TRACE(log("waiting for setup channel promise to be set up"))
         return false;
       }
 
-      if (mSetupChannelPromise->isRejected()) {
+      if (mChannelResourceLifetimeHolderPromise->isRejected()) {
         ZS_LOG_WARNING(Debug, log("media engine rejected channel setup"))
         cancel();
         return false;
       }
 
-      mChannelResource = ZS_DYNAMIC_PTR_CAST(UseChannelResource, mSetupChannelPromise->value());
+      mChannelResource = ZS_DYNAMIC_PTR_CAST(UseChannelResource, mChannelResourceLifetimeHolderPromise->value());
 
       if (!mChannelResource) {
         ZS_LOG_WARNING(Detail, log("failed to initialize channel resource"))
@@ -663,7 +663,7 @@ namespace ortc
 
       setState(State_Shutdown);
 
-      mSetupChannelPromise.reset();
+      mChannelResourceLifetimeHolderPromise.reset();
 
       mChannelResource.reset();
       mCloseChannelPromise.reset();
