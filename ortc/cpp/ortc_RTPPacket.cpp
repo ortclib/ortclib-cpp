@@ -763,6 +763,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     const BYTE *RTPPacket::payload() const
     {
+      if (0 == mPayloadSize) return NULL;
       const BYTE *buffer = ptr();
       return &(buffer[mHeaderSize + mHeaderExtensionSize]);
     }
