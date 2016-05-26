@@ -1776,6 +1776,7 @@ namespace ortc
         if (!voiceEngine) goto abandon;
 
         webrtc::VoENetwork::GetInterface(voiceEngine)->ReceivedRTPPacket(getChannel(), buffer->BytePtr(), buffer->SizeInBytes(), time);
+        --mAccessFromNonLockedMethods;
         return;
       }
     abandon:
@@ -2268,6 +2269,7 @@ namespace ortc
         if (NULL == stream) goto abandon;
 
         bool result = stream->DeliverRtcp(buffer->BytePtr(), buffer->SizeInBytes());
+        --mAccessFromNonLockedMethods;
         return;
       }
 
@@ -2763,6 +2765,7 @@ namespace ortc
 
         webrtc::PacketTime time(timestamp, 0);
         bool result = stream->DeliverRtp(buffer->BytePtr(), buffer->SizeInBytes(), time);
+        --mAccessFromNonLockedMethods;
         return;
       }
     abandon:
@@ -2783,6 +2786,7 @@ namespace ortc
         if (NULL == stream) goto abandon;
 
         bool result = stream->DeliverRtcp(buffer->BytePtr(), buffer->SizeInBytes());
+        --mAccessFromNonLockedMethods;
         return;
       }
 
@@ -3254,6 +3258,7 @@ namespace ortc
         if (NULL == stream) goto abandon;
 
         bool result = stream->DeliverRtcp(buffer->BytePtr(), buffer->SizeInBytes());
+        --mAccessFromNonLockedMethods;
         return;
       }
     abandon:
@@ -3274,6 +3279,7 @@ namespace ortc
         if (NULL == stream) goto abandon;
 
         stream->Input()->IncomingCapturedFrame(*videoFrame);
+        --mAccessFromNonLockedMethods;
         return;
       }
     abandon:
