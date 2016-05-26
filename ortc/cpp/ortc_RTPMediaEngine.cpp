@@ -1472,6 +1472,7 @@ namespace ortc
       auto shutdownPromise = shutdown();
       if (shutdownPromise) {
         // don't really care about result
+        shutdownPromise->then(IPromiseDelegateProxy::createNoop(IORTCForInternal::queueBlockingMediaStartStopThread()));
         shutdownPromise->background();
       }
     }
