@@ -1762,50 +1762,35 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPMediaEngine::AudioReceiverChannelResource::onHandleRTPPacket(DWORD timestamp, SecureByteBlockPtr buffer)
     {
-      ++mAccessFromNonLockedMethods;
+      AutoIncrementLock incLock(mAccessFromNonLockedMethods);
 
-      {
-        if (mDenyNonLockedAccess) goto abandon;
+      if (mDenyNonLockedAccess) return;
 
-        webrtc::PacketTime time(timestamp, 0);
+      webrtc::PacketTime time(timestamp, 0);
 
-        auto engine = mMediaEngine.lock();
-        if (!engine) goto abandon;
+      auto engine = mMediaEngine.lock();
+      if (!engine) return;
 
-        auto voiceEngine = engine->getVoiceEngine();
-        if (!voiceEngine) goto abandon;
+      auto voiceEngine = engine->getVoiceEngine();
+      if (!voiceEngine) return;
 
-        webrtc::VoENetwork::GetInterface(voiceEngine)->ReceivedRTPPacket(getChannel(), buffer->BytePtr(), buffer->SizeInBytes(), time);
-        --mAccessFromNonLockedMethods;
-        return;
-      }
-    abandon:
-      {
-        --mAccessFromNonLockedMethods;
-      }
+      webrtc::VoENetwork::GetInterface(voiceEngine)->ReceivedRTPPacket(getChannel(), buffer->BytePtr(), buffer->SizeInBytes(), time);
     }
 
     //-------------------------------------------------------------------------
     void RTPMediaEngine::AudioReceiverChannelResource::onHandleRTCPPacket(SecureByteBlockPtr buffer)
     {
-      ++mAccessFromNonLockedMethods;
+      AutoIncrementLock incLock(mAccessFromNonLockedMethods);
+      
+      if (mDenyNonLockedAccess) return;
 
-      {
-        if (mDenyNonLockedAccess) goto abandon;
+      auto engine = mMediaEngine.lock();
+      if (!engine) return;
 
-        auto engine = mMediaEngine.lock();
-        if (!engine) goto abandon;
+      auto voiceEngine = engine->getVoiceEngine();
+      if (!voiceEngine) return;
 
-        auto voiceEngine = engine->getVoiceEngine();
-        if (!voiceEngine) goto abandon;
-
-        webrtc::VoENetwork::GetInterface(voiceEngine)->ReceivedRTCPPacket(getChannel(), buffer->BytePtr(), buffer->SizeInBytes());
-        return;
-      }
-    abandon:
-      {
-        --mAccessFromNonLockedMethods;
-      }
+      webrtc::VoENetwork::GetInterface(voiceEngine)->ReceivedRTCPPacket(getChannel(), buffer->BytePtr(), buffer->SizeInBytes());
     }
 
     //-------------------------------------------------------------------------
@@ -2260,23 +2245,14 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPMediaEngine::AudioSenderChannelResource::onHandleRTCPPacket(SecureByteBlockPtr buffer)
     {
-      ++mAccessFromNonLockedMethods;
+      AutoIncrementLock incLock(mAccessFromNonLockedMethods);
 
-      {
-        if (mDenyNonLockedAccess) goto abandon;
+      if (mDenyNonLockedAccess) return;
 
-        auto stream = mSendStream.get();
-        if (NULL == stream) goto abandon;
+      auto stream = mSendStream.get();
+      if (NULL == stream) return;
 
-        bool result = stream->DeliverRtcp(buffer->BytePtr(), buffer->SizeInBytes());
-        --mAccessFromNonLockedMethods;
-        return;
-      }
-
-    abandon:
-      {
-        --mAccessFromNonLockedMethods;
-      }
+      bool result = stream->DeliverRtcp(buffer->BytePtr(), buffer->SizeInBytes());
     }
 
     //-------------------------------------------------------------------------
@@ -2755,45 +2731,28 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPMediaEngine::VideoReceiverChannelResource::onHandleRTPPacket(DWORD timestamp, SecureByteBlockPtr buffer)
     {
-      ++mAccessFromNonLockedMethods;
+      AutoIncrementLock incLock(mAccessFromNonLockedMethods);
 
-      {
-        if (mDenyNonLockedAccess) goto abandon;
+      if (mDenyNonLockedAccess) return;
 
-        auto stream = mReceiveStream.get();
-        if (NULL == stream) goto abandon;
+      auto stream = mReceiveStream.get();
+      if (NULL == stream) return;
 
-        webrtc::PacketTime time(timestamp, 0);
-        bool result = stream->DeliverRtp(buffer->BytePtr(), buffer->SizeInBytes(), time);
-        --mAccessFromNonLockedMethods;
-        return;
-      }
-    abandon:
-      {
-        --mAccessFromNonLockedMethods;
-      }
+      webrtc::PacketTime time(timestamp, 0);
+      bool result = stream->DeliverRtp(buffer->BytePtr(), buffer->SizeInBytes(), time);
     }
 
     //-------------------------------------------------------------------------
     void RTPMediaEngine::VideoReceiverChannelResource::onHandleRTCPPacket(SecureByteBlockPtr buffer)
     {
-      ++mAccessFromNonLockedMethods;
+      AutoIncrementLock incLock(mAccessFromNonLockedMethods);
 
-      {
-        if (mDenyNonLockedAccess) goto abandon;
+      if (mDenyNonLockedAccess) return;
 
-        auto stream = mReceiveStream.get();
-        if (NULL == stream) goto abandon;
+      auto stream = mReceiveStream.get();
+      if (NULL == stream) return;
 
-        bool result = stream->DeliverRtcp(buffer->BytePtr(), buffer->SizeInBytes());
-        --mAccessFromNonLockedMethods;
-        return;
-      }
-
-    abandon:
-      {
-        --mAccessFromNonLockedMethods;
-      }
+      bool result = stream->DeliverRtcp(buffer->BytePtr(), buffer->SizeInBytes());
     }
 
     //-------------------------------------------------------------------------
@@ -3249,43 +3208,27 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPMediaEngine::VideoSenderChannelResource::onHandleRTCPPacket(SecureByteBlockPtr buffer)
     {
-      ++mAccessFromNonLockedMethods;
+      AutoIncrementLock incLock(mAccessFromNonLockedMethods);
 
-      {
-        if (mDenyNonLockedAccess) goto abandon;
+      if (mDenyNonLockedAccess) return;
 
-        auto stream = mSendStream.get();
-        if (NULL == stream) goto abandon;
+      auto stream = mSendStream.get();
+      if (NULL == stream) return;
 
-        bool result = stream->DeliverRtcp(buffer->BytePtr(), buffer->SizeInBytes());
-        --mAccessFromNonLockedMethods;
-        return;
-      }
-    abandon:
-      {
-        --mAccessFromNonLockedMethods;
-      }
+      bool result = stream->DeliverRtcp(buffer->BytePtr(), buffer->SizeInBytes());
     }
 
     //-------------------------------------------------------------------------
     void RTPMediaEngine::VideoSenderChannelResource::onSendVideoFrame(VideoFramePtr videoFrame)
     {
-      ++mAccessFromNonLockedMethods;
+      AutoIncrementLock incLock(mAccessFromNonLockedMethods);
 
-      {
-        if (mDenyNonLockedAccess) goto abandon;
+      if (mDenyNonLockedAccess) return;
 
-        auto stream = mSendStream.get();
-        if (NULL == stream) goto abandon;
+      auto stream = mSendStream.get();
+      if (NULL == stream) return;
 
-        stream->Input()->IncomingCapturedFrame(*videoFrame);
-        --mAccessFromNonLockedMethods;
-        return;
-      }
-    abandon:
-      {
-        --mAccessFromNonLockedMethods;
-      }
+      stream->Input()->IncomingCapturedFrame(*videoFrame);
     }
 
     //-------------------------------------------------------------------------

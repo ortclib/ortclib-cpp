@@ -955,11 +955,20 @@ namespace ortc
                               public IChannelResourceForRTPMediaEngine,
                               public IRTPMediaEngineChannelResourceAsyncDelegate
       {
+      public:
         typedef std::list<PromisePtr> PromiseList;
 
         ZS_DECLARE_TYPEDEF_PTR(IRTPMediaEngineForChannelResource, UseEngine);
         ZS_DECLARE_TYPEDEF_PTR(IStatsProviderTypes::PromiseWithStatsReport, PromiseWithStatsReport);
-        ZS_DECLARE_TYPEDEF_PTR(IStatsReportTypes::StatsTypeSet, StatsTypeSet)
+        ZS_DECLARE_TYPEDEF_PTR(IStatsReportTypes::StatsTypeSet, StatsTypeSet);
+
+        struct AutoIncrementLock
+        {
+          AutoIncrementLock(std::atomic<size_t> &accessFromNonLockedMethods) : mAccessFromNonLockedMethods(accessFromNonLockedMethods) { ++mAccessFromNonLockedMethods; }
+          ~AutoIncrementLock() { --mAccessFromNonLockedMethods; }
+
+          std::atomic<size_t> &mAccessFromNonLockedMethods;
+        };
 
       public:
         ChannelResource(
