@@ -1256,15 +1256,14 @@ namespace ortc
     //-------------------------------------------------------------------------
     RTPMediaEngine::BaseResource::BaseResource(
                                                const make_private &,
-                                               IRTPMediaEngineRegistrationPtr registration
+                                               IRTPMediaEngineRegistrationPtr registration,
+                                               RTPMediaEnginePtr engine
                                                ) :
-      mMediaEngineDuringConstruction(registration ? registration->getRTPEngine() : RTPMediaEnginePtr()),
-      SharedRecursiveLock(mMediaEngineDuringConstruction ? SharedRecursiveLock(mMediaEngineDuringConstruction->getSharedLock()) : SharedRecursiveLock::create()),
-      MessageQueueAssociator(mMediaEngineDuringConstruction ? mMediaEngineDuringConstruction->getAssociatedMessageQueue() : IORTCForInternal::queueBlockingMediaStartStopThread()),
-      mMediaEngine(mMediaEngineDuringConstruction),
+      SharedRecursiveLock(engine ? SharedRecursiveLock(engine->getSharedLock()) : SharedRecursiveLock::create()),
+      MessageQueueAssociator(engine ? engine->getAssociatedMessageQueue() : IORTCForInternal::queueBlockingMediaStartStopThread()),
+      mMediaEngine(engine),
       mRegistration(registration)
     {
-      mMediaEngineDuringConstruction.reset();
     }
 
     //-------------------------------------------------------------------------
@@ -1384,7 +1383,7 @@ namespace ortc
                                                    IRTPMediaEngineRegistrationPtr registration,
                                                    const char *deviceID
                                                    ) :
-      BaseResource(priv, registration),
+      BaseResource(priv, registration, registration ? registration->getRTPEngine() : RTPMediaEnginePtr()),
       mDeviceID(deviceID)
     {
     }
@@ -1451,7 +1450,7 @@ namespace ortc
                                                      const make_private &priv,
                                                      IRTPMediaEngineRegistrationPtr registration
                                                      ) : 
-      BaseResource(priv, registration),
+      BaseResource(priv, registration, registration ? registration->getRTPEngine() : RTPMediaEnginePtr()),
       mHandlePacketQueue(IORTCForInternal::queuePacket())
     {
     }

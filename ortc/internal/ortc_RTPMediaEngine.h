@@ -838,7 +838,8 @@ namespace ortc
       public:
         BaseResource(
                      const make_private &,
-                     IRTPMediaEngineRegistrationPtr registration
+                     IRTPMediaEngineRegistrationPtr registration,
+                     RTPMediaEnginePtr engine
                      );
         virtual ~BaseResource();
 
@@ -876,7 +877,6 @@ namespace ortc
 
         IRTPMediaEngineRegistrationPtr mRegistration;
         RTPMediaEngineWeakPtr mMediaEngine;
-        RTPMediaEnginePtr mMediaEngineDuringConstruction;
       };
 
       //-----------------------------------------------------------------------
