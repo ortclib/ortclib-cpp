@@ -1452,7 +1452,9 @@ namespace ortc
                                                      IRTPMediaEngineRegistrationPtr registration
                                                      ) : 
       BaseResource(priv, registration, registration ? registration->getRTPEngine() : RTPMediaEnginePtr()),
-      mHandlePacketQueue(IORTCForInternal::queuePacket())
+      mHandlePacketQueue(IORTCForInternal::queuePacket()),
+      mClock(webrtc::Clock::GetRealTimeClock()),
+      mRemb(mClock)
     {
     }
 
@@ -1588,9 +1590,7 @@ namespace ortc
       mTransport(transport),
       mTrack(track),
       mParameters(parameters),
-      mInitPacket(packet),
-      mClock(webrtc::Clock::GetRealTimeClock()),
-      mRemb(mClock)
+      mInitPacket(packet)
     {
     }
 
@@ -1705,28 +1705,50 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPMediaEngine::AudioReceiverChannelResource::onProvideStats(PromiseWithStatsReportPtr promise, IStatsReportTypes::StatsTypeSet stats1)
+    void RTPMediaEngine::AudioReceiverChannelResource::onProvideStats(PromiseWithStatsReportPtr promise, IStatsReportTypes::StatsTypeSet stats)
     {
-      UseStatsReport::StatMap stats;
+      AutoRecursiveLock lock(*this);
 
-      auto report = make_shared<IStatsReport::InboundRTPStreamStats>();
-
-      report->mID = string(zsLib::createUUID());
+      UseStatsReport::StatMap reportStats;
 
       webrtc::AudioReceiveStream::Stats receiveStreamStats = mReceiveStream->GetStats();
 
-      report->mSSRC = receiveStreamStats.remote_ssrc;
-      report->mMediaType = "audio";
-      report->mCodecID = receiveStreamStats.codec_name;
-      report->mPacketsReceived = receiveStreamStats.packets_rcvd;
-      report->mBytesReceived = receiveStreamStats.bytes_rcvd;
-      report->mPacketsLost = receiveStreamStats.packets_lost;
-      report->mJitter = receiveStreamStats.jitter_ms;
-      report->mFractionLost = receiveStreamStats.fraction_lost;
+      if (stats.find(IStatsReportTypes::StatsTypes::StatsType_InboundRTP) != stats.end()) {
 
-      stats[report->mID] = report;
+        auto report = make_shared<IStatsReport::InboundRTPStreamStats>();
 
-      promise->resolve(UseStatsReport::create(stats));
+        report->mID = Stringize<DWORD>(receiveStreamStats.remote_ssrc).string() + "_receive";
+
+        report->mSSRC = receiveStreamStats.remote_ssrc;
+        report->mIsRemote = true;
+        report->mMediaType = "audio";
+        report->mMediaTrackID = mTrack->id();
+        report->mCodecID = mCodecPayloadName;
+        report->mPacketsReceived = receiveStreamStats.packets_rcvd;
+        report->mBytesReceived = receiveStreamStats.bytes_rcvd;
+        report->mPacketsLost = receiveStreamStats.packets_lost;
+        report->mJitter = receiveStreamStats.jitter_ms;
+        report->mFractionLost = receiveStreamStats.fraction_lost;
+        report->mEndToEndDelay = Milliseconds(receiveStreamStats.end_to_end_delayMs);
+
+        reportStats[report->mID] = report;
+      }
+
+      if (stats.find(IStatsReportTypes::StatsTypes::StatsType_Codec) != stats.end()) {
+
+        auto report = make_shared<IStatsReport::Codec>();
+
+        report->mID = Stringize<DWORD>(receiveStreamStats.remote_ssrc).string() + "_receive_codec";
+
+        report->mPayloadType = mCodecPayloadType;
+        report->mCodec = mCodecPayloadName;
+        report->mClockRate = 0;
+        report->mChannels = 0;
+
+        reportStats[report->mID] = report;
+      }
+
+      promise->resolve(UseStatsReport::create(reportStats));
     }
 
     //-------------------------------------------------------------------------
@@ -1806,11 +1828,13 @@ namespace ortc
     {
       AutoRecursiveLock lock(*this);
 
-      uint32_t allocated_bitrate_bps = mBitrateAllocator->OnNetworkChanged(
-                                                                           targetBitrateBps,
-                                                                           fractionLoss,
-                                                                           rttMs
-                                                                           );
+      mCurrentTargetBitrate = targetBitrateBps;
+
+      uint32_t allocatedBitrateBps = mBitrateAllocator->OnNetworkChanged(
+                                                                         targetBitrateBps,
+                                                                         fractionLoss,
+                                                                         rttMs
+                                                                         );
 
       int padUpToBitrateBps = 0;
       uint32_t pacerBitrateBps = targetBitrateBps;
@@ -1877,7 +1901,6 @@ namespace ortc
           codec.pacsize = (codec.plfreq / 1000) * codecIter->mPTime.count();
         if (codecIter->mNumChannels.hasValue())
           codec.channels = codecIter->mNumChannels;
-        webrtc::VoECodec::GetInterface(voiceEngine)->SetRecPayloadType(mChannel, codec);
         switch (supportedCodec) {
           case IRTPTypes::SupportedCodec_Opus:
           case IRTPTypes::SupportedCodec_Isac:
@@ -1885,6 +1908,7 @@ namespace ortc
           case IRTPTypes::SupportedCodec_ILBC:
           case IRTPTypes::SupportedCodec_PCMU:
           case IRTPTypes::SupportedCodec_PCMA:
+            webrtc::VoECodec::GetInterface(voiceEngine)->SetRecPayloadType(mChannel, codec);
             goto set_rtcp_feedback;
           case IRTPTypes::SupportedCodec_RED:
             webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetREDStatus(mChannel, true, codecIter->mPayloadType);
@@ -1902,6 +1926,9 @@ namespace ortc
         }
         audioCodecSet = true;
       }
+
+      mCodecPayloadName = codec.plname;
+      mCodecPayloadType = codec.pltype;
 
       webrtc::AudioReceiveStream::Config config;
       config.voe_channel_id = mChannel;
@@ -2089,9 +2116,7 @@ namespace ortc
       ChannelResource(priv, registration),
       mTransport(transport),
       mTrack(track),
-      mParameters(parameters),
-      mClock(webrtc::Clock::GetRealTimeClock()),
-      mRemb(mClock)
+      mParameters(parameters)
     {
     }
 
@@ -2196,27 +2221,47 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPMediaEngine::AudioSenderChannelResource::onProvideStats(PromiseWithStatsReportPtr promise, IStatsReportTypes::StatsTypeSet stats1)
+    void RTPMediaEngine::AudioSenderChannelResource::onProvideStats(PromiseWithStatsReportPtr promise, IStatsReportTypes::StatsTypeSet stats)
     {
-      UseStatsReport::StatMap stats;
+      AutoRecursiveLock lock(*this);
 
-      auto report = make_shared<IStatsReport::OutboundRTPStreamStats>();
-
-      report->mID = string(zsLib::createUUID());
+      UseStatsReport::StatMap reportStats;
 
       webrtc::AudioSendStream::Stats sendStreamStats = mSendStream->GetStats();
 
-      report->mSSRC = sendStreamStats.local_ssrc;
-      report->mMediaType = "audio";
-      report->mCodecID = sendStreamStats.codec_name;
-      report->mPacketsSent = sendStreamStats.packets_sent;
-      report->mBytesSent = sendStreamStats.bytes_sent;
-      //report->mTargetBitrate = mCongestionController->GetRemoteBitrateEstimator()->GetStats(null);
-      report->mRoundTripTime = sendStreamStats.rtt_ms;
+      if (stats.find(IStatsReportTypes::StatsTypes::StatsType_OutboundRTP) != stats.end()) {
 
-      stats[report->mID] = report;
+        auto report = make_shared<IStatsReport::OutboundRTPStreamStats>();
 
-      promise->resolve(UseStatsReport::create(stats));
+        report->mID = Stringize<DWORD>(sendStreamStats.local_ssrc).string() + "_send";
+
+        report->mSSRC = sendStreamStats.local_ssrc;
+        report->mIsRemote = false;
+        report->mMediaType = "audio";
+        report->mMediaTrackID = mTrack->id();
+        report->mCodecID = mCodecPayloadName;
+        report->mPacketsSent = sendStreamStats.packets_sent;
+        report->mBytesSent = sendStreamStats.bytes_sent;
+        report->mTargetBitrate = mCurrentTargetBitrate;
+        report->mRoundTripTime = mCallStats->rtcp_rtt_stats()->LastProcessedRtt();
+
+        reportStats[report->mID] = report;
+      }
+
+      if (stats.find(IStatsReportTypes::StatsTypes::StatsType_Codec) != stats.end()) {
+        auto report = make_shared<IStatsReport::Codec>();
+
+        report->mID = Stringize<DWORD>(sendStreamStats.local_ssrc).string() + "_send_codec";
+
+        report->mPayloadType = mCodecPayloadType;
+        report->mCodec = mCodecPayloadName;
+        report->mClockRate = 0;
+        report->mChannels = 0;
+
+        reportStats[report->mID] = report;
+      }
+
+      promise->resolve(UseStatsReport::create(reportStats));
     }
 
     //-------------------------------------------------------------------------
@@ -2268,11 +2313,13 @@ namespace ortc
     {
       AutoRecursiveLock lock(*this);
 
-      uint32_t allocated_bitrate_bps = mBitrateAllocator->OnNetworkChanged(
-                                                                           targetBitrateBps,
-                                                                           fractionLoss,
-                                                                           rttMs
-                                                                           );
+      mCurrentTargetBitrate = targetBitrateBps;
+
+      uint32_t allocatedBitrateBps = mBitrateAllocator->OnNetworkChanged(
+                                                                         targetBitrateBps,
+                                                                         fractionLoss,
+                                                                         rttMs
+                                                                         );
 
       int padUpToBitrateBps = 0;
       uint32_t pacerBitrateBps = targetBitrateBps;
@@ -2337,7 +2384,6 @@ namespace ortc
           codec.pacsize = (codec.plfreq / 1000) * codecIter->mPTime.count();
         if (codecIter->mNumChannels.hasValue())
           codec.channels = codecIter->mNumChannels;
-        webrtc::VoECodec::GetInterface(voiceEngine)->SetSendCodec(mChannel, codec);
         switch (supportedCodec) {
           case IRTPTypes::SupportedCodec_Opus:
           case IRTPTypes::SupportedCodec_Isac:
@@ -2345,6 +2391,7 @@ namespace ortc
           case IRTPTypes::SupportedCodec_ILBC:
           case IRTPTypes::SupportedCodec_PCMU:
           case IRTPTypes::SupportedCodec_PCMA:
+            webrtc::VoECodec::GetInterface(voiceEngine)->SetSendCodec(mChannel, codec);
             goto set_rtcp_feedback;
           case IRTPTypes::SupportedCodec_RED:
             webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetREDStatus(mChannel, true, codecIter->mPayloadType);
@@ -2362,6 +2409,9 @@ namespace ortc
         }
         audioCodecSet = true;
       }
+
+      mCodecPayloadName = codec.plname;
+      mCodecPayloadType = codec.pltype;
 
       webrtc::AudioSendStream::Config config(mTransport.get());
       config.voe_channel_id = mChannel;
@@ -2559,13 +2609,11 @@ namespace ortc
       mTransport(transport),
       mTrack(track),
       mParameters(parameters),
-      mInitPacket(packet),
-      mClock(webrtc::Clock::GetRealTimeClock()),
-      mRemb(mClock)
+      mInitPacket(packet)
     {
     }
 
-    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------2
     RTPMediaEngine::VideoReceiverChannelResource::~VideoReceiverChannelResource()
     {
       mThisWeak.reset();  // shared pointer to self is no longer valid
@@ -2670,32 +2718,55 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPMediaEngine::VideoReceiverChannelResource::onProvideStats(PromiseWithStatsReportPtr promise, IStatsReportTypes::StatsTypeSet stats1)
+    void RTPMediaEngine::VideoReceiverChannelResource::onProvideStats(PromiseWithStatsReportPtr promise, IStatsReportTypes::StatsTypeSet stats)
     {
-      UseStatsReport::StatMap stats;
+      AutoRecursiveLock lock(*this);
 
-      auto report = make_shared<IStatsReport::InboundRTPStreamStats>();
-
-      report->mID = string(zsLib::createUUID());
+      UseStatsReport::StatMap reportStats;
 
       webrtc::VideoReceiveStream::Stats receiveStreamStats = mReceiveStream->GetStats();
 
-      report->mSSRC = receiveStreamStats.ssrc;
-      report->mMediaType = "video";
-      report->mFIRCount = receiveStreamStats.rtcp_packet_type_counts.fir_packets;
-      report->mPLICount = receiveStreamStats.rtcp_packet_type_counts.pli_packets;
-      report->mNACKCount = receiveStreamStats.rtcp_packet_type_counts.nack_packets;
-      report->mPacketsReceived = receiveStreamStats.rtp_stats.transmitted.packets;
-      report->mBytesReceived = receiveStreamStats.rtp_stats.transmitted.header_bytes +
-        receiveStreamStats.rtp_stats.transmitted.payload_bytes +
-        receiveStreamStats.rtp_stats.transmitted.padding_bytes;
-      report->mPacketsLost = receiveStreamStats.rtp_stats.retransmitted.packets;
-      report->mJitter = receiveStreamStats.rtcp_stats.jitter;
-      report->mFractionLost = receiveStreamStats.rtcp_stats.fraction_lost;
+      if (stats.find(IStatsReportTypes::StatsTypes::StatsType_InboundRTP) != stats.end()) {
 
-      stats[report->mID] = report;
+        auto report = make_shared<IStatsReport::InboundRTPStreamStats>();
 
-      promise->resolve(UseStatsReport::create(stats));
+        report->mID = Stringize<DWORD>(receiveStreamStats.ssrc).string() + "_receive";
+
+        report->mSSRC = receiveStreamStats.ssrc;
+        report->mIsRemote = true;
+        report->mMediaType = "video";
+        report->mMediaTrackID = mTrack->id();
+        report->mCodecID = mCodecPayloadName;
+        report->mFIRCount = receiveStreamStats.rtcp_packet_type_counts.fir_packets;
+        report->mPLICount = receiveStreamStats.rtcp_packet_type_counts.pli_packets;
+        report->mNACKCount = receiveStreamStats.rtcp_packet_type_counts.nack_packets;
+        report->mPacketsReceived = receiveStreamStats.rtp_stats.transmitted.packets;
+        report->mBytesReceived = receiveStreamStats.rtp_stats.transmitted.header_bytes +
+          receiveStreamStats.rtp_stats.transmitted.payload_bytes +
+          receiveStreamStats.rtp_stats.transmitted.padding_bytes;
+        report->mPacketsLost = receiveStreamStats.rtp_stats.retransmitted.packets;
+        report->mJitter = receiveStreamStats.rtcp_stats.jitter;
+        report->mFractionLost = receiveStreamStats.rtcp_stats.fraction_lost;
+        report->mEndToEndDelay = Milliseconds(receiveStreamStats.current_endtoend_delay_ms);
+
+        reportStats[report->mID] = report;
+      }
+
+      if (stats.find(IStatsReportTypes::StatsTypes::StatsType_Codec) != stats.end()) {
+
+        auto report = make_shared<IStatsReport::Codec>();
+
+        report->mID = Stringize<DWORD>(receiveStreamStats.ssrc).string() + "_receive_codec";
+
+        report->mPayloadType = mCodecPayloadType;
+        report->mCodec = mCodecPayloadName;
+        report->mClockRate = 0;
+        report->mChannels = 0;
+
+        reportStats[report->mID] = report;
+      }
+
+      promise->resolve(UseStatsReport::create(reportStats));
     }
 
     //-------------------------------------------------------------------------
@@ -2768,11 +2839,13 @@ namespace ortc
     {
       AutoRecursiveLock lock(*this);
 
-      uint32_t allocated_bitrate_bps = mBitrateAllocator->OnNetworkChanged(
-                                                                           targetBitrateBps,
-                                                                           fractionLoss,
-                                                                           rttMs
-                                                                           );
+      mCurrentTargetBitrate = targetBitrateBps;
+
+      uint32_t allocatedBitrateBps = mBitrateAllocator->OnNetworkChanged(
+                                                                         targetBitrateBps,
+                                                                         fractionLoss,
+                                                                         rttMs
+                                                                         );
 
       int padUpToBitrateBps = 0;
       uint32_t pacerBitrateBps = targetBitrateBps;
@@ -2890,6 +2963,9 @@ namespace ortc
         }
         videoCodecSet = true;
       }
+
+      mCodecPayloadName = decoder.payload_name;
+      mCodecPayloadType = decoder.payload_type;
 
       for (auto encodingParamIter = mParameters->mEncodings.begin(); encodingParamIter != mParameters->mEncodings.end(); encodingParamIter++) {
         if (!encodingParamIter->mActive)
@@ -3030,9 +3106,7 @@ namespace ortc
       ChannelResource(priv, registration),
       mTransport(transport),
       mTrack(track),
-      mParameters(parameters),
-      mClock(webrtc::Clock::GetRealTimeClock()),
-      mRemb(mClock)
+      mParameters(parameters)
     {
     }
 
@@ -3139,38 +3213,55 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPMediaEngine::VideoSenderChannelResource::onProvideStats(PromiseWithStatsReportPtr promise, IStatsReportTypes::StatsTypeSet stats1)
+    void RTPMediaEngine::VideoSenderChannelResource::onProvideStats(PromiseWithStatsReportPtr promise, IStatsReportTypes::StatsTypeSet stats)
     {
-      UseStatsReport::StatMap stats;
+      AutoRecursiveLock lock(*this);
+
+      UseStatsReport::StatMap reportStats;
 
       webrtc::VideoSendStream::Stats sendStreamStats = mSendStream->GetStats();
 
-      auto statsIter = sendStreamStats.substreams.begin();
+      if (stats.find(IStatsReportTypes::StatsTypes::StatsType_OutboundRTP) != stats.end()) {
 
-      while (statsIter != sendStreamStats.substreams.end()) {
+        for (auto statsIter = sendStreamStats.substreams.begin(); statsIter != sendStreamStats.substreams.end(); statsIter++) {
 
-        auto report = make_shared<IStatsReport::OutboundRTPStreamStats>();
+          auto report = make_shared<IStatsReport::OutboundRTPStreamStats>();
 
-        report->mID = string(zsLib::createUUID());
+          report->mID = Stringize<DWORD>((*statsIter).first).string() + "_send";
 
-        report->mSSRC = (*statsIter).first;
-        report->mMediaType = "video";
-        report->mFIRCount = (*statsIter).second.rtcp_packet_type_counts.fir_packets;
-        report->mPLICount = (*statsIter).second.rtcp_packet_type_counts.pli_packets;
-        report->mNACKCount = (*statsIter).second.rtcp_packet_type_counts.nack_packets;
-        report->mPacketsSent = (*statsIter).second.rtp_stats.transmitted.packets;
-        report->mBytesSent = (*statsIter).second.rtp_stats.transmitted.header_bytes +
-          (*statsIter).second.rtp_stats.transmitted.payload_bytes +
-          (*statsIter).second.rtp_stats.transmitted.padding_bytes;
-        report->mTargetBitrate = sendStreamStats.target_media_bitrate_bps;
-        //report->mRoundTripTime = (*statsIter).second.rtcp_stats.;
+          report->mSSRC = (*statsIter).first;
+          report->mIsRemote = false;
+          report->mMediaType = "video";
+          report->mMediaTrackID = mTrack->id();
+          report->mCodecID = mCodecPayloadName;
+          report->mFIRCount = (*statsIter).second.rtcp_packet_type_counts.fir_packets;
+          report->mPLICount = (*statsIter).second.rtcp_packet_type_counts.pli_packets;
+          report->mNACKCount = (*statsIter).second.rtcp_packet_type_counts.nack_packets;
+          report->mPacketsSent = (*statsIter).second.rtp_stats.transmitted.packets;
+          report->mBytesSent = (*statsIter).second.rtp_stats.transmitted.header_bytes +
+            (*statsIter).second.rtp_stats.transmitted.payload_bytes +
+            (*statsIter).second.rtp_stats.transmitted.padding_bytes;
+          report->mTargetBitrate = mCurrentTargetBitrate;
+          report->mRoundTripTime = mCallStats->rtcp_rtt_stats()->LastProcessedRtt();
 
-        stats[report->mID] = report;
-
-        statsIter++;
+          reportStats[report->mID] = report;
+        }
       }
 
-      promise->resolve(UseStatsReport::create(stats));
+      if (stats.find(IStatsReportTypes::StatsTypes::StatsType_Codec) != stats.end()) {
+        auto report = make_shared<IStatsReport::Codec>();
+
+        report->mID = Stringize<DWORD>((*sendStreamStats.substreams.begin()).first).string() + "_send_codec";
+
+        report->mPayloadType = mCodecPayloadType;
+        report->mCodec = mCodecPayloadName;
+        report->mClockRate = 0;
+        report->mChannels = 0;
+
+        reportStats[report->mID] = report;
+      }
+
+      promise->resolve(UseStatsReport::create(reportStats));
     }
 
     //-------------------------------------------------------------------------
@@ -3244,11 +3335,13 @@ namespace ortc
     {
       AutoRecursiveLock lock(*this);
 
-      uint32_t allocated_bitrate_bps = mBitrateAllocator->OnNetworkChanged(
-                                                                           targetBitrateBps,
-                                                                           fractionLoss,
-                                                                           rttMs
-                                                                           );
+      mCurrentTargetBitrate = targetBitrateBps;
+
+      uint32_t allocatedBitrateBps = mBitrateAllocator->OnNetworkChanged(
+                                                                         targetBitrateBps,
+                                                                         fractionLoss,
+                                                                         rttMs
+                                                                         );
 
       int padUpToBitrateBps = 0;
       if (mSendStream)
@@ -3388,6 +3481,9 @@ namespace ortc
         }
         videoCodecSet = true;
       }
+
+      mCodecPayloadName = config.encoder_settings.payload_name;
+      mCodecPayloadType = config.encoder_settings.payload_type;
 
       int totalMaxBitrate = 0;
       for (auto encodingParamIter = mParameters->mEncodings.begin(); encodingParamIter != mParameters->mEncodings.end(); encodingParamIter++) {
