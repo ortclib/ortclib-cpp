@@ -923,7 +923,7 @@ namespace ortc
 
       UseStatsReport::StatMap reportStats;
 
-      if (stats.find(IStatsReportTypes::StatsTypes::StatsType_Track) != stats.end()) {
+      if (stats.hasStatType(IStatsReportTypes::StatsTypes::StatsType_Track)) {
         
         DOUBLE framesPerSecond;
         if (!mRemote)

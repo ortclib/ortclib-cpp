@@ -1713,7 +1713,7 @@ namespace ortc
 
       webrtc::AudioReceiveStream::Stats receiveStreamStats = mReceiveStream->GetStats();
 
-      if (stats.find(IStatsReportTypes::StatsTypes::StatsType_InboundRTP) != stats.end()) {
+      if (stats.hasStatType(IStatsReportTypes::StatsTypes::StatsType_InboundRTP)) {
 
         auto report = make_shared<IStatsReport::InboundRTPStreamStats>();
 
@@ -1734,7 +1734,7 @@ namespace ortc
         reportStats[report->mID] = report;
       }
 
-      if (stats.find(IStatsReportTypes::StatsTypes::StatsType_Codec) != stats.end()) {
+      if (stats.hasStatType(IStatsReportTypes::StatsTypes::StatsType_Codec)) {
 
         auto report = make_shared<IStatsReport::Codec>();
 
@@ -2229,7 +2229,7 @@ namespace ortc
 
       webrtc::AudioSendStream::Stats sendStreamStats = mSendStream->GetStats();
 
-      if (stats.find(IStatsReportTypes::StatsTypes::StatsType_OutboundRTP) != stats.end()) {
+      if (stats.hasStatType(IStatsReportTypes::StatsTypes::StatsType_OutboundRTP)) {
 
         auto report = make_shared<IStatsReport::OutboundRTPStreamStats>();
 
@@ -2248,7 +2248,7 @@ namespace ortc
         reportStats[report->mID] = report;
       }
 
-      if (stats.find(IStatsReportTypes::StatsTypes::StatsType_Codec) != stats.end()) {
+      if (stats.hasStatType(IStatsReportTypes::StatsTypes::StatsType_Codec)) {
         auto report = make_shared<IStatsReport::Codec>();
 
         report->mID = Stringize<DWORD>(sendStreamStats.local_ssrc).string() + "_send_codec";
@@ -2726,7 +2726,7 @@ namespace ortc
 
       webrtc::VideoReceiveStream::Stats receiveStreamStats = mReceiveStream->GetStats();
 
-      if (stats.find(IStatsReportTypes::StatsTypes::StatsType_InboundRTP) != stats.end()) {
+      if (stats.hasStatType(IStatsReportTypes::StatsTypes::StatsType_InboundRTP)) {
 
         auto report = make_shared<IStatsReport::InboundRTPStreamStats>();
 
@@ -2752,7 +2752,7 @@ namespace ortc
         reportStats[report->mID] = report;
       }
 
-      if (stats.find(IStatsReportTypes::StatsTypes::StatsType_Codec) != stats.end()) {
+      if (stats.hasStatType(IStatsReportTypes::StatsTypes::StatsType_Codec)) {
 
         auto report = make_shared<IStatsReport::Codec>();
 
@@ -3221,7 +3221,7 @@ namespace ortc
 
       webrtc::VideoSendStream::Stats sendStreamStats = mSendStream->GetStats();
 
-      if (stats.find(IStatsReportTypes::StatsTypes::StatsType_OutboundRTP) != stats.end()) {
+      if (stats.hasStatType(IStatsReportTypes::StatsTypes::StatsType_OutboundRTP)) {
 
         for (auto statsIter = sendStreamStats.substreams.begin(); statsIter != sendStreamStats.substreams.end(); statsIter++) {
 
@@ -3248,7 +3248,7 @@ namespace ortc
         }
       }
 
-      if (stats.find(IStatsReportTypes::StatsTypes::StatsType_Codec) != stats.end()) {
+      if (stats.hasStatType(IStatsReportTypes::StatsTypes::StatsType_Codec)) {
         auto report = make_shared<IStatsReport::Codec>();
 
         report->mID = Stringize<DWORD>((*sendStreamStats.substreams.begin()).first).string() + "_send_codec";
