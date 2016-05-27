@@ -6062,7 +6062,7 @@ namespace ortc
       if (STUNPacket::Class_Response != packet->mClass) return;
       if (packet->mUsername.isEmpty()) return;
 
-      mSTUNPacketParseOptions.mBindResponseRequiresUsernameAttribute = true;
+      mSTUNPacketParseOptions.mBindResponseAllowedUsernameAttribute = true;
     }
 
     //-------------------------------------------------------------------------

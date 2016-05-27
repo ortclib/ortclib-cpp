@@ -4387,6 +4387,10 @@ namespace ortc
     {
       STUNPacketPtr stunPacket = STUNPacket::createResponse(request);
 
+      if (mSTUNPacketOptions.mBindResponseRequiresUsernameAttribute) {
+        stunPacket->mUsername = request->mUsername;
+      }
+
       setRole(stunPacket);
       stunPacket->mMappedAddress = route->mCandidatePair->mRemote->ip();
 
