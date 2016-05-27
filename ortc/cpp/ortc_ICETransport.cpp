@@ -3981,10 +3981,10 @@ namespace ortc
           ZS_LOG_DEBUG(log("setting route to active since received a response and no other route is available") + route->toDebug())
           mActiveRoute = route;
           mActiveRoute->trace(__func__, "choosing as active route (as response was received and no other route is available)");
-        } else if (Time() != route->mLastReceivedMedia) {
-          ZS_LOG_DEBUG(log("setting route to active since incoming media was received on this route") + route->toDebug())
+        } else if (Time() != route->mLastReceivedCheck) {
+          ZS_LOG_DEBUG(log("setting route to active since received a validated incoming request") + route->toDebug())
           mActiveRoute = route;
-          mActiveRoute->trace(__func__, "choosing as active route (as incoming media was received on this route)");
+          mActiveRoute->trace(__func__, "choosing as active route (as incoming check was received on this route)");
         }
       }
 
