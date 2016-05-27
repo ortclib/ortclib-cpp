@@ -903,6 +903,8 @@ namespace ortc
       size_t mMaxBufferedPackets {};
       bool mMustBufferPackets {true};
       PacketQueue mBufferedPackets;
+
+      bool mReceivedUsernameOnICEResponsePacket {};
     };
 
     //-------------------------------------------------------------------------

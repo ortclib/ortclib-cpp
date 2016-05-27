@@ -2022,6 +2022,9 @@ namespace ortc
       }
 
       route->mLastReceivedResponse = zsLib::now();
+      if (response->mUsername.hasData()) {
+        mReceivedUsernameOnICEResponsePacket = true;
+      }
 
       if (route->mOutgoingCheck) {
         if (requester == route->mOutgoingCheck) {
@@ -2223,6 +2226,12 @@ namespace ortc
       UseServicesHelper::debugAppend(resultEl, "secure transport id", mSecureTransportID);
       UseServicesHelper::debugAppend(resultEl, "secure transport", (bool)(mSecureTransport.lock()));
       UseServicesHelper::debugAppend(resultEl, "secure transport (old)", (bool)(mSecureTransportOld.lock()));
+
+      UseServicesHelper::debugAppend(resultEl, "max buffered packets", mMaxBufferedPackets);
+      UseServicesHelper::debugAppend(resultEl, "must buffer packets", mMustBufferPackets);
+      UseServicesHelper::debugAppend(resultEl, "buffered packets", mBufferedPackets.size());
+
+      UseServicesHelper::debugAppend(resultEl, "received username on ICE response packet", mReceivedUsernameOnICEResponsePacket);
 
       return resultEl;
     }
