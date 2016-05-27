@@ -437,7 +437,7 @@ namespace ortc
 
       ParametersPtr mParameters;
 
-      PromiseWithRTPMediaEngineChannelResourcePtr mSetupChannelPromise;
+      PromiseWithRTPMediaEngineChannelResourcePtr mChannelResourceLifetimeHolderPromise;
       UseChannelResourcePtr mChannelResource;
 
       PromisePtr mCloseChannelPromise;

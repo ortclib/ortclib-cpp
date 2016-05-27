@@ -106,7 +106,7 @@ namespace ortc
 
         virtual void stop() override;
 
-        virtual void setVideoRenderCallback(void* callback) override;
+        virtual void setVideoRenderCallback(IMediaStreamTrackRenderCallbackPtr callback) override;
 
         //-----------------------------------------------------------------------
         #pragma mark

@@ -62,42 +62,43 @@ namespace ortc
 {
   namespace internal
   {
-    ZS_DECLARE_INTERACTION_PTR(IRTPMediaEngineRegistration)
+    ZS_DECLARE_INTERACTION_PTR(IRTPMediaEngineRegistration);
 
     // resource based interfaces
-    ZS_DECLARE_INTERACTION_PTR(IRTPMediaEngineDeviceResource)
-    ZS_DECLARE_INTERACTION_PTR(IRTPMediaEngineChannelResource)
-    ZS_DECLARE_INTERACTION_PROXY(IRTPMediaEngineChannelResourceAsyncDelegate)
-    ZS_DECLARE_INTERACTION_PTR(IChannelResourceForRTPMediaEngine)
+    ZS_DECLARE_INTERACTION_PTR(IRTPMediaEngineDeviceResource);
+    ZS_DECLARE_INTERACTION_PTR(IRTPMediaEngineChannelResource);
+    ZS_DECLARE_INTERACTION_PROXY(IRTPMediaEngineChannelResourceAsyncDelegate);
+    ZS_DECLARE_INTERACTION_PTR(IChannelResourceForRTPMediaEngine);
 
-    ZS_DECLARE_INTERACTION_PTR(IRTPMediaEngineForORTC)
-    ZS_DECLARE_INTERACTION_PTR(IRTPMediaEngineForSettings)
-    ZS_DECLARE_INTERACTION_PTR(IRTPMediaEngineForSingleton)
-    ZS_DECLARE_INTERACTION_PTR(IRTPMediaEngineForRTPReceiverChannel)
-    ZS_DECLARE_INTERACTION_PTR(IRTPMediaEngineForRTPReceiverChannelMediaBase)
-    ZS_DECLARE_INTERACTION_PTR(IRTPMediaEngineForRTPReceiverChannelAudio)
-    ZS_DECLARE_INTERACTION_PTR(IRTPMediaEngineForRTPReceiverChannelVideo)
-    ZS_DECLARE_INTERACTION_PTR(IRTPMediaEngineForRTPSenderChannel)
-    ZS_DECLARE_INTERACTION_PTR(IRTPMediaEngineForRTPSenderChannelMediaBase)
-    ZS_DECLARE_INTERACTION_PTR(IRTPMediaEngineForRTPSenderChannelAudio)
-    ZS_DECLARE_INTERACTION_PTR(IRTPMediaEngineForRTPSenderChannelVideo)
-    ZS_DECLARE_INTERACTION_PTR(IRTPMediaEngineForMediaStreamTrack)
+    ZS_DECLARE_INTERACTION_PTR(IRTPMediaEngineForORTC);
+    ZS_DECLARE_INTERACTION_PTR(IRTPMediaEngineForSettings);
+    ZS_DECLARE_INTERACTION_PTR(IRTPMediaEngineForSingleton);
+    ZS_DECLARE_INTERACTION_PTR(IRTPMediaEngineForRTPReceiverChannel);
+    ZS_DECLARE_INTERACTION_PTR(IRTPMediaEngineForRTPReceiverChannelMediaBase);
+    ZS_DECLARE_INTERACTION_PTR(IRTPMediaEngineForRTPReceiverChannelAudio);
+    ZS_DECLARE_INTERACTION_PTR(IRTPMediaEngineForRTPReceiverChannelVideo);
+    ZS_DECLARE_INTERACTION_PTR(IRTPMediaEngineForRTPSenderChannel);
+    ZS_DECLARE_INTERACTION_PTR(IRTPMediaEngineForRTPSenderChannelMediaBase);
+    ZS_DECLARE_INTERACTION_PTR(IRTPMediaEngineForRTPSenderChannelAudio);
+    ZS_DECLARE_INTERACTION_PTR(IRTPMediaEngineForRTPSenderChannelVideo);
+    ZS_DECLARE_INTERACTION_PTR(IRTPMediaEngineForMediaStreamTrack);
 
-    ZS_DECLARE_INTERACTION_PTR(IMediaStreamTrackForRTPMediaEngine)
-    ZS_DECLARE_INTERACTION_PTR(IRTPReceiverChannelMediaBaseForRTPMediaEngine)
-    ZS_DECLARE_INTERACTION_PTR(IRTPReceiverChannelAudioForRTPMediaEngine)
-    ZS_DECLARE_INTERACTION_PTR(IRTPReceiverChannelVideoForRTPMediaEngine)
-    ZS_DECLARE_INTERACTION_PTR(IRTPSenderChannelMediaBaseForRTPMediaEngine)
-    ZS_DECLARE_INTERACTION_PTR(IRTPSenderChannelAudioForRTPMediaEngine)
-    ZS_DECLARE_INTERACTION_PTR(IRTPSenderChannelVideoForRTPMediaEngine)
+    ZS_DECLARE_INTERACTION_PTR(IMediaStreamTrackForRTPMediaEngine);
+    ZS_DECLARE_INTERACTION_PTR(IRTPReceiverChannelMediaBaseForRTPMediaEngine);
+    ZS_DECLARE_INTERACTION_PTR(IRTPReceiverChannelAudioForRTPMediaEngine);
+    ZS_DECLARE_INTERACTION_PTR(IRTPReceiverChannelVideoForRTPMediaEngine);
+    ZS_DECLARE_INTERACTION_PTR(IRTPSenderChannelMediaBaseForRTPMediaEngine);
+    ZS_DECLARE_INTERACTION_PTR(IRTPSenderChannelAudioForRTPMediaEngine);
+    ZS_DECLARE_INTERACTION_PTR(IRTPSenderChannelVideoForRTPMediaEngine);
 
-    ZS_DECLARE_INTERACTION_PROXY(IRTPMediaEngineAsyncDelegate)
+    ZS_DECLARE_INTERACTION_PROXY(IRTPMediaEngineAsyncDelegate);
+    ZS_DECLARE_INTERACTION_PROXY(IRTPMediaEngineHandlePacketAsyncDelegate);
 
-    ZS_DECLARE_TYPEDEF_PTR(zsLib::PromiseWith<RTPMediaEngine>, PromiseWithRTPMediaEngine)
-    ZS_DECLARE_TYPEDEF_PTR(zsLib::PromiseWith<IRTPMediaEngineDeviceResource>, PromiseWithRTPMediaEngineDeviceResource)
-    ZS_DECLARE_TYPEDEF_PTR(zsLib::PromiseWith<IRTPMediaEngineChannelResource>, PromiseWithRTPMediaEngineChannelResource)
+    ZS_DECLARE_TYPEDEF_PTR(zsLib::PromiseWith<RTPMediaEngine>, PromiseWithRTPMediaEngine);
+    ZS_DECLARE_TYPEDEF_PTR(zsLib::PromiseWith<IRTPMediaEngineDeviceResource>, PromiseWithRTPMediaEngineDeviceResource);
+    ZS_DECLARE_TYPEDEF_PTR(zsLib::PromiseWith<IRTPMediaEngineChannelResource>, PromiseWithRTPMediaEngineChannelResource);
     
-    ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters)
+    ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters);
 
 
     //-------------------------------------------------------------------------
@@ -359,9 +360,8 @@ namespace ortc
     interaction IRTPMediaEngineForRTPReceiverChannelAudio : public IRTPMediaEngineForRTPReceiverChannelMediaBase
     {
       ZS_DECLARE_TYPEDEF_PTR(IRTPMediaEngineForRTPReceiverChannelAudio, ForRTPReceiverChannelAudio)
-      
-      virtual webrtc::VoiceEngine *getVoiceEngine() = 0;
-      virtual rtc::scoped_refptr<webrtc::AudioState> getAudioState() = 0;
+ 
+      virtual ~IRTPMediaEngineForRTPReceiverChannelAudio() {}
     };
 
     //-------------------------------------------------------------------------
@@ -434,8 +434,7 @@ namespace ortc
     {
       ZS_DECLARE_TYPEDEF_PTR(IRTPMediaEngineForRTPSenderChannelAudio, ForRTPSenderChannelAudio)
 
-      virtual webrtc::VoiceEngine *getVoiceEngine() = 0;
-      virtual rtc::scoped_refptr<webrtc::AudioState> getAudioState() = 0;
+      virtual ~IRTPMediaEngineForRTPSenderChannelAudio() {}
     };
 
     //-------------------------------------------------------------------------
@@ -494,6 +493,11 @@ namespace ortc
       ZS_DECLARE_TYPEDEF_PTR(IRTPMediaEngineForChannelResource, ForChannelResource)
 
       virtual void notifyResourceGone(IChannelResourceForRTPMediaEngine &channel) = 0;
+
+      virtual webrtc::VoiceEngine *getVoiceEngine() = 0;
+      virtual rtc::scoped_refptr<webrtc::AudioState> getAudioState() = 0;
+      virtual const SharedRecursiveLock &getSharedLock() const = 0;
+      virtual IMessageQueuePtr getMessageQueue() const = 0;
     };
 
 
@@ -510,6 +514,23 @@ namespace ortc
       virtual ~IRTPMediaEngineAsyncDelegate() {}
     };
 
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IRTPMediaEngineHandlePacketAsyncDelegate
+    #pragma mark
+
+    interaction IRTPMediaEngineHandlePacketAsyncDelegate
+    {
+      ZS_DECLARE_TYPEDEF_PTR(webrtc::VideoFrame, VideoFrame);
+
+      virtual void onHandleRTPPacket(DWORD timestamp, SecureByteBlockPtr buffer) = 0;
+      virtual void onHandleRTCPPacket(SecureByteBlockPtr buffer) = 0;
+      virtual void onSendVideoFrame(VideoFramePtr videoFrame) = 0;
+    };
+    
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -670,10 +691,6 @@ namespace ortc
       #pragma mark RTPMediaEngine => IRTPMediaEngineForRTPReceiverChannelAudio
       #pragma mark
 
-      virtual webrtc::VoiceEngine *getVoiceEngine() override;
-
-      virtual rtc::scoped_refptr<webrtc::AudioState> getAudioState() override;
-
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark RTPMediaEngine => IRTPMediaEngineForRTPReceiverChannelVideo
@@ -707,10 +724,6 @@ namespace ortc
       #pragma mark RTPMediaEngine => IRTPMediaEngineForRTPSenderChannelAudio
       #pragma mark
 
-      // (duplicate) virtual webrtc::VoiceEngine *getVoiceEngine() = 0;
-
-      // (duplicate) virtual rtc::scoped_refptr<webrtc::AudioState> getAudioState() = 0;
-
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark RTPMediaEngine => IRTPMediaEngineForRTPSenderChannelVideo
@@ -729,6 +742,13 @@ namespace ortc
       #pragma mark
 
       virtual void notifyResourceGone(IChannelResourceForRTPMediaEngine &resource) override;
+
+      virtual webrtc::VoiceEngine *getVoiceEngine() override;
+
+      virtual rtc::scoped_refptr<webrtc::AudioState> getAudioState() override;
+
+      virtual const SharedRecursiveLock &getSharedLock() const override { return *this; }
+      virtual IMessageQueuePtr getMessageQueue() const override { return getAssociatedMessageQueue(); }
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -815,11 +835,21 @@ namespace ortc
       public:
         typedef std::list<PromiseWeakPtr> PendingPromiseList;
 
+        ZS_DECLARE_STRUCT_PTR(LifetimeHolder);
+
+        struct LifetimeHolder : public Any
+        {
+          BaseResourcePtr mResource;
+
+          LifetimeHolder(BaseResourcePtr resource) : mResource(resource) {}
+          virtual ~LifetimeHolder() { if (!mResource) return; mResource->lifetimeHolderGone(); }
+        };
+
       public:
         BaseResource(
                      const make_private &,
-                     IMessageQueuePtr queue,
-                     IRTPMediaEngineRegistrationPtr registration
+                     IRTPMediaEngineRegistrationPtr registration,
+                     RTPMediaEnginePtr engine
                      );
         virtual ~BaseResource();
 
@@ -836,6 +866,8 @@ namespace ortc
 
         template <typename engine_interface>
         std::shared_ptr<engine_interface> getEngine() const {return mMediaEngine.lock();}
+
+        virtual void lifetimeHolderGone() {}
 
       protected:
         //---------------------------------------------------------------------
@@ -876,7 +908,6 @@ namespace ortc
       public:
         DeviceResource(
                        const make_private &,
-                       IMessageQueuePtr queue,
                        IRTPMediaEngineRegistrationPtr registration,
                        const char *deviceID
                        );
@@ -920,23 +951,34 @@ namespace ortc
       #pragma mark
 
       class ChannelResource : public BaseResource,
+                              public IRTPMediaEngineHandlePacketAsyncDelegate,
                               public IChannelResourceForRTPMediaEngine,
                               public IRTPMediaEngineChannelResourceAsyncDelegate
       {
+      public:
         typedef std::list<PromisePtr> PromiseList;
 
         ZS_DECLARE_TYPEDEF_PTR(IRTPMediaEngineForChannelResource, UseEngine);
         ZS_DECLARE_TYPEDEF_PTR(IStatsProviderTypes::PromiseWithStatsReport, PromiseWithStatsReport);
-        ZS_DECLARE_TYPEDEF_PTR(IStatsReportTypes::StatsTypeSet, StatsTypeSet)
+        ZS_DECLARE_TYPEDEF_PTR(IStatsReportTypes::StatsTypeSet, StatsTypeSet);
+
+        struct AutoIncrementLock
+        {
+          AutoIncrementLock(std::atomic<size_t> &accessFromNonLockedMethods) : mAccessFromNonLockedMethods(accessFromNonLockedMethods) { ++mAccessFromNonLockedMethods; }
+          ~AutoIncrementLock() { --mAccessFromNonLockedMethods; }
+
+          std::atomic<size_t> &mAccessFromNonLockedMethods;
+        };
 
       public:
         ChannelResource(
                         const make_private &priv,
-                        IMessageQueuePtr queue,
                         IRTPMediaEngineRegistrationPtr registration
-                        ) : BaseResource(priv, queue, registration) {}
+                        );
 
         virtual ~ChannelResource();
+
+        virtual void lifetimeHolderGone();
 
         //---------------------------------------------------------------------
         #pragma mark
@@ -954,8 +996,8 @@ namespace ortc
         #pragma mark RTPMediaEngine::ChannelResource => (friend RTPMediaEngine)
         #pragma mark
 
-        virtual void notifySetup() = 0;
-        virtual void notifyShutdown() = 0;
+        virtual void stepSetup() = 0;
+        virtual void stepShutdown() = 0;
 
       protected:
         //---------------------------------------------------------------------
@@ -976,10 +1018,13 @@ namespace ortc
         PromisePtr getShutdownPromise();
 
       protected:
-
         bool mShuttingDown {false};
         bool mShutdown {false};
         PromiseList mShutdownPromises;
+
+        IMessageQueuePtr mHandlePacketQueue;
+        std::atomic<size_t> mAccessFromNonLockedMethods {};
+        std::atomic<bool> mDenyNonLockedAccess {};
       };
 
       //-----------------------------------------------------------------------
@@ -1003,7 +1048,6 @@ namespace ortc
       public:
         AudioReceiverChannelResource(
                                      const make_private &,
-                                     IMessageQueuePtr queue,
                                      IRTPMediaEngineRegistrationPtr registration,
                                      TransportPtr transport,
                                      MediaStreamTrackPtr track,
@@ -1060,6 +1104,15 @@ namespace ortc
 
         //---------------------------------------------------------------------
         #pragma mark
+        #pragma mark RTPMediaEngine::AudioReceiverChannelResource => IRTPMediaEngineHandlePacketAsyncDelegate
+        #pragma mark
+
+        virtual void onHandleRTPPacket(DWORD timestamp, SecureByteBlockPtr buffer) override;
+        virtual void onHandleRTCPPacket(SecureByteBlockPtr buffer) override;
+        virtual void onSendVideoFrame(VideoFramePtr videoFrame) override {}
+
+        //---------------------------------------------------------------------
+        #pragma mark
         #pragma mark RTPMediaEngine::AudioReceiverChannelResource => webrtc::BitrateObserver
         #pragma mark
 
@@ -1071,8 +1124,8 @@ namespace ortc
         #pragma mark RTPMediaEngine::AudioReceiverChannelResource => friend RTPMediaEngine
         #pragma mark
 
-        virtual void notifySetup() override;
-        virtual void notifyShutdown() override;
+        virtual void stepSetup() override;
+        virtual void stepShutdown() override;
 
         //-----------------------------------------------------------------------
         #pragma mark
@@ -1086,7 +1139,7 @@ namespace ortc
                                         );
 
       protected:
-        int mChannel{};
+        int mChannel {};
 
         TransportPtr mTransport;
         std::atomic<ISecureTransport::States> mTransportState { ISecureTransport::State_Pending };
@@ -1130,7 +1183,6 @@ namespace ortc
       public:
         AudioSenderChannelResource(
                                    const make_private &,
-                                   IMessageQueuePtr queue,
                                    IRTPMediaEngineRegistrationPtr registration,
                                    TransportPtr transport,
                                    MediaStreamTrackPtr track,
@@ -1184,6 +1236,15 @@ namespace ortc
 
         //---------------------------------------------------------------------
         #pragma mark
+        #pragma mark RTPMediaEngine::AudioSenderChannelResource => IRTPMediaEngineHandlePacketAsyncDelegate
+        #pragma mark
+
+        virtual void onHandleRTPPacket(DWORD timestamp, SecureByteBlockPtr buffer) override {}
+        virtual void onHandleRTCPPacket(SecureByteBlockPtr buffer) override;
+        virtual void onSendVideoFrame(VideoFramePtr videoFrame) override {}
+
+        //---------------------------------------------------------------------
+        #pragma mark
         #pragma mark RTPMediaEngine::AudioSenderChannelResource => webrtc::BitrateObserver
         #pragma mark
 
@@ -1195,8 +1256,8 @@ namespace ortc
         #pragma mark RTPMediaEngine::AudioSenderChannelResource => friend RTPMediaEngine
         #pragma mark
 
-        virtual void notifySetup() override;
-        virtual void notifyShutdown() override;
+        virtual void stepSetup() override;
+        virtual void stepShutdown() override;
 
         //-----------------------------------------------------------------------
         #pragma mark
@@ -1209,8 +1270,6 @@ namespace ortc
                                         );
 
       protected:
-        std::atomic<size_t> mAccessFromNonLockedMethods {};
-
         int mChannel{};
 
         TransportPtr mTransport;
@@ -1268,7 +1327,6 @@ namespace ortc
       public:
         VideoReceiverChannelResource(
                                      const make_private &,
-                                     IMessageQueuePtr queue,
                                      IRTPMediaEngineRegistrationPtr registration,
                                      TransportPtr transport,
                                      MediaStreamTrackPtr track,
@@ -1323,13 +1381,22 @@ namespace ortc
         virtual bool handlePacket(const RTPPacket &packet) override;
         virtual bool handlePacket(const RTCPPacket &packet) override;
 
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark RTPMediaEngine::VideoReceiverChannelResource => IRTPMediaEngineHandlePacketAsyncDelegate
+        #pragma mark
+
+        virtual void onHandleRTPPacket(DWORD timestamp, SecureByteBlockPtr buffer) override;
+        virtual void onHandleRTCPPacket(SecureByteBlockPtr buffer) override;
+        virtual void onSendVideoFrame(VideoFramePtr videoFrame) override {}
+
         //-----------------------------------------------------------------------
         #pragma mark
         #pragma mark RTPMediaEngine::VideoReceiverChannelResource => friend RTPMediaEngine
         #pragma mark
 
-        virtual void notifySetup() override;
-        virtual void notifyShutdown() override;
+        virtual void stepSetup() override;
+        virtual void stepShutdown() override;
 
         //---------------------------------------------------------------------
         #pragma mark
@@ -1339,8 +1406,6 @@ namespace ortc
         virtual void OnNetworkChanged(uint32_t targetBitrateBps, uint8_t fractionLoss, int64_t rttMs) override;
 
       protected:
-        std::atomic<size_t> mAccessFromNonLockedMethods {};
-
         TransportPtr mTransport;
         std::atomic<ISecureTransport::States> mTransportState { ISecureTransport::State_Pending };
 
@@ -1388,7 +1453,6 @@ namespace ortc
       public:
         VideoSenderChannelResource(
                                    const make_private &,
-                                   IMessageQueuePtr queue,
                                    IRTPMediaEngineRegistrationPtr registration,
                                    TransportPtr transport,
                                    MediaStreamTrackPtr track,
@@ -1441,13 +1505,22 @@ namespace ortc
         virtual bool handlePacket(const RTCPPacket &packet) override;
         virtual void sendVideoFrame(const webrtc::VideoFrame& videoFrame) override;
 
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark RTPMediaEngine::VideoSenderChannelResource => IRTPMediaEngineHandlePacketAsyncDelegate
+        #pragma mark
+
+        virtual void onHandleRTPPacket(DWORD timestamp, SecureByteBlockPtr buffer) override {}
+        virtual void onHandleRTCPPacket(SecureByteBlockPtr buffer) override;
+        virtual void onSendVideoFrame(VideoFramePtr videoFrame) override;
+
         //-----------------------------------------------------------------------
         #pragma mark
         #pragma mark RTPMediaEngine::VideoSenderChannelResource => friend RTPMediaEngine
         #pragma mark
 
-        virtual void notifySetup() override;
-        virtual void notifyShutdown() override;
+        virtual void stepSetup() override;
+        virtual void stepShutdown() override;
 
         //---------------------------------------------------------------------
         #pragma mark
@@ -1457,8 +1530,6 @@ namespace ortc
         virtual void OnNetworkChanged(uint32_t targetBitrateBps, uint8_t fractionLoss, int64_t rttMs) override;
 
       protected:
-        std::atomic<size_t> mAccessFromNonLockedMethods {};
-
         TransportPtr mTransport;
         std::atomic<ISecureTransport::States> mTransportState { ISecureTransport::State_Pending };
 
@@ -1537,4 +1608,12 @@ ZS_DECLARE_PROXY_METHOD_2(onProvideStats, PromiseWithStatsReportPtr, StatsTypeSe
 ZS_DECLARE_PROXY_END()
 
 ZS_DECLARE_PROXY_BEGIN(ortc::internal::IRTPMediaEngineAsyncDelegate)
+ZS_DECLARE_PROXY_END()
+
+ZS_DECLARE_PROXY_BEGIN(ortc::internal::IRTPMediaEngineHandlePacketAsyncDelegate)
+ZS_DECLARE_PROXY_TYPEDEF(openpeer::services::SecureByteBlockPtr, SecureByteBlockPtr)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::IRTPMediaEngineHandlePacketAsyncDelegate::VideoFramePtr, VideoFramePtr)
+ZS_DECLARE_PROXY_METHOD_2(onHandleRTPPacket, DWORD, SecureByteBlockPtr)
+ZS_DECLARE_PROXY_METHOD_1(onHandleRTCPPacket, SecureByteBlockPtr)
+ZS_DECLARE_PROXY_METHOD_1(onSendVideoFrame, VideoFramePtr)
 ZS_DECLARE_PROXY_END()

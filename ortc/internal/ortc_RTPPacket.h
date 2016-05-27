@@ -398,14 +398,14 @@ namespace ortc
       size_t mPadding {};
       BYTE mCC {};
       bool mM {};
-      BYTE mPT;
+      BYTE mPT {};
       WORD mSequenceNumber {};
       DWORD mTimestamp {};
       DWORD mSSRC {};
 
       size_t mHeaderSize {};
       size_t mHeaderExtensionSize {};
-      size_t mPayloadSize;
+      size_t mPayloadSize {};
 
       size_t mTotalHeaderExtensions {};
       HeaderExtension *mHeaderExtensions {};

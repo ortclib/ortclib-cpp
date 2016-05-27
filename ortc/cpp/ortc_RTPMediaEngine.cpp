@@ -668,20 +668,6 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    webrtc::VoiceEngine *RTPMediaEngine::getVoiceEngine()
-    {
-      AutoRecursiveLock lock(*this);
-      return mVoiceEngine.get();
-    }
-
-    //-------------------------------------------------------------------------
-    rtc::scoped_refptr<webrtc::AudioState> RTPMediaEngine::getAudioState()
-    {
-      AutoRecursiveLock lock(*this);
-      return mAudioState;
-    }
-
-    //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -812,6 +798,19 @@ namespace ortc
       // invoke "step" mechanism again
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
     }
+
+    //-------------------------------------------------------------------------
+    webrtc::VoiceEngine *RTPMediaEngine::getVoiceEngine()
+    {
+      return mVoiceEngine.get();
+    }
+
+    //-------------------------------------------------------------------------
+    rtc::scoped_refptr<webrtc::AudioState> RTPMediaEngine::getAudioState()
+    {
+      return mAudioState;
+    }
+
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -1049,7 +1048,7 @@ namespace ortc
       while (mPendingSetupChannelResources.size() > 0) {
         auto channelResource = mPendingSetupChannelResources.front();
 
-        channelResource->notifySetup();
+        channelResource->stepSetup();
 
         mPendingSetupChannelResources.pop_front();
       }
@@ -1063,7 +1062,7 @@ namespace ortc
       while (mPendingCloseChannelResources.size() > 0) {
         auto channelResource = mPendingCloseChannelResources.front();
 
-        channelResource->notifyShutdown();
+        channelResource->stepShutdown();
         
         mPendingCloseChannelResources.pop_front();
       }
@@ -1135,7 +1134,7 @@ namespace ortc
         for (auto iter = mPendingCloseChannelResources.begin(); iter != mPendingCloseChannelResources.end(); ++iter)
         {
           auto channelResource = (*iter);
-          channelResource->notifyShutdown();
+          channelResource->stepShutdown();
         }
         mPendingCloseChannelResources.clear();
       }
@@ -1144,7 +1143,7 @@ namespace ortc
         for (auto iter = mChannelResources.begin(); iter != mChannelResources.end(); ++iter)
         {
           auto channelResource = (*iter).second.lock();
-          channelResource->notifyShutdown();
+          channelResource->stepShutdown();
         }
 
         mChannelResources.clear();
@@ -1257,13 +1256,13 @@ namespace ortc
     //-------------------------------------------------------------------------
     RTPMediaEngine::BaseResource::BaseResource(
                                                const make_private &,
-                                               IMessageQueuePtr queue,
-                                               IRTPMediaEngineRegistrationPtr registration
+                                               IRTPMediaEngineRegistrationPtr registration,
+                                               RTPMediaEnginePtr engine
                                                ) :
-      SharedRecursiveLock(SharedRecursiveLock::create()),
-      MessageQueueAssociator(queue),
-      mRegistration(registration),
-      mMediaEngine(registration ? registration->getRTPEngine() : RTPMediaEnginePtr())
+      SharedRecursiveLock(engine ? SharedRecursiveLock(engine->getSharedLock()) : SharedRecursiveLock::create()),
+      MessageQueueAssociator(engine ? engine->getAssociatedMessageQueue() : IORTCForInternal::queueBlockingMediaStartStopThread()),
+      mMediaEngine(engine),
+      mRegistration(registration)
     {
     }
 
@@ -1311,7 +1310,8 @@ namespace ortc
     //-------------------------------------------------------------------------
     PromisePtr RTPMediaEngine::BaseResource::internalSetupPromise(PromisePtr promise)
     {
-      promise->setReferenceHolder(mThisWeak.lock());
+      auto lifetime = make_shared<LifetimeHolder>(mThisWeak.lock());
+      promise->setReferenceHolder(lifetime);
 
       {
         AutoRecursiveLock lock(*this);
@@ -1381,11 +1381,10 @@ namespace ortc
     //-------------------------------------------------------------------------
     RTPMediaEngine::DeviceResource::DeviceResource(
                                                    const make_private &priv,
-                                                   IMessageQueuePtr queue,
                                                    IRTPMediaEngineRegistrationPtr registration,
                                                    const char *deviceID
                                                    ) :
-      BaseResource(priv, queue, registration),
+      BaseResource(priv, registration, registration ? registration->getRTPEngine() : RTPMediaEnginePtr()),
       mDeviceID(deviceID)
     {
     }
@@ -1408,7 +1407,7 @@ namespace ortc
                                                                              const char *deviceID
                                                                              )
     {
-      auto pThis = make_shared<DeviceResource>(make_private{}, IORTCForInternal::queueBlockingMediaStartStopThread(), registration, deviceID);
+      auto pThis = make_shared<DeviceResource>(make_private{}, registration, deviceID);
       pThis->mThisWeak = pThis;
       pThis->init();
       return pThis;
@@ -1448,12 +1447,33 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
+    RTPMediaEngine::ChannelResource::ChannelResource(
+                                                     const make_private &priv,
+                                                     IRTPMediaEngineRegistrationPtr registration
+                                                     ) : 
+      BaseResource(priv, registration, registration ? registration->getRTPEngine() : RTPMediaEnginePtr()),
+      mHandlePacketQueue(IORTCForInternal::queuePacket())
+    {
+    }
+
+    //-------------------------------------------------------------------------
     RTPMediaEngine::ChannelResource::~ChannelResource()
     {
       mThisWeak.reset();
       UseEnginePtr engine = getEngine<UseEngine>();
       if (engine) {
         engine->notifyResourceGone(*this);
+      }
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::ChannelResource::lifetimeHolderGone()
+    {
+      auto shutdownPromise = shutdown();
+      if (shutdownPromise) {
+        // don't really care about result
+        shutdownPromise->then(IPromiseDelegateProxy::createNoop(IORTCForInternal::queueBlockingMediaStartStopThread()));
+        shutdownPromise->background();
       }
     }
 
@@ -1478,7 +1498,7 @@ namespace ortc
       if (outer) {
         outer->shutdownChannelResource(ZS_DYNAMIC_PTR_CAST(ChannelResource, mThisWeak.lock()));
       } else {
-        notifyShutdown();
+        stepShutdown();
       }
       return promise;
     }
@@ -1558,14 +1578,13 @@ namespace ortc
     //-------------------------------------------------------------------------
     RTPMediaEngine::AudioReceiverChannelResource::AudioReceiverChannelResource(
                                                                                const make_private &priv,
-                                                                               IMessageQueuePtr queue,
                                                                                IRTPMediaEngineRegistrationPtr registration,
                                                                                TransportPtr transport,
                                                                                MediaStreamTrackPtr track,
                                                                                ParametersPtr parameters,
                                                                                RTPPacketPtr packet
                                                                                ) :
-      ChannelResource(priv, queue, registration),
+      ChannelResource(priv, registration),
       mTransport(transport),
       mTrack(track),
       mParameters(parameters),
@@ -1592,7 +1611,6 @@ namespace ortc
     {
       auto pThis = make_shared<AudioReceiverChannelResource>(
                                                              make_private{},
-                                                             IORTCForInternal::queueBlockingMediaStartStopThread(),
                                                              registration,
                                                              transport,
                                                              track,
@@ -1722,29 +1740,57 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool RTPMediaEngine::AudioReceiverChannelResource::handlePacket(const RTPPacket &packet)
     {
-      webrtc::PacketTime time(packet.timestamp(), 0);
-
-      auto engine = mMediaEngine.lock();
-      if (!engine) return false;
-
-      auto voiceEngine = engine->getVoiceEngine();
-      if (!voiceEngine) return false;
-
-      webrtc::VoENetwork::GetInterface(voiceEngine)->ReceivedRTPPacket(getChannel(), packet.ptr(), packet.size(), time);
+      IRTPMediaEngineHandlePacketAsyncDelegateProxy::createUsingQueue(mHandlePacketQueue, getThis<AudioReceiverChannelResource>())->onHandleRTPPacket(packet.timestamp(), packet.buffer());
       return true;
     }
 
     //-------------------------------------------------------------------------
     bool RTPMediaEngine::AudioReceiverChannelResource::handlePacket(const RTCPPacket &packet)
     {
+      IRTPMediaEngineHandlePacketAsyncDelegateProxy::createUsingQueue(mHandlePacketQueue, getThis<AudioReceiverChannelResource>())->onHandleRTCPPacket(packet.buffer());
+      return true;
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPMediaEngine::AudioReceiverChannelResource => IRTPMediaEngineHandlePacketAsyncDelegate
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::AudioReceiverChannelResource::onHandleRTPPacket(DWORD timestamp, SecureByteBlockPtr buffer)
+    {
+      AutoIncrementLock incLock(mAccessFromNonLockedMethods);
+
+      if (mDenyNonLockedAccess) return;
+
+      webrtc::PacketTime time(timestamp, 0);
+
       auto engine = mMediaEngine.lock();
-      if (!engine) return false;
+      if (!engine) return;
 
       auto voiceEngine = engine->getVoiceEngine();
-      if (!voiceEngine) return false;
+      if (!voiceEngine) return;
 
-      webrtc::VoENetwork::GetInterface(voiceEngine)->ReceivedRTCPPacket(getChannel(), packet.ptr(), packet.size());
-      return true;
+      webrtc::VoENetwork::GetInterface(voiceEngine)->ReceivedRTPPacket(getChannel(), buffer->BytePtr(), buffer->SizeInBytes(), time);
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::AudioReceiverChannelResource::onHandleRTCPPacket(SecureByteBlockPtr buffer)
+    {
+      AutoIncrementLock incLock(mAccessFromNonLockedMethods);
+      
+      if (mDenyNonLockedAccess) return;
+
+      auto engine = mMediaEngine.lock();
+      if (!engine) return;
+
+      auto voiceEngine = engine->getVoiceEngine();
+      if (!voiceEngine) return;
+
+      webrtc::VoENetwork::GetInterface(voiceEngine)->ReceivedRTCPPacket(getChannel(), buffer->BytePtr(), buffer->SizeInBytes());
     }
 
     //-------------------------------------------------------------------------
@@ -1786,7 +1832,7 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void RTPMediaEngine::AudioReceiverChannelResource::notifySetup()
+    void RTPMediaEngine::AudioReceiverChannelResource::stepSetup()
     {
       AutoRecursiveLock lock(*this);
 
@@ -1938,8 +1984,17 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPMediaEngine::AudioReceiverChannelResource::notifyShutdown()
+    void RTPMediaEngine::AudioReceiverChannelResource::stepShutdown()
     {
+      mDenyNonLockedAccess = true;
+
+      // rare race condition that can happen so
+      while (mAccessFromNonLockedMethods > 0)
+      {
+        // NOTE: very temporary lock so should clear itself out fast
+        std::this_thread::yield();
+      }
+
       AutoRecursiveLock lock(*this);
 
       auto outer = mMediaEngine.lock();
@@ -1991,7 +2046,6 @@ namespace ortc
     //-------------------------------------------------------------------------
     int RTPMediaEngine::AudioReceiverChannelResource::getChannel() const
     {
-      AutoRecursiveLock lock(*this);
       return mChannel;
     }
 
@@ -2027,13 +2081,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     RTPMediaEngine::AudioSenderChannelResource::AudioSenderChannelResource(
                                                                            const make_private &priv,
-                                                                           IMessageQueuePtr queue,
                                                                            IRTPMediaEngineRegistrationPtr registration,
                                                                            TransportPtr transport,
                                                                            MediaStreamTrackPtr track,
                                                                            ParametersPtr parameters
                                                                            ) :
-      ChannelResource(priv, queue, registration),
+      ChannelResource(priv, registration),
       mTransport(transport),
       mTrack(track),
       mParameters(parameters),
@@ -2058,7 +2111,6 @@ namespace ortc
     {
       auto pThis = make_shared<AudioSenderChannelResource>(
                                                            make_private{},
-                                                           IORTCForInternal::queueBlockingMediaStartStopThread(),
                                                            registration,
                                                            transport,
                                                            track,
@@ -2178,21 +2230,29 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool RTPMediaEngine::AudioSenderChannelResource::handlePacket(const RTCPPacket &packet)
     {
+      IRTPMediaEngineHandlePacketAsyncDelegateProxy::createUsingQueue(mHandlePacketQueue, getThis<AudioSenderChannelResource>())->onHandleRTCPPacket(packet.buffer());
+      return true;
+    }
 
-      webrtc::AudioSendStream *stream = NULL;
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPMediaEngine::AudioSenderChannelResource => IRTPMediaEngineHandlePacketAsyncDelegate
+    #pragma mark
 
-      {
-        AutoRecursiveLock lock(*this);
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::AudioSenderChannelResource::onHandleRTCPPacket(SecureByteBlockPtr buffer)
+    {
+      AutoIncrementLock incLock(mAccessFromNonLockedMethods);
 
-        stream = mSendStream.get();
-        if (NULL == stream) return false;
+      if (mDenyNonLockedAccess) return;
 
-        ++mAccessFromNonLockedMethods;
-      }
+      auto stream = mSendStream.get();
+      if (NULL == stream) return;
 
-      bool result = stream->DeliverRtcp(packet.ptr(), packet.size());
-      --mAccessFromNonLockedMethods;
-      return result;
+      bool result = stream->DeliverRtcp(buffer->BytePtr(), buffer->SizeInBytes());
     }
 
     //-------------------------------------------------------------------------
@@ -2234,7 +2294,7 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void RTPMediaEngine::AudioSenderChannelResource::notifySetup()
+    void RTPMediaEngine::AudioSenderChannelResource::stepSetup()
     {
       AutoRecursiveLock lock(*this);
 
@@ -2380,8 +2440,10 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPMediaEngine::AudioSenderChannelResource::notifyShutdown()
+    void RTPMediaEngine::AudioSenderChannelResource::stepShutdown()
     {
+      mDenyNonLockedAccess = true;
+
       // rare race condition that can happen so
       while (mAccessFromNonLockedMethods > 0)
       {
@@ -2487,14 +2549,13 @@ namespace ortc
     //-------------------------------------------------------------------------
     RTPMediaEngine::VideoReceiverChannelResource::VideoReceiverChannelResource(
                                                                                const make_private &priv,
-                                                                               IMessageQueuePtr queue,
                                                                                IRTPMediaEngineRegistrationPtr registration,
                                                                                TransportPtr transport,
                                                                                MediaStreamTrackPtr track,
                                                                                ParametersPtr parameters,
                                                                                RTPPacketPtr packet
                                                                                ) :
-      ChannelResource(priv, queue, registration),
+      ChannelResource(priv, registration),
       mTransport(transport),
       mTrack(track),
       mParameters(parameters),
@@ -2521,7 +2582,6 @@ namespace ortc
     {
       auto pThis = make_shared<VideoReceiverChannelResource>(
                                                              make_private{},
-                                                             IORTCForInternal::queueBlockingMediaStartStopThread(),
                                                              registration,
                                                              transport,
                                                              track,
@@ -2649,40 +2709,50 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool RTPMediaEngine::VideoReceiverChannelResource::handlePacket(const RTPPacket &packet)
     {
-      webrtc::VideoReceiveStream *stream = NULL;
-
-      {
-        AutoRecursiveLock lock(*this);
-
-        stream = mReceiveStream.get();
-        if (NULL == stream) return false;
-
-        ++mAccessFromNonLockedMethods;
-      }
-
-      webrtc::PacketTime time(packet.timestamp(), 0);
-      bool result = stream->DeliverRtp(packet.ptr(), packet.size(), time);
-      --mAccessFromNonLockedMethods;
-      return result;
+      IRTPMediaEngineHandlePacketAsyncDelegateProxy::createUsingQueue(mHandlePacketQueue, getThis<VideoReceiverChannelResource>())->onHandleRTPPacket(packet.timestamp(), packet.buffer());
+      return true;
     }
 
     //-------------------------------------------------------------------------
     bool RTPMediaEngine::VideoReceiverChannelResource::handlePacket(const RTCPPacket &packet)
     {
-      webrtc::VideoReceiveStream *stream = NULL;
+      IRTPMediaEngineHandlePacketAsyncDelegateProxy::createUsingQueue(mHandlePacketQueue, getThis<VideoReceiverChannelResource>())->onHandleRTCPPacket(packet.buffer());
+      return true;
+    }
 
-      {
-        AutoRecursiveLock lock(*this);
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPMediaEngine::VideoReceiverChannelResource => IRTPMediaEngineHandlePacketAsyncDelegate
+    #pragma mark
 
-        stream = mReceiveStream.get();
-        if (NULL == stream) return false;
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::VideoReceiverChannelResource::onHandleRTPPacket(DWORD timestamp, SecureByteBlockPtr buffer)
+    {
+      AutoIncrementLock incLock(mAccessFromNonLockedMethods);
 
-        ++mAccessFromNonLockedMethods;
-      }
+      if (mDenyNonLockedAccess) return;
 
-      bool result = stream->DeliverRtcp(packet.ptr(), packet.size());
-      --mAccessFromNonLockedMethods;
-      return result;
+      auto stream = mReceiveStream.get();
+      if (NULL == stream) return;
+
+      webrtc::PacketTime time(timestamp, 0);
+      bool result = stream->DeliverRtp(buffer->BytePtr(), buffer->SizeInBytes(), time);
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::VideoReceiverChannelResource::onHandleRTCPPacket(SecureByteBlockPtr buffer)
+    {
+      AutoIncrementLock incLock(mAccessFromNonLockedMethods);
+
+      if (mDenyNonLockedAccess) return;
+
+      auto stream = mReceiveStream.get();
+      if (NULL == stream) return;
+
+      bool result = stream->DeliverRtcp(buffer->BytePtr(), buffer->SizeInBytes());
     }
 
     //-------------------------------------------------------------------------
@@ -2724,7 +2794,7 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void RTPMediaEngine::VideoReceiverChannelResource::notifySetup()
+    void RTPMediaEngine::VideoReceiverChannelResource::stepSetup()
     {
       AutoRecursiveLock lock(*this);
 
@@ -2905,8 +2975,10 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPMediaEngine::VideoReceiverChannelResource::notifyShutdown()
+    void RTPMediaEngine::VideoReceiverChannelResource::stepShutdown()
     {
+      mDenyNonLockedAccess = true;
+
       // rare race condition that can happen so
       while (mAccessFromNonLockedMethods > 0)
       {
@@ -2950,13 +3022,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     RTPMediaEngine::VideoSenderChannelResource::VideoSenderChannelResource(
                                                                            const make_private &priv,
-                                                                           IMessageQueuePtr queue,
                                                                            IRTPMediaEngineRegistrationPtr registration,
                                                                            TransportPtr transport,
                                                                            MediaStreamTrackPtr track,
                                                                            ParametersPtr parameters
                                                                            ) :
-      ChannelResource(priv, queue, registration),
+      ChannelResource(priv, registration),
       mTransport(transport),
       mTrack(track),
       mParameters(parameters),
@@ -2981,7 +3052,6 @@ namespace ortc
     {
       auto pThis = make_shared<VideoSenderChannelResource>(
                                                            make_private{},
-                                                           IORTCForInternal::queueBlockingMediaStartStopThread(),
                                                            registration,
                                                            transport,
                                                            track,
@@ -3108,44 +3178,57 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark RTPMediaEngine::VideoSenderChannelResource => IRTPMediaEngineVideoSenderChannelResource
+    #pragma mark RTPMediaEngine::VideoSenderChannelResource => IRTPMediaEngineHandlePacketAsyncDelegate
     #pragma mark
 
     //-------------------------------------------------------------------------
     bool RTPMediaEngine::VideoSenderChannelResource::handlePacket(const RTCPPacket &packet)
     {
-      webrtc::VideoSendStream *stream = NULL;
-
-      {
-        AutoRecursiveLock lock(*this);
-
-        stream = mSendStream.get();
-        if (NULL == stream) return false;
-
-        ++mAccessFromNonLockedMethods;
-      }
-
-      bool result = stream->DeliverRtcp(packet.ptr(), packet.size());
-      --mAccessFromNonLockedMethods;
-      return result;
+      IRTPMediaEngineHandlePacketAsyncDelegateProxy::createUsingQueue(mHandlePacketQueue, getThis<VideoSenderChannelResource>())->onHandleRTCPPacket(packet.buffer());
+      return true;
     }
 
     //-------------------------------------------------------------------------
     void RTPMediaEngine::VideoSenderChannelResource::sendVideoFrame(const webrtc::VideoFrame& videoFrame)
     {
-      webrtc::VideoSendStream *stream = NULL;
+      auto frameCopy = make_shared<webrtc::VideoFrame>();
+      frameCopy->ShallowCopy(videoFrame);
 
-      {
-        AutoRecursiveLock lock(*this);
+      IRTPMediaEngineHandlePacketAsyncDelegateProxy::createUsingQueue(mHandlePacketQueue, getThis<VideoSenderChannelResource>())->onSendVideoFrame(frameCopy);
+    }
 
-        stream = mSendStream.get();
-        if (NULL == stream) return;
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPMediaEngine::VideoSenderChannelResource => IRTPMediaEngineHandlePacketAsyncDelegate
+    #pragma mark
 
-        ++mAccessFromNonLockedMethods;
-      }
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::VideoSenderChannelResource::onHandleRTCPPacket(SecureByteBlockPtr buffer)
+    {
+      AutoIncrementLock incLock(mAccessFromNonLockedMethods);
 
-      stream->Input()->IncomingCapturedFrame(videoFrame);
-      --mAccessFromNonLockedMethods;
+      if (mDenyNonLockedAccess) return;
+
+      auto stream = mSendStream.get();
+      if (NULL == stream) return;
+
+      bool result = stream->DeliverRtcp(buffer->BytePtr(), buffer->SizeInBytes());
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::VideoSenderChannelResource::onSendVideoFrame(VideoFramePtr videoFrame)
+    {
+      AutoIncrementLock incLock(mAccessFromNonLockedMethods);
+
+      if (mDenyNonLockedAccess) return;
+
+      auto stream = mSendStream.get();
+      if (NULL == stream) return;
+
+      stream->Input()->IncomingCapturedFrame(*videoFrame);
     }
 
     //-------------------------------------------------------------------------
@@ -3189,7 +3272,7 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void RTPMediaEngine::VideoSenderChannelResource::notifySetup()
+    void RTPMediaEngine::VideoSenderChannelResource::stepSetup()
     {
       AutoRecursiveLock lock(*this);
 
@@ -3408,8 +3491,10 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPMediaEngine::VideoSenderChannelResource::notifyShutdown()
+    void RTPMediaEngine::VideoSenderChannelResource::stepShutdown()
     {
+      mDenyNonLockedAccess = true;
+
       // rare race condition that can happen so
       while (mAccessFromNonLockedMethods > 0)
       {

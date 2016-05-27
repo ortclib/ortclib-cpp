@@ -652,12 +652,14 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void MediaStreamTrack::setVideoRenderCallback(void* callback)
+    void MediaStreamTrack::setVideoRenderCallback(IMediaStreamTrackRenderCallbackPtr callback)
     {
       AutoRecursiveLock lock(*this);
 
-      if (mKind == Kind_Video)
-        mVideoRendererCallback = (webrtc::VideoRenderCallback*)callback;
+      if (mKind == Kind_Video) {
+        mVideoRenderCallbackReferenceHolder = callback;
+        mVideoRendererCallback = dynamic_cast<webrtc::VideoRenderCallback*>(callback.get());
+      }
     }
 
     //-------------------------------------------------------------------------
