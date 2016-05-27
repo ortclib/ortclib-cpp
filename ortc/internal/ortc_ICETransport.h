@@ -40,6 +40,7 @@
 
 #include <openpeer/services/ISTUNRequester.h>
 #include <openpeer/services/IWakeDelegate.h>
+#include <openpeer/services/STUNPacket.h>
 
 #include <zsLib/Timer.h>
 
@@ -904,7 +905,7 @@ namespace ortc
       bool mMustBufferPackets {true};
       PacketQueue mBufferedPackets;
 
-      bool mReceivedUsernameOnICEResponsePacket {};
+      STUNPacket::Options mSTUNPacketOptions;
     };
 
     //-------------------------------------------------------------------------

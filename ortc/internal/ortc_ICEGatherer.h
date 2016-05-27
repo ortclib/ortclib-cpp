@@ -42,6 +42,7 @@
 #include <openpeer/services/IWakeDelegate.h>
 #include <openpeer/services/ISTUNDiscovery.h>
 #include <openpeer/services/ITURNSocket.h>
+#include <openpeer/services/STUNPacket.h>
 
 #include <zsLib/MessageQueueAssociator.h>
 #include <zsLib/Socket.h>
@@ -1041,6 +1042,8 @@ namespace ortc
       bool shouldKeepWarm() const;
       bool shouldWarmUpAfterInterfaceBinding() const;
 
+      void fixSTUNParserOptions(const STUNPacketPtr &packet);
+
     protected:
       //-----------------------------------------------------------------------
       #pragma mark
@@ -1143,6 +1146,8 @@ namespace ortc
       bool mTransportsStillNeedsCandidates {true};
       TransportMap mInstalledTransports;
       TransportList mPendingTransports;
+
+      STUNPacket::ParseOptions mSTUNPacketParseOptions;
     };
 
     //-------------------------------------------------------------------------

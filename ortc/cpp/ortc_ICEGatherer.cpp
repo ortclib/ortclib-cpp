@@ -537,6 +537,8 @@ namespace ortc
       mMaxTCPBufferingSizeConnected(UseSettings::getUInt(ORTC_SETTING_GATHERER_MAX_CONNECTED_TCP_SOCKET_BUFFERING_IN_BYTES)),
       mGatherPassiveTCP(UseSettings::getBool(ORTC_SETTING_GATHERER_GATHER_PASSIVE_TCP_CANDIDATES))
     {
+      mSTUNPacketParseOptions = STUNPacket::ParseOptions(STUNPacket::RFC_AllowAll, false, "ortc::ICEGatherer", mID);
+
       auto recheckIPsInSeconds = UseSettings::getUInt(ORTC_SETTING_GATHERER_RECHECK_IP_ADDRESSES_IN_SECONDS);
 
       if (0 != recheckIPsInSeconds) {
@@ -1911,7 +1913,8 @@ namespace ortc
         localCandidate = relayPort->mRelayCandidate;
         relayPort->mLastActivity = zsLib::now();
 
-        stunPacket = STUNPacket::parseIfSTUN(packet, packetLengthInBytes, STUNPacket::RFC_AllowAll, false, "ortc::ICEGatherer", mID);
+        stunPacket = STUNPacket::parseIfSTUN(packet, packetLengthInBytes, mSTUNPacketParseOptions);
+        fixSTUNParserOptions(stunPacket);
 
         if (closingSocket) {
           ZS_LOG_WARNING(Detail, log("turn socket is closing (thus cannot handle incoming packet)") + hostPort->toDebug() + relayPort->toDebug())
@@ -5013,7 +5016,8 @@ namespace ortc
 
           ZS_LOG_INSANE(log("receiving incoming packet") + ZS_PARAM("from ip", fromIP.string()) + ZS_PARAM("read", totalRead) + hostPort->toDebug())
 
-          stunPacket = STUNPacket::parseIfSTUN(&(readBuffer[0]), totalRead, STUNPacket::RFC_AllowAll, false, "ortc::ICEGatherer", mID);
+          stunPacket = STUNPacket::parseIfSTUN(&(readBuffer[0]), totalRead, mSTUNPacketParseOptions);
+          fixSTUNParserOptions(stunPacket);
 
           // scope: check if for relay socket
           {
@@ -5204,7 +5208,8 @@ namespace ortc
 
             EventWriteOrtcIceGathererTcpSocketPacketReceivedFrom(__func__, mID, tcpPort.mRemoteIP.string(), packetSize, packet->mBuffer->BytePtr());
 
-            packet->mSTUNPacket = STUNPacket::parseIfSTUN(*(packet->mBuffer), packet->mBuffer->SizeInBytes(), STUNPacket::RFC_AllowAll, false, "ortc::ICEGatherer", mID);
+            packet->mSTUNPacket = STUNPacket::parseIfSTUN(*(packet->mBuffer), packet->mBuffer->SizeInBytes(), mSTUNPacketParseOptions);
+            fixSTUNParserOptions(packet->mSTUNPacket);
 
             packets.push_back(packet);
           }
@@ -6045,6 +6050,19 @@ namespace ortc
     {
       if (Time() != mWarmUpAfterNewInterfaceBindingUntil) return true;
       return false;
+    }
+
+    //-------------------------------------------------------------------------
+    void ICEGatherer::fixSTUNParserOptions(const STUNPacketPtr &packet)
+    {
+      if (mSTUNPacketParseOptions.mBindResponseRequiresUsernameAttribute) return; // already "fixed" broken ICE
+
+      if (!packet) return;
+      if (STUNPacket::Method_Binding != packet->mMethod) return;
+      if (STUNPacket::Class_Response != packet->mClass) return;
+      if (packet->mUsername.isEmpty()) return;
+
+      mSTUNPacketParseOptions.mBindResponseRequiresUsernameAttribute = true;
     }
 
     //-------------------------------------------------------------------------

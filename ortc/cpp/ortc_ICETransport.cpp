@@ -194,7 +194,7 @@ namespace ortc
       mKeepWarmTimeRandomizedAddTime(UseSettings::getUInt(ORTC_SETTING_ICE_TRANSPORT_KEEP_WARM_TIME_RANDOMIZED_ADD_TIME_IN_MILLISECONDS)),
       mMaxBufferedPackets(UseSettings::getUInt(ORTC_SETTING_ICE_TRANSPORT_MAX_BUFFERED_FOR_SECURE_TRANSPORT))
     {
-      ZS_LOG_BASIC(debug("created"))
+      ZS_LOG_BASIC(debug("created"));
 
       if (mGatherer) {
         mGathererRouter = mGatherer->getGathererRouter();
@@ -944,7 +944,18 @@ namespace ortc
         }
 
         if (STUNPacket::Method_Binding != packet->mMethod) goto not_related_stun_packet;
-        if (STUNPacket::Class_Request != packet->mClass) goto not_related_stun_packet;
+        if (STUNPacket::Class_Request != packet->mClass) {
+          if (STUNPacket::Class_Response == packet->mClass) {
+            if (packet->mUsername.hasData()) {
+              // Some ICE implementation incorrectly send username in ICE
+              // binding response. Remember if a response comes back from
+              // the remote party with this incorrect behaviour and mimic
+              /// it in STUN request packets sent out.
+              mSTUNPacketOptions.mBindResponseRequiresUsernameAttribute = true;
+            }
+          }
+          goto not_related_stun_packet;
+        }
 
         if (handleSwitchRolesAndConflict(routerRoute, packet)) {
           ZS_LOG_DEBUG(log("role conflict handled") + packet->toDebug())
@@ -2022,9 +2033,6 @@ namespace ortc
       }
 
       route->mLastReceivedResponse = zsLib::now();
-      if (response->mUsername.hasData()) {
-        mReceivedUsernameOnICEResponsePacket = true;
-      }
 
       if (route->mOutgoingCheck) {
         if (requester == route->mOutgoingCheck) {
@@ -2231,7 +2239,7 @@ namespace ortc
       UseServicesHelper::debugAppend(resultEl, "must buffer packets", mMustBufferPackets);
       UseServicesHelper::debugAppend(resultEl, "buffered packets", mBufferedPackets.size());
 
-      UseServicesHelper::debugAppend(resultEl, "received username on ICE response packet", mReceivedUsernameOnICEResponsePacket);
+      UseServicesHelper::debugAppend(resultEl, "received username on ICE response packet", mSTUNPacketOptions.mBindResponseRequiresUsernameAttribute);
 
       return resultEl;
     }
@@ -4348,6 +4356,7 @@ namespace ortc
       }
 
       STUNPacketPtr stunPacket = STUNPacket::createRequest(STUNPacket::Method_Binding);
+      stunPacket->mOptions = mSTUNPacketOptions;
       stunPacket->mFingerprintIncluded = true;
       stunPacket->mPriorityIncluded = true;
       stunPacket->mPriority = route->mCandidatePair->mLocal->mPriority;
