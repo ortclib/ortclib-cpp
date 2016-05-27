@@ -1018,6 +1018,18 @@ namespace ortc
         PromisePtr getShutdownPromise();
 
       protected:
+        String mCodecPayloadName;
+        BYTE mCodecPayloadType {0};
+        UINT mCurrentTargetBitrate {0};
+
+        rtc::scoped_ptr<webrtc::ProcessThread> mModuleProcessThread;
+        rtc::scoped_ptr<webrtc::ProcessThread> mPacerThread;
+        webrtc::Clock *mClock;
+        webrtc::VieRemb mRemb;
+        rtc::scoped_ptr<webrtc::CallStats> mCallStats;
+        rtc::scoped_ptr<webrtc::CongestionController> mCongestionController;
+        rtc::scoped_ptr<webrtc::BitrateAllocator> mBitrateAllocator;
+
         bool mShuttingDown {false};
         bool mShutdown {false};
         PromiseList mShutdownPromises;
@@ -1150,14 +1162,7 @@ namespace ortc
 
         RTPPacketPtr mInitPacket;
 
-        rtc::scoped_ptr<webrtc::ProcessThread> mModuleProcessThread;
-        rtc::scoped_ptr<webrtc::ProcessThread> mPacerThread;
         rtc::scoped_ptr<webrtc::AudioReceiveStream> mReceiveStream;
-        webrtc::Clock *mClock;
-        webrtc::VieRemb mRemb;
-        rtc::scoped_ptr<webrtc::CallStats> mCallStats;
-        rtc::scoped_ptr<webrtc::CongestionController> mCongestionController;
-        rtc::scoped_ptr<webrtc::BitrateAllocator> mBitrateAllocator;
 
         webrtc::AudioDeviceModule *mAudioDeviceModule;
       };
@@ -1279,13 +1284,10 @@ namespace ortc
 
         ParametersPtr mParameters;
 
-        rtc::scoped_ptr<webrtc::ProcessThread> mModuleProcessThread;
-        rtc::scoped_ptr<webrtc::ProcessThread> mPacerThread;
+        String mSendCodecPayloadName;
+        BYTE mSendCodecPayloadType {0};
+
         rtc::scoped_ptr<webrtc::AudioSendStream> mSendStream;
-        webrtc::Clock *mClock;
-        webrtc::VieRemb mRemb;
-        rtc::scoped_ptr<webrtc::CongestionController> mCongestionController;
-        rtc::scoped_ptr<webrtc::BitrateAllocator> mBitrateAllocator;
 
         webrtc::AudioDeviceModule *mAudioDeviceModule;
       };
@@ -1415,14 +1417,10 @@ namespace ortc
 
         RTPPacketPtr mInitPacket;
 
-        rtc::scoped_ptr<webrtc::ProcessThread> mModuleProcessThread;
-        rtc::scoped_ptr<webrtc::ProcessThread> mPacerThread;
+        String mReceiveCodecPayloadName;
+        BYTE mReceiveCodecPayloadType;
+
         rtc::scoped_ptr<webrtc::VideoReceiveStream> mReceiveStream;
-        webrtc::Clock *mClock;
-        webrtc::VieRemb mRemb;
-        rtc::scoped_ptr<webrtc::CallStats> mCallStats;
-        rtc::scoped_ptr<webrtc::CongestionController> mCongestionController;
-        rtc::scoped_ptr<webrtc::BitrateAllocator> mBitrateAllocator;
         ReceiverVideoRenderer mReceiverVideoRenderer;
       };
 
@@ -1537,14 +1535,10 @@ namespace ortc
 
         ParametersPtr mParameters;
 
-        rtc::scoped_ptr<webrtc::ProcessThread> mModuleProcessThread;
-        rtc::scoped_ptr<webrtc::ProcessThread> mPacerThread;
+        String mSendCodecPayloadName;
+        BYTE mSendCodecPayloadType {0};
+
         rtc::scoped_ptr<webrtc::VideoSendStream> mSendStream;
-        webrtc::Clock *mClock;
-        webrtc::VieRemb mRemb;
-        rtc::scoped_ptr<webrtc::CallStats> mCallStats;
-        rtc::scoped_ptr<webrtc::CongestionController> mCongestionController;
-        rtc::scoped_ptr<webrtc::BitrateAllocator> mBitrateAllocator;
         VideoEncoderSettings mVideoEncoderSettings;
       };
 

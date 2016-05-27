@@ -41,6 +41,7 @@
 #include <ortc/internal/ortc_RTPReceiverChannelVideo.h>
 #include <ortc/internal/ortc_Helper.h>
 #include <ortc/internal/ortc_ORTC.h>
+#include <ortc/internal/ortc_StatsReport.h>
 #include <ortc/internal/platform.h>
 
 #include <openpeer/services/ISettings.h>
@@ -88,6 +89,8 @@ namespace ortc
 
   namespace internal
   {
+    ZS_DECLARE_TYPEDEF_PTR(IStatsReportForInternal, UseStatsReport);
+
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -465,7 +468,7 @@ namespace ortc
       }
 
       PromiseWithStatsReportPtr promise = PromiseWithStatsReport::create(IORTCForInternal::queueDelegate());
-      IMediaStreamTrackAsyncDelegateProxy::create(mThisWeak.lock())->onResolveStatsPromise(promise);
+      IMediaStreamTrackAsyncDelegateProxy::create(mThisWeak.lock())->onResolveStatsPromise(promise, stats);
       return promise;
     }
 
@@ -805,7 +808,15 @@ namespace ortc
     {
       AutoRecursiveLock lock(*this);
 
-      if (mVideoRendererCallback) mVideoRendererCallback->RenderFrame(1, videoFrame);
+      if (mVideoRendererCallback) {
+        mVideoRendererCallback->RenderFrame(1, videoFrame);
+
+        mReceivedVideoFrameTimestamps.push_back(mStatsTimer.TimerNow());
+        while (mReceivedVideoFrameTimestamps.size() > 300)
+          mReceivedVideoFrameTimestamps.pop_front();
+
+        mFramesReceived++;
+      }
     }
 
     //-------------------------------------------------------------------------
@@ -906,11 +917,37 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void MediaStreamTrack::onResolveStatsPromise(IStatsProvider::PromiseWithStatsReportPtr promise)
+    void MediaStreamTrack::onResolveStatsPromise(IStatsProvider::PromiseWithStatsReportPtr promise, IStatsReportTypes::StatsTypeSet stats)
     {
-#define TODO_COMPLETE 1
-#define TODO_COMPLETE 2
-      promise->reject();
+      AutoRecursiveLock lock(*this);
+
+      UseStatsReport::StatMap reportStats;
+
+      if (stats.find(IStatsReportTypes::StatsTypes::StatsType_Track) != stats.end()) {
+        
+        DOUBLE framesPerSecond;
+        if (!mRemote)
+          framesPerSecond = getAvarageFramerate(mSentVideoFrameTimestamps);
+        else
+          framesPerSecond = getAvarageFramerate(mReceivedVideoFrameTimestamps);
+
+        auto report = make_shared<IStatsReport::MediaStreamTrackStats>();
+
+        report->mID = mTrackID;
+
+        report->mTrackID = mTrackID;
+        report->mRemoteSource = mRemote;
+        report->mFrameWidth = mSettings->mWidth.hasValue() ? mSettings->mWidth : 0;
+        report->mFrameHeight = mSettings->mHeight.hasValue() ? mSettings->mHeight : 0;
+        report->mFramesPerSecond = framesPerSecond;
+        report->mFramesSent = mFramesSent;
+        report->mFramesReceived = mFramesReceived;
+        report->mAudioLevel = 0;
+
+        reportStats[report->mID] = report;
+      }
+
+      promise->resolve(UseStatsReport::create(reportStats));
     }
 
     //-------------------------------------------------------------------------
@@ -995,9 +1032,19 @@ namespace ortc
       if (!channel) return;
       
       channel->sendVideoFrame(videoFrame);
+
+      {
+        AutoRecursiveLock lock(*this);
+
+        mSentVideoFrameTimestamps.push_back(mStatsTimer.TimerNow());
+        while (mSentVideoFrameTimestamps.size() > 300)
+          mSentVideoFrameTimestamps.pop_front();
+
+        mFramesSent++;
+      }
     }
 
-    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------tats
     void MediaStreamTrack::OnCaptureDelayChanged(const int32_t id, const int32_t delay)
     {
 #define TODO 1
@@ -1375,7 +1422,25 @@ namespace ortc
 
       ZS_LOG_WARNING(Detail, debug("error set") + ZS_PARAM("error", mLastError) + ZS_PARAM("reason", mLastErrorReason))
     }
-    
+
+    //-------------------------------------------------------------------------
+    DOUBLE MediaStreamTrack::getAvarageFramerate(std::deque<DOUBLE> &frameTimestamps)
+    {
+      DOUBLE timeNow = mStatsTimer.TimerNow();
+      DOUBLE windowStartTime = 0;
+      ULONG windowNumberOfSamples = 0;
+      while (mSentVideoFrameTimestamps.size() > 0) {
+        double timestamp = mSentVideoFrameTimestamps.front();
+        mSentVideoFrameTimestamps.pop_front();
+        if (timeNow - timestamp < 3.0) {
+          if (windowStartTime == 0)
+            windowStartTime = timestamp;
+          windowNumberOfSamples++;
+        }
+      }
+      return (DOUBLE)windowNumberOfSamples / (timeNow - windowStartTime);
+    }
+
     //-------------------------------------------------------------------------
     FLOAT MediaStreamTrack::calculateSizeDistance(
                                                   ConstrainLongRange width,

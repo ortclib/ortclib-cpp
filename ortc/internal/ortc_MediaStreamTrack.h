@@ -40,9 +40,12 @@
 #include <zsLib/Timer.h>
 
 #include <webrtc/video_frame.h>
+#include <webrtc/base/timing.h>
 #include <webrtc/modules/video_capture/video_capture.h>
 #include <webrtc/modules/video_render/video_render.h>
 #include <webrtc/modules/audio_device/include/audio_device.h>
+
+#include <deque>
 
 namespace ortc
 {
@@ -291,6 +294,8 @@ namespace ortc
     {
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPMediaEngine, ForMediaEngine)
 
+      virtual String id() const = 0;
+
       virtual webrtc::AudioDeviceModule* getAudioDeviceModule() = 0;
 
       virtual IMediaStreamTrackTypes::SettingsPtr getSettings() const = 0;
@@ -337,7 +342,7 @@ namespace ortc
       ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverChannelForMediaStreamTrack, UseReceiverChannel)
       ZS_DECLARE_TYPEDEF_PTR(IRTPSenderChannelForMediaStreamTrack, UseSenderChannel)
 
-      virtual void onResolveStatsPromise(IStatsProvider::PromiseWithStatsReportPtr promise) = 0;
+      virtual void onResolveStatsPromise(IStatsProvider::PromiseWithStatsReportPtr promise, IStatsReportTypes::StatsTypeSet stats) = 0;
 
       virtual void onApplyConstraints(
                                       PromisePtr promise,
@@ -601,6 +606,8 @@ namespace ortc
 
       virtual webrtc::AudioDeviceModule* getAudioDeviceModule() override;
 
+      // (duplicate) virtual String id() const = 0;
+
       // (duplicate) virtual IMediaStreamTrackTypes::SettingsPtr getSettings() const = 0;
 
       virtual void start() override;
@@ -637,7 +644,7 @@ namespace ortc
       #pragma mark MediaStreamTrack => IMediaStreamTrackAsyncDelegate
       #pragma mark
 
-      virtual void onResolveStatsPromise(IStatsProvider::PromiseWithStatsReportPtr promise) override;
+      virtual void onResolveStatsPromise(IStatsProvider::PromiseWithStatsReportPtr promise, IStatsReportTypes::StatsTypeSet stats) override;
 
       virtual void onApplyConstraints(
                                       PromisePtr promise,
@@ -777,6 +784,8 @@ namespace ortc
 
       void setState(States state);
       void setError(WORD error, const char *reason = NULL);
+
+      DOUBLE getAvarageFramerate(std::deque<DOUBLE> &frameTimestamps);
       
       FLOAT calculateSizeDistance(
                                   ConstrainLongRange width,
@@ -831,6 +840,12 @@ namespace ortc
       webrtc::VideoRenderCallback* mVideoRendererCallback {NULL};
       IMediaStreamTrackRenderCallbackPtr mVideoRenderCallbackReferenceHolder;
       webrtc::AudioDeviceModule* mAudioDeviceModule {NULL};
+
+      rtc::Timing mStatsTimer;
+      std::deque<DOUBLE> mSentVideoFrameTimestamps;
+      std::deque<DOUBLE> mReceivedVideoFrameTimestamps;
+      ULONG mFramesSent {0};
+      ULONG mFramesReceived {0};
     };
 
     //-------------------------------------------------------------------------
@@ -861,11 +876,12 @@ namespace ortc
 
 ZS_DECLARE_PROXY_BEGIN(ortc::internal::IMediaStreamTrackAsyncDelegate)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IStatsProvider::PromiseWithStatsReportPtr, PromiseWithStatsReportPtr)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::IStatsReportTypes::StatsTypeSet, StatsTypeSet)
 ZS_DECLARE_PROXY_TYPEDEF(zsLib::PromisePtr, PromisePtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IMediaStreamTrackTypes::TrackConstraintsPtr, TrackConstraintsPtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::IMediaStreamTrackAsyncDelegate::UseReceiverChannelPtr, UseReceiverChannelPtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::IMediaStreamTrackAsyncDelegate::UseSenderChannelPtr, UseSenderChannelPtr)
-ZS_DECLARE_PROXY_METHOD_1(onResolveStatsPromise, PromiseWithStatsReportPtr)
+ZS_DECLARE_PROXY_METHOD_2(onResolveStatsPromise, PromiseWithStatsReportPtr, StatsTypeSet)
 ZS_DECLARE_PROXY_METHOD_2(onApplyConstraints, PromisePtr, TrackConstraintsPtr)
 ZS_DECLARE_PROXY_METHOD_1(onSetActiveReceiverChannel, UseReceiverChannelPtr)
 ZS_DECLARE_PROXY_METHOD_1(onAttachSenderChannel, UseSenderChannelPtr)
