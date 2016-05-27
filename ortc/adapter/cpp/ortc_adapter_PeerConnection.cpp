@@ -3316,6 +3316,7 @@ namespace ortc
           {
             ZS_LOG_WARNING(Detail, log(reason) + senderInfo->toDebug());
             senderInfo->mPromise->reject(ErrorAny::create(error, reason));
+            senderInfo->mPromise.reset();
             close(*senderInfo);
             unregisterID(senderInfo->mID);
             mSenders.erase(current);

@@ -594,7 +594,7 @@ namespace ortc
 
       ElementPtr candidatesEl = rootEl->findFirstChildElement("candidates");
       if (candidatesEl) {
-        ElementPtr candidateEl = rootEl->findFirstChildElement("candidate");
+        ElementPtr candidateEl = candidatesEl->findFirstChildElement("candidate");
         while (candidateEl) {
           auto candidate = IICETypes::Candidate::convert(IICETypes::Candidate::create(candidateEl));
           candidateEl = candidateEl->findNextSiblingElement("candidate");

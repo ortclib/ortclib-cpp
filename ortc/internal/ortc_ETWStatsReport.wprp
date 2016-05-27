@@ -47,7 +47,7 @@
       Description="OrtcLib Stats Report Provider for Diagnostic trace">
       <Collectors>
         <!-- EventCollectorId must match the EventCollector ID specified above -->
-        <EventCollectorId Value="EventCollector_OrtcLib_Light">
+        <EventCollectorId Value="EventCollector_OrtcLib_StatsReport_Light">
           <EventProviders>
             <EventProviderId Value="EventProvider_OrtcLib_StatsReport"/>
           </EventProviders>
@@ -59,7 +59,7 @@
     <Profile
       Id="OrtcLibStatsReportProfile.Verbose.Memory"
       LoggingMode="Memory"
-      Name="OrtcLibProfile"
+      Name="OrtcLibStatsReportProfile"
       DetailLevel="Verbose"
       Description="OrtcLib Stats Report Provider for Diagnostic trace"
       Base="OrtcLibStatsReportProfile.Verbose.File"/>
