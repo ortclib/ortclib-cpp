@@ -419,6 +419,18 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\adapter\cpp\ortc_adapter_SDPParser.cpp">
       <Filter>ortc\adapter\cpp</Filter>
     </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\adapter\cpp\ortc_adapter_SDPParser_DescriptionToSDP.cpp">
+      <Filter>ortc\adapter\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\adapter\cpp\ortc_adapter_SDPParser_GenerateSDP.cpp">
+      <Filter>ortc\adapter\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\adapter\cpp\ortc_adapter_SDPParser_ParseSDP.cpp">
+      <Filter>ortc\adapter\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\adapter\cpp\ortc_adapter_SDPParser_SDPToDescription.cpp">
+      <Filter>ortc\adapter\cpp</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_ETWTracing.man">
