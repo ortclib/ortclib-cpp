@@ -5474,7 +5474,7 @@ namespace ortc
               goto stun_failed_validation;
             }
             stunPacket->mOptions.mCalculateMessageIntegrityUsingFinalMessageSize = true;
-            stunPacket->mOptions.mZeroPadMessageIntegrityInputToBlockSize = true;
+            stunPacket->mOptions.mZeroPadMessageIntegrityInputToBlockSize = 64;
             if (!stunPacket->isValidMessageIntegrity(mPassword)) {
               ZS_LOG_WARNING(Debug, log("stun packet does pass MSICE message integrity") + ZS_PARAM("password", mPassword) + stunPacket->toDebug());
               goto stun_failed_validation;
