@@ -871,8 +871,8 @@ namespace ortc
         // still copy from the local codec (not the remote)
         IRTPTypes::CodecCapability temp(localCodec);
         temp.mRTCPFeedback = *createUnion(localCodec.mRTCPFeedback, remoteCodec.mRTCPFeedback, preference);
+        temp.mPreferredPayloadType = primaryCodec.mPreferredPayloadType;
         if (useRemote(preference)) {
-          temp.mPreferredPayloadType = foundSecondaryExact->mPreferredPayloadType;
           if (isRTX) {
             temp.mParameters = remoteCodec.mParameters; // a copy will be made
           }
