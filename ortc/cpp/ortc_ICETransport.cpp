@@ -194,7 +194,7 @@ namespace ortc
       mKeepWarmTimeRandomizedAddTime(UseSettings::getUInt(ORTC_SETTING_ICE_TRANSPORT_KEEP_WARM_TIME_RANDOMIZED_ADD_TIME_IN_MILLISECONDS)),
       mMaxBufferedPackets(UseSettings::getUInt(ORTC_SETTING_ICE_TRANSPORT_MAX_BUFFERED_FOR_SECURE_TRANSPORT))
     {
-      ZS_LOG_BASIC(debug("created"))
+      ZS_LOG_BASIC(debug("created"));
 
       if (mGatherer) {
         mGathererRouter = mGatherer->getGathererRouter();
@@ -944,7 +944,18 @@ namespace ortc
         }
 
         if (STUNPacket::Method_Binding != packet->mMethod) goto not_related_stun_packet;
-        if (STUNPacket::Class_Request != packet->mClass) goto not_related_stun_packet;
+        if (STUNPacket::Class_Request != packet->mClass) {
+          if (STUNPacket::Class_Response == packet->mClass) {
+            if (packet->mUsername.hasData()) {
+              // Some ICE implementation incorrectly send username in ICE
+              // binding response. Remember if a response comes back from
+              // the remote party with this incorrect behaviour and mimic
+              /// it in STUN request packets sent out.
+              mSTUNPacketOptions.mBindResponseRequiresUsernameAttribute = true;
+            }
+          }
+          goto not_related_stun_packet;
+        }
 
         if (handleSwitchRolesAndConflict(routerRoute, packet)) {
           ZS_LOG_DEBUG(log("role conflict handled") + packet->toDebug())
@@ -2223,6 +2234,12 @@ namespace ortc
       UseServicesHelper::debugAppend(resultEl, "secure transport id", mSecureTransportID);
       UseServicesHelper::debugAppend(resultEl, "secure transport", (bool)(mSecureTransport.lock()));
       UseServicesHelper::debugAppend(resultEl, "secure transport (old)", (bool)(mSecureTransportOld.lock()));
+
+      UseServicesHelper::debugAppend(resultEl, "max buffered packets", mMaxBufferedPackets);
+      UseServicesHelper::debugAppend(resultEl, "must buffer packets", mMustBufferPackets);
+      UseServicesHelper::debugAppend(resultEl, "buffered packets", mBufferedPackets.size());
+
+      UseServicesHelper::debugAppend(resultEl, "received username on ICE response packet", mSTUNPacketOptions.mBindResponseRequiresUsernameAttribute);
 
       return resultEl;
     }
@@ -3981,10 +3998,10 @@ namespace ortc
           ZS_LOG_DEBUG(log("setting route to active since received a response and no other route is available") + route->toDebug())
           mActiveRoute = route;
           mActiveRoute->trace(__func__, "choosing as active route (as response was received and no other route is available)");
-        } else if (Time() != route->mLastReceivedMedia) {
-          ZS_LOG_DEBUG(log("setting route to active since incoming media was received on this route") + route->toDebug())
+        } else if (Time() != route->mLastReceivedCheck) {
+          ZS_LOG_DEBUG(log("setting route to active since received a validated incoming request") + route->toDebug())
           mActiveRoute = route;
-          mActiveRoute->trace(__func__, "choosing as active route (as incoming media was received on this route)");
+          mActiveRoute->trace(__func__, "choosing as active route (as incoming check was received on this route)");
         }
       }
 
@@ -4339,6 +4356,7 @@ namespace ortc
       }
 
       STUNPacketPtr stunPacket = STUNPacket::createRequest(STUNPacket::Method_Binding);
+      stunPacket->mOptions = mSTUNPacketOptions;
       stunPacket->mFingerprintIncluded = true;
       stunPacket->mPriorityIncluded = true;
       stunPacket->mPriority = route->mCandidatePair->mLocal->mPriority;
@@ -4368,6 +4386,10 @@ namespace ortc
                                                    ) const
     {
       STUNPacketPtr stunPacket = STUNPacket::createResponse(request);
+
+      if (mSTUNPacketOptions.mBindResponseRequiresUsernameAttribute) {
+        stunPacket->mUsername = request->mUsername;
+      }
 
       setRole(stunPacket);
       stunPacket->mMappedAddress = route->mCandidatePair->mRemote->ip();

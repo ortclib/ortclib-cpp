@@ -40,6 +40,7 @@
 
 #include <openpeer/services/ISTUNRequester.h>
 #include <openpeer/services/IWakeDelegate.h>
+#include <openpeer/services/STUNPacket.h>
 
 #include <zsLib/Timer.h>
 
@@ -903,6 +904,8 @@ namespace ortc
       size_t mMaxBufferedPackets {};
       bool mMustBufferPackets {true};
       PacketQueue mBufferedPackets;
+
+      STUNPacket::Options mSTUNPacketOptions;
     };
 
     //-------------------------------------------------------------------------
