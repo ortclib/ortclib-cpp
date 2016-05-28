@@ -5469,8 +5469,16 @@ namespace ortc
           }
 
           if (!stunPacket->isValidMessageIntegrity(mPassword)) {
-            ZS_LOG_WARNING(Debug, log("stun packet does pass message integrity") + ZS_PARAM("password", mPassword) + stunPacket->toDebug())
-            goto stun_failed_validation;
+            if (!stunPacket->hasAttribute(STUNPacket::Attribute_MSICE2_ImplementationVersion)) {
+              ZS_LOG_WARNING(Debug, log("stun packet does pass message integrity") + ZS_PARAM("password", mPassword) + stunPacket->toDebug());
+              goto stun_failed_validation;
+            }
+            stunPacket->mOptions.mCalculateMessageIntegrityUsingFinalMessageSize = true;
+            stunPacket->mOptions.mZeroPadMessageIntegrityInputToBlockSize = true;
+            if (!stunPacket->isValidMessageIntegrity(mPassword)) {
+              ZS_LOG_WARNING(Debug, log("stun packet does pass MSICE message integrity") + ZS_PARAM("password", mPassword) + stunPacket->toDebug());
+              goto stun_failed_validation;
+            }
           }
 
           auto found = mInstalledTransports.find(rFrag);
