@@ -2363,6 +2363,7 @@ namespace ortc
       mPacerThread = webrtc::ProcessThread::Create("AudioSenderChannelResourcePacerThread");
 
       mBitrateAllocator = rtc::scoped_ptr<webrtc::BitrateAllocator>(new webrtc::BitrateAllocator());
+      mCallStats = rtc::scoped_ptr<webrtc::CallStats>(new webrtc::CallStats(mClock));
       mCongestionController =
         rtc::scoped_ptr<webrtc::CongestionController>(new webrtc::CongestionController(
                                                                                        mClock,
@@ -2370,6 +2371,7 @@ namespace ortc
                                                                                        &mRemb
                                                                                        ));
 
+      mCallStats->RegisterStatsObserver(mCongestionController.get());
 
       mChannel = webrtc::VoEBase::GetInterface(voiceEngine)->CreateChannel();
 
@@ -2467,6 +2469,7 @@ namespace ortc
       webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetRTCP_CNAME(mChannel, mParameters->mRTCP.mCName);
 
       mModuleProcessThread->Start();
+      mModuleProcessThread->RegisterModule(mCallStats.get());
       mModuleProcessThread->RegisterModule(mCongestionController.get());
       mPacerThread->RegisterModule(mCongestionController->pacer());
       mPacerThread->RegisterModule(mCongestionController->GetRemoteBitrateEstimator(true));
@@ -2523,10 +2526,14 @@ namespace ortc
       mPacerThread->DeRegisterModule(mCongestionController->pacer());
       mPacerThread->DeRegisterModule(mCongestionController->GetRemoteBitrateEstimator(true));
       mModuleProcessThread->DeRegisterModule(mCongestionController.get());
+      mModuleProcessThread->DeRegisterModule(mCallStats.get());
       mModuleProcessThread->Stop();
+
+      mCallStats->DeregisterStatsObserver(mCongestionController.get());
 
       mSendStream.reset();
       mCongestionController.reset();
+      mCallStats.reset();
       mBitrateAllocator.reset();
       mModuleProcessThread.reset();
       mPacerThread.reset();
