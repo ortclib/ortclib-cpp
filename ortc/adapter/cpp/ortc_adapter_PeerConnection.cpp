@@ -1935,21 +1935,27 @@ namespace ortc
               hasRTCPDTLS = false;
             }
 
-            switch (transport.mRTP->mDTLSParameters->mRole) {
-              case IDTLSTransportTypes::Role_Auto: {
-                if (IPeerConnectionTypes::SignalingMode_SDP == mConfiguration.mSignalingMode) {
-                  transportInfo->mLocalDTLSRole = IDTLSTransportTypes::Role_Client;
-                  if (hasRTPDTLS) {
+            if (hasRTPDTLS) {
+              switch (transport.mRTP->mDTLSParameters->mRole) {
+                case IDTLSTransportTypes::Role_Auto: {
+                  if (IPeerConnectionTypes::SignalingMode_SDP == mConfiguration.mSignalingMode) {
+                    transportInfo->mLocalDTLSRole = IDTLSTransportTypes::Role_Client;
                     transport.mRTP->mDTLSParameters->mRole = IDTLSTransportTypes::Role_Server;
+                    if (hasRTCPDTLS) {
+                      transport.mRTP->mDTLSParameters->mRole = IDTLSTransportTypes::Role_Server;
+                    }
                   }
-                  if (hasRTCPDTLS) {
-                    transport.mRTP->mDTLSParameters->mRole = IDTLSTransportTypes::Role_Server;
-                  }
+                  break;
                 }
-                break;
+                case IDTLSTransportTypes::Role_Client: {
+                  transportInfo->mLocalDTLSRole = IDTLSTransportTypes::Role_Server;
+                  break;
+                }
+                case IDTLSTransportTypes::Role_Server: {
+                  transportInfo->mLocalDTLSRole = IDTLSTransportTypes::Role_Client;
+                  break;
+                }
               }
-              case IDTLSTransportTypes::Role_Client: transportInfo->mLocalDTLSRole = IDTLSTransportTypes::Role_Server; break;
-              case IDTLSTransportTypes::Role_Server: transportInfo->mLocalDTLSRole = IDTLSTransportTypes::Role_Client; break;
             }
 
             switch (transportInfo->mNegotiationState)
