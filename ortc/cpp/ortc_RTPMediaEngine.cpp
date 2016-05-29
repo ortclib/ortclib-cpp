@@ -444,6 +444,9 @@ namespace ortc
     RTPMediaEngine::~RTPMediaEngine()
     {
       if (isNoop()) return;
+#ifdef ENABLE_SENSITIVE_WEBRTC_LOG
+      webrtc::Trace::SetTraceCallback(nullptr);
+#endif
 
       ZS_LOG_DETAIL(log("destroyed"))
       mThisWeak.reset();
@@ -2242,8 +2245,8 @@ namespace ortc
         report->mCodecID = mCodecPayloadName;
         report->mPacketsSent = sendStreamStats.packets_sent;
         report->mBytesSent = sendStreamStats.bytes_sent;
-        report->mTargetBitrate = mCurrentTargetBitrate;
-        report->mRoundTripTime = mCallStats->rtcp_rtt_stats()->LastProcessedRtt();
+        report->mTargetBitrate = (DOUBLE)mCurrentTargetBitrate;
+        report->mRoundTripTime = (DOUBLE)mCallStats->rtcp_rtt_stats()->LastProcessedRtt();
 
         reportStats[report->mID] = report;
       }
@@ -3248,8 +3251,8 @@ namespace ortc
           report->mBytesSent = (*statsIter).second.rtp_stats.transmitted.header_bytes +
             (*statsIter).second.rtp_stats.transmitted.payload_bytes +
             (*statsIter).second.rtp_stats.transmitted.padding_bytes;
-          report->mTargetBitrate = mCurrentTargetBitrate;
-          report->mRoundTripTime = mCallStats->rtcp_rtt_stats()->LastProcessedRtt();
+          report->mTargetBitrate = (DOUBLE)mCurrentTargetBitrate;
+          report->mRoundTripTime = (DOUBLE)mCallStats->rtcp_rtt_stats()->LastProcessedRtt();
 
           reportStats[report->mID] = report;
         }
