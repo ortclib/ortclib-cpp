@@ -915,6 +915,9 @@ namespace ortc
             codec.mPreferredPayloadType = 120;
             codec.mNumChannels = 2;
             codec.mClockRate = 48000;
+            auto params = make_shared<OpusCodecCapabilityParameters>();
+            params->mUseInbandFEC = true;
+            codec.mParameters = params;
             break;
           }
           case IRTPTypes::SupportedCodec_Isac:    {
