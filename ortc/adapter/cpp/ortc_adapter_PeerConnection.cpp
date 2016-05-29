@@ -1127,6 +1127,20 @@ namespace ortc
           {
             auto midCandidate = make_shared<IPeerConnectionTypes::ICECandidate>();
             midCandidate->mMid = transportInfo->mID;
+
+            switch (mConfiguration.mSignalingMode)
+            {
+              case IPeerConnectionTypes::SignalingMode_JSON:  break;
+              case IPeerConnectionTypes::SignalingMode_SDP: {
+                auto foundMedia = mRTPMedias.find(transportInfo->mID);
+                if (foundMedia != mRTPMedias.end()) {
+                  auto &mediaLineInfo = *((*foundMedia).second);
+                  midCandidate->mMLineIndex = mediaLineInfo.mLineIndex;
+                }
+                break;
+              }
+            }
+
             midCandidate->mCandidate = candidate;
             mSubscriptions.delegate()->onPeerConnectionIceCandidate(mThisWeak.lock(), midCandidate, "");
           }
