@@ -191,6 +191,7 @@ namespace ortc
 
           NegotiationStates mNegotiationState {NegotiationState_First};
 
+          Optional<IDTLSTransportTypes::Roles> mLocalDTLSRole;
           Details mRTP;
           Details mRTCP;
           CertificateList mCertificates;

@@ -1935,6 +1935,23 @@ namespace ortc
               hasRTCPDTLS = false;
             }
 
+            switch (transport.mRTP->mDTLSParameters->mRole) {
+              case IDTLSTransportTypes::Role_Auto: {
+                if (IPeerConnectionTypes::SignalingMode_SDP == mConfiguration.mSignalingMode) {
+                  transportInfo->mLocalDTLSRole = IDTLSTransportTypes::Role_Client;
+                  if (hasRTPDTLS) {
+                    transport.mRTP->mDTLSParameters->mRole = IDTLSTransportTypes::Role_Server;
+                  }
+                  if (hasRTCPDTLS) {
+                    transport.mRTP->mDTLSParameters->mRole = IDTLSTransportTypes::Role_Server;
+                  }
+                }
+                break;
+              }
+              case IDTLSTransportTypes::Role_Client: transportInfo->mLocalDTLSRole = IDTLSTransportTypes::Role_Server; break;
+              case IDTLSTransportTypes::Role_Server: transportInfo->mLocalDTLSRole = IDTLSTransportTypes::Role_Client; break;
+            }
+
             switch (transportInfo->mNegotiationState)
             {
               case NegotiationState_PendingOffer:
@@ -4112,7 +4129,11 @@ namespace ortc
         }
 
         auto result = make_shared<IDTLSTransportTypes::Parameters>();
-        
+
+        if (transportInfo.mLocalDTLSRole.hasValue()) {
+          result->mRole = transportInfo.mLocalDTLSRole.value();
+        }
+
         for (auto iter = transportInfo.mCertificates.begin(); iter != transportInfo.mCertificates.end(); ++iter) {
           auto &certificate = (*iter);
           result->mFingerprints.push_back(*certificate->fingerprint());
