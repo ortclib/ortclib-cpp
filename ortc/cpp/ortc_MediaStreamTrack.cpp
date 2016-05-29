@@ -942,7 +942,7 @@ namespace ortc
         report->mFramesPerSecond = framesPerSecond;
         report->mFramesSent = mFramesSent;
         report->mFramesReceived = mFramesReceived;
-        report->mAudioLevel = 0;
+        report->mAudioLevel = 0.0;
 
         reportStats[report->mID] = report;
       }
@@ -1429,9 +1429,9 @@ namespace ortc
       DOUBLE timeNow = mStatsTimer.TimerNow();
       DOUBLE windowStartTime = 0;
       ULONG windowNumberOfSamples = 0;
-      while (mSentVideoFrameTimestamps.size() > 0) {
-        double timestamp = mSentVideoFrameTimestamps.front();
-        mSentVideoFrameTimestamps.pop_front();
+      while (frameTimestamps.size() > 0) {
+        double timestamp = frameTimestamps.front();
+        frameTimestamps.pop_front();
         if (timeNow - timestamp < 3.0) {
           if (windowStartTime == 0)
             windowStartTime = timestamp;
