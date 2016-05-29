@@ -4387,17 +4387,13 @@ namespace ortc
     {
       STUNPacketPtr stunPacket = STUNPacket::createResponse(request);
 
-      if (mSTUNPacketOptions.mBindResponseRequiresUsernameAttribute) {
-        stunPacket->mUsername = request->mUsername;
-      }
-
       setRole(stunPacket);
       stunPacket->mMappedAddress = route->mCandidatePair->mRemote->ip();
 
       if (mGatherer) {
         stunPacket->mCredentialMechanism = STUNPacket::CredentialMechanisms_ShortTerm;
-        stunPacket->mUsername = mRemoteParameters.mUsernameFragment + ":" + mGatherer->getUsernameFrag();
-        stunPacket->mPassword = mRemoteParameters.mPassword;
+        stunPacket->mUsername = request->mUsername;
+        stunPacket->mPassword = mGatherer->getPassword();
       }
 
       fix(stunPacket);
