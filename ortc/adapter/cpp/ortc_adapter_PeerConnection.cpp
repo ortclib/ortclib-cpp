@@ -4131,7 +4131,16 @@ namespace ortc
             case IICETypes::Component_RTP:  transport = transportInfo.mRTP.mDTLSTransport; break;
             case IICETypes::Component_RTCP: transport = transportInfo.mRTCP.mDTLSTransport; break;
           }
-          if (transport) return transport->getLocalParameters();
+
+          if (transport) {
+            auto result = transport->getLocalParameters();
+            if (IDTLSTransportTypes::Role_Auto == result->mRole) {
+              if (transportInfo.mLocalDTLSRole.hasValue()) {
+                result->mRole = transportInfo.mLocalDTLSRole.value();
+              }
+            }
+            return result;
+          }
         }
 
         auto result = make_shared<IDTLSTransportTypes::Parameters>();
