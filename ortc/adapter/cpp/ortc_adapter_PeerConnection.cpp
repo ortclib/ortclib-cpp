@@ -1050,6 +1050,14 @@ namespace ortc
         for (auto iter = mReceivers.begin(); iter != mReceivers.end(); ++iter) {
           auto &info = *((*iter).second);
 
+          if (stats.hasStatType(IStatsReportTypes::StatsType_Track)) {
+            if (info.mReceiver) {
+              auto track = info.mReceiver->track();
+              if (track) {
+                promises.push_back(track->getStats(stats));
+              }
+            }
+          }
           if (stats.hasStatType(IStatsReportTypes::StatsType_InboundRTP)) {
             if (info.mReceiver) {
               promises.push_back(info.mReceiver->getStats(stats));
