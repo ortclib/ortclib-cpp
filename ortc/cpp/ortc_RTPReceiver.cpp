@@ -835,7 +835,6 @@ namespace ortc
         CodecCapability codec;
 
         codec.mName = IRTPTypes::toString(index);
-        codec.mMaxPTime = Milliseconds(60);
 
         switch (IRTPTypes::getCodecKind(index)) {
 
@@ -845,6 +844,7 @@ namespace ortc
           {
             codec.mNumChannels = 1;
             codec.mKind = IMediaStreamTrack::toString(IMediaStreamTrackTypes::Kind_Audio);
+            codec.mMaxPTime = Milliseconds(60);
 
             // generic NACK - not using for audio
             //{
@@ -945,7 +945,6 @@ namespace ortc
           case IRTPTypes::SupportedCodec_ILBC:    {
             codec.mPreferredPayloadType = 102;
             codec.mClockRate = 16000;
-            codec.mMaxPTime = Milliseconds(60);
             break;
           }
           case IRTPTypes::SupportedCodec_PCMU:    {
