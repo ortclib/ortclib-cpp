@@ -229,8 +229,6 @@ namespace ortc
     {
       notify(ISecureTransport::State_Closed);
 
-      ASSERT((bool)mChannel)
-
       auto outer = mHolder.lock();
       if (outer) {
         outer->notifyChannelGone();
@@ -784,28 +782,6 @@ namespace ortc
     //-------------------------------------------------------------------------
     IRTPReceiverTypes::CapabilitiesPtr RTPReceiver::getCapabilities(Optional<Kinds> kind)
     {
-#define TODO_EXPOSE_THESE_CAPABILITIES 1
-#define TODO_EXPOSE_THESE_CAPABILITIES 2
-      //AudioReceiverChannel
-      //HeaderExtensionURI_ClienttoMixerAudioLevelIndication - ietf:params:rtp-hdrext:ssrc-audio-level
-      //HeaderExtensionURI_AbsoluteSendTime - http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time
-      //
-      //AudioSenderChannel
-      //HeaderExtensionURI_ClienttoMixerAudioLevelIndication - ietf:params:rtp-hdrext:ssrc-audio-level
-      //HeaderExtensionURI_AbsoluteSendTime - http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time
-      //
-      //VideoReceiverChannel
-      //HeaderExtensionURI_TransmissionTimeOffsets - ietf:params:rtp-hdrext:toffset
-      //HeaderExtensionURI_AbsoluteSendTime - http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time
-      //HeaderExtensionURI_3gpp_VideoOrientation - 3gpp:video-orientation
-      //HeaderExtensionURI_TransportSequenceNumber - http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01
-      //
-      //VideoSenderChannel
-      //HeaderExtensionURI_TransmissionTimeOffsets - ietf:params:rtp-hdrext:toffset
-      //HeaderExtensionURI_AbsoluteSendTime - http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time
-      //HeaderExtensionURI_3gpp_VideoOrientation - 3gpp:video-orientation
-      //HeaderExtensionURI_TransportSequenceNumber - http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01
-
       //kRtcpReport - always on
       //kRtcpSr - always on
       //kRtcpRr - always on
@@ -826,6 +802,7 @@ namespace ortc
       //kRtcpXrReceiverReferenceTime - set on/off by user, video only, RTCP XR
       //kRtcpXrDlrrReportBlock - internally controlled, video only, RTCP XR
       //kRtcpTransportFeedback - never used
+
       CapabilitiesPtr result(make_shared<Capabilities>());
       String kindStr;
       if (kind.hasValue()) kindStr = IMediaStreamTrackTypes::toString(kind.value());
@@ -846,14 +823,14 @@ namespace ortc
             codec.mKind = IMediaStreamTrack::toString(IMediaStreamTrackTypes::Kind_Audio);
             codec.mMaxPTime = Milliseconds(60);
 
-            // generic NACK - not using for audio
-            //{
-            //  IRTPTypes::RTCPFeedback feedback;
-            //  feedback.mType = IRTPTypes::toString(KnownFeedbackType_NACK);
-            //  feedback.mParameter = IRTPTypes::toString(KnownFeedbackParameter_Unknown);
-            //  EventWriteOrtcRtpReceiverReportRtcpFeedback(__func__, feedback.mType, feedback.mParameter);
-            //  codec.mRTCPFeedback.push_back(feedback);
-            //}
+            // transport-cc
+            {
+              IRTPTypes::RTCPFeedback feedback;
+              feedback.mType = IRTPTypes::toString(KnownFeedbackType_transport_cc);
+              feedback.mParameter = IRTPTypes::toString(KnownFeedbackParameter_Unknown);
+              EventWriteOrtcRtpReceiverReportRtcpFeedback(__func__, feedback.mType, feedback.mParameter);
+              codec.mRTCPFeedback.push_back(feedback);
+            }
 
             break;
           }
@@ -870,25 +847,33 @@ namespace ortc
               codec.mRTCPFeedback.push_back(feedback);
             }
             // NACK + PLI - always enabled in webrtc engine
-            //{
-            //  IRTPTypes::RTCPFeedback feedback;
-            //  feedback.mType = IRTPTypes::toString(KnownFeedbackType_NACK);
-            //  feedback.mParameter = IRTPTypes::toString(KnownFeedbackParameter_PLI);
-            //  EventWriteOrtcRtpReceiverReportRtcpFeedback(__func__, feedback.mType, feedback.mParameter);
-            //  codec.mRTCPFeedback.push_back(feedback);
-            //}
+            {
+              IRTPTypes::RTCPFeedback feedback;
+              feedback.mType = IRTPTypes::toString(KnownFeedbackType_NACK);
+              feedback.mParameter = IRTPTypes::toString(KnownFeedbackParameter_PLI);
+              EventWriteOrtcRtpReceiverReportRtcpFeedback(__func__, feedback.mType, feedback.mParameter);
+              codec.mRTCPFeedback.push_back(feedback);
+            }
             // CCM + FIR - cannot be set by webrtc API
-            //{
-            //  IRTPTypes::RTCPFeedback feedback;
-            //  feedback.mType = IRTPTypes::toString(KnownFeedbackType_CCM);
-            //  feedback.mParameter = IRTPTypes::toString(KnownFeedbackParameter_FIR);
-            //  EventWriteOrtcRtpReceiverReportRtcpFeedback(__func__, feedback.mType, feedback.mParameter);
-            //  codec.mRTCPFeedback.push_back(feedback);
-            //}
+            {
+              IRTPTypes::RTCPFeedback feedback;
+              feedback.mType = IRTPTypes::toString(KnownFeedbackType_CCM);
+              feedback.mParameter = IRTPTypes::toString(KnownFeedbackParameter_FIR);
+              EventWriteOrtcRtpReceiverReportRtcpFeedback(__func__, feedback.mType, feedback.mParameter);
+              codec.mRTCPFeedback.push_back(feedback);
+            }
             // REMB
             {
               IRTPTypes::RTCPFeedback feedback;
               feedback.mType = IRTPTypes::toString(KnownFeedbackType_REMB);
+              feedback.mParameter = IRTPTypes::toString(KnownFeedbackParameter_Unknown);
+              EventWriteOrtcRtpReceiverReportRtcpFeedback(__func__, feedback.mType, feedback.mParameter);
+              codec.mRTCPFeedback.push_back(feedback);
+            }
+            // transport-cc
+            {
+              IRTPTypes::RTCPFeedback feedback;
+              feedback.mType = IRTPTypes::toString(KnownFeedbackType_transport_cc);
               feedback.mParameter = IRTPTypes::toString(KnownFeedbackParameter_Unknown);
               EventWriteOrtcRtpReceiverReportRtcpFeedback(__func__, feedback.mType, feedback.mParameter);
               codec.mRTCPFeedback.push_back(feedback);

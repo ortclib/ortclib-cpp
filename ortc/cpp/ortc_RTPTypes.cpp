@@ -5021,6 +5021,7 @@ namespace ortc
       case KnownFeedbackType_3gpp_roi_arbitrary:    return "3gpp-roi-arbitrary";
       case KnownFeedbackType_3gpp_roi_predefined:   return "3gpp-roi-predefined";
       case KnownFeedbackType_REMB:                  return "goog-remb";
+      case KnownFeedbackType_transport_cc:          return "transport-cc";
     }
 
     return "unknown";
