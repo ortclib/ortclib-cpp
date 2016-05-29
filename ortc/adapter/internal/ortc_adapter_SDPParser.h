@@ -690,8 +690,7 @@ namespace ortc
         {
           SSRCType mSSRC {};
 
-          String mAttribute;
-          StringList mAttributeValues;
+          KeyValueList mAttributeValues;
 
           AFMTPLineList mAFMTPLines;
 

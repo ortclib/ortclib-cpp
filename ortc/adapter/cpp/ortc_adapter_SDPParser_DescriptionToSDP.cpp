@@ -721,8 +721,7 @@ namespace ortc
 
         auto ssrcRTCP = make_shared<ISDPTypes::ASSRCLine>(Noop{});
         ssrcRTCP->mSSRC = ssrc;
-        ssrcRTCP->mAttribute = "cname";
-        ssrcRTCP->mAttributeValues.push_back(cname);
+        ssrcRTCP->mAttributeValues.push_back(ISDPTypes::KeyValuePair("cname", cname));
         mline.mASSRCLines.push_back(ssrcRTCP);
       }
 
@@ -821,7 +820,6 @@ namespace ortc
                   addCNAME(*mline, encoding.mSSRC.value(), sender.mParameters->mRTCP.mCName);
 
                   auto aMSLabel = make_shared<ISDPTypes::ASSRCLine>(Noop{});
-                  aMSLabel->mAttribute = "mslabel";
                   aMSLabel->mSSRC = encoding.mSSRC.value();
 
                   if (sender.mMediaStreamTrackID.hasData()) {
@@ -831,13 +829,16 @@ namespace ortc
                         auto ssrcMSID = make_shared<ISDPTypes::ASSRCLine>(Noop{});
                         auto aMSID = make_shared<ISDPTypes::AMSIDLine>(Noop{});
                         ssrcMSID->mSSRC = encoding.mSSRC.value();
-                        ssrcMSID->mAttribute = "msid";
-                        ssrcMSID->mAttributeValues.push_back(msid);
-                        ssrcMSID->mAttributeValues.push_back(sender.mMediaStreamTrackID);
+                        ssrcMSID->mAttributeValues.push_back(ISDPTypes::KeyValuePair("msid", msid));
+                        ssrcMSID->mAttributeValues.push_back(ISDPTypes::KeyValuePair(sender.mMediaStreamTrackID, String()));
                         aMSID->mID = msid;
                         aMSID->mAppData = sender.mMediaStreamTrackID;
 
-                        aMSLabel->mAttributeValues.push_back(msid);
+                        if (aMSLabel->mAttributeValues.size() < 1) {
+                          aMSLabel->mAttributeValues.push_back(ISDPTypes::KeyValuePair("mslabel", msid));
+                        } else {
+                          aMSLabel->mAttributeValues.push_back(ISDPTypes::KeyValuePair(msid, String()));
+                        }
 
                         mline->mASSRCLines.push_back(ssrcMSID);
                         mline->mAMSIDLines.push_back(aMSID);
@@ -850,8 +851,7 @@ namespace ortc
                     // NOTE: LEGACY SUPPORT ONLY
                     auto ssrcLabel = make_shared<ISDPTypes::ASSRCLine>(Noop{});
                     ssrcLabel->mSSRC = encoding.mSSRC.value();
-                    ssrcLabel->mAttribute = "label";
-                    ssrcLabel->mAttributeValues.push_back(sender.mMediaStreamTrackID);
+                    ssrcLabel->mAttributeValues.push_back(ISDPTypes::KeyValuePair("label", sender.mMediaStreamTrackID));
                     mline->mASSRCLines.push_back(ssrcLabel);
                     if (aMSLabel->mAttributeValues.size() > 0) {
                       mline->mASSRCLines.push_back(aMSLabel);

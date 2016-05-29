@@ -1097,18 +1097,22 @@ namespace ortc
         {
           for (auto iter = mline.mASSRCLines.begin(); iter != mline.mASSRCLines.end(); ++iter) {
             auto &ssrcLine = *(*iter);
-            if (0 != ssrcLine.mAttribute.compareNoCase("msid")) continue;
+            if (ssrcLine.mAttributeValues.size() < 1) continue;
+            if (0 != ssrcLine.mAttributeValues.front().first.compareNoCase("msid")) continue;
 
-            if (ssrcLine.mAFMTPLines.size() < 2) continue;
-
-            auto &id = ssrcLine.mAttributeValues.front();
-            auto &appData = *(++(ssrcLine.mAttributeValues.begin()));
+            auto &msid = ssrcLine.mAttributeValues.front().second;
+            String trackID;
+            if (ssrcLine.mAttributeValues.size() > 1) {
+              auto iterValues = ssrcLine.mAttributeValues.begin();
+              ++iterValues;
+              trackID = (*iterValues).first;
+            }
 
             if (sender.mMediaStreamTrackID.isEmpty()) {
-              sender.mMediaStreamTrackID = appData;
+              sender.mMediaStreamTrackID = trackID;
             }
-            if (id.hasData()) {
-              sender.mMediaStreamIDs.insert(id);
+            if (msid.hasData()) {
+              sender.mMediaStreamIDs.insert(msid);
             }
           }
         }
@@ -1173,9 +1177,9 @@ namespace ortc
 
           for (auto iterSSRC = mline.mASSRCLines.begin(); iterSSRC != mline.mASSRCLines.end(); ++iterSSRC) {
             auto &ssrc = *(*iterSSRC);
-            if (0 != ssrc.mAttribute.compareNoCase("cname")) continue;
-            ORTC_THROW_INVALID_PARAMETERS_IF(ssrc.mAttributeValues.size() < 1);
-            sender->mParameters->mRTCP.mCName = ssrc.mAttributeValues.front();
+            if (ssrc.mAttributeValues.size() < 1) continue;
+            if (0 != ssrc.mAttributeValues.front().first.compareNoCase("cname")) continue;
+            sender->mParameters->mRTCP.mCName = ssrc.mAttributeValues.front().second;
             encoding.mSSRC = ssrc.mSSRC;
             break;
           }

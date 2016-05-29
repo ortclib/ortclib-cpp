@@ -1445,10 +1445,16 @@ namespace ortc
           ORTC_THROW_INVALID_PARAMETERS("ssrc value out of range: " + split[0]);
         }
 
-        mAttribute = split[1];
+        size_t index = 1;
+        for (; index < split.size(); ++index)
+        {
+          UseServicesHelper::SplitMap splitValues;
+          UseServicesHelper::split(split[index], splitValues, ":");
+          UseServicesHelper::splitTrim(splitValues);
+          UseServicesHelper::splitPruneEmpty(splitValues);
+          ORTC_THROW_INVALID_PARAMETERS_IF((splitValues.size() < 1) || (splitValues.size() > 2));
 
-        for (size_t index = 2; index < split.size(); ++index) {
-          mAttributeValues.push_back(split[index]);
+          mAttributeValues.push_back(KeyValuePair(splitValues[0], splitValues.size() > 1 ? splitValues[1] : String()));
         }
       }
 
@@ -1458,12 +1464,13 @@ namespace ortc
         String result;
         result.append("ssrc:");
         result.append(string(mSSRC));
-        if (mAttribute.hasData()) {
+        for (auto iter = mAttributeValues.begin(); iter != mAttributeValues.end(); ++iter) {
+          auto &keyValue = (*iter);
           result.append(" ");
-          result.append(mAttribute);
-          if (mAttributeValues.size() > 0) {
-            result.append(" ");
-            result.append(UseServicesHelper::combine(mAttributeValues, " "));
+          result.append(keyValue.first);
+          if (keyValue.second.hasData()) {
+            result.append(":");
+            result.append(keyValue.second);
           }
         }
         return result;
