@@ -945,7 +945,7 @@ namespace ortc
           case IRTPTypes::SupportedCodec_ILBC:    {
             codec.mPreferredPayloadType = 102;
             codec.mClockRate = 16000;
-            codec.mMaxPTime = Milliseconds(30);
+            codec.mMaxPTime = Milliseconds(60);
             break;
           }
           case IRTPTypes::SupportedCodec_PCMU:    {
