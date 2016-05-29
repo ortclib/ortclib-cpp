@@ -2013,7 +2013,8 @@ namespace ortc
 
               // scope: setup SRTP/SDES
               {
-                if (hasRTPSRTP) {
+                if ((hasRTPSRTP) &&
+                    (mConfiguration.mNegotiateSRTPSDES)) {
                   if (!(transportInfo->mRTP.mSRTPSDESTransport)) {
                     ZS_THROW_INVALID_ASSUMPTION_IF(!transportInfo->mRTP.mSRTPSDESParameters);
                     ZS_THROW_INVALID_ASSUMPTION_IF(transportInfo->mRTP.mSRTPSDESParameters->mCryptoParams.size() < 1);
@@ -3123,7 +3124,9 @@ namespace ortc
           transport->mID = transportInfo->mID;
           transport->mRTP->mICEParameters = transportInfo->mRTP.mGatherer->getLocalParameters();
           transport->mRTP->mDTLSParameters = getDTLSParameters(*transportInfo, IICETypes::Component_RTP);
-          transport->mRTP->mSRTPSDESParameters = transportInfo->mRTP.mSRTPSDESParameters ? transportInfo->mRTP.mSRTPSDESParameters : ISessionDescriptionTypes::SRTPSDESParametersPtr();
+          if (mConfiguration.mNegotiateSRTPSDES) {
+            transport->mRTP->mSRTPSDESParameters = transportInfo->mRTP.mSRTPSDESParameters ? transportInfo->mRTP.mSRTPSDESParameters : ISessionDescriptionTypes::SRTPSDESParametersPtr();
+          }
 
           // always get end of candidates state before candidates
           transport->mRTP->mEndOfCandidates = (IICEGathererTypes::State_Complete == transportInfo->mRTP.mGatherer->state());
@@ -3748,7 +3751,9 @@ namespace ortc
           info->mRTCP.mTransport = info->mRTCP.mTransport->createAssociatedTransport(mThisWeak.lock());
         }
 
-        info->mRTP.mSRTPSDESParameters = ISRTPSDESTransport::getLocalParameters();
+        if (mConfiguration.mNegotiateSRTPSDES) {
+          info->mRTP.mSRTPSDESParameters = ISRTPSDESTransport::getLocalParameters();
+        }
 
         mTransportPool.push_back(info);
       }

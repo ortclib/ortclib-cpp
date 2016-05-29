@@ -841,7 +841,8 @@ namespace ortc
       {
         if (mSemantic.isEmpty()) return String();
 
-        String result(mSemantic);
+        String result("group:");
+        result.append(mSemantic);
         result.append(" ");
         result.append(UseServicesHelper::combine(mIdentificationTags, " "));
         return result;
