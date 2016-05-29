@@ -1831,6 +1831,8 @@ namespace ortc
     {
       AutoRecursiveLock lock(*this);
 
+      targetBitrateBps = 100000;
+
       mCurrentTargetBitrate = targetBitrateBps;
 
       uint32_t allocatedBitrateBps = mBitrateAllocator->OnNetworkChanged(
@@ -2315,6 +2317,8 @@ namespace ortc
     void RTPMediaEngine::AudioSenderChannelResource::OnNetworkChanged(uint32_t targetBitrateBps, uint8_t fractionLoss, int64_t rttMs)
     {
       AutoRecursiveLock lock(*this);
+
+      targetBitrateBps = 100000;
 
       mCurrentTargetBitrate = targetBitrateBps;
 
@@ -2849,6 +2853,8 @@ namespace ortc
     {
       AutoRecursiveLock lock(*this);
 
+      targetBitrateBps = 1000000;
+
       mCurrentTargetBitrate = targetBitrateBps;
 
       uint32_t allocatedBitrateBps = mBitrateAllocator->OnNetworkChanged(
@@ -3344,6 +3350,8 @@ namespace ortc
     void RTPMediaEngine::VideoSenderChannelResource::OnNetworkChanged(uint32_t targetBitrateBps, uint8_t fractionLoss, int64_t rttMs)
     {
       AutoRecursiveLock lock(*this);
+
+      targetBitrateBps = 1000000;
 
       mCurrentTargetBitrate = targetBitrateBps;
 
