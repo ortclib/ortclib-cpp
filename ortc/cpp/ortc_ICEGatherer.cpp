@@ -3287,7 +3287,12 @@ namespace ortc
                 lookup = (UseDNS::SRVLookupTypes)(UseDNS::SRVLookupType_AutoLookupAAAA | UseDNS::SRVLookupType_FallbackToAAAALookup);
               }
 
-              reflexivePort->mSTUNDiscovery = UseSTUNDiscovery::create(UseServicesHelper::getServiceQueue(), mThisWeak.lock(), createDNSLookupString(server, "stun:"), lookup, keepAliveTime);
+              UseSTUNDiscovery::CreationOptions options;
+              options.mServers = createDNSLookupString(server, "stun:");
+              options.mLookupType = lookup;
+              options.mKeepWarmPingTime = keepAliveTime;
+
+              reflexivePort->mSTUNDiscovery = UseSTUNDiscovery::create(UseServicesHelper::getServiceQueue(), mThisWeak.lock(), options);
               ZS_THROW_UNEXPECTED_ERROR_IF(!reflexivePort->mSTUNDiscovery)
 
               mSTUNDiscoveries[reflexivePort->mSTUNDiscovery] = HostAndReflexivePortPair(hostPort, reflexivePort);
@@ -3562,26 +3567,20 @@ namespace ortc
 
               Seconds keepAliveTime;
 
-              auto keepAliveInSeconds = UseSettings::getUInt(ORTC_SETTING_GATHERER_DEFAULT_STUN_KEEP_ALIVE_IN_SECONDS);
-              if (0 != keepAliveInSeconds) {
-                keepAliveTime = Seconds(keepAliveInSeconds);
-              }
-
               UseDNS::SRVLookupTypes lookup = (UseDNS::SRVLookupTypes)(UseDNS::SRVLookupType_AutoLookupA | UseDNS::SRVLookupType_FallbackToALookup);
               if (hostPort->mBoundUDPIP.isIPv6()) {
                 lookup = (UseDNS::SRVLookupTypes)(UseDNS::SRVLookupType_AutoLookupAAAA | UseDNS::SRVLookupType_FallbackToAAAALookup);
               }
 
-              relayPort->mTURNSocket = UseTURNSocket::create(
-                                                             UseServicesHelper::getServiceQueue(),
-                                                             mThisWeak.lock(),
-                                                             createDNSLookupString(server, "turn:"),
-                                                             relayPort->mServer.mUserName,
-                                                             relayPort->mServer.mCredential,
-                                                             lookup,
-                                                             true
-                                                             );
-              ZS_THROW_UNEXPECTED_ERROR_IF(!relayPort->mTURNSocket)
+              UseTURNSocket::CreationOptions options;
+              options.mServers = createDNSLookupString(server, "turn:");
+              options.mUsername = relayPort->mServer.mUserName;
+              options.mPassword = relayPort->mServer.mCredential;
+              options.mLookupType = lookup;
+              options.mUseChannelBinding = true;
+
+              relayPort->mTURNSocket = UseTURNSocket::create(UseServicesHelper::getServiceQueue(), mThisWeak.lock(), options);
+              ZS_THROW_UNEXPECTED_ERROR_IF(!relayPort->mTURNSocket);
 
               ZS_LOG_DEBUG(log("turn socket created") + ZS_PARAM("turn socket", relayPort->mTURNSocket->getID()) + ZS_PARAM("source ip", hostPort->mBoundUDPIP.string()) + hostPort->toDebug())
 
@@ -4142,36 +4141,30 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    String ICEGatherer::createDNSLookupString(
-                                              const Server &server,
-                                              const char *urlPrefix
-                                              ) const
+    IICEGathererTypes::StringList ICEGatherer::createDNSLookupString(
+                                                                     const Server &server,
+                                                                     const char *urlPrefix
+                                                                     ) const
     {
       size_t length = strlen(urlPrefix);
 
-      String result;
+      StringList result;
 
       if (server.mURLs.size() < 1) {
-        ZS_LOG_INSANE(log("server is not of url search type (no URLs found)") + server.toDebug() + ZS_PARAMIZE(urlPrefix))
+        ZS_LOG_INSANE(log("server is not of url search type (no URLs found)") + server.toDebug() + ZS_PARAMIZE(urlPrefix));
         return result;
       }
 
       for (auto iterURLs = server.mURLs.begin(); iterURLs != server.mURLs.end(); ++iterURLs) {
         const String &url = (*iterURLs);
         if (0 != url.compare(0, length, urlPrefix)) {
-          ZS_LOG_INSANE(log("server is not of url search type") + server.toDebug() + ZS_PARAMIZE(url) + ZS_PARAMIZE(urlPrefix))
+          ZS_LOG_INSANE(log("server is not of url search type") + server.toDebug() + ZS_PARAMIZE(url) + ZS_PARAMIZE(urlPrefix));
           continue;
         }
 
-        ZS_LOG_INSANE(log("found server of url search type") + server.toDebug() + ZS_PARAMIZE(url) + ZS_PARAMIZE(urlPrefix))
+        ZS_LOG_INSANE(log("found server of url search type") + server.toDebug() + ZS_PARAMIZE(url) + ZS_PARAMIZE(urlPrefix));
 
-        String dnsStr = url.substr(length);
-
-        if (result.hasData()) {
-          result += "," + dnsStr;
-        } else {
-          result = dnsStr;
-        }
+        result.push_back(url);
       }
 
       return result;

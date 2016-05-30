@@ -920,10 +920,11 @@ namespace ortc
                         const Server &server,
                         const char *urlPrefix
                         ) const;
-      String createDNSLookupString(
-                                   const Server &server,
-                                   const char *urlPrefix
-                                   ) const;
+
+      StringList createDNSLookupString(
+                                       const Server &server,
+                                       const char *urlPrefix
+                                       ) const;
 
       bool needsHostPort(HostIPSorter::DataPtr hostData);
 
