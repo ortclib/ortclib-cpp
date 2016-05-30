@@ -48,7 +48,6 @@
 #include <openpeer/services/IHelper.h>
 #include <openpeer/services/IHTTP.h>
 
-#include <zsLib/Stringize.h>
 #include <zsLib/Singleton.h>
 #include <zsLib/Log.h>
 #include <zsLib/XML.h>
@@ -1000,14 +999,14 @@ namespace ortc
       webrtc::AecmModes aecmMode = webrtc::kAecmSpeakerphone;
       webrtc::AgcModes agcMode = webrtc::kAgcAdaptiveAnalog;
       webrtc::NsModes nsMode = webrtc::kNsHighSuppression;
-#if defined(WEBRTC_ARCH_ARM) && defined(WINRT)
+#if defined(WINRT)
       ecMode = webrtc::kEcAecm;
 #endif
 
       if (webrtc::VoEHardware::GetInterface(mVoiceEngine.get())->BuiltInAECIsAvailable())
         webrtc::VoEHardware::GetInterface(mVoiceEngine.get())->EnableBuiltInAEC(true);
       webrtc::VoEAudioProcessing::GetInterface(mVoiceEngine.get())->SetEcStatus(true, ecMode);
-#if !defined(WEBRTC_ARCH_ARM) || !defined(WINRT)
+#if !defined(WINRT)
       webrtc::VoEAudioProcessing::GetInterface(mVoiceEngine.get())->SetEcMetricsStatus(true);
 #endif
       if (ecMode == webrtc::kEcAecm)
@@ -1720,7 +1719,7 @@ namespace ortc
 
         auto report = make_shared<IStatsReport::InboundRTPStreamStats>();
 
-        report->mID = Stringize<DWORD>(receiveStreamStats.remote_ssrc).string() + "_receive";
+        report->mID = string(receiveStreamStats.remote_ssrc) + "_recv";
 
         report->mSSRC = receiveStreamStats.remote_ssrc;
         report->mIsRemote = true;
@@ -1741,7 +1740,7 @@ namespace ortc
 
         auto report = make_shared<IStatsReport::Codec>();
 
-        report->mID = Stringize<DWORD>(receiveStreamStats.remote_ssrc).string() + "_receive_codec";
+        report->mID = string(receiveStreamStats.remote_ssrc) + "_recv_codec";
 
         report->mPayloadType = mCodecPayloadType;
         report->mCodec = mCodecPayloadName;
@@ -1902,12 +1901,16 @@ namespace ortc
         if (IRTPTypes::getCodecKind(supportedCodec) == IRTPTypes::CodecKind_Audio && audioCodecSet)
           continue;
         codec = getAudioCodec(voiceEngine, codecIter->mName);
+        codec.pltype = codecIter->mPayloadType;
         if (codecIter->mPTime != Milliseconds::zero())
           codec.pacsize = (codec.plfreq / 1000) * codecIter->mPTime.count();
         if (codecIter->mNumChannels.hasValue())
           codec.channels = codecIter->mNumChannels;
         switch (supportedCodec) {
           case IRTPTypes::SupportedCodec_Opus:
+            codec.rate = 48000;
+            webrtc::VoECodec::GetInterface(voiceEngine)->SetRecPayloadType(mChannel, codec);
+            goto set_rtcp_feedback;
           case IRTPTypes::SupportedCodec_Isac:
           case IRTPTypes::SupportedCodec_G722:
           case IRTPTypes::SupportedCodec_ILBC:
@@ -1939,8 +1942,6 @@ namespace ortc
       config.voe_channel_id = mChannel;
 
       for (auto encodingParamIter = mParameters->mEncodings.begin(); encodingParamIter != mParameters->mEncodings.end(); encodingParamIter++) {
-        if (!encodingParamIter->mActive)
-          continue;
 
         IRTPTypes::PayloadType codecPayloadType {};
         if (encodingParamIter->mCodecPayloadType.hasValue())
@@ -2238,7 +2239,7 @@ namespace ortc
 
         auto report = make_shared<IStatsReport::OutboundRTPStreamStats>();
 
-        report->mID = Stringize<DWORD>(sendStreamStats.local_ssrc).string() + "_send";
+        report->mID = string(sendStreamStats.local_ssrc) + "_send";
 
         report->mSSRC = sendStreamStats.local_ssrc;
         report->mIsRemote = false;
@@ -2256,7 +2257,7 @@ namespace ortc
       if (stats.hasStatType(IStatsReportTypes::StatsTypes::StatsType_Codec)) {
         auto report = make_shared<IStatsReport::Codec>();
 
-        report->mID = Stringize<DWORD>(sendStreamStats.local_ssrc).string() + "_send_codec";
+        report->mID = string(sendStreamStats.local_ssrc) + "_send_codec";
 
         report->mPayloadType = mCodecPayloadType;
         report->mCodec = mCodecPayloadName;
@@ -2389,12 +2390,24 @@ namespace ortc
         if (IRTPTypes::getCodecKind(supportedCodec) == IRTPTypes::CodecKind_Audio && audioCodecSet)
           continue;
         codec = getAudioCodec(voiceEngine, codecIter->mName);
+        codec.pltype = codecIter->mPayloadType;
         if (codecIter->mPTime != Milliseconds::zero())
           codec.pacsize = (codec.plfreq / 1000) * codecIter->mPTime.count();
         if (codecIter->mNumChannels.hasValue())
           codec.channels = codecIter->mNumChannels;
         switch (supportedCodec) {
           case IRTPTypes::SupportedCodec_Opus:
+          {
+            codec.rate = 32000 * codec.channels;
+            webrtc::VoECodec::GetInterface(voiceEngine)->SetSendCodec(mChannel, codec);
+            auto parameters = IRTPTypes::OpusCodecParameters::convert(codecIter->mParameters);
+            if (parameters->mUseInbandFEC.hasValue())
+              webrtc::VoECodec::GetInterface(voiceEngine)->SetFECStatus(mChannel, parameters->mUseInbandFEC);
+            if (parameters->mUseDTX.hasValue())
+              webrtc::VoECodec::GetInterface(voiceEngine)->SetOpusDtx(mChannel, parameters->mUseDTX);
+            webrtc::VoECodec::GetInterface(voiceEngine)->SetOpusMaxPlaybackRate(mChannel, 48000);
+            goto set_rtcp_feedback;
+          }
           case IRTPTypes::SupportedCodec_Isac:
           case IRTPTypes::SupportedCodec_G722:
           case IRTPTypes::SupportedCodec_ILBC:
@@ -2426,8 +2439,6 @@ namespace ortc
       config.voe_channel_id = mChannel;
       
       for (auto encodingParamIter = mParameters->mEncodings.begin(); encodingParamIter != mParameters->mEncodings.end(); encodingParamIter++) {
-        if (!encodingParamIter->mActive)
-          continue;
 
         IRTPTypes::PayloadType codecPayloadType {};
         if (encodingParamIter->mCodecPayloadType.hasValue())
@@ -2627,7 +2638,7 @@ namespace ortc
     {
     }
 
-    //-------------------------------------------------------------------------2
+    //-------------------------------------------------------------------------
     RTPMediaEngine::VideoReceiverChannelResource::~VideoReceiverChannelResource()
     {
       mThisWeak.reset();  // shared pointer to self is no longer valid
@@ -2744,7 +2755,7 @@ namespace ortc
 
         auto report = make_shared<IStatsReport::InboundRTPStreamStats>();
 
-        report->mID = Stringize<DWORD>(receiveStreamStats.ssrc).string() + "_receive";
+        report->mID = string(receiveStreamStats.ssrc) + "_recv";
 
         report->mSSRC = receiveStreamStats.ssrc;
         report->mIsRemote = true;
@@ -2770,7 +2781,7 @@ namespace ortc
 
         auto report = make_shared<IStatsReport::Codec>();
 
-        report->mID = Stringize<DWORD>(receiveStreamStats.ssrc).string() + "_receive_codec";
+        report->mID = string(receiveStreamStats.ssrc) + "_recv_codec";
 
         report->mPayloadType = mCodecPayloadType;
         report->mCodec = mCodecPayloadName;
@@ -2920,7 +2931,7 @@ namespace ortc
           {
             webrtc::VideoDecoder* videoDecoder = webrtc::VideoDecoder::Create(webrtc::VideoDecoder::kVp8);
             decoder.decoder = videoDecoder;
-            decoder.payload_name = codecIter->mName;
+            decoder.payload_name = IRTPTypes::toString(supportedCodec);
             decoder.payload_type = codecIter->mPayloadType;
             goto set_rtcp_feedback;
           }
@@ -2928,7 +2939,7 @@ namespace ortc
           {
             webrtc::VideoDecoder* videoDecoder = webrtc::VideoDecoder::Create(webrtc::VideoDecoder::kVp9);
             decoder.decoder = videoDecoder;
-            decoder.payload_name = codecIter->mName;
+            decoder.payload_name = IRTPTypes::toString(supportedCodec);
             decoder.payload_type = codecIter->mPayloadType;
             goto set_rtcp_feedback;
           }
@@ -2941,7 +2952,7 @@ namespace ortc
             webrtc::VideoDecoder* videoDecoder = decoderFactory->CreateVideoDecoder(webrtc::VideoCodecType::kVideoCodecH264);
 #endif
             decoder.decoder = videoDecoder;
-            decoder.payload_name = codecIter->mName;
+            decoder.payload_name = IRTPTypes::toString(supportedCodec);
             decoder.payload_type = codecIter->mPayloadType;
             goto set_rtcp_feedback;
           }
@@ -2984,8 +2995,6 @@ namespace ortc
       mCodecPayloadType = decoder.payload_type;
 
       for (auto encodingParamIter = mParameters->mEncodings.begin(); encodingParamIter != mParameters->mEncodings.end(); encodingParamIter++) {
-        if (!encodingParamIter->mActive)
-          continue;
 
         IRTPTypes::PayloadType codecPayloadType {};
         if (encodingParamIter->mCodecPayloadType.hasValue())
@@ -3243,7 +3252,7 @@ namespace ortc
 
           auto report = make_shared<IStatsReport::OutboundRTPStreamStats>();
 
-          report->mID = Stringize<DWORD>((*statsIter).first).string() + "_send";
+          report->mID = string((*statsIter).first) + "_send";
 
           report->mSSRC = (*statsIter).first;
           report->mIsRemote = false;
@@ -3267,7 +3276,7 @@ namespace ortc
       if (stats.hasStatType(IStatsReportTypes::StatsTypes::StatsType_Codec)) {
         auto report = make_shared<IStatsReport::Codec>();
 
-        report->mID = Stringize<DWORD>((*sendStreamStats.substreams.begin()).first).string() + "_send_codec";
+        report->mID = string((*sendStreamStats.substreams.begin()).first) + "_send_codec";
 
         report->mPayloadType = mCodecPayloadType;
         report->mCodec = mCodecPayloadName;
@@ -3431,7 +3440,7 @@ namespace ortc
           {
             webrtc::VideoEncoder* videoEncoder = webrtc::VideoEncoder::Create(webrtc::VideoEncoder::kVp8);
             config.encoder_settings.encoder = videoEncoder;
-            config.encoder_settings.payload_name = codecIter->mName;
+            config.encoder_settings.payload_name = IRTPTypes::toString(supportedCodec);
             config.encoder_settings.payload_type = codecIter->mPayloadType;
             mVideoEncoderSettings.mVp8 = webrtc::VideoEncoder::GetDefaultVp8Settings();
             mVideoEncoderSettings.mVp8.automaticResizeOn = true;
@@ -3444,7 +3453,7 @@ namespace ortc
           {
             webrtc::VideoEncoder* videoEncoder = webrtc::VideoEncoder::Create(webrtc::VideoEncoder::kVp9);
             config.encoder_settings.encoder = videoEncoder;
-            config.encoder_settings.payload_name = codecIter->mName;
+            config.encoder_settings.payload_name = IRTPTypes::toString(supportedCodec);
             config.encoder_settings.payload_type = codecIter->mPayloadType;
             mVideoEncoderSettings.mVp9 = webrtc::VideoEncoder::GetDefaultVp9Settings();
             mVideoEncoderSettings.mVp9.frameDroppingOn = true;
@@ -3460,7 +3469,7 @@ namespace ortc
             webrtc::VideoEncoder* videoEncoder = encoderFactory->CreateVideoEncoder(webrtc::VideoCodecType::kVideoCodecH264);
 #endif
             config.encoder_settings.encoder = videoEncoder;
-            config.encoder_settings.payload_name = codecIter->mName;
+            config.encoder_settings.payload_name = IRTPTypes::toString(supportedCodec);
             config.encoder_settings.payload_type = codecIter->mPayloadType;
             mVideoEncoderSettings.mH264 = webrtc::VideoEncoder::GetDefaultH264Settings();
             mVideoEncoderSettings.mH264.frameDroppingOn = true;
@@ -3505,8 +3514,6 @@ namespace ortc
 
       int totalMaxBitrate = 0;
       for (auto encodingParamIter = mParameters->mEncodings.begin(); encodingParamIter != mParameters->mEncodings.end(); encodingParamIter++) {
-        if (!encodingParamIter->mActive)
-          continue;
 
         IRTPTypes::PayloadType codecPayloadType {};
         if (encodingParamIter->mCodecPayloadType.hasValue())
