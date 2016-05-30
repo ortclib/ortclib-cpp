@@ -999,14 +999,14 @@ namespace ortc
       webrtc::AecmModes aecmMode = webrtc::kAecmSpeakerphone;
       webrtc::AgcModes agcMode = webrtc::kAgcAdaptiveAnalog;
       webrtc::NsModes nsMode = webrtc::kNsHighSuppression;
-#if defined(WEBRTC_ARCH_ARM) && defined(WINRT)
+#if defined(WINRT)
       ecMode = webrtc::kEcAecm;
 #endif
 
       if (webrtc::VoEHardware::GetInterface(mVoiceEngine.get())->BuiltInAECIsAvailable())
         webrtc::VoEHardware::GetInterface(mVoiceEngine.get())->EnableBuiltInAEC(true);
       webrtc::VoEAudioProcessing::GetInterface(mVoiceEngine.get())->SetEcStatus(true, ecMode);
-#if !defined(WEBRTC_ARCH_ARM) || !defined(WINRT)
+#if !defined(WINRT)
       webrtc::VoEAudioProcessing::GetInterface(mVoiceEngine.get())->SetEcMetricsStatus(true);
 #endif
       if (ecMode == webrtc::kEcAecm)
