@@ -38,7 +38,7 @@
 #include <openpeer/services/IHelper.h>
 
 #include <zsLib/Log.h>
-//#include <zsLib/Numeric.h>
+#include <zsLib/Numeric.h>
 #include <zsLib/Stringize.h>
 #include <zsLib/XML.h>
 
@@ -55,6 +55,7 @@ namespace ortc
   namespace adapter
   {
     using zsLib::Stringize;
+    using zsLib::Numeric;
 
     ZS_DECLARE_TYPEDEF_PTR(ortc::internal::Helper, UseHelper);
     ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHelper, UseServicesHelper);
@@ -1528,7 +1529,18 @@ namespace ortc
       if (!rootEl) return;
 
       UseHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::Description::Details", "username", mUsername);
-      UseHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::Description::Details", "id", mSessionID);
+
+      {
+        String sessionID;
+        UseHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::Description::Details", "id", sessionID);
+
+        try {
+          mSessionID = Numeric<decltype(mSessionID)>(sessionID);
+        } catch (const Numeric<decltype(mSessionID)>::ValueOutOfRange &) {
+          ZS_LOG_WARNING(Debug, internal::slog("session id is out of range: ") + ZS_PARAM("value", sessionID));
+        }
+      }
+
       UseHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::Description::Details", "version", mSessionVersion);
       mUnicaseAddress = ConnectionData::Details::create(rootEl->findFirstChildElement("unicastAddress"));
       UseHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::Description::Details", "name", mSessionName);
@@ -1545,7 +1557,7 @@ namespace ortc
       ElementPtr rootEl = Element::create(objectName);
 
       UseHelper::adoptElementValue(rootEl, "username", mUsername, false);
-      UseHelper::adoptElementValue(rootEl, "id", mSessionID);
+      UseHelper::adoptElementValue(rootEl, "id", string(mSessionID), false);
       UseHelper::adoptElementValue(rootEl, "version", mSessionVersion);
       if (mUnicaseAddress) {
         rootEl->adoptAsLastChild(mUnicaseAddress->createElement("unicastAddress"));
