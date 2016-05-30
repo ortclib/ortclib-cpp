@@ -516,6 +516,13 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
+  const char *IStatsReportTypes::toString(const Optional<StatsTypes> &type)
+  {
+    if (!type.hasValue()) return "";
+    return toString(type.value());
+  }
+
+  //---------------------------------------------------------------------------
   Optional<IStatsReportTypes::StatsICECandidatePairStates> IStatsReportTypes::toCandidatePairState(const char *type)
   {
     String str(type);
@@ -562,7 +569,8 @@ namespace ortc
 
   //---------------------------------------------------------------------------
   IStatsReportTypes::Stats::Stats() :
-    mTimestamp(zsLib::now())
+    mTimestamp(zsLib::now()),
+    mStatsType(IStatsReportTypes::StatsType_First)
   {
   }
 
@@ -570,6 +578,7 @@ namespace ortc
   IStatsReportTypes::Stats::Stats(const Stats &op2) :
     mTimestamp(op2.mTimestamp),
     mStatsType(op2.mStatsType),
+    mStatsTypeOther(op2.mStatsTypeOther),
     mID(op2.mID)
   {
   }
@@ -580,7 +589,14 @@ namespace ortc
     if (!rootEl) return;
 
     UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::Stats", "timestamp", mTimestamp);
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::Stats", "statsType", mStatsType);
+    {
+      String value;
+      UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::Stats", "statsType", value);
+      mStatsType = IStatsReportTypes::toStatsType(value);
+      if (!mStatsType.hasValue()) {
+        mStatsTypeOther = value;
+      }
+    }
     UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::Stats", "id", mID);
   }
 
@@ -627,7 +643,7 @@ namespace ortc
     ElementPtr rootEl = Element::create(objectName);
 
     UseHelper::adoptElementValue(rootEl, "timestamp", mTimestamp);
-    UseHelper::adoptElementValue(rootEl, "statsType", mStatsType, false);
+    UseHelper::adoptElementValue(rootEl, "statsType", statsType(), false);
     UseHelper::adoptElementValue(rootEl, "id", mID, false);
 
     if (!rootEl->hasChildren()) return ElementPtr();
@@ -666,7 +682,7 @@ namespace ortc
   //---------------------------------------------------------------------------
   void IStatsReportTypes::Stats::eventTrace(double timestamp) const
   {
-    internal::reportString(mID, timestamp, "statsType", mStatsType);
+    internal::reportString(mID, timestamp, "statsType", statsType());
   }
 
   //---------------------------------------------------------------------------
@@ -831,6 +847,8 @@ namespace ortc
   IStatsReportTypes::Codec::Codec(ElementPtr rootEl) :
     Stats(rootEl)
   {
+    mStatsType = IStatsReportTypes::StatsType_Codec;
+
     if (!rootEl) return;
 
     UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::Codec", "payloadType", mPayloadType);
@@ -938,6 +956,8 @@ namespace ortc
   IStatsReportTypes::InboundRTPStreamStats::InboundRTPStreamStats(ElementPtr rootEl) :
     RTPStreamStats(rootEl)
   {
+    mStatsType = IStatsReportTypes::StatsType_InboundRTP;
+
     if (!rootEl) return;
 
     UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::InboundRTPStreamStats", "packetsReceived", mPacketsReceived);
@@ -1050,6 +1070,8 @@ namespace ortc
   IStatsReportTypes::OutboundRTPStreamStats::OutboundRTPStreamStats(ElementPtr rootEl) :
     RTPStreamStats(rootEl)
   {
+    mStatsType = IStatsReportTypes::StatsType_OutboundRTP;
+
     if (!rootEl) return;
 
     UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::OutboundRTPStreamStats", "packetsSent", mPacketsSent);
@@ -1150,6 +1172,8 @@ namespace ortc
   IStatsReportTypes::SCTPTransportStats::SCTPTransportStats(ElementPtr rootEl) :
     Stats(rootEl)
   {
+    mStatsType = IStatsReportTypes::StatsType_SCTPTransport;
+
     if (!rootEl) return;
 
     UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::SCTPTransportStats", "dataChannelsOpened", mDataChannelsOpened);
@@ -1234,6 +1258,8 @@ namespace ortc
   IStatsReportTypes::MediaStreamStats::MediaStreamStats(ElementPtr rootEl) :
     Stats(rootEl)
   {
+    mStatsType = IStatsReportTypes::StatsType_Stream;
+
     if (!rootEl) return;
 
     UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::SCTPTransportStats", "dataChannelsOpened", mStreamID);
@@ -1363,6 +1389,8 @@ namespace ortc
   IStatsReportTypes::MediaStreamTrackStats::MediaStreamTrackStats(ElementPtr rootEl) :
     Stats(rootEl)
   {
+    mStatsType = IStatsReportTypes::StatsType_Track;
+
     if (!rootEl) return;
 
     UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::MediaStreamTrackStats", "trackId", mTrackID);
@@ -1567,6 +1595,8 @@ namespace ortc
   IStatsReportTypes::DataChannelStats::DataChannelStats(ElementPtr rootEl) :
     Stats(rootEl)
   {
+    mStatsType = IStatsReportTypes::StatsType_DataChannel;
+
     if (!rootEl) return;
 
     UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::DataChannelStats", "label", mLabel);
@@ -1690,6 +1720,8 @@ namespace ortc
   IStatsReportTypes::ICEGathererStats::ICEGathererStats(ElementPtr rootEl) :
     Stats(rootEl)
   {
+    mStatsType = IStatsReportTypes::StatsType_ICEGatherer;
+
     if (!rootEl) return;
 
     UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICEGathererStats", "bytesSent", mBytesSent);
@@ -1783,6 +1815,8 @@ namespace ortc
   IStatsReportTypes::ICETransportStats::ICETransportStats(ElementPtr rootEl) :
     Stats(rootEl)
   {
+    mStatsType = IStatsReportTypes::StatsType_ICETransport;
+
     if (!rootEl) return;
 
     UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICETransportStats", "bytesSent", mBytesSent);
@@ -1883,6 +1917,8 @@ namespace ortc
   IStatsReportTypes::DTLSTransportStats::DTLSTransportStats(ElementPtr rootEl) :
     Stats(rootEl)
   {
+    mStatsType = IStatsReportTypes::StatsType_DTLSTransport;
+
     if (!rootEl) return;
 
     UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::DTLSTransportStats", "localCertificateId", mLocalCertificateID);
@@ -1966,6 +2002,8 @@ namespace ortc
   IStatsReportTypes::SRTPTransportStats::SRTPTransportStats(ElementPtr rootEl) :
     Stats(rootEl)
   {
+    mStatsType = IStatsReportTypes::StatsType_SRTPTransport;
+
     if (!rootEl) return;
   }
 
@@ -2044,6 +2082,8 @@ namespace ortc
   IStatsReportTypes::ICECandidateAttributes::ICECandidateAttributes(ElementPtr rootEl) :
     Stats(rootEl)
   {
+    mStatsType = IStatsReportTypes::StatsType_Candidate;
+
     if (!rootEl) return;
 
     UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICECandidateAttributes", "relatedId", mRelatedID);
@@ -2176,6 +2216,8 @@ namespace ortc
   IStatsReportTypes::ICECandidatePairStats::ICECandidatePairStats(ElementPtr rootEl) :
     Stats(rootEl)
   {
+    mStatsType = IStatsReportTypes::StatsType_CandidatePair;
+
     if (!rootEl) return;
 
     UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICECandidatePairStats", "transportId", mTransportID);
@@ -2327,6 +2369,8 @@ namespace ortc
   IStatsReportTypes::CertificateStats::CertificateStats(ElementPtr rootEl) :
     Stats(rootEl)
   {
+    mStatsType = IStatsReportTypes::StatsType_Certificate;
+
     if (!rootEl) return;
 
     UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::CertificateStats", "fingerprint", mFingerprint);

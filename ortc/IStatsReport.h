@@ -108,6 +108,7 @@ namespace ortc
 
     static Optional<StatsTypes> toStatsType(const char *type);
     static const char *toString(StatsTypes type);
+    static const char *toString(const Optional<StatsTypes> &type);
 
     struct StatsTypeSet : public std::set<IStatsReportTypes::StatsTypes>
     {
@@ -141,13 +142,16 @@ namespace ortc
 
     struct Stats : public Any
     {
-      Time      mTimestamp;
-      String    mStatsType;
-      String    mID;
+      Time                  mTimestamp;
+      Optional<StatsTypes>  mStatsType;
+      String                mStatsTypeOther;
+      String                mID;
 
       Stats();
       Stats(const Stats &op2);
       Stats(ElementPtr rootEl);
+
+      String statsType() const { if (mStatsType.hasValue()) return IStatsReportTypes::toString(mStatsType); return mStatsTypeOther; }
 
       static StatsPtr create(ElementPtr rootEl);
 
@@ -223,7 +227,7 @@ namespace ortc
       Optional<unsigned long>   mChannels {};
       String                    mParameters;
 
-      Codec() {}
+      Codec() { mStatsType = IStatsReportTypes::StatsType_Codec; }
       Codec(const Codec &op2);
       Codec(ElementPtr rootEl);
 
@@ -259,7 +263,7 @@ namespace ortc
       double              mFractionLost {};
       Milliseconds        mEndToEndDelay {};
 
-      InboundRTPStreamStats() {}
+      InboundRTPStreamStats() { mStatsType = IStatsReportTypes::StatsType_InboundRTP; }
       InboundRTPStreamStats(const InboundRTPStreamStats &op2);
       InboundRTPStreamStats(ElementPtr rootEl);
 
@@ -293,7 +297,7 @@ namespace ortc
       double              mTargetBitrate {};
       double              mRoundTripTime {};
 
-      OutboundRTPStreamStats() {}
+      OutboundRTPStreamStats() { mStatsType = IStatsReportTypes::StatsType_OutboundRTP; }
       OutboundRTPStreamStats(const OutboundRTPStreamStats &op2);
       OutboundRTPStreamStats(ElementPtr rootEl);
 
@@ -325,7 +329,7 @@ namespace ortc
       unsigned long mDataChannelsOpened {};
       unsigned long mDataChannelsClosed {};
 
-      SCTPTransportStats() {}
+      SCTPTransportStats() { mStatsType = IStatsReportTypes::StatsType_SCTPTransport; }
       SCTPTransportStats(const SCTPTransportStats &op2);
       SCTPTransportStats(ElementPtr rootEl);
 
@@ -357,7 +361,7 @@ namespace ortc
       String      mStreamID;
       StringList  mTrackIDs;
 
-      MediaStreamStats() {}
+      MediaStreamStats() { mStatsType = IStatsReportTypes::StatsType_Stream; }
       MediaStreamStats(const MediaStreamStats &op2);
       MediaStreamStats(ElementPtr rootEl);
 
@@ -401,7 +405,7 @@ namespace ortc
       double          mEchoReturnLoss {};
       double          mEchoReturnLossEnhancement {};
 
-      MediaStreamTrackStats() {}
+      MediaStreamTrackStats() { mStatsType = IStatsReportTypes::StatsType_Track; }
       MediaStreamTrackStats(const MediaStreamTrackStats &op2);
       MediaStreamTrackStats(ElementPtr rootEl);
 
@@ -439,7 +443,7 @@ namespace ortc
       unsigned long             mMessagesReceived {};
       unsigned long long        mBytesReceived {};
 
-      DataChannelStats() {}
+      DataChannelStats() { mStatsType = IStatsReportTypes::StatsType_DataChannel; }
       DataChannelStats(const DataChannelStats &op2);
       DataChannelStats(ElementPtr rootEl);
 
@@ -472,7 +476,7 @@ namespace ortc
       unsigned long long  mBytesReceived{};
       String              mRTCPGathererStatsID;
 
-      ICEGathererStats() {}
+      ICEGathererStats() { mStatsType = IStatsReportTypes::StatsType_ICEGatherer; }
       ICEGathererStats(const ICEGathererStats &op2);
       ICEGathererStats(ElementPtr rootEl);
 
@@ -508,7 +512,7 @@ namespace ortc
       bool                mActiveConnection {};
       String              mSelectedCandidatePairID;
 
-      ICETransportStats() {}
+      ICETransportStats() { mStatsType = IStatsReportTypes::StatsType_ICETransport; }
       ICETransportStats(const ICETransportStats &op2);
       ICETransportStats(ElementPtr rootEl);
 
@@ -540,7 +544,7 @@ namespace ortc
       String mLocalCertificateID;
       String mRemoteCertificateID;
 
-      DTLSTransportStats() {}
+      DTLSTransportStats() { mStatsType = IStatsReportTypes::StatsType_DTLSTransport; }
       DTLSTransportStats(const DTLSTransportStats &op2);
       DTLSTransportStats(ElementPtr rootEl);
 
@@ -569,7 +573,7 @@ namespace ortc
 
     struct SRTPTransportStats : public Stats
     {
-      SRTPTransportStats() {}
+      SRTPTransportStats() { mStatsType = IStatsReportTypes::StatsType_SRTPTransport; }
       SRTPTransportStats(const SRTPTransportStats &op2);
       SRTPTransportStats(ElementPtr rootEl);
 
@@ -606,7 +610,7 @@ namespace ortc
       unsigned long           mPriority {};
       String                  mAddressSourceURL;
 
-      ICECandidateAttributes() {}
+      ICECandidateAttributes() { mStatsType = IStatsReportTypes::StatsType_Candidate; }
       ICECandidateAttributes(const ICECandidateAttributes &op2);
       ICECandidateAttributes(ElementPtr rootEl);
 
@@ -649,7 +653,7 @@ namespace ortc
       double                        mAvailableOutgoingBitrate {};
       double                        mAvailableIncomingBitrate {};
 
-      ICECandidatePairStats() {}
+      ICECandidatePairStats() { mStatsType = IStatsReportTypes::StatsType_CandidatePair; }
       ICECandidatePairStats(const ICECandidatePairStats &op2);
       ICECandidatePairStats(ElementPtr rootEl);
 
@@ -683,7 +687,7 @@ namespace ortc
       String mBase64Certificate;
       String mIssuerCertificateID;
 
-      CertificateStats() {}
+      CertificateStats() { mStatsType = IStatsReportTypes::StatsType_Certificate; }
       CertificateStats(const CertificateStats &op2);
       CertificateStats(ElementPtr rootEl);
 
