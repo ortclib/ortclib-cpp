@@ -1525,6 +1525,8 @@ namespace ortc
     //-------------------------------------------------------------------------
     ISessionDescriptionTypes::Description::Details::Details(ElementPtr rootEl)
     {
+      if (!rootEl) return;
+
       UseHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::Description::Details", "username", mUsername);
       UseHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::Description::Details", "id", mSessionID);
       UseHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::Description::Details", "version", mSessionVersion);
