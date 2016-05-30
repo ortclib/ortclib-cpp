@@ -1551,8 +1551,8 @@ namespace ortc
       UseHelper::adoptElementValue(rootEl, "name", mSessionName, false);
       UseHelper::adoptElementValue(rootEl, "startTime", mStartTime);
       UseHelper::adoptElementValue(rootEl, "endTime", mEndTime);
-      if (rootEl) {
-        rootEl->adoptAsLastChild(mUnicaseAddress->createElement());
+      if (mConnectionData) {
+        rootEl->adoptAsLastChild(mConnectionData->createElement());
       }
 
       if (!rootEl->hasChildren()) return ElementPtr();
