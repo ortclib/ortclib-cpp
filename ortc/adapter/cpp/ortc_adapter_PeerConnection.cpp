@@ -3099,20 +3099,20 @@ namespace ortc
 
         auto description = make_shared<ISessionDescription::Description>();
         auto remoteDescription = mRemoteDescription ? mRemoteDescription->description() : ISessionDescription::DescriptionPtr();
+        description->mDetails = make_shared<ISessionDescription::Description::Details>();
+        if ((remoteDescription) && (remoteDescription->mDetails)) {
+          description->mDetails->mSessionID = remoteDescription->mDetails->mSessionID;
+          description->mDetails->mSessionVersion = remoteDescription->mDetails->mSessionVersion + version;
+          description->mDetails->mSessionName = remoteDescription->mDetails->mSessionName;
+          description->mDetails->mStartTime = remoteDescription->mDetails->mStartTime;
+          description->mDetails->mEndTime = remoteDescription->mDetails->mEndTime;
+        } else {
+          auto buffer = UseServicesHelper::random(sizeof(description->mDetails->mSessionID));
+          memcpy(&(description->mDetails->mSessionID), buffer->BytePtr(), buffer->SizeInBytes());
+          description->mDetails->mSessionVersion = 1;
+          description->mDetails->mSessionName = "-";
+        }
         if (isSDP) {
-          description->mDetails = make_shared<ISessionDescription::Description::Details>();
-          if ((remoteDescription) && (remoteDescription->mDetails)) {
-            description->mDetails->mSessionID = remoteDescription->mDetails->mSessionID;
-            description->mDetails->mSessionVersion = remoteDescription->mDetails->mSessionVersion + version;
-            description->mDetails->mSessionName = remoteDescription->mDetails->mSessionName;
-            description->mDetails->mStartTime = remoteDescription->mDetails->mStartTime;
-            description->mDetails->mEndTime = remoteDescription->mDetails->mEndTime;
-          } else {
-            auto buffer = UseServicesHelper::random(sizeof(description->mDetails->mSessionID));
-            memcpy(&(description->mDetails->mSessionID), buffer->BytePtr(), buffer->SizeInBytes());
-            description->mDetails->mSessionVersion = 1;
-            description->mDetails->mSessionName = "-";
-          }
           description->mDetails->mUnicaseAddress = make_shared<ISessionDescription::ConnectionData::Details>();
           description->mDetails->mUnicaseAddress->mNetType = "IN";
           description->mDetails->mUnicaseAddress->mAddrType = "IP4";
