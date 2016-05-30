@@ -1908,6 +1908,9 @@ namespace ortc
           codec.channels = codecIter->mNumChannels;
         switch (supportedCodec) {
           case IRTPTypes::SupportedCodec_Opus:
+            codec.rate = 48000;
+            webrtc::VoECodec::GetInterface(voiceEngine)->SetRecPayloadType(mChannel, codec);
+            goto set_rtcp_feedback;
           case IRTPTypes::SupportedCodec_Isac:
           case IRTPTypes::SupportedCodec_G722:
           case IRTPTypes::SupportedCodec_ILBC:
@@ -2395,6 +2398,17 @@ namespace ortc
           codec.channels = codecIter->mNumChannels;
         switch (supportedCodec) {
           case IRTPTypes::SupportedCodec_Opus:
+          {
+            codec.rate = 32000;
+            webrtc::VoECodec::GetInterface(voiceEngine)->SetSendCodec(mChannel, codec);
+            auto parameters = IRTPTypes::OpusCodecParameters::convert(codecIter->mParameters);
+            if (parameters->mUseInbandFEC.hasValue())
+              webrtc::VoECodec::GetInterface(voiceEngine)->SetFECStatus(mChannel, parameters->mUseInbandFEC);
+            if (parameters->mUseDTX.hasValue())
+              webrtc::VoECodec::GetInterface(voiceEngine)->SetOpusDtx(mChannel, parameters->mUseDTX);
+            webrtc::VoECodec::GetInterface(voiceEngine)->SetOpusMaxPlaybackRate(mChannel, 48000);
+            goto set_rtcp_feedback;
+          }
           case IRTPTypes::SupportedCodec_Isac:
           case IRTPTypes::SupportedCodec_G722:
           case IRTPTypes::SupportedCodec_ILBC:
