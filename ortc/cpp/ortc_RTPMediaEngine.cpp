@@ -1830,8 +1830,6 @@ namespace ortc
     {
       AutoRecursiveLock lock(*this);
 
-      targetBitrateBps = 100000;
-
       mCurrentTargetBitrate = targetBitrateBps;
 
       uint32_t allocatedBitrateBps = mBitrateAllocator->OnNetworkChanged(
@@ -1841,7 +1839,7 @@ namespace ortc
                                                                          );
 
       int padUpToBitrateBps = 0;
-      uint32_t pacerBitrateBps = targetBitrateBps;
+      uint32_t pacerBitrateBps = std::max(targetBitrateBps, allocatedBitrateBps);
 
       if (mCongestionController)
         mCongestionController->UpdatePacerBitrate(
@@ -2319,8 +2317,6 @@ namespace ortc
     {
       AutoRecursiveLock lock(*this);
 
-      targetBitrateBps = 100000;
-
       mCurrentTargetBitrate = targetBitrateBps;
 
       uint32_t allocatedBitrateBps = mBitrateAllocator->OnNetworkChanged(
@@ -2330,7 +2326,7 @@ namespace ortc
                                                                          );
 
       int padUpToBitrateBps = 0;
-      uint32_t pacerBitrateBps = targetBitrateBps;
+      uint32_t pacerBitrateBps = std::max(targetBitrateBps, allocatedBitrateBps);
 
       if (mCongestionController)
         mCongestionController->UpdatePacerBitrate(
@@ -2485,6 +2481,8 @@ namespace ortc
 
       webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetRTCPStatus(mChannel, true);
       webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetRTCP_CNAME(mChannel, mParameters->mRTCP.mCName);
+
+      mCongestionController->SetBweBitrates(10000, 40000, 100000);
 
       mModuleProcessThread->Start();
       mModuleProcessThread->RegisterModule(mCallStats.get());
@@ -2864,8 +2862,6 @@ namespace ortc
     {
       AutoRecursiveLock lock(*this);
 
-      targetBitrateBps = 1000000;
-
       mCurrentTargetBitrate = targetBitrateBps;
 
       uint32_t allocatedBitrateBps = mBitrateAllocator->OnNetworkChanged(
@@ -2875,7 +2871,7 @@ namespace ortc
                                                                          );
 
       int padUpToBitrateBps = 0;
-      uint32_t pacerBitrateBps = targetBitrateBps;
+      uint32_t pacerBitrateBps = std::max(targetBitrateBps, allocatedBitrateBps);
 
       if (mCongestionController)
         mCongestionController->UpdatePacerBitrate(
@@ -3360,8 +3356,6 @@ namespace ortc
     {
       AutoRecursiveLock lock(*this);
 
-      targetBitrateBps = 1000000;
-
       mCurrentTargetBitrate = targetBitrateBps;
 
       uint32_t allocatedBitrateBps = mBitrateAllocator->OnNetworkChanged(
@@ -3373,7 +3367,7 @@ namespace ortc
       int padUpToBitrateBps = 0;
       if (mSendStream)
         padUpToBitrateBps = static_cast<webrtc::internal::VideoSendStream *>(mSendStream.get())->GetPaddingNeededBps();
-      uint32_t pacerBitrateBps = targetBitrateBps;
+      uint32_t pacerBitrateBps = std::max(targetBitrateBps, allocatedBitrateBps);
 
       if (mCongestionController)
         mCongestionController->UpdatePacerBitrate(
@@ -3512,7 +3506,9 @@ namespace ortc
       mCodecPayloadName = config.encoder_settings.payload_name;
       mCodecPayloadType = config.encoder_settings.payload_type;
 
+      int totalMinBitrate = 0;
       int totalMaxBitrate = 0;
+      int totalTargetBitrate = 0;
       for (auto encodingParamIter = mParameters->mEncodings.begin(); encodingParamIter != mParameters->mEncodings.end(); encodingParamIter++) {
 
         IRTPTypes::PayloadType codecPayloadType {};
@@ -3545,10 +3541,12 @@ namespace ortc
           stream.max_framerate = encodingParamIter->mFramerateScale.hasValue() ? sourceMaxFramerate / encodingParamIter->mResolutionScale : sourceMaxFramerate;
           stream.min_bitrate_bps = 30000;
           stream.max_bitrate_bps = encodingParamIter->mMaxBitrate.hasValue() ? encodingParamIter->mMaxBitrate : 2000000;
-          stream.target_bitrate_bps = stream.max_bitrate_bps;
+          stream.target_bitrate_bps = stream.max_bitrate_bps / 2;
           stream.max_qp = 56;
           encoderConfig.streams.push_back(stream);
+          totalMinBitrate += stream.min_bitrate_bps;
           totalMaxBitrate += stream.max_bitrate_bps;
+          totalTargetBitrate += stream.target_bitrate_bps;
         }
       }
       if (encoderConfig.streams.size() == 0) {
@@ -3559,10 +3557,12 @@ namespace ortc
         stream.max_framerate = sourceMaxFramerate;
         stream.min_bitrate_bps = 30000;
         stream.max_bitrate_bps = 2000000;
-        stream.target_bitrate_bps = stream.max_bitrate_bps;
+        stream.target_bitrate_bps = stream.max_bitrate_bps / 2;
         stream.max_qp = 56;
         encoderConfig.streams.push_back(stream);
+        totalMinBitrate = stream.min_bitrate_bps;
         totalMaxBitrate = stream.max_bitrate_bps;
+        totalTargetBitrate = stream.target_bitrate_bps;
       }
       if (encoderConfig.streams.size() > 1)
         mVideoEncoderSettings.mVp8.automaticResizeOn = false;
@@ -3583,7 +3583,7 @@ namespace ortc
 
       config.rtp.c_name = mParameters->mRTCP.mCName;
 
-      mCongestionController->SetBweBitrates(0, -1, totalMaxBitrate);
+      mCongestionController->SetBweBitrates(totalMinBitrate, totalTargetBitrate, totalMaxBitrate);
 
       mModuleProcessThread->Start();
       mModuleProcessThread->RegisterModule(mCallStats.get());
