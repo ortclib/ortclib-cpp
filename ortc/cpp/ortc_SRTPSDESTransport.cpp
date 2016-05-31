@@ -48,7 +48,7 @@
 
 #include <cryptopp/sha.h>
 
-namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib) }
+namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib_srtp) }
 
 namespace ortc
 {

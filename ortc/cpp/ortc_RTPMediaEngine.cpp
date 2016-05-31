@@ -75,7 +75,7 @@
 
 //#define ENABLE_SENSITIVE_WEBRTC_LOG
 
-namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib) }
+namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib_rtpmediaengine) }
 
 namespace ortc
 {

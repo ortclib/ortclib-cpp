@@ -53,7 +53,7 @@
 #define RTCP_GET_BITS(xByte, xBitPattern, xLowestBit) (((xByte) >> (xLowestBit)) & (xBitPattern))
 #define RTCP_PACK_BITS(xByte, xBitPattern, xLowestBit) (((xByte) & (xBitPattern)) << (xLowestBit))
 
-namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib) }
+namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib_rtp_rtcp_packet) }
 
 namespace ortc
 {

@@ -35,6 +35,22 @@
 
 namespace ortc { ZS_IMPLEMENT_SUBSYSTEM(ortclib) }
 namespace ortc { ZS_IMPLEMENT_SUBSYSTEM(ortclib_webrtc) }
+namespace ortc { ZS_IMPLEMENT_SUBSYSTEM(ortclib_dtlstransport) }
+namespace ortc { ZS_IMPLEMENT_SUBSYSTEM(ortclib_icegatherer) }
+namespace ortc { ZS_IMPLEMENT_SUBSYSTEM(ortclib_icegatherer_router) }
+namespace ortc { ZS_IMPLEMENT_SUBSYSTEM(ortclib_icetransport) }
+namespace ortc { ZS_IMPLEMENT_SUBSYSTEM(ortclib_icetransport_controller) }
+namespace ortc { ZS_IMPLEMENT_SUBSYSTEM(ortclib_mediadevices) }
+namespace ortc { ZS_IMPLEMENT_SUBSYSTEM(ortclib_mediastreamtrack) }
+namespace ortc { ZS_IMPLEMENT_SUBSYSTEM(ortclib_rtp_rtcp_packet) }
+namespace ortc { ZS_IMPLEMENT_SUBSYSTEM(ortclib_rtplistener) }
+namespace ortc { ZS_IMPLEMENT_SUBSYSTEM(ortclib_rtpmediaengine) }
+namespace ortc { ZS_IMPLEMENT_SUBSYSTEM(ortclib_rtpreceiver) }
+namespace ortc { ZS_IMPLEMENT_SUBSYSTEM(ortclib_rtpsender) }
+namespace ortc { ZS_IMPLEMENT_SUBSYSTEM(ortclib_rtptypes) }
+namespace ortc { ZS_IMPLEMENT_SUBSYSTEM(ortclib_sctp_datachannel) }
+namespace ortc { ZS_IMPLEMENT_SUBSYSTEM(ortclib_srtp) }
+namespace ortc { ZS_IMPLEMENT_SUBSYSTEM(ortclib_stats) }
 
 namespace ortc
 {

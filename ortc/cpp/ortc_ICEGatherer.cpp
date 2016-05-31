@@ -91,7 +91,7 @@ using namespace Windows::Networking::Connectivity;
 
 #define ORTC_ICEGATHERER_TO_ORDER(xInterfaceType, xOrder) ((((ULONG)xInterfaceType)*100)+xOrder)
 
-namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib) }
+namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib_icegatherer) }
 
 namespace ortc
 {

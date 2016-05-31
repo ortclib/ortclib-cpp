@@ -69,7 +69,7 @@
 #define ASSERT(x)
 #endif //_DEBUG
 
-namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib) }
+namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib_dtlstransport) }
 
 namespace ortc
 {

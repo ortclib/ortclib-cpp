@@ -40,7 +40,7 @@
 
 #include <zsLib/XML.h>
 
-namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib) }
+namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib_icegatherer_router) }
 
 namespace ortc
 {

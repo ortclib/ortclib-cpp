@@ -84,7 +84,7 @@ enum WindowsErrorCompatibility {
   ((sizeof(a) / sizeof(*(a))) /                     \
   static_cast<size_t>(!(sizeof(a) % sizeof(*(a)))))
 
-namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib) }
+namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib_sctp_datachannel) }
 
 namespace ortc
 {

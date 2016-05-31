@@ -57,7 +57,7 @@
 
 using namespace date;
 
-namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib) }
+namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib_stats) }
 
 namespace ortc
 {
@@ -103,30 +103,35 @@ namespace ortc
     static void reportInt32(const char *reportID, double timestamp, const char *statName, int32 value)
     {
       EventWriteOrtcStatsReportInt32(reportID, timestamp, statName, value);
+      ZS_LOG_INSANE(slog("report uint32") + ZS_PARAM("report id", reportID) + ZS_PARAM("stat name", statName) + ZS_PARAM("timestamp", timestamp) + ZS_PARAM("value", value));
     }
 
     //-------------------------------------------------------------------------
     static void reportInt64(const char *reportID, double timestamp, const char *statName, int64 value)
     {
       EventWriteOrtcStatsReportInt64(reportID, timestamp, statName, value);
+      ZS_LOG_INSANE(slog("report uint64") + ZS_PARAM("report id", reportID) + ZS_PARAM("stat name", statName) + ZS_PARAM("timestamp", timestamp) + ZS_PARAM("value", value));
     }
 
     //-------------------------------------------------------------------------
     static void reportFloat(const char *reportID, double timestamp, const char *statName, float value)
     {
       EventWriteOrtcStatsReportFloat(reportID, timestamp, statName, value);
+      ZS_LOG_INSANE(slog("report float") + ZS_PARAM("report id", reportID) + ZS_PARAM("stat name", statName) + ZS_PARAM("timestamp", timestamp) + ZS_PARAM("value", value));
     }
 
     //-------------------------------------------------------------------------
     static void reportBool(const char *reportID, double timestamp, const char *statName, bool value)
     {
       EventWriteOrtcStatsReportBool(reportID, timestamp, statName, value);
+      ZS_LOG_INSANE(slog("report bool") + ZS_PARAM("report id", reportID) + ZS_PARAM("stat name", statName) + ZS_PARAM("timestamp", timestamp) + ZS_PARAM("value", value));
     }
 
     //-------------------------------------------------------------------------
     static void reportString(const char *reportID, double timestamp, const char *statName, const char *value)
     {
       EventWriteOrtcStatsReportString(reportID, timestamp, statName, value);
+      ZS_LOG_INSANE(slog("report string") + ZS_PARAM("report id", reportID) + ZS_PARAM("stat name", statName) + ZS_PARAM("timestamp", timestamp) + ZS_PARAM("value", value));
     }
 
     //-------------------------------------------------------------------------
@@ -184,7 +189,7 @@ namespace ortc
       SharedRecursiveLock(SharedRecursiveLock::create()),
       mStats(stats)
     {
-      ZS_LOG_DETAIL(debug("created"))
+      ZS_LOG_DEBUG(debug("created"))
     }
 
     //-------------------------------------------------------------------------
@@ -228,7 +233,7 @@ namespace ortc
     {
       if (isNoop()) return;
 
-      ZS_LOG_DETAIL(log("destroyed"))
+      ZS_LOG_DEBUG(log("destroyed"))
       mThisWeak.reset();
 
       cancel();
