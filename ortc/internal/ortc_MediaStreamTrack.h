@@ -45,7 +45,7 @@
 #include <webrtc/modules/video_render/video_render.h>
 #include <webrtc/modules/audio_device/include/audio_device.h>
 
-#include <deque>
+#include <zsLib/WeightedMovingAverage.h>
 
 namespace ortc
 {
@@ -338,9 +338,10 @@ namespace ortc
 
     interaction IMediaStreamTrackAsyncDelegate
     {
-      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::TrackConstraints, TrackConstraints)
-      ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverChannelForMediaStreamTrack, UseReceiverChannel)
-      ZS_DECLARE_TYPEDEF_PTR(IRTPSenderChannelForMediaStreamTrack, UseSenderChannel)
+      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::TrackConstraints, TrackConstraints);
+      ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverChannelForMediaStreamTrack, UseReceiverChannel);
+      ZS_DECLARE_TYPEDEF_PTR(IRTPSenderChannelForMediaStreamTrack, UseSenderChannel);
+      ZS_DECLARE_TYPEDEF_PTR(webrtc::VideoFrame, VideoFrame);
 
       virtual void onResolveStatsPromise(IStatsProvider::PromiseWithStatsReportPtr promise, IStatsReportTypes::StatsTypeSet stats) = 0;
 
@@ -353,6 +354,8 @@ namespace ortc
       
       virtual void onAttachSenderChannel(UseSenderChannelPtr channel) = 0;
       virtual void onDetachSenderChannel(UseSenderChannelPtr channel) = 0;
+
+      virtual void onCapturedVideoFrame(int32_t id, VideoFramePtr frame) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -656,6 +659,8 @@ namespace ortc
       virtual void onAttachSenderChannel(UseSenderChannelPtr channel) override;
       virtual void onDetachSenderChannel(UseSenderChannelPtr channel) override;
 
+      virtual void onCapturedVideoFrame(int32_t id, VideoFramePtr frame) override;
+
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark MediaStreamTrack => friend Transport (video)
@@ -785,8 +790,6 @@ namespace ortc
       void setState(States state);
       void setError(WORD error, const char *reason = NULL);
 
-      DOUBLE getAvarageFramerate(std::deque<DOUBLE> &frameTimestamps);
-      
       FLOAT calculateSizeDistance(
                                   ConstrainLongRange width,
                                   ConstrainLongRange height,
@@ -841,11 +844,14 @@ namespace ortc
       IMediaStreamTrackRenderCallbackPtr mVideoRenderCallbackReferenceHolder;
       webrtc::AudioDeviceModule* mAudioDeviceModule {NULL};
 
-      rtc::Timing mStatsTimer;
-      std::deque<DOUBLE> mSentVideoFrameTimestamps;
-      std::deque<DOUBLE> mReceivedVideoFrameTimestamps;
-      ULONG mFramesSent {0};
-      ULONG mFramesReceived {0};
+      TimerPtr mStatsTimer;
+      //rtc::Timing mStatsTimer;
+      //std::deque<DOUBLE> mSentVideoFrameTimestamps;
+      //std::deque<DOUBLE> mReceivedVideoFrameTimestamps;
+      std::atomic<ULONG> mFramesSent {};
+      std::atomic<ULONG> mFramesReceived {};
+      WeightedMovingAverageUsingTotalDouble mAverageFramesSent;
+      WeightedMovingAverageUsingTotalDouble mAverageFramesReceived;
     };
 
     //-------------------------------------------------------------------------
@@ -881,9 +887,11 @@ ZS_DECLARE_PROXY_TYPEDEF(zsLib::PromisePtr, PromisePtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IMediaStreamTrackTypes::TrackConstraintsPtr, TrackConstraintsPtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::IMediaStreamTrackAsyncDelegate::UseReceiverChannelPtr, UseReceiverChannelPtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::IMediaStreamTrackAsyncDelegate::UseSenderChannelPtr, UseSenderChannelPtr)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::IMediaStreamTrackAsyncDelegate::VideoFramePtr, VideoFramePtr)
 ZS_DECLARE_PROXY_METHOD_2(onResolveStatsPromise, PromiseWithStatsReportPtr, StatsTypeSet)
 ZS_DECLARE_PROXY_METHOD_2(onApplyConstraints, PromisePtr, TrackConstraintsPtr)
 ZS_DECLARE_PROXY_METHOD_1(onSetActiveReceiverChannel, UseReceiverChannelPtr)
 ZS_DECLARE_PROXY_METHOD_1(onAttachSenderChannel, UseSenderChannelPtr)
 ZS_DECLARE_PROXY_METHOD_1(onDetachSenderChannel, UseSenderChannelPtr)
+ZS_DECLARE_PROXY_METHOD_2(onCapturedVideoFrame, int32_t, VideoFramePtr)
 ZS_DECLARE_PROXY_END()

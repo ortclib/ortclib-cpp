@@ -35,6 +35,8 @@
 #include <openpeer/services/types.h>
 #include <openpeer/services/IFactory.h>
 
+#include <zsLib/WeightedMovingAverage.h>
+
 namespace ortc
 {
   namespace internal
@@ -56,6 +58,8 @@ namespace ortc
     using zsLib::Singleton;
     using zsLib::SingletonLazySharedPtr;
     using zsLib::IPAddress;
+    using zsLib::WeightedMovingAverageDouble;
+    using zsLib::WeightedMovingAverageUsingTotalDouble;
 
     ZS_DECLARE_USING_PTR(zsLib, IMessageQueue)
     ZS_DECLARE_USING_PTR(zsLib, IMessageQueueNotify)

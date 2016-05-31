@@ -159,6 +159,8 @@ namespace ortc
     {
       AutoRecursiveLock lock(*this);
 
+      mStatsTimer = Timer::create(mThisWeak.lock(), Seconds(1));
+
       mCapabilities = make_shared<Capabilities>();
 
       mSettings = make_shared<Settings>();
@@ -806,16 +808,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     void MediaStreamTrack::renderVideoFrame(const webrtc::VideoFrame& videoFrame)
     {
+      ++mFramesReceived;
+
       AutoRecursiveLock lock(*this);
 
       if (mVideoRendererCallback) {
         mVideoRendererCallback->RenderFrame(1, videoFrame);
-
-        mReceivedVideoFrameTimestamps.push_back(mStatsTimer.TimerNow());
-        while (mReceivedVideoFrameTimestamps.size() > 300)
-          mReceivedVideoFrameTimestamps.pop_front();
-
-        mFramesReceived++;
       }
     }
 
@@ -901,11 +899,21 @@ namespace ortc
     //-------------------------------------------------------------------------
     void MediaStreamTrack::onTimer(TimerPtr timer)
     {
-      ZS_LOG_DEBUG(log("timer") + ZS_PARAM("timer id", timer->getID()))
+      ZS_LOG_TRACE(log("timer") + ZS_PARAM("timer id", timer->getID()))
 
       AutoRecursiveLock lock(*this);
-#define TODO 1
-#define TODO 2
+
+      if (mStatsTimer) {
+        if (timer->getID() == mStatsTimer->getID()) {
+          if (mFramesSent > 5) {
+            mAverageFramesSent += mFramesSent;
+          }
+          if (mFramesReceived > 5) {
+            mAverageFramesReceived += mFramesReceived;
+          }
+          return;
+        }
+      }
     }
 
     //-------------------------------------------------------------------------
@@ -924,14 +932,15 @@ namespace ortc
       UseStatsReport::StatMap reportStats;
 
       if (stats.hasStatType(IStatsReportTypes::StatsTypes::StatsType_Track)) {
-        
-        DOUBLE framesPerSecond;
-        if (!mRemote)
-          framesPerSecond = getAvarageFramerate(mSentVideoFrameTimestamps);
-        else
-          framesPerSecond = getAvarageFramerate(mReceivedVideoFrameTimestamps);
 
         auto report = make_shared<IStatsReport::MediaStreamTrackStats>();
+
+        decltype(report->mFramesPerSecond) framesPerSecond {};
+
+        if (!mRemote)
+          framesPerSecond = mAverageFramesSent.value<decltype(framesPerSecond)>();
+        else
+          framesPerSecond = mAverageFramesReceived.value<decltype(framesPerSecond)>();
 
         report->mID = mTrackID;
 
@@ -1009,6 +1018,25 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    void MediaStreamTrack::onCapturedVideoFrame(int32_t id, VideoFramePtr frame)
+    {
+      UseSenderChannelPtr channel;
+
+      {
+        AutoRecursiveLock lock(*this);
+
+        if (mVideoRendererCallback) mVideoRendererCallback->RenderFrame(1, *frame);
+
+        channel = mSenderChannel.lock();
+      }
+
+      if (!channel) return;
+
+      channel->sendVideoFrame(*frame);
+      ++mFramesSent;
+    }
+
+    //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -1019,29 +1047,10 @@ namespace ortc
     //-------------------------------------------------------------------------
     void MediaStreamTrack::OnIncomingCapturedFrame(const int32_t id, const webrtc::VideoFrame& videoFrame)
     {
-      UseSenderChannelPtr channel;
-      
-      {
-        AutoRecursiveLock lock(*this);
+      auto newFrame = make_shared<VideoFrame>();
+      newFrame->ShallowCopy(videoFrame);
 
-        if (mVideoRendererCallback) mVideoRendererCallback->RenderFrame(1, videoFrame);
-        
-        channel = mSenderChannel.lock();
-      }
-      
-      if (!channel) return;
-      
-      channel->sendVideoFrame(videoFrame);
-
-      {
-        AutoRecursiveLock lock(*this);
-
-        mSentVideoFrameTimestamps.push_back(mStatsTimer.TimerNow());
-        while (mSentVideoFrameTimestamps.size() > 300)
-          mSentVideoFrameTimestamps.pop_front();
-
-        mFramesSent++;
-      }
+      IMediaStreamTrackAsyncDelegateProxy::create(mThisWeak.lock())->onCapturedVideoFrame(id, newFrame);
     }
 
     //-------------------------------------------------------------------------
@@ -1384,6 +1393,11 @@ namespace ortc
       setState(State_Ended);
 
       mSubscriptions.clear();
+      
+      if (mStatsTimer) {
+        mStatsTimer->cancel();
+        mStatsTimer.reset();
+      }
 
       // make sure to cleanup any final reference to self
       mGracefulShutdownReference.reset();
@@ -1421,24 +1435,6 @@ namespace ortc
       mLastErrorReason = reason;
 
       ZS_LOG_WARNING(Detail, debug("error set") + ZS_PARAM("error", mLastError) + ZS_PARAM("reason", mLastErrorReason))
-    }
-
-    //-------------------------------------------------------------------------
-    DOUBLE MediaStreamTrack::getAvarageFramerate(std::deque<DOUBLE> &frameTimestamps)
-    {
-      DOUBLE timeNow = mStatsTimer.TimerNow();
-      DOUBLE windowStartTime = 0;
-      ULONG windowNumberOfSamples = 0;
-      while (frameTimestamps.size() > 0) {
-        double timestamp = frameTimestamps.front();
-        frameTimestamps.pop_front();
-        if (timeNow - timestamp < 3.0) {
-          if (windowStartTime == 0)
-            windowStartTime = timestamp;
-          windowNumberOfSamples++;
-        }
-      }
-      return (DOUBLE)windowNumberOfSamples / (timeNow - windowStartTime);
     }
 
     //-------------------------------------------------------------------------
