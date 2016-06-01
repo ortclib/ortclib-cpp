@@ -815,6 +815,11 @@ namespace ortc
       if (mVideoRendererCallback) {
         mVideoRendererCallback->RenderFrame(1, videoFrame);
       }
+
+      if (!mSettings->mWidth.hasValue() || (mSettings->mWidth != videoFrame.width()))
+        mSettings->mWidth = videoFrame.width();
+      if (!mSettings->mHeight.hasValue() || (mSettings->mHeight != videoFrame.height()))
+        mSettings->mHeight = videoFrame.height();
     }
 
     //-------------------------------------------------------------------------
