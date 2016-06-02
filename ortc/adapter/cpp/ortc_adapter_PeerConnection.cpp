@@ -3059,6 +3059,7 @@ namespace ortc
             UseAdapterHelper::FillParametersOptions fillOptions(mFutureAudioSenderSSRCs, mFutureVideoSenderSSRCs);
             UseAdapterHelper::fillParameters(*(senderInfo->mParameters), *useCaps, &fillOptions);
             senderInfo->mParameters->mMuxID = senderInfo->mID;
+            insertSSRCs(*senderInfo);
 
             mSenders[senderInfo->mID] = senderInfo;
 
