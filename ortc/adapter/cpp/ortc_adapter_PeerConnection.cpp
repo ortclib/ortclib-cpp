@@ -3056,7 +3056,8 @@ namespace ortc
             } else {
               senderInfo->mParameters = UseAdapterHelper::capabilitiesToParameters(*(mediaLine->mLocalSenderCapabilities));
             }
-            UseAdapterHelper::fillParameters(*(senderInfo->mParameters), *useCaps);
+            UseAdapterHelper::FillParametersOptions fillOptions(mFutureAudioSenderSSRCs, mFutureVideoSenderSSRCs);
+            UseAdapterHelper::fillParameters(*(senderInfo->mParameters), *useCaps, &fillOptions);
             senderInfo->mParameters->mMuxID = senderInfo->mID;
 
             mSenders[senderInfo->mID] = senderInfo;
@@ -3334,7 +3335,8 @@ namespace ortc
               goto remove_sender;
             }
 
-            UseAdapterHelper::fillParameters(*(senderInfo->mParameters), *capsUnion);
+            UseAdapterHelper::FillParametersOptions fillOptions(mFutureAudioSenderSSRCs, mFutureVideoSenderSSRCs);
+            UseAdapterHelper::fillParameters(*(senderInfo->mParameters), *capsUnion, &fillOptions);
 
             if (transport->mRTP.mDTLSTransport) {
               senderInfo->mSender = IRTPSender::create(mThisWeak.lock(), senderInfo->mTrack, transport->mRTP.mDTLSTransport, transport->mRTCP.mDTLSTransport);
@@ -3352,6 +3354,7 @@ namespace ortc
 
             try {
               senderInfo->mSender->send(*(senderInfo->mParameters));
+              insertSSRCs(*senderInfo);
             } catch (const InvalidParameters &) {
               reason = "sender.send() caused InvalidParameters exception";
               goto remove_sender;
@@ -3894,6 +3897,84 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
+      void PeerConnection::close(SenderInfo &senderInfo)
+      {
+        clearSSRCs(senderInfo);
+
+        if (senderInfo.mParameters) {
+          if (senderInfo.mParameters->mEncodings.size() > 0) {
+            for (auto iter = senderInfo.mParameters->mEncodings.begin(); iter != senderInfo.mParameters->mEncodings.end(); ++iter)
+            {
+              auto &encoding = (*iter);
+
+              if (encoding.mSSRC.hasValue()) {
+                clearSSRC(encoding.mSSRC.value());
+              }
+            }
+          }
+        }
+
+        if (senderInfo.mPromise) {
+          senderInfo.mPromise->reject(ErrorAny::create(UseHTTP::HTTPStatusCode_Gone, "connection is closing"));
+          senderInfo.mPromise.reset();
+        }
+        if (senderInfo.mSender) {
+          senderInfo.mSender->stop();
+          senderInfo.mSender.reset();
+        }
+        senderInfo.mNegotiationState = NegotiationState_Rejected;
+      }
+
+      //-----------------------------------------------------------------------
+      void PeerConnection::close(ReceiverInfo &receiverInfo)
+      {
+        if (receiverInfo.mReceiver) {
+          for (auto iter = receiverInfo.mMediaStreams.begin(); iter != receiverInfo.mMediaStreams.end(); ++iter) {
+            auto &useStream = (*iter).second;
+            useStream->notifyRemoveTrack(receiverInfo.mReceiver->track());
+          }
+
+          auto evt = make_shared<MediaStreamTrackEvent>();
+          evt->mReceiver = receiverInfo.mReceiver;
+          evt->mTrack = receiverInfo.mReceiver->track();
+
+          mSubscriptions.delegate()->onPeerConnectionTrackGone(mThisWeak.lock(), evt);
+
+          receiverInfo.mReceiver->stop();
+          receiverInfo.mReceiver.reset();
+        }
+        receiverInfo.mNegotiationState = NegotiationState_Rejected;
+        purgeNonReferencedAndEmptyStreams();
+      }
+
+      //-----------------------------------------------------------------------
+      void PeerConnection::close(PendingMethod &pending)
+      {
+        if (pending.mPromise) {
+          pending.mPromise->reject(ErrorAny::create(UseHTTP::HTTPStatusCode_Gone, "connection is closing"));
+          pending.mPromise.reset();
+        }
+      }
+
+      //-----------------------------------------------------------------------
+      void PeerConnection::close(PendingAddTrack &pending)
+      {
+        if (pending.mPromise) {
+          pending.mPromise->reject(ErrorAny::create(UseHTTP::HTTPStatusCode_Gone, "connection is closing"));
+          pending.mPromise.reset();
+        }
+      }
+
+      //-----------------------------------------------------------------------
+      void PeerConnection::close(PendingAddDataChannel &pending)
+      {
+        if (pending.mPromise) {
+          pending.mPromise->reject(ErrorAny::create(UseHTTP::HTTPStatusCode_Gone, "connection is closing"));
+          pending.mPromise.reset();
+        }
+      }
+
+      //-----------------------------------------------------------------------
       void PeerConnection::insertSSRCs(SenderInfo &senderInfo)
       {
         if (!senderInfo.mParameters) return;
@@ -3948,104 +4029,33 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void PeerConnection::close(SenderInfo &senderInfo)
-      {
-        clearSSRCs(senderInfo);
-
-        if (senderInfo.mParameters) {
-          if (senderInfo.mParameters->mEncodings.size() > 0) {
-            for (auto iter = senderInfo.mParameters->mEncodings.begin(); iter != senderInfo.mParameters->mEncodings.end(); ++iter)
-            {
-              auto &encoding = (*iter);
-
-              if (encoding.mSSRC.hasValue()) {
-                clearSSRC(encoding.mSSRC.value());
-              }
-            }
-          }
-        }
-
-        if (senderInfo.mPromise) {
-          senderInfo.mPromise->reject(ErrorAny::create(UseHTTP::HTTPStatusCode_Gone, "connection is closing"));
-          senderInfo.mPromise.reset();
-        }
-        if (senderInfo.mSender) {
-          senderInfo.mSender->stop();
-          senderInfo.mSender.reset();
-        }
-        senderInfo.mNegotiationState = NegotiationState_Rejected;
-      }
-
-      //-----------------------------------------------------------------------
       void PeerConnection::fillRTCPSSRC(IRTPTypes::Parameters &receiverParameters)
       {
         auto kind = UseRTPTypesHelper::getCodecsKind(receiverParameters);
         if (!kind.hasValue()) return;
 
-        SSRCSet::iterator found {};
-
-        switch (kind.value())
         {
-          case IMediaStreamTrackTypes::Kind_Audio: {
-            if (mAudioSenderSSRCs.size() < 1) return;
-            found = mAudioSenderSSRCs.begin(); break;
-          }
-          case IMediaStreamTrackTypes::Kind_Video: {
-            if (mVideoSenderSSRCs.size() < 1) return;
-            found = mVideoSenderSSRCs.begin(); break;
-          }
-        }
+          SSRCSet::iterator found {};
 
-
-        receiverParameters.mRTCP.mSSRC = (*found);
-      }
-
-      //-----------------------------------------------------------------------
-      void PeerConnection::close(ReceiverInfo &receiverInfo)
-      {
-        if (receiverInfo.mReceiver) {
-          for (auto iter = receiverInfo.mMediaStreams.begin(); iter != receiverInfo.mMediaStreams.end(); ++iter) {
-            auto &useStream = (*iter).second;
-            useStream->notifyRemoveTrack(receiverInfo.mReceiver->track());
+          switch (kind.value())
+          {
+            case IMediaStreamTrackTypes::Kind_Audio: {
+              if (mAudioSenderSSRCs.size() < 1) goto not_found;
+              found = mAudioSenderSSRCs.begin(); break;
+            }
+            case IMediaStreamTrackTypes::Kind_Video: {
+              if (mVideoSenderSSRCs.size() < 1) goto not_found;
+              found = mVideoSenderSSRCs.begin(); break;
+            }
           }
 
-          auto evt = make_shared<MediaStreamTrackEvent>();
-          evt->mReceiver = receiverInfo.mReceiver;
-          evt->mTrack = receiverInfo.mReceiver->track();
-
-          mSubscriptions.delegate()->onPeerConnectionTrackGone(mThisWeak.lock(), evt);
-
-          receiverInfo.mReceiver->stop();
-          receiverInfo.mReceiver.reset();
+          receiverParameters.mRTCP.mSSRC = (*found);
+          return;
         }
-        receiverInfo.mNegotiationState = NegotiationState_Rejected;
-        purgeNonReferencedAndEmptyStreams();
-      }
 
-      //-----------------------------------------------------------------------
-      void PeerConnection::close(PendingMethod &pending)
-      {
-        if (pending.mPromise) {
-          pending.mPromise->reject(ErrorAny::create(UseHTTP::HTTPStatusCode_Gone, "connection is closing"));
-          pending.mPromise.reset();
-        }
-      }
-
-      //-----------------------------------------------------------------------
-      void PeerConnection::close(PendingAddTrack &pending)
-      {
-        if (pending.mPromise) {
-          pending.mPromise->reject(ErrorAny::create(UseHTTP::HTTPStatusCode_Gone, "connection is closing"));
-          pending.mPromise.reset();
-        }
-      }
-
-      //-----------------------------------------------------------------------
-      void PeerConnection::close(PendingAddDataChannel &pending)
-      {
-        if (pending.mPromise) {
-          pending.mPromise->reject(ErrorAny::create(UseHTTP::HTTPStatusCode_Gone, "connection is closing"));
-          pending.mPromise.reset();
+      not_found:
+        {
+          receiverParameters.mRTCP.mSSRC = UseAdapterHelper::peekNextSSRC(kind.value(), mFutureAudioSenderSSRCs, mFutureVideoSenderSSRCs);
         }
       }
 

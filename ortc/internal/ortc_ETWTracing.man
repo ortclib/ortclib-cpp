@@ -9,7 +9,7 @@
 
       <!-- Warning: GUID must match value from wprp otherwise the events will not be captured -->
       <provider
-          guid="{ad26f2e3-b292-483b-a5de-8349a6aac310}"
+          guid="{2bc80581-9143-4013-8ff6-223d3479b14e}"
           name="OrtcLib"
           message="$(string.OrtcLib.ProviderMessage)"
           symbol="ORTC_LIB_PROVIDER_GUID"

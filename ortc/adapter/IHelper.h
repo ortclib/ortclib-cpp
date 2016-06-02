@@ -33,6 +33,9 @@
 
 #include <ortc/adapter/types.h>
 #include <ortc/IRTPTypes.h>
+#include <ortc/IMediaStreamTrack.h>
+
+#include <queue>
 
 namespace ortc
 {
@@ -48,6 +51,9 @@ namespace ortc
 
     interaction IHelper
     {
+      typedef IRTPTypes::SSRCType SSRCType;
+      typedef std::queue<SSRCType> SSRCQueue;
+
       ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Capabilities, RTPCapabilities);
       ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, RTPParameters);
 
@@ -101,6 +107,17 @@ namespace ortc
       static bool useLocal(IDPreferences pref) { return pref == IDPreference_Local; }
       static bool useRemote(IDPreferences pref) { return pref == IDPreference_Remote; }
       static IRTPTypes::SSRCType getRandomSSRC();
+
+      static SSRCType peekNextSSRC(
+                                   IMediaStreamTrackTypes::Kinds kind,
+                                   SSRCQueue &audioSSRCQueue,
+                                   SSRCQueue &videoSSRCQueue
+                                   );
+      static SSRCType getNextSSRC(
+                                  IMediaStreamTrackTypes::Kinds kind,
+                                  SSRCQueue &audioSSRCQueue,
+                                  SSRCQueue &videoSSRCQueue
+                                  );
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -215,9 +232,21 @@ namespace ortc
       #pragma mark Negotiation (fill)
       #pragma mark
 
+      struct FillParametersOptions
+      {
+        FillParametersOptions(
+                              SSRCQueue &audioQueue,
+                              SSRCQueue &videoQueue
+                              ) : mAudioSSRCQueue(&audioQueue), mVideoSSRCQueue(&videoQueue) {}
+
+        SSRCQueue *mAudioSSRCQueue {};
+        SSRCQueue *mVideoSSRCQueue {};
+      };
+
       static void fillParameters(
                                  RTPParameters &ioParameters,
-                                 const RTPCapabilities &capabilities
+                                 const RTPCapabilities &capabilities,
+                                 FillParametersOptions *options = NULL
                                  );
     };
   }

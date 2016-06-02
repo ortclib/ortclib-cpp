@@ -32,7 +32,10 @@
 
 #include <ortc/adapter/internal/ortc_adapter_Helper.h>
 
+#include <ortc/internal/ortc_RTPTypes.h>
+
 #include <openpeer/services/IHelper.h>
+
 //
 //#include <zsLib/Log.h>
 //#include <zsLib/Numeric.h>
@@ -47,6 +50,8 @@ namespace ortc
   namespace adapter
   {
     ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHelper, UseServicesHelper);
+
+    ZS_DECLARE_TYPEDEF_PTR(ortc::internal::RTPTypesHelper, UseRTPTypesHelper);
 
     namespace internal
     {
@@ -78,6 +83,47 @@ namespace ortc
       IRTPTypes::SSRCType tempSSRC{};
       memcpy(&tempSSRC, random->BytePtr(), random->SizeInBytes());
       return tempSSRC;
+    }
+
+    //-----------------------------------------------------------------------
+    IHelper::SSRCType IHelper::peekNextSSRC(
+                                            IMediaStreamTrackTypes::Kinds kind,
+                                            SSRCQueue &audioSSRCQueue,
+                                            SSRCQueue &videoSSRCQueue
+                                            )
+    {
+      SSRCQueue *ssrcQueue = NULL;
+
+      switch (kind)
+      {
+        case ortc::IMediaStreamTrackTypes::Kind_Audio:  ssrcQueue = &audioSSRCQueue; break;
+        case ortc::IMediaStreamTrackTypes::Kind_Video:  ssrcQueue = &videoSSRCQueue; break;
+      }
+
+      ZS_THROW_INVALID_ASSUMPTION_IF(!ssrcQueue);
+
+      if (ssrcQueue->size() > 0) return ssrcQueue->front();
+
+      auto ssrc = getRandomSSRC();
+      ssrcQueue->push(ssrc);
+      return ssrc;
+    }
+
+    //-----------------------------------------------------------------------
+    IHelper::SSRCType IHelper::getNextSSRC(
+                                           IMediaStreamTrackTypes::Kinds kind,
+                                           SSRCQueue &audioSSRCQueue,
+                                           SSRCQueue &videoSSRCQueue
+                                           )
+    {
+      auto result = peekNextSSRC(kind, audioSSRCQueue, videoSSRCQueue);
+      switch (kind)
+      {
+        case ortc::IMediaStreamTrackTypes::Kind_Audio:  audioSSRCQueue.pop(); break;
+        case ortc::IMediaStreamTrackTypes::Kind_Video:  videoSSRCQueue.pop(); break;
+      }
+
+      return result;
     }
 
     //-------------------------------------------------------------------------
@@ -1241,7 +1287,8 @@ namespace ortc
     //-------------------------------------------------------------------------
     void IHelper::fillParameters(
                                  RTPParameters &parameters,
-                                 const RTPCapabilities &capabilities
+                                 const RTPCapabilities &capabilities,
+                                 FillParametersOptions *options
                                  )
     {
       if (!parameters.mRTCP.mCName.hasData()) {
@@ -1254,7 +1301,19 @@ namespace ortc
       if (parameters.mEncodings.size() < 1) {
         IRTPTypes::EncodingParameters encoding;
         encoding.mActive = true;
-        encoding.mSSRC = getRandomSSRC();
+        
+        SSRCType nextSSRC {};
+        if (options) {
+          auto kind = UseRTPTypesHelper::getCodecsKind(parameters);
+          if (kind.hasValue()) {
+            nextSSRC = getNextSSRC(kind.value(), *(options->mAudioSSRCQueue), *(options->mVideoSSRCQueue));
+          }
+        }
+
+        if (0 == nextSSRC) {
+          nextSSRC = getRandomSSRC();
+        }
+        encoding.mSSRC = nextSSRC;
 
         for (auto iter = parameters.mCodecs.begin(); iter != parameters.mCodecs.end(); ++iter) {
           auto supportedCodec = IRTPTypes::toSupportedCodec((*iter).mName);

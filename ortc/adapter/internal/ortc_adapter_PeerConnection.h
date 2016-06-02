@@ -45,6 +45,8 @@
 
 #include <openpeer/services/IWakeDelegate.h>
 
+#include <queue>
+
 namespace ortc
 {
   namespace adapter
@@ -321,6 +323,7 @@ namespace ortc
         typedef std::pair<StatsCollectionPromisePtr, ReolveStatsPromisePtr> CollectionPromisePair;
         typedef std::map<PromiseID, CollectionPromisePair> StatsPromiseMap;
         typedef std::set<SSRCType> SSRCSet;
+        typedef std::queue<SSRCType> SSRCQueue;
 
       public:
         PeerConnection(
@@ -629,12 +632,13 @@ namespace ortc
         void close(TransportInfo::Details &details);
         void close(RTPMediaLineInfo &mediaLineInfo);
         void close(SCTPMediaLineInfo &mediaLineInfo);
+        void close(SenderInfo &senderInfo);
+        void close(ReceiverInfo &receiverInfo);
+
         void insertSSRCs(SenderInfo &senderInfo);
         void clearSSRCs(SenderInfo &senderInfo);
         void clearSSRC(SSRCType ssrc);
-        void close(SenderInfo &senderInfo);
-        void fillRTCPSSRC(IRTPTypes::Parameters &receiverParameters);
-        void close(ReceiverInfo &receiverInfo);
+        void fillRTCPSSRC(IRTPTypes::Parameters &ioReceiverParameters);
 
         void close(PendingMethod &pending);
         void close(PendingAddTrack &pending);
@@ -725,6 +729,9 @@ namespace ortc
 
         SSRCSet mAudioSenderSSRCs;
         SSRCSet mVideoSenderSSRCs;
+
+        SSRCQueue mFutureAudioSenderSSRCs;
+        SSRCQueue mFutureVideoSenderSSRCs;
       };
 
       //-----------------------------------------------------------------------
