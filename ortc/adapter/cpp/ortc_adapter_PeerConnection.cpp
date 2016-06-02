@@ -33,6 +33,7 @@
 #include <ortc/adapter/internal/ortc_adapter_MediaStream.h>
 
 #include <ortc/internal/ortc_ORTC.h>
+#include <ortc/internal/ortc_RTPTypes.h>
 
 #include <ortc/IRTPSender.h>
 #include <ortc/IRTPReceiver.h>
@@ -60,6 +61,7 @@ namespace ortc
     ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHelper, UseServicesHelper);
     ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHTTP, UseHTTP);
     ZS_DECLARE_TYPEDEF_PTR(adapter::IHelper, UseAdapterHelper);
+    ZS_DECLARE_TYPEDEF_PTR(ortc::internal::RTPTypesHelper, UseRTPTypesHelper);
 
     namespace internal
     {
@@ -2322,6 +2324,7 @@ namespace ortc
             }
 
             try {
+              fillRTCPSSRC(*filteredParams);
               receiverInfo->mReceiver->receive(*filteredParams);
             } catch (const InvalidParameters &) {
               ZS_LOG_WARNING(Debug, log("invalid parameters when calling receiver.receive()"));
@@ -2787,6 +2790,7 @@ namespace ortc
 
             try {
               senderInfo->mSender->send(*filteredParams);
+              insertSSRCs(*senderInfo);
             } catch (const InvalidParameters &) {
               ZS_LOG_WARNING(Debug, log("invalid parameters when calling sender.send()"));
               goto reject_sender;
@@ -3890,8 +3894,77 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
+      void PeerConnection::insertSSRCs(SenderInfo &senderInfo)
+      {
+        if (!senderInfo.mParameters) return;
+
+        auto kind = UseRTPTypesHelper::getCodecsKind(*senderInfo.mParameters);
+        if (!kind.hasValue()) return;
+
+        for (auto iter = senderInfo.mParameters->mEncodings.begin(); iter != senderInfo.mParameters->mEncodings.end(); ++iter)
+        {
+          auto &encoding = (*iter);
+
+          if (!encoding.mSSRC.hasValue()) continue;
+
+          switch (kind.value())
+          {
+            case ortc::IMediaStreamTrackTypes::Kind_Audio:  mAudioSenderSSRCs.insert(encoding.mSSRC.value()); break;
+            case ortc::IMediaStreamTrackTypes::Kind_Video:  mVideoSenderSSRCs.insert(encoding.mSSRC.value()); break;
+          }
+        }
+      }
+
+      //-----------------------------------------------------------------------
+      void PeerConnection::clearSSRCs(SenderInfo &senderInfo)
+      {
+        if (!senderInfo.mParameters) return;
+
+        for (auto iter = senderInfo.mParameters->mEncodings.begin(); iter != senderInfo.mParameters->mEncodings.end(); ++iter)
+        {
+          auto &encoding = (*iter);
+
+          if (encoding.mSSRC.hasValue()) {
+            clearSSRC(encoding.mSSRC.value());
+          }
+        }
+      }
+
+      //-----------------------------------------------------------------------
+      void PeerConnection::clearSSRC(SSRCType ssrc)
+      {
+        {
+          auto found = mAudioSenderSSRCs.find(ssrc);
+          if (found != mAudioSenderSSRCs.end()) {
+            mAudioSenderSSRCs.erase(found);
+          }
+        }
+        {
+          auto found = mVideoSenderSSRCs.find(ssrc);
+          if (found != mVideoSenderSSRCs.end()) {
+            mVideoSenderSSRCs.erase(found);
+          }
+        }
+      }
+
+      //-----------------------------------------------------------------------
       void PeerConnection::close(SenderInfo &senderInfo)
       {
+        clearSSRCs(senderInfo);
+
+        if (senderInfo.mParameters) {
+          if (senderInfo.mParameters->mEncodings.size() > 0) {
+            for (auto iter = senderInfo.mParameters->mEncodings.begin(); iter != senderInfo.mParameters->mEncodings.end(); ++iter)
+            {
+              auto &encoding = (*iter);
+
+              if (encoding.mSSRC.hasValue()) {
+                clearSSRC(encoding.mSSRC.value());
+              }
+            }
+          }
+        }
+
         if (senderInfo.mPromise) {
           senderInfo.mPromise->reject(ErrorAny::create(UseHTTP::HTTPStatusCode_Gone, "connection is closing"));
           senderInfo.mPromise.reset();
@@ -3901,6 +3974,30 @@ namespace ortc
           senderInfo.mSender.reset();
         }
         senderInfo.mNegotiationState = NegotiationState_Rejected;
+      }
+
+      //-----------------------------------------------------------------------
+      void PeerConnection::fillRTCPSSRC(IRTPTypes::Parameters &receiverParameters)
+      {
+        auto kind = UseRTPTypesHelper::getCodecsKind(receiverParameters);
+        if (!kind.hasValue()) return;
+
+        SSRCSet::iterator found {};
+
+        switch (kind.value())
+        {
+          case IMediaStreamTrackTypes::Kind_Audio: {
+            if (mAudioSenderSSRCs.size() < 1) return;
+            found = mAudioSenderSSRCs.begin(); break;
+          }
+          case IMediaStreamTrackTypes::Kind_Video: {
+            if (mVideoSenderSSRCs.size() < 1) return;
+            found = mVideoSenderSSRCs.begin(); break;
+          }
+        }
+
+
+        receiverParameters.mRTCP.mSSRC = (*found);
       }
 
       //-----------------------------------------------------------------------

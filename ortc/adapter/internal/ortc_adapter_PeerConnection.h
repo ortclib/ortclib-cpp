@@ -320,6 +320,7 @@ namespace ortc
         typedef PromiseWithStatsReportPtr ReolveStatsPromisePtr;
         typedef std::pair<StatsCollectionPromisePtr, ReolveStatsPromisePtr> CollectionPromisePair;
         typedef std::map<PromiseID, CollectionPromisePair> StatsPromiseMap;
+        typedef std::set<SSRCType> SSRCSet;
 
       public:
         PeerConnection(
@@ -628,7 +629,11 @@ namespace ortc
         void close(TransportInfo::Details &details);
         void close(RTPMediaLineInfo &mediaLineInfo);
         void close(SCTPMediaLineInfo &mediaLineInfo);
+        void insertSSRCs(SenderInfo &senderInfo);
+        void clearSSRCs(SenderInfo &senderInfo);
+        void clearSSRC(SSRCType ssrc);
         void close(SenderInfo &senderInfo);
+        void fillRTCPSSRC(IRTPTypes::Parameters &receiverParameters);
         void close(ReceiverInfo &receiverInfo);
 
         void close(PendingMethod &pending);
@@ -717,6 +722,9 @@ namespace ortc
 
         // post process the stats
         StatsPromiseMap mPendingStatPromises;
+
+        SSRCSet mAudioSenderSSRCs;
+        SSRCSet mVideoSenderSSRCs;
       };
 
       //-----------------------------------------------------------------------
