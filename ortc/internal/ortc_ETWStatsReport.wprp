@@ -20,7 +20,7 @@
 
     <!-- Our custom ETW Provider and its associated GUID -->
     <!-- Warning: GUID must match value from manifest otherwise the events will not be captured -->
-    <EventProvider Id="EventProvider_OrtcLib_StatsReport" Name="bda496d1-3663-4a3e-b012-662ff5dccd62" />
+    <EventProvider Id="EventProvider_OrtcLib_StatsReport" Name="12ceb95f-6bcf-4083-90f1-b757c405c461" />
 
     <!-- A fully specified .wprp file should have four profiles, with DetailLevel set to Verbose and Light and with Logging Mode set to Memory and File. WPR enforces that the name conforms to <name>Profile.Level.OutputType -->
     <Profile

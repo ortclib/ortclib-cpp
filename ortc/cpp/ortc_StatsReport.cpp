@@ -681,7 +681,9 @@ namespace ortc
   //---------------------------------------------------------------------------
   void IStatsReportTypes::Stats::eventTrace() const
   {
-    eventTrace(internal::getTimestamp(mTimestamp));
+    auto timestamp = internal::getTimestamp(mTimestamp);
+    eventTrace(timestamp);
+    internal::reportString(mID, timestamp, "statsTypeFinal", statsType());
   }
 
   //---------------------------------------------------------------------------
