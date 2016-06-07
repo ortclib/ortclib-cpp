@@ -5,3 +5,4 @@ libs/build
 [Rr]elease/
 Generated Files/
 ortc/internal/ortc_ETWTracing.h
+ortc/internal/ortc_ETWStatsReport.h
