@@ -40,10 +40,9 @@
 #include <zsLib/Timer.h>
 
 #include <webrtc/video_frame.h>
-#include <webrtc/base/timing.h>
+#include <webrtc/voice_engine/include/voe_base.h>
 #include <webrtc/modules/video_capture/video_capture.h>
 #include <webrtc/modules/video_render/video_render.h>
-#include <webrtc/modules/audio_device/include/audio_device.h>
 
 #include <zsLib/WeightedMovingAverage.h>
 
@@ -68,6 +67,7 @@ namespace ortc
     ZS_DECLARE_INTERACTION_PTR(IRTPSenderChannelForMediaStreamTrack);
     ZS_DECLARE_INTERACTION_PTR(IRTPReceiverForMediaStreamTrack);
     ZS_DECLARE_INTERACTION_PTR(IRTPReceiverChannelForMediaStreamTrack);
+    ZS_DECLARE_INTERACTION_PTR(IRTPMediaEngineForMediaStreamTrack);
 
     ZS_DECLARE_INTERACTION_PROXY(IMediaStreamTrackAsyncDelegate);
     
@@ -157,10 +157,7 @@ namespace ortc
     {
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPSenderChannelAudio, ForSenderChannelAudio)
 
-      virtual webrtc::AudioDeviceModule* getAudioDeviceModule() = 0;
-
-      virtual void start() = 0;
-      virtual void stop() = 0;
+      virtual ~IMediaStreamTrackForRTPSenderChannelAudio() {}
     };
 
     //-------------------------------------------------------------------------
@@ -175,7 +172,7 @@ namespace ortc
     {
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPSenderChannelVideo, ForSenderChannelVideo)
 
-      virtual webrtc::AudioDeviceModule* getAudioDeviceModule() = 0;
+      virtual ~IMediaStreamTrackForRTPSenderChannelVideo() {}
     };
 
     //-------------------------------------------------------------------------
@@ -246,10 +243,7 @@ namespace ortc
     {
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPReceiverChannelAudio, ForReceiverChannelAudio)
 
-      virtual webrtc::AudioDeviceModule* getAudioDeviceModule() = 0;
-
-      virtual void start() = 0;
-      virtual void stop() = 0;
+      virtual ~IMediaStreamTrackForRTPReceiverChannelAudio() {}
     };
 
     //-------------------------------------------------------------------------
@@ -296,12 +290,7 @@ namespace ortc
 
       virtual String id() const = 0;
 
-      virtual webrtc::AudioDeviceModule* getAudioDeviceModule() = 0;
-
       virtual IMediaStreamTrackTypes::SettingsPtr getSettings() const = 0;
-
-      virtual void start() = 0;
-      virtual void stop() = 0;
 
       virtual void renderVideoFrame(const webrtc::VideoFrame& videoFrame) = 0;
     };
@@ -413,6 +402,7 @@ namespace ortc
       ZS_DECLARE_TYPEDEF_PTR(IRTPSenderChannelForMediaStreamTrack, UseSenderChannel)
       ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverForMediaStreamTrack, UseReceiver)
       ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverChannelForMediaStreamTrack, UseReceiverChannel)
+      ZS_DECLARE_TYPEDEF_PTR(IRTPMediaEngineForMediaStreamTrack, UseMediaEngine)
 
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::TrackConstraints, TrackConstraints)
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::Constraints, Constraints)
@@ -607,14 +597,9 @@ namespace ortc
       #pragma mark MediaStreamTrack => IMediaStreamTrackForMediaEngine
       #pragma mark
 
-      virtual webrtc::AudioDeviceModule* getAudioDeviceModule() override;
-
       // (duplicate) virtual String id() const = 0;
 
       // (duplicate) virtual IMediaStreamTrackTypes::SettingsPtr getSettings() const = 0;
-
-      virtual void start() override;
-      // (duplicate) virtual void stop() = 0;
 
       // (duplicate) virtual void renderVideoFrame(const webrtc::VideoFrame& videoFrame) = 0;
 
@@ -670,43 +655,13 @@ namespace ortc
 
       virtual void OnCaptureDelayChanged(const int32_t id, const int32_t delay);
 
-      //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaStreamTrack => friend Transport (audio)
-      #pragma mark
-
-      virtual int32_t RecordedDataIsAvailable(
-                                              const void* audioSamples,
-                                              const size_t nSamples,
-                                              const size_t nBytesPerSample,
-                                              const uint8_t nChannels,
-                                              const uint32_t samplesPerSec,
-                                              const uint32_t totalDelayMS,
-                                              const int32_t clockDrift,
-                                              const uint32_t currentMicLevel,
-                                              const bool keyPressed,
-                                              uint32_t& newMicLevel
-                                              );
-
-      virtual int32_t NeedMorePlayData(
-                                       const size_t nSamples,
-                                       const size_t nBytesPerSample,
-                                       const uint8_t nChannels,
-                                       const uint32_t samplesPerSec,
-                                       void* audioSamples,
-                                       size_t& nSamplesOut,
-                                       int64_t* elapsed_time_ms,
-                                       int64_t* ntp_time_ms
-                                       );
-
     public:
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark MediaStreamTrack::Transport
       #pragma mark
 
-      class Transport : public webrtc::VideoCaptureDataCallback,
-                        public webrtc::AudioTransport
+      class Transport : public webrtc::VideoCaptureDataCallback
 
       {
         struct make_private {};
@@ -733,35 +688,6 @@ namespace ortc
         virtual void OnIncomingCapturedFrame(const int32_t id, const webrtc::VideoFrame& videoFrame) override;
         
         virtual void OnCaptureDelayChanged(const int32_t id, const int32_t delay) override;
-        
-        //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark MediaStreamTrack::Transport => webrtc::AudioTransport
-        #pragma mark
-
-        virtual int32_t RecordedDataIsAvailable(
-                                                const void* audioSamples,
-                                                const size_t nSamples,
-                                                const size_t nBytesPerSample,
-                                                const size_t nChannels,
-                                                const uint32_t samplesPerSec,
-                                                const uint32_t totalDelayMS,
-                                                const int32_t clockDrift,
-                                                const uint32_t currentMicLevel,
-                                                const bool keyPressed,
-                                                uint32_t& newMicLevel
-                                                ) override;
-        
-        virtual int32_t NeedMorePlayData(
-                                         const size_t nSamples,
-                                         const size_t nBytesPerSample,
-                                         const size_t nChannels,
-                                         const uint32_t samplesPerSec,
-                                         void* audioSamples,
-                                         size_t& nSamplesOut,
-                                         int64_t* elapsed_time_ms,
-                                         int64_t* ntp_time_ms
-                                         ) override;
 
       private:
         TransportWeakPtr mThisWeak;
@@ -789,6 +715,8 @@ namespace ortc
 
       void setState(States state);
       void setError(WORD error, const char *reason = NULL);
+
+      int getAudioDeviceIndex(webrtc::VoiceEngine *voiceEngine, String deviceID);
 
       FLOAT calculateSizeDistance(
                                   ConstrainLongRange width,
@@ -842,12 +770,8 @@ namespace ortc
       webrtc::VideoCaptureModule* mVideoCaptureModule {NULL};
       webrtc::VideoRenderCallback* mVideoRendererCallback {NULL};
       IMediaStreamTrackRenderCallbackPtr mVideoRenderCallbackReferenceHolder;
-      webrtc::AudioDeviceModule* mAudioDeviceModule {NULL};
 
       TimerPtr mStatsTimer;
-      //rtc::Timing mStatsTimer;
-      //std::deque<DOUBLE> mSentVideoFrameTimestamps;
-      //std::deque<DOUBLE> mReceivedVideoFrameTimestamps;
       std::atomic<ULONG> mFramesSent {};
       std::atomic<ULONG> mFramesReceived {};
       WeightedMovingAverageUsingTotalDouble mAverageFramesSent;

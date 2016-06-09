@@ -392,6 +392,21 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IRTPMediaEngineForMediaStreamTrack
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    webrtc::VoiceEngine *IRTPMediaEngineForMediaStreamTrack::getVoiceEngine()
+    {
+      auto singleton = RTPMediaEngineSingleton::singleton();
+      if (!singleton) return NULL;
+      return singleton->getEngineRegistration()->getRTPEngine()->getVoiceEngine();
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
     #pragma mark RTPMediaEngine
@@ -750,6 +765,13 @@ namespace ortc
     #pragma mark RTPMediaEngine => IRTPMediaEngineForRTPSenderChannelVideo
     #pragma mark
 
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPMediaEngine => IRTPMediaEngineForMediaStreamTrack
+    #pragma mark
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -2004,8 +2026,6 @@ namespace ortc
 
       webrtc::VoENetwork::GetInterface(voiceEngine)->RegisterExternalTransport(mChannel, *mTransport);
 
-      mTrack->start();
-
       if (mTransportState == ISecureTransport::State_Connected) {
         webrtc::VoEBase::GetInterface(voiceEngine)->StartReceive(mChannel);
         webrtc::VoEBase::GetInterface(voiceEngine)->StartPlayout(mChannel);
@@ -2040,12 +2060,6 @@ namespace ortc
           webrtc::VoENetwork::GetInterface(voiceEngine)->DeRegisterExternalTransport(mChannel);
         }
       }
-
-#define FIX_ME_WARNING_NO_TRACK_IS_NOT_STOPPED_JUST_BECAUSE_A_RECEIVER_CHANNEL_IS_DONE 1
-#define FIX_ME_WARNING_NO_TRACK_IS_NOT_STOPPED_JUST_BECAUSE_A_RECEIVER_CHANNEL_IS_DONE 2
-
-      if (mTrack)
-        mTrack->stop();
 
       mPacerThread->Stop();
       mPacerThread->DeRegisterModule(mCongestionController->pacer());
@@ -2500,8 +2514,6 @@ namespace ortc
 
       webrtc::VoENetwork::GetInterface(voiceEngine)->RegisterExternalTransport(mChannel, *mTransport);
 
-      mTrack->start();
-
       if (mTransportState == ISecureTransport::State_Connected)
         webrtc::VoEBase::GetInterface(voiceEngine)->StartSend(mChannel);
 
@@ -2531,12 +2543,6 @@ namespace ortc
           webrtc::VoENetwork::GetInterface(voiceEngine)->DeRegisterExternalTransport(mChannel);
         }
       }
-
-#define FIX_ME_WARNING_NO_TRACK_IS_NOT_STOPPED_JUST_BECAUSE_A_RECEIVER_CHANNEL_IS_DONE 1
-#define FIX_ME_WARNING_NO_TRACK_IS_NOT_STOPPED_JUST_BECAUSE_A_RECEIVER_CHANNEL_IS_DONE 2
-
-      if (mTrack)
-        mTrack->stop();
 
       mPacerThread->Stop();
       mPacerThread->DeRegisterModule(mCongestionController->pacer());

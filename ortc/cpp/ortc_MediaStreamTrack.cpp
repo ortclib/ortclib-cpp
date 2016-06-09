@@ -59,8 +59,8 @@
 #include <float.h>
 #include <math.h>
 
+#include <webrtc/voice_engine/include/voe_hardware.h>
 #include <webrtc/modules/video_capture/video_capture_factory.h>
-#include <webrtc/modules/audio_device/audio_device_impl.h>
 
 #ifdef _DEBUG
 #define ASSERT(x) ZS_THROW_BAD_STATE_IF(!(x))
@@ -314,18 +314,17 @@ namespace ortc
           mVideoCaptureModule->DeRegisterCaptureDataCallback();
           return;
         }
-      } else if (mKind == Kind_Video && mRemote) {
+      } else if (mKind == Kind_Audio && !mRemote) {
+        mDeviceID = mConstraints->mAdvanced.front()->mDeviceID.mValue.value().mValue.value();
 
-      } else if (mKind == Kind_Audio) {
-        if (!mRemote)
-          mDeviceID = mConstraints->mAdvanced.front()->mDeviceID.mValue.value().mValue.value();
-        mAudioDeviceModule = webrtc::AudioDeviceModuleImpl::Create(1, webrtc::AudioDeviceModule::kWindowsWasapiAudio);
-        if (!mAudioDeviceModule) {
+        auto voiceEngine = UseMediaEngine::getVoiceEngine();
+        if (!voiceEngine) return;
+
+        int audioDeviceIndex = getAudioDeviceIndex(voiceEngine, mDeviceID);
+
+        if (webrtc::VoEHardware::GetInterface(voiceEngine)->SetRecordingDevice(audioDeviceIndex) == -1) {
           return;
         }
-        mAudioDeviceModule->AddRef();
-        //mAudioDeviceModule->RegisterAudioCallback(mTransport.get());
-        mAudioDeviceModule->Init();
 
         mSettings->mDeviceID = mDeviceID;
       }
@@ -611,15 +610,6 @@ namespace ortc
         mVideoCaptureModule->StopCapture();
         mVideoCaptureModule->DeRegisterCaptureDataCallback();
       }
-
-      if (mAudioDeviceModule) {
-        if (!mRemote)
-          mAudioDeviceModule->StopRecording();
-        else
-          mAudioDeviceModule->StopPlayout();
-        //mAudioDeviceModule->RegisterAudioCallback(nullptr);
-        mAudioDeviceModule->Terminate();
-      }
     }
 
     //-------------------------------------------------------------------------
@@ -838,29 +828,6 @@ namespace ortc
     #pragma mark MediaStreamTrack => IMediaStreamTrackForMediaEngine
     #pragma mark
 
-    webrtc::AudioDeviceModule* MediaStreamTrack::getAudioDeviceModule()
-    {
-      AutoRecursiveLock lock(*this);
-
-      return mAudioDeviceModule;
-    }
-
-    void MediaStreamTrack::start()
-    {
-      AutoRecursiveLock lock(*this);
-      if (mAudioDeviceModule) {
-        if (!mRemote) {
-          mAudioDeviceModule->SetRecordingDevice(webrtc::AudioDeviceModule::kDefaultCommunicationDevice);
-          mAudioDeviceModule->InitRecording();
-          mAudioDeviceModule->StartRecording();
-        } else {
-          mAudioDeviceModule->SetPlayoutDevice(webrtc::AudioDeviceModule::kDefaultCommunicationDevice);
-          mAudioDeviceModule->InitPlayout();
-          mAudioDeviceModule->StartPlayout();
-        }
-      }
-    }
-
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -971,9 +938,31 @@ namespace ortc
                                               )
     {
       AutoRecursiveLock lock(*this);
-#define TODO 1
-#define TODO 2
-      promise->reject();  // temporarily reject everything
+
+      if (mKind == Kind_Audio && mRemote) {
+        mConstraints = constraints;
+
+        mDeviceID = mConstraints->mAdvanced.front()->mDeviceID.mValue.value().mValue.value();
+
+        auto voiceEngine = UseMediaEngine::getVoiceEngine();
+        if (!voiceEngine) {
+          promise->reject();
+          return;
+        }
+
+        int audioDeviceIndex = getAudioDeviceIndex(voiceEngine, mDeviceID);
+
+        if (webrtc::VoEHardware::GetInterface(voiceEngine)->SetPlayoutDevice(audioDeviceIndex) == -1) {
+          promise->reject();
+          return;
+        }
+
+        mSettings->mDeviceID = mDeviceID;
+      
+        promise->resolve();
+      } else {
+        promise->reject();
+      }
     }
 
     //-------------------------------------------------------------------------
@@ -1070,69 +1059,6 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark MediaStreamTrack => webrtc::AudioTransport
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    int32_t MediaStreamTrack::RecordedDataIsAvailable(
-                                                      const void* audioSamples,
-                                                      const size_t nSamples,
-                                                      const size_t nBytesPerSample,
-                                                      const uint8_t nChannels,
-                                                      const uint32_t samplesPerSec,
-                                                      const uint32_t totalDelayMS,
-                                                      const int32_t clockDrift,
-                                                      const uint32_t currentMicLevel,
-                                                      const bool keyPressed,
-                                                      uint32_t& newMicLevel
-                                                      )
-    {
-      UseSenderChannelPtr channel;
-      {
-        AutoRecursiveLock lock(*this);
-        channel = mSenderChannel.lock();
-      }
-
-#define TODO_VERIFY_RETURN_RESULT 1
-#define TODO_VERIFY_RETURN_RESULT 2
-      if (!channel) return 0;
-      
-      return channel->sendAudioSamples(audioSamples, nSamples, nChannels);
-    }
-
-    //-------------------------------------------------------------------------
-    int32_t MediaStreamTrack::NeedMorePlayData(
-                                               const size_t nSamples,
-                                               const size_t nBytesPerSample,
-                                               const uint8_t nChannels,
-                                               const uint32_t samplesPerSec,
-                                               void* audioSamples,
-                                               size_t& nSamplesOut,
-                                               int64_t* elapsed_time_ms,
-                                               int64_t* ntp_time_ms
-                                               )
-    {
-      nSamplesOut = 0;  // no samples
-      
-      UseReceiverChannelPtr channel;
-      
-      {
-        AutoRecursiveLock lock(*this);
-        channel = mReceiverChannel.lock();
-      }
-      
-#define TODO_VERIFY_RETURN_RESULT 1
-#define TODO_VERIFY_RETURN_RESULT 2
-      if (!channel) return 0;
-      
-      return channel->getAudioSamples(nSamples, nChannels, audioSamples, nSamplesOut);
-    }
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
     #pragma mark MediaStreamTrack::Transport
     #pragma mark
 
@@ -1187,74 +1113,6 @@ namespace ortc
       auto outer = mOuter.lock();
       if (!outer) return;
       return outer->OnCaptureDelayChanged(id, delay);
-    }
-    
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaStreamTrack::Transport => webrtc::AudioTransport
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    int32_t MediaStreamTrack::Transport::RecordedDataIsAvailable(
-                                                                 const void* audioSamples,
-                                                                 const size_t nSamples,
-                                                                 const size_t nBytesPerSample,
-                                                                 const size_t nChannels,
-                                                                 const uint32_t samplesPerSec,
-                                                                 const uint32_t totalDelayMS,
-                                                                 const int32_t clockDrift,
-                                                                 const uint32_t currentMicLevel,
-                                                                 const bool keyPressed,
-                                                                 uint32_t& newMicLevel
-                                                                 )
-    {
-      auto outer = mOuter.lock();
-#define TODO_VERIFY_RESULT 1
-#define TODO_VERIFY_RESULT 2
-      if (!outer) return 0;
-      return outer->RecordedDataIsAvailable(
-                                            audioSamples,
-                                            nSamples,
-                                            nBytesPerSample,
-                                            nChannels,
-                                            samplesPerSec,
-                                            totalDelayMS,
-                                            clockDrift,
-                                            currentMicLevel,
-                                            keyPressed,
-                                            newMicLevel
-                                            );
-    }
-    
-    //-------------------------------------------------------------------------
-    int32_t MediaStreamTrack::Transport::NeedMorePlayData(
-                                                          const size_t nSamples,
-                                                          const size_t nBytesPerSample,
-                                                          const size_t nChannels,
-                                                          const uint32_t samplesPerSec,
-                                                          void* audioSamples,
-                                                          size_t& nSamplesOut,
-                                                          int64_t* elapsed_time_ms,
-                                                          int64_t* ntp_time_ms
-                                                          )
-    {
-      auto outer = mOuter.lock();
-#define TODO_VERIFY_RESULT 1
-#define TODO_VERIFY_RESULT 2
-      if (!outer) return 0;
-      return outer->NeedMorePlayData(
-                                     nSamples,
-                                     nBytesPerSample,
-                                     nChannels,
-                                     samplesPerSec,
-                                     audioSamples,
-                                     nSamplesOut,
-                                     elapsed_time_ms,
-                                     ntp_time_ms
-                                     );
     }
 
     //-------------------------------------------------------------------------
@@ -1440,6 +1298,25 @@ namespace ortc
       mLastErrorReason = reason;
 
       ZS_LOG_WARNING(Detail, debug("error set") + ZS_PARAM("error", mLastError) + ZS_PARAM("reason", mLastErrorReason))
+    }
+
+    int MediaStreamTrack::getAudioDeviceIndex(webrtc::VoiceEngine *voiceEngine, String deviceID)
+    {
+      int devices;
+      if (webrtc::VoEHardware::GetInterface(voiceEngine)->GetNumOfRecordingDevices(devices) != 0) {
+        return -1;
+      }
+      int index = -1;
+      char deviceName[128];
+      char deviceUniqueId[128];
+      for (int i = 0; i < devices; i++) {
+        webrtc::VoEHardware::GetInterface(voiceEngine)->GetRecordingDeviceName(i, deviceName, deviceUniqueId);
+        if (0 == String(deviceUniqueId).compareNoCase(deviceID)) {
+          index = i;
+          break;
+        }
+      }
+      return index;
     }
 
     //-------------------------------------------------------------------------

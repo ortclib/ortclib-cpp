@@ -462,6 +462,8 @@ namespace ortc
     {
       ZS_DECLARE_TYPEDEF_PTR(IRTPMediaEngineForMediaStreamTrack, ForMediaStreamTrack)
 
+      static webrtc::VoiceEngine *getVoiceEngine();
+
       virtual ~IRTPMediaEngineForMediaStreamTrack() {}
     };
 
@@ -729,6 +731,11 @@ namespace ortc
       #pragma mark RTPMediaEngine => IRTPMediaEngineForRTPSenderChannelVideo
       #pragma mark
 
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPMediaEngine => IRTPMediaEngineForMediaStreamTrack
+      #pragma mark
+      
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark RTPMediaEngine => IRTPMediaEngineForDeviceResource
