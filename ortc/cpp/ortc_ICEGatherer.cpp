@@ -3563,7 +3563,7 @@ namespace ortc
             relayPort->mOptionsHash = mOptionsHash;
 
             if (!relayPort->mTURNSocket) {
-              ZS_LOG_DEBUG(log("setting up turn socket") + server.toDebug())
+              ZS_LOG_DEBUG(log("setting up turn socket") + server.toDebug() + hostPort->toDebug())
 
               Seconds keepAliveTime;
 

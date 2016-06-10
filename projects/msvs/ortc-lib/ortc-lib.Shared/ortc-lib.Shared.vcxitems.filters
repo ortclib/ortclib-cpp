@@ -431,6 +431,9 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\adapter\cpp\ortc_adapter_SDPParser_SDPToDescription.cpp">
       <Filter>ortc\adapter\cpp</Filter>
     </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\cpp\ortc_webrtc.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)..\..\..\..\ortc\internal\ortc_ETWTracing.man">

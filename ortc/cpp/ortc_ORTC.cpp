@@ -34,6 +34,7 @@
 #include <ortc/internal/ortc_RTPMediaEngine.h>
 
 #include <openpeer/services/IHelper.h>
+#include <openpeer/services/ILogger.h>
 #include <openpeer/services/IMessageQueueManager.h>
 
 #include <zsLib/Log.h>
@@ -43,9 +44,11 @@ namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib) }
 
 namespace ortc
 {
+  ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHelper, UseServicesHelper);
+  ZS_DECLARE_TYPEDEF_PTR(openpeer::services::ILogger, UseServicesLogger);
+
   namespace internal
   {
-    ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHelper, UseServicesHelper)
     ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IMessageQueueManager, UseMessageQueueManager)
 
     void initSubsystems();
@@ -92,6 +95,12 @@ namespace ortc
     IMessageQueuePtr IORTCForInternal::queueCertificateGeneration()
     {
       return (ORTC::singleton())->queueCertificateGeneration();
+    }
+
+    //-------------------------------------------------------------------------
+    Optional<Log::Level> IORTCForInternal::webrtcLogLevel()
+    {
+      return (ORTC::singleton())->webrtcLogLevel();
     }
 
     //-------------------------------------------------------------------------
@@ -196,6 +205,20 @@ namespace ortc
       IRTPMediaEngineForORTC::ntpServerTime(value);
     }
 
+    //-------------------------------------------------------------------------
+    void ORTC::defaultWebrtcLogLevel(Log::Level level)
+    {
+      AutoRecursiveLock(*this);
+      mDefaultWebRTCLogLevel = level;
+      if (mWebRTCLogLevel.hasValue()) return;
+    }
+
+    //-------------------------------------------------------------------------
+    void ORTC::webrtcLogLevel(Log::Level level)
+    {
+      AutoRecursiveLock(*this);
+      mWebRTCLogLevel = level;
+    }
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -268,6 +291,14 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    Optional<Log::Level> ORTC::webrtcLogLevel() const
+    {
+      AutoRecursiveLock lock(*this);
+      if (mWebRTCLogLevel.hasValue()) return mWebRTCLogLevel;
+      return mDefaultWebRTCLogLevel;
+    }
+
+    //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -321,6 +352,32 @@ namespace ortc
     auto singleton = internal::ORTC::singleton();
     if (!singleton) return;
     singleton->ntpServerTime(value);
+  }
+
+  //-------------------------------------------------------------------------
+  void IORTC::setDefaultLogLevel(Log::Level level)
+  {
+    auto singleton = internal::ORTC::singleton();
+    if (singleton) {
+      singleton->defaultWebrtcLogLevel(level);
+    }
+
+    UseServicesLogger::setLogLevel(level);
+  }
+
+  //-------------------------------------------------------------------------
+  void IORTC::setLogLevel(const char *componenet, Log::Level level)
+  {
+    String str(componenet);
+
+    if (0 == str.compare("ortclib_webrtc")) {
+      auto singleton = internal::ORTC::singleton();
+      if (singleton) {
+        singleton->webrtcLogLevel(level);
+      }
+    }
+
+    UseServicesLogger::setLogLevel(componenet, level);
   }
 
 }
