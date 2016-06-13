@@ -75,19 +75,6 @@
 
 namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib_rtpmediaengine) }
 
-namespace openpeer { namespace services { namespace wire { ZS_DECLARE_FORWARD_SUBSYSTEM(openpeer_services_wire) } } }
-
-#define OPENPEER_SERVICES_WIRE_IS_LOGGING(xLevel) ZS_IS_SUBSYSTEM_LOGGING(ZS_GET_OTHER_SUBSYSTEM(::openpeer::services::wire, openpeer_services_wire), xLevel)
-
-#define OPENPEER_SERVICES_WIRE_LOG_BASIC(xMsg)    ZS_LOG_SUBSYSTEM_BASIC(ZS_GET_OTHER_SUBSYSTEM(::openpeer::services::wire, openpeer_services_wire), xMsg)
-#define OPENPEER_SERVICES_WIRE_LOG_DETAIL(xMsg)   ZS_LOG_SUBSYSTEM_DETAIL(ZS_GET_OTHER_SUBSYSTEM(::openpeer::services::wire, openpeer_services_wire), xMsg)
-#define OPENPEER_SERVICES_WIRE_LOG_DEBUG(xMsg)    ZS_LOG_SUBSYSTEM_DEBUG(ZS_GET_OTHER_SUBSYSTEM(::openpeer::services::wire, openpeer_services_wire), xMsg)
-#define OPENPEER_SERVICES_WIRE_LOG_TRACE(xMsg)    ZS_LOG_SUBSYSTEM_TRACE(ZS_GET_OTHER_SUBSYSTEM(::openpeer::services::wire, openpeer_services_wire), xMsg)
-#define OPENPEER_SERVICES_WIRE_LOG_INSANE(xMsg)   ZS_LOG_SUBSYSTEM_INSANE(ZS_GET_OTHER_SUBSYSTEM(::openpeer::services::wire, openpeer_services_wire), xMsg)
-
-#define OPENPEER_SERVICES_WIRE_LOG_WARNING(xLevel, xMsg)  ZS_LOG_SUBSYSTEM_WARNING(ZS_GET_OTHER_SUBSYSTEM(::openpeer::services::wire, openpeer_services_wire), xLevel, xMsg)
-#define OPENPEER_SERVICES_WIRE_LOG_ERROR(xLevel, xMsg)    ZS_LOG_SUBSYSTEM_ERROR(ZS_GET_OTHER_SUBSYSTEM(::openpeer::services::wire, openpeer_services_wire), xLevel, xMsg)
-
 namespace ortc
 {
   ZS_DECLARE_TYPEDEF_PTR(openpeer::services::ISettings, UseSettings);

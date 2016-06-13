@@ -210,7 +210,6 @@ namespace ortc
     {
       AutoRecursiveLock(*this);
       mDefaultWebRTCLogLevel = level;
-      if (mWebRTCLogLevel.hasValue()) return;
     }
 
     //-------------------------------------------------------------------------
