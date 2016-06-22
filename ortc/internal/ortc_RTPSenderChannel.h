@@ -184,6 +184,7 @@ namespace ortc
     interaction IRTPSenderChannelForMediaStreamTrack
     {
       ZS_DECLARE_TYPEDEF_PTR(IRTPSenderChannelForMediaStreamTrack, ForMediaStreamTrack)
+      ZS_DECLARE_TYPEDEF_PTR(webrtc::VideoFrame, VideoFrame);
 
       static ElementPtr toDebug(ForMediaStreamTrackPtr object);
 
@@ -195,7 +196,7 @@ namespace ortc
                                        const uint8_t numberOfChannels
                                        ) = 0;
       
-      virtual void sendVideoFrame(const webrtc::VideoFrame& videoFrame) = 0;
+      virtual void sendVideoFrame(VideoFramePtr videoFrame) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -258,6 +259,7 @@ namespace ortc
 
       ZS_DECLARE_TYPEDEF_PTR(IRTPSenderForRTPSenderChannel, UseSender);
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPSenderChannel, UseMediaStreamTrack);
+      ZS_DECLARE_TYPEDEF_PTR(webrtc::VideoFrame, VideoFrame);
 
       ZS_DECLARE_TYPEDEF_PTR(IRTPSenderChannelMediaBaseForRTPSenderChannel, UseMediaBase);
       ZS_DECLARE_TYPEDEF_PTR(IRTPSenderChannelAudioForRTPSenderChannel, UseAudio);
@@ -387,7 +389,7 @@ namespace ortc
                                        const uint8_t numberOfChannels
                                        ) override;
 
-      virtual void sendVideoFrame(const webrtc::VideoFrame& videoFrame) override;
+      virtual void sendVideoFrame(VideoFramePtr videoFrame) override;
 
       //-----------------------------------------------------------------------
       #pragma mark

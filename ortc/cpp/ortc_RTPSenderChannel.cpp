@@ -572,7 +572,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPSenderChannel::sendVideoFrame(const webrtc::VideoFrame& videoFrame)
+    void RTPSenderChannel::sendVideoFrame(VideoFramePtr videoFrame)
     {
       if (!mVideo) return;
       mVideo->sendVideoFrame(videoFrame);

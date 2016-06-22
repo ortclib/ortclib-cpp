@@ -306,7 +306,7 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void RTPSenderChannelVideo::sendVideoFrame(const webrtc::VideoFrame& videoFrame)
+    void RTPSenderChannelVideo::sendVideoFrame(VideoFramePtr videoFrame)
     {
       UseChannelResourcePtr channelResource;
 

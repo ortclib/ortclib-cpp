@@ -55,6 +55,10 @@
 
 #include <cryptopp/sha.h>
 
+#include <limits>
+#include <float.h>
+#include <math.h>
+
 #include <webrtc/base/timeutils.h>
 #include <webrtc/voice_engine/include/voe_codec.h>
 #include <webrtc/voice_engine/include/voe_rtp_rtcp.h>
@@ -63,6 +67,7 @@
 #include <webrtc/system_wrappers/include/cpu_info.h>
 #include <webrtc/webrtc/base/scoped_ptr.h>
 #include <webrtc/webrtc/voice_engine/include/voe_audio_processing.h>
+#include <webrtc/modules/video_capture/video_capture_factory.h>
 #ifdef WINRT
 #include <third_party/h264_winrt/h264_winrt_factory.h>
 #endif
@@ -336,18 +341,10 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    PromiseWithRTPMediaEngineDeviceResourcePtr IRTPMediaEngineForRTPReceiverChannelMediaBase::getDeviceResource(const char *deviceID)
-    {
-      auto singleton = RTPMediaEngineSingleton::singleton();
-      if (!singleton) return PromiseWithRTPMediaEngineDeviceResource::createRejected(IORTCForInternal::queueORTC());
-      return singleton->getEngineRegistration()->getRTPEngine()->getDeviceResource(deviceID);
-    }
-
-    //-------------------------------------------------------------------------
     PromiseWithRTPMediaEngineChannelResourcePtr IRTPMediaEngineForRTPReceiverChannelMediaBase::setupChannel(
                                                                                                             UseReceiverChannelMediaBasePtr channel,
                                                                                                             TransportPtr transport,
-                                                                                                            MediaStreamTrackPtr track,
+                                                                                                            UseMediaStreamTrackPtr track,
                                                                                                             ParametersPtr parameters,
                                                                                                             RTPPacketPtr packet
                                                                                                             )
@@ -384,18 +381,10 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    PromiseWithRTPMediaEngineDeviceResourcePtr IRTPMediaEngineForRTPSenderChannelMediaBase::getDeviceResource(const char *deviceID)
-    {
-      auto singleton = RTPMediaEngineSingleton::singleton();
-      if (!singleton) return PromiseWithRTPMediaEngineDeviceResource::createRejected(IORTCForInternal::queueORTC());
-      return singleton->getEngineRegistration()->getRTPEngine()->getDeviceResource(deviceID);
-    }
-
-    //-------------------------------------------------------------------------
     PromiseWithRTPMediaEngineChannelResourcePtr IRTPMediaEngineForRTPSenderChannelMediaBase::setupChannel(
                                                                                                           UseSenderChannelMediaBasePtr channel,
                                                                                                           TransportPtr transport,
-                                                                                                          MediaStreamTrackPtr track,
+                                                                                                          UseMediaStreamTrackPtr track,
                                                                                                           ParametersPtr parameters
                                                                                                           )
     {
@@ -417,11 +406,24 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    webrtc::VoiceEngine *IRTPMediaEngineForMediaStreamTrack::getVoiceEngine()
+    ElementPtr IRTPMediaEngineForMediaStreamTrack::toDebug(ForMediaStreamTrackPtr object)
+    {
+      if (!object) return ElementPtr();
+      return ZS_DYNAMIC_PTR_CAST(RTPMediaEngine, object)->toDebug();
+    }
+
+    //-------------------------------------------------------------------------
+    PromiseWithRTPMediaEnginePtr IRTPMediaEngineForMediaStreamTrack::create()
+    {
+      return RTPMediaEngine::createEnginePromise();
+    }
+
+    //-------------------------------------------------------------------------
+    PromiseWithRTPMediaEngineDeviceResourcePtr IRTPMediaEngineForMediaStreamTrack::setupDevice(UseMediaStreamTrackPtr track)
     {
       auto singleton = RTPMediaEngineSingleton::singleton();
-      if (!singleton) return NULL;
-      return singleton->getEngineRegistration()->getRTPEngine()->getVoiceEngine();
+      if (!singleton) return PromiseWithRTPMediaEngineDeviceResource::createRejected(IORTCForInternal::queueORTC());
+      return singleton->getEngineRegistration()->getRTPEngine()->setupDevice(track);
     }
 
     //-------------------------------------------------------------------------
@@ -550,6 +552,11 @@ namespace ortc
       return ZS_DYNAMIC_PTR_CAST(RTPMediaEngine, object);
     }
 
+    RTPMediaEnginePtr RTPMediaEngine::convert(ForChannelResourcePtr object)
+    {
+      return ZS_DYNAMIC_PTR_CAST(RTPMediaEngine, object);
+    }
+
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -648,27 +655,10 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    PromiseWithRTPMediaEngineDeviceResourcePtr RTPMediaEngine::getDeviceResource(const char *deviceID)
-    {
-      DeviceResourcePtr resource = DeviceResource::create(mRegistration.lock(), deviceID);
-
-      {
-        AutoRecursiveLock lock(*this);
-        mExampleDeviceResources[resource->getID()] = resource;
-        mExamplePendingDeviceResources.push_back(resource);
-      }
-
-      // invoke "step" mechanism asynchronously to do something with this resource...
-      IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
-
-      return resource->createPromise<IRTPMediaEngineDeviceResource>();
-    }
-
-    //-------------------------------------------------------------------------
     PromiseWithRTPMediaEngineChannelResourcePtr RTPMediaEngine::setupChannel(
                                                                              UseReceiverChannelMediaBasePtr channel,
                                                                              TransportPtr transport,
-                                                                             MediaStreamTrackPtr track,
+                                                                             UseMediaStreamTrackPtr track,
                                                                              ParametersPtr parameters,
                                                                              RTPPacketPtr packet
                                                                              )
@@ -744,7 +734,7 @@ namespace ortc
     PromiseWithRTPMediaEngineChannelResourcePtr RTPMediaEngine::setupChannel(
                                                                              UseSenderChannelMediaBasePtr channel,
                                                                              TransportPtr transport,
-                                                                             MediaStreamTrackPtr track,
+                                                                             UseMediaStreamTrackPtr track,
                                                                              ParametersPtr parameters
                                                                              )
     {
@@ -805,6 +795,27 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
+    PromiseWithRTPMediaEngineDeviceResourcePtr RTPMediaEngine::setupDevice(UseMediaStreamTrackPtr track)
+    {
+      PromiseWithRTPMediaEngineDeviceResourcePtr promise;
+
+      {
+        AutoRecursiveLock lock(*this);
+        DeviceResourcePtr resource = DeviceResource::create(
+                                                            mRegistration.lock(),
+                                                            track
+                                                            );
+        promise = resource->createPromise<IRTPMediaEngineDeviceResource>();
+        mDeviceResources[resource->getID()] = resource;
+        mPendingSetupDeviceResources.push_back(resource);
+      }
+
+      IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
+
+      return promise;
+    }
+
+    //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -813,17 +824,15 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void RTPMediaEngine::notifyResourceGone(IRTPMediaEngineDeviceResource &inResource)
+    void RTPMediaEngine::notifyResourceGone(IDeviceResourceForRTPMediaEngine &inResource)
     {
-      DeviceResource &resource = dynamic_cast<DeviceResource &>(inResource);
-
-      PUID resourceID = resource.getID();
+      PUID resourceID = inResource.getID();
 
       AutoRecursiveLock lock(*this);
 
-      auto found = mExampleDeviceResources.find(resourceID);
-      if (found != mExampleDeviceResources.end()) {
-        mExampleDeviceResources.erase(found);
+      auto found = mDeviceResources.find(resourceID);
+      if (found != mDeviceResources.end()) {
+        mDeviceResources.erase(found);
       }
 
       // invoke "step" mechanism again
@@ -914,6 +923,24 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
+    #pragma mark RTPMediaEngine => (friend DeviceResource)
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::shutdownDeviceResource(DeviceResourcePtr deviceResource)
+    {
+      {
+        AutoRecursiveLock lock(*this);
+        mPendingCloseDeviceResources.push_back(deviceResource);
+      }
+      IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
     #pragma mark RTPMediaEngine => (friend ChannelResource)
     #pragma mark
 
@@ -970,8 +997,9 @@ namespace ortc
 
       UseServicesHelper::debugAppend(resultEl, "pending ready", mPendingReady.size());
 
-      UseServicesHelper::debugAppend(resultEl, "device resources", mExampleDeviceResources.size());
-      UseServicesHelper::debugAppend(resultEl, "pending device resources", mExamplePendingDeviceResources.size());
+      UseServicesHelper::debugAppend(resultEl, "device resources", mDeviceResources.size());
+      UseServicesHelper::debugAppend(resultEl, "pending setup device resources", mPendingSetupDeviceResources.size());
+      UseServicesHelper::debugAppend(resultEl, "pending close device resources", mPendingCloseDeviceResources.size());
 
       UseServicesHelper::debugAppend(resultEl, "channel resources", mChannelResources.size());
       UseServicesHelper::debugAppend(resultEl, "pending setup channel resources", mPendingSetupChannelResources.size());
@@ -1034,7 +1062,7 @@ namespace ortc
 
       // ... other steps here ...
       if (!stepSetup()) goto not_ready;
-      if (!stepExampleSetupDeviceResources()) goto not_ready;
+      if (!stepSetupDevices()) goto not_ready;
       if (!stepSetupChannels()) goto not_ready;
       if (!stepCloseChannels()) goto not_ready;
       // ... other steps here ...
@@ -1101,19 +1129,28 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool RTPMediaEngine::stepExampleSetupDeviceResources()
+    bool RTPMediaEngine::stepSetupDevices()
     {
-      while (mExamplePendingDeviceResources.size() > 0) {
-        auto deviceResource = mExamplePendingDeviceResources.front().lock();
+      while (mPendingSetupDeviceResources.size() > 0) {
+        auto deviceResource = mPendingSetupDeviceResources.front();
 
-        if (deviceResource) {
-          // Only remember WEAK pointer to device so it's possible the example
-          // device resource was already destroyed. Thus only setup the device
-          // if the object is still alive.
-          deviceResource->notifyPromisesResolve();
-        }
+        deviceResource->stepSetup();
 
-        mExamplePendingDeviceResources.pop_front();
+        mPendingSetupDeviceResources.pop_front();
+      }
+
+      return true;
+    }
+
+    //-------------------------------------------------------------------------
+    bool RTPMediaEngine::stepCloseDevices()
+    {
+      while (mPendingCloseDeviceResources.size() > 0) {
+        auto deviceResource = mPendingCloseDeviceResources.front();
+
+        deviceResource->stepShutdown();
+
+        mPendingCloseDeviceResources.pop_front();
       }
 
       return true;
@@ -1478,10 +1515,10 @@ namespace ortc
     RTPMediaEngine::DeviceResource::DeviceResource(
                                                    const make_private &priv,
                                                    IRTPMediaEngineRegistrationPtr registration,
-                                                   const char *deviceID
+                                                   UseMediaStreamTrackPtr track
                                                    ) :
       BaseResource(priv, registration, registration ? registration->getRTPEngine() : RTPMediaEnginePtr()),
-      mDeviceID(deviceID)
+      mTrack(track)
     {
     }
 
@@ -1500,21 +1537,33 @@ namespace ortc
     //-------------------------------------------------------------------------
     RTPMediaEngine::DeviceResourcePtr RTPMediaEngine::DeviceResource::create(
                                                                              IRTPMediaEngineRegistrationPtr registration,
-                                                                             const char *deviceID
+                                                                             UseMediaStreamTrackPtr track
                                                                              )
     {
-      auto pThis = make_shared<DeviceResource>(make_private{}, registration, deviceID);
+      auto pThis = make_shared<DeviceResource>(
+                                               make_private{},
+                                               registration,
+                                               track
+                                               );
       pThis->mThisWeak = pThis;
       pThis->init();
       return pThis;
     }
 
     //-------------------------------------------------------------------------
+    void RTPMediaEngine::DeviceResource::lifetimeHolderGone()
+    {
+      auto shutdownPromise = shutdown();
+      if (shutdownPromise) {
+        // don't really care about result
+        shutdownPromise->then(IPromiseDelegateProxy::createNoop(IORTCForInternal::queueBlockingMediaStartStopThread()));
+        shutdownPromise->background();
+      }
+    }
+
+    //-------------------------------------------------------------------------
     void RTPMediaEngine::DeviceResource::init()
     {
-      DeviceResourcePtr pThis = getThis<DeviceResource>();  // example of how to get pThis from base class
-#define EXAMPLE_OF_HOW_TO_DO_CUSTOM_RESOURC_SETUP_STEP 1
-#define EXAMPLE_OF_HOW_TO_DO_CUSTOM_RESOURC_SETUP_STEP 2
     }
 
     //-------------------------------------------------------------------------
@@ -1528,11 +1577,653 @@ namespace ortc
     //-------------------------------------------------------------------------
     String RTPMediaEngine::DeviceResource::getDeviceID() const
     {
-#define EXAMPLE_OF_HOW_TO_EXPOSE_API_TO_CONSUMER_OF_RESOURCE 1
-#define EXAMPLE_OF_HOW_TO_EXPOSE_API_TO_CONSUMER_OF_RESOURCE 2
       return mDeviceID;
     }
 
+    //-------------------------------------------------------------------------
+    PromisePtr RTPMediaEngine::DeviceResource::shutdown()
+    {
+      PromisePtr promise = getShutdownPromise();
+      if (isShutdown()) return promise;
+      if (mShuttingDown) return promise;
+
+      mShuttingDown = true;
+
+      auto outer = mMediaEngine.lock();
+      if (outer) {
+        outer->shutdownDeviceResource(ZS_DYNAMIC_PTR_CAST(DeviceResource, mThisWeak.lock()));
+      } else {
+        stepShutdown();
+      }
+      return promise;
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::DeviceResource::stop()
+    {
+      AutoRecursiveLock lock(*this);
+
+      if (mVideoCaptureModule) {
+        mVideoCaptureModule->StopCapture();
+        mVideoCaptureModule->DeRegisterCaptureDataCallback();
+      }
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::DeviceResource::notifyUpdate(TrackConstraintsPtr constraints)
+    {
+      auto pThis = ZS_DYNAMIC_PTR_CAST(DeviceResource, mThisWeak.lock());
+      IRTPMediaEngineDeviceResourceAsyncDelegateProxy::create(pThis)->onUpdate(constraints);
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::DeviceResource::requestStats(PromiseWithStatsReportPtr promise, const StatsTypeSet &stats)
+    {
+      auto pThis = ZS_DYNAMIC_PTR_CAST(DeviceResource, mThisWeak.lock());
+      IRTPMediaEngineDeviceResourceAsyncDelegateProxy::create(pThis)->onProvideStats(promise, stats);
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::DeviceResource::setVideoRenderCallback(IMediaStreamTrackRenderCallbackPtr callback)
+    {
+      AutoRecursiveLock lock(*this);
+
+      if (mTrack->kind() == Kinds::Kind_Video) {
+        mVideoRenderCallbackReferenceHolder = callback;
+        mVideoRendererCallback = dynamic_cast<webrtc::VideoRenderCallback*>(callback.get());
+      }
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::DeviceResource::renderVideoFrame(VideoFramePtr videoFrame)
+    {
+      ++mFramesReceived;
+
+      AutoRecursiveLock lock(*this);
+
+      if (mVideoRendererCallback) {
+        mVideoRendererCallback->RenderFrame(1, *videoFrame);
+      }
+
+      auto settings = mTrack->getSettings();
+      if (NULL == settings) {
+        return;
+      }
+
+      if (!settings->mWidth.hasValue() || (settings->mWidth != videoFrame->width()))
+        settings->mWidth = videoFrame->width();
+      if (!settings->mHeight.hasValue() || (settings->mHeight != videoFrame->height()))
+        settings->mHeight = videoFrame->height();
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::DeviceResource::setFrameCount()
+    {
+      AutoRecursiveLock lock(*this);
+
+      if (mFramesSent > 5) {
+        mAverageFramesSent += mFramesSent;
+      }
+      if (mFramesReceived > 5) {
+        mAverageFramesReceived += mFramesReceived;
+      }
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPMediaEngine::DeviceResource => IRTPMediaEngineDeviceResourceAsyncDelegate
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::DeviceResource::onUpdate(TrackConstraintsPtr constraints)
+    {
+      AutoRecursiveLock lock(*this);
+
+      auto settings = mTrack->getSettings();
+      if (NULL == settings) {
+        return;
+      }
+
+      if (mTrack->kind() == Kinds::Kind_Audio && mTrack->remote()) {
+
+        mDeviceID = constraints->mAdvanced.front()->mDeviceID.mValue.value().mValue.value();
+
+        auto engine = mMediaEngine.lock();
+        if (!engine) return;
+
+        auto voiceEngine = engine->getVoiceEngine();
+        if (!voiceEngine) return;
+
+        int audioDeviceIndex = getAudioDeviceIndex(voiceEngine, mDeviceID);
+
+        if (webrtc::VoEHardware::GetInterface(voiceEngine)->SetPlayoutDevice(audioDeviceIndex) == -1) {
+          return;
+        }
+
+        settings->mDeviceID = mDeviceID;
+      }
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::DeviceResource::onProvideStats(PromiseWithStatsReportPtr promise, IStatsReportTypes::StatsTypeSet stats)
+    {
+      AutoRecursiveLock lock(*this);
+
+      UseStatsReport::StatMap reportStats;
+
+      auto settings = mTrack->getSettings();
+      if (NULL == settings) {
+        return;
+      }
+
+      if (stats.hasStatType(IStatsReportTypes::StatsTypes::StatsType_Track)) {
+
+        auto report = make_shared<IStatsReport::MediaStreamTrackStats>();
+
+        decltype(report->mFramesPerSecond) framesPerSecond{};
+
+        if (!mTrack->remote())
+          framesPerSecond = mAverageFramesSent.value<decltype(framesPerSecond)>();
+        else
+          framesPerSecond = mAverageFramesReceived.value<decltype(framesPerSecond)>();
+
+        report->mID = mTrack->id();
+
+        report->mTrackID = mTrack->id();
+        report->mRemoteSource = mTrack->remote();
+        report->mFrameWidth = settings->mWidth.hasValue() ? settings->mWidth : 0;
+        report->mFrameHeight = settings->mHeight.hasValue() ? settings->mHeight : 0;
+        report->mFramesPerSecond = framesPerSecond;
+        report->mFramesSent = mFramesSent;
+        report->mFramesReceived = mFramesReceived;
+        report->mAudioLevel = 0.0;
+
+        reportStats[report->mID] = report;
+      }
+
+      promise->resolve(UseStatsReport::create(reportStats));
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::DeviceResource::onCapturedVideoFrame(VideoFramePtr frame)
+    {
+      UseMediaStreamTrackPtr track;
+
+      {
+        AutoRecursiveLock lock(*this);
+
+        if (mVideoRendererCallback) mVideoRendererCallback->RenderFrame(1, *frame);
+
+        track = mTrack;
+      }
+
+      if (!track) return;
+
+      track->sendCapturedVideoFrame(frame);
+      ++mFramesSent;
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPMediaEngine::DeviceResource => friend RTPMediaEngine
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::DeviceResource::stepSetup()
+    {
+      AutoRecursiveLock lock(*this);
+
+      auto pThis = ZS_DYNAMIC_PTR_CAST(DeviceResource, mThisWeak.lock());
+
+      auto settings = mTrack->getSettings();
+      if (NULL == settings) {
+        notifyPromisesReject();
+        return;
+      }
+
+      auto constraints = mTrack->getConstraints();
+      if (NULL == constraints) {
+        notifyPromisesReject();
+        return;
+      }
+
+      mTransport = VideoCaptureTransport::create(pThis);
+
+      if (mTrack->kind() == Kinds::Kind_Video && !mTrack->remote()) {
+        mDeviceID = constraints->mAdvanced.front()->mDeviceID.mValue.value().mValue.value();
+        mVideoCaptureModule = webrtc::VideoCaptureFactory::Create(0, mDeviceID.c_str());
+        if (!mVideoCaptureModule) {
+          return;
+        }
+
+        mVideoCaptureModule->AddRef();
+
+        mVideoCaptureModule->RegisterCaptureDataCallback(*mTransport);
+
+        webrtc::VideoCaptureModule::DeviceInfo* info = webrtc::VideoCaptureFactory::CreateDeviceInfo(0);
+        if (!info) {
+          return;
+        }
+
+        std::list<VideoCaptureCapabilityWithDistance> capabilityCandidates;
+        int32_t numCapabilities = info->NumberOfCapabilities(mDeviceID.c_str());
+        for (INT i = 0; i < numCapabilities; ++i) {
+          webrtc::VideoCaptureCapability capability;
+          if (info->GetCapability(mDeviceID.c_str(), i, capability) == -1)
+            continue;
+          ConstrainLongRange widthRange;
+          ConstrainLongRange heightRange;
+          if (constraints->mWidth.mValue.hasValue())
+            widthRange.mIdeal = constraints->mWidth.mValue.value();
+          if (constraints->mHeight.mValue.hasValue())
+            heightRange.mIdeal = constraints->mHeight.mValue.value();
+          if (constraints->mWidth.mRange.hasValue())
+            widthRange = constraints->mWidth.mRange;
+          if (constraints->mHeight.mRange.hasValue())
+            heightRange = constraints->mHeight.mRange;
+          FLOAT sizeDistance = calculateSizeDistance(widthRange, heightRange, capability);
+          if (sizeDistance == FLT_MAX)
+            continue;
+          ConstrainDoubleRange frameRateRange;
+          if (constraints->mFrameRate.mValue.hasValue())
+            frameRateRange.mIdeal = constraints->mFrameRate.mValue.value();
+          if (constraints->mFrameRate.mRange.hasValue())
+            frameRateRange = constraints->mFrameRate.mRange;
+          FLOAT frameRateDistance = calculateFrameRateDistance(frameRateRange, capability);
+          if (frameRateDistance == FLT_MAX)
+            continue;
+          ConstrainDoubleRange aspectRatioRange;
+          if (constraints->mAspectRatio.mValue.hasValue())
+            aspectRatioRange.mIdeal = constraints->mAspectRatio.mValue.value();
+          if (constraints->mAspectRatio.mRange.hasValue())
+            aspectRatioRange = constraints->mAspectRatio.mRange;
+          FLOAT aspectRatioDistance = calculateAspectRatioDistance(aspectRatioRange, capability);
+          if (aspectRatioDistance == FLT_MAX)
+            continue;
+          FLOAT formatDistance = calculateFormatDistance(capability);
+          FLOAT totalDistance = 200.0F * sizeDistance + 20.0F * frameRateDistance + 10.0F * aspectRatioDistance + formatDistance;
+          VideoCaptureCapabilityWithDistance capabilityWithDistance;
+          capabilityWithDistance.mCapability = capability;
+          capabilityWithDistance.mDistance = totalDistance;
+          capabilityCandidates.push_back(capabilityWithDistance);
+        }
+        delete info;
+
+        std::list<VideoCaptureCapabilityWithDistance> advancedCapabilityCandidates;
+        std::list<ConstraintSetPtr>::iterator constraintsIter = constraints->mAdvanced.begin();
+        while (constraintsIter != constraints->mAdvanced.end()) {
+          std::list<VideoCaptureCapabilityWithDistance>::iterator capabilityCandidatesIter = capabilityCandidates.begin();
+          while (capabilityCandidatesIter != capabilityCandidates.end()) {
+            ConstrainLongRange widthRange;
+            ConstrainLongRange heightRange;
+            if ((*constraintsIter)->mWidth.mValue.hasValue())
+              widthRange.mExact = (*constraintsIter)->mWidth.mValue.value();
+            if ((*constraintsIter)->mHeight.mValue.hasValue())
+              heightRange.mExact = (*constraintsIter)->mHeight.mValue.value();
+            if ((*constraintsIter)->mWidth.mRange.hasValue())
+              widthRange = (*constraintsIter)->mWidth.mRange;
+            if ((*constraintsIter)->mHeight.mRange.hasValue())
+              heightRange = (*constraintsIter)->mHeight.mRange;
+            FLOAT sizeDistance = calculateSizeDistance(widthRange, heightRange, capabilityCandidatesIter->mCapability);
+            if (sizeDistance == FLT_MAX) {
+              capabilityCandidatesIter++;
+              continue;
+            }
+            ConstrainDoubleRange frameRateRange;
+            if ((*constraintsIter)->mFrameRate.mValue.hasValue())
+              frameRateRange.mExact = (*constraintsIter)->mFrameRate.mValue.value();
+            if ((*constraintsIter)->mFrameRate.mRange.hasValue())
+              frameRateRange = (*constraintsIter)->mFrameRate.mRange;
+            FLOAT frameRateDistance = calculateFrameRateDistance(frameRateRange, capabilityCandidatesIter->mCapability);
+            if (frameRateDistance == FLT_MAX) {
+              capabilityCandidatesIter++;
+              continue;
+            }
+            ConstrainDoubleRange aspectRatioRange;
+            if ((*constraintsIter)->mAspectRatio.mValue.hasValue())
+              aspectRatioRange.mExact = (*constraintsIter)->mAspectRatio.mValue.value();
+            if ((*constraintsIter)->mAspectRatio.mRange.hasValue())
+              aspectRatioRange = (*constraintsIter)->mAspectRatio.mRange;
+            FLOAT aspectRatioDistance = calculateAspectRatioDistance(aspectRatioRange, capabilityCandidatesIter->mCapability);
+            if (aspectRatioDistance == FLT_MAX) {
+              capabilityCandidatesIter++;
+              continue;
+            }
+            FLOAT formatDistance = calculateFormatDistance(capabilityCandidatesIter->mCapability);
+            FLOAT totalDistance = 200.0F * sizeDistance + 20.0F * frameRateDistance + 10.0F * aspectRatioDistance + formatDistance;
+            VideoCaptureCapabilityWithDistance capabilityWithDistance;
+            capabilityWithDistance.mCapability = capabilityCandidatesIter->mCapability;
+            capabilityWithDistance.mDistance = totalDistance;
+            advancedCapabilityCandidates.push_back(capabilityWithDistance);
+            capabilityCandidatesIter++;
+          }
+          if (advancedCapabilityCandidates.size() > 0)
+            break;
+          constraintsIter++;
+        }
+
+        FLOAT bestDistance = FLT_MAX;
+        webrtc::VideoCaptureCapability bestCapability;
+        if (advancedCapabilityCandidates.size() > 0) {
+          std::list<VideoCaptureCapabilityWithDistance>::iterator advancedCapabilityCandidatesIter = advancedCapabilityCandidates.begin();
+          while (advancedCapabilityCandidatesIter != advancedCapabilityCandidates.end()) {
+            if (advancedCapabilityCandidatesIter->mDistance <= bestDistance) {
+              bestDistance = advancedCapabilityCandidatesIter->mDistance;
+              bestCapability = advancedCapabilityCandidatesIter->mCapability;
+            }
+            advancedCapabilityCandidatesIter++;
+          }
+        } else if (advancedCapabilityCandidates.size() > 0) {
+          std::list<VideoCaptureCapabilityWithDistance>::iterator capabilityCandidatesIter = capabilityCandidates.begin();
+          while (capabilityCandidatesIter != capabilityCandidates.end()) {
+            if (capabilityCandidatesIter->mDistance <= bestDistance) {
+              bestDistance = capabilityCandidatesIter->mDistance;
+              bestCapability = capabilityCandidatesIter->mCapability;
+            }
+            capabilityCandidatesIter++;
+          }
+        }
+
+        if (bestDistance == FLT_MAX)
+          return;
+
+        settings->mWidth = bestCapability.width;
+        settings->mHeight = bestCapability.height;
+        settings->mFrameRate = bestCapability.maxFPS;
+        settings->mDeviceID = mDeviceID;
+
+        if (mVideoCaptureModule->StartCapture(bestCapability) != 0) {
+          mVideoCaptureModule->DeRegisterCaptureDataCallback();
+          return;
+        }
+      } else if (mTrack->kind() == Kinds::Kind_Audio && !mTrack->remote()) {
+
+        mDeviceID = constraints->mAdvanced.front()->mDeviceID.mValue.value().mValue.value();
+
+        auto engine = mMediaEngine.lock();
+        if (!engine) return;
+
+        auto voiceEngine = engine->getVoiceEngine();
+        if (!voiceEngine) return;
+
+        int audioDeviceIndex = getAudioDeviceIndex(voiceEngine, mDeviceID);
+
+        if (webrtc::VoEHardware::GetInterface(voiceEngine)->SetRecordingDevice(audioDeviceIndex) == -1) {
+          return;
+        }
+
+        settings->mDeviceID = mDeviceID;
+      }
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::DeviceResource::stepShutdown()
+    {
+      mDenyNonLockedAccess = true;
+
+      // rare race condition that can happen so
+      while (mAccessFromNonLockedMethods > 0)
+      {
+        // NOTE: very temporary lock so should clear itself out fast
+        std::this_thread::yield();
+      }
+
+      AutoRecursiveLock lock(*this);
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPMediaEngine::DeviceResource => (internal friend derived)
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::DeviceResource::notifyPromisesShutdown()
+    {
+      AutoRecursiveLock lock(*this);
+
+      mShutdown = true;
+      mShuttingDown = false;
+
+      for (auto iter = mShutdownPromises.begin(); iter != mShutdownPromises.end(); ++iter) {
+        auto promise = (*iter);
+        promise->resolve();
+      }
+      mShutdownPromises.clear();
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPMediaEngine::DeviceResource => friend VideoCaptureTransport
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::DeviceResource::OnIncomingCapturedFrame(const int32_t id, const webrtc::VideoFrame& videoFrame)
+    {
+      auto newFrame = make_shared<VideoFrame>();
+      newFrame->ShallowCopy(videoFrame);
+
+      auto pThis = ZS_DYNAMIC_PTR_CAST(DeviceResource, mThisWeak.lock());
+
+      IRTPMediaEngineDeviceResourceAsyncDelegateProxy::create(pThis)->onCapturedVideoFrame(newFrame);
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::DeviceResource::OnCaptureDelayChanged(const int32_t id, const int32_t delay)
+    {
+#define TODO 1
+#define TODO 2
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPMediaEngine::DeviceResource::VideoCaptureTransport
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    RTPMediaEngine::DeviceResource::VideoCaptureTransport::VideoCaptureTransport(
+                                                                                 const make_private &,
+                                                                                 DeviceResourcePtr outer
+                                                                                 ) :
+      mOuter(outer)
+    {
+    }
+
+    //-------------------------------------------------------------------------
+    RTPMediaEngine::DeviceResource::VideoCaptureTransport::~VideoCaptureTransport()
+    {
+      mThisWeak.reset();
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::DeviceResource::VideoCaptureTransport::init()
+    {
+    }
+
+    //-------------------------------------------------------------------------
+    RTPMediaEngine::DeviceResource::VideoCaptureTransportPtr RTPMediaEngine::DeviceResource::VideoCaptureTransport::create(DeviceResourcePtr outer)
+    {
+      VideoCaptureTransportPtr pThis(make_shared<VideoCaptureTransport>(make_private{}, outer));
+      pThis->mThisWeak = pThis;
+      pThis->init();
+      return pThis;
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPMediaEngine::DeviceResource::Transport => webrtc::VideoCaptureDataCallback
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::DeviceResource::VideoCaptureTransport::OnIncomingCapturedFrame(const int32_t id, const webrtc::VideoFrame& videoFrame)
+    {
+      auto outer = mOuter.lock();
+      if (!outer) return;
+      return outer->OnIncomingCapturedFrame(id, videoFrame);
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::DeviceResource::VideoCaptureTransport::OnCaptureDelayChanged(const int32_t id, const int32_t delay)
+    {
+      auto outer = mOuter.lock();
+      if (!outer) return;
+      return outer->OnCaptureDelayChanged(id, delay);
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPMediaEngine::DeviceResource => (internal)
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    PromisePtr RTPMediaEngine::DeviceResource::getShutdownPromise()
+    {
+      if (isShutdown()) {
+        return Promise::createResolved(delegateQueue());
+      }
+      PromisePtr promise = Promise::create(delegateQueue());
+      mShutdownPromises.push_back(promise);
+      return promise;
+    }
+
+    int RTPMediaEngine::DeviceResource::getAudioDeviceIndex(webrtc::VoiceEngine *voiceEngine, String deviceID)
+    {
+      int devices;
+      if (webrtc::VoEHardware::GetInterface(voiceEngine)->GetNumOfRecordingDevices(devices) != 0) {
+        return -1;
+      }
+      int index = -1;
+      char deviceName[128];
+      char deviceUniqueId[128];
+      for (int i = 0; i < devices; i++) {
+        webrtc::VoEHardware::GetInterface(voiceEngine)->GetRecordingDeviceName(i, deviceName, deviceUniqueId);
+        if (0 == String(deviceUniqueId).compareNoCase(deviceID)) {
+          index = i;
+          break;
+        }
+      }
+      return index;
+    }
+
+    //-------------------------------------------------------------------------
+    FLOAT RTPMediaEngine::DeviceResource::calculateSizeDistance(
+                                                                ConstrainLongRange width,
+                                                                ConstrainLongRange height,
+                                                                webrtc::VideoCaptureCapability capability
+                                                                )
+    {
+      if (width.mMin.hasValue() && width.mMin.value() > capability.width)
+        return FLT_MAX;
+      if (width.mMax.hasValue() && width.mMax.value() < capability.width)
+        return FLT_MAX;
+      if (width.mExact.hasValue() && width.mExact.value() != capability.width)
+        return FLT_MAX;
+      FLOAT withDistance = 0.0F;
+      if (width.mIdeal.hasValue() && width.mIdeal.value() != capability.width) {
+        withDistance = (FLOAT)(abs((int)(capability.width - width.mIdeal.value()))) / (FLOAT)width.mIdeal.value();
+      }
+
+      if (height.mMin.hasValue() && height.mMin.value() > capability.height)
+        return FLT_MAX;
+      if (height.mMax.hasValue() && height.mMax.value() < capability.height)
+        return FLT_MAX;
+      if (height.mExact.hasValue() && height.mExact.value() != capability.height)
+        return FLT_MAX;
+      FLOAT heightDistance = 0.0F;
+      if (height.mIdeal.hasValue() && height.mIdeal.value() != capability.height) {
+        heightDistance = (FLOAT)(abs((int)(capability.height - height.mIdeal.value()))) / (FLOAT)height.mIdeal.value();
+      }
+
+
+      return withDistance + heightDistance;
+    }
+
+    //-------------------------------------------------------------------------
+    FLOAT RTPMediaEngine::DeviceResource::calculateFrameRateDistance(
+                                                                     ConstrainDoubleRange frameRate,
+                                                                     webrtc::VideoCaptureCapability capability
+                                                                     )
+    {
+      if (frameRate.mMin.hasValue() && frameRate.mMin.value() > (DOUBLE)capability.maxFPS)
+        return FLT_MAX;
+      if (frameRate.mMax.hasValue() && frameRate.mMax.value() < (DOUBLE)capability.maxFPS)
+        return FLT_MAX;
+      if (frameRate.mExact.hasValue() && fabs(frameRate.mExact.value() - (DOUBLE)capability.maxFPS) > 0.01F)
+        return FLT_MAX;
+      FLOAT frameRateDistance = 0.0F;
+      if (frameRate.mIdeal.hasValue() && fabs(frameRate.mExact.value() - (DOUBLE)capability.maxFPS) > 0.01F) {
+        frameRateDistance = (FLOAT)(abs((int)(capability.maxFPS - frameRate.mIdeal.value()))) / (FLOAT)frameRate.mIdeal.value();
+      }
+
+      return frameRateDistance;
+    }
+
+    //-------------------------------------------------------------------------
+    FLOAT RTPMediaEngine::DeviceResource::calculateAspectRatioDistance(
+                                                                       ConstrainDoubleRange aspectRatio,
+                                                                       webrtc::VideoCaptureCapability capability
+                                                                       )
+    {
+      DOUBLE capabilityAspectRatio = (DOUBLE)capability.width / (DOUBLE)capability.height;
+
+      if (aspectRatio.mMin.hasValue() && aspectRatio.mMin.value() > capabilityAspectRatio)
+        return FLT_MAX;
+      if (aspectRatio.mMax.hasValue() && aspectRatio.mMax.value() < capabilityAspectRatio)
+        return FLT_MAX;
+      if (aspectRatio.mExact.hasValue() && fabs(aspectRatio.mExact.value() - capabilityAspectRatio) > 0.001F)
+        return FLT_MAX;
+      FLOAT aspectRatioDistance = 0.0F;
+      if (aspectRatio.mIdeal.hasValue() && fabs(aspectRatio.mIdeal.value() - capabilityAspectRatio) > 0.001F) {
+        aspectRatioDistance = (capabilityAspectRatio - aspectRatio.mIdeal.value()) / aspectRatio.mIdeal.value();
+      }
+
+      return aspectRatioDistance;
+    }
+
+    //-------------------------------------------------------------------------
+    FLOAT RTPMediaEngine::DeviceResource::calculateFormatDistance(webrtc::VideoCaptureCapability capability)
+    {
+      switch (capability.rawType) {
+      case webrtc::kVideoI420:
+      case webrtc::kVideoYV12:
+      case webrtc::kVideoYUY2:
+      case webrtc::kVideoUYVY:
+      case webrtc::kVideoIYUV:
+      case webrtc::kVideoARGB:
+      case webrtc::kVideoRGB24:
+      case webrtc::kVideoRGB565:
+      case webrtc::kVideoARGB4444:
+      case webrtc::kVideoARGB1555:
+      case webrtc::kVideoNV12:
+      case webrtc::kVideoNV21:
+      case webrtc::kVideoBGRA:
+        return 0.0F;
+      case webrtc::kVideoMJPEG:
+        return 1.0F;
+      default:
+        return FLT_MAX;
+      }
+    }
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -1638,8 +2329,7 @@ namespace ortc
       mShutdown = true;
       mShuttingDown = false;
 
-      for (auto iter = mShutdownPromises.begin(); iter != mShutdownPromises.end(); ++iter)
-      {
+      for (auto iter = mShutdownPromises.begin(); iter != mShutdownPromises.end(); ++iter) {
         auto promise = (*iter);
         promise->resolve();
       }
@@ -1678,7 +2368,7 @@ namespace ortc
                                                                                const make_private &priv,
                                                                                IRTPMediaEngineRegistrationPtr registration,
                                                                                TransportPtr transport,
-                                                                               MediaStreamTrackPtr track,
+                                                                               UseMediaStreamTrackPtr track,
                                                                                ParametersPtr parameters,
                                                                                RTPPacketPtr packet
                                                                                ) :
@@ -1700,7 +2390,7 @@ namespace ortc
     RTPMediaEngine::AudioReceiverChannelResourcePtr RTPMediaEngine::AudioReceiverChannelResource::create(
                                                                                                          IRTPMediaEngineRegistrationPtr registration,
                                                                                                          TransportPtr transport,
-                                                                                                         MediaStreamTrackPtr track,
+                                                                                                         UseMediaStreamTrackPtr track,
                                                                                                          ParametersPtr parameters,
                                                                                                          RTPPacketPtr packet  
                                                                                                          )
@@ -2200,7 +2890,7 @@ namespace ortc
                                                                            const make_private &priv,
                                                                            IRTPMediaEngineRegistrationPtr registration,
                                                                            TransportPtr transport,
-                                                                           MediaStreamTrackPtr track,
+                                                                           UseMediaStreamTrackPtr track,
                                                                            ParametersPtr parameters
                                                                            ) :
       ChannelResource(priv, registration),
@@ -2220,7 +2910,7 @@ namespace ortc
     RTPMediaEngine::AudioSenderChannelResourcePtr RTPMediaEngine::AudioSenderChannelResource::create(
                                                                                                      IRTPMediaEngineRegistrationPtr registration,
                                                                                                      TransportPtr transport,
-                                                                                                     MediaStreamTrackPtr track,
+                                                                                                     UseMediaStreamTrackPtr track,
                                                                                                      ParametersPtr parameters
                                                                                                      )
     {
@@ -2678,9 +3368,12 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPMediaEngine::VideoReceiverChannelResource::ReceiverVideoRenderer::RenderFrame(const webrtc::VideoFrame& video_frame, int time_to_render_ms)
+    void RTPMediaEngine::VideoReceiverChannelResource::ReceiverVideoRenderer::RenderFrame(const webrtc::VideoFrame &videoFrame, int timeToRenderMs)
     {
-      mVideoTrack->renderVideoFrame(video_frame);
+      auto frameCopy = make_shared<webrtc::VideoFrame>();
+      frameCopy->ShallowCopy(videoFrame);
+
+      mVideoTrack->renderVideoFrame(frameCopy);
     }
 
     //-------------------------------------------------------------------------
@@ -2702,7 +3395,7 @@ namespace ortc
                                                                                const make_private &priv,
                                                                                IRTPMediaEngineRegistrationPtr registration,
                                                                                TransportPtr transport,
-                                                                               MediaStreamTrackPtr track,
+                                                                               UseMediaStreamTrackPtr track,
                                                                                ParametersPtr parameters,
                                                                                RTPPacketPtr packet
                                                                                ) :
@@ -2724,7 +3417,7 @@ namespace ortc
     RTPMediaEngine::VideoReceiverChannelResourcePtr RTPMediaEngine::VideoReceiverChannelResource::create(
                                                                                                          IRTPMediaEngineRegistrationPtr registration,
                                                                                                          TransportPtr transport,
-                                                                                                         MediaStreamTrackPtr track,
+                                                                                                         UseMediaStreamTrackPtr track,
                                                                                                          ParametersPtr parameters,
                                                                                                          RTPPacketPtr packet
                                                                                                          )
@@ -3199,7 +3892,7 @@ namespace ortc
                                                                            const make_private &priv,
                                                                            IRTPMediaEngineRegistrationPtr registration,
                                                                            TransportPtr transport,
-                                                                           MediaStreamTrackPtr track,
+                                                                           UseMediaStreamTrackPtr track,
                                                                            ParametersPtr parameters
                                                                            ) :
       ChannelResource(priv, registration),
@@ -3219,7 +3912,7 @@ namespace ortc
     RTPMediaEngine::VideoSenderChannelResourcePtr RTPMediaEngine::VideoSenderChannelResource::create(
                                                                                                      IRTPMediaEngineRegistrationPtr registration,
                                                                                                      TransportPtr transport,
-                                                                                                     MediaStreamTrackPtr track,
+                                                                                                     UseMediaStreamTrackPtr track,
                                                                                                      ParametersPtr parameters
                                                                                                      )
     {
@@ -3379,12 +4072,9 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPMediaEngine::VideoSenderChannelResource::sendVideoFrame(const webrtc::VideoFrame& videoFrame)
+    void RTPMediaEngine::VideoSenderChannelResource::sendVideoFrame(VideoFramePtr videoFrame)
     {
-      auto frameCopy = make_shared<webrtc::VideoFrame>();
-      frameCopy->ShallowCopy(videoFrame);
-
-      IRTPMediaEngineHandlePacketAsyncDelegateProxy::createUsingQueue(mHandlePacketQueue, getThis<VideoSenderChannelResource>())->onSendVideoFrame(frameCopy);
+      IRTPMediaEngineHandlePacketAsyncDelegateProxy::createUsingQueue(mHandlePacketQueue, getThis<VideoSenderChannelResource>())->onSendVideoFrame(videoFrame);
     }
 
     //-------------------------------------------------------------------------

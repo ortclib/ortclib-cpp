@@ -34,17 +34,15 @@
 #include <ortc/internal/types.h>
 
 #include <ortc/IMediaStreamTrack.h>
+#include <ortc/internal/ortc_RTPMediaEngine.h>
 
 #include <openpeer/services/IWakeDelegate.h>
 #include <zsLib/MessageQueueAssociator.h>
 #include <zsLib/Timer.h>
 
-#include <webrtc/video_frame.h>
-#include <webrtc/voice_engine/include/voe_base.h>
-#include <webrtc/modules/video_capture/video_capture.h>
-#include <webrtc/modules/video_render/video_render.h>
-
 #include <zsLib/WeightedMovingAverage.h>
+
+#include <webrtc/video_frame.h>
 
 namespace ortc
 {
@@ -257,8 +255,9 @@ namespace ortc
     interaction IMediaStreamTrackForRTPReceiverChannelVideo : public IMediaStreamTrackForRTPReceiverChannelMediabase
     {
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPReceiverChannelVideo, ForReceiverChannelVideo)
+      ZS_DECLARE_TYPEDEF_PTR(webrtc::VideoFrame, VideoFrame);
 
-      virtual void renderVideoFrame(const webrtc::VideoFrame& videoFrame) = 0;
+      virtual void renderVideoFrame(VideoFramePtr videoFrame) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -287,12 +286,20 @@ namespace ortc
     interaction IMediaStreamTrackForRTPMediaEngine
     {
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPMediaEngine, ForMediaEngine)
+      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::Kinds, Kinds)
+      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::TrackConstraints, TrackConstraints)
+      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::Settings, Settings)
+      ZS_DECLARE_TYPEDEF_PTR(webrtc::VideoFrame, VideoFrame)
 
+      virtual Kinds kind() const = 0;
       virtual String id() const = 0;
+      virtual bool remote() const = 0;
 
-      virtual IMediaStreamTrackTypes::SettingsPtr getSettings() const = 0;
+      virtual TrackConstraintsPtr getConstraints() const = 0;
+      virtual SettingsPtr getSettings() const = 0;
 
-      virtual void renderVideoFrame(const webrtc::VideoFrame& videoFrame) = 0;
+      virtual void renderVideoFrame(VideoFramePtr videoFrame) = 0;
+      virtual void sendCapturedVideoFrame(VideoFramePtr videoFrame) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -330,7 +337,6 @@ namespace ortc
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::TrackConstraints, TrackConstraints);
       ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverChannelForMediaStreamTrack, UseReceiverChannel);
       ZS_DECLARE_TYPEDEF_PTR(IRTPSenderChannelForMediaStreamTrack, UseSenderChannel);
-      ZS_DECLARE_TYPEDEF_PTR(webrtc::VideoFrame, VideoFrame);
 
       virtual void onResolveStatsPromise(IStatsProvider::PromiseWithStatsReportPtr promise, IStatsReportTypes::StatsTypeSet stats) = 0;
 
@@ -343,8 +349,6 @@ namespace ortc
       
       virtual void onAttachSenderChannel(UseSenderChannelPtr channel) = 0;
       virtual void onDetachSenderChannel(UseSenderChannelPtr channel) = 0;
-
-      virtual void onCapturedVideoFrame(int32_t id, VideoFramePtr frame) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -373,6 +377,7 @@ namespace ortc
                              public IMediaStreamTrackForMediaStream,
                              public IWakeDelegate,
                              public zsLib::ITimerDelegate,
+                             public zsLib::IPromiseSettledDelegate,
                              public IMediaStreamTrackAsyncDelegate
     {
     protected:
@@ -403,17 +408,14 @@ namespace ortc
       ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverForMediaStreamTrack, UseReceiver)
       ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverChannelForMediaStreamTrack, UseReceiverChannel)
       ZS_DECLARE_TYPEDEF_PTR(IRTPMediaEngineForMediaStreamTrack, UseMediaEngine)
+      ZS_DECLARE_TYPEDEF_PTR(IRTPMediaEngineDeviceResource, UseDeviceResource)
 
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::TrackConstraints, TrackConstraints)
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::Constraints, Constraints)
+      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::Settings, Settings)
 
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::Kinds, Kinds)
-      
-      struct VideoCaptureCapabilityWithDistance
-      {
-        webrtc::VideoCaptureCapability mCapability;
-        FLOAT mDistance;
-      };
+      ZS_DECLARE_TYPEDEF_PTR(webrtc::VideoFrame, VideoFrame)
 
     public:
       MediaStreamTrack(
@@ -585,7 +587,7 @@ namespace ortc
       #pragma mark MediaStreamTrack => IMediaStreamTrackForRTPReceiverChannelVideo
       #pragma mark
 
-      virtual void renderVideoFrame(const webrtc::VideoFrame& videoFrame) override;
+      virtual void renderVideoFrame(VideoFramePtr videoFrame) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -597,11 +599,16 @@ namespace ortc
       #pragma mark MediaStreamTrack => IMediaStreamTrackForMediaEngine
       #pragma mark
 
+      // (duplicate) virtual Kinds kind() const = 0;
       // (duplicate) virtual String id() const = 0;
+      // (duplicate) virtual bool remote() const = 0;
 
-      // (duplicate) virtual IMediaStreamTrackTypes::SettingsPtr getSettings() const = 0;
+      // (duplicate) virtual TrackConstraintsPtr getConstraints() const = 0;
+      // (duplicate) virtual SettingsPtr getSettings() const = 0;
 
       // (duplicate) virtual void renderVideoFrame(const webrtc::VideoFrame& videoFrame) = 0;
+
+      virtual void sendCapturedVideoFrame(VideoFramePtr videoFrame) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -629,6 +636,13 @@ namespace ortc
 
       //-----------------------------------------------------------------------
       #pragma mark
+      #pragma mark MediaStreamTrack => IPromiseSettledDelegate
+      #pragma mark
+
+      virtual void onPromiseSettled(PromisePtr promise) override;
+
+      //-----------------------------------------------------------------------
+      #pragma mark
       #pragma mark MediaStreamTrack => IMediaStreamTrackAsyncDelegate
       #pragma mark
 
@@ -643,56 +657,6 @@ namespace ortc
 
       virtual void onAttachSenderChannel(UseSenderChannelPtr channel) override;
       virtual void onDetachSenderChannel(UseSenderChannelPtr channel) override;
-
-      virtual void onCapturedVideoFrame(int32_t id, VideoFramePtr frame) override;
-
-      //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaStreamTrack => friend Transport (video)
-      #pragma mark
-
-      virtual void OnIncomingCapturedFrame(const int32_t id, const webrtc::VideoFrame& videoFrame);
-
-      virtual void OnCaptureDelayChanged(const int32_t id, const int32_t delay);
-
-    public:
-      //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaStreamTrack::Transport
-      #pragma mark
-
-      class Transport : public webrtc::VideoCaptureDataCallback
-
-      {
-        struct make_private {};
-
-      protected:
-        void init();
-        
-      public:
-        Transport(
-                  const make_private &,
-                  MediaStreamTrackPtr outer
-                  );
-        
-        ~Transport();
-        
-        static TransportPtr create(MediaStreamTrackPtr outer);
-
-      public:
-        //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark MediaStreamTrack::Transport => webrtc::VideoCaptureDataCallback
-        #pragma mark
-
-        virtual void OnIncomingCapturedFrame(const int32_t id, const webrtc::VideoFrame& videoFrame) override;
-        
-        virtual void OnCaptureDelayChanged(const int32_t id, const int32_t delay) override;
-
-      private:
-        TransportWeakPtr mThisWeak;
-        MediaStreamTrackWeakPtr mOuter;
-      };
 
     protected:
       //-----------------------------------------------------------------------
@@ -709,29 +673,13 @@ namespace ortc
       bool isShutdown() const;
 
       void step();
-      bool stepBogusDoSomething();
+      bool stepDevicePromise();
+      bool stepSetupDevice();
 
       void cancel();
 
       void setState(States state);
       void setError(WORD error, const char *reason = NULL);
-
-      int getAudioDeviceIndex(webrtc::VoiceEngine *voiceEngine, String deviceID);
-
-      FLOAT calculateSizeDistance(
-                                  ConstrainLongRange width,
-                                  ConstrainLongRange height,
-                                  webrtc::VideoCaptureCapability capability
-                                  );
-      FLOAT calculateFrameRateDistance(
-                                       ConstrainDoubleRange frameRate,
-                                       webrtc::VideoCaptureCapability capability
-                                       );
-      FLOAT calculateAspectRatioDistance(
-                                         ConstrainDoubleRange aspectRatio,
-                                         webrtc::VideoCaptureCapability capability
-                                         );
-      FLOAT calculateFormatDistance(webrtc::VideoCaptureCapability capability);
  
     protected:
       //-----------------------------------------------------------------------
@@ -761,21 +709,17 @@ namespace ortc
       UseReceiverWeakPtr mReceiver;
       UseReceiverChannelWeakPtr mReceiverChannel;
 
-      TransportPtr mTransport;  // keep lifetime of webrtc callback separate from this object
-
       CapabilitiesPtr mCapabilities;
       TrackConstraintsPtr mConstraints;
       SettingsPtr mSettings;
 
-      webrtc::VideoCaptureModule* mVideoCaptureModule {NULL};
-      webrtc::VideoRenderCallback* mVideoRendererCallback {NULL};
-      IMediaStreamTrackRenderCallbackPtr mVideoRenderCallbackReferenceHolder;
+      PromiseWithRTPMediaEngineDeviceResourcePtr mDeviceResourceLifetimeHolderPromise;
+      UseDeviceResourcePtr mDeviceResource;
+      IMediaStreamTrackRenderCallbackPtr mVideoRendererCallback;
+
+      PromisePtr mCloseDevicePromise;
 
       TimerPtr mStatsTimer;
-      std::atomic<ULONG> mFramesSent {};
-      std::atomic<ULONG> mFramesReceived {};
-      WeightedMovingAverageUsingTotalDouble mAverageFramesSent;
-      WeightedMovingAverageUsingTotalDouble mAverageFramesReceived;
     };
 
     //-------------------------------------------------------------------------
@@ -811,11 +755,9 @@ ZS_DECLARE_PROXY_TYPEDEF(zsLib::PromisePtr, PromisePtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IMediaStreamTrackTypes::TrackConstraintsPtr, TrackConstraintsPtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::IMediaStreamTrackAsyncDelegate::UseReceiverChannelPtr, UseReceiverChannelPtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::IMediaStreamTrackAsyncDelegate::UseSenderChannelPtr, UseSenderChannelPtr)
-ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::IMediaStreamTrackAsyncDelegate::VideoFramePtr, VideoFramePtr)
 ZS_DECLARE_PROXY_METHOD_2(onResolveStatsPromise, PromiseWithStatsReportPtr, StatsTypeSet)
 ZS_DECLARE_PROXY_METHOD_2(onApplyConstraints, PromisePtr, TrackConstraintsPtr)
 ZS_DECLARE_PROXY_METHOD_1(onSetActiveReceiverChannel, UseReceiverChannelPtr)
 ZS_DECLARE_PROXY_METHOD_1(onAttachSenderChannel, UseSenderChannelPtr)
 ZS_DECLARE_PROXY_METHOD_1(onDetachSenderChannel, UseSenderChannelPtr)
-ZS_DECLARE_PROXY_METHOD_2(onCapturedVideoFrame, int32_t, VideoFramePtr)
 ZS_DECLARE_PROXY_END()
